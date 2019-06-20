@@ -194,12 +194,8 @@ class TestFitsTime(FitsTestCase):
         # back using native astropy objects; thus, ensure its round-trip
         t.write(self.temp('time.fits'), format='fits', overwrite=True)
 
-        with pytest.warns(AstropyUserWarning, match='Time column reference '
-                          'position "TRPOSn" is not specified. The default '
-                          'value for it is "TOPOCENTER", but due to unspecified '
-                          'observatory position, reference position will be ignored.'):
-            tm = table_types.read(self.temp('time.fits'), format='fits',
-                                  astropy_native=True)
+        tm = table_types.read(self.temp('time.fits'), format='fits',
+                              astropy_native=True)
 
         # Test DATE
         assert isinstance(tm.meta['DATE'], Time)
@@ -219,12 +215,8 @@ class TestFitsTime(FitsTestCase):
 
         t.write(self.temp('time.fits'), format='fits', overwrite=True)
 
-        with pytest.warns(AstropyUserWarning, match='Time column reference '
-                          'position "TRPOSn" is not specified. The default value '
-                          'for it is "TOPOCENTER", but due to unspecified observatory '
-                          'position, reference position will be ignored.'):
-            tm = table_types.read(self.temp('time.fits'), format='fits',
-                                  astropy_native=True)
+        tm = table_types.read(self.temp('time.fits'), format='fits',
+                              astropy_native=True)
 
         # Test DATE
         assert isinstance(tm.meta['DATE'], Time)
@@ -437,7 +429,8 @@ class TestFitsTime(FitsTestCase):
             assert ('observatory position is not properly specified' in
                     str(w[0].message))
 
-        # Default value for time reference position is "TOPOCENTER"
+        # Warning for default value of time reference position "TOPOCENTER"
+        # not generated when there is no specified observatory position.
         c = fits.Column(name='datetime', format='A29', coord_type='TT',
                         array=self.time)
 
@@ -445,6 +438,4 @@ class TestFitsTime(FitsTestCase):
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
         with catch_warnings() as w:
             tm = table_types.read(self.temp('time.fits'), astropy_native=True)
-            assert len(w) == 1
-            assert ('"TRPOSn" is not specified. The default value for '
-                    'it is "TOPOCENTER"' in str(w[0].message))
+            assert len(w) == 0
