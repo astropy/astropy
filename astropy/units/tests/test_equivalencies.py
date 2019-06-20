@@ -3,7 +3,6 @@
 """Separate tests specifically for equivalencies."""
 
 # THIRD-PARTY
-import warnings
 import pytest
 import numpy as np
 from numpy.testing import assert_allclose
@@ -12,7 +11,8 @@ from numpy.testing import assert_allclose
 from astropy import units as u
 from astropy.units.equivalencies import Equivalency
 from astropy import constants, cosmology
-from astropy.tests.helper import assert_quantity_allclose
+from astropy.tests.helper import assert_quantity_allclose, catch_warnings
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_dimensionless_angles():
@@ -28,7 +28,7 @@ def test_dimensionless_angles():
     assert (1.*u.deg).to_value(1, equivalencies=rad1) == u.deg.to(u.rad)
     assert (1.*u.steradian).to_value(1, equivalencies=rad1) == 1.
     # more complicated example
-    I = 1.e45 * u.g * u.cm**2
+    I = 1.e45 * u.g * u.cm**2  # noqa
     Omega = u.cycle / (1.*u.s)
     Erot = 0.5 * I * Omega**2
     # check that equivalency makes this work
@@ -90,7 +90,7 @@ def test_doppler_wavelength_0(function):
 @pytest.mark.parametrize(('function'), doppler_functions)
 def test_doppler_energy_0(function):
     rest = 105.01 * u.GHz
-    q1 = 0.0004342864612223407 * u.eV
+    q1 = 0.0004342864648539744 * u.eV
     velo0 = q1.to(u.km/u.s, equivalencies=function(rest))
     np.testing.assert_almost_equal(velo0.value, 0, decimal=6)
 
@@ -523,7 +523,7 @@ def test_irrelevant_equivalency():
 def test_brightness_temperature():
     omega_B = np.pi * (50 * u.arcsec) ** 2
     nu = u.GHz * 5
-    tb = 7.052590289134352 * u.K
+    tb = 7.052587837212582 * u.K
     np.testing.assert_almost_equal(
         tb.value, (1 * u.Jy).to_value(
             u.K, equivalencies=u.brightness_temperature(nu, beam_area=omega_B)))
@@ -531,32 +531,31 @@ def test_brightness_temperature():
         1.0, tb.to_value(
             u.Jy, equivalencies=u.brightness_temperature(nu, beam_area=omega_B)))
 
+
 def test_swapped_args_brightness_temperature():
     """
     #5173 changes the order of arguments but accepts the old (deprecated) args
     """
     omega_B = np.pi * (50 * u.arcsec) ** 2
     nu = u.GHz * 5
-    tb = 7.052590289134352 * u.K
-    # https://docs.pytest.org/en/latest/warnings.html#ensuring-function-triggers
-    with warnings.catch_warnings():
-        warnings.simplefilter('always')
-        with pytest.warns(DeprecationWarning) as warning_list:
-            result = (1*u.Jy).to(u.K,
-                                 equivalencies=u.brightness_temperature(omega_B,
-                                                                        nu))
-            roundtrip = result.to(u.Jy,
-                                  equivalencies=u.brightness_temperature(omega_B,
-                                                                         nu))
-    assert len(warning_list) == 2
+    tb = 7.052587837212582 * u.K
+
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        result = (1*u.Jy).to(
+            u.K, equivalencies=u.brightness_temperature(omega_B, nu))
+        roundtrip = result.to(
+            u.Jy, equivalencies=u.brightness_temperature(omega_B, nu))
+        assert len(w) == 2
     np.testing.assert_almost_equal(tb.value, result.value)
     np.testing.assert_almost_equal(roundtrip.value, 1)
+
 
 def test_surfacebrightness():
     sb = 50*u.MJy/u.sr
     k = sb.to(u.K, u.brightness_temperature(50*u.GHz))
     np.testing.assert_almost_equal(k.value, 0.650965, 5)
     assert k.unit.is_equivalent(u.K)
+
 
 def test_beam():
     # pick a beam area: 2 pi r^2 = area of a Gaussina with sigma=50 arcsec
@@ -572,7 +571,7 @@ def test_beam():
     # test inverse beam equivalency
     # (this is just a sanity check that the equivalency is defined;
     # it's not for testing numerical consistency)
-    new_inverse_beam = (5/u.beam).to(1/u.sr, u.equivalencies.beam_angular_area(omega_B))
+    (5/u.beam).to(1/u.sr, u.equivalencies.beam_angular_area(omega_B))
 
     # test practical case
     # (this is by far the most important one)
@@ -583,13 +582,12 @@ def test_beam():
 
 def test_thermodynamic_temperature():
     nu = 143 * u.GHz
-    tb = 0.0026320518775281975 * u.K
+    tb = 0.0026320501262630277 * u.K
+    eq = u.thermodynamic_temperature(nu, T_cmb=2.7255 * u.K)
     np.testing.assert_almost_equal(
-        tb.value, (1 * u.MJy/u.sr).to_value(
-            u.K, equivalencies=u.thermodynamic_temperature(nu, T_cmb=2.7255 * u.K)))
+        tb.value, (1 * (u.MJy / u.sr)).to_value(u.K, equivalencies=eq))
     np.testing.assert_almost_equal(
-        1.0, tb.to_value(
-            u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu, T_cmb=2.7255 * u.K)))
+        1.0, tb.to_value(u.MJy / u.sr, equivalencies=eq))
 
 
 def test_equivalency_context():
@@ -782,6 +780,7 @@ def test_equivelency():
     assert len(ps.kwargs) == 1
     assert ps.kwargs[0] == dict({'pixscale': 10*u.arcsec/u.pix})
 
+
 def test_add_equivelencies():
     e1 = u.pixel_scale(10*u.arcsec/u.pixel) + u.temperature_energy()
     assert isinstance(e1, Equivalency)
@@ -789,5 +788,5 @@ def test_add_equivelencies():
     assert isinstance(e1.kwargs, list)
     assert e1.kwargs == [dict({'pixscale': 10*u.arcsec/u.pix}), dict()]
 
-    e2 = u.pixel_scale(10*u.arcsec/u.pixel) + [1, 2,3]
+    e2 = u.pixel_scale(10*u.arcsec/u.pixel) + [1, 2, 3]
     assert isinstance(e2, list)

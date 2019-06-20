@@ -47,25 +47,26 @@ def test_h():
 
 def test_e():
 
-    from astropy.constants.astropyconst13 import e
+    from astropy.constants.astropyconst13 import e as e_13
 
     # A test quantity
     E = Q(100.00000348276221, 'V/m')
 
     # e.cgs is too ambiguous and should not work at all
     with pytest.raises(TypeError):
-        e.cgs * E
+        e_13.cgs * E
 
-    assert isinstance(e.si, Q)
-    assert isinstance(e.gauss, Q)
-    assert isinstance(e.esu, Q)
+    assert isinstance(e_13.si, Q)
+    assert isinstance(e_13.gauss, Q)
+    assert isinstance(e_13.esu, Q)
 
     # Cannot use == comparison here because conversion to eV
-    # uses constants.si.e value that can vary over time.
-    assert_quantity_allclose(e.si * E, Q(100, 'eV/m'))
+    # uses constants.si.e that is taken from the current set of constants,
+    # which is not the same as that of astropy 1.3.
+    assert_quantity_allclose(e_13.si * E, Q(100, 'eV/m'))
 
-    assert e.gauss * E == Q(e.gauss.value * E.value, 'Fr V/m')
-    assert e.esu * E == Q(e.esu.value * E.value, 'Fr V/m')
+    assert e_13.gauss * E == Q(e_13.gauss.value * E.value, 'Fr V/m')
+    assert e_13.esu * E == Q(e_13.esu.value * E.value, 'Fr V/m')
 
 
 def test_g0():
