@@ -2,11 +2,13 @@
 
 import numpy as np
 
-from ... import units as u
-from ...wcs import WCS
-from ...wcs.utils import wcs_to_celestial_frame
+from astropy.coordinates import SkyCoord, ICRS
+from astropy import units as u
+from astropy.wcs import WCS
+from astropy.wcs.wcsapi import SlicedLowLevelWCS
+
+from .frame import EllipticalFrame
 from .transforms import CurvedTransform
-from ...wcs.wcsapi import SlicedLowLevelWCS
 
 __all__ = ['transform_coord_meta_from_wcs', 'WCSWorld2PixelTransform',
            'WCSPixel2WorldTransform']
@@ -20,25 +22,37 @@ IDENTITY.wcs.cdelt = [1., 1.]
 # TODO: Make a ReversedPixelWCS thingy
 
 
-def transform_coord_meta_from_wcs(wcs, aslice=None):
-
-    invert_xy = False
-    if aslice is not None:
-        wcs_slice = list(aslice)
-        wcs_slice[wcs_slice.index("x")] = slice(None)
-        wcs_slice[wcs_slice.index("y")] = slice(None)
-        wcs = SlicedLowLevelWCS(wcs, wcs_slice)
-
-        invert_xy = aslice.index('x') < aslice.index('y')
-
-    transform = WCSPixel2WorldTransform(wcs, invert_xy=invert_xy)
-
+def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
     coord_meta = {}
     coord_meta['name'] = []
     coord_meta['type'] = []
     coord_meta['wrap'] = []
     coord_meta['unit'] = []
     coord_meta['format_unit'] = []
+
+    invert_xy = False
+    if aslice is not None:
+        wcs_slice = list(aslice) 
+        wcs_slice[wcs_slice.index("x")] = slice(None)
+        wcs_slice[wcs_slice.index("y")] = slice(None)
+        wcs = SlicedLowLevelWCS(wcs, wcs_slice[::-1])
+
+        invert_xy = aslice.index('x') < aslice.index('y')
+
+
+    coord_meta['default_position'] = [''] * wcs.world_n_dim
+
+    m = wcs.axis_correlation_matrix.copy()
+    if invert_xy:
+        m = m[:,::-1]
+
+    for i, spine_name in enumerate(frame_class.spine_names[:2]):
+        pos = np.nonzero(m[:, i % 2])[0]
+        if len(pos) > 0:
+            coord_meta['default_position'][pos[0]] = frame_class.spine_names[i]
+            m[pos[0], i % 2] = 0
+
+    transform = WCSPixel2WorldTransform(wcs, invert_xy=invert_xy)
 
     for axis_phys_type, axis_unit  in zip(wcs.world_axis_physical_types,
                                           wcs.world_axis_units):
@@ -82,6 +96,12 @@ def transform_coord_meta_from_wcs(wcs, aslice=None):
     return transform, coord_meta
 
 
+def wcsapi_to_celestial_frame(wcs):
+    for cls, args, kwargs in wcs.world_axis_object_classes.values():
+        if cls is SkyCoord:
+            return kwargs.get('frame', ICRS())
+    
+
 class WCSWorld2PixelTransform(CurvedTransform):
     """
     WCS transformation from world to pixel coordinates
@@ -100,8 +120,7 @@ class WCSWorld2PixelTransform(CurvedTransform):
         self.wcs = wcs
         self.invert_xy = invert_xy
 
-        # TODO: deal with celestial frames
-        # self.frame_in = ...
+        self.frame_in = wcsapi_to_celestial_frame(wcs)
 
     def __eq__(self, other):
         # TODO: for performance, find a way to return True when they do match
@@ -153,8 +172,7 @@ class WCSPixel2WorldTransform(CurvedTransform):
         self.wcs = wcs
         self.invert_xy = invert_xy
 
-        # TODO: deal with celestial frames
-        # self.frame_out = ...
+        self.frame_out = wcsapi_to_celestial_frame(wcs)
 
     def __eq__(self, other):
         # TODO: for performance, find a way to return True when they do match
