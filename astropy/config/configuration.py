@@ -20,7 +20,6 @@ from astropy.extern.configobj import configobj, validate
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from astropy.utils import find_current_module
 from astropy.utils.introspection import resolve_name
-from astropy.utils.misc import InheritDocstrings
 from .paths import get_config_dir
 
 
@@ -157,7 +156,7 @@ class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
                 item.set(item.defaultvalue)
 
 
-class ConfigItem(metaclass=InheritDocstrings):
+class ConfigItem:
     """
     A setting and associated value stored in a configuration file.
 

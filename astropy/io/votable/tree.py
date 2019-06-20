@@ -21,7 +21,6 @@ from astropy import __version__ as astropy_version
 from astropy.utils.collections import HomogeneousList
 from astropy.utils.xml.writer import XMLWriter
 from astropy.utils.exceptions import AstropyDeprecationWarning
-from astropy.utils.misc import InheritDocstrings
 
 from . import converters
 from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
@@ -405,7 +404,7 @@ class _DescriptionProperty:
 
 ######################################################################
 # ELEMENT CLASSES
-class Element(metaclass=InheritDocstrings):
+class Element(metaclass=type):
     """
     A base class for all classes that represent XML elements in the
     VOTABLE file.
