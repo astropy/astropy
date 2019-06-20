@@ -21,21 +21,15 @@ from astropy.nddata.ccddata import CCDData
 from astropy.table import Table
 
 
-def create_ccd_data(data_size=100, data_scale=1.0, data_mean=0.0, seed=123):
+with NumpyRNGContext(123):
+    _random_array = np.random.normal(size=[100, 100])
+
+
+def create_ccd_data():
     """
-    Return a CCDData object with units of ADU.
-
-    The size of the data array is 100x100 but can be changed using the
-    argument ``data_size``.
-
-    Data values are initialized to random numbers drawn from a normal
-    distribution with mean of 0 and scale 1 (or customized with ``data_mean``
-    or ``data_scale``.
+    Return a CCDData object of size 100x100 with units of ADU.
     """
-    with NumpyRNGContext(seed):
-        data = np.random.normal(
-            loc=data_mean, size=[data_size, data_size], scale=data_scale)
-
+    data = _random_array.copy()
     fake_meta = {'my_key': 42, 'your_key': 'not 42'}
     ccd = CCDData(data, unit=u.adu)
     ccd.header = fake_meta
@@ -65,9 +59,9 @@ def test_ccddata_meta_header_conflict():
 
 
 def test_ccddata_simple():
-    ccd_data = create_ccd_data(data_size=10)
-    assert ccd_data.shape == (10, 10)
-    assert ccd_data.size == 100
+    ccd_data = create_ccd_data()
+    assert ccd_data.shape == (100, 100)
+    assert ccd_data.size == 10000
     assert ccd_data.dtype == np.dtype(float)
 
 
@@ -77,14 +71,14 @@ def test_ccddata_init_with_string_electron_unit():
 
 
 def test_initialize_from_FITS(tmpdir):
-    ccd_data = create_ccd_data(data_size=10)
+    ccd_data = create_ccd_data()
     hdu = fits.PrimaryHDU(ccd_data)
     hdulist = fits.HDUList([hdu])
     filename = tmpdir.join('afile.fits').strpath
     hdulist.writeto(filename)
     cd = CCDData.read(filename, unit=u.electron)
-    assert cd.shape == (10, 10)
-    assert cd.size == 100
+    assert cd.shape == (100, 100)
+    assert cd.size == 10000
     assert np.issubdtype(cd.data.dtype, np.floating)
     for k, v in hdu.header.items():
         assert cd.meta[k] == v
