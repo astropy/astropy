@@ -49,7 +49,7 @@ redshifts as input:
 
   >>> from astropy.cosmology import WMAP9 as cosmo
   >>> cosmo.comoving_distance([0.5, 1.0, 1.5])  # doctest: +FLOAT_CMP
-  <Quantity [1916.06942039, 3363.0706321 , 4451.74754107] Mpc>
+  <Quantity [1916.06941724, 3363.07062107, 4451.7475201 ] Mpc>
 
 You can create your own FLRW-like cosmology using one of the cosmology
 classes::
@@ -128,7 +128,7 @@ They also accept arrays of redshifts:
 .. doctest-requires:: scipy
 
   >>> cosmo.age([0.5, 1, 1.5]).value  # doctest: +FLOAT_CMP
-  array([8.4212803 , 5.74698037, 4.19645387])
+  array([8.42128013, 5.74698021, 4.19645373])
 
 See the `~astropy.cosmology.FLRW` and
 `~astropy.cosmology.FlatLambdaCDM` object docstring for all of the
