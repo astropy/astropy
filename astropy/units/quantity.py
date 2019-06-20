@@ -1493,7 +1493,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         #    after converting quantities to arrays with suitable units,
         #    and possibly setting units on the result.
         # 3. DISPATCHED_FUNCTIONS (dict), if the function makes sense but
-        #    requires a Quantity-specific implementation
+        #    requires a Quantity-specific implementation.
         # 4. UNSUPPORTED_FUNCTIONS (set), if the function does not make sense.
         # For now, since we may not yet have complete coverage, if a
         # function is in none of the above, we simply call the numpy
@@ -1513,13 +1513,10 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             args, kwargs, unit, out = helper_info
 
             result = super().__array_function__(function, types, args, kwargs)
-            if unit is None or result is None or result is NotImplemented:
-                return result
-
-            return self._result_as_quantity(result, unit, out=out)
-
+            # Fall through to return section
         elif function in DISPATCHED_FUNCTIONS:
-            return DISPATCHED_FUNCTIONS[function](*args, **kwargs)
+            result, unit, out = DISPATCHED_FUNCTIONS[function](*args, **kwargs)
+            # Fall through to return section
 
         elif function in UNSUPPORTED_FUNCTIONS:
             return NotImplemented
@@ -1532,6 +1529,16 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                           .format(function.__name__), AstropyWarning)
 
             return super().__array_function__(function, types, args, kwargs)
+
+        # If unit is None, a plain array is expected (e.g., boolean), which
+        # means we're done.
+        # We're also done if the result was NotImplemented, which can happen
+        # if other inputs/outputs override __array_function__;
+        # hopefully, they can then deal with us.
+        if unit is None or result is NotImplemented:
+            return result
+
+        return self._result_as_quantity(result, unit, out=out)
 
     # Calculation -- override ndarray methods to take into account units.
     # We use the corresponding numpy functions to evaluate the results, since
