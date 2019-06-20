@@ -1,8 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-CONTACT = "Michael Droettboom"
-EMAIL = "mdroe@stsci.edu"
-
 import io
 from os.path import join
 import os.path
@@ -205,7 +202,7 @@ def get_wcslib_cfg(cfg, wcslib_files, include_paths):
         cfg['define_macros'].append(('DEBUG', None))
         cfg['undef_macros'].append('NDEBUG')
         if (not sys.platform.startswith('sun') and
-            not sys.platform == 'win32'):
+                not sys.platform == 'win32'):
             cfg['extra_compile_args'].extend(["-fno-inline", "-O0", "-g"])
     else:
         # Define ECHO as nothing to prevent spurious newlines from
