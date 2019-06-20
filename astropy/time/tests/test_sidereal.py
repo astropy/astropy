@@ -7,6 +7,7 @@ import numpy as np
 
 from astropy.time import Time
 from astropy.time.core import SIDEREAL_TIME_MODELS
+from astropy.utils import iers
 
 allclose_hours = functools.partial(np.allclose, rtol=1e-15, atol=3e-8)
 # 0.1 ms atol; IERS-B files change at that level.
@@ -21,7 +22,7 @@ def test_doc_string_contains_models():
             assert model in Time.sidereal_time.__doc__
 
 
-class TestERFATestCases():
+class TestERFATestCases:
     """Test that we reproduce the test cases given in erfa/src/t_erfa_c.c"""
     # all tests use the following JD inputs
     time_ut1 = Time(2400000.5, 53736.0, scale='ut1', format='jd')
@@ -65,15 +66,24 @@ class TestERFATestCases():
                            rtol=1., atol=precision)
 
 
-class TestST():
+class TestST:
     """Test Greenwich Sidereal Time.  Unlike above, this is relative to
     what was found earlier, so checks changes in implementation, including
     leap seconds, rather than correctness"""
 
-    t1 = Time(['2012-06-30 12:00:00', '2012-06-30 23:59:59',
-               '2012-06-30 23:59:60', '2012-07-01 00:00:00',
-               '2012-07-01 12:00:00'], scale='utc')
-    t2 = Time(t1, location=('120d', '10d'))
+    @classmethod
+    def setup_class(cls):
+        cls.orig_auto_download = iers.conf.auto_download
+        iers.conf.auto_download = False
+
+        cls.t1 = Time(['2012-06-30 12:00:00', '2012-06-30 23:59:59',
+                       '2012-06-30 23:59:60', '2012-07-01 00:00:00',
+                       '2012-07-01 12:00:00'], scale='utc')
+        cls.t2 = Time(cls.t1, location=('120d', '10d'))
+
+    @classmethod
+    def teardown_class(cls):
+        iers.conf.auto_download = cls.orig_auto_download
 
     def test_gmst(self):
         """Compare Greenwich Mean Sidereal Time with what was found earlier
@@ -134,9 +144,20 @@ class TestST():
             self.t1.sidereal_time('mean', None)
 
 
-class TestModelInterpretation():
+class TestModelInterpretation:
     """Check that models are different, and that wrong models are recognized"""
-    t = Time(['2012-06-30 12:00:00'], scale='utc', location=('120d', '10d'))
+
+    @classmethod
+    def setup_class(cls):
+        cls.orig_auto_download = iers.conf.auto_download
+        iers.conf.auto_download = False
+
+        cls.t = Time(['2012-06-30 12:00:00'], scale='utc',
+                     location=('120d', '10d'))
+
+    @classmethod
+    def teardown_class(cls):
+        iers.conf.auto_download = cls.orig_auto_download
 
     @pytest.mark.parametrize('kind', ('mean', 'apparent'))
     def test_model_uniqueness(self, kind):

@@ -5,7 +5,7 @@ import pytest
 from astropy.time import Time
 
 
-class TestGuess():
+class TestGuess:
     """Test guessing the input value format"""
 
     def test_guess1(self):

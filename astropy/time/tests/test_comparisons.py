@@ -8,7 +8,7 @@ import numpy as np
 from astropy.time import Time, TimeDelta
 
 
-class TestTimeComparisons():
+class TestTimeComparisons:
     """Test Comparisons of Time and TimeDelta classes"""
 
     def setup(self):

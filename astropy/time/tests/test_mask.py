@@ -3,20 +3,22 @@
 import functools
 import numpy as np
 
+from astropy.io.fits.verify import VerifyWarning
 from astropy.utils.compat import NUMPY_LT_1_14
+from astropy.utils import iers
 from astropy.tests.helper import pytest
 from astropy.time import Time
 from astropy.table import Table
 
 try:
-    import h5py  # pylint: disable=W0611
+    import h5py  # pylint: disable=W0611  # noqa
 except ImportError:
     HAS_H5PY = False
 else:
     HAS_H5PY = True
 
 try:
-    import yaml  # pylint: disable=W0611
+    import yaml  # pylint: disable=W0611  # noqa
     HAS_YAML = True
 except ImportError:
     HAS_YAML = False
@@ -95,26 +97,29 @@ def test_str():
 
 
 def test_transform():
-    t = Time(['2000:001', '2000:002'])
-    t[1] = np.ma.masked
+    with iers.conf.set_temp('auto_download', False):
+        t = Time(['2000:001', '2000:002'])
+        t[1] = np.ma.masked
 
-    # Change scale (this tests the ERFA machinery with masking as well)
-    t_ut1 = t.ut1
-    assert is_masked(t_ut1.value[1])
-    assert not is_masked(t_ut1.value[0])
-    assert np.all(t_ut1.mask == [False, True])
+        # Change scale (this tests the ERFA machinery with masking as well)
+        t_ut1 = t.ut1
+        assert is_masked(t_ut1.value[1])
+        assert not is_masked(t_ut1.value[0])
+        assert np.all(t_ut1.mask == [False, True])
 
-    # Change format
-    t_unix = t.unix
-    assert is_masked(t_unix[1])
-    assert not is_masked(t_unix[0])
-    assert np.all(t_unix.mask == [False, True])
+        # Change format
+        t_unix = t.unix
+        assert is_masked(t_unix[1])
+        assert not is_masked(t_unix[0])
+        assert np.all(t_unix.mask == [False, True])
 
 
 def test_masked_input():
     v0 = np.ma.MaskedArray([[1, 2], [3, 4]])  # No masked elements
-    v1 = np.ma.MaskedArray([[1, 2], [3, 4]], mask=[[True, False], [False, False]])
-    v2 = np.ma.MaskedArray([[10, 20], [30, 40]], mask=[[False, False], [False, True]])
+    v1 = np.ma.MaskedArray([[1, 2], [3, 4]],
+                           mask=[[True, False], [False, False]])
+    v2 = np.ma.MaskedArray([[10, 20], [30, 40]],
+                           mask=[[False, False], [False, True]])
 
     # Init from various combinations of masked arrays
     t = Time(v0, format='cxcsec')
@@ -158,7 +163,10 @@ def test_serialize_fits_masked(tmpdir):
     fn = str(tmpdir.join('tempfile.fits'))
     t = Table([tm])
     t.write(fn)
-    t2 = Table.read(fn, astropy_native=True)
+
+    # Warning is a bug; https://github.com/astropy/astropy/issues/8773
+    with pytest.warns(VerifyWarning):
+        t2 = Table.read(fn, astropy_native=True)
 
     # Time FITS handling does not current round-trip format in FITS
     t2['col0'].format = tm.format

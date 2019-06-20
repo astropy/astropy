@@ -12,7 +12,7 @@ allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
                                  atol=2. ** -52 * 24 * 3600)  # 20 ps atol
 
 
-class TestTimeQuantity():
+class TestTimeQuantity:
     """Test Interaction of Time with Quantities"""
 
     def test_valid_quantity_input(self):
@@ -101,7 +101,7 @@ class TestTimeQuantity():
             Time(100000., format='cxcsec') > 10.*u.second
 
 
-class TestTimeDeltaQuantity():
+class TestTimeDeltaQuantity:
     """Test interaction of TimeDelta with Quantities"""
     def test_valid_quantity_input(self):
         """Test that TimeDelta can take quantity input."""
@@ -262,7 +262,7 @@ class TestTimeDeltaQuantity():
             t0 + np.arange(4.) * u.s
 
 
-class TestDeltaAttributes():
+class TestDeltaAttributes:
     def test_delta_ut1_utc(self):
         t = Time('2010-01-01 00:00:00', format='iso', scale='utc', precision=6)
         t.delta_ut1_utc = 0.3 * u.s
