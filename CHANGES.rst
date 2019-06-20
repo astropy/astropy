@@ -122,6 +122,9 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Removed the ``recommended_units`` attribute from Representations; it was
+  deprecated since 3.0. [#8892]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
