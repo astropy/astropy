@@ -54,47 +54,46 @@ def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
 
     transform = WCSPixel2WorldTransform(wcs, invert_xy=invert_xy)
 
-    for axis_phys_type, axis_unit  in zip(wcs.world_axis_physical_types,
-                                          wcs.world_axis_units):
+    for idx in range(wcs.world_n_dim):
 
-        axis_unit = u.Unit(axis_unit)
+        axis_type = wcs.world_axis_physical_types[idx]
+        axis_unit = u.Unit(wcs.world_axis_units[idx])
         coord_wrap = None
         format_unit = axis_unit
 
         coord_type = 'scalar'
 
-        if axis_phys_type is not None:
-            axis_phys_type_split = axis_phys_type.split('.')
-            if "pos" in axis_phys_type_split:
-                if "lon" in axis_phys_type_split:
-                    coord_type = "longitude"
-                if "lat" in axis_phys_type_split:
-                    coord_type = "latitude"
-                if "ra" in axis_phys_type_split:
-                    coord_type = "longitude"
-                    format_unit = u.hourangle
-                if "dec" in axis_phys_type_split:
-                    coord_type = "latitude"
-                if "alt" in axis_phys_type_split:
-                    coord_type = "longitude"
-                if "az" in axis_phys_type_split:
-                    coord_type = "latitude"
-                # Yes that's right pos.bodyrc.long is a thing.
-                if "long" in axis_phys_type_split:
-                    coord_type = "longitude"
+        if axis_type is not None:
 
-            if "pos.helioprojective.lon" in axis_phys_type:
+            axis_type_split = axis_type.split('.')
+
+            if "pos.helioprojective.lon" in axis_type:
                 coord_wrap = 180.
                 format_unit = u.arcsec
-            if "pos.helioprojective.lat" in axis_phys_type:
+            elif "pos.helioprojective.lat" in axis_type:
                 format_unit = u.arcsec
-
+            elif "pos" in axis_type_split:
+                if "lon" in axis_type_split:
+                    coord_type = "longitude"
+                elif "lat" in axis_type_split:
+                    coord_type = "latitude"
+                elif "ra" in axis_type_split:
+                    coord_type = "longitude"
+                    format_unit = u.hourangle
+                elif "dec" in axis_type_split:
+                    coord_type = "latitude"
+                elif "alt" in axis_type_split:
+                    coord_type = "longitude"
+                elif "az" in axis_type_split:
+                    coord_type = "latitude"
+                elif "long" in axis_type_split:
+                    coord_type = "longitude"
 
         coord_meta['type'].append(coord_type)
         coord_meta['wrap'].append(coord_wrap)
         coord_meta['format_unit'].append(format_unit)
         coord_meta['unit'].append(axis_unit)
-        coord_meta['name'].append(axis_phys_type or '')
+        coord_meta['name'].append(axis_type or '')
 
     return transform, coord_meta
 
