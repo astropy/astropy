@@ -292,7 +292,8 @@ astropy.io.misc
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
-- Invalid TRPOS<n> keyword is not generated for FITS time column. [#8784]
+- Fixes bug where an invalid TRPOS<n> keyword was being generated for FITS
+time column when no location was available. [#8784]
 
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^

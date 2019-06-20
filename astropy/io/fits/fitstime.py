@@ -255,17 +255,11 @@ def _verify_column_info(column_info, global_info):
         else:
             column_info['location'] = None
 
-    # Since TRPOSn is not specified, global reference position is
-    # considered.
+    # Warn user about ignoring global reference position when TRPOSn is
+    # not specified
     elif global_info['TREFPOS'] == 'TOPOCENTER':
 
-        if global_info['location'] is None:
-            warnings.warn(
-                'Time column reference position "TRPOSn" is not specified. The '
-                'default value for it is "TOPOCENTER", but due to unspecified '
-                'observatory position, reference position will be ignored.',
-                AstropyUserWarning)
-        else:
+        if global_info['location'] is not None:
             warnings.warn(
                 'Time column reference position "TRPOSn" is not specified. The '
                 'default value for it is "TOPOCENTER", and the observatory position '
