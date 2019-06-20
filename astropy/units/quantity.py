@@ -1502,20 +1502,22 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             return super().__array_function__(function, types, args, kwargs)
 
         elif function in FUNCTION_HELPERS:
+            function_helper = FUNCTION_HELPERS[function]
             try:
-                helper_info = FUNCTION_HELPERS[function](*args, **kwargs)
+                args, kwargs, unit, out = function_helper(*args, **kwargs)
             except NotImplementedError:
-                # We return NotImplemented, which is proper, even though
-                # if an ndarray is also present, it gets a chance as well
-                # and may just coerce us to object.
-                return NotImplemented
-
-            args, kwargs, unit, out = helper_info
+                return self._not_implemented_or_raise(function, types)
 
             result = super().__array_function__(function, types, args, kwargs)
             # Fall through to return section
+
         elif function in DISPATCHED_FUNCTIONS:
-            result, unit, out = DISPATCHED_FUNCTIONS[function](*args, **kwargs)
+            dispatched_function = DISPATCHED_FUNCTIONS[function]
+            try:
+                result, unit, out = dispatched_function(*args, **kwargs)
+            except NotImplementedError:
+                return self._not_implemented_or_raise(function, types)
+
             # Fall through to return section
 
         elif function in UNSUPPORTED_FUNCTIONS:
@@ -1539,6 +1541,20 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             return result
 
         return self._result_as_quantity(result, unit, out=out)
+
+    def _not_implemented_or_raise(self, function, types):
+        # Our function helper or dispatcher found that the function does not
+        # work with Quantity.  In principle, there may be another class that
+        # knows what to do with us, for which we should return NotImplemented.
+        # But if there is ndarray (or a non-Quantity subclass of it) around,
+        # it quite likely coerces, so we should just break.
+        if any(issubclass(t, np.ndarray) and not issubclass(t, Quantity)
+               for t in types):
+            raise TypeError("the Quantity implementation cannot handle {} "
+                            "with the given arguments."
+                            .format(function)) from None
+        else:
+            return NotImplemented
 
     # Calculation -- override ndarray methods to take into account units.
     # We use the corresponding numpy functions to evaluate the results, since

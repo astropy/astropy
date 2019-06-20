@@ -112,7 +112,7 @@ SUBCLASS_SAFE_FUNCTIONS |= {
 
 # TODO: could be supported but need work & thought.
 UNSUPPORTED_FUNCTIONS |= {
-    np.histogramdd, np.piecewise,
+    np.histogramdd,
     np.apply_along_axis, np.apply_over_axes}
 
 # Nonsensical for quantities.
@@ -381,6 +381,55 @@ def select(condlist, choicelist, default=0):
     if default != 0:
         default = (1 * unit)._to_own_unit(default)
     return (condlist, choicelist, default), kwargs, unit, out
+
+
+@dispatched_function
+def piecewise(x, condlist, funclist, *args, **kw):
+    from astropy.units import Quantity
+
+    # Copied implementation from numpy.lib.function_base.piecewise,
+    # taking care of units of function outputs.
+    n2 = len(funclist)
+    # undocumented: single condition is promoted to a list of one condition
+    if np.isscalar(condlist) or (
+            not isinstance(condlist[0], (list, np.ndarray)) and x.ndim != 0):
+        condlist = [condlist]
+
+    if any(isinstance(c, Quantity) for c in condlist):
+        raise TypeError("cannot have quantity in condlist.")
+
+    condlist = np.array(condlist, dtype=bool)
+    n = len(condlist)
+
+    if n == n2 - 1:  # compute the "otherwise" condition.
+        condelse = ~np.any(condlist, axis=0, keepdims=True)
+        condlist = np.concatenate([condlist, condelse], axis=0)
+        n += 1
+    elif n != n2:
+        raise ValueError(
+            "with {} condition(s), either {} or {} functions are expected"
+            .format(n, n, n+1)
+        )
+
+    y = np.zeros(x.shape, x.dtype)
+    where = []
+    what = []
+    for k in range(n):
+        item = funclist[k]
+        if not callable(item):
+            where.append(condlist[k])
+            what.append(item)
+        else:
+            vals = x[condlist[k]]
+            if vals.size > 0:
+                where.append(condlist[k])
+                what.append(item(vals, *args, **kw))
+
+    what, unit = _quantities2arrays(*what)
+    for item, value in zip(where, what):
+        y[item] = value
+
+    return y, unit, None
 
 
 @function_helper
