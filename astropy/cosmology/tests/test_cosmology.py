@@ -1086,19 +1086,20 @@ def test_neg_distmod():
 def test_critical_density():
     # WMAP7 but with Omega_relativistic = 0
     # These tests will fail if astropy.const starts returning non-mks
-    #  units by default; see the comment at the top of core.py
+    #  units by default; see the comment at the top of core.py.
+    # critical_density0 is inversely proportional to G.
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
     fac = (const.G / const.codata2014.G).to(u.dimensionless_unscaled).value
-    assert allclose(tcos.critical_density0,
-                    9.309668456020899e-30 * fac * (u.g / u.cm**3))
+    assert allclose(tcos.critical_density0 * fac,
+                    9.309668456020899e-30 * (u.g / u.cm**3))
     assert allclose(tcos.critical_density0,
                     tcos.critical_density(0))
     assert allclose(
-        tcos.critical_density([1, 5]),
-        [2.70352772e-29 * fac, 5.53739080e-28 * fac] * (u.g / u.cm**3))
+        tcos.critical_density([1, 5]) * fac,
+        [2.70352772e-29, 5.53739080e-28] * (u.g / u.cm**3))
     assert allclose(
-        tcos.critical_density([1., 5.]),
-        [2.70352772e-29 * fac, 5.53739080e-28 * fac] * (u.g / u.cm**3))
+        tcos.critical_density([1., 5.]) * fac,
+        [2.70352772e-29, 5.53739080e-28] * (u.g / u.cm**3))
 
 
 @pytest.mark.skipif('not HAS_SCIPY')

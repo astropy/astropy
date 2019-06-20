@@ -55,7 +55,8 @@ GM_sun = IAU2015('GM_sun', 'Nominal solar mass parameter', 1.3271244e20,
 M_sun = IAU2015('M_sun', "Solar mass", GM_sun.value / codata.G.value,
                 'kg', ((codata.G.uncertainty / codata.G.value) *
                        (GM_sun.value / codata.G.value)),
-                "IAU 2015 Resolution B 3 + CODATA 2014", system='si')
+                "IAU 2015 Resolution B 3 + {}".format(codata.G.reference),
+                system='si')
 
 # Solar radius
 R_sun = IAU2015('R_sun', "Nominal solar radius", 6.957e8, 'm', 0.0,
@@ -72,7 +73,8 @@ GM_jup = IAU2015('GM_jup', 'Nominal Jupiter mass parameter', 1.2668653e17,
 M_jup = IAU2015('M_jup', "Jupiter mass", GM_jup.value / codata.G.value,
                 'kg', ((codata.G.uncertainty / codata.G.value) *
                        (GM_jup.value / codata.G.value)),
-                "IAU 2015 Resolution B 3 + CODATA 2014", system='si')
+                "IAU 2015 Resolution B 3 + {}".format(codata.G.reference),
+                system='si')
 
 # Jupiter equatorial radius
 R_jup = IAU2015('R_jup', "Nominal Jupiter equatorial radius", 7.1492e7,
@@ -87,7 +89,8 @@ M_earth = IAU2015('M_earth', "Earth mass",
                   GM_earth.value / codata.G.value,
                   'kg', ((codata.G.uncertainty / codata.G.value) *
                          (GM_earth.value / codata.G.value)),
-                  "IAU 2015 Resolution B 3 + CODATA 2014", system='si')
+                  "IAU 2015 Resolution B 3 + {}".format(codata.G.reference),
+                  system='si')
 
 # Earth equatorial radius
 R_earth = IAU2015('R_earth', "Nominal Earth equatorial radius", 6.3781e6,
