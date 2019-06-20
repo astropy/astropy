@@ -359,12 +359,8 @@ class WCSAxes(Axes):
 
         self._all_coords = [self.coords]
 
-        print(coord_meta)
-
         # Common default settings for Rectangular Frame
         for ind, pos in enumerate(coord_meta.get('default_position', ['b', 'l'])):
-
-            self.coords[ind].set_ticks_position(pos)
             self.coords[ind].set_axislabel_position(pos)
             self.coords[ind].set_ticklabel_position(pos)
 
