@@ -47,10 +47,10 @@ def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
         m = m[:,::-1]
 
     for i, spine_name in enumerate(frame_class.spine_names[:2]):
-        pos = np.nonzero(m[:, i % 2])[0]
+        pos = np.nonzero(m[:, (i + 1) % 2])[0]
         if len(pos) > 0:
             coord_meta['default_position'][pos[0]] = frame_class.spine_names[i]
-            m[pos[0], i % 2] = 0
+            m[pos[0], :] = 0
 
     transform = WCSPixel2WorldTransform(wcs, invert_xy=invert_xy)
 
@@ -61,37 +61,38 @@ def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
         coord_wrap = None
         format_unit = axis_unit
 
-        if "pos." in axis_phys_type:
-            if "lon" in axis_phys_type:
-                coord_type = "longitude"
-            if "lat" in axis_phys_type:
-                coord_type = "latitude"
-            if "ra" in axis_phys_type:
-                coord_type = "longitude"
-                format_unit = u.hourangle
-            if "dec" in axis_phys_type:
-                coord_type = "latitude"
-            if "alt" in axis_phys_type:
-                coord_type = "longitude"
-            if "az" in axis_phys_type:
-                coord_type = "latitude"
-            # Yes that's right pos.bodyrc.long is a thing.
-            if "long" in axis_phys_type:
-                coord_type = "longitude"
+        if axis_phys_type is not None:
+            if "pos." in axis_phys_type:
+                if "lon" in axis_phys_type:
+                    coord_type = "longitude"
+                if "lat" in axis_phys_type:
+                    coord_type = "latitude"
+                if "ra" in axis_phys_type:
+                    coord_type = "longitude"
+                    format_unit = u.hourangle
+                if "dec" in axis_phys_type:
+                    coord_type = "latitude"
+                if "alt" in axis_phys_type:
+                    coord_type = "longitude"
+                if "az" in axis_phys_type:
+                    coord_type = "latitude"
+                # Yes that's right pos.bodyrc.long is a thing.
+                if "long" in axis_phys_type:
+                    coord_type = "longitude"
+
+            if "pos.helioprojective.lon" in axis_phys_type:
+                coord_wrap = 180.
+                format_unit = u.arcsec
+            if "pos.helioprojective.lat" in axis_phys_type:
+                format_unit = u.arcsec
         else:
             coord_type = 'scalar'
-
-        if "pos.helioprojective.lon" in axis_phys_type:
-            coord_wrap = 180.
-            format_unit = u.arcsec
-        if "pos.helioprojective.lat" in axis_phys_type:
-            format_unit = u.arcsec
 
         coord_meta['type'].append(coord_type)
         coord_meta['wrap'].append(coord_wrap)
         coord_meta['format_unit'].append(format_unit)
         coord_meta['unit'].append(axis_unit)
-        coord_meta['name'].append(axis_phys_type)
+        coord_meta['name'].append(axis_phys_type or '')
 
     return transform, coord_meta
 
