@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# This module implements the base CCDData class.
 
 import textwrap
 
@@ -321,7 +320,6 @@ def test_copy(ccd_data):
 @pytest.mark.parametrize('with_uncertainty', [
                          True,
                          False])
-@pytest.mark.data_unit(u.adu)
 def test_mult_div_overload(ccd_data, operand, with_uncertainty,
                            operation, affects_uncertainty):
     if with_uncertainty:
@@ -372,7 +370,6 @@ def test_mult_div_overload(ccd_data, operand, with_uncertainty,
 @pytest.mark.parametrize('with_uncertainty', [
                          True,
                          False])
-@pytest.mark.data_unit(u.adu)
 def test_add_sub_overload(ccd_data, operand, expect_failure, with_uncertainty,
                           operation, affects_uncertainty):
     if with_uncertainty:
