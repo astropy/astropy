@@ -131,15 +131,18 @@ class WCSAxes(Axes):
 
         world = coords._transform.transform(np.array([pixel]))[0]
 
-        xw = coords[self._x_index].format_coord(world[self._x_index], format='ascii')
-        yw = coords[self._y_index].format_coord(world[self._y_index], format='ascii')
+        coord_strings = []
+        for idx, coord in enumerate(coords):
+            coord_strings.append(coord.format_coord(world[idx], format='ascii'))
+
+        coord_string = ' '.join(coord_strings)
 
         if self._display_coords_index == 0:
             system = "world"
         else:
             system = f"world, overlay {self._display_coords_index}"
 
-        coord_string = f"{xw} {yw} ({system})"
+        coord_string = f"{coord_string} ({system})"
 
         return coord_string
 
@@ -356,8 +359,10 @@ class WCSAxes(Axes):
 
         self._all_coords = [self.coords]
 
+        print(coord_meta)
+
         # Common default settings for Rectangular Frame
-        for ind, pos in enumerate(coord_meta['default_position']):
+        for ind, pos in enumerate(coord_meta.get('default_position', ['b', 'l'])):
 
             self.coords[ind].set_ticks_position(pos)
             self.coords[ind].set_axislabel_position(pos)
@@ -446,14 +451,20 @@ class WCSAxes(Axes):
             xlabel = kwargs.pop('label', None)
             if xlabel is None:
                 raise TypeError("set_xlabel() missing 1 required positional argument: 'xlabel'")
-        self.coords[self._x_index].set_axislabel(xlabel, minpad=labelpad, **kwargs)
+        for coord in self.coords:
+            if 'b' in coord.axislabels.get_visible_axes():
+                coord.set_axislabel(xlabel, minpad=labelpad, **kwargs)
+                break
 
     def set_ylabel(self, ylabel=None, labelpad=1, **kwargs):
         if ylabel is None:
             ylabel = kwargs.pop('label', None)
             if ylabel is None:
                 raise TypeError("set_ylabel() missing 1 required positional argument: 'ylabel'")
-        self.coords[self._y_index].set_axislabel(ylabel, minpad=labelpad, **kwargs)
+        for coord in self.coords:
+            if 'l' in coord.axislabels.get_visible_axes():
+                coord.set_axislabel(ylabel, minpad=labelpad, **kwargs)
+                break
 
     def get_xlabel(self):
         return self.coords[self._x_index].get_axislabel()
