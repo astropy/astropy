@@ -131,11 +131,6 @@ matrix:
                MATPLOTLIB_VERSION=2.0
                EVENT_TYPE='push pull_request cron'
 
-        # Try pre-release version of Numpy without optional dependencies
-        - os: linux
-          env: NUMPY_VERSION=prerelease
-               EVENT_TYPE='push pull_request cron'
-
         # Do a PEP8/pyflakes test with flake8
         - os: linux
           stage: Initial tests
