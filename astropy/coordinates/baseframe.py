@@ -797,10 +797,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                 repr_attrs[repr_diff_cls] = {'names': [], 'units': []}
                 for c, c_cls in repr_diff_cls.attr_classes.items():
                     repr_attrs[repr_diff_cls]['names'].append(c)
-                    # TODO: when "recommended_units" is removed, just directly use
-                    # the default part here.
-                    rec_unit = repr_diff_cls._recommended_units.get(
-                        c, u.deg if issubclass(c_cls, Angle) else None)
+                    rec_unit = u.deg if issubclass(c_cls, Angle) else None
                     repr_attrs[repr_diff_cls]['units'].append(rec_unit)
 
             for repr_diff_cls, mappings in cls._frame_specific_representation_info.items():
