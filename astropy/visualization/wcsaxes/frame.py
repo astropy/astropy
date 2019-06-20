@@ -44,7 +44,8 @@ class Spine:
         else:
             self._data = value
             self._pixel = self.parent_axes.transData.transform(self._data)
-            self._world = self.transform.transform(self._data)
+            with np.errstate(invalid='ignore'):
+                self._world = self.transform.transform(self._data)
             self._update_normal()
 
     @property
