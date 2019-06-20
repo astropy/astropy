@@ -52,6 +52,8 @@ class CoordinatesMap:
         self._coords = []
         self._aliases = {}
 
+        print(coord_meta)
+
         for coord_index in range(len(coord_meta['type'])):
 
             # Extract coordinate metadata

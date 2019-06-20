@@ -17,7 +17,8 @@ from .transforms import CoordinateTransform
 from .coordinates_map import CoordinatesMap
 from .utils import get_coord_meta, transform_contour_set_inplace
 from .frame import EllipticalFrame, RectangularFrame
-from .fitswcs import transform_coord_meta_from_wcs, IDENTITY
+from .fitswcs import IDENTITY
+from .wcsapi import transform_coord_meta_from_wcs
 
 
 __all__ = ['WCSAxes', 'WCSAxesSubplot']
@@ -339,7 +340,7 @@ class WCSAxes(Axes):
             previous_frame = {'path': None}
 
         if self.wcs is not None:
-            transform, coord_meta = transform_coord_meta_from_wcs(self.wcs, slice=slices)
+            transform, coord_meta = transform_coord_meta_from_wcs(self.wcs, slices)
 
         self.coords = CoordinatesMap(self,
                                      transform=transform,
@@ -365,33 +366,33 @@ class WCSAxes(Axes):
             self._y_index = self.slices.index('y')
 
         # Common default settings for Rectangular Frame
-        if self.frame_class is RectangularFrame:
-            for coord_index in range(len(self.slices)):
-                if self.slices[coord_index] == 'x':
-                    self.coords[coord_index].set_axislabel_position('b')
-                    self.coords[coord_index].set_ticklabel_position('b')
-                elif self.slices[coord_index] == 'y':
-                    self.coords[coord_index].set_axislabel_position('l')
-                    self.coords[coord_index].set_ticklabel_position('l')
-                else:
-                    self.coords[coord_index].set_axislabel_position('')
-                    self.coords[coord_index].set_ticklabel_position('')
-                    self.coords[coord_index].set_ticks_position('')
+        # if self.frame_class is RectangularFrame:
+        #     for coord_index in range(len(self.slices)):
+        #         if self.slices[coord_index] == 'x':
+        #             self.coords[coord_index].set_axislabel_position('b')
+        #             self.coords[coord_index].set_ticklabel_position('b')
+        #         elif self.slices[coord_index] == 'y':
+        #             self.coords[coord_index].set_axislabel_position('l')
+        #             self.coords[coord_index].set_ticklabel_position('l')
+        #         else:
+        #             self.coords[coord_index].set_axislabel_position('')
+        #             self.coords[coord_index].set_ticklabel_position('')
+        #             self.coords[coord_index].set_ticks_position('')
         # Common default settings for Elliptical Frame
-        elif self.frame_class is EllipticalFrame:
-            for coord_index in range(len(self.slices)):
-                if self.slices[coord_index] == 'x':
-                    self.coords[coord_index].set_axislabel_position('h')
-                    self.coords[coord_index].set_ticklabel_position('h')
-                    self.coords[coord_index].set_ticks_position('h')
-                elif self.slices[coord_index] == 'y':
-                    self.coords[coord_index].set_ticks_position('c')
-                    self.coords[coord_index].set_axislabel_position('c')
-                    self.coords[coord_index].set_ticklabel_position('c')
-                else:
-                    self.coords[coord_index].set_axislabel_position('')
-                    self.coords[coord_index].set_ticklabel_position('')
-                    self.coords[coord_index].set_ticks_position('')
+        # elif self.frame_class is EllipticalFrame:
+        #     for coord_index in range(len(self.slices)):
+        #         if self.slices[coord_index] == 'x':
+        #             self.coords[coord_index].set_axislabel_position('h')
+        #             self.coords[coord_index].set_ticklabel_position('h')
+        #             self.coords[coord_index].set_ticks_position('h')
+        #         elif self.slices[coord_index] == 'y':
+        #             self.coords[coord_index].set_ticks_position('c')
+        #             self.coords[coord_index].set_axislabel_position('c')
+        #             self.coords[coord_index].set_ticklabel_position('c')
+        #         else:
+        #             self.coords[coord_index].set_axislabel_position('')
+        #             self.coords[coord_index].set_ticklabel_position('')
+        #             self.coords[coord_index].set_ticks_position('')
 
         if rcParams['axes.grid']:
             self.grid()
