@@ -20,14 +20,16 @@ from astropy.utils.data import (get_pkg_data_filename, get_pkg_data_filenames,
 from astropy.nddata.ccddata import CCDData
 from astropy.table import Table
 
+DEFAULT_DATA_SIZE = 100
 
 with NumpyRNGContext(123):
-    _random_array = np.random.normal(size=[100, 100])
+    _random_array = np.random.normal(size=[DEFAULT_DATA_SIZE, DEFAULT_DATA_SIZE])
 
 
 def create_ccd_data():
     """
-    Return a CCDData object of size 100x100 with units of ADU.
+    Return a CCDData object of size DEFAULT_DATA_SIZE x DEFAULT_DATA_SIZE
+    with units of ADU.
     """
     data = _random_array.copy()
     fake_meta = {'my_key': 42, 'your_key': 'not 42'}
@@ -60,8 +62,8 @@ def test_ccddata_meta_header_conflict():
 
 def test_ccddata_simple():
     ccd_data = create_ccd_data()
-    assert ccd_data.shape == (100, 100)
-    assert ccd_data.size == 10000
+    assert ccd_data.shape == (DEFAULT_DATA_SIZE, DEFAULT_DATA_SIZE)
+    assert ccd_data.size == DEFAULT_DATA_SIZE * DEFAULT_DATA_SIZE
     assert ccd_data.dtype == np.dtype(float)
 
 
@@ -77,8 +79,8 @@ def test_initialize_from_FITS(tmpdir):
     filename = tmpdir.join('afile.fits').strpath
     hdulist.writeto(filename)
     cd = CCDData.read(filename, unit=u.electron)
-    assert cd.shape == (100, 100)
-    assert cd.size == 10000
+    assert cd.shape == (DEFAULT_DATA_SIZE, DEFAULT_DATA_SIZE)
+    assert cd.size == DEFAULT_DATA_SIZE * DEFAULT_DATA_SIZE
     assert np.issubdtype(cd.data.dtype, np.floating)
     for k, v in hdu.header.items():
         assert cd.meta[k] == v
