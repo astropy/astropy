@@ -173,7 +173,7 @@ class TestMaskedColumnInit(SetupData):
 class TestTableInit(SetupData):
     """Initializing a table"""
 
-    def test_mask_true_if_any_input_masked(self):
+    def test_mask_false_if_input_mask_not_true(self):
         """Masking is always False if initial masked arg is not True"""
         t = Table([self.ca, self.a])
         assert t.masked is False  # True before astropy 4.0
