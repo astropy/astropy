@@ -135,9 +135,6 @@ IGNORED_FUNCTIONS = {
     # Polynomials
     np.poly, np.polyadd, np.polyder, np.polydiv, np.polyfit, np.polyint,
     np.polymul, np.polysub, np.polyval, np.roots, np.vander,
-    # setops
-    np.in1d, np.intersect1d, np.isin, np.setdiff1d,
-    np.setxor1d, np.union1d, np.unique,
     # financial
     np.fv, np.ipmt, np.irr, np.mirr, np.nper, np.npv, np.pmt, np.ppmt,
     np.pv, np.rate}
@@ -770,3 +767,38 @@ def interp(x, xp, fp, *args, **kwargs):
         unit = None
 
     return (x, xp, fp) + args, kwargs, unit, None
+
+
+@function_helper
+def unique(ar, return_index=False, return_inverse=False,
+           return_counts=False, axis=None):
+    unit = ar.unit
+    n_index = sum(bool(i) for i in
+                  (return_index, return_inverse, return_counts))
+    if n_index:
+        unit = [unit] + n_index * [None]
+
+    return (ar.value, return_index, return_inverse, return_counts,
+            axis), {}, unit, None
+
+
+@function_helper
+def intersect1d(ar1, ar2, assume_unique=False, return_indices=False):
+    (ar1, ar2), unit = _quantities2arrays(ar1, ar2)
+    if return_indices:
+        unit = [unit, None, None]
+    return (ar1, ar2, assume_unique, return_indices), {}, unit, None
+
+
+@function_helper(helps=(np.setxor1d, np.union1d, np.setdiff1d))
+def twosetop(ar1, ar2, *args, **kwargs):
+    (ar1, ar2), unit = _quantities2arrays(ar1, ar2)
+    return (ar1, ar2) + args, kwargs, unit, None
+
+
+@function_helper(helps=(np.isin, np.in1d))
+def setcheckop(ar1, ar2, *args, **kwargs):
+    # This tests whether ar1 is in ar2, so we should change the unit of
+    # a1 to that of a2.
+    (ar2, ar1), unit = _quantities2arrays(ar2, ar1)
+    return (ar1, ar2) + args, kwargs, None, None
