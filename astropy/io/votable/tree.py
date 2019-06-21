@@ -1639,7 +1639,9 @@ class CooSys(SimpleElement):
         self._config = config
         self._pos = pos
 
-        if config.get('version_1_2_or_later'):
+        # COOSYS was deprecated in 1.2 but then re-instated in 1.3
+        if (config.get('version_1_2_or_later') and
+                not config.get('version_1_3_or_later')):
             warn_or_raise(W27, W27, (), config, pos)
 
         SimpleElement.__init__(self)
