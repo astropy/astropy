@@ -231,6 +231,18 @@ class TestAlongAxis(BasicTestSetup):
                                        self.q.value) * self.q.unit ** 2
         assert_array_equal(out, expected)
 
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
+    @pytest.mark.parametrize('axes', ((1,), (0,), (0, 1)))
+    def test_apply_over_axes(self, axes):
+        def function(x, axis):
+            return np.sum(np.square(x), axis)
+
+        out = np.apply_over_axes(function, self.q, axes)
+        expected = np.apply_over_axes(function, self.q.value, axes)
+        expected = expected * self.q.unit ** (2 * len(axes))
+        assert_array_equal(out, expected)
+
 
 class TestIndicesFrom(NoUnitTestSetup):
     def test_diag_indices_from(self):
@@ -1734,9 +1746,7 @@ untested_functions |= poly_functions
                    reason="no __array_function__ wrapping in numpy<1.17")
 def test_testing_completeness():
     assert not CoverageMeta.covered.intersection(untested_functions)
-    assert all_wrapped == (CoverageMeta.covered |
-                           should_be_tested_functions |
-                           untested_functions)
+    assert all_wrapped == (CoverageMeta.covered | untested_functions)
 
 
 class TestFunctionHelpersCompleteness:
