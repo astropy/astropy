@@ -2759,7 +2759,7 @@ class Table:
         if isinstance(other, Table):
             other = other.as_array()
 
-        if self.masked:
+        if self.has_masked_columns:
             if isinstance(other, np.ma.MaskedArray):
                 result = self.as_array() == other
             else:
