@@ -35,7 +35,7 @@ different units. For example::
       Value  = 299792458.0
       Uncertainty  = 0.0
       Unit  = m / s
-      Reference = CODATA 2014
+      Reference = CODATA 2018
 
     >>> print(const.c.to('km/s'))
     299792.458 km / s
@@ -76,27 +76,27 @@ Collections of Constants (and Prior Versions)
 =============================================
 
 Constants are organized into version modules. The constants for
-``astropy`` 1.3 can be accessed in the ``astropyconst13`` module.
+``astropy`` 2.0 can be accessed in the ``astropyconst20`` module.
 For example:
 
-    >>> from astropy.constants import astropyconst13 as const
+    >>> from astropy.constants import astropyconst20 as const
     >>> print(const.e)
       Name   = Electron charge
-      Value  = 1.602176565e-19
-      Uncertainty  = 3.5e-27
+      Value  = 1.6021766208e-19
+      Uncertainty  = 9.8e-28
       Unit  = C
-      Reference = CODATA 2010
+      Reference = CODATA 2014
 
-Physical CODATA constants are in modules with names like ``codata2010`` or
-``codata2014``:
+Physical CODATA constants are in modules with names like ``codata2010``,
+``codata2014``, or ``codata2018``:
 
-    >>> from astropy.constants import codata2010 as const
+    >>> from astropy.constants import codata2014 as const
     >>> print(const.h)
       Name   = Planck constant
-      Value  = 6.62606957e-34
-      Uncertainty  = 2.9e-41
+      Value  = 6.62607004e-34
+      Uncertainty  = 8.1e-42
       Unit  = J s
-      Reference = CODATA 2010
+      Reference = CODATA 2014
 
 Astronomical constants defined (primarily) by the International Astronomical
 Union (IAU) are collected in modules with names like ``iau2012`` or ``iau2015``:
@@ -118,7 +118,8 @@ Union (IAU) are collected in modules with names like ``iau2012`` or ``iau2015``:
       Reference = IAU 2015 Resolution B 3
 
 The astronomical and physical constants are combined into modules with
-names like ``astropyconst13`` and ``astropyconst20`` for different versions.
+names like ``astropyconst13``, ``astropyconst20``, and ``astropyconst40``
+for different versions.
 However, importing these prior version modules directly will lead to
 inconsistencies with other subpackages that have already imported
 `astropy.constants`. Notably, `astropy.units` will have already used
@@ -126,8 +127,8 @@ the default version of constants. When using prior versions of the constants
 in this manner, quantities should be constructed with constants instead of units.
 
 To ensure consistent use of a prior version of constants in other Astropy
-packages (such as `astropy.units`) that import constants, the physical and
-astronomical constants versions should be set via ScienceState classes.
+packages (such as `astropy.units`) that import ``constants``, the physical and
+astronomical constants versions should be set via ``ScienceState`` classes.
 These must be set before the first import of either `astropy.constants` or
 `astropy.units`.  For example, you can use the CODATA2010 physical constants and the
 IAU 2012 astronomical constants:
@@ -157,6 +158,8 @@ The versions may also be set using values referring to the version modules:
     >>> astronomical_constants.get()  # doctest: +SKIP
     'iau2012'
 
+.. The doctest should not be skipped, ideally. See https://github.com/astropy/astropy/issues/8781
+
 If either `astropy.constants` or `astropy.units` have already been imported, a
 ``RuntimeError`` will be raised.
 
@@ -180,10 +183,10 @@ for regression testing), a context manager is available, as follows:
       Reference = CODATA 2010
     >>> print(const.h)
       Name   = Planck constant
-      Value  = 6.62607004e-34
-      Uncertainty  = 8.1e-42
+      Value  = 6.62607015e-34
+      Uncertainty  = 0.0
       Unit  = J s
-      Reference = CODATA 2014
+      Reference = CODATA 2018
 
 The context manager may be used at any time in a Python session, but it
 uses the prior version only for `astropy.constants`, and not for any

@@ -212,7 +212,7 @@ class physical_constants(base_constants_version):
     The version of physical constants to use
     """
     # Maintainers: update when new constants are added
-    _value = 'codata2014'
+    _value = 'codata2018'
 
     _versions = dict(codata2018='codata2018', codata2014='codata2014',
                      codata2010='codata2010', astropyconst40='codata2018',

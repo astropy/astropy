@@ -5,6 +5,7 @@ import copy
 import pytest
 
 from astropy.constants import Constant
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import Quantity as Q
 
 
@@ -46,22 +47,21 @@ def test_h():
 
 def test_e():
 
-    from astropy.constants.astropyconst13 import e
+    from astropy.constants.astropyconst13 import e as e_13
 
     # A test quantity
     E = Q(100.00000348276221, 'V/m')
 
     # e.cgs is too ambiguous and should not work at all
     with pytest.raises(TypeError):
-        e.cgs * E
+        e_13.cgs * E
 
-    assert isinstance(e.si, Q)
-    assert isinstance(e.gauss, Q)
-    assert isinstance(e.esu, Q)
+    assert isinstance(e_13.si, Q)
+    assert isinstance(e_13.gauss, Q)
+    assert isinstance(e_13.esu, Q)
 
-    assert e.si * E == Q(100, 'eV/m')
-    assert e.gauss * E == Q(e.gauss.value * E.value, 'Fr V/m')
-    assert e.esu * E == Q(e.esu.value * E.value, 'Fr V/m')
+    assert e_13.gauss * E == Q(e_13.gauss.value * E.value, 'Fr V/m')
+    assert e_13.esu * E == Q(e_13.esu.value * E.value, 'Fr V/m')
 
 
 def test_g0():
@@ -161,7 +161,10 @@ def test_context_manager():
     with const.set_enabled_constants('astropyconst13'):
         assert const.h.value == 6.62606957e-34  # CODATA2010
 
-    assert const.h.value == 6.626070040e-34  # CODATA2014
+    with const.set_enabled_constants('astropyconst20'):
+        assert const.h.value == 6.626070040e-34  # CODATA2014
+
+    assert const.h.value == 6.62607015e-34  # CODATA2018
 
     with pytest.raises(ImportError):
         with const.set_enabled_constants('notreal'):

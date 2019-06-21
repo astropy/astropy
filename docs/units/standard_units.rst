@@ -39,11 +39,11 @@ all the existing predefined units of a given type::
   [
     M_e          | 9.10938e-31 kg  |                                  ,
     M_p          | 1.67262e-27 kg  |                                  ,
-    earthMass    | 5.97236e+24 kg  | M_earth, Mearth                  ,
+    earthMass    | 5.97217e+24 kg  | M_earth, Mearth                  ,
     g            | 0.001 kg        | gram                             ,
-    jupiterMass  | 1.89819e+27 kg  | M_jup, Mjup, M_jupiter, Mjupiter ,
+    jupiterMass  | 1.89812e+27 kg  | M_jup, Mjup, M_jupiter, Mjupiter ,
     kg           | irreducible     | kilogram                         ,
-    solMass      | 1.98848e+30 kg  | M_sun, Msun                      ,
+    solMass      | 1.98841e+30 kg  | M_sun, Msun                      ,
     t            | 1000 kg         | tonne                            ,
     u            | 1.66054e-27 kg  | Da, Dalton                       ,
   ]
@@ -162,7 +162,7 @@ For example::
    Unit(dimensionless with a scale of 1000.0)
    >>> (u.km / u.m).decompose() == u.dimensionless_unscaled
    False
-   
+
 As an example of why you might want to create a scaled dimensionless
 quantity, say you will be doing many calculations with some big
 unitless number, ``big_unitless_num = 20000000  # 20 million``,
@@ -179,7 +179,7 @@ to keep track of the scaling factor, e.g.::
    >>> some_measurement = 5.0 * u.cm
    >>> some_measurement * big_unitless_num  # doctest: +FLOAT_CMP
    <Quantity 100. 1e+06 cm>
-     
+
 To determine if a unit is dimensionless (but regardless of the scale),
 use the `~astropy.units.core.UnitBase.physical_type` property::
 
