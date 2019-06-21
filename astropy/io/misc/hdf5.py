@@ -222,8 +222,7 @@ def _encode_mixins(tbl):
 
 
 def write_table_hdf5(table, output, path=None, compression=False,
-                     append=False, overwrite=False, serialize_meta=False,
-                     compatibility_mode=False):
+                     append=False, overwrite=False, serialize_meta=False):
     """
     Write a Table object to an HDF5 file
 
@@ -304,8 +303,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
             return write_table_hdf5(table, f, path=path,
                                     compression=compression, append=append,
                                     overwrite=overwrite,
-                                    serialize_meta=serialize_meta,
-                                    compatibility_mode=compatibility_mode)
+                                    serialize_meta=serialize_meta)
         finally:
             f.close()
 
@@ -357,19 +355,8 @@ def write_table_hdf5(table, output, path=None, compression=False,
         header_yaml = meta.get_yaml_from_table(table)
 
         header_encoded = [h.encode('utf-8') for h in header_yaml]
-        if compatibility_mode:
-            warnings.warn("compatibility mode for writing is deprecated",
-                          AstropyDeprecationWarning)
-            try:
-                dset.attrs[META_KEY] = header_encoded
-            except Exception as e:
-                warnings.warn(
-                "Attributes could not be written to the output HDF5 "
-                "file: {0}".format(e))
-
-        else:
-            output_group.create_dataset(meta_path(name),
-                                        data=header_encoded)
+        output_group.create_dataset(meta_path(name),
+                                    data=header_encoded)
 
     else:
         # Write the Table meta dict key:value pairs to the file as HDF5
