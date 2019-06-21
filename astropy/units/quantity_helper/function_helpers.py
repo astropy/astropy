@@ -27,9 +27,12 @@ converted to Quantity), and ``out`` is a possible output Quantity passed
 in, which will be filled in-place.
 
 For the DISPATCHED_FUNCTIONS `dict`, the value is a function that
-implements the numpy functionality for Quantity input. It should return
-a tuple of ``result, unit, out``, where ``result`` is a plain array
-with the result, and ``unit`` and ``out`` are as above.
+implements the numpy functionality for Quantity input. It should
+return a tuple of ``result, unit, out``, where ``result`` is generally
+a plain array with the result, and ``unit`` and ``out`` are as above.
+If unit is `None`, result gets returned directly, so one can also
+return a Quantity directly using ``quantity_result, None, None``.
+
 """
 
 import functools
@@ -112,10 +115,6 @@ SUBCLASS_SAFE_FUNCTIONS |= {
 SUBCLASS_SAFE_FUNCTIONS |= {
     np.isclose, np.allclose,
     np.array2string, np.array_repr, np.array_str}
-
-# TODO: could be supported but need work & thought.
-UNSUPPORTED_FUNCTIONS |= {
-    np.apply_over_axes}
 
 # Nonsensical for quantities.
 UNSUPPORTED_FUNCTIONS |= {
@@ -803,3 +802,32 @@ def setcheckop(ar1, ar2, *args, **kwargs):
     # a1 to that of a2.
     (ar2, ar1), unit = _quantities2arrays(ar2, ar1)
     return (ar1, ar2) + args, kwargs, None, None
+
+
+@dispatched_function
+def apply_over_axes(func, a, axes):
+    # Copied straight from numpy/lib/shape_base, just to omit its
+    # val = asarray(a); if only it had been asanyarray, or just not there
+    # since a is assumed to an an array in the next line...
+    # Which is what we do here - we can only get here if it is a Quantity.
+    val = a
+    N = a.ndim
+    if np.array(axes).ndim == 0:
+        axes = (axes,)
+    for axis in axes:
+        if axis < 0:
+            axis = N + axis
+        args = (val, axis)
+        res = func(*args)
+        if res.ndim == val.ndim:
+            val = res
+        else:
+            res = np.expand_dims(res, axis)
+            if res.ndim == val.ndim:
+                val = res
+            else:
+                raise ValueError("function is not returning "
+                                 "an array of the correct shape")
+    # Returning unit is None to signal nothing should happen to
+    # the output.
+    return val, None, None
