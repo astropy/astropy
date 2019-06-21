@@ -247,7 +247,7 @@ adding a new column:
 - ``masked=False`` : each column is added based on the type or contents of the data.
 
 The behavior associated with the ``masked`` attribute has *not changed* in version 4.0.
-What has changed is that from 4.0 onward a table with ``masked=False`` might contain
+What has changed is that from 4.0 onward a table with ``masked=False`` may contain
 |MaskedColumn| columns.
 
 It is important to recognize that the ``masked`` attribute for a table does not imply
