@@ -45,7 +45,7 @@ def test_ccddata_empty():
 
 def test_ccddata_must_have_unit():
     with pytest.raises(ValueError):
-        CCDData(np.zeros([100, 100]))
+        CCDData(np.zeros([2, 2]))
 
 
 def test_ccddata_unit_cannot_be_set_to_none():
@@ -68,7 +68,7 @@ def test_ccddata_simple():
 
 
 def test_ccddata_init_with_string_electron_unit():
-    ccd = CCDData(np.zeros((10, 10)), unit="electron")
+    ccd = CCDData(np.zeros([2, 2]), unit="electron")
     assert ccd.unit is u.electron
 
 
@@ -87,7 +87,7 @@ def test_initialize_from_FITS(tmpdir):
 
 
 def test_initialize_from_fits_with_unit_in_header(tmpdir):
-    fake_img = np.random.random(size=(100, 100))
+    fake_img = np.zeros([2, 2])
     hdu = fits.PrimaryHDU(fake_img)
     hdu.header['bunit'] = u.adu.to_string()
     filename = tmpdir.join('afile.fits').strpath
@@ -102,7 +102,7 @@ def test_initialize_from_fits_with_unit_in_header(tmpdir):
 
 
 def test_initialize_from_fits_with_ADU_in_header(tmpdir):
-    fake_img = np.random.random(size=(100, 100))
+    fake_img = np.zeros([2, 2])
     hdu = fits.PrimaryHDU(fake_img)
     hdu.header['bunit'] = 'ADU'
     filename = tmpdir.join('afile.fits').strpath
@@ -122,7 +122,7 @@ def test_initialize_from_fits_with_invalid_unit_in_header(tmpdir):
 
 
 def test_initialize_from_fits_with_data_in_different_extension(tmpdir):
-    fake_img = np.random.random(size=(100, 100))
+    fake_img = np.arange(4).reshape(2, 2)
     hdu1 = fits.PrimaryHDU()
     hdu2 = fits.ImageHDU(fake_img)
     hdus = fits.HDUList([hdu1, hdu2])
@@ -138,8 +138,8 @@ def test_initialize_from_fits_with_data_in_different_extension(tmpdir):
 
 
 def test_initialize_from_fits_with_extension(tmpdir):
-    fake_img1 = np.random.random(size=(100, 100))
-    fake_img2 = np.random.random(size=(100, 100))
+    fake_img1 = np.zeros([2, 2])
+    fake_img2 = np.arange(4).reshape(2, 2)
     hdu0 = fits.PrimaryHDU()
     hdu1 = fits.ImageHDU(fake_img1)
     hdu2 = fits.ImageHDU(fake_img2)
@@ -264,7 +264,7 @@ def test_setting_uncertainty_with_array():
 def test_setting_uncertainty_wrong_shape_raises_error():
     ccd_data = create_ccd_data()
     with pytest.raises(ValueError):
-        ccd_data.uncertainty = np.random.random(size=(3, 4))
+        ccd_data.uncertainty = np.zeros([3, 4])
 
 
 def test_to_hdu():
@@ -539,7 +539,7 @@ def test_arithmetic_divide_with_array():
 
 
 def test_history_preserved_if_metadata_is_fits_header(tmpdir):
-    fake_img = np.random.random(size=(100, 100))
+    fake_img = np.zeros([2, 2])
     hdu = fits.PrimaryHDU(fake_img)
     hdu.header['history'] = 'one'
     hdu.header['history'] = 'two'
