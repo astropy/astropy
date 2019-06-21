@@ -233,8 +233,9 @@ The details of this change are discussed in the sections below.
 
 .. Note::
 
-   For most applications we now recommend using the default |Table| behavior with
-   ``masked=False`` to allow heterogenous column types.
+   For most applications, even those with masked column data, we now recommend using
+   the default |Table| behavior which allows heterogenous column types.  This implies
+   creating tables *without* specifying the ``masked`` keyword argument.
 
 Meaning of the ``masked`` table attribute
 -----------------------------------------
@@ -306,4 +307,4 @@ explicit version below:
 .. doctest-skip::
 
   >> dat = Table.read('data.fits')
-  >> dat['new_column'] = MaskedColumn([1, 2, 3, 4, 5])
+  >> dat['new_column'] = np.ma.MaskedArray([1, 2, 3, 4, 5])
