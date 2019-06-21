@@ -34,8 +34,8 @@ class TestBlackbody1D:
         b = BlackBody1D(temperature=temperature,
                         bolometric_flux=bolometric_flux)
 
-        assert_quantity_allclose(b(1.4 * u.micron), 4734464.498937388 * u.Jy)
-        assert_quantity_allclose(b(214.13747 * u.THz), 4734464.498937388 * u.Jy)
+        assert_quantity_allclose(b(1.4 * u.micron), 4734463.93280426 * u.Jy)
+        assert_quantity_allclose(b(214.13747 * u.THz), 4734463.93280426 * u.Jy)
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_fit(self):
@@ -49,8 +49,8 @@ class TestBlackbody1D:
 
         b_fit = fitter(b, wav, fnu)
 
-        assert_quantity_allclose(b_fit.temperature, 2840.744774408546 * u.K)
-        assert_quantity_allclose(b_fit.bolometric_flux, 6.821837296857152e-08 * u.erg / u.cm**2 / u.s)
+        assert_quantity_allclose(b_fit.temperature, 2840.7438339457754 * u.K)
+        assert_quantity_allclose(b_fit.bolometric_flux, 6.821837075583734e-08 * u.erg / u.cm**2 / u.s)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')

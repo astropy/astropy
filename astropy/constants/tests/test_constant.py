@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
-
 import copy
 
 import pytest
@@ -37,7 +35,7 @@ def test_h():
     assert abs(h.cgs.value - 6.626e-27) < 1e-31
 
     # make sure it has the necessary attributes and they're not blank
-    assert h.uncertainty
+    assert h.uncertainty == 0  # CODATA 2018 set h to exact value
     assert h.name
     assert h.reference
     assert h.unit

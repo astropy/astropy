@@ -9,6 +9,7 @@ import warnings
 
 # LOCAL
 from astropy.constants import si as _si
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import isiterable
 from . import si
 from . import cgs
@@ -561,7 +562,7 @@ def brightness_temperature(frequency, beam_area=None):
         warnings.warn("The inputs to `brightness_temperature` have changed. "
                       "Frequency is now the first input, and angular area "
                       "is the second, optional input.",
-                      DeprecationWarning)
+                      AstropyDeprecationWarning)
         frequency, beam_area = beam_area, frequency
 
     nu = frequency.to(si.GHz, spectral())
