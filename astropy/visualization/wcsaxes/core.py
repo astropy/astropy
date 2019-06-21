@@ -12,23 +12,17 @@ from matplotlib.transforms import Affine2D, Bbox, Transform
 
 from astropy.coordinates import SkyCoord, BaseCoordinateFrame
 from astropy.wcs import WCS
-from astropy.wcs.utils import wcs_to_celestial_frame
 
-from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
-                         CoordinateTransform)
+from .transforms import CoordinateTransform
 from .coordinates_map import CoordinatesMap
 from .utils import get_coord_meta, transform_contour_set_inplace
 from .frame import EllipticalFrame, RectangularFrame
+from .fitswcs import transform_coord_meta_from_wcs, IDENTITY
+
 
 __all__ = ['WCSAxes', 'WCSAxesSubplot']
 
 VISUAL_PROPERTIES = ['facecolor', 'edgecolor', 'linewidth', 'alpha', 'linestyle']
-
-IDENTITY = WCS(naxis=2)
-IDENTITY.wcs.ctype = ["X", "Y"]
-IDENTITY.wcs.crval = [0., 0.]
-IDENTITY.wcs.crpix = [1., 1.]
-IDENTITY.wcs.cdelt = [1., 1.]
 
 
 class _WCSAxesArtist(Artist):
@@ -344,10 +338,16 @@ class WCSAxes(Axes):
         else:
             previous_frame = {'path': None}
 
-        self.coords = CoordinatesMap(self, wcs=self.wcs, slice=slices,
-                                     transform=transform, coord_meta=coord_meta,
+        if self.wcs is not None:
+            transform, coord_meta = transform_coord_meta_from_wcs(self.wcs, slice=slices)
+
+        self.coords = CoordinatesMap(self,
+                                     transform=transform,
+                                     coord_meta=coord_meta,
                                      frame_class=self.frame_class,
                                      previous_frame_path=previous_frame['path'])
+
+        self._transform_pixel2world = transform
 
         if previous_frame['path'] is not None:
             self.coords.frame.set_color(previous_frame['color'])
@@ -489,14 +489,16 @@ class WCSAxes(Axes):
         # Here we can't use get_transform because that deals with
         # pixel-to-pixel transformations when passing a WCS object.
         if isinstance(frame, WCS):
-            coords = CoordinatesMap(self, frame, frame_class=self.frame_class)
+            transform, coord_meta = transform_coord_meta_from_wcs(frame)
         else:
-            if coord_meta is None:
-                coord_meta = get_coord_meta(frame)
             transform = self._get_transform_no_transdata(frame)
-            coords = CoordinatesMap(self, transform=transform,
-                                    coord_meta=coord_meta,
-                                    frame_class=self.frame_class)
+
+        if coord_meta is None:
+            coord_meta = get_coord_meta(frame)
+
+        coords = CoordinatesMap(self, transform=transform,
+                                coord_meta=coord_meta,
+                                frame_class=self.frame_class)
 
         self._all_coords.append(coords)
 
@@ -548,24 +550,21 @@ class WCSAxes(Axes):
         Return a transform from data to the specified frame
         """
 
-        if self.wcs is None and frame != 'pixel':
-            raise ValueError('No WCS specified, so only pixel coordinates are available')
-
         if isinstance(frame, WCS):
 
-            coord_in = wcs_to_celestial_frame(self.wcs)
-            coord_out = wcs_to_celestial_frame(frame)
+            transform, coord_meta = transform_coord_meta_from_wcs(frame)
+            transform_world2pixel = transform.inverted()
 
-            if coord_in == coord_out:
+            if self._transform_pixel2world.frame_out == transform_world2pixel.frame_in:
 
-                return (WCSPixel2WorldTransform(self.wcs, slice=self.slices) +
-                        WCSWorld2PixelTransform(frame))
+                return self._transform_pixel2world + transform_world2pixel
 
             else:
 
-                return (WCSPixel2WorldTransform(self.wcs, slice=self.slices) +
-                        CoordinateTransform(self.wcs, frame) +
-                        WCSWorld2PixelTransform(frame))
+                return (self._transform_pixel2world +
+                        CoordinateTransform(self._transform_pixel2world.frame_out,
+                                            transform_world2pixel.frame_in) +
+                        transform_world2pixel)
 
         elif frame == 'pixel':
 
@@ -573,25 +572,22 @@ class WCSAxes(Axes):
 
         elif isinstance(frame, Transform):
 
-            pixel2world = WCSPixel2WorldTransform(self.wcs, slice=self.slices)
-
-            return pixel2world + frame
+            return self._transform_pixel2world + frame
 
         else:
 
-            pixel2world = WCSPixel2WorldTransform(self.wcs, slice=self.slices)
-
             if frame == 'world':
 
-                return pixel2world
+                return self._transform_pixel2world
 
             else:
-                coordinate_transform = CoordinateTransform(self.wcs, frame)
+
+                coordinate_transform = CoordinateTransform(self._transform_pixel2world.frame_out, frame)
 
                 if coordinate_transform.same_frames:
-                    return pixel2world
+                    return self._transform_pixel2world
                 else:
-                    return pixel2world + CoordinateTransform(self.wcs, frame)
+                    return self._transform_pixel2world + coordinate_transform
 
     def get_tightbbox(self, renderer, *args, **kwargs):
 
