@@ -206,6 +206,10 @@ class TableColumns(OrderedDict):
                              .format(item))
         super().__setitem__(item, value)
 
+    def _setitem_validated(self, item, value):
+        """Allow direct __setitem__ internally for validated item/value pairs"""
+        super().__setitem__(item, value)
+
     def __repr__(self):
         names = ("'{0}'".format(x) for x in self.keys())
         return "<{1} names=({0})>".format(",".join(names), self.__class__.__name__)
@@ -1971,10 +1975,12 @@ class Table:
         if self[name].info.indices:
             raise ValueError('cannot replace a table index column')
 
-        t = self.__class__([col], names=[name])
-        cols = OrderedDict(self.columns)
-        cols[name] = t[name]
-        self._init_from_cols(cols.values())
+        col = self._convert_data_to_col(col, name=name)
+
+        if len(col) != len(self[name]):
+            raise ValueError('length of new column must match table length')
+
+        self.columns._setitem_validated(name, col)
 
     def remove_row(self, index):
         """
