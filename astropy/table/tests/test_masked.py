@@ -8,6 +8,7 @@ import numpy as np
 import numpy.ma as ma
 
 from astropy.table import Column, MaskedColumn, Table, QTable
+from astropy.tests.helper import catch_warnings
 from astropy.time import Time
 import astropy.units as u
 
@@ -459,3 +460,23 @@ def test_masked_as_array_with_mixin():
     assert np.all(tm['a'] == [False, True])
     assert np.all(tm['b'] == False)
     assert np.all(tm['c'] == False)
+
+
+def test_masked_column_with_unit_in_qtable():
+    """Test that adding a MaskedColumn with a unit to QTable issues warning"""
+    t = QTable()
+    with catch_warnings() as w:
+        t['a'] = MaskedColumn([1, 2])
+    assert len(w) == 0
+    assert isinstance(t['a'], MaskedColumn)
+
+    with catch_warnings() as w:
+        t['b'] = MaskedColumn([1, 2], unit=u.m)
+    assert len(w) == 0
+    assert isinstance(t['b'], u.Quantity)
+
+    with catch_warnings() as w:
+        t['c'] = MaskedColumn([1, 2], unit=u.m, mask=[True, False])
+    assert len(w) == 1
+    assert "dropping mask in Quantity column 'c'"
+    assert isinstance(t['b'], u.Quantity)

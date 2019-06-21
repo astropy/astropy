@@ -3116,7 +3116,15 @@ class QTable(Table):
         return has_info_class(col, MixinInfo)
 
     def _convert_col_for_table(self, col):
-        if (isinstance(col, Column) and getattr(col, 'unit', None) is not None):
+        if isinstance(col, Column) and getattr(col, 'unit', None) is not None:
+            # What to do with MaskedColumn with units: leave as MaskedColumn or
+            # turn into Quantity and drop mask?  Assuming we have masking support
+            # in Quantity someday, let's drop the mask (consistent with legacy
+            # behavior) but issue a warning.
+            if isinstance(col, MaskedColumn) and np.any(col.mask):
+                warnings.warn("dropping mask in Quantity column '{}': "
+                              "masked Quantity not supported".format(col.info.name))
+
             # We need to turn the column into a quantity, or a subclass
             # identified in the unit (such as u.mag()).
             q_cls = getattr(col.unit, '_quantity_class', Quantity)
