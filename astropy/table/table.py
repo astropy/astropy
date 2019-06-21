@@ -807,7 +807,7 @@ class Table:
 
         self._init_from_cols(cols)
 
-    def _convert_data_to_col(self, col, copy=True, def_name=None, dtype=None, name=None):
+    def _convert_data_to_col(self, data, copy=True, def_name=None, dtype=None, name=None):
         """
         Convert any allowed sequence data ``col`` to a column object that can be used
         directly in the self.columns dict.  This could be a Column, MaskedColumn,
@@ -815,7 +815,7 @@ class Table:
 
         Parameters
         ----------
-        col : object (column-like sequence)
+        data : object (column-like sequence)
             Input column data
         copy : bool
             Make a copy
@@ -833,46 +833,45 @@ class Table:
         """
         # Structured ndarray gets viewed as a mixin unless already a valid
         # mixin class
-        if (isinstance(col, np.ndarray) and len(col.dtype) > 1 and
-                not self._add_as_mixin_column(col)):
-            col = col.view(NdarrayMixin)
+        if (isinstance(data, np.ndarray) and len(data.dtype) > 1 and
+                not self._add_as_mixin_column(data)):
+            data = data.view(NdarrayMixin)
 
-        if isinstance(col, Column):
+        if isinstance(data, Column):
             # If col is a subclass of self.ColumnClass, then "upgrade" to ColumnClass,
             # otherwise just use the original class.  The most common case is a
             # table with masked=True and ColumnClass=MaskedColumn.  Then a Column
             # gets upgraded to MaskedColumn, but the converse (pre-4.0) behavior
             # of downgrading from MaskedColumn to Column (for non-masked table)
             # does not happen.
-            if issubclass(self.ColumnClass, col.__class__):
+            if issubclass(self.ColumnClass, data.__class__):
                 col_cls = self.ColumnClass
             else:
-                col_cls = col.__class__
+                col_cls = data.__class__
 
-            col = col_cls(name=(name or col.info.name or def_name),
-                          data=col, dtype=dtype,
+            col = col_cls(name=(name or data.info.name or def_name),
+                          data=data, dtype=dtype,
                           copy=copy, copy_indices=self._init_indices)
 
-        elif self._add_as_mixin_column(col):
+        elif self._add_as_mixin_column(data):
             # Copy the mixin column attributes if they exist since the copy below
             # may not get this attribute.
-            if copy:
-                col = col_copy(col, copy_indices=self._init_indices)
+            col = col_copy(data, copy_indices=self._init_indices) if copy else data
 
-            col.info.name = name or col.info.name or def_name
+            col.info.name = name or data.info.name or def_name
 
-        elif isinstance(col, np.ma.MaskedArray):
+        elif isinstance(data, np.ma.MaskedArray):
             # Require that col_cls be a subclass of MaskedColumn, remembering
             # that ColumnClass could be a user-defined subclass (though more-likely
             # could be MaskedColumn).
             col_cls = (self.ColumnClass
                        if issubclass(self.ColumnClass, self.MaskedColumn)
                        else self.MaskedColumn)
-            col = col_cls(name=(name or def_name), data=col, dtype=dtype,
+            col = col_cls(name=(name or def_name), data=data, dtype=dtype,
                           copy=copy, copy_indices=self._init_indices)
 
-        elif isinstance(col, np.ndarray) or isiterable(col):
-            col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype,
+        elif isinstance(data, np.ndarray) or isiterable(data):
+            col = self.ColumnClass(name=(name or def_name), data=data, dtype=dtype,
                                    copy=copy, copy_indices=self._init_indices)
 
         else:
