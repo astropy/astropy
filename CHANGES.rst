@@ -120,11 +120,17 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- Masked column handling has changed, see ``astropy.table`` entry below. [#8789]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
+- Masked column handling has changed, see ``astropy.table`` entry below. [#8789]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
+
+- Masked column handling has changed, see ``astropy.table`` entry below. [#8789]
 
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
@@ -151,6 +157,16 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
+
+- The handling of masked columns in the ``Table`` class has changed in a way
+  that may impact program behavior. Now a ``Table`` with ``masked=False`` may
+  contain both ``Column`` and ``MaskedColumn`` objects, and adding a masked
+  column or row to a table no longer "upgrades" the table and columns to masked.
+  This means that tables with masked data which are read via ``Table.read()``
+  will now always have ``masked=False``, though specific columns will be masked as
+  needed. Two new table properties ``has_masked_columns`` and ``has_masked_values``
+  were added. See the ``Masking change in astropy 4.0`` section within
+  `<https://docs.astropy.org/en/v4.0/table/masking.html>`_ for details. [#8789]
 
 astropy.tests
 ^^^^^^^^^^^^^
