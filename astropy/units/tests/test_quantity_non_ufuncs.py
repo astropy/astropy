@@ -224,6 +224,13 @@ class TestAlongAxis(BasicTestSetup):
         expected = expected * q.unit
         assert np.all(q == expected)
 
+    @pytest.mark.parametrize('axis', (0, 1))
+    def test_apply_along_axis(self, axis):
+        out = np.apply_along_axis(np.square, axis, self.q)
+        expected = np.apply_along_axis(np.square, axis,
+                                       self.q.value) * self.q.unit ** 2
+        assert_array_equal(out, expected)
+
 
 class TestIndicesFrom(NoUnitTestSetup):
     def test_diag_indices_from(self):

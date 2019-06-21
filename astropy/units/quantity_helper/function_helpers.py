@@ -91,7 +91,8 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.sort, np.msort, np.partition, np.meshgrid,
     np.common_type, np.result_type, np.can_cast, np.min_scalar_type,
     np.iscomplexobj, np.isrealobj,
-    np.shares_memory, np.may_share_memory}
+    np.shares_memory, np.may_share_memory,
+    np.apply_along_axis}
 
 if not NUMPY_LT_1_15:
     SUBCLASS_SAFE_FUNCTIONS |= {np.take_along_axis, np.put_along_axis}
@@ -114,7 +115,7 @@ SUBCLASS_SAFE_FUNCTIONS |= {
 
 # TODO: could be supported but need work & thought.
 UNSUPPORTED_FUNCTIONS |= {
-    np.apply_along_axis, np.apply_over_axes}
+    np.apply_over_axes}
 
 # Nonsensical for quantities.
 UNSUPPORTED_FUNCTIONS |= {
