@@ -914,8 +914,7 @@ def test_line_endings(parallel, read_basic, read_commented_header, read_rdb):
     for newline in ('\r\n', '\r'):
         table = read_rdb(text.replace('\n', newline), parallel=parallel)
         assert_table_equal(table, expected)
-        # TO DO : deal with this
-        # assert np.all(table == expected)
+        assert np.all(table == expected)
 
 
 @pytest.mark.parametrize("parallel", [True, False])
