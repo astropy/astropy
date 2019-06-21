@@ -641,7 +641,7 @@ class TestBasic(BaseImageTests):
 
         wcs = WCS(self.msx_header)
         fig = plt.figure(figsize=(5, 3))
-        ax = fig.add_axes([0.2, 0.2, 0.6, 0.6], projection=wcs, frame_class=EllipticalFrame)
+        fig.add_axes([0.2, 0.2, 0.6, 0.6], projection=wcs, frame_class=EllipticalFrame)
         return fig
 
     @pytest.mark.remote_data(source='astropy')
