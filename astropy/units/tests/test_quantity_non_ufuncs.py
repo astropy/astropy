@@ -1098,16 +1098,6 @@ class TestIntDiffFunctions(metaclass=CoverageMeta):
         with pytest.raises(TypeError):
             np.diff(x, prepend=object())
 
-    def test_ediff1d(self):
-        # ediff1d works always as it calls the Quantity method.
-        x = np.arange(10.) * u.m
-        out = np.ediff1d(x)
-        expected = np.ediff1d(x.value) * u.m
-        assert np.all(out == expected)
-        out2 = np.ediff1d(x, to_begin=-12.5*u.cm, to_end=1*u.km)
-        expected2 = np.ediff1d(x.value, to_begin=-0.125, to_end=1000.) * x.unit
-        assert np.all(out2 == expected2)
-
     def test_gradient(self):
         # Simple gradient works out of the box.
         x = np.arange(10.) * u.m
@@ -1605,6 +1595,92 @@ class TestMemoryFunctions(NoUnitTestSetup):
         self.check(np.may_share_memory, self.q.value)
 
 
+class TestSetOpsFcuntions(metaclass=CoverageMeta):
+    def setup(self):
+        self.q = np.array([[0., 1., -1.],
+                           [3., 5., 3.],
+                           [0., 1., -1]]) * u.m
+        self.q2 = np.array([0., 100., 150., 200.]) * u.cm
+
+    def check(self, function, qs, *args, **kwargs):
+        unit = kwargs.pop('unit', self.q.unit)
+        out = function(*qs, *args, **kwargs)
+        qv = tuple(q.to_value(self.q.unit) for q in qs)
+        expected = function(*qv, *args, **kwargs)
+        if isinstance(expected, tuple):
+            if unit:
+                expected = (expected[0] * unit,) + expected[1:]
+            for o, e in zip(out, expected):
+                assert_array_equal(o, e)
+        else:
+            if unit:
+                expected = expected * unit
+            assert_array_equal(out, expected)
+
+    def check1(self, function, *args, **kwargs):
+        self.check(function, (self.q,), *args, **kwargs)
+
+    def check2(self, function, *args, **kwargs):
+        self.check(function, (self.q, self.q2), *args, **kwargs)
+
+    @pytest.mark.parametrize('kwargs', (
+        dict(return_index=True, return_inverse=True),
+        dict(return_counts=True),
+        dict(return_index=True, return_inverse=True, return_counts=True)))
+    def test_unique(self, kwargs):
+        self.check1(np.unique, **kwargs)
+
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
+    @pytest.mark.parametrize('kwargs', (
+        dict(axis=0),
+        dict(axis=1),
+        dict(return_counts=True, return_inverse=False, axis=1)))
+    def test_unique_more_complex(self, kwargs):
+        self.check1(np.unique, **kwargs)
+
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
+    @pytest.mark.parametrize('kwargs', (
+        dict(),
+        dict(return_indices=True)))
+    def test_intersect1d(self, kwargs):
+        self.check2(np.intersect1d, **kwargs)
+
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
+    def test_setxor1d(self):
+        self.check2(np.setxor1d)
+
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
+    def test_union1d(self):
+        self.check2(np.union1d)
+
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
+    def test_setdiff1d(self):
+        self.check2(np.setdiff1d)
+
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
+    def test_in1d(self):
+        self.check2(np.in1d, unit=None)
+
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
+    def test_isin(self):
+        self.check2(np.isin, unit=None)
+
+    def test_ediff1d(self):
+        # ediff1d works always as it calls the Quantity method.
+        self.check1(np.ediff1d)
+        x = np.arange(10.) * u.m
+        out = np.ediff1d(x, to_begin=-12.5*u.cm, to_end=1*u.km)
+        expected = np.ediff1d(x.value, to_begin=-0.125, to_end=1000.) * x.unit
+        assert_array_equal(out, expected)
+
+
 class TestDatetimeFunctions(BasicTestSetup):
     def test_busday_count(self):
         with pytest.raises(TypeError):
@@ -1645,11 +1721,6 @@ poly_functions = {
     np.polymul, np.polysub, np.polyval, np.roots, np.vander
     }
 untested_functions |= poly_functions
-
-setops_functions = {f for f in all_wrapped_functions.values()
-                    if (f in np.lib.arraysetops.__dict__.values() and
-                        f is not np.ediff1d)}
-untested_functions |= setops_functions
 
 
 @pytest.mark.xfail(NO_ARRAY_FUNCTION,
