@@ -813,6 +813,12 @@ class Table:
         directly in the self.columns dict.  This could be a Column, MaskedColumn,
         or mixin column.
 
+        The final column name is determined by::
+
+          name or data.info.name or def_name
+
+        If ``data`` has no ``info`` then ``name = name or def_name``.
+
         Parameters
         ----------
         data : object (column-like sequence)
@@ -837,6 +843,13 @@ class Table:
                 not self._add_as_mixin_column(data)):
             data = data.view(NdarrayMixin)
 
+        # Get the final column name using precedence.  Some objects may not
+        # have an info attribute.
+        if hasattr(data, 'info'):
+            name = name or data.info.name or def_name
+        else:
+            name = name or def_name
+
         if isinstance(data, Column):
             # If col is a subclass of self.ColumnClass, then "upgrade" to ColumnClass,
             # otherwise just use the original class.  The most common case is a
@@ -849,8 +862,7 @@ class Table:
             else:
                 col_cls = data.__class__
 
-            col = col_cls(name=(name or data.info.name or def_name),
-                          data=data, dtype=dtype,
+            col = col_cls(name=name, data=data, dtype=dtype,
                           copy=copy, copy_indices=self._init_indices)
 
         elif self._add_as_mixin_column(data):
@@ -858,7 +870,7 @@ class Table:
             # may not get this attribute.
             col = col_copy(data, copy_indices=self._init_indices) if copy else data
 
-            col.info.name = name or data.info.name or def_name
+            col.info.name = name
 
         elif isinstance(data, np.ma.MaskedArray):
             # Require that col_cls be a subclass of MaskedColumn, remembering
@@ -867,11 +879,11 @@ class Table:
             col_cls = (self.ColumnClass
                        if issubclass(self.ColumnClass, self.MaskedColumn)
                        else self.MaskedColumn)
-            col = col_cls(name=(name or def_name), data=data, dtype=dtype,
+            col = col_cls(name=name, data=data, dtype=dtype,
                           copy=copy, copy_indices=self._init_indices)
 
         elif isinstance(data, np.ndarray) or isiterable(data):
-            col = self.ColumnClass(name=(name or def_name), data=data, dtype=dtype,
+            col = self.ColumnClass(name=name, data=data, dtype=dtype,
                                    copy=copy, copy_indices=self._init_indices)
 
         else:
