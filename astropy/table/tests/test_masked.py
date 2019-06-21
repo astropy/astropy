@@ -7,8 +7,9 @@ import pytest
 import numpy as np
 import numpy.ma as ma
 
-from astropy.table import Column, MaskedColumn, Table
+from astropy.table import Column, MaskedColumn, Table, QTable
 from astropy.time import Time
+import astropy.units as u
 
 
 class SetupData:
@@ -434,10 +435,11 @@ def test_mask_copy():
 
 
 def test_masked_as_array_with_mixin():
-    """Test that as_array() works with a masked mixin column"""
+    """Test that as_array() and Table.mask attr work with masked mixin columns"""
     t = Table()
     t['a'] = Time([1, 2], format='cxcsec')
     t['b'] = [3, 4]
+    t['c'] = [5, 6] * u.m
 
     # With no mask, the output should be ndarray
     ta = t.as_array()
@@ -450,3 +452,10 @@ def test_masked_as_array_with_mixin():
     assert np.all(ta['a'].mask == [False, True])
     assert np.isclose(ta['a'][0].cxcsec, 1.0)
     assert np.all(ta['b'].mask == False)
+    assert np.all(ta['c'].mask == False)
+
+    # Check table ``mask`` property
+    tm = t.mask
+    assert np.all(tm['a'] == [False, True])
+    assert np.all(tm['b'] == False)
+    assert np.all(tm['c'] == False)
