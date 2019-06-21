@@ -387,6 +387,10 @@ class Table:
             # byte order where applicable
             data[col.info.name] = col
 
+            # For masked out, masked mixin columns need to set output mask attribute.
+            if masked and has_info_class(col, MixinInfo) and hasattr(col, 'mask'):
+                data[col.info.name].mask = col.mask
+
         return data
 
     def __init__(self, data=None, masked=False, names=None, dtype=None,

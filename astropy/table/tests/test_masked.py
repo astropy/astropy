@@ -8,6 +8,7 @@ import numpy as np
 import numpy.ma as ma
 
 from astropy.table import Column, MaskedColumn, Table
+from astropy.time import Time
 
 
 class SetupData:
@@ -430,3 +431,22 @@ def test_mask_copy():
     c2.mask[0] = True
     assert np.all(c.mask == [False, True])
     assert np.all(c2.mask == [True, True])
+
+
+def test_masked_as_array_with_mixin():
+    """Test that as_array() works with a masked mixin column"""
+    t = Table()
+    t['a'] = Time([1, 2], format='cxcsec')
+    t['b'] = [3, 4]
+
+    # With no mask, the output should be ndarray
+    ta = t.as_array()
+    assert isinstance(ta, np.ndarray) and not isinstance(ta, np.ma.MaskedArray)
+
+    # With a mask, output is MaskedArray
+    t['a'][1] = np.ma.masked
+    ta = t.as_array()
+    assert isinstance(ta, np.ma.MaskedArray)
+    assert np.all(ta['a'].mask == [False, True])
+    assert np.isclose(ta['a'][0].cxcsec, 1.0)
+    assert np.all(ta['b'].mask == False)
