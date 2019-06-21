@@ -102,7 +102,7 @@ def overlap_slices(large_array_shape, small_array_shape, position,
                    for (pos, small_shape) in zip(position, small_array_shape)]
 
     for e_max in indices_max:
-        if e_max <= 0:
+        if e_max < 0:
             raise NoOverlapError('Arrays do not overlap.')
     for e_min, large_shape in zip(indices_min, large_array_shape):
         if e_min >= large_shape:
@@ -113,7 +113,7 @@ def overlap_slices(large_array_shape, small_array_shape, position,
             if e_min < 0:
                 raise PartialOverlapError('Arrays overlap only partially.')
         for e_max, large_shape in zip(indices_max, large_array_shape):
-            if e_max >= large_shape:
+            if e_max > large_shape:
                 raise PartialOverlapError('Arrays overlap only partially.')
 
     # Set up slices
