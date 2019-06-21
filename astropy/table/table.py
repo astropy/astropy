@@ -801,57 +801,84 @@ class Table:
         def_names = _auto_names(n_cols)
 
         for col, name, def_name, dtype in zip(data, names, def_names, dtype):
-            # Structured ndarray gets viewed as a mixin unless already a valid
-            # mixin class
-            if (isinstance(col, np.ndarray) and len(col.dtype) > 1 and
-                    not self._add_as_mixin_column(col)):
-                col = col.view(NdarrayMixin)
-
-            if isinstance(col, Column):
-                # If col is a subclass of self.ColumnClass, then "upgrade" to ColumnClass,
-                # otherwise just use the original class.  The most common case is a
-                # table with masked=True and ColumnClass=MaskedColumn.  Then a Column
-                # gets upgraded to MaskedColumn, but the converse (pre-4.0) behavior
-                # of downgrading from MaskedColumn to Column (for non-masked table)
-                # does not happen.
-                if issubclass(self.ColumnClass, col.__class__):
-                    col_cls = self.ColumnClass
-                else:
-                    col_cls = col.__class__
-
-                col = col_cls(name=(name or col.info.name or def_name),
-                              data=col, dtype=dtype,
-                              copy=copy, copy_indices=self._init_indices)
-
-            elif self._add_as_mixin_column(col):
-                # Copy the mixin column attributes if they exist since the copy below
-                # may not get this attribute.
-                if copy:
-                    col = col_copy(col, copy_indices=self._init_indices)
-
-                col.info.name = name or col.info.name or def_name
-
-            elif isinstance(col, np.ma.MaskedArray):
-                # Require that col_cls be a subclass of MaskedColumn, remembering
-                # that ColumnClass could be a user-defined subclass (though more-likely
-                # could be MaskedColumn).
-                col_cls = (self.ColumnClass
-                           if issubclass(self.ColumnClass, self.MaskedColumn)
-                           else self.MaskedColumn)
-                col = col_cls(name=(name or def_name), data=col, dtype=dtype,
-                              copy=copy, copy_indices=self._init_indices)
-
-            elif isinstance(col, np.ndarray) or isiterable(col):
-                col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype,
-                                       copy=copy, copy_indices=self._init_indices)
-
-            else:
-                raise ValueError('Elements in list initialization must be '
-                                 'either Column or list-like')
+            col = self._convert_data_to_col(col, copy, def_name, dtype, name)
 
             cols.append(col)
 
         self._init_from_cols(cols)
+
+    def _convert_data_to_col(self, col, copy=True, def_name=None, dtype=None, name=None):
+        """
+        Convert any allowed sequence data ``col`` to a column object that can be used
+        directly in the self.columns dict.  This could be a Column, MaskedColumn,
+        or mixin column.
+
+        Parameters
+        ----------
+        col : object (column-like sequence)
+            Input column data
+        copy : bool
+            Make a copy
+        def_name : str
+            Default name
+        dtype : np.dtype or None
+            Data dtype
+        name : str or None
+            Column name
+
+        Returns
+        -------
+        col : Column, MaskedColumn, mixin-column type
+            Object that can be used as a column in self
+        """
+        # Structured ndarray gets viewed as a mixin unless already a valid
+        # mixin class
+        if (isinstance(col, np.ndarray) and len(col.dtype) > 1 and
+                not self._add_as_mixin_column(col)):
+            col = col.view(NdarrayMixin)
+
+        if isinstance(col, Column):
+            # If col is a subclass of self.ColumnClass, then "upgrade" to ColumnClass,
+            # otherwise just use the original class.  The most common case is a
+            # table with masked=True and ColumnClass=MaskedColumn.  Then a Column
+            # gets upgraded to MaskedColumn, but the converse (pre-4.0) behavior
+            # of downgrading from MaskedColumn to Column (for non-masked table)
+            # does not happen.
+            if issubclass(self.ColumnClass, col.__class__):
+                col_cls = self.ColumnClass
+            else:
+                col_cls = col.__class__
+
+            col = col_cls(name=(name or col.info.name or def_name),
+                          data=col, dtype=dtype,
+                          copy=copy, copy_indices=self._init_indices)
+
+        elif self._add_as_mixin_column(col):
+            # Copy the mixin column attributes if they exist since the copy below
+            # may not get this attribute.
+            if copy:
+                col = col_copy(col, copy_indices=self._init_indices)
+
+            col.info.name = name or col.info.name or def_name
+
+        elif isinstance(col, np.ma.MaskedArray):
+            # Require that col_cls be a subclass of MaskedColumn, remembering
+            # that ColumnClass could be a user-defined subclass (though more-likely
+            # could be MaskedColumn).
+            col_cls = (self.ColumnClass
+                       if issubclass(self.ColumnClass, self.MaskedColumn)
+                       else self.MaskedColumn)
+            col = col_cls(name=(name or def_name), data=col, dtype=dtype,
+                          copy=copy, copy_indices=self._init_indices)
+
+        elif isinstance(col, np.ndarray) or isiterable(col):
+            col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype,
+                                   copy=copy, copy_indices=self._init_indices)
+
+        else:
+            raise ValueError('Elements in list initialization must be '
+                             'either Column or list-like')
+        return col
 
     def _init_from_ndarray(self, data, names, dtype, n_cols, copy):
         """Initialize table from an ndarray structured array"""
