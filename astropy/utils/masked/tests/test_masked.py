@@ -30,7 +30,7 @@ class QuantitySetup(ArraySetup):
         super().setup_arrays()
         self.a = Quantity(self.a, u.m)
         self.b = Quantity(self.b, u.cm)
-        self.c = Quantity(self.c, u.s)
+        self.c = Quantity(self.c, u.km)
 
 
 class LongitudeSetup(ArraySetup):
@@ -230,13 +230,20 @@ class TestMaskedLongitudeOperators(TestMaskedArrayOperators, LongitudeSetup):
 
 class MaskedUfuncTests(MaskedArraySetup):
     @pytest.mark.parametrize('ufunc', (np.add, np.subtract, np.divide,
-                                       np.arctan2))
+                                       np.arctan2, np.minimum))
     def test_2op_ufunc(self, ufunc):
         ma_mb = ufunc(self.ma, self.mb)
         expected_data = ufunc(self.a, self.b)
         expected_mask = (self.ma.mask | self.mb.mask)
         # Note: assert_array_equal also checks type, i.e., that, e.g.,
         # Longitude decays into an Angle.
+        assert_array_equal(ma_mb.data, expected_data)
+        assert_array_equal(ma_mb.mask, expected_mask)
+
+    def test_3op_ufunc(self):
+        ma_mb = np.clip(self.ma, self.mb, self.mc)
+        expected_data = np.clip(self.a, self.b, self.c)
+        expected_mask = (self.ma.mask | self.mb.mask | self.mc.mask)
         assert_array_equal(ma_mb.data, expected_data)
         assert_array_equal(ma_mb.mask, expected_mask)
 
