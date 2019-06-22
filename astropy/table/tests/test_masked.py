@@ -7,7 +7,10 @@ import pytest
 import numpy as np
 import numpy.ma as ma
 
-from astropy.table import Column, MaskedColumn, Table
+from astropy.table import Column, MaskedColumn, Table, QTable
+from astropy.tests.helper import catch_warnings
+from astropy.time import Time
+import astropy.units as u
 
 
 class SetupData:
@@ -170,14 +173,14 @@ class TestMaskedColumnInit(SetupData):
 class TestTableInit(SetupData):
     """Initializing a table"""
 
-    def test_mask_true_if_any_input_masked(self):
-        """Masking is True if any input is masked"""
+    def test_mask_false_if_input_mask_not_true(self):
+        """Masking is always False if initial masked arg is not True"""
         t = Table([self.ca, self.a])
-        assert t.masked is True
+        assert t.masked is False  # True before astropy 4.0
         t = Table([self.ca])
         assert t.masked is False
         t = Table([self.ca, ma.array([1, 2, 3])])
-        assert t.masked is True
+        assert t.masked is False  # True before astropy 4.0
 
     def test_mask_false_if_no_input_masked(self):
         """Masking not true if not (requested or input requires mask)"""
@@ -215,6 +218,8 @@ class TestAddColumn:
         assert t.masked
         t.add_column(MaskedColumn(name='b', data=[4, 5, 6], mask=[1, 0, 1]))
         assert t.masked
+        assert isinstance(t['a'], MaskedColumn)
+        assert isinstance(t['b'], MaskedColumn)
         assert np.all(t['a'] == np.array([1, 2, 3]))
         assert np.all(t['a'].mask == np.array([0, 1, 0], bool))
         assert np.all(t['b'] == np.array([4, 5, 6]))
@@ -226,9 +231,11 @@ class TestAddColumn:
         t.add_column(Column(name='a', data=[1, 2, 3]))
         assert not t.masked
         t.add_column(MaskedColumn(name='b', data=[4, 5, 6], mask=[1, 0, 1]))
-        assert t.masked
+        assert not t.masked  # Changed in 4.0, table no longer auto-upgrades
+        assert isinstance(t['a'], Column)  # Was MaskedColumn before 4.0
+        assert isinstance(t['b'], MaskedColumn)
         assert np.all(t['a'] == np.array([1, 2, 3]))
-        assert np.all(t['a'].mask == np.array([0, 0, 0], bool))
+        assert not hasattr(t['a'], 'mask')
         assert np.all(t['b'] == np.array([4, 5, 6]))
         assert np.all(t['b'].mask == np.array([1, 0, 1], bool))
 
@@ -239,6 +246,8 @@ class TestAddColumn:
         assert t.masked
         t.add_column(MaskedColumn(name='b', data=[4, 5, 6], mask=[1, 0, 1]))
         assert t.masked
+        assert isinstance(t['a'], MaskedColumn)
+        assert isinstance(t['b'], MaskedColumn)
         assert np.all(t['a'] == np.array([1, 2, 3]))
         assert np.all(t['a'].mask == np.array([0, 0, 0], bool))
         assert np.all(t['b'] == np.array([4, 5, 6]))
@@ -424,3 +433,50 @@ def test_mask_copy():
     c2.mask[0] = True
     assert np.all(c.mask == [False, True])
     assert np.all(c2.mask == [True, True])
+
+
+def test_masked_as_array_with_mixin():
+    """Test that as_array() and Table.mask attr work with masked mixin columns"""
+    t = Table()
+    t['a'] = Time([1, 2], format='cxcsec')
+    t['b'] = [3, 4]
+    t['c'] = [5, 6] * u.m
+
+    # With no mask, the output should be ndarray
+    ta = t.as_array()
+    assert isinstance(ta, np.ndarray) and not isinstance(ta, np.ma.MaskedArray)
+
+    # With a mask, output is MaskedArray
+    t['a'][1] = np.ma.masked
+    ta = t.as_array()
+    assert isinstance(ta, np.ma.MaskedArray)
+    assert np.all(ta['a'].mask == [False, True])
+    assert np.isclose(ta['a'][0].cxcsec, 1.0)
+    assert np.all(ta['b'].mask == False)
+    assert np.all(ta['c'].mask == False)
+
+    # Check table ``mask`` property
+    tm = t.mask
+    assert np.all(tm['a'] == [False, True])
+    assert np.all(tm['b'] == False)
+    assert np.all(tm['c'] == False)
+
+
+def test_masked_column_with_unit_in_qtable():
+    """Test that adding a MaskedColumn with a unit to QTable issues warning"""
+    t = QTable()
+    with catch_warnings() as w:
+        t['a'] = MaskedColumn([1, 2])
+    assert len(w) == 0
+    assert isinstance(t['a'], MaskedColumn)
+
+    with catch_warnings() as w:
+        t['b'] = MaskedColumn([1, 2], unit=u.m)
+    assert len(w) == 0
+    assert isinstance(t['b'], u.Quantity)
+
+    with catch_warnings() as w:
+        t['c'] = MaskedColumn([1, 2], unit=u.m, mask=[True, False])
+    assert len(w) == 1
+    assert "dropping mask in Quantity column 'c'"
+    assert isinstance(t['b'], u.Quantity)

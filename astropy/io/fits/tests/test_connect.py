@@ -684,7 +684,7 @@ def test_round_trip_masked_table_serialize_mask(tmpdir, method):
         t.write(filename, serialize_method='data_mask')
 
     t2 = Table.read(filename)
-    assert t2.masked is True
+    assert t2.masked is False
     assert t2.colnames == t.colnames
     for name in t2.colnames:
         assert np.all(t2[name].mask == t[name].mask)
