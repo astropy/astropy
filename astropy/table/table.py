@@ -355,7 +355,8 @@ class Table:
         table_array : np.ndarray (unmasked) or np.ma.MaskedArray (masked)
             Copy of table as a numpy structured array
         """
-        empty_init = ma.empty if self.masked else np.empty
+        masked = self.masked or self.has_masked_columns or self.has_masked_values
+        empty_init = ma.empty if masked else np.empty
         if len(self.columns) == 0:
             return empty_init(0, dtype=None)
 
@@ -366,7 +367,7 @@ class Table:
 
         cols = self.columns.values()
 
-        if names != None:
+        if names is not None:
             cols = [col for col in cols if col.info.name in names]
 
         for col in cols:
@@ -386,9 +387,13 @@ class Table:
             # byte order where applicable
             data[col.info.name] = col
 
+            # For masked out, masked mixin columns need to set output mask attribute.
+            if masked and has_info_class(col, MixinInfo) and hasattr(col, 'mask'):
+                data[col.info.name].mask = col.mask
+
         return data
 
-    def __init__(self, data=None, masked=None, names=None, dtype=None,
+    def __init__(self, data=None, masked=False, names=None, dtype=None,
                  meta=None, copy=True, rows=None, copy_indices=True,
                  **kwargs):
 
@@ -540,8 +545,8 @@ class Table:
             self.meta = deepcopy(meta) if copy else meta
 
         # Whatever happens above, the masked property should be set to a boolean
-        if type(self.masked) is not bool:
-            raise TypeError("masked property has not been set to True or False")
+        if self.masked not in (None, True, False):
+            raise TypeError("masked property must be None, True or False")
 
     def __getstate__(self):
         columns = OrderedDict((key, col if isinstance(col, BaseColumn) else col_copy(col))
@@ -555,8 +560,9 @@ class Table:
     @property
     def mask(self):
         # Dynamic view of available masks
-        if self.masked:
-            mask_table = Table([col.mask for col in self.columns.values()],
+        if self.masked or self.has_masked_columns or self.has_masked_values:
+            mask_table = Table([getattr(col, 'mask', FalseArray(col.shape))
+                                for col in self.itercols()],
                                names=self.colnames, copy=False)
 
             # Set hidden attribute to force inplace setitem so that code like
@@ -597,10 +603,11 @@ class Table:
         filled_table : Table
             New table with masked values filled
         """
-        if self.masked:
+        if self.masked or self.has_masked_columns or self.has_masked_values:
             # Get new columns with masked values filled, then create Table with those
             # new cols (copy=False) but deepcopy the meta.
-            data = [col.filled(fill_value) for col in self.columns.values()]
+            data = [col.filled(fill_value) if hasattr(col, 'filled') else col
+                    for col in self.itercols()]
             return self.__class__(data, meta=deepcopy(self.meta), copy=False)
         else:
             # Return copy of the original object.
@@ -737,7 +744,8 @@ class Table:
         # array([(0, 0), (0, 0)],
         #       dtype=[('a', '<i8'), ('b', '<i8')])
 
-        return self.as_array().data if self.masked else self.as_array()
+        out = self.as_array()
+        return out.data if isinstance(out, np.ma.MaskedArray) else out
 
     def _check_names_dtype(self, names, dtype, n_cols):
         """Make sure that names and dtype are both iterable and have
@@ -751,16 +759,6 @@ class Table:
             raise ValueError(
                 'Arguments "names" and "dtype" must match number of columns'
                 .format(inp_str))
-
-    def _set_masked_from_cols(self, cols):
-        if self.masked is None:
-            if any(isinstance(col, (MaskedColumn, ma.MaskedArray)) for col in cols):
-                self._set_masked(True)
-            else:
-                self._set_masked(False)
-        elif not self.masked:
-            if any(np.any(col.mask) for col in cols if isinstance(col, (MaskedColumn, ma.MaskedArray))):
-                self._set_masked(True)
 
     def _init_from_list_of_dicts(self, data, names, dtype, n_cols, copy):
         names_from_data = set()
@@ -799,9 +797,6 @@ class Table:
             self._init_from_list_of_dicts(data, names, dtype, n_cols, copy)
             return
 
-        # Set self.masked appropriately, then get class to create column instances.
-        self._set_masked_from_cols(data)
-
         cols = []
         def_names = _auto_names(n_cols)
 
@@ -812,10 +807,22 @@ class Table:
                     not self._add_as_mixin_column(col)):
                 col = col.view(NdarrayMixin)
 
-            if isinstance(col, (Column, MaskedColumn)):
-                col = self.ColumnClass(name=(name or col.info.name or def_name),
-                                       data=col, dtype=dtype,
-                                       copy=copy, copy_indices=self._init_indices)
+            if isinstance(col, Column):
+                # If col is a subclass of self.ColumnClass, then "upgrade" to ColumnClass,
+                # otherwise just use the original class.  The most common case is a
+                # table with masked=True and ColumnClass=MaskedColumn.  Then a Column
+                # gets upgraded to MaskedColumn, but the converse (pre-4.0) behavior
+                # of downgrading from MaskedColumn to Column (for non-masked table)
+                # does not happen.
+                if issubclass(self.ColumnClass, col.__class__):
+                    col_cls = self.ColumnClass
+                else:
+                    col_cls = col.__class__
+
+                col = col_cls(name=(name or col.info.name or def_name),
+                              data=col, dtype=dtype,
+                              copy=copy, copy_indices=self._init_indices)
+
             elif self._add_as_mixin_column(col):
                 # Copy the mixin column attributes if they exist since the copy below
                 # may not get this attribute.
@@ -823,9 +830,21 @@ class Table:
                     col = col_copy(col, copy_indices=self._init_indices)
 
                 col.info.name = name or col.info.name or def_name
+
+            elif isinstance(col, np.ma.MaskedArray):
+                # Require that col_cls be a subclass of MaskedColumn, remembering
+                # that ColumnClass could be a user-defined subclass (though more-likely
+                # could be MaskedColumn).
+                col_cls = (self.ColumnClass
+                           if issubclass(self.ColumnClass, self.MaskedColumn)
+                           else self.MaskedColumn)
+                col = col_cls(name=(name or def_name), data=col, dtype=dtype,
+                              copy=copy, copy_indices=self._init_indices)
+
             elif isinstance(col, np.ndarray) or isiterable(col):
                 col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype,
                                        copy=copy, copy_indices=self._init_indices)
+
             else:
                 raise ValueError('Elements in list initialization must be '
                                  'either Column or list-like')
@@ -844,20 +863,7 @@ class Table:
         cols = ([data[name] for name in data_names] if struct else
                 [data[:, i] for i in range(n_cols)])
 
-        # Set self.masked appropriately, then get class to create column instances.
-        self._set_masked_from_cols(cols)
-
-        if copy:
-            self._init_from_list(cols, names, dtype, n_cols, copy)
-        else:
-            dtype = [(name, col.dtype, col.shape[1:]) for name, col in zip(names, cols)]
-            newdata = data.view(dtype).ravel()
-            columns = self.TableColumns()
-
-            for name in names:
-                columns[name] = self.ColumnClass(name=name, data=newdata[name])
-                columns[name].info.parent_table = self
-            self.columns = columns
+        self._init_from_list(cols, names, dtype, n_cols, copy)
 
     def _init_from_dict(self, data, names, dtype, n_cols, copy):
         """Initialize table from a dictionary of columns"""
@@ -867,12 +873,12 @@ class Table:
 
     def _convert_col_for_table(self, col):
         """
-        Make sure that all Column objects have correct class for this type of
+        Make sure that all Column objects have correct base class for this type of
         Table.  For a base Table this most commonly means setting to
         MaskedColumn if the table is masked.  Table subclasses like QTable
         override this method.
         """
-        if col.__class__ is not self.ColumnClass and isinstance(col, Column):
+        if isinstance(col, Column) and not isinstance(col, self.ColumnClass):
             col = self.ColumnClass(col)  # copy attributes and reference data
         return col
 
@@ -883,9 +889,6 @@ class Table:
         if len(lengths) > 1:
             raise ValueError('Inconsistent data column lengths: {0}'
                              .format(lengths))
-
-        # Set the table masking
-        self._set_masked_from_cols(cols)
 
         # Make sure that all Column-based objects have correct class.  For
         # plain Table this is self.ColumnClass, but for instance QTable will
@@ -1042,6 +1045,29 @@ class Table:
         subclasses).
         """
         return any(has_info_class(col, MixinInfo) for col in self.columns.values())
+
+    @property
+    def has_masked_columns(self):
+        """True if table has any ``MaskedColumn`` columns.
+
+        This does not check for mixin columns that may have masked values, use the
+        ``has_masked_values`` property in that case.
+
+        """
+        return any(isinstance(col, MaskedColumn) for col in self.itercols())
+
+    @property
+    def has_masked_values(self):
+        """True if column in the table has values which are masked.
+
+        This may be relatively slow for large tables as it requires checking the mask
+        values of each column.
+        """
+        for col in self.itercols():
+            if hasattr(col, 'mask') and np.any(col.mask):
+                return True
+        else:
+            return False
 
     def _add_as_mixin_column(self, col):
         """
@@ -1514,27 +1540,12 @@ class Table:
         masked : bool
             State of table masking (`True` or `False`)
         """
-        if hasattr(self, '_masked'):
-            # The only allowed change is from None to False or True, or False to True
-            if self._masked is None and masked in [False, True]:
-                self._masked = masked
-            elif self._masked is False and masked is True:
-                log.info("Upgrading Table to masked Table. Use Table.filled() to convert to unmasked table.")
-                self._masked = masked
-            elif self._masked is masked:
-                raise Exception("Masked attribute is already set to {0}".format(masked))
-            else:
-                raise Exception("Cannot change masked attribute to {0} once it is set to {1}"
-                                .format(masked, self._masked))
+        if masked in [True, False, None]:
+            self._masked = masked
         else:
-            if masked in [True, False, None]:
-                self._masked = masked
-            else:
-                raise ValueError("masked should be one of True, False, None")
-        if self._masked:
-            self._column_class = self.MaskedColumn
-        else:
-            self._column_class = self.Column
+            raise ValueError("masked should be one of True, False, None")
+
+        self._column_class = self.MaskedColumn if self._masked else self.Column
 
     @property
     def ColumnClass(self):
@@ -2748,7 +2759,7 @@ class Table:
         if isinstance(other, Table):
             other = other.as_array()
 
-        if self.masked:
+        if self.has_masked_columns:
             if isinstance(other, np.ma.MaskedArray):
                 result = self.as_array() == other
             else:
@@ -3105,7 +3116,15 @@ class QTable(Table):
         return has_info_class(col, MixinInfo)
 
     def _convert_col_for_table(self, col):
-        if (isinstance(col, Column) and getattr(col, 'unit', None) is not None):
+        if isinstance(col, Column) and getattr(col, 'unit', None) is not None:
+            # What to do with MaskedColumn with units: leave as MaskedColumn or
+            # turn into Quantity and drop mask?  Assuming we have masking support
+            # in Quantity someday, let's drop the mask (consistent with legacy
+            # behavior) but issue a warning.
+            if isinstance(col, MaskedColumn) and np.any(col.mask):
+                warnings.warn("dropping mask in Quantity column '{}': "
+                              "masked Quantity not supported".format(col.info.name))
+
             # We need to turn the column into a quantity, or a subclass
             # identified in the unit (such as u.mag()).
             q_cls = getattr(col.unit, '_quantity_class', Quantity)
