@@ -3,7 +3,7 @@
 """
 Built-in mask mixin class.
 """
-from functools import reduce
+import functools
 import operator
 
 import numpy as np
@@ -230,7 +230,7 @@ class Masked:
 
             result = getattr(ufunc, method)(*converted, **kwargs)
             if masks:
-                mask = reduce(operator.or_, masks)
+                mask = functools.reduce(np.logical_or, masks)
             else:
                 mask = False
 
@@ -268,7 +268,7 @@ class Masked:
 
             result = getattr(ufunc, method)(converted, **kwargs)
 
-        elif method in {'accumulate', 'reduceat'}:
+        elif method in {'accumulate', 'reduceat', 'at'}:
             return NotImplemented
 
         if mask is False or result is None or result is NotImplemented:
