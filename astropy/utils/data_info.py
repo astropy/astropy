@@ -647,6 +647,10 @@ class BaseColumnInfo(DataInfo):
             raise TableMergeError('columns have different shapes')
         out['shape'] = uniq_shapes.pop()
 
+        # "Merged" output name is the supplied name
+        if name is not None:
+            out['name'] = name
+
         return out
 
 

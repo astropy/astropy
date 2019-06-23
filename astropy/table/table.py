@@ -2451,11 +2451,6 @@ class Table:
             attrs = ('__getitem__', '__len__', '__iter__', 'keys', 'values', 'items')
             return all(hasattr(obj, attr) for attr in attrs)
 
-        if mask is not None and not self.masked:
-            # Possibly issue upgrade warning and update self.ColumnClass.  This
-            # does not change the existing columns.
-            self._set_masked(True)
-
         if _is_mapping(vals) or vals is None:
             # From the vals and/or mask mappings create the corresponding lists
             # that have entries for each table column.
@@ -2513,17 +2508,16 @@ class Table:
         try:
             # Insert val at index for each column
             for name, col, val, mask_ in zip(colnames, self.columns.values(), vals, mask):
-                # If the new row caused a change in self.ColumnClass then
-                # Column-based classes need to be converted first.  This is
-                # typical for adding a row with mask values to an unmasked table.
-                if isinstance(col, Column) and not isinstance(col, self.ColumnClass):
-                    col = self.ColumnClass(col, copy=False)
+                # If new val is masked and the existing column does not support masking
+                # then upgrade the column to a mask-enabled type: either the table-level
+                # default ColumnClass or else MaskedColumn.
+                if mask_ and isinstance(col, Column) and not isinstance(col, MaskedColumn):
+                    col_cls = (self.ColumnClass
+                               if issubclass(self.ColumnClass, self.MaskedColumn)
+                               else self.MaskedColumn)
+                    col = col_cls(col, copy=False)
 
                 newcol = col.insert(index, val, axis=0)
-                if not isinstance(newcol, BaseColumn):
-                    newcol.info.name = name
-                    if self.masked:
-                        newcol.mask = FalseArray(newcol.shape)
 
                 if len(newcol) != N + 1:
                     raise ValueError('Incorrect length for column {0} after inserting {1}'
@@ -2531,9 +2525,13 @@ class Table:
                                      .format(name, val, len(newcol), N + 1))
                 newcol.info.parent_table = self
 
-                # Set mask if needed
-                if self.masked:
-                    newcol.mask[index] = mask_
+                # Set mask if needed and possible
+                if mask_:
+                    if hasattr(newcol, 'mask'):
+                        newcol[index] = np.ma.masked
+                    else:
+                        raise TypeError("mask was supplied for column '{}' but it does not "
+                                        "support masked values".format(col.info.name))
 
                 columns[name] = newcol
 
