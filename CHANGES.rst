@@ -56,6 +56,10 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Comparisons between ``Column`` instances and ``Quantity`` will now
+  correctly take into account the unit (as was already the case for
+  regular operations such as addition). [#8904]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
