@@ -49,6 +49,9 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Major rework of modeling internals. See release notes for details. Eliminates
+  support for compound classes (but not compound instances!) [#8769]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
@@ -148,6 +151,9 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
+
+- Major rework of modeling internals. See release notes for details. Eliminates
+  support for compound classes (but not compound instances!) [#8769]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
@@ -1050,9 +1056,6 @@ astropy.io.fits
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
-- Major rework of modeling internals. See release notes for details. Eliminates 
-  support for compound classes (but not compound instances!)
-  
 - Add a ``Multiply`` model which preserves unit through evaluate, unlike
   ``Scale`` which is dimensionless. [#7210]
 
