@@ -313,6 +313,9 @@ astropy.io.fits
 - Fixes bug where an invalid TRPOS<n> keyword was being generated for FITS
   time column when no location was available. [#8784]
 
+- Fixed a wrong exception when converting a Table with a unit that is not FITS
+  compliant and not convertible to a string using ``format='fits'``. [#8906]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 

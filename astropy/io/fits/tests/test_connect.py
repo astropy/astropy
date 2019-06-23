@@ -113,6 +113,17 @@ class TestSingleTable:
         assert t2['a'].unit == u.m
         assert t2['c'].unit == u.km / u.s
 
+    def test_with_custom_units(self, tmpdir):
+        filename = str(tmpdir.join('test_with_units.fits'))
+        t1 = QTable(self.data)
+        bandpass_sol_lum = u.def_unit('bandpass_sol_lum')
+        with u.add_enabled_units(bandpass_sol_lum):
+            t1['a'].unit = bandpass_sol_lum
+            t1.write(filename, overwrite=True)
+            t2 = QTable.read(filename)
+            assert equal_data(t1, t2)
+            assert t2['a'].unit == bandpass_sol_lum
+
     @pytest.mark.parametrize('table_type', (Table, QTable))
     def test_with_format(self, table_type, tmpdir):
         filename = str(tmpdir.join('test_with_format.fits'))
