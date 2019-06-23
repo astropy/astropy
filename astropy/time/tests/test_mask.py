@@ -164,9 +164,7 @@ def test_serialize_fits_masked(tmpdir):
     t = Table([tm])
     t.write(fn)
 
-    # Warning is a bug; https://github.com/astropy/astropy/issues/8773
-    with pytest.warns(VerifyWarning):
-        t2 = Table.read(fn, astropy_native=True)
+    t2 = Table.read(fn, astropy_native=True)
 
     # Time FITS handling does not current round-trip format in FITS
     t2['col0'].format = tm.format

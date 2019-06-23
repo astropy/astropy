@@ -536,9 +536,12 @@ def table_to_hdu(table, character_as_bytes=False):
     for col_name, col_info in coord_meta.items():
         col = table_hdu.columns[col_name]
         # Set the column coordinate attributes from data saved earlier.
-        # Note: have to set all three, even if we have no data.
-        for attr in 'coord_type', 'coord_unit', 'time_ref_pos':
+        # Note: have to set these, even if we have no data.
+        for attr in 'coord_type', 'coord_unit':
             setattr(col, attr, col_info.get(attr, None))
+        trpos = col_info.get('time_ref_pos', None)
+        if trpos is not None:
+            setattr(col, 'time_ref_pos', trpos)
 
     for key, value in table.meta.items():
         if is_column_keyword(key.upper()) or key.upper() in REMOVE_KEYWORDS:
