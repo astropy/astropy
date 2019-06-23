@@ -33,6 +33,28 @@ from .connect import TableRead, TableWrite
 from . import conf
 
 
+_implementation_notes = """
+This string has informal notes concerning Table implementation for developers.
+
+Things to remember:
+
+- Table has customizable attributes ColumnClass, Column, MaskedColumn.
+  Table.Column is normally just column.Column (same w/ MaskedColumn)
+  but in theory they can be different.  Table.ColumnClass is the default
+  class used to create new non-mixin columns, and this is a function of
+  the Table.masked attribute.  Column creation / manipulation in a Table
+  needs to respect these.
+
+- Column objects that get inserted into the Table.columns attribute must
+  have the info.parent_table attribute set correctly.  Beware just dropping
+  an object into the columns dict.  Be aware that an existing column may
+  be part of another Table and have parent_table set to point at that
+  table.  Dropping that column into `columns` of this Table will cause
+  a problem for the old one so it needs to be copied.
+
+- Be aware of column objects that have indices set.
+"""
+
 __doctest_skip__ = ['Table.read', 'Table.write', 'Table._read',
                     'Table.convert_bytestring_to_unicode',
                     'Table.convert_unicode_to_bytestring',
@@ -794,7 +816,7 @@ class Table:
         return
 
     def _init_from_list(self, data, names, dtype, n_cols, copy):
-        """Initialize table from a list of columns.  A column can be a
+        """Initialize table from a list of column data.  A column can be a
         Column object, np.ndarray, mixin, or any other iterable object.
         """
         if data and all(isinstance(row, dict) for row in data):
