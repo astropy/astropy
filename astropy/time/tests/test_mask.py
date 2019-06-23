@@ -158,6 +158,7 @@ def test_serialize_fits_masked(tmpdir):
     fn = str(tmpdir.join('tempfile.fits'))
     t = Table([tm])
     t.write(fn)
+
     t2 = Table.read(fn, astropy_native=True)
 
     # Time FITS handling does not current round-trip format in FITS
