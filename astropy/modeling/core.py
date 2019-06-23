@@ -15,7 +15,6 @@ parameters in each model making up the set.
 
 import abc
 import copy
-import copyreg
 import inspect
 import functools
 import operator
@@ -33,23 +32,19 @@ from astropy.table import Table
 from astropy.units import Quantity, UnitsError, dimensionless_unscaled
 from astropy.units.utils import quantity_asanyarray
 from astropy.utils import (sharedmethod, find_current_module,
-                           OrderedDescriptorContainer,
+                           InheritDocstrings,
                            check_broadcast, IncompatibleShapeError, isiterable)
 from astropy.utils.codegen import make_function_with_signature
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import get_parameters
 from .utils import (combine_labels, make_binary_operator_eval,
-                    ExpressionTree, AliasDict, get_inputs_and_params,
+                    AliasDict, get_inputs_and_params,
                     _BoundingBox, _combine_equivalency_dict)
 from astropy.nddata.utils import add_array, extract_array
 from .parameters import (Parameter, InputParameterError,
                          param_repr_oneline, _tofloat)
 
 from collections import deque
-
-
-from astropy.utils import indent
-from .utils import combine_labels, _BoundingBox
 
 
 __all__ = ['Model', 'FittableModel', 'Fittable1DModel', 'Fittable2DModel',
@@ -74,22 +69,6 @@ class _CompoundModelMeta:
 
 class ModelDefinitionError(TypeError):
     """Used for incorrect models definitions"""
-
-
-def _model_oper(oper, **kwargs):
-    """
-    Returns a function that evaluates a given Python arithmetic operator
-    between two models.  The operator should be given as a string, like ``'+'``
-    or ``'**'``.
-
-    Any additional keyword arguments passed in are passed to
-    `_CompoundModelMeta._from_operator`.
-    """
-
-    # Note: Originally this used functools.partial, but that won't work when
-    # used in the class definition of _CompoundModelMeta since
-    # _CompoundModelMeta has not been defined yet.
-    return lambda left, right: CompoundModel(oper, left, right, **kwargs)
 
 
 class _ModelMeta(InheritDocstrings, abc.ABCMeta):
