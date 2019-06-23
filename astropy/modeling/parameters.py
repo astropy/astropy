@@ -114,7 +114,6 @@ def _unary_arithmetic_operation(op):
 
 class Parameter(OrderedDescriptor):
     """
-    +++++++++++++++++++++++++++++++++++++++++++
     Wraps individual parameters.
 
     Note: this is a new implementation of the Parameter class, and despite
