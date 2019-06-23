@@ -107,8 +107,7 @@ class TableWrite(registry.UnifiedReadWrite):
     def __init__(self, instance, cls):
         super().__init__(instance, cls, 'write')
 
-    def __call__(self, *args, **kwargs):
-        serialize_method = kwargs.pop('serialize_method', None)
+    def __call__(self, *args, serialize_method=None, **kwargs):
         instance = self._instance
         with serialize_method_as(instance, serialize_method):
             registry.write(instance, *args, **kwargs)
