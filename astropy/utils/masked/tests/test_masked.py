@@ -55,7 +55,7 @@ class TestMaskedArrayInitialization(ArraySetup):
         assert isinstance(ma, np.ndarray)
         assert isinstance(ma, type(self.a))
         assert isinstance(ma, Masked)
-        assert_array_equal(ma.data, self.a)
+        assert_array_equal(ma.unmasked, self.a)
         assert_array_equal(ma.mask, self.mask_a)
         assert ma.mask is not self.mask_a
         assert np.may_share_memory(ma.mask, self.mask_a)
@@ -119,9 +119,9 @@ class TestMaskedArrayCopyFilled(MaskedArraySetup):
     def test_copy(self):
         ma_copy = self.ma.copy()
         assert type(ma_copy) is type(self.ma)
-        assert_array_equal(ma_copy.data, self.ma.data)
+        assert_array_equal(ma_copy.unmasked, self.ma.unmasked)
         assert_array_equal(ma_copy.mask, self.ma.mask)
-        assert not np.may_share_memory(ma_copy.data, self.ma.data)
+        assert not np.may_share_memory(ma_copy.unmasked, self.ma.unmasked)
         assert not np.may_share_memory(ma_copy.mask, self.ma.mask)
 
     @pytest.mark.parametrize('fill_value', (0, 1))
@@ -129,7 +129,7 @@ class TestMaskedArrayCopyFilled(MaskedArraySetup):
         fill_value = fill_value * getattr(self.a, 'unit', 1)
         expected = self.a.copy()
         expected[self.ma.mask] = fill_value
-        result = self.ma.filled(fill_value)
+        result = self.ma.unmask(fill_value)
         assert_array_equal(expected, result)
 
 
@@ -147,7 +147,7 @@ class TestMaskedArrayShaping(MaskedArraySetup):
         expected_data = self.a.reshape((6,))
         expected_mask = self.mask_a.reshape((6,))
         assert ma_reshape.shape == expected_data.shape
-        assert_array_equal(ma_reshape.data, expected_data)
+        assert_array_equal(ma_reshape.unmasked, expected_data)
         assert_array_equal(ma_reshape.mask, expected_mask)
 
     def test_ravel(self):
@@ -155,7 +155,7 @@ class TestMaskedArrayShaping(MaskedArraySetup):
         expected_data = self.a.ravel()
         expected_mask = self.mask_a.ravel()
         assert ma_ravel.shape == expected_data.shape
-        assert_array_equal(ma_ravel.data, expected_data)
+        assert_array_equal(ma_ravel.unmasked, expected_data)
         assert_array_equal(ma_ravel.mask, expected_mask)
 
     def test_transpose(self):
@@ -163,12 +163,12 @@ class TestMaskedArrayShaping(MaskedArraySetup):
         expected_data = self.a.transpose()
         expected_mask = self.mask_a.transpose()
         assert ma_transpose.shape == expected_data.shape
-        assert_array_equal(ma_transpose.data, expected_data)
+        assert_array_equal(ma_transpose.unmasked, expected_data)
         assert_array_equal(ma_transpose.mask, expected_mask)
 
     def test_iter(self):
         for ma, d, m in zip(self.ma, self.a, self.mask_a):
-            assert_array_equal(ma.data, d)
+            assert_array_equal(ma.unmasked, d)
             assert_array_equal(ma.mask, m)
 
 
@@ -181,7 +181,7 @@ class TestMaskedArrayItems(MaskedArraySetup):
         ma_part = self.ma[item]
         expected_data = self.a[item]
         expected_mask = self.mask_a[item]
-        assert_array_equal(ma_part.data, expected_data)
+        assert_array_equal(ma_part.unmasked, expected_data)
         assert_array_equal(ma_part.mask, expected_mask)
 
     @pytest.mark.parametrize('item', ((1, 1),
@@ -195,7 +195,7 @@ class TestMaskedArrayItems(MaskedArraySetup):
         for mask in True, False:
             value = self.ma.__class__(base[0, 0], mask)
             base[item] = value
-            expected_data[item] = value.data
+            expected_data[item] = value.unmasked
             expected_mask[item] = value.mask
             assert_array_equal(base.mask, expected_mask)
 
@@ -216,7 +216,7 @@ class TestMaskedArrayOperators(MaskedArraySetup):
         expected_mask = (self.ma.mask | self.mb.mask)
         # Note: assert_array_equal also checks type, i.e., that, e.g.,
         # Longitude decays into an Angle.
-        assert_array_equal(mapmb.data, expected_data)
+        assert_array_equal(mapmb.unmasked, expected_data)
         assert_array_equal(mapmb.mask, expected_mask)
 
 
@@ -237,23 +237,23 @@ class MaskedUfuncTests(MaskedArraySetup):
         expected_mask = (self.ma.mask | self.mb.mask)
         # Note: assert_array_equal also checks type, i.e., that, e.g.,
         # Longitude decays into an Angle.
-        assert_array_equal(ma_mb.data, expected_data)
+        assert_array_equal(ma_mb.unmasked, expected_data)
         assert_array_equal(ma_mb.mask, expected_mask)
 
     def test_3op_ufunc(self):
         ma_mb = np.clip(self.ma, self.mb, self.mc)
         expected_data = np.clip(self.a, self.b, self.c)
         expected_mask = (self.ma.mask | self.mb.mask | self.mc.mask)
-        assert_array_equal(ma_mb.data, expected_data)
+        assert_array_equal(ma_mb.unmasked, expected_data)
         assert_array_equal(ma_mb.mask, expected_mask)
 
     @pytest.mark.parametrize('axis', (0, 1, None))
     def test_add_reduce(self, axis):
         ma_reduce = np.add.reduce(self.ma, axis=axis)
-        filled = self.ma.data * (1. - self.ma.mask)
+        filled = self.ma.unmasked * (1. - self.ma.mask)
         expected_data = np.sum(filled, axis=axis)
         expected_mask = np.logical_and.reduce(self.ma.mask, axis=axis)
-        assert_array_equal(ma_reduce.data, expected_data)
+        assert_array_equal(ma_reduce.unmasked, expected_data)
         assert_array_equal(ma_reduce.mask, expected_mask)
 
     @pytest.mark.parametrize('axis', (0, 1, None))
@@ -263,7 +263,7 @@ class MaskedUfuncTests(MaskedArraySetup):
         filled[self.mask_a] = self.a.max()
         expected_data = np.min(filled, axis=axis)
         expected_mask = np.logical_and.reduce(self.ma.mask, axis=axis)
-        assert_array_equal(ma_reduce.data, expected_data)
+        assert_array_equal(ma_reduce.unmasked, expected_data)
         assert_array_equal(ma_reduce.mask, expected_mask)
 
     @pytest.mark.parametrize('axis', (0, 1, None))
@@ -273,7 +273,7 @@ class MaskedUfuncTests(MaskedArraySetup):
         filled[self.mask_a] = self.a.min()
         expected_data = np.max(filled, axis=axis)
         expected_mask = np.logical_and.reduce(self.ma.mask, axis=axis)
-        assert_array_equal(ma_reduce.data, expected_data)
+        assert_array_equal(ma_reduce.unmasked, expected_data)
         assert_array_equal(ma_reduce.mask, expected_mask)
 
 
@@ -285,7 +285,7 @@ class TestMaskedArrayUfuncs(MaskedUfuncTests, ArraySetup):
         filled[self.mask_a] = 1
         expected_data = np.prod(filled, axis=axis)
         expected_mask = np.logical_and.reduce(self.ma.mask, axis=axis)
-        assert_array_equal(ma_reduce.data, expected_data)
+        assert_array_equal(ma_reduce.unmasked, expected_data)
         assert_array_equal(ma_reduce.mask, expected_mask)
 
 
