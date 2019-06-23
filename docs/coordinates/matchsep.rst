@@ -255,7 +255,7 @@ will work on either |skycoord| objects *or* the lower-level frame classes:
     >>> idx, d2d, d3d = match_coordinates_sky(c.frame, catalog.frame)
 
 It is possible to impose a separation constraint (e.g., the maximum separation to be
-considered a match) by creating a boolean mask with ``d2d`` or ``d3d``. For example,:
+considered a match) by creating a boolean mask with ``d2d`` or ``d3d``. For example:
 
 .. doctest-requires:: scipy
 
