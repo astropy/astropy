@@ -373,17 +373,36 @@ class TestAddRow:
 
     def test_add_masked_row_to_non_masked_table_iterable(self):
         t = Table(masked=False)
-        t.add_column(Column(name='a', data=[1]))
-        t.add_column(Column(name='b', data=[4]))
+        t['a'] = [1]
+        t['b'] = [4]
+        t['c'] = Time([1], format='cxcsec')
+
+        tm = Time(2, format='cxcsec')
         assert not t.masked
-        t.add_row([2, 5])
+        t.add_row([2, 5, tm])
         assert not t.masked
-        t.add_row([3, 6], mask=[0, 1])
-        assert t.masked
-        assert np.all(np.array(t['a']) == np.array([1, 2, 3]))
-        assert np.all(t['a'].mask == np.array([0, 0, 0], bool))
-        assert np.all(np.array(t['b']) == np.array([4, 5, 6]))
-        assert np.all(t['b'].mask == np.array([0, 0, 1], bool))
+        t.add_row([3, 6, tm], mask=[0, 1, 1])
+        assert not t.masked
+
+        assert type(t['a']) is Column
+        assert type(t['b']) is MaskedColumn
+        assert type(t['c']) is Time
+
+        assert np.all(t['a'] == [1, 2, 3])
+        assert np.all(t['b'].data == [4, 5, 6])
+        assert np.all(t['b'].mask == [False, False, True])
+        assert np.all(t['c'][:2] == Time([1, 2], format='cxcsec'))
+        assert np.all(t['c'].mask == [False, False, True])
+
+    def test_add_row_cannot_mask_column_raises_typeerror(self):
+        t = QTable()
+        t['a'] = [1, 2] * u.m
+        t.add_row((3 * u.m,))  # No problem
+        with pytest.raises(ValueError) as exc:
+            t.add_row((3 * u.m,), mask=(True,))
+        assert (exc.value.args[0].splitlines() ==
+                ["Unable to insert row because of exception in column 'a':",
+                 "mask was supplied for column 'a' but it does not support masked values"])
 
 
 def test_setting_from_masked_column():
