@@ -152,6 +152,16 @@ class TestColumn():
         assert np.all(c.data == np.array([100, 200, 300]))
         assert np.all(c.unit == u.cm)
 
+    def test_quantity_comparison(self, Column):
+        # regression test for gh-6532
+        c = Column([1, 2100, 3], unit='Hz')
+        q = 2 * u.kHz
+        check = c < q
+        assert np.all(check == [True, False, True])
+        # This already worked, but just in case.
+        check = q >= c
+        assert np.all(check == [True, False, True])
+
     def test_attrs_survive_getitem_after_change(self, Column):
         """
         Test for issue #3023: when calling getitem with a MaskedArray subclass

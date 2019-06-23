@@ -971,6 +971,7 @@ class Column(BaseColumn):
             # future numpy versions will do so.  NUMPY_LT_1_13 to get the
             # attention of future maintainers to check (by deleting or versioning
             # the if block below).  See #6899 discussion.
+            # 2019-06-21: still needed with numpy 1.16.
             if (isinstance(self, MaskedColumn) and self.dtype.kind == 'U' and
                     isinstance(other, MaskedColumn) and other.dtype.kind == 'S'):
                 self, other = other, self
@@ -978,7 +979,11 @@ class Column(BaseColumn):
 
             if self.dtype.char == 'S':
                 other = self._encode_str(other)
-            return getattr(self.data, op)(other)
+
+            # Now just let the regular ndarray.__eq__, etc., take over.
+            result = getattr(super(), op)(other)
+            # But we should not return Column instances for this case.
+            return result.data if isinstance(result, Column) else result
 
         return _compare
 
