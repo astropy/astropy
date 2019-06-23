@@ -4,7 +4,6 @@
 Built-in mask mixin class.
 """
 import functools
-import operator
 
 import numpy as np
 
@@ -121,8 +120,8 @@ class Masked:
     _generated_subclasses = {}
 
     _REDUCTION_HELPERS = {
-        np.minimum: lambda ma: np.max(ma.data),
-        np.maximum: lambda ma: np.min(ma.data)}
+        np.minimum: lambda a: np.max(a),
+        np.maximum: lambda a: np.min(a)}
     """For ufuncs without an identity but where reduction makes sense."""
 
     def __new__(cls, data, mask=None):
@@ -181,27 +180,26 @@ class Masked:
         else:
             self._mask = ma
 
-    # TODO: should this have a more unique name? E.g., unmask?
-    # Then, fill_value=None could indicate to not fill.
-    def filled(self, fill_value):
-        result = self.data.copy()
-        result[self.mask] = fill_value
-        return result
+    def unmask(self, fill_value=None):
+        if fill_value is None:
+            return self._data
+        else:
+            result = self._data.copy()
+            result[self.mask] = fill_value
+            return result
 
-    # TODO: should this have a more unique name? E.g., unmasked?
-    # (could just be unmasked = property(unmask) with above)
     @property
-    def data(self):
+    def unmasked(self):
         return self._data
 
     def _apply(self, method, *args, **kwargs):
         # For use with NDArrayShapeMethods.
         if callable(method):
-            data = method(self.data, *args, **kwargs)
-            mask = method(self.mask, *args, **kwargs)
+            data = method(self._data, *args, **kwargs)
+            mask = method(self._mask, *args, **kwargs)
         else:
-            data = getattr(self.data, method)(*args, **kwargs)
-            mask = getattr(self.mask, method)(*args, **kwargs)
+            data = getattr(self._data, method)(*args, **kwargs)
+            mask = getattr(self._mask, method)(*args, **kwargs)
 
         return self.__class__(data, mask=mask)
 
@@ -213,7 +211,7 @@ class Masked:
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         out = kwargs.pop('out', None)
         if out is not None:
-            kwargs['out'] = tuple((out_.data if isinstance(out_, Masked)
+            kwargs['out'] = tuple((out_._data if isinstance(out_, Masked)
                                    else out_) for out_ in out)
             if ufunc.nout == 1:
                 out = out[0]
@@ -286,13 +284,13 @@ class Masked:
         if out is None:
             return Masked(result, mask)
 
-        assert isinstance(out, Masked)
+        assert isinstance(out, Masked) and isinstance(mask, Mask)
         out._mask = mask
         return out
 
     # TODO: improve (greatly) repr and str!!
     def __repr__(self):
-        reprarr = repr(self.data)
+        reprarr = repr(self._data)
         if reprarr.endswith('>'):
             firstspace = reprarr.find(' ')
             reprarr = reprarr[firstspace+1:-1]  # :-1] removes the ending '>'
@@ -306,6 +304,6 @@ class Masked:
             return reprarr
 
     def __str__(self):
-        datastr = str(self.data)
+        datastr = str(self._data)
         toadd = ' with mask={}'.format(self.mask)
         return datastr + toadd
