@@ -186,6 +186,9 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Removed deprecated ``funcsigs`` and ``futures`` from
+  ``astropy.utils.compat``. [#8909]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
