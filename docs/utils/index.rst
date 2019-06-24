@@ -32,9 +32,7 @@ The exception is below:
     bugfixes for the stdlib that are important for Astropy. It is recommended
     that developers at least glance over the source code for this subpackage,
     but most of it cannot be reliably included here because of the large
-    amount of version-specific code it contains. For numpy, however, there are
-    :ref:`instructions <numpy-compatibility>` on how to deal with issues of
-    compatibility between different versions.
+    amount of version-specific code it contains.
 
 Reference/API
 =============
