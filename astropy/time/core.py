@@ -635,6 +635,26 @@ class Time(ShapedLikeNDArray):
     def __str__(self):
         return str(getattr(self, self.format))
 
+    def __hash__(self):
+
+        try:
+            loc = getattr(self, 'location', None)
+            if loc is not None:
+                loc = loc.x.to_value(u.m), loc.y.to_value(u.m), loc.z.to_value(u.m)
+
+            return hash((self.jd1, self.jd2, self.scale, loc))
+
+        except TypeError:
+            if self.ndim != 0:
+                reason = '(must be scalar)'
+            elif self.masked:
+                reason = '(value is masked)'
+            else:
+                raise
+
+            raise TypeError("unhashable type: '{}' {}"
+                            .format(self.__class__.__name__, reason))
+
     def strftime(self, format_spec):
         """
         Convert Time to a string or a numpy.array of strings according to a
