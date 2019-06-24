@@ -187,7 +187,7 @@ def test_transforms_diff(sc):
         assert isinstance(trans.frame, PrecessedGeocentric)
 
 
-@pytest.mark.skipif(str('not HAS_SCIPY'))
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_matching(sc, scmany):
     # just check that it works and yields something
     idx, d2d, d3d = sc.match_to_catalog_sky(scmany)

@@ -105,8 +105,8 @@ def test_set_locale():
     # First, test if the required locales are available
     current = locale.setlocale(locale.LC_ALL)
     try:
-        locale.setlocale(locale.LC_ALL, str('en_US'))
-        locale.setlocale(locale.LC_ALL, str('de_DE'))
+        locale.setlocale(locale.LC_ALL, 'en_US')
+        locale.setlocale(locale.LC_ALL, 'de_DE')
     except locale.Error as e:
         pytest.skip('Locale error: {}'.format(e))
     finally:

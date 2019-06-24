@@ -341,7 +341,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
 
         __call__.__signature__ = sig
 
-        return type(str('_{0}BoundingBox'.format(cls.name)), (_BoundingBox,),
+        return type('_{0}BoundingBox'.format(cls.name), (_BoundingBox,),
                     {'__call__': __call__})
 
     def _handle_special_methods(cls, members):
@@ -2443,7 +2443,7 @@ class _CompoundModelMeta(_ModelMeta):
         tree = ExpressionTree(operator, left=children[0], right=children[1],
                               inputs=inputs, outputs=outputs)
 
-        name = str('CompoundModel{0}'.format(_CompoundModelMeta._nextid))
+        name = 'CompoundModel{0}'.format(_CompoundModelMeta._nextid)
         _CompoundModelMeta._nextid += 1
 
         mod = find_current_module(3)

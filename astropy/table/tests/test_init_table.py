@@ -232,7 +232,7 @@ class TestInitFromNdarrayStruct(BaseInitFromDictLike):
     def _setup(self, table_type):
         self.data = np.array([(1, 2, 3),
                               (3, 4, 5)],
-                             dtype=[(str('x'), 'i8'), (str('y'), 'i4'), (str('z'), 'i8')])
+                             dtype=[('x', 'i8'), ('y', 'i4'), ('z', 'i8')])
 
     def test_ndarray_ref(self, table_type):
         """Init with ndarray and copy=False and show that table uses reference
@@ -306,7 +306,7 @@ class TestInitFromRow(BaseInitFromDictLike):
     def _setup(self, table_type):
         arr = np.array([(1, 2, 3),
                         (3, 4, 5)],
-                       dtype=[(str('x'), 'i8'), (str('y'), 'i8'), (str('z'), 'f8')])
+                       dtype=[('x', 'i8'), ('y', 'i8'), ('z', 'f8')])
         self.data = table_type(arr, meta={'comments': ['comment1', 'comment2']})
 
     def test_init_from_row(self, table_type):
@@ -333,7 +333,7 @@ class TestInitFromTable(BaseInitFromDictLike):
     def _setup(self, table_type):
         arr = np.array([(1, 2, 3),
                         (3, 4, 5)],
-                       dtype=[(str('x'), 'i8'), (str('y'), 'i8'), (str('z'), 'f8')])
+                       dtype=[('x', 'i8'), ('y', 'i8'), ('z', 'f8')])
         self.data = table_type(arr, meta={'comments': ['comment1', 'comment2']})
 
     def test_data_meta_copy(self, table_type):
@@ -406,11 +406,11 @@ class TestInitFromNone():
         """
         Test different ways of initing an empty table
         """
-        np_t = np.empty(0, dtype=[(str('a'), 'f4', (2,)),
-                                  (str('b'), 'i4')])
+        np_t = np.empty(0, dtype=[('a', 'f4', (2,)),
+                                  ('b', 'i4')])
         for kwargs in ({'names': ('a', 'b')},
                        {'names': ('a', 'b'), 'dtype': (('f4', (2,)), 'i4')},
-                       {'dtype': [(str('a'), 'f4', (2,)), (str('b'), 'i4')]},
+                       {'dtype': [('a', 'f4', (2,)), ('b', 'i4')]},
                        {'dtype': np_t.dtype}):
             t = table_type(**kwargs)
             assert t.colnames == ['a', 'b']
@@ -465,7 +465,7 @@ def test_init_and_ref_from_multidim_ndarray(table_type):
     for copy in (False, True):
         nd = np.array([(1, [10, 20]),
                        (3, [30, 40])],
-                      dtype=[(str('a'), 'i8'), (str('b'), 'i8', (2,))])
+                      dtype=[('a', 'i8'), ('b', 'i8', (2,))])
         t = table_type(nd, copy=copy)
         assert t.colnames == ['a', 'b']
         assert t['a'].shape == (2,)
@@ -473,11 +473,11 @@ def test_init_and_ref_from_multidim_ndarray(table_type):
         t['a'][0] = -200
         t['b'][1][1] = -100
         if copy:
-            assert nd[str('a')][0] == 1
-            assert nd[str('b')][1][1] == 40
+            assert nd['a'][0] == 1
+            assert nd['b'][1][1] == 40
         else:
-            assert nd[str('a')][0] == -200
-            assert nd[str('b')][1][1] == -100
+            assert nd['a'][0] == -200
+            assert nd['b'][1][1] == -100
 
 @pytest.mark.usefixtures('table_type')
 @pytest.mark.parametrize('copy', [False, True])

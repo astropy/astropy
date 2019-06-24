@@ -185,9 +185,9 @@ def terminal_size(file=None):
         file = _get_stdout()
 
     try:
-        s = struct.pack(str("HHHH"), 0, 0, 0, 0)
+        s = struct.pack("HHHH", 0, 0, 0, 0)
         x = fcntl.ioctl(file, termios.TIOCGWINSZ, s)
-        (lines, width, xpixels, ypixels) = struct.unpack(str("HHHH"), x)
+        (lines, width, xpixels, ypixels) = struct.unpack("HHHH", x)
         if lines > 12:
             lines -= 6
         if width > 10:

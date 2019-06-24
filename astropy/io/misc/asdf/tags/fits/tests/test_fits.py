@@ -28,7 +28,7 @@ def test_complex_structure(tmpdir):
 def test_fits_table(tmpdir):
     a = np.array(
         [(0, 1), (2, 3)],
-        dtype=[(str('A'), int), (str('B'), int)])
+        dtype=[('A', int), ('B', int)])
 
     h = fits.HDUList()
     h.append(fits.BinTableHDU.from_columns(a))

@@ -70,7 +70,7 @@ def resolve_name(name, *additional_parts):
 
     while cursor > 0:
         try:
-            ret = __import__(str('.'.join(module_name)), fromlist=fromlist)
+            ret = __import__('.'.join(module_name), fromlist=fromlist)
             break
         except ImportError:
             if cursor == 0:

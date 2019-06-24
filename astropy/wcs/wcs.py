@@ -739,7 +739,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             return (None, None)
 
         try:
-            axiscorr = header[str('AXISCORR')]
+            axiscorr = header['AXISCORR']
             d2imdis = self._read_d2im_old_format(header, fobj, axiscorr)
             return d2imdis
         except KeyError:
@@ -762,29 +762,29 @@ reduce these to 2 dimensions using the naxis kwarg.
                     assert isinstance(fobj, fits.HDUList), ('An astropy.io.fits.HDUList'
                                 'is required for Lookup table distortion.')
                     dp = (d_kw + str(i)).strip()
-                    dp_extver_key = dp + str('.EXTVER')
+                    dp_extver_key = dp + '.EXTVER'
                     if dp_extver_key in header:
                         d_extver = header[dp_extver_key]
                         del header[dp_extver_key]
                     else:
                         d_extver = 1
-                    dp_axis_key = dp + str('.AXIS.{0:d}').format(i)
+                    dp_axis_key = dp + '.AXIS.{0:d}'.format(i)
                     if i == header[dp_axis_key]:
-                        d_data = fobj[str('D2IMARR'), d_extver].data
+                        d_data = fobj['D2IMARR', d_extver].data
                     else:
-                        d_data = (fobj[str('D2IMARR'), d_extver].data).transpose()
+                        d_data = (fobj['D2IMARR', d_extver].data).transpose()
                     del header[dp_axis_key]
-                    d_header = fobj[str('D2IMARR'), d_extver].header
-                    d_crpix = (d_header.get(str('CRPIX1'), 0.0), d_header.get(str('CRPIX2'), 0.0))
-                    d_crval = (d_header.get(str('CRVAL1'), 0.0), d_header.get(str('CRVAL2'), 0.0))
-                    d_cdelt = (d_header.get(str('CDELT1'), 1.0), d_header.get(str('CDELT2'), 1.0))
+                    d_header = fobj['D2IMARR', d_extver].header
+                    d_crpix = (d_header.get('CRPIX1', 0.0), d_header.get('CRPIX2', 0.0))
+                    d_crval = (d_header.get('CRVAL1', 0.0), d_header.get('CRVAL2', 0.0))
+                    d_cdelt = (d_header.get('CDELT1', 1.0), d_header.get('CDELT2', 1.0))
                     d_lookup = DistortionLookupTable(d_data, d_crpix,
                                                      d_crval, d_cdelt)
                     tables[i] = d_lookup
                 else:
                     warnings.warn('Polynomial distortion is not implemented.\n', AstropyUserWarning)
                 for key in set(header):
-                    if key.startswith(dp + str('.')):
+                    if key.startswith(dp + '.'):
                         del header[key]
             else:
                 tables[i] = None
@@ -803,20 +803,20 @@ reduce these to 2 dimensions using the naxis kwarg.
         crval = [0., 0.]
         cdelt = [1., 1.]
         try:
-            d2im_data = fobj[(str('D2IMARR'), 1)].data
+            d2im_data = fobj[('D2IMARR', 1)].data
         except KeyError:
             return (None, None)
         except AttributeError:
             return (None, None)
 
         d2im_data = np.array([d2im_data])
-        d2im_hdr = fobj[(str('D2IMARR'), 1)].header
-        naxis = d2im_hdr[str('NAXIS')]
+        d2im_hdr = fobj[('D2IMARR', 1)].header
+        naxis = d2im_hdr['NAXIS']
 
         for i in range(1, naxis + 1):
-            crpix[i - 1] = d2im_hdr.get(str('CRPIX') + str(i), 0.0)
-            crval[i - 1] = d2im_hdr.get(str('CRVAL') + str(i), 0.0)
-            cdelt[i - 1] = d2im_hdr.get(str('CDELT') + str(i), 1.0)
+            crpix[i - 1] = d2im_hdr.get('CRPIX' + str(i), 0.0)
+            crval[i - 1] = d2im_hdr.get('CRVAL' + str(i), 0.0)
+            cdelt[i - 1] = d2im_hdr.get('CDELT' + str(i), 1.0)
 
         cpdis = DistortionLookupTable(d2im_data, crpix, crval, cdelt)
 
@@ -843,33 +843,33 @@ reduce these to 2 dimensions using the naxis kwarg.
         def write_d2i(num, det2im):
             if det2im is None:
                 return
-            str('{0}{1:d}').format(dist, num),
-            hdulist[0].header[str('{0}{1:d}').format(dist, num)] = (
+            '{0}{1:d}'.format(dist, num),
+            hdulist[0].header['{0}{1:d}'.format(dist, num)] = (
                 'LOOKUP', 'Detector to image correction type')
-            hdulist[0].header[str('{0}{1:d}.EXTVER').format(d_kw, num)] = (
+            hdulist[0].header['{0}{1:d}.EXTVER'.format(d_kw, num)] = (
                 num, 'Version number of WCSDVARR extension')
-            hdulist[0].header[str('{0}{1:d}.NAXES').format(d_kw, num)] = (
+            hdulist[0].header['{0}{1:d}.NAXES'.format(d_kw, num)] = (
                 len(det2im.data.shape), 'Number of independent variables in d2im function')
             for i in range(det2im.data.ndim):
-                hdulist[0].header[str('{0}{1:d}.AXIS.{2:d}').format(d_kw, num, i + 1)] = (
+                hdulist[0].header['{0}{1:d}.AXIS.{2:d}'.format(d_kw, num, i + 1)] = (
                     i + 1, 'Axis number of the jth independent variable in a d2im function')
 
-            image = fits.ImageHDU(det2im.data, name=str('D2IMARR'))
+            image = fits.ImageHDU(det2im.data, name='D2IMARR')
             header = image.header
 
-            header[str('CRPIX1')] = (det2im.crpix[0],
+            header['CRPIX1'] = (det2im.crpix[0],
                                      'Coordinate system reference pixel')
-            header[str('CRPIX2')] = (det2im.crpix[1],
+            header['CRPIX2'] = (det2im.crpix[1],
                                      'Coordinate system reference pixel')
-            header[str('CRVAL1')] = (det2im.crval[0],
+            header['CRVAL1'] = (det2im.crval[0],
                                      'Coordinate system value at reference pixel')
-            header[str('CRVAL2')] = (det2im.crval[1],
+            header['CRVAL2'] = (det2im.crval[1],
                                      'Coordinate system value at reference pixel')
-            header[str('CDELT1')] = (det2im.cdelt[0],
+            header['CDELT1'] = (det2im.cdelt[0],
                                      'Coordinate increment along axis')
-            header[str('CDELT2')] = (det2im.cdelt[1],
+            header['CDELT2'] = (det2im.cdelt[1],
                                      'Coordinate increment along axis')
-            image.ver = int(hdulist[0].header[str('{0}{1:d}.EXTVER').format(d_kw, num)])
+            image.ver = int(hdulist[0].header['{0}{1:d}.EXTVER'.format(d_kw, num)])
             hdulist.append(image)
         write_d2i(1, self.det2im1)
         write_d2i(2, self.det2im2)
@@ -887,11 +887,11 @@ reduce these to 2 dimensions using the naxis kwarg.
             return (None, None)
 
         if dist == 'CPDIS':
-            d_kw = str('DP')
-            err_kw = str('CPERR')
+            d_kw = 'DP'
+            err_kw = 'CPERR'
         else:
-            d_kw = str('DQ')
-            err_kw = str('CQERR')
+            d_kw = 'DQ'
+            err_kw = 'CQERR'
 
         tables = {}
         for i in range(1, self.naxis + 1):
@@ -913,30 +913,30 @@ reduce these to 2 dimensions using the naxis kwarg.
                         raise ValueError('an astropy.io.fits.HDUList is '
                                 'required for Lookup table distortion.')
                     dp = (d_kw + str(i)).strip()
-                    dp_extver_key = dp + str('.EXTVER')
+                    dp_extver_key = dp + '.EXTVER'
                     if dp_extver_key in header:
                         d_extver = header[dp_extver_key]
                         del header[dp_extver_key]
                     else:
                         d_extver = 1
-                    dp_axis_key = dp + str('.AXIS.{0:d}'.format(i))
+                    dp_axis_key = dp + '.AXIS.{0:d}'.format(i)
                     if i == header[dp_axis_key]:
-                        d_data = fobj[str('WCSDVARR'), d_extver].data
+                        d_data = fobj['WCSDVARR', d_extver].data
                     else:
-                        d_data = (fobj[str('WCSDVARR'), d_extver].data).transpose()
+                        d_data = (fobj['WCSDVARR', d_extver].data).transpose()
                     del header[dp_axis_key]
-                    d_header = fobj[str('WCSDVARR'), d_extver].header
-                    d_crpix = (d_header.get(str('CRPIX1'), 0.0),
-                               d_header.get(str('CRPIX2'), 0.0))
-                    d_crval = (d_header.get(str('CRVAL1'), 0.0),
-                               d_header.get(str('CRVAL2'), 0.0))
-                    d_cdelt = (d_header.get(str('CDELT1'), 1.0),
-                               d_header.get(str('CDELT2'), 1.0))
+                    d_header = fobj['WCSDVARR', d_extver].header
+                    d_crpix = (d_header.get('CRPIX1', 0.0),
+                               d_header.get('CRPIX2', 0.0))
+                    d_crval = (d_header.get('CRVAL1', 0.0),
+                               d_header.get('CRVAL2', 0.0))
+                    d_cdelt = (d_header.get('CDELT1', 1.0),
+                               d_header.get('CDELT2', 1.0))
                     d_lookup = DistortionLookupTable(d_data, d_crpix, d_crval, d_cdelt)
                     tables[i] = d_lookup
 
                     for key in set(header):
-                        if key.startswith(dp + str('.')):
+                        if key.startswith(dp + '.'):
                             del header[key]
                 else:
                     warnings.warn('Polynomial distortion is not implemented.\n', AstropyUserWarning)
@@ -957,38 +957,38 @@ reduce these to 2 dimensions using the naxis kwarg.
             return
 
         if dist == 'CPDIS':
-            d_kw = str('DP')
-            err_kw = str('CPERR')
+            d_kw = 'DP'
+            err_kw = 'CPERR'
         else:
-            d_kw = str('DQ')
-            err_kw = str('CQERR')
+            d_kw = 'DQ'
+            err_kw = 'CQERR'
 
         def write_dist(num, cpdis):
             if cpdis is None:
                 return
 
-            hdulist[0].header[str('{0}{1:d}').format(dist, num)] = (
+            hdulist[0].header['{0}{1:d}'.format(dist, num)] = (
                 'LOOKUP', 'Prior distortion function type')
-            hdulist[0].header[str('{0}{1:d}.EXTVER').format(d_kw, num)] = (
+            hdulist[0].header['{0}{1:d}.EXTVER'.format(d_kw, num)] = (
                 num, 'Version number of WCSDVARR extension')
-            hdulist[0].header[str('{0}{1:d}.NAXES').format(d_kw, num)] = (
+            hdulist[0].header['{0}{1:d}.NAXES'.format(d_kw, num)] = (
                 len(cpdis.data.shape), 'Number of independent variables in distortion function')
 
             for i in range(cpdis.data.ndim):
-                hdulist[0].header[str('{0}{1:d}.AXIS.{2:d}').format(d_kw, num, i + 1)] = (
+                hdulist[0].header['{0}{1:d}.AXIS.{2:d}'.format(d_kw, num, i + 1)] = (
                     i + 1,
                     'Axis number of the jth independent variable in a distortion function')
 
-            image = fits.ImageHDU(cpdis.data, name=str('WCSDVARR'))
+            image = fits.ImageHDU(cpdis.data, name='WCSDVARR')
             header = image.header
 
-            header[str('CRPIX1')] = (cpdis.crpix[0], 'Coordinate system reference pixel')
-            header[str('CRPIX2')] = (cpdis.crpix[1], 'Coordinate system reference pixel')
-            header[str('CRVAL1')] = (cpdis.crval[0], 'Coordinate system value at reference pixel')
-            header[str('CRVAL2')] = (cpdis.crval[1], 'Coordinate system value at reference pixel')
-            header[str('CDELT1')] = (cpdis.cdelt[0], 'Coordinate increment along axis')
-            header[str('CDELT2')] = (cpdis.cdelt[1], 'Coordinate increment along axis')
-            image.ver = int(hdulist[0].header[str('{0}{1:d}.EXTVER').format(d_kw, num)])
+            header['CRPIX1'] = (cpdis.crpix[0], 'Coordinate system reference pixel')
+            header['CRPIX2'] = (cpdis.crpix[1], 'Coordinate system reference pixel')
+            header['CRVAL1'] = (cpdis.crval[0], 'Coordinate system value at reference pixel')
+            header['CRVAL2'] = (cpdis.crval[1], 'Coordinate system value at reference pixel')
+            header['CDELT1'] = (cpdis.cdelt[0], 'Coordinate increment along axis')
+            header['CDELT2'] = (cpdis.cdelt[1], 'Coordinate increment along axis')
+            image.ver = int(hdulist[0].header['{0}{1:d}.EXTVER'.format(d_kw, num)])
             hdulist.append(image)
 
         write_dist(1, self.cpdis1)
@@ -1015,27 +1015,27 @@ reduce these to 2 dimensions using the naxis kwarg.
             # TODO: Parse SIP from a string without pyfits around
             return None
 
-        if str("A_ORDER") in header and header[str('A_ORDER')] > 1:
-            if str("B_ORDER") not in header:
+        if "A_ORDER" in header and header['A_ORDER'] > 1:
+            if "B_ORDER" not in header:
                 raise ValueError(
                     "A_ORDER provided without corresponding B_ORDER "
                     "keyword for SIP distortion")
 
-            m = int(header[str("A_ORDER")])
+            m = int(header["A_ORDER"])
             a = np.zeros((m + 1, m + 1), np.double)
             for i in range(m + 1):
                 for j in range(m - i + 1):
-                    key = str("A_{0}_{1}").format(i, j)
+                    key = "A_{0}_{1}".format(i, j)
                     if key in header:
                         a[i, j] = header[key]
                         del header[key]
 
-            m = int(header[str("B_ORDER")])
+            m = int(header["B_ORDER"])
             if m > 1:
                 b = np.zeros((m + 1, m + 1), np.double)
                 for i in range(m + 1):
                     for j in range(m - i + 1):
-                        key = str("B_{0}_{1}").format(i, j)
+                        key = "B_{0}_{1}".format(i, j)
                         if key in header:
                             b[i, j] = header[key]
                             del header[key]
@@ -1043,8 +1043,8 @@ reduce these to 2 dimensions using the naxis kwarg.
                 a = None
                 b = None
 
-            del header[str('A_ORDER')]
-            del header[str('B_ORDER')]
+            del header['A_ORDER']
+            del header['B_ORDER']
 
             ctype = [header['CTYPE{0}{1}'.format(nax, wcskey)] for nax in range(1, self.naxis + 1)]
             if any(not ctyp.endswith('-SIP') for ctyp in ctype):
@@ -1065,7 +1065,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
                 """
                 log.info(message)
-        elif str("B_ORDER") in header and header[str('B_ORDER')] > 1:
+        elif "B_ORDER" in header and header['B_ORDER'] > 1:
             raise ValueError(
                 "B_ORDER provided without corresponding A_ORDER " +
                 "keyword for SIP distortion")
@@ -1073,27 +1073,27 @@ reduce these to 2 dimensions using the naxis kwarg.
             a = None
             b = None
 
-        if str("AP_ORDER") in header and header[str('AP_ORDER')] > 1:
-            if str("BP_ORDER") not in header:
+        if "AP_ORDER" in header and header['AP_ORDER'] > 1:
+            if "BP_ORDER" not in header:
                 raise ValueError(
                     "AP_ORDER provided without corresponding BP_ORDER "
                     "keyword for SIP distortion")
 
-            m = int(header[str("AP_ORDER")])
+            m = int(header["AP_ORDER"])
             ap = np.zeros((m + 1, m + 1), np.double)
             for i in range(m + 1):
                 for j in range(m - i + 1):
-                    key = str("AP_{0}_{1}").format(i, j)
+                    key = "AP_{0}_{1}".format(i, j)
                     if key in header:
                         ap[i, j] = header[key]
                         del header[key]
 
-            m = int(header[str("BP_ORDER")])
+            m = int(header["BP_ORDER"])
             if m > 1:
                 bp = np.zeros((m + 1, m + 1), np.double)
                 for i in range(m + 1):
                     for j in range(m - i + 1):
-                        key = str("BP_{0}_{1}").format(i, j)
+                        key = "BP_{0}_{1}".format(i, j)
                         if key in header:
                             bp[i, j] = header[key]
                             del header[key]
@@ -1101,9 +1101,9 @@ reduce these to 2 dimensions using the naxis kwarg.
                 ap = None
                 bp = None
 
-            del header[str('AP_ORDER')]
-            del header[str('BP_ORDER')]
-        elif str("BP_ORDER") in header and header[str('BP_ORDER')] > 1:
+            del header['AP_ORDER']
+            del header['BP_ORDER']
+        elif "BP_ORDER" in header and header['BP_ORDER'] > 1:
             raise ValueError(
                 "BP_ORDER provided without corresponding AP_ORDER "
                 "keyword for SIP distortion")
@@ -1114,7 +1114,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         if a is None and b is None and ap is None and bp is None:
             return None
 
-        if str("CRPIX1{0}".format(wcskey)) not in header or str("CRPIX2{0}".format(wcskey)) not in header:
+        if "CRPIX1{0}".format(wcskey) not in header or "CRPIX2{0}".format(wcskey) not in header:
             raise ValueError(
                 "Header has SIP keywords without CRPIX keywords")
 
@@ -1137,17 +1137,17 @@ reduce these to 2 dimensions using the naxis kwarg.
             if a is None:
                 return
             size = a.shape[0]
-            keywords[str('{0}_ORDER').format(name)] = size - 1
+            keywords['{0}_ORDER'.format(name)] = size - 1
             for i in range(size):
                 for j in range(size - i):
                     if a[i, j] != 0.0:
                         keywords[
-                            str('{0}_{1:d}_{2:d}').format(name, i, j)] = a[i, j]
+                            '{0}_{1:d}_{2:d}'.format(name, i, j)] = a[i, j]
 
-        write_array(str('A'), self.sip.a)
-        write_array(str('B'), self.sip.b)
-        write_array(str('AP'), self.sip.ap)
-        write_array(str('BP'), self.sip.bp)
+        write_array('A', self.sip.a)
+        write_array('B', self.sip.b)
+        write_array('AP', self.sip.ap)
+        write_array('BP', self.sip.bp)
 
         return keywords
 

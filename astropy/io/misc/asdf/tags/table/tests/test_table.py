@@ -39,9 +39,9 @@ def test_array_columns(tmpdir):
     a = np.array([([[1, 2], [3, 4]], 2.0, 'x'),
                  ([[5, 6], [7, 8]], 5.0, 'y'),
                   ([[9, 10], [11, 12]], 8.2, 'z')],
-                 dtype=[(str('a'), str('<i4'), (2, 2)),
-                        (str('b'), str('<f8')),
-                        (str('c'), str('|S1'))])
+                 dtype=[('a', '<i4', (2, 2)),
+                        ('b', '<f8'),
+                        ('c', '|S1')])
 
     t = table.Table(a, copy=False)
     assert t.columns['a'].shape == (3, 2, 2)
@@ -56,10 +56,8 @@ def test_structured_array_columns(tmpdir):
     a = np.array([((1, 'a'), 2.0, 'x'),
                   ((4, 'b'), 5.0, 'y'),
                   ((5, 'c'), 8.2, 'z')],
-                 dtype=[(str('a'), [(str('a0'), str('<i4')),
-                                    (str('a1'), str('|S1'))]),
-                        (str('b'), str('<f8')),
-                        (str('c'), str('|S1'))])
+                 dtype=[('a', [('a0', '<i4'), ('a1', '|S1')]),
+                        ('b', '<f8'), ('c', '|S1')])
 
     t = table.Table(a, copy=False)
 
@@ -70,12 +68,8 @@ def test_structured_array_columns(tmpdir):
 
 
 def test_table_row_order(tmpdir):
-    a = np.array([(1, 2.0, 'x'),
-                  (4, 5.0, 'y'),
-                  (5, 8.2, 'z')],
-                 dtype=[(str('a'), str('<i4')),
-                        (str('b'), str('<f8')),
-                        (str('c'), str('|S1'))])
+    a = np.array([(1, 2.0, 'x'), (4, 5.0, 'y'),  (5, 8.2, 'z')],
+                 dtype=[('a', '<i4'), ('b', '<f8'), ('c', '|S1')])
 
     t = table.Table(a, copy=False)
     t.columns['a'].description = 'RA'

@@ -343,7 +343,7 @@ def test_non_existing_unknown_ext():
 
 def test_read_basic_table():
     data = np.array(list(zip([1, 2, 3], ['a', 'b', 'c'])),
-                    dtype=[(str('A'), int), (str('B'), '|U1')])
+                    dtype=[('A', int), ('B', '|U1')])
     io_registry.register_reader('test', Table, lambda x: Table(x))
     t = Table.read(data, format='test')
     assert t.keys() == ['A', 'B']
