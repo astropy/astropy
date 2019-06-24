@@ -47,10 +47,11 @@ Things to remember:
 
 - Column objects that get inserted into the Table.columns attribute must
   have the info.parent_table attribute set correctly.  Beware just dropping
-  an object into the columns dict.  Be aware that an existing column may
+  an object into the columns dict since an existing column may
   be part of another Table and have parent_table set to point at that
   table.  Dropping that column into `columns` of this Table will cause
-  a problem for the old one so it needs to be copied.
+  a problem for the old one so it needs to be copied.  Currently
+  replace_column is always making a copy
 
 - Be aware of column objects that have indices set.
 """
@@ -915,6 +916,7 @@ class Table:
         else:
             raise ValueError('Elements in list initialization must be '
                              'either Column or list-like')
+
         return col
 
     def _init_from_ndarray(self, data, names, dtype, n_cols, copy):
@@ -1024,17 +1026,24 @@ class Table:
             if len(set(names)) != len(names):
                 raise ValueError('Duplicate column names')
 
-        columns = table.TableColumns((name, col) for name, col in zip(names, cols))
+        table.columns = table.TableColumns((name, col) for name, col in zip(names, cols))
 
         for col in cols:
-            # For Column instances it is much faster to do direct attribute access
-            # instead of going through .info
-            col_info = col if isinstance(col, Column) else col.info
-            col_info.parent_table = table
-            if table.masked and not hasattr(col, 'mask'):
-                col.mask = FalseArray(col.shape)
+            table._set_col_parent_table_and_mask(col)
 
-        table.columns = columns
+    def _set_col_parent_table_and_mask(self, col):
+        """
+        Set ``col.parent_table = self`` and force ``col`` to have ``mask``
+        attribute if the table is masked and ``col.mask`` does not exist.
+        """
+        # For Column instances it is much faster to do direct attribute access
+        # instead of going through .info
+        col_info = col if isinstance(col, Column) else col.info
+        col_info.parent_table = self
+
+        # Legacy behavior for masked table
+        if self.masked and not hasattr(col, 'mask'):
+            col.mask = FalseArray(col.shape)
 
     def itercols(self):
         """
@@ -1997,7 +2006,8 @@ class Table:
         if self[name].info.indices:
             raise ValueError('cannot replace a table index column')
 
-        col = self._convert_data_to_col(col, name=name)
+        col = self._convert_data_to_col(col, name=name, copy=copy)
+        self._set_col_parent_table_and_mask(col)
 
         if len(col) != len(self[name]):
             raise ValueError('length of new column must match table length')
