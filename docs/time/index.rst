@@ -905,6 +905,17 @@ longitude).::
   >>> t.tcb.iso
   '2006-01-15 21:25:56.894'
 
+Hashing
+^^^^^^^
+
+One can generate a unique hash key for scalar (0-dimensional) |Time| or
+|TimeDelta| objects.  The key is based on a tuple of ``jd1``,
+``jd2``, ``scale``, and ``location`` (if present, ``None`` otherwise).
+
+Note that two |Time| objects with a different ``scale`` can compare equal
+but still have different hash keys.  This a practical consideration driven
+in by performance, but in most cases represents a desirable behavior.
+
 Sidereal Time
 -------------
 
