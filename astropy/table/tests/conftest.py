@@ -3,11 +3,6 @@
 """
 All of the py.test fixtures used by astropy.table are defined here.
 
-The fixtures can not be defined in the modules that use them, because
-those modules are imported twice: once with `from __future__ import
-unicode_literals` and once without.  py.test complains when the same
-fixtures are defined more than once.
-
 `conftest.py` is a "special" module name for py.test that is always
 imported, but is not looked in for tests, and it is the recommended
 place to put fixtures that are shared between modules.  These fixtures

@@ -65,7 +65,7 @@ def test_find_mod_objs():
 
 def test_minversion():
     from types import ModuleType
-    test_module = ModuleType(str("test_module"))
+    test_module = ModuleType("test_module")
     test_module.__version__ = '0.12.2'
     good_versions = ['0.12', '0.12.1', '0.12.0.dev', '0.12dev']
     bad_versions = ['1', '1.2rc1']

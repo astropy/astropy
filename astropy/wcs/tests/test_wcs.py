@@ -1102,8 +1102,8 @@ def test_keyedsip():
     """
     hdr_name = get_pkg_data_filename('data/sip-broken.hdr')
     header = fits.Header.fromfile(hdr_name)
-    del header[str("CRPIX1")]
-    del header[str("CRPIX2")]
+    del header["CRPIX1"]
+    del header["CRPIX2"]
 
     w = wcs.WCS(header=header, key="A")
     assert isinstance( w.sip, wcs.Sip )

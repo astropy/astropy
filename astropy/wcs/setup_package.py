@@ -293,7 +293,7 @@ def get_extensions():
     cfg['sources'] = [str(x) for x in cfg['sources']]
     cfg = dict((str(key), val) for key, val in cfg.items())
 
-    return [Extension(str('astropy.wcs._wcs'), **cfg)]
+    return [Extension('astropy.wcs._wcs', **cfg)]
 
 
 def get_package_data():
@@ -333,8 +333,8 @@ def get_package_data():
             api_files.append(join('include', 'wcslib', header))
 
     return {
-        str('astropy.wcs.tests'): ['extension/*.c'],
-        str('astropy.wcs'): api_files,
+        'astropy.wcs.tests': ['extension/*.c'],
+        'astropy.wcs': api_files,
     }
 
 

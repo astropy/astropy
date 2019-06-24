@@ -128,7 +128,7 @@ class TestRow():
         assert d.colnames == list(np_data.dtype.names)
 
         with pytest.raises(ValueError):
-            np_data = np.array(d, dtype=[(str('c'), 'i8'), (str('d'), 'i8')])
+            np_data = np.array(d, dtype=[('c', 'i8'), ('d', 'i8')])
 
     def test_format_row(self, table_types):
         """Test formatting row"""

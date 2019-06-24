@@ -498,11 +498,11 @@ def test_null_Ipac():
     data = ascii.read(f, **testfile['opts'])
     mask = np.array([(True, False, True, False, True),
                      (False, False, False, False, False)],
-                    dtype=[(str('ra'), '|b1'),
-                           (str('dec'), '|b1'),
-                           (str('sai'), '|b1'),
-                           (str('v2'), '|b1'),
-                           (str('sptype'), '|b1')])
+                    dtype=[('ra', '|b1'),
+                           ('dec', '|b1'),
+                           ('sai', '|b1'),
+                           ('v2', '|b1'),
+                           ('sptype', '|b1')])
     assert np.all(data.mask == mask)
 
 
@@ -1224,9 +1224,9 @@ def test_non_C_locale_with_fast_reader():
 
     try:
         if platform.system() == 'Darwin':
-            locale.setlocale(locale.LC_ALL, str('de_DE'))
+            locale.setlocale(locale.LC_ALL, 'de_DE')
         else:
-            locale.setlocale(locale.LC_ALL, str('de_DE.utf8'))
+            locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
 
         for fast_reader in (True, False, {'use_fast_converter': False}, {'use_fast_converter': True}):
             t = ascii.read(['a b', '1.5 2'], format='basic', guess=False,

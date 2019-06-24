@@ -910,8 +910,8 @@ class TestRemove(SetupData):
         self.t.add_column(self.b)
         self.t.remove_rows([0, 2])
         assert self.t['a'].meta == {'aa': [0, 1, 2, 3, 4]}
-        assert self.t.dtype == np.dtype([(str('a'), 'int'),
-                                         (str('b'), 'int')])
+        assert self.t.dtype == np.dtype([('a', 'int'),
+                                         ('b', 'int')])
 
     def test_delitem_row(self, table_types):
         self._setup(table_types)
@@ -1239,7 +1239,7 @@ class TestIterator():
     def test_iterator(self, table_types):
         d = np.array([(2, 1),
                       (3, 6),
-                      (4, 5)], dtype=[(str('a'), 'i4'), (str('b'), 'i4')])
+                      (4, 5)], dtype=[('a', 'i4'), ('b', 'i4')])
         t = table_types.Table(d)
         if t.masked:
             with pytest.raises(ValueError):
@@ -1279,7 +1279,7 @@ class TestConvertNumpyArray():
         assert d.colnames == list(np_data.dtype.names)
 
         with pytest.raises(ValueError):
-            np_data = np.array(d, dtype=[(str('c'), 'i8'), (str('d'), 'i8')])
+            np_data = np.array(d, dtype=[('c', 'i8'), ('d', 'i8')])
 
     def test_as_array_byteswap(self, table_types):
         """Test for https://github.com/astropy/astropy/pull/4080"""

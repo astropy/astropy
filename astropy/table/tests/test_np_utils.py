@@ -7,14 +7,14 @@ def test_common_dtype():
     """
     Test that allowed combinations are those expected.
     """
-    dtype = [(str('int'), int),
-             (str('uint8'), np.uint8),
-             (str('float32'), np.float32),
-             (str('float64'), np.float64),
-             (str('str'), 'S2'),
-             (str('uni'), 'U2'),
-             (str('bool'), bool),
-             (str('object'), np.object_)]
+    dtype = [('int', int),
+             ('uint8', np.uint8),
+             ('float32', np.float32),
+             ('float64', np.float64),
+             ('str', 'S2'),
+             ('uni', 'U2'),
+             ('bool', bool),
+             ('object', np.object_)]
     arr = np.empty(1, dtype=dtype)
     fail = set()
     succeed = set()
