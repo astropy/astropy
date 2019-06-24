@@ -8,6 +8,7 @@ import pytest
 import numpy as np
 
 from astropy.io import fits
+from astropy import units as u
 from astropy.table import Table
 from astropy.io.fits import printdiff
 from astropy.tests.helper import catch_warnings
@@ -64,6 +65,16 @@ class TestConvenience(FitsTestCase):
         assert isinstance(hdu, fits.BinTableHDU)
         filename = self.temp('test_table_to_hdu.fits')
         hdu.writeto(filename, overwrite=True)
+
+    def test_table_non_stringifyable_unit_to_hdu(self):
+        table = Table([[1, 2, 3], ['a', 'b', 'c'], [2.3, 4.5, 6.7]],
+                      names=['a', 'b', 'c'], dtype=['i', 'U1', 'f'])
+        table['a'].unit = u.core.IrreducibleUnit("test")
+
+        with catch_warnings() as w:
+            fits.table_to_hdu(table)
+            assert len(w) == 1
+            assert str(w[0].message).startswith("The unit 'test' could not be saved to FITS format")
 
     def test_table_to_hdu_convert_comment_convention(self):
         """
