@@ -70,6 +70,9 @@ astropy.time
 - ``TimeDelta`` gained a ``to_value`` method, so that it becomes easier to
   use it wherever a ``Quantity`` with units of time could be used. [#8762]
 
+- Made scalar ``Time`` and ``TimeDelta`` objects hashable based on JD, time
+  scale, and location attributes. [#8912]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
