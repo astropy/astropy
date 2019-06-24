@@ -325,10 +325,10 @@ def test_data_noastropy_fallback(monkeypatch):
     conf.delete_temporary_downloads_at_exit = True
 
     # make sure the config and cache directories are not searched
-    monkeypatch.setenv(str('XDG_CONFIG_HOME'), 'foo')
-    monkeypatch.delenv(str('XDG_CONFIG_HOME'))
-    monkeypatch.setenv(str('XDG_CACHE_HOME'), 'bar')
-    monkeypatch.delenv(str('XDG_CACHE_HOME'))
+    monkeypatch.setenv('XDG_CONFIG_HOME', 'foo')
+    monkeypatch.delenv('XDG_CONFIG_HOME')
+    monkeypatch.setenv('XDG_CACHE_HOME', 'bar')
+    monkeypatch.delenv('XDG_CACHE_HOME')
 
     monkeypatch.setattr(paths.set_temp_config, '_temp_path', None)
     monkeypatch.setattr(paths.set_temp_cache, '_temp_path', None)

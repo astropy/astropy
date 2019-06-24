@@ -2472,7 +2472,7 @@ class TestTableFunctions(FitsTestCase):
             assert hdul[1].header['TDIM1'] == '(3,3,2)'
             assert np.all(hdul[1].data['a'][0] == expected)
 
-    @pytest.mark.skipif(str('not HAVE_OBJGRAPH'))
+    @pytest.mark.skipif('not HAVE_OBJGRAPH')
     def test_reference_leak(self):
         """Regression test for https://github.com/astropy/astropy/pull/520"""
 
@@ -2486,7 +2486,7 @@ class TestTableFunctions(FitsTestCase):
         with _refcounting('FITS_rec'):
             readfile(self.data('memtest.fits'))
 
-    @pytest.mark.skipif(str('not HAVE_OBJGRAPH'))
+    @pytest.mark.skipif('not HAVE_OBJGRAPH')
     def test_reference_leak2(self, tmpdir):
         """
         Regression test for https://github.com/astropy/astropy/pull/4539

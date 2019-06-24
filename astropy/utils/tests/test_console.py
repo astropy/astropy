@@ -60,7 +60,7 @@ def test_fake_tty():
     assert f2.getvalue() == ''
 
 
-@pytest.mark.skipif(str("sys.platform.startswith('win')"))
+@pytest.mark.skipif("sys.platform.startswith('win')")
 def test_color_text():
     assert console._color_text("foo", "green") == '\033[0;32mfoo\033[0m'
 
@@ -84,7 +84,7 @@ def test_color_print2():
     assert stream.getvalue() == 'foobarbaz\n'
 
 
-@pytest.mark.skipif(str("sys.platform.startswith('win')"))
+@pytest.mark.skipif("sys.platform.startswith('win')")
 def test_color_print3():
     # Test that this thinks the FakeTTY is a tty and applies colors.
 

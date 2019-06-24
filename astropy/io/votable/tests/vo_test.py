@@ -74,40 +74,40 @@ def _test_regression(tmpdir, _python_based=False, binary_mode=1):
     table = votable.get_first_table()
 
     dtypes = [
-        ((str('string test'), str('string_test')), str('|O8')),
-        ((str('fixed string test'), str('string_test_2')), str('|S10')),
-        (str('unicode_test'), str('|O8')),
-        ((str('unicode test'), str('fixed_unicode_test')), str('<U10')),
-        ((str('string array test'), str('string_array_test')), str('|S4')),
-        (str('unsignedByte'), str('|u1')),
-        (str('short'), str('<i2')),
-        (str('int'), str('<i4')),
-        (str('long'), str('<i8')),
-        (str('double'), str('<f8')),
-        (str('float'), str('<f4')),
-        (str('array'), str('|O8')),
-        (str('bit'), str('|b1')),
-        (str('bitarray'), str('|b1'), (3, 2)),
-        (str('bitvararray'), str('|O8')),
-        (str('bitvararray2'), str('|O8')),
-        (str('floatComplex'), str('<c8')),
-        (str('doubleComplex'), str('<c16')),
-        (str('doubleComplexArray'), str('|O8')),
-        (str('doubleComplexArrayFixed'), str('<c16'), (2,)),
-        (str('boolean'), str('|b1')),
-        (str('booleanArray'), str('|b1'), (4,)),
-        (str('nulls'), str('<i4')),
-        (str('nulls_array'), str('<i4'), (2, 2)),
-        (str('precision1'), str('<f8')),
-        (str('precision2'), str('<f8')),
-        (str('doublearray'), str('|O8')),
-        (str('bitarray2'), str('|b1'), (16,))
+        (('string test', 'string_test'), '|O8'),
+        (('fixed string test', 'string_test_2'), '|S10'),
+        ('unicode_test', '|O8'),
+        (('unicode test', 'fixed_unicode_test'), '<U10'),
+        (('string array test', 'string_array_test'), '|S4'),
+        ('unsignedByte', '|u1'),
+        ('short', '<i2'),
+        ('int', '<i4'),
+        ('long', '<i8'),
+        ('double', '<f8'),
+        ('float', '<f4'),
+        ('array', '|O8'),
+        ('bit', '|b1'),
+        ('bitarray', '|b1', (3, 2)),
+        ('bitvararray', '|O8'),
+        ('bitvararray2', '|O8'),
+        ('floatComplex', '<c8'),
+        ('doubleComplex', '<c16'),
+        ('doubleComplexArray', '|O8'),
+        ('doubleComplexArrayFixed', '<c16', (2,)),
+        ('boolean', '|b1'),
+        ('booleanArray', '|b1', (4,)),
+        ('nulls', '<i4'),
+        ('nulls_array', '<i4', (2, 2)),
+        ('precision1', '<f8'),
+        ('precision2', '<f8'),
+        ('doublearray', '|O8'),
+        ('bitarray2', '|b1', (16,))
         ]
     if sys.byteorder == 'big':
         new_dtypes = []
         for dtype in dtypes:
             dtype = list(dtype)
-            dtype[1] = dtype[1].replace(str('<'), str('>'))
+            dtype[1] = dtype[1].replace('<', '>')
             new_dtypes.append(tuple(dtype))
         dtypes = new_dtypes
     assert table.array.dtype == dtypes
@@ -171,17 +171,17 @@ def _test_regression(tmpdir, _python_based=False, binary_mode=1):
     assert truth == output
 
 
-@pytest.mark.xfail(str('legacy_float_repr'))
+@pytest.mark.xfail('legacy_float_repr')
 def test_regression(tmpdir):
     _test_regression(tmpdir, False)
 
 
-@pytest.mark.xfail(str('legacy_float_repr'))
+@pytest.mark.xfail('legacy_float_repr')
 def test_regression_python_based_parser(tmpdir):
     _test_regression(tmpdir, True)
 
 
-@pytest.mark.xfail(str('legacy_float_repr'))
+@pytest.mark.xfail('legacy_float_repr')
 def test_regression_binary2(tmpdir):
     _test_regression(tmpdir, False, 2)
 
@@ -750,8 +750,8 @@ def test_build_from_scratch(tmpdir):
     assert_array_equal(
         table.array.mask, np.array([(False, [[False, False], [False, False]]),
                                     (False, [[False, False], [False, False]])],
-                                   dtype=[(str('filename'), str('?')),
-                                          (str('matrix'), str('?'), (2, 2))]))
+                                   dtype=[('filename', '?'),
+                                          ('matrix', '?', (2, 2))]))
 
 
 def test_validate(test_path_object=False):
