@@ -11,7 +11,7 @@ from numpy.testing import assert_allclose
 from astropy.tests.helper import catch_warnings, pytest
 from astropy.utils.exceptions import AstropyDeprecationWarning, ErfaWarning
 from astropy.utils import isiterable, iers
-from astropy.time import (Time, ScaleValueError, STANDARD_TIME_SCALES,
+from astropy.time import (Time, TimeDelta, ScaleValueError, STANDARD_TIME_SCALES,
                           TimeString, TimezoneInfo)
 from astropy.coordinates import EarthLocation
 from astropy import units as u
@@ -1641,3 +1641,51 @@ def test_datetime64_no_format():
     assert t.iso == '2000-01-02 03:04:05.123456789'
     assert t.datetime64 == dt64
     assert t.value == dt64
+
+
+def test_hash_time():
+    loc1 = EarthLocation(1 * u.m, 2 * u.m, 3 * u.m)
+    for loc in None, loc1:
+        t = Time([1, 1, 2, 3], format='cxcsec', location=loc)
+        t[3] = np.ma.masked
+        h1 = hash(t[0])
+        h2 = hash(t[1])
+        h3 = hash(t[2])
+        assert h1 == h2
+        assert h1 != h3
+
+        with pytest.raises(TypeError) as exc:
+            hash(t)
+        assert exc.value.args[0] == "unhashable type: 'Time' (must be scalar)"
+
+        with pytest.raises(TypeError) as exc:
+            hash(t[3])
+        assert exc.value.args[0] == "unhashable type: 'Time' (value is masked)"
+
+    t = Time(1, format='cxcsec', location=loc)
+    t2 = Time(1, format='cxcsec')
+
+    assert hash(t) != hash(t2)
+
+    t = Time('2000:180', scale='utc')
+    t2 = Time(t, scale='tai')
+    assert t == t2
+    assert hash(t) != hash(t2)
+
+def test_hash_time_delta():
+
+    t = TimeDelta([1, 1, 2, 3], format='sec')
+    t[3] = np.ma.masked
+    h1 = hash(t[0])
+    h2 = hash(t[1])
+    h3 = hash(t[2])
+    assert h1 == h2
+    assert h1 != h3
+
+    with pytest.raises(TypeError) as exc:
+        hash(t)
+    assert exc.value.args[0] == "unhashable type: 'TimeDelta' (must be scalar)"
+
+    with pytest.raises(TypeError) as exc:
+        hash(t[3])
+    assert exc.value.args[0] == "unhashable type: 'TimeDelta' (value is masked)"
