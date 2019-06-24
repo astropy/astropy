@@ -527,9 +527,10 @@ def table_to_hdu(table, character_as_bytes=False):
                 warnings.warn(
                     "The unit '{0}' could not be saved to FITS format".format(
                         unit.to_string()), AstropyUserWarning)
-
-            # Try creating a Unit to issue a warning if the unit is not FITS compliant
-            Unit(col.unit, format='fits', parse_strict='warn')
+            else:
+                # Try creating a Unit to issue a warning if the unit is not
+                # FITS compliant
+                Unit(col.unit, format='fits', parse_strict='warn')
 
     # Column-specific override keywords for coordinate columns
     coord_meta = table.meta.pop('__coordinate_columns__', {})
