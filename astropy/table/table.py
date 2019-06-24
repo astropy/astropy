@@ -1981,7 +1981,7 @@ class Table:
                        .format(name, changed_attrs))
                 warnings.warn(msg, TableReplaceWarning, stacklevel=3)
 
-    def replace_column(self, name, col):
+    def replace_column(self, name, col, copy=True):
         """
         Replace column ``name`` with the new ``col`` object.
 
@@ -1991,6 +1991,8 @@ class Table:
             Name of column to replace
         col : column object (list, ndarray, Column, etc)
             New column object to replace the existing column
+        copy : bool
+            Make copy of the input ``col``, default=True
 
         Examples
         --------
