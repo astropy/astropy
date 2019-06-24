@@ -47,7 +47,7 @@ class TestSingleTable:
         self.data = np.array(list(zip([1, 2, 3, 4],
                                       ['a', 'b', 'c', 'd'],
                                       [2.3, 4.5, 6.7, 8.9])),
-                             dtype=[(str('a'), int), (str('b'), str('U1')), (str('c'), float)])
+                             dtype=[('a', int), ('b', 'U1'), ('c', float)])
 
     def test_simple(self, tmpdir):
         filename = str(tmpdir.join('test_simple.fts'))
@@ -148,7 +148,7 @@ class TestSingleTable:
         filename = str(tmpdir.join('test_masked_nan.fits'))
         data = np.array(list(zip([5.2, 8.4, 3.9, 6.3],
                                  [2.3, 4.5, 6.7, 8.9])),
-                                dtype=[(str('a'), np.float64), (str('b'), np.float32)])
+                                dtype=[('a', np.float64), ('b', np.float32)])
         t1 = Table(data, masked=True)
         t1.mask['a'] = [1, 0, 1, 0]
         t1.mask['b'] = [1, 0, 0, 1]
@@ -211,10 +211,10 @@ class TestMultipleHDU:
         self.data1 = np.array(list(zip([1, 2, 3, 4],
                                        ['a', 'b', 'c', 'd'],
                                        [2.3, 4.5, 6.7, 8.9])),
-                              dtype=[(str('a'), int), (str('b'), str('U1')), (str('c'), float)])
+                              dtype=[('a', int), ('b', 'U1'), ('c', float)])
         self.data2 = np.array(list(zip([1.4, 2.3, 3.2, 4.7],
                                        [2.3, 4.5, 6.7, 8.9])),
-                              dtype=[(str('p'), float), (str('q'), float)])
+                              dtype=[('p', float), ('q', float)])
         hdu1 = PrimaryHDU()
         hdu2 = BinTableHDU(self.data1, name='first')
         hdu3 = BinTableHDU(self.data2, name='second')

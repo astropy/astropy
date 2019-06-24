@@ -186,8 +186,8 @@ def test_config_noastropy_fallback(monkeypatch):
     """
 
     # make sure the config directory is not searched
-    monkeypatch.setenv(str('XDG_CONFIG_HOME'), 'foo')
-    monkeypatch.delenv(str('XDG_CONFIG_HOME'))
+    monkeypatch.setenv('XDG_CONFIG_HOME', 'foo')
+    monkeypatch.delenv('XDG_CONFIG_HOME')
     monkeypatch.setattr(paths.set_temp_config, '_temp_path', None)
 
     # make sure the _find_or_create_astropy_dir function fails as though the
@@ -334,7 +334,7 @@ def test_no_home():
     paths = [astropy_path]
     if env.get('PYTHONPATH'):
         paths.append(env.get('PYTHONPATH'))
-    env[str('PYTHONPATH')] = str(os.pathsep.join(paths))
+    env['PYTHONPATH'] = os.pathsep.join(paths)
 
     for val in ['HOME', 'XDG_CONFIG_HOME']:
         if val in env:

@@ -97,7 +97,7 @@ class TestMultiD():
 
 
 def test_html_escaping():
-    t = table.Table([(str('<script>alert("gotcha");</script>'), 2, 3)])
+    t = table.Table([('<script>alert("gotcha");</script>', 2, 3)])
     nbclass = table.conf.default_notebook_table_class
     assert t._repr_html_().splitlines() == [
         '<i>Table length=3</i>',
@@ -544,7 +544,7 @@ def test_pprint_py3_bytes():
     """
     val = bytes('val', encoding='utf-8')
     blah = u'bläh'.encode('utf-8')
-    dat = np.array([val, blah], dtype=[(str('col'), 'S10')])
+    dat = np.array([val, blah], dtype=[('col', 'S10')])
     t = table.Table(dat)
     assert t['col'].pformat() == ['col ', '----', ' val', u'bläh']
 

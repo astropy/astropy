@@ -108,7 +108,7 @@ def test_distances():
     npt.assert_allclose(csum.distance.kpc, 11.9942200501)
 
 
-@pytest.mark.skipif(str('not HAS_SCIPY'))
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_distances_scipy():
     """
     The distance-related tests that require scipy due to the cosmology
