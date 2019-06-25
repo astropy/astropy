@@ -53,6 +53,12 @@ env:
         # E111 - 4 spaces per indentation level
         # E112 - 4 spaces per indentation level
         # E113 - 4 spaces per indentation level
+        # E301 - expected 1 blank line, found 0
+        # E302 - expected 2 blank lines, found 0
+        # E303 - too many blank lines (3)
+        # E304 - blank lines found after function decorator
+        # E305 - expected 2 blank lines after class or function definition
+        # E306 - expected 1 blank line before a nested definition
         # E502 - the backslash is redundant between brackets
         # E722 - do not use bare except
         # E901 - SyntaxError or IndentationError
@@ -61,7 +67,7 @@ env:
         # # F821: undefined name  # Note: Removed for now because of heavy use of units.si
         # F822: undefined name in __all__
         # F823: local variable name referenced before assignment
-        - FLAKE8_OPT="--select=E101,W191,W291,W292,W293,W391,E111,E112,E113,E502,E722,E901,E902,E999,F822,F823"
+        - FLAKE8_OPT="--select=E101,W191,W291,W292,W293,W391,E111,E112,E113,E30,E502,E722,E901,E902,E999,F822,F823"
 
 stages:
    # Do the style check and a single test job, don't proceed if it fails
