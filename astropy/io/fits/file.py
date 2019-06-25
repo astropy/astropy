@@ -75,6 +75,7 @@ GZIP_MAGIC = b'\x1f\x8b\x08'
 PKZIP_MAGIC = b'\x50\x4b\x03\x04'
 BZIP2_MAGIC = b'\x42\x5a'
 
+
 def _normalize_fits_mode(mode):
     if mode is not None and mode not in IO_FITS_MODES:
         if TEXT_RE.match(mode):
@@ -86,6 +87,7 @@ def _normalize_fits_mode(mode):
             raise ValueError("Mode '{}' not recognized".format(mode))
         mode = new_mode
     return mode
+
 
 class _File:
     """

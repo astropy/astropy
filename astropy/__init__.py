@@ -74,6 +74,7 @@ def _is_astropy_setup():
             os.path.basename(main_mod.__file__).rstrip('co') == 'setup.py' and
             _is_astropy_source(main_mod.__file__))
 
+
 try:
     from .version import version as __version__
 except ImportError:
@@ -160,6 +161,8 @@ conf = Conf()
 
 # Define a base ScienceState for configuring constants and units
 from .utils.state import ScienceState
+
+
 class base_constants_version(ScienceState):
     """
     Base class for the real version-setters below

@@ -274,6 +274,7 @@ class TestPprint():
         # +3 accounts for the three header lines in this  table
         assert len(out) ==  BIG_WIDE_ARR.shape[0] + 3
 
+
 @pytest.mark.usefixtures('table_type')
 class TestFormat():
 

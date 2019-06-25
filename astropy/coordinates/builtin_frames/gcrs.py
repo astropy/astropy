@@ -32,6 +32,7 @@ doc_footer_gcrs = """
         units.  Defaults to [0, 0, 0], meaning "true" GCRS.
 """
 
+
 @format_doc(base_doc, components=doc_components, footer=doc_footer_gcrs)
 class GCRS(BaseRADecFrame):
     """
@@ -83,6 +84,7 @@ doc_footer_prec_geo = """
         i.e., a `~astropy.units.Quantity` with shape (3, ...) and velocity
         units. Defaults to [0, 0, 0], meaning "true" Geocentric.
 """
+
 
 @format_doc(base_doc, components=doc_components, footer=doc_footer_prec_geo)
 class PrecessedGeocentric(BaseRADecFrame):

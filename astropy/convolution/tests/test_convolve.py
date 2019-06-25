@@ -354,6 +354,7 @@ class TestConvolve1D:
 
         assert_array_almost_equal_nulp(z, (8/3., 4, 8, 12, 8), 10)
 
+
 class TestConvolve2D:
     def test_list(self):
         """

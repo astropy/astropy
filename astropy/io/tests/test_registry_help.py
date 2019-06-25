@@ -124,6 +124,7 @@ def test_ccddata_write_help_fits():
     assert "Write CCDData object to FITS file" in doc
     assert "key_uncertainty_type : str, optional" in doc
 
+
 def test_ccddata_read_help_fits():
     """Test dynamically created documentation help via the I/O registry for
     CCDData 'fits'.

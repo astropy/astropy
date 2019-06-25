@@ -59,7 +59,6 @@ class Mapping(FittableModel):
         self._input_units_allow_dimensionless = {key: False for key in self._inputs}
         super().__init__(name=name, meta=meta)
 
-
     @property
     def inputs(self):
         """

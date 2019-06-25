@@ -94,7 +94,6 @@ class Rotate3DType(TransformType):
                                                          node["psi"],
                                                          axes_order=node["direction"])
 
-
     @classmethod
     def to_tree_transform(cls, model, ctx):
         if isinstance(model, modeling.rotations.RotateNative2Celestial):
@@ -227,5 +226,6 @@ def make_projection_types():
             members)
 
         __all__.append(class_name)
+
 
 make_projection_types()

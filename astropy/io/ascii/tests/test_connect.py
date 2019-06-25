@@ -149,6 +149,7 @@ def test_write_csv(tmpdir):
     path = str(tmpdir.join("data.csv"))
     t.write(path)
 
+
 @pytest.mark.skipif('not HAS_YAML')
 def test_auto_identify_ecsv(tmpdir):
     tbl = simple_table()

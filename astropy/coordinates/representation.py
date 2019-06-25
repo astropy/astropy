@@ -44,6 +44,8 @@ DIFFERENTIAL_CLASSES = {}
 
 # a hash for the content of the above two dicts, cached for speed.
 _REPRDIFF_HASH = None
+
+
 def get_reprdiff_cls_hash():
     """
     Returns a hash value that should be invariable if the
@@ -60,7 +62,6 @@ def get_reprdiff_cls_hash():
 def _invalidate_reprdiff_cls_hash():
     global _REPRDIFF_HASH
     _REPRDIFF_HASH = None
-
 
 
 # recommended_units deprecation message; if the attribute is removed later,

@@ -280,6 +280,7 @@ def test_row_tuple_column_slice_transaction():
     assert "'s' (time) and 'm' (length) are not convertible" in str(err)
     assert t[1] == tc[1]
 
+
 def test_uint_indexing():
     """
     Test that accessing a row with an unsigned integer

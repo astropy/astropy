@@ -30,6 +30,7 @@ doc_components = """
         The radial velocity of this object.
 """
 
+
 @format_doc(base_doc, components=doc_components, footer="")
 class Supergalactic(BaseCoordinateFrame):
     """

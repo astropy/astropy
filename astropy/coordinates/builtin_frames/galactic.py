@@ -42,6 +42,7 @@ doc_footer = """
        `MNRAS, Vol 121, pp.123 <http://adsabs.harvard.edu/abs/1960MNRAS.121..123B>`_.
 """
 
+
 @format_doc(base_doc, components=doc_components, footer=doc_footer)
 class Galactic(BaseCoordinateFrame):
     """

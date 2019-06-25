@@ -153,7 +153,6 @@ def _arith_oper(left, right):
             n_outputs, n_inputs = input.shape
         return n_inputs, n_outputs
 
-
     left_inputs, left_outputs = _n_inputs_outputs(left)
     right_inputs, right_outputs = _n_inputs_outputs(right)
 

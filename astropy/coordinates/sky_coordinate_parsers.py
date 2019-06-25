@@ -29,6 +29,7 @@ J_PREFIXED_RA_DEC_RE = re.compile(
     ([\+\-][0-9]{6}\.?[0-9]{0,2})\s*$  # Dec as DDMMSS.ss, optional decimal digits
     """, re.VERBOSE)
 
+
 def _get_frame_class(frame):
     """
     Get a frame class from the input `frame`, which could be a frame name

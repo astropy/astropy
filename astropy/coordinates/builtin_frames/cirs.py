@@ -18,6 +18,7 @@ doc_footer = """
         position of the Earth and its precession.
 """
 
+
 @format_doc(base_doc, components=doc_components, footer=doc_footer)
 class CIRS(BaseRADecFrame):
     """

@@ -114,6 +114,7 @@ doc_footer = """
              ( 289.77285255,  50.06290457,  8.59216010e+01)]>
 """
 
+
 @format_doc(base_doc, components=doc_components, footer=doc_footer)
 class Galactocentric(BaseCoordinateFrame):
     r"""

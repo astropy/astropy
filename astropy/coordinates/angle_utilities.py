@@ -56,6 +56,7 @@ class _AngleParser:
     This class should not be used directly.  Use `parse_angle`
     instead.
     """
+
     def __init__(self):
         # TODO: in principle, the parser should be invalidated if we change unit
         # system (from CDS to FITS, say).  Might want to keep a link to the
@@ -735,6 +736,7 @@ def position_angle(lon1, lat1, lon2, lat2):
     y = np.sin(deltalon) * colat
 
     return Angle(np.arctan2(y, x), u.radian).wrap_at(360*u.deg)
+
 
 def offset_by(lon, lat, posang, distance):
     """
