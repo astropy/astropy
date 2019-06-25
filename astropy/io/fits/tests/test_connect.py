@@ -468,6 +468,7 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
 # Testing FITS table read/write with mixins.  This is mostly
 # copied from ECSV mixin testing.
 
+
 el = EarthLocation(x=1 * u.km, y=3 * u.km, z=5 * u.km)
 el2 = EarthLocation(x=[1, 2] * u.km, y=[3, 4] * u.km, z=[5, 6] * u.km)
 sc = SkyCoord([1, 2], [3, 4], unit='deg,deg', frame='fk4',

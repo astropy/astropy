@@ -79,6 +79,7 @@ def _get_diff_cls(value):
                 value, list(r.DIFFERENTIAL_CLASSES)))
     return value
 
+
 def _get_repr_classes(base, **differentials):
     """Get valid representation and differential classes.
 
@@ -126,6 +127,7 @@ def _representation_deprecation():
     """
     warnings.warn('The `representation` keyword/property name is deprecated in '
                   'favor of `representation_type`', AstropyDeprecationWarning)
+
 
 def _normalize_representation_type(kwargs):
     """ This is added for backwards compatibility: if the user specifies the
@@ -357,6 +359,8 @@ _components = """
     *args, **kwargs
         Coordinate components, with names that depend on the subclass.
 """
+
+
 @format_doc(base_doc, components=_components, footer="")
 class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     """

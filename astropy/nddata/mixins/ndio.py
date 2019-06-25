@@ -7,6 +7,7 @@ from astropy.io import registry
 __all__ = ['NDIOMixin']
 __doctest_skip__ = ['NDDataRead', 'NDDataWrite']
 
+
 class NDDataRead(registry.UnifiedReadWrite):
     """Read and parse gridded N-dimensional data and return as an NDData-derived
     object.
@@ -47,6 +48,7 @@ class NDDataRead(registry.UnifiedReadWrite):
     Notes
     -----
     """
+
     def __init__(self, instance, cls):
         super().__init__(instance, cls, 'read')
 
@@ -89,6 +91,7 @@ class NDDataWrite(registry.UnifiedReadWrite):
     Notes
     -----
     """
+
     def __init__(self, instance, cls):
         super().__init__(instance, cls, 'write')
 

@@ -62,7 +62,6 @@ class TransformType(AstropyAsdfType):
                 bb = [list(item) for item in model.bounding_box]
             node['bounding_box'] = yamlutil.custom_tree_to_tagged_tree(bb, ctx)
 
-
     @classmethod
     def to_tree_transform(cls, model, ctx):
         raise NotImplementedError("Must be implemented in TransformType subclasses")

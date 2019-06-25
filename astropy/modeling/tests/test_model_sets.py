@@ -182,8 +182,6 @@ def test_shapes():
     assert t.coeff.shape == (2, 2)
     assert t.e.shape == (2,)
 
-
-
     t = TParModel([[a1, a2]], [[e1, e2]], n_models=2, model_set_axis=1)
     assert t.coeff.shape == (2, 2)
     assert t.e.shape == (2,)

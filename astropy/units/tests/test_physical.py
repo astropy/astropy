@@ -5,8 +5,6 @@ Regression tests for the physical_type support in the units package
 """
 
 
-
-
 from astropy import units as u
 from astropy.units import physical
 from astropy.constants import hbar

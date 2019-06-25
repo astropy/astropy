@@ -449,7 +449,6 @@ class TestIndex(SetupData):
         with pytest.raises(KeyError):
             t.loc_indices[self.make_val(6)]
 
-
     def test_copy_index_references(self, main_col, table_types, engine):
         # check against a bug in which indices were given an incorrect
         # column reference when copied

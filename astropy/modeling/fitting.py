@@ -112,7 +112,6 @@ def fitter_unit_support(func):
                 # We now combine any instance-level input equivalencies with user
                 # specified ones at call-time.
 
-
                 input_units_equivalencies = _combine_equivalency_dict(
                     model.inputs, equivalencies, model.input_units_equivalencies)
 

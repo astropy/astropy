@@ -12,7 +12,6 @@ from astropy.io.fits.header import _pad_length
 from astropy.io.fits.util import fileobj_name
 
 
-
 class StreamingHDU:
     """
     A class that provides the capability to stream data to a FITS file

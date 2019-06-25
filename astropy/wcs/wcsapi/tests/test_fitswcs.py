@@ -329,6 +329,7 @@ def test_spectral_cube_nonaligned():
 # cube with two spatial dimensions and one time dimension
 ###############################################################################
 
+
 HEADER_TIME_CUBE = """
 SIMPLE  = T / Fits standard
 BITPIX  = -32 / Bits per pixel

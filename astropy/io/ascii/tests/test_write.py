@@ -769,6 +769,7 @@ def test_write_newlines(fast_writer, tmpdir):
 
     assert content == os.linesep.join(['col', 'a', 'b', 'c']) + os.linesep
 
+
 @pytest.mark.parametrize("fast_writer", [True, False])
 def test_write_formatted_mixin(fast_writer):
     """

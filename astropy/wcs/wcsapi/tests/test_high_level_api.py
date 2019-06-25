@@ -76,7 +76,6 @@ def test_simple_duplicate():
     assert_allclose(y, 2)
 
 
-
 class SkyCoordDuplicateWCS(DoubleLowLevelWCS, HighLevelWCSMixin):
     """
     This example WCS returns two SkyCoord objects which, which triggers a

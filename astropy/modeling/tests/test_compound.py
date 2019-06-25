@@ -911,6 +911,7 @@ def test_name():
     assert m.name == "M"
     assert m1.name == "M1"
 
+
 @pytest.mark.skipif("not HAS_SCIPY_14")
 def test_tabular_in_compound():
     """

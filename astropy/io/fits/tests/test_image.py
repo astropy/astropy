@@ -213,7 +213,6 @@ class TestImageFunctions(FitsTestCase):
         np.testing.assert_array_equal(fits.getdata(aafits), a[::2, ::2])
         np.testing.assert_array_equal(fits.getdata(bbfits), a[::2, ::2])
 
-
     def test_primary_with_extname(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/151
 

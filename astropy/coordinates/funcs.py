@@ -284,6 +284,7 @@ def _concatenate_components(reps_difs, names):
 
     return values
 
+
 def concatenate_representations(reps):
     """
     Combine multiple representation objects into a single instance by

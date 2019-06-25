@@ -141,6 +141,7 @@ World Dim    0    1
         1  yes  yes
 """
 
+
 def test_spectral_slice():
 
     wcs = SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [slice(None), 10])
@@ -396,6 +397,7 @@ World Dim    0    1    2
         1   no  yes   no
         2  yes   no  yes
 """
+
 
 def test_celestial_range_rot():
 

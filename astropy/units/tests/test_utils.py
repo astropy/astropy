@@ -11,6 +11,7 @@ from astropy.units.quantity import Quantity
 
 _float_finfo = finfo(float)
 
+
 def test_quantity_asanyarray():
     array_of_quantities = [Quantity(1), Quantity(2), Quantity(3)]
     quantity_array = quantity_asanyarray(array_of_quantities)
@@ -19,6 +20,7 @@ def test_quantity_asanyarray():
     array_of_integers = [1, 2, 3]
     np_array = quantity_asanyarray(array_of_integers)
     assert isinstance(np_array, np.ndarray)
+
 
 def test_sanitize_scale():
     assert sanitize_scale( complex(2, _float_finfo.eps) ) == 2

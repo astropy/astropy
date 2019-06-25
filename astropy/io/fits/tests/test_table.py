@@ -3114,6 +3114,7 @@ class TestColumnFunctions(FitsTestCase):
             c = fits.Column('a', format='I', start='-56', array=[1, 2, 3])
         assert "start option (TBCOLn) must be a positive integer (got -56)." in str(err.value)
 
+
 def test_regression_5383():
 
     # Regression test for an undefined variable

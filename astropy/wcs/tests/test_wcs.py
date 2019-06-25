@@ -1096,6 +1096,7 @@ def test_to_fits_1():
     assert isinstance(wfits[0], fits.PrimaryHDU)
     assert isinstance(wfits[1], fits.ImageHDU)
 
+
 def test_keyedsip():
     """
     Test sip reading with extra key.
@@ -1109,6 +1110,7 @@ def test_keyedsip():
     assert isinstance( w.sip, wcs.Sip )
     assert w.sip.crpix[0] == 2048
     assert w.sip.crpix[1] == 1026
+
 
 def test_zero_size_input():
     with fits.open(get_pkg_data_filename('data/sip.fits')) as f:
@@ -1140,6 +1142,7 @@ def test_scalar_inputs():
     result = wcsobj.all_pix2world([2], 1)
     assert_array_equal(result, [np.array([2.])])
     assert result[0].shape == (1,)
+
 
 def test_footprint_contains():
     """

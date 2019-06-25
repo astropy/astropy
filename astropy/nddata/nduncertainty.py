@@ -458,6 +458,7 @@ class _VariancePropagationMixin:
     propagation for variance-like uncertainties (standard deviation and inverse
     variance).
     """
+
     def _propagate_add_sub(self, other_uncert, result_data, correlation,
                            subtract=False,
                            to_variance=lambda x: x, from_variance=lambda x: x):
@@ -932,5 +933,6 @@ class InverseVariance(_VariancePropagationMixin, NDUncertainty):
                                                   divide=True,
                                                   to_variance=_inverse,
                                                   from_variance=_inverse)
+
     def _data_unit_to_uncertainty_unit(self, value):
         return 1 / value ** 2
