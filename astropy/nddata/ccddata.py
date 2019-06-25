@@ -419,6 +419,7 @@ _KEEP_THESE_KEYWORDS_IN_HEADER = [
 _PCs = set(['PC1_1', 'PC1_2', 'PC2_1', 'PC2_2'])
 _CDs = set(['CD1_1', 'CD1_2', 'CD2_1', 'CD2_2'])
 
+
 def _generate_wcs_and_update_header(hdr):
     """
     Generate a WCS object from a header and remove the WCS-specific

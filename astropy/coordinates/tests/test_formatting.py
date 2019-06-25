@@ -6,7 +6,6 @@ test_sky_coord
 """
 
 
-
 from astropy.coordinates.angles import Angle
 from astropy import units as u
 
@@ -33,6 +32,7 @@ def test_to_string_precision():
     assert angle3.to_string(precision=0, fields=3) == '-0d30m00s'
     assert angle3.to_string(precision=0, fields=2) == '-0d30m'
     assert angle3.to_string(precision=0, fields=1) == '-1d'
+
 
 def test_to_string_decimal():
 

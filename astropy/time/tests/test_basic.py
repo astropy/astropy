@@ -1672,6 +1672,7 @@ def test_hash_time():
     assert t == t2
     assert hash(t) != hash(t2)
 
+
 def test_hash_time_delta():
 
     t = TimeDelta([1, 1, 2, 3], format='sec')

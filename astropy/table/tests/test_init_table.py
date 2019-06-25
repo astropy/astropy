@@ -479,6 +479,7 @@ def test_init_and_ref_from_multidim_ndarray(table_type):
             assert nd['a'][0] == -200
             assert nd['b'][1][1] == -100
 
+
 @pytest.mark.usefixtures('table_type')
 @pytest.mark.parametrize('copy', [False, True])
 def test_init_and_ref_from_dict(table_type, copy):

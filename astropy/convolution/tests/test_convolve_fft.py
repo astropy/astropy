@@ -745,6 +745,7 @@ def test_asymmetric_kernel(boundary):
     elif boundary == 'wrap':
         assert_array_almost_equal_nulp(z, np.array([9., 10., 5.], dtype='float'), 10)
 
+
 @pytest.mark.parametrize(('boundary', 'nan_treatment',
                           'normalize_kernel', 'preserve_nan', 'dtype'),
                          itertools.product(BOUNDARY_OPTIONS,
@@ -772,6 +773,7 @@ def test_input_unmodified(boundary, nan_treatment,
 
     assert np.all(np.array(array, dtype=dtype) == x)
     assert np.all(np.array(kernel, dtype=dtype) == y)
+
 
 @pytest.mark.parametrize(('boundary', 'nan_treatment',
                           'normalize_kernel', 'preserve_nan', 'dtype'),

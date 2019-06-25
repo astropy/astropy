@@ -308,7 +308,6 @@ def test_array_repr_latex():
     # ensure distributions account for that. However, if in the future ndarray
     # gets a _repr_latex_, we can skip this.
 
-
     arr = np.random.randn(4, 1000)
 
     if hasattr(arr, '_repr_latex_'):

@@ -1397,7 +1397,6 @@ class SkyCoord(ShapedLikeNDArray):
         """
         return pixel_to_skycoord(xp, yp, wcs=wcs, origin=origin, mode=mode, cls=cls)
 
-
     def contained_by(self, wcs, image=None, **kwargs):
         """
         Determines if the SkyCoord is contained in the given wcs footprint.
@@ -1434,7 +1433,6 @@ class SkyCoord(ShapedLikeNDArray):
                 return False
 
         return (x < xmax) & (x > 0) & (y < ymax) & (y > 0)
-
 
     def radial_velocity_correction(self, kind='barycentric', obstime=None,
                                    location=None):

@@ -447,7 +447,6 @@ def test_compound_return_units():
         def evaluate(self, x, y):
             return x.value, y.value
 
-
     cs = Pix2Sky_TAN() | PassModel()
 
     assert_quantity_allclose(cs(0*u.deg, 0*u.deg), (0, 90)*u.deg)

@@ -13,6 +13,7 @@ extra_compile_args=['-UNDEBUG']
 if not sys.platform.startswith('win'):
     extra_compile_args.append('-fPIC')
 
+
 def get_extensions():
     # Add '-Rpass-missed=.*' to ``extra_compile_args`` when compiling with clang
     # to report missed optimizations

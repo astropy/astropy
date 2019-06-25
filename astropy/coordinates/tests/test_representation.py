@@ -1420,7 +1420,6 @@ def unitphysics():
         orig = PhysicsSphericalRepresentation._unit_representation
         had_unit = True
 
-
     class UnitPhysicsSphericalRepresentation(BaseRepresentation):
         attr_classes = OrderedDict([('phi', Angle),
                                     ('theta', Angle)])

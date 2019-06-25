@@ -12,7 +12,6 @@ import itertools
 import operator
 
 
-
 def first_true_index(iterable, pred=None, default=None):
     """find the first index position for the which the callable pred returns True"""
     if pred is None:

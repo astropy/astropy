@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-
 __all__ = ['BaseTransform', 'CompositeTransform']
 
 
@@ -12,6 +11,7 @@ class BaseTransform:
     This is used to construct transformations such as scaling, stretching, and
     so on.
     """
+
     def __add__(self, other):
         return CompositeTransform(other, self)
 

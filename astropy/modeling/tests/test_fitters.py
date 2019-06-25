@@ -182,6 +182,7 @@ class TestJointFitter:
                                     args=(self.x, self.ny1, self.x, self.ny2))
         assert_allclose(coeff, self.jf.fitparams, rtol=10 ** (-2))
 
+
 class TestLinearLSQFitter:
     def test_compound_model_raises_error(self):
         """Test that if an user tries to use a compound model, raises an error"""

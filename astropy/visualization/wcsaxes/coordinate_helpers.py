@@ -38,7 +38,6 @@ LINES_TO_PATCHES_LINESTYLE = {'-': 'solid',
                               '': 'none'}
 
 
-
 def wrap_angle_at(values, coord_wrap):
     # On ARM processors, np.mod emits warnings if there are NaN values in the
     # array, although this doesn't seem to happen on other processors.

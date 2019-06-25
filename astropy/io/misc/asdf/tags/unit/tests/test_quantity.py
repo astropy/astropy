@@ -22,6 +22,7 @@ def roundtrip_quantity(yaml, quantity):
     with asdf.open(buff2) as ff:
         assert (ff.tree['quantity'] == quantity).all()
 
+
 def test_value_scalar(tmpdir):
     testval = 2.71828
     testunit = units.kpc
@@ -33,6 +34,7 @@ quantity: !unit/quantity-1.1.0
 
     quantity = units.Quantity(testval, unit=testunit)
     roundtrip_quantity(yaml, quantity)
+
 
 def test_value_array(tmpdir):
     testval = [3.14159]
@@ -46,6 +48,7 @@ quantity: !unit/quantity-1.1.0
     quantity = units.Quantity(testval, unit=testunit)
     roundtrip_quantity(yaml, quantity)
 
+
 def test_value_multiarray(tmpdir):
     testval = [x*2.3081 for x in range(10)]
     testunit = units.ampere
@@ -57,6 +60,7 @@ quantity: !unit/quantity-1.1.0
 
     quantity = units.Quantity(testval, unit=testunit)
     roundtrip_quantity(yaml, quantity)
+
 
 def test_value_ndarray(tmpdir):
     from numpy import array, float64
