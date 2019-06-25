@@ -137,6 +137,40 @@ appropriate equivalency::
     >>> V.to(u.ABmag, u.spectral_density(5500.*u.AA))  # doctest: +FLOAT_CMP
     <Magnitude [16.99023831, 21.10978201, 22.50053827] mag(AB)>
 
+This is particularly useful for converting magnitude into flux density.
+``V`` is currently in ST magnitudes, which is based on flux densities per
+unit wavelength (:math:`f_\lambda`). Therefore, we can directly convert ``V`` into 
+flux density per unit wavelength using the :meth:`~astropy.units.quantity.Quantity.to` 
+method::
+
+    >>> flam = V.to(u.erg/u.s/u.cm**2/u.AA)
+    >>> flam  # doctest: +FLOAT_CMP
+    <Quantity [5.75439937e-16, 1.29473986e-17, 3.59649961e-18] erg / (Angstrom cm2 s)>
+
+To convert ``V`` to flux density per unit frequency (:math:`f_\nu`), we again need 
+the appropriate :ref:`equivalency <unit_equivalencies>`, which in this case is the 
+central wavelength of the magnitude band, 5500 Angstroms::
+
+    >>> lam = 5500 * u.AA
+    >>> fnu = V.to(u.erg/u.s/u.cm**2/u.Hz, u.spectral_density(lam))
+    >>> fnu  # doctest: +FLOAT_CMP
+    <Quantity [5.80636959e-27, 1.30643316e-28, 3.62898099e-29] erg / (cm2 Hz s)>
+
+We could have used the central frequency instead::
+
+    >>> nu = 5.45077196e+14 * u.Hz
+    >>> fnu = V.to(u.erg/u.s/u.cm**2/u.Hz, u.spectral_density(nu))
+    >>> fnu  # doctest: +FLOAT_CMP
+    <Quantity [5.80636959e-27, 1.30643316e-28, 3.62898099e-29] erg / (cm2 Hz s)>
+
+.. Note::
+
+    When converting magnitudes to flux densities, the order of operations matters;
+    the value of the unit needs to be established *before* the conversion. 
+    For example, ``21 * u.ABmag.to(u.erg/u.s/u.cm**2/u.Hz)`` will give you 21 
+    times :math:`f_\nu` for an AB mag of 1, whereas ``(21 * u.ABmag).to(u.erg/u.s/u.cm**2/u.Hz)`` 
+    will give you :math:`f_\nu` for an AB mag of 21.
+ 
 Suppose we also knew the intrinsic color of the first star, then we can
 calculate the reddening::
 
