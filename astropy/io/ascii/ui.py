@@ -328,6 +328,7 @@ def read(table, guess=None, **kwargs):
 
     return dat
 
+
 read.__doc__ = core.READ_DOCSTRING
 
 

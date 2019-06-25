@@ -260,6 +260,7 @@ def test_for_stolen_uncertainty():
     assert ndd1.uncertainty.parent_nddata.data == ndd1.data
     assert ndd2.uncertainty.parent_nddata.data == ndd2.data
 
+
 def test_stddevuncertainty_pickle():
     uncertainty = StdDevUncertainty(np.ones(3), unit=u.m)
     uncertainty_restored = pickle.loads(pickle.dumps(uncertainty))
@@ -267,6 +268,7 @@ def test_stddevuncertainty_pickle():
     assert uncertainty.unit == uncertainty_restored.unit
     with pytest.raises(MissingDataAssociationException):
         uncertainty_restored.parent_nddata
+
 
 @pytest.mark.parametrize(('UncertClass'), uncertainty_types_to_be_tested)
 def test_quantity(UncertClass):

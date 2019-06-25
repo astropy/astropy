@@ -1124,6 +1124,7 @@ def test_comoving_distance_z1z2():
     assert allclose(tcos._comoving_distance_z1z2(z1, z2),
                     results)
 
+
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_age_in_special_cosmologies():
     """Check that age in de Sitter and Einstein-de Sitter Universes work.
@@ -1141,6 +1142,7 @@ def test_age_in_special_cosmologies():
     assert allclose(c_EdS.age(z=1), 2.3046783684542738 * u.Gyr)
     assert allclose(c_EdS.lookback_time(z=0), 0 * u.Gyr)
     assert allclose(c_EdS.lookback_time(z=1), 4.213936442699092 * u.Gyr)
+
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_distance_in_special_cosmologies():
@@ -1163,6 +1165,7 @@ def test_distance_in_special_cosmologies():
     c_EdS = core.LambdaCDM(100, 1, 0, Tcmb0=0)
     assert allclose(c_EdS.comoving_distance(z=0), 0 * u.Mpc)
     assert allclose(c_EdS.comoving_distance(z=1), 1756.1435599923348 * u.Mpc)
+
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_comoving_transverse_distance_z1z2():
@@ -1630,6 +1633,7 @@ def test_z_at_value_roundtrip():
         fval = func(z)
         assert allclose(z, funcs.z_at_value(func, fval, zmax=1.5),
                         rtol=2e-8)
+
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_elliptic_comoving_distance_z1z2():

@@ -28,6 +28,8 @@ doc_footer_fk4 = """
         The time this frame was observed.  If ``None``, will be the same as
         ``equinox``.
 """
+
+
 @format_doc(base_doc, components=doc_components, footer=doc_footer_fk4)
 class FK4(BaseRADecFrame):
     """

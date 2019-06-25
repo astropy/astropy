@@ -1282,7 +1282,6 @@ class _SIP1D(PolynomialBase):
     outputs = ('w',)
     _separable = False
 
-
     def __init__(self, order, coeff_prefix, n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
         self.order = order

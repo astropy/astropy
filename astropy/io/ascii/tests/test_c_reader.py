@@ -1309,7 +1309,6 @@ def test_fortran_reader_notbasic():
 @pytest.mark.parametrize("guess", [True, False])
 @pytest.mark.parametrize('fast_reader', [dict(exponent_style='D'),
                                          dict(exponent_style='A')])
-
 def test_dict_kwarg_integrity(fast_reader, guess):
     """
     Check if dictionaries passed as kwargs (fast_reader in this test) are

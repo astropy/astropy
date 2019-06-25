@@ -1136,7 +1136,9 @@ def test_num_keys(key):
     with pytest.raises(TypeError):
         setattr(w, key, "foo")
 
+
 array_keys = ['czphs', 'cperi', 'mjdref']
+
 
 @pytest.mark.parametrize('key', array_keys)
 def test_array_keys(key):

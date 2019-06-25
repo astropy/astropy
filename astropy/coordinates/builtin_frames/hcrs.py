@@ -18,6 +18,7 @@ doc_footer = """
         position of the Sun.
 """
 
+
 @format_doc(base_doc, components=doc_components, footer=doc_footer)
 class HCRS(BaseRADecFrame):
     """

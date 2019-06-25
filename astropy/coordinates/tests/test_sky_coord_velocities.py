@@ -24,6 +24,7 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
+
 def test_creation_frameobjs():
     i = ICRS(1*u.deg, 2*u.deg, pm_ra_cosdec=.2*u.mas/u.yr, pm_dec=.1*u.mas/u.yr)
     sc = SkyCoord(i)
@@ -135,11 +136,13 @@ def sc(request):
 
     return SkyCoord(*args, **kwargs)
 
+
 @pytest.fixture(scope="module")
 def scmany():
     return SkyCoord(ICRS(ra=[1]*100*u.deg, dec=[2]*100*u.deg,
                      pm_ra_cosdec=np.random.randn(100)*u.mas/u.yr,
                      pm_dec=np.random.randn(100)*u.mas/u.yr,))
+
 
 @pytest.fixture(scope="module")
 def sc_for_sep():
@@ -171,6 +174,7 @@ def test_accessors(sc, scmany):
 
     assert isinstance(sph, SphericalRepresentation)
     assert gal.data.differentials is not None
+
 
 def test_transforms(sc):
     trans = sc.transform_to('galactic')

@@ -373,6 +373,7 @@ def test_realizing():
     assert ('Class passed as data instead of a representation' in
             excinfo.value.args[0])
 
+
 def test_replicating():
     from astropy.coordinates.builtin_frames import ICRS, AltAz
     from astropy.time import Time
@@ -503,6 +504,7 @@ def test_sep():
 
     sep3d = i5.separation_3d(i6)
     assert_allclose(sep3d.to(u.kpc), np.array([2, 2])*u.kpc)
+
 
 def test_time_inputs():
     """

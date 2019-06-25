@@ -117,6 +117,7 @@ _pformat_docs = """
         Formatted table as a list of strings.
     """
 
+
 class TableReplaceWarning(UserWarning):
     """
     Warning class for cases when a table column is replaced via the

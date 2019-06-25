@@ -2488,7 +2488,6 @@ def _parse_tdisp_format(tdisp):
     except KeyError:
         raise VerifyError('Format {} is not recognized.'.format(tdisp))
 
-
     match = tdisp_re.match(tdisp.strip())
     if not match or match.group('formatc') is None:
         raise VerifyError('Format {} is not recognized.'.format(tdisp))

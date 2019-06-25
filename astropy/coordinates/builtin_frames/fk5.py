@@ -20,6 +20,7 @@ doc_footer = """
         The equinox of this frame.
 """
 
+
 @format_doc(base_doc, components=doc_components, footer=doc_footer)
 class FK5(BaseRADecFrame):
     """

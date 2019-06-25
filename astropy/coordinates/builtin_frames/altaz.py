@@ -71,6 +71,7 @@ doc_footer = """
     "topocentric" horizontal coordinates).
     """
 
+
 @format_doc(base_doc, components=doc_components, footer=doc_footer)
 class AltAz(BaseCoordinateFrame):
     """

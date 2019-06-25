@@ -499,7 +499,6 @@ class Function:
         return "Function(name='{0}', pyname='{1}', filename='{2}', filepath='{3}')".format(self.name, self.pyname, self.filename, self.filepath)
 
 
-
 class Constant:
 
     def __init__(self, name, value, doc):

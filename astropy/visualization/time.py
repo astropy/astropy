@@ -146,7 +146,6 @@ def time_support(*, scale=None, format=None, simplify=True):
             vmin, vmax = self.axis.get_view_interval()
             return self.tick_values(vmin, vmax)
 
-
     class AstropyTimeFormatter(ScalarFormatter):
 
         def __init__(self, converter, *args, **kwargs):
@@ -183,7 +182,6 @@ def time_support(*, scale=None, format=None, simplify=True):
                 return Time(values, format='jyear', scale=self._converter.scale).jyear_str
             else:
                 return super().format_ticks(values)
-
 
     class MplTimeConverter(units.ConversionInterface):
 

@@ -490,6 +490,7 @@ def test_regression_6347_3d():
     assert len(d2d_1) == 0
     assert type(d2d_1) is type(d2d_10)
 
+
 def test_regression_6300():
     """Check that importing old frame attribute names from astropy.coordinates
     still works. See comments at end of #6300

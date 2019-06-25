@@ -54,6 +54,7 @@ __doctest_skip__ = ['*']
 
 BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 
+
 def _copy_input_if_needed(input, dtype=float, order='C', nan_treatment=None, mask=None, fill_value=None):
     # Alias input
     input = input.array if isinstance(input, Kernel) else input
@@ -91,6 +92,7 @@ def _copy_input_if_needed(input, dtype=float, order='C', nan_treatment=None, mas
         raise TypeError('input should be a Numpy array or something '
                         'convertible into a float array', e)
     return output
+
 
 @support_nddata(data='array')
 def convolve(array, kernel, boundary='fill', fill_value=0.,

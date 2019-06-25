@@ -508,6 +508,7 @@ def test_preserve_serialized_in_complicated_path(tmpdir):
     assert t1['a'].meta == t2['a'].meta
     assert t1.meta == t2.meta
 
+
 @pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
 def test_metadata_very_large(tmpdir):
     """Test that very large datasets work, now!"""
@@ -675,6 +676,7 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
 
 # Testing HDF5 table read/write with mixins.  This is mostly
 # copied from FITS mixin testing.
+
 
 el = EarthLocation(x=1 * u.km, y=3 * u.km, z=5 * u.km)
 el2 = EarthLocation(x=[1, 2] * u.km, y=[3, 4] * u.km, z=[5, 6] * u.km)
