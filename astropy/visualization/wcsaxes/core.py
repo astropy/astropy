@@ -10,6 +10,7 @@ from matplotlib.artist import Artist
 from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
 
+import astropy.units as u
 from astropy.coordinates import SkyCoord, BaseCoordinateFrame
 from astropy.wcs import WCS
 
@@ -296,9 +297,9 @@ class WCSAxes(Axes):
             plot_data = []
             for coord in self.coords:
                 if coord.coord_type == 'longitude':
-                    plot_data.append(frame0.spherical.lon.to_value(coord.coord_unit))
+                    plot_data.append(frame0.spherical.lon.to_value(u.deg))
                 elif coord.coord_type == 'latitude':
-                    plot_data.append(frame0.spherical.lat.to_value(coord.coord_unit))
+                    plot_data.append(frame0.spherical.lat.to_value(u.deg))
                 else:
                     raise NotImplementedError("Coordinates cannot be plotted with this "
                                               "method because the WCS does not represent longitude/latitude.")
