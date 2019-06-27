@@ -569,6 +569,7 @@ astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
 - Silence numpy runtime warnings in ``WCSAxes`` when drawing grids. [#8882]
+- Fix incorrect transformation behavior in ``WCSAxes.plot_coord`` and correctly handle when input coordinates are not already in spherical representations. [#8927]
 
 astropy.wcs
 ^^^^^^^^^^^
