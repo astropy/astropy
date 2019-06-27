@@ -1,3 +1,287 @@
+4.0 (unreleased)
+================
+
+New Features
+------------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+- The version of constants can be specified via ScienceState in a way
+  that ``constants`` and ``units`` will be consistent. [#8517]
+
+- Default constants now use CODATA 2018 and IAU 2015 definitions. [#8761]
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Changed ``coordinates.solar_system_ephemeris`` to also accept local files
+  as input. The ephemeris can now be selected by either keyword (e.g. 'jpl',
+  'de430'), URL or file path. [#8767]
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+- ``TimeDelta`` gained a ``to_value`` method, so that it becomes easier to
+  use it wherever a ``Quantity`` with units of time could be used. [#8762]
+
+- Made scalar ``Time`` and ``TimeDelta`` objects hashable based on JD, time
+  scale, and location attributes. [#8912]
+
+astropy.timeseries
+^^^^^^^^^^^^^^^^^^
+
+astropy.uncertainty
+^^^^^^^^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+- For numpy 1.17 and later, the new ``__array_function__`` protocol is used to
+  ensure that all top-level numpy functions interact properly with
+  ``Quantity``, preserving units also in operations like ``np.concatenate``.
+  [#8808]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Added a new ``time_support`` context manager/function for making it easy to
+  plot and format ``Time`` objects in Matplotlib. [#8782]
+
+astropy.wcs
+^^^^^^^^^^^
+
+API Changes
+-----------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+- Masked column handling has changed, see ``astropy.table`` entry below. [#8789]
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+- Masked column handling has changed, see ``astropy.table`` entry below. [#8789]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Masked column handling has changed, see ``astropy.table`` entry below. [#8789]
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- Changed ``pedantic`` argument to ``verify`` and change it to have three
+  string-based options (``ignore``, ``warn``, and ``exception``) instead of just
+  being a boolean. In addition, changed default to ``ignore``, which means
+  that warnings will not be shown by default when loading VO tables. [#8715]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+- The handling of masked columns in the ``Table`` class has changed in a way
+  that may impact program behavior. Now a ``Table`` with ``masked=False`` may
+  contain both ``Column`` and ``MaskedColumn`` objects, and adding a masked
+  column or row to a table no longer "upgrades" the table and columns to masked.
+  This means that tables with masked data which are read via ``Table.read()``
+  will now always have ``masked=False``, though specific columns will be masked as
+  needed. Two new table properties ``has_masked_columns`` and ``has_masked_values``
+  were added. See the ``Masking change in astropy 4.0`` section within
+  `<https://docs.astropy.org/en/v4.0/table/masking.html>`_ for details. [#8789]
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.timeseries
+^^^^^^^^^^^^^^^^^^
+
+astropy.uncertainty
+^^^^^^^^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- Removed deprecated ``funcsigs`` and ``futures`` from
+  ``astropy.utils.compat``. [#8909]
+
+- Removed the deprecated ``astropy.utils.compat.numpy`` module. [#8910]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+Bug Fixes
+---------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.timeseries
+^^^^^^^^^^^^^^^^^^
+
+astropy.uncertainty
+^^^^^^^^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+
+Other Changes and Additions
+---------------------------
+
+- Matplotlib 2.1 and later is now required. [#8787]
+
+
 3.2.2 (unreleased)
 ==================
 
@@ -89,6 +373,8 @@ astropy.visualization
 
 astropy.wcs
 ^^^^^^^^^^^
+
+- Fixed a crash while loading a WCS from headers containing duplicate SIP keywords. [#8893]
 
 
 Other Changes and Additions
