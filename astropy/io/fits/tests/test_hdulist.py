@@ -1040,7 +1040,7 @@ class TestHDUListFunctions(FitsTestCase):
             assert len(hdul) == 5
             assert hdu_popped is hdu1
 
-    # Skip due to ttps://github.com/astropy/astropy/issues/8916
+    # Skip due to https://github.com/astropy/astropy/issues/8916
     @pytest.mark.skipif('sys.platform.startswith("win32")')
     def test_write_hdulist_to_stream(self):
         """
