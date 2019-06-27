@@ -1040,12 +1040,14 @@ class TestHDUListFunctions(FitsTestCase):
             assert len(hdul) == 5
             assert hdu_popped is hdu1
 
+    # Skip due to https://github.com/astropy/astropy/issues/8916
+    @pytest.mark.skipif('sys.platform.startswith("win32")')
     def test_write_hdulist_to_stream(self):
         """
         Unit test for https://github.com/astropy/astropy/issues/7435
-        Ensure that an HDUList can be written to a stream in Python 2
+        to ensure that an HDUList can be written to a stream.
         """
-        data = np.array([[1,2,3],[4,5,6]])
+        data = np.array([[1, 2, 3], [4, 5, 6]])
         hdu = fits.PrimaryHDU(data)
         hdulist = fits.HDUList([hdu])
 
