@@ -289,6 +289,10 @@ class WCSAxes(Axes):
             if isinstance(frame0, SkyCoord):
                 frame0 = frame0.frame
 
+            native_frame = self._transform_pixel2world.frame_out
+            # Transform to the native frame of the plot
+            frame0 = frame0.transform_to(native_frame)
+
             plot_data = []
             for coord in self.coords:
                 if coord.coord_type == 'longitude':
@@ -303,7 +307,7 @@ class WCSAxes(Axes):
                 raise TypeError("The 'transform' keyword argument is not allowed,"
                                 " as it is automatically determined by the input coordinate frame.")
 
-            transform = self.get_transform(frame0)
+            transform = self.get_transform(native_frame)
             kwargs.update({'transform': transform})
 
             args = tuple(plot_data) + args[1:]
