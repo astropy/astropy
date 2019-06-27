@@ -1000,7 +1000,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
         # Never pass SIP coefficients to wcslib
         # CTYPE must be passed with -SIP to wcslib
-        for key in (m.group() for m in map(SIP_KW.match, list(header))
+        for key in set(m.group() for m in map(SIP_KW.match, list(header))
                     if m is not None):
             del header[key]
 

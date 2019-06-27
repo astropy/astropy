@@ -275,6 +275,7 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+
 Other Changes and Additions
 ---------------------------
 
@@ -372,6 +373,8 @@ astropy.visualization
 
 astropy.wcs
 ^^^^^^^^^^^
+
+- Fixed a crash while loading a WCS from headers containing duplicate SIP keywords. [#8893]
 
 
 Other Changes and Additions
