@@ -1997,6 +1997,14 @@ class Table:
         """
         Replace column ``name`` with the new ``col`` object.
 
+        The behavior of ``copy`` for Column objects is:
+        - copy=True: new class instance with a copy of data and deep copy of meta
+        - copy=False: new class instance with same data and a key-only copy of meta
+
+        For mixin columns:
+        - copy=True: new class instance with copy of data and deep copy of meta
+        - copy=False: original instance (no copy at all)
+
         Parameters
         ----------
         name : str
