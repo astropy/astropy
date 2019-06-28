@@ -2011,7 +2011,9 @@ class Table:
         col = self._convert_data_to_col(col, name=name, copy=copy)
         self._set_col_parent_table_and_mask(col)
 
-        if len(col) != len(self[name]):
+        # Ensure that new column is the right length, unless it is the only column
+        # in which case re-sizing is allowed.
+        if len(self.columns) > 1 and len(col) != len(self[name]):
             raise ValueError('length of new column must match table length')
 
         self.columns._setitem_validated(name, col)
