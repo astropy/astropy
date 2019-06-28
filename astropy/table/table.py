@@ -890,7 +890,7 @@ class Table:
 
         # Get the final column name using precedence.  Some objects may not
         # have an info attribute.
-        if name is None:
+        if not name:
             if hasattr(data, 'info'):
                 name = data.info.name or default_name
             else:
