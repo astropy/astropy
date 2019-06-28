@@ -908,15 +908,12 @@ class Table:
             else:
                 col_cls = data.__class__
 
-            col = col_cls(name=name, data=data, dtype=dtype,
-                          copy=copy, copy_indices=self._init_indices)
-
         elif self._is_mixin_for_table(data):
             # Copy the mixin column attributes if they exist since the copy below
             # may not get this attribute.
             col = col_copy(data, copy_indices=self._init_indices) if copy else data
-
             col.info.name = name
+            return col
 
         elif isinstance(data, np.ma.MaskedArray):
             # Require that col_cls be a subclass of MaskedColumn, remembering
@@ -925,17 +922,16 @@ class Table:
             col_cls = (self.ColumnClass
                        if issubclass(self.ColumnClass, self.MaskedColumn)
                        else self.MaskedColumn)
-            col = col_cls(name=name, data=data, dtype=dtype,
-                          copy=copy, copy_indices=self._init_indices)
 
         elif isinstance(data, np.ndarray) or isiterable(data):
-            col = self.ColumnClass(name=name, data=data, dtype=dtype,
-                                   copy=copy, copy_indices=self._init_indices)
+            col_cls = self.ColumnClass
 
         else:
             raise ValueError('Elements in list initialization must be '
                              'either Column or list-like')
 
+        col = col_cls(name=name, data=data, dtype=dtype,
+                      copy=copy, copy_indices=self._init_indices)
         return col
 
     def _init_from_ndarray(self, data, names, dtype, n_cols, copy):
