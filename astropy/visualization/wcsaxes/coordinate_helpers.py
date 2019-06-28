@@ -612,20 +612,23 @@ class CoordinateHelper:
 
             pixel0 = spine.data
             world0 = spine.world[:, self.coord_index]
-            world0 = self.transform.transform(pixel0)[:, self.coord_index]
+            with np.errstate(invalid='ignore'):
+                world0 = self.transform.transform(pixel0)[:, self.coord_index]
             axes0 = transData.transform(pixel0)
 
             # Advance 2 pixels in figure coordinates
             pixel1 = axes0.copy()
             pixel1[:, 0] += 2.0
             pixel1 = invertedTransLimits.transform(pixel1)
-            world1 = self.transform.transform(pixel1)[:, self.coord_index]
+            with np.errstate(invalid='ignore'):
+                world1 = self.transform.transform(pixel1)[:, self.coord_index]
 
             # Advance 2 pixels in figure coordinates
             pixel2 = axes0.copy()
             pixel2[:, 1] += 2.0 if self.frame.origin == 'lower' else -2.0
             pixel2 = invertedTransLimits.transform(pixel2)
-            world2 = self.transform.transform(pixel2)[:, self.coord_index]
+            with np.errstate(invalid='ignore'):
+                world2 = self.transform.transform(pixel2)[:, self.coord_index]
 
             dx = (world1 - world0)
             dy = (world2 - world0)
