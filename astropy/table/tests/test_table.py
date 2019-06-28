@@ -1935,6 +1935,7 @@ class TestReplaceColumn(SetupData):
         t['a'][0] = 10
         assert t['a'][0] == a[0]
 
+
 class Test__Astropy_Table__():
     """
     Test initializing a Table subclass from a table-like object that
