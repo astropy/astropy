@@ -12,6 +12,7 @@ import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy.io import fits
+from astropy.table import Table
 from astropy.tests.helper import (assert_follows_unicode_guidelines,
                                   ignore_warnings, catch_warnings)
 
@@ -1910,6 +1911,12 @@ class TestReplaceColumn(SetupData):
             assert t['a'].meta == {}
             assert t['a'].format is None
 
+        # Special case: replacing the only column can resize table
+        del t['b']
+        assert len(t) == 3
+        t['a'] = [1, 2]
+        assert len(t) == 2
+
     def test_replace_index_column(self, table_types):
         """Replace index column and generate expected exception"""
         self._setup(table_types)
@@ -1920,6 +1927,13 @@ class TestReplaceColumn(SetupData):
             t.replace_column('a', [1, 2, 3])
         assert err.value.args[0] == 'cannot replace a table index column'
 
+    def test_replace_column_no_copy(self):
+        t = Table([[1, 2], [3, 4]], names=['a', 'b'])
+        a = np.array([1.5, 2.5])
+        t.replace_column('a', a, copy=False)
+        assert t['a'][0] == a[0]
+        t['a'][0] = 10
+        assert t['a'][0] == a[0]
 
 class Test__Astropy_Table__():
     """
