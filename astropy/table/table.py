@@ -50,8 +50,12 @@ Things to remember:
   an object into the columns dict since an existing column may
   be part of another Table and have parent_table set to point at that
   table.  Dropping that column into `columns` of this Table will cause
-  a problem for the old one so it needs to be copied.  Currently
-  replace_column is always making a copy
+  a problem for the old one so the column object needs to be copied (but
+  not necessarily the data).
+
+  Currently replace_column is always making a copy of both object and
+  data if parent_table is set.  This could be improved but requires a
+  generic way to copy a mixin object but not the data.
 
 - Be aware of column objects that have indices set.
 """
@@ -842,9 +846,17 @@ class Table:
 
         The final column name is determined by::
 
-          name or data.info.name or def_name
+            name or data.info.name or def_name
 
         If ``data`` has no ``info`` then ``name = name or def_name``.
+
+        The behavior of ``copy`` for Column objects is:
+        - copy=True: new class instance with a copy of data and deep copy of meta
+        - copy=False: new class instance with same data and a key-only copy of meta
+
+        For mixin columns:
+        - copy=True: new class instance with copy of data and deep copy of meta
+        - copy=False: original instance (no copy at all)
 
         Parameters
         ----------
