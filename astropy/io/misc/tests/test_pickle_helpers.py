@@ -3,8 +3,6 @@
 import pytest
 
 from astropy.io.misc import fnpickle, fnunpickle
-from astropy.tests.helper import catch_warnings
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_fnpickling_simple(tmpdir):
@@ -26,9 +24,6 @@ def test_fnpickling_simple(tmpdir):
     with open(fn, 'rb') as f:
         res = fnunpickle(f)
         assert obj1 == res
-
-    with catch_warnings(AstropyDeprecationWarning):
-        fnunpickle(fn, 0, True)
 
 
 class ToBePickled:
