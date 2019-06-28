@@ -371,6 +371,8 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Silence numpy runtime warnings in ``WCSAxes`` when drawing grids. [#8882]
+
 astropy.wcs
 ^^^^^^^^^^^
 
