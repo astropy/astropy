@@ -879,7 +879,7 @@ class Table:
         # Structured ndarray gets viewed as a mixin unless already a valid
         # mixin class
         if (isinstance(data, np.ndarray) and len(data.dtype) > 1 and
-                not self._add_as_mixin_column(data)):
+                not self._is_mixin_for_table(data)):
             data = data.view(NdarrayMixin)
 
         # Get the final column name using precedence.  Some objects may not
@@ -904,7 +904,7 @@ class Table:
             col = col_cls(name=name, data=data, dtype=dtype,
                           copy=copy, copy_indices=self._init_indices)
 
-        elif self._add_as_mixin_column(data):
+        elif self._is_mixin_for_table(data):
             # Copy the mixin column attributes if they exist since the copy below
             # may not get this attribute.
             col = col_copy(data, copy_indices=self._init_indices) if copy else data
@@ -1154,7 +1154,7 @@ class Table:
         else:
             return False
 
-    def _add_as_mixin_column(self, col):
+    def _is_mixin_for_table(self, col):
         """
         Determine if ``col`` should be added to the table directly as
         a mixin column.
@@ -1490,13 +1490,13 @@ class Table:
             NewColumn = self.MaskedColumn if self.masked else self.Column
             # If value doesn't have a dtype and won't be added as a mixin then
             # convert to a numpy array.
-            if not hasattr(value, 'dtype') and not self._add_as_mixin_column(value):
+            if not hasattr(value, 'dtype') and not self._is_mixin_for_table(value):
                 value = np.asarray(value)
 
             # Structured ndarray gets viewed as a mixin (unless already a valid
             # mixin class).
             if (isinstance(value, np.ndarray) and len(value.dtype) > 1 and
-                    not self._add_as_mixin_column(value)):
+                    not self._is_mixin_for_table(value)):
                 value = value.view(NdarrayMixin)
 
             # Make new column and assign the value.  If the table currently
@@ -1508,7 +1508,7 @@ class Table:
             # = 1.
             name = item
             # If this is a column-like object that could be added directly to table
-            if isinstance(value, BaseColumn) or self._add_as_mixin_column(value):
+            if isinstance(value, BaseColumn) or self._is_mixin_for_table(value):
                 # If we're setting a new column to a scalar, broadcast it.
                 # (things will fail in _init_from_cols if this doesn't work)
                 if (len(self) > 0 and (getattr(value, 'isscalar', False) or
@@ -3200,7 +3200,7 @@ class QTable(Table):
 
     """
 
-    def _add_as_mixin_column(self, col):
+    def _is_mixin_for_table(self, col):
         """
         Determine if ``col`` should be added to the table directly as
         a mixin column.
