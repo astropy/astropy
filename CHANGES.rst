@@ -130,6 +130,9 @@ astropy.io.misc
 
 - Masked column handling has changed, see ``astropy.table`` entry below. [#8789]
 
+- Removed deprecated ``usecPickle`` kwarg from ``fnunpickle`` and
+  ``fnpickle``. [#8890]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
