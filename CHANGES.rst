@@ -47,6 +47,14 @@ astropy.modeling
 astropy.nddata
 ^^^^^^^^^^^^^^
 
+- Fixed a bug in ``overlap_slices`` where the ``"strict"`` mode was
+  too strict for a small array along the upper edge of the large array.
+  [#8901]
+
+- Fixed a bug in ``overlap_slices`` where a ``NoOverlapError`` would
+  be incorrectly raised for a 0-shaped small array at the origin.
+  [#8901]
+
 astropy.stats
 ^^^^^^^^^^^^^
 
