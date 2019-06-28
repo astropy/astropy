@@ -1795,12 +1795,38 @@ class Table:
 
         To add several columns use add_columns.
         """
-        if index is None:
-            index = len(self.columns)
-        if name is not None:
-            name = (name,)
+        default_name = 'col{}'.format(len(self.columns))
 
-        self.add_columns([col], [index], name, copy=copy, rename_duplicate=rename_duplicate)
+        # Convert col data to acceptable object for insertion into self.columns
+        col = self._convert_data_to_col(col, name=name, copy=copy,
+                                        default_name=default_name)
+
+        name = col.info.name
+
+        # Ensure that new column is the right length
+        if len(self.columns) > 0 and len(col) != len(self):
+            raise ValueError('length of new column must match table length')
+
+        if rename_duplicate:
+            orig_name = name
+            i = 1
+            while name in self.columns:
+                # Iterate until a unique name is found
+                name = orig_name + '_' + str(i)
+                i += 1
+            col.info.name = name
+
+        # Set col parent_table weakref and ensure col has mask attribute if table.masked
+        self._set_col_parent_table_and_mask(col)
+
+        # Add new column as last column
+        self.columns[name] = col
+
+        if index is not None:
+            # Move the other cols to the right of the new one
+            move_names = self.colnames[index:-1]
+            for move_name in move_names:
+                self.columns.move_to_end(move_name, last=True)
 
     def add_columns(self, cols, indexes=None, names=None, copy=True, rename_duplicate=False):
         """
