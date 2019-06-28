@@ -227,14 +227,20 @@ class TableColumns(OrderedDict):
             raise IndexError('Illegal key or index value for {} object'
                              .format(self.__class__.__name__))
 
-    def __setitem__(self, item, value):
-        if item in self:
+    def __setitem__(self, item, value, validated=False):
+        """
+        Set item in this dict instance, but do not allow directly replacing an
+        existing column unless it is already validated (and thus is certain to
+        not corrupt the table).
+
+        NOTE: it is easily possible to corrupt a table by directly *adding* a new
+        key to the TableColumns attribute of a Table, e.g.
+        ``t.columns['jane'] = 'doe'``.
+
+        """
+        if item in self and not validated:
             raise ValueError("Cannot replace column '{0}'.  Use Table.replace_column() instead."
                              .format(item))
-        super().__setitem__(item, value)
-
-    def _setitem_validated(self, item, value):
-        """Allow direct __setitem__ internally for validated item/value pairs"""
         super().__setitem__(item, value)
 
     def __repr__(self):
@@ -2036,7 +2042,7 @@ class Table:
         if len(self.columns) > 1 and len(col) != len(self[name]):
             raise ValueError('length of new column must match table length')
 
-        self.columns._setitem_validated(name, col)
+        self.columns.__setitem__(name, col, validated=True)
 
     def remove_row(self, index):
         """
