@@ -835,16 +835,16 @@ class Table:
             return
 
         cols = []
-        def_names = _auto_names(n_cols)
+        default_names = _auto_names(n_cols)
 
-        for col, name, def_name, dtype in zip(data, names, def_names, dtype):
-            col = self._convert_data_to_col(col, copy, def_name, dtype, name)
+        for col, name, default_name, dtype in zip(data, names, default_names, dtype):
+            col = self._convert_data_to_col(col, copy, default_name, dtype, name)
 
             cols.append(col)
 
         self._init_from_cols(cols)
 
-    def _convert_data_to_col(self, data, copy=True, def_name=None, dtype=None, name=None):
+    def _convert_data_to_col(self, data, copy=True, default_name=None, dtype=None, name=None):
         """
         Convert any allowed sequence data ``col`` to a column object that can be used
         directly in the self.columns dict.  This could be a Column, MaskedColumn,
@@ -870,7 +870,7 @@ class Table:
             Input column data
         copy : bool
             Make a copy
-        def_name : str
+        default_name : str
             Default name
         dtype : np.dtype or None
             Data dtype
@@ -890,13 +890,14 @@ class Table:
 
         # Get the final column name using precedence.  Some objects may not
         # have an info attribute.
-        if hasattr(data, 'info'):
-            name = name or data.info.name or def_name
-        else:
-            name = name or def_name
+        if name is None:
+            if hasattr(data, 'info'):
+                name = data.info.name or default_name
+            else:
+                name = default_name
 
         if isinstance(data, Column):
-            # If col is a subclass of self.ColumnClass, then "upgrade" to ColumnClass,
+            # If self.ColumnClass is a subclass of col, then "upgrade" to ColumnClass,
             # otherwise just use the original class.  The most common case is a
             # table with masked=True and ColumnClass=MaskedColumn.  Then a Column
             # gets upgraded to MaskedColumn, but the converse (pre-4.0) behavior
