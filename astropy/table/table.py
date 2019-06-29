@@ -882,10 +882,11 @@ class Table:
         col : Column, MaskedColumn, mixin-column type
             Object that can be used as a column in self
         """
+        is_mixin = self._is_mixin_for_table(data)
+
         # Structured ndarray gets viewed as a mixin unless already a valid
         # mixin class
-        if (isinstance(data, np.ndarray) and len(data.dtype) > 1 and
-                not self._is_mixin_for_table(data)):
+        if isinstance(data, np.ndarray) and len(data.dtype) > 1 and not is_mixin:
             data = data.view(NdarrayMixin)
 
         # Get the final column name using precedence.  Some objects may not
@@ -1492,54 +1493,7 @@ class Table:
         # If the item is a string then it must be the name of a column.
         # If that column doesn't already exist then create it now.
         if isinstance(item, str) and item not in self.colnames:
-            NewColumn = self.MaskedColumn if self.masked else self.Column
-            # If value doesn't have a dtype and won't be added as a mixin then
-            # convert to a numpy array.
-            if not hasattr(value, 'dtype') and not self._is_mixin_for_table(value):
-                value = np.asarray(value)
-
-            # Structured ndarray gets viewed as a mixin (unless already a valid
-            # mixin class).
-            if (isinstance(value, np.ndarray) and len(value.dtype) > 1 and
-                    not self._is_mixin_for_table(value)):
-                value = value.view(NdarrayMixin)
-
-            # Make new column and assign the value.  If the table currently
-            # has no rows (len=0) of the value is already a Column then
-            # define new column directly from value.  In the latter case
-            # this allows for propagation of Column metadata.  Otherwise
-            # define a new column with the right length and shape and then
-            # set it from value.  This allows for broadcasting, e.g. t['a']
-            # = 1.
-            name = item
-            # If this is a column-like object that could be added directly to table
-            if isinstance(value, BaseColumn) or self._is_mixin_for_table(value):
-                # If we're setting a new column to a scalar, broadcast it.
-                # (things will fail in _init_from_cols if this doesn't work)
-                if (len(self) > 0 and (getattr(value, 'isscalar', False) or
-                                       getattr(value, 'shape', None) == () or
-                                       len(value) == 1)):
-                    new_shape = (len(self),) + getattr(value, 'shape', ())[1:]
-                    if isinstance(value, np.ndarray):
-                        value = np.broadcast_to(value, shape=new_shape,
-                                                subok=True)
-                    elif isinstance(value, ShapedLikeNDArray):
-                        value = value._apply(np.broadcast_to, shape=new_shape,
-                                             subok=True)
-
-                new_column = col_copy(value)
-                new_column.info.name = name
-
-            elif len(self) == 0:
-                new_column = NewColumn(value, name=name)
-            else:
-                new_column = NewColumn(name=name, length=len(self), dtype=value.dtype,
-                                       shape=value.shape[1:],
-                                       unit=getattr(value, 'unit', None))
-                new_column[:] = value
-
-            # Now add new column to the table
-            self.add_columns([new_column], copy=False)
+            self.add_column(value, name=item, copy=True)
 
         else:
             n_cols = len(self.columns)
@@ -1803,6 +1757,23 @@ class Table:
         """
         if default_name is None:
             default_name = 'col{}'.format(len(self.columns))
+
+        # If value doesn't have a dtype and won't be added as a mixin then
+        # convert to a numpy array.
+        if not hasattr(col, 'dtype') and not self._is_mixin_for_table(col):
+            col = np.asarray(col)
+
+        # Make col data shape correct for scalars
+        if (len(self) > 0 and (getattr(col, 'isscalar', False) or
+                              getattr(col, 'shape', None) == () or
+                              len(col) == 1)):
+            new_shape = (len(self),) + getattr(col, 'shape', ())[1:]
+            if isinstance(col, np.ndarray):
+                col = np.broadcast_to(col, shape=new_shape,
+                                       subok=True)
+            elif isinstance(col, ShapedLikeNDArray):
+                col = col._apply(np.broadcast_to, shape=new_shape,
+                                   subok=True)
 
         # Convert col data to acceptable object for insertion into self.columns
         col = self._convert_data_to_col(col, name=name, copy=copy,
