@@ -455,6 +455,7 @@ def test_preserve_serialized(tmpdir):
     assert t1['a'].meta == t2['a'].meta
     assert t1.meta == t2.meta
 
+
 @pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
 def test_preserve_serialized_old_meta_format(tmpdir):
     """Test the old meta format
@@ -479,6 +480,7 @@ def test_preserve_serialized_old_meta_format(tmpdir):
     assert t1['a'].description == t2['a'].description
     assert t1['a'].meta == t2['a'].meta
     assert t1.meta == t2.meta
+
 
 @pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
 def test_preserve_serialized_in_complicated_path(tmpdir):
