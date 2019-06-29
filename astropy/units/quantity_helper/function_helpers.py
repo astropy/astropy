@@ -27,9 +27,12 @@ converted to Quantity), and ``out`` is a possible output Quantity passed
 in, which will be filled in-place.
 
 For the DISPATCHED_FUNCTIONS `dict`, the value is a function that
-implements the numpy functionality for Quantity input. It should return
-a tuple of ``result, unit, out``, where ``result`` is a plain array
-with the result, and ``unit`` and ``out`` are as above.
+implements the numpy functionality for Quantity input. It should
+return a tuple of ``result, unit, out``, where ``result`` is generally
+a plain array with the result, and ``unit`` and ``out`` are as above.
+If unit is `None`, result gets returned directly, so one can also
+return a Quantity directly using ``quantity_result, None, None``.
+
 """
 
 import functools
@@ -91,7 +94,8 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.sort, np.msort, np.partition, np.meshgrid,
     np.common_type, np.result_type, np.can_cast, np.min_scalar_type,
     np.iscomplexobj, np.isrealobj,
-    np.shares_memory, np.may_share_memory}
+    np.shares_memory, np.may_share_memory,
+    np.apply_along_axis}
 
 if not NUMPY_LT_1_15:
     SUBCLASS_SAFE_FUNCTIONS |= {np.take_along_axis, np.put_along_axis}
@@ -112,11 +116,6 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.isclose, np.allclose,
     np.array2string, np.array_repr, np.array_str}
 
-# TODO: could be supported but need work & thought.
-UNSUPPORTED_FUNCTIONS |= {
-    np.histogramdd,
-    np.apply_along_axis, np.apply_over_axes}
-
 # Nonsensical for quantities.
 UNSUPPORTED_FUNCTIONS |= {
     np.packbits, np.unpackbits, np.unravel_index,
@@ -136,9 +135,6 @@ IGNORED_FUNCTIONS = {
     # Polynomials
     np.poly, np.polyadd, np.polyder, np.polydiv, np.polyfit, np.polyint,
     np.polymul, np.polysub, np.polyval, np.roots, np.vander,
-    # setops
-    np.in1d, np.intersect1d, np.isin, np.setdiff1d,
-    np.setxor1d, np.union1d, np.unique,
     # financial
     np.fv, np.ipmt, np.irr, np.mirr, np.nper, np.npv, np.pmt, np.ppmt,
     np.pv, np.rate}
@@ -639,8 +635,8 @@ def histogram2d(x, y, bins=10, range=None, normed=None, weights=None,
             pass
         else:
             if n == 2:
-                bins = tuple(_check_bins(b, unit) for (b, unit) in
-                             zip(bins, (x.unit, y.unit)))
+                bins = [_check_bins(b, unit)
+                        for (b, unit) in zip(bins, (x.unit, y.unit))]
             elif n == 1:
                 return NotImplementedError
             else:
@@ -652,6 +648,52 @@ def histogram2d(x, y, bins=10, range=None, normed=None, weights=None,
 
     return ((x.value, y.value, bins, range, normed, weights, density), {},
             (unit, x.unit, y.unit), None)
+
+
+@function_helper
+def histogramdd(sample, bins=10, range=None, normed=None, weights=None,
+                density=None):
+    if weights is not None:
+        weights = _as_quantity(weights)
+        unit = weights.unit
+        weights = weights.value
+    else:
+        unit = None
+
+    try:
+        # Sample is an ND-array.
+        _, D = sample.shape
+    except (AttributeError, ValueError):
+        # Sample is a sequence of 1D arrays.
+        sample = _as_quantities(*sample)
+        sample_units = [s.unit for s in sample]
+        sample = [s.value for s in sample]
+        D = len(sample)
+    else:
+        sample = _as_quantity(sample)
+        sample_units = [sample.unit] * D
+
+    try:
+        M = len(bins)
+    except TypeError:
+        # bins should be an integer
+        from astropy.units import Quantity
+
+        if isinstance(bins, Quantity):
+            raise NotImplementedError
+    else:
+        if M != D:
+            raise ValueError(
+                'The dimension of bins must be equal to the dimension of the '
+                ' sample x.')
+        bins = [_check_bins(b, unit)
+                for (b, unit) in zip(bins, sample_units)]
+
+    if density or normed:
+        unit = functools.reduce(operator.truediv, sample_units, (unit or 1))
+
+    return ((sample, bins, range, normed, weights, density), {},
+            (unit, sample_units), None)
 
 
 @function_helper
@@ -725,3 +767,67 @@ def interp(x, xp, fp, *args, **kwargs):
         unit = None
 
     return (x, xp, fp) + args, kwargs, unit, None
+
+
+@function_helper
+def unique(ar, return_index=False, return_inverse=False,
+           return_counts=False, axis=None):
+    unit = ar.unit
+    n_index = sum(bool(i) for i in
+                  (return_index, return_inverse, return_counts))
+    if n_index:
+        unit = [unit] + n_index * [None]
+
+    return (ar.value, return_index, return_inverse, return_counts,
+            axis), {}, unit, None
+
+
+@function_helper
+def intersect1d(ar1, ar2, assume_unique=False, return_indices=False):
+    (ar1, ar2), unit = _quantities2arrays(ar1, ar2)
+    if return_indices:
+        unit = [unit, None, None]
+    return (ar1, ar2, assume_unique, return_indices), {}, unit, None
+
+
+@function_helper(helps=(np.setxor1d, np.union1d, np.setdiff1d))
+def twosetop(ar1, ar2, *args, **kwargs):
+    (ar1, ar2), unit = _quantities2arrays(ar1, ar2)
+    return (ar1, ar2) + args, kwargs, unit, None
+
+
+@function_helper(helps=(np.isin, np.in1d))
+def setcheckop(ar1, ar2, *args, **kwargs):
+    # This tests whether ar1 is in ar2, so we should change the unit of
+    # a1 to that of a2.
+    (ar2, ar1), unit = _quantities2arrays(ar2, ar1)
+    return (ar1, ar2) + args, kwargs, None, None
+
+
+@dispatched_function
+def apply_over_axes(func, a, axes):
+    # Copied straight from numpy/lib/shape_base, just to omit its
+    # val = asarray(a); if only it had been asanyarray, or just not there
+    # since a is assumed to an an array in the next line...
+    # Which is what we do here - we can only get here if it is a Quantity.
+    val = a
+    N = a.ndim
+    if np.array(axes).ndim == 0:
+        axes = (axes,)
+    for axis in axes:
+        if axis < 0:
+            axis = N + axis
+        args = (val, axis)
+        res = func(*args)
+        if res.ndim == val.ndim:
+            val = res
+        else:
+            res = np.expand_dims(res, axis)
+            if res.ndim == val.ndim:
+                val = res
+            else:
+                raise ValueError("function is not returning "
+                                 "an array of the correct shape")
+    # Returning unit is None to signal nothing should happen to
+    # the output.
+    return val, None, None
