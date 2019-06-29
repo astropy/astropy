@@ -14,6 +14,7 @@ from astropy.coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocat
 from astropy.time import Time, TimeDelta
 from astropy.units.quantity import QuantityInfo
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.data import get_pkg_data_filename
 
 try:
     import h5py
@@ -454,6 +455,30 @@ def test_preserve_serialized(tmpdir):
     assert t1['a'].meta == t2['a'].meta
     assert t1.meta == t2.meta
 
+@pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
+def test_preserve_serialized_old_meta_format(tmpdir):
+    """Test the old meta format
+
+    Only for some files created prior to v4.0, in compatibility mode.
+    """
+    test_file = get_pkg_data_filename('data/old_meta_example.hdf5')
+
+    t1 = Table()
+    t1['a'] = Column(data=[1, 2, 3], unit="s")
+    t1['a'].meta['a0'] = "A0"
+    t1['a'].meta['a1'] = {"a1": [0, 1]}
+    t1['a'].format = '7.3f'
+    t1['a'].description = 'A column'
+    t1.meta['b'] = 1
+    t1.meta['c'] = {"c0": [0, 1]}
+
+    t2 = Table.read(test_file, path='the_table')
+
+    assert t1['a'].unit == t2['a'].unit
+    assert t1['a'].format == t2['a'].format
+    assert t1['a'].description == t2['a'].description
+    assert t1['a'].meta == t2['a'].meta
+    assert t1.meta == t2.meta
 
 @pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
 def test_preserve_serialized_in_complicated_path(tmpdir):
