@@ -52,8 +52,12 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',
 
     if dy is None:
         dy = 1
+    else:
+        dy.flags.writable = True
 
     # Validate and setup input data
+    t.flags.writable = True
+    y.flags.writable = True
     t, y, dy = np.broadcast_arrays(t, y, dy)
     if t.ndim != 1:
         raise ValueError("t, y, dy should be one dimensional")

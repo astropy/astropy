@@ -241,6 +241,9 @@ class EarthLocation(u.Quantity):
             raise u.UnitsError("Geocentric coordinate units should all be "
                                "consistent.")
 
+        x.flags.writable = True
+        y.flags.writable = True
+        z.flags.writable = True
         x, y, z = np.broadcast_arrays(x, y, z)
         struc = np.empty(x.shape, cls._location_dtype)
         struc['x'], struc['y'], struc['z'] = x, y, z

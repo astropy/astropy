@@ -41,7 +41,11 @@ def lombscargle_slow(t, y, dy, frequency, normalization='standard',
     """
     if dy is None:
         dy = 1
+    else:
+        dy.flags.writable = True
 
+    t.flags.writable = True
+    y.flags.writable = True
     t, y, dy = np.broadcast_arrays(t, y, dy)
     frequency = np.asarray(frequency)
 

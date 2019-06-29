@@ -27,6 +27,9 @@ def compute_chi2_ref(y, dy=None, center_data=True, fit_mean=True):
     """
     if dy is None:
         dy = 1
+    else:
+        dy.flags.writable = True
+    y.flags.writable = True
     y, dy = np.broadcast_arrays(y, dy)
     w = dy ** -2.0
     if center_data or fit_mean:

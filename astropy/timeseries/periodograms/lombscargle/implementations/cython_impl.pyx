@@ -57,6 +57,10 @@ def lombscargle_cython(t, y, dy, frequency, normalization='standard',
     if dy is None:
         dy = 1
 
+    t.flags.writable = True
+    y.flags.writable = True
+    dy.flags.writable = True
+
     t, y, dy = np.broadcast_arrays(t, y, dy)
     t = np.asarray(t, dtype=DTYPE, order='C')
     y = np.asarray(y, dtype=DTYPE, order='C')

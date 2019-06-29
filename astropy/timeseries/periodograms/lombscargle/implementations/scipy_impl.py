@@ -41,6 +41,8 @@ def lombscargle_scipy(t, y, frequency, normalization='standard',
     except ImportError:
         raise ImportError("scipy must be installed to use lombscargle_scipy")
 
+    t.flags.writable = True
+    y.flags.writable = True
     t, y = np.broadcast_arrays(t, y)
 
     # Scipy requires floating-point input

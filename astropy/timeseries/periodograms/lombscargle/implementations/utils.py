@@ -48,6 +48,8 @@ def extirpolate(x, y, N=None, M=4):
     This code is based on the C implementation of spread() presented in
     Numerical Recipes in C, Second Edition (Press et al. 1989; p.583).
     """
+    x.flags.writable = True
+    y.flags.writable = True
     x, y = map(np.ravel, np.broadcast_arrays(x, y))
 
     if N is None:
@@ -123,6 +125,8 @@ def trig_sum(t, h, df, N, f0=0, freq_factor=1,
 
     if df <= 0:
         raise ValueError("df must be positive")
+    t.flags.writable = True
+    h.flags.writable = True
     t, h = map(np.ravel, np.broadcast_arrays(t, h))
 
     if use_fft:

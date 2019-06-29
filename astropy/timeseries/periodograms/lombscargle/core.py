@@ -132,9 +132,12 @@ class LombScargle(BasePeriodogram):
 
     def _validate_inputs(self, t, y, dy):
         # Validate shapes of inputs
+        t.flags.writable = True
+        y.flags.writable = True
         if dy is None:
             t, y = np.broadcast_arrays(t, y, subok=True)
         else:
+            dy.flags.writable = True
             t, y, dy = np.broadcast_arrays(t, y, dy, subok=True)
         if t.ndim != 1:
             raise ValueError("Inputs (t, y, dy) must be 1-dimensional")
