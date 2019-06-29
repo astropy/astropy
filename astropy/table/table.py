@@ -1895,21 +1895,18 @@ class Table:
         """
         if indexes is None:
             indexes = [len(self.columns)] * len(cols)
-        else:
-            if len(indexes) != len(cols):
-                raise ValueError('Number of indexes must match number of cols')
-        idxs_sort = np.argsort(indexes)
+        elif len(indexes) != len(cols):
+            raise ValueError('Number of indexes must match number of cols')
 
         if names is None:
             names = (None,) * len(cols)
-        else:
-            if len(names) != len(cols):
-                raise ValueError('Number of names must match number of cols')
+        elif len(names) != len(cols):
+            raise ValueError('Number of names must match number of cols')
 
         default_names = ['col{}'.format(ii + len(self.columns))
                          for ii in range(len(cols))]
 
-        for ii in reversed(idxs_sort):
+        for ii in reversed(np.argsort(indexes)):
             self.add_column(cols[ii], index=indexes[ii], name=names[ii],
                             default_name=default_names[ii],
                             rename_duplicate=rename_duplicate, copy=copy)
