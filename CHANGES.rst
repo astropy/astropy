@@ -61,6 +61,9 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Improved the implementation of ``Table.replace_column()`` to provide
+  a speed-up of 5-10 times for wide tables. [#8902]
+
 astropy.tests
 ^^^^^^^^^^^^^
 

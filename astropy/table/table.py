@@ -33,6 +33,33 @@ from .connect import TableRead, TableWrite
 from . import conf
 
 
+_implementation_notes = """
+This string has informal notes concerning Table implementation for developers.
+
+Things to remember:
+
+- Table has customizable attributes ColumnClass, Column, MaskedColumn.
+  Table.Column is normally just column.Column (same w/ MaskedColumn)
+  but in theory they can be different.  Table.ColumnClass is the default
+  class used to create new non-mixin columns, and this is a function of
+  the Table.masked attribute.  Column creation / manipulation in a Table
+  needs to respect these.
+
+- Column objects that get inserted into the Table.columns attribute must
+  have the info.parent_table attribute set correctly.  Beware just dropping
+  an object into the columns dict since an existing column may
+  be part of another Table and have parent_table set to point at that
+  table.  Dropping that column into `columns` of this Table will cause
+  a problem for the old one so the column object needs to be copied (but
+  not necessarily the data).
+
+  Currently replace_column is always making a copy of both object and
+  data if parent_table is set.  This could be improved but requires a
+  generic way to copy a mixin object but not the data.
+
+- Be aware of column objects that have indices set.
+"""
+
 __doctest_skip__ = ['Table.read', 'Table.write', 'Table._read',
                     'Table.convert_bytestring_to_unicode',
                     'Table.convert_unicode_to_bytestring',
@@ -201,8 +228,18 @@ class TableColumns(OrderedDict):
             raise IndexError('Illegal key or index value for {} object'
                              .format(self.__class__.__name__))
 
-    def __setitem__(self, item, value):
-        if item in self:
+    def __setitem__(self, item, value, validated=False):
+        """
+        Set item in this dict instance, but do not allow directly replacing an
+        existing column unless it is already validated (and thus is certain to
+        not corrupt the table).
+
+        NOTE: it is easily possible to corrupt a table by directly *adding* a new
+        key to the TableColumns attribute of a Table, e.g.
+        ``t.columns['jane'] = 'doe'``.
+
+        """
+        if item in self and not validated:
             raise ValueError("Cannot replace column '{0}'.  Use Table.replace_column() instead."
                              .format(item))
         super().__setitem__(item, value)
@@ -791,7 +828,7 @@ class Table:
         return
 
     def _init_from_list(self, data, names, dtype, n_cols, copy):
-        """Initialize table from a list of columns.  A column can be a
+        """Initialize table from a list of column data.  A column can be a
         Column object, np.ndarray, mixin, or any other iterable object.
         """
         if data and all(isinstance(row, dict) for row in data):
@@ -799,60 +836,104 @@ class Table:
             return
 
         cols = []
-        def_names = _auto_names(n_cols)
+        default_names = _auto_names(n_cols)
 
-        for col, name, def_name, dtype in zip(data, names, def_names, dtype):
-            # Structured ndarray gets viewed as a mixin unless already a valid
-            # mixin class
-            if (isinstance(col, np.ndarray) and len(col.dtype) > 1 and
-                    not self._add_as_mixin_column(col)):
-                col = col.view(NdarrayMixin)
-
-            if isinstance(col, Column):
-                # If col is a subclass of self.ColumnClass, then "upgrade" to ColumnClass,
-                # otherwise just use the original class.  The most common case is a
-                # table with masked=True and ColumnClass=MaskedColumn.  Then a Column
-                # gets upgraded to MaskedColumn, but the converse (pre-4.0) behavior
-                # of downgrading from MaskedColumn to Column (for non-masked table)
-                # does not happen.
-                if issubclass(self.ColumnClass, col.__class__):
-                    col_cls = self.ColumnClass
-                else:
-                    col_cls = col.__class__
-
-                col = col_cls(name=(name or col.info.name or def_name),
-                              data=col, dtype=dtype,
-                              copy=copy, copy_indices=self._init_indices)
-
-            elif self._add_as_mixin_column(col):
-                # Copy the mixin column attributes if they exist since the copy below
-                # may not get this attribute.
-                if copy:
-                    col = col_copy(col, copy_indices=self._init_indices)
-
-                col.info.name = name or col.info.name or def_name
-
-            elif isinstance(col, np.ma.MaskedArray):
-                # Require that col_cls be a subclass of MaskedColumn, remembering
-                # that ColumnClass could be a user-defined subclass (though more-likely
-                # could be MaskedColumn).
-                col_cls = (self.ColumnClass
-                           if issubclass(self.ColumnClass, self.MaskedColumn)
-                           else self.MaskedColumn)
-                col = col_cls(name=(name or def_name), data=col, dtype=dtype,
-                              copy=copy, copy_indices=self._init_indices)
-
-            elif isinstance(col, np.ndarray) or isiterable(col):
-                col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype,
-                                       copy=copy, copy_indices=self._init_indices)
-
-            else:
-                raise ValueError('Elements in list initialization must be '
-                                 'either Column or list-like')
+        for col, name, default_name, dtype in zip(data, names, default_names, dtype):
+            col = self._convert_data_to_col(col, copy, default_name, dtype, name)
 
             cols.append(col)
 
         self._init_from_cols(cols)
+
+    def _convert_data_to_col(self, data, copy=True, default_name=None, dtype=None, name=None):
+        """
+        Convert any allowed sequence data ``col`` to a column object that can be used
+        directly in the self.columns dict.  This could be a Column, MaskedColumn,
+        or mixin column.
+
+        The final column name is determined by::
+
+            name or data.info.name or def_name
+
+        If ``data`` has no ``info`` then ``name = name or def_name``.
+
+        The behavior of ``copy`` for Column objects is:
+        - copy=True: new class instance with a copy of data and deep copy of meta
+        - copy=False: new class instance with same data and a key-only copy of meta
+
+        For mixin columns:
+        - copy=True: new class instance with copy of data and deep copy of meta
+        - copy=False: original instance (no copy at all)
+
+        Parameters
+        ----------
+        data : object (column-like sequence)
+            Input column data
+        copy : bool
+            Make a copy
+        default_name : str
+            Default name
+        dtype : np.dtype or None
+            Data dtype
+        name : str or None
+            Column name
+
+        Returns
+        -------
+        col : Column, MaskedColumn, mixin-column type
+            Object that can be used as a column in self
+        """
+        # Structured ndarray gets viewed as a mixin unless already a valid
+        # mixin class
+        if (isinstance(data, np.ndarray) and len(data.dtype) > 1 and
+                not self._is_mixin_for_table(data)):
+            data = data.view(NdarrayMixin)
+
+        # Get the final column name using precedence.  Some objects may not
+        # have an info attribute.
+        if not name:
+            if hasattr(data, 'info'):
+                name = data.info.name or default_name
+            else:
+                name = default_name
+
+        if isinstance(data, Column):
+            # If self.ColumnClass is a subclass of col, then "upgrade" to ColumnClass,
+            # otherwise just use the original class.  The most common case is a
+            # table with masked=True and ColumnClass=MaskedColumn.  Then a Column
+            # gets upgraded to MaskedColumn, but the converse (pre-4.0) behavior
+            # of downgrading from MaskedColumn to Column (for non-masked table)
+            # does not happen.
+            if issubclass(self.ColumnClass, data.__class__):
+                col_cls = self.ColumnClass
+            else:
+                col_cls = data.__class__
+
+        elif self._is_mixin_for_table(data):
+            # Copy the mixin column attributes if they exist since the copy below
+            # may not get this attribute.
+            col = col_copy(data, copy_indices=self._init_indices) if copy else data
+            col.info.name = name
+            return col
+
+        elif isinstance(data, np.ma.MaskedArray):
+            # Require that col_cls be a subclass of MaskedColumn, remembering
+            # that ColumnClass could be a user-defined subclass (though more-likely
+            # could be MaskedColumn).
+            col_cls = (self.ColumnClass
+                       if issubclass(self.ColumnClass, self.MaskedColumn)
+                       else self.MaskedColumn)
+
+        elif isinstance(data, np.ndarray) or isiterable(data):
+            col_cls = self.ColumnClass
+
+        else:
+            raise ValueError('Elements in list initialization must be '
+                             'either Column or list-like')
+
+        col = col_cls(name=name, data=data, dtype=dtype,
+                      copy=copy, copy_indices=self._init_indices)
+        return col
 
     def _init_from_ndarray(self, data, names, dtype, n_cols, copy):
         """Initialize table from an ndarray structured array"""
@@ -961,17 +1042,24 @@ class Table:
             if len(set(names)) != len(names):
                 raise ValueError('Duplicate column names')
 
-        columns = table.TableColumns((name, col) for name, col in zip(names, cols))
+        table.columns = table.TableColumns((name, col) for name, col in zip(names, cols))
 
         for col in cols:
-            # For Column instances it is much faster to do direct attribute access
-            # instead of going through .info
-            col_info = col if isinstance(col, Column) else col.info
-            col_info.parent_table = table
-            if table.masked and not hasattr(col, 'mask'):
-                col.mask = FalseArray(col.shape)
+            table._set_col_parent_table_and_mask(col)
 
-        table.columns = columns
+    def _set_col_parent_table_and_mask(self, col):
+        """
+        Set ``col.parent_table = self`` and force ``col`` to have ``mask``
+        attribute if the table is masked and ``col.mask`` does not exist.
+        """
+        # For Column instances it is much faster to do direct attribute access
+        # instead of going through .info
+        col_info = col if isinstance(col, Column) else col.info
+        col_info.parent_table = self
+
+        # Legacy behavior for masked table
+        if self.masked and not hasattr(col, 'mask'):
+            col.mask = FalseArray(col.shape)
 
     def itercols(self):
         """
@@ -1070,7 +1158,7 @@ class Table:
         else:
             return False
 
-    def _add_as_mixin_column(self, col):
+    def _is_mixin_for_table(self, col):
         """
         Determine if ``col`` should be added to the table directly as
         a mixin column.
@@ -1406,13 +1494,13 @@ class Table:
             NewColumn = self.MaskedColumn if self.masked else self.Column
             # If value doesn't have a dtype and won't be added as a mixin then
             # convert to a numpy array.
-            if not hasattr(value, 'dtype') and not self._add_as_mixin_column(value):
+            if not hasattr(value, 'dtype') and not self._is_mixin_for_table(value):
                 value = np.asarray(value)
 
             # Structured ndarray gets viewed as a mixin (unless already a valid
             # mixin class).
             if (isinstance(value, np.ndarray) and len(value.dtype) > 1 and
-                    not self._add_as_mixin_column(value)):
+                    not self._is_mixin_for_table(value)):
                 value = value.view(NdarrayMixin)
 
             # Make new column and assign the value.  If the table currently
@@ -1424,7 +1512,7 @@ class Table:
             # = 1.
             name = item
             # If this is a column-like object that could be added directly to table
-            if isinstance(value, BaseColumn) or self._add_as_mixin_column(value):
+            if isinstance(value, BaseColumn) or self._is_mixin_for_table(value):
                 # If we're setting a new column to a scalar, broadcast it.
                 # (things will fail in _init_from_cols if this doesn't work)
                 if (len(self) > 0 and (getattr(value, 'isscalar', False) or
@@ -1909,9 +1997,17 @@ class Table:
                        .format(name, changed_attrs))
                 warnings.warn(msg, TableReplaceWarning, stacklevel=3)
 
-    def replace_column(self, name, col):
+    def replace_column(self, name, col, copy=True):
         """
         Replace column ``name`` with the new ``col`` object.
+
+        The behavior of ``copy`` for Column objects is:
+        - copy=True: new class instance with a copy of data and deep copy of meta
+        - copy=False: new class instance with same data and a key-only copy of meta
+
+        For mixin columns:
+        - copy=True: new class instance with copy of data and deep copy of meta
+        - copy=False: original instance (no copy at all)
 
         Parameters
         ----------
@@ -1919,6 +2015,8 @@ class Table:
             Name of column to replace
         col : column object (list, ndarray, Column, etc)
             New column object to replace the existing column
+        copy : bool
+            Make copy of the input ``col``, default=True
 
         Examples
         --------
@@ -1934,10 +2032,15 @@ class Table:
         if self[name].info.indices:
             raise ValueError('cannot replace a table index column')
 
-        t = self.__class__([col], names=[name])
-        cols = OrderedDict(self.columns)
-        cols[name] = t[name]
-        self._init_from_cols(cols.values())
+        col = self._convert_data_to_col(col, name=name, copy=copy)
+        self._set_col_parent_table_and_mask(col)
+
+        # Ensure that new column is the right length, unless it is the only column
+        # in which case re-sizing is allowed.
+        if len(self.columns) > 1 and len(col) != len(self[name]):
+            raise ValueError('length of new column must match table length')
+
+        self.columns.__setitem__(name, col, validated=True)
 
     def remove_row(self, index):
         """
@@ -3109,7 +3212,7 @@ class QTable(Table):
 
     """
 
-    def _add_as_mixin_column(self, col):
+    def _is_mixin_for_table(self, col):
         """
         Determine if ``col`` should be added to the table directly as
         a mixin column.
