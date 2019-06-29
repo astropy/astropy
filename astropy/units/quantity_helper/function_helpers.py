@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-# Licensed under a 3-clause BSD style license - see LICENSE.rst
+# Licensed under a 3-clause BSD style license. See LICENSE.rst except
+# for parts explicitly labelled as being (largely) copies of numpy
+# implementations; for those, see licenses/NUMPY_LICENSE.rst.
 """Helpers for overriding numpy functions.
 
 We override numpy functions in `~astropy.units.Quantity.__array_function__`.
@@ -25,7 +27,9 @@ converted to Quantity), and ``out`` is a possible output Quantity passed
 in, which will be filled in-place.
 
 For the DISPATCHED_FUNCTIONS `dict`, the value is a function that
-implements the numpy functionality for Quantity input.
+implements the numpy functionality for Quantity input. It should return
+a tuple of ``result, unit, out``, where ``result`` is a plain array
+with the result, and ``unit`` and ``out`` are as above.
 """
 
 import functools
@@ -73,7 +77,7 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.compress, np.extract, np.delete, np.trim_zeros, np.roll, np.take,
     np.put, np.fill_diagonal, np.tile, np.repeat,
     np.split, np.array_split, np.hsplit, np.vsplit, np.dsplit,
-    np.stack, np.column_stack, np.hstack, np.vstack, np.dstack, np.block,
+    np.stack, np.column_stack, np.hstack, np.vstack, np.dstack,
     np.amax, np.amin, np.ptp, np.sum, np.cumsum,
     np.prod, np.product, np.cumprod, np.cumproduct,
     np.round, np.around,
@@ -110,7 +114,7 @@ SUBCLASS_SAFE_FUNCTIONS |= {
 
 # TODO: could be supported but need work & thought.
 UNSUPPORTED_FUNCTIONS |= {
-    np.histogramdd, np.piecewise,
+    np.histogramdd,
     np.apply_along_axis, np.apply_over_axes}
 
 # Nonsensical for quantities.
@@ -215,14 +219,11 @@ def unwrap(p, discont=None, axis=-1):
     if discont is None:
         discont = np.pi << radian
 
-    try:
-        p = p << radian
-        discont = discont.to_value(radian)
-    except UnitsError:
-        raise UnitTypeError("Can only apply 'unwrap' function to "
-                            "quantities with angle units")
-
-    return p._wrap_function(np.unwrap.__wrapped__, discont, axis=axis)
+    p, discont = _as_quantities(p, discont)
+    result = np.unwrap.__wrapped__(p.to_value(radian),
+                                   discont.to_value(radian), axis=axis)
+    result = radian.to(p.unit, result)
+    return result, p.unit, None
 
 
 @function_helper
@@ -344,6 +345,32 @@ def concatenate(arrays, axis=0, out=None):
     return (arrays,), kwargs, unit, out
 
 
+@dispatched_function
+def block(arrays):
+    # We need to override block since the numpy implementation can take two
+    # different paths, one for concatenation, one for creating a large empty
+    # result array in which parts are set.  Each assumes array input and
+    # cannot be used directly.  Since it would be very costly to inspect all
+    # arrays and then turn them back into a nested list, we just copy here the
+    # second implementation, np.core.shape_base._block_slicing, since it is
+    # shortest and easiest.
+    (arrays, list_ndim, result_ndim,
+     final_size) = np.core.shape_base._block_setup(arrays)
+    shape, slices, arrays = np.core.shape_base._block_info_recursion(
+        arrays, list_ndim, result_ndim)
+    # Here, one line of difference!
+    arrays, unit = _quantities2arrays(*arrays)
+    # Back to _block_slicing
+    dtype = np.result_type(*[arr.dtype for arr in arrays])
+    F_order = all(arr.flags['F_CONTIGUOUS'] for arr in arrays)
+    C_order = all(arr.flags['C_CONTIGUOUS'] for arr in arrays)
+    order = 'F' if F_order and not C_order else 'C'
+    result = np.empty(shape=shape, dtype=dtype, order=order)
+    for the_slice, arr in zip(slices, arrays):
+        result[(Ellipsis,) + the_slice] = arr
+    return result, unit, None
+
+
 @function_helper
 def choose(a, choices, out=None, **kwargs):
     choices, kwargs, unit, out = _iterable_helper(*choices, out=out, **kwargs)
@@ -356,6 +383,55 @@ def select(condlist, choicelist, default=0):
     if default != 0:
         default = (1 * unit)._to_own_unit(default)
     return (condlist, choicelist, default), kwargs, unit, out
+
+
+@dispatched_function
+def piecewise(x, condlist, funclist, *args, **kw):
+    from astropy.units import Quantity
+
+    # Copied implementation from numpy.lib.function_base.piecewise,
+    # taking care of units of function outputs.
+    n2 = len(funclist)
+    # undocumented: single condition is promoted to a list of one condition
+    if np.isscalar(condlist) or (
+            not isinstance(condlist[0], (list, np.ndarray)) and x.ndim != 0):
+        condlist = [condlist]
+
+    if any(isinstance(c, Quantity) for c in condlist):
+        raise NotImplementedError
+
+    condlist = np.array(condlist, dtype=bool)
+    n = len(condlist)
+
+    if n == n2 - 1:  # compute the "otherwise" condition.
+        condelse = ~np.any(condlist, axis=0, keepdims=True)
+        condlist = np.concatenate([condlist, condelse], axis=0)
+        n += 1
+    elif n != n2:
+        raise ValueError(
+            "with {} condition(s), either {} or {} functions are expected"
+            .format(n, n, n+1)
+        )
+
+    y = np.zeros(x.shape, x.dtype)
+    where = []
+    what = []
+    for k in range(n):
+        item = funclist[k]
+        if not callable(item):
+            where.append(condlist[k])
+            what.append(item)
+        else:
+            vals = x[condlist[k]]
+            if vals.size > 0:
+                where.append(condlist[k])
+                what.append(item(vals, *args, **kw))
+
+    what, unit = _quantities2arrays(*what)
+    for item, value in zip(where, what):
+        y[item] = value
+
+    return y, unit, None
 
 
 @function_helper
