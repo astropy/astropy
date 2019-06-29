@@ -1229,7 +1229,7 @@ class TestInterpolationFunctions(metaclass=CoverageMeta):
             np.piecewise(x.value, [x], [0.])
 
 
-class TestHistogramFunctions(metaclass=CoverageMeta):
+class TestBincountDigitize(metaclass=CoverageMeta):
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
     def test_bincount(self):
@@ -1237,7 +1237,7 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         weights = np.arange(len(i)) * u.Jy
         out = np.bincount(i, weights)
         expected = np.bincount(i, weights.value) * weights.unit
-        assert np.all(out == expected)
+        assert_array_equal(out, expected)
 
         with pytest.raises(TypeError):
             np.bincount(weights)
@@ -1249,59 +1249,87 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         bins = np.arange(10.) * u.km
         out = np.digitize(x, bins)
         expected = np.digitize(x.to_value(bins.unit), bins.value)
-        assert np.all(out == expected)
+        assert_array_equal(out, expected)
+
+
+class TestHistogramFunctions(metaclass=CoverageMeta):
+
+    def setup(self):
+        self.x = np.array([1.1, 1.2, 1.3, 2.1, 5.1]) * u.m
+        self.y = np.array([1.2, 2.2, 2.4, 3.0, 4.0]) * u.cm
+        self.weights = np.arange(len(self.x)) / u.s
+
+    def check(self, function, *args, value_args=None, value_kwargs=None,
+              expected_units=None, **kwargs):
+        """Check quanties are treated correctly in the histogram function.
+        Test is done by applying ``function(*args, **kwargs)``, where
+        the argument can be quantities, and comparing the result to
+        ``function(*value_args, **value_kwargs)``, with the outputs
+        converted to quantities using the ``expected_units`` (where `None`
+        indicates the output is expected to be a regular array).
+
+        For ``**value_kwargs``, any regular ``kwargs`` are treated as
+        defaults, i.e., non-quantity arguments do not have to be repeated.
+        """
+        if value_kwargs is None:
+            value_kwargs = kwargs
+        else:
+            for k, v in kwargs.items():
+                value_kwargs.setdefault(k, v)
+        # Get the result, using the Quantity override.
+        out = function(*args, **kwargs)
+        # Get the comparison, with non-Quantity arguments.
+        expected = function(*value_args, **value_kwargs)
+        # All histogram functions return a tuple of the actual histogram
+        # and the bin edges.  First, check the actual histogram.
+        out_h = out[0]
+        expected_h = expected[0]
+        if expected_units[0] is not None:
+            expected_h = expected_h * expected_units[0]
+        assert_array_equal(out_h, expected_h)
+        # Check bin edges.  Here, histogramdd returns an interable of the
+        # bin edges as the second return argument, while histogram and
+        # histogram2d return the bin edges directly.
+        if function is np.histogramdd:
+            bin_slice = 1
+        else:
+            bin_slice = slice(1, None)
+
+        for o_bin, e_bin, e_unit in zip(out[bin_slice],
+                                        expected[bin_slice],
+                                        expected_units[bin_slice]):
+            if e_unit is not None:
+                e_bin = e_bin * e_unit
+            assert_array_equal(o_bin, e_bin)
 
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
     def test_histogram(self):
-        x = np.array([1.1, 1.2, 1.3, 2.1, 5.1]) * u.m
-        out_h, out_b = np.histogram(x)
-        assert type(out_h) is np.ndarray
-        assert isinstance(out_b, u.Quantity)
-        expected_h, expected_b = np.histogram(x.value)
-        expected_b = expected_b * x.unit
-        assert np.all(out_h == expected_h)
-        assert np.all(out_b == expected_b)
-        # With bins
-        out2_h, out2_b = np.histogram(x, [125, 200] * u.cm)
-        assert type(out2_h) is np.ndarray
-        assert isinstance(out2_b, u.Quantity)
-        expected2_h, expected2_b = np.histogram(x.value, [1.25, 2.])
-        expected2_b = expected2_b * x.unit
-        assert np.all(out2_h == expected2_h)
-        assert np.all(out2_b == expected2_b)
-        # With density
-        out2d_h, out2d_b = np.histogram(x, [125, 200] * u.cm, density=True)
-        assert isinstance(out2d_h, u.Quantity)
-        assert isinstance(out2d_b, u.Quantity)
-        expected2d_h, expected2d_b = np.histogram(x.value, [1.25, 2.],
-                                                  density=True)
-        expected2d_h = expected2d_h / x.unit
-        expected2d_b = expected2d_b * x.unit
-        assert np.all(out2d_h == expected2d_h)
-        assert np.all(out2d_b == expected2d_b)
-        # With bins and weights
-        weights = np.arange(len(x)) / u.s
-        out3_h, out3_b = np.histogram(x, [125, 200] * u.cm, weights=weights)
-        assert isinstance(out3_h, u.Quantity)
-        assert isinstance(out3_b, u.Quantity)
-        expected3_h, expected3_b = np.histogram(x.value, [1.25, 2.],
-                                                weights=weights.value)
-        expected3_h = expected3_h * weights.unit
-        expected3_b = expected3_b * x.unit
-        assert np.all(out3_h == expected3_h)
-        assert np.all(out3_b == expected3_b)
-        out3d_h, out3d_b = np.histogram(x, [125, 200] * u.cm, weights=weights,
-                                        density=True)
-        assert isinstance(out3_h, u.Quantity)
-        assert isinstance(out3_b, u.Quantity)
-        expected3d_h, expected3d_b = np.histogram(x.value, [1.25, 2.],
-                                                  weights=weights.value,
-                                                  density=True)
-        expected3d_h = expected3d_h * weights.unit / x.unit
-        expected3d_b = expected3d_b * x.unit
-        assert np.all(out3_h == expected3_h)
-        assert np.all(out3_b == expected3_b)
+        x = self.x
+        weights = self.weights
+        # Plain histogram.
+        self.check(np.histogram, x,
+                   value_args=(x.value,),
+                   expected_units=(None, x.unit))
+        # With bins.
+        self.check(np.histogram, x, [125, 200] * u.cm,
+                   value_args=(x.value, [1.25, 2.]),
+                   expected_units=(None, x.unit))
+        # With density.
+        self.check(np.histogram, x, [125, 200] * u.cm, density=True,
+                   value_args=(x.value, [1.25, 2.]),
+                   expected_units=(1/x.unit, x.unit))
+        # With weights.
+        self.check(np.histogram, x, [125, 200] * u.cm, weights=weights,
+                   value_args=(x.value, [1.25, 2.]),
+                   value_kwargs=dict(weights=weights.value),
+                   expected_units=(weights.unit, x.unit))
+        # With weights and density.
+        self.check(np.histogram, x, [125, 200] * u.cm,
+                   weights=weights, density=True,
+                   value_args=(x.value, [1.25, 2.]),
+                   value_kwargs=dict(weights=weights.value),
+                   expected_units=(weights.unit/x.unit, x.unit))
 
         with pytest.raises(u.UnitsError):
             np.histogram(x, [125, 200] * u.s)
@@ -1335,117 +1363,100 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
     def test_histogram2d(self):
-        x = np.array([1.1, 1.2, 1.3, 2.1, 5.1]) * u.m
-        y = np.array([1.2, 2.2, 2.4, 3.0, 4.0]) * u.cm
-        # Basic tests with X, Y
-        out_h, out_bx, out_by = np.histogram2d(x, y)
-        expected_h, expected_bx, expected_by = np.histogram2d(x.value, y.value)
-        expected_bx = expected_bx * x.unit
-        expected_by = expected_by * y.unit
-        assert_array_equal(out_h, expected_h)
-        assert_array_equal(out_bx, expected_bx)
-        assert_array_equal(out_by, expected_by)
+        x, y = self.x, self.y
+        weights = self.weights
+        # Basic tests with X, Y.
+        self.check(np.histogram2d, x, y,
+                   value_args=(x.value, y.value),
+                   expected_units=(None, x.unit, y.unit))
         # Check units with density.
-        outd_h, outd_bx, outd_by = np.histogram2d(x, y, density=True)
-        expectedd_h, expectedd_bx, expectedd_by = np.histogram2d(
-            x.value, y.value, density=True)
-        expectedd_h = expectedd_h / x.unit / y.unit
-        expectedd_bx = expectedd_bx * x.unit
-        expectedd_by = expectedd_by * y.unit
-        assert_array_equal(outd_h, expectedd_h)
-        assert_array_equal(outd_bx, expectedd_bx)
-        assert_array_equal(outd_by, expectedd_by)
-        # Check units with weights
-        weights = np.arange(1., 6.) * u.g
-        outw_h, outw_bx, outw_by = np.histogram2d(x, y, weights=weights)
-        expectedw_h, expectedw_bx, expectedw_by = np.histogram2d(
-            x.value, y.value, weights=weights.value)
-        expectedw_h = expectedw_h * weights.unit
-        expectedw_bx = expectedw_bx * x.unit
-        expectedw_by = expectedw_by * y.unit
-        assert_array_equal(outw_h, expectedw_h)
-        assert_array_equal(outw_bx, expectedw_bx)
-        assert_array_equal(outw_by, expectedw_by)
+        self.check(np.histogram2d, x, y, density=True,
+                   value_args=(x.value, y.value),
+                   expected_units=(1/(x.unit*y.unit), x.unit, y.unit))
+        # Check units with weights.
+        self.check(np.histogram2d, x, y, weights=weights,
+                   value_args=(x.value, y.value),
+                   value_kwargs=dict(weights=weights.value),
+                   expected_units=(weights.unit, x.unit, y.unit))
         # Check quantity bin sizes.
         inb_y = [0, 0.025, 1.] * u.m
-        outb_h, outb_bx, outb_by = np.histogram2d(x, y, [5, inb_y])
-        expectedb_h, expectedb_bx, expectedb_by = np.histogram2d(
-            x.value, y.value, [5, np.array([0, 2.5, 100.])])
-        expectedb_bx = expectedb_bx * x.unit
-        expectedb_by = expectedb_by * y.unit
-        assert_array_equal(outb_h, expectedb_h)
-        assert_array_equal(outb_bx, expectedb_bx)
-        assert_array_equal(outb_by, expectedb_by)
-        # Check we dispatch on bin sizes.
+        self.check(np.histogram2d, x, y, [5, inb_y],
+                   value_args=(x.value, y.value,
+                               [5, np.array([0, 2.5, 100.])]),
+                   expected_units=(None, x.unit, y.unit))
+        # Check we dispatch on bin sizes (and check kwarg as well).
         inb2_y = [0, 250, 10000.] * u.percent
-        outb2_h, outb2_bx, outb2_by = np.histogram2d(
-            x.value, y.value, [5, inb2_y])
-        expectedb2_h, expectedb2_bx, expectedb2_by = np.histogram2d(
-            x.value, y.value, [5, np.array([0, 2.5, 100.])])
-        expectedb2_bx = expectedb2_bx * u.dimensionless_unscaled
-        expectedb2_by = expectedb2_by * u.dimensionless_unscaled
-        assert_array_equal(outb2_h, expectedb2_h)
-        assert_array_equal(outb2_bx, expectedb2_bx)
-        assert_array_equal(outb2_by, expectedb2_by)
+        self.check(np.histogram2d, x.value, y.value, bins=[5, inb2_y],
+                   value_args=(x.value, y.value),
+                   value_kwargs=dict(bins=[5, np.array([0, 2.5, 100.])]),
+                   expected_units=(None, u.one, u.one))
+
+        with pytest.raises(u.UnitsError):
+            np.histogram2d(x, y, [125, 200] * u.s)
+
+        with pytest.raises(u.UnitsError):
+            np.histogram2d(x, y, ([125, 200], [125, 200]))
+
+        with pytest.raises(u.UnitsError):
+            np.histogram2d(x.value, y.value, [125, 200] * u.s)
 
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
     def test_histogramdd(self):
-        xyz = np.random.normal(size=(10, 3)) * u.m
-        outdd_h, outdd_b = np.histogramdd(xyz)
-        expecteddd_h, expecteddd_b = np.histogramdd(xyz.value)
-        expecteddd_b = [b * xyz.unit for b in expecteddd_b]
-        assert_array_equal(outdd_h, expecteddd_h)
-        for o, e in zip(outdd_b, expecteddd_b):
-            assert_array_equal(o, e)
-        # Bit tired, so just copying the tests from histogram2d above.
-        # Note that these test the histogramdd override, so useful.
+        # First replicates of the histogram2d tests, but using the
+        # histogramdd override.  Normally takes the sample as a tuple
+        # with a given number of dimensions, and returns the histogram
+        # as well as a tuple of bin edges.
+        sample = self.x, self.y
+        sample_units = self.x.unit, self.y.unit
+        sample_values = (self.x.value, self.y.value)
+        weights = self.weights
         # Basic tests with X, Y
-        x = np.array([1.1, 1.2, 1.3, 2.1, 5.1]) * u.m
-        y = np.array([1.2, 2.2, 2.4, 3.0, 4.0]) * u.cm
-        out_h, out_b = np.histogramdd((x, y))
-        expected_h, expected_b = np.histogramdd((x.value, y.value))
-        expected_b = [b * u for b, u in zip(expected_b, (x.unit, y.unit))]
-        assert_array_equal(out_h, expected_h)
-        for o, e in zip(out_b, expected_b):
-            assert_array_equal(o, e)
+        self.check(np.histogramdd, sample,
+                   value_args=(sample_values,),
+                   expected_units=(None, sample_units))
         # Check units with density.
-        outd_h, outd_b = np.histogramdd((x, y), density=True)
-        expectedd_h, expectedd_b = np.histogramdd(
-            (x.value, y.value), density=True)
-        expectedd_h = expectedd_h / x.unit / y.unit
-        expectedd_b = [b * u for b, u in zip(expectedd_b, (x.unit, y.unit))]
-        assert_array_equal(outd_h, expectedd_h)
-        for o, e in zip(outd_b, expectedd_b):
-            assert_array_equal(o, e)
-        # Check units with weights
-        weights = np.arange(1., 6.) * u.g
-        outw_h, outw_b = np.histogramdd((x, y), weights=weights)
-        expectedw_h, expectedw_b = np.histogramdd(
-            (x.value, y.value), weights=weights.value)
-        expectedw_h = expectedw_h * weights.unit
-        expectedw_b = [b * u for b, u in zip(expectedw_b, (x.unit, y.unit))]
-        assert_array_equal(outw_h, expectedw_h)
-        for o, e in zip(outw_b, expectedw_b):
-            assert_array_equal(o, e)
+        self.check(np.histogramdd, sample, density=True,
+                   value_args=(sample_values,),
+                   expected_units=(1/(self.x.unit*self.y.unit),
+                                   sample_units))
+        # Check units with weights.
+        self.check(np.histogramdd, sample, weights=weights,
+                   value_args=(sample_values,),
+                   value_kwargs=dict(weights=weights.value),
+                   expected_units=(weights.unit, sample_units))
         # Check quantity bin sizes.
         inb_y = [0, 0.025, 1.] * u.m
-        outb_h, outb_b = np.histogramdd((x, y), [5, inb_y])
-        expectedb_h, expectedb_b = np.histogramdd(
-            (x.value, y.value), [5, np.array([0, 2.5, 100.])])
-        expectedb_b = [b * u for b, u in zip(expectedb_b, (x.unit, y.unit))]
-        assert_array_equal(outb_h, expectedb_h)
-        for o, e in zip(outb_b, expectedb_b):
-            assert_array_equal(o, e)
-        # Check we dispatch on bin sizes.
+        self.check(np.histogramdd, sample, [5, inb_y],
+                   value_args=(sample_values, [5, np.array([0, 2.5, 100.])]),
+                   expected_units=(None, sample_units))
+        # Check we dispatch on bin sizes (and check kwarg as well).
         inb2_y = [0, 250, 10000.] * u.percent
-        outb2_h, outb2_b = np.histogramdd((x.value, y.value), [5, inb2_y])
-        expectedb2_h, expectedb2_b = np.histogramdd(
-            (x.value, y.value), [5, np.array([0, 2.5, 100.])])
-        expectedb2_b = [e * u.dimensionless_unscaled for e in expectedb2_b]
-        assert_array_equal(outb2_h, expectedb2_h)
-        for o, e in zip(outb2_b, expectedb2_b):
-            assert_array_equal(o, e)
+        self.check(np.histogramdd, sample_values, bins=[5, inb2_y],
+                   value_args=(sample_values,),
+                   value_kwargs=dict(bins=[5, np.array([0, 2.5, 100.])]),
+                   expected_units=(None, (u.one, u.one)))
+        # For quantities, it is probably not that likely one would pass
+        # in the sample as an array, but check that it works anyway.
+        # This also gives a 3-D check.
+        xyz = np.random.normal(size=(10, 3)) * u.m
+        self.check(np.histogramdd, xyz,
+                   value_args=(xyz.value,),
+                   expected_units=(None, (xyz.unit,)*3))
+        # Passing it in as a tuple should work just as well; note the
+        # *last* axis contains the sample dimension.
+        self.check(np.histogramdd, (xyz[:, 0], xyz[:, 1], xyz[:, 2]),
+                   value_args=(xyz.value,),
+                   expected_units=(None, (xyz.unit,)*3))
+
+        with pytest.raises(u.UnitsError):
+            np.histogramdd(sample, [125, 200] * u.s)
+
+        with pytest.raises(u.UnitsError):
+            np.histogramdd(sample, ([125, 200], [125, 200]))
+
+        with pytest.raises(u.UnitsError):
+            np.histogramdd(sample_values, [125, 200] * u.s)
 
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
