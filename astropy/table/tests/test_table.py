@@ -12,7 +12,7 @@ import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy.io import fits
-from astropy.table import Table
+from astropy.table import Table, QTable, MaskedColumn
 from astropy.tests.helper import (assert_follows_unicode_guidelines,
                                   ignore_warnings, catch_warnings)
 
@@ -1935,6 +1935,11 @@ class TestReplaceColumn(SetupData):
         t['a'][0] = 10
         assert t['a'][0] == a[0]
 
+    def test_replace_with_masked_col_with_units_in_qtable(self):
+        """This is a small regression from #8902"""
+        t = QTable([[1, 2], [3, 4]], names=['a', 'b'])
+        t['a'] = MaskedColumn([5, 6], unit='m')
+        assert isinstance(t['a'], u.Quantity)
 
 class Test__Astropy_Table__():
     """

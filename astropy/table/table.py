@@ -932,6 +932,8 @@ class Table:
 
         col = col_cls(name=name, data=data, dtype=dtype,
                       copy=copy, copy_indices=self._init_indices)
+        col = self._convert_col_for_table(col)
+
         return col
 
     def _init_from_ndarray(self, data, names, dtype, n_cols, copy):
@@ -1711,7 +1713,8 @@ class Table:
         except ValueError:
             raise ValueError("Column {0} does not exist".format(name))
 
-    def add_column(self, col, index=None, name=None, rename_duplicate=False, copy=True):
+    def add_column(self, col, index=None, name=None, rename_duplicate=False, copy=True,
+                   default_name=None):
         """
         Add a new Column object ``col`` to the table.  If ``index``
         is supplied then insert column before ``index`` position
@@ -1795,7 +1798,8 @@ class Table:
 
         To add several columns use add_columns.
         """
-        default_name = 'col{}'.format(len(self.columns))
+        if default_name is None:
+            default_name = 'col{}'.format(len(self.columns))
 
         # Convert col data to acceptable object for insertion into self.columns
         col = self._convert_data_to_col(col, name=name, copy=copy,
@@ -1917,55 +1921,24 @@ class Table:
         """
         if indexes is None:
             indexes = [len(self.columns)] * len(cols)
-        elif len(indexes) != len(cols):
-            raise ValueError('Number of indexes must match number of cols')
-
-        if copy:
-            cols = [col_copy(col) for col in cols]
-
-        if len(self.columns) == 0:
-            # No existing table data, init from cols
-            newcols = cols
         else:
-            newcols = list(self.columns.values())
-            new_indexes = list(range(len(newcols) + 1))
-            for col, index in zip(cols, indexes):
-                i = new_indexes.index(index)
-                new_indexes.insert(i, None)
-                newcols.insert(i, col)
+            if len(indexes) != len(cols):
+                raise ValueError('Number of indexes must match number of cols')
+        idxs_sort = np.argsort(indexes)
 
         if names is None:
             names = (None,) * len(cols)
-        elif len(names) != len(cols):
+        else:
+            if len(names) != len(cols):
                 raise ValueError('Number of names must match number of cols')
 
-        for i, (col, name) in enumerate(zip(cols, names)):
-            if name is None:
-                if col.info.name is not None:
-                    continue
-                name = 'col{}'.format(i + len(self.columns))
-            if col.info.parent_table is not None:
-                col = col_copy(col)
-            col.info.name = name
+        default_names = ['col{}'.format(ii + len(self.columns))
+                         for ii in range(len(cols))]
 
-        if rename_duplicate:
-            existing_names = set(self.colnames)
-            for col in cols:
-                i = 1
-                orig_name = col.info.name
-                if col.info.name in existing_names:
-                    # If the column belongs to another table then copy it
-                    # before renaming
-                    while col.info.name in existing_names:
-                        # Iterate until a unique name is found
-                        if col.info.parent_table is not None:
-                            col = col_copy(col)
-                        new_name = '{0}_{1}'.format(orig_name, i)
-                        col.info.name = new_name
-                        i += 1
-                    existing_names.add(new_name)
-
-        self._init_from_cols(newcols)
+        for ii in reversed(idxs_sort):
+            self.add_column(cols[ii], index=indexes[ii], name=names[ii],
+                            default_name=default_names[ii],
+                            rename_duplicate=rename_duplicate, copy=copy)
 
     def _replace_column_warnings(self, name, col):
         """
