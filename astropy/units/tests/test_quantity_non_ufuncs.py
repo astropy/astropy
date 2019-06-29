@@ -712,7 +712,8 @@ class TestUfuncLike(InvariantUnitTestSetup):
     def test_unwrap(self):
         q = [0., 3690., -270., 690.] * u.deg
         out = np.unwrap(q)
-        expected = np.rad2deg(np.unwrap(q.to_value(u.rad))) * u.deg
+        expected = (np.unwrap(q.to_value(u.rad)) * u.rad).to(q.unit)
+        assert out.unit == expected.unit
         assert np.allclose(out, expected, atol=1*u.urad, rtol=0)
         with pytest.raises(u.UnitsError):
             np.unwrap([1., 2.]*u.m)
@@ -1195,15 +1196,28 @@ class TestInterpolationFunctions(metaclass=CoverageMeta):
         assert type(out) is np.ndarray
         assert np.all(out == expected.value)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_piecewise(self):
-        # TODO: this needs a proper own implementation to take care of the
-        # unit of the output of possible functions.
         x = np.linspace(-2.5, 2.5, 6) * u.m
         out = np.piecewise(x, [x < 0, x >= 0], [-1*u.s, 1*u.day])
         expected = np.piecewise(x.value, [x.value < 0, x.value >= 0],
                                 [-1, 24*3600]) * u.s
+        assert out.unit == expected.unit
         assert np.all(out == expected)
+
+        out2 = np.piecewise(x, [x < 1 * u.m, x >= 0],
+                            [-1*u.s, 1*u.day, lambda x: 1*u.hour])
+        expected2 = np.piecewise(x.value, [x.value < 1, x.value >= 0],
+                                 [-1, 24*3600, 3600]) * u.s
+        assert out2.unit == expected2.unit
+        assert np.all(out2 == expected2)
+
+        with pytest.raises(TypeError):  # no Quantity in condlist.
+            np.piecewise(x, [x], [0.])
+
+        with pytest.raises(TypeError):  # no Quantity in condlist.
+            np.piecewise(x.value, [x], [0.])
 
 
 class TestHistogramFunctions(metaclass=CoverageMeta):
@@ -1319,28 +1333,28 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         expected_h, expected_bx, expected_by = np.histogram2d(x.value, y.value)
         expected_bx = expected_bx * x.unit
         expected_by = expected_by * y.unit
-        assert np.all(out_h == expected_h)
-        assert np.all(out_bx == expected_bx)
-        assert np.all(out_by == expected_by)
+        assert_array_equal(out_h, expected_h)
+        assert_array_equal(out_bx, expected_bx)
+        assert_array_equal(out_by, expected_by)
         outd_h, outd_bx, outd_by = np.histogram2d(x, y, density=True)
         expectedd_h, expectedd_bx, expectedd_by = np.histogram2d(
             x.value, y.value, density=True)
         expectedd_h = expectedd_h / x.unit / y.unit
         expectedd_bx = expectedd_bx * x.unit
         expectedd_by = expectedd_by * y.unit
-        assert np.all(outd_h == expectedd_h)
-        assert np.all(outd_bx == expectedd_bx)
-        assert np.all(outd_by == expectedd_by)
+        assert_array_equal(outd_h, expectedd_h)
+        assert_array_equal(outd_bx, expectedd_bx)
+        assert_array_equal(outd_by, expectedd_by)
         weights = np.arange(1., 6.) * u.g
         outw_h, outw_bx, outw_by = np.histogram2d(x, y, weights=weights)
-        expected_h, expected_bx, expected_by = np.histogram2d(
+        expectedw_h, expectedw_bx, expectedw_by = np.histogram2d(
             x.value, y.value, weights=weights.value)
-        expected_h = expected_h * weights.unit
-        expected_bx = expected_bx * x.unit
-        expected_by = expected_by * y.unit
-        assert np.all(out_h == expected_h)
-        assert np.all(out_bx == expected_bx)
-        assert np.all(out_by == expected_by)
+        expectedw_h = expectedw_h * weights.unit
+        expectedw_bx = expectedw_bx * x.unit
+        expectedw_by = expectedw_by * y.unit
+        assert_array_equal(outw_h, expectedw_h)
+        assert_array_equal(outw_bx, expectedw_bx)
+        assert_array_equal(outw_by, expectedw_by)
 
     @pytest.mark.xfail
     def test_histogramdd(self):

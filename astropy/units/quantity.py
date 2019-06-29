@@ -1493,7 +1493,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         #    after converting quantities to arrays with suitable units,
         #    and possibly setting units on the result.
         # 3. DISPATCHED_FUNCTIONS (dict), if the function makes sense but
-        #    requires a Quantity-specific implementation
+        #    requires a Quantity-specific implementation.
         # 4. UNSUPPORTED_FUNCTIONS (set), if the function does not make sense.
         # For now, since we may not yet have complete coverage, if a
         # function is in none of the above, we simply call the numpy
@@ -1502,24 +1502,23 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             return super().__array_function__(function, types, args, kwargs)
 
         elif function in FUNCTION_HELPERS:
+            function_helper = FUNCTION_HELPERS[function]
             try:
-                helper_info = FUNCTION_HELPERS[function](*args, **kwargs)
+                args, kwargs, unit, out = function_helper(*args, **kwargs)
             except NotImplementedError:
-                # We return NotImplemented, which is proper, even though
-                # if an ndarray is also present, it gets a chance as well
-                # and may just coerce us to object.
-                return NotImplemented
-
-            args, kwargs, unit, out = helper_info
+                return self._not_implemented_or_raise(function, types)
 
             result = super().__array_function__(function, types, args, kwargs)
-            if unit is None or result is None or result is NotImplemented:
-                return result
-
-            return self._result_as_quantity(result, unit, out=out)
+            # Fall through to return section
 
         elif function in DISPATCHED_FUNCTIONS:
-            return DISPATCHED_FUNCTIONS[function](*args, **kwargs)
+            dispatched_function = DISPATCHED_FUNCTIONS[function]
+            try:
+                result, unit, out = dispatched_function(*args, **kwargs)
+            except NotImplementedError:
+                return self._not_implemented_or_raise(function, types)
+
+            # Fall through to return section
 
         elif function in UNSUPPORTED_FUNCTIONS:
             return NotImplemented
@@ -1532,6 +1531,30 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                           .format(function.__name__), AstropyWarning)
 
             return super().__array_function__(function, types, args, kwargs)
+
+        # If unit is None, a plain array is expected (e.g., boolean), which
+        # means we're done.
+        # We're also done if the result was NotImplemented, which can happen
+        # if other inputs/outputs override __array_function__;
+        # hopefully, they can then deal with us.
+        if unit is None or result is NotImplemented:
+            return result
+
+        return self._result_as_quantity(result, unit, out=out)
+
+    def _not_implemented_or_raise(self, function, types):
+        # Our function helper or dispatcher found that the function does not
+        # work with Quantity.  In principle, there may be another class that
+        # knows what to do with us, for which we should return NotImplemented.
+        # But if there is ndarray (or a non-Quantity subclass of it) around,
+        # it quite likely coerces, so we should just break.
+        if any(issubclass(t, np.ndarray) and not issubclass(t, Quantity)
+               for t in types):
+            raise TypeError("the Quantity implementation cannot handle {} "
+                            "with the given arguments."
+                            .format(function)) from None
+        else:
+            return NotImplemented
 
     # Calculation -- override ndarray methods to take into account units.
     # We use the corresponding numpy functions to evaluate the results, since
