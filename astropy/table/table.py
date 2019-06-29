@@ -1733,6 +1733,9 @@ class Table:
             Uniquify column name if it already exist. Default is False.
         copy : bool
             Make a copy of the new column. Default is True.
+        default_name : str or `None`
+            Name to use if both ``name`` and ``col.info.name`` are not available.
+            Defaults to ``col{number_of_columns}``.
 
         Examples
         --------
