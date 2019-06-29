@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-# Licensed under a 3-clause BSD style license - see LICENSE.rst
+# Licensed under a 3-clause BSD style license. See LICENSE.rst except
+# for parts explicitly labelled as being (largely) copies of numpy
+# implementations; for those, see licenses/NUMPY_LICENSE.rst.
 """Helpers for overriding numpy functions.
 
 We override numpy functions in `~astropy.units.Quantity.__array_function__`.
