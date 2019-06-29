@@ -62,10 +62,19 @@ astropy.table
 ^^^^^^^^^^^^^
 
 - Improved the implementation of ``Table.replace_column()`` to provide
-  a speed-up of 5-10 times for wide tables. [#8902]
+  a speed-up of 5 to 10 times for wide tables.  The method can now accept
+  any input which convertible to a column of the correct length, not just
+  ``Column`` subclasses.[#8902]
 
-- Improved the implementation of ``Table.add_column() to provide a speed-up
-  of XXX when adding a column to wide tables.
+- Improved the implementation of ``Table.add_column()`` to provide a speed-up
+  of 2 to 10 (or more) when adding a column to tables, with increasing benefit
+  as the number of columns increases.  The method can now accept any input
+  which is convertible to a column of the correct length, not just ``Column``
+  subclasses. [#8933]
+
+- Changed the implementation of ``Table.add_columns()`` to use the new
+  ``Table.add_column()`` method.  In most cases the performance is similar
+  or slightly faster to the previous implemenation. [#8933]
 
 astropy.tests
 ^^^^^^^^^^^^^
