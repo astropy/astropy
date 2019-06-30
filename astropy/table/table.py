@@ -1764,6 +1764,7 @@ class Table:
             col = np.asarray(col)
 
         # Make col data shape correct for scalars
+        # if isinstance(col, BaseColumn) or self._is_mixin_for_table(col):
         if (len(self) > 0 and (getattr(col, 'isscalar', False) or
                               getattr(col, 'shape', None) == () or
                               len(col) == 1)):
