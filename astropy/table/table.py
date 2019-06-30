@@ -1783,7 +1783,7 @@ class Table:
 
         # Ensure that new column is the right length
         if len(self.columns) > 0 and len(col) != len(self):
-            raise ValueError('length of new column must match table length')
+            raise ValueError('Inconsistent data column lengths')
 
         if rename_duplicate:
             orig_name = name
