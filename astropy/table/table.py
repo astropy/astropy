@@ -1670,15 +1670,24 @@ class Table:
     def add_column(self, col, index=None, name=None, rename_duplicate=False, copy=True,
                    default_name=None):
         """
-        Add a new Column object ``col`` to the table.  If ``index``
+        Add a new column to the table using ``col`` as input.  If ``index``
         is supplied then insert column before ``index`` position
         in the list of columns, otherwise append column to the end
         of the list.
 
+        The ``col`` input can be any data object which is acceptable as a
+        `~astropy.table.Table` column object or can be converted.  This includes
+        mixin columns and scalar or length=1 objects which get broadcast to match
+        the table length.
+
+        To add several columns at once use ``add_columns()`` or simply call
+        ``add_column()`` for each one.  There is very little performance difference
+        in the two approaches.
+
         Parameters
         ----------
-        col : Column
-            Column object to add.
+        col : object
+            Data object for the new column
         index : int or `None`
             Insert column before this position or at end (default).
         name : str
@@ -1693,67 +1702,49 @@ class Table:
 
         Examples
         --------
-        Create a table with two columns 'a' and 'b'::
+        Create a table with two columns 'a' and 'b', then create a third column 'c'
+        and append it to the end of the table::
 
-            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
-            >>> print(t)
-             a   b
-            --- ---
-              1 0.1
-              2 0.2
-              3 0.3
-
-        Create a third column 'c' and append it to the end of the table::
-
-            >>> col_c = Column(name='c', data=['x', 'y', 'z'])
+            >>> t = Table([[1, 2], [0.1, 0.2]], names=('a', 'b'))
+            >>> col_c = Column(name='c', data=['x', 'y'])
             >>> t.add_column(col_c)
             >>> print(t)
              a   b   c
             --- --- ---
               1 0.1   x
               2 0.2   y
-              3 0.3   z
 
         Add column 'd' at position 1. Note that the column is inserted
         before the given index::
 
-            >>> col_d = Column(name='d', data=['a', 'b', 'c'])
-            >>> t.add_column(col_d, 1)
+            >>> t.add_column(['a', 'b'], name='d', index=1)
             >>> print(t)
              a   d   b   c
             --- --- --- ---
               1   a 0.1   x
               2   b 0.2   y
-              3   c 0.3   z
 
         Add second column named 'b' with rename_duplicate::
 
-            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
-            >>> col_b = Column(name='b', data=[1.1, 1.2, 1.3])
-            >>> t.add_column(col_b, rename_duplicate=True)
+            >>> t = Table([[1, 2], [0.1, 0.2]], names=('a', 'b'))
+            >>> t.add_column(1.1, name='b', rename_duplicate=True)
             >>> print(t)
              a   b  b_1
             --- --- ---
               1 0.1 1.1
-              2 0.2 1.2
-              3 0.3 1.3
+              2 0.2 1.1
 
         Add an unnamed column or mixin object in the table using a default name
         or by specifying an explicit name with ``name``. Name can also be overridden::
 
             >>> t = Table([[1, 2], [0.1, 0.2]], names=('a', 'b'))
-            >>> col_c = Column(data=['x', 'y'])
-            >>> t.add_column(col_c)
-            >>> t.add_column(col_c, name='c')
-            >>> col_b = Column(name='b', data=[1.1, 1.2])
-            >>> t.add_column(col_b, name='d')
+            >>> t.add_column(['a', 'b'])
+            >>> t.add_column(col_c, name='d')
             >>> print(t)
-             a   b  col2  c   d
-            --- --- ---- --- ---
-              1 0.1    x   x 1.1
-              2 0.2    y   y 1.2
-
-        To add several columns use add_columns.
+             a   b  col2  d
+            --- --- ---- ---
+              1 0.1    a   x
+              2 0.2    b   y
         """
         if default_name is None:
             default_name = 'col{}'.format(len(self.columns))
@@ -1810,15 +1801,24 @@ class Table:
 
     def add_columns(self, cols, indexes=None, names=None, copy=True, rename_duplicate=False):
         """
-        Add a list of new Column objects ``cols`` to the table.  If a
+        Add a list of new columns the table using ``cols`` data objects.  If a
         corresponding list of ``indexes`` is supplied then insert column
         before each ``index`` position in the *original* list of columns,
         otherwise append columns to the end of the list.
 
+        The ``cols`` input can include any data objects which are acceptable as
+        `~astropy.table.Table` column objects or can be converted.  This includes
+        mixin columns and scalar or length=1 objects which get broadcast to match
+        the table length.
+
+        From a performance perspective there is little difference between calling
+        this method once or looping over the new columns and calling ``add_column()``
+        for each column.
+
         Parameters
         ----------
-        cols : list of Columns
-            Column objects to add.
+        cols : list of objects
+            List of data objects for the new columns
         indexes : list of ints or `None`
             Insert column before this position or at end (default).
         names : list of str
@@ -1832,68 +1832,54 @@ class Table:
 
         Examples
         --------
-        Create a table with two columns 'a' and 'b'::
+        Create a table with two columns 'a' and 'b', then create columns 'c' and 'd'
+        and append them to the end of the table::
 
-            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
-            >>> print(t)
-             a   b
-            --- ---
-              1 0.1
-              2 0.2
-              3 0.3
-
-        Create column 'c' and 'd' and append them to the end of the table::
-
-            >>> col_c = Column(name='c', data=['x', 'y', 'z'])
-            >>> col_d = Column(name='d', data=['u', 'v', 'w'])
+            >>> t = Table([[1, 2], [0.1, 0.2]], names=('a', 'b'))
+            >>> col_c = Column(name='c', data=['x', 'y'])
+            >>> col_d = Column(name='d', data=['u', 'v'])
             >>> t.add_columns([col_c, col_d])
             >>> print(t)
              a   b   c   d
             --- --- --- ---
               1 0.1   x   u
               2 0.2   y   v
-              3 0.3   z   w
 
         Add column 'c' at position 0 and column 'd' at position 1. Note that
         the columns are inserted before the given position::
 
-            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
-            >>> col_c = Column(name='c', data=['x', 'y', 'z'])
-            >>> col_d = Column(name='d', data=['u', 'v', 'w'])
-            >>> t.add_columns([col_c, col_d], [0, 1])
+            >>> t = Table([[1, 2], [0.1, 0.2]], names=('a', 'b'))
+            >>> t.add_columns([['x', 'y'], ['u', 'v']], names=['c', 'd'],
+            ...               indexes=[0, 1])
             >>> print(t)
              c   a   d   b
             --- --- --- ---
               x   1   u 0.1
               y   2   v 0.2
-              z   3   w 0.3
 
         Add second column 'b' and column 'c' with ``rename_duplicate``::
 
-            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
-            >>> col_b = Column(name='b', data=[1.1, 1.2, 1.3])
-            >>> col_c = Column(name='c', data=['x', 'y', 'z'])
-            >>> t.add_columns([col_b, col_c], rename_duplicate=True)
+            >>> t = Table([[1, 2], [0.1, 0.2]], names=('a', 'b'))
+            >>> t.add_columns([[1.1, 1.2], ['x', 'y']], names=('b', 'c'),
+            ...               rename_duplicate=True)
             >>> print(t)
              a   b  b_1  c
             --- --- --- ---
               1 0.1 1.1  x
               2 0.2 1.2  y
-              3 0.3 1.3  z
 
         Add unnamed columns or mixin objects in the table using default names
         or by specifying explicit names with ``names``. Names can also be overridden::
 
             >>> t = Table()
-            >>> col_a = Column(data=['x', 'y'])
             >>> col_b = Column(name='b', data=['u', 'v'])
-            >>> t.add_columns([col_a, col_b])
-            >>> t.add_columns([col_a, col_b], names=['c', 'd'])
+            >>> t.add_columns([[1, 2], col_b])
+            >>> t.add_columns([[3, 4], col_b], names=['c', 'd'])
             >>> print(t)
             col0  b   c   d
             ---- --- --- ---
-               x   u   x   u
-               y   v   y   v
+               1   u   3   u
+               2   v   4   v
         """
         if indexes is None:
             indexes = [len(self.columns)] * len(cols)
