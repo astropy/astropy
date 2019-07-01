@@ -1941,6 +1941,7 @@ class TestReplaceColumn(SetupData):
         t['a'] = MaskedColumn([5, 6], unit='m')
         assert isinstance(t['a'], u.Quantity)
 
+
 class Test__Astropy_Table__():
     """
     Test initializing a Table subclass from a table-like object that
