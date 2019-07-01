@@ -1762,8 +1762,7 @@ class Table:
 
         # Make col data shape correct for scalars.  The second test is to allow
         # broadcasting an N-d element to a column, e.g. t['new'] = [[1, 2]].
-        if ((len(col.shape) == 0 or (len(col.shape) > 1 and col.shape[0] == 1))
-                and len(self) > 0):
+        if (col.shape == () or col.shape[0] == 1) and len(self) > 0:
             new_shape = (len(self),) + getattr(col, 'shape', ())[1:]
             if isinstance(col, np.ndarray):
                 col = np.broadcast_to(col, shape=new_shape,

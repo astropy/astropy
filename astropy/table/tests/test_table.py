@@ -2337,13 +2337,11 @@ def test_tolist():
 
 
 def test_broadcasting_8933():
-    """Small API change re: broadcasting in #8933"""
+    """Explicitly check re-work of code related to broadcasting in #8933"""
     t = table.Table([[1, 2]])  # Length=2 table
     t['a'] = [[3, 4]]  # Can broadcast if ndim > 1 and shape[0] == 1
     t['b'] = 5
+    t['c'] = [1]  # Treat as broadcastable scalar, not length=1 array (which would fail)
     assert np.all(t['a'] == [[3, 4], [3, 4]])
     assert np.all(t['b'] == [5, 5])
-
-    with pytest.raises(ValueError) as exc:
-        t['c'] = [1]  # This broadcasted to [1, 1] before #8933, but should not have.
-    assert 'Inconsistent data column lengths' in str(exc)
+    assert np.all(t['c'] == [1, 1])

@@ -186,9 +186,7 @@ astropy.table
 - Changed implementation of ``Table.add_column()`` and ``Table.add_columns()``
   methods.  Now it is possible add any object(s) which can be converted or broadcasted
   to a valid column for the table.  ``Table.__setitem__`` now just calls
-  ``add_column``.  One change is that a value with ``shape = (1,)`` is no longer
-  broadcasted to the column shape. E.g. ``t['a'] = [1]`` used to be the same as
-  ``t['a'] = [1, 1, 1]`` for a length=3 table, but now raises an exception.
+  ``add_column``.
 
 astropy.tests
 ^^^^^^^^^^^^^
