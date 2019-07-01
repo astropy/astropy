@@ -2333,3 +2333,16 @@ def test_tolist():
     assert t['c'].tolist() == [['foo', 'bar'], ['hello', 'world']]
     assert isinstance(t['a'].tolist()[0][0], int)
     assert isinstance(t['c'].tolist()[0][0], str)
+
+
+def test_broadcasting_8933():
+    """Small API change re: broadcasting in #8933"""
+    t = table.Table([[1, 2]])  # Length=2 table
+    t['a'] = [[3, 4]]  # Can broadcast if ndim > 1 and shape[0] == 1
+    t['b'] = 5
+    assert np.all(t['a'] == [[3, 4], [3, 4]])
+    assert np.all(t['b'] == [5, 5])
+
+    with pytest.raises(ValueError) as exc:
+        t['c'] = [1]  # This broadcasted to [1, 1] before #8933, but should not have.
+    assert 'Inconsistent data column lengths' in str(exc)
