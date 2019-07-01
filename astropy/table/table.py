@@ -1763,8 +1763,13 @@ class Table:
         if not hasattr(col, 'dtype') and not self._is_mixin_for_table(col):
             col = np.asarray(col)
 
+        # Convert col data to acceptable object for insertion into self.columns.
+        # Note that along with the lines above and below, this allows broadcasting
+        # of scalars to the correct shape for adding to table.
+        col = self._convert_data_to_col(col, name=name, copy=copy,
+                                        default_name=default_name)
+
         # Make col data shape correct for scalars
-        # if isinstance(col, BaseColumn) or self._is_mixin_for_table(col):
         if (len(self) > 0 and (getattr(col, 'isscalar', False) or
                               getattr(col, 'shape', None) == () or
                               len(col) == 1)):
@@ -1775,10 +1780,6 @@ class Table:
             elif isinstance(col, ShapedLikeNDArray):
                 col = col._apply(np.broadcast_to, shape=new_shape,
                                    subok=True)
-
-        # Convert col data to acceptable object for insertion into self.columns
-        col = self._convert_data_to_col(col, name=name, copy=copy,
-                                        default_name=default_name)
 
         name = col.info.name
 
