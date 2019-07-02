@@ -250,9 +250,6 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
-- Ensure unit information is properly applied to models evaluated with a
-  bounding box. [#8799]
-
 astropy.nddata
 ^^^^^^^^^^^^^^
 
@@ -347,6 +344,9 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
+
+- Ensure unit information is properly applied to models evaluated with a
+  bounding box. [#8799]
 
 astropy.nddata
 ^^^^^^^^^^^^^^

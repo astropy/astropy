@@ -9,6 +9,7 @@ from astropy.modeling.core import Model, custom_model
 from astropy.modeling.parameters import Parameter
 from astropy.modeling import models
 import astropy.units as u
+from astropy.tests.helper import assert_quantity_allclose
 
 try:
     import scipy  # pylint: disable=W0611
@@ -398,3 +399,5 @@ def test_units_with_bounding_box():
 
     assert isinstance(t(10), u.Quantity)
     assert isinstance(t(10, with_bounding_box=True), u.Quantity)
+
+    assert_quantity_allclose(t(10), t(10, with_bounding_box=True))

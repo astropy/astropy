@@ -823,7 +823,7 @@ class Model(metaclass=_ModelMeta):
                 # If the valid results is a quantity, ensure unit information
                 #  is retained.
                 if valid_result_unit is not None:
-                    outputs = Quantity(outputs, valid_result_unit)
+                    outputs = Quantity(outputs, valid_result_unit, copy=False)
         else:
             outputs = self.evaluate(*chain(inputs, parameters))
         if self.n_outputs == 1:
