@@ -252,17 +252,17 @@ def test_row_tuple_column_slice():
     # Bad column name
     with pytest.raises(KeyError) as err:
         t[1]['a', 'not_there']
-    assert "KeyError: 'not_there'" in str(err)
+    assert "'not_there'" in str(err.value)
 
     # Too many values
     with pytest.raises(ValueError) as err:
         t[1]['a', 'b'] = 1 * u.m, 2, 3
-    assert 'right hand side must be a sequence' in str(err)
+    assert 'right hand side must be a sequence' in str(err.value)
 
     # Something without a length
     with pytest.raises(ValueError) as err:
         t[1]['a', 'b'] = 1
-    assert 'right hand side must be a sequence' in str(err)
+    assert 'right hand side must be a sequence' in str(err.value)
 
 
 def test_row_tuple_column_slice_transaction():
@@ -277,7 +277,7 @@ def test_row_tuple_column_slice_transaction():
     # First one succeeds but second fails.
     with pytest.raises(ValueError) as err:
         t[1]['a', 'b'] = (-1, -1 * u.s)  # Bad unit
-    assert "'s' (time) and 'm' (length) are not convertible" in str(err)
+    assert "'s' (time) and 'm' (length) are not convertible" in str(err.value)
     assert t[1] == tc[1]
 
 def test_uint_indexing():

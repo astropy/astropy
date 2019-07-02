@@ -59,12 +59,12 @@ def test_mask_not_writeable():
     t = Time('2000:001')
     with pytest.raises(AttributeError) as err:
         t.mask = True
-    assert "can't set attribute" in str(err)
+    assert "can't set attribute" in str(err.value)
 
     t = Time(['2000:001'])
     with pytest.raises(ValueError) as err:
         t.mask[0] = True
-    assert "assignment destination is read-only" in str(err)
+    assert "assignment destination is read-only" in str(err.value)
 
 
 def test_str():

@@ -63,7 +63,7 @@ def test_frame_attribute_descriptor():
     # Make sure setting values via public attribute fails
     with pytest.raises(AttributeError) as err:
         t.attr_none = 5
-    assert 'Cannot set frame attribute' in str(err)
+    assert 'Cannot set frame attribute' in str(err.value)
 
 
 def test_frame_subclass_attribute_descriptor():
@@ -171,7 +171,7 @@ def test_no_data_nonscalar_frames():
     with pytest.raises(ValueError) as exc:
         AltAz(obstime=Time('2012-01-01') + np.arange(10.) * u.day,
               temperature=np.ones((3,)) * u.deg_C)
-    assert 'inconsistent shapes' in str(exc)
+    assert 'inconsistent shapes' in str(exc.value)
 
 
 def test_frame_repr():
@@ -517,18 +517,18 @@ def test_time_inputs():
 
     with pytest.raises(ValueError) as err:
         c = FK4(1 * u.deg, 2 * u.deg, equinox=1.5)
-    assert 'Invalid time input' in str(err)
+    assert 'Invalid time input' in str(err.value)
 
     with pytest.raises(ValueError) as err:
         c = FK4(1 * u.deg, 2 * u.deg, obstime='hello')
-    assert 'Invalid time input' in str(err)
+    assert 'Invalid time input' in str(err.value)
 
     # A vector time should work if the shapes match, but we don't automatically
     # broadcast the basic data (just like time).
     FK4([1, 2] * u.deg, [2, 3] * u.deg, obstime=['J2000', 'J2001'])
     with pytest.raises(ValueError) as err:
         FK4(1 * u.deg, 2 * u.deg, obstime=['J2000', 'J2001'])
-    assert 'shape' in str(err)
+    assert 'shape' in str(err.value)
 
 
 def test_is_frame_attr_default():
@@ -598,7 +598,7 @@ def test_representation():
     for attr in ('ra', 'dec', 'distance'):
         with pytest.raises(AttributeError) as err:
             getattr(icrs, attr)
-        assert 'object has no attribute' in str(err)
+        assert 'object has no attribute' in str(err.value)
 
     # Testing when `_representation` set to `CylindricalRepresentation`.
     icrs.representation_type = r.CylindricalRepresentation
@@ -619,7 +619,7 @@ def test_representation():
     for attr in ('x', 'y', 'z'):
         with pytest.raises(AttributeError) as err:
             getattr(icrs, attr)
-        assert 'object has no attribute' in str(err)
+        assert 'object has no attribute' in str(err.value)
 
     # Testing setter input using text argument for cylindrical.
     icrs.representation_type = 'cylindrical'
@@ -629,11 +629,11 @@ def test_representation():
 
     with pytest.raises(ValueError) as err:
         icrs.representation_type = 'WRONG'
-    assert 'but must be a BaseRepresentation class' in str(err)
+    assert 'but must be a BaseRepresentation class' in str(err.value)
 
     with pytest.raises(ValueError) as err:
         icrs.representation_type = ICRS
-    assert 'but must be a BaseRepresentation class' in str(err)
+    assert 'but must be a BaseRepresentation class' in str(err.value)
 
 
 def test_represent_as():
@@ -704,11 +704,11 @@ def test_dynamic_attrs():
 
     with pytest.raises(AttributeError) as err:
         c.blahblah
-    assert "object has no attribute 'blahblah'" in str(err)
+    assert "object has no attribute 'blahblah'" in str(err.value)
 
     with pytest.raises(AttributeError) as err:
         c.ra = 1
-    assert "Cannot set any frame attribute" in str(err)
+    assert "Cannot set any frame attribute" in str(err.value)
 
     c.blahblah = 1
     assert c.blahblah == 1
@@ -1011,12 +1011,12 @@ def test_missing_component_error_names():
 
     with pytest.raises(TypeError) as e:
         ICRS(ra=150 * u.deg)
-    assert "missing 1 required positional argument: 'dec'" in str(e)
+    assert "missing 1 required positional argument: 'dec'" in str(e.value)
 
     with pytest.raises(TypeError) as e:
         ICRS(ra=150*u.deg, dec=-11*u.deg,
              pm_ra=100*u.mas/u.yr, pm_dec=10*u.mas/u.yr)
-    assert "pm_ra_cosdec" in str(e)
+    assert "pm_ra_cosdec" in str(e.value)
 
 
 def test_non_spherical_representation_unit_creation(unitphysics):

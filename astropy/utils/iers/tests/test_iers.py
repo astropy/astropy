@@ -267,7 +267,7 @@ class TestIERS_Auto():
             with catch_warnings(iers.IERSStaleWarning) as warns:
                 with pytest.raises(ValueError) as err:
                     dat.ut1_utc(Time(60000, format='mjd').jd)
-            assert 'interpolating from IERS_Auto using predictive values' in str(err)
+            assert 'interpolating from IERS_Auto using predictive values' in str(err.value)
             assert len(warns) == 1
             assert 'IERS_Auto predictive values are older' in str(warns[0].message)
 

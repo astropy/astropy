@@ -399,7 +399,7 @@ def check_write_table(test_def, table, fast_writer):
     try:
         ascii.write(table, out, fast_writer=fast_writer, **test_def['kwargs'])
     except ValueError as e:  # if format doesn't have a fast writer, ignore
-        if 'not in the list of formats with fast writers' not in str(e):
+        if 'not in the list of formats with fast writers' not in str(e.value):
             raise e
         return
     print('Expected:\n{}'.format(test_def['out']))
@@ -421,7 +421,7 @@ def check_write_table_via_table(test_def, table, fast_writer):
     try:
         table.write(out, format=format, fast_writer=fast_writer, **test_def['kwargs'])
     except ValueError as e:  # if format doesn't have a fast writer, ignore
-        if 'not in the list of formats with fast writers' not in str(e):
+        if 'not in the list of formats with fast writers' not in str(e.value):
             raise e
         return
     print('Expected:\n{}'.format(test_def['out']))

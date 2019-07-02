@@ -543,7 +543,7 @@ class TestCartesianRepresentation:
         with pytest.raises(ValueError) as exc:
             CartesianRepresentation(x=[1, 2, 3] * u.pc, y=[2, 3, 4] * u.pc,
                                     z=[3, 4, 5] * u.pc, xyz_axis=0)
-        assert 'xyz_axis should only be set' in str(exc)
+        assert 'xyz_axis should only be set' in str(exc.value)
 
     def test_init_one_array_yz_fail(self):
         with pytest.raises(ValueError) as exc:

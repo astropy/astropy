@@ -884,7 +884,7 @@ def test_wcs_sub_error_message():
     w = _wcs.Wcsprm()
     with pytest.raises(TypeError) as e:
         w.sub('latitude')
-    assert str(e).endswith("axes must None, a sequence or an integer")
+    assert e.match("axes must None, a sequence or an integer$")
 
 
 def test_wcs_sub():
