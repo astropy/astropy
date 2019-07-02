@@ -1795,7 +1795,7 @@ class TestPandas:
 
         with pytest.raises(ValueError) as err:
             t.to_pandas(index='not a column')
-        assert 'index must be None, False' in str(err)
+        assert 'index must be None, False' in str(err.value)
 
     def test_mixin_pandas_masked(self):
         tm = Time([1, 2, 3], format='cxcsec')
@@ -1985,7 +1985,7 @@ class Test__Astropy_Table__():
         object, exception is raised"""
         with pytest.raises(TypeError) as err:
             table.Table([[1]], extra_meta='extra!')
-        assert '__init__() got unexpected keyword argument' in str(err)
+        assert '__init__() got unexpected keyword argument' in str(err.value)
 
 
 def test_table_meta_copy():

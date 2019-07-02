@@ -519,8 +519,8 @@ class TestJoin():
             for join_type in ('outer', 'left', 'right'):
                 with pytest.raises(NotImplementedError) as err:
                     table.join(t1, t2, join_type='outer')
-                assert ('join requires masking' in str(err) or
-                        'join unavailable' in str(err))
+                assert ('join requires masking' in str(err.value) or
+                        'join unavailable' in str(err.value))
 
 
 class TestSetdiff():
@@ -759,11 +759,11 @@ class TestVStack():
             table.vstack([self.t1, self.t3], join_type='inner')
         assert ("The 'b' columns have incompatible types: {0}"
                 .format([self.t1['b'].dtype.name, self.t3['b'].dtype.name])
-                in str(excinfo))
+                in str(excinfo.value))
 
         with pytest.raises(TableMergeError) as excinfo:
             table.vstack([self.t1, self.t3], join_type='outer')
-        assert "The 'b' columns have incompatible types:" in str(excinfo)
+        assert "The 'b' columns have incompatible types:" in str(excinfo.value)
 
         with pytest.raises(TableMergeError):
             table.vstack([self.t1, self.t2], join_type='exact')
@@ -772,7 +772,7 @@ class TestVStack():
         t1_reshape['b'].shape = [2, 1]
         with pytest.raises(TableMergeError) as excinfo:
             table.vstack([self.t1, t1_reshape])
-        assert "have different shape" in str(excinfo)
+        assert "have different shape" in str(excinfo.value)
 
     def test_vstack_one_masked(self, operation_table_type):
         if operation_table_type is QTable:
@@ -938,7 +938,7 @@ class TestVStack():
             with pytest.raises(NotImplementedError) as err:
                 table.vstack([t, t])
             assert ('vstack unavailable for mixin column type(s): {}'
-                    .format(cls_name) in str(err))
+                    .format(cls_name) in str(err.value))
 
         # Check for outer stack which requires masking.  Only Time supports
         # this currently.
@@ -957,8 +957,8 @@ class TestVStack():
         else:
             with pytest.raises(NotImplementedError) as err:
                 table.vstack([t, t2], join_type='outer')
-            assert ('vstack requires masking' in str(err) or
-                    'vstack unavailable' in str(err))
+            assert ('vstack requires masking' in str(err.value) or
+                    'vstack unavailable' in str(err.value))
 
 
 class TestHStack():
@@ -1210,7 +1210,7 @@ class TestHStack():
         else:
             with pytest.raises(NotImplementedError) as err:
                 table.hstack([t1, t2], join_type='outer')
-            assert 'hstack requires masking' in str(err)
+            assert 'hstack requires masking' in str(err.value)
 
 
 def test_unique(operation_table_type):
@@ -1379,15 +1379,15 @@ def test_masking_required_exception():
 
     with pytest.raises(NotImplementedError) as err:
         table.vstack([t1, t2], join_type='outer')
-    assert 'vstack requires masking' in str(err)
+    assert 'vstack requires masking' in str(err.value)
 
     with pytest.raises(NotImplementedError) as err:
         table.hstack([t1, t2], join_type='outer')
-    assert 'hstack requires masking' in str(err)
+    assert 'hstack requires masking' in str(err.value)
 
     with pytest.raises(NotImplementedError) as err:
         table.join(t1, t2, join_type='outer')
-    assert 'join requires masking' in str(err)
+    assert 'join requires masking' in str(err.value)
 
 
 def test_stack_columns():
