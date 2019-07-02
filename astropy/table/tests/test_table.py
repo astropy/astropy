@@ -2345,3 +2345,7 @@ def test_broadcasting_8933():
     assert np.all(t['a'] == [[3, 4], [3, 4]])
     assert np.all(t['b'] == [5, 5])
     assert np.all(t['c'] == [1, 1])
+
+    # Test that broadcasted column is writeable
+    t['c'][1] = 10
+    assert np.all(t['c'] == [1, 10])
