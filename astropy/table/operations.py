@@ -5,6 +5,7 @@ High-level table operations:
 - setdiff()
 - hstack()
 - vstack()
+- cstack()
 """
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
@@ -230,12 +231,13 @@ def setdiff(table1, table2, keys=None):
 
     return t12_diff
 
+
 def cstack(tables, metadata_conflicts='warn'):
     """
     Stack tables Depth-wise
 
     In column-stack(cstack) each column of a table is stacked depth wise.
-    To use cstack tables should have same name of column and also equal in 
+    To use cstack tables should have same name of column and also equal in
     length.
 
     Parameters
@@ -276,6 +278,7 @@ def cstack(tables, metadata_conflicts='warn'):
       1 .. 5 3 .. 7
       2 .. 6 4 .. 8
     """
+    
     tables = _get_list_of_tables(tables)  # validates input
     if len(tables) == 1:
         return tables[0]  # no point in stacking a single table
@@ -940,8 +943,10 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
 def _cstack(arrays, col_name_map=None, metadata_conflicts='warn'):
     """
     Stack Tables Depth-wise
+    In column-stack(cstack) each column of a table is stacked depth wise.
+    To use cstack tables should have same name of column and also equal in
+    length.
 
-    
     Parameters
     ----------
     arrays : list of Tables
@@ -971,54 +976,28 @@ def _cstack(arrays, col_name_map=None, metadata_conflicts='warn'):
             raise TableMergeError('Columns names are not matching use '
                                   'tables that have same column names ')
 
-    # If there are any output columns where one or more input arrays are missing
-    # then the output must be masked.  If any input arrays are masked then
-    # output is masked.
-    masked = any(getattr(arr, 'masked', False) for arr in arrays)
-    for names in col_name_map.values():
-        if any(x is None for x in names):
-            masked = True
-            break
-
     lens = [len(arr) for arr in arrays]
     if any(elem != lens[0] for elem in lens):
         raise TableMergeError('Table lengths are not matching. '
                               'Use table that are equal in length ')
-    out = _get_out_class(arrays)(masked=masked)
+    shapes = OrderedDict()
 
-    for out_name, in_names in col_name_map.items():
-        # List of input arrays that contribute to this output column
-        cols = [arr[name] for arr, name in zip(arrays, in_names) if name is not None]
+    for names in col_name_map.values():
+        for name in names:
+            shapes[name] = (0)
 
-        col_cls = _get_out_class(cols)
-        if not hasattr(col_cls.info, 'new_like'):
-            raise NotImplementedError('cstack unavailable for mixin column type(s): {}'
-                                      .format(col_cls.__name__))
-        try:
-            out[out_name] = col_cls.info.new_like(cols, lens, metadata_conflicts, out_name)
-        except metadata.MergeConflictError as err:
-            # Beautify the error message when we are trying to merge columns with incompatible
-            # types by including the name of the columns that originated the error.
-            raise TableMergeError("The '{0}' columns have incompatible types: {1}"
-                                  .format(out_name, err._incompat_types))
+    for arr in arrays:
+        for name, col in arr.columns.items():
+            if len(col.shape) >= 2:
+                shapes[name] = shapes[name]+col.shape[1]
+    out = vstack(arrays, 'exact', metadata_conflicts)
 
-        idx0 = 0
-        for name, array in zip(in_names, arrays):
-            for idx1 in range(len(array)):
-                if name in array.colnames:
-                    out[out_name][idx1,idx0] = array[name][idx1]
-                else:
-                    try:
-                        out[out_name][idx0:idx1] = out[out_name].info.mask_val
-                    except Exception:
-                        raise NotImplementedError(
-                                "cstack requires masking column '{}' but column"
-                                " type {} does not support masking"
-                                .format(out_name, out[out_name].__class__.__name__))
-
-            idx0 +=1
-            if idx0==len(array):
-                break
+    for name, col in out.columns.items():
+        if len(col.shape) >= 2:
+            new_col = col.reshape((shapes[name], lens[0])).transpose()
+        else:
+            new_col = col.reshape(lens).transpose()
+        out.columns.__setitem__(name, new_col, validated=True)
 
     # If col_name_map supplied as a dict input, then update.
     if isinstance(_col_name_map, Mapping):
