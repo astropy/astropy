@@ -169,6 +169,12 @@ astropy.samp
 astropy.stats
 ^^^^^^^^^^^^^
 
+- Removed the ``iters`` keyword from sigma clipping stats functions.
+  [#8948]
+
+- Renamed the ``a`` parameter to ``data`` in biweight stat functions.
+  [#8948]
+
 astropy.table
 ^^^^^^^^^^^^^
 
