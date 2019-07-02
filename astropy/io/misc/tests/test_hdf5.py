@@ -588,8 +588,8 @@ def test_fail_meta_serialize(tmpdir):
 
     with pytest.raises(Exception) as err:
         t1.write(test_file, path='the_table', serialize_meta=True)
-    assert "cannot represent an object" in str(err)
-    assert "<class 'str'>" in str(err)
+    assert "cannot represent an object" in str(err.value)
+    assert "<class 'str'>" in str(err.value)
 
 
 @pytest.mark.skipif('not HAS_H5PY')
@@ -848,7 +848,7 @@ def test_error_for_mixins_but_no_yaml(tmpdir):
     t = Table([mixin_cols['sc']])
     with pytest.raises(TypeError) as err:
         t.write(filename, path='root', serialize_meta=True)
-    assert "cannot write type SkyCoord column 'col0' to HDF5 without PyYAML" in str(err)
+    assert "cannot write type SkyCoord column 'col0' to HDF5 without PyYAML" in str(err.value)
 
 
 @pytest.mark.skipif('not HAS_YAML or not HAS_H5PY')

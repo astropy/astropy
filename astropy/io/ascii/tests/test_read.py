@@ -1408,7 +1408,7 @@ def test_read_chunks_chunk_size_too_small():
     with pytest.raises(ValueError) as err:
         ascii.read(fpath, header_start=1, data_start=3,
                    fast_reader={'chunk_size': 10})
-    assert 'no newline found in chunk (chunk_size too small?)' in str(err)
+    assert 'no newline found in chunk (chunk_size too small?)' in str(err.value)
 
 
 def test_read_chunks_table_changes():

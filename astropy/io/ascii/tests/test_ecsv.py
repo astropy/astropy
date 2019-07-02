@@ -213,7 +213,7 @@ def test_csv_ecsv_colnames_mismatch():
     lines[header_index] = 'a b d'
     with pytest.raises(ValueError) as err:
         ascii.read(lines, format='ecsv')
-    assert "column names from ECSV header ['a', 'b', 'c']" in str(err)
+    assert "column names from ECSV header ['a', 'b', 'c']" in str(err.value)
 
 
 @pytest.mark.skipif('not HAS_YAML')
@@ -435,7 +435,7 @@ def test_ecsv_but_no_yaml_warning():
 
     with pytest.raises(ascii.InconsistentTableError) as exc:
         ascii.read(SIMPLE_LINES, format='ecsv')
-    assert "PyYAML package is required" in str(exc)
+    assert "PyYAML package is required" in str(exc.value)
 
 
 @pytest.mark.skipif('not HAS_YAML')
