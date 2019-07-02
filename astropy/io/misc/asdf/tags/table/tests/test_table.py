@@ -121,7 +121,7 @@ table: !<tag:astropy.org:astropy/table/table-1.0.0>
     with pytest.raises(ValueError) as err:
         with asdf.open(buff) as ff:
             pass
-    assert 'Inconsistent data column lengths' in str(err)
+    assert 'Inconsistent data column lengths' in str(err.value)
 
 
 def test_masked_table(tmpdir):
