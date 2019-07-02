@@ -1771,6 +1771,10 @@ class Table:
                 col = col._apply(np.broadcast_to, shape=new_shape,
                                    subok=True)
 
+            # broadcast_to() results in a read-only array.  Apparently it only changes
+            # the view to look like the broadcasted array.  So copy.
+            col = col_copy(col)
+
         name = col.info.name
 
         # Ensure that new column is the right length
