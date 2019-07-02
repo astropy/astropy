@@ -515,7 +515,7 @@ def test_timedelta_setitem():
 
     with pytest.raises(ValueError) as err:
         t[1] = 1 * u.m
-    assert 'cannot convert value to a compatible TimeDelta' in str(err)
+    assert 'cannot convert value to a compatible TimeDelta' in str(err.value)
 
 
 def test_timedelta_setitem_sec():
@@ -535,7 +535,7 @@ def test_timedelta_setitem_sec():
 
     with pytest.raises(ValueError) as err:
         t[1] = 1 * u.m
-    assert 'cannot convert value to a compatible TimeDelta' in str(err)
+    assert 'cannot convert value to a compatible TimeDelta' in str(err.value)
 
 
 def test_timedelta_mask():

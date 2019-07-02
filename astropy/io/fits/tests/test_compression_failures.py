@@ -24,35 +24,35 @@ class TestCompressionFunction(FitsTestCase):
         hdu._header['ZCMPTYPE'] = 'fun'
         with pytest.raises(ValueError) as exc:
             compress_hdu(hdu)
-        assert 'Unrecognized compression type: fun' in str(exc)
+        assert 'Unrecognized compression type: fun' in str(exc.value)
 
     def test_zbitpix_unknown(self):
         hdu = fits.CompImageHDU(np.ones((10, 10)))
         hdu._header['ZBITPIX'] = 13
         with pytest.raises(ValueError) as exc:
             compress_hdu(hdu)
-        assert 'Invalid value for BITPIX: 13' in str(exc)
+        assert 'Invalid value for BITPIX: 13' in str(exc.value)
 
     def test_data_none(self):
         hdu = fits.CompImageHDU(np.ones((10, 10)))
         hdu.data = None
         with pytest.raises(TypeError) as exc:
             compress_hdu(hdu)
-        assert 'CompImageHDU.data must be a numpy.ndarray' in str(exc)
+        assert 'CompImageHDU.data must be a numpy.ndarray' in str(exc.value)
 
     def test_missing_internal_header(self):
         hdu = fits.CompImageHDU(np.ones((10, 10)))
         del hdu._header
         with pytest.raises(AttributeError) as exc:
             compress_hdu(hdu)
-        assert '_header' in str(exc)
+        assert '_header' in str(exc.value)
 
     def test_invalid_tform(self):
         hdu = fits.CompImageHDU(np.ones((10, 10)))
         hdu._header['TFORM1'] = 'TX'
         with pytest.raises(RuntimeError) as exc:
             compress_hdu(hdu)
-        assert 'TX' in str(exc) and 'TFORM' in str(exc)
+        assert 'TX' in str(exc.value) and 'TFORM' in str(exc.value)
 
     def test_invalid_zdither(self):
         hdu = fits.CompImageHDU(np.ones((10, 10)), quantize_method=1)
@@ -66,7 +66,7 @@ class TestCompressionFunction(FitsTestCase):
         del hdu._header[kw]
         with pytest.raises(KeyError) as exc:
             compress_hdu(hdu)
-        assert kw in str(exc)
+        assert kw in str(exc.value)
 
     @pytest.mark.parametrize('kw', ['ZNAXIS', 'ZVAL1', 'ZVAL2', 'ZBLANK', 'BLANK'])
     def test_header_value_int_overflow(self, kw):
@@ -102,7 +102,7 @@ class TestCompressionFunction(FitsTestCase):
         hdu._header[kw] = -1
         with pytest.raises(ValueError) as exc:
             compress_hdu(hdu)
-        assert '{} should not be negative.'.format(kw) in str(exc)
+        assert '{} should not be negative.'.format(kw) in str(exc.value)
 
     @pytest.mark.parametrize(
         ('kw', 'limit'),
@@ -113,7 +113,7 @@ class TestCompressionFunction(FitsTestCase):
         hdu._header[kw] = limit + 1
         with pytest.raises(ValueError) as exc:
             compress_hdu(hdu)
-        assert kw in str(exc)
+        assert kw in str(exc.value)
 
     @pytest.mark.parametrize('kw', ['TTYPE1', 'TFORM1', 'ZCMPTYPE', 'ZNAME1',
                                     'ZQUANTIZ'])

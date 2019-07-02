@@ -188,7 +188,7 @@ def test_local_data_obj(filename):
             with get_pkg_data_fileobj(os.path.join('data', filename), encoding='binary') as f:
                 f.readline()
                 # assert f.read().rstrip() == b'CONTENT'
-        assert ' format files are not supported' in str(e)
+        assert ' format files are not supported' in str(e.value)
     else:
         with get_pkg_data_fileobj(os.path.join('data', filename), encoding='binary') as f:
             f.readline()
@@ -234,7 +234,7 @@ def test_local_data_obj_invalid(bad_compressed):
         with pytest.raises(ValueError) as e:
             with get_readable_fileobj(bad_compressed, encoding='binary') as f:
                 f.read()
-        assert ' format files are not supported' in str(e)
+        assert ' format files are not supported' in str(e.value)
     else:
         with get_readable_fileobj(bad_compressed, encoding='binary') as f:
             assert f.read().rstrip().endswith(b'invalid')

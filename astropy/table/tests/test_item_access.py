@@ -222,11 +222,11 @@ class TestTableItems(BaseTestItems):
 
         with pytest.raises(KeyError) as err:
             self.t[['xxxx']]
-        assert "KeyError: 'xxxx'" in str(err)
+        assert "'xxxx'" in str(err.value)
 
         with pytest.raises(KeyError) as err:
             self.t[['xxxx', 'yyyy']]
-        assert "KeyError: 'xxxx'" in str(err)
+        assert "'xxxx'" in str(err.value)
 
     def test_np_where(self, table_data):
         """Select rows using output of np.where"""

@@ -638,7 +638,7 @@ def test_error_for_mixins_but_no_yaml(tmpdir):
     t = Table([mixin_cols['sc']])
     with pytest.raises(TypeError) as err:
         t.write(filename)
-    assert "cannot write type SkyCoord column 'col0' to FITS without PyYAML" in str(err)
+    assert "cannot write type SkyCoord column 'col0' to FITS without PyYAML" in str(err.value)
 
 
 @pytest.mark.skipif('not HAS_YAML')
