@@ -5,7 +5,6 @@ import warnings
 import numpy as np
 
 from astropy.utils import isiterable
-from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyUserWarning
 
 
@@ -207,7 +206,6 @@ class SigmaClip:
     standard deviation is higher.
     """
 
-    @deprecated_renamed_argument('iters', 'maxiters', '3.1')
     def __init__(self, sigma=3., sigma_lower=None, sigma_upper=None,
                  maxiters=5, cenfunc='median', stdfunc='std'):
 
@@ -474,7 +472,6 @@ class SigmaClip:
                                             copy=copy)
 
 
-@deprecated_renamed_argument('iters', 'maxiters', '3.1')
 def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
                cenfunc='median', stdfunc='std', axis=None, masked=True,
                return_bounds=False, copy=True):
@@ -651,7 +648,6 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
                    return_bounds=return_bounds, copy=copy)
 
 
-@deprecated_renamed_argument('iters', 'maxiters', '3.1')
 def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
                         sigma_lower=None, sigma_upper=None, maxiters=5,
                         cenfunc='median', stdfunc='std', std_ddof=0,
