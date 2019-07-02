@@ -57,7 +57,7 @@ def test_ccddata_unit_cannot_be_set_to_none():
 def test_ccddata_meta_header_conflict():
     with pytest.raises(ValueError) as exc:
         CCDData([1, 2, 3], unit='', meta={1: 1}, header={2: 2})
-        assert "can't have both header and meta." in str(exc)
+        assert "can't have both header and meta." in str(exc.value)
 
 
 def test_ccddata_simple():
