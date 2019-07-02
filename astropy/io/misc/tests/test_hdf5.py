@@ -14,6 +14,7 @@ from astropy.coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocat
 from astropy.time import Time, TimeDelta
 from astropy.units.quantity import QuantityInfo
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.data import get_pkg_data_filename
 
 try:
     import h5py
@@ -456,8 +457,12 @@ def test_preserve_serialized(tmpdir):
 
 
 @pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
-def test_preserve_serialized_compatibility_mode(tmpdir):
-    test_file = str(tmpdir.join('test.hdf5'))
+def test_preserve_serialized_old_meta_format(tmpdir):
+    """Test the old meta format
+
+    Only for some files created prior to v4.0, in compatibility mode.
+    """
+    test_file = get_pkg_data_filename('data/old_meta_example.hdf5')
 
     t1 = Table()
     t1['a'] = Column(data=[1, 2, 3], unit="s")
@@ -467,13 +472,6 @@ def test_preserve_serialized_compatibility_mode(tmpdir):
     t1['a'].description = 'A column'
     t1.meta['b'] = 1
     t1.meta['c'] = {"c0": [0, 1]}
-
-    with catch_warnings() as w:
-        t1.write(test_file, path='the_table', serialize_meta=True,
-                 overwrite=True, compatibility_mode=True)
-
-    assert str(w[0].message).startswith(
-        "compatibility mode for writing is deprecated")
 
     t2 = Table.read(test_file, path='the_table')
 
@@ -534,25 +532,6 @@ def test_metadata_very_large(tmpdir):
     assert t1['a'].description == t2['a'].description
     assert t1['a'].meta == t2['a'].meta
     assert t1.meta == t2.meta
-
-
-@pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
-def test_metadata_very_large_fails_compatibility_mode(tmpdir):
-    """Test that very large metadata do not work in compatibility mode."""
-    test_file = str(tmpdir.join('test.hdf5'))
-    t1 = Table()
-    t1['a'] = Column(data=[1, 2, 3])
-    t1.meta["meta"] = "0" * (2 ** 16 + 1)
-    with catch_warnings() as w:
-        t1.write(test_file, path='the_table', serialize_meta=True,
-                 overwrite=True, compatibility_mode=True)
-    assert len(w) == 2
-
-    # Error message slightly changed in h5py 2.7.1, thus the 2part assert
-    assert str(w[1].message).startswith(
-        "Attributes could not be written to the output HDF5 "
-        "file: Unable to create attribute ")
-    assert "bject header message is too large" in str(w[1].message)
 
 
 @pytest.mark.skipif('not HAS_H5PY')
