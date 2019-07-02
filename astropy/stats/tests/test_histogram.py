@@ -48,7 +48,7 @@ def test_freedman_bin_width(N=10000, rseed=0):
     test_x = [1, 2, 3] + [4] * 100 + [5, 6, 7]
     with pytest.raises(ValueError) as e:
         freedman_bin_width(test_x, return_bins=True)
-        assert 'Please use another bin method' in str(e)
+        assert 'Please use another bin method' in str(e.value)
 
     # data with small IQR but not too small
     test_x = np.asarray([1, 2, 3] * 100 + [4] + [5, 6, 7], dtype=np.float32)
