@@ -303,8 +303,8 @@ def test_of_address(google_api_key):
         loc = EarthLocation.of_address("New York, NY")
     except NameResolveError as e:
         # API limit might surface even here in Travis CI.
-        if 'unknown failure with' not in str(e):
-            pytest.xfail(str(e))
+        if 'unknown failure with' not in str(e.value):
+            pytest.xfail(str(e.value))
     else:
         assert quantity_allclose(loc.lat, NYC_lat, atol=NYC_tol)
         assert quantity_allclose(loc.lon, NYC_lon, atol=NYC_tol)
@@ -323,7 +323,7 @@ def test_of_address(google_api_key):
             # Buffer above sometimes insufficient to get around API limit but
             # we also do not want to drag things out with time.sleep(0.195),
             # where 0.195 was empirically determined on some physical machine.
-            pytest.xfail(str(e))
+            pytest.xfail(str(e.value))
         else:
             assert quantity_allclose(loc.lat, NYC_lat, atol=NYC_tol)
             assert quantity_allclose(loc.lon, NYC_lon, atol=NYC_tol)
