@@ -147,7 +147,7 @@ def test_coord_init_string():
 
     with pytest.raises(ValueError) as err:
         SkyCoord('1d 2d 3d')
-    assert "Cannot parse first argument data" in str(err)
+    assert "Cannot parse first argument data" in str(err.value)
 
     sc1 = SkyCoord('8 00 00 +5 00 00.0', unit=(u.hour, u.deg), frame='icrs')
     assert isinstance(sc1, SkyCoord)
@@ -232,7 +232,7 @@ def test_coord_init_unit():
     for unit in ('deg,deg,deg,deg', [u.deg, u.deg, u.deg, u.deg], None):
         with pytest.raises(ValueError) as err:
             SkyCoord(1, 2, unit=unit)
-        assert 'Unit keyword must have one to three unit values' in str(err)
+        assert 'Unit keyword must have one to three unit values' in str(err.value)
 
     for unit in ('m', (u.m, u.deg), ''):
         with pytest.raises(u.UnitsError) as err:
@@ -253,11 +253,11 @@ def test_coord_init_list():
 
     with pytest.raises(ValueError) as err:
         SkyCoord(['1d 2d 3d'])
-    assert "Cannot parse first argument data" in str(err)
+    assert "Cannot parse first argument data" in str(err.value)
 
     with pytest.raises(ValueError) as err:
         SkyCoord([('1d', '2d', '3d')])
-    assert "Cannot parse first argument data" in str(err)
+    assert "Cannot parse first argument data" in str(err.value)
 
     sc = SkyCoord([1 * u.deg, 1 * u.deg], [2 * u.deg, 2 * u.deg])
     assert allclose(sc.ra, Angle('1d'))
@@ -265,7 +265,7 @@ def test_coord_init_list():
 
     with pytest.raises(ValueError) as err:
         SkyCoord([1 * u.deg, 2 * u.deg])  # this list is taken as RA w/ missing dec
-    assert "One or more elements of input sequence does not have a length" in str(err)
+    assert "One or more elements of input sequence does not have a length" in str(err.value)
 
 
 def test_coord_init_array():
@@ -296,7 +296,7 @@ def test_coord_init_representation():
 
     with pytest.raises(ValueError) as err:
         SkyCoord(coord, frame='icrs', ra='1d')
-    assert "conflicts with keyword argument 'ra'" in str(err)
+    assert "conflicts with keyword argument 'ra'" in str(err.value)
 
     coord = CartesianRepresentation(1 * u.one, 2 * u.one, 3 * u.one)
     sc = SkyCoord(coord, frame='icrs')
@@ -328,7 +328,7 @@ def test_frame_init():
 
     with pytest.raises(ValueError) as err:
         SkyCoord(C_ICRS, frame='galactic')
-    assert 'Cannot override frame=' in str(err)
+    assert 'Cannot override frame=' in str(err.value)
 
 
 def test_attr_inheritance():
@@ -383,7 +383,7 @@ def test_attr_conflicts():
     # Not OK if attrs don't match
     with pytest.raises(ValueError) as err:
         SkyCoord(sc, equinox='J1999', obstime='J2002')
-    assert "Coordinate attribute 'obstime'=" in str(err)
+    assert "Coordinate attribute 'obstime'=" in str(err.value)
 
     # Same game but with fk4 which has equinox and obstime frame attrs
     sc = SkyCoord(1, 2, frame='fk4', unit='deg', equinox='J1999', obstime='J2001')
@@ -394,12 +394,12 @@ def test_attr_conflicts():
     # Not OK if SkyCoord attrs don't match
     with pytest.raises(ValueError) as err:
         SkyCoord(sc, equinox='J1999', obstime='J2002')
-    assert "Frame attribute 'obstime' has conflicting" in str(err)
+    assert "Frame attribute 'obstime' has conflicting" in str(err.value)
 
     # Not OK because sc.frame has different attrs
     with pytest.raises(ValueError) as err:
         SkyCoord(sc.frame, equinox='J1999', obstime='J2002')
-    assert "Frame attribute 'obstime' has conflicting" in str(err)
+    assert "Frame attribute 'obstime' has conflicting" in str(err.value)
 
 
 def test_frame_attr_getattr():
@@ -877,7 +877,7 @@ def test_units():
 
     with pytest.raises(u.UnitsError) as err:
         SkyCoord(1, 2, 3, unit=(u.m, u.m), representation_type='cartesian')
-    assert 'should have matching physical types' in str(err)
+    assert 'should have matching physical types' in str(err.value)
 
     SkyCoord(1, 2, 3, unit=(u.m, u.km, u.pc), representation_type='cartesian')
     assert_quantities_allclose(sc, (1*u.m, 2*u.km, 3*u.pc), ('x', 'y', 'z'))
@@ -1053,7 +1053,7 @@ def test_init_with_frame_instance_keyword():
     # Check duplicate arguments
     with pytest.raises(ValueError) as err:
         c = SkyCoord(3 * u.deg, 4 * u.deg, frame=FK5(equinox='J2010'), equinox='J2001')
-    assert "Cannot specify frame attribute 'equinox'" in str(err)
+    assert "Cannot specify frame attribute 'equinox'" in str(err.value)
 
 
 def test_guess_from_table():

@@ -650,13 +650,13 @@ def test_latitude():
     with pytest.raises(TypeError) as excinfo:
         lon = Longitude(10, 'deg')
         lat = Latitude(lon)
-    assert "A Latitude angle cannot be created from a Longitude angle" in str(excinfo)
+    assert "A Latitude angle cannot be created from a Longitude angle" in str(excinfo.value)
 
     with pytest.raises(TypeError) as excinfo:
         lon = Longitude(10, 'deg')
         lat = Latitude([20], 'deg')
         lat[0] = lon
-    assert "A Longitude angle cannot be assigned to a Latitude angle" in str(excinfo)
+    assert "A Longitude angle cannot be assigned to a Latitude angle" in str(excinfo.value)
 
     # Check we can work around the Lat vs Long checks by casting explicitly to Angle.
     lon = Longitude(10, 'deg')
@@ -738,13 +738,13 @@ def test_longitude():
     with pytest.raises(TypeError) as excinfo:
         lat = Latitude(10, 'deg')
         lon = Longitude(lat)
-    assert "A Longitude angle cannot be created from a Latitude angle" in str(excinfo)
+    assert "A Longitude angle cannot be created from a Latitude angle" in str(excinfo.value)
 
     with pytest.raises(TypeError) as excinfo:
         lat = Latitude(10, 'deg')
         lon = Longitude([20], 'deg')
         lon[0] = lat
-    assert "A Latitude angle cannot be assigned to a Longitude angle" in str(excinfo)
+    assert "A Latitude angle cannot be assigned to a Longitude angle" in str(excinfo.value)
 
     # Check we can work around the Lat vs Long checks by casting explicitly to Angle.
     lat = Latitude(10, 'deg')
