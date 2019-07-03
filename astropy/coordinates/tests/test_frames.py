@@ -1068,3 +1068,69 @@ def test_component_names_repr():
 
     # Check that the letter "r" has not been replaced more than once in the Frame repr
     assert repr(frame).count("JUSTONCE") == 1
+
+
+def test_component_names():
+    from astropy.coordinates.builtin_frames import FK5
+
+    fr = FK5()
+    c1 = FK5(ra=15*u.deg, dec=16*u.deg)
+    c2 = FK5(ra=15*u.deg, dec=16*u.deg, distance=17*u.pc)
+    c3 = FK5(ra=15*u.deg, dec=16*u.deg, distance=17*u.pc,
+             pm_ra_cosdec=1*u.mas/u.yr, pm_dec=2*u.mas/u.yr,
+             radial_velocity=3*u.km/u.s)
+
+    expected_names = ['ra', 'dec', 'distance', 'pm_ra_cosdec', 'pm_dec',
+                      'radial_velocity']
+    for check in [fr, c1, c2, c3]:
+        unit_map = check.get_representation_component_units(which='all')
+        assert len(unit_map) == 6
+        assert len(check.component_names) == 6
+        for name in expected_names:
+            assert name in check.component_names
+            assert name in unit_map
+
+    # Change to cartesian and make sure everything propagates
+    expected_names = ['x', 'y', 'z', 'v_x', 'v_y', 'v_z']
+    c2.set_representation_cls(r.CartesianRepresentation)
+    unit_map = c2.get_representation_component_units(which='all')
+    assert len(unit_map) == 6
+    assert len(c2.component_names) == 6
+    for name in expected_names:
+        assert name in c2.component_names
+        assert name in unit_map
+
+
+def test_component_names_custom():
+    from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping
+
+    # Frame class with new component names that includes a name swap
+    class NameChangeFrame(BaseCoordinateFrame):
+        default_representation = r.SphericalRepresentation
+        default_differential = r.SphericalCosLatDifferential
+
+        frame_specific_representation_info = {
+            r.SphericalRepresentation: [
+                RepresentationMapping('lon', 'a', u.deg),
+                RepresentationMapping('lat', 'b', u.arcsec),
+                RepresentationMapping('distance', 'c', u.AU)]
+        }
+
+    class NameChangeFrame2(BaseCoordinateFrame):  # no default repr, diff
+        frame_specific_representation_info = {
+            r.SphericalRepresentation: [
+                RepresentationMapping('lon', 'a', u.deg),
+                RepresentationMapping('lat', 'b', u.arcsec),
+                RepresentationMapping('distance', 'c', u.AU)]
+        }
+
+    frame = NameChangeFrame(0*u.deg, 0*u.arcsec, 0*u.AU)
+    frame2 = NameChangeFrame2(0*u.deg, 0*u.arcsec, 0*u.AU,
+                              representation_type=r.SphericalRepresentation,
+                              differential_type=r.SphericalCosLatDifferential)
+
+    expected_names = ['a', 'b', 'c', 'pm_a_cosb', 'pm_b', 'radial_velocity']
+    for fr in [frame, frame2]:
+        assert len(fr.component_names) == 6
+        for name in expected_names:
+            assert name in fr.component_names
