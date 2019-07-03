@@ -309,7 +309,6 @@ def _separable(transform):
         return _coord_matrix(transform, 'left', transform.n_outputs)
 
 
-
 # Maps modeling operators to a function computing and represents the
 # relationship of axes as an array of 0-es and 1-s
 _operators = {'&': _cstack, '|': _cdot, '+': _arith_oper, '-': _arith_oper,

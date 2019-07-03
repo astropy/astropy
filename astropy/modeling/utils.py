@@ -718,6 +718,7 @@ def _parameter_without_unit(value, old_unit, new_unit):
     else:
         return value * old_unit.to(new_unit)
 
+
 def _combine_equivalency_dict(keys, eq1=None, eq2=None):
     # Given two dictionaries that give equivalencies for a set of keys, for
     # example input value names, return a dictionary that includes all the
@@ -730,6 +731,7 @@ def _combine_equivalency_dict(keys, eq1=None, eq2=None):
         if eq2 is not None and key in eq2:
             eq[key].extend(eq2[key])
     return eq
+
 
 def _to_radian(value):
     """ Convert ``value`` to radian. """
