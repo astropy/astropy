@@ -1527,7 +1527,7 @@ def test_distance_warning(recwarn):
 
 
 def test_dtype_preservation_in_indexing():
-    # Regression test for issue
+    # Regression test for issue #8614 (fixed in #8876)
     xyz = np.array([[1, 0, 0], [0.9, 0.1, 0]], dtype='f4')
     cr = CartesianRepresentation(xyz, xyz_axis=-1, unit="km")
     assert cr.xyz.dtype == xyz.dtype
