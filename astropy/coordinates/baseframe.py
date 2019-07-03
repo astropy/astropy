@@ -22,7 +22,7 @@ from astropy.utils.decorators import lazyproperty, format_doc
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from astropy import units as u
 from astropy.utils import (OrderedDescriptorContainer, ShapedLikeNDArray,
-                     check_broadcast)
+                           check_broadcast)
 from .transformations import TransformGraph
 from . import representation as r
 from .angles import Angle
@@ -839,33 +839,54 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         """
         return self._get_representation_info()
 
+    def _get_representation_component_helper(self, which='base'):
+        classes = []
+        if which == 'all':
+            classes.append(self.get_representation_cls())
+            # TODO: If we extend the coordinates machinery to support other
+            # differentials, this would need to change to iterate over vakukeys
+            classes.append(self.get_representation_cls('s'))
+        else:
+            classes.append(self.get_representation_cls(which))
+            if classes[-1] is None:
+                return OrderedDict()
+
+        return classes
+
     def get_representation_component_names(self, which='base'):
+        classes = self._get_representation_component_helper(which=which)
+
         out = OrderedDict()
-        repr_or_diff_cls = self.get_representation_cls(which)
-        if repr_or_diff_cls is None:
-            return out
-        data_names = repr_or_diff_cls.attr_classes.keys()
-        repr_names = self.representation_info[repr_or_diff_cls]['names']
-        for repr_name, data_name in zip(repr_names, data_names):
-            out[repr_name] = data_name
+        for cls in classes:
+            data_names = cls.attr_classes.keys()
+            repr_names = self.representation_info[cls]['names']
+            for repr_name, data_name in zip(repr_names, data_names):
+                out[repr_name] = data_name
+
         return out
 
     def get_representation_component_units(self, which='base'):
+        classes = self._get_representation_component_helper(which=which)
+
         out = OrderedDict()
-        repr_or_diff_cls = self.get_representation_cls(which)
-        if repr_or_diff_cls is None:
-            return out
-        repr_attrs = self.representation_info[repr_or_diff_cls]
-        repr_names = repr_attrs['names']
-        repr_units = repr_attrs['units']
-        for repr_name, repr_unit in zip(repr_names, repr_units):
-            if repr_unit:
+        for cls in classes:
+            repr_attrs = self.representation_info[cls]
+            repr_names = repr_attrs['names']
+            repr_units = repr_attrs['units']
+            for repr_name, repr_unit in zip(repr_names, repr_units):
                 out[repr_name] = repr_unit
+
         return out
 
     representation_component_names = property(get_representation_component_names)
 
     representation_component_units = property(get_representation_component_units)
+
+    @property
+    def component_names(self):
+        """Returns a list with all component names (position and velocity) for
+        this frame."""
+        return list(self.get_representation_component_names(which='all').keys())
 
     def _replicate(self, data, copy=False, **kwargs):
         """Base for replicating a frame, with possibly different attributes.
