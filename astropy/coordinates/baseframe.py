@@ -319,9 +319,9 @@ class RepresentationMapping(_RepresentationMappingBase):
     ``frame_specific_representation_info`` attribute to tell frames what
     attribute names (and default units) to use for a particular representation.
     ``reprname`` and ``framename`` should be strings, while ``defaultunit`` can
-    be either an astropy unit, the string ``'recommended'`` (to use whatever
-    the representation's ``recommended_units`` is), or None (to indicate that
-    no unit mapping should be done).
+    be either an astropy unit, the string ``'recommended'`` (which is degrees
+    for Angles, nothing otherwise), or None (to indicate that no unit mapping
+    should be done).
     """
 
     def __new__(cls, reprname, framename, defaultunit='recommended'):
