@@ -185,6 +185,16 @@ class TimeSeries(BaseTimeSeries):
                 return out
         return super().__getitem__(item)
 
+    def add_column(self, *args, **kwargs):
+        """
+        See :meth:`~astropy.table.Table.add_column`.
+        """
+        # Note that the docstring is inherited from QTable
+        result = super().add_column(*args, **kwargs)
+        if len(self.indices) == 0 and 'time' in self.colnames:
+            self.add_index('time')
+        return result
+
     def add_columns(self, *args, **kwargs):
         """
         See :meth:`~astropy.table.Table.add_columns`.

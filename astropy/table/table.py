@@ -883,10 +883,11 @@ class Table:
         col : Column, MaskedColumn, mixin-column type
             Object that can be used as a column in self
         """
+        is_mixin = self._is_mixin_for_table(data)
+
         # Structured ndarray gets viewed as a mixin unless already a valid
         # mixin class
-        if (isinstance(data, np.ndarray) and len(data.dtype) > 1 and
-                not self._is_mixin_for_table(data)):
+        if isinstance(data, np.ndarray) and len(data.dtype) > 1 and not is_mixin:
             data = data.view(NdarrayMixin)
 
         # Get the final column name using precedence.  Some objects may not
@@ -933,6 +934,8 @@ class Table:
 
         col = col_cls(name=name, data=data, dtype=dtype,
                       copy=copy, copy_indices=self._init_indices)
+        col = self._convert_col_for_table(col)
+
         return col
 
     def _init_from_ndarray(self, data, names, dtype, n_cols, copy):
@@ -1491,54 +1494,7 @@ class Table:
         # If the item is a string then it must be the name of a column.
         # If that column doesn't already exist then create it now.
         if isinstance(item, str) and item not in self.colnames:
-            NewColumn = self.MaskedColumn if self.masked else self.Column
-            # If value doesn't have a dtype and won't be added as a mixin then
-            # convert to a numpy array.
-            if not hasattr(value, 'dtype') and not self._is_mixin_for_table(value):
-                value = np.asarray(value)
-
-            # Structured ndarray gets viewed as a mixin (unless already a valid
-            # mixin class).
-            if (isinstance(value, np.ndarray) and len(value.dtype) > 1 and
-                    not self._is_mixin_for_table(value)):
-                value = value.view(NdarrayMixin)
-
-            # Make new column and assign the value.  If the table currently
-            # has no rows (len=0) of the value is already a Column then
-            # define new column directly from value.  In the latter case
-            # this allows for propagation of Column metadata.  Otherwise
-            # define a new column with the right length and shape and then
-            # set it from value.  This allows for broadcasting, e.g. t['a']
-            # = 1.
-            name = item
-            # If this is a column-like object that could be added directly to table
-            if isinstance(value, BaseColumn) or self._is_mixin_for_table(value):
-                # If we're setting a new column to a scalar, broadcast it.
-                # (things will fail in _init_from_cols if this doesn't work)
-                if (len(self) > 0 and (getattr(value, 'isscalar', False) or
-                                       getattr(value, 'shape', None) == () or
-                                       len(value) == 1)):
-                    new_shape = (len(self),) + getattr(value, 'shape', ())[1:]
-                    if isinstance(value, np.ndarray):
-                        value = np.broadcast_to(value, shape=new_shape,
-                                                subok=True)
-                    elif isinstance(value, ShapedLikeNDArray):
-                        value = value._apply(np.broadcast_to, shape=new_shape,
-                                             subok=True)
-
-                new_column = col_copy(value)
-                new_column.info.name = name
-
-            elif len(self) == 0:
-                new_column = NewColumn(value, name=name)
-            else:
-                new_column = NewColumn(name=name, length=len(self), dtype=value.dtype,
-                                       shape=value.shape[1:],
-                                       unit=getattr(value, 'unit', None))
-                new_column[:] = value
-
-            # Now add new column to the table
-            self.add_columns([new_column], copy=False)
+            self.add_column(value, name=item, copy=True)
 
         else:
             n_cols = len(self.columns)
@@ -1712,17 +1668,27 @@ class Table:
         except ValueError:
             raise ValueError("Column {0} does not exist".format(name))
 
-    def add_column(self, col, index=None, name=None, rename_duplicate=False, copy=True):
+    def add_column(self, col, index=None, name=None, rename_duplicate=False, copy=True,
+                   default_name=None):
         """
-        Add a new Column object ``col`` to the table.  If ``index``
+        Add a new column to the table using ``col`` as input.  If ``index``
         is supplied then insert column before ``index`` position
         in the list of columns, otherwise append column to the end
         of the list.
 
+        The ``col`` input can be any data object which is acceptable as a
+        `~astropy.table.Table` column object or can be converted.  This includes
+        mixin columns and scalar or length=1 objects which get broadcast to match
+        the table length.
+
+        To add several columns at once use ``add_columns()`` or simply call
+        ``add_column()`` for each one.  There is very little performance difference
+        in the two approaches.
+
         Parameters
         ----------
-        col : Column
-            Column object to add.
+        col : object
+            Data object for the new column
         index : int or `None`
             Insert column before this position or at end (default).
         name : str
@@ -1731,89 +1697,132 @@ class Table:
             Uniquify column name if it already exist. Default is False.
         copy : bool
             Make a copy of the new column. Default is True.
+        default_name : str or `None`
+            Name to use if both ``name`` and ``col.info.name`` are not available.
+            Defaults to ``col{number_of_columns}``.
 
         Examples
         --------
-        Create a table with two columns 'a' and 'b'::
+        Create a table with two columns 'a' and 'b', then create a third column 'c'
+        and append it to the end of the table::
 
-            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
-            >>> print(t)
-             a   b
-            --- ---
-              1 0.1
-              2 0.2
-              3 0.3
-
-        Create a third column 'c' and append it to the end of the table::
-
-            >>> col_c = Column(name='c', data=['x', 'y', 'z'])
+            >>> t = Table([[1, 2], [0.1, 0.2]], names=('a', 'b'))
+            >>> col_c = Column(name='c', data=['x', 'y'])
             >>> t.add_column(col_c)
             >>> print(t)
              a   b   c
             --- --- ---
               1 0.1   x
               2 0.2   y
-              3 0.3   z
 
         Add column 'd' at position 1. Note that the column is inserted
         before the given index::
 
-            >>> col_d = Column(name='d', data=['a', 'b', 'c'])
-            >>> t.add_column(col_d, 1)
+            >>> t.add_column(['a', 'b'], name='d', index=1)
             >>> print(t)
              a   d   b   c
             --- --- --- ---
               1   a 0.1   x
               2   b 0.2   y
-              3   c 0.3   z
 
         Add second column named 'b' with rename_duplicate::
 
-            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
-            >>> col_b = Column(name='b', data=[1.1, 1.2, 1.3])
-            >>> t.add_column(col_b, rename_duplicate=True)
+            >>> t = Table([[1, 2], [0.1, 0.2]], names=('a', 'b'))
+            >>> t.add_column(1.1, name='b', rename_duplicate=True)
             >>> print(t)
              a   b  b_1
             --- --- ---
               1 0.1 1.1
-              2 0.2 1.2
-              3 0.3 1.3
+              2 0.2 1.1
 
         Add an unnamed column or mixin object in the table using a default name
         or by specifying an explicit name with ``name``. Name can also be overridden::
 
             >>> t = Table([[1, 2], [0.1, 0.2]], names=('a', 'b'))
-            >>> col_c = Column(data=['x', 'y'])
-            >>> t.add_column(col_c)
-            >>> t.add_column(col_c, name='c')
-            >>> col_b = Column(name='b', data=[1.1, 1.2])
-            >>> t.add_column(col_b, name='d')
+            >>> t.add_column(['a', 'b'])
+            >>> t.add_column(col_c, name='d')
             >>> print(t)
-             a   b  col2  c   d
-            --- --- ---- --- ---
-              1 0.1    x   x 1.1
-              2 0.2    y   y 1.2
-
-        To add several columns use add_columns.
+             a   b  col2  d
+            --- --- ---- ---
+              1 0.1    a   x
+              2 0.2    b   y
         """
-        if index is None:
-            index = len(self.columns)
-        if name is not None:
-            name = (name,)
+        if default_name is None:
+            default_name = 'col{}'.format(len(self.columns))
 
-        self.add_columns([col], [index], name, copy=copy, rename_duplicate=rename_duplicate)
+        # If value doesn't have a dtype and won't be added as a mixin then
+        # convert to a numpy array.
+        if not hasattr(col, 'dtype') and not self._is_mixin_for_table(col):
+            col = np.asarray(col)
+
+        # Convert col data to acceptable object for insertion into self.columns.
+        # Note that along with the lines above and below, this allows broadcasting
+        # of scalars to the correct shape for adding to table.
+        col = self._convert_data_to_col(col, name=name, copy=copy,
+                                        default_name=default_name)
+
+        # Make col data shape correct for scalars.  The second test is to allow
+        # broadcasting an N-d element to a column, e.g. t['new'] = [[1, 2]].
+        if (col.shape == () or col.shape[0] == 1) and len(self) > 0:
+            new_shape = (len(self),) + getattr(col, 'shape', ())[1:]
+            if isinstance(col, np.ndarray):
+                col = np.broadcast_to(col, shape=new_shape,
+                                       subok=True)
+            elif isinstance(col, ShapedLikeNDArray):
+                col = col._apply(np.broadcast_to, shape=new_shape,
+                                   subok=True)
+
+            # broadcast_to() results in a read-only array.  Apparently it only changes
+            # the view to look like the broadcasted array.  So copy.
+            col = col_copy(col)
+
+        name = col.info.name
+
+        # Ensure that new column is the right length
+        if len(self.columns) > 0 and len(col) != len(self):
+            raise ValueError('Inconsistent data column lengths')
+
+        if rename_duplicate:
+            orig_name = name
+            i = 1
+            while name in self.columns:
+                # Iterate until a unique name is found
+                name = orig_name + '_' + str(i)
+                i += 1
+            col.info.name = name
+
+        # Set col parent_table weakref and ensure col has mask attribute if table.masked
+        self._set_col_parent_table_and_mask(col)
+
+        # Add new column as last column
+        self.columns[name] = col
+
+        if index is not None:
+            # Move the other cols to the right of the new one
+            move_names = self.colnames[index:-1]
+            for move_name in move_names:
+                self.columns.move_to_end(move_name, last=True)
 
     def add_columns(self, cols, indexes=None, names=None, copy=True, rename_duplicate=False):
         """
-        Add a list of new Column objects ``cols`` to the table.  If a
+        Add a list of new columns the table using ``cols`` data objects.  If a
         corresponding list of ``indexes`` is supplied then insert column
         before each ``index`` position in the *original* list of columns,
         otherwise append columns to the end of the list.
 
+        The ``cols`` input can include any data objects which are acceptable as
+        `~astropy.table.Table` column objects or can be converted.  This includes
+        mixin columns and scalar or length=1 objects which get broadcast to match
+        the table length.
+
+        From a performance perspective there is little difference between calling
+        this method once or looping over the new columns and calling ``add_column()``
+        for each column.
+
         Parameters
         ----------
-        cols : list of Columns
-            Column objects to add.
+        cols : list of objects
+            List of data objects for the new columns
         indexes : list of ints or `None`
             Insert column before this position or at end (default).
         names : list of str
@@ -1827,120 +1836,72 @@ class Table:
 
         Examples
         --------
-        Create a table with two columns 'a' and 'b'::
+        Create a table with two columns 'a' and 'b', then create columns 'c' and 'd'
+        and append them to the end of the table::
 
-            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
-            >>> print(t)
-             a   b
-            --- ---
-              1 0.1
-              2 0.2
-              3 0.3
-
-        Create column 'c' and 'd' and append them to the end of the table::
-
-            >>> col_c = Column(name='c', data=['x', 'y', 'z'])
-            >>> col_d = Column(name='d', data=['u', 'v', 'w'])
+            >>> t = Table([[1, 2], [0.1, 0.2]], names=('a', 'b'))
+            >>> col_c = Column(name='c', data=['x', 'y'])
+            >>> col_d = Column(name='d', data=['u', 'v'])
             >>> t.add_columns([col_c, col_d])
             >>> print(t)
              a   b   c   d
             --- --- --- ---
               1 0.1   x   u
               2 0.2   y   v
-              3 0.3   z   w
 
         Add column 'c' at position 0 and column 'd' at position 1. Note that
         the columns are inserted before the given position::
 
-            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
-            >>> col_c = Column(name='c', data=['x', 'y', 'z'])
-            >>> col_d = Column(name='d', data=['u', 'v', 'w'])
-            >>> t.add_columns([col_c, col_d], [0, 1])
+            >>> t = Table([[1, 2], [0.1, 0.2]], names=('a', 'b'))
+            >>> t.add_columns([['x', 'y'], ['u', 'v']], names=['c', 'd'],
+            ...               indexes=[0, 1])
             >>> print(t)
              c   a   d   b
             --- --- --- ---
               x   1   u 0.1
               y   2   v 0.2
-              z   3   w 0.3
 
         Add second column 'b' and column 'c' with ``rename_duplicate``::
 
-            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
-            >>> col_b = Column(name='b', data=[1.1, 1.2, 1.3])
-            >>> col_c = Column(name='c', data=['x', 'y', 'z'])
-            >>> t.add_columns([col_b, col_c], rename_duplicate=True)
+            >>> t = Table([[1, 2], [0.1, 0.2]], names=('a', 'b'))
+            >>> t.add_columns([[1.1, 1.2], ['x', 'y']], names=('b', 'c'),
+            ...               rename_duplicate=True)
             >>> print(t)
              a   b  b_1  c
             --- --- --- ---
               1 0.1 1.1  x
               2 0.2 1.2  y
-              3 0.3 1.3  z
 
         Add unnamed columns or mixin objects in the table using default names
         or by specifying explicit names with ``names``. Names can also be overridden::
 
             >>> t = Table()
-            >>> col_a = Column(data=['x', 'y'])
             >>> col_b = Column(name='b', data=['u', 'v'])
-            >>> t.add_columns([col_a, col_b])
-            >>> t.add_columns([col_a, col_b], names=['c', 'd'])
+            >>> t.add_columns([[1, 2], col_b])
+            >>> t.add_columns([[3, 4], col_b], names=['c', 'd'])
             >>> print(t)
             col0  b   c   d
             ---- --- --- ---
-               x   u   x   u
-               y   v   y   v
+               1   u   3   u
+               2   v   4   v
         """
         if indexes is None:
             indexes = [len(self.columns)] * len(cols)
         elif len(indexes) != len(cols):
             raise ValueError('Number of indexes must match number of cols')
 
-        if copy:
-            cols = [col_copy(col) for col in cols]
-
-        if len(self.columns) == 0:
-            # No existing table data, init from cols
-            newcols = cols
-        else:
-            newcols = list(self.columns.values())
-            new_indexes = list(range(len(newcols) + 1))
-            for col, index in zip(cols, indexes):
-                i = new_indexes.index(index)
-                new_indexes.insert(i, None)
-                newcols.insert(i, col)
-
         if names is None:
             names = (None,) * len(cols)
         elif len(names) != len(cols):
-                raise ValueError('Number of names must match number of cols')
+            raise ValueError('Number of names must match number of cols')
 
-        for i, (col, name) in enumerate(zip(cols, names)):
-            if name is None:
-                if col.info.name is not None:
-                    continue
-                name = 'col{}'.format(i + len(self.columns))
-            if col.info.parent_table is not None:
-                col = col_copy(col)
-            col.info.name = name
+        default_names = ['col{}'.format(ii + len(self.columns))
+                         for ii in range(len(cols))]
 
-        if rename_duplicate:
-            existing_names = set(self.colnames)
-            for col in cols:
-                i = 1
-                orig_name = col.info.name
-                if col.info.name in existing_names:
-                    # If the column belongs to another table then copy it
-                    # before renaming
-                    while col.info.name in existing_names:
-                        # Iterate until a unique name is found
-                        if col.info.parent_table is not None:
-                            col = col_copy(col)
-                        new_name = '{0}_{1}'.format(orig_name, i)
-                        col.info.name = new_name
-                        i += 1
-                    existing_names.add(new_name)
-
-        self._init_from_cols(newcols)
+        for ii in reversed(np.argsort(indexes)):
+            self.add_column(cols[ii], index=indexes[ii], name=names[ii],
+                            default_name=default_names[ii],
+                            rename_duplicate=rename_duplicate, copy=copy)
 
     def _replace_column_warnings(self, name, col):
         """

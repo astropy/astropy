@@ -12,7 +12,7 @@ import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy.io import fits
-from astropy.table import Table
+from astropy.table import Table, QTable, MaskedColumn
 from astropy.tests.helper import (assert_follows_unicode_guidelines,
                                   ignore_warnings, catch_warnings)
 
@@ -1935,6 +1935,12 @@ class TestReplaceColumn(SetupData):
         t['a'][0] = 10
         assert t['a'][0] == a[0]
 
+    def test_replace_with_masked_col_with_units_in_qtable(self):
+        """This is a small regression from #8902"""
+        t = QTable([[1, 2], [3, 4]], names=['a', 'b'])
+        t['a'] = MaskedColumn([5, 6], unit='m')
+        assert isinstance(t['a'], u.Quantity)
+
 
 class Test__Astropy_Table__():
     """
@@ -2328,3 +2334,18 @@ def test_tolist():
     assert t['c'].tolist() == [['foo', 'bar'], ['hello', 'world']]
     assert isinstance(t['a'].tolist()[0][0], int)
     assert isinstance(t['c'].tolist()[0][0], str)
+
+
+def test_broadcasting_8933():
+    """Explicitly check re-work of code related to broadcasting in #8933"""
+    t = table.Table([[1, 2]])  # Length=2 table
+    t['a'] = [[3, 4]]  # Can broadcast if ndim > 1 and shape[0] == 1
+    t['b'] = 5
+    t['c'] = [1]  # Treat as broadcastable scalar, not length=1 array (which would fail)
+    assert np.all(t['a'] == [[3, 4], [3, 4]])
+    assert np.all(t['b'] == [5, 5])
+    assert np.all(t['c'] == [1, 1])
+
+    # Test that broadcasted column is writeable
+    t['c'][1] = 10
+    assert np.all(t['c'] == [1, 10])
