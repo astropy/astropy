@@ -116,9 +116,10 @@ class Parameter(OrderedDescriptor):
     """
     Wraps individual parameters.
 
-    Note: this is a new implementation of the Parameter class, and despite
-    the fact that it inherits from OrderedDescriptor, it no longer is a
-    descriptor.
+    Since 4.0 Parameters are no longer descriptors (despite the fact that
+    it inherits from OrderedDescriptor) and are based on a new implementation 
+    of the Parameter class. Parameters now  (as of 4.0) store values locally
+    (as instead previously in the associated model)
 
     This class represents a model's parameter (in a somewhat broad sense). It
     serves a number of purposes:
@@ -137,8 +138,7 @@ class Parameter(OrderedDescriptor):
     the parameter may be varied in fitting, or whether there are constraints
     that must be satisfied.
 
-    Parameters now do store values locally (as instead previously in the
-    associated model)
+
 
     See :ref:`modeling-parameters` for more details.
 
@@ -598,10 +598,6 @@ class Parameter(OrderedDescriptor):
 
             # >>> m.a.validator(42)  # Passes
             # >>> m.a.validator(-42)  # doctest: +IGNORE_EXCEPTION_DETAIL
-            # Traceback (most recent call last):
-            # ...
-            # InputParameterError: parameter 'a' must be greater than or equal
-            # to parameter 'b'
         """
 
         def validator(func, self=self):

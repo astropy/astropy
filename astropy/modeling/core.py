@@ -2484,7 +2484,6 @@ class CompoundModel(Model):
                 return False
         return True
 
-
     def __call__(self, *args, **kw):
         # If equivalencies are provided, necessary to map parameters and pass
         # the leaflist as a keyword input for use by model evaluation so that
@@ -2921,7 +2920,6 @@ class CompoundModel(Model):
         self._initialize_slices()
         self._initialize_constraints()
 
-
     def _initialize_slices(self):
         # TODO eliminate redundant code with core here and next two methods
         param_metrics = self._param_metrics
@@ -3013,6 +3011,7 @@ class CompoundModel(Model):
             return input_units_dict
         else:
             return None
+
     @property
     def input_units_equivalencies(self):
         inputs_map = self.inputs_map()
@@ -3411,6 +3410,7 @@ def binary_operation(binoperator, left, right):
     else:
         return binoperator(left, right)
 
+
 def get_ops(tree, opset):
     """
     Recursive function to collect operators used.
@@ -3421,6 +3421,7 @@ def get_ops(tree, opset):
         get_ops(tree.right, opset)
     else:
         return
+
 
 def make_subtree_dict(tree, nodepath, tdict, leaflist):
     '''
@@ -3898,17 +3899,6 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
     if input_shape is None:
         raise ValueError(
             "All inputs must have identical shapes or must be scalars")
-    # try:
-    #     input_broadcast = check_broadcast(*all_shapes)
-    # except IncompatibleShapeError as exc:
-    #     shape_a, shape_a_idx, shape_b, shape_b_idx = exc.args
-    #     arg_a = argnames[shape_a_idx]
-    #     arg_b = argnames[shape_b_idx]
-
-    #     raise ValueError(
-    #         "Model input argument {0!r} of shape {1!r} cannot "
-    #         "be broadcast with input {2!r} of shape {3!r}".format(
-    #             arg_a, shape_a, arg_b, shape_b))
 
     return input_shape
 

@@ -49,8 +49,11 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
-- Major rework of modeling internals. See release notes for details. Eliminates
-  support for compound classes (but not compound instances!) [#8769]
+- Major rework of modeling internals. See modeling documentation for details. 
+`<https://docs.astropy.org/en/v4.0/modeling/changes_for_4.html>`_
+
+Major change in functionality:
+Eliminates support for compound classes (but not compound instances!) [#8769]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
@@ -152,8 +155,11 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
-- Major rework of modeling internals. See release notes for details. Eliminates
-  support for compound classes (but not compound instances!) [#8769]
+- Major rework of modeling internals. See modeling documentation for details. 
+`<https://docs.astropy.org/en/v4.0/modeling/changes_for_4.html>`_
+
+Major change in functionality:
+Eliminates support for compound classes (but not compound instances!) [#8769]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
