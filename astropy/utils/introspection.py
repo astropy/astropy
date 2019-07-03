@@ -297,6 +297,11 @@ def _get_module_from_frame(frm):
         if filename in inspect.modulesbyfile:
             return sys.modules.get(inspect.modulesbyfile[filename])
 
+        # On Windows, inspect.modulesbyfile appears to have filenames stored
+        # in lowercase, so we check for this case too.
+        if filename.lower() in inspect.modulesbyfile:
+            return sys.modules.get(inspect.modulesbyfile[filename.lower()])
+
     # Otherwise there are still some even trickier things that might be possible
     # to track down the module, but we'll leave those out unless we find a case
     # where it's really necessary.  So return None if the module is not found.
