@@ -322,6 +322,8 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
+- Versions of Python <3.6 are no longer supported. [#8955]
+
 - Matplotlib 2.1 and later is now required. [#8787]
 
 
