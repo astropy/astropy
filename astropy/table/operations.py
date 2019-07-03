@@ -472,20 +472,21 @@ def unique(input_table, keys=None, silent=False, keep='first'):
         if len(set(keys)) != len(keys):
             raise ValueError("duplicate key names")
 
-    if input_table.masked:
-        nkeys = 0
-        for key in keys[:]:
-            if np.any(input_table[key].mask):
-                if not silent:
-                    raise ValueError(
-                        "cannot use columns with masked values as keys; "
-                        "remove column '{0}' from keys and rerun "
-                        "unique()".format(key))
-                del keys[keys.index(key)]
-        if len(keys) == 0:
-            raise ValueError("no column remained in ``keys``; "
-                             "unique() cannot work with masked value "
-                             "key columns")
+    # Check for columns with masked values
+    nkeys = 0
+    for key in keys[:]:
+        col = input_table[key]
+        if hasattr(col, 'mask') and np.any(col.mask):
+            if not silent:
+                raise ValueError(
+                    "cannot use columns with masked values as keys; "
+                    "remove column '{0}' from keys and rerun "
+                    "unique()".format(key))
+            del keys[keys.index(key)]
+    if len(keys) == 0:
+        raise ValueError("no column remained in ``keys``; "
+                         "unique() cannot work with masked value "
+                         "key columns")
 
     grouped_table = input_table.group_by(keys)
     indices = grouped_table.groups.indices
