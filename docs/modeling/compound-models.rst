@@ -1,9 +1,9 @@
-.. .. _compound-models:
+.. _compound-models:
 
-.. Compound Models
-.. ***************
+Compound Models
+***************
 
-.. .. versionadded:: 1.0
+.. versionadded:: 1.0
 
 As noted in the :ref:`introduction to the modeling package
 <compound-models-intro>`, it is now possible to create new models just by
