@@ -8,12 +8,11 @@ from asdf import tagged
 from asdf import yamlutil
 from asdf.tests.helpers import assert_tree_match
 from .basic import TransformType, ConstantType
-from ......modeling.core import Model, CompoundModel
-from ......modeling.models import Identity, Mapping
+from astropy.modeling.core import Model, CompoundModel
+from astropy.modeling.models import Identity, Mapping
 
 
 __all__ = ['CompoundType', 'RemapAxesType']
-
 
 
 _operator_to_tag_mapping = {
@@ -50,12 +49,12 @@ class CompoundType(TransformType):
         oper = _tag_to_method_mapping[tag]
         left = yamlutil.tagged_tree_to_custom_tree(
             node['forward'][0], ctx)
-        if not (isinstance(left, Model)):
+        if not isinstance(left, Model):
             raise TypeError("Unknown model type '{0}'".format(
                 node['forward'][0]._tag))
         right = yamlutil.tagged_tree_to_custom_tree(
             node['forward'][1], ctx)
-        if not (isinstance(right, Model)):
+        if not isinstance(right, Model):
             raise TypeError("Unknown model type '{0}'".format(
                 node['forward'][1]._tag))
         model = getattr(left, oper)(right)
@@ -91,7 +90,6 @@ class CompoundType(TransformType):
 
         node = tagged.tag_object(cls.make_yaml_tag(tag_name), node, ctx=ctx)
         return node
-
 
     @classmethod
     def to_tree_tagged(cls, model, ctx):

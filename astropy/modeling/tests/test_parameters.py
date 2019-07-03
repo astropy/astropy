@@ -46,7 +46,6 @@ class SetterModel(FittableModel):
         self.xc = xc
         self.yc = yc
 
-
     def evaluate(self, x, y, xc, yc):
         return ((x - xc)**2 + (y - yc)**2)
 
@@ -134,17 +133,22 @@ def test_parameter_operators():
 
 # Test inherited models
 
+
 class M1(Model):
     m1a = Parameter(default=1.)
     m1b = Parameter(default=5.)
+
     def evaluate():
         pass
+
 
 class M2(M1):
     m2c = Parameter(default=11.)
 
+
 class M3(M2):
     m3d = Parameter(default=20.)
+
 
 def test_parameter_inheritance():
     mod = M3()
@@ -156,6 +160,7 @@ def test_parameter_inheritance():
         assert key in mod.__dict__
     assert mod.param_names  == ('m1a', 'm1b', 'm2c', 'm3d')
 
+
 def test_param_metric():
     mod = M3()
     assert mod._param_metrics['m1a']['slice'] == slice(0, 1)
@@ -164,6 +169,7 @@ def test_param_metric():
     assert mod._param_metrics['m3d']['slice'] == slice(3, 4)
     mod._parameters_to_array()
     assert (mod._parameters == np.array([1., 5., 11., 20], dtype=np.float64)).all()
+
 
 class TestParameters:
 
@@ -324,6 +330,7 @@ class TestParameters:
         sc1.factor = [3, 3]
         assert np.all(sc1.factor == [3, 3])
         utils.assert_array_equal(sc1.factor.value, [3, 3])
+
 
 class TestMultipleParameterSets:
 

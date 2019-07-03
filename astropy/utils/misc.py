@@ -5,8 +5,6 @@ A "grab bag" of relatively small general-purpose utilities that don't have
 a clear module/package to live in.
 """
 
-
-
 import abc
 import copy
 import contextlib
@@ -35,6 +33,7 @@ __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
            'OrderedDescriptor', 'OrderedDescriptorContainer', 'set_locale',
            'ShapedLikeNDArray', 'check_broadcast', 'IncompatibleShapeError',
            'dtype_bytes_or_chars']
+
 
 def isiterable(obj):
     """Returns `True` if the given object is iterable."""
@@ -847,6 +846,7 @@ def get_parameters(members):
 
     # members['_parameter_vals_'] = pdict
     members['_parameters_'] = pdict
+
 
 LOCALE_LOCK = threading.Lock()
 
