@@ -785,7 +785,7 @@ def test_velosys():
 def test_velref():
     w = _wcs.Wcsprm()
     assert w.velref == 0.0
-    w.velref = 42.0
+    w.velref = 42
     assert w.velref == 42.0
     del w.velref
     assert w.velref == 0.0
