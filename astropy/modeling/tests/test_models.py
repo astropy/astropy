@@ -90,6 +90,7 @@ def test_custom_model_defaults():
     assert sin_model.amplitude == 4
     assert sin_model.frequency == 1
 
+
 def test_inconsistent_input_shapes():
     g = Gaussian2D()
     x = np.arange(-1., 1, .2)

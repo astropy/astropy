@@ -117,7 +117,7 @@ class Parameter(OrderedDescriptor):
     Wraps individual parameters.
 
     Since 4.0 Parameters are no longer descriptors (despite the fact that
-    it inherits from OrderedDescriptor) and are based on a new implementation 
+    it inherits from OrderedDescriptor) and are based on a new implementation
     of the Parameter class. Parameters now  (as of 4.0) store values locally
     (as instead previously in the associated model)
 
