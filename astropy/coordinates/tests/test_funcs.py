@@ -163,3 +163,15 @@ def test_concatenate_representations():
     # Check that passing in a single object fails
     with pytest.raises(TypeError):
         concatenate_representations(reps[0])
+
+
+def test_concatenate_representations_different_units():
+    from astropy.coordinates.funcs import concatenate_representations
+    from astropy.coordinates import representation as r
+
+    reps = [r.CartesianRepresentation([1, 2, 3.]*u.pc),
+            r.CartesianRepresentation([1, 2, 3.]*u.kpc)]
+    concat = concatenate_representations(reps)
+    assert concat.shape == (2,)
+    assert np.all(concat.xyz ==
+                  ([[1., 2., 3.], [1000., 2000., 3000.]] * u.pc).T)
