@@ -37,9 +37,9 @@ specified by the ICRS position :math:`(\alpha_{\rm GC}, \delta_{\rm GC})`:
 
    \begin{aligned}
        \boldsymbol{R}_1 &= \begin{bmatrix}
-         \cos\delta_{\rm GC}& 0 & -\sin\delta_{\rm GC}\\
+         \cos\delta_{\rm GC}& 0 & \sin\delta_{\rm GC}\\
          0 & 1 & 0 \\
-         \sin\delta_{\rm GC}& 0 & \cos\delta_{\rm GC}\end{bmatrix}\\
+         -\sin\delta_{\rm GC}& 0 & \cos\delta_{\rm GC}\end{bmatrix}\\
        \boldsymbol{R}_2 &=
        \begin{bmatrix}
          \cos\alpha_{\rm GC}& \sin\alpha_{\rm GC}& 0\\
