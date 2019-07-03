@@ -2990,7 +2990,6 @@ class CompoundModel(Model):
         if self._leaflist is None:
             self.map_parameters()
         units_for_data = {}
-        print('_param_map_inverse', self._param_map_inverse)
         for imodel, model in enumerate(self._leaflist):
             units_for_data_leaf = model._parameter_units_for_data_units(input_units, output_units)
             for param_leaf in units_for_data_leaf:
@@ -3864,10 +3863,6 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
 
     check_model_set_axis = n_models > 1 and model_set_axis is not False
 
-    if not (validate_broadcasting or check_model_set_axis):
-        # Nothing else needed here
-        return
-
     all_shapes = []
     for idx, _input in enumerate(inputs):
         input_shape = np.shape(_input)
@@ -3892,9 +3887,6 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
                     "n_models={2}.".format(argname, model_set_axis,
                                            n_models))
         all_shapes.append(input_shape)
-
-    if not validate_broadcasting:
-        return
 
     input_shape = check_consistent_shapes(*all_shapes)
     if input_shape is None:
@@ -4001,6 +3993,7 @@ def generic_call(self, *inputs, **kwargs):
 
 
 def prepare_bounding_box_inputs(self, input_shape, inputs, bbox):
+
     allout = False
     if self.n_inputs > 1:
         # bounding_box is in python order -
@@ -4018,7 +4011,8 @@ def prepare_bounding_box_inputs(self, input_shape, inputs, bbox):
             nan_ind[outside] = True
         else:
             nan_ind |= outside
-            allout = True
+            if nan_ind:
+                allout = True
     # get an array with indices of valid inputs
     valid_ind = np.logical_not(nan_ind).nonzero()
     if len(valid_ind[0]) == 0:
@@ -4027,7 +4021,7 @@ def prepare_bounding_box_inputs(self, input_shape, inputs, bbox):
     args = []
     if not allout:
         for input in inputs:
-            if input.shape:
+            if input_shape:
                 args.append(input[valid_ind])
             else:
                 args.append(input)
