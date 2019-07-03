@@ -193,6 +193,7 @@ def test_compound_fitting_with_units():
     assert isinstance(res(x, y), np.ndarray)
     assert all([res[i]._has_units for i in range(2)])
 
+
 @pytest.mark.skipif('not HAS_SCIPY')
 @pytest.mark.parametrize('model', bad_compound_models_no_units)
 def test_bad_compound_without_units(model):
