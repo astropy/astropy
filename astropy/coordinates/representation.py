@@ -415,13 +415,6 @@ class MetaBaseRepresentation(InheritDocstrings, abc.ABCMeta):
             raise NotImplementedError('Representations must have an '
                                       '"attr_classes" class attribute.')
 
-        if 'recommended_units' in dct:
-            warnings.warn(_recommended_units_deprecation,
-                          AstropyDeprecationWarning)
-            # Ensure we don't override the property that warns about the
-            # deprecation, but that the value remains the same.
-            dct.setdefault('_recommended_units', dct.pop('recommended_units'))
-
         repr_name = cls.get_name()
 
         if repr_name in REPRESENTATION_CLASSES:
@@ -1954,13 +1947,6 @@ class MetaBaseDifferential(InheritDocstrings, abc.ABCMeta):
             base_attr_classes = cls.base_representation.attr_classes
             cls.attr_classes = OrderedDict([('d_' + c, u.Quantity)
                                             for c in base_attr_classes])
-
-        if 'recommended_units' in dct:
-            warnings.warn(_recommended_units_deprecation,
-                          AstropyDeprecationWarning)
-            # Ensure we don't override the property that warns about the
-            # deprecation, but that the value remains the same.
-            dct.setdefault('_recommended_units', dct.pop('recommended_units'))
 
         repr_name = cls.get_name()
         if repr_name in DIFFERENTIAL_CLASSES:
