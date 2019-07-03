@@ -25,6 +25,10 @@ astropy.coordinates
   as input. The ephemeris can now be selected by either keyword (e.g. 'jpl',
   'de430'), URL or file path. [#8767]
 
+- Added a ``.component_names`` attribute to all frame classes (and ``SkyCoord``)
+  that returns a list of all component names of a given frame (e.g., position
+  components like ``ra`` and velocity components like ``pm_ra_cosdec``). [#8953]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
