@@ -64,7 +64,19 @@ astropy.table
 ^^^^^^^^^^^^^
 
 - Improved the implementation of ``Table.replace_column()`` to provide
-  a speed-up of 5-10 times for wide tables. [#8902]
+  a speed-up of 5 to 10 times for wide tables.  The method can now accept
+  any input which convertible to a column of the correct length, not just
+  ``Column`` subclasses.[#8902]
+
+- Improved the implementation of ``Table.add_column()`` to provide a speed-up
+  of 2 to 10 (or more) when adding a column to tables, with increasing benefit
+  as the number of columns increases.  The method can now accept any input
+  which is convertible to a column of the correct length, not just ``Column``
+  subclasses. [#8933]
+
+- Changed the implementation of ``Table.add_columns()`` to use the new
+  ``Table.add_column()`` method.  In most cases the performance is similar
+  or slightly faster to the previous implemenation. [#8933]
 
 - ``MaskedColumn.data`` will now return a plain ``MaskedArray`` rather than
   the previous (unintended) ``masked_BaseColumn``. [#8855]
@@ -187,6 +199,11 @@ astropy.table
   needed. Two new table properties ``has_masked_columns`` and ``has_masked_values``
   were added. See the ``Masking change in astropy 4.0`` section within
   `<https://docs.astropy.org/en/v4.0/table/masking.html>`_ for details. [#8789]
+
+- Changed implementation of ``Table.add_column()`` and ``Table.add_columns()``
+  methods.  Now it is possible add any object(s) which can be converted or broadcasted
+  to a valid column for the table.  ``Table.__setitem__`` now just calls
+  ``add_column``.
 
 astropy.tests
 ^^^^^^^^^^^^^
