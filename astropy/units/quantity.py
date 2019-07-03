@@ -724,8 +724,8 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                     # not in-place!
                     value = value * scale
 
-        return value if self.shape else (value[()] if self.dtype.fields
-                                         else value.item())
+        # Index with empty tuple to decay array scalars in to numpy scalars.
+        return value[()]
 
     value = property(to_value,
                      doc="""The numerical value of this instance.

@@ -7,6 +7,7 @@
 import copy
 import pickle
 import decimal
+import numbers
 from fractions import Fraction
 
 import pytest
@@ -1078,7 +1079,7 @@ def test_arrays():
         len(qseclen0array)
     with pytest.raises(TypeError):
         qseclen0array[0]
-    assert isinstance(qseclen0array.value, int)
+    assert isinstance(qseclen0array.value, numbers.Integral)
 
     a = np.array([(1., 2., 3.), (4., 5., 6.), (7., 8., 9.)],
                  dtype=[('x', float),

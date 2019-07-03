@@ -178,6 +178,11 @@ def sanitize_scale(scale):
     if scale.__class__ is float:
         return scale
 
+    # We cannot have numpy scalars, since they don't autoconvert to
+    # complex if necessary.  They are also slower.
+    if hasattr(scale, 'dtype'):
+        scale = scale.item()
+
     # All classes that scale can be (int, float, complex, Fraction)
     # have an "imag" attribute.
     if scale.imag:
