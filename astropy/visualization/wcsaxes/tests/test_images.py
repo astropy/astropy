@@ -2,22 +2,23 @@
 import os
 
 import pytest
-import numpy as np
-
 import matplotlib.pyplot as plt
-from matplotlib.patches import Circle, Rectangle
 from matplotlib import rc_context
+from matplotlib.patches import Circle, Rectangle
+
+import numpy as np
 
 from astropy import units as u
 from astropy.io import fits
 from astropy.wcs import WCS
+from astropy.utils.data import get_pkg_data_filename
 from astropy.coordinates import SkyCoord
-
-from astropy.visualization.wcsaxes.patches import SphericalCircle
-from astropy.visualization.wcsaxes import WCSAxes
-from . import datasets
 from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
+from astropy.visualization.wcsaxes import WCSAxes
 from astropy.visualization.wcsaxes.frame import EllipticalFrame
+from astropy.visualization.wcsaxes.patches import SphericalCircle
+
+from . import datasets
 
 
 class BaseImageTests:
@@ -742,4 +743,20 @@ class TestBasic(BaseImageTests):
         ax.coords[1].display_minor_ticks(True)
         ax.coords[1].tick_params(which='minor', length=6)
 
+        return fig
+
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=0, style={})
+    def test_plot_coord_3d_transform(self):
+        filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
+        wcs = WCS(filename)
+        data = fits.getdata(filename)
+
+        coord = SkyCoord(0 * u.kpc, 0 * u.kpc, 0 * u.kpc, frame='galactocentric')
+
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1, projection=wcs)
+        ax.imshow(data)
+        ax.plot_coord(coord, 'ro')
         return fig
