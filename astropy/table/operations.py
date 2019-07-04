@@ -17,7 +17,7 @@ from collections.abc import Mapping, Sequence
 import numpy as np
 
 from astropy.utils import metadata
-from .table import Table, QTable, Row, Column
+from .table import Table, QTable, Row, Column, MaskedColumn
 from astropy.units import Quantity
 
 from . import _np_utils
@@ -216,8 +216,8 @@ def setdiff(table1, table2, keys=None):
     t12 = _join(t1, t2, join_type='left', keys=keys,
                 metadata_conflicts='silent')
 
-    # If t12 is masked then that means some rows were in table1 but not table2.
-    if t12.masked:
+    # If t12 index2 is masked then that means some rows were in table1 but not table2.
+    if hasattr(t12['__index2__'], 'mask'):
         # Define bool mask of table1 rows not in table2
         diff = t12['__index2__'].mask
         # Get the row indices of table1 for those rows
@@ -700,8 +700,7 @@ def _join(left, right, keys=None, join_type='inner',
     masked, n_out, left_out, left_mask, right_out, right_mask = \
         _np_utils.join_inner(idxs, idx_sort, len_left, int_join_type)
 
-    # If either of the inputs are masked then the output is masked
-    if left.masked or right.masked:
+    if left.has_masked_columns or right.has_masked_columns:
         masked = True
     masked = bool(masked)
 
@@ -743,7 +742,7 @@ def _join(left, right, keys=None, join_type='inner',
         # Finally add the joined column to the output table.
         out[out_name] = array[name][array_out]
 
-        # If the output table is masked then set the output column masking
+        # If the output column is masked then set the output column masking
         # accordingly.  Check for columns that don't support a mask attribute.
         if masked and np.any(array_mask):
             # array_mask is 1-d corresponding to length of output column.  We need
@@ -754,7 +753,7 @@ def _join(left, right, keys=None, join_type='inner',
             # Now broadcast to the correct final shape
             array_mask = np.broadcast_to(array_mask, out[out_name].shape)
 
-            if array.masked:
+            if hasattr(array[name], 'mask'): # array.masked:
                 array_mask = array_mask | array[name].mask[array_out]
             try:
                 out[out_name][array_mask] = out[out_name].info.mask_val
@@ -767,6 +766,12 @@ def _join(left, right, keys=None, join_type='inner',
     # If col_name_map supplied as a dict input, then update.
     if isinstance(_col_name_map, Mapping):
         _col_name_map.update(col_name_map)
+
+    if out.masked:
+        out._set_masked(False)
+        for col in out.itercols():
+            if isinstance(col, MaskedColumn) and not np.any(col.mask):
+                out[col.name] = Column(col, copy=False)
 
     return out
 
