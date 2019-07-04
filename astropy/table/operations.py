@@ -700,11 +700,7 @@ def _join(left, right, keys=None, join_type='inner',
     masked, n_out, left_out, left_mask, right_out, right_mask = \
         _np_utils.join_inner(idxs, idx_sort, len_left, int_join_type)
 
-    if left.has_masked_columns or right.has_masked_columns:
-        masked = True
-    masked = bool(masked)
-
-    out = _get_out_class([left, right])(masked=masked)
+    out = _get_out_class([left, right])()
 
     for out_name, dtype, shape in out_descrs:
 
@@ -739,37 +735,39 @@ def _join(left, right, keys=None, join_type='inner',
         else:
             raise TableMergeError('Unexpected column names (maybe one is ""?)')
 
-        # Finally add the joined column to the output table.
-        out[out_name] = array[name][array_out]
+        # Select the correct elements from the original table
+        col = array[name][array_out]
 
         # If the output column is masked then set the output column masking
         # accordingly.  Check for columns that don't support a mask attribute.
         if masked and np.any(array_mask):
+            # If col is a Column but not MaskedColumn then upgrade at this point
+            # because masking is required.
+            if isinstance(col, Column) and not isinstance(col, MaskedColumn):
+                col = col.view(MaskedColumn)
+
             # array_mask is 1-d corresponding to length of output column.  We need
             # make it have the correct shape for broadcasting, i.e. (length, 1, 1, ..).
             # Mixin columns might not have ndim attribute so use len(col.shape).
-            array_mask.shape = (out[out_name].shape[0],) + (1,) * (len(out[out_name].shape) - 1)
+            array_mask.shape = (col.shape[0],) + (1,) * (len(col.shape) - 1)
 
             # Now broadcast to the correct final shape
-            array_mask = np.broadcast_to(array_mask, out[out_name].shape)
-
-            # Column has a mask so incorporate that into the final mask
-            if hasattr(array[name], 'mask'):
-                array_mask = array_mask | array[name].mask[array_out]
+            array_mask = np.broadcast_to(array_mask, col.shape)
 
             try:
-                out[out_name][array_mask] = out[out_name].info.mask_val
+                col[array_mask] = col.info.mask_val
             except Exception:  # Not clear how different classes will fail here
                 raise NotImplementedError(
                     "join requires masking column '{}' but column"
                     " type {} does not support masking"
-                    .format(out_name, out[out_name].__class__.__name__))
+                    .format(out_name, col.__class__.__name__))
+
+        # Set the output table column to the new joined column
+        out[out_name] = col
 
     # If col_name_map supplied as a dict input, then update.
     if isinstance(_col_name_map, Mapping):
         _col_name_map.update(col_name_map)
-
-    unmask_table_columns(out)
 
     return out
 
