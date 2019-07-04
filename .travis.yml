@@ -99,7 +99,7 @@ matrix:
         # time.
         # Run this test using native pytest
         - os: linux
-          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.13
+          env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.13
                INSTALL_CMD='python setup.py build_ext --inplace'
                PIP_DEPENDENCIES='pytest-astropy'
                TEST_CMD='pytest --open-files --doctest-rst'
