@@ -650,6 +650,7 @@ class TestVStack():
         t2 = self.t1.copy()
         t2.meta.clear()
         out = table.vstack([self.t1, t2['a']])
+        assert out.masked is False
         assert out.pformat() == [' a   b ',
                                  '--- ---',
                                  '0.0 foo',
@@ -739,6 +740,7 @@ class TestVStack():
         t2 = self.t2
         t4 = self.t4
         t12 = table.vstack([t1, t2], join_type='outer')
+        assert t12.masked is False
         assert t12.pformat() == [' a   b   c ',
                                  '--- --- ---',
                                  '0.0 foo  --',
@@ -747,6 +749,7 @@ class TestVStack():
                                  '3.0 sez   5']
 
         t124 = table.vstack([t1, t2, t4], join_type='outer')
+        assert t124.masked is False
         assert t124.pformat() == [' a   b   c ',
                                   '--- --- ---',
                                   '0.0 foo  --',
@@ -784,12 +787,14 @@ class TestVStack():
         t1 = self.t1
         t4 = self.t4
         t4['b'].mask[1] = True
-        assert table.vstack([t1, t4]).pformat() == [' a   b ',
-                                                    '--- ---',
-                                                    '0.0 foo',
-                                                    '1.0 bar',
-                                                    '0.0 foo',
-                                                    '1.0  --']
+        t14 = table.vstack([t1, t4])
+        assert t14.masked is False
+        assert t14.pformat() == [' a   b ',
+                                 '--- ---',
+                                 '0.0 foo',
+                                 '1.0 bar',
+                                 '0.0 foo',
+                                 '1.0  --']
 
     def test_col_meta_merge_inner(self, operation_table_type):
         self._setup(operation_table_type)
@@ -1003,6 +1008,7 @@ class TestHStack():
         """
         self._setup(operation_table_type)
         out = table.hstack([self.t1, self.t1])
+        assert out.masked is False
         assert out.pformat() == ['a_1 b_1 a_2 b_2',
                                  '--- --- --- ---',
                                  '0.0 foo 0.0 foo',
@@ -1011,6 +1017,7 @@ class TestHStack():
     def test_stack_rows(self, operation_table_type):
         self._setup(operation_table_type)
         out = table.hstack([self.t1[0], self.t2[1]])
+        assert out.masked is False
         assert out.pformat() == ['a_1 b_1 a_2 b_2  c ',
                                  '--- --- --- --- ---',
                                  '0.0 foo 3.0 sez   5']
@@ -1096,6 +1103,7 @@ class TestHStack():
         assert out.pformat() == out_list.pformat()
 
         out = table.hstack([t1, t2, t3, t4], join_type='outer')
+        assert out.masked is False
         assert out.pformat() == ['a_1 b_1 a_2 b_2  c   d   e   f   g ',
                                  '--- --- --- --- --- --- --- --- ---',
                                  '0.0 foo 2.0 pez   4 4.0   7 0.0 foo',
@@ -1103,6 +1111,7 @@ class TestHStack():
                                  ' --  --  --  --  -- 6.0   9  --  --']
 
         out = table.hstack([t1, t2, t3, t4], join_type='inner')
+        assert out.masked is False
         assert out.pformat() == ['a_1 b_1 a_2 b_2  c   d   e   f   g ',
                                  '--- --- --- --- --- --- --- --- ---',
                                  '0.0 foo 2.0 pez   4 4.0   7 0.0 foo',
@@ -1123,10 +1132,11 @@ class TestHStack():
         t2 = operation_table_type(t1, copy=True, masked=True)
         t2.meta.clear()
         t2['b'].mask[1] = True
-        assert table.hstack([t1, t2]).pformat() == ['a_1 b_1 a_2 b_2',
-                                                    '--- --- --- ---',
-                                                    '0.0 foo 0.0 foo',
-                                                    '1.0 bar 1.0  --']
+        out = table.hstack([t1, t2])
+        assert out.pformat() == ['a_1 b_1 a_2 b_2',
+                                 '--- --- --- ---',
+                                 '0.0 foo 0.0 foo',
+                                 '1.0 bar 1.0  --']
 
     def test_table_col_rename(self, operation_table_type):
         self._setup(operation_table_type)
@@ -1305,6 +1315,7 @@ def test_unique(operation_table_type):
         "remove column 'a' from keys and rerun unique()")
 
     t1_mu = table.unique(t1_m, silent=True)
+    assert t1_mu.masked is False
     assert t1_mu.pformat() == [' a   b   c   d ',
                                '--- --- --- ---',
                                '  0   a 0.0   4',
@@ -1321,6 +1332,7 @@ def test_unique(operation_table_type):
     # Test that multiple masked key columns get removed in the correct
     # order
     t1_mu = table.unique(t1_m, keys=['d', 'a', 'b'], silent=True)
+    assert t1_mu.masked is False
     assert t1_mu.pformat() == [' a   b   c   d ',
                                '--- --- --- ---',
                                '  2   a 4.0  --',

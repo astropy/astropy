@@ -753,8 +753,10 @@ def _join(left, right, keys=None, join_type='inner',
             # Now broadcast to the correct final shape
             array_mask = np.broadcast_to(array_mask, out[out_name].shape)
 
-            if hasattr(array[name], 'mask'): # array.masked:
+            # Column has a mask so incorporate that into the final mask
+            if hasattr(array[name], 'mask'):
                 array_mask = array_mask | array[name].mask[array_out]
+
             try:
                 out[out_name][array_mask] = out[out_name].info.mask_val
             except Exception:  # Not clear how different classes will fail here
@@ -767,13 +769,17 @@ def _join(left, right, keys=None, join_type='inner',
     if isinstance(_col_name_map, Mapping):
         _col_name_map.update(col_name_map)
 
-    if out.masked:
-        out._set_masked(False)
-        for col in out.itercols():
-            if isinstance(col, MaskedColumn) and not np.any(col.mask):
-                out[col.name] = Column(col, copy=False)
+    unmask_table_columns(out)
 
     return out
+
+
+def unmask_table_columns(tbl):
+    if tbl.masked:
+        tbl._set_masked(False)
+        for col in tbl.itercols():
+            if isinstance(col, MaskedColumn) and not np.any(col.mask):
+                tbl[col.name] = Column(col, copy=False)
 
 
 def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='warn'):
@@ -882,6 +888,8 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
     if isinstance(_col_name_map, Mapping):
         _col_name_map.update(col_name_map)
 
+    unmask_table_columns(out)
+
     return out
 
 
@@ -979,5 +987,7 @@ def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
     # If col_name_map supplied as a dict input, then update.
     if isinstance(_col_name_map, Mapping):
         _col_name_map.update(col_name_map)
+
+    unmask_table_columns(out)
 
     return out
