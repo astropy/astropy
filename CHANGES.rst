@@ -203,6 +203,10 @@ astropy.table
   were added. See the ``Masking change in astropy 4.0`` section within
   `<https://docs.astropy.org/en/v4.0/table/masking.html>`_ for details. [#8789]
 
+- Table operation functions such as ``join``, ``vstack``, ``hstack``, etc now
+  always return a table with ``masked=False``, though the individual columns may
+  be masked as necessary. [#8957]
+
 - Changed implementation of ``Table.add_column()`` and ``Table.add_columns()``
   methods.  Now it is possible add any object(s) which can be converted or broadcasted
   to a valid column for the table.  ``Table.__setitem__`` now just calls
