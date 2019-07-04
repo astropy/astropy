@@ -122,7 +122,8 @@ class TestJoin():
 
         # Left join
         t12 = table.join(t1, t2, join_type='left')
-        assert t12.masked is True
+        assert t12.has_masked_columns is True
+        assert t12.masked is False
         assert sort_eq(t12.pformat(), [' a   b   c   d ',
                                        '--- --- --- ---',
                                        '  0 foo  L1  --',
@@ -133,7 +134,8 @@ class TestJoin():
 
         # Right join
         t12 = table.join(t1, t2, join_type='right')
-        assert t12.masked is True
+        assert t12.has_masked_columns is True
+        assert t12.masked is False
         assert sort_eq(t12.pformat(), [' a   b   c   d ',
                                        '--- --- --- ---',
                                        '  1 foo  L2  R1',
@@ -143,7 +145,8 @@ class TestJoin():
 
         # Outer join
         t12 = table.join(t1, t2, join_type='outer')
-        assert t12.masked is True
+        assert t12.has_masked_columns is True
+        assert t12.masked is False
         assert sort_eq(t12.pformat(), [' a   b   c   d ',
                                        '--- --- --- ---',
                                        '  0 foo  L1  --',
@@ -189,7 +192,7 @@ class TestJoin():
 
         # Left join
         t12 = table.join(t1, t2, join_type='left', keys='a')
-        assert t12.masked is True
+        assert t12.has_masked_columns is True
         assert sort_eq(t12.pformat(), [' a  b_1  c  b_2  d ',
                                        '--- --- --- --- ---',
                                        '  0 foo  L1  --  --',
@@ -201,7 +204,7 @@ class TestJoin():
 
         # Right join
         t12 = table.join(t1, t2, join_type='right', keys='a')
-        assert t12.masked is True
+        assert t12.has_masked_columns is True
         assert sort_eq(t12.pformat(), [' a  b_1  c  b_2  d ',
                                        '--- --- --- --- ---',
                                        '  1 foo  L2 foo  R1',
@@ -213,7 +216,7 @@ class TestJoin():
 
         # Outer join
         t12 = table.join(t1, t2, join_type='outer', keys='a')
-        assert t12.masked is True
+        assert t12.has_masked_columns is True
         assert sort_eq(t12.pformat(), [' a  b_1  c  b_2  d ',
                                        '--- --- --- --- ---',
                                        '  0 foo  L1  --  --',
@@ -232,9 +235,9 @@ class TestJoin():
         t1m = operation_table_type(self.t1, masked=True)
         t2 = self.t2
 
-        # Result should be masked even though not req'd by inner join
+        # Result table is never masked
         t1m2 = table.join(t1m, t2, join_type='inner')
-        assert t1m2.masked is True
+        assert t1m2.masked is False
 
         # Result should match non-masked result
         t12 = table.join(t1, t2)
@@ -271,9 +274,9 @@ class TestJoin():
         t2 = self.t2
         t2m = operation_table_type(self.t2, masked=True)
 
-        # Result should be masked even though not req'd by inner join
+        # Result table is never masked
         t1m2m = table.join(t1m, t2m, join_type='inner')
-        assert t1m2m.masked is True
+        assert t1m2m.masked is False
 
         # Result should match non-masked result
         t12 = table.join(t1, t2)
