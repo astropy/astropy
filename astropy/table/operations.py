@@ -772,14 +772,6 @@ def _join(left, right, keys=None, join_type='inner',
     return out
 
 
-def unmask_table_columns(tbl):
-    if tbl.masked:
-        tbl._set_masked(False)
-        for col in tbl.itercols():
-            if isinstance(col, MaskedColumn) and not np.any(col.mask):
-                tbl[col.name] = Column(col, copy=False)
-
-
 def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='warn'):
     """
     Stack Tables vertically (by rows)
