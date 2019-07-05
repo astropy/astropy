@@ -973,10 +973,10 @@ class Table:
             if isinstance(col, Column) and not isinstance(col, self.MaskedColumn):
                 col_cls = self.MaskedColumn
         else:
-             if isinstance(col, MaskedColumn):
+            if isinstance(col, MaskedColumn):
                 if not isinstance(col, self.MaskedColumn):
                     col_cls = self.MaskedColumn
-             elif isinstance(col, Column) and not isinstance(col, self.Column):
+            elif isinstance(col, Column) and not isinstance(col, self.Column):
                 col_cls = self.Column
 
         return col_cls
@@ -990,7 +990,8 @@ class Table:
         """
         if isinstance(col, Column) and not isinstance(col, self.ColumnClass):
             col_cls = self._get_col_cls_for_table(col)
-            col = col_cls(col, copy=False)
+            if col_cls is not col.__class__:
+                col = col_cls(col, copy=False)
 
         return col
 
@@ -2735,7 +2736,8 @@ class Table:
                    Jo  Miller  15
                   Max  Miller  12
 
-        Sorting according to standard sorting rules, first 'firstname' then 'tel', in reverse order::
+        Sorting according to standard sorting rules, first 'firstname' then 'tel',
+        in reverse order::
 
             >>> t.sort(['firstname', 'tel'], reverse=True)
             >>> print(t)

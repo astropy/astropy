@@ -946,7 +946,6 @@ def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
     # If there are any output rows where one or more input arrays are missing
     # then the output must be masked.  If any input arrays are masked then
     # output is masked.
-    # masked = any(getattr(arr, 'masked', False) for arr in arrays) or len(set(arr_lens)) > 1
 
     n_rows = max(arr_lens)
     out = _get_out_class(arrays)()
