@@ -58,6 +58,9 @@ Things to remember:
   generic way to copy a mixin object but not the data.
 
 - Be aware of column objects that have indices set.
+
+- `cls.ColumnClass` is a property that effectively uses the `masked` attribute
+  to choose either `cls.Column` or `cls.MaskedColumn`.
 """
 
 __doctest_skip__ = ['Table.read', 'Table.write', 'Table._read',
@@ -905,10 +908,7 @@ class Table:
             # gets upgraded to MaskedColumn, but the converse (pre-4.0) behavior
             # of downgrading from MaskedColumn to Column (for non-masked table)
             # does not happen.
-            if issubclass(self.ColumnClass, data.__class__):
-                col_cls = self.ColumnClass
-            else:
-                col_cls = data.__class__
+            col_cls = self._get_col_cls_for_table(data)
 
         elif self._is_mixin_for_table(data):
             # Copy the mixin column attributes if they exist since the copy below
@@ -956,6 +956,31 @@ class Table:
         data_list = [data[name] for name in names]
         self._init_from_list(data_list, names, dtype, n_cols, copy)
 
+    def _get_col_cls_for_table(self, col):
+        """Get the correct column class to use for upgrading any Column-like object.
+
+        For a masked table, ensure any Column-like object is a subclass
+        of the table MaskedColumn.
+
+        For unmasked table, ensure any MaskedColumn-like object is a subclass
+        of the table MaskedColumn.  If not a MaskedColumn, then ensure that any
+        Column-like object is a subclass of the table Column.
+        """
+
+        col_cls = col.__class__
+
+        if self.masked:
+            if isinstance(col, Column) and not isinstance(col, self.MaskedColumn):
+                col_cls = self.MaskedColumn
+        else:
+             if isinstance(col, MaskedColumn):
+                if not isinstance(col, self.MaskedColumn):
+                    col_cls = self.MaskedColumn
+             elif isinstance(col, Column) and not isinstance(col, self.Column):
+                col_cls = self.Column
+
+        return col_cls
+
     def _convert_col_for_table(self, col):
         """
         Make sure that all Column objects have correct base class for this type of
@@ -964,7 +989,9 @@ class Table:
         override this method.
         """
         if isinstance(col, Column) and not isinstance(col, self.ColumnClass):
-            col = self.ColumnClass(col)  # copy attributes and reference data
+            col_cls = self._get_col_cls_for_table(col)
+            col = col_cls(col, copy=False)
+
         return col
 
     def _init_from_cols(self, cols):
