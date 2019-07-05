@@ -232,18 +232,24 @@ def setdiff(table1, table2, keys=None):
     return t12_diff
 
 
-def cstack(tables, metadata_conflicts='warn'):
+def cstack(tables, join_type='outer', metadata_conflicts='warn'):
     """
     Stack tables Depth-wise
 
-    In column-stack(cstack) each column of a table is stacked depth wise.
-    To use cstack tables should have same name of column and also equal in
-    length.
+    A ``join_type`` of 'exact' means that the tables must all have exactly
+    the same column names (though the order can vary).  If ``join_type``
+    is 'inner' then the intersection of common columns will be the output.
+    A value of 'outer' (default) means the output will have the union of
+    all columns, with table values being masked where no common values are
+    available.
 
     Parameters
     ----------
     tables : Table or list of Table objects
-        Table(s) to stack along rows (vertically) with the current table
+        Table(s) to stack along depth-wise with the current table
+        Table columns should have same shape and name for depth-wise stacking
+    join_type : str
+        Join type ('inner' | 'exact' | 'outer'), default is 'outer'
     metadata_conflicts : str
         How to proceed with metadata conflicts. This should be one of:
             * ``'silent'``: silently pick the last conflicting meta-data value
@@ -273,21 +279,38 @@ def cstack(tables, metadata_conflicts='warn'):
         5   7
         6   8
       >>> print(cstack([t1, t2]))
-      a [2]  b [2] 
+      a [2]  b [2]
       ------ ------
       1 .. 5 3 .. 7
       2 .. 6 4 .. 8
     """
-    
-    tables = _get_list_of_tables(tables)  # validates input
-    if len(tables) == 1:
-        return tables[0]  # no point in stacking a single table
-    col_name_map = OrderedDict()
+    n_rows = set(len(table) for table in tables)
+    if len(n_rows) != 1:
+        raise ValueError('Table lengths must all match for cstack')
+    n_row = n_rows.pop()
 
-    out = _cstack(tables, col_name_map, metadata_conflicts)
+    out = vstack(tables, join_type, metadata_conflicts)
 
-    # Merge table metadata
-    _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
+    for name, col in out.columns.items():
+        col = out[name]
+
+        # Reshape to so each original column is now in a row.
+        # If entries are not 0-dim then those additional shape dims
+        # are just carried along.
+        # [x x x y y y] => [[x x x],
+        #                   [y y y]]
+        col.shape = (len(tables), n_row) + col.shape[1:]
+
+        # Transpose the table and row axes to get to
+        # [[x, y],
+        #  [x, y]
+        #  [x, y]]
+        axes = np.arange(len(col.shape))
+        axes[:2] = [1, 0]
+
+        # This temporarily makes `out` be corrupted (columns of different
+        # length) but it all works out in the end.
+        out.columns.__setitem__(name, col.transpose(axes), validated=True)
 
     return out
 
@@ -932,72 +955,6 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
             idx0 = idx1
 
         out[out_name] = col
-
-    # If col_name_map supplied as a dict input, then update.
-    if isinstance(_col_name_map, Mapping):
-        _col_name_map.update(col_name_map)
-
-    return out
-
-
-def _cstack(arrays, col_name_map=None, metadata_conflicts='warn'):
-    """
-    Stack Tables Depth-wise
-    In column-stack(cstack) each column of a table is stacked depth wise.
-    To use cstack tables should have same name of column and also equal in
-    length.
-
-    Parameters
-    ----------
-    arrays : list of Tables
-        Tables to stack by rows (vertically)
-    col_name_map : empty dict or None
-        If passed as a dict then it will be updated in-place with the
-        mapping of output to input column names.
-
-    Returns
-    -------
-    stacked_table : `~astropy.table.Table` object
-        New table containing the stacked data from the input tables.
-    """
-    # Store user-provided col_name_map until the end
-    _col_name_map = col_name_map
-
-    # Trivial case of one input array
-    if len(arrays) == 1:
-        return arrays[0]
-
-    names = set(itertools.chain(*[arr.colnames for arr in arrays]))
-    col_name_map = get_col_name_map(arrays, names)
-
-    # Matching column names
-    for names in col_name_map.values():
-        if any(x is None for x in names):
-            raise TableMergeError('Columns names are not matching use '
-                                  'tables that have same column names ')
-
-    lens = [len(arr) for arr in arrays]
-    if any(elem != lens[0] for elem in lens):
-        raise TableMergeError('Table lengths are not matching. '
-                              'Use table that are equal in length ')
-    shapes = OrderedDict()
-
-    for names in col_name_map.values():
-        for name in names:
-            shapes[name] = (0)
-
-    for arr in arrays:
-        for name, col in arr.columns.items():
-            if len(col.shape) >= 2:
-                shapes[name] = shapes[name]+col.shape[1]
-    out = vstack(arrays, 'exact', metadata_conflicts)
-
-    for name, col in out.columns.items():
-        if len(col.shape) >= 2:
-            new_col = col.reshape((shapes[name], lens[0])).transpose()
-        else:
-            new_col = col.reshape(lens).transpose()
-        out.columns.__setitem__(name, new_col, validated=True)
 
     # If col_name_map supplied as a dict input, then update.
     if isinstance(_col_name_map, Mapping):

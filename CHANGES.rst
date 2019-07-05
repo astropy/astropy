@@ -91,6 +91,9 @@ astropy.table
 - ``MaskedColumn.data`` will now return a plain ``MaskedArray`` rather than
   the previous (unintended) ``masked_BaseColumn``. [#8855]
 
+- Adding depth-wise stacking ``cstack()`` in higher level table operation.
+  It help will in stacking table column depth-wise. [#8939]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
