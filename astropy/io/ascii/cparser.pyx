@@ -6,6 +6,7 @@ import os
 import math
 import multiprocessing
 import mmap
+import queue as Queue
 import warnings
 
 import numpy as np
@@ -21,10 +22,6 @@ from ...utils.exceptions import AstropyWarning
 from ...table import pprint
 from . import core
 
-try:
-    import Queue
-except ImportError: # in python 3, the module is named queue
-    import queue as Queue
 
 cdef extern from "src/tokenizer.h":
     ctypedef enum tokenizer_state:
