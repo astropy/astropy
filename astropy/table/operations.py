@@ -958,10 +958,10 @@ def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
     # If there are any output rows where one or more input arrays are missing
     # then the output must be masked.  If any input arrays are masked then
     # output is masked.
-    masked = any(getattr(arr, 'masked', False) for arr in arrays) or len(set(arr_lens)) > 1
+    # masked = any(getattr(arr, 'masked', False) for arr in arrays) or len(set(arr_lens)) > 1
 
     n_rows = max(arr_lens)
-    out = _get_out_class(arrays)(masked=masked)
+    out = _get_out_class(arrays)()
 
     for out_name, in_names in col_name_map.items():
         for name, array, arr_len in zip(in_names, arrays, arr_lens):
@@ -971,21 +971,27 @@ def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
             if n_rows > arr_len:
                 indices = np.arange(n_rows)
                 indices[arr_len:] = 0
-                out[out_name] = array[name][indices]
+                col = array[name][indices]
+
+                # If col is a Column but not MaskedColumn then upgrade at this point
+                # because masking is required.
+                if isinstance(col, Column) and not isinstance(col, MaskedColumn):
+                    col = col.view(out.__class__.MaskedColumn)
+
                 try:
-                    out[out_name][arr_len:] = out[out_name].info.mask_val
+                    col[arr_len:] = col.info.mask_val
                 except Exception:
                     raise NotImplementedError(
                         "hstack requires masking column '{}' but column"
                         " type {} does not support masking"
-                        .format(out_name, out[out_name].__class__.__name__))
+                        .format(out_name, col.__class__.__name__))
             else:
-                out[out_name] = array[name][:n_rows]
+                col = array[name][:n_rows]
+
+            out[out_name] = col
 
     # If col_name_map supplied as a dict input, then update.
     if isinstance(_col_name_map, Mapping):
         _col_name_map.update(col_name_map)
-
-    unmask_table_columns(out)
 
     return out
