@@ -744,7 +744,7 @@ def _join(left, right, keys=None, join_type='inner',
             # If col is a Column but not MaskedColumn then upgrade at this point
             # because masking is required.
             if isinstance(col, Column) and not isinstance(col, MaskedColumn):
-                col = col.view(MaskedColumn)
+                col = out.MaskedColumn(col, copy=False)
 
             # array_mask is 1-d corresponding to length of output column.  We need
             # make it have the correct shape for broadcasting, i.e. (length, 1, 1, ..).
@@ -838,18 +838,9 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
         if len(col_name_map) == 0:
             raise TableMergeError('Input arrays have no columns in common')
 
-    # If there are any output columns where one or more input arrays are missing
-    # then the output must be masked.  If any input arrays are masked then
-    # output is masked.
-    masked = any(getattr(arr, 'masked', False) for arr in arrays)
-    for names in col_name_map.values():
-        if any(x is None for x in names):
-            masked = True
-            break
-
     lens = [len(arr) for arr in arrays]
     n_rows = sum(lens)
-    out = _get_out_class(arrays)(masked=masked)
+    out = _get_out_class(arrays)()
 
     for out_name, in_names in col_name_map.items():
         # List of input arrays that contribute to this output column
@@ -860,7 +851,7 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
             raise NotImplementedError('vstack unavailable for mixin column type(s): {}'
                                       .format(col_cls.__name__))
         try:
-            out[out_name] = col_cls.info.new_like(cols, n_rows, metadata_conflicts, out_name)
+            col = col_cls.info.new_like(cols, n_rows, metadata_conflicts, out_name)
         except metadata.MergeConflictError as err:
             # Beautify the error message when we are trying to merge columns with incompatible
             # types by including the name of the columns that originated the error.
@@ -871,22 +862,27 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
         for name, array in zip(in_names, arrays):
             idx1 = idx0 + len(array)
             if name in array.colnames:
-                out[out_name][idx0:idx1] = array[name]
+                col[idx0:idx1] = array[name]
             else:
+                # If col is a Column but not MaskedColumn then upgrade at this point
+                # because masking is required.
+                if isinstance(col, Column) and not isinstance(col, MaskedColumn):
+                    col = out.MaskedColumn(col, copy=False)
+
                 try:
-                    out[out_name][idx0:idx1] = out[out_name].info.mask_val
+                    col[idx0:idx1] = col.info.mask_val
                 except Exception:
                     raise NotImplementedError(
                         "vstack requires masking column '{}' but column"
                         " type {} does not support masking"
-                        .format(out_name, out[out_name].__class__.__name__))
+                        .format(out_name, col.__class__.__name__))
             idx0 = idx1
+
+        out[out_name] = col
 
     # If col_name_map supplied as a dict input, then update.
     if isinstance(_col_name_map, Mapping):
         _col_name_map.update(col_name_map)
-
-    unmask_table_columns(out)
 
     return out
 
@@ -976,7 +972,7 @@ def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
                 # If col is a Column but not MaskedColumn then upgrade at this point
                 # because masking is required.
                 if isinstance(col, Column) and not isinstance(col, MaskedColumn):
-                    col = col.view(out.__class__.MaskedColumn)
+                    col = out.MaskedColumn(col, copy=False)
 
                 try:
                     col[arr_len:] = col.info.mask_val
