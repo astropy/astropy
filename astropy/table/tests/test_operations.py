@@ -1004,6 +1004,104 @@ class TestVStack():
                     'vstack unavailable' in str(err.value))
 
 
+class TestCStack():
+
+    def _setup(self, t_cls=Table):
+        self.t1 = t_cls.read([' a   b',
+                              ' 0. foo',
+                              ' 1. bar'], format='ascii')
+
+        self.t2 = t_cls.read([' a    b   c',
+                              ' 2.  pez  4',
+                              ' 3.  sez  5'], format='ascii')
+
+        self.t3 = t_cls({'a': [[5., 6.], [4., 3.]],
+                         'b': [['foo', 'bar'], ['pez', 'sez']]},
+                        names=('a', 'b'))
+
+        self.t4 = t_cls(self.t1, copy=True, masked=t_cls is Table)
+
+        self.t5 = t_cls({'a': [[4., 2.], [1., 6.]],
+                         'b': [['foo', 'pez'], ['bar', 'sez']]},
+                        names=('a', 'b'))
+        self.t6 = t_cls.read([' a    b   c',
+                              ' 7.  pez  2',
+                              ' 4.  sez  6',
+                              ' 6.  foo  3'], format='ascii')
+
+    def compare_cstack(self, tables, out):
+        for ii, tbl in enumerate(tables):
+            for name, out_col in out.columns.items():
+                if name in tbl.colnames:
+                    assert np.all(tbl[name] == out[name][:, ii])
+                else:
+                    assert np.all(out[name].mask[:, ii])
+
+    def test_stack_table_column(self, operation_table_type):
+        self._setup(operation_table_type)
+        t2 = self.t1.copy()
+        out = table.cstack([self.t1, t2['a']])
+        t = table.Table([self.t1['a']], names=('a'))
+        self.compare_cstack([self.t1, t], out)
+
+    def test_stack_basic_outer(self, operation_table_type):
+        if operation_table_type is QTable:
+            pytest.xfail('Quantity columns do not support masking.')
+        self._setup(operation_table_type)
+        t1 = self.t1
+        t2 = self.t2
+        t4 = self.t4
+        t4['a'].mask = [True, False]
+        # Test for non-masked table
+        t12 = table.cstack([t1, t2], join_type='outer')
+        assert type(t12) is operation_table_type
+        assert type(t12['a']) is type(t1['a'])
+        assert type(t12['b']) is type(t1['b'])
+        self.compare_cstack([t1, t2], t12)
+
+        # Test for masked table
+        t124 = table.cstack([t1, t2, t4], join_type='outer')
+        assert type(t124) is operation_table_type
+        assert type(t124['a']) is type(t4['a'])
+        assert type(t124['b']) is type(t4['b'])
+        self.compare_cstack([t1, t2, t4], t124)
+
+    def test_stack_basic_inner(self, operation_table_type):
+        self._setup(operation_table_type)
+        t1 = self.t1
+        t2 = self.t2
+        t4 = self.t4
+
+        # Test for masked table
+        t124 = table.cstack([t1, t2, t4], join_type='inner')
+        assert type(t124) is operation_table_type
+        assert type(t124['a']) is type(t4['a'])
+        assert type(t124['b']) is type(t4['b'])
+        self.compare_cstack([t1, t2, t4], t124)
+
+    def test_multi_dimension_column_stack(self, operation_table_type):
+        self._setup(operation_table_type)
+        t3 = self.t3
+        t5 = self.t5
+        t2 = self.t2
+        t35 = table.cstack([t3, t5])
+        assert type(t35) is operation_table_type
+        assert type(t35['a']) is type(t3['a'])
+        assert type(t35['b']) is type(t3['b'])
+        self.compare_cstack([t3, t5], t35)
+
+        with pytest.raises(TableMergeError):
+            table.cstack([t2, t3])
+
+    def test_different_length_table(self, operation_table_type):
+        self._setup(operation_table_type)
+        t2 = self.t2
+        t6 = self.t6
+        with pytest.raises(ValueError):
+            table.cstack([t2, t6])
+
+
+
 class TestHStack():
 
     def _setup(self, t_cls=Table):
