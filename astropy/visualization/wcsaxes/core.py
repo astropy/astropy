@@ -313,7 +313,7 @@ class WCSAxes(Axes):
 
             args = tuple(plot_data) + args[1:]
 
-        super().plot(*args, **kwargs)
+        return super().plot(*args, **kwargs)
 
     def reset_wcs(self, wcs=None, slices=None, transform=None, coord_meta=None):
         """
