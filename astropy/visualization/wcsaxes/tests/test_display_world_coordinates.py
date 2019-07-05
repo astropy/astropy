@@ -1,12 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from astropy.visualization.wcsaxes.core import WCSAxes
 import matplotlib.pyplot as plt
+import pytest
 from matplotlib.backend_bases import KeyEvent
 
-from astropy.wcs import WCS
-from astropy.coordinates import FK5
-from astropy.time import Time
+import numpy as np
+
+import astropy.units as u
+from astropy.coordinates import FK5, SkyCoord
+from astropy.io import fits
 from astropy.tests.image_tests import ignore_matplotlibrc
+from astropy.time import Time
+from astropy.utils.data import get_pkg_data_filename
+from astropy.visualization.wcsaxes.core import WCSAxes
+from astropy.wcs import WCS
 
 from .test_images import BaseImageTests
 
@@ -145,3 +151,18 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         fig.canvas.key_press_event(event1.key, guiEvent=event1)
         string_pixel = ax._display_world_coords(0.523412, 0.523412)
         assert string_pixel == "0.523412 0.523412 (pixel)"
+
+    @pytest.mark.remote_data(source='astropy')
+    def test_plot_coord_3d_transform(self):
+        filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
+        wcs = WCS(filename)
+        data = fits.getdata(filename)
+
+        coord = SkyCoord(0 * u.kpc, 0 * u.kpc, 0 * u.kpc, frame='galactocentric')
+
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1, projection=wcs)
+        ax.imshow(data)
+        point, = ax.plot_coord(coord, 'ro')
+
+        np.testing.assert_allclose(point.get_xydata()[0], [0, 0], atol=1e-4)
