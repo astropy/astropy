@@ -103,7 +103,9 @@ def fits2bitmap(filename, ext=0, out_fn=None, stretch='linear',
             LooseVersion(matplotlib.__version__) == LooseVersion('2.0.0')):
         image = image[::-1]
 
-    if cmap not in cm.datad:
+    try:
+        cm.get_cmap(cmap)
+    except ValueError:
         log.critical('{0} is not a valid matplotlib colormap name.'
                      .format(cmap))
         return 1
