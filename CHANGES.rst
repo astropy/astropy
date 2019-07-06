@@ -2429,6 +2429,8 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Fixed compatibility issues with latest versions of Matplotlib. [#8961]
+
 astropy.vo
 ^^^^^^^^^^
 
