@@ -62,7 +62,7 @@ def test_distribution(null_data, normalization, with_errors, fmax=40):
     # psd normalization without specified errors produces bad results
     if not (normalization == 'psd' and not with_errors):
         # Test that observed power is distributed according to the theoretical pdf
-        hist, bins = np.histogram(power, 30, normed=True)
+        hist, bins = np.histogram(power, 30, density=True)
         midpoints = 0.5 * (bins[1:] + bins[:-1])
         pdf = ls.distribution(midpoints)
         assert_allclose(hist, pdf, rtol=0.05, atol=0.05 * pdf[0])
