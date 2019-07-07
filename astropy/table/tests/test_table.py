@@ -1889,7 +1889,7 @@ class TestReplaceColumn(SetupData):
 
         with pytest.raises(ValueError) as exc:
             t.replace_column('a', [1, 2])
-        assert "length of new column must match table length" in str(exc)
+        assert "length of new column must match table length" in str(exc.value)
 
     def test_replace_column(self, table_types):
         """Replace existing column with a new column"""
