@@ -31,7 +31,6 @@ env:
         # Set defaults to avoid repeating in most cases
         - PYTHON_VERSION=3.6
         - NUMPY_VERSION=stable
-        - PYTEST_VERSION=3.10
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
         - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml pandas pytz html5lib beautifulsoup4 ipython mpmath bleach bottleneck'
@@ -91,13 +90,11 @@ matrix:
         # the Numpy developers have taken care of testing Numpy with different
         # versions of Python, we can vary Python and Numpy versions at the same
         # time.
-        # Run this test using native pytest
         - os: linux
           env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.13
                INSTALL_CMD='python setup.py build_ext --inplace'
                PIP_DEPENDENCIES='pytest-astropy'
                TEST_CMD='pytest --open-files --doctest-rst'
-               PYTEST_VERSION=3.7
           script:
             - $INSTALL_CMD
             - $TEST_CMD
@@ -109,7 +106,6 @@ matrix:
         - os: linux
           env: SETUP_CMD='test --remote-data=astropy --readonly'
                LC_CTYPE=C.ascii LC_ALL=C
-               PYTEST_VERSION=4.4
                PIP_DEPENDENCIES="" CONDA_DEPENDENCIES=""
                INSTALL_WITH_PIP=True
                EXTRAS_INSTALL="test,all"
