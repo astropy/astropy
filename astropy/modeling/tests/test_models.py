@@ -686,3 +686,4 @@ def test_with_bounding_box():
     values = np.array([1.5, 3.4, 6.7, 7, 32])
     t = models.Tabular1D(points, values)
     result = t(1, with_bounding_box=True)
+    
