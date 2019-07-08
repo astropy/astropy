@@ -270,7 +270,10 @@ reference with ``c = col[3:5]`` followed by ``c.info``.""")
             info = instance.__dict__.get('info')
             if info is None:
                 info = instance.__dict__['info'] = self.__class__(bound=True)
-            info._parent = instance
+            # Bypass setter and in particular __setattr__
+            # info._parent = instance
+            # info.__class__._parent.fset(info, instance)
+            info.__dict__['_parent_ref'] = weakref.ref(instance)
         return info
 
     def __set__(self, instance, value):
