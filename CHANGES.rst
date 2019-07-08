@@ -2357,6 +2357,12 @@ astropy.nddata
   be incorrectly raised for a 0-shaped small array at the origin.
   [#8901]
 
+astropy.samp
+^^^^^^^^^^^^
+
+- Fixed a bug that caused an incorrectly constructed warning message
+  to raise an error. [#8966]
+
 astropy.stats
 ^^^^^^^^^^^^^
 
