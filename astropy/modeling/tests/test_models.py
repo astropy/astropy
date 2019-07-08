@@ -672,3 +672,17 @@ def test_with_bounding_box():
     p = models.Polynomial1D(1, c0=12, c1=2.3)
     p.bounding_box = (0, 5)
     assert(p(1) == p(1, with_bounding_box=True))
+
+    t3 = models.Shift(10) & models.Scale(2) & models.Shift(-1)
+    t3.bounding_box = ((4.3, 6.9), (6, 15), (-1, 10))
+    assert_allclose(t3([1, 1], [7, 7], [3, 5],with_bounding_box=True),
+                    [[np.nan, 11], [np.nan, 14], [np.nan, 4]])
+
+    trans3 = models.Shift(10) & models.Scale(2) & models.Shift(-1)
+    trans3.bounding_box = ((4.3, 6.9), (6, 15), (-1, 10))
+    assert_allclose(trans3(1, 7, 5, with_bounding_box=True), [11, 14, 4])
+
+    points = np.arange(5)
+    values = np.array([1.5, 3.4, 6.7, 7, 32])
+    t = models.Tabular1D(points, values)
+    result = t(1, with_bounding_box=True)
