@@ -4012,7 +4012,7 @@ def prepare_bounding_box_inputs(self, input_shape, inputs, bbox):
     if not allout:
         for input in inputs:
             if input_shape:
-                args.append(input[valid_ind])
+                args.append(np.array(input)[valid_ind])
             else:
                 args.append(input)
     return args, valid_ind, allout
