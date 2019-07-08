@@ -117,8 +117,6 @@ def table_info(tbl, option='attributes', out=''):
 
 
 class TableInfo(DataInfo):
-    _parent = None
-
     def __call__(self, option='attributes', out=''):
         return table_info(self._parent, option, out)
 
