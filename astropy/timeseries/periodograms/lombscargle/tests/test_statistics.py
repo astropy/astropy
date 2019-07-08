@@ -62,7 +62,7 @@ def test_distribution(null_data, normalization, with_errors, fmax=40):
     # psd normalization without specified errors produces bad results
     if not (normalization == 'psd' and not with_errors):
         # Test that observed power is distributed according to the theoretical pdf
-        hist, bins = np.histogram(power, 30, normed=True)
+        hist, bins = np.histogram(power, 30, density=True)
         midpoints = 0.5 * (bins[1:] + bins[:-1])
         pdf = ls.distribution(midpoints)
         assert_allclose(hist, pdf, rtol=0.05, atol=0.05 * pdf[0])
@@ -71,7 +71,7 @@ def test_distribution(null_data, normalization, with_errors, fmax=40):
 @pytest.mark.parametrize('N', [10, 100, 1000])
 @pytest.mark.parametrize('normalization', NORMALIZATIONS)
 def test_inverse_single(N, normalization):
-    fap = np.linspace(0, 1, 100)
+    fap = np.linspace(0.00001, 1, 100)
 
     z = inv_fap_single(fap, N, normalization)
     fap_out = fap_single(z, N, normalization)
@@ -114,7 +114,7 @@ def test_inverses(method, normalization, use_errs, N, T=5, fmax=5):
         dy = None
     method_kwds = METHOD_KWDS.get(method, None)
 
-    fap = np.logspace(-10, 0, 10)
+    fap = np.logspace(-10, -0.00001, 10)
 
     ls = LombScargle(t, y, dy, normalization=normalization)
     z = ls.false_alarm_level(fap, maximum_frequency=fmax,
