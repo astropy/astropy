@@ -7,7 +7,7 @@ import pytest
 import numpy as np
 
 from astropy.tests.helper import catch_warnings
-from astropy.table import Table, QTable, TableMergeError
+from astropy.table import Table, QTable, TableMergeError, Column, MaskedColumn
 from astropy.table.operations import _get_out_class
 from astropy import units as u
 from astropy.utils import metadata
@@ -122,7 +122,11 @@ class TestJoin():
 
         # Left join
         t12 = table.join(t1, t2, join_type='left')
-        assert t12.masked is True
+        assert t12.has_masked_columns is True
+        assert t12.masked is False
+        for name in ('a', 'b', 'c'):
+            assert type(t12[name]) is Column
+        assert type(t12['d']) is MaskedColumn
         assert sort_eq(t12.pformat(), [' a   b   c   d ',
                                        '--- --- --- ---',
                                        '  0 foo  L1  --',
@@ -133,7 +137,8 @@ class TestJoin():
 
         # Right join
         t12 = table.join(t1, t2, join_type='right')
-        assert t12.masked is True
+        assert t12.has_masked_columns is True
+        assert t12.masked is False
         assert sort_eq(t12.pformat(), [' a   b   c   d ',
                                        '--- --- --- ---',
                                        '  1 foo  L2  R1',
@@ -143,7 +148,8 @@ class TestJoin():
 
         # Outer join
         t12 = table.join(t1, t2, join_type='outer')
-        assert t12.masked is True
+        assert t12.has_masked_columns is True
+        assert t12.masked is False
         assert sort_eq(t12.pformat(), [' a   b   c   d ',
                                        '--- --- --- ---',
                                        '  0 foo  L1  --',
@@ -189,7 +195,7 @@ class TestJoin():
 
         # Left join
         t12 = table.join(t1, t2, join_type='left', keys='a')
-        assert t12.masked is True
+        assert t12.has_masked_columns is True
         assert sort_eq(t12.pformat(), [' a  b_1  c  b_2  d ',
                                        '--- --- --- --- ---',
                                        '  0 foo  L1  --  --',
@@ -201,7 +207,7 @@ class TestJoin():
 
         # Right join
         t12 = table.join(t1, t2, join_type='right', keys='a')
-        assert t12.masked is True
+        assert t12.has_masked_columns is True
         assert sort_eq(t12.pformat(), [' a  b_1  c  b_2  d ',
                                        '--- --- --- --- ---',
                                        '  1 foo  L2 foo  R1',
@@ -213,7 +219,7 @@ class TestJoin():
 
         # Outer join
         t12 = table.join(t1, t2, join_type='outer', keys='a')
-        assert t12.masked is True
+        assert t12.has_masked_columns is True
         assert sort_eq(t12.pformat(), [' a  b_1  c  b_2  d ',
                                        '--- --- --- --- ---',
                                        '  0 foo  L1  --  --',
@@ -232,9 +238,9 @@ class TestJoin():
         t1m = operation_table_type(self.t1, masked=True)
         t2 = self.t2
 
-        # Result should be masked even though not req'd by inner join
+        # Result table is never masked
         t1m2 = table.join(t1m, t2, join_type='inner')
-        assert t1m2.masked is True
+        assert t1m2.masked is False
 
         # Result should match non-masked result
         t12 = table.join(t1, t2)
@@ -271,9 +277,11 @@ class TestJoin():
         t2 = self.t2
         t2m = operation_table_type(self.t2, masked=True)
 
-        # Result should be masked even though not req'd by inner join
+        # Result table is never masked but original column types are preserved
         t1m2m = table.join(t1m, t2m, join_type='inner')
-        assert t1m2m.masked is True
+        assert t1m2m.masked is False
+        for col in t1m2m.itercols():
+            assert type(col) is MaskedColumn
 
         # Result should match non-masked result
         t12 = table.join(t1, t2)
@@ -291,6 +299,36 @@ class TestJoin():
                                          '  1 bar  -- foo  R1',
                                          '  1 bar  -- foo  R2',
                                          '  2 bar  L4 bar  --'])
+
+    def test_classes(self):
+        """Ensure that classes and subclasses get through as expected"""
+        class MyCol(Column):
+            pass
+
+        class MyMaskedCol(MaskedColumn):
+            pass
+
+        t1 = Table()
+        t1['a'] = MyCol([1])
+        t1['b'] = MyCol([2])
+        t1['c'] = MyMaskedCol([3])
+
+        t2 = Table()
+        t2['a'] = Column([1, 2])
+        t2['d'] = MyCol([3, 4])
+        t2['e'] = MyMaskedCol([5, 6])
+
+        t12 = table.join(t1, t2, join_type='inner')
+        for name, exp_type in (('a', MyCol), ('b', MyCol), ('c', MyMaskedCol),
+                               ('d', MyCol), ('e', MyMaskedCol)):
+            assert type(t12[name] is exp_type)
+
+        t21 = table.join(t2, t1, join_type='left')
+        # Note col 'b' gets upgraded from MyCol to MaskedColumn since it needs to be
+        # masked, but col 'c' stays since MyMaskedCol supports masking.
+        for name, exp_type in (('a', MyCol), ('b', MaskedColumn), ('c', MyMaskedCol),
+                               ('d', MyCol), ('e', MyMaskedCol)):
+            assert type(t12[name] is exp_type)
 
     def test_col_rename(self, operation_table_type):
         self._setup(operation_table_type)
@@ -647,6 +685,7 @@ class TestVStack():
         t2 = self.t1.copy()
         t2.meta.clear()
         out = table.vstack([self.t1, t2['a']])
+        assert out.masked is False
         assert out.pformat() == [' a   b ',
                                  '--- ---',
                                  '0.0 foo',
@@ -736,6 +775,7 @@ class TestVStack():
         t2 = self.t2
         t4 = self.t4
         t12 = table.vstack([t1, t2], join_type='outer')
+        assert t12.masked is False
         assert t12.pformat() == [' a   b   c ',
                                  '--- --- ---',
                                  '0.0 foo  --',
@@ -744,6 +784,7 @@ class TestVStack():
                                  '3.0 sez   5']
 
         t124 = table.vstack([t1, t2, t4], join_type='outer')
+        assert t124.masked is False
         assert t124.pformat() == [' a   b   c ',
                                   '--- --- ---',
                                   '0.0 foo  --',
@@ -781,12 +822,14 @@ class TestVStack():
         t1 = self.t1
         t4 = self.t4
         t4['b'].mask[1] = True
-        assert table.vstack([t1, t4]).pformat() == [' a   b ',
-                                                    '--- ---',
-                                                    '0.0 foo',
-                                                    '1.0 bar',
-                                                    '0.0 foo',
-                                                    '1.0  --']
+        t14 = table.vstack([t1, t4])
+        assert t14.masked is False
+        assert t14.pformat() == [' a   b ',
+                                 '--- ---',
+                                 '0.0 foo',
+                                 '1.0 bar',
+                                 '0.0 foo',
+                                 '1.0  --']
 
     def test_col_meta_merge_inner(self, operation_table_type):
         self._setup(operation_table_type)
@@ -1000,6 +1043,7 @@ class TestHStack():
         """
         self._setup(operation_table_type)
         out = table.hstack([self.t1, self.t1])
+        assert out.masked is False
         assert out.pformat() == ['a_1 b_1 a_2 b_2',
                                  '--- --- --- ---',
                                  '0.0 foo 0.0 foo',
@@ -1008,6 +1052,7 @@ class TestHStack():
     def test_stack_rows(self, operation_table_type):
         self._setup(operation_table_type)
         out = table.hstack([self.t1[0], self.t2[1]])
+        assert out.masked is False
         assert out.pformat() == ['a_1 b_1 a_2 b_2  c ',
                                  '--- --- --- --- ---',
                                  '0.0 foo 3.0 sez   5']
@@ -1093,6 +1138,7 @@ class TestHStack():
         assert out.pformat() == out_list.pformat()
 
         out = table.hstack([t1, t2, t3, t4], join_type='outer')
+        assert out.masked is False
         assert out.pformat() == ['a_1 b_1 a_2 b_2  c   d   e   f   g ',
                                  '--- --- --- --- --- --- --- --- ---',
                                  '0.0 foo 2.0 pez   4 4.0   7 0.0 foo',
@@ -1100,6 +1146,7 @@ class TestHStack():
                                  ' --  --  --  --  -- 6.0   9  --  --']
 
         out = table.hstack([t1, t2, t3, t4], join_type='inner')
+        assert out.masked is False
         assert out.pformat() == ['a_1 b_1 a_2 b_2  c   d   e   f   g ',
                                  '--- --- --- --- --- --- --- --- ---',
                                  '0.0 foo 2.0 pez   4 4.0   7 0.0 foo',
@@ -1120,10 +1167,11 @@ class TestHStack():
         t2 = operation_table_type(t1, copy=True, masked=True)
         t2.meta.clear()
         t2['b'].mask[1] = True
-        assert table.hstack([t1, t2]).pformat() == ['a_1 b_1 a_2 b_2',
-                                                    '--- --- --- ---',
-                                                    '0.0 foo 0.0 foo',
-                                                    '1.0 bar 1.0  --']
+        out = table.hstack([t1, t2])
+        assert out.pformat() == ['a_1 b_1 a_2 b_2',
+                                 '--- --- --- ---',
+                                 '0.0 foo 0.0 foo',
+                                 '1.0 bar 1.0  --']
 
     def test_table_col_rename(self, operation_table_type):
         self._setup(operation_table_type)
@@ -1302,6 +1350,7 @@ def test_unique(operation_table_type):
         "remove column 'a' from keys and rerun unique()")
 
     t1_mu = table.unique(t1_m, silent=True)
+    assert t1_mu.masked is False
     assert t1_mu.pformat() == [' a   b   c   d ',
                                '--- --- --- ---',
                                '  0   a 0.0   4',
@@ -1318,6 +1367,7 @@ def test_unique(operation_table_type):
     # Test that multiple masked key columns get removed in the correct
     # order
     t1_mu = table.unique(t1_m, keys=['d', 'a', 'b'], silent=True)
+    assert t1_mu.masked is False
     assert t1_mu.pformat() == [' a   b   c   d ',
                                '--- --- --- ---',
                                '  2   a 4.0  --',

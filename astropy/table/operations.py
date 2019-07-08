@@ -17,7 +17,7 @@ from collections.abc import Mapping, Sequence
 import numpy as np
 
 from astropy.utils import metadata
-from .table import Table, QTable, Row, Column
+from .table import Table, QTable, Row, Column, MaskedColumn
 from astropy.units import Quantity
 
 from . import _np_utils
@@ -216,8 +216,8 @@ def setdiff(table1, table2, keys=None):
     t12 = _join(t1, t2, join_type='left', keys=keys,
                 metadata_conflicts='silent')
 
-    # If t12 is masked then that means some rows were in table1 but not table2.
-    if t12.masked:
+    # If t12 index2 is masked then that means some rows were in table1 but not table2.
+    if hasattr(t12['__index2__'], 'mask'):
         # Define bool mask of table1 rows not in table2
         diff = t12['__index2__'].mask
         # Get the row indices of table1 for those rows
@@ -472,20 +472,21 @@ def unique(input_table, keys=None, silent=False, keep='first'):
         if len(set(keys)) != len(keys):
             raise ValueError("duplicate key names")
 
-    if input_table.masked:
-        nkeys = 0
-        for key in keys[:]:
-            if np.any(input_table[key].mask):
-                if not silent:
-                    raise ValueError(
-                        "cannot use columns with masked values as keys; "
-                        "remove column '{0}' from keys and rerun "
-                        "unique()".format(key))
-                del keys[keys.index(key)]
-        if len(keys) == 0:
-            raise ValueError("no column remained in ``keys``; "
-                             "unique() cannot work with masked value "
-                             "key columns")
+    # Check for columns with masked values
+    nkeys = 0
+    for key in keys[:]:
+        col = input_table[key]
+        if hasattr(col, 'mask') and np.any(col.mask):
+            if not silent:
+                raise ValueError(
+                    "cannot use columns with masked values as keys; "
+                    "remove column '{0}' from keys and rerun "
+                    "unique()".format(key))
+            del keys[keys.index(key)]
+    if len(keys) == 0:
+        raise ValueError("no column remained in ``keys``; "
+                         "unique() cannot work with masked value "
+                         "key columns")
 
     grouped_table = input_table.group_by(keys)
     indices = grouped_table.groups.indices
@@ -699,12 +700,7 @@ def _join(left, right, keys=None, join_type='inner',
     masked, n_out, left_out, left_mask, right_out, right_mask = \
         _np_utils.join_inner(idxs, idx_sort, len_left, int_join_type)
 
-    # If either of the inputs are masked then the output is masked
-    if left.masked or right.masked:
-        masked = True
-    masked = bool(masked)
-
-    out = _get_out_class([left, right])(masked=masked)
+    out = _get_out_class([left, right])()
 
     for out_name, dtype, shape in out_descrs:
 
@@ -739,29 +735,35 @@ def _join(left, right, keys=None, join_type='inner',
         else:
             raise TableMergeError('Unexpected column names (maybe one is ""?)')
 
-        # Finally add the joined column to the output table.
-        out[out_name] = array[name][array_out]
+        # Select the correct elements from the original table
+        col = array[name][array_out]
 
-        # If the output table is masked then set the output column masking
+        # If the output column is masked then set the output column masking
         # accordingly.  Check for columns that don't support a mask attribute.
         if masked and np.any(array_mask):
+            # If col is a Column but not MaskedColumn then upgrade at this point
+            # because masking is required.
+            if isinstance(col, Column) and not isinstance(col, MaskedColumn):
+                col = out.MaskedColumn(col, copy=False)
+
             # array_mask is 1-d corresponding to length of output column.  We need
             # make it have the correct shape for broadcasting, i.e. (length, 1, 1, ..).
             # Mixin columns might not have ndim attribute so use len(col.shape).
-            array_mask.shape = (out[out_name].shape[0],) + (1,) * (len(out[out_name].shape) - 1)
+            array_mask.shape = (col.shape[0],) + (1,) * (len(col.shape) - 1)
 
             # Now broadcast to the correct final shape
-            array_mask = np.broadcast_to(array_mask, out[out_name].shape)
+            array_mask = np.broadcast_to(array_mask, col.shape)
 
-            if array.masked:
-                array_mask = array_mask | array[name].mask[array_out]
             try:
-                out[out_name][array_mask] = out[out_name].info.mask_val
+                col[array_mask] = col.info.mask_val
             except Exception:  # Not clear how different classes will fail here
                 raise NotImplementedError(
                     "join requires masking column '{}' but column"
                     " type {} does not support masking"
-                    .format(out_name, out[out_name].__class__.__name__))
+                    .format(out_name, col.__class__.__name__))
+
+        # Set the output table column to the new joined column
+        out[out_name] = col
 
     # If col_name_map supplied as a dict input, then update.
     if isinstance(_col_name_map, Mapping):
@@ -828,18 +830,9 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
         if len(col_name_map) == 0:
             raise TableMergeError('Input arrays have no columns in common')
 
-    # If there are any output columns where one or more input arrays are missing
-    # then the output must be masked.  If any input arrays are masked then
-    # output is masked.
-    masked = any(getattr(arr, 'masked', False) for arr in arrays)
-    for names in col_name_map.values():
-        if any(x is None for x in names):
-            masked = True
-            break
-
     lens = [len(arr) for arr in arrays]
     n_rows = sum(lens)
-    out = _get_out_class(arrays)(masked=masked)
+    out = _get_out_class(arrays)()
 
     for out_name, in_names in col_name_map.items():
         # List of input arrays that contribute to this output column
@@ -850,7 +843,7 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
             raise NotImplementedError('vstack unavailable for mixin column type(s): {}'
                                       .format(col_cls.__name__))
         try:
-            out[out_name] = col_cls.info.new_like(cols, n_rows, metadata_conflicts, out_name)
+            col = col_cls.info.new_like(cols, n_rows, metadata_conflicts, out_name)
         except metadata.MergeConflictError as err:
             # Beautify the error message when we are trying to merge columns with incompatible
             # types by including the name of the columns that originated the error.
@@ -861,16 +854,23 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
         for name, array in zip(in_names, arrays):
             idx1 = idx0 + len(array)
             if name in array.colnames:
-                out[out_name][idx0:idx1] = array[name]
+                col[idx0:idx1] = array[name]
             else:
+                # If col is a Column but not MaskedColumn then upgrade at this point
+                # because masking is required.
+                if isinstance(col, Column) and not isinstance(col, MaskedColumn):
+                    col = out.MaskedColumn(col, copy=False)
+
                 try:
-                    out[out_name][idx0:idx1] = out[out_name].info.mask_val
+                    col[idx0:idx1] = col.info.mask_val
                 except Exception:
                     raise NotImplementedError(
                         "vstack requires masking column '{}' but column"
                         " type {} does not support masking"
-                        .format(out_name, out[out_name].__class__.__name__))
+                        .format(out_name, col.__class__.__name__))
             idx0 = idx1
+
+        out[out_name] = col
 
     # If col_name_map supplied as a dict input, then update.
     if isinstance(_col_name_map, Mapping):
@@ -946,10 +946,9 @@ def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
     # If there are any output rows where one or more input arrays are missing
     # then the output must be masked.  If any input arrays are masked then
     # output is masked.
-    masked = any(getattr(arr, 'masked', False) for arr in arrays) or len(set(arr_lens)) > 1
 
     n_rows = max(arr_lens)
-    out = _get_out_class(arrays)(masked=masked)
+    out = _get_out_class(arrays)()
 
     for out_name, in_names in col_name_map.items():
         for name, array, arr_len in zip(in_names, arrays, arr_lens):
@@ -959,16 +958,24 @@ def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
             if n_rows > arr_len:
                 indices = np.arange(n_rows)
                 indices[arr_len:] = 0
-                out[out_name] = array[name][indices]
+                col = array[name][indices]
+
+                # If col is a Column but not MaskedColumn then upgrade at this point
+                # because masking is required.
+                if isinstance(col, Column) and not isinstance(col, MaskedColumn):
+                    col = out.MaskedColumn(col, copy=False)
+
                 try:
-                    out[out_name][arr_len:] = out[out_name].info.mask_val
+                    col[arr_len:] = col.info.mask_val
                 except Exception:
                     raise NotImplementedError(
                         "hstack requires masking column '{}' but column"
                         " type {} does not support masking"
-                        .format(out_name, out[out_name].__class__.__name__))
+                        .format(out_name, col.__class__.__name__))
             else:
-                out[out_name] = array[name][:n_rows]
+                col = array[name][:n_rows]
+
+            out[out_name] = col
 
     # If col_name_map supplied as a dict input, then update.
     if isinstance(_col_name_map, Mapping):

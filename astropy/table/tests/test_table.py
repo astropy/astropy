@@ -2349,3 +2349,46 @@ def test_broadcasting_8933():
     # Test that broadcasted column is writeable
     t['c'][1] = 10
     assert np.all(t['c'] == [1, 10])
+
+
+def test_custom_masked_column_in_nonmasked_table():
+    """Test the refactor and change in column upgrades introduced
+    in 95902650f.  This fixes a regression introduced by #8789
+    (Change behavior of Table regarding masked columns)."""
+    class MyMaskedColumn(table.MaskedColumn):
+        pass
+
+    class MySubMaskedColumn(MyMaskedColumn):
+        pass
+
+    class MyColumn(table.Column):
+        pass
+
+    class MySubColumn(MyColumn):
+        pass
+
+    class MyTable(table.Table):
+        Column = MyColumn
+        MaskedColumn = MyMaskedColumn
+
+    a = table.Column([1])
+    b = table.MaskedColumn([2], mask=[True])
+    c = MyMaskedColumn([3], mask=[True])
+    d = MySubColumn([4])
+    e = MySubMaskedColumn([5], mask=[True])
+
+    # Two different pathways for making table
+    t1 = MyTable([a, b, c, d, e], names=['a', 'b', 'c', 'd', 'e'])
+    t2 = MyTable()
+    t2['a'] = a
+    t2['b'] = b
+    t2['c'] = c
+    t2['d'] = d
+    t2['e'] = e
+
+    for t in (t1, t2):
+        assert type(t['a']) is MyColumn
+        assert type(t['b']) is MyMaskedColumn  # upgrade
+        assert type(t['c']) is MyMaskedColumn
+        assert type(t['d']) is MySubColumn
+        assert type(t['e']) is MySubMaskedColumn  # sub-class not downgraded
