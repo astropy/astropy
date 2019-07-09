@@ -226,7 +226,7 @@ array as the underlying container for the column data.  Since astropy 1.0 the |T
 object is simply an ordered dictionary of columns (:ref:`table_implementation_details`)
 and there is no requirement that column types be homogenous.
 
-Staring with 4.0, a |Table| can contain both |Column| and |MaskedColumn| columns, and
+Starting with 4.0, a |Table| can contain both |Column| and |MaskedColumn| columns, and
 by default the column type is determined solely by the data for each column.
 
 The details of this change are discussed in the sections below.
