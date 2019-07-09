@@ -134,6 +134,7 @@ astropy.table
   just ndarray subclasses. A column is considered sortable if there is a
   ``<column>.info.get_sortable_arrays()`` method that is implemented.
   [#9340]
+- Adding ``Table.zip_columns()`` for making row-wise iteration faster [#8969]
 
 astropy.tests
 ^^^^^^^^^^^^^

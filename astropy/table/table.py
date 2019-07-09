@@ -2174,16 +2174,16 @@ class Table:
         if hasattr(self, '_groups'):
             del self._groups
 
-    def iterrows(self, col_names=None):
+    def zip_columns(self, *names):
         """
         Return zipped columns for row-wise iteration
 
         Parameters
         ----------
-        col_names : list
-        List of column names
+        names : list
+            List of column names
 
-         Examples
+        Examples
         --------
         Create a table with three columns 'a', 'b' and 'c'::
 
@@ -2191,23 +2191,23 @@ class Table:
             ...           names=('a', 'b', 'c'))
 
         To iterate row-wise using column names
-            >>> for a,b in t.iterrows(['a', 'b'])
+            >>> for a,b in t.zip_colunms('a', 'b'):
             ...     print(a,b)
             1 0.1
             2 0.2
             3 0.3
 
         """
-        if col_names is None:
-            raise ValueError('No input Provided')
+        if len(names) == 0:
+            raise ValueError('at least one column name must be provided')
 
-        for x in col_names:
-            if x not in self.colnames:
-                raise ValueError('Enter Valid Column Names')
+        for name in names:
+            if name not in self.colnames:
+                raise ValueError('{} is not a valid column name'.format(name))
 
         col = []
-        for x in col_names:
-            col.append(self[x])
+        for name in names:
+            col.append(self[name])
         zipped = zip(*col)
         return zipped
 
