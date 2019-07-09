@@ -2205,11 +2205,9 @@ class Table:
             if name not in self.colnames:
                 raise ValueError('{} is not a valid column name'.format(name))
 
-        col = []
-        for name in names:
-            col.append(self[name])
-        zipped = zip(*col)
-        return zipped
+        cols = (self[name] for name in names)
+        out = zip(*cols)
+        return out
 
     def remove_column(self, name):
         """
