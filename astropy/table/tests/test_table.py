@@ -2462,9 +2462,9 @@ def test_iterrows():
         assert b in t['b']
 
     with pytest.raises(ValueError) as err:
-        t.iterrows()
+        t.zip_columns()
     err.value.args[0] == 'at least one column name is provided'
 
     with pytest.raises(ValueError) as err:
-        t.iterrows(['c'])
+        t.zip_columns(['c'])
     err.value.args[0] == 'c is not a valid column name'
