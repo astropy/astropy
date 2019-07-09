@@ -2187,15 +2187,15 @@ class Table:
         --------
         Create a table with three columns 'a', 'b' and 'c'::
 
-            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
+            >>> t = Table([[1, 2, 3], [1.0, 2.5, 3.0], ['x', 'y', 'z']],
             ...           names=('a', 'b', 'c'))
 
         To iterate row-wise using column names
-            >>> for a,b in t.zip_colunms('a', 'b'):
+            >>> for a,b in t.zip_columns('a', 'b'):
             ...     print(a,b)
-            1 0.1
-            2 0.2
-            3 0.3
+            1 1.0
+            2 2.5
+            3 3.0
 
         """
         if len(names) == 0:
