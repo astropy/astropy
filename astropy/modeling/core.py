@@ -2157,6 +2157,7 @@ class Model(metaclass=_ModelMeta):
 
         return '<{0}({1})>'.format(self.__class__.__name__, ', '.join(parts))
 
+
     def _format_str(self, keywords=[]):
         """
         Internal implementation of ``__str__``.
@@ -2710,7 +2711,7 @@ class CompoundModel(Model):
 
         return ''.join(operands)
 
-    def _format_repr(self, keywords=[]):
+    def _format_repr(self, args=[], kwargs={}, defaults={}):
         """
         Internal implementation of ``__repr__``.
 
@@ -2718,47 +2719,56 @@ class CompoundModel(Model):
         override the default ``__repr__`` while keeping the same basic
         formatting.
         """
+        
+        # TODO: I think this could be reworked to preset model sets better
 
-        # For the sake of familiarity start the output with the standard class
-        # __repr__
+        parts = [repr(a) for a in args]
 
-        parts = []
-        try:
-            default_keywords = [
-                ('Name', 'CompoundModel'),
-                ('Inputs', self.inputs),
-                ('Outputs', self.outputs),
-            ]
+        parts.extend(
+            "{0}={1}".format(name,
+                             param_repr_oneline(getattr(self, name)))
+            for name in self.param_names)
 
-            if self.param_names:
-                default_keywords.append(('Fittable parameters',
-                                         self.param_names))
+        if self.name is not None:
+            parts.append('name={0!r}'.format(self.name))
 
-            for keyword, value in default_keywords + keywords:
-                if value is not None:
-                    parts.append('{0}: {1}'.format(keyword, value))
+        for kwarg, value in kwargs.items():
+            if kwarg in defaults and defaults[kwarg] != value:
+                continue
+            parts.append('{0}={1!r}'.format(kwarg, value))
 
-            return '\n'.join(parts)
-        except Exception:
-            # If any of the above formatting fails fall back on the basic repr
-            # (this is particularly useful in debugging)
-            return parts[0]
+        if len(self) > 1:
+            parts.append("n_models={0}".format(len(self)))
+
+        return '<{0}({1})>'.format(self.__class__.__name__, ', '.join(parts))
 
     def _format_components(self):
+        if self._parameters_ is None:
+            self.map_parameters()
+        print('leaflist', self._leaflist)
         return '\n\n'.join('[{0}]: {1!r}'.format(idx, m)
                            for idx, m in enumerate(self._leaflist))
 
-    def __repr__(self):
-        if self._parameters_ is None:
-            self.map_parameters()
+        # def __repr__(self):
+        #     if self._parameters_ is None:
+        #         self.map_parameters()
+        #     expression = self._format_expression()
+        #     components = self._format_components()
+        #     keywords = [
+        #         ('Expression', expression),
+        #         ('Components', '\n' + indent(components))
+        #     ]
+
+        return self._format_repr(keywords=keywords)
+
+    def __str__(self):
         expression = self._format_expression()
         components = self._format_components()
         keywords = [
             ('Expression', expression),
             ('Components', '\n' + indent(components))
         ]
-
-        return self._format_repr(keywords=keywords)
+        return super()._format_str(keywords=keywords)
 
     def rename(self, name):
         self.name = name
