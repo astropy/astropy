@@ -2453,3 +2453,15 @@ def test_rows_with_mixins():
     assert t['m1'].dtype is np.dtype(object)
     assert type(t['m2']) is table.Column
     assert t['m2'].dtype is np.dtype(object)
+
+
+def test_iterrows():
+    t = table.Table([(2, 3, 2, 1), (8, 7, 6, 5)], names=('a', 'b'))
+    assert t.iterrows(['a']) == zip(t['a'])
+    assert t.iterrows(['a', 'b']) == zip(t['a'], t['b'])
+    with pytest.raises(ValueError) as err:
+        t.iterrows()
+        err.value.args[0] == 'No input Provided'
+    with pytest.raises(ValueError) as err:
+        t.iterrows(['c'])
+        err.value.args[0] == 'Enter Valid Column Names'
