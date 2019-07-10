@@ -167,7 +167,7 @@ matrix:
           env: SETUP_CMD='build_docs -b linkcheck'
                PIP_DEPENDENCIES="" CONDA_DEPENDENCIES=""
                INSTALL_WITH_PIP=True
-               EXTRAS_INSTALL="docs,all"
+               EXTRAS_INSTALL="docs"
 
     allow_failures:
       - os: linux
