@@ -2669,18 +2669,29 @@ class CompoundModel(Model):
         self._eqcons = value
 
     def traverse_postorder(self):
-        stack = deque([self])
-        stacked = deque([])
-        while stack:
-            node = stack[-1]
-            if not isinstance(node, CompoundModel):
-                yield stack.pop()
-            elif node not in stacked:
-                stacked.append(node)
-                stack.append(node.right)
-                stack.append(node.left)
-            else:
-                yield stack.pop()
+        res = []
+        if isinstance(self.left, CompoundModel):
+            res = res + self.left.traverse_postorder()
+        else:
+            res = res + [self.left]
+        if isinstance(self.right, CompoundModel):
+            res = res + self.right.traverse_postorder()
+        else:
+            res = res + [self.right]
+        res = res + [self]
+        return res
+        # stack = deque([self])
+        # stacked = deque([])
+        # while stack:
+        #     node = stack[-1]
+        #     if not isinstance(node, CompoundModel):
+        #         yield stack.pop()
+        #     elif node not in stacked:
+        #         stacked.append(node)
+        #         stack.append(node.right)
+        #         stack.append(node.left)
+        #     else:
+        #         yield stack.pop()
 
     def _format_expression(self, format_leaf=None):
         leaf_idx = 0
@@ -2693,8 +2704,9 @@ class CompoundModel(Model):
             if not isinstance(node, CompoundModel):
                 operands.append(format_leaf(leaf_idx, node))
                 leaf_idx += 1
+                print('leaf case', operands, node)
                 continue
-
+            print('non leaf case', operands, node.op)
             oper_order = OPERATOR_PRECEDENCE[node.op]
             right = operands.pop()
             left = operands.pop()
