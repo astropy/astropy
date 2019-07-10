@@ -5,10 +5,11 @@
 
 import inspect
 import re
+import os
+import sys
 import types
 import importlib
 from distutils.version import LooseVersion
-
 
 __all__ = ['resolve_name', 'minversion', 'find_current_module',
            'isinstancemethod']
@@ -239,7 +240,7 @@ def find_current_module(depth=1, finddiff=False):
             return None
 
     if finddiff:
-        currmod = inspect.getmodule(frm)
+        currmod = _get_module_from_frame(frm)
         if finddiff is True:
             diffmods = [currmod]
         else:
@@ -256,12 +257,55 @@ def find_current_module(depth=1, finddiff=False):
 
         while frm:
             frmb = frm.f_back
-            modb = inspect.getmodule(frmb)
+            modb = _get_module_from_frame(frmb)
             if modb not in diffmods:
                 return modb
             frm = frmb
     else:
-        return inspect.getmodule(frm)
+        return _get_module_from_frame(frm)
+
+
+def _get_module_from_frame(frm):
+    """Uses inspect.getmodule() to get the module that the current frame's
+    code is running in.
+
+    However, this does not work reliably for code imported from a zip file,
+    so this provides a fallback mechanism for that case which is less
+    reliable in general, but more reliable than inspect.getmodule() for this
+    particular case.
+    """
+
+    mod = inspect.getmodule(frm)
+    if mod is not None:
+        return mod
+
+    # Check to see if we're importing from a bundle file. First ensure that
+    # __file__ is available in globals; this is cheap to check to bail out
+    # immediately if this fails
+
+    if '__file__' in frm.f_globals and '__name__' in frm.f_globals:
+
+        filename = frm.f_globals['__file__']
+
+        # Using __file__ from the frame's globals and getting it into the form
+        # of an absolute path name with .py at the end works pretty well for
+        # looking up the module using the same means as inspect.getmodule
+
+        if filename[-4:].lower() in ('.pyc', '.pyo'):
+            filename = filename[:-4] + '.py'
+        filename = os.path.realpath(os.path.abspath(filename))
+        if filename in inspect.modulesbyfile:
+            return sys.modules.get(inspect.modulesbyfile[filename])
+
+        # On Windows, inspect.modulesbyfile appears to have filenames stored
+        # in lowercase, so we check for this case too.
+        if filename.lower() in inspect.modulesbyfile:
+            return sys.modules.get(inspect.modulesbyfile[filename.lower()])
+
+    # Otherwise there are still some even trickier things that might be possible
+    # to track down the module, but we'll leave those out unless we find a case
+    # where it's really necessary.  So return None if the module is not found.
+    return None
 
 
 def find_mod_objs(modname, onlylocals=False):
