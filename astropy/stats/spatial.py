@@ -314,8 +314,9 @@ class RipleysKEstimator:
 
             w1 = (1 - (np.arccos(np.minimum(ver_dist, dist) / dist) +
                        np.arccos(np.minimum(hor_dist, dist) / dist)) / np.pi)
-            w2 = (3 / 4 - 0.5 * (np.arccos(ver_dist / dist * ~dist_ind) +
-                            np.arccos(hor_dist / dist * ~dist_ind)) / np.pi)
+            w2 = (3 / 4 - 0.5 * (
+                np.arccos(ver_dist / dist * ~dist_ind) +
+                np.arccos(hor_dist / dist * ~dist_ind)) / np.pi)
 
             weight = dist_ind * w1 + ~dist_ind * w2
 

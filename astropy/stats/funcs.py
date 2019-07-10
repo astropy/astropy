@@ -9,13 +9,9 @@ This module should generally not be used directly.  Everything in
 should be used for access.
 """
 
-
 import math
-import itertools
 
 import numpy as np
-
-from warnings import warn
 
 from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils import isiterable
@@ -36,7 +32,7 @@ __doctest_requires__ = {'binom_conf_interval': ['scipy.special'],
                                                   'scipy.integrate']}
 
 
-gaussian_sigma_to_fwhm = 2.0 * np.sqrt(2.0 * np.log(2.0))
+gaussian_sigma_to_fwhm = 2.0 * math.sqrt(2.0 * math.log(2.0))
 """
 Factor with which to multiply Gaussian 1-sigma standard deviation to
 convert it to full width at half maximum (FWHM).
@@ -1222,13 +1218,13 @@ def _kraft_burrows_nousek(N, B, CL):
     N < 100).
     '''
     try:
-        import scipy
+        import scipy  # noqa
         HAS_SCIPY = True
     except ImportError:
         HAS_SCIPY = False
 
     try:
-        import mpmath
+        import mpmath  # noqa
         HAS_MPMATH = True
     except ImportError:
         HAS_MPMATH = False
