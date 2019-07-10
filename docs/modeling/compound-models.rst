@@ -658,14 +658,14 @@ Updating one updates the other::
     Parameter('amplitude_0', value=99.0)
 
 Note, however, that the original
-`~astropy.modeling.functional_models.Gaussian1D` instance ``a`` has not been
+`~astropy.modeling.functional_models.Gaussian1D` instance ``a`` has been
 updated::
 
     >>> a.amplitude
-    Parameter('amplitude', value=1.0)
+    Parameter('amplitude', value=99.0)
 
-This is because currently, when a compound model is created, copies are made of
-the original models.
+This is different than the behavior in versions prior to 4.0. Now compound model
+parameters share the same Parameter instance as the original model.
 
 
 .. _compound-model-mappings:
