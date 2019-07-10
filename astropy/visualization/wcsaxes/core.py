@@ -327,7 +327,11 @@ class WCSAxes(Axes):
             # by hand. For example if the user sets a celestial WCS by hand and
             # forgets to set the units, WCS.wcs.set() will do this.
             if wcs is not None:
-                wcs.wcs.set()
+                # Check if the WCS object is an instance of `astropy.wcs.WCS`
+                # This check is necessary as only `astropy.wcs.WCS` supports
+                # wcs.set() method
+                if isinstance(wcs, WCS):
+                    wcs.wcs.set()
 
             self.wcs = wcs
 
@@ -343,6 +347,7 @@ class WCSAxes(Axes):
             previous_frame = {'path': None}
 
         if self.wcs is not None:
+
             transform, coord_meta = transform_coord_meta_from_wcs(self.wcs, self.frame_class, slices)
 
         self.coords = CoordinatesMap(self,
