@@ -13,7 +13,15 @@ import astropy
 from astropy.modeling.core import Model, custom_model
 from astropy.modeling.parameters import Parameter
 from astropy.modeling import models
+import astropy.units as u
+from astropy.tests.helper import assert_quantity_allclose
 
+try:
+    import scipy  # pylint: disable=W0611
+except ImportError:
+    HAS_SCIPY = False
+else:
+    HAS_SCIPY = True
 
 class NonFittableModel(Model):
     """An example class directly subclassing Model for testing."""
@@ -381,10 +389,22 @@ def test_compound_deepcopy():
     model = (models.Gaussian1D(10, 2,3) | models.Shift(2)) & models.Rotation2D(21.3)
     new_model = model.deepcopy()
     assert id(model) != id(new_model)
-    assert id(model._submodels) != id(new_model._submodels)
-    assert id(model._submodels[0]) != id(new_model._submodels[0])
-    assert id(model._submodels[1]) != id(new_model._submodels[1])
-    assert id(model._submodels[2]) != id(new_model._submodels[2])
+    assert id(model._leaflist) != id(new_model._leaflist)
+    assert id(model[0]) != id(new_model[0])
+    assert id(model[1]) != id(new_model[1])
+    assert id(model[2]) != id(new_model[2])
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_units_with_bounding_box():
+    points = np.arange(10, 20)
+    table = np.arange(10) * u.Angstrom
+    t = models.Tabular1D(points, lookup_table=table)
+
+    assert isinstance(t(10), u.Quantity)
+    assert isinstance(t(10, with_bounding_box=True), u.Quantity)
+
+    assert_quantity_allclose(t(10), t(10, with_bounding_box=True))
 
 
 RENAMED_MODEL = models.Gaussian1D.rename('CustomGaussian')

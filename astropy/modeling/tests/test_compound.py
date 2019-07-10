@@ -346,7 +346,7 @@ def test_indexing_on_instance():
     B = Const1D(2.1, name='B')
     C = Const1D(3.1, name='C')
     M = A + B * C
-    assert_allclose(M['B':'C'](1), 6.510000000000001) 
+    assert_allclose(M['B':'C'](1), 6.510000000000001)
 
 
 class _ConstraintsTestA(Model):
