@@ -24,6 +24,7 @@ class VOUnit(generic.Generic):
         r"^[YZEPTGMkhdcmunpfazy]?'((?!\d)\w)+'$")
     _custom_unit_regex = re.compile(r"^((?!\d)\w)+$")
     _custom_units = {}
+    _custom_inline = False
 
     @staticmethod
     def _generate_unit_names():
@@ -91,7 +92,11 @@ class VOUnit(generic.Generic):
             raise core.UnitsError(
                 "'{}' contains multiple slashes, which is "
                 "disallowed by the VOUnit standard".format(s))
-        result = cls._do_parse(s, debug=debug)
+        if len(s) > 2 and s[0] == s[-1] == '"':
+            cls._custom_inline = True
+            result = cls._do_parse(s.strip('"'), debug=debug)
+        else:
+            result = cls._do_parse(s, debug=debug)
         if hasattr(result, 'function_unit'):
             raise ValueError("Function units are not yet supported in "
                              "VOUnit.")
@@ -101,10 +106,23 @@ class VOUnit(generic.Generic):
     def _parse_unit(cls, unit, detailed_exception=True):
         if unit not in cls._units:
             if cls._explicit_custom_unit_regex.match(unit):
+                warnings.warn(
+                    "Unit {0!r} is not recognized in the VOUnit "
+                    "standard. {1}".format(
+                        unit.split("'")[1], utils.did_you_mean_units(
+                            unit, cls._units, cls._deprecated_units,
+                            cls._to_decomposed_alternative)),
+                    core.UnitsWarning)
                 return cls._def_custom_unit(unit)
 
-            if not cls._custom_unit_regex.match(unit):
-                raise ValueError()
+            if not (cls._custom_inline and cls._custom_unit_regex.match(unit)):
+                if not detailed_exception:
+                    raise ValueError()
+                raise ValueError("Unit {0!r} not supported by the VOUnit "
+                                 "standard. {1}".format(
+                                 unit, utils.did_you_mean_units(
+                                     unit, cls._units, cls._deprecated_units,
+                                     cls._to_decomposed_alternative)))
 
             warnings.warn(
                 "Unit {!r} not supported by the VOUnit "
