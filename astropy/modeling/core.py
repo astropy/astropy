@@ -207,7 +207,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
             >>> from astropy.modeling.models import Rotation2D
             >>> SkyRotation = Rotation2D.rename('SkyRotation')
             >>> SkyRotation
-            <class '__main__.SkyRotation'>
+            <class 'astropy.modeling.core.SkyRotation'>
             Name: SkyRotation (Rotation2D)
             Inputs: ('x', 'y')
             Outputs: ('x', 'y')
@@ -227,13 +227,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
 
         new_cls = type(name, (cls,), {})
         new_cls.__module__ = modname
-
-        if hasattr(cls, '__qualname__'):
-            if new_cls.__module__ == '__main__':
-                # __main__ is not added to a class's qualified name
-                new_cls.__qualname__ = name
-            else:
-                new_cls.__qualname__ = '{0}.{1}'.format(modname, name)
+        new_cls.__qualname__ = name
 
         return new_cls
 
