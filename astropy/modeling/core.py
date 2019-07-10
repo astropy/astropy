@@ -2680,18 +2680,6 @@ class CompoundModel(Model):
             res = res + [self.right]
         res = res + [self]
         return res
-        # stack = deque([self])
-        # stacked = deque([])
-        # while stack:
-        #     node = stack[-1]
-        #     if not isinstance(node, CompoundModel):
-        #         yield stack.pop()
-        #     elif node not in stacked:
-        #         stacked.append(node)
-        #         stack.append(node.right)
-        #         stack.append(node.left)
-        #     else:
-        #         yield stack.pop()
 
     def _format_expression(self, format_leaf=None):
         leaf_idx = 0
