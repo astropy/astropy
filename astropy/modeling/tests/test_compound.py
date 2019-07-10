@@ -341,6 +341,13 @@ def test_indexing_on_instance():
     with pytest.raises(IndexError):
         m['foobar']
 
+    # Test string slicing
+    A = Const1D(1.1, name='A')
+    B = Const1D(2.1, name='B')
+    C = Const1D(3.1, name='C')
+    M = A + B * C
+    assert_allclose(M['B':'C'](1), 6.510000000000001) 
+
 
 class _ConstraintsTestA(Model):
     stddev = Parameter(default=0, min=0, max=0.3)
