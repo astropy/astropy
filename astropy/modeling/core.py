@@ -2597,11 +2597,17 @@ class CompoundModel(Model):
                 raise ValueError('Steps in slices not supported '
                                  'for compound models')
             if index.start is not None:
-                start = index.start
+                if isinstance(index.start, str):
+                    start = self._str_index_to_int(index.start)
+                else:
+                    start = index.start
             else:
                 start = 0
             if index.stop is not None:
-                stop = index.stop - 1
+                if isinstance(index.stop, str):
+                    stop = self._str_index_to_int(index.stop)
+                else:
+                    stop = index.stop - 1
             else:
                 stop = len(leaflist) - 1
             if index.stop == 0:
@@ -2622,19 +2628,22 @@ class CompoundModel(Model):
         if isinstance(index, type(0)):
             return leaflist[index]
         elif isinstance(index, type('')):
-            # Search through leaflist for item with that name
-            found = []
-            for nleaf, leaf in enumerate(leaflist):
-                if leaf.name == index:
-                    found.append(nleaf)
-            if len(found) == 0:
-                raise IndexError("No component with name '{}' found".format(index))
-            if len(found) > 1:
-                raise IndexError("Multiple components found using '{}' as name\n"
-                                 "at indices {}".format(index, found))
-            return leaflist[found[0]]
+            return leaflist[self._str_index_to_int(index)]
         else:
             raise TypeError('index must be integer, slice, or model name string')
+
+    def _str_index_to_int(self, str_index):
+                # Search through leaflist for item with that name
+        found = []
+        for nleaf, leaf in enumerate(self._leaflist):
+            if leaf.name == str_index:
+                found.append(nleaf)
+        if len(found) == 0:
+            raise IndexError("No component with name '{}' found".format(str_index))
+        if len(found) > 1:
+            raise IndexError("Multiple components found using '{}' as name\n"
+                             "at indices {}".format(str_index, found))
+        return found[0]
 
     @property
     def n_inputs(self):
@@ -2692,9 +2701,7 @@ class CompoundModel(Model):
             if not isinstance(node, CompoundModel):
                 operands.append(format_leaf(leaf_idx, node))
                 leaf_idx += 1
-                print('leaf case', operands, node)
                 continue
-            print('non leaf case', operands, node.op)
             oper_order = OPERATOR_PRECEDENCE[node.op]
             right = operands.pop()
             left = operands.pop()
