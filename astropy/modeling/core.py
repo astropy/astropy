@@ -2157,7 +2157,6 @@ class Model(metaclass=_ModelMeta):
 
         return '<{0}({1})>'.format(self.__class__.__name__, ', '.join(parts))
 
-
     def _format_str(self, keywords=[]):
         """
         Internal implementation of ``__str__``.
@@ -2726,7 +2725,7 @@ class CompoundModel(Model):
         override the default ``__repr__`` while keeping the same basic
         formatting.
         """
-        
+
         # TODO: I think this could be reworked to preset model sets better
 
         parts = [repr(a) for a in args]
@@ -2752,7 +2751,6 @@ class CompoundModel(Model):
     def _format_components(self):
         if self._parameters_ is None:
             self.map_parameters()
-        print('leaflist', self._leaflist)
         return '\n\n'.join('[{0}]: {1!r}'.format(idx, m)
                            for idx, m in enumerate(self._leaflist))
 
@@ -3979,12 +3977,15 @@ def generic_call(self, *inputs, **kwargs):
                                         self, input_shape, inputs, bbox)
         if not allout:
             valid_result = self.evaluate(*chain(vinputs, parameters))
+            valid_result_unit = getattr(valid_result, 'unit', None)
             if self.n_outputs == 1:
                 valid_result = [valid_result]
             outputs = prepare_bounding_box_outputs(valid_result, valid_ind,
                                                    input_shape, fill_value)
         else:
             outputs = [np.zeros(input_shape) + fill_value for i in range(self.n_outputs)]
+        if valid_result_unit is not None:
+            outputs = Quantity(outputs, valid_result_unit, copy=False)
     else:
         outputs = self.evaluate(*chain(inputs, parameters))
         if self.n_outputs == 1:
