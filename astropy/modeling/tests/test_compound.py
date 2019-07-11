@@ -17,6 +17,7 @@ from astropy.modeling.models import (Const1D, Shift, Scale, Rotation2D, Gaussian
                                      Chebyshev2D, Legendre2D, Chebyshev1D, Legendre1D,
                                      Identity, Mapping,
                                      Tabular1D)
+import astropy.units as u
 from ..core import CompoundModel
 
 
@@ -552,3 +553,10 @@ def test_bounding_box():
     val2 = g(x+2, y+2, with_bounding_box=True)
     assert(np.isnan(val2).sum() == 100)
     val3 = g(.1, .1, with_bounding_box=True)
+
+def test_bounding_box_with_units():
+    points = np.arange(5)*u.pix 
+    lt = np.arange(5)*u.AA
+    t = Tabular1D(points, lt)
+
+    assert(t(1*u.pix, with_bounding_box=True) == 1.*u.AA)

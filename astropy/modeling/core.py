@@ -2754,16 +2754,6 @@ class CompoundModel(Model):
         return '\n\n'.join('[{0}]: {1!r}'.format(idx, m)
                            for idx, m in enumerate(self._leaflist))
 
-        # def __repr__(self):
-        #     if self._parameters_ is None:
-        #         self.map_parameters()
-        #     expression = self._format_expression()
-        #     components = self._format_components()
-        #     keywords = [
-        #         ('Expression', expression),
-        #         ('Components', '\n' + indent(components))
-        #     ]
-
         return self._format_repr(keywords=keywords)
 
     def __str__(self):
@@ -4013,8 +4003,8 @@ def prepare_bounding_box_inputs(self, input_shape, inputs, bbox):
     # have a value of 1 in ``nan_ind``
     nan_ind = np.zeros(input_shape, dtype=bool)
     for ind, inp in enumerate(inputs):
-        inp = np.array(inp)
-        outside = (inp < bbox[ind][0]) | (inp > bbox[ind][1])
+        inp = np.asanyarray(inp)
+        outside = np.logical_or(inp < bbox[ind][0], inp>bbox[ind][1])
         if inp.shape:
             nan_ind[outside] = True
         else:
