@@ -110,6 +110,8 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- Accept non-unit type annotations in @quantity_input. [#8984]
+
 - For numpy 1.17 and later, the new ``__array_function__`` protocol is used to
   ensure that all top-level numpy functions interact properly with
   ``Quantity``, preserving units also in operations like ``np.concatenate``.
