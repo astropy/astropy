@@ -684,7 +684,7 @@ are still tied back to the compound model::
     >>> b = Gaussian1D(2.5, 0.5, 0.1, name='B')
     >>> m = a + b
     >>> m.amplitude_0
-    Parameter('amplitude_0', value=1.0)
+    Parameter('amplitude', value=1.0)
 
 is equivalent to::
 
@@ -699,7 +699,7 @@ Updating one updates the other::
     Parameter('amplitude', value=42.0)
     >>> m['A'].amplitude = 99
     >>> m.amplitude_0
-    Parameter('amplitude_0', value=99.0)
+    Parameter('amplitude', value=99.0)
 
 Note, however, that the original
 `~astropy.modeling.functional_models.Gaussian1D` instance ``a`` has been
