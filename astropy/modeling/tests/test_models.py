@@ -695,6 +695,6 @@ def test_tabular_with_bounding_box():
 def test_bounding_box_with_units():
     points = np.arange(5)*u.pix
     lt = np.arange(5)*u.AA
-    t = Tabular1D(points, lt)
+    t = models.Tabular1D(points, lt)
 
     assert(t(1*u.pix, with_bounding_box=True) == 1.*u.AA)
