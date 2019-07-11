@@ -534,7 +534,7 @@ subexpression ``B * C``::
     <BLANKLINE>
         [1]: <Const1D(amplitude=3.1, name='C')>
     Parameters:
-        amplitude_0 amplitude_0
+        amplitude_0 amplitude_1
         ----------- -----------
                 2.1         3.1
 

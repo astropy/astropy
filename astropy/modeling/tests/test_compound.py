@@ -554,8 +554,9 @@ def test_bounding_box():
     assert(np.isnan(val2).sum() == 100)
     val3 = g(.1, .1, with_bounding_box=True)
 
+
 def test_bounding_box_with_units():
-    points = np.arange(5)*u.pix 
+    points = np.arange(5)*u.pix
     lt = np.arange(5)*u.AA
     t = Tabular1D(points, lt)
 
