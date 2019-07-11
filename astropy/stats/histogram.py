@@ -64,7 +64,7 @@ def calculate_bin_edges(a, bins=10, range=None, weights=None):
         elif bins == 'freedman':
             da, bins = freedman_bin_width(a, True)
         else:
-            raise ValueError("unrecognized bin code: '{}'".format(bins))
+            raise ValueError(f"unrecognized bin code: '{bins}'")
 
         if range:
             # Check that the upper and lower edges are what was requested.

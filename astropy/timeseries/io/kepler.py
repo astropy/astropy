@@ -47,13 +47,13 @@ def kepler_fits_reader(filename):
                                   "supported through this reader".format(hdulist[0].header['telescop']))
 
     if hdu.header['EXTVER'] > 1:
-        raise NotImplementedError("Support for {0} v{1} files not yet "
+        raise NotImplementedError("Support for {} v{} files not yet "
                                   "implemented".format(hdu.header['TELESCOP'], hdu.header['EXTVER']))
 
     # Check time scale
     if hdu.header['TIMESYS'] != 'TDB':
-        raise NotImplementedError("Support for {0} time scale not yet "
-                                  "implemented in {1} reader".format(hdu.header['TIMESYS'], hdu.header['TELESCOP']))
+        raise NotImplementedError("Support for {} time scale not yet "
+                                  "implemented in {} reader".format(hdu.header['TIMESYS'], hdu.header['TELESCOP']))
 
     tab = Table.read(hdu, format='fits')
 
@@ -74,7 +74,7 @@ def kepler_fits_reader(filename):
     # Filter out NaN rows
     nans = np.isnan(tab['time'].data)
     if np.any(nans):
-        warnings.warn('Ignoring {0} rows with NaN times'.format(np.sum(nans)))
+        warnings.warn('Ignoring {} rows with NaN times'.format(np.sum(nans)))
     tab = tab[~nans]
 
     # Time column is dependent on source and we correct it here

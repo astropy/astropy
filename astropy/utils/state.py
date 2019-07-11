@@ -56,7 +56,7 @@ class ScienceState:
                 self._parent._value = self._value
 
             def __repr__(self):
-                return ('<ScienceState {0}: {1!r}>'
+                return ('<ScienceState {}: {!r}>'
                         .format(self._parent.__name__, self._parent._value))
 
         ctx = _Context(cls, cls._value)

@@ -76,5 +76,5 @@ def _set_c(codata, iaudata, module, not_in_module_only=True, doclines=None,
         setattr(module, _c.abbrev, value)
 
         if doclines is not None:
-            doclines.append('{0:^10} {1:^14.9g} {2:^16} {3}'.format(
+            doclines.append('{:^10} {:^14.9g} {:^16} {}'.format(
                 _c.abbrev, _c.value, _c._unit_string, _c.name))

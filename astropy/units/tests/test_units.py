@@ -657,7 +657,7 @@ def test_suggestions():
         try:
             u.Unit(search)
         except ValueError as e:
-            assert 'Did you mean {0}?'.format(matches) in str(e)
+            assert f'Did you mean {matches}?' in str(e)
         else:
             assert False, 'Expected ValueError'
 

@@ -1613,7 +1613,7 @@ def test_z_at_value_roundtrip():
     for name, func in methods:
         if name.startswith('_') or name in skip:
             continue
-        print('Round-trip testing {0}'.format(name))
+        print(f'Round-trip testing {name}')
         fval = func(z)
         # we need zmax here to pick the right solution for
         # angular_diameter_distance and related methods.

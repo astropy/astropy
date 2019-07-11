@@ -47,7 +47,7 @@ def _tofloat(value):
             # catch arrays with strings or user errors like different
             # types of parameters in a parameter set
             raise InputParameterError(
-                "Parameter of {0} could not be converted to "
+                "Parameter of {} could not be converted to "
                 "float".format(type(value)))
     elif isinstance(value, Quantity):
         # Quantities are fine as is
@@ -62,7 +62,7 @@ def _tofloat(value):
             "Expected parameter to be of numerical type, not boolean")
     else:
         raise InputParameterError(
-            "Don't know how to convert parameter of {0} to "
+            "Don't know how to convert parameter of {} to "
             "float".format(type(value)))
     return value
 
@@ -223,8 +223,8 @@ class Parameter(OrderedDescriptor):
         if model is None and isinstance(default, Quantity):
             if unit is not None and not unit.is_equivalent(default.unit):
                 raise ParameterDefinitionError(
-                    "parameter default {0} does not have units equivalent to "
-                    "the required unit {1}".format(default, unit))
+                    "parameter default {} does not have units equivalent to "
+                    "the required unit {}".format(default, unit))
 
             unit = default.unit
             default = default.value
@@ -239,7 +239,7 @@ class Parameter(OrderedDescriptor):
             if min is not None or max is not None:
                 raise ValueError(
                     'bounds may not be specified simultaneously with min or '
-                    'or max when instantiating Parameter {0}'.format(name))
+                    'or max when instantiating Parameter {}'.format(name))
         else:
             bounds = (min, max)
 
@@ -289,7 +289,7 @@ class Parameter(OrderedDescriptor):
                 obj._param_metrics[self.name]['orig_unit'] = value.unit
         else:
             if not isinstance(value, Quantity):
-                raise UnitsError("The '{0}' parameter should be given as a "
+                raise UnitsError("The '{}' parameter should be given as a "
                                  "Quantity because it was originally initialized "
                                  "as a Quantity".format(self._name))
             else:
@@ -337,7 +337,7 @@ class Parameter(OrderedDescriptor):
             if len(oldvalue[key]) == 0:
                 raise InputParameterError(
                     "Slice assignment outside the parameter dimensions for "
-                    "'{0}'".format(self.name))
+                    "'{}'".format(self.name))
             for idx, val in zip(range(*key.indices(len(self))), value):
                 self.__setitem__(idx, val)
         else:
@@ -345,28 +345,28 @@ class Parameter(OrderedDescriptor):
                 oldvalue[key] = value
             except IndexError:
                 raise InputParameterError(
-                    "Input dimension {0} invalid for {1!r} parameter with "
-                    "dimension {2}".format(key, self.name, n_models))
+                    "Input dimension {} invalid for {!r} parameter with "
+                    "dimension {}".format(key, self.name, n_models))
 
     def __repr__(self):
-        args = "'{0}'".format(self._name)
+        args = f"'{self._name}'"
         if self._model is None:
             if self._default is not None:
-                args += ', default={0}'.format(self._default)
+                args += f', default={self._default}'
         else:
-            args += ', value={0}'.format(self.value)
+            args += f', value={self.value}'
 
         if self.unit is not None:
-            args += ', unit={0}'.format(self.unit)
+            args += f', unit={self.unit}'
 
         for cons in self.constraints:
             val = getattr(self, cons)
             if val not in (None, False, (None, None)):
                 # Maybe non-obvious, but False is the default for the fixed and
                 # tied constraints
-                args += ', {0}={1}'.format(cons, val)
+                args += f', {cons}={val}'
 
-        return "{0}({1})".format(self.__class__.__name__, args)
+        return f"{self.__class__.__name__}({args})"
 
     @property
     def name(self):
@@ -859,7 +859,7 @@ class Parameter(OrderedDescriptor):
 
             if np.size(value) != param_size:
                 raise InputParameterError(
-                    "Input value for parameter {0!r} does not have {1} elements "
+                    "Input value for parameter {!r} does not have {} elements "
                     "as the current value does".format(name, param_size))
 
             model._parameters[param_slice] = np.array(value).ravel()
@@ -950,5 +950,5 @@ def param_repr_oneline(param):
 
     out = array_repr_oneline(param.value)
     if param.unit is not None:
-        out = '{0} {1!s}'.format(out, param.unit)
+        out = f'{out} {param.unit!s}'
     return out

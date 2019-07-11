@@ -511,7 +511,7 @@ def test_all_world2pix(fname=None, ext=0,
         ndiv = 0
         if e.divergent is not None:
             ndiv = e.divergent.shape[0]
-            print("There are {} diverging solutions.".format(ndiv))
+            print(f"There are {ndiv} diverging solutions.")
             print("Indices of diverging solutions:\n{}"
                   .format(e.divergent))
             print("Diverging solutions:\n{}\n"
@@ -541,7 +541,7 @@ def test_all_world2pix(fname=None, ext=0,
               .format(e.best_solution.shape[0] - ndiv - nslow))
         print("Best solutions (all points):\n{}"
               .format(e.best_solution))
-        print("Accuracy:\n{}\n".format(e.accuracy))
+        print(f"Accuracy:\n{e.accuracy}\n")
         print("\nFinished running 'test_all_world2pix' with errors.\n"
               "ERROR: {}\nRun time: {}\n"
               .format(e.args[0], runtime_end - runtime_begin))
@@ -554,8 +554,8 @@ def test_all_world2pix(fname=None, ext=0,
     meanerr = np.mean(errors)
     maxerr = np.amax(errors)
     print("\nFinished running 'test_all_world2pix'.\n"
-          "Mean error = {0:e}  (Max error = {1:e})\n"
-          "Run time: {2}\n"
+          "Mean error = {:e}  (Max error = {:e})\n"
+          "Run time: {}\n"
           .format(meanerr, maxerr, runtime_end - runtime_begin))
 
     assert(maxerr < 2.0 * tolerance)
@@ -919,8 +919,8 @@ def test_no_truncate_crval():
 
     header = w.to_header()
     for ii in range(3):
-        assert header['CRVAL{0}'.format(ii + 1)] == w.wcs.crval[ii]
-        assert header['CDELT{0}'.format(ii + 1)] == w.wcs.cdelt[ii]
+        assert header['CRVAL{}'.format(ii + 1)] == w.wcs.crval[ii]
+        assert header['CDELT{}'.format(ii + 1)] == w.wcs.cdelt[ii]
 
 
 def test_no_truncate_crval_try2():
@@ -938,8 +938,8 @@ def test_no_truncate_crval_try2():
 
     header = w.to_header()
     for ii in range(3):
-        assert header['CRVAL{0}'.format(ii + 1)] == w.wcs.crval[ii]
-        assert header['CDELT{0}'.format(ii + 1)] == w.wcs.cdelt[ii]
+        assert header['CRVAL{}'.format(ii + 1)] == w.wcs.crval[ii]
+        assert header['CDELT{}'.format(ii + 1)] == w.wcs.cdelt[ii]
 
 
 def test_no_truncate_crval_p17():
@@ -1241,9 +1241,9 @@ class TestWcsWithTime:
         for i in range(1, 5):
             for j in range(1, 5):
                 if i == j:
-                    pc[i-1, j-1] = self.header.get('PC{}_{}A'.format(i, j), 1)
+                    pc[i-1, j-1] = self.header.get(f'PC{i}_{j}A', 1)
                 else:
-                    pc[i-1, j-1] = self.header.get('PC{}_{}A'.format(i, j), 0)
+                    pc[i-1, j-1] = self.header.get(f'PC{i}_{j}A', 0)
         assert_allclose(self.w.wcs.pc, pc)
 
         char_keys = ['timesys', 'trefpos', 'trefdir', 'plephem', 'timeunit',

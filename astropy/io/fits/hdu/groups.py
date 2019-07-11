@@ -471,7 +471,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
                 # Convert the unsigned array to signed
                 output = np.array(
                     self.data - _unsigned_zero(self.data.dtype),
-                    dtype='>i{}'.format(self.data.dtype.itemsize))
+                    dtype=f'>i{self.data.dtype.itemsize}')
                 should_swap = False
             else:
                 output = self.data
@@ -579,7 +579,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
                 format = self.columns[0].dtype.name
 
         # Update the GCOUNT report
-        gcount = '{} Groups  {} Parameters'.format(self._gcount, self._pcount)
+        gcount = f'{self._gcount} Groups  {self._pcount} Parameters'
         return (name, ver, classname, length, shape, format, gcount)
 
 

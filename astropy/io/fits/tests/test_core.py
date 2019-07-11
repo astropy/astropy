@@ -137,7 +137,7 @@ class TestCore(FitsTestCase):
 
         header = fits.Header()
         comment = 'number of bits per data pixel'
-        card = fits.Card.fromstring('BITPIX  = 32 / {}'.format(comment))
+        card = fits.Card.fromstring(f'BITPIX  = 32 / {comment}')
         header.append(card)
 
         header['BITPIX'] = 32
@@ -531,7 +531,7 @@ class TestCore(FitsTestCase):
             # Add a bunch of header keywords so that the data will be forced to
             # new offsets within the file:
             for idx in range(40):
-                hdul1[1].header['TEST{}'.format(idx)] = 'test'
+                hdul1[1].header[f'TEST{idx}'] = 'test'
 
             hdul1.writeto(self.temp('test1.fits'))
             hdul1.writeto(self.temp('test2.fits'))

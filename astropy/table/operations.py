@@ -480,7 +480,7 @@ def unique(input_table, keys=None, silent=False, keep='first'):
             if not silent:
                 raise ValueError(
                     "cannot use columns with masked values as keys; "
-                    "remove column '{0}' from keys and rerun "
+                    "remove column '{}' from keys and rerun "
                     "unique()".format(key))
             del keys[keys.index(key)]
     if len(keys) == 0:
@@ -546,7 +546,7 @@ def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name
     col_name_count = Counter(col_name_list)
     repeated_names = [name for name, count in col_name_count.items() if count > 1]
     if repeated_names:
-        raise TableMergeError('Merging column names resulted in duplicates: {0}.  '
+        raise TableMergeError('Merging column names resulted in duplicates: {}.  '
                               'Change uniq_col_name or table_names args to fix this.'
                               .format(repeated_names))
 
@@ -579,13 +579,13 @@ def get_descrs(arrays, col_name_map):
         except TableMergeError as tme:
             # Beautify the error message when we are trying to merge columns with incompatible
             # types by including the name of the columns that originated the error.
-            raise TableMergeError("The '{0}' columns have incompatible types: {1}"
+            raise TableMergeError("The '{}' columns have incompatible types: {}"
                                   .format(names[0], tme._incompat_types))
 
         # Make sure all input shapes are the same
         uniq_shapes = set(col.shape[1:] for col in in_cols)
         if len(uniq_shapes) != 1:
-            raise TableMergeError('Key columns {0!r} have different shape'.format(names))
+            raise TableMergeError(f'Key columns {names!r} have different shape')
         shape = uniq_shapes.pop()
 
         out_descrs.append((fix_column_name(out_name), dtype, shape))
@@ -603,7 +603,7 @@ def common_dtype(cols):
     try:
         return metadata.common_dtype(cols)
     except metadata.MergeConflictError as err:
-        tme = TableMergeError('Columns have incompatible types {0}'
+        tme = TableMergeError('Columns have incompatible types {}'
                               .format(err._incompat_types))
         tme._incompat_types = err._incompat_types
         raise tme
@@ -647,7 +647,7 @@ def _join(left, right, keys=None, join_type='inner',
 
     if join_type not in ('inner', 'outer', 'left', 'right'):
         raise ValueError("The 'join_type' argument should be in 'inner', "
-                         "'outer', 'left' or 'right' (got '{0}' instead)".
+                         "'outer', 'left' or 'right' (got '{}' instead)".
                          format(join_type))
 
     # If we have a single key, put it in a tuple
@@ -662,10 +662,10 @@ def _join(left, right, keys=None, join_type='inner',
     for arr, arr_label in ((left, 'Left'), (right, 'Right')):
         for name in keys:
             if name not in arr.colnames:
-                raise TableMergeError('{0} table does not have key column {1!r}'
+                raise TableMergeError('{} table does not have key column {!r}'
                                       .format(arr_label, name))
             if hasattr(arr[name], 'mask') and np.any(arr[name].mask):
-                raise TableMergeError('{0} key column {1!r} has missing values'
+                raise TableMergeError('{} key column {!r} has missing values'
                                       .format(arr_label, name))
             if not isinstance(arr[name], np.ndarray):
                 raise ValueError("non-ndarray column '{}' not allowed as a key column"
@@ -847,7 +847,7 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
         except metadata.MergeConflictError as err:
             # Beautify the error message when we are trying to merge columns with incompatible
             # types by including the name of the columns that originated the error.
-            raise TableMergeError("The '{0}' columns have incompatible types: {1}"
+            raise TableMergeError("The '{}' columns have incompatible types: {}"
                                   .format(out_name, err._incompat_types))
 
         idx0 = 0
@@ -917,7 +917,7 @@ def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
         raise ValueError("join_type arg must be either 'inner', 'exact' or 'outer'")
 
     if table_names is None:
-        table_names = ['{0}'.format(ii + 1) for ii in range(len(arrays))]
+        table_names = ['{}'.format(ii + 1) for ii in range(len(arrays))]
     if len(arrays) != len(table_names):
         raise ValueError('Number of arrays must match number of table_names')
 

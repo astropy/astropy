@@ -224,7 +224,7 @@ class NDArithmeticMixin:
             try:
                 kwds2[splitted[0]][splitted[1]] = kwds[i]
             except KeyError:
-                raise KeyError('Unknown prefix {0} for parameter {1}'
+                raise KeyError('Unknown prefix {} for parameter {}'
                                ''.format(splitted[0], i))
 
         kwargs = {}

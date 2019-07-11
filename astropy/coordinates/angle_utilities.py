@@ -127,7 +127,7 @@ class _AngleParser:
             t.value = u.Unit(t.value)
             return t
         t_SIMPLE_UNIT.__doc__ = '|'.join(
-            '(?:{0})'.format(x) for x in cls._get_simple_unit_names())
+            f'(?:{x})' for x in cls._get_simple_unit_names())
 
         t_COLON = ':'
         t_DEGREE = r'd(eg(ree(s)?)?)?|°'
@@ -141,7 +141,7 @@ class _AngleParser:
         # Error handling rule
         def t_error(t):
             raise ValueError(
-                "Invalid character at col {0}".format(t.lexpos))
+                f"Invalid character at col {t.lexpos}")
 
         lexer_exists = os.path.exists(os.path.join(os.path.dirname(__file__),
                                       'angle_lextab.py'))
@@ -305,11 +305,11 @@ class _AngleParser:
                 angle, lexer=self._lexer, debug=debug)
         except ValueError as e:
             if str(e):
-                raise ValueError("{0} in angle {1!r}".format(
+                raise ValueError("{} in angle {!r}".format(
                     str(e), angle))
             else:
                 raise ValueError(
-                    "Syntax error parsing angle {0!r}".format(angle))
+                    f"Syntax error parsing angle {angle!r}")
 
         if unit is None and found_unit is None:
             raise u.UnitsError("No unit specified")
@@ -629,7 +629,7 @@ def sexagesimal_to_string(values, precision=None, pad=False, sep=(':',),
         literal.append('{1:02d}{sep[1]}')
     if fields == 3:
         if precision is None:
-            last_value = '{0:.4f}'.format(abs(values[2]))
+            last_value = '{:.4f}'.format(abs(values[2]))
             last_value = last_value.rstrip('0').rstrip('.')
         else:
             last_value = '{0:.{precision}f}'.format(

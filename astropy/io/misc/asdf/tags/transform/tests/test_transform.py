@@ -100,9 +100,9 @@ def test_generic_projections(tmpdir):
     for tag_name, (name, params, version) in projections._generic_projections.items():
         tree = {
             'forward': util.resolve_name(
-                'astropy.modeling.projections.Sky2Pix_{0}'.format(name))(),
+                f'astropy.modeling.projections.Sky2Pix_{name}')(),
             'backward': util.resolve_name(
-                'astropy.modeling.projections.Pix2Sky_{0}'.format(name))()
+                f'astropy.modeling.projections.Pix2Sky_{name}')()
         }
 
         helpers.assert_roundtrip_tree(tree, tmpdir)

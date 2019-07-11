@@ -122,7 +122,7 @@ class WCSAxes(Axes):
             return ""
 
         if self._display_coords_index == -1:
-            return "%s %s (pixel)" % (x, y)
+            return f"{x} {y} (pixel)"
 
         pixel = np.array([x, y])
 
@@ -136,9 +136,9 @@ class WCSAxes(Axes):
         if self._display_coords_index == 0:
             system = "world"
         else:
-            system = "world, overlay {0}".format(self._display_coords_index)
+            system = f"world, overlay {self._display_coords_index}"
 
-        coord_string = "%s %s (%s)" % (xw, yw, system)
+        coord_string = f"{xw} {yw} ({system})"
 
         return coord_string
 
@@ -706,9 +706,9 @@ class WCSAxes(Axes):
 
             for pos in ('bottom', 'left', 'top', 'right'):
                 if pos in kwargs:
-                    raise ValueError("Cannot specify {0}= when axis='both'".format(pos))
+                    raise ValueError(f"Cannot specify {pos}= when axis='both'")
                 if 'label' + pos in kwargs:
-                    raise ValueError("Cannot specify label{0}= when axis='both'".format(pos))
+                    raise ValueError(f"Cannot specify label{pos}= when axis='both'")
 
             for coord in self.coords:
                 coord.tick_params(**kwargs)

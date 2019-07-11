@@ -109,7 +109,7 @@ class TestUtilMode(FitsTestCase):
                             (1, 'r', 'rb'), (1, 'rb', 'rb')]
 
         for num, mode, res in num_mode_resmode:
-            filename = self.temp('test{0}.gz'.format(num))
+            filename = self.temp(f'test{num}.gz')
             with gzip.GzipFile(filename, mode) as fileobj:
                 assert util.fileobj_mode(fileobj) == res
 
@@ -122,7 +122,7 @@ class TestUtilMode(FitsTestCase):
                             (1, 'xb', 'xb'),
                             (1, 'rb', 'rb')]
         for num, mode, res in num_mode_resmode:
-            filename = self.temp('test1{0}.dat'.format(num))
+            filename = self.temp(f'test1{num}.dat')
             with open(filename, mode, buffering=0) as fileobj:
                 assert util.fileobj_mode(fileobj) == res
 
@@ -135,7 +135,7 @@ class TestUtilMode(FitsTestCase):
                             (1, 'x', 'x'),
                             (1, 'r', 'r'), (1, 'rb', 'rb')]
         for num, mode, res in num_mode_resmode:
-            filename = self.temp('test2{0}.dat'.format(num))
+            filename = self.temp(f'test2{num}.dat')
             with open(filename, mode) as fileobj:
                 assert util.fileobj_mode(fileobj) == res
 
@@ -151,7 +151,7 @@ class TestUtilMode(FitsTestCase):
                                (0, 'ab', 'ab'),
                                (0, 'a+b', 'ab+'),
                                (0, 'ab+', 'ab+')]:
-            filename = self.temp('test3{0}.dat'.format(num))
+            filename = self.temp(f'test3{num}.dat')
             with open(filename, mode) as fileobj:
                 assert util.fileobj_mode(fileobj) == res
 

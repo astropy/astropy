@@ -336,7 +336,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                         keys = ', '.join(x + 'n' for x in sorted(future_ignore))
                         warnings.warn("The following keywords are now recognized as special "
                                       "column-related attributes and should be set via the "
-                                      "Column objects: {0}. In future, these values will be "
+                                      "Column objects: {}. In future, these values will be "
                                       "dropped from manually specified headers automatically "
                                       "and replaced with values generated based on the "
                                       "Column objects.".format(keys), AstropyDeprecationWarning)
@@ -573,8 +573,8 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             ncols = self._header['TFIELDS']
             format = ', '.join([self._header['TFORM' + str(j + 1)]
                                 for j in range(ncols)])
-            format = '[{}]'.format(format)
-        dims = "{}R x {}C".format(nrows, ncols)
+            format = f'[{format}]'
+        dims = f"{nrows}R x {ncols}C"
         ncards = len(self._header)
 
         return (self.name, self.ver, class_name, ncards, dims, format)
@@ -748,7 +748,7 @@ class TableHDU(_TableBaseHDU):
         dup = np.rec.find_duplicate(names)
 
         if dup:
-            raise ValueError("Duplicate field names: {}".format(dup))
+            raise ValueError(f"Duplicate field names: {dup}")
 
         # TODO: Determine if this extra logic is necessary--I feel like the
         # _AsciiColDefs class should be responsible for telling the table what
@@ -1089,7 +1089,7 @@ class BinTableHDU(_TableBaseHDU):
                         exist.append(f)
 
         if exist:
-            raise OSError('  '.join(["File '{}' already exists.".format(f)
+            raise OSError('  '.join([f"File '{f}' already exists."
                                      for f in exist]))
 
         # Process the data
@@ -1216,12 +1216,12 @@ class BinTableHDU(_TableBaseHDU):
                 return '{:{size}}'.format(val, size=itemsize)
             elif format in np.typecodes['AllInteger']:
                 # output integer
-                return '{:21d}'.format(val)
+                return f'{val:21d}'
             elif format in np.typecodes['Complex']:
-                return '{:21.15g}+{:.15g}j'.format(val.real, val.imag)
+                return f'{val.real:21.15g}+{val.imag:.15g}j'
             elif format in np.typecodes['Float']:
                 # output floating point
-                return '{:#21.15g}'.format(val)
+                return f'{val:#21.15g}'
 
         for row in self.data:
             line = []   # the line for this row of the table

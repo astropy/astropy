@@ -1740,8 +1740,8 @@ class TestHeaderFunctions(FitsTestCase):
 
         with open(self.temp('test.fits'), 'rb') as f:
             out = f.read()
-        out = out.replace(b'hello', u'héllo'.encode('latin1'))
-        out = out.replace(b'BAR', u'BÀR'.encode('latin1'))
+        out = out.replace(b'hello', 'héllo'.encode('latin1'))
+        out = out.replace(b'BAR', 'BÀR'.encode('latin1'))
         with open(self.temp('test2.fits'), 'wb') as f2:
             f2.write(out)
 

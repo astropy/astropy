@@ -143,8 +143,8 @@ def test_warning_logging_with_io_votable_warning():
     assert len(log_list) == 1
     assert len(warn_list) == 0
     assert log_list[0].levelname == 'WARNING'
-    x = log_list[0].message.startswith(("W02: ?:?:?: W02: a attribute 'b' is "
-                                        "invalid.  Must be a standard XML id"))
+    x = log_list[0].message.startswith("W02: ?:?:?: W02: a attribute 'b' is "
+                                        "invalid.  Must be a standard XML id")
     assert x
     assert log_list[0].origin == 'astropy.tests.test_logger'
 

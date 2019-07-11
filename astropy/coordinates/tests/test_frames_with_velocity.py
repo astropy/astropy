@@ -109,8 +109,8 @@ def test_all_arg_options(kwargs):
 ])
 def test_expected_arg_names(cls, lon, lat):
     kwargs = {lon: 37.4*u.deg, lat: -55.8*u.deg, 'distance': 150*u.pc,
-              'pm_{0}_cos{1}'.format(lon, lat): -21.2*u.mas/u.yr,
-              'pm_{0}'.format(lat): 17.1*u.mas/u.yr,
+              f'pm_{lon}_cos{lat}': -21.2*u.mas/u.yr,
+              f'pm_{lat}': 17.1*u.mas/u.yr,
               'radial_velocity': 105.7*u.km/u.s}
     frame = cls(**kwargs)
 

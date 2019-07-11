@@ -653,7 +653,7 @@ class BaseHeader:
             for name in self.colnames:
                 if (_is_number(name) or len(name) == 0
                         or name[0] in bads or name[-1] in bads):
-                    raise InconsistentTableError('Column name {0!r} does not meet strict name requirements'
+                    raise InconsistentTableError('Column name {!r} does not meet strict name requirements'
                                                  .format(name))
         # When guessing require at least two columns
         if guessing and len(self.colnames) <= 1:
@@ -661,8 +661,8 @@ class BaseHeader:
                              .format(list(self.colnames)))
 
         if names is not None and len(names) != len(self.colnames):
-            raise InconsistentTableError('Length of names argument ({0}) does not match number'
-                             ' of table columns ({1})'.format(len(names), len(self.colnames)))
+            raise InconsistentTableError('Length of names argument ({}) does not match number'
+                             ' of table columns ({})'.format(len(names), len(self.colnames)))
 
 
 class BaseData:
@@ -963,12 +963,12 @@ class BaseOutputter:
                 except OverflowError as err:
                     # Overflow during conversion (most likely an int that doesn't fit in native C long).
                     # Put string at the top of the converters list for the next while iteration.
-                    warnings.warn("OverflowError converting to {0} for column {1}, using string instead."
+                    warnings.warn("OverflowError converting to {} for column {}, using string instead."
                                   .format(converter_type.__name__, col.name), AstropyWarning)
                     col.converters.insert(0, convert_numpy(numpy.str))
                     last_err = err
                 except IndexError:
-                    raise ValueError('Column {} failed to convert: {}'.format(col.name, last_err))
+                    raise ValueError(f'Column {col.name} failed to convert: {last_err}')
 
 
 class TableOutputter(BaseOutputter):
@@ -1022,7 +1022,7 @@ class MetaBaseReader(type):
 
         for io_format in io_formats:
             func = functools.partial(connect.io_read, io_format)
-            header = "ASCII reader '{}' details\n".format(io_format)
+            header = f"ASCII reader '{io_format}' details\n"
             func.__doc__ = (inspect.cleandoc(READ_DOCSTRING).strip() + '\n\n' +
                             header + re.sub('.', '=', header) + '\n')
             func.__doc__ += inspect.cleandoc(cls.__doc__).strip()
@@ -1030,7 +1030,7 @@ class MetaBaseReader(type):
 
             if dct.get('_io_registry_can_write', True):
                 func = functools.partial(connect.io_write, io_format)
-                header = "ASCII writer '{}' details\n".format(io_format)
+                header = f"ASCII writer '{io_format}' details\n"
                 func.__doc__ = (inspect.cleandoc(WRITE_DOCSTRING).strip() + '\n\n' +
                                 header + re.sub('.', '=', header) + '\n')
                 func.__doc__ += inspect.cleandoc(cls.__doc__).strip()
@@ -1396,7 +1396,7 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     if 'fast_reader' in kwargs:
         if kwargs['fast_reader']['enable'] == 'force':
             raise ParameterError('fast_reader required with ' +
-                                 '{0}, but this is not a fast C reader: {1}'
+                                 '{}, but this is not a fast C reader: {}'
                                  .format(kwargs['fast_reader'], Reader))
         else:
             del kwargs['fast_reader']  # Otherwise ignore fast_reader parameter
@@ -1496,10 +1496,10 @@ def _get_writer(Writer, fast_writer, **kwargs):
 
     if issubclass(Writer, FastBasic):  # Fast writers handle args separately
         return Writer(**kwargs)
-    elif fast_writer and 'fast_{0}'.format(Writer._format_name) in FAST_CLASSES:
+    elif fast_writer and f'fast_{Writer._format_name}' in FAST_CLASSES:
         # Switch to fast writer
         kwargs['fast_writer'] = fast_writer
-        return FAST_CLASSES['fast_{0}'.format(Writer._format_name)](**kwargs)
+        return FAST_CLASSES[f'fast_{Writer._format_name}'](**kwargs)
 
     writer_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_writer_pars)
     writer = Writer(**writer_kwargs)

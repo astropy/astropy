@@ -87,7 +87,7 @@ class VOUnit(generic.Generic):
             return core.dimensionless_unscaled
         if s.count('/') > 1:
             raise core.UnitsError(
-                "'{0}' contains multiple slashes, which is "
+                "'{}' contains multiple slashes, which is "
                 "disallowed by the VOUnit standard".format(s))
         result = cls._do_parse(s, debug=debug)
         if hasattr(result, 'function_unit'):
@@ -105,8 +105,8 @@ class VOUnit(generic.Generic):
                 raise ValueError()
 
             warnings.warn(
-                "Unit {0!r} not supported by the VOUnit "
-                "standard. {1}".format(
+                "Unit {!r} not supported by the VOUnit "
+                "standard. {}".format(
                     unit, utils.did_you_mean_units(
                         unit, cls._units, cls._deprecated_units,
                         cls._to_decomposed_alternative)),
@@ -128,11 +128,11 @@ class VOUnit(generic.Generic):
         if isinstance(unit, core.PrefixUnit):
             if unit._represents.scale == 10.0:
                 raise ValueError(
-                    "In '{0}': VOUnit can not represent units with the 'da' "
+                    "In '{}': VOUnit can not represent units with the 'da' "
                     "(deka) prefix".format(unit))
             elif unit._represents.scale == 0.1:
                 raise ValueError(
-                    "In '{0}': VOUnit can not represent units with the 'd' "
+                    "In '{}': VOUnit can not represent units with the 'd' "
                     "(deci) prefix".format(unit))
 
         name = unit.get_format_name('vounit')
@@ -142,7 +142,7 @@ class VOUnit(generic.Generic):
 
         if name not in cls._units:
             raise ValueError(
-                "Unit {0!r} is not part of the VOUnit standard".format(name))
+                f"Unit {name!r} is not part of the VOUnit standard")
 
         if name in cls._deprecated_units:
             utils.unit_deprecation_warning(
@@ -195,7 +195,7 @@ class VOUnit(generic.Generic):
                 raise core.UnitScaleError(
                     "The VOUnit format is not able to "
                     "represent scale for dimensionless units. "
-                    "Multiply your data by {0:e}."
+                    "Multiply your data by {:e}."
                     .format(unit.scale))
             s = ''
             if unit.scale != 1:
@@ -230,6 +230,6 @@ class VOUnit(generic.Generic):
             scale = unit.scale
             unit = copy.copy(unit)
             unit._scale = 1.0
-            return '{0} (with data multiplied by {1})'.format(
+            return '{} (with data multiplied by {})'.format(
                 cls.to_string(unit), scale)
         return s

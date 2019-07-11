@@ -537,7 +537,7 @@ class TestQuantityMathFuncs:
         # Can't use exp() with non-dimensionless quantities
         with pytest.raises(TypeError) as exc:
             function(3. * u.m / u.s)
-        assert exc.value.args[0] == ("Can only apply '{0}' function to "
+        assert exc.value.args[0] == ("Can only apply '{}' function to "
                                      "dimensionless quantities"
                                      .format(function.__name__))
 
@@ -589,7 +589,7 @@ class TestQuantityMathFuncs:
 
         with pytest.raises(TypeError) as exc:
             function(1. * u.km / u.s, 3. * u.m / u.s)
-        assert exc.value.args[0] == ("Can only apply '{0}' function to "
+        assert exc.value.args[0] == ("Can only apply '{}' function to "
                                      "dimensionless quantities"
                                      .format(function.__name__))
 
@@ -1248,6 +1248,6 @@ if HAS_SCIPY:
             # Can't use jv() with non-dimensionless quantities
             with pytest.raises(TypeError) as exc:
                 function(1. * u.kg, 3. * u.m / u.s)
-            assert exc.value.args[0] == ("Can only apply '{0}' function to "
+            assert exc.value.args[0] == ("Can only apply '{}' function to "
                                          "dimensionless quantities"
                                          .format(function.__name__))

@@ -111,7 +111,7 @@ class _Tabular(Model):
 
         if self.lookup_table.ndim != lookup_table.ndim:
             raise ValueError("lookup_table should be an array with "
-                             "{0} dimensions.".format(self.lookup_table.ndim))
+                             "{} dimensions.".format(self.lookup_table.ndim))
 
         if points is None:
             points = tuple(np.arange(x, dtype=float)
@@ -123,14 +123,14 @@ class _Tabular(Model):
             if npts != lookup_table.ndim:
                 raise ValueError(
                     "Expected grid points in "
-                    "{0} directions, got {1}.".format(lookup_table.ndim, npts))
+                    "{} directions, got {}.".format(lookup_table.ndim, npts))
             if (npts > 1 and isinstance(points[0], u.Quantity) and
                     len(set([getattr(p, 'unit', None) for p in points])) > 1):
                 raise ValueError('points must all have the same unit.')
 
         if isinstance(fill_value, u.Quantity):
             if not isinstance(lookup_table, u.Quantity):
-                raise ValueError('fill value is in {0} but expected to be '
+                raise ValueError('fill value is in {} but expected to be '
                                  'unitless.'.format(fill_value.unit))
             fill_value = fill_value.to(lookup_table.unit).value
 
@@ -141,7 +141,7 @@ class _Tabular(Model):
         self.fill_value = fill_value
 
     def __repr__(self):
-        fmt = "<{0}(points={1}, lookup_table={2})>".format(
+        fmt = "<{}(points={}, lookup_table={})>".format(
             self.__class__.__name__, self.points, self.lookup_table)
         return fmt
 
@@ -159,7 +159,7 @@ class _Tabular(Model):
             ('  bounds_error', self.bounds_error)
         ]
 
-        parts = ['{0}: {1}'.format(keyword, value)
+        parts = [f'{keyword}: {value}'
                  for keyword, value in default_keywords
                  if value is not None]
 
@@ -279,7 +279,7 @@ def tabular_model(dim, name=None):
         raise ValueError('Lookup table must have at least one dimension.')
 
     table = np.zeros([2] * dim)
-    inputs = tuple('x{0}'.format(idx) for idx in range(table.ndim))
+    inputs = tuple(f'x{idx}' for idx in range(table.ndim))
     members = {'lookup_table': table, 'inputs': inputs}
 
     if dim == 1:
@@ -290,7 +290,7 @@ def tabular_model(dim, name=None):
     if name is None:
         model_id = _Tabular._id
         _Tabular._id += 1
-        name = 'Tabular{0}'.format(model_id)
+        name = f'Tabular{model_id}'
 
     return type(str(name), (_Tabular,), members)
 

@@ -193,7 +193,7 @@ class TransformGraph:
                 if attr in tosys.frame_attributes:
                     invalid_frames.update([tosys])
 
-            raise ValueError("Frame(s) {0} contain invalid attribute names: {1}"
+            raise ValueError("Frame(s) {} contain invalid attribute names: {}"
                              "\nFrame attributes can not conflict with *any* of"
                              " the frame data component names (see"
                              " `frame_transform_graph.frame_component_names`)."
@@ -235,7 +235,7 @@ class TransformGraph:
                         del agraph[b]
                         break
             else:
-                raise ValueError('Could not find transform {0} in the '
+                raise ValueError('Could not find transform {} in the '
                                  'graph'.format(transform))
 
         else:
@@ -246,8 +246,8 @@ class TransformGraph:
                 if curr is transform:
                     self._graph[fromsys].pop(tosys)
                 else:
-                    raise ValueError('Current transform from {0} to {1} is not '
-                                     '{2}'.format(fromsys, tosys, transform))
+                    raise ValueError('Current transform from {} to {} is not '
+                                     '{}'.format(fromsys, tosys, transform))
         self.invalidate_cache()
 
     def find_shortest_path(self, fromsys, tosys):
@@ -524,14 +524,14 @@ class TransformGraph:
             labelstr_fmt = '[ {0} {1} ]'
 
             if priorities:
-                priority_part = 'label = "{0}"'.format(weights)
+                priority_part = f'label = "{weights}"'
             else:
                 priority_part = ''
 
-            color_part = 'color = "{0}"'.format(color)
+            color_part = f'color = "{color}"'
 
             labelstr = labelstr_fmt.format(priority_part, color_part)
-            lines.append('{0} -> {1}{2};'.format(enm1, enm2, labelstr))
+            lines.append(f'{enm1} -> {enm2}{labelstr};')
 
         lines.append('')
         lines.append('overlap=false')
@@ -815,8 +815,8 @@ class FunctionTransform(CoordinateTransform):
     def __call__(self, fromcoord, toframe):
         res = self.func(fromcoord, toframe)
         if not isinstance(res, self.tosys):
-            raise TypeError('the transformation function yielded {0} but '
-                'should have been of type {1}'.format(res, self.tosys))
+            raise TypeError('the transformation function yielded {} but '
+                'should have been of type {}'.format(res, self.tosys))
         if fromcoord.data.differentials and not res.data.differentials:
             warn("Applied a FunctionTransform to a coordinate frame with "
                  "differentials, but the FunctionTransform does not handle "
@@ -1016,7 +1016,7 @@ class BaseAffineTransform(CoordinateTransform):
         if isinstance(data, UnitSphericalRepresentation) and offset is not None:
             raise TypeError("Position information stored on coordinate frame "
                             "is insufficient to do a full-space position "
-                            "transformation (representation class: {0})"
+                            "transformation (representation class: {})"
                             .format(data.__class__))
 
         elif (has_velocity and (unit_vel_diff or rad_vel_diff) and
@@ -1025,7 +1025,7 @@ class BaseAffineTransform(CoordinateTransform):
             # that we need to do a velocity offset
             raise TypeError("Velocity information stored on coordinate frame "
                             "is insufficient to do a full-space velocity "
-                            "transformation (differential class: {0})"
+                            "transformation (differential class: {})"
                             .format(data.differentials['s'].__class__))
 
         elif len(data.differentials) > 1:
@@ -1035,7 +1035,7 @@ class BaseAffineTransform(CoordinateTransform):
             raise ValueError("Representation passed to AffineTransform contains"
                              " multiple associated differentials. Only a single"
                              " differential with velocity units is presently"
-                             " supported (differentials: {0})."
+                             " supported (differentials: {})."
                              .format(str(data.differentials)))
 
         # If the representation is a UnitSphericalRepresentation, and this is

@@ -68,7 +68,7 @@ def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name
     col_name_count = Counter(col_name_list)
     repeated_names = [name for name, count in col_name_count.items() if count > 1]
     if repeated_names:
-        raise TableMergeError('Merging column names resulted in duplicates: {0}.  '
+        raise TableMergeError('Merging column names resulted in duplicates: {}.  '
                               'Change uniq_col_name or table_names args to fix this.'
                               .format(repeated_names))
 
@@ -101,13 +101,13 @@ def get_descrs(arrays, col_name_map):
         except TableMergeError as tme:
             # Beautify the error message when we are trying to merge columns with incompatible
             # types by including the name of the columns that originated the error.
-            raise TableMergeError("The '{0}' columns have incompatible types: {1}"
+            raise TableMergeError("The '{}' columns have incompatible types: {}"
                                   .format(names[0], tme._incompat_types))
 
         # Make sure all input shapes are the same
         uniq_shapes = set(col.shape[1:] for col in in_cols)
         if len(uniq_shapes) != 1:
-            raise TableMergeError('Key columns {0!r} have different shape'.format(name))
+            raise TableMergeError(f'Key columns {name!r} have different shape')
         shape = uniq_shapes.pop()
 
         out_descrs.append((fix_column_name(out_name), dtype, shape))
@@ -128,7 +128,7 @@ def common_dtype(cols):
     if len(uniq_types) > 1:
         # Embed into the exception the actual list of incompatible types.
         incompat_types = [col.dtype.name for col in cols]
-        tme = TableMergeError('Columns have incompatible types {0}'
+        tme = TableMergeError('Columns have incompatible types {}'
                               .format(incompat_types))
         tme._incompat_types = incompat_types
         raise tme

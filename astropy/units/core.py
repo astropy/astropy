@@ -91,13 +91,13 @@ def _normalize_equivalencies(equivalencies):
             funit, tunit, a, b = equiv
         else:
             raise ValueError(
-                "Invalid equivalence entry {0}: {1!r}".format(i, equiv))
+                f"Invalid equivalence entry {i}: {equiv!r}")
         if not (funit is Unit(funit) and
                 (tunit is None or tunit is Unit(tunit)) and
                 callable(a) and
                 callable(b)):
             raise ValueError(
-                "Invalid equivalence entry {0}: {1!r}".format(i, equiv))
+                f"Invalid equivalence entry {i}: {equiv!r}")
         normalized.append((funit, tunit, a, b))
 
     return normalized
@@ -194,7 +194,7 @@ class _UnitRegistry:
             for st in unit._names:
                 if (st in self._registry and unit != self._registry[st]):
                     raise ValueError(
-                        "Object with name {0!r} already exists in namespace. "
+                        "Object with name {!r} already exists in namespace. "
                         "Filter the set of units to avoid name clashes before "
                         "enabling them.".format(st))
 
@@ -528,7 +528,7 @@ class UnitBase(metaclass=InheritDocstrings):
     def __repr__(self):
         string = unit_format.Generic.to_string(self)
 
-        return 'Unit("{0}")'.format(string)
+        return f'Unit("{string}")'
 
     def _get_physical_type_id(self):
         """
@@ -876,17 +876,17 @@ class UnitBase(metaclass=InheritDocstrings):
             unit_str = unit.to_string('unscaled')
             physical_type = unit.physical_type
             if physical_type != 'unknown':
-                unit_str = "'{0}' ({1})".format(
+                unit_str = "'{}' ({})".format(
                     unit_str, physical_type)
             else:
-                unit_str = "'{0}'".format(unit_str)
+                unit_str = f"'{unit_str}'"
             return unit_str
 
         unit_str = get_err_str(unit)
         other_str = get_err_str(other)
 
         raise UnitConversionError(
-            "{0} and {1} are not convertible".format(
+            "{} and {} are not convertible".format(
                 unit_str, other_str))
 
     def _get_converter(self, other, equivalencies=[]):
@@ -950,7 +950,7 @@ class UnitBase(metaclass=InheritDocstrings):
                 return self_decomposed.scale / other_decomposed.scale
 
         raise UnitConversionError(
-            "'{0!r}' is not a scaled version of '{1!r}'".format(self, other))
+            f"'{self!r}' is not a scaled version of '{other!r}'")
 
     def to(self, other, value=UNITY, equivalencies=[]):
         """
@@ -1130,7 +1130,7 @@ class UnitBase(metaclass=InheritDocstrings):
 
         if not is_final_result(self):
             result = UnitsError(
-                "Cannot represent unit {0} in terms of the given "
+                "Cannot represent unit {} in terms of the given "
                 "units".format(self))
             cached_results[key] = result
             raise result
@@ -1407,7 +1407,7 @@ class UnitBase(metaclass=InheritDocstrings):
                 lines = [f.format(*line) for line in lines]
                 lines = (lines[0:1] +
                          ['['] +
-                         ['{0} ,'.format(x) for x in lines[1:]] +
+                         [f'{x} ,' for x in lines[1:]] +
                          [']'])
                 return '\n'.join(lines)
 
@@ -1612,8 +1612,8 @@ class NamedUnit(UnitBase):
         for name in self._names:
             if name in namespace and self != namespace[name]:
                 raise ValueError(
-                    "Object with name {0!r} already exists in "
-                    "given namespace ({1!r}).".format(
+                    "Object with name {!r} already exists in "
+                    "given namespace ({!r}).".format(
                         name, namespace[name]))
 
         for name in self._names:
@@ -1684,7 +1684,7 @@ class IrreducibleUnit(NamedUnit):
                                              _error_check=False)
 
             raise UnitConversionError(
-                "Unit {0} can not be decomposed into the requested "
+                "Unit {} can not be decomposed into the requested "
                 "bases".format(self))
 
         return self
@@ -1707,7 +1707,7 @@ class UnrecognizedUnit(IrreducibleUnit):
     __reduce__ = object.__reduce__
 
     def __repr__(self):
-        return "UnrecognizedUnit({0})".format(str(self))
+        return "UnrecognizedUnit({})".format(str(self))
 
     def __bytes__(self):
         return self.name.encode('ascii', 'replace')
@@ -1720,7 +1720,7 @@ class UnrecognizedUnit(IrreducibleUnit):
 
     def _unrecognized_operator(self, *args, **kwargs):
         raise ValueError(
-            "The unit {0!r} is unrecognized, so all arithmetic operations "
+            "The unit {!r} is unrecognized, so all arithmetic operations "
             "with it are invalid.".format(self.name))
 
     __pow__ = __div__ = __rdiv__ = __truediv__ = __rtruediv__ = __mul__ = \
@@ -1745,7 +1745,7 @@ class UnrecognizedUnit(IrreducibleUnit):
     def _get_converter(self, other, equivalencies=None):
         self._normalize_equivalencies(equivalencies)
         raise ValueError(
-            "The unit {0!r} is unrecognized.  It can not be converted "
+            "The unit {!r} is unrecognized.  It can not be converted "
             "to other units.".format(self.name))
 
     def get_format_name(self, format):
@@ -1827,7 +1827,7 @@ class _UnitMetaClass(InheritDocstrings):
                         format_clause = f.name + ' '
                     else:
                         format_clause = ''
-                    msg = ("'{0}' did not parse as {1}unit: {2}"
+                    msg = ("'{}' did not parse as {}unit: {}"
                            .format(s, format_clause, str(e)))
                     if parse_strict == 'raise':
                         raise ValueError(msg)
@@ -1845,7 +1845,7 @@ class _UnitMetaClass(InheritDocstrings):
             raise TypeError("None is not a valid Unit")
 
         else:
-            raise TypeError("{0} can not be converted to a Unit".format(s))
+            raise TypeError(f"{s} can not be converted to a Unit")
 
 
 class Unit(NamedUnit, metaclass=_UnitMetaClass):
@@ -2056,7 +2056,7 @@ class CompositeUnit(UnitBase):
             return super().__repr__()
         else:
             if self._scale != 1.0:
-                return 'Unit(dimensionless with a scale of {0})'.format(
+                return 'Unit(dimensionless with a scale of {})'.format(
                     self._scale)
             else:
                 return 'Unit(dimensionless)'

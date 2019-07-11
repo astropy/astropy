@@ -85,7 +85,7 @@ def test_all_methods(data, method, center_data, fit_mean,
     elif errors == 'full':
         pass
     else:
-        raise ValueError("Unrecognized error type: '{0}'".format(errors))
+        raise ValueError(f"Unrecognized error type: '{errors}'")
 
     kwds = {}
 
@@ -163,7 +163,7 @@ def test_nterms_methods(method, center_data, fit_mean, errors,
     elif errors == 'full':
         pass
     else:
-        raise ValueError("Unrecognized error type: '{0}'".format(errors))
+        raise ValueError(f"Unrecognized error type: '{errors}'")
 
     ls = LombScargle(t, y, dy, center_data=center_data,
                      fit_mean=fit_mean, nterms=nterms,
@@ -202,7 +202,7 @@ def test_fast_approximations(method, center_data, fit_mean,
     elif errors == 'full':
         pass
     else:
-        raise ValueError("Unrecognized error type: '{0}'".format(errors))
+        raise ValueError(f"Unrecognized error type: '{errors}'")
 
     ls = LombScargle(t, y, dy, center_data=center_data,
                      fit_mean=fit_mean, nterms=nterms,
@@ -402,7 +402,7 @@ def test_model_parameters(data, nterms, fit_mean, center_data,
     elif errors == 'full':
         pass
     else:
-        raise ValueError("Unrecognized error type: '{0}'".format(errors))
+        raise ValueError(f"Unrecognized error type: '{errors}'")
 
     ls = LombScargle(t, y, dy,
                      nterms=nterms,

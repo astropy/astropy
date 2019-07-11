@@ -62,7 +62,7 @@ def test_fnpickling_protocol(tmpdir):
     obj2 = ToBePickled(obj1)
 
     for p in range(pickle.HIGHEST_PROTOCOL + 1):
-        fn = str(tmpdir.join('testp{}.pickle'.format(p)))
+        fn = str(tmpdir.join(f'testp{p}.pickle'))
         fnpickle(obj2, fn, protocol=p)
         res = fnunpickle(fn)
         assert res == obj2

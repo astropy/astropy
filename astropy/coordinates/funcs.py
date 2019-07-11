@@ -250,7 +250,7 @@ def get_constellation(coord, short_name=False, constellation_list='iau'):
         if np.sum(notided) == 0:
             break
     else:
-        raise ValueError('Could not find constellation for coordinates {0}'.format(constel_coord[notided]))
+        raise ValueError('Could not find constellation for coordinates {}'.format(constel_coord[notided]))
 
     if short_name:
         names = ctable['name'][constellidx]
@@ -368,7 +368,7 @@ def concatenate(coords):
     for sc in scs[1:]:
         if not sc.is_equivalent_frame(scs[0]):
             raise ValueError("All inputs must have equivalent frames: "
-                             "{0} != {1}".format(sc, scs[0]))
+                             "{} != {}".format(sc, scs[0]))
 
     # TODO: this can be changed to SkyCoord.from_representation() for a speed
     # boost when we switch to using classmethods

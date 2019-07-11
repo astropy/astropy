@@ -1090,7 +1090,7 @@ class Voigt1D(Fittable1DModel):
         Y = fwhm_L * sqrt_ln2 / fwhm_G
         Y = np.atleast_1d(Y)[..., np.newaxis]
 
-        V = np.sum((C * (Y - A) + D * (X - B))/(((Y - A) ** 2 + (X - B) ** 2)), axis=-1)
+        V = np.sum((C * (Y - A) + D * (X - B))/((Y - A) ** 2 + (X - B) ** 2), axis=-1)
 
         return (fwhm_L * amplitude_L * np.sqrt(np.pi) * sqrt_ln2 / fwhm_G) * V
 

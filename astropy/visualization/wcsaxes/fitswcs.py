@@ -79,7 +79,7 @@ class WCSWorld2PixelTransform(World2PixelTransform):
                 raise ValueError("WCS has more than 2 dimensions, so ``slice`` should be set")
             elif len(slice) != self.wcs.wcs.naxis:
                 raise ValueError("slice should have as many elements as WCS "
-                                 "has dimensions (should be {0})".format(self.wcs.wcs.naxis))
+                                 "has dimensions (should be {})".format(self.wcs.wcs.naxis))
             else:
                 self.slice = slice
                 self.x_index = slice.index('x')

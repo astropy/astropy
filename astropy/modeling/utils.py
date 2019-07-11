@@ -275,7 +275,7 @@ class ExpressionTree:
         operands = deque()
 
         if format_leaf is None:
-            format_leaf = lambda i, l: '[{0}]'.format(i)
+            format_leaf = lambda i, l: f'[{i}]'
 
         for node in self.traverse_postorder():
             if node.isleaf:
@@ -289,10 +289,10 @@ class ExpressionTree:
 
             if (node.left is not None and not node.left.isleaf and
                     operator_precedence[node.left.value] < oper_order):
-                left = '({0})'.format(left)
+                left = f'({left})'
             if (node.right is not None and not node.right.isleaf and
                     operator_precedence[node.right.value] < oper_order):
-                right = '({0})'.format(right)
+                right = f'({right})'
 
             operands.append(' '.join((left, node.value, right)))
 
@@ -483,7 +483,7 @@ class _BoundingBox(tuple):
         if nd == 1:
             MESSAGE = "Bounding box for {0} model must be a sequence of length "
             "2 consisting of a lower and upper bound, or a 1-tuple "
-            "containing such a sequence as its sole element.".format(model.name)
+            f"containing such a sequence as its sole element."
 
             try:
                 valid_shape = np.shape(bounding_box) in ((2,), (1, 2))
@@ -504,7 +504,7 @@ class _BoundingBox(tuple):
             MESSAGE = "Bounding box for {0} model must be a sequence of length "
             "{1} (the number of model inputs) consisting of pairs of "
             "lower and upper bounds for those inputs on which to "
-            "evaluate the model.".format(model.name, nd)
+            f"evaluate the model."
 
             try:
                 valid_shape = all([len(i) == 2 for i in bounding_box])

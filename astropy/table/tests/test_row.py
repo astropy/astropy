@@ -135,7 +135,7 @@ class TestRow():
         self._setup(table_types)
         table = self.t
         row = table[0]
-        assert repr(row).splitlines() == ['<{0} {1}{2}>'
+        assert repr(row).splitlines() == ['<{} {}{}>'
                                           .format(row.__class__.__name__,
                                                   'index=0',
                                                   ' masked=True' if table.masked else ''),
@@ -147,11 +147,11 @@ class TestRow():
                                          '--- ---',
                                          '  1   4']
 
-        assert row._repr_html_().splitlines() == ['<i>{0} {1}{2}</i>'
+        assert row._repr_html_().splitlines() == ['<i>{} {}{}</i>'
                                                   .format(row.__class__.__name__,
                                                           'index=0',
                                                           ' masked=True' if table.masked else ''),
-                                                  '<table id="table{0}">'.format(id(table)),
+                                                  '<table id="table{}">'.format(id(table)),
                                                   '<thead><tr><th>a</th><th>b</th></tr></thead>',
                                                   '<thead><tr><th>int64</th><th>int64</th></tr></thead>',
                                                   '<tr><td>1</td><td>4</td></tr>',

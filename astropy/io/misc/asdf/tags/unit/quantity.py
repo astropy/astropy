@@ -24,7 +24,7 @@ class QuantityType(AstropyAsdfType):
             node['value'] = custom_tree_to_tagged_tree(quantity.value, ctx)
             node['unit'] = custom_tree_to_tagged_tree(quantity.unit, ctx)
             return node
-        raise TypeError("'{0}' is not a valid Quantity".format(quantity))
+        raise TypeError(f"'{quantity}' is not a valid Quantity")
 
     @classmethod
     def from_tree(cls, node, ctx):

@@ -115,6 +115,6 @@ def lombscargle_slow(t, y, dy, frequency, normalization='standard',
     elif normalization == 'psd':
         p *= 0.5 * (dy ** -2.0).sum()
     else:
-        raise ValueError("normalization='{0}' "
+        raise ValueError("normalization='{}' "
                          "not recognized".format(normalization))
     return p.ravel()

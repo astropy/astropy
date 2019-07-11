@@ -87,7 +87,7 @@ def _hdu_class_from_header(cls, header):
             except Exception as exc:
                 warnings.warn(
                     'An exception occurred matching an HDU header to the '
-                    'appropriate HDU type: {0}'.format(exc),
+                    'appropriate HDU type: {}'.format(exc),
                     AstropyUserWarning)
                 warnings.warn('The HDU will be treated as corrupted.',
                               AstropyUserWarning)
@@ -1147,8 +1147,8 @@ class _ValidHDU(_BaseHDU, _Verify):
 
         # if the card does not exist
         if index is None:
-            err_text = "'{}' card does not exist.".format(keyword)
-            fix_text = "Fixed by inserting a new '{}' card.".format(keyword)
+            err_text = f"'{keyword}' card does not exist."
+            fix_text = f"Fixed by inserting a new '{keyword}' card."
             if fixable:
                 # use repr to accommodate both string and non-string types
                 # Boolean is also OK in this constructor
@@ -1346,7 +1346,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             self._checksum_valid = self.verify_checksum()
             if not self._checksum_valid:
                 warnings.warn(
-                    'Checksum verification failed for HDU {0}.\n'.format(
+                    'Checksum verification failed for HDU {}.\n'.format(
                         (self.name, self.ver)), AstropyUserWarning)
 
         if 'DATASUM' in self._header:
@@ -1354,7 +1354,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             self._datasum_valid = self.verify_datasum()
             if not self._datasum_valid:
                 warnings.warn(
-                    'Datasum verification failed for HDU {0}.\n'.format(
+                    'Datasum verification failed for HDU {}.\n'.format(
                         (self.name, self.ver)), AstropyUserWarning)
 
     def _get_timestamp(self):

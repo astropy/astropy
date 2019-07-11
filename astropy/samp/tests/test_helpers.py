@@ -33,7 +33,7 @@ def assert_output(mtype, private_key, sender_id, params, timeout=None):
             break
         except (OSError, EOFError):
             if timeout is not None and time.time() - start > timeout:
-                raise Exception("Timeout while waiting for file: {0}".format(filename))
+                raise Exception(f"Timeout while waiting for file: {filename}")
 
     assert rec_mtype == mtype
     assert rec_private_key == private_key
