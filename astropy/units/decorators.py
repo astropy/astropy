@@ -46,6 +46,9 @@ def _validate_arg_value(param_name, func_name, arg, targets, equivalencies):
     unit or physical type, ``target``.
     """
 
+    if len(targets) == 0:
+        return
+
     allowed_units = _get_allowed_units(targets)
 
     for allowed_unit in allowed_units:
@@ -94,7 +97,8 @@ class QuantityInput:
         the argument is not equivalent to the unit specified to the decorator
         or in the annotation.
         If the argument has no unit attribute, i.e. it is not a Quantity object, a
-        `ValueError` will be raised.
+        `ValueError` will be raised unless the argument is an annotation. This is to
+        allow non Quantity annotations to pass through.
 
         Where an equivalency is specified in the decorator, the function will be
         executed with that equivalency in force.
@@ -181,8 +185,10 @@ class QuantityInput:
                 #   or annotations
                 if param.name in self.decorator_kwargs:
                     targets = self.decorator_kwargs[param.name]
+                    is_annotation = False
                 else:
                     targets = param.annotation
+                    is_annotation = True
 
                 # If the targets is empty, then no target units or physical
                 #   types were specified so we can continue to the next arg
@@ -211,6 +217,12 @@ class QuantityInput:
 
                 else:
                     valid_targets = targets
+
+                # If we're dealing with an annotation, skip all the targets that
+                #    are not strings or subclasses of Unit. This is to allow
+                #    non unit related annotations to pass through
+                if is_annotation:
+                    valid_targets = [t for t in valid_targets if isinstance(t, (str, Unit))]
 
                 # Now we loop over the allowed units/physical types and validate
                 #   the value of the argument:
