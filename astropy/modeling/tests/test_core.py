@@ -18,6 +18,7 @@ except ImportError:
 else:
     HAS_SCIPY = True
 
+
 class NonFittableModel(Model):
     """An example class directly subclassing Model for testing."""
 
@@ -398,5 +399,5 @@ def test_units_with_bounding_box():
 
     assert isinstance(t(10), u.Quantity)
     assert isinstance(t(10, with_bounding_box=True), u.Quantity)
-    
+
     assert_quantity_allclose(t(10), t(10, with_bounding_box=True))
