@@ -682,6 +682,8 @@ def test_with_bounding_box():
     trans3.bounding_box = ((4.3, 6.9), (6, 15), (-1, 10))
     assert_allclose(trans3(1, 7, 5, with_bounding_box=True), [11, 14, 4])
 
+@pytest.mark.skipif("not HAS_SCIPY_14")
+def test_tabular_with_bounding_box():
     points = np.arange(5)
     values = np.array([1.5, 3.4, 6.7, 7, 32])
     t = models.Tabular1D(points, values)
