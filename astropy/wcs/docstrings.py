@@ -20,7 +20,7 @@ def TWO_OR_MORE_ARGS(naxis, indent=0):
 """args : flexible
     There are two accepted forms for the positional arguments:
 
-        - 2 arguments: An *N* x *{0}* array of coordinates, and an
+        - 2 arguments: An *N* x *{}* array of coordinates, and an
           *origin*.
 
         - more than 2 arguments: An array for each axis, followed by
@@ -35,7 +35,7 @@ def TWO_OR_MORE_ARGS(naxis, indent=0):
 
 def RETURNS(out_type, indent=0):
     return _fix("""result : array
-    Returns the {0}.  If the input was a single array and
+    Returns the {}.  If the input was a single array and
     origin, a single array is returned, otherwise a tuple of arrays is
     returned.""".format(out_type), indent)
 
@@ -98,7 +98,7 @@ Parameters
 pixcrd : double array[ncoord][nelem]
     Array of pixel coordinates.
 
-{0}
+{}
 
 Returns
 -------
@@ -1117,7 +1117,7 @@ pixcrd : double array[naxis].
     Pixel coordinates.  The element indicated by *mixpix* is given and
     the remaining elements will be written in-place.
 
-{0}
+{}
 
 Returns
 -------
@@ -1301,7 +1301,7 @@ Parameters
 pixcrd : double array[ncoord][nelem]
     Array of pixel coordinates.
 
-{0}
+{}
 
 Returns
 -------
@@ -1377,7 +1377,7 @@ Parameters
 pixcrd : double array[ncoord][nelem].
     Array of pixel coordinates.
 
-{0}
+{}
 
 Returns
 -------
@@ -1445,7 +1445,7 @@ Parameters
 pixcrd : double array[ncoord][nelem]
     Array of pixel coordinates.
 
-{0}
+{}
 
 Returns
 -------
@@ -1519,7 +1519,7 @@ Parameters
 world : double array[ncoord][nelem]
     Array of world coordinates, in decimal degrees.
 
-{0}
+{}
 
 Returns
 -------
@@ -1746,7 +1746,7 @@ Parameters
 foccrd : double array[ncoord][nelem]
     Array of focal plane coordinates.
 
-{0}
+{}
 
 Returns
 -------
@@ -1773,7 +1773,7 @@ Parameters
 pixcrd : double array[ncoord][nelem]
     Array of pixel coordinates.
 
-{0}
+{}
 
 Returns
 -------

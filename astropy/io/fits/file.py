@@ -84,7 +84,7 @@ def _normalize_fits_mode(mode):
                 "files must be opened in binary mode".format(mode))
         new_mode = FILE_MODES.get(mode)
         if new_mode not in IO_FITS_MODES:
-            raise ValueError("Mode '{}' not recognized".format(mode))
+            raise ValueError(f"Mode '{mode}' not recognized")
         mode = new_mode
     return mode
 
@@ -132,7 +132,7 @@ class _File:
         self._mmap = None
 
         if mode is not None and mode not in IO_FITS_MODES:
-            raise ValueError("Mode '{}' not recognized".format(mode))
+            raise ValueError(f"Mode '{mode}' not recognized")
         if isfile(fileobj):
             objmode = _normalize_fits_mode(fileobj_mode(fileobj))
             if mode is not None and mode != objmode:
@@ -151,7 +151,7 @@ class _File:
         elif isinstance(fileobj, http.client.HTTPResponse):
             if mode in ('ostream', 'append', 'update'):
                 raise ValueError(
-                    "Mode {} not supported for HTTPResponse".format(mode))
+                    f"Mode {mode} not supported for HTTPResponse")
             fileobj = io.BytesIO(fileobj.read())
         else:
             self.name = fileobj_name(fileobj)
@@ -265,7 +265,7 @@ class _File:
             dtype = np.dtype(dtype)
 
         if size and size % dtype.itemsize != 0:
-            raise ValueError('size {} not a multiple of {}'.format(size, dtype))
+            raise ValueError(f'size {size} not a multiple of {dtype}')
 
         if isinstance(shape, int):
             shape = (shape,)
@@ -437,7 +437,7 @@ class _File:
                         fileobj.close()
                     os.remove(self.name)
             else:
-                raise OSError("File {!r} already exists.".format(self.name))
+                raise OSError(f"File {self.name!r} already exists.")
 
     def _try_read_compressed(self, obj_or_name, magic, mode, ext=''):
         """Attempt to determine if the given file is compressed"""

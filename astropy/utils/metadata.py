@@ -58,7 +58,7 @@ def common_dtype(arrs):
     if len(uniq_types) > 1:
         # Embed into the exception the actual list of incompatible types.
         incompat_types = [dtype(arr).name for arr in arrs]
-        tme = MergeConflictError('Arrays have incompatible types {0}'
+        tme = MergeConflictError('Arrays have incompatible types {}'
                                  .format(incompat_types))
         tme._incompat_types = incompat_types
         raise tme
@@ -69,7 +69,7 @@ def common_dtype(arrs):
     # values or the final arr_common = .. step is unpredictable.
     for i, arr in enumerate(arrs):
         if arr.dtype.kind in ('S', 'U'):
-            arrs[i] = [(u'0' if arr.dtype.kind == 'U' else b'0') *
+            arrs[i] = [('0' if arr.dtype.kind == 'U' else b'0') *
                        dtype_bytes_or_chars(arr.dtype)]
 
     arr_common = np.array([arr[0] for arr in arrs])
@@ -296,8 +296,8 @@ def _warn_str_func(key, left, right):
 
 
 def _error_str_func(key, left, right):
-    out = ('Cannot merge meta key {0!r} '
-           'types {1!r} and {2!r}'
+    out = ('Cannot merge meta key {!r} '
+           'types {!r} and {!r}'
            .format(key, type(left), type(right)))
     return out
 

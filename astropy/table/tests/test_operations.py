@@ -798,7 +798,7 @@ class TestVStack():
         self._setup(operation_table_type)
         with pytest.raises(TableMergeError) as excinfo:
             table.vstack([self.t1, self.t3], join_type='inner')
-        assert ("The 'b' columns have incompatible types: {0}"
+        assert ("The 'b' columns have incompatible types: {}"
                 .format([self.t1['b'].dtype.name, self.t3['b'].dtype.name])
                 in str(excinfo.value))
 
@@ -1393,7 +1393,7 @@ def test_vstack_unicode():
     Test for problem related to issue #5617 when vstack'ing *unicode*
     columns.  In this case the character size gets multiplied by 4.
     """
-    t = table.Table([[u'a']], names=['a'])
+    t = table.Table([['a']], names=['a'])
     assert t['a'].itemsize == 4  # 4-byte / char for U dtype
 
     t2 = table.vstack([t, t])

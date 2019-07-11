@@ -122,8 +122,8 @@ class TimeSeries(BaseTimeSeries):
             time = time_start + time_delta
 
         elif len(self.colnames) > 0 and len(time) != len(self):
-            raise ValueError("Length of 'time' ({0}) should match "
-                             "data length ({1})".format(len(time), n_samples))
+            raise ValueError("Length of 'time' ({}) should match "
+                             "data length ({})".format(len(time), n_samples))
 
         elif time_delta is not None:
             raise TypeError("'time_delta' should not be specified since "
@@ -308,6 +308,6 @@ class TimeSeries(BaseTimeSeries):
                 time = Time(table.columns[time_column], scale=time_scale, format=time_format)
                 table.remove_column(time_column)
             else:
-                raise ValueError("Time column '{}' not found in the input data.".format(time_column))
+                raise ValueError(f"Time column '{time_column}' not found in the input data.")
 
             return TimeSeries(time=time, data=table)

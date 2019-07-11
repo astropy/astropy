@@ -39,10 +39,10 @@ def pytest_report_header(config):
     if len(TESTED_VERSIONS) > 1:
         for pkg, version in TESTED_VERSIONS.items():
             if pkg not in ['Astropy', 'astropy_helpers']:
-                s = "\nRunning tests with {0} version {1}.\n".format(
+                s = "\nRunning tests with {} version {}.\n".format(
                     pkg, version)
     else:
-        s = "\nRunning tests with Astropy version {0}.\n".format(
+        s = "\nRunning tests with Astropy version {}.\n".format(
             TESTED_VERSIONS['Astropy'])
 
     # Per https://github.com/astropy/astropy/pull/4204, strip the rootdir from
@@ -57,25 +57,25 @@ def pytest_report_header(config):
     else:
         dirs = args
 
-    s += "Running tests in {0}.\n\n".format(" ".join(dirs))
+    s += "Running tests in {}.\n\n".format(" ".join(dirs))
 
-    s += "Date: {0}\n\n".format(datetime.datetime.now().isoformat()[:19])
+    s += "Date: {}\n\n".format(datetime.datetime.now().isoformat()[:19])
 
     from platform import platform
     plat = platform()
     if isinstance(plat, bytes):
         plat = plat.decode(stdoutencoding, 'replace')
-    s += "Platform: {0}\n\n".format(plat)
-    s += "Executable: {0}\n\n".format(sys.executable)
-    s += "Full Python Version: \n{0}\n\n".format(sys.version)
+    s += f"Platform: {plat}\n\n"
+    s += f"Executable: {sys.executable}\n\n"
+    s += f"Full Python Version: \n{sys.version}\n\n"
 
-    s += "encodings: sys: {0}, locale: {1}, filesystem: {2}".format(
+    s += "encodings: sys: {}, locale: {}, filesystem: {}".format(
         sys.getdefaultencoding(),
         locale.getpreferredencoding(),
         sys.getfilesystemencoding())
     s += '\n'
 
-    s += "byteorder: {0}\n".format(sys.byteorder)
+    s += f"byteorder: {sys.byteorder}\n"
     s += "float info: dig: {0.dig}, mant_dig: {0.dig}\n\n".format(
         sys.float_info)
 
@@ -84,13 +84,13 @@ def pytest_report_header(config):
             with ignore_warnings(DeprecationWarning):
                 module = resolve_name(module_name)
         except ImportError:
-            s += "{0}: not available\n".format(module_display)
+            s += f"{module_display}: not available\n"
         else:
             try:
                 version = module.__version__
             except AttributeError:
                 version = 'unknown (no __version__ attribute)'
-            s += "{0}: {1}\n".format(module_display, version)
+            s += f"{module_display}: {version}\n"
 
     # Helpers version
     if 'astropy_helpers' in TESTED_VERSIONS:
@@ -102,7 +102,7 @@ def pytest_report_header(config):
             astropy_helpers_version = None
 
     if astropy_helpers_version:
-        s += "astropy_helpers: {0}\n".format(astropy_helpers_version)
+        s += f"astropy_helpers: {astropy_helpers_version}\n"
 
     special_opts = ["remote_data", "pep8"]
     opts = []
@@ -113,7 +113,7 @@ def pytest_report_header(config):
                 op = ': '.join((op, op_value))
             opts.append(op)
     if opts:
-        s += "Using Astropy options: {0}.\n".format(", ".join(opts))
+        s += "Using Astropy options: {}.\n".format(", ".join(opts))
 
     return s
 

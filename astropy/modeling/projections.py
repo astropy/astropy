@@ -1992,7 +1992,7 @@ class AffineTransformation2D(Model):
 
         if det == 0:
             raise InputParameterError(
-                "Transformation matrix is singular; {0} model does not "
+                "Transformation matrix is singular; {} model does not "
                 "have an inverse".format(self.__class__.__name__))
 
         matrix = np.linalg.inv(self.matrix.value)

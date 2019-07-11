@@ -84,7 +84,7 @@ def test_wrong_unit3(solarx_unit, solary_unit):
         solarx, solary = myfunc_args(1*u.arcsec, 100*u.km)
 
     str_to = str(solary_unit)
-    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertible to '{0}'.".format(str_to)
+    assert str(e.value) == f"Argument 'solary' to function 'myfunc_args' must be in units convertible to '{str_to}'."
 
 
 @pytest.mark.parametrize("solarx_unit,solary_unit", [
@@ -179,7 +179,7 @@ def test_kwarg_wrong_unit3(solarx_unit, solary_unit):
         solarx, solary = myfunc_args(1*u.arcsec, solary=100*u.km)
 
     str_to = str(solary_unit)
-    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertible to '{0}'.".format(str_to)
+    assert str(e.value) == f"Argument 'solary' to function 'myfunc_args' must be in units convertible to '{str_to}'."
 
 
 @pytest.mark.parametrize("solarx_unit,solary_unit", [

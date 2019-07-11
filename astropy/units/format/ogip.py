@@ -162,7 +162,7 @@ class OGIP(generic.Generic):
         # Error handling rule
         def t_error(t):
             raise ValueError(
-                "Invalid character at col {0}".format(t.lexpos))
+                f"Invalid character at col {t.lexpos}")
 
         lexer_exists = os.path.exists(os.path.join(os.path.dirname(__file__),
                                                    'ogip_lextab.py'))
@@ -244,7 +244,7 @@ class OGIP(generic.Generic):
 
             if p1_str in cls._functions and p1_str != 'sqrt':
                 raise ValueError(
-                    "The function '{0}' is valid in OGIP, but not understood "
+                    "The function '{}' is valid in OGIP, but not understood "
                     "by astropy.units.".format(
                         p[1]))
 
@@ -281,7 +281,7 @@ class OGIP(generic.Generic):
             if math.log10(p[0]) % 1.0 != 0.0:
                 from astropy.units.core import UnitsWarning
                 warnings.warn(
-                    "'{0}' scale should be a power of 10 in "
+                    "'{}' scale should be a power of 10 in "
                     "OGIP format".format(p[0]), UnitsWarning)
 
         def p_division(p):
@@ -378,7 +378,7 @@ class OGIP(generic.Generic):
             return cls._parse_unit(t.value)
         except ValueError as e:
             raise ValueError(
-                "At col {0}, '{1}': {2}".format(
+                "At col {}, '{}': {}".format(
                     t.lexpos, t.value, str(e)))
 
     @classmethod
@@ -386,8 +386,8 @@ class OGIP(generic.Generic):
         if unit not in cls._units:
             if detailed_exception:
                 raise ValueError(
-                    "Unit '{0}' not supported by the OGIP "
-                    "standard. {1}".format(
+                    "Unit '{}' not supported by the OGIP "
+                    "standard. {}".format(
                         unit, utils.did_you_mean_units(
                             unit, cls._units, cls._deprecated_units,
                             cls._to_decomposed_alternative)))
@@ -420,7 +420,7 @@ class OGIP(generic.Generic):
                     raise
                 else:
                     raise ValueError(
-                        "Syntax error parsing unit '{0}'".format(s))
+                        f"Syntax error parsing unit '{s}'")
 
     @classmethod
     def _get_unit_name(cls, unit):
@@ -439,10 +439,10 @@ class OGIP(generic.Generic):
             else:
                 power = utils.format_power(power)
                 if '/' in power:
-                    out.append('{0}**({1})'.format(
+                    out.append('{}**({})'.format(
                         cls._get_unit_name(base), power))
                 else:
-                    out.append('{0}**{1}'.format(
+                    out.append('{}**{}'.format(
                         cls._get_unit_name(base), power))
         return ' '.join(out)
 
@@ -455,7 +455,7 @@ class OGIP(generic.Generic):
             # Can't use np.log10 here, because p[0] may be a Python long.
             if math.log10(unit.scale) % 1.0 != 0.0:
                 warnings.warn(
-                    "'{0}' scale should be a power of 10 in "
+                    "'{}' scale should be a power of 10 in "
                     "OGIP format".format(
                         unit.scale),
                     core.UnitsWarning)
@@ -473,7 +473,7 @@ class OGIP(generic.Generic):
                 scale = unit.scale
                 unit = copy.copy(unit)
                 unit._scale = 1.0
-                return '{0} (with data multiplied by {1})'.format(
+                return '{} (with data multiplied by {})'.format(
                     generic._to_string(cls, unit), scale)
 
         return generic._to_string(unit)

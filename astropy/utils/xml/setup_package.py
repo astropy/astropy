@@ -32,7 +32,7 @@ def get_extensions(build_type='release'):
             # symbols and the linker won't try to use the system expat in
             # place of ours.
             cfg['extra_link_args'].extend([
-                '-Wl,--version-script={0}'.format(
+                '-Wl,--version-script={}'.format(
                     join(XML_DIR, 'iterparse.map'))
                 ])
         cfg['define_macros'].append(("HAVE_EXPAT_CONFIG_H", 1))

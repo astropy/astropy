@@ -74,7 +74,7 @@ def handle_options(argv=None):
         if value and value[0] == '@':
             value = value[1:]
             if not os.path.exists(value):
-                log.warning('{} argument {} does not exist'.format(opt, value))
+                log.warning(f'{opt} argument {value} does not exist')
                 return
             try:
                 values = [v.strip() for v in open(value, 'r').readlines()]

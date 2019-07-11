@@ -85,7 +85,7 @@ class CdsHeader(core.BaseHeader):
                                 break
 
             else:
-                raise core.InconsistentTableError("Can't find table {0} in {1}".format(
+                raise core.InconsistentTableError("Can't find table {} in {}".format(
                     self.data.table_name, self.readme))
 
         found_line = False
@@ -149,7 +149,7 @@ class CdsHeader(core.BaseHeader):
                 if cols:
                     cols[-1].description += line.strip()
                 else:
-                    raise ValueError('Line "{}" not parsable as CDS header'.format(line))
+                    raise ValueError(f'Line "{line}" not parsable as CDS header')
 
         self.names = [x.name for x in cols]
 

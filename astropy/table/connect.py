@@ -60,7 +60,7 @@ class TableRead(registry.UnifiedReadWrite):
             try:
                 out = cls(out, copy=False)
             except Exception:
-                raise TypeError('could not convert reader output to {0} '
+                raise TypeError('could not convert reader output to {} '
                                 'class.'.format(cls.__name__))
         return out
 

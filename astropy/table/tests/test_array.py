@@ -26,7 +26,7 @@ def wide_array():
 
 def test_array_find(array):
     for i in range(1, 11):
-        print("Searching for {0}".format(i))
+        print(f"Searching for {i}")
         assert array.find((i % 2, i)) == [i]
     assert array.find((1, 4)) == []
 

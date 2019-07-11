@@ -141,11 +141,11 @@ class EulerAngleRotation(_EulerRotation, Model):
         if len(axes_order) != 3:
             raise TypeError(
                 "Expected axes_order to be a character sequence of length 3,"
-                "got {0}".format(axes_order))
+                "got {}".format(axes_order))
         unrecognized = set(axes_order).difference(self.axes)
         if unrecognized:
-            raise ValueError("Unrecognized axis label {0}; "
-                             "should be one of {1} ".format(unrecognized, self.axes))
+            raise ValueError("Unrecognized axis label {}; "
+                             "should be one of {} ".format(unrecognized, self.axes))
         self.axes_order = axes_order
         qs = [isinstance(par, u.Quantity) for par in [phi, theta, psi]]
         if any(qs) and not all(qs):

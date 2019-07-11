@@ -12,7 +12,7 @@ STRING_TYPE_NAMES = {(True, 'S'): 'bytes',
                      (True, 'U'): 'str'}
 
 DTYPE_TESTS = ((np.array(b'abcd').dtype, STRING_TYPE_NAMES[(True, 'S')] + '4'),
-               (np.array(u'abcd').dtype, STRING_TYPE_NAMES[(True, 'U')] + '4'),
+               (np.array('abcd').dtype, STRING_TYPE_NAMES[(True, 'U')] + '4'),
                ('S4', STRING_TYPE_NAMES[(True, 'S')] + '4'),
                ('U4', STRING_TYPE_NAMES[(True, 'U')] + '4'),
                (np.void, 'void'),

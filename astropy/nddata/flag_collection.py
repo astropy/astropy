@@ -42,7 +42,7 @@ class FlagCollection(OrderedDict):
             if value.shape == self.shape:
                 OrderedDict.__setitem__(self, item, value, **kwargs)
             else:
-                raise ValueError("flags array shape {0} does not match data "
-                                 "shape {1}".format(value.shape, self.shape))
+                raise ValueError("flags array shape {} does not match data "
+                                 "shape {}".format(value.shape, self.shape))
         else:
             raise TypeError("flags should be given as a Numpy array")

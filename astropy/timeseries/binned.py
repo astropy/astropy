@@ -153,8 +153,8 @@ class BinnedTimeSeries(BaseTimeSeries, metaclass=InheritDocstrings):
         else:
 
             if len(self.colnames) > 0 and len(time_bin_start) != len(self):
-                raise ValueError("Length of 'time_bin_start' ({0}) should match "
-                                 "table length ({1})".format(len(time_bin_start), len(self)))
+                raise ValueError("Length of 'time_bin_start' ({}) should match "
+                                 "table length ({})".format(len(time_bin_start), len(self)))
 
             if time_bin_end is not None:
                 if time_bin_end.isscalar:
@@ -297,7 +297,7 @@ class BinnedTimeSeries(BaseTimeSeries, metaclass=InheritDocstrings):
                                       scale=time_scale, format=time_format)
                 table.remove_column(time_bin_start_column)
             else:
-                raise ValueError("Bin start time column '{}' not found in the input data.".format(time_bin_start_column))
+                raise ValueError(f"Bin start time column '{time_bin_start_column}' not found in the input data.")
 
             if time_bin_end_column is not None:
 
@@ -306,7 +306,7 @@ class BinnedTimeSeries(BaseTimeSeries, metaclass=InheritDocstrings):
                                         scale=time_scale, format=time_format)
                     table.remove_column(time_bin_end_column)
                 else:
-                    raise ValueError("Bin end time column '{}' not found in the input data.".format(time_bin_end_column))
+                    raise ValueError(f"Bin end time column '{time_bin_end_column}' not found in the input data.")
 
                 time_bin_size = None
 
@@ -316,7 +316,7 @@ class BinnedTimeSeries(BaseTimeSeries, metaclass=InheritDocstrings):
                     time_bin_size = table.columns[time_bin_size_column]
                     table.remove_column(time_bin_size_column)
                 else:
-                    raise ValueError("Bin size column '{}' not found in the input data.".format(time_bin_size_column))
+                    raise ValueError(f"Bin size column '{time_bin_size_column}' not found in the input data.")
 
                 if time_bin_size.unit is None:
                     if time_bin_size_unit is None or not isinstance(time_bin_size_unit, u.UnitBase):

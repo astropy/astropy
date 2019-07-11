@@ -81,15 +81,15 @@ class Mapping(FittableModel):
 
     def __repr__(self):
         if self.name is None:
-            return '<Mapping({0})>'.format(self.mapping)
+            return f'<Mapping({self.mapping})>'
         else:
-            return '<Mapping({0}, name={1})>'.format(self.mapping, self.name)
+            return f'<Mapping({self.mapping}, name={self.name})>'
 
     def evaluate(self, *args):
         if len(args) != self.n_inputs:
             name = self.name if self.name is not None else "Mapping"
 
-            raise TypeError('{0} expects {1} inputs; got {2}'.format(
+            raise TypeError('{} expects {} inputs; got {}'.format(
                 name, self.n_inputs, len(args)))
 
         result = tuple(args[idx] for idx in self._mapping)
@@ -116,7 +116,7 @@ class Mapping(FittableModel):
                             for idx in range(self.n_inputs))
         except ValueError:
             raise NotImplementedError(
-                "Mappings such as {0} that drop one or more of their inputs "
+                "Mappings such as {} that drop one or more of their inputs "
                 "are not invertible at this time.".format(self.mapping))
 
         inv = self.__class__(mapping)
@@ -164,9 +164,9 @@ class Identity(Mapping):
 
     def __repr__(self):
         if self.name is None:
-            return '<Identity({0})>'.format(self.n_inputs)
+            return f'<Identity({self.n_inputs})>'
         else:
-            return '<Identity({0}, name={1})>'.format(self.n_inputs, self.name)
+            return f'<Identity({self.n_inputs}, name={self.name})>'
 
     @property
     def inverse(self):

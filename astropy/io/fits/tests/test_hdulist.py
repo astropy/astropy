@@ -609,7 +609,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdu = fits.PrimaryHDU(data=data)
         idx = 1
         while len(hdu.header) < 34:
-            hdu.header['TEST{}'.format(idx)] = idx
+            hdu.header[f'TEST{idx}'] = idx
             idx += 1
         hdu.writeto(self.temp('temp.fits'), checksum=True)
 
@@ -633,7 +633,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdu = fits.PrimaryHDU(data=data)
         idx = 1
         while len(str(hdu.header)) <= 2880:
-            hdu.header['TEST{}'.format(idx)] = idx
+            hdu.header[f'TEST{idx}'] = idx
             idx += 1
         orig_header = hdu.header.copy()
         hdu.writeto(self.temp('temp.fits'))
@@ -649,7 +649,7 @@ class TestHDUListFunctions(FitsTestCase):
         with fits.open(self.temp('temp.fits'), mode='update') as hdul:
             idx = 101
             while len(str(hdul[0].header)) <= 2880 * 2:
-                hdul[0].header['TEST{}'.format(idx)] = idx
+                hdul[0].header[f'TEST{idx}'] = idx
                 idx += 1
             # Touch something in the data too so that it has to be rewritten
             hdul[0].data[0] = 27
@@ -681,7 +681,7 @@ class TestHDUListFunctions(FitsTestCase):
         with fits.open(self.temp('temp.fits'), mode='update') as hdul:
             idx = 1
             while len(str(hdul[0].header)) <= 2880 * 2:
-                hdul[0].header['TEST{}'.format(idx)] = idx
+                hdul[0].header[f'TEST{idx}'] = idx
                 idx += 1
             hdul.flush()
             hdul.append(hdu)
@@ -952,7 +952,7 @@ class TestHDUListFunctions(FitsTestCase):
         import codecs
         filename = self.temp('not-fits-with-unicode.fits')
         with codecs.open(filename, mode='w', encoding='utf=8') as f:
-            f.write(u'Ce\xe7i ne marche pas')
+            f.write('Ce\xe7i ne marche pas')
 
         # This should raise an OSError because there is no end card.
         with pytest.raises(OSError):

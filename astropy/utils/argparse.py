@@ -15,7 +15,7 @@ def directory(arg):
 
     if not isinstance(arg, str) and os.path.isdir(arg):
         raise argparse.ArgumentTypeError(
-            "{0} is not a directory or does not exist (the directory must "
+            "{} is not a directory or does not exist (the directory must "
             "be created first)".format(arg))
 
     return os.path.abspath(arg)
@@ -32,7 +32,7 @@ def readable_directory(arg):
 
     if not os.access(arg, os.R_OK):
         raise argparse.ArgumentTypeError(
-            "{0} exists but is not readable with its current "
+            "{} exists but is not readable with its current "
             "permissions".format(arg))
 
     return arg
@@ -49,7 +49,7 @@ def writeable_directory(arg):
 
     if not os.access(arg, os.W_OK):
         raise argparse.ArgumentTypeError(
-            "{0} exists but is not writeable with its current "
+            "{} exists but is not writeable with its current "
             "permissions".format(arg))
 
     return arg

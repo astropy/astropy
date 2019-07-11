@@ -325,6 +325,6 @@ class RipleysKEstimator:
 
             ripley = self.area * 2. * ripley / (npts * (npts - 1))
         else:
-            raise ValueError('mode {} is not implemented.'.format(mode))
+            raise ValueError(f'mode {mode} is not implemented.')
 
         return ripley

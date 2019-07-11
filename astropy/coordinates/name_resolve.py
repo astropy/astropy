@@ -50,7 +50,7 @@ class sesame_database(ScienceState):
     @classmethod
     def validate(cls, value):
         if value not in ['all', 'simbad', 'ned', 'vizier']:
-            raise ValueError("Unknown database '{0}'".format(value))
+            raise ValueError(f"Unknown database '{value}'")
         return value
 
 
@@ -173,7 +173,7 @@ def get_icrs_coordinates(name, parse=False):
 
     # All Sesame URL's failed...
     else:
-        messages = ["{url}: {e.reason}".format(url=url, e=e)
+        messages = [f"{url}: {e.reason}"
                     for url, e in zip(urls, exceptions)]
         raise NameResolveError("All Sesame queries failed. Unable to "
                                "retrieve coordinates. See errors per URL "
@@ -183,9 +183,9 @@ def get_icrs_coordinates(name, parse=False):
 
     if ra is None and dec is None:
         if db == "A":
-            err = "Unable to find coordinates for name '{0}'".format(name)
+            err = f"Unable to find coordinates for name '{name}'"
         else:
-            err = "Unable to find coordinates for name '{0}' in database {1}"\
+            err = "Unable to find coordinates for name '{}' in database {}"\
                   .format(name, database)
 
         raise NameResolveError(err)

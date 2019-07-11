@@ -226,7 +226,7 @@ def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
     elif stretch == 'asinh':
         stretch = AsinhStretch(asinh_a)
     else:
-        raise ValueError('Unknown stretch: {0}.'.format(stretch))
+        raise ValueError(f'Unknown stretch: {stretch}.')
 
     vmin, vmax = interval.get_limits(data)
 

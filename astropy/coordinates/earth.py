@@ -39,7 +39,7 @@ def _check_ellipsoid(ellipsoid=None, default='WGS84'):
     if ellipsoid is None:
         ellipsoid = default
     if ellipsoid not in ELLIPSOIDS:
-        raise ValueError('Ellipsoid {0} not among known ones ({1})'
+        raise ValueError('Ellipsoid {} not among known ones ({})'
                          .format(ellipsoid, ELLIPSOIDS))
     return ellipsoid
 
@@ -193,7 +193,7 @@ class EarthLocation(u.Quantity):
             except Exception as exc_geodetic:
                 raise TypeError('Coordinates could not be parsed as either '
                                 'geocentric or geodetic, with respective '
-                                'exceptions "{0}" and "{1}"'
+                                'exceptions "{}" and "{}"'
                                 .format(exc_geocentric, exc_geodetic))
         return self
 
@@ -422,13 +422,13 @@ class EarthLocation(u.Quantity):
         if use_google: # Google
             pars = urllib.parse.urlencode({'address': address,
                                            'key': google_api_key})
-            geo_url = ("https://maps.googleapis.com/maps/api/geocode/json?{0}"
+            geo_url = ("https://maps.googleapis.com/maps/api/geocode/json?{}"
                        .format(pars))
 
         else: # OpenStreetMap
             pars = urllib.parse.urlencode({'q': address,
                                            'format': 'json'})
-            geo_url = ("https://nominatim.openstreetmap.org/search?{0}"
+            geo_url = ("https://nominatim.openstreetmap.org/search?{}"
                        .format(pars))
 
         # get longitude and latitude location
@@ -448,10 +448,10 @@ class EarthLocation(u.Quantity):
             lon = float(loc['lon'])
 
         if get_height:
-            pars = {'locations': '{lat:.8f},{lng:.8f}'.format(lat=lat, lng=lon),
+            pars = {'locations': f'{lat:.8f},{lon:.8f}',
                     'key': google_api_key}
             pars = urllib.parse.urlencode(pars)
-            ele_url = ("https://maps.googleapis.com/maps/api/elevation/json?{0}"
+            ele_url = ("https://maps.googleapis.com/maps/api/elevation/json?{}"
                        .format(pars))
 
             err_str = ("Unable to retrieve elevation for address '{address}'; "
@@ -751,7 +751,7 @@ class EarthLocation(u.Quantity):
             try:
                 GMs.append(_masses[body].to(u.m**3/u.s**2, [M_GM_equivalency]))
             except KeyError as exc:
-                raise KeyError('body "{}" does not have a mass!'.format(body))
+                raise KeyError(f'body "{body}" does not have a mass!')
             except u.UnitsError as exc:
                 exc.args += ('"masses" argument values must be masses or '
                              'gravitational parameters',)

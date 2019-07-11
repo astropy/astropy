@@ -157,7 +157,7 @@ class _BaseDiff:
 
         if isinstance(fileobj, str):
             if os.path.exists(fileobj) and not overwrite:
-                raise OSError("File {0} exists, aborting (pass in "
+                raise OSError("File {} exists, aborting (pass in "
                               "overwrite=True to overwrite)".format(fileobj))
             else:
                 filepath = fileobj
@@ -373,8 +373,8 @@ class FITSDiff(_BaseDiff):
                                        subsequent_indent='  ')
 
         self._fileobj.write('\n')
-        self._writeln(' fitsdiff: {}'.format(__version__))
-        self._writeln(' a: {}\n b: {}'.format(self.filenamea, self.filenameb))
+        self._writeln(f' fitsdiff: {__version__}')
+        self._writeln(f' a: {self.filenamea}\n b: {self.filenameb}')
 
         if self.ignore_hdus:
             ignore_hdus = ' '.join(sorted(self.ignore_hdus))
@@ -427,7 +427,7 @@ class FITSDiff(_BaseDiff):
                 self._writeln('Primary HDU:')
             else:
                 self._fileobj.write('\n')
-                self._writeln('Extension HDU {}:'.format(idx))
+                self._writeln(f'Extension HDU {idx}:')
             hdu_diff.report(self._fileobj, indent=self._indent + 1)
 
 
@@ -1066,8 +1066,8 @@ class ImageDataDiff(_BaseDiff):
             dimsb = ' x '.join(str(d) for d in
                                reversed(self.diff_dimensions[1]))
             self._writeln(' Data dimensions differ:')
-            self._writeln('  a: {}'.format(dimsa))
-            self._writeln('  b: {}'.format(dimsb))
+            self._writeln(f'  a: {dimsa}')
+            self._writeln(f'  b: {dimsb}')
             # For now we don't do any further comparison if the dimensions
             # differ; though in the future it might be nice to be able to
             # compare at least where the images intersect
@@ -1079,7 +1079,7 @@ class ImageDataDiff(_BaseDiff):
 
         for index, values in self.diff_pixels:
             index = [x + 1 for x in reversed(index)]
-            self._writeln(' Data differs at {}:'.format(index))
+            self._writeln(f' Data differs at {index}:')
             report_diff_values(values[0], values[1], fileobj=self._fileobj,
                                indent_width=self._indent + 1)
 
@@ -1158,7 +1158,7 @@ class RawDataDiff(ImageDataDiff):
             return
 
         for index, values in self.diff_bytes:
-            self._writeln(' Data differs at byte {}:'.format(index))
+            self._writeln(f' Data differs at byte {index}:')
             report_diff_values(values[0], values[1], fileobj=self._fileobj,
                                indent_width=self._indent + 1)
 
@@ -1480,7 +1480,7 @@ class TableDataDiff(_BaseDiff):
 
         if self.diff_values and self.numdiffs < self.diff_total:
             self._writeln(' ...{} additional difference(s) found.'.format(
-                                (self.diff_total - self.numdiffs)))
+                                self.diff_total - self.numdiffs))
 
         if self.diff_total > self.numdiffs:
             self._writeln(' ...')

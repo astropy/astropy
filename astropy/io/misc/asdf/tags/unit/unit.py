@@ -18,7 +18,7 @@ class UnitType(AstropyAsdfType):
             node = Unit(node, format='vounit', parse_strict='warn')
         if isinstance(node, UnitBase):
             return node.to_string(format='vounit')
-        raise TypeError("'{0}' is not a valid unit".format(node))
+        raise TypeError(f"'{node}' is not a valid unit")
 
     @classmethod
     def from_tree(cls, node, ctx):

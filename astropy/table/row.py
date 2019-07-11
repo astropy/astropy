@@ -36,7 +36,7 @@ class Row:
         n = len(table)
 
         if index < -n or index >= n:
-            raise IndexError('index {0} out of range for table with length {1}'
+            raise IndexError('index {} out of range for table with length {}'
                              .format(index, len(table)))
 
         # Finally, ensure the index is positive [#8422] and set Row attributes
@@ -168,12 +168,12 @@ class Row:
         index = self.index if (self.index >= 0) else self.index + len(self._table)
         table = self._table[index:index + 1]
         descr_vals = [self.__class__.__name__,
-                      'index={0}'.format(self.index)]
+                      f'index={self.index}']
         if table.masked:
             descr_vals.append('masked=True')
 
         return table._base_repr_(html, descr_vals, max_width=-1,
-                                 tableid='table{0}'.format(id(self._table)))
+                                 tableid='table{}'.format(id(self._table)))
 
     def _repr_html_(self):
         return self._base_repr_(html=True)

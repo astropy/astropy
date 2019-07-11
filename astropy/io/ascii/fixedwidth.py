@@ -137,7 +137,7 @@ class FixedWidthHeader(basic.BasicHeader):
                     # purity here.
                 charset = self.set_of_position_line_characters.union(set([self.splitter.delimiter, ' ']))
                 if not set(line).issubset(charset):
-                    raise InconsistentTableError('Characters in position line must be part of {0}'.format(charset))
+                    raise InconsistentTableError(f'Characters in position line must be part of {charset}')
                 vals, self.col_starts, col_ends = self.get_fixedwidth_params(line)
                 self.col_ends = [x - 1 if x is not None else None for x in col_ends]
 

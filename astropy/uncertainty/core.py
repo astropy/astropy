@@ -145,13 +145,13 @@ class Distribution:
 
     def __str__(self):
         distrstr = str(self.distribution)
-        toadd = ' with n_samples={}'.format(self.n_samples)
+        toadd = f' with n_samples={self.n_samples}'
         return distrstr + toadd
 
     def _repr_latex_(self):
         if hasattr(self.distribution, '_repr_latex_'):
             superlatex = self.distribution._repr_latex_()
-            toadd = r', \; n_{{\rm samp}}={}'.format(self.n_samples)
+            toadd = fr', \; n_{{\rm samp}}={self.n_samples}'
             return superlatex[:-1] + toadd + superlatex[-1]
         else:
             return None

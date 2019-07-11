@@ -69,15 +69,15 @@ class TestWebProfile(BaseTestStandardProfile):
 
         # Check some additional queries to the server
 
-        with get_readable_fileobj('http://localhost:{0}/crossdomain.xml'.format(self.hub._web_port)) as f:
+        with get_readable_fileobj(f'http://localhost:{self.hub._web_port}/crossdomain.xml') as f:
             assert f.read() == CROSS_DOMAIN
 
-        with get_readable_fileobj('http://localhost:{0}/clientaccesspolicy.xml'.format(self.hub._web_port)) as f:
+        with get_readable_fileobj(f'http://localhost:{self.hub._web_port}/clientaccesspolicy.xml') as f:
             assert f.read() == CLIENT_ACCESS_POLICY
 
         # Check headers
 
-        req = Request('http://localhost:{0}/crossdomain.xml'.format(self.hub._web_port))
+        req = Request(f'http://localhost:{self.hub._web_port}/crossdomain.xml')
         req.add_header('Origin', 'test_web_profile')
         resp = urlopen(req)
 

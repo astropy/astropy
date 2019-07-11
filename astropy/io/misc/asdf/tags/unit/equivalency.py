@@ -18,7 +18,7 @@ class EquivalencyType(AstropyType):
     def to_tree(cls, equiv, ctx):
         node = {}
         if not isinstance(equiv, Equivalency):
-            raise TypeError("'{0}' is not a valid Equivalency".format(equiv))
+            raise TypeError(f"'{equiv}' is not a valid Equivalency")
 
         eqs = []
         for e, kwargs in zip(equiv.name, equiv.kwargs):

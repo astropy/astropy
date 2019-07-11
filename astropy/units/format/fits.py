@@ -84,7 +84,7 @@ class Fits(generic.Generic):
         if unit not in cls._units:
             if detailed_exception:
                 raise ValueError(
-                    "Unit '{0}' not supported by the FITS standard. {1}".format(
+                    "Unit '{}' not supported by the FITS standard. {}".format(
                         unit, utils.did_you_mean_units(
                             unit, cls._units, cls._deprecated_units,
                             cls._to_decomposed_alternative)))
@@ -121,9 +121,9 @@ class Fits(generic.Generic):
                 raise core.UnitScaleError(
                     "The FITS unit format is not able to represent scales "
                     "that are not powers of 10.  Multiply your data by "
-                    "{0:e}.".format(unit.scale))
+                    "{:e}.".format(unit.scale))
             elif unit.scale != 1.0:
-                parts.append('10**{0}'.format(int(base)))
+                parts.append('10**{}'.format(int(base)))
 
             pairs = list(zip(unit.bases, unit.powers))
             if len(pairs):
@@ -144,7 +144,7 @@ class Fits(generic.Generic):
             scale = unit.scale
             unit = copy.copy(unit)
             unit._scale = 1.0
-            return '{0} (with data multiplied by {1})'.format(
+            return '{} (with data multiplied by {})'.format(
                 cls.to_string(unit), scale)
         return s
 

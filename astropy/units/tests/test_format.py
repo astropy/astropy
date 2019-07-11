@@ -245,7 +245,7 @@ def test_latex():
 
 def test_new_style_latex():
     fluxunit = u.erg / (u.cm ** 2 * u.s)
-    assert "{0:latex}".format(fluxunit) == r'$\mathrm{\frac{erg}{s\,cm^{2}}}$'
+    assert f"{fluxunit:latex}" == r'$\mathrm{\frac{erg}{s\,cm^{2}}}$'
 
 
 def test_latex_scale():

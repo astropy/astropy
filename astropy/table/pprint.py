@@ -85,7 +85,7 @@ def get_auto_format_func(
             try:
                 out = format_func(format_, val)
                 if not isinstance(out, str):
-                    raise ValueError('Format function for value {0} returned {1} '
+                    raise ValueError('Format function for value {} returned {} '
                                      'instead of string type'
                                      .format(val, type(val)))
             except Exception as err:
@@ -95,7 +95,7 @@ def get_auto_format_func(
                 if val is np.ma.masked:
                     return str(val)
 
-                raise ValueError('Format function for value {0} failed: {1}'
+                raise ValueError('Format function for value {} failed: {}'
                                  .format(val, err))
             # If the user-supplied function handles formatting masked elements, use
             # it directly.  Otherwise, wrap it in a function that traps them.
@@ -123,7 +123,7 @@ def get_auto_format_func(
                     break
             else:
                 # None of the possible string functions passed muster.
-                raise ValueError('unable to parse format string {0} for its '
+                raise ValueError('unable to parse format string {} for its '
                                  'column.'.format(format_))
 
             # String-based format functions will fail on masked elements;
@@ -254,7 +254,7 @@ class TableFormatter:
                 if i == n_header - 1:
                     continue
                 td = 'th' if i < n_header else 'td'
-                val = '<{0}>{1}</{2}>'.format(td, xml_escape(col_str.strip()), td)
+                val = '<{}>{}</{}>'.format(td, xml_escape(col_str.strip()), td)
                 row = ('<tr>' + val + '</tr>')
                 if i < n_header:
                     row = ('<thead>' + row + '</thead>')
@@ -309,7 +309,7 @@ class TableFormatter:
                 col_strs[i] = getattr(col_str, justify_method)(*justify_args)
 
         if outs['show_length']:
-            col_strs.append('Length = {0} rows'.format(len(col)))
+            col_strs.append('Length = {} rows'.format(len(col)))
 
         return col_strs, outs
 
@@ -357,7 +357,7 @@ class TableFormatter:
             # Get column name (or 'None' if not set)
             col_name = str(col.info.name)
             if multidims:
-                col_name += ' [{0}]'.format(
+                col_name += ' [{}]'.format(
                     ','.join(str(n) for n in multidims))
             n_header += 1
             yield col_name
@@ -438,7 +438,7 @@ class TableFormatter:
                 else:
                     left = format_func(col_format, col[(idx,) + multidim0])
                     right = format_func(col_format, col[(idx,) + multidim1])
-                    return '{0} .. {1}'.format(left, right)
+                    return f'{left} .. {right}'
             else:
                 return format_func(col_format, col[idx])
 
@@ -451,8 +451,8 @@ class TableFormatter:
                     yield format_col_str(idx)
                 except ValueError:
                     raise ValueError(
-                        'Unable to parse format string "{0}" for entry "{1}" '
-                        'in column "{2}"'.format(col_format, col[idx],
+                        'Unable to parse format string "{}" for entry "{}" '
+                        'in column "{}"'.format(col_format, col[idx],
                                                  col.info.name))
 
         outs['show_length'] = show_length
@@ -528,11 +528,11 @@ class TableFormatter:
 
         elif isinstance(align, (list, tuple)):
             if len(align) != n_cols:
-                raise ValueError('got {0} alignment values instead of '
-                                 'the number of columns ({1})'
+                raise ValueError('got {} alignment values instead of '
+                                 'the number of columns ({})'
                                  .format(len(align), n_cols))
         else:
-            raise TypeError('align keyword must be str or list or tuple (got {0})'
+            raise TypeError('align keyword must be str or list or tuple (got {})'
                             .format(type(align)))
 
         for align_, col in zip(align, table.columns.values()):
@@ -579,14 +579,14 @@ class TableFormatter:
                 rows.append('<table id="{tid}" class="{tcls}">'.format(
                     tid=tableid, tcls=tableclass))
             else:
-                rows.append('<table id="{tid}">'.format(tid=tableid))
+                rows.append(f'<table id="{tableid}">')
 
             for i in range(n_rows):
                 # _pformat_col output has a header line '----' which is not needed here
                 if i == n_header - 1:
                     continue
                 td = 'th' if i < n_header else 'td'
-                vals = ('<{0}>{1}</{2}>'.format(td, xml_escape(col[i].strip()), td)
+                vals = ('<{}>{}</{}>'.format(td, xml_escape(col[i].strip()), td)
                         for col in cols)
                 row = ('<tr>' + ''.join(vals) + '</tr>')
                 if i < n_header:

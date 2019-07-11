@@ -553,7 +553,7 @@ def test_skip_meta(tmpdir):
         t1.write(test_file, path='the_table')
     assert len(w) == 1
     assert str(w[0].message).startswith(
-        "Attribute `f` of type {0} cannot be written to HDF5 files - skipping".format(type(t1.meta['f'])))
+        "Attribute `f` of type {} cannot be written to HDF5 files - skipping".format(type(t1.meta['f'])))
 
 
 @pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')

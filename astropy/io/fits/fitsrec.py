@@ -65,7 +65,7 @@ class FITS_record:
             indx = _get_index(self.array.names, key)
 
             if indx < self.start or indx > self.end - 1:
-                raise KeyError("Key '{}' does not exist.".format(key))
+                raise KeyError(f"Key '{key}' does not exist.")
         elif isinstance(key, slice):
             return type(self)(self.array, self.row, key.start, key.stop,
                               key.step, self)
@@ -82,7 +82,7 @@ class FITS_record:
             indx = _get_index(self.array.names, key)
 
             if indx < self.start or indx > self.end - 1:
-                raise KeyError("Key '{}' does not exist.".format(key))
+                raise KeyError(f"Key '{key}' does not exist.")
         elif isinstance(key, slice):
             for indx in range(slice.start, slice.stop, slice.step):
                 indx = self._get_indx(indx)
@@ -755,7 +755,7 @@ class FITS_rec(np.recarray):
         for each attribute ``_update_column_<attr>``
         """
 
-        method_name = '_update_column_{0}'.format(attr)
+        method_name = f'_update_column_{attr}'
         if hasattr(self, method_name):
             # Right now this is so we can be lazy and not implement updaters
             # for every attribute yet--some we may not need at all, TBD
@@ -960,7 +960,7 @@ class FITS_rec(np.recarray):
                         test_overflow += bzero64
                     except OverflowError:
                         warnings.warn(
-                            "Overflow detected while applying TZERO{0:d}. "
+                            "Overflow detected while applying TZERO{:d}. "
                             "Returning unscaled data.".format(indx + 1))
                     else:
                         field = test_overflow
@@ -1182,9 +1182,9 @@ class FITS_rec(np.recarray):
                 _ascii_encode(input_field, out=output_field)
             except _UnicodeArrayEncodeError as exc:
                 raise ValueError(
-                    "Could not save column '{0}': Contains characters that "
+                    "Could not save column '{}': Contains characters that "
                     "cannot be encoded as ASCII as required by FITS, starting "
-                    "at the index {1!r} of the column, and the index {2} of "
+                    "at the index {!r} of the column, and the index {} of "
                     "the string at that location.".format(
                         self._coldefs[col_idx].name,
                         exc.index[0] if len(exc.index) == 1 else exc.index,
@@ -1309,7 +1309,7 @@ def _ascii_encode(inarray, out=None):
     the item that couldn't be encoded.
     """
 
-    out_dtype = np.dtype(('S{0}'.format(inarray.dtype.itemsize // 4),
+    out_dtype = np.dtype(('S{}'.format(inarray.dtype.itemsize // 4),
                          inarray.dtype.shape))
     if out is not None:
         out = out.view(out_dtype)

@@ -187,14 +187,14 @@ def _skycoord_constructor(loader, node):
 # Straight from yaml's Representer
 def _complex_representer(self, data):
     if data.imag == 0.0:
-        data = u'%r' % data.real
+        data = '%r' % data.real
     elif data.real == 0.0:
-        data = u'%rj' % data.imag
+        data = '%rj' % data.imag
     elif data.imag > 0:
-        data = u'%r+%rj' % (data.real, data.imag)
+        data = f'{data.real!r}+{data.imag!r}j'
     else:
-        data = u'%r%rj' % (data.real, data.imag)
-    return self.represent_scalar(u'tag:yaml.org,2002:python/complex', data)
+        data = f'{data.real!r}{data.imag!r}j'
+    return self.represent_scalar('tag:yaml.org,2002:python/complex', data)
 
 
 def _complex_constructor(loader, node):
@@ -273,7 +273,7 @@ for np_type in [np.complex_, complex, np.complex64, np.complex128]:
     AstropyDumper.add_representer(np_type,
                                  _complex_representer)
 
-AstropyLoader.add_constructor(u'tag:yaml.org,2002:python/complex',
+AstropyLoader.add_constructor('tag:yaml.org,2002:python/complex',
                               _complex_constructor)
 AstropyLoader.add_constructor('tag:yaml.org,2002:python/tuple',
                               AstropyLoader._construct_python_tuple)

@@ -102,7 +102,7 @@ class TestCompressionFunction(FitsTestCase):
         hdu._header[kw] = -1
         with pytest.raises(ValueError) as exc:
             compress_hdu(hdu)
-        assert '{} should not be negative.'.format(kw) in str(exc.value)
+        assert f'{kw} should not be negative.' in str(exc.value)
 
     @pytest.mark.parametrize(
         ('kw', 'limit'),

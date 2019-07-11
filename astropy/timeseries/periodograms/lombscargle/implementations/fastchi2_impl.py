@@ -130,6 +130,6 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',
     elif normalization == 'model':
         p /= chi2_ref - p
     else:
-        raise ValueError("normalization='{0}' "
+        raise ValueError("normalization='{}' "
                          "not recognized".format(normalization))
     return p

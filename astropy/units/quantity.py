@@ -121,7 +121,7 @@ class QuantityInfoBase(ParentDtypeInfo):
 
     @staticmethod
     def default_format(val):
-        return '{0.value:}'.format(val)
+        return f'{val.value}'
 
     @staticmethod
     def possible_string_format_functions(format_):
@@ -327,7 +327,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                     value = float(v.group())
 
                 except Exception:
-                    raise TypeError('Cannot parse "{0}" as a {1}. It does not '
+                    raise TypeError('Cannot parse "{}" as a {}. It does not '
                                     'start with a number.'
                                     .format(value, cls.__name__))
 
@@ -358,9 +358,9 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                 try:
                     value_unit = Unit(value_unit)
                 except Exception as exc:
-                    raise TypeError("The unit attribute {0!r} of the input could "
+                    raise TypeError("The unit attribute {!r} of the input could "
                                     "not be parsed as an astropy Unit, raising "
-                                    "the following exception:\n{1}"
+                                    "the following exception:\n{}"
                                     .format(value.unit, exc))
 
                 if unit is None:
@@ -615,7 +615,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             unit = Unit(str(unit), parse_strict='silent')
             if not isinstance(unit, UnitBase):
                 raise UnitTypeError(
-                    "{0} instances require {1} units, not {2} instances."
+                    "{} instances require {} units, not {} instances."
                     .format(type(self).__name__, UnitBase, type(unit)))
 
         self._unit = unit
@@ -816,7 +816,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         """
         if not self._include_easy_conversion_members:
             raise AttributeError(
-                "'{0}' object has no '{1}' member".format(
+                "'{}' object has no '{}' member".format(
                     self.__class__.__name__,
                     attr))
 
@@ -836,7 +836,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
 
         if value is None:
             raise AttributeError(
-                "{0} instance has no attribute '{1}'".format(
+                "{} instance has no attribute '{}'".format(
                     self.__class__.__name__, attr))
         else:
             return value
@@ -1173,9 +1173,9 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         }
 
         if format not in formats:
-            raise ValueError("Unknown format '{0}'".format(format))
+            raise ValueError(f"Unknown format '{format}'")
         elif format is None:
-            return '{0}{1:s}'.format(self.value, self._unitstr)
+            return f'{self.value}{self._unitstr:s}'
 
         # else, for the moment we assume format="latex"
 
@@ -1191,7 +1191,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                                                      format_spec=format_spec)
 
         def complex_formatter(value):
-            return '({0}{1}i)'.format(
+            return '({}{}i)'.format(
                 Latex.format_exponential_notation(value.real,
                                                   format_spec=format_spec),
                 Latex.format_exponential_notation(value.imag,
@@ -1241,7 +1241,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         sep = ',' if NUMPY_LT_1_14 else ', '
         arrstr = np.array2string(self.view(np.ndarray), separator=sep,
                                  prefix=prefixstr)
-        return '{0}{1}{2:s}>'.format(prefixstr, arrstr, self._unitstr)
+        return f'{prefixstr}{arrstr}{self._unitstr:s}>'
 
     def _repr_latex_(self):
         """
@@ -1272,7 +1272,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             value = self.value
             full_format_spec = format_spec
 
-        return format("{0}{1:s}".format(value, self._unitstr),
+        return format(f"{value}{self._unitstr:s}",
                       full_format_spec)
 
     def decompose(self, bases=[]):
@@ -1737,10 +1737,10 @@ class SpecificTypeQuantity(Quantity):
     def _set_unit(self, unit):
         if unit is None or not unit.is_equivalent(self._equivalent_unit):
             raise UnitTypeError(
-                "{0} instances require units equivalent to '{1}'"
+                "{} instances require units equivalent to '{}'"
                 .format(type(self).__name__, self._equivalent_unit) +
                 (", but no unit was given." if unit is None else
-                 ", so cannot set it to '{0}'.".format(unit)))
+                 f", so cannot set it to '{unit}'."))
 
         super()._set_unit(unit)
 
@@ -1778,7 +1778,7 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
     try:
         desired = desired.to(actual.unit)
     except UnitsError:
-        raise UnitsError("Units for 'desired' ({0}) and 'actual' ({1}) "
+        raise UnitsError("Units for 'desired' ({}) and 'actual' ({}) "
                          "are not convertible"
                          .format(desired.unit, actual.unit))
 
@@ -1790,7 +1790,7 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
         try:
             atol = atol.to(actual.unit)
         except UnitsError:
-            raise UnitsError("Units for 'atol' ({0}) and 'actual' ({1}) "
+            raise UnitsError("Units for 'atol' ({}) and 'actual' ({}) "
                              "are not convertible"
                              .format(atol.unit, actual.unit))
 

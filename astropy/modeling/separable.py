@@ -158,8 +158,8 @@ def _arith_oper(left, right):
 
     if left_inputs != right_inputs or left_outputs != right_outputs:
         raise ModelDefinitionError(
-            "Unsupported operands for arithmetic operator: left (n_inputs={0}, "
-            "n_outputs={1}) and right (n_inputs={2}, n_outputs={3}); "
+            "Unsupported operands for arithmetic operator: left (n_inputs={}, "
+            "n_outputs={}) and right (n_inputs={}, n_outputs={}); "
             "models must have the same n_inputs and the same "
             "n_outputs for this operator.".format(
                 left_inputs, left_outputs, right_inputs, right_outputs))
@@ -282,7 +282,7 @@ def _cdot(left, right):
     except ValueError:
         raise ModelDefinitionError(
             'Models cannot be combined with the "|" operator; '
-            'left coord_matrix is {0}, right coord_matrix is {1}'.format(
+            'left coord_matrix is {}, right coord_matrix is {}'.format(
                 cright, cleft))
     return result
 

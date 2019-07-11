@@ -56,7 +56,7 @@ class EcsvHeader(basic.BasicHeader):
 
         for col in self.cols:
             if len(getattr(col, 'shape', ())) > 1:
-                raise ValueError("ECSV format does not support multidimensional column '{0}'"
+                raise ValueError("ECSV format does not support multidimensional column '{}'"
                                  .format(col.info.name))
 
         # Now assemble the header dict that will be serialized by the YAML dumper
@@ -69,7 +69,7 @@ class EcsvHeader(basic.BasicHeader):
         if self.splitter.delimiter != ' ':
             header['delimiter'] = self.splitter.delimiter
 
-        header_yaml_lines = (['%ECSV {0}'.format(ECSV_VERSION),
+        header_yaml_lines = ([f'%ECSV {ECSV_VERSION}',
                               '---']
                              + meta.get_yaml_from_header(header))
 

@@ -43,9 +43,9 @@ def _table_group_by(table, keys):
     if isinstance(keys, (list, tuple)):
         for name in keys:
             if name not in table.colnames:
-                raise ValueError('Table does not have key column {0!r}'.format(name))
+                raise ValueError(f'Table does not have key column {name!r}')
             if table.masked and np.any(table[name].mask):
-                raise ValueError('Missing values in key column {0!r} are not allowed'.format(name))
+                raise ValueError(f'Missing values in key column {name!r} are not allowed')
 
         # Make a column slice of the table without copying
         table_keys = table.__class__([table[key] for key in keys], copy=False)
@@ -57,13 +57,13 @@ def _table_group_by(table, keys):
     elif isinstance(keys, (np.ndarray, Table)):
         table_keys = keys
         if len(table_keys) != len(table):
-            raise ValueError('Input keys array length {0} does not match table length {1}'
+            raise ValueError('Input keys array length {} does not match table length {}'
                              .format(len(table_keys), len(table)))
         table_index = None
         grouped_by_table_cols = False
 
     else:
-        raise TypeError('Keys input must be string, list, tuple, Table or numpy array, but got {0}'
+        raise TypeError('Keys input must be string, list, tuple, Table or numpy array, but got {}'
                         .format(type(keys)))
 
     # If there is not already an available index and table_keys is a Table then ensure
@@ -133,11 +133,11 @@ def column_group_by(column, keys):
         keys = keys.as_array()
 
     if not isinstance(keys, np.ndarray):
-        raise TypeError('Keys input must be numpy array, but got {0}'
+        raise TypeError('Keys input must be numpy array, but got {}'
                         .format(type(keys)))
 
     if len(keys) != len(column):
-        raise ValueError('Input keys array length {0} does not match column length {1}'
+        raise ValueError('Input keys array length {} does not match column length {}'
                          .format(len(keys), len(column)))
 
     idx_sort = keys.argsort()
@@ -206,7 +206,7 @@ class BaseGroups:
         return out
 
     def __repr__(self):
-        return '<{0} indices={1}>'.format(self.__class__.__name__, self.indices)
+        return f'<{self.__class__.__name__} indices={self.indices}>'
 
     def __len__(self):
         return len(self.indices) - 1
@@ -258,7 +258,7 @@ class ColumnGroups(BaseGroups):
             else:
                 vals = np.array([func(par_col[i0: i1]) for i0, i1 in zip(i0s, i1s)])
         except Exception:
-            raise TypeError("Cannot aggregate column '{0}' with type '{1}'"
+            raise TypeError("Cannot aggregate column '{}' with type '{}'"
                             .format(par_col.info.name,
                                     par_col.info.dtype))
 

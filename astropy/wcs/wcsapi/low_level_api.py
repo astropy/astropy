@@ -282,10 +282,10 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
 
         # Overall header
 
-        s = '{0} Transformation\n\n'.format(self.__class__.__name__)
-        s += ('This transformation has {0} pixel and {1} world dimensions\n\n'
+        s = f'{self.__class__.__name__} Transformation\n\n'
+        s += ('This transformation has {} pixel and {} world dimensions\n\n'
               .format(self.pixel_n_dim, self.world_n_dim))
-        s += 'Array shape (Numpy order): {0}\n\n'.format(self.array_shape)
+        s += f'Array shape (Numpy order): {self.array_shape}\n\n'
 
         # Pixel dimensions table
 
@@ -304,7 +304,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
             s += (('{0:' + str(pixel_dim_width) + 'd}').format(ipix) + '  ' +
                   (" "*5 + str(None) if pixel_shape[ipix] is None else
                    ('{0:' + str(pixel_siz_width) + 'd}').format(pixel_shape[ipix])) + '  ' +
-                  '{0:s}'.format(str(None if self.pixel_bounds is None else self.pixel_bounds[ipix]) + '\n'))
+                  '{:s}'.format(str(None if self.pixel_bounds is None else self.pixel_bounds[ipix]) + '\n'))
 
         s += '\n'
 
@@ -323,11 +323,11 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
             if self.world_axis_physical_types[iwrl] is not None:
                 s += (('{0:' + str(world_dim_width) + 'd}').format(iwrl) + '  ' +
                       ('{0:' + str(world_typ_width) + 's}').format(self.world_axis_physical_types[iwrl]) + '  ' +
-                      '{0:s}'.format(self.world_axis_units[iwrl] + '\n'))
+                      '{:s}'.format(self.world_axis_units[iwrl] + '\n'))
             else:
                 s += (('{0:' + str(world_dim_width) + 'd}').format(iwrl) + '  ' +
                       ('{0:' + str(world_typ_width) + 's}').format('None') + '  ' +
-                      '{0:s}'.format('unknown' + '\n'))
+                      '{:s}'.format('unknown' + '\n'))
         s += '\n'
 
         # Axis correlation matrix
@@ -375,4 +375,4 @@ def validate_physical_types(physical_types):
         if (physical_type is not None and
             physical_type not in VALID_UCDS and
                 not physical_type.startswith('custom:')):
-            raise ValueError("Invalid physical type: {0}".format(physical_type))
+            raise ValueError(f"Invalid physical type: {physical_type}")

@@ -141,7 +141,7 @@ def parse(source, columns=None, invalid='exception', verify=None,
     if isinstance(verify, bool):
         verify = 'exception' if verify else 'warn'
     elif verify not in VERIFY_OPTIONS:
-        raise ValueError('verify should be one of {0}'.format('/'.join(VERIFY_OPTIONS)))
+        raise ValueError('verify should be one of {}'.format('/'.join(VERIFY_OPTIONS)))
 
     if datatype_mapping is None:
         datatype_mapping = {}
@@ -288,7 +288,7 @@ def validate(source, output=None, xmllint=False, filename=None):
              issubclass(x.category, exceptions.VOWarning)] + lines
 
     content_buffer.seek(0)
-    output.write("Validation report for {0}\n\n".format(filename))
+    output.write(f"Validation report for {filename}\n\n")
 
     if len(lines):
         xml_lines = iterparser.xml_readlines(content_buffer)
@@ -307,7 +307,7 @@ def validate(source, output=None, xmllint=False, filename=None):
                 else:
                     color = 'red'
                 color_print(
-                    '{0:d}: '.format(w['nline']), '',
+                    '{:d}: '.format(w['nline']), '',
                     warning or 'EXC', color,
                     ': ', '',
                     textwrap.fill(

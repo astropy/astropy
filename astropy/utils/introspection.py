@@ -134,7 +134,7 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
     else:
         raise ValueError('module argument must be an actual imported '
                          'module, or the import name of the module; '
-                         'got {0!r}'.format(module))
+                         'got {!r}'.format(module))
 
     if '.' not in version_path:
         have_version = getattr(module, version_path)

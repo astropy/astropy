@@ -433,12 +433,12 @@ def generic_recursive_equality_test(a, b, class_history):
     dict_b = b.__dict__
     for key in dict_a:
         assert key in dict_b,\
-          "Did not pickle {0}".format(key)
+          f"Did not pickle {key}"
         if hasattr(dict_a[key], '__eq__'):
             eq = (dict_a[key] == dict_b[key])
             if '__iter__' in dir(eq):
                 eq = (False not in eq)
-            assert eq, "Value of {0} changed by pickling".format(key)
+            assert eq, f"Value of {key} changed by pickling"
 
         if hasattr(dict_a[key], '__dict__'):
             if dict_a[key].__class__ in class_history:

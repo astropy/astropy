@@ -58,9 +58,9 @@ def quantity_support(format='latex_inline'):
         elif n == 2:
             return 'π'
         elif n % 2 == 0:
-            return '{0}π'.format(n / 2)
+            return '{}π'.format(n / 2)
         else:
-            return '{0}π/2'.format(n)
+            return f'{n}π/2'
 
     class MplQuantityConverter(units.ConversionInterface):
 
