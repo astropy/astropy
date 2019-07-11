@@ -524,7 +524,7 @@ The start point is inclusive and the end point is exclusive.  So a slice like
 subexpression ``B * C``::
 
     >>> print(M[1:])
-    Model: CompoundModel...
+    Model: CompoundModel
     Inputs: ('x',)
     Outputs: ('y',)
     Model set size: 1
@@ -534,9 +534,18 @@ subexpression ``B * C``::
     <BLANKLINE>
         [1]: <Const1D(amplitude=3.1, name='C')>
     Parameters:
-        amplitude_1 amplitude_2
+        amplitude_0 amplitude_0
         ----------- -----------
                 2.1         3.1
+
+.. note::
+
+    There is a change in the parameter names of a slice from versions
+    prior to 4.0. Previously, the parameter names were identical to that
+    of the model being sliced. Now, they are what is expected for a
+    compound model of this type apart from the model sliced. That is,
+    the sliced model always starts with its own relative index for its
+    components, thus the parameter names start with a 0 suffix.
 
 The new compound model for the subexpression can be evaluated
 like any other::
@@ -582,7 +591,7 @@ Slicing also works with names.  When using names the start and end points are
     <BLANKLINE>
         [1]: <Const1D(amplitude=3.1, name='C')>
     Parameters:
-        amplitude_1 amplitude_2
+        amplitude_0 amplitude_1
         ----------- -----------
                 2.1         3.1
 

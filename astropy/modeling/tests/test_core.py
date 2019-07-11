@@ -23,6 +23,7 @@ except ImportError:
 else:
     HAS_SCIPY = True
 
+
 class NonFittableModel(Model):
     """An example class directly subclassing Model for testing."""
 
