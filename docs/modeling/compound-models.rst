@@ -547,6 +547,41 @@ subexpression ``B * C``::
     the sliced model always starts with its own relative index for its
     components, thus the parameter names start with a 0 suffix.
 
+.. note::
+
+    Starting with 4.0, the behavior of slicing is more restrictive than
+    previously. For example if::
+
+        m = m1 * m2 + m3
+
+    and one sliced by
+    using ``m[1:3]`` previously that would return the model: ``m2 + m3``
+    even though there was never any such submodel of m. Starting with 4.0
+    a slice must correspond to a submodel (something that corresponds
+    to an intermediate result of the computational chain of evaluating
+    the compound model). So::
+
+        m1 * m2
+    
+    is a submodel (i.e.,``m[:2]``) but
+    ``m[1:3]`` is not. Currently this also means that in simpler expressions
+    such as::
+        m = m1 + m2 + m3 + m4
+
+    where any slice should be valid in
+    principle, only slices that include m1 are since it is part of 
+    all submodules (since the order of evaluation is::
+
+        ((m1 + m2) + m3) + m4
+
+    Anyone creating compound models that wishes submodels to be available
+    is advised to use parentheses explicitly  or define intermediate
+    models to be used in subsequent expressions so that they can be
+    extracted with a slice or simple index depending on the context.
+    For example, to make ``m2 + m3`` accessible by slice define ``m`` as::
+
+        m = m1 + (m2 + m3) + m4. In this case ``m[1:3]`` will work.
+
 The new compound model for the subexpression can be evaluated
 like any other::
 
