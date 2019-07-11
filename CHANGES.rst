@@ -861,6 +861,9 @@ astropy.units
   [#8808]
 
 - Add equivalencies for surface brightness units to spectral_density. [#9282]
+- Changed undocumented "inline" definition of custom units with
+  ``Unit('myunit', format='votable')`` to require additional enclosure
+  in double quotes. [#8979]
 
 astropy.utils
 ^^^^^^^^^^^^^
