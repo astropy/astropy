@@ -41,15 +41,15 @@ def _get_connectors_table():
 
         io_format = 'ascii.' + cls._format_name
         description = getattr(cls, '_description', '')
-        class_link = ':class:`~{0}.{1}`'.format(cls.__module__, cls.__name__)
+        class_link = f':class:`~{cls.__module__}.{cls.__name__}`'
         suffix = getattr(cls, '_io_registry_suffix', '')
         can_write = 'Yes' if getattr(cls, '_io_registry_can_write', True) else ''
 
         rows.append((io_format, suffix, can_write,
-                     '{0}: {1}'.format(class_link, description)))
+                     f'{class_link}: {description}'))
     out = Table(list(zip(*rows)), names=('Format', 'Suffix', 'Write', 'Description'))
     for colname in ('Format', 'Description'):
         width = max(len(x) for x in out[colname])
-        out[colname].format = '%-{0}s'.format(width)
+        out[colname].format = f'%-{width}s'
 
     return out

@@ -269,7 +269,7 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
                                    dir=self.temp_root)
         self.tmp_dir = os.path.realpath(tmp_dir)
 
-        log.info('installing to temporary directory: {0}'.format(self.tmp_dir))
+        log.info(f'installing to temporary directory: {self.tmp_dir}')
 
         # We now install the package to the temporary directory. We do this
         # rather than build and copy because this will ensure that e.g. entry
@@ -344,13 +344,13 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
 
         cmd_pre = (
             'import coverage; '
-            'cov = coverage.coverage(data_file=r"{0}", config_file=r"{1}"); '
+            'cov = coverage.coverage(data_file=r"{}", config_file=r"{}"); '
             'cov.start();'.format(
                 os.path.abspath(".coverage"), os.path.abspath(tmp_coveragerc)))
         cmd_post = (
             'cov.stop(); '
             'from astropy.tests.helper import _save_coverage; '
-            '_save_coverage(cov, result, r"{0}", r"{1}");'.format(
+            '_save_coverage(cov, result, r"{}", r"{}");'.format(
                 os.path.abspath('.'), os.path.abspath(self.testing_path)))
 
         return cmd_pre, cmd_post

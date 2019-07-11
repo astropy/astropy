@@ -80,26 +80,26 @@ def comparerecords(a, b):
             isinstance(fieldb, type(fielda))):
             print("type(fielda): ", type(fielda), " fielda: ", fielda)
             print("type(fieldb): ", type(fieldb), " fieldb: ", fieldb)
-            print('field {0} type differs'.format(i))
+            print(f'field {i} type differs')
             return False
         if len(fielda) and isinstance(fielda[0], np.floating):
             if not comparefloats(fielda, fieldb):
                 print("fielda: ", fielda)
                 print("fieldb: ", fieldb)
-                print('field {0} differs'.format(i))
+                print(f'field {i} differs')
                 return False
         elif (isinstance(fielda, fits.column._VLF) or
               isinstance(fieldb, fits.column._VLF)):
             for row in range(len(fielda)):
                 if np.any(fielda[row] != fieldb[row]):
-                    print('fielda[{0}]: {1}'.format(row, fielda[row]))
-                    print('fieldb[{0}]: {1}'.format(row, fieldb[row]))
-                    print('field {0} differs in row {1}'.format(i, row))
+                    print('fielda[{}]: {}'.format(row, fielda[row]))
+                    print('fieldb[{}]: {}'.format(row, fieldb[row]))
+                    print(f'field {i} differs in row {row}')
         else:
             if np.any(fielda != fieldb):
                 print("fielda: ", fielda)
                 print("fieldb: ", fieldb)
-                print('field {0} differs'.format(i))
+                print(f'field {i} differs')
                 return False
     return True
 
@@ -386,9 +386,9 @@ class TestTableFunctions(FitsTestCase):
     def test_numpy_ndarray_to_bintablehdu_with_unicode(self):
         desc = np.dtype({'names': ['order', 'name', 'mag', 'Sp'],
                          'formats': ['int', 'U20', 'float32', 'U10']})
-        a = np.array([(1, u'Serius', -1.45, u'A1V'),
-                      (2, u'Canopys', -0.73, u'F0Ib'),
-                      (3, u'Rigil Kent', -0.1, u'G2V')], dtype=desc)
+        a = np.array([(1, 'Serius', -1.45, 'A1V'),
+                      (2, 'Canopys', -0.73, 'F0Ib'),
+                      (3, 'Rigil Kent', -0.1, 'G2V')], dtype=desc)
         hdu = fits.BinTableHDU(a)
         assert comparerecords(hdu.data, a.view(fits.FITS_rec))
         hdu.writeto(self.temp('toto.fits'), overwrite=True)
@@ -1564,7 +1564,7 @@ class TestTableFunctions(FitsTestCase):
         Regression test for https://github.com/astropy/astropy/issues/5204
         "Handle unicode FITS BinTable column names on Python 2"
         """
-        col = fits.Column(name=u'spam', format='E', array=[42.])
+        col = fits.Column(name='spam', format='E', array=[42.])
         # This used to raise a TypeError, now it works
         fits.BinTableHDU.from_columns([col])
 
@@ -2195,7 +2195,7 @@ class TestTableFunctions(FitsTestCase):
         """
 
         # Test an integer column with blank string as null
-        nullval1 = u' '
+        nullval1 = ' '
 
         c1 = fits.Column('F1', format='I8', null=nullval1,
                          array=np.array([0, 1, 2, 3, 4]),
@@ -2205,7 +2205,7 @@ class TestTableFunctions(FitsTestCase):
 
         # Replace the 1st col, 3rd row, with a null field.
         with open(self.temp('ascii_null.fits'), mode='r+') as h:
-            nulled = h.read().replace(u'2       ', u'        ')
+            nulled = h.read().replace('2       ', '        ')
             h.seek(0)
             h.write(nulled)
 
@@ -2222,7 +2222,7 @@ class TestTableFunctions(FitsTestCase):
 
         # Replace the 1st col, 3rd row, with a null field.
         with open(self.temp('ascii_null2.fits'), mode='r+') as h:
-            nulled = h.read().replace(u'3.00000000', u'          ')
+            nulled = h.read().replace('3.00000000', '          ')
             h.seek(0)
             h.write(nulled)
 

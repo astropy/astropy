@@ -185,7 +185,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
                 message = ('The {func} {obj_type} is deprecated and may '
                            'be removed in a future version.')
             if alternative:
-                altmessage = '\n        Use {} instead.'.format(alternative)
+                altmessage = f'\n        Use {alternative} instead.'
 
         message = ((message.format(**{
             'func': name,
@@ -468,8 +468,8 @@ def deprecated_renamed_argument(old_name, new_name, since,
                 # 3.) positional-only argument, varargs, varkwargs or some
                 #     unknown type:
                 else:
-                    raise TypeError('cannot replace argument "{0}" of kind '
-                                    '{1!r}.'.format(new_name[i], param.kind))
+                    raise TypeError('cannot replace argument "{}" of kind '
+                                    '{!r}.'.format(new_name[i], param.kind))
 
         @functools.wraps(function)
         def wrapper(*args, **kwargs):
@@ -482,7 +482,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
                     # Display the deprecation warning only when it's not
                     # pending.
                     if not pending[i]:
-                        message = ('"{0}" was deprecated in version {1} '
+                        message = ('"{}" was deprecated in version {} '
                                    'and will be removed in a future version. '
                                    .format(old_name[i], since[i]))
                         if new_name[i] is not None:

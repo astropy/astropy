@@ -78,7 +78,7 @@ def write_source_line(w, line, nchar=0):
 
     w.write('  ')
     w.write(part1)
-    w.write('<span class="highlight">{}</span>'.format(char))
+    w.write(f'<span class="highlight">{char}</span>')
     w.write(part2)
     w.write('\n\n')
 
@@ -236,7 +236,7 @@ def write_table(basename, name, results, root="results", chunk_size=500):
                 else:
                     w.element(
                         'a', str(i+1),
-                        href='{}_{:02d}.html'.format(basename, i))
+                        href=f'{basename}_{i:02d}.html')
                 w.data(' ')
             if j < npages - 1:
                 w.element('a', '>>', href='{}_{:02d}.html'.format(basename, j+1))
@@ -245,7 +245,7 @@ def write_table(basename, name, results, root="results", chunk_size=500):
 
     for i, j in enumerate(range(0, max(len(results), 1), chunk_size)):
         subresults = results[j:j+chunk_size]
-        path = os.path.join(root, '{}_{:02d}.html'.format(basename, i))
+        path = os.path.join(root, f'{basename}_{i:02d}.html')
         with open(path, 'w', encoding='utf-8') as fd:
             w = XMLWriter(fd)
             with make_html_header(w):
@@ -280,7 +280,7 @@ def add_subset(w, basename, name, subresults, inside=['p'], total=None):
         with w.tag('td'):
             for element in inside:
                 w.start(element)
-            w.element('a', name, href='{}_00.html'.format(basename))
+            w.element('a', name, href=f'{basename}_00.html')
             for element in reversed(inside):
                 w.end(element)
         numbers = '{:d} ({:.2%})'.format(len(subresults), percentage)

@@ -44,7 +44,7 @@ COLUMN_TIME_KEYWORDS = ('TCTYP', 'TCUNI', 'TRPOS')
 
 
 # Column-specific keywords regex
-COLUMN_TIME_KEYWORD_REGEXP = '({0})[0-9]+'.format(
+COLUMN_TIME_KEYWORD_REGEXP = '({})[0-9]+'.format(
     '|'.join(COLUMN_TIME_KEYWORDS))
 
 

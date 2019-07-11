@@ -73,7 +73,7 @@ def test_wrong_unit(x_input, y_input):
         x, y = myfunc_args(1*x_unit, 100*u.Joule)  # has to be an unspecified unit
 
     str_to = str(y_target)
-    assert str(e.value) == "Argument 'y' to function 'myfunc_args' must be in units convertible to '{0}'.".format(str_to)
+    assert str(e.value) == f"Argument 'y' to function 'myfunc_args' must be in units convertible to '{str_to}'."
 
 
 def test_not_quantity(x_input, y_input):
@@ -138,7 +138,7 @@ def test_kwarg_wrong_unit(x_input, y_input):
         x, y = myfunc_args(1*x_unit, y=100*u.Joule)
 
     str_to = str(y_target)
-    assert str(e.value) == "Argument 'y' to function 'myfunc_args' must be in units convertible to '{0}'.".format(str_to)
+    assert str(e.value) == f"Argument 'y' to function 'myfunc_args' must be in units convertible to '{str_to}'."
 
 
 def test_kwarg_not_quantity(x_input, y_input):

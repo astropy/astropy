@@ -162,7 +162,7 @@ class Fittable2DModelTester:
         x = test_parameters['x_values']
         y = test_parameters['y_values']
         z = test_parameters['z_values']
-        assert np.all((np.abs(model(x, y) - z) < self.eval_error))
+        assert np.all(np.abs(model(x, y) - z) < self.eval_error)
 
     def test_bounding_box2D(self, model_class, test_parameters):
         """Test bounding box evaluation"""

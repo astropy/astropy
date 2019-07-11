@@ -182,7 +182,7 @@ class TimeFormat(metaclass=TimeFormatMeta):
         ok1 = val1.dtype == np.double and np.all(np.isfinite(val1))
         ok2 = val2 is None or (val2.dtype == np.double and not np.any(np.isinf(val2)))
         if not (ok1 and ok2):
-            raise TypeError('Input values for {0} class must be finite doubles'
+            raise TypeError('Input values for {} class must be finite doubles'
                             .format(self.name))
 
         if getattr(val1, 'unit', None) is not None:
@@ -243,8 +243,8 @@ class TimeFormat(metaclass=TimeFormatMeta):
             scale = self._default_scale
 
         if scale not in TIME_SCALES:
-            raise ScaleValueError("Scale value '{0}' not in "
-                                  "allowed values {1}"
+            raise ScaleValueError("Scale value '{}' not in "
+                                  "allowed values {}"
                                   .format(scale, TIME_SCALES))
 
         return scale
@@ -428,8 +428,8 @@ class TimeFromEpoch(TimeFormat):
             tm = getattr(Time(jd1, jd2, scale=self.epoch_scale,
                               format='jd'), self.scale)
         except Exception as err:
-            raise ScaleValueError("Cannot convert from '{0}' epoch scale '{1}'"
-                                  "to specified scale '{2}', got error:\n{3}"
+            raise ScaleValueError("Cannot convert from '{}' epoch scale '{}'"
+                                  "to specified scale '{}', got error:\n{}"
                                   .format(self.name, self.epoch_scale,
                                           self.scale, err))
 
@@ -444,8 +444,8 @@ class TimeFromEpoch(TimeFormat):
             try:
                 tm = getattr(parent, self.epoch_scale)
             except Exception as err:
-                raise ScaleValueError("Cannot convert from '{0}' epoch scale '{1}'"
-                                      "to specified scale '{2}', got error:\n{3}"
+                raise ScaleValueError("Cannot convert from '{}' epoch scale '{}'"
+                                      "to specified scale '{}', got error:\n{}"
                                       .format(self.name, self.epoch_scale,
                                               self.scale, err))
 
@@ -572,7 +572,7 @@ class TimeAstropyTime(TimeUnique):
         val1_0 = val1.flat[0]
         if not (isinstance(val1_0, Time) and all(type(val) is type(val1_0)
                                                  for val in val1.flat)):
-            raise TypeError('Input values for {0} class must all be same '
+            raise TypeError('Input values for {} class must all be same '
                             'astropy Time type.'.format(cls.name))
 
         if scale is None:
@@ -611,7 +611,7 @@ class TimeDatetime(TimeUnique):
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for this class
         if not all(isinstance(val, datetime.datetime) for val in val1.flat):
-            raise TypeError('Input values for {0} class must be '
+            raise TypeError('Input values for {} class must be '
                             'datetime objects'.format(self.name))
         return val1, None
 
@@ -753,7 +753,7 @@ class TimeString(TimeUnique):
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for these classes
         if val1.dtype.kind not in ('S', 'U'):
-            raise TypeError('Input values for {0} class must be strings'
+            raise TypeError('Input values for {} class must be strings'
                             .format(self.name))
         return val1, None
 
@@ -795,7 +795,7 @@ class TimeString(TimeUnique):
             vals[-1] = vals[-1] + fracsec
             return vals
         else:
-            raise ValueError('Time {0} does not match {1} format'
+            raise ValueError('Time {} does not match {} format'
                              .format(timestr, self.name))
 
     def set_jds(self, val1, val2):
@@ -885,7 +885,7 @@ class TimeString(TimeUnique):
         fnmatchcase = fnmatch.fnmatchcase
         subfmts = [x for x in self.subfmts if fnmatchcase(x[0], pattern)]
         if len(subfmts) == 0:
-            raise ValueError('No subformats match {0}'.format(pattern))
+            raise ValueError(f'No subformats match {pattern}')
         return subfmts
 
 
@@ -980,7 +980,7 @@ class TimeDatetime64(TimeISOT):
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for this class`
         if not val1.dtype.kind == 'M':
-            raise TypeError('Input values for {0} class must be '
+            raise TypeError('Input values for {} class must be '
                             'datetime64 objects'.format(self.name))
         return val1, None
 
@@ -1063,7 +1063,7 @@ class TimeFITS(TimeString):
             if tm:
                 break
         else:
-            raise ValueError('Time {0} does not match {1} format'
+            raise ValueError('Time {} does not match {} format'
                              .format(timestr, self.name))
         tm = tm.groupdict()
         # Scale and realization are deprecated and strings in this form
@@ -1076,7 +1076,7 @@ class TimeFITS(TimeString):
             fits_scale = tm['scale'].upper()
             scale = FITS_DEPRECATED_SCALES.get(fits_scale, fits_scale.lower())
             if scale not in TIME_SCALES:
-                raise ValueError("Scale {0!r} is not in the allowed scales {1}"
+                raise ValueError("Scale {!r} is not in the allowed scales {}"
                                  .format(scale, sorted(TIME_SCALES)))
             # If no scale was given in the initialiser, set the scale to
             # that given in the string.  Realization is ignored
@@ -1085,7 +1085,7 @@ class TimeFITS(TimeString):
             if self._scale is None:
                 self._scale = scale
             if scale != self.scale:
-                raise ValueError("Input strings for {0} class must all "
+                raise ValueError("Input strings for {} class must all "
                                  "have consistent time scales."
                                  .format(self.name))
         return [int(tm['year']), int(tm['mon']), int(tm['mday']),
@@ -1167,7 +1167,7 @@ class TimeEpochDateString(TimeString):
                 if epoch_type.upper() != epoch_prefix:
                     raise ValueError
             except (IndexError, ValueError, UnicodeEncodeError):
-                raise ValueError('Time {0} does not match {1} format'
+                raise ValueError('Time {} does not match {} format'
                                  .format(time_str, self.name))
             else:
                 years[...] = year
@@ -1215,8 +1215,8 @@ class TimeDeltaFormat(TimeFormat, metaclass=TimeDeltaFormatMeta):
         Check that the scale is in the allowed list of scales, or is `None`
         """
         if scale is not None and scale not in TIME_DELTA_SCALES:
-            raise ScaleValueError("Scale value '{0}' not in "
-                                  "allowed values {1}"
+            raise ScaleValueError("Scale value '{}' not in "
+                                  "allowed values {}"
                                   .format(scale, TIME_DELTA_SCALES))
 
         return scale
@@ -1249,7 +1249,7 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for this class
         if not all(isinstance(val, datetime.timedelta) for val in val1.flat):
-            raise TypeError('Input values for {0} class must be '
+            raise TypeError('Input values for {} class must be '
                             'datetime.timedelta objects'.format(self.name))
         return val1, None
 

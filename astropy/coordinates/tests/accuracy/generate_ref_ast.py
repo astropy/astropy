@@ -30,7 +30,7 @@ def ref_fk4_no_e_fk4(fnout='fk4_no_e_fk4.csv'):
     dec = np.degrees(np.arcsin(np.random.uniform(-1., 1., N)))
 
     # Generate random observation epoch and equinoxes
-    obstime = ["B{0:7.2f}".format(x) for x in np.random.uniform(1950., 2000., N)]
+    obstime = [f"B{x:7.2f}" for x in np.random.uniform(1950., 2000., N)]
 
     ra_fk4ne, dec_fk4ne = [], []
     ra_fk4, dec_fk4 = [], []
@@ -63,7 +63,7 @@ def ref_fk4_no_e_fk4(fnout='fk4_no_e_fk4.csv'):
     t.add_column(Column(name='ra_fk4', data=ra_fk4))
     t.add_column(Column(name='dec_fk4', data=dec_fk4))
     f = open(os.path.join('data', fnout), 'wb')
-    f.write("# This file was generated with the {0} script, and the reference "
+    f.write("# This file was generated with the {} script, and the reference "
             "values were computed using AST\n".format(os.path.basename(__file__)))
     t.write(f, format='ascii', delimiter=',')
 
@@ -87,9 +87,9 @@ def ref_fk4_no_e_fk5(fnout='fk4_no_e_fk5.csv'):
     dec = np.degrees(np.arcsin(np.random.uniform(-1., 1., N)))
 
     # Generate random observation epoch and equinoxes
-    obstime = ["B{0:7.2f}".format(x) for x in np.random.uniform(1950., 2000., N)]
-    equinox_fk4 = ["B{0:7.2f}".format(x) for x in np.random.uniform(1925., 1975., N)]
-    equinox_fk5 = ["J{0:7.2f}".format(x) for x in np.random.uniform(1975., 2025., N)]
+    obstime = [f"B{x:7.2f}" for x in np.random.uniform(1950., 2000., N)]
+    equinox_fk4 = [f"B{x:7.2f}" for x in np.random.uniform(1925., 1975., N)]
+    equinox_fk5 = [f"J{x:7.2f}" for x in np.random.uniform(1975., 2025., N)]
 
     ra_fk4, dec_fk4 = [], []
     ra_fk5, dec_fk5 = [], []
@@ -124,7 +124,7 @@ def ref_fk4_no_e_fk5(fnout='fk4_no_e_fk5.csv'):
     t.add_column(Column(name='ra_fk4', data=ra_fk4))
     t.add_column(Column(name='dec_fk4', data=dec_fk4))
     f = open(os.path.join('data', fnout), 'wb')
-    f.write("# This file was generated with the {0} script, and the reference "
+    f.write("# This file was generated with the {} script, and the reference "
             "values were computed using AST\n".format(os.path.basename(__file__)))
     t.write(f, format='ascii', delimiter=',')
 
@@ -148,8 +148,8 @@ def ref_galactic_fk4(fnout='galactic_fk4.csv'):
     lat = np.degrees(np.arcsin(np.random.uniform(-1., 1., N)))
 
     # Generate random observation epoch and equinoxes
-    obstime = ["B{0:7.2f}".format(x) for x in np.random.uniform(1950., 2000., N)]
-    equinox_fk4 = ["J{0:7.2f}".format(x) for x in np.random.uniform(1975., 2025., N)]
+    obstime = [f"B{x:7.2f}" for x in np.random.uniform(1950., 2000., N)]
+    equinox_fk4 = [f"J{x:7.2f}" for x in np.random.uniform(1975., 2025., N)]
 
     lon_gal, lat_gal = [], []
     ra_fk4, dec_fk4 = [], []
@@ -183,7 +183,7 @@ def ref_galactic_fk4(fnout='galactic_fk4.csv'):
     t.add_column(Column(name='lon_gal', data=lon_gal))
     t.add_column(Column(name='lat_gal', data=lat_gal))
     f = open(os.path.join('data', fnout), 'wb')
-    f.write("# This file was generated with the {0} script, and the reference "
+    f.write("# This file was generated with the {} script, and the reference "
             "values were computed using AST\n".format(os.path.basename(__file__)))
     t.write(f, format='ascii', delimiter=',')
 
@@ -207,8 +207,8 @@ def ref_icrs_fk5(fnout='icrs_fk5.csv'):
     dec = np.degrees(np.arcsin(np.random.uniform(-1., 1., N)))
 
     # Generate random observation epoch and equinoxes
-    obstime = ["B{0:7.2f}".format(x) for x in np.random.uniform(1950., 2000., N)]
-    equinox_fk5 = ["J{0:7.2f}".format(x) for x in np.random.uniform(1975., 2025., N)]
+    obstime = [f"B{x:7.2f}" for x in np.random.uniform(1950., 2000., N)]
+    equinox_fk5 = [f"J{x:7.2f}" for x in np.random.uniform(1975., 2025., N)]
 
     ra_icrs, dec_icrs = [], []
     ra_fk5, dec_fk5 = [], []
@@ -242,7 +242,7 @@ def ref_icrs_fk5(fnout='icrs_fk5.csv'):
     t.add_column(Column(name='ra_icrs', data=ra_icrs))
     t.add_column(Column(name='dec_icrs', data=dec_icrs))
     f = open(os.path.join('data', fnout), 'wb')
-    f.write("# This file was generated with the {0} script, and the reference "
+    f.write("# This file was generated with the {} script, and the reference "
             "values were computed using AST\n".format(os.path.basename(__file__)))
     t.write(f, format='ascii', delimiter=',')
 

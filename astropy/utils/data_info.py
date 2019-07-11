@@ -338,7 +338,7 @@ reference with ``c = col[3:5]`` followed by ``c.info``.""")
 
         # Finally this must be an actual data attribute that this class is handling.
         if attr not in self.attr_names:
-            raise AttributeError("attribute must be one of {0}".format(self.attr_names))
+            raise AttributeError(f"attribute must be one of {self.attr_names}")
 
         if attr == 'parent_table':
             value = None if value is None else weakref.ref(value)
@@ -433,7 +433,7 @@ reference with ``c = col[3:5]`` followed by ``c.info``.""")
                 if hasattr(self, 'info_summary_' + option):
                     option = getattr(self, 'info_summary_' + option)
                 else:
-                    raise ValueError('option={0} is not an allowed information type'
+                    raise ValueError('option={} is not an allowed information type'
                                      .format(option))
 
             with warnings.catch_warnings():
@@ -460,7 +460,7 @@ reference with ``c = col[3:5]`` followed by ``c.info``.""")
 
         for key, val in info.items():
             if val != '':
-                out.write('{0} = {1}'.format(key, val) + os.linesep)
+                out.write(f'{key} = {val}' + os.linesep)
 
     def __repr__(self):
         if self._parent is None:

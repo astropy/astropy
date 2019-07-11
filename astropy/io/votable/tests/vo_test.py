@@ -142,7 +142,7 @@ def _test_regression(tmpdir, _python_based=False, binary_mode=1):
 
     with open(
         get_pkg_data_filename(
-            'data/regression.bin.tabledata.truth.{0}.xml'.format(
+            'data/regression.bin.tabledata.truth.{}.xml'.format(
                 votable.version)),
             'rt', encoding='utf-8') as fd:
         truth = fd.readlines()

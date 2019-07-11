@@ -31,8 +31,8 @@ def test_wcsapi_extension(tmpdir):
     # interactive session, so it likely had something to do with pytest's
     # output capture
     p = subprocess.Popen([sys.executable, 'setup.py', 'build',
-                          '--build-base={0}'.format(build_dir), 'install',
-                          '--install-lib={0}'.format(install_dir),
+                          f'--build-base={build_dir}', 'install',
+                          f'--install-lib={install_dir}',
                           astropy_path], cwd=setup_path, env=env,
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -62,8 +62,8 @@ def test_wcsapi_extension(tmpdir):
         return
 
     assert p.returncode == 0, (
-        "setup.py exited with non-zero return code {0}\n"
-        "stdout:\n\n{1}\n\nstderr:\n\n{2}\n".format(
+        "setup.py exited with non-zero return code {}\n"
+        "stdout:\n\n{}\n\nstderr:\n\n{}\n".format(
             p.returncode, stdout, stderr))
 
     code = """

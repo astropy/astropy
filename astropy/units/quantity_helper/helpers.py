@@ -34,7 +34,7 @@ def get_converter(from_unit, to_unit):
         return from_unit._apply_equivalencies(
                 from_unit, to_unit, get_current_unit_registry().equivalencies)
     except AttributeError:
-        raise UnitTypeError("Unit '{0}' cannot be converted to '{1}'"
+        raise UnitTypeError("Unit '{}' cannot be converted to '{}'"
                             .format(from_unit, to_unit))
     if scale == 1.:
         return None
@@ -77,7 +77,7 @@ def get_converters_and_unit(f, unit1, unit2):
             converters[changeable] = get_converter(unit2, unit1)
         except UnitsError:
             raise UnitConversionError(
-                "Can only apply '{0}' function to quantities "
+                "Can only apply '{}' function to quantities "
                 "with compatible dimensions"
                 .format(f.__name__))
 
@@ -130,7 +130,7 @@ def helper_modf(f, unit):
         return ([get_converter(unit, dimensionless_unscaled)],
                 (dimensionless_unscaled, dimensionless_unscaled))
     except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
+        raise UnitTypeError("Can only apply '{}' function to "
                             "dimensionless quantities"
                             .format(f.__name__))
 
@@ -147,7 +147,7 @@ def helper_dimensionless_to_dimensionless(f, unit):
         return ([get_converter(unit, dimensionless_unscaled)],
                 dimensionless_unscaled)
     except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
+        raise UnitTypeError("Can only apply '{}' function to "
                             "dimensionless quantities"
                             .format(f.__name__))
 
@@ -160,7 +160,7 @@ def helper_dimensionless_to_radian(f, unit):
     try:
         return [get_converter(unit, dimensionless_unscaled)], radian
     except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
+        raise UnitTypeError("Can only apply '{}' function to "
                             "dimensionless quantities"
                             .format(f.__name__))
 
@@ -170,7 +170,7 @@ def helper_degree_to_radian(f, unit):
     try:
         return [get_converter(unit, degree)], radian
     except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
+        raise UnitTypeError("Can only apply '{}' function to "
                             "quantities with angle units"
                             .format(f.__name__))
 
@@ -180,7 +180,7 @@ def helper_radian_to_degree(f, unit):
     try:
         return [get_converter(unit, radian)], degree
     except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
+        raise UnitTypeError("Can only apply '{}' function to "
                             "quantities with angle units"
                             .format(f.__name__))
 
@@ -190,14 +190,14 @@ def helper_radian_to_dimensionless(f, unit):
     try:
         return [get_converter(unit, radian)], dimensionless_unscaled
     except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
+        raise UnitTypeError("Can only apply '{}' function to "
                             "quantities with angle units"
                             .format(f.__name__))
 
 
 def helper_frexp(f, unit):
     if not unit.is_unity():
-        raise UnitTypeError("Can only apply '{0}' function to "
+        raise UnitTypeError("Can only apply '{}' function to "
                             "unscaled dimensionless quantities"
                             .format(f.__name__))
     return [None], (None, None)
@@ -264,7 +264,7 @@ def helper_two_arg_dimensionless(f, unit1, unit2):
         converter2 = (get_converter(unit2, dimensionless_unscaled)
                       if unit2 is not None else None)
     except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
+        raise UnitTypeError("Can only apply '{}' function to "
                             "dimensionless quantities"
                             .format(f.__name__))
     return ([converter1, converter2], dimensionless_unscaled)
@@ -307,7 +307,7 @@ def helper_clip(f, unit1, unit2, unit3):
                            for unit in (unit2, unit3)]
         except UnitsError:
             raise UnitConversionError(
-                "Can only apply '{0}' function to quantities with "
+                "Can only apply '{}' function to quantities with "
                 "compatible dimensions".format(f.__name__))
 
     else:
@@ -321,7 +321,7 @@ def helper_clip(f, unit1, unit2, unit3):
                     converters.append(False)
                 else:
                     raise UnitConversionError(
-                        "Can only apply '{0}' function to quantities with "
+                        "Can only apply '{}' function to quantities with "
                         "compatible dimensions".format(f.__name__))
             else:
                 converters.append(converter)

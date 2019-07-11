@@ -53,7 +53,7 @@ class _ServerProxyPoolMethod:
         self.__name = name
 
     def __getattr__(self, name):
-        return _ServerProxyPoolMethod(self.__proxies, "{}.{}".format(self.__name, name))
+        return _ServerProxyPoolMethod(self.__proxies, f"{self.__name}.{name}")
 
     def __call__(self, *args, **kwrds):
         proxy = self.__proxies.get()
@@ -142,7 +142,7 @@ class _HubAsClientMethod:
         self.__name = name
 
     def __getattr__(self, name):
-        return _HubAsClientMethod(self.__send, "{}.{}".format(self.__name, name))
+        return _HubAsClientMethod(self.__send, f"{self.__name}.{name}")
 
     def __call__(self, *args):
         return self.__send(self.__name, args)

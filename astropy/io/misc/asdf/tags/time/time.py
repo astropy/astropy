@@ -95,7 +95,7 @@ class TimeType(AstropyAsdfType):
             t = time.Time(node)
             fmt = _astropy_format_to_asdf_format.get(t.format, t.format)
             if fmt not in _guessable_formats:
-                raise ValueError("Invalid time '{0}'".format(node))
+                raise ValueError(f"Invalid time '{node}'")
             return t
 
         value = node['value']

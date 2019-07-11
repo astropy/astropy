@@ -38,8 +38,8 @@ class UnsupportedPythonError(Exception):
 
 
 # This is the same check as the one at the top of setup.py
-if sys.version_info < tuple((int(val) for val in __minimum_python_version__.split('.'))):
-    raise UnsupportedPythonError("Astropy does not support Python < {}".format(__minimum_python_version__))
+if sys.version_info < tuple(int(val) for val in __minimum_python_version__.split('.')):
+    raise UnsupportedPythonError(f"Astropy does not support Python < {__minimum_python_version__}")
 
 
 def _is_astropy_source(path=None):
@@ -92,7 +92,7 @@ except ImportError:
 if 'dev' in __version__:
     online_docs_root = 'http://docs.astropy.org/en/latest/'
 else:
-    online_docs_root = 'http://docs.astropy.org/en/{0}/'.format(__version__)
+    online_docs_root = f'http://docs.astropy.org/en/{__version__}/'
 
 
 def _check_numpy():
@@ -113,7 +113,7 @@ def _check_numpy():
         requirement_met = minversion(numpy, __minimum_numpy_version__)
 
     if not requirement_met:
-        msg = ("Numpy version {0} or later must be installed to use "
+        msg = ("Numpy version {} or later must be installed to use "
                "Astropy".format(__minimum_numpy_version__))
         raise ImportError(msg)
 
@@ -201,7 +201,7 @@ class base_constants_version(ScienceState):
                 self._parent._value = self._value
 
             def __repr__(self):
-                return ('<ScienceState {0}: {1!r}>'
+                return ('<ScienceState {}: {!r}>'
                         .format(self._parent.__name__, self._parent._value))
 
         ctx = _Context(cls, cls._value)
@@ -324,7 +324,7 @@ def _rebuild_extensions():
 
     if sp.returncode != 0:
         raise OSError('Running setup.py build_ext --inplace failed '
-                      'with error code {0}: try rerunning this command '
+                      'with error code {}: try rerunning this command '
                       'manually to check what the error was.'.format(
                           sp.returncode))
 
@@ -348,7 +348,7 @@ def _get_bibtex():
     with open(citation_file, 'r') as citation:
         refs = citation.read().split('@ARTICLE')[1:]
         if len(refs) == 0: return ''
-        bibtexreference = "@ARTICLE{0}".format(refs[0])
+        bibtexreference = "@ARTICLE{}".format(refs[0])
     return bibtexreference
 
 
@@ -389,7 +389,7 @@ def online_help(query):
     else:
         version = 'v' + version
 
-    url = 'http://docs.astropy.org/en/{0}/search.html?{1}'.format(
+    url = 'http://docs.astropy.org/en/{}/search.html?{}'.format(
         version, urlencode({'q': query}))
 
     webbrowser.open(url)

@@ -80,13 +80,13 @@ def _construct_odict(load, node):
     if not isinstance(node, yaml.SequenceNode):
         raise yaml.constructor.ConstructorError(
             "while constructing an ordered map", node.start_mark,
-            "expected a sequence, but found {}".format(node.id), node.start_mark)
+            f"expected a sequence, but found {node.id}", node.start_mark)
 
     for subnode in node.value:
         if not isinstance(subnode, yaml.MappingNode):
             raise yaml.constructor.ConstructorError(
                 "while constructing an ordered map", node.start_mark,
-                "expected a mapping of length 1, but found {}".format(subnode.id),
+                f"expected a mapping of length 1, but found {subnode.id}",
                 subnode.start_mark)
 
         if len(subnode.value) != 1:
@@ -143,7 +143,7 @@ def _repr_odict(dumper, data):
     >>> yaml.dump(data, default_flow_style=True)  # doctest: +SKIP
     '!!omap [foo: bar, mumble: quux, baz: gorp]\\n'
     """
-    return _repr_pairs(dumper, u'tag:yaml.org,2002:omap', data.items())
+    return _repr_pairs(dumper, 'tag:yaml.org,2002:omap', data.items())
 
 
 def _repr_column_dict(dumper, data):
@@ -154,7 +154,7 @@ def _repr_column_dict(dumper, data):
     are written in a fixed order that makes sense for astropy table
     columns.
     """
-    return dumper.represent_mapping(u'tag:yaml.org,2002:map', data)
+    return dumper.represent_mapping('tag:yaml.org,2002:map', data)
 
 
 def _get_col_attributes(col):
@@ -333,7 +333,7 @@ def get_header_from_yaml(lines):
         custom odict constructor.
         """
 
-    TableLoader.add_constructor(u'tag:yaml.org,2002:omap', _construct_odict)
+    TableLoader.add_constructor('tag:yaml.org,2002:omap', _construct_odict)
     # Now actually load the YAML data structure into `meta`
     header_yaml = textwrap.dedent('\n'.join(lines))
     try:

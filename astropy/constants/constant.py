@@ -48,10 +48,10 @@ class ConstantMeta(InheritDocstrings):
                         name_lower in self._has_incompatible_units):
                     systems = sorted([x for x in instances if x])
                     raise TypeError(
-                        'Constant {0!r} does not have physically compatible '
+                        'Constant {!r} does not have physically compatible '
                         'units across all systems of units and cannot be '
                         'combined with other values without specifying a '
-                        'system (eg. {1}.{2})'.format(self.abbrev, self.abbrev,
+                        'system (eg. {}.{})'.format(self.abbrev, self.abbrev,
                                                       systems[0]))
 
                 return meth(self, *args, **kwargs)
@@ -87,7 +87,7 @@ class Constant(Quantity, metaclass=ConstantMeta):
         if reference is None:
             reference = getattr(cls, 'default_reference', None)
             if reference is None:
-                raise TypeError("{} requires a reference.".format(cls))
+                raise TypeError(f"{cls} requires a reference.")
         name_lower = name.lower()
         instances = cls._registry.setdefault(name_lower, {})
         # By-pass Quantity initialization, since units may not yet be
@@ -95,8 +95,8 @@ class Constant(Quantity, metaclass=ConstantMeta):
         inst = np.array(value).view(cls)
 
         if system in instances:
-                warnings.warn('Constant {0!r} already has a definition in the '
-                              '{1!r} system from {2!r} reference'.format(
+                warnings.warn('Constant {!r} already has a definition in the '
+                              '{!r} system from {!r} reference'.format(
                               name, system, reference), AstropyUserWarning)
         for c in instances.values():
             if system is not None and not hasattr(c.__class__, system):
@@ -118,17 +118,17 @@ class Constant(Quantity, metaclass=ConstantMeta):
         return inst
 
     def __repr__(self):
-        return ('<{0} name={1!r} value={2} uncertainty={3} unit={4!r} '
-                'reference={5!r}>'.format(self.__class__, self.name, self.value,
+        return ('<{} name={!r} value={} uncertainty={} unit={!r} '
+                'reference={!r}>'.format(self.__class__, self.name, self.value,
                                           self.uncertainty, str(self.unit),
                                           self.reference))
 
     def __str__(self):
-        return ('  Name   = {0}\n'
-                '  Value  = {1}\n'
-                '  Uncertainty  = {2}\n'
-                '  Unit  = {3}\n'
-                '  Reference = {4}'.format(self.name, self.value,
+        return ('  Name   = {}\n'
+                '  Value  = {}\n'
+                '  Uncertainty  = {}\n'
+                '  Unit  = {}\n'
+                '  Reference = {}'.format(self.name, self.value,
                                            self.uncertainty, self.unit,
                                            self.reference))
 

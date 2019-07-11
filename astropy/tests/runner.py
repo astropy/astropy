@@ -147,11 +147,11 @@ class TestRunnerBase:
 
             # Allow disabling of options in a subclass
             if result is NotImplemented:
-                raise TypeError("run_tests() got an unexpected keyword argument {}".format(keyword))
+                raise TypeError(f"run_tests() got an unexpected keyword argument {keyword}")
 
             # keyword methods must return a list
             if not isinstance(result, list):
-                raise TypeError("{} keyword method must return a list".format(keyword))
+                raise TypeError(f"{keyword} keyword method must return a list")
 
             args += result
 
@@ -446,7 +446,7 @@ class TestRunner(TestRunnerBase):
         """
         if pastebin is not None:
             if pastebin in ['failed', 'all']:
-                return ['--pastebin={0}'.format(pastebin)]
+                return [f'--pastebin={pastebin}']
             else:
                 raise ValueError("pastebin should be 'failed' or 'all'")
 
@@ -468,14 +468,14 @@ class TestRunner(TestRunnerBase):
             remote_data = 'none'
         elif remote_data not in ('none', 'astropy', 'any'):
             warnings.warn("The remote_data option should be one of "
-                          "none/astropy/any (found {0}). For backward-compatibility, "
+                          "none/astropy/any (found {}). For backward-compatibility, "
                           "assuming 'any', but you should change the option to be "
                           "one of the supported ones to avoid issues in "
                           "future.".format(remote_data),
                           AstropyDeprecationWarning)
             remote_data = 'any'
 
-        return ['--remote-data={0}'.format(remote_data)]
+        return [f'--remote-data={remote_data}']
 
     @keyword()
     def pep8(self, pep8, kwargs):
@@ -591,7 +591,7 @@ class TestRunner(TestRunnerBase):
             useful for diagnosing sporadic failures.
         """
         if repeat:
-            return ['--repeat={0}'.format(repeat)]
+            return [f'--repeat={repeat}']
 
         return []
 

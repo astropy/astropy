@@ -210,9 +210,9 @@ def unit_deprecation_warning(s, unit, standard_name, format_decomposed):
     """
     from astropy.units.core import UnitsWarning
 
-    message = "The unit '{0}' has been deprecated in the {1} standard.".format(
+    message = "The unit '{}' has been deprecated in the {} standard.".format(
         s, standard_name)
     decomposed = _try_decomposed(unit, format_decomposed)
     if decomposed is not None:
-        message += " Suggested: {0}.".format(decomposed)
+        message += f" Suggested: {decomposed}."
     warnings.warn(message, UnitsWarning)

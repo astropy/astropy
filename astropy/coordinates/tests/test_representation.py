@@ -1423,7 +1423,7 @@ def unitphysics():
             if np.any(self._theta < 0.*u.deg) or np.any(self._theta > 180.*u.deg):
                 raise ValueError('Inclination angle(s) must be within '
                                  '0 deg <= angle <= 180 deg, '
-                                 'got {0}'.format(theta.to(u.degree)))
+                                 'got {}'.format(theta.to(u.degree)))
 
         @property
         def phi(self):

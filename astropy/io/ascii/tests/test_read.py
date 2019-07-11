@@ -156,7 +156,7 @@ def test_read_all_files(fast_reader):
             test_opts = testfile['opts'].copy()
             if 'guess' not in test_opts:
                 test_opts['guess'] = guess
-            if ('Reader' in test_opts and 'fast_{0}'.format(test_opts['Reader']._format_name)
+            if ('Reader' in test_opts and 'fast_{}'.format(test_opts['Reader']._format_name)
                     in core.FAST_CLASSES):  # has fast version
                 if 'Inputter' not in test_opts:  # fast reader doesn't allow this
                     test_opts['fast_reader'] = fast_reader
@@ -178,11 +178,11 @@ def test_read_all_files_via_table(fast_reader):
             if 'guess' not in test_opts:
                 test_opts['guess'] = guess
             if 'Reader' in test_opts:
-                format = 'ascii.{0}'.format(test_opts['Reader']._format_name)
+                format = 'ascii.{}'.format(test_opts['Reader']._format_name)
                 del test_opts['Reader']
             else:
                 format = 'ascii'
-            if 'fast_{0}'.format(format) in core.FAST_CLASSES:
+            if f'fast_{format}' in core.FAST_CLASSES:
                 test_opts['fast_reader'] = fast_reader
             table = Table.read(testfile['name'], format=format, **test_opts)
             assert_equal(table.dtype.names, testfile['cols'])
@@ -1235,7 +1235,7 @@ def test_non_C_locale_with_fast_reader():
                            fast_reader=fast_reader)
             assert t['a'].dtype.kind == 'f'
     except locale.Error as e:
-        pytest.skip('Locale error: {}'.format(e))
+        pytest.skip(f'Locale error: {e}')
     finally:
         locale.setlocale(locale.LC_ALL, current)
 
@@ -1312,8 +1312,8 @@ def text_aastex_no_trailing_backslash():
 @pytest.mark.parametrize('encoding', ['utf8', 'latin1', 'cp1252'])
 def test_read_with_encoding(tmpdir, encoding):
     data = {
-        'commented_header': u'# à b è \n 1 2 héllo',
-        'csv': u'à,b,è\n1,2,héllo'
+        'commented_header': '# à b è \n 1 2 héllo',
+        'csv': 'à,b,è\n1,2,héllo'
     }
 
     testfile = str(tmpdir.join('test.txt'))

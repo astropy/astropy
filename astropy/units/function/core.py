@@ -98,7 +98,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
             if (not isinstance(self._physical_unit, UnitBase) or
                 self._physical_unit.is_equivalent(
                     self._default_function_unit)):
-                raise UnitConversionError("Unit {0} is not a physical unit."
+                raise UnitConversionError("Unit {} is not a physical unit."
                                           .format(self._physical_unit))
 
         if function_unit is None:
@@ -111,8 +111,8 @@ class FunctionUnitBase(metaclass=ABCMeta):
                 self._function_unit = function_unit
             else:
                 raise UnitConversionError(
-                    "Cannot initialize '{0}' instance with function unit '{1}'"
-                    ", as it is not equivalent to default function unit '{2}'."
+                    "Cannot initialize '{}' instance with function unit '{}'"
+                    ", as it is not equivalent to default function unit '{}'."
                     .format(self.__class__.__name__, function_unit,
                             self._default_function_unit))
 
@@ -361,7 +361,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
             provided, defaults to the generic format.
         """
         if format not in ('generic', 'unscaled', 'latex'):
-            raise ValueError("Function units cannot be written in {0} format. "
+            raise ValueError("Function units cannot be written in {} format. "
                              "Only 'generic', 'unscaled' and 'latex' are "
                              "supported.".format(format))
         self_str = self.function_unit.to_string(format)
@@ -372,7 +372,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
             self_str += r'$\mathrm{{\left( {0} \right)}}$'.format(
                 pu_str[1:-1])   # need to strip leading and trailing "$"
         else:
-            self_str += '({0})'.format(pu_str)
+            self_str += f'({pu_str})'
         return self_str
 
     def __str__(self):
@@ -380,20 +380,20 @@ class FunctionUnitBase(metaclass=ABCMeta):
         self_str = str(self.function_unit)
         pu_str = str(self.physical_unit)
         if pu_str:
-            self_str += '({0})'.format(pu_str)
+            self_str += f'({pu_str})'
         return self_str
 
     def __repr__(self):
         # By default, try to give a representation using `Unit(<string>)`,
         # with string such that parsing it would give the correct FunctionUnit.
         if callable(self.function_unit):
-            return 'Unit("{0}")'.format(self.to_string())
+            return 'Unit("{}")'.format(self.to_string())
 
         else:
-            return '{0}("{1}"{2})'.format(
+            return '{}("{}"{})'.format(
                 self.__class__.__name__, self.physical_unit,
                 "" if self.function_unit is self._default_function_unit
-                else ', unit="{0}"'.format(self.function_unit))
+                else f', unit="{self.function_unit}"')
 
     def _repr_latex_(self):
         """
@@ -557,9 +557,9 @@ class FunctionQuantity(Quantity):
                 unit = self._unit_class(function_unit=unit or 'nonsense')
             except Exception:
                 raise UnitTypeError(
-                    "{0} instances require {1} function units"
+                    "{} instances require {} function units"
                     .format(type(self).__name__, self._unit_class.__name__) +
-                    ", so cannot set it to '{0}'.".format(unit))
+                    f", so cannot set it to '{unit}'.")
 
         self._unit = unit
 
@@ -570,7 +570,7 @@ class FunctionQuantity(Quantity):
         # another argument might know what to do.
         if function not in self._supported_ufuncs:
             raise UnitTypeError(
-                "Cannot use ufunc '{0}' with function quantities"
+                "Cannot use ufunc '{}' with function quantities"
                 .format(function.__name__))
 
         return super().__array_ufunc__(function, method, *inputs, **kwargs)
@@ -665,7 +665,7 @@ class FunctionQuantity(Quantity):
             args = tuple(getattr(arg, '_function_view', arg) for arg in args)
             return self._function_view._wrap_function(function, *args, **kwargs)
 
-        raise TypeError("Cannot use method that uses function '{0}' with "
+        raise TypeError("Cannot use method that uses function '{}' with "
                         "function quantities that are not dimensionless."
                         .format(function.__name__))
 

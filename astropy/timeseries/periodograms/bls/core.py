@@ -171,7 +171,7 @@ class BoxLeastSquares(BasePeriodogram):
         """
 
         duration = self._validate_duration(duration)
-        baseline = strip_units((self._trel.max() - self._trel.min()))
+        baseline = strip_units(self._trel.max() - self._trel.min())
         min_duration = strip_units(np.min(duration))
 
         # Estimate the required frequency spacing
@@ -277,7 +277,7 @@ class BoxLeastSquares(BasePeriodogram):
         try:
             oversample = int(oversample)
         except TypeError:
-            raise ValueError("oversample must be an int, got {0}"
+            raise ValueError("oversample must be an int, got {}"
                              .format(oversample))
         if oversample < 1:
             raise ValueError("oversample must be greater than or equal to 1")
@@ -341,14 +341,14 @@ class BoxLeastSquares(BasePeriodogram):
 
         if self._tstart is None:
             if isinstance(times, Time):
-                raise TypeError('{0} was provided as an absolute time but '
+                raise TypeError('{} was provided as an absolute time but '
                                 'the BoxLeastSquares class was initialized '
                                 'with relative times.'.format(name))
         else:
             if isinstance(times, Time):
                 times = (times - self._tstart).to(u.day)
             else:
-                raise TypeError('{0} was provided as a relative time but '
+                raise TypeError('{} was provided as a relative time but '
                                 'the BoxLeastSquares class was initialized '
                                 'with absolute times.'.format(name))
 

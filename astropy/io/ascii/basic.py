@@ -337,7 +337,7 @@ class RdbHeader(TabHeader):
             raise core.InconsistentTableError('RDB header mismatch between number of column names and column types.')
 
         if any(not re.match(r'\d*(N|S)$', x, re.IGNORECASE) for x in raw_types):
-            raise core.InconsistentTableError('RDB types definitions do not all match [num](N|S): {}'.format(raw_types))
+            raise core.InconsistentTableError(f'RDB types definitions do not all match [num](N|S): {raw_types}')
 
         self._set_cols_from_names()
         for col, raw_type in zip(self.cols, raw_types):

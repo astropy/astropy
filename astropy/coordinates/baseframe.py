@@ -55,8 +55,8 @@ def _get_repr_cls(value):
     elif (not isinstance(value, type) or
           not issubclass(value, r.BaseRepresentation)):
         raise ValueError(
-            'Representation is {0!r} but must be a BaseRepresentation class '
-            'or one of the string aliases {1}'.format(
+            'Representation is {!r} but must be a BaseRepresentation class '
+            'or one of the string aliases {}'.format(
                 value, list(r.REPRESENTATION_CLASSES)))
     return value
 
@@ -74,8 +74,8 @@ def _get_diff_cls(value):
     elif (not isinstance(value, type) or
           not issubclass(value, r.BaseDifferential)):
         raise ValueError(
-            'Differential is {0!r} but must be a BaseDifferential class '
-            'or one of the string aliases {1}'.format(
+            'Differential is {!r} but must be a BaseDifferential class '
+            'or one of the string aliases {}'.format(
                 value, list(r.DIFFERENTIAL_CLASSES)))
     return value
 
@@ -114,8 +114,8 @@ def _get_repr_classes(base, **differentials):
               (not isinstance(differential_type, type) or
                not issubclass(differential_type, r.BaseDifferential))):
             raise ValueError(
-                'Differential is {0!r} but must be a BaseDifferential class '
-                'or one of the string aliases {1}'.format(
+                'Differential is {!r} but must be a BaseDifferential class '
+                'or one of the string aliases {}'.format(
                     differential_type, list(r.DIFFERENTIAL_CLASSES)))
         repr_classes[name] = differential_type
     return repr_classes
@@ -474,7 +474,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                                      'with the representation object passed in '
                                      'to the frame initializer. Only a single '
                                      'velocity differential is supported. Got: '
-                                     '{0}'.format(diffs))
+                                     '{}'.format(diffs))
 
         elif self.representation_type:
             representation_cls = self.get_representation_cls()
@@ -519,7 +519,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                         for frame_name, repr_name in names.items():
                             msg = msg.replace(repr_name, frame_name)
                         msg = msg.replace('__init__()',
-                                          '{0}()'.format(self.__class__.__name__))
+                                          f'{self.__class__.__name__}()')
                         e.args = (msg,)
                         raise e
 
@@ -557,13 +557,13 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                     for frame_name, repr_name in names.items():
                         msg = msg.replace(repr_name, frame_name)
                     msg = msg.replace('__init__()',
-                                      '{0}()'.format(self.__class__.__name__))
+                                      f'{self.__class__.__name__}()')
                     e.args = (msg,)
                     raise
 
         if len(args) > 0:
             raise TypeError(
-                '{0}.__init__ had {1} remaining unhandled arguments'.format(
+                '{}.__init__ had {} remaining unhandled arguments'.format(
                     self.__class__.__name__, len(args)))
 
         if representation_data is None and differential_data is not None:
@@ -594,7 +594,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
         if kwargs:
             raise TypeError(
-                'Coordinate frame got unexpected keywords: {0}'.format(
+                'Coordinate frame got unexpected keywords: {}'.format(
                     list(kwargs)))
 
         # We do ``is None`` because self._data might evaluate to false for
@@ -612,7 +612,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                     except ValueError:
                         raise ValueError(
                             "non-scalar attributes with inconsistent "
-                            "shapes: {0}".format(shapes))
+                            "shapes: {}".format(shapes))
 
                     # Above, we checked that it is possible to broadcast all
                     # shapes.  By getting and thus validating the attributes,
@@ -669,7 +669,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         check if data is present on this frame object.
         """
         if self._data is None:
-            raise ValueError('The frame object "{0!r}" does not have '
+            raise ValueError('The frame object "{!r}" does not have '
                              'associated data'.format(self))
         return self._data
 
@@ -1332,13 +1332,13 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         data_repr = self._data_repr()
 
         if frameattrs:
-            frameattrs = ' ({0})'.format(frameattrs)
+            frameattrs = f' ({frameattrs})'
 
         if data_repr:
-            return '<{0} Coordinate{1}: {2}>'.format(self.__class__.__name__,
+            return '<{} Coordinate{}: {}>'.format(self.__class__.__name__,
                                                      frameattrs, data_repr)
         else:
-            return '<{0} Frame{1}>'.format(self.__class__.__name__,
+            return '<{} Frame{}>'.format(self.__class__.__name__,
                                            frameattrs)
 
     def _data_repr(self):
@@ -1565,7 +1565,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
                 if attr in repr_attr_names:
                     raise AttributeError(
-                        'Cannot set any frame attribute {0}'.format(attr))
+                        f'Cannot set any frame attribute {attr}')
 
         super().__setattr__(attr, value)
 
@@ -1766,10 +1766,10 @@ class GenericFrame(BaseCoordinateFrame):
         if '_' + name in self.__dict__:
             return getattr(self, '_' + name)
         else:
-            raise AttributeError('no {0}'.format(name))
+            raise AttributeError(f'no {name}')
 
     def __setattr__(self, name, value):
         if name in self.get_frame_attr_names():
-            raise AttributeError("can't set frame attribute '{0}'".format(name))
+            raise AttributeError(f"can't set frame attribute '{name}'")
         else:
             super().__setattr__(name, value)

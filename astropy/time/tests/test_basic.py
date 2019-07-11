@@ -500,8 +500,8 @@ class TestBasic:
         uses the 2012-06-30 leap second for testing."""
         for year, month, day in ((2012, 6, 30), (2016, 12, 31)):
             # Start with a day without a leap second and note rollover
-            yyyy_mm = '{:04d}-{:02d}'.format(year, month)
-            yyyy_mm_dd = '{:04d}-{:02d}-{:02d}'.format(year, month, day)
+            yyyy_mm = f'{year:04d}-{month:02d}'
+            yyyy_mm_dd = f'{year:04d}-{month:02d}-{day:02d}'
             with pytest.warns(ErfaWarning):
                 t1 = Time(yyyy_mm + '-01 23:59:60.0', scale='utc')
             assert t1.iso == yyyy_mm + '-02 00:00:00.000'
@@ -517,7 +517,7 @@ class TestBasic:
             assert t1.iso == yyyy_mm_dd + ' 23:59:60.999'
 
             if month == 6:
-                yyyy_mm_dd_plus1 = '{:04d}-07-01'.format(year)
+                yyyy_mm_dd_plus1 = f'{year:04d}-07-01'
             else:
                 yyyy_mm_dd_plus1 = '{:04d}-01-01'.format(year+1)
 
@@ -1235,7 +1235,7 @@ def test_sum_is_equivalent():
 def test_string_valued_columns():
     # Columns have a nice shim that translates bytes to string as needed.
     # Ensure Time can handle these.  Use multi-d array just to be sure.
-    times = [[['{:04d}-{:02d}-{:02d}'.format(y, m, d) for d in range(1, 3)]
+    times = [[[f'{y:04d}-{m:02d}-{d:02d}' for d in range(1, 3)]
               for m in range(5, 7)] for y in range(2012, 2014)]
     cutf32 = Column(times)
     cbytes = cutf32.astype('S')

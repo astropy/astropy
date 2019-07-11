@@ -570,7 +570,7 @@ class _ImageBaseHDU(_ValidHDU):
         # should be handled by the schema
         if not _is_int(self._blank):
             messages.append(
-                "Invalid value for 'BLANK' keyword in header: {0!r} "
+                "Invalid value for 'BLANK' keyword in header: {!r} "
                 "The 'BLANK' keyword must be an integer.  It will be "
                 "ignored in the meantime.".format(self._blank))
             self._blank = None
@@ -612,7 +612,7 @@ class _ImageBaseHDU(_ValidHDU):
                 # Convert the unsigned array to signed
                 output = np.array(
                     self.data - _unsigned_zero(self.data.dtype),
-                    dtype='>i{}'.format(self.data.dtype.itemsize))
+                    dtype=f'>i{self.data.dtype.itemsize}')
                 should_swap = False
             else:
                 output = self.data
@@ -783,7 +783,7 @@ class _ImageBaseHDU(_ValidHDU):
                     (self._orig_bscale != 1 or self._orig_bzero != 0)):
                 new_dtype = self._dtype_for_bitpix()
                 if new_dtype is not None:
-                    format += ' (rescales to {0})'.format(new_dtype.name)
+                    format += f' (rescales to {new_dtype.name})'
 
         # Display shape in FITS-order
         shape = tuple(reversed(self.shape))
@@ -804,7 +804,7 @@ class _ImageBaseHDU(_ValidHDU):
             # 16, 32 or 64
             if _is_pseudo_unsigned(self.data.dtype):
                 d = np.array(self.data - _unsigned_zero(self.data.dtype),
-                             dtype='i{}'.format(self.data.dtype.itemsize))
+                             dtype=f'i{self.data.dtype.itemsize}')
 
             # Check the byte order of the data.  If it is little endian we
             # must swap it before calculating the datasum.
@@ -1120,7 +1120,7 @@ class _IndexInfo:
                 self.offset = indx
                 self.contiguous = True
             else:
-                raise IndexError('Index {} out of range.'.format(indx))
+                raise IndexError(f'Index {indx} out of range.')
         elif isinstance(indx, slice):
             start, stop, step = indx.indices(naxis)
             self.npts = (stop - start) // step
@@ -1131,4 +1131,4 @@ class _IndexInfo:
             self.offset = 0
             self.contiguous = False
         else:
-            raise IndexError('Illegal index {}'.format(indx))
+            raise IndexError(f'Illegal index {indx}')

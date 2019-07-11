@@ -99,7 +99,7 @@ class Result:
         def fail(reason):
             reason = str(reason)
             with open(path, 'wb') as fd:
-                fd.write('FAILED: {0}\n'.format(reason).encode('utf-8'))
+                fd.write(f'FAILED: {reason}\n'.encode('utf-8'))
             self['network_error'] = reason
 
         r = None
@@ -338,7 +338,7 @@ def get_result_subsets(results, root, s=None):
             warning_descr = warning_class.get_short_name()
             tables.append(
                 (warning_code,
-                 '{}: {}'.format(warning_code, warning_descr),
+                 f'{warning_code}: {warning_descr}',
                  warning, ['ul', 'li']))
     tables.append(
         ('exceptions', 'Exceptions', has_exceptions))
@@ -351,7 +351,7 @@ def get_result_subsets(results, root, s=None):
             exception_descr = exception_class.get_short_name()
             tables.append(
                 (exception_code,
-                 '{}: {}'.format(exception_code, exception_descr),
+                 f'{exception_code}: {exception_descr}',
                  exc, ['ul', 'li']))
 
     return tables

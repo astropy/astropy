@@ -747,24 +747,24 @@ class TestImageFunctions(FitsTestCase):
             if int_size == 64:
                 max_uint = np.uint64(int_size)
 
-            dtype = 'uint{}'.format(int_size)
+            dtype = f'uint{int_size}'
             arr = np.empty(100, dtype=dtype)
             arr.fill(max_uint)
             arr -= np.arange(100, dtype=dtype)
 
             uint_hdu = fits.PrimaryHDU(data=arr)
             assert np.all(uint_hdu.data == arr)
-            assert uint_hdu.data.dtype.name == 'uint{}'.format(int_size)
+            assert uint_hdu.data.dtype.name == f'uint{int_size}'
             assert 'BZERO' in uint_hdu.header
             assert uint_hdu.header['BZERO'] == (2 ** (int_size - 1))
 
-            filename = 'uint{}.fits'.format(int_size)
+            filename = f'uint{int_size}.fits'
             uint_hdu.writeto(self.temp(filename))
 
             with fits.open(self.temp(filename), uint=True) as hdul:
                 new_uint_hdu = hdul[0]
                 assert np.all(new_uint_hdu.data == arr)
-                assert new_uint_hdu.data.dtype.name == 'uint{}'.format(int_size)
+                assert new_uint_hdu.data.dtype.name == f'uint{int_size}'
                 assert 'BZERO' in new_uint_hdu.header
                 assert new_uint_hdu.header['BZERO'] == (2 ** (int_size - 1))
 
@@ -1620,7 +1620,7 @@ class TestCompressedImage(FitsTestCase):
                 hdr[keyword] = value
                 assert len(w) == 1
                 assert str(w[0].message).startswith(
-                        "Keyword {!r} is reserved".format(keyword))
+                        f"Keyword {keyword!r} is reserved")
                 assert keyword not in hdr
 
         with fits.open(self.data('comp.fits')) as hdul:

@@ -243,12 +243,12 @@ class TableColumns(OrderedDict):
 
         """
         if item in self and not validated:
-            raise ValueError("Cannot replace column '{0}'.  Use Table.replace_column() instead."
+            raise ValueError("Cannot replace column '{}'.  Use Table.replace_column() instead."
                              .format(item))
         super().__setitem__(item, value)
 
     def __repr__(self):
-        names = ("'{0}'".format(x) for x in self.keys())
+        names = (f"'{x}'" for x in self.keys())
         return "<{1} names=({0})>".format(",".join(names), self.__class__.__name__)
 
     def _rename_column(self, name, new_name):
@@ -256,7 +256,7 @@ class TableColumns(OrderedDict):
             return
 
         if new_name in self:
-            raise KeyError("Column {0} already exists".format(new_name))
+            raise KeyError(f"Column {new_name} already exists")
 
         mapper = {name: new_name}
         new_names = [mapper.get(name, name) for name in self]
@@ -558,7 +558,7 @@ class Table:
             data = [[]] * n_cols
 
         else:
-            raise ValueError('Data type {0} not allowed to init Table'
+            raise ValueError('Data type {} not allowed to init Table'
                              .format(type(data)))
 
         # Set up defaults if names and/or dtype are not specified.
@@ -716,8 +716,8 @@ class Table:
         # make sure all columns support indexing
         for col in columns:
             if not getattr(col.info, '_supports_indexing', False):
-                raise ValueError('Cannot create an index on column "{0}", of '
-                                 'type "{1}"'.format(col.info.name, type(col)))
+                raise ValueError('Cannot create an index on column "{}", of '
+                                 'type "{}"'.format(col.info.name, type(col)))
 
         index = Index(columns, engine=engine, unique=unique)
         if not self.indices:
@@ -794,7 +794,7 @@ class Table:
         """
         for inp_list, inp_str in ((dtype, 'dtype'), (names, 'names')):
             if not isiterable(inp_list):
-                raise ValueError('{0} must be a list or None'.format(inp_str))
+                raise ValueError(f'{inp_str} must be a list or None')
 
         if len(names) != n_cols or len(dtype) != n_cols:
             raise ValueError(
@@ -822,7 +822,7 @@ class Table:
                 try:
                     cols[name].append(row[name])
                 except KeyError:
-                    raise ValueError('Row {0} has no value for column {1}'.format(i, name))
+                    raise ValueError(f'Row {i} has no value for column {name}')
 
         if all(name is None for name in names):
             names = names_from_data
@@ -1000,7 +1000,7 @@ class Table:
 
         lengths = set(len(col) for col in cols)
         if len(lengths) > 1:
-            raise ValueError('Inconsistent data column lengths: {0}'
+            raise ValueError('Inconsistent data column lengths: {}'
                              .format(lengths))
 
         # Make sure that all Column-based objects have correct class.  For
@@ -1124,14 +1124,14 @@ class Table:
             descr_vals = [self.__class__.__name__]
             if self.masked:
                 descr_vals.append('masked=True')
-            descr_vals.append('length={0}'.format(len(self)))
+            descr_vals.append('length={}'.format(len(self)))
 
         descr = ' '.join(descr_vals)
         if html:
             from astropy.utils.xml.writer import xml_escape
-            descr = '<i>{0}</i>\n'.format(xml_escape(descr))
+            descr = '<i>{}</i>\n'.format(xml_escape(descr))
         else:
-            descr = '<{0}>\n'.format(descr)
+            descr = f'<{descr}>\n'
 
         if tableid is None:
             tableid = 'table{id}'.format(id=id(self))
@@ -1221,7 +1221,7 @@ class Table:
                                                     show_name=show_name, show_unit=show_unit,
                                                     show_dtype=show_dtype, align=align)
         if outs['show_length']:
-            lines.append('Length = {0} rows'.format(len(self)))
+            lines.append('Length = {} rows'.format(len(self)))
 
         n_header = outs['n_header']
 
@@ -1298,7 +1298,7 @@ class Table:
         from IPython.display import HTML
 
         if tableid is None:
-            tableid = 'table{0}-{1}'.format(id(self),
+            tableid = 'table{}-{}'.format(id(self),
                                             np.random.randint(1, 1e6))
 
         jsv = JSViewer(display_length=display_length)
@@ -1393,7 +1393,7 @@ class Table:
         try:
             br = webbrowser.get(None if browser == 'default' else browser)
         except webbrowser.Error:
-            log.error("Browser '{}' not found.".format(browser))
+            log.error(f"Browser '{browser}' not found.")
         else:
             br.open(urljoin('file:', pathname2url(path)))
 
@@ -1422,7 +1422,7 @@ class Table:
             tableid=tableid, tableclass=tableclass, align=align)
 
         if outs['show_length']:
-            lines.append('Length = {0} rows'.format(len(self)))
+            lines.append('Length = {} rows'.format(len(self)))
 
         return lines
 
@@ -1515,7 +1515,7 @@ class Table:
             # For all, a new table is constructed with slice of all columns
             return self._new_from_slice(item)
         else:
-            raise ValueError('Illegal type {0} for table item access'
+            raise ValueError('Illegal type {} for table item access'
                              .format(type(item)))
 
     def __setitem__(self, item, value):
@@ -1561,7 +1561,7 @@ class Table:
 
                 else:  # Assume this is an iterable that will work
                     if len(value) != n_cols:
-                        raise ValueError('Right side value needs {0} elements (one for each column)'
+                        raise ValueError('Right side value needs {} elements (one for each column)'
                                          .format(n_cols))
                     vals = value
 
@@ -1569,7 +1569,7 @@ class Table:
                     col[item] = val
 
             else:
-                raise ValueError('Illegal type {0} for table item access'
+                raise ValueError('Illegal type {} for table item access'
                                  .format(type(item)))
 
     def __delitem__(self, item):
@@ -1694,7 +1694,7 @@ class Table:
         try:
             return self.colnames.index(name)
         except ValueError:
-            raise ValueError("Column {0} does not exist".format(name))
+            raise ValueError(f"Column {name} does not exist")
 
     def add_column(self, col, index=None, name=None, rename_duplicate=False, copy=True,
                    default_name=None):
@@ -1948,7 +1948,7 @@ class Table:
         self.replace_column(name, col)
 
         if 'always' in warns:
-            warnings.warn("replaced column '{}'".format(name),
+            warnings.warn(f"replaced column '{name}'",
                           TableReplaceWarning, stacklevel=3)
 
         if 'slice' in warns:
@@ -2016,7 +2016,7 @@ class Table:
             >>> t.replace_column('a', float_a)
         """
         if name not in self.colnames:
-            raise ValueError('column name {0} is not in the table'.format(name))
+            raise ValueError(f'column name {name} is not in the table')
 
         if self[name].info.indices:
             raise ValueError('cannot replace a table index column')
@@ -2224,7 +2224,7 @@ class Table:
 
         for name in names:
             if name not in self.columns:
-                raise KeyError("Column {0} does not exist".format(name))
+                raise KeyError(f"Column {name} does not exist")
 
         for name in names:
             self.columns.pop(name)
@@ -2334,7 +2334,7 @@ class Table:
 
         for name in names:
             if name not in self.columns:
-                raise KeyError("Column {0} does not exist".format(name))
+                raise KeyError(f"Column {name} does not exist")
 
         remove = list(set(self.keys()) - set(names))
 
@@ -2380,7 +2380,7 @@ class Table:
         '''
 
         if name not in self.keys():
-            raise KeyError("Column {0} does not exist".format(name))
+            raise KeyError(f"Column {name} does not exist")
 
         self.columns[name].info.name = new_name
 
@@ -2534,7 +2534,7 @@ class Table:
 
         N = len(self)
         if index < -N or index > N:
-            raise IndexError("Index {0} is out of bounds for table with length {1}"
+            raise IndexError("Index {} is out of bounds for table with length {}"
                              .format(index, N))
         if index < 0:
             index += N
@@ -2576,7 +2576,7 @@ class Table:
                         # For masked table any unsupplied values are masked by default.
                         mask_list.append(self.masked and vals is not None)
                     else:
-                        raise ValueError("Value must be supplied for column '{0}'".format(name))
+                        raise ValueError(f"Value must be supplied for column '{name}'")
 
             vals = vals_list
             mask = mask_list
@@ -2613,8 +2613,8 @@ class Table:
                 newcol = col.insert(index, val, axis=0)
 
                 if len(newcol) != N + 1:
-                    raise ValueError('Incorrect length for column {0} after inserting {1}'
-                                     ' (expected {2}, got {3})'
+                    raise ValueError('Incorrect length for column {} after inserting {}'
+                                     ' (expected {}, got {})'
                                      .format(name, val, len(newcol), N + 1))
                 newcol.info.parent_table = self
 
@@ -2633,7 +2633,7 @@ class Table:
                 table_index.insert_row(index, vals, self.columns.values())
 
         except Exception as err:
-            raise ValueError("Unable to insert row because of exception in column '{0}':\n{1}"
+            raise ValueError("Unable to insert row because of exception in column '{}':\n{}"
                              .format(name, err))
         else:
             self._replace_cols(columns)

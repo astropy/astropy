@@ -728,9 +728,9 @@ def test_read_html_unicode():
     """
     Test reading an HTML table with unicode values
     """
-    table_in = [u'<table>',
-                u'<tr><td>&#x0394;</td></tr>',
-                u'<tr><td>Δ</td></tr>',
-                u'</table>']
+    table_in = ['<table>',
+                '<tr><td>&#x0394;</td></tr>',
+                '<tr><td>Δ</td></tr>',
+                '</table>']
     dat = Table.read(table_in, format='ascii.html')
-    assert np.all(dat['col1'] == [u'Δ', u'Δ'])
+    assert np.all(dat['col1'] == ['Δ', 'Δ'])

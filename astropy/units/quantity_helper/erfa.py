@@ -17,7 +17,7 @@ def helper_s2c(f, unit1, unit2):
         return [get_converter(unit1, radian),
                 get_converter(unit2, radian)], dimensionless_unscaled
     except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
+        raise UnitTypeError("Can only apply '{}' function to "
                             "quantities with angle units"
                             .format(f.__name__))
 
@@ -28,7 +28,7 @@ def helper_s2p(f, unit1, unit2, unit3):
         return [get_converter(unit1, radian),
                 get_converter(unit2, radian), None], unit3
     except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
+        raise UnitTypeError("Can only apply '{}' function to "
                             "quantities with angle units"
                             .format(f.__name__))
 

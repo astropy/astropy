@@ -167,7 +167,7 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
             if hdu is None:
                 warnings.warn("hdu= was not specified but multiple tables"
                               " are present, reading in first available"
-                              " table (hdu={0})".format(first(tables)),
+                              " table (hdu={})".format(first(tables)),
                               AstropyUserWarning)
                 hdu = first(tables)
 
@@ -178,7 +178,7 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
             if hdu in tables:
                 table = tables[hdu]
             else:
-                raise ValueError("No table found in hdu={0}".format(hdu))
+                raise ValueError(f"No table found in hdu={hdu}")
 
         elif len(tables) == 1:
             table = tables[first(tables)]
@@ -391,7 +391,7 @@ def write_table_fits(input, output, overwrite=False):
         if overwrite:
             os.remove(output)
         else:
-            raise OSError("File exists: {0}".format(output))
+            raise OSError(f"File exists: {output}")
 
     table_hdu.writeto(output)
 

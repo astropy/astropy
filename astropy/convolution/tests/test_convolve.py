@@ -902,7 +902,7 @@ def test_astropy_convolution_against_scipy():
 
 @pytest.mark.skipif('not HAS_PANDAS')
 def test_regression_6099():
-    wave = np.array((np.linspace(5000, 5100, 10)))
+    wave = np.array(np.linspace(5000, 5100, 10))
     boxcar = 3
     nonseries_result = convolve(wave, np.ones((boxcar,))/boxcar)
 

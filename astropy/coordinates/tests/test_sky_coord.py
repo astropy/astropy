@@ -1173,7 +1173,7 @@ def test_nd_skycoord_to_string():
     c = SkyCoord(np.ones((2, 2)), 1, unit=('deg', 'deg'))
     ts = c.to_string()
     assert np.all(ts.shape == c.shape)
-    assert np.all(ts == u'1 1')
+    assert np.all(ts == '1 1')
 
 
 def test_equiv_skycoord():

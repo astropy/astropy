@@ -119,7 +119,7 @@ def horoscope(birthday, corrected=True, chinese=False):
         zodiac_sign = _get_zodiac(birthday.year)
         url = ('https://www.horoscope.com/us/horoscopes/yearly/'
                '{}-chinese-horoscope-{}.aspx'.format(today.year, zodiac_sign))
-        summ_title_sfx = 'in {}'.format(today.year)
+        summ_title_sfx = f'in {today.year}'
 
         try:
             with urlopen(url) as f:

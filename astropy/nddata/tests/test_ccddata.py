@@ -961,7 +961,7 @@ def test_recognized_fits_formats_for_read_write(tmpdir):
     supported_extensions = ['fit', 'fits', 'fts']
 
     for ext in supported_extensions:
-        path = tmpdir.join("test.{}".format(ext))
+        path = tmpdir.join(f"test.{ext}")
         ccd_data.write(path.strpath)
         from_disk = CCDData.read(path.strpath)
         assert (ccd_data.data == from_disk.data).all()

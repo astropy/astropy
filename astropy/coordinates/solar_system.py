@@ -228,7 +228,7 @@ def _get_body_barycentric_posvel(body, time, ephemeris=None,
         elif body == 'moon':
             if get_velocity:
                 raise KeyError("the Moon's velocity cannot be calculated with "
-                               "the '{0}' ephemeris.".format(ephemeris))
+                               "the '{}' ephemeris.".format(ephemeris))
             return calc_moon(time).cartesian
 
         else:
@@ -239,8 +239,8 @@ def _get_body_barycentric_posvel(body, time, ephemeris=None,
                 try:
                     body_index = PLAN94_BODY_NAME_TO_PLANET_INDEX[body]
                 except KeyError:
-                    raise KeyError("{0}'s position and velocity cannot be "
-                                   "calculated with the '{1}' ephemeris."
+                    raise KeyError("{}'s position and velocity cannot be "
+                                   "calculated with the '{}' ephemeris."
                                    .format(body, ephemeris))
                 body_pv_helio = erfa.plan94(jd1, jd2, body_index)
                 body_pv_bary = erfa.pvppv(body_pv_helio, sun_pv_bary)
@@ -258,8 +258,8 @@ def _get_body_barycentric_posvel(body, time, ephemeris=None,
             try:
                 kernel_spec = BODY_NAME_TO_KERNEL_SPEC[body.lower()]
             except KeyError:
-                raise KeyError("{0}'s position cannot be calculated with "
-                               "the {1} ephemeris.".format(body, ephemeris))
+                raise KeyError("{}'s position cannot be calculated with "
+                               "the {} ephemeris.".format(body, ephemeris))
         else:
             # otherwise, assume the user knows what their doing and intentionally
             # passed in a kernel chain

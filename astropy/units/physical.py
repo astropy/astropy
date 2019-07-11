@@ -39,7 +39,7 @@ def def_physical_type(unit, name):
     r = unit._get_physical_type_id()
     if r in _physical_unit_mapping:
         raise ValueError(
-            "{0!r} ({1!r}) already defined as {2!r}".format(
+            "{!r} ({!r}) already defined as {!r}".format(
                 r, name, _physical_unit_mapping[r]))
     _physical_unit_mapping[r] = name
     _unit_physical_mapping[name] = r

@@ -44,7 +44,7 @@ class IllegalHourError(RangeError):
         self.hour = hour
 
     def __str__(self):
-        return "An invalid value for 'hours' was found ('{0}'); must be in the range [0,24).".format(self.hour)
+        return f"An invalid value for 'hours' was found ('{self.hour}'); must be in the range [0,24)."
 
 
 class IllegalHourWarning(AstropyWarning):
@@ -60,7 +60,7 @@ class IllegalHourWarning(AstropyWarning):
         self.alternativeactionstr = alternativeactionstr
 
     def __str__(self):
-        message = "'hour' was found  to be '{0}', which is not in range (-24, 24).".format(self.hour)
+        message = f"'hour' was found  to be '{self.hour}', which is not in range (-24, 24)."
         if self.alternativeactionstr is not None:
             message += ' ' + self.alternativeactionstr
         return message
@@ -87,7 +87,7 @@ class IllegalMinuteError(RangeError):
         self.minute = minute
 
     def __str__(self):
-        return "An invalid value for 'minute' was found ('{0}'); should be in the range [0,60).".format(self.minute)
+        return f"An invalid value for 'minute' was found ('{self.minute}'); should be in the range [0,60)."
 
 
 class IllegalMinuteWarning(AstropyWarning):
@@ -103,7 +103,7 @@ class IllegalMinuteWarning(AstropyWarning):
         self.alternativeactionstr = alternativeactionstr
 
     def __str__(self):
-        message = "'minute' was found  to be '{0}', which is not in range [0,60).".format(self.minute)
+        message = f"'minute' was found  to be '{self.minute}', which is not in range [0,60)."
         if self.alternativeactionstr is not None:
             message += ' ' + self.alternativeactionstr
         return message
@@ -129,7 +129,7 @@ class IllegalSecondError(RangeError):
         self.second = second
 
     def __str__(self):
-        return "An invalid value for 'second' was found ('{0}'); should be in the range [0,60).".format(self.second)
+        return f"An invalid value for 'second' was found ('{self.second}'); should be in the range [0,60)."
 
 
 class IllegalSecondWarning(AstropyWarning):
@@ -145,7 +145,7 @@ class IllegalSecondWarning(AstropyWarning):
         self.alternativeactionstr = alternativeactionstr
 
     def __str__(self):
-        message = "'second' was found  to be '{0}', which is not in range [0,60).".format(self.second)
+        message = f"'second' was found  to be '{self.second}', which is not in range [0,60)."
         if self.alternativeactionstr is not None:
             message += ' ' + self.alternativeactionstr
         return message
@@ -166,9 +166,9 @@ class ConvertError(Exception):
 
 class UnknownSiteException(KeyError):
     def __init__(self, site, attribute, close_names=None):
-        message = "Site '{0}' not in database. Use {1} to see available sites.".format(site, attribute)
+        message = f"Site '{site}' not in database. Use {attribute} to see available sites."
         if close_names:
-            message += " Did you mean one of: '{0}'?'".format("', '".join(close_names))
+            message += " Did you mean one of: '{}'?'".format("', '".join(close_names))
         self.site = site
         self.attribute = attribute
         self.close_names = close_names

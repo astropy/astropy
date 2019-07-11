@@ -217,8 +217,8 @@ class SigmaClip:
         self.stdfunc = self._parse_stdfunc(stdfunc)
 
     def __repr__(self):
-        return ('SigmaClip(sigma={0}, sigma_lower={1}, sigma_upper={2}, '
-                'maxiters={3}, cenfunc={4}, stdfunc={5})'
+        return ('SigmaClip(sigma={}, sigma_lower={}, sigma_upper={}, '
+                'maxiters={}, cenfunc={}, stdfunc={})'
                 .format(self.sigma, self.sigma_lower, self.sigma_upper,
                         self.maxiters, self.cenfunc, self.stdfunc))
 
@@ -227,7 +227,7 @@ class SigmaClip:
         attrs = ['sigma', 'sigma_lower', 'sigma_upper', 'maxiters', 'cenfunc',
                  'stdfunc']
         for attr in attrs:
-            lines.append('    {0}: {1}'.format(attr, getattr(self, attr)))
+            lines.append('    {}: {}'.format(attr, getattr(self, attr)))
         return '\n'.join(lines)
 
     def _parse_cenfunc(self, cenfunc):
@@ -245,14 +245,14 @@ class SigmaClip:
                     cenfunc = np.nanmean  # pragma: no cover
 
             else:
-                raise ValueError('{} is an invalid cenfunc.'.format(cenfunc))
+                raise ValueError(f'{cenfunc} is an invalid cenfunc.')
 
         return cenfunc
 
     def _parse_stdfunc(self, stdfunc):
         if isinstance(stdfunc, str):
             if stdfunc != 'std':
-                raise ValueError('{} is an invalid stdfunc.'.format(stdfunc))
+                raise ValueError(f'{stdfunc} is an invalid stdfunc.')
 
             if HAS_BOTTLENECK:
                 stdfunc = _nanstd

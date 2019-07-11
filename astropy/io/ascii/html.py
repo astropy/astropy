@@ -100,11 +100,11 @@ class HTMLInputter(core.BaseInputter):
                 break
         else:
             if isinstance(self.html['table_id'], int):
-                err_descr = 'number {0}'.format(self.html['table_id'])
+                err_descr = 'number {}'.format(self.html['table_id'])
             else:
-                err_descr = "id '{0}'".format(self.html['table_id'])
+                err_descr = "id '{}'".format(self.html['table_id'])
             raise core.InconsistentTableError(
-                'ERROR: HTML table {0} not found'.format(err_descr))
+                f'ERROR: HTML table {err_descr} not found')
 
         # Get all table rows
         soup_list = [SoupString(x) for x in table.find_all('tr')]

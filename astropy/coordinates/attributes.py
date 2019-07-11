@@ -117,8 +117,8 @@ class Attribute(OrderedDescriptor):
                 except ValueError:
                     # raise more informative exception.
                     raise ValueError(
-                        "attribute {0} should be scalar or have shape {1}, "
-                        "but is has shape {2} and could not be broadcast."
+                        "attribute {} should be scalar or have shape {}, "
+                        "but is has shape {} and could not be broadcast."
                         .format(self.name, instance_shape, out.shape))
 
                 converted = True
@@ -182,7 +182,7 @@ class TimeAttribute(Attribute):
                 out = Time(value)
             except Exception as err:
                 raise ValueError(
-                    'Invalid time input {0}={1!r}\n{2}'.format(self.name,
+                    'Invalid time input {}={!r}\n{}'.format(self.name,
                                                                value, err))
             converted = True
 
@@ -247,7 +247,7 @@ class CartesianRepresentationAttribute(Attribute):
             # if it's a CartesianRepresentation, get the xyz Quantity
             value = getattr(value, 'xyz', value)
             if not hasattr(value, 'unit'):
-                raise TypeError('tried to set a {0} with something that does '
+                raise TypeError('tried to set a {} with something that does '
                                 'not have a unit.'
                                 .format(self.__class__.__name__))
 
@@ -317,8 +317,8 @@ class QuantityAttribute(Attribute):
             oldvalue = value
             value = u.Quantity(oldvalue, self.unit, copy=False)
             if self.shape is not None and value.shape != self.shape:
-                raise ValueError('The provided value has shape "{0}", but '
-                                 'should have shape "{1}"'.format(value.shape,
+                raise ValueError('The provided value has shape "{}", but '
+                                 'should have shape "{}"'.format(value.shape,
                                                                   self.shape))
             converted = oldvalue is not value
             return value, converted
@@ -371,7 +371,7 @@ class EarthLocationAttribute(Attribute):
             from .builtin_frames import ITRS
 
             if not hasattr(value, 'transform_to'):
-                raise ValueError('"{0}" was passed into an '
+                raise ValueError('"{}" was passed into an '
                                  'EarthLocationAttribute, but it does not have '
                                  '"transform_to" method'.format(value))
             itrsobj = value.transform_to(ITRS)
@@ -426,7 +426,7 @@ class CoordinateAttribute(Attribute):
             return value, False
         else:
             if not hasattr(value, 'transform_to'):
-                raise ValueError('"{0}" was passed into a '
+                raise ValueError('"{}" was passed into a '
                                  'CoordinateAttribute, but it does not have '
                                  '"transform_to" method'.format(value))
             transformedobj = value.transform_to(self._frame)
@@ -487,8 +487,8 @@ class DifferentialAttribute(Attribute):
 
         if not isinstance(value, self.allowed_classes):
             raise TypeError('Tried to set a DifferentialAttribute with '
-                            'an unsupported Differential type {0}. Allowed '
-                            'classes are: {1}'
+                            'an unsupported Differential type {}. Allowed '
+                            'classes are: {}'
                             .format(value.__class__,
                                     self.allowed_classes))
 

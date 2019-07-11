@@ -145,7 +145,7 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         kwargs['uint'] = conf.enable_uint
 
     if not name:
-        raise ValueError('Empty filename: {!r}'.format(name))
+        raise ValueError(f'Empty filename: {name!r}')
 
     return HDUList.fromfile(name, mode, memmap, save_backup, cache,
                             lazy_load_hdus, **kwargs)
@@ -333,10 +333,10 @@ class HDUList(list, _Verify):
                 raise ValueError('An element in the HDUList must be an HDU.')
             for item in hdu:
                 if not isinstance(item, _BaseHDU):
-                    raise ValueError('{} is not an HDU.'.format(item))
+                    raise ValueError(f'{item} is not an HDU.')
         else:
             if not isinstance(hdu, _BaseHDU):
-                raise ValueError('{} is not an HDU.'.format(hdu))
+                raise ValueError(f'{hdu} is not an HDU.')
 
         try:
             self._try_while_unread_hdus(super().__setitem__, _key, hdu)
@@ -565,7 +565,7 @@ class HDUList(list, _Verify):
         """
 
         if not isinstance(hdu, _BaseHDU):
-            raise ValueError('{} is not an HDU.'.format(hdu))
+            raise ValueError(f'{hdu} is not an HDU.')
 
         num_hdus = len(self)
 
@@ -732,7 +732,7 @@ class HDUList(list, _Verify):
                 break
 
         if (found is None):
-            raise KeyError('Extension {!r} not found.'.format(key))
+            raise KeyError(f'Extension {key!r} not found.')
         else:
             return found
 
@@ -758,7 +758,7 @@ class HDUList(list, _Verify):
 
         if abs(index) > len(self):
             raise IndexError(
-                'Extension {} is out of bound or not found.'.format(index))
+                f'Extension {index} is out of bound or not found.')
 
         return len(self) + index
 
@@ -985,7 +985,7 @@ class HDUList(list, _Verify):
         else:
             name = self._file.name
 
-        results = ['Filename: {}'.format(name),
+        results = [f'Filename: {name}',
                    'No.    Name      Ver    Type      Cards   Dimensions   Format']
 
         format = '{:3d}  {:10}  {:3} {:11}  {:5d}   {}   {}   {}'
