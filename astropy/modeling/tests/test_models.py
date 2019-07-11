@@ -689,3 +689,12 @@ def test_tabular_with_bounding_box():
     values = np.array([1.5, 3.4, 6.7, 7, 32])
     t = models.Tabular1D(points, values)
     result = t(1, with_bounding_box=True)
+
+
+@pytest.mark.skipif("not HAS_SCIPY_14")
+def test_bounding_box_with_units():
+    points = np.arange(5)*u.pix
+    lt = np.arange(5)*u.AA
+    t = Tabular1D(points, lt)
+
+    assert(t(1*u.pix, with_bounding_box=True) == 1.*u.AA)
