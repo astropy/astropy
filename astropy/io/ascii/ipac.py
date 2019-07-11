@@ -24,14 +24,14 @@ from astropy.table.pprint import get_auto_format_func
 
 class IpacFormatErrorDBMS(Exception):
     def __str__(self):
-        return '{0}\nSee {1}'.format(
+        return '{}\nSee {}'.format(
             super().__str__(),
             'http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html')
 
 
 class IpacFormatError(Exception):
     def __str__(self):
-        return '{0}\nSee {1}'.format(
+        return '{}\nSee {}'.format(
             super().__str__(),
             'http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html')
 
@@ -229,26 +229,26 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             doublenames = [x for x in countnamelist if countnamelist[x] > 1]
             if doublenames != []:
                 raise IpacFormatE('IPAC DBMS tables are not case sensitive. '
-                                  'This causes duplicate column names: {0}'.format(doublenames))
+                                  'This causes duplicate column names: {}'.format(doublenames))
 
         for name in namelist:
             m = re.match(r'\w+', name)
             if m.end() != len(name):
-                raise IpacFormatE('{0} - Only alphanumeric characters and _ '
+                raise IpacFormatE('{} - Only alphanumeric characters and _ '
                                   'are allowed in column names.'.format(name))
             if self.DBMS and not(name[0].isalpha() or (name[0] == '_')):
-                raise IpacFormatE('Column name cannot start with numbers: {}'.format(name))
+                raise IpacFormatE(f'Column name cannot start with numbers: {name}')
             if self.DBMS:
                 if name in ['x', 'y', 'z', 'X', 'Y', 'Z']:
-                    raise IpacFormatE('{0} - x, y, z, X, Y, Z are reserved names and '
+                    raise IpacFormatE('{} - x, y, z, X, Y, Z are reserved names and '
                                       'cannot be used as column names.'.format(name))
                 if len(name) > 16:
                     raise IpacFormatE(
-                        '{0} - Maximum length for column name is 16 characters'.format(name))
+                        f'{name} - Maximum length for column name is 16 characters')
             else:
                 if len(name) > 40:
                     raise IpacFormatE(
-                        '{0} - Maximum length for column name is 40 characters.'.format(name))
+                        f'{name} - Maximum length for column name is 40 characters.')
 
         dtypelist = []
         unitlist = []
@@ -493,7 +493,7 @@ class Ipac(basic.Basic):
             for keyword in keydict:
                 try:
                     val = keydict[keyword]['value']
-                    lines.append('\\{0}={1!r}'.format(keyword.strip(), val))
+                    lines.append('\\{}={!r}'.format(keyword.strip(), val))
                     # meta is not standardized: Catch some common Errors.
                 except TypeError:
                     warn("Table metadata keyword {0} has been skipped.  "

@@ -448,7 +448,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         # failures below. Ultimately, np.linalg.lstsq can't handle >2D matrices,
         # so just raise a slightly more informative error when this happens:
         if lhs.ndim > 2:
-            raise ValueError('{0} gives unsupported >2D derivative matrix for '
+            raise ValueError('{} gives unsupported >2D derivative matrix for '
                              'this x/y'.format(type(model_copy).__name__))
 
         # Subtract any terms fixed by the user from (a copy of) the RHS, in
@@ -639,7 +639,7 @@ class FittingWithOutlierRemoval:
         else:
             if not hasattr(self.fitter, 'supports_masked_input') or \
                self.fitter.supports_masked_input is not True:
-                raise ValueError("{0} cannot fit model sets with masked "
+                raise ValueError("{} cannot fit model sets with masked "
                                  "values".format(type(self.fitter).__name__))
 
             # Fitters use their input model's model_set_axis to determine how
@@ -1450,7 +1450,7 @@ def populate_entry_points(entry_points):
         else:
             if not inspect.isclass(entry_point):
                 warnings.warn(AstropyUserWarning(
-                    'Modeling entry point {0} expected to be a '
+                    'Modeling entry point {} expected to be a '
                     'Class.' .format(name)))
             else:
                 if issubclass(entry_point, Fitter):
@@ -1459,7 +1459,7 @@ def populate_entry_points(entry_points):
                     __all__.append(name)
                 else:
                     warnings.warn(AstropyUserWarning(
-                        'Modeling entry point {0} expected to extend '
+                        'Modeling entry point {} expected to extend '
                         'astropy.modeling.Fitter' .format(name)))
 
 

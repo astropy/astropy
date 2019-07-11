@@ -71,9 +71,9 @@ def _iter_unit_summary(namespace):
         doc = _get_first_sentence(unit.__doc__).strip()
         represents = ''
         if isinstance(unit, core.Unit):
-            represents = ":math:`{0}`".format(
+            represents = ":math:`{}`".format(
                 unit._represents.to_string('latex')[1:-1])
-        aliases = ', '.join('``{0}``'.format(x) for x in unit.aliases)
+        aliases = ', '.join(f'``{x}``' for x in unit.aliases)
 
         yield (unit, doc, represents, aliases, 'Yes' if unit.name in has_prefixes else 'No')
 
@@ -111,11 +111,11 @@ def generate_unit_summary(namespace):
 
     for unit_summary in _iter_unit_summary(namespace):
         docstring.write("""
-   * - ``{0}``
-     - {1}
-     - {2}
-     - {3}
-     - {4}
+   * - ``{}``
+     - {}
+     - {}
+     - {}
+     - {}
 """.format(*unit_summary))
 
     return docstring.getvalue()
@@ -150,10 +150,10 @@ def generate_prefixonly_unit_summary(namespace):
 
     for unit_summary in _iter_unit_summary(faux_namespace):
         docstring.write("""
-   * - Prefixes for ``{0}``
-     - {1} prefixes
-     - {2}
-     - {3}
+   * - Prefixes for ``{}``
+     - {} prefixes
+     - {}
+     - {}
      - Only
 """.format(*unit_summary))
 

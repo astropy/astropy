@@ -118,7 +118,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
                 if not self.unit and value._unit:
                     # Raise an error if uncertainty has unit and data does not
                     raise ValueError("Cannot assign an uncertainty with unit "
-                                     "to {0} without "
+                                     "to {} without "
                                      "a unit".format(class_name))
                 self._uncertainty = value
                 self._uncertainty.parent_nddata = self

@@ -207,7 +207,7 @@ def _construct_mixin_from_obj_attrs_and_info(obj_attrs, info):
     # the _construct_from_col method.  Prevent accidentally running
     # untrusted code by only importing known astropy classes.
     if cls_full_name not in __construct_mixin_classes:
-        raise ValueError('unsupported class for construct {}'.format(cls_full_name))
+        raise ValueError(f'unsupported class for construct {cls_full_name}')
 
     mod_name, cls_name = re.match(r'(.+)\.(\w+)', cls_full_name).groups()
     module = import_module(mod_name)

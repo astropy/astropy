@@ -388,14 +388,14 @@ def test_unicode_column(tmpdir):
     https://github.com/astropy/astropy/pull/4228
     """
 
-    t = Table([np.array([u'a', u'b', u'cd'])])
+    t = Table([np.array(['a', 'b', 'cd'])])
     t.write(str(tmpdir.join('test.fits')), overwrite=True)
 
     with fits.open(str(tmpdir.join('test.fits'))) as hdul:
         assert np.all(hdul[1].data['col0'] == ['a', 'b', 'cd'])
         assert hdul[1].header['TFORM1'] == '2A'
 
-    t2 = Table([np.array([u'\N{SNOWMAN}'])])
+    t2 = Table([np.array(['\N{SNOWMAN}'])])
 
     with pytest.raises(UnicodeEncodeError):
         t2.write(str(tmpdir.join('test.fits')), overwrite=True)

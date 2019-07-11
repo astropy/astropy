@@ -63,7 +63,7 @@ class UfuncHelpers(dict):
         import the helpers for that module.
         """
         if ufunc in self.UNSUPPORTED:
-            raise TypeError("Cannot use ufunc '{0}' with quantities"
+            raise TypeError("Cannot use ufunc '{}' with quantities"
                             .format(ufunc.__name__))
 
         for module, module_info in list(self.modules.items()):
@@ -83,7 +83,7 @@ class UfuncHelpers(dict):
                 else:
                     return self[ufunc]
 
-        raise TypeError("unknown ufunc {0}.  If you believe this ufunc "
+        raise TypeError("unknown ufunc {}.  If you believe this ufunc "
                         "should be supported, please raise an issue on "
                         "https://github.com/astropy/astropy"
                         .format(ufunc.__name__))
@@ -182,7 +182,7 @@ def converters_and_unit(function, method, *args):
                         converters[i] = None
                     else:
                         raise UnitConversionError(
-                            "Can only apply '{0}' function to "
+                            "Can only apply '{}' function to "
                             "dimensionless quantities when other "
                             "argument is not a quantity (unless the "
                             "latter is all zero/infinity/nan)"
@@ -190,8 +190,8 @@ def converters_and_unit(function, method, *args):
             except TypeError:
                 # _can_have_arbitrary_unit failed: arg could not be compared
                 # with zero or checked to be finite. Then, ufunc will fail too.
-                raise TypeError("Unsupported operand type(s) for ufunc {0}: "
-                                "'{1}'".format(function.__name__,
+                raise TypeError("Unsupported operand type(s) for ufunc {}: "
+                                "'{}'".format(function.__name__,
                                                ','.join([arg.__class__.__name__
                                                          for arg in args])))
 
@@ -245,10 +245,10 @@ def converters_and_unit(function, method, *args):
         else:
             if method in {'reduce', 'accumulate',
                           'reduceat', 'outer'} and nin != 2:
-                raise ValueError("{0} only supported for binary functions"
+                raise ValueError("{} only supported for binary functions"
                                  .format(method))
 
-            raise TypeError("Unexpected ufunc method {0}.  If this should "
+            raise TypeError("Unexpected ufunc method {}.  If this should "
                             "work, please raise an issue on"
                             "https://github.com/astropy/astropy"
                             .format(method))
@@ -312,17 +312,17 @@ def check_output(output, unit, inputs, function=None):
         # Check that we're not trying to store a plain Numpy array or a
         # Quantity with an inconsistent unit (e.g., not angular for Angle).
         if unit is None:
-            raise TypeError("Cannot store non-quantity output{0} in {1} "
+            raise TypeError("Cannot store non-quantity output{} in {} "
                             "instance".format(
-                                (" from {0} function".format(function.__name__)
+                                (f" from {function.__name__} function"
                                  if function is not None else ""),
                                 type(output)))
 
         if output.__quantity_subclass__(unit)[0] is not type(output):
             raise UnitTypeError(
-                "Cannot store output with unit '{0}'{1} "
-                "in {2} instance.  Use {3} instance instead."
-                .format(unit, (" from {0} function".format(function.__name__)
+                "Cannot store output with unit '{}'{} "
+                "in {} instance.  Use {} instance instead."
+                .format(unit, (f" from {function.__name__} function"
                                if function is not None else ""), type(output),
                         output.__quantity_subclass__(unit)[0]))
 
@@ -333,9 +333,9 @@ def check_output(output, unit, inputs, function=None):
         # output is not a Quantity, so cannot obtain a unit.
         if not (unit is None or unit is dimensionless_unscaled):
             raise UnitTypeError("Cannot store quantity with dimension "
-                                "{0}in a non-Quantity instance."
+                                "{}in a non-Quantity instance."
                                 .format("" if function is None else
-                                        "resulting from {0} function "
+                                        "resulting from {} function "
                                         .format(function.__name__)))
 
     # check we can handle the dtype (e.g., that we are not int
@@ -343,5 +343,5 @@ def check_output(output, unit, inputs, function=None):
     if not np.can_cast(np.result_type(*inputs), output.dtype,
                        casting='same_kind'):
         raise TypeError("Arguments cannot be cast safely to inplace "
-                        "output with dtype={0}".format(output.dtype))
+                        "output with dtype={}".format(output.dtype))
     return output

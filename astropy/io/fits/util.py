@@ -124,7 +124,7 @@ class NotifierMixin:
         if self._listeners is None:
             return
 
-        method_name = '_update_{0}'.format(notification)
+        method_name = f'_update_{notification}'
         for listener in self._listeners.valuerefs():
             # Use valuerefs instead of itervaluerefs; see
             # https://github.com/astropy/astropy/issues/4015
@@ -291,7 +291,7 @@ def decode_ascii(s):
                           'file header and have been replaced by "?" '
                           'characters', AstropyUserWarning)
             s = s.decode('ascii', errors='replace')
-            return s.replace(u'\ufffd', '?')
+            return s.replace('\ufffd', '?')
     elif (isinstance(s, np.ndarray) and
           issubclass(s.dtype.type, np.bytes_)):
         # np.char.encode/decode annoyingly don't preserve the type of the
@@ -885,7 +885,7 @@ def get_testdata_filepath(filename):
         The path to the requested file.
     """
     return data.get_pkg_data_filename(
-        'io/fits/tests/data/{}'.format(filename), 'astropy')
+        f'io/fits/tests/data/{filename}', 'astropy')
 
 
 def _rstrip_inplace(array):
@@ -910,7 +910,7 @@ def _rstrip_inplace(array):
     # View the array as appropriate integers. The last dimension will
     # equal the number of characters in each string.
     bpc = 1 if dt.kind == 'S' else 4
-    dt_int = "({0},){1}u{2}".format(dt.itemsize // bpc, dt.byteorder, bpc)
+    dt_int = "({},){}u{}".format(dt.itemsize // bpc, dt.byteorder, bpc)
     b = array.view(dt_int, np.ndarray)
     # For optimal speed, work in chunks of the internal ufunc buffer size.
     bufsize = np.getbufsize()

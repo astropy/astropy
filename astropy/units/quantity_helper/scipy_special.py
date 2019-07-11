@@ -42,7 +42,7 @@ def helper_degree_to_dimensionless(f, unit):
     try:
         return [get_converter(unit, degree)], dimensionless_unscaled
     except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
+        raise UnitTypeError("Can only apply '{}' function to "
                             "quantities with angle units"
                             .format(f.__name__))
 
@@ -54,7 +54,7 @@ def helper_degree_minute_second_to_radian(f, unit1, unit2, unit3):
                 get_converter(unit2, arcmin),
                 get_converter(unit3, arcsec)], radian
     except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
+        raise UnitTypeError("Can only apply '{}' function to "
                             "quantities with angle units"
                             .format(f.__name__))
 

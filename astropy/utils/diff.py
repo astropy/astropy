@@ -81,7 +81,7 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0):
         for idx in diff_indices[:3]:
             lidx = idx.tolist()
             fileobj.write(
-                fixed_width_indent('  at {!r}:\n'.format(lidx), indent_width))
+                fixed_width_indent(f'  at {lidx!r}:\n', indent_width))
             report_diff_values(a[tuple(idx)], b[tuple(idx)], fileobj=fileobj,
                                indent_width=indent_width + 1)
 

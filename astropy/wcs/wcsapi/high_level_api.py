@@ -121,8 +121,8 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
 
         # Check that the number of classes matches the number of inputs
         if len(world_objects) != len(classes):
-            raise ValueError("Number of world inputs ({0}) does not match "
-                             "expected ({1})".format(len(world_objects), len(classes)))
+            raise ValueError("Number of world inputs ({}) does not match "
+                             "expected ({})".format(len(world_objects), len(classes)))
 
         # Determine whether the classes are uniquely matched, that is we check
         # whether there is only one of each class.
@@ -167,7 +167,7 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
                 w = world_objects[ikey]
                 if not isinstance(w, klass):
                     raise ValueError("Expected the following order of world "
-                                     "arguments: {0}".format(', '.join([k.__name__ for (k, _, _) in classes.values()])))
+                                     "arguments: {}".format(', '.join([k.__name__ for (k, _, _) in classes.values()])))
 
                 # FIXME: For now SkyCoord won't auto-convert upon initialization
                 # https://github.com/astropy/astropy/issues/7689

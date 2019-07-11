@@ -29,7 +29,7 @@ def _to_string(cls, unit):
         parts = []
 
         if cls._show_scale and unit.scale != 1:
-            parts.append('{0:g}'.format(unit.scale))
+            parts.append(f'{unit.scale:g}')
 
         if len(unit.bases):
             positives, negatives = utils.get_grouped_by_powers(
@@ -43,9 +43,9 @@ def _to_string(cls, unit):
                 parts.append('/')
                 unit_list = cls._format_unit_list(negatives)
                 if len(negatives) == 1:
-                    parts.append('{0}'.format(unit_list))
+                    parts.append(f'{unit_list}')
                 else:
-                    parts.append('({0})'.format(unit_list))
+                    parts.append(f'({unit_list})')
 
         return ' '.join(parts)
     elif isinstance(unit, core.NamedUnit):
@@ -156,7 +156,7 @@ class Generic(Base):
         # Error handling rule
         def t_error(t):
             raise ValueError(
-                "Invalid character at col {0}".format(t.lexpos))
+                f"Invalid character at col {t.lexpos}")
 
         lexer_exists = os.path.exists(os.path.join(os.path.dirname(__file__),
                                       'generic_lextab.py'))
@@ -423,7 +423,7 @@ class Generic(Base):
                     p[0] = function_unit(p[3])
                     return
 
-            raise ValueError("'{0}' is not a recognized function".format(p[1]))
+            raise ValueError("'{}' is not a recognized function".format(p[1]))
 
         def p_error(p):
             raise ValueError()
@@ -445,7 +445,7 @@ class Generic(Base):
             return cls._parse_unit(t.value)
         except ValueError as e:
             raise ValueError(
-                "At col {0}, {1}".format(
+                "At col {}, {}".format(
                     t.lexpos, str(e)))
 
     @classmethod
@@ -458,7 +458,7 @@ class Generic(Base):
 
         if detailed_exception:
             raise ValueError(
-                '{0} is not a valid unit. {1}'.format(
+                '{} is not a valid unit. {}'.format(
                     s, did_you_mean(s, registry)))
         else:
             raise ValueError()
@@ -471,7 +471,7 @@ class Generic(Base):
         result = cls._do_parse(s, debug=debug)
         if s.count('/') > 1:
             warnings.warn(
-                "'{0}' contains multiple slashes, which is "
+                "'{}' contains multiple slashes, which is "
                 "discouraged by the FITS standard".format(s),
                 core.UnitsWarning)
         return result
@@ -490,7 +490,7 @@ class Generic(Base):
                     raise
                 else:
                     raise ValueError(
-                        "Syntax error parsing unit '{0}'".format(s))
+                        f"Syntax error parsing unit '{s}'")
 
     @classmethod
     def _get_unit_name(cls, unit):
@@ -507,10 +507,10 @@ class Generic(Base):
             else:
                 power = utils.format_power(power)
                 if '/' in power:
-                    out.append('{0}({1})'.format(
+                    out.append('{}({})'.format(
                         cls._get_unit_name(base), power))
                 else:
-                    out.append('{0}{1}'.format(
+                    out.append('{}{}'.format(
                         cls._get_unit_name(base), power))
         return ' '.join(out)
 

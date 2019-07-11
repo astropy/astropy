@@ -130,7 +130,7 @@ def lombscargle_fast(t, y, dy, f0, df, Nf,
     elif normalization == 'psd':
         power *= 0.5 * (dy ** -2.0).sum()
     else:
-        raise ValueError("normalization='{0}' "
+        raise ValueError("normalization='{}' "
                          "not recognized".format(normalization))
 
     return power

@@ -120,7 +120,7 @@ class Angle(u.SpecificTypeQuantity):
         elif unit == u.degree:
             return util.dms_to_degrees(*angle)
         else:
-            raise u.UnitsError("Can not parse '{0}' as unit '{1}'"
+            raise u.UnitsError("Can not parse '{}' as unit '{}'"
                                .format(angle, unit))
 
     @staticmethod
@@ -253,7 +253,7 @@ class Angle(u.SpecificTypeQuantity):
 
         if sep == 'fromunit':
             if format not in separators:
-                raise ValueError("Unknown format '{0}'".format(format))
+                raise ValueError(f"Unknown format '{format}'")
             seps = separators[format]
             if unit in seps:
                 sep = seps[unit]
@@ -266,7 +266,7 @@ class Angle(u.SpecificTypeQuantity):
                 if precision is not None:
                     func = ("{0:0." + str(precision) + "f}").format
                 else:
-                    func = '{0:g}'.format
+                    func = '{:g}'.format
             else:
                 if sep == 'fromunit':
                     sep = 'dms'
@@ -281,7 +281,7 @@ class Angle(u.SpecificTypeQuantity):
                 if precision is not None:
                     func = ("{0:0." + str(precision) + "f}").format
                 else:
-                    func = '{0:g}'.format
+                    func = '{:g}'.format
             else:
                 if sep == 'fromunit':
                     sep = 'hms'
@@ -296,7 +296,7 @@ class Angle(u.SpecificTypeQuantity):
                 if precision is not None:
                     func = ("{0:1." + str(precision) + "f}").format
                 else:
-                    func = "{0:g}".format
+                    func = "{:g}".format
             elif sep == 'fromunit':
                 values = self.to_value(unit)
                 unit_string = unit.to_string(format=format)
@@ -310,11 +310,11 @@ class Angle(u.SpecificTypeQuantity):
                     func = plain_unit_format
                 else:
                     def plain_unit_format(val):
-                        return "{0:g}{1}".format(val, unit_string)
+                        return f"{val:g}{unit_string}"
                     func = plain_unit_format
             else:
                 raise ValueError(
-                    "'{0}' can not be represented in sexagesimal "
+                    "'{}' can not be represented in sexagesimal "
                     "notation".format(
                         unit.name))
 
@@ -327,7 +327,7 @@ class Angle(u.SpecificTypeQuantity):
             if alwayssign and not s.startswith('-'):
                 s = '+' + s
             if format == 'latex':
-                s = '${0}$'.format(s)
+                s = f'${s}$'
             return s
 
         format_ufunc = np.vectorize(do_format, otypes=['U'])
@@ -528,7 +528,7 @@ class Latitude(Angle):
         upper = u.degree.to(angles.unit, 90.0)
         if np.any(angles.value < lower) or np.any(angles.value > upper):
             raise ValueError('Latitude angle(s) must be within -90 deg <= angle <= 90 deg, '
-                             'got {0}'.format(angles.to(u.degree)))
+                             'got {}'.format(angles.to(u.degree)))
 
     def __setitem__(self, item, value):
         # Forbid assigning a Long to a Lat.

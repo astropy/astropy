@@ -227,7 +227,7 @@ class Header:
                 # if keyword is not present raise KeyError.
                 # To delete keyword without caring if they were present,
                 # Header.remove(Keyword) can be used with optional argument ignore_missing as True
-                raise KeyError("Keyword '{}' not found.".format(key))
+                raise KeyError(f"Keyword '{key}' not found.")
 
             for idx in reversed(indices[key]):
                 # Have to copy the indices list since it will be modified below
@@ -626,7 +626,7 @@ class Header:
                     trailing = repr(trailing).lstrip('ub')
                     # TODO: Pass this warning up to the validation framework
                     warnings.warn(
-                        'Unexpected bytes trailing END keyword: {0}; these '
+                        'Unexpected bytes trailing END keyword: {}; these '
                         'bytes will be replaced with spaces on write.'.format(
                             trailing), AstropyUserWarning)
                 else:
@@ -634,7 +634,7 @@ class Header:
                     warnings.warn(
                         'Missing padding to end of the FITS block after the '
                         'END keyword; additional spaces will be appended to '
-                        'the file upon writing to pad out to {0} '
+                        'the file upon writing to pad out to {} '
                         'bytes.'.format(BLOCK_SIZE), AstropyUserWarning)
 
                 # Sanitize out invalid END card now that the appropriate
@@ -824,7 +824,7 @@ class Header:
             A new :class:`Header` instance.
         """
 
-        tmp = Header((copy.copy(card) for card in self._cards))
+        tmp = Header(copy.copy(card) for card in self._cards)
         if strip:
             tmp._strip()
         return tmp
@@ -1365,7 +1365,7 @@ class Header:
         # We have to look before we leap, since otherwise _keyword_indices,
         # being a defaultdict, will create an entry for the nonexistent keyword
         if keyword not in self._keyword_indices:
-            raise KeyError("Keyword {!r} not found.".format(keyword))
+            raise KeyError(f"Keyword {keyword!r} not found.")
 
         return len(self._keyword_indices[keyword])
 
@@ -1528,7 +1528,7 @@ class Header:
                 while keyword in self._keyword_indices:
                     del self[self._keyword_indices[keyword][0]]
         elif not ignore_missing:
-            raise KeyError("Keyword '{}' not found.".format(keyword))
+            raise KeyError(f"Keyword '{keyword}' not found.")
 
     def rename_keyword(self, oldkeyword, newkeyword, force=False):
         """
@@ -1703,13 +1703,13 @@ class Header:
 
         if keyword and not indices:
             if len(keyword) > KEYWORD_LENGTH or '.' in keyword:
-                raise KeyError("Keyword {!r} not found.".format(keyword))
+                raise KeyError(f"Keyword {keyword!r} not found.")
             else:
                 # Maybe it's a RVKC?
                 indices = self._rvkc_indices.get(keyword, None)
 
         if not indices:
-            raise KeyError("Keyword {!r} not found.".format(keyword))
+            raise KeyError(f"Keyword {keyword!r} not found.")
 
         try:
             return indices[n]
@@ -2242,7 +2242,7 @@ class _HeaderCommentaryCards(_CardAccessor):
             n._indices = idx.indices(self._count)
             return n
         elif not isinstance(idx, int):
-            raise ValueError('{} index must be an integer'.format(self._keyword))
+            raise ValueError(f'{self._keyword} index must be an integer')
 
         idx = list(range(*self._indices))[idx]
         return self._header[(self._keyword, idx)]
@@ -2302,5 +2302,5 @@ def _check_padding(header_str, block_size, is_eof, check_block_size=True):
         # now, but maybe it shouldn't?
         actual_len = len(header_str) - block_size + BLOCK_SIZE
         # TODO: Pass this error to validation framework
-        raise ValueError('Header size is not multiple of {0}: {1}'
+        raise ValueError('Header size is not multiple of {}: {}'
                          .format(BLOCK_SIZE, actual_len))

@@ -487,7 +487,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                 raise ValueError(
                     """
 FITS WCS distortion paper lookup tables and SIP distortions only work
-in 2 dimensions.  However, WCSLIB has detected {0} dimensions in the
+in 2 dimensions.  However, WCSLIB has detected {} dimensions in the
 core WCS keywords.  To use core WCS in conjunction with FITS WCS
 distortion paper lookup tables or SIP distortion, you must select or
 reduce these to 2 dimensions using the naxis kwarg.
@@ -496,8 +496,8 @@ reduce these to 2 dimensions using the naxis kwarg.
             header_naxis = header.get('NAXIS', None)
             if header_naxis is not None and header_naxis < wcsprm.naxis:
                 warnings.warn(
-                    "The WCS transformation has more axes ({0:d}) than the "
-                    "image it is associated with ({1:d})".format(
+                    "The WCS transformation has more axes ({:d}) than the "
+                    "image it is associated with ({:d})".format(
                         wcsprm.naxis, header_naxis), FITSFixedWarning)
 
         self._get_naxis(header)
@@ -768,7 +768,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                         del header[dp_extver_key]
                     else:
                         d_extver = 1
-                    dp_axis_key = dp + '.AXIS.{0:d}'.format(i)
+                    dp_axis_key = dp + f'.AXIS.{i:d}'
                     if i == header[dp_axis_key]:
                         d_data = fobj['D2IMARR', d_extver].data
                     else:
@@ -843,15 +843,15 @@ reduce these to 2 dimensions using the naxis kwarg.
         def write_d2i(num, det2im):
             if det2im is None:
                 return
-            '{0}{1:d}'.format(dist, num),
-            hdulist[0].header['{0}{1:d}'.format(dist, num)] = (
+            f'{dist}{num:d}',
+            hdulist[0].header[f'{dist}{num:d}'] = (
                 'LOOKUP', 'Detector to image correction type')
-            hdulist[0].header['{0}{1:d}.EXTVER'.format(d_kw, num)] = (
+            hdulist[0].header[f'{d_kw}{num:d}.EXTVER'] = (
                 num, 'Version number of WCSDVARR extension')
-            hdulist[0].header['{0}{1:d}.NAXES'.format(d_kw, num)] = (
+            hdulist[0].header[f'{d_kw}{num:d}.NAXES'] = (
                 len(det2im.data.shape), 'Number of independent variables in d2im function')
             for i in range(det2im.data.ndim):
-                hdulist[0].header['{0}{1:d}.AXIS.{2:d}'.format(d_kw, num, i + 1)] = (
+                hdulist[0].header['{}{:d}.AXIS.{:d}'.format(d_kw, num, i + 1)] = (
                     i + 1, 'Axis number of the jth independent variable in a d2im function')
 
             image = fits.ImageHDU(det2im.data, name='D2IMARR')
@@ -869,7 +869,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                                      'Coordinate increment along axis')
             header['CDELT2'] = (det2im.cdelt[1],
                                      'Coordinate increment along axis')
-            image.ver = int(hdulist[0].header['{0}{1:d}.EXTVER'.format(d_kw, num)])
+            image.ver = int(hdulist[0].header[f'{d_kw}{num:d}.EXTVER'])
             hdulist.append(image)
         write_d2i(1, self.det2im1)
         write_d2i(2, self.det2im2)
@@ -919,7 +919,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                         del header[dp_extver_key]
                     else:
                         d_extver = 1
-                    dp_axis_key = dp + '.AXIS.{0:d}'.format(i)
+                    dp_axis_key = dp + f'.AXIS.{i:d}'
                     if i == header[dp_axis_key]:
                         d_data = fobj['WCSDVARR', d_extver].data
                     else:
@@ -967,15 +967,15 @@ reduce these to 2 dimensions using the naxis kwarg.
             if cpdis is None:
                 return
 
-            hdulist[0].header['{0}{1:d}'.format(dist, num)] = (
+            hdulist[0].header[f'{dist}{num:d}'] = (
                 'LOOKUP', 'Prior distortion function type')
-            hdulist[0].header['{0}{1:d}.EXTVER'.format(d_kw, num)] = (
+            hdulist[0].header[f'{d_kw}{num:d}.EXTVER'] = (
                 num, 'Version number of WCSDVARR extension')
-            hdulist[0].header['{0}{1:d}.NAXES'.format(d_kw, num)] = (
+            hdulist[0].header[f'{d_kw}{num:d}.NAXES'] = (
                 len(cpdis.data.shape), 'Number of independent variables in distortion function')
 
             for i in range(cpdis.data.ndim):
-                hdulist[0].header['{0}{1:d}.AXIS.{2:d}'.format(d_kw, num, i + 1)] = (
+                hdulist[0].header['{}{:d}.AXIS.{:d}'.format(d_kw, num, i + 1)] = (
                     i + 1,
                     'Axis number of the jth independent variable in a distortion function')
 
@@ -988,7 +988,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             header['CRVAL2'] = (cpdis.crval[1], 'Coordinate system value at reference pixel')
             header['CDELT1'] = (cpdis.cdelt[0], 'Coordinate increment along axis')
             header['CDELT2'] = (cpdis.cdelt[1], 'Coordinate increment along axis')
-            image.ver = int(hdulist[0].header['{0}{1:d}.EXTVER'.format(d_kw, num)])
+            image.ver = int(hdulist[0].header[f'{d_kw}{num:d}.EXTVER'])
             hdulist.append(image)
 
         write_dist(1, self.cpdis1)
@@ -1025,7 +1025,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             a = np.zeros((m + 1, m + 1), np.double)
             for i in range(m + 1):
                 for j in range(m - i + 1):
-                    key = "A_{0}_{1}".format(i, j)
+                    key = f"A_{i}_{j}"
                     if key in header:
                         a[i, j] = header[key]
                         del header[key]
@@ -1035,7 +1035,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 b = np.zeros((m + 1, m + 1), np.double)
                 for i in range(m + 1):
                     for j in range(m - i + 1):
-                        key = "B_{0}_{1}".format(i, j)
+                        key = f"B_{i}_{j}"
                         if key in header:
                             b[i, j] = header[key]
                             del header[key]
@@ -1046,7 +1046,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             del header['A_ORDER']
             del header['B_ORDER']
 
-            ctype = [header['CTYPE{0}{1}'.format(nax, wcskey)] for nax in range(1, self.naxis + 1)]
+            ctype = [header[f'CTYPE{nax}{wcskey}'] for nax in range(1, self.naxis + 1)]
             if any(not ctyp.endswith('-SIP') for ctyp in ctype):
                 message = """
                 Inconsistent SIP distortion information is present in the FITS header and the WCS object:
@@ -1083,7 +1083,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             ap = np.zeros((m + 1, m + 1), np.double)
             for i in range(m + 1):
                 for j in range(m - i + 1):
-                    key = "AP_{0}_{1}".format(i, j)
+                    key = f"AP_{i}_{j}"
                     if key in header:
                         ap[i, j] = header[key]
                         del header[key]
@@ -1093,7 +1093,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 bp = np.zeros((m + 1, m + 1), np.double)
                 for i in range(m + 1):
                     for j in range(m - i + 1):
-                        key = "BP_{0}_{1}".format(i, j)
+                        key = f"BP_{i}_{j}"
                         if key in header:
                             bp[i, j] = header[key]
                             del header[key]
@@ -1114,12 +1114,12 @@ reduce these to 2 dimensions using the naxis kwarg.
         if a is None and b is None and ap is None and bp is None:
             return None
 
-        if "CRPIX1{0}".format(wcskey) not in header or "CRPIX2{0}".format(wcskey) not in header:
+        if f"CRPIX1{wcskey}" not in header or f"CRPIX2{wcskey}" not in header:
             raise ValueError(
                 "Header has SIP keywords without CRPIX keywords")
 
-        crpix1 = header.get("CRPIX1{0}".format(wcskey))
-        crpix2 = header.get("CRPIX2{0}".format(wcskey))
+        crpix1 = header.get(f"CRPIX1{wcskey}")
+        crpix2 = header.get(f"CRPIX2{wcskey}")
 
         return Sip(a, b, ap, bp, (crpix1, crpix2))
 
@@ -1137,12 +1137,12 @@ reduce these to 2 dimensions using the naxis kwarg.
             if a is None:
                 return
             size = a.shape[0]
-            keywords['{0}_ORDER'.format(name)] = size - 1
+            keywords[f'{name}_ORDER'] = size - 1
             for i in range(size):
                 for j in range(size - i):
                     if a[i, j] != 0.0:
                         keywords[
-                            '{0}_{1:d}_{2:d}'.format(name, i, j)] = a[i, j]
+                            f'{name}_{i:d}_{j:d}'] = a[i, j]
 
         write_array('A', self.sip.a)
         write_array('B', self.sip.b)
@@ -1242,7 +1242,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             if xy.shape[-1] != self.naxis:
                 raise ValueError(
                     "When providing two arguments, the array must be "
-                    "of shape (N, {0})".format(self.naxis))
+                    "of shape (N, {})".format(self.naxis))
             if 0 in xy.shape:
                 return xy
             if ra_dec_order and sky == 'input':
@@ -1260,7 +1260,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             except Exception:
                 raise TypeError(
                     "When providing two arguments, they must be "
-                    "(coords[N][{0}], origin)".format(self.naxis))
+                    "(coords[N][{}], origin)".format(self.naxis))
             if xy.shape == () or len(xy.shape) == 1:
                 return _return_list_of_arrays([xy], origin)
             return _return_single_array(xy, origin)
@@ -1306,17 +1306,17 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Parameters
         ----------
-        {0}
+        {}
 
             For a transformation that is not two-dimensional, the
             two-argument form must be used.
 
-        {1}
+        {}
 
         Returns
         -------
 
-        {2}
+        {}
 
         Notes
         -----
@@ -1374,17 +1374,17 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Parameters
         ----------
-        {0}
+        {}
 
             For a transformation that is not two-dimensional, the
             two-argument form must be used.
 
-        {1}
+        {}
 
         Returns
         -------
 
-        {2}
+        {}
 
         Raises
         ------
@@ -1813,7 +1813,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 raise NoConvergence(
                     "'WCS.all_world2pix' failed to "
                     "converge to the requested accuracy.\n"
-                    "After {0:d} iterations, the solution is diverging "
+                    "After {:d} iterations, the solution is diverging "
                     "at least for one input point."
                     .format(k), best_solution=pix,
                     accuracy=np.abs(dpix), niter=k,
@@ -2174,17 +2174,17 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Parameters
         ----------
-        {0}
+        {}
 
             For a transformation that is not two-dimensional, the
             two-argument form must be used.
 
-        {1}
+        {}
 
         Returns
         -------
 
-        {2}
+        {}
 
         Notes
         -----
@@ -2237,12 +2237,12 @@ reduce these to 2 dimensions using the naxis kwarg.
         Parameters
         ----------
 
-        {0}
+        {}
 
         Returns
         -------
 
-        {1}
+        {}
 
         Raises
         ------
@@ -2266,12 +2266,12 @@ reduce these to 2 dimensions using the naxis kwarg.
         Parameters
         ----------
 
-        {0}
+        {}
 
         Returns
         -------
 
-        {1}
+        {}
 
         Raises
         ------
@@ -2295,12 +2295,12 @@ reduce these to 2 dimensions using the naxis kwarg.
         Parameters
         ----------
 
-        {0}
+        {}
 
         Returns
         -------
 
-        {1}
+        {}
 
         Raises
         ------
@@ -2336,12 +2336,12 @@ reduce these to 2 dimensions using the naxis kwarg.
         Parameters
         ----------
 
-        {0}
+        {}
 
         Returns
         -------
 
-        {1}
+        {}
 
         Raises
         ------
@@ -2373,12 +2373,12 @@ reduce these to 2 dimensions using the naxis kwarg.
         Parameters
         ----------
 
-        {0}
+        {}
 
         Returns
         -------
 
-        {1}
+        {}
 
         Raises
         ------
@@ -2557,7 +2557,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
             if len(missing_keys):
                 warnings.warn(
-                    "Some non-standard WCS keywords were excluded: {0} "
+                    "Some non-standard WCS keywords were excluded: {} "
                     "Use the ``relax`` kwarg to control this.".format(
                         ', '.join(missing_keys)),
                     AstropyWarning)
@@ -2610,7 +2610,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 log.info(_add_sip_to_ctype)
         for i in range(1, self.naxis+1):
             # strip() must be called here to cover the case of alt key= " "
-            kw = 'CTYPE{0}{1}'.format(i, self.wcs.alt).strip()
+            kw = f'CTYPE{i}{self.wcs.alt}'.strip()
             if kw in header:
                 if add_sip:
                     val = header[kw].strip("-SIP") + "-SIP"
@@ -2667,12 +2667,12 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         with open(filename, mode='w') as f:
             f.write(comments)
-            f.write('{}\n'.format(coordsys))
+            f.write(f'{coordsys}\n')
             f.write('polygon(')
             ftpr = self.calc_footprint()
             if ftpr is not None:
                 ftpr.tofile(f, sep=',')
-                f.write(') # color={0}, width={1:d} \n'.format(color, width))
+                f.write(f') # color={color}, width={width:d} \n')
 
     @property
     def _naxis1(self):
@@ -2700,7 +2700,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 not isinstance(header, (str, bytes))):
             for naxis in itertools.count(1):
                 try:
-                    _naxis.append(header['NAXIS{}'.format(naxis)])
+                    _naxis.append(header[f'NAXIS{naxis}'])
                 except KeyError:
                     break
         if len(_naxis) == 0:
@@ -2718,8 +2718,8 @@ reduce these to 2 dimensions using the naxis kwarg.
         the `printwcs()` method.
         '''
         description = ["WCS Keywords\n",
-                       "Number of WCS axes: {0!r}".format(self.naxis)]
-        sfmt = ' : ' + "".join(["{"+"{0}".format(i)+"!r}  " for i in range(self.naxis)])
+                       f"Number of WCS axes: {self.naxis!r}"]
+        sfmt = ' : ' + "".join(["{"+f"{i}"+"!r}  " for i in range(self.naxis)])
 
         keywords = ['CTYPE', 'CRVAL', 'CRPIX']
         values = [self.wcs.ctype, self.wcs.crval, self.wcs.crpix]
@@ -2996,8 +2996,8 @@ reduce these to 2 dimensions using the naxis kwarg.
             except TypeError as exc:
                 if 'indices must be integers' not in str(exc):
                     raise
-                warnings.warn("NAXIS{0} attribute is not updated because at "
-                              "least one index ('{1}') is no integer."
+                warnings.warn("NAXIS{} attribute is not updated because at "
+                              "least one index ('{}') is no integer."
                               "".format(wcs_index, iview), AstropyUserWarning)
             else:
                 wcs_new._naxis[wcs_index] = nitems
@@ -3019,7 +3019,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         # Having __getitem__ makes Python think WCS is iterable. However,
         # Python first checks whether __iter__ is present, so we can raise an
         # exception here.
-        raise TypeError("'{0}' object is not iterable".format(self.__class__.__name__))
+        raise TypeError(f"'{self.__class__.__name__}' object is not iterable")
 
     @property
     def axis_type_names(self):
@@ -3258,7 +3258,7 @@ def validate(source):
             self._key = key
 
         def __repr__(self):
-            result = ["  WCS key '{0}':".format(self._key or ' ')]
+            result = ["  WCS key '{}':".format(self._key or ' ')]
             if len(self):
                 for entry in self:
                     for i, line in enumerate(entry.splitlines()):
@@ -3284,10 +3284,10 @@ def validate(source):
         def __repr__(self):
             if len(self):
                 if self._hdu_name:
-                    hdu_name = ' ({0})'.format(self._hdu_name)
+                    hdu_name = f' ({self._hdu_name})'
                 else:
                     hdu_name = ''
-                result = ['HDU {0}{1}:'.format(self._hdu_index, hdu_name)]
+                result = [f'HDU {self._hdu_index}{hdu_name}:']
                 for wcs in self:
                     result.append(repr(wcs))
                 return '\n'.join(result)

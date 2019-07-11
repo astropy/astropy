@@ -130,7 +130,7 @@ class FalseArray(np.ndarray):
     def __setitem__(self, item, val):
         val = np.asarray(val)
         if np.any(val):
-            raise ValueError('Cannot set any element of {0} class to True'
+            raise ValueError('Cannot set any element of {} class to True'
                              .format(self.__class__.__name__))
 
 
@@ -432,8 +432,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             # revert to restore previous format if there was one
             self._format = prev_format
             raise ValueError(
-                "Invalid format for column '{0}': could not display "
-                "values in this column using this format ({1})".format(
+                "Invalid format for column '{}': could not display "
+                "values in this column using this format ({})".format(
                     self.name, err.args[0]))
 
     @property
@@ -877,7 +877,7 @@ class Column(BaseColumn):
                           ('length', len(self))):
 
             if val is not None:
-                descr_vals.append('{0}={1!r}'.format(attr, val))
+                descr_vals.append(f'{attr}={val!r}')
 
         descr = '<' + ' '.join(descr_vals) + '>\n'
 

@@ -229,7 +229,7 @@ def register_reader(data_format, data_class, function, force=False):
     if not (data_format, data_class) in _readers or force:
         _readers[(data_format, data_class)] = function
     else:
-        raise IORegistryError("Reader for format '{0}' and class '{1}' is "
+        raise IORegistryError("Reader for format '{}' and class '{}' is "
                               'already defined'
                               ''.format(data_format, data_class.__name__))
 
@@ -252,7 +252,7 @@ def unregister_reader(data_format, data_class):
     if (data_format, data_class) in _readers:
         _readers.pop((data_format, data_class))
     else:
-        raise IORegistryError("No reader defined for format '{0}' and class '{1}'"
+        raise IORegistryError("No reader defined for format '{}' and class '{}'"
                               ''.format(data_format, data_class.__name__))
 
     if data_class not in _delayed_docs_classes:
@@ -280,7 +280,7 @@ def register_writer(data_format, data_class, function, force=False):
     if not (data_format, data_class) in _writers or force:
         _writers[(data_format, data_class)] = function
     else:
-        raise IORegistryError("Writer for format '{0}' and class '{1}' is "
+        raise IORegistryError("Writer for format '{}' and class '{}' is "
                               'already defined'
                               ''.format(data_format, data_class.__name__))
 
@@ -303,7 +303,7 @@ def unregister_writer(data_format, data_class):
     if (data_format, data_class) in _writers:
         _writers.pop((data_format, data_class))
     else:
-        raise IORegistryError("No writer defined for format '{0}' and class '{1}'"
+        raise IORegistryError("No writer defined for format '{}' and class '{}'"
                               ''.format(data_format, data_class.__name__))
 
     if data_class not in _delayed_docs_classes:
@@ -358,7 +358,7 @@ def register_identifier(data_format, data_class, identifier, force=False):
     if not (data_format, data_class) in _identifiers or force:
         _identifiers[(data_format, data_class)] = identifier
     else:
-        raise IORegistryError("Identifier for format '{0}' and class '{1}' is "
+        raise IORegistryError("Identifier for format '{}' and class '{}' is "
                               'already defined'.format(data_format,
                                                        data_class.__name__))
 
@@ -378,8 +378,8 @@ def unregister_identifier(data_format, data_class):
     if (data_format, data_class) in _identifiers:
         _identifiers.pop((data_format, data_class))
     else:
-        raise IORegistryError("No identifier defined for format '{0}' and class"
-                              " '{1}'".format(data_format, data_class.__name__))
+        raise IORegistryError("No identifier defined for format '{}' and class"
+                              " '{}'".format(data_format, data_class.__name__))
 
 
 def identify_format(origin, data_class_required, path, fileobj, args, kwargs):
@@ -450,8 +450,8 @@ def get_reader(data_format, data_class):
     else:
         format_table_str = _get_format_table_str(data_class, 'Read')
         raise IORegistryError(
-            "No reader defined for format '{0}' and class '{1}'.\n\nThe "
-            "available formats are:\n\n{2}".format(
+            "No reader defined for format '{}' and class '{}'.\n\nThe "
+            "available formats are:\n\n{}".format(
                 data_format, data_class.__name__, format_table_str))
 
 
@@ -478,8 +478,8 @@ def get_writer(data_format, data_class):
     else:
         format_table_str = _get_format_table_str(data_class, 'Write')
         raise IORegistryError(
-            "No writer defined for format '{0}' and class '{1}'.\n\nThe "
-            "available formats are:\n\n{2}".format(
+            "No writer defined for format '{}' and class '{}'.\n\nThe "
+            "available formats are:\n\n{}".format(
                 data_format, data_class.__name__, format_table_str))
 
 
@@ -529,7 +529,7 @@ def read(cls, *args, format=None, **kwargs):
             try:
                 data = cls(data)
             except Exception:
-                raise TypeError('could not convert reader output to {0} '
+                raise TypeError('could not convert reader output to {} '
                                 'class.'.format(cls.__name__))
     finally:
         if ctx is not None:
@@ -598,10 +598,10 @@ def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
         format_table_str = _get_format_table_str(cls, mode.capitalize())
         raise IORegistryError("Format could not be identified.\n"
                               "The available formats are:\n"
-                              "{0}".format(format_table_str))
+                              "{}".format(format_table_str))
     elif len(valid_formats) > 1:
         raise IORegistryError(
-            "Format is ambiguous - options are: {0}".format(
+            "Format is ambiguous - options are: {}".format(
                 ', '.join(sorted(valid_formats, key=itemgetter(0)))))
 
     return valid_formats[0]

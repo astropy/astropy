@@ -222,7 +222,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
     elif version == 'dev' or version == 'latest':
         baseurl = 'http://devdocs.astropy.org/'
     else:
-        baseurl = 'http://docs.astropy.org/en/{vers}/'.format(vers=version)
+        baseurl = f'http://docs.astropy.org/en/{version}/'
 
     if timeout is None:
         uf = urllib.request.urlopen(baseurl + 'objects.inv')
@@ -244,7 +244,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
         # intersphinx version line, project name, and project version
         ivers, proj, vers, compr = headerlines
         if 'The remainder of this file is compressed using zlib' not in compr:
-            raise ValueError('The file downloaded from {0} does not seem to be'
+            raise ValueError('The file downloaded from {} does not seem to be'
                              'the usual Sphinx objects.inv format.  Maybe it '
                              'has changed?'.format(baseurl + 'objects.inv'))
 
@@ -268,7 +268,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
             break
 
     if resurl is None:
-        raise ValueError('Could not find the docs for the object {obj}'.format(obj=obj))
+        raise ValueError(f'Could not find the docs for the object {obj}')
     elif openinbrowser:
         webbrowser.open(resurl)
 
@@ -484,7 +484,7 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8, fix=None):
         else:
             matches = (', '.join(matches[:-1]) + ' or ' +
                        matches[-1])
-        return 'Did you mean {0}?'.format(matches)
+        return f'Did you mean {matches}?'
 
     return ''
 
@@ -612,7 +612,7 @@ class OrderedDescriptor(metaclass=abc.ABCMeta):
                 return self.__order < other.__order
             except AttributeError:
                 raise RuntimeError(
-                    'Could not determine ordering for {0} and {1}; at least '
+                    'Could not determine ordering for {} and {}; at least '
                     'one of them is not calling super().__init__ in its '
                     '__init__.'.format(self, other))
         else:
@@ -927,7 +927,7 @@ class ShapedLikeNDArray(metaclass=abc.ABCMeta):
 
     def __len__(self):
         if self.isscalar:
-            raise TypeError("Scalar {0!r} object has no len()"
+            raise TypeError("Scalar {!r} object has no len()"
                             .format(self.__class__.__name__))
         return self.shape[0]
 
@@ -940,14 +940,14 @@ class ShapedLikeNDArray(metaclass=abc.ABCMeta):
             return self._apply('__getitem__', item)
         except IndexError:
             if self.isscalar:
-                raise TypeError('scalar {0!r} object is not subscriptable.'
+                raise TypeError('scalar {!r} object is not subscriptable.'
                                 .format(self.__class__.__name__))
             else:
                 raise
 
     def __iter__(self):
         if self.isscalar:
-            raise TypeError('scalar {0!r} object is not iterable.'
+            raise TypeError('scalar {!r} object is not iterable.'
                             .format(self.__class__.__name__))
 
         # We cannot just write a generator here, since then the above error

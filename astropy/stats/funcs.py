@@ -266,7 +266,7 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
 
         conf_interval = np.array([lowerbound, upperbound])
     else:
-        raise ValueError('Unrecognized interval: {0:s}'.format(interval))
+        raise ValueError(f'Unrecognized interval: {interval:s}')
 
     return conf_interval
 
@@ -451,13 +451,13 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
 
 def _check_poisson_conf_inputs(sigma, background, conflevel, name):
     if sigma != 1:
-        raise ValueError("Only sigma=1 supported for interval {0}"
+        raise ValueError("Only sigma=1 supported for interval {}"
                          .format(name))
     if background != 0:
-        raise ValueError("background not supported for interval {0}"
+        raise ValueError("background not supported for interval {}"
                          .format(name))
     if conflevel is not None:
-        raise ValueError("conflevel not supported for interval {0}"
+        raise ValueError("conflevel not supported for interval {}"
                          .format(name))
 
 
@@ -702,7 +702,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
             conf_interval[0, n == 0] = 0
     elif interval == 'kraft-burrows-nousek':
         if conflevel is None:
-            raise ValueError('Set conflevel for method {0}. (sigma is '
+            raise ValueError('Set conflevel for method {}. (sigma is '
                              'ignored.)'.format(interval))
         conflevel = np.asanyarray(conflevel)
         if np.any(conflevel <= 0) or np.any(conflevel >= 1):

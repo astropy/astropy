@@ -16,8 +16,8 @@ def fake_header(extver, version, timesys, telescop):
                    "NAXIS": 0,
                    "EXTVER": extver,
                    "VERSION": version,
-                   'TIMESYS': "{}".format(timesys),
-                   "TELESCOP": "{}".format(telescop)})
+                   'TIMESYS': f"{timesys}",
+                   "TELESCOP": f"{telescop}"})
 
 
 def fake_hdulist(extver=1, version=2, timesys="TDB", telescop="KEPLER"):

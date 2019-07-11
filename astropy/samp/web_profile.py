@@ -55,7 +55,7 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
 
             self.send_response(200, 'OK')
             self.send_header('Content-Type', 'text/x-cross-domain-policy')
-            self.send_header("Content-Length", "{0}".format(len(response)))
+            self.send_header("Content-Length", "{}".format(len(response)))
             self.end_headers()
             self.wfile.write(response.encode('utf-8'))
             self.wfile.flush()
@@ -68,7 +68,7 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
 
             self.send_response(200, 'OK')
             self.send_header('Content-Type', 'text/xml')
-            self.send_header("Content-Length", "{0}".format(len(response)))
+            self.send_header("Content-Length", "{}".format(len(response)))
             self.end_headers()
             self.wfile.write(response.encode('utf-8'))
             self.wfile.flush()
@@ -104,7 +104,7 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
 
         split_path = self.path.split('?')
 
-        if split_path[0] in ['/translator/{}'.format(clid) for clid in self.server.clients]:
+        if split_path[0] in [f'/translator/{clid}' for clid in self.server.clients]:
             # Request of a file proxying
             urlpath = parse_qs(split_path[1])
             try:
@@ -123,7 +123,7 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
     def is_http_path_valid(self):
 
         valid_paths = (["/clientaccesspolicy.xml", "/crossdomain.xml"] +
-                       ['/translator/{}'.format(clid) for clid in self.server.clients])
+                       [f'/translator/{clid}' for clid in self.server.clients])
         return self.path.split('?')[0] in valid_paths
 
 

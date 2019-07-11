@@ -359,8 +359,8 @@ ABmag.__doc__ = "AB magnitude: ABmag=-48.6 corresponds to 1 erg/s/cm2/Hz"
 
 M_bol = MagUnit(photometric.Bol)
 M_bol.__doc__ = ("Absolute bolometric magnitude: M_bol=0 corresponds to "
-                 "L_bol0={0}".format(photometric.Bol.si))
+                 "L_bol0={}".format(photometric.Bol.si))
 
 m_bol = MagUnit(photometric.bol)
 m_bol.__doc__ = ("Apparent bolometric magnitude: m_bol=0 corresponds to "
-                 "f_bol0={0}".format(photometric.bol.si))
+                 "f_bol0={}".format(photometric.bol.si))

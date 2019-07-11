@@ -61,7 +61,7 @@ def test_constellations(recwarn):
     # non-ASCII character
     bootest = SkyCoord(15*u.hour, 30*u.deg, frame='icrs')
     boores = get_constellation(bootest)
-    assert boores == u'Boötes'
+    assert boores == 'Boötes'
     assert isinstance(boores, str) or getattr(boores, 'shape', None) == tuple()
 
 

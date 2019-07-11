@@ -241,7 +241,7 @@ class SAMPHubServer:
         prot = 'http'
 
         self._port = self._server.socket.getsockname()[1]
-        addr = "{0}:{1}".format(self._addr or self._host_name, self._port)
+        addr = "{}:{}".format(self._addr or self._host_name, self._port)
         self._url = urlunparse((prot, addr, '', '', '', ''))
         self._server.register_introspection_functions()
         self._register_standard_api(self._server)
@@ -267,7 +267,7 @@ class SAMPHubServer:
             self._register_web_profile_api(self._web_profile_server)
             log.info("Hub set to run with Web Profile support enabled.")
         except socket.error:
-            log.warning("Port {0} already in use. Impossible to run the "
+            log.warning("Port {} already in use. Impossible to run the "
                         "Hub with Web Profile support.".format(self._web_port),
                         SAMPWarning)
             self._web_profile = False
@@ -330,7 +330,7 @@ class SAMPHubServer:
                     if (now - self._client_activity_time[private_key] > self._client_timeout
                         and private_key != self._hub_private_key):
                         warnings.warn(
-                            "Client {} timeout expired!".format(private_key),
+                            f"Client {private_key} timeout expired!",
                             SAMPWarning)
                         self._notify_disconnection(private_key)
                         self._unregister(private_key)
@@ -422,7 +422,7 @@ class SAMPHubServer:
         # Custom keys
 
         params['hub.id'] = self.id
-        params['hub.label'] = self._label or "Hub {0}".format(self.id)
+        params['hub.label'] = self._label or f"Hub {self.id}"
 
         return params
 
@@ -534,7 +534,7 @@ class SAMPHubServer:
             try:
                 read_ready = select.select([self._server.socket], [], [], 0.01)[0]
             except OSError as exc:
-                warnings.warn("Call to select() in SAMPHubServer failed: {0}".format(exc),
+                warnings.warn(f"Call to select() in SAMPHubServer failed: {exc}",
                               SAMPWarning)
             else:
                 if read_ready:
@@ -557,7 +557,7 @@ class SAMPHubServer:
                 try:
                     read_ready = select.select([self._web_profile_server.socket], [], [], 0.01)[0]
                 except OSError as exc:
-                    warnings.warn("Call to select() in SAMPHubServer failed: {0}".format(exc),
+                    warnings.warn(f"Call to select() in SAMPHubServer failed: {exc}",
                                   SAMPWarning)
                 else:
                     if read_ready:
@@ -639,7 +639,7 @@ class SAMPHubServer:
 
         for mtype in msubs:
             if mtype in self._mtype2ids and private_key in self._mtype2ids[mtype]:
-                log.debug("notify disconnection to {}".format(public_id))
+                log.debug(f"notify disconnection to {public_id}")
                 self._launch_thread(target=_xmlrpc_call_disconnect,
                                    args=(endpoint, private_key,
                                          self._hub_public_id,
@@ -715,7 +715,7 @@ class SAMPHubServer:
         self._client_id_counter += 1
         public_id = 'cli#hub'
         if self._client_id_counter > 0:
-            public_id = "cli#{}".format(self._client_id_counter)
+            public_id = f"cli#{self._client_id_counter}"
 
         return private_key, public_id
 
@@ -756,7 +756,7 @@ class SAMPHubServer:
                     del self._web_profile_callbacks[private_key]
                 self._web_profile_server.remove_client(private_key)
 
-        log.debug("unregister {} ({})".format(public_key, private_key))
+        log.debug(f"unregister {public_key} ({private_key})")
 
         return ""
 

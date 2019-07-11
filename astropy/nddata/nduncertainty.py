@@ -326,7 +326,7 @@ class NDUncertainty(metaclass=ABCMeta):
         # Check if the subclass supports correlation
         if not self.supports_correlated:
             if isinstance(correlation, np.ndarray) or correlation != 0:
-                raise ValueError("{0} does not support uncertainty propagation"
+                raise ValueError("{} does not support uncertainty propagation"
                                  " with correlation."
                                  "".format(self.__class__.__name__))
 
@@ -591,7 +591,7 @@ class _VariancePropagationMixin:
             if (other_uncert.unit and
                 to_variance(1 * other_uncert.unit) !=
                     ((1 * other_uncert.parent_nddata.unit)**2).unit):
-                d_b = to_variance((other_uncert.array * other_uncert.unit)).to(
+                d_b = to_variance(other_uncert.array * other_uncert.unit).to(
                     (1 * other_uncert.parent_nddata.unit)**2).value
             else:
                 d_b = to_variance(other_uncert.array)

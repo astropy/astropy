@@ -25,7 +25,7 @@ class TestConvolve1DModels:
         model = models.Gaussian1D(1, 0, 1)
         model_conv = convolve_models(model, kernel, mode=mode)
         x = np.arange(-5, 6)
-        ans = eval("{}(model(x), kernel(x))".format(mode))
+        ans = eval(f"{mode}(model(x), kernel(x))")
 
         assert_allclose(ans, model_conv(x), atol=1e-5)
 

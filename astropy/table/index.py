@@ -163,7 +163,7 @@ class Index:
         for i, c in enumerate(self.columns):
             if c.info.name == col_name:
                 return i
-        raise ValueError("Column does not belong to index: {0}".format(col_name))
+        raise ValueError(f"Column does not belong to index: {col_name}")
 
     def insert_row(self, pos, vals, columns):
         '''
@@ -208,7 +208,7 @@ class Index:
             col_len = len(self.columns[0])
             return range(*row_specifier.indices(col_len))
         raise ValueError("Expected int, array of ints, or slice but "
-                         "got {0} in remove_rows".format(row_specifier))
+                         "got {} in remove_rows".format(row_specifier))
 
     def remove_rows(self, row_specifier):
         '''
@@ -244,7 +244,7 @@ class Index:
         '''
         # for removal, form a key consisting of column values in this row
         if not self.data.remove(tuple([col[row] for col in self.columns]), row):
-            raise ValueError("Could not remove row {0} from index".format(row))
+            raise ValueError(f"Could not remove row {row} from index")
         # decrement the row number of all later rows
         if reorder:
             self.data.shift_left(row)
@@ -563,7 +563,7 @@ class SlicedIndex:
     def __repr__(self):
         if self.original:
             return repr(self.index)
-        return 'Index slice {0} of\n{1}'.format(
+        return 'Index slice {} of\n{}'.format(
             (self.start, self.stop, self.step), self.index)
 
     def __str__(self):
@@ -640,7 +640,7 @@ def get_index(table, table_copy=None, names=None):
         names = set(table_copy.colnames)
 
     if not names <= set(table.colnames):
-        raise ValueError('{} is not a subset of table columns'.format(names))
+        raise ValueError(f'{names} is not a subset of table columns')
 
     for name in names:
         for index in table[name].info.indices:
@@ -709,7 +709,7 @@ class _IndexModeContext:
         if mode not in ('freeze', 'discard_on_copy', 'copy_on_getitem'):
             raise ValueError("Expected a mode of either 'freeze', "
                              "'discard_on_copy', or 'copy_on_getitem', got "
-                             "'{0}'".format(mode))
+                             "'{}'".format(mode))
 
     def __enter__(self):
         if self.mode == 'discard_on_copy':
@@ -757,7 +757,7 @@ class _IndexModeContext:
 
             return value
 
-        clsname = '_{0}WithIndexCopy'.format(cls.__name__)
+        clsname = f'_{cls.__name__}WithIndexCopy'
 
         new_cls = type(str(clsname), (cls,), {'__getitem__': __getitem__})
 
@@ -802,7 +802,7 @@ class TableIndices(list):
                 except ValueError:
                     pass
             # index search failed
-            raise IndexError("No index found for {0}".format(item))
+            raise IndexError(f"No index found for {item}")
 
         return super().__getitem__(item)
 
@@ -851,7 +851,7 @@ class TableLoc:
             for key in item:
                 p = index.find((key,))
                 if len(p) == 0:
-                    raise KeyError('No matches found for key {0}'.format(key))
+                    raise KeyError(f'No matches found for key {key}')
                 else:
                     rows.extend(p)
         return rows
@@ -872,7 +872,7 @@ class TableLoc:
         rows = self._get_rows(item)
 
         if len(rows) == 0:  # no matches found
-            raise KeyError('No matches found for key {0}'.format(item))
+            raise KeyError(f'No matches found for key {item}')
         elif len(rows) == 1:  # single row
             return self.table[rows[0]]
         return self.table[rows]
@@ -895,7 +895,7 @@ class TableLoc:
         """
         rows = self._get_rows(key)
         if len(rows) == 0:  # no matches found
-            raise KeyError('No matches found for key {0}'.format(key))
+            raise KeyError(f'No matches found for key {key}')
         elif len(rows) == 1:  # single row
             self.table[rows[0]] = value
         else:  # multiple rows
@@ -903,7 +903,7 @@ class TableLoc:
                 for row, val in zip(rows, value):
                     self.table[row] = val
             else:
-                raise ValueError('Right side should contain {0} values'.format(len(rows)))
+                raise ValueError('Right side should contain {} values'.format(len(rows)))
 
 
 class TableLocIndices(TableLoc):
@@ -923,7 +923,7 @@ class TableLocIndices(TableLoc):
         """
         rows = self._get_rows(item)
         if len(rows) == 0:  # no matches found
-            raise KeyError('No matches found for key {0}'.format(item))
+            raise KeyError(f'No matches found for key {item}')
         elif len(rows) == 1:  # single row
             return rows[0]
         return rows
@@ -953,6 +953,6 @@ class TableILoc(TableLoc):
         table_slice = self.table[rows]
 
         if len(table_slice) == 0:  # no matches found
-            raise IndexError('Invalid index for iloc: {0}'.format(item))
+            raise IndexError(f'Invalid index for iloc: {item}')
 
         return table_slice

@@ -79,7 +79,7 @@ class Optimization(metaclass=abc.ABCMeta):
         self._acc = val
 
     def __repr__(self):
-        fmt = "{0}()".format(self.__class__.__name__)
+        fmt = f"{self.__class__.__name__}()"
         return fmt
 
     @property

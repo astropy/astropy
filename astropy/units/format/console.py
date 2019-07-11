@@ -32,7 +32,7 @@ class Console(base.Base):
 
     @classmethod
     def _format_superscript(cls, number):
-        return '^{0}'.format(number)
+        return f'^{number}'
 
     @classmethod
     def _format_unit_list(cls, units):
@@ -41,7 +41,7 @@ class Console(base.Base):
             if power == 1:
                 out.append(cls._get_unit_name(base))
             else:
-                out.append('{0}{1}'.format(
+                out.append('{}{}'.format(
                     cls._get_unit_name(base),
                     cls._format_superscript(
                             utils.format_power(power))))
@@ -56,7 +56,7 @@ class Console(base.Base):
             parts.append(m)
 
         if ex:
-            parts.append("10{0}".format(
+            parts.append("10{}".format(
                 cls._format_superscript(ex)))
 
         return cls._times.join(parts)
@@ -80,7 +80,7 @@ class Console(base.Base):
                     negatives = cls._format_unit_list(negatives)
                     l = len(s)
                     r = max(len(positives), len(negatives))
-                    f = "{{0:^{0}s}} {{1:^{1}s}}".format(l, r)
+                    f = f"{{0:^{l}s}} {{1:^{r}s}}"
 
                     lines = [
                         f.format('', positives),

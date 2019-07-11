@@ -157,9 +157,9 @@ class HeaderFormatter:
 
             if idx > 0:  # Separate HDUs by a blank line
                 result.append('\n')
-            result.append('# HDU {} in {}:\n'.format(hdu, self.filename))
+            result.append(f'# HDU {hdu} in {self.filename}:\n')
             for c in cards:
-                result.append('{}\n'.format(c))
+                result.append(f'{c}\n')
         return ''.join(result)
 
     def _get_cards(self, hdukey, keywords, compressed):
@@ -194,7 +194,7 @@ class HeaderFormatter:
             else:
                 header = self._hdulist[hdukey].header
         except (IndexError, KeyError):
-            message = '{0}: Extension {1} not found.'.format(self.filename,
+            message = '{}: Extension {} not found.'.format(self.filename,
                                                              hdukey)
             if self.verbose:
                 log.warning(message)

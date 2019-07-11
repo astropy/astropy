@@ -140,8 +140,8 @@ def warn_unknown_attrs(element, attrs, config, pos, good_attr=[], stacklevel=1):
 
 
 _warning_pat = re.compile(
-    (r":?(?P<nline>[0-9?]+):(?P<nchar>[0-9?]+): " +
-     r"((?P<warning>[WE]\d+): )?(?P<rest>.*)$"))
+    r":?(?P<nline>[0-9?]+):(?P<nchar>[0-9?]+): " +
+     r"((?P<warning>[WE]\d+): )?(?P<rest>.*)$")
 
 
 def parse_vowarning(line):
@@ -156,7 +156,7 @@ def parse_vowarning(line):
             result['is_warning'] = (warning[0].upper() == 'W')
             result['is_exception'] = not result['is_warning']
             result['number'] = int(match.group('warning')[1:])
-            result['doc_url'] = "io/votable/api_exceptions.html#{0}".format(
+            result['doc_url'] = "io/votable/api_exceptions.html#{}".format(
                 warning.lower())
         else:
             result['is_warning'] = False
@@ -1429,7 +1429,7 @@ def _build_doc_string():
         out = io.StringIO()
 
         for name, cls in classes:
-            out.write(".. _{}:\n\n".format(name))
+            out.write(f".. _{name}:\n\n")
             msg = "{}: {}".format(cls.__name__, cls.get_short_name())
             if not isinstance(msg, str):
                 msg = msg.decode('utf-8')

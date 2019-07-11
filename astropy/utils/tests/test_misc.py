@@ -108,7 +108,7 @@ def test_set_locale():
         locale.setlocale(locale.LC_ALL, 'en_US')
         locale.setlocale(locale.LC_ALL, 'de_DE')
     except locale.Error as e:
-        pytest.skip('Locale error: {}'.format(e))
+        pytest.skip(f'Locale error: {e}')
     finally:
         locale.setlocale(locale.LC_ALL, current)
 
@@ -143,4 +143,4 @@ def test_dtype_bytes_or_chars():
     assert misc.dtype_bytes_or_chars(np.dtype(object)) is None
     assert misc.dtype_bytes_or_chars(np.dtype(np.int32)) == 4
     assert misc.dtype_bytes_or_chars(np.array(b'12345').dtype) == 5
-    assert misc.dtype_bytes_or_chars(np.array(u'12345').dtype) == 5
+    assert misc.dtype_bytes_or_chars(np.array('12345').dtype) == 5

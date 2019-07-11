@@ -314,10 +314,10 @@ class Char(Converter):
                 self.arraysize = int(field.arraysize)
             except ValueError:
                 vo_raise(E01, (field.arraysize, 'char', field.ID), config)
-            self.format = 'S{:d}'.format(self.arraysize)
+            self.format = f'S{self.arraysize:d}'
             self.binparse = self._binparse_fixed
             self.binoutput = self._binoutput_fixed
-            self._struct_format = ">{:d}s".format(self.arraysize)
+            self._struct_format = f">{self.arraysize:d}s"
 
         if config.get('verify', 'ignore') == 'exception':
             self.parse = self._ascii_parse
@@ -391,7 +391,7 @@ class UnicodeChar(Converter):
                 self.arraysize = int(field.arraysize)
             except ValueError:
                 vo_raise(E01, (field.arraysize, 'unicode', field.ID), config)
-            self.format = 'U{:d}'.format(self.arraysize)
+            self.format = f'U{self.arraysize:d}'
             self.binparse = self._binparse_fixed
             self.binoutput = self._binoutput_fixed
             self._struct_format = ">{:d}s".format(self.arraysize * 2)
@@ -747,7 +747,7 @@ class FloatingPoint(Numeric):
         elif np.isneginf(value):
             return '-InF'
         # Should never raise
-        vo_raise("Invalid floating point value '{}'".format(value))
+        vo_raise(f"Invalid floating point value '{value}'")
 
     def binoutput(self, value, mask):
         if mask:
@@ -1361,7 +1361,7 @@ def numpy_to_votable_dtype(dtype, shape):
     """
     if dtype.num not in numpy_dtype_to_field_mapping:
         raise TypeError(
-            "{0!r} can not be represented in VOTable".format(dtype))
+            f"{dtype!r} can not be represented in VOTable")
 
     if dtype.char == 'S':
         return {'datatype': 'char',

@@ -113,8 +113,8 @@ def test_iau_fullstack(fullstack_icrs, fullstack_fiducial_altaz,
 
     adras = np.abs(fullstack_icrs.ra - icrs2.ra)[msk]
     addecs = np.abs(fullstack_icrs.dec - icrs2.dec)[msk]
-    assert np.all(adras < tol), 'largest RA change is {0} mas, > {1}'.format(np.max(adras.arcsec*1000), tol)
-    assert np.all(addecs < tol), 'largest Dec change is {0} mas, > {1}'.format(np.max(addecs.arcsec*1000), tol)
+    assert np.all(adras < tol), 'largest RA change is {} mas, > {}'.format(np.max(adras.arcsec*1000), tol)
+    assert np.all(addecs < tol), 'largest Dec change is {} mas, > {}'.format(np.max(addecs.arcsec*1000), tol)
 
     # check that we're consistent with the ERFA alt/az result
     xp, yp = u.Quantity(iers.IERS_Auto.open().pm_xy(fullstack_times)).to_value(u.radian)

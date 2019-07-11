@@ -52,12 +52,12 @@ class SAMPWebHubProxy(SAMPHubProxy):
 
         try:
             self.proxy = ServerProxyPool(pool_size, xmlrpc.ServerProxy,
-                                         'http://127.0.0.1:{0}'.format(web_port),
+                                         f'http://127.0.0.1:{web_port}',
                                          allow_none=1)
             self.ping()
             self._connected = True
         except xmlrpc.ProtocolError as p:
-            raise SAMPHubError("Protocol Error {}: {}".format(p.errcode, p.errmsg))
+            raise SAMPHubError(f"Protocol Error {p.errcode}: {p.errmsg}")
 
     @property
     def _samp_hub(self):

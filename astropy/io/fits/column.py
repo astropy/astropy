@@ -293,7 +293,7 @@ class _ColumnFormat(_BaseColumnFormat):
         else:
             repeat = str(self.repeat)
 
-        return '{}{}{}'.format(repeat, self.format, self.option)
+        return f'{repeat}{self.format}{self.option}'
 
 
 class _AsciiColumnFormat(_BaseColumnFormat):
@@ -355,9 +355,9 @@ class _AsciiColumnFormat(_BaseColumnFormat):
         """
 
         if self.format in ('E', 'F', 'D'):
-            return '{}{}.{}'.format(self.format, self.width, self.precision)
+            return f'{self.format}{self.width}.{self.precision}'
 
-        return '{}{}'.format(self.format, self.width)
+        return f'{self.format}{self.width}'
 
 
 class _FormatX(str):
@@ -375,7 +375,7 @@ class _FormatX(str):
 
     @property
     def tform(self):
-        return '{}X'.format(self.repeat)
+        return f'{self.repeat}X'
 
 
 # TODO: Table column formats need to be verified upon first reading the file;
@@ -407,7 +407,7 @@ class _FormatP(str):
     def from_tform(cls, format):
         m = cls._format_re.match(format)
         if not m or m.group('dtype') not in FITS2NUMPY:
-            raise VerifyError('Invalid column format: {}'.format(format))
+            raise VerifyError(f'Invalid column format: {format}')
         repeat = m.group('repeat')
         array_dtype = m.group('dtype')
         max = m.group('max')
@@ -419,7 +419,7 @@ class _FormatP(str):
     def tform(self):
         repeat = '' if self.repeat is None else self.repeat
         max = '' if self.max is None else self.max
-        return '{}{}{}({})'.format(repeat, self._format_code, self.format, max)
+        return f'{repeat}{self._format_code}{self.format}({max})'
 
 
 class _FormatQ(_FormatP):
@@ -503,7 +503,7 @@ class ColumnAttribute:
         return self
 
     def __repr__(self):
-        return "{0}('{1}')".format(self.__class__.__name__, self._keyword)
+        return f"{self.__class__.__name__}('{self._keyword}')"
 
 
 class Column(NotifierMixin):
@@ -826,7 +826,7 @@ class Column(NotifierMixin):
                 'It is strongly recommended that column names contain only '
                 'upper and lower-case ASCII letters, digits, or underscores '
                 'for maximum compatibility with other software '
-                '(got {0!r}).'.format(name), VerifyWarning)
+                '(got {!r}).'.format(name), VerifyWarning)
 
         # This ensures that the new name can fit into a single FITS card
         # without any special extension like CONTINUE cards or the like.
@@ -938,7 +938,7 @@ class Column(NotifierMixin):
             format = cls(format)
             recformat = format.recformat
         except VerifyError:
-            raise VerifyError('Illegal format `{}`.'.format(format))
+            raise VerifyError(f'Illegal format `{format}`.')
 
         return format, recformat
 
@@ -1774,7 +1774,7 @@ class ColDefs(NotifierMixin):
         """
 
         if new_name != col_name and new_name in self.names:
-            raise ValueError('New name {} already exists.'.format(new_name))
+            raise ValueError(f'New name {new_name} already exists.')
         else:
             self.change_attrib(col_name, 'name', new_name)
 
@@ -1836,7 +1836,7 @@ class ColDefs(NotifierMixin):
                     output.write("'{}' is not an attribute of the column "
                                  "definitions.\n".format(attr))
                     continue
-                output.write("{}:\n".format(attr))
+                output.write(f"{attr}:\n")
                 output.write('    {}\n'.format(getattr(self, attr + 's')))
             else:
                 ret[attr] = getattr(self, attr + 's')
@@ -1945,7 +1945,7 @@ class _VLF(np.ndarray):
                 input = [chararray.array(x, itemsize=1) for x in input]
             except Exception:
                 raise ValueError(
-                    'Inconsistent input data array: {0}'.format(input))
+                    f'Inconsistent input data array: {input}')
 
         a = np.array(input, dtype=object)
         self = np.ndarray.__new__(cls, shape=(len(input),), buffer=a,
@@ -2015,11 +2015,11 @@ def _get_index(names, key):
             if count == 1:
                 indx = names.index(_key)
             elif count == 0:
-                raise KeyError("Key '{}' does not exist.".format(key))
+                raise KeyError(f"Key '{key}' does not exist.")
             else:              # multiple match
-                raise KeyError("Ambiguous key name '{}'.".format(key))
+                raise KeyError(f"Ambiguous key name '{key}'.")
     else:
-        raise KeyError("Illegal key '{!r}'.".format(key))
+        raise KeyError(f"Illegal key '{key!r}'.")
 
     return indx
 
@@ -2153,7 +2153,7 @@ def _parse_tformat(tform):
         # TODO: Maybe catch this error use a default type (bytes, maybe?) for
         # unrecognized column types.  As long as we can determine the correct
         # byte width somehow..
-        raise VerifyError('Format {!r} is not recognized.'.format(tform))
+        raise VerifyError(f'Format {tform!r} is not recognized.')
 
     if repeat == '':
         repeat = 1
@@ -2172,7 +2172,7 @@ def _parse_ascii_tformat(tform, strict=False):
 
     match = TFORMAT_ASCII_RE.match(tform.strip())
     if not match:
-        raise VerifyError('Format {!r} is not recognized.'.format(tform))
+        raise VerifyError(f'Format {tform!r} is not recognized.')
 
     # Be flexible on case
     format = match.group('format')
@@ -2317,7 +2317,7 @@ def _convert_fits2record(format):
     elif dtype == 'F':
         output_format = 'f8'
     else:
-        raise ValueError('Illegal format `{}`.'.format(format))
+        raise ValueError(f'Illegal format `{format}`.')
 
     return output_format
 
@@ -2361,7 +2361,7 @@ def _convert_record2fits(format):
             repeat = ''
         output_format = repeat + NUMPY2FITS[recformat]
     else:
-        raise ValueError('Illegal format `{}`.'.format(format))
+        raise ValueError(f'Illegal format `{format}`.')
 
     return output_format
 
@@ -2486,11 +2486,11 @@ def _parse_tdisp_format(tdisp):
     try:
         tdisp_re = TDISP_RE_DICT[fmt_key]
     except KeyError:
-        raise VerifyError('Format {} is not recognized.'.format(tdisp))
+        raise VerifyError(f'Format {tdisp} is not recognized.')
 
     match = tdisp_re.match(tdisp.strip())
     if not match or match.group('formatc') is None:
-        raise VerifyError('Format {} is not recognized.'.format(tdisp))
+        raise VerifyError(f'Format {tdisp} is not recognized.')
 
     formatc = match.group('formatc')
     width = match.group('width')
@@ -2535,7 +2535,7 @@ def _fortran_to_python_format(tdisp):
         return fmt.format(width=width, precision=precision)
 
     except KeyError:
-        raise VerifyError('Format {} is not recognized.'.format(format_type))
+        raise VerifyError(f'Format {format_type} is not recognized.')
 
 
 def python_to_tdisp(format_string, logical_dtype = False):

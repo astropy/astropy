@@ -48,12 +48,12 @@ class CompoundType(TransformType):
         left = yamlutil.tagged_tree_to_custom_tree(
             node['forward'][0], ctx)
         if not isinstance(left, modeling.Model):
-            raise TypeError("Unknown model type '{0}'".format(
+            raise TypeError("Unknown model type '{}'".format(
                 node['forward'][0]._tag))
         right = yamlutil.tagged_tree_to_custom_tree(
             node['forward'][1], ctx)
         if not isinstance(right, modeling.Model):
-            raise TypeError("Unknown model type '{0}'".format(
+            raise TypeError("Unknown model type '{}'".format(
                 node['forward'][1]._tag))
         model = getattr(left, oper)(right)
 
@@ -81,7 +81,7 @@ class CompoundType(TransformType):
         try:
             tag_name = 'transform/' + _operator_to_tag_mapping[tree.value]
         except KeyError:
-            raise ValueError("Unknown operator '{0}'".format(tree.value))
+            raise ValueError(f"Unknown operator '{tree.value}'")
 
         node = tagged.tag_object(cls.make_yaml_tag(tag_name), node, ctx=ctx)
         return node

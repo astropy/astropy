@@ -89,7 +89,7 @@ def _probably_html(table, maxchars=100000):
             return True
 
         # Look for <TABLE .. >, <TR .. >, <TD .. > tag openers.
-        if all(re.search(r'< \s* {0} [^>]* >'.format(element), table, re.IGNORECASE | re.VERBOSE)
+        if all(re.search(fr'< \s* {element} [^>]* >', table, re.IGNORECASE | re.VERBOSE)
                for element in ('table', 'tr', 'td')):
             return True
 
@@ -178,13 +178,13 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
 
 def _get_format_class(format, ReaderWriter, label):
     if format is not None and ReaderWriter is not None:
-        raise ValueError('Cannot supply both format and {0} keywords'.format(label))
+        raise ValueError(f'Cannot supply both format and {label} keywords')
 
     if format is not None:
         if format in core.FORMAT_CLASSES:
             ReaderWriter = core.FORMAT_CLASSES[format]
         else:
-            raise ValueError('ASCII format {0!r} not in allowed list {1}'
+            raise ValueError('ASCII format {!r} not in allowed list {}'
                              .format(format, sorted(core.FORMAT_CLASSES)))
     return ReaderWriter
 
@@ -296,9 +296,9 @@ def read(table, guess=None, **kwargs):
         # Try the fast reader version of `format` first if applicable.  Note that
         # if user specified a fast format (e.g. format='fast_basic') this test
         # will fail and the else-clause below will be used.
-        if fast_reader['enable'] and 'fast_{0}'.format(format) in core.FAST_CLASSES:
+        if fast_reader['enable'] and f'fast_{format}' in core.FAST_CLASSES:
             fast_kwargs = copy.deepcopy(new_kwargs)
-            fast_kwargs['Reader'] = core.FAST_CLASSES['fast_{0}'.format(format)]
+            fast_kwargs['Reader'] = core.FAST_CLASSES[f'fast_{format}']
             fast_reader_rdr = get_reader(**fast_kwargs)
             try:
                 dat = fast_reader_rdr.read(table)
@@ -365,10 +365,10 @@ def _guess(table, read_kwargs, format, fast_reader):
     full_list_guess = _get_guess_kwargs_list(read_kwargs)
 
     # If a fast version of the reader is available, try that before the slow version
-    if (fast_reader['enable'] and format is not None and 'fast_{0}'.format(format) in
+    if (fast_reader['enable'] and format is not None and f'fast_{format}' in
         core.FAST_CLASSES):
         fast_kwargs = copy.deepcopy(read_kwargs)
-        fast_kwargs['Reader'] = core.FAST_CLASSES['fast_{0}'.format(format)]
+        fast_kwargs['Reader'] = core.FAST_CLASSES[f'fast_{format}']
         full_list_guess = [fast_kwargs] + full_list_guess
     else:
         fast_kwargs = None
@@ -385,7 +385,7 @@ def _guess(table, read_kwargs, format, fast_reader):
             _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
                                 'Reader': guess_kwargs['Reader'].__class__,
                                 'status': 'Disabled: reader only available in fast version',
-                                'dt': '{0:.3f} ms'.format(0.0)})
+                                'dt': '{:.3f} ms'.format(0.0)})
             continue
 
         # If user required a fast reader then skip all non-fast readers
@@ -394,7 +394,7 @@ def _guess(table, read_kwargs, format, fast_reader):
             _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
                                 'Reader': guess_kwargs['Reader'].__class__,
                                 'status': 'Disabled: no fast version of reader available',
-                                'dt': '{0:.3f} ms'.format(0.0)})
+                                'dt': '{:.3f} ms'.format(0.0)})
             continue
 
         guess_kwargs_ok = True  # guess_kwargs are consistent with user_kwargs?
@@ -448,14 +448,14 @@ def _guess(table, read_kwargs, format, fast_reader):
             _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
                                 'Reader': reader.__class__,
                                 'status': 'Success (guessing)',
-                                'dt': '{0:.3f} ms'.format((time.time() - t0) * 1000)})
+                                'dt': '{:.3f} ms'.format((time.time() - t0) * 1000)})
             return dat
 
         except guess_exception_classes as err:
             _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
-                                'status': '{0}: {1}'.format(err.__class__.__name__,
+                                'status': '{}: {}'.format(err.__class__.__name__,
                                                             str(err)),
-                                'dt': '{0:.3f} ms'.format((time.time() - t0) * 1000)})
+                                'dt': '{:.3f} ms'.format((time.time() - t0) * 1000)})
             failed_kwargs.append(guess_kwargs)
     else:
         # Failed all guesses, try the original read_kwargs without column requirements
@@ -470,7 +470,7 @@ def _guess(table, read_kwargs, format, fast_reader):
 
         except guess_exception_classes as err:
             _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
-                                'status': '{0}: {1}'.format(err.__class__.__name__,
+                                'status': '{}: {}'.format(err.__class__.__name__,
                                                             str(err))})
             failed_kwargs.append(read_kwargs)
             lines = ['\nERROR: Unable to guess table format with the guesses listed below:']
@@ -480,7 +480,7 @@ def _guess(table, read_kwargs, format, fast_reader):
                 reader_repr = repr(kwargs.get('Reader', basic.Basic))
                 keys_vals = ['Reader:' + re.search(r"\.(\w+)'>", reader_repr).group(1)]
                 kwargs_sorted = ((key, kwargs[key]) for key in sorted_keys)
-                keys_vals.extend(['{}: {!r}'.format(key, val) for key, val in kwargs_sorted])
+                keys_vals.extend([f'{key}: {val!r}' for key, val in kwargs_sorted])
                 lines.append(' '.join(keys_vals))
 
             msg = ['',
@@ -749,7 +749,7 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
                     "Use the argument 'overwrite=True' in the future.".format(
                         output), AstropyDeprecationWarning)
             elif not overwrite:
-                raise OSError("{} already exists".format(output))
+                raise OSError(f"{output} already exists")
 
     if output is None:
         output = sys.stdout

@@ -22,9 +22,9 @@ def test_common_dtype():
         for name2, type2 in dtype:
             try:
                 np_utils.common_dtype([arr[name1], arr[name2]])
-                succeed.add('{0} {1}'.format(name1, name2))
+                succeed.add(f'{name1} {name2}')
             except np_utils.TableMergeError:
-                fail.add('{0} {1}'.format(name1, name2))
+                fail.add(f'{name1} {name2}')
 
     # known bad combinations
     bad = set(['str int', 'str bool', 'uint8 bool', 'uint8 str', 'object float32',

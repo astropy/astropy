@@ -68,7 +68,7 @@ class CoordinateTransform(CurvedTransform):
         if isinstance(self._input_system_name, str):
             self.input_system = frame_transform_graph.lookup_name(self._input_system_name)
             if self.input_system is None:
-                raise ValueError("Frame {0} not found".format(self._input_system_name))
+                raise ValueError(f"Frame {self._input_system_name} not found")
         elif isinstance(self._input_system_name, BaseCoordinateFrame):
             self.input_system = self._input_system_name
         else:
@@ -77,7 +77,7 @@ class CoordinateTransform(CurvedTransform):
         if isinstance(self._output_system_name, str):
             self.output_system = frame_transform_graph.lookup_name(self._output_system_name)
             if self.output_system is None:
-                raise ValueError("Frame {0} not found".format(self._output_system_name))
+                raise ValueError(f"Frame {self._output_system_name} not found")
         elif isinstance(self._output_system_name, BaseCoordinateFrame):
             self.output_system = self._output_system_name
         else:

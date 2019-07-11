@@ -99,7 +99,7 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
             try:
                 input = input[path]
             except (KeyError, ValueError):
-                raise OSError("Path {0} does not exist".format(path))
+                raise OSError(f"Path {path} does not exist")
 
         # `input` is now either a group or a dataset. If it is a group, we
         # will search for all structured arrays inside the group, and if there
@@ -112,14 +112,14 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
             arrays = _find_all_structured_arrays(input)
 
             if len(arrays) == 0:
-                raise ValueError("no table found in HDF5 group {0}".
+                raise ValueError("no table found in HDF5 group {}".
                                  format(path))
             elif len(arrays) > 0:
                 path = arrays[0] if path is None else path + '/' + arrays[0]
                 if len(arrays) > 1:
                     warnings.warn("path= was not specified but multiple tables"
                                   " are present, reading in first available"
-                                  " table (path={0})".format(path),
+                                  " table (path={})".format(path),
                                   AstropyUserWarning)
                 return read_table_hdf5(input, path=path)
 
@@ -293,7 +293,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
             if overwrite and not append:
                 os.remove(output)
             else:
-                raise OSError("File exists: {0}".format(output))
+                raise OSError(f"File exists: {output}")
 
         # Open the file for appending or writing
         f = h5py.File(output, 'a' if append else 'w')
@@ -318,7 +318,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
             # Delete only the dataset itself
             del output_group[name]
         else:
-            raise OSError("Table {0} already exists".format(path))
+            raise OSError(f"Table {path} already exists")
 
     # Encode any mixin columns as plain columns + appropriate metadata
     table = _encode_mixins(table)
@@ -368,7 +368,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
             try:
                 dset.attrs[key] = val
             except TypeError:
-                warnings.warn("Attribute `{0}` of type {1} cannot be written to "
+                warnings.warn("Attribute `{}` of type {} cannot be written to "
                               "HDF5 files - skipping. (Consider specifying "
                               "serialize_meta=True to write all meta data)".format(key, type(val)),
                               AstropyUserWarning)

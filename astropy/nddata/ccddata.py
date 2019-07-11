@@ -403,8 +403,8 @@ class CCDData(NDDataArray):
 
         if len(key) > 8 and len(value) > 72:
             short_name = key[:8]
-            self.meta['HIERARCH {0}'.format(key.upper())] = (
-                short_name, "Shortened name for {}".format(key))
+            self.meta['HIERARCH {}'.format(key.upper())] = (
+                short_name, f"Shortened name for {key}")
             self.meta[short_name] = value
         else:
             self.meta[key] = value
@@ -552,7 +552,7 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
     }
     for key, msg in unsupport_open_keywords.items():
         if key in kwd:
-            prefix = 'unsupported keyword: {0}.'.format(key)
+            prefix = f'unsupported keyword: {key}.'
             raise TypeError(' '.join([prefix, msg]))
     with fits.open(filename, **kwd) as hdus:
         hdr = hdus[hdu].header
@@ -591,7 +591,7 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
                     comb_hdr.extend(hdr, unique=True)
                     hdr = comb_hdr
                     log.info("first HDU with data is extension "
-                             "{0}.".format(hdu))
+                             "{}.".format(hdu))
                     break
 
         if 'bunit' in hdr:
@@ -618,8 +618,8 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
                         'file before reading it.'
                         .format(fits_unit_string))
             else:
-                log.info("using the unit {0} passed to the FITS reader instead "
-                         "of the unit {1} in the FITS file."
+                log.info("using the unit {} passed to the FITS reader instead "
+                         "of the unit {} in the FITS file."
                          .format(unit, fits_unit_string))
 
         use_unit = unit or fits_unit_string
