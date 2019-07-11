@@ -474,6 +474,7 @@ def test_deprecated_did_you_mean_units():
     assert '0.1nm' in str(w[0].message)
     assert not isinstance(x, u.UnrecognizedUnit)
 
+
 @pytest.mark.parametrize('string', ['mag(ct/s)', 'dB(mW)', 'dex(cm s**-2)'])
 def test_fits_function(string):
     # Function units cannot be written, so ensure they're not parsed either.
