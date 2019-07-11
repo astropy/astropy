@@ -2924,6 +2924,7 @@ class CompoundModel(Model):
         self._param_map_inverse = dict((v, k) for k, v in param_map.items())
         self._initialize_slices()
         self._initialize_constraints()
+        self._param_names = tuple(self._param_names)
 
     def _initialize_slices(self):
         # TODO eliminate redundant code with core here and next two methods
