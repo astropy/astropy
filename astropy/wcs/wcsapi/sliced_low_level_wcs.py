@@ -61,7 +61,7 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
     @property
     def wcs(self):
         return self._wcs
-        
+
     @property
     def pixel_n_dim(self):
         return len(self._pixel_keep)
