@@ -497,6 +497,7 @@ class FITS_rec(np.recarray):
 
         # We got a view; change it back to our class, and add stuff
         out = out.view(type(self))
+        out._uint = self._uint
         out._coldefs = ColDefs(self._coldefs)
         arrays = []
         out._converted = {}
