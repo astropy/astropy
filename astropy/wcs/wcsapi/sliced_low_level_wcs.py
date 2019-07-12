@@ -59,6 +59,10 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
             self._wcs.axis_correlation_matrix[:, self._pixel_keep].any(axis=1))[0]
 
     @property
+    def wcs(self):
+        return self._wcs
+        
+    @property
     def pixel_n_dim(self):
         return len(self._pixel_keep)
 
@@ -155,3 +159,21 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
     @property
     def axis_correlation_matrix(self):
         return self._wcs.axis_correlation_matrix[self._world_keep][:,self._pixel_keep]
+
+    def _as_mpl_axes(self):
+        """
+        Compatibility hook for Matplotlib and WCSAxes.
+        With this method, one can do:
+            from astropy.wcs import WCS
+            import matplotlib.pyplot as plt
+            wcs = WCS('filename.fits')
+            fig = plt.figure()
+            ax = fig.add_axes([0.15, 0.1, 0.8, 0.8], projection=wcs)
+            ...
+        and this will generate a plot with the correct WCS coordinates on the
+        axes.
+        """
+
+        # Note this method taken from `astropy.wcs.WCS`
+        from astropy.visualization.wcsaxes import WCSAxes
+        return WCSAxes, {'wcs': self}
