@@ -4,6 +4,7 @@ import platform
 
 import pytest
 import numpy as np
+from numpy.testing import assert_array_equal
 
 from ....io import fits
 from . import FitsTestCase
@@ -112,3 +113,30 @@ class TestUintFunctions(FitsTestCase):
                         table.data.base.base[utype]).all()
                 assert (hdudata3[utype] == table.data[utype]).all()
                 assert (hdudata3[utype] == u).all()
+
+    def test_uint_slice(self):
+        """
+        Fix for https://github.com/astropy/astropy/issues/5490
+        if data is sliced first, make sure the data is still converted as uint
+        """
+        # create_data:
+        dataref = np.arange(2**16, dtype=np.uint16)
+        tbhdu = fits.BinTableHDU.from_columns([
+            fits.Column(name='a', format='I',
+                        array=np.arange(2**16, dtype=np.int16)),
+            fits.Column(name='b', format='I', bscale=1, bzero=2**15,
+                        array=dataref)
+        ])
+        tbhdu.writeto(self.temp('test_scaled_slicing.fits'))
+
+        with fits.open(self.temp('test_scaled_slicing.fits')) as hdulist:
+            data = hdulist[1].data
+        assert_array_equal(data['b'], dataref)
+        sel = data['a'] >= 0
+        assert_array_equal(data[sel]['b'], dataref[sel])
+        assert data[sel]['b'].dtype == dataref[sel].dtype
+
+        with fits.open(self.temp('test_scaled_slicing.fits')) as hdulist:
+            data = hdulist[1].data
+        assert_array_equal(data[sel]['b'], dataref[sel])
+        assert data[sel]['b'].dtype == dataref[sel].dtype
