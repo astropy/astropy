@@ -1776,7 +1776,6 @@ PyWcsprm_sub(
           }
 
           element_str = PyBytes_AsString(element_utf8);
-          Py_DECREF(element_utf8); element_utf8 = NULL;
         } else if (PyBytes_Check(element)) {
           element_str = PyBytes_AsString(element);
         }
@@ -1799,6 +1798,7 @@ PyWcsprm_sub(
             "string values for axis sequence must be one of 'latitude', 'longitude', 'cubeface', 'spectral', 'stokes', or 'celestial'");
           goto exit;
         }
+        Py_CLEAR(element_utf8);
       #if PY3K
       } else if (PyLong_Check(element)) {
         tmp = (Py_ssize_t)PyLong_AsSsize_t(element);
