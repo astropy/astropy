@@ -1735,7 +1735,6 @@ PyWcsprm_sub(
           }
 
           element_str = PyBytes_AsString(element_utf8);
-          Py_DECREF(element_utf8); element_utf8 = NULL;
         } else if (PyBytes_Check(element)) {
           element_str = PyBytes_AsString(element);
         }
