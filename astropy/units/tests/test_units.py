@@ -245,12 +245,12 @@ def test_unit_noarg():
 
 
 def test_convertible_exception():
-    with pytest.raises(u.UnitsError , match='length'):
+    with pytest.raises(u.UnitsError, match=r'length.+ are not convertible'):
         u.AA.to(u.h * u.s ** 2)
 
 
 def test_convertible_exception2():
-    with pytest.raises(u.UnitsError , match='length'):
+    with pytest.raises(u.UnitsError, match=r'length. and .+time.+ are not convertible'):
         u.m.to(u.s)
 
 

@@ -1174,7 +1174,7 @@ def test_to_datetime():
         assert tz.tzname(dt) == tz_dt.tzname()
     assert np.all(time == forced_to_astropy_time)
 
-    with pytest.raises(ValueError, match='does not support leap seconds') as e:
+    with pytest.raises(ValueError, match='does not support leap seconds'):
         Time('2015-06-30 23:59:60.000').to_datetime()
 
 
