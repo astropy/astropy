@@ -184,7 +184,30 @@ def _get_data_attribute(dat, attr=None):
     return str(val)
 
 
-class DataInfo:
+def _get_from_parent_attr(attr):
+    def get_parent_attr(self):
+        return getattr(self._parent, attr)
+
+    def set_parent_attr(self, value):
+        setattr(self._parent, attr, value)
+
+    return property(get_parent_attr, set_parent_attr,
+                    doc=("Parent's '{}' attribute.".format(attr)))
+
+
+class DataInfoMeta(type):
+    def __init__(cls, name, bases, dct):
+        super().__init__(name, bases, dct)
+
+        # define default getters/setters for attributes.
+        for attr in cls.attr_names:
+            if not hasattr(cls, attr):
+                if attr in cls.attrs_from_parent:
+                    setattr(cls, attr,
+                            _get_from_parent_attr(attr))
+
+
+class DataInfo(metaclass=DataInfoMeta):
     """
     Descriptor that data classes use to add an ``info`` attribute for storing
     data attributes in a uniform and portable way.  Note that it *must* be
@@ -298,9 +321,6 @@ reference with ``c = col[3:5]`` followed by ``c.info``.""")
     def __getattr__(self, attr):
         if attr.startswith('_'):
             return super().__getattribute__(attr)
-
-        if attr in self.attrs_from_parent:
-            return getattr(self._parent, attr)
 
         try:
             value = self._attrs[attr]
