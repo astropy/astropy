@@ -665,6 +665,32 @@ a real-world example::
    so the `astropy.tests.helper.catch_warnings` context manager is
    preferred.
 
+Testing exceptions
+==================
+
+Just like the handling of warnings described above, tests that are
+designed to trigger certain errors should verify that an exception of
+the expected type is raised in the expeced place.  This is efficiently
+done by running the tested code inside the
+`pytests.raises<https://docs.pytest.org/en/latest/assert.html#assertraises>`_
+context manager.  Its optional ``matches`` argument allows to check the
+error message for any patterns using ``regex`` syntax.  For example the
+matches ``pytest.raises(OSError, match=r'^No such file')`` and
+``pytest.raises(OSError, match=r'or directory$')`` would be equivalent
+to ``assert str(err).startswith(No such file)`` and ``assert
+str(err).endswith(or directory)``, respectively, on the raised error
+message ``err``.
+For matching multi-line messages you need to pass the ``(?s)``
+`flag<https://docs.python.org/3/library/re.html#re.S>`_
+to the underlying ``re.search``, as in the example below::
+
+  with pytest.raises(fits.VerifyError, match=r'(?s)not upper..+ Illegal key') as excinfo:
+      hdu.verify('fix+exception')
+  assert str(excinfo.value).count('Card') == 2
+  
+This invocation also illustrates how to get an ``ExceptionInfo`` object
+returned to perform additional diagnostics on the info.
+
 Testing configuration parameters
 ================================
 
