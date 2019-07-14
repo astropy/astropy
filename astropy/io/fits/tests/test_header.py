@@ -617,6 +617,9 @@ class TestHeaderFunctions(FitsTestCase):
         """Test that accessing a non-existent keyword raises a KeyError."""
 
         header = fits.Header()
+        # De-referencing header through the inline function should behave
+        # identically to accessing it in the pytest.raises context below.
+        pytest.raises(KeyError, lambda k: header[k], 'NAXIS')
         # Test exception with message
         with pytest.raises(KeyError, match="Keyword 'NAXIS' not found."):
             header['NAXIS']

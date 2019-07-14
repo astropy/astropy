@@ -273,7 +273,7 @@ class TestCore(FitsTestCase):
         # silentfix+exception should only mention the unfixable error in the
         # exception
         hdu = make_invalid_hdu()
-        with pytest.raises(fits.VerifyError , match='Illegal keyword name') as excinfo:
+        with pytest.raises(fits.VerifyError, match='Illegal keyword name') as excinfo:
             hdu.verify('silentfix+exception')
         assert 'not upper case' not in str(excinfo.value)
 
@@ -295,8 +295,9 @@ class TestCore(FitsTestCase):
 
         # fix+exception
         hdu = make_invalid_hdu()
-        with pytest.raises(fits.VerifyError , match=r'(?s)not upper case..+ Illegal keyword name') as excinfo:
+        with pytest.raises(fits.VerifyError, match='Illegal keyword name') as excinfo:
             hdu.verify('fix+exception')
+        assert 'not upper case' in str(excinfo.value)
 
     def test_getext(self):
         """
@@ -587,7 +588,7 @@ class TestFileFunctions(FitsTestCase):
         OSError (and not some other arbitrary exception).
         """
 
-        with pytest.raises(OSError , match='No such file or directory') as excinfo:
+        with pytest.raises(OSError, match='No such file or directory'):
             fits.open(self.temp('foobar.fits'))
 
         # But opening in ostream or append mode should be okay, since they
