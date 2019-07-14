@@ -195,16 +195,40 @@ def _get_from_parent_attr(attr):
                     doc=("Parent's '{}' attribute.".format(attr)))
 
 
+def _info_attr(attr):
+    def get_attr(self):
+        return self._attrs[attr]
+
+    def set_attr(self, value):
+        self._attrs[attr] = value
+
+    return property(get_attr, set_attr)
+
+
 class DataInfoMeta(type):
     def __init__(cls, name, bases, dct):
         super().__init__(name, bases, dct)
 
-        # define default getters/setters for attributes.
+        # define default getters/setters for attributes, if needed.
         for attr in cls.attr_names:
-            if not hasattr(cls, attr):
+            if attr not in dct:
+                # If not defined explicitly for this class, did any of
+                # its superclasses define it, and, if so, was this an
+                # automatically defined look-up-on-parent attribute?
+                cls_attr = getattr(cls, attr, None)
+                is_parent_attr = (hasattr(cls_attr, 'fget') and
+                                  (cls_attr.fget.__name__ or '') ==
+                                  'get_parent_attr')
                 if attr in cls.attrs_from_parent:
-                    setattr(cls, attr,
-                            _get_from_parent_attr(attr))
+                    # If the attribute is stored on the parent, and it
+                    # was not the case on the superclass, override it.
+                    if not is_parent_attr:
+                        setattr(cls, attr, _get_from_parent_attr(attr))
+                elif not cls_attr or is_parent_attr:
+                    # Otherwise, if not defined already or previously defined
+                    # as an attribute on the parent, define a regular
+                    # look-up-on-info attribute
+                    setattr(cls, attr, _info_attr(attr))
 
 
 class DataInfo(metaclass=DataInfoMeta):
@@ -254,9 +278,11 @@ class DataInfo(metaclass=DataInfoMeta):
 
     def __init__(self, bound=False):
         # If bound to a data object instance then create the dict of attributes
-        # which stores the info attribute values.
+        # which stores the info attribute values. Default of None for "unset"
+        # except for dtype where the default is object.
         if bound:
-            self._attrs = dict((attr, None) for attr in self.attr_names)
+            self._attrs = {attr: (None if attr != 'dtype' else np.dtype('O'))
+                           for attr in self.attr_names}
 
     @property
     def _parent(self):
@@ -317,56 +343,6 @@ reference with ``c = col[3:5]`` followed by ``c.info``.""")
 
     def __setstate__(self, state):
         self._attrs = state
-
-    def __getattr__(self, attr):
-        if attr.startswith('_'):
-            return super().__getattribute__(attr)
-
-        try:
-            value = self._attrs[attr]
-        except KeyError:
-            super().__getattribute__(attr)  # Generate AttributeError
-
-        # Weak ref for parent table
-        if attr == 'parent_table' and callable(value):
-            value = value()
-
-        # Mixins have a default dtype of Object if nothing else was set
-        if attr == 'dtype' and value is None:
-            value = np.dtype('O')
-
-        return value
-
-    def __setattr__(self, attr, value):
-        propobj = getattr(self.__class__, attr, None)
-
-        # If attribute is taken from parent properties and there is not a
-        # class property (getter/setter) for this attribute then set
-        # attribute directly in parent.
-        if attr in self.attrs_from_parent and not isinstance(propobj, property):
-            setattr(self._parent, attr, value)
-            return
-
-        # Check if there is a property setter and use it if possible.
-        if isinstance(propobj, property):
-            if propobj.fset is None:
-                raise AttributeError("can't set attribute")
-            propobj.fset(self, value)
-            return
-
-        # Private attr names get directly set
-        if attr.startswith('_'):
-            super().__setattr__(attr, value)
-            return
-
-        # Finally this must be an actual data attribute that this class is handling.
-        if attr not in self.attr_names:
-            raise AttributeError(f"attribute must be one of {self.attr_names}")
-
-        if attr == 'parent_table':
-            value = None if value is None else weakref.ref(value)
-
-        self._attrs[attr] = value
 
     def _represent_as_dict(self):
         """Get the values for the parent ``attrs`` and return as a dict."""
@@ -515,6 +491,19 @@ class BaseColumnInfo(DataInfo):
     # SkyCoord will have different default serialization representations
     # depending on context.
     _serialize_context = None
+
+    @property
+    def parent_table(self):
+        value = self._attrs['parent_table']
+        if callable(value):
+            value = value()
+        return value
+
+    @parent_table.setter
+    def parent_table(self, parent_table):
+        if parent_table is not None:
+            parent_table = weakref.ref(parent_table)
+        self._attrs['parent_table'] = parent_table
 
     def __init__(self, bound=False):
         super().__init__(bound=bound)
