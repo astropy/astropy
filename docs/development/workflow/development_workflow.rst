@@ -336,7 +336,7 @@ In more detail
    with the `py.test`_ testing framework submit your changes without adding
    tests, but mention in the pull request that you have not written tests.
    An example of writing a test is in
-   :ref:`stop-and-think-any-more-tests-or-other-changes`.
+   :ref:`astropy-fix-add-tests`.
 
 #. Stage your changes using ``git add`` and commit them using ``git commit``.
    An example of doing that, based on the fix for an actual Astropy issue, is

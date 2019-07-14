@@ -259,6 +259,8 @@ location.  This mode can be triggered by running the tests like so::
 
 
 
+.. _writing-tests:
+
 Writing tests
 *************
 
@@ -687,7 +689,7 @@ to the underlying ``re.search``, as in the example below::
   with pytest.raises(fits.VerifyError, match=r'(?s)not upper..+ Illegal key') as excinfo:
       hdu.verify('fix+exception')
   assert str(excinfo.value).count('Card') == 2
-  
+
 This invocation also illustrates how to get an ``ExceptionInfo`` object
 returned to perform additional diagnostics on the info.
 
