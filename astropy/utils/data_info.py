@@ -206,10 +206,24 @@ def _info_attr(attr):
 
 
 class DataInfoMeta(type):
+    def __new__(mcls, name, bases, dct):
+        # Ensure that we do not gain a __dict__, which would mean
+        # arbitrary attributes could be set (as a by-product, save
+        # some memory).
+        dct.setdefault('__slots__', [])
+        # Set a default __doc__, mostly to avoid InheritDocstrings
+        # from trying to give us a docstring if none is present.
+        dct.setdefault('__doc__', """\
+Container for meta information like name, description, format.
+This is required when the object is used as a mixin column within
+a table, but can be used as a general way to store meta information.
+""")
+        return super().__new__(mcls, name, bases, dct)
+
     def __init__(cls, name, bases, dct):
         super().__init__(name, bases, dct)
 
-        # define default getters/setters for attributes, if needed.
+        # Define default getters/setters for attributes, if needed.
         for attr in cls.attr_names:
             if attr not in dct:
                 # If not defined explicitly for this class, did any of
@@ -252,8 +266,7 @@ class DataInfo(metaclass=DataInfoMeta):
     attr_names = set(['name', 'unit', 'dtype', 'format', 'description', 'meta'])
     _attrs_no_copy = set()
     _info_summary_attrs = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
-    _parent_ref = None
-
+    __slots__ = ['_parent_cls', '_parent_ref', '_attrs']
     # This specifies the list of object attributes which must be stored in
     # order to re-create the object after serialization.  This is independent
     # of normal `info` attributes like name or description.  Subclasses will
@@ -280,6 +293,7 @@ class DataInfo(metaclass=DataInfoMeta):
         # If bound to a data object instance then create the dict of attributes
         # which stores the info attribute values. Default of None for "unset"
         # except for dtype where the default is object.
+        self._parent_ref = None
         if bound:
             self._attrs = {attr: (None if attr != 'dtype' else np.dtype('O'))
                            for attr in self.attr_names}
@@ -319,10 +333,8 @@ reference with ``c = col[3:5]`` followed by ``c.info``.""")
             info = instance.__dict__.get('info')
             if info is None:
                 info = instance.__dict__['info'] = self.__class__(bound=True)
-            # Bypass setter and in particular __setattr__
-            # info._parent = instance
-            # info.__class__._parent.fset(info, instance)
-            info.__dict__['_parent_ref'] = weakref.ref(instance)
+            info._parent = instance
+
         return info
 
     def __set__(self, instance, value):
@@ -491,6 +503,7 @@ class BaseColumnInfo(DataInfo):
     # SkyCoord will have different default serialization representations
     # depending on context.
     _serialize_context = None
+    __slots__ = ['_format_funcs', '_copy_indices']
 
     @property
     def parent_table(self):
@@ -668,16 +681,21 @@ class BaseColumnInfo(DataInfo):
 
 class MixinInfo(BaseColumnInfo):
 
-    def __setattr__(self, attr, value):
+    @property
+    def name(self):
+        return self._attrs['name']
+
+    @name.setter
+    def name(self, name):
         # For mixin columns that live within a table, rename the column in the
         # table when setting the name attribute.  This mirrors the same
         # functionality in the BaseColumn class.
-        if attr == 'name' and self.parent_table is not None:
+        if self.parent_table is not None:
             from astropy.table.np_utils import fix_column_name
-            new_name = fix_column_name(value)  # Ensure col name is numpy compatible
+            new_name = fix_column_name(name)  # Ensure col name is numpy compatible
             self.parent_table.columns._rename_column(self.name, new_name)
 
-        super().__setattr__(attr, value)
+        self._attrs['name'] = name
 
 
 class ParentDtypeInfo(MixinInfo):
