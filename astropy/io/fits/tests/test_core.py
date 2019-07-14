@@ -273,13 +273,9 @@ class TestCore(FitsTestCase):
         # silentfix+exception should only mention the unfixable error in the
         # exception
         hdu = make_invalid_hdu()
-        try:
+        with pytest.raises(fits.VerifyError , match='Illegal keyword name') as excinfo:
             hdu.verify('silentfix+exception')
-        except fits.VerifyError as exc:
-            assert 'Illegal keyword name' in str(exc)
-            assert 'not upper case' not in str(exc)
-        else:
-            self.fail('An exception should have been raised.')
+        assert 'not upper case' not in str(excinfo.value)
 
         # fix+ignore is not too useful, but it should warn about the fixed
         # problems while saying nothing about the unfixable problems
@@ -299,13 +295,8 @@ class TestCore(FitsTestCase):
 
         # fix+exception
         hdu = make_invalid_hdu()
-        try:
+        with pytest.raises(fits.VerifyError , match=r'(?s)not upper case..+ Illegal keyword name') as excinfo:
             hdu.verify('fix+exception')
-        except fits.VerifyError as exc:
-            assert 'Illegal keyword name' in str(exc)
-            assert 'not upper case' in str(exc)
-        else:
-            self.fail('An exception should have been raised.')
 
     def test_getext(self):
         """
@@ -596,10 +587,8 @@ class TestFileFunctions(FitsTestCase):
         OSError (and not some other arbitrary exception).
         """
 
-        try:
+        with pytest.raises(OSError , match='No such file or directory') as excinfo:
             fits.open(self.temp('foobar.fits'))
-        except OSError as e:
-            assert 'No such file or directory' in str(e)
 
         # But opening in ostream or append mode should be okay, since they
         # allow writing new files

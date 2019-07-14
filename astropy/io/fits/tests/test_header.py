@@ -617,12 +617,9 @@ class TestHeaderFunctions(FitsTestCase):
         """Test that accessing a non-existent keyword raises a KeyError."""
 
         header = fits.Header()
-        pytest.raises(KeyError, lambda k: header[k], 'NAXIS')
-        # Test the exception message
-        try:
+        # Test exception with message
+        with pytest.raises(KeyError, match="Keyword 'NAXIS' not found."):
             header['NAXIS']
-        except KeyError as e:
-            assert e.args[0] == "Keyword 'NAXIS' not found."
 
     def test_hierarch_card_lookup(self):
         header = fits.Header()
@@ -2530,12 +2527,9 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         """
 
         pytest.raises(IndexError, lambda x: self._test_header[x], 8)
-        pytest.raises(KeyError, lambda k: self._test_header[k], 'DP1.AXIS.3')
-        # Test the exception message
-        try:
+        # Test exception with message
+        with pytest.raises(KeyError, match="Keyword 'DP1.AXIS.3' not found."):
             self._test_header['DP1.AXIS.3']
-        except KeyError as e:
-            assert e.args[0] == "Keyword 'DP1.AXIS.3' not found."
 
     def test_update_rvkc(self):
         """A RVKC can be updated either via index or keyword access."""
