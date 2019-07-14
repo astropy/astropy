@@ -72,9 +72,11 @@ class SkyCoordInfo(MixinInfo):
         if 'distance' in attrs and np.all(obj.distance == 1.0):
             attrs.remove('distance')
 
-        self._represent_as_dict_attrs = attrs
-
-        out = super()._represent_as_dict()
+        out = {}
+        for attr in attrs:
+            value = getattr(obj, attr, None)
+            if value is not None:
+                out[attr] = value
 
         out['representation_type'] = obj.representation_type.get_name()
         out['frame'] = obj.frame.name
