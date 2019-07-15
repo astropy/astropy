@@ -25,30 +25,33 @@ piece of code needs the same equivalencies, one can set them for a
 Built-in equivalencies
 ======================
 
-Parallax Units
---------------
+How to Convert Parallax to Distance
+-----------------------------------
 
-:func:`~astropy.units.equivalencies.parallax` is a function that returns an
-equivalency list to handle conversions between angles and length.
+The length unit *parsec* is defined such that a star one parsec away
+will exhibit a 1-arcsecond parallax. (Think of it as a contraction
+between *parallax* and *arcsecond*.)
 
-Length and angles are not normally convertible, so
-:meth:`~astropy.units.core.UnitBase.to` raises an exception::
+The :func:`~astropy.units.equivalencies.parallax` function handles
+conversions between parallax angles and length.
+
+In general, you should not be able to change units of length into
+angles or vice versa, so :meth:`~astropy.units.core.UnitBase.to`
+raises an exception::
 
   >>> from astropy import units as u
-  >>> (8.0 * u.arcsec).to(u.parsec)  # doctest: +IGNORE_EXCEPTION_DETAIL
+  >>> (0.8 * u.arcsec).to(u.parsec)  # doctest: +IGNORE_EXCEPTION_DETAIL
   Traceback (most recent call last):
     ...
   UnitConversionError: 'arcsec' (angle) and 'pc' (length) are not convertible
 
-However, when passing the result of
-:func:`~astropy.units.equivalencies.parallax` as the third argument to the
-:meth:`~astropy.units.core.UnitBase.to` method, angles can be converted
-into units of length (and vice versa).
+To trigger the conversion between parallax angle and distance, provide
+:func:`~astropy.units.equivalencies.parallax` as the optional keyword
+argument (``equivalencies=``) to the
+:meth:`~astropy.units.core.UnitBase.to` method.
 
-    >>> (8.0 * u.arcsec).to(u.parsec, equivalencies=u.parallax())
-    <Quantity 0.125 pc>
-    >>> u.AU.to(u.arcminute, equivalencies=u.parallax())
-    3437.7467707580054
+    >>> (0.8 * u.arcsec).to(u.parsec, equivalencies=u.parallax())
+    <Quantity 1.25 pc>
 
 Angles as Dimensionless Units
 -----------------------------
