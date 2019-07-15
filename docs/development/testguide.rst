@@ -624,8 +624,8 @@ present.
 Using pytest helper functions
 =============================
 
-If your tests need to use `pytest helper functions
-<https://pytest.org/en/latest/builtin.html#pytest-helpers>`_, such as
+If your tests need to use `pytest
+:ref:`pytest helper functions <pytest:pytest helpers>`_, such as
 ``pytest.raises``, import ``pytest`` into your test module like so::
 
     import pytest
@@ -674,7 +674,7 @@ Just like the handling of warnings described above, tests that are
 designed to trigger certain errors should verify that an exception of
 the expected type is raised in the expeced place.  This is efficiently
 done by running the tested code inside the
-`pytest.raises <pytest:assertraises>`_
+:ref:`pytest.raises <pytest:assertraises>`_
 context manager.  Its optional ``match`` argument allows to check the
 error message for any patterns using ``regex`` syntax.  For example the
 matches ``pytest.raises(OSError, match=r'^No such file')`` and
@@ -683,7 +683,7 @@ to ``assert str(err).startswith(No such file)`` and ``assert
 str(err).endswith(or directory)``, respectively, on the raised error
 message ``err``.
 For matching multi-line messages you need to pass the ``(?s)``
-`flag <python:re-syntax>`_
+:ref:`flag <python:re-syntax>`_
 to the underlying ``re.search``, as in the example below::
 
   with pytest.raises(fits.VerifyError, match=r'(?s)not upper..+ Illegal key') as excinfo:
