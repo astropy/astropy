@@ -184,25 +184,41 @@ def _get_data_attribute(dat, attr=None):
     return str(val)
 
 
-def _get_from_parent_attr(attr):
-    def get_parent_attr(self):
-        return getattr(self._parent, attr)
+class InfoAttribute:
+    def __init__(self, attr, default=None):
+        self.attr = attr
+        self.default = default
 
-    def set_parent_attr(self, value):
-        setattr(self._parent, attr, value)
+    def __get__(self, instance, owner_cls):
+        if instance is None:
+            return self
 
-    return property(get_parent_attr, set_parent_attr,
-                    doc=("Parent's '{}' attribute.".format(attr)))
+        return instance._attrs.get(self.attr, self.default)
+
+    def __set__(self, instance, value):
+        if instance is None:
+            # This is an unbound descriptor on the class
+            raise ValueError('cannot set unbound descriptor')
+
+        instance._attrs[self.attr] = value
 
 
-def _info_attr(attr):
-    def get_attr(self):
-        return self._attrs[attr]
+class ParentAttribute:
+    def __init__(self, attr):
+        self.attr = attr
 
-    def set_attr(self, value):
-        self._attrs[attr] = value
+    def __get__(self, instance, owner_cls):
+        if instance is None:
+            return self
 
-    return property(get_attr, set_attr)
+        return getattr(instance._parent, self.attr)
+
+    def __set__(self, instance, value):
+        if instance is None:
+            # This is an unbound descriptor on the class
+            raise ValueError('cannot set unbound descriptor')
+
+        setattr(instance._parent, self.attr, value)
 
 
 class DataInfoMeta(type):
@@ -230,19 +246,17 @@ a table, but can be used as a general way to store meta information.
                 # its superclasses define it, and, if so, was this an
                 # automatically defined look-up-on-parent attribute?
                 cls_attr = getattr(cls, attr, None)
-                is_parent_attr = (hasattr(cls_attr, 'fget') and
-                                  (cls_attr.fget.__name__ or '') ==
-                                  'get_parent_attr')
                 if attr in cls.attrs_from_parent:
                     # If the attribute is stored on the parent, and it
                     # was not the case on the superclass, override it.
-                    if not is_parent_attr:
-                        setattr(cls, attr, _get_from_parent_attr(attr))
-                elif not cls_attr or is_parent_attr:
+                    if not isinstance(cls_attr, ParentAttribute):
+                        setattr(cls, attr, ParentAttribute(attr))
+                elif not cls_attr or isinstance(cls_attr, ParentAttribute):
                     # Otherwise, if not defined already or previously defined
                     # as an attribute on the parent, define a regular
                     # look-up-on-info attribute
-                    setattr(cls, attr, _info_attr(attr))
+                    setattr(cls, attr,
+                            InfoAttribute(attr, cls._attr_defaults.get(attr)))
 
 
 class DataInfo(metaclass=DataInfoMeta):
@@ -264,6 +278,7 @@ class DataInfo(metaclass=DataInfoMeta):
     _stats = ['mean', 'std', 'min', 'max']
     attrs_from_parent = set()
     attr_names = set(['name', 'unit', 'dtype', 'format', 'description', 'meta'])
+    _attr_defaults = {'dtype': np.dtype('O')}
     _attrs_no_copy = set()
     _info_summary_attrs = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
     __slots__ = ['_parent_cls', '_parent_ref', '_attrs']
@@ -294,8 +309,7 @@ class DataInfo(metaclass=DataInfoMeta):
         # which stores the info attribute values. Default of None for "unset"
         # except for dtype where the default is object.
         if bound:
-            self._attrs = {attr: (None if attr != 'dtype' else np.dtype('O'))
-                           for attr in self.attr_names}
+            self._attrs = {}
 
     @property
     def _parent(self):
@@ -316,17 +330,16 @@ reference with ``c = col[3:5]`` followed by ``c.info``.""") from None
     def __get__(self, instance, owner_cls):
         if instance is None:
             # This is an unbound descriptor on the class
-            info = self
-            info._parent_cls = owner_cls
-        else:
-            info = instance.__dict__.get('info')
-            if info is None:
-                info = instance.__dict__['info'] = self.__class__(bound=True)
-            # We set _parent_ref on every call, since if one makes copies of
-            # instances, 'info' will be copied as well, which will lose the
-            # reference.
-            info._parent_ref = weakref.ref(instance)
+            self._parent_cls = owner_cls
+            return self
 
+        info = instance.__dict__.get('info')
+        if info is None:
+            info = instance.__dict__['info'] = self.__class__(bound=True)
+        # We set _parent_ref on every call, since if one makes copies of
+        # instances, 'info' will be copied as well, which will lose the
+        # reference.
+        info._parent_ref = weakref.ref(instance)
         return info
 
     def __set__(self, instance, value):
@@ -499,16 +512,18 @@ class BaseColumnInfo(DataInfo):
 
     @property
     def parent_table(self):
-        value = self._attrs['parent_table']
+        value = self._attrs.get('parent_table')
         if callable(value):
             value = value()
         return value
 
     @parent_table.setter
     def parent_table(self, parent_table):
-        if parent_table is not None:
+        if parent_table is None:
+            self._attrs.pop('parent_table', None)
+        else:
             parent_table = weakref.ref(parent_table)
-        self._attrs['parent_table'] = parent_table
+            self._attrs['parent_table'] = parent_table
 
     def __init__(self, bound=False):
         super().__init__(bound=bound)
@@ -675,7 +690,7 @@ class MixinInfo(BaseColumnInfo):
 
     @property
     def name(self):
-        return self._attrs['name']
+        return self._attrs.get('name')
 
     @name.setter
     def name(self, name):
