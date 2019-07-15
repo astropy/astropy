@@ -2435,6 +2435,10 @@ astropy.units
 - ``Quantity`` now preserves the ``dtype`` for anything that is floating
   point, including ``float16``. [#8872]
 
+- ``Unit()`` now accepts units with fractional exponents such as ``m(3/2)``
+  in the default/``fits`` and ``vounit`` formats that would previously
+  have been rejected for containing multiple solidi (``/``). [#9000]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
