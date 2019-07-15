@@ -82,12 +82,12 @@ through with the ``--args`` argument::
 
     > python setup.py test --args "-x"
 
-`pytest`_ will look for files that `look like tests
-<https://pytest.org/en/latest/goodpractices.html#conventions-for-python-test-discovery>`_
-in the current directory and all recursive directories then run all the code that
-`looks like tests
-<https://pytest.org/en/latest/goodpractices.html#conventions-for-python-test-discovery>`_
-within those files.
+`pytest`_ will look for files that 
+:ref:`look like tests <pytest:python test discovery>`, per default
+in the current directory and all recursive directories, then run all
+the code that looks like tests (essentially all functions or methods
+with ``test_`` prefixes or inside ``Test`` prefixed classes) within
+those files.
 
 Turn on PEP8 checking by passing ``--pep8`` to the ``test`` command. This will
 turn off regular testing and enable PEP8 testing.
@@ -132,7 +132,7 @@ internet. To turn these tests on use the ``remote_data`` flag::
     astropy.test(package='io.fits', remote_data=True)
 
 In addition, the ``test`` function supports any of the options that can be
-passed to `pytest.main() <https://pytest.org/en/latest/builtin.html#pytest.main>`_,
+passed to :ref:`pytest.main() <pytest:pytest.main-usage>`
 and convenience options ``verbose=`` and ``pastebin=``.
 
 Enable PEP8 compliance testing with ``pep8=True`` in the call to
@@ -270,8 +270,7 @@ Writing tests
  * ``Test`` prefixed classes (without an ``__init__`` method)
  * ``test_`` prefixed functions and methods
 
-Consult the `test discovery rules
-<https://pytest.org/en/latest/goodpractices.html#conventions-for-python-test-discovery>`_
+Consult the :ref:`test discovery rules <pytest:python test discovery>`
 for detailed information on how to name files and tests so that they are
 automatically discovered by `pytest`_.
 
@@ -440,10 +439,10 @@ Tests that create files
 
 Tests may often be run from directories where users do not have write
 permissions so tests which create files should always do so in
-temporary directories. This can be done with the `pytest tmpdir
-function argument <https://pytest.org/en/latest/tmpdir.html>`_ or with
-Python's built-in `tempfile module
-<https://docs.python.org/3/library/tempfile.html#module-tempfile>`_.
+temporary directories. This can be done with the
+:ref:`pytest tmpdir function argument <pytest:tmpdir >`
+or with Python's built-in :ref:`tempfile module <python:tempfile>`.
+
 
 Setting up/Tearing down tests
 =============================
@@ -624,8 +623,8 @@ present.
 Using pytest helper functions
 =============================
 
-If your tests need to use `pytest
-:ref:`pytest helper functions <pytest:assert>`, such as
+If your tests need to use
+:ref:`pytest helper functions <pytest:pytest.raises>`, such as
 ``pytest.raises``, import ``pytest`` into your test module like so::
 
     import pytest
