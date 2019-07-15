@@ -293,36 +293,25 @@ class DataInfo(metaclass=DataInfoMeta):
         # If bound to a data object instance then create the dict of attributes
         # which stores the info attribute values. Default of None for "unset"
         # except for dtype where the default is object.
-        self._parent_ref = None
         if bound:
             self._attrs = {attr: (None if attr != 'dtype' else np.dtype('O'))
                            for attr in self.attr_names}
 
     @property
     def _parent(self):
-        if self._parent_ref is None:
+        try:
+            return self._parent_ref()
+        except AttributeError:
             return None
-        else:
-            parent = self._parent_ref()
-            if parent is not None:
-                return parent
-
-            else:
-                raise AttributeError("""\
+        except TypeError:
+            raise AttributeError("""\
 failed access "info" attribute on a temporary object.
 
 It looks like you have done something like ``col[3:5].info``, i.e.
 you accessed ``info`` from a temporary slice object ``col[3:5]`` that
 only exists momentarily.  This has failed because the reference to
 that temporary object is now lost.  Instead force a permanent
-reference with ``c = col[3:5]`` followed by ``c.info``.""")
-
-    @_parent.setter
-    def _parent(self, value):
-        if value is None:
-            self._parent_ref = None
-        else:
-            self._parent_ref = weakref.ref(value)
+reference with ``c = col[3:5]`` followed by ``c.info``.""") from None
 
     def __get__(self, instance, owner_cls):
         if instance is None:
@@ -333,7 +322,10 @@ reference with ``c = col[3:5]`` followed by ``c.info``.""")
             info = instance.__dict__.get('info')
             if info is None:
                 info = instance.__dict__['info'] = self.__class__(bound=True)
-            info._parent = instance
+            # We set _parent_ref on every call, since if one makes copies of
+            # instances, 'info' will be copied as well, which will lose the
+            # reference.
+            info._parent_ref = weakref.ref(instance)
 
         return info
 
