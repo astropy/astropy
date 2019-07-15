@@ -171,6 +171,7 @@ def test_multiple_solidus():
     with pytest.raises(ValueError):
         u.Unit("m/s/kg", format="vounit")
 
+    # Regression test for #9000: solidi in exponents do not count towards this.
     x = u.Unit("kg(3/10) * m(5/2) / s", format="vounit")
     assert x.to_string() == 'kg(3/10) m(5/2) / s'
 

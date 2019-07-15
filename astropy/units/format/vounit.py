@@ -85,13 +85,12 @@ class VOUnit(generic.Generic):
             return None
         if s == '':
             return core.dimensionless_unscaled
-        nsolidus = s.count('/')
-        if nsolidus > 1:
-            # Check for fractional exponents (allowed)
-            if nsolidus - len(re.findall(r'\(\d+/\d+\)', s)) > 1:
-                raise core.UnitsError(
-                    "'{}' contains multiple slashes, which is "
-                    "disallowed by the VOUnit standard".format(s))
+        # Check for excess solidi, but exclude fractional exponents (allowed)
+        if (s.count('/') > 1 and
+                s.count('/') - len(re.findall(r'\(\d+/\d+\)', s)) > 1):
+            raise core.UnitsError(
+                "'{}' contains multiple slashes, which is "
+                "disallowed by the VOUnit standard".format(s))
         result = cls._do_parse(s, debug=debug)
         if hasattr(result, 'function_unit'):
             raise ValueError("Function units are not yet supported in "
