@@ -440,8 +440,8 @@ Tests that create files
 Tests may often be run from directories where users do not have write
 permissions so tests which create files should always do so in
 temporary directories. This can be done with the
-:ref:`pytest 'tmpdir' fixture <pytest:tmpdir>`
-or with Python's built-in :ref:`tempfile module <python:tempfile>`.
+:ref:`pytest 'tmpdir' fixture <pytest:tmpdir>` or with
+Python's built-in :ref:`tempfile module <python:tempfile-examples>`.
 
 
 Setting up/Tearing down tests
