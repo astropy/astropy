@@ -171,6 +171,9 @@ def test_multiple_solidus():
     with pytest.raises(ValueError):
         u.Unit("m/s/kg", format="vounit")
 
+    x = u.Unit("kg(3/10) * m(5/2) / s", format="vounit")
+    assert x.to_string() == 'kg(3/10) m(5/2) / s'
+
 
 def test_unknown_unit3():
     unit = u.Unit("FOO", parse_strict='silent')

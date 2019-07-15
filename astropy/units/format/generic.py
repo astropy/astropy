@@ -469,11 +469,14 @@ class Generic(Base):
             s = s.decode('ascii')
 
         result = cls._do_parse(s, debug=debug)
-        if s.count('/') > 1:
-            warnings.warn(
-                "'{}' contains multiple slashes, which is "
-                "discouraged by the FITS standard".format(s),
-                core.UnitsWarning)
+        nsolidus = s.count('/')
+        if nsolidus > 1:
+            # Check for fractional exponents (accepted)
+            if nsolidus - len(re.findall(r'\(\d+/\d+\)', s)) > 1:
+                warnings.warn(
+                    "'{}' contains multiple slashes, which is "
+                    "discouraged by the FITS standard".format(s),
+                    core.UnitsWarning)
         return result
 
     @classmethod
