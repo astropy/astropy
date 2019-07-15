@@ -469,7 +469,9 @@ class Generic(Base):
             s = s.decode('ascii')
 
         result = cls._do_parse(s, debug=debug)
-        if s.count('/') > 1:
+        # Check for excess solidi, but exclude fractional exponents (accepted)
+        if (s.count('/') > 1 and
+                s.count('/') - len(re.findall(r'\(\d+/\d+\)', s)) > 1):
             warnings.warn(
                 "'{0}' contains multiple slashes, which is "
                 "discouraged by the FITS standard".format(s),

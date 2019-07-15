@@ -85,7 +85,9 @@ class VOUnit(generic.Generic):
             return None
         if s == '':
             return core.dimensionless_unscaled
-        if s.count('/') > 1:
+        # Check for excess solidi, but exclude fractional exponents (allowed)
+        if (s.count('/') > 1 and
+                s.count('/') - len(re.findall(r'\(\d+/\d+\)', s)) > 1):
             raise core.UnitsError(
                 "'{0}' contains multiple slashes, which is "
                 "disallowed by the VOUnit standard".format(s))
