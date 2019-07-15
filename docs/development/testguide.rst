@@ -625,7 +625,7 @@ Using pytest helper functions
 =============================
 
 If your tests need to use `pytest
-:ref:`pytest helper functions <pytest:pytest helpers>`, such as
+:ref:`pytest helper functions <pytest:assert>`, such as
 ``pytest.raises``, import ``pytest`` into your test module like so::
 
     import pytest
