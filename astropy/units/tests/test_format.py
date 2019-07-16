@@ -6,6 +6,7 @@ Regression tests for the units.format package
 """
 
 import pytest
+import numpy as np
 from numpy.testing import assert_allclose
 
 from astropy.tests.helper import catch_warnings
@@ -156,66 +157,122 @@ def test_ogip_grammar_fail(string):
         u_format.OGIP.parse(string)
 
 
-@pytest.mark.parametrize('unit', [val for key, val in u.__dict__.items()
-                                  if (isinstance(val, core.UnitBase) and
-                                      not isinstance(val, core.PrefixUnit))])
-def test_roundtrip(unit):
-    a = core.Unit(unit.to_string('generic'), format='generic')
-    b = core.Unit(unit.decompose().to_string('generic'), format='generic')
-    assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
-    assert_allclose(b.decompose().scale, unit.decompose().scale, rtol=1e-2)
+class RoundtripBase:
+    deprecated_units = set()
+
+    def check_roundtrip(self, unit):
+        with catch_warnings() as w:
+            s = unit.to_string(self.format_)
+            a = core.Unit(s, format=self.format_)
+
+        if s in self.deprecated_units:
+            assert w
+            assert 'deprecated' in str(w[0])
+        else:
+            assert not w
+
+        assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-9)
+
+    def check_roundtrip_decompose(self, unit):
+        ud = unit.decompose()
+        s = ud.to_string(self.format_)
+        assert '  ' not in s
+        a = core.Unit(s, format=self.format_)
+        assert_allclose(a.decompose().scale, ud.scale, rtol=1e-5)
 
 
-@pytest.mark.parametrize('unit', [
-    val for key, val in u_format.VOUnit._units.items()
-    if (isinstance(val, core.UnitBase) and
-        not isinstance(val, core.PrefixUnit))])
-def test_roundtrip_vo_unit(unit):
-    a = core.Unit(unit.to_string('vounit'), format='vounit')
-    assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
-    if unit not in (u.mag, u.dB):
-        ud = unit.decompose().to_string('vounit')
-        assert '  ' not in ud
-        b = core.Unit(ud, format='vounit')
-        assert_allclose(b.decompose().scale, unit.decompose().scale, rtol=1e-2)
+class TestRoundtripGeneric(RoundtripBase):
+    format_ = 'generic'
+
+    @pytest.mark.parametrize('unit', [
+        unit for unit in u.__dict__.values()
+        if (isinstance(unit, core.UnitBase) and
+            not isinstance(unit, core.PrefixUnit))])
+    def test_roundtrip(self, unit):
+        self.check_roundtrip(unit)
+        self.check_roundtrip_decompose(unit)
 
 
-@pytest.mark.parametrize('unit', [
-    val for key, val in u_format.Fits._units.items()
-    if (isinstance(val, core.UnitBase) and
-        not isinstance(val, core.PrefixUnit))])
-def test_roundtrip_fits(unit):
-    s = unit.to_string('fits')
-    a = core.Unit(s, format='fits')
-    assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
+class TestRoundtripVOUnit(RoundtripBase):
+    format_ = 'vounit'
+    deprecated_units = u_format.VOUnit._deprecated_units
+
+    @pytest.mark.parametrize('unit', [
+        unit for unit in u_format.VOUnit._units.values()
+        if (isinstance(unit, core.UnitBase) and
+            not isinstance(unit, core.PrefixUnit))])
+    def test_roundtrip(self, unit):
+        self.check_roundtrip(unit)
+        if unit not in (u.mag, u.dB):
+            self.check_roundtrip_decompose(unit)
 
 
-@pytest.mark.parametrize('unit', [
-    val for key, val in u_format.CDS._units.items()
-    if (isinstance(val, core.UnitBase) and
-        not isinstance(val, core.PrefixUnit))])
-def test_roundtrip_cds(unit):
-    a = core.Unit(unit.to_string('cds'), format='cds')
-    assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
-    try:
-        b = core.Unit(unit.decompose().to_string('cds'), format='cds')
-    except ValueError:  # skip mag: decomposes into dex, unknown to OGIP
-        return
-    assert_allclose(b.decompose().scale, unit.decompose().scale, rtol=1e-2)
+class TestRoundtripFITS(RoundtripBase):
+    format_ = 'fits'
+    deprecated_units = u_format.Fits._deprecated_units
+
+    @pytest.mark.parametrize('unit', [
+        unit for unit in u_format.Fits._units.values()
+        if (isinstance(unit, core.UnitBase) and
+            not isinstance(unit, core.PrefixUnit))])
+    def test_roundtrip(self, unit):
+        self.check_roundtrip(unit)
 
 
-@pytest.mark.parametrize('unit', [
-    val for key, val in u_format.OGIP._units.items()
-    if (isinstance(val, core.UnitBase) and
-        not isinstance(val, core.PrefixUnit))])
-def test_roundtrip_ogip(unit):
-    a = core.Unit(unit.to_string('ogip'), format='ogip')
-    assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
-    try:
-        b = core.Unit(unit.decompose().to_string('ogip'), format='ogip')
-    except ValueError:  # skip mag: decomposes into dex, unknown to OGIP
-        return
-    assert_allclose(b.decompose().scale, unit.decompose().scale, rtol=1e-2)
+class TestRoundtripCDS(RoundtripBase):
+    format_ = 'cds'
+
+    @pytest.mark.parametrize('unit', [
+        unit for unit in u_format.CDS._units.values()
+        if (isinstance(unit, core.UnitBase) and
+            not isinstance(unit, core.PrefixUnit))])
+    def test_roundtrip(self, unit):
+        self.check_roundtrip(unit)
+        if unit == u.mag:
+            # Skip mag: decomposes into dex, which is unknown to CDS.
+            return
+
+        self.check_roundtrip_decompose(unit)
+
+
+class TestRoundtripOGIP(RoundtripBase):
+    format_ = 'ogip'
+    deprecated_units = u_format.OGIP._deprecated_units | {'d'}
+
+    @pytest.mark.parametrize('unit', [
+        unit for unit in u_format.OGIP._units.values()
+        if (isinstance(unit, core.UnitBase) and
+            not isinstance(unit, core.PrefixUnit))])
+    def test_roundtrip(self, unit):
+        if str(unit) in ('d', '0.001 Crab'):
+            # Special-case day, which gets auto-converted to hours, and mCrab,
+            # which the default check does not recognize as a deprecated unit.
+            with catch_warnings() as w:
+                s = unit.to_string(self.format_)
+                a = core.Unit(s, format=self.format_)
+            assert w
+            assert 'UnitsWarning' in str(w[0])
+            assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-9)
+        else:
+            self.check_roundtrip(unit)
+        if str(unit) in ('mag', 'byte', 'Crab'):
+            # Skip mag and byte, which decompose into dex and bit, resp.,
+            # both of which are unknown to OGIP, as well as Crab, which does
+            # not decompose, and thus gives a depecated unit warning.
+            return
+
+        with catch_warnings() as w:
+            self.check_roundtrip_decompose(unit)
+
+        power_of_ten = np.log10(unit.decompose().scale)
+        if abs(power_of_ten - round(power_of_ten)) > 1e-3:
+            assert w
+            assert 'power of 10' in str(w[0])
+        elif str(unit) == '0.001 Crab':
+            assert w
+            assert 'deprecated' in str(w[0])
+        else:
+            assert not w
 
 
 def test_fits_units_available():
