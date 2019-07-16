@@ -489,7 +489,7 @@ def test_vounit_custom():
 
 
 def test_vounit_implicit_custom():
-    # Yikes, really...
+    # Yikes, this becomes "femto-urlong"...  But at least there's a warning.
     with catch_warnings() as w:
         x = u.Unit("furlong/week", format="vounit")
     assert x.bases[0]._represents.scale == 1e-15
