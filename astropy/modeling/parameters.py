@@ -290,7 +290,6 @@ class Parameter(OrderedDescriptor):
         args = f"'{self._name}'"
         args += ', value={0}'.format(self.value)
 
-
         if self.unit is not None:
             args += ', unit={0}'.format(self.unit)
 
