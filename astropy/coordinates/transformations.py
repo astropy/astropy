@@ -519,6 +519,7 @@ class TransformGraph:
 
         # generate simple dot format graph
         lines = ['digraph AstropyCoordinateTransformGraph {']
+        lines.append('graph [rankdir=LR]')
         lines.append('; '.join(nodenames) + ';')
         for enm1, enm2, weights, color in edgenames:
             labelstr_fmt = '[ {0} {1} ]'
