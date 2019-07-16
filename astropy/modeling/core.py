@@ -4000,7 +4000,7 @@ def prepare_bounding_box_inputs(self, input_shape, inputs, bbox):
     nan_ind = np.zeros(input_shape, dtype=bool)
     for ind, inp in enumerate(inputs):
         inp = np.asanyarray(inp)
-        outside = np.logical_or(inp < bbox[ind][0], inp>bbox[ind][1])
+        outside = np.logical_or(inp < bbox[ind][0], inp > bbox[ind][1])
         if inp.shape:
             nan_ind[outside] = True
         else:
