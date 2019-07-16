@@ -1025,8 +1025,7 @@ class Model(metaclass=_ModelMeta):
         A flag indicating whether or not a custom inverse model has been
         assigned to this model by a user, via assignment to ``model.inverse``.
         """
-
-        return self._user_inverse
+        return self._user_inverse is not None
 
     @property
     def bounding_box(self):
@@ -2352,9 +2351,9 @@ class CompoundModel(Model):
         self._param_metrics = None
         self._has_inverse = False  # may be set to True in following code
         if inverse:
-            self._user_inverse = inverse
-        else:
-            self._user_inverse = None
+            self.inverse = inverse
+        # else:
+        #     self._user_inverse = None
         if len(left) != len(right):
             raise ValueError(
                 'Both operands must have equal values for n_models')
@@ -2415,10 +2414,6 @@ class CompoundModel(Model):
                 "n_outputs for this operator".format(
                     operator, left.name, left.n_inputs, left.n_outputs,
                     right.name, right.n_inputs, right.n_outputs))
-
-        if inverse is not None:
-            self._inverse = inverse
-            self._has_inverse = True
         self.name = name
         self._fittable = None
         self.fit_deriv = None
@@ -2796,13 +2791,13 @@ class CompoundModel(Model):
 
     @inverse.setter
     def inverse(self, value):
-        self._inverse = value
+        self._user_inverse = value
+        self._has_inverse = True
 
     @inverse.deleter
     def inverse(self):
         self._has_inverse = False
         self._user_inverse = None
-        # del self._inverse
 
     @property
     def fittable(self):
@@ -4041,3 +4036,25 @@ def prepare_bounding_box_outputs(valid_result, valid_ind,
 
 def _strip_ones(intup):
     return tuple(item for item in intup if item != 1)
+
+
+def hide_inverse(model):
+    """
+    This is a convenience function intended to disable automatic generation
+    of the inverse in compound models by disabling one of the constituent
+    model's inverse. This is to handle cases where user provided inverse
+    functions are not compatible within an expression.
+
+    Example:
+        compound_model.inverse = hide_inverse(m1) + m2 + m3
+
+    This will insure that the defined inverse itself won't attempt to 
+    build its own inverse, which would otherwise fail in this example
+    (e.g., m = m1 + m2 + m3 happens to raises an exception for this
+    reason.)
+
+    Note that this permanently disables it. To prevent that either copy
+    the model or restore the inverse later.
+    """
+    del model.inverse
+    return model
