@@ -4048,7 +4048,7 @@ def hide_inverse(model):
     Example:
         compound_model.inverse = hide_inverse(m1) + m2 + m3
 
-    This will insure that the defined inverse itself won't attempt to 
+    This will insure that the defined inverse itself won't attempt to
     build its own inverse, which would otherwise fail in this example
     (e.g., m = m1 + m2 + m3 happens to raises an exception for this
     reason.)
