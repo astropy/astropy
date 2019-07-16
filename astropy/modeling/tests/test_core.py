@@ -385,7 +385,7 @@ def test_n_submodels_in_single_models():
     assert models.Gaussian1D.n_submodels() == 1
     assert models.Gaussian2D.n_submodels() == 1
 
-    
+
 def test_compound_deepcopy():
     model = (models.Gaussian1D(10, 2,3) | models.Shift(2)) & models.Rotation2D(21.3)
     new_model = model.deepcopy()
@@ -395,7 +395,7 @@ def test_compound_deepcopy():
     assert id(model[1]) != id(new_model[1])
     assert id(model[2]) != id(new_model[2])
 
-    
+
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_units_with_bounding_box():
     points = np.arange(10, 20)
@@ -406,6 +406,7 @@ def test_units_with_bounding_box():
     assert isinstance(t(10, with_bounding_box=True), u.Quantity)
 
     assert_quantity_allclose(t(10), t(10, with_bounding_box=True))
+
 
 RENAMED_MODEL = models.Gaussian1D.rename('CustomGaussian')
 

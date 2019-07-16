@@ -287,7 +287,7 @@ class Parameter(OrderedDescriptor):
                     "dimension {2}".format(key, self.name, value.shape[0]))  # likely wrong
 
     def __repr__(self):
-        args = "'{0}'".format(self._name)
+        args = f"'{self._name}'"
         args += ', value={0}'.format(self.value)
 
 
@@ -301,7 +301,7 @@ class Parameter(OrderedDescriptor):
                 # tied constraints
                 args += ', {0}={1}'.format(cons, val)
 
-        return "{0}({1})".format(self.__class__.__name__, args)
+        return f"{self.__class__.__name__}({args})"
 
     @property
     def name(self):
