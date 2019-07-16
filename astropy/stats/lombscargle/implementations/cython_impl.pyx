@@ -98,8 +98,8 @@ def lombscargle_cython(t, y, dy, frequency, normalization='standard',
 @cython.cdivision(True)
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef _standard_lomb_scargle(DTYPE_t[::1] t, DTYPE_t[::1] y, DTYPE_t[::1] dy,
-                            DTYPE_t[::1] omega, DTYPE_t[::1] PLS):
+cdef _standard_lomb_scargle(const DTYPE_t[::1] t, const DTYPE_t[::1] y, const DTYPE_t[::1] dy,
+                            const DTYPE_t[::1] omega, DTYPE_t[::1] PLS):
     cdef ITYPE_t N_freq = omega.shape[0]
     cdef ITYPE_t N_obs = t.shape[0]
 
@@ -161,8 +161,8 @@ cdef _standard_lomb_scargle(DTYPE_t[::1] t, DTYPE_t[::1] y, DTYPE_t[::1] dy,
 @cython.cdivision(True)
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef _generalized_lomb_scargle(DTYPE_t[::1] t, DTYPE_t[::1] y, DTYPE_t[::1] dy,
-                               DTYPE_t[::1] omega, DTYPE_t[::1] PLS):
+cdef _generalized_lomb_scargle(const DTYPE_t[::1] t, const DTYPE_t[::1] y, const DTYPE_t[::1] dy,
+                               const DTYPE_t[::1] omega, DTYPE_t[::1] PLS):
     cdef ITYPE_t N_freq = omega.shape[0]
     cdef ITYPE_t N_obs = t.shape[0]
 
