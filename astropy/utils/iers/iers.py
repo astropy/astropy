@@ -37,8 +37,8 @@ __all__ = ['Conf', 'conf',
 
 # IERS-A default file name, URL, and ReadMe with content description
 IERS_A_FILE = 'finals2000A.all'
-IERS_A_URL = 'http://maia.usno.navy.mil/ser7/finals2000A.all'
-IERS_A_URL_MIRROR = 'http://toshi.nofs.navy.mil/ser7/finals2000A.all'
+IERS_A_URL = 'https://maia.usno.navy.mil/ser7/finals2000A.all'
+IERS_A_URL_MIRROR = 'https://toshi.nofs.navy.mil/ser7/finals2000A.all'
 IERS_A_README = get_pkg_data_filename('data/ReadMe.finals2000A')
 
 # IERS-B default file name, URL, and ReadMe with content description
