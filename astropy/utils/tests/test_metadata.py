@@ -191,8 +191,8 @@ def test_metadata_merging_new_strategy():
 
 
 def test_common_dtype_string():
-    u3 = np.array([u'123'])
-    u4 = np.array([u'1234'])
+    u3 = np.array(['123'])
+    u4 = np.array(['1234'])
     b3 = np.array([b'123'])
     b5 = np.array([b'12345'])
     assert common_dtype([u3, u4]).endswith('U4')
@@ -203,7 +203,7 @@ def test_common_dtype_string():
 def test_common_dtype_basic():
     i8 = np.array(1, dtype=np.int64)
     f8 = np.array(1, dtype=np.float64)
-    u3 = np.array(u'123')
+    u3 = np.array('123')
 
     with pytest.raises(MergeConflictError):
         common_dtype([i8, u3])

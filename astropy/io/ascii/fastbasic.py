@@ -150,7 +150,7 @@ class FastBasic(metaclass=core.MetaBaseReader):
                     len(name) == 0 or
                     name[0] in bads or
                     name[-1] in bads):
-                    raise ValueError('Column name {0!r} does not meet strict name requirements'
+                    raise ValueError('Column name {!r} does not meet strict name requirements'
                                      .format(name))
         # When guessing require at least two columns
         if self.guessing and len(names) <= 1:
@@ -343,7 +343,7 @@ class FastRdb(FastBasic):
 
         if any(not re.match(r'\d*(N|S)$', x, re.IGNORECASE) for x in types):
             raise core.InconsistentTableError('RDB type definitions do not all match '
-                             '[num](N|S): {0}'.format(types))
+                             '[num](N|S): {}'.format(types))
 
         try_int = {}
         try_float = {}

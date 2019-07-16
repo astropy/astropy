@@ -6,9 +6,10 @@ from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.nddata.utils import (extract_array, add_array, subpixel_indices,
-                     block_reduce, block_replicate,
-                     overlap_slices, NoOverlapError, PartialOverlapError,
-                     Cutout2D)
+                                  block_reduce, block_replicate,
+                                  overlap_slices, NoOverlapError,
+                                  PartialOverlapError, Cutout2D)
+
 from astropy.wcs import WCS, Sip
 from astropy.wcs.utils import proj_plane_pixel_area
 from astropy.coordinates import SkyCoord
@@ -33,7 +34,7 @@ test_slices = [slice(10.52, 3.12), slice(5.62, 12.97),
 
 subsampling = 5
 
-test_pos_bad = [(-1, -4), (-1, 0), (6, 2), (6, 6)]
+test_pos_bad = [(-1, -4), (-2, 0), (6, 2), (6, 6)]
 
 
 def test_slices_different_dim():
@@ -69,6 +70,37 @@ def test_slices_partial_overlap():
         with pytest.raises(PartialOverlapError) as e:
             temp = overlap_slices((5,), (3,), (pos,), mode='strict')
         assert 'Arrays overlap only partially.' in str(e.value)
+
+
+def test_slices_edges():
+    """
+    Test overlap_slices when extracting along edges.
+    """
+
+    slc_lg, slc_sm = overlap_slices((10, 10), (3, 3), (1, 1), mode='strict')
+    assert slc_lg[0].start == slc_lg[1].start == 0
+    assert slc_lg[0].stop == slc_lg[1].stop == 3
+    assert slc_sm[0].start == slc_sm[1].start == 0
+    assert slc_sm[0].stop == slc_sm[1].stop == 3
+
+    slc_lg, slc_sm = overlap_slices((10, 10), (3, 3), (8, 8), mode='strict')
+    assert slc_lg[0].start == slc_lg[1].start == 7
+    assert slc_lg[0].stop == slc_lg[1].stop == 10
+    assert slc_sm[0].start == slc_sm[1].start == 0
+    assert slc_sm[0].stop == slc_sm[1].stop == 3
+
+    # test (0, 0) shape
+    slc_lg, slc_sm = overlap_slices((10, 10), (0, 0), (0, 0))
+    assert slc_lg[0].start == slc_lg[0].stop == 0
+    assert slc_lg[1].start == slc_lg[1].stop == 0
+    assert slc_sm[0].start == slc_sm[0].stop == 0
+    assert slc_sm[1].start == slc_sm[1].stop == 0
+
+    slc_lg, slc_sm = overlap_slices((10, 10), (0, 0), (5, 5))
+    assert slc_lg[0].start == slc_lg[0].stop == 5
+    assert slc_lg[1].start == slc_lg[1].stop == 5
+    assert slc_sm[0].start == slc_sm[0].stop == 0
+    assert slc_sm[1].start == slc_sm[1].stop == 0
 
 
 def test_slices_overlap_wrong_mode():

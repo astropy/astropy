@@ -406,8 +406,8 @@ class Time(ShapedLikeNDArray):
                 self.location = np.broadcast_to(self.location, self.shape,
                                                 subok=True)
             except Exception:
-                raise ValueError('The location with shape {0} cannot be '
-                                 'broadcast against time with shape {1}. '
+                raise ValueError('The location with shape {} cannot be '
+                                 'broadcast against time with shape {}. '
                                  'Typically, either give a single location or '
                                  'one for each time.'
                                  .format(self.location.shape, self.shape))
@@ -441,8 +441,8 @@ class Time(ShapedLikeNDArray):
         if scale is not None:
             if not (isinstance(scale, str) and
                     scale.lower() in self.SCALES):
-                raise ScaleValueError("Scale {0!r} is not in the allowed scales "
-                                      "{1}".format(scale,
+                raise ScaleValueError("Scale {!r} is not in the allowed scales "
+                                      "{}".format(scale,
                                                    sorted(self.SCALES)))
 
         # If either of the input val, val2 are masked arrays then
@@ -476,7 +476,7 @@ class Time(ShapedLikeNDArray):
             formats = [(name, cls) for name, cls in self.FORMATS.items()
                        if issubclass(cls, TimeUnique)]
             err_msg = ('any of the formats where the format keyword is '
-                       'optional {0}'.format([name for name, cls in formats]))
+                       'optional {}'.format([name for name, cls in formats]))
             # AstropyTime is a pseudo-format that isn't in the TIME_FORMATS registry,
             # but try to guess it at the end.
             formats.append(('astropy_time', TimeAstropyTime))
@@ -487,12 +487,12 @@ class Time(ShapedLikeNDArray):
                 raise ValueError("No time format was given, and the input is "
                                  "not unique")
             else:
-                raise ValueError("Format {0!r} is not one of the allowed "
-                                 "formats {1}".format(format,
+                raise ValueError("Format {!r} is not one of the allowed "
+                                 "formats {}".format(format,
                                                       sorted(self.FORMATS)))
         else:
             formats = [(format, self.FORMATS[format])]
-            err_msg = 'the format class {0}'.format(format)
+            err_msg = f'the format class {format}'
 
         for format, FormatClass in formats:
             try:
@@ -502,7 +502,7 @@ class Time(ShapedLikeNDArray):
             except (ValueError, TypeError):
                 pass
         else:
-            raise ValueError('Input values did not match {0}'.format(err_msg))
+            raise ValueError(f'Input values did not match {err_msg}')
 
     @classmethod
     def now(cls):
@@ -609,7 +609,7 @@ class Time(ShapedLikeNDArray):
     def format(self, format):
         """Set time format"""
         if format not in self.FORMATS:
-            raise ValueError('format must be one of {0}'
+            raise ValueError('format must be one of {}'
                              .format(list(self.FORMATS)))
         format_cls = self.FORMATS[format]
 
@@ -628,7 +628,7 @@ class Time(ShapedLikeNDArray):
         self._format = format
 
     def __repr__(self):
-        return ("<{0} object: scale='{1}' format='{2}' value={3}>"
+        return ("<{} object: scale='{}' format='{}' value={}>"
                 .format(self.__class__.__name__, self.scale, self.format,
                         getattr(self, self.format)))
 
@@ -704,7 +704,7 @@ class Time(ShapedLikeNDArray):
         if scale == self.scale:
             return
         if scale not in self.SCALES:
-            raise ValueError("Scale {0!r} is not in the allowed scales {1}"
+            raise ValueError("Scale {!r} is not in the allowed scales {}"
                              .format(scale, sorted(self.SCALES)))
 
         # Determine the chain of scale transformations to get from the current
@@ -729,7 +729,7 @@ class Time(ShapedLikeNDArray):
             # sys1, sys2 though the property applies for both xform directions.
             args = [jd1, jd2]
             for sys12 in ((sys1, sys2), (sys2, sys1)):
-                dt_method = '_get_delta_{0}_{1}'.format(*sys12)
+                dt_method = '_get_delta_{}_{}'.format(*sys12)
                 try:
                     get_dt = getattr(self, dt_method)
                 except AttributeError:
@@ -1140,7 +1140,7 @@ class Time(ShapedLikeNDArray):
         from astropy.coordinates import Longitude
 
         if kind.lower() not in SIDEREAL_TIME_MODELS.keys():
-            raise ValueError('The kind of sidereal time has to be {0}'.format(
+            raise ValueError('The kind of sidereal time has to be {}'.format(
                 ' or '.join(sorted(SIDEREAL_TIME_MODELS.keys()))))
 
         available_models = SIDEREAL_TIME_MODELS[kind.lower()]
@@ -1150,8 +1150,8 @@ class Time(ShapedLikeNDArray):
         else:
             if model.upper() not in available_models:
                 raise ValueError(
-                    'Model {0} not implemented for {1} sidereal time; '
-                    'available models are {2}'
+                    'Model {} not implemented for {} sidereal time; '
+                    'available models are {}'
                     .format(model, kind, sorted(available_models.keys())))
 
         if longitude is None:
@@ -1331,7 +1331,7 @@ class Time(ShapedLikeNDArray):
         # in the copy.  If the format is unchanged this process is lightweight
         # and does not create any new arrays.
         if new_format not in tm.FORMATS:
-            raise ValueError('format must be one of {0}'
+            raise ValueError('format must be one of {}'
                              .format(list(tm.FORMATS)))
 
         NewFormat = tm.FORMATS[new_format]
@@ -1568,8 +1568,8 @@ class Time(ShapedLikeNDArray):
                 raise ScaleValueError("Cannot convert TimeDelta with "
                                       "undefined scale to any defined scale.")
             else:
-                raise ScaleValueError("Cannot convert {0} with scale "
-                                      "'{1}' to scale '{2}'"
+                raise ScaleValueError("Cannot convert {} with scale "
+                                      "'{}' to scale '{}'"
                                       .format(self.__class__.__name__,
                                               self.scale, attr))
 
@@ -1772,7 +1772,7 @@ class Time(ShapedLikeNDArray):
                 else:
                     if self.scale not in TIME_TYPES[other.scale]:
                         raise TypeError("Cannot subtract Time and TimeDelta instances "
-                                        "with scales '{0}' and '{1}'"
+                                        "with scales '{}' and '{}'"
                                         .format(self.scale, other.scale))
                     out._set_scale(other.scale)
             # remove attributes that are invalidated by changing time
@@ -1784,7 +1784,7 @@ class Time(ShapedLikeNDArray):
             # the scales should be compatible (e.g., cannot convert TDB to LOCAL)
             if other.scale not in self.SCALES:
                 raise TypeError("Cannot subtract Time instances "
-                                "with scales '{0}' and '{1}'"
+                                "with scales '{}' and '{}'"
                                 .format(self.scale, other.scale))
             self_time = (self._time if self.scale in TIME_DELTA_SCALES
                          else self.tai._time)
@@ -1833,7 +1833,7 @@ class Time(ShapedLikeNDArray):
             else:
                 if self.scale not in TIME_TYPES[other.scale]:
                     raise TypeError("Cannot add Time and TimeDelta instances "
-                                    "with scales '{0}' and '{1}'"
+                                    "with scales '{}' and '{}'"
                                     .format(self.scale, other.scale))
                 out._set_scale(other.scale)
         # remove attributes that are invalidated by changing time
@@ -1873,8 +1873,8 @@ class Time(ShapedLikeNDArray):
            other.scale is not None and other.scale not in self.SCALES):
             # Other will also not be able to do it, so raise a TypeError
             # immediately, allowing us to explain why it doesn't work.
-            raise TypeError("Cannot compare {0} instances with scales "
-                            "'{1}' and '{2}'".format(self.__class__.__name__,
+            raise TypeError("Cannot compare {} instances with scales "
+                            "'{}' and '{}'".format(self.__class__.__name__,
                                                      self.scale, other.scale))
 
         if self.scale is not None and other.scale is not None:
@@ -2006,7 +2006,7 @@ class TimeDelta(Time):
         if scale == self.scale:
             return
         if scale not in self.SCALES:
-            raise ValueError("Scale {0!r} is not in the allowed scales {1}"
+            raise ValueError("Scale {!r} is not in the allowed scales {}"
                              .format(scale, sorted(self.SCALES)))
 
         # For TimeDelta, there can only be a change in scale factor,
@@ -2037,7 +2037,7 @@ class TimeDelta(Time):
         if(self.scale is not None and self.scale not in other.SCALES or
            other.scale is not None and other.scale not in self.SCALES):
             raise TypeError("Cannot add TimeDelta instances with scales "
-                            "'{0}' and '{1}'".format(self.scale, other.scale))
+                            "'{}' and '{}'".format(self.scale, other.scale))
 
         # adjust the scale of other if the scale of self is set (or no scales)
         if self.scale is not None or other.scale is None:
@@ -2069,7 +2069,7 @@ class TimeDelta(Time):
         if(self.scale is not None and self.scale not in other.SCALES or
            other.scale is not None and other.scale not in self.SCALES):
             raise TypeError("Cannot subtract TimeDelta instances with scales "
-                            "'{0}' and '{1}'".format(self.scale, other.scale))
+                            "'{}' and '{}'".format(self.scale, other.scale))
 
         # adjust the scale of other if the scale of self is set (or no scales)
         if self.scale is not None or other.scale is None:
@@ -2325,9 +2325,9 @@ def _check_for_masked_and_fill(val, val2):
 
 class OperandTypeError(TypeError):
     def __init__(self, left, right, op=None):
-        op_string = '' if op is None else ' for {0}'.format(op)
+        op_string = '' if op is None else f' for {op}'
         super().__init__(
-            "Unsupported operand type(s){0}: "
-            "'{1}' and '{2}'".format(op_string,
+            "Unsupported operand type(s){}: "
+            "'{}' and '{}'".format(op_string,
                                      left.__class__.__name__,
                                      right.__class__.__name__))

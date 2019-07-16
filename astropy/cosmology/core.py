@@ -294,9 +294,9 @@ class FLRW(Cosmology, metaclass=ABCMeta):
     def _namelead(self):
         """ Helper function for constructing __repr__"""
         if self.name is None:
-            return "{0}(".format(self.__class__.__name__)
+            return f"{self.__class__.__name__}("
         else:
-            return "{0}(name=\"{1}\", ".format(self.__class__.__name__,
+            return "{}(name=\"{}\", ".format(self.__class__.__name__,
                                                self.name)
 
     def __repr__(self):

@@ -245,7 +245,7 @@ def test_latex():
 
 def test_new_style_latex():
     fluxunit = u.erg / (u.cm ** 2 * u.s)
-    assert "{0:latex}".format(fluxunit) == r'$\mathrm{\frac{erg}{s\,cm^{2}}}$'
+    assert f"{fluxunit:latex}" == r'$\mathrm{\frac{erg}{s\,cm^{2}}}$'
 
 
 def test_latex_scale():
@@ -364,9 +364,9 @@ def test_deprecated_did_you_mean_units():
     try:
         u.Unit('ANGSTROM', format='vounit')
     except ValueError as e:
-        assert 'angstrom (deprecated)' in str(e)
-        assert '0.1nm' in str(e)
-        assert str(e).count('0.1nm') == 1
+        assert 'angstrom (deprecated)' in str(e.value)
+        assert '0.1nm' in str(e.value)
+        assert str(e.value).count('0.1nm') == 1
 
     with catch_warnings() as w:
         u.Unit('angstrom', format='vounit')

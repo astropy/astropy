@@ -8,6 +8,7 @@ import numpy as np
 import numpy.ma as ma
 
 from astropy.table import Column, MaskedColumn, Table, QTable
+from astropy.table.column import BaseColumn
 from astropy.tests.helper import catch_warnings
 from astropy.time import Time
 import astropy.units as u
@@ -373,17 +374,36 @@ class TestAddRow:
 
     def test_add_masked_row_to_non_masked_table_iterable(self):
         t = Table(masked=False)
-        t.add_column(Column(name='a', data=[1]))
-        t.add_column(Column(name='b', data=[4]))
+        t['a'] = [1]
+        t['b'] = [4]
+        t['c'] = Time([1], format='cxcsec')
+
+        tm = Time(2, format='cxcsec')
         assert not t.masked
-        t.add_row([2, 5])
+        t.add_row([2, 5, tm])
         assert not t.masked
-        t.add_row([3, 6], mask=[0, 1])
-        assert t.masked
-        assert np.all(np.array(t['a']) == np.array([1, 2, 3]))
-        assert np.all(t['a'].mask == np.array([0, 0, 0], bool))
-        assert np.all(np.array(t['b']) == np.array([4, 5, 6]))
-        assert np.all(t['b'].mask == np.array([0, 0, 1], bool))
+        t.add_row([3, 6, tm], mask=[0, 1, 1])
+        assert not t.masked
+
+        assert type(t['a']) is Column
+        assert type(t['b']) is MaskedColumn
+        assert type(t['c']) is Time
+
+        assert np.all(t['a'] == [1, 2, 3])
+        assert np.all(t['b'].data == [4, 5, 6])
+        assert np.all(t['b'].mask == [False, False, True])
+        assert np.all(t['c'][:2] == Time([1, 2], format='cxcsec'))
+        assert np.all(t['c'].mask == [False, False, True])
+
+    def test_add_row_cannot_mask_column_raises_typeerror(self):
+        t = QTable()
+        t['a'] = [1, 2] * u.m
+        t.add_row((3 * u.m,))  # No problem
+        with pytest.raises(ValueError) as exc:
+            t.add_row((3 * u.m,), mask=(True,))
+        assert (exc.value.args[0].splitlines() ==
+                ["Unable to insert row because of exception in column 'a':",
+                 "mask was supplied for column 'a' but it does not support masked values"])
 
 
 def test_setting_from_masked_column():
@@ -480,3 +500,46 @@ def test_masked_column_with_unit_in_qtable():
     assert len(w) == 1
     assert "dropping mask in Quantity column 'c'"
     assert isinstance(t['b'], u.Quantity)
+
+
+def test_masked_column_data_attribute_is_plain_masked_array():
+    c = MaskedColumn([1, 2], mask=[False, True])
+    c_data = c.data
+    assert type(c_data) is np.ma.MaskedArray
+    assert type(c_data.data) is np.ndarray
+
+
+def test_mask_slicing_count_array_finalize():
+    """Check that we don't finalize MaskedColumn too often.
+
+    Regression test for gh-6721.
+    """
+    # Create a new BaseColumn class that counts how often
+    # ``__array_finalize__`` is called.
+    class MyBaseColumn(BaseColumn):
+        counter = 0
+
+        def __array_finalize__(self, obj):
+            super().__array_finalize__(obj)
+            MyBaseColumn.counter += 1
+
+    # Base a new MaskedColumn class on it.  The normal MaskedColumn
+    # hardcodes the initialization to BaseColumn, so we exchange that.
+    class MyMaskedColumn(MaskedColumn, Column, MyBaseColumn):
+        def __new__(cls, *args, **kwargs):
+            self = super().__new__(cls, *args, **kwargs)
+            self._baseclass = MyBaseColumn
+            return self
+
+    # Creation really needs 2 finalizations (once for the BaseColumn
+    # call inside ``__new__`` and once when the view as a MaskedColumn
+    # is taken), but since the first is hardcoded, we do not capture it
+    # and thus the count is only 1.
+    c = MyMaskedColumn([1, 2], mask=[False, True])
+    assert MyBaseColumn.counter == 1
+    # slicing should need only one ``__array_finalize__`` (used to be 3).
+    c0 = c[:]
+    assert MyBaseColumn.counter == 2
+    # repr should need none (used to be 2!!)
+    repr(c0)
+    assert MyBaseColumn.counter == 2

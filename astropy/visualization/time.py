@@ -206,7 +206,7 @@ def time_support(*, scale=None, format=None, simplify=True):
         @format.setter
         def format(self, value):
             if value in UNSUPPORTED_FORMATS:
-                raise ValueError('time_support does not support format={0}'.format(value))
+                raise ValueError(f'time_support does not support format={value}')
             self._format = value
 
         def __enter__(self):
@@ -254,6 +254,6 @@ def time_support(*, scale=None, format=None, simplify=True):
             majfmt = AstropyTimeFormatter(self)
             return units.AxisInfo(majfmt=majfmt,
                                   majloc=majloc,
-                                  label='Time ({0})'.format(self.scale))
+                                  label=f'Time ({self.scale})')
 
     return MplTimeConverter(scale=scale, format=format, simplify=simplify)

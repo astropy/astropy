@@ -69,7 +69,7 @@ class TestColumn():
 
     def test_view(self, Column):
         c = np.array([1, 2, 3], dtype=np.int64).view(Column)
-        assert repr(c) == "<{0} dtype='int64' length=3>\n1\n2\n3".format(Column.__name__)
+        assert repr(c) == f"<{Column.__name__} dtype='int64' length=3>\n1\n2\n3"
 
     def test_format(self, Column):
         """Show that the formatted output from str() works"""
@@ -669,7 +669,7 @@ def test_col_unicode_sandwich_create_from_str(Column):
     """
     # a-umlaut is a 2-byte character in utf-8, test fails with ascii encoding.
     # Stress the system by injecting non-ASCII characters.
-    uba = u'bä'
+    uba = 'bä'
     c = Column([uba, 'def'], dtype='S')
     assert c.dtype.char == 'S'
     assert c[0] == uba
@@ -686,7 +686,7 @@ def test_col_unicode_sandwich_bytes(Column):
     """
     # a-umlaut is a 2-byte character in utf-8, test fails with ascii encoding.
     # Stress the system by injecting non-ASCII characters.
-    uba = u'bä'
+    uba = 'bä'
     uba8 = uba.encode('utf-8')
     c = Column([uba8, b'def'])
     assert c.dtype.char == 'S'
@@ -706,7 +706,7 @@ def test_col_unicode_sandwich_bytes(Column):
     assert ok.dtype.char == '?'
     assert np.all(ok)
 
-    assert np.all(c == np.array([uba, u'def']))
+    assert np.all(c == np.array([uba, 'def']))
     assert np.all(c == np.array([uba8, b'def']))
 
     # Scalar compare
@@ -722,7 +722,7 @@ def test_col_unicode_sandwich_unicode():
     Sanity check that Unicode Column behaves normally.
     """
     # On Py2 the unicode must be ASCII-compatible, else the final test fails.
-    uba = u'bä'
+    uba = 'bä'
     uba8 = uba.encode('utf-8')
 
     c = table.Column([uba, 'def'], dtype='U')
@@ -762,10 +762,10 @@ def test_masked_col_unicode_sandwich():
     assert ok[0] == True
     assert ok[1] is np.ma.masked
     assert np.all(c == [b'abc', b'def'])
-    assert np.all(c == np.array([u'abc', u'def']))
+    assert np.all(c == np.array(['abc', 'def']))
     assert np.all(c == np.array([b'abc', b'def']))
 
-    for cmp in (u'abc', b'abc'):
+    for cmp in ('abc', b'abc'):
         ok = c == cmp
         assert type(ok) is np.ma.MaskedArray
         assert ok[0] == True
@@ -777,19 +777,19 @@ def test_unicode_sandwich_set(Column):
     """
     Test setting
     """
-    uba = u'bä'
+    uba = 'bä'
 
     c = Column([b'abc', b'def'])
 
     c[0] = b'aa'
-    assert np.all(c == [u'aa', u'def'])
+    assert np.all(c == ['aa', 'def'])
 
     c[0] = uba  # a-umlaut is a 2-byte character in utf-8, test fails with ascii encoding
-    assert np.all(c == [uba, u'def'])
-    assert c.pformat() == [u'None', u'----', '  ' + uba, u' def']
+    assert np.all(c == [uba, 'def'])
+    assert c.pformat() == ['None', '----', '  ' + uba, ' def']
 
     c[:] = b'cc'
-    assert np.all(c == [u'cc', u'cc'])
+    assert np.all(c == ['cc', 'cc'])
 
     c[:] = uba
     assert np.all(c == [uba, uba])

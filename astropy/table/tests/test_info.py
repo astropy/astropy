@@ -77,7 +77,7 @@ def test_table_info_stats(table_types):
     masked = 'masked=True ' if t.masked else ''
     out = StringIO()
     t.info('stats', out=out)
-    table_header_line = '<{0} {1}length=4>'.format(t.__class__.__name__, masked)
+    table_header_line = f'<{t.__class__.__name__} {masked}length=4>'
     exp = [table_header_line,
            'name mean std min max',
            '---- ---- --- --- ---',
@@ -149,7 +149,7 @@ def test_data_info():
                'dtype = float64',
                'unit = m / s',
                'description = description',
-               'class = {0}'.format(type(c).__name__),
+               'class = {}'.format(type(c).__name__),
                'n_bad = 1',
                'length = 3']
         assert out.getvalue().splitlines() == exp
@@ -252,7 +252,7 @@ def test_lost_parent_error():
     c = table.Column([1, 2, 3], name='a')
     with pytest.raises(AttributeError) as err:
         c[:].info.name
-    assert 'failed access "info" attribute' in str(err)
+    assert 'failed access "info" attribute' in str(err.value)
 
 
 def test_info_serialize_method():

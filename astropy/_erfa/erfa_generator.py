@@ -141,7 +141,7 @@ class ArgumentDoc:
             self.doc = None
 
     def __repr__(self):
-        return "    {0:15} {1:15} {2}".format(self.name, self.type, self.doc)
+        return f"    {self.name:15} {self.type:15} {self.doc}"
 
 
 class Variable:
@@ -224,7 +224,7 @@ class Variable:
 
     @property
     def cshape(self):
-        return ''.join(['[{0}]'.format(s) for s in self.shape])
+        return ''.join([f'[{s}]' for s in self.shape])
 
     @property
     def signature_shape(self):
@@ -294,7 +294,7 @@ class Argument(Variable):
             return '*_'+self.name
 
     def __repr__(self):
-        return "Argument('{0}', name='{1}', ctype='{2}', inout_state='{3}')".format(self.definition, self.name, self.ctype, self.inout_state)
+        return f"Argument('{self.definition}', name='{self.name}', ctype='{self.ctype}', inout_state='{self.inout_state}')"
 
 
 class ReturnDoc:
@@ -324,7 +324,7 @@ class ReturnDoc:
             self.statuscodes = None
 
     def __repr__(self):
-        return "Return value, type={0:15}, {1}, {2}".format(self.type, self.descr, self.doc)
+        return f"Return value, type={self.type:15}, {self.descr}, {self.doc}"
 
 
 class Return(Variable):
@@ -337,7 +337,7 @@ class Return(Variable):
         self.doc = doc
 
     def __repr__(self):
-        return "Return(name='{0}', ctype='{1}', inout_state='{2}')".format(self.name, self.ctype, self.inout_state)
+        return f"Return(name='{self.name}', ctype='{self.ctype}', inout_state='{self.inout_state}')"
 
     @property
     def doc_info(self):
@@ -386,7 +386,7 @@ class Function:
             else:
                 filecontents = f.read()
 
-        pattern = r"\n([^\n]+{0} ?\([^)]+\)).+?(/\*.+?\*/)".format(name)
+        pattern = fr"\n([^\n]+{name} ?\([^)]+\)).+?(/\*.+?\*/)"
         p = re.compile(pattern, flags=re.DOTALL | re.MULTILINE)
 
         search = p.search(filecontents)
@@ -396,7 +396,7 @@ class Function:
         self.args = []
         for arg in re.search(r"\(([^)]+)\)", self.cfunc).group(1).split(', '):
             self.args.append(Argument(arg, self.doc))
-        self.ret = re.search("^(.*){0}".format(name), self.cfunc).group(1).strip()
+        self.ret = re.search(f"^(.*){name}", self.cfunc).group(1).strip()
         if self.ret != 'void':
             self.args.append(Return(self.ret, self.doc))
 
@@ -496,7 +496,7 @@ class Function:
                                                args=', '.join(argnames))
 
     def __repr__(self):
-        return "Function(name='{0}', pyname='{1}', filename='{2}', filepath='{3}')".format(self.name, self.pyname, self.filename, self.filepath)
+        return f"Function(name='{self.name}', pyname='{self.pyname}', filename='{self.filename}', filepath='{self.filepath}')"
 
 
 class Constant:
@@ -555,12 +555,12 @@ class ExtraFunction(Function):
                                  '{}'.format(self.prototype, pathfordoc))
 
         self.args = []
-        argset = re.search(r"{0}\(([^)]+)?\)".format(self.name),
+        argset = re.search(fr"{self.name}\(([^)]+)?\)",
                            self.prototype).group(1)
         if argset is not None:
             for arg in argset.split(', '):
                 self.args.append(Argument(arg, self.doc))
-        self.ret = re.match("^(.*){0}".format(self.name),
+        self.ret = re.match(f"^(.*){self.name}",
                             self.prototype).group(1).strip()
         if self.ret != 'void':
             self.args.append(Return(self.ret, self.doc))
@@ -586,13 +586,13 @@ def main(srcdir=DEFAULT_ERFA_LOC, outfn='core.py', ufuncfn='ufunc.c',
     env = Environment(loader=FileSystemLoader(templateloc))
 
     def prefix(a_list, pre):
-        return [pre+'{0}'.format(an_element) for an_element in a_list]
+        return [pre+f'{an_element}' for an_element in a_list]
 
     def postfix(a_list, post):
-        return ['{0}'.format(an_element)+post for an_element in a_list]
+        return [f'{an_element}'+post for an_element in a_list]
 
     def surround(a_list, pre, post):
-        return [pre+'{0}'.format(an_element)+post for an_element in a_list]
+        return [pre+f'{an_element}'+post for an_element in a_list]
     env.filters['prefix'] = prefix
     env.filters['postfix'] = postfix
     env.filters['surround'] = surround
@@ -621,7 +621,7 @@ def main(srcdir=DEFAULT_ERFA_LOC, outfn='core.py', ufuncfn='ufunc.c',
         r'/\* (\w*)/(\w*) \*/\n(.*?)\n\n', erfa_h,
         flags=re.DOTALL | re.MULTILINE)
     for section, subsection, functions in section_subsection_functions:
-        print_("{0}.{1}".format(section, subsection))
+        print_(f"{section}.{subsection}")
         # Right now, we compile everything, but one could be more selective.
         # In particular, at the time of writing (2018-06-11), what was
         # actually require for astropy was not quite everything, but:
@@ -636,7 +636,7 @@ def main(srcdir=DEFAULT_ERFA_LOC, outfn='core.py', ufuncfn='ufunc.c',
             func_names = re.findall(r' (\w+)\(.*?\);', functions,
                                     flags=re.DOTALL)
             for name in func_names:
-                print_("{0}.{1}.{2}...".format(section, subsection, name))
+                print_(f"{section}.{subsection}.{name}...")
                 if multifilserc:
                     # easy because it just looks in the file itself
                     cdir = (srcdir if section != 'Extra' else
@@ -716,7 +716,7 @@ if __name__ == '__main__':
                          'can be found or to a single erfa.c file '
                          '(which must be in the same directory as '
                          'erfa.h). Defaults to the builtin astropy '
-                         'erfa: "{0}"'.format(DEFAULT_ERFA_LOC))
+                         'erfa: "{}"'.format(DEFAULT_ERFA_LOC))
     ap.add_argument('-o', '--output', default='core.py',
                     help='The output filename for the pure-python output.')
     ap.add_argument('-u', '--ufunc', default='ufunc.c',

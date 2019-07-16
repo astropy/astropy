@@ -95,7 +95,7 @@ def pdf_single(z, N, normalization, dH=1, dK=3):
     elif normalization == 'log':
         return 0.5 * Nk * np.exp(-0.5 * Nk * z)
     else:
-        raise ValueError("normalization='{0}' is not recognized"
+        raise ValueError("normalization='{}' is not recognized"
                          "".format(normalization))
 
 
@@ -146,7 +146,7 @@ def fap_single(z, N, normalization, dH=1, dK=3):
     elif normalization == 'log':
         return np.exp(-0.5 * Nk * z)
     else:
-        raise ValueError("normalization='{0}' is not recognized"
+        raise ValueError("normalization='{}' is not recognized"
                          "".format(normalization))
 
 
@@ -189,17 +189,19 @@ def inv_fap_single(fap, N, normalization, dH=1, dK=3):
         raise NotImplementedError("Degrees of freedom != 2")
     Nk = N - dK
 
-    if normalization == 'psd':
-        return -np.log(fap)
-    elif normalization == 'standard':
-        return 1 - fap ** (2 / Nk)
-    elif normalization == 'model':
-        return -1 + fap ** (-2 / Nk)
-    elif normalization == 'log':
-        return -2 / Nk * np.log(fap)
-    else:
-        raise ValueError("normalization='{0}' is not recognized"
-                         "".format(normalization))
+    # No warnings for fap = 0; rather, just let it give the right infinity.
+    with np.errstate(divide='ignore'):
+        if normalization == 'psd':
+            return -np.log(fap)
+        elif normalization == 'standard':
+            return 1 - fap ** (2 / Nk)
+        elif normalization == 'model':
+            return -1 + fap ** (-2 / Nk)
+        elif normalization == 'log':
+            return -2 / Nk * np.log(fap)
+        else:
+            raise ValueError("normalization='{}' is not recognized"
+                             "".format(normalization))
 
 
 def cdf_single(z, N, normalization, dH=1, dK=3):
@@ -262,7 +264,7 @@ def tau_davies(Z, fmax, t, y, dy, normalization='standard', dH=1, dK=3):
         return (_gamma(NK) * W * np.exp(-0.5 * Z * (NK - 0.5))
                 * np.sqrt(NK * np.sinh(0.5 * Z)))
     else:
-        raise NotImplementedError("normalization={0}".format(normalization))
+        raise NotImplementedError(f"normalization={normalization}")
 
 
 def fap_naive(Z, fmax, t, y, dy, normalization='standard'):
@@ -273,7 +275,9 @@ def fap_naive(Z, fmax, t, y, dy, normalization='standard'):
     fap_s = fap_single(Z, N, normalization=normalization)
     # result is 1 - (1 - fap_s) ** N_eff
     # this is much more precise for small Z / large N
-    return -np.expm1(N_eff * np.log1p(-fap_s))
+    # Ignore divide by zero no np.log1p - fine to let it return -inf.
+    with np.errstate(divide='ignore'):
+        return -np.expm1(N_eff * np.log1p(-fap_s))
 
 
 def inv_fap_naive(fap, fmax, t, y, dy, normalization='standard'):
@@ -282,8 +286,10 @@ def inv_fap_naive(fap, fmax, t, y, dy, normalization='standard'):
     N = len(t)
     T = max(t) - min(t)
     N_eff = fmax * T
-    #fap_s = 1 - (1 - fap) ** (1 / N_eff)
-    fap_s = -np.expm1(np.log(1 - fap) / N_eff)
+    # fap_s = 1 - (1 - fap) ** (1 / N_eff)
+    # Ignore divide by zero no np.log - fine to let it return -inf.
+    with np.errstate(divide='ignore'):
+        fap_s = -np.expm1(np.log(1 - fap) / N_eff)
     return inv_fap_single(fap_s, N, normalization)
 
 
@@ -307,7 +313,7 @@ def inv_fap_davies(p, fmax, t, y, dy, normalization='standard'):
     func = lambda z, *args: fap_davies(z, *args) - p
     res = optimize.root(func, z0, args=args, method='lm')
     if not res.success:
-        raise ValueError('inv_fap_baluev did not converge for p={0}'.format(p))
+        raise ValueError(f'inv_fap_baluev did not converge for p={p}')
     return res.x
 
 
@@ -332,7 +338,7 @@ def inv_fap_baluev(p, fmax, t, y, dy, normalization='standard'):
     func = lambda z, *args: fap_baluev(z, *args) - p
     res = optimize.root(func, z0, args=args, method='lm')
     if not res.success:
-        raise ValueError('inv_fap_baluev did not converge for p={0}'.format(p))
+        raise ValueError(f'inv_fap_baluev did not converge for p={p}')
     return res.x
 
 
@@ -422,7 +428,7 @@ def false_alarm_probability(Z, fmax, t, y, dy, normalization='standard',
     if method == 'single':
         return fap_single(Z, len(t), normalization)
     elif method not in METHODS:
-        raise ValueError("Unrecognized method: {0}".format(method))
+        raise ValueError(f"Unrecognized method: {method}")
     method = METHODS[method]
     method_kwds = method_kwds or {}
 
@@ -482,7 +488,7 @@ def false_alarm_level(p, fmax, t, y, dy, normalization,
     if method == 'single':
         return inv_fap_single(p, len(t), normalization)
     elif method not in INV_METHODS:
-        raise ValueError("Unrecognized method: {0}".format(method))
+        raise ValueError(f"Unrecognized method: {method}")
     method = INV_METHODS[method]
     method_kwds = method_kwds or {}
 

@@ -7,6 +7,7 @@
 import copy
 import pickle
 import decimal
+import numbers
 from fractions import Fraction
 
 import pytest
@@ -944,7 +945,7 @@ class TestQuantityDisplay:
         assert str(qscalar) == qscalar.to_string()
 
         res = 'Quantity as KMS: 150000000000.0 km / s'
-        assert "Quantity as KMS: {0}".format(qscalar.to_string(unit=u.km / u.s)) == res
+        assert "Quantity as KMS: {}".format(qscalar.to_string(unit=u.km / u.s)) == res
 
         res = r'$1.5 \times 10^{14} \; \mathrm{\frac{m}{s}}$'
         assert qscalar.to_string(format="latex") == res
@@ -1078,7 +1079,7 @@ def test_arrays():
         len(qseclen0array)
     with pytest.raises(TypeError):
         qseclen0array[0]
-    assert isinstance(qseclen0array.value, int)
+    assert isinstance(qseclen0array.value, numbers.Integral)
 
     a = np.array([(1., 2., 3.), (4., 5., 6.), (7., 8., 9.)],
                  dtype=[('x', float),

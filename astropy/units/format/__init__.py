@@ -46,9 +46,9 @@ def get_format(format=None):
         return format
     elif not (isinstance(format, str) or format is None):
         raise TypeError(
-            "Formatter must a subclass or instance of a subclass of {0!r} "
+            "Formatter must a subclass or instance of a subclass of {!r} "
             "or a string giving the name of the formatter.  Valid formatter "
-            "names are: [{1}]".format(Base, ', '.join(Base.registry)))
+            "names are: [{}]".format(Base, ', '.join(Base.registry)))
 
     if format is None:
         format = 'generic'
@@ -58,5 +58,5 @@ def get_format(format=None):
     if format_lower in Base.registry:
         return Base.registry[format_lower]
 
-    raise ValueError("Unknown format {0!r}.  Valid formatter names are: "
-                     "[{1}]".format(format, ', '.join(Base.registry)))
+    raise ValueError("Unknown format {!r}.  Valid formatter names are: "
+                     "[{}]".format(format, ', '.join(Base.registry)))

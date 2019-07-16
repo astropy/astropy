@@ -121,7 +121,7 @@ class QuantityInfoBase(ParentDtypeInfo):
 
     @staticmethod
     def default_format(val):
-        return '{0.value:}'.format(val)
+        return f'{val.value}'
 
     @staticmethod
     def possible_string_format_functions(format_):
@@ -327,7 +327,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                     value = float(v.group())
 
                 except Exception:
-                    raise TypeError('Cannot parse "{0}" as a {1}. It does not '
+                    raise TypeError('Cannot parse "{}" as a {}. It does not '
                                     'start with a number.'
                                     .format(value, cls.__name__))
 
@@ -358,9 +358,9 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                 try:
                     value_unit = Unit(value_unit)
                 except Exception as exc:
-                    raise TypeError("The unit attribute {0!r} of the input could "
+                    raise TypeError("The unit attribute {!r} of the input could "
                                     "not be parsed as an astropy Unit, raising "
-                                    "the following exception:\n{1}"
+                                    "the following exception:\n{}"
                                     .format(value.unit, exc))
 
                 if unit is None:
@@ -615,7 +615,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             unit = Unit(str(unit), parse_strict='silent')
             if not isinstance(unit, UnitBase):
                 raise UnitTypeError(
-                    "{0} instances require {1} units, not {2} instances."
+                    "{} instances require {} units, not {} instances."
                     .format(type(self).__name__, UnitBase, type(unit)))
 
         self._unit = unit
@@ -724,8 +724,8 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                     # not in-place!
                     value = value * scale
 
-        return value if self.shape else (value[()] if self.dtype.fields
-                                         else value.item())
+        # Index with empty tuple to decay array scalars in to numpy scalars.
+        return value[()]
 
     value = property(to_value,
                      doc="""The numerical value of this instance.
@@ -816,7 +816,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         """
         if not self._include_easy_conversion_members:
             raise AttributeError(
-                "'{0}' object has no '{1}' member".format(
+                "'{}' object has no '{}' member".format(
                     self.__class__.__name__,
                     attr))
 
@@ -836,7 +836,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
 
         if value is None:
             raise AttributeError(
-                "{0} instance has no attribute '{1}'".format(
+                "{} instance has no attribute '{}'".format(
                     self.__class__.__name__, attr))
         else:
             return value
@@ -1173,9 +1173,9 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         }
 
         if format not in formats:
-            raise ValueError("Unknown format '{0}'".format(format))
+            raise ValueError(f"Unknown format '{format}'")
         elif format is None:
-            return '{0}{1:s}'.format(self.value, self._unitstr)
+            return f'{self.value}{self._unitstr:s}'
 
         # else, for the moment we assume format="latex"
 
@@ -1191,7 +1191,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                                                      format_spec=format_spec)
 
         def complex_formatter(value):
-            return '({0}{1}i)'.format(
+            return '({}{}i)'.format(
                 Latex.format_exponential_notation(value.real,
                                                   format_spec=format_spec),
                 Latex.format_exponential_notation(value.imag,
@@ -1241,7 +1241,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         sep = ',' if NUMPY_LT_1_14 else ', '
         arrstr = np.array2string(self.view(np.ndarray), separator=sep,
                                  prefix=prefixstr)
-        return '{0}{1}{2:s}>'.format(prefixstr, arrstr, self._unitstr)
+        return f'{prefixstr}{arrstr}{self._unitstr:s}>'
 
     def _repr_latex_(self):
         """
@@ -1272,7 +1272,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             value = self.value
             full_format_spec = format_spec
 
-        return format("{0}{1:s}".format(value, self._unitstr),
+        return format(f"{value}{self._unitstr:s}",
                       full_format_spec)
 
     def decompose(self, bases=[]):
@@ -1493,7 +1493,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         #    after converting quantities to arrays with suitable units,
         #    and possibly setting units on the result.
         # 3. DISPATCHED_FUNCTIONS (dict), if the function makes sense but
-        #    requires a Quantity-specific implementation
+        #    requires a Quantity-specific implementation.
         # 4. UNSUPPORTED_FUNCTIONS (set), if the function does not make sense.
         # For now, since we may not yet have complete coverage, if a
         # function is in none of the above, we simply call the numpy
@@ -1502,24 +1502,23 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             return super().__array_function__(function, types, args, kwargs)
 
         elif function in FUNCTION_HELPERS:
+            function_helper = FUNCTION_HELPERS[function]
             try:
-                helper_info = FUNCTION_HELPERS[function](*args, **kwargs)
+                args, kwargs, unit, out = function_helper(*args, **kwargs)
             except NotImplementedError:
-                # We return NotImplemented, which is proper, even though
-                # if an ndarray is also present, it gets a chance as well
-                # and may just coerce us to object.
-                return NotImplemented
-
-            args, kwargs, unit, out = helper_info
+                return self._not_implemented_or_raise(function, types)
 
             result = super().__array_function__(function, types, args, kwargs)
-            if unit is None or result is None or result is NotImplemented:
-                return result
-
-            return self._result_as_quantity(result, unit, out=out)
+            # Fall through to return section
 
         elif function in DISPATCHED_FUNCTIONS:
-            return DISPATCHED_FUNCTIONS[function](*args, **kwargs)
+            dispatched_function = DISPATCHED_FUNCTIONS[function]
+            try:
+                result, unit, out = dispatched_function(*args, **kwargs)
+            except NotImplementedError:
+                return self._not_implemented_or_raise(function, types)
+
+            # Fall through to return section
 
         elif function in UNSUPPORTED_FUNCTIONS:
             return NotImplemented
@@ -1532,6 +1531,30 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                           .format(function.__name__), AstropyWarning)
 
             return super().__array_function__(function, types, args, kwargs)
+
+        # If unit is None, a plain array is expected (e.g., boolean), which
+        # means we're done.
+        # We're also done if the result was NotImplemented, which can happen
+        # if other inputs/outputs override __array_function__;
+        # hopefully, they can then deal with us.
+        if unit is None or result is NotImplemented:
+            return result
+
+        return self._result_as_quantity(result, unit, out=out)
+
+    def _not_implemented_or_raise(self, function, types):
+        # Our function helper or dispatcher found that the function does not
+        # work with Quantity.  In principle, there may be another class that
+        # knows what to do with us, for which we should return NotImplemented.
+        # But if there is ndarray (or a non-Quantity subclass of it) around,
+        # it quite likely coerces, so we should just break.
+        if any(issubclass(t, np.ndarray) and not issubclass(t, Quantity)
+               for t in types):
+            raise TypeError("the Quantity implementation cannot handle {} "
+                            "with the given arguments."
+                            .format(function)) from None
+        else:
+            return NotImplemented
 
     # Calculation -- override ndarray methods to take into account units.
     # We use the corresponding numpy functions to evaluate the results, since
@@ -1714,10 +1737,10 @@ class SpecificTypeQuantity(Quantity):
     def _set_unit(self, unit):
         if unit is None or not unit.is_equivalent(self._equivalent_unit):
             raise UnitTypeError(
-                "{0} instances require units equivalent to '{1}'"
+                "{} instances require units equivalent to '{}'"
                 .format(type(self).__name__, self._equivalent_unit) +
                 (", but no unit was given." if unit is None else
-                 ", so cannot set it to '{0}'.".format(unit)))
+                 f", so cannot set it to '{unit}'."))
 
         super()._set_unit(unit)
 
@@ -1755,7 +1778,7 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
     try:
         desired = desired.to(actual.unit)
     except UnitsError:
-        raise UnitsError("Units for 'desired' ({0}) and 'actual' ({1}) "
+        raise UnitsError("Units for 'desired' ({}) and 'actual' ({}) "
                          "are not convertible"
                          .format(desired.unit, actual.unit))
 
@@ -1767,7 +1790,7 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
         try:
             atol = atol.to(actual.unit)
         except UnitsError:
-            raise UnitsError("Units for 'atol' ({0}) and 'actual' ({1}) "
+            raise UnitsError("Units for 'atol' ({}) and 'actual' ({}) "
                              "are not convertible"
                              .format(atol.unit, actual.unit))
 

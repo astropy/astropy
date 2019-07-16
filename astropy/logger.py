@@ -175,7 +175,7 @@ class AstropyLogger(Logger):
         # AstropyWarning.  The name of subclasses of AstropyWarning should
         # be displayed.
         if type(warning) not in (AstropyWarning, AstropyUserWarning):
-            message = '{0}: {1}'.format(warning.__class__.__name__, args[0])
+            message = '{}: {}'.format(warning.__class__.__name__, args[0])
         else:
             message = str(args[0])
 
@@ -251,7 +251,7 @@ class AstropyLogger(Logger):
 
         # include the the error type in the message.
         if len(value.args) > 0:
-            message = '{0}: {1}'.format(etype.__name__, str(value))
+            message = '{}: {}'.format(etype.__name__, str(value))
         else:
             message = str(etype.__name__)
 
@@ -498,8 +498,8 @@ class AstropyLogger(Logger):
                 fh = logging.FileHandler(log_file_path)
             except OSError as e:
                 warnings.warn(
-                    'log file {0!r} could not be opened for writing: '
-                    '{1}'.format(log_file_path, str(e)), RuntimeWarning)
+                    'log file {!r} could not be opened for writing: '
+                    '{}'.format(log_file_path, str(e)), RuntimeWarning)
             else:
                 formatter = logging.Formatter(conf.log_file_format)
                 fh.setFormatter(formatter)
@@ -543,7 +543,7 @@ class StreamHandler(logging.StreamHandler):
                 color_print(record.levelname, 'brown', end='', file=stream)
             else:
                 color_print(record.levelname, 'red', end='', file=stream)
-        record.message = "{0} [{1:s}]".format(record.msg, record.origin)
+        record.message = f"{record.msg} [{record.origin:s}]"
         print(": " + record.message, file=stream)
 
 

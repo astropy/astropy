@@ -80,7 +80,7 @@ class BaseFormatterLocator:
             raise TypeError("values should be an astropy.units.Quantity array")
         if not values.unit.is_equivalent(self._unit):
             raise UnitsError("value should be in units compatible with "
-                             "coordinate units ({0}) but found {1}".format(self._unit, values.unit))
+                             "coordinate units ({}) but found {}".format(self._unit, values.unit))
         self._number = None
         self._spacing = None
         self._values = values
@@ -251,7 +251,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
             else:
                 self._precision = 0
         else:
-            raise ValueError("Invalid format: {0}".format(value))
+            raise ValueError(f"Invalid format: {value}")
 
         if self.spacing is not None and self.spacing < self.base_spacing:
             warnings.warn("Spacing is too small - resetting spacing to match format")
@@ -368,7 +368,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                     # which should be sufficient.
                     spacing = spacing.to_value(unit)
                     fields = 0
-                    precision = len("{0:.10f}".format(spacing).replace('0', ' ').strip().split('.', 1)[1])
+                    precision = len(f"{spacing:.10f}".replace('0', ' ').strip().split('.', 1)[1])
                 else:
                     spacing = spacing.to_value(unit / 3600)
                     if spacing >= 3600:
@@ -509,7 +509,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
                     self.spacing = self.base_spacing * max(1, round(ratio))
 
         elif not value.startswith('%'):
-            raise ValueError("Invalid format: {0}".format(value))
+            raise ValueError(f"Invalid format: {value}")
 
     @property
     def base_spacing(self):

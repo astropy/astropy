@@ -37,6 +37,8 @@ astropy.io.ascii
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
+- Eliminate deprecated compatibility mode when writing ``Table`` metadata to HDF5 format. [#8899]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
@@ -66,6 +68,24 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
+
+- Improved the implementation of ``Table.replace_column()`` to provide
+  a speed-up of 5 to 10 times for wide tables.  The method can now accept
+  any input which convertible to a column of the correct length, not just
+  ``Column`` subclasses.[#8902]
+
+- Improved the implementation of ``Table.add_column()`` to provide a speed-up
+  of 2 to 10 (or more) when adding a column to tables, with increasing benefit
+  as the number of columns increases.  The method can now accept any input
+  which is convertible to a column of the correct length, not just ``Column``
+  subclasses. [#8933]
+
+- Changed the implementation of ``Table.add_columns()`` to use the new
+  ``Table.add_column()`` method.  In most cases the performance is similar
+  or slightly faster to the previous implemenation. [#8933]
+
+- ``MaskedColumn.data`` will now return a plain ``MaskedArray`` rather than
+  the previous (unintended) ``masked_BaseColumn``. [#8855]
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -120,6 +140,9 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Removed the ``recommended_units`` attribute from Representations; it was
+  deprecated since 3.0. [#8892]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -135,6 +158,9 @@ astropy.io.misc
 ^^^^^^^^^^^^^^^
 
 - Masked column handling has changed, see ``astropy.table`` entry below. [#8789]
+
+- Removed deprecated ``usecPickle`` kwarg from ``fnunpickle`` and
+  ``fnpickle``. [#8890]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
@@ -170,6 +196,12 @@ astropy.samp
 astropy.stats
 ^^^^^^^^^^^^^
 
+- Removed the ``iters`` keyword from sigma clipping stats functions.
+  [#8948]
+
+- Renamed the ``a`` parameter to ``data`` in biweight stat functions.
+  [#8948]
+
 astropy.table
 ^^^^^^^^^^^^^
 
@@ -182,6 +214,15 @@ astropy.table
   needed. Two new table properties ``has_masked_columns`` and ``has_masked_values``
   were added. See the ``Masking change in astropy 4.0`` section within
   `<https://docs.astropy.org/en/v4.0/table/masking.html>`_ for details. [#8789]
+
+- Table operation functions such as ``join``, ``vstack``, ``hstack``, etc now
+  always return a table with ``masked=False``, though the individual columns may
+  be masked as necessary. [#8957]
+
+- Changed implementation of ``Table.add_column()`` and ``Table.add_columns()``
+  methods.  Now it is possible add any object(s) which can be converted or broadcasted
+  to a valid column for the table.  ``Table.__setitem__`` now just calls
+  ``add_column``.
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -197,6 +238,12 @@ astropy.uncertainty
 
 astropy.units
 ^^^^^^^^^^^^^
+
+- For consistency with ``ndarray``, scalar ``Quantity.value`` will now return
+  a numpy scalar rather than a python one.  This should help keep track of
+  precision better, but may lead to unexpected results for the rare cases
+  where numpy scalars behave differently than python ones (e.g., taking the
+  square root of a negative number). [#8876]
 
 astropy.utils
 ^^^^^^^^^^^^^
@@ -287,8 +334,11 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+
 Other Changes and Additions
 ---------------------------
+
+- Versions of Python <3.6 are no longer supported. [#8955]
 
 - Matplotlib 2.1 and later is now required. [#8787]
 
@@ -310,6 +360,9 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
+
+- Fix concatenation of representations for cases where the units were different.
+  [#8877]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
@@ -385,8 +438,12 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Silence numpy runtime warnings in ``WCSAxes`` when drawing grids. [#8882]
+
 astropy.wcs
 ^^^^^^^^^^^
+
+- Fixed a crash while loading a WCS from headers containing duplicate SIP keywords. [#8893]
 
 
 Other Changes and Additions
@@ -2344,6 +2401,8 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Fix uint conversion in ``FITS_rec`` when slicing a table. [#8982]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
@@ -2358,6 +2417,20 @@ astropy.modeling
 
 astropy.nddata
 ^^^^^^^^^^^^^^
+
+- Fixed a bug in ``overlap_slices`` where the ``"strict"`` mode was
+  too strict for a small array along the upper edge of the large array.
+  [#8901]
+
+- Fixed a bug in ``overlap_slices`` where a ``NoOverlapError`` would
+  be incorrectly raised for a 0-shaped small array at the origin.
+  [#8901]
+
+astropy.samp
+^^^^^^^^^^^^
+
+- Fixed a bug that caused an incorrectly constructed warning message
+  to raise an error. [#8966]
 
 astropy.stats
 ^^^^^^^^^^^^^
@@ -2377,11 +2450,23 @@ astropy.units
 - ``Quantity`` now preserves the ``dtype`` for anything that is floating
   point, including ``float16``. [#8872]
 
+- ``Unit()`` now accepts units with fractional exponents such as ``m(3/2)``
+  in the default/``fits`` and ``vounit`` formats that would previously
+  have been rejected for containing multiple solidi (``/``). [#9000]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Fix ``find_current_module`` so that it works properly if astropy is being used
+  inside a bundle such as that produced by PyInstaller. [#8845]
+
+- Fix path to renamed classes, which previously included duplicate path/module
+  information under certain circumstances. [#8845]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
+
+- Fixed compatibility issues with latest versions of Matplotlib. [#8961]
 
 astropy.vo
 ^^^^^^^^^^

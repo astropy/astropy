@@ -14,6 +14,7 @@ from astropy.coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocat
 from astropy.time import Time, TimeDelta
 from astropy.units.quantity import QuantityInfo
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.data import get_pkg_data_filename
 
 try:
     import h5py
@@ -456,8 +457,12 @@ def test_preserve_serialized(tmpdir):
 
 
 @pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
-def test_preserve_serialized_compatibility_mode(tmpdir):
-    test_file = str(tmpdir.join('test.hdf5'))
+def test_preserve_serialized_old_meta_format(tmpdir):
+    """Test the old meta format
+
+    Only for some files created prior to v4.0, in compatibility mode.
+    """
+    test_file = get_pkg_data_filename('data/old_meta_example.hdf5')
 
     t1 = Table()
     t1['a'] = Column(data=[1, 2, 3], unit="s")
@@ -467,13 +472,6 @@ def test_preserve_serialized_compatibility_mode(tmpdir):
     t1['a'].description = 'A column'
     t1.meta['b'] = 1
     t1.meta['c'] = {"c0": [0, 1]}
-
-    with catch_warnings() as w:
-        t1.write(test_file, path='the_table', serialize_meta=True,
-                 overwrite=True, compatibility_mode=True)
-
-    assert str(w[0].message).startswith(
-        "compatibility mode for writing is deprecated")
 
     t2 = Table.read(test_file, path='the_table')
 
@@ -536,25 +534,6 @@ def test_metadata_very_large(tmpdir):
     assert t1.meta == t2.meta
 
 
-@pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
-def test_metadata_very_large_fails_compatibility_mode(tmpdir):
-    """Test that very large metadata do not work in compatibility mode."""
-    test_file = str(tmpdir.join('test.hdf5'))
-    t1 = Table()
-    t1['a'] = Column(data=[1, 2, 3])
-    t1.meta["meta"] = "0" * (2 ** 16 + 1)
-    with catch_warnings() as w:
-        t1.write(test_file, path='the_table', serialize_meta=True,
-                 overwrite=True, compatibility_mode=True)
-    assert len(w) == 2
-
-    # Error message slightly changed in h5py 2.7.1, thus the 2part assert
-    assert str(w[1].message).startswith(
-        "Attributes could not be written to the output HDF5 "
-        "file: Unable to create attribute ")
-    assert "bject header message is too large" in str(w[1].message)
-
-
 @pytest.mark.skipif('not HAS_H5PY')
 def test_skip_meta(tmpdir):
 
@@ -574,7 +553,7 @@ def test_skip_meta(tmpdir):
         t1.write(test_file, path='the_table')
     assert len(w) == 1
     assert str(w[0].message).startswith(
-        "Attribute `f` of type {0} cannot be written to HDF5 files - skipping".format(type(t1.meta['f'])))
+        "Attribute `f` of type {} cannot be written to HDF5 files - skipping".format(type(t1.meta['f'])))
 
 
 @pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
@@ -588,8 +567,8 @@ def test_fail_meta_serialize(tmpdir):
 
     with pytest.raises(Exception) as err:
         t1.write(test_file, path='the_table', serialize_meta=True)
-    assert "cannot represent an object" in str(err)
-    assert "<class 'str'>" in str(err)
+    assert "cannot represent an object" in str(err.value)
+    assert "<class 'str'>" in str(err.value)
 
 
 @pytest.mark.skipif('not HAS_H5PY')
@@ -848,7 +827,7 @@ def test_error_for_mixins_but_no_yaml(tmpdir):
     t = Table([mixin_cols['sc']])
     with pytest.raises(TypeError) as err:
         t.write(filename, path='root', serialize_meta=True)
-    assert "cannot write type SkyCoord column 'col0' to HDF5 without PyYAML" in str(err)
+    assert "cannot write type SkyCoord column 'col0' to HDF5 without PyYAML" in str(err.value)
 
 
 @pytest.mark.skipif('not HAS_YAML or not HAS_H5PY')

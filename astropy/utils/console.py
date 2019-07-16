@@ -256,7 +256,7 @@ def _color_text(text, color):
         return text
 
     color_code = color_mapping.get(color, '0;39')
-    return '\033[{0}m{1}\033[0m'.format(color_code, text)
+    return f'\033[{color_code}m{text}\033[0m'
 
 
 def _decode_preferred_encoding(s):
@@ -425,12 +425,12 @@ def human_time(seconds):
     seconds = int(seconds)
 
     if seconds < 60:
-        return '   {0:2d}s'.format(seconds)
+        return f'   {seconds:2d}s'
     for i in range(len(units) - 1):
         unit1, limit1 = units[i]
         unit2, limit2 = units[i + 1]
         if seconds >= limit1:
-            return '{0:2d}{1}{2:2d}{3}'.format(
+            return '{:2d}{}{:2d}{}'.format(
                 seconds // limit1, unit1,
                 (seconds % limit1) // limit2, unit2)
     return '  ~inf'
@@ -482,7 +482,7 @@ def human_file_size(size):
         str_value = str_value[:2]
     else:
         str_value = str_value[:3]
-    return "{0:>3s}{1}".format(str_value, suffix)
+    return f"{str_value:>3s}{suffix}"
 
 
 class _mapfunc(object):
@@ -648,10 +648,10 @@ class ProgressBar:
         else:
             t = ((time.time() - self._start_time) * (1.0 - frac)) / frac
             prefix = ' ETA '
-        write(' {0:>4s}/{1:>4s}'.format(
+        write(' {:>4s}/{:>4s}'.format(
             human_file_size(value),
             self._human_total))
-        write(' ({:>6.2%})'.format(frac))
+        write(f' ({frac:>6.2%})')
         write(prefix)
         if t is not None:
             write(human_time(t))
@@ -685,7 +685,7 @@ class ProgressBar:
         # Calculate percent completion, and update progress bar
         frac = (value/self._total)
         self._widget.value = frac * 100
-        self._widget.description = ' ({:>6.2%})'.format(frac)
+        self._widget.description = f' ({frac:>6.2%})'
 
     def _silent_update(self, value=None):
         pass

@@ -460,7 +460,7 @@ def table_to_hdu(table, character_as_bytes=False):
         unsupported_cols = table.columns.not_isinstance((BaseColumn, Quantity, Time))
         if unsupported_cols:
             unsupported_names = [col.info.name for col in unsupported_cols]
-            raise ValueError('cannot write table with mixin column(s) {0}'
+            raise ValueError('cannot write table with mixin column(s) {}'
                          .format(unsupported_names))
 
         time_cols = table.columns.isinstance(Time)
@@ -519,13 +519,13 @@ def table_to_hdu(table, character_as_bytes=False):
             except UnitScaleError:
                 scale = unit.scale
                 raise UnitScaleError(
-                    "The column '{0}' could not be stored in FITS format "
-                    "because it has a scale '({1})' that "
+                    "The column '{}' could not be stored in FITS format "
+                    "because it has a scale '({})' that "
                     "is not recognized by the FITS standard. Either scale "
                     "the data or change the units.".format(col.name, str(scale)))
             except ValueError:
                 warnings.warn(
-                    "The unit '{0}' could not be saved to FITS format".format(
+                    "The unit '{}' could not be saved to FITS format".format(
                         unit.to_string()), AstropyUserWarning)
             else:
                 # Try creating a Unit to issue a warning if the unit is not
@@ -547,7 +547,7 @@ def table_to_hdu(table, character_as_bytes=False):
     for key, value in table.meta.items():
         if is_column_keyword(key.upper()) or key.upper() in REMOVE_KEYWORDS:
             warnings.warn(
-                "Meta-data keyword {0} will be ignored since it conflicts "
+                "Meta-data keyword {} will be ignored since it conflicts "
                 "with a FITS reserved keyword".format(key), AstropyUserWarning)
 
         # Convert to FITS format
@@ -560,7 +560,7 @@ def table_to_hdu(table, character_as_bytes=False):
                     table_hdu.header.append((key, item))
                 except ValueError:
                     warnings.warn(
-                        "Attribute `{0}` of type {1} cannot be added to "
+                        "Attribute `{}` of type {} cannot be added to "
                         "FITS Header - skipping".format(key, type(value)),
                         AstropyUserWarning)
         else:
@@ -568,7 +568,7 @@ def table_to_hdu(table, character_as_bytes=False):
                 table_hdu.header[key] = value
             except ValueError:
                 warnings.warn(
-                    "Attribute `{0}` of type {1} cannot be added to FITS "
+                    "Attribute `{}` of type {} cannot be added to FITS "
                     "Header - skipping".format(key, type(value)),
                     AstropyUserWarning)
     return table_hdu

@@ -136,7 +136,7 @@ def hub_script(timeout=0):
         except NameError:
             pass
     except OSError as e:
-        print("[SAMP] Error: I/O error({0}): {1}".format(e.errno, e.strerror))
+        print(f"[SAMP] Error: I/O error({e.errno}): {e.strerror}")
         sys.exit(1)
     except SystemExit:
         pass

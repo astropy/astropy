@@ -31,7 +31,7 @@ kernel = np.random.random([%i]*%i)""") % (2 ** ii - 1, ndims, 2 ** ii - 1, ndims
                 if ii <= max_exponents_linear[ndims]:
                     for convolve_type, extra in zip(("", "_fft"),
                                               ("", "fft_pad=False")):
-                        statement = "convolve{}(array, kernel, boundary='fill', {})".format(convolve_type, extra)
+                        statement = f"convolve{convolve_type}(array, kernel, boundary='fill', {extra})"
                         besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
                         print("%17f" % (besttime), end=' ')
                 else:
@@ -57,7 +57,7 @@ kernel = np.random.random([%i]*%i)""") % (2 ** ii, ndims, 2 ** ii, ndims)
                     if convolve_type == "":
                         print("%17s" % ("-"), end=' ')
                     else:
-                        statement = "convolve{}(array, kernel, boundary='fill')".format(convolve_type)
+                        statement = f"convolve{convolve_type}(array, kernel, boundary='fill')"
                         besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
                         print("%17f" % (besttime), end=' ')
             else:

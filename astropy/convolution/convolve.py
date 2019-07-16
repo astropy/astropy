@@ -174,7 +174,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     '''
 
     if boundary not in BOUNDARY_OPTIONS:
-        raise ValueError("Invalid boundary option: must be one of {0}"
+        raise ValueError("Invalid boundary option: must be one of {}"
                          .format(BOUNDARY_OPTIONS))
 
     if nan_treatment not in ('interpolate', 'fill'):
@@ -277,7 +277,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
         if kernel_sum < 1. / MAX_NORMALIZATION or kernel_sums_to_zero:
             raise ValueError("The kernel can't be normalized, because its sum is "
-                            "close to zero. The sum of the given kernel is < {0}"
+                            "close to zero. The sum of the given kernel is < {}"
                             .format(1. / MAX_NORMALIZATION))
 
     # Mark the NaN values so we can replace them later if interpolate_nan is
@@ -605,7 +605,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     if normalize_kernel is True:
         if kernel.sum() < 1. / MAX_NORMALIZATION:
             raise Exception("The kernel can't be normalized, because its sum is "
-                            "close to zero. The sum of the given kernel is < {0}"
+                            "close to zero. The sum of the given kernel is < {}"
                             .format(1. / MAX_NORMALIZATION))
         kernel_scale = kernel.sum()
         normalized_kernel = kernel / kernel_scale
@@ -641,7 +641,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     elif boundary == 'fill':
         # create a boundary region at least as large as the kernel
         if psf_pad is False:
-            warnings.warn("psf_pad was set to {0}, which overrides the "
+            warnings.warn("psf_pad was set to {}, which overrides the "
                           "boundary='fill' setting.".format(psf_pad),
                           AstropyUserWarning)
         else:
@@ -859,6 +859,6 @@ def convolve_models(model, kernel, mode='convolve_fft', **kwargs):
     elif mode == 'convolve':
         SPECIAL_OPERATORS['convolve'] = partial(convolve, **kwargs)
     else:
-        raise ValueError('Mode {} is not supported.'.format(mode))
+        raise ValueError(f'Mode {mode} is not supported.')
 
     return CompoundModel(mode, model, kernel)

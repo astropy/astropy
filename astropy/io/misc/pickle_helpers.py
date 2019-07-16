@@ -4,14 +4,12 @@ This module contains simple input/output related functionality that is not
 part of a larger framework or standard.
 """
 
-import warnings
-
-from astropy.utils.exceptions import AstropyDeprecationWarning, NoValue
+import pickle
 
 __all__ = ['fnpickle', 'fnunpickle']
 
 
-def fnunpickle(fileorname, number=0, usecPickle=NoValue):
+def fnunpickle(fileorname, number=0):
     """ Unpickle pickled objects from a specified file and return the contents.
 
     Parameters
@@ -39,12 +37,6 @@ def fnunpickle(fileorname, number=0, usecPickle=NoValue):
         file.
 
     """
-
-    if usecPickle is not NoValue:
-        warnings.warn('The "usecPickle" keyword is now deprecated.',
-                      AstropyDeprecationWarning)
-
-    import pickle
 
     if isinstance(fileorname, str):
         f = open(fileorname, 'rb')
@@ -75,8 +67,7 @@ def fnunpickle(fileorname, number=0, usecPickle=NoValue):
     return res
 
 
-def fnpickle(object, fileorname, usecPickle=NoValue, protocol=None,
-             append=False):
+def fnpickle(object, fileorname, protocol=None, append=False):
     """Pickle an object to a specified file.
 
     Parameters
@@ -95,13 +86,6 @@ def fnpickle(object, fileorname, usecPickle=NoValue, protocol=None,
         file name, this has no effect).
 
     """
-
-    if usecPickle is not NoValue:
-        warnings.warn('The "usecPickle" keyword is now deprecated.',
-                      AstropyDeprecationWarning)
-
-    import pickle
-
     if protocol is None:
         protocol = pickle.HIGHEST_PROTOCOL
 

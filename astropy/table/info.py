@@ -71,7 +71,7 @@ def table_info(tbl, option='attributes', out=''):
     descr_vals = [tbl.__class__.__name__]
     if tbl.masked:
         descr_vals.append('masked=True')
-    descr_vals.append('length={0}'.format(len(tbl)))
+    descr_vals.append('length={}'.format(len(tbl)))
 
     outlines = ['<' + ' '.join(descr_vals) + '>']
 

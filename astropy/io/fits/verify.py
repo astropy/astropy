@@ -41,7 +41,7 @@ class _Verify:
             fixable = False
         # fix the value
         elif not fixable:
-            text = 'Unfixable error: {}'.format(text)
+            text = f'Unfixable error: {text}'
         else:
             if fix:
                 fix()
@@ -65,7 +65,7 @@ class _Verify:
 
         opt = option.lower()
         if opt not in VERIFY_OPTIONS:
-            raise ValueError('Option {!r} not recognized.'.format(option))
+            raise ValueError(f'Option {option!r} not recognized.')
 
         if opt == 'ignore':
             return
@@ -161,7 +161,7 @@ class _ErrList(list):
                     if self.unit:
                         # This line is sort of a header for the next level in
                         # the hierarchy
-                        yield None, indent('{} {}:'.format(self.unit, element),
+                        yield None, indent(f'{self.unit} {element}:',
                                            shift=shift)
                     yield first_line
 

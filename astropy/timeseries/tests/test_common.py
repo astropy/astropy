@@ -44,6 +44,13 @@ class CommonTimeSeriesTests:
     def test_add_row(self):
         self.series.add_row(self._row)
 
+    def test_set_unit(self):
+        self.series['d'] = [1, 2, 3]
+        self.series['d'].unit = 's'
+
+    def test_replace_column(self):
+        self.series.replace_column('c', [1, 3, 4])
+
     def test_required_after_stacking(self):
         # When stacking, we have to temporarily relax the checking of the
         # columns in the time series, but we need to make sure that the

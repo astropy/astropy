@@ -88,7 +88,7 @@ def test_escape_xml_without_bleach():
     with pytest.raises(ValueError) as err:
         with w.xml_cleaning_method('bleach_clean'):
             pass
-    assert 'bleach package is required when HTML escaping is disabled' in str(err)
+    assert 'bleach package is required when HTML escaping is disabled' in str(err.value)
 
 
 @pytest.mark.skipif('not HAS_BLEACH')

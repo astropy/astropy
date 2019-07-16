@@ -185,19 +185,19 @@ def coerce_range_list_param(p, frames=None, numeric=True):
             p)
 
         if match is None:
-            raise ValueError("'{}' is not a valid range list".format(p))
+            raise ValueError(f"'{p}' is not a valid range list")
 
         frame = match.groupdict()['frame']
         if frames is not None and frame is not None and frame not in frames:
             raise ValueError(
-                "'{}' is not a valid frame of reference".format(frame))
+                f"'{frame}' is not a valid frame of reference")
         return p, p.count(',') + p.count(';') + 1
 
     try:
         float(p)
         return str(p), 1
     except TypeError:
-        raise ValueError("'{}' is not a valid range list".format(p))
+        raise ValueError(f"'{p}' is not a valid range list")
 
 
 def version_compare(a, b):

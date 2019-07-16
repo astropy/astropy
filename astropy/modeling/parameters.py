@@ -45,7 +45,7 @@ def _tofloat(value):
             # catch arrays with strings or user errors like different
             # types of parameters in a parameter set
             raise InputParameterError(
-                "Parameter of {0} could not be converted to "
+                "Parameter of {} could not be converted to "
                 "float".format(type(value)))
     elif isinstance(value, Quantity):
         # Quantities are fine as is
@@ -60,7 +60,7 @@ def _tofloat(value):
             "Expected parameter to be of numerical type, not boolean")
     else:
         raise InputParameterError(
-            "Don't know how to convert parameter of {0} to "
+            "Don't know how to convert parameter of {} to "
             "float".format(type(value)))
     return value
 
@@ -237,7 +237,7 @@ class Parameter(OrderedDescriptor):
             if min is not None or max is not None:
                 raise ValueError(
                     'bounds may not be specified simultaneously with min or '
-                    'or max when instantiating Parameter {0}'.format(name))
+                    'or max when instantiating Parameter {}'.format(name))
         else:
             bounds = (min, max)
 
@@ -275,7 +275,7 @@ class Parameter(OrderedDescriptor):
             if len(oldvalue[key]) == 0:
                 raise InputParameterError(
                     "Slice assignment outside the parameter dimensions for "
-                    "'{0}'".format(self.name))
+                    "'{}'".format(self.name))
             for idx, val in zip(range(*key.indices(len(self))), value):
                 self.__setitem__(idx, val)
         else:
@@ -289,6 +289,7 @@ class Parameter(OrderedDescriptor):
     def __repr__(self):
         args = "'{0}'".format(self._name)
         args += ', value={0}'.format(self.value)
+
 
         if self.unit is not None:
             args += ', unit={0}'.format(self.unit)
@@ -759,5 +760,5 @@ def param_repr_oneline(param):
 
     out = array_repr_oneline(param.value)
     if param.unit is not None:
-        out = '{0} {1!s}'.format(out, param.unit)
+        out = f'{out} {param.unit!s}'
     return out

@@ -36,7 +36,7 @@ void compute_objective(
     }
 }
 
-inline double wrap_into (double x, double period)
+static inline double wrap_into (double x, double period)
 {
     return x - period * floor(x / period);
 }

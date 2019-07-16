@@ -29,7 +29,7 @@ def get_urls(destdir, s):
     urls = []
     for type in types:
         filename = get_pkg_data_filename(
-            'data/urls/cone.{0}.dat.gz'.format(type))
+            f'data/urls/cone.{type}.dat.gz')
         with gzip.open(filename, 'rb') as fd:
             for url in fd.readlines():
                 next(s)
@@ -115,7 +115,7 @@ def make_validation_report(
     if stilts is not None:
         if not os.path.exists(stilts):
             raise ValueError(
-                '{0} does not exist.'.format(stilts))
+                f'{stilts} does not exist.')
 
     destdir = os.path.abspath(destdir)
 

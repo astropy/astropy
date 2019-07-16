@@ -103,7 +103,7 @@ def validate_method(method, dy, fit_mean, nterms,
             method = 'cython'
 
     if method not in METHODS:
-        raise ValueError("invalid method: {0}".format(method))
+        raise ValueError(f"invalid method: {method}")
 
     return method
 

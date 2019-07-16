@@ -22,6 +22,7 @@ BITPIX values in FITS images and the numpy data types:
     8         numpy.uint8 (note it is UNsigned integer)
     16        numpy.int16
     32        numpy.int32
+    64        numpy.int64
     -32       numpy.float32
     -64       numpy.float64
 

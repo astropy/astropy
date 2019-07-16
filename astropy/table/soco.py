@@ -55,7 +55,7 @@ class Node(object):
     __hash__ = None
 
     def __repr__(self):
-        return 'Node({0!r}, {1!r})'.format(self.key, self.value)
+        return f'Node({self.key!r}, {self.value!r})'
 
 
 class SCEngine:
@@ -82,7 +82,7 @@ class SCEngine:
         Add a key, value pair.
         '''
         if self._unique and (key in self._nodes):
-            message = 'duplicate {0:!r} in unique index'.format(key)
+            message = f'duplicate {key:!r} in unique index'
             raise ValueError(message)
         self._nodes.add(Node(key, value))
 
@@ -167,4 +167,4 @@ class SCEngine:
         self._nodes.update(nodes)
 
     def __repr__(self):
-        return '{0!r}'.format(list(self._nodes))
+        return '{!r}'.format(list(self._nodes))

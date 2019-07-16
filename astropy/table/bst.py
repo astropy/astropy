@@ -275,7 +275,7 @@ class BST:
             return self._inorder(self.root, [])
         elif order == 'postorder':
             return self._postorder(self.root, [])
-        raise ValueError("Invalid traversal method: \"{0}\"".format(order))
+        raise ValueError(f"Invalid traversal method: \"{order}\"")
 
     def items(self):
         '''
@@ -518,7 +518,7 @@ class FastBase:
         if self.unique:
             if key in self.data:
                 # already exists
-                raise ValueError('Cannot add duplicate value "{0}" in a '
+                raise ValueError('Cannot add duplicate value "{}" in a '
                                  'unique index'.format(key))
             self.data[key] = val
         else:

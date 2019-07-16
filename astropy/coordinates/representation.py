@@ -20,8 +20,6 @@ from .distances import Distance
 from astropy._erfa import ufunc as erfa_ufunc
 from astropy.utils import ShapedLikeNDArray, classproperty
 
-from astropy.utils import deprecated_attribute
-from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import InheritDocstrings
 from astropy.utils.compat import NUMPY_LT_1_14
 
@@ -62,16 +60,6 @@ def get_reprdiff_cls_hash():
 def _invalidate_reprdiff_cls_hash():
     global _REPRDIFF_HASH
     _REPRDIFF_HASH = None
-
-
-# recommended_units deprecation message; if the attribute is removed later,
-# also remove its use in BaseFrame._get_representation_info.
-_recommended_units_deprecation = """
-The 'recommended_units' attribute is deprecated since 3.0 and may be removed
-in a future version. Its main use, of representing angles in degrees in frames,
-is now done automatically in frames. Further overrides are discouraged but can
-be done using a frame's ``frame_specific_representation_info``.
-"""
 
 
 def _array2string(values, prefix=''):
@@ -140,20 +128,20 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                 attrs.append(args.pop(0) if args else kwargs.pop(component))
             except KeyError:
                 raise TypeError('__init__() missing 1 required positional '
-                                'argument: {0!r}'.format(component))
+                                'argument: {!r}'.format(component))
 
         copy = args.pop(0) if args else kwargs.pop('copy', True)
 
         if args:
-            raise TypeError('unexpected arguments: {0}'.format(args))
+            raise TypeError(f'unexpected arguments: {args}')
 
         if kwargs:
             for component in components:
                 if component in kwargs:
                     raise TypeError("__init__() got multiple values for "
-                                    "argument {0!r}".format(component))
+                                    "argument {!r}".format(component))
 
-            raise TypeError('unexpected keyword arguments: {0}'.format(kwargs))
+            raise TypeError(f'unexpected keyword arguments: {kwargs}')
 
         # Pass attributes through the required initializing classes.
         attrs = [self.attr_classes[component](attr, copy=copy)
@@ -165,7 +153,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                 c_str = ' and '.join(components)
             else:
                 c_str = ', '.join(components[:2]) + ', and ' + components[2]
-            raise ValueError("Input parameters {0} cannot be broadcast"
+            raise ValueError("Input parameters {} cannot be broadcast"
                              .format(c_str))
         # Set private attributes for the attributes. (If not defined explicitly
         # on the class, the metaclass will define properties to access these.)
@@ -370,13 +358,13 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         if len(units_set) == 1:
             unitstr = units_set.pop().to_string()
         else:
-            unitstr = '({0})'.format(
+            unitstr = '({})'.format(
                 ', '.join([self._units[component].to_string()
                            for component in self.components]))
         return unitstr
 
     def __str__(self):
-        return '{0} {1:s}'.format(_array2string(self._values), self._unitstr)
+        return '{} {:s}'.format(_array2string(self._values), self._unitstr)
 
     def __repr__(self):
         prefixstr = '    '
@@ -384,11 +372,11 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
 
         diffstr = ''
         if getattr(self, 'differentials', None):
-            diffstr = '\n (has differentials w.r.t.: {0})'.format(
+            diffstr = '\n (has differentials w.r.t.: {})'.format(
                 ', '.join([repr(key) for key in self.differentials.keys()]))
 
         unitstr = ('in ' + self._unitstr) if self._unitstr else '[dimensionless]'
-        return '<{0} ({1}) {2:s}\n{3}{4}{5}>'.format(
+        return '<{} ({}) {:s}\n{}{}{}>'.format(
             self.__class__.__name__, ', '.join(self.components),
             unitstr, prefixstr, arrstr, diffstr)
 
@@ -427,17 +415,10 @@ class MetaBaseRepresentation(InheritDocstrings, abc.ABCMeta):
             raise NotImplementedError('Representations must have an '
                                       '"attr_classes" class attribute.')
 
-        if 'recommended_units' in dct:
-            warnings.warn(_recommended_units_deprecation,
-                          AstropyDeprecationWarning)
-            # Ensure we don't override the property that warns about the
-            # deprecation, but that the value remains the same.
-            dct.setdefault('_recommended_units', dct.pop('recommended_units'))
-
         repr_name = cls.get_name()
 
         if repr_name in REPRESENTATION_CLASSES:
-            raise ValueError("Representation class {0} already defined"
+            raise ValueError("Representation class {} already defined"
                              .format(repr_name))
 
         REPRESENTATION_CLASSES[repr_name] = cls
@@ -448,7 +429,7 @@ class MetaBaseRepresentation(InheritDocstrings, abc.ABCMeta):
             if not hasattr(cls, component):
                 setattr(cls, component,
                         property(_make_getter(component),
-                                 doc=("The '{0}' component of the points(s)."
+                                 doc=("The '{}' component of the points(s)."
                                       .format(component))))
 
 
@@ -484,9 +465,6 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
     class, one should also define ``unit_vectors`` and ``scale_factors``
     methods (see those methods for details).
     """
-
-    recommended_units = deprecated_attribute('recommended_units', since='3.0')
-    _recommended_units = {}
 
     def __init__(self, *args, differentials=None, **kwargs):
         # Handle any differentials passed in.
@@ -537,8 +515,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
             else:
                 expected_key = diff._get_deriv_key(self)
                 if key != expected_key:
-                    raise ValueError("For differential object '{0}', expected "
-                                     "unit key = '{1}' but received key = '{2}'"
+                    raise ValueError("For differential object '{}', expected "
+                                     "unit key = '{}' but received key = '{}'"
                                      .format(repr(diff), expected_key, key))
 
             # For now, we are very rigid: differentials must have the same shape
@@ -549,8 +527,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
                 # TODO: message of IncompatibleShapeError is not customizable,
                 #       so use a valueerror instead?
                 raise ValueError("Shape of differentials must be the same "
-                                 "as the shape of the representation ({0} vs "
-                                 "{1})".format(diff.shape, self.shape))
+                                 "as the shape of the representation ({} vs "
+                                 "{})".format(diff.shape, self.shape))
 
         return differentials
 
@@ -560,8 +538,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
         supported when a representation has differentials attached.
         """
         if self.differentials:
-            raise TypeError("Operation '{0}' is not supported when "
-                            "differentials are attached to a {1}."
+            raise TypeError("Operation '{}' is not supported when "
+                            "differentials are attached to a {}."
                             .format(op_name, self.__class__.__name__))
 
     @property
@@ -639,7 +617,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
                        "as a dictionary with keys equal to a string "
                        "representation of the unit of the derivative "
                        "for each differential stored with this "
-                       "representation object ({0})"
+                       "representation object ({})"
                        .format(self.differentials))
 
         new_diffs = dict()
@@ -651,9 +629,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
             except Exception:
                 if (differential_class[k] not in
                         new_rep._compatible_differentials):
-                    raise TypeError("Desired differential class {0} is not "
+                    raise TypeError("Desired differential class {} is not "
                                     "compatible with the desired "
-                                    "representation class {1}"
+                                    "representation class {}"
                                     .format(differential_class[k],
                                             new_rep.__class__))
                 else:
@@ -1025,7 +1003,7 @@ class CartesianRepresentation(BaseRepresentation):
                              "i.e., y and z should not be not given.")
 
         if y is None or z is None:
-            raise ValueError("x, y, and z are required to instantiate {0}"
+            raise ValueError("x, y, and z are required to instantiate {}"
                              .format(self.__class__.__name__))
 
         if unit is not None:
@@ -1215,7 +1193,7 @@ class CartesianRepresentation(BaseRepresentation):
             other_c = other.to_cartesian()
         except Exception:
             raise TypeError("cannot only take dot product with another "
-                            "representation, not a {0} instance."
+                            "representation, not a {} instance."
                             .format(type(other)))
         # erfa pdp: p-vector inner (=scalar=dot) product.
         return erfa_ufunc.pdp(self.get_xyz(xyz_axis=-1),
@@ -1239,7 +1217,7 @@ class CartesianRepresentation(BaseRepresentation):
             other_c = other.to_cartesian()
         except Exception:
             raise TypeError("cannot only take cross product with another "
-                            "representation, not a {0} instance."
+                            "representation, not a {} instance."
                             .format(type(other)))
         # erfa pxp: p-vector outer (=vector=cross) product.
         sxo = erfa_ufunc.pxp(self.get_xyz(xyz_axis=-1),
@@ -1488,7 +1466,7 @@ class RadialRepresentation(BaseRepresentation):
     def unit_vectors(self):
         """Cartesian unit vectors are undefined for radial representation."""
         raise NotImplementedError('Cartesian unit vectors are undefined for '
-                                  '{0} instances'.format(self.__class__))
+                                  '{} instances'.format(self.__class__))
 
     def scale_factors(self):
         l = np.broadcast_to(1.*u.one, self.shape, subok=True)
@@ -1496,7 +1474,7 @@ class RadialRepresentation(BaseRepresentation):
 
     def to_cartesian(self):
         """Cannot convert radial representation to cartesian."""
-        raise NotImplementedError('cannot convert {0} instance to cartesian.'
+        raise NotImplementedError('cannot convert {} instance to cartesian.'
                                   .format(self.__class__))
 
     @classmethod
@@ -1737,7 +1715,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         if np.any(self._theta < 0.*u.deg) or np.any(self._theta > 180.*u.deg):
             raise ValueError('Inclination angle(s) must be within '
                              '0 deg <= angle <= 180 deg, '
-                             'got {0}'.format(theta.to(u.degree)))
+                             'got {}'.format(theta.to(u.degree)))
 
         if self._r.unit.physical_type == 'length':
             self._r = self._r.view(Distance)
@@ -1970,16 +1948,9 @@ class MetaBaseDifferential(InheritDocstrings, abc.ABCMeta):
             cls.attr_classes = OrderedDict([('d_' + c, u.Quantity)
                                             for c in base_attr_classes])
 
-        if 'recommended_units' in dct:
-            warnings.warn(_recommended_units_deprecation,
-                          AstropyDeprecationWarning)
-            # Ensure we don't override the property that warns about the
-            # deprecation, but that the value remains the same.
-            dct.setdefault('_recommended_units', dct.pop('recommended_units'))
-
         repr_name = cls.get_name()
         if repr_name in DIFFERENTIAL_CLASSES:
-            raise ValueError("Differential class {0} already defined"
+            raise ValueError("Differential class {} already defined"
                              .format(repr_name))
 
         DIFFERENTIAL_CLASSES[repr_name] = cls
@@ -1990,7 +1961,7 @@ class MetaBaseDifferential(InheritDocstrings, abc.ABCMeta):
             if not hasattr(cls, component):
                 setattr(cls, component,
                         property(_make_getter(component),
-                                 doc=("Component '{0}' of the Differential."
+                                 doc=("Component '{}' of the Differential."
                                       .format(component))))
 
 
@@ -2021,14 +1992,11 @@ class BaseDifferential(BaseRepresentationOrDifferential,
     those, and a default ``__init__`` for initialization.
     """
 
-    recommended_units = deprecated_attribute('recommended_units', since='3.0')
-    _recommended_units = {}
-
     @classmethod
     def _check_base(cls, base):
         if cls not in base._compatible_differentials:
-            raise TypeError("Differential class {0} is not compatible with the "
-                            "base (representation) class {1}"
+            raise TypeError("Differential class {} is not compatible with the "
+                            "base (representation) class {}"
                             .format(cls, base.__class__))
 
     def _get_deriv_key(self, base):
@@ -2043,7 +2011,7 @@ class BaseDifferential(BaseRepresentationOrDifferential,
 
         for name in base.components:
             comp = getattr(base, name)
-            d_comp = getattr(self, 'd_{0}'.format(name), None)
+            d_comp = getattr(self, f'd_{name}', None)
             if d_comp is not None:
                 d_unit = comp.unit / d_comp.unit
 
@@ -2295,7 +2263,7 @@ class CartesianDifferential(BaseDifferential):
                              "i.e., d_y and d_z should not be not given.")
 
         if d_y is None or d_z is None:
-            raise ValueError("d_x, d_y, and d_z are required to instantiate {0}"
+            raise ValueError("d_x, d_y, and d_z are required to instantiate {}"
                              .format(self.__class__.__name__))
 
         if unit is not None:

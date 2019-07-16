@@ -125,10 +125,10 @@ class Card(_Verify):
 
     _rvkc_identifier = r'[a-zA-Z_]\w*'
     _rvkc_field = _rvkc_identifier + r'(\.\d+)?'
-    _rvkc_field_specifier_s = r'{}(\.{})*'.format(_rvkc_field, _rvkc_field)
+    _rvkc_field_specifier_s = fr'{_rvkc_field}(\.{_rvkc_field})*'
     _rvkc_field_specifier_val = (r'(?P<keyword>{}): (?P<val>{})'.format(
             _rvkc_field_specifier_s, _numr_FSC))
-    _rvkc_keyword_val = r'\'(?P<rawval>{})\''.format(_rvkc_field_specifier_val)
+    _rvkc_keyword_val = fr'\'(?P<rawval>{_rvkc_field_specifier_val})\''
     _rvkc_keyword_val_comm = (r' *{} *(/ *(?P<comm>[ -~]*))?$'.format(
             _rvkc_keyword_val))
 
@@ -266,11 +266,11 @@ class Card(_Verify):
                         'standard; a HIERARCH card will be created.'.format(
                             keyword), VerifyWarning)
             else:
-                raise ValueError('Illegal keyword name: {!r}.'.format(keyword))
+                raise ValueError(f'Illegal keyword name: {keyword!r}.')
             self._keyword = keyword
             self._modified = True
         else:
-            raise ValueError('Keyword name {!r} is not a string.'.format(keyword))
+            raise ValueError(f'Keyword name {keyword!r} is not a string.')
 
     @property
     def value(self):
@@ -318,7 +318,7 @@ class Card(_Verify):
                           (str, int, float, complex, bool, Undefined,
                            np.floating, np.integer, np.complexfloating,
                            np.bool_)):
-            raise ValueError('Illegal value: {!r}.'.format(value))
+            raise ValueError(f'Illegal value: {value!r}.')
 
         if isinstance(value, float) and (np.isnan(value) or np.isinf(value)):
             raise ValueError("Floating point {!r} values are not allowed "
@@ -416,7 +416,7 @@ class Card(_Verify):
         if self._rawvalue is not None:
             return self._rawvalue
         elif self.field_specifier is not None:
-            self._rawvalue = '{}: {}'.format(self.field_specifier, self.value)
+            self._rawvalue = f'{self.field_specifier}: {self.value}'
             return self._rawvalue
         else:
             return self.value
@@ -900,7 +900,7 @@ class Card(_Verify):
             idigt = translate(imag.group('digt'), FIX_FP_TABLE, ' ')
             if imag.group('sign') is not None:
                 idigt = imag.group('sign') + idigt
-            value = '({}, {})'.format(rdigt, idigt)
+            value = f'({rdigt}, {idigt})'
         self._valuestring = value
         # The value itself has not been modified, but its serialized
         # representation (as stored in self._valuestring) has been changed, so
@@ -913,7 +913,7 @@ class Card(_Verify):
                 return '{:{len}}'.format(self.keyword.split('.', 1)[0],
                                          len=KEYWORD_LENGTH)
             elif self._hierarch:
-                return 'HIERARCH {} '.format(self.keyword)
+                return f'HIERARCH {self.keyword} '
             else:
                 return '{:{len}}'.format(self.keyword, len=KEYWORD_LENGTH)
         else:
@@ -936,10 +936,10 @@ class Card(_Verify):
         elif (self._valuestring and not self._valuemodified and
               isinstance(self.value, float_types)):
             # Keep the existing formatting for float/complex numbers
-            value = '{:>20}'.format(self._valuestring)
+            value = f'{self._valuestring:>20}'
         elif self.field_specifier:
             value = _format_value(self._value).strip()
-            value = "'{}: {}'".format(self.field_specifier, value)
+            value = f"'{self.field_specifier}: {value}'"
         else:
             value = _format_value(value)
 
@@ -953,7 +953,7 @@ class Card(_Verify):
         if not self.comment:
             return ''
         else:
-            return ' / {}'.format(self._comment)
+            return f' / {self._comment}'
 
     def _format_image(self):
         keyword = self._format_keyword()
@@ -990,7 +990,7 @@ class Card(_Verify):
                                  'too long'.format(self.keyword))
 
         if len(output) <= self.length:
-            output = '{:80}'.format(output)
+            output = f'{output:80}'
         else:
             # longstring case (CONTINUE card)
             # try not to use CONTINUE if the string value can fit in one line.
@@ -1052,7 +1052,7 @@ class Card(_Verify):
                     headstr = "CONTINUE  '&' / "
 
                 comment = headstr + comment_format.format(word)
-                output.append('{:80}'.format(comment))
+                output.append(f'{comment:80}')
 
         return ''.join(output)
 
@@ -1122,7 +1122,7 @@ class Card(_Verify):
             if not self._keywd_FSC_RE.match(keyword):
                 errs.append(self.run_option(
                     option,
-                    err_text='Illegal keyword name {!r}'.format(keyword),
+                    err_text=f'Illegal keyword name {keyword!r}',
                     fixable=False))
 
         # verify the value, it may be fixable
@@ -1217,15 +1217,15 @@ def _format_value(value):
             return "''"
         else:
             exp_val_str = value.replace("'", "''")
-            val_str = "'{:8}'".format(exp_val_str)
-            return '{:20}'.format(val_str)
+            val_str = f"'{exp_val_str:8}'"
+            return f'{val_str:20}'
 
     # must be before int checking since bool is also int
     elif isinstance(value, (bool, np.bool_)):
         return '{:>20}'.format(repr(value)[0])  # T or F
 
     elif _is_int(value):
-        return '{:>20d}'.format(value)
+        return f'{value:>20d}'
 
     elif isinstance(value, (float, np.floating)):
         return '{:>20}'.format(_format_float(value))
@@ -1233,7 +1233,7 @@ def _format_value(value):
     elif isinstance(value, (complex, np.complexfloating)):
         val_str = '({}, {})'.format(_format_float(value.real),
                                     _format_float(value.imag))
-        return '{:>20}'.format(val_str)
+        return f'{val_str:>20}'
 
     elif isinstance(value, Undefined):
         return ''
@@ -1244,7 +1244,7 @@ def _format_value(value):
 def _format_float(value):
     """Format a floating number to make sure it gets the decimal point."""
 
-    value_str = '{:.16G}'.format(value)
+    value_str = f'{value:.16G}'
     if '.' not in value_str and 'E' not in value_str:
         value_str += '.0'
     elif 'E' in value_str:
