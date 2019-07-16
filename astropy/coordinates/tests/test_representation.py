@@ -13,7 +13,6 @@ from astropy.tests.helper import (assert_quantity_allclose as
                              assert_allclose_quantity, catch_warnings)
 from astropy.utils import isiterable
 from astropy.utils.compat import NUMPY_LT_1_14
-from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.coordinates.angles import Longitude, Latitude, Angle
 from astropy.coordinates.distances import Distance
 from astropy.coordinates.representation import (REPRESENTATION_CLASSES,
@@ -543,7 +542,7 @@ class TestCartesianRepresentation:
         with pytest.raises(ValueError) as exc:
             CartesianRepresentation(x=[1, 2, 3] * u.pc, y=[2, 3, 4] * u.pc,
                                     z=[3, 4, 5] * u.pc, xyz_axis=0)
-        assert 'xyz_axis should only be set' in str(exc)
+        assert 'xyz_axis should only be set' in str(exc.value)
 
     def test_init_one_array_yz_fail(self):
         with pytest.raises(ValueError) as exc:
@@ -1397,19 +1396,6 @@ def test_to_cartesian():
     assert not cart.differentials
 
 
-def test_recommended_units_deprecation():
-    sr = SphericalRepresentation(lat=1*u.deg, lon=2*u.deg, distance=10*u.m)
-    with catch_warnings(AstropyDeprecationWarning) as w:
-        sr.recommended_units
-    assert 'recommended_units' in str(w[0].message)
-
-    with catch_warnings(AstropyDeprecationWarning) as w:
-        class MyClass(SphericalRepresentation):
-            attr_classes = SphericalRepresentation.attr_classes
-            recommended_units = {}
-    assert 'recommended_units' in str(w[0].message)
-
-
 @pytest.fixture
 def unitphysics():
     """
@@ -1437,7 +1423,7 @@ def unitphysics():
             if np.any(self._theta < 0.*u.deg) or np.any(self._theta > 180.*u.deg):
                 raise ValueError('Inclination angle(s) must be within '
                                  '0 deg <= angle <= 180 deg, '
-                                 'got {0}'.format(theta.to(u.degree)))
+                                 'got {}'.format(theta.to(u.degree)))
 
         @property
         def phi(self):
@@ -1523,3 +1509,13 @@ def test_distance_warning(recwarn):
     # second check is because the "originating" ValueError says the above,
     # while the representation one includes the below
     assert 'you must explicitly pass' in str(excinfo.value)
+
+
+def test_dtype_preservation_in_indexing():
+    # Regression test for issue #8614 (fixed in #8876)
+    xyz = np.array([[1, 0, 0], [0.9, 0.1, 0]], dtype='f4')
+    cr = CartesianRepresentation(xyz, xyz_axis=-1, unit="km")
+    assert cr.xyz.dtype == xyz.dtype
+    cr0 = cr[0]
+    # This used to fail.
+    assert cr0.xyz.dtype == xyz.dtype

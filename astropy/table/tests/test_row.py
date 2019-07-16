@@ -135,7 +135,7 @@ class TestRow():
         self._setup(table_types)
         table = self.t
         row = table[0]
-        assert repr(row).splitlines() == ['<{0} {1}{2}>'
+        assert repr(row).splitlines() == ['<{} {}{}>'
                                           .format(row.__class__.__name__,
                                                   'index=0',
                                                   ' masked=True' if table.masked else ''),
@@ -147,11 +147,11 @@ class TestRow():
                                          '--- ---',
                                          '  1   4']
 
-        assert row._repr_html_().splitlines() == ['<i>{0} {1}{2}</i>'
+        assert row._repr_html_().splitlines() == ['<i>{} {}{}</i>'
                                                   .format(row.__class__.__name__,
                                                           'index=0',
                                                           ' masked=True' if table.masked else ''),
-                                                  '<table id="table{0}">'.format(id(table)),
+                                                  '<table id="table{}">'.format(id(table)),
                                                   '<thead><tr><th>a</th><th>b</th></tr></thead>',
                                                   '<thead><tr><th>int64</th><th>int64</th></tr></thead>',
                                                   '<tr><td>1</td><td>4</td></tr>',
@@ -252,17 +252,17 @@ def test_row_tuple_column_slice():
     # Bad column name
     with pytest.raises(KeyError) as err:
         t[1]['a', 'not_there']
-    assert "KeyError: 'not_there'" in str(err)
+    assert "'not_there'" in str(err.value)
 
     # Too many values
     with pytest.raises(ValueError) as err:
         t[1]['a', 'b'] = 1 * u.m, 2, 3
-    assert 'right hand side must be a sequence' in str(err)
+    assert 'right hand side must be a sequence' in str(err.value)
 
     # Something without a length
     with pytest.raises(ValueError) as err:
         t[1]['a', 'b'] = 1
-    assert 'right hand side must be a sequence' in str(err)
+    assert 'right hand side must be a sequence' in str(err.value)
 
 
 def test_row_tuple_column_slice_transaction():
@@ -277,7 +277,7 @@ def test_row_tuple_column_slice_transaction():
     # First one succeeds but second fails.
     with pytest.raises(ValueError) as err:
         t[1]['a', 'b'] = (-1, -1 * u.s)  # Bad unit
-    assert "'s' (time) and 'm' (length) are not convertible" in str(err)
+    assert "'s' (time) and 'm' (length) are not convertible" in str(err.value)
     assert t[1] == tc[1]
 
 

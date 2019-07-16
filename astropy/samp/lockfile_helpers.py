@@ -46,10 +46,10 @@ def write_lockfile(lockfilename, lockfiledict):
 
     lockfile = open(lockfilename, "w")
     now_iso = datetime.datetime.now().isoformat()
-    lockfile.write("# SAMP lockfile written on {}\n".format(now_iso))
+    lockfile.write(f"# SAMP lockfile written on {now_iso}\n")
     lockfile.write("# Standard Profile required keys\n")
     for key, value in lockfiledict.items():
-        lockfile.write("{0}={1}\n".format(key, value))
+        lockfile.write(f"{key}={value}\n")
     lockfile.close()
 
 
@@ -99,7 +99,7 @@ def create_lock_file(lockfilename=None, mode=None, hub_id=None,
                              stat.S_IREAD + stat.S_IWRITE + stat.S_IEXEC)
 
                 lockfilename = os.path.join(lockfiledir,
-                                            "samp-hub-{}".format(hub_id))
+                                            f"samp-hub-{hub_id}")
 
         else:
             log.debug("Running mode: multiple")

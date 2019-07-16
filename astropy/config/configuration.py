@@ -114,7 +114,7 @@ class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
         """
         if hasattr(self, attr):
             return self.__class__.__dict__[attr].set_temp(value)
-        raise AttributeError("No configuration parameter '{0}'".format(attr))
+        raise AttributeError(f"No configuration parameter '{attr}'")
 
     def reload(self, attr=None):
         """
@@ -129,7 +129,7 @@ class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
         if attr is not None:
             if hasattr(self, attr):
                 return self.__class__.__dict__[attr].reload()
-            raise AttributeError("No configuration parameter '{0}'".format(attr))
+            raise AttributeError(f"No configuration parameter '{attr}'")
 
         for item in self.__class__.__dict__.values():
             if isinstance(item, ConfigItem):
@@ -150,7 +150,7 @@ class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
                 prop = self.__class__.__dict__[attr]
                 prop.set(prop.defaultvalue)
                 return
-            raise AttributeError("No configuration parameter '{0}'".format(attr))
+            raise AttributeError(f"No configuration parameter '{attr}'")
 
         for item in self.__class__.__dict__.values():
             if isinstance(item, ConfigItem):
@@ -356,7 +356,7 @@ class ConfigItem(metaclass=InheritDocstrings):
         return baseobj.get(self.name)
 
     def __repr__(self):
-        out = '<{0}: name={1!r} value={2!r} at 0x{3:x}>'.format(
+        out = '<{}: name={!r} value={!r} at 0x{:x}>'.format(
             self.__class__.__name__, self.name, self(), id(self))
         return out
 
@@ -390,7 +390,7 @@ class ConfigItem(metaclass=InheritDocstrings):
             if section == '':
                 return 'at the top-level'
             else:
-                return 'in section [{0}]'.format(section)
+                return f'in section [{section}]'
 
         options = []
         sec = get_config(self.module)
@@ -411,8 +411,8 @@ class ConfigItem(metaclass=InheritDocstrings):
                 else:
                     new_module = ''
                 warn(
-                    "Config parameter '{0}' {1} of the file '{2}' "
-                    "is deprecated. Use '{3}' {4} instead.".format(
+                    "Config parameter '{}' {} of the file '{}' "
+                    "is deprecated. Use '{}' {} instead.".format(
                         name, section_name(module), get_config_filename(filename),
                         self.name, section_name(new_module)),
                     AstropyDeprecationWarning)
@@ -425,8 +425,8 @@ class ConfigItem(metaclass=InheritDocstrings):
         if len(options) > 1:
             filename, sec = self.module.split('.', 1)
             warn(
-                "Config parameter '{0}' {1} of the file '{2}' is "
-                "given by more than one alias ({3}). Using the first.".format(
+                "Config parameter '{}' {} of the file '{}' is "
+                "given by more than one alias ({}). Using the first.".format(
                     self.name, section_name(sec), get_config_filename(filename),
                     ', '.join([
                         '.'.join(x[1:3]) for x in options if x[1] is not None])),
@@ -528,7 +528,7 @@ def get_config(packageormod=None, reload=False):
             msg = ('Configuration defaults will be used due to ')
             errstr = '' if len(e.args) < 1 else (':' + str(e.args[0]))
             msg += e.__class__.__name__ + errstr
-            msg += ' on {0}'.format(cfgfn)
+            msg += f' on {cfgfn}'
             warn(ConfigurationMissingWarning(msg))
 
             # This caches the object, so if the file becomes accessible, this
@@ -686,7 +686,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
     # spamming `~/.astropy/config`.
     if 'dev' not in version and cfgfn is not None:
         template_path = path.join(
-            get_config_dir(), '{0}.{1}.cfg'.format(pkg, version))
+            get_config_dir(), f'{pkg}.{version}.cfg')
         needs_template = not path.exists(template_path)
     else:
         needs_template = False
@@ -700,10 +700,10 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
             # changes, display a warning.
             if not identical and not doupdate:
                 warn(
-                    "The configuration options in {0} {1} may have changed, "
+                    "The configuration options in {} {} may have changed, "
                     "your configuration file was not updated in order to "
                     "preserve local changes.  A new configuration template "
-                    "has been saved to '{2}'.".format(
+                    "has been saved to '{}'.".format(
                         pkg, version, template_path),
                     ConfigurationChangedWarning)
 

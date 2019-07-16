@@ -785,7 +785,7 @@ def test_velosys():
 def test_velref():
     w = _wcs.Wcsprm()
     assert w.velref == 0.0
-    w.velref = 42.0
+    w.velref = 42
     assert w.velref == 42.0
     del w.velref
     assert w.velref == 0.0
@@ -884,7 +884,7 @@ def test_wcs_sub_error_message():
     w = _wcs.Wcsprm()
     with pytest.raises(TypeError) as e:
         w.sub('latitude')
-    assert str(e).endswith("axes must None, a sequence or an integer")
+    assert e.match("axes must None, a sequence or an integer$")
 
 
 def test_wcs_sub():

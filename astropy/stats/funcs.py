@@ -9,13 +9,9 @@ This module should generally not be used directly.  Everything in
 should be used for access.
 """
 
-
 import math
-import itertools
 
 import numpy as np
-
-from warnings import warn
 
 from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils import isiterable
@@ -36,7 +32,7 @@ __doctest_requires__ = {'binom_conf_interval': ['scipy.special'],
                                                   'scipy.integrate']}
 
 
-gaussian_sigma_to_fwhm = 2.0 * np.sqrt(2.0 * np.log(2.0))
+gaussian_sigma_to_fwhm = 2.0 * math.sqrt(2.0 * math.log(2.0))
 """
 Factor with which to multiply Gaussian 1-sigma standard deviation to
 convert it to full width at half maximum (FWHM).
@@ -270,7 +266,7 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
 
         conf_interval = np.array([lowerbound, upperbound])
     else:
-        raise ValueError('Unrecognized interval: {0:s}'.format(interval))
+        raise ValueError(f'Unrecognized interval: {interval:s}')
 
     return conf_interval
 
@@ -455,13 +451,13 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
 
 def _check_poisson_conf_inputs(sigma, background, conflevel, name):
     if sigma != 1:
-        raise ValueError("Only sigma=1 supported for interval {0}"
+        raise ValueError("Only sigma=1 supported for interval {}"
                          .format(name))
     if background != 0:
-        raise ValueError("background not supported for interval {0}"
+        raise ValueError("background not supported for interval {}"
                          .format(name))
     if conflevel is not None:
-        raise ValueError("conflevel not supported for interval {0}"
+        raise ValueError("conflevel not supported for interval {}"
                          .format(name))
 
 
@@ -706,7 +702,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
             conf_interval[0, n == 0] = 0
     elif interval == 'kraft-burrows-nousek':
         if conflevel is None:
-            raise ValueError('Set conflevel for method {0}. (sigma is '
+            raise ValueError('Set conflevel for method {}. (sigma is '
                              'ignored.)'.format(interval))
         conflevel = np.asanyarray(conflevel)
         if np.any(conflevel <= 0) or np.any(conflevel >= 1):
@@ -1222,13 +1218,13 @@ def _kraft_burrows_nousek(N, B, CL):
     N < 100).
     '''
     try:
-        import scipy
+        import scipy  # noqa
         HAS_SCIPY = True
     except ImportError:
         HAS_SCIPY = False
 
     try:
-        import mpmath
+        import mpmath  # noqa
         HAS_MPMATH = True
     except ImportError:
         HAS_MPMATH = False

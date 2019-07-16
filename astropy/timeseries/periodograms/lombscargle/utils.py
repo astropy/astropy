@@ -66,7 +66,7 @@ def convert_normalization(Z, N, from_normalization, to_normalization,
 
     for norm in from_to:
         if norm not in NORMALIZATIONS:
-            raise ValueError("{0} is not a valid normalization"
+            raise ValueError("{} is not a valid normalization"
                              "".format(from_normalization))
 
     if from_normalization == to_normalization:
@@ -98,6 +98,6 @@ def convert_normalization(Z, N, from_normalization, to_normalization,
                                            to_normalization='standard')
         return 0.5 * chi2_ref * Z_standard
     else:
-        raise NotImplementedError("conversion from '{0}' to '{1}'"
+        raise NotImplementedError("conversion from '{}' to '{}'"
                                   "".format(from_normalization,
                                             to_normalization))

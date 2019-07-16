@@ -179,5 +179,5 @@ class ArrayWrapper:
         return self.data.shape
 
     def __repr__(self):
-        return ("<{0} name='{1}' data={2}>"
+        return ("<{} name='{}' data={}>"
                 .format(self.__class__.__name__, self.info.name, self.data))

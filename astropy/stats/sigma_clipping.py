@@ -5,7 +5,6 @@ import warnings
 import numpy as np
 
 from astropy.utils import isiterable
-from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyUserWarning
 
 
@@ -207,7 +206,6 @@ class SigmaClip:
     standard deviation is higher.
     """
 
-    @deprecated_renamed_argument('iters', 'maxiters', '3.1')
     def __init__(self, sigma=3., sigma_lower=None, sigma_upper=None,
                  maxiters=5, cenfunc='median', stdfunc='std'):
 
@@ -219,8 +217,8 @@ class SigmaClip:
         self.stdfunc = self._parse_stdfunc(stdfunc)
 
     def __repr__(self):
-        return ('SigmaClip(sigma={0}, sigma_lower={1}, sigma_upper={2}, '
-                'maxiters={3}, cenfunc={4}, stdfunc={5})'
+        return ('SigmaClip(sigma={}, sigma_lower={}, sigma_upper={}, '
+                'maxiters={}, cenfunc={}, stdfunc={})'
                 .format(self.sigma, self.sigma_lower, self.sigma_upper,
                         self.maxiters, self.cenfunc, self.stdfunc))
 
@@ -229,7 +227,7 @@ class SigmaClip:
         attrs = ['sigma', 'sigma_lower', 'sigma_upper', 'maxiters', 'cenfunc',
                  'stdfunc']
         for attr in attrs:
-            lines.append('    {0}: {1}'.format(attr, getattr(self, attr)))
+            lines.append('    {}: {}'.format(attr, getattr(self, attr)))
         return '\n'.join(lines)
 
     def _parse_cenfunc(self, cenfunc):
@@ -247,14 +245,14 @@ class SigmaClip:
                     cenfunc = np.nanmean  # pragma: no cover
 
             else:
-                raise ValueError('{} is an invalid cenfunc.'.format(cenfunc))
+                raise ValueError(f'{cenfunc} is an invalid cenfunc.')
 
         return cenfunc
 
     def _parse_stdfunc(self, stdfunc):
         if isinstance(stdfunc, str):
             if stdfunc != 'std':
-                raise ValueError('{} is an invalid stdfunc.'.format(stdfunc))
+                raise ValueError(f'{stdfunc} is an invalid stdfunc.')
 
             if HAS_BOTTLENECK:
                 stdfunc = _nanstd
@@ -474,7 +472,6 @@ class SigmaClip:
                                             copy=copy)
 
 
-@deprecated_renamed_argument('iters', 'maxiters', '3.1')
 def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
                cenfunc='median', stdfunc='std', axis=None, masked=True,
                return_bounds=False, copy=True):
@@ -651,7 +648,6 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
                    return_bounds=return_bounds, copy=copy)
 
 
-@deprecated_renamed_argument('iters', 'maxiters', '3.1')
 def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
                         sigma_lower=None, sigma_upper=None, maxiters=5,
                         cenfunc='median', stdfunc='std', std_ddof=0,

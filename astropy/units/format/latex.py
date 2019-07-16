@@ -55,7 +55,7 @@ class Latex(base.Base):
             else:
                 positives = '1'
             negatives = cls._format_unit_list(negatives)
-            s = r'\frac{{{0}}}{{{1}}}'.format(positives, negatives)
+            s = fr'\frac{{{positives}}}{{{negatives}}}'
         else:
             positives = cls._format_unit_list(positives)
             s = positives
@@ -82,7 +82,7 @@ class Latex(base.Base):
         elif isinstance(unit, core.NamedUnit):
             s = cls._latex_escape(unit.name)
 
-        return r'$\mathrm{{{0}}}$'.format(s)
+        return fr'$\mathrm{{{s}}}$'
 
     @classmethod
     def format_exponential_notation(cls, val, format_spec=".8g"):
@@ -109,7 +109,7 @@ class Latex(base.Base):
             if m:
                 parts.append(m)
             if ex:
-                parts.append("10^{{{0}}}".format(ex))
+                parts.append(f"10^{{{ex}}}")
 
             return r" \times ".join(parts)
         else:

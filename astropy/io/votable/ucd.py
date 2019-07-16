@@ -114,7 +114,7 @@ def parse_ucd(ucd, check_controlled_vocabulary=False, has_colon=False):
                 m.group(0), ucd))
 
     word_component_re = r'[A-Za-z0-9][A-Za-z0-9\-_]*'
-    word_re = r'{}(\.{})*'.format(word_component_re, word_component_re)
+    word_re = fr'{word_component_re}(\.{word_component_re})*'
 
     parts = ucd.split(';')
     words = []
@@ -123,15 +123,15 @@ def parse_ucd(ucd, check_controlled_vocabulary=False, has_colon=False):
         if colon_count == 1:
             ns, word = word.split(':', 1)
             if not re.match(word_component_re, ns):
-                raise ValueError("Invalid namespace '{}'".format(ns))
+                raise ValueError(f"Invalid namespace '{ns}'")
             ns = ns.lower()
         elif colon_count > 1:
-            raise ValueError("Too many colons in '{}'".format(word))
+            raise ValueError(f"Too many colons in '{word}'")
         else:
             ns = 'ivoa'
 
         if not re.match(word_re, word):
-            raise ValueError("Invalid word '{}'".format(word))
+            raise ValueError(f"Invalid word '{word}'")
 
         if ns == 'ivoa' and check_controlled_vocabulary:
             if i == 0:
@@ -141,7 +141,7 @@ def parse_ucd(ucd, check_controlled_vocabulary=False, has_colon=False):
                             "Secondary word '{}' is not valid as a primary "
                             "word".format(word))
                     else:
-                        raise ValueError("Unknown word '{}'".format(word))
+                        raise ValueError(f"Unknown word '{word}'")
             else:
                 if not _ucd_singleton.is_secondary(word):
                     if _ucd_singleton.is_primary(word):
@@ -149,7 +149,7 @@ def parse_ucd(ucd, check_controlled_vocabulary=False, has_colon=False):
                             "Primary word '{}' is not valid as a secondary "
                             "word".format(word))
                     else:
-                        raise ValueError("Unknown word '{}'".format(word))
+                        raise ValueError(f"Unknown word '{word}'")
 
         try:
             normalized_word = _ucd_singleton.normalize_capitalization(word)

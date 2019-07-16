@@ -109,7 +109,7 @@ def get_coord_meta(frame):
         initial_frame = frame
         frame = frame_transform_graph.lookup_name(frame)
         if frame is None:
-            raise ValueError("Unknown frame: {0}".format(initial_frame))
+            raise ValueError(f"Unknown frame: {initial_frame}")
 
     if not isinstance(frame, BaseCoordinateFrame):
         frame = frame()

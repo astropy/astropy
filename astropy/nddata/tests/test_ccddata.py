@@ -57,7 +57,7 @@ def test_ccddata_unit_cannot_be_set_to_none():
 def test_ccddata_meta_header_conflict():
     with pytest.raises(ValueError) as exc:
         CCDData([1, 2, 3], unit='', meta={1: 1}, header={2: 2})
-        assert "can't have both header and meta." in str(exc)
+        assert "can't have both header and meta." in str(exc.value)
 
 
 def test_ccddata_simple():
@@ -961,7 +961,7 @@ def test_recognized_fits_formats_for_read_write(tmpdir):
     supported_extensions = ['fit', 'fits', 'fts']
 
     for ext in supported_extensions:
-        path = tmpdir.join("test.{}".format(ext))
+        path = tmpdir.join(f"test.{ext}")
         ccd_data.write(path.strpath)
         from_disk = CCDData.read(path.strpath)
         assert (ccd_data.data == from_disk.data).all()

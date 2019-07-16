@@ -12,6 +12,7 @@ import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy.io import fits
+from astropy.table import Table, QTable, MaskedColumn
 from astropy.tests.helper import (assert_follows_unicode_guidelines,
                                   ignore_warnings, catch_warnings)
 
@@ -1795,7 +1796,7 @@ class TestPandas:
 
         with pytest.raises(ValueError) as err:
             t.to_pandas(index='not a column')
-        assert 'index must be None, False' in str(err)
+        assert 'index must be None, False' in str(err.value)
 
     def test_mixin_pandas_masked(self):
         tm = Time([1, 2, 3], format='cxcsec')
@@ -1886,6 +1887,10 @@ class TestReplaceColumn(SetupData):
         with pytest.raises(ValueError):
             t.replace_column('not there', [1, 2, 3])
 
+        with pytest.raises(ValueError) as exc:
+            t.replace_column('a', [1, 2])
+        assert "length of new column must match table length" in str(exc.value)
+
     def test_replace_column(self, table_types):
         """Replace existing column with a new column"""
         self._setup(table_types)
@@ -1906,6 +1911,12 @@ class TestReplaceColumn(SetupData):
             assert t['a'].meta == {}
             assert t['a'].format is None
 
+        # Special case: replacing the only column can resize table
+        del t['b']
+        assert len(t) == 3
+        t['a'] = [1, 2]
+        assert len(t) == 2
+
     def test_replace_index_column(self, table_types):
         """Replace index column and generate expected exception"""
         self._setup(table_types)
@@ -1915,6 +1926,20 @@ class TestReplaceColumn(SetupData):
         with pytest.raises(ValueError) as err:
             t.replace_column('a', [1, 2, 3])
         assert err.value.args[0] == 'cannot replace a table index column'
+
+    def test_replace_column_no_copy(self):
+        t = Table([[1, 2], [3, 4]], names=['a', 'b'])
+        a = np.array([1.5, 2.5])
+        t.replace_column('a', a, copy=False)
+        assert t['a'][0] == a[0]
+        t['a'][0] = 10
+        assert t['a'][0] == a[0]
+
+    def test_replace_with_masked_col_with_units_in_qtable(self):
+        """This is a small regression from #8902"""
+        t = QTable([[1, 2], [3, 4]], names=['a', 'b'])
+        t['a'] = MaskedColumn([5, 6], unit='m')
+        assert isinstance(t['a'], u.Quantity)
 
 
 class Test__Astropy_Table__():
@@ -1985,7 +2010,7 @@ class Test__Astropy_Table__():
         object, exception is raised"""
         with pytest.raises(TypeError) as err:
             table.Table([[1]], extra_meta='extra!')
-        assert '__init__() got unexpected keyword argument' in str(err)
+        assert '__init__() got unexpected keyword argument' in str(err.value)
 
 
 def test_table_meta_copy():
@@ -2309,3 +2334,61 @@ def test_tolist():
     assert t['c'].tolist() == [['foo', 'bar'], ['hello', 'world']]
     assert isinstance(t['a'].tolist()[0][0], int)
     assert isinstance(t['c'].tolist()[0][0], str)
+
+
+def test_broadcasting_8933():
+    """Explicitly check re-work of code related to broadcasting in #8933"""
+    t = table.Table([[1, 2]])  # Length=2 table
+    t['a'] = [[3, 4]]  # Can broadcast if ndim > 1 and shape[0] == 1
+    t['b'] = 5
+    t['c'] = [1]  # Treat as broadcastable scalar, not length=1 array (which would fail)
+    assert np.all(t['a'] == [[3, 4], [3, 4]])
+    assert np.all(t['b'] == [5, 5])
+    assert np.all(t['c'] == [1, 1])
+
+    # Test that broadcasted column is writeable
+    t['c'][1] = 10
+    assert np.all(t['c'] == [1, 10])
+
+
+def test_custom_masked_column_in_nonmasked_table():
+    """Test the refactor and change in column upgrades introduced
+    in 95902650f.  This fixes a regression introduced by #8789
+    (Change behavior of Table regarding masked columns)."""
+    class MyMaskedColumn(table.MaskedColumn):
+        pass
+
+    class MySubMaskedColumn(MyMaskedColumn):
+        pass
+
+    class MyColumn(table.Column):
+        pass
+
+    class MySubColumn(MyColumn):
+        pass
+
+    class MyTable(table.Table):
+        Column = MyColumn
+        MaskedColumn = MyMaskedColumn
+
+    a = table.Column([1])
+    b = table.MaskedColumn([2], mask=[True])
+    c = MyMaskedColumn([3], mask=[True])
+    d = MySubColumn([4])
+    e = MySubMaskedColumn([5], mask=[True])
+
+    # Two different pathways for making table
+    t1 = MyTable([a, b, c, d, e], names=['a', 'b', 'c', 'd', 'e'])
+    t2 = MyTable()
+    t2['a'] = a
+    t2['b'] = b
+    t2['c'] = c
+    t2['d'] = d
+    t2['e'] = e
+
+    for t in (t1, t2):
+        assert type(t['a']) is MyColumn
+        assert type(t['b']) is MyMaskedColumn  # upgrade
+        assert type(t['c']) is MyMaskedColumn
+        assert type(t['d']) is MySubColumn
+        assert type(t['e']) is MySubMaskedColumn  # sub-class not downgraded

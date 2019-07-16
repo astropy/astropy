@@ -500,8 +500,8 @@ class TestBasic:
         uses the 2012-06-30 leap second for testing."""
         for year, month, day in ((2012, 6, 30), (2016, 12, 31)):
             # Start with a day without a leap second and note rollover
-            yyyy_mm = '{:04d}-{:02d}'.format(year, month)
-            yyyy_mm_dd = '{:04d}-{:02d}-{:02d}'.format(year, month, day)
+            yyyy_mm = f'{year:04d}-{month:02d}'
+            yyyy_mm_dd = f'{year:04d}-{month:02d}-{day:02d}'
             with pytest.warns(ErfaWarning):
                 t1 = Time(yyyy_mm + '-01 23:59:60.0', scale='utc')
             assert t1.iso == yyyy_mm + '-02 00:00:00.000'
@@ -517,7 +517,7 @@ class TestBasic:
             assert t1.iso == yyyy_mm_dd + ' 23:59:60.999'
 
             if month == 6:
-                yyyy_mm_dd_plus1 = '{:04d}-07-01'.format(year)
+                yyyy_mm_dd_plus1 = f'{year:04d}-07-01'
             else:
                 yyyy_mm_dd_plus1 = '{:04d}-01-01'.format(year+1)
 
@@ -987,7 +987,7 @@ def test_len_size():
         len(t4)
     # Ensure we're not just getting the old error of
     # "object of type 'float' has no len()".
-    assert 'Time' in str(err)
+    assert 'Time' in str(err.value)
 
 
 def test_TimeFormat_scale():
@@ -1102,7 +1102,7 @@ def test_replicate_value_error():
     t1 = Time('2007:001', scale='tai')
     with pytest.raises(ValueError) as err:
         t1.replicate(format='definitely_not_a_valid_format')
-    assert 'format must be one of' in str(err)
+    assert 'format must be one of' in str(err.value)
 
 
 def test_remove_astropy_time():
@@ -1114,7 +1114,7 @@ def test_remove_astropy_time():
     assert 'astropy_time' not in t1.FORMATS
     with pytest.raises(ValueError) as err:
         Time(t1, format='astropy_time')
-    assert 'format must be one of' in str(err)
+    assert 'format must be one of' in str(err.value)
 
 
 def test_isiterable():
@@ -1235,7 +1235,7 @@ def test_sum_is_equivalent():
 def test_string_valued_columns():
     # Columns have a nice shim that translates bytes to string as needed.
     # Ensure Time can handle these.  Use multi-d array just to be sure.
-    times = [[['{:04d}-{:02d}-{:02d}'.format(y, m, d) for d in range(1, 3)]
+    times = [[[f'{y:04d}-{m:02d}-{d:02d}' for d in range(1, 3)]
               for m in range(5, 7)] for y in range(2012, 2014)]
     cutf32 = Column(times)
     cbytes = cutf32.astype('S')
@@ -1271,11 +1271,11 @@ def test_writeable_flag():
     t.writeable = False
     with pytest.raises(ValueError) as err:
         t[1] = 5.0
-    assert 'Time object is read-only. Make a copy()' in str(err)
+    assert 'Time object is read-only. Make a copy()' in str(err.value)
 
     with pytest.raises(ValueError) as err:
         t[:] = 5.0
-    assert 'Time object is read-only. Make a copy()' in str(err)
+    assert 'Time object is read-only. Make a copy()' in str(err.value)
 
     t.writeable = True
     t[1] = 10.0
@@ -1285,14 +1285,14 @@ def test_writeable_flag():
     t = Time('2000:001', scale='utc')
     with pytest.raises(ValueError) as err:
         t[()] = '2000:002'
-    assert 'scalar Time object is read-only.' in str(err)
+    assert 'scalar Time object is read-only.' in str(err.value)
 
     # Transformed attribute is not writeable
     t = Time(['2000:001', '2000:002'], scale='utc')
     t2 = t.tt  # t2 is read-only now because t.tt is cached
     with pytest.raises(ValueError) as err:
         t2[0] = '2005:001'
-    assert 'Time object is read-only. Make a copy()' in str(err)
+    assert 'Time object is read-only. Make a copy()' in str(err.value)
 
 
 def test_setitem_location():
@@ -1309,7 +1309,7 @@ def test_setitem_location():
         t[0, 0] = Time(-1, format='cxcsec')
     assert ('cannot set to Time with different location: '
             'expected location={} and '
-            'got location=None'.format(loc[0])) in str(err)
+            'got location=None'.format(loc[0])) in str(err.value)
 
     # Succeeds because the right hand side correctly sets location
     t[0, 0] = Time(-2, format='cxcsec', location=loc[0])
@@ -1320,7 +1320,7 @@ def test_setitem_location():
         t[0, 0] = Time(-2, format='cxcsec', location=loc[1])
     assert ('cannot set to Time with different location: '
             'expected location={} and '
-            'got location={}'.format(loc[0], loc[1])) in str(err)
+            'got location={}'.format(loc[0], loc[1])) in str(err.value)
 
     # Fails because the Time has None location and RHS has defined location
     t = Time([[1, 2], [3, 4]], format='cxcsec')
@@ -1328,7 +1328,7 @@ def test_setitem_location():
         t[0, 0] = Time(-2, format='cxcsec', location=loc[1])
     assert ('cannot set to Time with different location: '
             'expected location=None and '
-            'got location={}'.format(loc[1])) in str(err)
+            'got location={}'.format(loc[1])) in str(err.value)
 
     # Broadcasting works
     t = Time([[1, 2], [3, 4]], format='cxcsec', location=loc)
@@ -1369,7 +1369,7 @@ def test_setitem_from_python_objects():
     t[0] = '2001:001'
     with pytest.raises(ValueError) as err:
         t[0] = 100
-    assert 'cannot convert value to a compatible Time object' in str(err)
+    assert 'cannot convert value to a compatible Time object' in str(err.value)
 
 
 def test_setitem_from_time_objects():
@@ -1619,20 +1619,20 @@ def test_insert_exceptions():
     tm = Time(1, format='unix')
     with pytest.raises(TypeError) as err:
         tm.insert(0, 50)
-    assert 'cannot insert into scalar' in str(err)
+    assert 'cannot insert into scalar' in str(err.value)
 
     tm = Time([1, 2], format='unix')
     with pytest.raises(ValueError) as err:
         tm.insert(0, 50, axis=1)
-    assert 'axis must be 0' in str(err)
+    assert 'axis must be 0' in str(err.value)
 
     with pytest.raises(TypeError) as err:
         tm.insert(slice(None), 50)
-    assert 'obj arg must be an integer' in str(err)
+    assert 'obj arg must be an integer' in str(err.value)
 
     with pytest.raises(IndexError) as err:
         tm.insert(-100, 50)
-    assert 'index -100 is out of bounds for axis 0 with size 2' in str(err)
+    assert 'index -100 is out of bounds for axis 0 with size 2' in str(err.value)
 
 
 def test_datetime64_no_format():

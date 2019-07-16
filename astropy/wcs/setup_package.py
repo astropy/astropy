@@ -68,10 +68,10 @@ def write_wcsconfig_h(paths):
     #define HAVE_WCSLIB_VERSION 1
 
     /* WCSLIB library version number. */
-    #define WCSLIB_VERSION {0}
+    #define WCSLIB_VERSION {}
 
     /* 64-bit integer data type. */
-    #define WCSLIB_INT64 {1}
+    #define WCSLIB_INT64 {}
 
     /* Windows needs some other defines to prevent inclusion of wcsset()
        which conflicts with wcslib's wcsset().  These need to be set
@@ -135,7 +135,7 @@ its contents, edit astropy/wcs/docstrings.py
 """)
     for key in keys:
         val = docs[key]
-        h_file.write('extern char doc_{0}[{1}];\n'.format(key, len(val)))
+        h_file.write('extern char doc_{}[{}];\n'.format(key, len(val)))
     h_file.write("\n#endif\n\n")
 
     setup_helpers.write_if_different(
@@ -163,7 +163,7 @@ MSVC, do not support string literals greater than 256 characters.
         for i in range(0, len(val), 12):
             section = val[i:i+12]
             c_file.write('    ')
-            c_file.write(''.join('0x{0:02x}, '.format(x) for x in section))
+            c_file.write(''.join(f'0x{x:02x}, ' for x in section))
             c_file.write('\n')
 
         c_file.write("    };\n\n")

@@ -1,10 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import os
+import sys
+import subprocess
+
 import pytest
 import numpy as np
 from inspect import signature
 from numpy.testing import assert_allclose
 
+import astropy
 from astropy.modeling.core import Model, custom_model
 from astropy.modeling.parameters import Parameter
 from astropy.modeling import models
@@ -380,7 +385,7 @@ def test_n_submodels_in_single_models():
     assert models.Gaussian1D.n_submodels() == 1
     assert models.Gaussian2D.n_submodels() == 1
 
-
+    
 def test_compound_deepcopy():
     model = (models.Gaussian1D(10, 2,3) | models.Shift(2)) & models.Rotation2D(21.3)
     new_model = model.deepcopy()
@@ -390,7 +395,7 @@ def test_compound_deepcopy():
     assert id(model[1]) != id(new_model[1])
     assert id(model[2]) != id(new_model[2])
 
-
+    
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_units_with_bounding_box():
     points = np.arange(10, 20)
@@ -401,3 +406,46 @@ def test_units_with_bounding_box():
     assert isinstance(t(10, with_bounding_box=True), u.Quantity)
 
     assert_quantity_allclose(t(10), t(10, with_bounding_box=True))
+
+RENAMED_MODEL = models.Gaussian1D.rename('CustomGaussian')
+
+MODEL_RENAME_CODE = """
+from astropy.modeling.models import Gaussian1D
+print(repr(Gaussian1D))
+print(repr(Gaussian1D.rename('CustomGaussian')))
+""".strip()
+
+MODEL_RENAME_EXPECTED = b"""
+<class 'astropy.modeling.functional_models.Gaussian1D'>
+Name: Gaussian1D
+Inputs: ('x',)
+Outputs: ('y',)
+Fittable parameters: ('amplitude', 'mean', 'stddev')
+<class '__main__.CustomGaussian'>
+Name: CustomGaussian (Gaussian1D)
+Inputs: ('x',)
+Outputs: ('y',)
+Fittable parameters: ('amplitude', 'mean', 'stddev')
+""".strip()
+
+
+def test_rename_path(tmpdir):
+
+    # Regression test for a bug that caused the path to the class to be
+    # incorrect in a renamed model's __repr__.
+
+    assert repr(RENAMED_MODEL).splitlines()[0] == "<class 'astropy.modeling.tests.test_core.CustomGaussian'>"
+
+    # Make sure that when called from a user script, the class name includes
+    # __main__.
+
+    env = os.environ.copy()
+    paths = [os.path.dirname(astropy.__path__[0])] + sys.path
+    env['PYTHONPATH'] = os.pathsep.join(paths)
+
+    script = tmpdir.join('rename.py').strpath
+    with open(script, 'w') as f:
+        f.write(MODEL_RENAME_CODE)
+
+    output = subprocess.check_output([sys.executable, script], env=env)
+    assert output.splitlines() == MODEL_RENAME_EXPECTED.splitlines()

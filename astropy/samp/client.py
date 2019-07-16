@@ -121,7 +121,7 @@ class SAMPClient:
             protocol = 'http'
 
             self._xmlrpcAddr = urlunparse((protocol,
-                                           '{0}:{1}'.format(self._addr or self._host_name,
+                                           '{}:{}'.format(self._addr or self._host_name,
                                                             self._port),
                                            '', '', '', ''))
 
@@ -154,7 +154,7 @@ class SAMPClient:
             self._thread.join(timeout)
         if self._thread.is_alive():
             raise SAMPClientError("Client was not shut down successfully "
-                                  "(timeout={0}s)".format(timeout))
+                                  "(timeout={}s)".format(timeout))
 
     @property
     def is_running(self):
@@ -179,7 +179,7 @@ class SAMPClient:
             try:
                 read_ready = select.select([self.client.socket], [], [], 0.1)[0]
             except OSError as exc:
-                warnings.warn("Call to select in SAMPClient failed: {0}".format(exc),
+                warnings.warn(f"Call to select in SAMPClient failed: {exc}",
                               SAMPWarning)
             else:
                 if read_ready:

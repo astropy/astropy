@@ -452,7 +452,7 @@ class TestInitFromRows():
     def test_init_with_rows_and_data(self, table_type):
         with pytest.raises(ValueError) as err:
             table_type(data=[[1]], rows=[[1]])
-        assert "Cannot supply both `data` and `rows` values" in str(err)
+        assert "Cannot supply both `data` and `rows` values" in str(err.value)
 
 
 @pytest.mark.usefixtures('table_type')

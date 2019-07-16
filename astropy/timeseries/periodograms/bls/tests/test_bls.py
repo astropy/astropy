@@ -26,10 +26,10 @@ def assert_allclose_blsresults(blsresult, other, **kwargs):
     """
     for k, v in blsresult.items():
         if k not in other:
-            raise AssertionError("missing key '{0}'".format(k))
+            raise AssertionError(f"missing key '{k}'")
         if k == "objective":
             assert v == other[k], (
-                "Mismatched objectives. Expected '{0}', got '{1}'"
+                "Mismatched objectives. Expected '{}', got '{}'"
                 .format(v, other[k])
             )
             continue

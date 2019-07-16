@@ -250,7 +250,7 @@ def get_constellation(coord, short_name=False, constellation_list='iau'):
         if np.sum(notided) == 0:
             break
     else:
-        raise ValueError('Could not find constellation for coordinates {0}'.format(constel_coord[notided]))
+        raise ValueError('Could not find constellation for coordinates {}'.format(constel_coord[notided]))
 
     if short_name:
         names = ctable['name'][constellidx]
@@ -270,16 +270,11 @@ def _concatenate_components(reps_difs, names):
     """
     values = []
     for name in names:
-        data_vals = []
-        for x in reps_difs:
-            data_val = getattr(x, name)
-            data_vals.append(data_val.reshape(1, ) if x.isscalar else data_val)
-        concat_vals = np.concatenate(data_vals)
-
-        # Hack because np.concatenate doesn't fully work with Quantity
-        if isinstance(concat_vals, u.Quantity):
-            concat_vals._unit = data_val.unit
-
+        unit0 = getattr(reps_difs[0], name).unit
+        # Go via to_value because np.concatenate doesn't work with Quantity
+        data_vals = [getattr(x, name).to_value(unit0) for x in reps_difs]
+        concat_vals = np.concatenate(np.atleast_1d(*data_vals))
+        concat_vals = concat_vals << unit0
         values.append(concat_vals)
 
     return values
@@ -373,7 +368,7 @@ def concatenate(coords):
     for sc in scs[1:]:
         if not sc.is_equivalent_frame(scs[0]):
             raise ValueError("All inputs must have equivalent frames: "
-                             "{0} != {1}".format(sc, scs[0]))
+                             "{} != {}".format(sc, scs[0]))
 
     # TODO: this can be changed to SkyCoord.from_representation() for a speed
     # boost when we switch to using classmethods

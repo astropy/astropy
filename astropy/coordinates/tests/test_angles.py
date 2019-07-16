@@ -275,33 +275,33 @@ def test_angle_formatting():
     assert str(angle) == angle.to_string()
 
     res = 'Angle as HMS: 3h36m29.7888s'
-    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour)) == res
+    assert "Angle as HMS: {}".format(angle.to_string(unit=u.hour)) == res
 
     res = 'Angle as HMS: 3:36:29.7888'
-    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour, sep=":")) == res
+    assert "Angle as HMS: {}".format(angle.to_string(unit=u.hour, sep=":")) == res
 
     res = 'Angle as HMS: 3:36:29.79'
-    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour, sep=":",
+    assert "Angle as HMS: {}".format(angle.to_string(unit=u.hour, sep=":",
                                       precision=2)) == res
 
     # Note that you can provide one, two, or three separators passed as a
     # tuple or list
 
     res = 'Angle as HMS: 3h36m29.7888s'
-    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour,
+    assert "Angle as HMS: {}".format(angle.to_string(unit=u.hour,
                                                    sep=("h", "m", "s"),
                                                    precision=4)) == res
 
     res = 'Angle as HMS: 3-36|29.7888'
-    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour, sep=["-", "|"],
+    assert "Angle as HMS: {}".format(angle.to_string(unit=u.hour, sep=["-", "|"],
                                                    precision=4)) == res
 
     res = 'Angle as HMS: 3-36-29.7888'
-    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour, sep="-",
+    assert "Angle as HMS: {}".format(angle.to_string(unit=u.hour, sep="-",
                                                     precision=4)) == res
 
     res = 'Angle as HMS: 03h36m29.7888s'
-    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour, precision=4,
+    assert "Angle as HMS: {}".format(angle.to_string(unit=u.hour, precision=4,
                                                   pad=True)) == res
 
     # Same as above, in degrees
@@ -309,40 +309,40 @@ def test_angle_formatting():
     angle = Angle("3 36 29.78880", unit=u.degree)
 
     res = 'Angle as DMS: 3d36m29.7888s'
-    assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree)) == res
+    assert "Angle as DMS: {}".format(angle.to_string(unit=u.degree)) == res
 
     res = 'Angle as DMS: 3:36:29.7888'
-    assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree, sep=":")) == res
+    assert "Angle as DMS: {}".format(angle.to_string(unit=u.degree, sep=":")) == res
 
     res = 'Angle as DMS: 3:36:29.79'
-    assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree, sep=":",
+    assert "Angle as DMS: {}".format(angle.to_string(unit=u.degree, sep=":",
                                       precision=2)) == res
 
     # Note that you can provide one, two, or three separators passed as a
     # tuple or list
 
     res = 'Angle as DMS: 3d36m29.7888s'
-    assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree,
+    assert "Angle as DMS: {}".format(angle.to_string(unit=u.degree,
                                                    sep=("d", "m", "s"),
                                                    precision=4)) == res
 
     res = 'Angle as DMS: 3-36|29.7888'
-    assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree, sep=["-", "|"],
+    assert "Angle as DMS: {}".format(angle.to_string(unit=u.degree, sep=["-", "|"],
                                                    precision=4)) == res
 
     res = 'Angle as DMS: 3-36-29.7888'
-    assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree, sep="-",
+    assert "Angle as DMS: {}".format(angle.to_string(unit=u.degree, sep="-",
                                                     precision=4)) == res
 
     res = 'Angle as DMS: 03d36m29.7888s'
-    assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree, precision=4,
+    assert "Angle as DMS: {}".format(angle.to_string(unit=u.degree, precision=4,
                                                   pad=True)) == res
 
     res = 'Angle as rad: 0.0629763rad'
-    assert "Angle as rad: {0}".format(angle.to_string(unit=u.radian)) == res
+    assert "Angle as rad: {}".format(angle.to_string(unit=u.radian)) == res
 
     res = 'Angle as rad decimal: 0.0629763'
-    assert "Angle as rad decimal: {0}".format(angle.to_string(unit=u.radian, decimal=True)) == res
+    assert "Angle as rad decimal: {}".format(angle.to_string(unit=u.radian, decimal=True)) == res
 
     # check negative angles
 
@@ -650,13 +650,13 @@ def test_latitude():
     with pytest.raises(TypeError) as excinfo:
         lon = Longitude(10, 'deg')
         lat = Latitude(lon)
-    assert "A Latitude angle cannot be created from a Longitude angle" in str(excinfo)
+    assert "A Latitude angle cannot be created from a Longitude angle" in str(excinfo.value)
 
     with pytest.raises(TypeError) as excinfo:
         lon = Longitude(10, 'deg')
         lat = Latitude([20], 'deg')
         lat[0] = lon
-    assert "A Longitude angle cannot be assigned to a Latitude angle" in str(excinfo)
+    assert "A Longitude angle cannot be assigned to a Latitude angle" in str(excinfo.value)
 
     # Check we can work around the Lat vs Long checks by casting explicitly to Angle.
     lon = Longitude(10, 'deg')
@@ -738,13 +738,13 @@ def test_longitude():
     with pytest.raises(TypeError) as excinfo:
         lat = Latitude(10, 'deg')
         lon = Longitude(lat)
-    assert "A Longitude angle cannot be created from a Latitude angle" in str(excinfo)
+    assert "A Longitude angle cannot be created from a Latitude angle" in str(excinfo.value)
 
     with pytest.raises(TypeError) as excinfo:
         lat = Latitude(10, 'deg')
         lon = Longitude([20], 'deg')
         lon[0] = lat
-    assert "A Latitude angle cannot be assigned to a Longitude angle" in str(excinfo)
+    assert "A Latitude angle cannot be assigned to a Longitude angle" in str(excinfo.value)
 
     # Check we can work around the Lat vs Long checks by casting explicitly to Angle.
     lat = Latitude(10, 'deg')

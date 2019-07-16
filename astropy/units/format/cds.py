@@ -124,7 +124,7 @@ class CDS(Base):
         # Error handling rule
         def t_error(t):
             raise ValueError(
-                "Invalid character at col {0}".format(t.lexpos))
+                f"Invalid character at col {t.lexpos}")
 
         lexer_exists = os.path.exists(os.path.join(os.path.dirname(__file__),
                                       'cds_lextab.py'))
@@ -283,7 +283,7 @@ class CDS(Base):
             return cls._parse_unit(t.value)
         except ValueError as e:
             raise ValueError(
-                "At col {0}, {1}".format(
+                "At col {}, {}".format(
                     t.lexpos, str(e)))
 
     @classmethod
@@ -291,8 +291,8 @@ class CDS(Base):
         if unit not in cls._units:
             if detailed_exception:
                 raise ValueError(
-                    "Unit '{0}' not supported by the CDS SAC "
-                    "standard. {1}".format(
+                    "Unit '{}' not supported by the CDS SAC "
+                    "standard. {}".format(
                         unit, did_you_mean(
                             unit, cls._units)))
             else:
@@ -332,7 +332,7 @@ class CDS(Base):
             if power == 1:
                 out.append(cls._get_unit_name(base))
             else:
-                out.append('{0}{1}'.format(
+                out.append('{}{}'.format(
                     cls._get_unit_name(base), int(power)))
         return '.'.join(out)
 
@@ -356,7 +356,7 @@ class CDS(Base):
                 if e:
                     if not e.startswith('-'):
                         e = "+" + e
-                    parts.append('10{0}'.format(e))
+                    parts.append(f'10{e}')
                 s = 'x'.join(parts)
 
             pairs = list(zip(unit.bases, unit.powers))

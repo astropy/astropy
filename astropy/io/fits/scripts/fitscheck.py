@@ -145,7 +145,7 @@ def verify_checksums(filename):
             log.warning('BAD %r %s', filename, str(w.message))
             return 1
 
-    log.info('OK {!r}'.format(filename))
+    log.info(f'OK {filename!r}')
     return 0
 
 
@@ -191,7 +191,7 @@ def process_file(filename):
             update(filename)
         return checksum_errors + compliance_errors
     except Exception as e:
-        log.error('EXCEPTION {!r} .. {}'.format(filename, e))
+        log.error(f'EXCEPTION {filename!r} .. {e}')
         return 1
 
 
@@ -207,5 +207,5 @@ def main(args=None):
     for filename in fits_files:
         errors += process_file(filename)
     if errors:
-        log.warning('{} errors'.format(errors))
+        log.warning(f'{errors} errors')
     return int(bool(errors))

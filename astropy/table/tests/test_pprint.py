@@ -41,7 +41,7 @@ class TestMultiD():
                          '</table>']
         nbclass = table.conf.default_notebook_table_class
         assert t._repr_html_().splitlines() == [
-            '<i>{0} masked={1} length=2</i>'.format(table_type.__name__, t.masked),
+            f'<i>{table_type.__name__} masked={t.masked} length=2</i>',
             '<table id="table{id}" class="{nbclass}">'.format(id=id(t), nbclass=nbclass),
             '<thead><tr><th>col0 [2]</th><th>col1 [2]</th><th>col2 [2]</th></tr></thead>',
             '<thead><tr><th>int64</th><th>int64</th><th>int64</th></tr></thead>',
@@ -80,11 +80,11 @@ class TestMultiD():
                          '</table>']
         nbclass = table.conf.default_notebook_table_class
         assert t._repr_html_().splitlines() == [
-            '<i>{0} masked={1} length=2</i>'.format(table_type.__name__, t.masked),
+            f'<i>{table_type.__name__} masked={t.masked} length=2</i>',
             '<table id="table{id}" class="{nbclass}">'.format(id=id(t), nbclass=nbclass),
             '<thead><tr><th>col0 [1,1]</th><th>col1 [1,1]</th><th>col2 [1,1]</th></tr></thead>',
             '<thead><tr><th>int64</th><th>int64</th><th>int64</th></tr></thead>',
-            '<tr><td>1</td><td>3</td><td>5</td></tr>', u'<tr><td>10</td><td>30</td><td>50</td></tr>',
+            '<tr><td>1</td><td>3</td><td>5</td></tr>', '<tr><td>10</td><td>30</td><td>50</td></tr>',
             '</table>']
 
         t = table_type([arr])
@@ -127,7 +127,7 @@ class TestPprint():
         lines = t.pformat()
         assert lines == ['<No columns>']
         c = repr(t)
-        assert c.splitlines() == ['<{0} masked={1} length=0>'.format(table_type.__name__, t.masked),
+        assert c.splitlines() == [f'<{table_type.__name__} masked={t.masked} length=0>',
                                   '<No columns>']
 
     def test_format0(self, table_type):
@@ -544,10 +544,10 @@ def test_pprint_py3_bytes():
     is printed correctly (without the "b" prefix like b'string').
     """
     val = bytes('val', encoding='utf-8')
-    blah = u'bläh'.encode('utf-8')
+    blah = 'bläh'.encode('utf-8')
     dat = np.array([val, blah], dtype=[('col', 'S10')])
     t = table.Table(dat)
-    assert t['col'].pformat() == ['col ', '----', ' val', u'bläh']
+    assert t['col'].pformat() == ['col ', '----', ' val', 'bläh']
 
 
 def test_pprint_nameless_col():
@@ -565,26 +565,26 @@ def test_html():
 
     lines = t.pformat(html=True)
     assert lines == ['<table id="table{id}">'.format(id=id(t)),
-                     u'<thead><tr><th>a</th></tr></thead>',
-                     u'<tr><td>1.0</td></tr>',
-                     u'<tr><td>2.0</td></tr>',
-                     u'</table>']
+                     '<thead><tr><th>a</th></tr></thead>',
+                     '<tr><td>1.0</td></tr>',
+                     '<tr><td>2.0</td></tr>',
+                     '</table>']
 
     lines = t.pformat(html=True, tableclass='table-striped')
     assert lines == [
         '<table id="table{id}" class="table-striped">'.format(id=id(t)),
-        u'<thead><tr><th>a</th></tr></thead>',
-        u'<tr><td>1.0</td></tr>',
-        u'<tr><td>2.0</td></tr>',
-        u'</table>']
+        '<thead><tr><th>a</th></tr></thead>',
+        '<tr><td>1.0</td></tr>',
+        '<tr><td>2.0</td></tr>',
+        '</table>']
 
     lines = t.pformat(html=True, tableclass=['table', 'table-striped'])
     assert lines == [
         '<table id="table{id}" class="table table-striped">'.format(id=id(t)),
-        u'<thead><tr><th>a</th></tr></thead>',
-        u'<tr><td>1.0</td></tr>',
-        u'<tr><td>2.0</td></tr>',
-        u'</table>']
+        '<thead><tr><th>a</th></tr></thead>',
+        '<tr><td>1.0</td></tr>',
+        '<tr><td>2.0</td></tr>',
+        '</table>']
 
 
 def test_align():
@@ -703,4 +703,4 @@ def test_decode_replace():
     https://docs.python.org/3/library/codecs.html#codecs.replace_errors
     """
     t = Table([[b'Z\xf0']])
-    assert t.pformat() == [u'col0', u'----', u'  Z\ufffd']
+    assert t.pformat() == ['col0', '----', '  Z\ufffd']
