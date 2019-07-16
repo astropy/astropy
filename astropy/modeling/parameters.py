@@ -287,7 +287,7 @@ class Parameter(OrderedDescriptor):
                     "dimension {2}".format(key, self.name, value.shape[0]))  # likely wrong
 
     def __repr__(self):
-        args = "'{0}'".format(self._name)
+        args = f"'{self._name}'"
         args += ', value={0}'.format(self.value)
 
         if self.unit is not None:
