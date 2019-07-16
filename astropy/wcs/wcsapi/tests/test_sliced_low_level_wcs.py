@@ -1,8 +1,11 @@
+import warnings
+
 import pytest
 
 from numpy.testing import assert_equal, assert_allclose
 from astropy.wcs import WCS
 from astropy.io.fits import Header
+from astropy.io.fits.verify import VerifyWarning
 from astropy.coordinates import SkyCoord, Galactic
 from astropy.units import Quantity
 from astropy.wcs.wcsapi.sliced_low_level_wcs import SlicedLowLevelWCS, sanitize_slices, combine_slices
@@ -39,7 +42,9 @@ CUNIT2  = Hz
 CUNIT3  = deg
 """
 
-WCS_SPECTRAL_CUBE = WCS(Header.fromstring(HEADER_SPECTRAL_CUBE, sep='\n'))
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore', VerifyWarning)
+    WCS_SPECTRAL_CUBE = WCS(Header.fromstring(HEADER_SPECTRAL_CUBE, sep='\n'))
 WCS_SPECTRAL_CUBE.pixel_bounds = [(-1, 11), (-2, 18), (5, 15)]
 
 
@@ -392,7 +397,10 @@ def test_celestial_range():
 
 # Now try with a 90 degree rotation
 
-WCS_SPECTRAL_CUBE_ROT = WCS(Header.fromstring(HEADER_SPECTRAL_CUBE, sep='\n'))
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore', VerifyWarning)
+    WCS_SPECTRAL_CUBE_ROT = WCS(Header.fromstring(
+        HEADER_SPECTRAL_CUBE, sep='\n'))
 WCS_SPECTRAL_CUBE_ROT.wcs.pc = [[0, 0, 1], [0, 1, 0], [1, 0, 0]]
 WCS_SPECTRAL_CUBE_ROT.wcs.crval[0] = 0
 WCS_SPECTRAL_CUBE_ROT.pixel_bounds = [(-1, 11), (-2, 18), (5, 15)]
@@ -482,7 +490,9 @@ CUNIT2  = Hz
 CUNIT3  = deg
 """
 
-WCS_NO_SHAPE_CUBE = WCS(Header.fromstring(HEADER_NO_SHAPE_CUBE, sep='\n'))
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore', VerifyWarning)
+    WCS_NO_SHAPE_CUBE = WCS(Header.fromstring(HEADER_NO_SHAPE_CUBE, sep='\n'))
 
 EXPECTED_NO_SHAPE_REPR = """
 SlicedLowLevelWCS Transformation
