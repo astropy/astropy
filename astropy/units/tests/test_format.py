@@ -407,23 +407,22 @@ def test_scaled_dimensionless():
 
 
 def test_deprecated_did_you_mean_units():
-    try:
+    with pytest.raises(ValueError) as exc_info:
         u.Unit('ANGSTROM', format='fits')
-    except ValueError as e:
-        assert 'Did you mean Angstrom or angstrom?' in str(e)
+    assert 'Did you mean Angstrom or angstrom?' in str(exc_info.value)
 
-    try:
+    with pytest.raises(ValueError) as exc_info:
         u.Unit('crab', format='ogip')
-    except ValueError as e:
-        assert 'Crab (deprecated)' in str(e)
-        assert 'mCrab (deprecated)' in str(e)
+    assert 'Crab (deprecated)' in str(exc_info.value)
+    assert 'mCrab (deprecated)' in str(exc_info.value)
 
-    try:
+    with catch_warnings() as w:
         u.Unit('ANGSTROM', format='vounit')
-    except ValueError as e:
-        assert 'angstrom (deprecated)' in str(e.value)
-        assert '0.1nm' in str(e.value)
-        assert str(e.value).count('0.1nm') == 1
+
+    assert len(w) == 1
+    assert 'angstrom (deprecated)' in str(w[0].message)
+    assert '0.1nm' in str(w[0].message)
+    assert str(w[0].message).count('0.1nm') == 1
 
     with catch_warnings() as w:
         u.Unit('angstrom', format='vounit')
