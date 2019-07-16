@@ -443,7 +443,8 @@ def test_vounit_function(string):
     # Function units cannot be written, so ensure they're not parsed either.
     with pytest.raises(ValueError):
         print(string)
-        u_format.VOUnit().parse(string)
+        with catch_warnings():  # ct, dex also raise warnings - irrelevant here.
+            u_format.VOUnit().parse(string)
 
 
 def test_vounit_binary_prefix():
@@ -462,7 +463,10 @@ def test_vounit_unknown():
 
 
 def test_vounit_details():
-    assert u.Unit('Pa', format='vounit') is u.Pascal
+    with catch_warnings() as w:
+        assert u.Unit('Pa', format='vounit') is u.Pascal
+    assert len(w) == 1
+    assert 'deprecated' in str(w[0].message)
 
     # The da- prefix is not allowed, and the d- prefix is discouraged
     assert u.dam.to_string('vounit') == '10m'
@@ -485,9 +489,14 @@ def test_vounit_custom():
 
 
 def test_vounit_implicit_custom():
-    x = u.Unit("furlong/week", format="vounit")
+    # Yikes, really...
+    with catch_warnings() as w:
+        x = u.Unit("furlong/week", format="vounit")
     assert x.bases[0]._represents.scale == 1e-15
     assert x.bases[0]._represents.bases[0].name == 'urlong'
+    assert len(w) == 2
+    assert 'furlong' in str(w[0].message)
+    assert 'week' in str(w[1].message)
 
 
 @pytest.mark.parametrize('scale, number, string',
