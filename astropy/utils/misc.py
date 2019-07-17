@@ -506,14 +506,18 @@ class InheritDocstrings(type):
 
     For example::
 
+        >>> import warnings
         >>> from astropy.utils.misc import InheritDocstrings
-        >>> class A(metaclass=InheritDocstrings):
-        ...     def wiggle(self):
-        ...         "Wiggle the thingamajig"
-        ...         pass
-        >>> class B(A):
-        ...     def wiggle(self):
-        ...         pass
+        >>> with warnings.catch_warnings():
+        ...     # Ignore deprecation warning
+        ...     warnings.simplefilter('ignore')
+        ...     class A(metaclass=InheritDocstrings):
+        ...         def wiggle(self):
+        ...             "Wiggle the thingamajig"
+        ...             pass
+        ...     class B(A):
+        ...         def wiggle(self):
+        ...             pass
         >>> B.wiggle.__doc__
         u'Wiggle the thingamajig'
     """
