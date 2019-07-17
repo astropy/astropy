@@ -377,6 +377,8 @@ astropy.io.fits
 - Fixed a wrong exception when converting a Table with a unit that is not FITS
   compliant and not convertible to a string using ``format='fits'``. [#8906]
 
+- Fixed an issue with A3DTABLE extension that could not be read. [#9012]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
