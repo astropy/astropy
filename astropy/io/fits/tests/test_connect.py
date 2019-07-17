@@ -113,6 +113,38 @@ class TestSingleTable:
         assert t2['a'].unit == u.m
         assert t2['c'].unit == u.km / u.s
 
+    @pytest.mark.skipif('not HAS_YAML')
+    def test_with_custom_units_qtable(self, tmpdir):
+        # Test only for QTable - for Table's Column, new units are dropped.
+        filename = str(tmpdir.join('test_with_units.fits'))
+        unit = u.def_unit('bandpass_sol_lum')
+        t = QTable()
+        t['l'] = np.ones(5) * unit
+        with catch_warnings(u.UnitsWarning) as w:
+            t.write(filename, overwrite=True)
+        assert len(w) == 1
+        assert 'bandpass_sol_lum' in str(w[0].message)
+        # Just reading back, the data is fine but the unit is not recognized.
+        with catch_warnings() as w:
+            t2 = QTable.read(filename, astropy_native=True)
+        assert isinstance(t2['l'].unit, u.UnrecognizedUnit)
+        assert str(t2['l'].unit) == 'bandpass_sol_lum'
+        assert len(w) == 1
+        assert "'bandpass_sol_lum' did not parse" in str(w[0].message)
+        assert np.all(t2['l'].value == t['l'].value)
+
+        # But if we enable the unit, it should work.
+        with u.add_enabled_units(unit):
+            t3 = QTable.read(filename, astropy_native=True)
+            assert t3['l'].unit is unit
+            assert equal_data(t3, t)
+
+            # Regression check for #8897; write used to fail when a custom
+            # unit was enabled.
+            with catch_warnings(u.UnitsWarning) as w:
+                t3.write(filename, overwrite=True)
+            assert len(w) == 0
+
     @pytest.mark.parametrize('table_type', (Table, QTable))
     def test_with_format(self, table_type, tmpdir):
         filename = str(tmpdir.join('test_with_format.fits'))
