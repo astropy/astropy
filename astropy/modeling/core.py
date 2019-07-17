@@ -3957,6 +3957,7 @@ def generic_call(self, *inputs, **kwargs):
             self.standard_broadcasting)
         vinputs, valid_ind, allout = prepare_bounding_box_inputs(
                                         self, input_shape, inputs, bbox)
+        valid_result_unit = None
         if not allout:
             valid_result = self.evaluate(*chain(vinputs, parameters))
             valid_result_unit = getattr(valid_result, 'unit', None)
