@@ -13,7 +13,6 @@ import math
 
 import numpy as np
 
-from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils import isiterable
 from . import _stats
 
@@ -719,7 +718,6 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
     return conf_interval
 
 
-@deprecated_renamed_argument('a', 'data', '2.0')
 def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
     """
     Calculate the median absolute deviation (MAD).
