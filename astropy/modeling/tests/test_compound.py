@@ -555,6 +555,7 @@ def test_bounding_box():
     val3 = g(.1, .1, with_bounding_box=True)
 
 
+@pytest.mark.skipif("not HAS_SCIPY_14")
 def test_bounding_box_with_units():
     points = np.arange(5) * u.pix
     lt = np.arange(5) * u.AA
