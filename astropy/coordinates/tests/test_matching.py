@@ -297,3 +297,37 @@ def test_match_catalog_empty():
     with pytest.raises(ValueError) as excinfo:
         sc1.match_to_catalog_3d(cat0)
     assert 'catalog' in str(excinfo.value)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif('OLDER_SCIPY')
+def test_match_catalog_nan():
+    from astropy.coordinates import SkyCoord, Galactic
+
+    sc1 = SkyCoord(1, 2, unit="deg")
+    sc_with_nans = SkyCoord(1, np.nan, unit="deg")
+
+    cat = SkyCoord([1.1, 3], [2.1, 5], unit="deg")
+    cat_with_nans = SkyCoord([1.1, np.nan], [2.1, 5], unit="deg")
+    galcat_with_nans = Galactic([1.2, np.nan]*u.deg, [5.6, 7.8]*u.deg)
+
+    with pytest.raises(ValueError) as excinfo:
+        sc1.match_to_catalog_sky(cat_with_nans)
+    assert 'Catalog coordinates cannot contain' in str(excinfo.value)
+    with pytest.raises(ValueError) as excinfo:
+        sc1.match_to_catalog_3d(cat_with_nans)
+    assert 'Catalog coordinates cannot contain' in str(excinfo.value)
+
+    with pytest.raises(ValueError) as excinfo:
+        sc1.match_to_catalog_sky(galcat_with_nans)
+    assert 'Catalog coordinates cannot contain' in str(excinfo.value)
+    with pytest.raises(ValueError) as excinfo:
+        sc1.match_to_catalog_3d(galcat_with_nans)
+    assert 'Catalog coordinates cannot contain' in str(excinfo.value)
+
+    with pytest.raises(ValueError) as excinfo:
+        sc_with_nans.match_to_catalog_sky(cat)
+    assert 'Matching coordinates cannot contain' in str(excinfo.value)
+    with pytest.raises(ValueError) as excinfo:
+        sc_with_nans.match_to_catalog_3d(cat)
+    assert 'Matching coordinates cannot contain' in str(excinfo.value)
