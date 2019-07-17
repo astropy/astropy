@@ -1579,22 +1579,24 @@ class Model(metaclass=_ModelMeta):
                         # to be able to raise more appropriate/nicer exceptions
 
                         if input_unit is dimensionless_unscaled:
-                            raise UnitsError("Units of input '{0}', {1} ({2}),"
+                            raise UnitsError("{0}: Units of input '{1}', {2} ({3}),"
                                              "could not be converted to "
                                              "required dimensionless "
-                                             "input".format(self.inputs[i],
+                                             "input".format(name,
+                                                            self.inputs[i],
                                                             inputs[i].unit,
                                                             inputs[i].unit.physical_type))
                         else:
-                            raise UnitsError("Units of input '{0}', {1} ({2}),"
+                            raise UnitsError("{0}: Units of input '{1}', {2} ({3}),"
                                              " could not be "
                                              "converted to required input"
-                                             " units of {3} ({4})".format(
-                                                self.inputs[i],
-                                                inputs[i].unit,
-                                                inputs[i].unit.physical_type,
-                                                input_unit,
-                                                input_unit.physical_type))
+                                             " units of {4} ({5})".format(
+                                                 name,
+                                                 self.inputs[i],
+                                                 inputs[i].unit,
+                                                 inputs[i].unit.physical_type,
+                                                 input_unit,
+                                                 input_unit.physical_type))
                 else:
 
                     # If we allow dimensionless input, we add the units to the
@@ -1605,9 +1607,9 @@ class Model(metaclass=_ModelMeta):
                        input_unit is not dimensionless_unscaled and
                        input_unit is not None):
                         if np.any(inputs[i] != 0):
-                            raise UnitsError("Units of input '{0}', (dimensionless), could not be "
+                            raise UnitsError("{0}: Units of input '{1}', (dimensionless), could not be "
                                              "converted to required input units of "
-                                             "{1} ({2})".format(self.inputs[i], input_unit,
+                                             "{2} ({3})".format(name, self.inputs[i], input_unit,
                                                                 input_unit.physical_type))
 
         return inputs
@@ -1816,7 +1818,6 @@ class Model(metaclass=_ModelMeta):
         self._model_set_axis = model_set_axis
         self._param_metrics = defaultdict(dict)
 
-        supplied_parvalues = []
         for idx, arg in enumerate(args):
             if arg is None:
                 # A value of None implies using the default value, if exists
@@ -1962,7 +1963,6 @@ class Model(metaclass=_ModelMeta):
         total_size = 0
 
         for name in self.param_names:
-            unit = None
             param = getattr(self, name)
             value = param.value
             param_size = np.size(value)
@@ -2013,7 +2013,6 @@ class Model(metaclass=_ModelMeta):
         single model sets.
         """
         all_shapes = []
-        param_names = []
         model_set_axis = self._model_set_axis
 
         for name in self.param_names:
@@ -2749,8 +2748,6 @@ class CompoundModel(Model):
         return '\n\n'.join('[{0}]: {1!r}'.format(idx, m)
                            for idx, m in enumerate(self._leaflist))
 
-        return self._format_repr(keywords=keywords)
-
     def __str__(self):
         expression = self._format_expression()
         components = self._format_components()
@@ -2958,9 +2955,9 @@ class CompoundModel(Model):
                     inputs_map[inp] = self.left, inp
         elif self.op == '&':
             if isinstance(self.left, CompoundModel):
-                l_inputs_map = left.inputs_map()
+                l_inputs_map = self.left.inputs_map()
             if isinstance(self.right, CompoundModel):
-                r_inputs_map = right.inputs_map()
+                r_inputs_map = self.right.inputs_map()
             for i, inp in enumerate(self.inputs):
                 if i < len(self.left.inputs):  # Get from left
                     if isinstance(self.left, CompoundModel):
@@ -3050,7 +3047,7 @@ class CompoundModel(Model):
                     outputs_map[out] = self, out
 
         elif self.op == '&':
-            l_inputs_map = self.left.inputs_map()
+            l_outputs_map = self.left.outputs_map()
             r_outputs_map = self.right.outputs_map()
             for i, out in enumerate(self.outputs):
                 if i < len(self.left.outputs):  # Get from left
@@ -3945,8 +3942,7 @@ def get_bounding_box(self):
 
 def generic_call(self, *inputs, **kwargs):
     inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
-    # Check whether any of the inputs are quantities
-    inputs_are_quantity = any([isinstance(i, Quantity) for i in inputs])
+
     if isinstance(self, CompoundModel):
         # CompoundModels do not normally hold parameters at that level
         parameters = ()
