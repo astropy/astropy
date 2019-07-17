@@ -3288,3 +3288,24 @@ def test_empty_table(tmpdir):
 
     with fits.open(ofile) as hdul:
         assert hdul['TEST'].data.size == 0
+
+
+def test_a3dtable(tmpdir):
+    testfile = str(tmpdir.join('test.fits'))
+    hdu = fits.BinTableHDU.from_columns([
+        fits.Column(name='FOO', format='J', array=np.arange(10))
+    ])
+    hdu.header['XTENSION'] = 'A3DTABLE'
+    hdu.writeto(testfile, output_verify='ignore')
+
+    with fits.open(testfile) as hdul:
+        assert hdul[1].header['XTENSION'] == 'A3DTABLE'
+
+        with catch_warnings() as w:
+            hdul.verify('fix')
+
+        assert str(w[0].message) == 'Verification reported errors:'
+        assert str(w[2].message)\
+            .endswith('Converted the XTENSION keyword to BINTABLE.')
+
+        assert hdul[1].header['XTENSION'] == 'BINTABLE'

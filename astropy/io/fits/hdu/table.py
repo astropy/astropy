@@ -292,7 +292,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         else:
             # construct a list of cards of minimal header
             cards = [
-                ('XTENSION', '', ''),
+                ('XTENSION', self._extension, self._ext_comment),
                 ('BITPIX', 8, 'array data type'),
                 ('NAXIS', 2, 'number of array dimensions'),
                 ('NAXIS1', 0, 'length of dimension 1'),
@@ -366,10 +366,6 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 pass
             else:
                 raise TypeError('Table data has incorrect type.')
-
-        if not (isinstance(self._header[0], str) and
-                self._header[0].rstrip() == self._extension):
-            self._header[0] = (self._extension, self._ext_comment)
 
         # Ensure that the correct EXTNAME is set on the new header if one was
         # created, or that it overrides the existing EXTNAME if different
@@ -537,6 +533,18 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         """
 
         errs = super()._verify(option=option)
+        if not (isinstance(self._header[0], str) and
+                self._header[0].rstrip() == self._extension):
+
+            err_text = 'The XTENSION keyword must match the HDU type.'
+            fix_text = 'Converted the XTENSION keyword to {}.'.format(self._extension)
+
+            def fix(header=self._header):
+                header[0] = (self._extension, self._ext_comment)
+
+            errs.append(self.run_option(option, err_text=err_text,
+                                        fix_text=fix_text, fix=fix))
+
         self.req_cards('NAXIS', None, lambda v: (v == 2), 2, option, errs)
         self.req_cards('BITPIX', None, lambda v: (v == 8), 8, option, errs)
         self.req_cards('TFIELDS', 7,
