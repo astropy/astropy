@@ -562,14 +562,15 @@ subexpression ``B * C``::
     the compound model). So::
 
         m1 * m2
-    
+
     is a submodel (i.e.,``m[:2]``) but
     ``m[1:3]`` is not. Currently this also means that in simpler expressions
     such as::
+
         m = m1 + m2 + m3 + m4
 
     where any slice should be valid in
-    principle, only slices that include m1 are since it is part of 
+    principle, only slices that include m1 are since it is part of
     all submodules (since the order of evaluation is::
 
         ((m1 + m2) + m3) + m4
