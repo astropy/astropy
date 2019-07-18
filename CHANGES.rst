@@ -353,7 +353,6 @@ astropy.coordinates
   [#8877]
 
 - Check any NaN before building and querying KDTree for matching coordinates.
-  [#9007]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
