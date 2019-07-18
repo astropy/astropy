@@ -96,6 +96,7 @@ class VOUnit(generic.Generic):
             cls._custom_inline = True
             result = cls._do_parse(s.strip('"'), debug=debug)
         else:
+            cls._custom_inline = False
             result = cls._do_parse(s, debug=debug)
         if hasattr(result, 'function_unit'):
             raise ValueError("Function units are not yet supported in "

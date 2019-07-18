@@ -419,13 +419,6 @@ def test_scaled_dimensionless():
 
 
 def test_deprecated_did_you_mean_units():
-    # First clear custom unit namespace to ensure consistent test outcome.
-    u.format.VOUnit._custom_units.clear()
-    with pytest.raises(ValueError,
-                       match='not supported by the VOUnit standard') as e:
-        u.Unit('ANGSTROM', format='vounit')
-    assert str(e.value).count('nm') == 1
-
     with pytest.raises(ValueError,
                        match=r'Crab .deprecated. or mCrab .deprecated..$'):
         u.Unit('crab', format='ogip')
@@ -437,6 +430,11 @@ def test_deprecated_did_you_mean_units():
                        match='not supported by the CDS SAC standard') as e:
         u.Unit('ANGSTROM', format='cds')
     assert str(e.value).count('Angstrom') == 5
+
+    with pytest.raises(ValueError,
+                       match='not supported by the VOUnit standard') as e:
+        u.Unit('ANGSTROM', format='vounit')
+    assert str(e.value).count('nm') == 1
 
     with catch_warnings() as w:
         u.Unit('angstrom', format='vounit')
