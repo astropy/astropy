@@ -3304,7 +3304,7 @@ def test_a3dtable(tmpdir):
             hdul.verify('fix')
 
         assert str(w[0].message) == 'Verification reported errors:'
-        assert str(w[2].message)\
-            .endswith('Converted the XTENSION keyword to BINTABLE.')
+        assert str(w[2].message).endswith(
+            'Converted the XTENSION keyword to BINTABLE.')
 
         assert hdul[1].header['XTENSION'] == 'BINTABLE'
