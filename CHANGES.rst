@@ -190,6 +190,9 @@ astropy.stats
 - Renamed the ``a`` parameter to ``data`` in biweight stat functions.
   [#8948]
 
+- Renamed the ``a`` parameter to ``data`` in ``median_absolute_deviation``.
+  [#9011]
+
 astropy.table
 ^^^^^^^^^^^^^
 
