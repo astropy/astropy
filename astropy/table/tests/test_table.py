@@ -2392,3 +2392,14 @@ def test_custom_masked_column_in_nonmasked_table():
         assert type(t['c']) is MyMaskedColumn
         assert type(t['d']) is MySubColumn
         assert type(t['e']) is MySubMaskedColumn  # sub-class not downgraded
+
+
+def test_data_to_col_convert_strategy():
+    """Test the update to how data_to_col works (#8972), using the regression
+    example from #8971.
+    """
+    t = table.Table([[0, 1]])
+    t['a'] = 1
+    t['b'] = np.int64(2)  # Failed previously
+    assert np.all(t['a'] == [1, 1])
+    assert np.all(t['b'] == [2, 2])
