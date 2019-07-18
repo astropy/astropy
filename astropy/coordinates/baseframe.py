@@ -367,28 +367,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     The base class for coordinate frames.
 
     This class is intended to be subclassed to create instances of specific
-    systems.  Subclasses can implement the following attributes:
-
-    * `default_representation`
-        A subclass of `~astropy.coordinates.BaseRepresentation` that will be
-        treated as the default representation of this frame.  This is the
-        representation assumed by default when the frame is created.
-
-    * `default_differential`
-        A subclass of `~astropy.coordinates.BaseDifferential` that will be
-        treated as the default differential class of this frame.  This is the
-        differential class assumed by default when the frame is created.
-
-    * `~astropy.coordinates.Attribute` class attributes
-       Frame attributes such as ``FK4.equinox`` or ``FK4.obstime`` are defined
-       using a descriptor class.  See the narrative documentation or
-       built-in classes code for details.
-
-    * `frame_specific_representation_info`
-        A dictionary mapping the name or class of a representation to a list of
-        `~astropy.coordinates.RepresentationMapping` objects that tell what
-        names and default units should be used on this frame for the components
-        of that representation.
+    systems.  Subclasses can implement the attributes documented below.
 
     Unless overridden via `frame_specific_representation_info`, velocity name
     defaults are:
@@ -401,6 +380,28 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
       * ``v_{x,y,z}`` for `CartesianDifferential` velocity components
 
     where ``{lon}`` and ``{lat}`` are the frame names of the angular components.
+
+    Attributes
+    ----------
+    default_representation : `~astropy.coordinates.BaseRepresentation`
+        The default representation of this frame.  This is the representation
+        assumed by default when the frame is created.
+
+    default_differential : `~astropy.coordinates.BaseDifferential`
+        The default differential class of this frame. This is the differential
+        class assumed by default when the frame is created.
+
+    frame_attributes : OrderedDict
+        Stores `~astropy.coordinates.Attribute` class attributes.
+        Frame attributes such as ``FK4.equinox`` or ``FK4.obstime`` are defined
+        using a descriptor class. See the narrative documentation or built-in
+        classes code for details.
+
+    frame_specific_representation_info : dict
+        A mapping of the name or class of a representation to a list of
+        `~astropy.coordinates.RepresentationMapping` objects that tell what
+        names and default units should be used on this frame for the components
+        of that representation.
     """
 
     default_representation = None
