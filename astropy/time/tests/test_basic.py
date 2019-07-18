@@ -93,6 +93,25 @@ class TestBasic():
         assert t4.isscalar is False
         assert t4.shape == np.broadcast(val, val2).shape
 
+    @pytest.mark.parametrize('format_', Time.FORMATS)
+    def test_empty_value(self, format_):
+        t = Time([], format=format_)
+        assert t.size == 0
+        assert t.shape == (0,)
+        assert t.format == format_
+        t_value = t.value
+        assert t_value.size == 0
+        assert t_value.shape == (0,)
+        t2 = Time(t_value, format=format_)
+        assert t2.size == 0
+        assert t2.shape == (0,)
+        assert t2.format == format_
+        t3 = t2.tai
+        assert t3.size == 0
+        assert t3.shape == (0,)
+        assert t3.format == format_
+        assert t3.scale == 'tai'
+
     @pytest.mark.parametrize('value', [2455197.5, [2455197.5]])
     def test_copy_time(self, value):
         """Test copying the values of a Time object by passing it into the
@@ -477,6 +496,8 @@ class TestBasic():
             Time(times, format='iso', scale='utc')
         with pytest.raises(ValueError):
             Time('2000:001', format='jd', scale='utc')
+        with pytest.raises(ValueError):  # unguessable
+            Time([])
         with pytest.raises(ValueError):
             Time([50000.0], ['bad'], format='mjd', scale='tai')
         with pytest.raises(ValueError):
