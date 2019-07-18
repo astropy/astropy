@@ -413,6 +413,8 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- Allow ``Time`` to be initialized with an empty value for all formats. [#8854]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
