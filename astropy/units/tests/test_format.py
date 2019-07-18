@@ -548,6 +548,7 @@ def test_vounit_implicit_custom():
     assert x.bases[1].name == 'week'
     assert 'urlong' not in u.format.VOUnit._custom_units
 
+
 @pytest.mark.parametrize('scale, number, string',
                          [('10+2', 100, '10**2'),
                           ('10(+2)', 100, '10**2'),
