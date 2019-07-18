@@ -44,7 +44,7 @@ def _prepare(values, clip=True, out=None):
             return out
 
 
-class BaseStretch(BaseTransform, metaclass=type):
+class BaseStretch(BaseTransform):
     """
     Base class for the stretch classes, which, when called with an array
     of values in the range [0:1], return an transformed array of values,

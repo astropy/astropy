@@ -75,17 +75,17 @@ def test_JsonCustomEncoder():
     assert newd == tmpd
 
 
-@pytest.mark.filterwarnings("ignore:AstropyDeprecationWarning")
 def test_inherit_docstrings():
-    class Base(metaclass=misc.InheritDocstrings):
-        def __call__(self, *args):
-            "FOO"
-            pass
+    with pytest.warns(AstropyDeprecationWarning, match="inherits docstring"):
+        class Base(metaclass=misc.InheritDocstrings):
+            def __call__(self, *args):
+                "FOO"
+                pass
 
-        @property
-        def bar(self):
-            "BAR"
-            pass
+            @property
+            def bar(self):
+                "BAR"
+                pass
 
     class Subclass(Base):
         def __call__(self, *args):

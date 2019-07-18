@@ -485,7 +485,7 @@ class UnitsWarning(AstropyWarning):
     """
 
 
-class UnitBase(metaclass=type):
+class UnitBase:
     """
     Abstract base class for units.
 

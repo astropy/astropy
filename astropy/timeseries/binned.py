@@ -15,7 +15,7 @@ __all__ = ['BinnedTimeSeries']
 
 
 @autocheck_required_columns
-class BinnedTimeSeries(BaseTimeSeries, metaclass=type):
+class BinnedTimeSeries(BaseTimeSeries):
     """
     A class to represent binned time series data in tabular form.
 

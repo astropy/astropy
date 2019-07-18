@@ -16,7 +16,7 @@ __all__ = ['BaseInterval', 'ManualInterval', 'MinMaxInterval',
            'ZScaleInterval']
 
 
-class BaseInterval(BaseTransform, metaclass=type):
+class BaseInterval(BaseTransform):
     """
     Base class for the interval classes, which, when called with an
     array of values, return an interval computed following different

@@ -197,7 +197,7 @@ class QuantityInfo(QuantityInfoBase):
         return out
 
 
-class Quantity(np.ndarray, metaclass=type):
+class Quantity(np.ndarray):
     """A `~astropy.units.Quantity` represents a number with some associated unit.
 
     See also: http://docs.astropy.org/en/stable/units/quantity.html

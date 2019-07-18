@@ -4,12 +4,10 @@
 # STDLIB
 import io
 import re
-import sys
 import gzip
 import base64
 import codecs
 import urllib.request
-import warnings
 
 # THIRD-PARTY
 import numpy as np
@@ -20,7 +18,6 @@ from astropy.io import fits
 from astropy import __version__ as astropy_version
 from astropy.utils.collections import HomogeneousList
 from astropy.utils.xml.writer import XMLWriter
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from . import converters
 from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
@@ -404,7 +401,7 @@ class _DescriptionProperty:
 
 ######################################################################
 # ELEMENT CLASSES
-class Element(metaclass=type):
+class Element:
     """
     A base class for all classes that represent XML elements in the
     VOTABLE file.
