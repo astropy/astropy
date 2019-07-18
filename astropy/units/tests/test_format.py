@@ -419,24 +419,6 @@ def test_scaled_dimensionless():
 
 
 def test_deprecated_did_you_mean_units():
-<<<<<<< HEAD
-    with pytest.raises(ValueError) as exc_info:
-        u.Unit('ANGSTROM', format='fits')
-    assert 'Did you mean Angstrom or angstrom?' in str(exc_info.value)
-
-    with pytest.raises(ValueError) as exc_info:
-        u.Unit('crab', format='ogip')
-    assert 'Crab (deprecated)' in str(exc_info.value)
-    assert 'mCrab (deprecated)' in str(exc_info.value)
-
-    with catch_warnings() as w:
-        u.Unit('ANGSTROM', format='vounit')
-
-    assert len(w) == 1
-    assert 'angstrom (deprecated)' in str(w[0].message)
-    assert '0.1nm' in str(w[0].message)
-    assert str(w[0].message).count('0.1nm') == 1
-=======
     with pytest.raises(ValueError,
                        match=r'Crab .deprecated. or mCrab .deprecated..$'):
         u.Unit('crab', format='ogip')
@@ -453,7 +435,6 @@ def test_deprecated_did_you_mean_units():
                        match='not supported by the VOUnit standard') as e:
         u.Unit('ANGSTROM', format='vounit')
     assert str(e.value).count('nm') == 1
->>>>>>> Introduce double-quote syntax to mark custom units in VOUnit
 
     with catch_warnings() as w:
         u.Unit('angstrom', format='vounit')
@@ -534,22 +515,36 @@ def test_vounit_custom():
 
 
 def test_vounit_implicit_custom():
-    # implicit as indicated by double-quoted strings shall recognise prefixes
-    x = u.Unit('"furlong/week"', format="vounit")
+    # We cannot overwrite already created custom units, so first make sure
+    # that the namespace is clean:
+    u.format.VOUnit._custom_units.clear()
+    # Implicit as indicated by double-quoted strings shall recognise prefixes.
+    # Yikes, this becomes "femto-urlong"...  But at least there's a warning.
+    with catch_warnings() as w:
+        x = u.Unit('"furlong/week"', format="vounit")
     assert not isinstance(x.bases[0], u.IrreducibleUnit)
     assert isinstance(x.bases[1], u.IrreducibleUnit)
     assert x.bases[0]._represents.scale == 1e-15
     assert x.bases[0]._represents.bases[0].name == 'urlong'
     assert x.bases[1].name == 'week'
 
-    # explicit (single-quoted) is not to be further parsed;
-    # but we cannot overwrite already created custom units
-    x = u.Unit("'acre' / 'month'", format="vounit")
+    # Explicit (single-quoted) is not to be further parsed.
+    x = u.Unit("'acre'", format="vounit")
+    assert isinstance(x.bases[0], u.IrreducibleUnit)
+    assert x.bases[0].name == 'acre'
+
+    with pytest.raises(ValueError, match='already exists in given namespace'):
+        x = u.Unit("'furlong'/'week'", format="vounit")
+
+    # Try again after clearing name slots.
+    for n in 'furlong', 'urlong', 'week':
+        del u.format.VOUnit._custom_units[n]
+    x = u.Unit("'furlong'/'week'", format="vounit")
     assert isinstance(x.bases[0], u.IrreducibleUnit)
     assert isinstance(x.bases[1], u.IrreducibleUnit)
-    assert x.bases[0].name == 'acre'
-    assert x.bases[1].name == 'month'
-
+    assert x.bases[0].name == 'furlong'
+    assert x.bases[1].name == 'week'
+    assert 'urlong' not in u.format.VOUnit._custom_units
 
 @pytest.mark.parametrize('scale, number, string',
                          [('10+2', 100, '10**2'),
