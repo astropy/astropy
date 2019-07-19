@@ -159,12 +159,12 @@ def test_context_manager():
     from astropy import constants as const
 
     with pytest.warns(AstropyDeprecationWarning,
-                      match='Use ScienceState for constants'):
+                      match="Use 'astropy.physical_constants'"):
         with const.set_enabled_constants('astropyconst13'):
             assert const.h.value == 6.62606957e-34  # CODATA2010
 
     with pytest.warns(AstropyDeprecationWarning,
-                      match='Use ScienceState for constants'):
+                      match="Use 'astropy.physical_constants'"):
         with const.set_enabled_constants('astropyconst20'):
             assert const.h.value == 6.626070040e-34  # CODATA2014
 
@@ -172,6 +172,6 @@ def test_context_manager():
 
     with pytest.raises(ImportError):
         with pytest.warns(AstropyDeprecationWarning,
-                          match='Use ScienceState for constants'):
+                          match="Use 'astropy.physical_constants'"):
             with const.set_enabled_constants('notreal'):
                 const.h
