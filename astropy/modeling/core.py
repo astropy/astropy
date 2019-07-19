@@ -32,7 +32,6 @@ from astropy.table import Table
 from astropy.units import Quantity, UnitsError, dimensionless_unscaled
 from astropy.units.utils import quantity_asanyarray
 from astropy.utils import (sharedmethod, find_current_module,
-                           InheritDocstrings,
                            check_broadcast, IncompatibleShapeError, isiterable)
 from astropy.utils.codegen import make_function_with_signature
 from astropy.utils.exceptions import AstropyDeprecationWarning
@@ -1650,7 +1649,7 @@ class Model(metaclass=_ModelMeta):
         new_model._name = name
         return new_model
 
-    @sharedmethod
+    @property
     def n_submodels(self):
         """
         Return the number of components in a single model, which is
@@ -2616,17 +2615,20 @@ class CompoundModel(Model):
     def ineqcons(self, value):
         self._eqcons = value
 
-    def traverse_postorder(self):
+    def traverse_postorder(self, include_operator=False):
         res = []
         if isinstance(self.left, CompoundModel):
-            res = res + self.left.traverse_postorder()
+            res = res + self.left.traverse_postorder(include_operator)
         else:
             res = res + [self.left]
         if isinstance(self.right, CompoundModel):
-            res = res + self.right.traverse_postorder()
+            res = res + self.right.traverse_postorder(include_operator)
         else:
             res = res + [self.right]
-        res = res + [self]
+        if include_operator:
+            res.append(self.op)
+        else:
+            res.append(self)
         return res
 
     def _format_expression(self, format_leaf=None):

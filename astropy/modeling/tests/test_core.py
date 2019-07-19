@@ -382,8 +382,8 @@ def test_custom_bounding_box_1d():
 
 
 def test_n_submodels_in_single_models():
-    assert models.Gaussian1D.n_submodels() == 1
-    assert models.Gaussian2D.n_submodels() == 1
+    assert models.Gaussian1D().n_submodels == 1
+    assert models.Gaussian2D().n_submodels == 1
 
 
 def test_compound_deepcopy():
