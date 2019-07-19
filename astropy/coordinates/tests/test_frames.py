@@ -637,7 +637,7 @@ def test_representation():
     for attr in ('ra', 'dec', 'distance'):
         with pytest.raises(AttributeError) as err:
             getattr(icrs, attr)
-        assert 'object has no attribute' in str(err)
+        assert 'object has no attribute' in str(err.value)
 
     with pytest.raises(ValueError) as err:
         icrs.representation_type = 'WRONG'
