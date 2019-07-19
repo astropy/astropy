@@ -1,10 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-This module defines two classes that deal with parameters.
+This module defines classes that deal with parameters.
 
-It is unlikely users will need to work with these classes directly, unless they
-define their own models.
+It is unlikely users will need to work with these classes directly,
+unless they define their own models.
 """
 
 
@@ -283,12 +283,12 @@ class Parameter(OrderedDescriptor):
                 oldvalue[key] = value
             except IndexError:
                 raise InputParameterError(
-                    "Input dimension {0} invalid for {1!r} parameter with "
-                    "dimension {2}".format(key, self.name, value.shape[0]))  # likely wrong
+                    "Input dimension {} invalid for {!r} parameter with "
+                    "dimension {}".format(key, self.name, value.shape[0]))  # likely wrong
 
     def __repr__(self):
         args = f"'{self._name}'"
-        args += ', value={0}'.format(self.value)
+        args += f"'{self.value}'"
 
         if self.unit is not None:
             args += f', unit={self.unit}'
@@ -563,34 +563,34 @@ class Parameter(OrderedDescriptor):
         name as the `Parameter` itself (think of this as analogous to
         ``property.setter``).  For example::
 
-            # >>> from astropy.modeling import Fittable1DModel
-            # >>> class TestModel(Fittable1DModel):
-            # ...     a = Parameter()
-            # ...     b = Parameter()
-            # ...
-            # ...     @a.validator
-            # ...     def a(self, value):
-            # ...         # Remember, the value can be an array
-            # ...         if np.any(value < self.b):
-            # ...             raise InputParameterError(
-            # ...                 "parameter 'a' must be greater than or equal "
-            # ...                 "to parameter 'b'")
-            # ...
-            # ...     @staticmethod
-            # ...     def evaluate(x, a, b):
-            # ...         return a * x + b
-            # ...
-            # >>> m = TestModel(a=1, b=2)  # doctest: +IGNORE_EXCEPTION_DETAIL
-            # Traceback (most recent call last):
-            # ...
-            # InputParameterError: parameter 'a' must be greater than or equal
-            # to parameter 'b'
-            # >>> m = TestModel(a=2, b=2)
-            # >>> m.a = 0  # doctest: +IGNORE_EXCEPTION_DETAIL
-            # Traceback (most recent call last):
-            # ...
-            # InputParameterError: parameter 'a' must be greater than or equal
-            # to parameter 'b'
+        >>> from astropy.modeling import Fittable1DModel
+        >>> class TestModel(Fittable1DModel):
+        ...     a = Parameter()
+        ...     b = Parameter()
+        ...
+        ...     @a.validator
+        ...     def a(self, value):
+        ...         # Remember, the value can be an array
+        ...         if np.any(value < self.b):
+        ...             raise InputParameterError(
+        ...                 "parameter 'a' must be greater than or equal "
+        ...                 "to parameter 'b'")
+        ...
+        ...     @staticmethod
+        ...     def evaluate(x, a, b):
+        ...         return a * x + b
+        ...
+        >>> m = TestModel(a=1, b=2)  # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        ...
+        InputParameterError: parameter 'a' must be greater than or equal
+        to parameter 'b'
+        >>> m = TestModel(a=2, b=2)
+        >>> m.a = 0  # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        ...
+        InputParameterError: parameter 'a' must be greater than or equal
+        to parameter 'b'
 
         On bound parameters this property returns the validator method itself,
         as a bound method on the `Parameter`.  This is not often as useful, but
