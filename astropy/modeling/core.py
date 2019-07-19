@@ -1555,7 +1555,7 @@ class Model(metaclass=_ModelMeta):
                         # we need to be sure that we evaluate the model in
                         # its own frame of reference. If input_units_strict
                         # is set, we also need to convert to the input units.
-                        if len(input_units_equivalencies) > (0 or self.input_units_strict[input_name]):
+                        if len(input_units_equivalencies) > 0 or self.input_units_strict[input_name]:
                             inputs[i] = inputs[i].to(input_unit,
                                                      equivalencies=input_units_equivalencies[input_name])
 
