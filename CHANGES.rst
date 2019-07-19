@@ -132,6 +132,10 @@ astropy.config
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 
+- Deprecated ``set_enabled_constants`` context manager. Use
+  ``astropy.physical_constants`` and ``astropy.astronomical_constants``.
+  [#9025]
+
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
@@ -362,7 +366,7 @@ astropy.coordinates
 - Fix concatenation of representations for cases where the units were different.
   [#8877]
 
-- Check for NaN values in catalog and match coordinates before building and 
+- Check for NaN values in catalog and match coordinates before building and
   querying the ``KDTree`` for coordinate matching. [#9007]
 
 astropy.cosmology
