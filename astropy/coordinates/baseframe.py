@@ -1663,6 +1663,17 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         return self.represent_as('cartesian', in_frame_units=True)
 
     @property
+    def cylindrical(self):
+        """
+        Shorthand for a cylindrical representation of the coordinates in this
+        object.
+        """
+
+        # TODO: if representations are updated to use a full transform graph,
+        #       the representation aliases should not be hard-coded like this
+        return self.represent_as('cylindrical', in_frame_units=True)
+
+    @property
     def spherical(self):
         """
         Shorthand for a spherical representation of the coordinates in this

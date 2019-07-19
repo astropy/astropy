@@ -25,6 +25,10 @@ astropy.coordinates
   as input. The ephemeris can now be selected by either keyword (e.g. 'jpl',
   'de430'), URL or file path. [#8767]
 
+- Added a ``cylindrical`` property to ``SkyCoord`` for shorthand access to a
+  ``CylindricalRepresentation`` of the coordinate, as is already available
+  for other common representations. [#8857]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
