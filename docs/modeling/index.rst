@@ -32,7 +32,7 @@ fitting routines (while making it reasonably easy to do when necessary).
     us know on the `astropy-dev mailing list`_ or at
     http://feedback.astropy.org
 
-.. _modeling-major-changes-for-4.0
+.. _modeling-major-changes-for-4.0:
 
 Major changes to Modeling for 4.0
 =================================
