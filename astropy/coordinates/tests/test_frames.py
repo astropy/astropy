@@ -509,7 +509,7 @@ def test_sep():
     i7 = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.one)
     i8 = ICRS(ra=1*u.deg, dec=2*u.deg, distance=4*u.one)
     sep3d = i7.separation_3d(i8)
-    assert_allclose(sep3d.to(u.one).value, [1])
+    assert_allclose(sep3d, 1*u.one)
 
     # but should fail with non-dimensionless
     with pytest.raises(ValueError):
