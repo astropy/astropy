@@ -53,22 +53,15 @@ __all__ = ['Model', 'FittableModel', 'Fittable1DModel', 'Fittable2DModel',
 
 def _model_oper(oper, **kwargs):
     """
-    This is an alternate version of compound models intended to use
-    much less memory than the default.
+    Returns a function that evaluates a given Python arithmetic operator
+    between two models.  The operator should be given as a string, like ``'+'``
+    or ``'**'``.
     """
     return lambda left, right: CompoundModel(oper, left, right, **kwargs)
 
 
-class _CompoundModel:
-    pass
-
-
-class _CompoundModelMeta:
-    pass
-
-
 class ModelDefinitionError(TypeError):
-    """Used for incorrect models definitions"""
+    """Used for incorrect models definitions."""
 
 
 class _ModelMeta(InheritDocstrings, abc.ABCMeta):
@@ -111,8 +104,8 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             ('__pow__', _model_oper('**')),
             ('__or__', _model_oper('|')),
             ('__and__', _model_oper('&')),
-            # ('__mod__', _model_oper('%'))
         ]
+
         for opermethod, opercall in opermethods:
             members[opermethod] = opercall
         cls = super().__new__(mcls, name, bases, members)
@@ -413,8 +406,7 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             # If *all* the parameters have default values we can make them
             # keyword arguments; otherwise they must all be positional
             # arguments
-            if all(p.default is not None
-                   for p in pdict.values()):
+            if all(p.default is not None for p in pdict.values()):
                 args = ('self',)
                 kwargs = []
                 for param_name, param_val in pdict.items():
@@ -446,7 +438,6 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
     __pow__ = _model_oper('**')
     __or__ = _model_oper('|')
     __and__ = _model_oper('&')
-    # __mod__ =     _model_oper('%')
 
     # *** Other utilities ***
 
@@ -504,13 +495,9 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
 
 class Model(metaclass=_ModelMeta):
     """
-    Warning: DOCSTRING IS OUT OF DATE!
     Base class for all models.
 
     This is an abstract class and should not be instantiated directly.
-
-    This class sets the constraints and other properties for all individual
-    parameters and performs parameter validation.
 
     The following initialization arguments apply to the majority of Model
     subclasses by default (exceptions include specialized utility models
@@ -625,7 +612,12 @@ class Model(metaclass=_ModelMeta):
     >>> g1.stddev.fixed
     True
     """
+
     parameter_constraints = Parameter.constraints
+    """
+    Primarily for informational purposes, these are the types of constraints
+    that can be set on a model's parameters.
+    """
 
     model_constraints = ('eqcons', 'ineqcons')
     """
@@ -704,7 +696,7 @@ class Model(metaclass=_ModelMeta):
                     newpar = copy.deepcopy(val)
                     newpar.model = self
                     self.__dict__[parname] = newpar
-                    # newpar._validator = val._validator
+
         self._initialize_constraints(kwargs)
         # Remaining keyword args are either parameter values or invalid
         # Parameter values must be passed in as keyword arguments in order to
@@ -1188,7 +1180,7 @@ class Model(metaclass=_ModelMeta):
         The units that the parameters should be converted to are not
         necessarily the units of the input data, but are derived from them.
         Model subclasses that want fitting to work in the presence of
-        quantities need to define a _parameter_units_for_data_units method
+        quantities need to define a ``_parameter_units_for_data_units`` method
         that takes the input and output units (as two dictionaries) and
         returns a dictionary giving the target units for each parameter.
 
@@ -1251,7 +1243,7 @@ class Model(metaclass=_ModelMeta):
         The units that the parameters will gain are not necessarily the units
         of the input data, but are derived from them. Model subclasses that
         want fitting to work in the presence of quantities need to define a
-        _parameter_units_for_data_units method that takes the input and output
+        ``_parameter_units_for_data_units`` method that takes the input and output
         units (as two dictionaries) and returns a dictionary giving the target
         units for each parameter.
         """
@@ -1271,7 +1263,7 @@ class Model(metaclass=_ModelMeta):
 
         # We are adding units to parameters that already have a value, but we
         # don't want to convert the parameter, just add the unit directly,
-        # hence the call to _set_unit.
+        # hence the call to ``_set_unit``.
         for name, unit in parameter_units.items():
             parameter = getattr(model, name)
             parameter._set_unit(unit, force=True)
@@ -1289,10 +1281,9 @@ class Model(metaclass=_ModelMeta):
 
     @property
     def _supports_unit_fitting(self):
-        # If the model has a '_parameter_units_for_data_units' method, this
+        # If the model has a ``_parameter_units_for_data_units`` method, this
         # indicates that we have enough information to strip the units away
         # and add them back after fitting, when fitting quantities
-        ##if not isinstance(self, CompoundModel):
         return hasattr(self, '_parameter_units_for_data_units')
 
     @abc.abstractmethod
@@ -1535,10 +1526,9 @@ class Model(metaclass=_ModelMeta):
                 edict = equivalencies
             # We combine any instance-level input equivalencies with user
             # specified ones at call-time.
-            input_units_equivalencies = \
-                _combine_equivalency_dict(self.inputs,
-                                          edict,
-                                          self.input_units_equivalencies)
+            input_units_equivalencies = _combine_equivalency_dict(self.inputs,
+                                                                  edict,
+                                                                  self.input_units_equivalencies)
 
             # We now iterate over the different inputs and make sure that their
             # units are consistent with those specified in input_units.
@@ -1565,13 +1555,9 @@ class Model(metaclass=_ModelMeta):
                         # we need to be sure that we evaluate the model in
                         # its own frame of reference. If input_units_strict
                         # is set, we also need to convert to the input units.
-                        if len(input_units_equivalencies) > 0 or \
-                               self.input_units_strict[input_name]:
-                            inputs[i] = \
-                                inputs[i].to(
-                                    input_unit,
-                                    equivalencies=input_units_equivalencies[
-                                        input_name])
+                        if len(input_units_equivalencies) > (0 or self.input_units_strict[input_name]):
+                            inputs[i] = inputs[i].to(input_unit,
+                                                     equivalencies=input_units_equivalencies[input_name])
 
                     else:
 
@@ -1697,8 +1683,8 @@ class Model(metaclass=_ModelMeta):
             self.__init__()
         if isinstance(self, CompoundModel):
             # Need to set parameter attributes
-            self._parameters_ = \
-                [getattr(existing, param_name) for param_name in param_names]
+            self._parameters_ = [getattr(existing, param_name)
+                                 for param_name in param_names]
             for param_name in param_names:
                 self.__dict__[param_name] = getattr(existing, param_name)
         else:
@@ -1716,14 +1702,6 @@ class Model(metaclass=_ModelMeta):
 
         self._n_models = existing._n_models
         self._model_set_axis = existing._model_set_axis
-        # self._parameters = existing._parameters
-
-        # self._param_metrics = defaultdict(dict)
-        # for param_a, param_b in aliases.items():
-        #     # Take the param metrics info for the giving parameters in the
-        #     # existing model, and hand them to the appropriate parameters in
-        #     # the new model
-        #     self._param_metrics[param_a] = existing._param_metrics[param_b]
 
         for param_a, param_b in aliases.items():
             setattr(self, param_a, getattr(existing, param_b))
@@ -2071,7 +2049,6 @@ class Model(metaclass=_ModelMeta):
         entirely in the near future.
         """
 
-        # param_metrics = self._param_metrics
         values = []
         shapes = []
         for name in self.param_names:
@@ -2295,43 +2272,12 @@ def _add_special_operator(sop_name, sop):
     SPECIAL_OPERATORS[sop_name] = sop
 
 
-"""
-This module provides an alternate implementation of compound models that
-is lighter weight than the default implementation.
-
-Using this alternate version of compound models requires calling a function
-in core to make this one the default. If this is used, *is is higly recommended
-that the mode be set back to the default at the end of the code constructing
-compound models so that other code depending on the default behavior is
-not affected!*
-
-As an example of how to do this:
-
-from astropy.modeling.core import set_compound_model
-prevcm = set_compound_model('lite')
-compound_model = Gaussian1D(1., 0.5, 0.1) + Gaussian1D(2, 0.7, 0.2)
-set_compound_model(prevcm) # the default model type is 'regular'
-
-Things currently supported:
-
-- evaluation
-- inverse evaluation (if possible or provided)
-
-Things not currently supported (but will be if adopted):
-
-- picklingt
-  compound models (this implementation walks the tree every time)
-- and other things I've overlooked at this moment...
-
-Things that will never be supported:
-
-- Compound models of model classes (as opposed to instances)
-"""
-
-
 class CompoundModel(Model):
     '''
-    Lightweight compound model implementation
+    Base class for compound models.
+
+    While it can be used directly, the recommended way
+    to combine models is through the model operators.
     '''
 
     def __init__(self, op, left, right, name=None, inverse=None):
@@ -2865,7 +2811,6 @@ class CompoundModel(Model):
     __pow__ = _model_oper('**')
     __or__ = _model_oper('|')
     __and__ = _model_oper('&')
-    # __mod__ =     _model_oper('%')
 
     def map_parameters(self):
         """
@@ -3890,7 +3835,7 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
     input_shape = check_consistent_shapes(*all_shapes)
     if input_shape is None:
         raise ValueError(
-            "All inputs must have identical shapes or must be scalars")
+            "All inputs must have identical shapes or must be scalars.")
 
     return input_shape
 
