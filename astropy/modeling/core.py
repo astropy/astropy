@@ -34,7 +34,7 @@ from astropy.table import Table
 from astropy.units import Quantity, UnitsError, dimensionless_unscaled
 from astropy.units.utils import quantity_asanyarray
 from astropy.utils import (sharedmethod, find_current_module,
-                           InheritDocstrings, OrderedDescriptorContainer,
+                           OrderedDescriptorContainer,
                            check_broadcast, IncompatibleShapeError, isiterable)
 from astropy.utils.codegen import make_function_with_signature
 from astropy.utils.exceptions import AstropyDeprecationWarning
@@ -82,7 +82,7 @@ def _model_oper(oper, **kwargs):
     return _opfunc
 
 
-class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
+class _ModelMeta(OrderedDescriptorContainer, abc.ABCMeta):
     """
     Metaclass for Model.
 

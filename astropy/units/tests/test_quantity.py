@@ -1391,10 +1391,6 @@ def test_quantity_fraction_power():
     assert q.dtype.kind == 'f'
 
 
-def test_inherit_docstrings():
-    assert u.Quantity.argmax.__doc__ == np.ndarray.argmax.__doc__
-
-
 def test_quantity_from_table():
     """
     Checks that units from tables are respected when converted to a Quantity.

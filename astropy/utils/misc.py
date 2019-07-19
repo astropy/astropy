@@ -22,6 +22,8 @@ from itertools import zip_longest
 from contextlib import contextmanager
 from collections import defaultdict, OrderedDict
 
+from astropy.utils.decorators import deprecated
+
 
 __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
            'find_api_page', 'is_path_hidden', 'walk_skip_hidden',
@@ -489,6 +491,7 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8, fix=None):
     return ''
 
 
+@deprecated('4.0', alternative='Sphinx>=1.7 automatically inherits docstring')
 class InheritDocstrings(type):
     """
     This metaclass makes methods of a class automatically have their
@@ -503,14 +506,18 @@ class InheritDocstrings(type):
 
     For example::
 
+        >>> import warnings
         >>> from astropy.utils.misc import InheritDocstrings
-        >>> class A(metaclass=InheritDocstrings):
-        ...     def wiggle(self):
-        ...         "Wiggle the thingamajig"
-        ...         pass
-        >>> class B(A):
-        ...     def wiggle(self):
-        ...         pass
+        >>> with warnings.catch_warnings():
+        ...     # Ignore deprecation warning
+        ...     warnings.simplefilter('ignore')
+        ...     class A(metaclass=InheritDocstrings):
+        ...         def wiggle(self):
+        ...             "Wiggle the thingamajig"
+        ...             pass
+        ...     class B(A):
+        ...         def wiggle(self):
+        ...             pass
         >>> B.wiggle.__doc__
         u'Wiggle the thingamajig'
     """
