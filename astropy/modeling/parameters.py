@@ -288,7 +288,7 @@ class Parameter(OrderedDescriptor):
 
     def __repr__(self):
         args = f"'{self._name}'"
-        args += f"'{self.value}'"
+        args += f', value={self.value}'
 
         if self.unit is not None:
             args += f', unit={self.unit}'
@@ -558,46 +558,6 @@ class Parameter(OrderedDescriptor):
         set on the parameter is invalid (typically an `InputParameterError`
         should be raised, though this is not currently a requirement).
 
-        The decorator *returns* the `Parameter` instance that the validator
-        is set on, so the underlying validator method should have the same
-        name as the `Parameter` itself (think of this as analogous to
-        ``property.setter``).  For example::
-
-            >>> from astropy.modeling import Fittable1DModel
-            >>> class TestModel(Fittable1DModel):
-            ...     a = Parameter()
-            ...     b = Parameter()
-            ...
-            ...     @a.validator
-            ...     def a(self, value):
-            ...         # Remember, the value can be an array
-            ...         if np.any(value < self.b):
-            ...             raise InputParameterError(
-            ...                 "parameter 'a' must be greater than or equal "
-            ...                 "to parameter 'b'")
-            ...
-            ...     @staticmethod
-            ...     def evaluate(x, a, b):
-            ...         return a * x + b
-            ...
-            >>> m = TestModel(a=1, b=2)  # doctest: +IGNORE_EXCEPTION_DETAIL
-            Traceback (most recent call last):
-            ...
-            InputParameterError: parameter 'a' must be greater than or equal
-            to parameter 'b'
-            >>> m = TestModel(a=2, b=2)
-            >>> m.a = 0  # doctest: +IGNORE_EXCEPTION_DETAIL
-            Traceback (most recent call last):
-            ...
-            InputParameterError: parameter 'a' must be greater than or equal
-            to parameter 'b'
-
-        On bound parameters this property returns the validator method itself,
-        as a bound method on the `Parameter`.  This is not often as useful, but
-        it allows validating a parameter value without setting that parameter::
-
-            >>> m.a.validator(42)  # Passes
-            >>> m.a.validator(-42)  # doctest: +IGNORE_EXCEPTION_DETAIL
         """
 
         def validator(func, self=self):
