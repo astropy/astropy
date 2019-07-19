@@ -64,7 +64,7 @@ class ModelDefinitionError(TypeError):
     """Used for incorrect models definitions."""
 
 
-class _ModelMeta(OrderedDescriptorContainer, abc.ABCMeta):
+class _ModelMeta(abc.ABCMeta):
     """
     Metaclass for Model.
 
