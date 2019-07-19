@@ -9,6 +9,7 @@ import pytest
 import numpy as np
 
 from astropy.utils import data, misc
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_isiterable():
@@ -75,15 +76,16 @@ def test_JsonCustomEncoder():
 
 
 def test_inherit_docstrings():
-    class Base(metaclass=misc.InheritDocstrings):
-        def __call__(self, *args):
-            "FOO"
-            pass
+    with pytest.warns(AstropyDeprecationWarning, match="inherits docstring"):
+        class Base(metaclass=misc.InheritDocstrings):
+            def __call__(self, *args):
+                "FOO"
+                pass
 
-        @property
-        def bar(self):
-            "BAR"
-            pass
+            @property
+            def bar(self):
+                "BAR"
+                pass
 
     class Subclass(Base):
         def __call__(self, *args):

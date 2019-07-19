@@ -715,10 +715,6 @@ def test_fractional_powers():
     assert x.powers[0] == Fraction(7, 6)
 
 
-def test_inherit_docstrings():
-    assert u.UnrecognizedUnit.is_unity.__doc__ == u.UnitBase.is_unity.__doc__
-
-
 def test_sqrt_mag():
     sqrt_mag = u.mag ** 0.5
     assert hasattr(sqrt_mag.decompose().scale, 'imag')

@@ -248,6 +248,9 @@ astropy.utils
 
 - Removed the deprecated ``astropy.utils.compat.numpy`` module. [#8910]
 
+- Deprecated ``InheritDocstrings`` as it is natively supported by
+  Sphinx 1.7 or higher. [#8881]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 

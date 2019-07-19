@@ -5,11 +5,9 @@ Classes that deal with computing intervals from arrays of values based on
 various criteria.
 """
 
-
 import abc
 import numpy as np
 
-from astropy.utils.misc import InheritDocstrings
 from .transform import BaseTransform
 
 
@@ -18,7 +16,7 @@ __all__ = ['BaseInterval', 'ManualInterval', 'MinMaxInterval',
            'ZScaleInterval']
 
 
-class BaseInterval(BaseTransform, metaclass=InheritDocstrings):
+class BaseInterval(BaseTransform):
     """
     Base class for the interval classes, which, when called with an
     array of values, return an interval computed following different
