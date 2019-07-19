@@ -51,7 +51,7 @@ if __doc__ is not None:
     __doc__ += '\n'.join(_lines)
 
 
-@deprecated('4.0', alternative='Use ScienceState for constants')
+@deprecated('4.0', alternative="Use 'astropy.physical_constants' and 'astropy.astronomical_constants'")  # noqa
 @contextmanager
 def set_enabled_constants(modname):
     """

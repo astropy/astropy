@@ -132,7 +132,8 @@ astropy.config
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 
-- Deprecated ``set_enabled_constants`` context manager. Use ScienceState.
+- Deprecated ``set_enabled_constants`` context manager. Use
+  ``astropy.physical_constants`` and ``astropy.astronomical_constants``.
   [#9025]
 
 astropy.convolution
