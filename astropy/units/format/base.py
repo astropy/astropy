@@ -2,10 +2,8 @@
 
 import os
 
-from astropy.utils.misc import InheritDocstrings
 
-
-class _FormatterMeta(InheritDocstrings):
+class _FormatterMeta(type):
     registry = {}
 
     def __new__(mcls, name, bases, members):

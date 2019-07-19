@@ -23,7 +23,7 @@ from .format.latex import Latex
 from astropy.utils.compat import NUMPY_LT_1_14, NUMPY_LT_1_16, NUMPY_LT_1_17
 from astropy.utils.compat.misc import override__dir__
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
-from astropy.utils.misc import isiterable, InheritDocstrings
+from astropy.utils.misc import isiterable
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy import config as _config
 from .quantity_helper import (converters_and_unit, can_have_arbitrary_unit,
@@ -197,7 +197,7 @@ class QuantityInfo(QuantityInfoBase):
         return out
 
 
-class Quantity(np.ndarray, metaclass=InheritDocstrings):
+class Quantity(np.ndarray):
     """A `~astropy.units.Quantity` represents a number with some associated unit.
 
     See also: http://docs.astropy.org/en/stable/units/quantity.html

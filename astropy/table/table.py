@@ -925,15 +925,17 @@ class Table:
                        if issubclass(self.ColumnClass, self.MaskedColumn)
                        else self.MaskedColumn)
 
-        elif isinstance(data, np.ndarray) or isiterable(data):
+        else:
+            # `data` is none of the above, so just go for it and try init'ing Column
             col_cls = self.ColumnClass
 
-        else:
-            raise ValueError('Elements in list initialization must be '
-                             'either Column or list-like')
+        try:
+            col = col_cls(name=name, data=data, dtype=dtype,
+                          copy=copy, copy_indices=self._init_indices)
+        except Exception:
+            # Broad exception class since we don't know what might go wrong
+            raise ValueError('unable to convert data to Column for Table')
 
-        col = col_cls(name=name, data=data, dtype=dtype,
-                      copy=copy, copy_indices=self._init_indices)
         col = self._convert_col_for_table(col)
 
         return col

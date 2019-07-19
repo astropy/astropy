@@ -160,8 +160,6 @@ def test_unknown_unit():
 
 
 def test_multiple_solidus():
-    assert u.Unit("m/s/kg").to_string() == u.m / u.s / u.kg
-
     with catch_warnings(u.UnitsWarning) as warning_lines:
         assert u.Unit("m/s/kg").to_string() == u.m / (u.s * u.kg)
 
@@ -668,8 +666,11 @@ def test_suggestions():
 
 def test_fits_hst_unit():
     """See #1911."""
-    x = u.Unit("erg /s /cm**2 /angstrom")
+    with catch_warnings() as w:
+        x = u.Unit("erg /s /cm**2 /angstrom")
     assert x == u.erg * u.s ** -1 * u.cm ** -2 * u.angstrom ** -1
+    assert len(w) == 1
+    assert 'multiple slashes' in str(w[0].message)
 
 
 def test_barn_prefixes():
@@ -712,10 +713,6 @@ def test_fractional_powers():
     x = u.cm ** Fraction(1, 2) * u.cm ** Fraction(2, 3)
     assert isinstance(x.powers[0], Fraction)
     assert x.powers[0] == Fraction(7, 6)
-
-
-def test_inherit_docstrings():
-    assert u.UnrecognizedUnit.is_unity.__doc__ == u.UnitBase.is_unity.__doc__
 
 
 def test_sqrt_mag():

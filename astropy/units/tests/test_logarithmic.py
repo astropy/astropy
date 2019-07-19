@@ -154,11 +154,10 @@ def test_predefined_reinitialisation():
 
 def test_predefined_string_roundtrip():
     """Ensure round-tripping; see #5015"""
-    with u.magnitude_zero_points.enable():
-        assert u.Unit(u.STmag.to_string()) == u.STmag
-        assert u.Unit(u.ABmag.to_string()) == u.ABmag
-        assert u.Unit(u.M_bol.to_string()) == u.M_bol
-        assert u.Unit(u.m_bol.to_string()) == u.m_bol
+    assert u.Unit(u.STmag.to_string()) == u.STmag
+    assert u.Unit(u.ABmag.to_string()) == u.ABmag
+    assert u.Unit(u.M_bol.to_string()) == u.M_bol
+    assert u.Unit(u.m_bol.to_string()) == u.m_bol
 
 
 def test_inequality():
@@ -585,8 +584,8 @@ def test_quantity_decomposition():
 
 class TestLogQuantityViews:
     def setup(self):
-        self.lq = u.Magnitude(np.arange(10.) * u.Jy)
-        self.lq2 = u.Magnitude(np.arange(5.))
+        self.lq = u.Magnitude(np.arange(1., 10.) * u.Jy)
+        self.lq2 = u.Magnitude(np.arange(1., 5.))
 
     def test_value_view(self):
         lq_value = self.lq.value

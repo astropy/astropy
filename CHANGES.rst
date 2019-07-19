@@ -25,6 +25,10 @@ astropy.coordinates
   as input. The ephemeris can now be selected by either keyword (e.g. 'jpl',
   'de430'), URL or file path. [#8767]
 
+- Added a ``cylindrical`` property to ``SkyCoord`` for shorthand access to a
+  ``CylindricalRepresentation`` of the coordinate, as is already available
+  for other common representations. [#8857]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -211,6 +215,9 @@ astropy.stats
 - Renamed the ``a`` parameter to ``data`` in biweight stat functions.
   [#8948]
 
+- Renamed the ``a`` parameter to ``data`` in ``median_absolute_deviation``.
+  [#9011]
+
 astropy.table
 ^^^^^^^^^^^^^
 
@@ -261,6 +268,9 @@ astropy.utils
   ``astropy.utils.compat``. [#8909]
 
 - Removed the deprecated ``astropy.utils.compat.numpy`` module. [#8910]
+
+- Deprecated ``InheritDocstrings`` as it is natively supported by
+  Sphinx 1.7 or higher. [#8881]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -373,6 +383,9 @@ astropy.coordinates
 - Fix concatenation of representations for cases where the units were different.
   [#8877]
 
+- Check for NaN values in catalog and match coordinates before building and 
+  querying the ``KDTree`` for coordinate matching. [#9007]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -397,6 +410,8 @@ astropy.io.fits
 
 - Fixed a wrong exception when converting a Table with a unit that is not FITS
   compliant and not convertible to a string using ``format='fits'``. [#8906]
+
+- Fixed an issue with A3DTABLE extension that could not be read. [#9012]
 
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
@@ -431,6 +446,8 @@ astropy.tests
 
 astropy.time
 ^^^^^^^^^^^^
+
+- Allow ``Time`` to be initialized with an empty value for all formats. [#8854]
 
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^

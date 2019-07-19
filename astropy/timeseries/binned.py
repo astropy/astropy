@@ -8,7 +8,6 @@ from astropy.table import groups, Table, QTable
 from astropy.time import Time, TimeDelta
 from astropy import units as u
 from astropy.units import Quantity
-from astropy.utils.misc import InheritDocstrings
 
 from astropy.timeseries.core import BaseTimeSeries, autocheck_required_columns
 
@@ -16,7 +15,7 @@ __all__ = ['BinnedTimeSeries']
 
 
 @autocheck_required_columns
-class BinnedTimeSeries(BaseTimeSeries, metaclass=InheritDocstrings):
+class BinnedTimeSeries(BaseTimeSeries):
     """
     A class to represent binned time series data in tabular form.
 

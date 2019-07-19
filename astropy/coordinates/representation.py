@@ -10,7 +10,6 @@ import functools
 import operator
 from collections import OrderedDict
 import inspect
-import warnings
 
 import numpy as np
 import astropy.units as u
@@ -19,8 +18,6 @@ from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from astropy._erfa import ufunc as erfa_ufunc
 from astropy.utils import ShapedLikeNDArray, classproperty
-
-from astropy.utils.misc import InheritDocstrings
 from astropy.utils.compat import NUMPY_LT_1_14
 
 __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
@@ -403,7 +400,7 @@ def _make_getter(component):
 # be combined with a ShapedLikeNDArray subclass (which is an ABC).  Without it:
 # "TypeError: metaclass conflict: the metaclass of a derived class must be a
 #  (non-strict) subclass of the metaclasses of all its bases"
-class MetaBaseRepresentation(InheritDocstrings, abc.ABCMeta):
+class MetaBaseRepresentation(abc.ABCMeta):
     def __init__(cls, name, bases, dct):
         super().__init__(name, bases, dct)
 
@@ -1924,7 +1921,7 @@ class CylindricalRepresentation(BaseRepresentation):
         return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
 
-class MetaBaseDifferential(InheritDocstrings, abc.ABCMeta):
+class MetaBaseDifferential(abc.ABCMeta):
     """Set default ``attr_classes`` and component getters on a Differential.
 
     For these, the components are those of the base representation prefixed
