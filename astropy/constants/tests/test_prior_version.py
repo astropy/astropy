@@ -5,8 +5,8 @@ import copy
 import pytest
 
 from astropy.constants import Constant
-from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import Quantity as Q
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_c():
@@ -158,14 +158,20 @@ def test_view():
 def test_context_manager():
     from astropy import constants as const
 
-    with const.set_enabled_constants('astropyconst13'):
-        assert const.h.value == 6.62606957e-34  # CODATA2010
+    with pytest.warns(AstropyDeprecationWarning,
+                      match='Use ScienceState for constants'):
+        with const.set_enabled_constants('astropyconst13'):
+            assert const.h.value == 6.62606957e-34  # CODATA2010
 
-    with const.set_enabled_constants('astropyconst20'):
-        assert const.h.value == 6.626070040e-34  # CODATA2014
+    with pytest.warns(AstropyDeprecationWarning,
+                      match='Use ScienceState for constants'):
+        with const.set_enabled_constants('astropyconst20'):
+            assert const.h.value == 6.626070040e-34  # CODATA2014
 
     assert const.h.value == 6.62607015e-34  # CODATA2018
 
     with pytest.raises(ImportError):
-        with const.set_enabled_constants('notreal'):
-            const.h
+        with pytest.warns(AstropyDeprecationWarning,
+                          match='Use ScienceState for constants'):
+            with const.set_enabled_constants('notreal'):
+                const.h

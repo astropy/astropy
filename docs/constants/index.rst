@@ -173,9 +173,12 @@ If either `astropy.constants` or `astropy.units` have already been imported, a
 To temporarily set constants to an older version (e.g.,
 for regression testing), a context manager is available, as follows:
 
+    >>> import warnings
     >>> from astropy import constants as const
-    >>> with const.set_enabled_constants('astropyconst13'):
-    ...     print(const.h)
+    >>> with warnings.catch_warnings():
+    ...     warnings.simplefilter('ignore')  # Ignore deprecation warning
+    ...     with const.set_enabled_constants('astropyconst13'):
+    ...         print(const.h)
       Name   = Planck constant
       Value  = 6.62606957e-34
       Uncertainty  = 2.9e-41
