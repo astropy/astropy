@@ -15,6 +15,7 @@ from astropy.coordinates import SkyCoord, EarthLocation, Angle, Longitude, Latit
 from astropy import units as u
 from astropy.time import Time
 from astropy.table import QTable, SerializedColumn
+from astropy.tests.helper import catch_warnings
 
 try:
     from astropy.io.misc.yaml import load, load_all, dump
@@ -43,6 +44,25 @@ def test_unit(c):
         assert c == cy
     else:
         assert c is cy
+
+
+@pytest.mark.parametrize('c', [u.Unit('bakers_dozen', 13*u.one),
+                               u.def_unit('magic')])
+def test_custom_unit(c):
+    s = dump(c)
+    with catch_warnings() as w:
+        cy = load(s)
+    assert len(w) == 1
+    assert f"'{c!s}' did not parse" in str(w[0].message)
+    assert isinstance(cy, u.UnrecognizedUnit)
+    assert str(cy) == str(c)
+
+    with u.add_enabled_units(c):
+        with catch_warnings() as w2:
+            cy2 = load(s)
+        assert len(w2) == 0
+
+        assert cy2 is c
 
 
 @pytest.mark.parametrize('c', [Angle('1 2 3', unit='deg'),
