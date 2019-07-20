@@ -511,14 +511,20 @@ class Parameter(OrderedDescriptor):
 
         _min, _max = value
         if _min is not None:
-            if not isinstance(_min, numbers.Number):
-                raise TypeError("Min value must be a number")
-            _min = float(_min)
+            if not isinstance(_min, (numbers.Number, Quantity)):
+                raise TypeError("Min value must be a number or a Quantity")
+            if isinstance(_min, Quantity):
+                _min = float(_min.value)
+            else:
+                _min = float(_min)
 
         if _max is not None:
-            if not isinstance(_max, numbers.Number):
+            if not isinstance(_max, (numbers.Number, Quantity)):
                 raise TypeError("Max value must be a number")
-            _max = float(_max)
+            if isinstance(_max, Quantity):
+                _max = float(_max.value)
+            else:
+                _max = float(_max)
 
         self._bounds = (_min, _max)
 
