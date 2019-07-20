@@ -96,7 +96,7 @@ def _unit_representer(dumper, obj):
 
 def _unit_constructor(loader, node):
     map = loader.construct_mapping(node)
-    return u.Unit(map['unit'])
+    return u.Unit(map['unit'], parse_strict='warn')
 
 
 def _serialized_column_representer(dumper, obj):
