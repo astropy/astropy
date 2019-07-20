@@ -119,6 +119,8 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+- Allow ``SlicedLowLevelWCS`` to be used as a matplotlib projection. [#8980]
+
 API Changes
 -----------
 
