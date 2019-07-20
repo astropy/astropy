@@ -270,9 +270,6 @@ astropy.config
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 
-- Fixed inconsistent mass values when they are imported straight from
-  ``astropyconstNN`` after ``ScienceState`` is set. [#9027]
-
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
