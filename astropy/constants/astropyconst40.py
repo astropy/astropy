@@ -18,7 +18,7 @@ _utils._set_c(codata, iaudata, find_current_module())
 # Overwrite the following for consistency.
 # https://github.com/astropy/astropy/issues/8920
 with warnings.catch_warnings():
-    warnings.simplefilter('ignore')  # Ignore redefinition warnings
+    warnings.filterwarnings('ignore', 'Constant .*already has a definition')
 
     # Solar mass (derived from mass parameter and gravitational constant)
     M_sun = iau2015.IAU2015(
