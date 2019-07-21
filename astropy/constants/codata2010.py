@@ -30,9 +30,9 @@ h = CODATA2010('h', "Planck constant", 6.62606957e-34, 'J s',
                     0.00000029e-34, system='si')
 
 hbar = CODATA2010('hbar', "Reduced Planck constant",
-                    h.value * 0.5 / np.pi, 'J s',
-                    h.uncertainty * 0.5 / np.pi,
-                    h.reference, system='si')
+                  h.value * 0.5 / np.pi, 'J s',
+                  h.uncertainty * 0.5 / np.pi,
+                  h.reference, system='si')
 
 k_B = CODATA2010('k_B', "Boltzmann constant", 1.3806488e-23, 'J / (K)',
                  0.0000013e-23, system='si')
@@ -43,8 +43,8 @@ c = CODATA2010('c', "Speed of light in vacuum", 2.99792458e8, 'm / (s)', 0.,
 G = CODATA2010('G', "Gravitational constant", 6.67384e-11, 'm3 / (kg s2)',
                0.00080e-11, system='si')
 
-g0 = CODATA2010('g0', "Standard acceleration of gravity", 9.80665, 'm / s2', 0.0,
-                system='si')
+g0 = CODATA2010('g0', "Standard acceleration of gravity", 9.80665, 'm / s2',
+                0.0, system='si')
 
 m_p = CODATA2010('m_p', "Proton mass", 1.672621777e-27, 'kg', 0.000000074e-27,
                  system='si')
@@ -83,7 +83,7 @@ muB = CODATA2010('muB', "Bohr magneton", 927.400968e-26, 'J/T', 0.00002e-26,
                  system='si')
 
 alpha = CODATA2010('alpha', "Fine-structure constant", 7.2973525698e-3,
-                    '', 0.0000000024e-3, system='si')
+                   '', 0.0000000024e-3, system='si')
 
 atm = CODATA2010('atm', "Standard atmosphere", 101325, 'Pa', 0.0,
                  system='si')
@@ -107,4 +107,4 @@ e_emu = EMCODATA2010(e.abbrev, e.name, e.value / 10, 'abC',
                      e.uncertainty / 10, system='emu')
 
 e_gauss = EMCODATA2010(e.abbrev, e.name, e.value * c.value * 10.0,
-                     'Fr', e.uncertainty * c.value * 10.0, system='gauss')
+                       'Fr', e.uncertainty * c.value * 10.0, system='gauss')
