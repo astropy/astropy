@@ -1648,7 +1648,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         # subtraction
         self_car = self.data.without_differentials().represent_as(r.CartesianRepresentation)
         other_car = other_in_self_system.data.without_differentials().represent_as(r.CartesianRepresentation)
-        return Distance((self_car - other_car).norm())
+        dist = (self_car - other_car).norm()
+        if dist.unit == u.one:
+            return dist
+        else:
+            return Distance(dist)
 
     @property
     def cartesian(self):

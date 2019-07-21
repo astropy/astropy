@@ -305,6 +305,7 @@ astropy.coordinates
 
 - Check for NaN values in catalog and match coordinates before building and 
   querying the ``KDTree`` for coordinate matching. [#9007]
+- Fix sky coordinate matching when a dimensionless distance is provided. [#9008]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
