@@ -30,7 +30,7 @@ else:
     OLDER_SCIPY = True
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy.")
 def test_matching_function():
     from astropy.coordinates import ICRS
     from astropy.coordinates.matching import match_coordinates_3d
@@ -50,7 +50,7 @@ def test_matching_function():
     npt.assert_array_less(d3d.value, 0.02)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy.")
 def test_matching_function_3d_and_sky():
     from astropy.coordinates import ICRS
     from astropy.coordinates.matching import match_coordinates_3d, match_coordinates_sky
@@ -78,7 +78,7 @@ def test_matching_function_3d_and_sky():
                           (matching.search_around_3d, [1*u.kpc], 'kdtree_3d', True),
                           (matching.search_around_sky, [1*u.deg], 'kdtree_sky', False)
                          ])
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy.")
 def test_kdtree_storage(functocheck, args, defaultkdtname, bothsaved):
     from astropy.coordinates import ICRS
 
@@ -123,7 +123,7 @@ def test_kdtree_storage(functocheck, args, defaultkdtname, bothsaved):
     assert 'KD' in e.value.args[0]
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy.")
 def test_python_kdtree(monkeypatch):
     from astropy.coordinates import ICRS
 
@@ -135,7 +135,7 @@ def test_python_kdtree(monkeypatch):
         matching.match_coordinates_sky(cmatch, ccatalog)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy.")
 def test_matching_method():
     from astropy.coordinates import ICRS, SkyCoord
     from astropy.utils import NumpyRNGContext
@@ -165,8 +165,8 @@ def test_matching_method():
     assert len(idx1) == len(d2d1) == len(d3d1) == 20
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
-@pytest.mark.skipif('OLDER_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY or OLDER_SCIPY,
+                    reason="Requires scipy > 0.12.0 ")
 def test_search_around():
     from astropy.coordinates import ICRS, SkyCoord
     from astropy.coordinates.matching import search_around_sky, search_around_3d
@@ -248,8 +248,8 @@ def test_search_around():
     assert d3d.unit == u.dimensionless_unscaled
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
-@pytest.mark.skipif('OLDER_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY or OLDER_SCIPY,
+                    reason="Requires scipy > 0.12.0 ")
 def test_search_around_scalar():
     from astropy.coordinates import SkyCoord, Angle
 
@@ -268,8 +268,8 @@ def test_search_around_scalar():
     assert 'search_around_3d' in str(excinfo.value)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
-@pytest.mark.skipif('OLDER_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY or OLDER_SCIPY,
+                    reason="Requires scipy > 0.12.0 ")
 def test_match_catalog_empty():
     from astropy.coordinates import SkyCoord
 
@@ -299,8 +299,8 @@ def test_match_catalog_empty():
     assert 'catalog' in str(excinfo.value)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
-@pytest.mark.skipif('OLDER_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY or OLDER_SCIPY,
+                    reason="Requires scipy > 0.12.0 ")
 def test_match_catalog_nan():
     from astropy.coordinates import SkyCoord, Galactic
 
@@ -331,3 +331,15 @@ def test_match_catalog_nan():
     with pytest.raises(ValueError) as excinfo:
         sc_with_nans.match_to_catalog_3d(cat)
     assert 'Matching coordinates cannot contain' in str(excinfo.value)
+
+
+@pytest.mark.skipif(not HAS_SCIPY or OLDER_SCIPY,
+                    reason="Requires scipy > 0.12.0 ")
+def test_match_catalog_nounit():
+    from .. import ICRS, CartesianRepresentation
+    from ..matching import match_coordinates_sky
+
+    i1 = ICRS([[1], [2], [3]], representation_type=CartesianRepresentation)
+    i2 = ICRS([[1], [2], [4, 5]], representation_type=CartesianRepresentation)
+    i, sep, sep3d = match_coordinates_sky(i1, i2)
+    assert_allclose(sep3d, [1]*u.dimensionless_unscaled)

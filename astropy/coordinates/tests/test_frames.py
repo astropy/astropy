@@ -505,6 +505,16 @@ def test_sep():
     sep3d = i5.separation_3d(i6)
     assert_allclose(sep3d.to(u.kpc), np.array([2, 2])*u.kpc)
 
+    # 3d separations of dimensionless distances should still work
+    i7 = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.one)
+    i8 = ICRS(ra=1*u.deg, dec=2*u.deg, distance=4*u.one)
+    sep3d = i7.separation_3d(i8)
+    assert_allclose(sep3d, 1*u.one)
+
+    # but should fail with non-dimensionless
+    with pytest.raises(ValueError):
+        i7.separation_3d(i3)
+
 
 def test_time_inputs():
     """
