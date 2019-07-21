@@ -1827,7 +1827,13 @@ class _UnitMetaClass(type):
                         format_clause = f.name + ' '
                     else:
                         format_clause = ''
-                    msg = ("'{}' did not parse as {}unit: {}"
+                    msg = ("'{}' did not parse as {}unit: {} "
+                           "If this is meant to be a custom unit, "
+                           "define it with 'u.def_unit'. To have it "
+                           "recognized inside a file reader or other code, "
+                           "enable it with 'u.add_enabled_units'. "
+                           "For details, see "
+                           "http://docs.astropy.org/en/latest/units/combining_and_defining.html"
                            .format(s, format_clause, str(e)))
                     if parse_strict == 'raise':
                         raise ValueError(msg)
