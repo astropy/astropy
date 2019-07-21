@@ -95,6 +95,29 @@ def test_b_wien():
     assert round(w.value) == 502
 
 
+def test_masses():
+    """Ensure mass values are set up correctly.
+    https://github.com/astropy/astropy/issues/8920
+    """
+    from astropy.constants import (
+        astropyconst13, astropyconst20, astropyconst40)
+
+    ref_text = "Allen's Astrophysical Quantities 4th Ed."
+    assert (astropyconst13.M_sun.reference == ref_text and
+            astropyconst13.M_jup.reference == ref_text and
+            astropyconst13.M_earth.reference == ref_text)
+
+    ref_text = "IAU 2015 Resolution B 3 + CODATA 2014"
+    assert (astropyconst20.M_sun.reference == ref_text and
+            astropyconst20.M_jup.reference == ref_text and
+            astropyconst20.M_earth.reference == ref_text)
+
+    ref_text = "IAU 2015 Resolution B 3 + CODATA 2018"
+    assert (astropyconst40.M_sun.reference == ref_text and
+            astropyconst40.M_jup.reference == ref_text and
+            astropyconst40.M_earth.reference == ref_text)
+
+
 def test_unit():
 
     from astropy import units as u
