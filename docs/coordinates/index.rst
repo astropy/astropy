@@ -430,7 +430,7 @@ coordinate systems implemented here include:
     problems and concepts.
 
 
-Built-in frame classes
+Built-in Frame Classes
 ======================
 
 .. automodapi:: astropy.coordinates.builtin_frames
