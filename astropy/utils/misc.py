@@ -498,48 +498,9 @@ class InheritDocstrings(type):
     docstrings filled in from the methods they override in the base
     class.
 
-    If the class uses multiple inheritance, the docstring will be
-    chosen from the first class in the bases list, in the same way as
-    methods are normally resolved in Python.  If this results in
-    selecting the wrong docstring, the docstring will need to be
-    explicitly included on the method.
+    .. warning:: This class is now a no-op; please use Sphinx>=1.7.
 
-    For example::
-
-        >>> import warnings
-        >>> from astropy.utils.misc import InheritDocstrings
-        >>> with warnings.catch_warnings():
-        ...     # Ignore deprecation warning
-        ...     warnings.simplefilter('ignore')
-        ...     class A(metaclass=InheritDocstrings):
-        ...         def wiggle(self):
-        ...             "Wiggle the thingamajig"
-        ...             pass
-        ...     class B(A):
-        ...         def wiggle(self):
-        ...             pass
-        >>> B.wiggle.__doc__
-        u'Wiggle the thingamajig'
     """
-
-    def __init__(cls, name, bases, dct):
-        def is_public_member(key):
-            return (
-                (key.startswith('__') and key.endswith('__')
-                 and len(key) > 4) or
-                not key.startswith('_'))
-
-        for key, val in dct.items():
-            if ((inspect.isfunction(val) or inspect.isdatadescriptor(val)) and
-                    is_public_member(key) and
-                    val.__doc__ is None):
-                for base in cls.__mro__[1:]:
-                    super_method = getattr(base, key, None)
-                    if super_method is not None:
-                        val.__doc__ = super_method.__doc__
-                        break
-
-        super().__init__(name, bases, dct)
 
 
 class OrderedDescriptor(metaclass=abc.ABCMeta):
