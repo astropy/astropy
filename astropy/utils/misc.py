@@ -229,7 +229,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
     # Custom request headers; see
     # https://github.com/astropy/astropy/issues/8990
     req = urllib.request.Request(
-        baseurl + 'objects.inv', headers={'User-Agent': 'Astropy/{version}'})
+        baseurl + 'objects.inv', headers={'User-Agent': f'Astropy/{version}'})
 
     if timeout is None:
         uf = urllib.request.urlopen(req)
