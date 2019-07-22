@@ -126,6 +126,7 @@ jobs:
     docker:
       - image: astropy/image-tests-py36-base:1.2
     steps:
+      - checkout
       - run:
           name: Install C++ compiler
           command: apt install -y g++
