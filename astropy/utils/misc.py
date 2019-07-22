@@ -226,10 +226,15 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
     else:
         baseurl = f'https://docs.astropy.org/en/{version}/'
 
+    # Custom request headers; see
+    # https://github.com/astropy/astropy/issues/8990
+    req = urllib.request.Request(
+        baseurl + 'objects.inv', headers={'User-Agent': 'Astropy/{version}'})
+
     if timeout is None:
-        uf = urllib.request.urlopen(baseurl + 'objects.inv')
+        uf = urllib.request.urlopen(req)
     else:
-        uf = urllib.request.urlopen(baseurl + 'objects.inv', timeout=timeout)
+        uf = urllib.request.urlopen(req, timeout=timeout)
 
     try:
         oiread = uf.read()
