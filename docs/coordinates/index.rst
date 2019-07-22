@@ -437,6 +437,7 @@ Built-in frame classes
     :skip: make_transform_graph_docs
     :no-heading:
     :no-main-docstr:
+    :no-inheritance-diagram:
 
 
 .. _astropy-coordinates-api:
