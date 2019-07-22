@@ -430,6 +430,15 @@ coordinate systems implemented here include:
     problems and concepts.
 
 
+Built-in frame classes
+======================
+
+.. automodapi:: astropy.coordinates.builtin_frames
+    :skip: make_transform_graph_docs
+    :no-heading:
+    :no-main-docstr:
+
+
 .. _astropy-coordinates-api:
 
 Reference/API
