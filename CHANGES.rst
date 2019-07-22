@@ -276,6 +276,9 @@ astropy.utils
 - Deprecated ``InheritDocstrings`` as it is natively supported by
   Sphinx 1.7 or higher. [#8881]
 
+- Deprecated ``astropy.utils.timer`` module, which has been moved to
+  ``astroquery.utils.timer`` and will be part of ``astroquery`` 0.4.0. [#9038]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
