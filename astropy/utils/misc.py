@@ -224,7 +224,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
     elif version == 'dev' or version == 'latest':
         baseurl = 'http://devdocs.astropy.org/'
     else:
-        baseurl = f'http://docs.astropy.org/en/{version}/'
+        baseurl = f'https://docs.astropy.org/en/{version}/'
 
     if timeout is None:
         uf = urllib.request.urlopen(baseurl + 'objects.inv')
@@ -298,7 +298,7 @@ if sys.platform == 'win32':
         """
         Returns True if the given filepath has the hidden attribute on
         MS-Windows.  Based on a post here:
-        http://stackoverflow.com/questions/284115/cross-platform-hidden-file-detection
+        https://stackoverflow.com/questions/284115/cross-platform-hidden-file-detection
         """
         if isinstance(filepath, bytes):
             filepath = filepath.decode(sys.getfilesystemencoding())
