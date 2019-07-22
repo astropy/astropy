@@ -244,9 +244,6 @@ astropy.units
   where numpy scalars behave differently than python ones (e.g., taking the
   square root of a negative number). [#8876]
 
-- Removed ``normed`` keyword for histogram functions in ``function_helpers``.
-  It is already deprecated in Numpy. [#9026]
-
 astropy.utils
 ^^^^^^^^^^^^^
 

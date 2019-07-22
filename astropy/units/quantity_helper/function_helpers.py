@@ -600,7 +600,7 @@ def histogram(a, bins=10, range=None, weights=None, density=None):
     if density:
         unit = (unit or 1) / a.unit
 
-    return ((a.value, bins, range, None, weights, density), {},
+    return ((a.value, bins, range), {'weights': weights, 'density': density},
             (unit, a.unit), None)
 
 
@@ -644,7 +644,8 @@ def histogram2d(x, y, bins=10, range=None, weights=None, density=None):
     if density:
         unit = (unit or 1) / x.unit / y.unit
 
-    return ((x.value, y.value, bins, range, None, weights, density), {},
+    return ((x.value, y.value, bins, range),
+            {'weights': weights, 'density': density},
             (unit, x.unit, y.unit), None)
 
 
@@ -689,7 +690,7 @@ def histogramdd(sample, bins=10, range=None, weights=None, density=None):
     if density:
         unit = functools.reduce(operator.truediv, sample_units, (unit or 1))
 
-    return ((sample, bins, range, None, weights, density), {},
+    return ((sample, bins, range), {'weights': weights, 'density': density},
             (unit, sample_units), None)
 
 
