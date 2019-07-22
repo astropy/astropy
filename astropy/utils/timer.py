@@ -15,12 +15,14 @@ import numpy as np
 from astropy import units as u
 from astropy import log
 from astropy import modeling
-from .exceptions import AstropyUserWarning
+from astropy.utils.decorators import deprecated
+from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = ['timefunc', 'RunTimePredictor']
 __doctest_skip__ = ['timefunc']
 
 
+@deprecated('4.0', alternative='astroquery.utils.timer.timefunc')
 def timefunc(num_tries=1, verbose=True):
     """Decorator to time a function or method.
 
@@ -79,6 +81,7 @@ def timefunc(num_tries=1, verbose=True):
     return real_decorator
 
 
+@deprecated('4.0', alternative='astroquery.utils.timer.RunTimePredictor')
 class RunTimePredictor:
     """Class to predict run time.
 
@@ -97,11 +100,14 @@ class RunTimePredictor:
 
     Examples
     --------
-    >>> from astropy.utils.timer import RunTimePredictor
+    >>> import warnings
 
     Set up a predictor for :math:`10^{x}`:
 
-    >>> p = RunTimePredictor(pow, 10)
+    >>> with warnings.catch_warnings():
+    ...     warnings.simplefilter('ignore')  # Ignore deprecation warning
+    ...     from astropy.utils.timer import RunTimePredictor
+    ...     p = RunTimePredictor(pow, 10)
 
     Give it baseline data to use for prediction and
     get the function output values:

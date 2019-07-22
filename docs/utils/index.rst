@@ -75,9 +75,6 @@ Reference/API
 .. automodapi:: astropy.utils.state
     :no-inheritance-diagram:
 
-.. automodapi:: astropy.utils.timer
-    :no-inheritance-diagram:
-
 
 File Downloads
 --------------
