@@ -5,14 +5,37 @@ Implements the wrapper for the Astropy test runner in the form of the
 
 
 import os
-import shutil
-import subprocess
 import sys
+import shutil
 import tempfile
+import subprocess
 
 from setuptools import Command
 
-from ..extern import six
+# NOTE: We can't import six from astropy.extern here because this file needs to
+# be importable as a standalone file by astropy-helpers. Therefore, we include
+# PY2 and add_metaclass from six here. The license for this code is in
+# SIX_LICENSE.rst
+
+PY2 = sys.version_info[0] == 2
+
+
+def add_metaclass(metaclass):
+    """Class decorator for creating a class with a metaclass."""
+    def wrapper(cls):
+        orig_vars = cls.__dict__.copy()
+        slots = orig_vars.get('__slots__')
+        if slots is not None:
+            if isinstance(slots, str):
+                slots = [slots]
+            for slots_var in slots:
+                orig_vars.pop(slots_var)
+        orig_vars.pop('__dict__', None)
+        orig_vars.pop('__weakref__', None)
+        if hasattr(cls, '__qualname__'):
+            orig_vars['__qualname__'] = cls.__qualname__
+        return metaclass(cls.__name__, cls.__bases__, orig_vars)
+    return wrapper
 
 
 def _fix_user_options(options):
@@ -56,7 +79,7 @@ class FixRemoteDataOption(type):
         return super(FixRemoteDataOption, cls).__init__(name, bases, dct)
 
 
-@six.add_metaclass(FixRemoteDataOption)
+@add_metaclass(FixRemoteDataOption)
 class AstropyTest(Command, object):
     description = 'Run the tests for this package'
 
@@ -148,7 +171,7 @@ class AstropyTest(Command, object):
             cmd_pre += pre
             cmd_post += post
 
-        if six.PY2:
+        if PY2:
             set_flag = "import __builtin__; __builtin__._ASTROPY_TEST_ = True"
         else:
             set_flag = "import builtins; builtins._ASTROPY_TEST_ = True"
@@ -307,7 +330,7 @@ class AstropyTest(Command, object):
         # as being specifically for Python 2 or Python 3
         with open(coveragerc, 'r') as fd:
             coveragerc_content = fd.read()
-        if not six.PY2:
+        if not PY2:
             ignore_python_version = '2'
         else:
             ignore_python_version = '3'
