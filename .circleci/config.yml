@@ -58,8 +58,9 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: |
-            python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl --mpl-results-path=$PWD/results"
+      - store_artifacts:
+          path: results
 
   image-tests-mpl202:
     docker:
@@ -68,8 +69,9 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: |
-            python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl --mpl-results-path=$PWD/results"
+      - store_artifacts:
+          path: results
 
   image-tests-mpl212:
     docker:
@@ -78,8 +80,9 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: |
-            python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl --mpl-results-path=$PWD/results"
+      - store_artifacts:
+          path: results
 
   image-tests-mpl222:
     docker:
@@ -88,8 +91,9 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: |
-            python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl --mpl-results-path=$PWD/results"
+      - store_artifacts:
+          path: results
 
   image-tests-mpl300:
     docker:
@@ -101,7 +105,10 @@ jobs:
           command: pip3 install "pytest<3.7"
       - run:
           name: Run tests
-          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl --mpl-results-path=$PWD/results"
+      - store_artifacts:
+          path: results
+
 
   image-tests-mpldev:
     docker:
@@ -116,7 +123,9 @@ jobs:
           command: pip3 install "pytest<3.7" pytest-mpl pytest-astropy numpy scipy git+https://github.com/matplotlib/matplotlib.git
       - run:
           name: Run tests
-          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl --mpl-results-path=$PWD/results"
+      - store_artifacts:
+          path: results
 
   html-docs:
     docker:
