@@ -26,5 +26,3 @@ from .solar_system import *
 # deprecation warnings are removed
 from .attributes import (TimeFrameAttribute, QuantityFrameAttribute,
                          CartesianRepresentationFrameAttribute)
-
-__doc__ += builtin_frames._transform_graph_docs
