@@ -1325,8 +1325,8 @@ class _SIP1D(PolynomialBase):
         for i in range(1, self.order):
             for j in range(1, self.order):
                 if i + j < self.order + 1:
-                    names.append(f'{coeff_prefix}_{i}_{j}')
-        return names
+                    names.append('{0}_{1}_{2}'.format(coeff_prefix, i, j))
+        return tuple(names)
 
     def _coeff_matrix(self, coeff_prefix, coeffs):
         mat = np.zeros((self.order + 1, self.order + 1))

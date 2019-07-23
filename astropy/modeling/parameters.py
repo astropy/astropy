@@ -275,7 +275,7 @@ class Parameter(OrderedDescriptor):
             if len(oldvalue[key]) == 0:
                 raise InputParameterError(
                     "Slice assignment outside the parameter dimensions for "
-                    "'{0}'".format(self.name))
+                    "'{}'".format(self.name))
             for idx, val in zip(range(*key.indices(len(self))), value):
                 self.__setitem__(idx, val)
         else:
