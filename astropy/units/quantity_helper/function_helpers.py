@@ -577,16 +577,20 @@ def digitize(x, bins, *args, **kwargs):
 
 
 def _check_bins(bins, unit):
+    from astropy.units import Quantity
+
     check = _as_quantity(bins)
     if check.ndim > 0:
         return check.to_value(unit)
+    elif isinstance(bins, Quantity):
+        # bins should be an integer (or at least definitely not a Quantity).
+        raise NotImplementedError
     else:
         return bins
 
 
 @function_helper
-def histogram(a, bins=10, range=None, normed=None, weights=None,
-              density=None):
+def histogram(a, bins=10, range=None, weights=None, density=None):
     if weights is not None:
         weights = _as_quantity(weights)
         unit = weights.unit
@@ -598,10 +602,10 @@ def histogram(a, bins=10, range=None, normed=None, weights=None,
     if not isinstance(bins, str):
         bins = _check_bins(bins, a.unit)
 
-    if density or normed:
+    if density:
         unit = (unit or 1) / a.unit
 
-    return ((a.value, bins, range, normed, weights, density), {},
+    return ((a.value, bins, range), {'weights': weights, 'density': density},
             (unit, a.unit), None)
 
 
@@ -617,8 +621,8 @@ def histogram_bin_edges(a, bins=10, range=None, weights=None):
 
 
 @function_helper
-def histogram2d(x, y, bins=10, range=None, normed=None, weights=None,
-                density=None):
+def histogram2d(x, y, bins=10, range=None, weights=None, density=None):
+    from astropy.units import Quantity
 
     if weights is not None:
         weights = _as_quantity(weights)
@@ -628,31 +632,33 @@ def histogram2d(x, y, bins=10, range=None, normed=None, weights=None,
         unit = None
 
     x, y = _as_quantities(x, y)
-    if not isinstance(bins, str):
-        try:
-            n = len(bins)
-        except TypeError:
-            pass
-        else:
-            if n == 2:
-                bins = [_check_bins(b, unit)
-                        for (b, unit) in zip(bins, (x.unit, y.unit))]
-            elif n == 1:
-                return NotImplementedError
-            else:
-                bins = _check_bins(bins, x.unit)
-                y = y.to(x.unit)
+    try:
+        n = len(bins)
+    except TypeError:
+        # bins should be an integer (or at least definitely not a Quantity).
+        if isinstance(bins, Quantity):
+            raise NotImplementedError
 
-    if density or normed:
+    else:
+        if n == 1:
+            raise NotImplementedError
+        elif n == 2 and not isinstance(bins, Quantity):
+            bins = [_check_bins(b, unit)
+                    for (b, unit) in zip(bins, (x.unit, y.unit))]
+        else:
+            bins = _check_bins(bins, x.unit)
+            y = y.to(x.unit)
+
+    if density:
         unit = (unit or 1) / x.unit / y.unit
 
-    return ((x.value, y.value, bins, range, normed, weights, density), {},
+    return ((x.value, y.value, bins, range),
+            {'weights': weights, 'density': density},
             (unit, x.unit, y.unit), None)
 
 
 @function_helper
-def histogramdd(sample, bins=10, range=None, normed=None, weights=None,
-                density=None):
+def histogramdd(sample, bins=10, range=None, weights=None, density=None):
     if weights is not None:
         weights = _as_quantity(weights)
         unit = weights.unit
@@ -689,10 +695,10 @@ def histogramdd(sample, bins=10, range=None, normed=None, weights=None,
         bins = [_check_bins(b, unit)
                 for (b, unit) in zip(bins, sample_units)]
 
-    if density or normed:
+    if density:
         unit = functools.reduce(operator.truediv, sample_units, (unit or 1))
 
-    return ((sample, bins, range, normed, weights, density), {},
+    return ((sample, bins, range), {'weights': weights, 'density': density},
             (unit, sample_units), None)
 
 
