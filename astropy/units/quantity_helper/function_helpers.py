@@ -577,9 +577,14 @@ def digitize(x, bins, *args, **kwargs):
 
 
 def _check_bins(bins, unit):
+    from astropy.units import Quantity
+
     check = _as_quantity(bins)
     if check.ndim > 0:
         return check.to_value(unit)
+    elif isinstance(bins, Quantity):
+        # bins should be an integer (or at least definitely not a Quantity).
+        raise NotImplementedError
     else:
         return bins
 
@@ -617,6 +622,7 @@ def histogram_bin_edges(a, bins=10, range=None, weights=None):
 
 @function_helper
 def histogram2d(x, y, bins=10, range=None, weights=None, density=None):
+    from astropy.units import Quantity
 
     if weights is not None:
         weights = _as_quantity(weights)
@@ -626,20 +632,22 @@ def histogram2d(x, y, bins=10, range=None, weights=None, density=None):
         unit = None
 
     x, y = _as_quantities(x, y)
-    if not isinstance(bins, str):
-        try:
-            n = len(bins)
-        except TypeError:
-            pass
+    try:
+        n = len(bins)
+    except TypeError:
+        # bins should be an integer (or at least definitely not a Quantity).
+        if isinstance(bins, Quantity):
+            raise NotImplementedError
+
+    else:
+        if n == 1:
+            raise NotImplementedError
+        elif n == 2 and not isinstance(bins, Quantity):
+            bins = [_check_bins(b, unit)
+                    for (b, unit) in zip(bins, (x.unit, y.unit))]
         else:
-            if n == 2:
-                bins = [_check_bins(b, unit)
-                        for (b, unit) in zip(bins, (x.unit, y.unit))]
-            elif n == 1:
-                return NotImplementedError
-            else:
-                bins = _check_bins(bins, x.unit)
-                y = y.to(x.unit)
+            bins = _check_bins(bins, x.unit)
+            y = y.to(x.unit)
 
     if density:
         unit = (unit or 1) / x.unit / y.unit
