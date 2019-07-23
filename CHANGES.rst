@@ -456,6 +456,10 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
+- Fixed a bug that caused files outside of the astropy module directory to be
+  included as package data, resulting in some cases in errors when doing
+  repeated builds. [#9039]
+
 
 3.2.1 (2019-06-14)
 ==================
