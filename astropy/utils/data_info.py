@@ -224,16 +224,8 @@ class ParentAttribute:
 class DataInfoMeta(type):
     def __new__(mcls, name, bases, dct):
         # Ensure that we do not gain a __dict__, which would mean
-        # arbitrary attributes could be set (as a by-product, save
-        # some memory).
+        # arbitrary attributes could be set.
         dct.setdefault('__slots__', [])
-        # Set a default __doc__, mostly to avoid InheritDocstrings
-        # from trying to give us a docstring if none is present.
-        dct.setdefault('__doc__', """\
-Container for meta information like name, description, format.
-This is required when the object is used as a mixin column within
-a table, but can be used as a general way to store meta information.
-""")
         return super().__new__(mcls, name, bases, dct)
 
     def __init__(cls, name, bases, dct):
@@ -361,9 +353,14 @@ reference with ``c = col[3:5]`` followed by ``c.info``.""") from None
     def __setstate__(self, state):
         self._attrs = state
 
-    def _represent_as_dict(self):
-        """Get the values for the parent ``attrs`` and return as a dict."""
-        return _get_obj_attrs_map(self._parent, self._represent_as_dict_attrs)
+    def _represent_as_dict(self, attrs=None):
+        """Get the values for the parent ``attrs`` and return as a dict.
+
+        By default, uses '_represent_as_dict_attrs'.
+        """
+        if attrs is None:
+            attrs = self._represent_as_dict_attrs
+        return _get_obj_attrs_map(self._parent, attrs)
 
     def _construct_from_dict(self, map):
         args = [map.pop(attr) for attr in self._construct_from_dict_args]
