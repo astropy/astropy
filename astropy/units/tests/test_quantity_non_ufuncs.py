@@ -1391,6 +1391,14 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
                    value_kwargs=dict(bins=[5, np.array([0, 2.5, 100.])]),
                    expected_units=(None, u.one, u.one))
 
+        # Single-item bins should be integer, not Quantity.
+        with pytest.raises(TypeError):
+            np.histogram2d(x, y, 125 * u.s)
+
+        with pytest.raises(TypeError):
+            np.histogram2d(x.value, y.value, 125 * u.s)
+
+        # Bin units need to match units of x, y.
         with pytest.raises(u.UnitsError):
             np.histogram2d(x, y, [125, 200] * u.s)
 
@@ -1449,14 +1457,23 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
                    value_args=(xyz.value,),
                    expected_units=(None, (xyz.unit,)*3))
 
-        with pytest.raises(u.UnitsError):
+        # Single-item bins should be integer, not Quantity.
+        with pytest.raises(TypeError):
+            np.histogramdd(sample, 125 * u.s)
+
+        # Sequence of single items should be integer.
+        with pytest.raises(TypeError):
             np.histogramdd(sample, [125, 200] * u.s)
 
+        with pytest.raises(TypeError):
+            np.histogramdd(sample_values, [125, 200] * u.s)
+
+        # Units of bins should match.
         with pytest.raises(u.UnitsError):
             np.histogramdd(sample, ([125, 200], [125, 200]))
 
         with pytest.raises(u.UnitsError):
-            np.histogramdd(sample_values, [125, 200] * u.s)
+            np.histogramdd(sample_values, ([125, 200] * u.s, [125, 200]))
 
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
