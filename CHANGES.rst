@@ -317,6 +317,11 @@ astropy.utils
 - Deprecated ``astropy.utils.timer`` module, which has been moved to
   ``astroquery.utils.timer`` and will be part of ``astroquery`` 0.4.0. [#9038]
 
+- The implementation of ``data_info.DataInfo`` has changed (for a considerable
+  performance boost). Generally, this should not affect simple subclasses, but
+  because the class now uses ``__slots__`` any attributes on the class have to
+  be explicitly given a slot. [#8998]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
