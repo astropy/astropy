@@ -17,7 +17,7 @@ returns an array of shape (``n_outputs``, ``n_inputs``).
 
 import numpy as np
 
-from .core import Model, _CompoundModel, ModelDefinitionError
+from .core import Model, ModelDefinitionError, CompoundModel
 from .mappings import Mapping
 
 
@@ -296,17 +296,17 @@ def _separable(transform):
     transform : `astropy.modeling.Model`
         A transform (usually a compound model).
 
-    Returns
-    -------
+    Returns :
     is_separable : ndarray of dtype np.bool
         An array of shape (transform.n_outputs,) of boolean type
         Each element represents the separablity of the corresponding output.
     """
-    if isinstance(transform, _CompoundModel):
-        is_separable = transform._tree.evaluate(_operators)
+    if isinstance(transform, CompoundModel):
+        sepleft = _separable(transform.left)
+        sepright = _separable(transform.right)
+        return _operators[transform.op](sepleft, sepright)
     elif isinstance(transform, Model):
-        is_separable = _coord_matrix(transform, 'left', transform.n_outputs)
-    return is_separable
+        return _coord_matrix(transform, 'left', transform.n_outputs)
 
 
 # Maps modeling operators to a function computing and represents the

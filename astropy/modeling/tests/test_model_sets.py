@@ -99,7 +99,7 @@ def test_model_axis_2():
     t2 = Polynomial2D(1, c0_0=1, c0_1=4, c1_0=6)
     t3 = Polynomial2D(1, c0_0=2, c0_1=5, c1_0=7)
 
-    assert p2.c0_0.shape == ()
+    assert p2.c0_0.shape == (1, 1, 3)
     y = p2(x, x, model_set_axis=False)
     assert y.shape == (1, 4, 3)
     # These are columns along the 2nd axis.
@@ -161,16 +161,16 @@ def test_negative_axis():
 
 def test_shapes():
     p2 = Polynomial1D(1, n_models=3, model_set_axis=2)
-    assert p2.c0.shape == ()
-    assert p2.c1.shape == ()
+    assert p2.c0.shape == (1, 1, 3)
+    assert p2.c1.shape == (1, 1, 3)
 
     p1 = Polynomial1D(1, n_models=2, model_set_axis=1)
-    assert p1.c0.shape == ()
-    assert p1.c1.shape == ()
+    assert p1.c0.shape == (1, 2)
+    assert p1.c1.shape == (1, 2)
 
     p1 = Polynomial1D(1, c0=[1, 2], c1=[3, 4], n_models=2, model_set_axis=-1)
-    assert p1.c0.shape == ()
-    assert p1.c1.shape == ()
+    assert p1.c0.shape == (2,)
+    assert p1.c1.shape == (2,)
 
     e1 = [1, 2]
     e2 = [3, 4]
@@ -179,20 +179,20 @@ def test_shapes():
     a2 = np.array([[50, 60], [70, 80]])
 
     t = TParModel([a1, a2], [e1, e2], n_models=2, model_set_axis=-1)
-    assert t.coeff.shape == (2, 2)
-    assert t.e.shape == (2,)
+    assert t.coeff.shape == (2, 2, 2)
+    assert t.e.shape == (2, 2)
 
     t = TParModel([[a1, a2]], [[e1, e2]], n_models=2, model_set_axis=1)
-    assert t.coeff.shape == (2, 2)
-    assert t.e.shape == (2,)
+    assert t.coeff.shape == (1, 2, 2, 2)
+    assert t.e.shape == (1, 2, 2)
 
     t = TParModel([a1, a2], [e1, e2], n_models=2, model_set_axis=0)
-    assert t.coeff.shape == (2, 2)
-    assert t.e.shape == (2,)
+    assert t.coeff.shape == (2, 2, 2)
+    assert t.e.shape == (2, 2)
 
     t = TParModel([a1, a2], e=[1, 2], n_models=2, model_set_axis=0)
-    assert t.coeff.shape == (2, 2)
-    assert t.e.shape == ()
+    assert t.coeff.shape == (2, 2, 2)
+    assert t.e.shape == (2,)
 
 
 def test_linearlsqfitter():
@@ -208,6 +208,7 @@ def test_linearlsqfitter():
     f = LinearLSQFitter()
     # This seems to fit the model_set correctly:
     fit = f(p, x, y)
+
     model_y = fit(x, model_set_axis=False)
 
     m1 = Polynomial1D(1, c0=fit.c0[0][0], c1=fit.c1[0][0])

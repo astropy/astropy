@@ -18,7 +18,8 @@ from astropy.utils.decorators import deprecated_renamed_argument
 from astropy import units as u
 from astropy.nddata import support_nddata
 from astropy.modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
-from astropy.modeling.core import _CompoundModelMeta
+from astropy.modeling.core import CompoundModel
+from astropy.modeling.core import SPECIAL_OPERATORS
 from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
 
 LIBRARY_PATH = os.path.dirname(__file__)
@@ -854,10 +855,10 @@ def convolve_models(model, kernel, mode='convolve_fft', **kwargs):
     """
 
     if mode == 'convolve_fft':
-        BINARY_OPERATORS['convolve_fft'] = _make_arithmetic_operator(partial(convolve_fft, **kwargs))
+        SPECIAL_OPERATORS['convolve_fft'] = partial(convolve_fft, **kwargs)
     elif mode == 'convolve':
-        BINARY_OPERATORS['convolve'] = _make_arithmetic_operator(partial(convolve, **kwargs))
+        SPECIAL_OPERATORS['convolve'] = partial(convolve, **kwargs)
     else:
         raise ValueError(f'Mode {mode} is not supported.')
 
-    return _CompoundModelMeta._from_operator(mode, model, kernel)
+    return CompoundModel(mode, model, kernel)

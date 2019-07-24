@@ -42,10 +42,14 @@ def _fake_gaussian_data():
     return x, y
 
 
-compound_models_no_units = [models.Linear1D() + models.Gaussian1D() | models.Scale(),
-                            models.Linear1D() + models.Gaussian1D() + models.Gaussian1D(),
-                            models.Linear1D() + models.Gaussian1D() | models.Shift(),
-                           ]
+bad_compound_models_no_units = [
+    models.Linear1D() + models.Gaussian1D() | models.Scale(),
+    models.Linear1D() + models.Gaussian1D() | models.Shift()
+]
+
+compound_models_no_units = [
+    models.Linear1D() + models.Gaussian1D() + models.Gaussian1D()
+]
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -154,8 +158,9 @@ def test_compound_without_units(model):
         y = np.random.sample(10)
 
     fitter = fitting.LevMarLSQFitter()
-
     res_fit = fitter(model, x, y * u.Hz)
+    for param_name in res_fit.param_names:
+        print(getattr(res_fit, param_name))
     assert all([res_fit[i]._has_units for i in range(3)])
     z = res_fit(x)
     assert isinstance(z, u.Quantity)
@@ -187,3 +192,15 @@ def test_compound_fitting_with_units():
     res = fitter(model, x, y, z)
     assert isinstance(res(x, y), np.ndarray)
     assert all([res[i]._has_units for i in range(2)])
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('model', bad_compound_models_no_units)
+def test_bad_compound_without_units(model):
+    with pytest.raises(ValueError):
+        x = np.linspace(-5, 5, 10) * u.Angstrom
+        with NumpyRNGContext(12345):
+            y = np.random.sample(10)
+
+        fitter = fitting.LevMarLSQFitter()
+        res_fit = fitter(model, x, y * u.Hz)

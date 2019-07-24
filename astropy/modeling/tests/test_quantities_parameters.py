@@ -143,10 +143,11 @@ def test_parameter_set_value():
     # If we try setting it to a Quantity, we raise an error
     with pytest.raises(TypeError) as exc:
         g.amplitude.value = 3 * u.Jy
-    assert exc.value.args[0] == ("The .value property on parameters should be set to "
-                                 "unitless values, not Quantity objects. To set a "
-                                 "parameter to a quantity simply set the parameter "
-                                 "directly without using .value")
+    assert exc.value.args[0] == \
+        ("The .value property on parameters should be set"
+         " to unitless values, not Quantity objects. To set"
+         "a parameter to a quantity simply set the "
+         "parameter directly without using .value")
 
 
 def test_parameter_quantity_property():

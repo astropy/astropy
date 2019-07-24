@@ -55,6 +55,10 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Major rework of modeling internals.
+  See modeling documentation for details.
+  `<https://docs.astropy.org/en/v4.0/modeling/changes_for_4.html>`_ . [#8769]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
@@ -182,6 +186,23 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
+
+- Eliminates support for compound classes (but not compound
+  instances!) [#8769]
+
+- Slicing compound models more restrictive. [#8769]
+
+- Shape of parameters now includes n_models as dimension. [#8769]
+
+- Parameter instances now hold values instead of models. [#8769]
+
+- Compound model parameters now share instance and value with
+  constituent models. [#8769]
+
+- No longer possible to assign slices of parameter values to model
+  parameters attribute (it is possible to replace it with a complete array). [#8769]
+
+- Many private attributes and methods have changed (see documentation). [#8769]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
@@ -405,6 +426,9 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
+
+Ensure unit information is properly applied to models evaluated with a
+bounding box. [#8799]
 
 astropy.nddata
 ^^^^^^^^^^^^^^

@@ -254,23 +254,3 @@ def test_Voigt1D():
     fitter = fitting.LevMarLSQFitter()
     voi_fit = fitter(voi_init, xarr, yarr)
     assert_allclose(voi_fit.param_sets, voi.param_sets)
-
-
-@pytest.mark.skipif("not HAS_SCIPY")
-def test_compound_models_with_class_variables():
-    models_2d = [models.AiryDisk2D, models.Sersic2D]
-    models_1d = [models.Sersic1D]
-
-    for model_2d in models_2d:
-        class CompoundModel2D(models.Const2D + model_2d):
-            pass
-        x, y = np.mgrid[:10, :10]
-        f = CompoundModel2D()(x, y)
-        assert f.shape == (10, 10)
-
-    for model_1d in models_1d:
-        class CompoundModel1D(models.Const1D + model_1d):
-            pass
-        x = np.arange(10)
-        f = CompoundModel1D()(x)
-        assert f.shape == (10,)

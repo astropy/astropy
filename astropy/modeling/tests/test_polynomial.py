@@ -33,31 +33,31 @@ linear1d = {
         'args': (3,),
         'kwargs': {'domain': [1, 10]},
         'parameters': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2},
-        'constraints': {'fixed': {'c0': 1.2}}
+        'constraints': {'fixed': {'c0': True}}
     },
     Hermite1D: {
         'args': (3,),
         'kwargs': {'domain': [1, 10]},
         'parameters': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2},
-        'constraints': {'fixed': {'c0': 1.2}}
+        'constraints': {'fixed': {'c0': True}}
     },
     Legendre1D: {
         'args': (3,),
         'kwargs': {'domain': [1, 10]},
         'parameters': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2},
-        'constraints': {'fixed': {'c0': 1.2}}
+        'constraints': {'fixed': {'c0': True}}
     },
     Polynomial1D: {
         'args': (3,),
         'kwargs': {'domain': [1, 10]},
         'parameters': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2},
-        'constraints': {'fixed': {'c0': 1.2}}
+        'constraints': {'fixed': {'c0': True}}
     },
     Linear1D: {
         'args': (),
         'kwargs': {},
         'parameters': {'intercept': 1.2, 'slope': 23.1},
-        'constraints': {'fixed': {'intercept': 1.2}}
+        'constraints': {'fixed': {'intercept': True}}
     }
 }
 
@@ -67,25 +67,25 @@ linear2d = {
         'args': (1, 1),
         'kwargs': {'x_domain': [0, 99], 'y_domain': [0, 82]},
         'parameters': {'c0_0': 1.2, 'c1_0': 2, 'c0_1': 2.3, 'c1_1': 0.2},
-        'constraints': {'fixed': {'c0_0': 1.2}}
+        'constraints': {'fixed': {'c0_0': True}}
     },
     Hermite2D: {
         'args': (1, 1),
         'kwargs': {'x_domain': [0, 99], 'y_domain': [0, 82]},
         'parameters': {'c0_0': 1.2, 'c1_0': 2, 'c0_1': 2.3, 'c1_1': 0.2},
-        'constraints': {'fixed': {'c0_0': 1.2}}
+        'constraints': {'fixed': {'c0_0': True}}
     },
     Legendre2D: {
         'args': (1, 1),
         'kwargs': {'x_domain': [0, 99], 'y_domain': [0, 82]},
         'parameters': {'c0_0': 1.2, 'c1_0': 2, 'c0_1': 2.3, 'c1_1': 0.2},
-        'constraints': {'fixed': {'c0_0': 1.2}}
+        'constraints': {'fixed': {'c0_0': True}}
     },
     Polynomial2D: {
         'args': (1,),
         'kwargs': {},
         'parameters': {'c0_0': 1.2, 'c1_0': 2, 'c0_1': 2.3},
-        'constraints': {'fixed': {'c0_0': 1.2}}
+        'constraints': {'fixed': {'c0_0': True}}
     }
 }
 
@@ -378,6 +378,9 @@ def test_2d_orthopolynomial_in_compound_model():
 
     fitter = fitting.LevMarLSQFitter()  # re-init to compare like with like
     compound_model = Identity(2) | Chebyshev2D(2, 2)
+    #compound_model.map_parameters()
+    compound_model.fittable = True
+    compound_model.linear = True
     compound_fit = fitter(compound_model, x, y, z)
 
     assert_allclose(simple_fit(x, y), compound_fit(x, y), atol=1e-15)
