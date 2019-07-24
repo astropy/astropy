@@ -379,6 +379,9 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Fixed ``find_api_page`` access by using custom request headers and HTTPS
+  when version is specified. [#9032]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
