@@ -9,10 +9,10 @@ __all__ = ['BaseRADecFrame']
 
 
 doc_components = """
-    ra : `Angle`, optional, must be keyword
+    ra : `~astropy.coordinates.Angle`, optional, must be keyword
         The RA for this object (``dec`` must also be given and ``representation``
         must be None).
-    dec : `Angle`, optional, must be keyword
+    dec : `~astropy.coordinates.Angle`, optional, must be keyword
         The Declination for this object (``ra`` must also be given and
         ``representation`` must be None).
     distance : `~astropy.units.Quantity`, optional, must be keyword
