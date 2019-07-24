@@ -435,7 +435,6 @@ Built-in Frame Classes
 
 .. automodapi:: astropy.coordinates.builtin_frames
     :skip: make_transform_graph_docs
-    :no-heading:
     :no-inheritance-diagram:
 
 
