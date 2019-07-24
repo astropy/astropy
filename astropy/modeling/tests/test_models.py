@@ -12,6 +12,7 @@ from numpy.testing import assert_allclose, assert_equal
 
 from .example_models import models_1D, models_2D
 from astropy.modeling import fitting, models
+from astropy.modeling.models import Gaussian2D
 from astropy.modeling.core import FittableModel
 from astropy.modeling.polynomial import PolynomialBase
 from astropy import units as u
@@ -88,6 +89,19 @@ def test_custom_model_defaults():
 
     assert sin_model.amplitude == 4
     assert sin_model.frequency == 1
+
+
+def test_inconsistent_input_shapes():
+    g = Gaussian2D()
+    x = np.arange(-1., 1, .2)
+    y = x.copy()
+    # check scalar input broadcasting works
+    assert np.abs(g(x,0) - g(x, 0*x)).sum() == 0
+    # but not array broadcasting
+    x.shape = (10, 1)
+    y.shape = (1, 10)
+    with pytest.raises(ValueError):
+        g(x,y)
 
 
 def test_custom_model_bounding_box():
@@ -658,3 +672,29 @@ def test_with_bounding_box():
     p = models.Polynomial1D(1, c0=12, c1=2.3)
     p.bounding_box = (0, 5)
     assert(p(1) == p(1, with_bounding_box=True))
+
+    t3 = models.Shift(10) & models.Scale(2) & models.Shift(-1)
+    t3.bounding_box = ((4.3, 6.9), (6, 15), (-1, 10))
+    assert_allclose(t3([1, 1], [7, 7], [3, 5],with_bounding_box=True),
+                    [[np.nan, 11], [np.nan, 14], [np.nan, 4]])
+
+    trans3 = models.Shift(10) & models.Scale(2) & models.Shift(-1)
+    trans3.bounding_box = ((4.3, 6.9), (6, 15), (-1, 10))
+    assert_allclose(trans3(1, 7, 5, with_bounding_box=True), [11, 14, 4])
+
+
+@pytest.mark.skipif("not HAS_SCIPY_14")
+def test_tabular_with_bounding_box():
+    points = np.arange(5)
+    values = np.array([1.5, 3.4, 6.7, 7, 32])
+    t = models.Tabular1D(points, values)
+    result = t(1, with_bounding_box=True)
+
+
+@pytest.mark.skipif("not HAS_SCIPY_14")
+def test_bounding_box_with_units():
+    points = np.arange(5)*u.pix
+    lt = np.arange(5)*u.AA
+    t = models.Tabular1D(points, lt)
+
+    assert(t(1*u.pix, with_bounding_box=True) == 1.*u.AA)

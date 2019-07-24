@@ -521,16 +521,3 @@ def test_2d_model():
         assert_allclose(m.parameters, p2.parameters, rtol=0.05)
         m = fitter(p2, x, y, z + 2 * n, weights=None)
         assert_allclose(m.parameters, p2.parameters, rtol=0.05)
-
-
-def test_prior_posterior():
-    model = models.Gaussian1D()
-    model.amplitude.prior = models.Polynomial1D(1, c0=1, c1=2)
-    assert isinstance(model.amplitude.prior, models.Polynomial1D)
-    assert model.amplitude.prior.c0 == 1
-    assert model.amplitude.prior.c1 == 2
-    assert isinstance(model._constraints['prior']['amplitude'], models.Polynomial1D)
-
-    model.amplitude.prior = None
-    assert model.amplitude.prior is None
-    assert model._constraints['prior']['amplitude'] is None

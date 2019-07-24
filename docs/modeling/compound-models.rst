@@ -524,7 +524,7 @@ The start point is inclusive and the end point is exclusive.  So a slice like
 subexpression ``B * C``::
 
     >>> print(M[1:])
-    Model: CompoundModel...
+    Model: CompoundModel
     Inputs: ('x',)
     Outputs: ('y',)
     Model set size: 1
@@ -534,9 +534,54 @@ subexpression ``B * C``::
     <BLANKLINE>
         [1]: <Const1D(amplitude=3.1, name='C')>
     Parameters:
-        amplitude_1 amplitude_2
+        amplitude_0 amplitude_1
         ----------- -----------
                 2.1         3.1
+
+.. note::
+
+    There is a change in the parameter names of a slice from versions
+    prior to 4.0. Previously, the parameter names were identical to that
+    of the model being sliced. Now, they are what is expected for a
+    compound model of this type apart from the model sliced. That is,
+    the sliced model always starts with its own relative index for its
+    components, thus the parameter names start with a 0 suffix.
+
+.. note::
+
+    Starting with 4.0, the behavior of slicing is more restrictive than
+    previously. For example if::
+
+        m = m1 * m2 + m3
+
+    and one sliced by
+    using ``m[1:3]`` previously that would return the model: ``m2 + m3``
+    even though there was never any such submodel of m. Starting with 4.0
+    a slice must correspond to a submodel (something that corresponds
+    to an intermediate result of the computational chain of evaluating
+    the compound model). So::
+
+        m1 * m2
+
+    is a submodel (i.e.,``m[:2]``) but
+    ``m[1:3]`` is not. Currently this also means that in simpler expressions
+    such as::
+
+        m = m1 + m2 + m3 + m4
+
+    where any slice should be valid in
+    principle, only slices that include m1 are since it is part of
+    all submodules (since the order of evaluation is::
+
+        ((m1 + m2) + m3) + m4
+
+    Anyone creating compound models that wishes submodels to be available
+    is advised to use parentheses explicitly  or define intermediate
+    models to be used in subsequent expressions so that they can be
+    extracted with a slice or simple index depending on the context.
+    For example, to make ``m2 + m3`` accessible by slice define ``m`` as::
+
+        m = m1 + (m2 + m3) + m4. In this case ``m[1:3]`` will work.
 
 The new compound model for the subexpression can be evaluated
 like any other::
@@ -582,7 +627,7 @@ Slicing also works with names.  When using names the start and end points are
     <BLANKLINE>
         [1]: <Const1D(amplitude=3.1, name='C')>
     Parameters:
-        amplitude_1 amplitude_2
+        amplitude_0 amplitude_1
         ----------- -----------
                 2.1         3.1
 
@@ -640,7 +685,7 @@ are still tied back to the compound model::
     >>> b = Gaussian1D(2.5, 0.5, 0.1, name='B')
     >>> m = a + b
     >>> m.amplitude_0
-    Parameter('amplitude_0', value=1.0)
+    Parameter('amplitude', value=1.0)
 
 is equivalent to::
 
@@ -655,17 +700,17 @@ Updating one updates the other::
     Parameter('amplitude', value=42.0)
     >>> m['A'].amplitude = 99
     >>> m.amplitude_0
-    Parameter('amplitude_0', value=99.0)
+    Parameter('amplitude', value=99.0)
 
 Note, however, that the original
-`~astropy.modeling.functional_models.Gaussian1D` instance ``a`` has not been
+`~astropy.modeling.functional_models.Gaussian1D` instance ``a`` has been
 updated::
 
     >>> a.amplitude
-    Parameter('amplitude', value=1.0)
+    Parameter('amplitude', value=99.0)
 
-This is because currently, when a compound model is created, copies are made of
-the original models.
+This is different than the behavior in versions prior to 4.0. Now compound model
+parameters share the same Parameter instance as the original model.
 
 
 .. _compound-model-mappings:

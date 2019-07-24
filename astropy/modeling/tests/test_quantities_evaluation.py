@@ -314,7 +314,7 @@ def test_compound_input_units_equivalencies():
 
     with pytest.raises(UnitsError) as exc:
         out = cs(20 * u.pix, 10 * u.pix)
-    assert exc.value.args[0] == "TestModel: Units of input 'x1', pix (unknown), could not be converted to required input units of deg (angle)"
+    assert exc.value.args[0] == "Shift: Units of input 'x', pix (unknown), could not be converted to required input units of deg (angle)"
 
 
 def test_compound_input_units_strict():
@@ -370,7 +370,8 @@ def test_compound_input_units_allow_dimensionless():
 
     with pytest.raises(UnitsError) as exc:
         out = cs(10 * u.m)
-    assert exc.value.args[0] == "TestModel: Units of input 'x', m (length), could not be converted to required input units of deg (angle)"
+    assert exc.value.args[0] == ("ScaleDegrees: Units of input 'x', m (length), "
+                                 "could not be converted to required input units of deg (angle)")
 
     s1._input_units_allow_dimensionless = False
 
@@ -379,7 +380,8 @@ def test_compound_input_units_allow_dimensionless():
 
     with pytest.raises(UnitsError) as exc:
         out = cs(10)
-    assert exc.value.args[0] == "TestModel: Units of input 'x', (dimensionless), could not be converted to required input units of deg (angle)"
+    assert exc.value.args[0] == ("ScaleDegrees: Units of input 'x', (dimensionless), "
+                                 "could not be converted to required input units of deg (angle)")
 
     s1._input_units_allow_dimensionless = True
 
@@ -394,7 +396,8 @@ def test_compound_input_units_allow_dimensionless():
 
     with pytest.raises(UnitsError) as exc:
         out = cs(10 * u.m)
-    assert exc.value.args[0] == "ScaleDegrees: Units of input 'x', m (length), could not be converted to required input units of deg (angle)"
+    assert exc.value.args[0] == ("ScaleDegrees: Units of input 'x', m (length), "
+                                 "could not be converted to required input units of deg (angle)")
 
     s1._input_units_allow_dimensionless = False
 
@@ -402,7 +405,8 @@ def test_compound_input_units_allow_dimensionless():
 
     with pytest.raises(UnitsError) as exc:
         out = cs(10)
-    assert exc.value.args[0] == "ScaleDegrees: Units of input 'x', (dimensionless), could not be converted to required input units of deg (angle)"
+    assert exc.value.args[0] == ("ScaleDegrees: Units of input 'x', (dimensionless), "
+                                 "could not be converted to required input units of deg (angle)")
 
     s1._input_units_allow_dimensionless = True
 
@@ -420,7 +424,8 @@ def test_compound_input_units_allow_dimensionless():
 
     with pytest.raises(UnitsError) as exc:
         out = cs(10, 10)
-    assert exc.value.args[0] == "TestModel: Units of input 'x1', (dimensionless), could not be converted to required input units of deg (angle)"
+    assert exc.value.args[0] == ("ScaleDegrees: Units of input 'x', (dimensionless), "
+                                 "could not be converted to required input units of deg (angle)")
 
 
 def test_compound_return_units():

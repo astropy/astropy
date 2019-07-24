@@ -32,6 +32,24 @@ fitting routines (while making it reasonably easy to do when necessary).
     us know on the `astropy-dev mailing list`_ or at
     http://feedback.astropy.org
 
+.. _modeling-major-changes-for-4.0:
+
+Major changes to Modeling for 4.0
+=================================
+
+A number of significant changes have been made to the internals that have been
+documented in more detail in :doc:`changes_for_4`. This summarizes the two
+biggest changes:
+
+- Expressions of model classes no longer is supported. (Expressions of model
+  instances are still very much supported!)
+
+- Parameter values now are contained in the parameter instance. Previously they
+  were contained in the model referencing the parameter. The previous behavior
+  resulted in compound models parameters not sharing the same value as the
+  constituent models, if one of them changed, the other didn't. Now they
+  see exactly the same value.
+
 .. _modeling-getting-started:
 
 Getting started
@@ -391,6 +409,7 @@ Using `astropy.modeling`
    bounding-boxes
    algorithms
    units
+   changes_for_4.rst
 
 .. note that if this section gets too long, it should be moved to a separate
    doc page - see the top of performance.inc.rst for the instructions on how to do
