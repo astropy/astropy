@@ -675,7 +675,7 @@ def angular_separation(lon1, lat1, lon2, lat2):
 
     Parameters
     ----------
-    lon1, lat1, lon2, lat2 : `Angle`, `~astropy.units.Quantity` or float
+    lon1, lat1, lon2, lat2 : `~astropy.coordinates.Angle`, `~astropy.units.Quantity` or float
         Longitude and latitude of the two points. Quantities should be in
         angular units; floats in radians.
 
@@ -715,7 +715,7 @@ def position_angle(lon1, lat1, lon2, lat2):
 
     Parameters
     ----------
-    lon1, lat1, lon2, lat2 : `Angle`, `~astropy.units.Quantity` or float
+    lon1, lat1, lon2, lat2 : `~astropy.coordinates.Angle`, `~astropy.units.Quantity` or float
         Longitude and latitude of the two points. Quantities should be in
         angular units; floats in radians.
 
@@ -744,7 +744,7 @@ def offset_by(lon, lat, posang, distance):
 
     Parameters
     ----------
-    lon, lat, posang, distance : `Angle`, `~astropy.units.Quantity` or float
+    lon, lat, posang, distance : `~astropy.coordinates.Angle`, `~astropy.units.Quantity` or float
         Longitude and latitude of the starting point,
         position angle and distance to the final point.
         Quantities should be in angular units; floats in radians.

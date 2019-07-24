@@ -75,11 +75,11 @@ class Sagittarius(coord.BaseCoordinateFrame):
 
     Parameters
     ----------
-    representation : `BaseRepresentation` or None
+    representation : `~astropy.coordinates.BaseRepresentation` or None
         A representation object or None to have no data (or use the other keywords)
-    Lambda : `Angle`, optional, must be keyword
+    Lambda : `~astropy.coordinates.Angle`, optional, must be keyword
         The longitude-like angle corresponding to Sagittarius' orbit.
-    Beta : `Angle`, optional, must be keyword
+    Beta : `~astropy.coordinates.Angle`, optional, must be keyword
         The latitude-like angle corresponding to Sagittarius' orbit.
     distance : `Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
