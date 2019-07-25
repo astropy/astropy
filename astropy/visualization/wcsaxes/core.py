@@ -371,11 +371,11 @@ class WCSAxes(Axes):
 
             # In the special and common case where the frame is rectangular and
             # we are dealing with 2-d WCS, we show all ticks on all axes for
-            # backward-compatibility.
-            if self.frame_class is not RectangularFrame or len(coord_meta['type']) != 2:
+            # backward-compatibility if no default_position has been specified.
+            if 'default_position' in coord_meta or self.frame_class is not RectangularFrame or len(coord_meta['type']) != 2:
                 self.coords[ind].set_ticks_position(pos)
 
-            # If we want to auto-label axes some day:
+            # If we want to auto-label axes in the future:
             #
             # if coord_meta['type'][ind] in ('longitude', 'latitude'):
             #     self.coords[ind].set_axislabel(f"{coord_meta['name'][ind]}")
@@ -712,14 +712,13 @@ class WCSAxes(Axes):
 
             self.coords[axis].tick_params(**kwargs)
 
-        elif axis in ('x', 'y'):
+        elif axis in ('x', 'y') and self.frame_class is RectangularFrame:
 
             spine = 'b' if axis == 'x' else 'l'
 
-            if self.frame_class is RectangularFrame:
-                for coord in self.coords:
-                    if spine in coord.axislabels.get_visible_axes():
-                        coord.tick_params(**kwargs)
+            for coord in self.coords:
+                if spine in coord.axislabels.get_visible_axes():
+                    coord.tick_params(**kwargs)
 
 
 # In the following, we put the generated subplot class in a temporary class and
