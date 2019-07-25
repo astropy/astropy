@@ -90,7 +90,9 @@ def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
 
         coord_meta['name'].append(name)
 
-    coord_meta['default_position'] = [''] * wcs.world_n_dim
+    coord_meta['default_axislabel_position'] = [''] * wcs.world_n_dim
+    coord_meta['default_ticklabel_position'] = [''] * wcs.world_n_dim
+    coord_meta['default_ticks_position'] = [''] * wcs.world_n_dim
 
     m = wcs.axis_correlation_matrix.copy()
     if invert_xy:
@@ -101,23 +103,37 @@ def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
         for i, spine_name in enumerate('bltr'):
             pos = np.nonzero(m[:, i % 2])[0]
             if len(pos) > 0:
-                coord_meta['default_position'][pos[0]] = spine_name
+                coord_meta['default_axislabel_position'][pos[0]] = spine_name
+                coord_meta['default_ticklabel_position'][pos[0]] = spine_name
+                coord_meta['default_ticks_position'][pos[0]] = spine_name
                 m[pos[0], :] = 0
+
+        # In the special and common case where the frame is rectangular and
+        # we are dealing with 2-d WCS, we show all ticks on all axes for
+        # backward-compatibility.
+        if len(coord_meta['type']) == 2:
+            coord_meta['default_ticks_position'] = ['bltr'] * wcs.world_n_dim
 
     elif frame_class is EllipticalFrame:
 
         if 'longitude' in coord_meta['type']:
             lon_idx = coord_meta['type'].index('longitude')
-            coord_meta['default_position'][lon_idx] = 'h'
+            coord_meta['default_axislabel_position'][lon_idx] = 'h'
+            coord_meta['default_ticklabel_position'][lon_idx] = 'h'
+            coord_meta['default_ticks_position'][lon_idx] = 'h'
 
         if 'latitude' in coord_meta['type']:
             lat_idx = coord_meta['type'].index('latitude')
-            coord_meta['default_position'][lat_idx] = 'c'
+            coord_meta['default_axislabel_position'][lat_idx] = 'c'
+            coord_meta['default_ticklabel_position'][lat_idx] = 'c'
+            coord_meta['default_ticks_position'][lat_idx] = 'c'
 
     else:
 
         for i in range(wcs.world_n_dim):
-            coord_meta['default_position'][i] = frame_class.spine_names
+            coord_meta['default_axislabel_position'][i] = frame_class.spine_names
+            coord_meta['default_ticklabel_position'][i] = frame_class.spine_names
+            coord_meta['default_ticks_position'][i] = frame_class.spine_names
 
     return transform, coord_meta
 
