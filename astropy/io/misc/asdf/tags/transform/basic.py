@@ -124,6 +124,10 @@ class GenericModel(mappings.Mapping):
         super().__init__(mapping)
         self._outputs = tuple('x' + str(idx) for idx in range(self.n_outputs + 1))
 
+    @property
+    def inverse(self):
+        raise NotImplementedError()
+
 
 class GenericType(TransformType):
     name = "transform/generic"
