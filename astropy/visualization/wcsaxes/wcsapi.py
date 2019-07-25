@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from astropy.coordinates import SkyCoord, ICRS
+from astropy.coordinates import SkyCoord, ICRS, BaseCoordinateFrame
 from astropy import units as u
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import SlicedLowLevelWCS
@@ -12,14 +12,6 @@ from .transforms import CurvedTransform
 
 __all__ = ['transform_coord_meta_from_wcs', 'WCSWorld2PixelTransform',
            'WCSPixel2WorldTransform']
-
-IDENTITY = WCS(naxis=2)
-IDENTITY.wcs.ctype = ["X", "Y"]
-IDENTITY.wcs.crval = [0., 0.]
-IDENTITY.wcs.crpix = [1., 1.]
-IDENTITY.wcs.cdelt = [1., 1.]
-
-# TODO: Make a ReversedPixelWCS thingy
 
 
 def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
@@ -90,7 +82,7 @@ def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
         if is_fits_wcs:
             if isinstance(wcs, WCS):
                 alias = wcs.wcs.ctype[idx][:4].replace('-', '').lower()
-            else:  # SlicedLowLevelWCS
+            elif isinstance(wcs, SlicedLowLevelWCS):
                 alias = wcs._wcs.wcs.ctype[wcs._world_keep[idx]][:4].replace('-', '').lower()
             name = (axis_type, alias) if axis_type else alias
         else:
@@ -132,8 +124,10 @@ def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
 
 def wcsapi_to_celestial_frame(wcs):
     for cls, args, kwargs in wcs.world_axis_object_classes.values():
-        if cls is SkyCoord:
+        if issubclass(cls, SkyCoord):
             return kwargs.get('frame', ICRS())
+        elif issubclass(cls, BaseCoordinateFrame):
+            return cls(**kwargs)
 
 
 class WCSWorld2PixelTransform(CurvedTransform):
