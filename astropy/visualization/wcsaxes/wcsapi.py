@@ -13,6 +13,12 @@ from .transforms import CurvedTransform
 __all__ = ['transform_coord_meta_from_wcs', 'WCSWorld2PixelTransform',
            'WCSPixel2WorldTransform']
 
+IDENTITY = WCS(naxis=2)
+IDENTITY.wcs.ctype = ["X", "Y"]
+IDENTITY.wcs.crval = [0., 0.]
+IDENTITY.wcs.crpix = [1., 1.]
+IDENTITY.wcs.cdelt = [1., 1.]
+
 
 def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
 
@@ -167,8 +173,8 @@ class WCSWorld2PixelTransform(CurvedTransform):
         self.frame_in = wcsapi_to_celestial_frame(wcs)
 
     def __eq__(self, other):
-        # TODO: for performance, find a way to return True when they do match
-        return False
+        return (isinstance(other, type(self)) and self.wcs is other.wcs and
+                self.invert_xy == other.invert_xy)
 
     @property
     def input_dims(self):
@@ -223,8 +229,8 @@ class WCSPixel2WorldTransform(CurvedTransform):
         self.frame_out = wcsapi_to_celestial_frame(wcs)
 
     def __eq__(self, other):
-        # TODO: for performance, find a way to return True when they do match
-        return False
+        return (isinstance(other, type(self)) and self.wcs is other.wcs and
+                self.invert_xy == other.invert_xy)
 
     @property
     def output_dims(self):

@@ -16,9 +16,8 @@ from astropy.wcs import WCS
 from .transforms import CoordinateTransform
 from .coordinates_map import CoordinatesMap
 from .utils import get_coord_meta, transform_contour_set_inplace
-from .frame import EllipticalFrame, RectangularFrame
-from .fitswcs import IDENTITY
-from .wcsapi import transform_coord_meta_from_wcs
+from .frame import RectangularFrame
+from .wcsapi import IDENTITY, transform_coord_meta_from_wcs
 
 
 __all__ = ['WCSAxes', 'WCSAxesSubplot']
