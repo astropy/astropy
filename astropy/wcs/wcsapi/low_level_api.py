@@ -293,8 +293,6 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         and this will generate a plot with the correct WCS coordinates on the
         axes.
         """
-
-        # Note this method taken from `astropy.wcs.WCS`
         from astropy.visualization.wcsaxes import WCSAxes
         return WCSAxes, {'wcs': self}
 
