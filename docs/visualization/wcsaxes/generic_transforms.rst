@@ -33,12 +33,22 @@ The ``coord_meta`` dictionary should include the following keys:
   if the :class:`~matplotlib.transforms.Transform` returns values in degrees
   and you want the labels to be formatted in hours.
 
-In addition the ``coord_meta`` can optionally include the following key:
+In addition the ``coord_meta`` can optionally include the following keys:
 
-* ``default_position``: an iterable of strings giving for each world coordinates
-  the spine of the frame on which to show the coordinate. Each string should be
-  such that it could be used as input to e.g.
+* ``default_axislabel_position``: an iterable of strings giving for each world
+  coordinates the spine of the frame on which to show the axis label for the
+  coordinate. Each string should be such that it could be used as input to
+  :meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_axislabel_position`.
+
+* ``default_ticklabel_position``: an iterable of strings giving for each world
+  coordinates the spine of the frame on which to show the tick labels for the
+  coordinate. Each string should be such that it could be used as input to
   :meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_ticklabel_position`.
+
+* ``default_ticks_position``: an iterable of strings giving for each world
+  coordinates the spine of the frame on which to show the ticks for the
+  coordinate. Each string should be such that it could be used as input to
+  :meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks_position`.
 
 The following example illustrates a custom projection using a transform and
 ``coord_meta``:

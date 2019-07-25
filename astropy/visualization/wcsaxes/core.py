@@ -365,15 +365,9 @@ class WCSAxes(Axes):
         self._all_coords = [self.coords]
 
         # Common default settings for Rectangular Frame
-        for ind, pos in enumerate(coord_meta.get('default_position', ['b', 'l'])):
-            self.coords[ind].set_axislabel_position(pos)
-            self.coords[ind].set_ticklabel_position(pos)
+        for ind, pos in enumerate(coord_meta.get('default_axislabel_position', ['b', 'l'])):
 
-            # In the special and common case where the frame is rectangular and
-            # we are dealing with 2-d WCS, we show all ticks on all axes for
-            # backward-compatibility if no default_position has been specified.
-            if 'default_position' in coord_meta or self.frame_class is not RectangularFrame or len(coord_meta['type']) != 2:
-                self.coords[ind].set_ticks_position(pos)
+            self.coords[ind].set_axislabel_position(pos)
 
             # If we want to auto-label axes in the future:
             #
@@ -381,6 +375,12 @@ class WCSAxes(Axes):
             #     self.coords[ind].set_axislabel(f"{coord_meta['name'][ind]}")
             # else:
             #     self.coords[ind].set_axislabel(f"{coord_meta['name'][ind]} [{coord_meta['unit'][ind]:latex}]")
+
+        for ind, pos in enumerate(coord_meta.get('default_ticklabel_position', ['b', 'l'])):
+            self.coords[ind].set_ticklabel_position(pos)
+
+        for ind, pos in enumerate(coord_meta.get('default_ticks_position', ['bltr', 'bltr'])):
+            self.coords[ind].set_ticks_position(pos)
 
         if rcParams['axes.grid']:
             self.grid()
