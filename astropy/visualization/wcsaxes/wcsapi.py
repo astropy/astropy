@@ -102,7 +102,7 @@ def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
 
     m = wcs.axis_correlation_matrix.copy()
     if invert_xy:
-        m = m[:,::-1]
+        m = m[:, ::-1]
 
     if frame_class is RectangularFrame:
 
@@ -121,6 +121,11 @@ def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
         if 'latitude' in coord_meta['type']:
             lat_idx = coord_meta['type'].index('latitude')
             coord_meta['default_position'][lat_idx] = 'c'
+
+    else:
+
+        for i in range(wcs.world_n_dim):
+            coord_meta['default_position'][i] = frame_class.spine_names
 
     return transform, coord_meta
 
