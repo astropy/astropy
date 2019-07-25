@@ -113,6 +113,8 @@ class WCSWorld2PixelTransform(World2PixelTransform):
         else:
             return pixel[:, (self.x_index, self.y_index)]
 
+    transform_non_affine = transform
+
     def inverted(self):
         return WCSPixel2WorldTransform(self.wcs, slice=self.slice)
 
@@ -170,6 +172,8 @@ class WCSPixel2WorldTransform(Pixel2WorldTransform):
         world[invalid] = np.nan
 
         return world
+
+    transform_non_affine = transform
 
     def inverted(self):
         return WCSWorld2PixelTransform(self.wcs, slice=self.slice)
