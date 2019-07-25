@@ -2403,3 +2403,13 @@ def test_data_to_col_convert_strategy():
     t['b'] = np.int64(2)  # Failed previously
     assert np.all(t['a'] == [1, 1])
     assert np.all(t['b'] == [2, 2])
+
+
+def test_mask_column_from_list():
+    """Test for #8977 Initialising masked column from a list
+    """
+    t = table.Table([(0, 1)], names='a', masked=True)
+    data = np.ma.masked_greater(np.arange(3), 1)
+    t['b'] = [data, data]
+    assert np.all(t['b'].mask == np.array([[False, False, True],
+                                          [False, False, True]]))

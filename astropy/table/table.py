@@ -1782,6 +1782,10 @@ class Table:
 
         # If value doesn't have a dtype and won't be added as a mixin then
         # convert to a numpy array.
+        # See #8977 Using Masked array for working.
+        if type(col) == type([]) and any(isinstance(x, np.ma.MaskedArray) for x in col):
+            col = np.ma.asarray(col)
+
         if not hasattr(col, 'dtype') and not self._is_mixin_for_table(col):
             col = np.asarray(col)
 
