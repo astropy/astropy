@@ -16,10 +16,10 @@ __all__ = ['AltAz']
 _90DEG = 90*u.deg
 
 doc_components = """
-    az : `Angle`, optional, must be keyword
+    az : `~astropy.coordinates.Angle`, optional, must be keyword
         The Azimuth for this object (``alt`` must also be given and
         ``representation`` must be None).
-    alt : `Angle`, optional, must be keyword
+    alt : `~astropy.coordinates.Angle`, optional, must be keyword
         The Altitude for this object (``az`` must also be given and
         ``representation`` must be None).
     distance : :class:`~astropy.units.Quantity`, optional, must be keyword

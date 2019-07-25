@@ -460,9 +460,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
     comp1, comp2, comp3 : `~astropy.units.Quantity` or subclass
         The components of the 3D points.  The names are the keys and the
         subclasses the values of the ``attr_classes`` attribute.
-    differentials : dict, `BaseDifferential`, optional
+    differentials : dict, `~astropy.coordinates.BaseDifferential`, optional
         Any differential classes that should be associated with this
-        representation. The input must either be a single `BaseDifferential`
+        representation. The input must either be a single `~astropy.coordinates.BaseDifferential`
         subclass instance, or a dictionary with keys set to a string
         representation of the SI unit with which the differential (derivative)
         is taken. For example, for a velocity differential on a positional
@@ -1259,9 +1259,9 @@ class UnitSphericalRepresentation(BaseRepresentation):
         instances of `~astropy.coordinates.Angle`,
         `~astropy.coordinates.Longitude`, or `~astropy.coordinates.Latitude`.
 
-    differentials : dict, `BaseDifferential`, optional
+    differentials : dict, `~astropy.coordinates.BaseDifferential`, optional
         Any differential classes that should be associated with this
-        representation. The input must either be a single `BaseDifferential`
+        representation. The input must either be a single `~astropy.coordinates.BaseDifferential`
         instance (see `._compatible_differentials` for valid types), or a
         dictionary of of differential instances with keys set to a string
         representation of the SI unit with which the differential (derivative)
@@ -1458,9 +1458,9 @@ class RadialRepresentation(BaseRepresentation):
     distance : `~astropy.units.Quantity`
         The distance of the point(s) from the origin.
 
-    differentials : dict, `BaseDifferential`, optional
+    differentials : dict, `~astropy.coordinates.BaseDifferential`, optional
         Any differential classes that should be associated with this
-        representation. The input must either be a single `BaseDifferential`
+        representation. The input must either be a single `~astropy.coordinates.BaseDifferential`
         instance (see `._compatible_differentials` for valid types), or a
         dictionary of of differential instances with keys set to a string
         representation of the SI unit with which the differential (derivative)
@@ -1543,9 +1543,9 @@ class SphericalRepresentation(BaseRepresentation):
         passed to the :class:`~astropy.coordinates.Distance` class, otherwise
         it is passed to the :class:`~astropy.units.Quantity` class.
 
-    differentials : dict, `BaseDifferential`, optional
+    differentials : dict, `~astropy.coordinates.BaseDifferential`, optional
         Any differential classes that should be associated with this
-        representation. The input must either be a single `BaseDifferential`
+        representation. The input must either be a single `~astropy.coordinates.BaseDifferential`
         instance (see `._compatible_differentials` for valid types), or a
         dictionary of of differential instances with keys set to a string
         representation of the SI unit with which the differential (derivative)
