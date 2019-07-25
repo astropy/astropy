@@ -304,16 +304,22 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
         if self.has_celestial:
 
-            frame = wcs_to_celestial_frame(self)
+            try:
+                frame = wcs_to_celestial_frame(self)
+            except ValueError:
+                # Some WCSes, e.g. solar, can be recognized by WCSLIB as being
+                # celestial but we don't necessarily have frames for them.
+                pass
+            else:
 
-            kwargs = {}
-            kwargs['frame'] = frame
-            kwargs['unit'] = u.deg
+                kwargs = {}
+                kwargs['frame'] = frame
+                kwargs['unit'] = u.deg
 
-            classes['celestial'] = (SkyCoord, (), kwargs)
+                classes['celestial'] = (SkyCoord, (), kwargs)
 
-            components[self.wcs.lng] = ('celestial', 0, 'spherical.lon.degree')
-            components[self.wcs.lat] = ('celestial', 1, 'spherical.lat.degree')
+                components[self.wcs.lng] = ('celestial', 0, 'spherical.lon.degree')
+                components[self.wcs.lat] = ('celestial', 1, 'spherical.lat.degree')
 
         # Fallback: for any remaining components that haven't been identified, just
         # return Quantity as the class to use
