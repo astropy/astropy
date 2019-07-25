@@ -12,26 +12,33 @@ with more general transformations that don't have to be represented by the
 (``coord_meta``) that provides metadata on how to interpret the transformation.
 
 The :class:`~matplotlib.transforms.Transform` should represent the conversion
-from pixel to world coordinates, and should have ``input_dims=2`` and
-``output_dims=2``. In addition, ``has_inverse`` should be set to `True` and
-the ``inverted`` method should be implemented.
+from pixel to world coordinates, and should have ``input_dims=2`` and can have
+``output_dims`` set to any positive integer. In addition, ``has_inverse`` should
+be set to `True` and the ``inverted`` method should be implemented.
 
 The ``coord_meta`` dictionary should include the following keys:
 
-* ``name``: an iterable of two strings giving the names for each dimension
-* ``type``: an iterable of two strings that should be either ``'longitude'``,
+* ``name``: an iterable of strings giving the names for each dimension
+* ``type``: an iterable of strings that should be either ``'longitude'``,
   ``'latitude'``, or ``'scalar'`` (for anything that isn't a longitude or latitude).
-* ``wrap``: an iterable of two values which indicate for longitudes at which
+* ``wrap``: an iterable of values which indicate for longitudes at which
   angle (in degrees) to wrap the coordinates. This should be `None` unless
   ``type`` is ``'longitude'``.
-* ``unit``: an iterable of two :class:`~astropy.units.Unit` objects giving the
+* ``unit``: an iterable of :class:`~astropy.units.Unit` objects giving the
   units of the world coordinates returned by the
   :class:`~matplotlib.transforms.Transform`.
-* ``format_unit``: an iterable of two :class:`~astropy.units.Unit` objects
+* ``format_unit``: an iterable of :class:`~astropy.units.Unit` objects
   giving the units to use for the formatting of the labels. These can be set to
   `None` to default to the units given in ``unit``, but can be set for example
   if the :class:`~matplotlib.transforms.Transform` returns values in degrees
   and you want the labels to be formatted in hours.
+
+In addition the ``coord_meta`` can optionally include the following key:
+
+* ``default_position``: an iterable of strings giving for each world coordinates
+  the spine of the frame on which to show the coordinate. Each string should be
+  such that it could be used as input to e.g.
+  :meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_ticklabel_position`.
 
 The following example illustrates a custom projection using a transform and
 ``coord_meta``:
