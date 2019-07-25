@@ -369,6 +369,12 @@ class WCSAxes(Axes):
             self.coords[ind].set_axislabel_position(pos)
             self.coords[ind].set_ticklabel_position(pos)
 
+            # In the special and common case where the frame is rectangular and
+            # we are dealing with 2-d WCS, we show all ticks on all axes for
+            # backward-compatibility.
+            if self.frame_class is not RectangularFrame or len(coord_meta['type']) != 2:
+                self.coords[ind].set_ticks_position(pos)
+
             # If we want to auto-label axes some day:
             #
             # if coord_meta['type'][ind] in ('longitude', 'latitude'):
