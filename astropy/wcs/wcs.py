@@ -3087,27 +3087,6 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         return pccd
 
-    def _as_mpl_axes(self):
-        """
-        Compatibility hook for Matplotlib and WCSAxes.
-
-        With this method, one can do:
-
-            from astropy.wcs import WCS
-            import matplotlib.pyplot as plt
-
-            wcs = WCS('filename.fits')
-
-            fig = plt.figure()
-            ax = fig.add_axes([0.15, 0.1, 0.8, 0.8], projection=wcs)
-            ...
-
-        and this will generate a plot with the correct WCS coordinates on the
-        axes.
-        """
-        from astropy.visualization.wcsaxes import WCSAxes
-        return WCSAxes, {'wcs': self}
-
     def footprint_contains(self, coord, **kwargs):
         """
         Determines if a given SkyCoord is contained in the wcs footprint.
