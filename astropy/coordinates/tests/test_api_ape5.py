@@ -97,7 +97,7 @@ def test_representations_api():
 
     # regardless of how input, the `lat` and `lon` come out as angle/distance
     assert isinstance(c1.lat, Angle)
-    assert isinstance(c1.lat, Latitude)  # `Latitude` is an `Angle` subclass
+    assert isinstance(c1.lat, Latitude)  # `Latitude` is an `~astropy.coordinates.Angle` subclass
     assert isinstance(c1.distance, Distance)
 
     # but they are read-only, as representations are immutable once created

@@ -11,10 +11,10 @@ __all__ = ['Supergalactic']
 
 
 doc_components = """
-    sgl : `Angle`, optional, must be keyword
+    sgl : `~astropy.coordinates.Angle`, optional, must be keyword
         The supergalactic longitude for this object (``sgb`` must also be given and
         ``representation`` must be None).
-    sgb : `Angle`, optional, must be keyword
+    sgb : `~astropy.coordinates.Angle`, optional, must be keyword
         The supergalactic latitude for this object (``sgl`` must also be given and
         ``representation`` must be None).
     distance : `~astropy.units.Quantity`, optional, must be keyword

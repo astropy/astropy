@@ -339,12 +339,12 @@ class Angle(u.SpecificTypeQuantity):
 
     def wrap_at(self, wrap_angle, inplace=False):
         """
-        Wrap the `Angle` object at the given ``wrap_angle``.
+        Wrap the `~astropy.coordinates.Angle` object at the given ``wrap_angle``.
 
         This method forces all the angle values to be within a contiguous
         360 degree range so that ``wrap_angle - 360d <= angle <
         wrap_angle``. By default a new Angle object is returned, but if the
-        ``inplace`` argument is `True` then the `Angle` object is wrapped in
+        ``inplace`` argument is `True` then the `~astropy.coordinates.Angle` object is wrapped in
         place and nothing is returned.
 
         For instance::
@@ -362,19 +362,19 @@ class Angle(u.SpecificTypeQuantity):
 
         Parameters
         ----------
-        wrap_angle : str, `Angle`, angular `~astropy.units.Quantity`
+        wrap_angle : str, `~astropy.coordinates.Angle`, angular `~astropy.units.Quantity`
             Specifies a single value for the wrap angle.  This can be any
-            object that can initialize an `Angle` object, e.g. ``'180d'``,
+            object that can initialize an `~astropy.coordinates.Angle` object, e.g. ``'180d'``,
             ``180 * u.deg``, or ``Angle(180, unit=u.deg)``.
 
         inplace : bool
             If `True` then wrap the object in place instead of returning
-            a new `Angle`
+            a new `~astropy.coordinates.Angle`
 
         Returns
         -------
         out : Angle or `None`
-            If ``inplace is False`` (default), return new `Angle` object
+            If ``inplace is False`` (default), return new `~astropy.coordinates.Angle` object
             with angles wrapped accordingly.  Otherwise wrap in place and
             return `None`.
         """
@@ -405,13 +405,13 @@ class Angle(u.SpecificTypeQuantity):
 
         Parameters
         ----------
-        lower : str, `Angle`, angular `~astropy.units.Quantity`, `None`
+        lower : str, `~astropy.coordinates.Angle`, angular `~astropy.units.Quantity`, `None`
             Specifies lower bound for checking.  This can be any object
-            that can initialize an `Angle` object, e.g. ``'180d'``,
+            that can initialize an `~astropy.coordinates.Angle` object, e.g. ``'180d'``,
             ``180 * u.deg``, or ``Angle(180, unit=u.deg)``.
-        upper : str, `Angle`, angular `~astropy.units.Quantity`, `None`
+        upper : str, `~astropy.coordinates.Angle`, angular `~astropy.units.Quantity`, `None`
             Specifies upper bound for checking.  This can be any object
-            that can initialize an `Angle` object, e.g. ``'180d'``,
+            that can initialize an `~astropy.coordinates.Angle` object, e.g. ``'180d'``,
             ``180 * u.deg``, or ``Angle(180, unit=u.deg)``.
 
         Returns
@@ -483,7 +483,7 @@ class Latitude(Angle):
 
     Parameters
     ----------
-    angle : array, list, scalar, `~astropy.units.Quantity`, `Angle`. The
+    angle : array, list, scalar, `~astropy.units.Quantity`, `~astropy.coordinates.Angle`. The
         angle value(s). If a tuple, will be interpreted as ``(h, m, s)`` or
         ``(d, m, s)`` depending on ``unit``. If a string, it will be
         interpreted following the rules described for
