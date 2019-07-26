@@ -887,6 +887,9 @@ class Table:
             Object that can be used as a column in self
         """
         is_mixin = self._is_mixin_for_table(data)
+        masked_col_cls = (self.ColumnClass
+                          if issubclass(self.ColumnClass, self.MaskedColumn)
+                          else self.MaskedColumn)
 
         # Structured ndarray gets viewed as a mixin unless already a valid
         # mixin class
@@ -921,9 +924,28 @@ class Table:
             # Require that col_cls be a subclass of MaskedColumn, remembering
             # that ColumnClass could be a user-defined subclass (though more-likely
             # could be MaskedColumn).
-            col_cls = (self.ColumnClass
-                       if issubclass(self.ColumnClass, self.MaskedColumn)
-                       else self.MaskedColumn)
+            col_cls = masked_col_cls
+
+        elif not hasattr(data, 'dtype'):
+            # If value doesn't have a dtype then convert to a masked numpy array.
+            # Then check if there were any masked elements.  This logic is handling
+            # normal lists like [1, 2] but also odd-ball cases like a list of masked
+            # arrays (see #8977).  Use np.ma.array() to do the heavy lifting.
+            np_data = np.ma.array(data, dtype=dtype)
+
+            if np_data.ndim > 0 and len(np_data) == 0:
+                # Implies input was an empty list (e.g. initializing an empty table
+                # with pre-declared names and dtypes but no data).  Here we need to
+                # fall through to initializing with the original data=[].
+                col_cls = self.ColumnClass
+            else:
+                if np_data.mask is np.ma.nomask:
+                    data = np_data.data
+                    col_cls = self.ColumnClass
+                else:
+                    data = np_data
+                    col_cls = masked_col_cls
+                copy = False
 
         else:
             # `data` is none of the above, so just go for it and try init'ing Column
@@ -1779,11 +1801,6 @@ class Table:
         """
         if default_name is None:
             default_name = 'col{}'.format(len(self.columns))
-
-        # If value doesn't have a dtype and won't be added as a mixin then
-        # convert to a numpy array.
-        if not hasattr(col, 'dtype') and not self._is_mixin_for_table(col):
-            col = np.asarray(col)
 
         # Convert col data to acceptable object for insertion into self.columns.
         # Note that along with the lines above and below, this allows broadcasting
