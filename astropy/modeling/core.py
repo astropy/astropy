@@ -2366,8 +2366,9 @@ class CompoundModel(Model):
             self.linear = left.linear and right.linear
         else:
             self.linear = False
-        self.eqcons = False
-        self.ineqcons = False
+        self.eqcons = []
+        self.ineqcons = []
+
 
     def __len__(self):
         return self._n_models

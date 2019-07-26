@@ -136,6 +136,10 @@ astropy.config
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 
+- Deprecated ``set_enabled_constants`` context manager. Use
+  ``astropy.physical_constants`` and ``astropy.astronomical_constants``.
+  [#9025]
+
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
@@ -272,6 +276,9 @@ astropy.utils
 - Deprecated ``InheritDocstrings`` as it is natively supported by
   Sphinx 1.7 or higher. [#8881]
 
+- Deprecated ``astropy.utils.timer`` module, which has been moved to
+  ``astroquery.utils.timer`` and will be part of ``astroquery`` 0.4.0. [#9038]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -383,8 +390,9 @@ astropy.coordinates
 - Fix concatenation of representations for cases where the units were different.
   [#8877]
 
-- Check for NaN values in catalog and match coordinates before building and 
+- Check for NaN values in catalog and match coordinates before building and
   querying the ``KDTree`` for coordinate matching. [#9007]
+- Fix sky coordinate matching when a dimensionless distance is provided. [#9008]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
@@ -461,6 +469,9 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Fixed ``find_api_page`` access by using custom request headers and HTTPS
+  when version is specified. [#9032]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -474,6 +485,10 @@ astropy.wcs
 
 Other Changes and Additions
 ---------------------------
+
+- Fixed a bug that caused files outside of the astropy module directory to be
+  included as package data, resulting in some cases in errors when doing
+  repeated builds. [#9039]
 
 
 3.2.1 (2019-06-14)

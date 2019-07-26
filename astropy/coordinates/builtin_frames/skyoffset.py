@@ -128,9 +128,9 @@ class SkyOffsetFrame(BaseCoordinateFrame):
 
     Parameters
     ----------
-    representation : `BaseRepresentation` or None
+    representation : `~astropy.coordinates.BaseRepresentation` or None
         A representation object or None to have no data (or use the other keywords)
-    origin : `SkyCoord` or low-level coordinate object.
+    origin : `~astropy.coordinates.SkyCoord` or low-level coordinate object.
         The coordinate which specifies the origin of this frame. Note that this
         origin is used purely for on-sky location/rotation.  It can have a
         ``distance`` but it will not be used by this ``SkyOffsetFrame``.

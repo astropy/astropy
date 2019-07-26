@@ -170,29 +170,6 @@ If either `astropy.constants` or `astropy.units` have already been imported, a
         ...
     RuntimeError: astropy.units is already imported
 
-To temporarily set constants to an older version (e.g.,
-for regression testing), a context manager is available, as follows:
-
-    >>> from astropy import constants as const
-    >>> with const.set_enabled_constants('astropyconst13'):
-    ...     print(const.h)
-      Name   = Planck constant
-      Value  = 6.62606957e-34
-      Uncertainty  = 2.9e-41
-      Unit  = J s
-      Reference = CODATA 2010
-    >>> print(const.h)
-      Name   = Planck constant
-      Value  = 6.62607015e-34
-      Uncertainty  = 0.0
-      Unit  = J s
-      Reference = CODATA 2018
-
-The context manager may be used at any time in a Python session, but it
-uses the prior version only for `astropy.constants`, and not for any
-other subpackage such as `astropy.units`.
-
-
 .. note that if this section gets too long, it should be moved to a separate
    doc page - see the top of performance.inc.rst for the instructions on how to
    do that

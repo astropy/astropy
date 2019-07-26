@@ -17,6 +17,7 @@ import warnings
 from contextlib import contextmanager
 
 from astropy.utils import find_current_module
+from astropy.utils.decorators import deprecated
 
 # Hack to make circular imports with units work
 from astropy import units
@@ -50,8 +51,7 @@ if __doc__ is not None:
     __doc__ += '\n'.join(_lines)
 
 
-# TODO: Re-implement in a way that is more consistent with astropy.units.
-#       See https://github.com/astropy/astropy/pull/7008 discussions.
+@deprecated('4.0', alternative="Use 'astropy.physical_constants' and 'astropy.astronomical_constants'")  # noqa
 @contextmanager
 def set_enabled_constants(modname):
     """
@@ -102,6 +102,7 @@ def set_enabled_constants(modname):
 
 # Clean up namespace
 del find_current_module
+del deprecated
 del warnings
 del contextmanager
 del _utils

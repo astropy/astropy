@@ -332,17 +332,17 @@ class RepresentationMapping(_RepresentationMappingBase):
 base_doc = """{__doc__}
     Parameters
     ----------
-    data : `BaseRepresentation` subclass instance
+    data : `~astropy.coordinates.BaseRepresentation` subclass instance
         A representation object or ``None`` to have no data (or use the
         coordinate component arguments, see below).
     {components}
-    representation_type : `BaseRepresentation` subclass, str, optional
+    representation_type : `~astropy.coordinates.BaseRepresentation` subclass, str, optional
         A representation class or string name of a representation class. This
         sets the expected input representation class, thereby changing the
         expected keyword arguments for the data passed in. For example, passing
         ``representation_type='cartesian'`` will make the classes expect
         position data with cartesian names, i.e. ``x, y, z`` in most cases.
-    differential_type : `BaseDifferential` subclass, str, dict, optional
+    differential_type : `~astropy.coordinates.BaseDifferential` subclass, str, dict, optional
         A differential class or dictionary of differential classes (currently
         only a velocity differential with key 's' is supported). This sets the
         expected input differential class, thereby changing the expected keyword
@@ -970,7 +970,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
         Parameters
         ----------
-        data : `BaseRepresentation`
+        data : `~astropy.coordinates.BaseRepresentation`
             The representation to use as the data for the new frame.
 
         Returns
@@ -1649,7 +1649,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         # subtraction
         self_car = self.data.without_differentials().represent_as(r.CartesianRepresentation)
         other_car = other_in_self_system.data.without_differentials().represent_as(r.CartesianRepresentation)
-        return Distance((self_car - other_car).norm())
+        dist = (self_car - other_car).norm()
+        if dist.unit == u.one:
+            return dist
+        else:
+            return Distance(dist)
 
     @property
     def cartesian(self):

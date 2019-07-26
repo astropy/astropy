@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This package contains the coordinate frames actually implemented by astropy.
+This package contains the coordinate frames implemented by astropy.
 
 Users shouldn't use this module directly, but rather import from the
 `astropy.coordinates` module.  While it is likely to exist for the long-term,
@@ -137,3 +137,7 @@ def make_transform_graph_docs(transform_graph):
 
 
 _transform_graph_docs = make_transform_graph_docs(frame_transform_graph)
+
+# Here, we override the module docstring so that sphinx renders the transform
+# graph without the developer documentation in the main docstring above.
+__doc__ = _transform_graph_docs
