@@ -229,7 +229,7 @@ image were already in memory.  This works the same way for tables.  For most
 cases this is your best bet for working with large files.
 
 To ensure use of memory mapping, just add the ``memmap=True`` argument to
-`fits.open <astropy.io.fits.open>`_.  Likewise, using ``memmap=False`` will
+`astropy.io.fits.open`.  Likewise, using ``memmap=False`` will
 force data to be read entirely into memory.
 
 
