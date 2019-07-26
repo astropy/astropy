@@ -3952,7 +3952,7 @@ def prepare_bounding_box_inputs(self, input_shape, inputs, bbox):
             if nan_ind:
                 allout = True
     # get an array with indices of valid inputs
-    valid_ind = np.logical_not(nan_ind).nonzero()
+    valid_ind = np.atleast_1d(np.logical_not(nan_ind)).nonzero()
     if len(valid_ind[0]) == 0:
         allout = True
     # inputs holds only inputs within the bbox
