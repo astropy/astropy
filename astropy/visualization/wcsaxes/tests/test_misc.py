@@ -70,14 +70,15 @@ COORDSYS= 'icrs    '
 
 
 @ignore_matplotlibrc
-def test_no_numpy_warnings(tmpdir):
+@pytest.mark.parametrize('grid_type', ['lines', 'contours'])
+def test_no_numpy_warnings(tmpdir, grid_type):
 
     # Make sure that no warnings are raised if some pixels are outside WCS
     # (since this is normal)
 
     ax = plt.subplot(1, 1, 1, projection=WCS(TARGET_HEADER))
     ax.imshow(np.zeros((100, 200)))
-    ax.coords.grid(color='white')
+    ax.coords.grid(color='white', grid_type=grid_type)
 
     with catch_warnings(RuntimeWarning) as ws:
         plt.savefig(tmpdir.join('test.png').strpath)
