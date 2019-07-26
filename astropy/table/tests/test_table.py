@@ -2394,6 +2394,31 @@ def test_custom_masked_column_in_nonmasked_table():
         assert type(t['e']) is MySubMaskedColumn  # sub-class not downgraded
 
 
+def test_init_with_list_of_masked_arrays():
+    """Test the fix for #8977"""
+    m0 = np.ma.array([0, 1, 2], mask=[True, False, True])
+    m1 = np.ma.array([3, 4, 5], mask=[False, True, False])
+    mc = [m0, m1]
+
+    # Test _init_from_list
+    t = table.Table([mc], names=['a'])
+
+    # Test add_column
+    t['b'] = [m1, m0]
+
+    assert t['a'].shape == (2, 3)
+    assert np.all(t['a'][0] == m0)
+    assert np.all(t['a'][1] == m1)
+    assert np.all(t['a'][0].mask == m0.mask)
+    assert np.all(t['a'][1].mask == m1.mask)
+
+    assert t['b'].shape == (2, 3)
+    assert np.all(t['b'][0] == m1)
+    assert np.all(t['b'][1] == m0)
+    assert np.all(t['b'][0].mask == m1.mask)
+    assert np.all(t['b'][1].mask == m0.mask)
+
+
 def test_data_to_col_convert_strategy():
     """Test the update to how data_to_col works (#8972), using the regression
     example from #8971.
