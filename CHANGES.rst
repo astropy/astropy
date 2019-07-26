@@ -333,6 +333,9 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Fix bug where adding a column consisting of a list of masked arrays was
+  dropping the masks. [#9048]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
