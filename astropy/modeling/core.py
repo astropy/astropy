@@ -2369,7 +2369,6 @@ class CompoundModel(Model):
         self.eqcons = []
         self.ineqcons = []
 
-
     def __len__(self):
         return self._n_models
 
