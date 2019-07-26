@@ -124,6 +124,9 @@ astropy.visualization
 - Added a new ``time_support`` context manager/function for making it easy to
   plot and format ``Time`` objects in Matplotlib. [#8782]
 
+- Added support for plotting any WCS compliant with the generalized (APE 14)
+  WCS API with WCSAxes. [#8885]
+
 astropy.wcs
 ^^^^^^^^^^^
 

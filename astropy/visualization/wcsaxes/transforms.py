@@ -153,9 +153,6 @@ class World2PixelTransform(CurvedTransform, metaclass=abc.ABCMeta):
         as a Nx2 array.
         """
 
-    def transform_non_affine(self, pixel):
-        return self.transform(pixel)
-
     @abc.abstractmethod
     def inverted(self):
         """
@@ -185,9 +182,6 @@ class Pixel2WorldTransform(CurvedTransform, metaclass=abc.ABCMeta):
         of (x, y) pixel coordinates to transform to world coordinates. This
         will then return an NxM array where M is the number of dimensions.
         """
-
-    def transform_non_affine(self, pixel):
-        return self.transform(pixel)
 
     @abc.abstractmethod
     def inverted(self):

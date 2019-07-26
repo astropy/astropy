@@ -885,14 +885,16 @@ class CoordinateHelper:
             tick_world_coordinates_values = wrap_angle_at(tick_world_coordinates_values, mid)
 
             # Replace wraps by NaN
-            reset = (np.abs(np.diff(field[:, :-1], axis=0)) > 180) | (np.abs(np.diff(field[:-1, :], axis=1)) > 180)
+            with np.errstate(invalid='ignore'):
+                reset = (np.abs(np.diff(field[:, :-1], axis=0)) > 180) | (np.abs(np.diff(field[:-1, :], axis=1)) > 180)
             field[:-1, :-1][reset] = np.nan
             field[1:, :-1][reset] = np.nan
             field[:-1, 1:][reset] = np.nan
             field[1:, 1:][reset] = np.nan
 
         if len(tick_world_coordinates_values) > 0:
-            self._grid = self.parent_axes.contour(x, y, field.transpose(), levels=np.sort(tick_world_coordinates_values))
+            with np.errstate(invalid='ignore'):
+                self._grid = self.parent_axes.contour(x, y, field.transpose(), levels=np.sort(tick_world_coordinates_values))
         else:
             self._grid = None
 

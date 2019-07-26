@@ -75,7 +75,11 @@ class CoordinatesMap:
                                                  frame=self.frame))
 
             # Set up aliases for coordinates
-            self._aliases[name.lower()] = coord_index
+            if isinstance(name, tuple):
+                for nm in name:
+                    self._aliases[nm] = coord_index
+            else:
+                self._aliases[name.lower()] = coord_index
 
     def __getitem__(self, item):
         if isinstance(item, str):

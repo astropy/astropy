@@ -136,7 +136,6 @@ class TestAngleFormatterLocator:
                                                     ])
     def test_format(self, format, string):
         fl = AngleFormatterLocator(number=5, format=format)
-        print(fl.formatter([15.392231] * u.degree, None, format='ascii')[0], string)
         assert fl.formatter([15.392231] * u.degree, None, format='ascii')[0] == string
 
     @pytest.mark.parametrize(('separator', 'format', 'string'), [(('deg', "'", '"'), 'dd', '15deg'),
@@ -371,7 +370,6 @@ class TestScalarFormatterLocator:
 
         assert_almost_equal(minor_values.value, [36., 37., 38., 39., 41., 42.,
                             43., 44., 46., 47., 48., 49., 51., 52., 53., 54.])
-        print('minor_values: ' + str(minor_values))
 
         minor_values = fl.minor_locator(spacing, 2, 34.3, 55.4)
 
