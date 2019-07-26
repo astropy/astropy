@@ -16,7 +16,8 @@ import pytest
 import numpy as np
 
 # LOCAL
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import (
+    AstropyUserWarning, AstropyDeprecationWarning)
 from astropy.utils.timer import RunTimePredictor
 from astropy.modeling.fitting import ModelsError
 
@@ -36,7 +37,9 @@ def func_to_time(x):
 
 def test_timer():
     """Test function timer."""
-    p = RunTimePredictor(func_to_time)
+    with pytest.warns(AstropyDeprecationWarning,
+                      match='astroquery.utils.timer.RunTimePredictor'):
+        p = RunTimePredictor(func_to_time)
 
     # --- These must run before data points are introduced. ---
 
