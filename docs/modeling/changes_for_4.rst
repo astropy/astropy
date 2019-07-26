@@ -16,13 +16,15 @@ unless one wants to understand why some changes were necessary.
 - Support for expressions of modeling classes has been removed.
   Expressions of model class instances are still fully supported.
   This was done to simplify the implemenation, improve performance,
-  and support the new parameter semantics. For example:
+  and support the new parameter semantics. For example::
 
   No longer works::
-        >>> NewCompoundClass = Gaussian1D + Const1D
+
+        NewCompoundClass = Gaussian1D + Const1D
 
   Still works::
-        >>> newmodel = Gaussian1D(3.2, 7.1, 2.1) + Const1D(3.)
+
+        newmodel = Gaussian1D(3.2, 7.1, 2.1) + Const1D(3.)
 
 - Previous to 4.0, parameters were class descriptors, which meant
   that they could not hold values for the models. Instead, the 
@@ -73,11 +75,11 @@ unless one wants to understand why some changes were necessary.
 - Slicing is more restrictive now. Previously a model defined as 
   such::
 
-        >>> m = m1 * m2 + m3
+        m = m1 * m2 + m3
 
   permitted this slice::
 
-        >>> m[1:] # results in m2 + m3
+        m[1:] # results in m2 + m3
 
   Now, only submodels in the expression tree (think of it as
   the sequence of operations as performed) are permitted as 
@@ -85,10 +87,10 @@ unless one wants to understand why some changes were necessary.
   now. The following code illustrates what is permitted 
   and what isn't::
 
-        >>> m = m1 + m2 + m3 + m4
-        >>> m[:2] # Results in m1 + m2, works
-        >>> m[1:] # Should result in m2 + m3 + m4, does not work
-        >>>       # since m1 is part of all subexpressions.
+        m = m1 + m2 + m3 + m4
+        m[:2] # Results in m1 + m2, works
+        m[1:] # Should result in m2 + m3 + m4, does not work
+               # since m1 is part of all subexpressions.
 
 
 
