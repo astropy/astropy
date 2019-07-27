@@ -2626,6 +2626,12 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     mask_bits = careful_read(int((len(fields) + 7) / 8))
                     row_mask_data = list(converters.bitarray_to_bool(
                         mask_bits, len(fields)))
+
+                    # Ignore the mask for string columns (see issue 8995)
+                    for i, f in enumerate(fields):
+                        if f.datatype == 'char' or f.datatype == 'unicodeChar':
+                            row_mask_data[i] = False
+
                 for i, binparse in enumerate(binparsers):
                     try:
                         value, value_mask = binparse(careful_read)
