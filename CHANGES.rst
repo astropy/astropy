@@ -291,10 +291,6 @@ astropy.io.votable
   being a boolean. In addition, changed default to ``ignore``, which means
   that warnings will not be shown by default when loading VO tables. [#8715]
 
-- Address issue #8995 by ignoring BINARY2 null mask bits for string values
-  on parsing a VOTable.  In this way, the reader should never create masked
-  values for string types. [#9057]
-
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
@@ -472,6 +468,10 @@ astropy.io.registry
 
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
+
+- Address issue #8995 by ignoring BINARY2 null mask bits for string values
+  on parsing a VOTable.  In this way, the reader should never create masked
+  values for string types. [#9057]
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
