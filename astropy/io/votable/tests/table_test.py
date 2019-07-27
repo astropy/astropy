@@ -8,8 +8,6 @@ import os
 import pathlib
 import pytest
 import numpy as np
-from numpy.testing import assert_array_equal
-from numpy.ma import allequal
 
 from astropy.config import set_temp_config, reload_config
 from astropy.utils.data import get_pkg_data_filename, get_pkg_data_fileobj
@@ -186,6 +184,7 @@ def test_empty_table():
     votable = parse(get_pkg_data_filename('data/empty_table.xml'))
     table = votable.get_first_table()
     astropy_table = table.to_table()  # noqa
+
 
 def test_binary2_masked_strings():
     """
