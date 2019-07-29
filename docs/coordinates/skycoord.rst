@@ -879,7 +879,7 @@ As in the last example, we first import the required packages.
     >>> import numpy as np
 
 We now generate random data for visualization using
-`numpy.random.multivariate_normal`.
+`numpy.random.Generator.multivariate_normal`.
 
     >>> disk = np.random.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,0.5]), size=5000)
     >>> bulge = np.random.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,1]), size=500)
