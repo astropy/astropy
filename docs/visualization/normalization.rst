@@ -40,7 +40,7 @@ The quick way
 
 We provide a convenience
 :func:`~astropy.visualization.mpl_normalize.simple_norm` function that can be
-useful for quick interactive analysis.:
+useful for quick interactive analysis:
 
 .. plot::
     :include-source:
