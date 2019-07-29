@@ -17,6 +17,7 @@ matplotlib's default of 10 bins, the second with an arbitrarily chosen
 
 .. plot::
    :align: center
+   :include-source:
 
     import numpy as np
     import matplotlib.pyplot as plt
@@ -70,6 +71,7 @@ The following figure shows the results of these two rules on the above dataset:
 
 .. plot::
    :align: center
+   :include-source:
 
     import numpy as np
     import matplotlib.pyplot as plt
@@ -123,6 +125,7 @@ the results of these procedures for the above dataset:
 
 .. plot::
    :align: center
+   :include-source:
 
     import warnings
     import numpy as np
