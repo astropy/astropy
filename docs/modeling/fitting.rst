@@ -181,6 +181,13 @@ Fitters support constrained fitting.
           1.0 2.0 3.0
           1.0 2.0 3.0
 
+  The syntax to fix the same parameter ``c0`` using an argument to the model
+  instead of ``p1.c0.fixed = True`` would be::
+
+      >>> p1 = models.Polynomial1D(2, c0=[1, 1], c1=[2, 2], c2=[3, 3],
+      ...                          n_models=2, fixed={'c0': True})
+
+
 - A parameter can be `~astropy.modeling.Parameter.tied` (linked to
   another parameter). This can be done in two ways::
 
