@@ -342,14 +342,18 @@ base_doc = """{__doc__}
         sets the expected input representation class, thereby changing the
         expected keyword arguments for the data passed in. For example, passing
         ``representation_type='cartesian'`` will make the classes expect
-        position data with cartesian names, i.e. ``x, y, z`` in most cases.
+        position data with cartesian names, i.e. ``x, y, z`` in most cases
+        unless overriden via `frame_specific_representation_info`.
+        Check out `<this frame>().representation_info`.
     differential_type : `~astropy.coordinates.BaseDifferential` subclass, str, dict, optional
         A differential class or dictionary of differential classes (currently
         only a velocity differential with key 's' is supported). This sets the
         expected input differential class, thereby changing the expected keyword
         arguments of the data passed in. For example, passing
         ``differential_type='cartesian'`` will make the classes expect velocity
-        data with the argument names ``v_x, v_y, v_z``.
+        data with the argument names ``v_x, v_y, v_z`` unless overriden via
+        `frame_specific_representation_info`.
+        Check out `<this frame>().representation_info`.
     copy : bool, optional
         If `True` (default), make copies of the input coordinate arrays.
         Can only be passed in as a keyword argument.
