@@ -572,6 +572,18 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                              "without positional (representation) data.")
 
         if differential_data:
+            # Check that differential data provided has units compatible
+            # with time-derivative of representation data.
+            # NOTE: there is no dimensionless time while lengths can be
+            # dimensionless (u.dimensionless_unscaled).
+            for comp in representation_data.components:
+                if f'd_{comp}' in differential_data.components:
+                    current_repr_unit = representation_data._units[comp]
+                    current_diff_unit = differential_data._units[f'd_{comp}']
+                    if not current_diff_unit.is_equivalent(current_repr_unit / u.s):
+                        raise ValueError(
+                            "Differential data units are not compatible with"
+                            "time-derivative of representation data units")
             self._data = representation_data.with_differentials(
                 {'s': differential_data})
         else:
