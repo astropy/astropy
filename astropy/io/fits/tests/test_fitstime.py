@@ -46,14 +46,14 @@ class TestFitsTime(FitsTestCase):
         t['a'].location = EarthLocation([1., 2.], [2., 3.], [3., 4.],
                                         unit='Mm')
 
-        with pytest.warns(AstropyUserWarning, match='Time Column "b" has no '
+        with pytest.warns(AstropyUserWarning, match=r'Time Column "b" has no '
                           'specified location, but global Time Position is present'):
             table, hdr = time_to_fits(t)
         assert (table['OBSGEO-X'] == t['a'].location.x.to_value(unit='m')).all()
         assert (table['OBSGEO-Y'] == t['a'].location.y.to_value(unit='m')).all()
         assert (table['OBSGEO-Z'] == t['a'].location.z.to_value(unit='m')).all()
 
-        with pytest.warns(AstropyUserWarning, match='Time Column "b" has no '
+        with pytest.warns(AstropyUserWarning, match=r'Time Column "b" has no '
                           'specified location, but global Time Position is present'):
             t.write(self.temp('time.fits'), format='fits', overwrite=True)
 
@@ -61,7 +61,7 @@ class TestFitsTime(FitsTestCase):
         hdr = fits.getheader(self.temp('time.fits'), 1)
         assert hdr.get('TRPOS2', None) is None
 
-        with pytest.warns(AstropyUserWarning, match='Time column reference position '
+        with pytest.warns(AstropyUserWarning, match=r'Time column reference position '
                           '"TRPOSn" is not specified. The default value for it is '
                           '"TOPOCENTER", and the observatory position has been specified.'):
             tm = table_types.read(self.temp('time.fits'), format='fits',
@@ -154,7 +154,7 @@ class TestFitsTime(FitsTestCase):
                          'OBSGEO-Y' : t['a'].location.y.value,
                          'OBSGEO-Z' : t['a'].location.z.value}
 
-        with pytest.warns(AstropyUserWarning, match='Time Column "b" has no '
+        with pytest.warns(AstropyUserWarning, match=r'Time Column "b" has no '
                           'specified location, but global Time Position is present'):
             table, hdr = time_to_fits(t)
 
@@ -286,7 +286,7 @@ class TestFitsTime(FitsTestCase):
            to be time.
         """
         filename = self.data('chandra_time.fits')
-        with pytest.warns(AstropyUserWarning, match='Time column "time" reference '
+        with pytest.warns(AstropyUserWarning, match=r'Time column "time" reference '
                           'position will be ignored'):
             tm = table_types.read(filename, astropy_native=True)
 

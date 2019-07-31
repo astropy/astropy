@@ -440,7 +440,7 @@ Tests that create files
 Tests may often be run from directories where users do not have write
 permissions so tests which create files should always do so in
 temporary directories. This can be done with the
-:ref:`pytest 'tmpdir' fixture <pytest:tmpdir>` or with
+:ref:`pytest 'tmpdir' fixture <pytest:tmpdir handling>` or with
 Python's built-in :ref:`tempfile module <python:tempfile-examples>`.
 
 
@@ -671,7 +671,7 @@ Testing exceptions
 
 Just like the handling of warnings described above, tests that are
 designed to trigger certain errors should verify that an exception of
-the expected type is raised in the expeced place.  This is efficiently
+the expected type is raised in the expected place.  This is efficiently
 done by running the tested code inside the
 :ref:`pytest.raises <pytest:assertraises>`
 context manager.  Its optional ``match`` argument allows to check the
@@ -685,7 +685,7 @@ For matching multi-line messages you need to pass the ``(?s)``
 :ref:`flag <python:re-syntax>`
 to the underlying ``re.search``, as in the example below::
 
-  with pytest.raises(fits.VerifyError, match=r'(?s)not upper..+ Illegal key') as excinfo:
+  with pytest.raises(fits.VerifyError, match=r'(?s)not upper.+ Illegal key') as excinfo:
       hdu.verify('fix+exception')
   assert str(excinfo.value).count('Card') == 2
 
