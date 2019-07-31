@@ -652,7 +652,7 @@ def test_suggestions():
             ('milimeter', 'millimeter'),
             ('ångström', 'Angstrom or angstrom'),
             ('kev', 'EV, eV, kV or keV')]:
-        with pytest.raises(ValueError, match=f'Did you mean {matches}\?'):
+        with pytest.raises(ValueError, match=f'Did you mean {matches}'):
             u.Unit(search)
 
 
