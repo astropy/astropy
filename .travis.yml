@@ -67,6 +67,7 @@ stages:
    - name: Initial tests
    # Do the rest of the tests
    - name: Comprehensive tests
+   - name: Final tests
    - name: Cron tests
      if: type = cron
 
@@ -127,6 +128,13 @@ matrix:
                MATPLOTLIB_VERSION=2.0
                EVENT_TYPE='push pull_request cron'
 
+        # Try on Windows
+        - os: windows
+          stage: Final tests
+          env: PYTHON_VERSION=3.7 SETUP_CMD='test --readonly'
+               CONDA_DEPENDENCIES=""
+               PIP_DEPENDENCIES="Cython scipy h5py beautifulsoup4 html5lib jinja2 pyyaml matplotlib scikit-image pytz pandas objgraph asdf"
+
         # Do a PEP8/pyflakes test with flake8
         - os: linux
           stage: Initial tests
@@ -137,6 +145,7 @@ matrix:
         # unstable, we combine them into a single unstable build that we can
         # mark as an allowed failure below.
         - os: linux
+          stage: Final tests
           env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
                CONDA_DEPENDENCIES=''
                PIP_DEPENDENCIES=$DEV_PIP_DEP
@@ -165,6 +174,7 @@ matrix:
 
     allow_failures:
       - os: linux
+        stage: Final tests
         env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
              CONDA_DEPENDENCIES=''
              PIP_DEPENDENCIES=$DEV_PIP_DEP
