@@ -112,6 +112,12 @@ matrix:
                MATPLOTLIB_VERSION=2.0 NUMPY_VERSION=1.13
                EVENT_TYPE='push pull_request cron'
 
+        # Try on Windows
+        - os: windows
+          env: PYTHON_VERSION=3.7 SETUP_CMD='test --readonly'
+               CONDA_DEPENDENCIES=""
+               PIP_DEPENDENCIES="Cython scipy h5py beautifulsoup4 html5lib jinja2 pyyaml matplotlib scikit-image pytz pandas objgraph asdf"
+
         # Do a PEP8/pyflakes test with flake8
         - os: linux
           env: MAIN_CMD="flake8 astropy --count $FLAKE8_OPT" SETUP_CMD=''

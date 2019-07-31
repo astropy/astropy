@@ -153,10 +153,10 @@ packages that use the full bugfix/maintenance branch approach.)
 
 #. Build and test the Astropy wheels.  See the `wheel builder README
    <https://github.com/MacPython/astropy-wheels>`_ for instructions.  In
-   summary, clone the wheel-building repo, edit the ``.travis.yml`` and
-   ``appveyor.yml`` text files with the branch or commit for the release,
+   summary, clone the wheel-building repo, edit the ``.travis.yml``
+   text file with the branch or commit for the release,
    commit and then push back up to github.  This will trigger a wheel build
-   and test on OSX, Linux and Windows. Check the build has passed on on the
+   and test on OSX, Linux, and Windows. Check the build has passed on on the
    Travis-CI interface at https://travis-ci.org/MacPython/astropy-wheels.
    You'll need commit privileges to the ``astropy-wheels`` repo; ask Tom Kooij
    or on the mailing list if you do not have them.
@@ -174,9 +174,8 @@ packages that use the full bugfix/maintenance branch approach.)
    * build and upload the Astropy wheels;
    * make and upload the Astropy source release.
 
-
 #. For the wheel build / upload, follow the `wheel builder README`_
-   instructions again.  Edit the ``.travis.yml`` and ``appveyor.yml`` files
+   instructions again.  Edit the ``.travis.yml`` file
    to give the release tag to build.  Check the build has passed on on the
    Travis-CI interface at https://travis-ci.org/MacPython/astropy-wheels.  Now
    follow the instructions in the page above to download the built wheels to a

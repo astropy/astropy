@@ -1075,9 +1075,10 @@ Overview
 
 Astropy uses the following continuous integration (CI) services:
 
-* `Travis <https://travis-ci.org/astropy/astropy>`_ for 64-bit Linux and OS X setups
-* `Appveyor <https://ci.appveyor.com/project/Astropy/astropy>`_ for Windows
-* `CircleCI <https://circleci.com>`_ for 32-bit Linux
+* `Travis <https://travis-ci.org/astropy/astropy>`_ for
+  64-bit Linux, OS X, and Windows setups
+* `CircleCI <https://circleci.com>`_ for 32-bit Linux,
+  documentation build, and visualization tests
 
 These continuously test the package for each commit and pull request that is
 pushed to GitHub to notice when something breaks.
