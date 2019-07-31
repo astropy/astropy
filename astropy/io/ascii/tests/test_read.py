@@ -505,7 +505,7 @@ def test_null_Ipac():
                            ('sai', '|b1'),
                            ('v2', '|b1'),
                            ('sptype', '|b1')])
-    assert np.all(data.mask == mask)
+    assert np.all(data.mask.rows_equal(mask))
 
 
 def test_Ipac_meta():
@@ -1362,13 +1362,13 @@ def test_read_chunks_input_types():
 
         assert len(ts) == 4
         t2 = table.vstack(ts)
-        assert np.all(t1 == t2)
+        assert np.all(t1.rows_equal(t2))
 
     for fp in (fpath, open(fpath, 'r'), open(fpath, 'r').read()):
         # Now read the full table in chunks
         t3 = ascii.read(fp, header_start=1, data_start=3,
                         fast_reader={'chunk_size': 300})
-        assert np.all(t1 == t3)
+        assert np.all(t1.rows_equal(t3))
 
 
 @pytest.mark.parametrize('masked', [True, False])
@@ -1396,11 +1396,11 @@ def test_read_chunks_formats(masked):
 
         assert len(ts) > 4
         t2 = table.vstack(ts)
-        assert np.all(t1 == t2)
+        assert np.all(t1.rows_equal(t2))
 
         # Now read the full table in chunks
         t3 = ascii.read(out.getvalue(), format=format, fast_reader={'chunk_size': 400})
-        assert np.all(t1 == t3)
+        assert np.all(t1.rows_equal(t3))
 
 
 def test_read_chunks_chunk_size_too_small():
@@ -1422,7 +1422,7 @@ def test_read_chunks_table_changes():
 
     # This also confirms that the dtypes are exactly the same, i.e.
     # the string itemsizes are the same.
-    assert np.all(t1 == t2)
+    assert np.all(t1.rows_equal(t2))
 
 
 def test_read_non_ascii():

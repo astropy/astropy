@@ -841,8 +841,8 @@ class TestRemove(SetupData):
         assert self.t.as_array().size == 0
         # Regression test for gh-8640
         assert not self.t
-        assert isinstance(self.t == None, np.ndarray)
-        assert (self.t == None).size == 0
+        assert isinstance(self.t.rows_equal(None), np.ndarray)
+        assert (self.t.rows_equal(None)).size == 0
 
     def test_2(self, table_types):
         self._setup(table_types)
@@ -956,8 +956,8 @@ class TestRemove(SetupData):
         assert self.t.as_array().size == 0
         # Regression test for gh-8640
         assert not self.t
-        assert isinstance(self.t == None, np.ndarray)
-        assert (self.t == None).size == 0
+        assert isinstance(self.t.rows_equal(None), np.ndarray)
+        assert (self.t.rows_equal(None)).size == 0
 
     def test_delitem2(self, table_types):
         self._setup(table_types)
@@ -986,8 +986,8 @@ class TestKeep(SetupData):
         assert t.as_array().size == 0
         # Regression test for gh-8640
         assert not t
-        assert isinstance(t == None, np.ndarray)
-        assert (t == None).size == 0
+        assert isinstance(t.rows_equal(None), np.ndarray)
+        assert (t.rows_equal(None)).size == 0
 
     def test_2(self, table_types):
         self._setup(table_types)
@@ -1382,7 +1382,61 @@ def test_disallow_inequality_comparisons():
         t <= -1.1
 
 
-def test_equality():
+def test_equality_table():
+
+    col1 = [1, 2]
+    col2 = [1.0, 2.0]
+    col3 = ['a', 'b']
+    t1 = table.Table([col1, col2, col3], names=['a', 'b', 'c'])
+    t2 = table.Table([col1, col2], names=['a', 'b'])
+    t3 = table.table_helpers.simple_table()
+    tm = table.Table([col1, col2, col3], names=['a', 'b', 'c'])
+    tm['tm'] = Time([1, 2], format='cxcsec')
+    tm1 = tm
+    tm1['tm'][0] = np.ma.masked
+    tq = table.table_helpers.simple_table()
+    tq['quantity'] = [1., 2., 3.]*u.m
+    tsk = table.table_helpers.simple_table()
+    from astropy.coordinates import SkyCoord
+    tsk['sk'] = SkyCoord(1, 2,  unit='deg')
+
+    with pytest.raises(ValueError):
+        t2.cols_equal(t1)
+
+    with pytest.raises(ValueError):
+        t3.cols_equal(t1)
+
+    with pytest.raises(ValueError):
+        t1.cols_equal(2)
+
+    with pytest.raises(ValueError):
+        t1.cols_equal([1, 2])
+
+    with pytest.raises(ValueError):
+        tsk.cols_equal(tsk)
+
+    eq = t2.cols_equal(t2)
+    for col in eq.colnames:
+        assert np.all(eq[col] == [True, True])
+
+    eq1 = tm1.cols_equal(tm)
+    for col in eq1.colnames:
+        assert np.all(eq1[col] == [True, True])
+
+    eq2 = tq.cols_equal(tq)
+    for col in eq2.colnames:
+        assert np.all(eq2[col] == [True, True, True])
+
+    eq3 = t2.cols_equal(2)
+    for col in eq3.colnames:
+        assert np.all(eq3[col] == [False, True])
+
+    eq4 = t2.cols_equal([1, 2])
+    for col in eq4.colnames:
+        assert np.all(eq4[col] == [True, True])
+
+
+def test_rows_equal():
 
     t = table.Table.read([' a b  c  d',
                           ' 2 c 7.0 0',
@@ -1396,13 +1450,13 @@ def test_equality():
                          ], format='ascii')
 
     # All rows are equal
-    assert np.all(t == t)
+    assert np.all(t.rows_equal(t))
 
     # Assert no rows are different
     assert not np.any(t != t)
 
     # Check equality result for a given row
-    assert np.all((t == t[3]) == np.array([0, 0, 0, 1, 0, 0, 0, 0], dtype=bool))
+    assert np.all((t.rows_equal(t[3])) == np.array([0, 0, 0, 1, 0, 0, 0, 0], dtype=bool))
 
     # Check inequality result for a given row
     assert np.all((t != t[3]) == np.array([1, 1, 1, 0, 1, 1, 1, 1], dtype=bool))
@@ -1420,15 +1474,15 @@ def test_equality():
 
     # In the above cases, Row.__eq__ gets called, but now need to make sure
     # Table.__eq__ also gets called.
-    assert np.all((t == t2) == np.array([1, 1, 0, 1, 0, 1, 0, 1], dtype=bool))
+    assert np.all((t.rows_equal(t2)) == np.array([1, 1, 0, 1, 0, 1, 0, 1], dtype=bool))
     assert np.all((t != t2) == np.array([0, 0, 1, 0, 1, 0, 1, 0], dtype=bool))
 
     # Check that comparing to a structured array works
-    assert np.all((t == t2.as_array()) == np.array([1, 1, 0, 1, 0, 1, 0, 1], dtype=bool))
+    assert np.all((t.rows_equal(t2.as_array())) == np.array([1, 1, 0, 1, 0, 1, 0, 1], dtype=bool))
     assert np.all((t.as_array() == t2) == np.array([1, 1, 0, 1, 0, 1, 0, 1], dtype=bool))
 
 
-def test_equality_masked():
+def test_rows_equal_masked():
 
     t = table.Table.read([' a b  c  d',
                           ' 2 c 7.0 0',
@@ -1445,13 +1499,13 @@ def test_equality_masked():
     t = table.Table(t, masked=True)
 
     # All rows are equal
-    assert np.all(t == t)
+    assert np.all(t.rows_equal(t))
 
     # Assert no rows are different
     assert not np.any(t != t)
 
     # Check equality result for a given row
-    assert np.all((t == t[3]) == np.array([0, 0, 0, 1, 0, 0, 0, 0], dtype=bool))
+    assert np.all((t.rows_equal(t[3])) == np.array([0, 0, 0, 1, 0, 0, 0, 0], dtype=bool))
 
     # Check inequality result for a given row
     assert np.all((t != t[3]) == np.array([1, 1, 1, 0, 1, 1, 1, 1], dtype=bool))
@@ -1469,20 +1523,19 @@ def test_equality_masked():
 
     # In the above cases, Row.__eq__ gets called, but now need to make sure
     # Table.__eq__ also gets called.
-    assert np.all((t == t2) == np.array([1, 1, 0, 1, 0, 1, 0, 1], dtype=bool))
+    assert np.all((t.rows_equal(t2)) == np.array([1, 1, 0, 1, 0, 1, 0, 1], dtype=bool))
     assert np.all((t != t2) == np.array([0, 0, 1, 0, 1, 0, 1, 0], dtype=bool))
 
     # Check that masking a value causes the row to differ
     t.mask['a'][0] = True
-    assert np.all((t == t2) == np.array([0, 1, 0, 1, 0, 1, 0, 1], dtype=bool))
+    assert np.all((t.rows_equal(t2)) == np.array([0, 1, 0, 1, 0, 1, 0, 1], dtype=bool))
     assert np.all((t != t2) == np.array([1, 0, 1, 0, 1, 0, 1, 0], dtype=bool))
 
     # Check that comparing to a structured array works
-    assert np.all((t == t2.as_array()) == np.array([0, 1, 0, 1, 0, 1, 0, 1], dtype=bool))
-
+    assert np.all((t.rows_equal(t2.as_array())) == np.array([0, 1, 0, 1, 0, 1, 0, 1], dtype=bool))
 
 @pytest.mark.xfail
-def test_equality_masked_bug():
+def test_rows_equal_masked_bug():
     """
     This highlights a Numpy bug. Once it works, it can be moved into the
     test_equality_masked test. Related Numpy bug report:
@@ -1514,7 +1567,7 @@ def test_equality_masked_bug():
                            ' 1 a 1.0 7',
                           ], format='ascii')
 
-    assert np.all((t.as_array() == t2) == np.array([0, 1, 0, 1, 0, 1, 0, 1], dtype=bool))
+    assert np.all((t.as_array() == t2).rows_equal(np.array([0, 1, 0, 1, 0, 1, 0, 1], dtype=bool)))
 
 
 # Check that the meta descriptor is working as expected. The MetaBaseTest class

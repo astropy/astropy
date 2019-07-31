@@ -557,7 +557,7 @@ def test_multicolumn_read():
     expected = Table(np.array([(['1', '2.5000000000000000001'], 3),
                                (['1a', '1'], 3.5)],
                               dtype=[('A', str_type, (2,)), ('B', '<f8')]))
-    assert np.all(table == expected)
+    assert np.all(table.rows_equal(expected))
 
 
 @pytest.mark.skipif('not HAS_BLEACH')

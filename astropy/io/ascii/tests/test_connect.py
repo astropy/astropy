@@ -156,4 +156,4 @@ def test_auto_identify_ecsv(tmpdir):
     tmpfile =  str(tmpdir.join('/tmpFile.ecsv'))
     tbl.write(tmpfile)
     tbl2 = Table.read(tmpfile)
-    assert np.all(tbl == tbl2)
+    assert np.all(tbl.rows_equal(tbl2))

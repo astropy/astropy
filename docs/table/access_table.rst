@@ -314,6 +314,124 @@ structured array by creating a copy or reference with ``np.array``::
   >>> data = np.array(t, copy=False)  # reference to data in t
 
 
+Table Equality
+--------------
+We can check table data equality using three different ways:
+
+- Table :meth:`~astropy.table.Table.rows_equal` to compare table element
+  row-wise.
+- Table :meth:`~astropy.table.Table.cols_equal` to element-wise comparing
+  table elements.
+- Table :meth:`~astropy.table.Table.__eq__` simply using `==` for comparison.
+
+These methods use two different Table objects to compare. So, first we need to
+create two tables.::
+
+
+  >>> t1 = Table(t)
+  >>> t1['b'] = np.array([1, 4, 7, 15, 16], dtype=np.int32)
+  >>> print(t1)
+     a      b   c 
+  m sec^-1        
+  -------- --- ---
+     0.000   1   2
+     3.000   4   5
+     6.000   7   8
+     9.000  15  11
+    12.000  16  14
+
+
+rows_equal() method
+^^^^^^^^^^^^^^^^^^^
+
+In order to check equality row-wise use :meth:`~astropy.table.Table.rows_equal`
+method. It returns a boolean numpy array containing comparison values. We need 
+to pass other table as argument ::
+
+  >>> t.rows_equal(t1)
+  array([ True,  True,  True, False, False])
+
+cols_equal() method
+^^^^^^^^^^^^^^^^^^^
+In order to check equality element-wise use :meth:`~astropy.table.Table.cols_equal`
+method. It return a boolean Table object containing comparison values. We can compare 
+table data with list or sacalar using this method ::
+
+  >>> t.cols_equal(t1) # Comparing with other table
+  <Table length=5>
+   a     b    c  
+  bool  bool bool
+  ---- ----- ----
+  True  True True
+  True  True True
+  True  True True
+  True False True
+  True False True
+  >>> t.cols_equal([1,4,7,10,13]) # Comparing with a list
+  <Table length=5>
+    a    b     c  
+   bool bool  bool
+  ----- ---- -----
+  False True False
+  False True False
+  False True False
+  False True False
+  False True False
+  >>> t.cols_equal(2) # Comparing with a scalar
+  <Table length=5>
+    a     b     c  
+   bool  bool  bool
+  ----- ----- -----
+  False False  True
+  False False False
+  False False False
+  False False False
+  False False False
+
+
+Using `==`
+^^^^^^^^^^
+
+.. Warning:: Astropy 4.0 introduces an API change that affects equality checking 
+   of Table if using lower version then equality checking will behave like 
+   :meth:`~astropy.table.Table.rows_equal`.
+
+In order to check equality we can simply use `==`. It behaves similar to 
+:meth:`~astropy.table.Table.cols_equal` just we are using `==` for comparison
+otherwise all things are similar ::
+
+  >>> t == t1 # Comparing with other table
+  <Table length=5>
+   a     b    c  
+  bool  bool bool
+  ---- ----- ----
+  True  True True
+  True  True True
+  True  True True
+  True False True
+  True False True
+  >>> t == [1,4,7,10,13] # Comparing with a list
+  <Table length=5>
+    a    b     c  
+   bool bool  bool
+  ----- ---- -----
+  False True False
+  False True False
+  False True False
+  False True False
+  False True False
+  >>> 2 == t # Comparing with a scalar
+  <Table length=5>
+    a     b     c  
+   bool  bool  bool
+  ----- ----- -----
+  False False  True
+  False False False
+  False False False
+  False False False
+  False False False
+
+
 Formatted printing
 ------------------
 

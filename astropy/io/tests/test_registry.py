@@ -439,7 +439,7 @@ class TestSubclass:
         data = ['a b', '1 2']
         mt = MyTable.read(data, format='ascii')
         t = Table.read(data, format='ascii')
-        assert np.all(mt == t)
+        assert np.all(mt.rows_equal(t))
         assert mt.colnames == t.colnames
         assert type(mt) is MyTable
 
@@ -468,7 +468,7 @@ class TestSubclass:
         mt.write(testfile, overwrite=True)
 
         t = MTable.read(testfile)
-        assert np.all(mt == t)
+        assert np.all(mt.rows_equal(t))
         assert mt.colnames == t.colnames
         assert type(t) is MTable
         assert t['a'].unit == u.m
