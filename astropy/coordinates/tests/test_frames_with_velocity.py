@@ -319,4 +319,3 @@ def test_velocity_units():
             representation_type=r.CartesianRepresentation,
             differential_type=r.CartesianDifferential)
     assert "data units are not compatible with" in str(excinfo.value)
-
