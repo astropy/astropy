@@ -422,7 +422,7 @@ def test_convert_comment_convention(tmpdir):
     Regression test for https://github.com/astropy/astropy/issues/6079
     """
     filename = os.path.join(DATA, 'stddata.fits')
-    with pytest.warns(AstropyUserWarning, match='hdu= was not specified but '
+    with pytest.warns(AstropyUserWarning, match=r'hdu= was not specified but '
                       'multiple tables are present'):
         t = Table.read(filename)
 

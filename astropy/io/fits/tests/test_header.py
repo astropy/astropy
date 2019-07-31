@@ -309,7 +309,7 @@ class TestHeaderFunctions(FitsTestCase):
         c = fits.Card.fromstring('abc     = +  2.1   e + 12')
         assert c.value == 2100000000000.0
         with pytest.warns(fits.verify.VerifyWarning,
-                          match='Verification reported errors'):
+                          match=r'Verification reported errors'):
             assert str(c) == _pad("ABC     =             +2.1E+12")
 
     def test_fixable_non_fsc(self):
@@ -320,7 +320,7 @@ class TestHeaderFunctions(FitsTestCase):
             "no_quote=  this card's value has no quotes "
             "/ let's also try the comment")
         with pytest.warns(fits.verify.VerifyWarning,
-                          match='Verification reported errors'):
+                          match=r'Verification reported errors'):
             assert (str(c) == "NO_QUOTE= 'this card''s value has no quotes' "
                     "/ let's also try the comment       ")
 
@@ -335,7 +335,7 @@ class TestHeaderFunctions(FitsTestCase):
         assert c.keyword == 'XYZ'
         assert c.value == 100
         with pytest.warns(fits.verify.VerifyWarning,
-                          match='Verification reported errors'):
+                          match=r'Verification reported errors'):
             assert str(c) == _pad("XYZ     =                  100")
 
     def test_equal_only_up_to_column_10(self, capsys):
@@ -347,14 +347,14 @@ class TestHeaderFunctions(FitsTestCase):
         # should be left alone
         c = fits.Card.fromstring("HISTO       =   (1, 2)")
         with pytest.warns(AstropyUserWarning,
-                          match='header keyword is invalid'):
+                          match=r'header keyword is invalid'):
             assert str(c) == _pad("HISTO       =   (1, 2)")
 
         # Likewise this card should just be left in its original form and
         # we shouldn't guess how to parse it or rewrite it.
         c = fits.Card.fromstring("   HISTORY          (1, 2)")
         with pytest.warns(AstropyUserWarning,
-                          match='header keyword is invalid'):
+                          match=r'header keyword is invalid'):
             assert str(c) == _pad("   HISTORY          (1, 2)")
 
     def test_verify_invalid_equal_sign(self):
@@ -488,7 +488,7 @@ class TestHeaderFunctions(FitsTestCase):
             _pad("continue  'continue must have string value (with quotes)' "
                  "/ comments with ''. "))
         with pytest.warns(fits.verify.VerifyWarning,
-                          match='Verification reported errors'):
+                          match=r'Verification reported errors'):
             assert (str(c) ==
                     "ABC     = 'longstring''s testing  continue with long string but without the &'  "
                     "CONTINUE  'ampersand at the endcontinue must have string value (with quotes)&'  "
@@ -621,7 +621,7 @@ class TestHeaderFunctions(FitsTestCase):
         # identically to accessing it in the pytest.raises context below.
         pytest.raises(KeyError, lambda k: header[k], 'NAXIS')
         # Test exception with message
-        with pytest.raises(KeyError, match="Keyword 'NAXIS' not found."):
+        with pytest.raises(KeyError, match=r"Keyword 'NAXIS' not found."):
             header['NAXIS']
 
     def test_hierarch_card_lookup(self):
@@ -642,16 +642,16 @@ class TestHeaderFunctions(FitsTestCase):
     def test_hierarch_card_insert_delete(self):
         header = fits.Header()
         with pytest.warns(fits.verify.VerifyWarning,
-                          match='greater than 8 characters'):
+                          match=r'greater than 8 characters'):
             header['abcdefghi'] = 10
         header['abcdefgh'] = 10
         header['abcdefg'] = 10
         with pytest.warns(fits.verify.VerifyWarning,
-                          match='greater than 8 characters'):
+                          match=r'greater than 8 characters'):
             header.insert(2, ('abcdefghij', 10))
         del header['abcdefghij']
         with pytest.warns(fits.verify.VerifyWarning,
-                          match='greater than 8 characters'):
+                          match=r'greater than 8 characters'):
             header.insert(2, ('abcdefghij', 10))
         del header[2]
         assert list(header.keys())[2] == 'abcdefg'.upper()
@@ -1808,12 +1808,12 @@ class TestHeaderFunctions(FitsTestCase):
         # Now if this were reserialized, would new values for these cards be
         # written with repaired exponent signs?
         with pytest.warns(fits.verify.VerifyWarning,
-                          match='Verification reported errors'):
+                          match=r'Verification reported errors'):
             assert (str(h.cards['FOCALLEN']) ==
                     _pad("FOCALLEN= +1.550000000000E+002"))
         assert h.cards['FOCALLEN']._modified
         with pytest.warns(fits.verify.VerifyWarning,
-                          match='Verification reported errors'):
+                          match=r'Verification reported errors'):
             assert (str(h.cards['APERTURE']) ==
                     _pad("APERTURE= +0.000000000000E+000"))
         assert h.cards['APERTURE']._modified
@@ -1824,12 +1824,12 @@ class TestHeaderFunctions(FitsTestCase):
         # really should be "fixed" before being returned to the user
         h = fits.Header.fromstring(hstr, sep='\n')
         with pytest.warns(fits.verify.VerifyWarning,
-                          match='Verification reported errors'):
+                          match=r'Verification reported errors'):
             assert (str(h.cards['FOCALLEN']) ==
                     _pad("FOCALLEN= +1.550000000000E+002"))
         assert h.cards['FOCALLEN']._modified
         with pytest.warns(fits.verify.VerifyWarning,
-                          match='Verification reported errors'):
+                          match=r'Verification reported errors'):
             assert (str(h.cards['APERTURE']) ==
                     _pad("APERTURE= +0.000000000000E+000"))
         assert h.cards['APERTURE']._modified
@@ -2195,7 +2195,7 @@ class TestHeaderFunctions(FitsTestCase):
 
         c = fits.Card.fromstring('HIERARCH ESO DET CHIP PXSPACE = 5e6')
         with pytest.warns(fits.verify.VerifyWarning,
-                          match='Verification reported errors'):
+                          match=r'Verification reported errors'):
             c.verify('fix')
         assert str(c) == _pad('HIERARCH ESO DET CHIP PXSPACE = 5E6')
 
@@ -2531,7 +2531,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
 
         pytest.raises(IndexError, lambda x: self._test_header[x], 8)
         # Test exception with message
-        with pytest.raises(KeyError, match="Keyword 'DP1.AXIS.3' not found."):
+        with pytest.raises(KeyError, match=r"Keyword 'DP1\.AXIS\.3' not found."):
             self._test_header['DP1.AXIS.3']
 
     def test_update_rvkc(self):

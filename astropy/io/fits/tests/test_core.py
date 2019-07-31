@@ -273,7 +273,7 @@ class TestCore(FitsTestCase):
         # silentfix+exception should only mention the unfixable error in the
         # exception
         hdu = make_invalid_hdu()
-        with pytest.raises(fits.VerifyError, match='Illegal keyword name') as excinfo:
+        with pytest.raises(fits.VerifyError, match=r'Illegal keyword name') as excinfo:
             hdu.verify('silentfix+exception')
         assert 'not upper case' not in str(excinfo.value)
 
@@ -295,7 +295,7 @@ class TestCore(FitsTestCase):
 
         # fix+exception
         hdu = make_invalid_hdu()
-        with pytest.raises(fits.VerifyError, match='Illegal keyword name') as excinfo:
+        with pytest.raises(fits.VerifyError, match=r'Illegal keyword name') as excinfo:
             hdu.verify('fix+exception')
         assert 'not upper case' in str(excinfo.value)
 
@@ -588,7 +588,7 @@ class TestFileFunctions(FitsTestCase):
         OSError (and not some other arbitrary exception).
         """
 
-        with pytest.raises(OSError, match='No such file or directory'):
+        with pytest.raises(OSError, match=r'No such file or directory'):
             fits.open(self.temp('foobar.fits'))
 
         # But opening in ostream or append mode should be okay, since they
@@ -1049,7 +1049,7 @@ class TestFileFunctions(FitsTestCase):
 
         with fits.open(self.data('test0.fits'), memmap=True) as hdulist:
             with patch.object(mmap, 'mmap', side_effect=mmap_patched) as p:
-                with pytest.warns(AstropyUserWarning, match="Could not memory "
+                with pytest.warns(AstropyUserWarning, match=r"Could not memory "
                                   "map array with mode='readonly'"):
                     data = hdulist[1].data
                 p.reset_mock()
@@ -1344,7 +1344,7 @@ class TestStreamingFunctions(FitsTestCase):
         pytest.raises(fits.VerifyError, hdul.writeto, filename,
                       output_verify='exception')
         with pytest.warns(fits.verify.VerifyWarning,
-                          match='Verification reported errors'):
+                          match=r'Verification reported errors'):
             hdul.writeto(filename, output_verify='fix')
         with fits.open(filename):
             assert hdul[1].name == '12345678'
