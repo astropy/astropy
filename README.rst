@@ -2,7 +2,7 @@
 Astropy
 =======
 
-|Travis Status| |AppVeyor Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Documentation Status|
+|Travis Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Documentation Status|
 
 The Astropy Project (http://astropy.org/) is a community effort to develop a
 single core package for Astronomy in Python and foster interoperability between
@@ -65,10 +65,6 @@ reach out to PyPI.
 .. |CircleCI Status| image:: https://circleci.com/gh/astropy/astropy.svg?style=svg
     :target: https://circleci.com/gh/astropy/astropy
     :alt: Astropy's CircleCI Status
-
-.. |AppVeyor Status| image:: https://ci.appveyor.com/api/projects/status/ym7lxajcs5qwm31e/branch/master?svg=true
-    :target: https://ci.appveyor.com/project/Astropy/astropy/branch/master
-    :alt: Astropy's Appveyor Status
 
 .. |Coverage Status| image:: https://codecov.io/gh/astropy/astropy/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/astropy/astropy

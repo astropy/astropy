@@ -133,6 +133,12 @@ matrix:
                MATPLOTLIB_VERSION=2.1
                EVENT_TYPE='push pull_request cron'
 
+        # Try on Windows
+        - os: windows
+          env: PYTHON_VERSION=3.7 SETUP_CMD='test'
+               CONDA_DEPENDENCIES="Cython scipy h5py beautifulsoup4 html5lib jinja2 pyyaml matplotlib scikit-image pytz pandas"
+               PIP_DEPENDENCIES="objgraph asdf"
+
         # Do a PEP8/pyflakes test with flake8
         - os: linux
           stage: Initial tests
