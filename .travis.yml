@@ -135,7 +135,7 @@ matrix:
 
         # Try on Windows
         - os: windows
-          env: PYTHON_VERSION=3.7 SETUP_CMD='test'
+          env: PYTHON_VERSION=3.7 SETUP_CMD='test --readonly'
                CONDA_DEPENDENCIES="Cython scipy h5py beautifulsoup4 html5lib jinja2 pyyaml matplotlib scikit-image pytz pandas"
                PIP_DEPENDENCIES="objgraph asdf"
 
