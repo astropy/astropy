@@ -2850,6 +2850,49 @@ class Table:
 
         return idx
 
+    def rows_equal(self, other):
+        """
+        Row-wise comparison of table with any other object. Returns a 1-D
+        boolean numpy array showing result of row-wise comparison.
+
+        Parameters
+        ----------
+        other : Table or DataFrame or ndarray
+             An object to compare with table
+
+        Examples
+        --------
+        Comparing one Table with other::
+
+            >>> t1 = Table([[1,2],[4,5],[7,8]], names=('a','b','c'))
+            >>> t2 = Table([[1,2],[4,5],[7,8]], names=('a','b','c'))
+            >>> t1.rows_equal(t2)
+            array([ True,  True])
+
+        """
+
+        if isinstance(other, Table):
+            other = other.as_array()
+
+        if self.has_masked_columns:
+            if isinstance(other, np.ma.MaskedArray):
+                result = self.as_array() == other
+            else:
+                # If mask is True, then by definition the row doesn't match
+                # because the other array is not masked.
+                false_mask = np.zeros(1, dtype=[(n, bool) for n in self.dtype.names])
+                result = (self.as_array().data == other) & (self.mask.rows_equal(false_mask))
+        else:
+            if isinstance(other, np.ma.MaskedArray):
+                # If mask is True, then by definition the row doesn't match
+                # because the other array is not masked.
+                false_mask = np.zeros(1, dtype=[(n, bool) for n in other.dtype.names])
+                result = (self.as_array() == other.data) & (other.mask == false_mask)
+            else:
+                result = self.as_array() == other
+
+        return result
+
     def sort(self, keys=None, reverse=False):
         '''
         Sort the table according to one or more keys. This operates
@@ -2998,31 +3041,73 @@ class Table:
         return super().__ge__(other)
 
     def __eq__(self, other):
+        return self.cols_equal(other)
+
+    def cols_equal(self, other):
+        """
+        Element-wise comparison of table with any other object. Returns a table
+        object containing boolean values showing result of comparison.
+
+        Parameters
+        ----------
+        other : Table or DataFrame or ndarray or list or scalar
+             An object to compare with table
+
+        Examples
+        --------
+        Comparing one Table with other::
+
+            >>> t1 = Table([[1,2],[4,5],[7,8]], names=('a','b','c'))
+            >>> t2 = Table([[1,2],[4,5],[7,8]], names=('a','b','c'))
+            >>> t1.cols_equal(t2)
+            <Table length=2>
+             a    b    c
+            bool bool bool
+            ---- ---- ----
+            True True True
+            True True True
+
+        """
+        # Check the length of other
+        check_len = True
 
         if isinstance(other, Table):
-            other = other.as_array()
-
-        if self.has_masked_columns:
-            if isinstance(other, np.ma.MaskedArray):
-                result = self.as_array() == other
-            else:
-                # If mask is True, then by definition the row doesn't match
-                # because the other array is not masked.
-                false_mask = np.zeros(1, dtype=[(n, bool) for n in self.dtype.names])
-                result = (self.as_array().data == other) & (self.mask == false_mask)
+            names = other.colnames
         else:
-            if isinstance(other, np.ma.MaskedArray):
-                # If mask is True, then by definition the row doesn't match
-                # because the other array is not masked.
-                false_mask = np.zeros(1, dtype=[(n, bool) for n in other.dtype.names])
-                result = (self.as_array() == other.data) & (other.mask == false_mask)
-            else:
-                result = self.as_array() == other
+            try:
+                other = Table(other, copy=False)
+                names = other.colnames
+            except Exception:
+                # Broadcast other into a dict, so e.g. other = 2 will turn into
+                # other = {'a': 2, 'b': 2} and then equality does a
+                # column-by-column broadcasting.
+                names = self.colnames
+                other = {name: other for name in names}
+                check_len = False
 
-        return result
+        if check_len and len(self) != len(other):
+            raise ValueError('cannot compare tables with different lengths')
+
+        # Require column names match but do not require same column order
+        if set(self.colnames) != set(names):
+            raise ValueError('cannot compare tables with different column names')
+
+        eqs = []
+        for name in names:
+            try:
+                eq = self[name] == other[name]
+                assert isinstance(eq, np.ndarray) and eq.dtype is np.dtype('bool')
+            except Exception:
+                raise ValueError(f'unable to compare column {name}')
+            else:
+                eqs.append(eq)
+
+        out = Table(eqs, names=names)
+
+        return out
 
     def __ne__(self, other):
-        return ~self.__eq__(other)
+        return ~self.rows_equal(other)
 
     @property
     def groups(self):

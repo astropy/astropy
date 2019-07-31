@@ -206,7 +206,7 @@ class TestRow():
         orig_tab = table_types.Table([[1, 2, 3], [4, 5, 6]], names=('a', 'b'))
         new_tab = type(orig_tab)(rows=[row for row in orig_tab],
                                  names=orig_tab.dtype.names)
-        assert np.all(orig_tab == new_tab)
+        assert np.all(orig_tab.rows_equal(new_tab))
 
 
 def test_row_tuple_column_slice():

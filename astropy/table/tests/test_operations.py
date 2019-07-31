@@ -967,8 +967,8 @@ class TestVStack():
     def test_vstack_one_table(self, operation_table_type):
         self._setup(operation_table_type)
         """Regression test for issue #3313"""
-        assert (self.t1 == table.vstack(self.t1)).all()
-        assert (self.t1 == table.vstack([self.t1])).all()
+        assert np.all(self.t1.rows_equal(table.vstack(self.t1)))
+        assert np.all(self.t1.rows_equal(table.vstack([self.t1])))
 
     def test_mixin_functionality(self, mixin_cols):
         col = mixin_cols['m']
@@ -1126,7 +1126,7 @@ class TestCStack():
     def test_cstack_single_table(self):
         self._setup(Table)
         out = table.cstack(self.t1)
-        assert np.all(out == self.t1)
+        assert np.all(out.rows_equal(self.t1))
 
 
 class TestHStack():
@@ -1345,8 +1345,8 @@ class TestHStack():
     def test_hstack_one_table(self, operation_table_type):
         self._setup(operation_table_type)
         """Regression test for issue #3313"""
-        assert (self.t1 == table.hstack(self.t1)).all()
-        assert (self.t1 == table.hstack([self.t1])).all()
+        assert np.all(self.t1.rows_equal(table.hstack(self.t1)))
+        assert np.all(self.t1.rows_equal(table.hstack([self.t1])))
 
     def test_mixin_functionality(self, mixin_cols):
         col1 = mixin_cols['m']
