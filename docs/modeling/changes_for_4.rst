@@ -32,7 +32,7 @@ unless one wants to understand why some changes were necessary.
   the compound models make copies of the values. As a result, 
   changing the value in the compound model did not change the
   constituent model's parameter value and visa versa. Now
-  parameters are distinct instances for each use, and they
+  parameters are distinct instances for each use and they
   do now hold the value of the parameter. So compound models
   now share the same values as the constituent models.
 
