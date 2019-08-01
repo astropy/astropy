@@ -153,7 +153,6 @@ Since the parameter no longer is required to link to a specific
 model, it holds any dimension corresponding to the model_set
 size; when it previously did not.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Compound Model implementation changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
