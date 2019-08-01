@@ -58,7 +58,7 @@ unless you want to understand why some changes were necessary.
 
 - Previously the values were held in an array within the model
   instance and it was possible to assign values to slices of
-  that array. Reassigning the array does update the parameters,
+  that array. Reassigning the array did update the parameters,
   but assigning slices does not. The new approach is to either
   replace the whole array by assigning to the parameters property
   or assign directly to the parameter value.
