@@ -1125,7 +1125,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                             continue
 
                         if new_attr_unit and hasattr(diff, comp):
-                            diffkwargs[comp] = diffkwargs[comp].to(new_attr_unit)
+                            try:
+                                diffkwargs[comp] = diffkwargs[comp].to(new_attr_unit)
+                            except Exception:
+                                diffkwargs[comp] = diffkwargs[comp].to(new_attr_unit / u.m).decompose()
 
                     diff = diff.__class__(copy=False, **diffkwargs)
 
