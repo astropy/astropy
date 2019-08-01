@@ -1101,6 +1101,7 @@ def test_data_out_of_range(parallel, fast_reader, guess):
     read_values = np.array([col[0] for col in t.itercols()])
     assert_almost_equal(read_values, values, rtol=rtol, atol=1.e-324)
 
+
 @pytest.mark.parametrize("guess", [True, False])
 # fast_reader configurations: False| 'use_fast_converter'=False|True
 @pytest.mark.parametrize('fast_reader', [False, dict(use_fast_converter=False),
