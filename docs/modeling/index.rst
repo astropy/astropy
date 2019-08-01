@@ -10,411 +10,105 @@ Introduction
 ============
 
 `astropy.modeling` provides a framework for representing models and performing
-model evaluation and fitting. It currently supports 1-D and 2-D models and
-:doc:`fitting <fitting>` with parameter constraints.
-
-It is designed to be easily extensible and flexible.  Models do not reference
-fitting algorithms explicitly and new fitting algorithms may be added without
-changing the existing models (though not all models can be used with all
-fitting algorithms due to constraints such as model linearity).
-
-The goal is to eventually provide a rich toolset of models and fitters such
-that most users will not need to define new model classes, nor special purpose
-fitting routines (while making it reasonably easy to do when necessary).
-
-.. note::
-
-    `astropy.modeling` is currently a work-in-progress, and thus it is likely
-    there will still be API changes in later versions of Astropy.  Backwards
-    compatibility support between versions will still be maintained as much as
-    possible, but new features and enhancements are coming in future versions.
-    If you have specific ideas for how it might be improved, feel free to let
-    us know on the `astropy-dev mailing list`_ or at
-    http://feedback.astropy.org
-
-.. _modeling-major-changes-for-4.0:
-
-Major changes to Modeling for 4.0
-=================================
-
-A number of significant changes have been made to the internals that have been
-documented in more detail in :doc:`changes_for_4`. This summarizes the two
-biggest changes:
-
-- Expressions of model classes no longer is supported. (Expressions of model
-  instances are still very much supported!)
-
-- Parameter values now are contained in the parameter instance. Previously they
-  were contained in the model referencing the parameter. The previous behavior
-  resulted in compound models parameters not sharing the same value as the
-  constituent models, if one of them changed, the other didn't. Now they
-  see exactly the same value.
-
-.. _modeling-getting-started:
+model evaluation and fitting.  A number of predefined 1-D and 2-D models are
+provided and the capability for custom, user defined models is supported.
+Different fitting algorithms can be used with any model.  For those fitters
+with the capabilities fitting can be done using uncertainties, parameters with
+bounds, and priors.
 
 Getting started
 ===============
 
-The examples here use the predefined models and assume the following modules
-have been imported::
+Using a model is a matter of defining the model (instantiating) and then
+calling it with the input values for calculation.  This is illustrated with
+the code and plot below for a 1-dimensional Gaussian.
 
     >>> import numpy as np
-    >>> from astropy.modeling import models, fitting
-
-
-Using Models
-------------
-
-The `astropy.modeling` package defines a number of models that are collected
-under a single namespace as ``astropy.modeling.models``.  Models behave like
-parametrized functions::
-
     >>> from astropy.modeling import models
     >>> g = models.Gaussian1D(amplitude=1.2, mean=0.9, stddev=0.5)
-    >>> print(g)
-    Model: Gaussian1D
-    Inputs: ('x',)
-    Outputs: ('y',)
-    Model set size: 1
-    Parameters:
-        amplitude mean stddev
-        --------- ---- ------
-              1.2  0.9    0.5
+    >>> x = np.linspace(-5., 5.0, 200)
+    >>> y = g(x)
 
-Model parameters can be accessed as attributes::
-
-    >>> g.amplitude
-    Parameter('amplitude', value=1.2)
-    >>> g.mean
-    Parameter('mean', value=0.9)
-    >>> g.stddev  # doctest: +FLOAT_CMP
-    Parameter('stddev', value=0.5, bounds=(1.1754943508222875e-38, None))
-
-and can also be updated via those attributes::
-
-    >>> g.amplitude = 0.8
-    >>> g.amplitude
-    Parameter('amplitude', value=0.8)
-
-Models can be evaluated by calling them as functions::
-
-    >>> g(0.1)
-    0.22242984036255528
-    >>> g(np.linspace(0.5, 1.5, 7))  # doctest: +FLOAT_CMP
-    array([0.58091923, 0.71746405, 0.7929204 , 0.78415894, 0.69394278,
-           0.54952605, 0.3894018 ])
-
-As the above example demonstrates, in general most models evaluate array-like
-inputs according to the standard `Numpy broadcasting rules`_ for arrays.
-
-Models can therefore already be useful to evaluate common functions,
-independently of the fitting features of the package.
-
-.. _modeling-getting-started-1d-fitting:
-
-Simple 1-D model fitting
-------------------------
-
-In this section, we look at a simple example of fitting a Gaussian to a
-simulated dataset. We use the `~astropy.modeling.functional_models.Gaussian1D`
-and `~astropy.modeling.functional_models.Trapezoid1D` models and the
-`~astropy.modeling.fitting.LevMarLSQFitter` fitter to fit the data:
+The resulting x and y plot is:
 
 .. plot::
-   :include-source:
-
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from astropy.modeling import models, fitting
-
-    # Generate fake data
-    np.random.seed(0)
-    x = np.linspace(-5., 5., 200)
-    y = 3 * np.exp(-0.5 * (x - 1.3)**2 / 0.8**2)
-    y += np.random.normal(0., 0.2, x.shape)
-
-    # Fit the data using a box model.
-    # Bounds are not really needed but included here to demonstrate usage.
-    t_init = models.Trapezoid1D(amplitude=1., x_0=0., width=1., slope=0.5,
-                                bounds={"x_0": (-5., 5.)})
-    fit_t = fitting.LevMarLSQFitter()
-    t = fit_t(t_init, x, y)
-
-    # Fit the data using a Gaussian
-    g_init = models.Gaussian1D(amplitude=1., mean=0, stddev=1.)
-    fit_g = fitting.LevMarLSQFitter()
-    g = fit_g(g_init, x, y)
-
-    # Plot the data with the best-fit model
-    plt.figure(figsize=(8,5))
-    plt.plot(x, y, 'ko')
-    plt.plot(x, t(x), label='Trapezoid')
-    plt.plot(x, g(x), label='Gaussian')
-    plt.xlabel('Position')
-    plt.ylabel('Flux')
-    plt.legend(loc=2)
-
-As shown above, once instantiated, the fitter class can be used as a function
-that takes the initial model (``t_init`` or ``g_init``) and the data values
-(``x`` and ``y``), and returns a fitted model (``t`` or ``g``).
-
-.. _modeling-getting-started-2d-fitting:
-
-Simple 2-D model fitting
-------------------------
-
-Similarly to the 1-D example, we can create a simulated 2-D data dataset, and
-fit a polynomial model to it.  This could be used for example to fit the
-background in an image.
-
-.. plot::
-   :include-source:
-
-    import warnings
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from astropy.modeling import models, fitting
-
-    # Generate fake data
-    np.random.seed(0)
-    y, x = np.mgrid[:128, :128]
-    z = 2. * x ** 2 - 0.5 * x ** 2 + 1.5 * x * y - 1.
-    z += np.random.normal(0., 0.1, z.shape) * 50000.
-
-    # Fit the data using astropy.modeling
-    p_init = models.Polynomial2D(degree=2)
-    fit_p = fitting.LevMarLSQFitter()
-
-    with warnings.catch_warnings():
-        # Ignore model linearity warning from the fitter
-        warnings.simplefilter('ignore')
-        p = fit_p(p_init, x, y, z)
-
-    # Plot the data with the best-fit model
-    plt.figure(figsize=(8, 2.5))
-    plt.subplot(1, 3, 1)
-    plt.imshow(z, origin='lower', interpolation='nearest', vmin=-1e4, vmax=5e4)
-    plt.title("Data")
-    plt.subplot(1, 3, 2)
-    plt.imshow(p(x, y), origin='lower', interpolation='nearest', vmin=-1e4,
-               vmax=5e4)
-    plt.title("Model")
-    plt.subplot(1, 3, 3)
-    plt.imshow(z - p(x, y), origin='lower', interpolation='nearest', vmin=-1e4,
-               vmax=5e4)
-    plt.title("Residual")
-
-A list of models is provided in the `Reference/API`_ section. The fitting
-framework includes many useful features that are not demonstrated here, such as
-weighting of datapoints, fixing or linking parameters, and placing lower or
-upper limits on parameters. For more information on these, take a look at the
-:doc:`fitting` documentation.
-
-.. _modeling-getting-started-model-sets:
-
-Model sets
-----------
-
-In some cases it is necessary to describe many models of the same type but with
-different sets of parameter values.  This could be done simply by instantiating
-as many instances of a `~astropy.modeling.Model` as are needed.  But that can
-be inefficient for a large number of models.  To that end, all model classes in
-`astropy.modeling` can also be used to represent a model *set* which is a
-collection of models of the same type, but with different values for their
-parameters.
-
-To instantiate a model set, use argument ``n_models=N`` where ``N`` is the
-number of models in the set when constructing the model.  The value of each
-parameter must be a list or array of length ``N``, such that each item in
-the array corresponds to one model in the set::
-
-    >>> g = models.Gaussian1D(amplitude=[1, 2], mean=[0, 0],
-    ...                       stddev=[0.1, 0.2], n_models=2)
-    >>> print(g)
-    Model: Gaussian1D
-    Inputs: ('x',)
-    Outputs: ('y',)
-    Model set size: 2
-    Parameters:
-        amplitude mean stddev
-        --------- ---- ------
-              1.0  0.0    0.1
-              2.0  0.0    0.2
-
-This is equivalent to two Gaussians with the parameters ``amplitude=1, mean=0,
-stddev=0.1`` and ``amplitude=2, mean=0, stddev=0.2`` respectively.  When
-printing the model the parameter values are displayed as a table, with each row
-corresponding to a single model in the set.
-
-The number of models in a model set can be determined using the `len` builtin::
-
-    >>> len(g)
-    2
-
-Single models have a length of 1, and are not considered a model set as such.
-
-When evaluating a model set, by default the input must be the same length as
-the number of models, with one input per model::
-
-    >>> g([0, 0.1])  # doctest: +FLOAT_CMP
-    array([1.        , 1.76499381])
-
-The result is an array with one result per model in the set.  It is also
-possible to broadcast a single value to all models in the set::
-
-    >>> g(0)  # doctest: +FLOAT_CMP
-    array([1., 2.])
-
-Model sets are used primarily for fitting, allowing a large number of models of
-the same type to be fitted simultaneously (and independently from each other)
-to some large set of inputs.  For example, fitting a polynomial to the time
-response of each pixel in a data cube.  This can greatly speed up the fitting
-process, especially for linear models.
-
-
-.. _compound-models-intro:
-
-Compound models
----------------
-.. versionadded:: 1.0
-
-    This feature is experimental and expected to see significant further
-    development, but the basic usage is stable and expected to see wide use.
-
-While the Astropy modeling package makes it very easy to define :doc:`new
-models <new>` either from existing functions, or by writing a
-`~astropy.modeling.Model` subclass, an additional way to create new models is
-by combining them using arithmetic expressions.  This works with models built
-into Astropy, and most user-defined models as well.  For example, it is
-possible to create a superposition of two Gaussians like so::
-
-    >>> from astropy.modeling import models
-    >>> g1 = models.Gaussian1D(1, 0, 0.2)
-    >>> g2 = models.Gaussian1D(2.5, 0.5, 0.1)
-    >>> g1_plus_2 = g1 + g2
-
-The resulting object ``g1_plus_2`` is itself a new model.  Evaluating, say,
-``g1_plus_2(0.25)`` is the same as evaluating ``g1(0.25) + g2(0.25)``::
-
-    >>> g1_plus_2(0.25)  # doctest: +FLOAT_CMP
-    0.5676756958301329
-    >>> g1_plus_2(0.25) == g1(0.25) + g2(0.25)
-    True
-
-This model can be further combined with other models in new expressions.
-
-These new compound models can also be fitted to data, like most other models
-(though this currently requires one of the non-linear fitters):
-
-.. plot::
-    :include-source:
-
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from astropy.modeling import models, fitting
-
-    # Generate fake data
-    np.random.seed(42)
-    g1 = models.Gaussian1D(1, 0, 0.2)
-    g2 = models.Gaussian1D(2.5, 0.5, 0.1)
-    x = np.linspace(-1, 1, 200)
-    y = g1(x) + g2(x) + np.random.normal(0., 0.2, x.shape)
-
-    # Now to fit the data create a new superposition with initial
-    # guesses for the parameters:
-    gg_init = models.Gaussian1D(1, 0, 0.1) + models.Gaussian1D(2, 0.5, 0.1)
-    fitter = fitting.SLSQPLSQFitter()
-    gg_fit = fitter(gg_init, x, y)
-
-    # Plot the data with the best-fit model
-    plt.figure(figsize=(8,5))
-    plt.plot(x, y, 'ko')
-    plt.plot(x, gg_fit(x))
-    plt.xlabel('Position')
-    plt.ylabel('Flux')
-
-This works for 1-D models, 2-D models, and combinations thereof, though there
-are some complexities involved in correctly matching up the inputs and outputs
-of all models used to build a compound model.  You can learn more details in
-the :doc:`compound-models` documentation.
-
-Astropy models also support convolution through the function
-`~astropy.convolution.convolve_models`, which returns a compound model.
-
-For instance, the convolution of two Gaussian functions is also a Gaussian
-function in which the resulting mean (variance) is the sum of the means
-(variances) of each Gaussian.
-
-.. plot::
-    :include-source:
 
     import numpy as np
     import matplotlib.pyplot as plt
     from astropy.modeling import models
-    from astropy.convolution import convolve_models
 
-    g1 = models.Gaussian1D(1, -1, 1)
-    g2 = models.Gaussian1D(1, 1, 1)
-    g3 = convolve_models(g1, g2)
+    g = models.Gaussian1D(amplitude=1.2, mean=0.9, stddev=0.5)
+    x = np.linspace(-5., 5.0, 200)
+    y = g(x)
 
-    x = np.linspace(-3, 3, 50)
-    plt.plot(x, g1(x), 'k-')
-    plt.plot(x, g2(x), 'k-')
-    plt.plot(x, g3(x), 'k-')
+    # Plot the data with the best-fit model
+    plt.figure(figsize=(8,5))
+    plt.plot(x, y, 'ko')
+    plt.xlabel('Position')
+    plt.ylabel('Flux')
+    plt.legend(loc=2)
 
-.. _modeling-getting-started-masked-data:
+.. note::
 
-Fitting masked data
--------------------
+    A number of significant changes have been made to the internals that have been
+    documented in more detail in :doc:`changes_for_4`. This summarizes the two
+    biggest changes:
 
-.. versionadded:: 2.0.4
+    - Expressions of model classes no longer is supported. (Expressions of model
+      instances are still very much supported!)
 
-When `astropy.modeling.fitting.LinearLSQFitter` is provided with the dependent
-co-ordinate values as a `numpy.ma.MaskedArray`, it ignores any masked values
-when performing the fit::
+    - Parameter values now are contained in the parameter instance. Previously they
+      were contained in the model referencing the parameter. The previous behavior
+      resulted in compound models parameters not sharing the same value as the
+      constituent models, if one of them changed, the other didn't. Now they
+      see exactly the same value.
 
-    >>> p_init = models.Polynomial1D(degree=1)
-    >>> x = np.arange(10)
-    >>> y = np.ma.masked_array(2*x+1, mask=np.zeros_like(x))
-    >>> y[7] = 100.       # simulate spurious value
-    >>> y.mask[7] = True
-    >>> fitter = fitting.LinearLSQFitter()
-    >>> p = fitter(p_init, x, y)
-    >>> print('Fit intercept={:.3f}, slope={:.3f}'.format(p.c0.value, p.c1.value))  # doctest: +FLOAT_CMP
-    Fit intercept=1.000, slope=2.000
-
-At present, the non-linear fitters do not distinguish between good and bad
-values in this way.
-
-Note that model set fitting is currently about an order of magnitude slower in
-the presence of masked values, because the matrix equation has to be solved for
-each model separately, on their respective co-ordinate grids. This is still an
-order of magnitude faster than fitting separate model instances, however.
-Supplying a `numpy.ma.MaskedArray` without any bad (``True``) mask values
-produces the normal, faster behavior.
-
-.. _modeling-using:
-
-Using `astropy.modeling`
-========================
+Concepts
+========
 
 .. toctree::
    :maxdepth: 1
 
-   models
-   parameters
-   fitting
+   Basic Concepts <basics.rst>
+   Advanced Concepts <models.rst>
+   Model Parameters <parameters.rst>
+   Units with Models <units.rst>
+   basic-fitting
+   Advanced Fitting <fitting.rst>
+   Custom Models <new-model.rst>
+   Combining Models (Compound Models) <basic-compound-models.rst>
    compound-models
-   new
    bounding-boxes
-   algorithms
-   units
-   changes_for_4.rst
+   model-sets
+   performance
+   changes_for_4
 
-.. note that if this section gets too long, it should be moved to a separate
-   doc page - see the top of performance.inc.rst for the instructions on how to do
-   that
-.. include:: performance.inc.rst
+... TODO list
+    Fitting with constraints
+    Fitting with units
+    Fitting with different or custom statistics functions
+    Estimation of fitting errors
+    Adding a new fitter
+    Using models with Bayesian tools
+    Model bounds
+
+Examples
+========
+
+... TODO list
+    fitting with masks
+    fitting with uncertainties
+    fitting with constraints
+    fitting with priors
+    fitting with units
+    defining 1d model
+    defining 2d model
+    fitting 2d model
+    defining and using a WCS/gWCS model
+    defining and using a Tabular1D model
+    statistics functions and how to make your own
+    compound models
+    model sets w/ fitting
 
 Reference/API
 =============
