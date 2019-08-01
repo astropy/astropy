@@ -173,7 +173,7 @@ tree. The mapping of constituent parameters to the
 compound is not automatically done except when certain 
 method or attribute calls are made, which are not normally 
 done on subexpressions. There may be some special cases
-where it is necessary to force this by calling the map_parameters()
+where it is necessary to force this by calling the ``map_parameters()``
 method.
 
 Many of the private methods of Compound Models have changed.
