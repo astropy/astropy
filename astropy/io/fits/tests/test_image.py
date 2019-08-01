@@ -902,7 +902,7 @@ class TestImageFunctions(FitsTestCase):
             data = hdul[0].data
             assert np.isnan(data[0])
             with pytest.warns(fits.verify.VerifyWarning,
-                              match="Invalid 'BLANK' keyword in header"):
+                              match=r"Invalid 'BLANK' keyword in header"):
                 hdul.writeto(self.temp('test2.fits'))
 
         # Now reopen the newly written file.  It should not have a 'BLANK'
@@ -1106,7 +1106,7 @@ class TestImageFunctions(FitsTestCase):
         data = np.arange(100, dtype=np.float64)
         hdu = fits.PrimaryHDU(data)
         hdu.header['BLANK'] = 'nan'
-        with pytest.warns(fits.verify.VerifyWarning, match="Invalid value for "
+        with pytest.warns(fits.verify.VerifyWarning, match=r"Invalid value for "
                           "'BLANK' keyword in header: 'nan'"):
             hdu.writeto(self.temp('test.fits'))
 
