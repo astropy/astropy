@@ -16,6 +16,7 @@ number of models in the set when constructing the model.  The value of each
 parameter must be a list or array of length ``N``, such that each item in
 the array corresponds to one model in the set::
 
+    >>> from astropy.modeling import models
     >>> g = models.Gaussian1D(amplitude=[1, 2], mean=[0, 0],
     ...                       stddev=[0.1, 0.2], n_models=2)
     >>> print(g)

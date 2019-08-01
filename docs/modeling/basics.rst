@@ -7,6 +7,7 @@ The `astropy.modeling` package defines a number of models that are collected
 under a single namespace as ``astropy.modeling.models``.  Models behave like
 parametrized functions::
 
+    >>> import numpy as np
     >>> from astropy.modeling import models
     >>> g = models.Gaussian1D(amplitude=1.2, mean=0.9, stddev=0.5)
     >>> print(g)
