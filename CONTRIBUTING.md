@@ -106,8 +106,7 @@ Other Tips
 
         $ git commit --amend
 
-- To skip only the AppVeyor (Windows) CI builds you can use ``[skip appveyor]``,
-  and to skip testing on Travis CI use ``[skip travis]``.
+- To skip only the tests running on Travis CI use ``[skip travis]``.
 
 - If your commit makes substantial changes to the documentation but no code
   changes, then you can use ``[docs only]``, which will skip all but the
@@ -172,6 +171,6 @@ package.
   * Are there any conflicts with this code and existing codes?
 
 **Astropy requirements**
-  * Do all the Travis CI, AppVeyor, and CircleCI tests pass?
+  * Do all the Travis CI and CircleCI tests pass?
   * If applicable, has an entry been added into the changelog?
   * Can you check out the pull request and repeat the examples and tests?
