@@ -10,7 +10,7 @@ many changes have been made internally to the modeling code,
 particularly to compound models and parameters. This page
 summarizes the important changes. More technical details are 
 given at the end, but it is generally not necessary to read those
-unless one wants to understand why some changes were necessary.
+unless you want to understand why some changes were necessary.
 
 - Support for expressions of modeling classes has been removed.
   Expressions of model class instances are still fully supported.
