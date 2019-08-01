@@ -83,7 +83,7 @@ Concepts
    performance
    changes_for_4
 
-... TODO list
+.. TODO list
     Fitting with constraints
     Fitting with units
     Fitting with different or custom statistics functions
@@ -95,7 +95,7 @@ Concepts
 Examples
 ========
 
-... TODO list
+.. TODO list
     fitting with masks
     fitting with uncertainties
     fitting with constraints
