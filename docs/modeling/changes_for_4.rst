@@ -4,7 +4,7 @@ Changes to Modeling in 4.0
 **************************
 
 
-In order to make the internal code simpler, improve performance, and
+In order to make the internal code less complex, improve performance, and
 make the behavior of parameters in compound models more intuitive,
 many changes have been made internally to the modeling code,
 particularly to compound models and parameters. This page
