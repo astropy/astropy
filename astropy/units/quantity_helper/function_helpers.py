@@ -42,7 +42,7 @@ import numpy as np
 
 from astropy.units.core import (
     UnitsError, UnitTypeError, dimensionless_unscaled)
-from astropy.utils.compat import NUMPY_LT_1_17, NUMPY_LT_1_15
+from astropy.utils.compat import NUMPY_LT_1_17, NUMPY_LT_1_15, NUMPY_LT_1_18
 from astropy.utils import isiterable
 
 
@@ -129,7 +129,7 @@ UNSUPPORTED_FUNCTIONS |= {
 # test_quantity_non_ufuncs.py)
 IGNORED_FUNCTIONS = {
     # Deprecated
-    np.rank, np.asscalar,
+    np.asscalar,
     # I/O - useless for Quantity, since no way to store the unit.
     np.save, np.savez, np.savetxt, np.savez_compressed,
     # Polynomials
@@ -138,6 +138,8 @@ IGNORED_FUNCTIONS = {
     # financial
     np.fv, np.ipmt, np.irr, np.mirr, np.nper, np.npv, np.pmt, np.ppmt,
     np.pv, np.rate}
+if NUMPY_LT_1_18:
+    IGNORED_FUNCTIONS |= {np.rank}
 UNSUPPORTED_FUNCTIONS |= IGNORED_FUNCTIONS
 
 
