@@ -178,7 +178,7 @@ class TestKernels:
         gauss_2 = Gaussian1DKernel(4)
         test_gauss_3 = Gaussian1DKernel(5)
 
-        with pytest.warns(AstropyUserWarning, match='Both array and kernel '
+        with pytest.warns(AstropyUserWarning, match=r'Both array and kernel '
                           'are Kernel instances'):
             gauss_3 = convolve(gauss_1, gauss_2)
 
@@ -192,7 +192,7 @@ class TestKernels:
         gauss_2 = Gaussian2DKernel(4)
         test_gauss_3 = Gaussian2DKernel(5)
 
-        with pytest.warns(AstropyUserWarning, match='Both array and kernel '
+        with pytest.warns(AstropyUserWarning, match=r'Both array and kernel '
                           'are Kernel instances'):
             gauss_3 = convolve(gauss_1, gauss_2)
 
@@ -325,7 +325,7 @@ class TestKernels:
 
         custom = CustomKernel(array)
 
-        with pytest.warns(AstropyUserWarning, match='kernel cannot be '
+        with pytest.warns(AstropyUserWarning, match=r'kernel cannot be '
                           'normalized because it sums to zero'):
             custom.normalize()
 
@@ -341,7 +341,7 @@ class TestKernels:
 
         custom = CustomKernel(array)
 
-        with pytest.warns(AstropyUserWarning, match='kernel cannot be '
+        with pytest.warns(AstropyUserWarning, match=r'kernel cannot be '
                           'normalized because it sums to zero'):
             custom.normalize()
 

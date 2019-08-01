@@ -245,17 +245,13 @@ def test_unit_noarg():
 
 
 def test_convertible_exception():
-    try:
+    with pytest.raises(u.UnitsError, match=r'length.+ are not convertible'):
         u.AA.to(u.h * u.s ** 2)
-    except u.UnitsError as e:
-        assert "length" in str(e)
 
 
 def test_convertible_exception2():
-    try:
+    with pytest.raises(u.UnitsError, match=r'length. and .+time.+ are not convertible'):
         u.m.to(u.s)
-    except u.UnitsError as e:
-        assert "length" in str(e)
 
 
 @raises(TypeError)
@@ -656,12 +652,8 @@ def test_suggestions():
             ('milimeter', 'millimeter'),
             ('ångström', 'Angstrom or angstrom'),
             ('kev', 'EV, eV, kV or keV')]:
-        try:
+        with pytest.raises(ValueError, match=f'Did you mean {matches}'):
             u.Unit(search)
-        except ValueError as e:
-            assert f'Did you mean {matches}?' in str(e)
-        else:
-            assert False, 'Expected ValueError'
 
 
 def test_fits_hst_unit():

@@ -273,13 +273,9 @@ class TestCore(FitsTestCase):
         # silentfix+exception should only mention the unfixable error in the
         # exception
         hdu = make_invalid_hdu()
-        try:
+        with pytest.raises(fits.VerifyError, match=r'Illegal keyword name') as excinfo:
             hdu.verify('silentfix+exception')
-        except fits.VerifyError as exc:
-            assert 'Illegal keyword name' in str(exc)
-            assert 'not upper case' not in str(exc)
-        else:
-            self.fail('An exception should have been raised.')
+        assert 'not upper case' not in str(excinfo.value)
 
         # fix+ignore is not too useful, but it should warn about the fixed
         # problems while saying nothing about the unfixable problems
@@ -299,13 +295,9 @@ class TestCore(FitsTestCase):
 
         # fix+exception
         hdu = make_invalid_hdu()
-        try:
+        with pytest.raises(fits.VerifyError, match=r'Illegal keyword name') as excinfo:
             hdu.verify('fix+exception')
-        except fits.VerifyError as exc:
-            assert 'Illegal keyword name' in str(exc)
-            assert 'not upper case' in str(exc)
-        else:
-            self.fail('An exception should have been raised.')
+        assert 'not upper case' in str(excinfo.value)
 
     def test_getext(self):
         """
@@ -596,10 +588,8 @@ class TestFileFunctions(FitsTestCase):
         OSError (and not some other arbitrary exception).
         """
 
-        try:
+        with pytest.raises(OSError, match=r'No such file or directory'):
             fits.open(self.temp('foobar.fits'))
-        except OSError as e:
-            assert 'No such file or directory' in str(e)
 
         # But opening in ostream or append mode should be okay, since they
         # allow writing new files
@@ -1059,7 +1049,7 @@ class TestFileFunctions(FitsTestCase):
 
         with fits.open(self.data('test0.fits'), memmap=True) as hdulist:
             with patch.object(mmap, 'mmap', side_effect=mmap_patched) as p:
-                with pytest.warns(AstropyUserWarning, match="Could not memory "
+                with pytest.warns(AstropyUserWarning, match=r"Could not memory "
                                   "map array with mode='readonly'"):
                     data = hdulist[1].data
                 p.reset_mock()
@@ -1354,7 +1344,7 @@ class TestStreamingFunctions(FitsTestCase):
         pytest.raises(fits.VerifyError, hdul.writeto, filename,
                       output_verify='exception')
         with pytest.warns(fits.verify.VerifyWarning,
-                          match='Verification reported errors'):
+                          match=r'Verification reported errors'):
             hdul.writeto(filename, output_verify='fix')
         with fits.open(filename):
             assert hdul[1].name == '12345678'
