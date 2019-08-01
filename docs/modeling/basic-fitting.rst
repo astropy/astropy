@@ -95,7 +95,7 @@ background in an image.
                vmax=5e4)
     plt.title("Residual")
 
-A list of models is provided in the `Reference/API`_ section. The fitting
+The fitting
 framework includes many useful features that are not demonstrated here, such as
 weighting of datapoints, fixing or linking parameters, and placing lower or
 upper limits on parameters. For more information on these, take a look at the
