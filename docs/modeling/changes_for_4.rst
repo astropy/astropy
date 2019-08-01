@@ -1,6 +1,5 @@
 .. include:: links.inc
 
-**************************
 Changes to Modeling in 4.0
 **************************
 
