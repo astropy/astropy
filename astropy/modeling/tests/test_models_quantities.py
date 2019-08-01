@@ -12,7 +12,7 @@ from astropy.modeling.functional_models import (Gaussian1D,
                                  Box1D, Trapezoid1D, MexicanHat1D,
                                  Moffat1D, Gaussian2D, Const2D, Ellipse2D,
                                  Disk2D, Ring2D, Box2D, TrapezoidDisk2D,
-                                 MexicanHat2D, AiryDisk2D, Moffat2D, Sersic2D)
+                                 MexicanHat2D, AiryDisk2D, Moffat2D, Sersic2D, KingProjectedAnalytic1D)
 
 from astropy.modeling.powerlaws import (PowerLaw1D, BrokenPowerLaw1D, SmoothlyBrokenPowerLaw1D,
                          ExponentialCutoffPowerLaw1D, LogParabola1D)
@@ -73,8 +73,11 @@ FUNC_MODELS_1D = [
  'parameters': {'amplitude': 3 * u.Jy, 'x_0': 4.4 * u.um, 'gamma': 1e-3 * u.mm, 'alpha': 1},
  'evaluation': [(1000 * u.nm, 0.238853503 * u.Jy)],
  'bounding_box': False},
+{'class': KingProjectedAnalytic1D,
+ 'parameters': {'amplitude': 1. * u.Msun/u.pc**2, 'r_core': 1. * u.pc, 'r_tide': 2. * u.pc},
+ 'evaluation': [(0.5 * u.pc, 0.2 * u.Msun/u.pc**2)],
+ 'bounding_box': [0. * u.pc, 2. * u.pc]}
  ]
-
 FUNC_MODELS_2D = [
  {'class': Gaussian2D,
   'parameters': {'amplitude': 3 * u.Jy, 'x_mean': 2 * u.m, 'y_mean': 1 * u.m,

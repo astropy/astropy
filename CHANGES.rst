@@ -207,6 +207,8 @@ astropy.modeling
 
 - Many private attributes and methods have changed (see documentation). [#8769]
 
+- Added analytical King model (KingProjectedAnalytic1D) [#9084]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
