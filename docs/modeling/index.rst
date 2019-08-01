@@ -98,13 +98,13 @@ Examples
 .. toctree::
    :maxdepth: 1
 
+   example-fitting-constraints
+   example-fitting-uncertainties
    example-fitting-sigma-clipping
    example-fitting-model-sets
 
 .. TODO list
     fitting with masks
-    fitting with uncertainties
-    fitting with constraints
     fitting with priors
     fitting with units
     defining 1d model
