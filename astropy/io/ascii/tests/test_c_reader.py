@@ -1207,8 +1207,8 @@ def test_int_out_of_order(guess):
     Broken with the parallel fast_reader.
     """
     imax = np.iinfo(int).max-1
-    text = f'A B\n 12.3 {imax:d}9\n {imax:d}9 45.6e7'
-    expected = Table([[12.3, 10.*imax], [f'{imax:d}9', '45.6e7']],
+    text = f'A B\n 12.3 {imax:d}0\n {imax:d}0 45.6e7'
+    expected = Table([[12.3, 10.*imax], [f'{imax:d}0', '45.6e7']],
                      names=('A', 'B'))
 
     with pytest.warns(AstropyWarning, match=r'OverflowError converting to '
