@@ -95,6 +95,12 @@ Concepts
 Examples
 ========
 
+.. toctree::
+   :maxdepth: 1
+
+   example-fitting-sigma-clipping
+   example-fitting-model-sets
+
 .. TODO list
     fitting with masks
     fitting with uncertainties
