@@ -160,7 +160,7 @@ Compound models previously were implemented using a metaclass
 for the compound model while also inheriting from the Model
 class (which itself has a metaclass). The primary reason for
 this approach was to support expressions of Model classes. 
-However, this leads to a very hard to understand implementation,
+However, this leads to a confusing implementation,
 some decrease in performance, and some odd results when
 expressions of model classes also include model instances.
 
