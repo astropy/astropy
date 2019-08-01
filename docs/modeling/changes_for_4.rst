@@ -14,7 +14,7 @@ unless one wants to understand why some changes were necessary.
 
 - Support for expressions of modeling classes has been removed.
   Expressions of model class instances are still fully supported.
-  This was done to simplify the implemenation, improve performance,
+  This was done to streamline the implementation, improve performance,
   and support the new parameter semantics. For example:
 
   No longer works::
