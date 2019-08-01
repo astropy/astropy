@@ -888,11 +888,8 @@ double xstrtod(const char *str, char **endptr, char decimal,
         exponent -= num_decimals;
     }
 
-    if (num_digits == 0)
-    {
-        errno = ERANGE;
-        number = 0.0;
-    }
+    // Exactly 0 - no precision loss/OverflowError
+    if (num_digits == 0) number = 0.0;
 
     // Correct for sign
     if (negative) number = -number;

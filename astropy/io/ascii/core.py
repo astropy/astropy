@@ -963,7 +963,7 @@ class BaseOutputter:
                 except OverflowError as err:
                     # Overflow during conversion (most likely an int that doesn't fit in native C long).
                     # Put string at the top of the converters list for the next while iteration.
-                    warnings.warn("OverflowError converting to {} for column {}, using string instead."
+                    warnings.warn("OverflowError converting to {} in column {}, reverting to String."
                                   .format(converter_type.__name__, col.name), AstropyWarning)
                     col.converters.insert(0, convert_numpy(numpy.str))
                     last_err = err
