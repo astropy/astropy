@@ -55,7 +55,7 @@ from astropy.modeling.functional_models import (
     MexicanHat1D, Trapezoid1D, Const1D, Moffat1D,
     Gaussian2D, Const2D, Box2D, MexicanHat2D,
     TrapezoidDisk2D, AiryDisk2D, Moffat2D, Disk2D,
-    Ring2D, Sersic1D, Sersic2D, Voigt1D, Planar2D)
+    Ring2D, Sersic1D, Sersic2D, Voigt1D, Planar2D, KingProjectedAnalytic1D)
 from astropy.modeling.polynomial import Polynomial1D, Polynomial2D
 from astropy.modeling.powerlaws import (
     PowerLaw1D, BrokenPowerLaw1D, SmoothlyBrokenPowerLaw1D, ExponentialCutoffPowerLaw1D,
@@ -208,7 +208,15 @@ models_1D = {
         'x_values': [0, 2, 4, 8, 10],
         'y_values': [0.520935, 0.017205, 0.003998, 0.000983, 0.000628],
         'x_lim': [-3, 3]
-     }
+     },
+
+    KingProjectedAnalytic1D: {
+        'parameters': [1, 1, 2],
+        'x_values': [0, 0.1, 0.5, 0.8],
+        'y_values': [0.30557281, 0.30011069, 0.2, 0.1113258],
+        'x_lim': [0, 10],
+        'y_lim': [0, 10],
+    }
 }
 
 
