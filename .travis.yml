@@ -140,28 +140,6 @@ matrix:
           stage: Initial tests
           env: MAIN_CMD="flake8 astropy --count $FLAKE8_OPT" SETUP_CMD=''
 
-        # Try developer version of Numpy with optional dependencies and also
-        # run all remote tests. Since both cases will be potentially
-        # unstable, we combine them into a single unstable build that we can
-        # mark as an allowed failure below.
-        - os: linux
-          stage: Final tests
-          env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
-               CONDA_DEPENDENCIES=''
-               PIP_DEPENDENCIES=$DEV_PIP_DEP
-               MATPLOTLIB_VERSION=dev
-
-        # We check numpy-dev also in a job that only runs from cron, so that
-        # we can spot issues sooner. We do not use remote data here, since
-        # that gives too many false positives due to URL timeouts.
-        # We also install all dependencies via pip here so we pick up the latest
-        # releases.
-        - os: linux
-          stage: Cron tests
-          env: NUMPY_VERSION=dev MATPLOTLIB_VERSION=dev EVENT_TYPE='cron'
-               CONDA_DEPENDENCIES=''
-               PIP_DEPENDENCIES=$DEV_PIP_DEP
-
         # Run documentation link check in a cron job.
         # Was originally in CircleCI doc build but links are too flaky, so
         # we moved it here instead.
@@ -172,13 +150,6 @@ matrix:
                INSTALL_WITH_PIP=True
                EXTRAS_INSTALL="docs,all"
 
-    allow_failures:
-      - os: linux
-        stage: Final tests
-        env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
-             CONDA_DEPENDENCIES=''
-             PIP_DEPENDENCIES=$DEV_PIP_DEP
-             MATPLOTLIB_VERSION=dev
 
 before_install:
 
