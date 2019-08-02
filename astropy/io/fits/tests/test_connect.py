@@ -423,7 +423,7 @@ def test_convert_comment_convention(tmpdir):
     """
     filename = os.path.join(DATA, 'stddata.fits')
     with pytest.warns(AstropyUserWarning, match=r'hdu= was not specified but '
-                      'multiple tables are present'):
+                      r'multiple tables are present'):
         t = Table.read(filename)
 
     assert t.meta['comments'] == [

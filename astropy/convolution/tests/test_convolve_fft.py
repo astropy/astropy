@@ -69,8 +69,8 @@ class TestConvolve1D:
 
         if boundary is None:
             with pytest.warns(AstropyUserWarning, match=r"The convolve_fft "
-                              "version of boundary=None is equivalent to the "
-                              "convolve boundary='fill'"):
+                              r"version of boundary=None is equivalent to the "
+                              r"convolve boundary='fill'"):
                 z = convolve_fft(x, y, boundary=boundary,
                                  nan_treatment=nan_treatment,
                                  normalize_kernel=normalize_kernel)
@@ -94,8 +94,8 @@ class TestConvolve1D:
 
         if boundary is None:
             with pytest.warns(AstropyUserWarning, match=r"The convolve_fft "
-                              "version of boundary=None is equivalent to the "
-                              "convolve boundary='fill'"):
+                              r"version of boundary=None is equivalent to the "
+                              r"convolve boundary='fill'"):
                 z = convolve_fft(x, y, boundary=boundary,
                                  nan_treatment=nan_treatment,
                                  normalize_kernel=normalize_kernel)
@@ -119,8 +119,8 @@ class TestConvolve1D:
 
         if boundary is None:
             with pytest.warns(AstropyUserWarning, match=r"The convolve_fft "
-                              "version of boundary=None is equivalent to the "
-                              "convolve boundary='fill'"):
+                              r"version of boundary=None is equivalent to the "
+                              r"convolve boundary='fill'"):
                 z = convolve_fft(x, y, boundary=boundary,
                                  nan_treatment=nan_treatment,
                                  normalize_kernel=normalize_kernel)
@@ -166,8 +166,8 @@ class TestConvolve1D:
 
         if boundary is None:
             with pytest.warns(AstropyUserWarning, match=r"The convolve_fft "
-                              "version of boundary=None is equivalent to the "
-                              "convolve boundary='fill'"):
+                              r"version of boundary=None is equivalent to the "
+                              r"convolve boundary='fill'"):
                 z = convolve_fft(x, y, boundary=boundary,
                                  nan_treatment=nan_treatment,
                                  normalize_kernel=normalize_kernel)
@@ -215,8 +215,8 @@ class TestConvolve1D:
 
         if boundary is None:
             with pytest.warns(AstropyUserWarning, match=r"The convolve_fft "
-                              "version of boundary=None is equivalent to the "
-                              "convolve boundary='fill'"):
+                              r"version of boundary=None is equivalent to the "
+                              r"convolve boundary='fill'"):
                 z = convolve_fft(x, y, boundary=boundary,
                                  nan_treatment=nan_treatment,
                                  normalize_kernel=normalize_kernel,
@@ -260,8 +260,8 @@ class TestConvolve1D:
 
         if boundary is None:
             with pytest.warns(AstropyUserWarning, match=r"The convolve_fft "
-                              "version of boundary=None is equivalent to the "
-                              "convolve boundary='fill'"):
+                              r"version of boundary=None is equivalent to the "
+                              r"convolve boundary='fill'"):
                 z = convolve_fft(x, y, boundary=boundary,
                                  nan_treatment=nan_treatment,
                                  normalize_kernel=normalize_kernel,
@@ -294,8 +294,8 @@ class TestConvolve1D:
 
         if boundary is None:
             with pytest.warns(AstropyUserWarning, match=r"The convolve_fft "
-                              "version of boundary=None is equivalent to the "
-                              "convolve boundary='fill'"):
+                              r"version of boundary=None is equivalent to the "
+                              r"convolve boundary='fill'"):
                 z = convolve_fft(x, y, boundary=boundary,
                                  nan_treatment=nan_treatment,
                                  normalize_kernel=normalize_kernel,
@@ -444,8 +444,8 @@ class TestConvolve2D:
 
         if boundary is None:
             with pytest.warns(AstropyUserWarning, match=r"The convolve_fft "
-                              "version of boundary=None is equivalent to the "
-                              "convolve boundary='fill'"):
+                              r"version of boundary=None is equivalent to the "
+                              r"convolve boundary='fill'"):
                 z = convolve_fft(x, y, boundary=boundary,
                                  nan_treatment=nan_treatment,
                                  normalize_kernel=normalize_kernel)
@@ -473,8 +473,8 @@ class TestConvolve2D:
 
         if boundary is None:
             with pytest.warns(AstropyUserWarning, match=r"The convolve_fft "
-                              "version of boundary=None is equivalent to the "
-                              "convolve boundary='fill'"):
+                              r"version of boundary=None is equivalent to the "
+                              r"convolve boundary='fill'"):
                 z = convolve_fft(x, y, boundary=boundary,
                                  nan_treatment=nan_treatment,
                                  normalize_kernel=normalize_kernel)
@@ -502,8 +502,8 @@ class TestConvolve2D:
 
         if boundary is None:
             with pytest.warns(AstropyUserWarning, match=r"The convolve_fft "
-                              "version of boundary=None is equivalent to the "
-                              "convolve boundary='fill'"):
+                              r"version of boundary=None is equivalent to the "
+                              r"convolve boundary='fill'"):
                 z = convolve_fft(x, y, boundary=boundary,
                                  nan_treatment=nan_treatment,
                                  fill_value=np.nan if normalize_kernel else 0,
@@ -562,8 +562,8 @@ class TestConvolve2D:
 
         if boundary is None:
             with pytest.warns(AstropyUserWarning, match=r"The convolve_fft "
-                              "version of boundary=None is equivalent to the "
-                              "convolve boundary='fill'"):
+                              r"version of boundary=None is equivalent to the "
+                              r"convolve boundary='fill'"):
                 z = convolve_fft(x, y, boundary=boundary,
                                  nan_treatment=nan_treatment,
                                  normalize_kernel=normalize_kernel,
@@ -612,8 +612,8 @@ class TestConvolve2D:
 
         if boundary is None:
             with pytest.warns(AstropyUserWarning, match=r"The convolve_fft "
-                              "version of boundary=None is equivalent to the "
-                              "convolve boundary='fill'"):
+                              r"version of boundary=None is equivalent to the "
+                              r"convolve boundary='fill'"):
                 z = convolve_fft(x, y, boundary=boundary,
                                  nan_treatment=nan_treatment,
                                  fill_value=np.nan if normalize_kernel else 0,
@@ -701,8 +701,8 @@ class TestConvolve2D:
 
         if boundary is None:
             with pytest.warns(AstropyUserWarning, match=r"The convolve_fft "
-                              "version of boundary=None is equivalent to the "
-                              "convolve boundary='fill'"):
+                              r"version of boundary=None is equivalent to the "
+                              r"convolve boundary='fill'"):
                 z = convolve_fft(x, y, boundary=boundary, nan_treatment='fill',
                                  normalize_kernel=False)
         else:
@@ -734,8 +734,8 @@ def test_asymmetric_kernel(boundary):
 
     if boundary is None:
         with pytest.warns(AstropyUserWarning, match=r"The convolve_fft "
-                          "version of boundary=None is equivalent to the "
-                          "convolve boundary='fill'"):
+                          r"version of boundary=None is equivalent to the "
+                          r"convolve boundary='fill'"):
             z = convolve_fft(x, y, boundary=boundary, normalize_kernel=False)
     else:
         z = convolve_fft(x, y, boundary=boundary, normalize_kernel=False)
