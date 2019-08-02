@@ -5,7 +5,7 @@ import pytest
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates.builtin_frames import ICRS, Galactic, Galactocentric
+from astropy.coordinates.builtin_frames import CIRS, ICRS, Galactic, Galactocentric
 from astropy.coordinates import builtin_frames as bf
 from astropy.coordinates import galactocentric_frame_defaults
 from astropy.units import allclose as quantity_allclose
@@ -320,3 +320,9 @@ def test_velocity_units():
             representation_type=r.CartesianRepresentation,
             differential_type=r.CartesianDifferential)
     assert "data units are not compatible with" in str(excinfo.value)
+
+
+def test_frame_with_velocity_without_distance_can_be_transformed():
+    frame = CIRS(1*u.deg, 2*u.deg, pm_dec=1*u.mas/u.yr, pm_ra_cosdec=2*u.mas/u.yr)
+    rep = frame.transform_to(ICRS)
+    assert "<ICRS Coordinate: (ra, dec, distance) in" in repr(rep)
