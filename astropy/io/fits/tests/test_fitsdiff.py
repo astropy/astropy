@@ -249,7 +249,7 @@ No differences found.\n""".format(version, tmp_a, tmp_b)
         assert fitsdiff.main(["-q", self.data_dir, tmp_d]) == 1
         assert fitsdiff.main(["-q", tmp_d, self.data_dir]) == 1
         with pytest.warns(UserWarning, match=r"Field 'ORBPARM' has a repeat "
-                          "count of 0 in its format code"):
+                          r"count of 0 in its format code"):
             assert fitsdiff.main(["-q", self.data_dir, self.data_dir]) == 0
 
         # no match
@@ -260,7 +260,7 @@ No differences found.\n""".format(version, tmp_a, tmp_b)
 
         # globbing
         with pytest.warns(UserWarning, match=r"Field 'ORBPARM' has a repeat "
-                          "count of 0 in its format code"):
+                          r"count of 0 in its format code"):
             assert fitsdiff.main(["-q", self.data_dir+'/*.fits',
                                   self.data_dir]) == 0
         assert fitsdiff.main(["-q", self.data_dir+'/g*.fits', tmp_d]) == 0
