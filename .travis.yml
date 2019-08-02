@@ -114,7 +114,7 @@ matrix:
 
         # Try on Windows
         - os: windows
-          env: PYTHON_VERSION=3.7 SETUP_CMD='test --readonly'
+          env: PYTHON_VERSION=3.7 SETUP_CMD='test'
                CONDA_DEPENDENCIES=""
                PIP_DEPENDENCIES="Cython scipy h5py beautifulsoup4 html5lib jinja2 pyyaml matplotlib scikit-image pytz pandas objgraph asdf"
 
