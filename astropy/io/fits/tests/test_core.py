@@ -1050,7 +1050,7 @@ class TestFileFunctions(FitsTestCase):
         with fits.open(self.data('test0.fits'), memmap=True) as hdulist:
             with patch.object(mmap, 'mmap', side_effect=mmap_patched) as p:
                 with pytest.warns(AstropyUserWarning, match=r"Could not memory "
-                                  "map array with mode='readonly'"):
+                                  r"map array with mode='readonly'"):
                     data = hdulist[1].data
                 p.reset_mock()
             assert not data.flags.writeable
