@@ -945,9 +945,9 @@ def test_uninterpolated_nan_regions(boundary, normalize_kernel):
                    constant_values=1)
     with pytest.warns(AstropyUserWarning,
                       match=r"nan_treatment='interpolate', however, NaN values detected "
-                      "post convolution. A contiguous region of NaN values, larger "
-                      "than the kernel size, are present in the input array. "
-                      "Increase the kernel size to avoid this."):
+                      r"post convolution. A contiguous region of NaN values, larger "
+                      r"than the kernel size, are present in the input array. "
+                      r"Increase the kernel size to avoid this."):
         result = convolve(image, kernel, boundary=boundary, nan_treatment='interpolate',
                           normalize_kernel=normalize_kernel)
         assert(np.any(np.isnan(result)))

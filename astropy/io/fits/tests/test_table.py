@@ -2974,7 +2974,7 @@ class TestColumnFunctions(FitsTestCase):
             zwc_pd = pickle.dumps(zwc[2].data)
             zwc_pl = pickle.loads(zwc_pd)
             with pytest.warns(UserWarning, match=r'Field 2 has a repeat count '
-                              'of 0 in its format code'):
+                              r'of 0 in its format code'):
                 assert comparerecords(zwc_pl, zwc[2].data)
 
     def test_column_lookup_by_name(self):
