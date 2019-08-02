@@ -114,7 +114,7 @@ matrix:
 
         # Try on Windows
         - os: windows
-          env: PYTHON_VERSION=3.7 SETUP_CMD='test --readonly'
+          env: PYTHON_VERSION=3.7 SETUP_CMD='test'
                CONDA_DEPENDENCIES=""
                PIP_DEPENDENCIES="Cython scipy h5py beautifulsoup4 html5lib jinja2 pyyaml matplotlib scikit-image pytz pandas objgraph asdf"
 
@@ -122,30 +122,6 @@ matrix:
         - os: linux
           env: MAIN_CMD="flake8 astropy --count $FLAKE8_OPT" SETUP_CMD=''
 
-        # Try developer version of Numpy with optional dependencies and also
-        # run all remote tests. Since both cases will be potentially
-        # unstable, we combine them into a single unstable build that we can
-        # mark as an allowed failure below.
-        - os: linux
-          env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
-               CONDA_DEPENDENCIES=''
-               PIP_DEPENDENCIES=$DEV_PIP_DEP
-               MATPLOTLIB_VERSION=dev
-
-        # We check numpy-dev also in a job that only runs from cron, so that
-        # we can spot issues sooner. We do not use remote data here, since
-        # that gives too many false positives due to URL timeouts.
-        - os: linux
-          env: NUMPY_VERSION=dev MATPLOTLIB_VERSION=dev
-               CONDA_DEPENDENCIES=''
-               PIP_DEPENDENCIES=$DEV_PIP_DEP
-               EVENT_TYPE='cron'
-
-    allow_failures:
-      - env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
-             CONDA_DEPENDENCIES=''
-             PIP_DEPENDENCIES=$DEV_PIP_DEP
-             MATPLOTLIB_VERSION=dev
 
 install:
     - git clone git://github.com/astropy/ci-helpers.git

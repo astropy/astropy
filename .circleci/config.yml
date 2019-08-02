@@ -10,7 +10,7 @@ pip-run: &pip-install
   command: |
     python3 -m venv venv
     . venv/bin/activate
-    pip install "matplotlib<3.1"
+    pip install "numpy<1.17" "matplotlib<3.1"
     pip install -r pip-requirements-doc
 
 jobs:
