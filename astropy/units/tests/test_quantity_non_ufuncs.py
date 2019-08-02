@@ -11,7 +11,8 @@ from astropy import units as u
 from astropy.units.quantity_helper.function_helpers import (
     ARRAY_FUNCTION_ENABLED, SUBCLASS_SAFE_FUNCTIONS, UNSUPPORTED_FUNCTIONS,
     FUNCTION_HELPERS, DISPATCHED_FUNCTIONS, IGNORED_FUNCTIONS)
-from astropy.utils.compat import NUMPY_LT_1_14, NUMPY_LT_1_15, NUMPY_LT_1_16
+from astropy.utils.compat import (
+    NUMPY_LT_1_14, NUMPY_LT_1_15, NUMPY_LT_1_16, NUMPY_LT_1_18)
 
 
 NO_ARRAY_FUNCTION = not ARRAY_FUNCTION_ENABLED
@@ -1756,8 +1757,10 @@ financial_functions = {f for f in all_wrapped_functions.values()
 untested_functions |= financial_functions
 
 deprecated_functions = {
-    np.asscalar, np.rank
+    np.asscalar
     }
+if NUMPY_LT_1_18:
+    deprecated_functions |= {np.rank}
 untested_functions |= deprecated_functions
 
 io_functions = {np.save, np.savez, np.savetxt, np.savez_compressed}
