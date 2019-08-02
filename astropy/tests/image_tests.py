@@ -10,7 +10,7 @@ MPL_VERSION = matplotlib.__version__
 if MPL_VERSION[:3] == '3.1' and '+' in MPL_VERSION:
     MPL_VERSION = '3.2'
 
-ROOT = "http://{server}/testing/astropy/2018-10-24T12:38:34.134556/{mpl_version}/"
+ROOT = "http://{server}/testing/astropy/2019-08-02T11:38:58.288466/{mpl_version}/"
 IMAGE_REFERENCE_DIR = (ROOT.format(server='data.astropy.org', mpl_version=MPL_VERSION[:3] + '.x') + ',' +
                        ROOT.format(server='www.astropy.org/astropy-data', mpl_version=MPL_VERSION[:3] + '.x'))
 
