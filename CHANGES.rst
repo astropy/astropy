@@ -645,6 +645,8 @@ astropy.wcs
   ``pixel_to_world_values`` when inputs need broadcasting to the same shape.
   (i.e. when one input is sliced out) [#9250]
 
+- Fixed a bug that caused ``WCS.array_shape``, ``WCS.pixel_shape`` and
+  ``WCS.pixel_bounds`` to be incorrect after using ``WCS.sub``. [#9095]
 
 Other Changes and Additions
 ---------------------------
