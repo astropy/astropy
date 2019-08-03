@@ -561,10 +561,43 @@ reduce these to 2 dimensions using the naxis kwarg.
         return copy.deepcopy(self)
 
     def sub(self, axes=None):
+
         copy = self.deepcopy()
         copy.wcs = self.wcs.sub(axes)
         copy.naxis = copy.wcs.naxis
+
+        # We need to adjust pixel_shape and pixel_bounds, so we need to figure
+        # out here which axes are being kept.
+        if isinstance(axes, int):
+            keep = list(range(axes))
+        else:
+            keep = []
+            for ax in axes:
+                if ax == 0:
+                    keep.append(None)
+                elif isinstance(ax, int) and ax < 1000:
+                    keep.append(ax - 1)
+                else:
+                    for icoord, coord in enumerate(self.get_axis_types()):
+                        print(ax, coord)
+                        if coord['coordinate_type'] == 'celestial':
+                            if (ax == WCSSUB_CELESTIAL or ax == 'celestial' or
+                                    ((ax == WCSSUB_LONGITUDE or ax == 'longitude') and coord['number'] == 0) or
+                                    ((ax == WCSSUB_LATITUDE or ax == 'latitude') and coord['number'] == 1)):
+                                if icoord not in keep:
+                                    keep.append(icoord)
+                        elif ((coord['coordinate_type'] == 'spectral' and (ax == WCSSUB_SPECTRAL or ax == 'spectral')) or
+                              (coord['coordinate_type'] == 'stokes' and (ax == WCSSUB_STOKES or ax == 'stokes'))):
+                            if icoord not in keep:
+                                keep.append(icoord)
+
+        if self.pixel_shape:
+            copy.pixel_shape = tuple([None if i is None else self.pixel_shape[i] for i in keep])
+        if self.pixel_bounds:
+            copy.pixel_bounds = [None if i is None else self.pixel_bounds[i] for i in keep]
+
         return copy
+
     if _wcs is not None:
         sub.__doc__ = _wcs.Wcsprm.sub.__doc__
 
