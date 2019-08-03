@@ -566,3 +566,44 @@ def test_caching_components_and_classes():
     frame = wcs.world_axis_object_classes['celestial'][2]['frame']
     assert isinstance(frame, FK5)
     assert frame.equinox.jyear == 2010.
+
+
+def test_sub():
+
+    # Regression test for a bug that caused some of the WCS attributes to be
+    # incorrect when using WCS.sub or WCS.celestial (which is an alias for sub
+    # with lon/lat types).
+
+    wcs = WCS_SPECTRAL_CUBE
+    wcs.pixel_shape = (30, 40, 50)
+    wcs.pixel_bounds = [(-1, 11), (-2, 18), (5, 15)]
+
+    wcs_sub1 = wcs.celestial
+
+    assert wcs_sub1.pixel_n_dim == 2
+    assert wcs_sub1.world_n_dim == 2
+    assert wcs_sub1.array_shape == (50, 30)
+    assert wcs_sub1.pixel_shape == (30, 50)
+    assert wcs_sub1.pixel_bounds == [(-1, 11), (5, 15)]
+    assert wcs_sub1.world_axis_physical_types == ['pos.galactic.lat', 'pos.galactic.lon']
+    assert wcs_sub1.world_axis_units == ['deg', 'deg']
+
+    wcs_sub2 = wcs.sub([0, 2, 0])
+
+    assert wcs_sub2.pixel_n_dim == 3
+    assert wcs_sub2.world_n_dim == 3
+    assert wcs_sub2.array_shape == (None, 40, None)
+    assert wcs_sub2.pixel_shape == (None, 40, None)
+    assert wcs_sub2.pixel_bounds == [None, (-2, 18), None]
+    assert wcs_sub2.world_axis_physical_types == [None, 'em.freq', None]
+    assert wcs_sub2.world_axis_units == ['', 'Hz', '']
+
+    wcs_sub3 = wcs.sub(['longitude', 'latitude'])
+
+    assert wcs_sub3.pixel_n_dim == 2
+    assert wcs_sub3.world_n_dim == 2
+    assert wcs_sub3.array_shape == (30, 50)
+    assert wcs_sub3.pixel_shape == (50, 30)
+    assert wcs_sub3.pixel_bounds == [(5, 15), (-1, 11)]
+    assert wcs_sub3.world_axis_physical_types == ['pos.galactic.lon', 'pos.galactic.lat']
+    assert wcs_sub3.world_axis_units == ['deg', 'deg']
