@@ -2,7 +2,7 @@
 
 .. _astropy.io.ascii_write:
 
-Writing tables
+Writing Tables
 **************
 
 :mod:`astropy.io.ascii` is able to write ASCII tables out to a file or file-like
@@ -10,7 +10,16 @@ object using the same class structure and basic user interface as for reading
 tables.
 
 The |write| function provides a way to write a data table as a
-formatted ASCII table.  For example::
+formatted ASCII table.
+
+Examples
+========
+
+..
+  EXAMPLE START
+  Writing ASCII Tables Using 'astropy.io.ascii'
+
+To write a formatted ASCII table using the |write| function::
 
   >>> import numpy as np
   >>> from astropy.io import ascii
@@ -26,8 +35,8 @@ The ``values.dat`` file will then contain::
   3 9
 
 Most of the input table :ref:`supported_formats` for
-reading are also available for writing.  This provides a great deal of
-flexibility in the format for writing.  The example below writes the data as a
+reading are also available for writing. This provides a great deal of
+flexibility in the format for writing. The example below writes the data as a
 LaTeX table, using the option to send the output to ``sys.stdout`` instead of a
 file::
 
@@ -47,16 +56,27 @@ To disable this engine, use the parameter ``fast_writer``::
 
    >>> ascii.write(data, 'values.csv', format='csv', fast_writer=False)  # doctest: +SKIP
 
-Input data format
+..
+  EXAMPLE END
+
+Input Data Format
 =================
 
 The input ``table`` argument to |write| can be any value that is supported for
-initializing a |Table| object.  This is documented in detail in the
+initializing a |Table| object. This is documented in detail in the
 :ref:`construct_table` section and includes creating a table with a list of
-columns, a dictionary of columns, or from `numpy` arrays (either structured or
-homogeneous).  The sections below show a few examples.
+columns, a dictionary of columns, or from `NumPy` arrays (either structured or
+homogeneous).
 
-Table or NumPy structured array
+Example
+=======
+
+..
+  EXAMPLE START
+  Input Data Format for Creating Tables
+  Does this one need more context or lead in?
+
+Table or NumPy Structured Array
 -------------------------------
 
 An Astropy |Table| object or a NumPy `structured array`_ (or record array) can
@@ -91,10 +111,22 @@ object that can be an input to the |write| function.
     >>> data = ascii.read('data/daophot.dat', format='daophot')  # doctest: +SKIP
     >>> ascii.write(data, 'space_delimited_table.dat')  # doctest: +SKIP
 
-List of lists
+..
+  EXAMPLE END
+
+List of Lists
 -------------
 
-A list of Python lists (or any iterable object) can be used as input::
+A list of Python lists (or any iterable object) can be used as input.
+
+Example
+=======
+
+..
+  EXAMPLE START
+  Lists Used as Input for Writing Tables
+
+To use a list of Python lists as input::
 
     >>> x = [1, 2, 3]
     >>> y = [4, 5.2, 6.1]
@@ -108,8 +140,8 @@ A list of Python lists (or any iterable object) can be used as input::
     3 6.1 !!!
 
 The ``data`` object does not contain information about the column names so
-|Table| has chosen them automatically.  To specify the names, provide the
-``names`` keyword argument.  This example also shows excluding one of the columns
+|Table| has chosen them automatically. To specify the names, provide the
+``names`` keyword argument. This example also shows excluding one of the columns
 from the output::
 
     >>> ascii.write(data, names=['x', 'y', 'z'], exclude_names=['y'])
@@ -118,15 +150,17 @@ from the output::
     2 world
     3 !!!
 
+..
+  EXAMPLE END
 
-Dict of lists
+Dict of Lists
 -------------
 
-A dictionary containing iterable objects can serve as input to |write|.  Each
+A dictionary containing iterable objects can serve as input to |write|. Each
 dict key is taken as the column name while the value must be an iterable object
 containing the corresponding column values.
 
-Since a Python dictionary is not ordered the output column order will be
+Since a Python dictionary is not ordered, the output column order will be
 unpredictable unless the ``names`` argument is provided.
 
 ::
@@ -146,39 +180,38 @@ unpredictable unless the ``names`` argument is provided.
 Parameters for ``write()``
 ==========================
 
-The |write| function accepts a number of parameters that specify the detailed output table
-format.  Each of the :ref:`supported_formats` is handled by a corresponding Writer class that
-can define different defaults, so the descriptions below sometimes mention "typical"
-default values.  This refers to the :class:`~astropy.io.ascii.Basic` writer and other
-similar Writer classes.
+The |write| function accepts a number of parameters that specify the detailed
+output table format. Each of the :ref:`supported_formats` is handled by a
+corresponding Writer class that can define different defaults, so the
+descriptions below sometimes mention "typical" default values. This refers to
+the :class:`~astropy.io.ascii.Basic` writer and other similar Writer classes.
 
-Some output format Writer classes, e.g. :class:`~astropy.io.ascii.Latex` or
-:class:`~astropy.io.ascii.AASTex` accept additional keywords, that can
+Some output format Writer classes (e.g., :class:`~astropy.io.ascii.Latex` or
+:class:`~astropy.io.ascii.AASTex`) accept additional keywords that can
 customize the output further. See the documentation of these classes for
 details.
 
-**output** : output specifier
+**output**: output specifier
   There are two ways to specify the output for the write operation:
 
   - Name of a file (string)
-  - File-like object (from open(), StringIO, etc)
+  - File-like object (from open(), StringIO, etc.)
 
-**table** : input table
+**table**: input table
   Any value that is supported for initializing a |Table| object (see :ref:`construct_table`).
 
-**format** : output format (default='basic')
-  This specifies the format of the ASCII table to be written, for
-  example if it is a basic character delimited table, fixed format table, or a
-  CDS-compatible table, etc.  The value of this parameter must
-  be one of the :ref:`supported_formats`.
+**format**: output format (default='basic')
+  This specifies the format of the ASCII table to be written, such as a basic
+  character delimited table, fixed-format table, or a CDS-compatible table,
+  etc. The value of this parameter must be one of the :ref:`supported_formats`.
 
-**delimiter** : column delimiter string
-  A one-character string used to separate fields which typically defaults to the space character.
-  Other common values might be "," or "|" or "\\t".
+**delimiter**: column delimiter string
+  A one-character string used to separate fields which typically defaults to
+  the space character. Other common values might be "," or "|" or "\\t".
 
-**comment** : string defining start of a comment line in output table
+**comment**: string defining start of a comment line in output table
   For the :class:`~astropy.io.ascii.Basic` Writer this defaults to "# ".
-  Which and how comments are written depends on the format chosen.
+  Which comments are written and how depends on the format chosen.
   The comments are defined as a list of strings in the input table
   ``meta['comments']`` element. Comments in the metadata of the given
   |Table| will normally be written before the header, although
@@ -186,36 +219,37 @@ details.
   commented header. To disable writing comments, set ``comment=False``.
 
 **formats**: dict of data type converters
-  For each key (column name) use the given value to convert the column data to a string.
-  If the format value is string-like then it is used as a Python format statement,
-  e.g. '%0.2f' % value.  If it is a callable function then that function
-  is called with a single argument containing the column value to be converted.
-  Example::
+  For each key (column name) use the given value to convert the column data to
+  a string. If the format value is string-like, then it is used as a Python
+  format statement (e.g., '%0.2f' % value). If it is a callable function, then
+  that function is called with a single argument containing the column value to
+  be converted. Example::
 
     astropy.io.ascii.write(table, sys.stdout, formats={'XCENTER': '%12.1f',
                                                  'YCENTER': lambda x: round(x, 1)},
 
 **names**: list of names corresponding to each data column
-  Define the complete list of names for each data column.  This will override
-  names determined from the data table (if available).  If not supplied then
+  Define the complete list of names for each data column. This will override
+  names determined from the data table (if available). If not supplied then
   use names from the data table or auto-generated names.
 
 **include_names**: list of names to include in output
   From the list of column names found from the data table or the ``names``
-  parameter, select for output only columns within this list.  If not supplied
+  parameter, select for output only columns within this list. If not supplied
   then include all names.
 
 **exclude_names**: list of names to exclude from output
-  Exclude these names from the list of output columns.  This is applied *after*
-  the ``include_names`` filtering.  If not specified then no columns are excluded.
+  Exclude these names from the list of output columns. This is applied *after*
+  the ``include_names`` filtering. If not specified then no columns are excluded.
 
 **fill_values**: list of fill value specifiers
   This can be used to fill missing values in the table or replace values with special meaning.
 
-  See the :ref:`replace_bad_or_missing_values` section for more information on the syntax.
-  The syntax is almost the same as when reading a table.
-  There is a special value ``astropy.io.ascii.masked`` that is used a say "output this string
-  for all masked values in a masked table (the default is to use an empty string ``""``)::
+  See the :ref:`replace_bad_or_missing_values` section for more information on
+  the syntax. The syntax is almost the same as when reading a table.
+  There is a special value ``astropy.io.ascii.masked`` that is used to say
+  "output this string for all masked values in a masked table" (the default is
+  to use an empty string ``""``)::
 
       >>> import sys
       >>> from astropy.table import Table, Column, MaskedColumn
@@ -231,7 +265,7 @@ details.
       N/A 3
       2 4
 
-  Note that when writing a table all values are converted to strings, before
+  Note that when writing a table, all values are converted to strings before
   any value is replaced. Because ``fill_values`` only replaces cells that
   are an exact match to the specification, you need to provide the string
   representation (stripped of whitespace) for each value. For example, in
@@ -245,15 +279,15 @@ details.
       "no data" 3
       2.00 4
 
-  Similarly, if you replace a value in a column that has a fixed length format,
-  e.g. ``'f4.2'``, then the string you want to replace must have the same
-  number of characters, in the example above ``fill_values=[(' nan',' N/A')]``
+  Similarly, if you replace a value in a column that has a fixed length format
+  (e.g., ``'f4.2'``), then the string you want to replace must have the same
+  number of characters. In the example above, ``fill_values=[(' nan',' N/A')]``
   would work.
 
-**fill_include_names**: list of column names, which are affected by ``fill_values``.
+**fill_include_names**: list of column names, which are affected by ``fill_values``
   If not supplied, then ``fill_values`` can affect all columns.
 
-**fill_exclude_names**: list of column names, which are not affected by ``fill_values``.
+**fill_exclude_names**: list of column names, which are not affected by ``fill_values``
   If not supplied, then ``fill_values`` can affect all columns.
 
 **fast_writer**: whether to use the fast Cython writer
@@ -262,24 +296,24 @@ details.
   Specifying ``fast_writer=False`` disables this behavior.
 
 **Writer** : Writer class (*deprecated* in favor of ``format``)
-  This specifies the top-level format of the ASCII table to be written, for
-  example if it is a basic character delimited table, fixed format table, or a
-  CDS-compatible table, etc.  The value of this parameter must be a Writer
-  class.  For basic usage this means one of the built-in :ref:`extension_reader_classes`.
-  Note: Reader classes and Writer classes are synonymous, in other
-  words Reader classes can also write, but for historical reasons they are
+  This specifies the top-level format of the ASCII table to be written, such as
+  a basic character delimited table, fixed-format table, or a CDS-compatible
+  table, etc. The value of this parameter must be a Writer class. For basic
+  usage this means one of the built-in :ref:`extension_reader_classes`.
+  Note that Reader classes and Writer classes are synonymous; in other
+  words, Reader classes can also write, but for historical reasons they are
   often called Reader classes.
 
 
 .. _ecsv_format:
 
-ECSV format
+ECSV Format
 ===========
 
 The `Enhanced Character-Separated Values (ECSV) format
 <https://github.com/astropy/astropy-APEs/blob/master/APE6.rst>`_ can be used to
-write astropy `~astropy.table.Table` or `~astropy.table.QTable` datasets to a
-text-only data file and then read the table back without loss of information.
+write ``astropy`` `~astropy.table.Table` or `~astropy.table.QTable` datasets to
+a text-only data file and then read the table back without loss of information.
 The format handles the key issue of serializing column specifications and table
 metadata by using a YAML-encoded data structure. The actual tabular data are
 stored in a standard character separated values (CSV) format, giving
@@ -287,10 +321,10 @@ compatibility with a wide variety of non-specialized CSV table readers.
 
 .. _ecsv_format_mixin_columns:
 
-Mixin columns
+Mixin Columns
 -------------
 
-Starting with astropy 2.0 it is possible to store not only standard
+Starting with ``astropy`` 2.0 it is possible to store not only standard
 `~astropy.table.Column` objects to ECSV but also the following
 :ref:`mixin_columns`:
 
@@ -304,15 +338,25 @@ Starting with astropy 2.0 it is possible to store not only standard
 - `astropy.coordinates.EarthLocation`
 - `astropy.coordinates.SkyCoord`
 
-In general a mixin column may contain multiple data components as well as
+In general, a mixin column may contain multiple data components as well as
 object attributes beyond the standard `~astropy.table.Column` attributes like
-``format`` or ``description``.  Storing such mixin columns is done by replacing
+``format`` or ``description``. Storing such mixin columns is done by replacing
 the mixin column with column(s) representing the underlying data component(s)
-and then inserting meta data which informs the reader how to reconstruct the
-original column.  For example a `~astropy.coordinates.SkyCoord` mixin column in
+and then inserting metadata which informs the reader of how to reconstruct the
+original column. For example, a `~astropy.coordinates.SkyCoord` mixin column in
 ``'spherical'`` representation would have data attributes ``ra``, ``dec``,
 ``distance``, along with object attributes like ``representation_type`` or
-``frame``.  For example::
+``frame``.
+
+Example
+=======
+
+..
+  EXAMPLE START
+  Using ECSV Format to Write ''astropy'' Tables
+  Maybe needs more context?
+
+To store a mixin column::
 
   >>> from astropy.io import ascii
   >>> from astropy.coordinates import SkyCoord
@@ -368,29 +412,42 @@ original column.  For example a `~astropy.coordinates.SkyCoord` mixin column in
   1 1.0 1.0 3.0 5.0
   2 2.0 2.0 4.0 6.0
 
-The ``'__class__'`` keyword gives the fully-qualified class name, and must be
-one of the specifically-allowed astropy classes.  There is no option to add
-user-specified allowed classes.  The ``'__info__'`` keyword contains values for
+The ``'__class__'`` keyword gives the fully-qualified class name and must be
+one of the specifically allowed ``astropy`` classes. There is no option to add
+user-specified allowed classes. The ``'__info__'`` keyword contains values for
 standard `~astropy.table.Column` attributes like ``description`` or ``format``,
 for any mixin columns that are represented by more than one serialized column.
 
+..
+  EXAMPLE END
+
 .. _ecsv_format_masked_columns:
 
-Masked columns
+Masked Columns
 --------------
 
 By default, the ECSV format uses an empty (zero-length) string in the output
 table to represent masked or missing data in `~astropy.table.MaskedColumn`
-columns.  In certain cases this may not be sufficient:
+columns. In certain cases this may not be sufficient:
 
 - String column that contains empty (zero-length) string(s) as valid data.
 - Masked data values must be stored so those values can later be unmasked.
 
-In this case there is an available mechanism to specify that the full data
+In this case, there is an available mechanism to specify that the full data
 and the mask itself should be written as columns in the output table as
-shown in the example below.  For further context see the section on
+shown in the example below. For further context see the section on
 :ref:`table_serialization_methods`.
-::
+
+Example
+=======
+
+..
+  EXAMPLE START
+  Using ECSV Format to Write ''astropy'' Tables with Masked or Missing Data
+  Maybe needs more context/unsure about this one
+
+To specify that the full data and the mask itself should be written as columns
+in the output table::
 
   >>> from astropy.table.table_helpers import simple_table
   >>> t = simple_table(masked=True)
@@ -409,9 +466,9 @@ string column ``'c'``::
 
   >>> t['c'].info.serialize_method['ecsv'] = 'data_mask'
 
-When this is written out notice that the output shows all the
-data values for the ``'c'`` column (include the masked ``'d'``
-value) and a new column ``'c.masked'``.  It also stores metadata
+When this is written out, notice that the output shows all of the
+data values for the ``'c'`` column (including the masked ``'d'``
+value) and a new column ``'c.masked'``. It also stores metadata
 that tells the ECSV reader to interpret the ``'c'`` and ``'c.masked'``
 columns as components of one `~astropy.table.MaskedColumn` object:
 
@@ -438,11 +495,14 @@ columns as components of one `~astropy.table.MaskedColumn` object:
   3 "" e False
 
 When you read this back in, the empty (zero-length) string in the
-first row of column ``'c'`` will be preserved.  One can easily write
-all the columns out as data and mask pairs using the Unified I/O
+first row of column ``'c'`` will be preserved. You can also write
+all of the columns out as data and mask pairs using the Unified I/O
 interface for tables with the ``serialize_method`` keyword argument::
 
   >>> t.write('out.ecsv', format='ascii.ecsv', serialize_method='data_mask')  # doctest: +SKIP
 
-In this case all data values, including those "under the mask" in the
-original table, will be restored exactly when you read the file back.
+In this case, all data values (including those "under the mask" in the
+original table) will be restored exactly when you read the file back.
+
+..
+  EXAMPLE END
