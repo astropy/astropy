@@ -3,11 +3,11 @@
 Verification
 ************
 
-Astropy has built in a flexible scheme to verify FITS data being conforming to
-the FITS standard. The basic verification philosophy in Astropy is to be
-tolerant in input and strict in output.
+``astropy`` has built in a flexible scheme to verify FITS data conforming to
+the FITS standard. The basic verification philosophy in ``astropy`` is to be
+tolerant with input and strict with output.
 
-When Astropy reads a FITS file which is not conforming to FITS standard, it
+When ``astropy`` reads a FITS file which does not conform to FITS standard, it
 will not raise an error and exit. It will try to make the best educated
 interpretation and only gives up when the offending data is accessed and no
 unambiguous interpretation can be reached.
@@ -24,14 +24,14 @@ FITS Standard
 Since FITS standard is a "loose" standard, there are many places the violation
 can occur and to enforce them all will be almost impossible. It is not uncommon
 for major observatories to generate data products which are not 100% FITS
-compliant. Some observatories have also developed their own sub-standard
-(dialect?) and some of these become so prevalent that they become de facto
+compliant. Some observatories have also developed their own nonstandard
+dialect and some of these are so prevalent that they have become de facto
 standards. Examples include the long string value and the use of the CONTINUE
 card.
 
 The violation of the standard can happen at different levels of the data
-structure. Astropy's verification scheme is developed on these hierarchical
-levels. Here are the 3 Astropy verification levels:
+structure. ``astropy``'s verification scheme is developed on these hierarchical
+levels. Here are the three ``astropy`` verification levels:
 
 1. The HDU List
 
@@ -40,13 +40,13 @@ levels. Here are the 3 Astropy verification levels:
 3. Each Card in the HDU Header
 
 These three levels correspond to the three categories of objects:
-:class:`HDUList`, any HDU (e.g. :class:`PrimaryHDU`, :class:`ImageHDU`, etc.),
+:class:`HDUList`, any HDU (e.g., :class:`PrimaryHDU`, :class:`ImageHDU`, etc.),
 and :class:`Card`. They are the only objects having the ``verify()`` method.
-Most other classes in astropy.io.fits do not have a ``verify()`` method.
+Most other classes in `astropy.io.fits` do not have a ``verify()`` method.
 
 If ``verify()`` is called at the HDU List level, it verifies standard
 compliance at all three levels, but a call of ``verify()`` at the Card level
-will only check the compliance of that Card. Since Astropy is tolerant when
+will only check the compliance of that Card. Since ``astropy`` is tolerant when
 reading a FITS file, no ``verify()`` is called on input. On output,
 ``verify()`` is called with the most restrictive option as the default.
 
@@ -54,16 +54,16 @@ reading a FITS file, no ``verify()`` is called on input. On output,
 Verification Options
 ====================
 
-There are several options accepted by all verify(option) calls in Astropy. In
-addition, they available for the ``output_verify`` argument of the following
+There are several options accepted by all verify(option) calls in ``astropy``.
+In addition, they available for the ``output_verify`` argument of the following
 methods: ``close()``, ``writeto()``, and ``flush()``. In these cases, they are
 passed to a ``verify()`` call within these methods. The available options are:
 
 **exception**
 
-This option will raise an exception, if any FITS standard is violated. This is
-the default option for output (i.e. when ``writeto()``, ``close()``, or
-``flush()`` is called. If a user wants to overwrite this default on output, the
+This option will raise an exception if any FITS standard is violated. This is
+the default option for output (i.e., when ``writeto()``, ``close()``, or
+``flush()`` is called). If a user wants to overwrite this default on output, the
 other options listed below can be used.
 
 **warn**
@@ -79,11 +79,11 @@ to the FITS standard.
 
 The ignore option is useful in the following situations:
 
-1. An input FITS file with non-standard formatting is read and the user wants
-   to copy or write out to an output file. The non-standard formatting will be
+1. An input FITS file with nonstandard formatting is read and the user wants
+   to copy or write out to an output file. The nonstandard formatting will be
    preserved in the output file.
 
-2. A user wants to create a non-standard FITS file on purpose, possibly for
+2. A user wants to create a nonstandard FITS file on purpose, possibly for
    testing or consistency.
 
 No warning message will be printed out. This is like a silent warning option
@@ -94,7 +94,7 @@ No warning message will be printed out. This is like a silent warning option
 This option will try to fix any FITS standard violations. It is not always
 possible to fix such violations. In general, there are two kinds of FITS
 standard violations: fixable and non-fixable. For example, if a keyword has a
-floating number with an exponential notation in lower case 'e' (e.g. 1.23e11)
+floating number with an exponential notation in lower case 'e' (e.g., 1.23e11)
 instead of the upper case 'E' as required by the FITS standard, it is a fixable
 violation. On the other hand, a keyword name like 'P.I.' is not fixable, since
 it will not know what to use to replace the disallowed periods. If a violation
@@ -102,11 +102,11 @@ is fixable, this option will print out a message noting it is fixed. If it is
 not fixable, it will throw an exception.
 
 The principle behind fixing is to do no harm. For example, it is plausible to
-'fix' a Card with a keyword name like 'P.I.' by deleting it, but Astropy will
-not take such action to hurt the integrity of the data.
+'fix' a Card with a keyword name like 'P.I.' by deleting it, but ``astropy``
+will not take such action to hurt the integrity of the data.
 
-Not all fixes may be the "correct" fix, but at least Astropy will try to make
-the fix in such a way that it will not throw off other FITS readers.
+Not all fixes may be the "correct" fix, but at least ``astropy`` will try to
+make the fix in such a way that it will not throw off other FITS readers.
 
 **silentfix**
 
@@ -114,8 +114,8 @@ Same as fix, but will not print out informative messages. This may be useful in
 a large script where the user does not want excessive harmless messages. If the
 violation is not fixable, it will still throw an exception.
 
-In addition, as of Astropy version 0.4.0 the following 'combined' options are
-available:
+In addition, as of ``astropy`` version 0.4.0 the following combined options
+are available:
 
  * **fix+ignore**
  * **fix+warn**
@@ -124,17 +124,18 @@ available:
  * **silentfix+warn**
  * **silentfix+exception**
 
-These options combine the semantics of the basic options.  For example
+These options combine the semantics of the basic options. For example,
 ``silentfix+exception`` is actually equivalent to just ``silentfix`` in that
 fixable errors will be fixed silently, but any unfixable errors will raise an
-exception.  On the other hand ``silentfix+warn`` will issue warnings for
+exception. On the other hand, ``silentfix+warn`` will issue warnings for
 unfixable errors, but will stay silent about any fixed errors.
 
 
 Verifications at Different Data Object Levels
 =============================================
 
-We'll examine what Astropy's verification does at the three different levels:
+We will examine what ``astropy``'s verification does at the three different
+levels:
 
 
 Verification at HDUList
@@ -145,8 +146,8 @@ At the HDU List level, the verification is only for two simple cases:
 1. Verify that the first HDU in the HDU list is a Primary HDU. This is a
    fixable case. The fix is to insert a minimal Primary HDU into the HDU list.
 
-2. Verify second or later HDU in the HDU list is not a Primary HDU. Violation
-   will not be fixable.
+2. Verify the second or later HDU in the HDU list is not a Primary HDU.
+   Violation will not be fixable.
 
 
 Verification at Each HDU
@@ -186,11 +187,20 @@ Verification at Each Card
 -------------------------
 
 The lowest level, the Card, also has the most complicated verification
-possibilities. Here is a lit of fixable and not fixable Cards:
+possibilities.
+
+Examples
+========
+
+..
+  EXAMPLE START
+  Verification at Each Card in `astropy.io.fits`
+
+Here is a list of fixable and not fixable Cards:
 
 Fixable Cards:
 
-1. floating point numbers with lower case 'e' or 'd'::
+1. Floating point numbers with lower case 'e' or 'd'::
 
     >>> from astropy.io import fits
     >>> c = fits.Card.fromstring('FIX1    = 2.1e23')
@@ -198,30 +208,30 @@ Fixable Cards:
     >>> print(c)
     FIX1    =               2.1E23
 
-2. the equal sign is before column 9 in the card image::
+2. The equal sign is before column nine in the card image::
 
     >>> c = fits.Card.fromstring('FIX2= 2')
     >>> c.verify('silentfix')
     >>> print(c)
     FIX2    =                    2
 
-3. string value without enclosing quotes::
+3. String value without enclosing quotes::
 
     >>> c = fits.Card.fromstring('FIX3    = string value without quotes')
     >>> c.verify('silentfix')
     >>> print(c)
     FIX3    = 'string value without quotes'
 
-4. missing equal sign before column 9 in the card image
+4. Missing equal sign before column nine in the card image.
 
-5. space between numbers and E or D in floating point values::
+5. Space between numbers and E or D in floating point values::
 
     >>> c = fits.Card.fromstring('FIX5    = 2.4 e 03')
     >>> c.verify('silentfix')
     >>> print(c)
     FIX5    =               2.4E03
 
-6. unparsable values will be "fixed" as a string::
+6. Unparsable values will be "fixed" as a string::
 
     >>> c = fits.Card.fromstring('FIX6    = 2 10 ')
     >>> c.verify('fix+warn')
@@ -230,9 +240,9 @@ Fixable Cards:
 
 Unfixable Cards:
 
-1. illegal characters in keyword name
+1. Illegal characters in keyword name.
 
-We'll summarize the verification with a "life-cycle" example:
+We will summarize the verification with a "life-cycle" example:
 
 .. doctest-skip::
 
@@ -280,41 +290,50 @@ We'll summarize the verification with a "life-cycle" example:
       Card 4:
         Unfixable error: Illegal keyword name 'P.I.'
 
+..
+  EXAMPLE END
 
-Verification using the FITS Checksum Keyword Convention
+Verification Using the FITS Checksum Keyword Convention
 =======================================================
 
 The North American FITS committee has reviewed the FITS Checksum Keyword
-Convention for possible adoption as a FITS Standard.  This convention provides
-an integrity check on information contained in FITS HDUs.  The convention
-consists of two header keyword cards: CHECKSUM and DATASUM.  The CHECKSUM
+Convention for possible adoption as a FITS Standard. This convention provides
+an integrity check on information contained in FITS HDUs. The convention
+consists of two header keyword cards: CHECKSUM and DATASUM. The CHECKSUM
 keyword is defined as an ASCII character string whose value forces the 32-bit
 1's complement checksum accumulated over all the 2880-byte FITS logical records
-in the HDU to equal negative zero.  The DATASUM keyword is defined as a
+in the HDU to equal negative zero. The DATASUM keyword is defined as a
 character string containing the unsigned integer value of the 32-bit 1's
-complement checksum of the data records in the HDU.  Verifying the the
+complement checksum of the data records in the HDU. Verifying the
 accumulated checksum is still equal to negative zero provides a fairly reliable
 way to determine that the HDU has not been modified by subsequent data
 processing operations or corrupted while copying or storing the file on
 physical media.
 
-In order to avoid any impact on performance, by default Astropy will not verify
-HDU checksums when a file is opened or generate checksum values when a file is
-written.  In fact, CHECKSUM and DATASUM cards are automatically removed from
-HDU headers when a file is opened, and any CHECKSUM or DATASUM cards are
-stripped from headers when a HDU is written to a file.  In order to verify the
+In order to avoid any impact on performance, by default ``astropy`` will not
+verify HDU checksums when a file is opened or generate checksum values when a
+file is written. In fact, CHECKSUM and DATASUM cards are automatically removed
+from HDU headers when a file is opened, and any CHECKSUM or DATASUM cards are
+stripped from headers when an HDU is written to a file. In order to verify the
 checksum values for HDUs when opening a file, the user must supply the checksum
 keyword argument in the call to the open convenience function with a value of
-True.  When this is done, any checksum verification failure will cause a
-warning to be issued (via the warnings module).  If checksum verification is
+True. When this is done, any checksum verification failure will cause a
+warning to be issued (via the warnings module). If checksum verification is
 requested in the open, and no CHECKSUM or DATASUM cards exist in the HDU
-header, the file will open without comment.  Similarly, in order to output the
+header, the file will open without comment. Similarly, in order to output the
 CHECKSUM and DATASUM cards in an HDU header when writing to a file, the user
 must supply the checksum keyword argument with a value of True in the call to
-the writeto function.  It is possible to write only the DATASUM card to the
+the ``writeto()`` function. It is possible to write only the DATASUM card to the
 header by supplying the checksum keyword argument with a value of 'datasum'.
 
-Here are some examples:
+Examples
+========
+
+..
+  EXAMPLE START
+  Verification Using the FITS Checksum Keyword Convention in `astropy.io.fits`
+
+To verify the checksum values for HDUs when opening a file:
 
 .. doctest-skip::
 
@@ -352,3 +371,6 @@ Here are some examples:
      >>> # the file existingfile.fits with only the appended HDU
      >>> # containing both CHECKSUM and DATASUM cards.
      >>> fits.append('existingfile.fits', data, checksum=True)
+
+..
+  EXAMPLE END
