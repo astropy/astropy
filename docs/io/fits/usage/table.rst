@@ -5,7 +5,7 @@ Table Data
 **********
 
 In this chapter, we will discuss the data component in a table HDU. A table will
-always be in an extension HDU, never in a Primary HDU.
+always be in an extension HDU, never in a primary HDU.
 
 There are two kinds of tables in the FITS standard: binary tables and ASCII
 tables. Binary tables are more economical in storage and faster in data access
