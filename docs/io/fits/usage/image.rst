@@ -9,7 +9,7 @@ In this chapter, we will discuss the data component in an image HDU.
 Image Data as an Array
 ======================
 
-A FITS Primary HDU or an image extension HDU may contain image data. The
+A FITS primary HDU or an image extension HDU may contain image data. The
 following discussions apply to both of these HDU classes. For most cases in
 ``astropy``, it is a ``numpy`` array, having the shape specified by the NAXIS
 keywords and the data type specified by the BITPIX keyword — unless the data is
