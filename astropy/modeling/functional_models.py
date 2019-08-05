@@ -20,7 +20,7 @@ __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D', 'Gaussian2D', 'Linear1D',
            'Lorentz1D', 'MexicanHat1D', 'MexicanHat2D', 'RedshiftScaleFactor',
            'Multiply', 'Planar2D', 'Scale', 'Sersic1D', 'Sersic2D', 'Shift',
-           'Sine1D', 'Trapezoid1D', 'TrapezoidDisk2D', 'Ring2D', 'Voigt1D']
+           'Sine1D', 'Trapezoid1D', 'TrapezoidDisk2D', 'Ring2D', 'Voigt1D', 'KingProjectedAnalytic1D']
 
 
 TWOPI = 2 * np.pi
@@ -2508,3 +2508,138 @@ class Sersic2D(Fittable2DModel):
                             ('r_eff', inputs_unit['x']),
                             ('theta', u.rad),
                             ('amplitude', outputs_unit['z'])])
+
+
+class KingProjectedAnalytic1D(Fittable1DModel):
+    """
+    Projected (surface density) analytic King Model.
+
+
+    Parameters
+    ----------
+    amplitude : float
+        Amplitude or scaling factor.
+    r_core : float
+        Core radius (f(r_c) ~ 0.5 f_0)
+    r_tide : float
+        Tidal radius.
+
+
+    Notes
+    -----
+
+    This model approximates a King model with an analytic function. The derivation of this
+    equation can be found in King '62 (equation 14). This is just an approximation of the
+    full model and the parameters derived from this model should be taken with caution.
+    It usually works for models with a concentration (c = log10(r_t/r_c) paramter < 2.
+
+    Model formula:
+
+    .. math::
+
+        f(x) = A r_c^2  \\left(\\frac{1}{\\sqrt{(x^2 + r_c^2)}} -
+        \\frac{1}{\\sqrt{(r_t^2 + r_c^2)}}\\right)^2
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        from astropy.modeling.models import KingProjectedAnalytic1D
+        import matplotlib.pyplot as plt
+
+        plt.figure()
+        rt_list = [1, 2, 5, 10, 20]
+        for rt in rt_list:
+            r = np.linspace(0.1, rt, 100)
+
+            mod = KingProjectedAnalytic1D(amplitude = 1, r_core = 1., r_tide = rt)
+            sig = mod(r)
+
+
+            plt.loglog(r, sig/sig[0], label='c ~ {:0.2f}'.format(mod.concentration))
+
+        plt.xlabel("r")
+        plt.ylabel(r"$\\sigma/\\sigma_0$")
+        plt.legend()
+        plt.show()
+
+    References
+    ----------
+    .. [1] http://articles.adsabs.harvard.edu/pdf/1962AJ.....67..471K
+    """
+
+    amplitude = Parameter(default=1, bounds=(FLOAT_EPSILON, None))
+    r_core = Parameter(default=1, bounds=(FLOAT_EPSILON, None))
+    r_tide = Parameter(default=2, bounds=(FLOAT_EPSILON, None))
+
+    @property
+    def concentration(self):
+        """Concentration parameter of the king model"""
+        return np.log10(np.abs(self.r_tide/self.r_core))
+
+    @staticmethod
+    def evaluate(x, amplitude, r_core, r_tide):
+        """
+        Analytic King model function.
+        """
+
+        result = amplitude * r_core ** 2 * (1/np.sqrt(x ** 2 + r_core ** 2) -
+                                          1/np.sqrt(r_tide ** 2 + r_core ** 2)) ** 2
+
+        # Set invalid r values to 0
+        bounds = (x >= r_tide) | (x<0)
+        result[bounds] = result[bounds] * 0.
+
+        return result
+
+    @staticmethod
+    def fit_deriv(x, amplitude, r_core, r_tide):
+        """
+        Analytic King model function derivatives.
+        """
+        d_amplitude = r_core ** 2 * (1/np.sqrt(x ** 2 + r_core ** 2) -
+                                     1/np.sqrt(r_tide ** 2 + r_core ** 2)) ** 2
+
+        d_r_core = 2 * amplitude * r_core ** 2 * (r_core/(r_core ** 2 + r_tide ** 2) ** (3/2) -
+                                                  r_core/(r_core ** 2 + x ** 2) ** (3/2)) * \
+                   (1./np.sqrt(r_core ** 2 + x ** 2) - 1./np.sqrt(r_core ** 2 + r_tide ** 2)) + \
+                   2 * amplitude * r_core * (1./np.sqrt(r_core ** 2 + x ** 2) -
+                                             1./np.sqrt(r_core ** 2 + r_tide ** 2)) ** 2
+
+        d_r_tide = (2 * amplitude * r_core ** 2 * r_tide *
+                    (1./np.sqrt(r_core ** 2 + x ** 2) -
+                     1./np.sqrt(r_core ** 2 + r_tide ** 2)))/(r_core ** 2 + r_tide ** 2) ** (3/2)
+
+        # Set invalid r values to 0
+        bounds = (x >= r_tide) | (x < 0)
+        d_amplitude[bounds] = d_amplitude[bounds]*0
+        d_r_core[bounds] = d_r_core[bounds]*0
+        d_r_tide[bounds] = d_r_tide[bounds]*0
+
+        return [d_amplitude, d_r_core, d_r_tide]
+
+    @property
+    def bounding_box(self):
+        """
+        Tuple defining the default ``bounding_box`` limits.
+
+        The model is not defined for r > r_tide.
+
+        ``(r_low, r_high)``
+        """
+
+        return (0 * self.r_tide, 1 * self.r_tide)
+
+    @property
+    def input_units(self):
+        if self.r_core.unit is None:
+            return None
+        else:
+            return {'x': self.r_core.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('r_core', inputs_unit['x']),
+                            ('r_tide', inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])
