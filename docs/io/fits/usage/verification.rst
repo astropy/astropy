@@ -143,10 +143,10 @@ Verification at HDUList
 
 At the HDU List level, the verification is only for two simple cases:
 
-1. Verify that the first HDU in the HDU list is a Primary HDU. This is a
-   fixable case. The fix is to insert a minimal Primary HDU into the HDU list.
+1. Verify that the first HDU in the HDU list is a primary HDU. This is a
+   fixable case. The fix is to insert a minimal primary HDU into the HDU list.
 
-2. Verify the second or later HDU in the HDU list is not a Primary HDU.
+2. Verify the second or later HDU in the HDU list is not a primary HDU.
    Violation will not be fixable.
 
 
@@ -155,7 +155,7 @@ Verification at Each HDU
 
 For each HDU, the mandatory keywords, their locations in the header, and their
 values will be verified. Each FITS HDU has a fixed set of required keywords in
-a fixed order. For example, the Primary HDU's header must at least have the
+a fixed order. For example, the primary HDU's header must at least have the
 following keywords:
 
 .. parsed-literal::
