@@ -52,17 +52,31 @@ class CoordinatesMap:
         self._coords = []
         self._aliases = {}
 
-        for coord_index in range(len(coord_meta['type'])):
+        visible_count = 0
+
+        for index in range(len(coord_meta['type'])):
 
             # Extract coordinate metadata
-            coord_type = coord_meta['type'][coord_index]
-            coord_wrap = coord_meta['wrap'][coord_index]
-            coord_unit = coord_meta['unit'][coord_index]
-            name = coord_meta['name'][coord_index]
+            coord_type = coord_meta['type'][index]
+            coord_wrap = coord_meta['wrap'][index]
+            coord_unit = coord_meta['unit'][index]
+            name = coord_meta['name'][index]
+
+            if 'visible' in coord_meta:
+                visible = coord_meta['visible'][index]
+            else:
+                visible = True
+
             if 'format_unit' in coord_meta:
-                format_unit = coord_meta['format_unit'][coord_index]
+                format_unit = coord_meta['format_unit'][index]
             else:
                 format_unit = None
+
+            if visible:
+                visible_count += 1
+                coord_index = visible_count - 1
+            else:
+                coord_index = None
 
             self._coords.append(CoordinateHelper(parent_axes=axes,
                                                  parent_map=self,
@@ -129,5 +143,5 @@ class CoordinatesMap:
         ymin, ymax = self._axes.get_ylim()
         return find_coordinate_range(self._transform,
                                      [xmin, xmax, ymin, ymax],
-                                     [coord.coord_type for coord in self],
-                                     [coord.coord_unit for coord in self])
+                                     [coord.coord_type for coord in self if coord.coord_index is not None],
+                                     [coord.coord_unit for coord in self if coord.coord_index is not None])

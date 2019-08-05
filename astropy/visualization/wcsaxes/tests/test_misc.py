@@ -312,3 +312,20 @@ def test_contour_empty():
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
     fig.add_axes(ax)
     ax.contour(np.zeros((4, 4)), transform=ax.get_transform('world'))
+
+
+@ignore_matplotlibrc
+def test_iterate_coords(tmpdir):
+
+    # Regression test for a bug that caused ax.coords to return too few axes
+
+    wcs3d = WCS(naxis=3)
+    wcs3d.wcs.ctype = ['x', 'y', 'z']
+    wcs3d.wcs.cunit = ['deg', 'deg', 'km/s']
+    wcs3d.wcs.crpix = [614.5, 856.5, 333]
+    wcs3d.wcs.cdelt = [6.25, 6.25, 23]
+    wcs3d.wcs.crval = [0., 0., 1.]
+
+    ax = plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1))
+
+    x, y, z = ax.coords

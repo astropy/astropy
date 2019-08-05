@@ -29,17 +29,8 @@ def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
     coord_meta['type'] = []
     coord_meta['wrap'] = []
     coord_meta['unit'] = []
+    coord_meta['visible'] = []
     coord_meta['format_unit'] = []
-
-    invert_xy = False
-    if aslice is not None:
-        wcs_slice = list(aslice)
-        wcs_slice[wcs_slice.index("x")] = slice(None)
-        wcs_slice[wcs_slice.index("y")] = slice(None)
-        wcs = SlicedLowLevelWCS(wcs, wcs_slice[::-1])
-        invert_xy = aslice.index('x') > aslice.index('y')
-
-    transform = WCSPixel2WorldTransform(wcs, invert_xy=invert_xy)
 
     for idx in range(wcs.world_n_dim):
 
@@ -100,6 +91,22 @@ def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
     coord_meta['default_ticklabel_position'] = [''] * wcs.world_n_dim
     coord_meta['default_ticks_position'] = [''] * wcs.world_n_dim
 
+    invert_xy = False
+    if aslice is not None:
+        wcs_slice = list(aslice)
+        wcs_slice[wcs_slice.index("x")] = slice(None)
+        wcs_slice[wcs_slice.index("y")] = slice(None)
+        wcs = SlicedLowLevelWCS(wcs, wcs_slice[::-1])
+        invert_xy = aslice.index('x') > aslice.index('y')
+        world_keep = wcs._world_keep
+    else:
+        world_keep = list(range(wcs.world_n_dim))
+
+    for i in range(len(coord_meta['type'])):
+        coord_meta['visible'].append(i in world_keep)
+
+    transform = WCSPixel2WorldTransform(wcs, invert_xy=invert_xy)
+
     m = wcs.axis_correlation_matrix.copy()
     if invert_xy:
         m = m[:, ::-1]
@@ -109,16 +116,19 @@ def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
         for i, spine_name in enumerate('bltr'):
             pos = np.nonzero(m[:, i % 2])[0]
             if len(pos) > 0:
-                coord_meta['default_axislabel_position'][pos[0]] = spine_name
-                coord_meta['default_ticklabel_position'][pos[0]] = spine_name
-                coord_meta['default_ticks_position'][pos[0]] = spine_name
+                index = world_keep[pos[0]]
+                coord_meta['default_axislabel_position'][index] = spine_name
+                coord_meta['default_ticklabel_position'][index] = spine_name
+                coord_meta['default_ticks_position'][index] = spine_name
                 m[pos[0], :] = 0
 
         # In the special and common case where the frame is rectangular and
         # we are dealing with 2-d WCS, we show all ticks on all axes for
         # backward-compatibility.
         if len(coord_meta['type']) == 2:
-            coord_meta['default_ticks_position'] = ['bltr'] * wcs.world_n_dim
+            for i in range(2):
+                if i in world_keep:
+                    coord_meta['default_ticks_position'][world_keep[i]] = 'bltr'
 
     elif frame_class is EllipticalFrame:
 
@@ -136,10 +146,12 @@ def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
 
     else:
 
-        for i in range(wcs.world_n_dim):
-            coord_meta['default_axislabel_position'][i] = frame_class.spine_names
-            coord_meta['default_ticklabel_position'][i] = frame_class.spine_names
-            coord_meta['default_ticks_position'][i] = frame_class.spine_names
+        for i in range(len(coord_meta['type'])):
+            if i in world_keep:
+                index = world_keep[i]
+                coord_meta['default_axislabel_position'][index] = frame_class.spine_names
+                coord_meta['default_ticklabel_position'][index] = frame_class.spine_names
+                coord_meta['default_ticks_position'][index] = frame_class.spine_names
 
     return transform, coord_meta
 
