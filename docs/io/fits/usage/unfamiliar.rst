@@ -225,7 +225,7 @@ random access group. This convention was established before the binary table
 extension was introduced. In most cases its use can now be superseded by the
 binary table. It is mostly used in radio interferometry.
 
-Like Primary HDUs, a Random Access Group HDU is always the first HDU of a FITS
+Like primary HDUs, a Random Access Group HDU is always the first HDU of a FITS
 file. Its data has one or more groups. Each group may have any number
 (including 0) of parameters, together with an image. The parameters and the
 image have the same data type.
@@ -471,7 +471,7 @@ any image header. The actual header stored in the FITS file is that of a binary
 table HDU with a set of special keywords, defined by the convention, to
 describe the structure of the compressed image. The conversion between binary
 table HDU header and image HDU header is all performed behind the scenes.
-Since the HDU is actually a binary table, it may not appear as a Primary HDU in
+Since the HDU is actually a binary table, it may not appear as a primary HDU in
 a FITS file.
 
 Example
