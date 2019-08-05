@@ -94,7 +94,7 @@ unless you want to understand why some changes were necessary.
 
 
 - Generally, all public methods have remained unchanged. The exception
-  is `.n_submodels` that used to be a method but now is a property.
+  is ``n_submodels`` that used to be a method but now is a property.
 
 - Many of the non-public methods have changed, particularly for
   compound models.
