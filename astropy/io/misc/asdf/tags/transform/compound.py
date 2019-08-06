@@ -83,10 +83,9 @@ class CompoundType(TransformType):
         }
 
         try:
-            value = tree.op
-            tag_name = 'transform/' + _operator_to_tag_mapping[value]
+            tag_name = 'transform/' + _operator_to_tag_mapping[tree.op]
         except KeyError:
-            raise ValueError(f"Unknown operator '{tree.value}'")
+            raise ValueError(f"Unknown operator '{tree.op}'")
 
         node = tagged.tag_object(cls.make_yaml_tag(tag_name), node, ctx=ctx)
         return node
