@@ -1042,7 +1042,7 @@ def test_data_out_of_range(parallel, fast_reader, guess):
     # Python reader and strtod() are expected to return precise results
     rtol = 1.e-30
 
-    # Update fast_reader dict
+    # Update fast_reader dict; adapt relative precision for fast_converter
     if fast_reader:
         fast_reader['parallel'] = parallel
         if fast_reader.get('use_fast_converter'):
@@ -1062,7 +1062,7 @@ def test_data_out_of_range(parallel, fast_reader, guess):
     with catch_warnings(AstropyWarning) as w:
         t = ascii.read(StringIO(' '.join(fields)), format='no_header',
                        guess=guess, fast_reader=fast_reader)
-    if fast_reader and not parallel:
+    if fast_reader and not parallel:  # Assert precision warnings for cols 2-5
         assert len(w) == 4
         for i in range(len(w)):
             assert (f"OverflowError converting to FloatType in column col{i+2}"
@@ -1077,7 +1077,7 @@ def test_data_out_of_range(parallel, fast_reader, guess):
     with catch_warnings(AstropyWarning) as w:
         t = ascii.read(StringIO(' '.join(fields)), format='no_header',
                        guess=guess, fast_reader=fast_reader)
-    if fast_reader and not parallel:
+    if fast_reader and not parallel:  # Assert precision warnings for cols 4-6
         assert len(w) == 3
         for i in range(len(w)):
             assert (f"OverflowError converting to FloatType in column col{i+4}"
@@ -1118,7 +1118,7 @@ def test_data_at_range_limit(parallel, fast_reader, guess):
     # Python reader and strtod() are expected to return precise results
     rtol = 1.e-30
 
-    # Update fast_reader dict
+    # Update fast_reader dict; adapt relative precision for fast_converter
     if fast_reader:
         fast_reader['parallel'] = parallel
         if fast_reader.get('use_fast_converter'):
@@ -1133,7 +1133,7 @@ def test_data_at_range_limit(parallel, fast_reader, guess):
         elif TRAVIS:
             pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
 
-    # Test very long fixed-format strings (to strtod range limit)
+    # Test very long fixed-format strings (to strtod range limit w/o Overflow)
     for D in 99, 202, 305:
         t = ascii.read(StringIO(99*'0' + '.' + D*'0' + '1'), format='no_header',
                        guess=guess, fast_reader=fast_reader)
@@ -1144,23 +1144,23 @@ def test_data_at_range_limit(parallel, fast_reader, guess):
         assert_almost_equal(t['col1'][0], 10.**D, rtol=rtol, atol=1.e-324)
 
     # 0.0 is always exact (no Overflow warning)!
-    with pytest.warns(None) as w:
-        t = ascii.read(StringIO(99*'0' + '.' + 365*'0'), format='no_header',
-                       guess=guess, fast_reader=fast_reader)
-    assert t['col1'][0] == 0.0
-    assert len(w) == 0
+    for s in '0.0', '0.0e+0', 399*'0'+'.'+365*'0':
+        with pytest.warns(None) as w:
+            t = ascii.read(StringIO(s), format='no_header',
+                           guess=guess, fast_reader=fast_reader)
+        assert t['col1'][0] == 0.0
+        assert len(w) == 0
 
-    # Test OverflowError at precision limit
+    # Test OverflowError at precision limit with laxer rtol
     if parallel:
         pytest.skip("Catching warnings broken in parallel mode")
     elif not fast_reader:
         pytest.skip("Python/numpy reader does not raise on Overflow")
-    with catch_warnings(AstropyWarning) as w:
+    with pytest.warns(AstropyWarning, match=r'OverflowError converting to '
+                      r'FloatType in column col1, possibly resulting in '
+                      r'degraded precision'):
         t = ascii.read(StringIO('0.' + 314*'0' + '1'), format='no_header',
                        guess=guess, fast_reader=fast_reader)
-    assert len(w) == 1
-    assert "OverflowError converting to FloatType" in str(w[0].message)
-    assert "degraded precision" in str(w[0].message)
     assert_almost_equal(t['col1'][0], 1.e-315, rtol=1.e-10, atol=1.e-324)
 
 
