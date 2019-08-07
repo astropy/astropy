@@ -1,17 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-
+import functools
 
 from asdf.yamlutil import custom_tree_to_tagged_tree
+import numpy as np
 
 from astropy.time import TimeDelta
-from astropy.time.tests.test_delta import (allclose_jd, allclose_jd2,
-                                           allclose_sec)
 
 from ...types import AstropyType
 
-
 __all__ = ['TimeDeltaType']
+
+allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
+allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,
+                                 atol=2. ** -52)  # 20 ps atol
+allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
+                                 atol=2. ** -52 * 24 * 3600)  # 20 ps atol
 
 
 class TimeDeltaType(AstropyType):

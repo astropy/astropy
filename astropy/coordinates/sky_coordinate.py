@@ -23,7 +23,7 @@ from .representation import (SphericalRepresentation,
 from .sky_coordinate_parsers import (_get_frame_class, _get_frame_without_data,
                                      _parse_coordinate_data)
 
-__all__ = ['SkyCoord', 'SkyCoordInfo']
+__all__ = ['SkyCoord', 'SkyCoordInfo', 'skycoord_equal']
 
 
 class SkyCoordInfo(MixinInfo):
@@ -1694,3 +1694,16 @@ class SkyCoord(ShapedLikeNDArray):
             return icrs_sky_coord
         else:
             return icrs_sky_coord.transform_to(frame)
+
+
+def skycoord_equal(sc1, sc2):
+    if not sc1.is_equivalent_frame(sc2):
+        return False
+    if sc1.representation_type is not sc2.representation_type:
+        return False
+    if sc1.shape != sc2.shape:
+        return False  # Maybe raise ValueError corresponding to future numpy behavior
+    eq = np.ones(shape=sc1.shape, dtype=bool)
+    for comp in sc1.data.components:
+        eq &= getattr(sc1.data, comp) == getattr(sc2.data, comp)
+    return np.all(eq)
