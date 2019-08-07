@@ -1,12 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
-import numpy as np
-
-from asdf.yamlutil import custom_tree_to_tagged_tree, tagged_tree_to_custom_tree
+from asdf.yamlutil import custom_tree_to_tagged_tree
 
 from astropy.coordinates import SkyCoord
-from astropy.table.tests.test_operations import skycoord_equal
 
 from ...types import AstropyType
 
@@ -26,4 +23,5 @@ class SkyCoordType(AstropyType):
 
     @classmethod
     def assert_equal(cls, old, new):
+        from astropy.table.tests.test_operations import skycoord_equal
         assert skycoord_equal(old, new)
