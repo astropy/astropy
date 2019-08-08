@@ -137,7 +137,12 @@ class CommentedHeader(Basic):
     the header comment character. ``header_start`` can be used to specify the
     line index of column names, and it can be a negative index (for example -1
     for the last commented line).  The default delimiter is the <space>
-    character.::
+    character.
+
+    This matches the format produced by ``np.savetxt()``, with ``delimiter=','``,
+    and ``header='<comma-delimited-column-names-list>'``.
+
+    Example::
 
       # col1 col2 col3
       # Comment line
