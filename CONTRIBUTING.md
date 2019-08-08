@@ -36,10 +36,10 @@ a whole, because you're coming to the project with fresh eyes, so you can see
 the errors and assumptions that seasoned contributors have glossed over.
 
 Note: This disclaimer was originally written by
-`Adrienne Lowe <https://github.com/adriennefriend>`_ for a
-`PyCon talk <https://www.youtube.com/watch?v=6Uj746j9Heo>`_, and was adapted by
+[Adrienne Lowe](https://github.com/adriennefriend) for a
+[PyCon talk](https://www.youtube.com/watch?v=6Uj746j9Heo), and was adapted by
 Astropy based on its use in the README file for the
-`MetPy project <https://github.com/Unidata/MetPy>`_.
+[MetPy project](https://github.com/Unidata/MetPy).
 
 Most contributions to Astropy are done via pull requests from GitHub users'
 forks of the [astropy repository](https://github.com/astropy/astropy). If you are
