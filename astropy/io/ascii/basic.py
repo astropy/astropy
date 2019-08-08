@@ -129,6 +129,9 @@ class CommentedHeader(Basic):
     for the last commented line).  The default delimiter is the <space>
     character.
 
+    This matches the format produced by ``np.savetxt()``, with ``delimiter=','``,
+    and ``header='<comma-delimited-column-names-list>'``.
+
     Example::
 
       # col1 col2 col3
