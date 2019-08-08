@@ -152,6 +152,77 @@ class PolynomialType(TransformType):
         assert_array_equal(a.parameters, b.parameters)
 
 
+class OrthoPolynomialType(TransformType):
+    name = "transform/ortho_polynomial"
+    types = ['astropy.modeling.models.Legendre1D',
+             'astropy.modeling.models.Legendre2D',
+             'astropy.modeling.models.Chebyshev1D',
+             'astropy.modeling.models.Chebyshev2D',
+             'astropy.modeling.models.Hermite1D',
+             'astropy.modeling.models.Hermite2D']
+    typemap = {
+        'legendre': 0,
+        'chebyshev': 2,
+        'hermite': 4,
+    }
+
+    invtypemap = dict([[v, k] for k, v in typemap.items()])
+
+    version = "1.0.0"
+
+    @classmethod
+    def from_tree_transform(cls, node, ctx):
+        coefficients = np.asarray(node['coefficients'])
+        n_dim = coefficients.ndim
+        poly_type = node['polynomial_type']
+        if n_dim == 1:
+            model = cls.types[cls.typemap[poly_type]](coefficients.size - 1)
+            model.parameters = coefficients
+        elif n_dim == 2:
+            coeffs = {}
+            shape = coefficients.shape
+            x_degree = shape[0] - 1
+            y_degree = shape[1] -1
+            for i in range(x_degree + 1):
+                for j in range(y_degree + 1):
+                    name = f'c{i}_{j}'
+                    coeffs[name] = coefficients[i, j]
+            model = cls.types[cls.typemap[poly_type]+1](x_degree, y_degree, **coeffs)
+        else:
+            raise NotImplementedError(
+                "Asdf currently only supports 1D or 2D polynomial transforms.")
+        return model
+
+    @classmethod
+    def to_tree_transform(cls, model, ctx):
+        typeindex = cls.types.index(model.__class__)
+        poly_type = cls.invtypemap[int(typeindex/2)*2]
+        ndim = (typeindex % 2) + 1
+        if ndim == 1:
+            coefficients = np.array(model.parameters)
+        else:
+            coefficients = np.zeros((model.x_degree + 1, model.y_degree + 1))
+            for i in range(model.x_degree + 1):
+                for j in range(model.y_degree + 1):
+                    name = f'c{i}_{j}'
+                    coefficients[i, j] = getattr(model, name).value
+        node = {'polynomial_type': poly_type, 'coefficients': coefficients}
+        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+
+    @classmethod
+    def assert_equal(cls, a, b):
+        # TODO: If models become comparable themselves, remove this.
+        # There should be a more elegant way of doing this
+        TransformType.assert_equal(a, b)
+        assert  ((isinstance(a, (modeling.models.Legendre1D,   modeling.models.Legendre2D))    and
+                  isinstance(b, (modeling.models.Legendre1D,   modeling.models.Legendre2D)))   or
+                 (isinstance(a, (modeling.models.Chebyshev1D,  modeling.models.Chebyshev2D))   and
+                  isinstance(b, (modeling.models.Chebyshev1D,  modeling.models.Chebyshev2D)))  or
+                 (isinstance(a, (modeling.models.Hermite1D,    modeling.models.Hermite2D))     and
+                  isinstance(b, (modeling.models.Hermite1D,    modeling.models.Hermite2D))))
+        assert_array_equal(a.parameters, b.parameters)
+
+
 class Linear1DType(TransformType):
     name = "transform/linear1d"
     version = '1.0.0'
