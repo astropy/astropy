@@ -473,10 +473,14 @@ class WCSAxes(Axes):
                 break
 
     def get_xlabel(self):
-        return self.coords[self._x_index].get_axislabel()
+        for coord in self.coords:
+            if 'b' in coord.axislabels.get_visible_axes():
+                return coord.get_axislabel()
 
     def get_ylabel(self):
-        return self.coords[self._y_index].get_axislabel()
+        for coord in self.coords:
+            if 'l' in coord.axislabels.get_visible_axes():
+                return coord.get_axislabel()
 
     def get_coords_overlay(self, frame, coord_meta=None):
 

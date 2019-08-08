@@ -140,6 +140,9 @@ def test_set_label_properties():
     assert ax.coords[1].axislabels.get_minpad('l') == 3
     assert ax.coords[1].axislabels.get_color() == 'green'
 
+    assert ax.get_xlabel() == 'Test x label'
+    assert ax.get_ylabel() == 'Test y label'
+
 
 GAL_HEADER = fits.Header.fromstring("""
 SIMPLE  =                    T / conforms to FITS standard
