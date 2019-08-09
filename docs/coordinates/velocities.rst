@@ -190,12 +190,13 @@ are not available - e.g. for a radial velocity observation of an object where
 the distance is unknown. However, it requires a slightly different way of
 specifying the differentials because of the lack of explicit unit information::
 
+    >>> from astropy.coordinates import RadialDifferential
     >>> icrs_no_distance = ICRS(1*u.deg, 2*u.deg)
     >>> icrs_no_distance
     <ICRS Coordinate: (ra, dec) in deg
         (1., 2.)>
     >>> rv_to_add = RadialDifferential(500*u.km/u.s)
-    >>> data_with_rv = icrs_no_distance.data.with_differentials({'s':vel_to_add})
+    >>> data_with_rv = icrs_no_distance.data.with_differentials({'s':rv_to_add})
     >>> icrs_no_distance.realize_frame(data_with_rv) # doctest: +FLOAT_CMP
     <ICRS Coordinate: (ra, dec) in deg
         (1., 2.)
