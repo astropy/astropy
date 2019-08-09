@@ -591,6 +591,56 @@ The metadata from the input tables is merged by the process described in the `Me
 metadata`_ section.  Note also that you can use a single table row instead of a
 full table as one of the inputs.
 
+.. _stack-depthwise:
+
+Stack depth-wise
+----------------
+
+The |Table| class supports stacking columns within tables depth-wise using
+the `~astropy.table.cstack` function. It corresponds roughly
+to running the `numpy.dstack` function on the individual columns matched
+by name.
+
+For example, suppose one has tables of data for sources giving information on the enclosed
+source counts for different PSF fractions::
+
+  >>> from astropy.table import Table, cstack
+  >>> src1 = Table.read("""psf_frac  counts
+  ...                      0.10        45
+  ...                      0.50        90
+  ...                      0.90       120
+  ...                      """, format='ascii')
+
+  >>> src2 = Table.read("""psf_frac  counts
+  ...                      0.10       200
+  ...                      0.50       300
+  ...                      0.90       350
+  ...                      """, format='ascii')
+
+Now we can stack these two tables depth-wise to get a single table with the
+characteristics of both sources::
+
+  >>> srcs = cstack([src1, src2])
+  >>> print(srcs)
+  psf_frac [2] counts [2]
+  ------------ ----------
+    0.1 .. 0.1  45 .. 200
+    0.5 .. 0.5  90 .. 300
+    0.9 .. 0.9 120 .. 350
+
+In this case the counts for the first source are accessible as ``srcs['counts'][:, 0]``,
+and likewise the second source counts are ``srcs['counts'][:, 1]``.
+
+For this function the length of all input tables must be the same.  This function can
+accept ``join_type`` and ``metadata_conflicts`` just like the `~astropy.table.vstack`
+function.  The ``join_type`` argument controls how to handle mismatches in the columns of
+the input table.
+
+See also the sections on `Merging metadata`_ and `Merging column
+attributes`_ for details on how these characteristics of the input tables are merged in
+the single output table.  Note also that you can use a single table row instead of a
+full table as one of the inputs.
+
 .. _table-join:
 
 Join
