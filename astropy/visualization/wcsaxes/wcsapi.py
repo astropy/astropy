@@ -22,6 +22,9 @@ IDENTITY.wcs.cdelt = [1., 1.]
 
 def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
 
+    if slices is not None:
+        slices = tuple(slices)
+
     if wcs.pixel_n_dim > 2:
         if slices is None:
             raise ValueError("WCS has more than 2 pixel dimensions, so "
