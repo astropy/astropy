@@ -362,6 +362,7 @@ def test_invalid_slices_errors():
     plt.subplot(1, 1, 1, projection=wcs2d)
     plt.subplot(1, 1, 1, projection=wcs2d, slices=('x', 'y'))
     plt.subplot(1, 1, 1, projection=wcs2d, slices=('y', 'x'))
+    plt.subplot(1, 1, 1, projection=wcs2d, slices=['x', 'y'])
 
     with pytest.raises(ValueError) as exc:
         plt.subplot(1, 1, 1, projection=wcs2d, slices=(1, 'x'))
