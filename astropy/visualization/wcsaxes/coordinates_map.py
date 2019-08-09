@@ -169,4 +169,3 @@ class CoordinatesMap:
         s = f'<CoordinatesMap with {len(self._coords)} world coordinates:\n\n'
         table = indent(str(self._as_table()), '  ')
         return s + table + '\n\n>'
-

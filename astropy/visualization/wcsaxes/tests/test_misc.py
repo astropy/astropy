@@ -401,6 +401,7 @@ EXPECTED_REPR_2 = """
 >
  """.strip()
 
+
 @ignore_matplotlibrc
 def test_repr():
 
@@ -418,4 +419,3 @@ def test_repr():
 
     ax = plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1))
     assert repr(ax.coords) == EXPECTED_REPR_2
-
