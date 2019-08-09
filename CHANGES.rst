@@ -125,7 +125,11 @@ astropy.visualization
   plot and format ``Time`` objects in Matplotlib. [#8782]
 
 - Added support for plotting any WCS compliant with the generalized (APE 14)
-  WCS API with WCSAxes. [#8885]
+  WCS API with WCSAxes. [#8885, #9098]
+
+- Improved display of information when inspecting ``WCSAxes.coords``. [#9098]
+
+- Improved error checking for the ``slices=`` argument to ``WCSAxes``. [#9098]
 
 astropy.wcs
 ^^^^^^^^^^^
