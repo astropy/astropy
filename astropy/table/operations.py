@@ -234,7 +234,7 @@ def setdiff(table1, table2, keys=None):
 
 def cstack(tables, join_type='outer', metadata_conflicts='warn'):
     """
-    Stack tables Depth-wise
+    Stack columns within tables depth-wise
 
     A ``join_type`` of 'exact' means that the tables must all have exactly
     the same column names (though the order can vary).  If ``join_type``
@@ -284,6 +284,10 @@ def cstack(tables, join_type='outer', metadata_conflicts='warn'):
       1 .. 5 3 .. 7
       2 .. 6 4 .. 8
     """
+    tables = _get_list_of_tables(tables)
+    if len(tables) == 1:
+        return tables[0]  # no point in stacking a single table
+
     n_rows = set(len(table) for table in tables)
     if len(n_rows) != 1:
         raise ValueError('Table lengths must all match for cstack')
