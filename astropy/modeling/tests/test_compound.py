@@ -10,13 +10,13 @@ import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy.utils import minversion
-from astropy.modeling.core import Model, ModelDefinitionError
+from astropy.modeling.core import Model, ModelDefinitionError, CompoundModel
 from astropy.modeling.parameters import Parameter
 from astropy.modeling.models import (Const1D, Shift, Scale, Rotation2D, Gaussian1D,
                                      Gaussian2D, Polynomial1D, Polynomial2D,
                                      Chebyshev2D, Legendre2D, Chebyshev1D, Legendre1D,
                                      Identity, Mapping,
-                                     Tabular1D)
+                                     Tabular1D, fix_inputs)
 import astropy.units as u
 from ..core import CompoundModel
 
@@ -305,6 +305,55 @@ def test_compound_with_polynomials(poly):
     result_compound = model(x, y)
     result = shift(poly(x, y))
     assert_allclose(result, result_compound)
+
+
+def test_fix_inputs():
+    g1 = Gaussian2D(1, 0, 0, 1, 2)
+    g2 = Gaussian2D(1.5, .5, -.2, .5, .3)
+    sg1_1 = fix_inputs(g1, {1: 0})
+    assert_allclose(sg1_1(0), g1(0, 0))
+    assert_allclose(sg1_1([0,1,3]), g1([0,1,3],[0,0,0]))
+    sg1_2 = fix_inputs(g1, {'x': 1})
+    assert_allclose(sg1_2(1.5), g1(1, 1.5))
+    gg1 = g1 & g2
+    sgg1_1 = fix_inputs(gg1, {1: 0.1, 3: 0.2})
+    assert_allclose(sgg1_1(0, 0), gg1(0, 0.1, 0, 0.2))
+    sgg1_2 = fix_inputs(gg1, {'x0': -.1, 2: .1})
+    assert_allclose(sgg1_2(1,1), gg1(-0.1, 1, 0.1, 1))
+    assert_allclose(sgg1_2(y0=1, y1=1), gg1(-0.1, 1, 0.1, 1))
+
+
+def test_fix_inputs_invalid():
+    g1 = Gaussian2D(1, 0, 0, 1, 2)
+    with pytest.raises(ValueError):
+        fix_inputs(g1, {'x0': 0, 0: 0})
+
+    with pytest.raises(ValueError):
+        fix_inputs(g1, (0, 1))
+
+    with pytest.raises(ValueError):
+        fix_inputs(g1, {3: 2})
+
+    with pytest.raises(ValueError):
+        fix_inputs(g1, {'w': 2})
+
+    with pytest.raises(ModelDefinitionError):
+        CompoundModel('#', g1, g1)
+
+    with pytest.raises(ValueError):
+        gg1 = fix_inputs(g1, {0: 1})
+        gg1(2, y=2)
+
+
+def test_fix_inputs_with_bounding_box():
+    g1 = Gaussian2D(1, 0, 0, 1, 1)
+    g2 = Gaussian2D(1, 0, 0, 1, 1)
+    assert g1.bounding_box == ((-5.5,5.5), (-5.5,5.5))
+    gg1 = g1 & g2
+    gg1.bounding_box = ((-5.5,5.5), (-5.4,5.4), (-5.3,5.3), (-5.2,5.2))
+    assert gg1.bounding_box == ((-5.5,5.5), (-5.4,5.4), (-5.3,5.3), (-5.2,5.2))
+    sg = fix_inputs(gg1, {0: 0, 2: 0})
+    assert sg.bounding_box == ((-5.4,5.4), (-5.2,5.2))
 
 
 def test_indexing_on_instance():
