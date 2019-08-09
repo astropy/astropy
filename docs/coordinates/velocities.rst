@@ -162,6 +162,30 @@ the radial (line-of-sight) velocity::
     >>> icrs.radial_velocity # doctest: +FLOAT_CMP
     <Quantity 23.42 km / s>
 
+Adding Velocities to Existing Frame Objects
+===========================================
+
+Another use case similar to the above comes up when you have an existing frame
+object (or |skycoord|) and want an object with the same position but with
+velocities added.  The most conceptually straightforward way to do this is to
+use the differential objects along with
+`~astropy.coordinates.BaseCoordinateFrame.realize_frame`. The following snippet
+accomplishes a straightforward case where the desired velocities are known in
+the Cartesian representation::
+
+    >>> icrs = ICRS(1*u.deg, 2*u.deg, distance=3*u.kpc)
+    >>> icrs # doctest: +FLOAT_CMP
+    <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
+        (1., 2., 3.)>
+    >>> vel_to_add = CartesianDifferential(4*u.km/u.s, 5*u.km/u.s, 6*u.km/u.s)
+    >>> newdata = icrs.data.to_cartesian().with_differentials(vel_to_add)
+    >>> icrs.realize_frame(newdata) # doctest: +FLOAT_CMP
+    <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
+        (1., 2., 3.)
+     (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+        (0.34662023, 0.41161335, 4.29356031)>
+
+
 .. _astropy-coordinate-transform-with-velocities:
 
 Transforming Frames with Velocities
