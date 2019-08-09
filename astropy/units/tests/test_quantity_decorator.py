@@ -283,6 +283,28 @@ def test_default_value_check():
     assert x.unit == x_unit
 
 
+def test_str_unit_typo():
+    @u.quantity_input
+    def myfunc_args(x: "kilograam"):
+        return x
+
+    with pytest.raises(ValueError):
+        result = myfunc_args(u.kg)
+
+
+def test_type_annotations():
+    @u.quantity_input
+    def myfunc_args(x: u.m, y: str):
+        return x, y
+
+    in_quantity = 2 * u.m
+    in_string = "cool string"
+
+    quantity, string = myfunc_args(in_quantity, in_string)
+    assert quantity == in_quantity
+    assert string == in_string
+
+
 def test_args_None():
     x_target = u.deg
     x_unit = u.arcsec
