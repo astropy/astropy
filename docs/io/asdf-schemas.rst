@@ -3,7 +3,7 @@
 Schemas
 =======
 
-Documentation for each of the individual ASDF schemas defined by Astropy can
+Documentation for each of the individual ASDF schemas defined by ``astropy`` can
 be found at the links below.
 
 Documentation for the schemas defined in the ASDF Standard can be found `here
@@ -14,7 +14,7 @@ Documentation for the schemas defined in the ASDF Standard can be found `here
 Coordinates
 -----------
 
-The following schemas are associated with Astropy types from the
+The following schemas are associated with ``astropy`` types from the
 :ref:`astropy-coordinates` submodule:
 
 coordinates/angle-1.0.0
@@ -56,7 +56,7 @@ coordinates/skycoord-1.0.0
 FITS
 ----
 
-The following schemas are associated with Astropy types from the
+The following schemas are associated with ``astropy`` types from the
 :ref:`astropy-io-fits` submodule:
 
 fits/fits-1.0.0
@@ -69,7 +69,7 @@ fits/fits-1.0.0
 Table
 -----
 
-The following schemas are associated with Astropy types from the
+The following schemas are associated with ``astropy`` types from the
 :ref:`astropy-table` submodule:
 
 table/table-1.0.0
@@ -82,7 +82,7 @@ table/table-1.0.0
 Time
 ----
 
-The following schemas are associated with Astropy types from the
+The following schemas are associated with ``astropy`` types from the
 :ref:`astropy-time` submodule:
 
 time/timedelta-1.0.0
@@ -95,7 +95,7 @@ time/timedelta-1.0.0
 Units
 -----
 
-The following schemas are associated with Astropy types from the
+The following schemas are associated with ``astropy`` types from the
 :ref:`astropy-units` submodule:
 
 units/equivalency-1.0.0
