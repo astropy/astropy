@@ -47,7 +47,7 @@ from collections import deque
 
 
 __all__ = ['Model', 'FittableModel', 'Fittable1DModel', 'Fittable2DModel',
-           'CompoundModel', 'custom_model', 'ModelDefinitionError']
+           'CompoundModel', 'fix_inputs', 'custom_model', 'ModelDefinitionError']
 
 
 def _model_oper(oper, **kwargs):
@@ -103,6 +103,7 @@ class _ModelMeta(abc.ABCMeta):
             ('__pow__', _model_oper('**')),
             ('__or__', _model_oper('|')),
             ('__and__', _model_oper('&')),
+            ('_fix_inputs', _model_oper('fix_inputs'))
         ]
 
         for opermethod, opercall in opermethods:
@@ -455,6 +456,7 @@ class _ModelMeta(abc.ABCMeta):
     __pow__ = _model_oper('**')
     __or__ = _model_oper('|')
     __and__ = _model_oper('&')
+    _fix_inputs = _model_oper('fix_inputs')
 
     # *** Other utilities ***
 
@@ -2307,6 +2309,7 @@ class CompoundModel(Model):
         self._bounding_box = None
         self._user_bounding_box = None
         self._leaflist = None
+        self._fix_input_hook = None
         self._opset = None
         self._tdict = None
         self._parameters = None
@@ -2315,14 +2318,13 @@ class CompoundModel(Model):
         self._has_inverse = False  # may be set to True in following code
         if inverse:
             self.inverse = inverse
-        # else:
-        #     self._user_inverse = None
-        if len(left) != len(right):
+
+        if op != 'fix_inputs' and len(left) != len(right):
             raise ValueError(
                 'Both operands must have equal values for n_models')
         else:
             self._n_models = len(left)
-        if ((left.model_set_axis != right.model_set_axis)
+        if op != 'fix_inputs' and ((left.model_set_axis != right.model_set_axis)
                 or left.model_set_axis):  # not False and not 0
             raise ValueError("model_set_axis must be False or 0 and consistent for operands")
         else:
@@ -2368,15 +2370,65 @@ class CompoundModel(Model):
                                               self.right.inverse,
                                               self.left.inverse,
                                               inverse=self)
+        elif op == 'fix_inputs':
+            if not isinstance(left, Model):
+                raise ValueError('First argument to "fix_inputs" must be an instance of an astropy Model.')
+            if not isinstance(right, dict):
+                raise ValueError('Expected a dictionary for second argument of "fix_inputs".')
+
+            # Dict keys must match either possible indices
+            # for model on left side, or names for inputs.
+            self.n_inputs = left.n_inputs - len(right)
+            self.outputs = left.outputs
+            self.n_outputs = left.n_outputs
+            newinputs = list(left.inputs)
+            keys = right.keys()
+            input_ind = []
+            for key in keys:
+                if isinstance(key, int):
+                    if key >= left.n_inputs or key < 0:
+                        raise ValueError(
+                            'Substitution key integer value '
+                            'not among possible input choices.')
+                    else:
+                        if key in input_ind:
+                            raise ValueError("Duplicate specification of "
+                                             "same input (index/name).")
+                        else:
+                            input_ind.append(key)
+                elif isinstance(key, str):
+                    if key not in left.inputs:
+                        raise ValueError(
+                            'Substitution key string not among possible '
+                            'input choices.')
+                    # Check to see it doesn't match positional
+                    # specification.
+                    ind = left.inputs.index(key)
+                    if ind in input_ind:
+                        raise ValueError("Duplicate specification of "
+                                         "same input (index/name).")
+                    else:
+                        input_ind.append(ind)
+            # Remove substituted inputs
+            input_ind.sort()
+            input_ind.reverse()
+            for ind in input_ind:
+                del newinputs[ind]
+            self.inputs = tuple(newinputs)
+            # Now check to see if the input model has bounding_box defined.
+            # If so, remove the appropriate dimensions and set it for this
+            # instance.
+            try:
+                bounding_box = self.left.bounding_box
+                self._fix_input_bounding_box(input_ind)
+            except NotImplementedError:
+                pass
+            # Call the hook if it exists
+            if self._fix_input_hook is not None:
+                self._fix_input_hook(input_ind)
+
         else:
-            #raise ModelDefinitionError('Illegal operator: ', self.op)
-            raise ModelDefinitionError(
-                "Unsupported operands for {0}: {1} (n_inputs={2}, "
-                "n_outputs={3}) and {4} (n_inputs={5}, n_outputs={6}); "
-                "models must have the same n_inputs and the same "
-                "n_outputs for this operator".format(
-                    operator, left.name, left.n_inputs, left.n_outputs,
-                    right.name, right.n_inputs, right.n_outputs))
+            raise ModelDefinitionError('Illegal operator: ', self.op)
         self.name = name
         self._fittable = None
         self.fit_deriv = None
@@ -2475,38 +2527,81 @@ class CompoundModel(Model):
 
     def _evaluate(self, *args, **kw):
         op = self.op
-        if op != '&':
-            leftval = self.left(*args, **kw)
-            if op != '|':
-                rightval = self.right(*args, **kw)
-        else:
-            leftval = self.left(*(args[:self.left.n_inputs]), **kw)
-            rightval = self.right(*(args[self.left.n_inputs:]), **kw)
-        if op == '+':
-            return binary_operation(operator.add, leftval, rightval)
-        elif op == '-':
-            return binary_operation(operator.sub, leftval, rightval)
-        elif op == '*':
-            return binary_operation(operator.mul, leftval, rightval)
-        elif op == '/':
-            return binary_operation(operator.truediv, leftval, rightval)
-        elif op == '**':
-            return binary_operation(operator.pow, leftval, rightval)
-        elif op == '&':
-            if not isinstance(leftval, tuple):
-                leftval = (leftval,)
-            if not isinstance(rightval, tuple):
-                rightval = (rightval,)
-            return leftval + rightval
-        elif op == '|':
-            if isinstance(leftval, tuple):
-                return self.right(*leftval, **kw)
+        if op != 'fix_inputs':
+            if op != '&':
+                leftval = self.left(*args, **kw)
+                if op != '|':
+                    rightval = self.right(*args, **kw)
+
             else:
-                return self.right(leftval, **kw)
-        elif op in SPECIAL_OPERATORS:
-            return binary_operation(SPECIAL_OPERATORS[op], leftval, rightval)
+                leftval = self.left(*(args[:self.left.n_inputs]), **kw)
+                rightval = self.right(*(args[self.left.n_inputs:]), **kw)
+            if op == '+':
+                return binary_operation(operator.add, leftval, rightval)
+            elif op == '-':
+                return binary_operation(operator.sub, leftval, rightval)
+            elif op == '*':
+                return binary_operation(operator.mul, leftval, rightval)
+            elif op == '/':
+                return binary_operation(operator.truediv, leftval, rightval)
+            elif op == '**':
+                return binary_operation(operator.pow, leftval, rightval)
+            elif op == '&':
+                if not isinstance(leftval, tuple):
+                    leftval = (leftval,)
+                if not isinstance(rightval, tuple):
+                    rightval = (rightval,)
+                return leftval + rightval
+            elif op == '|':
+                if isinstance(leftval, tuple):
+                    return self.right(*leftval, **kw)
+                else:
+                    return self.right(leftval, **kw)
+            elif op in SPECIAL_OPERATORS:
+                return binary_operation(SPECIAL_OPERATORS[op], leftval, rightval)
+            else:
+
+                raise ModelDefinitionError('Unrecognized operator {op}')
         else:
-            raise ModelDefinitionError('Unrecognized operator {op}')
+            subs = self.right
+            newargs = list(args)
+            subinds = []
+            subvals = []
+            for key in subs.keys():
+                if isinstance(key, int):
+                    subinds.append(key)
+                elif isinstance(key, str):
+                    ind = self.left.inputs.index(key)
+                    subinds.append(ind)
+                subvals.append(subs[key])
+            # Turn inputs specified in kw into positional indices.
+            # Names for compound inputs do not propagate to sub models.
+            kwind = []
+            kwval = []
+            for kwkey in list(kw.keys()):
+                if kwkey in self.inputs:
+                    ind = self.inputs.index(kwkey)
+                    if ind < len(args):
+                        raise ValueError("Keyword argument duplicates "
+                                        "positional value supplied.")
+                    kwind.append(ind)
+                    kwval.append(kw[kwkey])
+                    del kw[kwkey]
+            # Build new argument list
+            # Append keyword specified args first
+            if kwind:
+                kwargs = list(zip(kwind, kwval))
+                kwargs.sort()
+                kwindsorted, kwvalsorted = list(zip(*kwargs))
+                newargs = newargs + list(kwvalsorted)
+            if subinds:
+                subargs = list(zip(subinds, subvals))
+                subargs.sort()
+                subindsorted, subvalsorted = list(zip(*subargs))
+            # The substitutions must be inserted in order
+            for ind, val in subargs:
+                newargs.insert(ind, val)
+            return self.left(*newargs, **kw)
 
     @property
     def param_names(self):
@@ -2736,14 +2831,6 @@ class CompoundModel(Model):
         return self._has_inverse
 
     @property
-    def bounding_box(self):
-        return self._bounding_box
-
-    @bounding_box.setter
-    def bounding_box(self, bounding_box):
-        self._bounding_box = bounding_box
-
-    @property
     def inverse(self):
         if self.has_inverse():
             if self._user_inverse is not None:
@@ -2864,13 +2951,14 @@ class CompoundModel(Model):
         param_map = {}
         self._param_names = []
         for lindex, leaf in enumerate(self._leaflist):
-            for param_name in leaf.param_names:
-                param = getattr(leaf, param_name)
-                new_param_name = "{}_{}".format(param_name, lindex)
-                self.__dict__[new_param_name] = param
-                self._parameters_[new_param_name] = param
-                self._param_names.append(new_param_name)
-                param_map[new_param_name] = (lindex, param_name)
+            if not isinstance(leaf, dict):
+                for param_name in leaf.param_names:
+                    param = getattr(leaf, param_name)
+                    new_param_name = "{}_{}".format(param_name, lindex)
+                    self.__dict__[new_param_name] = param
+                    self._parameters_[new_param_name] = param
+                    self._param_names.append(new_param_name)
+                    param_map[new_param_name] = (lindex, param_name)
         self._param_metrics = {}
         self._param_map =  param_map
         self._param_map_inverse = dict((v, k) for k, v in param_map.items())
@@ -3207,6 +3295,19 @@ class CompoundModel(Model):
     def bounding_box(self):
         self._user_bounding_box = None
 
+    def _fix_input_bounding_box(self, input_ind):
+        """
+        If the ``fix_inputs`` operator is used and the model it is applied to
+        has a bounding box definition, delete the corresponding inputs from
+        that bounding box. This method presumes the bounding_box is not None.
+        This also presumes that the list of input indices to remove (i.e.,
+        input_ind has already been put in reverse sorted order).
+        """
+        bounding_box = list(self.left.bounding_box)
+        for ind in input_ind:
+            del bounding_box[ind]
+        self.bounding_box = tuple(bounding_box)
+
     @property
     def has_user_bounding_box(self):
         """
@@ -3403,12 +3504,37 @@ def make_subtree_dict(tree, nodepath, tdict, leaflist):
         tdict[nodepath] = (tree, leftmostind, rightmostind)
 
 
-_ORDER_OF_OPERATORS = [('|',), ('&',), ('+', '-'), ('*', '/'), ('**',)]
+_ORDER_OF_OPERATORS = [('fix_inputs',),('|',), ('&',), ('+', '-'), ('*', '/'), ('**',)]
 OPERATOR_PRECEDENCE = {}
 for idx, ops in enumerate(_ORDER_OF_OPERATORS):
     for op in ops:
         OPERATOR_PRECEDENCE[op] = idx
 del idx, op, ops
+
+
+def fix_inputs(modelinstance, values):
+    """
+    This function creates a compound model with one or more of the input
+    values of the input model assigned fixed values (scalar or array).
+
+    Parameters
+    ----------
+    modelinstance : Model instance. This is the model that one or more of the
+        model input values will be fixed to some constant value.
+    values : A dictionary where the key identifies which input to fix
+        and its value is the value to fix it at. The key may either be the
+        name of the input or a number reflecting its order in the inputs.
+
+    Examples
+    --------
+
+    >>> from astropy.modeling.models import Gaussian2D
+    >>> g = Gaussian2D(1, 2, 3, 4, 5)
+    >>> gv = fix_inputs(g, {0: 2.5})
+
+    Results in a 1D function equivalent to Gaussian2D(1, 2, 3, 4, 5)(x=2.5, y)
+    """
+    return CompoundModel('fix_inputs', modelinstance, values)
 
 
 def custom_model(*args, fit_deriv=None, **kwargs):

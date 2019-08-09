@@ -244,3 +244,8 @@ def test_model_set_axis_outputs():
     assert_allclose(y0[:, 1], y1[1])
     with pytest.raises(ValueError):
         model_set(x)
+
+
+def test_compound_model_sets():
+    with pytest.raises(ValueError):
+        Polynomial1D(1, n_models=2, model_set_axis=1) | Polynomial1D(1, n_models=2, model_set_axis=0)
