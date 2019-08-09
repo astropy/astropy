@@ -335,7 +335,7 @@ def test_iterate_coords(tmpdir):
 
 
 @ignore_matplotlibrc
-def test_invalid_slices_errors(tmpdir):
+def test_invalid_slices_errors():
 
     # Make sure that users get a clear message when specifying a WCS with
     # >2 dimensions without giving the 'slices' argument, or if the 'slices'
@@ -353,3 +353,47 @@ def test_invalid_slices_errors(tmpdir):
     assert exc.value.args[0] == "'slices' should have as many elements as WCS has pixel dimensions (should be 3)"
 
     plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1))
+
+
+EXPECTED_REPR_1 = """
+<CoordinatesMap with 3 world coordinates:
+
+  index        aliases           type   unit wrap format_unit visible
+  ----- --------------------- --------- ---- ---- ----------- -------
+      0                  dist    scalar      None                  no
+      1 pos.galactic.lon glon longitude  deg  360         deg     yes
+      2 pos.galactic.lat glat  latitude  deg None         deg     yes
+
+>
+ """.strip()
+
+EXPECTED_REPR_2 = """
+<CoordinatesMap with 3 world coordinates:
+
+  index        aliases           type   unit wrap format_unit visible
+  ----- --------------------- --------- ---- ---- ----------- -------
+      0                  dist    scalar      None                 yes
+      1 pos.galactic.lon glon longitude  deg  360         deg     yes
+      2 pos.galactic.lat glat  latitude  deg None         deg     yes
+
+>
+ """.strip()
+
+@ignore_matplotlibrc
+def test_repr():
+
+    # Unit test to make sure __repr__ looks as expected
+
+    wcs3d = WCS(GAL_HEADER)
+
+    # Cube header has world coordinates as distance, lon, lat, so start off
+    # by slicing in a way that we select just lon,lat:
+
+    ax = plt.subplot(1, 1, 1, projection=wcs3d, slices=(1, 'x', 'y'))
+    assert repr(ax.coords) == EXPECTED_REPR_1
+
+    # Now slice in a way that all world coordinates are still present:
+
+    ax = plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1))
+    assert repr(ax.coords) == EXPECTED_REPR_2
+
