@@ -18,19 +18,26 @@ The :func:`Model.render <astropy.modeling.Model.render>` method can be used to
 evaluate a model on an output array, or input coordinate arrays, limiting the
 evaluation to the `bounding_box <astropy.modeling.Model.bounding_box>` region if
 it is set. This function will also produce postage stamp images of the model if
-no other input array is passed. To instead extract postage stamps from the data
-array itself, see :ref:`cutout_images`.
+no other input array is passed. To instead extract "postage stamps" from the
+data array itself, see :ref:`cutout_images`.
 
 Using the Bounding Box
 =======================
 
 For basic usage, see `Model.bounding_box
-<astropy.modeling.Model.bounding_box>`.  By default no
+<astropy.modeling.Model.bounding_box>`. By default no
 `~astropy.modeling.Model.bounding_box` is set, except on model subclasses where
 a ``bounding_box`` property or method is explicitly defined. The default is then
 the minimum rectangular region symmetric about the position that fully contains
 the model. If the model does not have a finite extent, the containment criteria
-are noted in the documentation. For example, see ``Gaussian2D.bounding_box``.
+are noted in the documentation. For examples, see ``Gaussian2D.bounding_box``.
+
+Example
+=======
+
+..
+  EXAMPLE START
+  Using the Bounding Box in `astropy.modeling`
 
 `Model.bounding_box <astropy.modeling.Model.bounding_box>` can be set by the
 user to any callable. This is particularly useful for fitting models created
@@ -58,19 +65,29 @@ with `~astropy.modeling.custom_model` or as a compound model::
 
     Currently when creating a new compound model by combining multiple
     models, the bounding boxes of the components (if any) are not currently
-    combined.  So bounding boxes for compound models must be assigned
-    explicitly.  A future release will determine the appropriate bounding box
+    combined. So bounding boxes for compound models must be assigned
+    explicitly. A future release will determine the appropriate bounding box
     for a compound model where possible.
 
-Efficient evaluation with `Model.render() <astropy.modeling.Model.render>`
+..
+  EXAMPLE END
+
+Efficient Evaluation with `Model.render() <astropy.modeling.Model.render>`
 ==========================================================================
 
 When a model is evaluated over a range much larger than the model itself, it
 may be prudent to use the :func:`Model.render <astropy.modeling.Model.render>`
 method if efficiency is a concern. The :func:`render
 <astropy.modeling.Model.render>` method can be used to evaluate the model on an
-array of the same dimensions.  ``model.render()`` can be called with no
+array of the same dimensions. ``model.render()`` can be called with no
 arguments to return a "postage stamp" of the bounding box region.
+
+Example
+=======
+
+..
+  EXAMPLE START
+  Efficient Evaluation with `Model.render() <astropy.modeling.Model.render>`
 
 In this example, we generate a 300x400 pixel image of 100 2D Gaussian sources.
 For comparison, the models are evaluated both with and without using bounding
@@ -156,3 +173,6 @@ a factor of 10 with negligible loss of information.
     plt.xlabel('x')
     plt.ylabel('y')
     plt.show()
+
+..
+  EXAMPLE END
