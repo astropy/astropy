@@ -30,6 +30,10 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
             raise ValueError("'slices' should have as many elements as WCS "
                              "has pixel dimensions (should be {})"
                              .format(wcs.pixel_n_dim))
+    elif wcs.pixel_n_dim < 2:
+        raise ValueError("WCS should have at least 2 pixel dimensions")
+    elif slices is not None and slices != ('x', 'y') and slices != ('y', 'x'):
+        raise ValueError("WCS only has 2 pixel dimensions and cannot be sliced")
 
     is_fits_wcs = isinstance(wcs, WCS)
 
@@ -136,8 +140,7 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
         # backward-compatibility.
         if len(coord_meta['type']) == 2:
             for i in range(2):
-                if i in world_keep:
-                    coord_meta['default_ticks_position'][world_keep[i]] = 'bltr'
+                coord_meta['default_ticks_position'][world_keep[i]] = 'bltr'
 
     elif frame_class is EllipticalFrame:
 
