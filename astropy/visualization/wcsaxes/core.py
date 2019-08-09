@@ -347,7 +347,7 @@ class WCSAxes(Axes):
 
         if self.wcs is not None:
 
-            transform, coord_meta = transform_coord_meta_from_wcs(self.wcs, self.frame_class, slices)
+            transform, coord_meta = transform_coord_meta_from_wcs(self.wcs, self.frame_class, slices=slices)
 
         self.coords = CoordinatesMap(self,
                                      transform=transform,

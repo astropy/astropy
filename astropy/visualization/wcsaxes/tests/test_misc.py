@@ -332,3 +332,24 @@ def test_iterate_coords(tmpdir):
     ax = plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1))
 
     x, y, z = ax.coords
+
+
+@ignore_matplotlibrc
+def test_invalid_slices_errors(tmpdir):
+
+    # Make sure that users get a clear message when specifying a WCS with
+    # >2 dimensions without giving the 'slices' argument, or if the 'slices'
+    # argument has too many/few elements.
+
+    wcs3d = WCS(naxis=3)
+    wcs3d.wcs.ctype = ['x', 'y', 'z']
+
+    with pytest.raises(ValueError) as exc:
+        plt.subplot(1, 1, 1, projection=wcs3d)
+    assert exc.value.args[0] == "WCS has more than 2 pixel dimensions, so 'slices' should be set"
+
+    with pytest.raises(ValueError) as exc:
+        plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1, 2))
+    assert exc.value.args[0] == "'slices' should have as many elements as WCS has pixel dimensions (should be 3)"
+
+    plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1))

@@ -20,7 +20,16 @@ IDENTITY.wcs.crpix = [1., 1.]
 IDENTITY.wcs.cdelt = [1., 1.]
 
 
-def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
+def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
+
+    if wcs.pixel_n_dim > 2:
+        if slices is None:
+            raise ValueError("WCS has more than 2 pixel dimensions, so "
+                             "'slices' should be set")
+        elif len(slices) != wcs.pixel_n_dim:
+            raise ValueError("'slices' should have as many elements as WCS "
+                             "has pixel dimensions (should be {})"
+                             .format(wcs.pixel_n_dim))
 
     is_fits_wcs = isinstance(wcs, WCS)
 
@@ -92,12 +101,12 @@ def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
     coord_meta['default_ticks_position'] = [''] * wcs.world_n_dim
 
     invert_xy = False
-    if aslice is not None:
-        wcs_slice = list(aslice)
+    if slices is not None:
+        wcs_slice = list(slices)
         wcs_slice[wcs_slice.index("x")] = slice(None)
         wcs_slice[wcs_slice.index("y")] = slice(None)
         wcs = SlicedLowLevelWCS(wcs, wcs_slice[::-1])
-        invert_xy = aslice.index('x') > aslice.index('y')
+        invert_xy = slices.index('x') > slices.index('y')
         world_keep = wcs._world_keep
     else:
         world_keep = list(range(wcs.world_n_dim))
