@@ -139,11 +139,11 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
                 m[pos[0], :] = 0
 
         # In the special and common case where the frame is rectangular and
-        # we are dealing with 2-d WCS, we show all ticks on all axes for
-        # backward-compatibility.
-        if len(coord_meta['type']) == 2:
-            for i in range(2):
-                coord_meta['default_ticks_position'][world_keep[i]] = 'bltr'
+        # we are dealing with 2-d WCS (after slicing), we show all ticks on
+        # all axes for backward-compatibility.
+        if len(world_keep) == 2:
+            for index in world_keep:
+                coord_meta['default_ticks_position'][index] = 'bltr'
 
     elif frame_class is EllipticalFrame:
 
