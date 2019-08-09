@@ -2,28 +2,28 @@
 Algorithms
 **********
 
-Univariate polynomial evaluation
+Univariate Polynomial Evaluation
 ================================
 
-* The evaluation of 1-D polynomials uses Horner's algorithm.
+* The evaluation of 1D polynomials uses Horner's algorithm.
 
-* The evaluation of 1-D Chebyshev and Legendre polynomials uses Clenshaw's
+* The evaluation of 1D Chebyshev and Legendre polynomials uses Clenshaw's
   algorithm.
 
 
-Multivariate polynomial evaluation
+Multivariate Polynomial Evaluation
 ==================================
 
-* Multivariate Polynomials are evaluated following the algorithm in [1]_ .  The
+* Multivariate polynomials are evaluated following the algorithm in [1]_ . The
   algorithm uses the following notation:
 
-  - **multiindex** is a tuple of non-negative integers for which the length is
+  - **Multi-index** is a tuple of non-negative integers for which the length is
     defined in the following way:
 
     .. math:: \alpha = (\alpha1, \alpha2, \alpha3),  |\alpha| = \alpha1+\alpha2+\alpha3
 
 
-  - **inverse lexical order** is the ordering of monomials in such a way that
+  - **Inverse lexical order** is the ordering of monomials in such a way that
     :math:`{x^a < x^b}` if and only if there exists :math:`{1 \le i \le n}`
     such that :math:`{a_n = b_n, \dots, a_{i+1} = b_{i+1}, a_i < b_i}`.
 
@@ -34,10 +34,10 @@ Multivariate polynomial evaluation
 
     Algorithm:
 
-    1. Set *di* to the max number of variables (2 for a 2-D polynomials).
+    1. Set *di* to the max number of variables (2 for 2D polynomials).
 
     2. Set :math:`r_0` to :math:`c_{\alpha(0)}`, where c is a list of
-       coefficients for each multiindex in inverse lexical order.
+       coefficients for each multi-index in inverse lexical order.
 
     3. For each monomial, n, in the polynomial:
 
@@ -51,9 +51,9 @@ Multivariate polynomial evaluation
 
 * The evaluation of multivariate Chebyshev and Legendre polynomials uses a
   variation of the above Horner's scheme, in which every Legendre or Chebyshev
-  function is considered a separate variable.  In this case the length of the
+  function is considered a separate variable. In this case the length of the
   :math:`\alpha` indices tuple is equal to the number of functions in x plus
-  the number of functions in y.  In addition the Chebyshev and Legendre
+  the number of functions in y. In addition, the Chebyshev and Legendre
   functions are cached for efficiency.
 
 
