@@ -724,7 +724,7 @@ def test_tabular1d_inverse():
     points = np.arange(5)
     values = np.array([1.5, 3.4, 3.4, 32, 25])
     t = models.Tabular1D(points, values)
-    with pytest.raises(ValueError):
+    with pytest.raises(NotImplementedError):
         t.inverse((3.4, 7.))
 
     # Check that Tabular2D.inverse raises an error
