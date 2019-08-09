@@ -1014,6 +1014,7 @@ class TestCStack():
         self.t2 = t_cls.read([' a    b   c',
                               ' 2.  pez  4',
                               ' 3.  sez  5'], format='ascii')
+        self.t2['d'] = Time([1, 2], format='cxcsec')
 
         self.t3 = t_cls({'a': [[5., 6.], [4., 3.]],
                          'b': [['foo', 'bar'], ['pez', 'sez']]},
@@ -1029,29 +1030,43 @@ class TestCStack():
                               ' 4.  sez  6',
                               ' 6.  foo  3'], format='ascii')
 
-    def compare_cstack(self, tables, out):
+    @staticmethod
+    def compare_cstack(tables, out):
         for ii, tbl in enumerate(tables):
             for name, out_col in out.columns.items():
                 if name in tbl.colnames:
+                    # Columns always compare equal
                     assert np.all(tbl[name] == out[name][:, ii])
+
+                    # If input has a mask then output must have same mask
+                    if hasattr(tbl[name], 'mask'):
+                        assert np.all(tbl[name].mask == out[name].mask[:, ii])
+
+                    # If input has no mask then output might have a mask (if other table
+                    # is missing that column). If so then all mask values should be False.
+                    elif hasattr(out[name], 'mask'):
+                        assert not np.any(out[name].mask[:, ii])
+
                 else:
+                    # Column missing for this table, out must have a mask with all True.
                     assert np.all(out[name].mask[:, ii])
 
-    def test_stack_table_column(self, operation_table_type):
+    def test_cstack_table_column(self, operation_table_type):
+        """Stack a table with 3 cols and one column (gets auto-converted to Table).
+        """
         self._setup(operation_table_type)
         t2 = self.t1.copy()
         out = table.cstack([self.t1, t2['a']])
-        t = table.Table([self.t1['a']], names=('a'))
-        self.compare_cstack([self.t1, t], out)
+        self.compare_cstack([self.t1, t2[('a',)]], out)
 
-    def test_stack_basic_outer(self, operation_table_type):
+    def test_cstack_basic_outer(self, operation_table_type):
         if operation_table_type is QTable:
             pytest.xfail('Quantity columns do not support masking.')
         self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
         t4 = self.t4
-        t4['a'].mask = [True, False]
+        t4['a'].mask[0] = True
         # Test for non-masked table
         t12 = table.cstack([t1, t2], join_type='outer')
         assert type(t12) is operation_table_type
@@ -1066,7 +1081,7 @@ class TestCStack():
         assert type(t124['b']) is type(t4['b'])
         self.compare_cstack([t1, t2, t4], t124)
 
-    def test_stack_basic_inner(self, operation_table_type):
+    def test_cstack_basic_inner(self, operation_table_type):
         self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
@@ -1079,7 +1094,7 @@ class TestCStack():
         assert type(t124['b']) is type(t4['b'])
         self.compare_cstack([t1, t2, t4], t124)
 
-    def test_multi_dimension_column_stack(self, operation_table_type):
+    def test_cstack_multi_dimension_column(self, operation_table_type):
         self._setup(operation_table_type)
         t3 = self.t3
         t5 = self.t5
@@ -1093,13 +1108,17 @@ class TestCStack():
         with pytest.raises(TableMergeError):
             table.cstack([t2, t3])
 
-    def test_different_length_table(self, operation_table_type):
+    def test_cstack_different_length_table(self, operation_table_type):
         self._setup(operation_table_type)
         t2 = self.t2
         t6 = self.t6
         with pytest.raises(ValueError):
             table.cstack([t2, t6])
 
+    def test_cstack_single_table(self):
+        self._setup(Table)
+        out = table.cstack(self.t1)
+        assert np.all(out == self.t1)
 
 
 class TestHStack():
