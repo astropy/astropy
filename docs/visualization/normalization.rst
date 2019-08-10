@@ -35,10 +35,10 @@ stretching is described in the `Stretching`_ section.
 Intervals and Normalization
 ===========================
 
-The quick way
+The Quick Way
 -------------
 
-We provide a convenience
+``astropy`` provides a convenience
 :func:`~astropy.visualization.mpl_normalize.simple_norm` function that can be
 useful for quick interactive analysis:
 
