@@ -15,6 +15,7 @@ well-defined but idiosyncratic formats.
 * :class:`~astropy.io.ascii.Basic`: basic table with customizable delimiters and header configurations.
 * :class:`~astropy.io.ascii.Cds`: `CDS format table <http://vizier.u-strasbg.fr/doc/catstd.htx>`_ (also Vizier and ApJ machine readable tables).
 * :class:`~astropy.io.ascii.CommentedHeader`: column names given in a line that begins with the comment character.
+* :class:`~astropy.io.ascii.Csv`: comma-separated values.
 * :class:`~astropy.io.ascii.Daophot`: table from the IRAF DAOphot package.
 * :class:`~astropy.io.ascii.FixedWidth`: table with fixed-width columns (see also :ref:`fixed_width_gallery`).
 * :class:`~astropy.io.ascii.FixedWidthNoHeader`: table with fixed-width columns and no header.
@@ -27,4 +28,3 @@ well-defined but idiosyncratic formats.
 * :class:`~astropy.io.ascii.RST`: `reStructuredText simple format table <http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#simple-tables>`_.
 * :class:`~astropy.io.ascii.SExtractor`: `SExtractor format table <http://www.astromatic.net/software/sextractor>`_.
 * :class:`~astropy.io.ascii.Tab`: tab-separated values.
-* :class:`~astropy.io.ascii.Csv`: comma-separated values.
