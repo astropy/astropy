@@ -439,7 +439,7 @@ more than eight characters::
 
     Though there are some areas where it is almost impossible to hide away the
     quirks of the FITS format, ``astropy`` tries to make it so that you have to
-    think about it as little as possible. If there are any areas where you
-    have concerned yourself unnecessarily about how the header is constructed,
+    think about it as little as possible. If there are any areas that are left
+    vague or difficult to understand about how the header is constructed, please
     let help@stsci.edu know, as there are probably areas where this can be
     improved on even more.
