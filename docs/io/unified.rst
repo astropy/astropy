@@ -944,7 +944,7 @@ be stored as HDF5 attributes. In addition, if the table columns being stored
 have defined values for any of the above-listed column attributes, these
 metadata will *not* be stored and a warning will be issued.
 
-Serialize_meta
+serialize_meta
 ~~~~~~~~~~~~~~
 
 To enable storing all table and column metadata to the HDF5 file, call
@@ -959,7 +959,7 @@ As of ``astropy`` 3.0, by specifying ``serialize_meta=True`` one can also store
 to HDF5 tables that contain :ref:`mixin_columns` such as `~astropy.time.Time` or
 `~astropy.coordinates.SkyCoord` columns.
 
-Compatibility_mode
+compatibility_mode
 ~~~~~~~~~~~~~~~~~~
 
 The way metadata are saved in the HDF5 dataset has changed in ``astropy`` 3.0.

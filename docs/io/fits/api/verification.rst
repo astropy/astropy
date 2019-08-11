@@ -11,7 +11,7 @@ and :meth:`~HDUList.flush`, or the ``_BaseHDU.writeto`` method on any HDU
 object. In these cases, the verification option is passed to a ``verify``
 call within these methods.
 
-Exception
+``'exception'``
 =========
 
 This option will raise an exception if any FITS standard is violated. This is
@@ -19,7 +19,7 @@ the default option for output (i.e., when :meth:`~HDUList.writeto`,
 :meth:`~HDUList.close`, or :meth:`~HDUList.flush` is called). If a user wants to
 overwrite this default on output, the other options listed below can be used.
 
-Ignore
+``'ignore'``
 ======
 
 This option will ignore any FITS standard violation. On output, it will write
@@ -38,7 +38,7 @@ The ``ignore`` option is useful in these situations, for example:
 No warning message will be printed out. This is like a silent warn (see below)
 option.
 
-Fix
+``'fix'``
 ===
 
 This option will try to fix any FITS standard violations. It is not always
@@ -58,14 +58,14 @@ The principle behind the fixing is do no harm. For example, it is plausible to
 Not all fixes may be the "correct" fix, but at least ``astropy`` will try to
 make the fix in such a way that it will not throw off other FITS readers.
 
-Silentfix
+``'silentfix'``
 =========
 
 Same as fix, but will not print out informative messages. This may be useful in
 a large script where the the user does not want excessive harmless messages. If
 the violation is not fixable, it will still throw an exception.
 
-Warn
+``'warn'``
 ====
 
 This option is the same as the ignore option but will send warning messages. It
