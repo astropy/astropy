@@ -348,7 +348,7 @@ following column requirements:
  * At least two table columns.
  * No column names are a float or int number.
  * No column names begin or end with space, comma, tab, single quote, double
- quote, or a vertical bar (|).
+   quote, or a vertical bar (|).
 
 These requirements reduce the chance for a false positive where a table is
 successfully parsed with the wrong format. A common situation is a table

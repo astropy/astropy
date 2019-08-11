@@ -102,7 +102,7 @@ You can also add a new value *and* comment by assigning them as a tuple::
         >>> del hdr['DARKCORR']  # Delete previous insertion for doctest
         >>> hdr.insert(20, ('DARKCORR', 'OMIT', 'Dark Image Subtraction'))
 
-      This inserts the DARKCORR keyword before the twentieth keyword in the
+      This inserts the DARKCORR keyword before the 20th keyword in the
       header no matter what it is.
 
 A keyword (and its corresponding card) can be deleted using the same index/name
