@@ -140,6 +140,8 @@ IGNORED_FUNCTIONS = {
     np.pv, np.rate}
 if NUMPY_LT_1_18:
     IGNORED_FUNCTIONS |= {np.rank}
+else:
+    IGNORED_FUNCTIONS |= {np.alen}
 UNSUPPORTED_FUNCTIONS |= IGNORED_FUNCTIONS
 
 
