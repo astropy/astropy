@@ -72,9 +72,10 @@ class NoUnitTestSetup(BasicTestSetup):
 
 
 class TestShapeInformation(BasicTestSetup):
-    @pytest.mark.skipif(not NUMPY_LT_1_18, reason='alen is deprecated')
-    def test_alen(self):
-        assert np.alen(self.q) == 3
+    # alen is deprecated in Numpy 1.8
+    if NUMPY_LT_1_18:
+        def test_alen(self):
+            assert np.alen(self.q) == 3
 
     def test_shape(self):
         assert np.shape(self.q) == (3, 3)
