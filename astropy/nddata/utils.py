@@ -267,8 +267,8 @@ def add_array(array_large, array_small, position):
            [0., 0., 0., 0., 0.],
            [0., 0., 0., 0., 0.]])
     """
-    # Check if large array is really larger
-    if all(large_shape > small_shape for (large_shape, small_shape)
+    # Check if large array is not smaller
+    if all(large_shape >= small_shape for (large_shape, small_shape)
            in zip(array_large.shape, array_small.shape)):
         large_slices, small_slices = overlap_slices(array_large.shape,
                                                     array_small.shape,
