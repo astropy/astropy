@@ -12,7 +12,7 @@ object. In these cases, the verification option is passed to a ``verify``
 call within these methods.
 
 ``'exception'``
-=========
+===============
 
 This option will raise an exception if any FITS standard is violated. This is
 the default option for output (i.e., when :meth:`~HDUList.writeto`,
@@ -20,7 +20,7 @@ the default option for output (i.e., when :meth:`~HDUList.writeto`,
 overwrite this default on output, the other options listed below can be used.
 
 ``'ignore'``
-======
+============
 
 This option will ignore any FITS standard violation. On output, it will write
 the HDU List content to the output FITS file, whether or not it is conforming
@@ -39,7 +39,7 @@ No warning message will be printed out. This is like a silent warn (see below)
 option.
 
 ``'fix'``
-===
+=========
 
 This option will try to fix any FITS standard violations. It is not always
 possible to fix such violations. In general, there are two kinds of FITS
@@ -59,14 +59,14 @@ Not all fixes may be the "correct" fix, but at least ``astropy`` will try to
 make the fix in such a way that it will not throw off other FITS readers.
 
 ``'silentfix'``
-=========
+===============
 
 Same as fix, but will not print out informative messages. This may be useful in
 a large script where the the user does not want excessive harmless messages. If
 the violation is not fixable, it will still throw an exception.
 
 ``'warn'``
-====
+==========
 
 This option is the same as the ignore option but will send warning messages. It
 will not try to fix any FITS standard violations whether fixable or not.
