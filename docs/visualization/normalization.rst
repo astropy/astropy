@@ -35,6 +35,44 @@ stretching is described in the `Stretching`_ section.
 Intervals and Normalization
 ===========================
 
+The Quick Way
+-------------
+
+``astropy`` provides a convenience
+:func:`~astropy.visualization.mpl_normalize.simple_norm` function that can be
+useful for quick interactive analysis:
+
+.. plot::
+    :include-source:
+    :align: center
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from astropy.visualization import simple_norm
+
+    # Generate a test image
+    image = np.arange(65536).reshape((256, 256))
+
+    # Create an ImageNormalize object
+    norm = simple_norm(image, 'sqrt')
+
+    # Display the image
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    im = ax.imshow(image, origin='lower', norm=norm)
+    fig.colorbar(im)
+
+This convenience function combines a :class:`Stretch
+<astropy.visualization.stretch.BaseStretch>` object with an :class:`Interval
+<astropy.visualization.interval.BaseInterval>` object.
+We recommend using
+:class:`~astropy.visualization.mpl_normalize.ImageNormalize` directly
+in scripted programs instead of this convenience function.
+
+
+The detailed way
+----------------
+
 Several classes are provided for determining intervals and for
 normalizing values in this interval to the [0:1] range. One of the
 simplest examples is the
@@ -234,32 +272,6 @@ also be the vmin and vmax limits, which you can determine from the
     im = ax.imshow(image, origin='lower', norm=norm)
     fig.colorbar(im)
 
-Finally, we also provide a convenience
-:func:`~astropy.visualization.mpl_normalize.simple_norm` function that
-can be useful for quick interactive analysis (it is also used by the
-``fits2bitmap`` command-line script).  However, it is not recommended
-to be used in scripted programs; it's better to use
-:class:`~astropy.visualization.mpl_normalize.ImageNormalize` directly:
-
-.. plot::
-    :include-source:
-    :align: center
-
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from astropy.visualization import simple_norm
-
-    # Generate a test image
-    image = np.arange(65536).reshape((256, 256))
-
-    # Create an ImageNormalize object
-    norm = simple_norm(image, 'sqrt')
-
-    # Display the image
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
-    im = ax.imshow(image, origin='lower', norm=norm)
-    fig.colorbar(im)
 
 Combining stretches and Matplotlib normalization
 ================================================
