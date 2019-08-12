@@ -137,6 +137,8 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+- Updated wcslib to v6.3. [#9119]
+  
 API Changes
 -----------
 
