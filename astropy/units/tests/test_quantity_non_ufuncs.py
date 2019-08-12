@@ -1763,8 +1763,10 @@ deprecated_functions = {
     }
 if NUMPY_LT_1_18:
     deprecated_functions |= {np.rank}
-untested_functions |= deprecated_functions
+else:
+    deprecated_functions |= {np.alen}
 
+untested_functions |= deprecated_functions
 io_functions = {np.save, np.savez, np.savetxt, np.savez_compressed}
 untested_functions |= io_functions
 
