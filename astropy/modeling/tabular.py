@@ -251,7 +251,7 @@ class _Tabular(Model):
                 lookup_table = self.points[0][::-1]
             else:
                 # equal-valued or double-valued lookup_table
-                raise ValueError("The points in lookup_table must be strictly ascending")
+                raise NotImplementedError
             return Tabular1D(points=points, lookup_table=lookup_table)
         else:
             raise NotImplementedError("An analytical inverse transform "
