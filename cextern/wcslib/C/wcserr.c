@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2018, Mark Calabretta
+  WCSLIB 6.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2019, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -23,7 +23,7 @@
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   Module author: Michael Droettboom
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcserr.c,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
+  $Id: wcserr.c,v 6.3 2019/07/12 07:33:39 mcalabre Exp $
 *===========================================================================*/
 
 #include <stdarg.h>
@@ -46,9 +46,7 @@ int wcserr_enable(int enable)
 
 /*--------------------------------------------------------------------------*/
 
-int wcserr_prt(
-  const struct wcserr *err,
-  const char *prefix)
+int wcserr_prt(const struct wcserr *err, const char *prefix)
 
 {
   if (!wcserr_enabled) {
@@ -80,8 +78,7 @@ int wcserr_prt(
 
 /*--------------------------------------------------------------------------*/
 
-int wcserr_clear(
-  struct wcserr **errp)
+int wcserr_clear(struct wcserr **errp)
 
 {
   if (*errp) {
@@ -162,9 +159,7 @@ int wcserr_set(
 
 /*--------------------------------------------------------------------------*/
 
-int wcserr_copy(
-  const struct wcserr *src,
-  struct wcserr *dst)
+int wcserr_copy(const struct wcserr *src, struct wcserr *dst)
 
 {
   int msglen;

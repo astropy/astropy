@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2018, Mark Calabretta
+  WCSLIB 6.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2019, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.c,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
+  $Id: dis.c,v 6.3 2019/07/12 07:33:39 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -83,7 +83,9 @@ static int tpd9(DISP2X_ARGS);
 #define I_DTYPE   0	/* Distortion type code.                            */
 #define I_NIPARM  1	/* Full (allocated) length of iparm[].              */
 #define I_NDPARM  2	/* No. of parameters in dparm[], excl. work space.  */
-#define I_DOCORR  3	/* True if distortion func computes a correction.   */
+#define I_DOCORR  3	/* True if the distortion function computes a
+			   correction to be applied to the coordinates (else
+			   it computes the corrected coordinates directy).  */
 
 /*--------------------------------------------------------------------------*/
 
@@ -192,11 +194,11 @@ int disinit(int alloc, int naxis, struct disprm *dis, int ndpmax)
 
 
   /* Initialize error message handling. */
-  err = &(dis->err);
-  if (dis->flag != -1) {
-    if (dis->err) free(dis->err);
+  if (dis->flag == -1) {
+    dis->err = 0x0;
   }
-  dis->err = 0x0;
+  err = &(dis->err);
+  wcserr_clear(err);
 
 
   /* Initialize pointers. */
@@ -307,10 +309,18 @@ int disinit(int alloc, int naxis, struct disprm *dis, int ndpmax)
   dis->flag  = 0;
   dis->naxis = naxis;
 
-  memset(dis->dtype,  0, naxis*sizeof(char [72]));
+  if (naxis) {
+    memset(dis->dtype, 0, naxis*sizeof(char [72]));
+  }
+
   dis->ndp = 0;
-  memset(dis->dp,     0, ndpmax*sizeof(struct dpkey));
-  memset(dis->maxdis, 0, naxis*sizeof(double));
+  if (ndpmax) {
+    memset(dis->dp, 0, ndpmax*sizeof(struct dpkey));
+  }
+
+  if (naxis) {
+    memset(dis->maxdis, 0, naxis*sizeof(double));
+  }
   dis->totdis = 0.0;
 
   return 0;
@@ -392,8 +402,6 @@ int disfree(struct disprm *dis)
     if (dis->disp2x) free(dis->disp2x);
     if (dis->disx2p) free(dis->disx2p);
     if (dis->tmpmem) free(dis->tmpmem);
-
-    if (dis->err) free(dis->err);
   }
 
   dis->m_flag   = 0;
@@ -412,7 +420,7 @@ int disfree(struct disprm *dis)
   dis->disx2p = 0x0;
   dis->tmpmem = 0x0;
 
-  dis->err  = 0x0;
+  wcserr_clear(&(dis->err));
 
   dis->flag = 0;
 
@@ -706,7 +714,14 @@ int disset(struct disprm *dis)
   }
 
 
-  /* Allocate memory for derived parameters and work arrays. */
+  /* Free memory allocated separately for each axis. */
+  for (j = 0; j < dis->i_naxis; j++) {
+    if (dis->iparm[j]) free(dis->iparm[j]);
+    if (dis->dparm[j]) free(dis->dparm[j]);
+  }
+
+  /* Allocate or reallocate memory, if necessary, for derived parameter and
+     work arrays sized according to the number of axes. */
   if (dis->i_naxis < naxis) {
     if (dis->i_naxis) {
       /* Recall that axmap, offset, and scale are allocated in bulk. */
@@ -718,11 +733,6 @@ int disset(struct disprm *dis)
       free(dis->scale[0]);
       free(dis->scale);
 
-      for (j = 0; j < dis->i_naxis; j++) {
-        /* Memory allocated separately for each axis. */
-        if (dis->iparm[j]) free(dis->iparm[j]);
-        if (dis->dparm[j]) free(dis->dparm[j]);
-      }
       free(dis->iparm);
       free(dis->dparm);
 
@@ -1067,9 +1077,10 @@ int disp2x(
       }
 
       if (dis->iparm[j][I_DOCORR]) {
-        /* Distortion function computes a correction. */
+        /* Distortion function computes a correction to be applied. */
         discrd[j] = rawcrd[j] + dtmp;
       } else {
+        /* Distortion function computes corrected coordinates. */
         discrd[j] = dtmp;
       }
 
@@ -1155,9 +1166,10 @@ int disx2p(
       }
 
       if (dis->iparm[j][I_DOCORR]) {
-        /* Inverse distortion function computes a correction. */
+        /* Inverse distortion function computes a correction to be applied. */
         rawcrd[j] = discrd[j] + rtmp;
       } else {
+        /* Inverse distortion function computes corrected coordinates. */
         rawcrd[j] = rtmp;
       }
     }
@@ -1534,7 +1546,7 @@ int polyset(int j, struct disprm *dis)
   iparm[I_DTYPE]  = DIS_POLYNOMIAL;
   iparm[I_NIPARM] = niparm;
   iparm[I_NDPARM] = ndparm;
-  iparm[I_DOCORR] = 0;
+  iparm[I_DOCORR] = 1;
 
   iparm[I_NIDX]   = I_NPOLY;
   iparm[I_LENDP]  = lendp;
@@ -1577,10 +1589,8 @@ int polyset(int j, struct disprm *dis)
 
     fp = strchr(keyp->field, '.') + 1;
 
-    if (strncmp(fp, "DOCORR:", 7) == 0) {
-      fp += 7;
-      sscanf(fp, "%d", &k);
-      if (k) iparm[I_DOCORR] = 1;
+    if (strcmp(fp, "DOCORR") == 0) {
+      if (dpkeyi(keyp) == 0) iparm[I_DOCORR] = 0;
 
     } else if (strncmp(fp, "AUX.", 4) == 0) {
       /* N.B. k here is 1-relative. */
@@ -1788,7 +1798,7 @@ int tpdset(int j, struct disprm *dis)
   ncoeff[1] = 0;
   doaux     = 0;
   doradial  = 0;
-  docorr    = 0;
+  docorr    = 1;
   keyp = dis->dp;
   for (idp = 0; idp < dis->ndp; idp++, keyp++) {
     if (keyp->j-1 != j) continue;
@@ -1827,11 +1837,8 @@ int tpdset(int j, struct disprm *dis)
       /* Flag usage of auxiliary variables. */
       doaux = 1;
 
-    } else if (strncmp(fp, "DOCORR:", 7) == 0) {
-      fp += 7;
-      sscanf(fp, "%d", &k);
-      if (k) docorr = 1;
-
+    } else if (strcmp(fp, "DOCORR") == 0) {
+      if (dpkeyi(keyp) == 0) docorr = 0;
 
     } else if (strcmp(fp, "NAXES")  &&
               strncmp(fp, "AXIS.",   5) &&
@@ -1900,7 +1907,7 @@ int tpdset(int j, struct disprm *dis)
 
 /* These iparm indices are specific to TPD.                      */
 #define I_TPDNCO  4	/* No. of TPD coefficients, forward...   */
-#define I_TPDINV  5     /* ...and inverse.                       */
+#define I_TPDINV  5	/* ...and inverse.                       */
 #define I_TPDAUX  6	/* True if auxiliary variables are used. */
 #define I_TPDRAD  7	/* True if the radial variable is used.  */
 #define I_NTPD    8
@@ -2351,8 +2358,7 @@ int sipset(int j, struct disprm *dis)
                                 {49, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
   char   *fp, id[32];
-  int    deg, degree[2], idis, idp, jhat, naxis, ncoeff[2], ndparm, niparm,
-         p, q;
+  int    deg, degree[2], idis, idp, ncoeff[2], ndparm, niparm, p, q;
   struct dpkey *keyp;
   struct wcserr **err;
   int (*(distpd[2]))(DISP2X_ARGS);
@@ -2468,7 +2474,7 @@ int sipset(int j, struct disprm *dis)
   dis->iparm[j][I_DTYPE]  = DIS_TPD;
   dis->iparm[j][I_NIPARM] = niparm;
   dis->iparm[j][I_NDPARM] = ndparm;
-  dis->iparm[j][I_DOCORR] = 0;
+  dis->iparm[j][I_DOCORR] = 1;
 
   /* Number of TPD coefficients. */
   dis->iparm[j][I_TPDNCO] = ncoeff[0];
@@ -2507,20 +2513,6 @@ int sipset(int j, struct disprm *dis)
 
       dis->dparm[j][idis] = dpkeyd(keyp);
     }
-  }
-
-  /* Account for the fact that the SIP distortion provides an additive    */
-  /* correction to the offset of the pixel coordinate from CRPIX, whereas */
-  /* we expect the distortion function to provide the actual value of the */
-  /* distorted pixel coordinate.                                          */
-  naxis = dis->naxis;
-  jhat  = dis->axmap[j][naxis+j];
-  idis  = jhat + 1;
-  dis->dparm[j][0] = dis->offset[j][jhat];
-  dis->dparm[j][idis] += 1.0;
-  if (degree[1] > 0) {
-    dis->dparm[j][ncoeff[0]] = dis->offset[j][jhat];
-    dis->dparm[j][ncoeff[0]+idis] += 1.0;
   }
 
 

@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2018, Mark Calabretta
+  WCSLIB 6.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2019, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: prj.c,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
+  $Id: prj.c,v 6.3 2019/07/12 07:33:39 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -140,9 +140,7 @@ const char *prj_errmsg[] = {
 *
 *---------------------------------------------------------------------------*/
 
-int prjini(prj)
-
-struct prjprm *prj;
+int prjini(struct prjprm *prj)
 
 {
   register int k;
@@ -188,26 +186,19 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int prjfree(prj)
-
-struct prjprm *prj;
+int prjfree(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
 
-  if (prj->err) {
-    free(prj->err);
-    prj->err = 0x0;
-  }
+  wcserr_clear(&(prj->err));
 
   return 0;
 }
 
 /*--------------------------------------------------------------------------*/
 
-int prjprt(prj)
-
-const struct prjprm *prj;
+int prjprt(const struct prjprm *prj)
 
 {
   char hext[32];
@@ -309,12 +300,14 @@ int prjperr(const struct prjprm *prj, const char *prefix)
 
 /*--------------------------------------------------------------------------*/
 
-int prjbchk(tol, nphi, ntheta, spt, phi, theta, stat)
-
-double tol;
-int nphi, ntheta, spt;
-double phi[], theta[];
-int stat[];
+int prjbchk(
+  double tol,
+  int nphi,
+  int ntheta,
+  int spt,
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int status = 0;
@@ -368,9 +361,7 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int prjset(prj)
-
-struct prjprm *prj;
+int prjset(struct prjprm *prj)
 
 {
   static const char *function = "prjset";
@@ -450,13 +441,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int prjx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int prjx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int status;
@@ -472,13 +467,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int prjs2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int prjs2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int status;
@@ -497,10 +496,10 @@ int stat[];
 * outside use.  It forces (x,y) = (0,0) at (phi0,theta0).
 *---------------------------------------------------------------------------*/
 
-int prjoff(prj, phi0, theta0)
-
-struct prjprm *prj;
-const double phi0, theta0;
+int prjoff(
+  struct prjprm *prj,
+  const double phi0,
+  const double theta0)
 
 {
   int    stat;
@@ -558,9 +557,7 @@ const double phi0, theta0;
 *      prj->prjs2x  Pointer to azps2x().
 *===========================================================================*/
 
-int azpset(prj)
-
-struct prjprm *prj;
+int azpset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -612,13 +609,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int azpx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int azpx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -727,13 +728,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int azps2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int azps2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
@@ -873,9 +878,7 @@ int stat[];
 *      prj->prjs2x  Pointer to szps2x().
 *===========================================================================*/
 
-int szpset(prj)
-
-struct prjprm *prj;
+int szpset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -925,13 +928,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int szpx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int szpx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -1060,13 +1067,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int szps2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int szps2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
@@ -1194,9 +1205,7 @@ int stat[];
 *      prj->prjs2x  Pointer to tans2x().
 *===========================================================================*/
 
-int tanset(prj)
-
-struct prjprm *prj;
+int tanset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -1223,13 +1232,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int tanx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int tanx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -1307,13 +1320,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int tans2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int tans2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
@@ -1416,9 +1433,7 @@ int stat[];
 *      prj->prjs2x  Pointer to stgs2x().
 *===========================================================================*/
 
-int stgset(prj)
-
-struct prjprm *prj;
+int stgset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -1452,13 +1467,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int stgx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int stgx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -1528,13 +1547,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int stgs2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int stgs2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
@@ -1633,9 +1656,7 @@ int stat[];
 *      prj->prjs2x  Pointer to sins2x().
 *===========================================================================*/
 
-int sinset(prj)
-
-struct prjprm *prj;
+int sinset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -1669,13 +1690,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int sinx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int sinx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -1834,13 +1859,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int sins2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int sins2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
@@ -1967,9 +1996,7 @@ int stat[];
 *      prj->prjs2x  Pointer to arcs2x().
 *===========================================================================*/
 
-int arcset(prj)
-
-struct prjprm *prj;
+int arcset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -2003,13 +2030,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int arcx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int arcx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -2088,13 +2119,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int arcs2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int arcs2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
@@ -2179,9 +2214,7 @@ int stat[];
 *      prj->prjs2x  Pointer to zpns2x().
 *===========================================================================*/
 
-int zpnset(prj)
-
-struct prjprm *prj;
+int zpnset(struct prjprm *prj)
 
 {
   int j, k, m;
@@ -2282,13 +2315,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int zpnx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int zpnx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int j, k, m, mx, my, rowlen, rowoff, status;
@@ -2469,13 +2506,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int zpns2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int zpns2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int m, mphi, mtheta, rowlen, rowoff, status;
@@ -2573,9 +2614,7 @@ int stat[];
 *      prj->prjs2x  Pointer to zeas2x().
 *===========================================================================*/
 
-int zeaset(prj)
-
-struct prjprm *prj;
+int zeaset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -2609,13 +2648,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int zeax2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int zeax2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -2707,13 +2750,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int zeas2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int zeas2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
@@ -2804,9 +2851,7 @@ int stat[];
 *      prj->prjs2x  Pointer to airs2x().
 *===========================================================================*/
 
-int airset(prj)
-
-struct prjprm *prj;
+int airset(struct prjprm *prj)
 
 {
   const double tol = 1.0e-4;
@@ -2854,13 +2899,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int airx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int airx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int k, mx, my, rowlen, rowoff, status;
@@ -2997,13 +3046,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int airs2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int airs2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
@@ -3111,9 +3164,7 @@ int stat[];
 *      prj->prjs2x  Pointer to cyps2x().
 *===========================================================================*/
 
-int cypset(prj)
-
-struct prjprm *prj;
+int cypset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -3173,13 +3224,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int cypx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int cypx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -3247,13 +3302,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int cyps2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int cyps2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
@@ -3347,9 +3406,7 @@ int stat[];
 *      prj->prjs2x  Pointer to ceas2x().
 *===========================================================================*/
 
-int ceaset(prj)
-
-struct prjprm *prj;
+int ceaset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -3395,13 +3452,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int ceax2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int ceax2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -3482,13 +3543,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int ceas2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int ceas2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
@@ -3564,9 +3629,7 @@ int stat[];
 *      prj->prjs2x  Pointer to cars2x().
 *===========================================================================*/
 
-int carset(prj)
-
-struct prjprm *prj;
+int carset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -3600,13 +3663,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int carx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int carx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -3673,13 +3740,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int cars2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int cars2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
@@ -3755,9 +3826,7 @@ int stat[];
 *      prj->prjs2x  Pointer to mers2x().
 *===========================================================================*/
 
-int merset(prj)
-
-struct prjprm *prj;
+int merset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -3791,13 +3860,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int merx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int merx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -3864,13 +3937,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int mers2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int mers2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
@@ -3956,9 +4033,7 @@ int stat[];
 *      prj->prjs2x  Pointer to sfls2x().
 *===========================================================================*/
 
-int sflset(prj)
-
-struct prjprm *prj;
+int sflset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -3992,13 +4067,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int sflx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int sflx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -4078,13 +4157,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int sfls2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int sfls2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
@@ -4165,9 +4248,7 @@ int stat[];
 *      prj->prjs2x  Pointer to pars2x().
 *===========================================================================*/
 
-int parset(prj)
-
-struct prjprm *prj;
+int parset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -4205,13 +4286,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int parx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int parx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -4315,13 +4400,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int pars2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int pars2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
@@ -4403,9 +4492,7 @@ int stat[];
 *      prj->prjs2x  Pointer to mols2x().
 *===========================================================================*/
 
-int molset(prj)
-
-struct prjprm *prj;
+int molset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -4438,13 +4525,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int molx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int molx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -4574,13 +4665,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int mols2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int mols2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int k, mphi, mtheta, rowlen, rowoff, status;
@@ -4690,9 +4785,7 @@ int stat[];
 *      prj->prjs2x  Pointer to aits2x().
 *===========================================================================*/
 
-int aitset(prj)
-
-struct prjprm *prj;
+int aitset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -4724,13 +4817,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int aitx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int aitx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -4838,13 +4935,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int aits2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int aits2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
@@ -4936,9 +5037,7 @@ int stat[];
 *      prj->prjs2x  Pointer to cops2x().
 *===========================================================================*/
 
-int copset(prj)
-
-struct prjprm *prj;
+int copset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -4986,13 +5085,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int copx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int copx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -5072,13 +5175,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int cops2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int cops2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
@@ -5206,9 +5313,7 @@ int stat[];
 *      prj->prjs2x  Pointer to coes2x().
 *===========================================================================*/
 
-int coeset(prj)
-
-struct prjprm *prj;
+int coeset(struct prjprm *prj)
 
 {
   double theta1, theta2;
@@ -5260,13 +5365,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int coex2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int coex2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -5367,13 +5476,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int coes2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int coes2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
@@ -5466,9 +5579,7 @@ int stat[];
 *      prj->prjs2x  Pointer to cods2x().
 *===========================================================================*/
 
-int codset(prj)
-
-struct prjprm *prj;
+int codset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -5513,13 +5624,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int codx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int codx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -5599,13 +5714,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int cods2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int cods2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
@@ -5697,9 +5816,7 @@ int stat[];
 *      prj->prjs2x  Pointer to coos2x().
 *===========================================================================*/
 
-int cooset(prj)
-
-struct prjprm *prj;
+int cooset(struct prjprm *prj)
 
 {
   double cos1, cos2, tan1, tan2, theta1, theta2;
@@ -5758,13 +5875,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int coox2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int coox2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -5857,13 +5978,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int coos2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int coos2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
@@ -5960,9 +6085,7 @@ int stat[];
 *      prj->prjs2x  Pointer to bons2x().
 *===========================================================================*/
 
-int bonset(prj)
-
-struct prjprm *prj;
+int bonset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -6005,13 +6128,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int bonx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int bonx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -6105,13 +6232,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int bons2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int bons2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
@@ -6200,9 +6331,7 @@ int stat[];
 *      prj->prjs2x  Pointer to pcos2x().
 *===========================================================================*/
 
-int pcoset(prj)
-
-struct prjprm *prj;
+int pcoset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -6239,13 +6368,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int pcox2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int pcox2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -6383,13 +6516,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int pcos2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int pcos2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
@@ -6484,9 +6621,7 @@ int stat[];
 *      prj->prjs2x  Pointer to tscs2x().
 *===========================================================================*/
 
-int tscset(prj)
-
-struct prjprm *prj;
+int tscset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -6520,13 +6655,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int tscx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int tscx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -6662,13 +6801,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int tscs2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int tscs2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int face, mphi, mtheta, rowlen, rowoff, status;
@@ -6834,9 +6977,7 @@ int stat[];
 *      prj->prjs2x  Pointer to cscs2x().
 *===========================================================================*/
 
-int cscset(prj)
-
-struct prjprm *prj;
+int cscset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -6870,13 +7011,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int cscx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int cscx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int face, mx, my, rowlen, rowoff, status;
@@ -7085,13 +7230,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int cscs2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int cscs2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int face, mphi, mtheta, rowlen, rowoff, status;
@@ -7294,9 +7443,7 @@ int stat[];
 *      prj->prjs2x  Pointer to qscs2x().
 *===========================================================================*/
 
-int qscset(prj)
-
-struct prjprm *prj;
+int qscset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -7330,13 +7477,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int qscx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int qscx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int direct, face, mx, my, rowlen, rowoff, status;
@@ -7577,13 +7728,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int qscs2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int qscs2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int face, mphi, mtheta, rowlen, rowoff, status;
@@ -7835,9 +7990,7 @@ int stat[];
 *      prj->prjs2x  Pointer to hpxs2x().
 *===========================================================================*/
 
-int hpxset(prj)
-
-struct prjprm *prj;
+int hpxset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -7890,13 +8043,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int hpxx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int hpxx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int h, mx, my, offset, rowlen, rowoff, status;
@@ -8042,13 +8199,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int hpxs2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int hpxs2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int h, mphi, mtheta, offset, rowlen, rowoff, status;
@@ -8174,9 +8335,7 @@ int stat[];
 *      prj->prjs2x  Pointer to xphs2x().
 *===========================================================================*/
 
-int xphset(prj)
-
-struct prjprm *prj;
+int xphset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
@@ -8218,13 +8377,17 @@ struct prjprm *prj;
 
 /*--------------------------------------------------------------------------*/
 
-int xphx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
-
-struct prjprm *prj;
-int nx, ny, sxy, spt;
-const double x[], y[];
-double phi[], theta[];
-int stat[];
+int xphx2s(
+  struct prjprm *prj,
+  int nx,
+  int ny,
+  int sxy,
+  int spt,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  int stat[])
 
 {
   int mx, my, rowlen, rowoff, status;
@@ -8379,13 +8542,17 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int xphs2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
-
-struct prjprm *prj;
-int nphi, ntheta, spt, sxy;
-const double phi[], theta[];
-double x[], y[];
-int stat[];
+int xphs2x(
+  struct prjprm *prj,
+  int nphi,
+  int ntheta,
+  int spt,
+  int sxy,
+  const double phi[],
+  const double theta[],
+  double x[],
+  double y[],
+  int stat[])
 
 {
   int mphi, mtheta, rowlen, rowoff, status;

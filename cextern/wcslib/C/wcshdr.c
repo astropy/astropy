@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2018, Mark Calabretta
+  WCSLIB 6.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2019, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcshdr.c,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
+  $Id: wcshdr.c,v 6.3 2019/07/12 07:33:39 mcalabre Exp $
 *===========================================================================*/
 
 #include <ctype.h>
@@ -490,7 +490,7 @@ int wcsvfree(int *nwcs, struct wcsprm **wcs)
 #define I_NDPARM  2	/* No. of parameters in dparm[], excl. work space.  */
 #define I_DOCORR  3	/* True if distortion func computes a correction.   */
 #define I_TPDNCO  4	/* No. of TPD coefficients, forward...              */
-#define I_TPDINV  5     /* ...and inverse.                                  */
+#define I_TPDINV  5	/* ...and inverse.                                  */
 #define I_TPDAUX  6	/* True if auxiliary variables are used.            */
 #define I_TPDRAD  7	/* True if the radial variable is used.             */
 

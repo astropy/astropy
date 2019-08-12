@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2018, Mark Calabretta
+  WCSLIB 6.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2019, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcshdr.h,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
+  $Id: wcshdr.h,v 6.3 2019/07/12 07:33:39 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 6.2 - C routines that implement the FITS World Coordinate System
+* WCSLIB 6.3 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -72,7 +72,7 @@
 *        extension, e.g. using CFITSIO routine fits_read_wcstab() - refer to
 *        the prologue of getwcstab.h.  wcsset() will automatically take
 *        control of this allocated memory, in particular causing it to be
-*        free'd by wcsfree().
+*        freed by wcsfree().
 *
 *   - 4: Translate non-standard WCS usage using wcsfix(), see wcsfix.h.
 *
@@ -909,7 +909,7 @@
 * BINTABLE extension(s) into the tabprm structs.  A CFITSIO routine,
 * fits_read_wcstab(), has been provided for this purpose, see getwcstab.h.
 * wcsset() will automatically take control of this allocated memory, in
-* particular causing it to be free'd by wcsfree(); the user must not attempt
+* particular causing it to be freed by wcsfree(); the user must not attempt
 * to free it after wcsset() has been called.
 *
 * Note that wcspih() and wcsbth() automatically invoke wcstab() on each of the
@@ -921,7 +921,7 @@
 *
 *                       wcstab() sets ntab, tab, nwtb and wtb, allocating
 *                       memory for the tab and wtb arrays.  This allocated
-*                       memory will be free'd automatically by wcsfree().
+*                       memory will be freed automatically by wcsfree().
 *
 * Function return value:
 *             int       Status return value:
@@ -1146,7 +1146,8 @@
 *   header    char**    Pointer to an array of char holding the header.
 *                       Storage for the array is allocated by wcshdo() in
 *                       blocks of 2880 bytes (32 x 80-character keyrecords)
-*                       and must be free'd by the user to avoid memory leaks.
+*                       and must be freed by the user to avoid memory leaks.
+*                       See wcsdealloc().
 *
 *                       Each keyrecord is 80 characters long and is *NOT*
 *                       null-terminated, so the first keyrecord starts at

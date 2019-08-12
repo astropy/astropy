@@ -1,3 +1,65 @@
+WCSLIB version 6.3 (2019/07/12)
+-------------------------------
+
+* C library
+
+  - Fixed the Polynomial and TPD distortions so that, as stipulated in
+    WCS Paper IV, they are now considered to return an additive
+    correction to be applied to the given coordinates, rather than the
+    corrected coordinates themselves.
+
+    Added a new subsection to the prologue of dis.h entitled 'Historical
+    idiosyncrasies', which discusses this issue and other vagueries.
+
+    Amended components of the test suite accordingly: SIPTPV.keyrec,
+    TPV7.keyrec, and tdis1.c.
+
+  - Fixed memory leaks and other potential problems that arose in the
+    wcserr system consequent on changes made in release 6.1.
+
+    Memory allocated by wcsfixi() for messages in the array of wcserr
+    structs must now be freed by the caller.  Amended twcsfix.c
+    accordingly.
+
+  - Plugged memory leaks arising in disset().
+
+  - New function wcsdealloc() provided to free memory allocated within
+    certain WCSLIB routines.  Suggested by David Motl.
+
+  - Eliminated a swag of inconsequential compiler warnings, particularly
+    those emanating from the flex sources.
+
+* Validation
+
+  - The library, Fortran wrappers, utilities, and test programs now pass
+    runtime analysis using -fsanitize=address and -fsanitize=undefined
+    in gcc 8.3.0, in addition to valgrind.  Also compile-time strictures
+    using -std=c99, -pedantic, -Wall, -Wextra, and -DFORTIFY_SOURCE=2.
+    Prompted by feedback from Ole Streicher.
+
+* Installation
+
+  - The non-graphical tests now run reliably in parallel builds
+    (make CHECK=nopgplot -j8 check).  Requested by Mohammed Akhlaghi.
+
+    The graphical tests can also be run in parallel, but as PGPLOT can
+    only handle one stream at a time, some graphics are likely to be
+    lost.  Nevertheless, it is a useful option, especially with runtime
+    analysis via -fsanitize=address, etc.
+
+  - As CFITSIO doesn't provide a Fortran wrapper for fits_read_wcstab(),
+    getwcstab_f.o is now always included in the WCSLIB object library
+    and sharable library if CFITSIO is available (and the WCSLIB Fortran
+    wrappers are required).  Use 'configure --without-cfitsio' to
+    defeat this.
+
+  - Tidied up some aspects of the build where CFITSIO is not available.
+
+* User manual
+
+  - Fixed minor formatting problems in dis.h.
+
+
 WCSLIB version 6.2 (2018/10/20)
 -------------------------------
 
@@ -49,15 +111,15 @@ WCSLIB version 6.1 (2018/10/19)
     wcsprm struct makes the ABI of the sharable library incompatible
     with executables linked with that of older releases.
 
-* Installation
-
-  - Several changes to configure and the makefiles aimed at facilitating
-    code development.
-
 * Fortran wrappers
 
   - Match changes to the C library, including adding a wrapper for
     obsfix().
+
+* Installation
+
+  - Several changes to configure and the makefiles aimed at facilitating
+    code development.
 
 
 WCSLIB version 5.20 (2018/10/05)
@@ -67,6 +129,10 @@ WCSLIB version 5.20 (2018/10/05)
 
   - Added utility functions dpkeyi() and dpkeyd() to dis.c, and removed
     the corresponding functions from wcsutil.c.
+
+* Fortran wrappers
+
+  - New wrappers for dpkeyi() and dpkeyd().
 
 * Installation
 
@@ -87,10 +153,6 @@ WCSLIB version 5.20 (2018/10/05)
 
   - Fixed problems with the dependency analysis, solely affecting code
     development.
-
-* Fortran wrappers
-
-  - New wrappers for dpkeyi() and dpkeyd().
 
 
 WCSLIB version 5.19.1 (2018/07/28)
@@ -2809,4 +2871,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 6.2 2018/10/20 10:03:14 mcalabre Exp $
+$Id: CHANGES,v 6.3 2019/07/12 07:33:40 mcalabre Exp $

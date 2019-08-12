@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 6.2 and its test suite.
+# GNU makefile for building WCSLIB 6.3 and its test suite.
 #
 # Summary of the main targets
 # ---------------------------
@@ -31,7 +31,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
+# $Id: GNUmakefile,v 6.3 2019/07/12 07:33:39 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 SUBDIR := C
@@ -81,25 +81,30 @@ TEST_P := tspc tprj2 tcel1 tcel2 ttab2 ttab3 twcsmix
 # Test programs that require PGPLOT and PGSBOX.
 TEST_B := tpih2
 
-# Test programs that aren't automatically exercised.
+# Test programs that are compiled but not automatically exercised.
 TEST_X := tsphdpa twcshdr
+
 
 TESTS  := $(TEST_N)
 
-# Add test programs that require CFITSIO if we have it.
-ifneq "$(CFITSIOINC)" ""
-ifneq "$(CFITSIOLIB)" ""
+# Do we have CFITSIO?
+ifeq "$(CFITSIOINC)$(CFITSIOLIB)" ""
+  # No, amend TEST_X.
+  TEST_X := $(filter-out $(TEST_C),$(TEST_X))
+else
+  # Yes, add test programs that use it.
   TESTS += $(TEST_C)
   CFITSIO_CFLAGS := $(filter-out -Wpadded,$(CFLAGS))
 endif
-endif
 
-# Add test programs that require PGPLOT if we have it.
+# Do we have PGPLOT?
 ifneq "$(CHECK)" "nopgplot"
-ifneq "$(PGPLOTINC)" ""
-ifneq "$(PGPLOTLIB)" ""
+ifeq "$(PGPLOTINC)$(PGPLOTLIB)" ""
+  # No, amend TEST_X.
+  TEST_X := $(filter-out $(TEST_P) $(TEST_B),$(TEST_X))
+else
+  # Yes, add test programs that use it.
   TESTS += $(TEST_P) $(TEST_B)
-endif
 endif
 endif
 
@@ -205,10 +210,10 @@ run_% : %
 	         fi ; \
 	         echo 'PASS: C/$<' >> test_results ; \
 	       elif [ -f 'test/$<.out' ] ; then \
-	         trap 'rm -f run_test.tmp' 0 1 2 3 15 ; \
+	         trap 'rm -f run_$<.tmp' 0 1 2 3 15 ; \
 	         sed -e 's/$(ADDRE)/0x<address>/g' $<.out > \
-	           run_test.tmp ; \
-	         mv -f run_test.tmp $<.out ; \
+	           run_$<.tmp ; \
+	         mv -f run_$<.tmp $<.out ; \
 	         if cmp -s $<.out test/$<.out ; then \
 	           if [ '$(MODE)' != interactive ] ; then \
 	             head -2 $<.out ; \
@@ -386,17 +391,17 @@ tpih2_cfitsio : test/tpih2.c $(PGSBOXLIB) $(WCSLIB)
 	     $(CFITSIOLIB) $(WCSLIB) $(FLIBS) $(LIBS)
 	-@ $(RM) $@.o
 
-twcstab : test/twcstab.c $(GETWCSTAB) $(WCSLIB)
+twcstab : test/twcstab.c $(WCSLIB) $(GETWCSTAB)
 	-@ echo ''
 	   $(CC) $(CPPFLAGS) $(CFITSIOINC) $(CFITSIO_CFLAGS) -o $@ $< \
 	     $(GETWCSTAB) $(LDFLAGS) $(CFITSIOLIB) $(WCSLIB) $(LIBS)
-	-@ $(RM) $@.o
+	-@ $(RM) $@.o $(GETWCSTAB)
 
-twcshdr : test/twcshdr.c $(GETWCSTAB) $(WCSLIB)
+twcshdr : test/twcshdr.c $(WCSLIB) $(GETWCSTAB)
 	-@ echo ''
 	   $(CC) $(CPPFLAGS) $(CFITSIOINC) $(CFITSIO_CFLAGS) -o $@ $< \
 	     $(GETWCSTAB) $(LDFLAGS) $(CFITSIOLIB) $(WCSLIB) $(LIBS)
-	-@ $(RM) $@.o
+	-@ $(RM) $@.o $(GETWCSTAB)
 
 tdis3 : test/tdis3
 	-@ echo ''
@@ -427,8 +432,10 @@ GNUmakefile : ../makedefs ;
 	   cd .. && ./config.status
 
 show ::
-	-@ -@ echo '  FLEXMODS    := $(FLEXMODS)'
-	-@ -@ echo '  MODULES     := $(MODULES)'
+	-@ echo '  FLEXMODS    := $(FLEXMODS)'
+	-@ echo '  MODULES     := $(MODULES)'
+	-@ echo '  TESTS       := $(TESTS)'
+	-@ echo '  TEST_X      := $(TEST_X)'
 
 # Dependencies (use the %.d pattern rule to list them)
 #-----------------------------------------------------

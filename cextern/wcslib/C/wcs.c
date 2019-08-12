@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2018, Mark Calabretta
+  WCSLIB 6.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2019, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.c,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
+  $Id: wcs.c,v 6.3 2019/07/12 07:33:39 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -165,18 +165,24 @@ int wcsinit(
   if (npsmax < 0) npsmax = wcsnps(-1);
 
 
-  /* Initialize error message handling. */
-  err = &(wcs->err);
-  if (wcs->flag != -1) {
-    if (wcs->err) free(wcs->err);
-    if (wcs->lin.err) free(wcs->lin.err);
-    if (wcs->cel.err) free(wcs->cel.err);
-    if (wcs->spc.err) free(wcs->spc.err);
+  /* Initialize error message handling... */
+  if (wcs->flag == -1) {
+    wcs->err = 0x0;
   }
-  wcs->err = 0x0;
-  wcs->lin.err = 0x0;
-  wcs->cel.err = 0x0;
-  wcs->spc.err = 0x0;
+  err = &(wcs->err);
+  wcserr_clear(err);
+
+  /* ...and also in the contained structs in case we have to return due to
+     an error before they can be initialized by their specialized routines,
+     since wcsperr() assumes their wcserr pointers are valid. */
+  if (wcs->flag == -1) {
+    wcs->lin.err = 0x0;
+    wcs->cel.err = 0x0;
+    wcs->spc.err = 0x0;
+  }
+  wcserr_clear(&(wcs->lin.err));
+  wcserr_clear(&(wcs->cel.err));
+  wcserr_clear(&(wcs->spc.err));
 
 
   /* Initialize pointers. */
@@ -1570,8 +1576,6 @@ int wcsfree(struct wcsprm *wcs)
       if (wcs->m_wtb) free(wcs->m_wtb);
     }
 
-    if (wcs->err) free(wcs->err);
-
     /* Allocated unconditionally by wcsset(). */
     if (wcs->types) free(wcs->types);
 
@@ -1606,7 +1610,7 @@ int wcsfree(struct wcsprm *wcs)
 
   wcs->types = 0x0;
 
-  wcs->err  = 0x0;
+  wcserr_clear(&(wcs->err));
 
   wcs->flag = 0;
 
@@ -3800,7 +3804,7 @@ int wcsmix(
     *worldlat = *theta;
     if ((status = wcss2p(&wcs0, 1, 0, world, phi, theta, imgcrd, pixcrd,
                          stat))) {
-      if (wcs->err) free(wcs->err);
+      wcserr_clear(err);
       wcs->err = wcs0.err;
       if (status == WCSERR_BAD_WORLD) {
         status = wcserr_set(WCS_ERRMSG(WCSERR_BAD_WORLD_COORD));
@@ -3824,7 +3828,7 @@ int wcsmix(
       *worldlng = phi1;
       if ((status = wcss2p(&wcs0, 1, 0, world, phi, theta, imgcrd, pixcrd,
                            stat))) {
-        if (wcs->err) free(wcs->err);
+        wcserr_clear(err);
         wcs->err = wcs0.err;
         if (status == WCSERR_BAD_WORLD) {
           status = wcserr_set(WCS_ERRMSG(WCSERR_BAD_WORLD_COORD));
@@ -3862,7 +3866,7 @@ int wcsmix(
       *worldlng = phi0 + lambda*dphi;
       if ((status = wcss2p(&wcs0, 1, 0, world, phi, theta, imgcrd, pixcrd,
                            stat))) {
-        if (wcs->err) free(wcs->err);
+        wcserr_clear(err);
         wcs->err = wcs0.err;
         if (status == WCSERR_BAD_WORLD) {
           status = wcserr_set(WCS_ERRMSG(WCSERR_BAD_WORLD_COORD));

@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2018, Mark Calabretta
+  WCSLIB 6.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2019, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsfix.c,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
+  $Id: wcsfix.c,v 6.3 2019/07/12 07:33:39 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -128,8 +128,12 @@ int wcsfix(int ctrl, const int naxis[], struct wcsprm *wcs, int stat[])
 
 /*--------------------------------------------------------------------------*/
 
-int wcsfixi(int ctrl, const int naxis[], struct wcsprm *wcs, int stat[],
-            struct wcserr info[])
+int wcsfixi(
+  int ctrl,
+  const int naxis[],
+  struct wcsprm *wcs,
+  int stat[],
+  struct wcserr info[])
 
 {
   int ifix, status = 0;
@@ -269,7 +273,7 @@ static int parse_date(const char *buf, int *hour, int *minute, double *sec)
 static void write_date(char *buf, int hour, int minute, double sec)
 
 {
-  char ctmp[72];
+  char ctmp[32];
 
   wcsutil_double2str(ctmp, "%04.1f", sec);
   sprintf(buf, "T%.2d:%.2d:%s", hour, minute, ctmp);
@@ -733,6 +737,10 @@ int obsfix(int ctrl, struct wcsprm *wcs)
     x = rho*coslng*coslat;
     y = rho*sinlng*coslat;
     z = (rho - n*e2)*sinlat;
+
+  } else {
+    return wcserr_set(WCSERR_SET(FIXERR_BAD_PARAM),
+      "Observatory coordinates incomplete");
   }
 
 
@@ -763,7 +771,7 @@ int unitfix(int ctrl, struct wcsprm *wcs)
   const char *function = "unitfix";
 
   int  i, msglen, result, status = FIXERR_NO_CHANGE;
-  char orig_unit[72], msg[512], msgtmp[72];
+  char orig_unit[72], msg[512], msgtmp[192];
   struct wcserr **err;
 
   if (wcs == 0x0) return FIXERR_NULL_POINTER;

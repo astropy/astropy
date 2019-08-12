@@ -2,6 +2,7 @@ I would like to acknowledge the following people who have contributed
 to WCSLIB and/or PGSBOX in some way since 1995 - via bug reports,
 patches, suggestions for improvements, positive feedback, etc.
 
+Mohammad Aghlaghi (IAC & GNUastro)
 James Allen (U. Sydney)
 James M. Anderson (MPIfR)
 Robbie Auld (Cardiff U.)
@@ -66,6 +67,7 @@ Dave McConnell (ATNF/CSIRO)
 Thomas A. McGlynn (GSFC/NASA)
 Michelle Miller (NOAO)
 Jessica Mink (CfA)
+David Motl (var.astro.cz)
 August Muench (CfA)
 Fergal Mullally (Princeton U.)
 Clive Page (U. Leicester)
@@ -103,4 +105,4 @@ Daren Scot Wilson (NRAO)
 Tony Wong (ATNF/CSIRO)
 
 
-$Id: THANKS,v 6.2 2018/10/20 10:03:14 mcalabre Exp $
+$Id: THANKS,v 6.3 2019/07/12 07:33:40 mcalabre Exp $

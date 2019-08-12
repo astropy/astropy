@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2018, Mark Calabretta
+  WCSLIB 6.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2019, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: tab.c,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
+  $Id: tab.c,v 6.3 2019/07/12 07:33:39 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -64,11 +64,11 @@ int tabini(int alloc, int M, const int K[], struct tabprm *tab)
   if (tab == 0x0) return TABERR_NULL_POINTER;
 
   /* Initialize error message handling. */
-  err = &(tab->err);
-  if (tab->flag != -1) {
-    if (tab->err) free(tab->err);
+  if (tab->flag == -1) {
+    tab->err = 0x0;
   }
-  tab->err = 0x0;
+  err = &(tab->err);
+  wcserr_clear(err);
 
 
   if (M <= 0) {
@@ -411,11 +411,12 @@ int tabcpy(int alloc, const struct tabprm *tabsrc, struct tabprm *tabdst)
 
 /*--------------------------------------------------------------------------*/
 
-int tabcmp(int dummy,
-           double tol,
-           const struct tabprm *tab1,
-           const struct tabprm *tab2,
-           int *equal)
+int tabcmp(
+  int dummy,
+  double tol,
+  const struct tabprm *tab1,
+  const struct tabprm *tab2,
+  int *equal)
 
 {
   int m, M, N;
@@ -523,10 +524,7 @@ int tabfree(struct tabprm *tab)
   tab->extrema = 0x0;
   tab->set_M   = 0;
 
-  if (tab->err) {
-    free(tab->err);
-    tab->err = 0x0;
-  }
+  wcserr_clear(&(tab->err));
 
   tab->flag = 0;
 

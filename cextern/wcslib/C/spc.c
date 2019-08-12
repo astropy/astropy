@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2018, Mark Calabretta
+  WCSLIB 6.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2019, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spc.c,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
+  $Id: spc.c,v 6.3 2019/07/12 07:33:39 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -133,10 +133,7 @@ int spcfree(struct spcprm *spc)
 {
   if (spc == 0x0) return SPCERR_NULL_POINTER;
 
-  if (spc->err) {
-    free(spc->err);
-    spc->err = 0x0;
-  }
+  wcserr_clear(&(spc->err));
 
   return 0;
 }
@@ -961,7 +958,7 @@ int spcspxe(
         (*err)->status = status;
       }
     } else {
-      free(spx.err);
+      wcserr_clear(&(spx.err));
     }
     return status;
   }
@@ -1143,7 +1140,7 @@ int spcxpse(
         (*err)->status = status;
       }
     } else {
-      free(spx.err);
+      wcserr_clear(&(spx.err));
     }
     return status;
   }

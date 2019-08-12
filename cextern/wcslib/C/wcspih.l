@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2018, Mark Calabretta
+  WCSLIB 6.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2019, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.l,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
+  $Id: wcspih.l,v 6.3 2019/07/12 07:33:39 mcalabre Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -68,6 +68,7 @@
 /* Options. */
 %option full
 %option never-interactive
+%option noinput
 %option noyywrap
 %option outfile="wcspih.c"
 %option prefix="wcspih"

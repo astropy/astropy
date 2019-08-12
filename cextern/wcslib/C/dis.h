@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2018, Mark Calabretta
+  WCSLIB 6.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2019, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.h,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
+  $Id: dis.h,v 6.3 2019/07/12 07:33:39 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 6.2 - C routines that implement the FITS World Coordinate System
+* WCSLIB 6.3 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -261,13 +261,54 @@
 * DSS's AMDXm (or AMDYm) keyvalues and TPD coefficients, while still simple,
 * is not quite as straightforward as for TPV and SIP.
 *
-* WAT uses all but the radial terms: 3, 11, 23, 39, and 59.  While the mapping
-* between WAT's monomial coefficients and TPD is fairly simple, for its
-* expression in terms of a sum of Chebyshev or Legendre polynomials it is much
-* less so.
+* WAT uses all but the radial terms, namely 3, 11, 23, 39, and 59.  While the
+* mapping between WAT's monomial coefficients and TPD is fairly simple, for
+* its expression in terms of a sum of Chebyshev or Legendre polynomials it is
+* much less so.
 *
-* Summary of the dis routines
-* ---------------------------
+* Historical idiosyncrasies:
+* --------------------------
+* In addition to the above, some historical distortion functions have further
+* idiosyncrasies that must be taken into account when translating them to TPD.
+*
+* WCS Paper IV specifies that a distortion function returns a correction to be
+* added to pixel coordinates (prior distortion) or intermediate pixel
+* coordinates (sequent distortion).  The correction is meant to be small so
+* that ignoring the distortion function, i.e. setting the correction to zero,
+* produces a commensurately small error.
+*
+* However, rather than an additive correction, some historical distortion
+* functions (TPV, DSS) define a polynomial that returns the corrected
+* coordinates directly.
+*
+* The difference between the two approaches is readily accounted for simply by
+* adding or subtracting 1 from the coefficient of the first degree term of the
+* polynomial.  However, it opens the way for considerable confusion.
+*
+* Additional to the formalism of WCS Paper IV, both the Polynomial and TPD
+* distortion functions recognise a keyword
+*
+=   DPja = 'DOCORR: 0'
+*
+* which is meant to apply generally to indicate that the distortion function
+* returns the corrected coordinates directly.  Any other value for DOCORR (or
+* its absence) indicates that the distortion function returns an additive
+* correction.
+*
+* WCS Paper IV also specifies that the independent variables of a distortion
+* function are pixel coordinates (prior distortion) or intermediate pixel
+* coordinates (sequent distortion).
+*
+* On the contrary, the independent variables of the SIP polynomial are pixel
+* coordinate offsets from the reference pixel.  This is readily handled via
+* the renormalisation parameters
+*
+=   DPja = 'OFFSET.jhat: <value>'
+*
+* where the value corresponds to CRPIXja.
+*
+* Summary of the dis routines:
+* ----------------------------
 * These routines apply the distortion functions defined by the extension to
 * the FITS WCS standard proposed in Paper IV.  They are based on the disprm
 * struct which contains all information needed for the computations.  The
