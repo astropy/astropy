@@ -122,9 +122,9 @@ Nuts and bolts
 
 .. _developer-docs:
 
-=======================
+***********************
 Developer Documentation
-=======================
+***********************
 
 The developer documentation contains instructions for how to contribute to
 Astropy or affiliated packages, as well as coding, documentation, and
