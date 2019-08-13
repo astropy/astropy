@@ -67,7 +67,7 @@ UNSUPPORTED_FUNCTIONS = set()
 """Functions that cannot sensibly be used with quantities."""
 
 SUBCLASS_SAFE_FUNCTIONS |= {
-    np.alen, np.shape, np.size, np.ndim,
+    np.shape, np.size, np.ndim,
     np.reshape, np.ravel, np.moveaxis, np.rollaxis, np.swapaxes,
     np.transpose, np.atleast_1d, np.atleast_2d, np.atleast_3d,
     np.expand_dims, np.squeeze, np.broadcast_to, np.broadcast_arrays,
@@ -99,7 +99,8 @@ SUBCLASS_SAFE_FUNCTIONS |= {
 
 if not NUMPY_LT_1_15:
     SUBCLASS_SAFE_FUNCTIONS |= {np.take_along_axis, np.put_along_axis}
-
+if NUMPY_LT_1_18:
+    SUBCLASS_SAFE_FUNCTIONS |= {np.alen}
 
 # Implemented as methods on Quantity:
 # np.ediff1d is from setops, but we support it anyway; the others
@@ -140,6 +141,8 @@ IGNORED_FUNCTIONS = {
     np.pv, np.rate}
 if NUMPY_LT_1_18:
     IGNORED_FUNCTIONS |= {np.rank}
+else:
+    IGNORED_FUNCTIONS |= {np.alen}
 UNSUPPORTED_FUNCTIONS |= IGNORED_FUNCTIONS
 
 
