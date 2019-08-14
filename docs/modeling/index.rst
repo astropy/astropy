@@ -23,30 +23,23 @@ Using a model is a matter of defining the model (instantiating) and then
 calling it with the input values for calculation.  This is illustrated with
 the code and plot below for a 1-dimensional Gaussian.
 
-    >>> import numpy as np
-    >>> from astropy.modeling import models
-    >>> g = models.Gaussian1D(amplitude=1.2, mean=0.9, stddev=0.5)
-    >>> x = np.linspace(-5., 5.0, 200)
-    >>> y = g(x)
-
-The resulting x and y plot is:
-
 .. plot::
+    :include-source:
 
     import numpy as np
     import matplotlib.pyplot as plt
     from astropy.modeling import models
 
+    # define and evaluate the model
     g = models.Gaussian1D(amplitude=1.2, mean=0.9, stddev=0.5)
     x = np.linspace(-5., 5.0, 200)
     y = g(x)
 
-    # Plot the data with the best-fit model
-    plt.figure(figsize=(8,5))
+    # plot the model
+    plt.figure()
     plt.plot(x, y, 'ko')
-    plt.xlabel('Position')
-    plt.ylabel('Flux')
-    plt.legend(loc=2)
+    plt.xlabel('x')
+    plt.ylabel('y')
 
 .. note::
 
@@ -119,18 +112,7 @@ Examples
 Reference/API
 =============
 
-.. automodapi:: astropy.modeling
-.. automodapi:: astropy.modeling.functional_models
-.. automodapi:: astropy.modeling.powerlaws
-.. automodapi:: astropy.modeling.blackbody
-.. automodapi:: astropy.modeling.polynomial
-.. automodapi:: astropy.modeling.projections
-.. automodapi:: astropy.modeling.rotations
-.. automodapi:: astropy.modeling.tabular
-.. autoclass::  astropy.modeling.tabular.Tabular1D
-.. autoclass::  astropy.modeling.tabular.Tabular2D
-.. automodapi:: astropy.modeling.mappings
-.. automodapi:: astropy.modeling.fitting
-.. automodapi:: astropy.modeling.optimizers
-.. automodapi:: astropy.modeling.statistic
-.. automodapi:: astropy.modeling.separable
+.. toctree::
+   :maxdepth: 1
+
+   reference_api
