@@ -59,6 +59,7 @@ astropy.modeling
   See modeling documentation for details.
   `<https://docs.astropy.org/en/v4.0/modeling/changes_for_4.html>`_ . [#8769]
 
+- Significant reorganization of the documentation. [#9078]
 - Add Tabular1D.inverse [#9083]
 
 astropy.nddata
