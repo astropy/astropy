@@ -254,3 +254,14 @@ def test_Voigt1D():
     fitter = fitting.LevMarLSQFitter()
     voi_fit = fitter(voi_init, xarr, yarr)
     assert_allclose(voi_fit.param_sets, voi.param_sets)
+
+
+@pytest.mark.skipif("not HAS_SCIPY")
+def test_KingProjectedAnalytic1D_fit():
+    km = models.KingProjectedAnalytic1D(amplitude=1, r_core=1, r_tide=2)
+    xarr = np.linspace(0.1, 2, 10)
+    yarr = km(xarr)
+    km_init = models.KingProjectedAnalytic1D(amplitude=1, r_core=1, r_tide=1)
+    fitter = fitting.LevMarLSQFitter()
+    km_fit = fitter(km_init, xarr, yarr)
+    assert_allclose(km_fit.param_sets, km.param_sets)

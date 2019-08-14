@@ -60,6 +60,7 @@ astropy.modeling
   `<https://docs.astropy.org/en/v4.0/modeling/changes_for_4.html>`_ . [#8769]
 
 - Significant reorganization of the documentation. [#9078]
+- Add Tabular1D.inverse [#9083]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
@@ -91,6 +92,9 @@ astropy.table
 - ``MaskedColumn.data`` will now return a plain ``MaskedArray`` rather than
   the previous (unintended) ``masked_BaseColumn``. [#8855]
 
+- Adding depth-wise stacking ``cstack()`` in higher level table operation.
+  It help will in stacking table column depth-wise. [#8939]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -112,6 +116,8 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- Accept non-unit type annotations in @quantity_input. [#8984]
+
 - For numpy 1.17 and later, the new ``__array_function__`` protocol is used to
   ensure that all top-level numpy functions interact properly with
   ``Quantity``, preserving units also in operations like ``np.concatenate``.
@@ -127,7 +133,11 @@ astropy.visualization
   plot and format ``Time`` objects in Matplotlib. [#8782]
 
 - Added support for plotting any WCS compliant with the generalized (APE 14)
-  WCS API with WCSAxes. [#8885]
+  WCS API with WCSAxes. [#8885, #9098]
+
+- Improved display of information when inspecting ``WCSAxes.coords``. [#9098]
+
+- Improved error checking for the ``slices=`` argument to ``WCSAxes``. [#9098]
 
 astropy.wcs
 ^^^^^^^^^^^
@@ -208,6 +218,8 @@ astropy.modeling
   parameters attribute (it is possible to replace it with a complete array). [#8769]
 
 - Many private attributes and methods have changed (see documentation). [#8769]
+
+- Added analytical King model (KingProjectedAnalytic1D) [#9084]
 
 astropy.nddata
 ^^^^^^^^^^^^^^

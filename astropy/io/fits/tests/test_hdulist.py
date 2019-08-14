@@ -956,8 +956,8 @@ class TestHDUListFunctions(FitsTestCase):
 
         # This should raise an OSError because there is no end card.
         with pytest.raises(OSError):
-            with pytest.warns(AstropyUserWarning, match='non-ASCII characters '
-                              'are present in the FITS file header'):
+            with pytest.warns(AstropyUserWarning, match=r'non-ASCII characters '
+                              r'are present in the FITS file header'):
                 fits.open(filename)
 
     def test_no_resource_warning_raised_on_non_fits_file(self):

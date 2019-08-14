@@ -1881,15 +1881,14 @@ class TestReplaceColumn(SetupData):
         self._setup(table_types)
         t = table_types.Table([self.a, self.b])
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"Cannot replace column 'a'.  Use Table.replace_column.. instead."):
             t.columns['a'] = [1, 2, 3]
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"column name not there is not in the table"):
             t.replace_column('not there', [1, 2, 3])
 
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(ValueError, match=r"length of new column must match table length"):
             t.replace_column('a', [1, 2])
-        assert "length of new column must match table length" in str(exc.value)
 
     def test_replace_column(self, table_types):
         """Replace existing column with a new column"""

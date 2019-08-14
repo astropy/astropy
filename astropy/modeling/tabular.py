@@ -235,6 +235,28 @@ class _Tabular(Model):
             result = [r.reshape(shape) for r in result]
         return result
 
+    @property
+    def inverse(self):
+        if self.n_inputs == 1:
+            # If the wavelength array is decending instead of ascending, both
+            # points and lookup_table need to be reversed in the inverse transform
+            # for scipy.interpolate to work properly
+            if np.all(np.diff(self.lookup_table) > 0):
+                # ascending case
+                points = self.lookup_table
+                lookup_table = self.points[0]
+            elif np.all(np.diff(self.lookup_table) < 0):
+                # descending case, reverse order
+                points = self.lookup_table[::-1]
+                lookup_table = self.points[0][::-1]
+            else:
+                # equal-valued or double-valued lookup_table
+                raise NotImplementedError
+            return Tabular1D(points=points, lookup_table=lookup_table)
+        else:
+            raise NotImplementedError("An analytical inverse transform "
+                "has not been implemented for this model.")
+
 
 def tabular_model(dim, name=None):
     """

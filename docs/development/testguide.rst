@@ -82,12 +82,12 @@ through with the ``--args`` argument::
 
     > python setup.py test --args "-x"
 
-`pytest`_ will look for files that `look like tests
-<https://pytest.org/en/latest/goodpractices.html#conventions-for-python-test-discovery>`_
-in the current directory and all recursive directories then run all the code that
-`looks like tests
-<https://pytest.org/en/latest/goodpractices.html#conventions-for-python-test-discovery>`_
-within those files.
+`pytest`_ will look for files that 
+:ref:`look like tests <pytest:python test discovery>`, per default
+in the current directory and all recursive directories, then run all
+the code that looks like tests (essentially all functions or methods
+with ``test_`` prefixes or inside ``Test`` prefixed classes) within
+those files.
 
 Turn on PEP8 checking by passing ``--pep8`` to the ``test`` command. This will
 turn off regular testing and enable PEP8 testing.
@@ -132,7 +132,7 @@ internet. To turn these tests on use the ``remote_data`` flag::
     astropy.test(package='io.fits', remote_data=True)
 
 In addition, the ``test`` function supports any of the options that can be
-passed to `pytest.main() <https://pytest.org/en/latest/builtin.html#pytest.main>`_,
+passed to :ref:`pytest.main() <pytest:pytest.main-usage>`
 and convenience options ``verbose=`` and ``pastebin=``.
 
 Enable PEP8 compliance testing with ``pep8=True`` in the call to
@@ -259,6 +259,8 @@ location.  This mode can be triggered by running the tests like so::
 
 
 
+.. _writing-tests:
+
 Writing tests
 *************
 
@@ -268,8 +270,7 @@ Writing tests
  * ``Test`` prefixed classes (without an ``__init__`` method)
  * ``test_`` prefixed functions and methods
 
-Consult the `test discovery rules
-<https://pytest.org/en/latest/goodpractices.html#conventions-for-python-test-discovery>`_
+Consult the :ref:`test discovery rules <pytest:python test discovery>`
 for detailed information on how to name files and tests so that they are
 automatically discovered by `pytest`_.
 
@@ -438,10 +439,10 @@ Tests that create files
 
 Tests may often be run from directories where users do not have write
 permissions so tests which create files should always do so in
-temporary directories. This can be done with the `pytest tmpdir
-function argument <https://pytest.org/en/latest/tmpdir.html>`_ or with
-Python's built-in `tempfile module
-<https://docs.python.org/3/library/tempfile.html#module-tempfile>`_.
+temporary directories. This can be done with the
+:ref:`pytest 'tmpdir' fixture <pytest:tmpdir handling>` or with
+Python's built-in :ref:`tempfile module <python:tempfile-examples>`.
+
 
 Setting up/Tearing down tests
 =============================
@@ -623,7 +624,7 @@ Using pytest helper functions
 =============================
 
 If your tests need to use `pytest helper functions
-<https://pytest.org/en/latest/builtin.html#pytest-helpers>`_, such as
+<https://docs.pytest.org/en/latest/reference.html#functions>`_, such as
 ``pytest.raises``, import ``pytest`` into your test module like so::
 
     import pytest
@@ -643,8 +644,8 @@ situations, you can use the `astropy.tests.helper.catch_warnings`
 context manager.  Unlike the `warnings.catch_warnings` context manager
 in the standard library, this one will reset all warning state before
 hand so one is assured to get the warnings reported, regardless of
-what errors may have been emitted by other tests previously.  Here is
-a real-world example::
+what errors or warnings may have been emitted by other tests previously.
+Here is a real-world example::
 
   from astropy.tests.helper import catch_warnings
 
@@ -656,14 +657,53 @@ a real-world example::
       assert ("In merged column 'a' the 'units' attribute does not match (cm != m)"
               in str(warning_lines[0].message))
 
+`pytest`_ provides its own context manager
+:ref:`pytest.warns <pytest:warns>` that, completely
+analogously to ``pytest.raises`` (see below) allows to probe explicitly
+for specific warning classes and, through the optional ``match`` argument,
+messages. Note that when no warning of the specified type is
+triggered, this will make the test fail. When checking for optional,
+but not mandatory warnings, Astropy's ``catch_warnings`` is therefore the
+better option, as it will collect any number of warning lines (including
+zero). 
+
 .. note::
 
-   Within `pytest`_ there is also the option of using the ``recwarn``
-   function argument to test that warnings are triggered.  This method has
-   been found to be problematic in at least one case (`pull request 1174
-   <https://github.com/astropy/astropy/pull/1174#issuecomment-20249309>`_)
-   so the `astropy.tests.helper.catch_warnings` context manager is
-   preferred.
+   With `pytest`_ there is also the option of using the
+   :ref:`recwarn <pytest:recwarn>` function argument to test that
+   warnings are triggered within the entire embedding function.
+   This method has been found to be problematic in at least one case
+   (`pull request 1174 <https://github.com/astropy/astropy/pull/1174#issuecomment-20249309>`_)
+   and the alternative of calling ``pytest.warns`` with a warning type
+   argument of ``None`` requires further processing of the recorded
+   warning(s), so the `astropy.tests.helper.catch_warnings` context
+   manager is preferred in such cases.
+
+Testing exceptions
+==================
+
+Just like the handling of warnings described above, tests that are
+designed to trigger certain errors should verify that an exception of
+the expected type is raised in the expected place.  This is efficiently
+done by running the tested code inside the
+:ref:`pytest.raises <pytest:assertraises>`
+context manager.  Its optional ``match`` argument allows to check the
+error message for any patterns using ``regex`` syntax.  For example the
+matches ``pytest.raises(OSError, match=r'^No such file')`` and
+``pytest.raises(OSError, match=r'or directory$')`` would be equivalent
+to ``assert str(err).startswith(No such file)`` and ``assert
+str(err).endswith(or directory)``, respectively, on the raised error
+message ``err``.
+For matching multi-line messages you need to pass the ``(?s)``
+:ref:`flag <python:re-syntax>`
+to the underlying ``re.search``, as in the example below::
+
+  with pytest.raises(fits.VerifyError, match=r'(?s)not upper.+ Illegal key') as excinfo:
+      hdu.verify('fix+exception')
+  assert str(excinfo.value).count('Card') == 2
+
+This invocation also illustrates how to get an ``ExceptionInfo`` object
+returned to perform additional diagnostics on the info.
 
 Testing configuration parameters
 ================================
@@ -1001,9 +1041,10 @@ Overview
 
 Astropy uses the following continuous integration (CI) services:
 
-* `Travis <https://travis-ci.org/astropy/astropy>`_ for 64-bit Linux and OS X setups
-* `Appveyor <https://ci.appveyor.com/project/Astropy/astropy>`_ for Windows
-* `CircleCI <https://circleci.com>`_ for 32-bit Linux
+* `Travis <https://travis-ci.org/astropy/astropy>`_ for
+  64-bit Linux, OS X, and Windows setups
+* `CircleCI <https://circleci.com>`_ for 32-bit Linux,
+  documentation build, and visualization tests
 
 These continuously test the package for each commit and pull request that is
 pushed to GitHub to notice when something breaks.
