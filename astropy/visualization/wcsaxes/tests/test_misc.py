@@ -140,6 +140,9 @@ def test_set_label_properties():
     assert ax.coords[1].axislabels.get_minpad('l') == 3
     assert ax.coords[1].axislabels.get_color() == 'green'
 
+    assert ax.get_xlabel() == 'Test x label'
+    assert ax.get_ylabel() == 'Test y label'
+
 
 GAL_HEADER = fits.Header.fromstring("""
 SIMPLE  =                    T / conforms to FITS standard
@@ -312,3 +315,107 @@ def test_contour_empty():
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
     fig.add_axes(ax)
     ax.contour(np.zeros((4, 4)), transform=ax.get_transform('world'))
+
+
+@ignore_matplotlibrc
+def test_iterate_coords(tmpdir):
+
+    # Regression test for a bug that caused ax.coords to return too few axes
+
+    wcs3d = WCS(naxis=3)
+    wcs3d.wcs.ctype = ['x', 'y', 'z']
+    wcs3d.wcs.cunit = ['deg', 'deg', 'km/s']
+    wcs3d.wcs.crpix = [614.5, 856.5, 333]
+    wcs3d.wcs.cdelt = [6.25, 6.25, 23]
+    wcs3d.wcs.crval = [0., 0., 1.]
+
+    ax = plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1))
+
+    x, y, z = ax.coords
+
+
+@ignore_matplotlibrc
+def test_invalid_slices_errors():
+
+    # Make sure that users get a clear message when specifying a WCS with
+    # >2 dimensions without giving the 'slices' argument, or if the 'slices'
+    # argument has too many/few elements.
+
+    wcs3d = WCS(naxis=3)
+    wcs3d.wcs.ctype = ['x', 'y', 'z']
+
+    plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1))
+
+    with pytest.raises(ValueError) as exc:
+        plt.subplot(1, 1, 1, projection=wcs3d)
+    assert exc.value.args[0] == ("WCS has more than 2 pixel dimensions, so "
+                                 "'slices' should be set")
+
+    with pytest.raises(ValueError) as exc:
+        plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1, 2))
+    assert exc.value.args[0] == ("'slices' should have as many elements as "
+                                 "WCS has pixel dimensions (should be 3)")
+
+    wcs2d = WCS(naxis=2)
+    wcs2d.wcs.ctype = ['x', 'y']
+
+    plt.subplot(1, 1, 1, projection=wcs2d)
+    plt.subplot(1, 1, 1, projection=wcs2d, slices=('x', 'y'))
+    plt.subplot(1, 1, 1, projection=wcs2d, slices=('y', 'x'))
+    plt.subplot(1, 1, 1, projection=wcs2d, slices=['x', 'y'])
+
+    with pytest.raises(ValueError) as exc:
+        plt.subplot(1, 1, 1, projection=wcs2d, slices=(1, 'x'))
+    assert exc.value.args[0] == ("WCS only has 2 pixel dimensions and cannot "
+                                 "be sliced")
+
+    wcs1d = WCS(naxis=1)
+    wcs1d.wcs.ctype = ['x']
+
+    with pytest.raises(ValueError) as exc:
+        plt.subplot(1, 1, 1, projection=wcs1d)
+    assert exc.value.args[0] == "WCS should have at least 2 pixel dimensions"
+
+
+EXPECTED_REPR_1 = """
+<CoordinatesMap with 3 world coordinates:
+
+  index        aliases           type   unit wrap format_unit visible
+  ----- --------------------- --------- ---- ---- ----------- -------
+      0                  dist    scalar      None                  no
+      1 pos.galactic.lon glon longitude  deg  360         deg     yes
+      2 pos.galactic.lat glat  latitude  deg None         deg     yes
+
+>
+ """.strip()
+
+EXPECTED_REPR_2 = """
+<CoordinatesMap with 3 world coordinates:
+
+  index        aliases           type   unit wrap format_unit visible
+  ----- --------------------- --------- ---- ---- ----------- -------
+      0                  dist    scalar      None                 yes
+      1 pos.galactic.lon glon longitude  deg  360         deg     yes
+      2 pos.galactic.lat glat  latitude  deg None         deg     yes
+
+>
+ """.strip()
+
+
+@ignore_matplotlibrc
+def test_repr():
+
+    # Unit test to make sure __repr__ looks as expected
+
+    wcs3d = WCS(GAL_HEADER)
+
+    # Cube header has world coordinates as distance, lon, lat, so start off
+    # by slicing in a way that we select just lon,lat:
+
+    ax = plt.subplot(1, 1, 1, projection=wcs3d, slices=(1, 'x', 'y'))
+    assert repr(ax.coords) == EXPECTED_REPR_1
+
+    # Now slice in a way that all world coordinates are still present:
+
+    ax = plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1))
+    assert repr(ax.coords) == EXPECTED_REPR_2
