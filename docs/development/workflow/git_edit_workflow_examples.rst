@@ -386,6 +386,8 @@ your change.
 
 We'll take care of that in a moment with a "pull request", but first...
 
+.. _astropy-fix-add-tests:
+
 Stop and think: any more tests or other changes?
 ================================================
 

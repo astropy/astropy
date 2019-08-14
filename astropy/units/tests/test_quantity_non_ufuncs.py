@@ -11,7 +11,8 @@ from astropy import units as u
 from astropy.units.quantity_helper.function_helpers import (
     ARRAY_FUNCTION_ENABLED, SUBCLASS_SAFE_FUNCTIONS, UNSUPPORTED_FUNCTIONS,
     FUNCTION_HELPERS, DISPATCHED_FUNCTIONS, IGNORED_FUNCTIONS)
-from astropy.utils.compat import NUMPY_LT_1_14, NUMPY_LT_1_15, NUMPY_LT_1_16
+from astropy.utils.compat import (
+    NUMPY_LT_1_14, NUMPY_LT_1_15, NUMPY_LT_1_16, NUMPY_LT_1_18)
 
 
 NO_ARRAY_FUNCTION = not ARRAY_FUNCTION_ENABLED
@@ -71,8 +72,10 @@ class NoUnitTestSetup(BasicTestSetup):
 
 
 class TestShapeInformation(BasicTestSetup):
-    def test_alen(self):
-        assert np.alen(self.q) == 3
+    # alen is deprecated in Numpy 1.8
+    if NUMPY_LT_1_18:
+        def test_alen(self):
+            assert np.alen(self.q) == 3
 
     def test_shape(self):
         assert np.shape(self.q) == (3, 3)
@@ -1756,10 +1759,14 @@ financial_functions = {f for f in all_wrapped_functions.values()
 untested_functions |= financial_functions
 
 deprecated_functions = {
-    np.asscalar, np.rank
+    np.asscalar
     }
-untested_functions |= deprecated_functions
+if NUMPY_LT_1_18:
+    deprecated_functions |= {np.rank}
+else:
+    deprecated_functions |= {np.alen}
 
+untested_functions |= deprecated_functions
 io_functions = {np.save, np.savez, np.savetxt, np.savez_compressed}
 untested_functions |= io_functions
 

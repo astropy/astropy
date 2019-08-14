@@ -100,6 +100,7 @@ def test_coord_type_from_ctype():
     wcs.wcs.crpix = [256.0] * 2
     wcs.wcs.cdelt = [-0.05] * 2
     wcs.wcs.crval = [50.0] * 2
+    wcs.wcs.set()
 
     _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame)
 
@@ -112,6 +113,7 @@ def test_coord_type_from_ctype():
     wcs.wcs.crpix = [256.0] * 2
     wcs.wcs.cdelt = [-0.05] * 2
     wcs.wcs.crval = [50.0] * 2
+    wcs.wcs.set()
 
     _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame)
 
@@ -124,6 +126,7 @@ def test_coord_type_from_ctype():
     wcs.wcs.crpix = [256.0] * 2
     wcs.wcs.cdelt = [-0.05] * 2
     wcs.wcs.crval = [50.0] * 2
+    wcs.wcs.set()
 
     _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame)
 
@@ -136,6 +139,7 @@ def test_coord_type_from_ctype():
     wcs.wcs.crpix = [256.0] * 2
     wcs.wcs.cdelt = [-0.05] * 2
     wcs.wcs.crval = [50.0] * 2
+    wcs.wcs.set()
 
     _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame)
 

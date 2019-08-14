@@ -5,6 +5,7 @@ High-level table operations:
 - setdiff()
 - hstack()
 - vstack()
+- cstack()
 """
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
@@ -229,6 +230,93 @@ def setdiff(table1, table2, keys=None):
         t12_diff = table1[[]]
 
     return t12_diff
+
+
+def cstack(tables, join_type='outer', metadata_conflicts='warn'):
+    """
+    Stack columns within tables depth-wise
+
+    A ``join_type`` of 'exact' means that the tables must all have exactly
+    the same column names (though the order can vary).  If ``join_type``
+    is 'inner' then the intersection of common columns will be the output.
+    A value of 'outer' (default) means the output will have the union of
+    all columns, with table values being masked where no common values are
+    available.
+
+    Parameters
+    ----------
+    tables : Table or list of Table objects
+        Table(s) to stack along depth-wise with the current table
+        Table columns should have same shape and name for depth-wise stacking
+    join_type : str
+        Join type ('inner' | 'exact' | 'outer'), default is 'outer'
+    metadata_conflicts : str
+        How to proceed with metadata conflicts. This should be one of:
+            * ``'silent'``: silently pick the last conflicting meta-data value
+            * ``'warn'``: pick the last conflicting meta-data value, but emit a warning (default)
+            * ``'error'``: raise an exception.
+
+    Returns
+    -------
+    stacked_table : `~astropy.table.Table` object
+        New table containing the stacked data from the input tables.
+
+    Examples
+    --------
+    To stack two tables along rows do::
+
+      >>> from astropy.table import vstack, Table
+      >>> t1 = Table({'a': [1, 2], 'b': [3, 4]}, names=('a', 'b'))
+      >>> t2 = Table({'a': [5, 6], 'b': [7, 8]}, names=('a', 'b'))
+      >>> print(t1)
+       a   b
+      --- ---
+        1   3
+        2   4
+      >>> print(t2)
+       a   b
+      --- ---
+        5   7
+        6   8
+      >>> print(cstack([t1, t2]))
+      a [2]  b [2]
+      ------ ------
+      1 .. 5 3 .. 7
+      2 .. 6 4 .. 8
+    """
+    tables = _get_list_of_tables(tables)
+    if len(tables) == 1:
+        return tables[0]  # no point in stacking a single table
+
+    n_rows = set(len(table) for table in tables)
+    if len(n_rows) != 1:
+        raise ValueError('Table lengths must all match for cstack')
+    n_row = n_rows.pop()
+
+    out = vstack(tables, join_type, metadata_conflicts)
+
+    for name, col in out.columns.items():
+        col = out[name]
+
+        # Reshape to so each original column is now in a row.
+        # If entries are not 0-dim then those additional shape dims
+        # are just carried along.
+        # [x x x y y y] => [[x x x],
+        #                   [y y y]]
+        col.shape = (len(tables), n_row) + col.shape[1:]
+
+        # Transpose the table and row axes to get to
+        # [[x, y],
+        #  [x, y]
+        #  [x, y]]
+        axes = np.arange(len(col.shape))
+        axes[:2] = [1, 0]
+
+        # This temporarily makes `out` be corrupted (columns of different
+        # length) but it all works out in the end.
+        out.columns.__setitem__(name, col.transpose(axes), validated=True)
+
+    return out
 
 
 def vstack(tables, join_type='outer', metadata_conflicts='warn'):

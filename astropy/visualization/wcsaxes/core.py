@@ -347,7 +347,7 @@ class WCSAxes(Axes):
 
         if self.wcs is not None:
 
-            transform, coord_meta = transform_coord_meta_from_wcs(self.wcs, self.frame_class, slices)
+            transform, coord_meta = transform_coord_meta_from_wcs(self.wcs, self.frame_class, slices=slices)
 
         self.coords = CoordinatesMap(self,
                                      transform=transform,
@@ -473,10 +473,14 @@ class WCSAxes(Axes):
                 break
 
     def get_xlabel(self):
-        return self.coords[self._x_index].get_axislabel()
+        for coord in self.coords:
+            if 'b' in coord.axislabels.get_visible_axes():
+                return coord.get_axislabel()
 
     def get_ylabel(self):
-        return self.coords[self._y_index].get_axislabel()
+        for coord in self.coords:
+            if 'l' in coord.axislabels.get_visible_axes():
+                return coord.get_axislabel()
 
     def get_coords_overlay(self, frame, coord_meta=None):
 

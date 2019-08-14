@@ -7,7 +7,7 @@ import re
 import textwrap
 import warnings
 from datetime import datetime
-from urllib.request import urlopen
+from urllib.request import urlopen, Request
 
 # Third-party
 from astropy import time as atime
@@ -17,10 +17,12 @@ from . import get_sun
 __all__ = []
 
 
-class HumanError(ValueError): pass
+class HumanError(ValueError):
+    pass
 
 
-class CelestialError(ValueError): pass
+class CelestialError(ValueError):
+    pass
 
 
 def get_sign(dt):
@@ -97,8 +99,11 @@ def horoscope(birthday, corrected=True, chinese=False):
     -----
     This function was implemented on April 1.  Take note of that date.
     """
+    from bs4 import BeautifulSoup
+
     today = datetime.now()
     err_msg = "Invalid response from celestial gods (failed to load horoscope)."
+    headers = {'User-Agent': 'foo/bar'}
 
     special_words = {
         '([sS]tar[s^ ]*)': 'yellow',
@@ -112,8 +117,6 @@ def horoscope(birthday, corrected=True, chinese=False):
         birthday = datetime.strptime(birthday, '%Y-%m-%d')
 
     if chinese:
-        from bs4 import BeautifulSoup
-
         # TODO: Make this more accurate by using the actual date, not just year
         # Might need third-party tool like https://pypi.python.org/pypi/lunardate
         zodiac_sign = _get_zodiac(birthday.year)
@@ -122,7 +125,8 @@ def horoscope(birthday, corrected=True, chinese=False):
         summ_title_sfx = f'in {today.year}'
 
         try:
-            with urlopen(url) as f:
+            res = Request(url, headers=headers)
+            with urlopen(res) as f:
                 try:
                     doc = BeautifulSoup(f, 'html.parser')
                     # TODO: Also include Love, Family & Friends, Work, Money, More?
@@ -134,8 +138,6 @@ def horoscope(birthday, corrected=True, chinese=False):
             raise CelestialError(err_msg)
 
     else:
-        from xml.dom.minidom import parse
-
         birthday = atime.Time(birthday)
 
         if corrected:
@@ -150,14 +152,15 @@ def horoscope(birthday, corrected=True, chinese=False):
                                  'corrected=False.'.format(zodiac_sign.title()))
         else:
             zodiac_sign = get_sign(birthday.to_datetime())
-        url = "http://www.findyourfate.com/rss/dailyhoroscope-feed.php?sign={sign}&id=45"
+        url = f"http://www.astrology.com/us/horoscope/daily-overview.aspx?sign={zodiac_sign}"
         summ_title_sfx = 'on {}'.format(today.strftime("%Y-%m-%d"))
 
-        with urlopen(url.format(sign=zodiac_sign.capitalize())) as f:
+        res = Request(url, headers=headers)
+        with urlopen(res) as f:
             try:
-                doc = parse(f)
-                item = doc.getElementsByTagName('item')[0]
-                desc = item.getElementsByTagName('description')[0].childNodes[0].nodeValue
+                doc = BeautifulSoup(f, 'html.parser')
+                item = doc.find('span', {'class': 'date'})
+                desc = item.parent.getText()
             except Exception:
                 raise CelestialError(err_msg)
 

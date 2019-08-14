@@ -115,7 +115,7 @@ def test_read_nopath_multi_tables(tmpdir):
     t1.write(test_file, path="the_table_but_different", append=True,
              overwrite=True)
     with pytest.warns(AstropyUserWarning,
-                      match="path= was not specified but multiple tables"):
+                      match=r"path= was not specified but multiple tables"):
         t2 = Table.read(test_file)
 
     assert np.all(t1['a'] == t2['a'])

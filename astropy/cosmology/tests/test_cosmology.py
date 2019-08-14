@@ -1581,11 +1581,11 @@ def test_z_at_value():
     # test behavior when the solution is outside z limits (should
     # raise a CosmologyError)
     with pytest.raises(core.CosmologyError):
-        with pytest.warns(UserWarning, match='fval is not bracketed'):
+        with pytest.warns(UserWarning, match=r'fval is not bracketed'):
             z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmax=0.5)
 
     with pytest.raises(core.CosmologyError):
-        with pytest.warns(UserWarning, match='fval is not bracketed'):
+        with pytest.warns(UserWarning, match=r'fval is not bracketed'):
             z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmin=4.)
 
 

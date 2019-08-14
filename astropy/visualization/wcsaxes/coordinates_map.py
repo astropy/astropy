@@ -1,5 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from textwrap import indent
+from collections import OrderedDict
+
 from .coordinate_helpers import CoordinateHelper
 from .frame import RectangularFrame
 from .coordinate_range import find_coordinate_range
@@ -52,17 +55,31 @@ class CoordinatesMap:
         self._coords = []
         self._aliases = {}
 
-        for coord_index in range(len(coord_meta['type'])):
+        visible_count = 0
+
+        for index in range(len(coord_meta['type'])):
 
             # Extract coordinate metadata
-            coord_type = coord_meta['type'][coord_index]
-            coord_wrap = coord_meta['wrap'][coord_index]
-            coord_unit = coord_meta['unit'][coord_index]
-            name = coord_meta['name'][coord_index]
+            coord_type = coord_meta['type'][index]
+            coord_wrap = coord_meta['wrap'][index]
+            coord_unit = coord_meta['unit'][index]
+            name = coord_meta['name'][index]
+
+            if 'visible' in coord_meta:
+                visible = coord_meta['visible'][index]
+            else:
+                visible = True
+
             if 'format_unit' in coord_meta:
-                format_unit = coord_meta['format_unit'][coord_index]
+                format_unit = coord_meta['format_unit'][index]
             else:
                 format_unit = None
+
+            if visible:
+                visible_count += 1
+                coord_index = visible_count - 1
+            else:
+                coord_index = None
 
             self._coords.append(CoordinateHelper(parent_axes=axes,
                                                  parent_map=self,
@@ -77,9 +94,9 @@ class CoordinatesMap:
             # Set up aliases for coordinates
             if isinstance(name, tuple):
                 for nm in name:
-                    self._aliases[nm] = coord_index
+                    self._aliases[nm] = index
             else:
-                self._aliases[name.lower()] = coord_index
+                self._aliases[name.lower()] = index
 
     def __getitem__(self, item):
         if isinstance(item, str):
@@ -129,5 +146,26 @@ class CoordinatesMap:
         ymin, ymax = self._axes.get_ylim()
         return find_coordinate_range(self._transform,
                                      [xmin, xmax, ymin, ymax],
-                                     [coord.coord_type for coord in self],
-                                     [coord.coord_unit for coord in self])
+                                     [coord.coord_type for coord in self if coord.coord_index is not None],
+                                     [coord.coord_unit for coord in self if coord.coord_index is not None])
+
+    def _as_table(self):
+
+        # Import Table here to avoid importing the astropy.table package
+        # every time astropy.visualization.wcsaxes is imported.
+        from astropy.table import Table  # noqa
+
+        rows = []
+        for icoord, coord in enumerate(self._coords):
+            aliases = [key for key, value in self._aliases.items() if value == icoord]
+            row = OrderedDict([('index', icoord), ('aliases', ' '.join(aliases)),
+                               ('type', coord.coord_type), ('unit', coord.coord_unit),
+                               ('wrap', coord.coord_wrap), ('format_unit', coord.format_unit),
+                               ('visible', 'no' if coord.coord_index is None else 'yes')])
+            rows.append(row)
+        return Table(rows=rows)
+
+    def __repr__(self):
+        s = f'<CoordinatesMap with {len(self._coords)} world coordinates:\n\n'
+        table = indent(str(self._as_table()), '  ')
+        return s + table + '\n\n>'

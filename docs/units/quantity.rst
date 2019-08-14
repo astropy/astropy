@@ -353,6 +353,14 @@ Alternatively, you can use the annotations syntax to provide the units:
     >>> myfunction(100*u.arcsec)  # doctest: +SKIP
     Unit("arcsec")
 
+You can also annotate for different types in non-unit expecting arguments:
+
+    >>> @u.quantity_input  # doctest: +SKIP
+    ... def myfunction(myarg: u.arcsec, nice_string: str):
+    ...     return myarg.unit, nice_string
+    >>> myfunction(100*u.arcsec, "a nice string")  # doctest: +SKIP
+    (Unit("arcsec"), 'a nice string')
+
 You can define a return decoration, to which the return
 value will be converted, i.e.::
 

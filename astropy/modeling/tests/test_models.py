@@ -22,7 +22,6 @@ from astropy.utils import NumpyRNGContext
 
 try:
     import scipy
-    from scipy import optimize  # pylint: disable=W0611
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
@@ -53,8 +52,8 @@ def test_custom_model(amplitude=4, frequency=1):
     x = np.linspace(0, 4, 50)
     sin_model = SineModel()
 
-    y = sin_model.evaluate(x, 5., 2.)
-    y_prime = sin_model.fit_deriv(x, 5., 2.)
+    sin_model.evaluate(x, 5., 2.)
+    sin_model.fit_deriv(x, 5., 2.)
 
     np.random.seed(0)
     data = sin_model(x) + np.random.rand(len(x)) - 0.5
@@ -690,11 +689,48 @@ def test_tabular_with_bounding_box():
     t = models.Tabular1D(points, values)
     result = t(1, with_bounding_box=True)
 
+    assert result == 3.4
+    assert t.inverse(result, with_bounding_box=True) == 1.
+
 
 @pytest.mark.skipif("not HAS_SCIPY_14")
-def test_bounding_box_with_units():
+def test_tabular_bounding_box_with_units():
     points = np.arange(5)*u.pix
     lt = np.arange(5)*u.AA
     t = models.Tabular1D(points, lt)
+    result = t(1*u.pix, with_bounding_box=True)
 
-    assert(t(1*u.pix, with_bounding_box=True) == 1.*u.AA)
+    assert result == 1.*u.AA
+    assert t.inverse(result, with_bounding_box=True) == 1*u.pix
+
+
+@pytest.mark.skipif("not HAS_SCIPY_14")
+def test_tabular1d_inverse():
+    """Test that the Tabular1D inverse is defined"""
+    points = np.arange(5)
+    values = np.array([1.5, 3.4, 6.7, 7, 32])
+    t = models.Tabular1D(points, values)
+    result = t.inverse((3.4, 6.7))
+    assert_allclose(result, np.array((1., 2.)))
+
+    # Check that it works for descending values in lookup_table
+    t2 = models.Tabular1D(points, values[::-1])
+    assert_allclose(t2.inverse.points[0], t2.lookup_table[::-1])
+
+    result2 = t2.inverse((7, 6.7))
+    assert_allclose(result2, np.array((1., 2.)))
+
+    # Check that it errors on double-valued lookup_table
+    points = np.arange(5)
+    values = np.array([1.5, 3.4, 3.4, 32, 25])
+    t = models.Tabular1D(points, values)
+    with pytest.raises(NotImplementedError):
+        t.inverse((3.4, 7.))
+
+    # Check that Tabular2D.inverse raises an error
+    table = np.arange(5*5).reshape(5, 5)
+    points = np.arange(0, 5)
+    points = (points, points)
+    t3 = models.Tabular2D(points=points, lookup_table=table)
+    with pytest.raises(NotImplementedError):
+        t3.inverse((3, 3))
