@@ -1,12 +1,9 @@
 .. _compound-models:
 
-Compound Models
-***************
+Advanced Compound Models
+************************
 
-.. versionadded:: 1.0
-
-As noted in the :ref:`introduction to the modeling package
-<compound-models-intro>`, it is now possible to create new models just by
+It is possible to create new models just by
 combining existing models using the arithmetic operators ``+``, ``-``, ``*``,
 ``/``, and ``**``, as well as by model composition using ``|`` and
 concatenation (explained below) with ``&``.
@@ -66,7 +63,7 @@ few terms where there have been points of confusion:
   will be made where necessary.
 
 - A *compound model* can be created by combining two or more existing model instances
-  which can be models that come with Astropy, :doc:`user defined models <new>`, or
+  which can be models that come with Astropy, :doc:`user defined models <new-model>`, or
   other compound models--using Python expressions consisting of one or more of the s
   upported binary operators. The combination of model classes is deprecated and will
   be removed in version 4.0.
@@ -82,8 +79,7 @@ few terms where there have been points of confusion:
 Creating compound models
 ========================
 
-As discussed in the :ref:`introduction to compound models
-<compound-models-intro>`, the only way, currently, to create compound models is
+The only way to create compound models is
 to combine existing single models and/or compound models using expressions in
 Python with the binary operators ``+``, ``-``, ``*``, ``/``, ``**``, ``|``,
 and ``&``, each of which is discussed in the following sections.
