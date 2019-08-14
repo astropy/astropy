@@ -571,6 +571,9 @@ class CoordinateHelper:
 
     def _update_ticks(self):
 
+        if self.coord_index is None:
+            return
+
         # TODO: this method should be optimized for speed
 
         # Here we determine the location and rotation of all the ticks. For
@@ -809,6 +812,9 @@ class CoordinateHelper:
         # the value in the slice). Here we basically assume that if the WCS
         # had a third axis, it has been abstracted away in the transformation.
 
+        if self.coord_index is None:
+            return
+
         coord_range = self.parent_map.get_coord_range()
 
         tick_world_coordinates, spacing = self.locator(*coord_range[self.coord_index])
@@ -852,6 +858,9 @@ class CoordinateHelper:
             return get_lon_lat_path(xy_world, pixel, xy_world_round)
 
     def _update_grid_contour(self):
+
+        if self.coord_index is None:
+            return
 
         if hasattr(self, '_grid') and self._grid:
             for line in self._grid.collections:
