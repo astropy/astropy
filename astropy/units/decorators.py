@@ -7,7 +7,7 @@ import inspect
 from astropy.utils.decorators import wraps
 from astropy.utils.misc import isiterable
 
-from .core import Unit, UnitsError, add_enabled_equivalencies
+from .core import Unit, UnitBase, UnitsError, add_enabled_equivalencies
 from .physical import _unit_physical_mapping
 
 
@@ -222,7 +222,7 @@ class QuantityInput:
                 #    are not strings or subclasses of Unit. This is to allow
                 #    non unit related annotations to pass through
                 if is_annotation:
-                    valid_targets = [t for t in valid_targets if isinstance(t, (str, Unit))]
+                    valid_targets = [t for t in valid_targets if isinstance(t, (str, UnitBase))]
 
                 # Now we loop over the allowed units/physical types and validate
                 #   the value of the argument:
