@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2018, Mark Calabretta
+  WCSLIB 6.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2019, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: lin.h,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
+  $Id: lin.h,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 6.2 - C routines that implement the FITS World Coordinate System
+* WCSLIB 6.4 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -532,7 +532,7 @@
 *
 *     Here, after the distortion function parameters etc. are copied into
 *     dispre, dispre is assigned using lindist() which takes control of the
-*     allocated memory.  It will be free'd later when linfree() is invoked on
+*     allocated memory.  It will be freed later when linfree() is invoked on
 *     the linprm struct.
 *
 *     Consider also the following erroneous code:

@@ -3,12 +3,12 @@
 #-----------------------------------------------------------------------------
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: configure.ac,v 6.2 2018/10/20 10:03:14 mcalabre Exp $
+# $Id: configure.ac,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
-AC_INIT([WCSLIB], [6.2], [mark@calabretta.id.au], [wcslib-6.2])
+AC_INIT([WCSLIB], [6.4], [mark@calabretta.id.au], [wcslib-6.4])
 AC_PREREQ([2.53])
-AC_REVISION([$Revision: 6.2 $])
+AC_REVISION([$Revision: 6.4 $])
 AC_SUBST([PACKAGE_VERSION])
 AC_DEFINE_UNQUOTED([WCSLIB_VERSION], [$PACKAGE_VERSION], [Define wcslib version])
 
@@ -85,6 +85,16 @@ if test "x$ac_cv_header_stdc" = xno; then
     ERROR: WCSLIB configuration failure.
     -------------------------------------------------------------------], [1])
 fi
+
+# Flex uses fileno() and other POSIX features whose prototypes are only
+# available from glibc's stdio.h with an appropriate preprocessor macro
+# definition.  This cannot be set within the flex description file itself
+# as stdio.h is included in the generated C code before any part of the
+# description.  See fileno(3) and feature_test_macros(7).
+if test "x$ac_cv_c_compiler_gnu" = xyes ; then
+  FLFLAGS="$FLFLAGS -D_POSIX_C_SOURCE=1"
+fi
+AC_SUBST([FLFLAGS])
 
 # Checks for ANSI C library functions (suggested by autoscan - fseeko and
 # stat are only required by fitshdr).
@@ -206,6 +216,27 @@ else
     # Required by utilities and test programs written in C that link to
     # Fortran object modules such as pgsbox.
     AC_F77_LIBRARY_LDFLAGS
+
+    # Tidy up FLIBS.
+    dirs=
+    libs=
+    for flib in $FLIBS
+    do
+      case "$flib" in
+      -L*)  
+        dir=`echo "$flib" | sed -e 's/-L//'`
+        dir=-L`cd "$dir" && pwd`
+        dirs="$dirs $dir"
+        ;;  
+      *) 
+        libs="$libs $flib"
+        ;;  
+      esac
+    done
+
+    dirs=`for dir in $dirs ; do echo "$dir" ; done | sort -u | xargs`
+
+    FLIBS="$dirs$libs"
 
     # F77 name mangling (defines the F77_FUNC preprocessor macro).
     AC_F77_WRAPPERS

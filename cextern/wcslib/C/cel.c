@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2018, Mark Calabretta
+  WCSLIB 6.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2019, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: cel.c,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
+  $Id: cel.c,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -62,9 +62,7 @@ const int cel_prjerr[] = {
 
 /*--------------------------------------------------------------------------*/
 
-int celini(cel)
-
-struct celprm *cel;
+int celini(struct celprm *cel)
 
 {
   register int k;
@@ -91,26 +89,19 @@ struct celprm *cel;
 
 /*--------------------------------------------------------------------------*/
 
-int celfree(cel)
-
-struct celprm *cel;
+int celfree(struct celprm *cel)
 
 {
   if (cel == 0x0) return CELERR_NULL_POINTER;
 
-  if (cel->err) {
-    free(cel->err);
-    cel->err = 0x0;
-  }
+  wcserr_clear(&(cel->err));
 
   return cel_prjerr[prjfree(&(cel->prj))];
 }
 
 /*--------------------------------------------------------------------------*/
 
-int celprt(cel)
-
-const struct celprm *cel;
+int celprt(const struct celprm *cel)
 
 {
   int i;
@@ -182,9 +173,7 @@ int celperr(const struct celprm *cel, const char *prefix)
 
 /*--------------------------------------------------------------------------*/
 
-int celset(cel)
-
-struct celprm *cel;
+int celset(struct celprm *cel)
 
 {
   static const char *function = "celset";
@@ -429,14 +418,19 @@ struct celprm *cel;
 
 /*--------------------------------------------------------------------------*/
 
-int celx2s(cel, nx, ny, sxy, sll, x, y, phi, theta, lng, lat, stat)
-
-struct celprm *cel;
-int nx, ny, sxy, sll;
-const double x[], y[];
-double phi[], theta[];
-double lng[], lat[];
-int stat[];
+int celx2s(
+  struct celprm *cel,
+  int nx,
+  int ny,
+  int sxy,
+  int sll,
+  const double x[],
+  const double y[],
+  double phi[],
+  double theta[],
+  double lng[],
+  double lat[],
+  int    stat[])
 
 {
   static const char *function = "celx2s";
@@ -475,14 +469,19 @@ int stat[];
 
 /*--------------------------------------------------------------------------*/
 
-int cels2x(cel, nlng, nlat, sll, sxy, lng, lat, phi, theta, x, y, stat)
-
-struct celprm *cel;
-int nlng, nlat, sll, sxy;
-const double lng[], lat[];
-double phi[], theta[];
-double x[], y[];
-int stat[];
+int cels2x(
+  struct celprm *cel,
+  int nlng,
+  int nlat,
+  int sll,
+  int sxy,
+  const double lng[],
+  const double lat[],
+  double phi[],
+  double theta[],
+  double x[],
+  double y[],
+  int    stat[])
 
 {
   static const char *function = "cels2x";

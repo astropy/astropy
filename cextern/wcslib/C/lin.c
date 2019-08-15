@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2018, Mark Calabretta
+  WCSLIB 6.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2019, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: lin.c,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
+  $Id: lin.c,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
 *===========================================================================*/
 
 #include <stdio.h>
@@ -82,11 +82,11 @@ int lininit(int alloc, int naxis, struct linprm *lin, int ndpmax)
   if (lin == 0x0) return LINERR_NULL_POINTER;
 
   /* Initialize error message handling. */
-  err = &(lin->err);
-  if (lin->flag != -1) {
-    if (lin->err) free(lin->err);
+  if (lin->flag == -1) {
+    lin->err = 0x0;
   }
-  lin->err = 0x0;
+  err = &(lin->err);
+  wcserr_clear(err);
 
 
   /* Initialize memory management. */
@@ -419,8 +419,6 @@ int linfree(struct linprm *lin)
     if (lin->piximg) free(lin->piximg);
     if (lin->imgpix) free(lin->imgpix);
     if (lin->tmpcrd) free(lin->tmpcrd);
-
-    if (lin->err) free(lin->err);
   }
 
 
@@ -438,7 +436,7 @@ int linfree(struct linprm *lin)
 
   lin->tmpcrd   = 0x0;
 
-  lin->err  = 0x0;
+  wcserr_clear(&(lin->err));
 
   lin->flag = 0;
 
