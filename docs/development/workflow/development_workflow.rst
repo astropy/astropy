@@ -428,6 +428,22 @@ You may be asked to make changes in the discussion of the pull request. Make
 those changes in your local copy, commit them to your local repo and push them
 to GitHub. GitHub will automatically update your pull request.
 
+.. _no git pull:
+
+Do not create a merge commit
+****************************
+
+If your branch associated with the pull request falls behind the ``master``
+branch of https://github.com/astropy/astropy , GitHub might offer you option
+to catch up or resolve conflict via its web interface; do not use them. Using
+them might create a "merge commit" in your commit history, which is
+undesirable, as a "merge commit" can introduce maintenance overhead for the
+release manager. Do not use ``git pull`` command either.
+
+Instead, in your local checkout, do a ``fetch`` and then a ``rebase``, and
+resolve conflicts as necessary. See :ref:`rebase` and :ref:`howto_rebase`
+for further information.
+
 .. _rebase:
 
 Rebase, but only if asked
@@ -476,7 +492,8 @@ The actual rebasing is usually easy::
 
 You are more likely to run into *conflicts* here--places where the changes you
 made conflict with changes that someone else made--than anywhere else. Ask for
-help if you need it.
+help if you need it. Instructions are available on how to
+`resolve merge conflicts after a Git rebase <https://help.github.com/en/articles/resolving-merge-conflicts-after-a-git-rebase>`_.
 
 .. _howto_squash:
 
