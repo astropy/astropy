@@ -750,7 +750,7 @@ class classmodel(FittableModel):
 
 
 class subclassmodel(classmodel):
-    f = Parameter(default=3)
+    f = Parameter(default=3, fixed=True)
     x = Parameter(default=10)
     y = Parameter(default=12)
     h = Parameter(default=5)
@@ -767,3 +767,4 @@ def test_parameter_inheritance():
     assert b.param_names == ('f', 'x', 'y', 'h')
     assert b.h == 5
     assert b.f ==3
+    assert b.f.fixed == True
