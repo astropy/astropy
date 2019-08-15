@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2018, Mark Calabretta
+  WCSLIB 6.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2019, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,19 +22,42 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutil.h,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
+  $Id: wcsutil.h,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 6.2 - C routines that implement the FITS World Coordinate System
+* WCSLIB 6.4 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
 *
 * Summary of the wcsutil routines
 * -------------------------------
-* Simple utility functions for internal use only by WCSLIB.  They are
-* documented here solely as an aid to understanding the code.  They are not
-* intended for external use - the API may change without notice!
+* Simple utility functions.  With the exception of wcsdealloc(), these
+* functions are intended for internal use only by WCSLIB.
+*
+* The internal-use functions are documented here solely as an aid to
+* understanding the code.  They are not intended for external use - the API
+* may change without notice!
+*
+*
+* wcsdealloc() - free memory allocated by WCSLIB functions
+* --------------------------------------------------------
+* wcsdealloc() invokes the free() system routine to free memory.
+* Specifically, it is intended to free memory allocated (using calloc()) by
+* certain WCSLIB functions (e.g. wcshdo(), wcsfixi(), fitshdr()), which it is
+* the user's responsibility to deallocate.
+*
+* In certain situations, for example multithreading, it may be important that
+* this be done within the WCSLIB sharable library's runtime environment.
+*
+* PLEASE NOTE: wcsdealloc() must not be used in place of the destructors for
+* particular structs, such as wcsfree(), celfree(), etc.
+*
+* Given and returned:
+*   ptr       void*     Address of the allocated memory.
+*
+* Function return value:
+*             void
 *
 *
 * wcsutil_blank_fill() - Fill a character string with blanks
@@ -340,6 +363,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+void wcsdealloc(void *ptr);
 
 void wcsutil_blank_fill(int n, char c[]);
 void wcsutil_null_fill (int n, char c[]);

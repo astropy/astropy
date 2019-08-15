@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 6.2
+# GNU makefile for building WCSLIB 6.4
 #
 # Summary of the main targets
 # ---------------------------
@@ -32,7 +32,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 6.2 2018/10/20 10:03:14 mcalabre Exp $
+# $Id: GNUmakefile,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 SUBDIR := .
@@ -142,10 +142,12 @@ config.status : configure
 	-@ $(TIMER)
 	-@ echo ''
 	-@ echo "Environment variables that affect 'configure':"
-	-@ echo "  CC       = $${CC-(undefined)}"
-	-@ echo "  CFLAGS   = $${CFLAGS-(undefined)}"
+	-@ echo "  FLEX     = $${FLEX-(undefined)}"
+	-@ echo "  FLFLAGS  = $${FLFLAGS-(undefined)}"
 	-@ echo "  CPP      = $${CPP-(undefined)}"
 	-@ echo "  CPPFLAGS = $${CPPFLAGS-(undefined)}"
+	-@ echo "  CC       = $${CC-(undefined)}"
+	-@ echo "  CFLAGS   = $${CFLAGS-(undefined)}"
 	-@ echo "  F77      = $${F77-(undefined)}"
 	-@ echo "  FFLAGS   = $${FFLAGS-(undefined)}"
 	-@ echo "  ARFLAGS  = $${ARFLAGS-(undefined)}"

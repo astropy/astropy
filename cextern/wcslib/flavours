@@ -12,7 +12,7 @@
 #
 # Reminder: add '-d' to FLFLAGS for debugging.
 #
-# $Id: flavours,v 6.2 2018/10/20 10:03:14 mcalabre Exp $
+# $Id: flavours,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
 # The list of FLAVOURs can be set on the command line.
@@ -37,15 +37,7 @@ endif
 F :=
 
 
-# Various C standards handled by features.h in Linux.
-FEATURES :=
-ifeq "$(notdir $(shell pwd))" "utils"
-  # To get off_t for fseeko() usage in fitshdr when gcc is invoked with the
-  # -std=c89 (same as -ansi) or the -std=c99 options.
-  FEATURES := -D_XOPEN_SOURCE
-endif
-
-# Elide warnings about padding in foreign structs, particularly in fitsio.h.
+# Quench warnings about padding in foreign structs, particularly in fitsio.h.
 ifneq "$(findstring $(SUBDIR),C Fortran pgsbox)" ""
   WPADDED := -Wpadded
 endif
@@ -54,11 +46,12 @@ endif
 # Linux with gcc/gfortran (also works for Darwin).
 ifeq "$(FLAVOUR)" "Linux"
   F := $(FLAVOUR)
+  CWARNINGS       := -Wall -Wextra -Wno-clobbered -Wno-long-long $(WPADDED)
   export CC       := gcc -std=c99 -pedantic
-  export CPPFLAGS := $(FEATURES)
-  export CFLAGS   := -g -O0 -Wall -Wextra -Wno-long-long $(WPADDED)
+  export CPPFLAGS :=
+  export CFLAGS   := -g -O0 $(CWARNINGS)
   export F77      := gfortran
-  export FFLAGS   := -g -O0 -fimplicit-none -Wall -I.
+  export FFLAGS   := -g -O0 -fimplicit-none -I. -Wall
   export LDFLAGS  :=
   ifdef VALGRIND
     override VALGRIND := valgrind -v --leak-check=full --show-leak-kinds=all
@@ -68,12 +61,14 @@ endif
 
 ifeq "$(FLAVOUR)" "Linux8"
   F := $(FLAVOUR)
-  export CC       := gcc-8.1.0 -std=c99 -pedantic
-  export CPPFLAGS := $(FEATURES) -D_FORTIFY_SOURCE=2
-  export CFLAGS   := -g -O2 -Wall -Wextra -Wno-long-long $(WPADDED)
-  export F77      := gfortran-8.1.0
-  export FFLAGS   := -g -O2 -fimplicit-none -Wall -I.
-  export LDFLAGS  :=
+  SANITIZE        := -fsanitize=address -fsanitize=undefined
+  CWARNINGS       := -Wall -Wextra -Wno-clobbered -Wno-long-long
+  export CC       := gcc-8 -std=c99 -pedantic
+  export CPPFLAGS := -D_FORTIFY_SOURCE=2
+  export CFLAGS   := -g -O2 $(SANITIZE) $(CWARNINGS)
+  export F77      := gfortran-8
+  export FFLAGS   := -g -O2 -fimplicit-none -I. $(SANITIZE) -Wall
+  export LDFLAGS  := $(SANITIZE)
   export LD_RUN_PATH := /usr/local/lib64
   ifdef VALGRIND
     override VALGRIND := valgrind -v --leak-check=full --show-leak-kinds=all
@@ -84,7 +79,7 @@ endif
 ifeq "$(FLAVOUR)" "Linuxp"
   F := $(FLAVOUR)
   export CC       := gcc -std=c99 -pedantic
-  export CPPFLAGS := $(FEATURES)
+  export CPPFLAGS :=
   export CFLAGS   := -pg -g -O -Wall -Wextra -Wno-long-long $(WPADDED)
   export FFLAGS   := -pg -a -g -O -fimplicit-none -Wall -I.
   export LDFLAGS  := -pg -g $(filter -L%, $(LDFLAGS))
@@ -96,7 +91,7 @@ endif
 ifeq "$(FLAVOUR)" "SUN/GNU"
   F := $(FLAVOUR)
   export CC       := gcc -std=c99
-  export CPPFLAGS := $(FEATURES)
+  export CPPFLAGS :=
   export CFLAGS   := -g -Wall -Wno-long-long $(WPADDED)
   export F77      := gfortran
   export FFLAGS   := -g -fimplicit-none -Wall -I.
@@ -106,7 +101,7 @@ endif
 ifeq "$(FLAVOUR)" "SUN/GNU3"
   F := $(FLAVOUR)
   export CC       := gcc-3.1.1 -std=c99
-  export CPPFLAGS := $(FEATURES)
+  export CPPFLAGS :=
   export CFLAGS   := -g -Wall -Wno-long-long $(WPADDED)
   export F77      := g77-3.1.1
   export FFLAGS   := -g -Wimplicit -Wunused -Wno-globals -I.
@@ -116,7 +111,7 @@ endif
 ifeq "$(FLAVOUR)" "SUN/GNUp"
   F := $(FLAVOUR)
   export CC       := gcc -std=c99 -pedantic
-  export CPPFLAGS := $(FEATURES)
+  export CPPFLAGS :=
   export CFLAGS   := -pg -a -g -O -Wall -Wno-long-long $(WPADDED)
   export FFLAGS   := -pg -a -g -O -fimplicit-none -Wall -I.
   export LDFLAGS  := -pg -a -g $(filter -L%, $(LDFLAGS))
