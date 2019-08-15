@@ -35,6 +35,8 @@ astropy.cosmology
 astropy.extern
 ^^^^^^^^^^^^^^
 
+- Remove the bundled ``six`` module. [#8315]
+
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
