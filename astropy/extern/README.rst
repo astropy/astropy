@@ -18,9 +18,6 @@ In particular, this currently includes for Python:
   that is unpacked and loaded as a Python module.  This packed bundled version
   is officially provided by the pytest project.
 
-- Six_: This is a Python 2/3 compatibility library used to ease development
-  of a simultaneously Python 2 and 3-compatible code base.
-
 And for JavaScript:
 
 - jQuery_: This is used currently for the browser-based table viewer feature.
@@ -46,29 +43,6 @@ Notes for third-party packagers
 Packagers preparing Astropy for inclusion in packaging frameworks have
 different options for how to handle these third-party extern packages, if they
 would prefer to use their system packages rather than the bundled versions.
-
-Six
-^^^
-
-Because use of the ``six`` module is pervasive throughout the Astropy package
-(it is crucial for providing Python 2/3 compatibility at all levels) it has
-been made easier to replace.  The actual ``six`` module is included under
-``astropy/extern/bundled``.  Importing ``astropy.extern.six`` will first try
-to load the ``six`` module from that location, and then will fall back on
-trying to import an installed ``six`` module from the standard ``sys.path``
-locations (if it is a new enough version).
-
-Packagers may wish to prioritize the system version and/or remove the bundled
-version altogether.  To do this, edit the ``_SIX_SEARCH_PATH`` list in
-``astropy.extern.six``.  If removing the bundled copy altogether simply delete
-``astropy/extern/bundled/six.py`` and update this variable to read::
-
-    _SIX_SEARCH_PATH = ['six']
-
-No other imports in Astropy need to be updated.  Imports from
-``astropy.extern.six`` are automatically updated to point to the system version
-of the module.
-
 
 jQuery/DataTables
 ^^^^^^^^^^^^^^^^^
@@ -104,13 +78,11 @@ Other
 
 To replace any of the other Python modules included in this package, simply
 remove them and update any imports in Astropy to import the system versions
-rather than the bundled copies.  If requested we could add a mechanism similar
-to that used by ``six`` for the other modules.
+rather than the bundled copies.
 
 
 .. _ConfigObj: https://github.com/DiffSK/configobj
 .. _PLY: http://www.dabeaz.com/ply/
 .. _pytest: https://pytest.org/en/latest/
-.. _Six: http://pypi.python.org/pypi/six/
 .. _jQuery: http://jquery.com/
 .. _DataTables: http://www.datatables.net/
