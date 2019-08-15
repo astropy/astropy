@@ -743,8 +743,6 @@ class classmodel(FittableModel):
     y = Parameter(default=2)
 
     def __init__(self, f=f.default, x=x.default, y=y.default):
-        print(self.param_names)
-        print('class input values', f, x, y)
         super().__init__(f, x, y)
 
     def evaluate(self):
@@ -758,7 +756,6 @@ class subclassmodel(classmodel):
     h = Parameter(default=5)
 
     def __init__(self, f=f.default, x=x.default, y=y.default, h=h.default):
-        print('subclass input values', f, x, y, h)
         super().__init__(f, x, y)
 
     def evaluate(self):
