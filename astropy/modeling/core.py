@@ -696,7 +696,8 @@ class Model(metaclass=_ModelMeta):
                 for parname, val in cls._parameters_.items():
                     newpar = copy.deepcopy(val)
                     newpar.model = self
-                    self.__dict__[parname] = newpar
+                    if parname not in self.__dict__:
+                        self.__dict__[parname] = newpar
 
         self._initialize_constraints(kwargs)
         # Remaining keyword args are either parameter values or invalid
