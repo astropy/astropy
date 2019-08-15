@@ -14,6 +14,7 @@ from .example_models import models_1D, models_2D
 from astropy.modeling import fitting, models
 from astropy.modeling.models import Gaussian2D
 from astropy.modeling.core import FittableModel
+from astropy.modeling.parameters import Parameter
 from astropy.modeling.polynomial import PolynomialBase
 from astropy import units as u
 from astropy.utils import minversion
@@ -734,3 +735,36 @@ def test_tabular1d_inverse():
     t3 = models.Tabular2D(points=points, lookup_table=table)
     with pytest.raises(NotImplementedError):
         t3.inverse((3, 3))
+
+
+class classmodel(FittableModel):
+    f = Parameter(default=1)
+    x = Parameter(default=0)
+    y = Parameter(default=2)
+
+    def __init__(self, f=f.default, x=x.default, y=y.default):
+        super().__init__(f, x, y)
+
+    def evaluate(self):
+        pass
+
+
+class subclassmodel(classmodel):
+    f = Parameter(default=3, fixed=True)
+    x = Parameter(default=10)
+    y = Parameter(default=12)
+    h = Parameter(default=5)
+
+    def __init__(self, f=f.default, x=x.default, y=y.default, h=h.default):
+        super().__init__(f, x, y)
+
+    def evaluate(self):
+        pass
+
+
+def test_parameter_inheritance():
+    b = subclassmodel()
+    assert b.param_names == ('f', 'x', 'y', 'h')
+    assert b.h == 5
+    assert b.f ==3
+    assert b.f.fixed == True

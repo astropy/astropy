@@ -117,6 +117,8 @@ class _ModelMeta(abc.ABCMeta):
                 if issubclass(tbase, Model):
                     # Preserve order of definitions
                     param_names = list(tbase._parameters_) + param_names
+        # Remove duplicates (arising from redefintion in subclass).
+        param_names = list(dict.fromkeys(param_names))
         if cls._parameters_:
             if hasattr(cls, '_param_names'):
                 # Slight kludge to support compound models, where
@@ -694,7 +696,8 @@ class Model(metaclass=_ModelMeta):
                 for parname, val in cls._parameters_.items():
                     newpar = copy.deepcopy(val)
                     newpar.model = self
-                    self.__dict__[parname] = newpar
+                    if parname not in self.__dict__:
+                        self.__dict__[parname] = newpar
 
         self._initialize_constraints(kwargs)
         # Remaining keyword args are either parameter values or invalid
