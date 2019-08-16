@@ -26,7 +26,7 @@ jobs:
           command: PYTHONHASHSEED=42 /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4 -a "--durations=50"
       - run:
           name: Install dependencies for Python 3.7
-          command: /opt/python/cp37-cp37m/bin/pip install "numpy<1.17" scipy pytest pytest-astropy pytest-xdist Cython jinja2 pandas
+          command: /opt/python/cp37-cp37m/bin/pip install "numpy<1.17" scipy "pytest<5.1" pytest-astropy pytest-xdist Cython jinja2 pandas
       - run:
           name: Run tests for Python 3.7
           command: PYTHONHASHSEED=42 /opt/python/cp37-cp37m/bin/python setup.py test --parallel=4 -a "--durations=50"
