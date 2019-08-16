@@ -11,7 +11,8 @@ x_inputs = [(u.arcsec, u.deg), ('angle', u.deg),
             ([u.arcsec, u.km], u.deg), ([u.arcsec, u.km], u.km),  # multiple allowed
             (['angle', 'length'], u.deg), (['angle', 'length'], u.km)]
 
-y_inputs = [(u.arcsec, u.deg), ('angle', u.deg),
+y_inputs = [(u.m, u.km), (u.km, u.m),
+            (u.arcsec, u.deg), ('angle', u.deg),
             (u.kpc/u.Myr, u.km/u.s), ('speed', u.km/u.s)]
 
 
@@ -76,12 +77,40 @@ def test_wrong_unit(x_input, y_input):
     assert str(e.value) == f"Argument 'y' to function 'myfunc_args' must be in units convertible to '{str_to}'."
 
 
+def test_wrong_unit_annotated(x_input, y_input):
+    x_target, x_unit = x_input
+    y_target, y_unit = y_input
+
+    @u.quantity_input
+    def myfunc_args(x: x_target, y: y_target):
+        return x, y
+
+    with pytest.raises(u.UnitsError) as e:
+        x, y = myfunc_args(1*x_unit, 100*u.Joule)  # has to be an unspecified unit
+
+    str_to = str(y_target)
+    assert str(e.value) == f"Argument 'y' to function 'myfunc_args' must be in units convertible to '{str_to}'."
+
+
 def test_not_quantity(x_input, y_input):
     x_target, x_unit = x_input
     y_target, y_unit = y_input
 
     @u.quantity_input(x=x_target, y=y_target)
     def myfunc_args(x, y):
+        return x, y
+
+    with pytest.raises(TypeError) as e:
+        x, y = myfunc_args(1*x_unit, 100)
+    assert str(e.value) == "Argument 'y' to function 'myfunc_args' has no 'unit' attribute. You may want to pass in an astropy Quantity instead."
+
+
+def test_not_quantity_annotated(x_input, y_input):
+    x_target, x_unit = x_input
+    y_target, y_unit = y_input
+
+    @u.quantity_input
+    def myfunc_args(x: x_target, y: y_target):
         return x, y
 
     with pytest.raises(TypeError) as e:
