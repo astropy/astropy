@@ -209,6 +209,24 @@ class TestSingleTable:
         t = Table.read(hdu)
         assert equal_data(t, self.data)
 
+    @pytest.mark.parametrize('table_type', (Table, QTable))
+    def test_write_drop_nonstandard_units(self, table_type, tmpdir):
+        # While we are generous on input (see above), we are strict on
+        # output, dropping units not recognized by the fits standard.
+        filename = str(tmpdir.join('test_nonstandard_units.fits'))
+        spam = u.def_unit('spam')
+        t = table_type()
+        t['a'] = [1., 2., 3.] * spam
+        with catch_warnings() as w:
+            t.write(filename)
+        assert len(w) == 1
+        assert 'spam' in str(w[0].message)
+        with fits.open(filename) as ff:
+            hdu = ff[1]
+            assert 'TUNIT1' not in hdu.header
+            t2 = table_type.read(hdu, astropy_native=False)
+        assert t2['a'].unit is None
+
     def test_memmap(self, tmpdir):
         filename = str(tmpdir.join('test_simple.fts'))
         t1 = Table(self.data)
