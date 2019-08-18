@@ -63,6 +63,7 @@ astropy.modeling
 
 - Significant reorganization of the documentation. [#9078]
 - Add Tabular1D.inverse [#9083]
+- Modeling now allows passing of constraints as ``tuples`` in the setting of model parameters. [#8442]
 
 astropy.nddata
 ^^^^^^^^^^^^^^

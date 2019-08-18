@@ -521,3 +521,49 @@ def test_2d_model():
         assert_allclose(m.parameters, p2.parameters, rtol=0.05)
         m = fitter(p2, x, y, z + 2 * n, weights=None)
         assert_allclose(m.parameters, p2.parameters, rtol=0.05)
+
+
+def test_prior_posterior():
+    model = models.Gaussian1D()
+    model.amplitude.prior = models.Polynomial1D(1, c0=1, c1=2)
+    assert isinstance(model.amplitude.prior, models.Polynomial1D)
+    assert model.amplitude.prior.c0 == 1
+    assert model.amplitude.prior.c1 == 2
+    assert isinstance(model._constraints['prior']['amplitude'], models.Polynomial1D)
+
+    model.amplitude.prior = None
+    assert model.amplitude.prior is None
+    assert model._constraints['prior']['amplitude'] is None
+
+
+# https://github.com/astropy/astropy/issues/3028
+def test_contraints_as_tuples():
+    """
+    Test the passing of constrainsts as tuples as a convenience
+    for setting contraints on model parameters.
+    """
+
+    def tie_center(model):
+        return 50 * model.stddev
+    #tied_parameters = {'mean': tie_center}
+
+    f = models.Gaussian1D(10, 5, 0.3, fixed=(False, False, True),
+                          tied=(False, tie_center, False), bounds=((5, 15), False, [0.2, 0.4]))
+
+    assert not f.amplitude.fixed
+    assert not f.mean.fixed
+    assert f.stddev.fixed
+
+    assert not f.amplitude.tied
+    assert f.mean.tied is not False
+    assert not f.stddev.tied
+
+    assert f.amplitude.bounds is not False
+    assert f.amplitude.min == 5
+    assert f.amplitude.max == 15
+
+    assert not f.mean.bounds
+
+    assert f.stddev.bounds is not False
+    assert f.stddev.min == 0.2
+    assert f.stddev.max == 0.4
