@@ -102,11 +102,11 @@ unless you want to understand why some changes were necessary.
 
 - The `_CompoundModelMeta` metaclass no longer exists.
 
-Technical Details
------------------
+** Technical Details **
 
-Parameter-related changes
-~~~~~~~~~~~~~~~~~~~~~~~~~
+
+** Parameter-related changes **
+
 
 Previously Python descriptors were used to define parameters. The
 drawback of descriptors is that all instances of the models that
@@ -153,8 +153,8 @@ Since the parameter no longer is required to link to a specific
 model, it holds any dimension corresponding to the model_set
 size; when it previously did not.
 
-Compound Model Implementation Changes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+** Compound Model Implementation Changes **
+
 
 Compound models previously were implemented using a metaclass
 for the compound model while also inheriting from the Model
