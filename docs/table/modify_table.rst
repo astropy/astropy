@@ -307,4 +307,4 @@ following string values:
   Print a warning if any of the standard column attributes changed.
 
 The default value for the ``table.conf.replace_warnings`` option is
-``['slice']``.
+``[]`` (no warnings).
