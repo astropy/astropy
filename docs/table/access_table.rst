@@ -1,16 +1,12 @@
-.. _access_table:
-
 .. include:: references.txt
+
+.. _access_table:
 
 Accessing a table
 *****************
 
 Accessing the table properties and data is straightforward and is generally consistent with
 the basic interface for `numpy` structured arrays.
-
-.. Warning:: Astropy 2.0 introduces an API change that affects comparison of
-   bytestring column elements in Python 3.  See
-   :ref:`bytestring-columns-python-3` for details.
 
 Quick overview
 ==============
@@ -677,22 +673,22 @@ expressions (see the warning below for caveats to this)::
 
 .. _bytestring-columns-python-3:
 
-Bytestring columns in Python 3
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Bytestring columns
+^^^^^^^^^^^^^^^^^^
 
-Prior to astropy 2.0, using bytestring columns (numpy ``'S'`` dtype) in Python
-3 was inconvenient because it was not possible to compare with the natural
+Using bytestring columns (numpy ``'S'`` dtype) is straightforward
+with astropy tables since they can be easily compared with the natural
 Python string (``str``) type.  See `The bytes/str dichotomy in Python 3
 <http://eli.thegreenplace.net/2012/01/30/the-bytesstr-dichotomy-in-python-3>`_
 for a very brief overview of the difference.
 
-The standard method of representing Python 3 strings in `numpy` is via the
+The standard method of representing strings in `numpy` is via the
 unicode ``'U'`` dtype.  The problem is that this requires 4 bytes per
 character, and if you have a very large number of strings in memory this could
 fill memory and impact performance.  A very common use case is that these
 strings are actually ASCII and can be represented with 1 byte per character.
-Starting with astropy 2.0 it is possible to work directly and conveniently with
-bytestring data in astropy Table and Column
+In astropy it is possible to work directly and conveniently with
+bytestring data in |Table| and |Column| operations.
 
 Note that the bytestring issue is a particular problem when dealing with HDF5
 files, where character data are read as bytestrings (``'S'`` dtype) when using
@@ -701,35 +697,14 @@ datasets, the memory bloat associated with conversion to ``'U'`` dtype is
 unacceptable.
 
 
-Python 3 examples
-"""""""""""""""""
+Examples
+""""""""
 
-The examples below highlight the change in behavior introduced by astropy 2.0
-for Python 3.  *In particular* please note the API change when comparing with a
-single element of a bytestring column.  Previously one was required to compare
-with a ``bytes`` object while now one must compare with a ``str`` object.  When
-comparing with the entire column one can use either a ``bytes`` or ``str``.
+The examples below illustrate dealing with bytestring data in astropy.
 
 .. doctest-skip-all
 
-**Before astropy 2.0**
-
-    >>> from astropy.table import Table
-    >>> t = Table([['abc', 'def']], names=['a'], dtype=['S'])
-
-    >>> t['a'] == 'abc'  # WRONG answer!
-    False
-
-    >>> t['a'] == b'abc'  # Must explicitly compare to bytestring
-    array([ True, False], dtype=bool)
-
-    >>> t = Table([['bä', 'def']], dtype=['S'])
-    Traceback (most recent call last):
-      ...
-    UnicodeEncodeError: 'ascii' codec can't encode character '\xe4' in position 1:
-                        ordinal not in range(128)
-
-**Astropy 2.0 or later**:
+::
 
     >>> t = Table([['abc', 'def']], names=['a'], dtype=['S'])
 
@@ -742,7 +717,7 @@ comparing with the entire column one can use either a ``bytes`` or ``str``.
     >>> t['a'][0] == 'abc'  # Expected answer
     True
 
-    >>> t['a'][0] == b'abc'  # API change, this NO LONGER WORKS
+    >>> t['a'][0] == b'abc'  # Cannot compare to bytestring
     False
 
     >>> t['a'][0] = 'bä'
@@ -758,7 +733,6 @@ comparing with the entire column one can use either a ``bytes`` or ``str``.
     array([ True, False], dtype=bool)
 
     >>> # Round trip unicode strings through HDF5
-    >>> t = Table([['bä', 'def']], dtype=['S'])
     >>> t.write('test.hdf5', format='hdf5', path='data', overwrite=True)
     >>> t2 = Table.read('test.hdf5', format='hdf5', path='data')
     >>> t2

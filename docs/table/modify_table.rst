@@ -1,6 +1,6 @@
-.. _modify_table:
-
 .. include:: references.txt
+
+.. _modify_table:
 
 Modifying a table
 *****************
@@ -125,14 +125,6 @@ using broadcasting will be done, e.g.::
 
   >>> t['a'] = 1  # Internally does t['a'][:] = 1
 
-.. Note ::
-
-   Prior to astropy version 1.3, assignment as shown above performed
-   an in-place update of the existing column values and it was not possible
-   to change the data type in this way.  Prior to 1.3 it was necessary
-   to use the :meth:`~astropy.table.Table.replace_column` method in this case.
-   See the section `API change in replacing columns`_ for additional information.
-
 **Rename columns**
 ::
 
@@ -213,79 +205,34 @@ a time.
 
 .. _table-replace-1_3:
 
-API change in replacing columns
-===============================
+In-place versus replace column update
+=====================================
 
-Astropy version 1.3 introduces an API change in the way that the following
-behaves::
+Consider this code snippet::
 
   >>> t = Table([[1, 2, 3]], names=['a'])
   >>> t['a'] = [10.5, 20.5, 30.5]
 
-Prior to 1.3 this always did an in-place replacement of the data values so that
-the ``t['a']`` column object reference was maintained.  However, since the
-original data type was integer in this case, the replaced values would silently
-be converted to integer by truncation.
+There are a couple of ways this could be handled.  It could update the existing array
+values in-place (truncating to integer), or it could replace the entire column with a new
+column based on the supplied data values.
 
-Starting with astropy 1.3 the operation shown above does a *complete
+The answer for astropy (since version 1.3) is that the operation shown above does a *complete
 replacement* of the column object.  In this case it makes a new column
 object with float values by internally calling
 ``t.replace_column('a', [10.5, 20.5, 30.5])``.  In general this behavior
-is more consistent with Python and Pandas behavior, but there is potential
-for somewhat subtle bugs in code that was written that expects the pre-1.3
-in-place behavior.
+is more consistent with Python and Pandas behavior.
 
-**Examples**
-::
+**Forcing in-place update**
 
-  >>> t = Table([[1, 2, 3]], names=['a'])
-  >>> t['a'].description = 'My data column'
-
-  # Sliced column gets replaced
-  >>> t2 = t[:2]  # Make a slice
-
-  # In astropy 1.3 the following emits a warning about replacing a slice.
-  >>> t2['a'] = [10, 20]  # doctest: +SKIP
-
-  >>> list(t['a'])  # Outputs [10, 20, 3] prior to astropy 1.3.
-  [1, 2, 3]
-
-  # Column reference count changes
-  >>> ta = t['a']  # Make a reference to the original column
-  >>> t['a'] = [10, 20, 30]
-  >>> t['a'] is ta  # Outputs True prior to astropy 1.3
-  False
-
-  # Column attributes change
-  >>> print(t['a'].description)  # Outputs 'My data column' prior to astropy 1.3
-  None
-
-**Replicating pre-1.3 behavior**
-
-If the pre-1.3 in-place behavior is required in code, it is straightforward
-to achieve this.  Simply replace::
-
-  t[colname] = value
-
-with::
+It is straightforward to force an in-place update of a column as follows::
 
   t[colname][:] = value
 
-As a *temporary* measure, or if the problematic code is in a package
-that cannot be modified, one can modify the ``table.replace_inplace``
-configuration variable::
-
-  from astropy import table
-  table.conf.replace_inplace = True
-
-This will entirely revert to the pre-1.3 behavior.  This configuration option
-will be deprecated and then subsequently removed in future releases, so it is
-meant only as a stop-gap to provide time to appropriately update all code.
-
 **Finding the source of problems**
 
-In order to find potential problems related to the API change, the
-configuration option ``table.conf.replace_warnings`` controls a set of warnings
+In order to find potential problems related to the replacing columns, there is a
+configuration option ``table.conf.replace_warnings``.  This controls a set of warnings
 that are emitted under certain circumstances when a table column is replaced.
 This option must be set to a list that includes zero or more of the
 following string values:
