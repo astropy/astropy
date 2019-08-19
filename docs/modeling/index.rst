@@ -16,6 +16,8 @@ Different fitting algorithms can be used with any model.  For those fitters
 with the capabilities fitting can be done using uncertainties, parameters with
 bounds, and priors.
 
+.. _modeling-getting-started:
+
 Getting started
 ===============
 
@@ -55,6 +57,8 @@ the code and plot below for a 1-dimensional Gaussian.
       resulted in compound models parameters not sharing the same value as the
       constituent models, if one of them changed, the other didn't. Now they
       see exactly the same value.
+
+.. _modeling-using:
 
 Concepts
 ========
