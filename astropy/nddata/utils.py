@@ -236,7 +236,8 @@ def add_array(array_large, array_small, position):
     array_large : `~numpy.ndarray`
         Large array.
     array_small : `~numpy.ndarray`
-        Small array to add.
+        Small array to add. Can be equal to ``array_large`` in size in a given
+        dimension, but not larger.
     position : tuple
         Position of the small array's center, with respect to the large array.
         Coordinates should be in the same order as the array shape.
