@@ -74,9 +74,7 @@ intersphinx_mapping['packagetemplate'] = ('http://docs.astropy.org/projects/pack
 intersphinx_mapping['h5py'] = ('http://docs.h5py.org/en/stable/', None)
 
 # Pin matplotlib version: https://github.com/astropy/astropy/pull/9145
-intersphinx_mapping['matplotlib'] = (
-    'https://matplotlib.org/3.0.3/',
-    (None, 'http://data.astropy.org/intersphinx/matplotlib.inv'))
+intersphinx_mapping['matplotlib'] = ('https://matplotlib.org/3.0.3/', None)
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
