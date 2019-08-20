@@ -73,9 +73,6 @@ intersphinx_mapping['sphinx_automodapi'] = ('https://sphinx-automodapi.readthedo
 intersphinx_mapping['packagetemplate'] = ('http://docs.astropy.org/projects/package-template/en/latest/', None)
 intersphinx_mapping['h5py'] = ('http://docs.h5py.org/en/stable/', None)
 
-# Pin matplotlib version: https://github.com/astropy/astropy/pull/9145
-intersphinx_mapping['matplotlib'] = ('https://matplotlib.org/3.0.3/', None)
-
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 exclude_patterns.append('_templates')

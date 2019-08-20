@@ -51,15 +51,19 @@ class WCSAxes(Axes):
     ----------
     fig : `~matplotlib.figure.Figure`
         The figure to add the axes to
+
     rect : list
         The position of the axes in the figure in relative units. Should be
         given as ``[left, bottom, width, height]``.
+
     wcs : :class:`~astropy.wcs.WCS`, optional
         The WCS for the data. If this is specified, ``transform`` cannot be
         specified.
+
     transform : `~matplotlib.transforms.Transform`, optional
         The transform for the data. If this is specified, ``wcs`` cannot be
         specified.
+
     coord_meta : dict, optional
         A dictionary providing additional metadata when ``transform`` is
         specified. This should include the keys ``type``, ``wrap``, and
@@ -71,8 +75,10 @@ class WCSAxes(Axes):
         coordinates as :class:`~astropy.units.Unit` instances. This can
         optionally also include a ``format_unit`` entry giving the units to use
         for the tick labels (if not specified, this defaults to ``unit``).
+
     transData : `~matplotlib.transforms.Transform`, optional
         Can be used to override the default data -> pixel mapping.
+
     slices : tuple, optional
         For WCS transformations with more than two dimensions, we need to
         choose which dimensions are being shown in the 2D image. The slice
@@ -86,12 +92,13 @@ class WCSAxes(Axes):
         x axis, and the final WCS dimension (first Numpy dimension) will be
         shown on the y-axis (and therefore the data will be plotted using
         ``data[:, :, 50].transpose()``)
+
     frame_class : type, optional
         The class for the frame, which should be a subclass of
         :class:`~astropy.visualization.wcsaxes.frame.BaseFrame`. The default is to use a
         :class:`~astropy.visualization.wcsaxes.frame.RectangularFrame`
-    """
 
+    """
     def __init__(self, fig, rect, wcs=None, transform=None, coord_meta=None,
                  transData=None, slices=None, frame_class=RectangularFrame,
                  **kwargs):
