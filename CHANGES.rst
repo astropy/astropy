@@ -265,6 +265,10 @@ astropy.table
   to a valid column for the table.  ``Table.__setitem__`` now just calls
   ``add_column``.
 
+- Changed default table configuration setting ``replace_warnings`` from
+  ``['slice']`` to ``[]``.  This removes the default warning when replacing
+  a table column that is a slice of another column. [#9144]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
