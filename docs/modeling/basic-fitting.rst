@@ -3,6 +3,8 @@
 Basic Fitting
 =============
 
+.. _modeling-getting-started-1d-fitting:
+
 Simple 1-D model fitting
 ------------------------
 
