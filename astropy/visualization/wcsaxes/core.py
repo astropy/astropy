@@ -132,7 +132,8 @@ class WCSAxes(Axes):
 
         coord_strings = []
         for idx, coord in enumerate(coords):
-            coord_strings.append(coord.format_coord(world[idx], format='ascii'))
+            if coord.coord_index is not None:
+                coord_strings.append(coord.format_coord(world[coord.coord_index], format='ascii'))
 
         coord_string = ' '.join(coord_strings)
 
