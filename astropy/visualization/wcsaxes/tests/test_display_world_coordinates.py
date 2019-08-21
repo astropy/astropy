@@ -117,3 +117,31 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         fig.canvas.key_press_event(event1.key, guiEvent=event1)
         string_pixel = ax._display_world_coords(0.523412, 0.523412)
         assert string_pixel == "0.523412 0.523412 (pixel)"
+
+    @ignore_matplotlibrc
+    def test_cube_coords_uncorr_slicing(self, tmpdir):
+
+        # Regression test for a bug that occurred with coordinate formatting if
+        # some dimensions were uncorrelated and sliced out.
+
+        wcs = WCS(self.cube_header)
+
+        fig = plt.figure(figsize=(4, 4))
+        canvas = fig.canvas
+
+        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs, slices=('x', 'y', 2))
+        fig.add_axes(ax)
+
+        # On some systems, fig.canvas.draw is not enough to force a draw, so we
+        # save to a temporary file.
+        fig.savefig(tmpdir.join('test.png').strpath)
+
+        # Testing default displayed world coordinates
+        string_world = ax._display_world_coords(0.523412, 0.518311)
+        assert string_world == '3h26m56.6s 30\xb018\'19\" (world)'
+
+        # Test pixel coordinates
+        event1 = KeyEvent('test_pixel_coords', canvas, 'w')
+        fig.canvas.key_press_event(event1.key, guiEvent=event1)
+        string_pixel = ax._display_world_coords(0.523412, 0.523412)
+        assert string_pixel == "0.523412 0.523412 (pixel)"
