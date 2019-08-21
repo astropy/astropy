@@ -430,15 +430,15 @@ to GitHub. GitHub will automatically update your pull request.
 
 .. _no git pull:
 
-Do not create a merge commit
+Do Not Create a Merge Commit
 ****************************
 
 If your branch associated with the pull request falls behind the ``master``
-branch of https://github.com/astropy/astropy , GitHub might offer you option
-to catch up or resolve conflict via its web interface; do not use them. Using
-them might create a "merge commit" in your commit history, which is
+branch of https://github.com/astropy/astropy, GitHub might offer you the option
+to catch up or resolve conflicts via its web interface, but do not use this. Using
+the web interface might create a "merge commit" in your commit history, which is
 undesirable, as a "merge commit" can introduce maintenance overhead for the
-release manager. Do not use ``git pull`` command either.
+release manager as well as undesirable branch structure complexity. Do not use the ``git pull`` command either.
 
 Instead, in your local checkout, do a ``fetch`` and then a ``rebase``, and
 resolve conflicts as necessary. See :ref:`rebase` and :ref:`howto_rebase`
@@ -490,8 +490,8 @@ The actual rebasing is usually easy::
     git fetch astropy master # get the latest development astropy
     git rebase astropy/master my-new-feature
 
-You are more likely to run into *conflicts* here--places where the changes you
-made conflict with changes that someone else made--than anywhere else. Ask for
+You are more likely to run into *conflicts* here — places where the changes you
+made conflict with changes that someone else made — than anywhere else. Ask for
 help if you need it. Instructions are available on how to
 `resolve merge conflicts after a Git rebase <https://help.github.com/en/articles/resolving-merge-conflicts-after-a-git-rebase>`_.
 
