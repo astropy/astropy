@@ -192,7 +192,6 @@ PyUnitListProxy_richcmp(
 	PyObject *a,
 	PyObject *b,
 	int op){
-  PyUnitListProxy *lhs, *rhs;
   assert(a != NULL && b != NULL);
   if (!PyObject_TypeCheck(a, &PyUnitListProxyType) ||
       !PyObject_TypeCheck(b, &PyUnitListProxyType)) {
@@ -201,18 +200,35 @@ PyUnitListProxy_richcmp(
   if (op != Py_EQ && op != Py_NE) {
     Py_RETURN_NOTIMPLEMENTED;
   }
-  lhs = (PyUnitListProxy *)a;
-  rhs = (PyUnitListProxy *)b;
-  int equal = PyObject_RichCompareBool(lhs->unit_class, rhs->unit_class, Py_EQ);
-  if (equal == -1) {
-    return NULL;  // Exception will be set because the rich-compare failed
+
+  {
+    /* The actual comparison of the two objects. unit_class is ignored because
+     * it's not an essential property of the instances.
+     */
+    PyUnitListProxy *lhs, *rhs;
+    lhs = (PyUnitListProxy *)a;
+    rhs = (PyUnitListProxy *)b;
+    if (lhs->size != rhs->size) {
+      if (op == Py_EQ) {
+        Py_RETURN_FALSE;
+      } else {
+        Py_RETURN_TRUE;
+      }
+    }
+    for (Py_ssize_t idx = 0; idx < lhs->size; idx++) {
+      if (strncmp(lhs->array[idx], rhs->array[idx], ARRAYSIZE) != 0) {
+        if (op == Py_EQ) {
+          Py_RETURN_FALSE;
+        } else {
+          Py_RETURN_TRUE;
+        }
+      }
+    }
   }
-  equal = equal == 1 && !strncmp(lhs->array, rhs->array, ARRAYSIZE) && lhs->size == rhs->size;
-  if ((op == Py_EQ && equal == 1) ||
-      (op == Py_NE && equal == 0)) {
+  /* If it managed to get here then everything is considered equal. */
+  if (op == Py_EQ) {
     Py_RETURN_TRUE;
-  } 
-  else {
+  } else {
     Py_RETURN_FALSE;
   }
 }
