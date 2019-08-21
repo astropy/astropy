@@ -78,15 +78,8 @@ static int
 PyUnitListProxy_clear(
     PyUnitListProxy *self) {
 
-  PyObject *tmp;
-
-  tmp = self->pyobject;
-  self->pyobject = NULL;
-  Py_XDECREF(tmp);
-
-  tmp = self->unit_class;
-  self->unit_class = NULL;
-  Py_XDECREF(tmp);
+  Py_CLEAR(self->pyobject);
+  Py_CLEAR(self->unit_class);
 
   return 0;
 }

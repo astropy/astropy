@@ -1773,8 +1773,7 @@ PyWcsprm_sub(
 
       axes[i] = element_val;
 
-      Py_DECREF(element);
-      element = NULL;
+      Py_CLEAR(element);
     }
   } else if (PyLong_Check(py_axes)) {
     tmp = (Py_ssize_t)PyLong_AsSsize_t(py_axes);

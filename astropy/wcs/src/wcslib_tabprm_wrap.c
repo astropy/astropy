@@ -82,11 +82,8 @@ PyTabprm_traverse(
 static int
 PyTabprm_clear(
     PyTabprm* self) {
-  PyObject* tmp;
 
-  tmp = self->owner;
-  self->owner = NULL;
-  Py_XDECREF(tmp);
+  Py_CLEAR(self->owner);
 
   return 0;
 }
