@@ -156,6 +156,10 @@ _get_unit(
   }
 
   args = PyTuple_New(1);
+  if (args == NULL) {
+      Py_DECREF(kw);
+      return NULL;
+  }
   PyTuple_SetItem(args, 0, unit);
   Py_INCREF(unit);
 
