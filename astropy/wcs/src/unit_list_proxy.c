@@ -192,6 +192,8 @@ PyUnitListProxy_richcmp(
 	PyObject *a,
 	PyObject *b,
 	int op){
+  PyUnitListProxy *lhs, *rhs;
+  Py_ssize_t idx;
   assert(a != NULL && b != NULL);
   if (!PyObject_TypeCheck(a, &PyUnitListProxyType) ||
       !PyObject_TypeCheck(b, &PyUnitListProxyType)) {
@@ -201,28 +203,24 @@ PyUnitListProxy_richcmp(
     Py_RETURN_NOTIMPLEMENTED;
   }
 
-  {
-    /* The actual comparison of the two objects. unit_class is ignored because
-     * it's not an essential property of the instances.
-     */
-    PyUnitListProxy *lhs, *rhs;
-    Py_ssize_t idx;
-    lhs = (PyUnitListProxy *)a;
-    rhs = (PyUnitListProxy *)b;
-    if (lhs->size != rhs->size) {
+  /* The actual comparison of the two objects. unit_class is ignored because
+   * it's not an essential property of the instances.
+   */
+  lhs = (PyUnitListProxy *)a;
+  rhs = (PyUnitListProxy *)b;
+  if (lhs->size != rhs->size) {
+    if (op == Py_EQ) {
+      Py_RETURN_FALSE;
+    } else {
+      Py_RETURN_TRUE;
+    }
+  }
+  for (idx = 0; idx < lhs->size; idx++) {
+    if (strncmp(lhs->array[idx], rhs->array[idx], ARRAYSIZE) != 0) {
       if (op == Py_EQ) {
         Py_RETURN_FALSE;
       } else {
         Py_RETURN_TRUE;
-      }
-    }
-    for (idx = 0; idx < lhs->size; idx++) {
-      if (strncmp(lhs->array[idx], rhs->array[idx], ARRAYSIZE) != 0) {
-        if (op == Py_EQ) {
-          Py_RETURN_FALSE;
-        } else {
-          Py_RETURN_TRUE;
-        }
       }
     }
   }
