@@ -174,7 +174,7 @@ PyUnitListProxy_getitem(
   PyObject *value;
   PyObject *result;
 
-  if (index >= self->size) {
+  if (index >= self->size || index < 0) {
     PyErr_SetString(PyExc_IndexError, "index out of range");
     return NULL;
   }
@@ -227,7 +227,7 @@ PyUnitListProxy_setitem(
   PyObject* unicode_value;
   PyObject* bytes_value;
 
-  if (index >= self->size) {
+  if (index >= self->size || index < 0) {
     PyErr_SetString(PyExc_IndexError, "index out of range");
     return -1;
   }

@@ -267,6 +267,8 @@ def test_ctype_index_error():
     assert list(w.ctype) == ['', '']
     with pytest.raises(IndexError):
         w.ctype[2] = 'FOO'
+    with pytest.raises(IndexError):
+        w.ctype[-3] = 'FOO'
 
 
 def test_ctype_invalid_error():
@@ -337,6 +339,8 @@ def test_unit3():
     w = wcs.WCS()
     with pytest.raises(IndexError):
         w.wcs.cunit[2] = u.m
+    with pytest.raises(IndexError):
+        w.wcs.cunit[-3] = u.m
     with pytest.raises(ValueError):
         w.wcs.cunit = [u.m, u.m, u.m]
 

@@ -506,6 +506,9 @@ astropy.wcs
 
 - Fixed a crash while loading a WCS from headers containing duplicate SIP keywords. [#8893]
 
+- Fixed a possible buffer overflow when using too large negative indices for
+  ``cunit`` or ``ctype`` [#9151]
+
 
 Other Changes and Additions
 ---------------------------
