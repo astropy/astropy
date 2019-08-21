@@ -206,6 +206,7 @@ PyUnitListProxy_richcmp(
      * it's not an essential property of the instances.
      */
     PyUnitListProxy *lhs, *rhs;
+    Py_ssize_t idx;
     lhs = (PyUnitListProxy *)a;
     rhs = (PyUnitListProxy *)b;
     if (lhs->size != rhs->size) {
@@ -215,7 +216,7 @@ PyUnitListProxy_richcmp(
         Py_RETURN_TRUE;
       }
     }
-    for (Py_ssize_t idx = 0; idx < lhs->size; idx++) {
+    for (idx = 0; idx < lhs->size; idx++) {
       if (strncmp(lhs->array[idx], rhs->array[idx], ARRAYSIZE) != 0) {
         if (op == Py_EQ) {
           Py_RETURN_FALSE;
