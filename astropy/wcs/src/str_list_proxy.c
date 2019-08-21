@@ -66,11 +66,7 @@ static int
 PyStrListProxy_clear(
     PyStrListProxy *self) {
 
-  PyObject *tmp;
-
-  tmp = self->pyobject;
-  self->pyobject = NULL;
-  Py_XDECREF(tmp);
+  Py_CLEAR(self->pyobject);
 
   return 0;
 }

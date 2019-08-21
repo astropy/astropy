@@ -52,31 +52,12 @@ static int
 Wcs_clear(
     Wcs* self) {
 
-  PyObject* tmp;
-
-  tmp = self->py_det2im[0];
-  self->py_det2im[0] = NULL;
-  Py_XDECREF(tmp);
-
-  tmp = self->py_det2im[1];
-  self->py_det2im[1] = NULL;
-  Py_XDECREF(tmp);
-
-  tmp = self->py_sip;
-  self->py_sip = NULL;
-  Py_XDECREF(tmp);
-
-  tmp = self->py_distortion_lookup[0];
-  self->py_distortion_lookup[0] = NULL;
-  Py_XDECREF(tmp);
-
-  tmp = self->py_distortion_lookup[1];
-  self->py_distortion_lookup[1] = NULL;
-  Py_XDECREF(tmp);
-
-  tmp = self->py_wcsprm;
-  self->py_wcsprm = NULL;
-  Py_XDECREF(tmp);
+  Py_CLEAR(self->py_det2im[0]);
+  Py_CLEAR(self->py_det2im[1]);
+  Py_CLEAR(self->py_sip);
+  Py_CLEAR(self->py_distortion_lookup[0]);
+  Py_CLEAR(self->py_distortion_lookup[1]);
+  Py_CLEAR(self->py_wcsprm);
 
   return 0;
 }
@@ -497,8 +478,7 @@ Wcs_set_wcs(
     /*@shared@*/ PyObject* value,
     /*@unused@*/ void* closure) {
 
-  Py_XDECREF(self->py_wcsprm);
-  self->py_wcsprm = NULL;
+  Py_CLEAR(self->py_wcsprm);
   self->x.wcs = NULL;
 
   if (value != NULL && value != Py_None) {
@@ -536,8 +516,7 @@ Wcs_set_cpdis1(
     /*@shared@*/ PyObject* value,
     /*@unused@*/ void* closure) {
 
-  Py_XDECREF(self->py_distortion_lookup[0]);
-  self->py_distortion_lookup[0] = NULL;
+  Py_CLEAR(self->py_distortion_lookup[0]);
   self->x.cpdis[0] = NULL;
 
   if (value != NULL && value != Py_None) {
@@ -575,8 +554,7 @@ Wcs_set_cpdis2(
     /*@shared@*/ PyObject* value,
     /*@unused@*/ void* closure) {
 
-  Py_XDECREF(self->py_distortion_lookup[1]);
-  self->py_distortion_lookup[1] = NULL;
+  Py_CLEAR(self->py_distortion_lookup[1]);
   self->x.cpdis[1] = NULL;
 
   if (value != NULL && value != Py_None) {
@@ -614,8 +592,7 @@ Wcs_set_det2im1(
     /*@shared@*/ PyObject* value,
     /*@unused@*/ void* closure) {
 
-  Py_XDECREF(self->py_det2im[0]);
-  self->py_det2im[0] = NULL;
+  Py_CLEAR(self->py_det2im[0]);
   self->x.det2im[0] = NULL;
 
   if (value != NULL && value != Py_None) {
@@ -653,8 +630,7 @@ Wcs_set_det2im2(
     /*@shared@*/ PyObject* value,
     /*@unused@*/ void* closure) {
 
-  Py_XDECREF(self->py_det2im[1]);
-  self->py_det2im[1] = NULL;
+  Py_CLEAR(self->py_det2im[1]);
   self->x.det2im[1] = NULL;
 
   if (value != NULL && value != Py_None) {
@@ -692,8 +668,7 @@ Wcs_set_sip(
     /*@shared@*/ PyObject* value,
     /*@unused@*/ void* closure) {
 
-  Py_XDECREF(self->py_sip);
-  self->py_sip = NULL;
+  Py_CLEAR(self->py_sip);
   self->x.sip = NULL;
 
   if (value != NULL && value != Py_None) {
