@@ -504,6 +504,9 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+- Fixed equality test between ``cunit`` where the first element was equal but
+  the following elements differed. [#9154]
+
 - Fixed a crash while loading a WCS from headers containing duplicate SIP keywords. [#8893]
 
 - Fixed a possible buffer overflow when using too large negative indices for
