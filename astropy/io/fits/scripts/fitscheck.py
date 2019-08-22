@@ -40,10 +40,9 @@ Example uses of fitscheck:
 """
 
 
+import argparse
 import logging
-import optparse
 import sys
-import textwrap
 
 from astropy.tests.helper import catch_warnings
 from astropy.io import fits
@@ -51,53 +50,59 @@ from astropy.io import fits
 
 log = logging.getLogger('fitscheck')
 
+_DESCRIPTION = """
+e.g. fitscheck example.fits
+
+Verifies and optionally re-writes the CHECKSUM and DATASUM keywords
+for a .fits file.
+Optionally detects and fixes FITS standard compliance problems.
+"""
+
 
 def handle_options(args):
     if not len(args):
         args = ['-h']
 
-    parser = optparse.OptionParser(usage=textwrap.dedent("""
-        fitscheck [options] <.fits files...>
+    parser = argparse.ArgumentParser(
+        description=_DESCRIPTION,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
 
-        .e.g. fitscheck example.fits
+    parser.add_argument(
+        'fits_files', metavar='file', nargs='+',
+        help='.fits files to process.')
 
-        Verifies and optionally re-writes the CHECKSUM and DATASUM keywords
-        for a .fits file.
-        Optionally detects and fixes FITS standard compliance problems.
-        """.strip()))
-
-    parser.add_option(
+    parser.add_argument(
         '-k', '--checksum', dest='checksum_kind',
-        type='choice', choices=['standard', 'remove', 'none'],
+        choices=['standard', 'remove', 'none'],
         help='Choose FITS checksum mode or none.  Defaults standard.',
-        default='standard', metavar='[standard | remove | none]')
+        default='standard')
 
-    parser.add_option(
+    parser.add_argument(
         '-w', '--write', dest='write_file',
         help='Write out file checksums and/or FITS compliance fixes.',
         default=False, action='store_true')
 
-    parser.add_option(
+    parser.add_argument(
         '-f', '--force', dest='force',
         help='Do file update even if original checksum was bad.',
         default=False, action='store_true')
 
-    parser.add_option(
+    parser.add_argument(
         '-c', '--compliance', dest='compliance',
         help='Do FITS compliance checking; fix if possible.',
         default=False, action='store_true')
 
-    parser.add_option(
+    parser.add_argument(
         '-i', '--ignore-missing', dest='ignore_missing',
         help='Ignore missing checksums.',
         default=False, action='store_true')
 
-    parser.add_option(
+    parser.add_argument(
         '-v', '--verbose', dest='verbose', help='Generate extra output.',
         default=False, action='store_true')
 
     global OPTIONS
-    OPTIONS, fits_files = parser.parse_args(args)
+    OPTIONS = parser.parse_args(args)
 
     if OPTIONS.checksum_kind == 'none':
         OPTIONS.checksum_kind = False
@@ -105,7 +110,7 @@ def handle_options(args):
         OPTIONS.write_file = True
         OPTIONS.force = True
 
-    return fits_files
+    return OPTIONS.fits_files
 
 
 def setup_logging():

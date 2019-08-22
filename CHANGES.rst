@@ -48,6 +48,9 @@ astropy.io.misc
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Changed the ``fitscheck`` and ``fitsdiff`` script to use the ``argparse``
+  module instead of ``optparse``. [#9148]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 

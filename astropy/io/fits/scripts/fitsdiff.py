@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import argparse
 import glob
 import logging
-import optparse
 import os
 import sys
 import textwrap
@@ -35,7 +35,7 @@ in the directory /machine/data1.
 """.strip()
 
 
-EPILOG = """
+EPILOG = fill("""
 If the two files are identical within the specified conditions, it will report
 "No difference is found." If the value(s) of -c and -k takes the form
 '@filename', list is in the text file 'filename', and each line in that text
@@ -57,72 +57,78 @@ each argument present will override the corresponding argument on the
 command-line unless the --exact option is specified.  The FITSDIFF_SETTINGS
 environment variable exists to make it easier to change the
 behavior of fitsdiff on a global level, such as in a set of regression tests.
-""".strip()
+""".strip(), width=80)
 
 
-class HelpFormatter(optparse.TitledHelpFormatter):
-    def format_epilog(self, epilog):
-        return '\n{}\n'.format(fill(epilog, self.width))
+class StoreListAction(argparse.Action):
+    def __init__(self, option_strings, dest, nargs=None, **kwargs):
+        if nargs is not None:
+            raise ValueError("nargs not allowed")
+        super().__init__(option_strings, dest, nargs, **kwargs)
 
-
-def handle_options(argv=None):
-    # This is a callback--less trouble than actually adding a new action type
-    def store_list(option, opt, value, parser):
-        setattr(parser.values, option.dest, [])
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, [])
         # Accept either a comma-separated list or a filename (starting with @)
         # containing a value on each line
-        if value and value[0] == '@':
-            value = value[1:]
+        if values and values[0] == '@':
+            value = values[1:]
             if not os.path.exists(value):
-                log.warning(f'{opt} argument {value} does not exist')
+                log.warning(f'{self.dest} argument {value} does not exist')
                 return
             try:
                 values = [v.strip() for v in open(value, 'r').readlines()]
-                setattr(parser.values, option.dest, values)
+                setattr(namespace, self.dest, values)
             except OSError as exc:
                 log.warning('reading {} for {} failed: {}; ignoring this '
-                            'argument'.format(value, opt, exc))
+                            'argument'.format(value, self.dest, exc))
                 del exc
         else:
-            setattr(parser.values, option.dest,
-                    [v.strip() for v in value.split(',')])
+            setattr(namespace, self.dest,
+                    [v.strip() for v in values.split(',')])
 
-    parser = optparse.OptionParser(usage=USAGE, epilog=EPILOG,
-                                   formatter=HelpFormatter())
 
-    parser.add_option(
+def handle_options(argv=None):
+    parser = argparse.ArgumentParser(
+        description=USAGE, epilog=EPILOG,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    parser.add_argument(
+        'fits_files', metavar='file', nargs='+',
+        help='.fits files to process.')
+
+    parser.add_argument(
         '-q', '--quiet', action='store_true',
         help='Produce no output and just return a status code.')
 
-    parser.add_option(
-        '-n', '--num-diffs', type='int', default=10, dest='numdiffs',
+    parser.add_argument(
+        '-n', '--num-diffs', type=int, default=10, dest='numdiffs',
         metavar='INTEGER',
         help='Max number of data differences (image pixel or table element) '
-             'to report per extension (default %default).')
+             'to report per extension (default %(default)s).')
 
-    parser.add_option(
-        '-d', '--difference-tolerance', type='float', default=None,
+    parser.add_argument(
+        '-d', '--difference-tolerance', type=float, default=None,
         dest='tolerance', metavar='NUMBER',
         help='DEPRECATED. Alias for "--relative-tolerance". '
-             'Deprecated, provided for backward compatibility (default %default).')
+             'Deprecated, provided for backward compatibility (default %(default)s).')
 
-    parser.add_option(
-        '-r', '--rtol', '--relative-tolerance', type='float', default=None,
+    parser.add_argument(
+        '-r', '--rtol', '--relative-tolerance', type=float, default=None,
         dest='rtol', metavar='NUMBER',
         help='The relative tolerance for comparison of two numbers, '
              'specifically two floating point numbers.  This applies to data '
              'in both images and tables, and to floating point keyword values '
-             'in headers (default %default).')
+             'in headers (default %(default)s).')
 
-    parser.add_option(
-        '-a', '--atol', '--absolute-tolerance', type='float', default=None,
+    parser.add_argument(
+        '-a', '--atol', '--absolute-tolerance', type=float, default=None,
         dest='atol', metavar='NUMBER',
         help='The absolute tolerance for comparison of two numbers, '
              'specifically two floating point numbers.  This applies to data '
              'in both images and tables, and to floating point keyword values '
-             'in headers (default %default).')
+             'in headers (default %(default)s).')
 
-    parser.add_option(
+    parser.add_argument(
         '-b', '--no-ignore-blanks', action='store_false',
         dest='ignore_blanks', default=True,
         help="Don't ignore trailing blanks (whitespace) in string values.  "
@@ -131,70 +137,67 @@ def handle_options(argv=None):
              "without this option 'ABCDEF   ' and 'ABCDEF' are considered "
              "equivalent. ")
 
-    parser.add_option(
+    parser.add_argument(
         '--no-ignore-blank-cards', action='store_false',
         dest='ignore_blank_cards', default=True,
         help="Don't ignore entirely blank cards in headers.  Normally fitsdiff "
              "does not consider blank cards when comparing headers, but this "
              "will ensure that even blank cards match up. ")
 
-    parser.add_option(
+    parser.add_argument(
         '--exact', action='store_true',
         dest='exact_comparisons', default=False,
         help="Report ALL differences, "
              "overriding command-line options and FITSDIFF_SETTINGS. ")
 
-    parser.add_option(
+    parser.add_argument(
         '-o', '--output-file', metavar='FILE',
         help='Output results to this file; otherwise results are printed to '
              'stdout.')
 
-    parser.add_option(
-        '-u', '--ignore-hdus', action='callback', callback=store_list,
-        nargs=1, type='str', default=[], dest='ignore_hdus',
+    parser.add_argument(
+        '-u', '--ignore-hdus', action=StoreListAction,
+        default=[], dest='ignore_hdus',
         metavar='HDU_NAMES',
         help='Comma-separated list of HDU names not to be compared.  HDU '
              'names may contain wildcard patterns.')
 
-    group = optparse.OptionGroup(parser, 'Header Comparison Options')
+    group = parser.add_argument_group('Header Comparison Options')
 
-    group.add_option(
-        '-k', '--ignore-keywords', action='callback', callback=store_list,
-        nargs=1, type='str', default=[], dest='ignore_keywords',
+    group.add_argument(
+        '-k', '--ignore-keywords', action=StoreListAction,
+        default=[], dest='ignore_keywords',
         metavar='KEYWORDS',
         help='Comma-separated list of keywords not to be compared.  Keywords '
              'may contain wildcard patterns.  To exclude all keywords, use '
              '"*"; make sure to have double or single quotes around the '
              'asterisk on the command-line.')
 
-    group.add_option(
-        '-c', '--ignore-comments', action='callback', callback=store_list,
-        nargs=1, type='str', default=[], dest='ignore_comments',
-        metavar='KEYWORDS',
+    group.add_argument(
+        '-c', '--ignore-comments', action=StoreListAction,
+        default=[], dest='ignore_comments',
+        metavar='COMMENTS',
         help='Comma-separated list of keywords whose comments will not be '
              'compared.  Wildcards may be used as with --ignore-keywords.')
 
-    parser.add_option_group(group)
-    group = optparse.OptionGroup(parser, 'Table Comparison Options')
+    group = parser.add_argument_group('Table Comparison Options')
 
-    group.add_option(
-        '-f', '--ignore-fields', action='callback', callback=store_list,
-        nargs=1, type='str', default=[], dest='ignore_fields',
+    group.add_argument(
+        '-f', '--ignore-fields', action=StoreListAction,
+        default=[], dest='ignore_fields',
         metavar='COLUMNS',
         help='Comma-separated list of fields (i.e. columns) not to be '
              'compared.  All columns may be excluded using "*" as with '
              '--ignore-keywords.')
 
-    parser.add_option_group(group)
-    options, args = parser.parse_args(argv)
+    options = parser.parse_args(argv)
 
     # Determine which filenames to compare
-    if len(args) != 2:
-        parser.error('\n' + textwrap.fill(
-            'fitsdiff requires two arguments; see `fitsdiff --help` for more '
-            'details.', parser.formatter.width))
+    if len(options.fits_files) != 2:
+        parser.error('\nfitsdiff requires two arguments; '
+                     'see `fitsdiff --help` for more details.')
 
-    return options, args
+    return options
 
 
 def setup_logging(outfile=None):
@@ -281,7 +284,7 @@ def main(args=None):
     if 'FITSDIFF_SETTINGS' in os.environ:
         args = os.environ['FITSDIFF_SETTINGS'].split() + args
 
-    opts, args = handle_options(args)
+    opts = handle_options(args)
 
     if opts.tolerance is not None:
         warnings.warn(
@@ -307,7 +310,7 @@ def main(args=None):
 
     if not opts.quiet:
         setup_logging(opts.output_file)
-    files = match_files(args)
+    files = match_files(opts.fits_files)
 
     close_file = False
     if opts.quiet:
