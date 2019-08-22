@@ -61,15 +61,15 @@ This transformation has 3 pixel and 3 world dimensions
 
 Array shape (Numpy order): (30, 20, 10)
 
-Pixel Dim  Data size  Bounds
-        0         10  (-1, 11)
-        1         20  (-2, 18)
-        2         30  (5, 15)
+Pixel Dim  Axis Name  Data size  Bounds
+        0  None              10  (-1, 11)
+        1  None              20  (-2, 18)
+        2  None              30  (5, 15)
 
-World Dim  Physical Type     Units
-        0  pos.galactic.lat  deg
-        1  em.freq           Hz
-        2  pos.galactic.lon  deg
+World Dim  Axis Name  Physical Type     Units
+        0  None       pos.galactic.lat  deg
+        1  None       em.freq           Hz
+        2  None       pos.galactic.lon  deg
 
 Correlation between pixel and world axes:
 
@@ -125,13 +125,13 @@ This transformation has 2 pixel and 2 world dimensions
 
 Array shape (Numpy order): (30, 10)
 
-Pixel Dim  Data size  Bounds
-        0         10  (-1, 11)
-        1         30  (5, 15)
+Pixel Dim  Axis Name  Data size  Bounds
+        0  None              10  (-1, 11)
+        1  None              30  (5, 15)
 
-World Dim  Physical Type     Units
-        0  pos.galactic.lat  deg
-        1  pos.galactic.lon  deg
+World Dim  Axis Name  Physical Type     Units
+        0  None       pos.galactic.lat  deg
+        1  None       pos.galactic.lon  deg
 
 Correlation between pixel and world axes:
 
@@ -181,15 +181,15 @@ This transformation has 3 pixel and 3 world dimensions
 
 Array shape (Numpy order): (30, 6, 10)
 
-Pixel Dim  Data size  Bounds
-        0         10  (-1, 11)
-        1          6  (-6, 14)
-        2         30  (5, 15)
+Pixel Dim  Axis Name  Data size  Bounds
+        0  None              10  (-1, 11)
+        1  None               6  (-6, 14)
+        2  None              30  (5, 15)
 
-World Dim  Physical Type     Units
-        0  pos.galactic.lat  deg
-        1  em.freq           Hz
-        2  pos.galactic.lon  deg
+World Dim  Axis Name  Physical Type     Units
+        0  None       pos.galactic.lat  deg
+        1  None       em.freq           Hz
+        2  None       pos.galactic.lon  deg
 
 Correlation between pixel and world axes:
 
@@ -245,14 +245,14 @@ This transformation has 2 pixel and 3 world dimensions
 
 Array shape (Numpy order): (30, 20)
 
-Pixel Dim  Data size  Bounds
-        0         20  (-2, 18)
-        1         30  (5, 15)
+Pixel Dim  Axis Name  Data size  Bounds
+        0  None              20  (-2, 18)
+        1  None              30  (5, 15)
 
-World Dim  Physical Type     Units
-        0  pos.galactic.lat  deg
-        1  em.freq           Hz
-        2  pos.galactic.lon  deg
+World Dim  Axis Name  Physical Type     Units
+        0  None       pos.galactic.lat  deg
+        1  None       em.freq           Hz
+        2  None       pos.galactic.lon  deg
 
 Correlation between pixel and world axes:
 
@@ -308,15 +308,15 @@ This transformation has 3 pixel and 3 world dimensions
 
 Array shape (Numpy order): (30, 20, 5)
 
-Pixel Dim  Data size  Bounds
-        0          5  (-6, 6)
-        1         20  (-2, 18)
-        2         30  (5, 15)
+Pixel Dim  Axis Name  Data size  Bounds
+        0  None               5  (-6, 6)
+        1  None              20  (-2, 18)
+        2  None              30  (5, 15)
 
-World Dim  Physical Type     Units
-        0  pos.galactic.lat  deg
-        1  em.freq           Hz
-        2  pos.galactic.lon  deg
+World Dim  Axis Name  Physical Type     Units
+        0  None       pos.galactic.lat  deg
+        1  None       em.freq           Hz
+        2  None       pos.galactic.lon  deg
 
 Correlation between pixel and world axes:
 
@@ -379,15 +379,15 @@ This transformation has 3 pixel and 3 world dimensions
 
 Array shape (Numpy order): (30, 20, 5)
 
-Pixel Dim  Data size  Bounds
-        0          5  (-6, 6)
-        1         20  (-2, 18)
-        2         30  (5, 15)
+Pixel Dim  Axis Name  Data size  Bounds
+        0  None               5  (-6, 6)
+        1  None              20  (-2, 18)
+        2  None              30  (5, 15)
 
-World Dim  Physical Type     Units
-        0  pos.galactic.lat  deg
-        1  em.freq           Hz
-        2  pos.galactic.lon  deg
+World Dim  Axis Name  Physical Type     Units
+        0  None       pos.galactic.lat  deg
+        1  None       em.freq           Hz
+        2  None       pos.galactic.lon  deg
 
 Correlation between pixel and world axes:
 
@@ -464,15 +464,15 @@ This transformation has 3 pixel and 3 world dimensions
 
 Array shape (Numpy order): None
 
-Pixel Dim  Data size  Bounds
-        0       None  None
-        1       None  None
-        2       None  None
+Pixel Dim  Axis Name  Data size  Bounds
+        0  None            None  None
+        1  None            None  None
+        2  None            None  None
 
-World Dim  Physical Type     Units
-        0  pos.galactic.lat  deg
-        1  em.freq           Hz
-        2  pos.galactic.lon  deg
+World Dim  Axis Name  Physical Type     Units
+        0  None       pos.galactic.lat  deg
+        1  None       em.freq           Hz
+        2  None       pos.galactic.lon  deg
 
 Correlation between pixel and world axes:
 
@@ -552,15 +552,15 @@ This transformation has 3 pixel and 3 world dimensions
 
 Array shape (Numpy order): (30, 20, 10)
 
-Pixel Dim  Data size  Bounds
-        0         10  (-1, 11)
-        1         20  (-2, 18)
-        2         30  (5, 15)
+Pixel Dim  Axis Name  Data size  Bounds
+        0  None              10  (-1, 11)
+        1  None              20  (-2, 18)
+        2  None              30  (5, 15)
 
-World Dim  Physical Type     Units
-        0  pos.galactic.lat  deg
-        1  None              unknown
-        2  pos.galactic.lon  deg
+World Dim  Axis Name  Physical Type     Units
+        0  None       pos.galactic.lat  deg
+        1  None       None              Hz
+        2  None       pos.galactic.lon  deg
 
 Correlation between pixel and world axes:
 

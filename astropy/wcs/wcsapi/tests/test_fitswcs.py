@@ -39,6 +39,9 @@ def test_empty():
     assert wcs.world_axis_physical_types == [None]
     assert wcs.world_axis_units == ['']
 
+    assert wcs.pixel_axis_names == [None]
+    assert wcs.world_axis_names == [None]
+
     assert_equal(wcs.axis_correlation_matrix, True)
 
     assert wcs.world_axis_object_components == [('world', 0, 'value')]
@@ -114,6 +117,9 @@ def test_simple_celestial():
     assert wcs.pixel_shape is None
     assert wcs.world_axis_physical_types == ['pos.eq.ra', 'pos.eq.dec']
     assert wcs.world_axis_units == ['deg', 'deg']
+
+    assert wcs.pixel_axis_names == [None, None]
+    assert wcs.world_axis_names == [None, None]
 
     assert_equal(wcs.axis_correlation_matrix, True)
 
@@ -222,7 +228,12 @@ def test_spectral_cube():
     assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
     assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
 
-    assert_equal(wcs.axis_correlation_matrix, [[True, False, True], [False, True, False], [True, False, True]])
+    assert wcs.pixel_axis_names == [None, None, None]
+    assert wcs.world_axis_names == [None, None, None]
+
+    assert_equal(wcs.axis_correlation_matrix, [[True, False, True],
+                                               [False, True, False],
+                                               [True, False, True]])
 
     assert wcs.world_axis_object_components == [('celestial', 1, 'spherical.lat.degree'),
                                                   ('freq', 0, 'value'),
@@ -305,7 +316,12 @@ def test_spectral_cube_nonaligned():
     assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
     assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
 
-    assert_equal(wcs.axis_correlation_matrix, [[True, True, True], [False, True, True], [True, True, True]])
+    assert wcs.pixel_axis_names == [None, None, None]
+    assert wcs.world_axis_names == [None, None, None]
+
+    assert_equal(wcs.axis_correlation_matrix, [[True, True, True],
+                                               [False, True, True],
+                                               [True, True, True]])
 
     # NOTE: we check world_axis_object_components and world_axis_object_classes
     # again here because in the past this failed when non-aligned axes were
@@ -396,7 +412,12 @@ def test_time_cube():
     assert wcs.world_axis_physical_types == ['pos.eq.dec', 'pos.eq.ra', 'time']
     assert wcs.world_axis_units == ['deg', 'deg', 's']
 
-    assert_equal(wcs.axis_correlation_matrix, [[True, True, False], [True, True, False], [False, False, True]])
+    assert wcs.pixel_axis_names == [None, None, None]
+    assert wcs.world_axis_names == [None, None, None]
+
+    assert_equal(wcs.axis_correlation_matrix, [[True, True, False],
+                                               [True, True, False],
+                                               [False, False, True]])
 
     with pytest.warns(FutureWarning):
         assert wcs.world_axis_object_components == [
