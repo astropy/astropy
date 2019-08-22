@@ -51,7 +51,7 @@ from astropy.io import fits
 log = logging.getLogger('fitscheck')
 
 _DESCRIPTION = """
-.e.g. fitscheck example.fits
+e.g. fitscheck example.fits
 
 Verifies and optionally re-writes the CHECKSUM and DATASUM keywords
 for a .fits file.
