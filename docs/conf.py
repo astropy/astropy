@@ -120,6 +120,11 @@ version = astropy.__version__.split('-', 1)[0]
 release = astropy.__version__
 
 
+# -- Options for the module index ---------------------------------------------
+
+modindex_common_prefix = ['astropy.']
+
+
 # -- Options for HTML output ---------------------------------------------------
 
 # A NOTE ON HTML THEMES
