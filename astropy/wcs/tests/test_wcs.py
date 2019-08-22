@@ -1190,20 +1190,31 @@ def test_cunit():
     w1 = wcs.WCS(naxis=2)
     w2 = wcs.WCS(naxis=2)
     w3 = wcs.WCS(naxis=2)
+    w4 = wcs.WCS(naxis=2)
     # Initializing the values of cunit
     w1.wcs.cunit = ['deg', 'm/s']
     w2.wcs.cunit = ['km/h', 'km/h']
     w3.wcs.cunit = ['deg', 'm/s']
+    w4.wcs.cunit = ['deg', 'deg']
 
     # Equality checking a cunit with itself
     assert w1.wcs.cunit == w1.wcs.cunit
+    assert not w1.wcs.cunit != w1.wcs.cunit
     # Equality checking of two different cunit object having same values
     assert w1.wcs.cunit == w3.wcs.cunit
+    assert not w1.wcs.cunit != w3.wcs.cunit
+    # Equality checking of two different cunit object having the same first unit
+    # but different second unit (see #9154)
+    assert not w1.wcs.cunit == w4.wcs.cunit
+    assert w1.wcs.cunit != w4.wcs.cunit
     # Inequality checking of two different cunit object having different values
     assert not w1.wcs.cunit == w2.wcs.cunit
+    assert w1.wcs.cunit != w2.wcs.cunit
     # Inequality checking of cunit with a list of literals
     assert not w1.wcs.cunit == [1, 2, 3]
+    assert w1.wcs.cunit != [1, 2, 3]
     # Inequality checking with some characters
+    assert not w1.wcs.cunit == ['a', 'b', 'c']
     assert w1.wcs.cunit != ['a', 'b', 'c']
     # Comparison is not implemented TypeError will raise
     with pytest.raises(TypeError):
