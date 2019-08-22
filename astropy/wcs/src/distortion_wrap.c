@@ -25,11 +25,7 @@ static int
 PyDistLookup_clear(
     PyDistLookup* self) {
 
-  PyObject* tmp;
-
-  tmp = (PyObject*)self->py_data;
-  self->py_data = NULL;
-  Py_XDECREF(tmp);
+  Py_CLEAR(self->py_data);
 
   return 0;
 }
@@ -177,8 +173,7 @@ PyDistLookup_set_data(
   PyArrayObject* value_array = NULL;
 
   if (value == NULL) {
-    Py_XDECREF(self->py_data);
-    self->py_data = NULL;
+    Py_CLEAR(self->py_data);
     self->x.data = NULL;
     return 0;
   }
