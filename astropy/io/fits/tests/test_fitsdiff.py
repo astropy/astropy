@@ -15,6 +15,10 @@ from astropy.version import version
 
 
 class TestFITSDiff_script(FitsTestCase):
+    def test_help(self):
+        with pytest.raises(SystemExit) as e:
+            fitsdiff.main(['-h'])
+        assert e.value.code == 0
 
     def test_noargs(self):
         with pytest.raises(SystemExit) as e:
