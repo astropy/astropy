@@ -314,6 +314,21 @@ def test_add_array_even_shape():
     assert np.all(added_array == large_test_array_ref)
 
 
+def test_add_array_equal_shape():
+    """
+    Test add_array_2D utility function.
+
+    Test by adding an array of ones out of an array of zeros.
+    """
+    large_test_array = np.zeros((11, 11))
+    small_test_array = np.ones((11, 11))
+    large_test_array_ref = large_test_array.copy()
+    large_test_array_ref += small_test_array
+
+    added_array = add_array(large_test_array, small_test_array, (5, 5))
+    assert np.all(added_array == large_test_array_ref)
+
+
 @pytest.mark.parametrize(('position', 'subpixel_index'),
                          zip(test_positions, test_position_indices))
 def test_subpixel_indices(position, subpixel_index):

@@ -236,7 +236,8 @@ def add_array(array_large, array_small, position):
     array_large : `~numpy.ndarray`
         Large array.
     array_small : `~numpy.ndarray`
-        Small array to add.
+        Small array to add. Can be equal to ``array_large`` in size in a given
+        dimension, but not larger.
     position : tuple
         Position of the small array's center, with respect to the large array.
         Coordinates should be in the same order as the array shape.
@@ -267,8 +268,8 @@ def add_array(array_large, array_small, position):
            [0., 0., 0., 0., 0.],
            [0., 0., 0., 0., 0.]])
     """
-    # Check if large array is really larger
-    if all(large_shape > small_shape for (large_shape, small_shape)
+    # Check if large array is not smaller
+    if all(large_shape >= small_shape for (large_shape, small_shape)
            in zip(array_large.shape, array_small.shape)):
         large_slices, small_slices = overlap_slices(array_large.shape,
                                                     array_small.shape,
