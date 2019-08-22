@@ -166,6 +166,8 @@ astropy.wcs
 - Added a ``wcs_as_str`` function to ``astropy.wcs.wcsapi`` to show a summary
 - Added a ``wcs_info_str`` function to ``astropy.wcs.wcsapi`` to show a summary
   of an APE-14-compliant WCS as a string. [#8546, #9207]
+- Added two new optional attributes to the APE 14 low-level WCS: ``pixel_axis_names``
+  and ``world_axis_names``. [#9156]
 
 API Changes
 -----------
