@@ -460,6 +460,10 @@ bounding box. [#8799]
 astropy.nddata
 ^^^^^^^^^^^^^^
 
+- Fix to ``add_array``, which now accepts ``array_small`` having dimensions
+  equal to ``array_large``, instead of only allowing smaller sizes of
+  arrays. [#9118]
+
 astropy.samp
 ^^^^^^^^^^^^
 
