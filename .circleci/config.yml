@@ -97,7 +97,7 @@ jobs:
       - run:
           name: Run tests
           command: |
-              pip install pytest-openfiles --upgrade
+              pip3 install pytest-openfiles --upgrade
               python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results"
       - store_artifacts:
           path: results
