@@ -6,13 +6,13 @@ Compound Models
 .. versionadded:: 1.0
 
 As noted in the :ref:`introduction to the modeling package
-<compound-models-intro>`, it is now possible to create new models just by
+<compound-models-intro>`, it is now possible to create new models by
 combining existing models using the arithmetic operators ``+``, ``-``, ``*``,
 ``/``, and ``**``, as well as by model composition using ``|`` and
 concatenation (explained below) with ``&``.
 
 
-Some terminology
+Some Terminology
 ================
 
 In discussing the compound model feature, it is useful to be clear about a
@@ -23,20 +23,28 @@ few terms where there have been points of confusion:
   - All models in `astropy.modeling`, whether it represents some
     `function <astropy.modeling.functional_models>`, a
     `rotation <astropy.modeling.rotations>`, etc., are represented in the
-    abstract by a model *class*--specifically a subclass of
-    `~astropy.modeling.Model`--that encapsulates the routine for evaluating the
+    abstract by a model *class* — specifically a subclass of
+    `~astropy.modeling.Model` — that encapsulates the routine for evaluating the
     model, a list of its required parameters, and other metadata about the
     model.
 
   - Per typical object-oriented parlance, a model *instance* is the object
-    created when when calling a model class with some arguments--in most cases
+    created when when calling a model class with some arguments — in most cases
     values for the model's parameters.
 
   A model class, by itself, cannot be used to perform any computation because
   most models, at least, have one or more parameters that must be specified
   before the model can be evaluated on some input data. However, we can still
-  get some information about a model class from its representation.  For
-  example::
+  get some information about a model class from its representation.
+
+Examples
+========
+
+..
+  EXAMPLE START
+  Compound Modeling Using `astropy.modeling`
+
+To get information about a model class from its representation::
 
       >>> from astropy.modeling.models import Gaussian1D
       >>> Gaussian1D
@@ -46,44 +54,47 @@ few terms where there have been points of confusion:
       Outputs: ('y',)
       Fittable parameters: ('amplitude', 'mean', 'stddev')
 
-  We can then create a model *instance* by passing in values for the three
-  parameters::
+We can then create a model *instance* by passing in values for the three
+parameters::
 
       >>> my_gaussian = Gaussian1D(amplitude=1.0, mean=0, stddev=0.2)
       >>> my_gaussian  # doctest: +FLOAT_CMP
       <Gaussian1D(amplitude=1.0, mean=0.0, stddev=0.2)>
 
-  We now have an *instance* of `~astropy.modeling.functional_models.Gaussian1D`
-  with all its parameters (and in principle other details like fit constraints)
-  filled in so that we can perform calculations with it as though it were a
-  function::
+We now have an *instance* of `~astropy.modeling.functional_models.Gaussian1D`
+with all its parameters (and in principle other details like fit constraints)
+filled in so that we can perform calculations with it as though it were a
+function::
 
       >>> my_gaussian(0.2)  # doctest: +FLOAT_CMP
       0.6065306597126334
 
-  In many cases this document just refers to "models", where the class/instance
-  distinction is either irrelevant or clear from context.  But a distinction
-  will be made where necessary.
+..
+  EXAMPLE END
 
-- A *compound model* can be created by combining two or more existing model instances
-  which can be models that come with Astropy, :doc:`user defined models <new>`, or
-  other compound models--using Python expressions consisting of one or more of the s
-  upported binary operators. The combination of model classes is deprecated and will
-  be removed in version 4.0.
+In many cases this document just refers to "models," where the class/instance
+distinction is either irrelevant or clear from context. But a distinction
+will be made where necessary.
+
+- A *compound model* can be created by combining two or more existing model
+  instances which can be models that come with ``astropy``, :doc:`user defined
+  models <new>`, or other compound models — using Python expressions consisting
+  of one or more of the supported binary operators. The combination of model
+  classes is deprecated and will be removed in version 4.0.
 
 - In some places the term *composite model* is used interchangeably with
-  *compound model*. However, this document uses the
-  term *composite model* to refer *only* to the case of a compound model
-  created from the functional composition of two or more models using the pipe
-  operator ``|`` as explained below.  This distinction is used consistently
-  within this document, but it may be helpful to understand the distinction.
+  *compound model*. However, this document uses the term *composite model* to
+  refer *only* to the case of a compound model created from the functional
+  composition of two or more models using the pipe operator ``|`` as explained
+  below. This distinction is used consistently within this document, but it
+  may be helpful to understand the distinction.
 
 
-Creating compound models
+Creating Compound Models
 ========================
 
 As discussed in the :ref:`introduction to compound models
-<compound-models-intro>`, the only way, currently, to create compound models is
+<compound-models-intro>`, currently the only way to create compound models is
 to combine existing single models and/or compound models using expressions in
 Python with the binary operators ``+``, ``-``, ``*``, ``/``, ``**``, ``|``,
 and ``&``, each of which is discussed in the following sections.
@@ -91,13 +102,21 @@ and ``&``, each of which is discussed in the following sections.
 
 .. warning:: Creating compound models by combining classes is deprecated and will be removed in v4.0.
 
+Examples
+========
+
+..
+  EXAMPLE START
+  Creating Compound Models Using `astropy.modeling`
+
 The result of combining two models is a model instance::
 
     >>> two_gaussians = Gaussian1D(1.1, 0.1, 0.2) + Gaussian1D(2.5, 0.5, 0.1)
     >>> two_gaussians  # doctest: +FLOAT_CMP
     <CompoundModel...(amplitude_0=1.1, mean_0=0.1, stddev_0=0.2, amplitude_1=2.5, mean_1=0.5, stddev_1=0.1)>
 
-This expression creates a new model instance that is ready to be used for evaluation::
+This expression creates a new model instance that is ready to be used for
+evaluation::
 
     >>> two_gaussians(0.2)  # doctest: +FLOAT_CMP
     0.9985190841886609
@@ -119,18 +138,18 @@ The ``print`` function provides more information about this object::
         ----------- ------ -------- ----------- ------ --------
                 1.1    0.1      0.2         2.5    0.5      0.1
 
-There are a number of things to point out here:  This model has six
+There are a number of things to point out here: this model has six
 fittable parameters. How parameters are handled is discussed further in the
-section on :ref:`compound-model-parameters`.  We also see that there is a
+section on :ref:`compound-model-parameters`. We also see that there is a
 listing of the *expression* that was used to create this compound model, which
-in this case is summarized as ``[0] + [1]``.  The ``[0]`` and ``[1]`` refer to
+in this case is summarized as ``[0] + [1]``. The ``[0]`` and ``[1]`` refer to
 the first and second components of the model listed next (in this case both
 components are the `~astropy.modeling.functional_models.Gaussian1D` objects).
 
-Each component of a compound model is a single, non-compound model.  This is
+Each component of a compound model is a single, noncompound model. This is
 the case even when including an existing compound model in a new expression.
-The existing compound model is not treated as a single model--instead the
-expression represented by that compound model is extended.  An expression
+The existing compound model is not treated as a single model — instead the
+expression represented by that compound model is extended. An expression
 involving two or more compound models results in a new expression that is the
 concatenation of all involved models' expressions::
 
@@ -154,6 +173,8 @@ concatenation of all involved models' expressions::
         ----------- ------ -------- ----------- ... -------- ----------- ------ --------
                 1.1    0.1      0.2         2.5 ...      0.2         2.5    0.5      0.1
 
+..
+  EXAMPLE END
 
 Model names
 -----------
