@@ -867,6 +867,8 @@ astropy.coordinates
   [#8834]
 
 - Passing a NaN to ``Distance`` no longer raises a warning. [#9598]
+- The ``SkyCoord.from_name()`` and Sesame name resolving functionality now
+  optionally caches results locally. [#9162]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
