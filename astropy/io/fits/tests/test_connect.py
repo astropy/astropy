@@ -115,27 +115,28 @@ class TestSingleTable:
 
     @pytest.mark.skipif('not HAS_YAML')
     def test_with_custom_units_qtable(self, tmpdir):
-        # Test only for QTable - for Table's Column, new units are dropped.
+        # Test only for QTable - for Table's Column, new units are dropped
+        # (as is checked in test_write_drop_nonstandard_units).
         filename = str(tmpdir.join('test_with_units.fits'))
         unit = u.def_unit('bandpass_sol_lum')
         t = QTable()
         t['l'] = np.ones(5) * unit
-        with catch_warnings(u.UnitsWarning) as w:
+        with catch_warnings(AstropyUserWarning) as w:
             t.write(filename, overwrite=True)
         assert len(w) == 1
         assert 'bandpass_sol_lum' in str(w[0].message)
         # Just reading back, the data is fine but the unit is not recognized.
         with catch_warnings() as w:
-            t2 = QTable.read(filename, astropy_native=True)
+            t2 = QTable.read(filename)
         assert isinstance(t2['l'].unit, u.UnrecognizedUnit)
         assert str(t2['l'].unit) == 'bandpass_sol_lum'
         assert len(w) == 1
         assert "'bandpass_sol_lum' did not parse" in str(w[0].message)
         assert np.all(t2['l'].value == t['l'].value)
 
-        # But if we enable the unit, it should work.
+        # But if we enable the unit, it should be recognized.
         with u.add_enabled_units(unit):
-            t3 = QTable.read(filename, astropy_native=True)
+            t3 = QTable.read(filename)
             assert t3['l'].unit is unit
             assert equal_data(t3, t)
 
@@ -224,8 +225,6 @@ class TestSingleTable:
         with fits.open(filename) as ff:
             hdu = ff[1]
             assert 'TUNIT1' not in hdu.header
-            t2 = table_type.read(hdu, astropy_native=False)
-        assert t2['a'].unit is None
 
     def test_memmap(self, tmpdir):
         filename = str(tmpdir.join('test_simple.fts'))
