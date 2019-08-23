@@ -101,7 +101,7 @@ def _decode_mixins(tbl):
     # Use the `datatype` attribute info to update column attributes that are
     # NOT already handled via standard FITS column keys (name, dtype, unit).
     for col in info['datatype']:
-        for attr in ['description', 'meta', 'unit']:
+        for attr in ['description', 'meta']:
             if attr in col:
                 setattr(tbl[col['name']].info, attr, col[attr])
 
