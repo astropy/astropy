@@ -4,15 +4,19 @@
 This module contains tests for the name resolve convenience module.
 """
 
+import os
 import time
 import urllib.request
 
 import pytest
 import numpy as np
 
-from astropy.coordinates.name_resolve import (get_icrs_coordinates, NameResolveError,
-                            sesame_database, _parse_response, sesame_url)
+from astropy.coordinates.name_resolve import (get_icrs_coordinates,
+                                              NameResolveError,
+                                              sesame_database, _parse_response,
+                                              sesame_url)
 from astropy.coordinates.sky_coordinate import SkyCoord
+from astropy.config import paths
 from astropy import units as u
 
 _cached_ngc3642 = dict()
@@ -134,6 +138,49 @@ def test_names():
     icrs_true = SkyCoord(ra="07h 34m 35.87s", dec="+31d 53m 17.8s")
     np.testing.assert_almost_equal(icrs.ra.degree, icrs_true.ra.degree, 1)
     np.testing.assert_almost_equal(icrs.dec.degree, icrs_true.dec.degree, 1)
+
+
+@pytest.mark.remote_data
+def test_name_resolve_cache(tmpdir):
+    from astropy.utils.data import _get_download_cache_locs
+    import shelve
+
+    temp_cache_dir = str(tmpdir.mkdir('cache'))
+    with paths.set_temp_cache(temp_cache_dir, delete=True):
+        download_dir, urlmapfn = _get_download_cache_locs()
+        icrs = get_icrs_coordinates("castor", cache=True)
+
+        with shelve.open(urlmapfn) as url2hash:
+            for k in url2hash.keys():
+                if 'nph-sesame/A?castor' in k:
+                    filename = url2hash[k]
+                    break
+            else:
+                raise AssertionError('sesame url key not added to cache')
+
+        assert os.path.isdir(download_dir)
+        assert os.path.isfile(filename)
+        mtime1 = os.path.getmtime(filename)
+        nfiles1 = len(os.listdir(download_dir))
+
+        # Try reloading coordinates, now doesn't require a remote connection:
+        icrs = get_icrs_coordinates("castor", cache=True)
+        mtime2 = os.path.getmtime(filename)
+        nfiles2 = len(os.listdir(download_dir))
+        assert mtime1 == mtime2
+        assert nfiles1 == nfiles2
+
+        # Try reloading coordinates again, but overwrite, which now should fire
+        # off an http request:
+        icrs = get_icrs_coordinates("castor", cache=True, overwrite=True)
+        mtime3 = os.path.getmtime(filename)
+        nfiles3 = len(os.listdir(download_dir))
+        assert mtime1 != mtime3
+        assert nfiles1 == nfiles3
+
+        # This argument combination is not allowed:
+        with pytest.raises(ValueError):
+            get_icrs_coordinates("castor", cache=False, overwrite=True)
 
 
 def test_names_parse():
