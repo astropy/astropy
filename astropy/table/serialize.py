@@ -74,13 +74,13 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
     # - description: DO store
     # - meta: DO store
     info = {}
-    for attr, nontrivial, xform in (('unit', lambda x: x is not None and x != '', str),
-                                    ('format', lambda x: x is not None, None),
-                                    ('description', lambda x: x is not None, None),
-                                    ('meta', lambda x: x, None)):
+    for attr, nontrivial in (('unit', lambda x: x is not None and x != ''),
+                             ('format', lambda x: x is not None),
+                             ('description', lambda x: x is not None),
+                             ('meta', lambda x: x)):
         col_attr = getattr(col.info, attr)
         if nontrivial(col_attr):
-            info[attr] = xform(col_attr) if xform else col_attr
+            info[attr] = col_attr
 
     data_attrs = [key for key, value in obj_attrs.items() if
                   getattr(value, 'shape', ())[:1] == col.shape[:1]]
