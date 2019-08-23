@@ -26,7 +26,7 @@ import sys
 import os
 from warnings import warn
 
-__minimum_python_version__ = '3.5'
+__minimum_python_version__ = '3.6'
 __minimum_numpy_version__ = '1.13.0'
 # ASDF is an optional dependency, but this is the minimum version that is
 # compatible with Astropy when it is installed.
