@@ -525,7 +525,10 @@ def table_to_hdu(table, character_as_bytes=False):
                     "the data or change the units.".format(col.name, str(scale)))
             except ValueError:
                 warnings.warn(
-                    "The unit '{}' could not be saved to FITS format".format(
+                    "The unit '{}' could not be saved in native FITS format "
+                    "and hence will be lost to non-astropy fits readers. "
+                    "Within astropy, it can roundtrip using QTable, but one "
+                    "has to ensure to enable to unit before reading.".format(
                         unit.to_string()), AstropyUserWarning)
             else:
                 # Try creating a Unit to issue a warning if the unit is not
