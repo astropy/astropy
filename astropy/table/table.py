@@ -926,9 +926,14 @@ class Table:
 
         elif data0_is_mixin:
             # Handle case of a sequence of a mixin, e.g. [1*u.m, 2*u.m].
-            col = data[0].__class__(data)
-            col.info.name = name
-            return col
+            try:
+                col = data[0].__class__(data)
+                col.info.name = name
+                return col
+            except Exception:
+                # If that didn't work for some reason, just turn it into np.array of object
+                data = np.array(data, dtype=object)
+                col_cls = self.ColumnClass
 
         elif isinstance(data, np.ma.MaskedArray):
             # Require that col_cls be a subclass of MaskedColumn, remembering
@@ -941,7 +946,11 @@ class Table:
             # Then check if there were any masked elements.  This logic is handling
             # normal lists like [1, 2] but also odd-ball cases like a list of masked
             # arrays (see #8977).  Use np.ma.array() to do the heavy lifting.
-            np_data = np.ma.array(data, dtype=dtype)
+            try:
+                np_data = np.ma.array(data, dtype=dtype)
+            except Exception:
+                # Conversion failed for some reason, e.g. [2, 1*u.m] gives TypeError in Quantity
+                np_data = np.ma.array(data, dtype=object)
 
             if np_data.ndim > 0 and len(np_data) == 0:
                 # Implies input was an empty list (e.g. initializing an empty table
