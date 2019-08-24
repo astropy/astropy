@@ -462,8 +462,7 @@ class Table:
             elif isinstance(rows, self.Row):
                 data = rows
             else:
-                rec_data = recarray_fromrecords(rows)
-                data = [rec_data[name] for name in rec_data.dtype.names]
+                data = list(zip(*rows))
 
         # Infer the type of the input data and set up the initialization
         # function, number of columns, and potentially the default col names
