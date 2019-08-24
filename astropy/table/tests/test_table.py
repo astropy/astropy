@@ -2427,3 +2427,17 @@ def test_data_to_col_convert_strategy():
     t['b'] = np.int64(2)  # Failed previously
     assert np.all(t['a'] == [1, 1])
     assert np.all(t['b'] == [2, 2])
+
+
+def test_rows_with_mixins():
+    tm = Time([1, 2], format='cxcsec')
+    q = [1, 2] * u.m
+    rows = [(1, q[0], tm[0]),
+            (2, q[1], tm[1])]
+    t = table.QTable(rows=rows)
+    t['a'] = [q[0], q[1]]
+    t['b'] = [tm[0], tm[1]]
+    assert np.all(t['col1'] == q)
+    assert np.all(t['col2'] == tm)
+    assert np.all(t['a'] == q)
+    assert np.all(t['b'] == tm)

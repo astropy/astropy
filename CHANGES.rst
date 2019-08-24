@@ -103,6 +103,9 @@ astropy.table
 - Adding depth-wise stacking ``cstack()`` in higher level table operation.
   It help will in stacking table column depth-wise. [#8939]
 
+- Allow adding a table column as a list of mixin-type objects, for instance
+  ``t['q'] = [1 * u.m, 2 * u.m]``. [#9165]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
