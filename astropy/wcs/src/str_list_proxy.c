@@ -50,15 +50,7 @@ PyStrListProxy_traverse(
     visitproc visit,
     void *arg) {
 
-  int vret;
-
-  if (self->pyobject) {
-    vret = visit(self->pyobject, arg);
-    if (vret != 0) {
-      return vret;
-    }
-  }
-
+  Py_VISIT(self->pyobject);
   return 0;
 }
 
