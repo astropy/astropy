@@ -402,6 +402,8 @@ astropy.wcs
 - Fixed a possible buffer overflow when using too large negative indices for
   ``cunit`` or ``ctype`` [#9151]
 
+- Fixed reference counting in ``WCSBase.__init__`` [#9166]
+
 
 Other Changes and Additions
 ---------------------------
