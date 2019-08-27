@@ -1,16 +1,108 @@
+.. include:: links.inc
+
+.. _compound-models-intro:
+
+Combining Models
+****************
+
+Basics
+======
+
+While the Astropy modeling package makes it very easy to define :doc:`new
+models <new-model>` either from existing functions, or by writing a
+`~astropy.modeling.Model` subclass, an additional way to create new models is
+by combining them using arithmetic expressions.  This works with models built
+into Astropy, and most user-defined models as well.  For example, it is
+possible to create a superposition of two Gaussians like so::
+
+    >>> from astropy.modeling import models
+    >>> g1 = models.Gaussian1D(1, 0, 0.2)
+    >>> g2 = models.Gaussian1D(2.5, 0.5, 0.1)
+    >>> g1_plus_2 = g1 + g2
+
+The resulting object ``g1_plus_2`` is itself a new model.  Evaluating, say,
+``g1_plus_2(0.25)`` is the same as evaluating ``g1(0.25) + g2(0.25)``::
+
+    >>> g1_plus_2(0.25)  # doctest: +FLOAT_CMP
+    0.5676756958301329
+    >>> g1_plus_2(0.25) == g1(0.25) + g2(0.25)
+    True
+
+This model can be further combined with other models in new expressions.
+
+These new compound models can also be fitted to data, like most other models
+(though this currently requires one of the non-linear fitters):
+
+.. plot::
+    :include-source:
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from astropy.modeling import models, fitting
+
+    # Generate fake data
+    np.random.seed(42)
+    g1 = models.Gaussian1D(1, 0, 0.2)
+    g2 = models.Gaussian1D(2.5, 0.5, 0.1)
+    x = np.linspace(-1, 1, 200)
+    y = g1(x) + g2(x) + np.random.normal(0., 0.2, x.shape)
+
+    # Now to fit the data create a new superposition with initial
+    # guesses for the parameters:
+    gg_init = models.Gaussian1D(1, 0, 0.1) + models.Gaussian1D(2, 0.5, 0.1)
+    fitter = fitting.SLSQPLSQFitter()
+    gg_fit = fitter(gg_init, x, y)
+
+    # Plot the data with the best-fit model
+    plt.figure(figsize=(8,5))
+    plt.plot(x, y, 'ko')
+    plt.plot(x, gg_fit(x))
+    plt.xlabel('Position')
+    plt.ylabel('Flux')
+
+This works for 1-D models, 2-D models, and combinations thereof, though there
+are some complexities involved in correctly matching up the inputs and outputs
+of all models used to build a compound model.  You can learn more details in
+the :doc:`compound-models` documentation.
+
+Astropy models also support convolution through the function
+`~astropy.convolution.convolve_models`, which returns a compound model.
+
+For instance, the convolution of two Gaussian functions is also a Gaussian
+function in which the resulting mean (variance) is the sum of the means
+(variances) of each Gaussian.
+
+.. plot::
+    :include-source:
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from astropy.modeling import models
+    from astropy.convolution import convolve_models
+
+    g1 = models.Gaussian1D(1, -1, 1)
+    g2 = models.Gaussian1D(1, 1, 1)
+    g3 = convolve_models(g1, g2)
+
+    x = np.linspace(-3, 3, 50)
+    plt.plot(x, g1(x), 'k-')
+    plt.plot(x, g2(x), 'k-')
+    plt.plot(x, g3(x), 'k-')
+
+
 .. _compound-models:
 
-Advanced Compound Models
-************************
+A comprehensive description
+===========================
+
+Some terminology
+----------------
 
 It is possible to create new models just by
 combining existing models using the arithmetic operators ``+``, ``-``, ``*``,
 ``/``, and ``**``, as well as by model composition using ``|`` and
 concatenation (explained below) with ``&``.
 
-
-Some terminology
-================
 
 In discussing the compound model feature, it is useful to be clear about a
 few terms where there have been points of confusion:
@@ -77,7 +169,7 @@ few terms where there have been points of confusion:
 
 
 Creating compound models
-========================
+------------------------
 
 The only way to create compound models is
 to combine existing single models and/or compound models using expressions in
@@ -85,7 +177,7 @@ Python with the binary operators ``+``, ``-``, ``*``, ``/``, ``**``, ``|``,
 and ``&``, each of which is discussed in the following sections.
 
 
-.. warning:: Creating compound models by combining classes is deprecated and will be removed in v4.0.
+.. warning:: Creating compound models by combining classes was removed in v4.0.
 
 The result of combining two models is a model instance::
 
@@ -151,40 +243,8 @@ concatenation of all involved models' expressions::
                 1.1    0.1      0.2         2.5 ...      0.2         2.5    0.5      0.1
 
 
-Model names
------------
-
-In the above two examples another notable feature of the generated compound
-model classes is that the class name, as displayed when printing the class at
-the command prompt, is not "TwoGaussians", "FourGaussians", etc.  Instead it is
-a generated name consisting of "CompoundModel" followed by an essentially
-arbitrary integer that is chosen simply so that every compound model has a
-unique default name.  This is a limitation at present, due to the limitation
-that it is not generally possible in Python when an object is created by an
-expression for it to "know" the name of the variable it will be assigned to, if
-any.
-It is possible to directly assign a name to the compound model instance
-by using the `Model.name <astropy.modeling.Model.name>` attribute.
-
-    >>> two_gaussians.name = "TwoGaussians"
-    >>> print(two_gaussians)  # doctest: +SKIP
-    Model: CompoundModel...
-    Name: TwoGaussians
-    Inputs: ('x',)
-    Outputs: ('y',)
-    Model set size: 1
-    Expression: [0] + [1]
-    Components:
-        [0]: <Gaussian1D(amplitude=1.1, mean=0.1, stddev=0.2)>
-        <BLANKLINE>
-        [1]: <Gaussian1D(amplitude=2.5, mean=0.5, stddev=0.1)>
-    Parameters:
-        amplitude_0 mean_0 stddev_0 amplitude_1 mean_1 stddev_1
-        ----------- ------ -------- ----------- ------ --------
-                1.1    0.1      0.2         2.5    0.5      0.1
-
 Operators
-=========
+---------
 
 Arithmetic operators
 --------------------
@@ -460,11 +520,45 @@ transformation matrix::
     >>> allclose(scale_and_rotate(1, 2), affine(1, 2))
     True
 
+    Other Topics
+    ============
+
+    Model names
+    -----------
+
+    In the above two examples another notable feature of the generated compound
+    model classes is that the class name, as displayed when printing the class at
+    the command prompt, is not "TwoGaussians", "FourGaussians", etc.  Instead it is
+    a generated name consisting of "CompoundModel" followed by an essentially
+    arbitrary integer that is chosen simply so that every compound model has a
+    unique default name.  This is a limitation at present, due to the limitation
+    that it is not generally possible in Python when an object is created by an
+    expression for it to "know" the name of the variable it will be assigned to, if
+    any.
+    It is possible to directly assign a name to the compound model instance
+    by using the `Model.name <astropy.modeling.Model.name>` attribute.
+
+        >>> two_gaussians.name = "TwoGaussians"
+        >>> print(two_gaussians)  # doctest: +SKIP
+        Model: CompoundModel...
+        Name: TwoGaussians
+        Inputs: ('x',)
+        Outputs: ('y',)
+        Model set size: 1
+        Expression: [0] + [1]
+        Components:
+            [0]: <Gaussian1D(amplitude=1.1, mean=0.1, stddev=0.2)>
+            <BLANKLINE>
+            [1]: <Gaussian1D(amplitude=2.5, mean=0.5, stddev=0.1)>
+        Parameters:
+            amplitude_0 mean_0 stddev_0 amplitude_1 mean_1 stddev_1
+            ----------- ------ -------- ----------- ------ --------
+                    1.1    0.1      0.2         2.5    0.5      0.1
 
 .. _compound-model-indexing:
 
 Indexing and slicing
-====================
+--------------------
 
 As seen in some of the previous examples in this document, when creating a
 compound model each component of the model is assigned an integer index
@@ -632,7 +726,7 @@ So in this case ``M['B':'C']`` is equivalent to ``M[1:3]``.
 .. _compound-model-parameters:
 
 Parameters
-==========
+----------
 
 A question that frequently comes up when first encountering compound models is
 how exactly all the parameters are dealt with.  By now we've seen a few
@@ -712,7 +806,7 @@ parameters share the same Parameter instance as the original model.
 .. _compound-model-mappings:
 
 Advanced mappings
-=================
+-----------------
 
 We have seen in some previous examples how models can be chained together to
 form a "pipeline" of transformations by using model :ref:`composition

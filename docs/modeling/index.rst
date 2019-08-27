@@ -16,78 +16,69 @@ Different fitting algorithms can be used with any model.  For those fitters
 with the capabilities fitting can be done using uncertainties, parameters with
 bounds, and priors.
 
-.. _modeling-getting-started:
+.. note::
 
-Getting started
-===============
+    A number of significant changes have been made to the internals that have been
+    documented in more detail in :doc:`changes_for_4`. The main change is that
+    combining model classes no longer is supported. (Combining model
+    instances is still very much supported!)
+
+.. _modeling-using:
+
+Using Modeling
+==============
+
+.. toctree::
+   :maxdepth: 2
+
+   Models <models.rst>
+   Compound Models <compound-models.rst>
+   Model Parameters <parameters.rst>
+   Fitting <fitting.rst>
+   Using Units with Models and Fitting <units.rst>
+   Changes in v4.0 <changes_for_4.rst>
+
+
+.. _getting-started-example:
+
+A Simple Example
+================
 
 Using a model is a matter of defining the model (instantiating) and then
 calling it with the input values for calculation.  This is illustrated with
 the code and plot below for a 1-dimensional Gaussian.
 
-.. plot::
-    :include-source:
+   .. plot::
+       :include-source:
 
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from astropy.modeling import models
+       import numpy as np
+       import matplotlib.pyplot as plt
+       from astropy.modeling import models
 
-    # define and evaluate the model
-    g = models.Gaussian1D(amplitude=1.2, mean=0.9, stddev=0.5)
-    x = np.linspace(-5., 5.0, 200)
-    y = g(x)
+       # define and evaluate the model
+       g = models.Gaussian1D(amplitude=1.2, mean=0.9, stddev=0.5)
+       x = np.linspace(-5., 5.0, 200)
+       y = g(x)
 
-    # plot the model
-    plt.figure()
-    plt.plot(x, y, 'ko')
-    plt.xlabel('x')
-    plt.ylabel('y')
+       # plot the model
+       plt.figure()
+       plt.plot(x, y, 'ko')
+       plt.xlabel('x')
+       plt.ylabel('y')
 
-.. note::
+.. _advanced_topics:
 
-    A number of significant changes have been made to the internals that have been
-    documented in more detail in :doc:`changes_for_4`. This summarizes the two
-    biggest changes:
-
-    - Expressions of model classes no longer is supported. (Expressions of model
-      instances are still very much supported!)
-
-    - Parameter values now are contained in the parameter instance. Previously they
-      were contained in the model referencing the parameter. The previous behavior
-      resulted in compound models parameters not sharing the same value as the
-      constituent models, if one of them changed, the other didn't. Now they
-      see exactly the same value.
-
-.. _modeling-using:
-
-Concepts
-========
+Advanced Topics
+===============
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   Basic Concepts <basics.rst>
-   Advanced Concepts <models.rst>
-   Model Parameters <parameters.rst>
-   Units with Models <units.rst>
-   basic-fitting
-   Advanced Fitting <fitting.rst>
-   Custom Models <new-model.rst>
-   Combining Models (Compound Models) <basic-compound-models.rst>
-   compound-models
-   bounding-boxes
-   model-sets
-   performance
-   changes_for_4
+   Performance Tips <performance.rst>
+   Extending Models <new-model.rst>
+   Extending Fitters <new-fitter.rst>
+   Adding support for units to models <add-units.rst>
 
-.. TODO list
-    Fitting with constraints
-    Fitting with units
-    Fitting with different or custom statistics functions
-    Estimation of fitting errors
-    Adding a new fitter
-    Using models with Bayesian tools
-    Model bounds
 
 Examples
 ========
