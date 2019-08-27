@@ -69,13 +69,7 @@ wcslib_tab_to_python_exc(int status) {
 static int
 PyTabprm_traverse(
     PyTabprm* self, visitproc visit, void *arg) {
-  int vret;
-
-  vret = visit(self->owner, arg);
-  if (vret != 0) {
-    return vret;
-  }
-
+  Py_VISIT(self->owner);
   return 0;
 }
 

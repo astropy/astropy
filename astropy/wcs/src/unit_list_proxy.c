@@ -55,22 +55,8 @@ PyUnitListProxy_traverse(
     visitproc visit,
     void *arg) {
 
-  int vret;
-
-  if (self->pyobject) {
-    vret = visit(self->pyobject, arg);
-    if (vret != 0) {
-      return vret;
-    }
-  }
-
-  if (self->unit_class) {
-    vret = visit(self->unit_class, arg);
-    if (vret != 0) {
-      return vret;
-    }
-  }
-
+  Py_VISIT(self->pyobject);
+  Py_VISIT(self->unit_class);
   return 0;
 }
 
