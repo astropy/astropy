@@ -173,7 +173,7 @@ matrix:
         # we moved it here instead.
         - os: linux
           stage: Cron tests
-          env: SETUP_CMD='build_docs -b linkcheck'
+          env: SETUP_CMD='build_docs -b linkcheck' EVENT_TYPE='cron'
                PIP_DEPENDENCIES="" CONDA_DEPENDENCIES=""
                INSTALL_WITH_PIP=True
                EXTRAS_INSTALL="docs"
