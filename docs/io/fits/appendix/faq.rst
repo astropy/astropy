@@ -33,7 +33,7 @@ the rest of PyFITS functions without this extension module.
 .. _PyFITS: https://github.com/spacetelescope/pyfits
 .. _Python: https://www.python.org/
 .. _FITS: https://fits.gsfc.nasa.gov/
-.. _Numpy: http://www.numpy.org/
+.. _Numpy: https://www.numpy.org/
 
 
 What is the development status of PyFITS?
@@ -61,7 +61,7 @@ but new issues should be submitted via GitHub if possible.
 The current (and last) stable release is 3.4.0.
 
 .. _Space Telescope Science Institute: http://www.stsci.edu/
-.. _AURA: http://www.aura-astronomy.org/
+.. _AURA: https://www.aura-astronomy.org/
 .. _3-clause BSD license: https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license_.28.22New_BSD_License.22_or_.22Modified_BSD_License.22.29
 .. _LICENSE.txt: https://aeon.stsci.edu/ssb/trac/pyfits/browser/trunk/LICENSE.txt
 .. _Trac site: https://aeon.stsci.edu/ssb/trac/pyfits/
@@ -271,7 +271,7 @@ table data to disk in the same format required by FITS.  It is then possible
 to serialize your table to the FITS format for distribution.  At some point
 this FAQ might provide an example of how to do this.
 
-.. _HDF5: http://www.hdfgroup.org/HDF5/
+.. _HDF5: https://www.hdfgroup.org/HDF5/
 .. _PyTables: http://www.pytables.org/
 
 

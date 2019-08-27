@@ -68,7 +68,7 @@ del intersphinx_mapping['astropy']
 # add any custom intersphinx for astropy
 intersphinx_mapping['pytest'] = ('https://pytest.readthedocs.io/en/stable/', None)
 intersphinx_mapping['ipython'] = ('https://ipython.readthedocs.io/en/stable/', None)
-intersphinx_mapping['pandas'] = ('http://pandas.pydata.org/pandas-docs/stable/', None)
+intersphinx_mapping['pandas'] = ('https://pandas.pydata.org/pandas-docs/stable/', None)
 intersphinx_mapping['sphinx_automodapi'] = ('https://sphinx-automodapi.readthedocs.io/en/stable/', None)
 intersphinx_mapping['packagetemplate'] = ('http://docs.astropy.org/projects/package-template/en/latest/', None)
 intersphinx_mapping['h5py'] = ('http://docs.h5py.org/en/stable/', None)
@@ -92,7 +92,7 @@ rst_epilog += """
 .. |minimum_numpy_version| replace:: {0.__minimum_numpy_version__}
 
 .. Astropy
-.. _Astropy: http://astropy.org
+.. _Astropy: https://astropy.org
 .. _`Astropy mailing list`: https://mail.python.org/mailman/listinfo/astropy
 .. _`astropy-dev mailing list`: http://groups.google.com/group/astropy-dev
 """.format(astropy)
@@ -219,7 +219,7 @@ try:
         'gallery_dirs': 'generated/examples', # path to save gallery generated examples
         'reference_url': {
             'astropy': None,
-            'matplotlib': 'http://matplotlib.org/',
+            'matplotlib': 'https://matplotlib.org/',
             'numpy': 'http://docs.scipy.org/doc/numpy/',
         },
         'abort_on_example_error': True
@@ -243,6 +243,8 @@ except ImportError:
 # -- Options for linkcheck output -------------------------------------------
 linkcheck_retry = 5
 linkcheck_ignore = ['https://journals.aas.org/manuscript-preparation/',
+                    'https://maia.usno.navy.mil/',
+                    'https://www.usno.navy.mil/USNO/time/gps/usno-gps-time-transfer',
                     r'https://github\.com/astropy/astropy/(?:issues|pull)/\d+']
 linkcheck_timeout = 180
 linkcheck_anchors = False

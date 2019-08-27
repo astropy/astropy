@@ -293,7 +293,7 @@ local  Local Time Scale          (LOCAL)
 .. [#] Wikipedia `time standard <https://en.wikipedia.org/wiki/Time_standard>`_ article
 .. [#] SOFA Time Scale and Calendar Tools
        `(PDF) <http://www.iausofa.org/sofa_ts_c.pdf>`_
-.. [#] `<http://www.ucolick.org/~sla/leapsecs/timescales.html>`_
+.. [#] `<https://www.ucolick.org/~sla/leapsecs/timescales.html>`_
 
 .. note:: The ``local`` time scale is meant for free-running clocks or simulation times,
   i.e., to represent a time without properly defined scale. This means it cannot be converted
@@ -861,7 +861,7 @@ scale along with the auto-download feature::
 
   >>> t = Time('2016:001')
   >>> t.ut1  # doctest: +SKIP
-  Downloading http://maia.usno.navy.mil/ser7/finals2000A.all
+  Downloading https://maia.usno.navy.mil/ser7/finals2000A.all
   |==================================================================| 3.0M/3.0M (100.00%)         6s
   <Time object: scale='ut1' format='yday' value=2016:001:00:00:00.082>
 
@@ -1285,7 +1285,7 @@ converted to timezone-aware datetime objects::
   >>> print(t.to_datetime(timezone=utc_plus_one_hour)) # to timezone-aware datetime
   2000-01-01 00:00:00+01:00
 
-Timezone database packages, like `pytz <http://pythonhosted.org/pytz/>`_
+Timezone database packages, like `pytz <https://pythonhosted.org/pytz/>`_
 for example, may be more convenient to use to create `~datetime.tzinfo`
 objects used to specify timezones rather than the `~astropy.time.TimezoneInfo`
 object.

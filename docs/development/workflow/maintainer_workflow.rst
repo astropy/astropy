@@ -109,7 +109,7 @@ branch in the ``upstream-rw`` repository.
 Using Milestones and Labels
 ===========================
 
-These guidelines are adapted from `similar guidelines <https://github.com/ipython/ipython/wiki/IPython-on-GitHub>`_
+These guidelines are adapted from `similar guidelines <https://github.com/ipython/ipython/wiki/Dev:-GitHub-workflow>`_
 followed by IPython:
 
 * 100% of confirmed issues and new features should have a milestone

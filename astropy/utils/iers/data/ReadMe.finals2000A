@@ -1,7 +1,7 @@
 Table: finals2000A
 ================================================================================
 
-from http://maia.usno.navy.mil/
+from https://maia.usno.navy.mil/
 finals2000A.all -- all EOP values since 02 January 1973 with dX & dY using 
 IAU2000A Nutation/Precession Theory (with 1 year of predic tions)
 

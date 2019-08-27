@@ -22,7 +22,7 @@
     VOTable1.2 is meant to serialize tabular documents in the
     context of Virtual Observatory applications. This schema
     corresponds to the VOTable document available from
-    http://www.ivoa.net/Documents/latest/VOT.html
+    http://www.ivoa.net/documents/latest/VOT.html
 </xs:documentation></xs:annotation>
 
 <!-- Here we define some interesting new datatypes:

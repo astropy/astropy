@@ -65,7 +65,7 @@ the default to be the JPL ephemeris::
     >>> solar_system_ephemeris.set('jpl')  # doctest: +SKIP
 
 Use of any JPL ephemeris requires the jplephem package
-(https://pypi.python.org/pypi/jplephem).
+(https://pypi.org/project/jplephem/).
 If needed, the ephemeris file will be downloaded (and cached).
 
 One can check which bodies are covered by a given ephemeris using::
@@ -98,9 +98,9 @@ class solar_system_ephemeris(ScienceState):
     ~10MB, and covers years 1950-2050 [2]_.  Older versions of the JPL
     ephemerides (such as the widely used de200) can be used via their URL [3]_.
 
-    .. [1] http://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/aareadme_de430-de431.txt
-    .. [2] http://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/aareadme_de432s.txt
-    .. [3] http://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/a_old_versions/
+    .. [1] https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/aareadme_de430-de431.txt
+    .. [2] https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/aareadme_de432s.txt
+    .. [3] https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/a_old_versions/
     """
     _value = 'builtin'
     _kernel = None
@@ -156,13 +156,13 @@ def _get_kernel(value):
     except ImportError:
         raise ImportError("Solar system JPL ephemeris calculations require "
                           "the jplephem package "
-                          "(https://pypi.python.org/pypi/jplephem)")
+                          "(https://pypi.org/project/jplephem/)")
 
     if value.lower() == 'jpl':
         value = DEFAULT_JPL_EPHEMERIS
 
     if value.lower() in ('de430', 'de432s'):
-        value = ('http://naif.jpl.nasa.gov/pub/naif/generic_kernels'
+        value = ('https://naif.jpl.nasa.gov/pub/naif/generic_kernels'
                  '/spk/planets/{:s}.bsp'.format(value.lower()))
 
     elif os.path.isfile(value):

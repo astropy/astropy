@@ -217,8 +217,8 @@ Table I/O integration of pandas I/O functions for ASCII tables
 Astropy `~astropy.table.Table` now supports the ability to read or write tables
 using some of the
 `I/O methods <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html>`_
-available within `pandas <http://pandas.pydata.org/>`_.  This interface provides
-convenient wrappers for the `pandas <http://pandas.pydata.org/>`_ read/write
+available within `pandas <https://pandas.pydata.org/>`_.  This interface provides
+convenient wrappers for the `pandas <https://pandas.pydata.org/>`_ read/write
 functions for the following formats: CSV, JSON, HTML, and fixed width.
 For very large tables these may provide better performance than the built-in
 astropy table ASCII read and write functions.  For details see :ref:`table_io_pandas`.

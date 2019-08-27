@@ -2,7 +2,7 @@
 
 # This sub-package makes use of image testing with the pytest-mpl package:
 #
-# https://pypi.python.org/pypi/pytest-mpl
+# https://pypi.org/project/pytest-mpl
 #
 # For more information on writing image tests, see the 'Image tests with
 # pytest-mpl' section of the developer docs.

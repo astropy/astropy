@@ -16,7 +16,7 @@ class Conf(_config.ConfigNamespace):
     default_notebook_table_class = _config.ConfigItem(
         'table-striped table-bordered table-condensed',
         'The table class to be used in Jupyter notebooks when displaying '
-        'tables (and not overridden). See <http://getbootstrap.com/css/#tables '
+        'tables (and not overridden). See <https://getbootstrap.com/css/#tables '
         'for a list of useful bootstrap classes.')
     replace_warnings = _config.ConfigItem(
         [],

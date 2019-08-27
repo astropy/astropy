@@ -20,7 +20,7 @@ well-defined but idiosyncratic formats.
 * :class:`~astropy.io.ascii.FixedWidthNoHeader`: table with fixed-width columns and no header
 * :class:`~astropy.io.ascii.FixedWidthTwoLine`: table with fixed-width columns and a two-line header
 * :class:`~astropy.io.ascii.HTML`: HTML format table contained in a <table> tag
-* :class:`~astropy.io.ascii.Ipac`: `IPAC format table <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
+* :class:`~astropy.io.ascii.Ipac`: `IPAC format table <https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
 * :class:`~astropy.io.ascii.Latex`: LaTeX table with datavalue in the ``tabular`` environment
 * :class:`~astropy.io.ascii.NoHeader`: basic table with no header where columns are auto-named
 * :class:`~astropy.io.ascii.Rdb`: tab-separated values with an extra line after the column definition line
@@ -28,4 +28,3 @@ well-defined but idiosyncratic formats.
 * :class:`~astropy.io.ascii.SExtractor`: `SExtractor format table <http://www.astromatic.net/software/sextractor>`_
 * :class:`~astropy.io.ascii.Tab`: tab-separated values
 * :class:`~astropy.io.ascii.Csv`: comma-separated values
-

@@ -475,7 +475,7 @@ class Cutout2D:
         The cutout WCS object does not currently handle cases where the
         input WCS object contains distortion lookup tables described in
         the `FITS WCS distortion paper
-        <http://www.atnf.csiro.au/people/mcalabre/WCS/dcs_20040422.pdf>`__.
+        <https://www.atnf.csiro.au/people/mcalabre/WCS/dcs_20040422.pdf>`__.
 
     Parameters
     ----------

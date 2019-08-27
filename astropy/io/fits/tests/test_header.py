@@ -2376,7 +2376,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
     """
     Tests for handling of record-valued keyword cards as used by the
     `FITS WCS distortion paper
-    <http://www.atnf.csiro.au/people/mcalabre/WCS/dcs_20040422.pdf>`__.
+    <https://www.atnf.csiro.au/people/mcalabre/WCS/dcs_20040422.pdf>`__.
 
     These tests are derived primarily from the release notes for PyFITS 1.4 (in
     which this feature was first introduced.
