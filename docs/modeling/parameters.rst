@@ -6,6 +6,9 @@
 Parameters
 **********
 
+Basics
+======
+
 Most models in this package are "parametric" in the sense that each subclass
 of `~astropy.modeling.Model` represents an entire family of models, each
 member of which is distinguished by a fixed set of parameters that fit that
@@ -36,9 +39,12 @@ cases, however, array-valued parameters have no meaning specific to the model,
 and are simply combined with input arrays during model evaluation according to
 the standard `Numpy broadcasting rules`_.
 
+Parameter constraints
+=====================
+
 
 Parameter examples
-==================
+------------------
 
 - Model classes can be introspected directly to find out what parameters they
   accept::
