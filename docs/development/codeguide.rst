@@ -317,7 +317,7 @@ Requirements Specific to Affiliated Packages
   of the template package included in the core package source distribution.
 
 * Affiliated packages must be registered on the `Python Package Index
-  <https://pypi.python.org/pypi>`_, with proper metadata for downloading and
+  <https://pypi.org/>`_, with proper metadata for downloading and
   installing the source package.
 
 * The ``astropy`` root package name should not be used by affiliated
@@ -534,8 +534,8 @@ Further tips and hints relating to the coding guidelines are included below.
 
     codeguide_emacs
 
-.. _Numpy: http://www.numpy.org/
+.. _Numpy: https://www.numpy.org/
 .. _Scipy: https://www.scipy.org/
-.. _matplotlib: http://matplotlib.org/
-.. _Cython: http://cython.org/
-.. _PyPI: https://pypi.python.org/pypi
+.. _matplotlib: https://matplotlib.org/
+.. _Cython: https://cython.org/
+.. _PyPI: https://pypi.org/project

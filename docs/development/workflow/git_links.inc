@@ -19,7 +19,7 @@
 .. _pro git book: https://git-scm.com/book
 .. _git svn crash course: https://git-scm.com/course/svn.html
 .. _learn.github: https://services.github.com/
-.. _network graph visualizer: https://github.com/blog/39-say-hello-to-the-network-graph-visualizer
+.. _network graph visualizer: https://github.blog/2008-04-10-say-hello-to-the-network-graph-visualizer/
 .. _git user manual: http://schacon.github.io/git/user-manual.html
 .. _git tutorial: http://schacon.github.io/git/gittutorial.html
 .. _git community book: https://book.git-scm.com/
@@ -30,7 +30,7 @@
 .. _git concepts: https://www.sbf5.com/~cduan/technical/git/
 .. _git clone: http://schacon.github.io/git/git-clone.html
 .. _git checkout: http://schacon.github.io/git/git-checkout.html
-.. _git commit: http://schacon.github.com/git/git-commit.html
+.. _git commit: http://schacon.github.io/git/git-commit.html
 .. _git push: http://schacon.github.io/git/git-push.html
 .. _git pull: http://schacon.github.io/git/git-pull.html
 .. _git add: http://schacon.github.io/git/git-add.html
@@ -52,7 +52,7 @@
 .. _rebase without tears: http://matthew-brett.github.io/pydagogue/rebase_without_tears.html
 .. _resolving a merge: http://schacon.github.io/git/user-manual.html#resolving-a-merge
 .. _ipython git workflow: https://mail.python.org/pipermail/ipython-dev/2010-October/005632.html
-.. _ipython notebook on using git in science: http://nbviewer.jupyter.org/github/fperez/reprosw/blob/master/Version%20Control.ipynb
+.. _ipython notebook on using git in science: https://nbviewer.jupyter.org/github/fperez/reprosw/blob/master/Version%20Control.ipynb
 
 .. other stuff
 .. _python: http://www.python.org

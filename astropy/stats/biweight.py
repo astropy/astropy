@@ -73,7 +73,7 @@ def biweight_location(data, c=6.0, M=None, axis=None):
     ----------
     .. [1] Beers, Flynn, and Gebhardt (1990; AJ 100, 32) (http://adsabs.harvard.edu/abs/1990AJ....100...32B)
 
-    .. [2] http://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwloc.htm
+    .. [2] https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwloc.htm
 
     Examples
     --------
@@ -208,7 +208,7 @@ def biweight_scale(data, c=9.0, M=None, axis=None, modify_sample_size=False):
     ----------
     .. [1] Beers, Flynn, and Gebhardt (1990; AJ 100, 32) (http://adsabs.harvard.edu/abs/1990AJ....100...32B)
 
-    .. [2] http://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwscale.htm
+    .. [2] https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwscale.htm
 
     Examples
     --------
@@ -498,7 +498,7 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
 
     References
     ----------
-    .. [1] http://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidc.htm
+    .. [1] https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidc.htm
 
     Examples
     --------

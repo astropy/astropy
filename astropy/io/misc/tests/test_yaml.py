@@ -3,7 +3,7 @@
 """
 This module tests some of the methods related to YAML serialization.
 
-Requires `pyyaml <http://pyyaml.org/>`_ to be installed.
+Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 """
 
 from io import StringIO

@@ -22,7 +22,7 @@ The following shows a few of the ASCII formats that are available, while the sec
 * :class:`~astropy.io.ascii.Daophot`: table from the IRAF DAOphot package
 * :class:`~astropy.io.ascii.Ecsv`: :ref:`ecsv_format` for lossless round-trip of data tables
 * :class:`~astropy.io.ascii.FixedWidth`: table with fixed-width columns (see also :ref:`fixed_width_gallery`)
-* :class:`~astropy.io.ascii.Ipac`: `IPAC format table <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
+* :class:`~astropy.io.ascii.Ipac`: `IPAC format table <https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
 * :class:`~astropy.io.ascii.HTML`: HTML format table contained in a <table> tag
 * :class:`~astropy.io.ascii.Latex`: LaTeX table with datavalue in the ``tabular`` environment
 * :class:`~astropy.io.ascii.Rdb`: tab-separated values with an extra line after the column definition line
@@ -108,14 +108,14 @@ disable the fast engine::
    >>> data = ascii.read(lines, format='csv', fast_reader=False)
 
 For reading very large tables see the section on :ref:`chunk_reading` or
-use `pandas <http://pandas.pydata.org/>`_ (see Note below).
+use `pandas <https://pandas.pydata.org/>`_ (see Note below).
 
 .. Note::
 
    Reading a table which contains unicode characters is supported with the
    pure-Python readers by specifying the ``encoding`` parameter.  The fast
    C-readers do not support unicode.  For large data files containing unicode,
-   we recommend reading the file using `pandas <http://pandas.pydata.org/>`_
+   we recommend reading the file using `pandas <https://pandas.pydata.org/>`_
    and converting to a :ref:`Table <astropy-table>` via the :ref:`Table -
    Pandas interface <pandas>`.
 
@@ -304,8 +304,8 @@ Extension Reader classes
 
    extension_classes
 
-.. note that if this section gets too long, it should be moved to a separate 
-   doc page - see the top of performance.inc.rst for the instructions on how to do 
+.. note that if this section gets too long, it should be moved to a separate
+   doc page - see the top of performance.inc.rst for the instructions on how to do
    that
 .. include:: performance.inc.rst
 

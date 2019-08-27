@@ -365,11 +365,11 @@ astropy.vo.conesearch
 ---------------------
 
 The cone search module has been moved to `Astroquery
-<http://astroquery.readthedocs.io>`_ (0.3.5 and later) and will be removed from
+<https://astroquery.readthedocs.io>`_ (0.3.5 and later) and will be removed from
 Astropy in a future version. The API here will be preserved as the "classic" API
 in Astroquery, however some configuration behavior might change; See the
 Astroquery `documentation
-<http://astroquery.readthedocs.io/en/latest/vo_conesearch/vo_conesearch.html>`_
+<https://astroquery.readthedocs.io/en/latest/vo_conesearch/vo_conesearch.html>`_
 for new usage details.
 
 astropy.vo.samp

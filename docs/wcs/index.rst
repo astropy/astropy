@@ -5,9 +5,9 @@
 World Coordinate System (`astropy.wcs`)
 ***************************************
 
-.. _wcslib: http://www.atnf.csiro.au/people/mcalabre/WCS/wcslib/index.html
-.. _distortion paper: http://www.atnf.csiro.au/people/mcalabre/WCS/dcs_20040422.pdf
-.. _SIP: http://irsa.ipac.caltech.edu/data/SPITZER/docs/files/spitzer/shupeADASS.pdf
+.. _wcslib: https://www.atnf.csiro.au/people/mcalabre/WCS/wcslib/index.html
+.. _distortion paper: https://www.atnf.csiro.au/people/mcalabre/WCS/dcs_20040422.pdf
+.. _SIP: https://irsa.ipac.caltech.edu/data/SPITZER/docs/files/spitzer/shupeADASS.pdf
 
 Introduction
 ============

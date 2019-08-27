@@ -3,8 +3,8 @@
 
 from astropy import units as u
 from astropy.utils.decorators import format_doc
-from astropy.coordinates.attributes import (TimeAttribute,
-                          CartesianRepresentationAttribute)
+from astropy.coordinates.attributes import (
+    TimeAttribute, CartesianRepresentationAttribute)
 from .utils import DEFAULT_OBSTIME, EQUINOX_J2000
 from astropy.coordinates.baseframe import base_doc
 from .baseradec import BaseRADecFrame, doc_components
@@ -44,7 +44,7 @@ class GCRS(BaseRADecFrame):
     on the GCRS, see the references provided in the
     :ref:`astropy-coordinates-seealso` section of the documentation. (Of
     particular note is Section 1.2 of
-    `USNO Circular 179 <http://aa.usno.navy.mil/publications/docs/Circular_179.php>`_)
+    `USNO Circular 179 <https://aa.usno.navy.mil/publications/docs/Circular_179.php>`_)
 
     This frame also includes frames that are defined *relative* to the Earth,
     but that are offset (in both position and velocity) from the Earth.

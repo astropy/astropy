@@ -3,8 +3,6 @@
 import warnings
 
 import os
-import sys
-import glob
 import ctypes
 from functools import partial
 
@@ -17,7 +15,6 @@ from astropy.utils.console import human_file_size
 from astropy.utils.decorators import deprecated_renamed_argument
 from astropy import units as u
 from astropy.nddata import support_nddata
-from astropy.modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
 from astropy.modeling.core import CompoundModel
 from astropy.modeling.core import SPECIAL_OPERATORS
 from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
@@ -400,8 +397,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     * (optionally) It pads to the nearest 2^n size to improve FFT speed.
     * Its only valid ``mode`` is 'same' (i.e., the same shape array is returned)
     * It lets you use your own fft, e.g.,
-      `pyFFTW <https://pypi.python.org/pypi/pyFFTW>`_ or
-      `pyFFTW3 <https://pypi.python.org/pypi/PyFFTW3/0.2.1>`_ , which can lead to
+      `pyFFTW <https://pypi.org/project/pyFFTW/>`_ or
+      `pyFFTW3 <https://pypi.org/project/PyFFTW3/0.2.1/>`_ , which can lead to
       performance improvements, depending on your system configuration.  pyFFTW3
       is threaded, and therefore may yield significant performance benefits on
       multi-core machines at the cost of greater memory requirements.  Specify

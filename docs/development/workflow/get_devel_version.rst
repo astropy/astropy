@@ -92,7 +92,7 @@ essential items:
   time you need to access github from the command line. The default method at
   `Set Up Git at GitHub`_ may require administrative privileges; if that is a
   problem, set up authentication
-  `using SSH keys instead <https://help.github.com/articles/generating-ssh-keys>`_
+  `using SSH keys instead <https://help.github.com/en/articles/connecting-to-github-with-ssh>`_
 
 We also recommend setting up `git`_ so that when you copy changes from your
 computer to `GitHub`_ only the copy (called a *branch*) of astropy that you are
@@ -223,17 +223,17 @@ ahead to the more sophisticated method look at :ref:`virtual_envs`).
 
 .. note::
     If you want to work on C or Cython code in `Astropy`_, this quick method
-    of activating your copy of astropy will *not* work _ -- you need to go 
+    of activating your copy of astropy will *not* work _ -- you need to go
     straight to using a virtual python environment.
 
 If you have decided to use the recommended "activation" method with
-``pip``, please note the following: Before trying to install, 
-check that you have the required dependencies: "cython" and "jinja2". 
-If not, install them with ``pip``. Note that on some platforms, 
-the pip command is ``pip3`` instead of ``pip``, so be sure to use 
-this instead in the examples below if that is the case. 
+``pip``, please note the following: Before trying to install,
+check that you have the required dependencies: "cython" and "jinja2".
+If not, install them with ``pip``. Note that on some platforms,
+the pip command is ``pip3`` instead of ``pip``, so be sure to use
+this instead in the examples below if that is the case.
 If you have any problem with different versions of ``pip`` installed,
-try aliasing to resolve the issue. If you are unsure about which ``pip`` 
+try aliasing to resolve the issue. If you are unsure about which ``pip``
 version you are using, try the command ``which pip`` on the terminal.
 
 In the directory where your copy of astropy is type::
@@ -337,4 +337,4 @@ but it should not have ``'dev'`` in it.
 
 .. include:: links.inc
 .. _Git Basics: https://git-scm.com/book/en/Getting-Started-Git-Basics
-.. _Set Up Git at GitHub: https://help.github.com/articles/set-up-git/#set-up-git
+.. _Set Up Git at GitHub: https://help.github.com/en/articles/set-up-git#set-up-git

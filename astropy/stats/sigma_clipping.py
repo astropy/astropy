@@ -153,7 +153,7 @@ class SigmaClip:
         and has an ``axis`` keyword to return an array with axis
         dimension(s) removed.  The default is ``'median'``.
 
-        .. _bottleneck:  https://github.com/kwgoodman/bottleneck
+        .. _bottleneck:  https://github.com/pydata/bottleneck
 
     stdfunc : {'std'} or callable, optional
         The statistic or callable function/object used to compute the
@@ -545,7 +545,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
         and has an ``axis`` keyword to return an array with axis
         dimension(s) removed.  The default is ``'median'``.
 
-        .. _bottleneck:  https://github.com/kwgoodman/bottleneck
+        .. _bottleneck:  https://github.com/pydata/bottleneck
 
     stdfunc : {'std'} or callable, optional
         The statistic or callable function/object used to compute the
@@ -703,7 +703,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         and has an ``axis`` keyword to return an array with axis
         dimension(s) removed.  The default is ``'median'``.
 
-        .. _bottleneck:  https://github.com/kwgoodman/bottleneck
+        .. _bottleneck:  https://github.com/pydata/bottleneck
 
     stdfunc : {'std'} or callable, optional
         The statistic or callable function/object used to compute the

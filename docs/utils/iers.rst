@@ -40,7 +40,7 @@ machine.  Here is an example that shows the typical download progress bar::
   >>> from astropy.time import Time
   >>> t = Time('2016:001')
   >>> t.ut1  # doctest: +SKIP
-  Downloading http://maia.usno.navy.mil/ser7/finals2000A.all
+  Downloading https://maia.usno.navy.mil/ser7/finals2000A.all
   |==================================================================| 3.0M/3.0M (100.00%)         6s
   <Time object: scale='ut1' format='yday' value=2016:001:00:00:00.082>
 
@@ -109,7 +109,7 @@ polar motion values:
   the IERS service.
 
 The IERS Service provides the default online table
-(`<http://maia.usno.navy.mil/ser7/finals2000A.all>`_) and updates the content
+(`<https://maia.usno.navy.mil/ser7/finals2000A.all>`_) and updates the content
 once each 7 days.  The default value of ``auto_max_age`` is 30 days to avoid
 unnecessary network access, but one can reduce this to as low as 10 days.
 

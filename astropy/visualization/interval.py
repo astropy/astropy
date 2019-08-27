@@ -181,10 +181,10 @@ class ZScaleInterval(BaseInterval):
     """
     Interval based on IRAF's zscale.
 
-    http://iraf.net/forum/viewtopic.php?showtopic=134139
+    https://iraf.net/forum/viewtopic.php?showtopic=134139
 
     Original implementation:
-    https://trac.stsci.edu/ssb/stsci_python/browser/stsci_python/trunk/numdisplay/lib/stsci/numdisplay/zscale.py?rev=19347
+    https://github.com/spacetelescope/stsci.numdisplay/blob/master/lib/stsci/numdisplay/zscale.py
 
     Licensed under a 3-clause BSD style license (see AURA_LICENSE.rst).
 

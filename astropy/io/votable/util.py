@@ -85,7 +85,7 @@ def convert_to_writable_filelike(fd, compressed=False):
         raise TypeError("Can not be coerced to writable file-like object")
 
 
-# <http://www.ivoa.net/Documents/REC/DM/STC-20071030.html>
+# <http://www.ivoa.net/documents/REC/DM/STC-20071030.html>
 stc_reference_frames = set([
     'FK4', 'FK5', 'ECLIPTIC', 'ICRS', 'GALACTIC', 'GALACTIC_I', 'GALACTIC_II',
     'SUPER_GALACTIC', 'AZ_EL', 'BODY', 'GEO_C', 'GEO_D', 'MAG', 'GSE', 'GSM',
@@ -102,7 +102,7 @@ def coerce_range_list_param(p, frames=None, numeric=True):
 
     As defined in `Section 8.7.2 of Simple
     Spectral Access Protocol
-    <http://www.ivoa.net/Documents/REC/DAL/SSA-20080201.html>`_.
+    <http://www.ivoa.net/documents/REC/DAL/SSA-20080201.html>`_.
 
     Parameters
     ----------

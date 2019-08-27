@@ -64,7 +64,7 @@ astropy.modeling
 
 - Major rework of modeling internals.
   See modeling documentation for details.
-  `<https://docs.astropy.org/en/v4.0/modeling/changes_for_4.html>`_ . [#8769]
+  `<https://docs.astropy.org/en/latest/modeling/changes_for_4.html>`_ . [#8769]
 
 - Significant reorganization of the documentation. [#9078, #9171]
 
@@ -272,7 +272,7 @@ astropy.table
   will now always have ``masked=False``, though specific columns will be masked as
   needed. Two new table properties ``has_masked_columns`` and ``has_masked_values``
   were added. See the ``Masking change in astropy 4.0`` section within
-  `<https://docs.astropy.org/en/v4.0/table/masking.html>`_ for details. [#8789]
+  `<https://docs.astropy.org/en/latest/table/masking.html>`_ for details. [#8789]
 
 - Table operation functions such as ``join``, ``vstack``, ``hstack``, etc now
   always return a table with ``masked=False``, though the individual columns may

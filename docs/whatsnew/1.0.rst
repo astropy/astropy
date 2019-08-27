@@ -112,7 +112,7 @@ stretching) but this will be expanded in future. Included in the image
 normalization functionality is the ability to compute interval limits on data,
 (such as percentile limits), stretching with non-linear functions (such as
 square root or arcsinh functions), and the ability to use custom stretches in
-`Matplotlib <http://matplotlib.org/>`_ that are correctly reflected in the
+`Matplotlib <https://matplotlib.org/>`_ that are correctly reflected in the
 colorbar:
 
 .. plot::
@@ -171,11 +171,11 @@ for reading and writing ASCII files.  This is available for the following
 formats: ``basic``, ``commented_header``, ``csv``, ``no_header``, ``rdb``, and
 ``tab``.  On average the new engine is about 4 to 5 times faster than the
 corresponding pure-Python implementation, and is often comparable to the speed
-of the `pandas <http://pandas.pydata.org/pandas-docs/stable/>`_ ASCII file
+of the `pandas <https://pandas.pydata.org/pandas-docs/stable/>`_ ASCII file
 interface (`read_csv
-<http://pandas.pydata.org/pandas-docs/stable/io.html#io-read-csv-table>`_ and
+<https://pandas.pydata.org/pandas-docs/stable/io.html#io-read-csv-table>`_ and
 `to_csv
-<http://pandas.pydata.org/pandas-docs/stable/io.html#io-store-in-csv>`_).  The
+<https://pandas.pydata.org/pandas-docs/stable/io.html#io-store-in-csv>`_).  The
 fast reader has parallel processing option that allows harnessing multiple
 cores for input parsing to achieve even greater speed gains.
 
@@ -234,7 +234,7 @@ the automatically-detected ECSV we get::
       1.0 False
       2.0  True
 
-Note that using the ECSV reader requires the `PyYAML <http://pyyaml.org>`_
+Note that using the ECSV reader requires the `PyYAML <https://pyyaml.org>`_
 package to be installed.
 
 .. _whatsnew_modeling:
@@ -348,11 +348,11 @@ Integration with WCSAxes
 ========================
 
 The :class:`~astropy.wcs.WCS` class can now be used as a `Matplotlib
-<http://matplotlib.org/>`_ projection to make plots of images with WCS
+<https://matplotlib.org/>`_ projection to make plots of images with WCS
 coordinates overlaid, making use of the `WCSAxes
-<http://wcsaxes.readthedocs.io>`_ affiliated package behind the scenes. More
+<https://wcsaxes.readthedocs.io>`_ affiliated package behind the scenes. More
 information on using this functionality can be found in the `WCSAxes
-<http://wcsaxes.readthedocs.io>`_ documentation.
+<https://wcsaxes.readthedocs.io>`_ documentation.
 
 Deprecation and backward-incompatible changes
 =============================================

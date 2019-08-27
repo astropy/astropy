@@ -117,7 +117,7 @@ unimportant, this converter might be the best option in
 performance-critical scenarios.
 
 `Here
-<http://nbviewer.jupyter.org/github/astropy/astropy-notebooks/blob/master/io/ascii/conversion_profile.ipynb>`__
+<https://nbviewer.jupyter.org/github/astropy/astropy-notebooks/blob/master/io/ascii/conversion_profile.ipynb>`__
 is an IPython notebook analyzing the error of the fast converter, both in
 decimal values and in ULP. For values with a reasonably small number of
 significant figures, the fast converter is guaranteed to produce an optimal
@@ -127,7 +127,7 @@ longer guaranteed to be within 0.5 ULP, but about 60% of values end up
 within 0.5 ULP and about 90% within 1.0 ULP. Another notebook analyzing
 the fast converter's behavior with extreme values (such as subnormals
 and values out of the range of floats) is available `here
-<http://nbviewer.jupyter.org/github/astropy/astropy-notebooks/blob/master/io/ascii/test_converter.ipynb>`__.
+<https://nbviewer.jupyter.org/github/astropy/astropy-notebooks/blob/master/io/ascii/test_converter.ipynb>`__.
 
 Reading large tables
 --------------------
@@ -140,7 +140,7 @@ The fast engine supports the same functionality as the ordinary writing engine
 and is generally about 2 to 4 times faster than the ordinary engine. An IPython
 notebook testing the relative performance of the fast writer against the
 ordinary writing system and the data analysis library `Pandas
-<http://pandas.pydata.org/>`__ is available `here <http://nbviewer.ipython.org/github/astropy/astropy-notebooks/blob/master/io/ascii/ascii_write_bench.ipynb>`__.
+<https://pandas.pydata.org/>`__ is available `here <https://nbviewer.ipython.org/github/astropy/astropy-notebooks/blob/master/io/ascii/ascii_write_bench.ipynb>`__.
 The speed advantage of the faster engine is greatest for integer data and least
 for floating-point data; the fast engine is around 3.6 times faster for a
 sample file including a mixture of floating-point, integer, and text data.
@@ -150,11 +150,11 @@ specifying ``strip_whitespace=False`` can improve performance.
 Speed gains
 ===========
 The fast ASCII engine was designed based on the general parsing strategy
-used in the `Pandas <http://pandas.pydata.org/>`__ data analysis library, so
+used in the `Pandas <https://pandas.pydata.org/>`__ data analysis library, so
 its performance is generally comparable (although slightly slower by
 default) to the Pandas ``read_csv`` method.
 `Here
-<http://nbviewer.jupyter.org/github/astropy/astropy-notebooks/blob/master/io/ascii/ascii_read_bench.ipynb>`__
+<https://nbviewer.jupyter.org/github/astropy/astropy-notebooks/blob/master/io/ascii/ascii_read_bench.ipynb>`__
 is an IPython notebook comparing the performance of the ordinary
 :mod:`astropy.io.ascii` reader, the fast reader, the fast reader with the
 fast converter enabled, numpy's ``genfromtxt``, and Pandas' ``read_csv``

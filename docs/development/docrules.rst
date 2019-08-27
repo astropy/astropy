@@ -29,7 +29,7 @@ Additional PEPs of interest regarding documentation of code:
 Use a code checker:
 
  * `pylint <https://www.logilab.org/857>`_
- * `pyflakes <https://pypi.python.org/pypi/pyflakes>`_
+ * `pyflakes <https://pypi.org/project/pyflakes>`_
  * `pycodestyle <https://github.com/PyCQA/pycodestyle>`_
 
 The following import conventions are used throughout the Astropy source
@@ -287,7 +287,7 @@ The sections of the docstring are:
 
    An optional section that provides additional information about the code,
    possibly including a discussion of the algorithm. This section may include
-   mathematical equations, written in `LaTeX <http://www.latex-project.org/>`_
+   mathematical equations, written in `LaTeX <https://www.latex-project.org/>`_
    format::
 
      The FFT is a fast implementation of the discrete Fourier transform:
@@ -562,8 +562,8 @@ Documentation :ref:`astropy-doc-building`
 on how to use Sphinx_ to build the manual.
 
 
-.. _NumPy: http://www.numpy.org/
-.. _numpydoc: https://pypi.python.org/pypi/numpydoc/0.3.1
+.. _NumPy: https://www.numpy.org/
+.. _numpydoc: https://pypi.org/project/numpydoc/0.3.1
 .. _Matplotlib: http://matplotlib.sourceforge.net/
 .. _SciPy: https://www.scipy.org/
 .. _Sphinx: http://sphinx.pocoo.org

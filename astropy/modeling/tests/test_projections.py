@@ -30,7 +30,7 @@ MAPS_DIR = os.path.join(os.pardir, os.pardir, "wcs", "tests", "data", "maps")
 
 pars = [(x,) for x in projections.projcodes]
 # There is no groundtruth file for the XPH projection available here:
-#   http://www.atnf.csiro.au/people/mcalabre/WCS/example_data.html
+#   https://www.atnf.csiro.au/people/mcalabre/WCS/example_data.html
 pars.remove(('XPH',))
 
 

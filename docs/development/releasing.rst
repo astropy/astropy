@@ -554,9 +554,9 @@ workflow.  Run the scripts in order (they are numbered 1.<something>.py,
 2.<something>.py, etc.), entering your github login credentials as needed (if
 you are going to run them multiple times, using a ``~/.netrc`` file is
 recommended - see `this Stack Overflow post
-<https://stackoverflow.com/questions/5343068/is-there-a-way-to-skip-password-typing-when-using-https-on-github/18362082>`_
+<https://stackoverflow.com/questions/5343068/is-there-a-way-to-cache-github-credentials-for-pushing-commits/18362082#18362082>`_
 for more on how to do that, or
-`a similar github help page <https://help.github.com/articles/caching-your-github-password-in-git>`_).
+`a similar github help page <https://help.github.com/en/articles/caching-your-github-password-in-git>`_).
 The script to actually check consistency should be run like:
 
     $ python 4.check_consistency.py > consistency.html
@@ -822,7 +822,7 @@ that for you.  You can delete this tag by doing::
 
 
 .. _astropy core repository: https://github.com/astropy/astropy
-.. _signed tags: http://git-scm.com/book/en/Git-Basics-Tagging#Signed-Tags
+.. _signed tags: https://git-scm.com/book/en/v2/Git-Basics-Tagging#Signed-Tags
 .. _cython: http://www.cython.org/
 .. _astropy-procedures repository: https://github.com/astropy/astropy-procedures
 .. _Anaconda: https://conda.io/docs/

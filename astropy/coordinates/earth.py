@@ -404,7 +404,7 @@ class EarthLocation(u.Quantity):
         ----------
         .. [1] https://nominatim.openstreetmap.org/
         .. [2] https://developers.google.com/maps/documentation/geocoding/start
-        .. [3] https://developers.google.com/maps/documentation/elevation/
+        .. [3] https://developers.google.com/maps/documentation/elevation/start
         .. [4] https://developers.google.com/maps/documentation/geocoding/get-api-key
 
         """

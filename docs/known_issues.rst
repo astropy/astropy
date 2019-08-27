@@ -382,7 +382,7 @@ There is an unrelated issue that also affects more recent versions of
 cause issues when collecting tests — in this case, the symptom is that the
 test collection hangs and/or appears to run the tests recursively. If you are
 maintaining a package that was created using the Astropy
-`package template <http://github.com/astropy/package-template>`_, then
+`package template <https://github.com/astropy/package-template>`_, then
 this can be fixed by updating to the latest version of the ``_astropy_init.py``
 file. The root cause of this issue is that pytest now tries to pick up the
 top-level ``test()`` function as a test, so we need to make sure that we set a

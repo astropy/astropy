@@ -770,8 +770,8 @@ This is an example of how to make a plot in the Aitoff projection using data
 in a |SkyCoord| object. Here, a randomly generated data set will be used.
 
 First we need to import the required packages. We use
-`matplotlib <http://matplotlib.org/>`_ here for
-plotting and `numpy <http://www.numpy.org/>`_  to get the value of pi and to
+`matplotlib <https://matplotlib.org/>`_ here for
+plotting and `numpy <https://www.numpy.org/>`_  to get the value of pi and to
 generate our random data.
 
     >>> from astropy import units as u
@@ -824,8 +824,8 @@ its usual position to avoid overlap with the axis labels.
     # final script can be found below.
 
     # First we need to import the required packages. We use
-    # `matplotlib <http://matplotlib.org/>`_ here for
-    # plotting and `numpy <http://www.numpy.org/>`_  to get the value of pi and to
+    # `matplotlib <https://matplotlib.org/>`_ here for
+    # plotting and `numpy <https://www.numpy.org/>`_  to get the value of pi and to
     # generate our random data.
     from astropy import units as u
     from astropy.coordinates import SkyCoord

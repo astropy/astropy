@@ -16,9 +16,9 @@
 ## reStructured Text format) or a Django model definition from a VOTS table.
 ##
 ## Key VOTable and STILTS references:
-##  Full spec: http://www.ivoa.net/Documents/latest/VOT.html
-##  Datatypes: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC11
-##  FIELD def: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC25 
+##  Full spec: http://www.ivoa.net/documents/latest/VOT.html
+##  Datatypes: http://www.ivoa.net/documents/REC/VOTable/VOTable-20040811.html#ToC11
+##  FIELD def: http://www.ivoa.net/documents/REC/VOTable/VOTable-20040811.html#ToC25
 ##  STILTS   : http://www.star.bris.ac.uk/~mbt/stilts/
 ##
 ## The VOTable-Simple format consists of header information followed by the tabular
@@ -33,7 +33,7 @@
 ## each followed by a whitespace-delimited table that defines the corresponding
 ## VOTable elements and attributes.
 ##
-## The actual table data must follow the header and consist of space or tab delimited 
+## The actual table data must follow the header and consist of space or tab delimited
 ## data fields.  The chosen delimiter must be used consistently througout the table.
 ##
 ##----------------------------------------------------------------------------------
@@ -44,7 +44,7 @@
 # for the C-COSMOS collaboration.  This format is compatible with simple 'awk' or
 # S-mongo style processing but also allows full self-documentation and conversion
 # to more robust data formats (FITS, VOTable, postgres database ingest, etc).
-# 
+#
 ##----------------------------------------------------------------------------------
 ## Coordinate system specification COOSYS.  This is a "future" feature, as the
 ## current conversion code does not use this field.
@@ -52,7 +52,7 @@
 # COOSYS::
 # ID     equinox      epoch     system
 # J2000  J2000.        J2000.   eq_FK5
-# 
+#
 ##----------------------------------------------------------------------------------
 ## Set the TABLE::PARAM values, which are values that apply for the entire table.
 ##----------------------------------------------------------------------------------
@@ -60,16 +60,16 @@
 # name     datatype     value        description
 # version  string       1.1         'Table version'
 # date     string       2007/12/01  'Table release date'
-# 
+#
 ##----------------------------------------------------------------------------------
 ## Define the column names via the FIELD element.  The attributes 'name',
 ## 'datatype', 'unit', and 'description' are required.  Optional attributes are:
 ## 'width', 'precision', 'ucd', 'utype', 'ref', and 'type'.
-## See http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC25 for
+## See http://www.ivoa.net/documents/REC/VOTable/VOTable-20040811.html#ToC25 for
 ## the VOTable defintions.
 ## Allowed values of datatype are:
 ##   boolean, unsignedByte, short, int, long, string, float, double
-## Units: (from http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#sec:unit)
+## Units: (from http://www.ivoa.net/documents/REC/VOTable/VOTable-20040811.html#sec:unit)
 ##  The quantities in a column of the table may be expressed in some physical
 ##  unit, which is specified by the unit attribute of the FIELD. The syntax of
 ##  the unit string is defined in reference [3]; it is basically written as a

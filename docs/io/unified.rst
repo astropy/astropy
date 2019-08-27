@@ -814,7 +814,7 @@ By default, ``serialize_method`` for Time columns is equal to
 HDF5
 ----
 
-.. _HDF5: http://www.hdfgroup.org/HDF5/
+.. _HDF5: https://www.hdfgroup.org/HDF5/
 .. _h5py: http://www.h5py.org/
 
 Reading/writing from/to HDF5_ files is
@@ -974,7 +974,7 @@ Several additional parameters can be used:
 VO Tables
 -----------
 
-Reading/writing from/to `VO table <http://www.ivoa.net/Documents/VOTable/>`_
+Reading/writing from/to `VO table <http://www.ivoa.net/documents/VOTable/>`_
 files is supported with ``format='votable'``. In most cases, existing VO
 tables should be automatically identified as such based on the header of the
 file, but if not, or if writing to disk, then the format should be explicitly
