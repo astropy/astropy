@@ -99,6 +99,8 @@ Advanced Topics
 Pre-Defined Models
 ==================
 
+.. To be expanded to include all pre-defined models
+
 .. toctree::
    :maxdepth: 2
 

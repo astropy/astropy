@@ -16,21 +16,6 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = ["BlackBody"]
 
-# Units
-FNU = u.erg / (u.cm ** 2 * u.s * u.Hz)
-FLAM = u.erg / (u.cm ** 2 * u.s * u.AA)
-SNU = u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr)
-SLAM = u.erg / (u.cm ** 2 * u.s * u.AA * u.sr)
-
-# Some platform implementations of expm1() are buggy and Numpy uses
-# them anyways--the bug is that on certain large inputs it returns
-# NaN instead of INF like it should (it should only return NaN on a
-# NaN input
-# See https://github.com/astropy/astropy/issues/4171
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore", RuntimeWarning)
-    _has_buggy_expm1 = np.isnan(np.expm1(1000)) or np.isnan(np.expm1(1e10))
-
 
 class BlackBody(Fittable1DModel):
     """
@@ -38,9 +23,10 @@ class BlackBody(Fittable1DModel):
 
     Parameters
     ----------
-    temperature : :class:`~astropy.units.Quantity`
+    temperature : :class:`~numpy.ndarray` or :class:`~astropy.units.Quantity`
         Blackbody temperature.
-    scale : :class:`~astropy.units.Quantity`
+
+    scale : :class:`~numpy.ndarray` or :class:`~astropy.units.Quantity`
         Scale factor
 
     Notes
@@ -54,9 +40,9 @@ class BlackBody(Fittable1DModel):
     --------
     >>> from astropy.modeling import models
     >>> from astropy import units as u
-    >>> bb = models.BlackBody()
+    >>> bb = models.BlackBody(temperature=5000*u.K)
     >>> bb(6000 * u.AA)  # doctest: +FLOAT_CMP
-    <Quantity 1.3585381201978953e-15 erg / (cm2 Hz s)>
+    <Quantity 1.53254685e-05 erg / (cm2 Hz s sr)>
 
     .. plot::
         :include-source:
@@ -65,7 +51,6 @@ class BlackBody(Fittable1DModel):
         import matplotlib.pyplot as plt
 
         from astropy.modeling.models import BlackBody
-        from astropy.modeling.physical_models import SLAM
         from astropy import units as u
         from astropy.visualization import quantity_support
 
@@ -76,13 +61,12 @@ class BlackBody(Fittable1DModel):
         with quantity_support():
             plt.figure()
             plt.semilogx(wav, flux)
-            plt.axvline(bb.lambda_max.to(u.AA).value, ls='--')
             plt.show()
     """
 
     # We parametrize this model with a temperature and a scale.
-    temperature = Parameter(default=5000, min=0, unit=u.K)
-    scale = Parameter(default=1, min=0)
+    temperature = Parameter(default=5000.0, min=0)
+    scale = Parameter(default=1.0, min=0)
 
     # We allow values without units to be passed when evaluating the model, and
     # in this case the input x values are assumed to be frequencies in Hz.
@@ -129,10 +113,15 @@ class BlackBody(Fittable1DModel):
         ZeroDivisionError
             Wavelength is zero (when converting to frequency).
         """
+        if not isinstance(temperature, u.Quantity):
+            in_temp = u.Quantity(temperature, u.K)
+        else:
+            in_temp = temperature
+
         # Convert to units for calculations, also force double precision
         with u.add_enabled_equivalencies(u.spectral() + u.temperature()):
             freq = u.Quantity(x, u.Hz, dtype=np.float64)
-            temp = u.Quantity(temperature, u.K, dtype=np.float64)
+            temp = u.Quantity(in_temp, u.K, dtype=np.float64)
 
         # Check if input values are physically possible
         if np.any(temp < 0):
@@ -146,33 +135,26 @@ class BlackBody(Fittable1DModel):
         log_boltz = const.h * freq / (const.k_B * temp)
         boltzm1 = np.expm1(log_boltz)
 
-        if _has_buggy_expm1:
-            # Replace incorrect nan results with infs--any result of 'nan' is
-            # incorrect unless the input (in log_boltz) happened to be nan to begin
-            # with.  (As noted in #4393 ideally this would be replaced by a version
-            # of expm1 that doesn't have this bug, rather than fixing incorrect
-            # results after the fact...)
-            boltzm1_nans = np.isnan(boltzm1)
-            if np.any(boltzm1_nans):
-                if boltzm1.isscalar and not np.isnan(log_boltz):
-                    boltzm1 = np.inf
-                else:
-                    boltzm1[np.where(~np.isnan(log_boltz) & boltzm1_nans)] = np.inf
-
         # Calculate blackbody flux
-        bb_nu = 2.0 * const.h * freq ** 3 / (const.c ** 2 * boltzm1)
-        flux = bb_nu.to(FNU, u.spectral_density(freq))
+        bb_nu = 2.0 * const.h * freq ** 3 / (const.c ** 2 * boltzm1) / u.sr
 
-        # Add per steradian to output flux unit
-        fnu = scale * flux / u.sr
-
-        # If the bolometric_flux parameter has no unit, we should drop the /Hz
-        # and return a unitless value. This occurs for instance during fitting,
-        # since we drop the units temporarily.
+        # strip the unit from the scale if it has one
         if hasattr(scale, "unit"):
-            return fnu
+            mult_scale = scale.value
+            bb_unit = scale.unit
         else:
-            return fnu
+            mult_scale = scale
+            bb_unit = u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr)
+
+        y = mult_scale * bb_nu.to(bb_unit, u.spectral_density(freq))
+
+        # If the temperature parameter has no unit, we should return a unitless
+        # value. This occurs for instance during fitting, since we drop the
+        # units temporarily.
+        if hasattr(temperature, "unit"):
+            return y
+        else:
+            return y.value
 
     @property
     def input_units(self):
@@ -182,11 +164,27 @@ class BlackBody(Fittable1DModel):
         return {"x": u.Hz}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict(
-            [("temperature", u.K), ("bolometric_flux", outputs_unit["y"] * u.Hz)]
-        )
+        return OrderedDict([("temperature", u.K)])
+
+    # does not work as need to pass freq/wave for unit equivalencies
+    #    @property
+    #    def return_units(self):
+    #        if self.scale.unit is None:
+    #            return None
+    #        else:
+    #            return {'y': self.scale.unit}
+
+    @property
+    def bolometric_flux(self):
+        """Bolometric flux."""
+        return const.sigma_sb * self.temperature ** 4 / np.pi
 
     @property
     def lambda_max(self):
         """Peak wavelength when the curve is expressed as power density."""
         return const.b_wien / self.temperature
+
+    @property
+    def nu_max(self):
+        """Peak frequency when the curve is expressed as power density."""
+        return 2.8214391 * const.k_B * self.temperature / const.h
