@@ -11,6 +11,7 @@ from .projections import *
 from .rotations import *
 from .polynomial import *
 from .functional_models import *
+from .physical_models import *
 from .powerlaws import *
 from .tabular import *
 from .blackbody import BlackBody1D
