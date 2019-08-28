@@ -186,3 +186,8 @@ class BlackBody(Fittable1DModel):
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return OrderedDict([("temperature", u.K)])
+
+    @property
+    def bolometric_flux(self):
+        """Bolometric flux."""
+        return const.sigma_sb * self.temperature ** 4 / np.pi
