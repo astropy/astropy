@@ -19,7 +19,7 @@ class Conf(_config.ConfigNamespace):
         'tables (and not overridden). See <http://getbootstrap.com/css/#tables '
         'for a list of useful bootstrap classes.')
     replace_warnings = _config.ConfigItem(
-        ['slice'],
+        [],
         'List of conditions for issuing a warning when replacing a table '
         "column using setitem, e.g. t['a'] = value.  Allowed options are "
         "'always', 'slice', 'refcount', 'attributes'.",
