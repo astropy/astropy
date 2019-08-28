@@ -17,7 +17,7 @@ To demonstrate these, we can create a simple table::
     >>> t = Table()
     >>> t['a'] = [1, 2, 3, 4]
     >>> t['b'] = ['a', 'b', 'c', 'd']
-    
+
 which we can then convert to a pandas `DataFrame`_::
 
     >>> df = t.to_pandas()
@@ -26,7 +26,7 @@ which we can then convert to a pandas `DataFrame`_::
     0  1  a
     1  2  b
     2  3  c
-    3  4  d    
+    3  4  d
     >>> type(df)
     <class 'pandas.core.frame.DataFrame'>
 
@@ -42,7 +42,7 @@ It is also possible to create a table from a `DataFrame`_::
         2       b
         3       c
         4       d
-        
+
 The conversions to/from pandas are subject to the following caveats:
 
 * The pandas `DataFrame`_ structure does not support multi-dimensional
@@ -57,7 +57,7 @@ The conversions to/from pandas are subject to the following caveats:
   not necessarily round-trip if converting back to an Astropy table, because the
   distinction between ``numpy.nan`` and masked values is lost, and the different
   for example integer columns will be converted to floating-point.
-  
+
 * Tables with mixin columns can currently not be converted, but this may be
   implemented in the future.
 
