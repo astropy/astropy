@@ -323,12 +323,11 @@ class TableReadWrite:
 class Table:
     """A class to represent tables of heterogeneous data.
 
-    `~astropy.table.Table` provides a class for heterogeneous tabular data,
-    making use of a `numpy` structured array internally to store the data
-    values.  A key enhancement provided by the `~astropy.table.Table` class is
-    the ability to easily modify the structure of the table by adding or
-    removing columns, or adding new rows of data.  In addition table and column
-    metadata are fully supported.
+    `~astropy.table.Table` provides a class for heterogeneous tabular data.
+    A key enhancement provided by the `~astropy.table.Table` class over 
+    e.g. a `numpy` structured array is the ability to easily modify the 
+    structure of the table by adding or removing columns, or adding new
+    rows of data.  In addition table and column metadata are fully supported.
 
     `~astropy.table.Table` differs from `~astropy.nddata.NDData` by the
     assumption that the input data consists of columns of homogeneous data,
