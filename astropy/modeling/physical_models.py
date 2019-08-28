@@ -76,7 +76,6 @@ class BlackBody(Fittable1DModel):
         with quantity_support():
             plt.figure()
             plt.semilogx(wav, flux)
-            plt.axvline(bb.lambda_max.to(u.AA).value, ls='--')
             plt.show()
     """
 
@@ -125,6 +124,7 @@ class BlackBody(Fittable1DModel):
         ------
         ValueError
             Invalid temperature.
+            Scale has units.
 
         ZeroDivisionError
             Wavelength is zero (when converting to frequency).
@@ -142,6 +142,9 @@ class BlackBody(Fittable1DModel):
                 "Input contains invalid wavelength/frequency value(s)",
                 AstropyUserWarning,
             )
+        # check if scale has a unit, warn as this is not allowed
+        if hasattr(scale, "unit"):
+            raise ValueError(f"Scale cannot have units")
 
         log_boltz = const.h * freq / (const.k_B * temp)
         boltzm1 = np.expm1(log_boltz)
@@ -166,13 +169,13 @@ class BlackBody(Fittable1DModel):
         # Add per steradian to output flux unit
         fnu = scale * flux / u.sr
 
-        # If the bolometric_flux parameter has no unit, we should drop the /Hz
-        # and return a unitless value. This occurs for instance during fitting,
-        # since we drop the units temporarily.
-        if hasattr(scale, "unit"):
+        # If the temperature parameter has no unit, we should return a unitless
+        # value. This occurs for instance during fitting, since we drop the
+        # units temporarily.
+        if hasattr(temperature, "unit"):
             return fnu
         else:
-            return fnu
+            return fnu.value
 
     @property
     def input_units(self):
@@ -182,11 +185,4 @@ class BlackBody(Fittable1DModel):
         return {"x": u.Hz}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict(
-            [("temperature", u.K), ("bolometric_flux", outputs_unit["y"] * u.Hz)]
-        )
-
-    @property
-    def lambda_max(self):
-        """Peak wavelength when the curve is expressed as power density."""
-        return const.b_wien / self.temperature
+        return OrderedDict([("temperature", u.K)])
