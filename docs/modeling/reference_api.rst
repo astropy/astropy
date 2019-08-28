@@ -16,8 +16,8 @@ Pre-Defined Models
 ******************
 
 .. automodapi:: astropy.modeling.functional_models
+.. automodapi:: astropy.modeling.physical_models
 .. automodapi:: astropy.modeling.powerlaws
-.. automodapi:: astropy.modeling.blackbody
 .. automodapi:: astropy.modeling.polynomial
 .. automodapi:: astropy.modeling.projections
 .. automodapi:: astropy.modeling.rotations

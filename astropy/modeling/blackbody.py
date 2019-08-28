@@ -1,109 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Model and functions related to blackbody radiation.
-
-.. _blackbody-planck-law:
-
-Blackbody Radiation
--------------------
-
-Blackbody flux is calculated with Planck law
-(:ref:`Rybicki & Lightman 1979 <ref-rybicki1979>`):
-
-.. math::
-
-    B_{\\lambda}(T) = \\frac{2 h c^{2} / \\lambda^{5}}{exp(h c / \\lambda k T) - 1}
-
-    B_{\\nu}(T) = \\frac{2 h \\nu^{3} / c^{2}}{exp(h \\nu / k T) - 1}
-
-where the unit of :math:`B_{\\lambda}(T)` is
-:math:`erg \\; s^{-1} cm^{-2} \\mathring{A}^{-1} sr^{-1}`, and
-:math:`B_{\\nu}(T)` is :math:`erg \\; s^{-1} cm^{-2} Hz^{-1} sr^{-1}`.
-:func:`~astropy.modeling.blackbody.blackbody_lambda` and
-:func:`~astropy.modeling.blackbody.blackbody_nu` calculate the
-blackbody flux for :math:`B_{\\lambda}(T)` and :math:`B_{\\nu}(T)`,
-respectively.
-
-For blackbody representation as a model, see :class:`BlackBody1D`.
-
-.. _blackbody-examples:
-
-Examples
-^^^^^^^^
-
->>> import numpy as np
->>> from astropy import units as u
->>> from astropy.modeling.blackbody import blackbody_lambda, blackbody_nu
-
-Calculate blackbody flux for 5000 K at 100 and 10000 Angstrom while suppressing
-any Numpy warnings:
-
->>> wavelengths = [100, 10000] * u.AA
->>> temperature = 5000 * u.K
->>> with np.errstate(all='ignore'):
-...     flux_lam = blackbody_lambda(wavelengths, temperature)
-...     flux_nu = blackbody_nu(wavelengths, temperature)
->>> flux_lam  # doctest: +FLOAT_CMP
-<Quantity [  1.27452545e-108,  7.10190526e+005] erg / (Angstrom cm2 s sr)>
->>> flux_nu  # doctest: +FLOAT_CMP
-<Quantity [  4.25135927e-123,  2.36894060e-005] erg / (cm2 Hz s sr)>
-
-Alternatively, the same results for ``flux_nu`` can be computed using
-:class:`BlackBody1D` with blackbody representation as a model. The difference between
-this and the former approach is in one additional step outlined as follows:
-
->>> from astropy import constants as const
->>> from astropy.modeling import models
->>> temperature = 5000 * u.K
->>> bolometric_flux = const.sigma_sb * temperature ** 4 / np.pi
->>> bolometric_flux.to(u.erg / (u.cm * u.cm * u.s))  # doctest: +FLOAT_CMP
-<Quantity 1.12808367e+10 erg / (cm2 s)>
->>> wavelengths = [100, 10000] * u.AA
->>> bb_astro = models.BlackBody1D(temperature, bolometric_flux=bolometric_flux)
->>> bb_astro(wavelengths).to(u.erg / (u.cm * u.cm * u.Hz * u.s)) / u.sr  # doctest: +FLOAT_CMP
-<Quantity [4.25102471e-123, 2.36893879e-005] erg / (cm2 Hz s sr)>
-
-where ``bb_astro(wavelengths)`` computes the equivalent result as ``flux_nu`` above.
-
-Plot a blackbody spectrum for 5000 K:
-
-.. plot::
-
-    import matplotlib.pyplot as plt
-    import numpy as np
-    from astropy import constants as const
-    from astropy import units as u
-    from astropy.modeling.blackbody import blackbody_lambda
-
-    temperature = 5000 * u.K
-    wavemax = (const.b_wien / temperature).to(u.AA)  # Wien's displacement law
-    waveset = np.logspace(
-        0, np.log10(wavemax.value + 10 * wavemax.value), num=1000) * u.AA
-    with np.errstate(all='ignore'):
-        flux = blackbody_lambda(waveset, temperature)
-
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.plot(waveset.value, flux.value)
-    ax.axvline(wavemax.value, ls='--')
-    ax.get_yaxis().get_major_formatter().set_powerlimits((0, 1))
-    ax.set_xlabel(r'$\\lambda$ ({0})'.format(waveset.unit))
-    ax.set_ylabel(r'$B_{\\lambda}(T)$')
-    ax.set_title('Blackbody, T = {0}'.format(temperature))
-
-Note that an array of temperatures can also be given instead of a single
-temperature. In this case, the Numpy broadcasting rules apply: for instance, if
-the frequency and temperature have the same shape, the output will have this
-shape too, while if the frequency is a 2-d array with shape ``(n, m)`` and the
-temperature is an array with shape ``(m,)``, the output will have a shape
-``(n, m)``.
-
-See Also
-^^^^^^^^
-
-.. _ref-rybicki1979:
-
-Rybicki, G. B., & Lightman, A. P. 1979, Radiative Processes in Astrophysics (New York, NY: Wiley)
-
 """
 
 import warnings
@@ -116,6 +13,7 @@ from .parameters import Parameter
 from astropy import constants as const
 from astropy import units as u
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils import deprecated
 
 __all__ = ['BlackBody1D', 'blackbody_nu', 'blackbody_lambda']
 
@@ -133,6 +31,11 @@ with warnings.catch_warnings():
     _has_buggy_expm1 = np.isnan(np.expm1(1000)) or np.isnan(np.expm1(1e10))
 
 
+@deprecated(
+    since="4.0",
+    alternative="astropy.physical_models.BlackBody",
+    message="BlackBody provides the same capabilities",
+)
 class BlackBody1D(Fittable1DModel):
     """
     One dimensional blackbody model.
@@ -263,6 +166,11 @@ class BlackBody1D(Fittable1DModel):
         return const.b_wien / self.temperature
 
 
+@deprecated(
+    since="4.0",
+    alternative="astropy.physical_models.BlackBody",
+    message="BlackBody provides the same capabilities",
+)
 def blackbody_nu(in_x, temperature):
     """Calculate blackbody flux per steradian, :math:`B_{\\nu}(T)`.
 
@@ -334,6 +242,11 @@ def blackbody_nu(in_x, temperature):
     return flux / u.sr  # Add per steradian to output flux unit
 
 
+@deprecated(
+    since="4.0",
+    alternative="astropy.physical_models.BlackBody",
+    message="BlackBody provides the same capabilities",
+)
 def blackbody_lambda(in_x, temperature):
     """Like :func:`blackbody_nu` but for :math:`B_{\\lambda}(T)`.
 
