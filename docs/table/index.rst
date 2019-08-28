@@ -60,7 +60,7 @@ Comments:
   linux and ``int32`` on Windows.
 - Column ``b`` is a list of ``float`` values, represented as ``float64``.
 - Column ``c`` is a list of ``str`` values, represented as unicode.
-  See :ref:`bytestring-columns-python-3`) for more information.
+  See :ref:`bytestring-columns-python-3` for more information.
 - Column ``d`` is a |Quantity| array.  Since we used |QTable| this stores a
   native |Quantity| within the table and brings the full power of
   :ref:`astropy-units` to this column in the table.
