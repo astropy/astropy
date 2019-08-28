@@ -1,17 +1,15 @@
 .. _bitmask_details:
 
-*********************************************************
-Utility functions for handling bit masks and mask arrays.
-*********************************************************
+********************************************************
+Utility Functions for Handling Bit Masks and Mask Arrays
+********************************************************
 
-It is common to use `bit fields <https://en.wikipedia.org/wiki/Bit_field>`_ - \
-e.g., integer variables whose individual bits
-represent some attributes - to characterize the state of data. For example,
-HST uses arrays of bit fields to characterize data quality (DQ) of HST images,
-see, e.g., DQ field values for
-`WFPC2 image data <http://documents.stsci.edu/hst/wfpc2/documents/handbooks/dhb/wfpc2_ch34.html#1971480>`_
-and `WFC3 image data <http://www.stsci.edu/hst/wfc3/documents/handbooks/currentDHB/Chapter2_data_structure3.html#567105>`_.
-As one can see, the meaning assigned to various *bit flags* in for the two
+It is common to use `bit fields <https://en.wikipedia.org/wiki/Bit_field>`_,
+such as integer variables whose individual bits represent some attributes, to
+characterize the state of data. For example, Hubble Space Telescope (HST) uses
+arrays of bit fields to characterize data quality (DQ) of HST images. See, for
+example, DQ field values for `WFPC2 image data <http://documents.stsci.edu/hst/wfpc2/documents/handbooks/dhb/wfpc2_ch34.html#1971480>`_ and `WFC3 image data <http://www.stsci.edu/hst/wfc3/documents/handbooks/currentDHB Chapter2_data_structure3.html#567105>`_.
+As you can see, the meaning assigned to various *bit flags* for the two
 instruments is generally different.
 
 Bit fields can be thought of as tightly packed collections of bit flags. Using
@@ -19,7 +17,7 @@ Bit fields can be thought of as tightly packed collections of bit flags. Using
 the status of individual bits.
 
 One common operation performed on bit field arrays is their conversion to
-boolean masks, for example by simply assigning boolean `True` (in the boolean
+boolean masks, for example, by assigning boolean `True` (in the boolean
 mask) to those elements that correspond to non-zero-valued bit fields
 (bit fields with at least one bit set to ``1``) or, oftentimes, by assigning
 `True` to elements whose corresponding bit fields have only *specific fields*
@@ -28,24 +26,23 @@ accomplished using *bit masks* and the aforementioned masking operation.
 
 The `~astropy.nddata.bitmask` module provides two functions that facilitate
 conversion of bit field arrays (i.e., DQ arrays) to boolean masks:
-`~astropy.nddata.bitmask.bitfield_to_boolean_mask` to convert an input bit
-fields array to a boolean mask using an input bit mask (or list of individual
-bit flags) and `~astropy.nddata.bitmask.interpret_bit_flags` to create bit mask
-from input list of individual bit flags.
+`~astropy.nddata.bitmask.bitfield_to_boolean_mask` converts an input bit
+field array to a boolean mask using an input bit mask (or list of individual
+bit flags) and `~astropy.nddata.bitmask.interpret_bit_flags` creates a bit mask
+from an input list of individual bit flags.
 
-Creating boolean masks
+Creating Boolean Masks
 **********************
-
 
 Overview
 ========
 
 `~astropy.nddata.bitmask.bitfield_to_boolean_mask` by default assumes that
-all input bit fields that have at least one bit turned "ON" correspond to
+all input bit fields that have at least one bit turned "ON" corresponds to
 "bad" data (i.e., pixels) and converts them to boolean `True` in the output
 boolean mask (otherwise output boolean mask values are set to `False`).
 
-Often, for specific algorithms and situations, some bit flags are OK and
+Often, for specific algorithms and situations, some bit flags are okay and
 can be ignored. `~astropy.nddata.bitmask.bitfield_to_boolean_mask` accepts
 lists of bit flags that *by default must be ignored* in the input bit fields
 when creating boolean masks.
@@ -57,9 +54,16 @@ performs the following operation:
 
 ``(1)    boolean_mask = (bitfield & ~bit_mask) != 0``
 
-(here ``&`` is bitwise ``and`` and ``~`` is the bitwise ``not`` operations).
-In the previous formula, ``bit_mask`` is a bit mask created from individual
-bit flags that need to be ignored in the bit field.
+(Here ``&`` is bitwise, while ``and`` and ``~`` is the bitwise ``not``
+operation.) In the previous formula, ``bit_mask`` is a bit mask created from
+individual bit flags that need to be ignored in the bit field.
+
+Example
+=======
+
+..
+  EXAMPLE START
+  Boolean Mask Computation in `astropy.nddata`
 
 .. _table1:
 
@@ -81,8 +85,10 @@ bit flags that need to be ignored in the bit field.
     |00001001 (9)  |11111111 (255)|00000000 (0)  |00000000 (0)  |   False    |
     +--------------+--------------+--------------+--------------+------------+
 
+..
+  EXAMPLE END
 
-Specifying bit flags
+Specifying Bit Flags
 ====================
 
 `~astropy.nddata.bitmask.bitfield_to_boolean_mask` accepts either an integer
@@ -92,13 +98,20 @@ bit mask and can be provided either as a Python list of
 list of integer bit flag values. Consider the bit mask from the first example
 in `Table 1 <table1_>`_. In this case ``ignore_flags`` can be set either to:
 
-    - an integer value bit mask 80, or
-    - a Python list indicating individual non-zero
-      *bit flag values:* ``[16, 64]``, or
-    - a string of comma-separated *bit flag values*: ``'16,64'``, or
-    - a string of ``+``-separated *bit flag values*: ``'16+64'``
+    - An integer value bit mask 80
+    - A Python list indicating individual non-zero
+      *bit flag values:* ``[16, 64]``
+    - A string of comma-separated *bit flag values*: ``'16,64'``
+    - A string of ``+``-separated *bit flag values*: ``'16+64'``
 
-For example,
+Example
+=======
+
+..
+  EXAMPLE START
+  Specifying Bit Flags in `astropy.nddata`
+
+To specify bit flags:
 
     >>> from astropy.nddata import bitmask
     >>> import numpy as np
@@ -118,6 +131,8 @@ It is also possible to specify the type of the output mask:
     >>> bitmask.bitfield_to_boolean_mask([9, 10, 73, 217], ignore_flags='1,8,64', dtype=np.uint8)
     array([0, 1, 0, 1], dtype=uint8)
 
+..
+  EXAMPLE END
 
 Modifying the Formula for Creating Boolean Masks
 ================================================
@@ -125,26 +140,25 @@ Modifying the Formula for Creating Boolean Masks
 `~astropy.nddata.bitmask.bitfield_to_boolean_mask` provides several parameters
 that can be used to modify the formula used to create boolean masks.
 
-
-Inverting Bit Mask
-------------------
+Inverting Bit Masks
+-------------------
 
 Sometimes it is more convenient to be able to specify those bit
-flags that *must be considered* when creating the boolean mask and all other
+flags that *must be considered* when creating the boolean mask, and all other
 flags should be ignored. In `~astropy.nddata.bitmask.bitfield_to_boolean_mask`
-this can be accomplished by setting parameter ``flip_bits`` to `True`.
+this can be accomplished by setting the parameter ``flip_bits`` to `True`.
 This effectively modifies `equation (1) <main_eq_>`_ to:
 
 .. _modif_eq2:
 
 ``(2)    boolean_mask = (bitfield & bit_mask) != 0``
 
-So, instead of
+So, instead of:
 
     >>> bitmask.bitfield_to_boolean_mask([9, 10, 73, 217], ignore_flags=[1, 8, 64])
     array([False,  True, False,  True]...)
 
-one can obtain the same result as
+You can obtain the same result as:
 
     >>> bitmask.bitfield_to_boolean_mask(
     ...     [9, 10, 73, 217], ignore_flags=[2, 4, 16, 32, 128], flip_bits=True
@@ -152,16 +166,15 @@ one can obtain the same result as
     array([False,  True, False,  True]...)
 
 Note however, when ``ignore_flags`` is a comma-separated list of bit flag
-values, ``flip_bits`` cannot be set to neither `True` or `False`. Instead,
+values, ``flip_bits`` cannot be set to either `True` or `False`. Instead,
 to flip bits of the bit mask formed from a string list of comma-separated
-bit flag values, one can prepend a single ``~`` to the list:
+bit flag values, you can prepend a single ``~`` to the list:
 
     >>> bitmask.bitfield_to_boolean_mask([9, 10, 73, 217], ignore_flags='~2+4+16+32+128')
     array([False,  True, False,  True]...)
 
-
-Inverting Boolean Mask
-----------------------
+Inverting Boolean Masks
+-----------------------
 
 Other times, it may be more convenient to obtain an inverted mask in which
 flagged data are converted to `False` instead of `True`:
@@ -170,9 +183,22 @@ flagged data are converted to `False` instead of `True`:
 
 ``(3)    boolean_mask = (bitfield & ~bit_mask) == 0``
 
-This can be accomplished by changing ``good_mask_value`` parameter from
-its default value (`False`) to `True`. For example,
+This can be accomplished by changing the ``good_mask_value`` parameter from
+its default value (`False`) to `True`.
+
+Example
+=======
+
+..
+  EXAMPLE START
+  Inverting Boolean Masks Using `astropy.nddata`
+
+To obtain an inverted mask in which flagged data are converted to `False`
+instead of `True`:
 
     >>> bitmask.bitfield_to_boolean_mask([9, 10, 73, 217], ignore_flags=[1, 8, 64],
     ...                                  good_mask_value=True)
     array([ True, False,  True, False]...)
+
+..
+  EXAMPLE END
