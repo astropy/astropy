@@ -6,8 +6,8 @@ Constructing a table
 ********************
 
 There is great deal of flexibility in the way that a table can be initially
-constructed.  Details on the inputs to the |Table|
-constructor are in the `Initialization Details`_ section.  However, the
+constructed.  Details on the inputs to the |Table| and |QTable|
+constructors are in the `Initialization Details`_ section.  However, the
 easiest way to understand how to make a table is by example.
 
 Examples
@@ -21,10 +21,12 @@ homogeneous).
 
 Setup
 -----
-For the following examples you need to import the |Table| and |Column| classes
-along with the `numpy` package::
 
-  >>> from astropy.table import Table, Column
+For the following examples you need to import the |QTable|, |Table| and |Column| classes
+along with the :ref:`astropy-units` package and the `numpy` package::
+
+  >>> from astropy.table import QTable, Table, Column
+  >>> from astropy import units as u
   >>> import numpy as np
 
 Creating from scratch
@@ -36,13 +38,13 @@ size, columns, or data are not known.
 .. Note::
    Adding rows requires making a new copy of the entire
    table each time, so in the case of large tables this may be slow.
-   On the other hand, adding columns is reasonably fast.
+   On the other hand, adding columns is fast.
 
 ::
 
   >>> t = Table()
   >>> t['a'] = [1, 4]
-  >>> t['b'] = Column([2.0, 5.0], unit='cm', description='Velocity')
+  >>> t['b'] = [2.0, 5.0]
   >>> t['c'] = ['x', 'y']
 
   >>> t = Table(names=('a', 'b', 'c'), dtype=('f4', 'i4', 'S2'))
@@ -51,36 +53,18 @@ size, columns, or data are not known.
 
   >>> t = Table(dtype=[('a', 'f4'), ('b', 'i4'), ('c', 'S2')])
 
-Another option for creating a table is using the `~astropy.table.QTable` class.
-In this case any `~astropy.units.Quantity` column objects will be stored
-natively within the table via the "mixin" column protocol (see `Columns and
-Quantities`_ for details)::
+If your data columns have physical units associated with them then we
+recommend using the |QTable| class.  This will allow the column to be
+stored in the table as a native |Quantity| and bring the full power of
+:ref:`astropy-units` to the table.
+::
 
-  >>> from astropy.table import QTable
-  >>> from astropy import units as u
   >>> t = QTable()
-  >>> t['velocity'] = [3, 4] * u.m / u.s
-  >>> type(t['velocity'])  # doctest: +SKIP
-  astropy.units.quantity.Quantity
-
-
-Comment lines
--------------
-Comment lines in an ASCII file can be added via the ``'comments'`` key in the
-table's metadata. The following will insert two comment lines in the output
-ASCII file unless ``comment=False`` is explicitly set in ``write()``::
-
-  >>> import sys
-  >>> from astropy.table import Table
-  >>> t = Table(names=('a', 'b', 'c'), dtype=('f4', 'i4', 'S2'))
-  >>> t.add_row((1, 2.0, 'x'))
-  >>> t.meta['comments'] = ['Here is my explanatory text. This is awesome.',
-  ...                       'Second comment line.']
-  >>> t.write(sys.stdout, format='ascii')
-  # Here is my explanatory text. This is awesome.
-  # Second comment line.
-  a b c
-  1.0 2 x
+  >>> t['a'] = [1, 4]
+  >>> t['b'] = [2.0, 5.0] * u.cm / u.s
+  >>> t['c'] = ['x', 'y']
+  >>> type(t['b'])
+  <class 'astropy.units.quantity.Quantity'>
 
 
 List of columns
@@ -515,6 +499,33 @@ For example, you can then fill in this table row-by-row from extracted from anot
       0     0.0 False
       1     2.5  True
       2     5.0 False
+
+Pandas DataFrame
+----------------
+
+The section on :ref:`pandas` gives details on how to initialize a |Table| using a
+`pandas.DataFrame` via the `~astropy.table.Table.from_pandas` class method.  This
+provides a convenient way to take advantage of the many I/O and table manipulation
+methods in `pandas <http://pandas.pydata.org/>`_.
+
+Comment lines
+-------------
+Comment lines in an ASCII file can be added via the ``'comments'`` key in the
+table's metadata. The following will insert two comment lines in the output
+ASCII file unless ``comment=False`` is explicitly set in ``write()``::
+
+  >>> import sys
+  >>> from astropy.table import Table
+  >>> t = Table(names=('a', 'b', 'c'), dtype=('f4', 'i4', 'S2'))
+  >>> t.add_row((1, 2.0, 'x'))
+  >>> t.meta['comments'] = ['Here is my explanatory text. This is awesome.',
+  ...                       'Second comment line.']
+  >>> t.write(sys.stdout, format='ascii')
+  # Here is my explanatory text. This is awesome.
+  # Second comment line.
+  a b c
+  1.0 2 x
+
 
 Initialization Details
 ======================

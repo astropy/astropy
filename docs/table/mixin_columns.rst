@@ -1,6 +1,5 @@
 .. include:: references.txt
 .. |join| replace:: :func:`~astropy.table.join`
-.. |Quantity| replace:: :class:`~astropy.units.Quantity`
 .. |Time| replace:: :class:`~astropy.time.Time`
 .. |SkyCoord| replace:: :class:`~astropy.coordinates.SkyCoord`
 
@@ -9,7 +8,7 @@
 Mixin columns
 ***************
 
-Version 1.0 of astropy introduces a new concept of the "Mixin
+Astropy tables support the concept of a "Mixin
 Column" in tables which allows integration of appropriate non-|Column| based
 class objects within a |Table| object.  These mixin column objects are not
 converted in any way but are used natively.
@@ -51,9 +50,9 @@ The ability to natively handle |Quantity| objects within a table makes it
 easier to manipulate tabular data with units in a natural and robust way.
 However, this feature introduces an ambiguity because data with a unit
 (e.g. from a FITS binary table) can be represented as either a |Column| with a
-``unit`` attribute or as a |Quantity| object. In order to retain complete
-backward compatibility with astropy versions prior to 1.0, a minor variant of
-the |Table| class called |QTable| is available.  |QTable| is exactly the same
+``unit`` attribute or as a |Quantity| object.  In order to cleanly resolve this
+ambiguity astropy defines a minor variant of
+the |Table| class called |QTable|.  The |QTable| class is exactly the same
 as |Table| except that |Quantity| is the default for any data column with a
 defined unit.
 
