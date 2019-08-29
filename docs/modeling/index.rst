@@ -44,9 +44,8 @@ Using Modeling
 A Simple Example
 ================
 
-Using a model is a matter of defining the model (instantiating) and then
-calling it with the input values for calculation.  This is illustrated with
-the code and plot below for fitting a line.
+This simple example illustrates defining a model,
+calculating values based on input x values, and using fitting data with a model.
 
    .. plot::
        :include-source:
