@@ -160,7 +160,7 @@ addition to activating new ones.
 
 * ` conda`: Activate the environment ``ENV`` with::
 
-      source activate ENV
+      conda activate ENV
 
 
 .. _deactivate_env:
