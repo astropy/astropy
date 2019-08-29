@@ -175,7 +175,7 @@ that with:
     + Note that in ``virtualenvwrapper 4.1.1`` the output of
       ``mkvirtualenv`` says you should use ``source deactivate``; that does
       not seem to actually work.
-* `conda`_: ``source deactivate``
+* `conda`_: ``conda deactivate``
 
 .. _delete_env:
 
