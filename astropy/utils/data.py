@@ -1,16 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-""" This module contains helper functions for accessing, downloading, and
-caching data files.
+""" This module contains helper functions for accessing, downloading, and caching data files.
 """
 
 import atexit
 import contextlib
+import dbm
 import fnmatch
 import hashlib
 import os
 import io
+import json
 import pathlib
+import re
 import shutil
 import socket
 import sys
@@ -19,22 +21,35 @@ import urllib.request
 import urllib.error
 import urllib.parse
 import shelve
+import zipfile
 
-from tempfile import NamedTemporaryFile, gettempdir
+from tempfile import NamedTemporaryFile, gettempdir, TemporaryDirectory
 from warnings import warn
 
+import astropy.config.paths
 from astropy import config as _config
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.introspection import find_current_module, resolve_name
 
+# Order here determines order in the autosummary
 __all__ = [
-    'Conf', 'conf', 'get_readable_fileobj', 'get_file_contents',
+    'Conf', 'conf',
+    'download_file', 'download_files_in_parallel',
+    'get_readable_fileobj',
     'get_pkg_data_fileobj', 'get_pkg_data_filename',
     'get_pkg_data_contents', 'get_pkg_data_fileobjs',
-    'get_pkg_data_filenames', 'compute_hash', 'clear_download_cache',
-    'CacheMissingWarning', 'get_free_space_in_dir',
-    'check_free_space_in_dir', 'download_file',
-    'download_files_in_parallel', 'is_url_in_cache', 'get_cached_urls']
+    'get_pkg_data_filenames',
+    'is_url_in_cache', 'get_cached_urls',
+    'cache_total_size', 'cache_contents',
+    'export_download_cache', 'import_download_cache',
+    'check_download_cache',
+    'clear_download_cache',
+    'compute_hash',
+    'get_free_space_in_dir',
+    'check_free_space_in_dir',
+    'get_file_contents',
+    'CacheMissingWarning',
+]
 
 _dataurls_to_alias = {}
 
@@ -56,7 +71,7 @@ class Conf(_config.ConfigNamespace):
         aliases=['astropy.coordinates.name_resolve.name_resolve_timeout'])
     compute_hash_block_size = _config.ConfigItem(
         2 ** 16,  # 64K
-        'Block size for computing MD5 file hashes.')
+        'Block size for computing file hashes.')
     download_block_size = _config.ConfigItem(
         2 ** 16,  # 64K
         'Number of bytes of remote data to download per step.')
@@ -95,7 +110,8 @@ def _is_url(string):
     # we can't just check that url.scheme is not an empty string, because
     # file paths in windows would return a non-empty scheme (e.g. e:\\
     # returns 'e').
-    return url.scheme.lower() in ['http', 'https', 'ftp', 'sftp', 'ssh', 'file']
+    return url.scheme.lower() in [
+        'http', 'https', 'ftp', 'sftp', 'ssh', 'file']
 
 
 def _is_inside(path, parent_path):
@@ -109,10 +125,9 @@ def _is_inside(path, parent_path):
 
 @contextlib.contextmanager
 def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
-                         show_progress=True, remote_timeout=None):
-    """
-    Given a filename, pathlib.Path object or a readable file-like object, return a context
-    manager that yields a readable file-like object.
+                         show_progress=True, remote_timeout=None,
+                         sources=None, update_cache=False):
+    """Yield a readable, seekable file-like object from a file or URL.
 
     This supports passing filenames, URLs, and readable file-like objects,
     any of which can be compressed in gzip, bzip2 or lzma (xz) if the
@@ -160,6 +175,18 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         Timeout for remote requests in seconds (default is the configurable
         `astropy.utils.data.Conf.remote_timeout`, which is 3s by default)
 
+    sources : list of str, optional
+        If provided, a list of URLs to try to obtain the file from. The
+        result will be stored under the original URL. The original URL
+        will *not* be tried unless it is in this list; this is to prevent
+        long waits for a primary server that is known to be inaccessible
+        at the moment.
+
+    update_cache : bool, optional
+        If true, attempt to download the file anew; if this is successful
+        replace the current version. If not, raise a URLError but leave
+        the existing cached value intact.
+
     Returns
     -------
     file : readable file-like object
@@ -189,7 +216,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         if is_url:
             name_or_obj = download_file(
                 name_or_obj, cache=cache, show_progress=show_progress,
-                timeout=remote_timeout)
+                timeout=remote_timeout, sources=sources,
+                update_cache=update_cache)
         fileobj = io.FileIO(name_or_obj, 'r')
         if is_url and not cache:
             delete_fds.append(fileobj)
@@ -203,7 +231,16 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     # but that is not compatible with streams or urllib2.urlopen
     # objects on Python 2.x.
     if not hasattr(fileobj, 'seek'):
-        fileobj = io.BytesIO(fileobj.read())
+        try:
+            # py.path.LocalPath objects have .read() method but it uses
+            # text mode, which won't work. .read_binary() does, and
+            # surely other ducks would return binary contents when
+            # called like this.
+            # py.path.LocalPath is what comes from the tmpdir fixture
+            # in pytest.
+            fileobj = io.BytesIO(fileobj.read_binary())
+        except AttributeError:
+            fileobj = io.BytesIO(fileobj.read())
 
     # Now read enough bytes to look at signature
     signature = fileobj.read(4)
@@ -257,7 +294,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             raise ValueError(
                 ".xz format files are not supported since the Python "
                 "interpreter does not include the lzma module.")
-        except (OSError, EOFError) as e:  # invalid xz file
+        except (OSError, EOFError):  # invalid xz file
             fileobj.seek(0)
             fileobj_new.close()
             # should we propagate this to the caller to signal bad content?
@@ -328,7 +365,6 @@ def get_file_contents(*args, **kwargs):
     -------
     content
         The content of the file (as requested by ``encoding``).
-
     """
     with get_readable_fileobj(*args, **kwargs) as f:
         return f.read()
@@ -445,22 +481,17 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
         with get_readable_fileobj(datafn, encoding=encoding) as fileobj:
             yield fileobj
     else:  # remote file
-        all_urls = (conf.dataurl, conf.dataurl_mirror)
-        for url in all_urls:
-            try:
-                with get_readable_fileobj(url + data_name, encoding=encoding,
-                                          cache=cache) as fileobj:
-                    # We read a byte to trigger any URLErrors
-                    fileobj.read(1)
-                    fileobj.seek(0)
-                    yield fileobj
-                    break
-            except urllib.error.URLError:
-                pass
-        else:
-            urls = '\n'.join(f'  - {url}' for url in all_urls)
-            raise urllib.error.URLError("Failed to download {} from the following "
-                                        "repositories:\n\n{}".format(data_name, urls))
+        with get_readable_fileobj(
+            conf.dataurl + data_name,
+            encoding=encoding,
+            cache=cache,
+            sources=[conf.dataurl + data_name,
+                     conf.dataurl_mirror + data_name],
+        ) as fileobj:
+            # We read a byte to trigger any URLErrors
+            fileobj.read(1)
+            fileobj.seek(0)
+            yield fileobj
 
 
 def get_pkg_data_filename(data_name, package=None, show_progress=True,
@@ -557,18 +588,11 @@ def get_pkg_data_filename(data_name, package=None, show_progress=True,
         hashfn = _find_hash_fn(data_name[5:])
 
         if hashfn is None:
-            all_urls = (conf.dataurl, conf.dataurl_mirror)
-            for url in all_urls:
-                try:
-                    return download_file(url + data_name, cache=True,
-                                         show_progress=show_progress,
-                                         timeout=remote_timeout)
-                except urllib.error.URLError:
-                    pass
-            urls = '\n'.join(f'  - {url}' for url in all_urls)
-            raise urllib.error.URLError("Failed to download {} from the following "
-                                        "repositories:\n\n{}\n\n".format(data_name, urls))
-
+            return download_file(conf.dataurl + data_name, cache=True,
+                                 show_progress=show_progress,
+                                 timeout=remote_timeout,
+                                 sources=[conf.dataurl + data_name,
+                                          conf.dataurl_mirror + data_name])
         else:
             return hashfn
     else:
@@ -580,17 +604,11 @@ def get_pkg_data_filename(data_name, package=None, show_progress=True,
         elif os.path.isfile(datafn):  # local file
             return datafn
         else:  # remote file
-            all_urls = (conf.dataurl, conf.dataurl_mirror)
-            for url in all_urls:
-                try:
-                    return download_file(url + data_name, cache=True,
-                                         show_progress=show_progress,
-                                         timeout=remote_timeout)
-                except urllib.error.URLError:
-                    pass
-            urls = '\n'.join(f'  - {url}' for url in all_urls)
-            raise urllib.error.URLError("Failed to download {} from the following "
-                                        "repositories:\n\n{}".format(data_name, urls))
+            return download_file(conf.dataurl + data_name, cache=True,
+                                 show_progress=show_progress,
+                                 timeout=remote_timeout,
+                                 sources=[conf.dataurl + data_name,
+                                          conf.dataurl_mirror + data_name])
 
 
 def get_pkg_data_contents(data_name, package=None, encoding=None, cache=True):
@@ -811,12 +829,10 @@ def compute_hash(localfn):
 
     Returns
     -------
-    md5hash : str
-        The hex digest of the MD5 hash for the contents of the ``localfn``
-        file.
-
+    hash : str
+        The hex digest of the cryptographic hash for the contents of the
+        ``localfn`` file.
     """
-
     with open(localfn, 'rb') as f:
         h = hashlib.md5()
         block = f.read(conf.compute_hash_block_size)
@@ -867,23 +883,20 @@ def _find_pkg_data_path(data_name, package=None):
     return path
 
 
-def _find_hash_fn(hash):
+def _find_hash_fn(hexdigest, pkgname='astropy'):
     """
     Looks for a local file by hash - returns file name if found and a valid
     file, otherwise returns None.
     """
 
-    try:
-        dldir, urlmapfn = _get_download_cache_locs()
-    except OSError as e:
-        msg = 'Could not access cache directory to search for data file: '
-        warn(CacheMissingWarning(msg + str(e)))
-        return None
-    hashfn = os.path.join(dldir, hash)
-    if os.path.isfile(hashfn):
-        return hashfn
-    else:
-        return None
+    with _cache(pkgname) as (dldir, url2hash):
+        if dldir is None:
+            return None
+        hashfn = os.path.join(dldir, hexdigest)
+        if os.path.isfile(hashfn):
+            return hashfn
+        else:
+            return None
 
 
 def get_free_space_in_dir(path):
@@ -902,19 +915,13 @@ def get_free_space_in_dir(path):
         The amount of free space on the partition that the directory
         is on.
     """
-
-    if sys.platform.startswith('win'):
-        import ctypes
-        free_bytes = ctypes.c_ulonglong(0)
-        retval = ctypes.windll.kernel32.GetDiskFreeSpaceExW(
-                ctypes.c_wchar_p(path), None, None, ctypes.pointer(free_bytes))
-        if retval == 0:
-            raise OSError('Checking free space on {!r} failed '
-                          'unexpectedly.'.format(path))
-        return free_bytes.value
-    else:
-        stat = os.statvfs(path)
-        return stat.f_bavail * stat.f_frsize
+    if not os.path.isdir(path):
+        raise OSError(
+            "Can only determine free space associated with directories, "
+            "not files.")
+        # Actually you can on Linux but I want to avoid code that fails
+        # on Windows only.
+    return shutil.disk_usage(path).free
 
 
 def check_free_space_in_dir(path, size):
@@ -944,12 +951,83 @@ def check_free_space_in_dir(path, size):
                 path, human_file_size(size)))
 
 
-def download_file(remote_url, cache=False, show_progress=True, timeout=None, pkgname='astropy'):
-    """
-    Accepts a URL, downloads and optionally caches the result
-    returning the filename, with a name determined by the file's MD5
-    hash. If ``cache=True`` and the file is present in the cache, just
-    returns the filename.
+def _download_file_from_source(source_url, show_progress=True, timeout=None,
+                               remote_url=None, cache=False, pkgname='astropy'):
+    from astropy.utils.console import ProgressBarOrSpinner
+
+    if remote_url is None:
+        remote_url = source_url
+    with urllib.request.urlopen(source_url, timeout=timeout) as remote:
+        # keep a hash to rename the local file to the hashed name
+        hasher = hashlib.md5()
+
+        info = remote.info()
+        try:
+            size = int(info['Content-Length'])
+        except (KeyError, ValueError, TypeError):
+            size = None
+
+        if size is not None:
+            check_free_space_in_dir(gettempdir(), size)
+            if cache:
+                with _cache(pkgname) as (dldir, url2hash):
+                    check_free_space_in_dir(dldir, size)
+
+        if show_progress and sys.stdout.isatty():
+            progress_stream = sys.stdout
+        else:
+            progress_stream = io.StringIO()
+
+        if source_url == remote_url:
+            dlmsg = f"Downloading {remote_url}"
+        else:
+            dlmsg = f"Downloading {remote_url} from {source_url}"
+        with ProgressBarOrSpinner(size, dlmsg, file=progress_stream) as p:
+            with NamedTemporaryFile(
+                prefix="astropy-download-{}-".format(os.getpid()),
+                delete=False
+            ) as f:
+                try:
+                    bytes_read = 0
+                    block = remote.read(conf.download_block_size)
+                    while block:
+                        f.write(block)
+                        hasher.update(block)
+                        bytes_read += len(block)
+                        p.update(bytes_read)
+                        block = remote.read(conf.download_block_size)
+                        if size is not None and bytes_read > size:
+                            raise urllib.error.URLError(
+                                "File was supposed to be {} bytes but server "
+                                "provides more, at least {} bytes. "
+                                "Download failed."
+                                .format(size, bytes_read)
+                            )
+                    if size is not None and bytes_read < size:
+                        raise urllib.error.ContentTooShortError(
+                            "File was supposed to be {} bytes but we only "
+                            "got {} bytes. Download failed."
+                            .format(size, bytes_read),
+                            content=None,
+                        )
+                except BaseException:
+                    if os.path.exists(f.name):
+                        try:
+                            os.remove(f.name)
+                        except OSError:
+                            pass
+                    raise
+    return f.name, hasher.hexdigest()
+
+
+def download_file(remote_url, cache=False, show_progress=True, timeout=None,
+                  sources=None, update_cache=False, pkgname='astropy'):
+    """Downloads a URL and optionally caches the result.
+
+    It returns the filename of a file containing the URL's contents.
+    If ``cache=True`` and the file is present in the cache, just
+    returns the filename; if the file had to be downloaded, add it
+    to the cache.
 
     Parameters
     ----------
@@ -968,6 +1046,18 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None, pkg
         The timeout, in seconds.  Otherwise, use
         `astropy.utils.data.Conf.remote_timeout`.
 
+    sources : list of str, optional
+        If provided, a list of URLs to try to obtain the file from. The
+        result will be stored under the original URL. The original URL
+        will *not* be tried unless it is in this list; this is to prevent
+        long waits for a primary server that is known to be inaccessible
+        at the moment.
+
+    update_cache : bool, optional
+        If true, attempt to download the file anew; if this is successful
+        replace the current version. If not, raise a URLError but leave
+        the existing cached value intact.
+
     pkgname : `str`, optional
         The package name to use to locate the download cache. i.e. for
         ``pkgname='astropy'`` the default cache location is
@@ -982,181 +1072,145 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None, pkg
     ------
     urllib2.URLError, urllib.error.URLError
         Whenever there's a problem getting the remote file.
+
+    Note
+    ----
+    Because this returns a filename, another process could run
+    clear_download_cache before you actually open the file, leaving
+    you with a filename that no longer points to a usable file.
     """
-
-    from astropy.utils.console import ProgressBarOrSpinner
-
     if timeout is None:
         timeout = conf.remote_timeout
+    if sources is None:
+        sources = [remote_url]
+    if not sources:
+        raise ValueError(
+            "No sources listed! Please include primary URL if you want it "
+            "to be included as a valid source.")
+    if update_cache and not cache:
+        raise ValueError("update_cache only makes sense when using the cache!")
 
     missing_cache = False
 
-    if cache:
-        try:
-            dldir, urlmapfn = _get_download_cache_locs(pkgname)
-        except OSError as e:
-            msg = 'Remote data cache could not be accessed due to '
-            estr = '' if len(e.args) < 1 else (': ' + str(e))
-            warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
-            cache = False
-            missing_cache = True  # indicates that the cache is missing to raise a warning later
-
     url_key = remote_url
 
-    # Check if URL is Astropy data server, which has alias, and cache it.
-    if (url_key.startswith(conf.dataurl) and
-            conf.dataurl not in _dataurls_to_alias):
-        try:
-            with urllib.request.urlopen(conf.dataurl, timeout=timeout) as remote:
-                _dataurls_to_alias[conf.dataurl] = [conf.dataurl, remote.geturl()]
-        except urllib.error.URLError:  # Host unreachable
-            _dataurls_to_alias[conf.dataurl] = [conf.dataurl]
-    try:
-        if cache:
-            # We don't need to acquire the lock here, since we are only reading
-            with shelve.open(urlmapfn) as url2hash:
-                if url_key in url2hash:
+    if cache:
+        with _cache(pkgname) as (dldir, url2hash):
+            if dldir is None:
+                cache = False
+                update_cache = False
+                missing_cache = True  # emit a warning later
+            elif update_cache:
+                # just check the cache works but we want a new value
+                pass
+            else:
+                try:
                     return url2hash[url_key]
-                # If there is a cached copy from mirror, use it.
-                else:
-                    for cur_url in _dataurls_to_alias.get(conf.dataurl, []):
-                        if url_key.startswith(cur_url):
-                            url_mirror = url_key.replace(cur_url,
-                                                         conf.dataurl_mirror)
-                            if url_mirror in url2hash:
-                                return url2hash[url_mirror]
+                except KeyError:
+                    pass
 
-        with urllib.request.urlopen(remote_url, timeout=timeout) as remote:
-            # keep a hash to rename the local file to the hashed name
-            hash = hashlib.md5()
+    errors = {}
+    for source_url in sources:
+        try:
+            f_name, hexdigest = _download_file_from_source(
+                    source_url,
+                    timeout=timeout,
+                    show_progress=show_progress,
+                    cache=cache,
+                    remote_url=remote_url,
+                    pkgname=pkgname)
+            # Success!
+            break
 
-            info = remote.info()
-            if 'Content-Length' in info:
-                try:
-                    size = int(info['Content-Length'])
-                except ValueError:
-                    size = None
-            else:
-                size = None
+        except urllib.error.URLError as e:
+            # errno 8 is from SSL "EOF occurred in violation of protocol"
+            if (hasattr(e, 'reason')
+                    and hasattr(e.reason, 'errno')
+                    and e.reason.errno == 8):
+                e.reason.strerror = (e.reason.strerror +
+                                     '. requested URL: '
+                                     + remote_url)
+                e.reason.args = (e.reason.errno, e.reason.strerror)
+            errors[source_url] = e
+        except socket.timeout as e:
+            # this isn't supposed to happen, but occasionally a socket.timeout
+            # gets through.  It's supposed to be caught in `urrlib2` and raised
+            # in this way, but for some reason in mysterious circumstances it
+            # doesn't. So we'll just re-raise it here instead
+            errors[source_url] = e
+    else:   # No success
+        raise urllib.error.URLError(
+            "Unable to open any source! Exceptions were {}".format(errors)) \
+            from errors[sources[0]]
 
-            if size is not None:
-                check_free_space_in_dir(gettempdir(), size)
-                if cache:
-                    check_free_space_in_dir(dldir, size)
-
-            if show_progress and sys.stdout.isatty():
-                progress_stream = sys.stdout
-            else:
-                progress_stream = io.StringIO()
-
-            dlmsg = f"Downloading {remote_url}"
-            with ProgressBarOrSpinner(size, dlmsg, file=progress_stream) as p:
-                try:
-                    with NamedTemporaryFile(delete=False) as f:
-                        bytes_read = 0
-                        block = remote.read(conf.download_block_size)
-                        while block:
-                            f.write(block)
-                            hash.update(block)
-                            bytes_read += len(block)
-                            p.update(bytes_read)
-                            block = remote.read(conf.download_block_size)
-                            if size is not None and bytes_read > size:
-                                raise urllib.error.URLError(
-                                    "File was supposed to be {} bytes but server "
-                                    "provides more, at least {} bytes. "
-                                    "Download failed."
-                                    .format(size, bytes_read)
-                                )
-                    if size is not None and bytes_read < size:
-                        raise urllib.error.ContentTooShortError(
-                            "File was supposed to be {} bytes but we only "
-                            "got {} bytes. Download failed."
-                            .format(size, bytes_read),
-                            content=None,
-                        )
-                except BaseException:
-                    if os.path.exists(f.name):
-                        os.remove(f.name)
-                    raise
-
-        if cache:
-            _acquire_download_cache_lock()
-            try:
-                with shelve.open(urlmapfn) as url2hash:
-                    # We check now to see if another process has
-                    # inadvertently written the file underneath us
-                    # already
-                    if url_key in url2hash:
-                        return url2hash[url_key]
-                    local_path = os.path.join(dldir, hash.hexdigest())
-                    shutil.move(f.name, local_path)
-                    url2hash[url_key] = local_path
-            finally:
-                _release_download_cache_lock()
-        else:
-            local_path = f.name
-            if missing_cache:
-                msg = ('File downloaded to temporary location due to problem '
-                       'with cache directory and will not be cached.')
-                warn(CacheMissingWarning(msg, local_path))
-            if conf.delete_temporary_downloads_at_exit:
-                global _tempfilestodel
-                _tempfilestodel.append(local_path)
-    except urllib.error.URLError as e:
-        if hasattr(e, 'reason') and hasattr(e.reason, 'errno') and e.reason.errno == 8:
-            e.reason.strerror = e.reason.strerror + '. requested URL: ' + remote_url
-            e.reason.args = (e.reason.errno, e.reason.strerror)
-        raise e
-    except socket.timeout as e:
-        # this isn't supposed to happen, but occasionally a socket.timeout gets
-        # through.  It's supposed to be caught in `urrlib2` and raised in this
-        # way, but for some reason in mysterious circumstances it doesn't. So
-        # we'll just re-raise it here instead
-        raise urllib.error.URLError(e)
+    if cache:
+        local_path = import_to_cache(url_key, f_name,
+                                     hexdigest=hexdigest,
+                                     remove_original=True,
+                                     pkgname=pkgname)
+    else:
+        local_path = f_name
+        if missing_cache:
+            msg = ('File downloaded to temporary location due to problem '
+                   'with cache directory and will not be cached.')
+            warn(CacheMissingWarning(msg, local_path))
+        if conf.delete_temporary_downloads_at_exit:
+            global _tempfilestodel
+            _tempfilestodel.append(local_path)
 
     return local_path
 
 
 def is_url_in_cache(url_key, pkgname='astropy'):
-    """
-    Check if a download from ``url_key`` is in the cache.
+    """Check if a download from ``url_key`` is in the cache.
 
     Parameters
     ----------
     url_key : string
         The URL retrieved
+    pkgname : `str`, optional
+        The package name to use to locate the download cache. i.e. for
+        ``pkgname='astropy'`` the default cache location is
+        ``~/.astropy/cache``.
+
 
     Returns
     -------
-    in_cache : bool
+    bool
         `True` if a download from ``url_key`` is in the cache
+
+    See Also
+    --------
+    cache_contents : obtain a dictionary listing everything in the cache
     """
-    # The code below is modified from astropy.utils.data.download_file()
-    try:
-        dldir, urlmapfn = _get_download_cache_locs(pkgname)
-    except OSError as e:
-        msg = 'Remote data cache could not be accessed due to '
-        estr = '' if len(e.args) < 1 else (': ' + str(e))
-        warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
-        return False
-
-    with shelve.open(urlmapfn) as url2hash:
-        if url_key in url2hash:
-            return True
-    return False
+    with _cache(pkgname) as (dldir, url2hash):
+        return url_key in url2hash
 
 
-def _do_download_files_in_parallel(args):
-    return download_file(*args)
+def cache_total_size(pkgname='astropy'):
+    """Return the total size in bytes of all files in the cache."""
+    with _cache(pkgname) as (dldir, url2hash):
+        return sum(os.path.getsize(os.path.join(dldir, h)) for h in url2hash.values())
 
 
-def download_files_in_parallel(urls, cache=True, show_progress=True,
-                               timeout=None):
-    """
-    Downloads multiple files in parallel from the given URLs.  Blocks until
-    all files have downloaded.  The result is a list of local file paths
-    corresponding to the given urls.
+def _do_download_files_in_parallel(kwargs):
+    with astropy.config.paths.set_temp_config(kwargs.pop("temp_config")):
+        with astropy.config.paths.set_temp_cache(kwargs.pop("temp_cache")):
+            return download_file(**kwargs)
+
+
+def download_files_in_parallel(urls,
+                               cache=True,
+                               show_progress=True,
+                               timeout=None,
+                               sources=None,
+                               update_cache=False,
+                               multiprocessing_start_method=None,
+                               pkgname='astropy'):
+    """Download multiple files in parallel from the given URLs.
+
+    Blocks until all files have downloaded.  The result is a list of
+    local file paths corresponding to the given urls.
 
     Parameters
     ----------
@@ -1164,7 +1218,8 @@ def download_files_in_parallel(urls, cache=True, show_progress=True,
         The URLs to retrieve.
 
     cache : bool, optional
-        Whether to use the cache (default is `True`).
+        Whether to use the cache (default is `True`). If you want to check
+        for new versions on the internet, use the update_cache option.
 
         .. versionchanged:: 3.0
             The default was changed to ``True`` and setting it to ``False`` will
@@ -1179,25 +1234,60 @@ def download_files_in_parallel(urls, cache=True, show_progress=True,
         Timeout for each individual requests in seconds (default is the
         configurable `astropy.utils.data.Conf.remote_timeout`).
 
+    sources : dict, optional
+        If provided, for each URL a list of URLs to try to obtain the
+        file from. The result will be stored under the original URL.
+        For any URL in this dictionary, the original URL will *not* be
+        tried unless it is in this list; this is to prevent long waits
+        for a primary server that is known to be inaccessible at the
+        moment.
+
+    update_cache : bool, optional
+        If true, attempt to download the file anew; if this is successful
+        replace the current version. If not, raise a URLError but leave
+        the existing cached value intact.
+
+    multiprocessing_start_method : str, optional
+        Useful primarily for testing; if in doubt leave it as the default.
+        When using multiprocessing, certain anomalies occur when starting
+        processes with the "spawn" method (the only option on Windows);
+        other anomalies occur with the "fork" method (the default on Unix).
+
+    pkgname : `str`, optional
+        The package name to use to locate the download cache. i.e. for
+        ``pkgname='astropy'`` the default cache location is
+        ``~/.astropy/cache``.
+
     Returns
     -------
     paths : list of str
         The local file paths corresponding to the downloaded URLs.
+
+    Note
+    ----
+    If a URL is unreachable, the downloading will grind to a halt and the
+    exception will propagate upward, but an unpredictable number of
+    files will have been successfully downloaded and will remain in
+    the cache.
     """
     from .console import ProgressBar
 
     if timeout is None:
         timeout = conf.remote_timeout
+    if sources is None:
+        sources = {}
 
     if not cache:
         # See issue #6662, on windows won't work because the files are removed
         # again before they can be used. On *NIX systems it will behave as if
         # cache was set to True because multiprocessing cannot insert the items
-        # in the list of to-be-removed files.
+        # in the list of to-be-removed files. This could be fixed, but really,
+        # just use the cache, with update_cache if appropriate.
         warn("Disabling the cache does not work because of multiprocessing, it "
              "will be set to ``True``. You may need to manually remove the "
-             "cached files afterwards.", AstropyWarning)
+             "cached files with clear_download_cache() afterwards.", AstropyWarning)
         cache = True
+        update_cache = True
 
     if show_progress:
         progress = sys.stdout
@@ -1208,9 +1298,20 @@ def download_files_in_parallel(urls, cache=True, show_progress=True,
     combined_urls = list(set(urls))
     combined_paths = ProgressBar.map(
         _do_download_files_in_parallel,
-        [(x, cache, False, timeout) for x in combined_urls],
+        [dict(remote_url=u,
+              cache=cache,
+              show_progress=False,
+              timeout=timeout,
+              sources=sources.get(u, None),
+              update_cache=update_cache,
+              pkgname=pkgname,
+              temp_cache=astropy.config.paths.set_temp_cache._temp_path,
+              temp_config=astropy.config.paths.set_temp_config._temp_path)
+         for u in combined_urls],
         file=progress,
-        multiprocess=True)
+        multiprocess=True,
+        multiprocessing_start_method=multiprocessing_start_method,
+    )
     paths = []
     for url in urls:
         paths.append(combined_paths[combined_urls.index(url)])
@@ -1231,69 +1332,84 @@ def _deltemps():
         while len(_tempfilestodel) > 0:
             fn = _tempfilestodel.pop()
             if os.path.isfile(fn):
-                os.remove(fn)
+                try:
+                    os.remove(fn)
+                except OSError:
+                    # oh well we tried
+                    # could be held open by some process, on Windows
+                    pass
 
 
 def clear_download_cache(hashorurl=None, pkgname='astropy'):
-    """ Clears the data file cache by deleting the local file(s).
+    """Clears the data file cache by deleting the local file(s).
 
     Parameters
     ----------
     hashorurl : str or None
-        If None, the whole cache is cleared.  Otherwise, either specifies a
-        hash for the cached file that is supposed to be deleted, or a URL that
-        should be removed from the cache if present.
+        If None, the whole cache is cleared.  Otherwise, specifies
+        a hash for the cached file that is supposed to be deleted,
+        the full path to a file in the cache that should be deleted,
+        or a URL that should be removed from the cache if present.
+
+    pkgname : `str`, optional
+        The package name to use to locate the download cache. i.e. for
+        ``pkgname='astropy'`` the default cache location is
+        ``~/.astropy/cache``.
+
     """
 
     try:
-        dldir, urlmapfn = _get_download_cache_locs(pkgname)
+        with _cache(pkgname, write=True) as (dldir, url2hash):
+            if hashorurl is None:
+                if os.path.exists(dldir):
+                    shutil.rmtree(dldir)
+            elif _is_url(hashorurl):
+                try:
+                    filepath = url2hash.pop(hashorurl)
+                    if not any(v == filepath for v in url2hash.values()):
+                        try:
+                            os.unlink(filepath)
+                        except FileNotFoundError:
+                            # Maybe someone else got it first
+                            pass
+                    return
+                except KeyError:
+                    pass
+            else:  # it's a path
+                filepath = os.path.join(dldir, hashorurl)
+                if not _is_inside(filepath, dldir):
+                    # Should this be ValueError? IOError?
+                    raise RuntimeError(
+                        "attempted to use clear_download_cache on the path {} "
+                        "outside the data cache directory {}"
+                        .format(filepath, dldir)
+                    )
+                if os.path.exists(filepath):
+                    # Convert to list because we'll be modifying it as we go
+                    for k, v in list(url2hash.items()):
+                        if v == filepath:
+                            del url2hash[k]
+                    os.unlink(filepath)
+                    return
+                # Otherwise could not find file or url, but no worries.
+                # Clearing download cache just makes sure that the file or url
+                # is no longer in the cache regardless of starting condition.
     except OSError as e:
-        msg = 'Not clearing data cache - cache inacessable due to '
+        msg = 'Not clearing data cache - cache inacessible due to '
         estr = '' if len(e.args) < 1 else (': ' + str(e))
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
         return
 
-    _acquire_download_cache_lock(pkgname)
-    try:
-        if hashorurl is None:
-            # dldir includes both the download files and the urlmapfn.  This structure
-            # is required since we cannot know a priori the actual file name corresponding
-            # to the shelve map named urlmapfn.
-            if os.path.exists(dldir):
-                shutil.rmtree(dldir)
-        else:
-            with shelve.open(urlmapfn) as url2hash:
-                filepath = os.path.join(dldir, hashorurl)
-                if not _is_inside(filepath, dldir):
-                    raise RuntimeError("attempted to use clear_download_cache on"
-                                       " a path outside the data cache directory")
-
-                hash_key = hashorurl
-
-                if os.path.exists(filepath):
-                    for k, v in url2hash.items():
-                        if v == filepath:
-                            del url2hash[k]
-                    os.unlink(filepath)
-                elif hash_key in url2hash:
-                    filepath = url2hash[hash_key]
-                    del url2hash[hash_key]
-                    if os.path.exists(filepath):
-                        # Make sure the filepath still actually exists (perhaps user removed it)
-                        os.unlink(filepath)
-                # Otherwise could not find file or url, but no worries.
-                # Clearing download cache just makes sure that the file or url
-                # is no longer in the cache regardless of starting condition.
-
-    finally:
-        # the lock will be gone if rmtree was used above, but release otherwise
-        if os.path.exists(os.path.join(dldir, 'lock')):
-            _release_download_cache_lock(pkgname)
-
 
 def _get_download_cache_locs(pkgname='astropy'):
-    """ Finds the path to the data cache directory and makes them if
-    they don't exist.
+    """Finds the path to the cache directory and makes them if they don't exist.
+
+    Parameters
+    ----------
+    pkgname : `str`, optional
+        The package name to use to locate the download cache. i.e. for
+        ``pkgname='astropy'`` the default cache location is
+        ``~/.astropy/cache``.
 
     Returns
     -------
@@ -1316,7 +1432,7 @@ def _get_download_cache_locs(pkgname='astropy'):
     if not os.path.exists(datadir):
         try:
             os.makedirs(datadir)
-        except OSError as e:
+        except OSError:
             if not os.path.exists(datadir):
                 raise
     elif not os.path.isdir(datadir):
@@ -1332,63 +1448,432 @@ def _get_download_cache_locs(pkgname='astropy'):
 
 # the cache directory must be locked before any writes are performed.  Same for
 # the hash shelve, so this should be used for both.
-def _acquire_download_cache_lock(pkgname='astropy'):
-    """
-    Uses the lock directory method.  This is good because `mkdir` is
-    atomic at the system call level, so it's thread-safe.
-    """
-
+#
+# In fact the shelve, if you're using gdbm (the default on Linux), it can't
+# be open for reading if someone has it open for writing. So we need to lock
+# access to the shelve even for reading.
+@contextlib.contextmanager
+def _cache_lock(pkgname):
     lockdir = os.path.join(_get_download_cache_locs(pkgname)[0], 'lock')
-    for i in range(conf.download_cache_lock_attempts):
-        try:
-            os.mkdir(lockdir)
-            # write the pid of this process for informational purposes
-            with open(os.path.join(lockdir, 'pid'), 'w') as f:
-                f.write(str(os.getpid()))
+    pidfn = os.path.join(lockdir, 'pid')
+    try:
+        msg = ("Config file requests {} tries"
+               .format(conf.download_cache_lock_attempts))
+        waited = 0.
+        while True:
+            try:
+                os.mkdir(lockdir)
+            except FileExistsError:
+                # It is not safe to open and inspect the pid file here
+                # on Windows, because while it is open that prevents its
+                # deletion and that of the directory containing it. This
+                # gets in the way of useful error messages.
+                msg = (
+                    "Cache is locked after {:.2f} s. This may indicate an "
+                    "astropy bug or that kill -9 "
+                    "was used. If you want to unlock the cache remove the "
+                    "directory or file \"{}\"."
+                    .format(waited, lockdir)
+                )
+            else:
+                # Got the lock!
+                # write the pid of this process for informational purposes
+                with open(pidfn, 'w') as f:
+                    f.write(str(os.getpid()))
+                break
+            if waited < conf.download_cache_lock_attempts:
+                # Wait to try again
+                # slightly random wait time to desynchronize retries
+                # unfortunately multiprocessing uses fork() so
+                # subprocesses all see the same random seed
+                # could include threading.current_thread().ident as well
+                pid_based_random = (hash(str(os.getpid()))
+                                    / 2.**sys.hash_info.width)
+                dt = 0.05*(1+pid_based_random)
+                time.sleep(dt)
+                waited += dt
+            else:
+                # Never did get the lock.
+                raise RuntimeError(msg)
 
-        except OSError:
-            time.sleep(1)
+        yield
+
+    finally:
+        if os.path.exists(lockdir):
+            if os.path.isdir(lockdir):
+                # if the pid file is present, be sure to remove it
+                if os.path.exists(pidfn):
+                    os.remove(pidfn)
+                os.rmdir(lockdir)
+            else:
+                msg = 'Error releasing lock. "{}" exists but is not a directory.'
+                raise RuntimeError(msg.format(lockdir))
         else:
+            # Just in case we were called from _clear_download_cache
+            # or something went wrong before creating the directory
+            pass
+
+
+class ReadOnlyDict(dict):
+    def __setitem__(self, key, value):
+        raise TypeError("This object is read-only.")
+
+
+nothing = ReadOnlyDict()  # might as well share.
+
+
+@contextlib.contextmanager
+def _cache(pkgname, write=False):
+    """Download cache context manager.
+
+    Yields a pair consisting of the download cache directory and a dict-like
+    object that maps downloaded URLs to the filenames that contain their
+    contents; these files reside in the download cache directory.
+
+    If writing is requested, this holds the lock and yields a modifiable
+    dict-like object (actually a shelve object from the shelve module).  If
+    there is something wrong with the cache setup, an appropriate exception
+    will be raised.
+
+    If reading is requested, the lock will be briefly acquired, the URL map
+    will be copied into a read-only dict-like object which is yielded, and the
+    lock will be released. If some problem occurs and the cache is inaccessible
+    or non-functional, a CacheMissingWarning will be emitted and this context
+    manager will yield an empty dict-like object and None as the download
+    directory.
+
+    The files in the download cache directory are named according to a
+    cryptographic hash of their contents (currently MD5, so hackers can cause
+    collisions). Thus files with the same content share storage. The
+    modification times on these files normally indicate when they were last
+    downloaded from the Internet.
+
+    Although this cache lives behind a lock, and files are not normally
+    modified, it is possible to break concurrent access - most easily by using
+    clear_download_cache on a URL while someone has the filename and wants to
+    read the file. Since download_file returns a filename, there is not much we
+    can do about this.  get_readable_fileobj doesn't quite avoid the problem,
+    though it almost immediately opens the filename, preserving the contents
+    from deletion. download_file itself also calls clear_download_cache when
+    it is un update_cache mode, so this can break things as well.
+    """
+    try:
+        dldir, urlmapfn = _get_download_cache_locs(pkgname)
+    except OSError as e:
+        if write:
+            raise
+        else:
+            msg = 'Remote data cache could not be accessed due to '
+            estr = '' if len(e.args) < 1 else (': ' + str(e))
+            warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
+            yield None, nothing
             return
-    msg = ("Unable to acquire lock for cache directory ({0} exists). "
-           "You may need to delete the lock if the python interpreter wasn't "
-           "shut down properly.")
-    raise RuntimeError(msg.format(lockdir))
-
-
-def _release_download_cache_lock(pkgname='astropy'):
-    lockdir = os.path.join(_get_download_cache_locs(pkgname)[0], 'lock')
-
-    if os.path.isdir(lockdir):
-        # if the pid file is present, be sure to remove it
-        pidfn = os.path.join(lockdir, 'pid')
-        if os.path.exists(pidfn):
-            os.remove(pidfn)
-        os.rmdir(lockdir)
+    if write:
+        with _cache_lock(pkgname), shelve.open(urlmapfn, flag="c") as url2hash:
+            yield dldir, url2hash
     else:
-        msg = 'Error releasing lock. "{0}" either does not exist or is not ' +\
-              'a directory.'
-        raise RuntimeError(msg.format(lockdir))
+        try:
+            with _cache_lock(pkgname), shelve.open(urlmapfn, flag="r") as url2hash:
+                # Copy so we can release the lock.
+                d = ReadOnlyDict(url2hash.items())
+        except dbm.error:
+            # Might be a "file not found" - that is, an un-initialized cache,
+            # might be something serious, no way to tell as shelve just gives
+            # you a plain dbm.error
+            # Also the file doesn't have a platform-independent name, so good
+            # luck diagnosing the problem if it is one.
+            d = nothing
+        yield dldir, d
 
 
-def get_cached_urls():
+class CacheDamaged(ValueError):
+    """Record the URL or file that was a problem.
+
+    Using clear_download_cache on the .bad_file or .bad_url attribute,
+    whichever is not None, should resolve this particular problem.
+    """
+    def __init__(self, *args, bad_url=None, bad_file=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.bad_url = bad_url
+        self.bad_file = bad_file
+
+
+def check_download_cache(check_hashes=False, pkgname='astropy'):
+    """Do a consistency check on the cache
+
+    Because the cache is shared by all versions of astropy in all virtualenvs
+    run by your user, possibly concurrently, it could accumulate problems.
+    This could lead to hard-to-debug problems or wasted space. This function
+    detects a number of incorrect conditions, including nonexistent files that
+    are indexed, files that are indexed but in the wrong place, and, if you
+    request it, files whose content does not mash the hash that is indexed.
+
+    This funtion also returns a list of non-indexed files. A few will be
+    associated with the shelve object; their exact names depend on the backend
+    used but will probably be based on ``urlmap``. The presence of other files,
+    particularly those that are 32-character hex strings or start with those,
+    probably indicates that something has gone wrong and inaccessible files
+    have accumulated in the cache. These can be removed with
+    `clear_download_cache`, either passing the filename returned here, or
+    with no arguments to empty the entire cache and return it to a
+    reasonable, if empty, state.
+
+    Parameters
+    ----------
+    check_hashes : bool, optional
+        Whether to compute the hashes of the contents of all files in the
+        cache and compare them to the names. This can take some time if
+        the cache contains large files.
+    pkgname : `str`, optional
+        The package name to use to locate the download cache. i.e. for
+        ``pkgname='astropy'`` the default cache location is
+        ``~/.astropy/cache``.
+
+    Returns
+    -------
+    strays : set of strings
+        This is the set of files in the cache directory that do not correspond
+        to known URLs. This may include some files associated with the cache
+        index.
+
+    Raises
+    ------
+    CacheDamaged
+        To indicate a problem with the cache contents; the exception contains
+        a .bad_url or a .bad_file attribute to allow the user to use
+        `clear_download_cache` to remove the offending item.
+    OSError, RuntimeError
+        To indicate some problem with the cache structure. This may need a full
+        `clear_download_cache` to resolve, or may indicate some kind of
+        misconfiguration.
+    """
+    # We're only reading but without the lock goodness knows what
+    # inconsistencies might be detected
+    with _cache(pkgname, write=True) as (dldir, url2hash):
+        leftover_files = set(os.path.join(dldir, k)
+                             for k in os.listdir(dldir))
+        try:
+            leftover_files.remove(os.path.join(dldir, "urlmap"))
+        except KeyError:
+            pass
+        try:
+            leftover_files.remove(os.path.join(dldir, "lock"))
+        except KeyError:
+            raise RuntimeError("Lock file missing!?")
+        for u, h in url2hash.items():
+            if not os.path.exists(h):
+                msg = "URL '{}' points to nonexistent file '{}'".format(
+                        u, h)
+                raise CacheDamaged(msg, bad_url=u)
+            try:
+                leftover_files.remove(h)
+            except KeyError:
+                # Huh. Two different URLs retrieved identical files.
+                pass
+            d, hexdigest = os.path.split(h)
+            if dldir != d:
+                msg = ("Expected downloaded files to be in '{}' but "
+                       "URL '{}' points to file '{}'"
+                       .format(dldir, u, h))
+                raise CacheDamaged(msg, bad_url=u)
+            if check_hashes:
+                hexdigest_file = compute_hash(h)
+                if hexdigest_file != hexdigest:
+                    msg = ("File corresponding to {} has contents that "
+                           "do not match the hash value: '{}' "
+                           .format(u, hexdigest))
+                    raise CacheDamaged(msg, bad_file=h)
+        for h in leftover_files:
+            h_base = os.path.basename(h)
+            if len(h_base) >= 32 and re.match("[0-9a-f]+", h_base):
+                raise CacheDamaged("Apparently abandoned hash file {}"
+                                   .format(h), bad_file=h)
+    return leftover_files
+
+
+def import_to_cache(url_key, filename,
+                    hexdigest=None,
+                    remove_original=False,
+                    pkgname='astropy'):
+    """Import the on-disk file specified by filename to the cache.
+
+    Parameters
+    ----------
+    url_key : str
+        The key to index the file under. This should probably be
+        the URL where the file was located, though if you obtained
+        it from a mirror you should use the URL of the primary
+        location.
+    filename : str
+        The file whose contents you want to import.
+    hexdigest : str, optional
+        The cryptographic hash of the file, as computed by
+        `compute_hash`. If it is not provided, `compute_hash`
+        will be called. This argument is available in case
+        it is easier to compute the hash progressively as
+        the file is downloaded.
+    remove_original : bool
+        Whether to remove the original file once import is complete.
+    pkgname : `str`, optional
+        The package name to use to locate the download cache. i.e. for
+        ``pkgname='astropy'`` the default cache location is
+        ``~/.astropy/cache``.
+    """
+    if hexdigest is None:
+        hexdigest = compute_hash(filename, pkgname=pkgname)
+    with _cache(pkgname, write=True) as (dldir, url2hash):
+        # We check now to see if another process has
+        # inadvertently written the file underneath us
+        # already
+        local_path = os.path.join(dldir, hexdigest)
+        if os.path.exists(local_path):
+            # Same hash, no problem
+            if remove_original:
+                os.remove(filename)
+            # Update file modification time.
+            try:
+                with open(local_path, "ab"):
+                    pass
+            except OSError:
+                pass
+        elif remove_original:
+            shutil.move(filename, local_path)
+        else:
+            shutil.copy(filename, local_path)
+        old_hash = url2hash.get(url_key, None)
+        url2hash[url_key] = local_path
+        if old_hash is not None:
+            if old_hash not in url2hash.values():
+                try:
+                    os.remove(os.path.join(dldir, old_hash))
+                except OSError as e:
+                    warn("Unable to remove no-longer-referenced previous "
+                         "contents of {} because of: {}"
+                         .format(url_key, e),
+                         AstropyWarning)
+        return url2hash[url_key]
+
+
+def get_cached_urls(pkgname='astropy'):
     """
     Get the list of URLs in the cache. Especially useful for looking up what
     files are stored in your cache when you don't have internet access.
+
+    Parameters
+    ----------
+    pkgname : `str`, optional
+        The package name to use to locate the download cache. i.e. for
+        ``pkgname='astropy'`` the default cache location is
+        ``~/.astropy/cache``.
 
     Returns
     -------
     cached_urls : list
         List of cached URLs.
-    """
-    # The code below is modified from astropy.utils.data.download_file()
-    try:
-        dldir, urlmapfn = _get_download_cache_locs()
-    except OSError as e:
-        msg = 'Remote data cache could not be accessed due to '
-        estr = '' if len(e.args) < 1 else (': ' + str(e))
-        warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
-        return False
 
-    with shelve.open(urlmapfn) as url2hash:
+    See Also
+    --------
+    cache_contents : obtain a dictionary listing everything in the cache
+    """
+    with _cache(pkgname) as (dldir, url2hash):
         return list(url2hash.keys())
+
+
+def cache_contents(pkgname='astropy'):
+    """Obtain a dict mapping cached URLs to filenames."""
+    with _cache(pkgname) as (dldir, url2hash):
+        return ReadOnlyDict((k, os.path.join(dldir, v))
+                            for (k, v) in url2hash.items())
+
+
+_cache_zip_index_name = "index.json"
+
+
+def export_download_cache(filename_or_obj, urls=None, pkgname='astropy'):
+    """Exports the cache contents as a ZIP file
+
+    Parameters
+    ----------
+    filename_or_obj : str or file-like
+        Where to put the created ZIP file. Must be something the zipfile
+        module can write to.
+    urls : iterable of str or None
+        The URLs to include in the exported cache. The default is all
+        URLs currently in the cache. If a URL is included in this list
+        but is not currently in the cache, it will be downloaded to the
+        cache first and then exported.
+    pkgname : `str`, optional
+        The package name to use to locate the download cache. i.e. for
+        ``pkgname='astropy'`` the default cache location is
+        ``~/.astropy/cache``.
+
+    See Also
+    --------
+    import_download_cache : import the contents of such a ZIP file
+    """
+    if urls is None:
+        urls = get_cached_urls(pkgname)
+    added = set()
+    with zipfile.ZipFile(filename_or_obj, 'w') as z:
+        index = {}
+        for u in urls:
+            fn = download_file(u, cache=True, pkgname=pkgname)
+            # Do not use os.path.join because ZIP files want
+            # "/" on all platforms
+            z_fn = "cache/" + os.path.basename(fn)
+            if z_fn not in added:
+                index[u] = z_fn
+                z.write(fn, z_fn)
+                added.add(z_fn)
+        z.writestr(_cache_zip_index_name, json.dumps(index))
+
+
+def import_download_cache(filename_or_obj, urls=None, update_cache=False, pkgname='astropy'):
+    """Imports the contents of a ZIP file into the cache
+
+    The ZIP file must be in the format produced by `export_download_cache`,
+    specifically it must have a file ``index.json`` that is a dictionary
+    mapping URLs to filenames inside the ZIP.
+
+    Parameters
+    ----------
+    filename_or_obj : str or file-like
+        Where to put the created ZIP file. Must be something the zipfile
+        module can write to.
+    urls : iterable of str or None
+        The URLs to import from the ZIP file. The default is all
+        URLs in the file.
+    update_cache : bool, optional
+        If True, any entry in the ZIP file will overwrite the value in the
+        cache; if False, leave untouched any entry already in the cache.
+    pkgname : `str`, optional
+        The package name to use to locate the download cache. i.e. for
+        ``pkgname='astropy'`` the default cache location is
+        ``~/.astropy/cache``.
+
+    See Also
+    --------
+    export_download_cache : export the contents the cache to of such a ZIP file
+    """
+    block_size = 65536
+    with zipfile.ZipFile(filename_or_obj, 'r') as z, TemporaryDirectory() as d:
+        index = json.loads(z.read(_cache_zip_index_name))
+        if urls is None:
+            urls = index.keys()
+        for i, k in enumerate(urls):
+            if not update_cache and is_url_in_cache(k, pkgname=pkgname):
+                continue
+            v = index[k]
+            f_temp_name = os.path.join(d, str(i))
+            with z.open(v) as f_zip, open(f_temp_name, "wb") as f_temp:
+                hasher = hashlib.md5()
+                block = f_zip.read(block_size)
+                while block:
+                    f_temp.write(block)
+                    hasher.update(block)
+                    block = f_zip.read(block_size)
+                hexdigest = hasher.hexdigest()
+            import_to_cache(k, f_temp_name,
+                            hexdigest=hexdigest,
+                            remove_original=True,
+                            pkgname=pkgname)
