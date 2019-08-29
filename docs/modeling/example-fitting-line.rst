@@ -1,3 +1,5 @@
+.. _example_fitting_line:
+
 Fitting a Line
 ==============
 
@@ -40,7 +42,7 @@ a realistic example.
     # fit the data with the fitter
     fitted_line = fit(line_init, x, y)
 
-    # plot the model
+    # plot
     plt.figure()
     plt.plot(x, y, 'ko', label='Data')
     plt.plot(x, line_orig(x), 'b-', label='Simulation Model')
@@ -84,7 +86,7 @@ Gaussian errors, the weights to pass to the fitting are 1/unc.
     # fit the data with the fitter
     fitted_line = fit(line_init, x, y, weights=1.0/yunc)
 
-    # plot the model
+    # plot
     plt.figure()
     plt.errorbar(x, y, yerr=yunc, fmt='ko', label='Data')
     plt.plot(x, line_orig(x), 'b-', label='Simulation Model')
@@ -139,10 +141,10 @@ have the same uncertainties for the sigma clipping decision.
     fitted_line, mask = or_fit(line_init, x, y, weights=1.0/yunc)
     filtered_data = np.ma.masked_array(y, mask=mask)
 
-    # plot the model
+    # plot
     plt.figure()
     plt.errorbar(x, y, yerr=yunc, fmt="ko", fillstyle="none", label="Masked Data")
-    plt.plot(x, filtered_data, "ro", label="Fitted Data")
+    plt.plot(x, filtered_data, "bo", label="Fitted Data")
     plt.plot(x, line_orig(x), 'b-', label='Simulation Model')
     plt.plot(x, fitted_line(x), 'k-', label='Fitted Model')
     plt.xlabel('x')
