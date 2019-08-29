@@ -78,7 +78,7 @@ the code and plot below for fitting a line.
        # plot the model
        plt.figure()
        plt.plot(x, y, 'ko', label='Data')
-       plt.plot(x, line_orig(x), 'k-', label='Fitted Model')
+       plt.plot(x, fitted_line(x), 'k-', label='Fitted Model')
        plt.xlabel('x')
        plt.ylabel('y')
        plt.legend()
