@@ -274,6 +274,12 @@ astropy.utils
 - The specific IERS Earth rotation parameter table used for time and
   coordinate transformations can now be set, either in a context or per
   session, using ``astropy.utils.iers.earth_rotation_table``. [#9244]
+- Added ``export_cache`` and ``import_cache`` to permit transporting
+  downloaded data to machines with no Internet connection. Also
+  ``check_download_cache`` to confirm that the persistent cache has not become
+  damaged. ``download_file`` and related functions now accept a list of fallback
+  sources, and they are able to update the cache at the user's request. Several new
+  functions are available to investigate the cache contents. [#9182]
 
 - A new ``astropy.utils.iers.LeapSeconds`` class has been added to track
   leap seconds. [#9365]

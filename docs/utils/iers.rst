@@ -118,6 +118,8 @@ The IERS Service provides the default online table
 once each 7 days.  The default value of ``auto_max_age`` is 30 days to avoid
 unnecessary network access, but one can reduce this to as low as 10 days.
 
+.. _iers-working-offline:
+
 Working offline
 ---------------
 

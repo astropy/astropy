@@ -19,12 +19,13 @@ Astropy.
 Because of the mostly standalone and grab-bag nature of these utilities, they
 are generally best understood through their docstrings, and hence this
 documentation generally does not have detailed sections like the other packages.
-The exception is below:
+The exceptions are below:
 
 .. toctree::
    :maxdepth: 1
 
    iers
+   data
 
 .. note:: The ``astropy.utils.compat`` subpackage is not included in this
     documentation. It contains utility modules for compatibility with
