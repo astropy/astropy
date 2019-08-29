@@ -46,25 +46,42 @@ A Simple Example
 
 Using a model is a matter of defining the model (instantiating) and then
 calling it with the input values for calculation.  This is illustrated with
-the code and plot below for a 1-dimensional Gaussian.
+the code and plot below for fitting a line.
 
    .. plot::
        :include-source:
 
        import numpy as np
        import matplotlib.pyplot as plt
-       from astropy.modeling import models
+       from astropy.modeling import models, fitting
 
-       # define and evaluate the model
-       g = models.Gaussian1D(amplitude=1.2, mean=0.9, stddev=0.5)
-       x = np.linspace(-5., 5.0, 200)
-       y = g(x)
+       # define a model for a line
+       line_orig = models.Linear1D(slope=1.0, intercept=0.5)
+
+       # generate x, y data non-uniformly spaced in x
+       # add noise to y measurements
+       npts = 30
+       np.random.seed(10)
+       x = np.random.uniform(0.0, 10.0, npts)
+       y = line_orig(x)
+       y += np.random.normal(0.0, 1.5, npts)
+
+       # initialize a linear fitter
+       fit = fitting.LinearLSQFitter()
+
+       # initialize a linear model
+       line_init = models.Linear1D()
+
+       # fit the data with the fitter
+       fitted_line = fit(line_init, x, y)
 
        # plot the model
        plt.figure()
-       plt.plot(x, y, 'ko')
+       plt.plot(x, y, 'ko', label='Data')
+       plt.plot(x, line_orig(x), 'k-', label='Fitted Model')
        plt.xlabel('x')
        plt.ylabel('y')
+       plt.legend()
 
 .. _advanced_topics:
 
