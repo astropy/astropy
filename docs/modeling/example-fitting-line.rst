@@ -143,7 +143,7 @@ have the same uncertainties for the sigma clipping decision.
 
     # plot
     plt.figure()
-    plt.errorbar(x, y, yerr=yunc, fmt="ko", fillstyle="none", label="Masked Data")
+    plt.errorbar(x, y, yerr=yunc, fmt="ko", fillstyle="none", label="Clipped Data")
     plt.plot(x, filtered_data, "ko", label="Fitted Data")
     plt.plot(x, line_orig(x), 'b-', label='Simulation Model')
     plt.plot(x, fitted_line(x), 'k-', label='Fitted Model')

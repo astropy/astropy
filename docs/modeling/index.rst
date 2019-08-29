@@ -84,7 +84,7 @@ Examples
 ========
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    Fitting a line <example-fitting-line>
    example-fitting-constraints
