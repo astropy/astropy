@@ -596,9 +596,9 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
     choice in more detail and show that the problem is relatively
     insensitive to the choice of prior.
 
-    This function has an optional dependency: Either scipy or `mpmath
-    <http://mpmath.org/>`_  need to be available (Scipy works only for N
-    < 100).
+    This function has an optional dependency: Either `Scipy
+    <https://www.scipy.org/>`_ or `mpmath <http://mpmath.org/>`_  need
+    to be available (Scipy works only for N < 100).
 
     Examples
     --------
