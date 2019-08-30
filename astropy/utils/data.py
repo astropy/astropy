@@ -36,8 +36,9 @@ __all__ = [
     'check_free_space_in_dir', 'download_file',
     'download_files_in_parallel', 'is_url_in_cache', 'get_cached_urls']
 
-_dataurls_to_alias = {}
-
+_dataurls_to_alias = {
+    'http://data.astropy.org/': ['http://data.astropy.org/',
+                                 'https://astropy.stsci.edu/data/']}
 
 class Conf(_config.ConfigNamespace):
     """
