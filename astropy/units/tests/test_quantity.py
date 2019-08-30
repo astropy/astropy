@@ -1420,6 +1420,20 @@ def test_quantity_from_table():
     assert qbp.unit == u.pc
     assert_array_equal(qbp.value, t['b'])
 
+    # Also check with a function unit (regression test for gh-8430)
+    t['a'].unit = u.dex(u.cm/u.s**2)
+    fq = u.Dex(t['a'])
+    assert fq.unit == u.dex(u.cm/u.s**2)
+    assert_array_equal(fq.value, t['a'])
+
+    fq2 = u.Quantity(t['a'], subok=True)
+    assert isinstance(fq2, u.Dex)
+    assert fq2.unit == u.dex(u.cm/u.s**2)
+    assert_array_equal(fq2.value, t['a'])
+
+    with pytest.raises(u.UnitTypeError):
+        u.Quantity(t['a'])
+
 
 def test_assign_slice_with_quantity_like():
     # Regression tests for gh-5961
@@ -1607,3 +1621,16 @@ class TestQuantityMimics:
         q[8:] = mimic
         assert np.all(q[:8].value == np.arange(8.))
         assert np.all(q[8:].value == [100., 200.])
+
+    def test_mimic_function_unit(self):
+        mimic = QuantityMimic([1., 2.], u.dex(u.cm/u.s**2))
+        d = u.Dex(mimic)
+        assert isinstance(d, u.Dex)
+        assert d.unit == u.dex(u.cm/u.s**2)
+        assert np.all(d.value == [1., 2.])
+        q = u.Quantity(mimic, subok=True)
+        assert isinstance(q, u.Dex)
+        assert q.unit == u.dex(u.cm/u.s**2)
+        assert np.all(q.value == [1., 2.])
+        with pytest.raises(u.UnitTypeError):
+            u.Quantity(mimic)
