@@ -1009,7 +1009,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
     try:
         if cache:
             # We don't need to acquire the lock here, since we are only reading
-            with shelve.open(urlmapfn) as url2hash:
+            with shelve.open(urlmapfn, flag='r' if os.path.exists(urlmapfn) else 'c') as url2hash:
                 if url_key in url2hash:
                     return url2hash[url_key]
                 # If there is a cached copy from mirror, use it.
