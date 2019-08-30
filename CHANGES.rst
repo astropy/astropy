@@ -69,7 +69,6 @@ astropy.modeling
 - Significant reorganization of the documentation. [#9078, #9171]
 
 - Add ``Tabular1D.inverse`` [#9083]
-- Significant reorganization of the documentation. [#9078, #9171]
 
 - ``Model.rename`` was changed to add the ability to rename ``Model.inputs``
   and ``Model.outputs``. [#9220]
@@ -561,6 +560,9 @@ astropy.units
 
 - Ensure that output from test functions of and comparisons between quantities
   can be stored into pre-allocated output arrays (using ``out=array``) [#9273]
+
+- Allow conversion of ``Column`` with logarithmic units to a suitable ``Quantity``
+  subclass if ``subok=True``. [#9188]
 
 astropy.utils
 ^^^^^^^^^^^^^
