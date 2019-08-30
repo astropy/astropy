@@ -100,11 +100,10 @@ Examples
 ========
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
+   Fitting a line <example-fitting-line>
    example-fitting-constraints
-   example-fitting-uncertainties
-   example-fitting-sigma-clipping
    example-fitting-model-sets
 
 .. TODO list
