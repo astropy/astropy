@@ -16,6 +16,7 @@ from astropy.io import fits
 from astropy.wcs import wcs
 from astropy.wcs import _wcs
 from astropy.utils.data import get_pkg_data_contents, get_pkg_data_fileobj, get_pkg_data_filename
+from astropy.utils.misc import set_locale
 from astropy import units as u
 
 
@@ -843,26 +844,15 @@ def test_header_parse():
 
 
 def test_locale():
-    orig_locale = locale.getlocale(locale.LC_NUMERIC)[0]
-
     try:
-        locale.setlocale(locale.LC_NUMERIC, 'fr_FR')
+        with set_locale('fr_FR'):
+            header = get_pkg_data_contents('data/locale.hdr', encoding='binary')
+            w = _wcs.Wcsprm(header)
+            assert re.search("[0-9]+,[0-9]*", w.to_header()) is None
     except locale.Error:
         pytest.xfail(
             "Can't set to 'fr_FR' locale, perhaps because it is not installed "
             "on this system")
-    try:
-        header = get_pkg_data_contents('data/locale.hdr', encoding='binary')
-        w = _wcs.Wcsprm(header)
-        assert re.search("[0-9]+,[0-9]*", w.to_header()) is None
-    finally:
-        if orig_locale is None:
-            # reset to the default setting
-            locale.resetlocale(locale.LC_NUMERIC)
-        else:
-            # restore to whatever the previous value had been set to for
-            # whatever reason
-            locale.setlocale(locale.LC_NUMERIC, orig_locale)
 
 
 @raises(UnicodeEncodeError)
