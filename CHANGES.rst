@@ -2563,7 +2563,9 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
-
+- Updated required version of Cython to v0.29.13 to make sure that
+  generated C files are compatible with the upcoming Python 3.8 release
+  as well as earlier supported versions of Python. [#9198]
 
 2.0.14 (2019-06-14)
 ===================
