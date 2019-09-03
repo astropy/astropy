@@ -497,15 +497,19 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
     -----
 
     The "right" confidence interval to use for Poisson data is a
-    matter of debate. The CDF working group [recommends][pois_eb]
+    matter of debate. The CDF working group `recommends
+    <http://www-cdf.fnal.gov/physics/statistics/notes/pois_eb.txt>`_
     using root-n throughout, largely in the interest of
     comprehensibility, but discusses other possibilities. The ATLAS
-    group also [discusses][ErrorBars] several possibilities but
-    concludes that no single representation is suitable for all cases.
-    The suggestion has also been [floated][ac12] that error bars should be
-    attached to theoretical predictions instead of observed data,
-    which this function will not help with (but it's easy; then you
-    really should use the square root of the theoretical prediction).
+    group also `discusses
+    <http://www.pp.rhul.ac.uk/~cowan/atlas/ErrorBars.pdf>`_  several
+    possibilities but concludes that no single representation is
+    suitable for all cases.  The suggestion has also been `floated
+    <http://adsabs.harvard.edu/abs/2012EPJP..127...24A>`_ that error
+    bars should be attached to theoretical predictions instead of
+    observed data, which this function will not help with (but it's
+    easy; then you really should use the square root of the theoretical
+    prediction).
 
     The intervals implemented here are:
 
@@ -523,22 +527,25 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
     n is zero the interval returned is (0,1).
 
     **3. 'pearson'** This is an only-slightly-more-complicated rule
-    based on Pearson's chi-squared rule (as [explained][pois_eb] by
-    the CDF working group). It also has the nice feature that
-    if your theory curve touches an endpoint of the interval, then your
-    data point is indeed one sigma away. The interval is
+    based on Pearson's chi-squared rule (as `explained
+    <http://www-cdf.fnal.gov/physics/statistics/notes/pois_eb.txt>`_ by
+    the CDF working group). It also has the nice feature that if your
+    theory curve touches an endpoint of the interval, then your data
+    point is indeed one sigma away. The interval is
 
     .. math::
 
         CI = (n+0.5-\sqrt{n+0.25}, n+0.5+\sqrt{n+0.25})
 
     **4. 'sherpagehrels'** This rule is used by default in the fitting
-    package 'sherpa'. The [documentation][sherpa_gehrels] claims it is
-    based on a numerical approximation published in
-    [Gehrels 1986][gehrels86] but it does not actually appear there.
-    It is symmetrical, and while the upper limits
-    are within about 1% of those given by 'frequentist-confidence', the
-    lower limits can be badly wrong. The interval is
+    package 'sherpa'. The `documentation
+    <http://cxc.harvard.edu/sherpa4.4/statistics/#chigehrels>`_ claims
+    it is based on a numerical approximation published in `Gehrels
+    (1986) <http://adsabs.harvard.edu/abs/1986ApJ...303..336G>`_ but it
+    does not actually appear there.  It is symmetrical, and while the
+    upper limits are within about 1% of those given by
+    'frequentist-confidence', the lower limits can be badly wrong. The
+    interval is
 
     .. math::
 
@@ -556,7 +563,9 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
     distribution with the indicated number of degrees of freedom and
     :math:`\alpha` is the one-tailed probability of the normal
     distribution (at the point given by the parameter 'sigma'). See
-    [Maxwell 2011][maxw11] for further details.
+    `Maxwell (2011)
+    <http://adsabs.harvard.edu/abs/2011arXiv1102.0822M>`_ for further
+    details.
 
     **6. 'kraft-burrows-nousek'** This is a Bayesian approach which allows
     for the presence of a known background :math:`B` in the source signal
@@ -581,20 +590,22 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
        C = \left[ \int_0^\infty \frac{e^{-(S+B)}(S+B)^N}{N!} dS \right] ^{-1}
        = \left( \sum^N_{n=0} \frac{e^{-B}B^n}{n!}  \right)^{-1}
 
-    See [KraftBurrowsNousek][kbn1991] for further details.
+    See `Kraft, Burrows, and Nousek (1991)
+    <http://adsabs.harvard.edu/abs/1991ApJ...374..344K>`_ for further
+    details.
 
     These formulas implement a positive, uniform prior.
-    [KraftBurrowsNousek][kbn1991] discuss this choice in more detail and show
-    that the problem is relatively insensitive to the choice of prior.
+    `Kraft, Burrows, and Nousek (1991)
+    <http://adsabs.harvard.edu/abs/1991ApJ...374..344K>`_ discuss this
+    choice in more detail and show that the problem is relatively
+    insensitive to the choice of prior.
 
-    This functions has an optional dependency: Either scipy or
-    `mpmath <http://mpmath.org/>`_  need to be available. (Scipy only works for
-    N < 100).
-
+    This function has an optional dependency: Either `Scipy
+    <https://www.scipy.org/>`_ or `mpmath <http://mpmath.org/>`_  need
+    to be available (Scipy works only for N < 100).
 
     Examples
     --------
-
     >>> poisson_conf_interval(np.arange(10), interval='root-n').T
     array([[  0.        ,   0.        ],
            [  0.        ,   2.        ],
@@ -651,21 +662,6 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
     >>> poisson_conf_interval(10, background=1.5, conflevel=0.95,
     ...                       interval='kraft-burrows-nousek').T
     array([  3.47894005, 16.113329533])   # doctest: +FLOAT_CMP
-
-    [pois_eb]: http://www-cdf.fnal.gov/physics/statistics/notes/pois_eb.txt
-
-    [ErrorBars]: http://www.pp.rhul.ac.uk/~cowan/atlas/ErrorBars.pdf
-
-    [ac12]: http://adsabs.harvard.edu/abs/2012EPJP..127...24A
-
-    [maxw11]: http://adsabs.harvard.edu/abs/2011arXiv1102.0822M
-
-    [gehrels86]: http://adsabs.harvard.edu/abs/1986ApJ...303..336G
-
-    [sherpa_gehrels]: http://cxc.harvard.edu/sherpa4.4/statistics/#chigehrels
-
-    [kbn1991]: http://adsabs.harvard.edu/abs/1991ApJ...374..344K
-
     """
 
     if not np.isscalar(n):
