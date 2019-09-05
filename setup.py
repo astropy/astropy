@@ -63,7 +63,7 @@ setup_requires = ['numpy>=' + astropy.__minimum_numpy_version__]
 # Make sure to have the packages needed for building astropy, but do not require them
 # when installing from an sdist as the c files are included there.
 if not os.path.exists(os.path.join(os.path.dirname(__file__), 'PKG-INFO')):
-    setup_requires.extend(['cython>=0.21', 'jinja2>=2.7'])
+    setup_requires.extend(['cython>=0.29.13', 'jinja2>=2.7'])
 
 install_requires = ['pytest>=2.8,<3.7', 'numpy>=' + astropy.__minimum_numpy_version__]
 # Avoid installing setup_requires dependencies if the user just
