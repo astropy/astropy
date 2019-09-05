@@ -399,7 +399,7 @@ class AstropyLogger(Logger):
                 # your code here
         '''
 
-        fh = logging.FileHandler(filename)
+        fh = logging.FileHandler(filename, encoding="UTF-8")
         if filter_level is not None:
             fh.setLevel(filter_level)
         if filter_origin is not None:
@@ -495,7 +495,7 @@ class AstropyLogger(Logger):
                 else:
                     log_file_path = os.path.expanduser(log_file_path)
 
-                fh = logging.FileHandler(log_file_path)
+                fh = logging.FileHandler(log_file_path, encoding="UTF-8")
             except OSError as e:
                 warnings.warn(
                     'log file {!r} could not be opened for writing: '
