@@ -270,6 +270,25 @@ def imshow_norm(data, ax=None, imshow_only_kwargs={}, **kwargs):
     Notes
     -----
     The ``norm`` matplotlib keyword is not supported.
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+        from astropy.visualization import (imshow_norm, MinMaxInterval,
+                                           SqrtStretch)
+
+        # Generate and display a test image
+        image = np.arange(65536).reshape((256, 256))
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        im, norm = imshow_norm(image, ax, origin='lower',
+                               interval=MinMaxInterval(),
+                               stretch=SqrtStretch())
+        fig.colorbar(im)
     """
 
     if 'X' in kwargs:
