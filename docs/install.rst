@@ -192,7 +192,7 @@ You will need a compiler suite and the development headers for Python and
 NumPy in order to build ``astropy``.
 
 If you are building the latest developer version rather than using a stable
-release, you will also need `Cython <http://cython.org/>`_ (v0.21 or later) and
+release, you will also need `Cython <http://cython.org/>`_ (v0.29.13 or later) and
 `jinja2 <http://jinja.pocoo.org/docs/dev/>`_ (v2.7 or later) installed. The
 released packages have the necessary C files packaged with them, and hence do
 not require Cython.
