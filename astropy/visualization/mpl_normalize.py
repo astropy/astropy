@@ -293,10 +293,11 @@ def imshow_norm(data, ax=None, imshow_only_kwargs={}, **kwargs):
             # users don't start using both imshow_only_kwargs *and* keyword
             # arguments to this function, as that makes for more confusing
             # user code
-            raise ValueError('Provided a keyword to imshow_only_kwargs ({}) '
-                             'that is not a keyword for ImageNormalize. This is'
-                             ' not supported, you should pass the keyword'
-                             'directly into imshow_norm instead'.format(k))
+            raise ValueError('You provided a keyword to imshow_only_kwargs '
+                             '({}) that is not a keyword for ImageNormalize. '
+                             'This is not supported. Instead you should '
+                             'pass the keyword directly into imshow_norm'
+                             .format(k))
         imshow_kwargs[k] = v
 
     imshow_kwargs['norm'] = ImageNormalize(**norm_kwargs)
