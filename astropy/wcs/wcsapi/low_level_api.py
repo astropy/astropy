@@ -263,21 +263,21 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         """
         An iterable of strings describing the name for each pixel axis.
 
-        If an axis does not have a name, `None` can be returned.
+        If an axis does not have a name, an empty string should be returned.
         """
-        return [None] * self.pixel_n_dim
+        return [''] * self.pixel_n_dim
 
     @property
     def world_axis_names(self):
         """
         An iterable of strings describing the name for each world axis.
 
-        If an axis does not have a name, `None` can be returned. Note that
+        If an axis does not have a name, an empty string be returned. Note that
         these names are just for display purposes and are not standardized.
         For standardized axis types, see
         `~BaseLowLevelWCS.world_axis_physical_types`.
         """
-        return [None] * self.world_n_dim
+        return [''] * self.world_n_dim
 
     @property
     def axis_correlation_matrix(self):

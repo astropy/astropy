@@ -33,11 +33,11 @@ This transformation has 1 pixel and 1 world dimensions
 
 Array shape (Numpy order): None
 
-Pixel Dim  Data size  Bounds
-        0       None  None
+Pixel Dim  Axis Name  Data size  Bounds
+        0  None            None  None
 
-World Dim  Physical Type  Units
-        0  None           unknown
+World Dim  Axis Name  Physical Type  Units
+        0  None       None           unknown
 
 Correlation between pixel and world axes:
 

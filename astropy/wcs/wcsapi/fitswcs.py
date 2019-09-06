@@ -180,16 +180,17 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
     @property
     def world_axis_physical_types(self):
         types = []
-        for axis_type in self.axis_type_names:
-            if axis_type.startswith('UT('):
+        for ctype in self.wcs.ctype:
+            if ctype.startswith('UT('):
                 types.append('time')
             else:
+                ctype_name = ctype.split('-')[0]
                 for custom_mapping in CTYPE_TO_UCD1_CUSTOM:
-                    if axis_type in custom_mapping:
-                        types.append(custom_mapping[axis_type])
+                    if ctype_name in custom_mapping:
+                        types.append(custom_mapping[ctype_name])
                         break
                 else:
-                    types.append(CTYPE_TO_UCD1.get(axis_type, None))
+                    types.append(CTYPE_TO_UCD1.get(ctype_name, None))
         return types
 
     @property
@@ -207,6 +208,10 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     unit = ''
             units.append(unit)
         return units
+
+    @property
+    def world_axis_names(self):
+        return list(self.wcs.cname)
 
     @property
     def axis_correlation_matrix(self):
@@ -330,7 +335,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
         for i in range(self.naxis):
             if components[i] is None:
-                name = self.axis_type_names[i].lower()
+                name = self.wcs.ctype[i].split('-')[0].lower()
                 if name == '':
                     name = 'world'
                 while name in classes:
