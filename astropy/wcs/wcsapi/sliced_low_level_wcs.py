@@ -1,6 +1,6 @@
 import numbers
 import numpy as np
-from astropy.wcs.wcsapi import BaseLowLevelWCS, wcs_as_str
+from astropy.wcs.wcsapi import BaseLowLevelWCS, wcs_info_str
 
 __all__ = ['sanitize_slices', 'SlicedLowLevelWCS']
 
@@ -216,7 +216,7 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
         return self._wcs.axis_correlation_matrix[self._world_keep][:, self._pixel_keep]
 
     def __repr__(self):
-        return wcs_as_str(self)
+        return wcs_info_str(self)
 
     def __str__(self):
-        return wcs_as_str(self)
+        return wcs_info_str(self)
