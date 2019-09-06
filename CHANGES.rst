@@ -153,7 +153,7 @@ astropy.wcs
 - Improved the  ``SlicedLowLevelWCS`` class in ``astropy.wcs.wcsapi`` to avoid
   storing chains of nested ``SlicedLowLevelWCS`` objects when applying multiple
   slicing operations in turn. [#9210]
-- Added a ``wcs_as_str`` function to ``astropy.wcs.wcsapi`` to show a summary
+
 - Added a ``wcs_info_str`` function to ``astropy.wcs.wcsapi`` to show a summary
   of an APE-14-compliant WCS as a string. [#8546, #9207]
 
