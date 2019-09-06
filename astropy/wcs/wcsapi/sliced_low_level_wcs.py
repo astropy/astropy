@@ -41,12 +41,71 @@ def sanitize_slices(slices, ndim):
     return slices
 
 
+def combine_slices(slice1, slice2):
+    """
+    Given two slices that can be applied to a 1-d array, find the resulting
+    slice that corresponds to the combination of both slices. We assume that
+    slice2 can be an integer, but slice1 cannot.
+    """
+
+    if isinstance(slice1, slice) and slice1.step is not None:
+        raise ValueError('Only slices with steps of 1 are supported')
+
+    if isinstance(slice2, slice) and slice2.step is not None:
+        raise ValueError('Only slices with steps of 1 are supported')
+
+    if isinstance(slice2, numbers.Integral):
+        if slice1.start is None:
+            return slice2
+        else:
+            return slice2 + slice1.start
+
+    if slice1.start is None:
+        if slice1.stop is None:
+            return slice2
+        else:
+            if slice2.stop is None:
+                return slice(slice2.start, slice1.stop)
+            else:
+                return slice(slice2.start, min(slice1.stop, slice2.stop))
+    else:
+        if slice2.start is None:
+            start = slice1.start
+        else:
+            start = slice1.start + slice2.start
+        if slice2.stop is None:
+            stop = slice1.stop
+        else:
+            if slice1.start is None:
+                stop = slice2.stop
+            else:
+                stop = slice2.stop + slice1.start
+            if slice1.stop is not None:
+                stop = min(slice1.stop, stop)
+    return slice(start, stop)
+
+
 class SlicedLowLevelWCS(BaseLowLevelWCS):
 
     def __init__(self, wcs, slices):
 
-        self._wcs = wcs
-        self._slices_array = sanitize_slices(slices, self._wcs.pixel_n_dim)
+        slices = sanitize_slices(slices, wcs.pixel_n_dim)
+
+        if isinstance(wcs, SlicedLowLevelWCS):
+            # Here we combine the current slices with the previous slices
+            # to avoid ending up with many nested WCSes
+            self._wcs = wcs._wcs
+            slices_original = wcs._slices_array.copy()
+            for ipixel in range(wcs.pixel_n_dim):
+                ipixel_orig = wcs._wcs.pixel_n_dim - 1 - wcs._pixel_keep[ipixel]
+                ipixel_new = wcs.pixel_n_dim - 1 - ipixel
+                slices_original[ipixel_orig] = combine_slices(slices_original[ipixel_orig],
+                                                              slices[ipixel_new])
+            self._slices_array = slices_original
+        else:
+            self._wcs = wcs
+            self._slices_array = slices
+
         self._slices_pixel = self._slices_array[::-1]
 
         # figure out which pixel dimensions have been kept, then use axis correlation
