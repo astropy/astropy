@@ -46,6 +46,7 @@ venv
 # Other
 .cache
 .tox
+.hypothesis
 .*.swp
 .*.swo
 *~
