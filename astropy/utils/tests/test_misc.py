@@ -150,3 +150,13 @@ def test_dtype_bytes_or_chars():
     assert misc.dtype_bytes_or_chars(np.dtype(np.int32)) == 4
     assert misc.dtype_bytes_or_chars(np.array(b'12345').dtype) == 5
     assert misc.dtype_bytes_or_chars(np.array('12345').dtype) == 5
+
+
+def test_unbroadcast():
+
+    x = np.array([1, 2, 3])
+    y = np.broadcast_to(x, (2, 4, 3))
+
+    z = misc.unbroadcast(y)
+    assert z.shape == (1, 1, 3)
+    np.testing.assert_allclose(z[0, 0], x)
