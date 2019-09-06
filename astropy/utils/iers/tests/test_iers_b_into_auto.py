@@ -94,8 +94,8 @@ def test_IERS_B_parameters_loaded_into_IERS_Auto(b_name, a_name):
     except KeyError:
         if A["MJD"][-1] < 59100 * u.d:
             pytest.xfail(
-                "Bug? IERS B data is available but not merged into IERS_Auto "
-                "object unless new IERS A data is available."
+                "Bug #9205 IERS B data is available but not merged into "
+                "IERS_Auto object unless new IERS A data is available."
             )
         else:
             raise
@@ -135,6 +135,6 @@ def test_IERS_B_parameters_loaded_into_IERS_Auto_correctly(
         B[b_name][i_B],
         atol=atol,
         rtol=0,
-        err_msg="Bug? IERS B parameter {} not copied over "
+        err_msg="Bug #9206 IERS B parameter {} not copied over "
                 "IERS A parameter {}".format(b_name, a_name),
     )
