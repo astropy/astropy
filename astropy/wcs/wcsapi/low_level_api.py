@@ -275,7 +275,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         If an axis does not have a name, an empty string be returned. Note that
         these names are just for display purposes and are not standardized.
         For standardized axis types, see
-        `~BaseLowLevelWCS.world_axis_physical_types`.
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_physical_types`.
         """
         return [''] * self.world_n_dim
 

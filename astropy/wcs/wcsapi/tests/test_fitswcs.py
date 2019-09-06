@@ -566,4 +566,3 @@ def test_caching_components_and_classes():
     frame = wcs.world_axis_object_classes['celestial'][2]['frame']
     assert isinstance(frame, FK5)
     assert frame.equinox.jyear == 2010.
-
