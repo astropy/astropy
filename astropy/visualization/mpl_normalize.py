@@ -246,23 +246,51 @@ def imshow_norm(data, ax=None, imshow_only_kwargs={}, **kwargs):
     data : 2D or 3D array-like - see `~matplotlib.pyplot.imshow`
         The data to show. Can be whatever `~matplotlib.pyplot.imshow` and
         `ImageNormalize` both accept.
-    ax : None or `~matplotlib.axes.Axes`
+    ax : None or `~matplotlib.axes.Axes`, optional
         If None, use pyplot's imshow.  Otherwise, calls ``imshow`` method of the
         supplied axes.
-    imshow_only_kwargs : dict
+    imshow_only_kwargs : dict, optional
         Arguments to be passed directly to `~matplotlib.pyplot.imshow` without
         first trying `ImageNormalize`.  This is only for keywords that have the
         same name in both `ImageNormalize` and `~matplotlib.pyplot.imshow` - if
         you want to set the `~matplotlib.pyplot.imshow` keywords only, supply
         them in this dictionary.
+    kwargs : dict, optional
+        All other keyword arguments are parsed first by the
+        `ImageNormalize` initializer, then to
+        `~matplotlib.pyplot.imshow`.
 
-    All other keyword arguments are parsed first by the `ImageNormalize`
-    initializer, then to`~matplotlib.pyplot.imshow`.
+    Returns
+    -------
+    result : tuple
+        A tuple containing the `~matplotlib.image.AxesImage` generated
+        by `~matplotlib.pyplot.imshow` as well as the `ImageNormalize`
+        instance.
 
     Notes
     -----
     The ``norm`` matplotlib keyword is not supported.
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+        from astropy.visualization import (imshow_norm, MinMaxInterval,
+                                           SqrtStretch)
+
+        # Generate and display a test image
+        image = np.arange(65536).reshape((256, 256))
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        im, norm = imshow_norm(image, ax, origin='lower',
+                               interval=MinMaxInterval(),
+                               stretch=SqrtStretch())
+        fig.colorbar(im)
     """
+
     if 'X' in kwargs:
         raise ValueError('Cannot give both ``X`` and ``data``')
 
@@ -284,10 +312,11 @@ def imshow_norm(data, ax=None, imshow_only_kwargs={}, **kwargs):
             # users don't start using both imshow_only_kwargs *and* keyword
             # arguments to this function, as that makes for more confusing
             # user code
-            raise ValueError('Provided a keyword to imshow_only_kwargs ({}) '
-                             'that is not a keyword for ImageNormalize. This is'
-                             ' not supported, you should pass the keyword'
-                             'directly into imshow_norm instead'.format(k))
+            raise ValueError('You provided a keyword to imshow_only_kwargs '
+                             '({}) that is not a keyword for ImageNormalize. '
+                             'This is not supported. Instead you should '
+                             'pass the keyword directly into imshow_norm'
+                             .format(k))
         imshow_kwargs[k] = v
 
     imshow_kwargs['norm'] = ImageNormalize(**norm_kwargs)
