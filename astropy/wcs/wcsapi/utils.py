@@ -43,8 +43,10 @@ def wcs_info_str(wcs):
 
     # Find largest between header size and value length
     pixel_dim_width = max(9, len(str(wcs.pixel_n_dim)))
-    pixel_nam_width = max(9, max(len(x) if x is not None else 0 for x in wcs.pixel_axis_names))
+    pixel_nam_width = max(9, max(len(x) for x in wcs.pixel_axis_names))
     pixel_siz_width = max(9, len(str(max(array_shape))))
+
+    print(pixel_nam_width)
 
     s += (('{0:' + str(pixel_dim_width) + 's}').format('Pixel Dim') + '  ' +
             ('{0:' + str(pixel_nam_width) + 's}').format('Axis Name') + '  ' +
@@ -74,20 +76,9 @@ def wcs_info_str(wcs):
 
     for iwrl in range(wcs.world_n_dim):
 
-        if wcs.world_axis_names[iwrl] is None:
-            name = 'None'
-        else:
-            name = wcs.world_axis_names[iwrl]
-
-        if wcs.world_axis_physical_types[iwrl] is None:
-            typ = 'None'
-        else:
-            typ = wcs.world_axis_physical_types[iwrl]
-
-        if wcs.world_axis_units[iwrl] is None:
-            unit = 'unknown'
-        else:
-            unit = wcs.world_axis_units[iwrl]
+        name = wcs.world_axis_names[iwrl] or 'None'
+        typ = wcs.world_axis_physical_types[iwrl] or 'None'
+        unit = wcs.world_axis_units[iwrl] or 'unknown'
 
         s += (('{0:' + str(world_dim_width) + 'd}').format(iwrl) + '  ' +
                 ('{0:' + str(world_nam_width) + 's}').format(name) + '  ' +
