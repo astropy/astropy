@@ -105,10 +105,8 @@ copy_columns_atol = [
     ("UT1_UTC", "UT1_UTC_B", 10 * u.us),
     ("PM_x", "PM_X_B", 1e-3 * u.marcsec),
     ("PM_y", "PM_Y_B", 1e-3 * u.marcsec),
-    pytest.param("dX_2000A", "dX_2000A_B", 1e-4 * u.marcsec,
-                 marks=pytest.mark.xfail),
-    pytest.param("dY_2000A", "dY_2000A_B", 1e-4 * u.marcsec,
-                 marks=pytest.mark.xfail),
+    ("dX_2000A", "dX_2000A_B", 1e-4 * u.marcsec),
+    ("dY_2000A", "dY_2000A_B", 1e-4 * u.marcsec),
 ]
 
 
