@@ -2,7 +2,7 @@ import importlib
 import numpy as np
 
 
-__all__ = ['deserialize_class', 'wcs_as_str']
+__all__ = ['deserialize_class', 'wcs_info_str']
 
 
 def deserialize_class(tpl, construct=True):
@@ -27,7 +27,7 @@ def deserialize_class(tpl, construct=True):
         return klass, args, kwargs
 
 
-def wcs_as_str(wcs):
+def wcs_info_str(wcs):
 
     # Overall header
 
