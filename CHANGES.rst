@@ -69,6 +69,7 @@ astropy.modeling
 - Significant reorganization of the documentation. [#9078, #9171]
 
 - Add ``Tabular1D.inverse`` [#9083]
+- Significant reorganization of the documentation. [#9078, #9171]
 
 - ``Model.rename`` was changed to add the ability to rename ``Model.inputs`` and ``Model.outputs``. [#9220]
 
@@ -162,6 +163,7 @@ astropy.wcs
   slicing operations in turn. [#9210]
 
 - Added a ``wcs_info_str`` function to ``astropy.wcs.wcsapi`` to show a summary
+- Added a ``wcs_as_str`` function to ``astropy.wcs.wcsapi`` to show a summary
   of an APE-14-compliant WCS as a string. [#8546, #9207]
 
 API Changes
