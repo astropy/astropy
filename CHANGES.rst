@@ -162,6 +162,10 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Added a new ``astropy.utils.misc.unbroadcast`` function which can be used
+  to return the smallest array that can be broadcasted back to the initial
+  array. [#9209]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 

@@ -6,7 +6,6 @@ a clear module/package to live in.
 """
 
 import abc
-import copy
 import contextlib
 import difflib
 import inspect
@@ -24,6 +23,9 @@ from itertools import zip_longest
 from contextlib import contextmanager
 from collections import defaultdict, OrderedDict
 
+import numpy as np
+from numpy.lib.stride_tricks import as_strided
+
 from astropy.utils.decorators import deprecated
 
 
@@ -32,7 +34,7 @@ __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
            'JsonCustomEncoder', 'indent', 'InheritDocstrings',
            'OrderedDescriptor', 'OrderedDescriptorContainer', 'set_locale',
            'ShapedLikeNDArray', 'check_broadcast', 'IncompatibleShapeError',
-           'dtype_bytes_or_chars']
+           'dtype_bytes_or_chars', 'unbroadcast']
 
 
 def isiterable(obj):
@@ -1159,6 +1161,22 @@ def dtype_bytes_or_chars(dtype):
     return out
 
 
+def unbroadcast(array):
+    """
+    Given an array, return a new array that is the smallest subset of the
+    original array that can be re-broadcasted back to the original array.
+
+    See https://stackoverflow.com/questions/40845769/un-broadcasting-numpy-arrays
+    for more details.
+    """
+
+    if array.ndim == 0:
+        return array
+
+    new_shape = np.where(np.array(array.strides) == 0, 1, array.shape)
+    return as_strided(array, shape=new_shape)
+
+
 def pizza():  # pragma: no cover
     """
     Open browser loaded with pizza options near you.
@@ -1171,3 +1189,4 @@ def pizza():  # pragma: no cover
     """
     import webbrowser
     webbrowser.open('https://www.google.com/search?q=pizza+near+me')
+
