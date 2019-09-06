@@ -164,6 +164,7 @@ astropy.wcs
 
 - Added a ``wcs_info_str`` function to ``astropy.wcs.wcsapi`` to show a summary
 - Added a ``wcs_as_str`` function to ``astropy.wcs.wcsapi`` to show a summary
+- Added a ``wcs_info_str`` function to ``astropy.wcs.wcsapi`` to show a summary
   of an APE-14-compliant WCS as a string. [#8546, #9207]
 
 API Changes
