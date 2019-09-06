@@ -1189,4 +1189,3 @@ def pizza():  # pragma: no cover
     """
     import webbrowser
     webbrowser.open('https://www.google.com/search?q=pizza+near+me')
-
