@@ -598,6 +598,49 @@ class IERS_B(IERS):
         """Set PM source flag for entries in IERS table"""
         return np.ones_like(i) * FROM_IERS_B
 
+    @classmethod
+    def _create_a_columns(cls, table):
+        """
+        Return a new table with appropriate combination of IERS_A and B columns.
+        """
+        # UT1_UTC present in IERS B already
+        table['UT1_UTC_B'] = table['UT1_UTC'].data
+        table['UT1_UTC_B'].unit = table['UT1_UTC'].unit
+        table['UT1Flag'] = 'B'
+
+        # Repeat for polar motions.
+        table['PM_X'] = table['PM_x'].data
+        table['PM_X'].unit = table['PM_x'].unit
+        table['PM_Y'] = table['PM_y'].data
+        table['PM_Y'].unit = table['PM_y'].unit
+        table['PM_X_B'] = table['PM_x'].data
+        table['PM_X_B'].unit = table['PM_x'].unit
+        table['PM_Y_B'] = table['PM_y'].data
+        table['PM_Y_B'].unit = table['PM_y'].unit
+        table['PolPMFlag'] = 'B'
+
+        # IERS A uses marcsec but IERS B uses arcsec for these
+        # Convert in case someone does a plain .value
+        table['dX_2000A_B'] = table['dX_2000A'].to(u.marcsec).data
+        table['dX_2000A_B'].unit = table['dX_2000A'].to(u.marcsec).unit
+
+        table['dY_2000A_B'] = table['dY_2000A'].to(u.marcsec).data
+        table['dY_2000A_B'].unit = table['dY_2000A'].to(u.marcsec).unit
+
+        table['NutFlag'] = 'B'
+
+        # No predictions in B
+        # Get the table index for the first row that has predictive values
+        # PolPMFlag_A  IERS (I) or Prediction (P) flag for
+        #              Bull. A polar motion values
+        # UT1Flag_A    IERS (I) or Prediction (P) flag for
+        #              Bull. A UT1-UTC values
+        #is_predictive = (table['UT1Flag_A'] == 'P') | (table['PolPMFlag_A'] == 'P')
+        #table.meta['predictive_index'] = np.min(np.flatnonzero(is_predictive))
+        #table.meta['predictive_mjd'] = table['MJD'][table.meta['predictive_index']]
+
+        return table
+
 
 class IERS_Auto(IERS_A):
     """
@@ -629,7 +672,7 @@ class IERS_Auto(IERS_A):
 
         """
         if not conf.auto_download:
-            cls.iers_table = IERS_B.open()
+            cls.iers_table = IERS_B._create_a_columns(IERS.open())
             return cls.iers_table
 
         all_urls = (conf.iers_auto_url, conf.iers_auto_url_mirror)
@@ -661,7 +704,7 @@ class IERS_Auto(IERS_A):
             warn(AstropyWarning('failed to download {}, using local IERS-B: {}'
                                 .format(' and '.join(all_urls),
                                         ';'.join(err_list))))  # noqa
-            cls.iers_table = IERS_B.open()
+            cls.iers_table = IERS_B._create_a_columns(IERS.open())
             return cls.iers_table
 
         cls.iers_table = cls.read(file=filename)

@@ -86,19 +86,8 @@ copy_columns = [
 
 @pytest.mark.parametrize("b_name,a_name", copy_columns)
 def test_IERS_B_parameters_loaded_into_IERS_Auto(b_name, a_name):
-    B = IERS_B.open(IERS_B_FILE)
-    B[b_name]
     A = IERS_Auto.open()
-    try:
-        A[a_name]
-    except KeyError:
-        if A["MJD"][-1] < 59100 * u.d:
-            pytest.xfail(
-                "Bug #9205 IERS B data is available but not merged into "
-                "IERS_Auto object unless new IERS A data is available."
-            )
-        else:
-            raise
+    A[a_name]
 
 
 copy_columns_atol = [
