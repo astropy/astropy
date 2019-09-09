@@ -64,7 +64,7 @@ astropy.modeling
   See modeling documentation for details.
   `<https://docs.astropy.org/en/v4.0/modeling/changes_for_4.html>`_ . [#8769]
 
-- Significant reorganization of the documentation. [#9078, #9171] 
+- Significant reorganization of the documentation. [#9078, #9171]
 
 - Add Tabular1D.inverse [#9083]
 
@@ -149,6 +149,10 @@ astropy.wcs
 ^^^^^^^^^^^
 
 - Updated wcslib to v6.4. [#9125]
+
+- Improved the  ``SlicedLowLevelWCS`` class in ``astropy.wcs.wcsapi`` to avoid
+  storing chains of nested ``SlicedLowLevelWCS`` objects when applying multiple
+  slicing operations in turn. [#9210]
 
 API Changes
 -----------

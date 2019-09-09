@@ -5,7 +5,7 @@ from astropy.wcs import WCS
 from astropy.io.fits import Header
 from astropy.coordinates import SkyCoord, Galactic
 from astropy.units import Quantity
-from astropy.wcs.wcsapi.sliced_low_level_wcs import SlicedLowLevelWCS, sanitize_slices
+from astropy.wcs.wcsapi.sliced_low_level_wcs import SlicedLowLevelWCS, sanitize_slices, combine_slices
 import astropy.units as u
 
 # To test the slicing we start off from standard FITS WCS
@@ -604,3 +604,45 @@ def test_ellipsis_none_types():
     assert_equal(wcs.pixel_bounds, [(-1, 11), (-2, 18), (5, 15)])
 
     assert str(wcs) == repr(wcs) == EXPECTED_ELLIPSIS_REPR_NONE_TYPES.strip()
+
+
+CASES = [(slice(None), slice(None), slice(None)),
+         (slice(None), slice(3, None), slice(3, None)),
+         (slice(None), slice(None, 16), slice(None, 16)),
+         (slice(None), slice(3, 16), slice(3, 16)),
+         (slice(2, None), slice(None), slice(2, None)),
+         (slice(2, None), slice(3, None), slice(5, None)),
+         (slice(2, None), slice(None, 16), slice(2, 18)),
+         (slice(2, None), slice(3, 16), slice(5, 18)),
+         (slice(None, 10), slice(None), slice(None, 10)),
+         (slice(None, 10), slice(3, None), slice(3, 10)),
+         (slice(None, 10), slice(None, 16), slice(None, 10)),
+         (slice(None, 10), slice(3, 16), slice(3, 10)),
+         (slice(2, 10), slice(None), slice(2, 10)),
+         (slice(2, 10), slice(3, None), slice(5, 10)),
+         (slice(2, 10), slice(None, 16), slice(2, 10)),
+         (slice(2, 10), slice(3, 16), slice(5, 10)),
+         (slice(None), 3, 3),
+         (slice(2, None), 3, 5),
+         (slice(None, 10), 3, 3),
+         (slice(2, 10), 3, 5)]
+
+
+@pytest.mark.parametrize(('slice1', 'slice2', 'expected'), CASES)
+def test_combine_slices(slice1, slice2, expected):
+    assert combine_slices(slice1, slice2) == expected
+
+
+def test_nested_slicing():
+    # Make sure that if we call slicing several times, the result is the same
+    # as calling the slicing once with the final slice settings.
+    wcs = WCS_SPECTRAL_CUBE
+    sub1 = SlicedLowLevelWCS(
+                SlicedLowLevelWCS(
+                    SlicedLowLevelWCS(wcs, [slice(None), slice(1, 10), slice(None)]),
+                    [3, slice(2, None)]),
+                [slice(None), slice(2, 8)])
+    sub2 = wcs[3, 3:10, 2:8]
+    assert_allclose(sub1.pixel_to_world_values(3, 5),
+                    sub2.pixel_to_world_values(3, 5))
+    assert not isinstance(sub1._wcs, SlicedLowLevelWCS)
