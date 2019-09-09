@@ -3,7 +3,7 @@
 import sys
 import numpy as np
 
-from .base import DTYPE2BITPIX
+from .base import DTYPE2BITPIX, DELAYED
 from .image import PrimaryHDU
 from .table import _TableLikeHDU
 from astropy.io.fits.column import Column, ColDefs, FITS2NUMPY
@@ -268,6 +268,8 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
 
     def __init__(self, data=None, header=None):
         super().__init__(data=data, header=header)
+        if data is not DELAYED:
+            self.update_header()
 
         # Update the axes; GROUPS HDUs should always have at least one axis
         if len(self._axes) <= 0:
