@@ -644,8 +644,9 @@ class IERS_B(IERS):
 
 class IERS_Auto(IERS_A):
     """
-    Provide most-recent IERS data and automatically handle downloading
-    of updated values as necessary.
+    Provide most-recent IERS A data and automatically handle downloading
+    of updated values as necessary. Also merge IERS B values into IERS A
+    table.
     """
     iers_table = None
 
