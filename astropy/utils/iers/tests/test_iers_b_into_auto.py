@@ -105,6 +105,7 @@ def test_IERS_B_parameters_loaded_into_IERS_Auto_correctly(
         b_name,
         a_name,
         atol):
+    IERS_Auto.iers_table = None
     A = IERS_Auto.open()
     A[a_name]
     B = IERS_B.open(IERS_B_FILE)

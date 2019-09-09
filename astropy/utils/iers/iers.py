@@ -824,7 +824,7 @@ class IERS_Auto(IERS_A):
         Here, we use the bundled astropy IERS-B table to overwrite the values
         in the downloaded IERS-A table.
         """
-        iers_b = IERS_B.open()
+        iers_b = IERS_B.open(IERS_B_FILE)
         # Substitute IERS-B values for existing B values in IERS-A table
         mjd_b = table['MJD'][np.isfinite(table['UT1_UTC_B'])]
         i0 = np.searchsorted(iers_b['MJD'], mjd_b[0], side='left')
