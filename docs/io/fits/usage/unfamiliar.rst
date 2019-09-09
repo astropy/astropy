@@ -223,7 +223,7 @@ Header and Summary
 ------------------
 
 Accessing the header of a Random Access Group HDU is no different from any
-other HDU. Just use the .header attribute.
+other HDU. Just use the ``.header`` attribute.
 
 The content of the HDU can similarly be summarized by using the
 :meth:`HDUList.info` method::
@@ -248,7 +248,7 @@ Data: Group Parameters
 The data part of a random access group HDU is, like other HDUs, in the
 ``.data`` attribute. It includes both parameter(s) and image array(s).
 
-Show the data in 100th group, including parameters and data::
+Show the data in third group, including parameters and data::
 
     >>> hdul[0].data[2]  # doctest: +FLOAT_CMP
     (2.0999999, 42.0, 42.0, array([[[[30., 31., 32., 33., 34.],
@@ -280,7 +280,7 @@ random access group, and it means to add the values together. Thus::
 
     >>> hdul[0].data.parnames  # get the parameter names
     ['abc', 'xyz', 'xyz']
-    >>> hdul[0].data.par(1)[8]  # Duplicate parameter name 'date'
+    >>> hdul[0].data.par(1)[8]  # Duplicate parameter name 'xyz'
     42.0
     >>> hdul[0].data.par(2)[8]
     42.0
