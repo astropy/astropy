@@ -460,6 +460,8 @@ astropy.io.fits
 
 - Fixed an issue with A3DTABLE extension that could not be read. [#9012]
 
+- Fixed the update of the header when creating GroupsHDU from data. [#9216]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
