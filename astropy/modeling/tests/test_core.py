@@ -469,3 +469,20 @@ def test_rename_2d(model_class):
     assert new_model.name == 'Test2D'
     assert new_model.inputs == ('r', 't')
     assert new_model.outputs == ('q',)
+
+    new_model = model_class.rename(inputs=('r', 't'), outputs=('q',))
+    assert new_model.name == model_class.name
+    assert new_model.inputs == ('r', 't')
+    assert new_model.outputs == ('q',)
+
+
+def test_rename_invalid():
+    with pytest.raises(TypeError):
+        models.Gaussian1D.rename(inputs=('w'))
+    with pytest.raises(TypeError):
+        models.Gaussian1D.rename(outputs=('w'))
+    with pytest.raises(ValueError):
+        models.Gaussian2D.rename(inputs=('w',))
+    with pytest.raises(ValueError):
+        models.Gaussian2D.rename(outputs=('w', 'e'))
+        
