@@ -66,7 +66,9 @@ astropy.modeling
 
 - Significant reorganization of the documentation. [#9078, #9171]
 
-- Add Tabular1D.inverse [#9083]
+- Add ``Tabular1D.inverse`` [#9083]
+
+- ``Model.rename`` was changed to add the ability to rename ``Model.inputs`` and ``Model.outputs``. [#9219]
 
 astropy.nddata
 ^^^^^^^^^^^^^^

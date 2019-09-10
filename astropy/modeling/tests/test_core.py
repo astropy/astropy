@@ -453,7 +453,8 @@ def test_rename_path(tmpdir):
 
 
 @pytest.mark.parametrize('model_class',
-                         [models.Gaussian1D, models.Polynomial1D, models.Shift, models.Tabular1D])
+                         [models.Gaussian1D, models.Polynomial1D,
+                          models.Shift, models.Tabular1D])
 def test_rename_1d(model_class):
     new_model = model_class.rename(name='Test1D', inputs=('r',), outputs=('q',))
     assert new_model.name == 'Test1D'
