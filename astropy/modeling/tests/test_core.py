@@ -450,3 +450,21 @@ def test_rename_path(tmpdir):
 
     output = subprocess.check_output([sys.executable, script], env=env)
     assert output.splitlines() == MODEL_RENAME_EXPECTED.splitlines()
+
+
+@pytest.mark.parametrize('model_class',
+                         [models.Gaussian1D, models.Polynomial1D, models.Shift, models.Tabular1D])
+def test_rename_1d(model_class):
+    new_model = model_class.rename(name='Test1D', inputs=('r',), outputs=('q',))
+    assert new_model.name == 'Test1D'
+    assert new_model.inputs == ('r',)
+    assert new_model.outputs == ('q',)
+
+
+@pytest.mark.parametrize('model_class',
+                         [models.Gaussian2D, models.Polynomial2D, models.Tabular2D])
+def test_rename_2d(model_class):
+    new_model = model_class.rename(name='Test2D', inputs=('r', 't'), outputs=('q',))
+    assert new_model.name == 'Test2D'
+    assert new_model.inputs == ('r', 't')
+    assert new_model.outputs == ('q',)
