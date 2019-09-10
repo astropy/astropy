@@ -152,6 +152,9 @@ class TestGroupsFunctions(FitsTestCase):
 
         # Test putting the data into a GroupsHDU and round-tripping it
         ghdu = fits.GroupsHDU(data=x)
+        assert ghdu.parnames == ['abc', 'xyz']
+        assert ghdu.header['GCOUNT'] == 10
+
         ghdu.writeto(self.temp('test.fits'))
 
         with fits.open(self.temp('test.fits')) as h:
