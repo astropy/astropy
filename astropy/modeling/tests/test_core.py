@@ -485,4 +485,3 @@ def test_rename_invalid():
         models.Gaussian2D.rename(inputs=('w',))
     with pytest.raises(ValueError):
         models.Gaussian2D.rename(outputs=('w', 'e'))
-        
