@@ -208,9 +208,9 @@ class _ModelMeta(abc.ABCMeta):
         """
         return not (cls.__name__.startswith('_') or inspect.isabstract(cls))
 
-    def rename(cls, name):
+    def rename(cls, name=None, inputs=None, outputs=None):
         """
-        Creates a copy of this model class with a new name.
+        Creates a copy of this model class with a new name, inputs or outputs.
 
         The new class is technically a subclass of the original class, so that
         instance and type checks will still work.  For example::
@@ -236,7 +236,23 @@ class _ModelMeta(abc.ABCMeta):
         else:
             modname = '__main__'
 
-        new_cls = type(name, (cls,), {})
+        if name is None:
+            name = cls.name
+        if inputs is None:
+            inputs = cls.inputs
+        else:
+            if not isinstance(inputs, tuple):
+                raise TypeError("Expected 'inputs' to be a tuple of strings.")
+            elif len(inputs) != len(cls.inputs):
+                raise ValueError(f'{cls.name} expects {len(cls.inputs)} inputs')
+        if outputs is None:
+            outputs = cls.outputs
+        else:
+            if not isinstance(outputs, tuple):
+                raise TypeError("Expected 'outputs' to be a tuple of strings.")
+            elif len(outputs) != len(cls.outputs):
+                raise ValueError(f'{cls.name} expects {len(cls.outputs)} outputs')
+        new_cls = type(name, (cls,), {"inputs": inputs, "outputs": outputs})
         new_cls.__module__ = modname
         new_cls.__qualname__ = name
 
