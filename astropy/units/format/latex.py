@@ -4,6 +4,7 @@
 Handles the "LaTeX" unit format.
 """
 
+import re
 
 import numpy as np
 
@@ -36,12 +37,18 @@ class Latex(base.Base):
     def _format_unit_list(cls, units):
         out = []
         for base, power in units:
+            base_latex = cls._get_unit_name(base)
             if power == 1:
-                out.append(cls._get_unit_name(base))
+                out.append(base_latex)
             else:
-                out.append('{0}^{{{1}}}'.format(
-                    cls._get_unit_name(base),
-                    utils.format_power(power)))
+                # If the LaTeX representation of the base unit already ends with
+                # a superscript, we need to spell out the unit to avoid double
+                # superscripts. For example, the logic below ensures that
+                # `u.deg**2` returns `deg^{2}` instead of `{}^{\circ}^{2}`.
+                if re.match(r".*\^{[^}]*}$", base_latex): # ends w/ superscript?
+                    base_latex = base.short_names[0]
+                out.append('{0}^{{{1}}}'.format(base_latex,
+                                                utils.format_power(power)))
         return r'\,'.join(out)
 
     @classmethod
