@@ -2550,6 +2550,8 @@ astropy.units
   in the default/``fits`` and ``vounit`` formats that would previously
   have been rejected for containing multiple solidi (``/``). [#9000]
 
+- Fixed the LaTeX representation of units containing a superscript. [#9218]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
