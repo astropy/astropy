@@ -480,3 +480,17 @@ def test_fits_scale_factor():
 
     x = u.Unit(100.0 * u.erg)
     assert x.to_string(format='fits') == '10**2 erg'
+
+
+def test_double_superscript():
+    """Regression test for #5870, #8699, #9218; avoid double superscripts."""
+    assert (u.deg).to_string("latex") == r'$\mathrm{{}^{\circ}}$'
+    assert (u.deg**2).to_string("latex") == r'$\mathrm{deg^{2}}$'
+    assert (u.arcmin).to_string("latex") == r'$\mathrm{{}^{\prime}}$'
+    assert (u.arcmin**2).to_string("latex") == r'$\mathrm{arcmin^{2}}$'
+    assert (u.arcsec).to_string("latex") == r'$\mathrm{{}^{\prime\prime}}$'
+    assert (u.arcsec**2).to_string("latex") == r'$\mathrm{arcsec^{2}}$'
+    assert (u.hourangle).to_string("latex") == r'$\mathrm{{}^{h}}$'
+    assert (u.hourangle**2).to_string("latex") == r'$\mathrm{hourangle^{2}}$'
+    assert (u.electron).to_string("latex") == r'$\mathrm{e^{-}}$'
+    assert (u.electron**2).to_string("latex") == r'$\mathrm{electron^{2}}$'
