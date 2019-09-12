@@ -20,8 +20,9 @@ import numpy as np
 
 from astropy import config as _config
 from astropy import units as u
-from astropy.table import Table, QTable
+from astropy.table import QTable
 from astropy.utils.data import get_pkg_data_filename, clear_download_cache
+from astropy.utils.compat import NUMPY_LT_1_17
 from astropy import utils
 from astropy.utils.exceptions import AstropyWarning
 
@@ -409,6 +410,13 @@ class IERS_A(IERS):
 
     iers_table = None
 
+    if NUMPY_LT_1_17:
+        @staticmethod
+        def _quantity_where(condition, x, y):
+            result = y.to(x.unit)  # Makes copy.
+            result[condition] = x[condition]
+            return result
+
     @classmethod
     def _combine_a_b_columns(cls, iers_a):
         """
@@ -417,58 +425,44 @@ class IERS_A(IERS):
         # IERS A has some rows at the end that hold nothing but dates & MJD
         # presumably to be filled later.  Exclude those a priori -- there
         # should at least be a predicted UT1-UTC and PM!
-        table = iers_a[~iers_a['UT1_UTC_A'].mask &
-                       ~iers_a['PolPMFlag_A'].mask]
+        table = iers_a[np.isfinite(iers_a['UT1_UTC_A']) &
+                       (iers_a['PolPMFlag_A'] != '')]
 
         # This does nothing for IERS_A, but allows IERS_Auto to ensure the
         # IERS B values in the table are consistent with the true ones.
         table = cls._substitute_iers_b(table)
 
-        # Run np.where on the data from the table columns, since in numpy 1.9
-        # it otherwise returns an only partially initialized column.
-        table['UT1_UTC'] = np.where(table['UT1_UTC_B'].mask,
-                                    table['UT1_UTC_A'].data,
-                                    table['UT1_UTC_B'].data)
-        # Ensure the unit is correct, for later column conversion to Quantity.
-        table['UT1_UTC'].unit = table['UT1_UTC_A'].unit
-        table['UT1Flag'] = np.where(table['UT1_UTC_B'].mask,
-                                    table['UT1Flag_A'].data,
-                                    'B')
+        q_where = cls._quantity_where if NUMPY_LT_1_17 else np.where
+
+        # Combine A and B columns, using B where possible.
+        # TODO: Once we support masked quantities, we can
+        # replace b_bad with table['UT1_UTC_B'].mask
+        b_bad = np.isnan(table['UT1_UTC_B'])
+        table['UT1_UTC'] = q_where(b_bad, table['UT1_UTC_A'], table['UT1_UTC_B'])
+        table['UT1Flag'] = np.where(b_bad, table['UT1Flag_A'], 'B')
         # Repeat for polar motions.
-        table['PM_x'] = np.where(table['PM_X_B'].mask,
-                                 table['PM_x_A'].data,
-                                 table['PM_X_B'].data)
-        table['PM_x'].unit = table['PM_x_A'].unit
-        table['PM_y'] = np.where(table['PM_Y_B'].mask,
-                                 table['PM_y_A'].data,
-                                 table['PM_Y_B'].data)
-        table['PM_y'].unit = table['PM_y_A'].unit
-        table['PolPMFlag'] = np.where(table['PM_X_B'].mask,
-                                      table['PolPMFlag_A'].data,
-                                      'B')
+        b_bad = np.isnan(table['PM_X_B']) | np.isnan(table['PM_Y_B'])
+        table['PM_x'] = q_where(b_bad, table['PM_x_A'], table['PM_X_B'])
+        table['PM_y'] = q_where(b_bad, table['PM_y_A'], table['PM_Y_B'])
+        table['PolPMFlag'] = np.where(b_bad, table['PolPMFlag_A'], 'B')
 
-        table['dX_2000A'] = np.where(table['dX_2000A_B'].mask,
-                                     table['dX_2000A_A'].data,
-                                     table['dX_2000A_B'].data)
-        table['dX_2000A'].unit = table['dX_2000A_A'].unit
-
-        table['dY_2000A'] = np.where(table['dY_2000A_B'].mask,
-                                     table['dY_2000A_A'].data,
-                                     table['dY_2000A_B'].data)
-        table['dY_2000A'].unit = table['dY_2000A_A'].unit
-
-        table['NutFlag'] = np.where(table['dX_2000A_B'].mask,
-                                    table['NutFlag_A'].data,
-                                    'B')
+        b_bad = np.isnan(table['dX_2000A_B']) | np.isnan(table['dY_2000A_B'])
+        table['dX_2000A'] = q_where(b_bad, table['dX_2000A_A'], table['dX_2000A_B'])
+        table['dY_2000A'] = q_where(b_bad, table['dY_2000A_A'], table['dY_2000A_B'])
+        table['NutFlag'] = np.where(b_bad, table['NutFlag_A'], 'B')
 
         # Get the table index for the first row that has predictive values
         # PolPMFlag_A  IERS (I) or Prediction (P) flag for
         #              Bull. A polar motion values
         # UT1Flag_A    IERS (I) or Prediction (P) flag for
         #              Bull. A UT1-UTC values
-        is_predictive = (table['UT1Flag_A'] == 'P') | (table['PolPMFlag_A'] == 'P')
-        table.meta['predictive_index'] = np.min(np.flatnonzero(is_predictive))
-        table.meta['predictive_mjd'] = table['MJD'][table.meta['predictive_index']]
+        # Since only 'P' and 'I' are possible and 'P' is guaranteed to come
+        # after 'I', we can use searchsorted for 100 times speed up over
+        # finding the first index where the flag equals 'P'.
+        p_index = min(np.searchsorted(table['UT1Flag_A'], 'P'),
+                      np.searchsorted(table['PolPMFlag_A'], 'P'))
+        table.meta['predictive_index'] = p_index
+        table.meta['predictive_mjd'] = table['MJD'][p_index].value
 
         return table
 
@@ -499,18 +493,15 @@ class IERS_A(IERS):
         if readme is None:
             readme = IERS_A_README
 
-        # Read in as a regular Table, including possible masked columns.
-        # Columns will be filled and converted to Quantity in cls.__init__.
-        iers_a = Table.read(file, format='cds', readme=readme)
-        iers_a = Table(iers_a, masked=True, copy=False)
+        iers_a = QTable.read(file, format='cds', readme=readme,
+                             fill_values=('', 'nan'))
 
         # Combine the A and B data for UT1-UTC and PM columns
         table = cls._combine_a_b_columns(iers_a)
         table.meta['data_path'] = file
         table.meta['readme_path'] = readme
 
-        # Fill any masked values, and convert to a QTable.
-        return cls(table.filled())
+        return cls(table, copy=False)
 
     def ut1_utc_source(self, i):
         """Set UT1-UTC source flag for entries in IERS table"""
@@ -574,11 +565,10 @@ class IERS_B(IERS):
         if readme is None:
             readme = IERS_B_README
 
-        # Read in as a regular Table, including possible masked columns.
-        # Columns will be filled and converted to Quantity in cls.__init__.
-        iers_b = Table.read(file, format='cds', readme=readme,
-                            data_start=data_start)
-        return cls(iers_b.filled())
+        iers_b = QTable.read(file, format='cds', readme=readme,
+                             data_start=data_start,
+                             fill_values=('', 'nan'))
+        return cls(iers_b, copy=False)
 
     def ut1_utc_source(self, i):
         """Set UT1-UTC source flag for entries in IERS table"""
@@ -777,21 +767,21 @@ class IERS_Auto(IERS_A):
         """
         iers_b = IERS_B.open()
         # Substitute IERS-B values for existing B values in IERS-A table
-        mjd_b = table['MJD'][~table['UT1_UTC_B'].mask]
-        i0 = np.searchsorted(iers_b['MJD'].value, mjd_b[0], side='left')
-        i1 = np.searchsorted(iers_b['MJD'].value, mjd_b[-1], side='right')
+        mjd_b = table['MJD'][np.isfinite(table['UT1_UTC_B'])]
+        i0 = np.searchsorted(iers_b['MJD'], mjd_b[0], side='left')
+        i1 = np.searchsorted(iers_b['MJD'], mjd_b[-1], side='right')
         iers_b = iers_b[i0:i1]
         n_iers_b = len(iers_b)
         # If there is overlap then replace IERS-A values from available IERS-B
         if n_iers_b > 0:
             # Sanity check that we are overwriting the correct values
-            if not np.allclose(table['MJD'][:n_iers_b], iers_b['MJD'].value):
+            if not u.allclose(table['MJD'][:n_iers_b], iers_b['MJD']):
                 raise ValueError('unexpected mismatch when copying '
                                  'IERS-B values into IERS-A table.')
             # Finally do the overwrite
-            table['UT1_UTC_B'][:n_iers_b] = iers_b['UT1_UTC'].value
-            table['PM_X_B'][:n_iers_b] = iers_b['PM_x'].value
-            table['PM_Y_B'][:n_iers_b] = iers_b['PM_y'].value
+            table['UT1_UTC_B'][:n_iers_b] = iers_b['UT1_UTC']
+            table['PM_X_B'][:n_iers_b] = iers_b['PM_x']
+            table['PM_Y_B'][:n_iers_b] = iers_b['PM_y']
 
         return table
 
