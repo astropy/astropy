@@ -1108,7 +1108,7 @@ class MaskedColumnInfo(ColumnInfo):
                 out['mask'] = col.mask
                 self._represent_as_dict_attrs += ('mask',)
 
-        elif method is 'null_value':
+        elif method == 'null_value':
             pass
 
         else:

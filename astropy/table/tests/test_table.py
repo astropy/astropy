@@ -2258,7 +2258,7 @@ def test_primary_key_is_inherited():
     original_key = t.primary_key
 
     # can't test if tuples are equal, so just check content
-    assert original_key[0] is 'a'
+    assert original_key[0] == 'a'
 
     t2 = t[:]
     t3 = t.copy()
