@@ -34,10 +34,10 @@ SERVICES PROVIDED HEREUNDER."
 #ifndef _FITSIO_H
 #define _FITSIO_H
 
-#define CFITSIO_VERSION 3.45
-#define CFITSIO_MINOR 45
+#define CFITSIO_VERSION 3.47
+#define CFITSIO_MINOR 47
 #define CFITSIO_MAJOR 3
-#define CFITSIO_SONAME 7
+#define CFITSIO_SONAME 8
 
 /* the SONAME is incremented in a new release if the binary shared */
 /* library (on linux and Mac systems) is not backward compatible */
@@ -574,6 +574,7 @@ int CFITS_API fits_read_wcstab(fitsfile *fptr, int nwtb, wtbarr *wtb, int *statu
 #define BAD_FILEPTR       114  /* invalid fitsfile pointer */
 #define NULL_INPUT_PTR    115  /* NULL input pointer to routine */
 #define SEEK_ERROR        116  /* error seeking position in file */
+#define BAD_NETTIMEOUT    117  /* bad value for file download timeout setting */
 
 #define BAD_URL_PREFIX    121  /* invalid URL prefix on file name */
 #define TOO_MANY_DRIVERS  122  /* tried to register too many IO drivers */
@@ -2055,6 +2056,10 @@ int CFITS_API fits_uncompress_table(fitsfile *infptr, fitsfile *outfptr, int *st
 int CFITS_API fits_init_https(void);
 int CFITS_API fits_cleanup_https(void);
 void CFITS_API fits_verbose_https(int flag);
+
+void CFITS_API ffshdwn(int flag);
+int CFITS_API ffgtmo(void);
+int CFITS_API ffstmo(int sec, int *status);
 
 /*  The following exclusion if __CINT__ is defined is needed for ROOT */
 #ifndef __CINT__
