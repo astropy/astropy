@@ -20,7 +20,7 @@ import numpy as np
 
 from astropy import config as _config
 from astropy import units as u
-from astropy.table import QTable
+from astropy.table import QTable, MaskedColumn
 from astropy.utils.data import get_pkg_data_filename, clear_download_cache
 from astropy.utils.compat import NUMPY_LT_1_17
 from astropy import utils
@@ -123,6 +123,7 @@ class IERS(QTable):
     """
 
     iers_table = None
+    """Cached table, returned if ``open`` is called without arguments."""
 
     @classmethod
     def open(cls, file=None, cache=False, **kwargs):
@@ -164,7 +165,16 @@ class IERS(QTable):
                     kwargs.update(file=download_file(file, cache=cache))
                 else:
                     kwargs.update(file=file)
-            cls.iers_table = cls.read(**kwargs)
+
+            # TODO: the below is really ugly and probably a bad idea.  Instead,
+            # there should probably be an IERSBase class, which provides
+            # useful methods but cannot really be used on its own, and then
+            # *perhaps* an IERS class which provides best defaults.  But for
+            # backwards compatibility, we use the IERS_B reader for IERS here.
+            if cls is IERS:
+                cls.iers_table = IERS_B.read(**kwargs)
+            else:
+                cls.iers_table = cls.read(**kwargs)
         return cls.iers_table
 
     @classmethod
@@ -394,6 +404,17 @@ class IERS(QTable):
         except Exception:
             return Time.now()
 
+    def _convert_col_for_table(self, col):
+        # Fill masked columns with units to avoid dropped-mask warnings
+        # when converting to Quantity.
+        # TODO: Once we support masked quantities, we can drop this and
+        # in the code below replace b_bad with table['UT1_UTC_B'].mask, etc.
+        if (getattr(col, 'unit', None) is not None and
+                isinstance(col, MaskedColumn)):
+            col = col.filled(np.nan)
+
+        return super()._convert_col_for_table(col)
+
 
 class IERS_A(IERS):
     """IERS Table class targeted to IERS A, provided by USNO.
@@ -435,8 +456,6 @@ class IERS_A(IERS):
         q_where = cls._quantity_where if NUMPY_LT_1_17 else np.where
 
         # Combine A and B columns, using B where possible.
-        # TODO: Once we support masked quantities, we can
-        # replace b_bad with table['UT1_UTC_B'].mask
         b_bad = np.isnan(table['UT1_UTC_B'])
         table['UT1_UTC'] = q_where(b_bad, table['UT1_UTC_A'], table['UT1_UTC_B'])
         table['UT1Flag'] = np.where(b_bad, table['UT1Flag_A'], 'B')
@@ -493,15 +512,14 @@ class IERS_A(IERS):
         if readme is None:
             readme = IERS_A_README
 
-        iers_a = QTable.read(file, format='cds', readme=readme,
-                             fill_values=('', 'nan'))
+        iers_a = super().read(file, format='cds', readme=readme)
 
         # Combine the A and B data for UT1-UTC and PM columns
         table = cls._combine_a_b_columns(iers_a)
         table.meta['data_path'] = file
         table.meta['readme_path'] = readme
 
-        return cls(table, copy=False)
+        return table
 
     def ut1_utc_source(self, i):
         """Set UT1-UTC source flag for entries in IERS table"""
@@ -565,10 +583,8 @@ class IERS_B(IERS):
         if readme is None:
             readme = IERS_B_README
 
-        iers_b = QTable.read(file, format='cds', readme=readme,
-                             data_start=data_start,
-                             fill_values=('', 'nan'))
-        return cls(iers_b, copy=False)
+        return super().read(file, format='cds', readme=readme,
+                            data_start=data_start)
 
     def ut1_utc_source(self, i):
         """Set UT1-UTC source flag for entries in IERS table"""
@@ -613,7 +629,7 @@ class IERS_Auto(IERS_A):
 
         """
         if not conf.auto_download:
-            cls.iers_table = IERS.open()
+            cls.iers_table = IERS_B.open()
             return cls.iers_table
 
         all_urls = (conf.iers_auto_url, conf.iers_auto_url_mirror)
@@ -645,7 +661,7 @@ class IERS_Auto(IERS_A):
             warn(AstropyWarning('failed to download {}, using local IERS-B: {}'
                                 .format(' and '.join(all_urls),
                                         ';'.join(err_list))))  # noqa
-            cls.iers_table = IERS.open()
+            cls.iers_table = IERS_B.open()
             return cls.iers_table
 
         cls.iers_table = cls.read(file=filename)
@@ -784,7 +800,3 @@ class IERS_Auto(IERS_A):
             table['PM_Y_B'][:n_iers_b] = iers_b['PM_y']
 
         return table
-
-
-# by default for IERS class, read IERS-B table
-IERS.read = IERS_B.read

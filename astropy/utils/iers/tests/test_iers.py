@@ -28,12 +28,19 @@ IERS_A_EXCERPT = os.path.join(os.path.dirname(__file__), 'data', 'iers_a_excerpt
 class TestBasic():
     """Basic tests that IERS_B returns correct values"""
 
-    def test_simple(self):
-        iers.IERS.close()
-        assert iers.IERS.iers_table is None
-        iers_tab = iers.IERS.open()
-        assert iers.IERS.iers_table is not None
-        assert isinstance(iers.IERS.iers_table, QTable)
+    @pytest.mark.parametrize('iers_cls', (iers.IERS_B, iers.IERS))
+    def test_simple(self, iers_cls):
+        """Test the default behaviour for IERS_B and IERS."""
+        # Arguably, IERS itself should not be used at all, but it used to
+        # provide IERS_B by default so we check that it continues to do so.
+        # Eventually, IERS should probably be deprecated.
+        iers_cls.close()
+        assert iers_cls.iers_table is None
+        iers_tab = iers_cls.open()
+        assert iers_cls.iers_table is not None
+        assert iers_cls.iers_table is iers_tab
+        assert isinstance(iers_tab, QTable)
+        assert isinstance(iers_tab, iers.IERS_B)
         assert (iers_tab['UT1_UTC'].unit / u.second).is_unity()
         assert (iers_tab['PM_x'].unit / u.arcsecond).is_unity()
         assert (iers_tab['PM_y'].unit / u.arcsecond).is_unity()
@@ -66,13 +73,13 @@ class TestBasic():
         assert len(iers_tab[:2]) == 2
 
     def test_open_filename(self):
-        iers.IERS.close()
-        iers.IERS.open(iers.IERS_B_FILE)
-        assert iers.IERS.iers_table is not None
-        assert isinstance(iers.IERS.iers_table, QTable)
-        iers.IERS.close()
+        iers.IERS_B.close()
+        iers.IERS_B.open(iers.IERS_B_FILE)
+        assert iers.IERS_B.iers_table is not None
+        assert isinstance(iers.IERS_B.iers_table, QTable)
+        iers.IERS_B.close()
         with pytest.raises(FILE_NOT_FOUND_ERROR):
-            iers.IERS.open('surely this does not exist')
+            iers.IERS_B.open('surely this does not exist')
 
     def test_open_network_url(self):
         iers.IERS_A.close()
