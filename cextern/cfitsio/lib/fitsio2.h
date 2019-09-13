@@ -203,6 +203,12 @@ extern int Fitsio_Pthread_Status;
 #else
 #define BYTESWAPPED FALSE
 #endif
+
+#elif defined(__riscv)
+
+/* RISC-V is little endian */
+
+#define BYTESWAPPED TRUE
  
 #else
 
@@ -509,6 +515,7 @@ int ffcins(fitsfile *fptr, LONGLONG naxis1, LONGLONG naxis2, LONGLONG nbytes,
 int ffcdel(fitsfile *fptr, LONGLONG naxis1, LONGLONG naxis2, LONGLONG nbytes,
            LONGLONG bytepos, int *status);
 int ffkshf(fitsfile *fptr, int firstcol, int tfields, int nshift, int *status);
+int fffvcl(fitsfile *fptr, int *nvarcols, int *colnums, int *status);
  
 int fffi1i1(unsigned char *input, long ntodo, double scale, double zero,
             int nullcheck, unsigned char tnull, unsigned char nullval, char
@@ -1096,6 +1103,9 @@ int fitsio_init_lock(void);
 
 int urltype2driver(char *urltype, int *driver);
 
+void fits_dwnld_prog_bar(int flag);
+int fits_net_timeout(int sec);
+
 int fits_register_driver( char *prefix,
 	int (*init)(void),
 	int (*fitsshutdown)(void),
@@ -1210,6 +1220,12 @@ int https_checkfile(char* urltype, char *infile, char *outfile);
 int https_open(char *filename, int rwmode, int *driverhandle);
 int https_file_open(char *filename, int rwmode, int *driverhandle);
 void https_set_verbose(int flag);
+
+/* ftps driver I/O routines */
+int ftps_checkfile(char* urltype, char *infile, char *outfile);
+int ftps_open(char *filename, int rwmode, int *handle);
+int ftps_file_open(char *filename, int rwmode, int *handle);
+int ftps_compress_open(char *filename, int rwmode, int *driverhandle);
 
 /* ftp driver I/O routines */
 

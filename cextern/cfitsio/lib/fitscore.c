@@ -73,11 +73,13 @@ float ffvers(float *version)  /* IO - version number */
   return the current version number of the FITSIO software
 */
 {
-      *version = (float) 3.45;
+      *version = (float) 3.47;
 
-/*       May 2018
+/*       May 2019
 
    Previous releases:
+      *version = 3.46       Oct 2018
+      *version = 3.45       May 2018
       *version = 3.44       Apr 2018
       *version = 3.43       Mar 2018
       *version = 3.42       Mar 2017
@@ -268,6 +270,9 @@ void ffgerr(int status,     /* I - error status value */
        break;
     case 116:
        strcpy(errtext, "error seeking file position");
+       break;
+    case 117:
+       strcpy(errtext, "bad value for file download timeout setting");
        break;
     case 121:
        strcpy(errtext, "invalid URL prefix");
