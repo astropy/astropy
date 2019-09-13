@@ -306,10 +306,11 @@ class DataInfo(metaclass=DataInfoMeta):
     @property
     def _parent(self):
         try:
-            return self._parent_ref()
+            parent = self._parent_ref()
         except AttributeError:
             return None
-        except TypeError:
+
+        if parent is None:
             raise AttributeError("""\
 failed access "info" attribute on a temporary object.
 
@@ -317,7 +318,9 @@ It looks like you have done something like ``col[3:5].info``, i.e.
 you accessed ``info`` from a temporary slice object ``col[3:5]`` that
 only exists momentarily.  This has failed because the reference to
 that temporary object is now lost.  Instead force a permanent
-reference with ``c = col[3:5]`` followed by ``c.info``.""") from None
+reference with ``c = col[3:5]`` followed by ``c.info``.""")
+
+        return parent
 
     def __get__(self, instance, owner_cls):
         if instance is None:
