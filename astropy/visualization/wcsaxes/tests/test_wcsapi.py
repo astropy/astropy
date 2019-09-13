@@ -184,7 +184,7 @@ class LowLevelWCS5D(BaseLowLevelWCS):
     def world_axis_object_components(self):
         return [('freq', 0, 'value'),
                 ('time', 0, 'mjd'),
-                ('celestial', 0, 'spherical.lon.degree')
+                ('celestial', 0, 'spherical.lon.degree'),
                 ('celestial', 1, 'spherical.lat.degree'),
                 ('stokes', 0, 'value')]
 
