@@ -288,6 +288,9 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- ``Time.get_ut1_utc`` now uses the auto-updated ``IERS_Auto`` by default,
+  instead of the bundled ``IERS_B`` file. [#9226]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
@@ -321,6 +324,9 @@ astropy.utils
   performance boost). Generally, this should not affect simple subclasses, but
   because the class now uses ``__slots__`` any attributes on the class have to
   be explicitly given a slot. [#8998]
+
+- ``IERS`` tables now use ``nan`` to mark missing values (rather than ``1e20``).
+  [#9226]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
