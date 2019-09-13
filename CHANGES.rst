@@ -45,10 +45,8 @@ astropy.io.misc
 
 - Eliminate deprecated compatibility mode when writing ``Table`` metadata to HDF5 format. [#8899]
 
-- Add support for orthogonal polynomial models to ASDF [requires
-  asdf-standard PR #204]
+- Add support for orthogonal polynomial models to ASDF. [#9107]
 
-- Add support for orthogonal polynomial models to ASDF [#9107]
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
@@ -380,7 +378,7 @@ astropy.table
 
 - Fix bug where adding a column consisting of a list of masked arrays was
   dropping the masks. [#9048]
-  
+
 astropy.tests
 ^^^^^^^^^^^^^
 
