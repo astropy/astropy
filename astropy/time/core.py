@@ -98,7 +98,6 @@ class TimeInfo(MixinInfo):
     required when the object is used as a mixin column within a table, but can
     be used as a general way to store meta information.
     """
-    attrs_from_parent = set(['unit'])  # unit is read-only and None
     attr_names = MixinInfo.attr_names | {'serialize_method'}
     _supports_indexing = True
 

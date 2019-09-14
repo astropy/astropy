@@ -58,7 +58,6 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
     ``MaskedColumn`` can also be serialized.
     """
     obj_attrs = col.info._represent_as_dict()
-    ordered_keys = col.info._represent_as_dict_attrs
 
     # If serialization is not required (see function docstring above)
     # or explicitly specified as excluded, then treat as a normal column.
@@ -83,8 +82,8 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
         if nontrivial(col_attr):
             info[attr] = xform(col_attr) if xform else col_attr
 
-    data_attrs = [key for key in ordered_keys if key in obj_attrs and
-                  getattr(obj_attrs[key], 'shape', ())[:1] == col.shape[:1]]
+    data_attrs = [key for key, value in obj_attrs.items() if
+                  getattr(value, 'shape', ())[:1] == col.shape[:1]]
 
     for data_attr in data_attrs:
         data = obj_attrs[data_attr]
