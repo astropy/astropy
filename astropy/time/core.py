@@ -1605,10 +1605,10 @@ class Time(ShapedLikeNDArray):
 
         Parameters
         ----------
-        iers_table : ``astropy.utils.iers.IERS`` table, optional
+        iers_table : `~astropy.utils.iers.IERS` table, optional
             Table containing UT1-UTC differences from IERS Bulletins A
-            and/or B.  If `None`, use default version (see
-            ``astropy.utils.iers``)
+            and/or B.  If `None`, use default combined version (see
+            `astropy.utils.iers.IERS_Auto`)
         return_status : bool
             Whether to return status values.  If `False` (default), iers
             raises `IndexError` if any time is out of the range
@@ -1642,8 +1642,8 @@ class Time(ShapedLikeNDArray):
             array([ True, False]...)
         """
         if iers_table is None:
-            from astropy.utils.iers import IERS
-            iers_table = IERS.open()
+            from astropy.utils.iers import IERS_Auto
+            iers_table = IERS_Auto.open()
 
         return iers_table.ut1_utc(self.utc, return_status=return_status)
 
