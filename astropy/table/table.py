@@ -26,7 +26,7 @@ from .pprint import TableFormatter
 from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
                      col_copy)
 from .row import Row
-from .np_utils import fix_column_name, recarray_fromrecords
+from .np_utils import fix_column_name
 from .info import TableInfo
 from .index import Index, _IndexModeContext, get_index
 from .connect import TableRead, TableWrite
@@ -462,8 +462,7 @@ class Table:
             elif isinstance(rows, self.Row):
                 data = rows
             else:
-                rec_data = recarray_fromrecords(rows)
-                data = [rec_data[name] for name in rec_data.dtype.names]
+                data = list(zip(*rows))
 
         # Infer the type of the input data and set up the initialization
         # function, number of columns, and potentially the default col names
@@ -885,15 +884,21 @@ class Table:
         col : Column, MaskedColumn, mixin-column type
             Object that can be used as a column in self
         """
-        is_mixin = self._is_mixin_for_table(data)
+        data_is_mixin = self._is_mixin_for_table(data)
         masked_col_cls = (self.ColumnClass
                           if issubclass(self.ColumnClass, self.MaskedColumn)
                           else self.MaskedColumn)
+        try:
+            data0_is_mixin = self._is_mixin_for_table(data[0])
+        except Exception:
+            # Need broad exception, cannot predict what data[0] raises for arbitrary data
+            data0_is_mixin = False
 
         # Structured ndarray gets viewed as a mixin unless already a valid
         # mixin class
-        if isinstance(data, np.ndarray) and len(data.dtype) > 1 and not is_mixin:
+        if isinstance(data, np.ndarray) and len(data.dtype) > 1 and not data_is_mixin:
             data = data.view(NdarrayMixin)
+            data_is_mixin = True
 
         # Get the final column name using precedence.  Some objects may not
         # have an info attribute.
@@ -912,12 +917,23 @@ class Table:
             # does not happen.
             col_cls = self._get_col_cls_for_table(data)
 
-        elif self._is_mixin_for_table(data):
+        elif data_is_mixin:
             # Copy the mixin column attributes if they exist since the copy below
             # may not get this attribute.
             col = col_copy(data, copy_indices=self._init_indices) if copy else data
             col.info.name = name
             return col
+
+        elif data0_is_mixin:
+            # Handle case of a sequence of a mixin, e.g. [1*u.m, 2*u.m].
+            try:
+                col = data[0].__class__(data)
+                col.info.name = name
+                return col
+            except Exception:
+                # If that didn't work for some reason, just turn it into np.array of object
+                data = np.array(data, dtype=object)
+                col_cls = self.ColumnClass
 
         elif isinstance(data, np.ma.MaskedArray):
             # Require that col_cls be a subclass of MaskedColumn, remembering
@@ -930,7 +946,11 @@ class Table:
             # Then check if there were any masked elements.  This logic is handling
             # normal lists like [1, 2] but also odd-ball cases like a list of masked
             # arrays (see #8977).  Use np.ma.array() to do the heavy lifting.
-            np_data = np.ma.array(data, dtype=dtype)
+            try:
+                np_data = np.ma.array(data, dtype=dtype)
+            except Exception:
+                # Conversion failed for some reason, e.g. [2, 1*u.m] gives TypeError in Quantity
+                np_data = np.ma.array(data, dtype=object)
 
             if np_data.ndim > 0 and len(np_data) == 0:
                 # Implies input was an empty list (e.g. initializing an empty table

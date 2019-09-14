@@ -103,6 +103,9 @@ astropy.table
 - Adding depth-wise stacking ``cstack()`` in higher level table operation.
   It help will in stacking table column depth-wise. [#8939]
 
+- Allow adding a table column as a list of mixin-type objects, for instance
+  ``t['q'] = [1 * u.m, 2 * u.m]``. [#9165]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -281,6 +284,9 @@ astropy.table
 - Changed default table configuration setting ``replace_warnings`` from
   ``['slice']`` to ``[]``.  This removes the default warning when replacing
   a table column that is a slice of another column. [#9144]
+
+- Removed the non-public method ``astropy.table.np_utils.recarray_fromrecords``.
+  [#9165]
 
 astropy.tests
 ^^^^^^^^^^^^^

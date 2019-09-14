@@ -2427,3 +2427,29 @@ def test_data_to_col_convert_strategy():
     t['b'] = np.int64(2)  # Failed previously
     assert np.all(t['a'] == [1, 1])
     assert np.all(t['b'] == [2, 2])
+
+
+def test_rows_with_mixins():
+    """Test for #9165 to allow adding a list of mixin objects"""
+    tm = Time([1, 2], format='cxcsec')
+    q = [1, 2] * u.m
+    mixed1 = [1 * u.m, 2]  # Mixed input, fails to convert to Quantity
+    mixed2 = [2, 1 * u.m]  # Mixed input, not detected as potential mixin
+    rows = [(1, q[0], tm[0]),
+            (2, q[1], tm[1])]
+    t = table.QTable(rows=rows)
+    t['a'] = [q[0], q[1]]
+    t['b'] = [tm[0], tm[1]]
+    t['m1'] = mixed1
+    t['m2'] = mixed2
+
+    assert np.all(t['col1'] == q)
+    assert np.all(t['col2'] == tm)
+    assert np.all(t['a'] == q)
+    assert np.all(t['b'] == tm)
+    assert np.all(t['m1'][ii] == mixed1[ii] for ii in range(2))
+    assert np.all(t['m2'][ii] == mixed2[ii] for ii in range(2))
+    assert type(t['m1']) is table.Column
+    assert t['m1'].dtype is np.dtype(object)
+    assert type(t['m2']) is table.Column
+    assert t['m2'].dtype is np.dtype(object)
