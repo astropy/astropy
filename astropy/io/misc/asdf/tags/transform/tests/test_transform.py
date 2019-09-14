@@ -15,7 +15,14 @@ from astropy.modeling import models as astmodels
 
 test_models = [
     astmodels.Identity(2), astmodels.Polynomial1D(2, c0=1, c1=2, c2=3),
-    astmodels.Polynomial2D(1, c0_0=1, c0_1=2, c1_0=3), astmodels.Shift(2.),
+    astmodels.Polynomial2D(1, c0_0=1, c0_1=2, c1_0=3),
+    astmodels.Shift(2.),
+    astmodels.Hermite1D(2, c0=2, c1=3, c2=0.5),
+    astmodels.Legendre1D(2, c0=2, c1=3, c2=0.5),
+    astmodels.Chebyshev1D(2, c0=2, c1=3, c2=0.5),
+    astmodels.Chebyshev2D(1, 1, c0_0=1, c0_1=2, c1_0=3),
+    astmodels.Legendre2D(1, 1, c0_0=1, c0_1=2, c1_0=3),
+    astmodels.Hermite2D(1, 1, c0_0=1, c0_1=2, c1_0=3),
     astmodels.Scale(3.4), astmodels.RotateNative2Celestial(5.63, -72.5, 180),
     astmodels.Multiply(3), astmodels.Multiply(10*u.m),
     astmodels.RotateCelestial2Native(5.63, -72.5, 180),
