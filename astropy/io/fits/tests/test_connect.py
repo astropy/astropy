@@ -222,6 +222,12 @@ class TestSingleTable:
             t.write(filename)
         assert len(w) == 1
         assert 'spam' in str(w[0].message)
+        if table_type is Table or not HAS_YAML:
+            assert ('cannot be recovered in reading. '
+                    'If pyyaml is installed') in str(w[0].message)
+        else:
+            assert 'lost to non-astropy fits readers' in str(w[0].message)
+
         with fits.open(filename) as ff:
             hdu = ff[1]
             assert 'TUNIT1' not in hdu.header
