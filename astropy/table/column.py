@@ -1103,7 +1103,7 @@ class MaskedColumnInfo(ColumnInfo):
                 # Only if there are actually masked elements do we add the ``mask`` column
                 out['mask'] = col.mask
 
-        elif method is 'null_value':
+        elif method == 'null_value':
             pass
 
         else:
