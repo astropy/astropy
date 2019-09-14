@@ -16,7 +16,7 @@ from astropy.time import Time
 from .distances import Distance
 from .angles import Angle
 from .baseframe import (BaseCoordinateFrame, frame_transform_graph,
-                        GenericFrame, _get_repr_cls)
+                        GenericFrame)
 from .builtin_frames import ICRS, SkyOffsetFrame
 from .representation import (SphericalRepresentation,
                              UnitSphericalRepresentation, SphericalDifferential)
@@ -72,9 +72,7 @@ class SkyCoordInfo(MixinInfo):
         if 'distance' in attrs and np.all(obj.distance == 1.0):
             attrs.remove('distance')
 
-        self._represent_as_dict_attrs = attrs
-
-        out = super()._represent_as_dict()
+        out = super()._represent_as_dict(attrs)
 
         out['representation_type'] = obj.representation_type.get_name()
         out['frame'] = obj.frame.name
