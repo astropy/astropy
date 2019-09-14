@@ -620,12 +620,10 @@ class TestHDUListFunctions(FitsTestCase):
         with fits.open(self.temp('temp.fits')) as hdul:
             assert (hdul[0].data == data).all()
 
-    @pytest.mark.xfail(platform.system() == 'Windows',
-                       reason='https://github.com/astropy/astropy/issues/5797')
     def test_update_resized_header(self):
         """
         Test saving updates to a file where the header is one block smaller
-        than before, and in the case where the heade ris one block larger than
+        than before, and in the case where the header is one block larger than
         before.
         """
 

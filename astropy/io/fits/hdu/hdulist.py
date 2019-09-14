@@ -1287,21 +1287,9 @@ class HDUList(list, _Verify):
 
                 for hdu in self:
                     hdu._writeto(hdulist._file, inplace=True, copy=True)
-                if sys.platform.startswith('win'):
-                    # Collect a list of open mmaps to the data; this well be
-                    # used later.  See below.
-                    mmaps = [(idx, _get_array_mmap(hdu.data), hdu.data)
-                             for idx, hdu in enumerate(self) if hdu._has_data]
 
                 hdulist._file.close()
                 self._file.close()
-            if sys.platform.startswith('win'):
-                # Close all open mmaps to the data.  This is only necessary on
-                # Windows, which will not allow a file to be renamed or deleted
-                # until all handles to that file have been closed.
-                for idx, mmap, arr in mmaps:
-                    if mmap is not None:
-                        mmap.close()
 
             os.remove(self._file.name)
 
@@ -1324,22 +1312,6 @@ class HDUList(list, _Verify):
                 if hdu._has_data and _get_array_mmap(hdu.data) is not None:
                     del hdu.data
                 hdu._file = ffo
-
-            if sys.platform.startswith('win'):
-                # On Windows, all the original data mmaps were closed above.
-                # However, it's possible that the user still has references to
-                # the old data which would no longer work (possibly even cause
-                # a segfault if they try to access it).  This replaces the
-                # buffers used by the original arrays with the buffers of mmap
-                # arrays created from the new file.  This seems to work, but
-                # it's a flaming hack and carries no guarantees that it won't
-                # lead to odd behavior in practice.  Better to just not keep
-                # references to data from files that had to be resized upon
-                # flushing (on Windows--again, this is no problem on Linux).
-                for idx, mmap, arr in mmaps:
-                    if mmap is not None:
-                        arr.data = self[idx].data.data
-                del mmaps  # Just to be sure
 
         else:
             # The underlying file is not a file object, it is a file like
