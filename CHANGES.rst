@@ -285,6 +285,9 @@ astropy.table
   ``['slice']`` to ``[]``.  This removes the default warning when replacing
   a table column that is a slice of another column. [#9144]
 
+- Removed the non-public method ``astropy.table.np_utils.recarray_fromrecords``.
+  [#9165]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
