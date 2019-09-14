@@ -205,6 +205,10 @@ astropy.io.fits
 
 - Masked column handling has changed, see ``astropy.table`` entry below. [#8789]
 
+- ``io.fits.Header`` has been made safe for subclasses for copying and slicing.
+  As a result of this change, the private subclass ``CompImageHeader`` now always
+  should be passed an explicit ``image_header``. [#9229]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
