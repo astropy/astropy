@@ -929,7 +929,7 @@ int ffgkls( fitsfile *fptr,     /* I - FITS file pointer             */
       contin = 1;
       while (contin)  
       {
-        if (len && *(*value+len-1) == '&')  /*  is last char an anpersand?  */
+        if (len && *(*value+len-1) == '&')  /*  is last char an ampersand?  */
         {
             ffgcnt(fptr, valstring, nextcomm, status);
             if (*valstring)    /* a null valstring indicates no continuation */
@@ -942,12 +942,17 @@ int ffgkls( fitsfile *fptr,     /* I - FITS file pointer             */
             else
 	    {
                 contin = 0;
+                /* Without this, for case of a last CONTINUE statement ending
+                   with a '&', nextcomm would retain the same string from 
+                   from the previous loop iteration and the comment
+                   would get concantenated twice. */
+                nextcomm[0] = 0;
             }
 
             /* concantenate comment strings (if any) */
 	    if ((commspace > 0) && (*nextcomm != 0)) 
 	    {
-                strncat(comm, " ", 1);
+                strcat(comm, " ");
 		strncat(comm, nextcomm, commspace);
                 commspace = FLEN_COMMENT - strlen(comm) - 2;
             }
@@ -1046,12 +1051,17 @@ int ffgsky( fitsfile *fptr,     /* I - FITS file pointer             */
             else
 	    {
                 contin = 0;
+                /* Without this, for case of a last CONTINUE statement ending
+                   with a '&', nextcomm would retain the same string from 
+                   from the previous loop iteration and the comment
+                   would get concantenated twice. */
+                nextcomm[0] = 0;
             }
 
             /* concantenate comment strings (if any) */
 	    if ((commspace > 0) && (*nextcomm != 0)) 
 	    {
-                strncat(comm, " ", 1);
+                strcat(comm, " ");
 		strncat(comm, nextcomm, commspace);
                 commspace = FLEN_COMMENT - strlen(comm) - 2;
             }

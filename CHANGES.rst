@@ -428,6 +428,9 @@ Other Changes and Additions
 
 - Matplotlib 2.1 and later is now required. [#8787]
 
+- Updated the bundled CFITSIO library to 3.470. See
+  ``cextern/cfitsio/docs/changes.txt`` for additional information. [#9233]
+
 
 3.2.2 (unreleased)
 ==================
