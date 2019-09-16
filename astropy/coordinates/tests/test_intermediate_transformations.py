@@ -7,12 +7,14 @@ import pytest
 import numpy as np
 
 from astropy import units as u
-from astropy.tests.helper import (assert_quantity_allclose as assert_allclose)
+from astropy.tests.helper import (assert_quantity_allclose as assert_allclose,
+                                  catch_warnings)
 from astropy.time import Time
 from astropy.coordinates import (EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
                 PrecessedGeocentric, CartesianRepresentation, SkyCoord,
                 SphericalRepresentation, UnitSphericalRepresentation,
                 HCRS, HeliocentricMeanEcliptic)
+from astropy.utils import iers
 
 
 from astropy._erfa import epv00
@@ -488,6 +490,37 @@ def test_gcrs_self_transform_closeby():
     transformed = moon_geocentric.transform_to(moon_lapalma.frame)
     delta = transformed.separation_3d(moon_lapalma)
     assert_allclose(delta, 0.0*u.m, atol=1*u.m)
+
+
+@pytest.mark.remote_data
+def test_earth_rotation_table():
+    """Check that we can set the IERS table used as Earth Reference.
+
+    Use the here and now to be sure we get a difference.
+    """
+    t = Time.now()
+    location = EarthLocation(lat=0*u.deg, lon=0*u.deg)
+    altaz = AltAz(location=location, obstime=t)
+    sc = SkyCoord(1*u.deg, 2*u.deg)
+    # Default: uses IERS_Auto, which will give a prediction.
+    with catch_warnings() as w:
+        altaz_auto = sc.transform_to(altaz)
+
+    assert len(w) == 0
+
+    with iers.earth_rotation_table.set(iers.IERS_B.open()):
+        with catch_warnings() as w:
+            altaz_b = sc.transform_to(altaz)
+        assert len(w) == 1
+        assert 'after IERS data' in str(w[0].message)
+
+    sep_b_auto = altaz_b.separation(altaz_auto)
+    assert_allclose(sep_b_auto, 0.0*u.deg, atol=1*u.arcsec)
+    assert sep_b_auto > 10*u.microarcsecond
+
+    # Check we returned to regular IERS system.
+    altaz_auto2 = sc.transform_to(altaz)
+    assert altaz_auto2.separation(altaz_auto) == 0.
 
 
 @pytest.mark.remote_data
