@@ -4,7 +4,7 @@
 This module tests some of the methods related to the ``ECSV``
 reader/writer.
 
-Requires `pyyaml <http://pyyaml.org/>`_ to be installed.
+Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 """
 import os
 import copy

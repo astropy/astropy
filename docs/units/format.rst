@@ -123,13 +123,13 @@ formats:
     generate units defined in the FITS standard.
 
   - ``"vounit"``: The `Units in the VO 1.0
-    <http://www.ivoa.net/Documents/VOUnits/>`__ standard for
+    <http://www.ivoa.net/documents/VOUnits/>`__ standard for
     representing units in the VO.  Again, based on the FITS syntax,
     but the collection of supported units is different.
 
   - ``"cds"``: `Standards for astronomical catalogues from Centre de
     Données astronomiques de Strasbourg
-    <http://cds.u-strasbg.fr/doc/catstd-3.2.htx>`__: This is the
+    <http://vizier.u-strasbg.fr/vizier/doc/catstd-3.2.htx>`__: This is the
     standard used by `Vizier tables <http://vizier.u-strasbg.fr/>`__,
     as well as what is used by VOTable versions 1.2 and earlier.
 

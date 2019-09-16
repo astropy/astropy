@@ -60,7 +60,7 @@ Angles are treated as a physically distinct type, which usually helps
 to avoid mistakes.  However, this is not very handy when working with
 units related to rotational energy or the small angle approximation.
 (Indeed, this double-sidedness underlies why radian went from
-`supplementary to derived unit <http://www.bipm.org/en/CGPM/db/20/8/>`__.)
+`supplementary to derived unit <https://www.bipm.org/en/CGPM/db/20/8/>`__.)
 The function :func:`~astropy.units.equivalencies.dimensionless_angles`
 provides the required equivalency list that helps convert between
 angles and dimensionless units.  It is somewhat
@@ -200,7 +200,7 @@ Gain" since, at a given frequency, telescope brightness sensitivity is
 unrelated to aperture size, but flux density sensitivity is, so this
 equivalency is only dependent on the aperture size.  See `Tools of Radio
 Astronomy
-<http://books.google.com/books?id=9KHw6R8rQEMC&pg=PA179&source=gbs_toc_r&cad=4#v=onepage&q&f=false>`__
+<https://books.google.com/books?id=9KHw6R8rQEMC&pg=PA179&source=gbs_toc_r&cad=4#v=onepage&q&f=false>`__
 for details.
 
 .. note:: The brightness temperature mentioned here is the Rayleigh-Jeans
@@ -308,7 +308,7 @@ Molar Mass AMU Equivalency
 This equivalency allows conversion
 between the atomic mass unit and the equivalent g/mol.
 For reference to why this was added,
-refer to `NIST Mole Reference <https://physics.nist.gov/cuu/Units/mole.html>`_
+refer to `astropy GitHub issue 6040 <https://github.com/astropy/astropy/issues/6040>`_
 The following is an example of it's usage:
 
     >>> import astropy.units as u

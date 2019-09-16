@@ -510,7 +510,7 @@ class TimeGPS(TimeFromEpoch):
     considered as a time scale which is ahead of TAI by a fixed offset
     (to within about 100 nanoseconds).
 
-    For details, see http://tycho.usno.navy.mil/gpstt.html
+    For details, see https://www.usno.navy.mil/USNO/time/gps/usno-gps-time-transfer
     """
     name = 'gps'
     unit = 1.0 / erfa.DAYSEC  # in days (1 day == 86400 seconds)

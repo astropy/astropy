@@ -118,7 +118,7 @@ def horoscope(birthday, corrected=True, chinese=False):
 
     if chinese:
         # TODO: Make this more accurate by using the actual date, not just year
-        # Might need third-party tool like https://pypi.python.org/pypi/lunardate
+        # Might need third-party tool like https://pypi.org/project/lunardate
         zodiac_sign = _get_zodiac(birthday.year)
         url = ('https://www.horoscope.com/us/horoscopes/yearly/'
                '{}-chinese-horoscope-{}.aspx'.format(today.year, zodiac_sign))

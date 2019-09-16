@@ -5,7 +5,7 @@
 This package defines units used in the CDS format, both the units
 defined in `Centre de Données astronomiques de Strasbourg
 <http://cds.u-strasbg.fr/>`_ `Standards for Astronomical Catalogues 2.0
-<http://cds.u-strasbg.fr/doc/catstd-3.2.htx>`_ format and the `complete
+<http://vizier.u-strasbg.fr/vizier/doc/catstd-3.2.htx>`_ format and the `complete
 set of supported units <http://vizier.u-strasbg.fr/cgi-bin/Unit>`_.
 This format is used by VOTable up to version 1.2.
 

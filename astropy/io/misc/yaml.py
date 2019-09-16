@@ -5,7 +5,7 @@ YAML protocol.
 
 It provides functions `~astropy.io.misc.yaml.dump`,
 `~astropy.io.misc.yaml.load`, and `~astropy.io.misc.yaml.load_all` which
-call the corresponding functions in `PyYaml <http://pyyaml.org>`_ but use the
+call the corresponding functions in `PyYaml <https://pyyaml.org>`_ but use the
 `~astropy.io.misc.yaml.AstropyDumper` and `~astropy.io.misc.yaml.AstropyLoader`
 classes to define custom YAML tags for the following astropy classes:
 
@@ -210,7 +210,7 @@ class AstropyLoader(yaml.SafeLoader):
     This class is not directly instantiated by user code, but instead is
     used to maintain the available constructor functions that are
     called when parsing a YAML stream.  See the `PyYaml documentation
-    <http://pyyaml.org/wiki/PyYAMLDocumentation>`_ for details of the
+    <https://pyyaml.org/wiki/PyYAMLDocumentation>`_ for details of the
     class signature.
     """
 
@@ -229,7 +229,7 @@ class AstropyDumper(yaml.SafeDumper):
     This class is not directly instantiated by user code, but instead is
     used to maintain the available representer functions that are
     called when generating a YAML stream from an object.  See the
-    `PyYaml documentation <http://pyyaml.org/wiki/PyYAMLDocumentation>`_
+    `PyYaml documentation <https://pyyaml.org/wiki/PyYAMLDocumentation>`_
     for details of the class signature.
     """
 

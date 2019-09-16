@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-.. _wcslib: http://www.atnf.csiro.au/people/mcalabre/WCS/wcslib/index.html
-.. _distortion paper: http://www.atnf.csiro.au/people/mcalabre/WCS/dcs_20040422.pdf
-.. _SIP: http://irsa.ipac.caltech.edu/data/SPITZER/docs/files/spitzer/shupeADASS.pdf
+.. _wcslib: https://www.atnf.csiro.au/people/mcalabre/WCS/wcslib/index.html
+.. _distortion paper: https://www.atnf.csiro.au/people/mcalabre/WCS/dcs_20040422.pdf
+.. _SIP: https://irsa.ipac.caltech.edu/data/SPITZER/docs/files/spitzer/shupeADASS.pdf
 .. _FITS WCS standard: https://fits.gsfc.nasa.gov/fits_wcs.html
 
 `astropy.wcs` contains utilities for managing World Coordinate System

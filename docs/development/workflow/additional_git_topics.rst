@@ -36,7 +36,7 @@ these instructions::
 
 (Note the colon ``:`` before ``test-branch``.) See `Github's instructions for
 deleting a branch
-<https://help.github.com/articles/creating-and-deleting-branches-within-your-repository>`_
+<https://help.github.com/en/articles/creating-and-deleting-branches-within-your-repository>`_
 if you want to delete the GitHub copy through GitHub.
 
 Several people sharing a single repository
@@ -49,7 +49,7 @@ share it via GitHub.
 First fork Astropy into your account, as from :ref:`fork_a_copy`.
 
 Then, go to your forked repository GitHub page, e.g.,
-``http://github.com/your-user-name/astropy``
+``https://github.com/your-user-name/astropy``
 
 Click on the 'Admin' button, and add anyone else to the repo as a
 collaborator:
@@ -291,7 +291,7 @@ site that does it, at least as of 2/6/2012). There are two options to do this,
 both of which only work if you own the repository or have the ability to commit
 directly to it (for Astropy, that means being an Astropy maintainer):
 
-* You can use the script at https://gist.github.com/1750715, which will
+* You can use the script at https://github.com/astropy/astropy-procedures/blob/master/issue2pr.py, which will
   do this for you automatically |emdash| just download the script and run it as
   a python command-line script, using the ``python issue2pr.py --help``
   option to determine the precise usage.

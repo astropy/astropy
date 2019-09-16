@@ -16,7 +16,7 @@ cached after that.
 
 .. note::
    Using JPL ephemerides requires that the `jplephem
-   <https://pypi.python.org/pypi/jplephem>`_ package be installed. This is
+   <https://pypi.org/project/jplephem/>`_ package be installed. This is
    most conveniently achieved via ``pip install jplephem``, although whatever
    package management system you use might have it as well.
 

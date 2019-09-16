@@ -346,7 +346,7 @@ class IERS(QTable):
             # Linearly interpolate (which is what TEMPO does for UT1-UTC, but
             # may want to follow IERS gazette #13 for more precise
             # interpolation and correction for tidal effects;
-            # http://maia.usno.navy.mil/iers-gaz13)
+            # https://maia.usno.navy.mil/iers-gaz13)
             val = val_0 + (mjd - mjd_0 + utc) / (mjd_1 - mjd_0) * d_val
 
             # Do not extrapolate outside range, instead just propagate last values.
@@ -420,7 +420,7 @@ class IERS_A(IERS):
     """IERS Table class targeted to IERS A, provided by USNO.
 
     These include rapid turnaround and predicted times.
-    See http://maia.usno.navy.mil/
+    See https://maia.usno.navy.mil/
 
     Notes
     -----
@@ -549,7 +549,7 @@ class IERS_A(IERS):
 class IERS_B(IERS):
     """IERS Table class targeted to IERS B, provided by IERS itself.
 
-    These are final values; see http://www.iers.org/
+    These are final values; see https://www.iers.org/IERS/EN/Home/home_node.html
 
     Notes
     -----

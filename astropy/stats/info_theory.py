@@ -102,7 +102,7 @@ def bayesian_info_criterion(log_likelihood, n_params, n_samples):
     .. [2] Wikipedia. Bayesian Information Criterion.
        <https://en.wikipedia.org/wiki/Bayesian_information_criterion>
     .. [3] Origin Lab. Comparing Two Fitting Functions.
-       <http://www.originlab.com/doc/Origin-Help/PostFit-CompareFitFunc>
+       <https://www.originlab.com/doc/Origin-Help/PostFit-CompareFitFunc>
     .. [4] Liddle, A. R. Information Criteria for Astrophysical Model
        Selection. 2008. <https://arxiv.org/pdf/astro-ph/0701113v2.pdf>
     .. [5] Liddle, A. R. How many cosmological parameters? 2008.
@@ -189,7 +189,7 @@ def bayesian_info_criterion_lsq(ssr, n_params, n_samples):
     .. [1] Wikipedia. Bayesian Information Criterion.
        <https://en.wikipedia.org/wiki/Bayesian_information_criterion>
     .. [2] Origin Lab. Comparing Two Fitting Functions.
-       <http://www.originlab.com/doc/Origin-Help/PostFit-CompareFitFunc>
+       <https://www.originlab.com/doc/Origin-Help/PostFit-CompareFitFunc>
     .. [3] Astropy Models and Fitting
         <http://docs.astropy.org/en/stable/modeling>
     """
@@ -284,11 +284,11 @@ def akaike_info_criterion(log_likelihood, n_params, n_samples):
     .. [2] Mazerolle, M. J. Making sense out of Akaike's Information
        Criterion (AIC): its use and interpretation in model selection and
        inference from ecological data.
-       <http://theses.ulaval.ca/archimede/fichiers/21842/apa.html>
+       <https://corpus.ulaval.ca/jspui/handle/20.500.11794/17461>
     .. [3] Wikipedia. Akaike Information Criterion.
        <https://en.wikipedia.org/wiki/Akaike_information_criterion>
     .. [4] Origin Lab. Comparing Two Fitting Functions.
-       <http://www.originlab.com/doc/Origin-Help/PostFit-CompareFitFunc>
+       <https://www.originlab.com/doc/Origin-Help/PostFit-CompareFitFunc>
     .. [5] Liddle, A. R. Information Criteria for Astrophysical Model
        Selection. 2008. <https://arxiv.org/pdf/astro-ph/0701113v2.pdf>
     .. [6] Liddle, A. R. How many cosmological parameters? 2008.
@@ -391,10 +391,10 @@ def akaike_info_criterion_lsq(ssr, n_params, n_samples):
 
     References
     ----------
-    .. [1] Hu, S. Akaike Information Criterion.
-       <http://www4.ncsu.edu/~shu3/Presentation/AIC.pdf>
+    .. [1] Akaike Information Criterion.
+       <https://en.wikipedia.org/wiki/Akaike_information_criterion>
     .. [2] Origin Lab. Comparing Two Fitting Functions.
-       <http://www.originlab.com/doc/Origin-Help/PostFit-CompareFitFunc>
+       <https://www.originlab.com/doc/Origin-Help/PostFit-CompareFitFunc>
     """
 
     return akaike_info_criterion(-0.5 * n_samples * np.log(ssr / n_samples),

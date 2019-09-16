@@ -5,7 +5,7 @@ This subpackage provides classes to communicate with other applications via the
 <http://www.ivoa.net/documents/SAMP/>`_.
 
 Before integration into Astropy it was known as
-`SAMPy <https://pypi.python.org/pypi/sampy/>`_, and was developed by Luigi Paioro
+`SAMPy <https://pypi.org/project/sampy/>`_, and was developed by Luigi Paioro
 (INAF - Istituto Nazionale di Astrofisica).
 """
 

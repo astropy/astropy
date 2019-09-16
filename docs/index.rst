@@ -37,7 +37,7 @@ needs for astronomical research, data processing, and data analysis.
 
 .. Important:: If you use Astropy for work presented in a publication or talk
    please help the project via proper `citation or acknowledgement
-   <http://www.astropy.org/acknowledging.html>`_.  This also applies to use of
+   <https://www.astropy.org/acknowledging.html>`_.  This also applies to use of
    software or `affliated packages <http://www.astropy.org/affiliated/>`_ that
    depend on the astropy core package.
 
@@ -54,7 +54,7 @@ Getting Started
    whatsnew/4.0
    importing_astropy
    Example Gallery <generated/examples/index>
-   Tutorials <http://tutorials.astropy.org/>
+   Tutorials <http://learn.astropy.org/>
    Get Help <http://www.astropy.org/help.html>
    Contribute and Report Problems <http://www.astropy.org/contribute.html>
    About the Astropy Project <http://www.astropy.org/about.html>

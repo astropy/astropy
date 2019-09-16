@@ -184,7 +184,7 @@ conversion to apparent (e.g. ``AltAz``) positions or barycentric values. The
 positions can be calculated using either using built-in approximations or more
 precise values that depend on downloading JPL-provided ephemeris models derived
 from n-body simulations (the latter requires the additional dependency of the
-`jplephem <https://pypi.python.org/pypi/jplephem>`_ package). For more details,
+`jplephem <https://pypi.org/project/jplephem/>`_ package). For more details,
 see :ref:`astropy-coordinates-solarsystem`.
 
 .. _whatsnew-1.2-barycentric:
@@ -216,7 +216,7 @@ details, see :ref:`astropy-skyoffset-frames`.
 Zscale implementation
 =====================
 
-The `zscale <http://iraf.net/forum/viewtopic.php?showtopic=134139>`_ algorithm
+The `zscale <https://iraf.net/forum/viewtopic.php?showtopic=134139>`_ algorithm
 from IRAF is now included in Astropy's :ref:`visualization
 <astropy-visualization>` sub-package, and available as
 a `~astropy.visualization.ZScaleInterval` interval class. The implementation is
@@ -234,7 +234,7 @@ The Astropy documentation now contains an
 functionality of the package in short snippets of code with descriptive text.
 The examples are meant to demonstrate the functionality and interoperability of
 the subpackages in shorter-form worked examples. Longer form tutorials are still
-maintained at `<http://tutorials.astropy.org/>`_.
+maintained at `<http://learn.astropy.org/>`_.
 
 .. _whatsnew-1.2-magnitudes:
 

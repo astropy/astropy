@@ -436,7 +436,7 @@ meaning as shown below::
 
 In order to force printing all values regardless of the output length or width
 use :meth:`~astropy.table.Table.pprint_all`, which is equivalent  to setting ``max_lines``
-and ``max_width`` to ``-1`` in :meth:`~astropy.table.Table.pprint`. 
+and ``max_width`` to ``-1`` in :meth:`~astropy.table.Table.pprint`.
 :meth:`~astropy.table.Table.pprint_all` takes the same arguments as :meth:`~astropy.table.Table.pprint`.
 For the wide table in this example you see 6 lines of wrapped output like the following::
 
@@ -549,7 +549,7 @@ In order to get the formatted output for manipulation or writing to a file use
 the Table :meth:`~astropy.table.Table.pformat` or Column
 :func:`~astropy.table.Column.pformat` methods.  These behave just as for
 :meth:`~astropy.table.Table.pprint` but return a list corresponding to each formatted line in the
-:meth:`~astropy.table.Table.pprint` output. The :meth:`~astropy.table.Table.pformat_all` method can be 
+:meth:`~astropy.table.Table.pprint` output. The :meth:`~astropy.table.Table.pformat_all` method can be
 used to return a list for all lines in the Table.
 
   >>> lines = t['col3'].pformat(max_lines=8)
@@ -679,7 +679,7 @@ Bytestring columns
 Using bytestring columns (numpy ``'S'`` dtype) is straightforward
 with astropy tables since they can be easily compared with the natural
 Python string (``str``) type.  See `The bytes/str dichotomy in Python 3
-<http://eli.thegreenplace.net/2012/01/30/the-bytesstr-dichotomy-in-python-3>`_
+<https://eli.thegreenplace.net/2012/01/30/the-bytesstr-dichotomy-in-python-3>`_
 for a very brief overview of the difference.
 
 The standard method of representing strings in `numpy` is via the

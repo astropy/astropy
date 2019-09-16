@@ -564,12 +564,12 @@ class TransformGraph:
         Converts this transform graph into a networkx graph.
 
         .. note::
-            You must have the `networkx <http://networkx.lanl.gov/>`_
+            You must have the `networkx <https://networkx.github.io/>`_
             package installed for this to work.
 
         Returns
         -------
-        nxgraph : `networkx.Graph <http://networkx.lanl.gov/reference/classes.graph.html>`_
+        nxgraph : `networkx.Graph <https://networkx.github.io/documentation/stable/reference/classes/graph.html>`_
             This `TransformGraph` as a `networkx.Graph`_.
         """
         import networkx as nx

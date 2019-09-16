@@ -26,14 +26,14 @@ class IpacFormatErrorDBMS(Exception):
     def __str__(self):
         return '{}\nSee {}'.format(
             super().__str__(),
-            'http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html')
+            'https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html')
 
 
 class IpacFormatError(Exception):
     def __str__(self):
         return '{}\nSee {}'.format(
             super().__str__(),
-            'http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html')
+            'https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html')
 
 
 class IpacHeaderSplitter(core.BaseSplitter):
@@ -92,7 +92,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
     def update_meta(self, lines, meta):
         """
         Extract table-level comments and keywords for IPAC table.  See:
-        http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html#kw
+        https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html#kw
         """
         def process_keyword_value(val):
             """
@@ -326,7 +326,7 @@ class IpacData(fixedwidth.FixedWidthData):
 class Ipac(basic.Basic):
     r"""IPAC format table.
 
-    See: http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html
+    See: https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html
 
     Example::
 
@@ -423,9 +423,9 @@ class Ipac(basic.Basic):
 
     DBMS : bool, optional
         If true, this verifies that written tables adhere (semantically)
-        to the `IPAC/DBMS <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html>`_
+        to the `IPAC/DBMS <https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html>`_
         definition of IPAC tables. If 'False' it only checks for the (less strict)
-        `IPAC <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
+        `IPAC <https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
         definition.
     """
     _format_name = 'ipac'

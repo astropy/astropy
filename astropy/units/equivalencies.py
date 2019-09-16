@@ -505,7 +505,7 @@ def brightness_temperature(frequency, beam_area=None):
     commonly used in radio astronomy.  See, e.g., "Tools of Radio Astronomy"
     (Wilson 2009) eqn 8.16 and eqn 8.19 (these pages are available on `google
     books
-    <http://books.google.com/books?id=9KHw6R8rQEMC&pg=PA179&source=gbs_toc_r&cad=4#v=onepage&q&f=false>`__).
+    <https://books.google.com/books?id=9KHw6R8rQEMC&pg=PA179&source=gbs_toc_r&cad=4#v=onepage&q&f=false>`__).
 
     :math:`T_B \equiv S_\nu / \left(2 k \nu^2 / c^2 \right)`
 

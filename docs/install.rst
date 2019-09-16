@@ -27,24 +27,24 @@ Requirements
 
 - `html5lib <https://html5lib.readthedocs.io/en/stable/>`_: To read
   :class:`~astropy.table.table.Table` objects from HTML files using the
-  `pandas <http://pandas.pydata.org/>`_ reader.
+  `pandas <https://pandas.pydata.org/>`_ reader.
 
 - `bleach <https://bleach.readthedocs.io/>`_: Used to sanitize text when
   disabling HTML escaping in the :class:`~astropy.table.Table` HTML writer.
 
-- `PyYAML <http://pyyaml.org>`_: To read/write
+- `PyYAML <https://pyyaml.org>`_: To read/write
   :class:`~astropy.table.Table` objects from/to the Enhanced CSV ASCII table
   format and to serialize mixins for various formats.
 
 - `xmllint <http://www.xmlsoft.org/>`_: To validate VOTABLE XML files.
   This is a command line tool installed outside of Python.
 
-- `pandas <http://pandas.pydata.org/>`_: To convert
+- `pandas <https://pandas.pydata.org/>`_: To convert
   :class:`~astropy.table.Table` objects from/to pandas DataFrame objects.
   Version 0.14 or higher is required to use the :ref:`table_io_pandas`
   I/O functions to read/write :class:`~astropy.table.Table` objects.
 
-- `bintrees <https://pypi.python.org/pypi/bintrees>`_ for faster ``FastRBT`` and
+- `bintrees <https://pypi.org/project/bintrees>`_ for faster ``FastRBT`` and
   ``FastBST`` indexing engines with ``Table``, although these will still be
   slower in most cases than the default indexing engine.
 
@@ -52,16 +52,16 @@ Requirements
   ``SCEngine`` indexing engine with ``Table``, although this may still be
   slower in some cases than the default indexing engine.
 
-- `pytz <http://pythonhosted.org/pytz/>`_: To specify and convert between
+- `pytz <https://pythonhosted.org/pytz/>`_: To specify and convert between
   timezones.
 
 - `jplephem <https://pypi.org/project/jplephem/>`_: To retrieve JPL
   ephemeris of Solar System objects.
 
-- `matplotlib <http://matplotlib.org/>`_ 2.0 or later: To provide plotting
+- `matplotlib <https://matplotlib.org/>`_ 2.0 or later: To provide plotting
   functionality that `astropy.visualization` enhances.
 
-- `scikit-image <http://scikit-image.org/>`_: To downsample a data array in
+- `scikit-image <https://scikit-image.org/>`_: To downsample a data array in
   `astropy.nddata.utils`.
 
 - `setuptools <https://setuptools.readthedocs.io>`_: Used for discovery of
@@ -83,7 +83,7 @@ And the following packages can optionally be used when testing:
 - `pytest-astropy <https://github.com/astropy/pytest-astropy>`_: See
   :ref:`sourcebuildtest`
 
-- `pytest-xdist <https://docs.pytest.org/en/3.0.0/xdist.html>`_: Used for
+- `pytest-xdist <https://pypi.org/project/pytest-xdist/>`_: Used for
   distributed testing.
 
 - `pytest-mpl <https://github.com/matplotlib/pytest-mpl>`_: Used for testing
@@ -151,7 +151,7 @@ Using Conda
 -----------
 
 ``astropy`` is installed by default with the `Anaconda Distribution
-<https://www.anaconda.com/download/>`_. To update to the latest version run::
+<https://www.anaconda.com/distribution/>`_. To update to the latest version run::
 
     conda update astropy
 
@@ -192,8 +192,8 @@ You will need a compiler suite and the development headers for Python and
 NumPy in order to build ``astropy``.
 
 If you are building the latest developer version rather than using a stable
-release, you will also need `Cython <http://cython.org/>`_ (v0.29.13 or later) and
-`jinja2 <http://jinja.pocoo.org/docs/dev/>`_ (v2.7 or later) installed. The
+release, you will also need `Cython <https://cython.org/>`_ (v0.29.13 or later) and
+`jinja2 <https://jinja.palletsprojects.com/en/master/>`_ (v2.7 or later) installed. The
 released packages have the necessary C files packaged with them, and hence do
 not require Cython.
 
@@ -236,7 +236,7 @@ Source Packages
 ^^^^^^^^^^^^^^^
 
 The latest stable source package for ``astropy`` can be `downloaded here
-<https://pypi.python.org/pypi/astropy>`_.
+<https://pypi.org/project/astropy>`_.
 
 Development Repository
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -254,7 +254,7 @@ Building and Installing
 -----------------------
 
 ``astropy`` uses the Python built-in `distutils framework
-<http://docs.python.org/install/index.html>`_ for building and
+<https://docs.python.org/install/index.html>`_ for building and
 installing, and requires the `setuptools`_ package.
 
 If NumPy is not already installed in your Python environment, the ``astropy``
@@ -319,7 +319,7 @@ the system `libexpat <http://www.libexpat.org/>`_, add the following to the
 
 The C libraries currently bundled with ``astropy`` include:
 
-- `wcslib <http://www.atnf.csiro.au/people/mcalabre/WCS/>`_ see
+- `wcslib <https://www.atnf.csiro.au/people/mcalabre/WCS/>`_ see
   ``cextern/wcslib/README`` for the bundled version.
 
 - `cfitsio <https://heasarc.gsfc.nasa.gov/fitsio/fitsio.html>`_ see
@@ -356,7 +356,7 @@ Then close CASA again and open it, and you should be able to import ``astropy``:
     CASA <2>: import astropy
 
 Any ``astropy`` affiliated package can be installed the same way (e.g. the
-`spectral-cube <http://spectral-cube.readthedocs.io/en/latest/>`_ or other
+`spectral-cube <https://spectral-cube.readthedocs.io>`_ or other
 packages that may be useful for radio astronomy).
 
 .. note:: The above instructions have not been tested on all systems.
@@ -402,7 +402,7 @@ dependencies, including:
 * `astropy-sphinx-theme <https://github.com/astropy/astropy-sphinx-theme>`_ -
   the default 'bootstrap' theme used by ``astropy`` and a number of affiliated
   packages
-* `sphinx-automodapi <http://sphinx-automodapi.readthedocs.io>`_ - an extension
+* `sphinx-automodapi <https://sphinx-automodapi.readthedocs.io>`_ - an extension
   that makes it easy to automatically generate API documentation
 * `sphinx-gallery <https://sphinx-gallery.readthedocs.io/en/latest/>`_ - an
   extension to generate example galleries
