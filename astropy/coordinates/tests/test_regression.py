@@ -19,7 +19,9 @@ from astropy.coordinates import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS,
                 get_moon, FK4, FK4NoETerms, BaseCoordinateFrame, ITRS,
                 QuantityAttribute, UnitSphericalRepresentation,
                 SphericalRepresentation, CartesianRepresentation,
-                FunctionTransform)
+                FunctionTransform,
+                CylindricalRepresentation, CylindricalDifferential,
+                CartesianDifferential)
 from astropy.coordinates.sites import get_builtin_sites
 from astropy.time import Time
 from astropy.utils import iers
@@ -661,3 +663,18 @@ def test_regression_8615():
 
     assert_quantity_allclose(sr.distance, 5 * u.pc)
     assert_quantity_allclose(srf.distance, 5 * u.pc)
+
+
+def test_regression_8924():
+    """This checks that the ValueError in
+    BaseRepresentation._re_represent_differentials is raised properly
+    """
+    # A case where the representation has a 's' differential, but we try to
+    # re-represent only with an 's2' differential
+    rep = CartesianRepresentation(1, 2, 3, unit=u.kpc)
+    dif = CartesianDifferential(4, 5, 6, u.km/u.s)
+    rep = rep.with_differentials(dif)
+
+    with pytest.raises(ValueError):
+        rep._re_represent_differentials(CylindricalRepresentation,
+                                        {'s2': CylindricalDifferential})

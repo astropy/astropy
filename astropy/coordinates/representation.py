@@ -633,13 +633,13 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
                 list(self.differentials.keys())[0]: differential_class
             }
 
-        elif set(differential_class.keys()) != set(self.differentials.keys()):
-            ValueError("Desired differential classes must be passed in "
-                       "as a dictionary with keys equal to a string "
-                       "representation of the unit of the derivative "
-                       "for each differential stored with this "
-                       "representation object ({0})"
-                       .format(self.differentials))
+        elif differential_class.keys() != self.differentials.keys():
+            raise ValueError("Desired differential classes must be passed in "
+                             "as a dictionary with keys equal to a string "
+                             "representation of the unit of the derivative "
+                             "for each differential stored with this "
+                             "representation object ({0})"
+                             .format(self.differentials))
 
         new_diffs = dict()
         for k in self.differentials:
