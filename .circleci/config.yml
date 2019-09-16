@@ -118,6 +118,14 @@ jobs:
             pip install "numpy<1.17" "numpydoc<0.9" "matplotlib<3.1" "sphinx<2.2"
             pip install .[docs,all]
       - run:
+          name: Make sure flake8 passes
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install flake8
+            # select options should be the same as in the travis config
+            flake8 astropy --count --select=E101,W191,W291,W292,W293,W391,E111,E112,E113,E502,E722,E901,E902,E999,F822,F823
+      - run:
           name: Build Docs
           command: venv/bin/python setup.py build_docs -w
           environment:
