@@ -25,8 +25,8 @@ def biweight_location(data, c=6.0, M=None, axis=None):
 
     .. math::
 
-        \zeta_{biloc}= M + \frac{\Sigma_{|u_i|<1} \ (x_i - M) (1 - u_i^2)^2}
-            {\Sigma_{|u_i|<1} \ (1 - u_i^2)^2}
+        \zeta_{biloc}= M + \frac{\sum_{|u_i|<1} \ (x_i - M) (1 - u_i^2)^2}
+            {\sum_{|u_i|<1} \ (1 - u_i^2)^2}
 
     where :math:`x` is the input data, :math:`M` is the sample median
     (or the input initial location guess) and :math:`u_i` is given by:
@@ -135,8 +135,8 @@ def biweight_scale(data, c=9.0, M=None, axis=None, modify_sample_size=False):
 
     .. math::
 
-        \zeta_{biscl} = \sqrt{n} \ \frac{\sqrt{\Sigma_{|u_i| < 1} \
-            (x_i - M)^2 (1 - u_i^2)^4}} {|(\Sigma_{|u_i| < 1} \
+        \zeta_{biscl} = \sqrt{n} \ \frac{\sqrt{\sum_{|u_i| < 1} \
+            (x_i - M)^2 (1 - u_i^2)^4}} {|(\sum_{|u_i| < 1} \
             (1 - u_i^2) (1 - 5u_i^2))|}
 
     where :math:`x` is the input data, :math:`M` is the sample median
@@ -163,7 +163,7 @@ def biweight_scale(data, c=9.0, M=None, axis=None, modify_sample_size=False):
 
     .. math::
 
-        n = \Sigma_{|u_i| < 1} \ 1
+        n = \sum_{|u_i| < 1} \ 1
 
     which results in a value closer to the true standard deviation for
     small sample sizes or for a large number of rejected values.
@@ -242,8 +242,8 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
 
     .. math::
 
-        \zeta_{bivar} = n \ \frac{\Sigma_{|u_i| < 1} \
-            (x_i - M)^2 (1 - u_i^2)^4} {(\Sigma_{|u_i| < 1} \
+        \zeta_{bivar} = n \ \frac{\sum_{|u_i| < 1} \
+            (x_i - M)^2 (1 - u_i^2)^4} {(\sum_{|u_i| < 1} \
             (1 - u_i^2) (1 - 5u_i^2))^2}
 
     where :math:`x` is the input data, :math:`M` is the sample median
@@ -271,7 +271,7 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
 
     .. math::
 
-        n = \Sigma_{|u_i| < 1} \ 1
+        n = \sum_{|u_i| < 1} \ 1
 
     which results in a value closer to the true variance for small
     sample sizes or for a large number of rejected values.
@@ -419,10 +419,10 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
 
     .. math::
 
-        \zeta_{xy} = n \ \frac{\Sigma_{|u_i| < 1, \ |v_i| < 1} \
+        \zeta_{xy} = n \ \frac{\sum_{|u_i| < 1, \ |v_i| < 1} \
             (x_i - M_x) (1 - u_i^2)^2 (y_i - M_y) (1 - v_i^2)^2}
-            {(\Sigma_{|u_i| < 1} \ (1 - u_i^2) (1 - 5u_i^2))
-            (\Sigma_{|v_i| < 1} \ (1 - v_i^2) (1 - 5v_i^2))}
+            {(\sum_{|u_i| < 1} \ (1 - u_i^2) (1 - 5u_i^2))
+            (\sum_{|v_i| < 1} \ (1 - v_i^2) (1 - 5v_i^2))}
 
     where :math:`M_x` and :math:`M_y` are the medians (or the input
     locations) of the two variables and :math:`u_i` and :math:`v_i` are
@@ -450,7 +450,7 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
 
     .. math::
 
-        n = \Sigma_{|u_i| < 1, \ |v_i| < 1} \ 1
+        n = \sum_{|u_i| < 1, \ |v_i| < 1} \ 1
 
     which results in a value closer to the true variance for small
     sample sizes or for a large number of rejected values.
