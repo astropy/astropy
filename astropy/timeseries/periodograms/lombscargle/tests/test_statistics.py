@@ -9,6 +9,7 @@ except ImportError:
 else:
     HAS_SCIPY = True
 
+import astropy.units as u
 from astropy.timeseries.periodograms.lombscargle import LombScargle
 from astropy.timeseries.periodograms.lombscargle._statistics import (cdf_single, pdf_single, fap_single, inv_fap_single,
                            METHODS)
@@ -18,7 +19,7 @@ METHOD_KWDS = dict(bootstrap={'n_bootstraps': 20, 'random_seed': 42})
 NORMALIZATIONS = ['standard', 'psd', 'log', 'model']
 
 
-def make_data(N=100, period=1, theta=[10, 2, 3], dy=1, rseed=0):
+def make_data(N=100, period=1, theta=[10, 2, 3], dy=1, rseed=0, units=False):
     """Generate some data for testing"""
     rng = np.random.RandomState(rseed)
     t = 5 * period * rng.rand(N)
@@ -29,11 +30,13 @@ def make_data(N=100, period=1, theta=[10, 2, 3], dy=1, rseed=0):
 
     fmax = 5
 
-    return t, y, dy, fmax
+    if units:
+        return t * u.day, y * u.mag, dy * u.mag, fmax / u.day
+    else:
+        return t, y, dy, fmax
 
 
-@pytest.fixture
-def null_data(N=1000, dy=1, rseed=0):
+def null_data(N=1000, dy=1, rseed=0, units=False):
     """Generate null hypothesis data"""
     rng = np.random.RandomState(rseed)
     t = 100 * rng.rand(N)
@@ -41,13 +44,18 @@ def null_data(N=1000, dy=1, rseed=0):
     y = dy * rng.randn(N)
     fmax = 40
 
-    return t, y, dy, fmax
+    if units:
+        return t * u.day, y * u.mag, dy * u.mag, fmax / u.day
+    else:
+        return t, y, dy, fmax
 
 
 @pytest.mark.parametrize('normalization', NORMALIZATIONS)
 @pytest.mark.parametrize('with_errors', [True, False])
-def test_distribution(null_data, normalization, with_errors):
-    t, y, dy, fmax = null_data
+@pytest.mark.parametrize('units', [False, True])
+def test_distribution(normalization, with_errors, units):
+    t, y, dy, fmax = null_data(units=units)
+
     if not with_errors:
         dy = None
 
@@ -83,8 +91,9 @@ def test_inverse_single(N, normalization):
 
 @pytest.mark.parametrize('normalization', NORMALIZATIONS)
 @pytest.mark.parametrize('use_errs', [True, False])
-def test_inverse_bootstrap(null_data, normalization, use_errs):
-    t, y, dy, fmax = null_data
+@pytest.mark.parametrize('units', [False, True])
+def test_inverse_bootstrap(normalization, use_errs, units):
+    t, y, dy, fmax = null_data(units=units)
     if not use_errs:
         dy = None
 
@@ -108,12 +117,12 @@ def test_inverse_bootstrap(null_data, normalization, use_errs):
 @pytest.mark.parametrize('normalization', NORMALIZATIONS)
 @pytest.mark.parametrize('use_errs', [True, False])
 @pytest.mark.parametrize('N', [10, 100, 1000])
-def test_inverses(method, normalization, use_errs, N, T=5):
+@pytest.mark.parametrize('units', [False, True])
+def test_inverses(method, normalization, use_errs, N, units, T=5):
     if not HAS_SCIPY and method in ['baluev', 'davies']:
         pytest.skip("SciPy required")
 
-    t, y, dy, fmax = make_data(N, rseed=543)
-
+    t, y, dy, fmax = make_data(N, rseed=543, units=units)
     if not use_errs:
         dy = None
     method_kwds = METHOD_KWDS.get(method, None)
@@ -132,12 +141,13 @@ def test_inverses(method, normalization, use_errs, N, T=5):
 
 @pytest.mark.parametrize('method', sorted(METHODS))
 @pytest.mark.parametrize('normalization', NORMALIZATIONS)
-def test_false_alarm_smoketest(method, normalization):
+@pytest.mark.parametrize('units', [False, True])
+def test_false_alarm_smoketest(method, normalization, units):
     if not HAS_SCIPY and method in ['baluev', 'davies']:
         pytest.skip("SciPy required")
 
     kwds = METHOD_KWDS.get(method, None)
-    t, y, dy, fmax = make_data()
+    t, y, dy, fmax = make_data(units=units)
 
     ls = LombScargle(t, y, dy, normalization=normalization)
     freq, power = ls.autopower(maximum_frequency=fmax)
@@ -155,7 +165,8 @@ def test_false_alarm_smoketest(method, normalization):
 @pytest.mark.parametrize('method', sorted(METHODS))
 @pytest.mark.parametrize('use_errs', [True, False])
 @pytest.mark.parametrize('normalization', sorted(set(NORMALIZATIONS) - {'psd'}))
-def test_false_alarm_equivalence(method, normalization, use_errs):
+@pytest.mark.parametrize('units', [False, True])
+def test_false_alarm_equivalence(method, normalization, use_errs, units):
     # Note: the PSD normalization is not equivalent to the others, in that it
     # depends on the absolute errors rather than relative errors. Because the
     # scaling contributes to the distribution, it cannot be converted directly
@@ -164,7 +175,7 @@ def test_false_alarm_equivalence(method, normalization, use_errs):
         pytest.skip("SciPy required")
 
     kwds = METHOD_KWDS.get(method, None)
-    t, y, dy, fmax = make_data()
+    t, y, dy, fmax = make_data(units=units)
     if not use_errs:
         dy = None
 
