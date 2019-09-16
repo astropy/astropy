@@ -200,7 +200,7 @@ Gain" since, at a given frequency, telescope brightness sensitivity is
 unrelated to aperture size, but flux density sensitivity is, so this
 equivalency is only dependent on the aperture size.  See `Tools of Radio
 Astronomy
-<https://books.google.com/books?id=9KHw6R8rQEMC>`__
+<https://books.google.com/books?id=9KHw6R8rQEMC&pg=PA179&source=gbs_toc_r&cad=4#v=onepage&q&f=false>`__
 for details.
 
 .. note:: The brightness temperature mentioned here is the Rayleigh-Jeans

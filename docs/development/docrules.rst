@@ -563,7 +563,7 @@ on how to use Sphinx_ to build the manual.
 
 
 .. _NumPy: https://www.numpy.org/
-.. _numpydoc: https://pypi.org/project/numpydoc/0.3.1
+.. _numpydoc: https://pypi.org/project/numpydoc/
 .. _Matplotlib: http://matplotlib.sourceforge.net/
 .. _SciPy: https://www.scipy.org/
 .. _Sphinx: http://sphinx.pocoo.org
