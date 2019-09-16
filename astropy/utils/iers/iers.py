@@ -22,11 +22,12 @@ from astropy import config as _config
 from astropy import units as u
 from astropy.table import QTable, MaskedColumn
 from astropy.utils.data import get_pkg_data_filename, clear_download_cache
+from astropy.utils.state import ScienceState
 from astropy.utils.compat import NUMPY_LT_1_17
 from astropy import utils
 from astropy.utils.exceptions import AstropyWarning
 
-__all__ = ['Conf', 'conf',
+__all__ = ['Conf', 'conf', 'earth_rotation_table',
            'IERS', 'IERS_B', 'IERS_A', 'IERS_Auto',
            'FROM_IERS_B', 'FROM_IERS_A', 'FROM_IERS_A_PREDICTION',
            'TIME_BEFORE_IERS_RANGE', 'TIME_BEYOND_IERS_RANGE',
@@ -802,3 +803,50 @@ class IERS_Auto(IERS_A):
             table['dY_2000A_B'][:n_iers_b] = iers_b['dY_2000A']
 
         return table
+
+
+class earth_rotation_table(ScienceState):
+    """Default IERS table for Earth rotation and reference systems service.
+
+    These tables are used to calculate the offsets between ``UT1`` and ``UTC``
+    and for conversion to Earth-based coordinate systems.
+
+    The state itself is an IERS table, as an instance of one of the
+    `~astropy.utils.iers.IERS` classes.  The default, the auto-updating
+    `~astropy.utils.iers.IERS_Auto` class, should suffice for most
+    purposes.
+
+    Examples
+    --------
+    To temporarily use the IERS-B file packaged with astropy:
+
+    >>> from astropy.utils import iers
+    >>> from astropy.time import Time
+    >>> iers_b = iers.IERS_B.open(IERS_B_FILE)
+    >>> with iers.earth_rotation_table.set(iers_b):
+    ...     print(Time('2000-01-01').ut1.isot)
+    2000-01-01T00:00:00.355
+
+    To use the most recent IERS-A file for the whole session:
+
+    >>> iers_a = iers.IERS_A.open(iers.IERS_A_URL)  # doctest: +SKIP
+    >>> iers.earth_rotation_table.set(iers_a)  # doctest: +SKIP
+    <ScienceState earth_rotation_table: <IERS_A length=...>
+     year month  day    MJD   PolPMFlag_A ... PolPMFlag dX_2000A dY_2000A NutFlag
+                         d                ...           marcsec  marcsec
+    int64 int64 int64 float64     str1    ...    str1   float64  float64    str1
+    ...
+
+    To go back to the default (of `~astropy.utils.iers.IERS_Auto`):
+
+    >>> iers.earth_rotation_table.set(None)  # doctest: +SKIP
+    """
+    _value = None
+
+    @classmethod
+    def validate(cls, value):
+        if value is None:
+            value = IERS_Auto.open()
+        if not isinstance(value, IERS):
+            raise ValueError("earth_rotation_table requires an IERS Table.")
+        return value
