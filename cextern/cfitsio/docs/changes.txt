@@ -1,5 +1,52 @@
                    Log of Changes Made to CFITSIO
 
+Version 3.47 - May 2019
+
+  - Added set of drivers for performing ftps file transfers.
+
+  - Tile sizes for compression may now be specified for any pair of
+    axes, where previously 2D tiles where limited to just X and y.
+    
+  - Fix to ffgsky and ffgkls functions for case of keyword with long
+    string values where the final CONTINUE statement ended with '&'.
+    If the final CONTINUE also contained a comment, it was being 
+    repeated twice when passed back through the 'comm' argument.
+      
+  - Fix made to ffedit_columns() for case of multiple col filters
+    containing wildcards.  Only the first filter was being searched.
+                     
+  - fits_copy_rows (ffcprw) can now handle 'P'-type variable-length 
+    columns.
+    
+  - Fix made to an obscure case in fits_modify_vector_len, where a 
+    wrongly issued EOF error may occur.
+                   
+  - Added internal fffvcl() function.
+                   
+Version 3.46 - Oct 2018 (Ftools release)
+                   
+  - Improved the algorithm for ensuring no tile dimensions are smaller 
+    than 4 pixels for HCOMPRESS compression.
+                   
+  - Added new functions intended to assist in diagnosing (primarily 
+    https) download issues: fits_show_download_progress,
+    fits_get_timeout, fits_set_timeout.
+
+  - Added the '-O <file>' option to fpack, which previously existed only
+    for funpack.  Also added fpack/funpack auto-removal of .bz2 suffix 
+    equivalent to what existed for .gz.
+
+  - For the fpack '-table' cases, warning message is now sent to stderr 
+    instead of stdout.  This is to allow users to pipe the results from
+    stdout in valid FITS format.  (The warning message is otherwise placed
+    at the start of the FITS file and therefore corrupts it.)
+
+  - Fix made to the '-P' file prefix option in funpack.
+
+  - Added wildcard deletion syntax for columns, i.e. -COLNAM* will delete
+    the first matching column as always; -COLNAM*+ will delete all matching
+    columns (or none); exact symmetry with the keyword deletion syntax.
+
 Version 3.45 - May 2018
                    
   - New support for reading and writing unsigned long long datatypes.

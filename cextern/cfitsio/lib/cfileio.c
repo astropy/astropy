@@ -17,7 +17,7 @@
 #endif
 
 #define MAX_PREFIX_LEN 20  /* max length of file type prefix (e.g. 'http://') */
-#define MAX_DRIVERS 27     /* max number of file I/O drivers */
+#define MAX_DRIVERS 31     /* max number of file I/O drivers */
 
 typedef struct    /* structure containing pointers to I/O driver functions */ 
 {   char prefix[MAX_PREFIX_LEN];
@@ -1965,13 +1965,62 @@ int ffedit_columns(
         if (clause[0] == '!' || clause[0] == '-')
         {
 	    char *clause1 = clause+1;
+	    int clen = clause1[0] ? strlen(clause1) : 0;
             /* ===================================== */
             /* Case I. delete this column or keyword */
             /* ===================================== */
 
-	    /* Check that clause does not have leading '#' and
-	       that column name exists */
-            if (clause1[0] && clause1[0] != '#' &&
+	    /* Case Ia. delete column names with 0-or-more wildcard
+	            -COLNAME+ - delete repeated columns with exact name
+		    -COLNAM*+ - delete columns matching patterns
+	    */
+	    if (*status == 0 &&
+		clen > 1 && clause1[0] != '#' &&
+		clause1[clen-1] == '+') {
+
+	      clause1[clen-1] = 0; clen--;
+
+	      /* Note that this is a delete 0 or more specification,
+		 which means that no matching columns is not an error. */
+	      do {
+		int status_del = 0;
+
+		/* Have to set status=0 so we can reset the search at
+		   start column.  Because we are deleting columns on
+		   the fly here, we have to reset the search every
+		   time. The only penalty here is execution time
+		   because leaving *status == COL_NOT_UNIQUE is merely
+		   an optimization for tables assuming the tables do
+		   not change from one call to the next. (an
+		   assumption broken in this loop) */
+		*status = 0; 
+		ffgcno(*fptr, CASEINSEN, clause1, &colnum, status);
+		/* ffgcno returns COL_NOT_UNIQUE if there are multiple columns,
+		   and COL_NOT_FOUND after the last column is found, and 
+		   COL_NOT_FOUND if no matches were found */
+		if (*status != 0 && *status != COL_NOT_UNIQUE) break;
+		
+                if (ffdcol(*fptr, colnum, &status_del) > 0) {
+		  ffpmsg("failed to delete column in input file:");
+		  ffpmsg(clause);
+		  if( colindex ) free( colindex );
+		  if( file_expr ) free( file_expr );
+		  if( clause ) free(clause);
+		  return (*status = status_del);
+		}
+                deletecol = 1; /* set flag that at least one col was deleted */
+                numcols--;
+	      } while (*status == COL_NOT_UNIQUE);
+
+	      *status = 0; /* No matches are still successful */
+	      colnum = -1; /* Ignore the column we found */
+
+	    /* Case Ib. delete column names with wildcard or not
+	            -COLNAME  - deleted exact column
+		    -COLNAM*  - delete first column that matches pattern
+	       Note no leading '#'
+	    */
+	    } else if (clause1[0] && clause1[0] != '#' &&
 		ffgcno(*fptr, CASEINSEN, clause1, &colnum, status) <= 0)
             {
                 /* a column with this name exists, so try to delete it */
@@ -1988,9 +2037,19 @@ int ffedit_columns(
                 numcols--;
                 colnum = -1;
             }
+	    /* Case Ic. delete keyword(s)
+	            -KEYNAME,#KEYNAME  - delete exact keyword (first match)
+		    -KEYNAM*,#KEYNAM*  - delete first matching keyword
+		    -KEYNAME+,-#KEYNAME+ - delete 0-or-more exact matches of exact keyword
+		    -KEYNAM*+,-#KEYNAM*+ - delete 0-or-more wildcard matches 
+	       Note the preceding # is optional if no conflicting column name exists
+	       and that wildcard patterns are described in "colfilter" section of
+	       documentation.
+	    */
             else
             {
-	      int delall = 0, clen = 0;
+	      int delall = 0;
+	      int haswild = 0;
 	        ffcmsg();   /* clear previous error message from ffgcno */
                 /* try deleting a keyword with this name */
                 *status = 0;
@@ -2003,12 +2062,24 @@ int ffedit_columns(
 		  delall = 1;
 		  clause1[clen-1] = 0;
 		}
+		/* Determine if this pattern has wildcards */
+		if (strchr(clause1,'?') || strchr(clause1,'*') || strchr(clause1,'#')) {
+		  haswild = 1;
+		}
+
+		if (haswild) {
+		  /* ffdkey() behaves differently if the pattern has a wildcard:
+		     it only checks from the "current" header position to the end, and doesn't
+		     check before the "current" header position.  Therefore, for the
+		     case of wildcards we will have to reset to the beginning. */
+		  ffmaky(*fptr, 1, status);  /* reset pointer to beginning of header */
+		}
+
 		/* Single or repeated deletions until done */
 		do {
 		  if (ffdkey(*fptr, clause1, status) > 0)
 		    {
-		      if (delall && *status == KEY_NO_EXIST &&
-			  (strchr(clause1,'*') || strchr(clause1,'?')) ) {
+		      if (delall && *status == KEY_NO_EXIST) {
 			/* Found last wildcard item. Stop deleting */
 			ffcmsg();
 			*status = 0;
@@ -5014,6 +5085,116 @@ int fits_init_cfitsio(void)
         return(status);
     }
       /* === End of https net drivers section === */  
+
+    /* 28--------------------ftps  driver-----------------------*/
+    status = fits_register_driver("ftps://",
+            NULL,
+            mem_shutdown,
+            mem_setoptions,
+            mem_getoptions, 
+            mem_getversion,
+            ftps_checkfile,
+            ftps_open,
+            NULL,            
+            mem_truncate,
+            mem_close_free,
+            NULL,            
+            mem_size,
+            NULL,            
+            mem_seek,
+            mem_read,
+            mem_write);
+
+    if (status)
+    {
+        ffpmsg("failed to register the ftps:// driver (init_cfitsio)");
+        FFUNLOCK;
+        return(status);
+    }
+
+    /* 29--------------------ftps file driver-----------------------*/
+
+    status = fits_register_driver("ftpsfile://",
+            NULL,
+            file_shutdown,
+            file_setoptions,
+            file_getoptions, 
+            file_getversion,
+            NULL,             
+            ftps_file_open,
+            file_create,
+#ifdef HAVE_FTRUNCATE
+            file_truncate,
+#else
+            NULL,   
+#endif
+            file_close,
+            file_remove,
+            file_size,
+            file_flush,
+            file_seek,
+            file_read,
+            file_write);
+
+    if (status)
+    {
+        ffpmsg("failed to register the ftpsfile:// driver (init_cfitsio)");
+        FFUNLOCK;
+        return(status);
+    }
+
+    /* 30--------------------ftps memory driver-----------------------*/
+    /*  same as ftps:// driver, except memory file can be opened READWRITE */
+    status = fits_register_driver("ftpsmem://",
+            NULL,
+            mem_shutdown,
+            mem_setoptions,
+            mem_getoptions, 
+            mem_getversion,
+            ftps_checkfile,
+            ftps_file_open,  
+            NULL,            
+            mem_truncate,
+            mem_close_free,
+            NULL,           
+            mem_size,
+            NULL,            
+            mem_seek,
+            mem_read,
+            mem_write);
+
+    if (status)
+    {
+        ffpmsg("failed to register the ftpsmem:// driver (init_cfitsio)");
+        FFUNLOCK;
+        return(status);
+    }
+
+    /* 31--------------------ftps compressed file driver------------------*/
+    status = fits_register_driver("ftpscompress://",
+            NULL,
+            mem_shutdown,
+            mem_setoptions,
+            mem_getoptions, 
+            mem_getversion,
+            NULL,            /* checkfile not needed */ 
+            ftps_compress_open,
+            0,            /* create function not required */
+            mem_truncate,
+            mem_close_free,
+            0,            /* remove function not required */
+            mem_size,
+            0,            /* flush function not required */
+            mem_seek,
+            mem_read,
+            mem_write);
+
+    if (status)
+    {
+        ffpmsg("failed to register the ftpscompress:// driver (init_cfitsio)");
+        FFUNLOCK;
+        return(status);
+    }
 #endif
 
 
@@ -7616,3 +7797,40 @@ void ffvhtps(int flag)
 #endif
 }
 
+/*-------------------------------------------------------------------*/
+void ffshdwn(int flag)
+{
+   /* Display download status bar (to stderr), where applicable.
+      This is NOT THREAD-SAFE */
+#ifdef HAVE_NET_SERVICES
+   fits_dwnld_prog_bar(flag);
+#endif
+}
+
+/*-------------------------------------------------------------------*/
+int ffgtmo(void)
+{
+   int timeout=0;
+#ifdef HAVE_NET_SERVICES
+   timeout = fits_net_timeout(-1);
+#endif
+   return timeout;
+}
+
+/*-------------------------------------------------------------------*/
+int ffstmo(int sec, int *status)
+{
+   if (*status > 0)
+      return (*status);
+
+#ifdef HAVE_NET_SERVICES
+   if (sec <= 0)
+   {
+      *status = BAD_NETTIMEOUT;
+      ffpmsg("Bad value for net timeout setting (fits_set_timeout).");
+      return(*status);
+   }
+   fits_net_timeout(sec);
+#endif
+   return(*status);   
+}
