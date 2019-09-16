@@ -6,7 +6,7 @@
 .. _`PROJECTNAME mailing list`: http://projects.scipy.org/mailman/listinfo/nipy-devel
 
 .. numpy
-.. _numpy: http://www.numpy.org/
+.. _numpy: https://www.numpy.org/
 .. _`numpy github`: https://github.com/numpy/numpy
 .. _`numpy mailing list`: http://mail.python.org/mailman/listinfo/numpy-discussion
 
@@ -24,8 +24,8 @@
 .. _pip: https://pip.pypa.io
 
 .. virtualenv
-.. _virtualenv: https://pypi.python.org/pypi/virtualenv
-.. _virtualenvwrapper: https://pypi.python.org/pypi/virtualenvwrapper
+.. _virtualenv: https://pypi.org/project/virtualenv
+.. _virtualenvwrapper: https://pypi.org/project/virtualenvwrapper
 .. _virtualenvwrapper-csh: https://bitbucket.org/embray/virtualenvwrapper-csh
 .. _virtualenvwrapper-win: https://github.com/davidmarble/virtualenvwrapper-win
 .. _venv: https://docs.python.org/dev/library/venv.html
@@ -37,4 +37,4 @@
 .. _py.test: https://pytest.org/en/latest/
 
 .. pychecker
-.. _pychecker: https://pypi.python.org/pypi/PyChecker
+.. _pychecker: https://pypi.org/project/PyChecker

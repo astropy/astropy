@@ -175,14 +175,14 @@ See Also
   units in FITS.
 
 - The `Units in the VO 1.0 Standard
-  <http://www.ivoa.net/Documents/VOUnits/>`_ for representing units in
+  <http://www.ivoa.net/documents/VOUnits/>`_ for representing units in
   the VO.
 
 - OGIP Units: A standard for storing units in `OGIP FITS files
   <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`_.
 
 - `Standards for astronomical catalogues units
-  <http://cds.u-strasbg.fr/doc/catstd-3.2.htx>`_.
+  <http://vizier.u-strasbg.fr/vizier/doc/catstd-3.2.htx>`_.
 
 - `IAU Style Manual
   <https://www.iau.org/static/publications/stylemanual1989.pdf>`_.

@@ -402,7 +402,7 @@ Hcompress.
 
 For more details, reference "A FITS Image Compression Proposal" from:
 
-    http://www.adass.org/adass/proceedings/adass99/P2-42/
+    https://www.adass.org/adass/proceedings/adass99/P2-42/
 
 and "Registered FITS Convention, Tiled Image Compression Convention":
 

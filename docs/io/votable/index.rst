@@ -202,9 +202,9 @@ Standard compliance
 
 `astropy.io.votable.tree.Table` supports the `VOTable Format Definition
 Version 1.1
-<http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html>`_,
+<http://www.ivoa.net/documents/REC/VOTable/VOTable-20040811.html>`_,
 `Version 1.2
-<http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html>`_,
+<http://www.ivoa.net/documents/VOTable/20091130/REC-VOTable-1.2.html>`_,
 and the `Version 1.3 proposed recommendation
 <http://www.ivoa.net/documents/VOTable/20130315/PR-VOTable-1.3-20130315.html>`_.
 Some flexibility is provided to support the 1.0 draft version and
@@ -398,16 +398,16 @@ File reads will be moderately faster if the ``TABLE`` element includes
 an nrows_ attribute.  If the number of rows is not specified, the
 record array must be resized repeatedly during load.
 
-.. _nrows: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC10
+.. _nrows: http://www.ivoa.net/documents/REC/VOTable/VOTable-20040811.html#ToC10
 
 See Also
 ========
 
 - `VOTable Format Definition Version 1.1
-  <http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html>`_
+  <http://www.ivoa.net/documents/REC/VOTable/VOTable-20040811.html>`_
 
 - `VOTable Format Definition Version 1.2
-  <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html>`_
+  <http://www.ivoa.net/documents/VOTable/20091130/REC-VOTable-1.2.html>`_
 
 - `VOTable Format Definition Version 1.3, Proposed Recommendatation
   <http://www.ivoa.net/documents/VOTable/20130315/PR-VOTable-1.3-20130315.html>`_

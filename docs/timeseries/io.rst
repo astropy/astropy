@@ -15,7 +15,7 @@ they have :meth:`~astropy.table.Table.read` and
 :meth:`~astropy.table.Table.write` methods that can be used to read time series
 from files. We include a few readers for well-defined formats in `astropy.timeseries` -
 for example we have readers for light curves in FITS format from the
-`Kepler <https://www.nasa.gov/mission_pages/timeseries/main/index.html>`_ and
+`Kepler <https://www.nasa.gov/mission_pages/kepler/main/index.html>`_ and
 `TESS <https://tess.gsfc.nasa.gov/>`_ missions.
 
 Here is an example of using Kepler FITS time series - we start off by fetching an example

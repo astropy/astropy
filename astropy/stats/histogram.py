@@ -3,7 +3,7 @@
 """
 Methods for selecting the bin width of histograms
 
-Ported from the astroML project: http://astroML.org/
+Ported from the astroML project: http://astroml.org/
 """
 
 import numpy as np

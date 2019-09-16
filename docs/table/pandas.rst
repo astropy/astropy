@@ -5,7 +5,7 @@
 Interfacing with the pandas package
 ***********************************
 
-The `pandas <http://pandas.pydata.org/>`__ package is a package for high
+The `pandas <https://pandas.pydata.org/>`__ package is a package for high
 performance data analysis of table-like structures that is complementary to the
 :class:`~astropy.table.Table` class in Astropy.
 

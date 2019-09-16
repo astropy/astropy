@@ -154,7 +154,7 @@ class XMLWriter:
         In order to explicitly allow certain XML tags (e.g. link reference or
         emphasis tags), use ``method='bleach_clean'``.  This sanitizes the data
         string using the ``clean`` function of the
-        `http://bleach.readthedocs.io/en/latest/clean.html <bleach>`_ package.
+        `https://bleach.readthedocs.io/en/latest/clean.html <bleach>`_ package.
         Any additional keyword arguments will be passed directly to the
         ``clean`` function.
 
@@ -166,7 +166,7 @@ class XMLWriter:
           w = writer.XMLWriter(ListWriter(lines))
           with w.xml_cleaning_method('bleach_clean'):
               w.start('td')
-              w.data('<a href="http://google.com">google.com</a>')
+              w.data('<a href="https://google.com">google.com</a>')
               w.end()
 
         Parameters

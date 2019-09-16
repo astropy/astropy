@@ -18,7 +18,7 @@ class VOUnit(generic.Generic):
     The IVOA standard for units used by the VO.
 
     This is an implementation of `Units in the VO 1.0
-    <http://www.ivoa.net/Documents/VOUnits/>`_.
+    <http://www.ivoa.net/documents/VOUnits/>`_.
     """
     _explicit_custom_unit_regex = re.compile(
         r"^[YZEPTGMkhdcmunpfazy]?'((?!\d)\w)+'$")

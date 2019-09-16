@@ -286,7 +286,7 @@ names, etc.:
     object you should find the appropriate reference and input the coordinates
     manually, or use more specialized functionality like that in the `astroquery
     <http://www.astropy.org/astroquery/>`_ or `astroplan
-    <http://astroplan.readthedocs.io/>`_ affiliated packages.
+    <https://astroplan.readthedocs.io/>`_ affiliated packages.
 
     Also note that these methods retrieve data from the internet to
     determine the celestial or Earth coordinates. The online data may be
@@ -415,7 +415,7 @@ See Also
 Some references that are particularly useful in understanding subtleties of the
 coordinate systems implemented here include:
 
-* `USNO Circular 179 <http://aa.usno.navy.mil/publications/docs/Circular_179.php>`_
+* `USNO Circular 179 <https://aa.usno.navy.mil/publications/docs/Circular_179.php>`_
     A useful guide to the IAU 2000/2003 work surrounding ICRS/IERS/CIRS and
     related problems in precision coordinate system work.
 * `Standards Of Fundamental Astronomy <http://www.iausofa.org/>`_

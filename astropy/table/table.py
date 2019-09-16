@@ -1313,7 +1313,7 @@ class Table:
             will be retrieved from the configuration item
             ``astropy.table.default_notebook_table_class``. Note that these
             table classes may make use of bootstrap, as this is loaded with the
-            notebook.  See `this page <http://getbootstrap.com/css/#tables>`_
+            notebook.  See `this page <https://getbootstrap.com/css/#tables>`_
             for the list of classes.
         css : string
             A valid CSS string declaring the formatting for the table. Defaults

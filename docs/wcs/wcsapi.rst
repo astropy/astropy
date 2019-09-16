@@ -12,7 +12,7 @@ most common 'standard' for representing world coordinate systems in
 FITS files, but it cannot represent arbitrarily complex transformations
 and there is no agreement on how to use the standard beyond FITS files.
 Therefore, other world coordinate system transformation approaches exist,
-such as the `gwcs <http://gwcs.readthedocs.io/>`_ package being developed
+such as the `gwcs <https://gwcs.readthedocs.io/>`_ package being developed
 for the James Webb Space Telescope (which is also applicable to other data).
 
 Since one of the goals of the Astropy Project is to improve interoperability

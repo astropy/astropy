@@ -128,7 +128,7 @@ New features in table package
 Table interface to Pandas
 -------------------------
 
-The `pandas <http://pandas.pydata.org/>`__ package is a package for high
+The `pandas <https://pandas.pydata.org/>`__ package is a package for high
 performance data analysis of table-like structures that is complementary to
 the :class:`~astropy.table.Table` class in Astropy.
 
@@ -309,7 +309,7 @@ Other significant changes
 The :ref:`astropy-wcs` sub-package now supports (and includes) WCSLIB 5.x,
 which implements support for the distortion representations described in
 [Paper IV: Representations of distortions in FITS world coordinate
-systems](http://www.atnf.csiro.au/people/mcalabre/WCS/) by Calabretta et al,
+systems](https://www.atnf.csiro.au/people/mcalabre/WCS/) by Calabretta et al,
 including TPV and SIP. Note that for now, Astropy still uses a custom
 implementation of the SIP distortions rather than the ones from WCSLIB, but
 we plan to change this over in the future.

@@ -53,7 +53,7 @@ Profile, it supports the Web Profile, which means that it can be used also to
 communicate with Web SAMP clients; see the `sampjs
 <http://astrojs.github.io/sampjs/>`_ library examples for more details.
 
-.. _IVOA Simple Application Messaging Protocol: http://www.ivoa.net/Documents/latest/SAMP.html
+.. _IVOA Simple Application Messaging Protocol: http://www.ivoa.net/documents/latest/SAMP.html
 
 Using `astropy.samp`
 =======================
@@ -79,6 +79,6 @@ Reference/API
 Acknowledgments
 ===============
 
-This code is adapted from the `SAMPy <https://pypi.python.org/pypi/sampy>`__
+This code is adapted from the `SAMPy <https://pypi.org/project/sampy>`__
 package written by Luigi Paioro, who has granted the Astropy Project permission
 to use the code under a BSD license.

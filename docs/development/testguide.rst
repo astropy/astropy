@@ -64,7 +64,7 @@ In addition to running the Astropy tests, these methods can also be called
 so that they check Python source code for `PEP8 compliance
 <https://www.python.org/dev/peps/pep-0008/>`_. All of the PEP8 testing
 options require the `pytest-pep8 plugin
-<https://pypi.python.org/pypi/pytest-pep8>`_, which must be installed
+<https://pypi.org/project/pytest-pep8>`_, which must be installed
 separately.
 
 setup.py test
@@ -82,7 +82,7 @@ through with the ``--args`` argument::
 
     > python setup.py test --args "-x"
 
-`pytest`_ will look for files that 
+`pytest`_ will look for files that
 :ref:`look like tests <pytest:python test discovery>`, per default
 in the current directory and all recursive directories, then run all
 the code that looks like tests (essentially all functions or methods
@@ -212,13 +212,13 @@ For more information on the ``pytest-openfiles`` plugin see
 Test coverage reports
 ---------------------
 
-Astropy can use `coverage.py <http://coverage.readthedocs.io/en/latest/>`_ to
+Astropy can use `coverage.py <https://coverage.readthedocs.io/en/latest/>`_ to
 generate test coverage reports.  To generate a test coverage report, use::
 
     python setup.py test --coverage
 
 There is a `coveragerc
-<http://coverage.readthedocs.io/en/latest/config.html>`_ file that
+<https://coverage.readthedocs.io/en/latest/config.html>`_ file that
 defines files to omit as well as lines to exclude.  It is installed
 along with astropy so that the ``astropy`` testing framework can use
 it.  In the source tree, it is at ``astropy/tests/coveragerc``.
@@ -227,7 +227,7 @@ Running tests in parallel
 -------------------------
 
 It is possible to speed up astropy's tests using the `pytest-xdist
-<https://pypi.python.org/pypi/pytest-xdist>`_ plugin.  This plugin can be
+<https://pypi.org/project/pytest-xdist>`_ plugin.  This plugin can be
 installed using `pip`_::
 
     pip install pytest-xdist
@@ -665,7 +665,7 @@ messages. Note that when no warning of the specified type is
 triggered, this will make the test fail. When checking for optional,
 but not mandatory warnings, Astropy's ``catch_warnings`` is therefore the
 better option, as it will collect any number of warning lines (including
-zero). 
+zero).
 
 .. note::
 
@@ -742,7 +742,7 @@ Image tests with pytest-mpl
 Running image tests
 -------------------
 
-We make use of the `pytest-mpl <https://pypi.python.org/pypi/pytest-mpl>`_
+We make use of the `pytest-mpl <https://pypi.org/project/pytest-mpl>`_
 plugin to write tests where we can compare the output of plotting commands
 with reference files on a pixel-by-pixel basis (this is used for instance in
 :ref:`astropy.visualization.wcsaxes <wcsaxes>`).
@@ -780,7 +780,7 @@ You can then run the tests as above::
 Type ``exit`` to exit the container.
 
 You can find the names of the available Docker images on the `Docker Hub
-<https://hub.docker.com/r/astropy/>`_.
+<https://hub.docker.com/u/astropy>`_.
 
 Writing image tests
 -------------------

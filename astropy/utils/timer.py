@@ -313,7 +313,7 @@ class RunTimePredictor:
              save_as=''):  # pragma: no cover
         """Plot prediction.
 
-        .. note:: Uses `matplotlib <http://matplotlib.org/>`_.
+        .. note:: Uses `matplotlib <https://matplotlib.org/>`_.
 
         Parameters
         ----------

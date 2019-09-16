@@ -274,7 +274,7 @@ with the following properties:
 
 The `Example: ArrayWrapper`_ section shows a working minimal example of a class
 which can be used as a mixin column.  A `pandas.Series
-<http://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.html>`_
+<https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.html>`_
 object can function as a mixin column as well.
 
 Other interesting possibilities for mixin columns include:
