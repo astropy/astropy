@@ -27,7 +27,9 @@ def make_data(N=100, period=1, theta=[10, 2, 3], dy=1, rseed=0):
     dy = dy * (0.5 + rng.rand(N))
     y += dy * rng.randn(N)
 
-    return t, y, dy
+    fmax = 5
+
+    return t, y, dy, fmax
 
 
 @pytest.fixture
@@ -37,17 +39,18 @@ def null_data(N=1000, dy=1, rseed=0):
     t = 100 * rng.rand(N)
     dy = 0.5 * dy * (1 + rng.rand(N))
     y = dy * rng.randn(N)
-    return t, y, dy
+    fmax = 40
+
+    return t, y, dy, fmax
 
 
 @pytest.mark.parametrize('normalization', NORMALIZATIONS)
 @pytest.mark.parametrize('with_errors', [True, False])
-def test_distribution(null_data, normalization, with_errors, fmax=40):
-    t, y, dy = null_data
+def test_distribution(null_data, normalization, with_errors):
+    t, y, dy, fmax = null_data
     if not with_errors:
         dy = None
 
-    N = len(t)
     ls = LombScargle(t, y, dy, normalization=normalization)
     freq, power = ls.autopower(maximum_frequency=fmax)
     z = np.linspace(0, power.max(), 1000)
@@ -80,8 +83,8 @@ def test_inverse_single(N, normalization):
 
 @pytest.mark.parametrize('normalization', NORMALIZATIONS)
 @pytest.mark.parametrize('use_errs', [True, False])
-def test_inverse_bootstrap(null_data, normalization, use_errs, fmax=5):
-    t, y, dy = null_data
+def test_inverse_bootstrap(null_data, normalization, use_errs):
+    t, y, dy, fmax = null_data
     if not use_errs:
         dy = None
 
@@ -105,11 +108,12 @@ def test_inverse_bootstrap(null_data, normalization, use_errs, fmax=5):
 @pytest.mark.parametrize('normalization', NORMALIZATIONS)
 @pytest.mark.parametrize('use_errs', [True, False])
 @pytest.mark.parametrize('N', [10, 100, 1000])
-def test_inverses(method, normalization, use_errs, N, T=5, fmax=5):
+def test_inverses(method, normalization, use_errs, N, T=5):
     if not HAS_SCIPY and method in ['baluev', 'davies']:
         pytest.skip("SciPy required")
 
-    t, y, dy = make_data(N, rseed=543)
+    t, y, dy, fmax = make_data(N, rseed=543)
+
     if not use_errs:
         dy = None
     method_kwds = METHOD_KWDS.get(method, None)
@@ -133,8 +137,7 @@ def test_false_alarm_smoketest(method, normalization):
         pytest.skip("SciPy required")
 
     kwds = METHOD_KWDS.get(method, None)
-    t, y, dy = make_data()
-    fmax = 5
+    t, y, dy, fmax = make_data()
 
     ls = LombScargle(t, y, dy, normalization=normalization)
     freq, power = ls.autopower(maximum_frequency=fmax)
@@ -161,10 +164,9 @@ def test_false_alarm_equivalence(method, normalization, use_errs):
         pytest.skip("SciPy required")
 
     kwds = METHOD_KWDS.get(method, None)
-    t, y, dy = make_data()
+    t, y, dy, fmax = make_data()
     if not use_errs:
         dy = None
-    fmax = 5
 
     ls = LombScargle(t, y, dy, normalization=normalization)
     freq, power = ls.autopower(maximum_frequency=fmax)
