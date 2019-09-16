@@ -185,7 +185,7 @@ void bitpix_to_datatypes(int bitpix, int* datatype, int* npdatatype) {
     switch (bitpix) {
         case BYTE_IMG:
             *datatype = TBYTE;
-            *npdatatype = NPY_INT8;
+            *npdatatype = NPY_UINT8;
             break;
         case SHORT_IMG:
             *datatype = TSHORT;

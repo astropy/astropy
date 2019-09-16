@@ -34,6 +34,8 @@ astropy.io.fits
 
 - Fix uint conversion in ``FITS_rec`` when slicing a table. [#8982]
 
+- Fix reading of unsigned 8-bit integer with compressed fits. [#9219]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
