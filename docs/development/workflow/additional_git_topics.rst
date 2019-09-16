@@ -291,7 +291,7 @@ site that does it, at least as of 2/6/2012). There are two options to do this,
 both of which only work if you own the repository or have the ability to commit
 directly to it (for Astropy, that means being an Astropy maintainer):
 
-* You can use the script at https://gist.github.com/eteq/1750715, which will
+* You can use the script at https://github.com/astropy/astropy-procedures/blob/master/issue2pr.py, which will
   do this for you automatically |emdash| just download the script and run it as
   a python command-line script, using the ``python issue2pr.py --help``
   option to determine the precise usage.
