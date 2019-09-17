@@ -84,6 +84,7 @@ copy_columns = [
 ]
 
 
+@pytest.mark.remote_data
 @pytest.mark.parametrize("b_name,a_name", copy_columns)
 def test_IERS_B_parameters_loaded_into_IERS_Auto(b_name, a_name):
     A = IERS_Auto.open()
