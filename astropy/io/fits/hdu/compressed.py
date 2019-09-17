@@ -85,6 +85,9 @@ class CompImageHeader(Header):
     This essentially wraps the image header, so that all values are read from
     and written to the image header.  However, updates to the image header will
     also update the table header where appropriate.
+
+    Note that if no image header is passed in, the code will instantiate a
+    regular `~astropy.io.fits.Header`.
     """
 
     # TODO: The difficulty of implementing this screams a need to rewrite this
@@ -105,9 +108,19 @@ class CompImageHeader(Header):
     # the schema system, but it's not quite ready for that yet.  Also it still
     # makes more sense to change CompImageHDU to subclass ImageHDU :/
 
-    def __init__(self, table_header, image_header=None):
+    def __new__(cls, table_header, image_header=None):
+        # 2019-09-14 (MHvK): No point wrapping anything if no image_header is
+        # given.  This happens if __getitem__ and copy are called - our super
+        # class will aim to initialize a new, possibly partially filled
+        # header, but we cannot usefully deal with that.
+        # TODO: the above suggests strongly we should *not* subclass from
+        # Header.  See also comment above about the need for reorganization.
         if image_header is None:
-            image_header = Header()
+            return Header(table_header)
+        else:
+            return super().__new__(cls)
+
+    def __init__(self, table_header, image_header):
         self._cards = image_header._cards
         self._keyword_indices = image_header._keyword_indices
         self._rvkc_indices = image_header._rvkc_indices
