@@ -10,8 +10,8 @@ else:
     HAS_SCIPY = True
 
 from astropy.timeseries.periodograms.lombscargle import LombScargle
-from astropy.timeseries.periodograms.lombscargle._statistics import (cdf_single, pdf_single, fap_single, inv_fap_single,
-                           METHODS)
+from astropy.timeseries.periodograms.lombscargle._statistics import (fap_single, inv_fap_single,
+                                                                     METHODS)
 from astropy.timeseries.periodograms.lombscargle.utils import convert_normalization, compute_chi2_ref
 
 METHOD_KWDS = dict(bootstrap={'n_bootstraps': 20, 'random_seed': 42})
