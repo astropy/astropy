@@ -171,9 +171,11 @@ matrix:
         # Run documentation link check in a cron job.
         # Was originally in CircleCI doc build but links are too flaky, so
         # we moved it here instead.
+        # NOTE: matplotlib pinning should be consistent with CircleCI HTML job.
         - os: linux
           stage: Cron tests
           env: SETUP_CMD='build_docs -b linkcheck' EVENT_TYPE='cron'
+               MATPLOTLIB_VERSION="<3.1"
                PIP_DEPENDENCIES="" CONDA_DEPENDENCIES=""
                INSTALL_WITH_PIP=True
                EXTRAS_INSTALL="docs"
