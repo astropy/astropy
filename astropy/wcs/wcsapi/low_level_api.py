@@ -247,7 +247,8 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
     def pixel_bounds(self):
         """
         The bounds (in pixel coordinates) inside which the WCS is defined,
-        as a list with `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim` ``(min, max)`` tuples.
+        as a list with `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim`
+        ``(min, max)`` tuples.
 
         The bounds should be given in ``[(xmin, xmax), (ymin, ymax)]``
         order. WCS solutions are sometimes only guaranteed to be accurate
@@ -258,15 +259,41 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         return None
 
     @property
+    def pixel_axis_names(self):
+        """
+        An iterable of strings describing the name for each pixel axis.
+
+        If an axis does not have a name, an empty string should be returned
+        (this is the default behavior for all axes if a subclass does not
+        override this property). Note that these names are just for display
+        purposes and are not standardized.
+        """
+        return [''] * self.pixel_n_dim
+
+    @property
+    def world_axis_names(self):
+        """
+        An iterable of strings describing the name for each world axis.
+
+        If an axis does not have a name, an empty string should be returned
+        (this is the default behavior for all axes if a subclass does not
+        override this property). Note that these names are just for display
+        purposes and are not standardized. For standardized axis types, see
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_physical_types`.
+        """
+        return [''] * self.world_n_dim
+
+    @property
     def axis_correlation_matrix(self):
         """
         Returns an (`~astropy.wcs.wcsapi.BaseLowLevelWCS.world_n_dim`,
-        `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim`) matrix that indicates using booleans
-        whether a given world coordinate depends on a given pixel coordinate.
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim`) matrix that
+        indicates using booleans whether a given world coordinate depends on a
+        given pixel coordinate.
 
-        This defaults to a matrix where all elements are `True` in the absence of
-        any further information. For completely independent axes, the diagonal
-        would be `True` and all other entries `False`.
+        This defaults to a matrix where all elements are `True` in the absence
+        of any further information. For completely independent axes, the
+        diagonal would be `True` and all other entries `False`.
         """
         return np.ones((self.world_n_dim, self.pixel_n_dim), dtype=bool)
 

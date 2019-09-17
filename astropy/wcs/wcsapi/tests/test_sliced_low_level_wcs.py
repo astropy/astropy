@@ -22,6 +22,9 @@ NAXIS3  = 30
 CTYPE1  = GLAT-CAR
 CTYPE2  = FREQ
 CTYPE3  = GLON-CAR
+CNAME1  = Latitude
+CNAME2  = Frequency
+CNAME3  = Longitude
 CRVAL1  = 10
 CRVAL2  = 20
 CRVAL3  = 25
@@ -61,15 +64,15 @@ This transformation has 3 pixel and 3 world dimensions
 
 Array shape (Numpy order): (30, 20, 10)
 
-Pixel Dim  Data size  Bounds
-        0         10  (-1, 11)
-        1         20  (-2, 18)
-        2         30  (5, 15)
+Pixel Dim  Axis Name  Data size  Bounds
+        0  None              10  (-1, 11)
+        1  None              20  (-2, 18)
+        2  None              30  (5, 15)
 
-World Dim  Physical Type     Units
-        0  pos.galactic.lat  deg
-        1  em.freq           Hz
-        2  pos.galactic.lon  deg
+World Dim  Axis Name  Physical Type     Units
+        0  Latitude   pos.galactic.lat  deg
+        1  Frequency  em.freq           Hz
+        2  Longitude  pos.galactic.lon  deg
 
 Correlation between pixel and world axes:
 
@@ -91,6 +94,8 @@ def test_ellipsis():
     assert wcs.pixel_shape == (10, 20, 30)
     assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
     assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
+    assert wcs.pixel_axis_names == ['', '', '']
+    assert wcs.world_axis_names == ['Latitude', 'Frequency', 'Longitude']
 
     assert_equal(wcs.axis_correlation_matrix, [[True, False, True], [False, True, False], [True, False, True]])
 
@@ -125,13 +130,13 @@ This transformation has 2 pixel and 2 world dimensions
 
 Array shape (Numpy order): (30, 10)
 
-Pixel Dim  Data size  Bounds
-        0         10  (-1, 11)
-        1         30  (5, 15)
+Pixel Dim  Axis Name  Data size  Bounds
+        0  None              10  (-1, 11)
+        1  None              30  (5, 15)
 
-World Dim  Physical Type     Units
-        0  pos.galactic.lat  deg
-        1  pos.galactic.lon  deg
+World Dim  Axis Name  Physical Type     Units
+        0  Latitude   pos.galactic.lat  deg
+        1  Longitude  pos.galactic.lon  deg
 
 Correlation between pixel and world axes:
 
@@ -152,6 +157,8 @@ def test_spectral_slice():
     assert wcs.pixel_shape == (10, 30)
     assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'pos.galactic.lon']
     assert wcs.world_axis_units == ['deg', 'deg']
+    assert wcs.pixel_axis_names == ['', '']
+    assert wcs.world_axis_names == ['Latitude', 'Longitude']
 
     assert_equal(wcs.axis_correlation_matrix, [[True, True], [True, True]])
 
@@ -181,15 +188,15 @@ This transformation has 3 pixel and 3 world dimensions
 
 Array shape (Numpy order): (30, 6, 10)
 
-Pixel Dim  Data size  Bounds
-        0         10  (-1, 11)
-        1          6  (-6, 14)
-        2         30  (5, 15)
+Pixel Dim  Axis Name  Data size  Bounds
+        0  None              10  (-1, 11)
+        1  None               6  (-6, 14)
+        2  None              30  (5, 15)
 
-World Dim  Physical Type     Units
-        0  pos.galactic.lat  deg
-        1  em.freq           Hz
-        2  pos.galactic.lon  deg
+World Dim  Axis Name  Physical Type     Units
+        0  Latitude   pos.galactic.lat  deg
+        1  Frequency  em.freq           Hz
+        2  Longitude  pos.galactic.lon  deg
 
 Correlation between pixel and world axes:
 
@@ -211,6 +218,8 @@ def test_spectral_range():
     assert wcs.pixel_shape == (10, 6, 30)
     assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
     assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
+    assert wcs.pixel_axis_names == ['', '', '']
+    assert wcs.world_axis_names == ['Latitude', 'Frequency', 'Longitude']
 
     assert_equal(wcs.axis_correlation_matrix, [[True, False, True], [False, True, False], [True, False, True]])
 
@@ -245,14 +254,14 @@ This transformation has 2 pixel and 3 world dimensions
 
 Array shape (Numpy order): (30, 20)
 
-Pixel Dim  Data size  Bounds
-        0         20  (-2, 18)
-        1         30  (5, 15)
+Pixel Dim  Axis Name  Data size  Bounds
+        0  None              20  (-2, 18)
+        1  None              30  (5, 15)
 
-World Dim  Physical Type     Units
-        0  pos.galactic.lat  deg
-        1  em.freq           Hz
-        2  pos.galactic.lon  deg
+World Dim  Axis Name  Physical Type     Units
+        0  Latitude   pos.galactic.lat  deg
+        1  Frequency  em.freq           Hz
+        2  Longitude  pos.galactic.lon  deg
 
 Correlation between pixel and world axes:
 
@@ -274,6 +283,8 @@ def test_celestial_slice():
     assert wcs.pixel_shape == (20, 30)
     assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
     assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
+    assert wcs.pixel_axis_names == ['', '']
+    assert wcs.world_axis_names == ['Latitude', 'Frequency', 'Longitude']
 
     assert_equal(wcs.axis_correlation_matrix, [[False, True], [True, False], [False, True]])
 
@@ -308,15 +319,15 @@ This transformation has 3 pixel and 3 world dimensions
 
 Array shape (Numpy order): (30, 20, 5)
 
-Pixel Dim  Data size  Bounds
-        0          5  (-6, 6)
-        1         20  (-2, 18)
-        2         30  (5, 15)
+Pixel Dim  Axis Name  Data size  Bounds
+        0  None               5  (-6, 6)
+        1  None              20  (-2, 18)
+        2  None              30  (5, 15)
 
-World Dim  Physical Type     Units
-        0  pos.galactic.lat  deg
-        1  em.freq           Hz
-        2  pos.galactic.lon  deg
+World Dim  Axis Name  Physical Type     Units
+        0  Latitude   pos.galactic.lat  deg
+        1  Frequency  em.freq           Hz
+        2  Longitude  pos.galactic.lon  deg
 
 Correlation between pixel and world axes:
 
@@ -338,6 +349,8 @@ def test_celestial_range():
     assert wcs.pixel_shape == (5, 20, 30)
     assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
     assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
+    assert wcs.pixel_axis_names == ['', '', '']
+    assert wcs.world_axis_names == ['Latitude', 'Frequency', 'Longitude']
 
     assert_equal(wcs.axis_correlation_matrix, [[True, False, True], [False, True, False], [True, False, True]])
 
@@ -379,15 +392,15 @@ This transformation has 3 pixel and 3 world dimensions
 
 Array shape (Numpy order): (30, 20, 5)
 
-Pixel Dim  Data size  Bounds
-        0          5  (-6, 6)
-        1         20  (-2, 18)
-        2         30  (5, 15)
+Pixel Dim  Axis Name  Data size  Bounds
+        0  None               5  (-6, 6)
+        1  None              20  (-2, 18)
+        2  None              30  (5, 15)
 
-World Dim  Physical Type     Units
-        0  pos.galactic.lat  deg
-        1  em.freq           Hz
-        2  pos.galactic.lon  deg
+World Dim  Axis Name  Physical Type     Units
+        0  Latitude   pos.galactic.lat  deg
+        1  Frequency  em.freq           Hz
+        2  Longitude  pos.galactic.lon  deg
 
 Correlation between pixel and world axes:
 
@@ -409,6 +422,8 @@ def test_celestial_range_rot():
     assert wcs.pixel_shape == (5, 20, 30)
     assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
     assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
+    assert wcs.pixel_axis_names == ['', '', '']
+    assert wcs.world_axis_names == ['Latitude', 'Frequency', 'Longitude']
 
     assert_equal(wcs.axis_correlation_matrix, [[True, False, True], [False, True, False], [True, False, True]])
 
@@ -464,15 +479,15 @@ This transformation has 3 pixel and 3 world dimensions
 
 Array shape (Numpy order): None
 
-Pixel Dim  Data size  Bounds
-        0       None  None
-        1       None  None
-        2       None  None
+Pixel Dim  Axis Name  Data size  Bounds
+        0  None            None  None
+        1  None            None  None
+        2  None            None  None
 
-World Dim  Physical Type     Units
-        0  pos.galactic.lat  deg
-        1  em.freq           Hz
-        2  pos.galactic.lon  deg
+World Dim  Axis Name  Physical Type     Units
+        0  None       pos.galactic.lat  deg
+        1  None       em.freq           Hz
+        2  None       pos.galactic.lon  deg
 
 Correlation between pixel and world axes:
 
@@ -552,15 +567,15 @@ This transformation has 3 pixel and 3 world dimensions
 
 Array shape (Numpy order): (30, 20, 10)
 
-Pixel Dim  Data size  Bounds
-        0         10  (-1, 11)
-        1         20  (-2, 18)
-        2         30  (5, 15)
+Pixel Dim  Axis Name  Data size  Bounds
+        0  None              10  (-1, 11)
+        1  None              20  (-2, 18)
+        2  None              30  (5, 15)
 
-World Dim  Physical Type     Units
-        0  pos.galactic.lat  deg
-        1  None              unknown
-        2  pos.galactic.lon  deg
+World Dim  Axis Name  Physical Type     Units
+        0  None       pos.galactic.lat  deg
+        1  None       None              Hz
+        2  None       pos.galactic.lon  deg
 
 Correlation between pixel and world axes:
 
