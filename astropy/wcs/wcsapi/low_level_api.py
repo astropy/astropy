@@ -263,8 +263,10 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         """
         An iterable of strings describing the name for each pixel axis.
 
-        If an axis does not have a name (the default if a subclass does not
-        override), an empty string should be returned.
+        If an axis does not have a name, an empty string should be returned
+        (this is the default behavior for all axes if a subclass does not
+        override this property). Note that these names are just for display
+        purposes and are not standardized.
         """
         return [''] * self.pixel_n_dim
 
@@ -273,10 +275,10 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         """
         An iterable of strings describing the name for each world axis.
 
-        If an axis does not have a name (the default if a subclass does not
-        override), an empty string should be returned. Note that
-        these names are just for display purposes and are not standardized.
-        For standardized axis types, see
+        If an axis does not have a name, an empty string should be returned
+        (this is the default behavior for all axes if a subclass does not
+        override this property). Note that these names are just for display
+        purposes and are not standardized. For standardized axis types, see
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_physical_types`.
         """
         return [''] * self.world_n_dim
