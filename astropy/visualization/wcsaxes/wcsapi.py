@@ -68,6 +68,20 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
             elif "pos.helioprojective.lat" in axis_type:
                 format_unit = u.arcsec
                 coord_type = "latitude"
+            elif "pos.heliographic.stonyhurst.lon" in axis_type:
+                coord_wrap = 180.
+                format_unit = u.arcsec
+                coord_type = "longitude"
+            elif "pos.heliographic.stonyhurst.lat" in axis_type:
+                format_unit = u.arcsec
+                coord_type = "latitude"
+            elif "pos.heliographic.carrington.lon" in axis_type:
+                coord_wrap = 360.
+                format_unit = u.arcsec
+                coord_type = "longitude"
+            elif "pos.heliographic.carrington.lat" in axis_type:
+                format_unit = u.arcsec
+                coord_type = "latitude"
             elif "pos" in axis_type_split:
                 if "lon" in axis_type_split:
                     coord_type = "longitude"
