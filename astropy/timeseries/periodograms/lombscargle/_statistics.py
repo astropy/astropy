@@ -22,7 +22,7 @@ def _weighted_mean(val, dy):
     if dy is None:
         return val.mean()
     else:
-        return _weighted_sum(val, dy) / _weighted_sum(np.ones_like(val), dy)
+        return _weighted_sum(val, dy) / _weighted_sum(np.ones(val.shape), dy)
 
 
 def _weighted_var(val, dy):
