@@ -35,11 +35,6 @@ def _gamma(N):
     return np.sqrt(2 / N) * np.exp(gammaln(N / 2) - gammaln((N - 1) / 2))
 
 
-def _log_gamma(N):
-    from scipy.special import gammaln
-    return 0.5 * np.log(2 / N) + gammaln(N / 2) - gammaln((N - 1) / 2)
-
-
 def vectorize_first_argument(func):
     @wraps(func)
     def new_func(x, *args, **kwargs):
