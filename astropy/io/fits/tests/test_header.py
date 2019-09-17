@@ -2838,3 +2838,36 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         with open(self.temp('mode.fits'), mode=mode) as ff:
             hdu = fits.ImageHDU(data=np.ones(5))
             hdu.writeto(ff)
+
+
+def test_subclass():
+    """Check that subclasses don't get ignored on slicing and copying."""
+    class MyHeader(fits.Header):
+        def append(self, card, *args, **kwargs):
+            if isinstance(card, tuple) and len(card) == 2:
+                # Just for our checks we add a comment if there is none.
+                card += ('no comment',)
+
+            return super().append(card, *args, **kwargs)
+
+    my_header = MyHeader((('a', 1., 'first'),
+                          ('b', 2., 'second'),
+                          ('c', 3.,)))
+
+    assert my_header.comments['a'] == 'first'
+    assert my_header.comments['b'] == 'second'
+    assert my_header.comments['c'] == 'no comment'
+
+    slice_ = my_header[1:]
+    assert type(slice_) is MyHeader
+    assert slice_.comments['b'] == 'second'
+    assert slice_.comments['c'] == 'no comment'
+    selection = my_header['c*']
+    assert type(selection) is MyHeader
+    assert selection.comments['c'] == 'no comment'
+    copy_ = my_header.copy()
+    assert type(copy_) is MyHeader
+    assert copy_.comments['b'] == 'second'
+    assert copy_.comments['c'] == 'no comment'
+    my_header.extend((('d', 4.),))
+    assert my_header.comments['d'] == 'no comment'
