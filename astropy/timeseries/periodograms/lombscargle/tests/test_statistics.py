@@ -68,6 +68,8 @@ def test_distribution(normalization, with_errors, units):
     z_mid = z[:-1] + 0.5 * dz
     pdf = ls.distribution(z_mid)
     cdf = ls.distribution(z, cumulative=True)
+    if isinstance(dz, u.Quantity):
+        dz = dz.value
     assert_allclose(pdf, np.diff(cdf) / dz, rtol=1E-5, atol=1E-8)
 
     # psd normalization without specified errors produces bad results
