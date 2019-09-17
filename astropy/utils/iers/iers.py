@@ -630,7 +630,7 @@ class IERS_Auto(IERS_A):
 
         """
         if not conf.auto_download:
-            cls.iers_table = cls.from_iers_b(IERS.open())
+            cls.iers_table = cls.from_iers_b(IERS_B.open(IERS_B_URL))
             return cls.iers_table
 
         all_urls = (conf.iers_auto_url, conf.iers_auto_url_mirror)
@@ -662,7 +662,7 @@ class IERS_Auto(IERS_A):
             warn(AstropyWarning('failed to download {}, using local IERS-B: {}'
                                 .format(' and '.join(all_urls),
                                         ';'.join(err_list))))  # noqa
-            cls.iers_table = cls.from_iers_b(IERS.open())
+            cls.iers_table = cls.from_iers_b(IERS_B.open(IERS_B_URL))
             return cls.iers_table
 
         cls.iers_table = cls.read(file=filename)
