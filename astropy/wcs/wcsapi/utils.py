@@ -43,15 +43,20 @@ def wcs_info_str(wcs):
 
     # Find largest between header size and value length
     pixel_dim_width = max(9, len(str(wcs.pixel_n_dim)))
+    pixel_nam_width = max(9, max(len(x) for x in wcs.pixel_axis_names))
     pixel_siz_width = max(9, len(str(max(array_shape))))
 
+    print(pixel_nam_width)
+
     s += (('{0:' + str(pixel_dim_width) + 's}').format('Pixel Dim') + '  ' +
+            ('{0:' + str(pixel_nam_width) + 's}').format('Axis Name') + '  ' +
             ('{0:' + str(pixel_siz_width) + 's}').format('Data size') + '  ' +
             'Bounds\n')
 
     for ipix in range(wcs.pixel_n_dim):
         s += (('{0:' + str(pixel_dim_width) + 'd}').format(ipix) + '  ' +
-                (" "*5 + str(None) if pixel_shape[ipix] is None else
+                ('{0:' + str(pixel_nam_width) + 's}').format(wcs.pixel_axis_names[ipix] or 'None') + '  ' +
+                (" " * 5 + str(None) if pixel_shape[ipix] is None else
                 ('{0:' + str(pixel_siz_width) + 'd}').format(pixel_shape[ipix])) + '  ' +
                 '{:s}'.format(str(None if wcs.pixel_bounds is None else wcs.pixel_bounds[ipix]) + '\n'))
 
@@ -61,22 +66,24 @@ def wcs_info_str(wcs):
 
     # Find largest between header size and value length
     world_dim_width = max(9, len(str(wcs.world_n_dim)))
+    world_nam_width = max(9, max(len(x) if x is not None else 0 for x in wcs.world_axis_names))
     world_typ_width = max(13, max(len(x) if x is not None else 0 for x in wcs.world_axis_physical_types))
 
     s += (('{0:' + str(world_dim_width) + 's}').format('World Dim') + '  ' +
+            ('{0:' + str(world_nam_width) + 's}').format('Axis Name') + '  ' +
             ('{0:' + str(world_typ_width) + 's}').format('Physical Type') + '  ' +
             'Units\n')
 
     for iwrl in range(wcs.world_n_dim):
 
-        if wcs.world_axis_physical_types[iwrl] is not None:
-            s += (('{0:' + str(world_dim_width) + 'd}').format(iwrl) + '  ' +
-                    ('{0:' + str(world_typ_width) + 's}').format(wcs.world_axis_physical_types[iwrl]) + '  ' +
-                    '{:s}'.format(wcs.world_axis_units[iwrl] + '\n'))
-        else:
-            s += (('{0:' + str(world_dim_width) + 'd}').format(iwrl) + '  ' +
-                    ('{0:' + str(world_typ_width) + 's}').format('None') + '  ' +
-                    '{:s}'.format('unknown' + '\n'))
+        name = wcs.world_axis_names[iwrl] or 'None'
+        typ = wcs.world_axis_physical_types[iwrl] or 'None'
+        unit = wcs.world_axis_units[iwrl] or 'unknown'
+
+        s += (('{0:' + str(world_dim_width) + 'd}').format(iwrl) + '  ' +
+                ('{0:' + str(world_nam_width) + 's}').format(name) + '  ' +
+                ('{0:' + str(world_typ_width) + 's}').format(typ) + '  ' +
+                '{:s}'.format(unit + '\n'))
     s += '\n'
 
     # Axis correlation matrix
