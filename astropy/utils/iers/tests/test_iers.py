@@ -304,3 +304,24 @@ class TestIERS_Auto():
             # Now the time range should be different.
             assert dat['MJD'][0] == 57359.0 * u.d
             assert dat['MJD'][-1] == (57539.0 + 60) * u.d
+
+
+@pytest.mark.remote_data
+def test_IERS_B_parameters_loading_into_IERS_Auto():
+    A = iers.IERS_Auto.open()
+    B = iers.IERS_B.open()
+
+    ok_A = A["MJD"] <= B["MJD"][-1]
+    assert not np.all(ok_A), "IERS B covers all of IERS A: should not happen"
+
+    i_B = np.searchsorted(B["MJD"], A["MJD"][ok_A])
+
+    assert np.all(np.diff(i_B) == 1), "Valid region not contiguous"
+    assert np.all(A["MJD"][ok_A] == B["MJD"][i_B])
+    # Check that values are copied correctly.  Since units are not
+    # necessarily the same, we use allclose with very strict tolerance.
+    for name in ("UT1_UTC", "PM_x", "PM_y", "dX_2000A", "dY_2000A"):
+        assert_quantity_allclose(
+            A[name][ok_A], B[name][i_B], rtol=1e-15,
+            err_msg=("Bug #9206 IERS B parameter {} not copied over "
+                     "correctly to IERS Auto".format(name)))

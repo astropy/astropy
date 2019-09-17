@@ -423,6 +423,12 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- For the default ``IERS_Auto`` table, which combines IERS A and B values, the
+  IERS nutation parameters "dX_2000A" and "dY_2000A" are now also taken from
+  the actual IERS B file rather than from the B values stored in the IERS A
+  file.  Any differences should be negligible for any practical application,
+  but this may help exactly reproducing results. [#9237]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
