@@ -798,5 +798,7 @@ class IERS_Auto(IERS_A):
             table['UT1_UTC_B'][:n_iers_b] = iers_b['UT1_UTC']
             table['PM_X_B'][:n_iers_b] = iers_b['PM_x']
             table['PM_Y_B'][:n_iers_b] = iers_b['PM_y']
+            table['dX_2000A_B'][:n_iers_b] = iers_b['dX_2000A']
+            table['dY_2000A_B'][:n_iers_b] = iers_b['dY_2000A']
 
         return table
