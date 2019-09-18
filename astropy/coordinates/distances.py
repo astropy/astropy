@@ -79,9 +79,7 @@ class Distance(u.SpecificTypeQuantity):
     Examples
     --------
     >>> from astropy import units as u
-    >>> from astropy import cosmology
     >>> from astropy.cosmology import WMAP5, WMAP7
-    >>> cosmology.set_current(WMAP7)
     >>> d1 = Distance(10, u.Mpc)
     >>> d2 = Distance(40, unit=u.au)
     >>> d3 = Distance(value=5, unit=u.kpc)
