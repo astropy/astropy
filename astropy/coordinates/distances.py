@@ -16,7 +16,7 @@ from .angles import Angle
 __all__ = ['Distance']
 
 
-__doctest_requires__ = {'*': ['scipy.integrate']}
+__doctest_requires__ = {'*': ['scipy']}
 
 
 class Distance(u.SpecificTypeQuantity):

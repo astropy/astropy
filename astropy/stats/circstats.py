@@ -15,7 +15,7 @@ from astropy.units import Quantity
 
 __all__ = ['circmean', 'circvar', 'circmoment', 'circcorrcoef', 'rayleightest',
            'vtest', 'vonmisesmle']
-__doctest_requires__ = {'vtest': ['scipy.stats']}
+__doctest_requires__ = {'vtest': ['scipy']}
 
 
 def _components(data, p=1, phi=0.0, axis=None, weights=None):
