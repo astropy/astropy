@@ -71,7 +71,7 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500):
     Generate 10^6 distance moduli between 24 and 43 for which we
     want to find the corresponding redshifts:
 
-    >>> Dvals = (24 + np.random.rand(1e6) * 20) * u.mag
+    >>> Dvals = (24 + np.random.rand(1000000) * 20) * u.mag
 
     Make a grid of distance moduli covering the redshift range we
     need using 50 equally log-spaced values between zmin and
