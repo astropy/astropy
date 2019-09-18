@@ -287,7 +287,8 @@ If you are implementing your own WCS class, you could choose to implement
 :class:`~astropy.wcs.WCS` class does this - the example above can be written
 more succinctly as::
 
-    >>> wcs[10, 30:100, 30:100]  # doctest: +REMOTE_DATA +NORMALIZE_WHITESPACE
+    >>> wcs[10, 30:100, 30:100]  # doctest: +REMOTE_DATA +ELLIPSIS
+    ...
     SlicedFITSWCS Transformation
     <BLANKLINE>
     This transformation has 2 pixel and 2 world dimensions
