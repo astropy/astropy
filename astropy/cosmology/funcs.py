@@ -95,17 +95,19 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500):
     The age and lookback time are monotonic with redshift, and so a
     unique solution can be found:
 
-    >>> z_at_value(Planck13.age, 2 * u.Gyr)
-    3.19812268...
+    >>> z_at_value(Planck13.age, 2 * u.Gyr)  # doctest: +FLOAT_CMP
+    3.19812268
 
     The angular diameter is not monotonic however, and there are two
     redshifts that give a value of 1500 Mpc. Use the zmin and zmax keywords
     to find the one you're interested in:
 
-    >>> z_at_value(Planck13.angular_diameter_distance, 1500 * u.Mpc, zmax=1.5)
-    0.6812769577...
-    >>> z_at_value(Planck13.angular_diameter_distance, 1500 * u.Mpc, zmin=2.5)
-    3.7914913242...
+    >>> z_at_value(Planck13.angular_diameter_distance,
+    ...            1500 * u.Mpc, zmax=1.5)  # doctest: +FLOAT_CMP
+    0.6812769577
+    >>> z_at_value(Planck13.angular_diameter_distance,
+    ...            1500 * u.Mpc, zmin=2.5)  # doctest: +FLOAT_CMP
+    3.7914913242
 
     Also note that the luminosity distance and distance modulus (two
     other commonly inverted quantities) are monotonic in flat and open
