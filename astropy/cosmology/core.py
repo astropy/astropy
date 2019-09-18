@@ -3329,14 +3329,17 @@ class default_cosmology(ScienceState):
     """
     The default cosmology to use.  To change it::
 
-        >>> from astropy.cosmology import default_cosmology, WMAP7
+        >>> from astropy.cosmology import default_cosmology
+        >>> from astropy.cosmology.parameters import WMAP7
         >>> with default_cosmology.set(WMAP7):
-        ...     # WMAP7 cosmology in effect
+        ...     'WMAP7 cosmology in effect'
+        ...
 
     Or, you may use a string::
 
         >>> with default_cosmology.set('WMAP7'):
-        ...     # WMAP7 cosmology in effect
+        ...     'WMAP7 cosmology in effect'
+        ...
     """
     _value = 'Planck15'
 

@@ -66,12 +66,13 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500):
     in a Planck13 cosmology, you could do the following:
 
     >>> import astropy.units as u
-    >>> from astropy.cosmology import Planck13, z_at_value
+    >>> from astropy.cosmology import z_at_value
+    >>> from astropy.cosmology.parameters import Planck13
 
     Generate 10^6 distance moduli between 24 and 43 for which we
     want to find the corresponding redshifts:
 
-    >>> Dvals = (24 + np.random.rand(1e6) * 20) * u.mag
+    >>> Dvals = (24 + np.random.rand(1000000) * 20) * u.mag
 
     Make a grid of distance moduli covering the redshift range we
     need using 50 equally log-spaced values between zmin and
@@ -90,7 +91,8 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500):
     Examples
     --------
     >>> import astropy.units as u
-    >>> from astropy.cosmology import Planck13, z_at_value
+    >>> from astropy.cosmology import z_at_value
+    >>> from astropy.cosmology.parameters import Planck13
 
     The age and lookback time are monotonic with redshift, and so a
     unique solution can be found:
