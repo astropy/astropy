@@ -25,10 +25,8 @@ __all__ = ['gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm',
            'interval_overlap_length', 'histogram_intervals', 'fold_intervals']
 
 __doctest_skip__ = ['binned_binom_proportion']
-__doctest_requires__ = {'binom_conf_interval': ['scipy.special'],
-                        'poisson_conf_interval': ['scipy.special',
-                                                  'scipy.optimize',
-                                                  'scipy.integrate']}
+__doctest_requires__ = {'binom_conf_interval': ['scipy'],
+                        'poisson_conf_interval': ['scipy']}
 
 
 gaussian_sigma_to_fwhm = 2.0 * math.sqrt(2.0 * math.log(2.0))

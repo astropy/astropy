@@ -11,7 +11,7 @@ from astropy.units import Quantity
 
 __all__ = ['z_at_value']
 
-__doctest_requires__ = {'*': ['scipy.integrate']}
+__doctest_requires__ = {'*': ['scipy']}
 
 
 def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500):

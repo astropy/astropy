@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import sys
 from math import acos, sin, cos, sqrt, pi, exp, log, floor
 from abc import ABCMeta, abstractmethod
@@ -28,7 +27,7 @@ __all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
            "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM",
            "default_cosmology"] + parameters.available
 
-__doctest_requires__ = {'*': ['scipy.integrate', 'scipy.special']}
+__doctest_requires__ = {'*': ['scipy']}
 
 # Notes about speeding up integrals:
 # ---------------------------------
