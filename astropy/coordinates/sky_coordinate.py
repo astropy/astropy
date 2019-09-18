@@ -168,9 +168,9 @@ class SkyCoord(ShapedLikeNDArray):
         only one unit is supplied then it applies to both ``LON`` and
         ``LAT``.
     obstime : valid `~astropy.time.Time` initializer, optional
-        Time of observation
+        Time(s) of observation.
     equinox : valid `~astropy.time.Time` initializer, optional
-        Coordinate frame equinox
+        Coordinate frame equinox.
     representation_type : str or Representation class
         Specifies the representation, e.g. 'spherical', 'cartesian', or
         'cylindrical'.  This affects the positional args and other keyword args
