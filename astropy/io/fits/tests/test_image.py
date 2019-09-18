@@ -519,17 +519,22 @@ class TestImageFunctions(FitsTestCase):
         assert (d.section[:] == dat[:]).all()
         assert (d.section[:, :] == dat[:, :]).all()
 
+        # Test that various combinations of indexing on the section are equal to
+        # indexing the data.
+        # Testing all combinations of scalar-index and [:] for each dimension.
         for idx1 in [slice(None), 0, 1]:
             for idx2 in [slice(None), 0, 1, 2]:
                 for idx3 in [slice(None), 0, 1, 2]:
                     nd_idx = (idx1, idx2, idx3)
                     assert (d.section[nd_idx] == dat[nd_idx]).all()
 
+        # Test all ways to slice the last dimension but keeping the first two.
         for idx3 in [slice(0, 1), slice(0, 2), slice(0, 3),
                      slice(1, 2), slice(1, 3), slice(2, 3)]:
             nd_idx = (slice(None), slice(None), idx3)
             assert (d.section[nd_idx] == dat[nd_idx]).all()
 
+        # Test various combinations (not exhaustive) to slice all dimensions.
         for idx1 in [slice(0, 1), slice(1, 2)]:
             for idx2 in [slice(0, 1), slice(0, 2), slice(0, 3),
                          slice(1, 2), slice(1, 3)]:
