@@ -706,6 +706,11 @@ def test_fractional_powers():
     assert isinstance(x.powers[0], Fraction)
     assert x.powers[0] == Fraction(7, 6)
 
+    # Regression test for #9258.
+    x = (u.TeV ** (-2.2)) ** (1/-2.2)
+    assert isinstance(x.powers[0], Fraction)
+    assert x.powers[0] == Fraction(1, 1)
+
 
 def test_sqrt_mag():
     sqrt_mag = u.mag ** 0.5

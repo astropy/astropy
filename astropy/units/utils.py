@@ -1,12 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 """
 Miscellaneous utilities for `astropy.units`.
 
 None of the functions in the module are meant for use outside of the
 package.
 """
-
 
 import numbers
 import io
@@ -199,6 +197,33 @@ def sanitize_scale(scale):
         return scale.real
 
 
+def maybe_simple_fraction(p, max_denominator=1000000):
+    """Fraction very close to x with denominator at most max_denominator.
+
+    The fraction has to be such that fraction/x is unity to within 4 ulp.
+    If such a fraction does not exist, returns the float number.
+
+    The algorithm is that of `fractions.Fraction.limit_denominator`, but
+    sped up by not creating a fraction to start with.
+    """
+    if p == 0 or p.__class__ is int:
+        return p
+    n, d = p.as_integer_ratio()
+    a = n // d
+    # Normally, start with 0,1 and 1,0; here we have applied first iteration.
+    n0, d0 = 1, 0
+    n1, d1 = a, 1
+    while d1 <= max_denominator:
+        if _JUST_BELOW_UNITY <= n1/(d1*p) <= _JUST_ABOVE_UNITY:
+            return Fraction(n1, d1)
+        n, d = d, n-a*d
+        a = n // d
+        n0, n1 = n1, n0+a*n1
+        d0, d1 = d1, d0+a*d1
+
+    return p
+
+
 def validate_power(p, support_tuples=False):
     """Convert a power to a floating point value, an integer, or a Fraction.
 
@@ -233,15 +258,9 @@ def validate_power(p, support_tuples=False):
             # operations are much faster.
             pass
         else:
-            # Convert floats indistinguishable from a rational to Fraction.
-            # Here, we do not need to test values that are divisors of a higher
-            # number, such as 3, since it is already addressed by 6.
-            for i in (10, 9, 7, 6):
-                scaled = p * float(i)
-                if((scaled + 4. * _float_finfo.eps) % 1.0 <
-                   8. * _float_finfo.eps):
-                    p = Fraction(int(round(scaled)), i)
-                    break
+            # Convert floats indistinguishable from a rational with denominator
+            # less than 11 to Fraction.
+            p = maybe_simple_fraction(p, 10)
 
     elif denom == 1:
         p = int(p.numerator)
@@ -255,7 +274,8 @@ def validate_power(p, support_tuples=False):
 
 def resolve_fractions(a, b):
     """
-    If either input is a Fraction, convert the other to a Fraction.
+    If either input is a Fraction, convert the other to a Fraction
+    (at least if it does not have a ridiculous denominator).
     This ensures that any operation involving a Fraction will use
     rational arithmetic and preserve precision.
     """
@@ -266,9 +286,9 @@ def resolve_fractions(a, b):
     b_is_fraction = (b.__class__ is not int and b.__class__ is not float and
                      isinstance(b, Fraction))
     if a_is_fraction and not b_is_fraction:
-        b = Fraction(b)
+        b = maybe_simple_fraction(b)
     elif not a_is_fraction and b_is_fraction:
-        a = Fraction(a)
+        a = maybe_simple_fraction(a)
     return a, b
 
 
