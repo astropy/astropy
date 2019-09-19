@@ -405,6 +405,10 @@ astropy.table
 - Fix bug where adding a column consisting of a list of masked arrays was
   dropping the masks. [#9048]
 
+- ``Quantity`` columns with custom units can now round-trip via FITS tables,
+  as long as the custom unit is enabled during reading (otherwise, the unit
+  will become an ``UnrecognizedUnit``). [#9015]
+
 astropy.tests
 ^^^^^^^^^^^^^
 

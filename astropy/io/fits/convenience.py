@@ -524,9 +524,26 @@ def table_to_hdu(table, character_as_bytes=False):
                     "is not recognized by the FITS standard. Either scale "
                     "the data or change the units.".format(col.name, str(scale)))
             except ValueError:
-                warnings.warn(
-                    "The unit '{}' could not be saved to FITS format".format(
-                        unit.to_string()), AstropyUserWarning)
+                # Warn that the unit is lost, but let the details depend on
+                # whether the column was serialized (because it was a
+                # quantity), since then the unit can be recovered by astropy.
+                warning = (
+                    "The unit '{}' could not be saved in native FITS format "
+                    .format(unit.to_string()))
+                if any('SerializedColumn' in item and 'name: '+col.name in item
+                       for item in table.meta.get('comments', [])):
+                    warning += (
+                        "and hence will be lost to non-astropy fits readers. "
+                        "Within astropy, the unit can roundtrip using QTable, "
+                        "though one has to enable the unit before reading.")
+                else:
+                    warning += (
+                        "and cannot be recovered in reading. If pyyaml is "
+                        "installed, it can roundtrip within astropy by "
+                        "using QTable both to write and read back, "
+                        "though one has to enable the unit before reading.")
+                warnings.warn(warning, AstropyUserWarning)
+
             else:
                 # Try creating a Unit to issue a warning if the unit is not
                 # FITS compliant

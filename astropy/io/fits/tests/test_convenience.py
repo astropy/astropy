@@ -74,7 +74,7 @@ class TestConvenience(FitsTestCase):
         with catch_warnings() as w:
             fits.table_to_hdu(table)
             assert len(w) == 1
-            assert str(w[0].message).startswith("The unit 'test' could not be saved to FITS format")
+            assert str(w[0].message).startswith("The unit 'test' could not be saved")
 
     def test_table_to_hdu_convert_comment_convention(self):
         """
