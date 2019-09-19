@@ -659,7 +659,8 @@ class CoordinateHelper:
                 tick_angle[reset] -= 180.
 
             else:
-                tick_angle = np.zeros((conf.frame_boundary_samples,))
+                rotation = 90 if axis == 'b' else -90
+                tick_angle = np.zeros((conf.frame_boundary_samples,)) + rotation
 
             # We find for each interval the starting and ending coordinate,
             # ensuring that we take wrapping into account correctly for

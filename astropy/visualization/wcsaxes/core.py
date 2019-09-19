@@ -164,7 +164,8 @@ class WCSAxes(Axes):
             s.set_visible(False)
 
         self.xaxis.set_visible(False)
-        self.yaxis.set_visible(False)
+        if not isinstance(self.frame, RectangularFrame1D):
+            self.yaxis.set_visible(False)
 
     # We now overload ``imshow`` because we need to make sure that origin is
     # set to ``lower`` for all images, which means that we need to flip RGB
