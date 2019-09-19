@@ -748,3 +748,23 @@ class TestBasic(BaseImageTests):
         ax.coords[1].tick_params(which='minor', length=6)
 
         return fig
+
+
+@pytest.fixture
+def wave_wcs_1d():
+    wcs = WCS(naxis=1)
+    wcs.wcs.ctype = ['WAVE']
+    wcs.wcs.crpix = [256.0]
+    wcs.wcs.cdelt = [-0.05]
+    wcs.wcs.crval = [50.0]
+    wcs.wcs.set()
+    return wcs
+
+def test_1d_plot_1d_wcs(wave_wcs_1d):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection=wave_wcs_1d)
+    lines, = ax.plot([10, 12, 14, 12, 10])
+
+    fig.savefig("/tmp/test.png")
+    return fig
+

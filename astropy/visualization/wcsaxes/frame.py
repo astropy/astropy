@@ -11,7 +11,7 @@ from matplotlib import rcParams
 from matplotlib.lines import Line2D, Path
 from matplotlib.patches import PathPatch
 
-__all__ = ['Spine', 'BaseFrame', 'RectangularFrame', 'EllipticalFrame']
+__all__ = ['RectangularFrame1D', 'Spine', 'BaseFrame', 'RectangularFrame', 'EllipticalFrame']
 
 
 class Spine:
@@ -159,8 +159,7 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
             p = np.linspace(0., 1., data.shape[0])
             p_new = np.linspace(0., 1., n_samples)
             spines[axis] = Spine(self.parent_axes, self.transform)
-            spines[axis].data = np.array([np.interp(p_new, p, data[:, 0]),
-                                          np.interp(p_new, p, data[:, 1])]).transpose()
+            spines[axis].data = np.array([np.interp(p_new, p, d) for d in data.T]).transpose()
 
         return spines
 
@@ -195,6 +194,38 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def update_spines(self):
         raise NotImplementedError("")
+
+
+class RectangularFrame1D(BaseFrame):
+    """
+    A classic rectangular frame.
+    """
+
+    spine_names = 'bt'
+
+    def update_spines(self):
+
+        xmin, xmax = self.parent_axes.get_xlim()
+
+        self['b'].data = np.array(([xmin], [xmax]))
+        self['t'].data = np.array(([xmax], [xmin]))
+
+    def _update_patch_path(self):
+
+        self.update_spines()
+
+        xmin, xmax = self.parent_axes.get_xlim()
+        ymin, ymax = self.parent_axes.get_ylim()
+
+        x = [xmin, xmax, xmax, xmin, xmin]
+        y = [ymin, ymin, ymax, ymax, ymin]
+
+        vertices = np.vstack([np.hstack(x), np.hstack(y)]).transpose()
+
+        if self._path is None:
+            self._path = Path(vertices)
+        else:
+            self._path.vertices = vertices
 
 
 class RectangularFrame(BaseFrame):

@@ -17,7 +17,7 @@ from astropy.wcs import WCS
 from .transforms import CoordinateTransform
 from .coordinates_map import CoordinatesMap
 from .utils import get_coord_meta, transform_contour_set_inplace
-from .frame import RectangularFrame
+from .frame import RectangularFrame, RectangularFrame1D
 from .wcsapi import IDENTITY, transform_coord_meta_from_wcs
 
 
@@ -94,13 +94,18 @@ class WCSAxes(Axes):
     """
 
     def __init__(self, fig, rect, wcs=None, transform=None, coord_meta=None,
-                 transData=None, slices=None, frame_class=RectangularFrame,
+                 transData=None, slices=None, frame_class=None,
                  **kwargs):
 
         super().__init__(fig, rect, **kwargs)
         self._bboxes = []
 
-        self.frame_class = frame_class
+        if frame_class is not None:
+            self.frame_class = frame_class
+        elif (wcs.pixel_n_dim == 1 or 'y' not in slices):
+            self.frame_class = RectangularFrame1D
+        else:
+            self.frame_class = RectangularFrame
 
         if not (transData is None):
             # User wants to override the transform for the final
