@@ -12,6 +12,7 @@ import numpy as np
 from matplotlib.ticker import Formatter
 from matplotlib.transforms import Affine2D, ScaledTranslation
 from matplotlib.patches import PathPatch
+from matplotlib.path import Path
 from matplotlib import rcParams
 
 from astropy import units as u
@@ -525,11 +526,13 @@ class CoordinateHelper:
         self._update_ticks()
 
         if self.grid_lines_kwargs['visible']:
-
-            if self._grid_type == 'lines':
-                self._update_grid_lines()
+            if isinstance(self.frame, RectangularFrame1D):
+                self._update_grid_lines_1d()
             else:
-                self._update_grid_contour()
+                if self._grid_type == 'lines':
+                    self._update_grid_lines()
+                else:
+                    self._update_grid_contour()
 
             if self._grid_type == 'lines':
 
@@ -808,6 +811,19 @@ class CoordinateHelper:
         """
         self.minor_frequency = frequency
 
+    def _update_grid_lines_1d(self):
+        if self.coord_index is None:
+            return
+
+        x_ticks_pos = [a[0] for a in self.ticks.pixel['b']]
+
+        ymin, ymax = self.parent_axes.get_ylim()
+
+        self.grid_lines = []
+        for x_coord in x_ticks_pos:
+            pixel = [[x_coord, ymin], [x_coord, ymax]]
+            self.grid_lines.append(Path(pixel))
+
     def _update_grid_lines(self):
 
         # For 3-d WCS with a correlated third axis, the *proper* way of
@@ -834,6 +850,7 @@ class CoordinateHelper:
         xy_world = np.zeros((n_samples * n_coord, 2))
 
         self.grid_lines = []
+
         for iw, w in enumerate(tick_world_coordinates_values):
             subset = slice(iw * n_samples, (iw + 1) * n_samples)
             if self.coord_index == 0:

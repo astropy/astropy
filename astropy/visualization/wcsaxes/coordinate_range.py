@@ -49,9 +49,9 @@ def find_coordinate_range(transform, extent, coord_types, coord_units):
             world = transform.transform(np.vstack([xp.ravel(), yp.ravel()]).transpose())
     else:
         nx = conf.coordinate_range_samples
-        xp = np.linspace(extent[0], extent[1], nx + 1)
+        xp = np.linspace(extent[0], extent[1], nx + 1)[None]
         with np.errstate(invalid='ignore'):
-            world = transform.transform(xp[None].T)
+            world = transform.transform(xp.T)
 
     ranges = []
 
