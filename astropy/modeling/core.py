@@ -3306,7 +3306,9 @@ class CompoundModel(Model):
         bounding_box = list(self.left.bounding_box)
         for ind in input_ind:
             del bounding_box[ind]
-        self.bounding_box = tuple(bounding_box)
+        if self.n_inputs == 1:
+            bounding_box = bounding_box[0]
+        self.bounding_box = bounding_box
 
     @property
     def has_user_bounding_box(self):
