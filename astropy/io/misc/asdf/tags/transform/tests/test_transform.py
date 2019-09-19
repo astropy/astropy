@@ -11,6 +11,7 @@ from asdf import util
 from asdf.tests import helpers
 
 import astropy.units as u
+from astropy.modeling.core import fix_inputs
 from astropy.modeling import models as astmodels
 
 test_models = [
@@ -165,3 +166,27 @@ def test_tabular_model_units(tmpdir):
                                  method='nearest')
     tree = {'model': model2}
     helpers.assert_roundtrip_tree(tree, tmpdir)
+
+
+def test_fix_inputs(tmpdir):
+    model = astmodels.Pix2Sky_TAN() | astmodels.Rotation2D()
+    tree = {
+        'compound': fix_inputs(model, {'x': 45}),
+        'compound1': fix_inputs(model, {0: 45})
+    }
+
+    helpers.assert_roundtrip_tree(tree, tmpdir)
+
+
+def test_fix_inputs_type():
+    with pytest.raises(TypeError):
+        tree = {
+        'compound': fix_inputs(3, {'x': 45})
+        }
+        helpers.assert_roundtrip_tree(tree, tmpdir)
+
+    with pytest.raises(AttributeError):
+        tree = {
+        'compound': astmodels.Pix2Sky_TAN() & {'x': 45}
+        }
+        helpers.assert_roundtrip_tree(tree, tmpdir)
