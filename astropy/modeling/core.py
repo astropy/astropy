@@ -2309,7 +2309,6 @@ class CompoundModel(Model):
         self._bounding_box = None
         self._user_bounding_box = None
         self._leaflist = None
-        self._fix_input_hook = None
         self._opset = None
         self._tdict = None
         self._parameters = None
@@ -2423,9 +2422,6 @@ class CompoundModel(Model):
                 self._fix_input_bounding_box(input_ind)
             except NotImplementedError:
                 pass
-            # Call the hook if it exists
-            if self._fix_input_hook is not None:
-                self._fix_input_hook(input_ind)
 
         else:
             raise ModelDefinitionError('Illegal operator: ', self.op)
