@@ -13,7 +13,7 @@ from astropy.time import Time
 from astropy.units import Quantity
 from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
 from astropy.wcs import WCS
-from astropy.visualization.wcsaxes.frame import RectangularFrame
+from astropy.visualization.wcsaxes.frame import RectangularFrame, RectangularFrame1D
 from astropy.visualization.wcsaxes.wcsapi import (WCSWorld2PixelTransform,
                                                   transform_coord_meta_from_wcs)
 
@@ -163,6 +163,54 @@ def test_coord_type_from_ctype():
     assert coord_meta['type'] == ['scalar', 'scalar']
     assert coord_meta['format_unit'] == [u.one, u.one]
     assert coord_meta['wrap'] == [None, None]
+
+
+def test_coord_type_1d_1d_wcs():
+    wcs = WCS(naxis=1)
+    wcs.wcs.ctype = ['WAVE']
+    wcs.wcs.crpix = [256.0]
+    wcs.wcs.cdelt = [-0.05]
+    wcs.wcs.crval = [50.0]
+    wcs.wcs.set()
+
+    _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame1D)
+
+    assert coord_meta['type'] == ['scalar']
+    assert coord_meta['format_unit'] == [u.m]
+    assert coord_meta['wrap'] == [None]
+
+
+def test_coord_type_1d_2d_wcs_correlated():
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ['GLON-TAN', 'GLAT-TAN']
+    wcs.wcs.crpix = [256.0] * 2
+    wcs.wcs.cdelt = [-0.05] * 2
+    wcs.wcs.crval = [50.0] * 2
+    wcs.wcs.set()
+
+    _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame1D, slices=('x', 0))
+
+    assert coord_meta['type'] == ['longitude', 'latitude']
+    assert coord_meta['format_unit'] == [u.deg, u.deg]
+    assert coord_meta['wrap'] == [None, None]
+    assert coord_meta['visible'] == [True, True]
+
+
+def test_coord_type_1d_2d_wcs_uncorrelated():
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ['WAVE', 'TIME']
+    wcs.wcs.crpix = [256.0] * 2
+    wcs.wcs.cdelt = [-0.05] * 2
+    wcs.wcs.crval = [50.0] * 2
+    wcs.wcs.cunit = ['nm', 's']
+    wcs.wcs.set()
+
+    _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame1D, slices=('x', 0))
+
+    assert coord_meta['type'] == ['scalar', 'scalar']
+    assert coord_meta['format_unit'] == [u.m, u.s]
+    assert coord_meta['wrap'] == [None, None]
+    assert coord_meta['visible'] == [True, False]
 
 
 class LowLevelWCS5D(BaseLowLevelWCS):

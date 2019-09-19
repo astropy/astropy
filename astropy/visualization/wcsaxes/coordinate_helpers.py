@@ -17,6 +17,7 @@ from matplotlib import rcParams
 from astropy import units as u
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
+from .frame import RectangularFrame1D
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 from .ticks import Ticks
 from .ticklabels import TickLabels
@@ -608,53 +609,57 @@ class CoordinateHelper:
 
         for axis, spine in frame.items():
 
-            # Determine tick rotation in display coordinates and compare to
-            # the normal angle in display coordinates.
+            if not isinstance(self.frame, RectangularFrame1D):
+                # Determine tick rotation in display coordinates and compare to
+                # the normal angle in display coordinates.
 
-            pixel0 = spine.data
-            world0 = spine.world[:, self.coord_index]
-            with np.errstate(invalid='ignore'):
-                world0 = self.transform.transform(pixel0)[:, self.coord_index]
-            axes0 = transData.transform(pixel0)
+                pixel0 = spine.data
+                world0 = spine.world[:, self.coord_index]
+                with np.errstate(invalid='ignore'):
+                    world0 = self.transform.transform(pixel0)[:, self.coord_index]
+                axes0 = transData.transform(pixel0)
 
-            # Advance 2 pixels in figure coordinates
-            pixel1 = axes0.copy()
-            pixel1[:, 0] += 2.0
-            pixel1 = invertedTransLimits.transform(pixel1)
-            with np.errstate(invalid='ignore'):
-                world1 = self.transform.transform(pixel1)[:, self.coord_index]
+                # Advance 2 pixels in figure coordinates
+                pixel1 = axes0.copy()
+                pixel1[:, 0] += 2.0
+                pixel1 = invertedTransLimits.transform(pixel1)
+                with np.errstate(invalid='ignore'):
+                    world1 = self.transform.transform(pixel1)[:, self.coord_index]
 
-            # Advance 2 pixels in figure coordinates
-            pixel2 = axes0.copy()
-            pixel2[:, 1] += 2.0 if self.frame.origin == 'lower' else -2.0
-            pixel2 = invertedTransLimits.transform(pixel2)
-            with np.errstate(invalid='ignore'):
-                world2 = self.transform.transform(pixel2)[:, self.coord_index]
+                # Advance 2 pixels in figure coordinates
+                pixel2 = axes0.copy()
+                pixel2[:, 1] += 2.0 if self.frame.origin == 'lower' else -2.0
+                pixel2 = invertedTransLimits.transform(pixel2)
+                with np.errstate(invalid='ignore'):
+                    world2 = self.transform.transform(pixel2)[:, self.coord_index]
 
-            dx = (world1 - world0)
-            dy = (world2 - world0)
+                dx = (world1 - world0)
+                dy = (world2 - world0)
 
-            # Rotate by 90 degrees
-            dx, dy = -dy, dx
+                # Rotate by 90 degrees
+                dx, dy = -dy, dx
 
-            if self.coord_type == 'longitude':
+                if self.coord_type == 'longitude':
 
-                if self._coord_scale_to_deg is not None:
-                    dx *= self._coord_scale_to_deg
-                    dy *= self._coord_scale_to_deg
+                    if self._coord_scale_to_deg is not None:
+                        dx *= self._coord_scale_to_deg
+                        dy *= self._coord_scale_to_deg
 
-                # Here we wrap at 180 not self.coord_wrap since we want to
-                # always ensure abs(dx) < 180 and abs(dy) < 180
-                dx = wrap_angle_at(dx, 180.)
-                dy = wrap_angle_at(dy, 180.)
+                    # Here we wrap at 180 not self.coord_wrap since we want to
+                    # always ensure abs(dx) < 180 and abs(dy) < 180
+                    dx = wrap_angle_at(dx, 180.)
+                    dy = wrap_angle_at(dy, 180.)
 
-            tick_angle = np.degrees(np.arctan2(dy, dx))
+                tick_angle = np.degrees(np.arctan2(dy, dx))
 
-            normal_angle_full = np.hstack([spine.normal_angle, spine.normal_angle[-1]])
-            with np.errstate(invalid='ignore'):
-                reset = (((normal_angle_full - tick_angle) % 360 > 90.) &
-                         ((tick_angle - normal_angle_full) % 360 > 90.))
-            tick_angle[reset] -= 180.
+                normal_angle_full = np.hstack([spine.normal_angle, spine.normal_angle[-1]])
+                with np.errstate(invalid='ignore'):
+                    reset = (((normal_angle_full - tick_angle) % 360 > 90.) &
+                            ((tick_angle - normal_angle_full) % 360 > 90.))
+                tick_angle[reset] -= 180.
+
+            else:
+                tick_angle = np.zeros((conf.frame_boundary_samples,))
 
             # We find for each interval the starting and ending coordinate,
             # ensuring that we take wrapping into account correctly for

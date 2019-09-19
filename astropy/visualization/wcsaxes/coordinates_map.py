@@ -4,8 +4,8 @@ from textwrap import indent
 from collections import OrderedDict
 
 from .coordinate_helpers import CoordinateHelper
-from .frame import RectangularFrame
-from .coordinate_range import find_coordinate_range
+from .frame import RectangularFrame, RectangularFrame1D
+from .coordinate_range import find_coordinate_range, find_coordinate_range_1d
 
 
 class CoordinatesMap:
@@ -143,9 +143,15 @@ class CoordinatesMap:
 
     def get_coord_range(self):
         xmin, xmax = self._axes.get_xlim()
-        ymin, ymax = self._axes.get_ylim()
+
+        if isinstance(self.frame, RectangularFrame1D):
+            extent = [xmin, xmax]
+        else:
+            ymin, ymax = self._axes.get_ylim()
+            extent = [xmin, xmax, ymin, ymax]
+
         return find_coordinate_range(self._transform,
-                                     [xmin, xmax, ymin, ymax],
+                                     extent,
                                      [coord.coord_type for coord in self if coord.coord_index is not None],
                                      [coord.coord_unit for coord in self if coord.coord_index is not None])
 
