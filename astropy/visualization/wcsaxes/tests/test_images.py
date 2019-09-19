@@ -760,11 +760,37 @@ def wave_wcs_1d():
     wcs.wcs.set()
     return wcs
 
+
 def test_1d_plot_1d_wcs(wave_wcs_1d):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1, projection=wave_wcs_1d)
     lines, = ax.plot([10, 12, 14, 12, 10])
 
-    fig.savefig("/tmp/test.png")
     return fig
 
+
+@pytest.fixture
+def spatial_wcs_2d():
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ['GLON-TAN', 'GLAT-TAN']
+    wcs.wcs.crpix = [3.0] * 2
+    wcs.wcs.cdelt = [15] * 2
+    wcs.wcs.crval = [50.0] * 2
+    wcs.wcs.set()
+    return wcs
+
+
+def test_1d_plot_2d_wcs_correlated(spatial_wcs_2d):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection=spatial_wcs_2d, slices=('x', 0))
+    lines, = ax.plot([10, 12, 14, 12, 10], '-o', color="orange")
+
+    ax.coords['glon'].set_ticks(color="red")
+    ax.coords['glon'].set_ticklabel(color="red")
+    ax.coords['glon'].grid(color="red")
+
+    ax.coords['glat'].set_ticks(color="blue")
+    ax.coords['glat'].set_ticklabel(color="blue")
+    ax.coords['glat'].grid(color="blue")
+
+    return fig

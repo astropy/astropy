@@ -222,8 +222,8 @@ class WCSWorld2PixelTransform(CurvedTransform):
 
         super().__init__()
 
-        if wcs.pixel_n_dim != 2:
-            raise ValueError('Only pixel_n_dim==2 is supported')
+        if wcs.pixel_n_dim > 2:
+            raise ValueError('Only pixel_n_dim =< 2 is supported')
 
         self.wcs = wcs
         self.invert_xy = invert_xy
