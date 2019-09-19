@@ -5,7 +5,7 @@ from collections import OrderedDict
 
 from .coordinate_helpers import CoordinateHelper
 from .frame import RectangularFrame, RectangularFrame1D
-from .coordinate_range import find_coordinate_range, find_coordinate_range_1d
+from .coordinate_range import find_coordinate_range
 
 
 class CoordinatesMap:

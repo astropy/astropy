@@ -169,6 +169,13 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
                 coord_meta['default_ticks_position'][index] = spine_name
                 m[pos[0], :] = 0
 
+        # In the special and common case where the frame is rectangular and
+        # we are dealing with 2-d WCS (after slicing), we show all ticks on
+        # all axes for backward-compatibility.
+        if len(world_keep) == 1:
+            for index in world_keep:
+                coord_meta['default_ticks_position'][index] = 'bt'
+
     elif frame_class is EllipticalFrame:
 
         if 'longitude' in coord_meta['type']:
@@ -309,6 +316,9 @@ class WCSPixel2WorldTransform(CurvedTransform):
         # At the moment, one has to manually check that the transformation
         # round-trips, otherwise it should be considered invalid.
         pixel_check = self.wcs.world_to_pixel_values(*world)
+        if self.wcs.pixel_n_dim == 1:
+            pixel_check = [pixel_check]
+
         with np.errstate(invalid='ignore'):
             invalid = np.zeros(len(pixel[0]), dtype=bool)
             for ipix in range(len(pixel)):
