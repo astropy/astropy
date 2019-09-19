@@ -287,20 +287,22 @@ If you are implementing your own WCS class, you could choose to implement
 :class:`~astropy.wcs.WCS` class does this - the example above can be written
 more succinctly as::
 
-    >>> wcs[10, 30:100, 30:100]  # doctest: +REMOTE_DATA
+    >>> wcs[10, 30:100, 30:100]  # doctest: +REMOTE_DATA +ELLIPSIS
+    <BLANKLINE>
+    ...
     SlicedFITSWCS Transformation
     <BLANKLINE>
     This transformation has 2 pixel and 2 world dimensions
     <BLANKLINE>
     Array shape (Numpy order): (70, 70)
     <BLANKLINE>
-    Pixel Dim  Data size  Bounds
-            0         70  None
-            1         70  None
+    Pixel Dim  Axis Name  Data size  Bounds
+            0  None              70  None
+            1  None              70  None
     <BLANKLINE>
-    World Dim  Physical Type  Units
-            0  pos.eq.ra      deg
-            1  pos.eq.dec     deg
+    World Dim  Axis Name  Physical Type  Units
+            0  None       pos.eq.ra      deg
+            1  None       pos.eq.dec     deg
     <BLANKLINE>
     Correlation between pixel and world axes:
     <BLANKLINE>
@@ -316,19 +318,21 @@ a spectral cube to extract a 1D dataset corresponding to a row in the
 image plane of a spectral slice, the final WCS will have one pixel dimension
 and two world dimensions (since both RA/Dec vary over the extracted 1D slice)::
 
-    >>> wcs[10, 40, :]  # doctest: +REMOTE_DATA
+    >>> wcs[10, 40, :]  # doctest: +REMOTE_DATA +ELLIPSIS
+    <BLANKLINE>
+    ...
     SlicedFITSWCS Transformation
     <BLANKLINE>
     This transformation has 1 pixel and 2 world dimensions
     <BLANKLINE>
     Array shape (Numpy order): (105,)
     <BLANKLINE>
-    Pixel Dim  Data size  Bounds
-            0        105  None
+    Pixel Dim  Axis Name  Data size  Bounds
+            0  None             105  None
     <BLANKLINE>
-    World Dim  Physical Type  Units
-            0  pos.eq.ra      deg
-            1  pos.eq.dec     deg
+    World Dim  Axis Name  Physical Type  Units
+            0  None       pos.eq.ra      deg
+            1  None       pos.eq.dec     deg
     <BLANKLINE>
     Correlation between pixel and world axes:
     <BLANKLINE>
@@ -336,7 +340,6 @@ and two world dimensions (since both RA/Dec vary over the extracted 1D slice)::
     World Dim    0
             0  yes
             1  yes
-    <BLANKLINE>
 
 Reference/API
 =============
