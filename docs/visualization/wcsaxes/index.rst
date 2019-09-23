@@ -78,8 +78,8 @@ when something can be done directly with the pyplot interface.
 WCSAxes supports a number of advanced plotting options, including the ability to
 control which axes to show labels on for which coordinates, overlaying contours
 from data with different coordinate systems, overlaying grids for different
-coordinate systems, dealing with plotting slices from data with more than two
-dimensions, and defining custom (non-rectangular) frames.
+coordinate systems, dealing with plotting slices from data with more dimensions
+than the plot, and defining custom (non-rectangular) frames.
 
 Using WCSAxes
 =============
