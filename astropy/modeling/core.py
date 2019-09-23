@@ -193,14 +193,6 @@ class _ModelMeta(abc.ABCMeta):
         return cls.__name__
 
     @property
-    def n_inputs(cls):
-        return len(cls.inputs)
-
-    @property
-    def n_outputs(cls):
-        return len(cls.outputs)
-
-    @property
     def _is_concrete(cls):
         """
         A class-level property that determines whether the class is a concrete
@@ -493,8 +485,8 @@ class _ModelMeta(abc.ABCMeta):
         try:
             default_keywords = [
                 ('Name', format_inheritance(cls)),
-                ('Inputs', cls.inputs),
-                ('Outputs', cls.outputs),
+                ('N_inputs', cls.n_inputs),
+                ('N_outputs', cls.n_outputs),
             ]
 
             if cls.param_names:
@@ -658,10 +650,10 @@ class Model(metaclass=_ModelMeta):
     in the class body.
     """
 
-    inputs = ()
-    """The name(s) of the input variable(s) on which a model is evaluated."""
-    outputs = ()
-    """The name(s) of the output(s) of the model."""
+    n_inputs = 0
+    """The number of inputs."""
+    n_outputs = 0
+    """ The number of outputs."""
 
     standard_broadcasting = True
     fittable = False
@@ -704,6 +696,8 @@ class Model(metaclass=_ModelMeta):
 
     def __init__(self, *args, meta=None, name=None, **kwargs):
         super().__init__()
+        self._default_inputs_outputs()
+
         if meta is not None:
             self.meta = meta
         self._name = name
@@ -725,19 +719,47 @@ class Model(metaclass=_ModelMeta):
         self._initialize_slices()
         self._initialize_unit_support()
 
+    def _default_inputs_outputs(self):
+        if self.n_inputs == 1 and self.n_outputs == 1:
+            self._inputs = ("x",)
+            self._outputs = ("y",)
+        elif self.n_inputs == 2 and self.n_outputs == 1:
+            self._inputs = ("x", "y")
+            self._outputs = ("z",)
+        else:
+            self._inputs = tuple("x"+ str(idx) for idx in range(self.n_inputs))
+            self._outputs = tuple("x"+ str(idx) for idx in range(self.n_outputs))
+
+    @property
+    def inputs(self):
+        return self._inputs
+
+    @inputs.setter
+    def inputs(self, val):
+        self._inputs = val
+        self._initialize_unit_support()
+
+    @property
+    def outputs(self):
+        return self._outputs
+
+    @outputs.setter
+    def outputs(self, val):
+        self._outputs = val
+
     def _initialize_unit_support(self):
         """
         Convert self._input_units_strict and
         self.input_units_allow_dimensionless to dictionaries
-        mapping input name to a boolena value.
+        mapping input name to a boolean value.
         """
-        if isinstance(self._input_units_strict, bool):
-            self._input_units_strict = {key: self._input_units_strict for
-                                        key in self.__class__.inputs}
+        #if isinstance(self._input_units_strict, bool):
+        self._input_units_strict = {key: self._input_units_strict for
+                                    key in self.inputs}
 
-        if isinstance(self._input_units_allow_dimensionless, bool):
-            self._input_units_allow_dimensionless = {key: self._input_units_allow_dimensionless
-                                                     for key in self.__class__.inputs}
+        #if isinstance(self._input_units_allow_dimensionless, bool):
+        self._input_units_allow_dimensionless = {key: self._input_units_allow_dimensionless
+                                                 for key in self.inputs}
 
     @property
     def input_units_strict(self):
@@ -750,9 +772,9 @@ class Model(metaclass=_ModelMeta):
         """
         val = self._input_units_strict
         if isinstance(val, bool):
-            return {key: val for key in self.__class__.inputs}
+            return {key: val for key in self.inputs}
         else:
-            return val
+            return dict(zip(self.inputs, val.values()))
 
     @property
     def input_units_allow_dimensionless(self):
@@ -765,9 +787,9 @@ class Model(metaclass=_ModelMeta):
         """
         val = self._input_units_allow_dimensionless
         if isinstance(val, bool):
-            return {key: val for key in self.__class__.inputs}
+            return {key: val for key in self.inputs}
         else:
-            return val
+            return dict(zip(self.inputs, val.values()))
 
     @property
     def uses_quantity(self):
@@ -855,25 +877,6 @@ class Model(metaclass=_ModelMeta):
         """Assign a (new) name to this model."""
 
         self._name = val
-
-    @property
-    def n_inputs(self):
-        """
-        The number of inputs to this model.
-
-        Equivalent to ``len(model.inputs)``.
-        """
-
-        return len(self.inputs)
-
-    @property
-    def n_outputs(self):
-        """
-        The number of outputs from this model.
-
-        Equivalent to ``len(model.outputs)``.
-        """
-        return len(self.outputs)
 
     @property
     def model_set_axis(self):
@@ -1617,12 +1620,10 @@ class Model(metaclass=_ModelMeta):
                                              "converted to required input units of "
                                              "{2} ({3})".format(name, self.inputs[i], input_unit,
                                                                 input_unit.physical_type))
-
         return inputs
 
     def _process_output_units(self, inputs, outputs):
         inputs_are_quantity = any([isinstance(i, Quantity) for i in inputs])
-
         if self.return_units and inputs_are_quantity:
             # We allow a non-iterable unit only if there is one output
             if self.n_outputs == 1 and not isiterable(self.return_units):
@@ -1632,7 +1633,6 @@ class Model(metaclass=_ModelMeta):
 
             outputs = tuple([Quantity(out, return_units.get(out_name, None), subok=True)
                             for out, out_name in zip(outputs, self.outputs)])
-
         return outputs
 
     def prepare_outputs(self, format_info, *outputs, **kwargs):
@@ -2220,9 +2220,8 @@ class Fittable1DModel(FittableModel):
     This class provides an easier interface to defining new models.
     Examples can be found in `astropy.modeling.functional_models`.
     """
-
-    inputs = ('x',)
-    outputs = ('y',)
+    n_inputs = 1
+    n_outputs = 1
     _separable = True
 
 
@@ -2234,8 +2233,8 @@ class Fittable2DModel(FittableModel):
     Examples can be found in `astropy.modeling.functional_models`.
     """
 
-    inputs = ('x', 'y')
-    outputs = ('z',)
+    n_inputs = 2
+    n_outputs = 1
 
 
 def _make_arithmetic_operator(oper):
@@ -3671,8 +3670,8 @@ def _custom_model_wrapper(func, fit_deriv=None):
     members = OrderedDict([
         ('__module__', str(modname)),
         ('__doc__', func.__doc__),
-        ('inputs', tuple(x.name for x in inputs)),
-        ('outputs', output_names),
+        ('n_inputs', len(inputs)), #tuple(x.name for x in inputs)),
+        ('n_outputs', len(output_names)),
         ('evaluate', staticmethod(func))]
     )
 

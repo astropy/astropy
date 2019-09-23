@@ -28,6 +28,12 @@ class TransformType(AstropyAsdfType):
         if 'bounding_box' in node:
             model.bounding_box = yamlutil.tagged_tree_to_custom_tree(node['bounding_box'], ctx)
 
+        if "inputs" in node:
+            model.inputs = node["inputs"]
+
+        if "outputs" in node:
+            model.outputs = node["outputs"]
+
         return model
 
     @classmethod
@@ -61,6 +67,8 @@ class TransformType(AstropyAsdfType):
             else:
                 bb = [list(item) for item in model.bounding_box]
             node['bounding_box'] = yamlutil.custom_tree_to_tagged_tree(bb, ctx)
+        node['inputs'] = model.inputs
+        node['outputs'] = model.outputs
 
     @classmethod
     def to_tree_transform(cls, model, ctx):

@@ -84,7 +84,7 @@ class _Tabular(Model):
     fittable = False
 
     standard_broadcasting = False
-    outputs = ('y',)
+    #outputs = ('y',)
 
     @property
     @abc.abstractmethod
@@ -102,7 +102,7 @@ class _Tabular(Model):
         if n_models > 1:
             raise NotImplementedError('Only n_models=1 is supported.')
         super().__init__(**kwargs)
-
+        self.outputs = ("y",)
         if lookup_table is None:
             raise ValueError('Must provide a lookup table.')
 
@@ -301,8 +301,7 @@ def tabular_model(dim, name=None):
         raise ValueError('Lookup table must have at least one dimension.')
 
     table = np.zeros([2] * dim)
-    inputs = tuple(f'x{idx}' for idx in range(table.ndim))
-    members = {'lookup_table': table, 'inputs': inputs}
+    members = {'lookup_table': table, 'n_inputs': dim, 'n_outputs': 1}
 
     if dim == 1:
         members['_separable'] = True

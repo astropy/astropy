@@ -291,9 +291,8 @@ def test_invalid_operands():
         Rotation2D(90) + Gaussian1D(1, 0, 0.1)
 
 
-@pytest.mark.parametrize('poly', [Chebyshev2D(1, 2), Polynomial2D(2), Legendre2D(1, 2),
-                                  Chebyshev1D(5), Legendre1D(5), Polynomial1D(5)])
-def test_compound_with_polynomials(poly):
+@pytest.mark.parametrize('poly', [Chebyshev2D(1, 2), Polynomial2D(2), Legendre2D(1, 2)])
+def test_compound_with_polynomials_2d(poly):
     """
     Tests that polynomials are scaled when used in compound models.
     Issue #3699
@@ -305,6 +304,22 @@ def test_compound_with_polynomials(poly):
     result_compound = model(x, y)
     result = shift(poly(x, y))
     assert_allclose(result, result_compound)
+
+
+@pytest.mark.parametrize('poly', [Chebyshev1D(5), Legendre1D(5), Polynomial1D(5)])
+def test_compound_with_polynomials_1d(poly):
+    """
+    Tests that polynomials are scaled when used in compound models.
+    Issue #3699
+    """
+    poly.parameters = [1, 2, 3, 4, 1, 2]
+    shift = Shift(3)
+    model = poly | shift
+    x, y = np.mgrid[:20, :37]
+    result_compound = model(x)
+    result = shift(poly(x))
+    assert_allclose(result, result_compound)
+
 
 
 def test_fix_inputs():
