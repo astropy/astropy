@@ -152,17 +152,13 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         string_pixel = ax._display_world_coords(0.523412, 0.523412)
         assert string_pixel == "0.523412 0.523412 (pixel)"
 
-    @pytest.mark.remote_data(source='astropy')
     def test_plot_coord_3d_transform(self):
-        filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
-        wcs = WCS(filename)
-        data = fits.getdata(filename)
+        wcs = WCS(self.msx_header)
 
         coord = SkyCoord(0 * u.kpc, 0 * u.kpc, 0 * u.kpc, frame='galactocentric')
 
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1, projection=wcs)
-        ax.imshow(data)
         point, = ax.plot_coord(coord, 'ro')
 
         np.testing.assert_allclose(point.get_xydata()[0], [0, 0], atol=1e-4)

@@ -1,21 +1,22 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
 
-import pytest
+import matplotlib.lines
 import matplotlib.pyplot as plt
+import pytest
 from matplotlib import rc_context
 from matplotlib.patches import Circle, Rectangle
 
 import numpy as np
 
 from astropy import units as u
-from astropy.io import fits
-from astropy.wcs import WCS
 from astropy.coordinates import SkyCoord
+from astropy.io import fits
 from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
 from astropy.visualization.wcsaxes import WCSAxes
 from astropy.visualization.wcsaxes.frame import EllipticalFrame
 from astropy.visualization.wcsaxes.patches import SphericalCircle
+from astropy.wcs import WCS
 
 from . import datasets
 
@@ -285,7 +286,11 @@ class TestBasic(BaseImageTests):
         ax.set_ylim(-0.5, 720.5)
 
         c = SkyCoord(266 * u.deg, -29 * u.deg)
-        ax.plot_coord(c, 'o')
+        lines = ax.plot_coord(c, 'o')
+
+        # Test that plot_coord returns the results from ax.plot
+        assert isinstance(lines, list)
+        assert isinstance(lines[0], matplotlib.lines.Line2D)
 
         # In previous versions, all angle axes defaulted to being displayed in
         # degrees. We now automatically show RA axes in hour angle units, but
