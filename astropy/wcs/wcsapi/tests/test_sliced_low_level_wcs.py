@@ -123,6 +123,19 @@ def test_ellipsis():
     assert str(wcs) == repr(wcs) == EXPECTED_ELLIPSIS_REPR.strip()
 
 
+
+def test_pixel_to_world_broadcasting():
+    wcs = SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, Ellipsis)
+
+    assert_allclose(wcs.pixel_to_world_values((29, 29), 39, 44), ((10, 10), (20, 20), (25, 25)))
+
+
+def test_world_to_pixel_broadcasting():
+    wcs = SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, Ellipsis)
+
+    assert_allclose(wcs.world_to_pixel_values((10, 10), 20, 25), ((29., 29.), (39., 39.), (44., 44.)))
+
+
 EXPECTED_SPECTRAL_SLICE_REPR = """
 SlicedLowLevelWCS Transformation
 
