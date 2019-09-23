@@ -761,6 +761,9 @@ def wave_wcs_1d():
     return wcs
 
 
+@pytest.mark.remote_data(source='astropy')
+@pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                tolerance=0, style={})
 def test_1d_plot_1d_wcs(wave_wcs_1d):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1, projection=wave_wcs_1d)
@@ -780,6 +783,9 @@ def spatial_wcs_2d():
     return wcs
 
 
+@pytest.mark.remote_data(source='astropy')
+@pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                tolerance=0, style={})
 def test_1d_plot_2d_wcs_correlated(spatial_wcs_2d):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1, projection=spatial_wcs_2d, slices=('x', 0))
