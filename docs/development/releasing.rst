@@ -60,20 +60,15 @@ packages that use the full bugfix/maintenance branch approach.)
       $ pip install -e .[docs,test]  # any that might be left over
       $ pip uninstall astropy
 
+#. Make sure you have the latest Cython version installed for use with
+   releasing. To pick up the latest Cython release from PyPI::
+
+      $ pip install Cython --upgrade
+
 #. Before doing a release of Astropy, you may need to do a release of
    astropy-helpers.  This is not always necessary, as there are not always any
    significant changes in the helpers.  See :ref:`helpers-release-info` for more
    on this.
-
-#. Make sure that the continuous integration services (e.g., Travis) are passing
-   for the `astropy core repository`_ branch you're going to release.  You may
-   also want to locally run the tests (with remote data on to ensure all the
-   tests actually run), and make sure the description in ``setup.cfg`` is ReST
-   compliant::
-
-      $ python setup.py test --remote-data=any
-      $ TEST_READ_HUGE_FILE=1 pytest -sv astropy/io/ascii/tests/test_c_reader.py -k big_table
-      $ python setup.py check --restructuredtext
 
 #. Ensure you have a GPG key pair available for when git needs to sign the
    tag you create for the release.  See :ref:`key-signing-info` for more on
@@ -88,6 +83,16 @@ packages that use the full bugfix/maintenance branch approach.)
    release.  For example, if releasing version 1.2.2 make sure to::
 
       $ git checkout v1.2.x
+
+#. Make sure that the continuous integration services (e.g., Travis) are passing
+   for the `astropy core repository`_ branch you're going to release.  You may
+   also want to locally run the tests (with remote data on to ensure all the
+   tests actually run), and make sure the description in ``setup.cfg`` is ReST
+   compliant::
+
+      $ python setup.py test --remote-data=any
+      $ TEST_READ_HUGE_FILE=1 pytest -sv astropy/io/ascii/tests/test_c_reader.py -k big_table
+      $ python setup.py check --restructuredtext
 
 #. Edit the ``CHANGES.rst`` file by changing the date for the version you are
    about to release from "unreleased" to today's date.  Also be sure to remove
@@ -148,19 +153,10 @@ packages that use the full bugfix/maintenance branch approach.)
 
       $ conda create -n astropy_release_test_v<version> numpy
       $ source activate astropy_release_test_v<version>
+      $ pip install .[all]
       $ pip install dist/astropy-<version>.tar.gz
       $ python -c 'import astropy; astropy.test(remote_data=True)'
       $ source deactivate
-
-#. Build and test the Astropy wheels.  See the `wheel builder README
-   <https://github.com/MacPython/astropy-wheels>`_ for instructions.  In
-   summary, clone the wheel-building repo, edit the ``.travis.yml``
-   text file with the branch or commit for the release,
-   commit and then push back up to github.  This will trigger a wheel build
-   and test on OSX, Linux, and Windows. Check the build has passed on on the
-   Travis-CI interface at https://travis-ci.org/MacPython/astropy-wheels.
-   You'll need commit privileges to the ``astropy-wheels`` repo; ask Tom Kooij
-   or on the mailing list if you do not have them.
 
 #. If the tests do *not* pass, you'll have to fix whatever the problem is.
    First you'll need to back out the release procedure by dropping the commits
@@ -197,6 +193,7 @@ packages that use the full bugfix/maintenance branch approach.)
 
       $ python setup.py build sdist
       $ gpg --detach-sign -a dist/astropy-<version>.tar.gz
+      $ twine check dist/*
       $ twine upload dist/astropy-<version>*
 
 #. Go back to release branch (e.g., ``1.2.x``) and edit the ``version`` in
@@ -235,6 +232,16 @@ packages that use the full bugfix/maintenance branch approach.)
       $ git checkout stable
       $ git reset --hard v<version>
       $ git push upstream stable --force
+
+#. Build and test the Astropy wheels.  See the `wheel builder README
+   <https://github.com/MacPython/astropy-wheels>`_ for instructions.  In
+   summary, clone the wheel-building repo, edit the ``.travis.yml``
+   text file with the branch or commit for the release,
+   commit and then push back up to github.  This will trigger a wheel build
+   and test on OSX, Linux, and Windows. Check the build has passed on on the
+   Travis-CI interface at https://travis-ci.org/MacPython/astropy-wheels.
+   You'll need commit privileges to the ``astropy-wheels`` repo; ask Tom Kooij
+   or on the mailing list if you do not have them.
 
 #. Update Readthedocs so that it builds docs for the version you just released.
    You'll find this in the "admin" tab, with checkboxes next to each github tag.
@@ -299,29 +306,42 @@ packages that use the full bugfix/maintenance branch approach.)
    version number (with no ``v`` prefix). Once you are happy with the changes,
    click **Save**, then **Publish**.
 
+#. Send out release annoucement emails to email lists in
+   `Getting Help with Astropy <https://www.astropy.org/help.html>`_. Use the
+   previous annoucement as a template.
+
 .. _release-procedure-beta-rc:
 
 Modifications for a beta/release candidate release
 --------------------------------------------------
 
-   For major releases we do beta and/or release candidates to have a chance to
-   catch significant bugs before the true release. If the release you are
-   performing is this kind of pre-release, some of the above steps need to be
-   modified.
+For major releases we do beta and/or release candidates to have a chance to
+catch significant bugs before the true release. If the release you are
+performing is this kind of pre-release, some of the above steps need to be
+modified.
 
-   The primary modifications to the release procedure are:
+The primary modifications to the release procedure are:
 
-   * When entering the new version number, instead of just removing the
-     ``.dev``, enter "1.2b1" or "1.2rc1".  It is critical that you follow this
-     numbering scheme (``x.yb#`` or ``x.y.zrc#``), as it will ensure the release
-     is ordered "before" the main release by various automated tools, and also
-     tells PyPI that this is a "pre-release".
-   * Do *not* do the step of adding ``.dev`` in the "back to development" stage.
-     If an RC goes well, there's no need for a "dev" stage, as the same version
-     will be released with only minor doc updates, and strings like "x.yrcz.dev"
-     confuse some version number parsing tools.
-   * Do not do step #26 or later, as those are tasks for an actual release.
+* When entering the new version number, instead of just removing the
+  ``.dev``, enter "1.2b1" or "1.2rc1".  It is critical that you follow this
+  numbering scheme (``x.yb#`` or ``x.y.zrc#``), as it will ensure the release
+  is ordered "before" the main release by various automated tools, and also
+  tells PyPI that this is a "pre-release".
+* Do *not* do the step of adding ``.dev`` in the "back to development" stage.
+  If an RC goes well, there's no need for a "dev" stage, as the same version
+  will be released with only minor doc updates, and strings like "x.yrcz.dev"
+  confuse some version number parsing tools.
+* Do not do step #27 (the one *after* "Update Readthedocs...") or later, as those are tasks for an actual release.
 
+Once a release candidate is available, create a new wiki page under
+`Astropy Project Wiki <https://github.com/astropy/astropy/wiki>`_ with the
+title "vX.Y RC testing" (replace "X.Y" with the release number) using the
+`wiki of a previous RC <https://github.com/astropy/astropy/wiki/v3.2-RC-testing>`_
+as a template.
+
+For releases that come after release candidates, the title of the changelog
+section should be replaced, thus getting rid of any mention of the release
+candidate.
 
 .. _release-procedure-new-major:
 
@@ -396,6 +416,12 @@ The procedure for this is straightforward:
 
 #. Repeat the above steps for the astropy-helpers, using the same version series.
 
+#. Create an issue titled "Release final vX.Y".
+
+#. Ping people to test it under some unusual cases like 32-bit Linux systems.
+   Also try running the tests twice in a row without cleaning anything up
+   in between.
+
 
 .. _release-procedure-bug-fix:
 
@@ -445,6 +471,14 @@ be backported.  For a more detailed set of guidelines on using milestones, see
 
 Backporting fixes from master
 -----------------------------
+
+.. note::
+
+    The changelog script in ``astropy-procedures`` does not know about
+    minor releases, thus please becareful. For example, if PRs milestoned
+    for 1.2.1 have been merged to ``master`` but 1.2.0 is not out yet,
+    then do not backport those PRs until after 1.2.0 is released from the
+    branch.
 
 Most fixes are backported using the ``git cherry-pick`` command, which applies
 the diff from a single commit like a patch.  For the sake of example, say the
@@ -599,9 +633,7 @@ happened to others who might later look.
     Most fixes will mention their related issue in the commit message, so this
     tends to be pretty reliable.  Some issues won't show up in the commit log,
     however, as their fix is in a separate pull request.  Usually GitHub makes
-    this clear by cross-referencing the issue with its PR.  A future version
-    of the ``suggest_backports.py`` script will perform this check
-    automatically.
+    this clear by cross-referencing the issue with its PR.
 
 Finally, not all issues assigned to a release milestone need to be fixed before
 making that release.  Usually, in the interest of getting a release with
@@ -676,6 +708,7 @@ applies both for regular release *and* release candidates are the same
       $ chmod -R a+Xr .
       $ python setup.py build sdist
       $ gpg --detach-sign -a dist/astropy-helpers-<version>.tar.gz
+      $ twine check dist/*
       $ twine upload dist/astropy-helpers-<version>.tar.gz*
       $ git push upstream v<version>.x
       $ git push upstream v<version>
