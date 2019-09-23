@@ -129,8 +129,8 @@ class EulerAngleRotation(_EulerRotation, Model):
         where each character denotes an axis in 3D space.
     """
 
-    inputs = ('alpha', 'delta')
-    outputs = ('alpha', 'delta')
+    n_inputs = 2
+    n_outputs = 2
 
     phi = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian)
     theta = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian)
@@ -152,6 +152,9 @@ class EulerAngleRotation(_EulerRotation, Model):
             raise TypeError("All parameters should be of the same type - float or Quantity.")
 
         super().__init__(phi=phi, theta=theta, psi=psi, **kwargs)
+        self._inputs = ('alpha', 'delta')
+        self._outputs = ('alpha', 'delta')
+
 
     def inverse(self):
         return self.__class__(phi=-self.psi,
@@ -206,14 +209,13 @@ class RotateNative2Celestial(_SkyRotation):
 
     Notes
     -----
-    If ``lon``, ``lat`` and ``lon_pole`` are numerical values they should be in units of deg.
+    If ``lon``, ``lat`` and ``lon_pole`` are numerical values they
+    should be in units of deg. Inputs are angles on the native sphere.
+    Outputs are angles on the celestial sphere.
     """
 
-    #: Inputs are angles on the native sphere
-    inputs = ('phi_N', 'theta_N')
-
-    #: Outputs are angles on the celestial sphere
-    outputs = ('alpha_C', 'delta_C')
+    n_inputs = 2
+    n_outputs = 2
 
     @property
     def input_units(self):
@@ -227,6 +229,8 @@ class RotateNative2Celestial(_SkyRotation):
 
     def __init__(self, lon, lat, lon_pole, **kwargs):
         super().__init__(lon, lat, lon_pole, **kwargs)
+        self.inputs = ('phi_N', 'theta_N')
+        self.outputs = ('alpha_C', 'delta_C')
 
     def evaluate(self, phi_N, theta_N, lon, lat, lon_pole):
         """
@@ -275,14 +279,12 @@ class RotateCelestial2Native(_SkyRotation):
 
     Notes
     -----
-    If ``lon``, ``lat`` and ``lon_pole`` are numerical values they should be in units of deg.
+    If ``lon``, ``lat`` and ``lon_pole`` are numerical values they should be
+    in units of deg. Inputs are angles on the celestial sphere.
+    Outputs are angles on the native sphere.
     """
-
-    #: Inputs are angles on the celestial sphere
-    inputs = ('alpha_C', 'delta_C')
-
-    #: Outputs are angles on the native sphere
-    outputs = ('phi_N', 'theta_N')
+    n_inputs = 2
+    n_outputs = 2
 
     @property
     def input_units(self):
@@ -296,6 +298,11 @@ class RotateCelestial2Native(_SkyRotation):
 
     def __init__(self, lon, lat, lon_pole, **kwargs):
         super().__init__(lon, lat, lon_pole, **kwargs)
+
+        # Inputs are angles on the celestial sphere
+        self.inputs = ('alpha_C', 'delta_C')
+        # Outputs are angles on the native sphere
+        self.outputs = ('phi_N', 'theta_N')
 
     def evaluate(self, alpha_C, delta_C, lon, lat, lon_pole):
         """
@@ -340,9 +347,9 @@ class Rotation2D(Model):
     angle : float or `~astropy.units.Quantity`
         Angle of rotation (if float it should be in deg).
     """
+    n_inputs = 2
+    n_outputs = 2
 
-    inputs = ('x', 'y')
-    outputs = ('x', 'y')
     _separable = False
 
     angle = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian)

@@ -27,8 +27,10 @@ def setter2(val, model):
 
 class SetterModel(FittableModel):
 
-    inputs = ('x', 'y')
-    outputs = ('z',)
+    #inputs = ('x', 'y')
+    #outputs = ('z',)
+    n_inputs = 2
+    n_outputs = 1
 
     xc = Parameter(default=1, setter=setter1)
     yc = Parameter(default=1, setter=setter2)
@@ -625,6 +627,7 @@ def test_non_broadcasting_parameters():
     c = np.array([[1, 2, 3, 4], [1, 2, 3, 4]])
 
     class TestModel(Model):
+
         p1 = Parameter()
         p2 = Parameter()
         p3 = Parameter()

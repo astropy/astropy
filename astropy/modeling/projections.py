@@ -119,11 +119,19 @@ class Projection(Model):
 class Pix2SkyProjection(Projection):
     """Base class for all Pix2Sky projections."""
 
-    inputs = ('x', 'y')
-    outputs = ('phi', 'theta')
+    #inputs = ('x', 'y')
+    #outputs = ('phi', 'theta')
+    n_inputs = 2
+    n_outputs = 2
 
     _input_units_strict = True
     _input_units_allow_dimensionless = True
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._inputs = ('x', 'y')
+        self._outputs = ('phi', 'theta')
+
 
     @property
     def input_units(self):
@@ -137,11 +145,21 @@ class Pix2SkyProjection(Projection):
 class Sky2PixProjection(Projection):
     """Base class for all Sky2Pix projections."""
 
-    inputs = ('phi', 'theta')
-    outputs = ('x', 'y')
+    #inputs = ('phi', 'theta')
+    #outputs = ('x', 'y')
+
+    n_inputs = 2
+    n_outputs = 2
 
     _input_units_strict = True
     _input_units_allow_dimensionless = True
+
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._inputs = ('phi', 'theta')
+        self._outputs = ('x', 'y')
+
 
     @property
     def input_units(self):
@@ -1948,9 +1966,10 @@ class AffineTransformation2D(Model):
         translation to apply to the inputs
     """
 
-    inputs = ('x', 'y')
-    outputs = ('x', 'y')
-
+    #inputs = ('x', 'y')
+    #outputs = ('x', 'y')
+    n_inputs = 2
+    n_outputs = 2
     standard_broadcasting = False
 
     _separable = False
@@ -1979,6 +1998,11 @@ class AffineTransformation2D(Model):
             raise InputParameterError(
                 "Expected translation vector to be a 2 element row or column "
                 "vector array")
+
+    def __init__(self, matrix=matrix, translation=translation, **kwargs):
+        super().__init__(matrix=matrix, translation=translation, **kwargs)
+        self.inputs = ("x", "y")
+        self.outputs = ("x", "y")
 
     @property
     def inverse(self):
@@ -2059,10 +2083,7 @@ class AffineTransformation2D(Model):
         if self.translation.unit is None and self.matrix.unit is None:
             return None
         elif self.translation.unit is not None:
-            return {'x': self.translation.unit,
-                    'y': self.translation.unit
-                    }
+            return dict(zip(self.inputs, [self.translation.unit] * 2)) 
+
         else:
-            return {'x': self.matrix.unit,
-                    'y': self.matrix.unit
-                    }
+            return dict(zip(self.inputs, [self.matrix.unit] * 2)) 
