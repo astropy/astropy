@@ -123,7 +123,6 @@ def test_ellipsis():
     assert str(wcs) == repr(wcs) == EXPECTED_ELLIPSIS_REPR.strip()
 
 
-
 def test_pixel_to_world_broadcasting():
     wcs = SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, Ellipsis)
 
