@@ -102,7 +102,8 @@ class WCSAxes(Axes):
 
         if frame_class is not None:
             self.frame_class = frame_class
-        elif (wcs.pixel_n_dim == 1 or 'y' not in slices):
+        elif (wcs is not None and (wcs.pixel_n_dim == 1 or
+                                   (slices is not None and 'y' not in slices))):
             self.frame_class = RectangularFrame1D
         else:
             self.frame_class = RectangularFrame

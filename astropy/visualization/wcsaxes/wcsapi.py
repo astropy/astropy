@@ -123,10 +123,10 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
     if slices is not None:
         wcs_slice = list(slices)
         wcs_slice[wcs_slice.index("x")] = slice(None)
-        wcs = SlicedLowLevelWCS(wcs, wcs_slice[::-1])
         if 'y' in slices:
             wcs_slice[wcs_slice.index("y")] = slice(None)
             invert_xy = slices.index('x') > slices.index('y')
+        wcs = SlicedLowLevelWCS(wcs, wcs_slice[::-1])
         world_keep = wcs._world_keep
     else:
         world_keep = list(range(wcs.world_n_dim))
