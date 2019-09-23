@@ -152,3 +152,34 @@ As this is still a ``WCSAxes`` plot, we can set the display units for the x-axis
 
    ra, dec, vel = ax.coords
    vel.set_format_unit(u.km/u.s)
+
+
+If we wanted to plot a one dimensional plot along a spatial dimension, i.e.
+intensity along a row in the image, ``WCSAxes`` defaults to displaying both the
+world coordinates for this plot. We can customise the colors and add grid lines
+for each of the spatial axes.
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+   :nofigs:
+
+    import matplotlib.pyplot as plt
+    ax = plt.subplot(projection=wcs, slices=(50, 'x', 0))
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+   ax.plot(image_data[0, :, 50])
+
+   ra, dec, wave = ax.coords
+   ra.set_ticks(color="red")
+   ra.set_ticklabel(color="red")
+   ra.grid(color="red")
+
+   dec.set_ticks(color="blue")
+   dec.set_ticklabel(color="blue")
+   dec.grid(color="blue")
