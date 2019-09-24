@@ -22,16 +22,16 @@ flux is calculated with Planck law
 
 .. math::
 
-    B_{\\lambda}(T) = \\frac{2 h c^{2} / \\lambda^{5}}{exp(h c / \\lambda k T) - 1}
+    B_{\lambda}(T) = \frac{2 h c^{2} / \lambda^{5}}{exp(h c / \lambda k T) - 1}
 
-    B_{\\nu}(T) = \\frac{2 h \\nu^{3} / c^{2}}{exp(h \\nu / k T) - 1}
+    B_{\nu}(T) = \frac{2 h \nu^{3} / c^{2}}{exp(h \nu / k T) - 1}
 
-where the unit of :math:`B_{\\lambda}(T)` is
-:math:`erg \\; s^{-1} cm^{-2} \\mathring{A}^{-1} sr^{-1}`, and
-:math:`B_{\\nu}(T)` is :math:`erg \\; s^{-1} cm^{-2} Hz^{-1} sr^{-1}`.
+where the unit of :math:`B_{\lambda}(T)` is
+:math:`ergs \; s^{-1} cm^{-2} \mathring{A}^{-1} sr^{-1}`, and
+:math:`B_{\nu}(T)` is :math:`ergs \; s^{-1} cm^{-2} Hz^{-1} sr^{-1}`.
 :func:`~astropy.modeling.blackbody.blackbody_lambda` and
 :func:`~astropy.modeling.blackbody.blackbody_nu` calculate the
-blackbody flux for :math:`B_{\\lambda}(T)` and :math:`B_{\\nu}(T)`,
+blackbody flux for :math:`B_{\lambda}(T)` and :math:`B_{\nu}(T)`,
 respectively.
 
 Note that an array of temperatures can also be given instead of a single
@@ -121,3 +121,9 @@ See Also
 .. _ref-rybicki1979:
 
 Rybicki, G. B., & Lightman, A. P. 1979, Radiative Processes in Astrophysics (New York, NY: Wiley)
+
+
+API for deprecated model/functions
+----------------------------------
+
+.. automodapi:: astropy.modeling.blackbody
