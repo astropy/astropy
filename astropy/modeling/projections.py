@@ -119,8 +119,6 @@ class Projection(Model):
 class Pix2SkyProjection(Projection):
     """Base class for all Pix2Sky projections."""
 
-    #inputs = ('x', 'y')
-    #outputs = ('phi', 'theta')
     n_inputs = 2
     n_outputs = 2
 
@@ -129,8 +127,8 @@ class Pix2SkyProjection(Projection):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._inputs = ('x', 'y')
-        self._outputs = ('phi', 'theta')
+        self.inputs = ('x', 'y')
+        self.outputs = ('phi', 'theta')
 
     @property
     def input_units(self):
@@ -152,8 +150,8 @@ class Sky2PixProjection(Projection):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._inputs = ('phi', 'theta')
-        self._outputs = ('x', 'y')
+        self.inputs = ('phi', 'theta')
+        self.outputs = ('x', 'y')
 
     @property
     def input_units(self):
