@@ -227,7 +227,7 @@ class NDData(NDDataBase):
             self._wcs = wcs
         elif isinstance(wcs, BaseLowLevelWCS):
             self._wcs = HighLevelWCSWrapper(wcs)
-        else:
+        elif wcs is not None:
             raise TypeError("The wcs argument must implement either the high or low level WCS API.")
 
         # Store the attributes
