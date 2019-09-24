@@ -423,22 +423,25 @@ def test_arithmetic_no_wcs_compare():
 
 def test_arithmetic_with_wcs_compare():
     def return_diff_smaller_3(first, second):
-        return abs(first - second) <= 3
+        return True
 
-    ccd1 = CCDData(np.ones((10, 10)), unit='', wcs=2)
-    ccd2 = CCDData(np.ones((10, 10)), unit='', wcs=5)
-    assert ccd1.add(ccd2, compare_wcs=return_diff_smaller_3).wcs == 2
-    assert ccd1.subtract(ccd2, compare_wcs=return_diff_smaller_3).wcs == 2
-    assert ccd1.multiply(ccd2, compare_wcs=return_diff_smaller_3).wcs == 2
-    assert ccd1.divide(ccd2, compare_wcs=return_diff_smaller_3).wcs == 2
+    wcs = WCS(naxis=2)
+    ccd1 = CCDData(np.ones((10, 10)), unit='', wcs=wcs)
+    ccd2 = CCDData(np.ones((10, 10)), unit='', wcs=WCS(naxis=2))
+    # TODO: The arithmetic copies the wcs so the following tests require a
+    # way to check for WCS equality.
+    assert ccd1.add(ccd2, compare_wcs=return_diff_smaller_3).wcs is wcs
+    assert ccd1.subtract(ccd2, compare_wcs=return_diff_smaller_3).wcs is wcs
+    assert ccd1.multiply(ccd2, compare_wcs=return_diff_smaller_3).wcs is wcs
+    assert ccd1.divide(ccd2, compare_wcs=return_diff_smaller_3).wcs is wcs
 
 
 def test_arithmetic_with_wcs_compare_fail():
     def return_diff_smaller_1(first, second):
-        return abs(first - second) <= 1
+        return False
 
-    ccd1 = CCDData(np.ones((10, 10)), unit='', wcs=2)
-    ccd2 = CCDData(np.ones((10, 10)), unit='', wcs=5)
+    ccd1 = CCDData(np.ones((10, 10)), unit='', wcs=WCS(naxis=2))
+    ccd2 = CCDData(np.ones((10, 10)), unit='', wcs=WCS(naxis=2))
     with pytest.raises(ValueError):
         ccd1.add(ccd2, compare_wcs=return_diff_smaller_1).wcs
     with pytest.raises(ValueError):
@@ -786,9 +789,12 @@ def test_header():
 
 def test_wcs_arithmetic():
     ccd_data = create_ccd_data()
-    ccd_data.wcs = 5
+    wcs = WCS(naxis=2)
+    ccd_data.wcs = wcs
     result = ccd_data.multiply(1.0)
-    assert result.wcs == 5
+    # TODO: The multiply copies the wcs so the following tests require a
+    # way to check for WCS equality.
+    assert result.wcs is wcs
 
 
 @pytest.mark.parametrize('operation',
@@ -796,10 +802,13 @@ def test_wcs_arithmetic():
 def test_wcs_arithmetic_ccd(operation):
     ccd_data = create_ccd_data()
     ccd_data2 = ccd_data.copy()
-    ccd_data.wcs = 5
+    wcs = WCS(naxis=2)
+    ccd_data.wcs = wcs
     method = getattr(ccd_data, operation)
     result = method(ccd_data2)
-    assert result.wcs == ccd_data.wcs
+    # TODO: The arithmetic method copies the wcs so the following tests require
+    # a way to check for WCS equality.
+    assert result.wcs is ccd_data.wcs
     assert ccd_data2.wcs is None
 
 
@@ -960,8 +969,9 @@ def test_read_old_style_multiextensionfits(tmpdir):
 
 def test_wcs():
     ccd_data = create_ccd_data()
-    ccd_data.wcs = 5
-    assert ccd_data.wcs == 5
+    wcs = WCS(naxis=2)
+    ccd_data.wcs = wcs
+    assert ccd_data.wcs is wcs
 
 
 def test_recognized_fits_formats_for_read_write(tmpdir):
