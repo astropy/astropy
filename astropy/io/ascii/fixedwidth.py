@@ -106,7 +106,11 @@ class FixedWidthHeader(basic.BasicHeader):
         if start_line is None:
             if position_line is not None:
                 raise ValueError("Cannot set position_line without also setting header_start")
-            data_lines = self.data.process_lines(lines)
+
+            # data.data_lines attribute already set via self.data.get_data_lines(lines)
+            # in BaseReader.read().  This includes slicing for data_start / data_end.
+            data_lines = self.data.data_lines
+
             if not data_lines:
                 raise InconsistentTableError(
                     'No data lines found so cannot autogenerate column names')

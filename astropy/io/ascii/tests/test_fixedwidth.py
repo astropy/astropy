@@ -2,6 +2,7 @@
 
 # TEST_UNICODE_LITERALS
 
+import numpy as np
 import pytest
 
 from ....extern.six.moves import cStringIO as StringIO
@@ -479,3 +480,21 @@ def test_write_twoline_no_bookend():
 | 1.2|  "hello"|   1|   a|
 | 2.4|'s worlds|   2|   2|
 """)
+
+
+def test_fixedwidthnoheader_splitting():
+    """Test fix in #8511 where data_start is being ignored"""
+    tbl = """\
+AAA y z
+1 2 3
+4 5 6
+7 8 9
+"""
+    names = ['a', 'b', 'c']
+    dat = ascii.read(tbl, data_start=1, data_end=3,
+                     delimiter=' ', names=names,
+                     format='fixed_width_no_header')
+    assert dat.colnames == names
+    assert np.all(dat['a'] == [1, 4])
+    assert np.all(dat['b'] == [2, 5])
+    assert np.all(dat['c'] == [3, 6])
