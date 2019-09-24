@@ -6,7 +6,6 @@ None of the functions in the module are meant for use outside of the
 package.
 """
 
-import numbers
 import io
 import re
 from fractions import Fraction
@@ -197,7 +196,7 @@ def sanitize_scale(scale):
         return scale.real
 
 
-def maybe_simple_fraction(p, max_denominator=1000000):
+def maybe_simple_fraction(p, max_denominator=100):
     """Fraction very close to x with denominator at most max_denominator.
 
     The fraction has to be such that fraction/x is unity to within 4 ulp.
@@ -224,7 +223,7 @@ def maybe_simple_fraction(p, max_denominator=1000000):
     return p
 
 
-def validate_power(p, support_tuples=False):
+def validate_power(p):
     """Convert a power to a floating point value, an integer, or a Fraction.
 
     If a fractional power can be represented exactly as a floating point
@@ -249,24 +248,21 @@ def validate_power(p, support_tuples=False):
             else:
                 raise
 
-        if (p % 1.0) == 0.0:
-            # Denominators of 1 can just be integers.
-            p = int(p)
-        elif (p * 8.0) % 1.0 == 0.0:
-            # Leave alone if the denominator is exactly 2, 4 or 8, since this
-            # can be perfectly represented as a float, which means subsequent
-            # operations are much faster.
-            pass
-        else:
-            # Convert floats indistinguishable from a rational with denominator
-            # less than 11 to Fraction.
-            p = maybe_simple_fraction(p, 10)
+        # This returns either a (simple) Fraction or the same float.
+        p = maybe_simple_fraction(p)
+        # If still a float, nothing more to be done.
+        if isinstance(p, float):
+            return p
 
-    elif denom == 1:
-        p = int(p.numerator)
+        # Otherwise, check for simplifications.
+        denom = p.denominator
+
+    if denom == 1:
+        p = p.numerator
 
     elif (denom & (denom - 1)) == 0:
         # Above is a bit-twiddling hack to see if denom is a power of two.
+        # If so, float does not lose precision and will speed things up.
         p = float(p)
 
     return p

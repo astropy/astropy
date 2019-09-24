@@ -9,6 +9,7 @@ import warnings
 from fractions import Fraction
 
 from astropy.utils.misc import did_you_mean
+from ..utils import maybe_simple_fraction
 
 
 def get_grouped_by_powers(bases, powers):
@@ -113,17 +114,14 @@ def decompose_to_known_units(unit, func):
 def format_power(power):
     """
     Converts a value for a power (which may be floating point or a
-    `fractions.Fraction` object), into a string either looking like
-    an integer or a fraction.
+    `fractions.Fraction` object), into a string looking like either
+    an integer or a fraction, if the power is close to that.
     """
-    if not isinstance(power, Fraction):
-        if power % 1.0 != 0.0:
-            frac = Fraction.from_float(power)
-            power = frac.limit_denominator(10)
-            if power.denominator == 1:
-                power = int(power.numerator)
-        else:
-            power = int(power)
+    if not hasattr(power, 'denominator'):
+        power = maybe_simple_fraction(power)
+        if getattr(power, 'denonimator', None) == 1:
+            power = power.nominator
+
     return str(power)
 
 

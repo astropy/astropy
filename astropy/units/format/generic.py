@@ -17,6 +17,7 @@ Handles a "generic" string format for units
 import os
 import re
 import warnings
+from fractions import Fraction
 
 from . import core, utils
 from .base import Base
@@ -137,7 +138,7 @@ class Generic(Base):
 
         def t_SIGN(t):
             r'[+-](?=\d)'
-            t.value = float(t.value + '1')
+            t.value = int(t.value + '1')
             return t
 
         # This needs to be a function so we can force it to happen
@@ -357,7 +358,7 @@ class Generic(Base):
             '''
             frac : sign UINT division sign UINT
             '''
-            p[0] = (p[1] * p[2]) / (p[4] * p[5])
+            p[0] = Fraction(p[1] * p[2], p[4] * p[5])
 
         def p_sign(p):
             '''
@@ -367,7 +368,7 @@ class Generic(Base):
             if len(p) == 2:
                 p[0] = p[1]
             else:
-                p[0] = 1.0
+                p[0] = 1
 
         def p_product(p):
             '''
@@ -508,7 +509,7 @@ class Generic(Base):
                 out.append(cls._get_unit_name(base))
             else:
                 power = utils.format_power(power)
-                if '/' in power:
+                if '/' in power or '.' in power:
                     out.append('{}({})'.format(
                         cls._get_unit_name(base), power))
                 else:
