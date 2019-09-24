@@ -68,7 +68,6 @@ class Mapping(FittableModel):
         self._input_units_strict = {key: False for key in self._inputs}
         self._input_units_allow_dimensionless = {key: False for key in self._inputs}
 
-
     @property
     def n_inputs(self):
         return self._n_inputs

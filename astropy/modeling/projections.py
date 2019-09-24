@@ -132,7 +132,6 @@ class Pix2SkyProjection(Projection):
         self._inputs = ('x', 'y')
         self._outputs = ('phi', 'theta')
 
-
     @property
     def input_units(self):
         return {'x': u.deg, 'y': u.deg}
@@ -145,21 +144,16 @@ class Pix2SkyProjection(Projection):
 class Sky2PixProjection(Projection):
     """Base class for all Sky2Pix projections."""
 
-    #inputs = ('phi', 'theta')
-    #outputs = ('x', 'y')
-
     n_inputs = 2
     n_outputs = 2
 
     _input_units_strict = True
     _input_units_allow_dimensionless = True
 
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._inputs = ('phi', 'theta')
         self._outputs = ('x', 'y')
-
 
     @property
     def input_units(self):
@@ -2083,7 +2077,6 @@ class AffineTransformation2D(Model):
         if self.translation.unit is None and self.matrix.unit is None:
             return None
         elif self.translation.unit is not None:
-            return dict(zip(self.inputs, [self.translation.unit] * 2)) 
-
+            return dict(zip(self.inputs, [self.translation.unit] * 2))
         else:
-            return dict(zip(self.inputs, [self.matrix.unit] * 2)) 
+            return dict(zip(self.inputs, [self.matrix.unit] * 2))
