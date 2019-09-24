@@ -6,6 +6,8 @@ These are models that are physics motivated (as opposed to mathematically motiva
 BlackBody
 =========
 
+.. _blackbody-planck-law:
+
 The :class:`~astropy.modeling.physical_models.BlackBody` model provides a model
 for using `Plank's Law <https://en.wikipedia.org/wiki/Planck%27s_law/>`_.
 The blackbody function is

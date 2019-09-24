@@ -56,7 +56,7 @@ class BlackBody(Fittable1DModel):
     >>> from astropy import units as u
     >>> bb = models.BlackBody()
     >>> bb(6000 * u.AA)  # doctest: +FLOAT_CMP
-    <Quantity 1.3585381201978953e-15 erg / (cm2 Hz s)>
+    <Quantity 1.53254685e-05 erg / (cm2 Hz s sr)>
 
     .. plot::
         :include-source:
