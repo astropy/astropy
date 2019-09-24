@@ -13,6 +13,8 @@ from astropy.nddata.nddata import NDData
 from astropy.nddata.nduncertainty import StdDevUncertainty
 from astropy import units as u
 from astropy.utils import NumpyRNGContext
+from astropy.wcs import WCS
+from astropy.wcs.wcsapi import HighLevelWCSWrapper
 
 from .test_nduncertainty import FakeUncertainty
 
@@ -215,10 +217,10 @@ def test_nddata_init_data_nddata():
 
     # Now let's see what happens if we have all explicitly set
     nd1 = NDData(np.array([1]), mask=False, uncertainty=StdDevUncertainty(10), unit=u.s,
-                 meta={'dest': 'mordor'}, wcs=10)
+                 meta={'dest': 'mordor'}, wcs=WCS(naxis=1))
     nd2 = NDData(nd1)
     assert nd2.data is nd1.data
-    assert nd2.wcs == nd1.wcs
+    assert nd2.wcs is nd1.wcs
     assert nd2.uncertainty.array == nd1.uncertainty.array
     assert nd2.mask == nd1.mask
     assert nd2.unit == nd1.unit
@@ -226,9 +228,9 @@ def test_nddata_init_data_nddata():
 
     # now what happens if we overwrite them all too
     nd3 = NDData(nd1, mask=True, uncertainty=StdDevUncertainty(200), unit=u.km,
-                 meta={'observer': 'ME'}, wcs=4)
+                 meta={'observer': 'ME'}, wcs=WCS(naxis=1))
     assert nd3.data is nd1.data
-    assert nd3.wcs != nd1.wcs
+    assert nd3.wcs is not nd1.wcs
     assert nd3.uncertainty.array != nd1.uncertainty.array
     assert nd3.mask != nd1.mask
     assert nd3.unit != nd1.unit
@@ -243,15 +245,16 @@ def test_nddata_init_data_nddata_subclass():
     # would have lead to a compromised nddata instance
     with pytest.raises(TypeError):
         NDData(bnd)
+
     # but if it has no actual incompatible attributes it passes
-    bnd_good = BadNDDataSubclass(np.array([1, 2]), uncert, 3, 2,
+    bnd_good = BadNDDataSubclass(np.array([1, 2]), uncert, 3, HighLevelWCSWrapper(WCS(naxis=1)),
                                  {'enemy': 'black knight'}, u.km)
     nd = NDData(bnd_good)
     assert nd.unit == bnd_good.unit
     assert nd.meta == bnd_good.meta
     assert nd.uncertainty == bnd_good.uncertainty
     assert nd.mask == bnd_good.mask
-    assert nd.wcs == bnd_good.wcs
+    assert nd.wcs is bnd_good.wcs
     assert nd.data is bnd_good.data
 
 
@@ -297,11 +300,11 @@ def test_param_uncertainty():
 
 def test_param_wcs():
     # Since everything is allowed we only need to test something
-    nd = NDData([1], wcs=3)
-    assert nd.wcs == 3
+    nd = NDData([1], wcs=WCS(naxis=1))
+    assert nd.wcs is not None
     # Test conflicting wcs (other NDData)
-    nd2 = NDData(nd, wcs=2)
-    assert nd2.wcs == 2
+    nd2 = NDData(nd, wcs=WCS(naxis=1))
+    assert nd2.wcs is not None and nd2.wcs is not nd.wcs
 
 
 def test_param_meta():
