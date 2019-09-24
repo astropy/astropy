@@ -1,8 +1,3 @@
-.. _whatsnew-0.2:
+:orphan:
 
-*************************
-What's New in Astropy 0.2
-*************************
-
-See this page in the ``Astropy v0.2 documentation``.
-
+`What's New in Astropy 0.2? <https://docs.astropy.org/en/v0.2/whatsnew/0.2.html>`__
