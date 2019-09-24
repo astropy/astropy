@@ -155,7 +155,6 @@ class EulerAngleRotation(_EulerRotation, Model):
         self._inputs = ('alpha', 'delta')
         self._outputs = ('alpha', 'delta')
 
-
     def inverse(self):
         return self.__class__(phi=-self.psi,
                               theta=-self.theta,

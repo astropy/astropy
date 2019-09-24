@@ -444,6 +444,7 @@ def test_compound_return_units():
 
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
+
         @property
         def input_units(self):
             """ Input units. """
