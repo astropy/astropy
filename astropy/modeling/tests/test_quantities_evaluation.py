@@ -437,8 +437,6 @@ def test_compound_return_units():
 
     class PassModel(Model):
 
-        #inputs = ('x', 'y')
-        #outputs = ('x', 'y')
         n_inputs = 2
         n_outputs = 2
 

@@ -27,8 +27,6 @@ def setter2(val, model):
 
 class SetterModel(FittableModel):
 
-    #inputs = ('x', 'y')
-    #outputs = ('z',)
     n_inputs = 2
     n_outputs = 1
 

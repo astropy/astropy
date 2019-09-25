@@ -213,8 +213,8 @@ class _ModelMeta(abc.ABCMeta):
             >>> SkyRotation
             <class 'astropy.modeling.core.SkyRotation'>
             Name: SkyRotation (Rotation2D)
-            Inputs: ('x', 'y')
-            Outputs: ('x', 'y')
+            N_inputs: 2
+            N_outputs: 2
             Fittable parameters: ('angle',)
             >>> issubclass(SkyRotation, Rotation2D)
             True
@@ -371,10 +371,7 @@ class _ModelMeta(abc.ABCMeta):
             if hasattr(cls, '__qualname__'):
                 wrapper.__qualname__ = '{0}.{1}'.format(
                         cls.__qualname__, wrapper.__name__)
-        #if "n_inputs" in members:
-        #    print("members", cls.name, members['n_inputs'])
-        #if ('__call__' not in members and 'inputs' in members and
-        #        isinstance(members['inputs'], tuple)):
+
         if ('__call__' not in members and 'n_inputs' in members and
             isinstance(members['n_inputs'], int) and members['n_inputs'] > 0):
             n_inputs = members['n_inputs']
@@ -403,8 +400,7 @@ class _ModelMeta(abc.ABCMeta):
             #
             # The following code creates the __call__ function with these
             # two keyword arguments.
-            #inputs = ()#members['inputs']
-            #nputs = tuple(['x'+str(i) for i in range(members['n_inputs'])])
+
             args = ('self',) + inputs
             new_call = make_function_with_signature(
                     __call__, args, [('model_set_axis', None),
@@ -746,22 +742,8 @@ class Model(metaclass=_ModelMeta):
 
     @inputs.setter
     def inputs(self, val):
-
         self._inputs = val
         self._initialize_unit_support()
-        #args = ("self",) + val
-        #new_call = make_function_with_signature(self.__call__,
-        #                                        args,
-        #                                        [('model_set_axis', None),
-        #                                         ('with_bounding_box', False),
-        #                                         ('fill_value', np.nan),
-        #                                         ('equivalencies', None),
-        #                                         ('inputs_map', None)])
-        ##update_wrapper(new_call, self)
-        ##self.__class__.__call__ = new_call
-        #import functools
-        #new_call = functools.update_wrapper(self.__class__.__call__, new_call)
-        #self.__call__ = new_call
 
     @property
     def outputs(self):
@@ -887,8 +869,6 @@ class Model(metaclass=_ModelMeta):
         Evaluate this model using the given input(s) and the parameter values
         that were specified when the model was instantiated.
         """
-        #kw = dict(zip(self.inputs, inputs))
-        #kwargs.update(kw)
 
         return generic_call(self, *inputs, **kwargs)
 
@@ -2241,6 +2221,7 @@ class FittableModel(Model):
 
     def __call__(self, *args, **kwargs):
         return super().__call__(*args, **kwargs)
+
 
 class Fittable1DModel(FittableModel):
     """

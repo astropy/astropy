@@ -84,7 +84,6 @@ class _Tabular(Model):
     fittable = False
 
     standard_broadcasting = False
-    #outputs = ('y',)
 
     @property
     @abc.abstractmethod
@@ -149,8 +148,8 @@ class _Tabular(Model):
         default_keywords = [
             ('Model', self.__class__.__name__),
             ('Name', self.name),
-            ('Inputs', self.inputs),
-            ('Outputs', self.outputs),
+            ('N_inputs', self.n_inputs),
+            ('N_outputs', self.n_outputs),
             ('Parameters', ""),
             ('  points', self.points),
             ('  lookup_table', self.lookup_table),
