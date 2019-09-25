@@ -2,13 +2,13 @@ Fitting Model Sets
 ==================
 
 Astropy model sets let you fit the same (linear) model to lots of independent
-data sets. It does the looping for you, and can be significantly faster than
-doing the looping yourself. But getting the data into the right shape can be 
-a bit tricky. 
+data sets. It solves the linear equations simultaneously, so can avoid looping.
+But getting the data into the right shape can be a bit tricky. 
+
 The time savings could be worth the effort. In the example below, if we change
 the width*height of the data cube to 500*500 it takes 140 ms on a 2015 MacBook Pro
 to fit the models using model sets. Doing the same fit by looping over the 500*500 models 
-takes 1.5 minutes.
+takes 1.5 minutes, more 600 times slower..
 
 In the example below, we create a 3D data cube where the first dimension is a ramp --
 for example as from non-destructive readouts of an IR detector. So each pixel has a 
