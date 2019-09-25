@@ -29,6 +29,7 @@ static void
 PyUnitListProxy_dealloc(
     PyUnitListProxy* self) {
 
+  PyObject_GC_UnTrack(self);
   Py_XDECREF(self->pyobject);
   Py_TYPE(self)->tp_free((PyObject*)self);
 }
