@@ -1958,10 +1958,9 @@ class AffineTransformation2D(Model):
         translation to apply to the inputs
     """
 
-    #inputs = ('x', 'y')
-    #outputs = ('x', 'y')
     n_inputs = 2
     n_outputs = 2
+
     standard_broadcasting = False
 
     _separable = False

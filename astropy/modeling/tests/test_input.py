@@ -626,8 +626,7 @@ class TestSingleInputSingleOutputTwoModel:
 
 
 class TModel_1_2(FittableModel):
-    #inputs = ('x',)
-    #outputs = ('y', 'z')
+
     n_inputs =1
     n_outputs = 2
 
