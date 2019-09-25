@@ -344,7 +344,8 @@ for name in 'isnat', 'gcd', 'lcm':
 
 # SINGLE ARGUMENT UFUNCS
 
-# ufuncs that return a boolean and do not care about the unit
+# ufuncs that do not care about the unit and do not return a Quantity
+# (but rather a boolean, or -1, 0, or +1 for np.sign).
 onearg_test_ufuncs = (np.isfinite, np.isinf, np.isnan, np.sign, np.signbit)
 for ufunc in onearg_test_ufuncs:
     UFUNC_HELPERS[ufunc] = helper_onearg_test
