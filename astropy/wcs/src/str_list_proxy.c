@@ -25,6 +25,7 @@ static void
 PyStrListProxy_dealloc(
     PyStrListProxy* self) {
 
+  PyObject_GC_UnTrack(self);
   Py_XDECREF(self->pyobject);
   Py_TYPE(self)->tp_free((PyObject*)self);
 }
