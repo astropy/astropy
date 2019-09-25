@@ -7,7 +7,8 @@ import numpy as np
 import astropy.units as u
 from astropy import table
 from astropy.time import Time, TimeDelta
-from astropy.coordinates import SkyCoord, EarthLocation, skycoord_equal
+from astropy.coordinates import SkyCoord, EarthLocation
+from astropy.coordinates.sky_coordinate import _skycoord_equal as skycoord_equal
 
 from astropy import __minimum_asdf_version__
 asdf = pytest.importorskip('asdf', minversion=__minimum_asdf_version__)
