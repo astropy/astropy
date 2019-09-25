@@ -282,8 +282,8 @@ def tabular_model(dim, name=None):
     >>> print(tab)
     <class 'abc.Tabular2D'>
     Name: Tabular2D
-    Inputs: (u'x0', u'x1')
-    Outputs: (u'y',)
+    N_inputs: 2
+    N_outputs: 1
 
     >>> points = ([1, 2, 3], [1, 2, 3])
 
