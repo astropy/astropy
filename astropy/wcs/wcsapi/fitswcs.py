@@ -88,7 +88,7 @@ class custom_ctype_to_ucd_mapping:
         >>> wcs.wcs.ctype = ['SPAM']
 
     By default, :attr:`FITSWCSAPIMixin.world_axis_physical_types` returns `None`,
-    but this can be overriden::
+    but this can be overridden::
 
         >>> wcs.world_axis_physical_types
         [None]
