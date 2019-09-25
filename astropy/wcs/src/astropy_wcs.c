@@ -85,6 +85,7 @@ static void
 Wcs_dealloc(
     Wcs* self) {
 
+  PyObject_GC_UnTrack(self);
   Wcs_clear(self);
   pipeline_free(&self->x);
   Py_TYPE(self)->tp_free((PyObject*)self);

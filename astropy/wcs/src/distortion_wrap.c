@@ -38,6 +38,7 @@ static void
 PyDistLookup_dealloc(
     PyDistLookup* self) {
 
+  PyObject_GC_UnTrack(self);
   distortion_lookup_t_free(&self->x);
   Py_XDECREF(self->py_data);
   Py_TYPE(self)->tp_free((PyObject*)self);
