@@ -382,6 +382,9 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- Ensure that output from test functions of and comparisons between quantities
+  can be stored into pre-allocated output arrays (using ``out=array``) [#9273]
+
 astropy.utils
 ^^^^^^^^^^^^^
 

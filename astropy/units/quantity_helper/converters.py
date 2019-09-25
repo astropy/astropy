@@ -326,9 +326,17 @@ def check_output(output, unit, inputs, function=None):
                                if function is not None else ""), type(output),
                         output.__quantity_subclass__(unit)[0]))
 
+        # check we can handle the dtype (e.g., that we are not int
+        # when float is required).  Note that we only do this for Quantity
+        # output; for array output, we defer to numpy's default handling.
+        if not np.can_cast(np.result_type(*inputs), output.dtype,
+                           casting='same_kind'):
+            raise TypeError("Arguments cannot be cast safely to inplace "
+                            "output with dtype={}".format(output.dtype))
         # Turn into ndarray, so we do not loop into array_wrap/array_ufunc
         # if the output is used to store results of a function.
-        output = output.view(np.ndarray)
+        return output.view(np.ndarray)
+
     else:
         # output is not a Quantity, so cannot obtain a unit.
         if not (unit is None or unit is dimensionless_unscaled):
