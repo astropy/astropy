@@ -401,13 +401,19 @@ class _ModelMeta(abc.ABCMeta):
             # The following code creates the __call__ function with these
             # two keyword arguments.
 
-            args = ('self',) + inputs
+            args = ('self',)# + inputs
+            kwargs = dict([('model_set_axis', None),
+                           ('with_bounding_box', False),
+                           ('fill_value', np.nan),
+                           ('equivalencies', None),
+                           ('inputs_map', None)])
+
             new_call = make_function_with_signature(
                     __call__, args, [('model_set_axis', None),
                                      ('with_bounding_box', False),
                                      ('fill_value', np.nan),
                                      ('equivalencies', None),
-                                     ('inputs_map', None)])
+                                     ('inputs_map', None)], varargs='inputs', varkwargs='new_inputs')
 
             # The following makes it look like __call__
             # was defined in the class
@@ -655,7 +661,7 @@ class Model(metaclass=_ModelMeta):
     automatically set by the `~astropy.modeling.Parameter` attributes defined
     in the class body.
     """
-
+    inputs = ()
     n_inputs = 0
     """The number of inputs."""
     n_outputs = 0
@@ -2220,6 +2226,18 @@ class FittableModel(Model):
     fittable = True
 
     def __call__(self, *args, **kwargs):
+        if not args:
+            keys = ['model_set_axis', 'with_bounding_box', 'fill_value',
+                    'equivalencies', 'inputs_map']
+            new_inputs = {}
+            oldkeys = list(kwargs.keys())
+            for key in oldkeys:
+                if key not in keys:
+                    new_inputs[key] = kwargs[key]
+                    del kwargs[key]
+            args = []
+            for k in self.inputs:
+                args.append(new_inputs[k])
         return super().__call__(*args, **kwargs)
 
 
