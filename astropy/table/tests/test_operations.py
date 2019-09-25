@@ -14,7 +14,8 @@ from astropy.utils import metadata
 from astropy.utils.metadata import MergeConflictError
 from astropy import table
 from astropy.time import Time
-from astropy.coordinates import SkyCoord, skycoord_equal
+from astropy.coordinates import SkyCoord
+from astropy.coordinates.sky_coordinate import _skycoord_equal as skycoord_equal
 
 
 def sort_eq(list1, list2):

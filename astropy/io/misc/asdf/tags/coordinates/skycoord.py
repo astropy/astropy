@@ -3,7 +3,8 @@
 
 from asdf.yamlutil import custom_tree_to_tagged_tree
 
-from astropy.coordinates import SkyCoord, skycoord_equal
+from astropy.coordinates import SkyCoord
+from astropy.coordinates.sky_coordinate import _skycoord_equal as skycoord_equal
 
 from ...types import AstropyType
 
