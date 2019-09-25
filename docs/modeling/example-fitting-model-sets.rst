@@ -8,7 +8,7 @@ But getting the data into the right shape can be a bit tricky.
 The time savings could be worth the effort. In the example below, if we change
 the width*height of the data cube to 500*500 it takes 140 ms on a 2015 MacBook Pro
 to fit the models using model sets. Doing the same fit by looping over the 500*500 models 
-takes 1.5 minutes, more 600 times slower..
+takes 1.5 minutes, more than 600 times slower.
 
 In the example below, we create a 3D data cube where the first dimension is a ramp --
 for example as from non-destructive readouts of an IR detector. So each pixel has a 
@@ -16,7 +16,9 @@ depth along a time axis, and flux that results a total number of counts that is
 increasing with time. We will be fitting a 1D polynomial vs. time to estimate the 
 flux in counts/second (the slope of the fit).
 
-First, import the necessary libraries::
+First, import the necessary libraries:
+
+.. doctest-requires:: matplotlib
 
     >>> import numpy as np
     >>> import matplotlib.pyplot as plt
@@ -47,7 +49,7 @@ parametric model (model sets currently only work with linear models and fitters)
 
 We need to get the data to be fit into the right shape. It's not possible to just feed
 the 3D data cube. In this case, the time axis can be one dimensional. 
-The fluxes have to be organized into an array that is of shape `width*height,depth` --  in 
+The fluxes have to be organized into an array that is of shape ``width*height,depth`` --  in 
 other words, we are reshaping to flatten last two axes and transposing to put them first::
 
     >>> pixels = image.reshape((depth, width*height))
@@ -57,7 +59,7 @@ other words, we are reshaping to flatten last two axes and transposing to put th
     x axis is one dimensional:  (10,)
     y axis is two dimensional, N by len(x):  (12, 10)
 
-Fit the model. It does the looping over the N models implicitly::
+Fit the model. It fits the N models simultaneously::
 
     >>> new_model = fit(line, x=t, y=y)
     >>> print("We fit %d models" % len(new_model))
@@ -102,7 +104,9 @@ Now inspect the model::
      [ 0.          1.01197745  2.04089388  3.10007038  3.8945121   4.98888927
        6.0580331   7.07146685  7.66714363  9.11671214 10.12808644 11.43471289]]
 
-Plot the fit along a couple of pixels::
+Plot the fit along a couple of pixels:
+
+.. doctest-requires:: matplotlib
 
     >>> def plotramp(t, image, best_fit, row, col):
     >>>     plt.plot(t, image[:, row, col], '.', label='data pixel %d,%d' % (row, col))
