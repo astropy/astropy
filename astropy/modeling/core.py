@@ -749,19 +749,19 @@ class Model(metaclass=_ModelMeta):
 
         self._inputs = val
         self._initialize_unit_support()
-        args = ("self",) + val
-        new_call = make_function_with_signature(self.__call__,
-                                                args,
-                                                [('model_set_axis', None),
-                                                 ('with_bounding_box', False),
-                                                 ('fill_value', np.nan),
-                                                 ('equivalencies', None),
-                                                 ('inputs_map', None)])
+        #args = ("self",) + val
+        #new_call = make_function_with_signature(self.__call__,
+        #                                        args,
+        #                                        [('model_set_axis', None),
+        #                                         ('with_bounding_box', False),
+        #                                         ('fill_value', np.nan),
+        #                                         ('equivalencies', None),
+        #                                         ('inputs_map', None)])
         ##update_wrapper(new_call, self)
         ##self.__class__.__call__ = new_call
-        import functools
-        new_call = functools.update_wrapper(self.__class__.__call__, new_call)
-        self.__call__ = new_call
+        #import functools
+        #new_call = functools.update_wrapper(self.__class__.__call__, new_call)
+        #self.__call__ = new_call
 
     @property
     def outputs(self):
@@ -2239,6 +2239,8 @@ class FittableModel(Model):
     col_fit_deriv = True
     fittable = True
 
+    def __call__(self, *args, **kwargs):
+        return super().__call__(*args, **kwargs)
 
 class Fittable1DModel(FittableModel):
     """
