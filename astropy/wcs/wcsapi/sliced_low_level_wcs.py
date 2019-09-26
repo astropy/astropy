@@ -87,6 +87,7 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
                 else:
                     pixel_arrays_new.append(pixel_arrays[ipix_curr])
 
+        pixel_arrays_new = np.broadcast_arrays(*pixel_arrays_new)
         world_arrays = self._wcs.pixel_to_world_values(*pixel_arrays_new)
         return [world_arrays[iw] for iw in self._world_keep]
 
@@ -103,6 +104,7 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
             else:
                 world_arrays_new.append(1.)
 
+        world_arrays_new = np.broadcast_arrays(*world_arrays_new)
         pixel_arrays = list(self._wcs.world_to_pixel_values(*world_arrays_new))
 
         for ipixel in range(self._wcs.pixel_n_dim):
