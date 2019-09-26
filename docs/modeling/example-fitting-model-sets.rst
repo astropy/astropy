@@ -16,7 +16,9 @@ depth along a time axis, and flux that results a total number of counts that is
 increasing with time. We will be fitting a 1D polynomial vs. time to estimate the 
 flux in counts/second (the slope of the fit).
 
-First, import the necessary libraries::
+First, import the necessary libraries:
+
+.. doctest-requires:: matplotlib
 
     >>> import numpy as np
     >>> import matplotlib.pyplot as plt
@@ -102,7 +104,9 @@ Now inspect the model::
      [ 0.          1.01197745  2.04089388  3.10007038  3.8945121   4.98888927
        6.0580331   7.07146685  7.66714363  9.11671214 10.12808644 11.43471289]]
 
-Plot the fit along a couple of pixels::
+Plot the fit along a couple of pixels:
+
+.. doctest-requires:: matplotlib
 
     >>> def plotramp(t, image, best_fit, row, col):
     >>>     plt.plot(t, image[:, row, col], '.', label='data pixel %d,%d' % (row, col))
