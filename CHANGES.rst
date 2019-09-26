@@ -409,6 +409,10 @@ astropy.wcs
 
 - Fixed reference counting in ``WCSBase.__init__`` [#9166]
 
+- Fix ``SlicedLowLevelWCS`` ``world_to_pixel_values`` and
+  ``pixel_to_world_values`` when inputs need broadcasting to the same shape.
+  (i.e. when one input is sliced out) [#9250]
+
 
 Other Changes and Additions
 ---------------------------
