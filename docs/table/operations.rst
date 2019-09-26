@@ -280,14 +280,14 @@ it is automatically ignored from aggregation.
 From a grouped table it is possible to select one or more columns on which
 to perform the aggregation::
 
-  >>> print(obs_by_name['mag_b'].groups.aggregate(np.mean))
+  >>> print(obs_by_name['mag_b'].groups.aggregate(np.mean))  # doctest: +FLOAT_CMP
         mag_b
   ------------------
   15.000000000000002
                 17.0
   15.699999999999998
 
-  >>> print(obs_by_name['name', 'mag_v', 'mag_b'].groups.aggregate(np.mean))
+  >>> print(obs_by_name['name', 'mag_v', 'mag_b'].groups.aggregate(np.mean))  # doctest: +FLOAT_CMP
   name       mag_v              mag_b
   ---- ------------------ ------------------
   M101 13.725000000000001 15.000000000000002
