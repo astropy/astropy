@@ -53,9 +53,8 @@ additional ``meta`` attributes:
     >>> uncertainty = StdDevUncertainty(np.sqrt(data)) # representing standard deviation
     >>> meta = {'object': 'fictional data.'}
     >>> from astropy.coordinates import SkyCoord
-    >>> wcs = SkyCoord('00h42m44.3s', '+41d16m09s')
     >>> ndd = NDData(data, mask=mask, unit=unit, uncertainty=uncertainty,
-    ...              meta=meta, wcs=wcs)
+    ...              meta=meta)
     >>> ndd
     NDData([1, 2, 3, 4])
 
@@ -94,10 +93,8 @@ Slicing or indexing (:ref:`nddata_slicing`) is possible (with warnings issued if
 some attribute cannot be sliced)::
 
     >>> ndd2[2:]  # discard the first two elements  # doctest: +FLOAT_CMP
-    INFO: wcs cannot be sliced. [astropy.nddata.mixins.ndslicing]
     NDDataRef([6. , 6.5])
     >>> ndd2[1]   # get the second element  # doctest: +FLOAT_CMP
-    INFO: wcs cannot be sliced. [astropy.nddata.mixins.ndslicing]
     NDDataRef(-1.5)
 
 

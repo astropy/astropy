@@ -18,6 +18,7 @@ from astropy.utils.data import (get_pkg_data_filename, get_pkg_data_filenames,
                            get_pkg_data_contents)
 
 from astropy.nddata.ccddata import CCDData
+from astropy.nddata import _testing as nd_testing
 from astropy.table import Table
 
 DEFAULT_DATA_SIZE = 100
@@ -422,34 +423,40 @@ def test_arithmetic_no_wcs_compare():
 
 
 def test_arithmetic_with_wcs_compare():
-    def return_diff_smaller_3(first, second):
+    def return_true(_, __):
         return True
 
-    wcs = WCS(naxis=2)
-    ccd1 = CCDData(np.ones((10, 10)), unit='', wcs=wcs)
-    ccd2 = CCDData(np.ones((10, 10)), unit='', wcs=WCS(naxis=2))
-    # TODO: The arithmetic copies the wcs so the following tests require a
-    # way to check for WCS equality.
-    assert ccd1.add(ccd2, compare_wcs=return_diff_smaller_3).wcs is wcs
-    assert ccd1.subtract(ccd2, compare_wcs=return_diff_smaller_3).wcs is wcs
-    assert ccd1.multiply(ccd2, compare_wcs=return_diff_smaller_3).wcs is wcs
-    assert ccd1.divide(ccd2, compare_wcs=return_diff_smaller_3).wcs is wcs
+    wcs1, wcs2 = nd_testing.create_two_equal_wcs(naxis=2)
+    ccd1 = CCDData(np.ones((10, 10)), unit='', wcs=wcs1)
+    ccd2 = CCDData(np.ones((10, 10)), unit='', wcs=wcs2)
+    nd_testing.assert_wcs_seem_equal(
+        ccd1.add(ccd2, compare_wcs=return_true).wcs,
+        wcs1)
+    nd_testing.assert_wcs_seem_equal(
+        ccd1.subtract(ccd2, compare_wcs=return_true).wcs,
+        wcs1)
+    nd_testing.assert_wcs_seem_equal(
+        ccd1.multiply(ccd2, compare_wcs=return_true).wcs,
+        wcs1)
+    nd_testing.assert_wcs_seem_equal(
+        ccd1.divide(ccd2, compare_wcs=return_true).wcs,
+        wcs1)
 
 
 def test_arithmetic_with_wcs_compare_fail():
-    def return_diff_smaller_1(first, second):
+    def return_false(_, __):
         return False
 
-    ccd1 = CCDData(np.ones((10, 10)), unit='', wcs=WCS(naxis=2))
-    ccd2 = CCDData(np.ones((10, 10)), unit='', wcs=WCS(naxis=2))
+    ccd1 = CCDData(np.ones((10, 10)), unit='', wcs=WCS())
+    ccd2 = CCDData(np.ones((10, 10)), unit='', wcs=WCS())
     with pytest.raises(ValueError):
-        ccd1.add(ccd2, compare_wcs=return_diff_smaller_1).wcs
+        ccd1.add(ccd2, compare_wcs=return_false)
     with pytest.raises(ValueError):
-        ccd1.subtract(ccd2, compare_wcs=return_diff_smaller_1).wcs
+        ccd1.subtract(ccd2, compare_wcs=return_false)
     with pytest.raises(ValueError):
-        ccd1.multiply(ccd2, compare_wcs=return_diff_smaller_1).wcs
+        ccd1.multiply(ccd2, compare_wcs=return_false)
     with pytest.raises(ValueError):
-        ccd1.divide(ccd2, compare_wcs=return_diff_smaller_1).wcs
+        ccd1.divide(ccd2, compare_wcs=return_false)
 
 
 def test_arithmetic_overload_ccddata_operand():
@@ -792,9 +799,7 @@ def test_wcs_arithmetic():
     wcs = WCS(naxis=2)
     ccd_data.wcs = wcs
     result = ccd_data.multiply(1.0)
-    # TODO: The multiply copies the wcs so the following tests require a
-    # way to check for WCS equality.
-    assert result.wcs is wcs
+    nd_testing.assert_wcs_seem_equal(result.wcs, wcs)
 
 
 @pytest.mark.parametrize('operation',
@@ -802,13 +807,10 @@ def test_wcs_arithmetic():
 def test_wcs_arithmetic_ccd(operation):
     ccd_data = create_ccd_data()
     ccd_data2 = ccd_data.copy()
-    wcs = WCS(naxis=2)
-    ccd_data.wcs = wcs
+    ccd_data.wcs = WCS(naxis=2)
     method = getattr(ccd_data, operation)
     result = method(ccd_data2)
-    # TODO: The arithmetic method copies the wcs so the following tests require
-    # a way to check for WCS equality.
-    assert result.wcs is ccd_data.wcs
+    nd_testing.assert_wcs_seem_equal(result.wcs, ccd_data.wcs)
     assert ccd_data2.wcs is None
 
 
