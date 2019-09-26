@@ -611,7 +611,9 @@ def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
 
     if len(valid_formats) == 0:
         format_table_str = _get_format_table_str(cls, mode.capitalize())
-        raise IORegistryError("Format could not be identified.\n"
+        raise IORegistryError("Format could not be identified based on the"
+                              " file name or contents, please provide a"
+                              " 'format' argument.\n"
                               "The available formats are:\n"
                               "{0}".format(format_table_str))
     elif len(valid_formats) > 1:

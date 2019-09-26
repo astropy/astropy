@@ -168,13 +168,17 @@ def test_register_identifier_force():
 def test_read_noformat():
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData.read()
-    assert str(exc.value).startswith("Format could not be identified.")
+    assert str(exc.value).startswith("Format could not be identified based on the"
+                                     " file name or contents, please provide a"
+                                     " 'format' argument.")
 
 
 def test_write_noformat():
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData().write()
-    assert str(exc.value).startswith("Format could not be identified.")
+    assert str(exc.value).startswith("Format could not be identified based on the"
+                                     " file name or contents, please provide a"
+                                     " 'format' argument.")
 
 
 def test_read_noformat_arbitrary():
@@ -182,7 +186,9 @@ def test_read_noformat_arbitrary():
     _identifiers.update(_IDENTIFIERS_ORIGINAL)
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData.read(object())
-    assert str(exc.value).startswith("Format could not be identified.")
+    assert str(exc.value).startswith("Format could not be identified based on the"
+                                     " file name or contents, please provide a"
+                                     " 'format' argument.")
 
 
 def test_read_noformat_arbitrary_file(tmpdir):
@@ -194,7 +200,9 @@ def test_read_noformat_arbitrary_file(tmpdir):
 
     with pytest.raises(io_registry.IORegistryError) as exc:
         Table.read(testfile)
-    assert str(exc.value).startswith("Format could not be identified.")
+    assert str(exc.value).startswith("Format could not be identified based on the"
+                                     " file name or contents, please provide a"
+                                     " 'format' argument.")
 
 
 def test_write_noformat_arbitrary():
@@ -202,7 +210,9 @@ def test_write_noformat_arbitrary():
     _identifiers.update(_IDENTIFIERS_ORIGINAL)
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData().write(object())
-    assert str(exc.value).startswith("Format could not be identified.")
+    assert str(exc.value).startswith("Format could not be identified based on the"
+                                     " file name or contents, please provide a"
+                                     " 'format' argument.")
 
 
 def test_write_noformat_arbitrary_file(tmpdir):
@@ -212,7 +222,9 @@ def test_write_noformat_arbitrary_file(tmpdir):
 
     with pytest.raises(io_registry.IORegistryError) as exc:
         Table().write(testfile)
-    assert str(exc.value).startswith("Format could not be identified.")
+    assert str(exc.value).startswith("Format could not be identified based on the"
+                                     " file name or contents, please provide a"
+                                     " 'format' argument.")
 
 
 def test_read_toomanyformats():
