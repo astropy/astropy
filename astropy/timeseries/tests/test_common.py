@@ -73,7 +73,7 @@ class CommonTimeSeriesTests:
 
 class TestTimeSeries(CommonTimeSeriesTests):
 
-    _row = {'time': '2016-03-22T12:30:40', 'a': 1., 'b': 2, 'c': 'a'}
+    _row = {'time': '2016-03-23T12:30:40', 'a': 1., 'b': 2, 'c': 'a'}
 
     def setup_method(self, method):
         self.series = TimeSeries(time=INPUT_TIME, data=PLAIN_TABLE)
@@ -86,7 +86,7 @@ class TestTimeSeries(CommonTimeSeriesTests):
 
 class TestBinnedTimeSeries(CommonTimeSeriesTests):
 
-    _row = {'time_bin_start': '2016-03-22T12:30:40',
+    _row = {'time_bin_start': '2016-03-23T12:30:40',
             'time_bin_size': 2 * u.s, 'a': 1., 'b': 2, 'c': 'a'}
 
     def setup_method(self, method):
