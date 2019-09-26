@@ -851,6 +851,8 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
     def test_trace(self):
         self.check(np.trace)
 
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason=("Needs __array_function__ support"))
     def test_count_nonzero(self):
         q1 = np.arange(9.).reshape(3, 3) * u.m
         o = np.count_nonzero(q1)
