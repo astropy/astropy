@@ -247,8 +247,9 @@ def discretize_oversample_1D(model, x_range, factor=10):
     Discretize model by taking the average on an oversampled grid.
     """
     # Evaluate model on oversampled grid
-    x = np.arange(x_range[0] - 0.5 * (1 - 1 / factor),
-                  x_range[1] + 0.5 * (1 + 1 / factor), 1. / factor)
+    x = np.linspace(x_range[0] - 0.5 * (1 - 1 / factor),
+                    x_range[1] + 0.5 * (1 - 1 / factor),
+                    num=(x_range[1] - x_range[0] + 1) * factor)   
 
     values = model(x)
 
@@ -262,11 +263,13 @@ def discretize_oversample_2D(model, x_range, y_range, factor=10):
     Discretize model by taking the average on an oversampled grid.
     """
     # Evaluate model on oversampled grid
-    x = np.arange(x_range[0] - 0.5 * (1 - 1 / factor),
-                  x_range[1] + 0.5 * (1 + 1 / factor), 1. / factor)
+    x = np.linspace(x_range[0] - 0.5 * (1 - 1 / factor),
+                    x_range[1] + 0.5 * (1 - 1 / factor),
+                    num=(x_range[1] - x_range[0] + 1) * factor)
+    y = np.linspace(y_range[0] - 0.5 * (1 - 1 / factor),
+                    y_range[1] + 0.5 * (1 - 1 / factor),
+                    num=(y_range[1] - y_range[0] + 1) * factor)    
 
-    y = np.arange(y_range[0] - 0.5 * (1 - 1 / factor),
-                  y_range[1] + 0.5 * (1 + 1 / factor), 1. / factor)
     x_grid, y_grid = np.meshgrid(x, y)
     values = model(x_grid, y_grid)
 
