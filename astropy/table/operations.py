@@ -922,6 +922,8 @@ def _join(left, right, keys=None, join_type='inner',
 
     if '__table_cartesian_join_temp_index__' in out.colnames:
         del out['__table_cartesian_join_temp_index__']
+        del left['__table_cartesian_join_temp_index__'],
+        del right['__table_cartesian_join_temp_index__']
     return out
 
 
