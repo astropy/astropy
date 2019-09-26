@@ -223,9 +223,11 @@ class NDData(NDDataBase):
             unit = deepcopy(unit)
 
         # Validate the wcs
+        if wcs is None or isinstance(wcs, BaseHighLevelWCS):
+            pass
         if isinstance(wcs, BaseLowLevelWCS):
             wcs = HighLevelWCSWrapper(wcs)
-        elif wcs is not None and not isinstance(wcs, BaseHighLevelWCS):
+        else:
             raise TypeError("The wcs argument must implement either the high or"
                             " low level WCS API.")
 
