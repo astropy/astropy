@@ -482,6 +482,8 @@ Other Changes and Additions
 
 - Matplotlib 2.1 and later is now required. [#8787]
 
+- Versions of Numpy <1.16 are no longer supported. [#9292]
+
 - Updated the bundled CFITSIO library to 3.470. See
   ``cextern/cfitsio/docs/changes.txt`` for additional information. [#9233]
 
