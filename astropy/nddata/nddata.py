@@ -225,7 +225,7 @@ class NDData(NDDataBase):
         # Validate the wcs
         if wcs is None or isinstance(wcs, BaseHighLevelWCS):
             pass
-        if isinstance(wcs, BaseLowLevelWCS):
+        elif isinstance(wcs, BaseLowLevelWCS):
             wcs = HighLevelWCSWrapper(wcs)
         else:
             raise TypeError("The wcs argument must implement either the high or"
