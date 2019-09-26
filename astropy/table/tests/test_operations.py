@@ -547,15 +547,23 @@ class TestJoin():
                 assert ('join requires masking' in str(err.value) or
                         'join unavailable' in str(err.value))
 
+    def test_cartesian_join(self, operation_table_type):
+        self._setup(operation_table_type)
+        t1 = self.t1
+        t2 = self.t2
+
+        t12 = table.join(t1, t2, join_type='cartesian')
+        assert len(t12) == len(t1) * len(t2)
+
 
 class TestSetdiff():
 
     def _setup(self, t_cls=Table):
         lines1 = [' a   b ',
-                 '  0 foo ',
-                 '  1 foo ',
-                 '  1 bar ',
-                 '  2 bar ']
+                  '  0 foo ',
+                  '  1 foo ',
+                  '  1 bar ',
+                  '  2 bar ']
         lines2 = [' a   b ',
                   '  0 foo ',
                   '  3 foo ',
