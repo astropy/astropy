@@ -13,17 +13,6 @@ or dtypes for those structs.  They should be added manually in the template file
 import re
 import os.path
 from collections import OrderedDict
-from distutils.version import LooseVersion
-
-import numpy
-
-# Note: once we support only numpy >=1.16, all things related to "d3_fix"
-# can be removed, here and in the templates (core.py.templ
-
-# NOTE: we define this variable here instead of importing from astropy to
-# ensure that running this script does not require importing astropy.
-NUMPY_LT_1_16 = LooseVersion(numpy.__version__) < '1.16'
-
 
 DEFAULT_ERFA_LOC = os.path.join(os.path.split(__file__)[0],
                                 '../../cextern/erfa')
@@ -233,9 +222,9 @@ class Variable:
         if self.ctype == 'eraLDBODY':
             return '(n)'
         elif self.ctype == 'double' and self.shape == (3,):
-            return '(d3)' if NUMPY_LT_1_16 else '(3)'
+            return '(3)'
         elif self.ctype == 'double' and self.shape == (3, 3):
-            return '(d3, d3)' if NUMPY_LT_1_16 else '(3, 3)'
+            return '(3, 3)'
         else:
             return '()'
 
@@ -693,9 +682,8 @@ def main(srcdir=DEFAULT_ERFA_LOC, outfn='core.py', ufuncfn='ufunc.c',
     #             funcs.append(ExtraFunction(match.group(1), ls, erfaextrahfn))
 
     print_("Rendering template")
-    erfa_c = erfa_c_in.render(funcs=funcs, NUMPY_LT_1_16=NUMPY_LT_1_16)
-    erfa_py = erfa_py_in.render(funcs=funcs, constants=constants,
-                                NUMPY_LT_1_16=NUMPY_LT_1_16)
+    erfa_c = erfa_c_in.render(funcs=funcs)
+    erfa_py = erfa_py_in.render(funcs=funcs, constants=constants)
 
     if outfn is not None:
         print_("Saving to", outfn, 'and', ufuncfn)

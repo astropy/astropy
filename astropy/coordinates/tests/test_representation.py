@@ -10,23 +10,22 @@ from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.tests.helper import (assert_quantity_allclose as
-                             assert_allclose_quantity, catch_warnings)
+                                  assert_allclose_quantity)
 from astropy.utils import isiterable
-from astropy.utils.compat import NUMPY_LT_1_14
 from astropy.coordinates.angles import Longitude, Latitude, Angle
 from astropy.coordinates.distances import Distance
 from astropy.coordinates.representation import (REPRESENTATION_CLASSES,
-                              DIFFERENTIAL_CLASSES,
-                              BaseRepresentation,
-                              SphericalRepresentation,
-                              UnitSphericalRepresentation,
-                              SphericalCosLatDifferential,
-                              CartesianRepresentation,
-                              CylindricalRepresentation,
-                              PhysicsSphericalRepresentation,
-                              CartesianDifferential,
-                              SphericalDifferential,
-                              _combine_xyz)
+                                                DIFFERENTIAL_CLASSES,
+                                                BaseRepresentation,
+                                                SphericalRepresentation,
+                                                UnitSphericalRepresentation,
+                                                SphericalCosLatDifferential,
+                                                CartesianRepresentation,
+                                                CylindricalRepresentation,
+                                                PhysicsSphericalRepresentation,
+                                                CartesianDifferential,
+                                                SphericalDifferential,
+                                                _combine_xyz)
 
 
 # Preserve the original REPRESENTATION_CLASSES dict so that importing
@@ -947,90 +946,56 @@ def test_no_unnecessary_copies():
 def test_representation_repr():
     r1 = SphericalRepresentation(lon=1 * u.deg, lat=2.5 * u.deg, distance=1 * u.kpc)
     assert repr(r1) == ('<SphericalRepresentation (lon, lat, distance) in (deg, deg, kpc)\n'
-                        '    ({})>').format(' 1.,  2.5,  1.' if NUMPY_LT_1_14
-                                            else '1., 2.5, 1.')
+                        '    ({})>').format('1., 2.5, 1.')
 
     r2 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
     assert repr(r2) == ('<CartesianRepresentation (x, y, z) in kpc\n'
-                        '    ({})>').format(' 1.,  2.,  3.' if NUMPY_LT_1_14
-                                            else '1., 2., 3.')
+                        '    ({})>').format('1., 2., 3.')
 
     r3 = CartesianRepresentation(x=[1, 2, 3] * u.kpc, y=4 * u.kpc, z=[9, 10, 11] * u.kpc)
-    if NUMPY_LT_1_14:
-        assert repr(r3) == ('<CartesianRepresentation (x, y, z) in kpc\n'
-                            '    [( 1.,  4.,   9.), ( 2.,  4.,  10.), ( 3.,  4.,  11.)]>')
-    else:
-        assert repr(r3) == ('<CartesianRepresentation (x, y, z) in kpc\n'
-                            '    [(1., 4.,  9.), (2., 4., 10.), (3., 4., 11.)]>')
+    assert repr(r3) == ('<CartesianRepresentation (x, y, z) in kpc\n'
+                        '    [(1., 4.,  9.), (2., 4., 10.), (3., 4., 11.)]>')
 
 
 def test_representation_repr_multi_d():
     """Regression test for #5889."""
     cr = CartesianRepresentation(np.arange(27).reshape(3, 3, 3), unit='m')
-    if NUMPY_LT_1_14:
-        assert repr(cr) == (
-            '<CartesianRepresentation (x, y, z) in m\n'
-            '    [[( 0.,   9.,  18.), ( 1.,  10.,  19.), ( 2.,  11.,  20.)],\n'
-            '     [( 3.,  12.,  21.), ( 4.,  13.,  22.), ( 5.,  14.,  23.)],\n'
-            '     [( 6.,  15.,  24.), ( 7.,  16.,  25.), ( 8.,  17.,  26.)]]>')
-    else:
-        assert repr(cr) == (
-            '<CartesianRepresentation (x, y, z) in m\n'
-            '    [[(0.,  9., 18.), (1., 10., 19.), (2., 11., 20.)],\n'
-            '     [(3., 12., 21.), (4., 13., 22.), (5., 14., 23.)],\n'
-            '     [(6., 15., 24.), (7., 16., 25.), (8., 17., 26.)]]>')
+    assert repr(cr) == (
+        '<CartesianRepresentation (x, y, z) in m\n'
+        '    [[(0.,  9., 18.), (1., 10., 19.), (2., 11., 20.)],\n'
+        '     [(3., 12., 21.), (4., 13., 22.), (5., 14., 23.)],\n'
+        '     [(6., 15., 24.), (7., 16., 25.), (8., 17., 26.)]]>')
     # This was broken before.
-    if NUMPY_LT_1_14:
-        assert repr(cr.T) == (
-            '<CartesianRepresentation (x, y, z) in m\n'
-            '    [[( 0.,   9.,  18.), ( 3.,  12.,  21.), ( 6.,  15.,  24.)],\n'
-            '     [( 1.,  10.,  19.), ( 4.,  13.,  22.), ( 7.,  16.,  25.)],\n'
-            '     [( 2.,  11.,  20.), ( 5.,  14.,  23.), ( 8.,  17.,  26.)]]>')
-    else:
-        assert repr(cr.T) == (
-            '<CartesianRepresentation (x, y, z) in m\n'
-            '    [[(0.,  9., 18.), (3., 12., 21.), (6., 15., 24.)],\n'
-            '     [(1., 10., 19.), (4., 13., 22.), (7., 16., 25.)],\n'
-            '     [(2., 11., 20.), (5., 14., 23.), (8., 17., 26.)]]>')
+    assert repr(cr.T) == (
+        '<CartesianRepresentation (x, y, z) in m\n'
+        '    [[(0.,  9., 18.), (3., 12., 21.), (6., 15., 24.)],\n'
+        '     [(1., 10., 19.), (4., 13., 22.), (7., 16., 25.)],\n'
+        '     [(2., 11., 20.), (5., 14., 23.), (8., 17., 26.)]]>')
 
 
 def test_representation_str():
     r1 = SphericalRepresentation(lon=1 * u.deg, lat=2.5 * u.deg, distance=1 * u.kpc)
-    assert str(r1) == ('( 1.,  2.5,  1.) (deg, deg, kpc)' if NUMPY_LT_1_14 else
-                       '(1., 2.5, 1.) (deg, deg, kpc)')
+    assert str(r1) == '(1., 2.5, 1.) (deg, deg, kpc)'
+
     r2 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
-    assert str(r2) == ('( 1.,  2.,  3.) kpc' if NUMPY_LT_1_14 else
-                       '(1., 2., 3.) kpc')
+    assert str(r2) == '(1., 2., 3.) kpc'
+
     r3 = CartesianRepresentation(x=[1, 2, 3] * u.kpc, y=4 * u.kpc, z=[9, 10, 11] * u.kpc)
-    assert str(r3) == ('[( 1.,  4.,   9.), ( 2.,  4.,  10.), ( 3.,  4.,  11.)] kpc'
-                       if NUMPY_LT_1_14 else
-                       '[(1., 4.,  9.), (2., 4., 10.), (3., 4., 11.)] kpc')
+    assert str(r3) == '[(1., 4.,  9.), (2., 4., 10.), (3., 4., 11.)] kpc'
 
 
 def test_representation_str_multi_d():
     """Regression test for #5889."""
     cr = CartesianRepresentation(np.arange(27).reshape(3, 3, 3), unit='m')
-    if NUMPY_LT_1_14:
-        assert str(cr) == (
-            '[[( 0.,   9.,  18.), ( 1.,  10.,  19.), ( 2.,  11.,  20.)],\n'
-            ' [( 3.,  12.,  21.), ( 4.,  13.,  22.), ( 5.,  14.,  23.)],\n'
-            ' [( 6.,  15.,  24.), ( 7.,  16.,  25.), ( 8.,  17.,  26.)]] m')
-    else:
-        assert str(cr) == (
-            '[[(0.,  9., 18.), (1., 10., 19.), (2., 11., 20.)],\n'
-            ' [(3., 12., 21.), (4., 13., 22.), (5., 14., 23.)],\n'
-            ' [(6., 15., 24.), (7., 16., 25.), (8., 17., 26.)]] m')
+    assert str(cr) == (
+        '[[(0.,  9., 18.), (1., 10., 19.), (2., 11., 20.)],\n'
+        ' [(3., 12., 21.), (4., 13., 22.), (5., 14., 23.)],\n'
+        ' [(6., 15., 24.), (7., 16., 25.), (8., 17., 26.)]] m')
     # This was broken before.
-    if NUMPY_LT_1_14:
-        assert str(cr.T) == (
-            '[[( 0.,   9.,  18.), ( 3.,  12.,  21.), ( 6.,  15.,  24.)],\n'
-            ' [( 1.,  10.,  19.), ( 4.,  13.,  22.), ( 7.,  16.,  25.)],\n'
-            ' [( 2.,  11.,  20.), ( 5.,  14.,  23.), ( 8.,  17.,  26.)]] m')
-    else:
-        assert str(cr.T) == (
-            '[[(0.,  9., 18.), (3., 12., 21.), (6., 15., 24.)],\n'
-            ' [(1., 10., 19.), (4., 13., 22.), (7., 16., 25.)],\n'
-            ' [(2., 11., 20.), (5., 14., 23.), (8., 17., 26.)]] m')
+    assert str(cr.T) == (
+        '[[(0.,  9., 18.), (3., 12., 21.), (6., 15., 24.)],\n'
+        ' [(1., 10., 19.), (4., 13., 22.), (7., 16., 25.)],\n'
+        ' [(2., 11., 20.), (5., 14., 23.), (8., 17., 26.)]] m')
 
 
 @pytest.mark.remote_data

@@ -280,22 +280,20 @@ it is automatically ignored from aggregation.
 From a grouped table it is possible to select one or more columns on which
 to perform the aggregation::
 
-  >>> print(obs_by_name['mag_b'].groups.aggregate(np.mean))  # doctest: +SKIP
-  mag_b
-  -----
-   15.0
-   17.0
-   15.1
+  >>> print(obs_by_name['mag_b'].groups.aggregate(np.mean))
+        mag_b
+  ------------------
+  15.000000000000002
+                17.0
+  15.699999999999998
 
+  >>> print(obs_by_name['name', 'mag_v', 'mag_b'].groups.aggregate(np.mean))
+  name       mag_v              mag_b
+  ---- ------------------ ------------------
+  M101 13.725000000000001 15.000000000000002
+   M31 17.400000000000002               17.0
+   M82               15.5 15.699999999999998
 
-  >>> print(obs_by_name['name', 'mag_v', 'mag_b'].groups.aggregate(np.mean))  # doctest: +SKIP
-  name mag_v  mag_b
-  ---- ------ -----
-  M101 13.725  15.0
-   M31   17.4  17.0
-   M82   15.5  15.7
-
-.. above tests skipped as results look different in "not NUMPY_LT_1_14".
 
 A single column of data can be aggregated as well::
 

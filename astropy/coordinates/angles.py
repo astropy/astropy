@@ -13,7 +13,6 @@ import numpy as np
 from . import angle_utilities as util
 from astropy import units as u
 from astropy.utils import isiterable
-from astropy.utils.compat import NUMPY_LT_1_14_1, NUMPY_LT_1_14_2
 
 __all__ = ['Angle', 'Latitude', 'Longitude']
 
@@ -430,14 +429,8 @@ class Angle(u.SpecificTypeQuantity):
         if self.isscalar:
             return self.to_string(format=format)
 
-        if NUMPY_LT_1_14_1 or not NUMPY_LT_1_14_2:
-            def formatter(x):
-                return x.to_string(format=format)
-        else:
-            # In numpy 1.14.1, array2print formatters get passed plain numpy scalars instead
-            # of subclass array scalars, so we need to recreate an array scalar.
-            def formatter(x):
-                return self._new_view(x).to_string(format=format)
+        def formatter(x):
+            return x.to_string(format=format)
 
         return np.array2string(self, formatter={'all': formatter})
 

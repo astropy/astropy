@@ -4,7 +4,6 @@ used to represent low-level cartesian, spherical, cylindrical, and other
 coordinates.
 """
 
-
 import abc
 import functools
 import operator
@@ -18,7 +17,6 @@ from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from astropy._erfa import ufunc as erfa_ufunc
 from astropy.utils import ShapedLikeNDArray, classproperty
-from astropy.utils.compat import NUMPY_LT_1_14
 
 __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
            "CartesianRepresentation", "SphericalRepresentation",
@@ -63,8 +61,6 @@ def _array2string(values, prefix=''):
     # Work around version differences for array2string.
     kwargs = {'separator': ', ', 'prefix': prefix}
     kwargs['formatter'] = {}
-    if NUMPY_LT_1_14:  # in 1.14, style is no longer used (and deprecated)
-        kwargs['style'] = repr
 
     return np.array2string(values, **kwargs)
 
