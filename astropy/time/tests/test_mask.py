@@ -3,8 +3,6 @@
 import functools
 import numpy as np
 
-from astropy.io.fits.verify import VerifyWarning
-from astropy.utils.compat import NUMPY_LT_1_14
 from astropy.utils import iers
 from astropy.tests.helper import pytest
 from astropy.time import Time
@@ -75,15 +73,10 @@ def test_str():
     assert str(t) == "['2000:001:00:00:00.000' --]"
     assert repr(t) == "<Time object: scale='utc' format='yday' value=['2000:001:00:00:00.000' --]>"
 
-    if NUMPY_LT_1_14:
-        expected = ["masked_array(data = ['2000-01-01 00:00:00.000' --],",
-                    "             mask = [False  True],",
-                    "       fill_value = N/A)"]
-    else:
-        expected = ["masked_array(data=['2000-01-01 00:00:00.000', --],",
-                    '             mask=[False,  True],',
-                    "       fill_value='N/A',",
-                    "            dtype='<U23')"]
+    expected = ["masked_array(data=['2000-01-01 00:00:00.000', --],",
+                '             mask=[False,  True],',
+                "       fill_value='N/A',",
+                "            dtype='<U23')"]
 
     # Note that we need to take care to allow for big-endian platforms,
     # for which the dtype will be >U23 instead of <U23, which we do with

@@ -20,7 +20,7 @@ from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
                    UnitBase, UnitsError, UnitConversionError, UnitTypeError)
 from .utils import is_effectively_unity
 from .format.latex import Latex
-from astropy.utils.compat import NUMPY_LT_1_14, NUMPY_LT_1_16, NUMPY_LT_1_17
+from astropy.utils.compat import NUMPY_LT_1_17
 from astropy.utils.compat.misc import override__dir__
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.misc import isiterable
@@ -997,30 +997,6 @@ class Quantity(np.ndarray):
 
         return super().__pow__(other)
 
-    # For Py>=3.5
-    if NUMPY_LT_1_16:
-        def __matmul__(self, other):
-            result_unit = self.unit * getattr(other, 'unit',
-                                              dimensionless_unscaled)
-            result_array = np.matmul(self.value,
-                                     getattr(other, 'value', other))
-            return self._new_view(result_array, result_unit)
-
-        def __rmatmul__(self, other):
-            result_unit = self.unit * getattr(other, 'unit',
-                                              dimensionless_unscaled)
-            result_array = np.matmul(getattr(other, 'value', other),
-                                     self.value)
-            return self._new_view(result_array, result_unit)
-
-    # In numpy 1.13, 1.14, a np.positive ufunc exists, but ndarray.__pos__
-    # does not go through it, so we define it, to allow subclasses to override
-    # it inside __array_ufunc__. This can be removed if a solution to
-    # https://github.com/numpy/numpy/issues/9081 is merged.
-    def __pos__(self):
-        """Plus the quantity."""
-        return np.positive(self)
-
     # other overrides of special functions
     def __hash__(self):
         return hash(self.value) ^ hash(self.unit)
@@ -1206,17 +1182,9 @@ class Quantity(np.ndarray):
                                     formatter=formatter)
 
             # the view is needed for the scalar case - value might be float
-            if NUMPY_LT_1_14:   # style deprecated in 1.14
-                latex_value = np.array2string(
-                    self.view(np.ndarray),
-                    style=(float_formatter if self.dtype.kind == 'f'
-                           else complex_formatter if self.dtype.kind == 'c'
-                           else repr),
-                    max_line_width=np.inf, separator=',~')
-            else:
-                latex_value = np.array2string(
-                    self.view(np.ndarray),
-                    max_line_width=np.inf, separator=',~')
+            latex_value = np.array2string(
+                self.view(np.ndarray),
+                max_line_width=np.inf, separator=',~')
 
             latex_value = latex_value.replace('...', r'\dots')
         finally:
@@ -1239,7 +1207,7 @@ class Quantity(np.ndarray):
 
     def __repr__(self):
         prefixstr = '<' + self.__class__.__name__ + ' '
-        sep = ',' if NUMPY_LT_1_14 else ', '
+        sep = ', '
         arrstr = np.array2string(self.view(np.ndarray), separator=sep,
                                  prefix=prefixstr)
         return f'{prefixstr}{arrstr}{self._unitstr:s}>'
