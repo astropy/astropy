@@ -401,7 +401,7 @@ class _ModelMeta(abc.ABCMeta):
             # The following code creates the __call__ function with these
             # two keyword arguments.
 
-            args = ('self',)# + inputs
+            args = ('self',)
             kwargs = dict([('model_set_axis', None),
                            ('with_bounding_box', False),
                            ('fill_value', np.nan),
@@ -409,11 +409,7 @@ class _ModelMeta(abc.ABCMeta):
                            ('inputs_map', None)])
 
             new_call = make_function_with_signature(
-                    __call__, args, [('model_set_axis', None),
-                                     ('with_bounding_box', False),
-                                     ('fill_value', np.nan),
-                                     ('equivalencies', None),
-                                     ('inputs_map', None)], varargs='inputs', varkwargs='new_inputs')
+                    __call__, args, kwargs, varargs='inputs', varkwargs='new_inputs')
 
             # The following makes it look like __call__
             # was defined in the class
@@ -2227,14 +2223,29 @@ class FittableModel(Model):
 
     def __call__(self, *args, **kwargs):
         if not args:
+            # Inputs were passed as keyword (not positional) arguments.
+            # Because the signature of the ``__call__`` is defined at
+            # the class level, the name of the inputs cannot be changed at
+            # the instance level and the old names are always present in the
+            # signature of the method. In order to use the new names of the
+            # inputs, the old names are taken out of ``kwargs``, the input
+            # values are sorted in the order of self.inputs and passed as
+            # positional arguments to ``__call__``.
+
+            # these are the keys that are always present as keyword arguments
             keys = ['model_set_axis', 'with_bounding_box', 'fill_value',
                     'equivalencies', 'inputs_map']
+
             new_inputs = {}
-            oldkeys = list(kwargs.keys())
-            for key in oldkeys:
+            # kwargs contain the names of the new inputs + ``keys``
+            allkeys = list(kwargs.keys())
+            # Remove the names of the new inputs from kwargs and save them
+            # to a dict ``new_inputs``.
+            for key in allkeys:
                 if key not in keys:
                     new_inputs[key] = kwargs[key]
                     del kwargs[key]
+            # Create positional arguments from the keyword arguments in ``new_inputs``.
             args = []
             for k in self.inputs:
                 args.append(new_inputs[k])
