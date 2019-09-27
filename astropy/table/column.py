@@ -9,15 +9,6 @@ from copy import deepcopy
 import numpy as np
 from numpy import ma
 
-# Remove this when Numpy no longer emits this warning and that Numpy version
-# becomes the minimum required version for Astropy.
-# https://github.com/astropy/astropy/issues/6285
-try:
-    from numpy.ma.core import MaskedArrayFutureWarning
-except ImportError:
-    # For Numpy versions that do not raise this warning.
-    MaskedArrayFutureWarning = None
-
 from astropy.units import Unit, Quantity
 from astropy.utils.console import color_print
 from astropy.utils.metadata import MetaData
@@ -1389,15 +1380,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         # update indices
         self.info.adjust_indices(index, value, len(self))
 
-        # Remove this when Numpy no longer emits this warning and that
-        # Numpy version becomes the minimum required version for Astropy.
-        # https://github.com/astropy/astropy/issues/6285
-        if MaskedArrayFutureWarning is None:
-            ma.MaskedArray.__setitem__(self, index, value)
-        else:
-            with warnings.catch_warnings():
-                warnings.simplefilter('ignore', MaskedArrayFutureWarning)
-                ma.MaskedArray.__setitem__(self, index, value)
+        ma.MaskedArray.__setitem__(self, index, value)
 
     # We do this to make the methods show up in the API docs
     name = BaseColumn.name
