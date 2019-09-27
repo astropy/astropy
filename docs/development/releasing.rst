@@ -153,10 +153,19 @@ packages that use the full bugfix/maintenance branch approach.)
 
       $ conda create -n astropy_release_test_v<version> numpy
       $ source activate astropy_release_test_v<version>
-      $ pip install .[all]
-      $ pip install dist/astropy-<version>.tar.gz
+      $ pip install dist/astropy-<version>.tar.gz[all]
       $ python -c 'import astropy; astropy.test(remote_data=True)'
       $ source deactivate
+
+#. Build and test the Astropy wheels.  See the `wheel builder README
+   <https://github.com/MacPython/astropy-wheels>`_ for instructions.  In
+   summary, clone the wheel-building repo, edit the ``.travis.yml``
+   text file with the branch or commit for the release,
+   commit and then push back up to github.  This will trigger a wheel build
+   and test on OSX, Linux, and Windows. Check the build has passed on on the
+   Travis-CI interface at https://travis-ci.org/MacPython/astropy-wheels.
+   You'll need commit privileges to the ``astropy-wheels`` repo; ask Tom Kooij
+   or on the mailing list if you do not have them.
 
 #. If the tests do *not* pass, you'll have to fix whatever the problem is.
    First you'll need to back out the release procedure by dropping the commits
@@ -225,6 +234,11 @@ packages that use the full bugfix/maintenance branch approach.)
       Also, it might be tempting to use the ``--tags`` argument to ``git push``,
       but this should *not* be done, as it might push up some unintended tags.
 
+.. _post-release-procedure:
+
+Post-Release procedures
+-----------------------
+
 #. If this is a release of the current release (i.e., not an LTS supported along
    side a more recent version), update the "stable" branch to point to the new
    release::
@@ -232,16 +246,6 @@ packages that use the full bugfix/maintenance branch approach.)
       $ git checkout stable
       $ git reset --hard v<version>
       $ git push upstream stable --force
-
-#. Build and test the Astropy wheels.  See the `wheel builder README
-   <https://github.com/MacPython/astropy-wheels>`_ for instructions.  In
-   summary, clone the wheel-building repo, edit the ``.travis.yml``
-   text file with the branch or commit for the release,
-   commit and then push back up to github.  This will trigger a wheel build
-   and test on OSX, Linux, and Windows. Check the build has passed on on the
-   Travis-CI interface at https://travis-ci.org/MacPython/astropy-wheels.
-   You'll need commit privileges to the ``astropy-wheels`` repo; ask Tom Kooij
-   or on the mailing list if you do not have them.
 
 #. Update Readthedocs so that it builds docs for the version you just released.
    You'll find this in the "admin" tab, with checkboxes next to each github tag.
@@ -306,9 +310,9 @@ packages that use the full bugfix/maintenance branch approach.)
    version number (with no ``v`` prefix). Once you are happy with the changes,
    click **Save**, then **Publish**.
 
-#. Send out release annoucement emails to email lists in
+#. Send out release announcement emails to email lists in
    `Getting Help with Astropy <https://www.astropy.org/help.html>`_. Use the
-   previous annoucement as a template.
+   previous announcement as a template.
 
 .. _release-procedure-beta-rc:
 
@@ -331,7 +335,7 @@ The primary modifications to the release procedure are:
   If an RC goes well, there's no need for a "dev" stage, as the same version
   will be released with only minor doc updates, and strings like "x.yrcz.dev"
   confuse some version number parsing tools.
-* Do not do step #27 (the one *after* "Update Readthedocs...") or later, as those are tasks for an actual release.
+* Do not do steps in :ref:`post-release-procedure`.
 
 Once a release candidate is available, create a new wiki page under
 `Astropy Project Wiki <https://github.com/astropy/astropy/wiki>`_ with the
@@ -416,11 +420,7 @@ The procedure for this is straightforward:
 
 #. Repeat the above steps for the astropy-helpers, using the same version series.
 
-#. Create an issue titled "Release final vX.Y".
-
-#. Ping people to test it under some unusual cases like 32-bit Linux systems.
-   Also try running the tests twice in a row without cleaning anything up
-   in between.
+#. Run the tests twice in a row without cleaning anything up in between.
 
 
 .. _release-procedure-bug-fix:
@@ -475,7 +475,7 @@ Backporting fixes from master
 .. note::
 
     The changelog script in ``astropy-procedures`` does not know about
-    minor releases, thus please becareful. For example, if PRs milestoned
+    minor releases, thus please be careful. For example, if PRs milestoned
     for 1.2.1 have been merged to ``master`` but 1.2.0 is not out yet,
     then do not backport those PRs until after 1.2.0 is released from the
     branch.
