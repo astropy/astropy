@@ -49,6 +49,21 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Major rework of modeling internals.
+  See modeling documentation for details.
+  `<https://docs.astropy.org/en/latest/modeling/changes_for_4.html>`_ . [#8769]
+
+- Significant reorganization of the documentation. [#9078, #9171]
+
+- Add ``Tabular1D.inverse`` [#9083]
+
+- ``Model.rename`` was changed to add the ability to rename ``Model.inputs``
+  and ``Model.outputs``. [#9220]
+
+- New function ``fix_inputs`` to generate new models from others by fixing
+  specific inputs variable values to constants. [#9135]
+
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
@@ -381,6 +396,12 @@ astropy.uncertainty
 
 astropy.units
 ^^^^^^^^^^^^^
+
+- Ensure that output from test functions of and comparisons between quantities
+  can be stored into pre-allocated output arrays (using ``out=array``) [#9273]
+
+- Allow conversion of ``Column`` with logarithmic units to a suitable ``Quantity``
+  subclass if ``subok=True``. [#9188]
 
 astropy.utils
 ^^^^^^^^^^^^^

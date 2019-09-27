@@ -275,11 +275,6 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         if unit is not None:
             # convert unit first, to avoid multiple string->unit conversions
             unit = Unit(unit)
-            # if we allow subclasses, allow a class from the unit.
-            if subok:
-                qcls = getattr(unit, '_quantity_class', cls)
-                if issubclass(qcls, cls):
-                    cls = qcls
 
         # optimize speed for Quantity with no dtype given, copy=False
         if isinstance(value, Quantity):
@@ -378,6 +373,12 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         # by default, cast any integer, boolean, etc., to float
         if dtype is None and value.dtype.kind in 'iuO':
             value = value.astype(float)
+
+        # if we allow subclasses, allow a class from the unit.
+        if subok:
+            qcls = getattr(unit, '_quantity_class', cls)
+            if issubclass(qcls, cls):
+                cls = qcls
 
         value = value.view(cls)
         value._set_unit(value_unit)
