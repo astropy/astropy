@@ -125,12 +125,12 @@ class raises:
 _deprecations_as_exceptions = False
 _include_astropy_deprecations = True
 _modules_to_ignore_on_import = set([
-    'compiler',  # A deprecated stdlib module used by py.test
-    'scipy',
-    'pygments',
-    'ipykernel',
-    'IPython',   # deprecation warnings for async and await
-    'setuptools'])
+    r'compiler',  # A deprecated stdlib module used by py.test
+    r'scipy',
+    r'pygments',
+    r'ipykernel',
+    r'IPython',   # deprecation warnings for async and await
+    r'setuptools'])
 _warnings_to_ignore_entire_module = set([])
 _warnings_to_ignore_by_pyver = {
     None: set([  # Python version agnostic
@@ -268,12 +268,13 @@ def treat_deprecations_as_exceptions():
     for w in _all_warns:
         warnings.filterwarnings("error", ".*", w)
 
-    # This ignores all deprecation warnings from given module(s),
+    # This ignores all specified warnings from given module(s),
     # not just on import, for use of Astropy affiliated packages.
     for m in _warnings_to_ignore_entire_module:
         for w in _all_warns:
             warnings.filterwarnings('ignore', category=w, module=m)
 
+    # This ignores only deprecation warnings by Python version, if applicable.
     for v in _warnings_to_ignore_by_pyver:
         if v is None or sys.version_info[:2] == v:
             for s in _warnings_to_ignore_by_pyver[v]:
