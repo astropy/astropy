@@ -48,7 +48,7 @@ reveal secrets like tokens and passwords. -->
 ```
 
 ### System Details
-<!-- Even if you do not think this is necessary, it is still nice to have.
+<!-- Even if you do not think this is necessary, it is useful information for the maintainers.
 Please run the following snippet and paste the output below:
 import platform; print(platform.platform())
 import sys; print("Python", sys.version)
