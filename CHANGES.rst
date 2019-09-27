@@ -471,6 +471,10 @@ astropy.constants
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
+- Fixed a bug in ``discretize_oversample_1D/2D()`` from ``astropy.convolution.utils``,
+  which might occasionally introduce unexpected oversampling grid dimensions due 
+  to a numerical precision issue. [#9293]
+  
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
