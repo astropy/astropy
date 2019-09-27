@@ -48,13 +48,11 @@ reveal secrets like tokens and passwords. -->
 ```
 
 ### System Details
-<!-- Even if you do not think this is necessary, it is still nice to have. -->
-
-<!-- import astropy; print(astropy.__version__) -->
-* astropy version:
-<!-- import numpy; print(numpy.__version__) -->
-* Numpy version
-<!-- import sys; sys.version -->
-* Python version:
-<!-- Usually available via your machine's system info menu -->
-* OS information:
+<!-- Even if you do not think this is necessary, it is still nice to have.
+Please run the following snippet and paste the output below:
+import platform; print(platform.platform())
+import sys; print("Python", sys.version)
+import numpy; print("Numpy", numpy.__version__)
+import scipy; print("Scipy", scipy.__version__)
+import astropy; print("astropy", astropy.__version__)
+-->
