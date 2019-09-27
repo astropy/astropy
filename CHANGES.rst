@@ -126,6 +126,9 @@ astropy.time
 - Made scalar ``Time`` and ``TimeDelta`` objects hashable based on JD, time
   scale, and location attributes. [#8912]
 
+- Improved error message when bad input is used to initialize a ``Time`` or
+  ``TimeDelta`` object and the format is specified. [#9296]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
