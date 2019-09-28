@@ -246,7 +246,7 @@ def treat_deprecations_as_exceptions():
     # Now, start over again with the warning filters
     warnings.resetwarnings()
     # Now, turn these warnings into exceptions
-    _all_warns = [DeprecationWarning, FutureWarning]
+    _all_warns = [DeprecationWarning, FutureWarning, ImportWarning]
 
     # Only turn astropy deprecation warnings into exceptions if requested
     if _include_astropy_deprecations:
