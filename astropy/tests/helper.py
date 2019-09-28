@@ -143,7 +143,10 @@ _warnings_to_ignore_by_pyver = {
          r"inspect\.signature\(\) or inspect\.getfullargspec\(\)",
          DeprecationWarning),
         # https://github.com/astropy/pytest-doctestplus/issues/29
-        (r"split\(\) requires a non-empty pattern match", FutureWarning)]),
+        (r"split\(\) requires a non-empty pattern match", FutureWarning),
+        # Package resolution warning that we can do nothing about
+        (r"can't resolve package from __spec__ or __package__, "
+         r"falling back on __name__ and __path__", ImportWarning)]),
     (3, 7): set([
         # Deprecation warning for collections.abc, fixed in Astropy but still
         # used in lxml, and maybe others
