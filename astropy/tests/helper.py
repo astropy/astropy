@@ -134,33 +134,21 @@ _modules_to_ignore_on_import = set([
 _warnings_to_ignore_entire_module = set([])
 _warnings_to_ignore_by_pyver = {
     None: set([  # Python version agnostic
-        # py.test reads files with the 'U' flag, which is
-        # deprecated.
-        r"'U' mode is deprecated",
         # https://github.com/astropy/astropy/pull/7372
-        r"Importing from numpy\.testing\.decorators is deprecated, "
-        r"import from numpy\.testing instead\.",
-        # Deprecation warnings ahead of pytest 4.x
-        r"MarkInfo objects are deprecated"]),
-    (3, 5): set([
-        # py.test raised this warning in inspect on Python 3.5.
-        # See https://github.com/pytest-dev/pytest/pull/1009
-        # Keeping it since e.g. lxml as of 3.8.0 is still calling getargspec()
-        r"inspect\.getargspec\(\) is deprecated, use "
-        r"inspect\.signature\(\) instead"]),
-    (3, 6): set([
+        (r"Importing from numpy\.testing\.decorators is deprecated, "
+         r"import from numpy\.testing instead\.", DeprecationWarning),
         # inspect raises this slightly different warning on Python 3.6-3.7.
         # Keeping it since e.g. lxml as of 3.8.0 is still calling getargspec()
-        r"inspect\.getargspec\(\) is deprecated, use "
-        r"inspect\.signature\(\) or inspect\.getfullargspec\(\)"]),
+        (r"inspect\.getargspec\(\) is deprecated, use "
+         r"inspect\.signature\(\) or inspect\.getfullargspec\(\)",
+         DeprecationWarning),
+        # https://github.com/astropy/pytest-doctestplus/issues/29
+        (r"split\(\) requires a non-empty pattern match", FutureWarning)]),
     (3, 7): set([
-        # inspect raises this slightly different warning on Python 3.6-3.7.
-        # Keeping it since e.g. lxml as of 3.8.0 is still calling getargspec()
-        r"inspect\.getargspec\(\) is deprecated, use "
-        r"inspect\.signature\(\) or inspect\.getfullargspec\(\)",
         # Deprecation warning for collections.abc, fixed in Astropy but still
         # used in lxml, and maybe others
-        r"Using or importing the ABCs from 'collections'"])
+        (r"Using or importing the ABCs from 'collections'",
+         DeprecationWarning)])
 }
 
 
@@ -191,7 +179,7 @@ def enable_deprecations_as_exceptions(include_astropy_deprecations=True,
 
     warnings_to_ignore_by_pyver : dict
         Dictionary mapping tuple of ``(major, minor)`` Python version to
-        a list of deprecation warning messages to ignore.
+        a list of ``(warning_message, warning_class)`` to ignore.
         Python version-agnostic warnings should be mapped to `None` key.
         This is in addition of those already ignored by default
         (see ``_warnings_to_ignore_by_pyver`` values).
@@ -274,11 +262,11 @@ def treat_deprecations_as_exceptions():
         for w in _all_warns:
             warnings.filterwarnings('ignore', category=w, module=m)
 
-    # This ignores only deprecation warnings by Python version, if applicable.
+    # This ignores only specified warnings by Python version, if applicable.
     for v in _warnings_to_ignore_by_pyver:
         if v is None or sys.version_info[:2] == v:
             for s in _warnings_to_ignore_by_pyver[v]:
-                warnings.filterwarnings("ignore", s, DeprecationWarning)
+                warnings.filterwarnings("ignore", s[0], s[1])
 
 
 class catch_warnings(warnings.catch_warnings):
