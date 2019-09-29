@@ -519,7 +519,6 @@ def test_nested_get_readable_fileobj():
     assert fileobj.closed and fileobj2.closed
 
 
-@pytest.mark.remote_data(source='astropy')
 def test_download_file_wrong_size(monkeypatch):
     import contextlib
     from astropy.utils.data import download_file
@@ -551,6 +550,12 @@ def test_download_file_wrong_size(monkeypatch):
         download_file(TESTURL, cache=False)
 
     report_length = 1023
+    real_length = 1023
+    fn = download_file(TESTURL, cache=False)
+    with open(fn, "rb") as f:
+        assert f.read() == b"a"*real_length
+
+    report_length = None
     real_length = 1023
     fn = download_file(TESTURL, cache=False)
     with open(fn, "rb") as f:
