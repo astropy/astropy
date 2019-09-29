@@ -1056,6 +1056,20 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
                             bytes_read += len(block)
                             p.update(bytes_read)
                             block = remote.read(conf.download_block_size)
+                            if size is not None and bytes_read > size:
+                                raise urllib.error.URLError(
+                                    "File was supposed to be {} bytes but server "
+                                    "provides more, at least {} bytes. "
+                                    "Download failed."
+                                    .format(size, bytes_read)
+                                )
+                        if size is not None and bytes_read < size:
+                            raise urllib.error.ContentTooShortError(
+                                "File was supposed to be {} bytes but we only "
+                                "got {} bytes. Download failed."
+                                .format(size, bytes_read),
+                                content=None,
+                            )
                     except BaseException:
                         if os.path.exists(f.name):
                             os.remove(f.name)
