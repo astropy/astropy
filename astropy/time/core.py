@@ -604,13 +604,8 @@ class Time(ShapedLikeNDArray):
 
           >>> list(Time.FORMATS)
           ['jd', 'mjd', 'decimalyear', 'unix', 'cxcsec', 'gps', 'plot_date',
-<<<<<<< HEAD
            'datetime', 'iso', 'isot', 'yday', 'datetime64', 'fits', 'byear',
-           'jyear', 'byear_str', 'jyear_str']
-=======
-           'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'fits', 'byear', 'jyear',
-           'byear_str', 'jyear_str']
->>>>>>> 50b8b1afb... fix doctest failures
+           'jyear', 'byear_str', 'jyear_str', ymdhms']
         """
         return self._format
 
