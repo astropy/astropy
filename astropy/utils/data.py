@@ -1046,8 +1046,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
 
             dlmsg = f"Downloading {remote_url}"
             with ProgressBarOrSpinner(size, dlmsg, file=progress_stream) as p:
-                with NamedTemporaryFile(delete=False) as f:
-                    try:
+                try:
+                    with NamedTemporaryFile(delete=False) as f:
                         bytes_read = 0
                         block = remote.read(conf.download_block_size)
                         while block:
@@ -1063,17 +1063,17 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
                                     "Download failed."
                                     .format(size, bytes_read)
                                 )
-                        if size is not None and bytes_read < size:
-                            raise urllib.error.ContentTooShortError(
-                                "File was supposed to be {} bytes but we only "
-                                "got {} bytes. Download failed."
-                                .format(size, bytes_read),
-                                content=None,
-                            )
-                    except BaseException:
-                        if os.path.exists(f.name):
-                            os.remove(f.name)
-                        raise
+                    if size is not None and bytes_read < size:
+                        raise urllib.error.ContentTooShortError(
+                            "File was supposed to be {} bytes but we only "
+                            "got {} bytes. Download failed."
+                            .format(size, bytes_read),
+                            content=None,
+                        )
+                except BaseException:
+                    if os.path.exists(f.name):
+                        os.remove(f.name)
+                    raise
 
         if cache:
             _acquire_download_cache_lock()
