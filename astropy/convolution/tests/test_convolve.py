@@ -41,6 +41,11 @@ except ImportError:
 
 
 def test_regressiontest_issue9168():
+    """
+    Issue #9168 pointed out that kernels can be (unitless) quantities, which
+    leads to crashes when inplace modifications are made to arrays in
+    convolve/convolve_fft, so we now strip the quantity aspects off of kernels.
+    """
 
     from astropy import units as u
 
