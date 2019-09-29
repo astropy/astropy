@@ -40,31 +40,6 @@ except ImportError:
     HAS_PANDAS = False
 
 
-def test_regressiontest_issue9168():
-    """
-    Issue #9168 pointed out that kernels can be (unitless) quantities, which
-    leads to crashes when inplace modifications are made to arrays in
-    convolve/convolve_fft, so we now strip the quantity aspects off of kernels.
-    """
-
-    from astropy import units as u
-
-    x = np.array([[1., 2., 3.],
-                  [4., 5., 6.],
-                  [7., 8., 9.]],)
-
-    kernel_fwhm = 1*u.arcsec
-    pixel_size = 1*u.arcsec
-
-    kernel = Gaussian2DKernel(stddev=kernel_fwhm/pixel_size)
-
-    result = convolve_fft(x, kernel, boundary='fill', fill_value=np.nan,
-                          preserve_nan=True)
-    result = convolve(x, kernel, boundary='fill', fill_value=np.nan,
-                      preserve_nan=True)
-
-
-
 class TestConvolve1D:
     def test_list(self):
         """
@@ -984,3 +959,27 @@ def test_uninterpolated_nan_regions(boundary, normalize_kernel):
     result = convolve(image, kernel, boundary=boundary, nan_treatment='interpolate',
                       normalize_kernel=normalize_kernel)
     assert(~np.any(np.isnan(result))) # Note: negation
+
+
+def test_regressiontest_issue9168():
+    """
+    Issue #9168 pointed out that kernels can be (unitless) quantities, which
+    leads to crashes when inplace modifications are made to arrays in
+    convolve/convolve_fft, so we now strip the quantity aspects off of kernels.
+    """
+
+    from astropy import units as u
+
+    x = np.array([[1., 2., 3.],
+                  [4., 5., 6.],
+                  [7., 8., 9.]],)
+
+    kernel_fwhm = 1*u.arcsec
+    pixel_size = 1*u.arcsec
+
+    kernel = Gaussian2DKernel(stddev=kernel_fwhm/pixel_size)
+
+    result = convolve_fft(x, kernel, boundary='fill', fill_value=np.nan,
+                          preserve_nan=True)
+    result = convolve(x, kernel, boundary='fill', fill_value=np.nan,
+                      preserve_nan=True)
