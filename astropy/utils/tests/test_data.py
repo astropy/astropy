@@ -2,6 +2,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import hashlib
+import io
 import os
 import pathlib
 import sys
@@ -516,3 +517,46 @@ def test_nested_get_readable_fileobj():
         #assert fileobj2.closed
 
     assert fileobj.closed and fileobj2.closed
+
+
+def test_download_file_wrong_size(monkeypatch):
+    import contextlib
+    from astropy.utils.data import download_file
+
+    @contextlib.contextmanager
+    def mockurl(remote_url, timeout=None):
+        yield MockURL()
+
+    class MockURL:
+        def __init__(self):
+            self.reader = io.BytesIO(b"a"*real_length)
+
+        def info(self):
+            return {"Content-Length": str(report_length)}
+
+        def read(self, length=None):
+            return self.reader.read(length)
+
+    monkeypatch.setattr(urllib.request, "urlopen", mockurl)
+
+    with pytest.raises(urllib.error.ContentTooShortError):
+        report_length = 1024
+        real_length = 1023
+        download_file(TESTURL, cache=False)
+
+    with pytest.raises(urllib.error.URLError):
+        report_length = 1023
+        real_length = 1024
+        download_file(TESTURL, cache=False)
+
+    report_length = 1023
+    real_length = 1023
+    fn = download_file(TESTURL, cache=False)
+    with open(fn, "rb") as f:
+        assert f.read() == b"a"*real_length
+
+    report_length = None
+    real_length = 1023
+    fn = download_file(TESTURL, cache=False)
+    with open(fn, "rb") as f:
+        assert f.read() == b"a"*real_length
