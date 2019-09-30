@@ -57,6 +57,9 @@ BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 def _copy_input_if_needed(input, dtype=float, order='C', nan_treatment=None, mask=None, fill_value=None):
     # Alias input
     input = input.array if isinstance(input, Kernel) else input
+    # strip quantity attributes
+    if hasattr(input, 'unit'):
+        input = input.value
     output = input
     # Copy input
     try:
