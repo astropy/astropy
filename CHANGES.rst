@@ -409,6 +409,10 @@ astropy.utils
 - Fixed ``find_api_page`` access by using custom request headers and HTTPS
   when version is specified. [#9032]
 
+- Make ``download_file`` (and by extension ``get_readable_fileobj`` and others)
+  check the size of downloaded files against the size claimed by the server.
+  [#9302]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
