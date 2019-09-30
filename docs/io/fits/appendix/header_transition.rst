@@ -20,13 +20,6 @@ interface (whether due to similarities in the design, or backwards-compatibility
 support), there are enough differences that a full explanation of the new
 interface is merited.
 
-The Trac ticket discussing the initial motivation and changes to be made to the
-:class:`Header` class is `#64`_.  It may be worth reading for some of the
-background to this work, though this document contains a more complete
-description of the "final" product (which will continue to evolve).
-
-.. _#64: https://aeon.stsci.edu/ssb/trac/pyfits/ticket/64
-
 
 Background
 ==========
