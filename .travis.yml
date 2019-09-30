@@ -83,8 +83,7 @@ matrix:
     fast_finish: true
 
     include:
-        # Try MacOS X. Use a slightly old numpy version to help test against
-        # all supported numpy versions.
+        # Try MacOS X.
         - os: osx
           stage: Cron tests
           env: SETUP_CMD='test --remote-data=astropy'
@@ -98,7 +97,7 @@ matrix:
         # versions of Python, we can vary Python and Numpy versions at the same
         # time.
         - os: linux
-          env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.13
+          env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.16
                INSTALL_CMD='python setup.py build_ext --inplace'
                PIP_DEPENDENCIES='pytest-astropy'
                TEST_CMD='pytest --open-files --doctest-rst'
