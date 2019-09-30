@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
+import collections
 import fnmatch
 import time
 import re
@@ -695,6 +695,15 @@ class TimeYMDHMS(TimeUnique):
     """
     ymdhms: A Time format to represent Time as year, month, day, hour,
     minute, second (thus the name ymdhms)
+
+    Acceptable inputs must have keys or column names in the "YMDHMS" set of
+    ``year``, ``month``, ``day`` ``hour``, ``minute``, ``second``.
+
+    - Dict with keys in the YMDHMS set
+    - List of dict with keys in the YMDHMS set
+    - NumPy structured array, record array or astropy Table, or single row
+      of those types, with column names in the YMDHMS set
+
     Example::
 
       >>> from astropy.time import Time
@@ -707,35 +716,100 @@ class TimeYMDHMS(TimeUnique):
     name = 'ymdhms'
 
     def _check_val_type(self, val1, val2):
-        # Note: don't care about val2 for this class
-        if not all(isinstance(val, dict) or
-                   (isinstance(val, (np.ndarray, np.record, np.void))
-                    and val.dtype.kind == 'V')
-                   for val in val1.flat):
-            raise TypeError('Input values for {0} class must be '
-                            'dict or numpy recarray or numpy structured'
-                            ' array objects'.format(self.name))
-        return val1, None
+        """
+        This checks inputs for the YMDHMS format.
+
+        It is bit more complex than most format checkers because of the flexible
+        input that is allowed.  Also, it actually coerces ``val1`` into an appropriate
+        dict of ndarrays that can be used easily by ``set_jds()``.  This is useful
+        because it makes it easy to get default values in that routine.
+
+        Parameters
+        ----------
+        val1 : ndarray or None
+        val2 : ndarray or None
+
+        Returns
+        -------
+        val1_as_dict, val2 : val1 as dict or None, val2 is always None
+
+        """
+        if val2 is not None:
+            raise ValueError('val2 must be None for ymdhms format')
+
+        ymdhms = ['year', 'month', 'day', 'hour', 'minute', 'second']
+
+        if val1.dtype.names:
+            # NumPy structured array or row thereof
+            if not set(val1.dtype.names).issubset(set(ymdhms)):
+                raise ValueError(f'input column names {val1.dtype.names}'
+                                 f'must be subset of {ymdhms}')
+            # Convert to a dict of ndarray
+            val1_as_dict = {name: val1[name] for name in val1.dtype.names}
+
+        elif val1.shape == (0,):
+            # Input was empty list [], so set to None and set_jds will handle this
+            val1_as_dict = None
+
+        elif val1.dtype.kind == 'O':
+            # Code gets here for input as a dict or list of dict.  The dict input
+            # can be either scalar values or N-d arrays.  If the input was some
+            # other inappropriate object (giving dtype=object) then the first if-block
+            # will raise a ValueError.
+
+            # Turn it back into original object (a dict) or list of objects
+            val1_as_dict = val1.tolist()
+
+            if not isinstance(val1_as_dict, dict):
+                # Try converting list of dict to dict of list.  If this fails for any
+                # reason then the input does not meet API requirements for this format.
+                out = collections.defaultdict(list)
+                try:
+                    # If input is an iterable of dict then this will work, otherwise
+                    # the input was not compatible with YMDHMS.
+                    for row in val1_as_dict:
+                        for key, value in row.items():
+                            out[key].append(value)
+                except Exception:
+                    raise ValueError(f'input must be dict, list of dict, or table-like')
+
+                val1_as_dict = out
+
+            # Ensure the dict keys are good
+            if not set(val1_as_dict).issubset(set(ymdhms)):
+                raise ValueError(f'input key names {val1_as_dict.keys()}'
+                                 f'must be subset of {ymdhms}')
+
+            # Put this back into val1 and make all dict values into ndarray
+            for key, value in val1_as_dict.items():
+                val1_as_dict[key] = np.asarray(value)
+
+            # Check that all dict value shapes are the same
+            shapes = set([value.shape for value in val1_as_dict.values()])
+            if len(shapes) > 1:
+                raise ValueError(f'input values must all have the same shape, '
+                                 f'got {shapes}')
+
+        else:
+            raise ValueError('input must be dict, list of dict, or table-like')
+
+        return val1_as_dict, val2
 
     def set_jds(self, val1, val2):
-        from astropy.table import Table
+        if val1 is None:
+            # Input was empty list []
+            jd1 = np.array([], dtype=np.float64)
+            jd2 = np.array([], dtype=np.float64)
 
-        if val1.dtype.kind == 'V':
-            times_dict = dict(Table(val1, copy=False))
         else:
-            times_dict = val1.item()
-            if not all(isinstance(val, (int, float))
-                       for val in times_dict.values()):
-                times_dict = Table(times_dict)
-                times_dict = dict(times_dict)
+            jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
+                                  val1['year'],
+                                  val1.get('month', 1),
+                                  val1.get('day', 1),
+                                  val1.get('hour', 0),
+                                  val1.get('minute', 0),
+                                  val1.get('second', 0))
 
-        jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
-                              times_dict['year'],
-                              times_dict.get('month', 1),
-                              times_dict.get('day', 1),
-                              times_dict.get('hour', 0),
-                              times_dict.get('minute', 0),
-                              times_dict.get('second', 0))
         self.jd1, self.jd2 = day_frac(jd1, jd2)
 
     @property
