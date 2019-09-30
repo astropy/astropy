@@ -41,7 +41,7 @@ What is the development status of PyFITS?
 
 PyFITS was written and maintained by the Science Software Branch at the `Space
 Telescope Science Institute`_, and is licensed by AURA_ under a `3-clause BSD
-license`_ (see `LICENSE.txt`_ in the PyFITS source code).
+license`_.
 
 It is now exclusively developed as a component of Astropy
 (`astropy.io.fits`) rather than as a stand-alone module.  There are a few
@@ -52,19 +52,15 @@ bases is non-trivial.  The second is that there are many features of Astropy
 greatly.  Since PyFITS is already integrated into Astropy, it makes more sense
 to continue development there rather than make Astropy a dependency of PyFITS.
 
-PyFITS' past primary developer and active maintainer was Erik Bray.  There
+PyFITS' past primary developer and maintainer was Erik Bray. There
 is a `GitHub project`_ for PyFITS, but PyFITS is not actively developed anymore
 so patches and issue reports should be posted on the Astropy issue tracker.
-There is also a legacy `Trac site`_ with some older issue reports still open,
-but new issues should be submitted via GitHub if possible.
 
 The current (and last) stable release is 3.4.0.
 
 .. _Space Telescope Science Institute: http://www.stsci.edu/
 .. _AURA: https://www.aura-astronomy.org/
 .. _3-clause BSD license: https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license_.28.22New_BSD_License.22_or_.22Modified_BSD_License.22.29
-.. _LICENSE.txt: https://aeon.stsci.edu/ssb/trac/pyfits/browser/trunk/LICENSE.txt
-.. _Trac site: https://aeon.stsci.edu/ssb/trac/pyfits/
 .. _GitHub project: https://github.com/spacetelescope/PyFITS
 
 
