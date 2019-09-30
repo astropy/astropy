@@ -571,11 +571,7 @@ class FITS_rec(np.recarray):
 
     @property
     def columns(self):
-        """
-        A user-visible accessor for the coldefs.
-
-        See https://aeon.stsci.edu/ssb/trac/pyfits/ticket/44
-        """
+        """A user-visible accessor for the coldefs."""
 
         return self._coldefs
 
