@@ -7,6 +7,8 @@ import numpy.ma as ma
 from astropy.convolution.convolve import convolve, convolve_fft
 from astropy.convolution.kernels import Gaussian2DKernel
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy import units as u
+
 
 from numpy.testing import (assert_array_almost_equal_nulp,
                            assert_array_almost_equal,
@@ -968,8 +970,6 @@ def test_regressiontest_issue9168():
     convolve/convolve_fft, so we now strip the quantity aspects off of kernels.
     """
 
-    from astropy import units as u
-
     x = np.array([[1., 2., 3.],
                   [4., 5., 6.],
                   [7., 8., 9.]],)
@@ -977,7 +977,7 @@ def test_regressiontest_issue9168():
     kernel_fwhm = 1*u.arcsec
     pixel_size = 1*u.arcsec
 
-    kernel = Gaussian2DKernel(stddev=kernel_fwhm/pixel_size)
+    kernel = Gaussian2DKernel(x_stddev=kernel_fwhm/pixel_size)
 
     result = convolve_fft(x, kernel, boundary='fill', fill_value=np.nan,
                           preserve_nan=True)
