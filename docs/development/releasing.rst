@@ -85,10 +85,10 @@ packages that use the full bugfix/maintenance branch approach.)
       $ git checkout v1.2.x
 
 #. Make sure that the continuous integration services (e.g., Travis) are passing
-   for the `astropy core repository`_ branch you're going to release.  You may
-   also want to locally run the tests (with remote data on to ensure all the
-   tests actually run), and make sure the description in ``setup.cfg`` is ReST
-   compliant::
+   for the `astropy core repository`_ branch you are going to release. You may
+   also want to locally run the tests (with remote data on to ensure all of the
+   tests actually run), and make sure the description in ``setup.cfg`` is reStructuredText-
+  compliant::
 
       $ python setup.py test --remote-data=any
       $ TEST_READ_HUGE_FILE=1 pytest -sv astropy/io/ascii/tests/test_c_reader.py -k big_table
@@ -319,7 +319,7 @@ Post-Release procedures
 Modifications for a beta/release candidate release
 --------------------------------------------------
 
-For major releases we do beta and/or release candidates to have a chance to
+For major releases, we do beta and/or release candidates to have a chance to
 catch significant bugs before the true release. If the release you are
 performing is this kind of pre-release, some of the above steps need to be
 modified.
@@ -330,14 +330,14 @@ The primary modifications to the release procedure are:
   ``.dev``, enter "1.2b1" or "1.2rc1".  It is critical that you follow this
   numbering scheme (``x.yb#`` or ``x.y.zrc#``), as it will ensure the release
   is ordered "before" the main release by various automated tools, and also
-  tells PyPI that this is a "pre-release".
+  tells PyPI that this is a "pre-release."
 * Do *not* do the step of adding ``.dev`` in the "back to development" stage.
-  If an RC goes well, there's no need for a "dev" stage, as the same version
+  If an RC goes well, there is no need for a "dev" stage, as the same version
   will be released with only minor doc updates, and strings like "x.yrcz.dev"
   confuse some version number parsing tools.
 * Do not do steps in :ref:`post-release-procedure`.
 
-Once a release candidate is available, create a new wiki page under
+Once a release candidate is available, create a new Wiki page under
 `Astropy Project Wiki <https://github.com/astropy/astropy/wiki>`_ with the
 title "vX.Y RC testing" (replace "X.Y" with the release number) using the
 `wiki of a previous RC <https://github.com/astropy/astropy/wiki/v3.2-RC-testing>`_
