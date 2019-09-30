@@ -18,6 +18,9 @@ astropy.constants
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
+- Fixed a bug [#9168] where having a kernel defined using unitless astropy
+  quantity objects would result in a crash [#9300]
+
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
