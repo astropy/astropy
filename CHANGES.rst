@@ -309,6 +309,17 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- In addition to ``DeprecationWarning``, now ``FutureWarning`` and ``ImportWarning``
+  would also be turned into exceptions. [#8506]
+
+- ``warnings_to_ignore_by_pyver`` option in
+  ``enable_deprecations_as_exceptions()`` has changed. Please refer to API
+  documentation. [#8506]
+
+- Default settings for ``warnings_to_ignore_by_pyver`` are updated to remove
+  very old warnings that are no longer relevant and to add a new warning
+  caused by ``pytest-doctestplus``. [#8506]
+
 astropy.time
 ^^^^^^^^^^^^
 

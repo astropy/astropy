@@ -60,14 +60,16 @@ def empty_identifier(*args, **kwargs):
 
 def test_get_reader_invalid():
     with pytest.raises(io_registry.IORegistryError) as exc:
-        io_registry.get_reader('test', TestData)
+        with pytest.warns(FutureWarning):
+            io_registry.get_reader('test', TestData)
     assert str(exc.value).startswith(
         "No reader defined for format 'test' and class 'TestData'")
 
 
 def test_get_writer_invalid():
     with pytest.raises(io_registry.IORegistryError) as exc:
-        io_registry.get_writer('test', TestData)
+        with pytest.warns(FutureWarning):
+            io_registry.get_writer('test', TestData)
     assert str(exc.value).startswith(
         "No writer defined for format 'test' and class 'TestData'")
 
@@ -86,10 +88,12 @@ def test_register_reader():
         io_registry.get_reader('test1', TestData)
     assert io_registry.get_reader('test2', TestData) == empty_reader
 
-    io_registry.unregister_reader('test2', TestData)
+    with pytest.warns(FutureWarning):
+        io_registry.unregister_reader('test2', TestData)
 
     with pytest.raises(io_registry.IORegistryError):
-        io_registry.get_reader('test2', TestData)
+        with pytest.warns(FutureWarning):
+            io_registry.get_reader('test2', TestData)
 
 
 def test_register_writer():
@@ -106,10 +110,12 @@ def test_register_writer():
         io_registry.get_writer('test1', TestData)
     assert io_registry.get_writer('test2', TestData) == empty_writer
 
-    io_registry.unregister_writer('test2', TestData)
+    with pytest.warns(FutureWarning):
+        io_registry.unregister_writer('test2', TestData)
 
     with pytest.raises(io_registry.IORegistryError):
-        io_registry.get_writer('test2', TestData)
+        with pytest.warns(FutureWarning):
+            io_registry.get_writer('test2', TestData)
 
 
 def test_register_identifier():
@@ -180,7 +186,8 @@ def test_register_identifier_force():
 
 def test_read_noformat():
     with pytest.raises(io_registry.IORegistryError) as exc:
-        TestData.read()
+        with pytest.warns(FutureWarning):
+            TestData.read()
     assert str(exc.value).startswith("Format could not be identified based on the"
                                      " file name or contents, please provide a"
                                      " 'format' argument.")
@@ -188,7 +195,8 @@ def test_read_noformat():
 
 def test_write_noformat():
     with pytest.raises(io_registry.IORegistryError) as exc:
-        TestData().write()
+        with pytest.warns(FutureWarning):
+            TestData().write()
     assert str(exc.value).startswith("Format could not be identified based on the"
                                      " file name or contents, please provide a"
                                      " 'format' argument.")
@@ -198,7 +206,8 @@ def test_read_noformat_arbitrary():
     """Test that all identifier functions can accept arbitrary input"""
     _identifiers.update(ORIGINAL['identifiers'])
     with pytest.raises(io_registry.IORegistryError) as exc:
-        TestData.read(object())
+        with pytest.warns(FutureWarning):
+            TestData.read(object())
     assert str(exc.value).startswith("Format could not be identified based on the"
                                      " file name or contents, please provide a"
                                      " 'format' argument.")
@@ -222,7 +231,8 @@ def test_write_noformat_arbitrary():
     """Test that all identifier functions can accept arbitrary input"""
     _identifiers.update(ORIGINAL['identifiers'])
     with pytest.raises(io_registry.IORegistryError) as exc:
-        TestData().write(object())
+        with pytest.warns(FutureWarning):
+            TestData().write(object())
     assert str(exc.value).startswith("Format could not be identified based on the"
                                      " file name or contents, please provide a"
                                      " 'format' argument.")
@@ -258,14 +268,16 @@ def test_write_toomanyformats():
 
 def test_read_format_noreader():
     with pytest.raises(io_registry.IORegistryError) as exc:
-        TestData.read(format='test')
+        with pytest.warns(FutureWarning):
+            TestData.read(format='test')
     assert str(exc.value).startswith(
         "No reader defined for format 'test' and class 'TestData'")
 
 
 def test_write_format_nowriter():
     with pytest.raises(io_registry.IORegistryError) as exc:
-        TestData().write(format='test')
+        with pytest.warns(FutureWarning):
+            TestData().write(format='test')
     assert str(exc.value).startswith(
         "No writer defined for format 'test' and class 'TestData'")
 
@@ -286,14 +298,16 @@ def test_read_identifier(tmpdir):
     filename = tmpdir.join("testfile.a").strpath
     open(filename, 'w').close()
     with pytest.raises(io_registry.IORegistryError) as exc:
-        TestData.read(filename)
+        with pytest.warns(FutureWarning):
+            TestData.read(filename)
     assert str(exc.value).startswith(
         "No reader defined for format 'test1' and class 'TestData'")
 
     filename = tmpdir.join("testfile.b").strpath
     open(filename, 'w').close()
     with pytest.raises(io_registry.IORegistryError) as exc:
-        TestData.read(filename)
+        with pytest.warns(FutureWarning):
+            TestData.read(filename)
     assert str(exc.value).startswith(
         "No reader defined for format 'test2' and class 'TestData'")
 
@@ -308,12 +322,14 @@ def test_write_identifier():
     # will tell us if the identifier worked.
 
     with pytest.raises(io_registry.IORegistryError) as exc:
-        TestData().write('abc')
+        with pytest.warns(FutureWarning):
+            TestData().write('abc')
     assert str(exc.value).startswith(
         "No writer defined for format 'test1' and class 'TestData'")
 
     with pytest.raises(io_registry.IORegistryError) as exc:
-        TestData().write('bac')
+        with pytest.warns(FutureWarning):
+            TestData().write('bac')
     assert str(exc.value).startswith(
         "No writer defined for format 'test2' and class 'TestData'")
 
