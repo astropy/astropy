@@ -52,7 +52,7 @@ bases is non-trivial.  The second is that there are many features of Astropy
 greatly.  Since PyFITS is already integrated into Astropy, it makes more sense
 to continue development there rather than make Astropy a dependency of PyFITS.
 
-There
+PyFITS' past primary developer and maintainer was Erik Bray. There
 is a `GitHub project`_ for PyFITS, but PyFITS is not actively developed anymore
 so patches and issue reports should be posted on the Astropy issue tracker.
 
