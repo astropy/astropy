@@ -355,7 +355,7 @@ by adding the following to your ``sitecustomize.py`` file::
     sys.setdefaultencoding('utf-8')
 
 Note that in general, `this is not recommended
-<https://ziade.org/2008/01/08/syssetdefaultencoding-is-evil/>`_,
+<https://stackoverflow.com/questions/3828723/why-should-we-not-use-sys-setdefaultencodingutf-8-in-a-py-script>`_,
 because it can hide other Unicode encoding bugs in your application.
 However, if your application does not deal with text
 processing and you just want docstrings to work, this may be
