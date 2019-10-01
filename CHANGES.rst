@@ -548,6 +548,10 @@ astropy.samp
 astropy.stats
 ^^^^^^^^^^^^^
 
+- Fixed ``median_absolute_deviation`` for the case where
+  ``ignore_nan=True`` and an input masked array contained both NaNs and
+  infs. [#9307]
+
 astropy.table
 ^^^^^^^^^^^^^
 
