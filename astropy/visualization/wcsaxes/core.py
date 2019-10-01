@@ -480,6 +480,10 @@ class WCSAxes(Axes):
             ylabel = kwargs.pop('label', None)
             if ylabel is None:
                 raise TypeError("set_ylabel() missing 1 required positional argument: 'ylabel'")
+
+        if self.frame_class is RectangularFrame1D:
+            return super().set_ylabel(ylabel, labelpad=labelpad, **kwargs)
+
         for coord in self.coords:
             if 'l' in coord.axislabels.get_visible_axes():
                 coord.set_axislabel(ylabel, minpad=labelpad, **kwargs)
@@ -491,6 +495,9 @@ class WCSAxes(Axes):
                 return coord.get_axislabel()
 
     def get_ylabel(self):
+        if self.frame_class is RectangularFrame1D:
+            return super().get_ylabel()
+
         for coord in self.coords:
             if 'l' in coord.axislabels.get_visible_axes():
                 return coord.get_axislabel()
