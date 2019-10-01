@@ -62,7 +62,7 @@ class Mapping(FittableModel):
             self.outputs = tuple('x' + str(idx) for idx in range(len(mapping)))
         else:
             self.inputs = tuple('x' + str(idx)
-                                 for idx in range(n_inputs))
+                                for idx in range(n_inputs))
             self.outputs = tuple('x' + str(idx) for idx in range(len(mapping)))
         self._mapping = mapping
         self._input_units_strict = {key: False for key in self._inputs}

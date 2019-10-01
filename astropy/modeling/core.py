@@ -380,7 +380,7 @@ class _ModelMeta(abc.ABCMeta):
             elif n_inputs == 2:
                 inputs = ('x', 'y')
             else:
-                inputs = tuple(['x'+str(i) for i in range(members['n_inputs'])])
+                inputs = tuple(['x' + str(i) for i in range(members['n_inputs'])])
             # Don't create a custom __call__ for classes that already have one
             # explicitly defined (this includes the Model base class, and any
             # other classes that manually override __call__
@@ -735,8 +735,8 @@ class Model(metaclass=_ModelMeta):
             self._inputs = ("x", "y")
             self._outputs = ("z",)
         else:
-            self._inputs = tuple("x"+ str(idx) for idx in range(self.n_inputs))
-            self._outputs = tuple("x"+ str(idx) for idx in range(self.n_outputs))
+            self._inputs = tuple("x" + str(idx) for idx in range(self.n_inputs))
+            self._outputs = tuple("x" + str(idx) for idx in range(self.n_outputs))
 
     @property
     def inputs(self):
@@ -744,6 +744,8 @@ class Model(metaclass=_ModelMeta):
 
     @inputs.setter
     def inputs(self, val):
+        if len(val) != self.n_inputs:
+            raise ValueError(f"Expected {self.n_inputs} number of inputs, got {len(val)}.")
         self._inputs = val
         self._initialize_unit_support()
 
@@ -753,6 +755,8 @@ class Model(metaclass=_ModelMeta):
 
     @outputs.setter
     def outputs(self, val):
+        if len(val) != self.n_outputs:
+            raise ValueError(f"Expected {self.n_outputs} number of outputs, got {len(val)}.")
         self._outputs = val
 
     def _initialize_unit_support(self):
@@ -866,13 +870,60 @@ class Model(metaclass=_ModelMeta):
             else:
                 super().__setattr__(attr, value)
 
-    def __call__(self, *inputs, **kwargs):
+    def __call__(self, *args, **kwargs):
         """
         Evaluate this model using the given input(s) and the parameter values
         that were specified when the model was instantiated.
         """
+        def _keyword2positional(kwargs):
+            # these are the keys that are always present as keyword arguments
+            keys = ['model_set_axis', 'with_bounding_box', 'fill_value',
+                    'equivalencies', 'inputs_map']
 
-        return generic_call(self, *inputs, **kwargs)
+            new_inputs = {}
+            # kwargs contain the names of the new inputs + ``keys``
+            allkeys = list(kwargs.keys())
+            # Remove the names of the new inputs from kwargs and save them
+            # to a dict ``new_inputs``.
+            for key in allkeys:
+                if key not in keys:
+                    new_inputs[key] = kwargs[key]
+                    del kwargs[key]
+
+            return new_inputs
+
+        if not args:
+            # Inputs were passed as keyword (not positional) arguments.
+            # Because the signature of the ``__call__`` is defined at
+            # the class level, the name of the inputs cannot be changed at
+            # the instance level and the old names are always present in the
+            # signature of the method. In order to use the new names of the
+            # inputs, the old names are taken out of ``kwargs``, the input
+            # values are sorted in the order of self.inputs and passed as
+            # positional arguments to ``__call__``.
+
+            new_inputs = _keyword2positional(kwargs)
+            # Create positional arguments from the keyword arguments in ``new_inputs``.
+            new_args = []
+            for k in self.inputs:
+                new_args.append(new_inputs[k])
+        elif len(args) != self.n_inputs:
+            # Some inputs are passed as positional, others as keyword arguments.
+            args = list(args)
+
+            # Create positional arguments from the keyword arguments in ``new_inputs``.
+            new_inputs = _keyword2positional(kwargs)
+            new_args = []
+            for k in self.inputs:
+                if k in new_inputs:
+                    new_args.append(new_inputs[k])
+                else:
+                    new_args.append(args[0])
+                    del args[0]
+        else:
+            new_args = args
+        return generic_call(self, *new_args, **kwargs)
+
 
     # *** Properties ***
     @property
@@ -2221,36 +2272,6 @@ class FittableModel(Model):
     col_fit_deriv = True
     fittable = True
 
-    def __call__(self, *args, **kwargs):
-        if not args:
-            # Inputs were passed as keyword (not positional) arguments.
-            # Because the signature of the ``__call__`` is defined at
-            # the class level, the name of the inputs cannot be changed at
-            # the instance level and the old names are always present in the
-            # signature of the method. In order to use the new names of the
-            # inputs, the old names are taken out of ``kwargs``, the input
-            # values are sorted in the order of self.inputs and passed as
-            # positional arguments to ``__call__``.
-
-            # these are the keys that are always present as keyword arguments
-            keys = ['model_set_axis', 'with_bounding_box', 'fill_value',
-                    'equivalencies', 'inputs_map']
-
-            new_inputs = {}
-            # kwargs contain the names of the new inputs + ``keys``
-            allkeys = list(kwargs.keys())
-            # Remove the names of the new inputs from kwargs and save them
-            # to a dict ``new_inputs``.
-            for key in allkeys:
-                if key not in keys:
-                    new_inputs[key] = kwargs[key]
-                    del kwargs[key]
-            # Create positional arguments from the keyword arguments in ``new_inputs``.
-            args = []
-            for k in self.inputs:
-                args.append(new_inputs[k])
-        return super().__call__(*args, **kwargs)
-
 
 class Fittable1DModel(FittableModel):
     """
@@ -2416,7 +2437,9 @@ class CompoundModel(Model):
             # Dict keys must match either possible indices
             # for model on left side, or names for inputs.
             self.n_inputs = left.n_inputs - len(right)
-            self.outputs = left.outputs
+            # Assign directly to the private attribute (instead of using the setter)
+            # to avoid asserting the new number of outputs matches the old one.
+            self._outputs = left.outputs
             self.n_outputs = left.n_outputs
             newinputs = list(left.inputs)
             keys = right.keys()
@@ -4070,7 +4093,6 @@ def get_bounding_box(self):
 
 def generic_call(self, *inputs, **kwargs):
     inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
-
     if isinstance(self, CompoundModel):
         # CompoundModels do not normally hold parameters at that level
         parameters = ()

@@ -465,3 +465,15 @@ def test_rename_1d(model_class):
 def test_rename_2d(model_class):
     new_model = model_class.rename(name='Test2D')
     assert new_model.name == 'Test2D'
+
+
+def test_rename_inputs_outputs():
+    g2 = models.Gaussian2D(10, 2, 3, 1, 2)
+    assert g2.inputs == ("x", "y")
+    assert g2.outputs == ("z",)
+
+    with pytest.raises(ValueError):
+        g2.inputs = ("w", )
+
+    with pytest.raises(ValueError):
+        g2.outputs = ("w", "e")

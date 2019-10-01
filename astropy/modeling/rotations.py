@@ -353,6 +353,11 @@ class Rotation2D(Model):
 
     angle = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian)
 
+    def __init__(self, angle=angle, **kwargs):
+        super().__init__(angle=angle, **kwargs)
+        self._inputs = ("x", "y")
+        self._outputs = ("x", "y")
+
     @property
     def inverse(self):
         """Inverse rotation."""

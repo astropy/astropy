@@ -851,3 +851,20 @@ def test_format_input_arrays_transposed():
     input = np.array([[1, 1]]).T, np.array([[2, 2]]).T
     result = model(*input)
     assert_allclose(result, input)
+
+
+@pytest.mark.parametrize('model',
+                         [models.Gaussian2D(), models.Polynomial2D(1,),
+                          models.Pix2Sky_TAN(), models.Tabular2D(lookup_table=np.ones((4,5)))])
+def test_call_keyword_args1(model):
+    """
+    Test calling a model with positional, keywrd and a mixture of both arguments.
+    """
+    positional = model(1, 2)
+    assert_allclose(positional, model(x=1, y=2))
+    assert_allclose(positional, model(1, y=2))
+
+    model.inputs = ('r', 't')
+    assert_allclose(positional, model(r=1, t=2))
+    assert_allclose(positional, model(1, t=2))
+    assert_allclose(positional, model(1, 2))
