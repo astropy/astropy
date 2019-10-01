@@ -700,7 +700,6 @@ class TimeYMDHMS(TimeUnique):
     ``year``, ``month``, ``day`` ``hour``, ``minute``, ``second``.
 
     - Dict with keys in the YMDHMS set
-    - List of dict with keys in the YMDHMS set
     - NumPy structured array, record array or astropy Table, or single row
       of those types, with column names in the YMDHMS set
 
@@ -740,58 +739,39 @@ class TimeYMDHMS(TimeUnique):
         ymdhms = ['year', 'month', 'day', 'hour', 'minute', 'second']
 
         if val1.dtype.names:
-            # NumPy structured array or row thereof
-            if not set(val1.dtype.names).issubset(set(ymdhms)):
-                raise ValueError(f'input column names {val1.dtype.names}'
-                                 f'must be subset of {ymdhms}')
             # Convert to a dict of ndarray
             val1_as_dict = {name: val1[name] for name in val1.dtype.names}
 
         elif val1.shape == (0,):
             # Input was empty list [], so set to None and set_jds will handle this
-            val1_as_dict = None
+            return None, None
 
-        elif val1.dtype.kind == 'O':
-            # Code gets here for input as a dict or list of dict.  The dict input
-            # can be either scalar values or N-d arrays.  If the input was some
-            # other inappropriate object (giving dtype=object) then the first if-block
-            # will raise a ValueError.
+        elif (val1.dtype.kind == 'O' and
+              val1.shape == () and
+              isinstance(val1.item(), dict)):
+            # Code gets here for input as a dict.  The dict input
+            # can be either scalar values or N-d arrays.
 
-            # Turn it back into original object (a dict) or list of objects
-            val1_as_dict = val1.tolist()
-
-            if not isinstance(val1_as_dict, dict):
-                # Try converting list of dict to dict of list.  If this fails for any
-                # reason then the input does not meet API requirements for this format.
-                out = collections.defaultdict(list)
-                try:
-                    # If input is an iterable of dict then this will work, otherwise
-                    # the input was not compatible with YMDHMS.
-                    for row in val1_as_dict:
-                        for key, value in row.items():
-                            out[key].append(value)
-                except Exception:
-                    raise ValueError(f'input must be dict, list of dict, or table-like')
-
-                val1_as_dict = out
-
-            # Ensure the dict keys are good
-            if not set(val1_as_dict).issubset(set(ymdhms)):
-                raise ValueError(f'input key names {val1_as_dict.keys()}'
-                                 f'must be subset of {ymdhms}')
-
-            # Put this back into val1 and make all dict values into ndarray
-            for key, value in val1_as_dict.items():
-                val1_as_dict[key] = np.asarray(value)
-
-            # Check that all dict value shapes are the same
-            shapes = set([value.shape for value in val1_as_dict.values()])
-            if len(shapes) > 1:
-                raise ValueError(f'input values must all have the same shape, '
-                                 f'got {shapes}')
+            # Extract the item (which is a dict) and broadcast values to the
+            # same shape here.
+            names = val1.item().keys()
+            values = val1.item().values()
+            val1_as_dict = {name: value for name, value
+                            in zip(names, np.broadcast_arrays(*values))}
 
         else:
-            raise ValueError('input must be dict, list of dict, or table-like')
+            raise ValueError('input must be dict or table-like')
+
+        # Check that the key names now are good.
+        names = val1_as_dict.keys()
+        required_names = ymdhms[:len(names)]
+
+        if set(names) - set(ymdhms):
+            raise ValueError(f'only {ymdhms} are allowed as YMDHMS key or column names')
+
+        if set(names) != set(required_names):
+            raise ValueError(f'for {len(names)} input column names {names}'
+                             f'you must supply {required_names}')
 
         return val1_as_dict, val2
 
