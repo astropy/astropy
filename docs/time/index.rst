@@ -1137,7 +1137,8 @@ of time.  Usage is most easily illustrated by examples::
   ...
   Traceback (most recent call last):
     ...
-  ValueError: Input values did not match the format class byear
+  ValueError: Input values did not match the format class byear:
+  ValueError: Cannot use Quantities for 'byear' format, as the interpretation would be ambiguous. Use float with Besselian year instead.
 
   >>> TimeDelta(10.*u.yr)            # With a quantity, no format is required
   <TimeDelta object: scale='None' format='jd' value=3652.5>
