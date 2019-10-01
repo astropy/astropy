@@ -100,6 +100,19 @@ def test_median_absolute_deviation_nans():
     assert funcs.median_absolute_deviation(array) == 1
 
 
+def test_median_absolute_deviation_nans_masked():
+    """
+    Regression test to ensure ignore_nan=True gives same results for
+    ndarray and masked arrays that contain +/-inf.
+    """
+
+    data1 = np.array([1., np.nan, 2, np.inf])
+    data2 = np.ma.masked_array(data1, mask=False)
+    mad1 = funcs.median_absolute_deviation(data1, ignore_nan=True)
+    mad2 = funcs.median_absolute_deviation(data2, ignore_nan=True)
+    assert_equal(mad1, mad2)
+
+
 def test_median_absolute_deviation_multidim_axis():
     array = np.ones((5, 4, 3)) * np.arange(5)[:, np.newaxis, np.newaxis]
     assert_equal(funcs.median_absolute_deviation(array, axis=(1, 2)),
