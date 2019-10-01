@@ -769,6 +769,9 @@ def test_1d_plot_1d_wcs(wave_wcs_1d):
     ax = fig.add_subplot(1, 1, 1, projection=wave_wcs_1d)
     lines, = ax.plot([10, 12, 14, 12, 10])
 
+    ax.set_xlabel("this is the x-axis")
+    ax.set_ylabel("this is the y-axis")
+
     return fig
 
 
