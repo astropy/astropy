@@ -775,7 +775,7 @@ def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
             is_masked = True
             func = np.ma.median
             if ignore_nan:
-                data = np.ma.masked_invalid(data)
+                data = np.ma.masked_where(np.isnan(data), data, copy=False)
         elif ignore_nan:
             is_masked = False
             func = np.nanmedian
