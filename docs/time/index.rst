@@ -176,6 +176,7 @@ mjd          :class:`~astropy.time.TimeMJD`                     51544.0
 plot_date    :class:`~astropy.time.TimePlotDate`                730120.0003703703
 unix         :class:`~astropy.time.TimeUnix`                    946684800.0
 yday         :class:`~astropy.time.TimeYearDayTime`             2000:001:00:00:00.000
+ymdhms       :class:`~astropy.time.TimeYMDHMS`                  {'year': 2010, 'month': 3, 'day': 1}
 datetime64   :class:`~astropy.time.TimeDatetime64`              np.datetime64('2000-01-01T01:01:01')
 ===========  =================================================  =====================================
 

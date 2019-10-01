@@ -122,6 +122,9 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- Added a new time format ``ymdhms`` for representing times via year, month,
+  day, hour, minute, and second attributes. [#7644]
+
 - ``TimeDelta`` gained a ``to_value`` method, so that it becomes easier to
   use it wherever a ``Quantity`` with units of time could be used. [#8762]
 
