@@ -1420,6 +1420,8 @@ class SIP(Model):
                               model_set_axis=model_set_axis, **b_coeff)
         super().__init__(n_models=n_models, model_set_axis=model_set_axis,
                          name=name, meta=meta)
+        self._inputs = ("u", "v")
+        self._outputs = ("x", "y")
 
     def __repr__(self):
         return '<{}({!r})>'.format(self.__class__.__name__,

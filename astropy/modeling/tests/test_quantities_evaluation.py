@@ -118,7 +118,6 @@ class TestInputUnits():
             self.model(4 * u.s, 3)
         assert exc.value.args[0] == ("MyTestModel: Units of input 'x', s (time), could not be "
                                      "converted to required input units of deg (angle)")
-        print('allow', self.model.input_units_allow_dimensionless)
         with pytest.raises(UnitsError) as exc:
             self.model(3, 3)
         assert exc.value.args[0] == ("MyTestModel: Units of input 'x', (dimensionless), could "
