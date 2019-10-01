@@ -7,7 +7,7 @@ UT1) and time representations (e.g. JD, MJD, ISO 8601) that are used in
 astronomy.
 """
 
-
+import os
 import copy
 import operator
 from datetime import datetime, date, timedelta
@@ -474,8 +474,6 @@ class Time(ShapedLikeNDArray):
         if format is None and val.dtype.kind in ('S', 'U', 'O', 'M'):
             formats = [(name, cls) for name, cls in self.FORMATS.items()
                        if issubclass(cls, TimeUnique)]
-            err_msg = ('any of the formats where the format keyword is '
-                       'optional {}'.format([name for name, cls in formats]))
             # AstropyTime is a pseudo-format that isn't in the TIME_FORMATS registry,
             # but try to guess it at the end.
             formats.append(('astropy_time', TimeAstropyTime))
@@ -491,17 +489,24 @@ class Time(ShapedLikeNDArray):
                                                       sorted(self.FORMATS)))
         else:
             formats = [(format, self.FORMATS[format])]
-            err_msg = f'the format class {format}'
 
-        for format, FormatClass in formats:
+        for name, cls in formats:
             try:
-                return FormatClass(val, val2, scale, precision, in_subfmt, out_subfmt)
+                return cls(val, val2, scale, precision, in_subfmt, out_subfmt)
             except UnitConversionError:
                 raise
-            except (ValueError, TypeError):
-                pass
+            except (ValueError, TypeError) as err:
+                # If ``format`` specified then there is only one possibility, so raise
+                # immediately and include the upstream exception message to make it
+                # easier for user to see what is wrong.
+                if format is not None:
+                    raise ValueError(f'Input values did not match the format class {format}:' +
+                                     os.linesep +
+                                     f'{err.__class__.__name__}: {err}')
         else:
-            raise ValueError(f'Input values did not match {err_msg}')
+            raise ValueError('Input values did not match any of the formats where '
+                             'the format keyword is optional {}'
+                             .format([name for name, cls in formats]))
 
     @classmethod
     def now(cls):

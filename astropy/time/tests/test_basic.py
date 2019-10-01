@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import os
 import copy
 import functools
 import datetime
@@ -1710,3 +1711,27 @@ def test_hash_time_delta():
     with pytest.raises(TypeError) as exc:
         hash(t[3])
     assert exc.value.args[0] == "unhashable type: 'TimeDelta' (value is masked)"
+
+
+def test_get_time_fmt_exception_messages():
+    with pytest.raises(ValueError) as err:
+        Time(10)
+    assert "No time format was given, and the input is" in str(err.value)
+
+    with pytest.raises(ValueError) as err:
+        Time('2000:001', format='not-a-format')
+    assert "Format 'not-a-format' is not one of the allowed" in str(err.value)
+
+    with pytest.raises(ValueError) as err:
+        Time('200')
+    assert 'Input values did not match any of the formats where' in str(err.value)
+
+    with pytest.raises(ValueError) as err:
+        Time('200', format='iso')
+    assert ('Input values did not match the format class iso:' + os.linesep +
+            'ValueError: Time 200 does not match iso format') == str(err.value)
+
+    with pytest.raises(ValueError) as err:
+        Time(200, format='iso')
+    assert ('Input values did not match the format class iso:' + os.linesep +
+            'TypeError: Input values for iso class must be strings') == str(err.value)
