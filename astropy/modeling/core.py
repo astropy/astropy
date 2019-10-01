@@ -924,7 +924,6 @@ class Model(metaclass=_ModelMeta):
             new_args = args
         return generic_call(self, *new_args, **kwargs)
 
-
     # *** Properties ***
     @property
     def name(self):
