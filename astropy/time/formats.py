@@ -694,23 +694,33 @@ class TimeDatetime(TimeUnique):
 class TimeYMDHMS(TimeUnique):
     """
     ymdhms: A Time format to represent Time as year, month, day, hour,
-    minute, second (thus the name ymdhms)
+    minute, second (thus the name ymdhms).
 
     Acceptable inputs must have keys or column names in the "YMDHMS" set of
-    ``year``, ``month``, ``day`` ``hour``, ``minute``, ``second``.
+    ``year``, ``month``, ``day`` ``hour``, ``minute``, ``second``:
 
     - Dict with keys in the YMDHMS set
     - NumPy structured array, record array or astropy Table, or single row
       of those types, with column names in the YMDHMS set
 
+    One can supply a subset of the YMDHMS values, for instance only 'year',
+    'month', and 'day'.  Inputs have the following defaults::
+
+      'month': 1, 'day': 1, 'hour': 0, 'minute': 0, 'second': 0
+
+    When the input is supplied as a ``dict`` then each value can be either a
+    scalar value or an array.  The values will be broadcast to a common shape.
+
     Example::
 
       >>> from astropy.time import Time
-      >>> t = Time({'year': [2015, 2016], 'minute': [1, 2]}, scale='utc')
+      >>> t = Time({'year': 2015, 'month': 2, 'day': 3,
+      ...           'hour': 12, 'minute': 13, 'second': 14.567},
+      ...           scale='utc')
       >>> t.iso
-      array(['2015-01-01 00:01:00.000', '2016-01-01 00:02:00.000'], dtype='<U23')
+      '2015-02-03 12:13:14.567'
       >>> t.ymdhms.year
-      array([2015, 2016], dtype=int32)
+      2015
     """
     name = 'ymdhms'
 
@@ -766,12 +776,16 @@ class TimeYMDHMS(TimeUnique):
         names = val1_as_dict.keys()
         required_names = ymdhms[:len(names)]
 
-        if set(names) - set(ymdhms):
-            raise ValueError(f'only {ymdhms} are allowed as YMDHMS key or column names')
+        def comma_repr(vals):
+            return ', '.join(repr(val) for val in vals)
+
+        bad_names = set(names) - set(ymdhms)
+        if bad_names:
+            raise ValueError(f'{comma_repr(bad_names)} not allowed as YMDHMS key name(s)')
 
         if set(names) != set(required_names):
-            raise ValueError(f'for {len(names)} input column names {names}'
-                             f'you must supply {required_names}')
+            raise ValueError(f'for {len(names)} input key names '
+                             f'you must supply {comma_repr(required_names)}')
 
         return val1_as_dict, val2
 
@@ -797,25 +811,19 @@ class TimeYMDHMS(TimeUnique):
         scale = self.scale.upper().encode('ascii')
         iys, ims, ids, ihmsfs = erfa.d2dtf(scale, 9,
                                            self.jd1, self.jd2_filled)
-        ihrs = ihmsfs['h']
-        imins = ihmsfs['m']
-        isecs = ihmsfs['s']
-        ifracs = ihmsfs['f']
 
-        out = np.empty(self.jd1.shape, dtype=[
-                                ('year', 'i4'),
-                                ('month', 'i4'),
-                                ('day', 'i4'),
-                                ('hour', 'i4'),
-                                ('minute', 'i4'),
-                                ('second', 'f8'),
-                        ])
+        out = np.empty(self.jd1.shape, dtype=[('year', 'i4'),
+                                              ('month', 'i4'),
+                                              ('day', 'i4'),
+                                              ('hour', 'i4'),
+                                              ('minute', 'i4'),
+                                              ('second', 'f8')])
         out['year'] = iys
         out['month'] = ims
         out['day'] = ids
-        out['hour'] = ihrs
-        out['minute'] = imins
-        out['second'] = isecs + ifracs * 10**(-9)
+        out['hour'] = ihmsfs['h']
+        out['minute'] = ihmsfs['m']
+        out['second'] = ihmsfs['s'] + ihmsfs['f'] * 10**(-9)
         out = out.view(np.recarray)
 
         return self.mask_if_needed(out)

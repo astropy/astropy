@@ -1738,143 +1738,112 @@ def test_get_time_fmt_exception_messages():
             'TypeError: Input values for iso class must be strings') == str(err.value)
 
 
-def test_ymdhms_init():
-    time = Time('2001-01-01T00:00:00')
+def test_ymdhms_defaults():
+    t1 = Time({'year': 2001}, format='ymdhms')
+    assert t1 == Time('2001-01-01')
 
 
-class TestYMDHMS:
-    def setup(self):
-        self.default_time = Time('2001-01-01T00:00:00')
-
-        self.time_dict_scalar = {
-            'year': 2001,
-            'month': 11,
-            'day': 14,
-            'hour': 2,
-            'minute': 10,
-            'second': 59.123,
-        }
-        self.time_scalar = Time('2001-11-14T02:10:59.123')
-
-        # non scalar
-        self.times_dict_ns = {
-            'year': [2001, 2002],
-            'month': [2, 3],
-            'hour': [4, 5],
-        }
-        self.table_ns = Table(self.times_dict_ns)
-        self.struct_array_ns = self.table_ns.as_array()
-        self.rec_array_ns = self.struct_array_ns.view(np.recarray)
-        self.time_ns = Time(['2001-02-01T04:00:00', '2002-03-01T05:00:00'])
-
-        self.times_dict_shape = {
-            'year': [[2001, 2002], [2003, 2004]]
-        }
-        self.time_shape = Time(
-            [
-                ['2001-01-01', '2002-01-01'],
-                ['2003-01-01', '2004-01-01'],
-            ]
-        )
-
-    def test_defaults(self):
-
-        time_dict = {
-            'year': 2001,
-        }
-
-        t1 = Time(time_dict, format='ymdhms')
-        assert t1 == self.default_time
-
-    def test_init_from_struc_array(self):
-        time = Time(self.struct_array_ns, format='ymdhms')
-        assert np.all(time == self.time_ns)
-
-    def test_init_from_rec_array(self):
-        time = Time(self.rec_array_ns, format='ymdhms')
-        assert np.all(time == self.time_ns)
-
-    def test_init_from_table(self):
-        time = Time(self.table_ns, format='ymdhms')
-        assert np.all(time == self.time_ns)
-
-    def test_shape(self):
-        time = Time(self.times_dict_shape, format='ymdhms')
-
-        assert np.all(time == self.time_shape)
-        assert time.ymdhms.shape == self.time_shape.shape
-
-    def test_ymdhms_keys(self):
-        time = Time(self.time_dict_scalar, format='ymdhms')
-        assert time.value['year'] == 2001
-        assert time.value['month'] == 11
-        assert time.value['day'] == 14
-        assert time.value['hour'] == 2
-        assert time.value['minute'] == 10
-        assert time.value['second'] == 59.123
-
-    def test_malformed_input(self):
-        time_dict = {
-            'year': [2015, 2016],
-            'month': [10],
-        }
-
-        with pytest.raises(ValueError):
-            Time(time_dict, format='ymdhms')
+times_dict_ns = {
+    'year': [2001, 2002],
+    'month': [2, 3],
+    'day': [4, 5],
+    'hour': [6, 7],
+    'minute': [8, 9],
+    'second': [10, 11]
+}
+table_ns = Table(times_dict_ns)
+struct_array_ns = table_ns.as_array()
+rec_array_ns = struct_array_ns.view(np.recarray)
+ymdhms_names = ('year', 'month', 'day', 'hour', 'minute', 'second')
 
 
-def test_ymdhms_init_non_scalar():
-    times = {
-        'year': [2001, 2002, 2003],
+@pytest.mark.parametrize('tm_input', [table_ns, struct_array_ns, rec_array_ns])
+@pytest.mark.parametrize('kwargs', [{}, {'format': 'ymdhms'}])
+@pytest.mark.parametrize('as_row', [False, True])
+def test_ymdhms_init_from_table_like(tm_input, kwargs, as_row):
+    time_ns = Time(['2001-02-04 06:08:10', '2002-03-05 07:09:11'])
+    if as_row:
+        tm_input = tm_input[0]
+        time_ns = time_ns[0]
+
+    tm = Time(tm_input, **kwargs)
+    assert np.all(tm == time_ns)
+    assert tm.value.dtype.names == ymdhms_names
+
+
+def test_ymdhms_init_from_dict_array():
+    times_dict_shape = {
+        'year': [[2001, 2002],
+                 [2003, 2004]],
+        'month': [2, 3],
+        'day': 4
     }
-    times_str = [
-        '2001-01-01T00:00:00',
-        '2002-01-01T00:00:00',
-        '2003-01-01T00:00:00',
-    ]
+    time_shape = Time(
+        [['2001-02-04', '2002-03-04'],
+         ['2003-02-04', '2004-03-04']]
+    )
+    time = Time(times_dict_shape, format='ymdhms')
 
-    assert all(Time(times, format='ymdhms') == Time(times_str))
+    assert np.all(time == time_shape)
+    assert time.ymdhms.shape == time_shape.shape
 
 
-def test_ymdhms_leapsecond():
+@pytest.mark.parametrize('kwargs', [{}, {'format': 'ymdhms'}])
+def test_ymdhms_init_from_dict_scalar(kwargs):
+    """
+    Test YMDHMS functionality for a dict input. This includes ensuring that
+    key and attribute access work.  For extra fun use a time within a leap
+    second.
+    """
     time_dict = {
         'year': 2016,
         'month': 12,
         'day': 31,
         'hour': 23,
         'minute': 59,
-        'second': 60
-    }
+        'second': 60.123456789}
 
-    assert Time(time_dict) == Time('2016-12-31T23:59:60')
+    tm = Time(time_dict, **kwargs)
+
+    assert tm == Time('2016-12-31T23:59:60.123456789')
+    for attr in time_dict:
+        for value in (tm.value[attr], getattr(tm.value, attr)):
+            if attr == 'second':
+                assert allclose_sec(time_dict[attr], value)
+            else:
+                assert time_dict[attr] == value
+
+    # Now test initializing from a YMDHMS format time using the object
+    tm_rt = Time(tm)
+    assert tm_rt == tm
+    assert tm_rt.format == 'ymdhms'
+
+    # Test initializing from a YMDHMS value (np.void, i.e. recarray row)
+    # without specified format.
+    tm_rt = Time(tm.ymdhms)
+    assert tm_rt == tm
+    assert tm_rt.format == 'ymdhms'
 
 
-def test_ymdhms_precision():
-    time_dict = {
-        'year': 2016,
-        'month': 12,
-        'day': 31,
-        'hour': 23,
-        'minute': 59,
-        'second': 56.123123123,
-    }
+def test_ymdhms_exceptions():
+    with pytest.raises(ValueError, match='input must be dict or table-like'):
+        Time(10, format='ymdhms')
 
-    time = Time(time_dict, format='ymdhms')
-    assert time.value['second'] == 56.123123123
+    match = "'wrong' not allowed as YMDHMS key name(s)"
+    # NB: for reasons unknown, using match=match in pytest.raises() fails, so we
+    # fall back to old school ``match in str(err.value)``.
+    with pytest.raises(ValueError) as err:
+        Time({'year': 2019, 'wrong': 1}, format='ymdhms')
+    assert match in str(err.value)
+
+    match = "for 2 input key names you must supply 'year', 'month'"
+    with pytest.raises(ValueError, match=match):
+        Time({'year': 2019, 'minute': 1}, format='ymdhms')
 
 
-def test_ymdhms_roundtrip():
-    time_dict = {
-        'year': 2016,
-        'month': 12,
-        'day': 31,
-        'hour': 23,
-        'minute': 59,
-        'second': 56.123,
-    }
-
-    time = Time(time_dict, format='ymdhms')
-    time_rt = Time(time.ymdhms, format='ymdhms')
-
-    assert time == time_rt
-
+def test_ymdhms_masked():
+    tm = Time({'year': [2000, 2001]}, format='ymdhms')
+    tm[0] = np.ma.masked
+    assert isinstance(tm.value[0], np.ma.core.mvoid)
+    for name in ymdhms_names:
+        assert tm.value[0][name] is np.ma.masked

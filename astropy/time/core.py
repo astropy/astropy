@@ -471,9 +471,14 @@ class Time(ShapedLikeNDArray):
         guess available formats and stop when one matches.
         """
 
-        if format is None and val.dtype.kind in ('S', 'U', 'O', 'M'):
+        if (format is None and
+                (val.dtype.kind in ('S', 'U', 'O', 'M') or val.dtype.names)):
+            # Input is a string, object, datetime, or a table-like ndarray
+            # (structured array, recarray). These input types can be
+            # uniquely identified by the format classes.
             formats = [(name, cls) for name, cls in self.FORMATS.items()
                        if issubclass(cls, TimeUnique)]
+
             # AstropyTime is a pseudo-format that isn't in the TIME_FORMATS registry,
             # but try to guess it at the end.
             formats.append(('astropy_time', TimeAstropyTime))
