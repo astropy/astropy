@@ -17,7 +17,8 @@ from astropy.time import (Time, TimeDelta, ScaleValueError, STANDARD_TIME_SCALES
 from astropy.coordinates import EarthLocation
 from astropy import units as u
 from astropy import _erfa as erfa
-from astropy.table import Column
+from astropy.table import Column, Table
+
 try:
     import pytz
     HAS_PYTZ = True
@@ -1735,3 +1736,114 @@ def test_get_time_fmt_exception_messages():
         Time(200, format='iso')
     assert ('Input values did not match the format class iso:' + os.linesep +
             'TypeError: Input values for iso class must be strings') == str(err.value)
+
+
+def test_ymdhms_defaults():
+    t1 = Time({'year': 2001}, format='ymdhms')
+    assert t1 == Time('2001-01-01')
+
+
+times_dict_ns = {
+    'year': [2001, 2002],
+    'month': [2, 3],
+    'day': [4, 5],
+    'hour': [6, 7],
+    'minute': [8, 9],
+    'second': [10, 11]
+}
+table_ns = Table(times_dict_ns)
+struct_array_ns = table_ns.as_array()
+rec_array_ns = struct_array_ns.view(np.recarray)
+ymdhms_names = ('year', 'month', 'day', 'hour', 'minute', 'second')
+
+
+@pytest.mark.parametrize('tm_input', [table_ns, struct_array_ns, rec_array_ns])
+@pytest.mark.parametrize('kwargs', [{}, {'format': 'ymdhms'}])
+@pytest.mark.parametrize('as_row', [False, True])
+def test_ymdhms_init_from_table_like(tm_input, kwargs, as_row):
+    time_ns = Time(['2001-02-04 06:08:10', '2002-03-05 07:09:11'])
+    if as_row:
+        tm_input = tm_input[0]
+        time_ns = time_ns[0]
+
+    tm = Time(tm_input, **kwargs)
+    assert np.all(tm == time_ns)
+    assert tm.value.dtype.names == ymdhms_names
+
+
+def test_ymdhms_init_from_dict_array():
+    times_dict_shape = {
+        'year': [[2001, 2002],
+                 [2003, 2004]],
+        'month': [2, 3],
+        'day': 4
+    }
+    time_shape = Time(
+        [['2001-02-04', '2002-03-04'],
+         ['2003-02-04', '2004-03-04']]
+    )
+    time = Time(times_dict_shape, format='ymdhms')
+
+    assert np.all(time == time_shape)
+    assert time.ymdhms.shape == time_shape.shape
+
+
+@pytest.mark.parametrize('kwargs', [{}, {'format': 'ymdhms'}])
+def test_ymdhms_init_from_dict_scalar(kwargs):
+    """
+    Test YMDHMS functionality for a dict input. This includes ensuring that
+    key and attribute access work.  For extra fun use a time within a leap
+    second.
+    """
+    time_dict = {
+        'year': 2016,
+        'month': 12,
+        'day': 31,
+        'hour': 23,
+        'minute': 59,
+        'second': 60.123456789}
+
+    tm = Time(time_dict, **kwargs)
+
+    assert tm == Time('2016-12-31T23:59:60.123456789')
+    for attr in time_dict:
+        for value in (tm.value[attr], getattr(tm.value, attr)):
+            if attr == 'second':
+                assert allclose_sec(time_dict[attr], value)
+            else:
+                assert time_dict[attr] == value
+
+    # Now test initializing from a YMDHMS format time using the object
+    tm_rt = Time(tm)
+    assert tm_rt == tm
+    assert tm_rt.format == 'ymdhms'
+
+    # Test initializing from a YMDHMS value (np.void, i.e. recarray row)
+    # without specified format.
+    tm_rt = Time(tm.ymdhms)
+    assert tm_rt == tm
+    assert tm_rt.format == 'ymdhms'
+
+
+def test_ymdhms_exceptions():
+    with pytest.raises(ValueError, match='input must be dict or table-like'):
+        Time(10, format='ymdhms')
+
+    match = "'wrong' not allowed as YMDHMS key name(s)"
+    # NB: for reasons unknown, using match=match in pytest.raises() fails, so we
+    # fall back to old school ``match in str(err.value)``.
+    with pytest.raises(ValueError) as err:
+        Time({'year': 2019, 'wrong': 1}, format='ymdhms')
+    assert match in str(err.value)
+
+    match = "for 2 input key names you must supply 'year', 'month'"
+    with pytest.raises(ValueError, match=match):
+        Time({'year': 2019, 'minute': 1}, format='ymdhms')
+
+
+def test_ymdhms_masked():
+    tm = Time({'year': [2000, 2001]}, format='ymdhms')
+    tm[0] = np.ma.masked
+    assert isinstance(tm.value[0], np.ma.core.mvoid)
+    for name in ymdhms_names:
+        assert tm.value[0][name] is np.ma.masked
