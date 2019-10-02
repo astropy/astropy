@@ -6,28 +6,10 @@ Tukey's biweight function.
 
 import numpy as np
 
-from .funcs import median_absolute_deviation
+from .funcs import _expand_dims, median_absolute_deviation
 
 __all__ = ['biweight_location', 'biweight_scale', 'biweight_midvariance',
            'biweight_midcovariance', 'biweight_midcorrelation']
-
-
-def _expand_dims(data, axis):
-    if isinstance(data, np.matrix):
-        data = np.asarray(data)
-    else:
-        data = np.asanyarray(data)
-
-    if type(axis) not in (tuple, list):
-        axis = (axis,)
-
-    out_ndim = len(axis) + data.ndim
-    axis = np.core.numeric.normalize_axis_tuple(axis, out_ndim)
-
-    shape_it = iter(data.shape)
-    shape = [1 if ax in axis else next(shape_it) for ax in range(out_ndim)]
-
-    return data.reshape(shape)
 
 
 def biweight_location(data, c=6.0, M=None, axis=None):
