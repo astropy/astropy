@@ -111,7 +111,7 @@ def test_biweight_location_axis_tuple():
     assert_equal(biweight_location(data, axis=-1),
                  biweight_location(data, axis=(2,)))
     assert_equal(biweight_location(data, axis=(0, 1)),
-                 biweight_location(data, axis=(0, 1)))
+                 biweight_location(data, axis=(1, 0)))
     assert_equal(biweight_location(data, axis=(0, 2)),
                  biweight_location(data, axis=(0, -1)))
     assert_equal(biweight_location(data, axis=(0, 1, 2)),
@@ -204,7 +204,7 @@ def test_biweight_scale_axis_tuple():
     assert_equal(biweight_scale(data, axis=-1),
                  biweight_scale(data, axis=(2,)))
     assert_equal(biweight_scale(data, axis=(0, 1)),
-                 biweight_scale(data, axis=(0, 1)))
+                 biweight_scale(data, axis=(1, 0)))
     assert_equal(biweight_scale(data, axis=(0, 2)),
                  biweight_scale(data, axis=(0, -1)))
     assert_equal(biweight_scale(data, axis=(0, 1, 2)),

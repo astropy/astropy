@@ -40,6 +40,7 @@ to convert it to 1-sigma standard deviation.
 """
 
 
+# NUMPY_LT_1_18
 def _expand_dims(data, axis):
     """
     Expand the shape of an array.
@@ -73,7 +74,7 @@ def _expand_dims(data, axis):
     else:
         data = np.asanyarray(data)
 
-    if type(axis) not in (tuple, list):
+    if not isinstance(axis, (tuple, list)):
         axis = (axis,)
 
     out_ndim = len(axis) + data.ndim
@@ -829,7 +830,7 @@ def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
 
     # broadcast the median array before subtraction
     if axis is not None:
-        data_median = _expand_dims(data_median, axis=axis)
+        data_median = _expand_dims(data_median, axis=axis)  # NUMPY_LT_1_18
 
     result = func(np.abs(data - data_median), axis=axis, overwrite_input=True)
 
