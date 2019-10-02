@@ -569,16 +569,15 @@ def test_noncelestial_scale(cdelt, pc, cd):
     if pc is not None:
         mywcs.wcs.pc = pc
 
-    # Some inputs emit RuntimeWarning
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore', RuntimeWarning)
-        mywcs.wcs.cdelt = cdelt
+    # TODO: Some inputs emit RuntimeWarning from here onwards.
+    #       Fix the test data. See @nden's comment in PR 9010.
+    mywcs.wcs.cdelt = cdelt
 
-        mywcs.wcs.ctype = ['RA---TAN', 'FREQ']
+    mywcs.wcs.ctype = ['RA---TAN', 'FREQ']
 
-        ps = non_celestial_pixel_scales(mywcs)
+    ps = non_celestial_pixel_scales(mywcs)
 
-        assert_almost_equal(ps.to_value(u.deg), np.array([0.1, 0.2]))
+    assert_almost_equal(ps.to_value(u.deg), np.array([0.1, 0.2]))
 
 
 @pytest.mark.parametrize('mode', ['all', 'wcs'])
