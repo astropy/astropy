@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This plugin provides customization of the header displayed by pytest for
-reporting purposes.
+reporting purposes. PYTEST_DONT_REWRITE
 """
 
 import os
