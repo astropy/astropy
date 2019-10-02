@@ -13,9 +13,7 @@ import math
 
 import numpy as np
 
-from astropy.utils import isiterable
 from . import _stats
-
 
 __all__ = ['gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm',
            'binom_conf_interval', 'binned_binom_proportion',
@@ -768,9 +766,9 @@ def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
     ----------
     data : array-like
         Input array or object that can be converted to an array.
-    axis : {int, sequence of int, None}, optional
-        Axis along which the MADs are computed.  The default (`None`) is
-        to compute the MAD of the flattened array.
+    axis : `None`, int, or tuple of ints, optional
+        The axis or axes along which the MADs are computed.  The default
+        (`None`) is to compute the MAD of the flattened array.
     func : callable, optional
         The function used to compute the median. Defaults to `numpy.ma.median`
         for masked arrays, otherwise to `numpy.median`.
@@ -831,11 +829,7 @@ def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
 
     # broadcast the median array before subtraction
     if axis is not None:
-        if isiterable(axis):
-            for ax in sorted(list(axis)):
-                data_median = np.expand_dims(data_median, axis=ax)
-        else:
-            data_median = np.expand_dims(data_median, axis=axis)
+        data_median = _expand_dims(data_median, axis=axis)
 
     result = func(np.abs(data - data_median), axis=axis, overwrite_input=True)
 
@@ -870,10 +864,10 @@ def mad_std(data, axis=None, func=None, ignore_nan=False):
     ----------
     data : array-like
         Data array or object that can be converted to an array.
-    axis : {int, sequence of int, None}, optional
-        Axis along which the robust standard deviations are computed.
-        The default (`None`) is to compute the robust standard deviation
-        of the flattened array.
+    axis : `None`, int, or tuple of ints, optional
+        The axis or axes along which the robust standard deviations are
+        computed.  The default (`None`) is to compute the robust
+        standard deviation of the flattened array.
     func : callable, optional
         The function used to compute the median. Defaults to `numpy.ma.median`
         for masked arrays, otherwise to `numpy.median`.
