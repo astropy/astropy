@@ -117,6 +117,8 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
     coord_meta['default_ticklabel_position'] = [''] * wcs.world_n_dim
     coord_meta['default_ticks_position'] = [''] * wcs.world_n_dim
 
+    ori_wcs_length = wcs.world_n_dim
+
     invert_xy = False
     if slices is not None:
         wcs_slice = list(slices)
@@ -125,6 +127,9 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
             wcs_slice[wcs_slice.index("y")] = slice(None)
             invert_xy = slices.index('x') > slices.index('y')
         wcs = SlicedLowLevelWCS(wcs, wcs_slice[::-1])
+
+    # If we have sliced the WCS then we use the WCS world keep.
+    if ori_wcs_length != wcs.world_n_dim:
         world_keep = wcs._world_keep
     else:
         world_keep = list(range(wcs.world_n_dim))
