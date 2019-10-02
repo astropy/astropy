@@ -91,7 +91,7 @@ def biweight_location(data, c=6.0, M=None, axis=None):
     if M is None:
         M = np.median(data, axis=axis)
     if axis is not None:
-        M = _expand_dims(M, axis=axis)
+        M = _expand_dims(M, axis=axis)  # NUMPY_LT_1_18
 
     # set up the differences
     d = data - M
@@ -103,7 +103,7 @@ def biweight_location(data, c=6.0, M=None, axis=None):
         return M  # return median if data is a constant array
 
     if axis is not None:
-        mad = _expand_dims(mad, axis=axis)
+        mad = _expand_dims(mad, axis=axis)  # NUMPY_LT_1_18
         const_mask = (mad == 0.)
         mad[const_mask] = 1.  # prevent divide by zero
 
@@ -333,7 +333,7 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     if M is None:
         M = np.median(data, axis=axis)
     if axis is not None:
-        M = _expand_dims(M, axis=axis)
+        M = _expand_dims(M, axis=axis)  # NUMPY_LT_1_18
 
     # set up the differences
     d = data - M
@@ -345,7 +345,7 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
         return 0.  # return zero if data is a constant array
 
     if axis is not None:
-        mad = _expand_dims(mad, axis=axis)
+        mad = _expand_dims(mad, axis=axis)  # NUMPY_LT_1_18
         const_mask = (mad == 0.)
         mad[const_mask] = 1.  # prevent divide by zero
 
