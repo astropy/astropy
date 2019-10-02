@@ -825,3 +825,21 @@ def pixel_to_pixel(wcs_in, wcs_out, *inputs):
                 outputs[ipix] = np.broadcast_to(pixel_outputs[ipix], original_shape)
 
     return outputs[0] if wcs_out.pixel_n_dim == 1 else outputs
+
+
+def local_derivative_fractions(wcs, *pixel):
+    """
+    Return a matrix of shape (pixel_n_dim, pixel_n_dim) where for each world
+    coordinate the values for each pixel indicate the relative importance of the
+    pixel coordinate in affecting the change in the world coordinate.
+    """
+    pixel_ref = np.array(pixel)
+    world_ref = np.array(wcs.pixel_to_world_values(*pixel_ref))
+    corr = np.zeros((wcs.pixel_n_dim, wcs.pixel_n_dim))
+    for i in range(wcs.pixel_n_dim):
+        pixel_off = pixel_ref.copy()
+        pixel_off[i] += 1
+        world_off = np.array(wcs.pixel_to_world_values(*pixel_off))
+        corr[i, :] = world_off - world_ref
+    corr[:, :] /= corr.sum(axis=0)[np.newaxis, :]
+    return corr
