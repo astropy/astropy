@@ -115,10 +115,10 @@ def test_median_absolute_deviation_nans_masked():
 
 def test_median_absolute_deviation_multidim_axis():
     array = np.ones((5, 4, 3)) * np.arange(5)[:, np.newaxis, np.newaxis]
-    assert_equal(funcs.median_absolute_deviation(array, axis=(1, 2)),
-                 np.zeros(5))
-    assert_equal(funcs.median_absolute_deviation(
-        array, axis=np.array([1, 2])), np.zeros(5))
+    mad1 = funcs.median_absolute_deviation(array, axis=(1, 2))
+    mad2 = funcs.median_absolute_deviation(array, axis=(2, 1))
+    assert_equal(mad1, np.zeros(5))
+    assert_equal(mad1, mad2)
 
 
 def test_median_absolute_deviation_quantity():

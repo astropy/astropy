@@ -4,11 +4,9 @@ This module contains functions for computing robust statistics using
 Tukey's biweight function.
 """
 
-
 import numpy as np
 
-from .funcs import median_absolute_deviation
-
+from .funcs import _expand_dims, median_absolute_deviation
 
 __all__ = ['biweight_location', 'biweight_scale', 'biweight_midvariance',
            'biweight_midcovariance', 'biweight_midcorrelation']
@@ -53,10 +51,10 @@ def biweight_location(data, c=6.0, M=None, axis=None):
         ``axis`` of the input array.  If `None` (default), then the
         median of the input array will be used (or along each ``axis``,
         if specified).
-    axis : int, optional
-        The axis along which the biweight locations are computed.  If
-        `None` (default), then the biweight location of the flattened
-        input array will be computed.
+    axis : `None`, int, or tuple of ints, optional
+        The axis or axes along which the biweight locations are
+        computed.  If `None` (default), then the biweight location of
+        the flattened input array will be computed.
 
     Returns
     -------
@@ -93,7 +91,7 @@ def biweight_location(data, c=6.0, M=None, axis=None):
     if M is None:
         M = np.median(data, axis=axis)
     if axis is not None:
-        M = np.expand_dims(M, axis=axis)
+        M = _expand_dims(M, axis=axis)  # NUMPY_LT_1_18
 
     # set up the differences
     d = data - M
@@ -105,7 +103,7 @@ def biweight_location(data, c=6.0, M=None, axis=None):
         return M  # return median if data is a constant array
 
     if axis is not None:
-        mad = np.expand_dims(mad, axis=axis)
+        mad = _expand_dims(mad, axis=axis)  # NUMPY_LT_1_18
         const_mask = (mad == 0.)
         mad[const_mask] = 1.  # prevent divide by zero
 
@@ -179,10 +177,10 @@ def biweight_scale(data, c=9.0, M=None, axis=None, modify_sample_size=False):
         containing the location estimate along each ``axis`` of the
         input array.  If `None` (default), then the median of the input
         array will be used (or along each ``axis``, if specified).
-    axis : int, optional
-        The axis along which the biweight scales are computed.  If
-        `None` (default), then the biweight scale of the flattened input
-        array will be computed.
+    axis : `None`, int, or tuple of ints, optional
+        The axis or axes along which the biweight scales are computed.
+        If `None` (default), then the biweight scale of the flattened
+        input array will be computed.
     modify_sample_size : bool, optional
         If `False` (default), then the sample size used is the total
         number of elements in the array (or along the input ``axis``, if
@@ -286,10 +284,10 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
         containing the location estimate along each ``axis`` of the
         input array.  If `None` (default), then the median of the input
         array will be used (or along each ``axis``, if specified).
-    axis : int, optional
-        The axis along which the biweight midvariances are computed.  If
-        `None` (default), then the biweight midvariance of the flattened
-        input array will be computed.
+    axis : `None`, int, or tuple of ints, optional
+        The axis or axes along which the biweight midvariances are
+        computed.  If `None` (default), then the biweight midvariance of
+        the flattened input array will be computed.
     modify_sample_size : bool, optional
         If `False` (default), then the sample size used is the total
         number of elements in the array (or along the input ``axis``, if
@@ -335,7 +333,7 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     if M is None:
         M = np.median(data, axis=axis)
     if axis is not None:
-        M = np.expand_dims(M, axis=axis)
+        M = _expand_dims(M, axis=axis)  # NUMPY_LT_1_18
 
     # set up the differences
     d = data - M
@@ -347,7 +345,7 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
         return 0.  # return zero if data is a constant array
 
     if axis is not None:
-        mad = np.expand_dims(mad, axis=axis)
+        mad = _expand_dims(mad, axis=axis)  # NUMPY_LT_1_18
         const_mask = (mad == 0.)
         mad[const_mask] = 1.  # prevent divide by zero
 
@@ -362,7 +360,9 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     else:
         if axis is None:
             n = data.size
-        else:
+        elif type(axis) in (tuple, list):
+            n = np.prod([data.shape[i] for i in axis])
+        else:  # axis is int
             n = data.shape[axis]
 
     f1 = d * d * (1. - u)**4
@@ -436,7 +436,7 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
     :math:`x` and :math:`y` variables.  The biweight midvariance tuning
     constant ``c`` is typically 9.0 (the default).
 
-    For the standard definition of biweight midcovariance :math:`n` is
+    For the standard definition of biweight midcovariance, :math:`n` is
     the total number of observations of each variable.  That definition
     is used if ``modify_sample_size`` is `False`, which is the default.
 

@@ -13,9 +13,7 @@ import math
 
 import numpy as np
 
-from astropy.utils import isiterable
 from . import _stats
-
 
 __all__ = ['gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm',
            'binom_conf_interval', 'binned_binom_proportion',
@@ -40,6 +38,52 @@ gaussian_fwhm_to_sigma = 1. / gaussian_sigma_to_fwhm
 Factor with which to multiply Gaussian full width at half maximum (FWHM)
 to convert it to 1-sigma standard deviation.
 """
+
+
+# NUMPY_LT_1_18
+def _expand_dims(data, axis):
+    """
+    Expand the shape of an array.
+
+    Insert a new axis that will appear at the `axis` position in the
+    expanded array shape.
+
+    This function allows for tuple axis arguments.
+    ``numpy.expand_dims`` currently does not allow that, but it will in
+    numpy v1.18 (https://github.com/numpy/numpy/pull/14051).
+    ``_expand_dims`` can be replaced with ``numpy.expand_dims`` when the
+    minimum support numpy version is v1.18.
+
+    Parameters
+    ----------
+    data : array_like
+        Input array.
+    axis : int or tuple of ints
+        Position in the expanded axes where the new axis (or axes) is
+        placed.  A tuple of axes is now supported.  Out of range axes as
+        described above are now forbidden and raise an `AxisError`.
+
+    Returns
+    -------
+    result : ndarray
+        View of ``data`` with the number of dimensions increased.
+    """
+
+    if isinstance(data, np.matrix):
+        data = np.asarray(data)
+    else:
+        data = np.asanyarray(data)
+
+    if not isinstance(axis, (tuple, list)):
+        axis = (axis,)
+
+    out_ndim = len(axis) + data.ndim
+    axis = np.core.numeric.normalize_axis_tuple(axis, out_ndim)
+
+    shape_it = iter(data.shape)
+    shape = [1 if ax in axis else next(shape_it) for ax in range(out_ndim)]
+
+    return data.reshape(shape)
 
 
 # TODO Note scipy dependency
@@ -723,9 +767,9 @@ def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
     ----------
     data : array-like
         Input array or object that can be converted to an array.
-    axis : {int, sequence of int, None}, optional
-        Axis along which the MADs are computed.  The default (`None`) is
-        to compute the MAD of the flattened array.
+    axis : `None`, int, or tuple of ints, optional
+        The axis or axes along which the MADs are computed.  The default
+        (`None`) is to compute the MAD of the flattened array.
     func : callable, optional
         The function used to compute the median. Defaults to `numpy.ma.median`
         for masked arrays, otherwise to `numpy.median`.
@@ -786,11 +830,7 @@ def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
 
     # broadcast the median array before subtraction
     if axis is not None:
-        if isiterable(axis):
-            for ax in sorted(list(axis)):
-                data_median = np.expand_dims(data_median, axis=ax)
-        else:
-            data_median = np.expand_dims(data_median, axis=axis)
+        data_median = _expand_dims(data_median, axis=axis)  # NUMPY_LT_1_18
 
     result = func(np.abs(data - data_median), axis=axis, overwrite_input=True)
 
@@ -825,10 +865,10 @@ def mad_std(data, axis=None, func=None, ignore_nan=False):
     ----------
     data : array-like
         Data array or object that can be converted to an array.
-    axis : {int, sequence of int, None}, optional
-        Axis along which the robust standard deviations are computed.
-        The default (`None`) is to compute the robust standard deviation
-        of the flattened array.
+    axis : `None`, int, or tuple of ints, optional
+        The axis or axes along which the robust standard deviations are
+        computed.  The default (`None`) is to compute the robust
+        standard deviation of the flattened array.
     func : callable, optional
         The function used to compute the median. Defaults to `numpy.ma.median`
         for masked arrays, otherwise to `numpy.median`.
