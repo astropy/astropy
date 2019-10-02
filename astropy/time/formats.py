@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
+import collections
 import fnmatch
 import time
 import re
@@ -25,7 +25,7 @@ __all__ = ['TimeFormat', 'TimeJD', 'TimeMJD', 'TimeFromEpoch', 'TimeUnix',
            'TimeDeltaFormat', 'TimeDeltaSec', 'TimeDeltaJD',
            'TimeEpochDateString', 'TimeBesselianEpochString',
            'TimeJulianEpochString', 'TIME_FORMATS', 'TIME_DELTA_FORMATS',
-           'TimezoneInfo', 'TimeDeltaDatetime', 'TimeDatetime64']
+           'TimezoneInfo', 'TimeDeltaDatetime', 'TimeDatetime64', 'TimeYMDHMS']
 
 __doctest_skip__ = ['TimePlotDate']
 
@@ -689,6 +689,144 @@ class TimeDatetime(TimeUnique):
         return self.mask_if_needed(iterator.operands[-1])
 
     value = property(to_value)
+
+
+class TimeYMDHMS(TimeUnique):
+    """
+    ymdhms: A Time format to represent Time as year, month, day, hour,
+    minute, second (thus the name ymdhms).
+
+    Acceptable inputs must have keys or column names in the "YMDHMS" set of
+    ``year``, ``month``, ``day`` ``hour``, ``minute``, ``second``:
+
+    - Dict with keys in the YMDHMS set
+    - NumPy structured array, record array or astropy Table, or single row
+      of those types, with column names in the YMDHMS set
+
+    One can supply a subset of the YMDHMS values, for instance only 'year',
+    'month', and 'day'.  Inputs have the following defaults::
+
+      'month': 1, 'day': 1, 'hour': 0, 'minute': 0, 'second': 0
+
+    When the input is supplied as a ``dict`` then each value can be either a
+    scalar value or an array.  The values will be broadcast to a common shape.
+
+    Example::
+
+      >>> from astropy.time import Time
+      >>> t = Time({'year': 2015, 'month': 2, 'day': 3,
+      ...           'hour': 12, 'minute': 13, 'second': 14.567},
+      ...           scale='utc')
+      >>> t.iso
+      '2015-02-03 12:13:14.567'
+      >>> t.ymdhms.year
+      2015
+    """
+    name = 'ymdhms'
+
+    def _check_val_type(self, val1, val2):
+        """
+        This checks inputs for the YMDHMS format.
+
+        It is bit more complex than most format checkers because of the flexible
+        input that is allowed.  Also, it actually coerces ``val1`` into an appropriate
+        dict of ndarrays that can be used easily by ``set_jds()``.  This is useful
+        because it makes it easy to get default values in that routine.
+
+        Parameters
+        ----------
+        val1 : ndarray or None
+        val2 : ndarray or None
+
+        Returns
+        -------
+        val1_as_dict, val2 : val1 as dict or None, val2 is always None
+
+        """
+        if val2 is not None:
+            raise ValueError('val2 must be None for ymdhms format')
+
+        ymdhms = ['year', 'month', 'day', 'hour', 'minute', 'second']
+
+        if val1.dtype.names:
+            # Convert to a dict of ndarray
+            val1_as_dict = {name: val1[name] for name in val1.dtype.names}
+
+        elif val1.shape == (0,):
+            # Input was empty list [], so set to None and set_jds will handle this
+            return None, None
+
+        elif (val1.dtype.kind == 'O' and
+              val1.shape == () and
+              isinstance(val1.item(), dict)):
+            # Code gets here for input as a dict.  The dict input
+            # can be either scalar values or N-d arrays.
+
+            # Extract the item (which is a dict) and broadcast values to the
+            # same shape here.
+            names = val1.item().keys()
+            values = val1.item().values()
+            val1_as_dict = {name: value for name, value
+                            in zip(names, np.broadcast_arrays(*values))}
+
+        else:
+            raise ValueError('input must be dict or table-like')
+
+        # Check that the key names now are good.
+        names = val1_as_dict.keys()
+        required_names = ymdhms[:len(names)]
+
+        def comma_repr(vals):
+            return ', '.join(repr(val) for val in vals)
+
+        bad_names = set(names) - set(ymdhms)
+        if bad_names:
+            raise ValueError(f'{comma_repr(bad_names)} not allowed as YMDHMS key name(s)')
+
+        if set(names) != set(required_names):
+            raise ValueError(f'for {len(names)} input key names '
+                             f'you must supply {comma_repr(required_names)}')
+
+        return val1_as_dict, val2
+
+    def set_jds(self, val1, val2):
+        if val1 is None:
+            # Input was empty list []
+            jd1 = np.array([], dtype=np.float64)
+            jd2 = np.array([], dtype=np.float64)
+
+        else:
+            jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
+                                  val1['year'],
+                                  val1.get('month', 1),
+                                  val1.get('day', 1),
+                                  val1.get('hour', 0),
+                                  val1.get('minute', 0),
+                                  val1.get('second', 0))
+
+        self.jd1, self.jd2 = day_frac(jd1, jd2)
+
+    @property
+    def value(self):
+        scale = self.scale.upper().encode('ascii')
+        iys, ims, ids, ihmsfs = erfa.d2dtf(scale, 9,
+                                           self.jd1, self.jd2_filled)
+
+        out = np.empty(self.jd1.shape, dtype=[('year', 'i4'),
+                                              ('month', 'i4'),
+                                              ('day', 'i4'),
+                                              ('hour', 'i4'),
+                                              ('minute', 'i4'),
+                                              ('second', 'f8')])
+        out['year'] = iys
+        out['month'] = ims
+        out['day'] = ids
+        out['hour'] = ihmsfs['h']
+        out['minute'] = ihmsfs['m']
+        out['second'] = ihmsfs['s'] + ihmsfs['f'] * 10**(-9)
+        out = out.view(np.recarray)
+
+        return self.mask_if_needed(out)
 
 
 class TimezoneInfo(datetime.tzinfo):

@@ -306,8 +306,8 @@ class Time(ShapedLikeNDArray):
 
       >>> list(Time.FORMATS)
       ['jd', 'mjd', 'decimalyear', 'unix', 'cxcsec', 'gps', 'plot_date',
-       'datetime', 'iso', 'isot', 'yday', 'datetime64', 'fits', 'byear',
-       'jyear', 'byear_str', 'jyear_str']
+       'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64', 'fits',
+       'byear', 'jyear', 'byear_str', 'jyear_str']
 
     See also: http://docs.astropy.org/en/stable/time/
 
@@ -471,9 +471,14 @@ class Time(ShapedLikeNDArray):
         guess available formats and stop when one matches.
         """
 
-        if format is None and val.dtype.kind in ('S', 'U', 'O', 'M'):
+        if (format is None and
+                (val.dtype.kind in ('S', 'U', 'O', 'M') or val.dtype.names)):
+            # Input is a string, object, datetime, or a table-like ndarray
+            # (structured array, recarray). These input types can be
+            # uniquely identified by the format classes.
             formats = [(name, cls) for name, cls in self.FORMATS.items()
                        if issubclass(cls, TimeUnique)]
+
             # AstropyTime is a pseudo-format that isn't in the TIME_FORMATS registry,
             # but try to guess it at the end.
             formats.append(('astropy_time', TimeAstropyTime))
@@ -604,7 +609,7 @@ class Time(ShapedLikeNDArray):
 
           >>> list(Time.FORMATS)
           ['jd', 'mjd', 'decimalyear', 'unix', 'cxcsec', 'gps', 'plot_date',
-           'datetime', 'iso', 'isot', 'yday', 'datetime64', 'fits', 'byear',
+           'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64', 'fits', 'byear',
            'jyear', 'byear_str', 'jyear_str']
         """
         return self._format
@@ -853,7 +858,7 @@ class Time(ShapedLikeNDArray):
         if value.dtype.kind == 'M':
             return value[()]
         if not self._time.jd1.shape and not np.ma.is_masked(value):
-            out = value.item()
+            out = value[()] if value.dtype.fields else value.item()
         return out
 
     @property
@@ -2260,7 +2265,7 @@ def _make_array(val, copy=False):
     # Allow only float64, string or object arrays as input
     # (object is for datetime, maybe add more specific test later?)
     # This also ensures the right byteorder for float64 (closes #2942).
-    if not (val.dtype == np.float64 or val.dtype.kind in 'OSUMa'):
+    if not (val.dtype == np.float64 or val.dtype.kind in 'OSUMaV'):
         val = np.asanyarray(val, dtype=np.float64)
 
     return val
