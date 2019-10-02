@@ -875,8 +875,22 @@ class Model(metaclass=_ModelMeta):
         Evaluate this model using the given input(s) and the parameter values
         that were specified when the model was instantiated.
         """
+        new_args, kwargs = self._get_renamed_inputs_as_positional(*args, **kwargs)
+
+        return generic_call(self, *new_args, **kwargs)
+
+    def _get_renamed_inputs_as_positional(self, *args, **kwargs):
         def _keyword2positional(kwargs):
-            # these are the keys that are always present as keyword arguments
+            # Inputs were passed as keyword (not positional) arguments.
+            # Because the signature of the ``__call__`` is defined at
+            # the class level, the name of the inputs cannot be changed at
+            # the instance level and the old names are always present in the
+            # signature of the method. In order to use the new names of the
+            # inputs, the old names are taken out of ``kwargs``, the input
+            # values are sorted in the order of self.inputs and passed as
+            # positional arguments to ``__call__``.
+
+            # These are the keys that are always present as keyword arguments.
             keys = ['model_set_axis', 'with_bounding_box', 'fill_value',
                     'equivalencies', 'inputs_map']
 
@@ -889,30 +903,25 @@ class Model(metaclass=_ModelMeta):
                 if key not in keys:
                     new_inputs[key] = kwargs[key]
                     del kwargs[key]
+            return new_inputs, kwargs
+        n_args = len(args)
 
-            return new_inputs
-
-        if not args:
-            # Inputs were passed as keyword (not positional) arguments.
-            # Because the signature of the ``__call__`` is defined at
-            # the class level, the name of the inputs cannot be changed at
-            # the instance level and the old names are always present in the
-            # signature of the method. In order to use the new names of the
-            # inputs, the old names are taken out of ``kwargs``, the input
-            # values are sorted in the order of self.inputs and passed as
-            # positional arguments to ``__call__``.
-
-            new_inputs = _keyword2positional(kwargs)
+        new_inputs, kwargs = _keyword2positional(kwargs)
+        n_all_args = n_args + len(new_inputs)
+        if  n_all_args < self.n_inputs:
+            raise ValueError(f"Missing input arguments - expected {self.n_inputs}, got {n_all_args}")
+        elif n_all_args > self.n_inputs:
+            raise ValueError(f"Too many input arguments - expected {self.n_inputs}, got {n_all_args}")
+        if n_args == 0:
             # Create positional arguments from the keyword arguments in ``new_inputs``.
             new_args = []
             for k in self.inputs:
                 new_args.append(new_inputs[k])
-        elif len(args) != self.n_inputs:
+        elif n_args != self.n_inputs:
             # Some inputs are passed as positional, others as keyword arguments.
             args = list(args)
 
             # Create positional arguments from the keyword arguments in ``new_inputs``.
-            new_inputs = _keyword2positional(kwargs)
             new_args = []
             for k in self.inputs:
                 if k in new_inputs:
@@ -922,7 +931,7 @@ class Model(metaclass=_ModelMeta):
                     del args[0]
         else:
             new_args = args
-        return generic_call(self, *new_args, **kwargs)
+        return new_args, kwargs
 
     # *** Properties ***
     @property
@@ -2545,6 +2554,9 @@ class CompoundModel(Model):
         return True
 
     def __call__(self, *args, **kw):
+        # Turn any keyword arguments into positional arguments.
+        args, kw = self._get_renamed_inputs_as_positional(*args, **kw)
+
         # If equivalencies are provided, necessary to map parameters and pass
         # the leaflist as a keyword input for use by model evaluation so that
         # the compound model input names can be matched to the model input
@@ -3903,6 +3915,7 @@ def _prepare_inputs_single_model(model, params, inputs, **kwargs):
 def _prepare_outputs_single_model(model, outputs, format_info):
     broadcasts = format_info[0]
     outputs = list(outputs)
+    print('broadcasts, info', broadcasts, outputs)
     for idx, output in enumerate(outputs):
         broadcast_shape = broadcasts[idx]
         if broadcast_shape is not None:
