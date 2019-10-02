@@ -293,6 +293,12 @@ class CoordinateHelper:
         self._formatter_locator.decimal = decimal
         self._formatter_locator.show_decimal_unit = show_decimal_unit
 
+    def get_format_unit(self):
+        """
+        Get the unit for the major tick labels.
+        """
+        return self._formatter_locator.format_unit
+
     def set_ticks(self, values=None, spacing=None, number=None, size=None,
                   width=None, color=None, alpha=None, direction=None,
                   exclude_overlapping=None):
