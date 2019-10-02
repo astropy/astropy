@@ -89,6 +89,10 @@ astropy.samp
 astropy.stats
 ^^^^^^^^^^^^^
 
+- The ``biweight_location``, ``biweight_scale``, and
+  ``biweight_midvariance`` functions now allow for the ``axis``
+  keyword to be a tuple of integers. [#9309]
+
 astropy.table
 ^^^^^^^^^^^^^
 
