@@ -956,4 +956,3 @@ def test_call_keyword_mappings(model):
 
     with pytest.raises(ValueError):
         model(1, 2, t=12, r=3)
-
