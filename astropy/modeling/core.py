@@ -730,7 +730,7 @@ class Model(metaclass=_ModelMeta):
             f"""Class {self.__class__.__name__} defines class attributes ``inputs``.
             This has been deprecated in v4.0 and support will be removed in v4.1.
             Starting with v4.0 classes must defnie a class attribute ``n_inputs``.
-            Please consult the documentaiton for details.
+            Please consult the documentation for details.
             """, AstropyDeprecationWarning)
 
     def _default_inputs_outputs(self):
@@ -801,7 +801,6 @@ class Model(metaclass=_ModelMeta):
                     return 0
 
         return self.__class__.n_outputs
-
 
     def _initialize_unit_support(self):
         """
