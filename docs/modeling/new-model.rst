@@ -91,33 +91,31 @@ example if it must be non-negative).  See the example in
     from astropy.modeling import Fittable1DModel, Parameter
 
     class Gaussian1D(Fittable1DModel):
-        inputs = ('x',)
-        outputs = ('y',)
+        n_inputs = 1
+        n_outputs = 1
 
         amplitude = Parameter()
         mean = Parameter()
         stddev = Parameter()
 
-The ``inputs`` and ``outputs`` class attributes must be tuples of strings
+The ``n_inputs`` and ``n_outputs`` class attributes must be integers
 indicating the number of independent variables that are input to evaluate the
 model, and the number of outputs it returns.  The labels of the inputs and
-outputs (in this case ``'x'`` and ``'y'`` respectively) are currently used for
-informational purposes only and have no requirements on them other than that
-they do not conflict with parameter names.  Outputs may have the same labels as
-inputs (eg. ``inputs = ('x', 'y')`` and ``outputs = ('x', 'y')``).  However,
-inputs must not conflict with each other (eg. ``inputs = ('x', 'x')`` is
-incorrect) and likewise for outputs.  The lengths of these tuples are
-important for specifying the correct number of inputs and outputs.  These
-attributes supersede the ``n_inputs`` and ``n_outputs`` attributes in older
-versions of this package.
+outputs, ``inputs`` and ``outputs``, are generated automatically. it is possible
+to overwrite the default ones by assigning the desired values in the class ``__init__``
+method, after calling ``super``. ``outputs`` and ``inputs`` must be tuples of
+strings with length ``n_outputs`` and ``n_inputs`` respectively.
+Outputs may have the same labels as inputs (eg. ``inputs = ('x', 'y')`` and ``outputs = ('x', 'y')``).
+However, inputs must not conflict with each other (eg. ``inputs = ('x', 'x')`` is
+incorrect) and likewise for outputs.
 
 There are two helpful base classes in the modeling package that can be used to
-avoid specifying ``inputs`` and ``outputs`` for most common models.  These are
+avoid specifying ``n_inputs`` and ``n_outputs`` for most common models.  These are
 `~astropy.modeling.Fittable1DModel` and `~astropy.modeling.Fittable2DModel`.
 For example, the real `~astropy.modeling.functional_models.Gaussian1D` model is
 actually a subclass of `~astropy.modeling.Fittable1DModel`.  This helps cut
-down on boilerplate by not having to specify ``inputs`` and ``outputs`` for
-many models (follow the link to Gaussian1D to see its source code, for
+down on boilerplate by not having to specify ``n_inputs``, ``n_outputs``, ``inputs``
+and ``outputs`` for many models (follow the link to Gaussian1D to see its source code, for
 example).
 
 Fittable models can be linear or nonlinear in a regression sense. The default
@@ -279,4 +277,3 @@ input``.
 
     The above example is essentially equivalent to the built-in
     `~astropy.modeling.functional_models.Linear1D` model.
-    

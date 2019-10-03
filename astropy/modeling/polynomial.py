@@ -163,8 +163,8 @@ class OrthoPolynomialBase(PolynomialBase):
         {keyword: value} pairs, representing {parameter_name: value}
     """
 
-    inputs = ('x', 'y')
-    outputs = ('z',)
+    n_inputs = 2
+    n_outputs = 1
 
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=None,
                  y_domain=None, y_window=None, n_models=None,
@@ -337,9 +337,9 @@ class Chebyshev1D(PolynomialModel):
     third Chebyshev polynomial (T2) is 2x^2-1, but if x was specified with
     units, 2x^2 and -1 would have incompatible units.
     """
+    n_inputs = 1
+    n_outputs = 1
 
-    inputs = ('x',)
-    outputs = ('y',)
     _separable = True
 
     def __init__(self, degree, domain=None, window=[-1, 1], n_models=None,
@@ -443,9 +443,9 @@ class Hermite1D(PolynomialModel):
     third Hermite polynomial (H2) is 4x^2-2, but if x was specified with units,
     4x^2 and -2 would have incompatible units.
     """
+    n_inputs = 1
+    n_outputs = 1
 
-    inputs = ('x')
-    outputs = ('y')
     _separable = True
 
     def __init__(self, degree, domain=None, window=[-1, 1], n_models=None,
@@ -675,9 +675,10 @@ class Legendre1D(PolynomialModel):
     units, 1.5x^2 and -0.5 would have incompatible units.
     """
 
-    inputs = ('x',)
-    outputs = ('y',)
-    _separable = False
+    n_inputs = 1
+    n_outputs = 1
+
+    _separable = True
 
     def __init__(self, degree, domain=None, window=[-1, 1], n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
@@ -768,8 +769,9 @@ class Polynomial1D(PolynomialModel):
 
     """
 
-    inputs = ('x',)
-    outputs = ('y',)
+    n_inputs = 1
+    n_outputs = 1
+
     _separable = True
 
     def __init__(self, degree, domain=[-1, 1], window=[-1, 1], n_models=None,
@@ -869,8 +871,9 @@ class Polynomial2D(PolynomialModel):
         keyword: value pairs, representing parameter_name: value
     """
 
-    inputs = ('x', 'y')
-    outputs = ('z',)
+    n_inputs = 2
+    n_outputs = 1
+
     _separable = False
 
     def __init__(self, degree, x_domain=[-1, 1], y_domain=[-1, 1],
@@ -1267,8 +1270,9 @@ class _SIP1D(PolynomialBase):
     and SIP should be used instead.
     """
 
-    inputs = ('u', 'v')
-    outputs = ('w',)
+    n_inputs = 2
+    n_outputs = 1
+
     _separable = False
 
     def __init__(self, order, coeff_prefix, n_models=None,
@@ -1391,8 +1395,9 @@ class SIP(Model):
     .. [1] `David Shupe, et al, ADASS, ASP Conference Series, Vol. 347, 2005 <http://adsabs.harvard.edu/abs/2005ASPC..347..491S>`_
     """
 
-    inputs = ('u', 'v')
-    outputs = ('x', 'y')
+    n_inputs = 2
+    n_outputs = 2
+
     _separable = False
 
     def __init__(self, crpix, a_order, b_order, a_coeff={}, b_coeff={},
@@ -1415,6 +1420,8 @@ class SIP(Model):
                               model_set_axis=model_set_axis, **b_coeff)
         super().__init__(n_models=n_models, model_set_axis=model_set_axis,
                          name=name, meta=meta)
+        self._inputs = ("u", "v")
+        self._outputs = ("x", "y")
 
     def __repr__(self):
         return '<{}({!r})>'.format(self.__class__.__name__,
@@ -1461,8 +1468,9 @@ class InverseSIP(Model):
 
     """
 
-    inputs = ('x', 'y')
-    outputs = ('u', 'v')
+    n_inputs = 2
+    n_outputs = 2
+
     _separable = False
 
     def __init__(self, ap_order, bp_order, ap_coeff={}, bp_coeff={},

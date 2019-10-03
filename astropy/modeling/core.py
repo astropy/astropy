@@ -193,14 +193,6 @@ class _ModelMeta(abc.ABCMeta):
         return cls.__name__
 
     @property
-    def n_inputs(cls):
-        return len(cls.inputs)
-
-    @property
-    def n_outputs(cls):
-        return len(cls.outputs)
-
-    @property
     def _is_concrete(cls):
         """
         A class-level property that determines whether the class is a concrete
@@ -221,8 +213,8 @@ class _ModelMeta(abc.ABCMeta):
             >>> SkyRotation
             <class 'astropy.modeling.core.SkyRotation'>
             Name: SkyRotation (Rotation2D)
-            Inputs: ('x', 'y')
-            Outputs: ('x', 'y')
+            N_inputs: 2
+            N_outputs: 2
             Fittable parameters: ('angle',)
             >>> issubclass(SkyRotation, Rotation2D)
             True
@@ -380,8 +372,8 @@ class _ModelMeta(abc.ABCMeta):
                 wrapper.__qualname__ = '{0}.{1}'.format(
                         cls.__qualname__, wrapper.__name__)
 
-        if ('__call__' not in members and 'inputs' in members and
-                isinstance(members['inputs'], tuple)):
+        if ('__call__' not in members and 'n_inputs' in members and
+            isinstance(members['n_inputs'], int) and members['n_inputs'] > 0):
 
             # Don't create a custom __call__ for classes that already have one
             # explicitly defined (this includes the Model base class, and any
@@ -402,14 +394,16 @@ class _ModelMeta(abc.ABCMeta):
             #
             # The following code creates the __call__ function with these
             # two keyword arguments.
-            inputs = members['inputs']
-            args = ('self',) + inputs
+
+            args = ('self',)
+            kwargs = dict([('model_set_axis', None),
+                           ('with_bounding_box', False),
+                           ('fill_value', np.nan),
+                           ('equivalencies', None),
+                           ('inputs_map', None)])
+
             new_call = make_function_with_signature(
-                    __call__, args, [('model_set_axis', None),
-                                     ('with_bounding_box', False),
-                                     ('fill_value', np.nan),
-                                     ('equivalencies', None),
-                                     ('inputs_map', None)])
+                    __call__, args, kwargs, varargs='inputs', varkwargs='new_inputs')
 
             # The following makes it look like __call__
             # was defined in the class
@@ -493,8 +487,8 @@ class _ModelMeta(abc.ABCMeta):
         try:
             default_keywords = [
                 ('Name', format_inheritance(cls)),
-                ('Inputs', cls.inputs),
-                ('Outputs', cls.outputs),
+                ('N_inputs', cls.n_inputs),
+                ('N_outputs', cls.n_outputs),
             ]
 
             if cls.param_names:
@@ -658,10 +652,10 @@ class Model(metaclass=_ModelMeta):
     in the class body.
     """
 
-    inputs = ()
-    """The name(s) of the input variable(s) on which a model is evaluated."""
-    outputs = ()
-    """The name(s) of the output(s) of the model."""
+    n_inputs = 0
+    """The number of inputs."""
+    n_outputs = 0
+    """ The number of outputs."""
 
     standard_broadcasting = True
     fittable = False
@@ -704,6 +698,7 @@ class Model(metaclass=_ModelMeta):
 
     def __init__(self, *args, meta=None, name=None, **kwargs):
         super().__init__()
+        self._default_inputs_outputs()
         if meta is not None:
             self.meta = meta
         self._name = name
@@ -725,19 +720,101 @@ class Model(metaclass=_ModelMeta):
         self._initialize_slices()
         self._initialize_unit_support()
 
+        # Raise DeprecationWarning on classes with class attributes
+        # ``inputs`` and ``outputs``.
+        self._inputs_deprecation()
+
+    def _inputs_deprecation(self):
+        if hasattr(self.__class__, 'inputs') and isinstance(self.__class__.inputs, tuple):
+            warnings.warn(
+            f"""Class {self.__class__.__name__} defines class attributes ``inputs``.
+            This has been deprecated in v4.0 and support will be removed in v4.1.
+            Starting with v4.0 classes must define a class attribute ``n_inputs``.
+            Please consult the documentation for details.
+            """, AstropyDeprecationWarning)
+
+    def _default_inputs_outputs(self):
+        if self.n_inputs == 1 and self.n_outputs == 1:
+            self._inputs = ("x",)
+            self._outputs = ("y",)
+        elif self.n_inputs == 2 and self.n_outputs == 1:
+            self._inputs = ("x", "y")
+            self._outputs = ("z",)
+        else:
+            try:
+                self._inputs = tuple("x" + str(idx) for idx in range(self.n_inputs))
+                self._outputs = tuple("x" + str(idx) for idx in range(self.n_outputs))
+            except TypeError:
+                # self.n_inputs and self.n_outputs are properties
+                # This is the case when subclasses of Model do not define
+                # ``n_inputs``, ``n_outputs``, ``inputs`` or ``outputs``.
+                self._inputs = ()
+                self._outputs = ()
+
+    @property
+    def inputs(self):
+        return self._inputs
+
+    @inputs.setter
+    def inputs(self, val):
+        if len(val) != self.n_inputs:
+            raise ValueError(f"Expected {self.n_inputs} number of inputs, got {len(val)}.")
+        self._inputs = val
+        self._initialize_unit_support()
+
+    @property
+    def outputs(self):
+        return self._outputs
+
+    @outputs.setter
+    def outputs(self, val):
+        if len(val) != self.n_outputs:
+            raise ValueError(f"Expected {self.n_outputs} number of outputs, got {len(val)}.")
+        self._outputs = val
+
+    @property
+    def n_inputs(self):
+        # TODO: remove the code in the ``if`` block when support
+        # for models with ``inputs`` as class variables is removed.
+        if hasattr(self.__class__, 'n_inputs') and isinstance(self.__class__.n_inputs, property):
+            try:
+                return len(self.__class__.inputs)
+            except TypeError:
+                try:
+                    return len(self.inputs)
+                except AttributeError:
+                    return 0
+
+        return self.__class__.n_inputs
+
+    @property
+    def n_outputs(self):
+        # TODO: remove the code in the ``if`` block when support
+        # for models with ``outputs`` as class variables is removed.
+        if hasattr(self.__class__, 'n_outputs') and isinstance(self.__class__.n_outputs, property):
+            try:
+                return len(self.__class__.outputs)
+            except TypeError:
+                try:
+                    return len(self.outputs)
+                except AttributeError:
+                    return 0
+
+        return self.__class__.n_outputs
+
     def _initialize_unit_support(self):
         """
         Convert self._input_units_strict and
         self.input_units_allow_dimensionless to dictionaries
-        mapping input name to a boolena value.
+        mapping input name to a boolean value.
         """
         if isinstance(self._input_units_strict, bool):
             self._input_units_strict = {key: self._input_units_strict for
-                                        key in self.__class__.inputs}
+                                        key in self.inputs}
 
         if isinstance(self._input_units_allow_dimensionless, bool):
             self._input_units_allow_dimensionless = {key: self._input_units_allow_dimensionless
-                                                     for key in self.__class__.inputs}
+                                                     for key in self.inputs}
 
     @property
     def input_units_strict(self):
@@ -750,9 +827,9 @@ class Model(metaclass=_ModelMeta):
         """
         val = self._input_units_strict
         if isinstance(val, bool):
-            return {key: val for key in self.__class__.inputs}
+            return {key: val for key in self.inputs}
         else:
-            return val
+            return dict(zip(self.inputs, val.values()))
 
     @property
     def input_units_allow_dimensionless(self):
@@ -763,11 +840,12 @@ class Model(metaclass=_ModelMeta):
         dimensionless numbers for that input.
         Only has an effect if input_units is defined.
         """
+
         val = self._input_units_allow_dimensionless
         if isinstance(val, bool):
-            return {key: val for key in self.__class__.inputs}
+            return {key: val for key in self.inputs}
         else:
-            return val
+            return dict(zip(self.inputs, val.values()))
 
     @property
     def uses_quantity(self):
@@ -835,13 +913,69 @@ class Model(metaclass=_ModelMeta):
             else:
                 super().__setattr__(attr, value)
 
-    def __call__(self, *inputs, **kwargs):
+    def __call__(self, *args, **kwargs):
         """
         Evaluate this model using the given input(s) and the parameter values
         that were specified when the model was instantiated.
         """
+        new_args, kwargs = self._get_renamed_inputs_as_positional(*args, **kwargs)
 
-        return generic_call(self, *inputs, **kwargs)
+        return generic_call(self, *new_args, **kwargs)
+
+    def _get_renamed_inputs_as_positional(self, *args, **kwargs):
+        def _keyword2positional(kwargs):
+            # Inputs were passed as keyword (not positional) arguments.
+            # Because the signature of the ``__call__`` is defined at
+            # the class level, the name of the inputs cannot be changed at
+            # the instance level and the old names are always present in the
+            # signature of the method. In order to use the new names of the
+            # inputs, the old names are taken out of ``kwargs``, the input
+            # values are sorted in the order of self.inputs and passed as
+            # positional arguments to ``__call__``.
+
+            # These are the keys that are always present as keyword arguments.
+            keys = ['model_set_axis', 'with_bounding_box', 'fill_value',
+                    'equivalencies', 'inputs_map']
+
+            new_inputs = {}
+            # kwargs contain the names of the new inputs + ``keys``
+            allkeys = list(kwargs.keys())
+            # Remove the names of the new inputs from kwargs and save them
+            # to a dict ``new_inputs``.
+            for key in allkeys:
+                if key not in keys:
+                    new_inputs[key] = kwargs[key]
+                    del kwargs[key]
+            return new_inputs, kwargs
+        n_args = len(args)
+
+        new_inputs, kwargs = _keyword2positional(kwargs)
+        n_all_args = n_args + len(new_inputs)
+
+        if  n_all_args < self.n_inputs:
+            raise ValueError(f"Missing input arguments - expected {self.n_inputs}, got {n_all_args}")
+        elif n_all_args > self.n_inputs:
+            raise ValueError(f"Too many input arguments - expected {self.n_inputs}, got {n_all_args}")
+        if n_args == 0:
+            # Create positional arguments from the keyword arguments in ``new_inputs``.
+            new_args = []
+            for k in self.inputs:
+                new_args.append(new_inputs[k])
+        elif n_args != self.n_inputs:
+            # Some inputs are passed as positional, others as keyword arguments.
+            args = list(args)
+
+            # Create positional arguments from the keyword arguments in ``new_inputs``.
+            new_args = []
+            for k in self.inputs:
+                if k in new_inputs:
+                    new_args.append(new_inputs[k])
+                else:
+                    new_args.append(args[0])
+                    del args[0]
+        else:
+            new_args = args
+        return new_args, kwargs
 
     # *** Properties ***
     @property
@@ -855,25 +989,6 @@ class Model(metaclass=_ModelMeta):
         """Assign a (new) name to this model."""
 
         self._name = val
-
-    @property
-    def n_inputs(self):
-        """
-        The number of inputs to this model.
-
-        Equivalent to ``len(model.inputs)``.
-        """
-
-        return len(self.inputs)
-
-    @property
-    def n_outputs(self):
-        """
-        The number of outputs from this model.
-
-        Equivalent to ``len(model.outputs)``.
-        """
-        return len(self.outputs)
 
     @property
     def model_set_axis(self):
@@ -1617,12 +1732,10 @@ class Model(metaclass=_ModelMeta):
                                              "converted to required input units of "
                                              "{2} ({3})".format(name, self.inputs[i], input_unit,
                                                                 input_unit.physical_type))
-
         return inputs
 
     def _process_output_units(self, inputs, outputs):
         inputs_are_quantity = any([isinstance(i, Quantity) for i in inputs])
-
         if self.return_units and inputs_are_quantity:
             # We allow a non-iterable unit only if there is one output
             if self.n_outputs == 1 and not isiterable(self.return_units):
@@ -1632,7 +1745,6 @@ class Model(metaclass=_ModelMeta):
 
             outputs = tuple([Quantity(out, return_units.get(out_name, None), subok=True)
                             for out, out_name in zip(outputs, self.outputs)])
-
         return outputs
 
     def prepare_outputs(self, format_info, *outputs, **kwargs):
@@ -2220,9 +2332,8 @@ class Fittable1DModel(FittableModel):
     This class provides an easier interface to defining new models.
     Examples can be found in `astropy.modeling.functional_models`.
     """
-
-    inputs = ('x',)
-    outputs = ('y',)
+    n_inputs = 1
+    n_outputs = 1
     _separable = True
 
 
@@ -2234,8 +2345,8 @@ class Fittable2DModel(FittableModel):
     Examples can be found in `astropy.modeling.functional_models`.
     """
 
-    inputs = ('x', 'y')
-    outputs = ('z',)
+    n_inputs = 2
+    n_outputs = 1
 
 
 def _make_arithmetic_operator(oper):
@@ -2378,7 +2489,9 @@ class CompoundModel(Model):
             # Dict keys must match either possible indices
             # for model on left side, or names for inputs.
             self.n_inputs = left.n_inputs - len(right)
-            self.outputs = left.outputs
+            # Assign directly to the private attribute (instead of using the setter)
+            # to avoid asserting the new number of outputs matches the old one.
+            self._outputs = left.outputs
             self.n_outputs = left.n_outputs
             newinputs = list(left.inputs)
             keys = right.keys()
@@ -2485,6 +2598,9 @@ class CompoundModel(Model):
         return True
 
     def __call__(self, *args, **kw):
+        # Turn any keyword arguments into positional arguments.
+        args, kw = self._get_renamed_inputs_as_positional(*args, **kw)
+
         # If equivalencies are provided, necessary to map parameters and pass
         # the leaflist as a keyword input for use by model evaluation so that
         # the compound model input names can be matched to the model input
@@ -3671,8 +3787,8 @@ def _custom_model_wrapper(func, fit_deriv=None):
     members = OrderedDict([
         ('__module__', str(modname)),
         ('__doc__', func.__doc__),
-        ('inputs', tuple(x.name for x in inputs)),
-        ('outputs', output_names),
+        ('n_inputs', len(inputs)), #tuple(x.name for x in inputs)),
+        ('n_outputs', len(output_names)),
         ('evaluate', staticmethod(func))]
     )
 
@@ -4032,7 +4148,6 @@ def get_bounding_box(self):
 
 def generic_call(self, *inputs, **kwargs):
     inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
-
     if isinstance(self, CompoundModel):
         # CompoundModels do not normally hold parameters at that level
         parameters = ()

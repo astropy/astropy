@@ -47,31 +47,34 @@ class Mapping(FittableModel):
     linear = True  # FittableModel is non-linear by default
 
     def __init__(self, mapping, n_inputs=None, name=None, meta=None):
+
         if n_inputs is None:
-            self._inputs = tuple('x' + str(idx)
-                                 for idx in range(max(mapping) + 1))
+            self._n_inputs = max(mapping) + 1
         else:
-            self._inputs = tuple('x' + str(idx)
-                                 for idx in range(n_inputs))
-        self._outputs = tuple('x' + str(idx) for idx in range(len(mapping)))
+            self._n_inputs = n_inputs
+
+        self._n_outputs = len(mapping)
+        super().__init__(name=name, meta=meta)
+
+        if n_inputs is None:
+            self.inputs = tuple('x' + str(idx)
+                                for idx in range(max(mapping) + 1))
+            self.outputs = tuple('x' + str(idx) for idx in range(len(mapping)))
+        else:
+            self.inputs = tuple('x' + str(idx)
+                                for idx in range(n_inputs))
+            self.outputs = tuple('x' + str(idx) for idx in range(len(mapping)))
         self._mapping = mapping
         self._input_units_strict = {key: False for key in self._inputs}
         self._input_units_allow_dimensionless = {key: False for key in self._inputs}
-        super().__init__(name=name, meta=meta)
 
     @property
-    def inputs(self):
-        """
-        The name(s) of the input variable(s) on which a model is evaluated.
-        """
-
-        return self._inputs
+    def n_inputs(self):
+        return self._n_inputs
 
     @property
-    def outputs(self):
-        """The name(s) of the output(s) of the model."""
-
-        return self._outputs
+    def n_outputs(self):
+        return self._n_outputs
 
     @property
     def mapping(self):
@@ -122,6 +125,8 @@ class Mapping(FittableModel):
         inv = self.__class__(mapping)
         inv._inputs = self._outputs
         inv._outputs = self._inputs
+        inv._n_inputs = len(inv._inputs)
+        inv._n_outputs = len(inv._outputs)
         return inv
 
 

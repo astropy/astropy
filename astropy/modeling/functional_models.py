@@ -569,9 +569,6 @@ class Multiply(Fittable1DModel):
         Factor by which to multiply a coordinate.
     """
 
-    inputs = ('x',)
-    outputs = ('y',)
-
     factor = Parameter(default=1)
     linear = True
     fittable = True

@@ -85,8 +85,9 @@ def test_evaluate_with_quantities_and_equivalencies():
 
 
 class MyTestModel(Model):
-    inputs = ('a', 'b')
-    outputs = ('f',)
+
+    n_inputs = 2
+    n_outputs = 1
 
     def evaluate(self, a, b):
         print('a', a)
@@ -107,7 +108,7 @@ class TestInputUnits():
 
     def test_input_units(self):
 
-        self.model._input_units = {'a': u.deg}
+        self.model._input_units = {'x': u.deg}
 
         assert_quantity_allclose(self.model(3 * u.deg, 4), 12 * u.deg)
         assert_quantity_allclose(self.model(4 * u.rad, 2), 8 * u.rad)
@@ -115,17 +116,16 @@ class TestInputUnits():
 
         with pytest.raises(UnitsError) as exc:
             self.model(4 * u.s, 3)
-        assert exc.value.args[0] == ("MyTestModel: Units of input 'a', s (time), could not be "
+        assert exc.value.args[0] == ("MyTestModel: Units of input 'x', s (time), could not be "
                                      "converted to required input units of deg (angle)")
-
         with pytest.raises(UnitsError) as exc:
             self.model(3, 3)
-        assert exc.value.args[0] == ("MyTestModel: Units of input 'a', (dimensionless), could "
+        assert exc.value.args[0] == ("MyTestModel: Units of input 'x', (dimensionless), could "
                                      "not be converted to required input units of deg (angle)")
 
     def test_input_units_allow_dimensionless(self):
 
-        self.model._input_units = {'a': u.deg}
+        self.model._input_units = {'x': u.deg}
         self.model._input_units_allow_dimensionless = True
 
         assert_quantity_allclose(self.model(3 * u.deg, 4), 12 * u.deg)
@@ -133,14 +133,14 @@ class TestInputUnits():
 
         with pytest.raises(UnitsError) as exc:
             self.model(4 * u.s, 3)
-        assert exc.value.args[0] == ("MyTestModel: Units of input 'a', s (time), could not be "
+        assert exc.value.args[0] == ("MyTestModel: Units of input 'x', s (time), could not be "
                                      "converted to required input units of deg (angle)")
 
         assert_quantity_allclose(self.model(3, 3), 9)
 
     def test_input_units_strict(self):
 
-        self.model._input_units = {'a': u.deg}
+        self.model._input_units = {'x': u.deg}
         self.model._input_units_strict = True
 
         assert_quantity_allclose(self.model(3 * u.deg, 4), 12 * u.deg)
@@ -151,23 +151,23 @@ class TestInputUnits():
 
     def test_input_units_equivalencies(self):
 
-        self.model._input_units = {'a': u.micron}
+        self.model._input_units = {'x': u.micron}
 
         with pytest.raises(UnitsError) as exc:
             self.model(3 * u.PHz, 3)
-        assert exc.value.args[0] == ("MyTestModel: Units of input 'a', PHz (frequency), could "
+        assert exc.value.args[0] == ("MyTestModel: Units of input 'x', PHz (frequency), could "
                                      "not be converted to required input units of "
                                      "micron (length)")
 
-        self.model.input_units_equivalencies = {'a': u.spectral()}
+        self.model.input_units_equivalencies = {'x': u.spectral()}
 
         assert_quantity_allclose(self.model(3 * u.PHz, 3),
                                 3 * (3 * u.PHz).to(u.micron, equivalencies=u.spectral()))
 
     def test_return_units(self):
 
-        self.model._input_units = {'a': u.deg}
-        self.model._return_units = {'f': u.rad}
+        self.model._input_units = {'z': u.deg}
+        self.model._return_units = {'z': u.rad}
 
         result = self.model(3 * u.deg, 4)
 
@@ -179,7 +179,7 @@ class TestInputUnits():
         # Check that return_units also works when giving a single unit since
         # there is only one output, so is unambiguous.
 
-        self.model._input_units = {'a': u.deg}
+        self.model._input_units = {'x': u.deg}
         self.model._return_units = u.rad
 
         result = self.model(3 * u.deg, 4)
@@ -436,18 +436,21 @@ def test_compound_return_units():
 
     class PassModel(Model):
 
-        inputs = ('x', 'y')
-        outputs = ('x', 'y')
+        n_inputs = 2
+        n_outputs = 2
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
 
         @property
         def input_units(self):
             """ Input units. """
-            return {'x': u.deg, 'y': u.deg}
+            return {'x0': u.deg, 'x1': u.deg}
 
         @property
         def return_units(self):
             """ Output units. """
-            return {'x': u.deg, 'y': u.deg}
+            return {'x0': u.deg, 'x1': u.deg}
 
         def evaluate(self, x, y):
             return x.value, y.value

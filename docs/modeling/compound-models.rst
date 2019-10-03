@@ -131,8 +131,8 @@ few terms where there have been points of confusion:
       >>> Gaussian1D
       <class 'astropy.modeling.functional_models.Gaussian1D'>
       Name: Gaussian1D
-      Inputs: ('x',)
-      Outputs: ('y',)
+      N_inputs: 1
+      N_outputs: 1
       Fittable parameters: ('amplitude', 'mean', 'stddev')
 
   We can then create a model *instance* by passing in values for the three
