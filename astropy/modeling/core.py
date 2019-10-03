@@ -725,11 +725,11 @@ class Model(metaclass=_ModelMeta):
         self._inputs_deprecation()
 
     def _inputs_deprecation(self):
-        if hasattr(self.__class__, 'n_inputs') and isinstance(self.__class__.n_inputs, property):
+        if hasattr(self.__class__, 'inputs') and isinstance(self.__class__.inputs, tuple):
             warnings.warn(
             f"""Class {self.__class__.__name__} defines class attributes ``inputs``.
             This has been deprecated in v4.0 and support will be removed in v4.1.
-            Starting with v4.0 classes must defnie a class attribute ``n_inputs``.
+            Starting with v4.0 classes must define a class attribute ``n_inputs``.
             Please consult the documentation for details.
             """, AstropyDeprecationWarning)
 
