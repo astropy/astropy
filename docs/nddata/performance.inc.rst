@@ -15,6 +15,6 @@ Performance Tips
   propagation and then converted from variance back to the original
   uncertainty type. The performance difference should be small.
 + When possible, mask values by setting them to ``np.nan`` and use the
-  Numpy functions and methods that automatically exclude ``np.nan``,
-  like ``np.nanmedian`` and ``np.nanstd``. That will typically be much
+  ``numpy`` functions and methods that automatically exclude ``np.nan``,
+  like ``np.nanmedian`` and ``np.nanstd``. This will typically be much
   faster than using `numpy.ma.MaskedArray`.
