@@ -374,13 +374,7 @@ class _ModelMeta(abc.ABCMeta):
 
         if ('__call__' not in members and 'n_inputs' in members and
             isinstance(members['n_inputs'], int) and members['n_inputs'] > 0):
-            n_inputs = members['n_inputs']
-            if n_inputs == 1:
-                inputs = ('x',)
-            elif n_inputs == 2:
-                inputs = ('x', 'y')
-            else:
-                inputs = tuple(['x' + str(i) for i in range(members['n_inputs'])])
+
             # Don't create a custom __call__ for classes that already have one
             # explicitly defined (this includes the Model base class, and any
             # other classes that manually override __call__
@@ -657,7 +651,7 @@ class Model(metaclass=_ModelMeta):
     automatically set by the `~astropy.modeling.Parameter` attributes defined
     in the class body.
     """
-    inputs = ()
+
     n_inputs = 0
     """The number of inputs."""
     n_outputs = 0
@@ -705,7 +699,6 @@ class Model(metaclass=_ModelMeta):
     def __init__(self, *args, meta=None, name=None, **kwargs):
         super().__init__()
         self._default_inputs_outputs()
-
         if meta is not None:
             self.meta = meta
         self._name = name
@@ -727,6 +720,19 @@ class Model(metaclass=_ModelMeta):
         self._initialize_slices()
         self._initialize_unit_support()
 
+        # Raise DeprecationWarning on classes with class attributes
+        # ``inputs`` and ``outputs``.
+        self._inputs_deprecation()
+
+    def _inputs_deprecation(self):
+        if hasattr(self.__class__, 'n_inputs') and isinstance(self.__class__.n_inputs, property):
+            warnings.warn(
+            f"""Class {self.__class__.__name__} defines class attributes ``inputs``.
+            This has been deprecated in v4.0 and support will be removed in v4.1.
+            Starting with v4.0 classes must defnie a class attribute ``n_inputs``.
+            Please consult the documentaiton for details.
+            """, AstropyDeprecationWarning)
+
     def _default_inputs_outputs(self):
         if self.n_inputs == 1 and self.n_outputs == 1:
             self._inputs = ("x",)
@@ -735,8 +741,15 @@ class Model(metaclass=_ModelMeta):
             self._inputs = ("x", "y")
             self._outputs = ("z",)
         else:
-            self._inputs = tuple("x" + str(idx) for idx in range(self.n_inputs))
-            self._outputs = tuple("x" + str(idx) for idx in range(self.n_outputs))
+            try:
+                self._inputs = tuple("x" + str(idx) for idx in range(self.n_inputs))
+                self._outputs = tuple("x" + str(idx) for idx in range(self.n_outputs))
+            except TypeError:
+                # self.n_inputs and self.n_outputs are properties
+                # This is the case when subclasses of Model do not define
+                # ``n_inputs``, ``n_outputs``, ``inputs`` or ``outputs``.
+                self._inputs = ()
+                self._outputs = ()
 
     @property
     def inputs(self):
@@ -758,6 +771,37 @@ class Model(metaclass=_ModelMeta):
         if len(val) != self.n_outputs:
             raise ValueError(f"Expected {self.n_outputs} number of outputs, got {len(val)}.")
         self._outputs = val
+
+    @property
+    def n_inputs(self):
+        # TODO: remove the code in the ``if`` block when support
+        # for models with ``inputs`` as class variables is removed.
+        if hasattr(self.__class__, 'n_inputs') and isinstance(self.__class__.n_inputs, property):
+            try:
+                return len(self.__class__.inputs)
+            except TypeError:
+                try:
+                    return len(self.inputs)
+                except AttributeError:
+                    return 0
+
+        return self.__class__.n_inputs
+
+    @property
+    def n_outputs(self):
+        # TODO: remove the code in the ``if`` block when support
+        # for models with ``outputs`` as class variables is removed.
+        if hasattr(self.__class__, 'n_outputs') and isinstance(self.__class__.n_outputs, property):
+            try:
+                return len(self.__class__.outputs)
+            except TypeError:
+                try:
+                    return len(self.outputs)
+                except AttributeError:
+                    return 0
+
+        return self.__class__.n_outputs
+
 
     def _initialize_unit_support(self):
         """
@@ -908,6 +952,7 @@ class Model(metaclass=_ModelMeta):
 
         new_inputs, kwargs = _keyword2positional(kwargs)
         n_all_args = n_args + len(new_inputs)
+
         if  n_all_args < self.n_inputs:
             raise ValueError(f"Missing input arguments - expected {self.n_inputs}, got {n_all_args}")
         elif n_all_args > self.n_inputs:
@@ -3915,7 +3960,6 @@ def _prepare_inputs_single_model(model, params, inputs, **kwargs):
 def _prepare_outputs_single_model(model, outputs, format_info):
     broadcasts = format_info[0]
     outputs = list(outputs)
-    print('broadcasts, info', broadcasts, outputs)
     for idx, output in enumerate(outputs):
         broadcast_shape = broadcasts[idx]
         if broadcast_shape is not None:
