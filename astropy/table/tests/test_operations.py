@@ -1598,3 +1598,23 @@ def test_stack_columns():
 
     with pytest.raises(ValueError):
         t = table.vstack([q, cq])
+
+
+def test_mixin_join_regression():
+    # This used to trigger a ValueError:
+    # ValueError: NumPy boolean array indexing assignment cannot assign
+    # 6 input values to the 4 output values where the mask is true
+
+    t1 = QTable()
+    t1['index'] = [1, 2, 3, 4, 5]
+    t1['flux1'] = [2, 3, 2, 1, 1] * u.Jy
+    t1['flux2'] = [2, 3, 2, 1, 1] * u.Jy
+
+    t2 = QTable()
+    t2['index'] = [3, 4, 5, 6]
+    t2['flux1'] = [2, 1, 1, 3] * u.Jy
+    t2['flux2'] = [2, 1, 1, 3] * u.Jy
+
+    t12 = table.join(t1, t2, keys=('index', 'flux1', 'flux2'), join_type='outer')
+
+    assert len(t12) == 6
