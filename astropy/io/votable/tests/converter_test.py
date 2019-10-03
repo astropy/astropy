@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import io
 
 # THIRD-PARTY
@@ -40,9 +39,8 @@ def test_oversize_char():
 
 def test_char_mask():
     config = {'verify': 'exception'}
-    field = tree.Field(
-        None, name='c', datatype='char',
-        config=config)
+    field = tree.Field(None, name='c', arraysize='1', datatype='char',
+                       config=config)
     c = converters.get_converter(field, config=config)
     assert c.output("Foo", True) == ''
 
@@ -61,9 +59,8 @@ def test_oversize_unicode():
 
 def test_unicode_mask():
     config = {'verify': 'exception'}
-    field = tree.Field(
-        None, name='c', datatype='unicodeChar',
-        config=config)
+    field = tree.Field(None, name='c', arraysize='1', datatype='unicodeChar',
+                       config=config)
     c = converters.get_converter(field, config=config)
     assert c.output("Foo", True) == ''
 
@@ -94,8 +91,11 @@ def test_float_mask_permissive():
     field = tree.Field(
         None, name='c', datatype='float',
         config=config)
+
+    # config needs to be also passed into parse() to work.
+    # https://github.com/astropy/astropy/issues/8775
     c = converters.get_converter(field, config=config)
-    assert c.parse('null') == (c.null, True)
+    assert c.parse('null', config=config) == (c.null, True)
 
 
 @raises(exceptions.E02)
@@ -147,7 +147,7 @@ def test_complex():
         None, name='c', datatype='doubleComplex',
         config=config)
     c = converters.get_converter(field, config=config)
-    x = c.parse("1 2 3")
+    c.parse("1 2 3")
 
 
 @raises(exceptions.E04)
@@ -157,7 +157,7 @@ def test_bit():
         None, name='c', datatype='bit',
         config=config)
     c = converters.get_converter(field, config=config)
-    x = c.parse("T")
+    c.parse("T")
 
 
 def test_bit_mask():
@@ -197,7 +197,7 @@ def test_invalid_type():
     field = tree.Field(
         None, name='c', datatype='foobar',
         config=config)
-    c = converters.get_converter(field, config=config)
+    converters.get_converter(field, config=config)
 
 
 def test_precision():

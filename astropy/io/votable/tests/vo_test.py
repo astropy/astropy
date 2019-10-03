@@ -23,7 +23,7 @@ from numpy.testing import assert_array_equal
 # LOCAL
 from astropy.io.votable.table import parse, parse_single_table, validate
 from astropy.io.votable import tree
-from astropy.io.votable.exceptions import VOTableSpecError, VOWarning
+from astropy.io.votable.exceptions import VOTableSpecError, VOWarning, W39
 from astropy.io.votable.xmlutil import validate_schema
 from astropy.utils.data import get_pkg_data_filename, get_pkg_data_filenames
 from astropy.tests.helper import raises, catch_warnings
@@ -173,22 +173,29 @@ def _test_regression(tmpdir, _python_based=False, binary_mode=1):
 
 @pytest.mark.xfail('legacy_float_repr')
 def test_regression(tmpdir):
-    _test_regression(tmpdir, False)
+    # W39: Bit values can not be masked
+    with pytest.warns(W39):
+        _test_regression(tmpdir, False)
 
 
 @pytest.mark.xfail('legacy_float_repr')
 def test_regression_python_based_parser(tmpdir):
-    _test_regression(tmpdir, True)
+    # W39: Bit values can not be masked
+    with pytest.warns(W39):
+        _test_regression(tmpdir, True)
 
 
 @pytest.mark.xfail('legacy_float_repr')
 def test_regression_binary2(tmpdir):
-    _test_regression(tmpdir, False, 2)
+    # W39: Bit values can not be masked
+    with pytest.warns(W39):
+        _test_regression(tmpdir, False, 2)
 
 
 class TestFixups:
     def setup_class(self):
-        self.table = parse(get_pkg_data_filename('data/regression.xml')).get_first_table()
+        self.table = parse(
+            get_pkg_data_filename('data/regression.xml')).get_first_table()
         self.array = self.table.array
         self.mask = self.table.array.mask
 
@@ -239,7 +246,7 @@ class TestReferences:
 def test_select_columns_by_index():
     columns = [0, 5, 13]
     table = parse(
-        get_pkg_data_filename('data/regression.xml'), columns=columns).get_first_table()
+        get_pkg_data_filename('data/regression.xml'), columns=columns).get_first_table()  # noqa
     array = table.array
     mask = table.array.mask
     assert array['string_test'][0] == b"String & test"
@@ -252,7 +259,7 @@ def test_select_columns_by_index():
 def test_select_columns_by_name():
     columns = ['string_test', 'unsignedByte', 'bitarray']
     table = parse(
-        get_pkg_data_filename('data/regression.xml'), columns=columns).get_first_table()
+        get_pkg_data_filename('data/regression.xml'), columns=columns).get_first_table()  # noqa
     array = table.array
     mask = table.array.mask
     assert array['string_test'][0] == b"String & test"
@@ -596,7 +603,9 @@ class TestThroughTableData(TestParse):
         votable = parse(get_pkg_data_filename('data/regression.xml'))
 
         self.xmlout = bio = io.BytesIO()
-        votable.to_xml(bio)
+        # W39: Bit values can not be masked
+        with pytest.warns(W39):
+            votable.to_xml(bio)
         bio.seek(0)
         self.votable = parse(bio)
         self.table = self.votable.get_first_table()
@@ -628,7 +637,9 @@ class TestThroughBinary(TestParse):
         votable.get_first_table().format = 'binary'
 
         self.xmlout = bio = io.BytesIO()
-        votable.to_xml(bio)
+        # W39: Bit values can not be masked
+        with pytest.warns(W39):
+            votable.to_xml(bio)
         bio.seek(0)
         self.votable = parse(bio)
 
@@ -657,7 +668,9 @@ class TestThroughBinary2(TestParse):
         votable.get_first_table().format = 'binary2'
 
         self.xmlout = bio = io.BytesIO()
-        votable.to_xml(bio)
+        # W39: Bit values can not be masked
+        with pytest.warns(W39):
+            votable.to_xml(bio)
         bio.seek(0)
         self.votable = parse(bio)
 
@@ -729,8 +742,10 @@ def test_build_from_scratch(tmpdir):
 
     # Define some fields
     table.fields.extend([
-        tree.Field(votable, ID="filename", datatype="char"),
-        tree.Field(votable, ID="matrix", datatype="double", arraysize="2x2")])
+        tree.Field(votable, ID="filename", name='filename', datatype="char",
+                   arraysize='1'),
+        tree.Field(votable, ID="matrix", name='matrix', datatype="double",
+                   arraysize="2x2")])
 
     # Now, use those field definitions to create the numpy record arrays, with
     # the given number of rows
@@ -815,11 +830,10 @@ def test_validate_path_object():
 def test_gzip_filehandles(tmpdir):
     votable = parse(get_pkg_data_filename('data/regression.xml'))
 
-    with open(str(tmpdir.join("regression.compressed.xml")), 'wb') as fd:
-        votable.to_xml(
-            fd,
-            compressed=True,
-            _astropy_version="testing")
+    # W39: Bit values can not be masked
+    with pytest.warns(W39):
+        with open(str(tmpdir.join("regression.compressed.xml")), 'wb') as fd:
+            votable.to_xml(fd, compressed=True, _astropy_version="testing")
 
     with open(str(tmpdir.join("regression.compressed.xml")), 'rb') as fd:
         votable = parse(fd)

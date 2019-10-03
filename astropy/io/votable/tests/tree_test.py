@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# LOCAL
+
 from astropy.io.votable import exceptions
 from astropy.io.votable import tree
 from astropy.tests.helper import raises
@@ -8,7 +8,7 @@ from astropy.tests.helper import raises
 @raises(exceptions.W07)
 def test_check_astroyear_fail():
     config = {'verify': 'exception'}
-    field = tree.Field(None, name='astroyear')
+    field = tree.Field(None, name='astroyear', arraysize='1')
     tree.check_astroyear('X2100', field, config)
 
 
@@ -28,4 +28,5 @@ def test_make_Fields():
     table = tree.Table(votable)
     resource.tables.append(table)
 
-    table.fields.extend([tree.Field(votable, name='Test', datatype="float", unit="mag")])
+    table.fields.extend([tree.Field(
+        votable, name='Test', datatype="float", unit="mag")])
