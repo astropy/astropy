@@ -857,6 +857,7 @@ def test_format_input_arrays_transposed():
 @pytest.mark.parametrize('model',
                          [models.Gaussian2D(), models.Polynomial2D(1,),
                           models.Pix2Sky_TAN(), models.Tabular2D(lookup_table=np.ones((4,5)))])
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_call_keyword_args_2(model):
     """
     Test calling a model with positional, keywrd and a mixture of both arguments.
@@ -884,6 +885,7 @@ def test_call_keyword_args_2(model):
                          [models.Gaussian1D(), models.Polynomial1D(1,),
                           models.Tabular1D(lookup_table=np.ones((5,))),
                           models.Rotation2D(), models.Pix2Sky_TAN()])
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_call_keyword_args_1(model):
     """
     Test calling a model with positional, keywrd and a mixture of both arguments.
