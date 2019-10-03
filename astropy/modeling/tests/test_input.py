@@ -626,8 +626,9 @@ class TestSingleInputSingleOutputTwoModel:
 
 
 class TModel_1_2(FittableModel):
-    inputs = ('x',)
-    outputs = ('y', 'z')
+
+    n_inputs =1
+    n_outputs = 2
 
     p1 = Parameter()
     p2 = Parameter()
@@ -824,7 +825,8 @@ class TInputFormatter(Model):
     """
     A toy model to test input/output formatting.
     """
-
+    n_inputs = 2
+    n_outputs = 2
     inputs = ('x', 'y')
     outputs = ('x', 'y')
 
@@ -850,3 +852,109 @@ def test_format_input_arrays_transposed():
     input = np.array([[1, 1]]).T, np.array([[2, 2]]).T
     result = model(*input)
     assert_allclose(result, input)
+
+
+@pytest.mark.parametrize('model',
+                         [models.Gaussian2D(), models.Polynomial2D(1,),
+                          models.Pix2Sky_TAN(), models.Tabular2D(lookup_table=np.ones((4,5)))])
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_call_keyword_args_2(model):
+    """
+    Test calling a model with positional, keywrd and a mixture of both arguments.
+    """
+    positional = model(1, 2)
+    assert_allclose(positional, model(x=1, y=2))
+    assert_allclose(positional, model(1, y=2))
+
+    model.inputs = ('r', 't')
+    assert_allclose(positional, model(r=1, t=2))
+    assert_allclose(positional, model(1, t=2))
+    assert_allclose(positional, model(1, 2))
+
+    with pytest.raises(ValueError):
+        model(1, 2, 3)
+
+    with pytest.raises(ValueError):
+        model(1)
+
+    with pytest.raises(ValueError):
+        model(1, 2, t=12, r=3)
+
+
+@pytest.mark.parametrize('model',
+                         [models.Gaussian1D(), models.Polynomial1D(1,),
+                          models.Tabular1D(lookup_table=np.ones((5,))),
+                          models.Rotation2D(), models.Pix2Sky_TAN()])
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_call_keyword_args_1(model):
+    """
+    Test calling a model with positional, keywrd and a mixture of both arguments.
+    """
+    positional = model(1)
+    assert_allclose(positional, model(x=1))
+
+    model.inputs = ('r',)
+    assert_allclose(positional, model(r=1))
+
+    with pytest.raises(ValueError):
+        model(1, 2, 3)
+
+    with pytest.raises(ValueError):
+        model()
+
+    with pytest.raises(ValueError):
+        model(1, 2, t=12, r=3)
+
+
+@pytest.mark.parametrize('model',
+                         [models.Gaussian2D() | models.Polynomial1D(1,),
+                          models.Gaussian1D() & models.Polynomial1D(1,),
+                          models.Gaussian2D() + models.Polynomial2D(1,),
+                          models.Gaussian2D() - models.Polynomial2D(1,),
+                          models.Gaussian2D() * models.Polynomial2D(1,),
+                          models.Identity(2) | models.Polynomial2D(1),
+                          models.Mapping((1,)) | models.Polynomial1D(1)])
+def test_call_keyword_args_1(model):
+    """
+    Test calling a model with positional, keywrd and a mixture of both arguments.
+    """
+    positional = model(1, 2)
+    model.inputs = ('r', 't')
+    assert_allclose(positional, model(r=1, t = 2))
+
+    assert_allclose(positional, model(1, t=2))
+
+    with pytest.raises(ValueError):
+        model(1, 2, 3)
+
+    with pytest.raises(ValueError):
+        model()
+
+    with pytest.raises(ValueError):
+        model(1, 2, t=12, r=3)
+
+
+@pytest.mark.parametrize('model',
+                         [models.Identity(2), models.Mapping((0, 1)),
+                          models.Mapping((1,))])
+def test_call_keyword_mappings(model):
+    """
+    Test calling a model with positional, keywrd and a mixture of both arguments.
+    """
+    positional = model(1, 2)
+    assert_allclose(positional, model(x0=1, x1=2))
+    assert_allclose(positional, model(1, x1=2))
+
+    model.inputs = ('r', 't')
+    assert_allclose(positional, model(r=1, t=2))
+    assert_allclose(positional, model(1, t=2))
+    assert_allclose(positional, model(1, 2))
+
+    with pytest.raises(ValueError):
+        model(1, 2, 3)
+
+    with pytest.raises(ValueError):
+        model(1)
+
+    with pytest.raises(ValueError):
+        model(1, 2, t=12, r=3)

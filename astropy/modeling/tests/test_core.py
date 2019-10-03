@@ -65,8 +65,8 @@ def test_inputless_model():
     """
 
     class TestModel(Model):
-        inputs = ()
-        outputs = ('y',)
+
+        n_outputs = 1
         a = Parameter()
 
         @staticmethod
@@ -113,9 +113,9 @@ def test_custom_model_signature():
     sig = signature(model_a.__init__)
     assert list(sig.parameters.keys()) == ['self', 'args', 'meta', 'name', 'kwargs']
     sig = signature(model_a.__call__)
-    assert list(sig.parameters.keys()) == ['self', 'x', 'model_set_axis',
+    assert list(sig.parameters.keys()) == ['self', 'inputs', 'model_set_axis',
                                            'with_bounding_box', 'fill_value',
-                                           'equivalencies', 'inputs_map']
+                                           'equivalencies', 'inputs_map', 'new_inputs']
 
     @custom_model
     def model_b(x, a=1, b=2):
@@ -127,9 +127,9 @@ def test_custom_model_signature():
     assert list(sig.parameters.keys()) == ['self', 'a', 'b', 'kwargs']
     assert [x.default for x in sig.parameters.values()] == [sig.empty, 1, 2, sig.empty]
     sig = signature(model_b.__call__)
-    assert list(sig.parameters.keys()) == ['self', 'x', 'model_set_axis',
+    assert list(sig.parameters.keys()) == ['self', 'inputs', 'model_set_axis',
                                            'with_bounding_box', 'fill_value',
-                                           'equivalencies', 'inputs_map']
+                                           'equivalencies', 'inputs_map', 'new_inputs']
 
     @custom_model
     def model_c(x, y, a=1, b=2):
@@ -141,9 +141,9 @@ def test_custom_model_signature():
     assert list(sig.parameters.keys()) == ['self', 'a', 'b', 'kwargs']
     assert [x.default for x in sig.parameters.values()] == [sig.empty, 1, 2, sig.empty]
     sig = signature(model_c.__call__)
-    assert list(sig.parameters.keys()) == ['self', 'x', 'y', 'model_set_axis',
+    assert list(sig.parameters.keys()) == ['self', 'inputs', 'model_set_axis',
                                            'with_bounding_box', 'fill_value',
-                                           'equivalencies', 'inputs_map']
+                                           'equivalencies', 'inputs_map', 'new_inputs']
 
 
 def test_custom_model_subclass():
@@ -167,9 +167,9 @@ def test_custom_model_subclass():
     sig = signature(model_b.__init__)
     assert list(sig.parameters.keys()) == ['self', 'a', 'kwargs']
     sig = signature(model_b.__call__)
-    assert list(sig.parameters.keys()) == ['self', 'x', 'model_set_axis',
+    assert list(sig.parameters.keys()) == ['self', 'inputs', 'model_set_axis',
                                            'with_bounding_box', 'fill_value',
-                                           'equivalencies', 'inputs_map']
+                                           'equivalencies', 'inputs_map', 'new_inputs']
 
 
 def test_custom_model_parametrized_decorator():
@@ -419,13 +419,13 @@ print(repr(Gaussian1D.rename('CustomGaussian')))
 MODEL_RENAME_EXPECTED = b"""
 <class 'astropy.modeling.functional_models.Gaussian1D'>
 Name: Gaussian1D
-Inputs: ('x',)
-Outputs: ('y',)
+N_inputs: 1
+N_outputs: 1
 Fittable parameters: ('amplitude', 'mean', 'stddev')
 <class '__main__.CustomGaussian'>
 Name: CustomGaussian (Gaussian1D)
-Inputs: ('x',)
-Outputs: ('y',)
+N_inputs: 1
+N_outputs: 1
 Fittable parameters: ('amplitude', 'mean', 'stddev')
 """.strip()
 
@@ -456,32 +456,24 @@ def test_rename_path(tmpdir):
                          [models.Gaussian1D, models.Polynomial1D,
                           models.Shift, models.Tabular1D])
 def test_rename_1d(model_class):
-    new_model = model_class.rename(name='Test1D', inputs=('r',), outputs=('q',))
+    new_model = model_class.rename(name='Test1D')
     assert new_model.name == 'Test1D'
-    assert new_model.inputs == ('r',)
-    assert new_model.outputs == ('q',)
 
 
 @pytest.mark.parametrize('model_class',
                          [models.Gaussian2D, models.Polynomial2D, models.Tabular2D])
 def test_rename_2d(model_class):
-    new_model = model_class.rename(name='Test2D', inputs=('r', 't'), outputs=('q',))
+    new_model = model_class.rename(name='Test2D')
     assert new_model.name == 'Test2D'
-    assert new_model.inputs == ('r', 't')
-    assert new_model.outputs == ('q',)
-
-    new_model = model_class.rename(inputs=('r', 't'), outputs=('q',))
-    assert new_model.name == model_class.name
-    assert new_model.inputs == ('r', 't')
-    assert new_model.outputs == ('q',)
 
 
-def test_rename_invalid():
-    with pytest.raises(TypeError):
-        models.Gaussian1D.rename(inputs=('w'))
-    with pytest.raises(TypeError):
-        models.Gaussian1D.rename(outputs=('w'))
+def test_rename_inputs_outputs():
+    g2 = models.Gaussian2D(10, 2, 3, 1, 2)
+    assert g2.inputs == ("x", "y")
+    assert g2.outputs == ("z",)
+
     with pytest.raises(ValueError):
-        models.Gaussian2D.rename(inputs=('w',))
+        g2.inputs = ("w", )
+
     with pytest.raises(ValueError):
-        models.Gaussian2D.rename(outputs=('w', 'e'))
+        g2.outputs = ("w", "e")

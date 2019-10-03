@@ -84,7 +84,6 @@ class _Tabular(Model):
     fittable = False
 
     standard_broadcasting = False
-    outputs = ('y',)
 
     @property
     @abc.abstractmethod
@@ -102,7 +101,7 @@ class _Tabular(Model):
         if n_models > 1:
             raise NotImplementedError('Only n_models=1 is supported.')
         super().__init__(**kwargs)
-
+        self.outputs = ("y",)
         if lookup_table is None:
             raise ValueError('Must provide a lookup table.')
 
@@ -149,8 +148,8 @@ class _Tabular(Model):
         default_keywords = [
             ('Model', self.__class__.__name__),
             ('Name', self.name),
-            ('Inputs', self.inputs),
-            ('Outputs', self.outputs),
+            ('N_inputs', self.n_inputs),
+            ('N_outputs', self.n_outputs),
             ('Parameters', ""),
             ('  points', self.points),
             ('  lookup_table', self.lookup_table),
@@ -283,8 +282,8 @@ def tabular_model(dim, name=None):
     >>> print(tab)
     <class 'abc.Tabular2D'>
     Name: Tabular2D
-    Inputs: (u'x0', u'x1')
-    Outputs: (u'y',)
+    N_inputs: 2
+    N_outputs: 1
 
     >>> points = ([1, 2, 3], [1, 2, 3])
 
@@ -301,8 +300,7 @@ def tabular_model(dim, name=None):
         raise ValueError('Lookup table must have at least one dimension.')
 
     table = np.zeros([2] * dim)
-    inputs = tuple(f'x{idx}' for idx in range(table.ndim))
-    members = {'lookup_table': table, 'inputs': inputs}
+    members = {'lookup_table': table, 'n_inputs': dim, 'n_outputs': 1}
 
     if dim == 1:
         members['_separable'] = True

@@ -273,6 +273,11 @@ def test_sip_hst():
     astwcs_result = wobj.sip_pix2foc([coords], 1)[0] - rel_coords
     assert_allclose(sip(1, 1), astwcs_result)
 
+    # Test changing of inputs and calling it with keyword argumenrts.
+    sip.inputs = ("r", "t")
+    assert_allclose(sip(r=1, t=1), astwcs_result)
+    assert_allclose(sip(1, t=1), astwcs_result)
+
 
 def test_sip_irac():
     """Test forward and inverse SIP againts astropy.wcs"""
