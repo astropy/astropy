@@ -7,6 +7,7 @@ from collections import OrderedDict
 from collections.abc import Mapping
 import warnings
 from copy import deepcopy
+import types
 
 import numpy as np
 from numpy import ma
@@ -456,6 +457,9 @@ class Table:
         if rows is not None:
             if data is not None:
                 raise ValueError('Cannot supply both `data` and `rows` values')
+            if isinstance(rows, types.GeneratorType):
+                # Without this then the all(..) test below uses up the generator
+                rows = list(rows)
             if all(isinstance(row, dict) for row in rows):
                 is_list_of_dict = True  # Avoid doing the all(...) test twice.
                 data = rows
