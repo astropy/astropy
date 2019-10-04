@@ -84,11 +84,11 @@ packages that use the full bugfix/maintenance branch approach.)
 
       $ git checkout v1.2.x
 
-#. Make sure that the continuous integration services (e.g., Travis) are passing
+#. Make sure that the continuous integration services (e.g., Travis or CircleCI) are passing
    for the `astropy core repository`_ branch you are going to release. You may
    also want to locally run the tests (with remote data on to ensure all of the
-   tests actually run), and make sure the description in ``setup.cfg`` is reStructuredText-
-  compliant::
+   tests actually run), and make sure the description in ``setup.cfg`` is
+   reStructuredText-compliant::
 
       $ python setup.py test --remote-data=any
       $ TEST_READ_HUGE_FILE=1 pytest -sv astropy/io/ascii/tests/test_c_reader.py -k big_table
@@ -96,8 +96,11 @@ packages that use the full bugfix/maintenance branch approach.)
 
 #. Edit the ``CHANGES.rst`` file by changing the date for the version you are
    about to release from "unreleased" to today's date.  Also be sure to remove
-   any sections of the changelog for that version that have no entries.  Then
-   add and commit those changes with::
+   any sections of the changelog for that version that have no entries.
+   For releases that come after release candidates (:ref:`release-procedure-beta-rc`),
+   the title of the changelog section should be replaced too, thus getting rid
+   of any mention of the release candidate.
+   Then add and commit those changes with::
 
       <use your favorite editor on CHANGES.rst>
       $ git add CHANGES.rst
@@ -205,6 +208,11 @@ packages that use the full bugfix/maintenance branch approach.)
       $ twine check dist/*
       $ twine upload dist/astropy-<version>*
 
+.. _post-release-procedure:
+
+Post-Release procedures
+-----------------------
+
 #. Go back to release branch (e.g., ``1.2.x``) and edit the ``version`` in
    ``setup.cfg`` to be the next version number, but with
    a ``.dev`` suffix at the end (e.g., ``1.2.3.dev``).  Then add and commit::
@@ -233,11 +241,6 @@ packages that use the full bugfix/maintenance branch approach.)
       whatever remote name you use for the `astropy core repository`_.
       Also, it might be tempting to use the ``--tags`` argument to ``git push``,
       but this should *not* be done, as it might push up some unintended tags.
-
-.. _post-release-procedure:
-
-Post-Release procedures
------------------------
 
 #. If this is a release of the current release (i.e., not an LTS supported along
    side a more recent version), update the "stable" branch to point to the new
@@ -343,10 +346,6 @@ title "vX.Y RC testing" (replace "X.Y" with the release number) using the
 `wiki of a previous RC <https://github.com/astropy/astropy/wiki/v3.2-RC-testing>`_
 as a template.
 
-For releases that come after release candidates, the title of the changelog
-section should be replaced, thus getting rid of any mention of the release
-candidate.
-
 .. _release-procedure-new-major:
 
 Performing a Feature Freeze/Branching new Major Versions
@@ -419,9 +418,6 @@ The procedure for this is straightforward:
 #. On the github issue tracker, add a new milestone for the next major version.
 
 #. Repeat the above steps for the astropy-helpers, using the same version series.
-
-#. Run the tests twice in a row without cleaning anything up in between.
-
 
 .. _release-procedure-bug-fix:
 
