@@ -48,7 +48,7 @@ Getting Started
 Reading Tables
 --------------
 
-The majority of commonly encountered ASCII tables can be easily read with the
+The majority of commonly encountered ASCII tables can be read with the
 |read| function. Assume you have a file named ``sources.dat`` with the
 following contents::
 
@@ -84,11 +84,11 @@ tables, you may need to give `astropy.io.ascii` additional hints about
 the format.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Reading ASCII Tables Using `astropy.io.ascii`
+  Reading ASCII Tables Using astropy.io.ascii
 
 For unusually formatted tables, give additional hints about the format::
 
@@ -141,7 +141,7 @@ The |write| function provides a way to write a data table as a formatted ASCII
 table.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
@@ -226,10 +226,10 @@ ASCII with no loss of information.
    indicate a masked (missing) value. See the :ref:`replace_bad_or_missing_values`
    section for more information.
 
-.. _supported_formats:
-
 ..
   EXAMPLE END
+
+.. _supported_formats:
 
 Supported Formats
 =================
