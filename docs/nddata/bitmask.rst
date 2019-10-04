@@ -59,11 +59,11 @@ operation.) In the previous formula, ``bit_mask`` is a bit mask created from
 individual bit flags that need to be ignored in the bit field.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Boolean Mask Computation in `astropy.nddata`
+  Creating Boolean Masks from Bit Field Arrays
 
 .. _table1:
 
@@ -105,11 +105,11 @@ in `Table 1 <table1_>`_. In this case ``ignore_flags`` can be set either to:
     - A string of ``+``-separated *bit flag values*: ``'16+64'``
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Specifying Bit Flags in `astropy.nddata`
+  Specifying Bit Flags in NDData
 
 To specify bit flags:
 
@@ -145,9 +145,19 @@ Inverting Bit Masks
 
 Sometimes it is more convenient to be able to specify those bit
 flags that *must be considered* when creating the boolean mask, and all other
-flags should be ignored. In `~astropy.nddata.bitmask.bitfield_to_boolean_mask`
-this can be accomplished by setting the parameter ``flip_bits`` to `True`.
-This effectively modifies `equation (1) <main_eq_>`_ to:
+flags should be ignored.
+
+Example
+-------
+
+..
+  EXAMPLE START
+  Inverting Bit Masks in NDData
+
+In `~astropy.nddata.bitmask.bitfield_to_boolean_mask` specifying bit flags that
+must be considered when creating the boolean mask can be accomplished by
+setting the parameter ``flip_bits`` to `True`. This effectively modifies
+`equation (1) <main_eq_>`_ to:
 
 .. _modif_eq2:
 
@@ -173,6 +183,9 @@ bit flag values, you can prepend a single ``~`` to the list:
     >>> bitmask.bitfield_to_boolean_mask([9, 10, 73, 217], ignore_flags='~2+4+16+32+128')
     array([False,  True, False,  True]...)
 
+..
+  EXAMPLE END
+
 Inverting Boolean Masks
 -----------------------
 
@@ -187,11 +200,11 @@ This can be accomplished by changing the ``good_mask_value`` parameter from
 its default value (`False`) to `True`.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Inverting Boolean Masks Using `astropy.nddata`
+  Inverting Boolean Masks in NDData
 
 To obtain an inverted mask in which flagged data are converted to `False`
 instead of `True`:
