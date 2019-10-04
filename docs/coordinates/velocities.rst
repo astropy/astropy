@@ -185,7 +185,7 @@ the Cartesian representation::
      (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
         (0.34662023, 0.41161335, 4.29356031)>
 
-A same mechanism can also be used to add velocities even if full 3D coordinates
+A similar mechanism can also be used to add velocities even if full 3D coordinates
 are not available - e.g. for a radial velocity observation of an object where
 the distance is unknown. However, it requires a slightly different way of
 specifying the differentials because of the lack of explicit unit information::
