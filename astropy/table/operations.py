@@ -817,7 +817,7 @@ def _join(left, right, keys=None, join_type='inner',
                 # use a slower workaround.
                 non_right_mask = ~right_mask
                 if np.any(right_mask):
-                    out[out_name] = left[left_name].take(left_out)
+                    out[out_name][:] = left[left_name].take(left_out)
                 if np.any(non_right_mask):
                     out[out_name][non_right_mask] = right[right_name].take(right_out)[non_right_mask]
             continue
