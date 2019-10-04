@@ -1,26 +1,10 @@
 /*
 ** Copyright (C) 2016-2017, NumFOCUS Foundation.
 **
-** Licensed under a 3-clause BSD style license - see LICENSE
+** Licensed under a 3-clause BSD style license - see LICENSE 
 **
 ** This file is NOT derived from SOFA sources
 */
-
-
-/* Define to the version of this package. */
-#define PACKAGE_VERSION "1.4.0"
-
-/* Define to the major version of this package. */
-#define PACKAGE_VERSION_MAJOR 1
-
-/* Define to the micro version of this package. */
-#define PACKAGE_VERSION_MICRO 0
-
-/* Define to the minor version of this package. */
-#define PACKAGE_VERSION_MINOR 4
-
-/* Define to the version of SOFA */
-#define SOFA_VERSION "20170420"
 
 
 #ifdef HAVE_CONFIG_H
@@ -28,26 +12,27 @@
 #endif /* HAVE_CONFIG_H */
 
 
-const char* eraVersion(void) {
+const char* eraVersion() {
   return PACKAGE_VERSION;
 }
 
 
-int eraVersionMajor(void) {
+int eraVersionMajor() {
   return PACKAGE_VERSION_MAJOR;
 }
 
 
-int eraVersionMinor(void) {
+int eraVersionMinor() {
   return PACKAGE_VERSION_MINOR;
 }
 
 
-int eraVersionMicro(void) {
+int eraVersionMicro() {
   return PACKAGE_VERSION_MICRO;
 }
 
 
-const char* eraSofaVersion(void) {
+const char* eraSofaVersion() {
   return SOFA_VERSION;
 }
+

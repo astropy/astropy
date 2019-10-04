@@ -53,9 +53,9 @@ void eraH2fk5(double rh, double dh,
 **
 **  Reference:
 **
-**     F.Mignard & M.Froeschle, Astron. Astrophys. 354, 732-739 (2000).
+**     F.Mignard & M.Froeschle, Astron.Astrophys., 354, 732-739 (2000).
 **
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -96,7 +96,7 @@ void eraH2fk5(double rh, double dh,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

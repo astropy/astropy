@@ -55,7 +55,7 @@ int eraJdcalf(int ndp, double dj1, double dj2, int iymdf[4])
 **     P. Kenneth Seidelmann (ed), University Science Books (1992),
 **     Section 12.92 (p604).
 **
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -73,7 +73,7 @@ int eraJdcalf(int ndp, double dj1, double dj2, int iymdf[4])
    }
 
 /* Copy the date, big then small, and realign to midnight. */
-   if (dj1 >= dj2) {
+   if (fabs(dj1) >= fabs(dj2)) {
       d1 = dj1;
       d2 = dj2;
    } else {
@@ -109,7 +109,7 @@ int eraJdcalf(int ndp, double dj1, double dj2, int iymdf[4])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International
