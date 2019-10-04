@@ -6,7 +6,7 @@ from collections.abc import Mapping
 import pytest
 import numpy as np
 
-from astropy.table import Column, TableColumns
+from astropy.table import Column, TableColumns, Table
 
 
 class TestTableColumnsInit():
@@ -518,3 +518,10 @@ def test_init_from_row_OrderedDict(table_type):
 
     with pytest.raises(ValueError):
         table_type(rows=[OrderedDict([('b', 1)]), {'a': 10, 'b': 20}])
+
+
+def test_init_from_rows_as_generator():
+    rows = [(1 + ii, 2 + ii) for ii in range(2)]
+    t = Table(rows=rows)
+    assert np.all(t['col0'] == [1, 2])
+    assert np.all(t['col1'] == [2, 3])
