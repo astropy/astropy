@@ -26,15 +26,12 @@ the delimiter character, like whether the delimiter appears on either end
 Details are available in the class API documentation, but the easiest way to
 understand all of the options and their interactions is by example.
 
-Examples
-========
+Reading
+=======
 
 ..
   EXAMPLE START
-  Formatting Options for Fixed-Width Tables
-
-Reading
-=======
+  Reading Fixed-Width Tables
 
 FixedWidth
 ----------
@@ -286,7 +283,14 @@ FixedWidthTwoLine
       1.2   "hello"
       2.4 's worlds
 
-**Restructured text table:**
+..
+  EXAMPLE END
+
+..
+  EXAMPLE START
+  Reading a reStructuredText Table
+
+**reStructuredText table:**
 ::
 
   >>> table = """
@@ -305,6 +309,9 @@ FixedWidthTwoLine
   ------- ---------
       1.2   "hello"
       2.4 's worlds
+
+..
+  EXAMPLE END
 
 **Text table designed for humans and test having position line before the header line:**
 ::
@@ -328,6 +335,10 @@ FixedWidthTwoLine
 
 Writing
 =======
+
+..
+  EXAMPLE START
+  Writing Fixed-Width Tables
 
 FixedWidth
 ----------
