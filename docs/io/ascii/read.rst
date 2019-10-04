@@ -22,25 +22,12 @@ allowed format until one succeeds. For large files, it is recommended to
 disable guessing with ``guess=False``.
 
 If guessing does not work, as in the case for unusually formatted tables, then
-you may need to give `astropy.io.ascii` additional hints about the format.
-
-Example
-=======
-
-..
-  EXAMPLE START
-  Reading Unusually Formatted ASCII Tables Using `astropy.io.ascii`
-
-If guessing the table format does not work, give additional hints about the
-format::
+you may need to give `astropy.io.ascii` additional hints about the format::
 
    >>> data = astropy.io.ascii.read('data/nls1_stackinfo.dbout', data_start=2, delimiter='|')  # doctest: +SKIP
    >>> data = astropy.io.ascii.read('data/simple.txt', quotechar="'")  # doctest: +SKIP
    >>> data = astropy.io.ascii.read('data/simple4.txt', format='no_header', delimiter='|')  # doctest: +SKIP
    >>> data = astropy.io.ascii.read('data/tab_and_space.txt', delimiter=r'\s')  # doctest: +SKIP
-
-..
-  EXAMPLE END
 
 The |read| function accepts a number of parameters that specify the detailed
 table format. Different formats can define different defaults, so the
@@ -177,7 +164,7 @@ comment character, typically ``#``) are stripped out *before* the header and
 data parsing code sees the table content.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
@@ -232,7 +219,7 @@ ASCII data tables can contain bad or missing values. A common case is when a
 table contains blank entries with no available data.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
@@ -421,7 +408,7 @@ Any comment lines detected during reading are inserted into the output table
 via the ``comments`` key in the table's ``.meta`` dictionary.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
@@ -518,14 +505,14 @@ best reference is to read the code for the existing
 :ref:`extension_reader_classes`.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Advanced Customization to Extend Base Functionality of 'astropy.io.ascii'
+  Advanced Customization to Extend Base Functionality of astropy.io.ascii
 
 For special cases, these examples demonstrate how to extend the base
-functionality of 'astropy.io.ascii'.
+functionality of `astropy.io.ascii`.
 
 **Define custom readers by class inheritance**
 
@@ -679,11 +666,11 @@ In addition, if you provide a ``chunk_generator`` key which is set to
 returns an iterator that provides a table for each chunk of the input.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Reading Large Tables in Chunks with 'astropy.io.ascii'
+  Reading Large Tables in Chunks with astropy.io.ascii
 
 To read an entire table while limiting peak memory usage:
 ::
