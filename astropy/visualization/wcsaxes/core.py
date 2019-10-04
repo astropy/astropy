@@ -10,6 +10,7 @@ from matplotlib.artist import Artist
 from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
 
+import astropy.units as u
 from astropy.coordinates import SkyCoord, BaseCoordinateFrame
 from astropy.wcs import WCS
 
@@ -289,12 +290,16 @@ class WCSAxes(Axes):
             if isinstance(frame0, SkyCoord):
                 frame0 = frame0.frame
 
+            native_frame = self._transform_pixel2world.frame_out
+            # Transform to the native frame of the plot
+            frame0 = frame0.transform_to(native_frame)
+
             plot_data = []
             for coord in self.coords:
                 if coord.coord_type == 'longitude':
-                    plot_data.append(frame0.data.lon.to_value(coord.coord_unit))
+                    plot_data.append(frame0.spherical.lon.to_value(u.deg))
                 elif coord.coord_type == 'latitude':
-                    plot_data.append(frame0.data.lat.to_value(coord.coord_unit))
+                    plot_data.append(frame0.spherical.lat.to_value(u.deg))
                 else:
                     raise NotImplementedError("Coordinates cannot be plotted with this "
                                               "method because the WCS does not represent longitude/latitude.")
@@ -303,12 +308,12 @@ class WCSAxes(Axes):
                 raise TypeError("The 'transform' keyword argument is not allowed,"
                                 " as it is automatically determined by the input coordinate frame.")
 
-            transform = self.get_transform(frame0)
+            transform = self.get_transform(native_frame)
             kwargs.update({'transform': transform})
 
             args = tuple(plot_data) + args[1:]
 
-        super().plot(*args, **kwargs)
+        return super().plot(*args, **kwargs)
 
     def reset_wcs(self, wcs=None, slices=None, transform=None, coord_meta=None):
         """
