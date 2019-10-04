@@ -1,21 +1,19 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import warnings
-
 import numpy as np
 
 from astropy import units as u
 from astropy.utils.decorators import format_doc
-from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.coordinates.angles import Angle
 from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
 from astropy.coordinates import representation as r
-from astropy.coordinates.baseframe import (BaseCoordinateFrame, frame_transform_graph,
-                         RepresentationMapping, base_doc)
-from astropy.coordinates.attributes import (Attribute, CoordinateAttribute,
-                          QuantityAttribute,
-                          DifferentialAttribute)
+from astropy.coordinates.baseframe import (BaseCoordinateFrame,
+                                           frame_transform_graph,
+                                           base_doc)
+from astropy.coordinates.attributes import (CoordinateAttribute,
+                                            QuantityAttribute,
+                                            DifferentialAttribute)
 from astropy.coordinates.transformations import AffineTransform
 from astropy.coordinates.errors import ConvertError
 
@@ -174,34 +172,6 @@ class Galactocentric(BaseCoordinateFrame):
 
     z_sun = QuantityAttribute(default=27.*u.pc)
     roll = QuantityAttribute(default=0.*u.deg)
-
-    def __init__(self, *args, **kwargs):
-
-        # backwards-compatibility
-        if ('galcen_ra' in kwargs or 'galcen_dec' in kwargs):
-            warnings.warn("The arguments 'galcen_ra', and 'galcen_dec' are "
-                          "deprecated in favor of specifying the sky coordinate"
-                          " as a CoordinateAttribute using the 'galcen_coord' "
-                          "argument", AstropyDeprecationWarning)
-
-            galcen_kw = dict()
-            galcen_kw['ra'] = kwargs.pop('galcen_ra', self.galcen_coord.ra)
-            galcen_kw['dec'] = kwargs.pop('galcen_dec', self.galcen_coord.dec)
-            kwargs['galcen_coord'] = ICRS(**galcen_kw)
-
-        super().__init__(*args, **kwargs)
-
-    @property
-    def galcen_ra(self):
-        warnings.warn("The attribute 'galcen_ra' is deprecated. Use "
-                      "'.galcen_coord.ra' instead.", AstropyDeprecationWarning)
-        return self.galcen_coord.ra
-
-    @property
-    def galcen_dec(self):
-        warnings.warn("The attribute 'galcen_dec' is deprecated. Use "
-                      "'.galcen_coord.dec' instead.", AstropyDeprecationWarning)
-        return self.galcen_coord.dec
 
     @classmethod
     def get_roll0(cls):
