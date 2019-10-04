@@ -24,7 +24,6 @@ from contextlib import contextmanager
 from collections import defaultdict, OrderedDict
 
 import numpy as np
-from numpy.lib.stride_tricks import as_strided
 
 from astropy.utils.decorators import deprecated
 
@@ -1173,13 +1172,14 @@ def unbroadcast(array):
     if array.ndim == 0:
         return array
 
-    new_shape = np.where(np.array(array.strides) == 0, 1, array.shape)
+    array = array[tuple((slice(0, 1) if stride == 0 else slice(None))
+                        for stride in array.strides)]
 
     # Remove leading ones, which are not needed in numpy broadcasting.
-    first_not_unity = next((i for (i, s) in enumerate(new_shape) if s > 1),
-                           len(new_shape))
+    first_not_unity = next((i for (i, s) in enumerate(array.shape) if s > 1),
+                           array.ndim)
 
-    return as_strided(array, shape=new_shape).reshape(new_shape[first_not_unity:])
+    return array.reshape(array.shape[first_not_unity:])
 
 
 def pizza():  # pragma: no cover
