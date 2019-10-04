@@ -126,7 +126,7 @@ def _is_inside(path, parent_path):
 @contextlib.contextmanager
 def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
                          show_progress=True, remote_timeout=None,
-                         sources=None, update_cache=False):
+                         sources=None):
     """Yield a readable, seekable file-like object from a file or URL.
 
     This supports passing filenames, URLs, and readable file-like objects,
@@ -164,8 +164,10 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         file-like object's ``read`` method will return `str` (``unicode``)
         objects, decoded from binary using the given encoding.
 
-    cache : bool, optional
-        Whether to cache the contents of remote URLs.
+    cache : bool or "update", optional
+        Whether to cache the contents of remote URLs. If "update",
+        check the remote URL for a new version but store the result
+        in the cache.
 
     show_progress : bool, optional
         Whether to display a progress bar if the file is downloaded
@@ -181,11 +183,6 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         will *not* be tried unless it is in this list; this is to prevent
         long waits for a primary server that is known to be inaccessible
         at the moment.
-
-    update_cache : bool, optional
-        If true, attempt to download the file anew; if this is successful
-        replace the current version. If not, raise a URLError but leave
-        the existing cached value intact.
 
     Returns
     -------
@@ -216,8 +213,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         if is_url:
             name_or_obj = download_file(
                 name_or_obj, cache=cache, show_progress=show_progress,
-                timeout=remote_timeout, sources=sources,
-                update_cache=update_cache)
+                timeout=remote_timeout, sources=sources)
         fileobj = io.FileIO(name_or_obj, 'r')
         if is_url and not cache:
             delete_fds.append(fileobj)
@@ -1021,7 +1017,7 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
 
 
 def download_file(remote_url, cache=False, show_progress=True, timeout=None,
-                  sources=None, update_cache=False, pkgname='astropy'):
+                  sources=None, pkgname='astropy'):
     """Downloads a URL and optionally caches the result.
 
     It returns the filename of a file containing the URL's contents.
@@ -1034,8 +1030,10 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
     remote_url : str
         The URL of the file to download
 
-    cache : bool, optional
-        Whether to use the cache
+    cache : bool or "update", optional
+        Whether to cache the contents of remote URLs. If "update",
+        check the remote URL for a new version but store the result
+        in the cache.
 
     show_progress : bool, optional
         Whether to display a progress bar during the download (default
@@ -1052,11 +1050,6 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
         will *not* be tried unless it is in this list; this is to prevent
         long waits for a primary server that is known to be inaccessible
         at the moment.
-
-    update_cache : bool, optional
-        If true, attempt to download the file anew; if this is successful
-        replace the current version. If not, raise a URLError but leave
-        the existing cached value intact.
 
     pkgname : `str`, optional
         The package name to use to locate the download cache. i.e. for
@@ -1087,8 +1080,6 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
         raise ValueError(
             "No sources listed! Please include primary URL if you want it "
             "to be included as a valid source.")
-    if update_cache and not cache:
-        raise ValueError("update_cache only makes sense when using the cache!")
 
     missing_cache = False
 
@@ -1098,16 +1089,9 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
         with _cache(pkgname) as (dldir, url2hash):
             if dldir is None:
                 cache = False
-                update_cache = False
                 missing_cache = True  # emit a warning later
-            elif update_cache:
-                # just check the cache works but we want a new value
-                pass
-            else:
-                try:
-                    return url2hash[url_key]
-                except KeyError:
-                    pass
+            elif cache != "update" and url_key in url2hash:
+                return url2hash[url_key]
 
     errors = {}
     for source_url in sources:
@@ -1190,7 +1174,8 @@ def is_url_in_cache(url_key, pkgname='astropy'):
 def cache_total_size(pkgname='astropy'):
     """Return the total size in bytes of all files in the cache."""
     with _cache(pkgname) as (dldir, url2hash):
-        return sum(os.path.getsize(os.path.join(dldir, h)) for h in url2hash.values())
+        return sum(os.path.getsize(os.path.join(dldir, h))
+                   for h in url2hash.values())
 
 
 def _do_download_files_in_parallel(kwargs):
@@ -1200,11 +1185,10 @@ def _do_download_files_in_parallel(kwargs):
 
 
 def download_files_in_parallel(urls,
-                               cache=True,
+                               cache="update",
                                show_progress=True,
                                timeout=None,
                                sources=None,
-                               update_cache=False,
                                multiprocessing_start_method=None,
                                pkgname='astropy'):
     """Download multiple files in parallel from the given URLs.
@@ -1217,14 +1201,21 @@ def download_files_in_parallel(urls,
     urls : list of str
         The URLs to retrieve.
 
-    cache : bool, optional
-        Whether to use the cache (default is `True`). If you want to check
-        for new versions on the internet, use the update_cache option.
+    cache : bool or "update", optional
+        Whether to use the cache (default is `True`). If "update",
+        check the remote URLs to see if new data is available but then
+        store the result in cache.
+
+        .. versionchanged:: 4.0
+            The default was changed to ``"update"`` and setting it to
+            ``False`` will print a Warning and set it to ``"update"`` again,
+            because the function will not work properly without cache. Using
+            ``True`` will work as expected.
 
         .. versionchanged:: 3.0
-            The default was changed to ``True`` and setting it to ``False`` will
-            print a Warning and set it to ``True`` again, because the function
-            will not work properly without cache.
+            The default was changed to ``True`` and setting it to ``False``
+            will print a Warning and set it to ``True`` again, because the
+            function will not work properly without cache.
 
     show_progress : bool, optional
         Whether to display a progress bar during the download (default
@@ -1241,11 +1232,6 @@ def download_files_in_parallel(urls,
         tried unless it is in this list; this is to prevent long waits
         for a primary server that is known to be inaccessible at the
         moment.
-
-    update_cache : bool, optional
-        If true, attempt to download the file anew; if this is successful
-        replace the current version. If not, raise a URLError but leave
-        the existing cached value intact.
 
     multiprocessing_start_method : str, optional
         Useful primarily for testing; if in doubt leave it as the default.
@@ -1283,11 +1269,11 @@ def download_files_in_parallel(urls,
         # cache was set to True because multiprocessing cannot insert the items
         # in the list of to-be-removed files. This could be fixed, but really,
         # just use the cache, with update_cache if appropriate.
-        warn("Disabling the cache does not work because of multiprocessing, it "
-             "will be set to ``True``. You may need to manually remove the "
-             "cached files with clear_download_cache() afterwards.", AstropyWarning)
-        cache = True
-        update_cache = True
+        warn("Disabling the cache does not work because of multiprocessing, "
+             "it will be set to ``True``. You may need to manually remove the "
+             "cached files with clear_download_cache() afterwards.",
+             AstropyWarning)
+        cache = "update"
 
     if show_progress:
         progress = sys.stdout
@@ -1303,7 +1289,6 @@ def download_files_in_parallel(urls,
               show_progress=False,
               timeout=timeout,
               sources=sources.get(u, None),
-              update_cache=update_cache,
               pkgname=pkgname,
               temp_cache=astropy.config.paths.set_temp_cache._temp_path,
               temp_config=astropy.config.paths.set_temp_config._temp_path)
@@ -1554,8 +1539,7 @@ def _cache(pkgname, write=False):
     read the file. Since download_file returns a filename, there is not much we
     can do about this.  get_readable_fileobj doesn't quite avoid the problem,
     though it almost immediately opens the filename, preserving the contents
-    from deletion. download_file itself also calls clear_download_cache when
-    it is un update_cache mode, so this can break things as well.
+    from deletion.
     """
     try:
         dldir, urlmapfn = _get_download_cache_locs(pkgname)

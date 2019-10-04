@@ -304,12 +304,11 @@ def test_update_url(tmpdir, temp_cache):
             f.write("new")
         assert get_file_contents(download_file(f_url, cache=True)) == "old"
         assert get_file_contents(download_file(f_url,
-                                               cache=True,
-                                               update_cache=True)) == "new"
+                                               cache="update")) == "new"
     assert not os.path.exists(f_name)
     assert get_file_contents(download_file(f_url, cache=True)) == "new"
     with pytest.raises(urllib.error.URLError):
-        download_file(f_url, cache=True, update_cache=True)
+        download_file(f_url, cache="update")
     assert get_file_contents(download_file(f_url, cache=True)) == "new"
 
 
@@ -488,13 +487,13 @@ def test_download_parallel_update(temp_cache, tmpdir):
         td2.append((fn, u, c, c_plus))
 
     r2 = download_files_in_parallel([u for (fn, u, c) in td],
-                                    update_cache=False)
+                                    cache=True)
     assert len(r2) == len(td)
     for r_2, (fn, u, c, c_plus) in zip(r2, td2):
         assert get_file_contents(r_2) == c
         assert c != c_plus
     r3 = download_files_in_parallel([u for (fn, u, c) in td],
-                                    update_cache=True)
+                                    cache="update")
 
     assert len(r3) == len(td)
     for r_3, (fn, u, c, c_plus) in zip(r3, td2):
@@ -997,8 +996,6 @@ def test_get_free_space_file_directory(tmpdir):
 def test_download_file_bogus_settings(invalid_urls, temp_cache):
     u = next(invalid_urls)
     with pytest.raises(ValueError):
-        download_file(u, cache=False, update_cache=True)
-    with pytest.raises(ValueError):
         download_file(u, sources=[])
 
 
@@ -1070,7 +1067,7 @@ def test_check_download_cache_finds_bogus_hashes(temp_cache, valid_urls):
 def test_download_cache_update_doesnt_damage_cache(temp_cache, valid_urls):
     u, _ = next(valid_urls)
     download_file(u, cache=True)
-    download_file(u, cache=True, update_cache=True)
+    download_file(u, cache="update")
 
 
 def test_cache_dir_is_actually_a_file(tmpdir, valid_urls):
