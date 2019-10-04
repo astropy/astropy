@@ -117,6 +117,7 @@ def wcs_info_str(wcs):
     # Make sure we get rid of the extra whitespace at the end of some lines
     return '\n'.join([l.rstrip() for l in s.splitlines()])
 
+
 def unique_with_order_preserved(items):
     """
     Return a list of unique items in the list provided, preserving the order
