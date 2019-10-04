@@ -522,7 +522,7 @@ def test_init_from_row_OrderedDict(table_type):
 
 
 def test_init_from_rows_as_generator():
-    rows = [(1 + ii, 2 + ii) for ii in range(2)]
+    rows = ((1 + ii, 2 + ii) for ii in range(2))
     t = Table(rows=rows)
     assert np.all(t['col0'] == [1, 2])
     assert np.all(t['col1'] == [2, 3])
