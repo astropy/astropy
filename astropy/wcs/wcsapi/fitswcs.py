@@ -30,6 +30,10 @@ CTYPE_TO_UCD1 = {
     'TLAT': 'pos.bodyrc.lat',
     'HPLT': 'custom:pos.helioprojective.lat',
     'HPLN': 'custom:pos.helioprojective.lon',
+    'HGLN': 'custom:pos.heliographic.stonyhurst.lon',
+    'HGLT': 'custom:pos.heliographic.stonyhurst.lat',
+    'CRLN': 'custom:pos.heliographic.carrington.lon',
+    'CRLT': 'custom:pos.heliographic.carrington.lat',
 
     # Spectral coordinates (WCS paper 3)
     'FREQ': 'em.freq',  # Frequency
