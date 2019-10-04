@@ -86,7 +86,7 @@ class Mapping(FittableModel):
         if self.name is None:
             return f'<Mapping({self.mapping})>'
         else:
-            return f'<Mapping({self.mapping}, name={self.name})>'
+            return f'<Mapping({self.mapping}, name={self.name!r})>'
 
     def evaluate(self, *args):
         if len(args) != self.n_inputs:
@@ -171,7 +171,7 @@ class Identity(Mapping):
         if self.name is None:
             return f'<Identity({self.n_inputs})>'
         else:
-            return f'<Identity({self.n_inputs}, name={self.name})>'
+            return f'<Identity({self.n_inputs}, name={self.name!r})>'
 
     @property
     def inverse(self):
