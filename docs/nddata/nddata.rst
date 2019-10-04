@@ -71,7 +71,7 @@ During initialization it is possible to provide data that is not a
 `numpy.ndarray` but convertible to one.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
@@ -156,7 +156,7 @@ expected to follow the `numpy.ma.MaskedArray` convention in that the mask:
 + Returns ``False`` for those points that are **valid**.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
@@ -225,11 +225,11 @@ given in standard deviation. Other examples are
 `~astropy.nddata.VarianceUncertainty` and `~astropy.nddata.InverseVariance`.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Setting Uncertainties with NDData
+  Setting Uncertainties During Initialization in NDData
 
 Like the other properties the ``uncertainty`` can be set during
 initialization::
@@ -276,7 +276,7 @@ The ``meta`` property contains all further meta information that does not fit
 any other property.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
@@ -329,7 +329,7 @@ the parameters as references to the original rather than as copy. Sometimes
 this is not possible because the internal mechanics do not allow for this.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
