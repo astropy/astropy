@@ -25,11 +25,11 @@ or explicitly setting any of the :ref:`fast_conversion_opts`, |read|
 will not fall back on an ordinary reader if fast reading fails.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Read and Write a CSV File Using 'astropy.io.ascii`
+  Read and Write a CSV File Using Fast ASCII
 
 To open a CSV file and write it back out::
 
@@ -95,11 +95,11 @@ be a ``dict`` specifying any of three additional parameters, ``parallel``,
 ``use_fast_converter`` and ``exponent_style``.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Parallel and Fast Conversion Options for io.ascii
+  Parallel and Fast Conversion Options for Faster Table Reading
 
 To specify additional parameters using ``fast_reader``::
 
@@ -176,7 +176,7 @@ sample file including a mixture of floating-point, integer, and text data.
 Also note that stripping string values slows down the writing process, so
 specifying ``strip_whitespace=False`` can improve performance.
 
-Speed gains
+Speed Gains
 ===========
 
 The fast ASCII engine was designed based on the general parsing strategy
