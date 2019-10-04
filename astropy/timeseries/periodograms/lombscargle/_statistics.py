@@ -10,6 +10,8 @@ from functools import wraps
 
 import numpy as np
 
+from astropy import units as u
+
 
 def _weighted_sum(val, dy):
     if dy is not None:
@@ -22,7 +24,7 @@ def _weighted_mean(val, dy):
     if dy is None:
         return val.mean()
     else:
-        return _weighted_sum(val, dy) / _weighted_sum(np.ones_like(val), dy)
+        return _weighted_sum(val, dy) / _weighted_sum(np.ones(val.shape), dy)
 
 
 def _weighted_var(val, dy):
@@ -337,25 +339,30 @@ def inv_fap_baluev(p, fmax, t, y, dy, normalization='standard'):
     return res.x
 
 
-def _bootstrap_max(t, y, dy, fmax, normalization, random_seed):
+def _bootstrap_max(t, y, dy, fmax, normalization, random_seed, n_bootstrap=1000):
     """Generate a sequence of bootstrap estimates of the max"""
     from .core import LombScargle
     rng = np.random.RandomState(random_seed)
-    while True:
+    power_max = []
+    for _ in range(n_bootstrap):
         s = rng.randint(0, len(y), len(y))  # sample with replacement
         ls_boot = LombScargle(t, y[s], dy if dy is None else dy[s],
                               normalization=normalization)
         freq, power = ls_boot.autopower(maximum_frequency=fmax)
-        yield power.max()
+        power_max.append(power.max())
+
+    power_max = u.Quantity(power_max)
+    power_max.sort()
+
+    return power_max
 
 
 def fap_bootstrap(Z, fmax, t, y, dy, normalization='standard',
                   n_bootstraps=1000, random_seed=None):
     """Bootstrap estimate of the false alarm probability"""
-    pmax = np.fromiter(_bootstrap_max(t, y, dy, fmax,
-                                      normalization, random_seed),
-                       float, n_bootstraps)
-    pmax.sort()
+    pmax = _bootstrap_max(t, y, dy, fmax, normalization, random_seed,
+                          n_bootstraps)
+
     return 1 - np.searchsorted(pmax, Z) / len(pmax)
 
 
@@ -363,10 +370,9 @@ def inv_fap_bootstrap(fap, fmax, t, y, dy, normalization='standard',
                       n_bootstraps=1000, random_seed=None):
     """Bootstrap estimate of the inverse false alarm probability"""
     fap = np.asarray(fap)
-    pmax = np.fromiter(_bootstrap_max(t, y, dy, fmax,
-                                      normalization, random_seed),
-                       float, n_bootstraps)
-    pmax.sort()
+    pmax = _bootstrap_max(t, y, dy, fmax, normalization, random_seed,
+                          n_bootstraps)
+
     return pmax[np.clip(np.floor((1 - fap) * len(pmax)).astype(int),
                         0, len(pmax) - 1)]
 

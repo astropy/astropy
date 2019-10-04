@@ -398,6 +398,9 @@ astropy.time
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
+- Fixed handling of ``Quantity`` input data for all methods of
+  ``LombScarge.false_alarm_probabilty``. [#9246]
+
 astropy.uncertainty
 ^^^^^^^^^^^^^^^^^^^
 
