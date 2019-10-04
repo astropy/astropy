@@ -212,4 +212,4 @@ to locations you know do work.
 
 If you have a particular URL that is giving you trouble, you can download it
 using some other tool (for example ``wget``), possibly on another machine, and
-then use `import_to_cache`.
+then use `~astropy.utils.data.import_to_cache`.
