@@ -41,6 +41,12 @@ typedef struct {
    double pv[2][3];   /* barycentric PV of the body (au, au/day) */
 } eraLDBODY;
 
+/* Leap second definition */
+typedef struct {
+   int iyear, month;
+   double delat;
+} eraLEAPSECOND;
+
 /* Pi */
 #define ERFA_DPI (3.141592653589793238462643)
 

@@ -355,6 +355,7 @@ int eraGd2gce(double a, double f,
 /* Astronomy/Timescales */
 int eraD2dtf(const char *scale, int ndp, double d1, double d2,
              int *iy, int *im, int *id, int ihmsf[4]);
+void eraUpdateLeapSeconds(eraLEAPSECOND *leapseconds, int count);
 int eraDat(int iy, int im, int id, double fd, double *deltat);
 double eraDtdb(double date1, double date2,
                double ut, double elong, double u, double v);
