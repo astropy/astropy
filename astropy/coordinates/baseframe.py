@@ -134,6 +134,7 @@ def _normalize_representation_type(kwargs):
     old-style argument ``representation``, add it back in to the kwargs dict
     as ``representation_type``.
     """
+    # TODO: remove this in a future LTS release, along with properties below
     if 'representation' in kwargs:
         if 'representation_type' in kwargs:
             raise ValueError("Both `representation` and `representation_type` "
@@ -771,7 +772,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     def differential_type(self, value):
         self.set_representation_cls(s=value)
 
-    # TODO: remove these in a future version
+    # TODO: remove this property in a future LTS release
     @property
     def representation(self):
         _representation_deprecation()
