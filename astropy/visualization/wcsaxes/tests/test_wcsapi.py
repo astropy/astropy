@@ -84,15 +84,6 @@ def test_3d():
     np.testing.assert_allclose(world[:, 1], world_2[:, 1])
 
 
-CTYPE_CASES = [(' LON-TAN', ('longitude', None, None)),
-               (' LAT-TAN', ('latitude', None, None)),
-               ('HPLN-TAN', ('longitude', u.arcsec, 180.)),
-               ('HPLT-TAN', ('latitude', u.arcsec, None)),
-               ('RA---TAN', ('longitude', u.hourangle, None)),
-               ('DEC--TAN', ('latitude', None, None)),
-               ('spam', ('scalar', None, None))]
-
-
 def test_coord_type_from_ctype():
 
     wcs = WCS(naxis=2)
@@ -120,6 +111,32 @@ def test_coord_type_from_ctype():
     assert coord_meta['type'] == ['longitude', 'latitude']
     assert coord_meta['format_unit'] == [u.arcsec, u.arcsec]
     assert coord_meta['wrap'] == [180., None]
+
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ['HGLN-TAN', 'HGLT-TAN']
+    wcs.wcs.crpix = [256.0] * 2
+    wcs.wcs.cdelt = [-0.05] * 2
+    wcs.wcs.crval = [50.0] * 2
+    wcs.wcs.set()
+
+    _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame)
+
+    assert coord_meta['type'] == ['longitude', 'latitude']
+    assert coord_meta['format_unit'] == [u.arcsec, u.arcsec]
+    assert coord_meta['wrap'] == [180., None]
+
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ['CRLN-TAN', 'CRLT-TAN']
+    wcs.wcs.crpix = [256.0] * 2
+    wcs.wcs.cdelt = [-0.05] * 2
+    wcs.wcs.crval = [50.0] * 2
+    wcs.wcs.set()
+
+    _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame)
+
+    assert coord_meta['type'] == ['longitude', 'latitude']
+    assert coord_meta['format_unit'] == [u.arcsec, u.arcsec]
+    assert coord_meta['wrap'] == [360., None]
 
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']

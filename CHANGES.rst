@@ -175,6 +175,8 @@ astropy.visualization
 
 - Improved error checking for the ``slices=`` argument to ``WCSAxes``. [#9098]
 
+- Added support for more solar frames in WCSAxes. [#9275]
+
 astropy.wcs
 ^^^^^^^^^^^
 
