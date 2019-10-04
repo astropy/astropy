@@ -216,6 +216,4 @@ def test_discretize_oversample():
     assert values.shape == (35, 10)
     assert_allclose(vmax, 0.927, atol=1e-3)
     assert vmax_yx == (25, 5)
-    assert np.allclose(values_center, values_osf1)
-    
-    
+    assert_allclose(values_center, values_osf1)
