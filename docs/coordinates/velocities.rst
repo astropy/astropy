@@ -167,10 +167,10 @@ Adding Velocities to Existing Frame Objects
 
 Another use case similar to the above comes up when you have an existing frame
 object (or |skycoord|) and want an object with the same position but with
-velocities added.  The most conceptually straightforward way to do this is to
+velocities added. The most conceptually direct way to do this is to
 use the differential objects along with
 `~astropy.coordinates.BaseCoordinateFrame.realize_frame`. The following snippet
-accomplishes a straightforward case where the desired velocities are known in
+accomplishes a well-defined case where the desired velocities are known in
 the Cartesian representation::
 
     >>> icrs = ICRS(1*u.deg, 2*u.deg, distance=3*u.kpc)
@@ -186,8 +186,8 @@ the Cartesian representation::
         (0.34662023, 0.41161335, 4.29356031)>
 
 A similar mechanism can also be used to add velocities even if full 3D coordinates
-are not available - e.g. for a radial velocity observation of an object where
-the distance is unknown. However, it requires a slightly different way of
+are not available (e.g., for a radial velocity observation of an object where
+the distance is unknown). However, it requires a slightly different way of
 specifying the differentials because of the lack of explicit unit information::
 
     >>> from astropy.coordinates import RadialDifferential
