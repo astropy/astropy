@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
+
 import pytest
 import numpy as np
 
@@ -205,7 +207,9 @@ def test_coord_type_1d_2d_wcs_uncorrelated():
     wcs.wcs.cunit = ['nm', 's']
     wcs.wcs.set()
 
-    _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame1D, slices=('x', 0))
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=FutureWarning)
+        _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame1D, slices=('x', 0))
 
     assert coord_meta['type'] == ['scalar', 'scalar']
     assert coord_meta['format_unit'] == [u.m, u.s]
