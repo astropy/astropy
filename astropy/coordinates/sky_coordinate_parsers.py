@@ -198,7 +198,7 @@ def _get_frame_without_data(args, kwargs):
         if attr in kwargs:
             frame_cls_kwargs[attr] = kwargs.pop(attr)
 
-    # TODO: deprecate representation, remove this in future
+    # TODO: remove this in a future LTS release
     _normalize_representation_type(kwargs)
 
     if 'representation_type' in kwargs:
