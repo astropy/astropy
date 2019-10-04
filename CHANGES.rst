@@ -74,6 +74,8 @@ astropy.table
 - Fix ``FixedWidthNoHeader`` to pay attention to ``data_start`` keyword when
   finding first data line to split columns [#8485, #8511]
 
+- Fix bug when initializing ``Table`` with ``rows`` as a generator. [#9315]
+
 astropy.tests
 ^^^^^^^^^^^^^
 

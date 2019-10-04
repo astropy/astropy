@@ -10,7 +10,7 @@ from ...extern import six
 import pytest
 import numpy as np
 
-from ...table import Column, TableColumns
+from ...table import Column, TableColumns, Table
 
 # Unfortunatly the python2 UserDict.UserDict is not a Mapping so it is not
 # possible to use "from six.moves import UserDict". Instead we have to use
@@ -490,3 +490,10 @@ def test_init_and_ref_from_multidim_ndarray(table_type):
         else:
             assert nd[str('a')][0] == -200
             assert nd[str('b')][1][1] == -100
+
+
+def test_init_from_rows_as_generator():
+    rows = [(1 + ii, 2 + ii) for ii in range(2)]
+    t = Table(rows=rows)
+    assert np.all(t['col0'] == [1, 2])
+    assert np.all(t['col1'] == [2, 3])
