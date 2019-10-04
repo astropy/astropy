@@ -248,14 +248,14 @@ def discretize_oversample_1D(model, x_range, factor=10):
     """
     # Evaluate model on oversampled grid
     x = np.linspace(x_range[0] - 0.5 * (1 - 1 / factor),
-                    x_range[1] + 0.5 * (1 - 1 / factor),
-                    num=(x_range[1] - x_range[0] + 1) * factor)   
+                    x_range[1] - 0.5 * (1 + 1 / factor),
+                    num = (x_range[1] - x_range[0]) * factor)   
 
     values = model(x)
 
     # Reshape and compute mean
     values = np.reshape(values, (x.size // factor, factor))
-    return values.mean(axis=1)[:-1]
+    return values.mean(axis=1)
 
 
 def discretize_oversample_2D(model, x_range, y_range, factor=10):
@@ -264,11 +264,11 @@ def discretize_oversample_2D(model, x_range, y_range, factor=10):
     """
     # Evaluate model on oversampled grid
     x = np.linspace(x_range[0] - 0.5 * (1 - 1 / factor),
-                    x_range[1] + 0.5 * (1 - 1 / factor),
-                    num=(x_range[1] - x_range[0] + 1) * factor)
+                    x_range[1] - 0.5 * (1 + 1 / factor),
+                    num = (x_range[1] - x_range[0]) * factor)
     y = np.linspace(y_range[0] - 0.5 * (1 - 1 / factor),
-                    y_range[1] + 0.5 * (1 - 1 / factor),
-                    num=(y_range[1] - y_range[0] + 1) * factor)    
+                    y_range[1] - 0.5 * (1 + 1 / factor),
+                    num = (y_range[1] - y_range[0]) * factor)    
 
     x_grid, y_grid = np.meshgrid(x, y)
     values = model(x_grid, y_grid)
@@ -276,7 +276,7 @@ def discretize_oversample_2D(model, x_range, y_range, factor=10):
     # Reshape and compute mean
     shape = (y.size // factor, factor, x.size // factor, factor)
     values = np.reshape(values, shape)
-    return values.mean(axis=3).mean(axis=1)[:-1, :-1]
+    return values.mean(axis=3).mean(axis=1)
 
 
 def discretize_integrate_1D(model, x_range):

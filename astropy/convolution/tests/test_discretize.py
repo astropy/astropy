@@ -194,9 +194,10 @@ def test_float_y_range_exception():
         discretize_model(f, (-10, 11), (-10.002, 11.23))
     assert exc.value.args[0] == ("The difference between the upper an lower"
                                  " limit of 'y_range' must be a whole number.")
-    
+
+
 def test_discretize_oversample():
-    gauss_2D = Gaussian2D(amplitude=1.0, x_mean=5., 
+    gauss_2D = Gaussian2D(amplitude=1.0, x_mean=5.,
                     y_mean=125., x_stddev=0.75, y_stddev=3)
     values = discretize_model(gauss_2D,
                  x_range=[0, 10],
@@ -204,9 +205,17 @@ def test_discretize_oversample():
                  mode='oversample', factor=10)
     vmax = np.max(values)
     vmax_yx = np.unravel_index(values.argmax(), values.shape)
-    
+    values_osf1 = discretize_model(gauss_2D,
+                                   x_range=[0, 10],
+                                   y_range=[100, 135],
+                                   mode='oversample', factor=1)
+    values_center = discretize_model(gauss_2D,
+                                   x_range=[0, 10],
+                                   y_range=[100, 135],
+                                   mode = 'center')
     assert values.shape == (35, 10)
     assert_allclose(vmax, 0.927, atol=1e-3)
     assert vmax_yx == (25, 5)
+    assert np.allclose(values_center, values_osf1)
     
     
