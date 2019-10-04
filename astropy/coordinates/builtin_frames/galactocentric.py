@@ -81,6 +81,19 @@ doc_footer = """
             [( -9.6083819 ,  -9.40062188,  6.52056066),
              (-21.28302307,  18.76334013,  7.84693855)]>
 
+    This uses a somewhat out-of-date set of parameters for the solar position
+    and motion in a Galactocentric sense: If your code or analysis does not
+    depend sensitively on these values, and you are just interested in
+    retrieving the latest measurements of these quantities, you can instead use
+    the ``.get_latest()`` classmethod to retrieve a frame with newer parameter
+    values::
+
+        >>> c.transform_to(coord.Galactocentric.get_latest()) # doctest: +FLOAT_CMP
+        <Galactocentric Coordinate (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
+            (266.4051, -28.936175)>, galcen_distance=8.122 kpc, galcen_v_sun=(12.9, 245.6, 7.78) km / s, z_sun=20.8 pc, roll=0.0 deg): (x, y, z) in kpc
+            [( -9.43489286, -9.40062188, 6.51345359),
+            (-21.11044918, 18.76334013, 7.83175149)]>
+
     To specify a custom set of parameters, you have to include extra keyword
     arguments when initializing the Galactocentric frame object::
 
@@ -89,6 +102,16 @@ doc_footer = """
             ( 266.4051, -28.936175)>, galcen_distance=8.1 kpc, galcen_v_sun=( 11.1,  232.24,  7.25) km / s, z_sun=27.0 pc, roll=0.0 deg): (x, y, z) in kpc
             [( -9.40785924,  -9.40062188,  6.52066574),
              (-21.08239383,  18.76334013,  7.84798135)]>
+
+    This also works using the ``.get_latest()`` classmethod, where the specified
+    keyword will only overwrite the keyword you pass in, and all other values
+    will be taken from the "latest" parameters::
+
+        >>> c.transform_to(coord.Galactocentric.get_latest(galcen_distance=8.1*u.kpc)) # doctest: +FLOAT_CMP
+        <Galactocentric Coordinate (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
+            (266.4051, -28.936175)>, galcen_distance=8.1 kpc, galcen_v_sun=(12.9, 245.6, 7.78) km / s, z_sun=20.8 pc, roll=0.0 deg): (x, y, z) in kpc
+            [( -9.41284763, -9.40062188, 6.51346272),
+            (-21.08839478, 18.76334013, 7.83184184)]>
 
     Similarly, transforming from the Galactocentric frame to another coordinate frame::
 
@@ -99,6 +122,17 @@ doc_footer = """
         <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
             [(  86.22349059, 28.83894138,  4.39157788e-05),
              ( 289.66802652, 49.88763881,  8.59640735e+01)]>
+
+    To specify data with the newer, modern set of solar parameters, pass the
+    data in to the ``get_latest()`` classmethod::
+
+        >>> c = coord.Galactocentric.get_latest(x=[-8.3, 4.5] * u.kpc,
+        ...                                     y=[0., 81.52] * u.kpc,
+        ...                                     z=[0.027, 24.12] * u.kpc)
+        >>> c.transform_to(coord.ICRS) # doctest: +FLOAT_CMP
+        <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
+            [( 88.22423301, 29.88672864,  0.17813456),
+            (289.72864549, 49.9865043 , 85.93949064)]>
 
     Or, with custom specification of the Galactic center::
 
