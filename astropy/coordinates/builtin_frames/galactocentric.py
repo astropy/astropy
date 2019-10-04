@@ -117,8 +117,13 @@ doc_footer = """
 class Galactocentric(BaseCoordinateFrame):
     r"""
     A coordinate or frame in the Galactocentric system. This frame
-    requires specifying the Sun-Galactic center distance, and optionally
-    the height of the Sun above the Galactic midplane.
+    assumes default values for the Sun-Galactic center distance,
+    the height of the Sun above the Galactic midplane, and the solar motion,
+    but these values (as described below in this docstring) are now somewhat
+    out of date. You can set all of these values manually to your favorite,
+    updated measurements, by passing in frame attributes, or use the
+    ``Galactocentric.get_latest()`` class method to set the defaults to a more
+    modern set of parameters that may change between Astropy releases.
 
     The position of the Sun is assumed to be on the x axis of the final,
     right-handed system. That is, the x axis points from the position of
@@ -185,6 +190,43 @@ class Galactocentric(BaseCoordinateFrame):
         # a property here because this module isn't actually part of the public
         # API, so it's better for it to be accessable from Galactocentric
         return _ROLL0
+
+    @classmethod
+    def get_latest(cls, *args, **kwargs):
+        """This classmethod serves as an alternate initializer for
+        `~astropy.coordinates.Galacotcentric` that assumes more modern (and
+        constantly updated) parameters for the solar position and motion in a
+        Galactocentric context. As such, this classmethod acts exactly like the
+        initializer, but with different default frame attribute choices: That
+        is, you can explicitly pass in frame attributes to overwrite these
+        defaults, or pass in data to initialize this frame.
+
+        The current latest parameter choices come from:
+        * The default distance to the Galactic Center is 8.122 kpc from the
+          GRAVITY collaboration:
+          https://ui.adsabs.harvard.edu/abs/2018A%26A...615L..15G/abstract
+        * The default height of the Sun above the Galactic midplane is taken to
+          be 20.8 pc, as measured by Bennett & Bovy (2019):
+          https://ui.adsabs.harvard.edu/abs/2019MNRAS.482.1417B/abstract
+        * The default solar velocity relative to the Galactic center is taken
+          from a combination of the GRAVITY collaboration and the Reid &
+          Brunthaler (2004) proper motion of Sgr A*:
+          https://ui.adsabs.harvard.edu/abs/2004ApJ...616..872R/abstract
+          https://ui.adsabs.harvard.edu/abs/2018RNAAS...2..210D/abstract
+
+        See the docstring for the initializer of this
+        `~astropy.coordinates.Galacotcentric` class for information about the
+        frame and its default component (data) names.
+        """
+
+        kwargs['galcen_distance'] = kwargs.pop('galcen_distance', 8.122 * u.kpc)
+        kwargs['galcen_v_sun'] = kwargs.pop(
+            'galcen_v_sun',
+            r.CartesianDifferential([12.9, 245.6, 7.78] * u.km/u.s))
+        kwargs['z_sun'] = kwargs.pop('z_sun', 20.8*u.pc)
+
+        return cls(*args, **kwargs)
+
 
 # ICRS to/from Galactocentric ----------------------->
 
