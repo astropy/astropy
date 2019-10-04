@@ -14,11 +14,11 @@ when dealing with large tables, it is recommended to specify the format and any
 options explicitly, and turn off guessing as well.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Performance Tips for Reading Large Tables with `astropy.io.ascii`
+  Performance Tips for Reading Large Tables with astropy.io.ascii
 
 If you are reading a simple CSV file with a one-line header with column names,
 the following::
