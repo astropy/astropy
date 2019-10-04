@@ -213,6 +213,11 @@ astropy.coordinates
 - Removed the ``recommended_units`` attribute from Representations; it was
   deprecated since 3.0. [#8892]
 
+- Added a new classmethod to the ``Galactocentric`` frame,
+  ``Galactocentric.get_latest``, to retrieve a frame instance with a more
+  modern set of solar position and motion parameters based on recent
+  measurements from Gaia. [#9322]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
