@@ -156,7 +156,11 @@ def test_unbroadcast():
 
     x = np.array([1, 2, 3])
     y = np.broadcast_to(x, (2, 4, 3))
-
     z = misc.unbroadcast(y)
-    assert z.shape == (1, 1, 3)
-    np.testing.assert_allclose(z[0, 0], x)
+    assert z.shape == (3,)
+    np.testing.assert_equal(z, x)
+
+    x = np.ones((3, 5))
+    y = np.broadcast_to(x, (5, 3, 5))
+    z = misc.unbroadcast(y)
+    assert z.shape == (3, 5)

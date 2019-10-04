@@ -1174,7 +1174,12 @@ def unbroadcast(array):
         return array
 
     new_shape = np.where(np.array(array.strides) == 0, 1, array.shape)
-    return as_strided(array, shape=new_shape)
+
+    # Remove leading ones, which are not needed in numpy broadcasting.
+    first_not_unity = next((i for (i, s) in enumerate(new_shape) if s > 1),
+                           len(new_shape))
+
+    return as_strided(array, shape=new_shape).reshape(new_shape[first_not_unity:])
 
 
 def pizza():  # pragma: no cover

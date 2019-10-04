@@ -12,7 +12,7 @@ from astropy.wcs import WCS
 from astropy.wcs.wcsapi.utils import deserialize_class, wcs_info_str
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.wcs import WCS
-from astropy.wcs.wcsapi.utils import (deserialize_class, efficient_pixel_to_pixel,
+from astropy.wcs.wcsapi.utils import (deserialize_class, pixel_to_pixel,
                                       split_matrix, pixel_to_pixel_correlation_matrix,
                                       pixel_to_world_correlation_matrix)
 from astropy.utils.misc import unbroadcast
@@ -95,10 +95,6 @@ def test_pixel_to_world_correlation_matrix_spectral_cube_uncorrelated():
 
 def test_pixel_to_world_correlation_matrix_spectral_cube_correlated():
 
-    # We need the following fix when celestial axes are correlated with
-    # non-celestial axes: https://github.com/astropy/astropy/pull/8420
-    pytest.importorskip("astropy", minversion="3.1.2")
-
     wcs = WCS(naxis=3)
     wcs.wcs.ctype = 'RA---TAN', 'FREQ', 'DEC--TAN'
     wcs.wcs.cd = np.ones((3, 3))
@@ -139,10 +135,6 @@ def test_pixel_to_pixel_correlation_matrix_spectral_cube_uncorrelated():
 
 
 def test_pixel_to_pixel_correlation_matrix_spectral_cube_correlated():
-
-    # We need the following fix when celestial axes are correlated with
-    # non-celestial axes: https://github.com/astropy/astropy/pull/8420
-    pytest.importorskip("astropy", minversion="3.1.2")
 
     # NOTE: only make one of the WCSes have correlated axes to really test this
 
@@ -279,7 +271,7 @@ def test_efficient_pixel_to_pixel():
     wcs_out.wcs.set()
 
     # First try with scalars
-    x, y, z = efficient_pixel_to_pixel(wcs_in, wcs_out, 1, 2, 3)
+    x, y, z = pixel_to_pixel(wcs_in, wcs_out, 1, 2, 3)
     assert x.shape == ()
     assert y.shape == ()
     assert z.shape == ()
@@ -289,7 +281,7 @@ def test_efficient_pixel_to_pixel():
     y = np.linspace(10, 20, 20)
     z = np.linspace(10, 20, 30)
     Z1, Y1, X1 = np.meshgrid(z, y, x, indexing='ij', copy=False)
-    X2, Y2, Z2 = efficient_pixel_to_pixel(wcs_in, wcs_out, X1, Y1, Z1)
+    X2, Y2, Z2 = pixel_to_pixel(wcs_in, wcs_out, X1, Y1, Z1)
 
     # The final arrays should have the correct shape
     assert X2.shape == (30, 20, 10)
@@ -299,10 +291,10 @@ def test_efficient_pixel_to_pixel():
     # But behind the scenes should also be broadcasted
     assert unbroadcast(X2).shape == (30, 1, 10)
     assert unbroadcast(Y2).shape == (30, 1, 10)
-    assert unbroadcast(Z2).shape == (1, 20, 1)
+    assert unbroadcast(Z2).shape == (20, 1)
 
     # We can put the values back through the function to ensure round-tripping
-    X3, Y3, Z3 = efficient_pixel_to_pixel(wcs_out, wcs_in, X2, Y2, Z2)
+    X3, Y3, Z3 = pixel_to_pixel(wcs_out, wcs_in, X2, Y2, Z2)
 
     # The final arrays should have the correct shape
     assert X2.shape == (30, 20, 10)
@@ -311,7 +303,7 @@ def test_efficient_pixel_to_pixel():
 
     # But behind the scenes should also be broadcasted
     assert unbroadcast(X3).shape == (30, 1, 10)
-    assert unbroadcast(Y3).shape == (1, 20, 1)
+    assert unbroadcast(Y3).shape == (20, 1)
     assert unbroadcast(Z3).shape == (30, 1, 10)
 
     # And these arrays should match the input
@@ -335,7 +327,7 @@ def test_efficient_pixel_to_pixel_simple():
     wcs_out.wcs.set()
 
     # First try with scalars
-    x, y = efficient_pixel_to_pixel(wcs_in, wcs_out, 1, 2)
+    x, y = pixel_to_pixel(wcs_in, wcs_out, 1, 2)
     assert x.shape == ()
     assert y.shape == ()
 
@@ -343,7 +335,7 @@ def test_efficient_pixel_to_pixel_simple():
     x = np.linspace(10, 20, 10)
     y = np.linspace(10, 20, 20)
     Y1, X1 = np.meshgrid(y, x, indexing='ij', copy=False)
-    Y2, X2 = efficient_pixel_to_pixel(wcs_in, wcs_out, X1, Y1)
+    Y2, X2 = pixel_to_pixel(wcs_in, wcs_out, X1, Y1)
 
     # The final arrays should have the correct shape
     assert X2.shape == (20, 10)

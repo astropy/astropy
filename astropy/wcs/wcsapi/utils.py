@@ -10,7 +10,7 @@ import numpy as np
 
 from astropy.utils.misc import unbroadcast
 
-__all__ = ['deserialize_class', 'efficient_pixel_to_pixel']
+__all__ = ['deserialize_class', 'pixel_to_pixel']
 
 
 def deserialize_class(tpl, construct=True):
@@ -251,7 +251,7 @@ def split_matrix(matrix):
     return split_info
 
 
-def efficient_pixel_to_pixel(wcs_in, wcs_out, *inputs):
+def pixel_to_pixel(wcs_in, wcs_out, *inputs):
     """
     Transform pixel coordinates in a dataset with a WCS to pixel coordinates
     in another dataset with a different WCS. This function is designed to
