@@ -2,15 +2,9 @@
 
 import importlib
 import numpy as np
-
-
-__all__ = ['deserialize_class', 'wcs_info_str']
-
-import numpy as np
-
 from astropy.utils.misc import unbroadcast
 
-__all__ = ['deserialize_class', 'pixel_to_pixel']
+__all__ = ['deserialize_class', 'wcs_info_str', 'pixel_to_pixel']
 
 
 def deserialize_class(tpl, construct=True):
