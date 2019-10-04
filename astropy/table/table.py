@@ -1739,7 +1739,7 @@ class Table(object):
                 if isinstance(old_col.base, old_col.__class__):
                     msg = ("replaced column '{}' which looks like an array slice. "
                            "The new column no longer shares memory with the "
-                           "original array.".format(name))
+                           "original array. Try using t[colname][:] = value instead".format(name))
                     warnings.warn(msg, TableReplaceWarning, stacklevel=3)
             except AttributeError:
                 pass

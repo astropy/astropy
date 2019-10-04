@@ -233,7 +233,7 @@ object with float values by internally calling
 ``t.replace_column('a', [10.5, 20.5, 30.5])``.  In general this behavior
 is more consistent with Python and Pandas behavior, but there is potential
 for somewhat subtle bugs in code that was written that expects the pre-1.3
-in-place behavior.
+in-place behavior. Therefore, a ``TableReplaceWarning`` will appear.
 
 **Examples**
 ::
