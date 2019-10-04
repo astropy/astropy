@@ -127,7 +127,7 @@ Adding another operation is possible provided the ``data`` and ``unit`` allow
 it within the framework of `~astropy.units.Quantity`.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
@@ -189,7 +189,7 @@ behavior too. The actual operation on the attribute (except for ``unit``) is
 done in a method ``_arithmetic_*`` where ``*`` is the name of the property.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
@@ -244,8 +244,8 @@ be anything except ``None`` or ``"first_found"``::
 ..
   EXAMPLE END
 
-Changing Default Argument for Arithmetic Operations
----------------------------------------------------
+Changing the Default Argument for Arithmetic Operations
+-------------------------------------------------------
 
 If the goal is to change the default value of an existing parameter for
 arithmetic methods, such as when explicitly specifying the parameter each
@@ -254,7 +254,7 @@ default value of existing parameters by changing it in the method signature of
 ``_arithmetic``.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
@@ -424,7 +424,7 @@ it may be more convenient to subclass `~astropy.nddata.NDData` instead of
 `~astropy.nddata.NDDataBase`.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
