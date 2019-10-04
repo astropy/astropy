@@ -99,15 +99,8 @@ printed and the property will be kept as is::
     >>> ndd_sliced.mask
     False
 
-Example
-=======
-
 Removing Masked Data
 --------------------
-
-..
-  EXAMPLE START
-  Removing Masked Data Using `astropy.nddata`
 
 .. warning::
     If you are using a `~astropy.wcs.WCS` object as ``wcs`` this will **NOT**
@@ -115,7 +108,16 @@ Removing Masked Data
     slicing.
 
 By convention, the ``mask`` attribute indicates if a point is valid or invalid.
-So we are able to get all valid data points by slicing with the mask::
+So we are able to get all valid data points by slicing with the mask.
+
+Examples
+--------
+
+..
+  EXAMPLE START
+  Removing Masked Data in NDDataRef
+
+To get all of the valid data points by slicing with the mask::
 
     >>> data = np.array([[1,2,3],[4,5,6],[7,8,9]])
     >>> mask = np.array([[0,1,0],[1,1,1],[0,0,1]], dtype=bool)
