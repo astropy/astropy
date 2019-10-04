@@ -138,7 +138,6 @@ def test_coord_type_from_ctype():
     assert coord_meta['format_unit'] == [u.arcsec, u.arcsec]
     assert coord_meta['wrap'] == [360., None]
 
-
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
     wcs.wcs.crpix = [256.0] * 2
