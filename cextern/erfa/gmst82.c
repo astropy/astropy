@@ -58,9 +58,9 @@ double eraGmst82(double dj1, double dj2)
 **     Transactions of the International Astronomical Union,
 **     XVIII B, 67 (1983).
 **
-**     Aoki et al., Astron. Astrophys. 105, 359-361 (1982).
+**     Aoki et al., Astron.Astrophys., 105, 359-361 (1982).
 **
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -99,7 +99,7 @@ double eraGmst82(double dj1, double dj2)
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

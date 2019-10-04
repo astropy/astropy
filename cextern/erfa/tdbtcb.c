@@ -47,7 +47,7 @@ int eraTdbtcb(double tdb1, double tdb2, double *tcb1, double *tcb2)
 **
 **     IAU 2006 Resolution B3
 **
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -66,7 +66,7 @@ int eraTdbtcb(double tdb1, double tdb2, double *tcb1, double *tcb2)
 
 
 /* Result, preserving date format but safeguarding precision. */
-   if ( tdb1 > tdb2 ) {
+   if ( fabs(tdb1) > fabs(tdb2) ) {
       d = t77td - tdb1;
       f  = tdb2 - tdb0;
       *tcb1 = tdb1;
@@ -74,7 +74,7 @@ int eraTdbtcb(double tdb1, double tdb2, double *tcb1, double *tcb2)
    } else {
       d = t77td - tdb2;
       f  = tdb1 - tdb0;
-      *tcb1 = f + ( d - ( f - t77tf ) ) * elbb;
+      *tcb1 = f - ( d - ( f - t77tf ) ) * elbb;
       *tcb2 = tdb2;
    }
 
@@ -85,7 +85,7 @@ int eraTdbtcb(double tdb1, double tdb2, double *tcb1, double *tcb2)
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International
