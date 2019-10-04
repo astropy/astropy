@@ -2636,6 +2636,8 @@ astropy.table
 
 - Fix bug when initializing ``Table`` with ``rows`` as a generator. [#9315]
 
+- Fix ``join`` when there are multiple mixin (Quantity) columns as keys. [#9313]
+
 astropy.tests
 ^^^^^^^^^^^^^
 

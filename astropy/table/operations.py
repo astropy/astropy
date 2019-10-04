@@ -698,9 +698,9 @@ def common_dtype(cols):
 
 
 def _join(left, right, keys=None, join_type='inner',
-         uniq_col_name='{col_name}_{table_name}',
-         table_names=['1', '2'],
-         col_name_map=None, metadata_conflicts='warn'):
+          uniq_col_name='{col_name}_{table_name}',
+          table_names=['1', '2'],
+          col_name_map=None, metadata_conflicts='warn'):
     """
     Perform a join of the left and right Tables on specified keys.
 
@@ -724,6 +724,11 @@ def _join(left, right, keys=None, join_type='inner',
     col_name_map : empty dict or None
         If passed as a dict then it will be updated in-place with the
         mapping of output to input column names.
+    metadata_conflicts : str
+        How to proceed with metadata conflicts. This should be one of:
+            * ``'silent'``: silently pick the last conflicting meta-data value
+            * ``'warn'``: pick the last conflicting meta-data value, but emit a warning (default)
+            * ``'error'``: raise an exception.
 
     Returns
     -------
@@ -810,11 +815,11 @@ def _join(left, right, keys=None, join_type='inner',
             else:
                 # np.where does not work for mixin columns (e.g. Quantity) so
                 # use a slower workaround.
-                left_mask = ~right_mask
-                if np.any(left_mask):
-                    out[out_name][left_mask] = left[left_name].take(left_out)
+                non_right_mask = ~right_mask
                 if np.any(right_mask):
-                    out[out_name][right_mask] = right[right_name].take(right_out)
+                    out[out_name][:] = left[left_name].take(left_out)
+                if np.any(non_right_mask):
+                    out[out_name][non_right_mask] = right[right_name].take(right_out)[non_right_mask]
             continue
         elif left_name:  # out_name came from the left table
             name, array, array_out, array_mask = left_name, left, left_out, left_mask
