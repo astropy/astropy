@@ -110,11 +110,11 @@ images. To get started, we will construct a two-dimensional image with a few
 sources, some Gaussian noise, and a "cosmic ray" which we will later mask out.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Working with Two-Dimensional Data Using `astropy.nddata`
+  Working with Two-Dimensional Data Using NDData
 
 First, construct a two-dimensional image with a few sources, some Gaussian
 noise, and a "cosmic ray"::
@@ -209,11 +209,11 @@ propagation of uncertainties. Three uncertainty types are supported: variance
 (`~astropy.nddata.InverseVariance`).
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Image Arithmetic Including Uncertainty in `astropy.nddata`
+  Image Arithmetic Including Uncertainty in NDData
 
 This example creates an uncertainty that is Poisson error, stored as a
 variance::
@@ -274,11 +274,11 @@ Though slicing directly is one way to extract a subframe,
 data.
 
 Examples
-========
+^^^^^^^^
 
 ..
   EXAMPLE START
-  Accessing Cutouts Using `astropy.nddata`
+  Accessing Cutouts in NDData
 
 This example pulls out the large "galaxy" in the lower left of the image, with
 the center of the cutout at ``position``::
@@ -371,11 +371,11 @@ The functions `~astropy.nddata.block_reduce` and
 `~astropy.nddata.block_replicate` resize images.
 
 Example
-=======
+^^^^^^^
 
 ..
   EXAMPLE START
-  Image Resizing Using `astropy.nddata`
+  Image Resizing in NDData
 
 This example reduces the size of the image by a factor of 4. Note that the
 result is a `numpy.ndarray`; the mask, metadata, etc. are discarded:
