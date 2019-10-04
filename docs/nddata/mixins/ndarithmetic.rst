@@ -348,11 +348,11 @@ The default (``0``) represents uncorrelated while ``1`` means correlated and
 element-wise correlation coefficient.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Using Uncertainty with Correlation in `astopy.nddata`
+  Uncertainty with Correlation in NDData
 
 Without correlation, subtracting an `~astropy.nddata.NDDataRef` instance from
 itself results in a non-zero uncertainty::
