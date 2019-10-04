@@ -86,3 +86,13 @@ def test_fittable_compound():
     new_model = pfit(m, x, y_noisy)
     y_fit = new_model(x)
     assert_allclose(y_fit, y_real, atol=dy)
+
+
+def test_identity_repr():
+    m = Identity(1, name='foo')
+    assert repr(m) == "<Identity(1, name='foo')>"
+
+
+def test_mapping_repr():
+    m = Mapping([0, 1], name='foo')
+    assert repr(m) == "<Mapping([0, 1], name='foo')>"
