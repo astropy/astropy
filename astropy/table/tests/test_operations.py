@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 from collections import OrderedDict
 
 import pytest
@@ -15,7 +14,7 @@ from astropy.utils.metadata import MergeConflictError
 from astropy import table
 from astropy.time import Time
 from astropy.coordinates import SkyCoord
-from astropy.coordinates.sky_coordinate import _skycoord_equal as skycoord_equal
+from astropy.io.misc.asdf.tags.helpers import skycoord_equal
 
 
 def sort_eq(list1, list2):
