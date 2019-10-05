@@ -34,7 +34,7 @@ int eraUt1tt(double ut11, double ut12, double dt,
 **     Explanatory Supplement to the Astronomical Almanac,
 **     P. Kenneth Seidelmann (ed), University Science Books (1992)
 **
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -43,7 +43,7 @@ int eraUt1tt(double ut11, double ut12, double dt,
 
 /* Result, safeguarding precision. */
    dtd = dt / ERFA_DAYSEC;
-   if ( ut11 > ut12 ) {
+   if ( fabs(ut11) > fabs(ut12) ) {
       *tt1 = ut11;
       *tt2 = ut12 + dtd;
    } else {
@@ -58,7 +58,7 @@ int eraUt1tt(double ut11, double ut12, double dt,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

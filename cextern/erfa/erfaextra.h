@@ -51,6 +51,12 @@ int eraVersionMicro(void);
 const char* eraSofaVersion(void);
 
 
+
+/* 
+** Update leap seconds (not supported by SOFA)
+*/
+void eraUpdateLeapSeconds(eraLEAPSECOND *leapseconds, int count);
+
 #ifdef __cplusplus
 }
 #endif

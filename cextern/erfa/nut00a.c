@@ -148,7 +148,7 @@ void eraNut00a(double date1, double date2, double *dpsi, double *deps)
 **     Wallace, P.T., "Software for Implementing the IAU 2000
 **     Resolutions", in IERS Workshop 5.1 (2002)
 **
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -1848,7 +1848,7 @@ void eraNut00a(double date1, double date2, double *dpsi, double *deps)
 /* Number of terms in the planetary nutation model */
    const int NPL = (int) (sizeof xpl / sizeof xpl[0]);
 
-/*--------------------------------------------------------------------*/
+/* ------------------------------------------------------------------ */
 
 /* Interval between fundamental date J2000.0 and given date (JC). */
    t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJC;
@@ -1995,7 +1995,7 @@ void eraNut00a(double date1, double date2, double *dpsi, double *deps)
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

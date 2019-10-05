@@ -76,7 +76,7 @@ double eraS00(double date1, double date2, double x, double y)
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -227,7 +227,7 @@ double eraS00(double date1, double date2, double x, double y)
    const int NS3 = (int) (sizeof s3 / sizeof (TERM));
    const int NS4 = (int) (sizeof s4 / sizeof (TERM));
 
-/*--------------------------------------------------------------------*/
+/* ------------------------------------------------------------------ */
 
 /* Interval between fundamental epoch J2000.0 and current date (JC). */
    t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJC;
@@ -319,7 +319,7 @@ double eraS00(double date1, double date2, double x, double y)
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

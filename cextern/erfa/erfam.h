@@ -8,7 +8,7 @@
 **
 **  Macros used by ERFA library.
 **
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 
@@ -40,6 +40,12 @@ typedef struct {
    double dl;         /* deflection limiter (radians^2/2) */
    double pv[2][3];   /* barycentric PV of the body (au, au/day) */
 } eraLDBODY;
+
+/* Leap second definition */
+typedef struct {
+   int iyear, month;
+   double delat;
+} eraLEAPSECOND;
 
 /* Pi */
 #define ERFA_DPI (3.141592653589793238462643)
@@ -147,7 +153,7 @@ typedef struct {
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

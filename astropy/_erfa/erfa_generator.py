@@ -84,7 +84,7 @@ class FunctionDoc:
     def input(self):
         if self.__input is None:
             self.__input = []
-            for regex in ("Given([^\n]*):\n(.+?)  \n",
+            for regex in ("Given([^\n]*):.*?\n(.+?)  \n",
                           "Given and returned([^\n]*):\n(.+?)  \n"):
                 result = re.search(regex, self.doc, re.DOTALL)
                 if result is not None:
@@ -98,7 +98,7 @@ class FunctionDoc:
         if self.__output is None:
             self.__output = []
             for regex in ("Given and returned([^\n]*):\n(.+?)  \n",
-                          "Returned([^\n]*):\n(.+?)  \n"):
+                          "Returned([^\n]*):.*?\n(.+?)  \n"):
                 result = re.search(regex, self.doc, re.DOTALL)
                 if result is not None:
                     doc_lines = result.group(2).split("\n")
@@ -133,6 +133,8 @@ class ArgumentDoc:
         match = re.search("^ +([^ ]+)[ ]+([^ ]+)[ ]+(.+)", doc)
         if match is not None:
             self.name = match.group(1)
+            if self.name.startswith('*'):  # easier than getting the regex to behave...
+                self.name = self.name.replace('*', '')
             self.type = match.group(2)
             self.doc = match.group(3)
         else:

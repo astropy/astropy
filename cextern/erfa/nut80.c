@@ -48,7 +48,7 @@ void eraNut80(double date1, double date2, double *dpsi, double *deps)
 **     P. Kenneth Seidelmann (ed), University Science Books (1992),
 **     Section 3.222 (p111).
 **
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -203,7 +203,7 @@ void eraNut80(double date1, double date2, double *dpsi, double *deps)
 /* Number of terms in the series */
    const int NT = (int) (sizeof x / sizeof x[0]);
 
-/*--------------------------------------------------------------------*/
+/* ------------------------------------------------------------------ */
 
 /* Interval between fundamental epoch J2000.0 and given date (JC). */
    t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJC;
@@ -273,7 +273,7 @@ void eraNut80(double date1, double date2, double *dpsi, double *deps)
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

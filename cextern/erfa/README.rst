@@ -13,7 +13,7 @@ in this source distribution.
 Differences from SOFA
 ---------------------
 
-This version of ERFA (v1.3.0) is based on SOFA version "20160503_a", with the
+This version of ERFA (v1.6.0) is based on SOFA version "20190722", with the
 differences outlined below.
 
 ERFA branding
@@ -33,6 +33,16 @@ Bugfixes
 
 ERFA includes smaller changes that may or may not eventually make it into SOFA,
 addressing localized bugs or similar smaller issues:
+
+* ERFA 1.6.0 and SOFA "20190722"
+
+  + There are no differences between ERFA 1.6.0 and SOFA "20190722" except
+    for the ``eraVersion`` and ``eraSofaVersion`` functions added in ERFA 1.4.0.
+
+* ERFA 1.5.0 and SOFA "20180130"
+
+  + There are no differences between ERFA 1.5.0 and SOFA "20180130" except
+    for the ``eraVersion`` and ``eraSofaVersion`` functions added in ERFA 1.4.0.
 
 * ERFA 1.4.0 and SOFA "20170420"
 
@@ -103,3 +113,8 @@ Travis build status
     :target: https://travis-ci.org/liberfa/erfa
 
 .. _erfa-fetch repository: https://github.com/liberfa/erfa-fetch
+
+Cite As
+-------
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1021149.svg
+   :target: https://doi.org/10.5281/zenodo.1021149
