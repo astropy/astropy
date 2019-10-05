@@ -194,9 +194,9 @@ WCSAXES = 3
 CTYPE1  = GLAT-CAR
 CTYPE2  = FREQ
 CTYPE3  = GLON-CAR
-CNAME1  = Longitude
+CNAME1  = Latitude
 CNAME2  = Frequency
-CNAME3  = Latitude
+CNAME3  = Longitude
 CRVAL1  = 10
 CRVAL2  = 20
 CRVAL3  = 25
@@ -229,7 +229,7 @@ def test_spectral_cube():
     assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
     assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
     assert wcs.pixel_axis_names == ['', '', '']
-    assert wcs.world_axis_names == ['Longitude', 'Frequency', 'Latitude']
+    assert wcs.world_axis_names == ['Latitude', 'Frequency', 'Longitude']
 
     assert_equal(wcs.axis_correlation_matrix, [[True, False, True],
                                                [False, True, False],
@@ -316,7 +316,7 @@ def test_spectral_cube_nonaligned():
     assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
     assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
     assert wcs.pixel_axis_names == ['', '', '']
-    assert wcs.world_axis_names == ['Longitude', 'Frequency', 'Latitude']
+    assert wcs.world_axis_names == ['Latitude', 'Frequency', 'Longitude']
 
     assert_equal(wcs.axis_correlation_matrix, [[True, True, True],
                                                [False, True, True],
@@ -589,6 +589,7 @@ def test_sub_wcsapi_attributes():
     assert wcs_sub1.pixel_bounds == [(-1, 11), (5, 15)]
     assert wcs_sub1.world_axis_physical_types == ['pos.galactic.lat', 'pos.galactic.lon']
     assert wcs_sub1.world_axis_units == ['deg', 'deg']
+    assert wcs_sub1.world_axis_names == ['Latitude', 'Longitude']
 
     # Try adding axes
 
@@ -601,6 +602,7 @@ def test_sub_wcsapi_attributes():
     assert wcs_sub2.pixel_bounds == [None, (-2, 18), None]
     assert wcs_sub2.world_axis_physical_types == [None, 'em.freq', None]
     assert wcs_sub2.world_axis_units == ['', 'Hz', '']
+    assert wcs_sub2.world_axis_names == ['', 'Frequency', '']
 
     # Use strings
 
@@ -613,13 +615,13 @@ def test_sub_wcsapi_attributes():
     assert wcs_sub3.pixel_bounds == [(5, 15), (-1, 11)]
     assert wcs_sub3.world_axis_physical_types == ['pos.galactic.lon', 'pos.galactic.lat']
     assert wcs_sub3.world_axis_units == ['deg', 'deg']
+    assert wcs_sub3.world_axis_names == ['Longitude', 'Latitude']
 
-    # Now try with CNAME set (since we use this internally for identifying axes)
+    # Now try without CNAME set
 
-    wcs.wcs.cname = 'Latitude', 'Frequency', 'Longitude'
+    wcs.wcs.cname = [''] * wcs.wcs.naxis
     wcs_sub4 = wcs.sub(['longitude', 'latitude'])
 
-    assert wcs_sub4.world_axis_names == ['Longitude', 'Latitude']
     assert wcs_sub4.pixel_n_dim == 2
     assert wcs_sub4.world_n_dim == 2
     assert wcs_sub4.array_shape == (30, 50)
@@ -627,3 +629,4 @@ def test_sub_wcsapi_attributes():
     assert wcs_sub4.pixel_bounds == [(5, 15), (-1, 11)]
     assert wcs_sub4.world_axis_physical_types == ['pos.galactic.lon', 'pos.galactic.lat']
     assert wcs_sub4.world_axis_units == ['deg', 'deg']
+    assert wcs_sub4.world_axis_names == ['', '']
