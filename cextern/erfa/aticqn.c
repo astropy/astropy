@@ -3,9 +3,9 @@
 void eraAticqn(double ri, double di, eraASTROM *astrom,
                int n, eraLDBODY b[], double *rc, double *dc)
 /*
-**  - - - - - - - - -
+**  - - - - - - - - - -
 **   e r a A t i c q n
-**  - - - - - - - - -
+**  - - - - - - - - - -
 **
 **  Quick CIRS to ICRS astrometric place transformation, given the star-
 **  independent astrometry parameters plus a list of light-deflecting
@@ -97,7 +97,7 @@ void eraAticqn(double ri, double di, eraASTROM *astrom,
 **     eraC2s       p-vector to spherical
 **     eraAnp       normalize angle into range +/- pi
 **
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -176,7 +176,7 @@ void eraAticqn(double ri, double di, eraASTROM *astrom,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

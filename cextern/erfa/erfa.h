@@ -8,7 +8,7 @@
 **
 **  Prototype function declarations for ERFA library.
 **
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 
@@ -290,10 +290,28 @@ int eraStarpv(double ra, double dec,
               double pv[2][3]);
 
 /* Astronomy/StarCatalogs */
+
+void eraFk425(double r1950, double d1950,
+              double dr1950, double dd1950,
+              double p1950, double v1950,
+              double *r2000, double *d2000,
+              double *dr2000, double *dd2000,
+              double *p2000, double *v2000);
+void eraFk45z(double r1950, double d1950, double bepoch,
+              double *r2000, double *d2000);
+void eraFk524(double r2000, double d2000,
+              double dr2000, double dd2000,
+              double p2000, double v2000,
+              double *r1950, double *d1950,
+              double *dr1950, double *dd1950,
+              double *p1950, double *v1950);
 void eraFk52h(double r5, double d5,
               double dr5, double dd5, double px5, double rv5,
               double *rh, double *dh,
               double *drh, double *ddh, double *pxh, double *rvh);
+void eraFk54z(double r2000, double d2000, double bepoch,
+              double *r1950, double *d1950,
+              double *dr1950, double *dd1950);
 void eraFk5hip(double r5h[3][3], double s5h[3]);
 void eraFk5hz(double r5, double d5, double date1, double date2,
               double *rh, double *dh);
@@ -366,6 +384,25 @@ int eraUt1utc(double ut11, double ut12, double dut1,
 int eraUtctai(double utc1, double utc2, double *tai1, double *tai2);
 int eraUtcut1(double utc1, double utc2, double dut1,
               double *ut11, double *ut12);
+
+/* Astronomy/HorizonEquatorial */
+void eraAe2hd(double az, double el, double phi,
+              double *ha, double *dec);
+void eraHd2ae(double ha, double dec, double phi,
+              double *az, double *el);
+double eraHd2pa(double ha, double dec, double phi);
+
+/* Astronomy/Gnomonic */
+int eraTpors(double xi, double eta, double a, double b,
+             double *a01, double *b01, double *a02, double *b02);
+int eraTporv(double xi, double eta, double v[3],
+             double v01[3], double v02[3]);
+void eraTpsts(double xi, double eta, double a0, double b0,
+              double *a, double *b);
+void eraTpstv(double xi, double eta, double v0[3], double v[3]);
+int eraTpxes(double a, double b, double a0, double b0,
+             double *xi, double *eta);
+int eraTpxev(double v[3], double v0[3], double *xi, double *eta);
 
 /* VectorMatrix/AngleOps */
 void eraA2af(int ndp, double angle, char *sign, int idmsf[4]);
@@ -450,16 +487,13 @@ void eraSxpv(double s, double pv[2][3], double spv[2][3]);
 }
 #endif
 
-
-#include "erfaextra.h"
-
 #endif
 
 
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2017, NumFOCUS Foundation.
+**  Copyright (C) 2013-2019, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International
