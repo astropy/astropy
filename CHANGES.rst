@@ -513,7 +513,11 @@ astropy.coordinates
 
 - Check for NaN values in catalog and match coordinates before building and
   querying the ``KDTree`` for coordinate matching. [#9007]
+
 - Fix sky coordinate matching when a dimensionless distance is provided. [#9008]
+
+- Raise a faster and more meaningful error message when differential data units
+  are not compatible with a containing representation's units. [#9064]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
