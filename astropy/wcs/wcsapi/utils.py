@@ -292,12 +292,17 @@ def pixel_to_pixel(wcs_in, wcs_out, *inputs):
         pixel_inputs = np.broadcast_arrays(*pixel_inputs)
 
         world_outputs = wcs_in.pixel_to_world(*pixel_inputs)
+
         if not isinstance(world_outputs, (tuple, list)):
             world_outputs = (world_outputs,)
+
         pixel_outputs = wcs_out.world_to_pixel(*world_outputs)
+
+        if wcs_out.pixel_n_dim == 1:
+            pixel_outputs = (pixel_outputs,)
 
         for ipix in range(wcs_out.pixel_n_dim):
             if ipix in pixel_out_indices:
                 outputs[ipix] = np.broadcast_to(pixel_outputs[ipix], original_shape)
 
-    return outputs
+    return outputs[0] if wcs_out.pixel_n_dim == 1 else outputs
