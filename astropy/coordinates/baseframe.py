@@ -339,14 +339,18 @@ base_doc = """{__doc__}
         sets the expected input representation class, thereby changing the
         expected keyword arguments for the data passed in. For example, passing
         ``representation_type='cartesian'`` will make the classes expect
-        position data with cartesian names, i.e. ``x, y, z`` in most cases.
+        position data with cartesian names, i.e. ``x, y, z`` in most cases
+        unless overriden via ``frame_specific_representation_info``. To see this
+        frame's names, check out ``<this frame>().representation_info``.
     differential_type : `~astropy.coordinates.BaseDifferential` subclass, str, dict, optional
         A differential class or dictionary of differential classes (currently
         only a velocity differential with key 's' is supported). This sets the
         expected input differential class, thereby changing the expected keyword
         arguments of the data passed in. For example, passing
         ``differential_type='cartesian'`` will make the classes expect velocity
-        data with the argument names ``v_x, v_y, v_z``.
+        data with the argument names ``v_x, v_y, v_z`` unless overriden via
+        ``frame_specific_representation_info``. To see this frame's names,
+        check out ``<this frame>().representation_info``.
     copy : bool, optional
         If `True` (default), make copies of the input coordinate arrays.
         Can only be passed in as a keyword argument.
@@ -567,6 +571,18 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                              "without positional (representation) data.")
 
         if differential_data:
+            # Check that differential data provided has units compatible
+            # with time-derivative of representation data.
+            # NOTE: there is no dimensionless time while lengths can be
+            # dimensionless (u.dimensionless_unscaled).
+            for comp in representation_data.components:
+                if 'd_{}'.format(comp) in differential_data.components:
+                    current_repr_unit = representation_data._units[comp]
+                    current_diff_unit = differential_data._units['d_{}'.format(comp)]
+                    if not current_diff_unit.is_equivalent(current_repr_unit / u.s):
+                        raise ValueError(
+                            "Differential data units are not compatible with"
+                            "time-derivative of representation data units")
             self._data = representation_data.with_differentials(
                 {'s': differential_data})
         else:
