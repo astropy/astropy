@@ -220,6 +220,9 @@ astropy.coordinates
   ``QuantityFrameAttribute``,``CartesianRepresentationFrameAttribute``;
   deprecated since 3.0. [#9326]
 
+- Removed ``longitude`` and ``latitude`` attributes from ``EarthLocation``;
+  deprecated since 2.0. [#9326]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
