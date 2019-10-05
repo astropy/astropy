@@ -493,44 +493,6 @@ def test_regression_6347_3d():
     assert type(d2d_1) is type(d2d_10)
 
 
-def test_regression_6300():
-    """Check that importing old frame attribute names from astropy.coordinates
-    still works. See comments at end of #6300
-    """
-    from astropy.utils.exceptions import AstropyDeprecationWarning
-    from astropy.coordinates import CartesianRepresentation
-    from astropy.coordinates import (TimeFrameAttribute, QuantityFrameAttribute,
-                    CartesianRepresentationFrameAttribute)
-
-    with catch_warnings() as found_warnings:
-        attr = TimeFrameAttribute(default=Time("J2000"))
-
-        for w in found_warnings:
-            if issubclass(w.category, AstropyDeprecationWarning):
-                break
-        else:
-            assert False, "Deprecation warning not raised"
-
-    with catch_warnings() as found_warnings:
-        attr = QuantityFrameAttribute(default=5*u.km)
-
-        for w in found_warnings:
-            if issubclass(w.category, AstropyDeprecationWarning):
-                break
-        else:
-            assert False, "Deprecation warning not raised"
-
-    with catch_warnings() as found_warnings:
-        attr = CartesianRepresentationFrameAttribute(
-            default=CartesianRepresentation([5,6,7]*u.kpc))
-
-        for w in found_warnings:
-            if issubclass(w.category, AstropyDeprecationWarning):
-                break
-        else:
-            assert False, "Deprecation warning not raised"
-
-
 @pytest.mark.remote_data
 def test_gcrs_itrs_cartesian_repr():
     # issue 6436: transformation failed if coordinate representation was
