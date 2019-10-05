@@ -163,7 +163,7 @@ def test_multiple_solidus():
     assert u.Unit("m/s/kg").to_string() == u.m / u.s / u.kg
 
     with catch_warnings(u.UnitsWarning) as warning_lines:
-        assert u.Unit("m/s/kg").to_string() == u.m / (u.s * u.kg)
+        assert u.Unit("m/s/kg").to_string() == 'm / (kg s)'
 
     assert 'm/s/kg' in str(warning_lines[0].message)
     assert 'discouraged' in str(warning_lines[0].message)
@@ -701,7 +701,7 @@ def test_fractional_powers():
     assert_allclose(v2, v3)
     assert_allclose(v3, v4)
 
-    x = u.m ** (1.0 / 11.0)
+    x = u.m ** (1.0 / 101.0)
     assert isinstance(x.powers[0], float)
 
     x = u.m ** (3.0 / 7.0)
@@ -712,6 +712,11 @@ def test_fractional_powers():
     x = u.cm ** Fraction(1, 2) * u.cm ** Fraction(2, 3)
     assert isinstance(x.powers[0], Fraction)
     assert x.powers[0] == Fraction(7, 6)
+
+    # Regression test for #9258.
+    x = (u.TeV ** (-2.2)) ** (1/-2.2)
+    assert isinstance(x.powers[0], Fraction)
+    assert x.powers[0] == Fraction(1, 1)
 
 
 def test_inherit_docstrings():

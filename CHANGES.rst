@@ -2474,6 +2474,12 @@ astropy.units
 
 - Fixed the LaTeX representation of units containing a superscript. [#9218]
 
+- Ensured that we simplify powers to smaller denominators if that is
+  consistent within rounding precision. [#9267]
+
+- Ensured that the powers shown in a unit's repr are always correct,
+  not oversimplified. [#9267]
+
 astropy.utils
 ^^^^^^^^^^^^^
 

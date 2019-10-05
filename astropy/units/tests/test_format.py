@@ -5,6 +5,8 @@
 Regression tests for the units.format package
 """
 
+from fractions import Fraction
+
 import pytest
 from numpy.testing import assert_allclose
 
@@ -490,3 +492,15 @@ def test_double_superscript():
     assert (u.hourangle**2).to_string("latex") == r'$\mathrm{hourangle^{2}}$'
     assert (u.electron).to_string("latex") == r'$\mathrm{e^{-}}$'
     assert (u.electron**2).to_string("latex") == r'$\mathrm{electron^{2}}$'
+
+
+@pytest.mark.parametrize('power,expected', (
+    (1., 'm'), (2., 'm2'), (-10, '1 / m10'), (1.5, 'm(3/2)'), (2/3, 'm(2/3)'),
+    (7/11, 'm(7/11)'), (-1/64, '1 / m(1/64)'), (1/100, 'm(1/100)'),
+    (2/101, 'm(0.019801980198019802)'), (Fraction(2, 101), 'm(2/101)')))
+def test_powers(power, expected):
+    """Regression test for #9279 - powers should not be oversimplified."""
+    unit = u.m ** power
+    s = unit.to_string()
+    assert s == expected
+    assert unit == s
