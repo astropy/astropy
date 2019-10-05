@@ -215,6 +215,11 @@ astropy.coordinates
 - Removed the ``recommended_units`` attribute from Representations; it was
   deprecated since 3.0. [#8892]
 
+- Removed the deprecated frame attribute classes, ``FrameAttribute``,
+  ``TimeFrameAttribute``,
+  ``QuantityFrameAttribute``,``CartesianRepresentationFrameAttribute``;
+  deprecated since 3.0. [#9326]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
