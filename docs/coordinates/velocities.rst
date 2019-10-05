@@ -162,6 +162,56 @@ the radial (line-of-sight) velocity::
     >>> icrs.radial_velocity # doctest: +FLOAT_CMP
     <Quantity 23.42 km / s>
 
+Adding Velocities to Existing Frame Objects
+===========================================
+
+Another use case similar to the above comes up when you have an existing frame
+object (or |skycoord|) and want an object with the same position but with
+velocities added. The most conceptually direct way to do this is to
+use the differential objects along with
+`~astropy.coordinates.BaseCoordinateFrame.realize_frame`. The following snippet
+accomplishes a well-defined case where the desired velocities are known in
+the Cartesian representation::
+
+    >>> icrs = ICRS(1*u.deg, 2*u.deg, distance=3*u.kpc)
+    >>> icrs # doctest: +FLOAT_CMP
+    <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
+        (1., 2., 3.)>
+    >>> vel_to_add = CartesianDifferential(4*u.km/u.s, 5*u.km/u.s, 6*u.km/u.s)
+    >>> newdata = icrs.data.to_cartesian().with_differentials(vel_to_add)
+    >>> icrs.realize_frame(newdata) # doctest: +FLOAT_CMP
+    <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
+        (1., 2., 3.)
+     (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+        (0.34662023, 0.41161335, 4.29356031)>
+
+A similar mechanism can also be used to add velocities even if full 3D coordinates
+are not available (e.g., for a radial velocity observation of an object where
+the distance is unknown). However, it requires a slightly different way of
+specifying the differentials because of the lack of explicit unit information::
+
+    >>> from astropy.coordinates import RadialDifferential
+    >>> icrs_no_distance = ICRS(1*u.deg, 2*u.deg)
+    >>> icrs_no_distance
+    <ICRS Coordinate: (ra, dec) in deg
+        (1., 2.)>
+    >>> rv_to_add = RadialDifferential(500*u.km/u.s)
+    >>> data_with_rv = icrs_no_distance.data.with_differentials({'s':rv_to_add})
+    >>> icrs_no_distance.realize_frame(data_with_rv) # doctest: +FLOAT_CMP
+    <ICRS Coordinate: (ra, dec) in deg
+        (1., 2.)
+     (radial_velocity) in km / s
+        (500.,)>
+
+Which we can see yields an object identical to what you get when you specify a
+radial velocity when you create the object::
+
+    >>> ICRS(1*u.deg, 2*u.deg, radial_velocity=500*u.km/u.s) # doctest: +FLOAT_CMP
+    <ICRS Coordinate: (ra, dec) in deg
+        (1., 2.)
+     (radial_velocity) in km / s
+        (500.,)>
+
 .. _astropy-coordinate-transform-with-velocities:
 
 Transforming Frames with Velocities
