@@ -31,6 +31,7 @@ together in a pipeline:
 
 # STDLIB
 import copy
+import uuid
 import io
 import itertools
 import os
@@ -563,34 +564,26 @@ reduce these to 2 dimensions using the naxis kwarg.
     def sub(self, axes=None):
 
         copy = self.deepcopy()
-        copy.wcs = self.wcs.sub(axes)
+
+        # We need to know which axes have been dropped, but there is no easy
+        # way to do this with the .sub function, so instead we assign UUIDs to
+        # the CNAME parameters in copy.wcs. We can later access the original
+        # CNAME properties from self.wcs.
+        cname_uuid = [str(uuid.uuid4()) for i in range(copy.wcs.naxis)]
+        copy.wcs.cname = cname_uuid
+
+        # Subset the WCS
+        copy.wcs = copy.wcs.sub(axes)
         copy.naxis = copy.wcs.naxis
 
-        # We need to adjust pixel_shape and pixel_bounds, so we need to figure
-        # out here which axes are being kept.
-        if isinstance(axes, int):
-            keep = list(range(axes))
-        else:
-            keep = []
-            for ax in axes:
-                if ax == 0:
-                    keep.append(None)
-                elif isinstance(ax, int) and ax < 1000:
-                    keep.append(ax - 1)
-                else:
-                    for icoord, coord in enumerate(self.get_axis_types()):
-                        print(ax, coord)
-                        if coord['coordinate_type'] == 'celestial':
-                            if (ax == WCSSUB_CELESTIAL or ax == 'celestial' or
-                                    ((ax == WCSSUB_LONGITUDE or ax == 'longitude') and coord['number'] == 0) or
-                                    ((ax == WCSSUB_LATITUDE or ax == 'latitude') and coord['number'] == 1)):
-                                if icoord not in keep:
-                                    keep.append(icoord)
-                        elif ((coord['coordinate_type'] == 'spectral' and (ax == WCSSUB_SPECTRAL or ax == 'spectral')) or
-                              (coord['coordinate_type'] == 'stokes' and (ax == WCSSUB_STOKES or ax == 'stokes'))):
-                            if icoord not in keep:
-                                keep.append(icoord)
+        # Construct a list of dimensions from the original WCS in the order
+        # in which they appear in the final WCS.
+        keep = [cname_uuid.index(cname) if cname in cname_uuid else None for cname in copy.wcs.cname]
 
+        # Restore the original CNAMEs
+        copy.wcs.cname = ['' if i is None else self.wcs.cname[i] for i in keep]
+
+        # Subset pixel_shape and pixel_bounds
         if self.pixel_shape:
             copy.pixel_shape = tuple([None if i is None else self.pixel_shape[i] for i in keep])
         if self.pixel_bounds:
