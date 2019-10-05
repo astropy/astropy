@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-""" This module contains helper functions for accessing, downloading, and caching data files.
-"""
+"""Functions for accessing, downloading, and caching data files."""
 
 import atexit
 import contextlib
@@ -41,7 +40,7 @@ __all__ = [
     'get_pkg_data_filenames',
     'is_url_in_cache', 'get_cached_urls',
     'cache_total_size', 'cache_contents',
-    'export_download_cache', 'import_download_cache',
+    'export_download_cache', 'import_download_cache', 'import_to_cache',
     'check_download_cache',
     'clear_download_cache',
     'compute_hash',
@@ -1269,9 +1268,9 @@ def download_files_in_parallel(urls,
         # cache was set to True because multiprocessing cannot insert the items
         # in the list of to-be-removed files. This could be fixed, but really,
         # just use the cache, with update_cache if appropriate.
-        warn("Disabling the cache does not work because of multiprocessing, "
-             "it will be set to ``True``. You may need to manually remove the "
-             "cached files with clear_download_cache() afterwards.",
+        warn('Disabling the cache does not work because of multiprocessing, '
+             'it will be set to ``"update"``. You may need to manually remove '
+             'the cached files with clear_download_cache() afterwards.',
              AstropyWarning)
         cache = "update"
 
@@ -1491,8 +1490,11 @@ def _cache_lock(pkgname):
                     os.remove(pidfn)
                 os.rmdir(lockdir)
             else:
-                msg = 'Error releasing lock. "{}" exists but is not a directory.'
-                raise RuntimeError(msg.format(lockdir))
+                msg = (
+                    'Error releasing lock. "{}" exists but is not a directory.'
+                    .format(lockdir)
+                )
+                raise RuntimeError(msg)
         else:
             # Just in case we were called from _clear_download_cache
             # or something went wrong before creating the directory
@@ -1794,6 +1796,7 @@ def export_download_cache(filename_or_obj, urls=None, pkgname='astropy'):
     See Also
     --------
     import_download_cache : import the contents of such a ZIP file
+    import_to_cache : import a single file directly
     """
     if urls is None:
         urls = get_cached_urls(pkgname)
@@ -1838,6 +1841,7 @@ def import_download_cache(filename_or_obj, urls=None, update_cache=False, pkgnam
     See Also
     --------
     export_download_cache : export the contents the cache to of such a ZIP file
+    import_to_cache : import a single file directly
     """
     block_size = 65536
     with zipfile.ZipFile(filename_or_obj, 'r') as z, TemporaryDirectory() as d:
