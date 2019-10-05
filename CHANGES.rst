@@ -485,6 +485,9 @@ Other Changes and Additions
 - Updated the bundled CFITSIO library to 3.470. See
   ``cextern/cfitsio/docs/changes.txt`` for additional information. [#9233]
 
+- The bundled ERFA was updated to version 1.6.0 (based on SOFA 20190722).
+  This includes a fix that avoids precision loss for negative JDs. [#9323]
+
 
 3.2.2 (unreleased)
 ==================
