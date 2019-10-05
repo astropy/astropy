@@ -9,12 +9,11 @@ from astropy.units import Quantity
 from astropy import units as u
 
 from astropy.wcs import WCS
-from astropy.wcs.wcsapi.utils import deserialize_class, wcs_info_str
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.wcs import WCS
 from astropy.wcs.wcsapi.utils import (deserialize_class, pixel_to_pixel,
                                       split_matrix, pixel_to_pixel_correlation_matrix,
-                                      pixel_to_world_correlation_matrix)
+                                      pixel_to_world_correlation_matrix,
+                                      wcs_info_str)
 from astropy.utils.misc import unbroadcast
 
 
@@ -260,7 +259,7 @@ def test_split_matrix():
                                   [1, 0, 1]])) == [([0, 1, 2], [0, 1, 2])]
 
 
-def test_efficient_pixel_to_pixel():
+def test_pixel_to_pixel():
 
     wcs_in = WCS(naxis=3)
     wcs_in.wcs.ctype = 'DEC--TAN', 'FREQ', 'RA---TAN'
@@ -312,11 +311,7 @@ def test_efficient_pixel_to_pixel():
     assert_allclose(Z1, Z3)
 
 
-def test_efficient_pixel_to_pixel_simple():
-
-    # Simple test to make sure that when WCS only returns one world coordinate
-    # this still works correctly (since this requires special treatment behind
-    # the scenes).
+def test_pixel_to_pixel_correlated():
 
     wcs_in = WCS(naxis=2)
     wcs_in.wcs.ctype = 'DEC--TAN', 'RA---TAN'
@@ -343,3 +338,37 @@ def test_efficient_pixel_to_pixel_simple():
 
     # and there are no efficiency gains here since the celestial axes are correlated
     assert unbroadcast(X2).shape == (20, 10)
+
+
+def test_pixel_to_pixel_1d():
+
+    # Simple test to make sure that when WCS only returns one world coordinate
+    # this still works correctly (since this requires special treatment behind
+    # the scenes).
+
+    wcs_in = WCS(naxis=1)
+    wcs_in.wcs.ctype = 'COORD1',
+    wcs_in.wcs.cunit = 'nm',
+    wcs_in.wcs.set()
+
+    wcs_out = WCS(naxis=1)
+    wcs_out.wcs.ctype = 'COORD2',
+    wcs_out.wcs.cunit = 'cm',
+    wcs_out.wcs.set()
+
+    # First try with a scalar
+    x = pixel_to_pixel(wcs_in, wcs_out, 1)
+    assert x.shape == ()
+
+    # Next with a regular array
+    x = np.linspace(10, 20, 10)
+    x = pixel_to_pixel(wcs_in, wcs_out, x)
+    assert x.shape == (10,)
+
+    # And now try with a broadcasted array
+    x = np.broadcast_to(np.linspace(10, 20, 10), (4, 10))
+    x = pixel_to_pixel(wcs_in, wcs_out, x)
+    assert x.shape == (4, 10)
+
+    # The broadcasting of the input should be retained
+    assert unbroadcast(x).shape == (10,)
