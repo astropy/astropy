@@ -101,12 +101,11 @@ def test_jd1_is_mult_of_one():
     assert np.round(t1.jd1) == t1.jd1
 
 
-@pytest.mark.xfail
 def test_precision_neg():
     """
-    Check precision when jd1 is negative.  Currently fails because ERFA
+    Check precision when jd1 is negative.  This used to fail because ERFA
     routines use a test like jd1 > jd2 to decide which component to update.
-    Should be abs(jd1) > abs(jd2).
+    It was updated to abs(jd1) > abs(jd2) in erfa 1.6 (sofa 20190722).
     """
     t1 = Time(-100000.123456, format='jd', scale='tt')
     assert np.round(t1.jd1) == t1.jd1
