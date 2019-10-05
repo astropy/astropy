@@ -183,15 +183,16 @@ STATUS_CODES['{{ func.pyname }}'] = {{ stat.doc_info.statuscodes|string }}
 {% endfor -%}
 
 
-# TODO: delete the functions below when they can get auto-generated
-# (current machinery doesn't support returning strings or non-status-codes)
+# TODO: These functions used to be needed to duplicate version information
+# in erfa; should they be deprecated in favour of just using them to create
+# ``_erfa.__version__`` or so?
 def version():
     """
     Returns the package version
     as defined in configure.ac
     in string format
     """
-    return "1.6.0"
+    return ufunc.erfa_version
 
 
 def version_major():
@@ -200,7 +201,7 @@ def version_major():
     as defined in configure.ac
     as integer
     """
-    return 1
+    return ufunc.erfa_version_major
 
 
 def version_minor():
@@ -209,7 +210,7 @@ def version_minor():
     as defined in configure.ac
     as integer
     """
-    return 6
+    return ufunc.erfa_version_minor
 
 
 def version_micro():
@@ -218,7 +219,7 @@ def version_micro():
     as defined in configure.ac
     as integer
     """
-    return 0
+    return ufunc.erfa_version_micro
 
 
 def sofa_version():
@@ -227,4 +228,4 @@ def sofa_version():
     as defined in configure.ac
     in string format
     """
-    return "20190722"
+    return ufunc.sofa_version

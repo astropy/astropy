@@ -717,6 +717,8 @@ PyMODINIT_FUNC PyInit_ufunc(void)
 {
     /* module and its dict */
     PyObject *m, *d;
+    /* version information */
+    PyObject *version, *major, *minor, *micro, *sofa_version;
     /* structured dtypes and their definition */
     PyObject *dtype_def;
     PyArray_Descr *dt_double = NULL, *dt_int = NULL;
@@ -746,7 +748,30 @@ PyMODINIT_FUNC PyInit_ufunc(void)
     if (d == NULL) {
         goto fail;
     }
-
+    /*
+     * Make the version information available in the module.
+     * Note that this gets run every time _erfa is imported,
+     * hence if the library is provided by the system rather
+     * than bundled with astropy, one correctly gets the version
+     * information from the system library.
+     */
+    version = PyUnicode_FromString(eraVersion());
+    major = PyLong_FromLong((long)eraVersionMajor());
+    minor = PyLong_FromLong((long)eraVersionMinor());
+    micro = PyLong_FromLong((long)eraVersionMicro());
+    sofa_version = PyUnicode_FromString(eraSofaVersion());
+    if (version == NULL || sofa_version == NULL ||
+            major == NULL || minor == NULL || micro == NULL) {
+        goto fail;
+    }
+    PyDict_SetItemString(d, "erfa_version", version);
+    PyDict_SetItemString(d, "erfa_version_major", major);
+    PyDict_SetItemString(d, "erfa_version_minor", minor);
+    PyDict_SetItemString(d, "erfa_version_micro", micro);
+    PyDict_SetItemString(d, "sofa_version", sofa_version);
+    /*
+     * Get ready for arrays and ufuncs
+     */
     import_array();
     import_umath();
     /*

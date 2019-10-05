@@ -10,6 +10,23 @@ from astropy.time import Time
 from astropy.tests.helper import catch_warnings
 
 
+class TestVersion:
+    def test_basic(self):
+        assert hasattr(erfa.ufunc, 'erfa_version')
+        assert isinstance(erfa.ufunc.erfa_version, str)
+
+    def test_parts(self):
+        parts = erfa.ufunc.erfa_version.split('.')
+        assert len(parts) == 3
+        for p, attr in zip(parts, ('major', 'minor', 'micro')):
+            assert int(p) == getattr(erfa.ufunc,
+                                     f'erfa_version_{attr}')
+
+    def test_sofa_version(self):
+        assert hasattr(erfa.ufunc, 'sofa_version')
+        assert isinstance(erfa.ufunc.sofa_version, str)
+
+
 def test_erfa_wrapper():
     """
     Runs a set of tests that mostly make sure vectorization is
