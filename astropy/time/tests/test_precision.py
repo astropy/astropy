@@ -3,7 +3,10 @@ import functools
 import pytest
 import numpy as np
 
+import astropy.units as u
+import astropy._erfa as erfa
 from astropy.time import Time, TimeDelta
+from astropy.time.utils import day_frac
 from astropy.utils import iers
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
@@ -133,3 +136,11 @@ def test_leap_seconds_rounded_correctly():
         assert np.all(t.iso == np.array(['2012-06-30 23:59:60.000',
                                          '2012-07-01 00:00:00.000']))
     # with the bug, both yielded '2012-06-30 23:59:60.000'
+
+
+def test_mjd_initialization_precise():
+    i, f = 65536, 3.637978807091714e-12  # Found using hypothesis
+    t = Time(val=i, val2=f, format="mjd", scale="tai")
+    jd1, jd2 = day_frac(i + erfa.DJM0, f)
+    jd1_t, jd2_t = day_frac(t.jd1, t.jd2)
+    assert (abs((jd1-jd1_t) + (jd2-jd2_t))*u.day).to(u.ns) < 1*u.ns
