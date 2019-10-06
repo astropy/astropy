@@ -377,7 +377,7 @@ class Function:
             else:
                 filecontents = f.read()
 
-        pattern = fr"\n([^\n]+{name} ?\([^)]+\)).+?(/\*.+?\*/)"
+        pattern = fr"\n([^\n=]+{name} ?\([^)]+\)).+?(/\*.+?\*/)"
         p = re.compile(pattern, flags=re.DOTALL | re.MULTILINE)
 
         search = p.search(filecontents)
