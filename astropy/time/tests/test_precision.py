@@ -138,6 +138,12 @@ def test_leap_seconds_rounded_correctly():
     # with the bug, both yielded '2012-06-30 23:59:60.000'
 
 
+def test_day_frac_harmless():
+    i, f = 65536, 3.637978807091714e-12  # Found using hypothesis
+    i_d, f_d = day_frac(i, f)
+    assert (abs((i-i_d)+(f-f_d))*u.day).to(u.ns) < 1*u.ns
+
+
 def test_mjd_initialization_precise():
     i, f = 65536, 3.637978807091714e-12  # Found using hypothesis
     t = Time(val=i, val2=f, format="mjd", scale="tai")
