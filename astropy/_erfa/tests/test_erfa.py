@@ -1,8 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import numpy as np
+from numpy.testing import assert_array_equal
 
-from astropy._erfa import core as erfa
+from astropy import _erfa as erfa
 from astropy.tests.helper import catch_warnings
 
 
@@ -238,3 +239,36 @@ def test_float32_input():
     out64 = erfa.p2s(xyz)
     out32 = erfa.p2s(xyz.astype('f4'))
     np.testing.assert_allclose(out32, out64, rtol=1.e-5)
+
+
+class TestLeapSeconds:
+    def test_get_leap_seconds(self):
+        leap_seconds = erfa.get_leap_seconds()
+        assert isinstance(leap_seconds, np.ndarray)
+        assert leap_seconds.dtype is erfa.dt_eraLEAPSECOND
+        # Very basic sanity checks.
+        assert np.all((leap_seconds['year'] >= 1960) &
+                      (leap_seconds['year'] < 3000))
+        assert np.all((leap_seconds['month'] >= 1) &
+                      (leap_seconds['month'] <= 12))
+        assert np.all(abs(leap_seconds['tai_utc'] < 1000.))
+
+    def test_reset_leap_seconds_simple(self):
+        leap_seconds = erfa.get_leap_seconds()
+        erfa.set_leap_seconds()
+        new_leap_seconds = erfa.get_leap_seconds()
+        assert_array_equal(leap_seconds, new_leap_seconds)
+
+    def test_set_leap_seconds(self):
+        assert erfa.dat(2018, 1, 1, 0.) == 37.0
+        leap_seconds = erfa.get_leap_seconds()
+        part_leap_seconds = leap_seconds[leap_seconds['year'] < 2017]
+        try:
+            erfa.set_leap_seconds(part_leap_seconds)
+            new_leap_seconds = erfa.get_leap_seconds()
+            assert_array_equal(new_leap_seconds, part_leap_seconds)
+            # Check the 2017 leap second is indeed missing.
+            assert erfa.dat(2018, 1, 1, 0.) == 36.0
+        finally:
+            erfa.set_leap_seconds()
+        assert erfa.dat(2018, 1, 1, 0.) == 37.0
