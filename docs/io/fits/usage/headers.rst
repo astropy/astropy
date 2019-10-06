@@ -181,11 +181,11 @@ to the last commentary card with the same keyword, rather than to the end of
 the header.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Manipulating FITS Headers in 'astropy.io.fits'
+  Manipulating FITS Headers in astropy.io.fits
 
 To add a new commentary card::
 
@@ -266,11 +266,11 @@ A new Card object is created with the :class:`Card` constructor:
 ``Card(key, value, comment)``.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Card Images in FITS Headers in `astropy.io.fits`
+  Card Images in FITS Headers in astropy.io.fits
 
 To create a new Card object::
 
@@ -339,11 +339,11 @@ keyword. ``astropy`` does support this convention, even though it is not a FITS
 standard.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  CONTINUE Cards for Long String Values in `astropy.io.fits`
+  CONTINUE Cards for Long String Values in astropy.io.fits
 
 The examples below show that the use of CONTINUE is automatic for long
 string values::
@@ -395,11 +395,11 @@ displaying a warning. Once created, HIERARCH keywords can be accessed like any
 other: ``hdr['abcdefghi']``, without prepending 'HIERARCH' to the keyword.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  HIERARCH Cards for Keywords Longer than Eight Characters in `astropy.io.fits`
+  HIERARCH Cards for Keywords Longer than Eight Characters in astropy.io.fits
 
 ``astropy`` will use a HIERARCH card and issue a warning when keywords contain
 more than eight characters::
