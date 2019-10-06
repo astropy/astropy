@@ -31,11 +31,11 @@ ordered from slow to fast. So, if a FITS image has NAXIS1=300 and NAXIS2=400,
 the ``numpy`` array of its data will have the shape of (400, 300).
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Image Data as an Array in `astropy.io.fits`
+  Image Data as an Array in astropy.io.fits
 
 Here is a summary of reading and updating image data values::
 
@@ -115,12 +115,11 @@ For integer data type, the scaled data will always be single precision floating
 point (``numpy.float32``).
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Reading Scaled Image Data with `astropy.io.fits`
-  Needs better lead in sentence?
+  Reading Scaled Image Data with astropy.io.fits
 
 Here is an example of what happens to scaled data, before and after the data is
 touched::
@@ -178,11 +177,11 @@ scaled data as much as possible. However, ``astropy`` does provide ways to
 write scaled data with the `~ImageHDU.scale` method.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Writing Scaled Image Data in 'astropy.io.fits'
+  Writing Scaled Image Data in astropy.io.fits
 
 To write scaled data with the `~ImageHDU.scale` method::
 
@@ -240,11 +239,11 @@ Memmap is also insufficient for loading images larger than 2 to 4 GB on a 32-bit
 system — in such cases it may be necessary to use sections.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Data Sections in `astropy.io.fits`
+  Data Sections in astropy.io.fits
 
 Here is an example of getting the median image from three input images of the
 size 5000x5000.
