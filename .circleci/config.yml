@@ -58,7 +58,7 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl --mpl-results-path=$PWD/results"
+          command: python3 setup.py test -P visualization --remote-data -a "--mpl --mpl-results-path=$PWD/results"
       - store_artifacts:
           path: results
 
