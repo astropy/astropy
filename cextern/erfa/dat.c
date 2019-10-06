@@ -1,14 +1,5 @@
 #include "erfa.h"
-#include "erfaextra.h"
-
-static eraLEAPSECOND *changes = 0;
-static int NDAT = 0;
-
-void eraUpdateLeapSeconds(eraLEAPSECOND *leapseconds, int count)
-{
-   changes = leapseconds;
-   NDAT = count;
-}
+#include "erfadatextra.h"
 
 int eraDat(int iy, int im, int id, double fd, double *deltat)
 /*
@@ -202,11 +193,11 @@ int eraDat(int iy, int im, int id, double fd, double *deltat)
 /* Number of Delta(AT) changes */
    enum { _NDAT = (int) (sizeof _changes / sizeof _changes[0]) };
 
-/* Initialise leap seconds if needed */
-   if ( NDAT == 0) {
-      NDAT = _NDAT;
-      changes = (eraLEAPSECOND *)_changes;
-   }
+/* Get/initialise leap-second if needed */
+   int NDAT;
+   eraLEAPSECOND *changes;
+
+   NDAT = eraDatini(_changes, _NDAT, &changes);
 
 /* Miscellaneous local variables */
    int j, i, m;
