@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 from collections import OrderedDict
 
 import pytest
@@ -15,23 +14,11 @@ from astropy.utils.metadata import MergeConflictError
 from astropy import table
 from astropy.time import Time
 from astropy.coordinates import SkyCoord
+from astropy.io.misc.asdf.tags.helpers import skycoord_equal
 
 
 def sort_eq(list1, list2):
     return sorted(list1) == sorted(list2)
-
-
-def skycoord_equal(sc1, sc2):
-    if not sc1.is_equivalent_frame(sc2):
-        return False
-    if sc1.representation_type is not sc2.representation_type:
-        return False
-    if sc1.shape != sc2.shape:
-        return False  # Maybe raise ValueError corresponding to future numpy behavior
-    eq = np.ones(shape=sc1.shape, dtype=bool)
-    for comp in sc1.data.components:
-        eq &= getattr(sc1.data, comp) == getattr(sc2.data, comp)
-    return np.all(eq)
 
 
 class TestJoin():
