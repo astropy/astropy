@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2016-2017, NumFOCUS Foundation. 
+** Copyright (C) 2016-2017, NumFOCUS Foundation.
 **
 ** Licensed under a 3-clause BSD style license - see LICENSE
 **
@@ -15,35 +15,35 @@ extern "C" {
 #endif
 
 
-/* 
+/*
 ** Returns the package version
 ** as defined in configure.ac
 ** in string format
 */
 const char* eraVersion(void);
 
-/* 
+/*
 ** Returns the package major version
 ** as defined in configure.ac
 ** as integer
 */
 int eraVersionMajor(void);
 
-/* 
+/*
 ** Returns the package minor version
 ** as defined in configure.ac
 ** as integer
 */
 int eraVersionMinor(void);
 
-/* 
+/*
 ** Returns the package micro version
 ** as defined in configure.ac
 ** as integer
 */
 int eraVersionMicro(void);
 
-/* 
+/*
 ** Returns the orresponding SOFA version
 ** as defined in configure.ac
 ** in string format
@@ -52,14 +52,14 @@ const char* eraSofaVersion(void);
 
 
 
-/* 
-** Update leap seconds (not supported by SOFA)
+/*
+** Get and set leap seconds (not supported by SOFA)
 */
-void eraUpdateLeapSeconds(eraLEAPSECOND *leapseconds, int count);
+int eraGetLeapSeconds(eraLEAPSECOND **leapseconds);
+void eraSetLeapSeconds(eraLEAPSECOND *leapseconds, int count);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* _ERFA_EXTRA_H */
-

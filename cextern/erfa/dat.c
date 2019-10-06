@@ -1,13 +1,28 @@
 #include "erfa.h"
 #include "erfaextra.h"
+#include <stddef.h>
 
-static eraLEAPSECOND *changes = 0;
+static eraLEAPSECOND *changes = NULL;
 static int NDAT = 0;
 
-void eraUpdateLeapSeconds(eraLEAPSECOND *leapseconds, int count)
+int eraGetLeapSeconds(eraLEAPSECOND **leapseconds)
 {
-   changes = leapseconds;
-   NDAT = count;
+    if (NDAT == 0) {
+        double delat;
+        int stat = eraDat(2000, 1, 1, 0., &delat);
+        if (stat != 0 || NDAT == 0) {
+            *leapseconds = NULL;
+            return -1;
+        }
+    }
+    *leapseconds = changes;
+    return NDAT;
+}
+
+void eraSetLeapSeconds(eraLEAPSECOND *leapseconds, int count)
+{
+    changes = leapseconds;
+    NDAT = count;
 }
 
 int eraDat(int iy, int im, int id, double fd, double *deltat)
@@ -203,7 +218,7 @@ int eraDat(int iy, int im, int id, double fd, double *deltat)
    enum { _NDAT = (int) (sizeof _changes / sizeof _changes[0]) };
 
 /* Initialise leap seconds if needed */
-   if ( NDAT == 0) {
+   if (NDAT == 0) {
       NDAT = _NDAT;
       changes = (eraLEAPSECOND *)_changes;
    }
