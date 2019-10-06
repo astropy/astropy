@@ -13,11 +13,11 @@ The |write| function provides a way to write a data table as a
 formatted ASCII table.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Writing ASCII Tables Using 'astropy.io.ascii'
+  Writing ASCII Tables Using astropy.io.ascii
 
 To write a formatted ASCII table using the |write| function::
 
@@ -68,21 +68,20 @@ initializing a |Table| object. This is documented in detail in the
 columns, a dictionary of columns, or from `NumPy` arrays (either structured or
 homogeneous).
 
-Example
-=======
-
-..
-  EXAMPLE START
-  Input Data Format for Creating Tables
-  Does this one need more context or lead in?
-
 Table or NumPy Structured Array
 -------------------------------
 
 An Astropy |Table| object or a NumPy `structured array`_ (or record array) can
 serve as input to the |write| function.
 
-::
+Example
+-------
+
+..
+  EXAMPLE START
+  Creating a Table with a NumPy Structured Array or an Existing Table
+
+To create a table with a ``numpy`` structured array or an existing table::
 
     >>> from astropy.io import ascii
     >>> from astropy.table import Table
@@ -114,19 +113,11 @@ object that can be an input to the |write| function.
 ..
   EXAMPLE END
 
-List of Lists
--------------
+List of ``list`` Objects
+------------------------
 
-A list of Python lists (or any iterable object) can be used as input.
-
-Example
-=======
-
-..
-  EXAMPLE START
-  Lists Used as Input for Writing Tables
-
-To use a list of Python lists as input::
+A list of Python ``list`` objects (or any iterable object) can be used as
+input::
 
     >>> x = [1, 2, 3]
     >>> y = [4, 5.2, 6.1]
@@ -150,11 +141,8 @@ from the output::
     2 world
     3 !!!
 
-..
-  EXAMPLE END
-
-Dict of Lists
--------------
+``dict`` of ``list`` Objects
+----------------------------
 
 A dictionary containing iterable objects can serve as input to |write|. Each
 dict key is taken as the column name while the value must be an iterable object
@@ -163,7 +151,14 @@ containing the corresponding column values.
 Since a Python dictionary is not ordered, the output column order will be
 unpredictable unless the ``names`` argument is provided.
 
-::
+Example
+-------
+
+..
+  EXAMPLE START
+  Writing a Table from a dict of list Objects
+
+To write a table from a ``dict`` of ``list`` objects::
 
     >>> data = {'x': [1, 2, 3],
     ...         'y': [4, 5.2, 6.1],
@@ -174,6 +169,8 @@ unpredictable unless the ``names`` argument is provided.
     2 5.2 world
     3 6.1 !!!
 
+..
+  EXAMPLE END
 
 .. _io_ascii_write_parameters:
 
@@ -349,14 +346,14 @@ original column. For example, a `~astropy.coordinates.SkyCoord` mixin column in
 ``frame``.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Using ECSV Format to Write ''astropy'' Tables
-  Maybe needs more context?
+  Writing a Table with a SkyCoord Column in ECSV Format
 
-To store a mixin column::
+Creating a table with a SkyCoord column can be accomplished with a mixin
+column, which is supported by `ECSV <https://docs.astropy.org/en/stable/api/astropy.io.ascii.Ecsv.html>`_. To store a mixin column::
 
   >>> from astropy.io import ascii
   >>> from astropy.coordinates import SkyCoord
@@ -439,12 +436,11 @@ shown in the example below. For further context see the section on
 :ref:`table_serialization_methods`.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Using ECSV Format to Write ''astropy'' Tables with Masked or Missing Data
-  Maybe needs more context/unsure about this one
+  Using ECSV Format to Write Astropy Tables with Masked or Missing Data
 
 To specify that the full data and the mask itself should be written as columns
 in the output table::
