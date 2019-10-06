@@ -1,17 +1,8 @@
-2.0.15 (unreleased)
+2.0.15 (2019-10-06)
 ===================
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -20,33 +11,12 @@ astropy.coordinates
   object could become garbled under specific circumstances when the frame
   defines custom component names via ``RepresentationMapping``. [#8869]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
 - Fix uint conversion in ``FITS_rec`` when slicing a table. [#8982]
 
 - Fix reading of unsigned 8-bit integer with compressed fits. [#9219]
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
 
 astropy.nddata
 ^^^^^^^^^^^^^^
@@ -65,9 +35,6 @@ astropy.samp
 - Fixed a bug that caused an incorrectly constructed warning message
   to raise an error. [#8966]
 
-astropy.stats
-^^^^^^^^^^^^^
-
 astropy.table
 ^^^^^^^^^^^^^
 
@@ -77,12 +44,6 @@ astropy.table
 - Fix bug when initializing ``Table`` with ``rows`` as a generator. [#9315]
 
 - Fix ``join`` when there are multiple mixin (Quantity) columns as keys. [#9313]
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
 
 astropy.units
 ^^^^^^^^^^^^^
@@ -96,19 +57,10 @@ astropy.units
 
 - Fixed the LaTeX representation of units containing a superscript. [#9218]
 
-astropy.utils
-^^^^^^^^^^^^^
-
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
 - Fixed compatibility issues with latest versions of Matplotlib. [#8961]
-
-astropy.vo
-^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
 
 
 Other Changes and Additions
@@ -117,6 +69,8 @@ Other Changes and Additions
 - Updated required version of Cython to v0.29.13 to make sure that
   generated C files are compatible with the upcoming Python 3.8 release
   as well as earlier supported versions of Python. [#9198]
+
+
 
 2.0.14 (2019-06-14)
 ===================
