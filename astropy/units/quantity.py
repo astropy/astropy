@@ -1207,8 +1207,7 @@ class Quantity(np.ndarray):
 
     def __repr__(self):
         prefixstr = '<' + self.__class__.__name__ + ' '
-        sep = ', '
-        arrstr = np.array2string(self.view(np.ndarray), separator=sep,
+        arrstr = np.array2string(self.view(np.ndarray), separator=', ',
                                  prefix=prefixstr)
         return f'{prefixstr}{arrstr}{self._unitstr:s}>'
 

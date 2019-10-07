@@ -480,7 +480,6 @@ def where(condition, *args):
     return (condition,) + args, {}, unit, None
 
 
-# Quantile was only introduced in numpy 1.15.
 @function_helper(helps=({np.quantile, np.nanquantile}))
 def quantile(a, q, *args, _q_unit=dimensionless_unscaled, **kwargs):
     if len(args) >= 2:

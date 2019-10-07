@@ -587,8 +587,7 @@ def array_repr_oneline(array):
     """
     Represents a multi-dimensional Numpy array flattened onto a single line.
     """
-    sep = ', '
-    r = np.array2string(array, separator=sep, suppress_small=True)
+    r = np.array2string(array, separator=', ', suppress_small=True)
     return ' '.join(l.strip() for l in r.splitlines())
 
 
