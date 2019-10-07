@@ -74,7 +74,7 @@ offsets encountered in astronomy.
 The first piece of such functionality is the
 :meth:`~astropy.coordinates.SkyCoord.position_angle` method. This method
 computes the position angle between one
-|skycoord| instance and another (passed as the argument) following the 
+|skycoord| instance and another (passed as the argument) following the
 astronomy convention (positive angles East of North)::
 
     >>> from astropy import units as u
@@ -98,6 +98,22 @@ directional offsets. To do the inverse operation — determining the new
     >>> c1.directional_offset_by(position_angle, separation)  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
         (2.0004075, 1.99964588)>
+
+This technique is also useful for computing the midpoint (or indeed any point)
+along between two coordinates in a way that accounts for spherical geometry
+(i.e., instead of averaging the ras/decs separately)::
+
+    >>> from astropy import units as u
+    >>> from astropy.coordinates import SkyCoord
+    >>> coord1 = SkyCoord(0*u.deg, 0*u.deg, frame='icrs')
+    >>> coord2 = SkyCoord(1*u.deg, 1*u.deg, frame='icrs')
+    >>> pa = coord1.position_angle(coord2)
+    >>> sep = coord1.separation(coord2)
+    >>> coord1.directional_offset_by(pa, sep/2)  # doctest: +FLOAT_CMP
+    <SkyCoord (ICRS): (ra, dec) in deg
+        (0.49996192, 0.50001904)>
+
+
 
 There is also a :meth:`~astropy.coordinates.SkyCoord.spherical_offsets_to`
 method for computing angular offsets (e.g., small shifts like you might give a
