@@ -946,11 +946,11 @@ def test_no_unnecessary_copies():
 def test_representation_repr():
     r1 = SphericalRepresentation(lon=1 * u.deg, lat=2.5 * u.deg, distance=1 * u.kpc)
     assert repr(r1) == ('<SphericalRepresentation (lon, lat, distance) in (deg, deg, kpc)\n'
-                        '    ({})>').format('1., 2.5, 1.')
+                        '    (1., 2.5, 1.)>')
 
     r2 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
     assert repr(r2) == ('<CartesianRepresentation (x, y, z) in kpc\n'
-                        '    ({})>').format('1., 2., 3.')
+                        '    (1., 2., 3.)>')
 
     r3 = CartesianRepresentation(x=[1, 2, 3] * u.kpc, y=4 * u.kpc, z=[9, 10, 11] * u.kpc)
     assert repr(r3) == ('<CartesianRepresentation (x, y, z) in kpc\n'
