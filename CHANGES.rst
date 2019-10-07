@@ -2598,6 +2598,9 @@ astropy.coordinates
   object could become garbled under specific circumstances when the frame
   defines custom component names via ``RepresentationMapping``. [#8869]
 
+- Changed the timescale in ICRS to CIRS from 'tdb' to 'tt' conversion and vice-versa,
+  as the erfa function that gets called in the process, pnm06a accepts time in TT. [#9079]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
