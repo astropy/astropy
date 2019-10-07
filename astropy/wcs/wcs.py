@@ -31,6 +31,7 @@ together in a pipeline:
 
 # STDLIB
 import copy
+import uuid
 import io
 import itertools
 import os
@@ -561,10 +562,35 @@ reduce these to 2 dimensions using the naxis kwarg.
         return copy.deepcopy(self)
 
     def sub(self, axes=None):
+
         copy = self.deepcopy()
-        copy.wcs = self.wcs.sub(axes)
+
+        # We need to know which axes have been dropped, but there is no easy
+        # way to do this with the .sub function, so instead we assign UUIDs to
+        # the CNAME parameters in copy.wcs. We can later access the original
+        # CNAME properties from self.wcs.
+        cname_uuid = [str(uuid.uuid4()) for i in range(copy.wcs.naxis)]
+        copy.wcs.cname = cname_uuid
+
+        # Subset the WCS
+        copy.wcs = copy.wcs.sub(axes)
         copy.naxis = copy.wcs.naxis
+
+        # Construct a list of dimensions from the original WCS in the order
+        # in which they appear in the final WCS.
+        keep = [cname_uuid.index(cname) if cname in cname_uuid else None for cname in copy.wcs.cname]
+
+        # Restore the original CNAMEs
+        copy.wcs.cname = ['' if i is None else self.wcs.cname[i] for i in keep]
+
+        # Subset pixel_shape and pixel_bounds
+        if self.pixel_shape:
+            copy.pixel_shape = tuple([None if i is None else self.pixel_shape[i] for i in keep])
+        if self.pixel_bounds:
+            copy.pixel_bounds = [None if i is None else self.pixel_bounds[i] for i in keep]
+
         return copy
+
     if _wcs is not None:
         sub.__doc__ = _wcs.Wcsprm.sub.__doc__
 
