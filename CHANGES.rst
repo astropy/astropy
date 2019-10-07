@@ -173,6 +173,12 @@ astropy.table
 - Fix a problem where mask was dropped when creating a ``MaskedColumn``
   from a list of ``MaskedArray`` objects. [#8826]
 
+astropy.wcs
+^^^^^^^^^^^
+
+- Added ``None`` to be displayed as a ``world_axis_physical_types`` in
+  the ``WCS`` repr, as ``None`` values are now supported in ``APE14``. [#8811]
+
 
 
 3.2 (2019-06-10)
@@ -581,9 +587,6 @@ astropy.wcs
 - Do not attempt to delete repeated distortion keywords multiple times when
   loading distortions with ``_read_distortion_kw`` and
   ``_read_det2im_kw``. [#8777]
-
-- Added ``None`` to be displayed as a ``world_axis_physical_types`` in
-  the ``WCS`` repr, as ``None`` values are now supported in ``APE14``. [#8811]
 
 
 Other Changes and Additions
