@@ -1,9 +1,15 @@
 import functools
 
+import decimal
 import pytest
 import numpy as np
+from decimal import Decimal
 
+from ... import units as u
+from ... import _erfa as erfa
 from .. import Time, TimeDelta
+from ..utils import day_frac, two_sum
+
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
 allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,
@@ -120,3 +126,35 @@ def test_leap_seconds_rounded_correctly():
     assert np.all(t.iso == np.array(['2012-06-30 23:59:60.000',
                                      '2012-07-01 00:00:00.000']))
     # with the bug, both yielded '2012-06-30 23:59:60.000'
+
+
+def test_two_sum_simple():
+    with decimal.localcontext(decimal.Context(prec=40)):
+        i, f = 65536, 3.637978807091714e-12
+        a = Decimal(i) + Decimal(f)
+        s, r = two_sum(i, f)
+        b = Decimal(s) + Decimal(r)
+        assert (abs(a-b)*u.day).to(u.ns) < 1*u.ns
+
+
+def test_day_frac_harmless():
+    with decimal.localcontext(decimal.Context(prec=40)):
+        i, f = 65536, 3.637978807091714e-12
+        a = Decimal(i) + Decimal(f)
+        i_d, f_d = day_frac(i, f)
+        a_d = Decimal(i_d) + Decimal(f_d)
+        assert (abs(a-a_d)*u.day).to(u.ns) < 1*u.ns
+
+
+def test_day_frac_idempotent():
+    i, f = 65536, 3.637978807091714e-12
+    i_d, f_d = day_frac(i, f)
+    assert i_d, f_d == day_frac(i_d, f_d)
+
+
+def test_mjd_initialization_precise():
+    i, f = 65536, 3.637978807091714e-12  # Found using hypothesis
+    t = Time(val=i, val2=f, format="mjd", scale="tai")
+    jd1, jd2 = day_frac(i + erfa.DJM0, f)
+    jd1_t, jd2_t = day_frac(t.jd1, t.jd2)
+    assert (abs((jd1-jd1_t) + (jd2-jd2_t))*u.day).to(u.ns) < 1*u.ns

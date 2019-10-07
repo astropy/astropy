@@ -111,10 +111,10 @@ def two_sum(a, b):
         Approximate sum of a + b and the exact floating point error
     """
     x = a + b
-    eb = x - a
-    eb = b - eb
-    ea = x - b
-    ea = a - ea
+    eb = x - a  # bvirtual in Shewchuk
+    ea = x - eb  # avirtual in Shewchuk
+    eb = b - eb  # broundoff in Shewchuk
+    ea = a - ea  # aroundoff in Shewchuk
     return x, ea + eb
 
 

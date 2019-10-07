@@ -1,3 +1,13 @@
+2.0.16 (unreleased)
+===================
+
+astropy.time
+^^^^^^^^^^^^
+
+- Fixed a troubling bug in which ``Time`` could loose precision, with deviations
+  of 300 ns. [#9328]
+
+
 2.0.15 (2019-10-06)
 ===================
 
