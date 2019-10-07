@@ -7,7 +7,6 @@ import numpy as np
 
 from astropy.cosmology import core, funcs
 from astropy.units import allclose
-from astropy.utils.compat import NUMPY_LT_1_14
 from astropy import constants as const
 from astropy import units as u
 
@@ -315,29 +314,26 @@ def test_repr():
     """ Test string representation of built in classes"""
     cosmo = core.LambdaCDM(70, 0.3, 0.5, Tcmb0=2.725)
     expected = ('LambdaCDM(H0=70 km / (Mpc s), Om0=0.3, '
-                'Ode0=0.5, Tcmb0=2.725 K, Neff=3.04, m_nu=[{}] eV, '
-                'Ob0=None)').format(' 0.  0.  0.' if NUMPY_LT_1_14 else
-                                    '0. 0. 0.')
+                'Ode0=0.5, Tcmb0=2.725 K, Neff=3.04, m_nu=[0. 0. 0.] eV, '
+                'Ob0=None)')
     assert str(cosmo) == expected
 
     cosmo = core.LambdaCDM(70, 0.3, 0.5, Tcmb0=2.725, m_nu=u.Quantity(0.01, u.eV))
     expected = ('LambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Ode0=0.5, '
-                'Tcmb0=2.725 K, Neff=3.04, m_nu=[{}] eV, '
-                'Ob0=None)').format(' 0.01  0.01  0.01' if NUMPY_LT_1_14 else
-                                    '0.01 0.01 0.01')
+                'Tcmb0=2.725 K, Neff=3.04, m_nu=[0.01 0.01 0.01] eV, '
+                'Ob0=None)')
     assert str(cosmo) == expected
 
     cosmo = core.FlatLambdaCDM(50.0, 0.27, Tcmb0=3, Ob0=0.05)
     expected = ('FlatLambdaCDM(H0=50 km / (Mpc s), Om0=0.27, '
-                'Tcmb0=3 K, Neff=3.04, m_nu=[{}] eV, Ob0=0.05)').format(
-                    ' 0.  0.  0.' if NUMPY_LT_1_14 else '0. 0. 0.')
+                'Tcmb0=3 K, Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=0.05)')
+
     assert str(cosmo) == expected
 
     cosmo = core.wCDM(60.0, 0.27, 0.6, Tcmb0=2.725, w0=-0.8, name='test1')
     expected = ('wCDM(name="test1", H0=60 km / (Mpc s), Om0=0.27, '
                 'Ode0=0.6, w0=-0.8, Tcmb0=2.725 K, Neff=3.04, '
-                'm_nu=[{}] eV, Ob0=None)').format(
-                    ' 0.  0.  0.' if NUMPY_LT_1_14 else '0. 0. 0.')
+                'm_nu=[0. 0. 0.] eV, Ob0=None)')
     assert str(cosmo) == expected
 
     cosmo = core.FlatwCDM(65.0, 0.27, w0=-0.6, name='test2')
@@ -348,8 +344,7 @@ def test_repr():
     cosmo = core.w0waCDM(60.0, 0.25, 0.4, w0=-0.6, Tcmb0=2.725, wa=0.1, name='test3')
     expected = ('w0waCDM(name="test3", H0=60 km / (Mpc s), Om0=0.25, '
                 'Ode0=0.4, w0=-0.6, wa=0.1, Tcmb0=2.725 K, Neff=3.04, '
-                'm_nu=[{}] eV, Ob0=None)').format(
-                    ' 0.  0.  0.' if NUMPY_LT_1_14 else '0. 0. 0.')
+                'm_nu=[0. 0. 0.] eV, Ob0=None)')
     assert str(cosmo) == expected
 
     cosmo = core.Flatw0waCDM(55.0, 0.35, w0=-0.9, wa=-0.2, name='test4',
@@ -370,9 +365,7 @@ def test_repr():
                          m_nu=u.Quantity([0.001, 0.01, 0.015], u.eV))
     expected = ('w0wzCDM(H0=55 km / (Mpc s), Om0=0.4, Ode0=0.8, w0=-1.05, '
                 'wz=-0.2 Tcmb0=2.725 K, Neff=3.04, '
-                'm_nu=[{}] eV, Ob0=None)').format(
-                    ' 0.001  0.01   0.015' if NUMPY_LT_1_14 else
-                    '0.001 0.01  0.015')
+                'm_nu=[0.001 0.01  0.015] eV, Ob0=None)')
     assert str(cosmo) == expected
 
 

@@ -2,7 +2,6 @@ import os
 import re
 
 from astropy.table.scripts import showtable
-from astropy.utils.compat import NUMPY_LT_1_14
 
 ROOT = os.path.abspath(os.path.dirname(__file__))
 ASCII_ROOT = os.path.join(ROOT, '..', '..', 'io', 'ascii', 'tests')
@@ -30,18 +29,11 @@ def test_info(capsys):
 def test_stats(capsys):
     showtable.main([os.path.join(FITS_ROOT, 'data/table.fits'), '--stats'])
     out, err = capsys.readouterr()
-    if NUMPY_LT_1_14:
-        expected = ['<Table length=3>',
-                    ' name    mean    std   min  max ',
-                    '------ ------- ------- ---- ----',
-                    'target      --      --   --   --',
-                    ' V_mag 12.8667 1.72111 11.1 15.2']
-    else:
-        expected = ['<Table length=3>',
-                    ' name     mean      std    min  max ',
-                    '------ --------- --------- ---- ----',
-                    'target        --        --   --   --',
-                    ' V_mag 12.86666[0-9]? 1.7211105 11.1 15.2']
+    expected = ['<Table length=3>',
+                ' name     mean      std    min  max ',
+                '------ --------- --------- ---- ----',
+                'target        --        --   --   --',
+                ' V_mag 12.86666[0-9]? 1.7211105 11.1 15.2']
 
     out = out.splitlines()
     assert out[:4] == expected[:4]
@@ -64,18 +56,11 @@ def test_fits_hdu(capsys):
     showtable.main([os.path.join(FITS_ROOT, 'data/zerowidth.fits'),
                     '--hdu', 'AIPS OF'])
     out, err = capsys.readouterr()
-    if NUMPY_LT_1_14:
-        assert out.startswith(
-            '  TIME   SOURCE ID ANTENNA NO. SUBARRAY FREQ ID ANT FLAG STATUS 1\n'
-            '  DAYS                                                           \n'
-            '-------- --------- ----------- -------- ------- -------- --------\n'
-            '0.144387         1          10        1       1        4        4\n')
-    else:
-        assert out.startswith(
-            '   TIME    SOURCE ID ANTENNA NO. SUBARRAY FREQ ID ANT FLAG STATUS 1\n'
-            '   DAYS                                                            \n'
-            '---------- --------- ----------- -------- ------- -------- --------\n'
-            '0.14438657         1          10        1       1        4        4\n')
+    assert out.startswith(
+        '   TIME    SOURCE ID ANTENNA NO. SUBARRAY FREQ ID ANT FLAG STATUS 1\n'
+        '   DAYS                                                            \n'
+        '---------- --------- ----------- -------- ------- -------- --------\n'
+        '0.14438657         1          10        1       1        4        4\n')
 
 
 def test_csv(capsys):

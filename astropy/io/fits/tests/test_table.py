@@ -18,7 +18,6 @@ except ImportError:
 
 from astropy.io import fits
 from astropy.tests.helper import catch_warnings, ignore_warnings
-from astropy.utils.compat import NUMPY_LT_1_14_1, NUMPY_LT_1_14_2
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from astropy.io.fits.column import Delayed, NUMPY2FITS
@@ -845,8 +844,6 @@ class TestTableFunctions(FitsTestCase):
             assert header['TNULL2'] == 'b'
             assert header['TNULL3'] == 2.3
 
-    @pytest.mark.xfail(not NUMPY_LT_1_14_1 and NUMPY_LT_1_14_2,
-        reason="See https://github.com/astropy/astropy/issues/7214")
     def test_mask_array(self):
         t = fits.open(self.data('table.fits'))
         tbdata = t[1].data
@@ -857,7 +854,6 @@ class TestTableFunctions(FitsTestCase):
 
         hdul = fits.open(self.temp('newtable.fits'))
 
-        # numpy >= 1.12 changes how structured arrays are printed, so we
         # match to a regex rather than a specific string.
         expect = r"\[\('NGC1002',\s+12.3[0-9]*\) \(\'NGC1003\',\s+15.[0-9]+\)\]"
         assert re.match(expect, str(hdu.data))

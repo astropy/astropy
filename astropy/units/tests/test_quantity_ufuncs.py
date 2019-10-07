@@ -435,8 +435,6 @@ class TestQuantityMathFuncs:
         assert np.all(np.power(np.arange(4.) * u.m, 0.) ==
                       1. * u.dimensionless_unscaled)
 
-    # float_power only introduced in numpy 1.12
-    @pytest.mark.skipif("not hasattr(np, 'float_power')")
     def test_float_power_array(self):
         assert np.all(np.float_power(np.array([1., 2., 3.]) * u.m, 3.)
                       == np.array([1., 8., 27.]) * u.m ** 3)
@@ -780,8 +778,7 @@ class TestInplaceUfuncs:
         np.modf(v3, v3, tmp)
         assert check3 is v3
         assert check3.unit == u.dimensionless_unscaled
-        # And now, with numpy >= 1.13, one can also replace input with
-        # first output when scaling
+        # can also replace input with first output when scaling
         v4 = v_copy.copy()
         check4 = v4
         np.modf(v4, v4, tmp)

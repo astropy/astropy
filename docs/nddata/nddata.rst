@@ -321,13 +321,10 @@ Converting the ``data``  and ``mask`` to a MaskedArray::
 
 
     >>> masked_array = np.ma.array(ndd.data, mask=ndd.mask)
-    >>> masked_array  # doctest: +SKIP
+    >>> masked_array
     masked_array(data=[--, 2, 3, --],
                  mask=[ True, False, False,  True],
            fill_value=999999)
-
-.. above and below, skipped masked_array tests can be included when we know
-   "not NUMPY_LT_1_14"
 
 `~astropy.units.Quantity`
 -------------------------

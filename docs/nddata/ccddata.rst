@@ -1,6 +1,5 @@
 .. _ccddata:
 
-.. skipped masked_array tests can be included when we know "not NUMPY_LT_1_14"
 
 CCDData class
 =============
@@ -80,7 +79,7 @@ A `~astropy.nddata.CCDData` object behaves like a numpy array (masked if the
 data (ignoring any mask) is accessed through ``data`` attribute:
 
     >>> ccd_masked = CCDData([1, 2, 3], unit="adu", mask=[0, 0, 1])
-    >>> 2 * np.ones(3) * ccd_masked   # one return value will be masked  # doctest: +SKIP
+    >>> 2 * np.ones(3) * ccd_masked   # one return value will be masked
     masked_array(data=[2.0, 4.0, --],
                  mask=[False, False,  True],
            fill_value=1e+20)
@@ -91,7 +90,7 @@ You can force conversion to a numpy array with:
 
     >>> np.asarray(ccd_masked)
     array([1, 2, 3])
-    >>> np.ma.array(ccd_masked.data, mask=ccd_masked.mask)  # doctest: +SKIP
+    >>> np.ma.array(ccd_masked.data, mask=ccd_masked.mask)
     masked_array(data=[1, 2, --],
                  mask=[False, False,  True],
            fill_value=999999)
