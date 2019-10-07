@@ -57,6 +57,12 @@ def pytest_configure(config):
     os.mkdir(os.path.join(os.environ['XDG_CONFIG_HOME'], 'astropy'))
     os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
 
+    config.option.astropy_header = True
+
+    PYTEST_HEADER_MODULES['Cython'] = 'cython'
+    PYTEST_HEADER_MODULES['Scikit-image'] = 'skimage'
+    PYTEST_HEADER_MODULES['asdf'] = 'asdf'
+
 
 def pytest_unconfigure(config):
     builtins._pytest_running = False
@@ -74,11 +80,6 @@ def pytest_unconfigure(config):
         os.environ.pop('XDG_CACHE_HOME')
     else:
         os.environ['XDG_CACHE_HOME'] = builtins._xdg_cache_home_orig
-
-
-PYTEST_HEADER_MODULES['Cython'] = 'cython'
-PYTEST_HEADER_MODULES['Scikit-image'] = 'skimage'
-PYTEST_HEADER_MODULES['asdf'] = 'asdf'
 
 
 def pytest_terminal_summary(terminalreporter):

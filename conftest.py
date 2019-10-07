@@ -11,10 +11,6 @@ import tempfile
 from astropy.tests.plugins.display import PYTEST_HEADER_MODULES
 import astropy
 
-pytest_plugins = [
-    'astropy.tests.plugins.display',
-]
-
 if find_spec('asdf') is not None:
     from asdf import __version__ as asdf_version
     if asdf_version >= astropy.__minimum_asdf_version__:
