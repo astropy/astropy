@@ -1,12 +1,14 @@
 import functools
 
+import decimal
 import pytest
 import numpy as np
+from decimal import Decimal
 
 import astropy.units as u
 import astropy._erfa as erfa
 from astropy.time import Time, TimeDelta
-from astropy.time.utils import day_frac
+from astropy.time.utils import day_frac, two_sum
 from astropy.utils import iers
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
@@ -138,10 +140,28 @@ def test_leap_seconds_rounded_correctly():
     # with the bug, both yielded '2012-06-30 23:59:60.000'
 
 
+def test_two_sum_simple():
+    with decimal.localcontext(decimal.Context(prec=40)):
+        i, f = 65536, 3.637978807091714e-12
+        a = Decimal(i) + Decimal(f)
+        s, r = two_sum(i, f)
+        b = Decimal(s) + Decimal(r)
+        assert (abs(a-b)*u.day).to(u.ns) < 1*u.ns
+
+
 def test_day_frac_harmless():
-    i, f = 65536, 3.637978807091714e-12  # Found using hypothesis
+    with decimal.localcontext(decimal.Context(prec=40)):
+        i, f = 65536, 3.637978807091714e-12
+        a = Decimal(i) + Decimal(f)
+        i_d, f_d = day_frac(i, f)
+        a_d = Decimal(i_d) + Decimal(f_d)
+        assert (abs(a-a_d)*u.day).to(u.ns) < 1*u.ns
+
+
+def test_day_frac_idempotent():
+    i, f = 65536, 3.637978807091714e-12
     i_d, f_d = day_frac(i, f)
-    assert (abs((i-i_d)+(f-f_d))*u.day).to(u.ns) < 1*u.ns
+    assert i_d, f_d == day_frac(i_d, f_d)
 
 
 def test_mjd_initialization_precise():
