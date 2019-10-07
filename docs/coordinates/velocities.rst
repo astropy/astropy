@@ -192,7 +192,7 @@ specifying the differentials because of the lack of explicit unit information::
 
     >>> from astropy.coordinates import RadialDifferential
     >>> icrs_no_distance = ICRS(1*u.deg, 2*u.deg)
-    >>> icrs_no_distance
+    >>> icrs_no_distance  # doctest: +FLOAT_CMP
     <ICRS Coordinate: (ra, dec) in deg
         (1., 2.)>
     >>> rv_to_add = RadialDifferential(500*u.km/u.s)
