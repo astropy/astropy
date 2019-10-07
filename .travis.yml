@@ -106,7 +106,7 @@ matrix:
         - os: linux
           env: SETUP_CMD='test --coverage --remote-data=astropy'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES='cpp-coveralls objgraph jplephem pytest-astropy bintrees'
+               PIP_DEPENDENCIES='cpp-coveralls objgraph jplephem pytest-astropy bintrees pytest-doctestplus<0.4'
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
                MATPLOTLIB_VERSION=2.0 NUMPY_VERSION=1.13
