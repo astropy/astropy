@@ -20,7 +20,7 @@ jobs:
               printf "unicode_output = True\nmax_width = 500" > $HOME/.astropy/config/astropy.cfg
       - run:
           name: Install dependencies for Python 3.5
-          command: /opt/python/cp35-cp35m/bin/pip install numpy scipy pytest pytest-astropy pytest-xdist Cython jinja2
+          command: /opt/python/cp35-cp35m/bin/pip install "numpy<1.17" scipy pytest pytest-astropy pytest-xdist Cython jinja2
       - run:
           name: Run tests for Python 3.5
           command: PYTHONHASHSEED=42 /opt/python/cp35-cp35m/bin/python setup.py test --parallel=4 -a "--durations=50"
