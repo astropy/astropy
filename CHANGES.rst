@@ -316,9 +316,9 @@ astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
 - Fixed a bug in ``discretize_oversample_1D/2D()`` from ``astropy.convolution.utils``,
-  which might occasionally introduce unexpected oversampling grid dimensions due 
+  which might occasionally introduce unexpected oversampling grid dimensions due
   to a numerical precision issue. [#9293]
-  
+
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
@@ -402,6 +402,9 @@ astropy.time
 ^^^^^^^^^^^^
 
 - Allow ``Time`` to be initialized with an empty value for all formats. [#8854]
+
+- Fixed a troubling bug in which ``Time`` could loose precision, with deviations
+  of 300 ns. [#9328]
 
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
