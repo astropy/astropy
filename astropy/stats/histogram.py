@@ -78,20 +78,7 @@ def calculate_bin_edges(a, bins=10, range=None, weights=None):
 
     elif np.ndim(bins) == 0:
         # Number of bins was given
-        try:
-            # This works for numpy 1.15 or later
-            bins = np.histogram_bin_edges(a, bins,
-                                          range=range,
-                                          weights=weights)
-        except AttributeError:
-            # In this case only (integer number of bins, older version of
-            # numpy) then calculate like the bin edges manually.
-            if range is not None:
-                lower, upper = range
-            else:
-                lower = a.min()
-                upper = a.max()
-            bins = np.linspace(lower, upper, bins + 1, endpoint=True)
+        bins = np.histogram_bin_edges(a, bins, range=range, weights=weights)
 
     return bins
 

@@ -347,12 +347,7 @@ def test_mad_std_scalar_return():
         with catch_warnings():
             rslt = funcs.mad_std(data)
             assert np.isscalar(rslt)
-            try:
-                assert not np.isnan(rslt)
-            # This might not be an issue anymore when only numpy>=1.13 is
-            # supported. NUMPY_LT_1_13 xref #7267
-            except AssertionError:
-                pytest.xfail('See #5232')
+            assert np.isnan(rslt)
 
 
 def test_mad_std_warns():

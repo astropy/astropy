@@ -610,7 +610,6 @@ def histogram(a, bins=10, range=None, weights=None, density=None):
             (unit, a.unit), None)
 
 
-# histogram_bin_edges was only introduced in numpy 1.15.
 @function_helper(helps=np.histogram_bin_edges)
 def histogram_bin_edges(a, bins=10, range=None, weights=None):
     # weights is currently unused

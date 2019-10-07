@@ -419,7 +419,7 @@ class Quantity(np.ndarray):
 
         raise NotImplementedError('__array_wrap__ should not be used '
                                   'with a context any more, since we require '
-                                  'numpy >=1.13.  Please raise an issue on '
+                                  'numpy >=1.16.  Please raise an issue on '
                                   'https://github.com/astropy/astropy')
 
     def __array_ufunc__(self, function, method, *inputs, **kwargs):
