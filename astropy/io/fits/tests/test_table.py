@@ -854,7 +854,6 @@ class TestTableFunctions(FitsTestCase):
 
         hdul = fits.open(self.temp('newtable.fits'))
 
-        # numpy >= 1.12 changes how structured arrays are printed, so we
         # match to a regex rather than a specific string.
         expect = r"\[\('NGC1002',\s+12.3[0-9]*\) \(\'NGC1003\',\s+15.[0-9]+\)\]"
         assert re.match(expect, str(hdu.data))
