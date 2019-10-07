@@ -4,16 +4,13 @@
 This module provides utility functions for the models package
 """
 
-
 from collections import deque
 from collections.abc import MutableMapping
 from inspect import signature
 
 import numpy as np
 
-
 from astropy.utils import isiterable, check_broadcast
-from astropy.utils.compat import NUMPY_LT_1_14
 
 from astropy import units as u
 
@@ -590,8 +587,7 @@ def array_repr_oneline(array):
     """
     Represents a multi-dimensional Numpy array flattened onto a single line.
     """
-    sep = ',' if NUMPY_LT_1_14 else ', '
-    r = np.array2string(array, separator=sep, suppress_small=True)
+    r = np.array2string(array, separator=', ', suppress_small=True)
     return ' '.join(l.strip() for l in r.splitlines())
 
 

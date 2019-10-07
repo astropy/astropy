@@ -42,7 +42,7 @@ import numpy as np
 
 from astropy.units.core import (
     UnitsError, UnitTypeError, dimensionless_unscaled)
-from astropy.utils.compat import NUMPY_LT_1_17, NUMPY_LT_1_15, NUMPY_LT_1_18
+from astropy.utils.compat import NUMPY_LT_1_17, NUMPY_LT_1_18
 from astropy.utils import isiterable
 
 
@@ -95,10 +95,8 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.common_type, np.result_type, np.can_cast, np.min_scalar_type,
     np.iscomplexobj, np.isrealobj,
     np.shares_memory, np.may_share_memory,
-    np.apply_along_axis}
+    np.apply_along_axis, np.take_along_axis, np.put_along_axis}
 
-if not NUMPY_LT_1_15:
-    SUBCLASS_SAFE_FUNCTIONS |= {np.take_along_axis, np.put_along_axis}
 if NUMPY_LT_1_18:
     SUBCLASS_SAFE_FUNCTIONS |= {np.alen}
 
@@ -482,9 +480,7 @@ def where(condition, *args):
     return (condition,) + args, {}, unit, None
 
 
-# Quantile was only introduced in numpy 1.15.
-@function_helper(helps=({np.quantile, np.nanquantile}
-                        if not NUMPY_LT_1_15 else ()))
+@function_helper(helps=({np.quantile, np.nanquantile}))
 def quantile(a, q, *args, _q_unit=dimensionless_unscaled, **kwargs):
     if len(args) >= 2:
         out = args[1]
@@ -614,8 +610,7 @@ def histogram(a, bins=10, range=None, weights=None, density=None):
             (unit, a.unit), None)
 
 
-# histogram_bin_edges was only introduced in numpy 1.15.
-@function_helper(helps=np.histogram_bin_edges if not NUMPY_LT_1_15 else ())
+@function_helper(helps=np.histogram_bin_edges)
 def histogram_bin_edges(a, bins=10, range=None, weights=None):
     # weights is currently unused
     a = _as_quantity(a)

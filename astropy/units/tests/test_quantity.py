@@ -17,7 +17,6 @@ from numpy.testing import (assert_allclose, assert_array_equal,
 
 from astropy.tests.helper import catch_warnings, raises
 from astropy.utils import isiterable, minversion
-from astropy.utils.compat import NUMPY_LT_1_14
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy import units as u
 from astropy.units.quantity import _UNIT_NOT_INITIALISED
@@ -886,12 +885,8 @@ class TestQuantityDisplay:
     def test_dimensionless_quantity_repr(self):
         q2 = u.Quantity(1., unit='m-1')
         q3 = u.Quantity(1, unit='m-1', dtype=int)
-        if NUMPY_LT_1_14:
-            assert repr(self.scalarintq * q2) == "<Quantity 1.0>"
-            assert repr(self.arrq * q2) == "<Quantity [ 1. , 2.3, 8.9]>"
-        else:
-            assert repr(self.scalarintq * q2) == "<Quantity 1.>"
-            assert repr(self.arrq * q2) == "<Quantity [1. , 2.3, 8.9]>"
+        assert repr(self.scalarintq * q2) == "<Quantity 1.>"
+        assert repr(self.arrq * q2) == "<Quantity [1. , 2.3, 8.9]>"
         assert repr(self.scalarintq * q3) == "<Quantity 1>"
 
     def test_dimensionless_quantity_str(self):
@@ -899,10 +894,7 @@ class TestQuantityDisplay:
         q3 = u.Quantity(1, unit='m-1', dtype=int)
         assert str(self.scalarintq * q2) == "1.0"
         assert str(self.scalarintq * q3) == "1"
-        if NUMPY_LT_1_14:
-            assert str(self.arrq * q2) == "[ 1.   2.3  8.9]"
-        else:
-            assert str(self.arrq * q2) == "[1.  2.3 8.9]"
+        assert str(self.arrq * q2) == "[1.  2.3 8.9]"
 
     def test_dimensionless_quantity_format(self):
         q1 = u.Quantity(3.14)
@@ -917,16 +909,10 @@ class TestQuantityDisplay:
         assert repr(self.scalarfloatq) == "<Quantity 1.3 m>"
 
     def test_array_quantity_str(self):
-        if NUMPY_LT_1_14:
-            assert str(self.arrq) == "[ 1.   2.3  8.9] m"
-        else:
-            assert str(self.arrq) == "[1.  2.3 8.9] m"
+        assert str(self.arrq) == "[1.  2.3 8.9] m"
 
     def test_array_quantity_repr(self):
-        if NUMPY_LT_1_14:
-            assert repr(self.arrq) == "<Quantity [ 1. , 2.3, 8.9] m>"
-        else:
-            assert repr(self.arrq) == "<Quantity [1. , 2.3, 8.9] m>"
+        assert repr(self.arrq) == "<Quantity [1. , 2.3, 8.9] m>"
 
     def test_scalar_quantity_format(self):
         assert format(self.scalarintq, '02d') == "01 m"
@@ -1505,12 +1491,8 @@ def test_repr_array_of_quantity():
     """
 
     a = np.array([1 * u.m, 2 * u.s], dtype=object)
-    if NUMPY_LT_1_14:
-        assert repr(a) == 'array([<Quantity 1.0 m>, <Quantity 2.0 s>], dtype=object)'
-        assert str(a) == '[<Quantity 1.0 m> <Quantity 2.0 s>]'
-    else:
-        assert repr(a) == 'array([<Quantity 1. m>, <Quantity 2. s>], dtype=object)'
-        assert str(a) == '[<Quantity 1. m> <Quantity 2. s>]'
+    assert repr(a) == 'array([<Quantity 1. m>, <Quantity 2. s>], dtype=object)'
+    assert str(a) == '[<Quantity 1. m> <Quantity 2. s>]'
 
 
 class TestSpecificTypeQuantity:

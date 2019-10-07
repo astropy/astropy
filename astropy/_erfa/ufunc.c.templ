@@ -581,55 +581,6 @@ fail:
     return -1;
 }
 
-{%- if NUMPY_LT_1_16 %}
-/*
- * The following is only necessary for NUMPY_LT_1_16.  Once we support
- * only numpy >=1.16, it can be removed here and in the template part.
- *
- * For numpy <1.16, this works around the fact that gufuncs could not
- * have fixed dimensions.
- *
- * Rather than just go for our type resolver, we check here whether
- * any non-void input with core dimensions has dimension equal to 3.  Here,
- * we already know that all core dimensions are equal, so we have to check
- * only one.
- */
-static int ErfaUFuncD3CheckTypeResolver(PyUFuncObject *ufunc,
-                                        NPY_CASTING casting,
-                                        PyArrayObject **operands,
-                                        PyObject *type_tup,
-                                        PyArray_Descr **out_dtypes)
-{
-    int i;
-
-    for (i = 0; i < ufunc->nin; i++) {
-        if (ufunc->core_num_dims[i]) {
-            PyArrayObject *op = operands[i];
-            if (PyArray_DESCR(op)->type_num != NPY_VOID) {
-                /* last dimension is should always be 3 */
-                int last_dim = PyArray_DIMS(op)[PyArray_NDIM(op)-1];
-                if (last_dim != 3) {
-                    PyErr_Format(PyExc_ValueError,
-                        "%s: Input operand %d has a mismatch in its "
-                        "core dimension %d, with gufunc signature %s "
-                        "(size %zd is different from fixed size 3)",
-                        ufunc->name, i, ufunc->core_num_dims[i] - 1,
-                        ufunc->core_signature, last_dim);
-                    return -1;
-                }
-                break;
-            }
-        }
-    }
-    if (i == ufunc->nin) {
-        PyErr_SetString(PyExc_RuntimeError,
-                        "no relevant input found; should not happen!");
-    }
-    return ErfaUFuncTypeResolver(ufunc, casting, operands, type_tup,
-                                 out_dtypes);
-}
-{%- endif %}
-
 /*
  * UFUNC MODULE DEFINITIONS AND INITIALIZATION
  */

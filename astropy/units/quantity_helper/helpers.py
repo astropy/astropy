@@ -335,12 +335,7 @@ def helper_clip(f, unit1, unit2, unit3):
 UNSUPPORTED_UFUNCS |= {
     np.bitwise_and, np.bitwise_or, np.bitwise_xor, np.invert, np.left_shift,
     np.right_shift, np.logical_and, np.logical_or, np.logical_xor,
-    np.logical_not}
-for name in 'isnat', 'gcd', 'lcm':
-    # isnat was introduced in numpy 1.14, gcd+lcm in 1.15
-    ufunc = getattr(np, name, None)
-    if isinstance(ufunc, np.ufunc):
-        UNSUPPORTED_UFUNCS |= {ufunc}
+    np.logical_not, np.isnat, np.gcd, np.lcm}
 
 # SINGLE ARGUMENT UFUNCS
 
@@ -360,10 +355,6 @@ for ufunc in invariant_ufuncs:
 # ufuncs that require dimensionless input and and give dimensionless output
 dimensionless_to_dimensionless_ufuncs = (np.exp, np.expm1, np.exp2, np.log,
                                          np.log10, np.log2, np.log1p)
-# As found out in gh-7058, some numpy 1.13 conda installations also provide
-# np.erf, even though upstream doesn't have it.  We include it if present.
-if isinstance(getattr(np.core.umath, 'erf', None), np.ufunc):
-    dimensionless_to_dimensionless_ufuncs += (np.core.umath.erf,)
 for ufunc in dimensionless_to_dimensionless_ufuncs:
     UFUNC_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
 

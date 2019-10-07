@@ -11,8 +11,7 @@ from astropy import units as u
 from astropy.units.quantity_helper.function_helpers import (
     ARRAY_FUNCTION_ENABLED, SUBCLASS_SAFE_FUNCTIONS, UNSUPPORTED_FUNCTIONS,
     FUNCTION_HELPERS, DISPATCHED_FUNCTIONS, IGNORED_FUNCTIONS)
-from astropy.utils.compat import (
-    NUMPY_LT_1_14, NUMPY_LT_1_15, NUMPY_LT_1_16, NUMPY_LT_1_18)
+from astropy.utils.compat import NUMPY_LT_1_18
 
 
 NO_ARRAY_FUNCTION = not ARRAY_FUNCTION_ENABLED
@@ -21,8 +20,8 @@ NO_ARRAY_FUNCTION = not ARRAY_FUNCTION_ENABLED
 # To get the functions that could be covered, we look for those that
 # are wrapped.  Of course, this does not give a full list pre-1.17.
 all_wrapped_functions = {name: f for name, f in np.__dict__.items()
-                         if callable(f) and hasattr(f, '__wrapped__') and
-                         (NUMPY_LT_1_15 or f is not np.printoptions)}
+                         if callable(f) and hasattr(f, '__wrapped__')
+                         and f is not np.printoptions}
 all_wrapped = set(all_wrapped_functions.values())
 
 
@@ -132,8 +131,6 @@ class TestShapeManipulation(InvariantUnitTestSetup):
         expected = np.atleast_3d(self.q.value) * u.m
         assert np.all(so == expected)
 
-    @pytest.mark.xfail(NUMPY_LT_1_16,
-                       reason="expand_dims used asarray in numpy <1.16")
     def test_expand_dims(self):
         self.check(np.expand_dims, 1)
 
@@ -142,8 +139,6 @@ class TestShapeManipulation(InvariantUnitTestSetup):
         assert o.shape == (3, 3)
         assert np.all(o == self.q)
 
-    @pytest.mark.xfail(NUMPY_LT_1_15,
-                       reason="flip needs axis argument in numpy <1.15")
     def test_flip(self):
         self.check(np.flip)
 
@@ -207,8 +202,6 @@ class TestArgFunctions(NoUnitTestSetup):
 
 
 class TestAlongAxis(BasicTestSetup):
-    @pytest.mark.skip(NUMPY_LT_1_15,
-                      reason="take_long_axis added in numpy 1.15")
     def test_take_along_axis(self):
         indices = np.expand_dims(np.argmax(self.q, axis=0), axis=0)
         out = np.take_along_axis(self.q, indices, axis=0)
@@ -216,8 +209,6 @@ class TestAlongAxis(BasicTestSetup):
                                       axis=0) * self.q.unit
         assert np.all(out == expected)
 
-    @pytest.mark.skip(NUMPY_LT_1_15,
-                      reason="put_long_axis added in numpy 1.15")
     def test_put_along_axis(self):
         q = self.q.copy()
         indices = np.expand_dims(np.argmax(self.q, axis=0), axis=0)
@@ -645,8 +636,6 @@ class TestUfuncLike(InvariantUnitTestSetup):
     def test_fix(self):
         self.check(np.fix)
 
-    @pytest.mark.xfail(NUMPY_LT_1_16,
-                       reason="angle used asarray in numpy <1.16")
     def test_angle(self):
         q = np.array([1+0j, 0+1j, 1+1j, 0+0j]) * u.m
         out = np.angle(q)
@@ -862,9 +851,8 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
     def test_trace(self):
         self.check(np.trace)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION and not NUMPY_LT_1_14,
-                       reason=("Needs __array_function__ support "
-                               "(or numpy < 1.14)"))
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason=("Needs __array_function__ support"))
     def test_count_nonzero(self):
         q1 = np.arange(9.).reshape(3, 3) * u.m
         o = np.count_nonzero(q1)
@@ -1154,8 +1142,6 @@ class TestIntDiffFunctions(metaclass=CoverageMeta):
 
 
 class TestSpaceFunctions(metaclass=CoverageMeta):
-    @pytest.mark.xfail(NUMPY_LT_1_16,
-                       reason="No array-like start, top in numpy <1.16")
     def test_linspace(self):
         # Note: linspace gets unit of end point, not superlogical.
         out = np.linspace(1000.*u.m, 10.*u.km, 5)
