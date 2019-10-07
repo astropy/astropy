@@ -79,3 +79,26 @@ def pytest_unconfigure(config):
 PYTEST_HEADER_MODULES['Cython'] = 'cython'
 PYTEST_HEADER_MODULES['Scikit-image'] = 'skimage'
 PYTEST_HEADER_MODULES['asdf'] = 'asdf'
+
+
+def pytest_terminal_summary(terminalreporter):
+    """Output a warning to IPython users in case any tests failed."""
+
+    try:
+        get_ipython()
+    except NameError:
+        return
+
+    if not terminalreporter.stats.get('failed'):
+        # Only issue the warning when there are actually failures
+        return
+
+    terminalreporter.ensure_newline()
+    terminalreporter.write_line(
+        'Some tests are known to fail when run from the IPython prompt; '
+        'especially, but not limited to tests involving logging and warning '
+        'handling.  Unless you are certain as to the cause of the failure, '
+        'please check that the failure occurs outside IPython as well.  See '
+        'http://docs.astropy.org/en/stable/known_issues.html#failing-logging-'
+        'tests-when-running-the-tests-in-ipython for more information.',
+        yellow=True, bold=True)
