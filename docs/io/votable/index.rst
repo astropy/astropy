@@ -72,11 +72,11 @@ The columns get their names from both the ``ID`` and ``name``
 attributes of the ``FIELD`` elements in the ``VOTABLE`` file.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Reading a VOTable File with `astropy.io.votable`
+  Reading a VOTable File with astropy.io.votable
 
 Suppose we had a ``FIELD`` specified as follows:
 
@@ -151,11 +151,11 @@ It is also possible to build a new table, define some field datatypes,
 and populate it with data.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Building a New Table from a VOTable File with `astropy.io.votable`
+  Building a New Table from a VOTable File
 
 To build a new table from a VOTable file::
 
@@ -331,11 +331,11 @@ To look up more information about a field in a table, you can use the
 the `~astropy.io.votable.tree.Field` object with the given ID.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Examining Field Types in VOTables with `astropy.io.votable`
+  Examining Field Types in VOTables with astropy.io.votable
 
 To look up more information about a field::
 
