@@ -139,6 +139,18 @@ class TimeInfo(MixinInfo):
                                      'yaml': 'jd1_jd2',
                                      None: 'jd1_jd2'}
 
+    def get_sortable_arrays(self):
+        """
+        Return a list of arrays which can be lexically sorted to represent
+        the order of the parent column.
+
+        :return: list of ndarray
+        """
+        parent = self._parent
+        jd_approx = parent.jd
+        jd_remainder = (parent - parent.__class__(jd_approx, format='jd')).jd
+        return [jd_approx, jd_remainder]
+
     @property
     def unit(self):
         return None

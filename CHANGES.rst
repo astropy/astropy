@@ -125,6 +125,11 @@ astropy.table
 - Allow adding a table column as a list of mixin-type objects, for instance
   ``t['q'] = [1 * u.m, 2 * u.m]``. [#9165]
 
+- Allow table ``join()`` using any sortable key column (e.g. Time), not
+  just ndarray subclasses. A column is considered sortable if there is a
+  ``<column>.info.get_sortable_arrays()`` method that is implemented.
+  [#9340]
+
 astropy.tests
 ^^^^^^^^^^^^^
 

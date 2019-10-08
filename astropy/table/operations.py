@@ -697,6 +697,69 @@ def common_dtype(cols):
         raise tme
 
 
+def _get_join_sort_idxs(out_descrs, keys, len_left, len_right, left, right):
+
+    # Remake out_descrs as a dict keyed by the name (descr[0])
+    descrs = {descr[0]: descr for descr in out_descrs}
+
+    # Go through each of the key columns in order and make columns for
+    # a new structured array that represents the lexical ordering of those
+    # key columns. This structured array is then argsort'ed. The trick here
+    # is that some columns (e.g. Time) may need to be expanded into multiple
+    # columns for ordering here.
+
+    ii = 0  # Index for uniquely naming the sort columns
+    sort_keys_dtypes = []  # sortable_table dtypes as list of (name, dtype_str, shape) tuples
+    sort_keys = []  # sortable_table (structured ndarray) column names
+    sort_left = {}  # sortable ndarrays from left table
+    sort_right = {}  # sortable ndarray from right table
+
+    for key in keys:
+        # TODO: shape here seems out of place. Can a key column have a non-trivial shape?
+        name, _, shape = descrs[key]
+
+        # get_sortable_arrays() returns a list of ndarrays that can be lexically
+        # sorted to represent the order of the column. In most cases this is just
+        # a single element of the column itself.
+        left_sort_cols = left[name].info.get_sortable_arrays()
+        right_sort_cols = right[name].info.get_sortable_arrays()
+
+        if len(left_sort_cols) != len(right_sort_cols):
+            # Should never happen because cols are screened beforehand for compatibility
+            raise ValueError('unexpected mismatch in sort cols lengths')
+
+        for left_sort_col, right_sort_col in zip(left_sort_cols, right_sort_cols):
+            # Check for consistency of shapes. Should never happen.
+            if left_sort_col.dtype.shape != right_sort_col.dtype.shape:
+                raise ValueError('mismatch in shape of left vs. right sort array')
+
+            sort_key = str(ii)
+            sort_keys.append(sort_key)
+            sort_left[sort_key] = left_sort_col
+            sort_right[sort_key] = right_sort_col
+
+            # Build up dtypes for the structured array that gets sorted.
+            dtype_str = common_dtype([left_sort_col, right_sort_col])
+            sort_keys_dtypes.append((sort_key, dtype_str, left_sort_col.dtype.shape))
+            ii += 1
+
+    # Make the empty sortable table and fill it
+    sortable_table = np.empty(len_left + len_right, dtype=sort_keys_dtypes)
+    for key in sort_keys:
+        sortable_table[key][:len_left] = sort_left[key]
+        sortable_table[key][len_left:] = sort_right[key]
+
+    # Finally do the (lexical) argsort and make a new sorted version
+    idx_sort = sortable_table.argsort(order=sort_keys)
+    sorted_table = sortable_table[idx_sort]
+
+    # Get indexes of unique elements (i.e. the group boundaries)
+    diffs = np.concatenate(([True], sorted_table[1:] != sorted_table[:-1], [True]))
+    idxs = np.flatnonzero(diffs)
+
+    return idxs, idx_sort
+
+
 def _join(left, right, keys=None, join_type='inner',
           uniq_col_name='{col_name}_{table_name}',
           table_names=['1', '2'],
@@ -760,9 +823,6 @@ def _join(left, right, keys=None, join_type='inner',
             if hasattr(arr[name], 'mask') and np.any(arr[name].mask):
                 raise TableMergeError('{} key column {!r} has missing values'
                                       .format(arr_label, name))
-            if not isinstance(arr[name], np.ndarray):
-                raise ValueError("non-ndarray column '{}' not allowed as a key column"
-                                 .format(name))
 
     len_left, len_right = len(left), len(right)
 
@@ -773,19 +833,10 @@ def _join(left, right, keys=None, join_type='inner',
     col_name_map = get_col_name_map([left, right], keys, uniq_col_name, table_names)
     out_descrs = get_descrs([left, right], col_name_map)
 
-    # Make an array with just the key columns.  This uses a temporary
-    # structured array for efficiency.
-    out_keys_dtype = [descr for descr in out_descrs if descr[0] in keys]
-    out_keys = np.empty(len_left + len_right, dtype=out_keys_dtype)
-    for key in keys:
-        out_keys[key][:len_left] = left[key]
-        out_keys[key][len_left:] = right[key]
-    idx_sort = out_keys.argsort(order=keys)
-    out_keys = out_keys[idx_sort]
-
-    # Get all keys
-    diffs = np.concatenate(([True], out_keys[1:] != out_keys[:-1], [True]))
-    idxs = np.flatnonzero(diffs)
+    try:
+        idxs, idx_sort = _get_join_sort_idxs(out_descrs, keys, len_left, len_right, left, right)
+    except NotImplementedError:
+        raise TypeError('one or more key columns are not sortable')
 
     # Main inner loop in Cython to compute the cartesian product
     # indices for the given join type
