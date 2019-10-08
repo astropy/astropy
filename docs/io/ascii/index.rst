@@ -127,7 +127,7 @@ use `pandas <https://pandas.pydata.org/>`_ (see Note below).
    Reading a table which contains unicode characters is supported with the
    pure Python readers by specifying the ``encoding`` parameter. The fast
    C-readers do not support unicode. For large data files containing unicode,
-   we recommend reading the file using `pandas <http://pandas.pydata.org/>`_
+   we recommend reading the file using `pandas <https://pandas.pydata.org/>`_
    and converting to a :ref:`Table <astropy-table>` via the :ref:`Table -
    Pandas interface <pandas>`.
 
