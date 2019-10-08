@@ -31,11 +31,11 @@ instance of the :class:`~astropy.table.Table` or
 :class:`~astropy.nddata.NDData` classes (or subclasses).
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Using `astropy.io.registry`
+  Using astropy.io.registry to Create a Custom Reader/Writer
 
 Here we assume that we are trying to write a reader/writer for the
 :class:`~astropy.table.Table` class::
