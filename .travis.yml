@@ -41,6 +41,8 @@ env:
         - SETUP_CMD='test'
         - INSTALL_WITH_PIP=False
         - EXTRAS_INSTALL=""
+        # Run test suite twice in a row without cleaning
+        - DOUBLE_PLAY=False
 
         # PEP8 errors/warnings:
         # E101 - mix of tabs and spaces
@@ -91,6 +93,7 @@ matrix:
                PIP_DEPENDENCIES="scikit-image jplephem $ASDF_PIP_DEP"
                CCOMPILER=clang
                EVENT_TYPE='cron'
+               DOUBLE_PLAY=True
 
         # Try all python versions and Numpy versions. Since we can assume that
         # the Numpy developers have taken care of testing Numpy with different
@@ -216,7 +219,12 @@ install:
       fi
 
 script:
-    - $MAIN_CMD $SETUP_CMD
+    - if [[ $DOUBLE_PLAY == True ]]; then
+          $MAIN_CMD $SETUP_CMD;
+          $MAIN_CMD $SETUP_CMD;
+      else
+          $MAIN_CMD $SETUP_CMD;
+      fi
 
 after_success:
     - if [[ $SETUP_CMD == *--coverage* ]]; then
