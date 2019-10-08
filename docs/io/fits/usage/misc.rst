@@ -28,11 +28,11 @@ they diff. The returned diff instance has a number of attributes starting with
 ``.diff_`` that describe differences between the two objects.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Generating Differences Between FITS Files Using `astropy.io.fits.diff`
+  Generating Differences Between FITS Files Using astropy.io.fits.diff
 
 The :class:`HeaderDiff` class can be used to find the differences
 between two :class:`Header` objects like so::
