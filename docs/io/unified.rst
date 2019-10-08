@@ -594,7 +594,7 @@ conforming to the FITS time standard to `~astropy.time.Time` instances,
 avoiding any loss of precision.
 
 Example
--------
+~~~~~~~
 
 ..
   EXAMPLE START
@@ -685,7 +685,7 @@ can read time coordinate columns from all such FITS tables as native
 this convention are Chandra, XMM, and HST files.
 
 Examples
---------
+~~~~~~~~
 
 ..
   EXAMPLE START
@@ -820,7 +820,7 @@ keywords. Note that the arbitrary metadata allowed in `~astropy.table.Table`
 objects within the ``meta`` dict is not written and will be lost.
 
 Examples
---------
+~~~~~~~~
 
 ..
   EXAMPLE START
