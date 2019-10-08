@@ -9,6 +9,7 @@ import numpy as np
 
 from astropy.tests.helper import assert_quantity_allclose, catch_warnings
 from astropy.utils.iers import iers
+from astropy import _erfa as erfa
 from astropy import units as u
 from astropy.table import QTable
 from astropy.time import Time, TimeDelta
@@ -25,7 +26,16 @@ else:
 IERS_A_EXCERPT = os.path.join(os.path.dirname(__file__), 'data', 'iers_a_excerpt')
 
 
-class TestBasic():
+class NoAutoLeapSeconds:
+    def setup(self):
+        # For these tests, do not also test ERFA leap second updates.
+        iers.conf.auto_update_erfa_leap_seconds = False
+
+    def teardown(self):
+        iers.conf.auto_update_erfa_leap_seconds = True
+
+
+class TestBasic(NoAutoLeapSeconds):
     """Basic tests that IERS_B returns correct values"""
 
     @pytest.mark.parametrize('iers_cls', (iers.IERS_B, iers.IERS))
@@ -89,7 +99,7 @@ class TestBasic():
         iers.IERS_A.close()
 
 
-class TestIERS_AExcerpt():
+class TestIERS_AExcerpt(NoAutoLeapSeconds):
     def test_simple(self):
         # Test the IERS A reader. It is also a regression tests that ensures
         # values do not get overridden by IERS B; see #4933.
@@ -160,7 +170,7 @@ class TestIERS_AExcerpt():
 
 
 @pytest.mark.skipif('not HAS_IERS_A')
-class TestIERS_A():
+class TestIERS_A(NoAutoLeapSeconds):
 
     def test_simple(self):
         """Test that open() by default reads a 'finals2000A.all' file."""
@@ -184,7 +194,7 @@ class TestIERS_A():
         assert ut1_utc3 != 0.
 
 
-class TestIERS_Auto():
+class TestIERS_Auto(NoAutoLeapSeconds):
 
     def setup_class(self):
         """Set up useful data for the tests.
@@ -325,3 +335,102 @@ def test_IERS_B_parameters_loading_into_IERS_Auto():
             A[name][ok_A], B[name][i_B], rtol=1e-15,
             err_msg=("Bug #9206 IERS B parameter {} not copied over "
                      "correctly to IERS Auto".format(name)))
+
+
+class TestUpdateLeapSeconds:
+    def setup(self):
+        # Ensure IERS_B table is read and then reset ERFA to default.
+        self.iers_b = iers.IERS_B.open()
+        # Reset ERFA table to built-in default.
+        erfa.set_leap_seconds()
+        self.erfa_ls = erfa.get_leap_seconds()
+
+    def teardown(self):
+        iers.IERS_B.close()
+        iers.IERS_Auto.close()
+        erfa.set_leap_seconds()
+
+    def do_test_leap_seconds(self, ls):
+        assert np.all(ls['day'] == 1)
+        assert np.all((ls['month'] == 1) | (ls['month'] == 7) |
+                      (ls['year'] < 1970))
+        assert np.all(ls['year'] >= 1960)
+
+    def test_iers_b_leap_seconds(self):
+        # Testing a private method just to be sure results make sense.
+        self.do_test_leap_seconds(self.iers_b._leap_seconds())
+
+    def test_update_iers_B_defaults(self):
+        """Leap seconds should match between built-in IERS and ERFA."""
+        n_update = self.iers_b.update_erfa_leap_seconds()
+        assert n_update == 0, "ERFA out of date"
+
+    @pytest.mark.parametrize('n_short', (1, 3))
+    def test_update_iers_B(self, n_short):
+        """Check whether we can recover removed leap seconds."""
+        erfa.set_leap_seconds(self.erfa_ls[:-n_short])
+        n_update = self.iers_b.update_erfa_leap_seconds()
+        assert n_update == n_short
+        new_erfa_ls = erfa.get_leap_seconds()
+        assert np.all(new_erfa_ls == self.erfa_ls)
+        # Check that a second update does not do anything.
+        n_update2 = self.iers_b.update_erfa_leap_seconds()
+        assert n_update2 == 0
+
+    def test_auto_update(self):
+        """Check whether ERFA gets updated upon loading IERS table."""
+        iers.IERS_B.close()
+        erfa.set_leap_seconds(self.erfa_ls[:-2])
+        assert len(erfa.get_leap_seconds()) == len(self.erfa_ls) - 2
+        iers.IERS_B.open()
+        new_erfa_ls = erfa.get_leap_seconds()
+        assert len(new_erfa_ls) == len(self.erfa_ls)
+        assert np.all(new_erfa_ls == self.erfa_ls)
+
+    @pytest.mark.remote_data
+    def test_auto_update_iers_auto(self):
+        """Same for IERS_Auto, though now we might get extra leap seconds."""
+        iers.IERS_Auto.close()
+        erfa.set_leap_seconds(self.erfa_ls[:-2])
+        iers_auto = iers.IERS_Auto.open()
+        new_erfa_ls = erfa.get_leap_seconds()
+        assert len(new_erfa_ls) >= len(self.erfa_ls)
+        assert np.all(new_erfa_ls[:len(self.erfa_ls)] == self.erfa_ls)
+        # And, just to be sure, check that any leap seconds found make sense.
+        self.do_test_leap_seconds(iers_auto._leap_seconds())
+
+    def test_overlap(self):
+        erfa.set_leap_seconds(self.erfa_ls[:-2])
+        mjd_erfa = Time({'year': self.erfa_ls[-3]['year'],
+                         'month': self.erfa_ls[-3]['month']},
+                        format='ymdhms').mjd
+        bad = self.iers_b[self.iers_b['MJD'].value > mjd_erfa].copy()
+        with pytest.raises(ValueError, match='no overlap'):
+            bad.update_erfa_leap_seconds()
+        assert np.all(erfa.get_leap_seconds() == self.erfa_ls[:-2])
+
+    def test_bad_iers1(self):
+        erfa.set_leap_seconds(self.erfa_ls[:-2])
+        bad = self.iers_b.copy()
+        bad['UT1_UTC'][Time(bad['MJD'], format='mjd') ==
+                       Time('2006-01-01')] = 1. * u.s
+        bad['UT1_UTC'][Time(bad['MJD'], format='mjd') ==
+                       Time('2006-01-02')] = 0.6 * u.s
+        with pytest.raises(ValueError, match='inconsistent leap'):
+            bad.update_erfa_leap_seconds()
+
+    def test_bad_iers2(self):
+        erfa.set_leap_seconds(self.erfa_ls[:-2])
+        bad = self.iers_b.copy()
+        bad['UT1_UTC'][Time(bad['MJD'], format='mjd') ==
+                       Time('2006-01-10')] = 10. * u.s
+        with pytest.raises(ValueError, match='not on 1st'):
+            bad.update_erfa_leap_seconds()
+        assert np.all(erfa.get_leap_seconds() == self.erfa_ls[:-2])
+
+    def test_iers_excerpt_warning(self):
+        iers.IERS_A.close()
+        with catch_warnings() as w:
+            iers.IERS_A.open(IERS_A_EXCERPT)
+        assert len(w) == 1
+        assert 'at least one row' in str(w[0].message)

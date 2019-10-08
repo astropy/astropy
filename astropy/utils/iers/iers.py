@@ -19,8 +19,11 @@ except ImportError:
 import numpy as np
 
 from astropy import config as _config
+from astropy import _erfa as erfa
 from astropy import units as u
-from astropy.table import QTable, MaskedColumn
+from astropy.table import QTable, MaskedColumn, join
+from astropy.time import Time
+
 from astropy.utils.data import get_pkg_data_filename, clear_download_cache
 from astropy.utils.compat import NUMPY_LT_1_17
 from astropy import utils
@@ -94,7 +97,7 @@ class Conf(_config.ConfigNamespace):
         'then the local IERS-B file will be used by default. Default is True.')
     auto_max_age = _config.ConfigItem(
         30.0,
-        'Maximum age (days) of predictive data before auto-downloading. Default is 30.')
+        'Maximum age (days) of predictive data before auto-downloading. Dfault is 30.')
     iers_auto_url = _config.ConfigItem(
         IERS_A_URL,
         'URL for auto-downloading IERS file data.')
@@ -104,6 +107,10 @@ class Conf(_config.ConfigNamespace):
     remote_timeout = _config.ConfigItem(
         10.0,
         'Remote timeout downloading IERS file data (seconds).')
+    auto_update_erfa_leap_seconds = _config.ConfigItem(
+        True,
+        'When a new IERS table is opened, add any leap seconds '
+        'beyond those stored by ERFA by default into the ERFA table.')
 
 
 conf = Conf()
@@ -304,6 +311,82 @@ class IERS(QTable):
         """
         return self._interpolate(jd1, jd2, ['PM_x', 'PM_y'],
                                  self.pm_source if return_status else None)
+
+    def _leap_seconds(self):
+        """Get a table with year, month, day on which leap seconds occur.
+
+        Find leap seconds from their jumps in UT1-UTC, and create a new
+        table with corresponding year, month, and day, as well as the
+        cumulative offset.  The latter should equal TAI-UTC plus some
+        unknown zero point.
+        """
+        delta = np.diff(self['UT1_UTC'])
+        sel = np.abs(delta) > 0.5 * u.s
+        # Recalculate year, month, day as IERS_A only stores a 2-digit year.
+        t = Time(self['MJD'][1:][sel], format='mjd').ymdhms
+        return QTable([t['year'], t['month'], t['day'],
+                       np.cumsum(np.round(delta[sel].value))],
+                      names=['year', 'month', 'day', 'offset'])
+
+    def update_erfa_leap_seconds(self):
+        """Add any leap seconds not already present to the ERFA table.
+
+        This method looks for the presence of leap seconds in the IERS
+        table from jumps in UT1-UTC.  It then matches those with the
+        leap seconds present in the ERFA table, and extends the latter
+        as necessary.
+
+        Returns
+        -------
+        n_update : int
+            The number of leap seconds added to the ERFA table.
+
+        Raises
+        ------
+        ValueError
+            If the leap seconds found are not on 1st of January or July,
+            if no matching leap seconds were found, or if the matches are
+            inconsistent.  This would normally suggested a currupted
+            ERFA or IERS table.  The ERFA table can be reset using
+            `~astropy._erfa.set_leap_seconds()`.
+        """
+        # Get the current leap-second table used by ERFA.
+        ls_erfa = QTable(erfa.get_leap_seconds())
+        # Infer leap seconds from the IERS table.
+        ls_self = self._leap_seconds()
+        if not np.all((ls_self['day'] == 1) &
+                      ((ls_self['month'] == 1) | (ls_self['month'] == 7))):
+            raise ValueError("Leap seconds inferred that are not on 1st of "
+                             "January or 1st of July.")
+        # Match the tables by year and month.
+        ls = join(ls_erfa, ls_self, join_type='outer')
+        if not np.any(getattr(ls['tai_utc'], 'mask', False)):
+            # Nothing to be done
+            return 0
+
+        # Calculate the zero point for the cumulative offset from IERS.
+        d = ls['tai_utc'] - ls['offset']
+        d = d[~d.mask]
+        if d.size == 0:
+            raise ValueError("no overlap with ERFA leap second table.")
+        if np.unique(d).size > 1:
+            raise ValueError("inconsistent leap second information from "
+                             "ERFA and IERS table.")
+        # Calculate TAI-UTC for the leap seconds not in ERFA already.
+        update = ls['tai_utc'].mask
+        new_delta = ls['offset'][update] + d[0]
+        ls['tai_utc'][update] = new_delta
+        # Set the updated leap second table for use from now on.
+        erfa.set_leap_seconds(ls['year', 'month', 'tai_utc'].as_array())
+        return len(new_delta)
+
+    def _update_erfa_leap_seconds(self):
+        """As update_erfa_leap_seconds, but raising a warning on error."""
+        try:
+            self.update_erfa_leap_seconds()
+        except Exception as exc:
+            warn("Attempt to update the ERFA leap seconds failed "
+                 "with the following exception: " + str(exc), AstropyWarning)
 
     def _check_interpolate_indices(self, indices_orig, indices_clipped, max_input_mjd):
         """
@@ -518,6 +601,8 @@ class IERS_A(IERS):
         table = cls._combine_a_b_columns(iers_a)
         table.meta['data_path'] = file
         table.meta['readme_path'] = readme
+        if conf.auto_update_erfa_leap_seconds:
+            table._update_erfa_leap_seconds()
 
         return table
 
@@ -583,8 +668,12 @@ class IERS_B(IERS):
         if readme is None:
             readme = IERS_B_README
 
-        return super().read(file, format='cds', readme=readme,
-                            data_start=data_start)
+        table = super().read(file, format='cds', readme=readme,
+                             data_start=data_start)
+        if conf.auto_update_erfa_leap_seconds:
+            table._update_erfa_leap_seconds()
+
+        return table
 
     def ut1_utc_source(self, i):
         """Set UT1-UTC source flag for entries in IERS table"""
