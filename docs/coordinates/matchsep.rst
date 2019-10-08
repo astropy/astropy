@@ -100,8 +100,8 @@ directional offsets. To do the inverse operation — determining the new
         (2.0004075, 1.99964588)>
 
 This technique is also useful for computing the midpoint (or indeed any point)
-along between two coordinates in a way that accounts for spherical geometry
-(i.e., instead of averaging the ras/decs separately)::
+between two coordinates in a way that accounts for spherical geometry
+(i.e., instead of averaging the RAs/Decs separately)::
 
     >>> from astropy import units as u
     >>> from astropy.coordinates import SkyCoord
