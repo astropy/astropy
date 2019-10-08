@@ -153,7 +153,7 @@ part of astropy and can be used for transformations.  For example::
   >>> t = Time('2010:001')
   >>> iers_b = iers.IERS_B.open()
   >>> iers_b.ut1_utc(t)  # doctest: +FLOAT_CMP
-  <Quantity 0.1140827 s>
+  <Quantity 0.114033 s>
   >>> t.delta_ut1_utc = iers_b.ut1_utc(t)
   >>> t.ut1.iso
   '2010-01-01 00:00:00.114'
