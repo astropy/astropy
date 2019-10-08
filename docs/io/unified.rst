@@ -48,11 +48,11 @@ registered with the :class:`~astropy.table.Table` class (see
 :ref:`io_registry`).
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Getting Started with Table I/0 in `astropy.io`
+  Reading a DAOPhot Table
 
 To use this interface, first import the :class:`~astropy.table.Table` class,
 then call the :class:`~astropy.table.Table`
@@ -63,6 +63,13 @@ the file format, for instance ``'ascii.daophot'``:
 
     >>> from astropy.table import Table
     >>> t = Table.read('photometry.dat', format='ascii.daophot')
+
+..
+  EXAMPLE END
+
+..
+  EXAMPLE START
+  Reading a Table Directly from the Internet
 
 It is possible to load tables directly from the Internet using URLs. For
 example, download tables from Vizier catalogues in CDS format
@@ -77,7 +84,14 @@ example, from the filename extension::
 
     >>> t = Table.read('table.tex')  # doctest: +SKIP
 
-Similarly, for writing, the format can be explicitly specified::
+..
+  EXAMPLE END
+
+..
+  EXAMPLE START
+  Writing a LaTeX Table
+
+For writing a table, the format can be explicitly specified::
 
     >>> t.write(filename, format='latex')  # doctest: +SKIP
 
@@ -128,7 +142,16 @@ Command-Line Utility
 --------------------
 
 For convenience, the command-line tool ``showtable`` can be used to print the
-content of tables for the formats supported by the unified I/O interface::
+content of tables for the formats supported by the unified I/O interface.
+
+Example
+-------
+
+..
+  EXAMPLE START
+  Viewing the Contents of a Table on the Command Line
+
+To view the contents of a table on the command line::
 
     $ showtable astropy/io/fits/tests/data/table.fits
 
@@ -141,6 +164,8 @@ content of tables for the formats supported by the unified I/O interface::
 To get full documentation on the usage and available options, do ``showtable
 --help``.
 
+..
+  EXAMPLE END
 
 .. _built_in_readers_writers:
 
@@ -206,11 +231,11 @@ that all supported ASCII table formats will be tried in order to successfully
 parse the input.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Reading and Writing ASCII Formats in `astropy.io.ascii`
+  Reading and Writing ASCII Formats
 
 To read and write formats supported by `astropy.io.ascii`:
 
@@ -285,7 +310,7 @@ automatically identified as such based on the header of the file, but if not,
 or if writing to disk, then the format should be explicitly specified.
 
 Reading
-^^^^^^^^
+^^^^^^^
 
 If a FITS table file contains only a single table, then it can be read in
 with:
@@ -307,7 +332,7 @@ will be read in and a warning will be emitted::
     WARNING: hdu= was not specified but multiple tables are present, reading in first available table (hdu=1) [astropy.io.fits.connect]
 
 Writing
-^^^^^^^^
+^^^^^^^
 
 To write a table ``t`` to a new file::
 
@@ -375,7 +400,7 @@ TDISPn FITS keywords will map to and from the `~astropy.table.Column` ``format``
 attribute if the display format is convertible to and from a Python display
 format. Below are the rules used for both conversion directions.
 
-TDISPn to Python Format String
+TDISPn to Python format string
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 TDISPn format characters are defined in the table below.
@@ -410,7 +435,7 @@ space padding to the left of the column value. The minimum number (m) value is
 not used. For the E, G, D, EN, and ES formats (floating point exponential) the
 width (w) and precision (d) are both used, but the exponential (e) is not used.
 
-Python Format String to TDISPn
+Python format string to TDISPn
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The conversion from Python format strings back to TDISPn is slightly more
@@ -434,7 +459,7 @@ if both a width and precision are present they are both set in the TDISPn
 format. A Python ``f`` or ``F`` map to TDISP F format. The Python ``g`` or
 ``G`` map to TDISP G format. The Python ``e`` and ``E`` map to TDISP E format.
 
-Masked columns
+Masked Columns
 ^^^^^^^^^^^^^^
 
 Tables that contain `~astropy.table.MaskedColumn` columns can be written to
@@ -501,7 +526,7 @@ merged back into one masked column.
    into two distinct data and mask columns, then writing metadata into
    ``COMMENT`` cards to allow reconstruction of the original data.
 
-``astropy`` native objects (mixin columns)
+``astropy`` Native Objects (Mixin Columns)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 It is possible to store not only standard `~astropy.table.Column` objects to a
@@ -569,11 +594,11 @@ conforming to the FITS time standard to `~astropy.time.Time` instances,
 avoiding any loss of precision.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Writing and Reading ``astropy`` Time Columns with `astropy.io`
+  Writing and Reading Time Columns to/from FITS Tables
 
 To read a FITS table into `~astropy.table.table`:
 
@@ -660,7 +685,7 @@ can read time coordinate columns from all such FITS tables as native
 this convention are Chandra, XMM, and HST files.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
@@ -795,11 +820,11 @@ keywords. Note that the arbitrary metadata allowed in `~astropy.table.Table`
 objects within the ``meta`` dict is not written and will be lost.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Time Columns in FITS Files with `astropy.io`
+  Time Columns in FITS Files
 
 Consider the following Time column:
 
@@ -893,11 +918,11 @@ Since HDF5 files can contain multiple tables, the full path to the table
 should be specified via the ``path=`` argument when reading and writing.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Reading and Writing from and to HDF5 Files in `astropy.io`
+  Reading from and Writing to HDF5 Files
 
 To read a table called ``data`` from an HDF5 file named ``observations.hdf5``,
 you can do::
@@ -929,7 +954,7 @@ used to ensure that the data is compressed on disk::
 ..
   EXAMPLE END
 
-Metadata and mixin columns
+Metadata and Mixin Columns
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ``astropy`` tables can contain metadata, both in the table ``meta`` attribute
@@ -1027,11 +1052,11 @@ allow to visualize interactively an HTML table (with columns sorting, search,
 and pagination).
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  JSViewer in `astropy.io`
+  JSViewer to Provide an Interactive HTML Export of a Table
 
 To write a table ``t`` to a new file::
 
@@ -1065,11 +1090,11 @@ file, but if not, or if writing to disk, then the format should be explicitly
 specified.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  VO Tables in `astropy.io`
+  Reading from and Writing to VO Tables
 
 If a VO table file contains only a single table, then it can be read in with::
 
@@ -1133,11 +1158,11 @@ YAML    ``jd2_jd2``            ---
 ====== ==================== ===============
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Table Serialization Methods in `astropy.io`
+  Table Serialization Methods in astropy.io
 
 Start by making a table with a Time column and masked column:
 
