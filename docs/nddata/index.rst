@@ -1,7 +1,7 @@
 .. _astropy_nddata:
 
 *****************************************
-N-dimensional datasets (`astropy.nddata`)
+N-Dimensional Datasets (`astropy.nddata`)
 *****************************************
 
 Introduction
@@ -14,7 +14,7 @@ image classes.
 
 .. _astropy_nddata_getting_started:
 
-Getting started
+Getting Started
 ===============
 
 NDData
@@ -31,19 +31,19 @@ n-dimensional `numpy` array::
     >>> array = np.zeros((12, 12, 12))  # a 3-dimensional array with all zeros
     >>> ndd1 = NDData(array)
 
-or something that can be converted to an `numpy.ndarray`::
+Or something that can be converted to a `numpy.ndarray`::
 
     >>> ndd2 = NDData([1, 2, 3, 4])
     >>> ndd2
     NDData([1, 2, 3, 4])
 
-and can be accessed again via the ``data`` attribute::
+And can be accessed again via the ``data`` attribute::
 
     >>> ndd2.data
     array([1, 2, 3, 4])
 
 It also supports additional properties like a ``unit`` or ``mask`` for the
-data, a ``wcs`` (world coordinate system) and ``uncertainty`` of the data and
+data, a ``wcs`` (World Coordinate System) and ``uncertainty`` of the data and
 additional ``meta`` attributes:
 
     >>> data = np.array([1,2,3,4])
@@ -60,17 +60,18 @@ additional ``meta`` attributes:
     NDData([1, 2, 3, 4])
 
 The representation only displays the ``data``; the other attributes need to be
-accessed directly, for example ``ndd.mask`` to access the mask.
+accessed directly, for example, ``ndd.mask`` to access the mask.
 
 
 NDDataRef
 ---------
 
-Building upon this pure container `~astropy.nddata.NDDataRef` implements:
+Building upon this pure container, `~astropy.nddata.NDDataRef` implements:
 
-+ a ``read`` and ``write`` method to access astropy's unified file io interface.
-+ simple arithmetics like addition, subtraction, division and multiplication.
-+ slicing.
++ A ``read`` and ``write`` method to access ``astropy``'s unified file I/O
+  interface.
++ Simple arithmetics like addition, subtraction, division, and multiplication.
++ Slicing.
 
 Instances are created in the same way::
 
@@ -86,10 +87,10 @@ But also support arithmetic (:ref:`nddata_arithmetic`) like addition::
     >>> ndd2
     NDDataRef([ 5. , -1.5,  6. ,  6.5])
 
-Because these operations have a wide range of options these are not available
+Because these operations have a wide range of options, these are not available
 using arithmetic operators like ``+``.
 
-Slicing or indexing (:ref:`nddata_slicing`) is possible (issuing warnings if
+Slicing or indexing (:ref:`nddata_slicing`) is possible (with warnings issued if
 some attribute cannot be sliced)::
 
     >>> ndd2[2:]  # discard the first two elements  # doctest: +FLOAT_CMP
@@ -100,13 +101,23 @@ some attribute cannot be sliced)::
     NDDataRef(-1.5)
 
 
-Working with two-dimensional data like images
+Working with Two-Dimensional Data Like Images
 ---------------------------------------------
 
 Though the `~astropy.nddata` package supports any kind of gridded data, this
 introduction will focus on the use of `~astropy.nddata` for two-dimensional
-images. To get started, we'll construct a two-dimensional image with a few
-sources, some Gaussian noise, and a "cosmic ray" which we will later mask out::
+images. To get started, we will construct a two-dimensional image with a few
+sources, some Gaussian noise, and a "cosmic ray" which we will later mask out.
+
+Examples
+--------
+
+..
+  EXAMPLE START
+  Working with Two-Dimensional Data Using NDData
+
+First, construct a two-dimensional image with a few sources, some Gaussian
+noise, and a "cosmic ray"::
 
     >>> import numpy as np
     >>> from astropy.modeling.models import Gaussian2D
@@ -146,11 +157,14 @@ horizontal line in the lower middle of the image:
     plt.imshow(data, origin='lower')
 
 
-The "cosmic ray" can be masked out, in this simple test image, like this::
+The "cosmic ray" can be masked out in this test image, like this::
 
     >>> mask = (data == cosmic_ray_value)
 
-`~astropy.nddata.CCDData` class for images
+..
+  EXAMPLE END
+
+`~astropy.nddata.CCDData` Class for Images
 ------------------------------------------
 
 The `~astropy.nddata.CCDData` object, like the other objects in this package,
@@ -165,8 +179,8 @@ requires that a unit be specified::
 Slicing
 -------
 
-Slicing the works the way you would expect, with the mask and, if present,
-WCS, sliced appropriately also::
+Slicing works the way you would expect with the mask and, if present,
+WCS, sliced appropriately::
 
     >>> ccd2 = ccd[:200, :]
     >>> ccd2.data.shape
@@ -185,22 +199,31 @@ WCS, sliced appropriately also::
 For many applications it may be more convenient to use
 `~astropy.nddata.Cutout2D`, described in `image_utilities`_.
 
-Image arithmetic, including uncertainty
+Image Arithmetic, Including Uncertainty
 ---------------------------------------
 
 Methods are provided for basic arithmetic operations between images, including
 propagation of uncertainties. Three uncertainty types are supported: variance
 (`~astropy.nddata.VarianceUncertainty`), standard deviation
-(`~astropy.nddata.StdDevUncertainty`) and inverse variance
-(`~astropy.nddata.InverseVariance`). The example below creates an uncertainty
-that is simply Poisson error, stored as a variance::
+(`~astropy.nddata.StdDevUncertainty`), and inverse variance
+(`~astropy.nddata.InverseVariance`).
+
+Examples
+--------
+
+..
+  EXAMPLE START
+  Image Arithmetic Including Uncertainty in NDData
+
+This example creates an uncertainty that is Poisson error, stored as a
+variance::
 
     >>> from astropy.nddata import VarianceUncertainty
     >>> poisson_noise = np.ma.sqrt(np.ma.abs(ccd.data))
     >>> ccd.uncertainty = VarianceUncertainty(poisson_noise ** 2)
 
-As a convenience, the uncertainty can also be set with a numpy array. In that
-case, the uncertainty is assumed to be the standard deviation::
+As a convenience, the uncertainty can also be set with a ``numpy`` array. In
+that case, the uncertainty is assumed to be the standard deviation::
 
     >>> ccd.uncertainty = poisson_noise
     INFO: array provided for uncertainty; assuming it is a StdDevUncertainty. [astropy.nddata.ccddata]
@@ -213,14 +236,17 @@ changes as expected::
     >>> added_ccds.uncertainty.array[0, 0] / ccd.uncertainty.array[0, 0] / np.sqrt(2) # doctest: +FLOAT_CMP
     0.99999999999999989
 
-Reading and writing
+..
+  EXAMPLE END
+
+Reading and Writing
 -------------------
 
 A `~astropy.nddata.CCDData` can be saved to a FITS file::
 
     >>> ccd.write('test_file.fits')
 
-and can also be read in from a FITS file::
+And can also be read in from a FITS file::
 
     >>> ccd2 = CCDData.read('test_file.fits')
 
@@ -237,7 +263,7 @@ can be obtained via the ``help()`` method as follows:
 
 .. _image_utilities:
 
-Image utilities
+Image Utilities
 ---------------
 
 Cutouts
@@ -245,8 +271,17 @@ Cutouts
 
 Though slicing directly is one way to extract a subframe,
 `~astropy.nddata.Cutout2D` provides more convenient access to cutouts from the
-data. The example below pulls out the large "galaxy" in the lower left of the
-image, with the center of the cutout at ``position``::
+data.
+
+Examples
+^^^^^^^^
+
+..
+  EXAMPLE START
+  Accessing Cutouts in NDData
+
+This example pulls out the large "galaxy" in the lower left of the image, with
+the center of the cutout at ``position``::
 
     >>> from astropy.nddata import Cutout2D
     >>> position = (149.7, 100.1)
@@ -311,8 +346,8 @@ This cutout can also plot itself on the original image::
     plt.imshow(ccd, origin='lower')
     cutout.plot_on_original(color='white')
 
-The cutout also provides methods for find pixel coordinates in the original or
-in the cutout; recall that ``position`` is the center of the cutout in the
+The cutout also provides methods for finding pixel coordinates in the original
+or in the cutout; recall that ``position`` is the center of the cutout in the
 original image::
 
     >>> position
@@ -322,17 +357,28 @@ original image::
     >>> cutout.to_original_position((49.7, 40.099999999999994))  # doctest: +FLOAT_CMP
      (149.7, 100.1)
 
-For more details, including constructing a cutout from world coordinates and
+For more details, including constructing a cutout from World Coordinates and
 the options for handling cutouts that go beyond the bounds of the original
 image, see :ref:`cutout_images`.
 
-Image resizing
+..
+  EXAMPLE END
+
+Image Resizing
 ^^^^^^^^^^^^^^
 
 The functions `~astropy.nddata.block_reduce` and
-`~astropy.nddata.block_replicate` resize images. The example below reduces the
-size of the image by a factor of 4. Note that the result is a `numpy.ndarray`;
-the mask, metadata, etc are discarded:
+`~astropy.nddata.block_replicate` resize images.
+
+Example
+^^^^^^^
+
+..
+  EXAMPLE START
+  Image Resizing in NDData
+
+This example reduces the size of the image by a factor of 4. Note that the
+result is a `numpy.ndarray`; the mask, metadata, etc. are discarded:
 
 .. doctest-requires:: skimage
 
@@ -369,9 +415,11 @@ the mask, metadata, etc are discarded:
 By default, both `~astropy.nddata.block_reduce` and
 `~astropy.nddata.block_replicate` conserve flux.
 
-Other image classes
--------------------
+..
+  EXAMPLE END
 
+Other Image Classes
+-------------------
 
 There are two less restrictive classes, `~astropy.nddata.NDDataArray` and
 `~astropy.nddata.NDDataRef`, that can be used to hold image data. They are
@@ -385,21 +433,20 @@ differences between them are:
   Most of its properties must be set when the object is created because they
   are not mutable.
 + `~astropy.nddata.NDDataArray` extends `~astropy.nddata.NDDataRef` by adding
-  the methods necessary to all it to behave like a numpy array in expressions
+  the methods necessary for it to behave like a ``numpy`` array in expressions
   and adds setters for several properties. It lacks the ability to
   automatically recognize and read data from FITS files and does not attempt
   to automatically set the WCS property.
 + `~astropy.nddata.CCDData` extends `~astropy.nddata.NDDataArray` by setting
-  up a default uncertainty class, sets up straightforward read/write to FITS
-  files, automatically sets up a WCS property.
+  up a default uncertainty class, setting up straightforward read/write to FITS
+  files, and automatically setting up a WCS property.
 
-
-More general gridded data class
--------------------------------
+More General Gridded Data Classes
+---------------------------------
 
 There are two additional classes in the ``nddata`` package that are of
-interest primarily to people that either need a custom image class that goes
-beyond the classes discussed so far or who are working with gridded data that
+interest primarily to users who either need a custom image class that goes
+beyond the classes discussed so far, or who are working with gridded data that
 is not an image.
 
 + `~astropy.nddata.NDData` is a container class for holding general gridded
@@ -410,11 +457,11 @@ is not an image.
   `~astropy.nddata.NDData` interface. More details are in
   :ref:`nddata_subclassing`.
 
-Additional examples
+Additional Examples
 ===================
 
 The list of packages below that use the ``nddata`` framework is intended to be
-useful to either people writing their own image classes or for those looking
+useful to either users writing their own image classes or those looking
 for an image class that goes beyond what `~astropy.nddata.CCDData` does.
 
 + The `SunPy project <https://sunpy.org/>`_ uses `~astropy.nddata.NDData` as the

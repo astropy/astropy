@@ -9,11 +9,11 @@ Overview
 :class:`~astropy.nddata.NDData` is based on `numpy.ndarray`-like ``data`` with
 additional meta attributes:
 
-+  ``meta``, for general metadata
-+ ``unit``, representing the physical unit of the data
++  ``meta`` for general metadata
++ ``unit`` represents the physical unit of the data
 + ``uncertainty`` for the uncertainty of the data
-+ ``mask``, indicating invalid points in the data
-+ ``wcs``, representing the relationship  between the data grid and world
++ ``mask`` indicates invalid points in the data
++ ``wcs`` represents the relationship between the data grid and world
   coordinates
 
 Each of these attributes can be set during initialization or directly on the
@@ -22,11 +22,18 @@ instance. Only the ``data`` cannot be directly set after creating the instance.
 Data
 ====
 
-The data is the base of `~astropy.nddata.NDData` and required to be
-`numpy.ndarray`-like. It's the only property that is required to create an
+The data is the base of `~astropy.nddata.NDData` and is required to be
+`numpy.ndarray`-like. It is the only property that is required to create an
 instance and it cannot be directly set on the instance.
 
-For example::
+Example
+=======
+
+..
+  EXAMPLE START
+  Creating Instances with NumPy NDarray-like Data
+
+To create an instance::
 
     >>> import numpy as np
     >>> from astropy.nddata import NDData
@@ -37,15 +44,15 @@ For example::
             [1, 0, 1],
             [0, 1, 0]])
 
-and can be accessed by the ``data`` attribute::
+And access by the ``data`` attribute::
 
     >>> ndd.data
     array([[0, 1, 0],
            [1, 0, 1],
            [0, 1, 0]])
 
-as already mentioned it is not possible to set the data directly. So
-``ndd.data = np.arange(9)`` will raise an Exception. But the data can be
+As already mentioned, it is not possible to set the data directly. So
+``ndd.data = np.arange(9)`` will raise an exception. But the data can be
 modified in place::
 
     >>> ndd.data[1,1] = 100
@@ -54,24 +61,37 @@ modified in place::
            [  1, 100,   1],
            [  0,   1,   0]])
 
-Data during initialization
+..
+  EXAMPLE END
+
+Data During Initialization
 --------------------------
 
-During initialization it is possible to provide data that it's not a
-`numpy.ndarray` but convertible to one. For example passing a `list` containing
-numerical values::
+During initialization it is possible to provide data that is not a
+`numpy.ndarray` but convertible to one.
+
+Examples
+--------
+
+..
+  EXAMPLE START
+  Data Convertible to a NumPy NDarray During Initialization
+
+To provide data that is convertible to a `numpy.ndarray`, you can pass a `list`
+containing numerical values::
 
     >>> alist = [1, 2, 3, 4]
     >>> ndd = NDData(alist)
     >>> ndd.data  # data will be a numpy-array:
     array([1, 2, 3, 4])
 
-Nested `list` or `tuple` are possible, but if these contain non-numerical
+A nested `list` or `tuple` is possible, but if these contain non-numerical
 values the conversion might fail.
 
-Besides input that is convertible to such an array you can use the ``data``
-parameter to pass implicit additional information. For example if the data is
-another `~astropy.nddata.NDData`-object it implicitly uses it's properties::
+Besides input that is convertible to such an array, you can also use the
+``data`` parameter to pass implicit additional information. For example, if the
+data is another `~astropy.nddata.NDData` object it implicitly uses its
+properties::
 
     >>> ndd = NDData(ndd, unit = 'm')
     >>> ndd2 = NDData(ndd)
@@ -80,7 +100,7 @@ another `~astropy.nddata.NDData`-object it implicitly uses it's properties::
     >>> ndd2.unit  # but it also has the same unit as ndd
     Unit("m")
 
-another possibility is to use a `~astropy.units.Quantity` as ``data``
+Another possibility is to use a `~astropy.units.Quantity` as a ``data``
 parameter::
 
     >>> import astropy.units as u
@@ -91,7 +111,7 @@ parameter::
     >>> ndd3.unit
     Unit("cm")
 
-or a `numpy.ma.MaskedArray`::
+Or a `numpy.ma.MaskedArray`::
 
     >>> masked_array = np.ma.array([5,10,15], mask=[False, True, False])
     >>> ndd4 = NDData(masked_array)
@@ -101,7 +121,7 @@ or a `numpy.ma.MaskedArray`::
     array([False,  True, False]...)
 
 If such an implicitly passed property conflicts with an explicit parameter, the
-explicit parameter will be used and an info-message will be issued::
+explicit parameter will be used and an info message will be issued::
 
     >>> quantity = np.ones(3) * u.cm
     >>> ndd6 = NDData(quantity, unit='m')
@@ -114,24 +134,35 @@ explicit parameter will be used and an info-message will be issued::
 The unit of the `~astropy.units.Quantity` is being ignored and the unit is set
 to the explicitly passed one.
 
-It might be possible to pass other classes as ``data`` parameter as long as
-they have the properties ``shape``, ``dtype``, ``__getitem__`` and
+It might be possible to pass other classes as a ``data`` parameter as long as
+they have the properties ``shape``, ``dtype``, ``__getitem__``, and
 ``__array__``.
 
 The purpose of this mechanism is to allow considerable flexibility in the
-objects used to store the data while providing a useful default (numpy array).
+objects used to store the data while providing a useful default (``numpy``
+array).
+
+..
+  EXAMPLE END
 
 Mask
 ====
 
 The ``mask`` is being used to indicate if data points are valid or invalid.
-`~astropy.nddata.NDData` doesn't restrict this mask in any way but it is
-expected to follow the `numpy.ma.MaskedArray` convention that the mask:
+`~astropy.nddata.NDData` does not restrict this mask in any way but it is
+expected to follow the `numpy.ma.MaskedArray` convention in that the mask:
 
-+ returns ``True`` for data points that are considered **invalid**.
-+ returns ``False`` for those points that are **valid**.
++ Returns ``True`` for data points that are considered **invalid**.
++ Returns ``False`` for those points that are **valid**.
 
-One possibility is to create a mask by using numpy's comparison operators::
+Examples
+--------
+
+..
+  EXAMPLE START
+  Masks Used to Indicate Valid or Invalid Data Points in NDData
+
+One possibility is to create a mask by using ``numpy``'s comparison operators::
 
     >>> array = np.array([0, 1, 4, 0, 2])
 
@@ -143,22 +174,26 @@ One possibility is to create a mask by using numpy's comparison operators::
     >>> other_mask
     array([False, False,  True, False,  True]...)
 
-and initialize the `~astropy.nddata.NDData` instance using the ``mask``
+And initialize the `~astropy.nddata.NDData` instance using the ``mask``
 parameter::
 
     >>> ndd = NDData(array, mask=mask)
     >>> ndd.mask
     array([ True, False, False,  True, False]...)
 
-or by replacing the mask::
+Or by replacing the mask::
 
     >>> ndd.mask = other_mask
     >>> ndd.mask
     array([False, False,  True, False,  True]...)
 
-There is no requirement that the mask actually be a numpy array; for example, a
-function which evaluates a mask value as needed is acceptable as long as it
-follows the convention that ``True`` indicates a value that should be ignored.
+There is no requirement that the mask actually be a ``numpy`` array; for
+example, a function which evaluates a mask value as needed is acceptable as
+long as it follows the convention that ``True`` indicates a value that should
+be ignored.
+
+..
+  EXAMPLE END
 
 Unit
 ====
@@ -179,15 +214,22 @@ Uncertainties
 =============
 
 The ``uncertainty`` represents an arbitrary representation of the error of the
-data values. To indicate which kind of uncertainty representation is used the
+data values. To indicate which kind of uncertainty representation is used, the
 ``uncertainty`` should have an ``uncertainty_type`` property. If no such
 property is found it will be wrapped inside a
 `~astropy.nddata.UnknownUncertainty`.
 
 The ``uncertainty_type`` should follow the `~astropy.nddata.StdDevUncertainty`
-convention that it returns a short string like ``"std"`` for an uncertainty
+convention in that it returns a short string like ``"std"`` for an uncertainty
 given in standard deviation. Other examples are
 `~astropy.nddata.VarianceUncertainty` and `~astropy.nddata.InverseVariance`.
+
+Examples
+--------
+
+..
+  EXAMPLE START
+  Setting Uncertainties During Initialization in NDData
 
 Like the other properties the ``uncertainty`` can be set during
 initialization::
@@ -199,19 +241,22 @@ initialization::
     >>> ndd.uncertainty  # doctest: +FLOAT_CMP
     StdDevUncertainty([3.16227766, 2.64575131, 3.46410162, 4.69041576])
 
-or on the instance directly::
+Or on the instance directly::
 
     >>> other_uncert = StdDevUncertainty([2,2,2,2])
     >>> ndd.uncertainty = other_uncert
     >>> ndd.uncertainty
     StdDevUncertainty([2, 2, 2, 2])
 
-but it will print an info message if there is no ``uncertainty_type``::
+But it will print an info message if there is no ``uncertainty_type``::
 
     >>> ndd.uncertainty = np.array([5, 1, 2, 10])
     INFO: uncertainty should have attribute uncertainty_type. [astropy.nddata.nddata]
     >>> ndd.uncertainty
     UnknownUncertainty([ 5,  1,  2, 10])
+
+..
+  EXAMPLE END
 
 WCS
 ---
@@ -222,15 +267,22 @@ may be restricted to an `~astropy.wcs.WCS` object or a more generalized WCS
 object in the future.
 
 .. note::
-    Like the unit the wcs cannot be set on an instance.
+    Like the unit the ``wcs`` cannot be set on an instance.
 
-Meta-data
+Metadata
 =========
 
-The ``meta`` property contains all further meta information that don't fit
+The ``meta`` property contains all further meta information that does not fit
 any other property.
 
-If given it must be `dict`-like::
+Examples
+--------
+
+..
+  EXAMPLE START
+  Metadata in NDData
+
+If the ``meta`` property is given it must be `dict`-like::
 
     >>> ndd = NDData([1,2,3], meta={'observer': 'myself'})
     >>> ndd.meta
@@ -246,8 +298,8 @@ also includes `~astropy.io.fits.Header` objects::
     >>> ndd.meta['observer']
     'Edwin Hubble'
 
-If the ``meta`` isn't provided or explicitly set to ``None`` it will default to
-an empty `collections.OrderedDict`::
+If the ``meta`` property is not provided or explicitly set to ``None``, it will
+default to an empty `collections.OrderedDict`::
 
     >>> ndd.meta = None
     >>> ndd.meta
@@ -262,17 +314,28 @@ The ``meta`` object therefore supports adding or updating these values::
     >>> ndd.meta['exposure_time'] = 340.
     >>> ndd.meta['filter'] = 'J'
 
-Elements of the meta-data dictionary can be set to any valid Python object::
+Elements of the metadata dictionary can be set to any valid Python object::
 
     >>> ndd.meta['history'] = ['calibrated', 'aligned', 'flat-fielded']
 
-Initialization with copy
+..
+  EXAMPLE END
+
+Initialization with Copy
 ========================
 
 The default way to create an `~astropy.nddata.NDData` instance is to try saving
 the parameters as references to the original rather than as copy. Sometimes
-this is not possible because the internal mechanics don't allow for this. For
-example if the ``data`` is a `list` then during initialization this is copied
+this is not possible because the internal mechanics do not allow for this.
+
+Examples
+--------
+
+..
+  EXAMPLE START
+  Creating an NDData Instance with Copy
+
+If the ``data`` is a `list` then during initialization this is copied
 while converting to a `~numpy.ndarray`. But it is also possible to enforce
 copies during initialization by setting the ``copy`` parameter to ``True``::
 
@@ -291,10 +354,13 @@ copies during initialization by setting the ``copy`` parameter to ``True``::
     In some cases setting ``copy=True`` will copy the ``data`` twice. Known
     cases are if the ``data`` is a `list` or `tuple`.
 
-Converting NDData to other classes
+..
+  EXAMPLE END
+
+Converting NDData to Other Classes
 ==================================
 
-There is limited to support to convert a `~astropy.nddata.NDData` instance to
+There is limited support to convert a `~astropy.nddata.NDData` instance to
 other classes. In the process some properties might be lost.
 
     >>> data = np.array([1, 2, 3, 4])
@@ -311,13 +377,13 @@ Converting the ``data`` to an array::
     >>> array
     array([1, 2, 3, 4])
 
-Though using ``np.asarray`` is not required in most cases it will ensure that
+Though using ``np.asarray`` is not required, in most cases it will ensure that
 the result is always a `numpy.ndarray`
 
 `numpy.ma.MaskedArray`
 ----------------------
 
-Converting the ``data``  and ``mask`` to a MaskedArray::
+Converting the ``data`` and ``mask`` to a MaskedArray::
 
 
     >>> masked_array = np.ma.array(ndd.data, mask=ndd.mask)
@@ -329,12 +395,12 @@ Converting the ``data``  and ``mask`` to a MaskedArray::
 `~astropy.units.Quantity`
 -------------------------
 
-Converting the ``data``  and ``unit`` to a Quantity::
+Converting the ``data`` and ``unit`` to a Quantity::
 
     >>> quantity = u.Quantity(ndd.data, unit=ndd.unit)
     >>> quantity  # doctest: +FLOAT_CMP
     <Quantity [1., 2., 3., 4.] m>
 
 .. note::
-    Ideally, one would construct masked quantities, but these are not properly
+    Ideally, you would construct masked quantities, but these are not properly
     supported: many operations on them fail.
