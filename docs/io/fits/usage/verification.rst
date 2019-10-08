@@ -190,11 +190,11 @@ The lowest level, the Card, also has the most complicated verification
 possibilities.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Verification at Each Card in `astropy.io.fits`
+  Verification at Each Card in astropy.io.fits
 
 Here is a list of fixable and not fixable Cards:
 
@@ -327,11 +327,11 @@ the ``writeto()`` function. It is possible to write only the DATASUM card to the
 header by supplying the checksum keyword argument with a value of 'datasum'.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Verification Using the FITS Checksum Keyword Convention in `astropy.io.fits`
+  Verification Using the FITS Checksum Keyword Convention
 
 To verify the checksum values for HDUs when opening a file:
 
