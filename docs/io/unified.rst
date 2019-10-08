@@ -279,6 +279,13 @@ read in and a warning will be emitted::
     >>> t = Table.read('data.fits')  # doctest: +SKIP
     WARNING: hdu= was not specified but multiple tables are present, reading in first available table (hdu=1) [astropy.io.fits.connect]
 
+You can also read a table from the HDUs of an in-memory FITS file. This will
+round-trip any :ref:`mixin_columns` that were written to that HDU, using the
+header information to reconstruct them::
+
+    >>> hdulist = astropy.io.fits.open('data.fits') # doctest: +SKIP
+    >>> t = Table.read(hdulist[1])  # doctest: +SKIP
+
 Writing
 ^^^^^^^^
 
