@@ -369,8 +369,7 @@ class Quantity(np.ndarray):
         # check that array contains numbers or long int objects
         if (value.dtype.kind in 'OSU' and
             not (value.dtype.kind == 'O' and
-                 isinstance(value.item(() if value.ndim == 0 else 0),
-                            numbers.Number))):
+                 isinstance(value.item(0), numbers.Number))):
             raise TypeError("The value must be a valid Python or "
                             "Numpy numeric type.")
 
@@ -1321,9 +1320,19 @@ class Quantity(np.ndarray):
             # We're not a Quantity, so let's try a more general conversion.
             # Plain arrays will be converted to dimensionless in the process,
             # but anything with a unit attribute will use that.
-            as_quantity = Quantity(value)
             try:
+                as_quantity = Quantity(value)
                 _value = as_quantity.to_value(self.unit)
+            except TypeError:
+                # Could not make a Quantity.  Maybe masked printing?
+                # Note: masked quantities do not work very well, but no reason
+                # to break even repr and str.
+                if (value is np.ma.masked_print_option and
+                        self.dtype.kind == 'O'):
+                    return value
+                else:
+                    raise
+
             except UnitsError:
                 # last chance: if this was not something with a unit
                 # and is all 0, inf, or nan, we treat it as arbitrary unit.
