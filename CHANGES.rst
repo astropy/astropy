@@ -162,6 +162,10 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Leap seconds are now automatically inferred from IERS tables, ensuring that
+  in normal usage they will not be out of date even if astropy and erfa are
+  not updated. [#9334]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
