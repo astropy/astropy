@@ -222,7 +222,7 @@ variance::
     >>> poisson_noise = np.ma.sqrt(np.ma.abs(ccd.data))
     >>> ccd.uncertainty = VarianceUncertainty(poisson_noise ** 2)
 
-As a convenience, the uncertainty can also be set with a ```numpy`` array. In
+As a convenience, the uncertainty can also be set with a ``numpy`` array. In
 that case, the uncertainty is assumed to be the standard deviation::
 
     >>> ccd.uncertainty = poisson_noise

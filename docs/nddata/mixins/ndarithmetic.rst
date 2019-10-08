@@ -95,7 +95,7 @@ For ``data`` and ``unit`` there are no parameters. Every arithmetic
 operation lets the `astropy.units.Quantity`-framework evaluate the result
 or fail and abort the operation.
 
-Adding two `NDData` objects with the same unit works::
+Adding two `~astropy.nddata.NDData` objects with the same unit works::
 
     >>> ndd1 = NDDataRef([1,2,3,4,5], unit='m')
     >>> ndd2 = NDDataRef([100,150,200,50,500], unit='m')
@@ -106,7 +106,7 @@ Adding two `NDData` objects with the same unit works::
     >>> ndd.unit
     Unit("m")
 
-Adding two `NDData` objects with compatible units also works::
+Adding two `~astropy.nddata.NDData` objects with compatible units also works::
 
     >>> ndd1 = NDDataRef(ndd1, unit='pc')
     INFO: overwriting NDData's current unit with specified unit. [astropy.nddata.nddata]
