@@ -313,9 +313,9 @@ def test_join(table_types):
             t12 = join(t1, t2, keys='a', join_type=join_type)
         assert 'join requires masking column' in str(exc.value)
 
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(TypeError) as exc:
         t12 = join(t1, t2, keys=['a', 'skycoord'])
-    assert 'not allowed as a key column' in str(exc.value)
+    assert 'one or more key columns are not sortable' in str(exc.value)
 
     # Join does work for a mixin which is a subclass of np.ndarray
     t12 = join(t1, t2, keys=['quantity'])
