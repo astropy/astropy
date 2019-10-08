@@ -233,7 +233,7 @@ be anything except ``None`` or ``"first_found"``::
   the attributes when calling the operation:
 
   - ``mask``: ``handle_mask`` must not be ``None``, ``"ff"``, or
-  ``"first_found"``.
+    ``"first_found"``.
   - ``wcs``: ``compare_wcs`` argument with the same restrictions as mask.
   - ``meta``: ``handle_meta`` argument with the same restrictions as mask.
   - ``uncertainty``: ``propagate_uncertainties`` must be ``None`` or evaluate
