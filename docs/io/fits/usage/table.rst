@@ -30,13 +30,6 @@ A record array is an array which contains records (i.e., rows) of heterogeneous
 data types. Record arrays are available through the records module in the NumPy
 library.
 
-Example
-=======
-
-..
-  EXAMPLE START
-  Table Data as a Record Array
-
 Here is a sample record array::
 
     >>> import numpy as np
@@ -61,9 +54,6 @@ exact same semantics as :meth:`BinTableHDU.from_columns` and
 :meth:`TableHDU.from_columns`, except that it only returns an actual FITS_rec
 array and not a whole HDU object.
 
-..
-  EXAMPLE END
-
 
 Metadata of a Table
 -------------------
@@ -86,12 +76,11 @@ Like images, the ``.data`` attribute of a table HDU contains the data of the
 table.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Reading a FITS Table with `astropy.io.fits`
-  Not sure what the lead in here should be...
+  Reading a FITS Table with astropy.io.fits
 
 To read a FITS Table::
 
@@ -145,7 +134,7 @@ Like image data, we can use the same "mask array" idea to pick out desired
 records from a table and make a new table out of it.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
@@ -179,11 +168,11 @@ Merging Tables
 Merging different tables is very convenient in ``astropy``.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Merging Tables in ``astropy``
+  Merging FITS Tables
 
 To merge the column definitions of the input tables::
 
@@ -237,11 +226,11 @@ Appending one table after another is slightly trickier, since the two tables
 may have different field attributes.
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Appending Tables in ``astropy``
+  Appending to FITS Tables
 
 Here, the first example is to append by field indices, and the second one is to
 append by field names. In both cases, the output table will inherit the column
@@ -342,11 +331,11 @@ header keywords and descriptions:
     array                                 the data of the column
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Creating a FITS Table in ``astropy``
+  Creating a FITS Table
 
 Here are a few Columns using various combinations of the optional arguments::
 
@@ -487,7 +476,7 @@ be found in the :ref:`fits_astropy_native` section. The support is not
 complete and only a subset of the full standard is implemented.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
