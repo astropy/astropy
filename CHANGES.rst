@@ -491,24 +491,22 @@ Other Changes and Additions
   This includes a fix that avoids precision loss for negative JDs. [#9323]
 
 
-3.2.2 (unreleased)
+
+3.2.2 (2019-10-07)
 ==================
 
 Bug fixes
 ---------
 
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
-- Fixed a bug in ``discretize_oversample_1D/2D()`` from ``astropy.convolution.utils``,
-  which might occasionally introduce unexpected oversampling grid dimensions due
-  to a numerical precision issue. [#9293]
+- Fixed a bug in ``discretize_oversample_1D/2D()`` from
+  ``astropy.convolution.utils``, which might occasionally introduce unexpected
+  oversampling grid dimensions due to a numerical precision issue. [#9293]
+
+- Fixed a bug [#9168] where having a kernel defined using unitless astropy
+  quantity objects would result in a crash [#9300]
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -524,11 +522,9 @@ astropy.coordinates
 - Raise a faster and more meaningful error message when differential data units
   are not compatible with a containing representation's units. [#9064]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
+- Changed the timescale in ICRS to CIRS from 'tdb' to 'tt' conversion and
+  vice-versa, as the erfa function that gets called in the process, pnm06a
+  accepts time in TT. [#9079]
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
@@ -536,9 +532,6 @@ astropy.io.ascii
 - Fixed the fast reader when used in parallel and with the multiprocessing
   'spawn' method (which is the default on MacOS X with Python 3.8 and later),
   and enable parallel fast reader on Windows. [#8853]
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
@@ -553,18 +546,6 @@ astropy.io.fits
 
 - Fixed the update of the header when creating GroupsHDU from data. [#9216]
 
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-Ensure unit information is properly applied to models evaluated with a
-bounding box. [#8799]
-
 astropy.nddata
 ^^^^^^^^^^^^^^
 
@@ -572,15 +553,11 @@ astropy.nddata
   equal to ``array_large``, instead of only allowing smaller sizes of
   arrays. [#9118]
 
-astropy.samp
-^^^^^^^^^^^^
-
 astropy.stats
 ^^^^^^^^^^^^^
 
-- Fixed ``median_absolute_deviation`` for the case where
-  ``ignore_nan=True`` and an input masked array contained both NaNs and
-  infs. [#9307]
+- Fixed ``median_absolute_deviation`` for the case where ``ignore_nan=True``
+  and an input masked array contained both NaNs and infs. [#9307]
 
 astropy.table
 ^^^^^^^^^^^^^
@@ -588,9 +565,6 @@ astropy.table
 - Comparisons between ``Column`` instances and ``Quantity`` will now
   correctly take into account the unit (as was already the case for
   regular operations such as addition). [#8904]
-
-astropy.tests
-^^^^^^^^^^^^^
 
 astropy.time
 ^^^^^^^^^^^^
@@ -606,17 +580,17 @@ astropy.timeseries
 - Fixed handling of ``Quantity`` input data for all methods of
   ``LombScarge.false_alarm_probabilty``. [#9246]
 
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
 astropy.units
 ^^^^^^^^^^^^^
 
-- Ensure that output from test functions of and comparisons between quantities
-  can be stored into pre-allocated output arrays (using ``out=array``) [#9273]
+- Allow conversion of ``Column`` with logarithmic units to a suitable
+  ``Quantity`` subclass if ``subok=True``. [#9188]
 
-- Allow conversion of ``Column`` with logarithmic units to a suitable ``Quantity``
-  subclass if ``subok=True``. [#9188]
+- Ensured that we simplify powers to smaller denominators if that is
+  consistent within rounding precision. [#9267]
+
+- Ensured that the powers shown in a unit's repr are always correct,
+  not oversimplified. [#9267]
 
 astropy.utils
 ^^^^^^^^^^^^^
@@ -628,13 +602,16 @@ astropy.utils
   check the size of downloaded files against the size claimed by the server.
   [#9302]
 
+- Fix ``find_current_module`` so that it works properly if astropy is being used
+  inside a bundle such as that produced by PyInstaller. [#8845]
+
+- Fix path to renamed classes, which previously included duplicate path/module
+  information under certain circumstances. [#8845]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
 - Silence numpy runtime warnings in ``WCSAxes`` when drawing grids. [#8882]
-- Fix incorrect transformation behavior in ``WCSAxes.plot_coord`` and correctly
-  handle when input coordinates are not already in spherical representations.
-  [#8927]
 
 astropy.wcs
 ^^^^^^^^^^^
@@ -642,7 +619,8 @@ astropy.wcs
 - Fixed equality test between ``cunit`` where the first element was equal but
   the following elements differed. [#9154]
 
-- Fixed a crash while loading a WCS from headers containing duplicate SIP keywords. [#8893]
+- Fixed a crash while loading a WCS from headers containing duplicate SIP
+  keywords. [#8893]
 
 - Fixed a possible buffer overflow when using too large negative indices for
   ``cunit`` or ``ctype`` [#9151]
@@ -656,12 +634,14 @@ astropy.wcs
 - Fixed a bug that caused ``WCS.array_shape``, ``WCS.pixel_shape`` and
   ``WCS.pixel_bounds`` to be incorrect after using ``WCS.sub``. [#9095]
 
+
 Other Changes and Additions
 ---------------------------
 
 - Fixed a bug that caused files outside of the astropy module directory to be
   included as package data, resulting in some cases in errors when doing
   repeated builds. [#9039]
+
 
 
 3.2.1 (2019-06-14)
@@ -2581,20 +2561,11 @@ Other Changes and Additions
 
 
 
-2.0.15 (unreleased)
+2.0.15 (2019-10-06)
 ===================
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -2603,36 +2574,12 @@ astropy.coordinates
   object could become garbled under specific circumstances when the frame
   defines custom component names via ``RepresentationMapping``. [#8869]
 
-- Changed the timescale in ICRS to CIRS from 'tdb' to 'tt' conversion and vice-versa,
-  as the erfa function that gets called in the process, pnm06a accepts time in TT. [#9079]
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
 - Fix uint conversion in ``FITS_rec`` when slicing a table. [#8982]
 
 - Fix reading of unsigned 8-bit integer with compressed fits. [#9219]
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
 
 astropy.nddata
 ^^^^^^^^^^^^^^
@@ -2651,9 +2598,6 @@ astropy.samp
 - Fixed a bug that caused an incorrectly constructed warning message
   to raise an error. [#8966]
 
-astropy.stats
-^^^^^^^^^^^^^
-
 astropy.table
 ^^^^^^^^^^^^^
 
@@ -2663,12 +2607,6 @@ astropy.table
 - Fix bug when initializing ``Table`` with ``rows`` as a generator. [#9315]
 
 - Fix ``join`` when there are multiple mixin (Quantity) columns as keys. [#9313]
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
 
 astropy.units
 ^^^^^^^^^^^^^
@@ -2682,31 +2620,10 @@ astropy.units
 
 - Fixed the LaTeX representation of units containing a superscript. [#9218]
 
-- Ensured that we simplify powers to smaller denominators if that is
-  consistent within rounding precision. [#9267]
-
-- Ensured that the powers shown in a unit's repr are always correct,
-  not oversimplified. [#9267]
-
-astropy.utils
-^^^^^^^^^^^^^
-
-- Fix ``find_current_module`` so that it works properly if astropy is being used
-  inside a bundle such as that produced by PyInstaller. [#8845]
-
-- Fix path to renamed classes, which previously included duplicate path/module
-  information under certain circumstances. [#8845]
-
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
 - Fixed compatibility issues with latest versions of Matplotlib. [#8961]
-
-astropy.vo
-^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
 
 
 Other Changes and Additions
@@ -2715,6 +2632,8 @@ Other Changes and Additions
 - Updated required version of Cython to v0.29.13 to make sure that
   generated C files are compatible with the upcoming Python 3.8 release
   as well as earlier supported versions of Python. [#9198]
+
+
 
 2.0.14 (2019-06-14)
 ===================
