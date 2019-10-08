@@ -65,7 +65,7 @@ Input Data Format
 The input ``table`` argument to |write| can be any value that is supported for
 initializing a |Table| object. This is documented in detail in the
 :ref:`construct_table` section and includes creating a table with a list of
-columns, a dictionary of columns, or from `NumPy` arrays (either structured or
+columns, a dictionary of columns, or from `numpy` arrays (either structured or
 homogeneous).
 
 Table or NumPy Structured Array
@@ -352,7 +352,7 @@ Example
   EXAMPLE START
   Writing a Table with a SkyCoord Column in ECSV Format
 
-Creating a table with a SkyCoord column can be accomplished with a mixin
+Creating a table with a `~astropy.coordinates.SkyCoord` column can be accomplished with a mixin
 column, which is supported by `ECSV <https://docs.astropy.org/en/stable/api/astropy.io.ascii.Ecsv.html>`_. To store a mixin column::
 
   >>> from astropy.io import ascii
