@@ -142,11 +142,11 @@ any array in the column. So, for a variable length field of int16, the
 corresponding format spec is, for example, 'PJ(100)'.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Variable Length Array Tables in `astropy.io.fits`
+  Accessing Variable Length Array Columns in FITS Tables
 
 This example shows a variable length array field of data type int16::
 
@@ -178,11 +178,11 @@ letter, and secondly, the field data must be an objects array (as included in
 the ``numpy`` module).
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Creating a Variable Length Array Table with `astropy.io.fits`
+  Creating a Variable Length Array Column in a FITS Table
 
 Here is an example of creating a table with two fields; one is regular and the
 other a variable length array::
@@ -272,14 +272,13 @@ The data part of a Random Access Group HDU is, like other HDUs, in the
 ``.data`` attribute. It includes both parameter(s) and image array(s).
 
 Examples
-========
+--------
 
 ..
   EXAMPLE START
-  Data: Group Parameters in `astropy.io.fits`
-  Needs more clarification?
+  Group Parameters in Random Access Group HDUs
 
-Show the data in third group, including parameters and data::
+To show the contents of the third group, including parameters and data::
 
     >>> hdul[0].data[2]  # doctest: +FLOAT_CMP
     (2.0999999, 42.0, 42.0, array([[[[30., 31., 32., 33., 34.],
@@ -373,11 +372,11 @@ encapsulate the data into the group data structure, and use :class:`GroupsHDU`
 to create the HDU itself.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Creating a Random Access Group HDU in `astropy.io.fits`
+  Creating a Random Access Group HDU in a FITS File
 
 To create a Random Access Group HDU::
 
@@ -475,11 +474,11 @@ Since the HDU is actually a binary table, it may not appear as a primary HDU in
 a FITS file.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Compressed Image HDU Headers in `astropy.io.fits`
+  Accessing Compressed FITS Image HDU Headers
 
 The content of the HDU header may be accessed using the ``.header`` attribute::
 
@@ -561,11 +560,11 @@ and ZBLANK to hold the integer value used to represent undefined pixels (if
 any) in the image.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Compressed Image HDU Data in `astropy.io.fits`
+  Accessing Compressed FITS Image HDU Data
 
 The contents of the uncompressed HDU data may be accessed using the ``.data``
 attribute::
@@ -600,11 +599,11 @@ associated image header. From there, the HDU can be treated just like any
 other image HDU.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
-  Creating a Compressed Image HDU in `astropy.io.fits`
+  Creating a Compressed FITS Image HDU
 
 To create a compressed image HDU::
 
