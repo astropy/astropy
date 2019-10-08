@@ -1,6 +1,6 @@
 .. _nddata_utils:
 
-Image utilities
+Image Utilities
 ***************
 
 Overview
@@ -18,23 +18,24 @@ Getting Started
 ---------------
 
 The `~astropy.nddata.utils.Cutout2D` class can be used to create a
-postage stamp cutout image from a 2D array.  If an optional
+postage stamp cutout image from a 2D array. If an optional
 `~astropy.wcs.WCS` object is input to
 `~astropy.nddata.utils.Cutout2D`, then the
 `~astropy.nddata.utils.Cutout2D` object will contain an updated
 `~astropy.wcs.WCS` corresponding to the cutout array.
 
-First, let's simulate a single source on a 2D data array. If you would like to
+First, we simulate a single source on a 2D data array. If you would like to
 simulate many sources, see :ref:`bounding-boxes`.
 
-Note: The pair convention is different for **size** and **position**! The position is specified as (x,y), but the size is specified as (y,x).
+Note: The pair convention is different for **size** and **position**! The
+position is specified as (x,y), but the size is specified as (y,x).
 
     >>> import numpy as np
     >>> from astropy.modeling.models import Gaussian2D
     >>> y, x = np.mgrid[0:500, 0:500]
     >>> data = Gaussian2D(1, 50, 100, 10, 5, theta=0.5)(x, y)
 
-Now, let's display the image:
+Now, we can display the image:
 
 .. doctest-skip::
 
@@ -50,7 +51,7 @@ Now, let's display the image:
     data = Gaussian2D(1, 50, 100, 10, 5, theta=0.5)(x, y)
     plt.imshow(data, origin='lower')
 
-Now let's create a cutout for the single object in this image.  We
+Next we can create a cutout for the single object in this image. We
 create a cutout centered at position ``(x, y) = (49.7, 100.1)`` with a
 size of ``(ny, nx) = (41, 51)`` pixels::
 
@@ -65,7 +66,7 @@ The ``size`` keyword can also be a `~astropy.units.Quantity` object::
     >>> size = u.Quantity((41, 51), u.pixel)
     >>> cutout = Cutout2D(data, position, size)
 
-or contain `~astropy.units.Quantity` objects::
+Or contain `~astropy.units.Quantity` objects::
 
     >>> size = (41*u.pixel, 51*u.pixel)
     >>> cutout = Cutout2D(data, position, size)
@@ -80,10 +81,10 @@ a scalar `~astropy.units.Quantity`::
     >>> cutout2 = Cutout2D(data, position, size)
 
 The cutout array is stored in the ``data`` attribute of the
-`~astropy.nddata.utils.Cutout2D` instance.  If the ``copy`` keyword is
+`~astropy.nddata.utils.Cutout2D` instance. If the ``copy`` keyword is
 `False` (default), then ``cutout.data`` will be a view into the
-original ``data`` array.  If ``copy=True``, then ``cutout.data`` will
-hold a copy of the original ``data``.  Let's display the cutout
+original ``data`` array. If ``copy=True``, then ``cutout.data`` will
+hold a copy of the original ``data``. Now we display the cutout
 image:
 
 .. doctest-skip::
@@ -166,19 +167,19 @@ pixel positions between the original and cutout arrays::
     (2, 1)
 
 
-2D Cutout modes
+2D Cutout Modes
 ---------------
 
-There are three modes for creating cutout arrays, ``'trim'``,
-``'partial'``, and ``'strict'``.  For the ``'partial'`` and ``'trim'``
+There are three modes for creating cutout arrays: ``'trim'``,
+``'partial'``, and ``'strict'``. For the ``'partial'`` and ``'trim'``
 modes, a partial overlap of the cutout array and the input ``data``
-array is sufficient.  For the ``'strict'`` mode, the cutout array has
+array is sufficient. For the ``'strict'`` mode, the cutout array has
 to be fully contained within the ``data`` array, otherwise an
-`~astropy.nddata.utils.PartialOverlapError` is raised.   In all modes,
+`~astropy.nddata.utils.PartialOverlapError` is raised. In all modes,
 non-overlapping arrays will raise a
-`~astropy.nddata.utils.NoOverlapError`.  In ``'partial'`` mode,
+`~astropy.nddata.utils.NoOverlapError`. In ``'partial'`` mode,
 positions in the cutout array that do not overlap with the ``data``
-array will be filled with ``fill_value``.  In ``'trim'`` mode only the
+array will be filled with ``fill_value``. In ``'trim'`` mode only the
 overlapping elements are returned, thus the resulting cutout array may
 be smaller than the requested ``size``.
 
@@ -195,7 +196,7 @@ that are smaller than the requested ``size``::
     >>> print((cutout1.position_original, cutout1.position_cutout))
     ((0, 0), (0, 0))
 
-With ``mode='partial'``, the cutout will never be trimmed.  Instead it
+With ``mode='partial'``, the cutout will never be trimmed. Instead it
 will be filled with ``fill_value`` (the default is ``numpy.nan``) if
 the cutout is not fully contained in the data array::
 
@@ -227,14 +228,14 @@ fully contained in the data array:
     PartialOverlapError: Arrays overlap only partially.
 
 
-2D Cutout from a `~astropy.coordinates.SkyCoord` position
+2D Cutout from a `~astropy.coordinates.SkyCoord` Position
 ---------------------------------------------------------
 
 The input ``position`` can also be specified as a
 `~astropy.coordinates.SkyCoord`, in which case a `~astropy.wcs.WCS`
 object must be input via the ``wcs`` keyword.
 
-First, let's define a `~astropy.coordinates.SkyCoord` position and a
+First, we define a `~astropy.coordinates.SkyCoord` position and a
 `~astropy.wcs.WCS` object for our data (usually this would come from
 your FITS header)::
 
@@ -251,7 +252,7 @@ your FITS header)::
     ...                  position.dec.to_value(u.deg)]
     >>> wcs.wcs.crpix = [50, 100]
 
-Now let's create the cutout array using the
+Now we can create the cutout array using the
 `~astropy.coordinates.SkyCoord` position and ``wcs`` object::
 
     >>> cutout = Cutout2D(data, position, (30, 40), wcs=wcs)
@@ -281,7 +282,7 @@ Now let's create the cutout array using the
 
 The ``wcs`` attribute of the `~astropy.nddata.utils.Cutout2D` object now
 contains the propagated `~astropy.wcs.WCS` for the cutout array.
-Let's find the sky coordinates for a given pixel in the cutout array.
+Now we can find the sky coordinates for a given pixel in the cutout array.
 Note that we need to use the ``cutout.wcs`` object for the cutout
 positions::
 
@@ -303,15 +304,15 @@ As expected, the sky coordinates in the original ``data`` and the
 cutout array agree.
 
 
-2D Cutout using an angular ``size``
+2D Cutout Using an Angular ``size``
 -----------------------------------
 
 The input ``size`` can also be specified as a
-`~astropy.units.Quantity` in angular units, e.g. degrees, arcminutes,
-arcseconds, etc.  For this case, a `~astropy.wcs.WCS` object must be
+`~astropy.units.Quantity` in angular units (e.g., degrees, arcminutes,
+arcseconds, etc.). For this case, a `~astropy.wcs.WCS` object must be
 input via the ``wcs`` keyword.
 
-For this example, we'll use the data, `~astropy.coordinates.SkyCoord`
+For this example, we will use the data, `~astropy.coordinates.SkyCoord`
 position, and ``wcs`` object from above to create a cutout with size
 1.5 x 2.5 arcseconds::
 
@@ -344,14 +345,14 @@ position, and ``wcs`` object from above to create a cutout with size
     plt.imshow(cutout.data, origin='lower')
 
 
-Saving a 2D Cutout to a FITS file with an updated WCS
+Saving a 2D Cutout to a FITS File with an Updated WCS
 =====================================================
 
-A `~astropy.nddata.utils.Cutout2D` object can be easily saved to a
-FITS file, including the updated WCS object for the cutout region.  In
-this example, we download an example FITS image and create a cutout
-image.  The resulting `~astropy.nddata.utils.Cutout2D` object is then
-saved to a new FITS file with the updated WCS for the cutout region.
+A `~astropy.nddata.utils.Cutout2D` object can be saved to a FITS file,
+including the updated WCS object for the cutout region. In this example, we
+download an example FITS image and create a cutout image. The resulting
+`~astropy.nddata.utils.Cutout2D` object is then saved to a new FITS file with
+the updated WCS for the cutout region.
 
 .. literalinclude:: examples/cutout2d_tofits.py
    :language: python

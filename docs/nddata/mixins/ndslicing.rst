@@ -6,16 +6,16 @@ Slicing and Indexing NDData
 Introduction
 ============
 
-This page only deals with peculiarities applying to
+This page only deals with peculiarities that apply to
 `~astropy.nddata.NDData`-like classes. For a tutorial about slicing/indexing see the
 `python documentation <https://docs.python.org/3/tutorial/introduction.html#lists>`_
 and `numpy documentation <https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html>`_.
 
 .. warning::
     `~astropy.nddata.NDData` and `~astropy.nddata.NDDataRef` enforce almost no
-    restrictions on the properties so it might happen that some **valid but
-    unusual** combination of properties always results in an IndexError or
-    incorrect results. In this case see :ref:`nddata_subclassing` on how to
+    restrictions on the properties, so it might happen that some **valid but
+    unusual** combinations of properties always result in an IndexError or
+    incorrect results. In this case, see :ref:`nddata_subclassing` on how to
     customize slicing for a particular property.
 
 
@@ -42,7 +42,7 @@ Getting a sliced portion of the original::
     NDDataRef([2, 3])
 
 This will return a reference (and as such **not a copy**) of the original
-properties so changing a slice will affect the original::
+properties, so changing a slice will affect the original::
 
     >>> ndd_sliced = ndd[1:3]
     >>> ndd_sliced.data[0] = 5
@@ -51,14 +51,15 @@ properties so changing a slice will affect the original::
     >>> ndd
     NDDataRef([1, 5, 3, 4])
 
-except you indexed only one element (for example ``ndd_sliced = ndd[1]``). Then
-the element is a scalar and changes will not propagate to the original.
+But only the one element that was indexed is affected (for example,
+``ndd_sliced = ndd[1]``). The element is a scalar and changes will not
+propagate to the original.
 
-Slicing NDDataRef including attributes
+Slicing NDDataRef Including Attributes
 ======================================
 
-In case a ``wcs``, ``mask`` or ``uncertainty`` is present this attribute will
-be sliced too::
+In the case that a ``wcs``, ``mask``, or ``uncertainty`` is present, this
+attribute will be sliced too::
 
     >>> from astropy.nddata import StdDevUncertainty
     >>> data = np.array([1, 2, 3, 4])
@@ -80,9 +81,9 @@ be sliced too::
     >>> ndd_sliced.wcs  # doctest: +FLOAT_CMP
     array([1., 1.])
 
-but ``unit`` and ``meta`` will be unaffected.
+``unit`` and ``meta``, however, will be unaffected.
 
-If any of the attributes is set but doesn't implement slicing an info will be
+If any of the attributes are set but do not implement slicing, an info will be
 printed and the property will be kept as is::
 
     >>> data = np.array([1, 2, 3, 4])
@@ -98,16 +99,25 @@ printed and the property will be kept as is::
     >>> ndd_sliced.mask
     False
 
-Example: Remove masked data
-===========================
+Removing Masked Data
+--------------------
 
 .. warning::
     If you are using a `~astropy.wcs.WCS` object as ``wcs`` this will **NOT**
-    be possible. But you could work around it, i.e. set it to ``None`` before
+    be possible. But you can work around this by setting it to ``None`` before
     slicing.
 
-By convention the ``mask`` attribute indicates if a point is valid or invalid.
-So we are able to get all valid data points by slicing with the mask::
+By convention, the ``mask`` attribute indicates if a point is valid or invalid.
+So we are able to get all valid data points by slicing with the mask.
+
+Examples
+--------
+
+..
+  EXAMPLE START
+  Removing Masked Data in NDDataRef
+
+To get all of the valid data points by slicing with the mask::
 
     >>> data = np.array([[1,2,3],[4,5,6],[7,8,9]])
     >>> mask = np.array([[0,1,0],[1,1,1],[0,0,1]], dtype=bool)
@@ -124,7 +134,7 @@ So we are able to get all valid data points by slicing with the mask::
     >>> ndd_sliced.uncertainty  # doctest: +FLOAT_CMP
     StdDevUncertainty([1.        , 1.73205081, 2.64575131, 2.82842712])
 
-or all invalid points::
+Or all invalid points::
 
     >>> ndd_sliced = ndd[ndd.mask] # without the ~ now!
     >>> ndd_sliced
@@ -139,3 +149,6 @@ or all invalid points::
 .. note::
     The result of this kind of indexing (boolean indexing) will always be
     one-dimensional!
+
+..
+  EXAMPLE END
