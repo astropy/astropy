@@ -395,7 +395,7 @@ to a new file, you can use the :meth:`HDUList.writeto` method (see below).
 
     See also :ref:`sphx_glr_generated_examples_io_plot_fits-image.py`.
 
-Working With Table Data
+Working with Table Data
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 This section describes reading and writing table data in the FITS format using
