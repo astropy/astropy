@@ -594,8 +594,8 @@ def test_regression_8276():
     try:
         baseframe.frame_transform_graph = copy.copy(baseframe.frame_transform_graph)
 
-        # as reported in 8276, this fails right here because registering the
-        # transform tries to create a frame attribute
+        # as reported in 8276, this previously failed right here because
+        # registering the transform tries to create a frame attribute
         @baseframe.frame_transform_graph.transform(FunctionTransform, MyFrame, AltAz)
         def trans(my_frame_coord, altaz_frame):
             pass

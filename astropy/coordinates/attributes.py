@@ -290,10 +290,7 @@ class QuantityAttribute(Attribute):
 
         self.unit = unit
         self.shape = shape
-
-        if default is not None:
-            default = self.convert_input(default)[0]
-
+        default = self.convert_input(default)[0]
         super().__init__(default, secondary_attribute)
 
     def convert_input(self, value):
