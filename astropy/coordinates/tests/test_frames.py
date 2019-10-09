@@ -763,6 +763,33 @@ def test_quantity_attributes():
         GCRS(obsgeoloc=[1, 3]*u.km)  # incorrect shape
 
 
+def test_quantity_attribute_default():
+    from astropy.coordinates import BaseCoordinateFrame, QuantityAttribute
+
+    # The default default (yes) is None:
+    class MyCoord(BaseCoordinateFrame):
+        someval = QuantityAttribute(unit=u.deg)
+
+    frame = MyCoord()
+    assert frame.someval is None
+
+    frame = MyCoord(someval=15*u.deg)
+    assert u.isclose(frame.someval, 15*u.deg)
+
+    # This should work if we don't explicitly pass in a unit, but we pass in a
+    # default value with a unit
+    class MyCoord2(BaseCoordinateFrame):
+        someval = QuantityAttribute(15*u.deg)
+
+    frame = MyCoord()
+    assert u.isclose(frame.someval, 15*u.deg)
+
+    # This should fail, if we don't pass in a default or a unit
+    with pytest.raises(ValueError):
+        class MyCoord(BaseCoordinateFrame):
+            someval = QuantityAttribute()
+
+
 @pytest.mark.remote_data
 def test_eloc_attributes():
     from astropy.coordinates import AltAz, ITRS, GCRS, EarthLocation
