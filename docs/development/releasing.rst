@@ -248,6 +248,10 @@ packages that use the full bugfix/maintenance branch approach.)
       $ twine check dist/*
       $ twine upload dist/astropy-<version>*
 
+
+Congratulations!  You have completed the release! Now there are just a few
+clean-up tasks to finalize the process.
+
 .. _post-release-procedure:
 
 Post-Release procedures
