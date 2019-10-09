@@ -453,7 +453,7 @@ and "Registered FITS Convention, Tiled Image Compression Convention":
     https://fits.gsfc.nasa.gov/registry/tilecompression.html
 
 Compressed image data is accessed, in ``astropy``, using the optional
-`astropy.io.fits.compression` module contained in a C shared library
+``astropy.io.fits.compression`` module contained in a C shared library
 (compression.so). If an attempt is made to access an HDU containing compressed
 image data when the compression module is not available, the user is notified
 of the problem and the HDU is treated like a standard binary table HDU. This

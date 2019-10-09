@@ -600,7 +600,7 @@ Example
   EXAMPLE START
   Writing and Reading Time Columns to/from FITS Tables
 
-To read a FITS table into `~astropy.table.table`:
+To read a FITS table into `~astropy.table.Table`:
 
 .. doctest-skip::
 
