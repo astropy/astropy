@@ -277,10 +277,23 @@ class QuantityAttribute(Attribute):
         If given, specifies the shape the attribute must be
     """
 
-    def __init__(self, default, secondary_attribute='', unit=None, shape=None):
+    def __init__(self, default=None, secondary_attribute='', unit=None,
+                 shape=None):
+
+        if default is None and unit is None:
+            raise ValueError('Either a default quantity value must be '
+                             'provided, or a unit must be provided to define a '
+                             'QuantityAttribute.')
+
+        if default is not None and unit is None:
+            unit = default.unit
+
         self.unit = unit
         self.shape = shape
-        default = self.convert_input(default)[0]
+
+        if default is not None:
+            default = self.convert_input(default)[0]
+
         super().__init__(default, secondary_attribute)
 
     def convert_input(self, value):
@@ -304,9 +317,9 @@ class QuantityAttribute(Attribute):
         ValueError
             If the input is not valid for this attribute.
         """
+
         if value is None:
-            raise TypeError('QuantityAttributes cannot be None, because None '
-                            'is not a Quantity')
+            return None, False
 
         if np.all(value == 0) and self.unit is not None:
             return u.Quantity(np.zeros(self.shape), self.unit), True
@@ -319,7 +332,7 @@ class QuantityAttribute(Attribute):
             if self.shape is not None and value.shape != self.shape:
                 raise ValueError('The provided value has shape "{}", but '
                                  'should have shape "{}"'.format(value.shape,
-                                                                  self.shape))
+                                                                 self.shape))
             converted = oldvalue is not value
             return value, converted
 
