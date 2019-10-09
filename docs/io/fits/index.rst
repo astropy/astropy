@@ -3,7 +3,7 @@
 .. _astropy-io-fits:
 
 **************************************
-FITS File handling (`astropy.io.fits`)
+FITS File Handling (`astropy.io.fits`)
 **************************************
 
 Introduction
@@ -20,28 +20,28 @@ Getting Started
 
 This section provides a quick introduction of using :mod:`astropy.io.fits`. The
 goal is to demonstrate the package's basic features without getting into too
-much detail. If you are a first time user or have never used Astropy or PyFITS,
-this is where you should start.  See also the :ref:`FAQ <io-fits-faq>` for
-answers to common questions/issues.
+much detail. If you are a first time user or have never used ``astropy`` or
+PyFITS, this is where you should start. See also the :ref:`FAQ <io-fits-faq>`
+for answers to common questions and issues.
 
 .. note::
 
-    If you want to read or write a single table in FITS format then the
-    simplest method is often via the high-level :ref:`table_io`.  In particular
+    If you want to read or write a single table in FITS format, the
+    recommended method is via the high-level :ref:`table_io`. In particular
     see the :ref:`Unified I/O FITS <table_io_fits>` section.
 
 Reading and Updating Existing FITS Files
 ----------------------------------------
 
-Opening a FITS file
+Opening a FITS File
 ^^^^^^^^^^^^^^^^^^^
 
 .. note::
 
     The ``astropy.io.fits.util.get_testdata_filepath()`` function,
-    used in the examples here, is for accessing data shipped with Astropy.
+    used in the examples here, is for accessing data shipped with ``astropy``.
     To work with your own data instead, please use :func:`astropy.io.fits.open`,
-    which takes either relative or absolute path.
+    which takes either the relative or absolute path.
 
 Once the `astropy.io.fits` package is loaded using the standard convention
 [#f1]_, we can open an existing FITS file::
@@ -53,16 +53,16 @@ Once the `astropy.io.fits` package is loaded using the standard convention
 
 The :func:`open` function has several optional arguments which will be
 discussed in a later chapter. The default mode, as in the above example, is
-"readonly".  The open function returns an object called an :class:`HDUList`
+"readonly". The open function returns an object called an :class:`HDUList`
 which is a `list`-like collection of HDU objects. An HDU (Header Data Unit) is
 the highest level component of the FITS file structure, consisting of a header
 and (typically) a data array or table.
 
 After the above open call, ``hdul[0]`` is the primary HDU, ``hdul[1]`` is
-the first extension HDU, etc (if there are any extensions), and so on.  It
-should be noted that Astropy is using zero-based indexing when referring to
+the first extension HDU, etc. (if there are any extensions), and so on. It
+should be noted that ``astropy`` uses zero-based indexing when referring to
 HDUs and header cards, though the FITS standard (which was designed with
-FORTRAN in mind) uses one-based indexing.
+Fortran in mind) uses one-based indexing.
 
 The :class:`HDUList` has a useful method :meth:`HDUList.info`, which
 summarizes the content of the opened FITS file:
@@ -94,14 +94,14 @@ manager::
       3  SCI           3 ImageHDU        61   (40, 40)   int16
       4  SCI           4 ImageHDU        61   (40, 40)   int16
 
-After exiting the ``with`` scope the file will be closed automatically. That's
+After exiting the ``with`` scope the file will be closed automatically. That is
 (generally) the preferred way to open a file in Python, because it will close
 the file even if an exception happens.
 
 If the file is opened with ``lazy_load_hdus=False``, all of the headers will
 still be accessible after the HDUList is closed. The headers and data may or
-may not be  accessible depending on whether the data are touched and if they
-are memory-mapped, see later chapters for detail.
+may not be accessible depending on whether the data are touched and if they
+are memory-mapped; see later chapters for detail.
 
 .. _fits-large-files:
 
@@ -110,46 +110,49 @@ Working with large files
 
 The :func:`open` function supports a ``memmap=True`` argument that allows the
 array data of each HDU to be accessed with mmap, rather than being read into
-memory all at once.  This is particularly useful for working with very large
-arrays that cannot fit entirely into physical memory. Here ``memmap=True`` by default, and this value is obtained from the configuration item ``astropy.io.fits.Conf.use_memmap``.
+memory all at once. This is particularly useful for working with very large
+arrays that cannot fit entirely into physical memory. Here ``memmap=True`` by
+default, and this value is obtained from the configuration item ``astropy.io.fits.Conf.use_memmap``.
 
 This has minimal impact on smaller files as well, though some operations, such
-as reading the array data sequentially, may incur some additional overhead.  On
-32-bit systems arrays larger than 2-3 GB cannot be mmap'd (which is fine,
-because by that point you're likely to run out of physical memory anyways), but
+as reading the array data sequentially, may incur some additional overhead. On
+32-bit systems, arrays larger than 2 to 3 GB cannot be mmap'd (which is fine,
+because by that point you are likely to run out of physical memory anyways), but
 64-bit systems are much less limited in this respect.
 
 .. warning::
-    When opening a file with ``memmap=True``, because of how mmap works this means that
-    when the HDU data is accessed (i.e. ``hdul[0].data``) another handle to the FITS file
-    is opened by mmap. This means that even after calling ``hdul.close()`` the mmap still
-    holds an open handle to the data so that it can still be accessed by unwary programs
-    that were built with the assumption that the .data attribute has all the data in-memory.
+    When opening a file with ``memmap=True``, because of how mmap works this
+    means that when the HDU data is accessed (i.e., ``hdul[0].data``) another
+    handle to the FITS file is opened by mmap. This means that even after
+    calling ``hdul.close()`` the mmap still holds an open handle to the data so
+    that it can still be accessed by unwary programs that were built with the
+    assumption that the .data attribute has all of the data in-memory.
 
-    In order to force the mmap to close either wait for the containing ``HDUList`` object to go
-    out of scope, or manually call ``del hdul[0].data`` (this works so long as there are no other
-    references held to the data array).
+    In order to force the mmap to close, either wait for the containing
+    ``HDUList`` object to go out of scope, or manually call
+    ``del hdul[0].data``. (This works so long as there are no other references
+    held to the data array.)
 
 Unsigned integers
 """""""""""""""""
 
-Due to the FITS format's FORTRAN origins, FITS does not natively support
-unsigned integer data in images or tables.  However, there is a common
+Due to the FITS format's Fortran origins, FITS does not natively support
+unsigned integer data in images or tables. However, there is a common
 convention to store unsigned integers as signed integers, along with a
 *shift* instruction (a ``BZERO`` keyword with value ``2 ** (BITPIX - 1)``) to
-shift up all signed integers to unsigned integers.  For example, when writing
+shift up all signed integers to unsigned integers. For example, when writing
 the value ``0`` as an unsigned 32-bit integer, it is stored in the FITS
 file as ``-32768``, along with the header keyword ``BZERO = 32768``.
 
-Astropy recognizes and applies this convention by default, so that all data
+``astropy`` recognizes and applies this convention by default, so that all data
 that looks like it should be interpreted as unsigned integers is automatically
-converted (this applies to both images and tables).  In Astropy versions prior
-to v1.1.0 this was *not* applied automatically, and it is necessary to pass the
-argument ``uint=True`` to :func:`open`.  In v1.1.0 or later this is the
+converted (this applies to both images and tables). In ``astropy`` versions
+prior to v1.1.0 this was *not* applied automatically, and it is necessary to
+pass the argument ``uint=True`` to :func:`open`. In v1.1.0 or later this is the
 default.
 
 Even with ``uint=False``, the ``BZERO`` shift is still applied, but the
-returned array is of "float64" type.  To disable scaling/shifting entirely, use
+returned array is of "float64" type. To disable scaling/shifting entirely, use
 ``do_not_scale_image_data=True`` (see :ref:`fits-scaled-data-faq` in the FAQ
 for more details).
 
@@ -163,17 +166,17 @@ Working with compressed files
 
 
 The :func:`open` function will seamlessly open FITS files that have been
-compressed with gzip, bzip2 or pkzip. Note that in this context we're talking
-about a fits file that has been compressed with one of these utilities - e.g. a
-.fits.gz file.
+compressed with gzip, bzip2 or pkzip. Note that in this context we are talking
+about a FITS file that has been compressed with one of these utilities (e.g., a
+.fits.gz file).
 
-There are some limitations with working with compressed files. For example with Zip
-files that contain multiple compressed files, only the first file will be accessible.
-Also bzip does not support the append or update access modes.
+There are some limitations when working with compressed files. For example,
+with Zip files that contain multiple compressed files, only the first file will
+be accessible. Also bzip does not support the append or update access modes.
 
-When writing a file (e.g. with the :func:`writeto` function), compression will be
-determined based on the filename extension given, or the compression used in a
-pre-existing file that is being written to.
+When writing a file (e.g., with the :func:`writeto` function), compression will
+be determined based on the filename extension given, or the compression used in
+a pre-existing file that is being written to.
 
 Working with FITS Headers
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -183,13 +186,13 @@ As mentioned earlier, each element of an :class:`HDUList` is an HDU object with
 and data portions of the HDU.
 
 For those unfamiliar with FITS headers, they consist of a list of 80 byte
-"cards", where a card contains a keyword, a value, and a comment.  The keyword
+"cards", where a card contains a keyword, a value, and a comment. The keyword
 and comment must both be strings, whereas the value can be a string or an
-integer, floating point number, complex number, or ``True``/``False``.  Keywords
+integer, floating point number, complex number, or ``True``/``False``. Keywords
 are usually unique within a header, except in a few special cases.
 
-The header attribute is a Header instance, another Astropy object. To get the
-value associated with a header keyword, simply do (a la Python dicts)::
+The header attribute is a Header instance, another ``astropy`` object. To get
+the value associated with a header keyword, do (à la Python dicts)::
 
     >>> hdul = fits.open(fits_image_filename)
     >>> hdul[0].header['DATE']
@@ -198,27 +201,27 @@ value associated with a header keyword, simply do (a la Python dicts)::
 to get the value of the keyword "DATE", which is a string '01/04/99'.
 
 Although keyword names are always in upper case inside the FITS file,
-specifying a keyword name with Astropy is case-insensitive, for the user's
+specifying a keyword name with ``astropy`` is case-insensitive for the user's
 convenience. If the specified keyword name does not exist, it will raise a
 `KeyError` exception.
 
-We can also get the keyword value by indexing (a la Python lists)::
+We can also get the keyword value by indexing (à la Python lists)::
 
     >>> hdul[0].header[7]
     32768.0
 
-This example returns the 8th (like Python lists, it is 0-indexed) keyword's
-value--a float--32768.0.
+This example returns the eighth (like Python lists, it is 0-indexed) keyword's
+value — a float — 32768.0.
 
-Similarly, it is easy to update a keyword's value in Astropy, either through
-keyword name or index::
+Similarly, it is possible to update a keyword's value in ``astropy``, either
+through keyword name or index::
 
     >>> hdr = hdul[0].header
     >>> hdr['targname'] = 'NGC121-a'
     >>> hdr[27] = 99
 
 Please note however that almost all application code should update header
-values via their keyword name and not via their positional index.  This is
+values via their keyword name and not via their positional index. This is
 because most FITS keywords may appear at any position in the header.
 
 It is also possible to update both the value and comment associated with a
@@ -231,9 +234,9 @@ keyword by assigning them as a tuple::
     >>> hdr.comments['targname']
     'the observation target'
 
-Like a dict, one may also use the above syntax to add a new keyword/value pair
-(and optionally a comment as well).  In this case the new card is appended to
-the end of the header (unless it's a commentary keyword such as COMMENT or
+Like a dict, you may also use the above syntax to add a new keyword/value pair
+(and optionally a comment as well). In this case the new card is appended to
+the end of the header (unless it is a commentary keyword such as COMMENT or
 HISTORY, in which case it is appended after the last card with that keyword).
 
 Another way to either update an existing card or append a new one is to use the
@@ -269,7 +272,7 @@ To update existing COMMENT or HISTORY cards, reference them by index::
 
 
 To see the entire header as it appears in the FITS file (with the END card and
-padding stripped), simply enter the header object by itself, or
+padding stripped), enter the header object by itself, or
 ``print(repr(hdr))``::
 
     >>> hdr  # doctest: +ELLIPSIS
@@ -283,12 +286,12 @@ padding stripped), simply enter the header object by itself, or
     NAXIS   =                    0 / number of data axes
     ...
 
-Entering simply ``print(hdr)`` will also work, but may not be very legible
+Entering only ``print(hdr)`` will also work, but may not be very legible
 on most displays, as this displays the header as it is written in the FITS file
-itself, which means there are no linebreaks between cards.  This is a common
+itself, which means there are no line breaks between cards. This is a common
 source of confusion for new users.
 
-It's also possible to view a slice of the header::
+It is also possible to view a slice of the header::
 
    >>> hdr[:2]
    SIMPLE  =                    T / file does conform to FITS standard
@@ -310,8 +313,8 @@ Working with Image Data
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 If an HDU's data is an image, the data attribute of the HDU object will return
-a numpy `~numpy.ndarray` object. Refer to the numpy documentation for details
-on manipulating these numerical arrays::
+a ``numpy`` `~numpy.ndarray` object. Refer to the ``numpy`` documentation for
+details on manipulating these numerical arrays::
 
     >>> data = hdul[1].data
 
@@ -323,30 +326,30 @@ extension. Alternatively, you can access the extension by its extension name
     >>> data = hdul['SCI'].data
 
 If there is more than one extension with the same EXTNAME, the EXTVER value
-needs to be specified along with the EXTNAME as a tuple; e.g.::
+needs to be specified along with the EXTNAME as a tuple; for example::
 
     >>> data = hdul['sci',2].data
 
 Note that the EXTNAME is also case-insensitive.
 
-The returned numpy object has many attributes and methods for a user to get
-information about the array, e.g.::
+The returned ``numpy`` object has many attributes and methods for a user to get
+information about the array, for example::
 
     >>> data.shape
     (40, 40)
     >>> data.dtype.name
     'int16'
 
-Since image data is a numpy object, we can slice it, view it, and perform
+Since image data is a ``numpy`` object, we can slice it, view it, and perform
 mathematical operations on it. To see the pixel value at x=5, y=2::
 
     >>> print(data[1, 4])
     348
 
-Note that, like C (and unlike FORTRAN), Python is 0-indexed and the indices
-have the slowest axis first and fastest changing axis last; i.e. for a 2-D
+Note that, like C (and unlike Fortran), Python is 0-indexed and the indices
+have the slowest axis first and fastest changing axis last; that is, for a 2D
 image, the fast axis (X-axis) which corresponds to the FITS NAXIS1 keyword, is
-the second index. Similarly, the 1-indexed sub-section of x=11 to 20
+the second index. Similarly, the 1-indexed subsection of x=11 to 20
 (inclusive) and y=31 to 40 (inclusive) would be given in Python as::
 
     >>> data[30:40, 10:20]
@@ -361,12 +364,12 @@ the second index. Similarly, the 1-indexed sub-section of x=11 to 20
            [349, 348, 348, 348, 348, 348, 349, 347, 349, 348],
            [349, 349, 349, 348, 350, 349, 349, 350, 348, 350]], dtype=int16)
 
-To update the value of a pixel or a sub-section::
+To update the value of a pixel or a subsection::
 
     >>> data[30:40, 10:20] = data[1, 4] = 999
 
-This example changes the values of both the pixel \[1, 4] and the sub-section
-\[30:40, 10:20] to the new value of 999.  See the `Numpy documentation`_ for
+This example changes the values of both the pixel \[1, 4] and the subsection
+\[30:40, 10:20] to the new value of 999. See the `Numpy documentation`_ for
 more details on Python-style array indexing and slicing.
 
 The next example of array manipulation is to convert the image data from counts
@@ -378,13 +381,13 @@ to flux::
     >>> hdul.close()
 
 Note that performing an operation like this on an entire image requires holding
-the entire image in memory.  This example performs the multiplication in-place
+the entire image in memory. This example performs the multiplication in-place
 so that no copies are made, but the original image must first be able to fit in
-main memory.  For most observations this should not be an issue on modern
+main memory. For most observations this should not be an issue on modern
 personal computers.
 
-If at this point you want to preserve all the changes you made and write it to
-a new file, you can use the :meth:`HDUList.writeto` method (see below).
+If at this point you want to preserve all of the changes you made and write it
+to a new file, you can use the :meth:`HDUList.writeto` method (see below).
 
 .. _Numpy documentation: https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html
 
@@ -392,13 +395,13 @@ a new file, you can use the :meth:`HDUList.writeto` method (see below).
 
     See also :ref:`sphx_glr_generated_examples_io_plot_fits-image.py`.
 
-Working With Table Data
+Working with Table Data
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 This section describes reading and writing table data in the FITS format using
-the `~astropy.io.fits` package directly.  For simple cases, however, the
-high-level :ref:`table_io` will often suffice and is somewhat easier to use.
-See the :ref:`Unified I/O FITS <table_io_fits>` section for details.
+the `~astropy.io.fits` package directly. For some cases, however, the
+high-level :ref:`table_io` will often suffice and is somewhat more convenient
+to use. See the :ref:`Unified I/O FITS <table_io_fits>` section for details.
 
 Like images, the data portion of a FITS table extension is in the ``.data``
 attribute::
@@ -407,7 +410,7 @@ attribute::
     >>> hdul = fits.open(fits_table_filename)
     >>> data = hdul[1].data # assuming the first extension is a table
 
-If you are familiar with numpy `~numpy.recarray` (record array) objects, you
+If you are familiar with ``numpy`` `~numpy.recarray` (record array) objects, you
 will find the table data is basically a record array with some extra
 properties. But familiarity with record arrays is not a prerequisite for this
 guide.
@@ -423,13 +426,13 @@ example: an integer, a string, a floating point number, and a Boolean value. So
 the table data are just an array of such records. More commonly, a user is
 likely to access the data in a column-wise way. This is accomplished by using
 the :meth:`~FITS_rec.field` method. To get the first column (or "field" in
-Numpy parlance--it is used here interchangeably with "column") of the table,
+NumPy parlance — it is used here interchangeably with "column") of the table,
 use::
 
     >>> data.field(0)
     array([1, 2]...)
 
-A numpy object with the data type of the specified field is returned.
+A ``numpy`` object with the data type of the specified field is returned.
 
 Like header keywords, a column can be referred either by index, as above, or by
 name::
@@ -444,10 +447,10 @@ preferable)::
     array([1, 2]...)
 
 In most cases it is preferable to access columns by their name, as the column
-name is entirely independent of its physical order in the table.  As with
+name is entirely independent of its physical order in the table. As with
 header keywords, column names are case-insensitive.
 
-But how do we know what columns we have in a table? First, let's introduce
+But how do we know what columns we have in a table? First, we will introduce
 another attribute of the table HDU: the :attr:`~BinTableHDU.columns`
 attribute::
 
@@ -500,16 +503,15 @@ names and their formats can be printed from within a script with::
         name = 'c4'; format = '1L'; disp = 'L6'
     )
 
-We can also get these properties individually;
-e.g.::
+We can also get these properties individually; for example::
 
     >>> cols.names
     ['c1', 'c2', 'c3', 'c4']
 
 returns a (Python) list of field names.
 
-Since each field is a Numpy object, we'll have the entire arsenal of Numpy
-tools to use. We can reassign (update) the values::
+Since each field is a ``numpy`` object, we will have the entire arsenal of
+``numpy`` tools to use. We can reassign (update) the values::
 
     >>> data['c4'][:] = 0
 
@@ -540,7 +542,7 @@ original data to (more) memory:
 
 will write the current content of ``hdulist`` to a new disk file newfile.fits.
 If a file was opened with the update mode, the :meth:`HDUList.flush` method can
-also be used to write all the changes made since :func:`open`, back to the
+also be used to write all of the changes made since :func:`open`, back to the
 original file. The :meth:`~HDUList.close` method will do the same for a FITS
 file opened with update mode:
 
@@ -560,11 +562,11 @@ Creating a New Image File
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 So far we have demonstrated how to read and update an existing FITS file. But
-how about creating a new FITS file from scratch? Such tasks are very easy in
-Astropy for an image HDU. We'll first demonstrate how to create a FITS file
-consisting only the primary HDU with image data.
+how about creating a new FITS file from scratch? Such tasks are very convenient
+in ``astropy`` for an image HDU. We will first demonstrate how to create a FITS
+file consisting of only the primary HDU with image data.
 
-First, we create a numpy object for the data part::
+First, we create a ``numpy`` object for the data part::
 
     >>> import numpy as np
     >>> n = np.arange(100.0) # a simple sequence of floats from 0.0 to 99.9
@@ -579,8 +581,8 @@ a new file::
     >>> hdul = fits.HDUList([hdu])
     >>> hdul.writeto('new1.fits')
 
-That's it! In fact, Astropy even provides a shortcut for the last two lines to
-accomplish the same behavior::
+That is it! In fact, ``astropy`` even provides a shortcut for the last two
+lines to accomplish the same behavior::
 
     >>> hdu.writeto('new2.fits')
 
@@ -593,7 +595,7 @@ Creating a New Table File
 
 .. note::
 
-    If you want to create a simple **binary** FITS table with no other HDUs,
+    If you want to create a **binary** FITS table with no other HDUs,
     you can use :class:`~astropy.table.Table` instead and then write to FITS.
     This is less complicated than "lower-level" FITS interface::
 
@@ -611,10 +613,10 @@ Creating a New Table File
     >>> t = fits.BinTableHDU.from_columns([c1, c2, c3])
     >>> t.writeto('table2.fits')
 
-To create a table HDU is a little more involved than image HDU, because a
+To create a table HDU is a little more involved than an image HDU, because a
 table's structure needs more information. First of all, tables can only be an
 extension HDU, not a primary. There are two kinds of FITS table extensions:
-ASCII and binary. We'll use binary table examples here.
+ASCII and binary. We will use binary table examples here.
 
 To create a table from scratch, we need to define columns first, by
 constructing the :class:`Column` objects and their data. Suppose we have two
@@ -629,7 +631,7 @@ numbers::
 
 .. note::
 
-    It is not necessary to create :class:`Column` object explicitly
+    It is not necessary to create a :class:`Column` object explicitly
     if the data is stored in a
     `structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_.
 
@@ -657,7 +659,7 @@ Now you may write this new table HDU directly to a FITS file like so::
     >>> hdu.writeto('table3.fits')
 
 This shortcut will automatically create a minimal primary HDU with no data and
-prepend it to the table HDU to create a valid FITS file.  If you require
+prepend it to the table HDU to create a valid FITS file. If you require
 additional data or header keywords in the primary HDU you may still create a
 :class:`PrimaryHDU` object and build up the FITS file manually using an
 :class:`HDUList`.
@@ -674,10 +676,10 @@ keywords you want to include in the primary HDU, then as before create a
 When we create a new primary HDU with a custom header as in the above example,
 this will automatically include any additional header keywords that are
 *required* by the FITS format (keywords such as ``SIMPLE`` and ``NAXIS`` for
-example).  In general, users should not have to manually manage such keywords,
+example). In general, users should not have to manually manage such keywords,
 and should only create and modify observation-specific informational keywords.
 
-We then create a HDUList containing both the primary HDU and the newly created
+We then create an HDUList containing both the primary HDU and the newly created
 table extension, and write to a new file::
 
     >>> hdul = fits.HDUList([primary_hdu, hdu])
@@ -690,12 +692,12 @@ the image file section::
     >>> hdul.writeto('image_and_table.fits')
 
 The data structure used to represent FITS tables is called a :class:`FITS_rec`
-and is derived from the :class:`numpy.recarray` interface.  When creating
+and is derived from the :class:`numpy.recarray` interface. When creating
 a new table HDU the individual column arrays will be assembled into a single
 :class:`FITS_rec` array.
 
 So far, we have covered the most basic features of `astropy.io.fits`. In the
-following chapters we'll show more advanced examples and explain options in
+following chapters we will show more advanced examples and explain options in
 each class and method.
 
 .. topic:: Examples:
@@ -705,17 +707,17 @@ each class and method.
 Convenience Functions
 ---------------------
 
-`astropy.io.fits` also provides several high level ("convenience") functions.
-Such a convenience function is a "canned" operation to achieve one simple task.
+`astropy.io.fits` also provides several high-level ("convenience") functions.
+Such a convenience function is a "canned" operation to achieve one task.
 By using these "convenience" functions, a user does not have to worry about
-opening or closing a file, all the housekeeping is done implicitly.
+opening or closing a file; all of the housekeeping is done implicitly.
 
 .. warning::
 
-    These functions are useful for interactive Python sessions and simple
+    These functions are useful for interactive Python sessions and less complex
     analysis scripts, but should not be used for application code, as they
-    are highly inefficient.  For example, each call to :func:`getval`
-    requires re-parsing the entire FITS file.  Code that makes repeated use
+    are highly inefficient. For example, each call to :func:`getval`
+    requires re-parsing the entire FITS file. Code that makes repeated use
     of these functions should instead open the file with :func:`open`
     and access the data structures directly.
 
@@ -809,18 +811,18 @@ exist, it will create one.
     update(filename, dat, header=hdr, ext=5)  # update the 5th extension
 
 The :func:`update` function will update the specified extension with the input
-data/header. The 3rd argument can be the header associated with the data. If
-the 3rd argument is not a header, it (and other positional arguments) are
+data/header. The third argument can be the header associated with the data. If
+the third argument is not a header, it (and other positional arguments) are
 assumed to be the extension specification(s). Header and extension specs can
 also be keyword arguments.
 
 The :func:`printdiff` function will print a difference report of two FITS files,
 including headers and data. The first two arguments must be two FITS
 filenames or FITS file objects with matching data types (i.e., if using strings
-to specify filenames, both inputs must be strings).  The third
+to specify filenames, both inputs must be strings). The third
 argument is an optional extension specification, with the same call format
-of :func:`getheader` and :func:`getdata`.  In addition you can add any keywords
-accepted by the :class:`FITSDiff` class
+of :func:`getheader` and :func:`getdata`. In addition you can add any keywords
+accepted by the :class:`FITSDiff` class.
 
 .. code:: python
 
@@ -859,16 +861,16 @@ Using `astropy.io.fits`
    usage/scripts
    usage/misc
 
-Command-line utilities
+Command-Line Utilities
 ======================
 
-For convenience, several of Astropy's subpackages install utility programs
+For convenience, several of ``astropy``'s sub-packages install utility programs
 on your system which allow common tasks to be performed without having
 to open a Python interpreter. These utilities include:
 
 - `~astropy.io.fits.scripts.fitsheader`: prints the headers of a FITS file.
 
-- `~astropy.io.fits.scripts.fitscheck`: verifies and optionally re-writes
+- `~astropy.io.fits.scripts.fitscheck`: verifies and optionally rewrites
   the CHECKSUM and DATASUM keywords of a FITS file.
 
 - :ref:`fitsdiff`: compares two FITS files and reports the differences.

@@ -7,7 +7,7 @@
 
 .. automodule:: astropy.io.votable.exceptions
 
-Exception utilities
+Exception Utilities
 ===================
 
 .. currentmodule:: astropy.io.votable.exceptions
