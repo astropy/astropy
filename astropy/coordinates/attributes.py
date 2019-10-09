@@ -498,6 +498,9 @@ class DifferentialAttribute(Attribute):
             If the input is not valid for this attribute.
         """
 
+        if value is None:
+            return None, False
+
         if not isinstance(value, self.allowed_classes):
             raise TypeError('Tried to set a DifferentialAttribute with '
                             'an unsupported Differential type {}. Allowed '
