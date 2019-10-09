@@ -34,7 +34,8 @@ from astropy.units.utils import is_effectively_unity
     (["mag"], u.mag),
     (["mag(ct/s)"], u.MagUnit(u.ct / u.s)),
     (["dex"], u.dex),
-    (["dex(cm s**-2)", "dex(cm/s2)"], u.DexUnit(u.cm / u.s**2))])
+    (["dex(cm s**-2)", "dex(cm/s2)"], u.DexUnit(u.cm / u.s**2)),
+])
 def test_unit_grammar(strings, unit):
     for s in strings:
         print(s)
@@ -569,3 +570,11 @@ def test_powers(power, expected):
     s = unit.to_string()
     assert s == expected
     assert unit == s
+
+
+@pytest.mark.parametrize('string,unit', [
+    ('\N{MICRO SIGN}g', u.microgram),
+    ('\N{GREEK SMALL LETTER MU}g', u.microgram),
+])
+def test_unicode(string, unit):
+    assert u_format.Generic.parse(string) == unit
