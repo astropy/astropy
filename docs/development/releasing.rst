@@ -299,21 +299,27 @@ Post-Release procedures
    bugfix or a new major version.  You may also need to update the contributor
    list on the web site if you updated the ``docs/credits.rst`` at the outset.
 
-#. Open a pull request to the astropy *master* branch to
+#. Open a PR to the astropy *master* branch to
    update the ``CHANGES.rst`` to reflect the date of the release you just
    performed and to include the new section of the changelog.  Often the easiest
    way to do this is to use ``git cherry-pick`` the changelog commit just before
    the release commit from above. If you are not sure how to do this, you might
    be better off copying-and-pasting the relevant parts of the maintenance
-   branch's ``CHANGES.rst`` into master.
+   branch's ``CHANGES.rst`` into master. In the same PR, you also have to
+   update ``docs/whatsnew/index.rst`` and ``docs/whatsnew/X.Y.rst`` to link to
+   "what's new" documentation in the released RTD branch, using the existing
+   text as example.
 
-#. Notify the Continuous Integration maintainer about the new release.
-   While ``conda-forge`` bot automatically opens a PR for stable releases,
-   you still have to notify the Conda Distribution Maintainer about LTS
-   release. Typically, you should wait to make sure
-   ``conda-forge`` and possible ``conda`` works before sending out the public
-   announcement (so that users that want to try out the new version can do
-   so on ``conda``).
+#. ``conda-forge`` has a bot that automatically opens
+   a PR from a new PyPI (stable) release, which you need to follow up on and
+   merge. Meanwhile, for a LTS release, you still have to manually open a PR
+   at `astropy-feedstock <https://github.com/conda-forge/astropy-feedstock/>`_.
+   This is similar to the process for wheels.
+   When the ``conda-forge`` package is ready, email the Anaconda maintainers
+   about the release(s) so they can update the versions in the default channels.
+   Typically, you should wait to make sure ``conda-forge`` and possibly
+   ``conda`` works before sending out the public announcement
+   (so that users who want to try out the new version can do so with ``conda``).
 
 #. Update the ``LATEST_ASTROPY_STABLE`` or ``ASTROPY_LTS_VERSION`` variables
    in the ``ci-helpers`` repository once the ``conda`` packages became
@@ -336,10 +342,12 @@ Post-Release procedures
    version number (with no ``v`` prefix). Once you are happy with the changes,
    click **Save**, then **Publish**.
 
-#. Send out release announcement emails to email lists in
-   `Getting Help with Astropy <https://www.astropy.org/help.html>`_. Use the
-   previous announcement as a template, but link to the release tag instead
-   of ``stable``.
+#. Once the release(s) are available on the default ``conda`` channels,
+   prepare the public announcement. Use the previous announcement as a
+   template, but link to the release tag instead of ``stable``.
+   For a new major release, you should coordinate with the Astropy Coordinators.
+   Meanwhile, for a bugfix release, you can proceed to send out an email
+   to the ``astropy-dev`` and Astropy mailing lists.
 
 .. _release-procedure-beta-rc:
 
@@ -498,11 +506,15 @@ Backporting fixes from master
 
 .. note::
 
-    The changelog script in ``astropy-procedures`` does not know about
-    minor releases, thus please be careful. For example, if PRs milestoned
-    for 1.2.1 have been merged to ``master`` but 1.2.0 is not out yet,
-    then do not backport those PRs until after 1.2.0 is released from the
-    branch.
+    The changelog script in ``astropy-procedures`` (``pr_consistency`` scripts
+    in particular) does not know about minor releases, thus please be careful.
+    For example, let's say we have two branches (``master`` and ``v1.2.x``).
+    Both 1.2.0 and 1.2.1 releases will come out of the same v1.2.x branch.
+    If a PR for 1.2.1 is merged into ``master`` before 1.2.0 is released,
+    it should not be backported into v1.2.x branch until after 1.2.0 is
+    released, despite complaining from the aforementioned script.
+    This situation only arises in a very narrow time frame after 1.2.0
+    freeze but before its release.
 
 Most fixes are backported using the ``git cherry-pick`` command, which applies
 the diff from a single commit like a patch.  For the sake of example, say the
