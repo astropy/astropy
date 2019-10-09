@@ -78,6 +78,10 @@ class Conf(_config.ConfigNamespace):
         "%(asctime)r, "
         "%(origin)r, %(levelname)r, %(message)r",
         "Format for log file entries.")
+    log_file_encoding = _config.ConfigItem(
+        '',
+        "The encoding (e.g., UTF-8) to use for the log file.  If ``''``, it "
+        "defaults to the platform-preferred encoding.")
 
 
 conf = Conf()
@@ -398,8 +402,8 @@ class AstropyLogger(Logger):
             with logger.log_to_file('myfile.log'):
                 # your code here
         '''
-
-        fh = logging.FileHandler(filename, encoding="UTF-8")
+        encoding = conf.log_file_encoding if conf.log_file_encoding != "" else None
+        fh = logging.FileHandler(filename, encoding=encoding)
         if filter_level is not None:
             fh.setLevel(filter_level)
         if filter_origin is not None:
@@ -495,7 +499,8 @@ class AstropyLogger(Logger):
                 else:
                     log_file_path = os.path.expanduser(log_file_path)
 
-                fh = logging.FileHandler(log_file_path, encoding="UTF-8")
+                encoding = conf.log_file_encoding if conf.log_file_encoding != "" else None
+                fh = logging.FileHandler(log_file_path, encoding=encoding)
             except OSError as e:
                 warnings.warn(
                     'log file {!r} could not be opened for writing: '
