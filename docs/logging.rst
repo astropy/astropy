@@ -115,10 +115,10 @@ emitted in the ``astropy.wcs`` sub-package.
 Using the configuration file
 ============================
 
-Options for the logger can be set in the ``[config.logging_helper]`` section
+Options for the logger can be set in the ``[logger]`` section
 of the Astropy configuration file::
 
-    [config.logging_helper]
+    [logger]
 
     # Threshold for the logging messages. Logging messages that are less severe
     # than this level will be ignored. The levels are 'DEBUG', 'INFO', 'WARNING',
@@ -135,16 +135,21 @@ of the Astropy configuration file::
     log_exceptions = False
 
     # Whether to always log messages to a log file
-    log_to_file = True
+    log_to_file = False
 
-    # The file to log messages to
-    log_file_path = '~/.astropy/astropy.log'
+    # The file to log messages to. When '', it defaults to a file `astropy.log` in
+    # the astropy config directory.
+    log_file_path = ''
 
     # Threshold for logging messages to log_file_path
     log_file_level = 'INFO'
 
     # Format for log file entries
-    log_file_format = '%(asctime)s, %(origin)s, %(levelname)s, %(message)s'
+    log_file_format = '%(asctime)r, %(origin)r, %(levelname)r, %(message)r'
+
+    # The encoding (e.g., UTF-8) to use for the log file.  If '', it
+    # defaults to the platform-preferred encoding.
+    log_file_encoding = ""
 
 
 Reference/API
