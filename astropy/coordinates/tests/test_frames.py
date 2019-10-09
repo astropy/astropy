@@ -90,6 +90,37 @@ def test_frame_subclass_attribute_descriptor():
     assert mfk4.newattr == 'world'
 
 
+def test_differentialattribute():
+    from astropy.coordinates import BaseCoordinateFrame
+    from astropy.coordinates.attributes import DifferentialAttribute
+
+    # Test logic of passing input through to allowed class
+    vel = [1, 2, 3]*u.km/u.s
+    dif = r.CartesianDifferential(vel)
+
+    class TestFrame(BaseCoordinateFrame):
+        attrtest = DifferentialAttribute(
+            default=dif, allowed_classes=[r.CartesianDifferential])
+
+    frame1 = TestFrame()
+    frame2 = TestFrame(attrtest=dif)
+    frame3 = TestFrame(attrtest=vel)
+
+    assert np.all(frame1.attrtest.d_xyz == frame2.attrtest.d_xyz)
+    assert np.all(frame1.attrtest.d_xyz == frame3.attrtest.d_xyz)
+
+    # This shouldn't work if there is more than one allowed class:
+    class TestFrame2(BaseCoordinateFrame):
+        attrtest = DifferentialAttribute(
+            default=dif, allowed_classes=[r.CartesianDifferential,
+                                          r.CylindricalDifferential])
+
+    frame1 = TestFrame2()
+    frame2 = TestFrame2(attrtest=dif)
+    with pytest.raises(TypeError):
+        TestFrame2(attrtest=vel)
+
+
 def test_create_data_frames():
     from astropy.coordinates.builtin_frames import ICRS
 
