@@ -183,7 +183,7 @@ class TimeAttribute(Attribute):
             except Exception as err:
                 raise ValueError(
                     'Invalid time input {}={!r}\n{}'.format(self.name,
-                                                               value, err))
+                                                            value, err))
             converted = True
 
         # Set attribute as read-only for arrays (not allowed by numpy
@@ -486,11 +486,14 @@ class DifferentialAttribute(Attribute):
         """
 
         if not isinstance(value, self.allowed_classes):
-            raise TypeError('Tried to set a DifferentialAttribute with '
-                            'an unsupported Differential type {}. Allowed '
-                            'classes are: {}'
-                            .format(value.__class__,
-                                    self.allowed_classes))
+            if len(self.allowed_classes) == 1:
+                value = self.allowed_classes[0](value)
+            else:
+                raise TypeError('Tried to set a DifferentialAttribute with '
+                                'an unsupported Differential type {}. Allowed '
+                                'classes are: {}'
+                                .format(value.__class__,
+                                        self.allowed_classes))
 
         return value, True
 
