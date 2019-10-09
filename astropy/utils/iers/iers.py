@@ -328,7 +328,7 @@ class IERS(QTable):
                        np.cumsum(np.round(delta[sel].value))],
                       names=['year', 'month', 'day', 'offset'])
 
-    def update_erfa_leap_seconds(self):
+    def update_erfa_leap_seconds(self, initialize_erfa=False):
         """Add any leap seconds not already present to the ERFA table.
 
         This method looks for the presence of leap seconds in the IERS
@@ -336,10 +336,21 @@ class IERS(QTable):
         leap seconds present in the ERFA table, and extends the latter
         as necessary.
 
+        Parameters
+        ----------
+        initialize_erfa : bool, or 'only'
+            Initialize the ERFA leap second table to its built-in value before
+            trying to expand it.  This is generally not needed but can help
+            in case it somehow got corrupted.  If equal to 'only', the ERFA
+            table is reinitialized and no attempt it made to update it.
+
         Returns
         -------
+        leap_seconds : array
+            The new ERFA leap-second table as a structured array, with items
+            'year', 'month', and 'tai_utc'.
         n_update : int
-            The number of leap seconds added to the ERFA table.
+            Number of items updated.
 
         Raises
         ------
@@ -347,22 +358,28 @@ class IERS(QTable):
             If the leap seconds found are not on 1st of January or July,
             if no matching leap seconds were found, or if the matches are
             inconsistent.  This would normally suggested a currupted
-            ERFA or IERS table.  The ERFA table can be reset using
-            `~astropy._erfa.set_leap_seconds()`.
+            IERS table, but might also indicate that the ERFA table was
+            corrupted.  If needed, the ERFA table can be reset by calling
+            this method with an appropriate value for ``initialize_erfa``.
         """
-        # Get the current leap-second table used by ERFA.
-        ls_erfa = QTable(erfa.get_leap_seconds())
+        if initialize_erfa:
+            erfa.set_leap_seconds()
+            if initialize_erfa == 'only':
+                return erfa.get_leap_seconds(), 0
+
         # Infer leap seconds from the IERS table.
         ls_self = self._leap_seconds()
         if not np.all((ls_self['day'] == 1) &
                       ((ls_self['month'] == 1) | (ls_self['month'] == 7))):
             raise ValueError("Leap seconds inferred that are not on 1st of "
                              "January or 1st of July.")
+        # Get the current leap-second array used by ERFA.
+        ls_erfa = erfa.get_leap_seconds()
         # Match the tables by year and month.
         ls = join(ls_erfa, ls_self, join_type='outer')
         if not np.any(getattr(ls['tai_utc'], 'mask', False)):
             # Nothing to be done
-            return 0
+            return ls_erfa, 0
 
         # Calculate the zero point for the cumulative offset from IERS.
         d = ls['tai_utc'] - ls['offset']
@@ -377,8 +394,9 @@ class IERS(QTable):
         new_delta = ls['offset'][update] + d[0]
         ls['tai_utc'][update] = new_delta
         # Set the updated leap second table for use from now on.
-        erfa.set_leap_seconds(ls['year', 'month', 'tai_utc'].as_array())
-        return len(new_delta)
+        new_ls_erfa = np.array(ls['year', 'month', 'tai_utc'])
+        erfa.set_leap_seconds(new_ls_erfa)
+        return new_ls_erfa, len(new_delta)
 
     def _update_erfa_leap_seconds(self):
         """As update_erfa_leap_seconds, but raising a warning on error."""

@@ -6,6 +6,7 @@ import warnings
 
 import pytest
 import numpy as np
+from numpy.testing import assert_array_equal
 
 from astropy.tests.helper import assert_quantity_allclose, catch_warnings
 from astropy.utils.iers import iers
@@ -362,20 +363,28 @@ class TestUpdateLeapSeconds:
 
     def test_update_iers_B_defaults(self):
         """Leap seconds should match between built-in IERS and ERFA."""
-        n_update = self.iers_b.update_erfa_leap_seconds()
-        assert n_update == 0, "ERFA out of date"
+        new_erfa_ls, n_update = self.iers_b.update_erfa_leap_seconds()
+        assert n_update == 0,  "ERFA out of date"
+        assert np.all(new_erfa_ls == self.erfa_ls)
 
     @pytest.mark.parametrize('n_short', (1, 3))
     def test_update_iers_B(self, n_short):
         """Check whether we can recover removed leap seconds."""
         erfa.set_leap_seconds(self.erfa_ls[:-n_short])
-        n_update = self.iers_b.update_erfa_leap_seconds()
+        new_erfa_ls, n_update = self.iers_b.update_erfa_leap_seconds()
         assert n_update == n_short
-        new_erfa_ls = erfa.get_leap_seconds()
-        assert np.all(new_erfa_ls == self.erfa_ls)
+        assert_array_equal(new_erfa_ls, self.erfa_ls)
         # Check that a second update does not do anything.
-        n_update2 = self.iers_b.update_erfa_leap_seconds()
+        new_erfa_ls2, n_update2 = self.iers_b.update_erfa_leap_seconds()
         assert n_update2 == 0
+        assert_array_equal(new_erfa_ls2, self.erfa_ls)
+
+    def test_update_initialize_erfa(self):
+        erfa.set_leap_seconds(self.erfa_ls[:-2])
+        new_erfa_ls, n_update = self.iers_b.update_erfa_leap_seconds(
+            initialize_erfa=True)
+        assert n_update == 0
+        assert_array_equal(new_erfa_ls, self.erfa_ls)
 
     def test_auto_update(self):
         """Check whether ERFA gets updated upon loading IERS table."""
@@ -385,7 +394,7 @@ class TestUpdateLeapSeconds:
         iers.IERS_B.open()
         new_erfa_ls = erfa.get_leap_seconds()
         assert len(new_erfa_ls) == len(self.erfa_ls)
-        assert np.all(new_erfa_ls == self.erfa_ls)
+        assert_array_equal(new_erfa_ls, self.erfa_ls)
 
     @pytest.mark.remote_data
     def test_auto_update_iers_auto(self):
@@ -395,7 +404,7 @@ class TestUpdateLeapSeconds:
         iers_auto = iers.IERS_Auto.open()
         new_erfa_ls = erfa.get_leap_seconds()
         assert len(new_erfa_ls) >= len(self.erfa_ls)
-        assert np.all(new_erfa_ls[:len(self.erfa_ls)] == self.erfa_ls)
+        assert_array_equal(new_erfa_ls[:len(self.erfa_ls)], self.erfa_ls)
         # And, just to be sure, check that any leap seconds found make sense.
         self.do_test_leap_seconds(iers_auto._leap_seconds())
 
@@ -407,7 +416,13 @@ class TestUpdateLeapSeconds:
         bad = self.iers_b[self.iers_b['MJD'].value > mjd_erfa].copy()
         with pytest.raises(ValueError, match='no overlap'):
             bad.update_erfa_leap_seconds()
-        assert np.all(erfa.get_leap_seconds() == self.erfa_ls[:-2])
+        # With an error the ERFA table should not change.
+        assert_array_equal(erfa.get_leap_seconds(), self.erfa_ls[:-2])
+        # But if we reset the ERFA table, it should work.
+        new_erfa_ls, n_update = bad.update_erfa_leap_seconds(
+            initialize_erfa=True)
+        assert n_update == 0
+        assert_array_equal(new_erfa_ls, self.erfa_ls)
 
     def test_bad_iers1(self):
         erfa.set_leap_seconds(self.erfa_ls[:-2])
@@ -418,6 +433,13 @@ class TestUpdateLeapSeconds:
                        Time('2006-01-02')] = 0.6 * u.s
         with pytest.raises(ValueError, match='inconsistent leap'):
             bad.update_erfa_leap_seconds()
+        # With an error the ERFA table should not change.
+        assert_array_equal(erfa.get_leap_seconds(), self.erfa_ls[:-2])
+        # But if we just want to reset the table, it should work.
+        new_erfa_ls, n_update = bad.update_erfa_leap_seconds(
+            initialize_erfa='only')
+        assert n_update == 0
+        assert_array_equal(new_erfa_ls, self.erfa_ls)
 
     def test_bad_iers2(self):
         erfa.set_leap_seconds(self.erfa_ls[:-2])
@@ -426,7 +448,7 @@ class TestUpdateLeapSeconds:
                        Time('2006-01-10')] = 10. * u.s
         with pytest.raises(ValueError, match='not on 1st'):
             bad.update_erfa_leap_seconds()
-        assert np.all(erfa.get_leap_seconds() == self.erfa_ls[:-2])
+        assert_array_equal(erfa.get_leap_seconds(), self.erfa_ls[:-2])
 
     def test_iers_excerpt_warning(self):
         iers.IERS_A.close()
