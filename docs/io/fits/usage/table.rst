@@ -4,10 +4,10 @@
 Table Data
 **********
 
-In this chapter, we'll discuss the data component in a table HDU. A table will
+In this chapter, we will discuss the data component in a table HDU. A table will
 always be in an extension HDU, never in a primary HDU.
 
-There are two kinds of table in the FITS standard: binary tables and ASCII
+There are two kinds of tables in the FITS standard: binary tables and ASCII
 tables. Binary tables are more economical in storage and faster in data access
 and manipulation. ASCII tables store the data in a "human readable" form and
 therefore take up more storage space as well as more processing time since the
@@ -16,8 +16,8 @@ ASCII text needs to be parsed into numerical values.
 .. note::
 
     If you want to read or write a single table in FITS format then the
-    simplest method is often via the high-level :ref:`table_io`.  In particular
-    see the :ref:`Unified I/O FITS <table_io_fits>` section.
+    most convenient method is often via the high-level :ref:`table_io`. In
+    particular see the :ref:`Unified I/O FITS <table_io_fits>` section.
 
 Table Data as a Record Array
 ============================
@@ -26,9 +26,11 @@ Table Data as a Record Array
 What is a Record Array?
 -----------------------
 
-A record array is an array which contains records (i.e. rows) of heterogeneous
-data types. Record arrays are available through the records module in the numpy
-library. Here is a simple example of record array::
+A record array is an array which contains records (i.e., rows) of heterogeneous
+data types. Record arrays are available through the records module in the NumPy
+library.
+
+Here is a sample record array::
 
     >>> import numpy as np
     >>> bright = np.rec.array([(1,'Sirius', -1.45, 'A1V'),
@@ -37,17 +39,17 @@ library. Here is a simple example of record array::
     ...                       formats='int16,a20,float32,a10',
     ...                       names='order,name,mag,Sp')
 
-In this example, there are 3 records (rows) and 4 fields (columns). The first
-field is a short integer, second a character string (of length 20), third a
-floating point number, and fourth a character string (of length 10). Each
-record has the same (heterogeneous) data structure.
+In this example, there are three records (rows) and four fields (columns). The
+first field is a short integer, the second a character string (of length 20),
+the third a floating point number, and the fourth a character string (of length
+10). Each record has the same (heterogeneous) data structure.
 
 The underlying data structure used for FITS tables is a class called
-:class:`FITS_rec` which is a specialized subclass of `numpy.recarray`.  A
+:class:`FITS_rec` which is a specialized subclass of `numpy.recarray`. A
 :class:`FITS_rec` can be instantiated directly using the same initialization
-format presented for plain recarrays as in the example above.  One may also
+format presented for plain recarrays as in the example above. You may also
 instantiate a new :class:`FITS_rec` from a list of `astropy.io.fits.Column`
-objects using the :meth:`FITS_rec.from_columns` class method.  This has the
+objects using the :meth:`FITS_rec.from_columns` class method. This has the
 exact same semantics as :meth:`BinTableHDU.from_columns` and
 :meth:`TableHDU.from_columns`, except that it only returns an actual FITS_rec
 array and not a whole HDU object.
@@ -56,13 +58,13 @@ array and not a whole HDU object.
 Metadata of a Table
 -------------------
 
-The data in a FITS table HDU is basically a record array, with added
-attributes. The metadata, i.e. information about the table data, are stored in
+The data in a FITS table HDU is basically a record array with added
+attributes. The metadata (i.e., information about the table data) are stored in
 the header. For example, the keyword TFORM1 contains the format of the first
 field, TTYPE2 the name of the second field, etc. NAXIS2 gives the number of
-records(rows) and TFIELDS gives the number of fields (columns). For FITS
+records (rows) and TFIELDS gives the number of fields (columns). For FITS
 tables, the maximum number of fields is 999. The data type specified in TFORM
-is represented by letter codes for binary tables and a FORTRAN-like format
+is represented by letter codes for binary tables and a Fortran-like format
 string for ASCII tables. Note that this is different from the format
 specifications when constructing a record array.
 
@@ -71,7 +73,16 @@ Reading a FITS Table
 --------------------
 
 Like images, the ``.data`` attribute of a table HDU contains the data of the
-table.  To recap, the simple example in the Quick Tutorial::
+table.
+
+Example
+-------
+
+..
+  EXAMPLE START
+  Reading a FITS Table with astropy.io.fits
+
+To read a FITS Table::
 
 
     >>> from astropy.io import fits
@@ -93,20 +104,23 @@ table.  To recap, the simple example in the Quick Tutorial::
     ['Sirius', 'Canopus', 'Rigil Kent']
     >>> hdul.close()
 
-Note that in Astropy, when using the ``field()`` method, it is 0-indexed while
-the suffixes in header keywords, such as TFORM is 1-indexed. So,
+Note that in ``astropy``, when using the ``field()`` method, it is 0-indexed
+while the suffixes in header keywords such as TFORM is 1-indexed. So,
 ``data.field(0)`` is the data in the column with the name specified in TTYPE1
 and format in TFORM1.
 
 .. warning::
 
     The FITS format allows table columns with a zero-width data format, such as
-    ``'0D'``.  This is probably intended as a space-saving measure on files in
-    which that column contains no data.  In such files, the zero-width columns
+    ``'0D'``. This is probably intended as a space-saving measure on files in
+    which that column contains no data. In such files, the zero-width columns
     are omitted when accessing the table data, so the indexes of fields might
-    change when using the ``field()`` method.  For this reason, if you expect
+    change when using the ``field()`` method. For this reason, if you expect
     to encounter files containing zero-width columns it is recommended to access
     fields by name rather than by index.
+
+..
+  EXAMPLE END
 
 
 Table Operations
@@ -119,9 +133,16 @@ Selecting Records in a Table
 Like image data, we can use the same "mask array" idea to pick out desired
 records from a table and make a new table out of it.
 
-In the next example, assuming the table's second field having the name
-'magnitude', an output table containing all the records of magnitude > -0.5 from
-the input table is generated::
+Examples
+--------
+
+..
+  EXAMPLE START
+  Selecting Records in a Table Using a "Mask Array"
+
+Assuming the table's second field as having the name 'magnitude', an output
+table containing all the records of magnitude > -0.5 from the input table is
+generated::
 
     >>> with fits.open(fits_table_filename) as hdul:
     ...     data = hdul[1].data
@@ -138,12 +159,22 @@ It is also possible to update the data from the HDU object in-place::
     ...     hdu.data = hdu.data[mask]
     ...     hdu.writeto('newtable2.fits')
 
+..
+  EXAMPLE END
 
 Merging Tables
 --------------
 
-Merging different tables is straightforward in Astropy. Simply merge the column
-definitions of the input tables::
+Merging different tables is very convenient in ``astropy``.
+
+Examples
+--------
+
+..
+  EXAMPLE START
+  Merging FITS Tables
+
+To merge the column definitions of the input tables::
 
     >>> fits_other_table_filename = fits.util.get_testdata_filepath('table.fits')
 
@@ -162,14 +193,14 @@ definitions of the input tables::
         )
 
 The number of fields in the output table will be the sum of numbers of fields
-of the input tables. Users have to make sure the input tables don't share any
+of the input tables. Users have to make sure the input tables do not share any
 common field names. The number of records in the output table will be the
 largest number of records of all input tables. The expanded slots for the
 originally shorter table(s) will be zero (or blank) filled.
 
-A simpler version of this example can be used to append a new column to a
-table.  Updating an existing table with a new column is generally more
-difficult than it's worth, but one can "append" a column to a table by creating
+Another version of this example can be used to append a new column to a
+table. Updating an existing table with a new column is generally more
+difficult than it is worth, but you can "append" a column to a table by creating
 a new table with columns from the existing table plus the new column(s)::
 
     >>> with fits.open(fits_table_filename) as hdul:
@@ -185,15 +216,25 @@ a new table with columns from the existing table plus the new column(s)::
 Now ``newtable.fits`` contains a new table with the original table, plus the
 two new columns filled with zeros.
 
+..
+  EXAMPLE END
 
 Appending Tables
 ----------------
 
 Appending one table after another is slightly trickier, since the two tables
-may have different field attributes. Here are two examples. The first is to
-append by field indices, the second one is to append by field names. In both
-cases, the output table will inherit column attributes (name, format, etc.) of
-the first table::
+may have different field attributes.
+
+Examples
+--------
+
+..
+  EXAMPLE START
+  Appending to FITS Tables
+
+Here, the first example is to append by field indices, and the second one is to
+append by field names. In both cases, the output table will inherit the column
+attributes (name, format, etc.) of the first table::
 
     >>> with fits.open(fits_table_filename) as hdul1:
     ...     with fits.open(fits_table_filename) as hdul2:
@@ -204,6 +245,8 @@ the first table::
     ...         for colname in hdul1[1].columns.names:
     ...             hdu.data[colname][nrows1:] = hdul2[1].data[colname]
 
+..
+  EXAMPLE END
 
 Scaled Data in Tables
 =====================
@@ -219,8 +262,8 @@ All scaled fields, like the image case, will take extra memory space as well as
 processing. So, if high performance is desired, try to minimize the use of
 scaled fields.
 
-All the scalings are done for the user, so the user only sees the physical
-data. Thus, this no need to worry about scaling back and forth between the
+All of the scalings are done for the user, so the user only sees the physical
+data. Thus, there is no need to worry about scaling back and forth between the
 physical and storage column values.
 
 
@@ -254,7 +297,7 @@ name and format. Here is a summary of all allowed formats for a binary table:
     P                        array descriptor                8
     Q                        array descriptor                16
 
-We'll concentrate on binary tables in this chapter. ASCII tables will be
+We will concentrate on binary tables in this chapter. ASCII tables will be
 discussed in a later chapter. The less frequently used X format (bit array) and
 P format (used in variable length tables) will also be discussed in a later
 chapter.
@@ -287,8 +330,14 @@ header keywords and descriptions:
     ascii                                 specifies a column for an ASCII table
     array                                 the data of the column
 
+Examples
+--------
 
-Here are a few Columns using various combination of these arguments::
+..
+  EXAMPLE START
+  Creating a FITS Table
+
+Here are a few Columns using various combinations of the optional arguments::
 
     >>> counts = np.array([312, 334, 308, 317])
     >>> names = np.array(['NGC1', 'NGC2', 'NGC3', 'NGC4'])
@@ -303,17 +352,17 @@ Here are a few Columns using various combination of these arguments::
 In this example, formats are specified with the FITS letter codes. When there
 is a number (>1) preceding a (numeric type) letter code, it means each cell in
 that field is a one-dimensional array. In the case of column "col4", each cell
-is an array (a Numpy array) of 10 elements. And in the case of column "col6",
+is an array (a NumPy array) of 10 elements. And in the case of column "col6",
 with the use of the "dim" argument, each cell is a multi-dimensional array of
 2x2 elements.
 
-For character string fields, the number be to the *left* of the letter 'A' when
-creating binary tables, and should be to the *right* when creating ASCII
-tables.  However, as this is a common confusion both formats are understood
-when creating binary tables (note, however, that upon writing to a file the
-correct format will be written in the header).  So, for columns "col1" and
-"col3", they both have 10 characters in each of their cells. For numeric data
-type, the dimension number must be before the letter code, not after.
+For character string fields, the number should be to the *left* of the letter
+'A' when creating binary tables, and should be to the *right* when creating
+ASCII tables. However, as this is a common confusion, both formats are
+understood when creating binary tables (note, however, that upon writing to a
+file the correct format will be written in the header). So, for columns "col1"
+and "col3", they both have 10 characters in each of their cells. For numeric
+data type, the dimension number must be before the letter code, not after.
 
 After the columns are constructed, the :meth:`BinTableHDU.from_columns` class
 method can be used to construct a table HDU. We can either go through the
@@ -346,13 +395,13 @@ or directly use the :meth:`BinTableHDU.from_columns` method::
 
 .. note::
 
-    Users familiar with older versions of Astropy will wonder what
+    Users familiar with older versions of ``astropy`` will wonder what
     happened to ``astropy.io.fits.new_table``. :meth:`BinTableHDU.from_columns`
     and its companion for ASCII tables :meth:`TableHDU.from_columns` are the
-    same in the arguments they accept and their behavior.  They just make it
-    more explicit what type of table HDU they create.
+    same in the arguments they accept and their behavior, but make it
+    more explicit as to what type of table HDU they create.
 
-A look of the newly created HDU's header will show that relevant keywords are
+A look at the newly created HDU's header will show that relevant keywords are
 properly populated::
 
     >>> hdu.header
@@ -383,13 +432,13 @@ properly populated::
 
     It should be noted that when creating a new table with
     :meth:`BinTableHDU.from_columns`, an in-memory copy of all of the input
-    column arrays is created.  This is because it is not guaranteed that the
+    column arrays is created. This is because it is not guaranteed that the
     columns are arranged contiguously in memory in row-major order (in fact,
     they are most likely not), so they have to be combined into a new array.
 
 However, if the array data *is* already contiguous in memory, such as in an
 existing record array, a kludge can be used to create a new table HDU without
-any copying.  First, create the Columns as before, but without using the
+any copying. First, create the Columns as before, but without using the
 ``array=`` argument::
 
     >>> col1 = fits.Column(name='target', format='10A')
@@ -399,29 +448,39 @@ Then call :meth:`BinTableHDU.from_columns`::
     >>> hdu = fits.BinTableHDU.from_columns([col1, col2, col3, col4, col5])
 
 This will create a new table HDU as before, with the correct column
-definitions, but an empty data section.  Now simply assign your array directly
+definitions, but an empty data section. Now you can assign your array directly
 to the HDU's data attribute:
 
 .. doctest-skip::
 
     >>> hdu.data = mydata
 
-In a future version of Astropy table creation will be simplified and this
-process won't be necessary.
+In a future version of ``astropy``, table creation will be simplified and this
+process will not be necessary.
+
+..
+  EXAMPLE END
 
 .. _fits_time_column:
 
-FITS Table with Time Columns
-============================
+FITS Tables with Time Columns
+=============================
 
 The `FITS Time standard paper
 <http://adsabs.harvard.edu/abs/2015A%26A...574A..36R/>`_ defines the formats
-and keywords used to represent timing information in FITS files.  The Astropy
+and keywords used to represent timing information in FITS files. The ``astropy``
 FITS package provides support for reading and writing native
-`~astropy.time.Time` columns and objects using this format.  This is done
+`~astropy.time.Time` columns and objects using this format. This is done
 within the :ref:`table_io_fits` unified I/O interface and examples of usage can
-be found in the :ref:`fits_astropy_native` section.  The support is not
+be found in the :ref:`fits_astropy_native` section. The support is not
 complete and only a subset of the full standard is implemented.
+
+Example
+-------
+
+..
+  EXAMPLE START
+  FITS Tables with Time Columns
 
 The following is an example of a Header extract of a binary table (event list)
 with a time column:
@@ -441,10 +500,13 @@ with a time column:
     TCNAM1  = ’Terrestrial Time’  / This is TT
     TCUNI1  = ’s       ’
 
-However, the FITS standard and the Astropy Time object are not perfectly mapped
-and some compromises must be made.  To help the user understand how the Astropy
-code deals with these situations, the following text describes the approach
-that Astropy takes in some detail.
+..
+  EXAMPLE END
+
+However, the FITS standard and the ``astropy`` Time object are not perfectly
+mapped and some compromises must be made. To help the user understand how the
+``astropy`` code deals with these situations, the following text describes the
+approach that ``astropy`` takes in some detail.
 
 To create FITS columns which adhere to the FITS Time standard, we have taken
 into account the following important points stated in the `FITS Time paper
@@ -452,7 +514,7 @@ into account the following important points stated in the `FITS Time paper
 
 The strategy used to store `~astropy.time.Time` columns in FITS tables is to
 create a `~astropy.io.fits.Header` with the appropriate time coordinate
-global reference keywords and the column specific override keywords. The
+global reference keywords and the column-specific override keywords. The
 module ``astropy.io.fits.fitstime`` deals with the reading and writing of
 Time columns.
 
@@ -460,8 +522,8 @@ The following keywords set the Time Coordinate Frame:
 
 * TIME SCALE
 
-  The most important of all the metadata is the time scale which is a specification
-  for measuring time.
+  The most important of all of the metadata is the time scale which is a
+  specification for measuring time.
 
   .. parsed-literal::
 
@@ -478,12 +540,12 @@ The following keywords set the Time Coordinate Frame:
 * TIME REFERENCE
 
   The reference point in time to which all times in the HDU are relative.
-  Since there are no context specific reference times, in case there are multiple time
-  columns in the same table, we need to adjust the reference times for the columns
-  using some other keywords.
+  Since there are no context-specific reference times in case there are
+  multiple time columns in the same table, we need to adjust the reference
+  times for the columns using some other keywords.
 
-  The reference point in time shall be specified through one of the three following
-  keywords, which are listed in decreasing order of preference:
+  The reference point in time shall be specified through one of the three
+  following keywords, which are listed in decreasing order of preference:
 
   .. parsed-literal::
 
@@ -501,23 +563,23 @@ The following keywords set the Time Coordinate Frame:
 
   .. note::
 
-     If none of the three keywords is present, there is no problem as long as all
-     times in the HDU are expressed in ISO-8601 ``Datetime Strings`` format:
-     ``CCYY-MM-DD[Thh:mm:ss[.s...]]`` (e.g. ``"2015-04-05T12:22:33.8"``);
+     If none of the three keywords are present, there is no problem as long as
+     all times in the HDU are expressed in ISO-8601 ``Datetime Strings`` format:
+     ``CCYY-MM-DD[Thh:mm:ss[.s...]]`` (e.g., ``"2015-04-05T12:22:33.8"``);
      otherwise MJDREF = 0.0 must be assumed.
 
      The value of the reference time has global validity for all time values,
-     but it does not have a particular time scale associated with it. Thus we need to
-     use ``TCRVLn`` (time coordinate reference value) keyword to compensate for the
-     time scale differences.
+     but it does not have a particular time scale associated with it. Thus we
+     need to use ``TCRVLn`` (time coordinate reference value) keyword to
+     compensate for the time scale differences.
 
 * TIME REFERENCE POSITION
 
-  The reference position, specified by the keyword ``TREFPOS``, specifies the spatial
-  location at which the time is valid, either where the observation was made or
-  the point in space for which light-time corrections have been applied.
-  This may be a standard location (such as ``GEOCENTER`` or ``TOPOCENTER``) or a point
-  in space defined by specific coordinates.
+  The reference position, specified by the keyword ``TREFPOS``, specifies the
+  spatial location at which the time is valid, either where the observation was
+  made or the point in space for which light-time corrections have been applied.
+  This may be a standard location (such as ``GEOCENTER`` or ``TOPOCENTER``) or
+  a point in space defined by specific coordinates.
 
   .. parsed-literal::
 
@@ -530,17 +592,17 @@ The following keywords set the Time Coordinate Frame:
   .. note::
 
      For TOPOCENTER, we need to specify the observatory location
-     (ITRS cartesian coordinates or geodetic latitude/longitude/height) in the
+     (ITRS Cartesian coordinates or geodetic latitude/longitude/height) in the
      ``OBSGEO-*`` keywords.
 
 * TIME REFERENCE DIRECTION
 
   If any pathlength corrections have been applied to the time stamps (i.e., if
-  the reference position is not ``TOPOCENTER`` for observational data), the reference
-  direction that is used in calculating the pathlength delay should be provided
-  in order to maintain a proper analysis trail of the data.
-  However, this is useful only if there is also information available on the location
-  from where the observation was made (the observatory location).
+  the reference position is not ``TOPOCENTER`` for observational data), the
+  reference direction that is used in calculating the pathlength delay should
+  be provided in order to maintain a proper analysis trail of the data.
+  However, this is useful only if there is also information available on the
+  location from where the observation was made (the observatory location).
 
   The reference direction is indicated through a reference to specific keywords.
   These keywords may explicitly hold the direction or indicate columns holding
@@ -570,9 +632,9 @@ The following keywords set the Time Coordinate Frame:
 * TIME OFFSET
 
   It is sometimes convenient to be able to apply a uniform clock correction
-  in bulk by just putting that number in a single keyword. A second use
+  in bulk by putting that number in a single keyword. A second use
   for a time offset is to set a zero offset to a relative time series,
-  allowing zero-relative times, or just higher precision, in the time stamps.
+  allowing zero-relative times, or higher precision, in the time stamps.
   Its default value is zero.
 
   .. parsed-literal::

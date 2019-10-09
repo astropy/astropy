@@ -19,15 +19,22 @@ differences between either two FITS files on disk, or two existing
 :class:`HDUList` objects (or some combination thereof).
 
 Likewise, the :class:`HeaderDiff` class can be used to find the differences
-just between two :class:`Header` objects.  Other available differs include
+just between two :class:`Header` objects. Other available differs include
 :class:`HDUDiff`, :class:`ImageDataDiff`, :class:`TableDataDiff`, and
 :class:`RawDataDiff`.
 
 Each of these classes are instantiated with two instances of the objects that
-they diff.  The returned diff instance has a number of attributes starting with
+they diff. The returned diff instance has a number of attributes starting with
 ``.diff_`` that describe differences between the two objects.
 
-For example the :class:`HeaderDiff` class cam be used to find the differences
+Example
+-------
+
+..
+  EXAMPLE START
+  Generating Differences Between FITS Files Using astropy.io.fits.diff
+
+The :class:`HeaderDiff` class can be used to find the differences
 between two :class:`Header` objects like so::
 
     >>> from astropy.io import fits
@@ -42,3 +49,6 @@ between two :class:`Header` objects like so::
     defaultdict(..., {'KEY_A': [(1, 3)]})
 
 See the API documentation for details on the different differ classes.
+
+..
+  EXAMPLE END

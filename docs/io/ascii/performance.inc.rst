@@ -8,15 +8,26 @@
 Performance Tips
 ================
 
-By default, when trying to read a file, the reader will guess the format, which
-involves trying to read it with many different readers. Especially when dealing
-with large tables, it is much better performance-wise if you can specify the
-format and any options explicitly, and also turn off guessing. For example, if
-you are reading a simple CSV file with a one-line header with column names, the
-following::
+By default, when trying to read a file the reader will guess the format, which
+involves trying to read it with many different readers. For better performance
+when dealing with large tables, it is recommended to specify the format and any
+options explicitly, and turn off guessing as well.
+
+Example
+-------
+
+..
+  EXAMPLE START
+  Performance Tips for Reading Large Tables with astropy.io.ascii
+
+If you are reading a simple CSV file with a one-line header with column names,
+the following::
 
     read('example.csv', format='basic', delimiter=',', guess=False)  # doctest: +SKIP
 
 can be at least an order of magnitude faster than::
 
     read('example.csv')  # doctest: +SKIP
+
+..
+  EXAMPLE END

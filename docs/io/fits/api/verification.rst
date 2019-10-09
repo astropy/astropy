@@ -2,25 +2,25 @@
 
 .. _verify:
 
-Verification options
+Verification Options
 ********************
 
-There are 5 options for the ``output_verify`` argument of the following methods
-of :class:`HDUList`: :meth:`~HDUList.close`, :meth:`~HDUList.writeto`, and
-:meth:`~HDUList.flush`, or the ``_BaseHDU.writeto`` method on any HDU
-object.  In these cases, the verification option is passed to a ``verify``
+There are five options for the ``output_verify`` argument of the following
+methods of :class:`HDUList`: :meth:`~HDUList.close`, :meth:`~HDUList.writeto`,
+and :meth:`~HDUList.flush`, or the ``_BaseHDU.writeto`` method on any HDU
+object. In these cases, the verification option is passed to a ``verify``
 call within these methods.
 
-exception
-=========
+``'exception'``
+===============
 
 This option will raise an exception if any FITS standard is violated. This is
-the default option for output (i.e. when :meth:`~HDUList.writeto`,
-:meth:`~HDUList.close`, or :meth:`~HDUList.flush` is called. If a user wants to
+the default option for output (i.e., when :meth:`~HDUList.writeto`,
+:meth:`~HDUList.close`, or :meth:`~HDUList.flush` is called). If a user wants to
 overwrite this default on output, the other options listed below can be used.
 
-ignore
-======
+``'ignore'``
+============
 
 This option will ignore any FITS standard violation. On output, it will write
 the HDU List content to the output FITS file, whether or not it is conforming
@@ -38,14 +38,14 @@ The ``ignore`` option is useful in these situations, for example:
 No warning message will be printed out. This is like a silent warn (see below)
 option.
 
-fix
-===
+``'fix'``
+=========
 
 This option will try to fix any FITS standard violations. It is not always
 possible to fix such violations. In general, there are two kinds of FITS
-standard violation: fixable and not fixable. For example, if a keyword has a
-floating number with an exponential notation in lower case 'e' (e.g. 1.23e11)
-instead of the upper case 'E' as required by the FITS standard, it's a fixable
+standard violations: fixable and not fixable. For example, if a keyword has a
+floating number with an exponential notation in lower case 'e' (e.g., 1.23e11)
+instead of the upper case 'E' as required by the FITS standard, it is a fixable
 violation. On the other hand, a keyword name like ``P.I.`` is not fixable,
 since it will not know what to use to replace the disallowed periods. If a
 violation is fixable, this option will print out a message noting it is fixed.
@@ -53,20 +53,20 @@ If it is not fixable, it will throw an exception.
 
 The principle behind the fixing is do no harm. For example, it is plausible to
 'fix' a :class:`Card` with a keyword name like ``P.I.`` by deleting it, but
-Astropy will not take such action to hurt the integrity of the data.
+``astropy`` will not take such action to hurt the integrity of the data.
 
-Not all fixes may be the "correct" fix, but at least Astropy will try to make
-the fix in such a way that it will not throw off other FITS readers.
+Not all fixes may be the "correct" fix, but at least ``astropy`` will try to
+make the fix in such a way that it will not throw off other FITS readers.
 
-silentfix
-=========
+``'silentfix'``
+===============
 
 Same as fix, but will not print out informative messages. This may be useful in
-a large script where the user does not want excessive harmless messages. If the
-violation is not fixable, it will still throw an exception.
+a large script where the the user does not want excessive harmless messages. If
+the violation is not fixable, it will still throw an exception.
 
-warn
-====
+``'warn'``
+==========
 
 This option is the same as the ignore option but will send warning messages. It
 will not try to fix any FITS standard violations whether fixable or not.

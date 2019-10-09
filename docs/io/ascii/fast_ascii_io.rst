@@ -6,10 +6,10 @@ Fast ASCII I/O
 **************
 
 While :mod:`astropy.io.ascii` was designed with flexibility and extensibility
-in mind, there is also a less flexible but significantly faster Cython/C engine for
-reading and writing ASCII files. By default, |read| and |write| will attempt to
-use this engine when dealing with compatible formats. The following formats
-are currently compatible with the fast engine:
+in mind, there is also a less flexible but significantly faster Cython/C engine
+for reading and writing ASCII files. By default, |read| and |write| will
+attempt to use this engine when dealing with compatible formats. The following
+formats are currently compatible with the fast engine:
 
  * ``basic``
  * ``commented_header``
@@ -23,7 +23,15 @@ a compatible format with "fast" and then an underscore. In this case, or
 when enforcing the fast engine by either setting ``fast_reader='force'``
 or explicitly setting any of the :ref:`fast_conversion_opts`, |read|
 will not fall back on an ordinary reader if fast reading fails.
-For example::
+
+Examples
+--------
+
+..
+  EXAMPLE START
+  Read and Write a CSV File Using Fast ASCII
+
+To open a CSV file and write it back out::
 
    >>> from astropy.table import Table
    >>> t = ascii.read('file.csv', format='fast_csv')  # doctest: +SKIP
@@ -44,16 +52,20 @@ To disable the fast engine, specify ``fast_reader=False`` or
    reader. Without any additional options this means that both some pure
    Python readers with no fast implementation and the Python versions
    of some readers will be tried before getting to some of the fast
-   readers. To bypass them entirely a fast reader should be explicitly
+   readers. To bypass them entirely, a fast reader should be explicitly
    requested as above.
 
    **For optimum performance** however, it is recommended to turn off
    guessing entirely (``guess=False``) or narrow down the format options
-   as much as possible by specifying the format (e.g. ``format='csv'``)
+   as much as possible by specifying the format (e.g., ``format='csv'``)
    and/or other options such as the delimiter.
+
+..
+  EXAMPLE END
 
 Reading
 =======
+
 Since the fast engine is not part of the ordinary :mod:`astropy.io.ascii`
 infrastructure, fast readers raise an error when passed certain
 parameters which are not implemented in the fast reader infrastructure.
@@ -75,14 +87,27 @@ These parameters are:
 
 .. _fast_conversion_opts:
 
-Parallel and fast conversion options
+Parallel and Fast Conversion Options
 ------------------------------------
+
 In addition to ``True`` and ``False``, the parameter ``fast_reader`` can also
-be a dict specifying any of three additional parameters, ``parallel``,
-``use_fast_converter`` and ``exponent_style``. For example::
+be a ``dict`` specifying any of three additional parameters, ``parallel``,
+``use_fast_converter`` and ``exponent_style``.
+
+Example
+-------
+
+..
+  EXAMPLE START
+  Parallel and Fast Conversion Options for Faster Table Reading
+
+To specify additional parameters using ``fast_reader``::
 
    >>> ascii.read('data.txt', format='basic',
    ...            fast_reader={'parallel': True, 'use_fast_converter': True}) # doctest: +SKIP
+
+..
+  EXAMPLE END
 
 These options allow for even faster table reading when enabled, but both are
 disabled by default because they come with some caveats.
@@ -90,20 +115,22 @@ disabled by default because they come with some caveats.
 The ``parallel`` parameter can be used to enable multiprocessing via
 the ``multiprocessing`` module, and can either be set to a number (the number
 of processes to use) or ``True``, in which case the number of processes will be
-``multiprocessing.cpu_count()``.   Note that this can cause issues within the
+``multiprocessing.cpu_count()``. Note that this can cause issues within the
 IPython Notebook and so enabling multiprocessing in this context is discouraged.
 
 Setting ``use_fast_converter`` to be ``True`` enables a faster but
-slightly imprecise conversion method for floating-point values, as described below.
+slightly imprecise conversion method for floating-point values, as described
+below.
 
 The ``exponent_style`` parameter allows to define a different character
 from the default ``'e'`` for exponential formats in the input file.
 The special setting ``'fortran'`` enables auto-detection of any valid
-exponent character under Fortran notation.
-For details see the section on :ref:`fortran_style_exponents`.
+exponent character under Fortran notation. For details see the section on
+:ref:`fortran_style_exponents`.
 
-Fast converter
+Fast Converter
 --------------
+
 Input floating-point values should ideally be converted to the
 nearest possible floating-point approximation; that is, the conversion
 should be correct within half of the distance between the two closest
@@ -112,8 +139,8 @@ representable values, or 0.5 `ULP
 as well as the default fast reader, are guaranteed to convert floating-point
 values within 0.5 ULP, but there is also a faster and less accurate
 conversion method accessible via ``use_fast_converter``. If the input
-data has less than about 15 significant figures, or if accuracy is relatively
-unimportant, this converter might be the best option in
+data has less than about fifteen significant figures, or if accuracy is
+relatively unimportant, this converter might be the best option in
 performance-critical scenarios.
 
 `Here
@@ -129,16 +156,18 @@ the fast converter's behavior with extreme values (such as subnormals
 and values out of the range of floats) is available `here
 <https://nbviewer.jupyter.org/github/astropy/astropy-notebooks/blob/master/io/ascii/test_converter.ipynb>`__.
 
-Reading large tables
+Reading Large Tables
 --------------------
-For reading very large tables using the fast reader see the section on
+
+For reading very large tables using the fast reader, see the section on
 :ref:`chunk_reading`.
 
 Writing
 =======
+
 The fast engine supports the same functionality as the ordinary writing engine
-and is generally about 2 to 4 times faster than the ordinary engine. An IPython
-notebook testing the relative performance of the fast writer against the
+and is generally about two to four times faster than the ordinary engine. An
+IPython notebook testing the relative performance of the fast writer against the
 ordinary writing system and the data analysis library `Pandas
 <https://pandas.pydata.org/>`__ is available `here <https://nbviewer.ipython.org/github/astropy/astropy-notebooks/blob/master/io/ascii/ascii_write_bench.ipynb>`__.
 The speed advantage of the faster engine is greatest for integer data and least
@@ -147,8 +176,9 @@ sample file including a mixture of floating-point, integer, and text data.
 Also note that stripping string values slows down the writing process, so
 specifying ``strip_whitespace=False`` can improve performance.
 
-Speed gains
+Speed Gains
 ===========
+
 The fast ASCII engine was designed based on the general parsing strategy
 used in the `Pandas <https://pandas.pydata.org/>`__ data analysis library, so
 its performance is generally comparable (although slightly slower by
@@ -157,7 +187,7 @@ default) to the Pandas ``read_csv`` method.
 <https://nbviewer.jupyter.org/github/astropy/astropy-notebooks/blob/master/io/ascii/ascii_read_bench.ipynb>`__
 is an IPython notebook comparing the performance of the ordinary
 :mod:`astropy.io.ascii` reader, the fast reader, the fast reader with the
-fast converter enabled, numpy's ``genfromtxt``, and Pandas' ``read_csv``
+fast converter enabled, NumPy's ``genfromtxt``, and Pandas' ``read_csv``
 for different kinds of table data in a basic space-delimited file.
 
 In summary, ``genfromtxt`` and the ordinary :mod:`astropy.io.ascii` reader
@@ -171,16 +201,16 @@ The difference in performance between the fast engine and Pandas for
 text data depends on the extent to which data values are repeated, as
 Pandas is almost twice as fast as the fast engine when every value is
 identical and the reverse is true when values are randomized. This is
-because the fast engine uses fixed-size numpy string arrays for
+because the fast engine uses fixed-size NumPy string arrays for
 text data, while Pandas uses variable-size object arrays and uses an
 underlying set to avoid copying repeated values.
 
-Overall, the fast engine tends to be around 4 or 5 times faster than
+Overall, the fast engine tends to be around four or five times faster than
 the ordinary ASCII engine. If the input data is very large (generally
-about 100,000 rows or greater), and particularly if the data doesn't
+about 100,000 rows or greater), and particularly if the data does not
 contain primarily integer data or repeated string values, specifying
 ``parallel`` as ``True`` can yield further performance gains. Although
-IPython doesn't work well with ``multiprocessing``, there is a
+IPython does not work well with ``multiprocessing``, there is a
 `script <https://github.com/mdmueller/ascii-profiling/blob/master/parallel.py>`__
 available for testing the performance of the fast engine in parallel,
 and a sample result may be viewed `here
