@@ -781,7 +781,7 @@ def test_quantity_attribute_default():
     class MyCoord2(BaseCoordinateFrame):
         someval = QuantityAttribute(15*u.deg)
 
-    frame = MyCoord()
+    frame = MyCoord2()
     assert u.isclose(frame.someval, 15*u.deg)
 
     # This should fail, if we don't pass in a default or a unit
