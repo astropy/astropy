@@ -36,6 +36,7 @@ class default_sun_galactocentric(ScienceState):
 
     # the default is to use the original definition of this frame
     _value = 'pre-v4.0'
+    _references = None
 
     @staticmethod
     def get_solar_params_from_string(arg):
@@ -43,39 +44,63 @@ class default_sun_galactocentric(ScienceState):
         """
 
         params = dict()
+        references = dict()
 
         # Currently, all versions use the same sky position for Sgr A*:
         params['galcen_coord'] = ICRS(ra=266.4051*u.degree,
                                       dec=-28.936175*u.degree)
+        references['galcen_coord'] = \
+            'http://adsabs.harvard.edu/abs/2004ApJ...616..872R'
 
         # The roll angle is the same for both frames:
         params['roll'] = 0 * u.deg
 
         if arg == 'pre-v4.0':
             params['galcen_distance'] = 8.3 * u.kpc
+            references['galcen_distance'] = \
+                'https://ui.adsabs.harvard.edu/#abs/2009ApJ...692.1075G'
+
             params['galcen_v_sun'] = r.CartesianDifferential([11.1,
                                                               220+12.24,
                                                               7.25]*u.km/u.s)
+            references['galcen_v_sun'] = \
+                ['https://ui.adsabs.harvard.edu/#abs/2010MNRAS.403.1829S',
+                 'https://ui.adsabs.harvard.edu/#abs/2015ApJS..216...29B']
+
             params['z_sun'] = 27.0 * u.pc
+            references['z_sun'] = \
+                'https://ui.adsabs.harvard.edu/#abs/2001ApJ...553..184C'
 
         elif arg == 'latest':
             params['galcen_distance'] = 8.122 * u.kpc
+            references['galcen_distance'] = \
+                'https://ui.adsabs.harvard.edu/abs/2018A%26A...615L..15G'
+
             params['galcen_v_sun'] = r.CartesianDifferential([12.9,
                                                               245.6,
                                                               7.78]*u.km/u.s)
+            references['galcen_v_sun'] = \
+                ['https://ui.adsabs.harvard.edu/abs/2018RNAAS...2..210D',
+                 'https://ui.adsabs.harvard.edu/abs/2018A%26A...615L..15G',
+                 'https://ui.adsabs.harvard.edu/abs/2004ApJ...616..872R']
+
             params['z_sun'] = 20.8 * u.pc
+            references['z_sun'] = \
+                'https://ui.adsabs.harvard.edu/abs/2019MNRAS.482.1417B'
 
         else:
             raise ValueError('Invalid string input to retrieve solar '
                              'parameters for Galactocentric frame: "{}"'
                              .format(arg))
 
-        return params
+        return params, references
 
     @classmethod
     def validate(cls, value):
         if isinstance(value, str):
-            return cls.get_solar_params_from_string(value)
+            params, refs = cls.get_solar_params_from_string(value)
+            cls._references = refs
+            return params
 
         elif isinstance(value, dict):
             return value
@@ -85,6 +110,7 @@ class default_sun_galactocentric(ScienceState):
             attrs = dict()
             for k in value.frame_attributes:
                 attrs[k] = getattr(value, k)
+            cls._references = value.get_references()
             return attrs
 
         else:
@@ -181,9 +207,25 @@ doc_footer = """
 @format_doc(base_doc, components=doc_components, footer=doc_footer)
 class Galactocentric(BaseCoordinateFrame):
     r"""
-    A coordinate or frame in the Galactocentric system. This frame
-    requires specifying the Sun-Galactic center distance, and optionally
-    the height of the Sun above the Galactic midplane.
+    A coordinate or frame in the Galactocentric system.
+
+    This frame allows specifying the Sun-Galactic center distance, the height of
+    the Sun above the Galactic midplane, and the solar motion relative to the
+    Galactic center. However, as there is no modern standard definition of a
+    Galactocentric reference frame, it is important to pay attention to the
+    default values used in this class if precision is important in your code.
+    The default values of the parameters of this frame are taken from the
+    original definition of the frame in 2014. As such, the defaults are somewhat
+    out of date relative to recent measurements made possible by, e.g., Gaia.
+    The defaults can, however, be changed at runtime by setting the parameter
+    set name in ``astropy.coordinates.default_sun_galactocentric``. The default
+    parameter set is ``"pre-v4,0"``, indicating that the parameters were adopted
+    before ``astropy`` version 4.0. A regularly-updated parameter set can
+    instead be used by setting ``default_sun_galactocentric.set('latest')``, and
+    other parameter set names may be added in future versions. To find out the
+    scientific papers that the current default parameters are derived from, use
+    ``galcen.get_references()`` (where ``galcen`` is an instance of this frame),
+    which will update even if the default parameter set is changed.
 
     The position of the Sun is assumed to be on the x axis of the final,
     right-handed system. That is, the x axis points from the position of
@@ -192,29 +234,6 @@ class Galactocentric(BaseCoordinateFrame):
     transformation (:math:`{\rm roll}=0^\circ`), the y axis points roughly
     towards Galactic longitude :math:`l=90^\circ`, and the z axis points
     roughly towards the North Galactic Pole (:math:`b=90^\circ`).
-
-    The default position of the Galactic Center in ICRS coordinates is
-    taken from Reid et al. 2004,
-    http://adsabs.harvard.edu/abs/2004ApJ...616..872R.
-
-    .. math::
-
-        {\rm RA} = 17:45:37.224~{\rm hr}\\
-        {\rm Dec} = -28:56:10.23~{\rm deg}
-
-    The default distance to the Galactic Center is 8.3 kpc, e.g.,
-    Gillessen et al. (2009),
-    https://ui.adsabs.harvard.edu/#abs/2009ApJ...692.1075G/abstract
-
-    The default height of the Sun above the Galactic midplane is taken to
-    be 27 pc, as measured by Chen et al. (2001),
-    https://ui.adsabs.harvard.edu/#abs/2001ApJ...553..184C/abstract
-
-    The default solar motion relative to the Galactic center is taken from a
-    combination of Schönrich et al. (2010) [for the peculiar velocity] and
-    Bovy (2015) [for the circular velocity at the solar radius],
-    https://ui.adsabs.harvard.edu/#abs/2010MNRAS.403.1829S/abstract
-    https://ui.adsabs.harvard.edu/#abs/2015ApJS..216...29B/abstract
 
     For a more detailed look at the math behind this transformation, see
     the document :ref:`coordinates-galactocentric`.
@@ -239,6 +258,7 @@ class Galactocentric(BaseCoordinateFrame):
         # Set default frame attribute values based on the ScienceState instance
         # for the solar parameters defined above
         default_params = default_sun_galactocentric.get()
+        self._references = default_sun_galactocentric._references
         for k in default_params:
             kwargs[k] = kwargs.get(k, default_params[k])
         super().__init__(*args, **kwargs)
@@ -255,6 +275,12 @@ class Galactocentric(BaseCoordinateFrame):
         # a property here because this module isn't actually part of the public
         # API, so it's better for it to be accessable from Galactocentric
         return _ROLL0
+
+    def get_references(self):
+        if self._references is None:
+            raise ValueError("No references were provided or are available for "
+                             "the current Galactocentric frame parameters.")
+        return self._references
 
 # ICRS to/from Galactocentric ----------------------->
 
