@@ -16,7 +16,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 from .angles import Longitude, Latitude
 from .representation import CartesianRepresentation, CartesianDifferential
 from .errors import UnknownSiteException
-from astropy.utils import data, deprecated
+from astropy.utils import data
 from astropy import _erfa as erfa
 
 __all__ = ['EarthLocation']
@@ -589,21 +589,9 @@ class EarthLocation(u.Quantity):
             u.Quantity(height * u.meter, self.unit, copy=False))
 
     @property
-    @deprecated('2.0', alternative='`lon`', obj_type='property')
-    def longitude(self):
-        """Longitude of the location, for the default ellipsoid."""
-        return self.geodetic[0]
-
-    @property
     def lon(self):
         """Longitude of the location, for the default ellipsoid."""
         return self.geodetic[0]
-
-    @property
-    @deprecated('2.0', alternative='`lat`', obj_type='property')
-    def latitude(self):
-        """Latitude of the location, for the default ellipsoid."""
-        return self.geodetic[1]
 
     @property
     def lat(self):
