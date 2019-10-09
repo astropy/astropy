@@ -25,6 +25,22 @@ from astropy.utils import classproperty
 from astropy.utils.misc import did_you_mean
 
 
+UNICODE_TRANSLATION = {
+    ord('\N{SUPERSCRIPT MINUS}'): ord('-'),
+    ord('\N{SUPERSCRIPT PLUS SIGN}'): ord('+'),
+    ord('\N{SUPERSCRIPT ZERO}'): ord('0'),
+    ord('\N{SUPERSCRIPT ONE}'): ord('1'),
+    ord('\N{SUPERSCRIPT TWO}'): ord('2'),
+    ord('\N{SUPERSCRIPT THREE}'): ord('3'),
+    ord('\N{SUPERSCRIPT FOUR}'): ord('4'),
+    ord('\N{SUPERSCRIPT FIVE}'): ord('5'),
+    ord('\N{SUPERSCRIPT SIX}'): ord('6'),
+    ord('\N{SUPERSCRIPT SEVEN}'): ord('7'),
+    ord('\N{SUPERSCRIPT EIGHT}'): ord('8'),
+    ord('\N{SUPERSCRIPT NINE}'): ord('9'),
+}
+
+
 def _to_string(cls, unit):
     if isinstance(unit, core.CompositeUnit):
         parts = []
@@ -468,6 +484,8 @@ class Generic(Base):
     def parse(cls, s, debug=False):
         if not isinstance(s, str):
             s = s.decode('ascii')
+
+        s = s.translate(UNICODE_TRANSLATION)
 
         result = cls._do_parse(s, debug=debug)
         # Check for excess solidi, but exclude fractional exponents (accepted)

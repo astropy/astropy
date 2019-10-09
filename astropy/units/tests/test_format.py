@@ -575,6 +575,12 @@ def test_powers(power, expected):
 @pytest.mark.parametrize('string,unit', [
     ('\N{MICRO SIGN}g', u.microgram),
     ('\N{GREEK SMALL LETTER MU}g', u.microgram),
+    ('m\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT ONE}', 1 / u.m),
+    ('m s\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT ONE}', u.m / u.s),
+    ('m\N{SUPERSCRIPT TWO}', u.m**2),
+    ('m\N{SUPERSCRIPT PLUS SIGN}\N{SUPERSCRIPT TWO}', u.m**2),
+    ('m\N{SUPERSCRIPT THREE}', u.m**3),
+    ('m\N{SUPERSCRIPT ONE}\N{SUPERSCRIPT ZERO}', u.m**10),
 ])
 def test_unicode(string, unit):
     assert u_format.Generic.parse(string) == unit
