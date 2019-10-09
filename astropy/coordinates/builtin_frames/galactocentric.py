@@ -73,8 +73,8 @@ class default_sun_galactocentric(ScienceState):
     @classmethod
     def validate(cls, value):
         if value is None:
-            # the default is to always adopt the latest solar parameters
-            value = 'latest'
+            # the default is to use the original definition of this frame
+            value = 'pre-v4.0'
 
         if isinstance(value, str):
             return cls.get_solar_params_from_string(value)
