@@ -27,8 +27,7 @@ All time manipulations and arithmetic operations are done internally using two
 that the |Time| object maintains sub-nanosecond precision over times spanning
 the age of the universe.
 
-.. [#] `Shewchuk, 1997, Discrete & Computational Geometry 18(3):305-363
-        <https://people.eecs.berkeley.edu/~jrs/papers/robustr.pdf>`_
+.. [#] Shewchuk, 1997, Discrete & Computational Geometry 18(3):305-363
 
 Getting Started
 ===============
