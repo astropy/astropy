@@ -22,19 +22,11 @@ from astropy.utils.decorators import lazyproperty, format_doc
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from astropy import units as u
 from astropy.utils import (OrderedDescriptorContainer, ShapedLikeNDArray,
-                     check_broadcast)
+                           check_broadcast)
 from .transformations import TransformGraph
 from . import representation as r
 from .angles import Angle
 from .attributes import Attribute
-
-# Import old names for Attributes so we don't break backwards-compatibility
-# (some users rely on them being here, although that is not encouraged, as this
-# is not the public API location -- see attributes.py).
-from .attributes import (
-    TimeFrameAttribute, QuantityFrameAttribute,
-    EarthLocationAttribute, CoordinateAttribute,
-    CartesianRepresentationFrameAttribute)  # pylint: disable=W0611
 
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph',

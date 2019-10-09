@@ -495,41 +495,6 @@ class DifferentialAttribute(Attribute):
         return value, True
 
 
-# Backwards-compatibility: these are the only classes that were previously
-# released in v1.3
-class FrameAttribute(Attribute):
-
-    def __init__(self, *args, **kwargs):
-        warnings.warn("FrameAttribute has been renamed to Attribute.",
-                      AstropyDeprecationWarning)
-        super().__init__(*args, **kwargs)
-
-
-class TimeFrameAttribute(TimeAttribute):
-
-    def __init__(self, *args, **kwargs):
-        warnings.warn("TimeFrameAttribute has been renamed to TimeAttribute.",
-                      AstropyDeprecationWarning)
-        super().__init__(*args, **kwargs)
-
-
-class QuantityFrameAttribute(QuantityAttribute):
-
-    def __init__(self, *args, **kwargs):
-        warnings.warn("QuantityFrameAttribute has been renamed to "
-                      "QuantityAttribute.", AstropyDeprecationWarning)
-        super().__init__(*args, **kwargs)
-
-
-class CartesianRepresentationFrameAttribute(CartesianRepresentationAttribute):
-
-    def __init__(self, *args, **kwargs):
-        warnings.warn("CartesianRepresentationFrameAttribute has been renamed "
-                      "to CartesianRepresentationAttribute.",
-                      AstropyDeprecationWarning)
-        super().__init__(*args, **kwargs)
-
-
 # do this here to prevent a series of complicated circular imports
 from .earth import EarthLocation
 from .representation import CartesianRepresentation, BaseDifferential
