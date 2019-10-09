@@ -25,24 +25,6 @@ from astropy.utils import classproperty
 from astropy.utils.misc import did_you_mean
 
 
-UNICODE_TRANSLATION = str.maketrans({
-    '\N{SUPERSCRIPT MINUS}': '-',
-    '\N{SUPERSCRIPT PLUS SIGN}': '+',
-    '\N{SUPERSCRIPT ZERO}': '0',
-    '\N{SUPERSCRIPT ONE}': '1',
-    '\N{SUPERSCRIPT TWO}': '2',
-    '\N{SUPERSCRIPT THREE}': '3',
-    '\N{SUPERSCRIPT FOUR}': '4',
-    '\N{SUPERSCRIPT FIVE}': '5',
-    '\N{SUPERSCRIPT SIX}': '6',
-    '\N{SUPERSCRIPT SEVEN}': '7',
-    '\N{SUPERSCRIPT EIGHT}': '8',
-    '\N{SUPERSCRIPT NINE}': '9',
-    '\N{MINUS SIGN}': '-',
-    '\N{GREEK SMALL LETTER ALPHA}': '\N{MICRO SIGN}',
-})
-
-
 def _to_string(cls, unit):
     if isinstance(unit, core.CompositeUnit):
         parts = []
@@ -166,7 +148,9 @@ class Generic(Base):
             return t
 
         def t_UNIT(t):
-            r"%|([YZEPTGMkhdcmunpfazy]?'((?!\d)\w)+')|((?!\d)\w)+"
+            "%|([YZEPTGMkhdcmu\N{MICRO SIGN}npfazy]?"+r"'((?!\d)\w)+')|((?!\d)\w)+"
+            if t.value[0] == '\N{MICRO SIGN}':
+                t.value = 'u' + t.value[1:]
             t.value = cls._get_unit(t)
             return t
 
@@ -482,12 +466,36 @@ class Generic(Base):
         else:
             raise ValueError()
 
+    _translations = str.maketrans({
+        '\N{GREEK SMALL LETTER MU}': '\N{MICRO SIGN}',
+        '\N{MINUS SIGN}': '-',
+        '\N{SUPERSCRIPT MINUS}': '-',
+        '\N{SUPERSCRIPT PLUS SIGN}': '+',
+        '\N{SUPERSCRIPT ZERO}': '0',
+        '\N{SUPERSCRIPT ONE}': '1',
+        '\N{SUPERSCRIPT TWO}': '2',
+        '\N{SUPERSCRIPT THREE}': '3',
+        '\N{SUPERSCRIPT FOUR}': '4',
+        '\N{SUPERSCRIPT FIVE}': '5',
+        '\N{SUPERSCRIPT SIX}': '6',
+        '\N{SUPERSCRIPT SEVEN}': '7',
+        '\N{SUPERSCRIPT EIGHT}': '8',
+        '\N{SUPERSCRIPT NINE}': '9',
+    })
+    """Character translations that should be applied before parsing a string.
+
+    Note that this does explicitly *not* generally translate MICRO SIGN to u,
+    since then a string like 'µ' would be interpreted as unit mass.
+    """
+
     @classmethod
     def parse(cls, s, debug=False):
         if not isinstance(s, str):
             s = s.decode('ascii')
 
-        s = s.translate(UNICODE_TRANSLATION)
+        # Translate some basic unicode items that we'd like to support on
+        # input but are not standard.
+        s = s.translate(cls._translations)
 
         result = cls._do_parse(s, debug=debug)
         # Check for excess solidi, but exclude fractional exponents (accepted)
