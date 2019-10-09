@@ -25,20 +25,22 @@ from astropy.utils import classproperty
 from astropy.utils.misc import did_you_mean
 
 
-UNICODE_TRANSLATION = {
-    ord('\N{SUPERSCRIPT MINUS}'): ord('-'),
-    ord('\N{SUPERSCRIPT PLUS SIGN}'): ord('+'),
-    ord('\N{SUPERSCRIPT ZERO}'): ord('0'),
-    ord('\N{SUPERSCRIPT ONE}'): ord('1'),
-    ord('\N{SUPERSCRIPT TWO}'): ord('2'),
-    ord('\N{SUPERSCRIPT THREE}'): ord('3'),
-    ord('\N{SUPERSCRIPT FOUR}'): ord('4'),
-    ord('\N{SUPERSCRIPT FIVE}'): ord('5'),
-    ord('\N{SUPERSCRIPT SIX}'): ord('6'),
-    ord('\N{SUPERSCRIPT SEVEN}'): ord('7'),
-    ord('\N{SUPERSCRIPT EIGHT}'): ord('8'),
-    ord('\N{SUPERSCRIPT NINE}'): ord('9'),
-}
+UNICODE_TRANSLATION = str.maketrans({
+    '\N{SUPERSCRIPT MINUS}': '-',
+    '\N{SUPERSCRIPT PLUS SIGN}': '+',
+    '\N{SUPERSCRIPT ZERO}': '0',
+    '\N{SUPERSCRIPT ONE}': '1',
+    '\N{SUPERSCRIPT TWO}': '2',
+    '\N{SUPERSCRIPT THREE}': '3',
+    '\N{SUPERSCRIPT FOUR}': '4',
+    '\N{SUPERSCRIPT FIVE}': '5',
+    '\N{SUPERSCRIPT SIX}': '6',
+    '\N{SUPERSCRIPT SEVEN}': '7',
+    '\N{SUPERSCRIPT EIGHT}': '8',
+    '\N{SUPERSCRIPT NINE}': '9',
+    '\N{MINUS SIGN}': '-',
+    '\N{GREEK SMALL LETTER ALPHA}': '\N{MICRO SIGN}',
+})
 
 
 def _to_string(cls, unit):
