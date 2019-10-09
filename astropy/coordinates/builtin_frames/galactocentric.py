@@ -6,16 +6,17 @@ import warnings
 import numpy as np
 
 from astropy import units as u
+from astropy.utils.state import ScienceState
 from astropy.utils.decorators import format_doc
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.coordinates.angles import Angle
 from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
 from astropy.coordinates import representation as r
-from astropy.coordinates.baseframe import (BaseCoordinateFrame, frame_transform_graph,
-                         RepresentationMapping, base_doc)
-from astropy.coordinates.attributes import (Attribute, CoordinateAttribute,
-                          QuantityAttribute,
-                          DifferentialAttribute)
+from astropy.coordinates.baseframe import (BaseCoordinateFrame,
+                                           frame_transform_graph, base_doc)
+from astropy.coordinates.attributes import (CoordinateAttribute,
+                                            QuantityAttribute,
+                                            DifferentialAttribute)
 from astropy.coordinates.transformations import AffineTransform
 from astropy.coordinates.errors import ConvertError
 
@@ -29,6 +30,73 @@ __all__ = ['Galactocentric']
 # This is not used directly, but accessed via `get_roll0`.  We define it here to
 # prevent having to create new Angle objects every time `get_roll0` is called.
 _ROLL0 = Angle(58.5986320306*u.degree)
+
+
+class default_sun_galactocentric(ScienceState):
+    """The ScienceState instance that controls global setting of Galactocentric
+    default solar motion parameters
+    """
+
+    _value = 'latest'
+
+    @staticmethod
+    def get_solar_params_from_string(arg):
+        """ Return ... """
+
+        params = dict()
+
+        # Currently, all versions use the same sky position for Sgr A*:
+        params['galcen_coord'] = ICRS(ra=266.4051*u.degree,
+                                      dec=-28.936175*u.degree)
+
+        # The roll angle is the same for both frames:
+        params['roll'] = 0 * u.deg
+
+        if arg == 'pre-v4.0':
+            params['galcen_distance'] = 8.3 * u.kpc
+            params['galcen_v_sun'] = r.CartesianDifferential([11.1,
+                                                              220+12.24,
+                                                              7.25]*u.km/u.s)
+            params['z_sun'] = 27.0 * u.pc
+
+        elif arg == 'latest':
+            params['galcen_distance'] = 8.122 * u.kpc
+            params['galcen_v_sun'] = r.CartesianDifferential([12.9,
+                                                              245.6,
+                                                              7.78]*u.km/u.s)
+            params['z_sun'] = 20.8 * u.pc
+
+        else:
+            raise ValueError('Invalid string input to retrieve solar '
+                             'parameters for Galactocentric frame: "{}"'
+                             .format(arg))
+
+        return params
+
+    @classmethod
+    def validate(cls, value):
+        if value is None:
+            # the default is to always adopt the latest solar parameters
+            value = 'latest'
+
+        if isinstance(value, str):
+            return cls.get_solar_params_from_string(value)
+
+        elif isinstance(value, dict):
+            return value
+
+        elif isinstance(value, Galactocentric):
+            # turn the frame instance into a dict of frame attributes
+            attrs = dict()
+            for k in value.frame_attributes:
+                attrs[k] = getattr(value, k)
+            return attrs
+
+        else:
+            raise ValueError("Invalid input to retrieve solar parameters for "
+                             "Galactocentric frame: input must be a string, "
+                             "dict, or Galactocentric instance")
+
 
 doc_components = """
     x : `~astropy.units.Quantity`, optional
@@ -163,17 +231,14 @@ class Galactocentric(BaseCoordinateFrame):
     default_differential = r.CartesianDifferential
 
     # frame attributes
-    galcen_coord = CoordinateAttribute(default=ICRS(ra=266.4051*u.degree,
-                                                    dec=-28.936175*u.degree),
-                                       frame=ICRS)
-    galcen_distance = QuantityAttribute(default=8.3*u.kpc)
+    galcen_coord = CoordinateAttribute(frame=ICRS)
+    galcen_distance = QuantityAttribute(unit=u.kpc)
 
     galcen_v_sun = DifferentialAttribute(
-        default=r.CartesianDifferential([11.1, 220+12.24, 7.25] * u.km/u.s),
         allowed_classes=[r.CartesianDifferential])
 
-    z_sun = QuantityAttribute(default=27.*u.pc)
-    roll = QuantityAttribute(default=0.*u.deg)
+    z_sun = QuantityAttribute(unit=u.pc)
+    roll = QuantityAttribute(unit=u.deg)
 
     def __init__(self, *args, **kwargs):
 
@@ -188,6 +253,10 @@ class Galactocentric(BaseCoordinateFrame):
             galcen_kw['ra'] = kwargs.pop('galcen_ra', self.galcen_coord.ra)
             galcen_kw['dec'] = kwargs.pop('galcen_dec', self.galcen_coord.dec)
             kwargs['galcen_coord'] = ICRS(**galcen_kw)
+
+        default_params = default_sun_galactocentric.get()
+        for k in default_params:
+            kwargs[k] = kwargs.get(k, default_params[k])
 
         super().__init__(*args, **kwargs)
 
