@@ -586,31 +586,24 @@ def test_regression_8138():
 def test_regression_8276():
     from astropy.coordinates import baseframe
 
-    with pytest.raises(TypeError) as excinfo:
-        class MyFrame(BaseCoordinateFrame):
-            a = QuantityAttribute(unit=u.m)
-            # note that the remainder of this with clause does not get executed
-            # because an exception is raised here. A future PR is planned to
-            # allow the default to be left off, after which the rest of this
-            # test will get executed, so it is being left in place.  See
-            # https://github.com/astropy/astropy/pull/8300 for more info
+    class MyFrame(BaseCoordinateFrame):
+        a = QuantityAttribute(unit=u.m)
 
-        # we save the transform graph so that it doesn't acidentally mess with other tests
-        old_transform_graph = baseframe.frame_transform_graph
-        try:
-            baseframe.frame_transform_graph = copy.copy(baseframe.frame_transform_graph)
+    # we save the transform graph so that it doesn't acidentally mess with other tests
+    old_transform_graph = baseframe.frame_transform_graph
+    try:
+        baseframe.frame_transform_graph = copy.copy(baseframe.frame_transform_graph)
 
-            # as reported in 8276, this fails right here because registering the
-            # transform tries to create a frame attribute
-            @baseframe.frame_transform_graph.transform(FunctionTransform, MyFrame, AltAz)
-            def trans(my_frame_coord, altaz_frame):
-                pass
+        # as reported in 8276, this fails right here because registering the
+        # transform tries to create a frame attribute
+        @baseframe.frame_transform_graph.transform(FunctionTransform, MyFrame, AltAz)
+        def trans(my_frame_coord, altaz_frame):
+            pass
 
-            # should also be able to *create* the Frame at this point
-            MyFrame()
-        finally:
-            baseframe.frame_transform_graph = old_transform_graph
-    assert "missing 1 required positional argument: 'default'" in str(excinfo.value)
+        # should also be able to *create* the Frame at this point
+        MyFrame()
+    finally:
+        baseframe.frame_transform_graph = old_transform_graph
 
 
 def test_regression_8615():
