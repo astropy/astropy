@@ -307,7 +307,7 @@ Already, this is a valid frame class::
 
     >>> fr = MyFrame1(1*u.deg, 2*u.deg)
     >>> fr # doctest: +FLOAT_CMP
-    <MyFrame Coordinate: (lon, lat) in deg
+    <MyFrame1 Coordinate: (lon, lat) in deg
         (1., 2.)>
     >>> fr.lon # doctest: +FLOAT_CMP
     <Longitude 1. deg>
@@ -480,6 +480,7 @@ of your frame::
 
 If your frame has this class as an attribute::
 
+  >>> from astropy.coordinates import Attribute
   >>> class Egg(BaseCoordinateFrame):
   ...     can = Attribute(default=Spam())
 
