@@ -606,6 +606,15 @@ fail:
 
 /*
  * LEAP SECOND ACCESS
+ *
+ * Getting/Setting ERFAs built-in TAI-UTC table.
+ *
+ * TODO: the whole procedure is not sub-interpreter safe.
+ * In this module, one might get dt_eraLEAPSECOND out of the module dict,
+ * and store the leap_second array in a per-module struct (see PEP 3121).
+ * But one then would also have to adapt erfa/dat.c to not use a
+ * static leap second table.  Possibly best might be to copy dat.c here
+ * and put the table into the per-module struct as well.
  */
 static PyArray_Descr *dt_eraLEAPSECOND = NULL;  /* Set in PyInit_ufunc */
 
