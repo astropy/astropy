@@ -1616,3 +1616,13 @@ class TestQuantityMimics:
         assert np.all(q.value == [1., 2.])
         with pytest.raises(u.UnitTypeError):
             u.Quantity(mimic)
+
+
+def test_masked_quantity_str_repr():
+    """Ensure we don't break masked Quantity representation."""
+    # Really, masked quantities do not work well, but at least let the
+    # basics work.
+    masked_quantity = np.ma.array([1, 2, 3, 4] * u.kg,
+                                  mask=[True, False, True, False])
+    str(masked_quantity)
+    repr(masked_quantity)
