@@ -110,7 +110,7 @@ class galactocentric_frame_defaults(ScienceState):
             attrs = dict()
             for k in value.frame_attributes:
                 attrs[k] = getattr(value, k)
-            cls._references = value.get_references()
+            cls._references = value.frame_attribute_references()
             return attrs
 
         else:
@@ -224,8 +224,9 @@ class Galactocentric(BaseCoordinateFrame):
     instead be used by setting ``galactocentric_frame_defaults.set('latest')``,
     and other parameter set names may be added in future versions. To find out
     the scientific papers that the current default parameters are derived from,
-    use ``galcen.get_references()`` (where ``galcen`` is an instance of this
-    frame), which will update even if the default parameter set is changed.
+    use ``galcen.frame_attribute_references`` (where ``galcen`` is an instance
+    of this frame), which will update even if the default parameter set is
+    changed.
 
     The position of the Sun is assumed to be on the x axis of the final,
     right-handed system. That is, the x axis points from the position of
@@ -258,9 +259,17 @@ class Galactocentric(BaseCoordinateFrame):
         # Set default frame attribute values based on the ScienceState instance
         # for the solar parameters defined above
         default_params = galactocentric_frame_defaults.get()
-        self._references = galactocentric_frame_defaults._references
+        self.frame_attribute_references = \
+            galactocentric_frame_defaults._references.copy()
+
         for k in default_params:
+            # If a frame attribute is set by the user, remove its reference
+            self.frame_attribute_references.pop(k, None)
+
+            # Keep the frame attribute if it is set by the user, otherwise use
+            # the default value
             kwargs[k] = kwargs.get(k, default_params[k])
+
         super().__init__(*args, **kwargs)
 
     @classmethod
@@ -275,12 +284,6 @@ class Galactocentric(BaseCoordinateFrame):
         # a property here because this module isn't actually part of the public
         # API, so it's better for it to be accessable from Galactocentric
         return _ROLL0
-
-    def get_references(self):
-        if self._references is None:
-            raise ValueError("No references were provided or are available for "
-                             "the current Galactocentric frame parameters.")
-        return self._references
 
 # ICRS to/from Galactocentric ----------------------->
 
