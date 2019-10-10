@@ -487,17 +487,17 @@ class Generic(Base):
         '\N{SUPERSCRIPT SIX}'
         '\N{SUPERSCRIPT SEVEN}'
         '\N{SUPERSCRIPT EIGHT}'
-        '\N{SUPERSCRIPT NINE}')
+        '\N{SUPERSCRIPT NINE}'
+    )
 
-    _superscript_translations = str.maketrans(_superscripts,
-                                              '-+0123456789')
-
+    _superscript_translations = str.maketrans(_superscripts, '-+0123456789')
     _regex_superscript = re.compile(f'[{_superscripts}]+')
 
     @classmethod
-    def _convert(cls, x):
-        return '({})'.format(x.group().translate(
-            cls._superscript_translations))
+    def _convert_superscript(cls, m):
+        return '({})'.format(
+            m.group().translate(cls._superscript_translations)
+        )
 
     @classmethod
     def parse(cls, s, debug=False):
@@ -511,12 +511,13 @@ class Generic(Base):
         # Translate superscripts to parenthesized numbers; this ensures
         # that mixes of superscripts and regular numbers fail.
         # TODO: could one not look for superscripts in the parser/lexer?
-        s = cls._regex_superscript.sub(cls._convert, s)
+        s = cls._regex_superscript.sub(cls._convert_superscript, s)
 
         result = cls._do_parse(s, debug=debug)
         # Check for excess solidi, but exclude fractional exponents (accepted)
-        if (s.count('/') > 1 and
-                s.count('/') - len(re.findall(r'\(\d+/\d+\)', s)) > 1):
+        n_slashes = s.count('/')
+        n_fractions = len(re.findall(r'\(\d+/\d+\)', s))
+        if n_slashes > 1 and (n_slashes - n_fractions) > 1:
             warnings.warn(
                 "'{}' contains multiple slashes, which is "
                 "discouraged by the FITS standard".format(s),
@@ -536,8 +537,7 @@ class Generic(Base):
                 if str(e):
                     raise
                 else:
-                    raise ValueError(
-                        f"Syntax error parsing unit '{s}'")
+                    raise ValueError(f"Syntax error parsing unit '{s}'")
 
     @classmethod
     def _get_unit_name(cls, unit):
