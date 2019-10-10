@@ -12,7 +12,8 @@ models.
 1D Models
 ---------
 
-- :class:`~astropy.modeling.functional_models.Box1D`
+- :class:`~astropy.modeling.functional_models.Box1D` model computes a box
+  function with an amplitude centered at x_0 with the specified width.
 
 - :class:`~astropy.modeling.functional_models.Const1D` model returns the
   constant replicated by the number of input x values.
@@ -28,8 +29,9 @@ models.
 
 - :class:`~astropy.modeling.functional_models.Lorentz1D`
 
-- :class:`~astropy.modeling.functional_models.Multiply` model multiples by a
-  factor and propagates units if the factor is a :class:`~astropy.units.Quantity`.
+- :class:`~astropy.modeling.functional_models.Multiply` model multiples the
+  input x values by a factor and propagates units if the factor is
+  a :class:`~astropy.units.Quantity`.
 
 - :class:`~astropy.modeling.functional_models.RedshiftScaleFactor` model
   multiples the input x values by a (1 + z) factor.
@@ -58,29 +60,31 @@ Plot showing some of the 1D models
     import numpy as np
     import matplotlib.pyplot as plt
 
-    from astropy.modeling.models import BlackBody
+    from astropy.modeling.models import (Box1D, Gaussian1D, MexicanHat1D,
+                                         Moffat1D, Lorentz1D, Voigt1D)
     import astropy.units as u
 
-    wavelengths = np.logspace(np.log10(1000), np.log10(3e4), num=1000) * u.AA
+    x = np.linspace(-5.0, 5.0, num=100)
 
-    # blackbody parameters
-    temperature = 10000 * u.K
+    boxmod = Box1D(amplitude=10., x_0=0.0, width=1.0)
+    gaussmod = Gaussian1D(amplitude=10., mean=0.0, stddev=1.0)
+    mexhatmod = MexicanHat1D(amplitude=10., x_0=0.0, sigma=1.0)
+    moffatmod = Moffat1D(amplitude=10., x_0=0.0, gamma=1.0)
+    lorentzmod = Lorentz1D(amplitude=10., x_0=0.0, fwhm=1.0)
+    voigtmod = Voigt1D(amplitude_L=10., x_0=0.0, fwhm_L=1.0, fwhm_G=1.0)
 
-    # BlackBody1D provides the results in ergs/(cm^2 Hz s sr) when scale has no units
-    bb = BlackBody(temperature=temperature, scale=10000.0)
-    bb_result = bb(wavelengths)
-
-    fig, ax = plt.subplots(ncols=1)
-    ax.plot(wavelengths, bb_result, '-')
-
-    ax.set_xscale('log')
-    ax.set_xlabel(r"$\lambda$ [{}]".format(wavelengths.unit))
-    ax.set_ylabel(r"$F(\lambda)$ [{}]".format(bb_result.unit))
-
+    fig, ax = plt.subplots()
+    ax.plot(x, boxmod(x), label="Box1D")
+    ax.plot(x, gaussmod(x), label="Gaussian1D")
+    ax.plot(x, mexhatmod(x), label="MexicanHat1D")
+    ax.plot(x, moffatmod(x), label="Moffat1D")
+    ax.plot(x, lorentzmod(x), label="Lorentz1D")
+    ax.plot(x, voigtmod(x), label="Voigt1D")
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.legend()
     plt.tight_layout()
     plt.show()
-
-
 
 2D Models
 ---------
@@ -104,6 +108,6 @@ Plot showing some of the 1D models
 
 - :class:`~astropy.modeling.functional_models.Sersic2D`
 
-- :class:`~astropy.modeling.functional_models.TrapazoidDisk2D`
+- :class:`~astropy.modeling.functional_models.TrapezoidDisk2D`
 
 - :class:`~astropy.modeling.functional_models.Ring2D`
