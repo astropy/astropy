@@ -505,7 +505,7 @@ any other by composing the transformations. The power behind this concept is
 available to user-created frames as well, meaning that once you define even one
 transform from your frame to any frame in the graph, coordinates defined in your
 frame can be transformed to *any* other frame in the graph. The "frame transform
-graph" is available in code as `~astropy.coordinates.frame_transform_graph`,
+graph" is available in code as ``astropy.coordinates.frame_transform_graph``,
 which is an instance of the `~astropy.coordinates.TransformGraph` class.
 
 The transformations themselves are represented as
