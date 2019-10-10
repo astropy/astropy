@@ -78,15 +78,14 @@ astropy.modeling
 
 - New function ``fix_inputs`` to generate new models from others by fixing
   specific inputs variable values to constants. [#9135]
-- Significant reorganization of the documentation. [#9078, #9171]
 
 - ``inputs`` and ``outputs`` are now model instance attributes, and ``n_inputs``
   and ``n_outputs`` are class attributes. Backwards compatible default values of
   ``inputs`` and ``outputs`` are generated. ``Model.inputs`` and ``Model.outputs``
   are now settable which allows renaming them on per user case. [#9298]
 
-- Add BlackBody model.  [#9282]
-  Deprecate BlackBody1D model and blackbody_nu and blackbody_lambda functions.
+- Add ``BlackBody`` model.  [#9282]
+  Deprecate ``BlackBody1D`` model and ``blackbody_nu`` and ``blackbody_lambda`` functions.
 
 astropy.nddata
 ^^^^^^^^^^^^^^
