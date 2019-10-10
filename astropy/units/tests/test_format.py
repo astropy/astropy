@@ -582,6 +582,8 @@ def test_powers(power, expected):
     ('m\N{SUPERSCRIPT PLUS SIGN}\N{SUPERSCRIPT TWO}', u.m**2),
     ('m\N{SUPERSCRIPT THREE}', u.m**3),
     ('m\N{SUPERSCRIPT ONE}\N{SUPERSCRIPT ZERO}', u.m**10),
+    ('\N{GREEK CAPITAL LETTER OMEGA}', u.ohm),
+    ('\N{OHM SIGN}', u.ohm), # deprecated but for compatibility
     ('°C', u.deg_C),
     ('°', u.deg),
 ])
