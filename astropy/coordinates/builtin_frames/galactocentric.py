@@ -30,8 +30,43 @@ _ROLL0 = Angle(58.5986320306*u.degree)
 
 
 class galactocentric_frame_defaults(ScienceState):
-    """The ScienceState instance that controls global setting of Galactocentric
-    default solar motion parameters
+    """This class controls the global setting of default values for the frame
+    attributes in the `~astropy.coordinates.Galactocentric` frame, which may be
+    updated in future versions of ``astropy``. Note that when using
+    `~astropy.coordinates.Galactocentric`, changing values here will not affect
+    any attributes that are set explicitly by passing values in to the
+    `~astropy.coordinates.Galactocentric` initializer, but will affect the
+    frame attribute values when using the frame as, e.g.,
+    ``coord.Galactocentric`` or ``coord.Galactocentric()`` with no explicit
+    arguments.
+
+    This class controls the parameter settings by specifying a string name,
+    which can be one of:
+
+    - 'pre-v4.0': The current default value, which sets the default frame
+      attribute values to their original (pre-version-4.0) values.
+    - 'v4.0': The attribute values as updated in version 4.0.
+    - 'latest': An alias of the most recent parameter set (currently: 'v4.0')
+
+    Examples
+    --------
+    As with other `~astropy.utils.state.ScienceState` subclasses, this class
+    can either be used to globally set the frame defaults at runtime, e.g.::
+
+        >>> from astropy.coordinates import (galactocentric_frame_defaults,
+        ...                                  Galactocentric)
+        >>> galactocentric_frame_defaults.set('v4.0')
+        >>> Galactocentric() # doctest: +FLOAT_CMP
+        <Galactocentric Frame (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
+            (266.4051, -28.936175)>, galcen_distance=8.122 kpc, galcen_v_sun=(12.9, 245.6, 7.78) km / s, z_sun=20.8 pc, roll=0.0 deg)>
+
+    Or, it can be used as a context manager::
+
+        >>> with galactocentric_frame_defaults.set('pre-v4.0'):
+        ...     print(Galactocentric()) # doctest: +FLOAT_CMP
+        <Galactocentric Frame (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
+            (266.4051, -28.936175)>, galcen_distance=8.3 kpc, galcen_v_sun=(11.1, 232.24, 7.25) km / s, z_sun=27.0 pc, roll=0.0 deg)>
+
     """
 
     # the default is to use the original definition of this frame
@@ -40,7 +75,8 @@ class galactocentric_frame_defaults(ScienceState):
 
     @staticmethod
     def get_solar_params_from_string(arg):
-        """Return Galactocentric solar parameters given string names for the parameter sets.
+        """Return Galactocentric solar parameters given string names for the
+        parameter sets.
         """
         # Resolve the meaning of 'latest': The latest parameter set is from v4.0
         # - update this as newer parameter choices are added
