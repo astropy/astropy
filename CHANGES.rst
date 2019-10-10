@@ -152,7 +152,8 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
-- Support for unicode micro prefix. [#9348]
+- Support for unicode parsing.
+  Supported at the moment are superscripts and the micro-sign. [#9348]
 
 - Accept non-unit type annotations in @quantity_input. [#8984]
 
