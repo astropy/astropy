@@ -38,7 +38,6 @@ def _is_ascii(s):
             return False
 
 
-
 def _to_string(cls, unit):
     if isinstance(unit, core.CompositeUnit):
         parts = []
