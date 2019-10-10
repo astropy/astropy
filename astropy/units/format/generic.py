@@ -541,8 +541,7 @@ class Generic(Base):
         result = cls._do_parse(s, debug=debug)
         # Check for excess solidi, but exclude fractional exponents (accepted)
         n_slashes = s.count('/')
-        n_fractions = len(re.findall(r'\(\d+/\d+\)', s))
-        if n_slashes > 1 and (n_slashes - n_fractions) > 1:
+        if n_slashes > 1 and (n_slashes - len(re.findall(r'\(\d+/\d+\)', s))) > 1:
             warnings.warn(
                 "'{}' contains multiple slashes, which is "
                 "discouraged by the FITS standard".format(s),
