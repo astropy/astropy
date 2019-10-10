@@ -461,6 +461,22 @@ def test_spectraldensity5():
         phot_L_nu, flux_L_la, u.spectral_density(wave)), flux_phot_L_nu, rtol=1e-6)
 
 
+def test_spectraldensity6():
+    """ Test surface brightness conversions. """
+    slam = u.erg / (u.cm ** 2 * u.s * u.AA * u.sr)
+    snu = u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr)
+
+    wave = u.Quantity([4956.8, 4959.55, 4962.3], u.AA)
+    sb_flam = [3.9135e-14, 4.0209e-14, 3.9169e-14]
+    sb_fnu = [3.20735792e-25, 3.29903646e-25, 3.21727226e-25]
+
+    # S(nu) <--> S(lambda)
+    assert_allclose(snu.to(
+        slam, sb_fnu, u.spectral_density(wave)), sb_flam, rtol=1e-6)
+    assert_allclose(slam.to(
+        snu, sb_flam, u.spectral_density(wave)), sb_fnu, rtol=1e-6)
+
+
 def test_equivalent_units():
     from astropy.units import imperial
     with u.add_enabled_units(imperial):

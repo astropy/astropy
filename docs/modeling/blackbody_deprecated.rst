@@ -3,7 +3,7 @@
 Blackbody (deprecated capabilities)
 ===================================
 
-blackbody functions (deprecated)
+Blackbody functions (deprecated)
 --------------------------------
 
 Prior to astropy v4.0, two simple functions were provided to compute

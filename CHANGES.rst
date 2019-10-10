@@ -84,8 +84,9 @@ astropy.modeling
   ``inputs`` and ``outputs`` are generated. ``Model.inputs`` and ``Model.outputs``
   are now settable which allows renaming them on per user case. [#9298]
 
-- Add ``BlackBody`` model.  [#9282]
-  Deprecate ``BlackBody1D`` model and ``blackbody_nu`` and ``blackbody_lambda`` functions.
+- Add ``BlackBody`` model.
+  Deprecate ``BlackBody1D`` model and ``blackbody_nu`` and ``blackbody_lambda``
+  functions. [#9282]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
