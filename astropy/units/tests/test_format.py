@@ -586,3 +586,14 @@ def test_powers(power, expected):
 def test_unicode(string, unit):
     assert u_format.Generic.parse(string) == unit
     assert u.Unit(string) == unit
+
+
+@pytest.mark.parametrize('string', [
+    'g\N{MICRO SIGN}',
+    'g\N{MINUS SIGN}',
+    'm\N{SUPERSCRIPT MINUS}1',
+    'm+\N{SUPERSCRIPT ONE}',
+    'm\N{MINUS SIGN}\N{SUPERSCRIPT ONE}'])
+def test_unicode_failures(string):
+    with pytest.raises(ValueError):
+        u.Unit(string)

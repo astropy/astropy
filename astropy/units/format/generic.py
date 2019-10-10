@@ -468,25 +468,36 @@ class Generic(Base):
 
     _translations = str.maketrans({
         '\N{GREEK SMALL LETTER MU}': '\N{MICRO SIGN}',
-        '\N{MINUS SIGN}': '-',
-        '\N{SUPERSCRIPT MINUS}': '-',
-        '\N{SUPERSCRIPT PLUS SIGN}': '+',
-        '\N{SUPERSCRIPT ZERO}': '0',
-        '\N{SUPERSCRIPT ONE}': '1',
-        '\N{SUPERSCRIPT TWO}': '2',
-        '\N{SUPERSCRIPT THREE}': '3',
-        '\N{SUPERSCRIPT FOUR}': '4',
-        '\N{SUPERSCRIPT FIVE}': '5',
-        '\N{SUPERSCRIPT SIX}': '6',
-        '\N{SUPERSCRIPT SEVEN}': '7',
-        '\N{SUPERSCRIPT EIGHT}': '8',
-        '\N{SUPERSCRIPT NINE}': '9',
-    })
+        '\N{MINUS SIGN}': '-'})
     """Character translations that should be applied before parsing a string.
 
     Note that this does explicitly *not* generally translate MICRO SIGN to u,
     since then a string like 'µ' would be interpreted as unit mass.
     """
+
+    _superscripts = (
+        '\N{SUPERSCRIPT MINUS}'
+        '\N{SUPERSCRIPT PLUS SIGN}'
+        '\N{SUPERSCRIPT ZERO}'
+        '\N{SUPERSCRIPT ONE}'
+        '\N{SUPERSCRIPT TWO}'
+        '\N{SUPERSCRIPT THREE}'
+        '\N{SUPERSCRIPT FOUR}'
+        '\N{SUPERSCRIPT FIVE}'
+        '\N{SUPERSCRIPT SIX}'
+        '\N{SUPERSCRIPT SEVEN}'
+        '\N{SUPERSCRIPT EIGHT}'
+        '\N{SUPERSCRIPT NINE}')
+
+    _superscript_translations = str.maketrans(_superscripts,
+                                              '-+0123456789')
+
+    _regex_superscript = re.compile(f'[{_superscripts}]+')
+
+    @classmethod
+    def _convert(cls, x):
+        return '({})'.format(x.group().translate(
+            cls._superscript_translations))
 
     @classmethod
     def parse(cls, s, debug=False):
@@ -496,6 +507,11 @@ class Generic(Base):
         # Translate some basic unicode items that we'd like to support on
         # input but are not standard.
         s = s.translate(cls._translations)
+
+        # Translate superscripts to parenthesized numbers; this ensures
+        # that mixes of superscripts and regular numbers fail.
+        # TODO: could one not look for superscripts in the parser/lexer?
+        s = cls._regex_superscript.sub(cls._convert, s)
 
         result = cls._do_parse(s, debug=debug)
         # Check for excess solidi, but exclude fractional exponents (accepted)
