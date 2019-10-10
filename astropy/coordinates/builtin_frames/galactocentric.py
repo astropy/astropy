@@ -29,7 +29,7 @@ __all__ = ['Galactocentric']
 _ROLL0 = Angle(58.5986320306*u.degree)
 
 
-class default_sun_galactocentric(ScienceState):
+class galactocentric_frame_defaults(ScienceState):
     """The ScienceState instance that controls global setting of Galactocentric
     default solar motion parameters
     """
@@ -218,14 +218,14 @@ class Galactocentric(BaseCoordinateFrame):
     original definition of the frame in 2014. As such, the defaults are somewhat
     out of date relative to recent measurements made possible by, e.g., Gaia.
     The defaults can, however, be changed at runtime by setting the parameter
-    set name in ``astropy.coordinates.default_sun_galactocentric``. The default
+    set name in `~astropy.coordinates.galactocentric_frame_defaults. The default
     parameter set is ``"pre-v4,0"``, indicating that the parameters were adopted
     before ``astropy`` version 4.0. A regularly-updated parameter set can
-    instead be used by setting ``default_sun_galactocentric.set('latest')``, and
-    other parameter set names may be added in future versions. To find out the
-    scientific papers that the current default parameters are derived from, use
-    ``galcen.get_references()`` (where ``galcen`` is an instance of this frame),
-    which will update even if the default parameter set is changed.
+    instead be used by setting ``galactocentric_frame_defaults.set('latest')``,
+    and other parameter set names may be added in future versions. To find out
+    the scientific papers that the current default parameters are derived from,
+    use ``galcen.get_references()`` (where ``galcen`` is an instance of this
+    frame), which will update even if the default parameter set is changed.
 
     The position of the Sun is assumed to be on the x axis of the final,
     right-handed system. That is, the x axis points from the position of
@@ -257,8 +257,8 @@ class Galactocentric(BaseCoordinateFrame):
     def __init__(self, *args, **kwargs):
         # Set default frame attribute values based on the ScienceState instance
         # for the solar parameters defined above
-        default_params = default_sun_galactocentric.get()
-        self._references = default_sun_galactocentric._references
+        default_params = galactocentric_frame_defaults.get()
+        self._references = galactocentric_frame_defaults._references
         for k in default_params:
             kwargs[k] = kwargs.get(k, default_params[k])
         super().__init__(*args, **kwargs)
