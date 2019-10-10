@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
+
 import numpy as np
 
 from astropy import units as u
 from astropy.utils.state import ScienceState
 from astropy.utils.decorators import format_doc
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.coordinates.angles import Angle
 from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
 from astropy.coordinates import representation as r
@@ -70,6 +73,7 @@ class galactocentric_frame_defaults(ScienceState):
     """
 
     # the default is to use the original definition of this frame
+    # TODO: change this to 'latest' in v4.1?
     _value = 'pre-v4.0'
     _references = None
 
@@ -303,13 +307,40 @@ class Galactocentric(BaseCoordinateFrame):
         self.frame_attribute_references = \
             galactocentric_frame_defaults._references.copy()
 
+        warn = False
         for k in default_params:
             # If a frame attribute is set by the user, remove its reference
             self.frame_attribute_references.pop(k, None)
 
+            # If a parameter is read from the defaults, we might want to warn
+            # the user that the defaults will change (see below)
+            if k not in kwargs:
+                warn = True
+
             # Keep the frame attribute if it is set by the user, otherwise use
             # the default value
             kwargs[k] = kwargs.get(k, default_params[k])
+
+        # If the frame defaults have not been updated with the ScienceState
+        # class, and the user uses any default parameter value, raise a
+        # deprecation warning to inform them that the defaults will change in
+        # the future:
+        if galactocentric_frame_defaults._value == 'pre-v4.0' and warn:
+            docs_link = ''  # TODO
+            warnings.warn('In v4.1 and later versions, the Galactocentric '
+                          'frame will adopt default parameters that may update '
+                          'with time. An updated default parameter set is '
+                          'already available through the '
+                          'astropy.coordinates.galactocentric_frame_defaults '
+                          'ScienceState object, as described in {} '
+                          'but the default is currently still set to '
+                          'the pre-v4.0 parameter defaults. The safest way to '
+                          'guard against changing default parameters in the '
+                          'future is to either (1) specify all Galactocentric '
+                          'frame attributes explicitly when using the frame, '
+                          'or (2) set the galactocentric_frame_defaults '
+                          'parameter set name explicitly.'.format(docs_link),
+                          AstropyDeprecationWarning)
 
         super().__init__(*args, **kwargs)
 
