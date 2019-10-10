@@ -475,6 +475,15 @@ by calling :func:`gc.collect` at the end of the loop.
 In a future release it will be more convenient to automatically perform this
 sort of cleanup when closing FITS files, where needed.
 
+Using header['NAXIS2'] += 1 does not add another row to my Table
+----------------------------------------------------------------
+
+``NAXIS`` and similar keywords are FITS *structural* keywords and should not be
+modified by the user. They are automatically updated by :mod:`astropy.io.fits`
+when checking the validity of the data and headers. See :ref:`structural_keywords`
+for more information.
+
+To add rows to a table, you can modify the actual data.
 
 Comparison with Other FITS Readers
 ==================================
