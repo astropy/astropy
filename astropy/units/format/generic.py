@@ -457,12 +457,6 @@ class Generic(Base):
             return registry['percent']
 
         if not s.isascii():
-            # common normalization of unicode strings to avoid
-            # having to deal with multiple representations of
-            # the same character. This normalizes to "composed" form
-            # and will e.g. convert OHM SIGN to GREEK CAPITAL LETTER OMEGA
-            s = unicodedata.normalize('NFC', s)
-
             if s[0] == '\N{MICRO SIGN}':
                 s = 'u' + s[1:]
             if s[-1] == '\N{GREEK CAPITAL LETTER OMEGA}':
@@ -528,6 +522,10 @@ class Generic(Base):
         if not isinstance(s, str):
             s = s.decode('ascii')
         elif not s.isascii():
+            # common normalization of unicode strings to avoid
+            # having to deal with multiple representations of
+            # the same character. This normalizes to "composed" form
+            # and will e.g. convert OHM SIGN to GREEK CAPITAL LETTER OMEGA
             s = unicodedata.normalize('NFC', s)
             # Translate some basic unicode items that we'd like to support on
             # input but are not standard.
