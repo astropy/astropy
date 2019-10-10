@@ -80,13 +80,6 @@ astropy.modeling
   specific inputs variable values to constants. [#9135]
 - Significant reorganization of the documentation. [#9078, #9171]
 
-
-- ``Model.rename`` was changed to add the ability to rename ``Model.inputs``
-  and ``Model.outputs``. [#9220]
-
-- New function ``fix_inputs`` to generate new models from others by fixing
-  specific inputs variable values to constants. [#9135]
-
 - ``inputs`` and ``outputs`` are now model instance attributes, and ``n_inputs``
   and ``n_outputs`` are class attributes. Backwards compatible default values of
   ``inputs`` and ``outputs`` are generated. ``Model.inputs`` and ``Model.outputs``
