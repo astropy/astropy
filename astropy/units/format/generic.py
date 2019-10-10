@@ -492,12 +492,19 @@ class Generic(Base):
 
     _superscript_translations = str.maketrans(_superscripts, '-+0123456789')
     _regex_superscript = re.compile(f'[{_superscripts}]+')
+    _regex_deg = re.compile('°([CF])?')
 
     @classmethod
     def _convert_superscript(cls, m):
         return '({})'.format(
             m.group().translate(cls._superscript_translations)
         )
+
+    @classmethod
+    def _convert_deg(cls, m):
+        if len(m.string) == 1:
+            return 'deg'
+        return m.group().replace('°', 'deg_')
 
     @classmethod
     def parse(cls, s, debug=False):
@@ -512,6 +519,7 @@ class Generic(Base):
         # that mixes of superscripts and regular numbers fail.
         # TODO: could one not look for superscripts in the parser/lexer?
         s = cls._regex_superscript.sub(cls._convert_superscript, s)
+        s = cls._regex_deg.sub(cls._convert_deg, s)
 
         result = cls._do_parse(s, debug=debug)
         # Check for excess solidi, but exclude fractional exponents (accepted)
