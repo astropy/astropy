@@ -34,6 +34,11 @@ astropy.coordinates
   ``CylindricalRepresentation`` of the coordinate, as is already available
   for other common representations. [#8857]
 
+- The default parameters for the ``Galactocentric`` frame are now controlled by
+  a ``ScienceState`` subclass, ``galactocentric_frame_defaults``. New
+  parameter sets will be added to this object periodically to keep up with
+  ever-improved measurements of the solar position and motion. [#9346]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
