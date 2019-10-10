@@ -595,9 +595,9 @@ components are typically named after the corresponding ``Representation``
 component, preceded by ``d_``. So, for example, the longitude ``Diffferential``
 component is, by default, ``d_lon``. However, there are some defaults to be aware of. Here, if we set the
 default ``Differential`` class to also be Spherical, it will implement a set of
-default "nicer" names for the velocity components, mapping `pm_R` to `d_lon`,
-`pm_D` to `d_lat`, and `radial_velocity` to `d_distance` (taking the previously
-overridden longitude and latitude component names)::
+default "nicer" names for the velocity components, mapping ``pm_R`` to
+``d_lon``, ``pm_D`` to ``d_lat``, and ``radial_velocity`` to ``d_distance``
+(taking the previously overridden longitude and latitude component names)::
 
     >>> class MyFrame4WithVelocity(BaseCoordinateFrame):
     ...     # Specify how coordinate values are represented when outputted
