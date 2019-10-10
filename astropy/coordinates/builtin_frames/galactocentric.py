@@ -258,15 +258,16 @@ class Galactocentric(BaseCoordinateFrame):
     original definition of the frame in 2014. As such, the defaults are somewhat
     out of date relative to recent measurements made possible by, e.g., Gaia.
     The defaults can, however, be changed at runtime by setting the parameter
-    set name in `~astropy.coordinates.galactocentric_frame_defaults`. The
-    default parameter set is ``"pre-v4,0"``, indicating that the parameters
-    were adopted before ``astropy`` version 4.0. A regularly-updated parameter
-    set can instead be used by setting ``galactocentric_frame_defaults.set
-    ('latest')``, and other parameter set names may be added in future
-    versions. To find out the scientific papers that the current default
-    parameters are derived from, use ``galcen.frame_attribute_references``
-    (where ``galcen`` is an instance of this frame), which will update even if
-    the default parameter set is changed.
+    set name in `~astropy.coordinates.galactocentric_frame_defaults`.
+
+    The current default parameter set is ``"pre-v4.0"``, indicating that the
+    parameters were adopted before ``astropy`` version 4.0. A regularly-updated
+    parameter set can instead be used by setting
+    ``galactocentric_frame_defaults.set ('latest')``, and other parameter set
+    names may be added in future versions. To find out the scientific papers
+    that the current default parameters are derived from, use
+    ``galcen.frame_attribute_references`` (where ``galcen`` is an instance of
+    this frame), which will update even if the default parameter set is changed.
 
     The position of the Sun is assumed to be on the x axis of the final,
     right-handed system. That is, the x axis points from the position of
