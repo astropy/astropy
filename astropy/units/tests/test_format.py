@@ -584,6 +584,10 @@ def test_powers(power, expected):
     ('m\N{SUPERSCRIPT ONE}\N{SUPERSCRIPT ZERO}', u.m**10),
     ('\N{GREEK CAPITAL LETTER OMEGA}', u.ohm),
     ('\N{OHM SIGN}', u.ohm), # deprecated but for compatibility
+    ('\N{MICRO SIGN}\N{GREEK CAPITAL LETTER OMEGA}', u.microOhm),
+    ('\N{ANGSTROM SIGN}', u.Angstrom),
+    ('\N{ANGSTROM SIGN} \N{OHM SIGN}', u.Angstrom * u.Ohm),
+    ('\N{LATIN CAPITAL LETTER A WITH RING ABOVE}', u.Angstrom),
     ('°C', u.deg_C),
     ('°', u.deg),
 ])
@@ -597,7 +601,9 @@ def test_unicode(string, unit):
     'g\N{MINUS SIGN}',
     'm\N{SUPERSCRIPT MINUS}1',
     'm+\N{SUPERSCRIPT ONE}',
-    'm\N{MINUS SIGN}\N{SUPERSCRIPT ONE}'])
+    'm\N{MINUS SIGN}\N{SUPERSCRIPT ONE}',
+    'm\N{ANGSTROM SIGN}',
+])
 def test_unicode_failures(string):
     with pytest.raises(ValueError):
         u.Unit(string)

@@ -149,8 +149,6 @@ class Generic(Base):
 
         def t_UNIT(t):
             "%|([YZEPTGMkhdcmu\N{MICRO SIGN}npfazy]?"+r"'((?!\d)\w)+')|((?!\d)\w)+"
-            if t.value[0] == '\N{MICRO SIGN}':
-                t.value = 'u' + t.value[1:]
             t.value = cls._get_unit(t)
             return t
 
@@ -456,7 +454,16 @@ class Generic(Base):
         registry = core.get_current_unit_registry().registry
         if s == '%':
             return registry['percent']
-        elif s in registry:
+
+        if not s.isascii():
+            if s[0] == '\N{MICRO SIGN}':
+                s = 'u' + s[1:]
+            if s[-1] == '\N{OHM SIGN}':
+                s = s[:-1] + 'Ohm'
+            elif s[-1] == '\N{ANGSTROM SIGN}':
+                s = s[:-1] + 'Angstrom'
+
+        if s in registry:
             return registry[s]
 
         if detailed_exception:
@@ -469,8 +476,8 @@ class Generic(Base):
     _translations = {
         '\N{GREEK SMALL LETTER MU}': '\N{MICRO SIGN}',
         '\N{MINUS SIGN}': '-',
-        '\N{OHM SIGN}': 'Ohm',
-        '\N{GREEK CAPITAL LETTER OMEGA}': 'Ohm',
+        '\N{GREEK CAPITAL LETTER OMEGA}': '\N{OHM SIGN}',
+        '\N{LATIN CAPITAL LETTER A WITH RING ABOVE}': '\N{ANGSTROM SIGN}'
     }
     # key in the translations dict must be the codepoint
     _translations = {ord(k):v for k, v in _translations.items()}
@@ -515,16 +522,17 @@ class Generic(Base):
     def parse(cls, s, debug=False):
         if not isinstance(s, str):
             s = s.decode('ascii')
+        elif not s.isascii():
+            # Translate some basic unicode items that we'd like to support on
+            # input but are not standard.
+            s = s.translate(cls._translations)
 
-        # Translate some basic unicode items that we'd like to support on
-        # input but are not standard.
-        s = s.translate(cls._translations)
-
-        # Translate superscripts to parenthesized numbers; this ensures
-        # that mixes of superscripts and regular numbers fail.
-        # TODO: could one not look for superscripts in the parser/lexer?
-        s = cls._regex_superscript.sub(cls._convert_superscript, s)
-        s = cls._regex_deg.sub(cls._convert_deg, s)
+            # TODO: might the below be better done in the parser/lexer?
+            # Translate superscripts to parenthesized numbers; this ensures
+            # that mixes of superscripts and regular numbers fail.
+            s = cls._regex_superscript.sub(cls._convert_superscript, s)
+            # Translate possible degrees.
+            s = cls._regex_deg.sub(cls._convert_deg, s)
 
         result = cls._do_parse(s, debug=debug)
         # Check for excess solidi, but exclude fractional exponents (accepted)
