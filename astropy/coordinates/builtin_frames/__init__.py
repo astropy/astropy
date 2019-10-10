@@ -54,6 +54,7 @@ from astropy.coordinates.baseframe import frame_transform_graph
 # we define an __all__ because otherwise the transformation modules
 # get included
 __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
+           'galactocentric_frame_defaults',
            'Supergalactic', 'AltAz', 'GCRS', 'CIRS', 'ITRS', 'HCRS',
            'PrecessedGeocentric', 'GeocentricMeanEcliptic',
            'BarycentricMeanEcliptic', 'HeliocentricMeanEcliptic',
