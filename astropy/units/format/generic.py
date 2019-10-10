@@ -486,12 +486,10 @@ class Generic(Base):
         else:
             raise ValueError()
 
-    _translations = {
+    _translations = str.maketrans({
         '\N{GREEK SMALL LETTER MU}': '\N{MICRO SIGN}',
         '\N{MINUS SIGN}': '-',
-    }
-    # key in the translations dict must be the codepoint
-    _translations = {ord(k):v for k, v in _translations.items()}
+    })
     """Character translations that should be applied before parsing a string.
 
     Note that this does explicitly *not* generally translate MICRO SIGN to u,
