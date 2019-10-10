@@ -370,6 +370,9 @@ astropy.units
   where numpy scalars behave differently than python ones (e.g., taking the
   square root of a negative number). [#8876]
 
+- Removed the ``magnitude_zero_points`` module, which was deprecated in
+  favour of ``astropy.units.photometric`` since 3.1. [#9353]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
