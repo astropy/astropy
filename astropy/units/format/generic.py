@@ -528,7 +528,7 @@ class Generic(Base):
     def _convert_deg(cls, m):
         if len(m.string) == 1:
             return 'deg'
-        return m.group().replace('°', 'deg_')
+        return m.string.replace('°', 'deg_')
 
     @classmethod
     def parse(cls, s, debug=False):
