@@ -18,6 +18,7 @@ import os
 import re
 import warnings
 from fractions import Fraction
+import unicodedata
 
 from . import core, utils
 from .base import Base
@@ -456,11 +457,17 @@ class Generic(Base):
             return registry['percent']
 
         if not s.isascii():
+            # common normalization of unicode strings to avoid
+            # having to deal with multiple representations of
+            # the same character. This normalizes to "composed" form
+            # and will e.g. convert OHM SIGN to GREEK CAPITAL LETTER OMEGA
+            s = unicodedata.normalize('NFC', s)
+
             if s[0] == '\N{MICRO SIGN}':
                 s = 'u' + s[1:]
-            if s[-1] == '\N{OHM SIGN}':
+            if s[-1] == '\N{GREEK CAPITAL LETTER OMEGA}':
                 s = s[:-1] + 'Ohm'
-            elif s[-1] == '\N{ANGSTROM SIGN}':
+            elif s[-1] == '\N{LATIN CAPITAL LETTER A WITH RING ABOVE}':
                 s = s[:-1] + 'Angstrom'
 
         if s in registry:
@@ -476,8 +483,6 @@ class Generic(Base):
     _translations = {
         '\N{GREEK SMALL LETTER MU}': '\N{MICRO SIGN}',
         '\N{MINUS SIGN}': '-',
-        '\N{GREEK CAPITAL LETTER OMEGA}': '\N{OHM SIGN}',
-        '\N{LATIN CAPITAL LETTER A WITH RING ABOVE}': '\N{ANGSTROM SIGN}'
     }
     # key in the translations dict must be the codepoint
     _translations = {ord(k):v for k, v in _translations.items()}
@@ -523,6 +528,7 @@ class Generic(Base):
         if not isinstance(s, str):
             s = s.decode('ascii')
         elif not s.isascii():
+            s = unicodedata.normalize('NFC', s)
             # Translate some basic unicode items that we'd like to support on
             # input but are not standard.
             s = s.translate(cls._translations)
