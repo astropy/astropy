@@ -22,15 +22,6 @@ FLAM = u.erg / (u.cm ** 2 * u.s * u.AA)
 SNU = u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr)
 SLAM = u.erg / (u.cm ** 2 * u.s * u.AA * u.sr)
 
-# Some platform implementations of expm1() are buggy and Numpy uses
-# them anyways--the bug is that on certain large inputs it returns
-# NaN instead of INF like it should (it should only return NaN on a
-# NaN input
-# See https://github.com/astropy/astropy/issues/4171
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore", RuntimeWarning)
-    _has_buggy_expm1 = np.isnan(np.expm1(1000)) or np.isnan(np.expm1(1e10))
-
 
 class BlackBody(Fittable1DModel):
     """
@@ -148,19 +139,6 @@ class BlackBody(Fittable1DModel):
 
         log_boltz = const.h * freq / (const.k_B * temp)
         boltzm1 = np.expm1(log_boltz)
-
-        if _has_buggy_expm1:
-            # Replace incorrect nan results with infs--any result of 'nan' is
-            # incorrect unless the input (in log_boltz) happened to be nan to begin
-            # with.  (As noted in #4393 ideally this would be replaced by a version
-            # of expm1 that doesn't have this bug, rather than fixing incorrect
-            # results after the fact...)
-            boltzm1_nans = np.isnan(boltzm1)
-            if np.any(boltzm1_nans):
-                if boltzm1.isscalar and not np.isnan(log_boltz):
-                    boltzm1 = np.inf
-                else:
-                    boltzm1[np.where(~np.isnan(log_boltz) & boltzm1_nans)] = np.inf
 
         # Calculate blackbody flux
         bb_nu = 2.0 * const.h * freq ** 3 / (const.c ** 2 * boltzm1)
