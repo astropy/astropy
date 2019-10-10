@@ -582,6 +582,8 @@ def test_powers(power, expected):
     ('m\N{SUPERSCRIPT PLUS SIGN}\N{SUPERSCRIPT TWO}', u.m**2),
     ('m\N{SUPERSCRIPT THREE}', u.m**3),
     ('m\N{SUPERSCRIPT ONE}\N{SUPERSCRIPT ZERO}', u.m**10),
+    ('°C', u.deg_C),
+    ('°', u.deg),
 ])
 def test_unicode(string, unit):
     assert u_format.Generic.parse(string) == unit
