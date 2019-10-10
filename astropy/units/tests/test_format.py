@@ -588,6 +588,7 @@ def test_powers(power, expected):
     ('\N{ANGSTROM SIGN}', u.Angstrom),
     ('\N{ANGSTROM SIGN} \N{OHM SIGN}', u.Angstrom * u.Ohm),
     ('\N{LATIN CAPITAL LETTER A WITH RING ABOVE}', u.Angstrom),
+    ('\N{LATIN CAPITAL LETTER A}\N{COMBINING RING ABOVE}', u.Angstrom),
     ('°C', u.deg_C),
     ('°', u.deg),
 ])
