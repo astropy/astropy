@@ -153,7 +153,7 @@ astropy.units
 ^^^^^^^^^^^^^
 
 - Support for unicode parsing.
-  Supported at the moment are superscripts, Ohm and the micro-sign. [#9348]
+  Supported at the moment are superscripts, Ohm, Ångström,  and the micro-sign. [#9348]
 
 - Accept non-unit type annotations in @quantity_input. [#8984]
 
