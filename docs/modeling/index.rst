@@ -104,6 +104,7 @@ Pre-Defined Models
 .. toctree::
    :maxdepth: 2
 
+   Functional Models <functional_models.rst>
    Physical Models <physical_models.rst>
 
 Examples

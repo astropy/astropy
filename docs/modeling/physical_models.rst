@@ -1,9 +1,11 @@
+.. _physical_models:
+
 Physical Models
 ***************
 
 These are models that are physical motivated, generally as solutions to
-physical problems.  This is in contrast to those that are mathematically motivated,
-generally as solutions to mathematical problems.
+physical problems.  See :doc:`functional_models` for mathematically motivated
+models.
 
 BlackBody
 =========
