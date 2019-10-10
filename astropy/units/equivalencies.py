@@ -182,6 +182,10 @@ def spectral_density(wav, factor=None):
     phot_L_la = astrophys.photon / (si.s * si.AA)
     phot_L_nu = astrophys.photon / (si.s * si.Hz)
 
+    # surface brigthness
+    S_la = cgs.erg / si.angstrom / si.cm ** 2 / si.s / si.sr
+    S_nu = cgs.erg / si.Hz / si.cm ** 2 / si.s / si.sr
+
     def converter(x):
         return x * (wav.to_value(si.AA, spectral()) ** 2 / c_Aps)
 
@@ -263,6 +267,8 @@ def spectral_density(wav, factor=None):
         (phot_L_la, phot_L_nu, converter_phot_L_la_phot_L_nu, iconverter_phot_L_la_phot_L_nu),
         (phot_L_nu, L_nu, converter_phot_L_nu_to_L_nu, iconverter_phot_L_nu_to_L_nu),
         (phot_L_nu, L_la, converter_phot_L_nu_to_L_la, iconverter_phot_L_nu_to_L_la),
+        # surface brightness
+        (S_la, S_nu, converter, iconverter),
     ], "spectral_density", {'wav': wav, 'factor': factor})
 
 

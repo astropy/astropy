@@ -16,12 +16,6 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = ["BlackBody"]
 
-# Units
-FNU = u.erg / (u.cm ** 2 * u.s * u.Hz)
-FLAM = u.erg / (u.cm ** 2 * u.s * u.AA)
-SNU = u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr)
-SLAM = u.erg / (u.cm ** 2 * u.s * u.AA * u.sr)
-
 
 class BlackBody(Fittable1DModel):
     """
@@ -31,6 +25,7 @@ class BlackBody(Fittable1DModel):
     ----------
     temperature : :class:`~astropy.units.Quantity`
         Blackbody temperature.
+
     scale : :class:`~astropy.units.Quantity`
         Scale factor
 
@@ -115,7 +110,6 @@ class BlackBody(Fittable1DModel):
         ------
         ValueError
             Invalid temperature.
-            Scale has units.
 
         ZeroDivisionError
             Wavelength is zero (when converting to frequency).
@@ -133,27 +127,32 @@ class BlackBody(Fittable1DModel):
                 "Input contains invalid wavelength/frequency value(s)",
                 AstropyUserWarning,
             )
-        # check if scale has a unit, warn as this is not allowed
-        if hasattr(scale, "unit"):
-            raise ValueError(f"Scale cannot have units")
 
         log_boltz = const.h * freq / (const.k_B * temp)
         boltzm1 = np.expm1(log_boltz)
 
         # Calculate blackbody flux
-        bb_nu = 2.0 * const.h * freq ** 3 / (const.c ** 2 * boltzm1)
-        flux = bb_nu.to(FNU, u.spectral_density(freq))
+        bb_nu = 2.0 * const.h * freq ** 3 / (const.c ** 2 * boltzm1) / u.sr
 
-        # Add per steradian to output flux unit
-        fnu = scale * flux / u.sr
+        print(bb_nu.unit)
+
+        # strip the unit from the scale if it has one
+        if hasattr(scale, "unit"):
+            mult_scale = scale.value
+            bb_unit = scale.unit
+        else:
+            mult_scale = scale
+            bb_unit = u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr)
+
+        y = mult_scale * bb_nu.to(bb_unit, u.spectral_density(freq))
 
         # If the temperature parameter has no unit, we should return a unitless
         # value. This occurs for instance during fitting, since we drop the
         # units temporarily.
         if hasattr(temperature, "unit"):
-            return fnu
+            return y
         else:
-            return fnu.value
+            return y.value
 
     @property
     def input_units(self):
@@ -164,6 +163,13 @@ class BlackBody(Fittable1DModel):
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return OrderedDict([("temperature", u.K)])
+
+#    @property
+#    def return_units(self):
+#        if self.scale.unit is None:
+#            return None
+#        else:
+#            return {'y': self.scale.unit}
 
     @property
     def bolometric_flux(self):
