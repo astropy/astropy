@@ -42,6 +42,10 @@ class galactocentric_frame_defaults(ScienceState):
     def get_solar_params_from_string(arg):
         """Return Galactocentric solar parameters given string names for the parameter sets.
         """
+        # Resolve the meaning of 'latest': The latest parameter set is from v4.0
+        # - update this as newer parameter choices are added
+        if arg == 'latest':
+            arg = 'v4.0'
 
         params = dict()
         references = dict()
@@ -71,7 +75,7 @@ class galactocentric_frame_defaults(ScienceState):
             references['z_sun'] = \
                 'https://ui.adsabs.harvard.edu/#abs/2001ApJ...553..184C'
 
-        elif arg == 'latest':
+        elif arg == 'v4.0':
             params['galcen_distance'] = 8.122 * u.kpc
             references['galcen_distance'] = \
                 'https://ui.adsabs.harvard.edu/abs/2018A%26A...615L..15G'
