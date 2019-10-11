@@ -144,7 +144,9 @@ class TimeInfo(MixinInfo):
         Return a list of arrays which can be lexically sorted to represent
         the order of the parent column.
 
-        :return: list of ndarray
+        Returns
+        -------
+        arrays : list of ndarray
         """
         parent = self._parent
         jd_approx = parent.jd

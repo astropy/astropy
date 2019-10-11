@@ -1549,6 +1549,15 @@ def test_join_mixins_not_sortable():
         table.join(t1, t2, keys='sc')
 
 
+def test_join_non_1d_key_column():
+    c1 = [[1, 2], [3, 4]]
+    c2 = [1, 2]
+    t1 = Table([c1, c2], names=['a', 'b'])
+    t2 = t1.copy()
+    with pytest.raises(ValueError, match="key column 'a' must be 1-d"):
+        table.join(t1, t2, keys='a')
+
+
 def test_get_out_class():
     c = table.Column([1, 2])
     mc = table.MaskedColumn([1, 2])

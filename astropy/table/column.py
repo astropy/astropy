@@ -172,7 +172,9 @@ class ColumnInfo(BaseColumnInfo):
 
         For Column this is just the column itself.
 
-        :return: list of Column
+        Returns
+        -------
+        arrays : list of ndarray
         """
         return [self._parent]
 

@@ -203,7 +203,10 @@ class QuantityInfo(QuantityInfoBase):
 
         For Quantity this is just the quantity itself.
 
-        :return: list of Quantity
+
+        Returns
+        -------
+        arrays : list of ndarray
         """
         return [self._parent]
 
