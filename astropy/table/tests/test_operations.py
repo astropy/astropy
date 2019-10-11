@@ -1505,6 +1505,59 @@ def test_vstack_unicode():
     assert t2['a'].itemsize == 4
 
 
+def test_join_mixins_time_quantity():
+    """
+    Test for table join using non-ndarray key columns.
+    """
+    tm1 = Time([2, 1, 2], format='cxcsec')
+    q1 = [2, 1, 1] * u.m
+    idx1 = [1, 2, 3]
+    tm2 = Time([2, 3], format='cxcsec')
+    q2 = [2, 3] * u.m
+    idx2 = [10, 20]
+    t1 = Table([tm1, q1, idx1], names=['tm', 'q', 'idx'])
+    t2 = Table([tm2, q2, idx2], names=['tm', 'q', 'idx'])
+    # Output:
+    #
+    # <Table length=4>
+    #         tm            q    idx_1 idx_2
+    #                       m
+    #       object       float64 int64 int64
+    # ------------------ ------- ----- -----
+    # 0.9999999999969589     1.0     2    --
+    #   2.00000000000351     1.0     3    --
+    #   2.00000000000351     2.0     1    10
+    #  3.000000000000469     3.0    --    20
+
+    t12 = table.join(t1, t2, join_type='outer', keys=['tm', 'q'])
+    # Key cols are lexically sorted
+    assert np.all(t12['tm'] == Time([1, 2, 2, 3], format='cxcsec'))
+    assert np.all(t12['q'] == [1, 1, 2, 3] * u.m)
+    assert np.all(t12['idx_1'] == np.ma.array([2, 3, 1, 0], mask=[0, 0, 0, 1]))
+    assert np.all(t12['idx_2'] == np.ma.array([0, 0, 10, 20], mask=[1, 1, 0, 0]))
+
+
+def test_join_mixins_not_sortable():
+    """
+    Test for table join using non-ndarray key columns that are not sortable.
+    """
+    sc = SkyCoord([1, 2], [3, 4], unit='deg,deg')
+    t1 = Table([sc, [1, 2]], names=['sc', 'idx1'])
+    t2 = Table([sc, [10, 20]], names=['sc', 'idx2'])
+
+    with pytest.raises(TypeError, match='one or more key columns are not sortable'):
+        table.join(t1, t2, keys='sc')
+
+
+def test_join_non_1d_key_column():
+    c1 = [[1, 2], [3, 4]]
+    c2 = [1, 2]
+    t1 = Table([c1, c2], names=['a', 'b'])
+    t2 = t1.copy()
+    with pytest.raises(ValueError, match="key column 'a' must be 1-d"):
+        table.join(t1, t2, keys='a')
+
+
 def test_get_out_class():
     c = table.Column([1, 2])
     mc = table.MaskedColumn([1, 2])

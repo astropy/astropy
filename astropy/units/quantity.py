@@ -196,6 +196,20 @@ class QuantityInfo(QuantityInfoBase):
 
         return out
 
+    def get_sortable_arrays(self):
+        """
+        Return a list of arrays which can be lexically sorted to represent
+        the order of the parent column.
+
+        For Quantity this is just the quantity itself.
+
+
+        Returns
+        -------
+        arrays : list of ndarray
+        """
+        return [self._parent]
+
 
 class Quantity(np.ndarray):
     """A `~astropy.units.Quantity` represents a number with some associated unit.
