@@ -283,7 +283,7 @@ Defining a New Frame
 ====================
 
 Implementing a new frame class that connects to the ``astropy.coordinates``
-infrastructure can by done by subclassing
+infrastructure can be done by subclassing
 `~astropy.coordinates.BaseCoordinateFrame`. Some guidance and examples are given
 below, but detailed instructions for creating new frames are given in the
 docstring of `~astropy.coordinates.BaseCoordinateFrame`.
@@ -315,11 +315,11 @@ the same as used in the specified ``default_representation`` (in this case,
 ``lon``, ``lat``, and ``distance`` for longitude, latitude, and distance,
 respectively), (2) this frame does not have any additional attributes or
 metadata, (3) this frame does not support transformations to any other
-coordinate frame, and (4) this frame does not support velocity data. Let's
+coordinate frame, and (4) this frame does not support velocity data. Let us
 address each of these points by seeing some other ways of customizing frame
 subclasses.
 
-Customizing frame component names
+Customizing Frame Component Names
 ---------------------------------
 
 First, as mentioned by the point (1) :ref:`above <astropy-coordinates-design>`,
@@ -334,7 +334,7 @@ frame class: ``frame_specific_representation_info``. This attribute must be a
 dictionary, and the keys should be either ``Representation`` or ``Differential``
 classes (see below for a discussion about customizing behavior for velocity
 components, which is done with the ``Differential`` classes). Using our example
-frame implemented above, let's customize it to use the names "R" and "D" instead
+frame implemented above, we can customize it to use the names "R" and "D" instead
 of "lon" and "lat"::
 
     >>> from astropy.coordinates import RepresentationMapping
@@ -385,7 +385,7 @@ For any `~astropy.coordinates.RepresentationMapping`, you can also specify a
 default unit for the component by setting the ``defaultunit`` keyword argument.
 
 
-Defining frame attributes
+Defining Frame Attributes
 -------------------------
 
 Second, as indicated by the point (2) in the :ref:`introduction above
@@ -401,7 +401,7 @@ attributes are defined by creating class attributes that are instances of
 etc.). If attributes are defined using these classes, there is often no need to
 define an ``__init__`` function, as the initializer in
 `~astropy.coordinates.BaseCoordinateFrame` will probably behave in the way you
-want. Let's now modify the above toy frame class implementation to add two frame
+want. Let us now modify the above toy frame class implementation to add two frame
 attributes::
 
     >>> from astropy.coordinates import TimeAttribute, QuantityAttribute
@@ -490,7 +490,7 @@ When it is displayed by the frame it will use the result of
   <Egg Frame (can=<A can of Spam>)>
 
 
-Defining transformations between frames
+Defining Transformations between Frames
 ---------------------------------------
 
 As indicated by the point (3) in the :ref:`introduction above
@@ -576,7 +576,7 @@ transforming velocity components, see
 :ref:`astropy-coordinate-transform-with-velocities`.
 
 
-Supporting velocity data in frames
+Supporting Velocity Data in Frames
 ----------------------------------
 
 As alluded to by point (4) in the :ref:`introduction above
@@ -649,7 +649,7 @@ classes, for example::
         (3., 4.)>
 
 
-Final notes
+Final Notes
 -----------
 
 You can also define arbitrary methods for any added functionality you
