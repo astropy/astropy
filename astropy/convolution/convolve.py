@@ -303,8 +303,8 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
                 array_to_convolve[pad_width[0]:array_shape[0]+pad_width[0]] = array_internal
             elif array_internal.ndim == 2:
                 array_to_convolve[pad_width[0]:array_shape[0]+pad_width[0],
-                             pad_width[1]:array_shape[1]+pad_width[1]] = array_internal
-            elif array_internal.ndim == 3:
+                                  pad_width[1]:array_shape[1]+pad_width[1]] = array_internal
+            else:
                 array_to_convolve[pad_width[0]:array_shape[0]+pad_width[0],
                              pad_width[1]:array_shape[1]+pad_width[1],
                              pad_width[2]:array_shape[2]+pad_width[2]] = array_internal
@@ -316,9 +316,9 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
             if array_internal.ndim == 1:
                 np_pad_width = (pad_width[0],)
             elif array_internal.ndim == 2:
-                np_pad_width = ( (pad_width[0],), (pad_width[1],) )
-            elif array_internal.ndim == 3:
-                np_pad_width = ( (pad_width[0],), (pad_width[1],), (pad_width[2],) )
+                np_pad_width = ((pad_width[0],), (pad_width[1],))
+            else:
+                np_pad_width = ((pad_width[0],), (pad_width[1],), (pad_width[2],))
 
             array_to_convolve = np.pad(array_internal, pad_width=np_pad_width,
                                   mode=np_pad_mode)
@@ -338,9 +338,8 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     if normalize_kernel:
         if not nan_interpolate:
             result /= kernel_sum
-    else:
-        if nan_interpolate:
-            result *= kernel_sum
+    elif nan_interpolate:
+        result *= kernel_sum
 
     if nan_interpolate and not preserve_nan and np.isnan(result.sum()):
         warnings.warn("nan_treatment='interpolate', however, NaN values detected "
@@ -357,10 +356,10 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
             new_result = Kernel1D(array=result)
         elif isinstance(passed_array, Kernel2D):
             new_result = Kernel2D(array=result)
+        else:
+            raise TypeError("Only 1D and 2D Kernels are supported.")
         new_result._is_bool = False
         new_result._separable = passed_array._separable
-        if isinstance(passed_kernel, Kernel):
-            new_result._separable = new_result._separable and passed_kernel._separable
         return new_result
     elif array_dtype.kind == 'f':
         # Try to preserve the input type if it's a floating point type
@@ -378,8 +377,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
                  nan_treatment='interpolate', normalize_kernel=True,
                  normalization_zero_tol=1e-8,
                  preserve_nan=False, mask=None, crop=True, return_fft=False,
-                 fft_pad=None, psf_pad=None, quiet=False,
-                 min_wt=0.0, allow_huge=False,
+                 fft_pad=None, psf_pad=None, min_wt=0.0, allow_huge=False,
                  fftn=np.fft.fftn, ifftn=np.fft.ifftn,
                  complex_dtype=complex):
     """
@@ -670,7 +668,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
             # add the shape lists (max of a list of length 4) (smaller)
             # also makes the shapes square
             fsize = 2 ** np.ceil(np.log2(np.max(arrayshape + kernshape)))
-        newshape = np.array([fsize for ii in range(array.ndim)], dtype=int)
+        newshape = np.array([fsize for _ in range(array.ndim)], dtype=int)
     else:
         if psf_pad:
             # just add the biggest dimensions
