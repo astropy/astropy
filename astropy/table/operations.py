@@ -697,11 +697,7 @@ def common_dtype(cols):
         raise tme
 
 
-def _get_join_sort_idxs(out_descrs, keys, len_left, len_right, left, right):
-
-    # Remake out_descrs as a dict keyed by the name (descr[0])
-    descrs = {descr[0]: descr for descr in out_descrs}
-
+def _get_join_sort_idxs(keys, left, right):
     # Go through each of the key columns in order and make columns for
     # a new structured array that represents the lexical ordering of those
     # key columns. This structured array is then argsort'ed. The trick here
@@ -715,23 +711,24 @@ def _get_join_sort_idxs(out_descrs, keys, len_left, len_right, left, right):
     sort_right = {}  # sortable ndarray from right table
 
     for key in keys:
-        # TODO: shape here seems out of place. Can a key column have a non-trivial shape?
-        name, _, shape = descrs[key]
-
         # get_sortable_arrays() returns a list of ndarrays that can be lexically
         # sorted to represent the order of the column. In most cases this is just
         # a single element of the column itself.
-        left_sort_cols = left[name].info.get_sortable_arrays()
-        right_sort_cols = right[name].info.get_sortable_arrays()
+        left_sort_cols = left[key].info.get_sortable_arrays()
+        right_sort_cols = right[key].info.get_sortable_arrays()
 
         if len(left_sort_cols) != len(right_sort_cols):
             # Should never happen because cols are screened beforehand for compatibility
-            raise ValueError('unexpected mismatch in sort cols lengths')
+            raise RuntimeError('mismatch in sort cols lengths')
 
         for left_sort_col, right_sort_col in zip(left_sort_cols, right_sort_cols):
-            # Check for consistency of shapes. Should never happen.
-            if left_sort_col.dtype.shape != right_sort_col.dtype.shape:
-                raise ValueError('mismatch in shape of left vs. right sort array')
+            # Check for consistency of shapes. Mismatch should never happen.
+            shape = left_sort_col.shape[1:]
+            if shape != right_sort_col.shape[1:]:
+                raise RuntimeError('mismatch in shape of left vs. right sort array')
+
+            if shape != ():
+                raise ValueError(f'sort key column {key!r} must be 1-d')
 
             sort_key = str(ii)
             sort_keys.append(sort_key)
@@ -740,11 +737,12 @@ def _get_join_sort_idxs(out_descrs, keys, len_left, len_right, left, right):
 
             # Build up dtypes for the structured array that gets sorted.
             dtype_str = common_dtype([left_sort_col, right_sort_col])
-            sort_keys_dtypes.append((sort_key, dtype_str, left_sort_col.dtype.shape))
+            sort_keys_dtypes.append((sort_key, dtype_str))
             ii += 1
 
     # Make the empty sortable table and fill it
-    sortable_table = np.empty(len_left + len_right, dtype=sort_keys_dtypes)
+    len_left = len(left)
+    sortable_table = np.empty(len_left + len(right), dtype=sort_keys_dtypes)
     for key in sort_keys:
         sortable_table[key][:len_left] = sort_left[key]
         sortable_table[key][len_left:] = sort_right[key]
@@ -834,7 +832,7 @@ def _join(left, right, keys=None, join_type='inner',
     out_descrs = get_descrs([left, right], col_name_map)
 
     try:
-        idxs, idx_sort = _get_join_sort_idxs(out_descrs, keys, len_left, len_right, left, right)
+        idxs, idx_sort = _get_join_sort_idxs(keys, left, right)
     except NotImplementedError:
         raise TypeError('one or more key columns are not sortable')
 

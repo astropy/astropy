@@ -692,7 +692,9 @@ class BaseColumnInfo(DataInfo):
 
         The base method raises NotImplementedError and must be overridden.
 
-        :return: list of Column
+        Returns
+        -------
+        arrays : list of ndarray
         """
         raise NotImplementedError(f'column {self.name} is not sortable')
 
