@@ -685,6 +685,19 @@ class BaseColumnInfo(DataInfo):
 
         return out
 
+    def get_sortable_arrays(self):
+        """
+        Return a list of arrays which can be lexically sorted to represent
+        the order of the parent column.
+
+        The base method raises NotImplementedError and must be overridden.
+
+        Returns
+        -------
+        arrays : list of ndarray
+        """
+        raise NotImplementedError(f'column {self.name} is not sortable')
+
 
 class MixinInfo(BaseColumnInfo):
 

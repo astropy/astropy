@@ -165,6 +165,19 @@ class ColumnInfo(BaseColumnInfo):
 
         return self._parent_cls(length=length, **attrs)
 
+    def get_sortable_arrays(self):
+        """
+        Return a list of arrays which can be lexically sorted to represent
+        the order of the parent column.
+
+        For Column this is just the column itself.
+
+        Returns
+        -------
+        arrays : list of ndarray
+        """
+        return [self._parent]
+
 
 class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
