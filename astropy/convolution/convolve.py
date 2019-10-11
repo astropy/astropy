@@ -12,7 +12,6 @@ from numpy.ctypeslib import ndpointer, load_library
 from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.console import human_file_size
-from astropy.utils.decorators import deprecated_renamed_argument
 from astropy import units as u
 from astropy.nddata import support_nddata
 from astropy.modeling.core import CompoundModel
@@ -374,7 +373,6 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         return result
 
 
-@deprecated_renamed_argument('interpolate_nan', 'nan_treatment', 'v2.0.0')
 @support_nddata(data='array')
 def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
                  nan_treatment='interpolate', normalize_kernel=True,

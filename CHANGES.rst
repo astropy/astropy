@@ -214,6 +214,9 @@ astropy.constants
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
+- Removed the deprecated keyword argument ``interpolate_nan`` from
+  ``convolve_fft``. [#9356]
+
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
