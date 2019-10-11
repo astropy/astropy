@@ -173,7 +173,8 @@ These three conventions are implemented in
 Spectral Flux / Luminosity Density Units
 ----------------------------------------
 
-There is also support for spectral flux and luminosity density units. Their use
+There is also support for spectral flux and luminosity density units
+and their equivalent surface brightness units. Their use
 is more complex, since it is necessary to also supply the location in the
 spectrum for which the conversions will be done, and the units of those spectral
 locations.  The function that handles these unit conversions is

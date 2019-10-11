@@ -4,7 +4,6 @@ Models that have physical origins.
 """
 
 import warnings
-from collections import OrderedDict
 
 import numpy as np
 
@@ -23,10 +22,10 @@ class BlackBody(Fittable1DModel):
 
     Parameters
     ----------
-    temperature : :class:`~numpy.ndarray` or :class:`~astropy.units.Quantity`
+    temperature : :class:`~astropy.units.Quantity`
         Blackbody temperature.
 
-    scale : :class:`~numpy.ndarray` or :class:`~astropy.units.Quantity`
+    scale : float or :class:`~astropy.units.Quantity`
         Scale factor
 
     Notes
@@ -61,11 +60,12 @@ class BlackBody(Fittable1DModel):
         with quantity_support():
             plt.figure()
             plt.semilogx(wav, flux)
+            plt.axvline(bb.nu_max.to(u.AA, equivalencies=u.spectral()).value, ls='--')
             plt.show()
     """
 
     # We parametrize this model with a temperature and a scale.
-    temperature = Parameter(default=5000.0, min=0)
+    temperature = Parameter(default=5000.0, min=0, unit=u.K)
     scale = Parameter(default=1.0, min=0)
 
     # We allow values without units to be passed when evaluating the model, and
@@ -121,7 +121,26 @@ class BlackBody(Fittable1DModel):
         # Convert to units for calculations, also force double precision
         with u.add_enabled_equivalencies(u.spectral() + u.temperature()):
             freq = u.Quantity(x, u.Hz, dtype=np.float64)
-            temp = u.Quantity(in_temp, u.K, dtype=np.float64)
+            temp = u.Quantity(in_temp, u.K)
+
+        # check the units of scale and setup the output units
+        bb_unit = u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr)  # default unit
+        # use the scale that was used at initialization for determining the units to return
+        # to support returning the right units when fitting where units are stripped
+        if hasattr(self.scale, "unit") and self.scale.unit is not None:
+            # check that the units on scale are covertable to surface brightness units
+            if not self.scale.unit.is_equivalent(bb_unit, u.spectral_density(x)):
+                raise ValueError(
+                    f"scale units not surface brightness: {self.scale.unit}"
+                )
+            # use the scale passed to get the value for scaling
+            if hasattr(scale, "unit"):
+                mult_scale = scale.value
+            else:
+                mult_scale = scale
+            bb_unit = self.scale.unit
+        else:
+            mult_scale = scale
 
         # Check if input values are physically possible
         if np.any(temp < 0):
@@ -137,14 +156,6 @@ class BlackBody(Fittable1DModel):
 
         # Calculate blackbody flux
         bb_nu = 2.0 * const.h * freq ** 3 / (const.c ** 2 * boltzm1) / u.sr
-
-        # strip the unit from the scale if it has one
-        if hasattr(scale, "unit"):
-            mult_scale = scale.value
-            bb_unit = scale.unit
-        else:
-            mult_scale = scale
-            bb_unit = u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr)
 
         y = mult_scale * bb_nu.to(bb_unit, u.spectral_density(freq))
 
@@ -164,20 +175,15 @@ class BlackBody(Fittable1DModel):
         return {"x": u.Hz}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([("temperature", u.K)])
-
-    # does not work as need to pass freq/wave for unit equivalencies
-    #    @property
-    #    def return_units(self):
-    #        if self.scale.unit is None:
-    #            return None
-    #        else:
-    #            return {'y': self.scale.unit}
+        return {"temperature": u.K}
 
     @property
     def bolometric_flux(self):
         """Bolometric flux."""
-        return const.sigma_sb * self.temperature ** 4 / np.pi
+        # bolometric flux in the native units of the planck function
+        native_bolflux = self.scale.value * const.sigma_sb * self.temperature ** 4 / np.pi
+        # return in more "astro" units
+        return native_bolflux.to(u.erg / (u.cm ** 2 * u.s))
 
     @property
     def lambda_max(self):
