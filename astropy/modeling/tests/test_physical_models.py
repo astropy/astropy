@@ -44,10 +44,10 @@ def test_sefanboltzman_law():
     assert_quantity_allclose(b.bolometric_flux, 133.02471751812573 * u.W / (u.m * u.m))
 
 
-def test_return_units_nounits():
-    # return has no units when temperature has no units
-    b = BlackBody(1000.0, scale=1.0)
-    assert not isinstance(b(1.0 * u.micron), u.Quantity)
+def test_return_units():
+    # return of evaluate has no units when temperature has no units
+    b = BlackBody(1000.0 * u.K, scale=1.0)
+    assert not isinstance(b.evaluate(1.0 * u.micron, 1000.0, 1.0), u.Quantity)
 
     # return has "standard" units when scale has no units
     b = BlackBody(1000.0 * u.K, scale=1.0)
@@ -65,15 +65,15 @@ def test_fit():
 
     fitter = LevMarLSQFitter()
 
-    b = BlackBody(3000 * u.K)
+    b = BlackBody(3000 * u.K, scale=5e-17 * u.Jy / u.sr)
 
     wav = np.array([0.5, 5, 10]) * u.micron
     fnu = np.array([1, 10, 5]) * u.Jy / u.sr
 
     b_fit = fitter(b, wav, fnu, maxiter=1000)
 
-    assert_quantity_allclose(b_fit.temperature, 2840.74382317 * u.K)
-    assert_quantity_allclose(b_fit.scale, 5803783.33328)
+    assert_quantity_allclose(b_fit.temperature, 2840.7438355865065 * u.K)
+    assert_quantity_allclose(b_fit.scale, 5.803783292762381e-17 * u.Jy / u.sr)
 
 
 def test_blackbody_overflow():
@@ -119,6 +119,12 @@ def test_blackbody_exceptions_and_warnings():
         bb(-1.0 * u.AA)
     assert len(w) == 1
     assert "invalid" in w[0].message.args[0]
+
+    # Test that a non surface brightness converatable scale unit
+    with pytest.raises(ValueError) as exc:
+        bb = BlackBody(5000 * u.K, scale=1.0 * u.Jy)
+        bb(1.0 * u.micron)
+    assert exc.value.args[0] == "scale units not surface brightness: Jy"
 
 
 def test_blackbody_array_temperature():

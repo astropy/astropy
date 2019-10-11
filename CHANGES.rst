@@ -90,10 +90,7 @@ astropy.modeling
   number of axes. [#9369]
 
 - Add many of the numpy ufunc functions as models. [#9401]
-- Add BlackBody model.  [#9282]
-  Deprecate BlackBody1D model and blackbody_nu and blackbody_lambda functions.
-- Add ``BlackBody`` model.  [#9282]
-  Deprecate ``BlackBody1D`` model and ``blackbody_nu`` and ``blackbody_lambda`` functions.
+
 - Add ``BlackBody`` model.
   Deprecate ``BlackBody1D`` model and ``blackbody_nu`` and ``blackbody_lambda``
   functions. [#9282]
@@ -176,6 +173,8 @@ astropy.units
   ensure that all top-level numpy functions interact properly with
   ``Quantity``, preserving units also in operations like ``np.concatenate``.
   [#8808]
+
+- Add equivalencies for surface brightness units to spectral_density. [#9282]
 
 astropy.utils
 ^^^^^^^^^^^^^

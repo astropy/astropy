@@ -31,8 +31,6 @@ then the result is in those units (e.g., ergs/(cm^2 A s sr) or MJy/sr).
 Setting the ``scale`` factor with units of ergs/(cm^2 A s sr) will give the
 Planck function as :math:`B_\lambda`.
 The temperature can be passed as a Quantity with any supported temperature unit.
-If temperature
-is passed without a unit, it is assumed to be in Kelvin.
 
 An example plot for a blackbody with a temperature of 10000 K and a scale of 1 is
 shown below.  A scale of 1 shows the Planck function with no scaling in the
@@ -66,19 +64,21 @@ default units returned by :class:`~astropy.modeling.physical_models.BlackBody`.
     plt.tight_layout()
     plt.show()
 
-The ``bolometric_flux`` member function gives the bolometric flux using
+The :meth:`~astropy.modeling.physical_models.BlackBody.bolometric_flux` member
+function gives the bolometric flux using
 :math:`\sigma T^4/\pi` where :math:`\sigma` is the Stefan-Boltzmann constant.
 
-The ``lambda_max`` and ``nu_max`` member functions give the wavelength and
-frequency of the maximum for :math:`B_\lambda` and :math:`B_\nu`,
-respectively, calculated using `Wein's Law
+The :meth:`~astropy.modeling.physical_models.BlackBody.lambda_max` and
+:meth:`~astropy.modeling.physical_models.BlackBody.nu_max` member functions
+give the wavelength and frequency of the maximum for :math:`B_\lambda`
+and :math:`B_\nu`, respectively, calculated using `Wein's Law
 <https://en.wikipedia.org/wiki/Wien%27s_displacement_law>`_.
 
 .. note::
 
     Prior to v4.0, the ``BlackBody1D`` and the functions ``blackbody_nu`` and ``blackbody_lambda``
     were provided.  ``BlackBody1D`` was a more limited blackbody model that was
-    specific to integrated fluxes from sources.  See :doc:`blackbody_deprecated`
-    and `astropy issue #9066 <https://github.com/astropy/astropy/issues/9066>`_ for details.
-    The capabilities of all three
+    specific to integrated fluxes from sources.  The capabilities of all three
     can be obtained with :class:`~astropy.modeling.physical_models.BlackBody`.
+    See :doc:`blackbody_deprecated`
+    and `astropy issue #9066 <https://github.com/astropy/astropy/issues/9066>`_ for details.
