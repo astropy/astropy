@@ -26,7 +26,7 @@ except Exception:
     raise ImportError("Convolution C extension is missing. Try re-building astropy.")
 
 # The GIL is automatically released by default when calling functions imported
-# from libaries loaded by ctypes.cdll.LoadLibrary(<path>)
+# from libraries loaded by ctypes.cdll.LoadLibrary(<path>)
 
 # Declare prototypes
 # Boundary None
@@ -453,25 +453,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         `None`, no masking will be performed unless ``array`` is a masked array.
         If ``mask`` is not `None` *and* ``array`` is a masked array, a pixel is
         masked of it is masked in either ``mask`` *or* ``array.mask``.
-
-
-    Other Parameters
-    ----------------
-    min_wt : float, optional
-        If ignoring ``NaN`` / zeros, force all grid points with a weight less than
-        this value to ``NaN`` (the weight of a grid point with *no* ignored
-        neighbors is 1.0).
-        If ``min_wt`` is zero, then all zero-weight points will be set to zero
-        instead of ``NaN`` (which they would be otherwise, because 1/0 = nan).
-        See the examples below
-    fft_pad : bool, optional
-        Default on.  Zero-pad image to the nearest 2^n.  With
-        ``boundary='wrap'``, this will be disabled.
-    psf_pad : bool, optional
-        Zero-pad image to be at least the sum of the image sizes to avoid
-        edge-wrapping when smoothing.  This is enabled by default with
-        ``boundary='fill'``, but it can be overridden with a boolean option.
-        ``boundary='wrap'`` and ``psf_pad=True`` are not compatible.
     crop : bool, optional
         Default on.  Return an image of the size of the larger of the input
         image and the kernel.
@@ -482,18 +463,32 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     return_fft : bool, optional
         Return the ``fft(image)*fft(kernel)`` instead of the convolution (which is
         ``ifft(fft(image)*fft(kernel))``).  Useful for making PSDs.
-    fftn, ifftn : functions, optional
-        The fft and inverse fft functions.  Can be overridden to use your own
-        ffts, e.g. an fftw3 wrapper or scipy's fftn,
-        ``fft=scipy.fftpack.fftn``
+    fft_pad : bool, optional
+        Default on.  Zero-pad image to the nearest 2^n.  With
+        ``boundary='wrap'``, this will be disabled.
+    psf_pad : bool, optional
+        Zero-pad image to be at least the sum of the image sizes to avoid
+        edge-wrapping when smoothing.  This is enabled by default with
+        ``boundary='fill'``, but it can be overridden with a boolean option.
+        ``boundary='wrap'`` and ``psf_pad=True`` are not compatible.
+    min_wt : float, optional
+        If ignoring ``NaN`` / zeros, force all grid points with a weight less than
+        this value to ``NaN`` (the weight of a grid point with *no* ignored
+        neighbors is 1.0).
+        If ``min_wt`` is zero, then all zero-weight points will be set to zero
+        instead of ``NaN`` (which they would be otherwise, because 1/0 = nan).
+        See the examples below.
+    allow_huge : bool, optional
+        Allow huge arrays in the FFT?  If False, will raise an exception if the
+        array or kernel size is >1 GB.
+    fftn : functions, optional
+        The fft function.  Can be overridden to use your own ffts,
+        e.g. an fftw3 wrapper or scipy's fftn, ``fft=scipy.fftpack.fftn``.
+    ifftn : functions, optional
+        The inverse fft function. Can be overridden the same way ``fttn``.
     complex_dtype : numpy.complex, optional
         Which complex dtype to use.  `numpy` has a range of options, from 64 to
         256.
-    quiet : bool, optional
-        Silence warning message about NaN interpolation
-    allow_huge : bool, optional
-        Allow huge arrays in the FFT?  If False, will raise an exception if the
-        array or kernel size is >1 GB
 
     Raises
     ------
