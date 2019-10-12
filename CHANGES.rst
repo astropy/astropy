@@ -217,6 +217,9 @@ astropy.convolution
 - Removed the deprecated keyword argument ``interpolate_nan`` from
   ``convolve_fft``. [#9356]
 
+- Removed the deprecated keyword argument ``stddev`` from
+  ``Gaussian2DKernel``. [#9356]
+
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
