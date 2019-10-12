@@ -35,7 +35,6 @@ import numpy as np
 
 from .bst import MinValue, MaxValue
 from .sorted_array import SortedArray
-from astropy.time import Time
 
 
 class QueryError(ValueError):
@@ -78,7 +77,9 @@ class Index:
         return SlicedIndex(self, slice(0, 0, None), original=True)
 
     def __init__(self, columns, engine=None, unique=False):
+        # Local imports to avoid import problems.
         from .table import Table, Column
+        from astropy.time import Time
 
         if engine is not None and not isinstance(engine, type):
             # create from data
