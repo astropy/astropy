@@ -86,6 +86,11 @@ class TimeFormatMeta(type):
         # it is not a user-accessible format and is only used for initialization into
         # a different format.
         if 'name' in members and cls.name != 'astropy_time':
+            # FIXME: check here that we're not introducing a collision with
+            # an existing method or attribute; problem is it could be either
+            # astropy.time.Time or astropy.time.TimeDelta, and at the point
+            # where this is run neither of those classes have necessarily been
+            # constructed yet.
             mcls._registry[cls.name] = cls
 
         if 'subfmts' in members:

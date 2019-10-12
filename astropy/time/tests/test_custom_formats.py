@@ -91,3 +91,40 @@ def test_custom_time_format_forgot_property(custom_format_name):
     t = Time.now()
     with pytest.raises(AttributeError):
         getattr(t, custom_format_name)
+
+    t.format = custom_format_name
+    with pytest.raises(AttributeError):
+        t.value
+
+    with pytest.raises(AttributeError):
+        Time(7, 9, format=custom_format_name).value
+
+
+def test_custom_time_format_problematic_name():
+    assert "sort" not in Time.FORMATS, "problematic name in default FORMATS!"
+    assert hasattr(Time, "sort")
+
+    try:
+
+        class Custom(TimeFormat):
+            name = "sort"
+
+            def set_jds(self, val, val2):
+                self.jd1, self.jd2 = val, val2
+
+            @property
+            def value(self):
+                return self.jd1, self.jd2
+
+        t = Time.now()
+        assert t.sort() == t, "bogus time format clobbers everyone's Time objects"
+
+        t.format = "sort"
+        t.value
+
+        t2 = Time(7, 9, format="sort").value
+        if not isinstance(t2, tuple):
+            pytest.xfail("No good way to detect that `sort` is invalid")
+        assert t2 == (7, 9)
+    finally:
+        Time.FORMATS.pop("sort", None)
