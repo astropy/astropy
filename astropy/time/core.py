@@ -509,6 +509,8 @@ class Time(ShapedLikeNDArray):
         else:
             formats = [(format, self.FORMATS[format])]
 
+        assert formats
+        problems = {}
         for name, cls in formats:
             try:
                 return cls(val, val2, scale, precision, in_subfmt, out_subfmt)
@@ -518,14 +520,18 @@ class Time(ShapedLikeNDArray):
                 # If ``format`` specified then there is only one possibility, so raise
                 # immediately and include the upstream exception message to make it
                 # easier for user to see what is wrong.
-                if format is not None:
-                    raise ValueError(f'Input values did not match the format class {format}:' +
-                                     os.linesep +
-                                     f'{err.__class__.__name__}: {err}')
+                if len(formats)==1:
+                    raise ValueError(
+                        f'Input values did not match the format class {format}:'
+                        + os.linesep
+                        + f'{err.__class__.__name__}: {err}'
+                    ) from err
+                else:
+                    problems[name] = err
         else:
-            raise ValueError('Input values did not match any of the formats where '
-                             'the format keyword is optional {}'
-                             .format([name for name, cls in formats]))
+            raise ValueError(f'Input values did not match any of the formats '
+                             f'where the format keyword is optional: '
+                             f'{problems}') from problems[formats[0][0]]
 
     @classmethod
     def now(cls):
