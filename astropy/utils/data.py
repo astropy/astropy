@@ -1080,7 +1080,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
             "No sources listed! Please include primary URL if you want it "
             "to be included as a valid source.")
 
-    missing_cache = False
+    missing_cache = ""
 
     url_key = remote_url
 
@@ -1088,7 +1088,10 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
         with _cache(pkgname) as (dldir, url2hash):
             if dldir is None:
                 cache = False
-                missing_cache = True  # emit a warning later
+                missing_cache = (
+                    "Cache directory cannot be read or created, "
+                    "providing data in temporary file instead."
+                )
             elif cache != "update" and url_key in url2hash:
                 return url2hash[url_key]
 
@@ -1127,21 +1130,24 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
             from errors[sources[0]]
 
     if cache:
-        local_path = import_to_cache(url_key, f_name,
-                                     hexdigest=hexdigest,
-                                     remove_original=True,
-                                     pkgname=pkgname)
-    else:
-        local_path = f_name
-        if missing_cache:
-            msg = ('File downloaded to temporary location due to problem '
-                   'with cache directory and will not be cached.')
-            warn(CacheMissingWarning(msg, local_path))
-        if conf.delete_temporary_downloads_at_exit:
-            global _tempfilestodel
-            _tempfilestodel.append(local_path)
+        try:
+            return import_to_cache(url_key, f_name,
+                                   hexdigest=hexdigest,
+                                   remove_original=True,
+                                   pkgname=pkgname)
+        except PermissionError:
+            # Cache is readonly, we can't update it
+            missing_cache = (
+                "Cache directory appears to be read-only, unable to import "
+                "downloaded file, providing data in temporary file instead."
+            )
 
-    return local_path
+    if missing_cache:
+        warn(CacheMissingWarning(missing_cache, f_name))
+    if conf.delete_temporary_downloads_at_exit:
+        global _tempfilestodel
+        _tempfilestodel.append(f_name)
+    return f_name
 
 
 def is_url_in_cache(url_key, pkgname='astropy'):
@@ -1437,9 +1443,10 @@ def _get_download_cache_locs(pkgname='astropy'):
 # be open for reading if someone has it open for writing. So we need to lock
 # access to the shelve even for reading.
 @contextlib.contextmanager
-def _cache_lock(pkgname):
+def _cache_lock(need_write=False):
     lockdir = os.path.join(_get_download_cache_locs(pkgname)[0], 'lock')
     pidfn = os.path.join(lockdir, 'pid')
+    assume_cache_readonly = False
     try:
         msg = ("Config file requests {} tries"
                .format(conf.download_cache_lock_attempts))
@@ -1459,6 +1466,12 @@ def _cache_lock(pkgname):
                     "directory or file \"{}\"."
                     .format(waited, lockdir)
                 )
+            except PermissionError:
+                assume_cache_readonly = True
+                if need_write:
+                    raise
+                else:
+                    break
             else:
                 # Got the lock!
                 # write the pid of this process for informational purposes
@@ -1483,7 +1496,7 @@ def _cache_lock(pkgname):
         yield
 
     finally:
-        if os.path.exists(lockdir):
+        if not assume_cache_readonly and os.path.exists(lockdir):
             if os.path.isdir(lockdir):
                 # if the pid file is present, be sure to remove it
                 if os.path.exists(pidfn):
@@ -1498,6 +1511,7 @@ def _cache_lock(pkgname):
         else:
             # Just in case we were called from _clear_download_cache
             # or something went wrong before creating the directory
+            # or the cache was readonly; no need to clean it up then.
             pass
 
 
@@ -1555,7 +1569,8 @@ def _cache(pkgname, write=False):
             yield None, nothing
             return
     if write:
-        with _cache_lock(pkgname), shelve.open(urlmapfn, flag="c") as url2hash:
+        with _cache_lock(pkgname, need_write=True), \
+                shelve.open(urlmapfn, flag="c") as url2hash:
             yield dldir, url2hash
     else:
         try:
@@ -1633,29 +1648,19 @@ def check_download_cache(check_hashes=False, pkgname='astropy'):
         `clear_download_cache` to resolve, or may indicate some kind of
         misconfiguration.
     """
-    # We're only reading but without the lock goodness knows what
-    # inconsistencies might be detected
-    with _cache(pkgname, write=True) as (dldir, url2hash):
+    with _cache(pkgname) as (dldir, url2hash):
+        if dldir is None:
+            raise OSError("Cache directory cannot be created or accessed")
         leftover_files = set(os.path.join(dldir, k)
                              for k in os.listdir(dldir))
-        try:
-            leftover_files.remove(os.path.join(dldir, "urlmap"))
-        except KeyError:
-            pass
-        try:
-            leftover_files.remove(os.path.join(dldir, "lock"))
-        except KeyError:
-            raise RuntimeError("Lock file missing!?")
+        leftover_files.discard(os.path.join(dldir, "urlmap"))
+        leftover_files.discard(os.path.join(dldir, "lock"))
         for u, h in url2hash.items():
             if not os.path.exists(h):
                 msg = "URL '{}' points to nonexistent file '{}'".format(
                         u, h)
                 raise CacheDamaged(msg, bad_url=u)
-            try:
-                leftover_files.remove(h)
-            except KeyError:
-                # Huh. Two different URLs retrieved identical files.
-                pass
+            leftover_files.discard(h)
             d, hexdigest = os.path.split(h)
             if dldir != d:
                 msg = ("Expected downloaded files to be in '{}' but "
