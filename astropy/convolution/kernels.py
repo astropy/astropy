@@ -8,7 +8,6 @@ from .core import Kernel1D, Kernel2D, Kernel
 from .utils import has_even_axis, raise_even_kernel_exception
 from astropy.modeling import models
 from astropy.modeling.core import Fittable1DModel, Fittable2DModel
-from astropy.utils.decorators import deprecated_renamed_argument
 
 __all__ = ['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
            'Box1DKernel', 'Box2DKernel', 'Tophat2DKernel',
@@ -151,7 +150,6 @@ class Gaussian2DKernel(Kernel2D):
     _separable = True
     _is_bool = False
 
-    @deprecated_renamed_argument('stddev', 'x_stddev', '3.0')
     def __init__(self, x_stddev, y_stddev=None, theta=0.0, **kwargs):
         if y_stddev is None:
             y_stddev = x_stddev
