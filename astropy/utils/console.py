@@ -834,16 +834,14 @@ class ProgressBar:
                         bar.update(i)
             else:
                 ctx = multiprocessing.get_context(multiprocessing_start_method)
-                p = ctx.Pool(processes=(int(multiprocess)
-                                        if multiprocess is not True
-                                        else None))
-                for i, result in enumerate(
-                    p.imap_unordered(function, items, chunksize=chunksize)
-                ):
-                    bar.update(i)
-                    results.append(result)
-                p.close()
-                p.join()
+                with ctx.Pool(processes=(int(multiprocess)
+                                         if multiprocess is not True
+                                         else None)) as p:
+                    for i, result in enumerate(
+                        p.imap_unordered(function, items, chunksize=chunksize)
+                    ):
+                        bar.update(i)
+                        results.append(result)
 
         return results
 

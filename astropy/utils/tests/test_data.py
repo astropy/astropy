@@ -4,13 +4,16 @@
 import io
 import os
 import sys
+import stat
 import base64
 import shutil
 import hashlib
 import pathlib
+import platform
 import tempfile
 import warnings
 import itertools
+import contextlib
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -80,11 +83,12 @@ def valid_urls(tmpdir):
     def _valid_urls(tmpdir):
         for i in itertools.count():
             c = os.urandom(16).hex()
-            fn = os.path.join(tmpdir, "valid_"+str(i))
+            fn = os.path.join(tmpdir, "valid_" + str(i))
             with open(fn, "w") as f:
                 f.write(c)
             u = url_to(fn)
             yield u, c
+
     return _valid_urls(tmpdir)
 
 
@@ -92,9 +96,10 @@ def valid_urls(tmpdir):
 def invalid_urls(tmpdir):
     def _invalid_urls(tmpdir):
         for i in itertools.count():
-            fn = os.path.join(tmpdir, "invalid_"+str(i))
-            assert not os.path.exists(fn)
-            yield url_to(fn)
+            fn = os.path.join(tmpdir, "invalid_" + str(i))
+            if not os.path.exists(fn):
+                yield url_to(fn)
+
     return _invalid_urls(tmpdir)
 
 
@@ -103,6 +108,73 @@ def temp_cache(tmpdir):
     with paths.set_temp_cache(tmpdir):
         yield None
         check_download_cache(check_hashes=True)
+
+
+def change_tree_permission(d, writable=False):
+    if writable:
+        dirperm = stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR
+        fileperm = stat.S_IRUSR | stat.S_IWUSR
+    else:
+        dirperm = stat.S_IRUSR | stat.S_IXUSR
+        fileperm = stat.S_IRUSR
+    for dirpath, dirnames, filenames in os.walk(d):
+        os.chmod(dirpath, dirperm)
+        for f in filenames:
+            os.chmod(os.path.join(dirpath, f), fileperm)
+
+
+def is_dir_readonly(d):
+    try:
+        with NamedTemporaryFile(dir=d):
+            return False
+    except PermissionError:
+        return True
+
+
+@contextlib.contextmanager
+def readonly_dir(d):
+    try:
+        change_tree_permission(d, writable=False)
+        yield
+    finally:
+        change_tree_permission(d, writable=True)
+
+
+@pytest.fixture
+def readonly_cache(tmpdir, valid_urls):
+    with TemporaryDirectory(dir=tmpdir) as d:
+        # other fixtures use the same tmpdir so we need a subdirectory
+        # to make into the cache
+        d = pathlib.Path(d)
+        with paths.set_temp_cache(d):
+            us = {next(valid_urls)[0] for i in range(5)}
+            urls = {u: download_file(u, cache=True) for u in us}
+            files = set(d.iterdir())
+            with readonly_dir(d):
+                if not is_dir_readonly(d):
+                    pytest.skip("Unable to make directory readonly")
+                yield urls
+            assert set(d.iterdir()) == files
+            check_download_cache(check_hashes=True)
+
+
+@pytest.fixture
+def fake_readonly_cache(tmpdir, valid_urls, monkeypatch):
+    def no_mkdir(p):
+        raise PermissionError("os.mkdir monkeypatched out")
+
+    with TemporaryDirectory(dir=tmpdir) as d:
+        # other fixtures use the same tmpdir so we need a subdirectory
+        # to make into the cache
+        d = pathlib.Path(d)
+        with paths.set_temp_cache(d):
+            us = {next(valid_urls)[0] for i in range(5)}
+            urls = {u: download_file(u, cache=True) for u in us}
+            files = set(d.iterdir())
+            monkeypatch.setattr(os, "mkdir", no_mkdir)
+            yield urls
+            assert set(d.iterdir()) == files
+            check_download_cache(check_hashes=True)
 
 
 @pytest.mark.remote_data(source="astropy")
@@ -129,9 +201,7 @@ def a_file(tmp_path):
     yield fn, contents
 
 
-def test_download_with_sources_and_bogus_original(valid_urls,
-                                                  invalid_urls,
-                                                  temp_cache):
+def test_download_with_sources_and_bogus_original(valid_urls, invalid_urls, temp_cache):
     u, c = next(valid_urls)
     urls = [(u, c, None)]
     sources = {}
@@ -144,8 +214,10 @@ def test_download_with_sources_and_bogus_original(valid_urls,
         u, c = next(valid_urls)
         sources[um].append(u)
         urls.append((um, c, c_bad))
-    rs = [download_file(u, cache=True, sources=sources.get(u, None))
-          for (u, c, c_bad) in urls]
+    rs = [
+        download_file(u, cache=True, sources=sources.get(u, None))
+        for (u, c, c_bad) in urls
+    ]
     assert len(rs) == len(urls)
     for r, (u, c, c_bad) in zip(rs, urls):
         assert get_file_contents(r) == c
@@ -164,18 +236,14 @@ def test_download_file_threaded_many(temp_cache, valid_urls):
     """
     urls = [next(valid_urls) for i in range(n_thread_hammer)]
     with ThreadPoolExecutor(max_workers=len(urls)) as P:
-        r = list(P.map(lambda u: download_file(u, cache=True),
-                       [u for (u, c) in urls]))
+        r = list(P.map(lambda u: download_file(u, cache=True), [u for (u, c) in urls]))
     check_download_cache()
     assert len(r) == len(urls)
     for r, (u, c) in zip(r, urls):
         assert get_file_contents(r) == c
 
 
-def test_clear_download_multiple_references_doesnt_corrupt_storage(
-        temp_cache,
-        tmpdir
-):
+def test_clear_download_multiple_references_doesnt_corrupt_storage(temp_cache, tmpdir):
     """Check that files with the same hash don't confuse the storage."""
     content = "Test data; doesn't matter much.\n"
 
@@ -202,12 +270,14 @@ def test_clear_download_multiple_references_doesnt_corrupt_storage(
     clear_download_cache(f_url)
     assert not is_url_in_cache(f_url)
     assert is_url_in_cache(g_url)
-    assert os.path.exists(g_hash), \
-        "Contents should not be deleted while a reference exists"
+    assert os.path.exists(
+        g_hash
+    ), "Contents should not be deleted while a reference exists"
 
     clear_download_cache(g_url)
-    assert not os.path.exists(g_hash), \
-        "No reference exists any more, file should be deleted"
+    assert not os.path.exists(
+        g_hash
+    ), "No reference exists any more, file should be deleted"
 
 
 def test_download_file_basic(valid_urls):
@@ -271,9 +341,7 @@ def test_sources_multiple(temp_cache, valid_urls, invalid_urls):
     primary = next(invalid_urls)
     fallback1 = next(invalid_urls)
     fallback2, contents = next(valid_urls)
-    f = download_file(primary,
-                      cache=True,
-                      sources=[primary, fallback1, fallback2])
+    f = download_file(primary, cache=True, sources=[primary, fallback1, fallback2])
     assert get_file_contents(f) == contents
     assert is_url_in_cache(primary)
     assert not is_url_in_cache(fallback1)
@@ -285,9 +353,7 @@ def test_sources_multiple_missing(temp_cache, valid_urls, invalid_urls):
     fallback1 = next(invalid_urls)
     fallback2 = next(invalid_urls)
     with pytest.raises(urllib.error.URLError):
-        download_file(primary,
-                      cache=True,
-                      sources=[primary, fallback1, fallback2])
+        download_file(primary, cache=True, sources=[primary, fallback1, fallback2])
     assert not is_url_in_cache(primary)
     assert not is_url_in_cache(fallback1)
     assert not is_url_in_cache(fallback2)
@@ -303,8 +369,7 @@ def test_update_url(tmpdir, temp_cache):
         with open(f_name, "w") as f:
             f.write("new")
         assert get_file_contents(download_file(f_url, cache=True)) == "old"
-        assert get_file_contents(download_file(f_url,
-                                               cache="update")) == "new"
+        assert get_file_contents(download_file(f_url, cache="update")) == "new"
     assert not os.path.exists(f_name)
     assert get_file_contents(download_file(f_url, cache=True)) == "new"
     with pytest.raises(urllib.error.URLError):
@@ -378,8 +443,9 @@ def test_download_parallel_fills_cache(tmpdir, valid_urls, method):
             um, c = next(valid_urls)
             assert not is_url_in_cache(um)
             urls.append((um, c))
-        rs = download_files_in_parallel([u for (u, c) in urls],
-                                        multiprocessing_start_method=method)
+        rs = download_files_in_parallel(
+            [u for (u, c) in urls], multiprocessing_start_method=method
+        )
         assert len(rs) == len(urls)
         url_set = set(u for (u, c) in urls)
         assert url_set <= set(get_cached_urls())
@@ -406,9 +472,9 @@ def test_download_parallel_with_empty_sources(valid_urls, temp_cache):
         assert get_file_contents(r) == c
 
 
-def test_download_parallel_with_sources_and_bogus_original(valid_urls,
-                                                           invalid_urls,
-                                                           temp_cache):
+def test_download_parallel_with_sources_and_bogus_original(
+    valid_urls, invalid_urls, temp_cache
+):
     u, c = next(valid_urls)
     urls = [(u, c, None)]
     sources = {}
@@ -421,8 +487,7 @@ def test_download_parallel_with_sources_and_bogus_original(valid_urls,
         u, c = next(valid_urls)
         sources[um].append(u)
         urls.append((um, c, c_bad))
-    rs = download_files_in_parallel([u for (u, c, c_bad) in urls],
-                                    sources=sources)
+    rs = download_files_in_parallel([u for (u, c, c_bad) in urls], sources=sources)
     assert len(rs) == len(urls)
     # u = set(u for (u, c, c_bad) in urls)
     # assert u <= set(get_cached_urls())
@@ -444,9 +509,7 @@ def test_download_parallel_many(temp_cache, valid_urls):
         assert get_file_contents(r) == c
 
 
-def test_download_parallel_partial_success(temp_cache,
-                                           valid_urls,
-                                           invalid_urls):
+def test_download_parallel_partial_success(temp_cache, valid_urls, invalid_urls):
     td = []
     for i in range(n_parallel_hammer):
         u, c = next(valid_urls)
@@ -486,14 +549,12 @@ def test_download_parallel_update(temp_cache, tmpdir):
             f.write(c_plus)
         td2.append((fn, u, c, c_plus))
 
-    r2 = download_files_in_parallel([u for (fn, u, c) in td],
-                                    cache=True)
+    r2 = download_files_in_parallel([u for (fn, u, c) in td], cache=True)
     assert len(r2) == len(td)
     for r_2, (fn, u, c, c_plus) in zip(r2, td2):
         assert get_file_contents(r_2) == c
         assert c != c_plus
-    r3 = download_files_in_parallel([u for (fn, u, c) in td],
-                                    cache="update")
+    r3 = download_files_in_parallel([u for (fn, u, c) in td], cache="update")
 
     assert len(r3) == len(td)
     for r_3, (fn, u, c, c_plus) in zip(r3, td2):
@@ -541,12 +602,16 @@ def test_find_invalid():
 def test_local_data_obj(filename):
     if (not HAS_BZ2 and "bz2" in filename) or (not HAS_XZ and "xz" in filename):
         with pytest.raises(ValueError) as e:
-            with get_pkg_data_fileobj(os.path.join("data", filename), encoding="binary") as f:
+            with get_pkg_data_fileobj(
+                os.path.join("data", filename), encoding="binary"
+            ) as f:
                 f.readline()
                 # assert f.read().rstrip() == b'CONTENT'
         assert " format files are not supported" in str(e.value)
     else:
-        with get_pkg_data_fileobj(os.path.join("data", filename), encoding="binary") as f:
+        with get_pkg_data_fileobj(
+            os.path.join("data", filename), encoding="binary"
+        ) as f:
             f.readline()
             assert f.read().rstrip() == b"CONTENT"
 
@@ -707,7 +772,7 @@ def test_data_noastropy_fallback(monkeypatch):
     assert w1.category == CacheMissingWarning
     assert "Remote data cache could not be accessed" in w1.message.args[0]
     assert w2.category == CacheMissingWarning
-    assert "File downloaded to temporary location" in w2.message.args[0]
+    assert "temporary" in w2.message.args[0]
     assert fnout == w2.message.args[1]
 
     # clearing the cache should be a no-up that doesn't affect fnout
@@ -883,9 +948,10 @@ def test_export_import_roundtrip_one(tmpdir, temp_cache, valid_urls):
     import_download_cache(zip_file_name)
     assert is_url_in_cache(testurl)
     assert set(get_cached_urls()) == initial_urls_in_cache
-    assert get_file_contents(download_file(testurl,
-                                           cache=True,
-                                           show_progress=False)) == contents
+    assert (
+        get_file_contents(download_file(testurl, cache=True, show_progress=False))
+        == contents
+    )
     assert check_download_cache(check_hashes=True) == normal
 
 
@@ -957,8 +1023,8 @@ def test_cache_size_is_zero_when_empty(temp_cache):
 
 
 def test_cache_size_changes_correctly_when_files_are_added_and_removed(
-        temp_cache,
-        valid_urls):
+    temp_cache, valid_urls
+):
     u, c = next(valid_urls)
     clear_download_cache(u)
     s_i = cache_total_size()
@@ -1127,7 +1193,7 @@ def test_cache_dir_is_actually_a_file(tmpdir, valid_urls):
     os.remove(cd)
 
     os.makedirs(cd)
-    py_version = 'py' + str(sys.version_info.major)
+    py_version = "py" + str(sys.version_info.major)
     cd = str(tmpdir / "astropy" / "download" / py_version)
     with open(cd, "w") as f:
         f.write(ct)
@@ -1253,8 +1319,7 @@ def test_path_objects_get_readable_fileobj():
     fpath = pathlib.Path(TESTLOCAL)
     with get_readable_fileobj(fpath) as f:
         assert f.read().rstrip() == (
-            "This file is used in the test_local_data_* "
-            "testing functions\nCONTENT"
+            "This file is used in the test_local_data_* testing functions\nCONTENT"
         )
 
 
@@ -1285,7 +1350,7 @@ def test_download_file_wrong_size(monkeypatch):
 
     class MockURL:
         def __init__(self):
-            self.reader = io.BytesIO(b"a"*real_length)
+            self.reader = io.BytesIO(b"a" * real_length)
 
         def info(self):
             return {"Content-Length": str(report_length)}
@@ -1309,10 +1374,101 @@ def test_download_file_wrong_size(monkeypatch):
     real_length = 1023
     fn = download_file(TESTURL, cache=False)
     with open(fn, "rb") as f:
-        assert f.read() == b"a"*real_length
+        assert f.read() == b"a" * real_length
 
     report_length = None
     real_length = 1023
     fn = download_file(TESTURL, cache=False)
     with open(fn, "rb") as f:
-        assert f.read() == b"a"*real_length
+        assert f.read() == b"a" * real_length
+
+
+def test_can_make_directories_readonly(tmpdir):
+    try:
+        with readonly_dir(tmpdir):
+            assert is_dir_readonly(tmpdir)
+    except AssertionError:
+        if hasattr(os, "geteuid") and os.geteuid() == 0:
+            pytest.skip(
+                "We are root, we can't make a directory un-writable with chmod."
+            )
+        elif platform.system() == "Windows":
+            pytest.skip(
+                "It seems we can't make a driectory un-writable under Windows "
+                "with chmod, in spite of the documentation."
+            )
+        else:
+            raise
+
+
+def test_can_make_files_readonly(tmpdir):
+    fn = tmpdir / "test"
+    c = "contents\n"
+    with open(fn, "w") as f:
+        f.write(c)
+    with readonly_dir(tmpdir):
+        try:
+            with open(fn, "w+") as f:
+                f.write("more contents\n")
+        except PermissionError:
+            pass
+        else:
+            if hasattr(os, "geteuid") and os.geteuid() == 0:
+                pytest.skip("We are root, we can't make a file un-writable with chmod.")
+    assert get_file_contents(fn) == c
+
+
+def test_read_cache_readonly(readonly_cache):
+    assert cache_contents() == readonly_cache
+
+
+def test_download_file_cache_readonly(readonly_cache):
+    for u in readonly_cache:
+        f = download_file(u, cache=True)
+        assert f == readonly_cache[u]
+
+
+def test_download_file_cache_readonly_cache_miss(readonly_cache, valid_urls):
+    u, c = next(valid_urls)
+    f = download_file(u, cache=True)
+    assert get_file_contents(f) == c
+    assert not is_url_in_cache(u)
+
+
+def test_download_file_cache_readonly_update(readonly_cache):
+    for u in readonly_cache:
+        f = download_file(u, cache="update")
+        assert f != readonly_cache[u]
+        assert compute_hash(f) == os.path.basename(readonly_cache[u])
+
+
+def test_check_download_cache_works_if_readonly(readonly_cache):
+    check_download_cache(check_hashes=True)
+
+
+def test_read_cache_fake_readonly(fake_readonly_cache):
+    assert cache_contents() == fake_readonly_cache
+
+
+def test_download_file_cache_fake_readonly(fake_readonly_cache):
+    for u in fake_readonly_cache:
+        f = download_file(u, cache=True)
+        assert f == fake_readonly_cache[u]
+
+
+def test_download_file_cache_fake_readonly_cache_miss(fake_readonly_cache, valid_urls):
+    u, c = next(valid_urls)
+    f = download_file(u, cache=True)
+    assert get_file_contents(f) == c
+    assert not is_url_in_cache(u)
+
+
+def test_download_file_cache_fake_readonly_update(fake_readonly_cache):
+    for u in fake_readonly_cache:
+        f = download_file(u, cache="update")
+        assert f != fake_readonly_cache[u]
+        assert compute_hash(f) == os.path.basename(fake_readonly_cache[u])
+
+
+def test_check_download_cache_works_if_fake_readonly(fake_readonly_cache):
+    check_download_cache(check_hashes=True)
