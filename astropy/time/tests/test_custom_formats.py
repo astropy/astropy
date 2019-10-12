@@ -1,26 +1,93 @@
 import pytest
+from itertools import count
 
 from astropy.time import Time, TimeFormat
 
 
-def test_custom_time_format_exception():
-    class SpecificException(ValueError):
-        pass
+class SpecificException(ValueError):
+    pass
 
-    # Note there is no way to remove this after the test!
+
+@pytest.fixture
+def custom_format_name():
+    for i in count():
+        if not i:
+            custom = f"custom_format_name"
+        else:
+            custom = f"custom_format_name_{i}"
+        if custom not in Time.FORMATS:
+            break
+    yield custom
+    Time.FORMATS.pop(custom, None)
+
+
+def test_custom_time_format_set_jds_exception(custom_format_name):
     class Custom(TimeFormat):
-        name = "custom_time_format_test"
+        name = custom_format_name
 
         def set_jds(self, val, val2):
             raise SpecificException
 
-    # with pytest.raises(SpecificException):
-    #    Time(7., format="custom_time_format_test")
     try:
-        Time(7.0, format="custom_time_format_test")
-    except SpecificException:
-        # This is not what astropy does but it is fine too
-        pass
+        Time(7.0, format=custom_format_name)
     except ValueError as e:
-        assert (hasattr(e, "__cause__")
-                and isinstance(e.__cause__, SpecificException))
+        assert hasattr(e, "__cause__") and isinstance(e.__cause__, SpecificException)
+
+
+def test_custom_time_format_val_type_exception(custom_format_name):
+    class Custom(TimeFormat):
+        name = custom_format_name
+
+        def _check_val_type(self, val, val2):
+            raise SpecificException
+
+    try:
+        Time(7.0, format=custom_format_name)
+    except ValueError as e:
+        assert hasattr(e, "__cause__") and isinstance(e.__cause__, SpecificException)
+
+
+def test_custom_time_format_value_exception(custom_format_name):
+    class Custom(TimeFormat):
+        name = custom_format_name
+
+        def set_jds(self, val, val2):
+            self.jd1, self.jd2 = val, val2
+
+        @property
+        def value(self):
+            raise SpecificException
+
+    t = Time.now()
+    with pytest.raises(SpecificException):
+        getattr(t, custom_format_name)
+
+
+def test_custom_time_format_fine(custom_format_name):
+    class Custom(TimeFormat):
+        name = custom_format_name
+
+        def set_jds(self, val, val2):
+            self.jd1, self.jd2 = val, val2
+
+        @property
+        def value(self):
+            return self.jd1 + self.jd2
+
+    t = Time.now()
+    getattr(t, custom_format_name)
+
+
+def test_custom_time_format_forgot_property(custom_format_name):
+    class Custom(TimeFormat):
+        name = custom_format_name
+
+        def set_jds(self, val, val2):
+            self.jd1, self.jd2 = val, val2
+
+        def value(self):
+            return self.jd1, self.jd2
+
+    t = Time.now()
+    with pytest.raises(AttributeError):
+        getattr(t, custom_format_name)
