@@ -120,11 +120,10 @@ def test_custom_time_format_problematic_name():
         assert t.sort() == t, "bogus time format clobbers everyone's Time objects"
 
         t.format = "sort"
-        t.value
-
-        t2 = Time(7, 9, format="sort").value
-        if not isinstance(t2, tuple):
+        if not isinstance(t.value, tuple):
             pytest.xfail("No good way to detect that `sort` is invalid")
-        assert t2 == (7, 9)
+
+        assert Time(7, 9, format="sort").value == (7, 9)
+
     finally:
         Time.FORMATS.pop("sort", None)
