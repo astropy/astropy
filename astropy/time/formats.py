@@ -6,6 +6,7 @@ import time
 import re
 import datetime
 import warnings
+from decimal import Decimal
 from collections import OrderedDict, defaultdict
 
 import numpy as np
@@ -54,21 +55,62 @@ def _regexify_subfmts(subfmts):
     new_subfmts = []
     for subfmt_tuple in subfmts:
         subfmt_in = subfmt_tuple[1]
-        for strptime_code, regex in (('%Y', r'(?P<year>\d\d\d\d)'),
-                                     ('%m', r'(?P<mon>\d{1,2})'),
-                                     ('%d', r'(?P<mday>\d{1,2})'),
-                                     ('%H', r'(?P<hour>\d{1,2})'),
-                                     ('%M', r'(?P<min>\d{1,2})'),
-                                     ('%S', r'(?P<sec>\d{1,2})')):
-            subfmt_in = subfmt_in.replace(strptime_code, regex)
+        if isinstance(subfmt_in, str):
+            for strptime_code, regex in (('%Y', r'(?P<year>\d\d\d\d)'),
+                                         ('%m', r'(?P<mon>\d{1,2})'),
+                                         ('%d', r'(?P<mday>\d{1,2})'),
+                                         ('%H', r'(?P<hour>\d{1,2})'),
+                                         ('%M', r'(?P<min>\d{1,2})'),
+                                         ('%S', r'(?P<sec>\d{1,2})')):
+                subfmt_in = subfmt_in.replace(strptime_code, regex)
 
-        if '%' not in subfmt_in:
-            subfmt_tuple = (subfmt_tuple[0],
-                            re.compile(subfmt_in + '$'),
-                            subfmt_tuple[2])
+            if '%' not in subfmt_in:
+                subfmt_tuple = (subfmt_tuple[0],
+                                re.compile(subfmt_in + '$'),
+                                subfmt_tuple[2])
         new_subfmts.append(subfmt_tuple)
 
     return tuple(new_subfmts)
+
+
+def decimal_to_twoval1(val1, val2=None):
+    i, f = divmod(Decimal(val1), 1)
+    return float(i), float(f)
+
+
+decimal_to_twoval = np.vectorize(decimal_to_twoval1)
+
+
+def bytes_to_twoval1(val1, val2=None):
+    return decimal_to_twoval1(val1.decode('ascii'))
+
+
+bytes_to_twoval = np.vectorize(bytes_to_twoval1)
+
+
+def twoval_to_float128(val1, val2):
+    return val1.astype(np.float128) + val2.astype(np.float128)
+
+
+def twoval_to_decimal1(val1, val2):
+    return Decimal(val1) + Decimal(val2)
+
+
+twoval_to_decimal = np.vectorize(twoval_to_decimal1)
+
+
+def twoval_to_string1(val1, val2, fmt):
+    return format(twoval_to_decimal1(val1, val2), fmt)
+
+
+twoval_to_string = np.vectorize(twoval_to_string1, excluded='fmt')
+
+
+def twoval_to_bytes1(val1, val2, fmt):
+    return format(twoval_to_decimal1(val1, val2), fmt).encode('ascii')
+
+
+twoval_to_bytes = np.vectorize(twoval_to_bytes1, excluded='fmt')
 
 
 class TimeFormatMeta(type):
@@ -301,6 +343,18 @@ class TimeFormat(metaclass=TimeFormatMeta):
     def value(self):
         raise NotImplementedError
 
+    def _select_subfmts(self, pattern):
+        """
+        Return a list of subformats where name matches ``pattern`` using
+        fnmatch.
+        """
+
+        fnmatchcase = fnmatch.fnmatchcase
+        subfmts = [x for x in self.subfmts if fnmatchcase(x[0], pattern)]
+        if len(subfmts) == 0:
+            raise ValueError(f'No subformats match {pattern}')
+        return subfmts
+
 
 class TimeJD(TimeFormat):
     """
@@ -328,19 +382,55 @@ class TimeMJD(TimeFormat):
     """
     name = 'mjd'
 
+    subfmts = (('float64', None, np.add),
+               ('float128', None, twoval_to_float128),
+               ('O', decimal_to_twoval, twoval_to_decimal),
+               ('U', decimal_to_twoval, twoval_to_string),
+               ('S', bytes_to_twoval, twoval_to_bytes),
+    )
+
+    def _check_val_type(self, val1, val2):
+        """Input value validation, typically overridden by derived classes"""
+        if val1.dtype.kind == 'f':
+            return super()._check_val_type(val1, val2)
+        elif (val2 is not None or
+              not (val1.dtype.kind in 'US' or
+                   (val1.dtype.kind == 'O' and
+                    all(isinstance(v, Decimal) for v in val1.flat)))):
+            raise TypeError(
+                'for {} class, input should be doubles, string, or Decimal, '
+                'and second values are only allowed for doubles.'
+                .format(self.name))
+
+        return val1, None
+
     def set_jds(self, val1, val2):
-        # TODO - this routine and vals should be Cythonized to follow the ERFA
-        # convention of preserving precision by adding to the larger of the two
-        # values in a vectorized operation.  But in most practical cases the
-        # first one is probably biggest.
         self._check_scale(self._scale)  # Validate scale.
+        for subfmt, convert, _ in self.subfmts:
+            if np.issubdtype(val1.dtype, np.dtype(subfmt)):
+                break
+        else:
+            raise ValueError('input type not among selected sub-formats.')
+
+        if fnmatch.fnmatchcase(subfmt, self.out_subfmt):
+            self.out_subfmt = subfmt
+
+        if convert is not None:
+            val1, val2 = convert(val1, val2)
+
         jd1, jd2 = day_frac(val1, val2)
         jd1 += erfa.DJM0  # erfa.DJM0=2400000.5 (from erfam.h)
         self.jd1, self.jd2 = day_frac(jd1, jd2)
 
     @property
     def value(self):
-        return (self.jd1 - erfa.DJM0) + self.jd2
+        jd1 = self.jd1 - erfa.DJM0  # This cannot loose precision.
+        jd2 = self.jd2
+        subfmt = self._select_subfmts(self.out_subfmt)[0]
+        kwargs = {}
+        if subfmt[0] in 'SU':
+            kwargs['fmt'] = f'.{self.precision}f'
+        return subfmt[2](jd1, jd2, **kwargs)
 
 
 class TimeDecimalYear(TimeFormat):
@@ -1050,18 +1140,6 @@ class TimeString(TimeUnique):
             outs.append(str(self.format_string(str_fmt, **kwargs)))
 
         return np.array(outs).reshape(self.jd1.shape)
-
-    def _select_subfmts(self, pattern):
-        """
-        Return a list of subformats where name matches ``pattern`` using
-        fnmatch.
-        """
-
-        fnmatchcase = fnmatch.fnmatchcase
-        subfmts = [x for x in self.subfmts if fnmatchcase(x[0], pattern)]
-        if len(subfmts) == 0:
-            raise ValueError(f'No subformats match {pattern}')
-        return subfmts
 
 
 class TimeISO(TimeString):
