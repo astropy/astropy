@@ -410,10 +410,6 @@ class TestKernels:
 
     # https://github.com/astropy/astropy/issues/3605
     def test_Gaussian2DKernel_rotated(self):
-        with pytest.warns(AstropyDeprecationWarning) as w:
-            Gaussian2DKernel(stddev=10)
-        assert len(w) == 1
-
         gauss = Gaussian2DKernel(
             x_stddev=3, y_stddev=1.5, theta=0.7853981633974483,
             x_size=5, y_size=5)  # rotated 45 deg ccw
