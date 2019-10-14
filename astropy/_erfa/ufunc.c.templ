@@ -651,7 +651,7 @@ set_leap_seconds(PyObject *NPY_UNUSED(module), PyObject *args) {
     if (!PyArg_ParseTuple(args, "|O:set_leap_seconds", &leap_seconds)) {
         return NULL;
     }
-    if (leap_seconds) {
+    if (leap_seconds != NULL && leap_seconds != Py_None) {
         /*
          * Convert the input to an array with the proper dtype;
          * Ensure a copy is made so one cannot change the data by changing

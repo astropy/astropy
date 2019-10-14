@@ -2,5 +2,5 @@
 
 from .core import *
 from .ufunc import (dt_eraASTROM, dt_eraLDBODY, dt_eraLEAPSECOND, dt_pv,
-                    dt_sign, dt_type, dt_ymdf, dt_hmsf, dt_dmsf,
-                    get_leap_seconds, set_leap_seconds)
+                    dt_sign, dt_type, dt_ymdf, dt_hmsf, dt_dmsf)
+from .interface import leap_seconds
