@@ -9,6 +9,8 @@ celestial-to-terrestrial coordinate transformations
 (in `astropy.coordinates`).
 """
 
+import re
+from datetime import datetime, timedelta
 from warnings import warn
 
 try:
@@ -21,8 +23,13 @@ import numpy as np
 from astropy import config as _config
 from astropy import units as u
 from astropy.table import QTable, MaskedColumn
+<<<<<<< HEAD
 from astropy.utils.data import get_pkg_data_filename, clear_download_cache
 from astropy.utils.state import ScienceState
+=======
+from astropy.utils.data import (get_pkg_data_filename, clear_download_cache,
+                                get_readable_fileobj)
+>>>>>>> Introduce a LeapSeconds class that can read TAI-UTC tables.
 from astropy.utils.compat import NUMPY_LT_1_17
 from astropy import utils
 from astropy.utils.exceptions import AstropyWarning
@@ -33,7 +40,9 @@ __all__ = ['Conf', 'conf', 'earth_orientation_table',
            'TIME_BEFORE_IERS_RANGE', 'TIME_BEYOND_IERS_RANGE',
            'IERS_A_FILE', 'IERS_A_URL', 'IERS_A_URL_MIRROR', 'IERS_A_README',
            'IERS_B_FILE', 'IERS_B_URL', 'IERS_B_README',
-           'IERSRangeError', 'IERSStaleWarning']
+           'IERSRangeError', 'IERSStaleWarning',
+           'LeapSeconds', 'IERS_LEAP_SECOND_FILE', 'IERS_LEAP_SECOND_URL',
+           'IETF_LEAP_SECOND_URL']
 
 # IERS-A default file name, URL, and ReadMe with content description
 IERS_A_FILE = 'finals2000A.all'
@@ -45,6 +54,11 @@ IERS_A_README = get_pkg_data_filename('data/ReadMe.finals2000A')
 IERS_B_FILE = get_pkg_data_filename('data/eopc04_IAU2000.62-now')
 IERS_B_URL = 'http://hpiers.obspm.fr/iers/eop/eopc04/eopc04_IAU2000.62-now'
 IERS_B_README = get_pkg_data_filename('data/ReadMe.eopc04_IAU2000')
+
+# LEAP SECONDS default file name, URL, and alternative format/URL
+IERS_LEAP_SECOND_FILE = get_pkg_data_filename('data/Leap_Second.dat')
+IERS_LEAP_SECOND_URL = 'https://hpiers.obspm.fr/iers/bul/bulc/Leap_Second.dat'
+IETF_LEAP_SECOND_URL = 'https://www.ietf.org/timezones/data/leap-seconds.list'
 
 # Status/source values returned by IERS.ut1_utc
 FROM_IERS_B = 0
@@ -847,3 +861,52 @@ class earth_orientation_table(ScienceState):
         if not isinstance(value, IERS):
             raise ValueError("earth_orientation_table requires an IERS Table.")
         return value
+
+
+class LeapSeconds(QTable):
+    _re_expires = re.compile(r'^#.*File expires on[:\s]+(\d+\s\w+\s\d+)\s*$')
+
+    @classmethod
+    def _read_leap_seconds(cls, file, **kwargs):
+        """Read a leap-second table.
+
+        Finds data by removing comment lines, and identifies the
+        expiration date by matching with 'File expires'.
+        """
+        expires = None
+        # Find lines with data as well as expiration.
+        with get_readable_fileobj(file) as fh:
+            lines = fh.readlines()
+            for line in lines:
+                match = cls._re_expires.match(line)
+                if match:
+                    expires = datetime.strptime(match.groups()[0],
+                                                '%d %B %Y')
+                    break
+
+        if not expires:
+            raise ValueError(f'Did not find expiration date in {file}')
+
+        self = cls.read(lines, format='ascii.basic', data_start=0,
+                        **kwargs)
+        self.expires = expires
+        return self
+
+    @classmethod
+    def from_iers_leap_seconds(cls, file=IERS_LEAP_SECOND_FILE):
+        return cls._read_leap_seconds(
+            file, names=['mjd', 'day', 'month', 'year', 'tai_utc'])
+
+    @classmethod
+    def from_leap_seconds_list(cls, file):
+        names = ['ntp_seconds', 'tai_utc', 'comment', 'day', 'month', 'year']
+        self = cls._read_leap_seconds(file, names=names,
+                                      exclude_names=names[2:])
+        self['mjd'] = (self['ntp_seconds']/86400 + 15020).round()
+        # Note: cannot use Time in this routine.
+        dt = [datetime(1900, 1, 1) + timedelta(mjd-15020)
+              for mjd in self['mjd']]
+        self['day'] = [d.day for d in dt]
+        self['month'] = [d.month for d in dt]
+        self['year'] = [d.year for d in dt]
+        return self
