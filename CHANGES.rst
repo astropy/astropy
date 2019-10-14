@@ -241,6 +241,9 @@ astropy.utils
   coordinate transformations can now be set, either in a context or per
   session, using ``astropy.utils.iers.earth_rotation_table``. [#9244]
 
+- A new ``astropy.utils.iers.LeapSeconds`` class has been added to track
+  leap seconds. [#9365]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
