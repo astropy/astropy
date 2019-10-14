@@ -865,6 +865,22 @@ class earth_orientation_table(ScienceState):
 
 
 class LeapSeconds(QTable):
+    """Leap seconds class, holding TAI-UTC differences.
+
+    The table should hold columns 'year', 'month', 'tai_utc'.
+
+    Methods are provided to initialize the table from IERS ``Leap_Second.dat``,
+    IETF/ntp ``leap-seconds.list``, or built-in ERFA/SOFA.
+
+    Notes
+    -----
+    Astropy has a built-in ``iers.IERS_LEAP_SECONDS_FILE``. Up to date versions
+    can be downloaded from ``iers.IERS_LEAP_SECONDS_URL`` or
+    ``iers.LEAP_SECONDS_LIST_URL``.  Many systems also store a version
+    of ``leap-seconds.list`` for use with ``ntp`` (e.g., on Debian/Ubuntu
+    systems, ``/usr/share/zoneinfo/leap-seconds.list``).
+    """
+
     _re_expires = re.compile(r'^#.*File expires on[:\s]+(\d+\s\w+\s\d+)\s*$')
     _expires = None
 
