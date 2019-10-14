@@ -866,6 +866,11 @@ class earth_orientation_table(ScienceState):
 
 class LeapSeconds(QTable):
     _re_expires = re.compile(r'^#.*File expires on[:\s]+(\d+\s\w+\s\d+)\s*$')
+    _expires = None
+
+    @property
+    def expires(self):
+        return self._expires
 
     @classmethod
     def _read_leap_seconds(cls, file, **kwargs):
@@ -890,7 +895,7 @@ class LeapSeconds(QTable):
 
         self = cls.read(lines, format='ascii.basic', data_start=0,
                         **kwargs)
-        self.expires = expires
+        self._expires = expires
         return self
 
     @classmethod
@@ -915,7 +920,7 @@ class LeapSeconds(QTable):
     @classmethod
     def from_erfa(cls):
         self = cls(erfa.leap_seconds.get())
-        self.expires = erfa.leap_seconds.expires
+        self._expires = erfa.leap_seconds.expires
         return self
 
     def update_erfa_leap_seconds(self, initialize_erfa=False):
