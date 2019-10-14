@@ -925,7 +925,7 @@ class LeapSeconds(QTable):
         introduced, i.e., mid-January or mid-July.  Expiration days are thus
         generally at least 150 days after the present.  For the auto-loading,
         a list comprised of the table shipped with astropy, and files and
-        URLs in `~astropy.utils.iers.conf` are tried, returning the first
+        URLs in ``~astropy.utils.iers.conf`` are tried, returning the first
         that is sufficiently new, or the newest among them all.
         """
         if file is None:
@@ -1037,7 +1037,7 @@ class LeapSeconds(QTable):
         expiration date by matching with 'File expires'.
         """
         expires = None
-        # Find lines with data as well as expiration.
+        # Find expiration date.
         with get_readable_fileobj(file) as fh:
             lines = fh.readlines()
             for line in lines:
@@ -1046,9 +1046,8 @@ class LeapSeconds(QTable):
                     expires = datetime.strptime(match.groups()[0],
                                                 '%d %B %Y')
                     break
-
-        if not expires:
-            raise ValueError(f'Did not find expiration date in {file}')
+            else:
+                raise ValueError(f'did not find expiration date in {file}')
 
         self = cls.read(lines, format='ascii.basic', data_start=0,
                         **kwargs)
