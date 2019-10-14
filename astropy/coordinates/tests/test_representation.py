@@ -1085,10 +1085,18 @@ def test_minimal_subclass():
 
 
 def test_duplicate_warning():
+    from astropy.coordinates.representation import DUPLICATE_REPRESENTATIONS
+    from astropy.coordinates.representation import REPRESENTATION_CLASSES
+
     with pytest.warns(DuplicateRepresentationWarning):
         class UnitSphericalRepresentation(BaseRepresentation):
             attr_classes = OrderedDict([('lon', Longitude),
                                         ('lat', Latitude)])
+
+    assert 'unitspherical' in DUPLICATE_REPRESENTATIONS
+    assert 'unitspherical' not in REPRESENTATION_CLASSES
+    assert 'astropy.coordinates.representation.UnitSphericalRepresentation' in REPRESENTATION_CLASSES
+    assert __name__ + '.test_duplicate_warning.<locals>.UnitSphericalRepresentation' in REPRESENTATION_CLASSES
 
 
 def test_combine_xyz():

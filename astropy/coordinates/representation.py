@@ -37,9 +37,16 @@ __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
 # classes get registered automatically.
 REPRESENTATION_CLASSES = {}
 DIFFERENTIAL_CLASSES = {}
+# set for tracking duplicates
+DUPLICATE_REPRESENTATIONS = set()
 
 # a hash for the content of the above two dicts, cached for speed.
 _REPRDIFF_HASH = None
+
+
+def _fqn_class(cls):
+    ''' Get the fully qualified name of a class '''
+    return cls.__module__ + '.' + cls.__qualname__
 
 
 def get_reprdiff_cls_hash():
@@ -412,22 +419,35 @@ class MetaBaseRepresentation(abc.ABCMeta):
                                       '"attr_classes" class attribute.')
 
         repr_name = cls.get_name()
+        # first time a duplicate is added
+        # remove first entry and add both using their qualnames
         if repr_name in REPRESENTATION_CLASSES:
+            DUPLICATE_REPRESENTATIONS.add(repr_name)
+
+            fqn_cls = _fqn_class(cls)
             existing = REPRESENTATION_CLASSES[repr_name]
-            if cls.__qualname__ == existing.__qualname__:
-                raise ValueError(
-                    f'Representation with qualname "{cls.__qualname__}" already defined'
-                )
+            fqn_existing = _fqn_class(existing)
+
+            if fqn_cls == fqn_existing:
+                raise ValueError(f'Representation "{fqn_cls}" already defined')
 
             msg = (
                 'Representation "{}" already defined, removing it to avoid confusion.'
                 'Use qualnames "{}" and "{}" or class instaces directly'
-            ).format(repr_name, cls.__qualname__, existing.__qualname__)
+            ).format(repr_name, fqn_cls, fqn_existing)
             warnings.warn(msg, DuplicateRepresentationWarning)
 
             del REPRESENTATION_CLASSES[repr_name]
-            REPRESENTATION_CLASSES[existing.__qualname__] = existing
-            repr_name = cls.__qualname__
+            REPRESENTATION_CLASSES[fqn_existing] = existing
+            repr_name = fqn_cls
+        # further definitions with the same name, just add qualname
+        elif repr_name in DUPLICATE_REPRESENTATIONS:
+            warnings.warn('Representation "{}" already defined, using qualname "{}".')
+            repr_name = _fqn_class(cls)
+            if repr_name in REPRESENTATION_CLASSES:
+                raise ValueError(
+                    f'Representation "{repr_name}" already defined'
+                )
 
         REPRESENTATION_CLASSES[repr_name] = cls
         _invalidate_reprdiff_cls_hash()
