@@ -24,13 +24,9 @@ from astropy import _erfa as erfa
 from astropy import config as _config
 from astropy import units as u
 from astropy.table import QTable, MaskedColumn
-<<<<<<< HEAD
-from astropy.utils.data import get_pkg_data_filename, clear_download_cache
-from astropy.utils.state import ScienceState
-=======
 from astropy.utils.data import (get_pkg_data_filename, clear_download_cache,
-                                get_readable_fileobj)
->>>>>>> Introduce a LeapSeconds class that can read TAI-UTC tables.
+                                is_url_in_cache, get_readable_fileobj)
+from astropy.utils.state import ScienceState
 from astropy.utils.compat import NUMPY_LT_1_17
 from astropy import utils
 from astropy.utils.exceptions import AstropyWarning
@@ -107,10 +103,12 @@ class Conf(_config.ConfigNamespace):
     auto_download = _config.ConfigItem(
         True,
         'Enable auto-downloading of the latest IERS data.  If set to False '
-        'then the local IERS-B file will be used by default. Default is True.')
+        'then the local IERS-B and leap-second files will be used by default. '
+        'Default is True.')
     auto_max_age = _config.ConfigItem(
         30.0,
-        'Maximum age (days) of predictive data before auto-downloading. Default is 30.')
+        'Maximum age (days) of predictive data before auto-downloading. '
+        'Default is 30.')
     iers_auto_url = _config.ConfigItem(
         IERS_A_URL,
         'URL for auto-downloading IERS file data.')
@@ -120,6 +118,15 @@ class Conf(_config.ConfigNamespace):
     remote_timeout = _config.ConfigItem(
         10.0,
         'Remote timeout downloading IERS file data (seconds).')
+    system_leap_second_file = _config.ConfigItem(
+        '',
+        'System file with leap seconds.')
+    iers_leap_second_auto_url = _config.ConfigItem(
+        IERS_LEAP_SECOND_URL,
+        'URL for auto-downloading leap seconds.')
+    ietf_leap_second_auto_url = _config.ConfigItem(
+        IETF_LEAP_SECOND_URL,
+        'Alternate URL for auto-downloading leap seconds.')
 
 
 conf = Conf()
@@ -883,6 +890,140 @@ class LeapSeconds(QTable):
 
     _re_expires = re.compile(r'^#.*File expires on[:\s]+(\d+\s\w+\s\d+)\s*$')
     _expires = None
+    _auto_open_files = ['erfa',
+                        IERS_LEAP_SECOND_FILE,
+                        'system_leap_second_file',
+                        'iers_leap_second_auto_url',
+                        'ietf_leap_second_auto_url']
+    """Files or conf attributes to try in auto_open."""
+
+    @classmethod
+    def open(cls, file=None, cache=False):
+        """Open a leap-second list.
+
+        Parameters
+        ----------
+        file : path, 'erfa', or None
+            Full local or network path to the file holding leap-second data,
+            for passing on to the various ``from_`` class methods.
+            If 'erfa', return the data built-in to the ERFA library.
+            If `None`, use default locations from file and configuration to
+            find a table that is not expired.
+        cache : bool
+            Whether to use cache. Defaults to False, since leap-second files
+            are regularly updated.
+
+        Returns
+        -------
+        leap_seconds : `~astropy.utils.iers.LeapSeconds`
+            Table with 'year', 'month', and 'tai_utc' columns, plus possibly
+            others.
+
+        Notes
+        -----
+        Bulletin C is released about 10 days after a possible leap second is
+        introduced, i.e., mid-January or mid-July.  Expiration days are thus
+        generally at least 150 days after the present.  For the auto-loading,
+        a list comprised of the table shipped with astropy, and files and
+        URLs in `~astropy.utils.iers.conf` are tried, returning the first
+        that is sufficiently new, or the newest among them all.
+        """
+        if file is None:
+            return cls.auto_open()
+
+        if file.lower() == 'erfa':
+            return cls.from_erfa()
+
+        if urlparse(file).netloc:
+            file = download_file(file, cache=cache)
+
+        # Just try both reading methods.
+        try:
+            return cls.from_iers_leap_seconds(file)
+        except Exception:
+            return cls.from_leap_seconds_list(file)
+
+    @classmethod
+    def auto_open(cls, files=None):
+        """Attempt to get an up-to-date leap-second list.
+
+        The routine will try the files in sequence until it finds one
+        whose expiration date is "good enough" (see below).  If none
+        are good enough, it returns the one with the most recent expiration
+        date, warning if that file is expired.
+
+        For remote files that are cached already, the cached file is tried
+        first before attempting to retrieve it again.
+
+        Parameters
+        ----------
+        files : list of path, optional
+            List of files/URLs to attempt to open.  By default, uses
+            ``cls._auto_open_files``.
+
+        Returns
+        -------
+        leap_seconds : `~astropy.utils.iers.LeapSeconds`
+            Up to date leap-second table
+
+        Notes
+        -----
+        Bulletin C is released about 10 days after a possible leap second is
+        introduced, i.e., mid-January or mid-July.  Expiration days are thus
+        generally at least 150 days after the present.  We look for a file
+        that expires more than 180 - `~astropy.utils.iers.conf.auto_max_age`
+        after the present.
+        """
+        good_enough = datetime.now() + timedelta(180-conf.auto_max_age)
+
+        if files is None:
+            # Basic files to go over (entries in _auto_open_files can be
+            # configuration items, which we want to be sure are up to date).
+            files = [getattr(conf, f, f) for f in cls._auto_open_files]
+
+        # Remove empty entries.
+        files = [f for f in files if f]
+
+        # Our trials start with normal files and remote ones that are
+        # already in cache.  The bools here indicate that the cache
+        # should be used.
+        trials = [(f, True) for f in files
+                  if not urlparse(f).netloc or is_url_in_cache(f)]
+        # If we are allowed to download, we try downloading new versions
+        # if none of the above worked.
+        if conf.auto_download:
+            trials += [(f, False) for f in files if urlparse(f).netloc]
+
+        best_expires = datetime(1900, 1, 1)
+        self = None
+        err_list = []
+        # Go through all entries, and return the first one that
+        # is not expired, or the most up to date one.
+        for f, allow_cache in trials:
+            if not allow_cache:
+                clear_download_cache(f)
+
+            try:
+                trial = cls.open(f, cache=True)
+            except Exception as exc:
+                err_list.append(exc)
+                continue
+
+            if self is None or trial.expires > best_expires:
+                self = trial
+                self.meta['data_url'] = str(f)
+                best_expires = trial.expires
+                if self.expires > good_enough:
+                    break
+
+        if self is None:
+            raise ValueError('none of the files could be read. The '
+                             'following errors were raised:\n' + str(err_list))
+
+        if self.expires < datetime.now():
+            warn('leap-second file is expired.', IERSStaleWarning)
+
+        return self
 
     @property
     def expires(self):
