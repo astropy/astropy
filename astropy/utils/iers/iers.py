@@ -20,6 +20,7 @@ except ImportError:
 
 import numpy as np
 
+from astropy import _erfa as erfa
 from astropy import config as _config
 from astropy import units as u
 from astropy.table import QTable, MaskedColumn
@@ -910,3 +911,45 @@ class LeapSeconds(QTable):
         self['month'] = [d.month for d in dt]
         self['year'] = [d.year for d in dt]
         return self
+
+    @classmethod
+    def from_erfa(cls):
+        self = cls(erfa.leap_seconds.get())
+        self.expires = erfa.leap_seconds.expires
+        return self
+
+    def update_erfa_leap_seconds(self, initialize_erfa=False):
+        """Add any leap seconds not already present to the ERFA table.
+
+        This method matches leap seconds with those present in the ERFA table,
+        and extends the latter as necessary.
+
+        Parameters
+        ----------
+        initialize_erfa : bool, or 'only'
+            Initialize the ERFA leap second table to its built-in value before
+            trying to expand it.  This is generally not needed but can help
+            in case it somehow got corrupted.  If equal to 'only', the ERFA
+            table is reinitialized and no attempt it made to update it.
+
+        Returns
+        -------
+        n_update : int
+            Number of items updated.
+
+        Raises
+        ------
+        ValueError
+            If the leap seconds in the table are not on 1st of January or July,
+            or if the matches are inconsistent.  This would normally suggest
+            a currupted leap second table, but might also indicate that the
+            ERFA table was corrupted.  If needed, the ERFA table can be reset
+            by calling this method with an appropriate value for
+            ``initialize_erfa``.
+        """
+        if initialize_erfa:
+            erfa.leap_seconds.set()
+            if initialize_erfa == 'only':
+                return 0
+
+        return erfa.leap_seconds.update(self)
