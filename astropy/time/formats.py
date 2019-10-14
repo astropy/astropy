@@ -385,8 +385,8 @@ class TimeMJD(TimeFormat):
     subfmts = (('float64', None, np.add),
                ('float128', None, twoval_to_float128),
                ('O', decimal_to_twoval, twoval_to_decimal),
-               ('U', decimal_to_twoval, twoval_to_string),
-               ('S', bytes_to_twoval, twoval_to_bytes),
+               ('str', decimal_to_twoval, twoval_to_string),
+               ('bytes', bytes_to_twoval, twoval_to_bytes),
     )
 
     def _check_val_type(self, val1, val2):
@@ -428,7 +428,7 @@ class TimeMJD(TimeFormat):
         jd2 = self.jd2
         subfmt = self._select_subfmts(self.out_subfmt)[0]
         kwargs = {}
-        if subfmt[0] in 'SU':
+        if subfmt[0] in ('str', 'bytes'):
             kwargs['fmt'] = f'.{self.precision}f'
         return subfmt[2](jd1, jd2, **kwargs)
 
