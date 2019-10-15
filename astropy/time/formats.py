@@ -184,9 +184,9 @@ class TimeFormat(metaclass=TimeFormatMeta):
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
         # val1 cannot contain nan, but val2 can contain nan
-        ok1 = (val1.dtype == np.double and np.all(np.isfinite(val1)) or
+        ok1 = (val1.dtype.kind == 'f' and val1.dtype.itemsize == 8 and np.all(np.isfinite(val1)) or
                val1.size == 0)
-        ok2 = val2 is None or (val2.dtype == np.double and
+        ok2 = val2 is None or (val2.dtype.kind == 'f' and val2.dtype.itemsize == 8 and
                                not np.any(np.isinf(val2))) or val2.size == 0
         if not (ok1 and ok2):
             raise TypeError('Input values for {} class must be finite doubles'
@@ -619,9 +619,6 @@ class TimeDatetime(TimeUnique):
         if not all(isinstance(val, datetime.datetime) for val in val1.flat):
             raise TypeError('Input values for {} class must be '
                             'datetime objects'.format(self.name))
-        if val2 is not None:
-            raise ValueError(
-                f'{self.name} objects do not accept a val2 but you provided {val2}')
         return val1, None
 
     def set_jds(self, val1, val2):
@@ -901,9 +898,6 @@ class TimeString(TimeUnique):
         if val1.dtype.kind not in ('S', 'U') and val1.size:
             raise TypeError('Input values for {} class must be strings'
                             .format(self.name))
-        if val2 is not None:
-            raise ValueError(
-                f'{self.name} objects do not accept a val2 but you provided {val2}')
         return val1, None
 
     def parse_string(self, timestr, subfmts):
@@ -1135,9 +1129,6 @@ class TimeDatetime64(TimeISOT):
                                 'datetime64 objects'.format(self.name))
             else:
                 val1 = np.array([], 'datetime64[D]')
-        if val2 is not None:
-            raise ValueError(
-                f'{self.name} objects do not accept a val2 but you provided {val2}')
 
         return val1, None
 
@@ -1408,9 +1399,6 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
         if not all(isinstance(val, datetime.timedelta) for val in val1.flat):
             raise TypeError('Input values for {} class must be '
                             'datetime.timedelta objects'.format(self.name))
-        if val2 is not None:
-            raise ValueError(
-                f'{self.name} objects do not accept a val2 but you provided {val2}')
         return val1, None
 
     def set_jds(self, val1, val2):
