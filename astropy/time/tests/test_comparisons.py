@@ -62,6 +62,10 @@ class TestTimeComparisons:
         assert np.all(t1_gt_t2_0 == np.array([True, True, True, True, True,
                                               True, True, True, True, True]))
 
+    def test_time_boolean(self):
+        t1_0_gt_t2_0 = self.t1[0] > self.t2[0]
+        assert t1_0_gt_t2_0 is True
+
     def test_timedelta(self):
         dt = self.t2 - self.t1
         with pytest.raises(TypeError):

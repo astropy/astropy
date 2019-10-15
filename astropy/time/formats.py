@@ -91,6 +91,8 @@ class TimeFormatMeta(type):
             # astropy.time.Time or astropy.time.TimeDelta, and at the point
             # where this is run neither of those classes have necessarily been
             # constructed yet.
+            if 'value' in members and not hasattr(members['value'], "fget"):
+                raise ValueError("If defined, 'value' must be a property")
             mcls._registry[cls.name] = cls
 
         if 'subfmts' in members:
@@ -131,12 +133,34 @@ class TimeFormat(metaclass=TimeFormatMeta):
         self.in_subfmt = in_subfmt
         self.out_subfmt = out_subfmt
 
+        self._jd1, self._jd2 = None, None
+
         if from_jd:
             self.jd1 = val1
             self.jd2 = val2
         else:
             val1, val2 = self._check_val_type(val1, val2)
             self.set_jds(val1, val2)
+
+    @property
+    def jd1(self):
+        return self._jd1
+
+    @jd1.setter
+    def jd1(self, jd1):
+        self._jd1 = _validate_jd_for_storage(jd1)
+        if self._jd2 is not None:
+            self._jd1, self._jd2 = _broadcast_writable(self._jd1, self._jd2)
+
+    @property
+    def jd2(self):
+        return self._jd2
+
+    @jd2.setter
+    def jd2(self, jd2):
+        self._jd2 = _validate_jd_for_storage(jd2)
+        if self._jd1 is not None:
+            self._jd1, self._jd2 = _broadcast_writable(self._jd1, self._jd2)
 
     def __len__(self):
         return len(self.jd1)
@@ -1435,6 +1459,30 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
             out[...] = datetime.timedelta(days=jd.item())
 
         return self.mask_if_needed(iterator.operands[-1])
+
+
+def _validate_jd_for_storage(jd):
+    if isinstance(jd, np.float):
+        return np.array(jd, dtype=np.float)
+    elif (isinstance(jd, np.ndarray)
+          and jd.dtype.kind == 'f'
+          and jd.dtype.itemsize == 8):
+        return jd
+    else:
+        raise TypeError(
+            f"JD values must be arrays (possibly zero-dimensional) "
+            f"of floats but we got {jd!r} of type {type(jd)}")
+
+
+def _broadcast_writable(jd1, jd2):
+    if jd1.shape == jd2.shape:
+        return jd1, jd2
+    s_jd1, s_jd2 = np.broadcast_arrays(jd1, jd2, subok=True)
+    if s_jd1.shape != jd1.shape:
+        s_jd1 = np.require(s_jd1, requirements=["C"])
+    if s_jd2.shape != jd2.shape:
+        s_jd2 = np.require(s_jd2, requirements=["C"])
+    return s_jd1, s_jd2
 
 
 from .core import Time, TIME_SCALES, TIME_DELTA_SCALES, ScaleValueError
