@@ -5,6 +5,7 @@ import copy
 import functools
 import datetime
 from copy import deepcopy
+from decimal import Decimal
 
 import numpy as np
 from numpy.testing import assert_allclose
@@ -854,6 +855,45 @@ class TestSubFormat:
         # Values from issue #1118
         t = Time('2004-09-16T23:59:59', scale='utc')
         assert allclose_sec(t.unix, 1095379199.0)
+
+
+class TestNumericalSubFormat:
+    def test_explicit_example(self):
+        t = Time('54321.000000000001', format='mjd', precision=13)
+        assert t == Time(54321, 1e-12, format='mjd')
+        assert t.mjd == 54321.  # Lost precision!
+        assert t.mjd_str == '54321.0000000000010'
+        assert t.mjd_bytes == b'54321.0000000000010'
+        assert t.value == 54321.  # Lost precision!
+        t.out_subfmt = 'str'
+        assert t.value == '54321.0000000000010'
+        assert t.mjd == '54321.0000000000010'
+
+    def test_subformat_input(self):
+        s = '54321.01234567890123456789'
+        i, f = s.split('.')  # Note, OK only for fraction < 0.5
+        t = Time(float(i), float('.'+f), format='mjd')
+        t_str = Time(s, format='mjd')
+        t_bytes = Time(s.encode('ascii'), format='mjd')
+        t_decimal = Time(Decimal(s), format='mjd')
+        assert t_str == t
+        assert t_bytes == t
+        assert t_decimal == t
+
+    @pytest.mark.parametrize('out_subfmt', ('str', 'bytes'))
+    def test_subformat_output(self, out_subfmt):
+        i = 54321
+        f = np.array([0., 1e-9, 1e-12])
+        t = Time(i, f, format='mjd', out_subfmt=out_subfmt, precision=13)
+        t_value = t.value
+        expected = np.array([f'{i}.' + f'{_f:14.13f}'.split('.')[1]
+                             for _f in f], dtype=out_subfmt)
+        assert np.all(t_value == expected)
+
+        # Explicit value.
+        t = Time(i, f, format='mjd', precision=13)
+        t_mjd_subfmt = getattr(t, f'mjd_{out_subfmt}')
+        assert np.all(t_mjd_subfmt == expected)
 
 
 class TestSofaErrors:

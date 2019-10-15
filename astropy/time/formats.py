@@ -412,9 +412,6 @@ class TimeMJD(TimeFormat):
         else:
             raise ValueError('input type not among selected sub-formats.')
 
-        if fnmatch.fnmatchcase(subfmt, self.out_subfmt):
-            self.out_subfmt = subfmt
-
         if convert is not None:
             val1, val2 = convert(val1, val2)
 
@@ -422,15 +419,26 @@ class TimeMJD(TimeFormat):
         jd1 += erfa.DJM0  # erfa.DJM0=2400000.5 (from erfam.h)
         self.jd1, self.jd2 = day_frac(jd1, jd2)
 
-    @property
-    def value(self):
+    def to_value(self, parent=None, out_subfmt=None):
+        """
+        Return time representation from internal jd1 and jd2.  This is
+        the base method that ignores ``parent`` and requires that
+        subclasses implement the ``value`` property.  Subclasses that
+        require ``parent`` or have other optional args for ``to_value``
+        should compute and return the value directly.
+        """
+        if out_subfmt is None:
+            out_subfmt = self.out_subfmt
+        subfmt = self._select_subfmts(out_subfmt)[0]
         jd1 = self.jd1 - erfa.DJM0  # This cannot loose precision.
         jd2 = self.jd2
-        subfmt = self._select_subfmts(self.out_subfmt)[0]
         kwargs = {}
         if subfmt[0] in ('str', 'bytes'):
             kwargs['fmt'] = f'.{self.precision}f'
-        return subfmt[2](jd1, jd2, **kwargs)
+        value = subfmt[2](jd1, jd2, **kwargs)
+        return self.mask_if_needed(value)
+
+    value = property(to_value)
 
 
 class TimeDecimalYear(TimeFormat):
