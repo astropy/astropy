@@ -43,6 +43,7 @@ env:
         - EXTRAS_INSTALL=""
         # Run test suite twice in a row without cleaning
         - DOUBLE_PLAY=False
+        - USE_CI_HELPERS=True
 
         # PEP8 errors/warnings:
         # E101 - mix of tabs and spaces
@@ -182,6 +183,14 @@ matrix:
                INSTALL_WITH_PIP=True
                EXTRAS_INSTALL="docs"
 
+        # Testing with Travis provided Python3.8. Change this job to a regular
+        # one once conda supports python3.8.
+        - language: python
+          stage: Final tests
+          dist: xenial
+          python: 3.8-dev
+          env: INSTALL_WITH_PIP=True EXTRAS_INSTALL="test" USE_CI_HELPERS=False
+
     allow_failures:
       - os: linux
         stage: Final tests
@@ -208,8 +217,10 @@ before_install:
 
 
 install:
-    - git clone git://github.com/astropy/ci-helpers.git
-    - source ci-helpers/travis/setup_conda.sh
+    - if [[ $USE_CI_HELPERS == True ]]; then
+        git clone git://github.com/astropy/ci-helpers.git;
+        source ci-helpers/travis/setup_conda.sh;
+      fi
     - if [[ $INSTALL_WITH_PIP == True ]]; then
         if [ -z $EXTRAS_INSTALL ]; then
           pip install -e .;
