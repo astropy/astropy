@@ -22,6 +22,7 @@ import numpy as np
 
 from astropy import _erfa as erfa
 from astropy import config as _config
+from astropy.io.ascii import convert_numpy
 from astropy import units as u
 from astropy.table import QTable, MaskedColumn
 from astropy.utils.data import (get_pkg_data_filename, clear_download_cache,
@@ -1049,8 +1050,7 @@ class LeapSeconds(QTable):
             else:
                 raise ValueError(f'did not find expiration date in {file}')
 
-        self = cls.read(lines, format='ascii.basic', data_start=0,
-                        **kwargs)
+        self = cls.read(lines, format='ascii.no_header', **kwargs)
         self._expires = expires
         return self
 
@@ -1062,8 +1062,11 @@ class LeapSeconds(QTable):
     @classmethod
     def from_leap_seconds_list(cls, file):
         names = ['ntp_seconds', 'tai_utc', 'comment', 'day', 'month', 'year']
-        self = cls._read_leap_seconds(file, names=names,
-                                      exclude_names=names[2:])
+        # Note: ntp_seconds does not fit in 32 bit, so causes problems on
+        # 32-bit systems without the np.int64 converter.
+        self = cls._read_leap_seconds(
+            file, names=names, include_names=names[:2],
+            converters={'col1': [convert_numpy(np.int64)]})
         self['mjd'] = (self['ntp_seconds']/86400 + 15020).round()
         # Note: cannot use Time in this routine.
         dt = [datetime(1900, 1, 1) + timedelta(mjd-15020)
