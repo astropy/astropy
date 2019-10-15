@@ -616,10 +616,12 @@ class TimeDatetime(TimeUnique):
     name = 'datetime'
 
     def _check_val_type(self, val1, val2):
-        # Note: don't care about val2 for this class
         if not all(isinstance(val, datetime.datetime) for val in val1.flat):
             raise TypeError('Input values for {} class must be '
                             'datetime objects'.format(self.name))
+        if val2 is not None:
+            raise ValueError(
+                f'{self.name} objects do not accept a val2 but you provided {val2}')
         return val1, None
 
     def set_jds(self, val1, val2):
@@ -896,10 +898,12 @@ class TimeString(TimeUnique):
     """
 
     def _check_val_type(self, val1, val2):
-        # Note: don't care about val2 for these classes
         if val1.dtype.kind not in ('S', 'U') and val1.size:
             raise TypeError('Input values for {} class must be strings'
                             .format(self.name))
+        if val2 is not None:
+            raise ValueError(
+                f'{self.name} objects do not accept a val2 but you provided {val2}')
         return val1, None
 
     def parse_string(self, timestr, subfmts):
@@ -1125,13 +1129,15 @@ class TimeDatetime64(TimeISOT):
     name = 'datetime64'
 
     def _check_val_type(self, val1, val2):
-        # Note: don't care about val2 for this class`
         if not val1.dtype.kind == 'M':
             if val1.size > 0:
                 raise TypeError('Input values for {} class must be '
                                 'datetime64 objects'.format(self.name))
             else:
                 val1 = np.array([], 'datetime64[D]')
+        if val2 is not None:
+            raise ValueError(
+                f'{self.name} objects do not accept a val2 but you provided {val2}')
 
         return val1, None
 
@@ -1285,7 +1291,7 @@ class TimeBesselianEpoch(TimeEpochDate):
             raise ValueError("Cannot use Quantities for 'byear' format, "
                              "as the interpretation would be ambiguous. "
                              "Use float with Besselian year instead. ")
-
+        # FIXME: is val2 really okay here?
         return super()._check_val_type(val1, val2)
 
 
@@ -1399,10 +1405,12 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
     name = 'datetime'
 
     def _check_val_type(self, val1, val2):
-        # Note: don't care about val2 for this class
         if not all(isinstance(val, datetime.timedelta) for val in val1.flat):
             raise TypeError('Input values for {} class must be '
                             'datetime.timedelta objects'.format(self.name))
+        if val2 is not None:
+            raise ValueError(
+                f'{self.name} objects do not accept a val2 but you provided {val2}')
         return val1, None
 
     def set_jds(self, val1, val2):

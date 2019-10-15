@@ -600,10 +600,10 @@ class TestBasic:
 class TestVal2:
     """Tests related to val2"""
 
-    def test_val2_ignored(self):
-        """Test that val2 is ignored for string input"""
-        t = Time('2001:001', 'ignored', scale='utc')
-        assert t.yday == '2001:001:00:00:00.000'
+    def test_unused_val2_raises(self):
+        """Test that providing val2 is for string input lets user know we won't use it"""
+        with pytest.raises(ValueError):
+            Time('2001:001', 'ignored', scale='utc')
 
     def test_val2(self):
         """Various tests of the val2 input"""
