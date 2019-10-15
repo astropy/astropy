@@ -926,7 +926,7 @@ class LeapSeconds(QTable):
         introduced, i.e., mid-January or mid-July.  Expiration days are thus
         generally at least 150 days after the present.  For the auto-loading,
         a list comprised of the table shipped with astropy, and files and
-        URLs in ``~astropy.utils.iers.conf`` are tried, returning the first
+        URLs in `~astropy.utils.iers.Conf` are tried, returning the first
         that is sufficiently new, or the newest among them all.
         """
         if file is None:
@@ -972,7 +972,7 @@ class LeapSeconds(QTable):
         Bulletin C is released about 10 days after a possible leap second is
         introduced, i.e., mid-January or mid-July.  Expiration days are thus
         generally at least 150 days after the present.  We look for a file
-        that expires more than 180 - `~astropy.utils.iers.conf.auto_max_age`
+        that expires more than 180 - `~astropy.utils.iers.Conf.auto_max_age`
         after the present.
         """
         good_enough = datetime.now() + timedelta(180-conf.auto_max_age)

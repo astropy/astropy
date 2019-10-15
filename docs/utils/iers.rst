@@ -18,7 +18,7 @@ transformations.
 .. note:: The package also provides machinery to track leap seconds.  Since it
           generally should not be necessary to deal with those by hand, this
           is not discussed below.  For details, see the documentation of
-          `~astropy.utils.iers.LeapSecond`.
+          `~astropy.utils.iers.LeapSeconds`.
 
 Getting started
 ===============
