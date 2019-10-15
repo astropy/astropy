@@ -1612,7 +1612,23 @@ class Time(ShapedLikeNDArray):
                 cache[attr] = value
             return cache[attr]
 
-        elif attr in TIME_SCALES:  # allowed ones done above (self.SCALES)
+        elif '_' in attr:
+            fmt, _, out_subfmt = attr.rpartition('_')
+            if fmt in self.FORMATS and any(
+                    out_subfmt == subfmt[0] for subfmt in
+                    getattr(self.FORMATS[fmt], 'subfmts', ())):
+                cache = self.cache['format']
+                if attr not in cache:
+                    if fmt == self.format:
+                        tm = self
+                    else:
+                        tm = self.replicate(format=fmt)
+                    value = tm._shaped_like_input(tm._time.to_value(
+                        parent=tm, out_subfmt=out_subfmt))
+                cache[attr] = value
+                return cache[attr]
+
+        if attr in TIME_SCALES:  # allowed ones done above (self.SCALES)
             if self.scale is None:
                 raise ScaleValueError("Cannot convert TimeDelta with "
                                       "undefined scale to any defined scale.")
