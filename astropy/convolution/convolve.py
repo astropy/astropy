@@ -362,6 +362,8 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
             raise TypeError("Only 1D and 2D Kernels are supported.")
         new_result._is_bool = False
         new_result._separable = passed_array._separable
+        if isinstance(passed_kernel, Kernel):
+            new_result._separable = new_result._separable and passed_kernel._separable
         return new_result
     elif array_dtype.kind == 'f':
         # Try to preserve the input type if it's a floating point type
@@ -665,7 +667,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
             # add the shape lists (max of a list of length 4) (smaller)
             # also makes the shapes square
             fsize = 2 ** np.ceil(np.log2(np.max(arrayshape + kernshape)))
-        newshape = np.array([fsize for _ in range(array.ndim)], dtype=int)
+        newshape = np.full((array.ndim, ), fsize, dtype=int)
     else:
         if psf_pad:
             # just add the biggest dimensions
