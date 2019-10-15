@@ -10,7 +10,8 @@ from .basic import TransformType
 from . import _parameter_to_value
 
 
-__all__ = ['AffineType', 'Rotate2DType', 'Rotate3DType']
+__all__ = ['AffineType', 'Rotate2DType', 'Rotate3DType',
+           'RotationSequence3DType']
 
 
 class AffineType(TransformType):
@@ -144,6 +145,31 @@ class Rotate3DType(TransformType):
             assert_array_equal(a.lon, b.lon)
             assert_array_equal(a.lat, b.lat)
             assert_array_equal(a.lon_pole, b.lon_pole)
+
+
+class RotationSequence3DType(TransformType):
+    name = "rotate_sequence_3d"
+    types = ['astropy.modeling.rotations.Rotation3D']
+    version = "1.0.0"
+
+    @classmethod
+    def from_tree_transform(cls, node, ctx):
+        angles = node['angles']
+        axes_order = node['axes_order']
+        return modeling.rotations.Rotation3D(angles, axes_order=axes_order)
+
+    @classmethod
+    def to_tree_transform(cls, model, ctx):
+        node = {'angles': list(model.angles.value)}
+        node['axes_order'] = model.axes_order
+        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+
+    @classmethod
+    def assert_equal(cls, a, b):
+        TransformType.assert_equal(a, b)
+        assert a.__class__.__name__ == b.__class__.__name__
+        assert_array_equal(a.angles, b.angles)
+        assert a.axes_order == b.axes_order
 
 
 class GenericProjectionType(TransformType):
