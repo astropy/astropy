@@ -33,6 +33,7 @@ test_models = [
     astmodels.Scale(3.4*u.deg),
     astmodels.RotateNative2Celestial(5.63*u.deg, -72.5*u.deg, 180*u.deg),
     astmodels.RotateCelestial2Native(5.63*u.deg, -72.5*u.deg, 180*u.deg),
+    astmodels.Rotation3D([1.2, 2.3, 3.4, .3], 'xyzx')
 ]
 
 

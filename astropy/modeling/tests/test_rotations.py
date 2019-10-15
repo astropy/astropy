@@ -11,6 +11,7 @@ import astropy.units as u
 from astropy.tests.helper import assert_quantity_allclose
 
 from astropy.modeling import models
+from astropy.modeling import rotations
 from astropy.wcs import wcs
 
 
@@ -127,7 +128,63 @@ def test_euler_angles(axes_order):
                                  [(s1*s2), (c1*s3 + c2*c3*s1), (c1*c3 - c2*s1*s3)]])
 
                 }
-    model = models.EulerAngleRotation(23.4, 12.2, 34, axes_order)
-    mat = model._create_matrix(phi, theta, psi, axes_order)
+    mat = rotations._create_matrix([phi, theta, psi], axes_order)
 
     assert_allclose(mat.T, matrices[axes_order])  # get_rotation_matrix(axes_order))
+
+
+def test_rotation_3d():
+    """
+    A sanity test - when V2_REF = 0 and V3_REF = 0,
+    for V2, V3 close to the origin
+    ROLL_REF should be approximately PA_V3 .
+
+    (Test taken from JWST SIAF report.)
+    """
+    def _roll_angle_from_matrix(matrix, v2, v3):
+        X = -(matrix[2, 0] * np.cos(v2) + matrix[2, 1] * np.sin(v2)) * \
+            np.sin(v3) + matrix[2, 2] * np.cos(v3)
+        Y = (matrix[0, 0] * matrix[1, 2] - matrix[1, 0] * matrix[0, 2]) * np.cos(v2) + \
+            (matrix[0, 1] * matrix[1, 2] - matrix[1, 1] * matrix[0, 2]) * np.sin(v2)
+        new_roll = np.rad2deg(np.arctan2(Y, X))
+        if new_roll < 0:
+            new_roll += 360
+        return new_roll
+
+    ra_ref = 165 # in deg
+    dec_ref = 54 # in deg
+    v2_ref = 0
+    v3_ref = 0
+    pa_v3 = 37 # in deg
+
+    v2 = np.deg2rad(2.7e-6) # in deg.01 # in arcsec
+    v3 = np.deg2rad(2.7e-6) # in deg .01 # in arcsec
+    angles = [v2_ref, -v3_ref, pa_v3, dec_ref, -ra_ref]
+    axes = "zyxyz"
+    #angles = [pa_v3, dec_ref, ra_ref]
+    #axes = 'xyz'
+    M = rotations._create_matrix(np.deg2rad(angles) * u.deg, axes)
+    roll_angle = _roll_angle_from_matrix(M, v2, v3)
+    assert_allclose(roll_angle, pa_v3, atol=1e-3)
+
+
+def test_v23tosky():
+    """
+    Test taken from JWST INS report.
+    """
+    ra_ref = 165 # in deg
+    dec_ref = 54 # in deg
+    v2_ref = -503.654472 / 3600 # in deg
+    v3_ref = -318.742464 / 3600 # in deg
+    r0 = 37 # in deg
+
+    v2 = 210 # in deg
+    v3 = -75 # in deg
+    expected_ra_dec = (107.12810484789563, -35.97940247128502) # in deg
+    angles = np.array([v2_ref, -v3_ref, r0, dec_ref, -ra_ref])
+    axes = "zyxyz"
+    v2s = rotations.Rotation3D(angles, axes_order=axes)
+    x, y, z = rotations.spherical2cartesian(v2, v3)
+    x1, y1, z1 = v2s(x, y, z)
+    radec = rotations.cartesian2spherical(x1, y1, z1)
+    assert_allclose(radec, expected_ra_dec, atol=1e-10)

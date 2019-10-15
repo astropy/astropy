@@ -86,6 +86,9 @@ astropy.modeling
   ``inputs`` and ``outputs`` are generated. ``Model.inputs`` and ``Model.outputs``
   are now settable which allows renaming them on per user case. [#9298]
 
+- Add a new model representing a sequence of rotations in 3D around an arbitrary
+  number of axes. [#9369]
+
 
 astropy.nddata
 ^^^^^^^^^^^^^^
