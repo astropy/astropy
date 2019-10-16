@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import warnings
+from textwrap import dedent
 
 import pytest
 import numpy as np
@@ -9,7 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.transforms import Affine2D, IdentityTransform
 
 from astropy import units as u
-from astropy.wcs.wcsapi import BaseLowLevelWCS
+from astropy.wcs.wcsapi import BaseLowLevelWCS, SlicedLowLevelWCS
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from astropy.units import Quantity
@@ -17,7 +18,8 @@ from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
 from astropy.wcs import WCS
 from astropy.visualization.wcsaxes.frame import RectangularFrame, RectangularFrame1D
 from astropy.visualization.wcsaxes.wcsapi import (WCSWorld2PixelTransform,
-                                                  transform_coord_meta_from_wcs)
+                                                  transform_coord_meta_from_wcs,
+                                                  apply_slices)
 
 WCS2D = WCS(naxis=2)
 WCS2D.wcs.ctype = ['x', 'y']
@@ -215,6 +217,82 @@ def test_coord_type_1d_2d_wcs_uncorrelated():
     assert coord_meta['format_unit'] == [u.m, u.s]
     assert coord_meta['wrap'] == [None, None]
     assert coord_meta['visible'] == [True, False]
+
+
+@pytest.fixture
+def wcs_4d():
+    header = dedent("""\
+    WCSAXES =                    4 / Number of coordinate axes
+    CRPIX1  =                  0.0 / Pixel coordinate of reference point
+    CRPIX2  =                  0.0 / Pixel coordinate of reference point
+    CRPIX3  =                  0.0 / Pixel coordinate of reference point
+    CRPIX4  =                  5.0 / Pixel coordinate of reference point
+    CDELT1  =                  0.4 / [min] Coordinate increment at reference point
+    CDELT2  =                2E-11 / [m] Coordinate increment at reference point
+    CDELT3  =   0.0027777777777778 / [deg] Coordinate increment at reference point
+    CDELT4  =   0.0013888888888889 / [deg] Coordinate increment at reference point
+    CUNIT1  = 'min'                / Units of coordinate increment and value
+    CUNIT2  = 'm'                  / Units of coordinate increment and value
+    CUNIT3  = 'deg'                / Units of coordinate increment and value
+    CUNIT4  = 'deg'                / Units of coordinate increment and value
+    CTYPE1  = 'TIME'               / Coordinate type code
+    CTYPE2  = 'WAVE'               / Vacuum wavelength (linear)
+    CTYPE3  = 'HPLT-TAN'           / Coordinate type codegnomonic projection
+    CTYPE4  = 'HPLN-TAN'           / Coordinate type codegnomonic projection
+    CRVAL1  =                  0.0 / [min] Coordinate value at reference point
+    CRVAL2  =                  0.0 / [m] Coordinate value at reference point
+    CRVAL3  =                  0.0 / [deg] Coordinate value at reference point
+    CRVAL4  =                  0.0 / [deg] Coordinate value at reference point
+    LONPOLE =                180.0 / [deg] Native longitude of celestial pole
+    LATPOLE =                  0.0 / [deg] Native latitude of celestial pole
+    """)
+    return WCS(header=header)
+
+
+@pytest.fixture
+def sub_wcs(wcs_4d, wcs_slice):
+    return SlicedLowLevelWCS(wcs_4d, wcs_slice)
+
+
+@pytest.mark.parametrize(("wcs_slice", "wcsaxes_slices", "world_map", "ndim"),
+                         [
+                             (np.s_[...], [0,0,'x','y'], (2, 3), 2),
+                             (np.s_[...], [0,'x',0,'y'], (1, 3), 3),
+                             (np.s_[...], ['x',0,0,'y'], (0, 3), 3),
+                             (np.s_[...], ['x','y',0,0], (0, 1), 2),
+                             (np.s_[:,:,0,:], [0, 'x', 'y'], (1, 2), 2),
+                             (np.s_[:,:,0,:], ['x', 0, 'y'], (0, 2), 3),
+                             (np.s_[:,:,0,:], ['x', 'y', 0], (0, 1), 3),
+                             (np.s_[:,0,:,:], ['x', 'y', 0], (0, 1), 2),
+                         ])
+def test_apply_slices(sub_wcs, wcs_slice, wcsaxes_slices, world_map, ndim):
+    transform_wcs, _, world_map = apply_slices(sub_wcs, wcsaxes_slices)
+    assert transform_wcs.world_n_dim == ndim
+
+    assert world_map == world_map
+
+
+# parametrize here to pass to the fixture
+@pytest.mark.parametrize("wcs_slice", [np.s_[:,:,0,:]])
+def test_sliced_ND_input(sub_wcs, wcs_slice):
+    slices_wcsaxes = [0, 'x', 'y']
+
+    _, coord_meta = transform_coord_meta_from_wcs(sub_wcs, RectangularFrame, slices=slices_wcsaxes)
+
+    assert all(len(x) == 3 for x in coord_meta.values())
+
+    coord_meta['name'] = ['time', 'custom:pos.helioprojective.lat', 'custom:pos.helioprojective.lon']
+    coord_meta['type'] = ['scalar', 'latitude', 'longitude']
+    coord_meta['wrap'] = [None, None, 180.0]
+    coord_meta['unit'] = [u.Unit("min"), u.Unit("deg"), u.Unit("deg")]
+    coord_meta['visible'] = [False, True, True]
+    coord_meta['format_unit'] = [u.Unit("min"), u.Unit("arcsec"), u.Unit("arcsec")]
+    coord_meta['default_axislabel_position'] = ['', 'b', 't']
+    coord_meta['default_ticklabel_position'] = ['', 'b', 't']
+    coord_meta['default_ticks_position'] = ['', 'btlr', 'btlr']
+
+    # Validate the axes initialize correctly
+    ax = plt.subplot(projection=sub_wcs, slices=slices_wcsaxes)
 
 
 class LowLevelWCS5D(BaseLowLevelWCS):
