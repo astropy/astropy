@@ -30,7 +30,7 @@ from astropy import units as u
 from .utils import _to_radian, _to_orig_unit
 
 __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D',
-           'EulerAngleRotation', 'Rotation3D']
+           'EulerAngleRotation', 'RotationSequence3D', 'SphericalRotationSequence']
 
 
 def _create_matrix(angles, axes_order):
@@ -60,7 +60,7 @@ def cartesian2spherical(x, y, z):
     return alpha, delta
 
 
-class Rotation3D(Model):
+class RotationSequence3D(Model):
     """
     Perform a series of rotations about different axis in 3D space.
 
@@ -72,6 +72,11 @@ class Rotation3D(Model):
         Angles of rotation in deg in the order of axes_order.
     axes_order : str
         A sequence of 'x', 'y', 'z' corresponding to axis of rotation.
+
+    Examples
+    --------
+    >>> model = RotationSequence3D([1.1, 2.1, 3.1, 4.1], axes_order='xyzx')
+
     """
     standard_broadcasting = False
     _separable = False
@@ -92,9 +97,9 @@ class Rotation3D(Model):
             raise ValueError("The number of angles {0} should match the number \
                               of axes {1}.".format(len(angles),
                                                    len(axes_order)))
-        super(Rotation3D, self).__init__(angles, name=name)
-        self.inputs = ('x', 'y', 'z')
-        self.outputs = ('x', 'y', 'z')
+        super().__init__(angles, name=name)
+        self._inputs = ('x', 'y', 'z')
+        self._outputs = ('x', 'y', 'z')
 
     @property
     def inverse(self):
@@ -116,6 +121,42 @@ class Rotation3D(Model):
         x, y, z = result[0], result[1], result[2]
         x.shape = y.shape = z.shape = orig_shape
         return x, y, z
+
+
+class SphericalRotationSequence(RotationSequence3D):
+    """
+    Perform a sequence of rotations about arbitrary number of axes
+    in spherical coordinates.
+
+    Parameters
+    ----------
+    angles : list
+        A sequence of angles (in deg).
+    axes_order : str
+        A sequence of characters ('x', 'y', or 'z') corresponding to the
+        axis of rotation and matching the order in ``angles``.
+
+    """
+    def __init__(self, angles, axes_order, name=None, **kwargs):
+        self._n_inputs = 2
+        self._n_outputs = 2
+        super().__init__(angles, axes_order=axes_order, name=name, **kwargs)
+        self._inputs = ("lon", "lat")
+        self._outputs = ("lon", "lat")
+
+    @property
+    def n_inputs(self):
+        return self._n_inputs
+
+    @property
+    def n_outputs(self):
+        return self._n_outputs
+
+    def evaluate(self, lon, lat, angles):
+        x, y, z = spherical2cartesian(lon, lat)
+        x1, y1, z1 = super().evaluate(x, y, z, angles)
+        lon, lat = cartesian2spherical(x1, y1, z1)
+        return lon, lat
 
 
 class _EulerRotation:
