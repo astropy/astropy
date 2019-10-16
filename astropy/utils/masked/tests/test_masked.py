@@ -290,37 +290,48 @@ class TestMaskedLongitudeUfuncs(MaskedUfuncTests, LongitudeSetup):
     pass
 
 
-# class TestMaskedArrayMethods(MaskedArraySetup):
-#     @pytest.mark.parametrize('axis', (0, 1, None))
-#     def test_sum_method(self, axis):
-#         ma_sum = self.ma.sum(axis)
-#         filled = self.a.data * (1. - self.ma.mask)
-#         expected_data = filled.sum(axis)
-#         assert_array_equal(ma_sum.data, expected_data)
-#         assert not np.any(ma_sum.mask)
+class TestMaskedArrayMethods(MaskedArraySetup):
+    @pytest.mark.parametrize('axis', (0, 1, None))
+    def test_sum_method(self, axis):
+        ma_sum = self.ma.sum(axis)
+        expected_data = self.a.sum(axis)
+        expected_mask = self.ma.mask.any(axis)
+        assert_array_equal(ma_sum.unmasked, expected_data)
+        assert_array_equal(ma_sum.mask, expected_mask)
 
-#     @pytest.mark.parametrize('axis', (0, 1, None))
-#     def test_min(self, axis):
-#         ma_min = self.ma.min(axis)
-#         filled = self.a.copy()
-#         filled[self.mask_a] = self.a.max()
-#         expected_data = filled.min(axis)
-#         assert_array_equal(ma_min.data, expected_data)
-#         assert not np.any(ma_min.mask)
+    @pytest.mark.parametrize('axis', (0, 1, None))
+    def test_mean_method(self, axis):
+        ma_mean = self.ma.mean(axis)
+        filled = self.a.copy()
+        filled[self.mask_a] = 0.
+        count = 1 - self.ma.mask.copy().astype(int)
+        expected_data = filled.sum(axis) / count.sum(axis)
+        expected_mask = self.ma.mask.all(axis)
+        assert_array_equal(ma_mean.unmasked, expected_data)
+        assert_array_equal(ma_mean.mask, expected_mask)
 
-#     @pytest.mark.parametrize('axis', (0, 1, None))
-#     def test_max(self, axis):
-#         ma_max = self.ma.max(axis)
-#         filled = self.a.copy()
-#         filled[self.mask_a] = self.a.min()
-#         expected_data = filled.max(axis)
-#         assert_array_equal(ma_max.data, expected_data)
-#         assert not np.any(ma_max.mask)
+    @pytest.mark.parametrize('axis', (0, 1, None))
+    def test_min(self, axis):
+        ma_min = self.ma.min(axis)
+        filled = self.a.copy()
+        filled[self.mask_a] = self.a.max()
+        expected_data = filled.min(axis)
+        assert_array_equal(ma_min.unmasked, expected_data)
+        assert not np.any(ma_min.mask)
+
+    @pytest.mark.parametrize('axis', (0, 1, None))
+    def test_max(self, axis):
+        ma_max = self.ma.max(axis)
+        filled = self.a.copy()
+        filled[self.mask_a] = self.a.min()
+        expected_data = filled.max(axis)
+        assert_array_equal(ma_max.unmasked, expected_data)
+        assert not np.any(ma_max.mask)
 
 
-# class TestMaskedQuantityMethods(TestMaskedArrayMethods, QuantitySetup):
-#     pass
+class TestMaskedQuantityMethods(TestMaskedArrayMethods, QuantitySetup):
+    pass
 
 
-# class TestMaskedLongitudeMethods(TestMaskedArrayMethods, LongitudeSetup):
-#     pass
+class TestMaskedLongitudeMethods(TestMaskedArrayMethods, LongitudeSetup):
+    pass

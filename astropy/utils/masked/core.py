@@ -119,11 +119,6 @@ class Masked:
     """
     _generated_subclasses = {}
 
-    _REDUCTION_HELPERS = {
-        np.minimum: lambda a: np.max(a),
-        np.maximum: lambda a: np.min(a)}
-    """For ufuncs without an identity but where reduction makes sense."""
-
     def __new__(cls, data, mask=None):
         data, data_mask = cls._data_mask(data)
         data = np.asanyarray(data)
@@ -214,8 +209,11 @@ class Masked:
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         out = kwargs.pop('out', None)
         if out is not None:
-            kwargs['out'] = tuple((out_._data if isinstance(out_, Masked)
-                                   else out_) for out_ in out)
+            if any(out_ is not None and not isinstance(out_, Masked)
+                   for out_ in out):
+                return NotImplemented
+            kwargs['out'] = tuple((None if out_ is None else out_._data)
+                                  for out_ in out)
             if ufunc.nout == 1:
                 out = out[0]
 
@@ -272,6 +270,55 @@ class Masked:
         assert isinstance(out, Masked)
         out._mask = mask
         return out
+
+    def _masked_function(self, function, axis=None, out=None, keepdims=False,
+                         where=True, **kwargs):
+        if out is not None:
+            if not isinstance(out, Masked):
+                raise TypeError('output should be a Masked instance')
+            out_mask = out.mask
+            out_data = out.unmasked
+        else:
+            out_mask = out_data = None
+
+        # Output mask is set if *all* elements are masked.  Calculate *without*
+        # a possible initial kwarg (but passing on axis, where, etc.).
+        mask = np.logical_and.reduce(self.mask, axis=axis, out=out_mask,
+                                     keepdims=keepdims, where=where)
+        where_data = ~self.mask
+        if where is not True:
+            # In-place in our inverted mask to ensure shape is OK.
+            where_data &= where
+
+        result = function(self.unmasked, axis=axis, out=out_data,
+                          keepdims=keepdims, where=where_data, **kwargs)
+        if out is None:
+            out = Masked(result, mask)
+
+        return out
+
+    def min(self, axis=None, out=None, keepdims=False, initial=None,
+            where=True):
+        if initial is None:
+            initial = self.unmasked.max()
+        return self._masked_function(np.min, axis=axis, out=out,
+                                     keepdims=False, initial=initial,
+                                     where=where)
+
+    def max(self, axis=None, out=None, keepdims=False, initial=None,
+            where=True):
+        if initial is None:
+            initial = self.unmasked.min()
+        return self._masked_function(np.max, axis=axis, out=out,
+                                     keepdims=False, initial=initial,
+                                     where=where)
+
+    def mean(self, axis=None, dtype=None, out=None, keepdims=False):
+        result = self._masked_function(np.sum, axis=axis, out=out,
+                                       keepdims=keepdims, dtype=dtype)
+        n = np.add.reduce(~self.mask, axis=axis, keepdims=keepdims)
+        result /= n
+        return result
 
     # TODO: improve (greatly) repr and str!!
     def __repr__(self):
