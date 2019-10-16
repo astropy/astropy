@@ -6,6 +6,7 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 from astropy.nddata import NDData, NDSlicingMixin
+from astropy.nddata import _testing as nd_testing
 from astropy.nddata.nduncertainty import NDUncertainty, StdDevUncertainty
 from astropy import units as u
 
@@ -60,9 +61,9 @@ def test_slicing_1ddata_ndslice():
         nd[:, :]
 
 
-@pytest.mark.parametrize('prop_name', ['mask', 'wcs', 'uncertainty'])
+@pytest.mark.parametrize('prop_name', ['mask', 'uncertainty'])
 def test_slicing_1dmask_ndslice(prop_name):
-    # Data is 2d but mask only 1d so this should let the IndexError when
+    # Data is 2d but mask/uncertainty only 1d so this should let the IndexError when
     # slicing the mask rise to the user.
     data = np.ones((3, 3))
     kwarg = {prop_name: np.ones(3)}
@@ -76,7 +77,10 @@ def test_slicing_all_npndarray_1d():
     data = np.arange(10)
     mask = data > 3
     uncertainty = StdDevUncertainty(np.linspace(10, 20, 10))
-    wcs = np.linspace(1, 1000, 10)
+    naxis = 1
+    wcs = nd_testing._create_wcs_simple(naxis=naxis, ctype=["deg"] * naxis,
+                                        crpix=[3] * naxis, crval=[10] * naxis,
+                                        cdelt=[1] * naxis)
     # Just to have them too
     unit = u.s
     meta = {'observer': 'Brian'}
@@ -87,7 +91,7 @@ def test_slicing_all_npndarray_1d():
     assert_array_equal(data[2:5], nd2.data)
     assert_array_equal(mask[2:5], nd2.mask)
     assert_array_equal(uncertainty[2:5].array, nd2.uncertainty.array)
-    assert_array_equal(wcs[2:5], nd2.wcs)
+    assert nd2.wcs.pixel_to_world([1]) == nd.wcs.pixel_to_world([3])
     assert unit is nd2.unit
     assert meta == nd.meta
 
@@ -97,7 +101,10 @@ def test_slicing_all_npndarray_nd():
     data = np.arange(1000).reshape(10, 10, 10)
     mask = data > 3
     uncertainty = np.linspace(10, 20, 1000).reshape(10, 10, 10)
-    wcs = np.linspace(1, 1000, 1000).reshape(10, 10, 10)
+    naxis = 3
+    wcs = nd_testing._create_wcs_simple(naxis=naxis, ctype=["deg"] * naxis,
+                                        crpix=[3] * naxis, crval=[10] * naxis,
+                                        cdelt=[1] * naxis)
 
     nd = NDDataSliceable(data, mask=mask, uncertainty=uncertainty, wcs=wcs)
     # Slice only 1D
@@ -105,20 +112,23 @@ def test_slicing_all_npndarray_nd():
     assert_array_equal(data[2:5], nd2.data)
     assert_array_equal(mask[2:5], nd2.mask)
     assert_array_equal(uncertainty[2:5], nd2.uncertainty.array)
-    assert_array_equal(wcs[2:5], nd2.wcs)
+    # assert_array_equal(wcs[2:5], nd2.wcs)
     # Slice 3D
     nd2 = nd[2:5, :, 4:7]
     assert_array_equal(data[2:5, :, 4:7], nd2.data)
     assert_array_equal(mask[2:5, :, 4:7], nd2.mask)
     assert_array_equal(uncertainty[2:5, :, 4:7], nd2.uncertainty.array)
-    assert_array_equal(wcs[2:5, :, 4:7], nd2.wcs)
+    assert nd2.wcs.pixel_to_world([1], [5], [1]) == nd.wcs.pixel_to_world([3], [5], [5])
 
 
 def test_slicing_all_npndarray_shape_diff():
     data = np.arange(10)
     mask = (data > 3)[0:9]
     uncertainty = np.linspace(10, 20, 15)
-    wcs = np.linspace(1, 1000, 12)
+    naxis = 1
+    wcs = nd_testing._create_wcs_simple(naxis=naxis, ctype=["deg"] * naxis,
+                                        crpix=[3] * naxis, crval=[10] * naxis,
+                                        cdelt=[1] * naxis)
 
     nd = NDDataSliceable(data, mask=mask, uncertainty=uncertainty, wcs=wcs)
     nd2 = nd[2:5]
@@ -126,14 +136,17 @@ def test_slicing_all_npndarray_shape_diff():
     # All are sliced even if the shapes differ (no Info)
     assert_array_equal(mask[2:5], nd2.mask)
     assert_array_equal(uncertainty[2:5], nd2.uncertainty.array)
-    assert_array_equal(wcs[2:5], nd2.wcs)
+    assert nd2.wcs.pixel_to_world([1]) == nd.wcs.pixel_to_world([3])
 
 
 def test_slicing_all_something_wrong():
     data = np.arange(10)
-    mask = [False]*10
+    mask = [False] * 10
     uncertainty = {'rdnoise': 2.9, 'gain': 1.4}
-    wcs = 145 * u.degree
+    naxis = 1
+    wcs = nd_testing._create_wcs_simple(naxis=naxis, ctype=["deg"] * naxis,
+                                        crpix=[3] * naxis, crval=[10] * naxis,
+                                        cdelt=[1] * naxis)
 
     nd = NDDataSliceable(data, mask=mask, uncertainty=uncertainty, wcs=wcs)
     nd2 = nd[2:5]
@@ -142,18 +155,22 @@ def test_slicing_all_something_wrong():
     assert_array_equal(mask[2:5], nd2.mask)
     # Not sliced attributes (they will raise a Info nevertheless)
     uncertainty is nd2.uncertainty
-    assert_array_equal(wcs, nd2.wcs)
+    assert nd2.wcs.pixel_to_world([1]) == nd.wcs.pixel_to_world([3])
 
 
 def test_boolean_slicing():
     data = np.arange(10)
     mask = data.copy()
     uncertainty = StdDevUncertainty(data.copy())
-    wcs = data.copy()
+    naxis = 1
+    wcs = nd_testing._create_wcs_simple(naxis=naxis, ctype=["deg"] * naxis,
+                                        crpix=[3] * naxis, crval=[10] * naxis,
+                                        cdelt=[1] * naxis)
+
     nd = NDDataSliceable(data, mask=mask, uncertainty=uncertainty, wcs=wcs)
 
     nd2 = nd[(nd.data >= 3) & (nd.data < 8)]
     assert_array_equal(data[3:8], nd2.data)
     assert_array_equal(mask[3:8], nd2.mask)
-    assert_array_equal(wcs[3:8], nd2.wcs)
+    assert nd2.wcs.pixel_to_world([1]) == nd.wcs.pixel_to_world([4])
     assert_array_equal(uncertainty.array[3:8], nd2.uncertainty.array)
