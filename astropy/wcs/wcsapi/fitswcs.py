@@ -184,6 +184,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
     @property
     def world_axis_physical_types(self):
         types = []
+        # TODO: need to support e.g. TT(TAI)
         for ctype in self.wcs.ctype:
             if ctype.startswith('UT('):
                 types.append('time')
@@ -304,6 +305,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         # Avoid circular imports by importing here
         from astropy.wcs.utils import wcs_to_celestial_frame
         from astropy.coordinates import SkyCoord
+        from astropy.time import Time
 
         components = [None] * self.naxis
         classes = {}
@@ -330,12 +332,72 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 components[self.wcs.lng] = ('celestial', 0, 'spherical.lon.degree')
                 components[self.wcs.lat] = ('celestial', 1, 'spherical.lat.degree')
 
-        # Fallback: for any remaining components that haven't been identified, just
-        # return Quantity as the class to use
+        # We can then make sure we correctly return Time objects where appropriate
+        # (https://www.aanda.org/articles/aa/pdf/2015/02/aa24653-14.pdf)
 
         if 'time' in self.world_axis_physical_types:
-            warnings.warn('In future, times will be represented by the Time class '
-                          'instead of Quantity', FutureWarning)
+
+            multiple_time = self.world_axis_physical_types.count('time') > 1
+
+            for i in range(self.naxis):
+
+                if self.world_axis_physical_types[i] == 'time':
+
+                    if multiple_time:
+                        name = f'time.{i}'
+                    else:
+                        name = 'time'
+
+                    # Initalize JD offsets
+                    mjd1 = 0.
+                    mjd2 = 0.
+
+                    # Extract time scale
+                    scale = self.wcs.ctype[i].lower()
+
+                    # TODO: consider having GPS as a scale in Time
+                    # For now GPS is not a scale, we approximate this by TAI - 19s
+                    if scale == 'gps':
+                        jd2 += 19. / 86400.  # 19 seconds
+                        scale = 'tai'
+
+                    # TDT is a deprecated name for TT
+                    elif scale == 'tdt':
+                        scale = 'tt'
+
+                    # IAT is a deprecated name for TAI
+                    elif scale == 'iat':
+                        scale = 'tai'
+
+                    # GMT is used for dates before 1972-01-01 and is continuous with UTC
+                    elif scale == 'gmt':
+                        scale = 'utc'
+
+                    # ET is used for dates before 1984-01-01 and is continuous with TT
+                    elif scale == 'et':
+                        scale = 'tt'
+
+                    elif scale not in Time.SCALES:
+                        raise ValueError('Unrecognized time scale CTYPE: {0}'.format(self.wcs.ctype[i]))
+
+                    mjd1 += self.wcs.mjdref[0]
+                    mjd2 += self.wcs.mjdref[1]
+
+                    reference_time = Time(mjd1, mjd2, format='mjd', scale=scale)
+
+                    def time_from_reference_and_offset(offset):
+                        if isinstance(offset, Time):
+                            return offset
+                        return reference_time + offset * u.s
+
+                    def offset_from_time_and_reference(time):
+                        return (time - reference_time).to_value(u.s)
+
+                    classes[name] = (Time, time_from_reference_and_offset, (), {})
+                    components[i] = (name, 0, offset_from_time_and_reference)
+
+        # Fallback: for any remaining components that haven't been identified, just
+        # return Quantity as the class to use
 
         for i in range(self.naxis):
             if components[i] is None:
