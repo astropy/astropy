@@ -9,8 +9,8 @@ originals = [const.Constant('h_fake', 'Not Planck',
                             0.0, 'J s', 0.0, 'fakeref',
                             system='si'),
              const.h,
-             const.e]
-xfails = [True, True, True]
+             const.e.si]
+xfails = [False, False, False]
 
 
 @pytest.mark.parametrize(("original", "xfail"), zip(originals, xfails))
