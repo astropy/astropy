@@ -46,9 +46,17 @@ class SpectralCoord(u.Quantity):
     target : `BaseCoordinateFrame` or `SkyCoord`, optional
         The coordinate (position and velocity) of observer.
     """
+    _quantity_class = u.Quantity
+
     def __new__(cls, value, unit=None, rest=None, velocity_convention=None,
                 observer=None, target=None, **kwargs):
-        obj = super().__new__(cls, value, unit=unit, **kwargs)
+        obj = super().__new__(cls, value, unit=unit, subok=True, **kwargs)
+
+        # The quantity machinery will drop the unit because type(value) !=
+        # SpectralCoord when passing in a Quantity object. Reassign the unit
+        # here to avoid this.
+        if isinstance(value, u.Quantity) and unit is None:
+            obj._unit = value.unit
 
         obj.rest = rest
         obj.velocity_convention = velocity_convention
