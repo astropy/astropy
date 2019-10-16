@@ -436,10 +436,10 @@ class TestConcatenate(metaclass=CoverageMeta):
 
     def check(self, func, *args, **kwargs):
         q_list = kwargs.pop('q_list', [self.q1, self.q2])
+        q_ref = kwargs.pop('q_ref', q_list[0])
         o = func(q_list, *args, **kwargs)
-        unit = q_list[0].unit
-        v_list = [q.to_value(unit) for q in q_list]
-        expected = func(v_list, *args, **kwargs) * unit
+        v_list = [q_ref._to_own_unit(q) for q in q_list]
+        expected = func(v_list, *args, **kwargs) * q_ref.unit
         assert o.shape == expected.shape
         assert np.all(o == expected)
 
@@ -448,6 +448,9 @@ class TestConcatenate(metaclass=CoverageMeta):
     def test_concatenate(self):
         self.check(np.concatenate)
         self.check(np.concatenate, axis=1)
+
+        self.check(np.concatenate, q_list=[np.zeros(self.q1.shape), self.q1, self.q2],
+                   q_ref=self.q1)
 
         out = np.empty((4, 3)) * u.dimensionless_unscaled
         result = np.concatenate([self.q1, self.q2], out=out)
@@ -490,6 +493,9 @@ class TestConcatenate(metaclass=CoverageMeta):
     def test_block(self):
         self.check(np.block)
 
+        result = np.block([[0., 1.*u.m], [1.*u.cm, 2.*u.km]])
+        assert np.all(result == np.block([[0, 1.], [.01, 2000.]]) << u.m)
+
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
     def test_append(self):
@@ -509,13 +515,17 @@ class TestConcatenate(metaclass=CoverageMeta):
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
     def test_insert(self):
-        # Unit of inserted values is ignored.
+        # Unit of inserted values is not ignored.
         q = np.arange(12.).reshape(6, 2) * u.m
         out = np.insert(q, (3, 5), [50., 25.] * u.cm)
         assert isinstance(out, u.Quantity)
         assert out.unit == q.unit
-        expected = np.insert(q.value, (3, 5), [0.5, 0.25]) * u.m
+        expected = np.insert(q.value, (3, 5), [0.5, 0.25]) << q.unit
         assert np.all(out == expected)
+        # 0 can have any unit.
+        out2 = np.insert(q, (3, 5), 0)
+        expected2 = np.insert(q.value, (3, 5), 0) << q.unit
+        assert np.all(out2 == expected2)
 
         a = np.arange(3.)
         result = np.insert(a, (2,), 50. * u.percent)
@@ -526,6 +536,8 @@ class TestConcatenate(metaclass=CoverageMeta):
 
         with pytest.raises(TypeError):
             np.insert(q, 3 * u.cm, 50. * u.cm)
+        with pytest.raises(u.UnitsError):
+            np.insert(q, (3, 5), 0. * u.s)
 
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
@@ -1211,6 +1223,13 @@ class TestInterpolationFunctions(metaclass=CoverageMeta):
         assert out2.unit == expected2.unit
         assert np.all(out2 == expected2)
 
+        out3 = np.piecewise(x, [x < 1 * u.m, x >= 0],
+                            [0, 1*u.percent, lambda x: 1*u.one])
+        expected3 = np.piecewise(x.value, [x.value < 1, x.value >= 0],
+                                 [0, 0.01, 1]) * u.one
+        assert out3.unit == expected3.unit
+        assert np.all(out3 == expected3)
+
         with pytest.raises(TypeError):  # no Quantity in condlist.
             np.piecewise(x, [x], [0.])
 
@@ -1692,6 +1711,9 @@ class TestSetOpsFcuntions(metaclass=CoverageMeta):
                        reason="Needs __array_function__ support")
     def test_union1d(self):
         self.check2(np.union1d)
+        result = np.union1d(np.array([0., np.nan]), np.arange(3) << u.m)
+        assert result.unit is u.m
+        assert_array_equal(result.value, np.array([0., 1., 2., np.nan]))
 
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
@@ -1702,6 +1724,10 @@ class TestSetOpsFcuntions(metaclass=CoverageMeta):
                        reason="Needs __array_function__ support")
     def test_in1d(self):
         self.check2(np.in1d, unit=None)
+        # Check zero is treated as having any unit.
+        assert np.in1d(np.zeros(1), self.q2)
+        with pytest.raises(u.UnitsError):
+            np.in1d(np.ones(1), self.q2)
 
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
