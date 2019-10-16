@@ -803,3 +803,4 @@ def test_1d_plot_2d_wcs_correlated(spatial_wcs_2d):
     ax.coords['glat'].grid(color="blue")
 
     return fig
+
