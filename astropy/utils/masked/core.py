@@ -154,7 +154,10 @@ class Masked:
     def _data_mask(data):
         mask = getattr(data, 'mask', None)
         if mask is not None:
-            data = getattr(data, 'data', data)
+            if isinstance(data, Masked):
+                data = data.unmasked
+            elif hasattr(data, 'filled'):
+                data = data.filled()
 
         return data, mask
 
@@ -222,7 +225,7 @@ class Masked:
             for input_ in inputs:
                 if isinstance(input_, Masked):
                     masks.append(input_.mask)
-                    converted.append(input_.data)
+                    converted.append(input_.unmasked)
                 else:
                     converted.append(input_)
 
@@ -234,29 +237,11 @@ class Masked:
 
         elif method == 'reduce':
             if isinstance(inputs[0], Masked):
-                initial = kwargs.pop('initial', None)
-                # Calculate mask *without* a possible initial kwarg
-                # (but passing on axis and where arguments, etc.).
-                mask = np.logical_and.reduce(inputs[0].mask, **kwargs)
-                converted = inputs[0].data
-                # But use it for real reduction (or provide it, as needed).
-                if initial is None:
-                    if ufunc.identity is None:
-                        helper = self._REDUCTION_HELPERS.get(ufunc, None)
-                        if helper:
-                            kwargs['initial'] = helper(inputs[0])
-                        else:
-                            return NotImplemented
-                else:
-                    kwargs['initial'] = initial
-
-                # Use where to take into account the mask.
-                where = ~self._mask
-                if 'where' in kwargs:
-                    # In-place in our inverted mask to ensure shape is OK.
-                    where &= kwargs['where']
-
-                kwargs['where'] = where
+                # By default, we simply propagate masks, since for
+                # things like np.sum, it makes no sense to do otherwise.
+                # Individual methods need to override as needed.
+                mask = np.logical_or.reduce(inputs[0].mask, **kwargs)
+                converted = inputs[0].unmasked
 
             elif 'out' in kwargs and isinstance(kwargs['out'][0], Masked):
                 mask = False
@@ -284,7 +269,7 @@ class Masked:
         if out is None:
             return Masked(result, mask)
 
-        assert isinstance(out, Masked) and isinstance(mask, Mask)
+        assert isinstance(out, Masked)
         out._mask = mask
         return out
 
