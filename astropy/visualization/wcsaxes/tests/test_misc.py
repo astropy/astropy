@@ -2,6 +2,7 @@
 
 import os
 import warnings
+from textwrap import dedent
 from distutils.version import LooseVersion
 
 import pytest
@@ -16,6 +17,7 @@ from astropy.io import fits
 from astropy.coordinates import SkyCoord
 from astropy.tests.helper import catch_warnings
 from astropy.tests.image_tests import ignore_matplotlibrc
+from astropy.wcs.wcsapi import SlicedLowLevelWCS
 
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.visualization.wcsaxes.frame import RectangularFrame, RectangularFrame1D
@@ -423,3 +425,40 @@ def test_repr():
 
     ax = plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1))
     assert repr(ax.coords) == EXPECTED_REPR_2
+
+
+@pytest.fixture
+def wcs_4d():
+    header = dedent("""\
+    WCSAXES =                    4 / Number of coordinate axes
+    CRPIX1  =                  0.0 / Pixel coordinate of reference point
+    CRPIX2  =                  0.0 / Pixel coordinate of reference point
+    CRPIX3  =                  0.0 / Pixel coordinate of reference point
+    CRPIX4  =                  5.0 / Pixel coordinate of reference point
+    CDELT1  =                  0.4 / [min] Coordinate increment at reference point
+    CDELT2  =                2E-11 / [m] Coordinate increment at reference point
+    CDELT3  =   0.0027777777777778 / [deg] Coordinate increment at reference point
+    CDELT4  =   0.0013888888888889 / [deg] Coordinate increment at reference point
+    CUNIT1  = 'min'                / Units of coordinate increment and value
+    CUNIT2  = 'm'                  / Units of coordinate increment and value
+    CUNIT3  = 'deg'                / Units of coordinate increment and value
+    CUNIT4  = 'deg'                / Units of coordinate increment and value
+    CTYPE1  = 'TIME'               / Coordinate type code
+    CTYPE2  = 'WAVE'               / Vacuum wavelength (linear)
+    CTYPE3  = 'HPLT-TAN'           / Coordinate type codegnomonic projection
+    CTYPE4  = 'HPLN-TAN'           / Coordinate type codegnomonic projection
+    CRVAL1  =                  0.0 / [min] Coordinate value at reference point
+    CRVAL2  =                  0.0 / [m] Coordinate value at reference point
+    CRVAL3  =                  0.0 / [deg] Coordinate value at reference point
+    CRVAL4  =                  0.0 / [deg] Coordinate value at reference point
+    LONPOLE =                180.0 / [deg] Native longitude of celestial pole
+    LATPOLE =                  0.0 / [deg] Native latitude of celestial pole
+    """)
+    return WCS(header=header)
+
+
+def test_sliced_ND_input(wcs_4d):
+    slices_wcsaxes = [0, 'x', 'y']
+    sub_wcs = SlicedLowLevelWCS(wcs_4d, np.s_[:,:,0,:])
+
+    ax = plt.subplot(projection=sub_wcs, slices=slices_wcsaxes)
