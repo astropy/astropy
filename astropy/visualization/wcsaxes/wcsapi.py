@@ -117,27 +117,12 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
     coord_meta['default_ticklabel_position'] = [''] * wcs.world_n_dim
     coord_meta['default_ticks_position'] = [''] * wcs.world_n_dim
 
-    ori_wcs_length = wcs.world_n_dim
+    transform_wcs, invert_xy, world_map = apply_slices(wcs, slices)
 
-    invert_xy = False
-    if slices is not None:
-        wcs_slice = list(slices)
-        wcs_slice[wcs_slice.index("x")] = slice(None)
-        if 'y' in slices:
-            wcs_slice[wcs_slice.index("y")] = slice(None)
-            invert_xy = slices.index('x') > slices.index('y')
-        wcs = SlicedLowLevelWCS(wcs, wcs_slice[::-1])
-
-    # If we have sliced the WCS then we use the WCS world keep.
-    if ori_wcs_length != wcs.world_n_dim:
-        world_keep = wcs._world_keep
-    else:
-        world_keep = list(range(wcs.world_n_dim))
+    transform = WCSPixel2WorldTransform(transform_wcs, invert_xy=invert_xy)
 
     for i in range(len(coord_meta['type'])):
-        coord_meta['visible'].append(i in world_keep)
-
-    transform = WCSPixel2WorldTransform(wcs, invert_xy=invert_xy)
+        coord_meta['visible'].append(i in world_map)
 
     m = wcs.axis_correlation_matrix.copy()
     if invert_xy:
@@ -148,17 +133,17 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
         for i, spine_name in enumerate('bltr'):
             pos = np.nonzero(m[:, i % 2])[0]
             if len(pos) > 0:
-                index = world_keep[pos[0]]
+                index = pos[0]
                 coord_meta['default_axislabel_position'][index] = spine_name
                 coord_meta['default_ticklabel_position'][index] = spine_name
                 coord_meta['default_ticks_position'][index] = spine_name
-                m[pos[0], :] = 0
+                m[index, :] = 0
 
         # In the special and common case where the frame is rectangular and
         # we are dealing with 2-d WCS (after slicing), we show all ticks on
         # all axes for backward-compatibility.
-        if len(world_keep) == 2:
-            for index in world_keep:
+        if len(world_map) == 2:
+            for index in world_map:
                 coord_meta['default_ticks_position'][index] = 'bltr'
 
     elif frame_class is RectangularFrame1D:
@@ -166,17 +151,17 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
         for i, spine_name in enumerate('bt'):
             pos = np.nonzero(m[:, 0])[0]
             if len(pos) > 0:
-                index = world_keep[pos[0]]
+                index = pos[0]
                 coord_meta['default_axislabel_position'][index] = spine_name
                 coord_meta['default_ticklabel_position'][index] = spine_name
                 coord_meta['default_ticks_position'][index] = spine_name
-                m[pos[0], :] = 0
+                m[index, :] = 0
 
         # In the special and common case where the frame is rectangular and
         # we are dealing with 2-d WCS (after slicing), we show all ticks on
         # all axes for backward-compatibility.
-        if len(world_keep) == 1:
-            for index in world_keep:
+        if len(world_map) == 1:
+            for index in world_map:
                 coord_meta['default_ticks_position'][index] = 'bt'
 
     elif frame_class is EllipticalFrame:
@@ -195,14 +180,41 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
 
     else:
 
-        for i in range(len(coord_meta['type'])):
-            if i in world_keep:
-                index = world_keep[i]
+        for index in range(len(coord_meta['type'])):
+            if index in world_map:
                 coord_meta['default_axislabel_position'][index] = frame_class.spine_names
                 coord_meta['default_ticklabel_position'][index] = frame_class.spine_names
                 coord_meta['default_ticks_position'][index] = frame_class.spine_names
 
     return transform, coord_meta
+
+
+def apply_slices(wcs, slices):
+    """
+    Take the input WCS and slices and return a sliced WCS for the transform and
+    a mapping of world axes in the sliced WCS to the input WCS.
+    """
+    if isinstance(wcs, SlicedLowLevelWCS):
+        world_keep = list(wcs._world_keep)
+    else:
+        world_keep = list(range(wcs.world_n_dim))
+
+    # world_map is the index of the world axis in the input WCS for a given
+    # axis in the transform_wcs
+    world_map = list(range(wcs.world_n_dim))
+    transform_wcs = wcs
+    invert_xy = False
+    if slices is not None:
+        wcs_slice = list(slices)
+        wcs_slice[wcs_slice.index("x")] = slice(None)
+        if 'y' in slices:
+            wcs_slice[wcs_slice.index("y")] = slice(None)
+            invert_xy = slices.index('x') > slices.index('y')
+
+        transform_wcs = SlicedLowLevelWCS(wcs, wcs_slice[::-1])
+        world_map = tuple(world_keep.index(i) for i in transform_wcs._world_keep)
+
+    return transform_wcs, invert_xy, world_map
 
 
 def wcsapi_to_celestial_frame(wcs):
