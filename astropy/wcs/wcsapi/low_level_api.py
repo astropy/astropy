@@ -146,8 +146,11 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
 
         * The third argument is a string giving the name of the property
           to access on the corresponding class from
-          `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_object_classes` in order to get numerical
-          values.
+          `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_object_classes` in
+          order to get numerical values. Alternatively, this argument can be a
+          callable Python object that taks a high-level coordinate object and
+          returns the numerical values suitable for passing to the low-level
+          WCS transformation methods.
 
         See the document
         `APE 14: A shared Python interface for World Coordinate Systems
@@ -177,6 +180,12 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
 
         * The last tuple element must be a dictionary with the keyword
           arguments required to initialize the class.
+
+        For advanced use cases, the tuple can also contain four elements, where
+        an additional element is added between the first and second above. This
+        element should be a callable Python object that gets called instead of
+        the class and gets passed the positional and keyword arguments. It
+        should return an object of the type of the first element in the tuple.
 
         Note that we don't require the classes to be Astropy classes since there
         is no guarantee that Astropy will have all the classes to represent all

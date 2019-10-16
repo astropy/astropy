@@ -130,7 +130,7 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
         unique_match = True
         for w in world_objects:
             matches = []
-            for key, (klass, _, _) in classes.items():
+            for key, (klass, *_) in classes.items():
                 if isinstance(w, klass):
                     matches.append(key)
             if len(matches) == 1:
@@ -147,7 +147,13 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
 
         if unique_match:
 
-            for key, (klass, args, kwargs) in classes.items():
+            for key, (klass, *rest) in classes.items():
+
+                if len(rest) == 2:
+                    klass_gen = klass
+                    args, kwargs = rest
+                else:
+                    klass_gen, args, kwargs = rest
 
                 # FIXME: For now SkyCoord won't auto-convert upon initialization
                 # https://github.com/astropy/astropy/issues/7689
@@ -158,12 +164,20 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
                     else:
                         objects[key] = world_by_key[key]
                 else:
-                    objects[key] = klass(world_by_key[key], *args, **kwargs)
+                    objects[key] = klass_gen(world_by_key[key], *args, **kwargs)
 
         else:
 
             for ikey, key in enumerate(classes):
-                klass, args, kwargs = classes[key]
+
+                klass, *rest = classes[key]
+
+                if len(rest) == 2:
+                    klass_gen = klass
+                    args, kwargs = rest
+                else:
+                    klass_gen, args, kwargs = rest
+
                 w = world_objects[ikey]
                 if not isinstance(w, klass):
                     raise ValueError("Expected the following order of world "
@@ -178,12 +192,15 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
                     else:
                         objects[key] = w
                 else:
-                    objects[key] = klass(w, *args, **kwargs)
+                    objects[key] = klass_gen(w, *args, **kwargs)
 
         # We now extract the attributes needed for the world values
         world = []
         for key, _, attr in components:
-            world.append(rec_getattr(objects[key], attr))
+            if callable(attr):
+                world.append(attr(objects[key]))
+            else:
+                world.append(rec_getattr(objects[key], attr))
 
         # Finally we convert to pixel coordinates
         pixel = self.low_level_wcs.world_to_pixel_values(*world)
@@ -223,8 +240,13 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
         result = []
 
         for key in default_order(components):
-            klass, ar, kw = classes[key]
-            result.append(klass(*args[key], *ar, **kwargs[key], **kw))
+            klass, *rest = classes[key]
+            if len(rest) == 2:
+                klass_gen = klass
+                ar, kw = rest
+            else:
+                klass_gen, ar, kw = rest
+            result.append(klass_gen(*args[key], *ar, **kwargs[key], **kw))
 
         if len(result) == 1:
             return result[0]
