@@ -895,6 +895,30 @@ class TestNumericalSubFormat:
         t_mjd_subfmt = getattr(t, f'mjd_{out_subfmt}')
         assert np.all(t_mjd_subfmt == expected)
 
+    def test_explicit_other_formats(self):
+        t = Time('2451544.5333981', format='jd', scale='tai', precision=8)
+        assert t == Time(2451544.5, .0333981, format='jd', scale='tai')
+        assert t.jd_str == '2451544.53339810'
+        t = Time('2000.54321', format='decimalyear', precision=6)
+        assert t == Time(2000., 0.54321, format='decimalyear')
+        assert t.decimalyear_str == '2000.543210'
+        t = Time('100.0123456', format='cxcsec', precision=6)
+        assert t == Time(100.0123456, format='cxcsec')
+        assert t.cxcsec_str == '100.012346'
+        t = Time('100.0123456', format='unix', precision=7)
+        assert t == Time(100.0123456, format='unix')
+        assert t.unix_str == '100.0123456'
+        t = Time('100.0123456', format='gps')
+        assert t == Time(100.0123456, format='gps')
+        assert t.gps_str == '100.012'
+        # Note: cannot fully test _str format since byear_str exists.
+        t = Time('1950.1', format='byear', scale='tai', out_subfmt='str')
+        assert t == Time(1950.1, format='byear', scale='tai')
+        assert t.value == '1950.100'
+        t = Time('2000.1', format='jyear', scale='tai', out_subfmt='str')
+        assert t == Time(2000.1, format='jyear', scale='tai')
+        assert t.value == '2000.100'
+
 
 class TestSofaErrors:
     """Test that erfa status return values are handled correctly"""

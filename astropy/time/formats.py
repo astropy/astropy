@@ -356,7 +356,71 @@ class TimeFormat(metaclass=TimeFormatMeta):
         return subfmts
 
 
-class TimeJD(TimeFormat):
+class TimeNumeric(TimeFormat):
+    subfmts = (('float64', None, np.add),
+               ('float128', None, twoval_to_float128),
+               ('O', decimal_to_twoval, twoval_to_decimal),
+               ('str', decimal_to_twoval, twoval_to_string),
+               ('bytes', bytes_to_twoval, twoval_to_bytes),
+    )
+
+    def _check_val_type(self, val1, val2):
+        """Input value validation, typically overridden by derived classes"""
+        if val1.dtype.kind == 'f':
+            val1, val2 = super()._check_val_type(val1, val2)
+        elif (val2 is not None or
+              not (val1.dtype.kind in 'US' or
+                   (val1.dtype.kind == 'O' and
+                    all(isinstance(v, Decimal) for v in val1.flat)))):
+            raise TypeError(
+                'for {} class, input should be doubles, string, or Decimal, '
+                'and second values are only allowed for doubles.'
+                .format(self.name))
+
+        for subfmt, convert, _ in self.subfmts:
+            if np.issubdtype(val1.dtype, np.dtype(subfmt)):
+                break
+        else:
+            raise ValueError('input type not among selected sub-formats.')
+
+        if convert is not None:
+            try:
+                val1, val2 = convert(val1, val2)
+            except Exception:
+                raise TypeError(
+                    'for {} class, input should be doubles, string, or Decimal, '
+                    'and second values are only allowed for doubles.'
+                    .format(self.name))
+
+        return val1, val2
+
+    def to_value(self, jd1=None, jd2=None, parent=None, out_subfmt=None):
+        """
+        Return time representation from internal jd1 and jd2.
+        Subclasses that require ``parent`` or to adjust the jds should
+        override this method.
+        """
+        # TODO: do this in metaclass.
+        if self.__class__.value.fget is not self.__class__.to_value:
+            return self.value
+
+        if jd1 is None:
+            jd1 = self.jd1
+        if jd2 is None:
+            jd2 = self.jd2
+        if out_subfmt is None:
+            out_subfmt = self.out_subfmt
+        subfmt = self._select_subfmts(out_subfmt)[0]
+        kwargs = {}
+        if subfmt[0] in ('str', 'bytes'):
+            kwargs['fmt'] = f'.{self.precision}f'
+        value = subfmt[2](jd1, jd2, **kwargs)
+        return self.mask_if_needed(value)
+
+    value = property(to_value)
+
+
+class TimeJD(TimeNumeric):
     """
     Julian Date time format.
     This represents the number of days since the beginning of
@@ -369,12 +433,8 @@ class TimeJD(TimeFormat):
         self._check_scale(self._scale)  # Validate scale.
         self.jd1, self.jd2 = day_frac(val1, val2)
 
-    @property
-    def value(self):
-        return self.jd1 + self.jd2
 
-
-class TimeMJD(TimeFormat):
+class TimeMJD(TimeNumeric):
     """
     Modified Julian Date time format.
     This represents the number of days since midnight on November 17, 1858.
@@ -382,66 +442,21 @@ class TimeMJD(TimeFormat):
     """
     name = 'mjd'
 
-    subfmts = (('float64', None, np.add),
-               ('float128', None, twoval_to_float128),
-               ('O', decimal_to_twoval, twoval_to_decimal),
-               ('str', decimal_to_twoval, twoval_to_string),
-               ('bytes', bytes_to_twoval, twoval_to_bytes),
-    )
-
-    def _check_val_type(self, val1, val2):
-        """Input value validation, typically overridden by derived classes"""
-        if val1.dtype.kind == 'f':
-            return super()._check_val_type(val1, val2)
-        elif (val2 is not None or
-              not (val1.dtype.kind in 'US' or
-                   (val1.dtype.kind == 'O' and
-                    all(isinstance(v, Decimal) for v in val1.flat)))):
-            raise TypeError(
-                'for {} class, input should be doubles, string, or Decimal, '
-                'and second values are only allowed for doubles.'
-                .format(self.name))
-
-        return val1, None
-
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # Validate scale.
-        for subfmt, convert, _ in self.subfmts:
-            if np.issubdtype(val1.dtype, np.dtype(subfmt)):
-                break
-        else:
-            raise ValueError('input type not among selected sub-formats.')
-
-        if convert is not None:
-            val1, val2 = convert(val1, val2)
-
         jd1, jd2 = day_frac(val1, val2)
-        jd1 += erfa.DJM0  # erfa.DJM0=2400000.5 (from erfam.h)
+        jd1 += erfa.DJM0  # erfa.DJM0=2400000.5 (from erfam.h).
         self.jd1, self.jd2 = day_frac(jd1, jd2)
 
-    def to_value(self, parent=None, out_subfmt=None):
-        """
-        Return time representation from internal jd1 and jd2.  This is
-        the base method that ignores ``parent`` and requires that
-        subclasses implement the ``value`` property.  Subclasses that
-        require ``parent`` or have other optional args for ``to_value``
-        should compute and return the value directly.
-        """
-        if out_subfmt is None:
-            out_subfmt = self.out_subfmt
-        subfmt = self._select_subfmts(out_subfmt)[0]
+    def to_value(self, **kwargs):
         jd1 = self.jd1 - erfa.DJM0  # This cannot loose precision.
         jd2 = self.jd2
-        kwargs = {}
-        if subfmt[0] in ('str', 'bytes'):
-            kwargs['fmt'] = f'.{self.precision}f'
-        value = subfmt[2](jd1, jd2, **kwargs)
-        return self.mask_if_needed(value)
+        return super().to_value(jd1=jd1, jd2=jd2, **kwargs)
 
     value = property(to_value)
 
 
-class TimeDecimalYear(TimeFormat):
+class TimeDecimalYear(TimeNumeric):
     """
     Time as a decimal year, with integer values corresponding to midnight
     of the first day of each year.  For example 2000.5 corresponds to the
@@ -480,8 +495,7 @@ class TimeDecimalYear(TimeFormat):
 
         self.jd1, self.jd2 = day_frac(t_frac.jd1, t_frac.jd2)
 
-    @property
-    def value(self):
+    def to_value(self, **kwargs):
         scale = self.scale.upper().encode('ascii')
         iy_start, ims, ids, ihmsfs = erfa.d2dtf(scale, 0,  # precision=0
                                                 self.jd1, self.jd2_filled)
@@ -498,15 +512,17 @@ class TimeDecimalYear(TimeFormat):
                                           ihr, imin, isec)
         jd1_end, jd2_end = erfa.dtf2d(scale, iy_start + 1, imon, iday,
                                       ihr, imin, isec)
-
+        # Trying to be precise, but more than float64 not useful.
         dt = (self.jd1 - jd1_start) + (self.jd2 - jd2_start)
         dt_end = (jd1_end - jd1_start) + (jd2_end - jd2_start)
         decimalyear = iy_start + dt / dt_end
 
-        return decimalyear
+        return super().to_value(jd1=decimalyear, jd2=0., **kwargs)
+
+    value = property(to_value)
 
 
-class TimeFromEpoch(TimeFormat):
+class TimeFromEpoch(TimeNumeric):
     """
     Base class for times that represent the interval from a particular
     epoch as a floating point multiple of a unit time interval (e.g. seconds
@@ -564,7 +580,7 @@ class TimeFromEpoch(TimeFormat):
 
         self.jd1, self.jd2 = day_frac(tm._time.jd1, tm._time.jd2)
 
-    def to_value(self, parent=None):
+    def to_value(self, parent=None, **kwargs):
         # Make sure that scale is the same as epoch scale so we can just
         # subtract the epoch and convert
         if self.scale != self.epoch_scale:
@@ -582,10 +598,10 @@ class TimeFromEpoch(TimeFormat):
         else:
             jd1, jd2 = self.jd1, self.jd2
 
-        time_from_epoch = ((jd1 - self.epoch.jd1) +
-                           (jd2 - self.epoch.jd2)) / self.unit
+        time_from_epoch1, time_from_epoch2 = day_frac(
+            jd1 - self.epoch.jd1, jd2 - self.epoch.jd2, divisor=self.unit)
 
-        return self.mask_if_needed(time_from_epoch)
+        return super().to_value(jd1=time_from_epoch1, jd2=time_from_epoch2, **kwargs)
 
     value = property(to_value)
 
@@ -1371,7 +1387,7 @@ class TimeFITS(TimeString):
         return super().value
 
 
-class TimeEpochDate(TimeFormat):
+class TimeEpochDate(TimeNumeric):
     """
     Base class for support floating point Besselian and Julian epoch dates
     """
@@ -1383,10 +1399,12 @@ class TimeEpochDate(TimeFormat):
         jd1, jd2 = epoch_to_jd(val1 + val2)
         self.jd1, self.jd2 = day_frac(jd1, jd2)
 
-    @property
-    def value(self):
+    def to_value(self, **kwargs):
         jd_to_epoch = getattr(erfa, self.jd_to_epoch)
-        return jd_to_epoch(self.jd1, self.jd2)
+        value = jd_to_epoch(self.jd1, self.jd2)
+        return super().to_value(jd1=value, jd2=0., **kwargs)
+
+    value = property(to_value)
 
 
 class TimeBesselianEpoch(TimeEpochDate):
@@ -1496,6 +1514,10 @@ class TimeDeltaFormat(TimeFormat, metaclass=TimeDeltaFormatMeta):
     @property
     def value(self):
         return (self.jd1 + self.jd2) / self.unit
+
+
+class TimeDeltaNumeric(TimeDeltaFormat, TimeNumeric):
+    pass
 
 
 class TimeDeltaSec(TimeDeltaFormat):
