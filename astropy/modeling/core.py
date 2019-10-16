@@ -997,8 +997,7 @@ class Model(metaclass=_ModelMeta):
         that pertains to which model a parameter value pertains to--as
         specified when the model was initialized.
 
-        See the documentation on `Model Sets
-        <http://docs.astropy.org/en/stable/modeling/models.html#model-sets>`_
+        See the documentation on :ref:`modeling-model-sets`
         for more details.
         """
 
