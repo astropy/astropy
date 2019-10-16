@@ -151,6 +151,8 @@ def test_rotation_3d():
             new_roll += 360
         return new_roll
 
+    # reference points on sky and in a coordinate frame associated
+    # with the telescope
     ra_ref = 165 # in deg
     dec_ref = 54 # in deg
     v2_ref = 0
@@ -161,16 +163,15 @@ def test_rotation_3d():
     v3 = np.deg2rad(2.7e-6) # in deg .01 # in arcsec
     angles = [v2_ref, -v3_ref, pa_v3, dec_ref, -ra_ref]
     axes = "zyxyz"
-    #angles = [pa_v3, dec_ref, ra_ref]
-    #axes = 'xyz'
     M = rotations._create_matrix(np.deg2rad(angles) * u.deg, axes)
     roll_angle = _roll_angle_from_matrix(M, v2, v3)
     assert_allclose(roll_angle, pa_v3, atol=1e-3)
 
 
-def test_v23tosky():
+def test_spherical_rotation():
     """
-    Test taken from JWST INS report.
+    Test taken from JWST INS report - converts
+    JWST telescope (V2, V3) coordinates to RA, DEC.
     """
     ra_ref = 165 # in deg
     dec_ref = 54 # in deg
@@ -183,8 +184,14 @@ def test_v23tosky():
     expected_ra_dec = (107.12810484789563, -35.97940247128502) # in deg
     angles = np.array([v2_ref, -v3_ref, r0, dec_ref, -ra_ref])
     axes = "zyxyz"
-    v2s = rotations.Rotation3D(angles, axes_order=axes)
+    v2s = rotations.RotationSequence3D(angles, axes_order=axes)
     x, y, z = rotations.spherical2cartesian(v2, v3)
     x1, y1, z1 = v2s(x, y, z)
     radec = rotations.cartesian2spherical(x1, y1, z1)
     assert_allclose(radec, expected_ra_dec, atol=1e-10)
+
+    v2s = rotations.SphericalRotationSequence(angles, axes_order=axes)
+    radec = v2s(v2, v3)
+    assert_allclose(radec, expected_ra_dec, atol=1e-10)
+
+    #assert_allclose(v2s.inverse(*v2s(v2, v3)), (v2, v3))
