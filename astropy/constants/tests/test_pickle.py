@@ -10,11 +10,8 @@ originals = [const.Constant('h_fake', 'Not Planck',
                             system='si'),
              const.h,
              const.e.si]
-xfails = [False, False, False]
 
 
-@pytest.mark.parametrize(("original", "xfail"), zip(originals, xfails))
-def test_new_constant(pickle_protocol, original, xfail):
-    if xfail:
-        pytest.xfail()
+@pytest.mark.parametrize("original", originals)
+def test_new_constant(pickle_protocol, original):  # noqa
     check_pickling_recovery(original, pickle_protocol)
