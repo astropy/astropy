@@ -15,6 +15,8 @@ astropy.constants
 
 - Default constants now use CODATA 2018 and IAU 2015 definitions. [#8761]
 
+- Constants can be pickled and unpickled. [#9377]
+
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
