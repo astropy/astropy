@@ -12,6 +12,7 @@ from astropy import units as u
 from astropy.table import Table
 from astropy.io.fits import printdiff
 from astropy.tests.helper import catch_warnings
+from astropy.utils.exceptions import AstropyUserWarning
 
 from . import FitsTestCase
 
@@ -88,6 +89,42 @@ class TestConvenience(FitsTestCase):
         assert hdu.header.get('comment') == ['This', 'is', 'a', 'comment']
         with pytest.raises(ValueError):
             hdu.header.index('comments')
+
+    def test_table_to_hdu_filter_reserved(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/9387
+        """
+        table = Table([[1, 2, 3], ['a', 'b', 'c'], [2.3, 4.5, 6.7]],
+                      names=['a', 'b', 'c'], dtype=['i4', 'U1', 'f8'])
+        table.meta.update({'EXPTIME': 32.1, 'XTENSION': 'NEWTABLE',
+                           'NAXIS': 1, 'NAXIS1': 3, 'NAXIS2': 9,
+                           'PCOUNT': 42, 'OBSERVER': 'Adams'})
+        with pytest.warns(AstropyUserWarning, match=r'Meta-data keyword \w+ '
+                          r'will be ignored since it conflicts with a FITS '):
+            hdu = fits.table_to_hdu(table)
+
+        assert hdu.header.get('XTENSION') == 'BINTABLE'
+        assert hdu.header.get('NAXIS') == 2
+        assert hdu.header.get('NAXIS1') == 13
+        assert hdu.header.get('NAXIS2') == 3
+        assert hdu.header.get('PCOUNT') == 0
+        np.testing.assert_almost_equal(hdu.header.get('EXPTIME'), 3.21e1)
+
+    def test_table_to_hdu_filter_incompatible(self):
+        """
+        Test removal of unsupported data types from header
+        """
+        table = Table([[1, 2, 3], ['a', 'b', 'c'], [2.3, 4.5, 6.7]],
+                      names=['a', 'b', 'c'], dtype=['i4', 'U1', 'f8'])
+        table.meta.update({'OBSDATE': '2001-05-26', 'RAMP': np.arange(5),
+                           'TARGETS': {'PRIMARY': 1, 'SECONDAR': 3}})
+        with pytest.warns(AstropyUserWarning, match=r'Attribute \S+ of type '
+                          r'.+ cannot be added to FITS Header - skipping'):
+            hdu = fits.table_to_hdu(table)
+
+        assert hdu.header.get('OBSDATE') == '2001-05-26'
+        assert 'RAMP' not in hdu.header
+        assert 'TARGETS' not in hdu.header
 
     def test_table_writeto_header(self):
         """
