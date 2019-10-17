@@ -438,6 +438,9 @@ astropy.io.misc
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Implemented skip (after warning) of header cards with reserved
+  keywords in ``table_to_hdu``. [#9387]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
