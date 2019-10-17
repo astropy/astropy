@@ -804,3 +804,44 @@ def test_1d_plot_2d_wcs_correlated(spatial_wcs_2d):
 
     return fig
 
+
+
+@pytest.fixture
+def spatial_wcs_2d_small_angle():
+    """
+    This WCS has an almost linear correlation between the pixel and world axes.
+    """
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ['HPLN-TAN', 'HPLT-TAN']
+    wcs.wcs.crpix = [3.0] * 2
+    wcs.wcs.cdelt = [0.002] * 2
+    wcs.wcs.crval = [0] * 2
+    wcs.wcs.set()
+    return wcs
+
+# @pytest.mark.remote_data(source='astropy')
+# @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+#                                 tolerance=0, style={})
+def test_1d_plot_put_varying_axis_on_bottom(spatial_wcs_2d_small_angle):
+    """
+    When we plot a 1D slice through spatial axes, we want to put the axis which
+    actually changes on the bottom.
+
+    For example an aligned wcs, pixel grid where you plot a lon slice through a
+    lat axis, you would end up with no ticks on the bottom as the lon dosen't
+    change, and a set of lat ticks on the top because it does but it's the
+    correlated axis not the actual one you are plotting against.
+    """
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection=spatial_wcs_2d_small_angle, slices=(0, 'x'))
+    lines, = ax.plot([10, 12, 14, 12, 10], '-o', color="orange")
+
+    # Draw to trigger rendering the ticks.
+    plt.draw()
+
+    # Because the latitude axis is the one varying, it should be on the bottom,
+    # even though it's the second WCS dimension.
+    assert ax.coords['hplt'].ticks.get_visible_axes() == ['b']
+    assert ax.coords['hpln'].ticks.get_visible_axes() == ['t']
+
+    return fig
