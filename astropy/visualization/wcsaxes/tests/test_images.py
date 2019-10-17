@@ -819,9 +819,9 @@ def spatial_wcs_2d_small_angle():
     wcs.wcs.set()
     return wcs
 
-# @pytest.mark.remote_data(source='astropy')
-# @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-#                                 tolerance=0, style={})
+@pytest.mark.remote_data(source='astropy')
+@pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                tolerance=0, style={})
 def test_1d_plot_put_varying_axis_on_bottom(spatial_wcs_2d_small_angle):
     """
     When we plot a 1D slice through spatial axes, we want to put the axis which
@@ -842,6 +842,5 @@ def test_1d_plot_put_varying_axis_on_bottom(spatial_wcs_2d_small_angle):
     # Because the latitude axis is the one varying, it should be on the bottom,
     # even though it's the second WCS dimension.
     assert ax.coords['hplt'].ticks.get_visible_axes() == ['b']
-    assert ax.coords['hpln'].ticks.get_visible_axes() == ['t']
 
     return fig
