@@ -10,7 +10,8 @@ from .basic import TransformType
 from . import _parameter_to_value
 
 
-__all__ = ['AffineType', 'Rotate2DType', 'Rotate3DType']
+__all__ = ['AffineType', 'Rotate2DType', 'Rotate3DType',
+           'RotationSequenceType']
 
 
 class AffineType(TransformType):
@@ -144,6 +145,44 @@ class Rotate3DType(TransformType):
             assert_array_equal(a.lon, b.lon)
             assert_array_equal(a.lat, b.lat)
             assert_array_equal(a.lon_pole, b.lon_pole)
+
+
+class RotationSequenceType(TransformType):
+    name = "transform/rotate_sequence_3d"
+    types = ['astropy.modeling.rotations.RotationSequence3D',
+             'astropy.modeling.rotations.SphericalRotationSequence']
+    version = "1.0.0"
+
+    @classmethod
+    def from_tree_transform(cls, node, ctx):
+        angles = node['angles']
+        axes_order = node['axes_order']
+        rotation_type = node['rotation_type']
+        if rotation_type == 'cartesian':
+            return modeling.rotations.RotationSequence3D(angles, axes_order=axes_order)
+        elif rotation_type == 'spherical':
+            return modeling.rotations.SphericalRotationSequence(angles, axes_order=axes_order)
+        else:
+            raise ValueError(f"Unrecognized rotation_type: {rotation_type}")
+
+    @classmethod
+    def to_tree_transform(cls, model, ctx):
+        node = {'angles': list(model.angles.value)}
+        node['axes_order'] = model.axes_order
+        if isinstance(model, modeling.rotations.SphericalRotationSequence):
+            node['rotation_type'] = "spherical"
+        elif isinstance(model, modeling.rotations.RotationSequence3D):
+            node['rotation_type'] = "cartesian"
+        else:
+            raise ValueError(f"Cannot serialize model of type {type(model)}")
+        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+
+    @classmethod
+    def assert_equal(cls, a, b):
+        TransformType.assert_equal(a, b)
+        assert a.__class__.__name__ == b.__class__.__name__
+        assert_array_equal(a.angles, b.angles)
+        assert a.axes_order == b.axes_order
 
 
 class GenericProjectionType(TransformType):
