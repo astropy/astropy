@@ -600,10 +600,19 @@ class TestBasic:
 class TestVal2:
     """Tests related to val2"""
 
-    def test_unused_val2_raises(self):
+    @pytest.mark.parametrize("d", [
+        dict(val="2001:001", val2="ignored", scale="utc"),
+        dict(val={'year': 2015, 'month': 2, 'day': 3,
+                  'hour': 12, 'minute': 13, 'second': 14.567},
+             val2="ignored", scale="utc"),
+        dict(val=np.datetime64('2005-02-25'), val2="ignored", scale="utc"),
+        dict(val=datetime.datetime(2000, 1, 2, 12, 0, 0),
+             val2="ignored", scale="utc"),
+    ])
+    def test_unused_val2_raises(self, d):
         """Test that providing val2 is for string input lets user know we won't use it"""
         with pytest.raises(ValueError):
-            Time('2001:001', 'ignored', scale='utc')
+            Time(**d)
 
     def test_val2(self):
         """Various tests of the val2 input"""
