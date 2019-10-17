@@ -30,6 +30,8 @@ defaults in the class definition, e.g.::
 
 Note that these are all optional.
 
+.. _models_input_units:
+
 ``input_units``
 ^^^^^^^^^^^^^^^
 
@@ -61,7 +63,7 @@ also be specified as an attribute rather than a property in simple cases::
 ``return_units``
 ^^^^^^^^^^^^^^^^
 
-Similarly to ``return_units``, this should be dictionary that maps the return
+Similarly to :ref:`models_input_units`, this should be dictionary that maps the return
 values of a model to units. If :meth:`~astropy.modeling.Model.evaluate` was called
 with quantities but returns unitless values, the units are added to the output.
 If the return values are quantities in different units, they are converted to
