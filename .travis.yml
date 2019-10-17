@@ -44,6 +44,8 @@ env:
         # Run test suite twice in a row without cleaning
         - DOUBLE_PLAY=False
         - USE_CI_HELPERS=True
+        # Use this for the dependencies when not using ci-helpers
+        - OTHER_DEPENDENCY_PREFERENCES=''
 
         # PEP8 errors/warnings:
         # E101 - mix of tabs and spaces
@@ -184,12 +186,14 @@ matrix:
                EXTRAS_INSTALL="docs"
 
         # Testing with Travis provided Python3.8. Change this job to a regular
-        # one once conda supports python3.8.
+        # one once conda supports python3.8. Make sure we use released numpy rather
+        # than some kind of dev coming natively from the Travis environment
         - language: python
           stage: Final tests
           dist: xenial
           python: 3.8-dev
           env: INSTALL_WITH_PIP=True EXTRAS_INSTALL="test" USE_CI_HELPERS=False
+               OTHER_DEPENDENCY_PREFERENCES='numpy==1.17.3'
 
     allow_failures:
       - os: linux
@@ -223,9 +227,9 @@ install:
       fi
     - if [[ $INSTALL_WITH_PIP == True ]]; then
         if [ -z $EXTRAS_INSTALL ]; then
-          pip install -e .;
+          pip install -e . ${OTHER_DEPENDENCY_PREFERENCES};
         else
-          pip install -e .[$EXTRAS_INSTALL];
+          pip install -e .[$EXTRAS_INSTALL] ${OTHER_DEPENDENCY_PREFERENCES};
         fi
       fi
 
