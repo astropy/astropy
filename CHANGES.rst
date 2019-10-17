@@ -361,7 +361,7 @@ astropy.time
   instead of the bundled ``IERS_B`` file. [#9226]
 
 - Time formats that do not use ``val2`` now raise ValueError instead of
-  silently ignoring a provided value.
+  silently ignoring a provided value. [#9373]
 
 
 astropy.timeseries
