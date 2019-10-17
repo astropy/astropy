@@ -85,8 +85,8 @@ equivalencies, for example::
 
     input_units_equivalencies = {'nu': u.spectral()}
 
-``input_units_allow_dimensionless``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``_input_units_allow_dimensionless``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If set to `True`, values that are plain scalars or Numpy arrays can be passed to
 evaluate even if ``input_units`` specifies that the input should have units. It
@@ -99,7 +99,7 @@ maps input names to a Boolean to enable passing dimensionless values to
 Fitting
 -------
 
-To allow models with parameters that have units to be fit to data with units,
+To allow models with parameters that have units to be fitted to data with units,
 you will need to add a method called ``_parameter_units_for_data_units`` to your
 model class. This should take two arguments ``input_units`` and
 ``output_units`` - ``input_units`` will be set to a dictionary with
