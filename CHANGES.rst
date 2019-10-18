@@ -89,6 +89,7 @@ astropy.modeling
 - Add a new model representing a sequence of rotations in 3D around an arbitrary
   number of axes. [#9369]
 
+- Add many of the numpy ufunc functions as models. [#9401]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
