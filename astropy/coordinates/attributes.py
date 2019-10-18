@@ -263,10 +263,15 @@ class QuantityAttribute(Attribute):
     A frame attribute that is a quantity with specified units and shape
     (optionally).
 
+    Can be ``None``,which should be used for special cases in associated
+    frame transformations like "this quantity should be ignored" or similar.
+
     Parameters
     ----------
-    default : object
-        Default value for the attribute if not provided
+    default : value or Quantity or None
+        Default value for the attribute if the user does not supply one. If a
+        Quantity, it must be consistent with ``unit``, or if a value, ``unit``
+        cannot be None.
     secondary_attribute : str
         Name of a secondary instance attribute which supplies the value if
         ``default is None`` and no value was supplied during initialization.
