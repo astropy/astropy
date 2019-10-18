@@ -263,7 +263,7 @@ class QuantityAttribute(Attribute):
     A frame attribute that is a quantity with specified units and shape
     (optionally).
 
-    Can be ``None``,which should be used for special cases in associated
+    Can be `None`, which should be used for special cases in associated
     frame transformations like "this quantity should be ignored" or similar.
 
     Parameters

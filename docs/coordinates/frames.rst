@@ -459,7 +459,7 @@ define it as::
 In the above case, if ``orientation`` is not specified when a new frame instance
 is created, its value will be `None`: Note that it is up to the frame
 classes and transformation function implementations to define how to handle a
-`None` value. in most cases ``None`` should signify a special case like "use a
+`None` value. In most cases `None` should signify a special case like "use a
 different frame attribute for this value" or similar.
 
 Customizing Display of Attributes
