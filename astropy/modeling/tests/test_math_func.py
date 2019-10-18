@@ -8,6 +8,7 @@ from .. import math_functions
 x = np.linspace(-20, 360, 100)
 y = np.linspace(-20, 360, 100)
 
+
 def test_math():
     for name in math_functions.__all__:
         model = getattr(math_functions, name)()

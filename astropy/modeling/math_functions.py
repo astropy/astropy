@@ -42,10 +42,12 @@ def ufunc_model(name):
     nout = ufunc.nout
     if nin == 1:
         separable = True
+
         def evaluate(self, x):
             return self.func(x)
     else:
         separable = False
+
         def evaluate(self, x, y):
             return self.func(x, y)
 
