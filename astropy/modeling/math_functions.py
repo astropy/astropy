@@ -3,6 +3,7 @@ import warnings
 import numpy as np
 
 from astropy.modeling.core import Model
+from astropy.utils.exceptions import AstropyUserWarning
 
 
 trig_ufuncs = ["sin", "cos", "tan", "arcsin", "arccos", "arctan", "arctan2",
@@ -26,10 +27,6 @@ class _NPUfuncModel(Model):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def evaluate(self, x):
-        warnings.warn("Models in math_functions are experimental.")
-        return self.func(x)
-
 
 def _make_class_name(name):
     """ Make a ufunc model class name from the name of the ufunc. """
@@ -44,11 +41,13 @@ def ufunc_model(name):
         separable = True
 
         def evaluate(self, x):
+            warnings.warn("Models in math_functions are experimental.", AstropyUserWarning)
             return self.func(x)
     else:
         separable = False
 
         def evaluate(self, x, y):
+            warnings.warn("Models in math_functions are experimental.", AstropyUserWarning)
             return self.func(x, y)
 
     klass_name = _make_class_name(name)
