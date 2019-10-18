@@ -39,3 +39,33 @@ then use ``serialize_method='data_mask'``.
 It uses the non-masked version of data and it is faster::
 
     >>> tm.write('tm.ecsv', overwrite=True, serialize_method='data_mask') # doctest: +SKIP
+
+Reading a large FITS file in |Table| using
+:meth:`~astropy.table.Table.read` when ``memmap=False`` can be very slow
+because it reads full |Table| in the memory. When you want to read a 
+large FITS file using :meth:`~astropy.table.Table.read`, then use ``memmap=True``.
+It does not load the data:
+
+.. doctest-skip::
+
+    >>> import numpy as np
+    >>> from astropy.table import Table
+    >>> tbl = Table({ 'a': np.arange(1e7),
+    ...               'b': np.arange(1e7, dtype=float),
+    ...               'c': np.arange(1e7, dtype=float)})
+    >>> tbl.write('test.fits', overwrite=True)
+    >>> t = Table.read('test.fits', memmap=True)
+
+When we use columns data it loads whole data. Reading a single or multiple |Column| is not 
+helpful because whole data will be loaded:
+
+.. doctest-skip::
+
+    >>> a = t['a']
+
+You can use ``memmap=True`` when want to slice data row-wise. |Table| will load only those
+ rows in memory:
+
+.. doctest-skip::
+
+    >>> t2 = t[:1_000]
