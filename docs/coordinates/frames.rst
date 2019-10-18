@@ -315,14 +315,14 @@ the same as used in the specified ``default_representation`` (in this case,
 ``lon``, ``lat``, and ``distance`` for longitude, latitude, and distance,
 respectively), (2) this frame does not have any additional attributes or
 metadata, (3) this frame does not support transformations to any other
-coordinate frame, and (4) this frame does not support velocity data. Let us
+coordinate frame, and (4) this frame does not support velocity data. We can
 address each of these points by seeing some other ways of customizing frame
 subclasses.
 
 Customizing Frame Component Names
 ---------------------------------
 
-First, as mentioned by the point (1) :ref:`above <astropy-coordinates-design>`,
+First, as mentioned in the point (1) :ref:`above <astropy-coordinates-design>`,
 some frame classes have special names for their components. For example, the
 `~astropy.coordinates.ICRS` frame and other equatorial frame classes often use
 "Right Ascension" or "RA" in place of longitude, and "Declination" or "Dec." in
@@ -457,9 +457,10 @@ define it as::
     orientation = QuantityAttribute(unit=u.deg)
 
 In the above case, if ``orientation`` is not specified when a new frame instance
-is created, its value will be `None`: Note that we leave it up to the frame
+is created, its value will be `None`: Note that it is up to the frame
 classes and transformation function implementations to define how to handle a
-`None` value.
+`None` value. in most cases ``None`` should signify a special case like "use a
+different frame attribute for this value" or similar.
 
 Customizing Display of Attributes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -660,7 +661,7 @@ frame.
 For examples of defining frame classes, the first place to look is
 at the source code for the frames that are included in ``astropy``
 (available at ``astropy.coordinates.builtin_frames``). These are not
-"magic" in any way, and use all of the same API and features available to
+special-cased, but rather use all of the same API and features available to
 user-created frames.
 
 .. topic:: Examples:
