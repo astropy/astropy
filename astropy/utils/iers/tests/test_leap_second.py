@@ -233,7 +233,7 @@ class TestDefaultAutoOpen:
 
     @pytest.mark.skipif(not os.path.isfile(SYSTEM_FILE),
                         reason=f'system does not have {SYSTEM_FILE}')
-    def test_system_file_always_good_enough(self, tmpdir):
+    def test_system_file_never_expired(self, tmpdir):
         self.remove_auto_open_files('erfa')
         with iers.conf.set_temp('system_leap_second_file', SYSTEM_FILE):
             ls = iers.LeapSeconds.open()
@@ -245,7 +245,7 @@ class TestDefaultAutoOpen:
             fake_file = make_fake_file('28 June 2017', tmpdir)
             iers.LeapSeconds._auto_open_files[0] = fake_file
             ls2 = iers.LeapSeconds.open()
-            assert ls2.expires > self.good_enough
+            assert ls2.expires > datetime.now()
             assert ls2.meta['data_url'] == SYSTEM_FILE
 
     @pytest.mark.remote_data
@@ -284,10 +284,18 @@ class TestFromERFA(ERFALeapSecondsSafe):
         assert np.all(ls_array == self.erfa_ls)
 
     def test_get_modified_erfa_ls(self):
-        erfa.leap_seconds.set(self.erfa_ls[:-2])
+        erfa.leap_seconds.set(self.erfa_ls[:-10])
         ls = iers.LeapSeconds.from_erfa()
+        assert len(ls) == len(self.erfa_ls)-10
         ls_array = np.array(ls['year', 'month', 'tai_utc'])
-        assert np.all(ls_array == self.erfa_ls[:-2])
+        assert np.all(ls_array == self.erfa_ls[:-10])
+        ls2 = iers.LeapSeconds.from_erfa(built_in=True)
+        assert len(ls2) > len(ls)
+        erfa.leap_seconds.set(None)
+        erfa_built_in = erfa.leap_seconds.get()
+        assert len(ls2) == len(erfa_built_in)
+        ls2_array = np.array(ls2['year', 'month', 'tai_utc'])
+        assert np.all(ls2_array == erfa_built_in)
 
     def test_open(self):
         ls = iers.LeapSeconds.open('erfa')
