@@ -878,7 +878,8 @@ class LeapSeconds(QTable):
     The table should hold columns 'year', 'month', 'tai_utc'.
 
     Methods are provided to initialize the table from IERS ``Leap_Second.dat``,
-    IETF/ntp ``leap-seconds.list``, or built-in ERFA/SOFA.
+    IETF/ntp ``leap-seconds.list``, or built-in ERFA/SOFA, and to update the
+    list used by ERFA.
 
     Notes
     -----
@@ -904,10 +905,10 @@ class LeapSeconds(QTable):
 
         Parameters
         ----------
-        file : path, 'erfa', or None
+        file : path, or None
             Full local or network path to the file holding leap-second data,
             for passing on to the various ``from_`` class methods.
-            If 'erfa', return the data built-in to the ERFA library.
+            If 'erfa', return the data used by the ERFA library.
             If `None`, use default locations from file and configuration to
             find a table that is not expired.
         cache : bool
@@ -1028,15 +1029,12 @@ class LeapSeconds(QTable):
 
     @property
     def expires(self):
+        """The limit of validity of the table."""
         return self._expires
 
     @classmethod
     def _read_leap_seconds(cls, file, **kwargs):
-        """Read a leap-second table.
-
-        Finds data by removing comment lines, and identifies the
-        expiration date by matching with 'File expires'.
-        """
+        """Read a file, identifying expiration by matching 'File expires'"""
         expires = None
         # Find expiration date.
         with get_readable_fileobj(file) as fh:
@@ -1056,11 +1054,39 @@ class LeapSeconds(QTable):
 
     @classmethod
     def from_iers_leap_seconds(cls, file=IERS_LEAP_SECOND_FILE):
+        """Create a table from a file like the IERS ``Leap_Second.dat``.
+
+        Parameters
+        ----------
+        file : path, optional
+            Full local or network path to the file holding leap-second data
+            in a format consistent with that used by IERS.  By default, uses
+            `astropy.utils.iers.IERS_LEAP_SECOND_FILE`.
+
+        Notes
+        -----
+        The file *must* contain the expiration date in a comment line, like
+        '#  File expires on 28 June 2020'
+        """
         return cls._read_leap_seconds(
             file, names=['mjd', 'day', 'month', 'year', 'tai_utc'])
 
     @classmethod
     def from_leap_seconds_list(cls, file):
+        """Create a table from a file like the IETF ``leap-seconds.list``.
+
+        Parameters
+        ----------
+        file : path, optional
+            Full local or network path to the file holding leap-second data
+            in a format consistent with that used by IETF.  Up to date versions
+            can be retrieved from `astropy.utils.iers.IETF_LEAP_SECOND_URL`.
+
+        Notes
+        -----
+        The file *must* contain the expiration date in a comment line, like
+        '# File expires on:  28 June 2020'
+        """
         names = ['ntp_seconds', 'tai_utc', 'comment', 'day', 'month', 'year']
         # Note: ntp_seconds does not fit in 32 bit, so causes problems on
         # 32-bit systems without the np.int64 converter.
@@ -1077,10 +1103,26 @@ class LeapSeconds(QTable):
         return self
 
     @classmethod
-    def from_erfa(cls):
-        self = cls(erfa.leap_seconds.get())
-        self._expires = erfa.leap_seconds.expires
-        return self
+    def from_erfa(cls, built_in=False):
+        """Create table from the leap-second list in ERFA.
+
+        Parameters
+        ----------
+        built_in : bool
+            If `False` (default), retrieve the list currently used by ERFA,
+            which may have been updated.  If `True`, retrieve the list shipped
+            with erfa.
+        """
+        current = cls(erfa.leap_seconds.get())
+        current._expires = erfa.leap_seconds.expires
+        if not built_in:
+            return current
+
+        try:
+            erfa.leap_seconds.set(None)  # reset to defaults
+            return cls.from_erfa(built_in=False)
+        finally:
+            erfa.leap_seconds.set(current)
 
     def update_erfa_leap_seconds(self, initialize_erfa=False):
         """Add any leap seconds not already present to the ERFA table.
