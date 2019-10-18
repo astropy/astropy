@@ -589,6 +589,42 @@ lines to accomplish the same behavior::
 This will write a single HDU to a FITS file without having to manually
 encapsulate it in an :class:`HDUList` object first.
 
+Creating a Multi-Extension Image File
+"""""""""""""""""""""""""""""""""""""
+
+In the previous example we created an :class:`HDUList` object with a single
+extension (a :class:`PrimaryHDU`). To create a file with multiple extensions we need to
+use :class:`ImageHDU`\s and append them to an :class:`HDUList`.
+
+First, let's create some more data::
+
+    >>> n2 = np.random.random((3, 3)) # A random 3x3 array
+    >>> n3 = np.random.random((100, 100)) # A random 100x100 array
+
+Note that the data shapes of the different extensions do not need to be the same. Next
+place the data into separate :class:`ImageHDU` objects::
+
+    >>> hdu2 = fits.ImageHDU(n2)
+    >>> hdu3 = fits.ImageHDU(n3)
+
+Now when we create the :class:`HDUList` we simply list all extensions we want to include::
+
+    >>> hdul = fits.HDUList([hdu, hdu2, hdu3])
+
+Because :class:`HDUList` acts like a :class:`list` we can also append an :class:`ImageHDU`
+to an already-existing :class:`HDUList`::
+
+    >>> hdul.append(hdu3)
+
+Multi-extension :class:`HDUList` are treated just like those with only a :class:`PrimaryHDU`,
+so to save the file use :func:`HDUList.writeto` as shown above.
+
+.. note::
+
+    The FITS standard enforces all files to have exactly one :class:`PrimaryHDU` that is the
+    first HDU present in the file. This standard is enforced during the call to
+    :func:`HDUList.writeto` and an error will be raised if it is not met. See the ``output_verify``
+    option in :func:`HDUList.writeto` for ways to fix or ignore these warnings.
 
 Creating a New Table File
 ^^^^^^^^^^^^^^^^^^^^^^^^^
