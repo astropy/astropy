@@ -282,71 +282,188 @@ documentation.
 Defining a New Frame
 ====================
 
-Users can add new coordinate frames by creating new classes that are subclasses
-of `~astropy.coordinates.BaseCoordinateFrame`. Detailed instructions for
-subclassing are in the docstrings for that class. The key aspects are to
-define the class attributes ``default_representation`` and
-``frame_specific_representation_info`` along with frame attributes as
-`~astropy.coordinates.Attribute` class instances (or subclasses like
-`~astropy.coordinates.TimeAttribute`). If these are defined, there is often no
-need to define an ``__init__`` function, as the initializer in
-`~astropy.coordinates.BaseCoordinateFrame` will probably behave in
-the way you want. As an example::
+Implementing a new frame class that connects to the ``astropy.coordinates``
+infrastructure can be done by subclassing
+`~astropy.coordinates.BaseCoordinateFrame`. Some guidance and examples are given
+below, but detailed instructions for creating new frames are given in the
+docstring of `~astropy.coordinates.BaseCoordinateFrame`.
 
-  >>> from astropy.coordinates import BaseCoordinateFrame, Attribute, TimeAttribute, RepresentationMapping
-  >>> import astropy.coordinates.representation as r
-  >>> class MyFrame(BaseCoordinateFrame):
-  ...     # Specify how coordinate values are represented when outputted
-  ...      default_representation = r.SphericalRepresentation
-  ...
-  ...      # Specify overrides to the default names and units for all available
-  ...      # representations (subclasses of BaseRepresentation).
-  ...      frame_specific_representation_info = {
-  ...          r.SphericalRepresentation: [RepresentationMapping(reprname='lon', framename='R', defaultunit=u.rad),
-  ...                                      RepresentationMapping(reprname='lat', framename='D', defaultunit=u.rad),
-  ...                                      RepresentationMapping(reprname='distance', framename='DIST', defaultunit=None)],
-  ...          r.UnitSphericalRepresentation: [RepresentationMapping(reprname='lon', framename='R', defaultunit=u.rad),
-  ...                                          RepresentationMapping(reprname='lat', framename='D', defaultunit=u.rad)],
-  ...          r.CartesianRepresentation: [RepresentationMapping(reprname='x', framename='X'),
-  ...                                      RepresentationMapping(reprname='y', framename='Y'),
-  ...                                      RepresentationMapping(reprname='z', framename='Z')]
-  ...      }
-  ...
-  ...      # Specify frame attributes required to fully specify the frame
-  ...      location = Attribute(default=None)
-  ...      equinox = TimeAttribute(default='B1950')
-  ...      obstime = TimeAttribute(default=None, secondary_attribute='equinox')
+All frame classes must specify a default representation for the coordinate
+positions by, at minimum, defining a ``default_representation`` class attribute
+(see :ref:`astropy-coordinates-representations` for more information about the
+supported ``Representation`` objects). For example, to create a new frame that,
+by default, expects to receive its coordinate data in spherical coordinates, we
+would create a subclass as follows::
 
-  >>> c = MyFrame(R=10*u.deg, D=20*u.deg)
-  >>> c  # doctest: +FLOAT_CMP
-  <MyFrame Coordinate (location=None, equinox=B1950.000, obstime=B1950.000): (R, D) in rad
-      (0.17453293, 0.34906585)>
-  >>> c.equinox
-  <Time object: scale='tt' format='byear_str' value=B1950.000>
+    >>> from astropy.coordinates import BaseCoordinateFrame
+    >>> import astropy.coordinates.representation as r
+    >>> class MyFrame1(BaseCoordinateFrame):
+    ...     # Specify how coordinate values are represented when outputted
+    ...     default_representation = r.SphericalRepresentation
 
-If you also want to support velocity data in your coordinate frame, see the
-velocities documentation at
-:ref:`astropy-coordinate-custom-frame-with-velocities`.
+Already, this is a valid frame class::
 
-You can also define arbitrary methods for any added functionality you
-want your frame to have that is unique to that frame. These methods will
-be available in any |skycoord| that is created using your user-defined
-frame.
+    >>> fr = MyFrame1(1*u.deg, 2*u.deg)
+    >>> fr # doctest: +FLOAT_CMP
+    <MyFrame1 Coordinate: (lon, lat) in deg
+        (1., 2.)>
+    >>> fr.lon # doctest: +FLOAT_CMP
+    <Longitude 1. deg>
 
-For examples of defining frame classes, the first place to look is
-at the source code for the frames that are included in ``astropy``
-(available at ``astropy.coordinates.builtin_frames``). These are not
-"magic" in any way, and use all of the same API and features available to
-user-created frames.
+However, as we have defined it above, (1) the coordinate component names will be
+the same as used in the specified ``default_representation`` (in this case,
+``lon``, ``lat``, and ``distance`` for longitude, latitude, and distance,
+respectively), (2) this frame does not have any additional attributes or
+metadata, (3) this frame does not support transformations to any other
+coordinate frame, and (4) this frame does not support velocity data. We can
+address each of these points by seeing some other ways of customizing frame
+subclasses.
 
-.. topic:: Examples:
+Customizing Frame Component Names
+---------------------------------
 
-    See also :ref:`sphx_glr_generated_examples_coordinates_plot_sgr-coordinate-frame.py`
-    for a more annotated example of defining a new coordinate frame.
+First, as mentioned in the point (1) :ref:`above <astropy-coordinates-design>`,
+some frame classes have special names for their components. For example, the
+`~astropy.coordinates.ICRS` frame and other equatorial frame classes often use
+"Right Ascension" or "RA" in place of longitude, and "Declination" or "Dec." in
+place of latitude. These component name overrides, which change the frame
+component name defaults taken from the ``Representation`` classes, are defined
+by specifying a set of `~astropy.coordinates.RepresentationMapping` instances
+(one per component) as a part of defining an additional class attribute on a
+frame class: ``frame_specific_representation_info``. This attribute must be a
+dictionary, and the keys should be either ``Representation`` or ``Differential``
+classes (see below for a discussion about customizing behavior for velocity
+components, which is done with the ``Differential`` classes). Using our example
+frame implemented above, we can customize it to use the names "R" and "D" instead
+of "lon" and "lat"::
 
+    >>> from astropy.coordinates import RepresentationMapping
+    >>> class MyFrame2(BaseCoordinateFrame):
+    ...     # Specify how coordinate values are represented when outputted
+    ...     default_representation = r.SphericalRepresentation
+    ...
+    ...     # Override component names (e.g., "ra" instead of "lon")
+    ...     frame_specific_representation_info = {
+    ...         r.SphericalRepresentation: [RepresentationMapping('lon', 'R'),
+    ...                                     RepresentationMapping('lat', 'D')]
+    ...     }
+
+With this frame, we can now use the names ``R`` and ``D`` to access the frame
+data::
+
+    >>> fr = MyFrame2(3*u.deg, 4*u.deg)
+    >>> fr # doctest: +FLOAT_CMP
+    <MyFrame2 Coordinate: (R, D) in deg
+        (3., 4.)>
+    >>> fr.R # doctest: +FLOAT_CMP
+    <Longitude 3. deg>
+
+We can specify name mappings for any ``Representation`` class in
+``astropy.coordinates`` to change the default component names. For example, the
+`~astropy.coordinates.Galactic` frame uses the standard longitude and latitude
+names "l" and "b" when used with a
+`~astropy.coordinates.SphericalRepresentation`, but uses the component names
+"x", "y", and "z" when the representation is changed to a
+`~astropy.coordinates.CartesianRepresentation`. With our example above, we could
+add an additional set of mappings to override the Cartesian component names to
+be "a", "b", and "c" instead of the default "x", "y", and "z"::
+
+    >>> class MyFrame3(BaseCoordinateFrame):
+    ...     # Specify how coordinate values are represented when outputted
+    ...     default_representation = r.SphericalRepresentation
+    ...
+    ...     # Override component names (e.g., "ra" instead of "lon")
+    ...     frame_specific_representation_info = {
+    ...         r.SphericalRepresentation: [RepresentationMapping('lon', 'R'),
+    ...                                     RepresentationMapping('lat', 'D')],
+    ...         r.CartesianRepresentation: [RepresentationMapping('x', 'a'),
+    ...                                     RepresentationMapping('y', 'b'),
+    ...                                     RepresentationMapping('z', 'c')]
+    ...     }
+
+For any `~astropy.coordinates.RepresentationMapping`, you can also specify a
+default unit for the component by setting the ``defaultunit`` keyword argument.
+
+
+Defining Frame Attributes
+-------------------------
+
+Second, as indicated by the point (2) in the :ref:`introduction above
+<astropy-coordinates-design>`, it is often useful for coordinate frames to allow
+specifying frame "attributes" that may specify additional data or parameters
+needed in order to fully specify transformations between a given frame and some
+other frame. For example, the `~astropy.coordinates.FK5` frame allows specifying
+an ``equinox`` that helps define the transformation between
+`~astropy.coordinates.FK5` and the `~astropy.coordinates.ICRS` frame. Frame
+attributes are defined by creating class attributes that are instances of
+`~astropy.coordinates.Attribute` or its subclasses (e.g.,
+`~astropy.coordinates.TimeAttribute`, `~astropy.coordinates.QuantityAttribute`,
+etc.). If attributes are defined using these classes, there is often no need to
+define an ``__init__`` function, as the initializer in
+`~astropy.coordinates.BaseCoordinateFrame` will probably behave in the way you
+want. Let us now modify the above toy frame class implementation to add two frame
+attributes::
+
+    >>> from astropy.coordinates import TimeAttribute, QuantityAttribute
+    >>> class MyFrame4(BaseCoordinateFrame):
+    ...     # Specify how coordinate values are represented when outputted
+    ...     default_representation = r.SphericalRepresentation
+    ...
+    ...     # Override component names (e.g., "ra" instead of "lon")
+    ...     frame_specific_representation_info = {
+    ...         r.SphericalRepresentation: [RepresentationMapping('lon', 'R'),
+    ...                                     RepresentationMapping('lat', 'D')],
+    ...         r.CartesianRepresentation: [RepresentationMapping('x', 'a'),
+    ...                                     RepresentationMapping('y', 'b'),
+    ...                                     RepresentationMapping('z', 'c')]
+    ...     }
+    ...
+    ...     # Specify frame attributes required to fully specify the frame
+    ...     time = TimeAttribute(default='B1950')
+    ...     orientation = QuantityAttribute(default=42*u.deg)
+
+Without specifying an initializer, defining these attributes tells the
+`~astropy.coordinates.BaseCoordinateFrame` what to expect in terms of additional
+arguments passed in to our subclass initializer. For example, when defining a
+frame instance with our subclass, we can now optionally specify values for these
+attributes::
+
+    >>> fr = MyFrame4(R=1*u.deg, D=2*u.deg, orientation=21*u.deg)
+    >>> fr # doctest: +FLOAT_CMP
+    <MyFrame4 Coordinate (time=B1950.000, orientation=21.0 deg): (R, D) in deg
+        (1., 2.)>
+
+Note that we specified both frame attributes with default values, so they are
+optional arguments to the frame initializer. Note also that the frame attributes
+now appear in the ``repr`` of the frame instance above. As a bonus, for most of
+the ``Attribute`` subclasses, even without defining an initializer, attributes
+specified as arguments will be validated. For example, arguments passed in to
+`~astropy.coordinates.QuantityAttribute` attributes will be checked that they
+have valid and compatible units with the expected attribute units. Using our
+frame example above, which expects an ``orientation`` with angular units,
+passing in a time results in an error::
+
+    >>> MyFrame4(R=1*u.deg, D=2*u.deg, orientation=55*u.microyear) # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    ...
+    UnitConversionError: 'uyr' (time) and 'deg' (angle) are not convertible
+
+When defining frame attributes, you do not always have to specify a default
+value as long as the ``Attribute`` subclass is able to validate the input. For
+example, with the above frame, if the ``orientation`` does not require a default
+value but we still want to enforce it to have angular units, we could instead
+define it as::
+
+    orientation = QuantityAttribute(unit=u.deg)
+
+In the above case, if ``orientation`` is not specified when a new frame instance
+is created, its value will be `None`: Note that it is up to the frame
+classes and transformation function implementations to define how to handle a
+`None` value. In most cases `None` should signify a special case like "use a
+different frame attribute for this value" or similar.
 
 Customizing Display of Attributes
----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 While the default `repr` for coordinate frames is suitable for most cases, you
 may want to customize how frame attributes are displayed in certain cases. To
@@ -363,33 +480,35 @@ of your frame::
 
 If your frame has this class as an attribute::
 
+  >>> from astropy.coordinates import Attribute
   >>> class Egg(BaseCoordinateFrame):
   ...     can = Attribute(default=Spam())
 
-When it is displayed by the frame it will use the result of ``_astropy_repr_in_frame``::
+When it is displayed by the frame it will use the result of
+``_astropy_repr_in_frame``::
 
   >>> Egg()
   <Egg Frame (can=<A can of Spam>)>
 
 
-Defining Transformations
-========================
+Defining Transformations between Frames
+---------------------------------------
 
-A frame may not be too useful without a way to transform coordinates
-defined within it to or from other frames. Fortunately,
-`astropy.coordinates` provides a framework to do just that. The key
-concept for these transformations is the frame transform graph,
-available as ``astropy.coordinates.frame_transform_graph``, an instance of
-the `~astropy.coordinates.TransformGraph` class. This graph (in the
-"graph theory" sense, not "plot"), stores all the transformations
-between all of the built-in frames, as well as tools for finding shortest
-paths through this graph to transform from any frame to any other. All
-of the power of this graph is available to user-created frames as well, meaning
-that once you define even one transform from your frame to some frame in
-the graph, coordinates defined in your frame can be transformed to
-*any* other frame in the graph.
+As indicated by the point (3) in the :ref:`introduction above
+<astropy-coordinates-design>`, a frame class on its own is likely not very
+useful until transformations are defined between it and other coordinate frame
+classes. The key concept for defining transformations in ``astropy.coordinates``
+is the "frame transform graph" (in the "graph theory" sense, not "plot"), which
+stores all of the transformations between the built-in frames, as well as tools
+for finding the shortest paths through this graph to transform from any frame to
+any other by composing the transformations. The power behind this concept is
+available to user-created frames as well, meaning that once you define even one
+transform from your frame to any frame in the graph, coordinates defined in your
+frame can be transformed to *any* other frame in the graph. The "frame transform
+graph" is available in code as ``astropy.coordinates.frame_transform_graph``,
+which is an instance of the `~astropy.coordinates.TransformGraph` class.
 
-The transforms themselves are represented as
+The transformations themselves are represented as
 `~astropy.coordinates.CoordinateTransform` objects or their subclasses. The
 useful subclasses/types of transformations are:
 
@@ -410,20 +529,19 @@ useful subclasses/types of transformations are:
 * `~astropy.coordinates.DynamicMatrixTransform`
 
     The matrix transforms are `~astropy.coordinates.AffineTransform`
-    transformations without a translation (i.e., a rotation). The static
+    transformations without a translation (i.e., only a rotation). The static
     version is for the case where the matrix is independent of the frame
     attributes (e.g., the ICRS->FK5 transformation, because ICRS has no frame
     attributes). The dynamic case is for transformations where the
     transformation matrix depends on the frame attributes of either the
     to or from frame.
 
-
 Generally, it is not necessary to use these classes directly. Instead,
-use methods on ``frame_transform_graph`` that can be used as function
+use methods on the ``frame_transform_graph`` that can be used as function
 decorators. Define functions that either do the actual
-transformation (for FunctionTransform), or that compute the necessary
-transformation matrices to transform. Then decorate the functions to
-register these transformations with the frame transform graph::
+transformation (for `~astropy.coordinates.FunctionTransform`), or that compute
+the necessary transformation matrices to transform. Then decorate the functions
+to register these transformations with the frame transform graph::
 
     from astropy.coordinates import frame_transform_graph
 
@@ -457,3 +575,96 @@ process.
 For a demonstration of how to define transformation functions that also work for
 transforming velocity components, see
 :ref:`astropy-coordinate-transform-with-velocities`.
+
+
+Supporting Velocity Data in Frames
+----------------------------------
+
+As alluded to by point (4) in the :ref:`introduction above
+<astropy-coordinates-design>`, the examples we have seen above mostly deal with
+customizing frame behavior for positional information. (For some context about
+how velocities are handled in ``astropy.coordinates``, it may be useful to read
+the overview: :ref:`astropy-coordinate-custom-frame-with-velocities`.)
+
+When defining a frame class, it is also possible to set a
+``default_differential`` (analogous to ``default_representation``), and to
+customize how velocity data components are named. Expanding on our custom frame
+example above, we can use `~astropy.coordinates.RepresentationMapping` to
+override ``Differential`` component names. The default ``Differential``
+components are typically named after the corresponding ``Representation``
+component, preceded by ``d_``. So, for example, the longitude ``Differential``
+component is, by default, ``d_lon``. However, there are some defaults to be
+aware of. Here, if we set the default ``Differential`` class to also be
+Spherical, it will implement a set of default "nicer" names for the velocity
+components, mapping ``pm_R`` to ``d_lon``, ``pm_D`` to ``d_lat``, and
+``radial_velocity`` to ``d_distance`` (taking the previously overridden
+longitude and latitude component names)::
+
+    >>> class MyFrame4WithVelocity(BaseCoordinateFrame):
+    ...     # Specify how coordinate values are represented when outputted
+    ...     default_representation = r.SphericalRepresentation
+    ...     default_differential = r.SphericalDifferential
+    ...
+    ...     # Override component names (e.g., "ra" instead of "lon")
+    ...     frame_specific_representation_info = {
+    ...         r.SphericalRepresentation: [RepresentationMapping('lon', 'R'),
+    ...                                     RepresentationMapping('lat', 'D')],
+    ...         r.CartesianRepresentation: [RepresentationMapping('x', 'a'),
+    ...                                     RepresentationMapping('y', 'b'),
+    ...                                     RepresentationMapping('z', 'c')]
+    ...     }
+    >>> fr = MyFrame4WithVelocity(R=1*u.deg, D=2*u.deg,
+    ...                           pm_R=3*u.mas/u.yr, pm_D=4*u.mas/u.yr)
+    >>> fr # doctest: +FLOAT_CMP
+    <MyFrame4WithVelocity Coordinate: (R, D) in deg
+        (1., 2.)
+    (pm_R, pm_D) in mas / yr
+        (3., 4.)>
+
+If you want to override the default "nicer" names, you can specify a new key in
+the ``frame_specific_representation_info`` for any of the ``Differential``
+classes, for example::
+
+    >>> class MyFrame4WithVelocity2(BaseCoordinateFrame):
+    ...     # Specify how coordinate values are represented when outputted
+    ...     default_representation = r.SphericalRepresentation
+    ...     default_differential = r.SphericalDifferential
+    ...
+    ...     # Override component names (e.g., "ra" instead of "lon")
+    ...     frame_specific_representation_info = {
+    ...         r.SphericalRepresentation: [RepresentationMapping('lon', 'R'),
+    ...                                     RepresentationMapping('lat', 'D')],
+    ...         r.CartesianRepresentation: [RepresentationMapping('x', 'a'),
+    ...                                     RepresentationMapping('y', 'b'),
+    ...                                     RepresentationMapping('z', 'c')],
+    ...         r.SphericalDifferential: [RepresentationMapping('d_lon', 'pm1'),
+    ...                                   RepresentationMapping('d_lat', 'pm2'),
+    ...                                   RepresentationMapping('d_distance', 'rv')]
+    ...     }
+    >>> fr = MyFrame4WithVelocity2(R=1*u.deg, D=2*u.deg,
+    ...                           pm1=3*u.mas/u.yr, pm2=4*u.mas/u.yr)
+    >>> fr # doctest: +FLOAT_CMP
+    <MyFrame4WithVelocity2 Coordinate: (R, D) in deg
+        (1., 2.)
+    (pm1, pm2) in mas / yr
+        (3., 4.)>
+
+
+Final Notes
+-----------
+
+You can also define arbitrary methods for any added functionality you
+want your frame to have that is unique to that frame. These methods will
+be available in any |skycoord| that is created using your user-defined
+frame.
+
+For examples of defining frame classes, the first place to look is
+at the source code for the frames that are included in ``astropy``
+(available at ``astropy.coordinates.builtin_frames``). These are not
+special-cased, but rather use all of the same API and features available to
+user-created frames.
+
+.. topic:: Examples:
+
+    See also :ref:`sphx_glr_generated_examples_coordinates_plot_sgr-coordinate-frame.py`
+    for a more annotated example of defining a new coordinate frame.

@@ -431,6 +431,9 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- The ``QuantityAttribute`` class now supports a None default value if a unit
+  is specified. [#9345]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 

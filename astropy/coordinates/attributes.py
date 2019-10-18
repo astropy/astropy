@@ -263,10 +263,15 @@ class QuantityAttribute(Attribute):
     A frame attribute that is a quantity with specified units and shape
     (optionally).
 
+    Can be `None`, which should be used for special cases in associated
+    frame transformations like "this quantity should be ignored" or similar.
+
     Parameters
     ----------
-    default : object
-        Default value for the attribute if not provided
+    default : value or Quantity or None
+        Default value for the attribute if the user does not supply one. If a
+        Quantity, it must be consistent with ``unit``, or if a value, ``unit``
+        cannot be None.
     secondary_attribute : str
         Name of a secondary instance attribute which supplies the value if
         ``default is None`` and no value was supplied during initialization.
@@ -277,7 +282,17 @@ class QuantityAttribute(Attribute):
         If given, specifies the shape the attribute must be
     """
 
-    def __init__(self, default, secondary_attribute='', unit=None, shape=None):
+    def __init__(self, default=None, secondary_attribute='', unit=None,
+                 shape=None):
+
+        if default is None and unit is None:
+            raise ValueError('Either a default quantity value must be '
+                             'provided, or a unit must be provided to define a '
+                             'QuantityAttribute.')
+
+        if default is not None and unit is None:
+            unit = default.unit
+
         self.unit = unit
         self.shape = shape
         default = self.convert_input(default)[0]
@@ -304,9 +319,9 @@ class QuantityAttribute(Attribute):
         ValueError
             If the input is not valid for this attribute.
         """
+
         if value is None:
-            raise TypeError('QuantityAttributes cannot be None, because None '
-                            'is not a Quantity')
+            return None, False
 
         if np.all(value == 0) and self.unit is not None:
             return u.Quantity(np.zeros(self.shape), self.unit), True
@@ -319,7 +334,7 @@ class QuantityAttribute(Attribute):
             if self.shape is not None and value.shape != self.shape:
                 raise ValueError('The provided value has shape "{}", but '
                                  'should have shape "{}"'.format(value.shape,
-                                                                  self.shape))
+                                                                 self.shape))
             converted = oldvalue is not value
             return value, converted
 
@@ -484,6 +499,9 @@ class DifferentialAttribute(Attribute):
         ValueError
             If the input is not valid for this attribute.
         """
+
+        if value is None:
+            return None, False
 
         if not isinstance(value, self.allowed_classes):
             if len(self.allowed_classes) == 1:
