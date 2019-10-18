@@ -40,7 +40,7 @@ Delete trailing white spaces
 One can `delete trailing whitespace
 <https://www.emacswiki.org/emacs/DeletingWhitespace#toc3>`_ with ``M-x
 delete-trailing-whitespace``. To ensure this is done every time a python file
-is saved, use::
+is saved, use:
 
 .. code-block:: scheme
 
