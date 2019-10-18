@@ -12,8 +12,8 @@ y = np.linspace(-20, 360, 100)
 def test_math():
     for name in math_functions.__all__:
         model = getattr(math_functions, name)()
-        print('name', name)
+        func = getattr(np, model.func.__name__)
         if model.n_inputs == 1:
-            assert_allclose(model(x), model.func(x))
+            assert_allclose(model(x), func(x))
         elif model.n_inputs == 2:
-            assert_allclose(model(x, y), model.func(x, y))
+            assert_allclose(model(x, y), func(x, y))
