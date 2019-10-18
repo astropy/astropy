@@ -103,18 +103,18 @@ def _check_numpy():
     # Note: We could have used distutils.version for this comparison,
     # but it seems like overkill to import distutils at runtime.
     requirement_met = False
-
+    import_fail = ''
     try:
         import numpy
     except ImportError:
-        pass
+        import_fail = 'Cannot import numpy at all.'
     else:
         from .utils import minversion
         requirement_met = minversion(numpy, __minimum_numpy_version__)
 
     if not requirement_met:
-        msg = ("Numpy version {} or later must be installed to use "
-               "Astropy".format(__minimum_numpy_version__))
+        msg = ("Numpy version {0} or later must be installed to use "
+               "Astropy. {1}".format(__minimum_numpy_version__, import_fail))
         raise ImportError(msg)
 
     return numpy
