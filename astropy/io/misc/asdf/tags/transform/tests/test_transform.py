@@ -38,6 +38,13 @@ test_models = [
 ]
 
 
+math_models = []
+for kl in astmodels.math.__all__:
+    klass = getattr(astmodels.math, kl)
+    math_models.append(klass())
+
+test_models.extend(math_models)
+
 def test_transforms_compound(tmpdir):
     tree = {
         'compound':
