@@ -45,6 +45,7 @@ env:
         - SETUP_CMD='test'
         - INSTALL_WITH_PIP=False
         - EXTRAS_INSTALL=""
+        - CC="ccache gcc"
         # Run test suite twice in a row without cleaning
         - DOUBLE_PLAY=False
         - USE_CI_HELPERS=True
@@ -100,6 +101,7 @@ matrix:
           env: SETUP_CMD='test --remote-data=astropy'
                CONDA_DEPENDENCIES="$CONDA_ALL_DEPENDENCIES clang"
                PIP_DEPENDENCIES="scikit-image jplephem $ASDF_PIP_DEP"
+               CC="ccache clang"
                CCOMPILER=clang
                EVENT_TYPE='cron'
                DOUBLE_PLAY=True
@@ -135,6 +137,7 @@ matrix:
           stage: Initial tests
           env: PYTHON_VERSION=3.7 CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="scikit-image $ASDF_PIP_DEP"
+               CC="ccache clang"
                SETUP_CMD='test -a "--durations=50"'
           compiler: clang
 
