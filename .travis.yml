@@ -138,20 +138,22 @@ matrix:
                SETUP_CMD='test -a "--durations=50"'
           compiler: clang
 
-        # Full tests with coverage checks.
+        # arm64
         - os: linux
-          arch: amd64
+          arch: arm64
           env: SETUP_CMD='test --coverage --remote-data=astropy --readonly'
-               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="scikit-image codecov objgraph jplephem bintrees sortedcontainers $ASDF_PIP_DEP"
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='--coverage -fno-inline-functions -O0'
                MATPLOTLIB_VERSION=2.1
                EVENT_TYPE='push pull_request cron'
+          install:
+             sudo apt-get install python3-venv python3-pip
+             pip install $PIP_DEPENDENCIES .[test]
 
         # Full tests with coverage checks.
         - os: linux
-          arch: arm64
+          arch: amd64
           env: SETUP_CMD='test --coverage --remote-data=astropy --readonly'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="scikit-image codecov objgraph jplephem bintrees sortedcontainers $ASDF_PIP_DEP"
