@@ -50,19 +50,12 @@ class galactocentric_frame_defaults(ScienceState):
     - 'v4.0': The attribute values as updated in Astropy version 4.0.
     - 'latest': An alias of the most recent parameter set (currently: 'v4.0')
 
+    See :ref:`astropy-coordinates-galactocentric-defaults` for more information.
+
     Examples
     --------
-    As with other `~astropy.utils.state.ScienceState` subclasses, this class can
-    be used to globally set the frame defaults at runtime. For example, the
-    default parameter values can be seen by initializing the
-    `~astropy.coordinates.Galactocentric` frame with no arguments::
-
-        >>> from astropy.coordinates import Galactocentric
-        >>> Galactocentric()
-        <Galactocentric Frame (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
-            (266.4051, -28.936175)>, galcen_distance=8.3 kpc, galcen_v_sun=(11.1, 232.24, 7.25) km / s, z_sun=27.0 pc, roll=0.0 deg)>
-
-    But, these can be modified using this class::
+    The default `~astropy.coordinates.Galactocentric` frame parameters can be
+    modified globally::
 
         >>> from astropy.coordinates import galactocentric_frame_defaults
         >>> galactocentric_frame_defaults.set('v4.0')
