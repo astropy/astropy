@@ -128,8 +128,12 @@ class TestTimeDeltaQuantity:
         dt = TimeDelta(q)
         assert dt.to(u.day) == q
         assert dt.to_value(u.day) == q.value
+        assert dt.to_value('day') == q.value
         assert dt.to(u.second).value == q.to_value(u.second)
         assert dt.to_value(u.second) == q.to_value(u.second)
+        assert dt.to_value('s') == q.to_value(u.second)
+        # Following goes through "format", but should be the same.
+        assert dt.to_value('sec') == q.to_value(u.second)
         with pytest.raises(u.UnitsError):
             dt.to(u.m)
         with pytest.raises(u.UnitsError):
