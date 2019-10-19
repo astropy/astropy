@@ -5,7 +5,7 @@ import copy
 import functools
 import datetime
 from copy import deepcopy
-from decimal import Decimal
+from decimal import Decimal, localcontext
 
 import numpy as np
 from numpy.testing import assert_allclose
@@ -918,6 +918,47 @@ class TestNumericalSubFormat:
         t = Time('2000.1', format='jyear', scale='tai', out_subfmt='str')
         assert t == Time(2000.1, format='jyear', scale='tai')
         assert t.value == '2000.100'
+
+    def test_basic_subformat_usage(self):
+        Time('2001', format='jyear', scale='tai').jyear_str
+
+    def test_basic_subformat_setting(self):
+        t = Time('2001', format='jyear', scale='tai')
+        t.format = "mjd"
+        t.mjd_str
+
+    def test_basic_subformat_cache(self):
+        t = Time('2001', format='jyear', scale='tai')
+        t.jyear_str
+        t.jyear_str
+
+    @pytest.mark.parametrize("fmt", ["jd", "mjd", "cxcsec", "unix", "gps", "jyear"])
+    def test_decimal_context_does_not_affect_string(self, fmt):
+        t = Time('2001', format='jyear', scale='tai')
+        t.format = fmt
+        with localcontext() as ctx:
+            ctx.prec = 2
+            t_s_2 = getattr(t, fmt+"_str")
+        t2 = Time('2001', format='jyear', scale='tai')
+        t2.format = fmt
+        with localcontext() as ctx:
+            ctx.prec = 40
+            t2_s_40 = getattr(t2, fmt+"_str")
+        assert t_s_2 == t2_s_40
+
+    # TODO(aarchiba): check cache responds appropriately to Decimal context
+    def test_decimal_context_caching(self):
+        t = Time(val=58000, val2=1e-14, format='mjd', scale='tai')
+        with localcontext() as ctx:
+            ctx.prec = 2
+            t_s_2 = t.mjd_O
+        t2 = Time(val=58000, val2=1e-14, format='mjd', scale='tai')
+        with localcontext() as ctx:
+            ctx.prec = 40
+            t_s_40 = t.mjd_O
+            t2_s_40 = t2.mjd_O
+        assert t_s_2 != t_s_40
+        assert t_s_40 == t2_s_40
 
 
 class TestSofaErrors:
