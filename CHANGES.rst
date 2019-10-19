@@ -267,10 +267,14 @@ astropy.coordinates
 
 - Removed ``longitude`` and ``latitude`` attributes from ``EarthLocation``;
   deprecated since 2.0. [#9326]
+
 - The ``DifferentialAttribute`` for frame classes now passes through any input
   to the ``allowed_classes`` if only one allowed class is specified, i.e. this
   now allows passing a quantity in for frame attributes that use
   ``DifferentialAttribute``. [#9325]
+
+- Removed the deprecated ``galcen_ra`` and ``galcen_dec`` attributes from the
+  ``Galactocentric`` frame. [#9346]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
