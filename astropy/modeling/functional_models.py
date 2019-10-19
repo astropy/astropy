@@ -2,9 +2,6 @@
 
 """Mathematical models."""
 
-
-from collections import OrderedDict
-
 import numpy as np
 
 from astropy import units as u
@@ -185,9 +182,9 @@ class Gaussian1D(Fittable1DModel):
             return {'x': self.mean.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('mean', inputs_unit['x']),
-                            ('stddev', inputs_unit['x']),
-                            ('amplitude', outputs_unit['y'])])
+        return {'mean': inputs_unit['x'],
+                'stddev': inputs_unit['x'],
+                'amplitude': outputs_unit['y']}
 
 
 class Gaussian2D(Fittable2DModel):
@@ -444,12 +441,12 @@ class Gaussian2D(Fittable2DModel):
         # defined.
         if inputs_unit['x'] != inputs_unit['y']:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return OrderedDict([('x_mean', inputs_unit['x']),
-                            ('y_mean', inputs_unit['x']),
-                            ('x_stddev', inputs_unit['x']),
-                            ('y_stddev', inputs_unit['x']),
-                            ('theta', u.rad),
-                            ('amplitude', outputs_unit['z'])])
+        return {'x_mean': inputs_unit['x'],
+                'y_mean': inputs_unit['x'],
+                'x_stddev': inputs_unit['x'],
+                'y_stddev': inputs_unit['x'],
+                'theta': u.rad,
+                'amplitude': outputs_unit['z']}
 
 
 class Shift(Fittable1DModel):
@@ -497,7 +494,7 @@ class Shift(Fittable1DModel):
         return [d_offset]
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('offset', outputs_unit['y'])])
+        return {'offset': outputs_unit['y']}
 
 
 class Scale(Fittable1DModel):
@@ -557,7 +554,7 @@ class Scale(Fittable1DModel):
         unit = outputs_unit['y'] / inputs_unit['x']
         if unit == u.one:
             unit = None
-        return OrderedDict([('factor', unit)])
+        return {'factor': unit}
 
 
 class Multiply(Fittable1DModel):
@@ -594,7 +591,7 @@ class Multiply(Fittable1DModel):
         return [d_factor]
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('factor', outputs_unit['y'])])
+        return {'factor': outputs_unit['y']}
 
 
 class RedshiftScaleFactor(Fittable1DModel):
@@ -728,8 +725,8 @@ class Sersic1D(Fittable1DModel):
             return {'x': self.r_eff.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('r_eff', inputs_unit['x']),
-                            ('amplitude', outputs_unit['y'])])
+        return {'r_eff': inputs_unit['x'],
+                'amplitude': outputs_unit['y']}
 
 
 class Sine1D(Fittable1DModel):
@@ -814,8 +811,8 @@ class Sine1D(Fittable1DModel):
             return {'x': 1. / self.frequency.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('frequency', inputs_unit['x'] ** -1),
-                            ('amplitude', outputs_unit['y'])])
+        return {'frequency': inputs_unit['x'] ** -1,
+                'amplitude': outputs_unit['y']}
 
 
 class Linear1D(Fittable1DModel):
@@ -873,8 +870,8 @@ class Linear1D(Fittable1DModel):
             return {'x': self.intercept.unit / self.slope.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('intercept', outputs_unit['y']),
-                            ('slope', outputs_unit['y'] / inputs_unit['x'])])
+        return {'intercept': outputs_unit['y'],
+                'slope': outputs_unit['y'] / inputs_unit['x']}
 
 
 class Planar2D(Fittable2DModel):
@@ -920,9 +917,9 @@ class Planar2D(Fittable2DModel):
         return [d_slope_x, d_slope_y, d_intercept]
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('intercept', outputs_unit['z']),
-                            ('slope_x', outputs_unit['z'] / inputs_unit['x']),
-                            ('slope_y', outputs_unit['z'] / inputs_unit['y'])])
+        return {'intercept': outputs_unit['z'],
+                'slope_x': outputs_unit['z'] / inputs_unit['x'],
+                'slope_y': outputs_unit['z'] / inputs_unit['y']}
 
 
 class Lorentz1D(Fittable1DModel):
@@ -1019,9 +1016,9 @@ class Lorentz1D(Fittable1DModel):
             return {'x': self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('x_0', inputs_unit['x']),
-                            ('fwhm', inputs_unit['x']),
-                            ('amplitude', outputs_unit['y'])])
+        return {'x_0': inputs_unit['x'],
+                'fwhm': inputs_unit['x'],
+                'amplitude': outputs_unit['y']}
 
 
 class Voigt1D(Fittable1DModel):
@@ -1123,10 +1120,10 @@ class Voigt1D(Fittable1DModel):
             return {'x': self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('x_0', inputs_unit['x']),
-                            ('fwhm_L', inputs_unit['x']),
-                            ('fwhm_G', inputs_unit['x']),
-                            ('amplitude_L', outputs_unit['y'])])
+        return {'x_0': inputs_unit['x'],
+                'fwhm_L': inputs_unit['x'],
+                'fwhm_G': inputs_unit['x'],
+                'amplitude_L': outputs_unit['y']}
 
 
 class Const1D(Fittable1DModel):
@@ -1203,7 +1200,7 @@ class Const1D(Fittable1DModel):
         return None
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('amplitude', outputs_unit['y'])])
+        return {'amplitude': outputs_unit['y']}
 
 
 class Const2D(Fittable2DModel):
@@ -1252,7 +1249,7 @@ class Const2D(Fittable2DModel):
         return None
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('amplitude', outputs_unit['z'])])
+        return {'amplitude': outputs_unit['z']}
 
 
 class Ellipse2D(Fittable2DModel):
@@ -1380,12 +1377,12 @@ class Ellipse2D(Fittable2DModel):
         # defined.
         if inputs_unit['x'] != inputs_unit['y']:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return OrderedDict([('x_0', inputs_unit['x']),
-                            ('y_0', inputs_unit['x']),
-                            ('a', inputs_unit['x']),
-                            ('b', inputs_unit['x']),
-                            ('theta', u.rad),
-                            ('amplitude', outputs_unit['z'])])
+        return {'x_0': inputs_unit['x'],
+                'y_0': inputs_unit['x'],
+                'a': inputs_unit['x'],
+                'b': inputs_unit['x'],
+                'theta': u.rad,
+                'amplitude': outputs_unit['z']}
 
 
 class Disk2D(Fittable2DModel):
@@ -1463,10 +1460,10 @@ class Disk2D(Fittable2DModel):
         # defined.
         if inputs_unit['x'] != inputs_unit['y']:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return OrderedDict([('x_0', inputs_unit['x']),
-                            ('y_0', inputs_unit['x']),
-                            ('R_0', inputs_unit['x']),
-                            ('amplitude', outputs_unit['z'])])
+        return {'x_0': inputs_unit['x'],
+                'y_0': inputs_unit['x'],
+                'R_0': inputs_unit['x'],
+                'amplitude': outputs_unit['z']}
 
 
 class Ring2D(Fittable2DModel):
@@ -1570,11 +1567,11 @@ class Ring2D(Fittable2DModel):
         # defined.
         if inputs_unit['x'] != inputs_unit['y']:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return OrderedDict([('x_0', inputs_unit['x']),
-                            ('y_0', inputs_unit['x']),
-                            ('r_in', inputs_unit['x']),
-                            ('width', inputs_unit['x']),
-                            ('amplitude', outputs_unit['z'])])
+        return {'x_0': inputs_unit['x'],
+                'y_0': inputs_unit['x'],
+                'r_in': inputs_unit['x'],
+                'width': inputs_unit['x'],
+                'amplitude': outputs_unit['z']}
 
 
 class Delta1D(Fittable1DModel):
@@ -1682,9 +1679,9 @@ class Box1D(Fittable1DModel):
             return {'y': self.amplitude.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('x_0', inputs_unit['x']),
-                            ('width', inputs_unit['x']),
-                            ('amplitude', outputs_unit['y'])])
+        return {'x_0': inputs_unit['x'],
+                'width': inputs_unit['x'],
+                'amplitude': outputs_unit['y']}
 
 
 class Box2D(Fittable2DModel):
@@ -1769,11 +1766,11 @@ class Box2D(Fittable2DModel):
                     'y': self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('x_0', inputs_unit['x']),
-                            ('y_0', inputs_unit['y']),
-                            ('x_width', inputs_unit['x']),
-                            ('y_width', inputs_unit['y']),
-                            ('amplitude', outputs_unit['z'])])
+        return {'x_0': inputs_unit['x'],
+                'y_0': inputs_unit['y'],
+                'x_width': inputs_unit['x'],
+                'y_width': inputs_unit['y'],
+                'amplitude': outputs_unit['z']}
 
 
 class Trapezoid1D(Fittable1DModel):
@@ -1868,10 +1865,10 @@ class Trapezoid1D(Fittable1DModel):
             return {'x': self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('x_0', inputs_unit['x']),
-                            ('width', inputs_unit['x']),
-                            ('slope', outputs_unit['y'] / inputs_unit['x']),
-                            ('amplitude', outputs_unit['y'])])
+        return {'x_0': inputs_unit['x'],
+                'width': inputs_unit['x'],
+                'slope': outputs_unit['y'] / inputs_unit['x'],
+                'amplitude': outputs_unit['y']}
 
 
 class TrapezoidDisk2D(Fittable2DModel):
@@ -1945,11 +1942,11 @@ class TrapezoidDisk2D(Fittable2DModel):
         # defined.
         if inputs_unit['x'] != inputs_unit['y']:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return OrderedDict([('x_0', inputs_unit['x']),
-                            ('y_0', inputs_unit['x']),
-                            ('R_0', inputs_unit['x']),
-                            ('slope', outputs_unit['z'] / inputs_unit['x']),
-                            ('amplitude', outputs_unit['z'])])
+        return {'x_0': inputs_unit['x'],
+                'y_0': inputs_unit['x'],
+                'R_0': inputs_unit['x'],
+                'slope': outputs_unit['z'] / inputs_unit['x'],
+                'amplitude': outputs_unit['z']}
 
 
 class MexicanHat1D(Fittable1DModel):
@@ -2035,9 +2032,9 @@ class MexicanHat1D(Fittable1DModel):
             return {'x': self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('x_0', inputs_unit['x']),
-                            ('sigma', inputs_unit['x']),
-                            ('amplitude', outputs_unit['y'])])
+        return {'x_0': inputs_unit['x'],
+                'sigma': inputs_unit['x'],
+                'amplitude': outputs_unit['y']}
 
 
 class MexicanHat2D(Fittable2DModel):
@@ -2097,10 +2094,10 @@ class MexicanHat2D(Fittable2DModel):
         # defined.
         if inputs_unit['x'] != inputs_unit['y']:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return OrderedDict([('x_0', inputs_unit['x']),
-                            ('y_0', inputs_unit['x']),
-                            ('sigma', inputs_unit['x']),
-                            ('amplitude', outputs_unit['z'])])
+        return {'x_0': inputs_unit['x'],
+                'y_0': inputs_unit['x'],
+                'sigma': inputs_unit['x'],
+                'amplitude': outputs_unit['z']}
 
 
 class AiryDisk2D(Fittable2DModel):
@@ -2198,10 +2195,10 @@ class AiryDisk2D(Fittable2DModel):
         # defined.
         if inputs_unit['x'] != inputs_unit['y']:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return OrderedDict([('x_0', inputs_unit['x']),
-                            ('y_0', inputs_unit['x']),
-                            ('radius', inputs_unit['x']),
-                            ('amplitude', outputs_unit['z'])])
+        return {'x_0': inputs_unit['x'],
+                'y_0': inputs_unit['x'],
+                'radius': inputs_unit['x'],
+                'amplitude': outputs_unit['z']}
 
 
 class Moffat1D(Fittable1DModel):
@@ -2294,9 +2291,9 @@ class Moffat1D(Fittable1DModel):
             return {'x': self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('x_0', inputs_unit['x']),
-                            ('gamma', inputs_unit['x']),
-                            ('amplitude', outputs_unit['y'])])
+        return {'x_0': inputs_unit['x'],
+                'gamma': inputs_unit['x'],
+                'amplitude': outputs_unit['y']}
 
 
 class Moffat2D(Fittable2DModel):
@@ -2381,10 +2378,10 @@ class Moffat2D(Fittable2DModel):
         # defined.
         if inputs_unit['x'] != inputs_unit['y']:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return OrderedDict([('x_0', inputs_unit['x']),
-                            ('y_0', inputs_unit['x']),
-                            ('gamma', inputs_unit['x']),
-                            ('amplitude', outputs_unit['z'])])
+        return {'x_0': inputs_unit['x'],
+                'y_0': inputs_unit['x'],
+                'gamma': inputs_unit['x'],
+                'amplitude': outputs_unit['z']}
 
 
 class Sersic2D(Fittable2DModel):
@@ -2503,11 +2500,11 @@ class Sersic2D(Fittable2DModel):
         # defined.
         if inputs_unit['x'] != inputs_unit['y']:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return OrderedDict([('x_0', inputs_unit['x']),
-                            ('y_0', inputs_unit['x']),
-                            ('r_eff', inputs_unit['x']),
-                            ('theta', u.rad),
-                            ('amplitude', outputs_unit['z'])])
+        return {'x_0': inputs_unit['x'],
+                'y_0': inputs_unit['x'],
+                'r_eff': inputs_unit['x'],
+                'theta': u.rad,
+                'amplitude': outputs_unit['z']}
 
 
 class KingProjectedAnalytic1D(Fittable1DModel):
@@ -2640,9 +2637,9 @@ class KingProjectedAnalytic1D(Fittable1DModel):
             return {'x': self.r_core.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('r_core', inputs_unit['x']),
-                            ('r_tide', inputs_unit['x']),
-                            ('amplitude', outputs_unit['y'])])
+        return {'r_core': inputs_unit['x'],
+                'r_tide': inputs_unit['x'],
+                'amplitude': outputs_unit['y']}
 
 
 class Logarithmic1D(Fittable1DModel):
@@ -2691,8 +2688,8 @@ class Logarithmic1D(Fittable1DModel):
             return {'x': self.tau.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('tau', inputs_unit['x']),
-                            ('amplitude', outputs_unit['y'])])
+        return {'tau': inputs_unit['x'],
+                'amplitude': outputs_unit['y']}
 
 
 class Exponential1D(Fittable1DModel):
@@ -2740,5 +2737,5 @@ class Exponential1D(Fittable1DModel):
             return {'x': self.tau.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('tau', inputs_unit['x']),
-                            ('amplitude', outputs_unit['y'])])
+        return {'tau': inputs_unit['x'],
+                'amplitude': outputs_unit['y']}
