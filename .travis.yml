@@ -141,8 +141,8 @@ matrix:
           stage: Arm tests
           env: SETUP_CMD='test'
           install:
-             - sudo apt-get -y install python3-venv python3-pip python3-numpy python3-matplotlib python3-coverage python3-sgp4 python3-psutil python3-objgraph python3-ipython python3-graphviz 
-             - pip3 install .[test]
+             - sudo apt-get -y install python3-venv python3-pip 
+             - pip3 install . numpy pytest-astropy
 
         # Full tests with coverage checks.
         - os: linux
