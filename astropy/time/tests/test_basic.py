@@ -960,17 +960,17 @@ class TestNumericalSubFormat:
         assert t_s_2 == t2_s_40, "Different precision should produce the same results"
 
     @pytest.mark.parametrize("f, s, t", [("sec", "long", np.longdouble),
-                                      ("sec", "decimal", Decimal),
-                                      ("sec", "str", str)])
+                                         ("sec", "decimal", Decimal),
+                                         ("sec", "str", str)])
     def test_timedelta_basic(self, f, s, t):
         dt = (Time("58000", format="mjd", scale="tai")
               - Time("58001", format="mjd", scale="tai"))
 
-        assert isinstance(getattr(dt, "_".join((f,s))), t)
+        value = getattr(dt, "_".join((f, s)))
+        assert isinstance(value, t)
         dt.format = f
         dt.out_subfmt = s
         assert isinstance(dt.value, t)
-        assert isinstance(dt.to_value(), t)
 
 
 class TestSofaErrors:
