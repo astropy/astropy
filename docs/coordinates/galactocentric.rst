@@ -184,10 +184,14 @@ frame with no arguments::
 These default values can be modified using this class::
 
     >>> from astropy.coordinates import galactocentric_frame_defaults
-    >>> galactocentric_frame_defaults.set('v4.0')
+    >>> _ = galactocentric_frame_defaults.set('v4.0')
     >>> Galactocentric() # doctest: +FLOAT_CMP
     <Galactocentric Frame (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
         (266.4051, -28.936175)>, galcen_distance=8.122 kpc, galcen_v_sun=(12.9, 245.6, 7.78) km / s, z_sun=20.8 pc, roll=0.0 deg)>
+    >>> _ = galactocentric_frame_defaults.set('pre-v4.0')
+    >>> Galactocentric() # doctest: +FLOAT_CMP
+    <Galactocentric Frame (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
+        (266.4051, -28.936175)>, galcen_distance=8.3 kpc, galcen_v_sun=(11.1, 232.24, 7.25) km / s, z_sun=27.0 pc, roll=0.0 deg)>
 
 The default parameters can also be updated by using this class as a context
 manager to change the default parameter values locally to a piece of your code::
@@ -218,4 +222,4 @@ For example, in such code, we recommend adding something like this to your
 import block (here using ``'v4.0'`` as an example)::
 
     >>> import astropy.coordinates as coord
-    >>> coord.galactocentric_frame_defaults.set('v4.0')
+    >>> coord.galactocentric_frame_defaults.set('v4.0') # doctest: +SKIP
