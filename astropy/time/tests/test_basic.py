@@ -862,12 +862,19 @@ class TestNumericalSubFormat:
         t = Time('54321.000000000001', format='mjd', precision=13)
         assert t == Time(54321, 1e-12, format='mjd')
         assert t.mjd == 54321.  # Lost precision!
+        assert t.to_value() == 54321.  # Lost precision!
+        assert t.to_value(subfmt='str') == '54321.0000000000010'
+        assert t.to_value('mjd', 'bytes') == b'54321.0000000000010'
+        assert t.value == 54321.  # Lost precision!
         assert t.mjd_str == '54321.0000000000010'
         assert t.mjd_bytes == b'54321.0000000000010'
         assert t.value == 54321.  # Lost precision!
         t.out_subfmt = 'str'
         assert t.value == '54321.0000000000010'
+        assert t.to_value() == '54321.0000000000010'
         assert t.mjd == '54321.0000000000010'
+        assert t.to_value(subfmt='bytes') == b'54321.0000000000010'
+        assert t.to_value(subfmt='float') == 54321.  # Lost precision!
 
     def test_subformat_input(self):
         s = '54321.01234567890123456789'
@@ -894,6 +901,8 @@ class TestNumericalSubFormat:
         t = Time(i, f, format='mjd', precision=13)
         t_mjd_subfmt = getattr(t, f'mjd_{out_subfmt}')
         assert np.all(t_mjd_subfmt == expected)
+        t_mjd_subfmt2 = t.to_value(subfmt=out_subfmt)
+        assert np.all(t_mjd_subfmt2 == expected)
 
     def test_explicit_other_formats(self):
         t = Time('2451544.5333981', format='jd', scale='tai', precision=8)
@@ -919,9 +928,6 @@ class TestNumericalSubFormat:
         assert t == Time(2000.1, format='jyear', scale='tai')
         assert t.value == '2000.100'
 
-    def test_basic_subformat_usage(self):
-        assert isinstance(Time('2001', format='jyear', scale='tai').jyear_str, str)
-
     def test_basic_subformat_setting(self):
         t = Time('2001', format='jyear', scale='tai')
         t.format = "mjd"
@@ -929,8 +935,10 @@ class TestNumericalSubFormat:
 
     def test_basic_subformat_cache_does_not_crash(self):
         t = Time('2001', format='jyear', scale='tai')
-        t.jyear_str
-        t.jyear_str
+        t.mjd_str
+        assert 'mjd_str' in t.cache['format']
+        t.mjd_str
+        t.to_value('mjd', 'str')
 
     @pytest.mark.parametrize("fmt", ["jd", "mjd", "cxcsec", "unix", "gps", "jyear"])
     def test_decimal_context_does_not_affect_string(self, fmt):
