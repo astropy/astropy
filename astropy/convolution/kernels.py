@@ -101,9 +101,9 @@ class Gaussian2DKernel(Kernel2D):
         Standard deviation of the Gaussian in x before rotating by theta.
     y_stddev : float
         Standard deviation of the Gaussian in y before rotating by theta.
-    theta : float
-        Rotation angle in radians. The rotation angle increases
-        counterclockwise.
+    theta : float or :class:`~astropy.units.Quantity`
+        Rotation angle. If passed as a float, it is assumed to be in radians.
+        The rotation angle increases counterclockwise.
     x_size : odd int, optional
         Size in x direction of the kernel array. Default = 8 * stddev.
     y_size : odd int, optional
