@@ -1625,7 +1625,7 @@ class Time(ShapedLikeNDArray):
                         tm = self.replicate(format=fmt)
                     value = tm._shaped_like_input(tm._time.to_value(
                         parent=tm, out_subfmt=out_subfmt))
-                cache[attr] = value
+                    cache[attr] = value
                 return cache[attr]
 
         if attr in TIME_SCALES:  # allowed ones done above (self.SCALES)

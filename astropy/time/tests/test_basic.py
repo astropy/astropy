@@ -920,14 +920,14 @@ class TestNumericalSubFormat:
         assert t.value == '2000.100'
 
     def test_basic_subformat_usage(self):
-        Time('2001', format='jyear', scale='tai').jyear_str
+        assert isinstance(Time('2001', format='jyear', scale='tai').jyear_str, str)
 
     def test_basic_subformat_setting(self):
         t = Time('2001', format='jyear', scale='tai')
         t.format = "mjd"
-        t.mjd_str
+        assert t.mjd_str.startswith("5")
 
-    def test_basic_subformat_cache(self):
+    def test_basic_subformat_cache_does_not_crash(self):
         t = Time('2001', format='jyear', scale='tai')
         t.jyear_str
         t.jyear_str
@@ -944,21 +944,33 @@ class TestNumericalSubFormat:
         with localcontext() as ctx:
             ctx.prec = 40
             t2_s_40 = getattr(t2, fmt+"_str")
-        assert t_s_2 == t2_s_40
+        assert t_s_2 == t2_s_40, "String representation should not depend on Decimal context"
 
-    # TODO(aarchiba): check cache responds appropriately to Decimal context
     def test_decimal_context_caching(self):
         t = Time(val=58000, val2=1e-14, format='mjd', scale='tai')
         with localcontext() as ctx:
             ctx.prec = 2
-            t_s_2 = t.mjd_O
+            t_s_2 = t.mjd_decimal
         t2 = Time(val=58000, val2=1e-14, format='mjd', scale='tai')
         with localcontext() as ctx:
             ctx.prec = 40
-            t_s_40 = t.mjd_O
-            t2_s_40 = t2.mjd_O
-        assert t_s_2 != t_s_40
-        assert t_s_40 == t2_s_40
+            t_s_40 = t.mjd_decimal
+            t2_s_40 = t2.mjd_decimal
+        assert t_s_2 == t_s_40, "Should be the same but cache might make this automatic"
+        assert t_s_2 == t2_s_40, "Different precision should produce the same results"
+
+    @pytest.mark.parametrize("f, s, t", [("sec", "long", np.longdouble),
+                                      ("sec", "decimal", Decimal),
+                                      ("sec", "str", str)])
+    def test_timedelta_basic(self, f, s, t):
+        dt = (Time("58000", format="mjd", scale="tai")
+              - Time("58001", format="mjd", scale="tai"))
+
+        assert isinstance(getattr(dt, "_".join((f,s))), t)
+        dt.format = f
+        dt.out_subfmt = s
+        assert isinstance(dt.value, t)
+        assert isinstance(dt.to_value(), t)
 
 
 class TestSofaErrors:

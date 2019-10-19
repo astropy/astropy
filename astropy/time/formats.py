@@ -6,7 +6,7 @@ import time
 import re
 import datetime
 import warnings
-from decimal import Decimal
+from decimal import Decimal, localcontext
 from collections import OrderedDict, defaultdict
 
 import numpy as np
@@ -26,7 +26,8 @@ __all__ = ['TimeFormat', 'TimeJD', 'TimeMJD', 'TimeFromEpoch', 'TimeUnix',
            'TimeDeltaFormat', 'TimeDeltaSec', 'TimeDeltaJD',
            'TimeEpochDateString', 'TimeBesselianEpochString',
            'TimeJulianEpochString', 'TIME_FORMATS', 'TIME_DELTA_FORMATS',
-           'TimezoneInfo', 'TimeDeltaDatetime', 'TimeDatetime64', 'TimeYMDHMS']
+           'TimezoneInfo', 'TimeDeltaDatetime', 'TimeDatetime64', 'TimeYMDHMS',
+           'TimeNumeric', 'TimeDeltaNumeric']
 
 __doctest_skip__ = ['TimePlotDate']
 
@@ -40,6 +41,8 @@ TIME_DELTA_FORMATS = OrderedDict()
 # Rots et al. 2015, A&A 574:A36, and timescales used here.
 FITS_DEPRECATED_SCALES = {'TDT': 'tt', 'ET': 'tt',
                           'GMT': 'utc', 'UT': 'utc', 'IAT': 'tai'}
+
+_enough_decimal_places = 34  # to represent two doubles
 
 
 def _regexify_subfmts(subfmts):
@@ -74,7 +77,9 @@ def _regexify_subfmts(subfmts):
 
 
 def decimal_to_twoval1(val1, val2=None):
-    i, f = divmod(Decimal(val1), 1)
+    with localcontext() as ctx:
+        ctx.prec = _enough_decimal_places
+        i, f = divmod(Decimal(val1), 1)
     return float(i), float(f)
 
 
@@ -88,12 +93,14 @@ def bytes_to_twoval1(val1, val2=None):
 bytes_to_twoval = np.vectorize(bytes_to_twoval1)
 
 
-def twoval_to_float128(val1, val2):
-    return val1.astype(np.float128) + val2.astype(np.float128)
+def twoval_to_longdouble(val1, val2):
+    return val1.astype(np.longdouble) + val2.astype(np.longdouble)
 
 
 def twoval_to_decimal1(val1, val2):
-    return Decimal(val1) + Decimal(val2)
+    with localcontext() as ctx:
+        ctx.prec = _enough_decimal_places
+        return Decimal(val1) + Decimal(val2)
 
 
 twoval_to_decimal = np.vectorize(twoval_to_decimal1)
@@ -357,11 +364,12 @@ class TimeFormat(metaclass=TimeFormatMeta):
 
 
 class TimeNumeric(TimeFormat):
-    subfmts = (('float64', None, np.add),
-               ('float128', None, twoval_to_float128),
-               ('O', decimal_to_twoval, twoval_to_decimal),
-               ('str', decimal_to_twoval, twoval_to_string),
-               ('bytes', bytes_to_twoval, twoval_to_bytes),
+    subfmts = (
+        ('float', np.float64, None, np.add),
+        ('long', np.longdouble, None, twoval_to_longdouble),
+        ('decimal', np.dtype(object), decimal_to_twoval, twoval_to_decimal),
+        ('str', np.str_, decimal_to_twoval, twoval_to_string),
+        ('bytes', np.bytes_, bytes_to_twoval, twoval_to_bytes),
     )
 
     def _check_val_type(self, val1, val2):
@@ -377,8 +385,8 @@ class TimeNumeric(TimeFormat):
                 'and second values are only allowed for doubles.'
                 .format(self.name))
 
-        for subfmt, convert, _ in self.subfmts:
-            if np.issubdtype(val1.dtype, np.dtype(subfmt)):
+        for subfmt, dtype, convert, _ in self.subfmts:
+            if np.issubdtype(val1.dtype, dtype):
                 break
         else:
             raise ValueError('input type not among selected sub-formats.')
@@ -414,7 +422,7 @@ class TimeNumeric(TimeFormat):
         kwargs = {}
         if subfmt[0] in ('str', 'bytes'):
             kwargs['fmt'] = f'.{self.precision}f'
-        value = subfmt[2](jd1, jd2, **kwargs)
+        value = subfmt[3](jd1, jd2, **kwargs)
         return self.mask_if_needed(value)
 
     value = property(to_value)
@@ -1520,13 +1528,13 @@ class TimeDeltaNumeric(TimeDeltaFormat, TimeNumeric):
     pass
 
 
-class TimeDeltaSec(TimeDeltaFormat):
+class TimeDeltaSec(TimeDeltaNumeric):
     """Time delta in SI seconds"""
     name = 'sec'
     unit = 1. / erfa.DAYSEC  # for quantity input
 
 
-class TimeDeltaJD(TimeDeltaFormat):
+class TimeDeltaJD(TimeDeltaNumeric):
     """Time delta in Julian days (86400 SI seconds)"""
     name = 'jd'
     unit = 1.
