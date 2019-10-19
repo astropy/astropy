@@ -26,6 +26,11 @@ addons:
             - graphviz
             - language-pack-de
 
+# This should allow building on arm64
+arch:
+  - amd64
+  - arm64
+
 env:
     global:
         # Set defaults to avoid repeating in most cases
@@ -90,6 +95,7 @@ matrix:
     include:
         # Try MacOS X.
         - os: osx
+          arch: amd64
           stage: Cron tests
           env: SETUP_CMD='test --remote-data=astropy'
                CONDA_DEPENDENCIES="$CONDA_ALL_DEPENDENCIES clang"
@@ -103,6 +109,7 @@ matrix:
         # versions of Python, we can vary Python and Numpy versions at the same
         # time.
         - os: linux
+          arch: amd64
           env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.16
                INSTALL_CMD='python setup.py build_ext --inplace'
                PIP_DEPENDENCIES='pytest-astropy'
@@ -116,6 +123,7 @@ matrix:
         # location during testing. We also use this build to make sure that the
         # dependencies get correctly installed with pip.
         - os: linux
+          arch: amd64
           env: SETUP_CMD='test --remote-data=astropy --readonly'
                LC_CTYPE=C.ascii LC_ALL=C
                PIP_DEPENDENCIES="" CONDA_DEPENDENCIES=""
@@ -123,6 +131,7 @@ matrix:
                EXTRAS_INSTALL="test,all"
 
         - os: linux
+          arch: amd64
           stage: Initial tests
           env: PYTHON_VERSION=3.7 CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="scikit-image $ASDF_PIP_DEP"
@@ -131,6 +140,18 @@ matrix:
 
         # Full tests with coverage checks.
         - os: linux
+          arch: amd64
+          env: SETUP_CMD='test --coverage --remote-data=astropy --readonly'
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+               PIP_DEPENDENCIES="scikit-image codecov objgraph jplephem bintrees sortedcontainers $ASDF_PIP_DEP"
+               LC_CTYPE=C.ascii LC_ALL=C
+               CFLAGS='--coverage -fno-inline-functions -O0'
+               MATPLOTLIB_VERSION=2.1
+               EVENT_TYPE='push pull_request cron'
+
+        # Full tests with coverage checks.
+        - os: linux
+          arch: arm64
           env: SETUP_CMD='test --coverage --remote-data=astropy --readonly'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="scikit-image codecov objgraph jplephem bintrees sortedcontainers $ASDF_PIP_DEP"
@@ -141,6 +162,7 @@ matrix:
 
         # Try on Windows
         - os: windows
+          arch: amd64
           stage: Final tests
           env: PYTHON_VERSION=3.7 SETUP_CMD='test --readonly'
                CONDA_DEPENDENCIES=""
@@ -148,6 +170,7 @@ matrix:
 
         # Do a PEP8/pyflakes test with flake8
         - os: linux
+          arch: amd64
           stage: Initial tests
           env: MAIN_CMD="flake8 astropy --count $FLAKE8_OPT" SETUP_CMD=''
 
@@ -156,6 +179,7 @@ matrix:
         # unstable, we combine them into a single unstable build that we can
         # mark as an allowed failure below.
         - os: linux
+          arch: amd64
           stage: Final tests
           env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
                CONDA_DEPENDENCIES=''
@@ -168,6 +192,7 @@ matrix:
         # We also install all dependencies via pip here so we pick up the latest
         # releases.
         - os: linux
+          arch: amd64
           stage: Cron tests
           env: NUMPY_VERSION=dev MATPLOTLIB_VERSION=dev EVENT_TYPE='cron'
                CONDA_DEPENDENCIES=''
@@ -178,6 +203,7 @@ matrix:
         # we moved it here instead.
         # NOTE: matplotlib pinning should be consistent with CircleCI HTML job.
         - os: linux
+          arch: amd64
           stage: Cron tests
           env: SETUP_CMD='build_docs -b linkcheck' EVENT_TYPE='cron'
                MATPLOTLIB_VERSION="<3.1"
@@ -189,6 +215,7 @@ matrix:
         # one once conda supports python3.8. Make sure we use released numpy rather
         # than some kind of dev coming natively from the Travis environment
         - language: python
+          arch: amd64
           stage: Final tests
           dist: xenial
           python: 3.8-dev
@@ -197,6 +224,7 @@ matrix:
 
     allow_failures:
       - os: linux
+        arch: amd64
         stage: Final tests
         env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
              CONDA_DEPENDENCIES=''
