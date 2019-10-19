@@ -142,7 +142,7 @@ matrix:
           env: SETUP_CMD='test'
           install:
              - sudo apt-get -y install python3-venv python3-pip
-             - pip install .[test]
+             - pip3 install .[test]
 
         # Full tests with coverage checks.
         - os: linux
