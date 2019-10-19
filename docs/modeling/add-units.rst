@@ -115,8 +115,8 @@ from both the models and the data. The following example shows the
 implementation for the 1D Gaussian::
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('mean', inputs_unit['x']),
-                            ('stddev', inputs_unit['x']),
-                            ('amplitude', outputs_unit['y'])])
+        return {'mean': inputs_unit['x'],
+                'stddev': inputs_unit['x'],
+                'amplitude': outputs_unit['y']}
 
 With this method in place, the model can then be fit to data that has units.
