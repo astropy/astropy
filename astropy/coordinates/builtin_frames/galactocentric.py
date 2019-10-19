@@ -336,20 +336,21 @@ class Galactocentric(BaseCoordinateFrame):
         # deprecation warning to inform them that the defaults will change in
         # the future:
         if galactocentric_frame_defaults._value == 'pre-v4.0' and warn:
-            docs_link = ''  # TODO
+            docs_link = 'http://docs.astropy.org/en/latest/coordinates/galactocentric.html'
             warnings.warn('In v4.1 and later versions, the Galactocentric '
                           'frame will adopt default parameters that may update '
                           'with time. An updated default parameter set is '
                           'already available through the '
                           'astropy.coordinates.galactocentric_frame_defaults '
-                          'ScienceState object, as described in {} '
-                          'but the default is currently still set to '
-                          'the pre-v4.0 parameter defaults. The safest way to '
-                          'guard against changing default parameters in the '
-                          'future is to either (1) specify all Galactocentric '
-                          'frame attributes explicitly when using the frame, '
+                          'ScienceState object, as described in but the '
+                          'default is currently still set to the pre-v4.0 '
+                          'parameter defaults. The safest way to guard against '
+                          'changing default parameters in the future is to '
+                          'either (1) specify all Galactocentric frame '
+                          'attributes explicitly when using the frame, '
                           'or (2) set the galactocentric_frame_defaults '
-                          'parameter set name explicitly.'.format(docs_link),
+                          'parameter set name explicitly. See {} for more '
+                          'information.'.format(docs_link),
                           AstropyDeprecationWarning)
 
         super().__init__(*args, **kwargs)
