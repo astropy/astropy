@@ -141,7 +141,7 @@ matrix:
           stage: Arm tests
           env: SETUP_CMD='test'
           install:
-             - sudo apt-get install python3-venv python3-pip
+             - sudo apt-get -y install python3-venv python3-pip
              - pip install .[test]
 
         # Full tests with coverage checks.
