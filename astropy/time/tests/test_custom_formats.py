@@ -1,5 +1,7 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 from datetime import date
-from itertools import count, product
+from itertools import count
 
 import pytest
 
