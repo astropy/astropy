@@ -142,7 +142,9 @@ matrix:
         - os: linux
           arch: arm64
           stage: Arm tests
-          env: SETUP_CMD='test'
+          env: 
+             - SETUP_CMD='test'
+             - MAIN_CMD='python3 setup.py'
           install:
              - sudo apt-get -y install python3-venv python3-pip python3-dev python3-pyparsing
              - pip3 list
