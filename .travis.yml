@@ -145,11 +145,14 @@ matrix:
           env: 
              - SETUP_CMD='test'
              - MAIN_CMD='python3 setup.py'
+             - EVENT_TYPE='push pull_request'
+             - USE_CI_HELPERS=False
+             - INSTALL_WITH_PIP=False
+             - SETUP_XVFB=False
           install:
              - sudo apt-get -y install python3-venv python3-pip python3-dev python3-pyparsing
              - pip3 list
-             - pip3 install numpy
-             - pip3 install . pytest-astropy
+             - pip3 install numpy Cython jinja2 . pytest-astropy
 
         # Full tests with coverage checks.
         - os: linux
