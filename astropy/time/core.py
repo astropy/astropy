@@ -917,6 +917,36 @@ class Time(ShapedLikeNDArray):
         jd2 = self._time.mask_if_needed(self._time.jd2)
         return self._shaped_like_input(jd2)
 
+    def to_value(self, format=None, subfmt=None):
+        if format is None:
+            format = self.format
+        elif format not in self.FORMATS:
+            raise ValueError('format must be one of {}'
+                             .format(list(self.FORMATS)))
+
+        cache = self.cache['format']
+        key = '_'.join((format, subfmt)) if subfmt is not None else format
+        if key not in cache:
+            if format == self.format:
+                tm = self
+            else:
+                tm = self.replicate(format=format)
+
+            kwargs = {'out_subfmt': subfmt} if subfmt is not None else {}
+            try:
+                value = tm._shaped_like_input(tm._time.to_value(
+                    parent=tm, **kwargs))
+            except ValueError as exc:
+                if 'subformats match' in str(exc):
+                    raise ValueError('subformat must match one of {}'
+                                     .format([option[0] for option in
+                                              tm._time.subfmts])) from None
+                else:
+                    raise
+
+            cache[key] = value
+        return cache[key]
+
     @property
     def value(self):
         """Time value(s) in current format"""
@@ -1602,31 +1632,15 @@ class Time(ShapedLikeNDArray):
             return cache[attr]
 
         elif attr in self.FORMATS:
-            cache = self.cache['format']
-            if attr not in cache:
-                if attr == self.format:
-                    tm = self
-                else:
-                    tm = self.replicate(format=attr)
-                value = tm._shaped_like_input(tm._time.to_value(parent=tm))
-                cache[attr] = value
-            return cache[attr]
+            return self.to_value(attr)
 
         elif '_' in attr:
             fmt, _, out_subfmt = attr.rpartition('_')
-            if fmt in self.FORMATS and any(
-                    out_subfmt == subfmt[0] for subfmt in
-                    getattr(self.FORMATS[fmt], 'subfmts', ())):
-                cache = self.cache['format']
-                if attr not in cache:
-                    if fmt == self.format:
-                        tm = self
-                    else:
-                        tm = self.replicate(format=fmt)
-                    value = tm._shaped_like_input(tm._time.to_value(
-                        parent=tm, out_subfmt=out_subfmt))
-                    cache[attr] = value
-                return cache[attr]
+            if fmt in self.FORMATS:
+                try:
+                    return self.to_value(fmt, subfmt=out_subfmt)
+                except Exception:
+                    pass  # Rather raise AttributeError below.
 
         if attr in TIME_SCALES:  # allowed ones done above (self.SCALES)
             if self.scale is None:
@@ -2265,14 +2279,19 @@ class TimeDelta(Time):
         return u.Quantity(self._time.jd1 + self._time.jd2,
                           u.day).to(unit, equivalencies=equivalencies)
 
-    def to_value(self, unit, equivalencies=[]):
+    def to_value(self, format=None, subfmt=None, *, unit=None, equivalencies=[]):
         """
-        The numerical value in the specified unit.
+        The numerical value in the specified format or unit.
 
         Parameters
         ----------
+        format : format, `~astropy.units.UnitBase` instance or str, optional
+            The format or unit in which the value should be given.
+        subfmt : output subfmt
+            For formats, a possible output subformat.
         unit : `~astropy.units.UnitBase` instance or str, optional
-            The unit in which the value should be given.
+            Keyword argument only, for backwards compatibility and/or clarity.
+            If given, ``format`` must be `None`.
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to try if the units are not directly
             convertible (see :ref:`unit_equivalencies`). If `None`, no
@@ -2282,13 +2301,37 @@ class TimeDelta(Time):
         Returns
         -------
         value : `~numpy.ndarray` or scalar
-            The value in the units specified.
+            The value in the format or units specified.
 
         See also
         --------
         to : Convert to a `~astropy.units.Quantity` instance in a given unit.
         value : The time value in the current format.
         """
+        if unit is None:
+            # Does this look like we're trying to get a TimeDelta format?
+            if format is None or format in self.FORMATS or (
+                    subfmt is not None and not isinstance(subfmt, list)):
+                return super().to_value(format, subfmt)
+
+            # If not, try to interpret as unit and equivalencies.
+            try:
+                unit = u.Unit(format)
+            except ValueError as exc:
+                raise ValueError("format is not one of {} and trying to parse "
+                                 "it led to '{!r}'."
+                                 .format(list(self.FORMATS), exc)) from None
+            if subfmt is not None:
+                # Backwards compatibility.
+                if equivalencies == [] and isinstance(subfmt, list):
+                    equivalencies = subfmt
+                else:
+                    raise ValueError('format must be one of {} if subfmt is '
+                                     'given.'.format(list(self.FORMATS)))
+        elif format is not None or subfmt is None:
+            raise TypeError("cannot pass in 'unit' with either "
+                            "'format' or 'subfmt'.")
+
         return u.Quantity(self._time.jd1 + self._time.jd2,
                           u.day).to_value(unit, equivalencies=equivalencies)
 

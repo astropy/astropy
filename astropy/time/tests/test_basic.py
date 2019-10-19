@@ -966,11 +966,14 @@ class TestNumericalSubFormat:
         dt = (Time("58000", format="mjd", scale="tai")
               - Time("58001", format="mjd", scale="tai"))
 
-        value = getattr(dt, "_".join((f, s)))
+        value = dt.to_value(f, s)
         assert isinstance(value, t)
+        value2 = getattr(dt, "_".join((f, s)))
+        assert isinstance(value2, t)
         dt.format = f
         dt.out_subfmt = s
         assert isinstance(dt.value, t)
+        assert isinstance(dt.to_value(), t)
 
 
 class TestSofaErrors:
