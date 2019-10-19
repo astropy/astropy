@@ -1147,6 +1147,9 @@ def test_galactocentric_defaults():
                                      BaseCoordinateFrame,
                                      CartesianDifferential)
 
+    # To restore this at end:
+    init_value = galactocentric_frame_defaults._value
+
     with galactocentric_frame_defaults.set('pre-v4.0'):
         galcen_pre40 = Galactocentric()
 
@@ -1170,6 +1173,8 @@ def test_galactocentric_defaults():
                               getattr(galcen_latest, k).d_xyz)
         else:
             assert getattr(galcen_40, k) == getattr(galcen_latest, k)
+
+    galactocentric_frame_defaults._value = init_value
 
 
 def test_galactocentric_default_warning():
