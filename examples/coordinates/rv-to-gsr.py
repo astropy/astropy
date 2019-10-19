@@ -90,7 +90,7 @@ def rv_to_gsr(c, v_sun=None):
 
     """
     if v_sun is None:
-        v_sun = coord.Galactocentric.galcen_v_sun.to_cartesian()
+        v_sun = coord.Galactocentric().galcen_v_sun.to_cartesian()
 
     gal = c.transform_to(coord.Galactic)
     cart_data = gal.data.to_cartesian()
