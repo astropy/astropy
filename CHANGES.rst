@@ -364,6 +364,10 @@ astropy.stats
 - Renamed the ``a`` parameter to ``data`` in ``median_absolute_deviation``.
   [#9011]
 
+- Renamed the ``conflevel`` keyword to ``confidence_level`` in
+  ``poisson_conf_interval``. Usage of ``conflevel`` now issues
+  ``AstropyDeprecationWarning``. [#9408]
+
 astropy.table
 ^^^^^^^^^^^^^
 

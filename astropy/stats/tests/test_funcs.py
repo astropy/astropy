@@ -6,14 +6,14 @@ import numpy as np
 from numpy.testing import assert_equal, assert_allclose
 
 try:
-    import scipy  # pylint: disable=W0611
+    import scipy  # pylint: disable=W0611 # noqa
 except ImportError:
     HAS_SCIPY = False
 else:
     HAS_SCIPY = True
 
 try:
-    import mpmath  # pylint: disable=W0611
+    import mpmath  # pylint: disable=W0611 # noqa
 except ImportError:
     HAS_MPMATH = False
 else:
@@ -22,6 +22,7 @@ else:
 from astropy.stats import funcs
 from astropy import units as u
 from astropy.tests.helper import catch_warnings
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import NumpyRNGContext
 
 
@@ -355,7 +356,7 @@ def test_mad_std_warns():
         data = np.random.normal(5, 2, size=(10, 10))
         data[5, 5] = np.nan
 
-        with catch_warnings() as warns:
+        with catch_warnings():
             rslt = funcs.mad_std(data, ignore_nan=False)
             assert np.isnan(rslt)
 
@@ -580,7 +581,7 @@ def test_scipy_poisson_limit():
                     (0, 10.67), rtol=1e-3)
     conf = funcs.poisson_conf_interval([5., 6.], 'kraft-burrows-nousek',
                                        background=[2.5, 2.],
-                                       conflevel=[.99, .9])
+                                       confidence_level=[.99, .9])
     assert_allclose(conf[:, 0], (0, 10.67), rtol=1e-3)
     assert_allclose(conf[:, 1], (0.81, 8.99), rtol=5e-3)
 
@@ -605,8 +606,8 @@ def test_poisson_conf_value_errors():
 
     with pytest.raises(ValueError) as e:
         funcs.poisson_conf_interval([5, 6], 'sherpagehrels',
-                                    conflevel=[2.5, 2.])
-    assert 'conflevel not supported' in str(e.value)
+                                    confidence_level=[2.5, 2.])
+    assert 'confidence_level not supported' in str(e.value)
 
     with pytest.raises(ValueError) as e:
         funcs.poisson_conf_interval(1, 'foo')
@@ -618,26 +619,27 @@ def test_poisson_conf_kbn_value_errors():
     with pytest.raises(ValueError) as e:
         funcs.poisson_conf_interval(5., 'kraft-burrows-nousek',
                                     background=2.5,
-                                    conflevel=99)
+                                    confidence_level=99)
     assert 'number between 0 and 1' in str(e.value)
 
     with pytest.raises(ValueError) as e:
         funcs.poisson_conf_interval(5., 'kraft-burrows-nousek',
                                     background=2.5)
-    assert 'Set conflevel for method' in str(e.value)
+    assert 'Set confidence_level for method' in str(e.value)
 
     with pytest.raises(ValueError) as e:
         funcs.poisson_conf_interval(5., 'kraft-burrows-nousek',
                                     background=-2.5,
-                                    conflevel=.99)
+                                    confidence_level=.99)
     assert 'Background must be' in str(e.value)
 
 
 @pytest.mark.skipif('HAS_SCIPY or HAS_MPMATH')
 def test_poisson_limit_nodependencies():
     with pytest.raises(ImportError):
-        funcs.poisson_conf_interval(20., interval='kraft-burrows-nousek',
-                                    background=10., conflevel=.95)
+        with pytest.warns(AstropyDeprecationWarning):
+            funcs.poisson_conf_interval(20., interval='kraft-burrows-nousek',
+                                        background=10., conflevel=.95)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')

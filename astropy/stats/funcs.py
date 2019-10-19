@@ -13,6 +13,7 @@ import math
 
 import numpy as np
 
+from astropy.utils.decorators import deprecated_renamed_argument
 from . import _stats
 
 __all__ = ['gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm',
@@ -490,20 +491,21 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
     return bin_ctr, bin_halfwidth, p, perr
 
 
-def _check_poisson_conf_inputs(sigma, background, conflevel, name):
+def _check_poisson_conf_inputs(sigma, background, confidence_level, name):
     if sigma != 1:
         raise ValueError("Only sigma=1 supported for interval {}"
                          .format(name))
     if background != 0:
         raise ValueError("background not supported for interval {}"
                          .format(name))
-    if conflevel is not None:
-        raise ValueError("conflevel not supported for interval {}"
+    if confidence_level is not None:
+        raise ValueError("confidence_level not supported for interval {}"
                          .format(name))
 
 
+@deprecated_renamed_argument('conflevel', 'confidence_level', '4.0')
 def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
-                          conflevel=None):
+                          confidence_level=None):
     r"""Poisson parameter confidence interval given observed counts
 
     Parameters
@@ -520,7 +522,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
         Number of counts expected from the background; only supported for
         the 'kraft-burrows-nousek' mode. This number is assumed to be determined
         from a large region so that the uncertainty on its value is negligible.
-    conflevel : float, optional
+    confidence_level : float, optional
         Confidence level between 0 and 1; only supported for the
         'kraft-burrows-nousek' mode.
 
@@ -680,8 +682,8 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
            [  5.62771868,  11.37228132],
            [  6.45861873,  12.54138127]])
 
-    >>> poisson_conf_interval(np.arange(10),
-    ...                       interval='frequentist-confidence').T
+    >>> poisson_conf_interval(
+    ...     np.arange(10), interval='frequentist-confidence').T
     array([[  0.        ,   1.84102165],
            [  0.17275378,   3.29952656],
            [  0.70818544,   4.63785962],
@@ -693,12 +695,13 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
            [  5.23161394,  11.94514152],
            [  6.05653896,  13.11020414]])
 
-    >>> poisson_conf_interval(7,
-    ...                       interval='frequentist-confidence').T
+    >>> poisson_conf_interval(
+    ...     7, interval='frequentist-confidence').T
     array([  4.41852954,  10.77028072])
 
-    >>> poisson_conf_interval(10, background=1.5, conflevel=0.95,
-    ...                       interval='kraft-burrows-nousek').T  # doctest: +FLOAT_CMP
+    >>> poisson_conf_interval(
+    ...     10, background=1.5, confidence_level=0.95,
+    ...     interval='kraft-burrows-nousek').T  # doctest: +FLOAT_CMP
     array([[ 3.47894005, 16.113329533]])
 
     """
@@ -707,11 +710,11 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
         n = np.asanyarray(n)
 
     if interval == 'root-n':
-        _check_poisson_conf_inputs(sigma, background, conflevel, interval)
+        _check_poisson_conf_inputs(sigma, background, confidence_level, interval)
         conf_interval = np.array([n - np.sqrt(n),
                                   n + np.sqrt(n)])
     elif interval == 'root-n-0':
-        _check_poisson_conf_inputs(sigma, background, conflevel, interval)
+        _check_poisson_conf_inputs(sigma, background, confidence_level, interval)
         conf_interval = np.array([n - np.sqrt(n),
                                   n + np.sqrt(n)])
         if np.isscalar(n):
@@ -720,15 +723,15 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
         else:
             conf_interval[1, n == 0] = 1
     elif interval == 'pearson':
-        _check_poisson_conf_inputs(sigma, background, conflevel, interval)
+        _check_poisson_conf_inputs(sigma, background, confidence_level, interval)
         conf_interval = np.array([n + 0.5 - np.sqrt(n + 0.25),
                                   n + 0.5 + np.sqrt(n + 0.25)])
     elif interval == 'sherpagehrels':
-        _check_poisson_conf_inputs(sigma, background, conflevel, interval)
+        _check_poisson_conf_inputs(sigma, background, confidence_level, interval)
         conf_interval = np.array([n - 1 - np.sqrt(n + 0.75),
                                   n + 1 + np.sqrt(n + 0.75)])
     elif interval == 'frequentist-confidence':
-        _check_poisson_conf_inputs(1., background, conflevel, interval)
+        _check_poisson_conf_inputs(1., background, confidence_level, interval)
         import scipy.stats
         alpha = scipy.stats.norm.sf(sigma)
         conf_interval = np.array([0.5 * scipy.stats.chi2(2 * n).ppf(alpha),
@@ -739,17 +742,17 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
         else:
             conf_interval[0, n == 0] = 0
     elif interval == 'kraft-burrows-nousek':
-        if conflevel is None:
-            raise ValueError('Set conflevel for method {}. (sigma is '
+        if confidence_level is None:
+            raise ValueError('Set confidence_level for method {}. (sigma is '
                              'ignored.)'.format(interval))
-        conflevel = np.asanyarray(conflevel)
-        if np.any(conflevel <= 0) or np.any(conflevel >= 1):
-            raise ValueError('Conflevel must be a number between 0 and 1.')
+        confidence_level = np.asanyarray(confidence_level)
+        if np.any(confidence_level <= 0) or np.any(confidence_level >= 1):
+            raise ValueError('confidence_level must be a number between 0 and 1.')
         background = np.asanyarray(background)
         if np.any(background < 0):
             raise ValueError('Background must be >= 0.')
         conf_interval = np.vectorize(_kraft_burrows_nousek,
-                                     cache=True)(n, background, conflevel)
+                                     cache=True)(n, background, confidence_level)
         conf_interval = np.vstack(conf_interval)
     else:
         raise ValueError("Invalid method for Poisson confidence intervals: "
