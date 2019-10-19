@@ -96,6 +96,16 @@ Advanced Topics
    Adding support for units to models <add-units.rst>
 
 
+Pre-Defined Models
+==================
+
+.. To be expanded to include all pre-defined models
+
+.. toctree::
+   :maxdepth: 2
+
+   Physical Models <physical_models.rst>
+
 Examples
 ========
 
