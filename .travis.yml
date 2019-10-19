@@ -26,10 +26,6 @@ addons:
             - graphviz
             - language-pack-de
 
-# This should allow building on arm64
-arch:
-  - amd64
-  - arm64
 
 env:
     global:
@@ -79,6 +75,7 @@ env:
         - FLAKE8_OPT="--select=E101,W191,W291,W292,W293,W391,E111,E112,E113,E30,E502,E722,E901,E902,E999,F822,F823"
 
 stages:
+   - name: Arm tests
    # Do the style check and a single test job, don't proceed if it fails
    - name: Initial tests
    # Do the rest of the tests
@@ -141,6 +138,7 @@ matrix:
         # arm64
         - os: linux
           arch: arm64
+          stage: Arm tests
           env: SETUP_CMD='test --coverage --remote-data=astropy --readonly'
                PIP_DEPENDENCIES="scikit-image codecov objgraph jplephem bintrees sortedcontainers $ASDF_PIP_DEP"
                LC_CTYPE=C.ascii LC_ALL=C
