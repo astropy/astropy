@@ -182,6 +182,22 @@ def spectral_density(wav, factor=None):
     phot_L_la = astrophys.photon / (si.s * si.AA)
     phot_L_nu = astrophys.photon / (si.s * si.Hz)
 
+    # surface brigthness (flux equiv)
+    S_la = cgs.erg / si.angstrom / si.cm ** 2 / si.s / si.sr
+    S_nu = cgs.erg / si.Hz / si.cm ** 2 / si.s / si.sr
+    nu_S_nu = cgs.erg / si.cm ** 2 / si.s / si.sr
+    la_S_la = nu_S_nu
+    phot_S_la = astrophys.photon / (si.cm ** 2 * si.s * si.AA * si.sr)
+    phot_S_nu = astrophys.photon / (si.cm ** 2 * si.s * si.Hz * si.sr)
+
+    # surface brightness (luminosity equiv)
+    SL_nu = cgs.erg / si.s / si.Hz / si.sr
+    SL_la = cgs.erg / si.s / si.angstrom / si.sr
+    nu_SL_nu = cgs.erg / si.s / si.sr
+    la_SL_la = nu_SL_nu
+    phot_SL_la = astrophys.photon / (si.s * si.AA * si.sr)
+    phot_SL_nu = astrophys.photon / (si.s * si.Hz * si.sr)
+
     def converter(x):
         return x * (wav.to_value(si.AA, spectral()) ** 2 / c_Aps)
 
@@ -263,6 +279,24 @@ def spectral_density(wav, factor=None):
         (phot_L_la, phot_L_nu, converter_phot_L_la_phot_L_nu, iconverter_phot_L_la_phot_L_nu),
         (phot_L_nu, L_nu, converter_phot_L_nu_to_L_nu, iconverter_phot_L_nu_to_L_nu),
         (phot_L_nu, L_la, converter_phot_L_nu_to_L_la, iconverter_phot_L_nu_to_L_la),
+        # surface brightness (flux equiv)
+        (S_la, S_nu, converter, iconverter),
+        (S_nu, nu_S_nu, converter_f_nu_to_nu_f_nu, iconverter_f_nu_to_nu_f_nu),
+        (S_la, la_S_la, converter_f_la_to_la_f_la, iconverter_f_la_to_la_f_la),
+        (phot_S_la, S_la, converter_phot_f_la_to_f_la, iconverter_phot_f_la_to_f_la),
+        (phot_S_la, S_nu, converter_phot_f_la_to_f_nu, iconverter_phot_f_la_to_f_nu),
+        (phot_S_la, phot_S_nu, converter_phot_f_la_phot_f_nu, iconverter_phot_f_la_phot_f_nu),
+        (phot_S_nu, S_nu, converter_phot_f_nu_to_f_nu, iconverter_phot_f_nu_to_f_nu),
+        (phot_S_nu, S_la, converter_phot_f_nu_to_f_la, iconverter_phot_f_nu_to_f_la),
+        # surface brightness (luminosity equiv)
+        (SL_la, SL_nu, converter, iconverter),
+        (SL_nu, nu_SL_nu, converter_L_nu_to_nu_L_nu, iconverter_L_nu_to_nu_L_nu),
+        (SL_la, la_SL_la, converter_L_la_to_la_L_la, iconverter_L_la_to_la_L_la),
+        (phot_SL_la, SL_la, converter_phot_L_la_to_L_la, iconverter_phot_L_la_to_L_la),
+        (phot_SL_la, SL_nu, converter_phot_L_la_to_L_nu, iconverter_phot_L_la_to_L_nu),
+        (phot_SL_la, phot_SL_nu, converter_phot_L_la_phot_L_nu, iconverter_phot_L_la_phot_L_nu),
+        (phot_SL_nu, SL_nu, converter_phot_L_nu_to_L_nu, iconverter_phot_L_nu_to_L_nu),
+        (phot_SL_nu, SL_la, converter_phot_L_nu_to_L_la, iconverter_phot_L_nu_to_L_la),
     ], "spectral_density", {'wav': wav, 'factor': factor})
 
 
