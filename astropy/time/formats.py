@@ -606,8 +606,11 @@ class TimeFromEpoch(TimeNumeric):
         else:
             jd1, jd2 = self.jd1, self.jd2
 
-        time_from_epoch1, time_from_epoch2 = day_frac(
-            jd1 - self.epoch.jd1, jd2 - self.epoch.jd2, divisor=self.unit)
+        # This factor is guaranteed to be exactly representable, which
+        # means time_from_epoch1 is calculated exactly.
+        factor = 1. / self.unit
+        time_from_epoch1 = (jd1 - self.epoch.jd1) * factor
+        time_from_epoch2 = (jd2 - self.epoch.jd2) * factor
 
         return super().to_value(jd1=time_from_epoch1, jd2=time_from_epoch2, **kwargs)
 
@@ -1515,17 +1518,21 @@ class TimeDeltaFormat(TimeFormat, metaclass=TimeDeltaFormatMeta):
 
         return scale
 
+class TimeDeltaNumeric(TimeDeltaFormat, TimeNumeric):
+
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # Validate scale.
         self.jd1, self.jd2 = day_frac(val1, val2, divisor=1./self.unit)
 
-    @property
-    def value(self):
-        return (self.jd1 + self.jd2) / self.unit
+    def to_value(self, **kwargs):
+        # Note that 1/unit is always exactly representable, so the
+        # following multiplications are exact.
+        factor = 1. / self.unit
+        jd1 = self.jd1 * factor
+        jd2 = self.jd2 * factor
+        return super().to_value(jd1=jd1, jd2=jd2, **kwargs)
 
-
-class TimeDeltaNumeric(TimeDeltaFormat, TimeNumeric):
-    pass
+    value = property(to_value)
 
 
 class TimeDeltaSec(TimeDeltaNumeric):
