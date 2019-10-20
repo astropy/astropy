@@ -2456,15 +2456,20 @@ def test_rows_with_mixins():
 
 
 def test_iterrows():
-    t = table.Table([(1, 2, 3), (4, 5, 6)], names=('a', 'b'))
-    for a, b in t.zip_columns('a', 'b'):
-        assert a in t['a']
-        assert b in t['b']
+    dat = [(1, 2, 3),
+           (4, 5, 6),
+           (7, 8, 6)]
+    t = table.Table(rows=dat, names=('a', 'b', 'c'))
+    c_s = []
+    a_s = []
+    for c, a in t.iterrows('c', 'a'):
+        a_s.append(a)
+        c_s.append(c)
+    assert np.all(t['a'] == a_s)
+    assert np.all(t['c'] == c_s)
 
-    with pytest.raises(ValueError) as err:
-        t.zip_columns()
-    err.value.args[0] == 'at least one column name is provided'
+    rows = [row for row in t.iterrows()]
+    assert rows == dat
 
-    with pytest.raises(ValueError) as err:
-        t.zip_columns(['c'])
-    err.value.args[0] == 'c is not a valid column name'
+    with pytest.raises(ValueError, match='d is not a valid column name'):
+        t.iterrows('d')

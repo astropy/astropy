@@ -2174,36 +2174,49 @@ class Table:
         if hasattr(self, '_groups'):
             del self._groups
 
-    def zip_columns(self, *names):
+    def iterrows(self, *names):
         """
-        Return zipped columns for row-wise iteration
+        Iterate over rows of table returning a tuple of values for each row.
+
+        This method is especially useful when only a subset of columns are needed.
+
+        The ``iterrows`` method can be substantially faster than using the standard
+        Table row iteration (e.g. ``for row in tbl:``), since that returns a new
+        ``~astropy.table.Row`` object for each row and accessing a column in that
+        row (e.g. ``row['col0']``) is slower than tuple access.
 
         Parameters
         ----------
         names : list
-            List of column names
+            List of column names (default to all columns if no names provided)
+
+        Returns
+        -------
+        rows : iterator returning tuples of row values
 
         Examples
         --------
         Create a table with three columns 'a', 'b' and 'c'::
 
-            >>> t = Table([[1, 2, 3], [1.0, 2.5, 3.0], ['x', 'y', 'z']],
-            ...           names=('a', 'b', 'c'))
+            >>> t = Table({'a': [1, 2, 3],
+            ...            'b': [1.0, 2.5, 3.0],
+            ...            'c': ['x', 'y', 'z']})
 
-        To iterate row-wise using column names
-            >>> for a,b in t.zip_columns('a', 'b'):
-            ...     print(a,b)
-            1 1.0
-            2 2.5
-            3 3.0
+        To iterate row-wise using column names::
+
+            >>> for a, c in t.iterrows('a', 'c'):
+            ...     print(a, c)
+            1 x
+            2 y
+            3 z
 
         """
         if len(names) == 0:
-            raise ValueError('at least one column name must be provided')
-
-        for name in names:
-            if name not in self.colnames:
-                raise ValueError('{} is not a valid column name'.format(name))
+            names = self.colnames
+        else:
+            for name in names:
+                if name not in self.colnames:
+                    raise ValueError(f'{name} is not a valid column name')
 
         cols = (self[name] for name in names)
         out = zip(*cols)
