@@ -4,8 +4,9 @@ import itertools
 
 import pytest
 import numpy as np
-from numpy.testing import assert_almost_equal
+from numpy.testing import assert_almost_equal, assert_allclose
 
+from astropy import units as u
 from astropy.convolution.convolve import convolve, convolve_fft
 from astropy.convolution.kernels import Gaussian2DKernel, Box2DKernel, Tophat2DKernel
 from astropy.convolution.kernels import Moffat2DKernel
@@ -127,3 +128,10 @@ class Test2DConvolutions:
         c1 = convolve(x, kernel1, boundary='fill')
 
         assert_almost_equal(c1, c2, decimal=12)
+
+
+def test_gaussian_2d_kernel_quantity():
+    # Make sure that the angle can be a quantity
+    kernel1 = Gaussian2DKernel(x_stddev=2, y_stddev=4, theta=45 * u.deg)
+    kernel2 = Gaussian2DKernel(x_stddev=2, y_stddev=4, theta=np.pi / 4)
+    assert_allclose(kernel1.array, kernel2.array)
