@@ -9,6 +9,7 @@ import pytest
 from numpy.testing import assert_equal, assert_allclose
 
 from astropy import units as u
+from astropy.time import Time
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import Quantity
 from astropy.coordinates import ICRS, FK5, Galactic, SkyCoord
@@ -429,20 +430,21 @@ def test_time_cube():
                                                [True, True, False],
                                                [False, False, True]])
 
-    with pytest.warns(FutureWarning):
-        assert wcs.world_axis_object_components == [
-            ('celestial', 1, 'spherical.lat.degree'),
-            ('celestial', 0, 'spherical.lon.degree'),
-            ('utc', 0, 'value')]
+    components = wcs.world_axis_object_components
+    assert components[0] == ('celestial', 1, 'spherical.lat.degree')
+    assert components[1] == ('celestial', 0, 'spherical.lon.degree')
+    assert components[2][:2] == ('time', 0)
+    assert callable(components[2][2])
 
-        assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
-        assert wcs.world_axis_object_classes['celestial'][1] == ()
-        assert isinstance(wcs.world_axis_object_classes['celestial'][2]['frame'], ICRS)
-        assert wcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
+    assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
+    assert wcs.world_axis_object_classes['celestial'][1] == ()
+    assert isinstance(wcs.world_axis_object_classes['celestial'][2]['frame'], ICRS)
+    assert wcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
 
-        assert wcs.world_axis_object_classes['utc'][0] is Quantity
-        assert wcs.world_axis_object_classes['utc'][1] == ()
-        assert wcs.world_axis_object_classes['utc'][2] == {'unit': 's'}
+    assert wcs.world_axis_object_classes['time'][0] is Time
+    assert wcs.world_axis_object_classes['time'][1] == ()
+    assert wcs.world_axis_object_classes['time'][2] == {}
+    assert callable(wcs.world_axis_object_classes['time'][3])
 
     assert_allclose(wcs.pixel_to_world_values(-449.2, 2955.6, 0),
                     (14.8289418840003, 2.01824372640628, 2375.341))
@@ -457,22 +459,43 @@ def test_time_cube():
 
     # High-level API
 
-    # Make sure that we get a FutureWarning about the time column
-    with warnings.catch_warnings(record=True) as warning_entries:
-        warnings.resetwarnings()
-        coord, time = wcs.pixel_to_world(29, 39, 44)
-
-    # Check that there's at least one warning of the right category/message
-    assert len(warning_entries) > 0
-    found_warning = False
-    for w in warning_entries:
-        msg = 'In future, times will be represented by the Time class'
-        if w.category is FutureWarning and str(w.message).startswith(msg):
-            found_warning = True
-    assert found_warning
-
+    coord, time = wcs.pixel_to_world(29, 39, 44)
     assert isinstance(coord, SkyCoord)
-    assert isinstance(time, Quantity)
+    assert isinstance(coord.frame, ICRS)
+    assert_allclose(coord.ra.deg, 1.7323356692202325)
+    assert_allclose(coord.dec.deg, 14.783516054817797)
+    assert isinstance(time, Time)
+    assert_allclose(time.mjd, 54746.03429755324)
+
+    coord, time = wcs.array_index_to_world(44, 39, 29)
+    assert isinstance(coord, SkyCoord)
+    assert isinstance(coord.frame, ICRS)
+    assert_allclose(coord.ra.deg, 1.7323356692202325)
+    assert_allclose(coord.dec.deg, 14.783516054817797)
+    assert isinstance(time, Time)
+    assert_allclose(time.mjd, 54746.03429755324)
+
+    x, y, z = wcs.world_to_pixel(coord, time)
+    assert_allclose(x, 29.)
+    assert_allclose(y, 39.)
+    assert_allclose(z, 44.)
+
+    # Order of world coordinates shouldn't matter
+    x, y, z = wcs.world_to_pixel(time, coord)
+    assert_allclose(x, 29.)
+    assert_allclose(y, 39.)
+    assert_allclose(z, 44.)
+
+    i, j, k = wcs.world_to_array_index(coord, time)
+    assert_equal(i, 44)
+    assert_equal(j, 39)
+    assert_equal(k, 29)
+
+    # Order of world coordinates shouldn't matter
+    i, j, k = wcs.world_to_array_index(time, coord)
+    assert_equal(i, 44)
+    assert_equal(j, 39)
+    assert_equal(k, 29)
 
 ###############################################################################
 # Extra corner cases
