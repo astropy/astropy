@@ -267,7 +267,7 @@ astropy.wcs
   and ``world_axis_names``. [#9156]
 
 - Updated the WCS class to now correctly take and return ``Time`` objects in the
-  high-level APE 14 API (e.g. ``pixel_to_world``. [£9376]
+  high-level APE 14 API (e.g. ``pixel_to_world``. [#9376]
 
 API Changes
 -----------
