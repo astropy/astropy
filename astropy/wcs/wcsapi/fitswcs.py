@@ -393,7 +393,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     def offset_from_time_and_reference(time):
                         return (time - reference_time).to_value(u.s)
 
-                    classes[name] = (Time, time_from_reference_and_offset, (), {})
+                    classes[name] = (Time, (), {}, time_from_reference_and_offset)
                     components[i] = (name, 0, offset_from_time_and_reference)
 
         # Fallback: for any remaining components that haven't been identified, just

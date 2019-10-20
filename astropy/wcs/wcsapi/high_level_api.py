@@ -147,13 +147,12 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
 
         if unique_match:
 
-            for key, (klass, *rest) in classes.items():
+            for key, (klass, args, kwargs, *rest) in classes.items():
 
-                if len(rest) == 2:
+                if len(rest) == 0:
                     klass_gen = klass
-                    args, kwargs = rest
                 else:
-                    klass_gen, args, kwargs = rest
+                    klass_gen = rest[0]
 
                 # FIXME: For now SkyCoord won't auto-convert upon initialization
                 # https://github.com/astropy/astropy/issues/7689
@@ -170,13 +169,12 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
 
             for ikey, key in enumerate(classes):
 
-                klass, *rest = classes[key]
+                klass, args, kwargs, *rest = classes[key]
 
-                if len(rest) == 2:
+                if len(rest) == 0:
                     klass_gen = klass
-                    args, kwargs = rest
                 else:
-                    klass_gen, args, kwargs = rest
+                    klass_gen = rest[0]
 
                 w = world_objects[ikey]
                 if not isinstance(w, klass):
@@ -240,12 +238,11 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
         result = []
 
         for key in default_order(components):
-            klass, *rest = classes[key]
-            if len(rest) == 2:
+            klass, ar, kw, *rest = classes[key]
+            if len(rest) == 0:
                 klass_gen = klass
-                ar, kw = rest
             else:
-                klass_gen, ar, kw = rest
+                klass_gen = rest[0]
             result.append(klass_gen(*args[key], *ar, **kwargs[key], **kw))
 
         if len(result) == 1:
