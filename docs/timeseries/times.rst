@@ -63,15 +63,14 @@ and ``scale`` attributes::
     >>> ts.time.format = 'unix'
     >>> ts  # doctest: +FLOAT_CMP
     <TimeSeries length=5>
-           time          flux
-          object       float64
-    ------------------ -------
-          1458649831.0     1.0
-          1458649834.0     3.0
-          1458649837.0     4.0
-          1458649840.0     2.0
-          1458649843.0     4.0
-
+        time       flux
+       object    float64
+    ------------ -------
+    1458649831.0     1.0
+    1458649834.0     3.0
+    1458649837.0     4.0
+    1458649840.0     2.0
+    1458649843.0     4.0
 
 Times relative to other times
 =============================
