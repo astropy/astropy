@@ -388,7 +388,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     def time_from_reference_and_offset(offset):
                         if isinstance(offset, Time):
                             return offset
-                        return reference_time + offset * u.s
+                        return reference_time + u.Quantity(offset, unit=u.s)
 
                     def offset_from_time_and_reference(time):
                         return (time - reference_time).to_value(u.s)
