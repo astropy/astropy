@@ -1518,6 +1518,7 @@ class TimeDeltaFormat(TimeFormat, metaclass=TimeDeltaFormatMeta):
 
         return scale
 
+
 class TimeDeltaNumeric(TimeDeltaFormat, TimeNumeric):
 
     def set_jds(self, val1, val2):

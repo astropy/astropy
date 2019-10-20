@@ -285,7 +285,6 @@ class TestTimeDelta:
             dt.to_value('julian')
 
 
-
 class TestTimeDeltaScales:
     """Test scale conversion for Time Delta.
     Go through @taldcroft's list of expected behavior from #1932"""
