@@ -503,7 +503,7 @@ def test_time_cube():
 ###############################################################################
 
 
-HEADER_TIME_CUBE = """
+HEADER_TIME_1D = """
 SIMPLE  = T
 BITPIX  = -32
 NAXIS   = 1
@@ -516,8 +516,8 @@ CRVAL1  = 5
 CUNIT1  = 's'
 CRPIX1  = 1.0
 CDELT1  = 2
-OBSGEO-B= -20
-OBSGEO-L= -70
+OBSGEO-L= -20
+OBSGEO-B= -70
 OBSGEO-H= 2530
 """
 
@@ -531,17 +531,204 @@ def assert_time_at(header, position, jd1, jd2, scale, format):
     assert time.scale == scale
 
 
-def test_time_1d():
+def test_time_1d_values():
 
-    header = Header.fromstring(HEADER_TIME_CUBE, sep='\n')
+    # Check that Time objects are instantiated with the correct values,
+    # scales, and formats.
 
+    header = Header.fromstring(HEADER_TIME_1D, sep='\n')
+
+    # Main supported time scales
+    for scale in ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc', 'local'):
+        header['CTYPE1'] = scale.upper()
+        assert_time_at(header, 1, 2450003, 0.1 + 7 / 3600 / 24, scale, 'mjd')
+
+    # Special treatment for GPS scale
+    header['CTYPE1'] = 'GPS'
+    assert_time_at(header, 1, 2450003, 0.1 + (7 + 19) / 3600 / 24, 'tai', 'mjd')
+
+    # Deprecated (in FITS) scales
+    header['CTYPE1'] = 'TDT'
+    assert_time_at(header, 1, 2450003, 0.1 + 7 / 3600 / 24, 'tt', 'mjd')
+    header['CTYPE1'] = 'IAT'
+    assert_time_at(header, 1, 2450003, 0.1 + 7 / 3600 / 24, 'tai', 'mjd')
+    header['CTYPE1'] = 'GMT'
     assert_time_at(header, 1, 2450003, 0.1 + 7 / 3600 / 24, 'utc', 'mjd')
+    header['CTYPE1'] = 'ET'
+    assert_time_at(header, 1, 2450003, 0.1 + 7 / 3600 / 24, 'tt', 'mjd')
 
-    header['CTYPE1'] = 'TAI'
-    assert_time_at(header, 1, 2450003, 0.1 + 7 / 3600 / 24, 'tai', 'mjd')
 
-    header['CTYPE1'] = 'TAI'
-    assert_time_at(header, 1, 2450003, 0.1 + 7 / 3600 / 24, 'tai', 'mjd')
+def test_time_1d_roundtrip():
+
+    # Check that coordinates round-trip
+
+    header = Header.fromstring(HEADER_TIME_1D, sep='\n')
+
+    pixel_in = np.arange(3, 10)
+
+    for scale in ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc'):
+
+        header['CTYPE1'] = scale.upper()
+        wcs = WCS(header)
+
+        # Simple test
+        time = wcs.pixel_to_world(pixel_in)
+        pixel_out = wcs.world_to_pixel(time)
+        assert_allclose(pixel_in, pixel_out)
+
+        # Test with an intermediate change to a different scale/format
+        time = wcs.pixel_to_world(pixel_in).tdb
+        time.format = 'isot'
+        pixel_out = wcs.world_to_pixel(time)
+        assert_allclose(pixel_in, pixel_out)
+
+
+def test_time_1d_high_precision():
+
+    # Case where the MJDREF is split into two for high precision
+    header = Header.fromstring(HEADER_TIME_1D, sep='\n')
+    del header['MJDREF']
+    header['MJDREFI'] = 52000.
+    header['MJDREFF'] = 1e-11
+
+    wcs = WCS(header)
+    time = wcs.pixel_to_world(10)
+
+    # Here we have to use a very small rtol to really test that MJDREFF is
+    # taken into account
+    assert_allclose(time.jd1, 2452001.0, rtol=1e-12)
+    assert_allclose(time.jd2, -0.5 + 25 / 3600 / 24 + 1e-11, rtol=1e-13)
+
+
+def test_time_1d_location_geodetic():
+
+    # Make sure that the location is correctly returned (geodetic case)
+
+    header = Header.fromstring(HEADER_TIME_1D, sep='\n')
+    wcs = WCS(header)
+    time = wcs.pixel_to_world(10)
+
+    lon, lat, alt = time.location.to_geodetic()
+
+    # FIXME: alt won't work for now because ERFA doesn't implement the IAU 1976
+    # ellipsoid (https://github.com/astropy/astropy/issues/9420)
+    assert_allclose(lon.degree, -20)
+    assert_allclose(lat.degree, -70)
+    # assert_allclose(alt.to_value(u.m), 2530.)
+
+
+def test_time_1d_location_geocentric():
+
+    # Make sure that the location is correctly returned (geocentric case)
+
+    header = Header.fromstring(HEADER_TIME_1D, sep='\n')
+
+    del header['OBSGEO-L']
+    del header['OBSGEO-B']
+    del header['OBSGEO-H']
+
+    header['OBSGEO-X'] = 10
+    header['OBSGEO-Y'] = -20
+    header['OBSGEO-Z'] = 30
+
+    wcs = WCS(header)
+    time = wcs.pixel_to_world(10)
+
+    x, y, z = time.location.to_geocentric()
+
+    assert_allclose(x.to_value(u.m), 10)
+    assert_allclose(y.to_value(u.m), -20)
+    assert_allclose(z.to_value(u.m), 30)
+
+
+def test_time_1d_location_geocenter():
+
+    header = Header.fromstring(HEADER_TIME_1D, sep='\n')
+
+    del header['OBSGEO-L']
+    del header['OBSGEO-B']
+    del header['OBSGEO-H']
+
+    header['TREFPOS'] = 'GEOCENTER'
+
+    wcs = WCS(header)
+    time = wcs.pixel_to_world(10)
+
+    x, y, z = time.location.to_geocentric()
+
+    assert_allclose(x.to_value(u.m), 0)
+    assert_allclose(y.to_value(u.m), 0)
+    assert_allclose(z.to_value(u.m), 0)
+
+
+def test_time_1d_location_missing():
+
+    # Check what happens when no location is present
+
+    header = Header.fromstring(HEADER_TIME_1D, sep='\n')
+
+    del header['OBSGEO-L']
+    del header['OBSGEO-B']
+    del header['OBSGEO-H']
+
+    wcs = WCS(header)
+    with pytest.warns(UserWarning,
+                      match='Missing or incomplete observer location '
+                            'information, setting location in Time to None'):
+        time = wcs.pixel_to_world(10)
+
+    assert time.location is None
+
+
+def test_time_1d_location_incomplete():
+
+    # Check what happens when location information is incomplete
+
+    header = Header.fromstring(HEADER_TIME_1D, sep='\n')
+
+    del header['OBSGEO-L']
+    del header['OBSGEO-B']
+    del header['OBSGEO-H']
+
+    wcs = WCS(header)
+    with pytest.warns(UserWarning,
+                      match='Missing or incomplete observer location '
+                            'information, setting location in Time to None'):
+        time = wcs.pixel_to_world(10)
+
+    assert time.location is None
+
+
+def test_time_1d_location_unsupported():
+
+    # Check what happens when TREFPOS is unsupported
+
+    header = Header.fromstring(HEADER_TIME_1D, sep='\n')
+    header['TREFPOS'] = 'BARYCENTER'
+
+    wcs = WCS(header)
+    with pytest.warns(UserWarning,
+                      match="Observation location 'barycenter' is not "
+                            "supported, setting location in Time to None"):
+        time = wcs.pixel_to_world(10)
+
+    assert time.location is None
+
+
+def test_time_1d_unsupported_ctype():
+
+    # For cases that we don't support yet, e.g. UT(...), use Quantity
+
+    # Case where the MJDREF is split into two for high precision
+    header = Header.fromstring(HEADER_TIME_1D, sep='\n')
+    header['CTYPE1'] = 'UT(WWV)'
+
+    wcs = WCS(header)
+    with pytest.warns(UserWarning,
+                      match="Unrecognized time CTYPE=UT"):
+        time = wcs.pixel_to_world(10)
+
+    assert isinstance(time, Quantity)
 
 
 ###############################################################################

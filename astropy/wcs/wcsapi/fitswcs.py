@@ -304,7 +304,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
         # Avoid circular imports by importing here
         from astropy.wcs.utils import wcs_to_celestial_frame
-        from astropy.coordinates import SkyCoord
+        from astropy.coordinates import SkyCoord, EarthLocation
         from astropy.time import Time
 
         components = [None] * self.naxis
@@ -358,7 +358,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     # TODO: consider having GPS as a scale in Time
                     # For now GPS is not a scale, we approximate this by TAI - 19s
                     if scale == 'gps':
-                        jd2 += 19. / 86400.  # 19 seconds
+                        mjd2 += 19. / 86400.  # 19 seconds
                         scale = 'tai'
 
                     # TDT is a deprecated name for TT
@@ -378,12 +378,33 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                         scale = 'tt'
 
                     elif scale not in Time.SCALES:
-                        raise ValueError('Unrecognized time scale CTYPE: {0}'.format(self.wcs.ctype[i]))
+                        warnings.warn(f'Unrecognized time CTYPE={self.wcs.ctype[i]}, treating as Quantity', UserWarning)
+                        continue
 
                     mjd1 += self.wcs.mjdref[0]
                     mjd2 += self.wcs.mjdref[1]
 
-                    reference_time = Time(mjd1, mjd2, format='mjd', scale=scale)
+                    # Determine location
+                    trefpos = self.wcs.trefpos.lower()
+
+                    if trefpos.startswith('topocent'):
+                        # Note that some headers use TOPOCENT instead of TOPOCENTER
+                        if np.any(np.isnan(self.wcs.obsgeo[:3])):
+                            warnings.warn('Missing or incomplete observer location '
+                                        'information, setting location in Time to None',
+                                        UserWarning)
+                            location = None
+                        else:
+                            location = EarthLocation(*self.wcs.obsgeo[:3], unit=u.m)
+                    elif trefpos == 'geocenter':
+                        location = EarthLocation(0, 0, 0, unit=u.m)
+                    else:
+                        # TODO: implement support for more locations when Time supports it
+                        warnings.warn(f"Observation location '{trefpos}' is not "
+                                       "supported, setting location in Time to None", UserWarning)
+                        location = None
+
+                    reference_time = Time(mjd1, mjd2, format='mjd', scale=scale, location=location)
 
                     def time_from_reference_and_offset(offset):
                         if isinstance(offset, Time):
