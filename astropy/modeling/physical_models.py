@@ -7,13 +7,14 @@ import warnings
 
 import numpy as np
 
-from .core import Fittable1DModel
+from .core import Fittable1DModel, Model
 from .parameters import Parameter, InputParameterError
+
 from astropy import constants as const
 from astropy import units as u
 from astropy.utils.exceptions import AstropyUserWarning
 
-__all__ = ["BlackBody", "Drude1D"]
+__all__ = ["BlackBody", "Drude1D", "WavelengthFromGratingEquation"]
 
 
 class BlackBody(Fittable1DModel):
@@ -318,3 +319,64 @@ class Drude1D(Fittable1DModel):
         dx = factor * self.fwhm
 
         return (x0 - dx, x0 + dx)
+
+    class WavelengthFromGratingEquation(Model):
+    r"""
+    Solve the Grating Dispersion Law for the wavelength.
+    .. Note:: This form of the equation can be used for paraxial
+    (small angle approximation) as well as oblique incident angles.
+    With paraxial systems the inputs are sin of the angles and it
+    transforms to :math:`\sin(alpha_in) + \sin(alpha_out) / m * d` .
+    With oblique angles the inputs are the direction cosines of the
+    angles.
+    Parameters
+    ----------
+    groove_density : int
+        Grating ruling density in units of 1/length.
+    spectral_order : int
+        Spectral order.
+
+    Examples
+    --------
+    >>> from astropy.modeling.models import math
+    >>> model = WavelengthFromGratingEquation(groove_density=20000*1/u.m, spectral_order=-1)
+    >>> alpha_in = (math.Deg2radUfunc() | math.SinUfunc())(.0001 * u.deg)
+    >>> alpha_out = (math.Deg2radUfunc() | math.SinUfunc())(.0001 * u.deg)
+    >>> lam = model(alpha_in, alpha_out)
+    >>> print(lam)
+    1.745241985530844e-06 m
+    """
+
+    _separable = False
+
+    linear = False
+
+    n_inputs = 2
+    n_outputs = 1
+
+    groove_density = Parameter(default=1)
+    """ Grating ruling density in units of 1/m."""
+    spectral_order = Parameter(default=1)
+    """ Spectral order."""
+
+    def __init__(self, groove_density, spectral_order, **kwargs):
+        super().__init__(groove_density=groove_density,
+                         spectral_order=spectral_order, **kwargs)
+        self.inputs = ("alpha_in", "alpha_out")
+        """ Sine function of the angles or the direction cosines."""
+        self.outputs = ("wavelength",)
+        """ Wavelength."""
+
+    def evaluate(self, alpha_in, alpha_out, groove_density, spectral_order):
+        result = alpha_in + alpha_out / (groove_density.value * spectral_order)
+        if isinstance(result, u.Quantity):
+            return result.value
+        return result
+
+    @property
+    def return_units(self):
+        if self.groove_density.unit is None:
+            return None
+        else:
+            return {'wavelength': u.Unit(1 / self.groove_density.unit)}
+        
