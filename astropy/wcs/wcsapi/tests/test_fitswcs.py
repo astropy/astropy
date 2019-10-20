@@ -498,6 +498,53 @@ def test_time_cube():
     assert_equal(k, 29)
 
 ###############################################################################
+# The following tests are to make sure that Time objects are constructed
+# correctly for a variety of combinations of WCS keywords
+###############################################################################
+
+
+HEADER_TIME_CUBE = """
+SIMPLE  = T
+BITPIX  = -32
+NAXIS   = 1
+NAXIS1  = 2048
+TIMESYS = 'UTC'
+TREFPOS = 'TOPOCENT'
+MJDREF  = 50002.6
+CTYPE1  = 'UTC'
+CRVAL1  = 5
+CUNIT1  = 's'
+CRPIX1  = 1.0
+CDELT1  = 2
+OBSGEO-B= -20
+OBSGEO-L= -70
+OBSGEO-H= 2530
+"""
+
+
+def assert_time_at(header, position, jd1, jd2, scale, format):
+    wcs = WCS(header)
+    time = wcs.pixel_to_world(position)
+    assert_allclose(time.jd1, jd1, rtol=1e-10)
+    assert_allclose(time.jd2, jd2, rtol=1e-10)
+    assert time.format == format
+    assert time.scale == scale
+
+
+def test_time_1d():
+
+    header = Header.fromstring(HEADER_TIME_CUBE, sep='\n')
+
+    assert_time_at(header, 1, 2450003, 0.1 + 7 / 3600 / 24, 'utc', 'mjd')
+
+    header['CTYPE1'] = 'TAI'
+    assert_time_at(header, 1, 2450003, 0.1 + 7 / 3600 / 24, 'tai', 'mjd')
+
+    header['CTYPE1'] = 'TAI'
+    assert_time_at(header, 1, 2450003, 0.1 + 7 / 3600 / 24, 'tai', 'mjd')
+
+
+###############################################################################
 # Extra corner cases
 ###############################################################################
 
