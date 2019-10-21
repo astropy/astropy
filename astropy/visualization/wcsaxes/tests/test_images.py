@@ -805,7 +805,6 @@ def test_1d_plot_2d_wcs_correlated(spatial_wcs_2d):
     return fig
 
 
-
 @pytest.fixture
 def spatial_wcs_2d_small_angle():
     """
@@ -818,6 +817,7 @@ def spatial_wcs_2d_small_angle():
     wcs.wcs.crval = [0] * 2
     wcs.wcs.set()
     return wcs
+
 
 @pytest.mark.remote_data(source='astropy')
 @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
