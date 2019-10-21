@@ -40,8 +40,9 @@ class TestMultiD():
                          '<tr><td>10 .. 20</td><td>30 .. 40</td><td>50 .. 60</td></tr>',
                          '</table>']
         nbclass = table.conf.default_notebook_table_class
+        masked = 'masked=True ' if t.masked else ''
         assert t._repr_html_().splitlines() == [
-            f'<i>{table_type.__name__} masked={t.masked} length=2</i>',
+            f'<i>{table_type.__name__} {masked}length=2</i>',
             '<table id="table{id}" class="{nbclass}">'.format(id=id(t), nbclass=nbclass),
             '<thead><tr><th>col0 [2]</th><th>col1 [2]</th><th>col2 [2]</th></tr></thead>',
             '<thead><tr><th>int64</th><th>int64</th><th>int64</th></tr></thead>',
@@ -79,8 +80,9 @@ class TestMultiD():
                          '<tr><td>10</td><td>30</td><td>50</td></tr>',
                          '</table>']
         nbclass = table.conf.default_notebook_table_class
+        masked = 'masked=True ' if t.masked else ''
         assert t._repr_html_().splitlines() == [
-            f'<i>{table_type.__name__} masked={t.masked} length=2</i>',
+            f'<i>{table_type.__name__} {masked}length=2</i>',
             '<table id="table{id}" class="{nbclass}">'.format(id=id(t), nbclass=nbclass),
             '<thead><tr><th>col0 [1,1]</th><th>col1 [1,1]</th><th>col2 [1,1]</th></tr></thead>',
             '<thead><tr><th>int64</th><th>int64</th><th>int64</th></tr></thead>',
@@ -127,7 +129,8 @@ class TestPprint():
         lines = t.pformat()
         assert lines == ['<No columns>']
         c = repr(t)
-        assert c.splitlines() == [f'<{table_type.__name__} masked={t.masked} length=0>',
+        masked = 'masked=True ' if t.masked else ''
+        assert c.splitlines() == [f'<{table_type.__name__} {masked}length=0>',
                                   '<No columns>']
 
     def test_format0(self, table_type):
@@ -428,10 +431,10 @@ class TestFormatWithMaskedElements():
         t['a'].format = '%4.2f {0:}'
         assert str(t['a']) == '   a   \n-------\n     --\n%4.2f 2\n     --'
 
-    def test_column_format_with_threshold(self, table_type):
+    def test_column_format_with_threshold_masked_table(self):
         from astropy import conf
         with conf.set_temp('max_lines', 8):
-            t = table_type([np.arange(20)], names=['a'])
+            t = Table([np.arange(20)], names=['a'], masked=True)
             t['a'].format = '%{0:}'
             t['a'].mask[0] = True
             t['a'].mask[-1] = True
