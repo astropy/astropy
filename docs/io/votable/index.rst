@@ -23,8 +23,8 @@ Reading a VOTable File
 To read in a VOTable file, pass a file path to
 `~astropy.io.votable.parse`::
 
-  from astropy.io.votable import parse
-  votable = parse("votable.xml")
+    from astropy.io.votable import parse
+    votable = parse("votable.xml")
 
 ``votable`` is a `~astropy.io.votable.tree.VOTableFile` object, which
 can be used to retrieve and manipulate the data and save it back out
@@ -37,18 +37,18 @@ elements contain the arrays of data.
 To get at the ``TABLE`` elements, you can write a loop over the
 resources in the ``VOTABLE`` file::
 
-  for resource in votable.resources:
-    for table in resource.tables:
-      # ... do something with the table ...
-      pass
+    for resource in votable.resources:
+        for table in resource.tables:
+            # ... do something with the table ...
+            pass
 
 However, if the nested structure of the resources is not important,
 you can use `~astropy.io.votable.tree.VOTableFile.iter_tables` to
 return a flat list of all tables::
 
-  for table in votable.iter_tables():
-    # ... do something with the table ...
-    pass
+    for table in votable.iter_tables():
+        # ... do something with the table ...
+        pass
 
 Finally, if you expect only one table in the file, it might be most convenient
 to use `~astropy.io.votable.tree.VOTableFile.get_first_table`::
