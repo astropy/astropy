@@ -373,7 +373,7 @@ class Quantity(np.ndarray):
                     copy = False  # copy will be made in conversion at end
 
         value = np.array(value, dtype=dtype, copy=copy, order=order,
-                         subok=False, ndmin=ndmin)
+                         subok=True, ndmin=ndmin)
 
         # check that array contains numbers or long int objects
         if (value.dtype.kind in 'OSU' and
@@ -405,6 +405,13 @@ class Quantity(np.ndarray):
         # If we're a new object or viewing an ndarray, nothing has to be done.
         if obj is None or obj.__class__ is np.ndarray:
             return
+
+        # Check whether super().__array_finalize should be called
+        # (sadly, ndarray.__array_finalize__ is None; we cannot be sure
+        # what is above us).
+        super_array_finalize = super().__array_finalize__
+        if super_array_finalize is not None:
+            super_array_finalize(obj)
 
         # If our unit is not set and obj has a valid one, use it.
         if self._unit is None:
