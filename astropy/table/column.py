@@ -770,7 +770,6 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         else:
             return super().tolist()
 
-
 class Column(BaseColumn):
     """Define a data column for use in a Table object.
 

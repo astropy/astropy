@@ -1876,6 +1876,16 @@ class TestPandas:
                     assert column.byteswap().newbyteorder().dtype == t2[name].dtype
 
 
+def test_drop_array_columns():
+    t = table.Table()
+    t['a'] = [1, 2, 3]
+    t['b'] = np.ones((3, 2))
+    t['c'] = [1, 2, 3] * u.m
+    t['d'] = np.ones((3, 2)) * u.m
+
+    t2 = t.drop_array_columns()
+    assert t2.colnames == ["a", "c"]
+
 @pytest.mark.usefixtures('table_types')
 class TestReplaceColumn(SetupData):
     def test_fail_replace_column(self, table_types):

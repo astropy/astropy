@@ -2948,6 +2948,16 @@ class Table:
         """
         return groups.table_group_by(self, keys)
 
+    def drop_array_columns(self):
+        """Drop array-valued columns.
+
+        This can be useful if you want to go to some format
+        that doesn't support array-valued columns, such as
+        e.g. `Table.to_pandas` or `Table.write` with ASCII formats.
+        """
+        cols = [name for name in self.colnames if len(self[name].shape) <= 1]
+        return self[cols]
+
     def to_pandas(self, index=None):
         """
         Return a :class:`pandas.DataFrame` instance
@@ -2966,6 +2976,10 @@ class Table:
         Time or TimeDelta columns, which will be converted to the corresponding
         representation in pandas using ``np.datetime64`` or ``np.timedelta64``.
         See the example below.
+
+        Pandas doesn't support array-valued columns. If your table has
+        array-valued columns and you want to convert all scalar-valued columns
+        to pandas, use ``table.drop_array_columns().to_pandas()``.
 
         Parameters
         ----------
@@ -3060,8 +3074,7 @@ class Table:
             encode_tbl = serialize.represent_mixins_as_columns(tbl)
             return encode_tbl
 
-        badcols = [name for name, col in self.columns.items()
-                   if (getattr(col, 'ndim', 1) > 1)]
+        badcols = [name for name in self.colnames if len(self[name].shape) > 1]
         if badcols:
             raise ValueError(
                 "Cannot convert a table with multi-dimensional columns to a "
