@@ -29,7 +29,7 @@ addons:
             - graphviz
             - language-pack-de
             - ccache
-
+            - ruby
 
 env:
     global:
