@@ -142,6 +142,11 @@ astropy.table
 
 - Added ``Table.iterrows()`` for making row-wise iteration faster. [#8969]
 
+- Allow table to be initialized with a list of dict where the dict keys
+  are not the same in every row. The table column names are the set of all keys
+  found in the input data, and any missing key/value pairs are turned into
+  missing data in the table. [#9425]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
