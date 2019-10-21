@@ -1726,12 +1726,14 @@ class TestPandas:
         t = table.Table()
         t['a'] = [1, 2, 3]
         t['b'] = np.ones((3, 2))
+        t['c'] = [1, 2, 3] * u.m
+        t['d'] = np.ones((3, 2)) * u.m
 
         with pytest.raises(ValueError) as exc:
             t.to_pandas()
         assert (exc.value.args[0] ==
             "Cannot convert a table with multi-dimensional columns "
-            "to a pandas DataFrame. Offending columns are: ['b']")
+            "to a pandas DataFrame. Offending columns are: ['b', 'd']")
 
     def test_mixin_pandas(self):
         t = table.QTable()

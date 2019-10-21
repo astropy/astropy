@@ -2967,12 +2967,15 @@ class Table:
         representation in pandas using ``np.datetime64`` or ``np.timedelta64``.
         See the example below.
 
+        Parameters
+        ----------
+        index : None, bool, str
+            Specify DataFrame index mode
+
         Returns
         -------
         dataframe : :class:`pandas.DataFrame`
             A pandas :class:`pandas.DataFrame` instance
-        index : None, bool, str
-            Specify DataFrame index mode
 
         Raises
         ------
@@ -3057,14 +3060,14 @@ class Table:
             encode_tbl = serialize.represent_mixins_as_columns(tbl)
             return encode_tbl
 
-        tbl = _encode_mixins(self)
-
         badcols = [name for name, col in self.columns.items()
                    if (getattr(col, 'ndim', 1) > 1)]
         if badcols:
             raise ValueError(
                 "Cannot convert a table with multi-dimensional columns to a "
                 "pandas DataFrame. Offending columns are: {}".format(badcols))
+
+        tbl = _encode_mixins(self)
 
         out = OrderedDict()
 
