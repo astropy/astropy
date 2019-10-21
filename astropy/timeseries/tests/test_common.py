@@ -5,7 +5,7 @@ import pytest
 from numpy.testing import assert_equal
 
 from astropy import units as u
-from astropy.table import Table, QTable, vstack
+from astropy.table import Table, QTable, vstack, join
 from astropy.time import Time
 
 from astropy.timeseries.sampled import TimeSeries
@@ -60,10 +60,20 @@ class CommonTimeSeriesTests:
             ts.remove_columns(ts.colnames)
         assert 'TimeSeries object is invalid' in exc.value.args[0]
 
+    def test_join(self):
+        ts_other = self.series.copy()
+        ts_other.add_row(self._row)
+        ts_other['d'] = [11, 22, 33, 44]
+        ts_other.remove_columns(['a', 'b'])
+        ts = join(self.series, ts_other)
+        assert len(ts) == len(self.series)
+        ts = join(self.series, ts_other, join_type='outer')
+        assert len(ts) == len(ts_other)
+
 
 class TestTimeSeries(CommonTimeSeriesTests):
 
-    _row = {'time': '2016-03-22T12:30:40', 'a': 1., 'b': 2, 'c': 'a'}
+    _row = {'time': '2016-03-23T12:30:40', 'a': 1., 'b': 2, 'c': 'a'}
 
     def setup_method(self, method):
         self.series = TimeSeries(time=INPUT_TIME, data=PLAIN_TABLE)
@@ -76,7 +86,7 @@ class TestTimeSeries(CommonTimeSeriesTests):
 
 class TestBinnedTimeSeries(CommonTimeSeriesTests):
 
-    _row = {'time_bin_start': '2016-03-22T12:30:40',
+    _row = {'time_bin_start': '2016-03-23T12:30:40',
             'time_bin_size': 2 * u.s, 'a': 1., 'b': 2, 'c': 'a'}
 
     def setup_method(self, method):
