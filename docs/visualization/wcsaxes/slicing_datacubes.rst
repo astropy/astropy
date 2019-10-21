@@ -2,10 +2,10 @@
 Slicing Multidimensional Data
 *****************************
 
-WCSAxes can ultimately only plot two-dimensional data. If we have an
-n-dimensional dataset, we have to select which dimensions to use for
-the x and y axis of the image. This example will show how to slice a FITS
-data cube and plot an image from it.
+WCSAxes can either plot one or two dimensional data. If we have a dataset with
+higher dimensonality than the plot we want to make, we have to select which
+dimensions to use for the x or x and y axes of the plot. This example will show
+how to slice a FITS data cube and plot an image from it.
 
 Slicing the WCS object
 **********************
@@ -93,6 +93,7 @@ If we don't want to reverse the dimensions plotted, we can simply do:
    :align: center
    :nofigs:
 
+    import astropy.units as u
     from astropy.wcs import WCS
     from astropy.io import fits
     from astropy.utils.data import get_pkg_data_filename
@@ -109,3 +110,76 @@ If we don't want to reverse the dimensions plotted, we can simply do:
     import matplotlib.pyplot as plt
     ax = plt.subplot(projection=wcs, slices=(50, 'x', 'y'))
     ax.imshow(image_data[:, :, 50])
+
+
+Plotting one dimensional data
+*****************************
+
+If we wanted to plot the spectral axes for one pixel we can do this by slicing
+down to one dimension.
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+   :nofigs:
+
+    import matplotlib.pyplot as plt
+    ax = plt.subplot(projection=wcs, slices=(50, 50, 'x'))
+
+
+Here we have selected the 50 pixel in the first and second dimensions and will
+use the third dimension as our x axis.
+
+We can now plot the spectral axis for this pixel. Note that we are plotting
+against pixel coordinates in the call to ``ax.plot``, ``WCSAxes`` will display
+the world coordinates for us.
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+   :nofigs:
+
+   ax.plot(image_data[:, 50, 50])
+
+As this is still a ``WCSAxes`` plot, we can set the display units for the x-axis
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+   ra, dec, vel = ax.coords
+   vel.set_format_unit(u.km/u.s)
+
+
+If we wanted to plot a one dimensional plot along a spatial dimension, i.e.
+intensity along a row in the image, ``WCSAxes`` defaults to displaying both the
+world coordinates for this plot. We can customise the colors and add grid lines
+for each of the spatial axes.
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+   :nofigs:
+
+    import matplotlib.pyplot as plt
+    ax = plt.subplot(projection=wcs, slices=(50, 'x', 0))
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+   ax.plot(image_data[0, :, 50])
+
+   ra, dec, wave = ax.coords
+   ra.set_ticks(color="red")
+   ra.set_ticklabel(color="red")
+   ra.grid(color="red")
+
+   dec.set_ticks(color="blue")
+   dec.set_ticklabel(color="blue")
+   dec.grid(color="blue")

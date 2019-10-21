@@ -12,11 +12,13 @@ import numpy as np
 from matplotlib.ticker import Formatter
 from matplotlib.transforms import Affine2D, ScaledTranslation
 from matplotlib.patches import PathPatch
+from matplotlib.path import Path
 from matplotlib import rcParams
 
 from astropy import units as u
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
+from .frame import RectangularFrame1D
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 from .ticks import Ticks
 from .ticklabels import TickLabels
@@ -524,11 +526,13 @@ class CoordinateHelper:
         self._update_ticks()
 
         if self.grid_lines_kwargs['visible']:
-
-            if self._grid_type == 'lines':
-                self._update_grid_lines()
+            if isinstance(self.frame, RectangularFrame1D):
+                self._update_grid_lines_1d()
             else:
-                self._update_grid_contour()
+                if self._grid_type == 'lines':
+                    self._update_grid_lines()
+                else:
+                    self._update_grid_contour()
 
             if self._grid_type == 'lines':
 
@@ -608,53 +612,58 @@ class CoordinateHelper:
 
         for axis, spine in frame.items():
 
-            # Determine tick rotation in display coordinates and compare to
-            # the normal angle in display coordinates.
+            if not isinstance(self.frame, RectangularFrame1D):
+                # Determine tick rotation in display coordinates and compare to
+                # the normal angle in display coordinates.
 
-            pixel0 = spine.data
-            world0 = spine.world[:, self.coord_index]
-            with np.errstate(invalid='ignore'):
-                world0 = self.transform.transform(pixel0)[:, self.coord_index]
-            axes0 = transData.transform(pixel0)
+                pixel0 = spine.data
+                world0 = spine.world[:, self.coord_index]
+                with np.errstate(invalid='ignore'):
+                    world0 = self.transform.transform(pixel0)[:, self.coord_index]
+                axes0 = transData.transform(pixel0)
 
-            # Advance 2 pixels in figure coordinates
-            pixel1 = axes0.copy()
-            pixel1[:, 0] += 2.0
-            pixel1 = invertedTransLimits.transform(pixel1)
-            with np.errstate(invalid='ignore'):
-                world1 = self.transform.transform(pixel1)[:, self.coord_index]
+                # Advance 2 pixels in figure coordinates
+                pixel1 = axes0.copy()
+                pixel1[:, 0] += 2.0
+                pixel1 = invertedTransLimits.transform(pixel1)
+                with np.errstate(invalid='ignore'):
+                    world1 = self.transform.transform(pixel1)[:, self.coord_index]
 
-            # Advance 2 pixels in figure coordinates
-            pixel2 = axes0.copy()
-            pixel2[:, 1] += 2.0 if self.frame.origin == 'lower' else -2.0
-            pixel2 = invertedTransLimits.transform(pixel2)
-            with np.errstate(invalid='ignore'):
-                world2 = self.transform.transform(pixel2)[:, self.coord_index]
+                # Advance 2 pixels in figure coordinates
+                pixel2 = axes0.copy()
+                pixel2[:, 1] += 2.0 if self.frame.origin == 'lower' else -2.0
+                pixel2 = invertedTransLimits.transform(pixel2)
+                with np.errstate(invalid='ignore'):
+                    world2 = self.transform.transform(pixel2)[:, self.coord_index]
 
-            dx = (world1 - world0)
-            dy = (world2 - world0)
+                dx = (world1 - world0)
+                dy = (world2 - world0)
 
-            # Rotate by 90 degrees
-            dx, dy = -dy, dx
+                # Rotate by 90 degrees
+                dx, dy = -dy, dx
 
-            if self.coord_type == 'longitude':
+                if self.coord_type == 'longitude':
 
-                if self._coord_scale_to_deg is not None:
-                    dx *= self._coord_scale_to_deg
-                    dy *= self._coord_scale_to_deg
+                    if self._coord_scale_to_deg is not None:
+                        dx *= self._coord_scale_to_deg
+                        dy *= self._coord_scale_to_deg
 
-                # Here we wrap at 180 not self.coord_wrap since we want to
-                # always ensure abs(dx) < 180 and abs(dy) < 180
-                dx = wrap_angle_at(dx, 180.)
-                dy = wrap_angle_at(dy, 180.)
+                    # Here we wrap at 180 not self.coord_wrap since we want to
+                    # always ensure abs(dx) < 180 and abs(dy) < 180
+                    dx = wrap_angle_at(dx, 180.)
+                    dy = wrap_angle_at(dy, 180.)
 
-            tick_angle = np.degrees(np.arctan2(dy, dx))
+                tick_angle = np.degrees(np.arctan2(dy, dx))
 
-            normal_angle_full = np.hstack([spine.normal_angle, spine.normal_angle[-1]])
-            with np.errstate(invalid='ignore'):
-                reset = (((normal_angle_full - tick_angle) % 360 > 90.) &
-                         ((tick_angle - normal_angle_full) % 360 > 90.))
-            tick_angle[reset] -= 180.
+                normal_angle_full = np.hstack([spine.normal_angle, spine.normal_angle[-1]])
+                with np.errstate(invalid='ignore'):
+                    reset = (((normal_angle_full - tick_angle) % 360 > 90.) &
+                            ((tick_angle - normal_angle_full) % 360 > 90.))
+                tick_angle[reset] -= 180.
+
+            else:
+                rotation = 90 if axis == 'b' else -90
+                tick_angle = np.zeros((conf.frame_boundary_samples,)) + rotation
 
             # We find for each interval the starting and ending coordinate,
             # ensuring that we take wrapping into account correctly for
@@ -802,6 +811,19 @@ class CoordinateHelper:
         """
         self.minor_frequency = frequency
 
+    def _update_grid_lines_1d(self):
+        if self.coord_index is None:
+            return
+
+        x_ticks_pos = [a[0] for a in self.ticks.pixel['b']]
+
+        ymin, ymax = self.parent_axes.get_ylim()
+
+        self.grid_lines = []
+        for x_coord in x_ticks_pos:
+            pixel = [[x_coord, ymin], [x_coord, ymax]]
+            self.grid_lines.append(Path(pixel))
+
     def _update_grid_lines(self):
 
         # For 3-d WCS with a correlated third axis, the *proper* way of
@@ -828,6 +850,7 @@ class CoordinateHelper:
         xy_world = np.zeros((n_samples * n_coord, 2))
 
         self.grid_lines = []
+
         for iw, w in enumerate(tick_world_coordinates_values):
             subset = slice(iw * n_samples, (iw + 1) * n_samples)
             if self.coord_index == 0:
