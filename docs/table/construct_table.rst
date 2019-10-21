@@ -225,20 +225,22 @@ list of dict objects.  The keys determine the column names::
 
   >>> data = [{'a': 5, 'b': 10},
   ...         {'a': 15, 'b': 20}]
-  >>> Table(rows=data)  # doctest: +SKIP
-  <Table length=2>
-    a     b
-  int64 int64
-  ----- -----
-      5    10
-     15    20
+  >>> t = Table(rows=data)
+  >>> print(t)
+   a   b
+  --- ---
+    5  10
+   15  20
 
-Every row must have the same set of keys or a ValueError will be thrown::
+If there are missing keys in one or more rows then the corresponding values will be
+marked as missing (masked)::
 
-  >>> t = Table(rows=[{'a': 5, 'b': 10}, {'a': 15, 'b': 30, 'c': 50}])
-  Traceback (most recent call last):
-    ...
-  ValueError: Row 0 has no value for column c
+  >>> t = Table(rows=[{'a': 5, 'b': 10}, {'a': 15, 'c': 50}])
+  >>> print(t)
+   a   b   c
+  --- --- ---
+    5  10  --
+   15  --  50
 
 You can also preserve the column order by using ``OrderedDict``. If the first item is an
 ``OrderedDict`` then the order is preserved:

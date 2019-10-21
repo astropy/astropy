@@ -6,7 +6,7 @@ from collections.abc import Mapping
 import pytest
 import numpy as np
 
-from astropy.table import Column, TableColumns, Table
+from astropy.table import Column, TableColumns, Table, MaskedColumn
 
 
 class TestTableColumnsInit():
@@ -164,11 +164,11 @@ class TestInitFromListOfLists(BaseInitFromListLike):
         assert t['c'].dtype.type == np.float64
         assert all(t[name].name == name for name in t.colnames)
 
-#     def test_bad_data(self, table_type):
-#         self._setup(table_type)
-#         with pytest.raises(ValueError):
-#             table_type([[1, 2],
-#                    [3, 4, 5]])
+    def test_bad_data(self, table_type):
+        self._setup(table_type)
+        with pytest.raises(ValueError):
+            table_type([[1, 2],
+                        [3, 4, 5]])
 
 
 @pytest.mark.usefixtures('table_type')
@@ -188,11 +188,21 @@ class TestInitFromListOfDicts(BaseInitFromListLike):
         t = table_type(self.data, names=('c', 'b', 'a'))
         assert t.colnames == ['c', 'b', 'a']
 
-#     def test_bad_data(self, table_type):
-#         self._setup(table_type)
-#         with pytest.raises(ValueError):
-#             table_type([{'a': 1, 'b': 2, 'c': 3},
-#                    {'a': 2, 'b': 4}])
+    def test_missing_data_init_from_dict(self, table_type):
+        dat = [{'a': 1, 'b': 2},
+               {'a': 2, 'c': 4}]
+        for rows in [False, True]:
+            t = table_type(rows=dat) if rows else table_type(dat)
+
+            assert np.all(t['a'] == [1, 2])
+            assert np.all(t['b'].mask == [False, True])
+            assert np.all(t['b'].data == [2, 2])
+            assert np.all(t['c'].mask == [True, False])
+            assert np.all(t['c'].data == [4, 4])
+
+            assert type(t['a']) is (MaskedColumn if t.masked else Column)
+            assert type(t['b']) is MaskedColumn
+            assert type(t['c']) is MaskedColumn
 
 
 @pytest.mark.usefixtures('table_type')
@@ -516,9 +526,6 @@ def test_init_from_row_OrderedDict(table_type):
     t2 = table_type(rows=rows34)
     assert t1.colnames == ['b', 'a']
     assert t2.colnames == ['a', 'b']
-
-    with pytest.raises(ValueError):
-        table_type(rows=[OrderedDict([('b', 1)]), {'a': 10, 'b': 20}])
 
 
 def test_init_from_rows_as_generator():
