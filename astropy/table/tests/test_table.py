@@ -2453,3 +2453,23 @@ def test_rows_with_mixins():
     assert t['m1'].dtype is np.dtype(object)
     assert type(t['m2']) is table.Column
     assert t['m2'].dtype is np.dtype(object)
+
+
+def test_iterrows():
+    dat = [(1, 2, 3),
+           (4, 5, 6),
+           (7, 8, 6)]
+    t = table.Table(rows=dat, names=('a', 'b', 'c'))
+    c_s = []
+    a_s = []
+    for c, a in t.iterrows('c', 'a'):
+        a_s.append(a)
+        c_s.append(c)
+    assert np.all(t['a'] == a_s)
+    assert np.all(t['c'] == c_s)
+
+    rows = [row for row in t.iterrows()]
+    assert rows == dat
+
+    with pytest.raises(ValueError, match='d is not a valid column name'):
+        t.iterrows('d')

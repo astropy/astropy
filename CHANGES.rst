@@ -140,6 +140,8 @@ astropy.table
   ``<column>.info.get_sortable_arrays()`` method that is implemented.
   [#9340]
 
+- Added ``Table.iterrows()`` for making row-wise iteration faster. [#8969]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
