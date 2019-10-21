@@ -149,7 +149,7 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
 
     elif frame_class is RectangularFrame1D:
         derivs = local_partial_pixel_derivatives(wcs, *[0]*wcs.pixel_n_dim,
-                                                 normalize_by_world=True).T[:,0]
+                                                 normalize_by_world=True)[:,0]
         for i, spine_name in enumerate('bt'):
             # Here we are iterating over the correlated axes in world axis order.
             # We want to sort the correlated axes by their partial derivatives,
