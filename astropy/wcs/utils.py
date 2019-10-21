@@ -830,8 +830,8 @@ def pixel_to_pixel(wcs_in, wcs_out, *inputs):
 
 def local_partial_pixel_derivatives(wcs, *pixel, normalize_by_world=False):
     """
-    Return a matrix of shape ``(pixel_n_dim, world_n_dim)`` where each entry
-    ``[i, j]`` is the partial derivative d(world_j)/d(pixel_i) at the requested
+    Return a matrix of shape ``(world_n_dim, pixel_n_dim)`` where each entry
+    ``[i, j]`` is the partial derivative d(world_i)/d(pixel_j) at the requested
     pixel position.
 
     Parameters
@@ -856,9 +856,9 @@ def local_partial_pixel_derivatives(wcs, *pixel, normalize_by_world=False):
         pixel_off = pixel_ref.copy()
         pixel_off[i] += 1
         world_off = np.array(wcs.pixel_to_world_values(*pixel_off))
-        derivatives[i, :] = world_off - world_ref
+        derivatives[:, i] = world_off - world_ref
 
     if normalize_by_world:
-        derivatives /= derivatives.sum(axis=0)[np.newaxis, :]
+        derivatives /= derivatives.sum(axis=0)[:, np.newaxis]
 
     return derivatives
