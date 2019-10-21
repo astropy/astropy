@@ -38,15 +38,20 @@ def find_coordinate_range(transform, extent, coord_types, coord_units):
     coord_units : list of `astropy.units.Unit`
         The units for each coordinate
     """
-
     # Sample coordinates on a NX x NY grid.
     from . import conf
-    nx = ny = conf.coordinate_range_samples
-    x = np.linspace(extent[0], extent[1], nx + 1)
-    y = np.linspace(extent[2], extent[3], ny + 1)
-    xp, yp = np.meshgrid(x, y)
-    with np.errstate(invalid='ignore'):
-        world = transform.transform(np.vstack([xp.ravel(), yp.ravel()]).transpose())
+    if len(extent) == 4:
+        nx = ny = conf.coordinate_range_samples
+        x = np.linspace(extent[0], extent[1], nx + 1)
+        y = np.linspace(extent[2], extent[3], ny + 1)
+        xp, yp = np.meshgrid(x, y)
+        with np.errstate(invalid='ignore'):
+            world = transform.transform(np.vstack([xp.ravel(), yp.ravel()]).transpose())
+    else:
+        nx = conf.coordinate_range_samples
+        xp = np.linspace(extent[0], extent[1], nx + 1)[None]
+        with np.errstate(invalid='ignore'):
+            world = transform.transform(xp.T)
 
     ranges = []
 

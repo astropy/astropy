@@ -11,7 +11,7 @@ from matplotlib import rcParams
 from matplotlib.lines import Line2D, Path
 from matplotlib.patches import PathPatch
 
-__all__ = ['Spine', 'BaseFrame', 'RectangularFrame', 'EllipticalFrame']
+__all__ = ['RectangularFrame1D', 'Spine', 'BaseFrame', 'RectangularFrame', 'EllipticalFrame']
 
 
 class Spine:
@@ -87,11 +87,55 @@ class Spine:
         self.normal_angle = np.degrees(np.arctan2(dx, -dy))
 
 
+class SpineXAligned(Spine):
+    """
+    A single side of an axes, aligned with the X data axis.
+
+    This does not need to be a straight line, but represents a 'side' when
+    determining which part of the frame to put labels and ticks on.
+    """
+
+    @property
+    def data(self):
+        return self._data
+
+    @data.setter
+    def data(self, value):
+        if value is None:
+            self._data = None
+            self._pixel = None
+            self._world = None
+        else:
+            self._data = value
+            self._pixel = self.parent_axes.transData.transform(self._data)
+            with np.errstate(invalid='ignore'):
+                self._world = self.transform.transform(self._data[:,0:1])
+            self._update_normal()
+
+    @property
+    def pixel(self):
+        return self._pixel
+
+    @pixel.setter
+    def pixel(self, value):
+        if value is None:
+            self._data = None
+            self._pixel = None
+            self._world = None
+        else:
+            self._data = self.parent_axes.transData.inverted().transform(self._data)
+            self._pixel = value
+            self._world = self.transform.transform(self._data[:,0:1])
+            self._update_normal()
+
+
 class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
     """
     Base class for frames, which are collections of
     :class:`~astropy.visualization.wcsaxes.frame.Spine` instances.
     """
+
+    spine_class = Spine
 
     def __init__(self, parent_axes, transform, path=None):
 
@@ -104,7 +148,7 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
         self._path = path
 
         for axis in self.spine_names:
-            self[axis] = Spine(parent_axes, transform)
+            self[axis] = self.spine_class(parent_axes, transform)
 
     @property
     def origin(self):
@@ -158,9 +202,8 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
             data = self[axis].data
             p = np.linspace(0., 1., data.shape[0])
             p_new = np.linspace(0., 1., n_samples)
-            spines[axis] = Spine(self.parent_axes, self.transform)
-            spines[axis].data = np.array([np.interp(p_new, p, data[:, 0]),
-                                          np.interp(p_new, p, data[:, 1])]).transpose()
+            spines[axis] = self.spine_class(self.parent_axes, self.transform)
+            spines[axis].data = np.array([np.interp(p_new, p, d) for d in data.T]).transpose()
 
         return spines
 
@@ -195,6 +238,51 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def update_spines(self):
         raise NotImplementedError("")
+
+
+class RectangularFrame1D(BaseFrame):
+    """
+    A classic rectangular frame.
+    """
+
+    spine_names = 'bt'
+    spine_class = SpineXAligned
+
+    def update_spines(self):
+
+        xmin, xmax = self.parent_axes.get_xlim()
+        ymin, ymax = self.parent_axes.get_ylim()
+
+        self['b'].data = np.array(([xmin, ymin], [xmax, ymin]))
+        self['t'].data = np.array(([xmax, ymax], [xmin, ymax]))
+
+    def _update_patch_path(self):
+
+        self.update_spines()
+
+        xmin, xmax = self.parent_axes.get_xlim()
+        ymin, ymax = self.parent_axes.get_ylim()
+
+        x = [xmin, xmax, xmax, xmin, xmin]
+        y = [ymin, ymin, ymax, ymax, ymin]
+
+        vertices = np.vstack([np.hstack(x), np.hstack(y)]).transpose()
+
+        if self._path is None:
+            self._path = Path(vertices)
+        else:
+            self._path.vertices = vertices
+
+    def draw(self, renderer):
+        xmin, xmax = self.parent_axes.get_xlim()
+        ymin, ymax = self.parent_axes.get_ylim()
+
+        x = [xmin, xmax, xmax, xmin, xmin]
+        y = [ymin, ymin, ymax, ymax, ymin]
+
+        line = Line2D(x, y, linewidth=self._linewidth, color=self._color, zorder=1000,
+                      transform=self.parent_axes.transData)
+        line.draw(renderer)
 
 
 class RectangularFrame(BaseFrame):

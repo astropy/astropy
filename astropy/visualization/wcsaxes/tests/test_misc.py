@@ -18,6 +18,7 @@ from astropy.tests.helper import catch_warnings
 from astropy.tests.image_tests import ignore_matplotlibrc
 
 from astropy.visualization.wcsaxes.core import WCSAxes
+from astropy.visualization.wcsaxes.frame import RectangularFrame, RectangularFrame1D
 from astropy.visualization.wcsaxes.utils import get_coord_meta
 from astropy.visualization.wcsaxes.transforms import CurvedTransform
 
@@ -359,22 +360,25 @@ def test_invalid_slices_errors():
     wcs2d = WCS(naxis=2)
     wcs2d.wcs.ctype = ['x', 'y']
 
-    plt.subplot(1, 1, 1, projection=wcs2d)
-    plt.subplot(1, 1, 1, projection=wcs2d, slices=('x', 'y'))
-    plt.subplot(1, 1, 1, projection=wcs2d, slices=('y', 'x'))
-    plt.subplot(1, 1, 1, projection=wcs2d, slices=['x', 'y'])
-
-    with pytest.raises(ValueError) as exc:
-        plt.subplot(1, 1, 1, projection=wcs2d, slices=(1, 'x'))
-    assert exc.value.args[0] == ("WCS only has 2 pixel dimensions and cannot "
-                                 "be sliced")
+    ax = plt.subplot(1, 1, 1, projection=wcs2d)
+    assert ax.frame_class is RectangularFrame
+    ax = plt.subplot(1, 1, 1, projection=wcs2d, slices=('x', 'y'))
+    assert ax.frame_class is RectangularFrame
+    ax = plt.subplot(1, 1, 1, projection=wcs2d, slices=('y', 'x'))
+    assert ax.frame_class is RectangularFrame
+    ax = plt.subplot(1, 1, 1, projection=wcs2d, slices=['x', 'y'])
+    assert ax.frame_class is RectangularFrame
+    ax = plt.subplot(1, 1, 1, projection=wcs2d, slices=(1, 'x'))
+    assert ax.frame_class is RectangularFrame1D
 
     wcs1d = WCS(naxis=1)
     wcs1d.wcs.ctype = ['x']
 
-    with pytest.raises(ValueError) as exc:
-        plt.subplot(1, 1, 1, projection=wcs1d)
-    assert exc.value.args[0] == "WCS should have at least 2 pixel dimensions"
+    ax = plt.subplot(1, 1, 1, projection=wcs1d)
+    assert ax.frame_class is RectangularFrame1D
+
+    with pytest.raises(ValueError):
+        plt.subplot(1, 1, 1, projection=wcs2d, slices=(1, 'y'))
 
 
 EXPECTED_REPR_1 = """

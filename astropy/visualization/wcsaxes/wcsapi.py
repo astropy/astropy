@@ -7,7 +7,7 @@ from astropy import units as u
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import SlicedLowLevelWCS
 
-from .frame import RectangularFrame, EllipticalFrame
+from .frame import RectangularFrame, EllipticalFrame, RectangularFrame1D
 from .transforms import CurvedTransform
 
 __all__ = ['transform_coord_meta_from_wcs', 'WCSWorld2PixelTransform',
@@ -33,10 +33,6 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
             raise ValueError("'slices' should have as many elements as WCS "
                              "has pixel dimensions (should be {})"
                              .format(wcs.pixel_n_dim))
-    elif wcs.pixel_n_dim < 2:
-        raise ValueError("WCS should have at least 2 pixel dimensions")
-    elif slices is not None and slices != ('x', 'y') and slices != ('y', 'x'):
-        raise ValueError("WCS only has 2 pixel dimensions and cannot be sliced")
 
     is_fits_wcs = isinstance(wcs, WCS)
 
@@ -125,9 +121,10 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
     if slices is not None:
         wcs_slice = list(slices)
         wcs_slice[wcs_slice.index("x")] = slice(None)
-        wcs_slice[wcs_slice.index("y")] = slice(None)
+        if 'y' in slices:
+            wcs_slice[wcs_slice.index("y")] = slice(None)
+            invert_xy = slices.index('x') > slices.index('y')
         wcs = SlicedLowLevelWCS(wcs, wcs_slice[::-1])
-        invert_xy = slices.index('x') > slices.index('y')
         world_keep = wcs._world_keep
     else:
         world_keep = list(range(wcs.world_n_dim))
@@ -158,6 +155,24 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
         if len(world_keep) == 2:
             for index in world_keep:
                 coord_meta['default_ticks_position'][index] = 'bltr'
+
+    elif frame_class is RectangularFrame1D:
+
+        for i, spine_name in enumerate('bt'):
+            pos = np.nonzero(m[:, 0])[0]
+            if len(pos) > 0:
+                index = world_keep[pos[0]]
+                coord_meta['default_axislabel_position'][index] = spine_name
+                coord_meta['default_ticklabel_position'][index] = spine_name
+                coord_meta['default_ticks_position'][index] = spine_name
+                m[pos[0], :] = 0
+
+        # In the special and common case where the frame is rectangular and
+        # we are dealing with 2-d WCS (after slicing), we show all ticks on
+        # all axes for backward-compatibility.
+        if len(world_keep) == 1:
+            for index in world_keep:
+                coord_meta['default_ticks_position'][index] = 'bt'
 
     elif frame_class is EllipticalFrame:
 
@@ -205,8 +220,8 @@ class WCSWorld2PixelTransform(CurvedTransform):
 
         super().__init__()
 
-        if wcs.pixel_n_dim != 2:
-            raise ValueError('Only pixel_n_dim==2 is supported')
+        if wcs.pixel_n_dim > 2:
+            raise ValueError('Only pixel_n_dim =< 2 is supported')
 
         self.wcs = wcs
         self.invert_xy = invert_xy
@@ -261,8 +276,8 @@ class WCSPixel2WorldTransform(CurvedTransform):
 
         super().__init__()
 
-        if wcs.pixel_n_dim != 2:
-            raise ValueError('Only pixel_n_dim==2 is supported')
+        if wcs.pixel_n_dim > 2:
+            raise ValueError('Only pixel_n_dim =< 2 is supported')
 
         self.wcs = wcs
         self.invert_xy = invert_xy
@@ -293,9 +308,15 @@ class WCSPixel2WorldTransform(CurvedTransform):
         else:
             world = self.wcs.pixel_to_world_values(*pixel)
 
+        if self.wcs.world_n_dim == 1:
+            world = [world]
+
         # At the moment, one has to manually check that the transformation
         # round-trips, otherwise it should be considered invalid.
         pixel_check = self.wcs.world_to_pixel_values(*world)
+        if self.wcs.pixel_n_dim == 1:
+            pixel_check = [pixel_check]
+
         with np.errstate(invalid='ignore'):
             invalid = np.zeros(len(pixel[0]), dtype=bool)
             for ipix in range(len(pixel)):
