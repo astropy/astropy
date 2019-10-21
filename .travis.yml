@@ -11,6 +11,7 @@ cache:
     - ccache: true
     - directories:
         - $HOME/.astropy/cache
+        - $HOME/.cache/pip
 
 os:
     - linux
@@ -143,6 +144,7 @@ matrix:
 
         # arm64
         - os: linux
+          dist: bionic
           arch: arm64
           stage: Arm tests
           env: 
