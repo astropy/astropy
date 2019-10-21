@@ -125,12 +125,7 @@ def protocol(request):
 # (MaskedArray) column.
 @pytest.fixture(params=[False, True])
 def table_type(request):
-    # return MaskedTable if request.param else table.Table
-    try:
-        request.param
-        return MaskedTable
-    except AttributeError:
-        return table.Table
+    return MaskedTable if request.param else table.Table
 
 
 # Stuff for testing mixin columns
