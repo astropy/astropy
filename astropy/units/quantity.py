@@ -375,7 +375,7 @@ class Quantity(np.ndarray):
                     copy = False  # copy will be made in conversion at end
 
         value = np.array(value, dtype=dtype, copy=copy, order=order,
-                         subok=False, ndmin=ndmin)
+                         subok=True, ndmin=ndmin)
 
         # check that array contains numbers or long int objects
         if (value.dtype.kind in 'OSU' and
@@ -404,6 +404,13 @@ class Quantity(np.ndarray):
             return value.to(unit)
 
     def __array_finalize__(self, obj):
+        # Check whether super().__array_finalize should be called
+        # (sadly, ndarray.__array_finalize__ is None; we cannot be sure
+        # what is above us).
+        super_array_finalize = super().__array_finalize__
+        if super_array_finalize is not None:
+            super_array_finalize(obj)
+
         # If we're a new object or viewing an ndarray, nothing has to be done.
         if obj is None or obj.__class__ is np.ndarray:
             return
@@ -602,7 +609,7 @@ class Quantity(np.ndarray):
         if obj is None:
             obj = self.view(np.ndarray)
         else:
-            obj = np.array(obj, copy=False)
+            obj = np.array(obj, copy=False, subok=True)
 
         # Take the view, set the unit, and update possible other properties
         # such as ``info``, ``wrap_angle`` in `Longitude`, etc.
@@ -1370,9 +1377,9 @@ class Quantity(np.ndarray):
         if check_precision:
             # If, e.g., we are casting double to float, we want to fail if
             # precision is lost, but let things pass if it works.
-            _value = np.array(_value, copy=False)
+            _value = np.array(_value, copy=False, subok=True)
             if not np.can_cast(_value.dtype, self.dtype):
-                self_dtype_array = np.array(_value, self.dtype)
+                self_dtype_array = np.array(_value, self.dtype, subok=True)
                 if not np.all(np.logical_or(self_dtype_array == _value,
                                             np.isnan(_value))):
                     raise TypeError("cannot convert value type to array type "
