@@ -589,8 +589,8 @@ lines to accomplish the same behavior::
 This will write a single HDU to a FITS file without having to manually
 encapsulate it in an :class:`HDUList` object first.
 
-Creating a Multi-Extension Image File
-"""""""""""""""""""""""""""""""""""""
+Creating an Image File with Multiple Extensions
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 In the previous example we created an :class:`HDUList` object with a single
 extension (a :class:`PrimaryHDU`). To create a file with multiple extensions we need to
@@ -598,8 +598,8 @@ use :class:`ImageHDU`\s and append them to an :class:`HDUList`.
 
 First, let's create some more data::
 
-    >>> n2 = np.random.random((3, 3)) # A random 3x3 array
-    >>> n3 = np.random.random((100, 100)) # A random 100x100 array
+    >>> n2 = np.ones((3, 3))
+    >>> n3 = np.ones((100, 100))
 
 Note that the data shapes of the different extensions do not need to be the same. Next
 place the data into separate :class:`ImageHDU` objects::
@@ -609,10 +609,10 @@ place the data into separate :class:`ImageHDU` objects::
 
 Now when we create the :class:`HDUList` we simply list all extensions we want to include::
 
-    >>> hdul = fits.HDUList([hdu, hdu2, hdu3])
+    >>> hdul = fits.HDUList([hdu, hdu2])
 
 Because :class:`HDUList` acts like a :class:`list` we can also append an :class:`ImageHDU`
-to an already-existing :class:`HDUList`::
+to an already existing :class:`HDUList`::
 
     >>> hdul.append(hdu3)
 
