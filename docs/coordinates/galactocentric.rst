@@ -1,9 +1,3 @@
-.. testcleanup::
-    # TODO: this needs to be audited and removed if we change the default
-    # defaults (yes) for v4.1. This is a hack to get around the fact that
-    # the doctests here actually change the *class* state:
-    galactocentric_frame_defaults._value = 'pre-v4.0'
-
 .. _coordinates-galactocentric:
 
 **************************************************
