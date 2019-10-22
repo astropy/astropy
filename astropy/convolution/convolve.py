@@ -12,7 +12,6 @@ from numpy.ctypeslib import ndpointer, load_library
 from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.console import human_file_size
-from astropy.utils.decorators import deprecated_renamed_argument
 from astropy import units as u
 from astropy.nddata import support_nddata
 from astropy.modeling.core import CompoundModel
@@ -27,24 +26,25 @@ except Exception:
     raise ImportError("Convolution C extension is missing. Try re-building astropy.")
 
 # The GIL is automatically released by default when calling functions imported
-# from libaries loaded by ctypes.cdll.LoadLibrary(<path>)
+# from libraries loaded by ctypes.cdll.LoadLibrary(<path>)
 
 # Declare prototypes
 # Boundary None
 _convolveNd_c = _convolve.convolveNd_c
 _convolveNd_c.restype = None
-_convolveNd_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}), # return array
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # input array
-            ctypes.c_uint, # N dim
-            ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for input and result unless
-                                                              # embed_result_within_padded_region is False,
-                                                              # in which case the result array is assumed to be
-                                                              # input.shape - 2*(kernel.shape//2). Note: integer division.
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # kernel array
-            ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for kernel
-            ctypes.c_bool, # nan_interpolate
-            ctypes.c_bool, # embed_result_within_padded_region
-            ctypes.c_uint] # n_threads
+_convolveNd_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),  # return array
+                          ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),  # input array
+                          ctypes.c_uint,  # N dim
+                          # size array for input and result unless
+                          # embed_result_within_padded_region is False,
+                          # in which case the result array is assumed to be
+                          # input.shape - 2*(kernel.shape//2). Note: integer division.
+                          ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"),
+                          ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),  # kernel array
+                          ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"),  # size array for kernel
+                          ctypes.c_bool,  # nan_interpolate
+                          ctypes.c_bool,  # embed_result_within_padded_region
+                          ctypes.c_uint]  # n_threads
 
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined
@@ -53,7 +53,8 @@ __doctest_skip__ = ['*']
 BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 
 
-def _copy_input_if_needed(input, dtype=float, order='C', nan_treatment=None, mask=None, fill_value=None):
+def _copy_input_if_needed(input, dtype=float, order='C', nan_treatment=None,
+                          mask=None, fill_value=None):
     # Alias input
     input = input.array if isinstance(input, Kernel) else input
     # strip quantity attributes
@@ -67,12 +68,13 @@ def _copy_input_if_needed(input, dtype=float, order='C', nan_treatment=None, mas
         # A copy prevents possible function side-effects of the input array.
         if nan_treatment == 'fill' or np.ma.is_masked(input) or mask is not None:
             if np.ma.is_masked(input):
-                # ``np.ma.maskedarray.filled()`` returns a copy, however there is no way to specify the return type
-                # or order etc.
-                # In addition ``np.nan`` is a ``float`` and there is no conversion to an ``int`` type.
-                # Therefore, a pre-fill copy is needed for non ``float`` masked arrays.
-                # ``subok=True`` is needed to retain ``np.ma.maskedarray.filled()``.
-                # ``copy=False`` allows the fill to act as the copy if type and order are already correct.
+                # ``np.ma.maskedarray.filled()`` returns a copy, however there
+                # is no way to specify the return type or order etc. In addition
+                # ``np.nan`` is a ``float`` and there is no conversion to an
+                # ``int`` type. Therefore, a pre-fill copy is needed for non
+                # ``float`` masked arrays. ``subok=True`` is needed to retain
+                # ``np.ma.maskedarray.filled()``. ``copy=False`` allows the fill
+                # to act as the copy if type and order are already correct.
                 output = np.array(input, dtype=dtype, copy=False, order=order, subok=True)
                 output = output.filled(fill_value)
             else:
@@ -99,7 +101,7 @@ def _copy_input_if_needed(input, dtype=float, order='C', nan_treatment=None, mas
 def convolve(array, kernel, boundary='fill', fill_value=0.,
              nan_treatment='interpolate', normalize_kernel=True, mask=None,
              preserve_nan=False, normalization_zero_tol=1e-8):
-    '''
+    """
     Convolve an array with a kernel.
 
     This routine differs from `scipy.ndimage.convolve` because
@@ -171,7 +173,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     -----
     For masked arrays, masked values are treated as NaNs.  The convolution
     is always done at ``numpy.float`` precision.
-    '''
+    """
 
     if boundary not in BOUNDARY_OPTIONS:
         raise ValueError("Invalid boundary option: must be one of {}"
@@ -203,13 +205,13 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
     # Copy or alias array to array_internal
     array_internal = _copy_input_if_needed(passed_array, dtype=float, order='C',
-                                      nan_treatment=nan_treatment, mask=mask,
-                                      fill_value=np.nan)
+                                           nan_treatment=nan_treatment, mask=mask,
+                                           fill_value=np.nan)
     array_dtype = getattr(passed_array, 'dtype', array_internal.dtype)
     # Copy or alias kernel to kernel_internal
     kernel_internal = _copy_input_if_needed(passed_kernel, dtype=float, order='C',
-                                        nan_treatment=None, mask=None,
-                                        fill_value=fill_value)
+                                            nan_treatment=None, mask=None,
+                                            fill_value=fill_value)
 
     # Make sure kernel has all odd axes
     if has_even_axis(kernel_internal):
@@ -220,21 +222,21 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # This must occur before the main alias/copy of ``passed_kernel`` to
     # ``kernel_internal`` as it is used for filling masked kernels.
     if isinstance(passed_array, Kernel) and isinstance(passed_kernel, Kernel):
-        warnings.warn("Both array and kernel are Kernel instances, hardwiring the following parameters: "
-                              "boundary='fill', fill_value=0, normalize_Kernel=True, "
-                              "nan_treatment='interpolate'",
-                              AstropyUserWarning)
+        warnings.warn("Both array and kernel are Kernel instances, hardwiring "
+                      "the following parameters: boundary='fill', fill_value=0,"
+                      " normalize_Kernel=True, nan_treatment='interpolate'",
+                      AstropyUserWarning)
         boundary = 'fill'
         fill_value = 0
         normalize_kernel = True
-        nan_treatment='interpolate'
+        nan_treatment = 'interpolate'
 
-    #-----------------------------------------------------------------------
+    # -----------------------------------------------------------------------
     # From this point onwards refer only to ``array_internal`` and
     # ``kernel_internal``.
     # Assume both are base np.ndarrays and NOT subclasses e.g. NOT
     # ``Kernel`` nor ``np.ma.maskedarray`` classes.
-    #-----------------------------------------------------------------------
+    # -----------------------------------------------------------------------
 
     # Check dimensionality
     if array_internal.ndim == 0:
@@ -260,7 +262,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # For odd kernels it is:
     # array_shape >= kernel_shape OR array_shape > kernel_shape-1 OR array_shape > 2*(kernel_shape//2).
     # Since the latter is equal to the former two for even lengths, the latter condition is complete.
-    if boundary == None and not np.all(array_shape > 2*pad_width):
+    if boundary is None and not np.all(array_shape > 2*pad_width):
         raise KernelSizeError("for boundary=None all kernel axes must be smaller than array's - "
                               "use boundary in ['fill', 'extend', 'wrap'] instead.")
 
@@ -277,8 +279,8 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
         if kernel_sum < 1. / MAX_NORMALIZATION or kernel_sums_to_zero:
             raise ValueError("The kernel can't be normalized, because its sum is "
-                            "close to zero. The sum of the given kernel is < {}"
-                            .format(1. / MAX_NORMALIZATION))
+                             "close to zero. The sum of the given kernel is < {}"
+                             .format(1. / MAX_NORMALIZATION))
 
     # Mark the NaN values so we can replace them later if interpolate_nan is
     # not set
@@ -304,25 +306,25 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
                 array_to_convolve[pad_width[0]:array_shape[0]+pad_width[0]] = array_internal
             elif array_internal.ndim == 2:
                 array_to_convolve[pad_width[0]:array_shape[0]+pad_width[0],
-                             pad_width[1]:array_shape[1]+pad_width[1]] = array_internal
-            elif array_internal.ndim == 3:
+                                  pad_width[1]:array_shape[1]+pad_width[1]] = array_internal
+            else:
                 array_to_convolve[pad_width[0]:array_shape[0]+pad_width[0],
-                             pad_width[1]:array_shape[1]+pad_width[1],
-                             pad_width[2]:array_shape[2]+pad_width[2]] = array_internal
+                                  pad_width[1]:array_shape[1]+pad_width[1],
+                                  pad_width[2]:array_shape[2]+pad_width[2]] = array_internal
         else:
-            np_pad_mode_dict = {'fill':'constant', 'extend':'edge', 'wrap':'wrap'}
+            np_pad_mode_dict = {'fill': 'constant', 'extend': 'edge', 'wrap': 'wrap'}
             np_pad_mode = np_pad_mode_dict[boundary]
-            pad_width = kernel_shape//2
+            pad_width = kernel_shape // 2
 
             if array_internal.ndim == 1:
                 np_pad_width = (pad_width[0],)
             elif array_internal.ndim == 2:
-                np_pad_width = ( (pad_width[0],), (pad_width[1],) )
-            elif array_internal.ndim == 3:
-                np_pad_width = ( (pad_width[0],), (pad_width[1],), (pad_width[2],) )
+                np_pad_width = ((pad_width[0],), (pad_width[1],))
+            else:
+                np_pad_width = ((pad_width[0],), (pad_width[1],), (pad_width[2],))
 
             array_to_convolve = np.pad(array_internal, pad_width=np_pad_width,
-                                  mode=np_pad_mode)
+                                       mode=np_pad_mode)
 
     _convolveNd_c(result, array_to_convolve,
                   array_to_convolve.ndim,
@@ -330,8 +332,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
                   kernel_internal,
                   np.array(kernel_shape, dtype=ctypes.c_size_t, order='C'),
                   nan_interpolate, embed_result_within_padded_region,
-                  n_threads
-                  )
+                  n_threads)
 
     # So far, normalization has only occured for nan_treatment == 'interpolate'
     # because this had to happen within the C extension so as to ignore
@@ -339,15 +340,14 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     if normalize_kernel:
         if not nan_interpolate:
             result /= kernel_sum
-    else:
-        if nan_interpolate:
-            result *= kernel_sum
+    elif nan_interpolate:
+        result *= kernel_sum
 
     if nan_interpolate and not preserve_nan and np.isnan(result.sum()):
         warnings.warn("nan_treatment='interpolate', however, NaN values detected "
-                     "post convolution. A contiguous region of NaN values, larger "
-                     "than the kernel size, are present in the input array. "
-                     "Increase the kernel size to avoid this.", AstropyUserWarning)
+                      "post convolution. A contiguous region of NaN values, larger "
+                      "than the kernel size, are present in the input array. "
+                      "Increase the kernel size to avoid this.", AstropyUserWarning)
 
     if preserve_nan:
         result[initially_nan] = np.nan
@@ -358,6 +358,8 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
             new_result = Kernel1D(array=result)
         elif isinstance(passed_array, Kernel2D):
             new_result = Kernel2D(array=result)
+        else:
+            raise TypeError("Only 1D and 2D Kernels are supported.")
         new_result._is_bool = False
         new_result._separable = passed_array._separable
         if isinstance(passed_kernel, Kernel):
@@ -374,14 +376,12 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         return result
 
 
-@deprecated_renamed_argument('interpolate_nan', 'nan_treatment', 'v2.0.0')
 @support_nddata(data='array')
 def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
                  nan_treatment='interpolate', normalize_kernel=True,
                  normalization_zero_tol=1e-8,
                  preserve_nan=False, mask=None, crop=True, return_fft=False,
-                 fft_pad=None, psf_pad=None, quiet=False,
-                 min_wt=0.0, allow_huge=False,
+                 fft_pad=None, psf_pad=None, min_wt=0.0, allow_huge=False,
                  fftn=np.fft.fftn, ifftn=np.fft.ifftn,
                  complex_dtype=complex):
     """
@@ -455,25 +455,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         `None`, no masking will be performed unless ``array`` is a masked array.
         If ``mask`` is not `None` *and* ``array`` is a masked array, a pixel is
         masked of it is masked in either ``mask`` *or* ``array.mask``.
-
-
-    Other Parameters
-    ----------------
-    min_wt : float, optional
-        If ignoring ``NaN`` / zeros, force all grid points with a weight less than
-        this value to ``NaN`` (the weight of a grid point with *no* ignored
-        neighbors is 1.0).
-        If ``min_wt`` is zero, then all zero-weight points will be set to zero
-        instead of ``NaN`` (which they would be otherwise, because 1/0 = nan).
-        See the examples below
-    fft_pad : bool, optional
-        Default on.  Zero-pad image to the nearest 2^n.  With
-        ``boundary='wrap'``, this will be disabled.
-    psf_pad : bool, optional
-        Zero-pad image to be at least the sum of the image sizes to avoid
-        edge-wrapping when smoothing.  This is enabled by default with
-        ``boundary='fill'``, but it can be overridden with a boolean option.
-        ``boundary='wrap'`` and ``psf_pad=True`` are not compatible.
     crop : bool, optional
         Default on.  Return an image of the size of the larger of the input
         image and the kernel.
@@ -484,18 +465,32 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     return_fft : bool, optional
         Return the ``fft(image)*fft(kernel)`` instead of the convolution (which is
         ``ifft(fft(image)*fft(kernel))``).  Useful for making PSDs.
-    fftn, ifftn : functions, optional
-        The fft and inverse fft functions.  Can be overridden to use your own
-        ffts, e.g. an fftw3 wrapper or scipy's fftn,
-        ``fft=scipy.fftpack.fftn``
+    fft_pad : bool, optional
+        Default on.  Zero-pad image to the nearest 2^n.  With
+        ``boundary='wrap'``, this will be disabled.
+    psf_pad : bool, optional
+        Zero-pad image to be at least the sum of the image sizes to avoid
+        edge-wrapping when smoothing.  This is enabled by default with
+        ``boundary='fill'``, but it can be overridden with a boolean option.
+        ``boundary='wrap'`` and ``psf_pad=True`` are not compatible.
+    min_wt : float, optional
+        If ignoring ``NaN`` / zeros, force all grid points with a weight less than
+        this value to ``NaN`` (the weight of a grid point with *no* ignored
+        neighbors is 1.0).
+        If ``min_wt`` is zero, then all zero-weight points will be set to zero
+        instead of ``NaN`` (which they would be otherwise, because 1/0 = nan).
+        See the examples below.
+    allow_huge : bool, optional
+        Allow huge arrays in the FFT?  If False, will raise an exception if the
+        array or kernel size is >1 GB.
+    fftn : functions, optional
+        The fft function.  Can be overridden to use your own ffts,
+        e.g. an fftw3 wrapper or scipy's fftn, ``fft=scipy.fftpack.fftn``.
+    ifftn : functions, optional
+        The inverse fft function. Can be overridden the same way ``fttn``.
     complex_dtype : numpy.complex, optional
         Which complex dtype to use.  `numpy` has a range of options, from 64 to
         256.
-    quiet : bool, optional
-        Silence warning message about NaN interpolation
-    allow_huge : bool, optional
-        Allow huge arrays in the FFT?  If False, will raise an exception if the
-        array or kernel size is >1 GB
 
     Raises
     ------
@@ -575,11 +570,11 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     # Convert array dtype to complex
     # and ensure that list inputs become arrays
     array = _copy_input_if_needed(array, dtype=complex, order='C',
-                             nan_treatment=nan_treatment, mask=mask,
-                             fill_value=np.nan)
+                                  nan_treatment=nan_treatment, mask=mask,
+                                  fill_value=np.nan)
     kernel = _copy_input_if_needed(kernel, dtype=complex, order='C',
-                                  nan_treatment=None, mask=None,
-                                  fill_value=0)
+                                   nan_treatment=None, mask=None,
+                                   fill_value=0)
 
     # Check that the number of dimensions is compatible
     if array.ndim != kernel.ndim:
@@ -672,7 +667,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
             # add the shape lists (max of a list of length 4) (smaller)
             # also makes the shapes square
             fsize = 2 ** np.ceil(np.log2(np.max(arrayshape + kernshape)))
-        newshape = np.array([fsize for ii in range(array.ndim)], dtype=int)
+        newshape = np.full((array.ndim, ), fsize, dtype=int)
     else:
         if psf_pad:
             # just add the biggest dimensions
