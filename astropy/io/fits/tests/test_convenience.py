@@ -15,6 +15,7 @@ from astropy.tests.helper import catch_warnings
 from astropy.utils.exceptions import AstropyUserWarning
 
 from . import FitsTestCase
+from ..connect import REMOVE_KEYWORDS
 
 
 class TestConvenience(FitsTestCase):
@@ -110,9 +111,7 @@ class TestConvenience(FitsTestCase):
         assert hdu.header.get('PCOUNT') == 0
         np.testing.assert_almost_equal(hdu.header.get('EXPTIME'), 3.21e1)
 
-    @pytest.mark.parametrize('card', ['XTENSION', 'BITPIX', 'PCOUNT', 'GCOUNT',
-                                      'NAXIS', 'NAXIS1', 'NAXIS2',
-                                      'TFIELDS', 'THEAP'])
+    @pytest.mark.parametrize('card', REMOVE_KEYWORDS)
     def test_table_to_hdu_warn_reserved(self, card):
         """
         Test warning for each keyword in ..connect.REMOVE_KEYWORDS, 1 by 1
