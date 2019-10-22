@@ -353,8 +353,8 @@ class Galactocentric(BaseCoordinateFrame):
                           'either (1) specify all Galactocentric frame '
                           'attributes explicitly when using the frame, '
                           'or (2) set the galactocentric_frame_defaults '
-                          'parameter set name explicitly. See {} for more '
-                          'information.'.format(docs_link),
+                          f'parameter set name explicitly. See {docs_link} for more '
+                          'information.',
                           AstropyDeprecationWarning)
 
         super().__init__(*args, **kwargs)
