@@ -58,6 +58,9 @@ astropy.io.fits
 - Changed the ``fitscheck`` and ``fitsdiff`` script to use the ``argparse``
   module instead of ``optparse``. [#9148]
 
+- Allow writing of ``Table`` objects with ``Time`` columns that are also table
+  indices to FITS files. [#8077]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
@@ -1842,139 +1845,6 @@ astropy.io.misc
   the mask was being silently dropped.  If the ``serialize_meta`` option is
   enabled the data mask will now be written as an additional column and the
   masked columns will round-trip correctly. [#7481]
-
-- Fixed a bug where writing to HDF5 failed for for tables with columns of
-  unicode strings.  Now those columns are first encoded to UTF-8 and
-  written as byte strings. [#7024, #8017]
-
-- Fixed a bug with serializing the bounding_box of models initialized 
-  with ``Quantities`` . [#8052]
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-- Added support for ``copy.copy`` and ``copy.deepcopy`` for ``HDUList``. [#7218]
-
-- Override ``HDUList.copy()`` to return a shallow HDUList instance. [#7218]
-
-- Fix writing of ``Table`` objects with ``Time`` columns that are also table
-  indices to FITS files. [#8077]
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-- Fix behaviour of certain models with units, by making certain unit-related
-  attributes readonly. [#7210]
-
-- Fixed an issue with validating a ``bounding_box`` whose items are 
-  ``Quantities``. [#8052]
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-- Fixed rounding behavior in ``overlap_slices`` for even-sized small
-  arrays. [#7859]
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-- Fixing bug that prevented to run the doctests on only a single rst documentation
-  file rather than all of them. [#8055]
-
-astropy.time
-^^^^^^^^^^^^
-
-- Fix a bug when setting a ``TimeDelta`` array item with plain float value(s).
-  This was always interpreted as a JD (day) value regardless of the
-  ``TimeDelta`` format. [#7990]
-
-astropy.units
-^^^^^^^^^^^^^
-
-- To simplify fast creation of ``Quantity`` instances from arrays, one can now
-  write ``array << unit`` (equivalent to ``Quantity(array, unit, copy=False)``).
-  If ``array`` is already a ``Quantity``, this will convert the quantity to the
-  requested units; in-place conversion can be done with ``quantity <<= unit``.
-  [#7734]
-
-astropy.utils
-^^^^^^^^^^^^^
-
-- Fixed a bug due to which ``report_diff_values()`` was reporting incorrect
-  number of differences when comparing two ``numpy.ndarray``. [#7470]
-
-- The download progress bar is now only displayed in terminals, to avoid
-  polluting piped output. [#7577]
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-- Right ascension coordinates are now shown in hours by default, and the
-  ``set_format_unit`` method on ``CoordinateHelper`` now works correctly
-  with angle coordinates. [#7215]
-
-astropy.wcs
-^^^^^^^^^^^
-
-Other Changes and Additions
----------------------------
-
-- The documentation build now uses the Sphinx configuration from sphinx-astropy
-  rather than from astropy-helpers. [#7139]
-
-- Versions of Numpy <1.13 are no longer supported. [#7058]
-
-- Running tests now suppresses the output of the installation stage by default,
-  to allow easier viewing of the test results. To re-enable the output as
-  before, use ``python setup.py test --verbose-install``. [#7512]
-
-- The ERFA functions are now wrapped in ufuncs instead of custom C code,
-  leading to some speed improvements, and setting the stage for allowing
-  overrides with ``__array_ufunc__``. [#7502]
-
-- Updated the bundled CFITSIO library to 3.450. See
-  ``cextern/cfitsio/docs/changes.txt`` for additional information. [#8014]
-
-
-
-3.0.6 (unreleased)
-==================
-
-Bug Fixes
----------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
 
 - Fixed a bug where writing to HDF5 failed for for tables with columns of
   unicode strings.  Now those columns are first encoded to UTF-8 and
