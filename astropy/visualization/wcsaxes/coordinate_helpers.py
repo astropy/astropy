@@ -81,7 +81,7 @@ class CoordinateHelper:
 
     def __init__(self, parent_axes=None, parent_map=None, transform=None,
                  coord_index=None, coord_type='scalar', coord_unit=None,
-                 coord_wrap=None, frame=None, format_unit=None):
+                 coord_wrap=None, frame=None, format_unit=None, name=None):
 
         # Keep a reference to the parent axes and the transform
         self.parent_axes = parent_axes
@@ -91,6 +91,8 @@ class CoordinateHelper:
         self.coord_unit = coord_unit
         self.format_unit = format_unit
         self.frame = frame
+        self.name = name[0] if isinstance(name, (tuple, list)) else name
+        self._default_axislabel = True
 
         self.set_coord_type(coord_type, coord_wrap)
 
@@ -456,7 +458,6 @@ class CoordinateHelper:
             can include keywords to set the ``color``, ``size``, ``weight``, and
             other text properties.
         """
-
         fontdict = kwargs.pop('fontdict', None)
 
         # NOTE: When using plt.xlabel/plt.ylabel, minpad can get set explicitly
@@ -482,6 +483,28 @@ class CoordinateHelper:
             The axis label
         """
         return self.axislabels.get_text()
+
+    @property
+    def enable_default_axislabel(self):
+        """
+        Render default axis labels if no explicit label is provided.
+
+        Returns
+        -------
+        bool
+            `True` if default labels will be rendered.
+        """
+        return self._default_axislabel
+
+    @enable_default_axislabel.setter
+    def set_default_axislabel(self, val):
+        self._default_axislabel = bool(val)
+
+    def _get_default_axislabel(self):
+        if self.coord_type in ('longitude', 'latitude'):
+            return f"{self.name}"
+        else:
+            return f"{self.name} [{self.format_unit:latex}]"
 
     def set_axislabel_position(self, position):
         """
@@ -568,6 +591,9 @@ class CoordinateHelper:
         renderer.close_group('ticks')
 
     def _draw_axislabels(self, renderer, bboxes, ticklabels_bbox, ticks_locs, visible_ticks):
+        # Render the default axis label if no axis label is set.
+        if self._default_axislabel and not self.get_axislabel():
+            self.set_axislabel(self._get_default_axislabel())
 
         renderer.open_group('axis labels')
 

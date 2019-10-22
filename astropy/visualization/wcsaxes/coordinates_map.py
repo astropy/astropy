@@ -89,7 +89,8 @@ class CoordinatesMap:
                                                  coord_wrap=coord_wrap,
                                                  coord_unit=coord_unit,
                                                  format_unit=format_unit,
-                                                 frame=self.frame))
+                                                 frame=self.frame,
+                                                 name=name))
 
             # Set up aliases for coordinates
             if isinstance(name, tuple):
