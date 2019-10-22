@@ -378,15 +378,7 @@ class WCSAxes(Axes):
 
         # Common default settings for Rectangular Frame
         for ind, pos in enumerate(coord_meta.get('default_axislabel_position', ['b', 'l'])):
-
             self.coords[ind].set_axislabel_position(pos)
-
-            # If we want to auto-label axes in the future:
-            #
-            # if coord_meta['type'][ind] in ('longitude', 'latitude'):
-            #     self.coords[ind].set_axislabel(f"{coord_meta['name'][ind]}")
-            # else:
-            #     self.coords[ind].set_axislabel(f"{coord_meta['name'][ind]} [{coord_meta['unit'][ind]:latex}]")
 
         for ind, pos in enumerate(coord_meta.get('default_ticklabel_position', ['b', 'l'])):
             self.coords[ind].set_ticklabel_position(pos)
