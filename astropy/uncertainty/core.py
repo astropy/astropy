@@ -277,3 +277,10 @@ class Distribution:
         # note we use Distribution instead of self.__class__ here because
         # the Distribution class figures out its class from the `__new__`
         return Distribution(self.distribution.to(*args, **kwargs))
+
+
+    def to_value(self, *args, **kwargs):
+        raise AttributeError('to_value cannot be used on Distribution '
+                             'because it is ambiguous. Use '
+                             '.distribution.to_value() or e.g. '
+                             '.pdf_mean().to_value() instead')

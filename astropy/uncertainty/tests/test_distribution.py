@@ -328,3 +328,13 @@ def test_nonq_to():
     distr = ds.normal(10, n_samples=100, std=1)
     with pytest.raises(AttributeError):
         distr.to(u.m)
+
+
+def test_to_value():
+    distr = ds.normal(10*u.cm, n_samples=100, std=1*u.cm)
+    with pytest.raises(AttributeError):
+        distr.to_value(u.m)
+
+    distr = ds.normal(10, n_samples=100, std=1)
+    with pytest.raises(AttributeError):
+        distr.to_value(u.m)
