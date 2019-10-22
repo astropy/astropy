@@ -135,20 +135,20 @@ of the Astropy configuration file::
     log_exceptions = False
 
     # Whether to always log messages to a log file
-    log_to_file = False
+    log_to_file = True
 
-    # The file to log messages to. When '', it defaults to a file `astropy.log` in
-    # the astropy config directory.
-    log_file_path = ''
+    # The file to log messages to. If empty string is given, it defaults to a
+    # file `astropy.log` in the astropy config directory.
+    log_file_path = '~/.astropy/astropy.log'
 
     # Threshold for logging messages to log_file_path
     log_file_level = 'INFO'
 
     # Format for log file entries
-    log_file_format = '%(asctime)r, %(origin)r, %(levelname)r, %(message)r'
+    log_file_format = '%(asctime)s, %(origin)s, %(levelname)s, %(message)s'
 
-    # The encoding (e.g., UTF-8) to use for the log file.  If '', it
-    # defaults to the platform-preferred encoding.
+    # The encoding (e.g., UTF-8) to use for the log file.  If empty string is
+    # given, it defaults to the platform-preferred encoding.
     log_file_encoding = ""
 
 
