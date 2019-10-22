@@ -236,7 +236,10 @@ astropy.visualization
 - Improved error checking for the ``slices=`` argument to ``WCSAxes``. [#9098]
 
 - Added support for more solar frames in WCSAxes. [#9275]
+
 - Add support for one dimensional plots to ``WCSAxes``. [#9266]
+
+- Add a ``get_format_unit`` to ``wcsaxes.CoordinateHelper``. [#9392]
 
 astropy.wcs
 ^^^^^^^^^^^
