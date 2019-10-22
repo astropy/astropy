@@ -1185,12 +1185,12 @@ def test_galactocentric_default_warning():
 
     # Make sure a warning is thrown if the frame is created with no args
     with pytest.warns(AstropyDeprecationWarning,
-                      match="In v4.1 and later versions"):
+                      match=r"In v4\.1 and later versions"):
         Galactocentric()
 
     # Throw a warning even if only a subset of args are specified
     with pytest.warns(AstropyDeprecationWarning,
-                      match="In v4.1 and later versions"):
+                      match=r"In v4\.1 and later versions"):
         Galactocentric(galcen_distance=8.2*u.kpc)
 
     # No warning if using the latest parameter set:
