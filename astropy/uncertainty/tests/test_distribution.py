@@ -315,3 +315,9 @@ def test_array_repr_latex():
 
     distr = Distribution(arr)
     assert distr._repr_latex_() is None
+
+
+def test_distr_to():
+    distr = ds.normal(10*u.cm, n_samples=100, std=1*u.cm)
+    todistr = distr.to(u.m)
+    assert_quantity_allclose(distr.pdf_mean.to(u.m), todistr.pdf_mean)
