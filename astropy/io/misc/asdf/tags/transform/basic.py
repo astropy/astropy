@@ -134,10 +134,12 @@ class ConstantType(TransformType):
 
 
 class GenericModel(mappings.Mapping):
+
     def __init__(self, n_inputs, n_outputs):
         mapping = tuple(range(n_inputs))
         super().__init__(mapping)
-        self._outputs = tuple('x' + str(idx) for idx in range(self.n_outputs + 1))
+        self._n_outputs = n_outputs
+        self._outputs = tuple('x' + str(idx) for idx in range(n_outputs))
 
     @property
     def inverse(self):
