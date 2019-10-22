@@ -113,6 +113,7 @@ class WCSAxes(Axes):
             # data->pixel mapping
             self.transData = transData
 
+        self._validate_wcs(wcs)
         self.reset_wcs(wcs=wcs, slices=slices, transform=transform, coord_meta=coord_meta)
         self._hide_parent_artists()
         self.format_coord = self._display_world_coords
@@ -122,6 +123,12 @@ class WCSAxes(Axes):
         self._wcsaxesartist = _WCSAxesArtist()
         self.add_artist(self._wcsaxesartist)
         self._drawn = False
+
+    @staticmethod
+    def _validate_wcs(wcs):
+        if wcs.pixel_n_dim != 2:
+            raise ValueError(f'wcs input to WCSAxes must have 2 dimensions '
+                             f'(got {wcs.pixel_n_dim})')
 
     def _display_world_coords(self, x, y):
 

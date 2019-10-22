@@ -27,6 +27,22 @@ MATPLOTLIB_LT_21 = LooseVersion(matplotlib.__version__) < LooseVersion("2.1")
 DATA = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 
 
+def test_wcs_validate():
+    header = {
+        'CTYPE3': 'WAVE    ', 'CUNIT3': 'Angstrom',
+        'CDELT3': 0.2, 'CRPIX3': 0, 'CRVAL3': 10, 'NAXIS3': 5,
+        'CTYPE2': 'HPLT-TAN', 'CUNIT2': 'deg',
+        'CDELT2': 0.5, 'CRPIX2': 2, 'CRVAL2': 0.5, 'NAXIS2': 4,
+        'CTYPE1': 'HPLN-TAN', 'CUNIT1': 'deg',
+        'CDELT1': 0.4, 'CRPIX1': 2, 'CRVAL1': 1, 'NAXIS1': 3}
+    wcs = WCS(header)
+
+    fig = plt.figure()
+    with pytest.raises(ValueError,
+                       match='wcs input to WCSAxes must have 2 dimensions'):
+        ax = fig.gca(projection=wcs)
+
+
 @ignore_matplotlibrc
 def test_grid_regression():
     # Regression test for a bug that meant that if the rc parameter
