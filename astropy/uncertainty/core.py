@@ -272,15 +272,16 @@ class Distribution:
     # specialized overrides
     def to(self, *args, **kwargs):
         if not hasattr(self._samples_cls, 'to'):
-            raise AttributeError("this Quantity's distribution does not have a "
+            raise AttributeError("this distribution's samples do not have a "
                                  "``to`` method")
         # note we use Distribution instead of self.__class__ here because
         # the Distribution class figures out its class from the `__new__`
-        return Distribution(self.distribution.to(*args, **kwargs))
-
+        return self.__class__(self.distribution.to(*args, **kwargs))
 
     def to_value(self, *args, **kwargs):
-        raise AttributeError('to_value cannot be used on Distribution '
-                             'because it is ambiguous. Use '
-                             '.distribution.to_value() or e.g. '
-                             '.pdf_mean().to_value() instead')
+        if not hasattr(self._samples_cls, 'to_value'):
+            raise AttributeError("this distribution's samples do not have a "
+                                 "``to_value`` method")
+        # note we use Distribution instead of self.__class__ here because
+        # the Distribution class figures out its class from the `__new__`
+        return self.__class__(self.distribution.to_value(*args, **kwargs))
