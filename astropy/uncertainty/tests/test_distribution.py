@@ -321,3 +321,10 @@ def test_distr_to():
     distr = ds.normal(10*u.cm, n_samples=100, std=1*u.cm)
     todistr = distr.to(u.m)
     assert_quantity_allclose(distr.pdf_mean.to(u.m), todistr.pdf_mean)
+
+
+def test_nonq_to():
+    # this is an array distribution not a quantity
+    distr = ds.normal(10, n_samples=100, std=1)
+    with pytest.raises(AttributeError):
+        distr.to(u.m)
