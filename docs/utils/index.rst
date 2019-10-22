@@ -32,9 +32,9 @@ The exception is below:
     bugfixes for the stdlib that are important for ``astropy``. It is recommended
     that developers at least glance over the source code for this subpackage,
     but most of it cannot be reliably included here because of the large
-    amount of version-specific code it contains. Its content will be removed
-    without any deprecation period when it is no longer needed by ``astropy``,
-    so use it at your own risk.
+    amount of version-specific code it contains. Its content is solely for
+    internal use of ``astropy`` and subject to changes without deprecations.
+    Do not use it in external packages or code.
 
 Reference/API
 =============

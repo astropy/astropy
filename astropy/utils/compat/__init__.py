@@ -7,8 +7,9 @@ important for Astropy.
 Note that all public functions in the `astropy.utils.compat.misc` module are
 imported here for easier access.
 
-The content of this module is solely for internal use of ``astropy``,
-so use it at your own risk.
+The content of this module is solely for internal use of ``astropy``
+and subject to changes without deprecations. Do not use it in external
+packages or code.
 
 """
 
