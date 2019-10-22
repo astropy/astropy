@@ -91,7 +91,7 @@ def test_slicing_all_npndarray_1d():
     assert_array_equal(data[2:5], nd2.data)
     assert_array_equal(mask[2:5], nd2.mask)
     assert_array_equal(uncertainty[2:5].array, nd2.uncertainty.array)
-    assert nd2.wcs.pixel_to_world([1]) == nd.wcs.pixel_to_world([3])
+    assert nd2.wcs.pixel_to_world(1) == nd.wcs.pixel_to_world(3)
     assert unit is nd2.unit
     assert meta == nd.meta
 
@@ -118,7 +118,7 @@ def test_slicing_all_npndarray_nd():
     assert_array_equal(data[2:5, :, 4:7], nd2.data)
     assert_array_equal(mask[2:5, :, 4:7], nd2.mask)
     assert_array_equal(uncertainty[2:5, :, 4:7], nd2.uncertainty.array)
-    assert nd2.wcs.pixel_to_world([1], [5], [1]) == nd.wcs.pixel_to_world([3], [5], [5])
+    assert nd2.wcs.pixel_to_world(1, 5, 1) == nd.wcs.pixel_to_world(5, 5, 3)
 
 
 def test_slicing_all_npndarray_shape_diff():
@@ -136,7 +136,7 @@ def test_slicing_all_npndarray_shape_diff():
     # All are sliced even if the shapes differ (no Info)
     assert_array_equal(mask[2:5], nd2.mask)
     assert_array_equal(uncertainty[2:5], nd2.uncertainty.array)
-    assert nd2.wcs.pixel_to_world([1]) == nd.wcs.pixel_to_world([3])
+    assert nd2.wcs.pixel_to_world(1) == nd.wcs.pixel_to_world(3)
 
 
 def test_slicing_all_something_wrong():
@@ -155,7 +155,7 @@ def test_slicing_all_something_wrong():
     assert_array_equal(mask[2:5], nd2.mask)
     # Not sliced attributes (they will raise a Info nevertheless)
     uncertainty is nd2.uncertainty
-    assert nd2.wcs.pixel_to_world([1]) == nd.wcs.pixel_to_world([3])
+    assert nd2.wcs.pixel_to_world(1) == nd.wcs.pixel_to_world(3)
 
 
 def test_boolean_slicing():
@@ -172,5 +172,5 @@ def test_boolean_slicing():
     nd2 = nd[(nd.data >= 3) & (nd.data < 8)]
     assert_array_equal(data[3:8], nd2.data)
     assert_array_equal(mask[3:8], nd2.mask)
-    assert nd2.wcs.pixel_to_world([1]) == nd.wcs.pixel_to_world([4])
+    assert nd2.wcs.pixel_to_world(1) == nd.wcs.pixel_to_world(4)
     assert_array_equal(uncertainty.array[3:8], nd2.uncertainty.array)

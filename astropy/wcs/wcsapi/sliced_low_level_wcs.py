@@ -161,6 +161,9 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
 
         pixel_arrays_new = np.broadcast_arrays(*pixel_arrays_new)
         world_arrays = self._wcs.pixel_to_world_values(*pixel_arrays_new)
+        # Detect the case of a length 0 array
+        if isinstance(world_arrays, np.ndarray) and not world_arrays.shape:
+            return world_arrays
         world = [world_arrays[iw] for iw in self._world_keep]
         if self.world_n_dim == 1 and self._wcs.world_n_dim > 1:
             world = world[0]
@@ -186,6 +189,9 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
             if isinstance(self._slices_pixel[ipixel], slice) and self._slices_pixel[ipixel].start is not None:
                 pixel_arrays[ipixel] -= self._slices_pixel[ipixel].start
 
+        # Detect the case of a length 0 array
+        if isinstance(pixel_arrays, np.ndarray) and not pixel_arrays.shape:
+            return pixel_arrays
         pixel = [pixel_arrays[ip] for ip in self._pixel_keep]
         if self.pixel_n_dim == 1 and self._wcs.pixel_n_dim > 1:
             pixel = pixel[0]
