@@ -268,3 +268,10 @@ class Distribution:
         bin_edges = np.array(bin_edges)
         be_shape = self.shape + (bin_edges.size//self.size,)
         return nhists.reshape(nh_shape), bin_edges.reshape(be_shape)
+
+    # specialized overrides
+    def to(self, *args, **kwargs):
+        if not hasattr(self._samples_cls, 'to'):
+            raise TypeError("this Quantity's distribution does not have a "
+                            "``to`` method")
+        return self.__class__(self.distribution.to(*args, **kwargs))
