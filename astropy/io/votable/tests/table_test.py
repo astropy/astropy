@@ -200,9 +200,6 @@ def test_binary2_masked_strings():
     output = io.BytesIO()
     astropy_table.write(output, format='votable')
 
-    # TODO - Construct test cases for unicodeChar strings and fixed length
-    # strings of both types.
-
 
 class TestVerifyOptions:
 
