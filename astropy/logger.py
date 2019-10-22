@@ -67,7 +67,7 @@ class Conf(_config.ConfigNamespace):
         "file.")
     log_file_path = _config.ConfigItem(
         '',
-        "The file to log messages to. When ``''``, "
+        "The file to log messages to.  If empty string is given, "
         "it defaults to a file ``'astropy.log'`` in "
         "the astropy config directory.")
     log_file_level = _config.ConfigItem(
@@ -80,8 +80,8 @@ class Conf(_config.ConfigNamespace):
         "Format for log file entries.")
     log_file_encoding = _config.ConfigItem(
         '',
-        "The encoding (e.g., UTF-8) to use for the log file.  If ``''``, it "
-        "defaults to the platform-preferred encoding.")
+        "The encoding (e.g., UTF-8) to use for the log file.  If empty string "
+        "is given, it defaults to the platform-preferred encoding.")
 
 
 conf = Conf()
@@ -402,7 +402,7 @@ class AstropyLogger(Logger):
             with logger.log_to_file('myfile.log'):
                 # your code here
         '''
-        encoding = conf.log_file_encoding if conf.log_file_encoding != "" else None
+        encoding = conf.log_file_encoding if conf.log_file_encoding else None
         fh = logging.FileHandler(filename, encoding=encoding)
         if filter_level is not None:
             fh.setLevel(filter_level)
@@ -499,7 +499,7 @@ class AstropyLogger(Logger):
                 else:
                     log_file_path = os.path.expanduser(log_file_path)
 
-                encoding = conf.log_file_encoding if conf.log_file_encoding != "" else None
+                encoding = conf.log_file_encoding if conf.log_file_encoding else None
                 fh = logging.FileHandler(log_file_path, encoding=encoding)
             except OSError as e:
                 warnings.warn(
