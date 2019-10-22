@@ -1652,12 +1652,7 @@ class Box1D(Fittable1DModel):
         """One dimensional Box model function"""
 
         inside = np.logical_and(x >= x_0 - width / 2., x <= x_0 + width / 2.)
-        result = np.select([inside], [amplitude], 0)
-
-        if isinstance(amplitude, Quantity):
-            return Quantity(result, unit=amplitude.unit, copy=False)
-        else:
-            return result
+        return np.select([inside], [amplitude], 0)
 
     @property
     def bounding_box(self):
@@ -1677,6 +1672,13 @@ class Box1D(Fittable1DModel):
             return None
         else:
             return {'x': self.x_0.unit}
+
+    @property
+    def return_units(self):
+        if self.amplitude.unit is None:
+            return None
+        else:
+            return {'y': self.amplitude.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return OrderedDict([('x_0', inputs_unit['x']),
