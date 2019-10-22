@@ -92,7 +92,7 @@ class CoordinateHelper:
         self.format_unit = format_unit
         self.frame = frame
         self.name = name[0] if isinstance(name, (tuple, list)) else name
-        self._default_axislabel = True
+        self._auto_axislabel = True
 
         self.set_coord_type(coord_type, coord_wrap)
 
@@ -484,21 +484,27 @@ class CoordinateHelper:
         """
         return self.axislabels.get_text()
 
-    @property
-    def enable_default_axislabel(self):
+    def set_auto_axislabel(self):
         """
         Render default axis labels if no explicit label is provided.
 
         Returns
         -------
-        bool
+        auto_axislabel : `bool`
             `True` if default labels will be rendered.
         """
-        return self._default_axislabel
+        return self._auto_axislabel
 
-    @enable_default_axislabel.setter
-    def set_default_axislabel(self, val):
-        self._default_axislabel = bool(val)
+    def set_auto_axislabel(self, val):
+        """
+        Render default axis labels if no explicit label is provided.
+
+        Parameters
+        ----------
+        auto_axislabel : `bool`
+            `True` if default labels will be rendered.
+        """
+        self._auto_axislabel = bool(val)
 
     def _get_default_axislabel(self):
         if self.coord_type in ('longitude', 'latitude'):
@@ -592,7 +598,7 @@ class CoordinateHelper:
 
     def _draw_axislabels(self, renderer, bboxes, ticklabels_bbox, ticks_locs, visible_ticks):
         # Render the default axis label if no axis label is set.
-        if self._default_axislabel and not self.get_axislabel():
+        if self._auto_axislabel and not self.get_axislabel():
             self.set_axislabel(self._get_default_axislabel())
 
         renderer.open_group('axis labels')
