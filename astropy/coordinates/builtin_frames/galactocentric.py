@@ -259,6 +259,13 @@ doc_footer = """
         <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
             [(  86.2585249 ,  28.85773187,  2.75625475e-05),
              ( 289.77285255,  50.06290457,  8.59216010e+01)]>
+
+    .. testcleanup::
+        # TODO: this needs to be audited and removed if we change the default
+        # defaults (yes) for v4.1. This is a hack to get around the fact that
+        # the doctests here actually change the *class* state:
+        galactocentric_frame_defaults._value = 'pre-v4.0'
+
 """
 
 
