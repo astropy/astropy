@@ -110,6 +110,34 @@ class TestConvenience(FitsTestCase):
         assert hdu.header.get('PCOUNT') == 0
         np.testing.assert_almost_equal(hdu.header.get('EXPTIME'), 3.21e1)
 
+    @pytest.mark.parametrize('card', ['XTENSION', 'BITPIX', 'PCOUNT', 'GCOUNT',
+                                      'NAXIS', 'NAXIS1', 'NAXIS2',
+                                      'TFIELDS', 'THEAP'])
+    def test_table_to_hdu_warn_reserved(self, card):
+        """
+        Test warning for each keyword in ..connect.REMOVE_KEYWORDS, 1 by 1
+        """
+        diagnose = 'be ignored since it conflicts with a FITS reserved keyword'
+        res_cards = {'XTENSION': 'BINTABLE', 'BITPIX': 8,
+                     'NAXIS': 2, 'NAXIS1': 12, 'NAXIS2': 3,
+                     'PCOUNT': 0, 'GCOUNT': 1, 'TFIELDS': 2, 'THEAP': None}
+        ins_cards = {'XTENSION': 'TABLE', 'BITPIX': 16,
+                     'NAXIS': 1, 'NAXIS1': 2, 'NAXIS2': 6,
+                     'PCOUNT': 2, 'GCOUNT': 2, 'TFIELDS': 4, 'THEAP': 36}
+
+        table = Table([[1.0, 2.0, 3.0], [2.3, 4.5, 6.7]],
+                      names=['wavelength', 'flux'], dtype=['f8', 'f4'])
+        table.meta['ORIGIN'] = 'Min.Silly Walks'
+        table.meta[card] = ins_cards[card]
+        assert table.meta.get(card) != res_cards[card]
+
+        with pytest.warns(AstropyUserWarning,
+                          match=f'Meta-data keyword {card} will {diagnose}'):
+            hdu = fits.table_to_hdu(table)
+
+        assert hdu.header.get(card) == res_cards[card]
+        assert hdu.header.get('ORIGIN') == 'Min.Silly Walks'
+
     def test_table_to_hdu_filter_incompatible(self):
         """
         Test removal of unsupported data types from header
