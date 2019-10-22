@@ -266,10 +266,10 @@ def sub_wcs(wcs_4d, wcs_slice):
                              (np.s_[:,0,:,:], ['x', 'y', 0], (0, 1), 2),
                          ])
 def test_apply_slices(sub_wcs, wcs_slice, wcsaxes_slices, world_map, ndim):
-    transform_wcs, _, world_map = apply_slices(sub_wcs, wcsaxes_slices)
+    transform_wcs, _, out_world_map = apply_slices(sub_wcs, wcsaxes_slices)
     assert transform_wcs.world_n_dim == ndim
 
-    assert world_map == world_map
+    assert out_world_map == world_map
 
 
 # parametrize here to pass to the fixture
