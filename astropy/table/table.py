@@ -3,7 +3,7 @@
 from .index import TableIndices, TableLoc, TableILoc, TableLocIndices
 
 import sys
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from collections.abc import Mapping
 import warnings
 from copy import deepcopy
@@ -173,6 +173,23 @@ def descr(col):
 
 def has_info_class(obj, cls):
     return hasattr(obj, 'info') and isinstance(obj.info, cls)
+
+
+def _get_names_from_list_of_dict(rows):
+    """Return list of column names if ``rows`` is a list of dict that
+    defines table data.
+
+    If rows is not a list of dict then return None.
+    """
+    if rows is None:
+        return None
+
+    names = set()
+    for row in rows:
+        if not isinstance(row, dict):
+            return None
+        names.update(row)
+    return list(names)
 
 
 # Note to future maintainers: when transitioning this to dict
@@ -450,18 +467,23 @@ class Table:
         if not copy and dtype is not None:
             raise ValueError('Cannot specify dtype when copy=False')
 
+        # Specifies list of names found for the case of initializing table with
+        # a list of dict. If data are not list of dict then this is None.
+        names_from_list_of_dict = None
+
         # Row-oriented input, e.g. list of lists or list of tuples, list of
         # dict, Row instance.  Set data to something that the subsequent code
         # will parse correctly.
-        is_list_of_dict = False
         if rows is not None:
             if data is not None:
                 raise ValueError('Cannot supply both `data` and `rows` values')
             if isinstance(rows, types.GeneratorType):
                 # Without this then the all(..) test below uses up the generator
                 rows = list(rows)
-            if all(isinstance(row, dict) for row in rows):
-                is_list_of_dict = True  # Avoid doing the all(...) test twice.
+
+            # Get column names if `rows` is a list of dict, otherwise this is None
+            names_from_list_of_dict = _get_names_from_list_of_dict(rows)
+            if names_from_list_of_dict:
                 data = rows
             elif isinstance(rows, self.Row):
                 data = rows
@@ -493,10 +515,15 @@ class Table:
             data = data._table[data._index:data._index + 1]
 
         if isinstance(data, (list, tuple)):
-            init_func = self._init_from_list
-            if data and (is_list_of_dict or all(isinstance(row, dict) for row in data)):
-                n_cols = len(data[0])
+            # Get column names from `data` if it is a list of dict, otherwise this is None.
+            # This might be previously defined if `rows` was supplied as an init arg.
+            names_from_list_of_dict = (names_from_list_of_dict or
+                                       _get_names_from_list_of_dict(data))
+            if names_from_list_of_dict:
+                init_func = self._init_from_list_of_dicts
+                n_cols = len(names_from_list_of_dict)
             else:
+                init_func = self._init_from_list
                 n_cols = len(data)
 
         elif isinstance(data, np.ndarray):
@@ -804,10 +831,20 @@ class Table:
                 .format(inp_str))
 
     def _init_from_list_of_dicts(self, data, names, dtype, n_cols, copy):
+        """Initialize table from a list of dictionaries representing rows."""
+        # Define placeholder for missing values as a unique object that cannot
+        # every occur in user data.
+        MISSING = object()
+
+        # Gather column names that exist in the input `data`.
         names_from_data = set()
         for row in data:
             names_from_data.update(row)
 
+        # Put names into a preferred order, either using the first row of data
+        # if it is ordered, or alphabetically.  Starting with Python 3.7, dict
+        # is ordered so this test can be relaxed.  (In practice CPython 3.6 is
+        # this way, but not according to the formal spec).
         if (isinstance(data[0], OrderedDict) and
                 set(data[0].keys()) == names_from_data):
             names_from_data = list(data[0].keys())
@@ -817,29 +854,53 @@ class Table:
         # Note: if set(data[0].keys()) != names_from_data, this will give an
         # exception later, so NO need to catch here.
 
+        # Convert list of dict into dict of list (cols), keep track of missing
+        # indexes and put in MISSING placeholders in the `cols` lists.
         cols = {}
+        missing_indexes = defaultdict(list)
         for name in names_from_data:
             cols[name] = []
-            for i, row in enumerate(data):
+            for ii, row in enumerate(data):
                 try:
-                    cols[name].append(row[name])
+                    val = row[name]
                 except KeyError:
-                    raise ValueError(f'Row {i} has no value for column {name}')
+                    missing_indexes[name].append(ii)
+                    val = MISSING
+                cols[name].append(val)
 
+        # Fill the missing entries with first values
+        if missing_indexes:
+            for name, indexes in missing_indexes.items():
+                col = cols[name]
+                first_val = next(val for val in col if val is not MISSING)
+                for index in indexes:
+                    col[index] = first_val
+
+        # prepare initialization
         if all(name is None for name in names):
             names = names_from_data
 
         self._init_from_dict(cols, names, dtype, n_cols, copy)
+
+        # Mask the missing values if necessary, converting columns to MaskedColumn
+        # as needed.
+        if missing_indexes:
+            for name, indexes in missing_indexes.items():
+                col = self[name]
+                # Ensure that any Column subclasses with MISSING values can support
+                # setting masked values. As of astropy 4.0 the test condition below is
+                # always True since _init_from_dict cannot result in mixin columns.
+                if isinstance(col, Column) and not isinstance(col, MaskedColumn):
+                    self[name] = self.MaskedColumn(col, copy=False)
+
+                # Finally do the masking in a mixin-safe way.
+                self[name][indexes] = np.ma.masked
         return
 
     def _init_from_list(self, data, names, dtype, n_cols, copy):
         """Initialize table from a list of column data.  A column can be a
         Column object, np.ndarray, mixin, or any other iterable object.
         """
-        if data and all(isinstance(row, dict) for row in data):
-            self._init_from_list_of_dicts(data, names, dtype, n_cols, copy)
-            return
-
         cols = []
         default_names = _auto_names(n_cols)
 
