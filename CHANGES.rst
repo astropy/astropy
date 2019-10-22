@@ -476,6 +476,8 @@ astropy.samp
 astropy.stats
 ^^^^^^^^^^^^^
 
+- Fixed a bug where ``bayesian_blocks`` returned a single edge. [#8560]
+
 astropy.table
 ^^^^^^^^^^^^^
 
