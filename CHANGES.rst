@@ -64,6 +64,12 @@ astropy.io.registry
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
+astropy.logger
+^^^^^^^^^^^^^^
+
+- Added a configuration option to specify the text encoding of the log file,
+  with the default behavior being the platform-preferred encoding. [#9203]
+
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
