@@ -6,7 +6,10 @@ Description of the Galactocentric Coordinate Frame
 
 While many other frames implemented in `astropy.coordinates` are standardized in
 some way (e.g., defined by the IAU), there is no standard Milky Way
-Galactocentric reference frame. The `~astropy.coordinates.Galactocentric` frame
+reference frame with the center of the Milky Way as its origin. (This is
+distinct from `~astropy.coordinates.Galactic` coordinates, which point
+toward the Galactic Center but have their origin in the Solar System).
+The `~astropy.coordinates.Galactocentric` frame
 class is meant to be flexible enough to support all common definitions of such a
 transformation, but with reasonable default parameter values, such as the solar
 velocity relative to the Galactic center, the solar height above the Galactic
@@ -151,7 +154,7 @@ All of the frame-defining parameters of the
 `~astropy.coordinates.Galactocentric` frame are customizable and can be set by
 passing arguments in to the `~astropy.coordinates.Galactocentric` initializer.
 However, it is often convenient to use the frame without having to pass in every
-parameter. We have therefore tried to set reasonable default values for these
+parameter. Hence, the class comes with reasonable default values for these
 parameters, but more precise measurements of the solar position or motion in the
 Galaxy are constantly being made. The default values of the
 `~astropy.coordinates.Galactocentric` frame attributes will therefore be updated
