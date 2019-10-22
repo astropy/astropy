@@ -127,6 +127,20 @@ jobs:
             LC_ALL: C
             LANG: C
 
+      - run:
+          name: Prepare for upload
+          command: |
+            # If it's not a PR, don't upload
+            if [ -z "${CIRCLE_PULL_REQUEST}" ]; then
+              rm -r docs/_build/html/*
+            else
+              # If it is a PR, delete sources and doctrees, because it's a lot
+              # of files which we don't really need to upload
+              rm -r docs/_build/html/_sources
+              rm -r docs/_build/html/_modules
+              rm -r docs/_build/html/.doctrees
+            fi
+
       - store_artifacts:
           path: docs/_build/html
 
