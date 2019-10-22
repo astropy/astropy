@@ -801,6 +801,9 @@ def _join(left, right, keys=None, join_type='inner',
     # Store user-provided col_name_map until the end
     _col_name_map = col_name_map
 
+    # Special column name for cartesian join, should never collide with real column
+    cartesian_index_name = '__table_cartesian_join_temp_index__'
+
     if join_type not in ('inner', 'outer', 'left', 'right', 'cartesian'):
         raise ValueError("The 'join_type' argument should be in 'inner', "
                          "'outer', 'left', 'right', or 'cartesian' "
@@ -808,9 +811,16 @@ def _join(left, right, keys=None, join_type='inner',
                          format(join_type))
 
     if join_type == 'cartesian':
-        left['__table_cartesian_join_temp_index__'] = 0
-        right['__table_cartesian_join_temp_index__'] = 0
-        keys = ('__table_cartesian_join_temp_index__', )
+        if keys:
+            raise ValueError('cannot supply keys for a cartesian join')
+
+        # Make light copies of left and right, then add temporary index columns
+        # with all the same value so later an outer join turns into a cartesian join.
+        left = left.copy(copy_data=False)
+        right = right.copy(copy_data=False)
+        left[cartesian_index_name] = np.uint8(0)
+        right[cartesian_index_name] = np.uint8(0)
+        keys = (cartesian_index_name, )
 
     # If we have a single key, put it in a tuple
     if keys is None:
@@ -854,6 +864,8 @@ def _join(left, right, keys=None, join_type='inner',
     out = _get_out_class([left, right])()
 
     for out_name, dtype, shape in out_descrs:
+        if out_name == cartesian_index_name:
+            continue
 
         left_name, right_name = col_name_map[out_name]
         if left_name and right_name:  # this is a key which comes from left and right
@@ -920,10 +932,6 @@ def _join(left, right, keys=None, join_type='inner',
     if isinstance(_col_name_map, Mapping):
         _col_name_map.update(col_name_map)
 
-    if '__table_cartesian_join_temp_index__' in out.colnames:
-        del out['__table_cartesian_join_temp_index__']
-        del left['__table_cartesian_join_temp_index__'],
-        del right['__table_cartesian_join_temp_index__']
     return out
 
 

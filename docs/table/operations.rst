@@ -721,7 +721,7 @@ matching key includes both ``name`` and ``obs_date``.  Specifying the key as onl
 Likewise one can construct a new table with every row of the right table and matching left
 values (when available) using ``join_type='right'``.
 
-Finally, to make a table with the union of rows from both tables do an "outer" join::
+To make a table with the union of rows from both tables do an "outer" join::
 
   >>> print(join(optical, xray, join_type='outer'))
     name   obs_date  mag_b mag_v logLx
@@ -732,8 +732,25 @@ Finally, to make a table with the union of rows from both tables do an "outer" j
       M82 2012-10-29  16.2  15.2  45.0
   NGC3516 2011-11-11    --    --  42.1
 
-In all cases the output join table will be sorted by the key column(s) and in general
+In all the above cases the output join table will be sorted by the key column(s) and in general
 will not preserve the row order of the input tables.
+
+Finally, one can do a "cartesian" join, which is the cartesian product of all available
+rows.  In this case one there are no key columns (and supplying a ``keys`` argument is
+an error)::
+
+  >>> print(join(optical, xray, join_type='cartesian'))
+  name_1 obs_date_1 mag_b mag_v  name_2 obs_date_2 logLx
+  ------ ---------- ----- ----- ------- ---------- -----
+     M31 2012-01-02  17.0  16.0 NGC3516 2011-11-11  42.1
+     M31 2012-01-02  17.0  16.0     M31 1999-01-05  43.1
+     M31 2012-01-02  17.0  16.0     M82 2012-10-29  45.0
+     M82 2012-10-29  16.2  15.2 NGC3516 2011-11-11  42.1
+     M82 2012-10-29  16.2  15.2     M31 1999-01-05  43.1
+     M82 2012-10-29  16.2  15.2     M82 2012-10-29  45.0
+    M101 2012-10-31  15.1  15.5 NGC3516 2011-11-11  42.1
+    M101 2012-10-31  15.1  15.5     M31 1999-01-05  43.1
+    M101 2012-10-31  15.1  15.5     M82 2012-10-29  45.0
 
 Non-identical key column names
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
