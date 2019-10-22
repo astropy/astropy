@@ -139,7 +139,7 @@ def test_grouped_copy(T1):
         tg = t1.group_by('a')
         tgc = tg.copy()
         assert np.all(tgc.groups.indices == tg.groups.indices)
-        assert np.all(tgc.groups.keys.rows_equal(tg.groups.keys))
+        assert np.all(tgc.groups.keys == tg.groups.keys)
 
         tac = tg['a'].copy()
         assert np.all(tac.groups.indices == tg['a'].groups.indices)
@@ -241,7 +241,7 @@ def test_grouped_item_access(T1):
         # Regular slice of a table
         tg = t1.group_by('a')
         tgs = tg['a', 'c', 'd']
-        assert np.all(tgs.groups.keys.rows_equal(tg.groups.keys))
+        assert np.all(tgs.groups.keys == tg.groups.keys)
         assert np.all(tgs.groups.indices == tg.groups.indices)
         tgsa = tgs.groups.aggregate(np.sum)
         assert tgsa.pformat() == [' a   c    d ',
@@ -251,7 +251,7 @@ def test_grouped_item_access(T1):
                                   '  2 22.0   6']
 
         tgs = tg['c', 'd']
-        assert np.all(tgs.groups.keys.rows_equal(tg.groups.keys))
+        assert np.all(tgs.groups.keys == tg.groups.keys)
         assert np.all(tgs.groups.indices == tg.groups.indices)
         tgsa = tgs.groups.aggregate(np.sum)
         assert tgsa.pformat() == [' c    d ',
@@ -287,7 +287,7 @@ def test_mutable_operations(T1):
         tg.add_column(Column(name='e', data=np.arange(len(tg))))
         assert np.all(tg.groups.indices == indices)
         assert np.all(tg['e'].groups.indices == indices)
-        assert np.all(tg['e'].groups.keys.rows_equal(tg.groups.keys))
+        assert np.all(tg['e'].groups.keys == tg.groups.keys)
 
         # remove column (not key column)
         tg = t1.group_by('a')
@@ -474,8 +474,8 @@ def test_table_aggregate_reduceat(T1):
     tga_a = tg.groups.aggregate(np.add)
     tga_n = tg.groups.aggregate(np_sum)
 
-    assert np.all(tga_r.rows_equal(tga_n))
-    assert np.all(tga_a.rows_equal(tga_n))
+    assert np.all(tga_r == tga_n)
+    assert np.all(tga_a == tga_n)
     assert tga_n.pformat() == [' a   c    d ',
                                '--- ---- ---',
                                '  0  0.0   4',
@@ -484,7 +484,7 @@ def test_table_aggregate_reduceat(T1):
 
     tga_r = tg.groups.aggregate(np.mean)
     tga_n = tg.groups.aggregate(np_mean)
-    assert np.all(tga_r.rows_equal(tga_n))
+    assert np.all(tga_r == tga_n)
     assert tga_n.pformat() == [' a   c   d ',
                                '--- --- ---',
                                '  0 0.0 4.0',

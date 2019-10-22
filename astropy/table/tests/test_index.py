@@ -480,7 +480,7 @@ class TestIndex(SetupData):
         for tp in (self._table_type(t), t.copy()):
             assert len(t.indices) == len(tp.indices)
             for index, indexp in zip(t.indices, tp.indices):
-                assert np.all(index.data.data.rows_equal(indexp.data.data))
+                assert np.all(index.data.data == indexp.data.data)
                 assert index.data.data.colnames == indexp.data.data.colnames
 
     def test_updating_row_byindex(self, main_col, table_types, engine):
