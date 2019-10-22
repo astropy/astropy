@@ -4,6 +4,8 @@
 import importlib
 import sys
 import warnings
+import logging
+import locale
 
 import pytest
 
@@ -482,3 +484,24 @@ def test_log_to_file_origin2(tmpdir):
     log_file.close()
 
     assert len(log_entries) == 0
+
+
+@pytest.mark.parametrize(('encoding'), ['', 'utf-8', 'cp1252'])
+def test_log_to_file_encoding(tmpdir, encoding):
+
+    local_path = tmpdir.join('test.log')
+    log_path = str(local_path.realpath())
+
+    orig_encoding = conf.log_file_encoding
+
+    conf.log_file_encoding = encoding
+
+    with log.log_to_file(log_path):
+        for handler in log.handlers:
+            if isinstance(handler, logging.FileHandler):
+                if encoding:
+                    assert handler.stream.encoding == encoding
+                else:
+                    assert handler.stream.encoding == locale.getpreferredencoding()
+
+    conf.log_file_encoding = orig_encoding
