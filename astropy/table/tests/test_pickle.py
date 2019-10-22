@@ -114,5 +114,5 @@ def test_pickle_indexed_table(protocol):
 
     assert len(t.indices) == len(tp.indices)
     for index, indexp in zip(t.indices, tp.indices):
-        assert np.all(index.data.data.rows_equal(indexp.data.data))
+        assert np.all(index.data.data == indexp.data.data)
         assert index.data.data.colnames == indexp.data.data.colnames

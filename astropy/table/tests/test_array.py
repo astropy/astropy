@@ -42,4 +42,4 @@ def test_wide_array(wide_array):
     # sliced SortedArray was set to the number of columns
     # instead of the number of elements in each column
     first_row = wide_array[:1].data
-    assert np.all(first_row.rows_equal(Table([[x] for x in np.arange(100)])))
+    assert np.all(first_row == Table([[x] for x in np.arange(100)]))

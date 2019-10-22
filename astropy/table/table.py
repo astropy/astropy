@@ -3041,7 +3041,7 @@ class Table:
         return super().__ge__(other)
 
     def __eq__(self, other):
-        return self.cols_equal(other)
+        return self.rows_equal(other)
 
     def cols_equal(self, other):
         """

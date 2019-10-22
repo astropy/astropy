@@ -46,7 +46,7 @@ def test_read_write_format(fmt):
     t2 = Table.read(buf, format=pandas_fmt)
 
     assert t.colnames == t2.colnames
-    assert np.all(t.rows_equal(t2))
+    assert np.all(t == t2)
 
 
 def test_read_fixed_width_format():
@@ -69,7 +69,7 @@ def test_read_fixed_width_format():
     t2 = Table.read(buf, format='pandas.fwf')
 
     assert t.colnames == t2.colnames
-    assert np.all(t.rows_equal(t2))
+    assert np.all(t == t2)
 
 
 def test_write_with_mixins():
@@ -95,4 +95,4 @@ def test_write_with_mixins():
     # See https://github.com/astropy/astropy/issues/8682
     exp_t = ascii.read(exp, converters={'i': [ascii.convert_numpy(np.int64)]})
     assert qt2.colnames == exp_t.colnames
-    assert np.all(qt2.rows_equal(exp_t))
+    assert np.all(qt2 == exp_t)
