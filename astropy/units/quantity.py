@@ -1041,7 +1041,7 @@ class Quantity(np.ndarray):
                 raise
         # For single elements, ndarray.__getitem__ returns scalars; these
         # need a new view as a Quantity.
-        if type(out) is not type(self):
+        if not isinstance(out, np.ndarray):
             out = self._new_view(out)
         return out
 
