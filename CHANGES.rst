@@ -159,6 +159,9 @@ astropy.timeseries
 astropy.uncertainty
 ^^^^^^^^^^^^^^^^^^^
 
+- Quantity distributions now implement a ``to`` method that yields new
+  distributions of the expected kind for the starting distribution. [#9429]
+
 astropy.units
 ^^^^^^^^^^^^^
 
