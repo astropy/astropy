@@ -1382,7 +1382,7 @@ def test_disallow_inequality_comparisons():
         t <= -1.1
 
 
-def test_equality_table():
+def test_cols_equal():
 
     col1 = [1, 2]
     col2 = [1.0, 2.0]
