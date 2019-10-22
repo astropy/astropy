@@ -1141,14 +1141,16 @@ def test_component_names_repr():
     assert repr(frame).count("JUSTONCE") == 1
 
 
+def teardown_galactocentric_defaults():
+    from astropy.coordinates import galactocentric_frame_defaults
+    galactocentric_frame_defaults._value = 'pre-v4.0'
+
+
 def test_galactocentric_defaults():
     from astropy.coordinates import (Galactocentric,
                                      galactocentric_frame_defaults,
                                      BaseCoordinateFrame,
                                      CartesianDifferential)
-
-    # To restore this at end:
-    init_value = galactocentric_frame_defaults._value
 
     with galactocentric_frame_defaults.set('pre-v4.0'):
         galcen_pre40 = Galactocentric()
@@ -1174,17 +1176,12 @@ def test_galactocentric_defaults():
         else:
             assert getattr(galcen_40, k) == getattr(galcen_latest, k)
 
-    galactocentric_frame_defaults._value = init_value
+    teardown_galactocentric_defaults()
 
 
 def test_galactocentric_default_warning():
     from astropy.coordinates import (Galactocentric,
                                      galactocentric_frame_defaults)
-
-    # TODO: this needs to be audited and removed if we change the default
-    # defaults (yes) for v4.1. This is a hack to get around the fact that the
-    # doctests in galactocentric.py actually change the *class* state:
-    galactocentric_frame_defaults._value = 'pre-v4.0'
 
     # Make sure a warning is thrown if the frame is created with no args
     with pytest.warns(AstropyDeprecationWarning,
@@ -1199,3 +1196,5 @@ def test_galactocentric_default_warning():
     # No warning if using the latest parameter set:
     with galactocentric_frame_defaults.set('latest'):
         Galactocentric()
+
+    teardown_galactocentric_defaults()
