@@ -507,10 +507,12 @@ class CoordinateHelper:
         self._auto_axislabel = bool(val)
 
     def _get_default_axislabel(self):
-        if self.coord_type in ('longitude', 'latitude'):
+        unit = self.format_unit or self.coord_unit
+
+        if unit is None or self.coord_type in ('longitude', 'latitude'):
             return f"{self.name}"
         else:
-            return f"{self.name} [{self.format_unit:latex}]"
+            return f"{self.name} [{unit:latex}]"
 
     def set_axislabel_position(self, position):
         """
