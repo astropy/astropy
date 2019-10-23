@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import collections
 import fnmatch
 import time
 import re
@@ -107,14 +106,22 @@ twoval_to_decimal = np.vectorize(twoval_to_decimal1)
 
 
 def twoval_to_string1(val1, val2, fmt):
-    return format(twoval_to_decimal1(val1, val2), fmt)
+    if val2 == 0.:
+        # For some formats, only a single float is really used.
+        # For those, let numpy take care of correct number of digits.
+        return str(val1)
+
+    result = format(twoval_to_decimal1(val1, val2), fmt).strip('0')
+    if result[-1] == '.':
+        result += '0'
+    return result
 
 
 twoval_to_string = np.vectorize(twoval_to_string1, excluded='fmt')
 
 
 def twoval_to_bytes1(val1, val2, fmt):
-    return format(twoval_to_decimal1(val1, val2), fmt).encode('ascii')
+    return twoval_to_string1(val1, val2, fmt).encode('ascii')
 
 
 twoval_to_bytes = np.vectorize(twoval_to_bytes1, excluded='fmt')
@@ -421,7 +428,10 @@ class TimeNumeric(TimeFormat):
         subfmt = self._select_subfmts(out_subfmt)[0]
         kwargs = {}
         if subfmt[0] in ('str', 'bytes'):
-            kwargs['fmt'] = f'.{self.precision}f'
+            unit = getattr(self, 'unit', 1)
+            digits = int(np.ceil(np.log10(unit / np.finfo(float).eps)))
+            # TODO: allow a way to override the format.
+            kwargs['fmt'] = f'.{digits}f'
         value = subfmt[3](jd1, jd2, **kwargs)
         return self.mask_if_needed(value)
 
