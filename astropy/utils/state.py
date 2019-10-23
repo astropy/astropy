@@ -56,8 +56,13 @@ class ScienceState:
                 self._parent._value = self._value
 
             def __repr__(self):
-                return ('<ScienceState {}: {!r}>'
-                        .format(self._parent.__name__, self._parent._value))
+                # Ensure we have a single-line repr, just in case our
+                # value is not something simple like a string.
+                value_repr, lb, _ = repr(self._parent._value).partition('\n')
+                if lb:
+                    value_repr += '...'
+                return ('<ScienceState {}: {}>'
+                        .format(self._parent.__name__, value_repr))
 
         ctx = _Context(cls, cls._value)
         value = cls.validate(value)
