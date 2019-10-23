@@ -180,6 +180,7 @@ def test_existing_types_refuse_longdoubles(f):
         # accepts long doubles, better preserve accuracy!
         assert Time(np.longdouble(t2), format=f) != tm
 
+
 @pytest.mark.parametrize(
     "jd1, jd2",
     [
