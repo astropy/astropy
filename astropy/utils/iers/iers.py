@@ -818,28 +818,25 @@ class earth_rotation_table(ScienceState):
 
     Examples
     --------
-    To temporarily use the IERS-B file packaged with astropy:
+    To temporarily use the IERS-B file packaged with astropy::
 
-    >>> from astropy.utils import iers
-    >>> from astropy.time import Time
-    >>> iers_b = iers.IERS_B.open(IERS_B_FILE)
-    >>> with iers.earth_rotation_table.set(iers_b):
-    ...     print(Time('2000-01-01').ut1.isot)
-    2000-01-01T00:00:00.355
+      >>> from astropy.utils import iers
+      >>> from astropy.time import Time
+      >>> iers_b = iers.IERS_B.open(iers.IERS_B_FILE)
+      >>> with iers.earth_rotation_table.set(iers_b):
+      ...     print(Time('2000-01-01').ut1.isot)
+      2000-01-01T00:00:00.355
 
-    To use the most recent IERS-A file for the whole session:
+    To use the most recent IERS-A file for the whole session::
 
-    >>> iers_a = iers.IERS_A.open(iers.IERS_A_URL)  # doctest: +SKIP
-    >>> iers.earth_rotation_table.set(iers_a)  # doctest: +SKIP
-    <ScienceState earth_rotation_table: <IERS_A length=...>
-     year month  day    MJD   PolPMFlag_A ... PolPMFlag dX_2000A dY_2000A NutFlag
-                         d                ...           marcsec  marcsec
-    int64 int64 int64 float64     str1    ...    str1   float64  float64    str1
-    ...
+      >>> iers_a = iers.IERS_A.open(iers.IERS_A_URL)  # doctest: +SKIP
+      >>> iers.earth_rotation_table.set(iers_a)  # doctest: +SKIP
+      <ScienceState earth_rotation_table: <IERS_A length=17463>...>
 
-    To go back to the default (of `~astropy.utils.iers.IERS_Auto`):
+    To go back to the default (of `~astropy.utils.iers.IERS_Auto`)::
 
-    >>> iers.earth_rotation_table.set(None)  # doctest: +SKIP
+      >>> iers.earth_rotation_table.set(None)  # doctest: +SKIP
+      <ScienceState earth_rotation_table: <IERS_Auto length=17428>...>
     """
     _value = None
 
