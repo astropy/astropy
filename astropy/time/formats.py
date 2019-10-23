@@ -343,7 +343,8 @@ class TimeNumeric(TimeFormat):
                 'and second values are only allowed for doubles.'
                 .format(self.name))
 
-        for subfmt, dtype, convert, _ in self.subfmts:
+        subfmts = self._select_subfmts(self.in_subfmt)
+        for subfmt, dtype, convert, _ in subfmts:
             if np.issubdtype(val1.dtype, dtype):
                 break
         else:

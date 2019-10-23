@@ -1016,6 +1016,28 @@ class TestNumericalSubFormat:
         assert isinstance(dt.value, t)
         assert isinstance(dt.to_value(), t)
 
+    def test_wrong_in_subfmt(self):
+        with pytest.raises(ValueError, match='not among selected'):
+            Time("58000", format='mjd', in_subfmt='float')
+
+        with pytest.raises(ValueError, match='not among selected'):
+            Time(np.longdouble(58000), format='mjd', in_subfmt='float')
+
+        with pytest.raises(ValueError, match='not among selected'):
+            Time(58000., format='mjd', in_subfmt='str')
+
+        with pytest.raises(ValueError, match='not among selected'):
+            Time(58000., format='mjd', in_subfmt='long')
+
+    def test_wrong_out_subfmt(self):
+        t = Time(58000., format='mjd')
+        with pytest.raises(ValueError, match='must match one'):
+            t.to_value(subfmt='parrot')
+
+        t.out_subfmt = 'parrot'
+        with pytest.raises(ValueError):
+            t.value
+
 
 class TestSofaErrors:
     """Test that erfa status return values are handled correctly"""
