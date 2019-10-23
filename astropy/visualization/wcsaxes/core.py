@@ -746,6 +746,34 @@ class WCSAxes(Axes):
                 if spine in coord.axislabels.get_visible_axes():
                     coord.tick_params(**kwargs)
 
+    def set_world_aspect(self, aspect, **kwargs):
+        """
+        Set the aspect of the axes in world coordinates.
+
+        Parameters
+        ----------
+        aspect : float
+             A circle will be stretched such that the height is *aspect*
+             times the width in world coordinates.
+        kwargs : dict
+            Keyword arguments are handed to
+            `matplotib.axes.Axes.set_aspect`.
+        """
+        xunit, yunit = self.wcs.world_axis_units
+        x0, y0 = self.wcs.pixel_to_world_values((0, ), (0, ))
+        x1, y1 = self.wcs.pixel_to_world_values((1, ), (1, ))
+
+        cdelt = ((x1 - x0) * u.Unit(xunit), (y1 - y0) * u.Unit(yunit))
+
+        try:
+            equal_world_aspect = float(np.abs(cdelt[1] / cdelt[0]))
+        except TypeError:
+            raise RuntimeError('Axis units must be of the same '
+                               'physical units to set the same '
+                               'world aspect '
+                               f'(units are x:{xunit}, y:{yunit}).')
+        self.set_aspect(equal_world_aspect * aspect, **kwargs)
+
 
 # In the following, we put the generated subplot class in a temporary class and
 # we then inherit it - if we don't do this, the generated class appears to

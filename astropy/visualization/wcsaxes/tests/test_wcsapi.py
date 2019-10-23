@@ -18,6 +18,7 @@ from astropy.time import Time
 from astropy.units import Quantity
 from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
 from astropy.wcs import WCS
+from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.visualization.wcsaxes.frame import RectangularFrame, RectangularFrame1D
 from astropy.visualization.wcsaxes.wcsapi import (WCSWorld2PixelTransform,
                                                   transform_coord_meta_from_wcs,
@@ -422,3 +423,30 @@ class TestWCSAPI:
         ax.set_xlim(-0.5, 148.5)
         ax.set_ylim(-0.5, 148.5)
         return fig
+
+
+def test_set_world_aspect():
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ['x', 'y']
+    wcs.wcs.cunit = ['km', 'km']
+    wcs.wcs.crpix = [614.5, 856.5]
+    wcs.wcs.cdelt = [6.25, 6.25]
+    wcs.wcs.crval = [0., 0.]
+
+    fig = plt.figure()
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs)
+    ax.set_world_aspect(1)
+    assert ax.get_aspect() == 1
+
+    # Check with different cdelt values
+    wcs.wcs.cdelt = [1, 2]
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs)
+    ax.set_world_aspect(1)
+    assert ax.get_aspect() == 2
+
+    # Check that different units errors
+    wcs.wcs.cunit = ['s', 'km']
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs)
+    with pytest.raises(RuntimeError,
+                       match='Axis units must be of the same physical units'):
+        ax.set_world_aspect(1)
