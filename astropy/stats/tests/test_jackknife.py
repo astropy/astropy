@@ -59,7 +59,7 @@ def test_jackknife_stats_conf_interval():
 def test_jackknife_stats_exceptions():
     with pytest.raises(ValueError):
         with pytest.warns(AstropyDeprecationWarning):
-            jackknife_stats(np.array([]), np.mean, conf=0.9)
+            jackknife_stats(np.array([]), np.mean, conf_lvl=0.9)
 
     with pytest.raises(ValueError):
         jackknife_stats(np.arange(2), np.mean, confidence_level=42)
