@@ -686,7 +686,6 @@ def test_skycoord_to_pixel_distortions(mode):
     assert_allclose(new.dec.degree, ref.dec.degree)
 
 
-
 @pytest.fixture
 def spatial_wcs_2d_small_angle():
     """
