@@ -8,7 +8,7 @@ from numpy.testing import assert_allclose
 
 from astropy.convolution.utils import discretize_model
 from astropy.modeling.functional_models import (
-    Gaussian1D, Box1D, MexicanHat1D, Gaussian2D, Box2D, MexicanHat2D)
+    Gaussian1D, Box1D, RickerWavelet1D, Gaussian2D, Box2D, RickerWavelet2D)
 from astropy.modeling.tests.example_models import models_1D, models_2D
 from astropy.modeling.tests.test_models import create_model
 
@@ -20,8 +20,8 @@ except ImportError:
 
 
 modes = ['center', 'linear_interp', 'oversample']
-test_models_1D = [Gaussian1D, Box1D, MexicanHat1D]
-test_models_2D = [Gaussian2D, Box2D, MexicanHat2D]
+test_models_1D = [Gaussian1D, Box1D, RickerWavelet1D]
+test_models_2D = [Gaussian2D, Box2D, RickerWavelet2D]
 
 
 @pytest.mark.parametrize(('model_class', 'mode'), list(itertools.product(test_models_1D, modes)))

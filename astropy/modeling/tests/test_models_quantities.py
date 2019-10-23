@@ -7,15 +7,16 @@ from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
 
 from astropy.modeling.functional_models import (Gaussian1D,
-                                 Sersic1D, Sine1D, Linear1D,
-                                 Lorentz1D, Voigt1D, Const1D,
-                                 Box1D, Trapezoid1D, MexicanHat1D,
-                                 Moffat1D, Gaussian2D, Const2D, Ellipse2D,
-                                 Disk2D, Ring2D, Box2D, TrapezoidDisk2D,
-                                 MexicanHat2D, AiryDisk2D, Moffat2D, Sersic2D, KingProjectedAnalytic1D)
+                                                Sersic1D, Sine1D, Linear1D,
+                                                Lorentz1D, Voigt1D, Const1D,
+                                                Box1D, Trapezoid1D, RickerWavelet1D,
+                                                Moffat1D, Gaussian2D, Const2D, Ellipse2D,
+                                                Disk2D, Ring2D, Box2D, TrapezoidDisk2D,
+                                                RickerWavelet2D, AiryDisk2D, Moffat2D, Sersic2D,
+                                                KingProjectedAnalytic1D)
 
 from astropy.modeling.powerlaws import (PowerLaw1D, BrokenPowerLaw1D, SmoothlyBrokenPowerLaw1D,
-                         ExponentialCutoffPowerLaw1D, LogParabola1D)
+                                        ExponentialCutoffPowerLaw1D, LogParabola1D)
 
 from astropy.modeling.polynomial import Polynomial1D, Polynomial2D
 
@@ -29,9 +30,9 @@ except ImportError:
 
 FUNC_MODELS_1D = [
 {'class': Gaussian1D,
-'parameters': {'amplitude': 3 * u.Jy, 'mean': 2 * u.m, 'stddev': 30 * u.cm},
-'evaluation': [(2600 * u.mm, 3 * u.Jy * np.exp(-2))],
-'bounding_box': [0.35, 3.65] * u.m},
+ 'parameters': {'amplitude': 3 * u.Jy, 'mean': 2 * u.m, 'stddev': 30 * u.cm},
+ 'evaluation': [(2600 * u.mm, 3 * u.Jy * np.exp(-2))],
+ 'bounding_box': [0.35, 3.65] * u.m},
 {'class': Sersic1D,
  'parameters': {'amplitude': 3 * u.MJy / u.sr, 'r_eff': 2 * u.arcsec, 'n': 4},
  'evaluation': [(3 * u.arcsec, 1.3237148119468918 * u.MJy/u.sr)],
@@ -65,7 +66,7 @@ FUNC_MODELS_1D = [
  'parameters': {'amplitude': 3 * u.Jy, 'x_0': 4.4 * u.um, 'width': 1 * u.um, 'slope': 5 * u.Jy / u.um},
  'evaluation': [(4200 * u.nm, 3 * u.Jy), (1 * u.m, 0 * u.Jy)],
  'bounding_box': [3.3, 5.5] * u.um},
-{'class': MexicanHat1D,
+{'class': RickerWavelet1D,
  'parameters': {'amplitude': 3 * u.Jy, 'x_0': 4.4 * u.um, 'sigma': 1e-3 * u.mm},
  'evaluation': [(1000 * u.nm, -0.09785050 * u.Jy)],
  'bounding_box': [-5.6, 14.4] * u.um},
@@ -79,11 +80,11 @@ FUNC_MODELS_1D = [
  'bounding_box': [0. * u.pc, 2. * u.pc]}
  ]
 FUNC_MODELS_2D = [
- {'class': Gaussian2D,
-  'parameters': {'amplitude': 3 * u.Jy, 'x_mean': 2 * u.m, 'y_mean': 1 * u.m,
-                 'x_stddev': 3 * u.m, 'y_stddev': 2 * u.m, 'theta': 45 * u.deg},
-  'evaluation': [(412.1320343 * u.cm, 3.121320343 * u.m, 3 * u.Jy * np.exp(-0.5))],
-  'bounding_box': [[-14.18257445, 16.18257445], [-10.75693665, 14.75693665]] * u.m},
+{'class': Gaussian2D,
+ 'parameters': {'amplitude': 3 * u.Jy, 'x_mean': 2 * u.m, 'y_mean': 1 * u.m,
+                'x_stddev': 3 * u.m, 'y_stddev': 2 * u.m, 'theta': 45 * u.deg},
+ 'evaluation': [(412.1320343 * u.cm, 3.121320343 * u.m, 3 * u.Jy * np.exp(-0.5))],
+ 'bounding_box': [[-14.18257445, 16.18257445], [-10.75693665, 14.75693665]] * u.m},
 {'class': Const2D,
  'parameters': {'amplitude': 3 * u.Jy},
  'evaluation': [(0.6 * u.micron, 0.2 * u.m, 3 * u.Jy)],
@@ -113,7 +114,7 @@ FUNC_MODELS_2D = [
                 'x_width': 4 * u.cm, 'y_width': 3 * u.s},
  'evaluation': [(301 * u.cm, 3 * u.s, 3 * u.Jy)],
  'bounding_box': [[0.5 * u.s, 3.5 * u.s], [2.98 * u.m, 3.02 * u.m]]},
-{'class': MexicanHat2D,
+{'class': RickerWavelet2D,
  'parameters': {'amplitude': 3 * u.Jy, 'x_0': 3 * u.m, 'y_0': 2 * u.m,
                 'sigma': 1 * u.m},
  'evaluation': [(4 * u.m, 2.5 * u.m, 0.602169107 * u.Jy)],
