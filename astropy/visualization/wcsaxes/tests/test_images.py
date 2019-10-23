@@ -808,7 +808,8 @@ def test_1d_plot_2d_wcs_correlated(spatial_wcs_2d):
 @pytest.fixture
 def spatial_wcs_2d_small_angle():
     """
-    This WCS has an almost linear correlation between the pixel and world axes.
+    This WCS has an almost linear correlation between the pixel and world axes
+    close to the reference pixel.
     """
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ['HPLN-TAN', 'HPLT-TAN']
