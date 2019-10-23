@@ -8,10 +8,11 @@ from .core import Kernel1D, Kernel2D, Kernel
 from .utils import has_even_axis, raise_even_kernel_exception
 from astropy.modeling import models
 from astropy.modeling.core import Fittable1DModel, Fittable2DModel
+from astropy.utils.decorators import deprecated
 
 __all__ = ['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
            'Box1DKernel', 'Box2DKernel', 'Tophat2DKernel',
-           'Trapezoid1DKernel', 'MexicanHat1DKernel', 'MexicanHat2DKernel',
+           'Trapezoid1DKernel', 'RickerWavelet1DKernel', 'RickerWavelet2DKernel',
            'AiryDisk2DKernel', 'Moffat2DKernel', 'Model1DKernel',
            'Model2DKernel', 'TrapezoidDisk2DKernel', 'Ring2DKernel']
 
@@ -58,7 +59,7 @@ class Gaussian1DKernel(Kernel1D):
 
     See Also
     --------
-    Box1DKernel, Trapezoid1DKernel, MexicanHat1DKernel
+    Box1DKernel, Trapezoid1DKernel, RickerWavelet1DKernel
 
 
     Examples
@@ -127,7 +128,7 @@ class Gaussian2DKernel(Kernel2D):
 
     See Also
     --------
-    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel,
+    Box2DKernel, Tophat2DKernel, RickerWavelet2DKernel, Ring2DKernel,
     TrapezoidDisk2DKernel, AiryDisk2DKernel, Moffat2DKernel
 
     Examples
@@ -198,7 +199,7 @@ class Box1DKernel(Kernel1D):
 
     See Also
     --------
-    Gaussian1DKernel, Trapezoid1DKernel, MexicanHat1DKernel
+    Gaussian1DKernel, Trapezoid1DKernel, RickerWavelet1DKernel
 
 
     Examples
@@ -266,7 +267,7 @@ class Box2DKernel(Kernel2D):
 
     See Also
     --------
-    Gaussian2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel,
+    Gaussian2DKernel, Tophat2DKernel, RickerWavelet2DKernel, Ring2DKernel,
     TrapezoidDisk2DKernel, AiryDisk2DKernel, Moffat2DKernel
 
     Examples
@@ -331,7 +332,7 @@ class Tophat2DKernel(Kernel2D):
 
     See Also
     --------
-    Gaussian2DKernel, Box2DKernel, MexicanHat2DKernel, Ring2DKernel,
+    Gaussian2DKernel, Box2DKernel, RickerWavelet2DKernel, Ring2DKernel,
     TrapezoidDisk2DKernel, AiryDisk2DKernel, Moffat2DKernel
 
     Examples
@@ -390,7 +391,7 @@ class Ring2DKernel(Kernel2D):
 
     See Also
     --------
-    Gaussian2DKernel, Box2DKernel, Tophat2DKernel, MexicanHat2DKernel,
+    Gaussian2DKernel, Box2DKernel, Tophat2DKernel, RickerWavelet2DKernel,
     Ring2DKernel, AiryDisk2DKernel, Moffat2DKernel
 
     Examples
@@ -448,7 +449,7 @@ class Trapezoid1DKernel(Kernel1D):
 
     See Also
     --------
-    Box1DKernel, Gaussian1DKernel, MexicanHat1DKernel
+    Box1DKernel, Gaussian1DKernel, RickerWavelet1DKernel
 
     Examples
     --------
@@ -506,7 +507,7 @@ class TrapezoidDisk2DKernel(Kernel2D):
 
     See Also
     --------
-    Gaussian2DKernel, Box2DKernel, Tophat2DKernel, MexicanHat2DKernel,
+    Gaussian2DKernel, Box2DKernel, Tophat2DKernel, RickerWavelet2DKernel,
     Ring2DKernel, AiryDisk2DKernel, Moffat2DKernel
 
     Examples
@@ -536,7 +537,7 @@ class TrapezoidDisk2DKernel(Kernel2D):
         self.normalize()
 
 
-class MexicanHat1DKernel(Kernel1D):
+class RickerWavelet1DKernel(Kernel1D):
     """
     1D Mexican hat filter kernel.
 
@@ -588,8 +589,8 @@ class MexicanHat1DKernel(Kernel1D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.convolution import MexicanHat1DKernel
-        mexicanhat_1D_kernel = MexicanHat1DKernel(10)
+        from astropy.convolution import RickerWavelet1DKernel
+        mexicanhat_1D_kernel = RickerWavelet1DKernel(10)
         plt.plot(mexicanhat_1D_kernel, drawstyle='steps')
         plt.xlabel('x [pixels]')
         plt.ylabel('value')
@@ -606,7 +607,7 @@ class MexicanHat1DKernel(Kernel1D):
         self._truncation = np.abs(self._array.sum() / self._array.size)
 
 
-class MexicanHat2DKernel(Kernel2D):
+class RickerWavelet2DKernel(Kernel2D):
     """
     2D Mexican hat filter kernel.
 
@@ -661,8 +662,8 @@ class MexicanHat2DKernel(Kernel2D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.convolution import MexicanHat2DKernel
-        mexicanhat_2D_kernel = MexicanHat2DKernel(10)
+        from astropy.convolution import RickerWavelet2DKernel
+        mexicanhat_2D_kernel = RickerWavelet2DKernel(10)
         plt.imshow(mexicanhat_2D_kernel, interpolation='none', origin='lower')
         plt.xlabel('x [pixels]')
         plt.ylabel('y [pixels]')
@@ -713,7 +714,7 @@ class AiryDisk2DKernel(Kernel2D):
 
     See Also
     --------
-    Gaussian2DKernel, Box2DKernel, Tophat2DKernel, MexicanHat2DKernel,
+    Gaussian2DKernel, Box2DKernel, Tophat2DKernel, RickerWavelet2DKernel,
     Ring2DKernel, TrapezoidDisk2DKernel, AiryDisk2DKernel, Moffat2DKernel
 
     Examples
@@ -777,7 +778,7 @@ class Moffat2DKernel(Kernel2D):
 
     See Also
     --------
-    Gaussian2DKernel, Box2DKernel, Tophat2DKernel, MexicanHat2DKernel,
+    Gaussian2DKernel, Box2DKernel, Tophat2DKernel, RickerWavelet2DKernel,
     Ring2DKernel, TrapezoidDisk2DKernel, AiryDisk2DKernel
 
     Examples
@@ -1022,3 +1023,13 @@ class CustomKernel(Kernel):
         self._is_bool = bool(np.all(np.logical_or(ones, zeros)))
 
         self._truncation = 0.0
+
+
+@deprecated('4.0', alternative='RickerWavelet1DKernel')
+class MexicanHat1DKernel(RickerWavelet1DKernel):
+    pass
+
+
+@deprecated('4.0', alternative='RickerWavelet2DKernel')
+class MexicanHat2DKernel(RickerWavelet2DKernel):
+    pass
