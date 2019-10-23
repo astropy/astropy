@@ -58,6 +58,9 @@ astropy.io.fits
 - Changed the ``fitscheck`` and ``fitsdiff`` script to use the ``argparse``
   module instead of ``optparse``. [#9148]
 
+- Allow writing of ``Table`` objects with ``Time`` columns that are also table
+  indices to FITS files. [#8077]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
