@@ -372,6 +372,10 @@ astropy.stats
   ``binom_conf_interval``. Usage of ``conf`` now issues
   ``AstropyDeprecationWarning``. [#9408]
 
+- Renamed the ``conf_lvl`` keyword to ``confidence_level`` in
+  ``jackknife_stats``. Usage of ``conf_lvl`` now issues
+  ``AstropyDeprecationWarning``. [#9408]
+
 astropy.table
 ^^^^^^^^^^^^^
 
