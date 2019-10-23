@@ -139,13 +139,13 @@ def test_median_absolute_deviation_quantity():
 def test_binom_conf_interval():
 
     # Test Wilson and Jeffreys interval for corner cases:
-    # Corner cases: k = 0, k = n, conf = 0., conf = 1.
+    # Corner cases: k = 0, k = n, confidence_level = 0., confidence_level = 1.
     n = 5
     k = [0, 4, 5]
     for conf in [0., 0.5, 1.]:
-        res = funcs.binom_conf_interval(k, n, conf=conf, interval='wilson')
+        res = funcs.binom_conf_interval(k, n, confidence_level=conf, interval='wilson')
         assert ((res >= 0.) & (res <= 1.)).all()
-        res = funcs.binom_conf_interval(k, n, conf=conf, interval='jeffreys')
+        res = funcs.binom_conf_interval(k, n, confidence_level=conf, interval='jeffreys')
         assert ((res >= 0.) & (res <= 1.)).all()
 
     # Test Jeffreys interval accuracy against table in Brown et al. (2001).
@@ -153,27 +153,28 @@ def test_binom_conf_interval():
     k = [0, 1, 2, 3, 4]
     n = 7
     conf = 0.95
-    result = funcs.binom_conf_interval(k, n, conf=conf, interval='jeffreys')
+    result = funcs.binom_conf_interval(k, n, confidence_level=conf, interval='jeffreys')
     table = np.array([[0.000, 0.016, 0.065, 0.139, 0.234],
                       [0.292, 0.501, 0.648, 0.766, 0.861]])
     assert_allclose(result, table, atol=1.e-3, rtol=0.)
 
     # Test scalar version
-    result = np.array([funcs.binom_conf_interval(kval, n, conf=conf,
+    result = np.array([funcs.binom_conf_interval(kval, n, confidence_level=conf,
                                                  interval='jeffreys')
                        for kval in k]).transpose()
     assert_allclose(result, table, atol=1.e-3, rtol=0.)
 
     # Test flat
-    result = funcs.binom_conf_interval(k, n, conf=conf, interval='flat')
+    result = funcs.binom_conf_interval(k, n, confidence_level=conf, interval='flat')
     table = np.array([[0., 0.03185, 0.08523, 0.15701, 0.24486],
                       [0.36941, 0.52650, 0.65085, 0.75513, 0.84298]])
     assert_allclose(result, table, atol=1.e-3, rtol=0.)
 
     # Test scalar version
-    result = np.array([funcs.binom_conf_interval(kval, n, conf=conf,
-                                                 interval='flat')
-                       for kval in k]).transpose()
+    with pytest.warns(AstropyDeprecationWarning):
+        result = np.array([funcs.binom_conf_interval(kval, n, conf=conf,
+                                                     interval='flat')
+                           for kval in k]).transpose()
     assert_allclose(result, table, atol=1.e-3, rtol=0.)
 
     # Test Wald interval
@@ -181,7 +182,7 @@ def test_binom_conf_interval():
     assert_allclose(result, 0.)  # conf interval is [0, 0] when k = 0
     result = funcs.binom_conf_interval(5, 5, interval='wald')
     assert_allclose(result, 1.)  # conf interval is [1, 1] when k = n
-    result = funcs.binom_conf_interval(500, 1000, conf=0.68269,
+    result = funcs.binom_conf_interval(500, 1000, confidence_level=0.68269,
                                        interval='wald')
     assert_allclose(result[0], 0.5 - 0.5 / np.sqrt(1000.))
     assert_allclose(result[1], 0.5 + 0.5 / np.sqrt(1000.))
