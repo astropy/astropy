@@ -5,7 +5,7 @@ import time
 import re
 import datetime
 import warnings
-from decimal import Decimal, localcontext
+from decimal import Decimal
 from collections import OrderedDict, defaultdict
 
 import numpy as np
@@ -14,6 +14,8 @@ from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy import units as u
 from astropy import _erfa as erfa
+
+from . import utils
 from .utils import day_frac, quantity_day_frac, two_sum, two_product
 
 
@@ -40,8 +42,6 @@ TIME_DELTA_FORMATS = OrderedDict()
 # Rots et al. 2015, A&A 574:A36, and timescales used here.
 FITS_DEPRECATED_SCALES = {'TDT': 'tt', 'ET': 'tt',
                           'GMT': 'utc', 'UT': 'utc', 'IAT': 'tai'}
-
-_enough_decimal_places = 34  # to represent two doubles
 
 
 def _regexify_subfmts(subfmts):
@@ -73,58 +73,6 @@ def _regexify_subfmts(subfmts):
         new_subfmts.append(subfmt_tuple)
 
     return tuple(new_subfmts)
-
-
-def decimal_to_twoval1(val1, val2=None):
-    with localcontext() as ctx:
-        ctx.prec = _enough_decimal_places
-        i, f = divmod(Decimal(val1), 1)
-    return float(i), float(f)
-
-
-decimal_to_twoval = np.vectorize(decimal_to_twoval1)
-
-
-def bytes_to_twoval1(val1, val2=None):
-    return decimal_to_twoval1(val1.decode('ascii'))
-
-
-bytes_to_twoval = np.vectorize(bytes_to_twoval1)
-
-
-def twoval_to_longdouble(val1, val2):
-    return val1.astype(np.longdouble) + val2.astype(np.longdouble)
-
-
-def twoval_to_decimal1(val1, val2):
-    with localcontext() as ctx:
-        ctx.prec = _enough_decimal_places
-        return Decimal(val1) + Decimal(val2)
-
-
-twoval_to_decimal = np.vectorize(twoval_to_decimal1)
-
-
-def twoval_to_string1(val1, val2, fmt):
-    if val2 == 0.:
-        # For some formats, only a single float is really used.
-        # For those, let numpy take care of correct number of digits.
-        return str(val1)
-
-    result = format(twoval_to_decimal1(val1, val2), fmt).strip('0')
-    if result[-1] == '.':
-        result += '0'
-    return result
-
-
-twoval_to_string = np.vectorize(twoval_to_string1, excluded='fmt')
-
-
-def twoval_to_bytes1(val1, val2, fmt):
-    return twoval_to_string1(val1, val2, fmt).encode('ascii')
-
-
-twoval_to_bytes = np.vectorize(twoval_to_bytes1, excluded='fmt')
 
 
 class TimeFormatMeta(type):
@@ -373,10 +321,11 @@ class TimeFormat(metaclass=TimeFormatMeta):
 class TimeNumeric(TimeFormat):
     subfmts = (
         ('float', np.float64, None, np.add),
-        ('long', np.longdouble, None, twoval_to_longdouble),
-        ('decimal', np.dtype(object), decimal_to_twoval, twoval_to_decimal),
-        ('str', np.str_, decimal_to_twoval, twoval_to_string),
-        ('bytes', np.bytes_, bytes_to_twoval, twoval_to_bytes),
+        ('long', np.longdouble, None, utils.twoval_to_longdouble),
+        ('decimal', np.object_, utils.decimal_to_twoval,
+         utils.twoval_to_decimal),
+        ('str', np.str_, utils.decimal_to_twoval, utils.twoval_to_string),
+        ('bytes', np.bytes_, utils.bytes_to_twoval, utils.twoval_to_bytes),
     )
 
     def _check_val_type(self, val1, val2):
