@@ -273,6 +273,38 @@ class TestFitsTime(FitsTestCase):
         assert tm['a'].location.z.value == t['a'].location.z.to_value(unit='m')
 
     @pytest.mark.parametrize('table_types', (Table, QTable))
+    def test_fits_to_time_index(self, table_types):
+        """
+        Ensure that fits_to_time works correctly if the time column is also
+        an index.
+        """
+        t = table_types()
+        t['a'] = Time(self.time, format='isot', scale='utc')
+        t['b'] = [2, 1]
+        t['c'] = [3, 4]
+
+        # Make it so that the time column is also an index
+        t.add_index('a')
+        t.add_index('b')
+
+        # Test for default write behavior (full precision) and read it
+        # back using native astropy objects; thus, ensure its round-trip
+        t.write(self.temp('time.fits'), format='fits', overwrite=True)
+        tm = table_types.read(self.temp('time.fits'), format='fits',
+                              astropy_native=True)
+
+        assert isinstance(tm['a'], Time)
+
+        # Ensure that indices on original table are preserved but round-trip
+        # table has no indices.  (If indices are ever serialized the final two
+        # tests are expected to fail).
+        assert len(t.indices) == 2
+        assert len(tm.indices) == 0
+        for name in ('a', 'b'):
+            assert len(t[name].info.indices) == 1
+            assert len(tm[name].info.indices) == 0
+
+    @pytest.mark.parametrize('table_types', (Table, QTable))
     def test_io_time_read_fits(self, table_types):
         """
         Test that FITS table with time columns (standard compliant)
