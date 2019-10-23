@@ -29,10 +29,12 @@ The exception is below:
 .. note:: The ``astropy.utils.compat`` subpackage is not included in this
     documentation. It contains utility modules for compatibility with
     older/newer versions of python and numpy, as well as including some
-    bugfixes for the stdlib that are important for Astropy. It is recommended
+    bugfixes for the stdlib that are important for ``astropy``. It is recommended
     that developers at least glance over the source code for this subpackage,
     but most of it cannot be reliably included here because of the large
-    amount of version-specific code it contains.
+    amount of version-specific code it contains. Its content is solely for
+    internal use of ``astropy`` and subject to changes without deprecations.
+    Do not use it in external packages or code.
 
 Reference/API
 =============
