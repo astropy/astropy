@@ -141,7 +141,7 @@ class TimeSeries(BaseTimeSeries):
         """
         return self['time']
 
-    def fold(self, period=None, midpoint_epoch=None):
+    def fold(self, period=None, epoch=None, normalize_phase=True, phase_range=1):
         """
         Return a new `~astropy.timeseries.TimeSeries` folded with a period and
         midpoint epoch.
@@ -150,28 +150,47 @@ class TimeSeries(BaseTimeSeries):
         ----------
         period : `~astropy.units.Quantity`
             The period to use for folding
-        midpoint_epoch : `~astropy.time.Time`
+        epoch : `~astropy.time.Time`
             The time to use as the midpoint epoch, at which the relative
-            time offset will be 0. Defaults to the first time in the time
-            series.
+            time offset / phase will be 0. Defaults to the first time in the
+            time series.
+        normalize_phase : bool
+            If False phase is returned as `~astropy.time.TimeDelta`, otherwise
+            as dimensionless `~astropy.units.Quantity`.
+        phase_range : float
+            Length of phase to return, centered on ``epoch``. Default is 1 to
+            return the full phase.
+
+        Returns
+        -------
+        folded_timeseries : `~astropy.timeseries.TimeSeries`
+            The folded time series object with phase as the ``time`` column.
         """
 
         folded = self.copy()
 
-        if midpoint_epoch is None:
-            midpoint_epoch = self.time[0]
+        if epoch is None:
+            epoch = self.time[0]
         else:
-            midpoint_epoch = Time(midpoint_epoch)
+            epoch = Time(epoch)
 
         period_sec = period.to_value(u.s)
-        relative_time_sec = ((self.time - midpoint_epoch).sec + period_sec / 2) % period_sec - period_sec / 2
+        relative_time_sec = ((self.time - epoch).sec + period_sec / 2) % period_sec - period_sec / 2
 
         folded_time = TimeDelta(relative_time_sec * u.s)
+        if normalize_phase:
+            folded_time = (folded_time / period).decompose()
+            period_sec = 1
 
         with folded._delay_required_column_checks():
             folded.remove_column('time')
             folded.add_column(folded_time, name='time', index=0)
 
+        if phase_range < 1:
+            folded = folded[np.abs(folded['time']) < (period_sec * phase_range / 2)]
+        elif phase_range > 1:
+            # TODO
+            pass
         return folded
 
     def __getitem__(self, item):
