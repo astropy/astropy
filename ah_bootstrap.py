@@ -96,6 +96,13 @@ CFG_OPTIONS = [
 
 # Start off by parsing the setup.cfg file
 
+_err_help_msg = """
+If the problem persists consider installing astropy_helpers manually using pip
+(`pip install astropy_helpers`) or by manually downloading the source archive,
+extracting it, and installing by running `python setup.py install` from the
+root of the extracted source code.
+"""
+
 SETUP_CFG = ConfigParser()
 
 if os.path.exists('setup.cfg'):
@@ -133,9 +140,10 @@ if SETUP_CFG.has_option('options', 'python_requires'):
 
     # We want the Python version as a string, which we can get from the platform module
     import platform
-    python_version = platform.python_version()
-
-    if not req.specifier.contains(python_version):
+    # strip off trailing '+' incase this is a dev install of python
+    python_version = platform.python_version().strip('+')
+    # allow pre-releases to count as 'new enough'
+    if not req.specifier.contains(python_version, True):
         if parent_package is None:
             print("ERROR: Python {} is required by this package".format(req.specifier))
         else:
@@ -931,14 +939,6 @@ def _silence():
     if not exception_occurred:
         sys.stdout = old_stdout
         sys.stderr = old_stderr
-
-
-_err_help_msg = """
-If the problem persists consider installing astropy_helpers manually using pip
-(`pip install astropy_helpers`) or by manually downloading the source archive,
-extracting it, and installing by running `python setup.py install` from the
-root of the extracted source code.
-"""
 
 
 class _AHBootstrapSystemExit(SystemExit):
