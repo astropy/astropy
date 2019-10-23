@@ -104,7 +104,7 @@ def join(left, right, keys=None, join_type='inner',
         Name(s) of column(s) used to match rows of left and right tables.
         Default is to use all columns which are common to both tables.
     join_type : str
-        Join type ('inner' | 'outer' | 'left' | 'right'), default is 'inner'
+        Join type ('inner' | 'outer' | 'left' | 'right' | 'cartesian'), default is 'inner'
     uniq_col_name : str or None
         String generate a unique output column name in case of a conflict.
         The default is '{col_name}_{table_name}'.
@@ -777,7 +777,7 @@ def _join(left, right, keys=None, join_type='inner',
         Name(s) of column(s) used to match rows of left and right tables.
         Default is to use all columns which are common to both tables.
     join_type : str
-        Join type ('inner' | 'outer' | 'left' | 'right'), default is 'inner'
+        Join type ('inner' | 'outer' | 'left' | 'right' | 'cartesian'), default is 'inner'
     uniq_col_name : str or None
         String generate a unique output column name in case of a conflict.
         The default is '{col_name}_{table_name}'.
@@ -801,10 +801,26 @@ def _join(left, right, keys=None, join_type='inner',
     # Store user-provided col_name_map until the end
     _col_name_map = col_name_map
 
-    if join_type not in ('inner', 'outer', 'left', 'right'):
+    # Special column name for cartesian join, should never collide with real column
+    cartesian_index_name = '__table_cartesian_join_temp_index__'
+
+    if join_type not in ('inner', 'outer', 'left', 'right', 'cartesian'):
         raise ValueError("The 'join_type' argument should be in 'inner', "
-                         "'outer', 'left' or 'right' (got '{}' instead)".
+                         "'outer', 'left', 'right', or 'cartesian' "
+                         "(got '{}' instead)".
                          format(join_type))
+
+    if join_type == 'cartesian':
+        if keys:
+            raise ValueError('cannot supply keys for a cartesian join')
+
+        # Make light copies of left and right, then add temporary index columns
+        # with all the same value so later an outer join turns into a cartesian join.
+        left = left.copy(copy_data=False)
+        right = right.copy(copy_data=False)
+        left[cartesian_index_name] = np.uint8(0)
+        right[cartesian_index_name] = np.uint8(0)
+        keys = (cartesian_index_name, )
 
     # If we have a single key, put it in a tuple
     if keys is None:
@@ -840,13 +856,16 @@ def _join(left, right, keys=None, join_type='inner',
 
     # Main inner loop in Cython to compute the cartesian product
     # indices for the given join type
-    int_join_type = {'inner': 0, 'outer': 1, 'left': 2, 'right': 3}[join_type]
+    int_join_type = {'inner': 0, 'outer': 1, 'left': 2, 'right': 3,
+                     'cartesian': 1}[join_type]
     masked, n_out, left_out, left_mask, right_out, right_mask = \
         _np_utils.join_inner(idxs, idx_sort, len_left, int_join_type)
 
     out = _get_out_class([left, right])()
 
     for out_name, dtype, shape in out_descrs:
+        if out_name == cartesian_index_name:
+            continue
 
         left_name, right_name = col_name_map[out_name]
         if left_name and right_name:  # this is a key which comes from left and right
