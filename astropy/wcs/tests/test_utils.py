@@ -29,8 +29,8 @@ from astropy.wcs.utils import (proj_plane_pixel_scales,
                                pixel_to_pixel,
                                _split_matrix,
                                _pixel_to_pixel_correlation_matrix,
-                               _pixel_to_world_correlation_matrix)
-
+                               _pixel_to_world_correlation_matrix,
+                               local_partial_pixel_derivatives)
 
 def test_wcs_dropping():
     wcs = WCS(naxis=4)
@@ -684,6 +684,39 @@ def test_skycoord_to_pixel_distortions(mode):
 
     assert_allclose(new.ra.degree, ref.ra.degree)
     assert_allclose(new.dec.degree, ref.dec.degree)
+
+
+
+@pytest.fixture
+def spatial_wcs_2d_small_angle():
+    """
+    This WCS has an almost linear correlation between the pixel and world axes
+    close to the reference pixel.
+    """
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ['HPLN-TAN', 'HPLT-TAN']
+    wcs.wcs.crpix = [3.0] * 2
+    wcs.wcs.cdelt = [0.002] * 2
+    wcs.wcs.crval = [0] * 2
+    wcs.wcs.set()
+    return wcs
+
+
+def test_local_pixel_derivatives(spatial_wcs_2d_small_angle):
+    not_diag = np.logical_not(np.diag([1,1]))
+    # At (or close to) the reference pixel this should equal the cdelt
+    derivs = local_partial_pixel_derivatives(spatial_wcs_2d_small_angle, 3, 3)
+    np.testing.assert_allclose(np.diag(derivs), spatial_wcs_2d_small_angle.wcs.cdelt)
+    np.testing.assert_allclose(derivs[not_diag].flat, [0,0], atol=1e-10)
+
+    # Far away from the reference pixel this should not equal the cdelt
+    derivs = local_partial_pixel_derivatives(spatial_wcs_2d_small_angle, 3e4, 3e4)
+    assert not np.allclose(np.diag(derivs), spatial_wcs_2d_small_angle.wcs.cdelt)
+
+    # At (or close to) the reference pixel this should equal the cdelt
+    derivs = local_partial_pixel_derivatives(spatial_wcs_2d_small_angle, 3, 3, normalize_by_world=True)
+    np.testing.assert_allclose(np.diag(derivs), [1, 1])
+    np.testing.assert_allclose(derivs[not_diag].flat, [0,0], atol=1e-8)
 
 
 def test_pixel_to_world_correlation_matrix_celestial():
