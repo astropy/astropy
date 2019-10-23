@@ -374,8 +374,11 @@ astropy.table
 
 - Removed the non-public method ``astropy.table.np_utils.recarray_fromrecords``.
   [#9165]
-- Accessing variable length columns from VO table no longer returns bytes
-  string type. [#????]
+
+- Table item access behavior of a ``Column`` with ``bytes`` data type has
+  changed in a way that it looks like ``str`` when accessed. This change is
+  necessary so that a variable length column in a VO table no longer returns
+  ``bytes`` string type. [#8745]
 
 astropy.tests
 ^^^^^^^^^^^^^
