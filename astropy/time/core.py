@@ -1634,14 +1634,6 @@ class Time(ShapedLikeNDArray):
         elif attr in self.FORMATS:
             return self.to_value(attr)
 
-        elif '_' in attr:
-            fmt, _, out_subfmt = attr.rpartition('_')
-            if fmt in self.FORMATS:
-                try:
-                    return self.to_value(fmt, subfmt=out_subfmt)
-                except Exception:
-                    pass  # Rather raise AttributeError below.
-
         if attr in TIME_SCALES:  # allowed ones done above (self.SCALES)
             if self.scale is None:
                 raise ScaleValueError("Cannot convert TimeDelta with "

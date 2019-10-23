@@ -279,7 +279,6 @@ class TestTimeDelta:
         assert dt.to_value('jd') == 1.
         assert dt.to_value('jd', 'str') == '1.000'
         assert dt.to_value(subfmt='str') == '86400.000'
-        assert dt.sec_str == '86400.000'
         with pytest.raises(ValueError,
                            match='format is not one.*trying to parse it'):
             dt.to_value('julian')

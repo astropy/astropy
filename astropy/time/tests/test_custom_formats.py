@@ -7,7 +7,6 @@ import pytest
 
 import numpy as np
 
-import astropy.units as u
 from astropy._erfa import DJM0
 from astropy.time import Time, TimeFormat
 from astropy.time.utils import day_frac
@@ -156,17 +155,6 @@ def test_mjd_longdouble_preserves_precision(custom_format_name):
     assert t != t2
     assert isinstance(getattr(t, custom_format_name), np.longdouble)
     assert getattr(t, custom_format_name) != getattr(t2, custom_format_name)
-
-
-def test_mjd_unit_validation():
-    with pytest.raises(u.UnitConversionError):
-        Time(58000 * u.m, format="mjd")
-
-
-def test_mjd_unit_conversion():
-    assert Time(58000 * u.day, format="mjd") == Time(58000 * u.day, format="mjd")
-    assert Time(58000 * u.day, format="mjd") != Time(58000 * u.s, format="mjd")
-    assert Time(58000 * u.day, format="mjd") == Time(58000 * 86400 * u.s, format="mjd")
 
 
 @pytest.mark.parametrize("f", ["mjd", "unix", "cxcsec"])

@@ -862,13 +862,10 @@ class TestNumericalSubFormat:
         t = Time('54321.000000000001', format='mjd', precision=13)
         assert t == Time(54321, 1e-12, format='mjd')
         assert t.mjd == 54321.  # Lost precision!
+        assert t.value == 54321.  # Lost precision!
         assert t.to_value() == 54321.  # Lost precision!
         assert t.to_value(subfmt='str') == '54321.0000000000010'
         assert t.to_value('mjd', 'bytes') == b'54321.0000000000010'
-        assert t.value == 54321.  # Lost precision!
-        assert t.mjd_str == '54321.0000000000010'
-        assert t.mjd_bytes == b'54321.0000000000010'
-        assert t.value == 54321.  # Lost precision!
         t.out_subfmt = 'str'
         assert t.value == '54321.0000000000010'
         assert t.to_value() == '54321.0000000000010'
@@ -897,47 +894,43 @@ class TestNumericalSubFormat:
                              for _f in f], dtype=out_subfmt)
         assert np.all(t_value == expected)
 
-        # Explicit value.
+        # Explicit sub-format.
         t = Time(i, f, format='mjd', precision=13)
-        t_mjd_subfmt = getattr(t, f'mjd_{out_subfmt}')
+        t_mjd_subfmt = t.to_value(subfmt=out_subfmt)
         assert np.all(t_mjd_subfmt == expected)
-        t_mjd_subfmt2 = t.to_value(subfmt=out_subfmt)
-        assert np.all(t_mjd_subfmt2 == expected)
 
     def test_explicit_other_formats(self):
         t = Time('2451544.5333981', format='jd', scale='tai', precision=8)
         assert t == Time(2451544.5, .0333981, format='jd', scale='tai')
-        assert t.jd_str == '2451544.53339810'
+        assert t.to_value(subfmt='str') == '2451544.53339810'
         t = Time('2000.54321', format='decimalyear', precision=6)
         assert t == Time(2000., 0.54321, format='decimalyear')
-        assert t.decimalyear_str == '2000.543210'
+        assert t.to_value(subfmt='str') == '2000.543210'
         t = Time('100.0123456', format='cxcsec', precision=6)
         assert t == Time(100.0123456, format='cxcsec')
-        assert t.cxcsec_str == '100.012346'
+        assert t.to_value(subfmt='str') == '100.012346'
         t = Time('100.0123456', format='unix', precision=7)
         assert t == Time(100.0123456, format='unix')
-        assert t.unix_str == '100.0123456'
+        assert t.to_value(subfmt='str') == '100.0123456'
         t = Time('100.0123456', format='gps')
         assert t == Time(100.0123456, format='gps')
-        assert t.gps_str == '100.012'
-        # Note: cannot fully test _str format since byear_str exists.
-        t = Time('1950.1', format='byear', scale='tai', out_subfmt='str')
+        assert t.to_value(subfmt='str') == '100.012'
+        t = Time('1950.1', format='byear', scale='tai')
         assert t == Time(1950.1, format='byear', scale='tai')
-        assert t.value == '1950.100'
-        t = Time('2000.1', format='jyear', scale='tai', out_subfmt='str')
+        assert t.to_value(subfmt='str') == '1950.100'
+        t = Time('2000.1', format='jyear', scale='tai')
         assert t == Time(2000.1, format='jyear', scale='tai')
-        assert t.value == '2000.100'
+        assert t.to_value(subfmt='str') == '2000.100'
 
     def test_basic_subformat_setting(self):
         t = Time('2001', format='jyear', scale='tai')
         t.format = "mjd"
-        assert t.mjd_str.startswith("5")
+        assert t.to_value(subfmt='str').startswith("5")
 
     def test_basic_subformat_cache_does_not_crash(self):
         t = Time('2001', format='jyear', scale='tai')
-        t.mjd_str
+        t.to_value('mjd', subfmt='str')
         assert 'mjd_str' in t.cache['format']
-        t.mjd_str
         t.to_value('mjd', 'str')
 
     @pytest.mark.parametrize("fmt", ["jd", "mjd", "cxcsec", "unix", "gps", "jyear"])
@@ -946,24 +939,24 @@ class TestNumericalSubFormat:
         t.format = fmt
         with localcontext() as ctx:
             ctx.prec = 2
-            t_s_2 = getattr(t, fmt+"_str")
+            t_s_2 = t.to_value(fmt, "str")
         t2 = Time('2001', format='jyear', scale='tai')
         t2.format = fmt
         with localcontext() as ctx:
             ctx.prec = 40
-            t2_s_40 = getattr(t2, fmt+"_str")
+            t2_s_40 = t.to_value(fmt, "str")
         assert t_s_2 == t2_s_40, "String representation should not depend on Decimal context"
 
     def test_decimal_context_caching(self):
         t = Time(val=58000, val2=1e-14, format='mjd', scale='tai')
         with localcontext() as ctx:
             ctx.prec = 2
-            t_s_2 = t.mjd_decimal
+            t_s_2 = t.to_value(subfmt='decimal')
         t2 = Time(val=58000, val2=1e-14, format='mjd', scale='tai')
         with localcontext() as ctx:
             ctx.prec = 40
-            t_s_40 = t.mjd_decimal
-            t2_s_40 = t2.mjd_decimal
+            t_s_40 = t.to_value(subfmt='decimal')
+            t2_s_40 = t2.to_value(subfmt='decimal')
         assert t_s_2 == t_s_40, "Should be the same but cache might make this automatic"
         assert t_s_2 == t2_s_40, "Different precision should produce the same results"
 
@@ -976,8 +969,6 @@ class TestNumericalSubFormat:
 
         value = dt.to_value(f, s)
         assert isinstance(value, t)
-        value2 = getattr(dt, "_".join((f, s)))
-        assert isinstance(value2, t)
         dt.format = f
         dt.out_subfmt = s
         assert isinstance(dt.value, t)
