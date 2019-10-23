@@ -277,8 +277,8 @@ class TestTimeDelta:
     def test_to_value(self):
         dt = TimeDelta(86400.0, format='sec')
         assert dt.to_value('jd') == 1.
-        assert dt.to_value('jd', 'str') == '1.000'
-        assert dt.to_value(subfmt='str') == '86400.000'
+        assert dt.to_value('jd', 'str') == '1.0'
+        assert dt.to_value(subfmt='str') == '86400.0'
         with pytest.raises(ValueError,
                            match='format is not one.*trying to parse it'):
             dt.to_value('julian')

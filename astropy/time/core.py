@@ -791,9 +791,9 @@ class Time(ShapedLikeNDArray):
     @precision.setter
     def precision(self, val):
         del self.cache
-        if not isinstance(val, int) or val < 0 or val > 19:
+        if not isinstance(val, int) or val < 0 or val > 9:
             raise ValueError('precision attribute must be an int between '
-                             '0 and 19')
+                             '0 and 9')
         self._time.precision = val
 
     @property

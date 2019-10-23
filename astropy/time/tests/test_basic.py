@@ -859,18 +859,18 @@ class TestSubFormat:
 
 class TestNumericalSubFormat:
     def test_explicit_example(self):
-        t = Time('54321.000000000001', format='mjd', precision=13)
+        t = Time('54321.000000000001', format='mjd')
         assert t == Time(54321, 1e-12, format='mjd')
         assert t.mjd == 54321.  # Lost precision!
         assert t.value == 54321.  # Lost precision!
         assert t.to_value() == 54321.  # Lost precision!
-        assert t.to_value(subfmt='str') == '54321.0000000000010'
-        assert t.to_value('mjd', 'bytes') == b'54321.0000000000010'
+        assert t.to_value(subfmt='str') == '54321.000000000001'
+        assert t.to_value('mjd', 'bytes') == b'54321.000000000001'
         t.out_subfmt = 'str'
-        assert t.value == '54321.0000000000010'
-        assert t.to_value() == '54321.0000000000010'
-        assert t.mjd == '54321.0000000000010'
-        assert t.to_value(subfmt='bytes') == b'54321.0000000000010'
+        assert t.value == '54321.000000000001'
+        assert t.to_value() == '54321.000000000001'
+        assert t.mjd == '54321.000000000001'
+        assert t.to_value(subfmt='bytes') == b'54321.000000000001'
         assert t.to_value(subfmt='float') == 54321.  # Lost precision!
 
     def test_subformat_input(self):
@@ -888,39 +888,41 @@ class TestNumericalSubFormat:
     def test_subformat_output(self, out_subfmt):
         i = 54321
         f = np.array([0., 1e-9, 1e-12])
-        t = Time(i, f, format='mjd', out_subfmt=out_subfmt, precision=13)
+        t = Time(i, f, format='mjd', out_subfmt=out_subfmt)
         t_value = t.value
-        expected = np.array([f'{i}.' + f'{_f:14.13f}'.split('.')[1]
-                             for _f in f], dtype=out_subfmt)
+        expected = np.array(['54321.0',
+                             '54321.000000001',
+                             '54321.000000000001'], dtype=out_subfmt)
         assert np.all(t_value == expected)
+        assert np.all(Time(expected, format='mjd') == t)
 
         # Explicit sub-format.
-        t = Time(i, f, format='mjd', precision=13)
+        t = Time(i, f, format='mjd')
         t_mjd_subfmt = t.to_value(subfmt=out_subfmt)
         assert np.all(t_mjd_subfmt == expected)
 
     def test_explicit_other_formats(self):
-        t = Time('2451544.5333981', format='jd', scale='tai', precision=8)
+        t = Time('2451544.5333981', format='jd', scale='tai')
         assert t == Time(2451544.5, .0333981, format='jd', scale='tai')
-        assert t.to_value(subfmt='str') == '2451544.53339810'
-        t = Time('2000.54321', format='decimalyear', precision=6)
+        assert t.to_value(subfmt='str') == '2451544.5333981'
+        t = Time('2000.54321', format='decimalyear')
         assert t == Time(2000., 0.54321, format='decimalyear')
-        assert t.to_value(subfmt='str') == '2000.543210'
-        t = Time('100.0123456', format='cxcsec', precision=6)
+        assert t.to_value(subfmt='str') == '2000.54321'
+        t = Time('100.0123456', format='cxcsec')
         assert t == Time(100.0123456, format='cxcsec')
-        assert t.to_value(subfmt='str') == '100.012346'
-        t = Time('100.0123456', format='unix', precision=7)
+        assert t.to_value(subfmt='str') == '100.0123456'
+        t = Time('100.0123456', format='unix')
         assert t == Time(100.0123456, format='unix')
         assert t.to_value(subfmt='str') == '100.0123456'
         t = Time('100.0123456', format='gps')
         assert t == Time(100.0123456, format='gps')
-        assert t.to_value(subfmt='str') == '100.012'
+        assert t.to_value(subfmt='str') == '100.0123456'
         t = Time('1950.1', format='byear', scale='tai')
         assert t == Time(1950.1, format='byear', scale='tai')
-        assert t.to_value(subfmt='str') == '1950.100'
+        assert t.to_value(subfmt='str') == '1950.1'
         t = Time('2000.1', format='jyear', scale='tai')
         assert t == Time(2000.1, format='jyear', scale='tai')
-        assert t.to_value(subfmt='str') == '2000.100'
+        assert t.to_value(subfmt='str') == '2000.1'
 
     def test_basic_subformat_setting(self):
         t = Time('2001', format='jyear', scale='tai')
