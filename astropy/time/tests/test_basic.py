@@ -866,12 +866,52 @@ class TestNumericalSubFormat:
         assert t.to_value() == 54321.  # Lost precision!
         assert t.to_value(subfmt='str') == '54321.000000000001'
         assert t.to_value('mjd', 'bytes') == b'54321.000000000001'
+        expected_long = np.longdouble(54321.) + np.longdouble(1e-12)
+        assert t.to_value(subfmt='long') == expected_long
         t.out_subfmt = 'str'
         assert t.value == '54321.000000000001'
         assert t.to_value() == '54321.000000000001'
         assert t.mjd == '54321.000000000001'
         assert t.to_value(subfmt='bytes') == b'54321.000000000001'
         assert t.to_value(subfmt='float') == 54321.  # Lost precision!
+        t.out_subfmt = 'long'
+        assert t.value == expected_long
+        assert t.to_value() == expected_long
+        assert t.mjd == expected_long
+        assert t.to_value(subfmt='str') == '54321.000000000001'
+        assert t.to_value(subfmt='float') == 54321.  # Lost precision!
+
+    @pytest.mark.skipif(np.finfo(np.longdouble).eps >= np.finfo(float).eps,
+                        reason="long double is the same as float")
+    def test_explicit_longdouble(self):
+        i = 54321
+        f = 2.**(-np.finfo(np.longdouble).nmant) * 65536
+        mjd_long = np.longdouble(i) + np.longdouble(f)
+        assert mjd_long != i, "longdouble failure!"
+        t = Time(mjd_long, format='mjd')
+        expected = Time(i, f, format='mjd')
+        assert t == expected
+        t_float = Time(i+f, format='mjd')
+        assert t_float == Time(i, format='mjd')
+        assert t_float != t
+        assert t.value == 54321.  # Lost precision!
+        assert t.to_value(subfmt='long') == mjd_long
+        t2 = Time(mjd_long, format='mjd', out_subfmt='long')
+        assert t2.value == mjd_long
+
+    @pytest.mark.skipif(np.finfo(np.longdouble).eps >= np.finfo(float).eps,
+                        reason="long double is the same as float")
+    @pytest.mark.parametrize("fmt", ["mjd", "unix", "cxcsec"])
+    def test_longdouble_for_other_types(self, fmt):
+        t_fmt = getattr(Time(58000, format="mjd"), fmt)  # Get regular float
+        t_fmt_long = np.longdouble(t_fmt)
+        t_fmt_long2 = t_fmt_long * (np.finfo(np.longdouble).eps * 2 + 1)
+        assert t_fmt_long != t_fmt_long2, "longdouble weird!"
+        tm = Time(t_fmt_long, format=fmt)
+        tm2 = Time(t_fmt_long2, format=fmt)
+        assert tm != tm2
+        tm_long2 = tm2.to_value(subfmt='long')
+        assert tm_long2 == t_fmt_long2
 
     def test_subformat_input(self):
         s = '54321.01234567890123456789'
@@ -2001,3 +2041,25 @@ def test_ymdhms_masked():
     assert isinstance(tm.value[0], np.ma.core.mvoid)
     for name in ymdhms_names:
         assert tm.value[0][name] is np.ma.masked
+
+
+# Converted from doctest in astropy/test/formats.py for debugging
+def test_ymdhms_output():
+    t = Time({'year': 2015, 'month': 2, 'day': 3,
+              'hour': 12, 'minute': 13, 'second': 14.567},
+             scale='utc')
+    # NOTE: actually comes back as np.void for some reason
+    # NOTE: not necessarily a python int; might be an int32
+    assert t.ymdhms.year == 2015
+
+
+# There are two stages of validation now - one on input into a format, so that
+# the format conversion code has tidy matched arrays to work with, and the
+# other when object construction does not go through a format object. Or at
+# least, the format object is constructed with "from_jd=True". In this case the
+# normal input validation does not happen but the new input validation does,
+# and can ensure that strange broadcasting anomalies can't happen.
+# This form of construction uses from_jd=True.
+def test_broadcasting_writeable():
+    t = Time('J2015') + np.linspace(-1, 1, 10)*u.day
+    t[2] = Time(58000, format="mjd")

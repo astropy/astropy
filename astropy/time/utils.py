@@ -105,7 +105,10 @@ def quantity_day_frac(val1, val2=None):
         # But at least try normal conversion, since equivalencies may be set.
         return val1.to_value(u.day), 0.
 
-    if factor >= 1.:
+    if factor == 1.:
+        return day_frac(val1.value, 0.)
+
+    if factor > 1:
         return day_frac(val1.value, 0., factor=factor)
     else:
         divisor = u.day.to(val1.unit)
@@ -183,10 +186,26 @@ def split(a):
 _enough_decimal_places = 34  # to represent two doubles
 
 
+def longdouble_to_twoval(val1, val2=None):
+    if val2 is None:
+        val2 = val1.dtype.type(0.)
+    else:
+        best_type = np.result_type(val1.dtype, val2.dtype)
+        val1 = val1.astype(best_type, copy=False)
+        val2 = val2.astype(best_type, copy=False)
+
+    # day_frac is independent of dtype, as long as the dtype
+    # are the same and no factor or divisor is given.
+    i, f = day_frac(val1, val2)
+    return i.astype(float, copy=False), f.astype(float, copy=False)
+
+
 def decimal_to_twoval1(val1, val2=None):
     with decimal.localcontext() as ctx:
         ctx.prec = _enough_decimal_places
-        i, f = divmod(decimal.Decimal(val1), 1)
+        d = decimal.Decimal(val1)
+        i = round(d)
+        f = d - i
     return float(i), float(f)
 
 

@@ -11,7 +11,7 @@ from collections import OrderedDict, defaultdict
 import numpy as np
 
 from astropy.utils.decorators import lazyproperty
-from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from astropy import units as u
 from astropy import _erfa as erfa
 
@@ -212,10 +212,11 @@ class TimeFormat(metaclass=TimeFormatMeta):
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
         # val1 cannot contain nan, but val2 can contain nan
-        ok1 = (val1.dtype.kind == 'f' and val1.dtype.itemsize == 8 and np.all(np.isfinite(val1)) or
-               val1.size == 0)
-        ok2 = val2 is None or (val2.dtype.kind == 'f' and val2.dtype.itemsize == 8 and
-                               not np.any(np.isinf(val2))) or val2.size == 0
+        ok1 = (val1.dtype.kind == 'f' and val1.dtype.itemsize >= 8
+               and np.all(np.isfinite(val1)) or val1.size == 0)
+        ok2 = val2 is None or (
+            val2.dtype.kind == 'f' and val2.dtype.itemsize >= 8 and
+            not np.any(np.isinf(val2))) or val2.size == 0
         if not (ok1 and ok2):
             raise TypeError('Input values for {} class must be finite doubles'
                             .format(self.name))
@@ -321,7 +322,8 @@ class TimeFormat(metaclass=TimeFormatMeta):
 class TimeNumeric(TimeFormat):
     subfmts = (
         ('float', np.float64, None, np.add),
-        ('long', np.longdouble, None, utils.twoval_to_longdouble),
+        ('long', np.longdouble, utils.longdouble_to_twoval,
+         utils.twoval_to_longdouble),
         ('decimal', np.object_, utils.decimal_to_twoval,
          utils.twoval_to_decimal),
         ('str', np.str_, utils.decimal_to_twoval, utils.twoval_to_string),
@@ -352,9 +354,9 @@ class TimeNumeric(TimeFormat):
                 val1, val2 = convert(val1, val2)
             except Exception:
                 raise TypeError(
-                    'for {} class, input should be doubles, string, or Decimal, '
-                    'and second values are only allowed for doubles.'
-                    .format(self.name))
+                    'for {} class, input should be (long) doubles, string, '
+                    'or Decimal, and second values are only allowed for '
+                    '(long) doubles.'.format(self.name))
 
         return val1, val2
 
