@@ -495,17 +495,6 @@ class CoordinateHelper:
         """
         return self._auto_axislabel
 
-    def set_auto_axislabel(self, val):
-        """
-        Render default axis labels if no explicit label is provided.
-
-        Parameters
-        ----------
-        auto_axislabel : `bool`
-            `True` if default labels will be rendered.
-        """
-        self._auto_axislabel = bool(val)
-
     def _get_default_axislabel(self):
         unit = self.format_unit or self.coord_unit
 
