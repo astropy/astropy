@@ -56,6 +56,7 @@ from astropy.modeling.functional_models import (
     Gaussian2D, Const2D, Box2D, MexicanHat2D,
     TrapezoidDisk2D, AiryDisk2D, Moffat2D, Disk2D,
     Ring2D, Sersic1D, Sersic2D, Voigt1D, Planar2D, KingProjectedAnalytic1D)
+from astropy.modeling.physical_models import Drude1D
 from astropy.modeling.polynomial import Polynomial1D, Polynomial2D
 from astropy.modeling.powerlaws import (
     PowerLaw1D, BrokenPowerLaw1D, SmoothlyBrokenPowerLaw1D, ExponentialCutoffPowerLaw1D,
@@ -216,6 +217,14 @@ models_1D = {
         'y_values': [0.30557281, 0.30011069, 0.2, 0.1113258],
         'x_lim': [0, 10],
         'y_lim': [0, 10],
+    },
+
+    Drude1D: {
+        'parameters': [1.0, 8.0, 1.0],
+        'x_values': [7.0, 8.0, 9.0, 10.0],
+        'y_values': [0.17883212, 1.0, 0.21891892, 0.07163324],
+        'x_lim': [1.0, 20.0],
+        'y_lim': [0.0, 10.0]
     }
 }
 
