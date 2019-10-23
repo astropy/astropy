@@ -121,6 +121,15 @@ def test_initialize_from_fits_with_invalid_unit_in_header(tmpdir):
         CCDData.read(filename)
 
 
+def test_initialize_from_fits_with_technically_invalid_but_not_really(tmpdir):
+    hdu = fits.PrimaryHDU(np.ones((2, 2)))
+    hdu.header['bunit'] = 'ELECTRONS/S'
+    filename = tmpdir.join('afile.fits').strpath
+    hdu.writeto(filename)
+    ccd = CCDData.read(filename)
+    assert ccd.unit == u.electron/u.s
+
+
 def test_initialize_from_fits_with_data_in_different_extension(tmpdir):
     fake_img = np.arange(4).reshape(2, 2)
     hdu1 = fits.PrimaryHDU()
