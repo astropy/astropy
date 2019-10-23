@@ -8,17 +8,17 @@ import warnings
 import numpy as np
 
 from .core import Fittable1DModel
-from .parameters import Parameter
+from .parameters import Parameter, InputParameterError
 from astropy import constants as const
 from astropy import units as u
 from astropy.utils.exceptions import AstropyUserWarning
 
-__all__ = ["BlackBody"]
+__all__ = ["BlackBody", "Drude1D"]
 
 
 class BlackBody(Fittable1DModel):
     """
-    One dimensional blackbody model.
+    Blackbody model using the Planck function.
 
     Parameters
     ----------
@@ -181,7 +181,9 @@ class BlackBody(Fittable1DModel):
     def bolometric_flux(self):
         """Bolometric flux."""
         # bolometric flux in the native units of the planck function
-        native_bolflux = self.scale.value * const.sigma_sb * self.temperature ** 4 / np.pi
+        native_bolflux = (
+            self.scale.value * const.sigma_sb * self.temperature ** 4 / np.pi
+        )
         # return in more "astro" units
         return native_bolflux.to(u.erg / (u.cm ** 2 * u.s))
 
@@ -194,3 +196,125 @@ class BlackBody(Fittable1DModel):
     def nu_max(self):
         """Peak frequency when the curve is expressed as power density."""
         return 2.8214391 * const.k_B * self.temperature / const.h
+
+
+class Drude1D(Fittable1DModel):
+    """
+    Drude model based one the behavior of electons in materials (esp. metals).
+
+    Parameters
+    ----------
+    amplitude : float
+        Peak value
+    x_0 : float
+        Position of the peak
+    fwhm : float
+        Full width at half maximum
+
+    Model formula:
+
+        .. math:: f(x) = A \\frac{(fwhm/x_0)^2}{((x/x_0 - x_0/x)^2 + (fwhm/x_0)^2}
+
+    Examples
+    --------
+
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import Drude1D
+
+        fig, ax = plt.subplots()
+
+        # generate the curves and plot them
+        x = np.arange(7.5 , 12.5 , 0.1)
+
+        dmodel = Drude1D(amplitude=1.0, fwhm=1.0, x_0=10.0)
+        ax.plot(x, dmodel(x))
+
+        ax.set_xlabel('x')
+        ax.set_ylabel('F(x)')
+
+        ax.legend(loc='best')
+        plt.show()
+    """
+
+    amplitude = Parameter(default=1.0)
+    x_0 = Parameter(default=1.0)
+    fwhm = Parameter(default=1.0)
+
+    @staticmethod
+    def evaluate(x, amplitude, x_0, fwhm):
+        """
+        One dimensional Drude model function
+        """
+        return (
+            amplitude
+            * ((fwhm / x_0) ** 2)
+            / ((x / x_0 - x_0 / x) ** 2 + (fwhm / x_0) ** 2)
+        )
+
+    @staticmethod
+    def fit_deriv(x, amplitude, x_0, fwhm):
+        """
+        Drude1D model function derivatives.
+        """
+        d_amplitude = (fwhm / x_0) ** 2 / ((x / x_0 - x_0 / x) ** 2 + (fwhm / x_0) ** 2)
+        d_x_0 = (
+            -2
+            * amplitude
+            * d_amplitude
+            * (
+                (1 / x_0)
+                + d_amplitude
+                * (x_0 ** 2 / fwhm ** 2)
+                * (
+                    (-x / x_0 - 1 / x) * (x / x_0 - x_0 / x)
+                    - (2 * fwhm ** 2 / x_0 ** 3)
+                )
+            )
+        )
+        d_fwhm = (2 * amplitude * d_amplitude / fwhm) * (1 - d_amplitude)
+        return [d_amplitude, d_x_0, d_fwhm]
+
+    @property
+    def input_units(self):
+        if self.x_0.unit is None:
+            return None
+        else:
+            return {"x": self.x_0.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return {
+            "x_0": inputs_unit["x"],
+            "fwhm": inputs_unit["x"],
+            "amplitude": outputs_unit["y"],
+        }
+
+    @property
+    def return_units(self):
+        if self.amplitude.unit is None:
+            return None
+        else:
+            return {'y': self.amplitude.unit}
+
+    @x_0.validator
+    def x_0(self, val):
+        if val == 0:
+            raise InputParameterError("0 is not an allowed value for x_0")
+
+    def bounding_box(self, factor=50):
+        """Tuple defining the default ``bounding_box`` limits,
+        ``(x_low, x_high)``.
+
+        Parameters
+        ----------
+        factor : float
+            The multiple of FWHM used to define the limits.
+        """
+        x0 = self.x_0
+        dx = factor * self.fwhm
+
+        return (x0 - dx, x0 + dx)

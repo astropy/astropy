@@ -101,6 +101,8 @@ astropy.modeling
   Deprecate ``BlackBody1D`` model and ``blackbody_nu`` and ``blackbody_lambda``
   functions. [#9282]
 
+- Add ``Drude1D`` model. [#9452]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
