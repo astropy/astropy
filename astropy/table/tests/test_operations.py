@@ -547,15 +547,36 @@ class TestJoin():
                 assert ('join requires masking' in str(err.value) or
                         'join unavailable' in str(err.value))
 
+    def test_cartesian_join(self, operation_table_type):
+        t1 = Table(rows=[(1, 'a'),
+                         (2, 'b')], names=['a', 'b'])
+        t2 = Table(rows=[(3, 'c'),
+                         (4, 'd')], names=['a', 'c'])
+        t12 = table.join(t1, t2, join_type='cartesian')
+
+        assert t1.colnames == ['a', 'b']
+        assert t2.colnames == ['a', 'c']
+        assert len(t12) == len(t1) * len(t2)
+        assert str(t12).splitlines() == [
+            'a_1  b  a_2  c ',
+            '--- --- --- ---',
+            '  1   a   3   c',
+            '  1   a   4   d',
+            '  2   b   3   c',
+            '  2   b   4   d']
+
+        with pytest.raises(ValueError, match='cannot supply keys for a cartesian join'):
+            t12 = table.join(t1, t2, join_type='cartesian', keys='a')
+
 
 class TestSetdiff():
 
     def _setup(self, t_cls=Table):
         lines1 = [' a   b ',
-                 '  0 foo ',
-                 '  1 foo ',
-                 '  1 bar ',
-                 '  2 bar ']
+                  '  0 foo ',
+                  '  1 foo ',
+                  '  1 bar ',
+                  '  2 bar ']
         lines2 = [' a   b ',
                   '  0 foo ',
                   '  3 foo ',

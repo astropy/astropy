@@ -135,8 +135,11 @@ astropy.table
 - ``MaskedColumn.data`` will now return a plain ``MaskedArray`` rather than
   the previous (unintended) ``masked_BaseColumn``. [#8855]
 
-- Adding depth-wise stacking ``cstack()`` in higher level table operation.
+- Added depth-wise stacking ``cstack()`` in higher level table operation.
   It help will in stacking table column depth-wise. [#8939]
+
+- Added new ``join_type='cartesian'`` option to the ``join`` operation.
+  [#9288]
 
 - Allow adding a table column as a list of mixin-type objects, for instance
   ``t['q'] = [1 * u.m, 2 * u.m]``. [#9165]
