@@ -314,8 +314,9 @@ def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
 
 
 # TODO Note scipy dependency (needed in binom_conf_interval)
-def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
-                            interval='wilson'):
+@deprecated_renamed_argument('conf', 'confidence_level', '4.0')
+def binned_binom_proportion(x, success, bins=10, range=None,
+                            confidence_level=0.68269, interval='wilson'):
     """Binomial proportion and confidence interval in bins of a continuous
     variable ``x``.
 
@@ -341,7 +342,7 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
         The lower and upper range of the bins. If `None` (default),
         the range is set to ``(x.min(), x.max())``. Values outside the
         range are ignored.
-    conf : float in [0, 1], optional
+    confidence_level : float in [0, 1], optional
         Desired probability content in the confidence
         interval ``(p - perr[0], p + perr[1])`` in each bin. Default is
         0.68269.
@@ -373,7 +374,6 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
     --------
     binom_conf_interval : Function used to estimate confidence interval in
                           each bin.
-
 
     Examples
     --------
@@ -464,7 +464,6 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
        plt.show()
 
     """
-
     x = np.ravel(x)
     success = np.ravel(success).astype(bool)
     if x.shape != success.shape:
@@ -485,7 +484,7 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
     k = k[valid]
 
     p = k / n
-    bounds = binom_conf_interval(k, n, conf=conf, interval=interval)
+    bounds = binom_conf_interval(k, n, confidence_level=confidence_level, interval=interval)
     perr = np.abs(bounds - p)
 
     return bin_ctr, bin_halfwidth, p, perr
