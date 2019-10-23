@@ -7,10 +7,10 @@ from astropy import units as u
 from astropy.utils.decorators import format_doc
 from astropy.coordinates.baseframe import frame_transform_graph, base_doc
 from astropy.coordinates.attributes import TimeAttribute
-from astropy.coordinates.transformations import (FunctionTransformWithFiniteDifference,
-                               FunctionTransform, DynamicMatrixTransform)
+from astropy.coordinates.transformations import (
+    FunctionTransformWithFiniteDifference, DynamicMatrixTransform)
 from astropy.coordinates.representation import (CartesianRepresentation,
-                              UnitSphericalRepresentation)
+                                                UnitSphericalRepresentation)
 from astropy.coordinates import earth_orientation as earth
 
 from .utils import EQUINOX_B1950
@@ -128,9 +128,9 @@ def fk4_e_terms(equinox):
     o = earth.obliquity(equinox.jd, algorithm=1980)
     o = np.radians(o)
 
-    return e * k * np.sin(g), \
-           -e * k * np.cos(g) * np.cos(o), \
-           -e * k * np.cos(g) * np.sin(o)
+    return (e * k * np.sin(g),
+            -e * k * np.cos(g) * np.cos(o),
+            -e * k * np.cos(g) * np.sin(o))
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, FK4, FK4NoETerms)

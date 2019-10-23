@@ -11,7 +11,7 @@ from astropy import units as u
 from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference
 from astropy.coordinates.representation import (SphericalRepresentation,
-                              UnitSphericalRepresentation)
+                                                UnitSphericalRepresentation)
 from astropy import _erfa as erfa
 
 from .cirs import CIRS

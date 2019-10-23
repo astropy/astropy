@@ -18,7 +18,7 @@ class ICRS(BaseRADecFrame):
     more well-defined as a catalog coordinate and is an inertial system, and is
     very close (within tens of milliarcseconds) to J2000 equatorial.
 
-    For more background on the ICRS and related coordinate transformations, see the
-    references provided in the  :ref:`astropy-coordinates-seealso` section of the
-    documentation.
+    For more background on the ICRS and related coordinate transformations, see
+    the references provided in the  :ref:`astropy-coordinates-seealso` section
+    of the documentation.
     """

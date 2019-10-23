@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from astropy import units as u
-from astropy.utils.compat import namedtuple_asdict
-from astropy.coordinates import representation as r
 from astropy.coordinates.transformations import DynamicMatrixTransform, FunctionTransform
-from astropy.coordinates.baseframe import (frame_transform_graph, RepresentationMapping,
-                         BaseCoordinateFrame)
+from astropy.coordinates.baseframe import (frame_transform_graph,
+                                           BaseCoordinateFrame)
 from astropy.coordinates.attributes import CoordinateAttribute, QuantityAttribute
 from astropy.coordinates.matrix_utilities import (rotation_matrix,
-                                matrix_product, matrix_transpose)
+                                                  matrix_product,
+                                                  matrix_transpose)
 
 _skyoffset_cache = {}
 
@@ -71,8 +70,9 @@ def make_skyoffset_cls(framecls):
 
     # We need this to handle the intermediate metaclass correctly, otherwise we could
     # just subclass SkyOffsetFrame.
-    _SkyOffsetFramecls = SkyOffsetMeta('SkyOffsetFrame', (SkyOffsetFrame, framecls),
-                                 {'__doc__': SkyOffsetFrame.__doc__})
+    _SkyOffsetFramecls = SkyOffsetMeta('SkyOffsetFrame',
+                                       (SkyOffsetFrame, framecls),
+                                       {'__doc__': SkyOffsetFrame.__doc__})
 
     @frame_transform_graph.transform(FunctionTransform, _SkyOffsetFramecls, _SkyOffsetFramecls)
     def skyoffset_to_skyoffset(from_skyoffset_coord, to_skyoffset_frame):

@@ -11,8 +11,8 @@ from astropy.coordinates.transformations import (
     AffineTransform,
 )
 from astropy.coordinates.matrix_utilities import (rotation_matrix,
-                                matrix_product, matrix_transpose)
-from astropy.coordinates.representation import CartesianRepresentation
+                                                  matrix_product,
+                                                  matrix_transpose)
 from astropy import _erfa as erfa
 
 from .icrs import ICRS
