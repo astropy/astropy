@@ -303,6 +303,9 @@ astropy.convolution
 - Removed the deprecated keyword argument ``stddev`` from
   ``Gaussian2DKernel``. [#9356]
 
+- Deprecated and renamed ``MexicanHat1DKernel`` and ``MexicanHat2DKernel``
+  to ``RickerWavelet1DKernel`` and ``RickerWavelet2DKernel``. [#9445]
+
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
@@ -385,6 +388,9 @@ astropy.modeling
 - Many private attributes and methods have changed (see documentation). [#8769]
 
 - The deprecated ``rotations.rotation_matrix_from_angle`` was removed. [#9363]
+
+- Deprecated and renamed ``MexicanHat1D`` and ``MexicanHat2D``
+  to ``RickerWavelet1D`` and ``RickerWavelet2D``. [#9445]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
