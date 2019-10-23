@@ -129,7 +129,7 @@ def _get_frame_without_data(args, kwargs):
             kwargs.setdefault('representation_type', frame.representation_type)
             kwargs.setdefault('differential_type', frame.differential_type)
 
-        if frame_cls is None: # frame probably a string
+        if frame_cls is None:  # frame probably a string
             frame_cls = _get_frame_class(frame)
 
     # Check that the new frame doesn't conflict with existing coordinate frame
@@ -425,8 +425,9 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             orig_vel = coords.data.differentials['s']
             vel = coords.data.represent_as(frame.representation_type, frame.get_representation_cls('s')).differentials['s']
             for frname, reprname in frame.get_representation_component_names('s').items():
-                if (reprname == 'd_distance' and not hasattr(orig_vel, reprname) and
-                    'unit' in orig_vel.get_name()):
+                if (reprname == 'd_distance' and
+                        not hasattr(orig_vel, reprname) and
+                        'unit' in orig_vel.get_name()):
                     continue
                 values.append(getattr(vel, reprname))
                 units.append(None)
@@ -436,8 +437,8 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
 
         for attr in frame_transform_graph.frame_attributes:
             value = getattr(coords, attr, None)
-            use_value = (isinstance(coords, SkyCoord)
-                         or attr not in coords._attr_names_with_defaults)
+            use_value = (isinstance(coords, SkyCoord) or
+                         attr not in coords._attr_names_with_defaults)
             if use_value and value is not None:
                 skycoord_kwargs[attr] = value
 
@@ -457,8 +458,8 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             data = coords.represent_as(frame.representation_type)
             values = [getattr(data, repr_attr_name) for repr_attr_name in repr_attr_names]
 
-    elif (isinstance(coords, np.ndarray) and coords.dtype.kind in 'if'
-          and coords.ndim == 2 and coords.shape[1] <= 3):
+    elif (isinstance(coords, np.ndarray) and coords.dtype.kind in 'if' and
+          coords.ndim == 2 and coords.shape[1] <= 3):
         # 2-d array of coordinate values.  Handle specially for efficiency.
         values = coords.transpose()  # Iterates over repr attrs
 

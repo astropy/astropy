@@ -30,7 +30,6 @@ import numpy as np
 from astropy import units as u
 from astropy.utils.exceptions import AstropyWarning
 
-from .representation import REPRESENTATION_CLASSES
 from .matrix_utilities import matrix_product
 
 __all__ = ['TransformGraph', 'CoordinateTransform', 'FunctionTransform',
@@ -804,8 +803,8 @@ class FunctionTransform(CoordinateTransform):
         with suppress(TypeError):
             sig = signature(func)
             kinds = [x.kind for x in sig.parameters.values()]
-            if (len(x for x in kinds if x == sig.POSITIONAL_ONLY) != 2
-                and sig.VAR_POSITIONAL not in kinds):
+            if (len(x for x in kinds if x == sig.POSITIONAL_ONLY) != 2 and
+                    sig.VAR_POSITIONAL not in kinds):
                 raise ValueError('provided function does not accept two arguments')
 
         self.func = func
@@ -816,8 +815,8 @@ class FunctionTransform(CoordinateTransform):
     def __call__(self, fromcoord, toframe):
         res = self.func(fromcoord, toframe)
         if not isinstance(res, self.tosys):
-            raise TypeError('the transformation function yielded {} but '
-                'should have been of type {}'.format(res, self.tosys))
+            raise TypeError(f'the transformation function yielded {res} but '
+                            'should have been of type {self.tosys}')
         if fromcoord.data.differentials and not res.data.differentials:
             warn("Applied a FunctionTransform to a coordinate frame with "
                  "differentials, but the FunctionTransform does not handle "

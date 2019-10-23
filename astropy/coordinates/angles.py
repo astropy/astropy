@@ -248,7 +248,7 @@ class Angle(u.SpecificTypeQuantity):
             'unicode': {
                 u.degree: '°′″',
                 u.hourangle: 'ʰᵐˢ'}
-            }
+        }
 
         if sep == 'fromunit':
             if format not in separators:

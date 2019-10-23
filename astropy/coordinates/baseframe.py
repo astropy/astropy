@@ -283,9 +283,9 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
         if 'name' not in members:
             members['name'] = name.lower()
 
-         # A cache that *must be unique to each frame class* - it is
-         # insufficient to share them with superclasses, hence the need to put
-         # them in the meta
+        # A cache that *must be unique to each frame class* - it is
+        # insufficient to share them with superclasses, hence the need to put
+        # them in the meta
         members['_frame_class_cache'] = {}
 
         return super().__new__(mcls, name, bases, members)
@@ -495,8 +495,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                 if repr_kwargs.get('distance', True) is None:
                     del repr_kwargs['distance']
 
-                if (issubclass(representation_cls, r.SphericalRepresentation)
-                        and 'distance' not in repr_kwargs):
+                if (issubclass(representation_cls,
+                               r.SphericalRepresentation) and
+                        'distance' not in repr_kwargs):
                     representation_cls = representation_cls._unit_representation
 
                 try:
@@ -508,9 +509,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                     # come from the representation instead of the frame's
                     # attribute names.
                     try:
-                        representation_data = representation_cls._unit_representation(copy=copy,
-                                                                 **repr_kwargs)
-                    except Exception as e2:
+                        representation_data = representation_cls\
+                            ._unit_representation(copy=copy, **repr_kwargs)
+                    except Exception:
                         msg = str(e)
                         names = self.get_representation_component_names()
                         for frame_name, repr_name in names.items():
@@ -1278,8 +1279,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                 return True
             elif isinstance(right_fattr, r.BaseRepresentationOrDifferential):
                 # both are representations.
-                if ((hasattr(left_fattr, 'differentials') and left_fattr.differentials) or
-                    hasattr(right_fattr, 'differentials') and right_fattr.differentials):
+                if ((hasattr(left_fattr, 'differentials') and
+                     left_fattr.differentials) or
+                        hasattr(right_fattr, 'differentials') and
+                        right_fattr.differentials):
                     warnings.warn('Two representation frame attributes were '
                                   'checked for equivalence when at least one of'
                                   ' them has differentials.  This yields False '
@@ -1345,10 +1348,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
         if data_repr:
             return '<{} Coordinate{}: {}>'.format(self.__class__.__name__,
-                                                     frameattrs, data_repr)
+                                                  frameattrs, data_repr)
         else:
             return '<{} Frame{}>'.format(self.__class__.__name__,
-                                           frameattrs)
+                                         frameattrs)
 
     def _data_repr(self):
         """Returns a string representation of the coordinate data."""
@@ -1722,7 +1725,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
         try:
             v = self.cartesian.differentials['s']
-        except Exception as e:
+        except Exception:
             raise ValueError('Could not retrieve a Cartesian velocity. Your '
                              'frame must include velocity information for this '
                              'to work.')

@@ -4,11 +4,9 @@
 
 # Dependencies
 import numpy as np
-import warnings
 
 # Project
 from astropy import units as u
-from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils import OrderedDescriptor, ShapedLikeNDArray
 
 __all__ = ['Attribute', 'TimeAttribute', 'QuantityAttribute',
