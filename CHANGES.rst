@@ -112,6 +112,9 @@ astropy.modeling
 astropy.nddata
 ^^^^^^^^^^^^^^
 
+- Add a way for technically invalid but unambiguous units in a fits header to be
+  parsed by ``CCDData``. [#9397]
+
 astropy.samp
 ^^^^^^^^^^^^
 
