@@ -1,6 +1,9 @@
 2.0.16 (unreleased)
 ===================
 
+Bug Fixes
+---------
+
 astropy.time
 ^^^^^^^^^^^^
 
