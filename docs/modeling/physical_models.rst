@@ -1,3 +1,6 @@
+.. _predef_physicalmodels:
+
+***************
 Physical Models
 ***************
 
