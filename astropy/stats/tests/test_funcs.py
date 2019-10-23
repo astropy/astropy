@@ -375,7 +375,9 @@ def test_mad_std_withnan():
         data[1:-1, 1:-1] = np.random.normal(5, 2, size=(100, 100))
         assert_allclose(funcs.mad_std(data, ignore_nan=True), 2.0, rtol=0.05)
 
-    assert np.isnan(funcs.mad_std([1, 2, 3, 4, 5, np.nan]))
+    with pytest.warns(RuntimeWarning,
+                      match=r'Invalid value encountered in median'):
+        assert np.isnan(funcs.mad_std([1, 2, 3, 4, 5, np.nan]))
     assert_allclose(funcs.mad_std([1, 2, 3, 4, 5, np.nan], ignore_nan=True),
                     1.482602218505602)
 
@@ -399,8 +401,10 @@ def test_mad_std_with_axis_and_nan():
                              2.22390333, np.nan])
     result_axis1 = np.array([1.48260222, 1.48260222])
 
-    assert_allclose(funcs.mad_std(data, axis=0, ignore_nan=True), result_axis0)
-    assert_allclose(funcs.mad_std(data, axis=1, ignore_nan=True), result_axis1)
+    with pytest.warns(RuntimeWarning,
+                      match=r'All-NaN slice encountered'):
+        assert_allclose(funcs.mad_std(data, axis=0, ignore_nan=True), result_axis0)
+        assert_allclose(funcs.mad_std(data, axis=1, ignore_nan=True), result_axis1)
 
 
 def test_mad_std_with_axis_and_nan_array_type():
@@ -408,7 +412,9 @@ def test_mad_std_with_axis_and_nan_array_type():
     data = np.array([[1, 2, 3, 4, np.nan],
                      [4, 3, 2, 1, np.nan]])
 
-    result = funcs.mad_std(data, axis=0, ignore_nan=True)
+    with pytest.warns(RuntimeWarning,
+                      match=r'All-NaN slice encountered'):
+        result = funcs.mad_std(data, axis=0, ignore_nan=True)
     assert not np.ma.isMaskedArray(result)
 
     data = np.ma.masked_where(np.isnan(data), data)

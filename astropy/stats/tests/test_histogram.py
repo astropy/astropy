@@ -1,14 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
+
 import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from astropy.stats import (histogram, calculate_bin_edges,
-                scott_bin_width, freedman_bin_width, knuth_bin_width)
+from astropy.stats import (histogram, calculate_bin_edges, scott_bin_width,
+                           freedman_bin_width, knuth_bin_width)
+from astropy.utils.exceptions import AstropyUserWarning
 
 try:
-    import scipy  # pylint: disable=W0611
+    import scipy  # pylint: disable=W0611 # noqa
 except ImportError:
     HAS_SCIPY = False
 else:
@@ -47,7 +50,8 @@ def test_freedman_bin_width(N=10000, rseed=0):
     # data with too small IQR
     test_x = [1, 2, 3] + [4] * 100 + [5, 6, 7]
     with pytest.raises(ValueError) as e:
-        freedman_bin_width(test_x, return_bins=True)
+        with pytest.warns(RuntimeWarning, match=r'divide by zero encountered'):
+            freedman_bin_width(test_x, return_bins=True)
         assert 'Please use another bin method' in str(e.value)
 
     # data with small IQR but not too small
@@ -93,7 +97,12 @@ def test_histogram(bin_type, N=1000, rseed=0):
     rng = np.random.RandomState(rseed)
     x = rng.randn(N)
 
-    counts, bins = histogram(x, bin_type)
+    # Warning is emitted for blocks
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            'ignore', message=r'.*p0 does not seem to accurate.*',
+            category=AstropyUserWarning)
+        counts, bins = histogram(x, bin_type)
     assert (counts.sum() == len(x))
     assert (len(counts) == len(bins) - 1)
 
@@ -107,7 +116,12 @@ def test_histogram_range(bin_type, N=1000, rseed=0):
     x = rng.randn(N)
     range = (0.1, 0.8)
 
-    bins = calculate_bin_edges(x, bin_type, range=range)
+    # Warning is emitted for blocks
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            'ignore', message=r'.*p0 does not seem to accurate.*',
+            category=AstropyUserWarning)
+        bins = calculate_bin_edges(x, bin_type, range=range)
     assert bins.max() == range[1]
     assert bins.min() == range[0]
 
@@ -157,7 +171,9 @@ def test_histogram_output():
                            -0.17288406, 0.42214237, 1.01716881, 1.61219525,
                            2.20722169, 2.80224813])
 
-    counts, bins = histogram(X, bins='blocks')
+    with pytest.warns(AstropyUserWarning,
+                      match=r'p0 does not seem to accurate'):
+        counts, bins = histogram(X, bins='blocks')
     assert_allclose(counts, [10, 61, 29])
     assert_allclose(bins, [-2.55298982, -1.24381059, 0.46422235, 2.26975462])
 
