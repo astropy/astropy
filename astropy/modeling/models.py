@@ -59,7 +59,7 @@ MODELS_WITH_CONSTRAINTS = [
     AiryDisk2D, Moffat1D, Moffat2D, Box1D, Box2D,
     Const1D, Const2D, Ellipse2D, Disk2D,
     Gaussian1D, Gaussian2D,
-    Linear1D, Lorentz1D, MexicanHat1D, MexicanHat2D,
+    Linear1D, Lorentz1D, RickerWavelet1D, RickerWavelet2D,
     PowerLaw1D, Sersic1D, Sersic2D, Sine1D, Trapezoid1D, TrapezoidDisk2D,
     Chebyshev1D, Chebyshev2D, Hermite1D, Hermite2D, Legendre2D, Legendre1D,
     Polynomial1D, Polynomial2D, Voigt1D, KingProjectedAnalytic1D

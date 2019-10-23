@@ -600,7 +600,7 @@ class MexicanHat1DKernel(Kernel1D):
 
     def __init__(self, width, **kwargs):
         amplitude = 1.0 / (np.sqrt(2 * np.pi) * width ** 3)
-        self._model = models.MexicanHat1D(amplitude, 0, width)
+        self._model = models.RickerWavelet1D(amplitude, 0, width)
         self._default_size = _round_up_to_odd_integer(8 * width)
         super().__init__(**kwargs)
         self._truncation = np.abs(self._array.sum() / self._array.size)
@@ -673,7 +673,7 @@ class MexicanHat2DKernel(Kernel2D):
 
     def __init__(self, width, **kwargs):
         amplitude = 1.0 / (np.pi * width ** 4)
-        self._model = models.MexicanHat2D(amplitude, 0, 0, width)
+        self._model = models.RickerWavelet2D(amplitude, 0, 0, width)
         self._default_size = _round_up_to_odd_integer(8 * width)
         super().__init__(**kwargs)
         self._truncation = np.abs(self._array.sum() / self._array.size)
