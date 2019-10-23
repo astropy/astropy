@@ -34,6 +34,11 @@ astropy.coordinates
   ``CylindricalRepresentation`` of the coordinate, as is already available
   for other common representations. [#8857]
 
+- The default parameters for the ``Galactocentric`` frame are now controlled by
+  a ``ScienceState`` subclass, ``galactocentric_frame_defaults``. New
+  parameter sets will be added to this object periodically to keep up with
+  ever-improved measurements of the solar position and motion. [#9346]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -265,10 +270,14 @@ astropy.coordinates
 
 - Removed ``longitude`` and ``latitude`` attributes from ``EarthLocation``;
   deprecated since 2.0. [#9326]
+
 - The ``DifferentialAttribute`` for frame classes now passes through any input
   to the ``allowed_classes`` if only one allowed class is specified, i.e. this
   now allows passing a quantity in for frame attributes that use
   ``DifferentialAttribute``. [#9325]
+
+- Removed the deprecated ``galcen_ra`` and ``galcen_dec`` attributes from the
+  ``Galactocentric`` frame. [#9346]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^

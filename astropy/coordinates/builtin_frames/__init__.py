@@ -20,7 +20,7 @@ from one frame to another frame of the same class) should be included in that
 module.  Transformation functions connecting the new frame to other frames
 should be in a separate module, which should be imported in this package's
 ``__init__.py`` to ensure the transformations are hooked up when this package is
-imported.  Placing the trasnformation functions in separate modules avoids
+imported.  Placing the transformation functions in separate modules avoids
 circular dependencies, because they need references to the frame classes.
 """
 
@@ -29,7 +29,7 @@ from .icrs import ICRS
 from .fk5 import FK5
 from .fk4 import FK4, FK4NoETerms
 from .galactic import Galactic
-from .galactocentric import Galactocentric
+from .galactocentric import Galactocentric, galactocentric_frame_defaults
 from .lsr import LSR, GalacticLSR
 from .supergalactic import Supergalactic
 from .altaz import AltAz
@@ -54,6 +54,7 @@ from astropy.coordinates.baseframe import frame_transform_graph
 # we define an __all__ because otherwise the transformation modules
 # get included
 __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
+           'galactocentric_frame_defaults',
            'Supergalactic', 'AltAz', 'GCRS', 'CIRS', 'ITRS', 'HCRS',
            'PrecessedGeocentric', 'GeocentricMeanEcliptic',
            'BarycentricMeanEcliptic', 'HeliocentricMeanEcliptic',
