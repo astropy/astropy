@@ -360,32 +360,30 @@ documentation::
   sc.fk4noeterms                         sc.realize_frame
   sc.fk5                                 sc.relative_humidity
   sc.flatten                             sc.represent_as
-  sc.frame                               sc.representation
-  sc.frame_attributes                    sc.representation_component_names
-  sc.frame_specific_representation_info  sc.representation_component_units
-  sc.from_name                           sc.representation_info
-  sc.from_pixel                          sc.reshape
-  sc.galactic                            sc.roll
-  sc.galactocentric                      sc.search_around_3d
-  sc.galcen_dec                          sc.search_around_sky
+  sc.frame                               sc.representation_component_names
+  sc.frame_attributes                    sc.representation_component_units
+  sc.frame_specific_representation_info  sc.representation_info
+  sc.from_name                           sc.reshape
+  sc.from_pixel                          sc.roll
+  sc.galactic                            sc.search_around_3d
+  sc.galactocentric                      sc.search_around_sky
   sc.galcen_distance                     sc.separation
-  sc.galcen_ra                           sc.separation_3d
-  sc.gcrs                                sc.shape
-  sc.geocentrictrueecliptic              sc.size
-  sc.get_constellation                   sc.skyoffset_frame
-  sc.get_frame_attr_names                sc.spherical
-  sc.guess_from_table                    sc.spherical_offsets_to
-  sc.has_data                            sc.squeeze
-  sc.hcrs                                sc.supergalactic
-  sc.heliocentrictrueecliptic            sc.swapaxes
-  sc.icrs                                sc.take
-  sc.info                                sc.temperature
-  sc.is_equivalent_frame                 sc.to_pixel
-  sc.is_frame_attr_default               sc.to_string
-  sc.is_transformable_to                 sc.transform_to
-  sc.isscalar                            sc.transpose
-  sc.itrs                                sc.z_sun
-  sc.location
+  sc.gcrs                                sc.separation_3d
+  sc.geocentrictrueecliptic              sc.shape
+  sc.get_constellation                   sc.size
+  sc.get_frame_attr_names                sc.skyoffset_frame
+  sc.guess_from_table                    sc.spherical
+  sc.has_data                            sc.spherical_offsets_to
+  sc.hcrs                                sc.squeeze
+  sc.heliocentrictrueecliptic            sc.supergalactic
+  sc.icrs                                sc.swapaxes
+  sc.info                                sc.take
+  sc.is_equivalent_frame                 sc.temperature
+  sc.is_frame_attr_default               sc.to_pixel
+  sc.is_transformable_to                 sc.to_string
+  sc.isscalar                            sc.transform_to
+  sc.itrs                                sc.transpose
+  sc.location                            sc.z_sun
 
 Here we see many attributes and methods. The most recognizable may be the
 longitude and latitude attributes which are named ``ra`` and ``dec`` for the

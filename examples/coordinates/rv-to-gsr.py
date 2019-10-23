@@ -44,7 +44,7 @@ icrs = coord.ICRS(ra=258.58356362*u.deg, dec=14.55255619*u.deg,
 # `~astropy.coordinates.CartesianRepresentation` object using the
 # ``.to_cartesian()`` method of the
 # `~astropy.coordinates.CartesianDifferential` object ``galcen_v_sun``:
-v_sun = coord.Galactocentric.galcen_v_sun.to_cartesian()
+v_sun = coord.Galactocentric().galcen_v_sun.to_cartesian()
 
 ################################################################################
 # We now need to get a unit vector in the assumed Galactic frame from the sky
@@ -90,7 +90,7 @@ def rv_to_gsr(c, v_sun=None):
 
     """
     if v_sun is None:
-        v_sun = coord.Galactocentric.galcen_v_sun.to_cartesian()
+        v_sun = coord.Galactocentric().galcen_v_sun.to_cartesian()
 
     gal = c.transform_to(coord.Galactic)
     cart_data = gal.data.to_cartesian()
