@@ -413,6 +413,9 @@ astropy.time
 - Time formats that do not use ``val2`` now raise ValueError instead of
   silently ignoring a provided value. [#9373]
 
+- Custom time formats can now accept floating-point types with extended
+  precision. Existing time formats raise exceptions rather than discarding
+  extended precision through conversion to ordinary floating-point. [#9368]
 
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
