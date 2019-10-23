@@ -5,7 +5,11 @@
 In particular, routines to do basic arithmetic on numbers represented by two
 doubles, using the procedure of Shewchuk, 1997, Discrete & Computational
 Geometry 18(3):305-363 -- http://www.cs.berkeley.edu/~jrs/papers/robustr.pdf
+
+Furthermore, some helper routines to turn strings and other types of
+objects into two values, and vice versa.
 """
+import decimal
 
 import numpy as np
 from astropy import units as u
@@ -174,3 +178,50 @@ def split(a):
     ah = c - abig
     al = a - ah
     return ah, al
+
+
+_enough_decimal_places = 34  # to represent two doubles
+
+
+def decimal_to_twoval1(val1, val2=None):
+    with decimal.localcontext() as ctx:
+        ctx.prec = _enough_decimal_places
+        i, f = divmod(decimal.Decimal(val1), 1)
+    return float(i), float(f)
+
+
+def bytes_to_twoval1(val1, val2=None):
+    return decimal_to_twoval1(val1.decode('ascii'))
+
+
+def twoval_to_longdouble(val1, val2):
+    return val1.astype(np.longdouble) + val2.astype(np.longdouble)
+
+
+def twoval_to_decimal1(val1, val2):
+    with decimal.localcontext() as ctx:
+        ctx.prec = _enough_decimal_places
+        return decimal.Decimal(val1) + decimal.Decimal(val2)
+
+
+def twoval_to_string1(val1, val2, fmt):
+    if val2 == 0.:
+        # For some formats, only a single float is really used.
+        # For those, let numpy take care of correct number of digits.
+        return str(val1)
+
+    result = format(twoval_to_decimal1(val1, val2), fmt).strip('0')
+    if result[-1] == '.':
+        result += '0'
+    return result
+
+
+def twoval_to_bytes1(val1, val2, fmt):
+    return twoval_to_string1(val1, val2, fmt).encode('ascii')
+
+
+decimal_to_twoval = np.vectorize(decimal_to_twoval1)
+bytes_to_twoval = np.vectorize(bytes_to_twoval1)
+twoval_to_decimal = np.vectorize(twoval_to_decimal1)
+twoval_to_string = np.vectorize(twoval_to_string1, excluded='fmt')
+twoval_to_bytes = np.vectorize(twoval_to_bytes1, excluded='fmt')
