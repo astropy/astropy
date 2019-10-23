@@ -932,6 +932,8 @@ class Time(ShapedLikeNDArray):
             else:
                 tm = self.replicate(format=format)
 
+            # Go via kwargs to ensure that custom TimeFormat subclasses
+            # created in astropy versions <= 4.0 do not break.
             kwargs = {'out_subfmt': subfmt} if subfmt is not None else {}
             try:
                 value = tm._shaped_like_input(tm._time.to_value(
@@ -1634,7 +1636,7 @@ class Time(ShapedLikeNDArray):
         elif attr in self.FORMATS:
             return self.to_value(attr)
 
-        if attr in TIME_SCALES:  # allowed ones done above (self.SCALES)
+        elif attr in TIME_SCALES:  # allowed ones done above (self.SCALES)
             if self.scale is None:
                 raise ScaleValueError("Cannot convert TimeDelta with "
                                       "undefined scale to any defined scale.")
