@@ -48,7 +48,7 @@ def get_reprdiff_cls_hash():
     global _REPRDIFF_HASH
     if _REPRDIFF_HASH is None:
         _REPRDIFF_HASH = (hash(tuple(REPRESENTATION_CLASSES.items())) +
-                          hash(tuple(DIFFERENTIAL_CLASSES.items())) )
+                          hash(tuple(DIFFERENTIAL_CLASSES.items())))
     return _REPRDIFF_HASH
 
 
@@ -2011,7 +2011,7 @@ class BaseDifferential(BaseRepresentationOrDifferential,
                 # This is quite a bit faster than using to_system() or going
                 # through Quantity()
                 d_unit_si = d_unit.decompose(u.si.bases)
-                d_unit_si._scale = 1 # remove the scale from the unit
+                d_unit_si._scale = 1  # remove the scale from the unit
 
                 return str(d_unit_si)
 

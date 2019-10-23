@@ -74,7 +74,7 @@ def _get_json_result(url, err_str, use_google):
             raise NameResolveError(err_str.format(msg="unknown failure with "
                                                   "Google API"))
 
-    else: # OpenStreetMap returns a list
+    else:  # OpenStreetMap returns a list
         results = resp_data
 
     if not results:
@@ -419,13 +419,13 @@ class EarthLocation(u.Quantity):
                              'https://developers.google.com/maps/documentation/geocoding/get-api-key '
                              'for information on obtaining an API key.')
 
-        if use_google: # Google
+        if use_google:  # Google
             pars = urllib.parse.urlencode({'address': address,
                                            'key': google_api_key})
             geo_url = ("https://maps.googleapis.com/maps/api/geocode/json?{}"
                        .format(pars))
 
-        else: # OpenStreetMap
+        else:  # OpenStreetMap
             pars = urllib.parse.urlencode({'q': address,
                                            'format': 'json'})
             geo_url = ("https://nominatim.openstreetmap.org/search?{}"
@@ -444,7 +444,7 @@ class EarthLocation(u.Quantity):
 
         else:
             loc = geo_result[0]
-            lat = float(loc['lat']) # strings are returned by OpenStreetMap
+            lat = float(loc['lat'])  # strings are returned by OpenStreetMap
             lon = float(loc['lon'])
 
         if get_height:
@@ -738,7 +738,7 @@ class EarthLocation(u.Quantity):
         for body in bodies:
             try:
                 GMs.append(_masses[body].to(u.m**3/u.s**2, [M_GM_equivalency]))
-            except KeyError as exc:
+            except KeyError:
                 raise KeyError(f'body "{body}" does not have a mass!')
             except u.UnitsError as exc:
                 exc.args += ('"masses" argument values must be masses or '

@@ -414,8 +414,9 @@ class SkyCoord(ShapedLikeNDArray):
             for attr in frame_transform_graph.frame_attributes:
                 self_val = getattr(self, attr, None)
                 frame_val = getattr(frame, attr, None)
-                if (frame_val is not None and not
-                    (merge_attributes and frame.is_frame_attr_default(attr))):
+                if (frame_val is not None and
+                    not (merge_attributes and
+                         frame.is_frame_attr_default(attr))):
                     frame_kwargs[attr] = frame_val
                 elif (self_val is not None and
                       not self.is_frame_attr_default(attr)):
@@ -537,12 +538,12 @@ class SkyCoord(ShapedLikeNDArray):
 
         try:
             plx = icrsrep.distance.to_value(u.arcsecond, u.parallax())
-        except u.UnitConversionError: # No distance: set to 0 by starpm convention
+        except u.UnitConversionError:  # No distance: set to 0 by convention
             plx = 0.
 
         try:
             rv = icrsvel.d_distance.to_value(u.km/u.s)
-        except u.UnitConversionError: # No RV
+        except u.UnitConversionError:  # No RV
             rv = 0.
 
         starpm = erfa.starpm(icrsrep.lon.radian, icrsrep.lat.radian,
@@ -737,15 +738,13 @@ class SkyCoord(ShapedLikeNDArray):
         latargs.update(kwargs)
 
         if np.isscalar(sph_coord.lon.value):
-            coord_string = (sph_coord.lon.to_string(**lonargs)
-                            + " " +
-                            sph_coord.lat.to_string(**latargs))
+            coord_string = (sph_coord.lon.to_string(**lonargs) +
+                            " " + sph_coord.lat.to_string(**latargs))
         else:
             coord_string = []
             for lonangle, latangle in zip(sph_coord.lon.ravel(), sph_coord.lat.ravel()):
-                coord_string += [(lonangle.to_string(**lonargs)
-                                 + " " +
-                                 latangle.to_string(**latargs))]
+                coord_string += [(lonangle.to_string(**lonargs) +
+                                 " " + latangle.to_string(**latargs))]
             if len(sph_coord.shape) > 1:
                 coord_string = np.array(coord_string).reshape(sph_coord.shape)
 
@@ -1031,8 +1030,8 @@ class SkyCoord(ShapedLikeNDArray):
         """
         from .matching import match_coordinates_sky
 
-        if (isinstance(catalogcoord, (SkyCoord, BaseCoordinateFrame))
-                and catalogcoord.has_data):
+        if (isinstance(catalogcoord, (SkyCoord, BaseCoordinateFrame)) and
+                catalogcoord.has_data):
             self_in_catalog_frame = self.transform_to(catalogcoord)
         else:
             raise TypeError('Can only get separation to another SkyCoord or a '
@@ -1096,8 +1095,8 @@ class SkyCoord(ShapedLikeNDArray):
         """
         from .matching import match_coordinates_3d
 
-        if (isinstance(catalogcoord, (SkyCoord, BaseCoordinateFrame))
-                and catalogcoord.has_data):
+        if (isinstance(catalogcoord, (SkyCoord, BaseCoordinateFrame)) and
+                catalogcoord.has_data):
             self_in_catalog_frame = self.transform_to(catalogcoord)
         else:
             raise TypeError('Can only get separation to another SkyCoord or a '
@@ -1335,7 +1334,7 @@ class SkyCoord(ShapedLikeNDArray):
         return get_constellation(novel, short_name, constellation_list)
 
         # the simpler version below can be used when gh-issue #7028 is resolved
-        #return get_constellation(self, short_name, constellation_list)
+        # return get_constellation(self, short_name, constellation_list)
 
     # WCS pixel to/from sky conversions
     def to_pixel(self, wcs, origin=0, mode='all'):
@@ -1417,16 +1416,16 @@ class SkyCoord(ShapedLikeNDArray):
         """
 
         if image is not None:
-            ymax,xmax = image.shape
+            ymax, xmax = image.shape
         else:
-            xmax,ymax = wcs._naxis
+            xmax, ymax = wcs._naxis
 
         import warnings
         with warnings.catch_warnings():
             #  Suppress warnings since they just mean we didn't find the coordinate
             warnings.simplefilter("ignore")
             try:
-                x,y = self.to_pixel(wcs, **kwargs)
+                x, y = self.to_pixel(wcs, **kwargs)
             except Exception:
                 return False
 
@@ -1499,7 +1498,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         """
         # has to be here to prevent circular imports
-        from .solar_system import get_body_barycentric_posvel, get_body_barycentric
+        from .solar_system import get_body_barycentric_posvel
 
         # location validation
         timeloc = getattr(obstime, 'location', None)

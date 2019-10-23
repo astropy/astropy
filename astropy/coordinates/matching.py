@@ -451,7 +451,7 @@ def _get_cartesian_kdtree(coord, attrname_or_kdt='kdtree', forceunit=None):
         kdt = None
     else:
         raise TypeError('Invalid `attrname_or_kdt` argument for KD-Tree:' +
-                         str(attrname_or_kdt))
+                        str(attrname_or_kdt))
 
     if kdt is None:
         # need to build the cartesian KD-tree for the catalog
