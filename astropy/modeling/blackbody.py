@@ -2,9 +2,7 @@
 """
 Model and functions related to blackbody radiation.
 """
-
 import warnings
-from collections import OrderedDict
 
 import numpy as np
 
@@ -157,8 +155,8 @@ class BlackBody1D(Fittable1DModel):
         return {'x': u.Hz}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('temperature', u.K),
-                            ('bolometric_flux', outputs_unit['y'] * u.Hz)])
+        return {'temperature': u.K,
+                'bolometric_flux': outputs_unit['y'] * u.Hz}
 
     @property
     def lambda_max(self):
