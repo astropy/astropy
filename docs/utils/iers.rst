@@ -109,7 +109,7 @@ polar motion values:
   the IERS service.
 
 The IERS Service provides the default online table
-(`<http://maia.usno.navy.mil/ser7/finals2000A.all>`_) and updates the content
+(`<https://datacenter.iers.org/data/9/finals2000A.all>`_) and updates the content
 once each 7 days.  The default value of ``auto_max_age`` is 30 days to avoid
 unnecessary network access, but one can reduce this to as low as 10 days.
 
@@ -211,5 +211,3 @@ UT1Flag, PM_x, PM_y, PolPMFlag::
   57877.0 -0.6573705        P 0.010328 0.451777         P
   57878.0 -0.6587712        P 0.011924 0.453209         P
   57879.0  -0.660187        P 0.013544 0.454617         P
-
-

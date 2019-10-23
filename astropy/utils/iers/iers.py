@@ -37,8 +37,8 @@ __all__ = ['Conf', 'conf',
 
 # IERS-A default file name, URL, and ReadMe with content description
 IERS_A_FILE = 'finals2000A.all'
-IERS_A_URL = 'https://maia.usno.navy.mil/ser7/finals2000A.all'
-IERS_A_URL_MIRROR = 'https://toshi.nofs.navy.mil/ser7/finals2000A.all'
+IERS_A_URL = 'https://datacenter.iers.org/data/9/finals2000A.all'
+IERS_A_URL_MIRROR = 'ftp://cddis.gsfc.nasa.gov/pub/products/iers/finals2000A.all'
 IERS_A_README = get_pkg_data_filename('data/ReadMe.finals2000A')
 
 # IERS-B default file name, URL, and ReadMe with content description
@@ -364,7 +364,7 @@ class IERS_A(IERS):
     """IERS Table class targeted to IERS A, provided by USNO.
 
     These include rapid turnaround and predicted times.
-    See http://maia.usno.navy.mil/
+    See https://datacenter.iers.org/eop.php
 
     Notes
     -----
