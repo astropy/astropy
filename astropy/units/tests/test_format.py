@@ -420,19 +420,19 @@ def test_scaled_dimensionless():
 
 def test_deprecated_did_you_mean_units():
     with pytest.raises(ValueError,
-                       match=r'Crab .deprecated. or mCrab .deprecated..$'):
+                       match=r'Crab \(deprecated\) or mCrab \(deprecated\)'):
         u.Unit('crab', format='ogip')
 
-    with pytest.raises(ValueError, match='Did you mean Angstrom or angstrom?' ):
+    with pytest.raises(ValueError, match=r'Did you mean Angstrom or angstrom'):
         u.Unit('ANGSTROM', format='fits')
 
     with pytest.raises(ValueError,
-                       match='not supported by the CDS SAC standard') as e:
+                       match=r'not supported by the CDS SAC standard') as e:
         u.Unit('ANGSTROM', format='cds')
     assert str(e.value).count('Angstrom') == 5
 
     with pytest.raises(ValueError,
-                       match='not supported by the VOUnit standard') as e:
+                       match=r'not supported by the VOUnit standard') as e:
         u.Unit('ANGSTROM', format='vounit')
     assert str(e.value).count('nm') == 1
 
@@ -520,7 +520,7 @@ def test_vounit_implicit_custom():
     u.format.VOUnit._custom_units.clear()
     # Implicit as indicated by double-quoted strings shall recognise prefixes.
     # Yikes, this becomes "femto-urlong"...  But at least there's a warning.
-    with catch_warnings() as w:
+    with catch_warnings():
         x = u.Unit('"furlong/week"', format="vounit")
     assert not isinstance(x.bases[0], u.IrreducibleUnit)
     assert isinstance(x.bases[1], u.IrreducibleUnit)

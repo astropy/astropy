@@ -121,9 +121,9 @@ class VOUnit(generic.Generic):
                     raise ValueError()
                 raise ValueError("Unit {0!r} not supported by the VOUnit "
                                  "standard. {1}".format(
-                                 unit, utils.did_you_mean_units(
-                                     unit, cls._units, cls._deprecated_units,
-                                     cls._to_decomposed_alternative)))
+                                     unit, utils.did_you_mean_units(
+                                         unit, cls._units, cls._deprecated_units,
+                                         cls._to_decomposed_alternative)))
 
             warnings.warn(
                 "Unit {!r} not supported by the VOUnit "
@@ -198,7 +198,7 @@ class VOUnit(generic.Generic):
                     return core.PrefixUnit(
                         [prefix + x for x in base_unit.names],
                         core.CompositeUnit(factor, [base_unit], [1],
-                                        _error_check=False),
+                                           _error_check=False),
                         format={'vounit': prefix + base_unit.names[-1]},
                         namespace=cls._custom_units)
 
