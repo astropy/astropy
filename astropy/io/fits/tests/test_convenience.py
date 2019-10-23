@@ -95,15 +95,23 @@ class TestConvenience(FitsTestCase):
         """
         Regression test for https://github.com/astropy/astropy/issues/9387
         """
+        diagnose = 'be ignored since it conflicts with a FITS reserved keyword'
+        ins_cards = {'EXPTIME': 32.1, 'XTENSION': 'NEWTABLE',
+                     'NAXIS': 1, 'NAXIS1': 3, 'NAXIS2': 9,
+                     'PCOUNT': 42, 'OBSERVER': 'Adams'}
         table = Table([[1, 2, 3], ['a', 'b', 'c'], [2.3, 4.5, 6.7]],
                       names=['a', 'b', 'c'], dtype=['i4', 'U1', 'f8'])
-        table.meta.update({'EXPTIME': 32.1, 'XTENSION': 'NEWTABLE',
-                           'NAXIS': 1, 'NAXIS1': 3, 'NAXIS2': 9,
-                           'PCOUNT': 42, 'OBSERVER': 'Adams'})
-        with pytest.warns(AstropyUserWarning, match=r'Meta-data keyword \w+ '
-                          r'will be ignored since it conflicts with a FITS '):
+        table.meta.update(ins_cards)
+
+        with pytest.warns(AstropyUserWarning,
+                          match=f'Meta-data keyword \w+ will {diagnose}') as w:
             hdu = fits.table_to_hdu(table)
 
+        # This relies on the warnings being raised in the order of the
+        # meta dict (note that the first and last card are legitimate keys
+        for i, key in enumerate(list(ins_cards)[1:-1]):
+            assert f'Meta-data keyword {key}' in str(w[i].message)
+            
         assert hdu.header.get('XTENSION') == 'BINTABLE'
         assert hdu.header.get('NAXIS') == 2
         assert hdu.header.get('NAXIS1') == 13
