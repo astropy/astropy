@@ -156,13 +156,13 @@ scale compared to the original image.
     data_2D = gauss(x, y) + 0.1 * (np.random.rand(201, 201) - 0.5)
 
     # Setup kernels, including unity kernel for original image
-    # Choose normalization for linear scale space for MexicanHat
+    # Choose normalization for linear scale space for RickerWavelet
 
     kernels = [TrapezoidDisk2DKernel(11, slope=0.2),
                Tophat2DKernel(11),
                Gaussian2DKernel(11),
                Box2DKernel(11),
-               11 ** 2 * MexicanHat2DKernel(11),
+               11 ** 2 * RickerWavelet2DKernel(11),
                AiryDisk2DKernel(11)]
 
     fig, axes = plt.subplots(nrows=2, ncols=3)
@@ -203,8 +203,8 @@ Available Kernels
    CustomKernel
    Gaussian1DKernel
    Gaussian2DKernel
-   MexicanHat1DKernel
-   MexicanHat2DKernel
+   RickerWavelet1DKernel
+   RickerWavelet2DKernel
    Model1DKernel
    Model2DKernel
    Ring2DKernel
@@ -342,7 +342,7 @@ The kernel arrays can be renormalized explicitly by calling either the
 method leaves the kernel itself unchanged but works with an internal normalized
 version of the kernel.
 
-Note that for :class:`~astropy.convolution.MexicanHat1DKernel`
-and :class:`~astropy.convolution.MexicanHat2DKernel` there is
+Note that for :class:`~astropy.convolution.RickerWavelet1DKernel`
+and :class:`~astropy.convolution.RickerWavelet2DKernel` there is
 :math:`\int_{-\infty}^{\infty} f(x) dx = 0`. To define a proper normalization,
 both filters are derived from a normalized Gaussian function.
