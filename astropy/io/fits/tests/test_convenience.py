@@ -95,7 +95,7 @@ class TestConvenience(FitsTestCase):
         """
         Regression test for https://github.com/astropy/astropy/issues/9387
         """
-        diagnose = 'be ignored since it conflicts with a FITS reserved keyword'
+        diag = 'be ignored since it conflicts with a FITS reserved keyword'
         ins_cards = {'EXPTIME': 32.1, 'XTENSION': 'NEWTABLE',
                      'NAXIS': 1, 'NAXIS1': 3, 'NAXIS2': 9,
                      'PCOUNT': 42, 'OBSERVER': 'Adams'}
@@ -104,14 +104,15 @@ class TestConvenience(FitsTestCase):
         table.meta.update(ins_cards)
 
         with pytest.warns(AstropyUserWarning,
-                          match=f'Meta-data keyword \w+ will {diagnose}') as w:
+                          match=rf'Meta-data keyword \w+ will {diag}') as w:
             hdu = fits.table_to_hdu(table)
 
         # This relies on the warnings being raised in the order of the
-        # meta dict (note that the first and last card are legitimate keys
+        # meta dict (note that the first and last card are legitimate keys)
+        assert len(w) == len(ins_cards) - 2
         for i, key in enumerate(list(ins_cards)[1:-1]):
             assert f'Meta-data keyword {key}' in str(w[i].message)
-            
+
         assert hdu.header.get('XTENSION') == 'BINTABLE'
         assert hdu.header.get('NAXIS') == 2
         assert hdu.header.get('NAXIS1') == 13
@@ -124,7 +125,7 @@ class TestConvenience(FitsTestCase):
         """
         Test warning for each keyword in ..connect.REMOVE_KEYWORDS, 1 by 1
         """
-        diagnose = 'be ignored since it conflicts with a FITS reserved keyword'
+        diag = 'be ignored since it conflicts with a FITS reserved keyword'
         res_cards = {'XTENSION': 'BINTABLE', 'BITPIX': 8,
                      'NAXIS': 2, 'NAXIS1': 12, 'NAXIS2': 3,
                      'PCOUNT': 0, 'GCOUNT': 1, 'TFIELDS': 2, 'THEAP': None}
@@ -139,7 +140,7 @@ class TestConvenience(FitsTestCase):
         assert table.meta.get(card) != res_cards[card]
 
         with pytest.warns(AstropyUserWarning,
-                          match=f'Meta-data keyword {card} will {diagnose}'):
+                          match=f'Meta-data keyword {card} will {diag}'):
             hdu = fits.table_to_hdu(table)
 
         assert hdu.header.get(card) == res_cards[card]
