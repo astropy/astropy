@@ -241,6 +241,11 @@ astropy.visualization
 
 - Add a ``get_format_unit`` to ``wcsaxes.CoordinateHelper``. [#9392]
 
+- ``WCSAxes`` now, by default, sets a default label for plot axes which is the
+  WCS physical type (and unit) for that axis. This can be disabled using the
+  ``coords[i].set_auto_axislabel(False)`` or by explicitly setting an axis
+  label. [#9392]
+
 astropy.wcs
 ^^^^^^^^^^^
 
