@@ -208,8 +208,10 @@ astropy.timeseries
 astropy.uncertainty
 ^^^^^^^^^^^^^^^^^^^
 
-- Quantity distributions now implement a ``to`` method that yields new
-  distributions of the expected kind for the starting distribution. [#9429]
+- ``Distribution`` was rewritten such that it deals better with subclasses.
+  As a result, Quantity distributions now behave correctly with ``to`` methods
+  yielding new distributions of the kind expected for the starting distribution,
+  and ``to_value`` yielding ``NdarrayDistribution`` instances. [#9429, #9442]
 
 astropy.units
 ^^^^^^^^^^^^^
@@ -466,6 +468,11 @@ astropy.timeseries
 
 astropy.uncertainty
 ^^^^^^^^^^^^^^^^^^^
+
+- ``Distribution`` was rewritten such that it deals better with subclasses.
+  As a result, Quantity distributions now behave correctly with ``to`` methods
+  yielding new distributions of the kind expected for the starting distribution,
+  and ``to_value`` yielding ``NdarrayDistribution`` instances. [#9442]
 
 astropy.units
 ^^^^^^^^^^^^^
