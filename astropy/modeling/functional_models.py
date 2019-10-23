@@ -6,6 +6,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.units import Quantity, UnitsError
+from astropy.utils.decorators import deprecated
 from .core import (Fittable1DModel, Fittable2DModel,
                    ModelDefinitionError)
 
@@ -13,9 +14,10 @@ from .parameters import Parameter, InputParameterError
 from .utils import ellipse_extent
 
 
+
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D', 'Gaussian2D',
-           'Linear1D', 'Lorentz1D', 'MexicanHat1D', 'MexicanHat2D',
+           'Linear1D', 'Lorentz1D', 'RickerWavelet1D', 'RickerWavelet2D',
            'RedshiftScaleFactor', 'Multiply', 'Planar2D', 'Scale',
            'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D',
            'TrapezoidDisk2D', 'Ring2D', 'Voigt1D', 'KingProjectedAnalytic1D',
@@ -937,7 +939,7 @@ class Lorentz1D(Fittable1DModel):
 
     See Also
     --------
-    Gaussian1D, Box1D, MexicanHat1D
+    Gaussian1D, Box1D, RickerWavelet1D
 
     Notes
     -----
@@ -1949,7 +1951,7 @@ class TrapezoidDisk2D(Fittable2DModel):
                 'amplitude': outputs_unit['z']}
 
 
-class MexicanHat1D(Fittable1DModel):
+class RickerWavelet1D(Fittable1DModel):
     """
     One dimensional Mexican Hat model.
 
@@ -1964,7 +1966,7 @@ class MexicanHat1D(Fittable1DModel):
 
     See Also
     --------
-    MexicanHat2D, Box1D, Gaussian1D, Trapezoid1D
+    RickerWavelet2D, Box1D, Gaussian1D, Trapezoid1D
 
     Notes
     -----
@@ -1983,10 +1985,10 @@ class MexicanHat1D(Fittable1DModel):
         import numpy as np
         import matplotlib.pyplot as plt
 
-        from astropy.modeling.models import MexicanHat1D
+        from astropy.modeling.models import RickerWavelet1D
 
         plt.figure()
-        s1 = MexicanHat1D()
+        s1 = RickerWavelet1D()
         r = np.arange(-5, 5, .01)
 
         for factor in range(1, 4):
@@ -2037,7 +2039,7 @@ class MexicanHat1D(Fittable1DModel):
                 'amplitude': outputs_unit['y']}
 
 
-class MexicanHat2D(Fittable2DModel):
+class RickerWavelet2D(Fittable2DModel):
     """
     Two dimensional symmetric Mexican Hat model.
 
@@ -2054,7 +2056,7 @@ class MexicanHat2D(Fittable2DModel):
 
     See Also
     --------
-    MexicanHat1D, Gaussian2D
+    RickerWavelet1D, Gaussian2D
 
     Notes
     -----
@@ -2739,3 +2741,13 @@ class Exponential1D(Fittable1DModel):
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {'tau': inputs_unit['x'],
                 'amplitude': outputs_unit['y']}
+
+
+@deprecated('4.0', alternative='RickerWavelet1D')
+class MexicanHat1D(RickerWavelet1D):
+    pass
+
+
+@deprecated('4.0', alternative='RickerWavelet2D')
+class MexicanHat2D(RickerWavelet2D):
+    pass
