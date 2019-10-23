@@ -241,6 +241,12 @@ def test_binned_binom_proportion():
     assert (p == 0.).all()
 
 
+def test_binned_binom_proportion_exception():
+    with pytest.raises(ValueError):
+        with pytest.warns(AstropyDeprecationWarning):
+            funcs.binned_binom_proportion([0], [1, 2], conf=0.75)
+
+
 def test_signal_to_noise_oir_ccd():
 
     result = funcs.signal_to_noise_oir_ccd(1, 25, 0, 0, 0, 1)
