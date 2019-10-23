@@ -368,6 +368,10 @@ astropy.stats
   ``poisson_conf_interval``. Usage of ``conflevel`` now issues
   ``AstropyDeprecationWarning``. [#9408]
 
+- Renamed the ``conf`` keyword to ``confidence_level`` in
+  ``binom_conf_interval``. Usage of ``conf`` now issues
+  ``AstropyDeprecationWarning``. [#9408]
+
 astropy.table
 ^^^^^^^^^^^^^
 

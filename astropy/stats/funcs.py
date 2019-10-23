@@ -88,7 +88,8 @@ def _expand_dims(data, axis):
 
 
 # TODO Note scipy dependency
-def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
+@deprecated_renamed_argument('conf', 'confidence_level', '4.0')
+def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
     r"""Binomial proportion confidence interval given k successes,
     n trials.
 
@@ -99,7 +100,7 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
     n : int or numpy.ndarray
         Number of trials (``n`` > 0).  If both ``k`` and ``n`` are arrays,
         they must have the same shape.
-    conf : float in [0, 1], optional
+    confidence_level : float in [0, 1], optional
         Desired probability content of interval. Default is 0.68269,
         corresponding to 1 sigma in a 1-dimensional Gaussian distribution.
     interval : {'wilson', 'jeffreys', 'flat', 'wald'}, optional
@@ -243,15 +244,14 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
     For confidence intervals approaching 1, the Wald interval for
     0 < k < N can give intervals that extend outside [0, 1]:
 
-    >>> binom_conf_interval([0, 1, 2, 5], 5, interval='wald', conf=0.99)
+    >>> binom_conf_interval([0, 1, 2, 5], 5, interval='wald', confidence_level=0.99)
     array([[ 0.        , -0.26077835, -0.16433593,  1.        ],
            [ 0.        ,  0.66077835,  0.96433593,  1.        ]])
 
     """
-
-    if conf < 0. or conf > 1.:
-        raise ValueError('conf must be between 0. and 1.')
-    alpha = 1. - conf
+    if confidence_level < 0. or confidence_level > 1.:
+        raise ValueError('confidence_level must be between 0. and 1.')
+    alpha = 1. - confidence_level
 
     k = np.asarray(k).astype(int)
     n = np.asarray(n).astype(int)
@@ -263,7 +263,7 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
 
     if interval == 'wilson' or interval == 'wald':
         from scipy.special import erfinv
-        kappa = np.sqrt(2.) * min(erfinv(conf), 1.e10)  # Avoid overflows.
+        kappa = np.sqrt(2.) * min(erfinv(confidence_level), 1.e10)  # Avoid overflows.
         k = k.astype(float)
         n = n.astype(float)
         p = k / n
