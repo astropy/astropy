@@ -118,13 +118,18 @@ def biweight_location(data, c=6.0, M=None, axis=None, ignore_nan=False):
     u = d / (c * mad)
 
     # now remove the outlier points
-    mask = np.abs(u) >= 1
+    # ignore RuntimeWarnings for comparisons with NaN data values
+    with np.errstate(invalid='ignore'):
+        mask = np.abs(u) >= 1
     u = (1 - u ** 2) ** 2
     u[mask] = 0
 
-    # along the input axis if data is constant, d will be zero, thus
-    # the median value will be returned along that axis
-    return M.squeeze() + sum_func(d * u, axis=axis) / sum_func(u, axis=axis)
+    # Along the input axis if data is constant, d will be zero, thus
+    # the median value will be returned along that axis.
+    # Ignore RuntimeWarnings for divide by zero if all NaN along an axis
+    with np.errstate(divide='ignore', invalid='ignore'):
+        return M.squeeze() + (sum_func(d * u, axis=axis) /
+                              sum_func(u, axis=axis))
 
 
 def biweight_scale(data, c=9.0, M=None, axis=None, modify_sample_size=False,
@@ -372,7 +377,9 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     u = d / (c * mad)
 
     # now remove the outlier points
-    mask = np.abs(u) < 1
+    # ignore RuntimeWarnings for comparisons with NaN data values
+    with np.errstate(invalid='ignore'):
+        mask = np.abs(u) < 1
     u = u ** 2
 
     nanmask = np.ones(data.shape)
@@ -391,7 +398,8 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     f2[~mask] = 0.
     f2 = np.abs(np.sum(f2, axis=axis))**2
 
-    return n * f1 / f2
+    with np.errstate(divide='ignore', invalid='ignore'):
+        return n * f1 / f2
 
 
 def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
