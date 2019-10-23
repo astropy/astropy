@@ -6,9 +6,14 @@ important for Astropy.
 
 Note that all public functions in the `astropy.utils.compat.misc` module are
 imported here for easier access.
+
+The content of this module is solely for internal use of ``astropy``
+and subject to changes without deprecations. Do not use it in external
+packages or code.
+
 """
 
-from .misc import *
+from .misc import *  # noqa
 
 # Importing this module will also install monkey-patches defined in it
-from .numpycompat import *
+from .numpycompat import *  # noqa
