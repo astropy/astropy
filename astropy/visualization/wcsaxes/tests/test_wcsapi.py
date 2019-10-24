@@ -36,6 +36,36 @@ WCS3D.wcs.cdelt = [6.25, 6.25, 23]
 WCS3D.wcs.crval = [0., 0., 1.]
 
 
+@pytest.fixture
+def wcs_4d():
+    header = dedent("""\
+    WCSAXES =                    4 / Number of coordinate axes
+    CRPIX1  =                  0.0 / Pixel coordinate of reference point
+    CRPIX2  =                  0.0 / Pixel coordinate of reference point
+    CRPIX3  =                  0.0 / Pixel coordinate of reference point
+    CRPIX4  =                  5.0 / Pixel coordinate of reference point
+    CDELT1  =                  0.4 / [min] Coordinate increment at reference point
+    CDELT2  =                2E-11 / [m] Coordinate increment at reference point
+    CDELT3  =   0.0027777777777778 / [deg] Coordinate increment at reference point
+    CDELT4  =   0.0013888888888889 / [deg] Coordinate increment at reference point
+    CUNIT1  = 'min'                / Units of coordinate increment and value
+    CUNIT2  = 'm'                  / Units of coordinate increment and value
+    CUNIT3  = 'deg'                / Units of coordinate increment and value
+    CUNIT4  = 'deg'                / Units of coordinate increment and value
+    CTYPE1  = 'TIME'               / Coordinate type code
+    CTYPE2  = 'WAVE'               / Vacuum wavelength (linear)
+    CTYPE3  = 'HPLT-TAN'           / Coordinate type codegnomonic projection
+    CTYPE4  = 'HPLN-TAN'           / Coordinate type codegnomonic projection
+    CRVAL1  =                  0.0 / [min] Coordinate value at reference point
+    CRVAL2  =                  0.0 / [m] Coordinate value at reference point
+    CRVAL3  =                  0.0 / [deg] Coordinate value at reference point
+    CRVAL4  =                  0.0 / [deg] Coordinate value at reference point
+    LONPOLE =                180.0 / [deg] Native longitude of celestial pole
+    LATPOLE =                  0.0 / [deg] Native latitude of celestial pole
+    """)
+    return WCS(header=header)
+
+
 def test_shorthand_inversion():
     """
     Test that the Matplotlib subtraction shorthand for composing and inverting
@@ -219,34 +249,33 @@ def test_coord_type_1d_2d_wcs_uncorrelated():
     assert coord_meta['visible'] == [True, False]
 
 
-@pytest.fixture
-def wcs_4d():
-    header = dedent("""\
-    WCSAXES =                    4 / Number of coordinate axes
-    CRPIX1  =                  0.0 / Pixel coordinate of reference point
-    CRPIX2  =                  0.0 / Pixel coordinate of reference point
-    CRPIX3  =                  0.0 / Pixel coordinate of reference point
-    CRPIX4  =                  5.0 / Pixel coordinate of reference point
-    CDELT1  =                  0.4 / [min] Coordinate increment at reference point
-    CDELT2  =                2E-11 / [m] Coordinate increment at reference point
-    CDELT3  =   0.0027777777777778 / [deg] Coordinate increment at reference point
-    CDELT4  =   0.0013888888888889 / [deg] Coordinate increment at reference point
-    CUNIT1  = 'min'                / Units of coordinate increment and value
-    CUNIT2  = 'm'                  / Units of coordinate increment and value
-    CUNIT3  = 'deg'                / Units of coordinate increment and value
-    CUNIT4  = 'deg'                / Units of coordinate increment and value
-    CTYPE1  = 'TIME'               / Coordinate type code
-    CTYPE2  = 'WAVE'               / Vacuum wavelength (linear)
-    CTYPE3  = 'HPLT-TAN'           / Coordinate type codegnomonic projection
-    CTYPE4  = 'HPLN-TAN'           / Coordinate type codegnomonic projection
-    CRVAL1  =                  0.0 / [min] Coordinate value at reference point
-    CRVAL2  =                  0.0 / [m] Coordinate value at reference point
-    CRVAL3  =                  0.0 / [deg] Coordinate value at reference point
-    CRVAL4  =                  0.0 / [deg] Coordinate value at reference point
-    LONPOLE =                180.0 / [deg] Native longitude of celestial pole
-    LATPOLE =                  0.0 / [deg] Native latitude of celestial pole
-    """)
-    return WCS(header=header)
+def test_coord_meta_4d(wcs_4d):
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=FutureWarning)
+        _, coord_meta = transform_coord_meta_from_wcs(wcs_4d, RectangularFrame, slices=(0, 0, 'x', 'y'))
+
+    axislabel_position = coord_meta['default_axislabel_position']
+    ticklabel_position = coord_meta['default_ticklabel_position']
+    ticks_position = coord_meta['default_ticks_position']
+
+    assert axislabel_position == ['', '', 'b', 'l']
+    assert ticklabel_position == ['', '', 'b', 'l']
+    assert ticks_position == ['', '', 'bltr', 'bltr']
+
+
+def test_coord_meta_4d_line_plot(wcs_4d):
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=FutureWarning)
+        _, coord_meta = transform_coord_meta_from_wcs(wcs_4d, RectangularFrame1D, slices=(0, 0, 0, 'x'))
+
+    axislabel_position = coord_meta['default_axislabel_position']
+    ticklabel_position = coord_meta['default_ticklabel_position']
+    ticks_position = coord_meta['default_ticks_position']
+
+    # These axes are swapped due to the pixel derivatives
+    assert axislabel_position == ['', '', 't', 'b']
+    assert ticklabel_position == ['', '', 't', 'b']
+    assert ticks_position == ['', '', 't', 'b']
 
 
 @pytest.fixture

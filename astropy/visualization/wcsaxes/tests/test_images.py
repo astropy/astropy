@@ -754,7 +754,7 @@ class TestBasic(BaseImageTests):
 def wave_wcs_1d():
     wcs = WCS(naxis=1)
     wcs.wcs.ctype = ['WAVE']
-    wcs.wcs.cunit = ['nm']
+    wcs.wcs.cunit = ['m']
     wcs.wcs.crpix = [1]
     wcs.wcs.cdelt = [5]
     wcs.wcs.crval = [45]
