@@ -2,6 +2,7 @@
 
 import numpy as np
 
+from astropy.utils.decorators import deprecated_renamed_argument
 
 __all__ = ['jackknife_resampling', 'jackknife_stats']
 __doctest_requires__ = {'jackknife_stats': ['scipy']}
@@ -39,7 +40,7 @@ def jackknife_resampling(data):
         Stanford University, December, 1980.
 
     .. [3] Jackknife resampling <https://en.wikipedia.org/wiki/Jackknife_resampling>
-    """
+    """  # noqa
 
     n = data.shape[0]
     if n <= 0:
@@ -53,7 +54,8 @@ def jackknife_resampling(data):
     return resamples
 
 
-def jackknife_stats(data, statistic, conf_lvl=0.95):
+@deprecated_renamed_argument('conf_lvl', 'confidence_level', '4.0')
+def jackknife_stats(data, statistic, confidence_level=0.95):
     """ Performs jackknife estimation on the basis of jackknife resamples.
 
     This function requires `SciPy <https://www.scipy.org/>`_ to be installed.
@@ -66,7 +68,7 @@ def jackknife_stats(data, statistic, conf_lvl=0.95):
         Any function (or vector of functions) on the basis of the measured
         data, e.g, sample mean, sample variance, etc. The jackknife estimate of
         this statistic will be returned.
-    conf_lvl : float, optional
+    confidence_level : float, optional
         Confidence level for the confidence interval of the Jackknife estimate.
         Must be a real-valued number in (0,1). Default value is 0.95.
 
@@ -143,13 +145,17 @@ def jackknife_stats(data, statistic, conf_lvl=0.95):
 
     IMPORTANT: Note that confidence intervals are given as columns
     """
-
-    from scipy.special import erfinv
+    # jackknife confidence interval
+    if not (0 < confidence_level < 1):
+        raise ValueError("confidence level must be in (0, 1).")
 
     # make sure original data is proper
     n = data.shape[0]
     if n <= 0:
         raise ValueError("data must contain at least one measurement.")
+
+    # Only import scipy if inputs are valid
+    from scipy.special import erfinv
 
     resamples = jackknife_resampling(data)
 
@@ -167,11 +173,7 @@ def jackknife_stats(data, statistic, conf_lvl=0.95):
     # bias-corrected "jackknifed estimate"
     estimate = stat_data - bias
 
-    # jackknife confidence interval
-    if not (0 < conf_lvl < 1):
-        raise ValueError("confidence level must be in (0, 1).")
-
-    z_score = np.sqrt(2.0)*erfinv(conf_lvl)
+    z_score = np.sqrt(2.0)*erfinv(confidence_level)
     conf_interval = estimate + z_score*np.array((-std_err, std_err))
 
     return estimate, bias, std_err, conf_interval
