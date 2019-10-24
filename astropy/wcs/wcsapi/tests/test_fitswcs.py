@@ -13,8 +13,10 @@ from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import Quantity
 from astropy.coordinates import ICRS, FK5, Galactic, SkyCoord
 from astropy.io.fits import Header
+from astropy.io.fits.verify import VerifyWarning
+from astropy.units.core import UnitsWarning
 from astropy.utils.data import get_pkg_data_filename
-from astropy.wcs.wcs import WCS
+from astropy.wcs.wcs import WCS, FITSFixedWarning
 from astropy.wcs.wcsapi.fitswcs import custom_ctype_to_ucd_mapping
 
 ###############################################################################
@@ -101,7 +103,10 @@ CUNIT1  = deg
 CUNIT2  = deg
 """
 
-WCS_SIMPLE_CELESTIAL = WCS(Header.fromstring(HEADER_SIMPLE_CELESTIAL, sep='\n'))
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore', VerifyWarning)
+    WCS_SIMPLE_CELESTIAL = WCS(Header.fromstring(
+        HEADER_SIMPLE_CELESTIAL, sep='\n'))
 
 
 def test_simple_celestial():
@@ -122,7 +127,7 @@ def test_simple_celestial():
     assert_equal(wcs.axis_correlation_matrix, True)
 
     assert wcs.world_axis_object_components == [('celestial', 0, 'spherical.lon.degree'),
-                                                  ('celestial', 1, 'spherical.lat.degree')]
+                                                ('celestial', 1, 'spherical.lat.degree')]
 
     assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
     assert wcs.world_axis_object_classes['celestial'][1] == ()
@@ -211,7 +216,9 @@ CUNIT2  = Hz
 CUNIT3  = deg
 """
 
-WCS_SPECTRAL_CUBE = WCS(Header.fromstring(HEADER_SPECTRAL_CUBE, sep='\n'))
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore', VerifyWarning)
+    WCS_SPECTRAL_CUBE = WCS(Header.fromstring(HEADER_SPECTRAL_CUBE, sep='\n'))
 
 
 def test_spectral_cube():
@@ -236,8 +243,8 @@ def test_spectral_cube():
                                                [True, False, True]])
 
     assert wcs.world_axis_object_components == [('celestial', 1, 'spherical.lat.degree'),
-                                                  ('freq', 0, 'value'),
-                                                  ('celestial', 0, 'spherical.lon.degree')]
+                                                ('freq', 0, 'value'),
+                                                ('celestial', 0, 'spherical.lon.degree')]
 
     assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
     assert wcs.world_axis_object_classes['celestial'][1] == ()
@@ -303,7 +310,10 @@ PC2_3 = -0.5
 PC3_2 = +0.5
 """
 
-WCS_SPECTRAL_CUBE_NONALIGNED = WCS(Header.fromstring(HEADER_SPECTRAL_CUBE_NONALIGNED, sep='\n'))
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore', VerifyWarning)
+    WCS_SPECTRAL_CUBE_NONALIGNED = WCS(Header.fromstring(
+        HEADER_SPECTRAL_CUBE_NONALIGNED, sep='\n'))
 
 
 def test_spectral_cube_nonaligned():
@@ -327,8 +337,8 @@ def test_spectral_cube_nonaligned():
     # present, so this serves as a regression test.
 
     assert wcs.world_axis_object_components == [('celestial', 1, 'spherical.lat.degree'),
-                                                  ('freq', 0, 'value'),
-                                                  ('celestial', 0, 'spherical.lon.degree')]
+                                                ('freq', 0, 'value'),
+                                                ('celestial', 0, 'spherical.lon.degree')]
 
     assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
     assert wcs.world_axis_object_classes['celestial'][1] == ()
@@ -395,7 +405,9 @@ PV1_1   = 1. / ZPN linear term
 PV1_3   = 42. / ZPN cubic term
 """
 
-WCS_TIME_CUBE = WCS(Header.fromstring(HEADER_TIME_CUBE, sep='\n'))
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore', (VerifyWarning, FITSFixedWarning))
+    WCS_TIME_CUBE = WCS(Header.fromstring(HEADER_TIME_CUBE, sep='\n'))
 
 
 def test_time_cube():
@@ -470,14 +482,16 @@ def test_time_cube():
 def test_unrecognized_unit():
     # TODO: Determine whether the following behavior is desirable
     wcs = WCS(naxis=1)
-    wcs.wcs.cunit = ['bananas // sekonds']
-    assert wcs.world_axis_units == ['bananas // sekonds']
+    with pytest.warns(UnitsWarning):
+        wcs.wcs.cunit = ['bananas // sekonds']
+        assert wcs.world_axis_units == ['bananas // sekonds']
 
 
 def test_distortion_correlations():
 
     filename = get_pkg_data_filename('../../tests/data/sip.fits')
-    w = WCS(filename)
+    with pytest.warns(FITSFixedWarning):
+        w = WCS(filename)
     assert_equal(w.axis_correlation_matrix, True)
 
     # Changing PC to an identity matrix doesn't change anything since

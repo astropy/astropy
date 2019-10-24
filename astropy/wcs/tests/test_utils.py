@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
+
 import pytest
 
 import numpy as np
@@ -7,10 +9,12 @@ from numpy.testing import assert_almost_equal
 from numpy.testing import assert_allclose
 
 from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
+from astropy.utils.exceptions import AstropyUserWarning
 from astropy.time import Time
 from astropy import units as u
 
-from astropy.wcs.wcs import WCS, Sip, WCSSUB_LONGITUDE, WCSSUB_LATITUDE
+from astropy.wcs.wcs import (WCS, Sip, WCSSUB_LONGITUDE, WCSSUB_LATITUDE,
+                             FITSFixedWarning)
 from astropy.wcs.wcsapi.fitswcs import SlicedFITSWCS
 from astropy.wcs.utils import (proj_plane_pixel_scales,
                                is_proj_plane_distorted,
@@ -91,7 +95,7 @@ def test_slice():
     mywcs.wcs.cdelt = [0.1, 0.1]
     mywcs.wcs.crpix = [1, 1]
     mywcs._naxis = [1000, 500]
-    pscale = 0.1 # from cdelt
+    pscale = 0.1  # from cdelt
 
     slice_wcs = mywcs.slice([slice(1, None), slice(0, None)])
     assert np.all(slice_wcs.wcs.crpix == np.array([1, 0]))
@@ -113,11 +117,14 @@ def test_slice():
     assert slice_wcs._naxis == [500, 250]
 
     # Non-integral values do not alter the naxis attribute
-    slice_wcs = mywcs.slice([slice(50.), slice(20.)])
+    with pytest.warns(AstropyUserWarning):
+        slice_wcs = mywcs.slice([slice(50.), slice(20.)])
     assert slice_wcs._naxis == [1000, 500]
-    slice_wcs = mywcs.slice([slice(50.), slice(20)])
+    with pytest.warns(AstropyUserWarning):
+        slice_wcs = mywcs.slice([slice(50.), slice(20)])
     assert slice_wcs._naxis == [20, 500]
-    slice_wcs = mywcs.slice([slice(50), slice(20.5)])
+    with pytest.warns(AstropyUserWarning):
+        slice_wcs = mywcs.slice([slice(50), slice(20.5)])
     assert slice_wcs._naxis == [1000, 50]
 
 
@@ -133,7 +140,7 @@ def test_slice_with_sip():
          [0, 2.44084308e-05, 2.81394789e-11, 5.17856895e-13, 0.0],
          [-2.41334657e-07, 1.29289255e-10, 2.35753629e-14, 0.0, 0.0],
          [-2.37162007e-10, 5.43714947e-13, 0.0, 0.0, 0.0],
-         [ -2.81029767e-13, 0.0, 0.0, 0.0, 0.0]]
+         [-2.81029767e-13, 0.0, 0.0, 0.0, 0.0]]
     )
     b = np.array(
         [[0, 0, 2.99270374e-05, -2.38136074e-10, 7.23205168e-13],
@@ -144,7 +151,7 @@ def test_slice_with_sip():
     )
     mywcs.sip = Sip(a, b, None, None, mywcs.wcs.crpix)
     mywcs.wcs.set()
-    pscale = 0.1 # from cdelt
+    pscale = 0.1  # from cdelt
 
     slice_wcs = mywcs.slice([slice(1, None), slice(0, None)])
     # test that CRPIX maps to CRVAL:
@@ -561,6 +568,9 @@ def test_noncelestial_scale(cdelt, pc, cd):
         mywcs.wcs.cd = cd
     if pc is not None:
         mywcs.wcs.pc = pc
+
+    # TODO: Some inputs emit RuntimeWarning from here onwards.
+    #       Fix the test data. See @nden's comment in PR 9010.
     mywcs.wcs.cdelt = cdelt
 
     mywcs.wcs.ctype = ['RA---TAN', 'FREQ']
@@ -644,7 +654,8 @@ def test_is_proj_plane_distorted():
 
     # real case:
     header = get_pkg_data_filename('data/sip.fits')
-    wcs = WCS(header)
+    with pytest.warns(FITSFixedWarning):
+        wcs = WCS(header)
     assert(is_proj_plane_distorted(wcs))
 
 
@@ -655,7 +666,8 @@ def test_skycoord_to_pixel_distortions(mode):
     from astropy.coordinates import SkyCoord
 
     header = get_pkg_data_filename('data/sip.fits')
-    wcs = WCS(header)
+    with pytest.warns(FITSFixedWarning):
+        wcs = WCS(header)
 
     ref = SkyCoord(202.50 * u.deg, 47.19 * u.deg, frame='icrs')
 
