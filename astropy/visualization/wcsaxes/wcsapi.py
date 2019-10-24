@@ -148,7 +148,7 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
                 coord_meta['default_ticks_position'][index] = 'bltr'
 
     elif frame_class is RectangularFrame1D:
-        x_pixel_ind = slices.index('x')
+        x_pixel_ind = 0 if slices is None else slices.index('x')
         derivs = np.abs(local_partial_pixel_derivatives(wcs, *[0]*wcs.pixel_n_dim,
                                                         normalize_by_world=False))[:, x_pixel_ind]
         for i, spine_name in enumerate('bt'):
