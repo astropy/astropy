@@ -611,19 +611,19 @@ class TestUfuncReductions(InvariantUnitTestSetup):
         self.check(np.cumsum)
 
     def test_any(self):
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(TypeError):
             np.any(self.q)
 
     def test_all(self):
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(TypeError):
             np.all(self.q)
 
     def test_sometrue(self):
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(TypeError):
             np.sometrue(self.q)
 
     def test_alltrue(self):
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(TypeError):
             np.alltrue(self.q)
 
     def test_prod(self):
@@ -810,13 +810,23 @@ class TestUfuncLikeTests(metaclass=CoverageMeta):
         assert out.dtype.kind == 'b'
         assert np.all(out == expected)
 
-    @pytest.mark.xfail
-    def test_isclose_failure(self):
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason=("Needs __array_function__ support"))
+    def test_allclose_atol_default_unit(self):
         q_cm = self.q.to(u.cm)
-        # atol does not have units; TODO: should this work by default?
         out = np.isclose(self.q, q_cm)
         expected = np.isclose(self.q.value, q_cm.to_value(u.m))
         assert np.all(out == expected)
+        q1 = np.arange(3.) * u.m
+        q2 = np.array([0., 101., 198.]) * u.cm
+        out = np.isclose(q1, q2, atol=0.011, rtol=0)
+        expected = np.isclose(q1.value, q2.to_value(q1.unit),
+                              atol=0.011, rtol=0)
+        assert np.all(out == expected)
+        out2 = np.isclose(q2, q1, atol=0.011, rtol=0)
+        expected2 = np.isclose(q2.value, q1.to_value(q2.unit),
+                               atol=0.011, rtol=0)
+        assert np.all(out2 == expected2)
 
 
 class TestReductionLikeFunctions(InvariantUnitTestSetup):
@@ -892,16 +902,21 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
         assert np.allclose(q1, q2, atol=atol)
         assert np.allclose(q1, q2, atol=0., rtol=rtol)
 
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason=("Needs __array_function__ support"))
+    def test_allclose_atol_default_unit(self):
+        q1 = np.arange(3.) * u.m
+        q2 = np.array([0., 101., 199.]) * u.cm
+        assert np.allclose(q1, q2, atol=0.011, rtol=0)
+        assert not np.allclose(q2, q1, atol=0.011, rtol=0)
+
     def test_allclose_failures(self):
         q1 = np.arange(3.) * u.m
         q2 = np.array([0., 101., 199.]) * u.cm
         with pytest.raises(u.UnitsError):
-            # Default atol breaks code; TODO: should this work?
-            assert np.allclose(q1, q2)
+            np.allclose(q1, q2, atol=2*u.s, rtol=0)
         with pytest.raises(u.UnitsError):
-            np.allclose(q1, q2, atol=2, rtol=0)
-        with pytest.raises(u.UnitsError):
-            np.allclose(q1, q2, atol=0, rtol=1. * u.s)
+            np.allclose(q1, q2, atol=0, rtol=1.*u.s)
 
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")

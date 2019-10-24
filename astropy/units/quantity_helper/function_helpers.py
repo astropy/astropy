@@ -104,15 +104,11 @@ if NUMPY_LT_1_18:
 # np.ediff1d is from setops, but we support it anyway; the others
 # currently return NotImplementedError.
 # TODO: move latter to UNSUPPORTED? Would raise TypeError instead.
-SUBCLASS_SAFE_FUNCTIONS |= {
-    np.ediff1d,
-    np.all, np.any, np.sometrue, np.alltrue}
+SUBCLASS_SAFE_FUNCTIONS |= {np.ediff1d}
 
-# Subclass safe, but possibly better if overridden (e.g., with different
-# default arguments for isclose, allclose).
+# Subclass safe, but possibly better if overridden.
 # TODO: decide on desired behaviour.
 SUBCLASS_SAFE_FUNCTIONS |= {
-    np.isclose, np.allclose,
     np.array2string, np.array_repr, np.array_str}
 
 # Nonsensical for quantities.
@@ -120,7 +116,7 @@ UNSUPPORTED_FUNCTIONS |= {
     np.packbits, np.unpackbits, np.unravel_index,
     np.ravel_multi_index, np.ix_, np.cov, np.corrcoef,
     np.busday_count, np.busday_offset, np.datetime_as_string,
-    np.is_busday}
+    np.is_busday, np.all, np.any, np.sometrue, np.alltrue}
 
 # The following are not just unsupported, but so unlikely to be thought
 # to be supported that we ignore them in testing.  (Kept in a separate
@@ -545,6 +541,17 @@ def percentile(a, q, *args, **kwargs):
 @function_helper
 def count_nonzero(a, *args, **kwargs):
     return (a.value,) + args, kwargs, None, None
+
+
+@function_helper(helps={np.isclose, np.allclose})
+def close(a, b, rtol=1e-05, atol=1e-08, *args, **kwargs):
+    from astropy.units import Quantity
+
+    (a, b), unit = _quantities2arrays(a, b, unit_from_first=True)
+    # Allow number without a unit as having the unit.
+    atol = Quantity(atol, unit).value
+
+    return (a, b, rtol, atol) + args, kwargs, None, None
 
 
 @function_helper
