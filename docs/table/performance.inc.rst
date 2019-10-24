@@ -40,11 +40,11 @@ It uses the non-masked version of data and it is faster::
 
     >>> tm.write('tm.ecsv', overwrite=True, serialize_method='data_mask') # doctest: +SKIP
 
-Read FILE with memmap=True
+Read FITS with memmap=True
 --------------------------
 
 By default :meth:`~astropy.table.Table.read` will read the whole table into memory, which 
-will take a lot of memory and can take a lot of time, depending on the table size and 
+can take a lot of memory and can take a lot of time, depending on the table size and 
 file format. In some cases, it's possibly to only read a subset of the table by choosing 
 the option ``memmap=True``.
 
@@ -73,5 +73,5 @@ subset of rows, but reading a full column load the whole table data into memory:
     Length = 100 rows
     >>> col = table["my_column"] # Will load all table into memory
 
-Right now :meth:`~astropy.table.Table.read` does not supports ``memmap=True`` for HDF5 and ASCII 
-file formats.
+At the moment :meth:`~astropy.table.Table.read` does not support ``memmap=True`` for the HDF5 and 
+ASCII file formats.
