@@ -25,7 +25,7 @@ __doctest_skip__ = ["*"]
 
 
 @pytest.mark.parametrize("temperature", (3000 * u.K, 2726.85 * u.deg_C))
-def test_evaluate(temperature):
+def test_blackbody_evaluate(temperature):
 
     b = BlackBody(temperature=temperature, scale=1.0)
 
@@ -33,18 +33,18 @@ def test_evaluate(temperature):
     assert_quantity_allclose(b(214.13747 * u.THz), 486787299458.15656 * u.MJy / u.sr)
 
 
-def test_weins_law():
+def test_blackbody_weins_law():
     b = BlackBody(293.0 * u.K)
     assert_quantity_allclose(b.lambda_max, 9.890006672986939 * u.micron)
     assert_quantity_allclose(b.nu_max, 17.22525080856469 * u.THz)
 
 
-def test_sefanboltzman_law():
+def test_blackbody_sefanboltzman_law():
     b = BlackBody(293.0 * u.K)
     assert_quantity_allclose(b.bolometric_flux, 133.02471751812573 * u.W / (u.m * u.m))
 
 
-def test_return_units():
+def test_blackbody_return_units():
     # return of evaluate has no units when temperature has no units
     b = BlackBody(1000.0 * u.K, scale=1.0)
     assert not isinstance(b.evaluate(1.0 * u.micron, 1000.0, 1.0), u.Quantity)
@@ -61,7 +61,7 @@ def test_return_units():
 
 
 @pytest.mark.skipif("not HAS_SCIPY")
-def test_fit():
+def test_blackbody_fit():
 
     fitter = LevMarLSQFitter()
 

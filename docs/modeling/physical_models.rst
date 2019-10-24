@@ -82,3 +82,47 @@ and :math:`B_\nu`, respectively, calculated using `Wein's Law
     can be obtained with :class:`~astropy.modeling.physical_models.BlackBody`.
     See :doc:`blackbody_deprecated`
     and `astropy issue #9066 <https://github.com/astropy/astropy/issues/9066>`_ for details.
+
+Drude1D
+=======
+
+The :class:`~astropy.modeling.physical_models.Drude1D` model provides a model
+for the behavior of an election in a material
+(see `Drude Model <https://en.wikipedia.org/wiki/Drude_model>`_).
+Like the :class:`~astropy.modeling.functional_models.Lorentz1D` model, the Drude model
+has broader wings than the :class:`~astropy.modeling.functional_models.Gaussian1D`
+model.  The Drude profile has been used to model dust features including the
+2175 Angstrom extinction feature and the mid-infrared aromatic/PAH features.
+The Drude function at :math:`x` is
+
+.. math::
+
+    D(x) = A \frac{(f/x_0)^2}{((x/x_0 - x_0/x)^2 + (f/x_0)^2}
+
+where :math:`A` is the amplitude, :math:`f` is the full width at half maximum,
+and :math:`x_0` is the central wavelength.  An example of a Drude1D model
+with :math:`x_0 = 2175` Angstrom and :math:`f = 400` Angstrom is shown below.
+
+.. plot::
+    :include-source:
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    from astropy.modeling.models import Drude1D
+    import astropy.units as u
+
+    wavelengths = np.linspace(1000, 4000, num=1000) * u.AA
+
+    # Parameters and model
+    mod = Drude1D(amplitude=1.0, x_0=2175. * u.AA, fwhm=400. * u.AA)
+    mod_result = mod(wavelengths)
+
+    fig, ax = plt.subplots(ncols=1)
+    ax.plot(wavelengths, mod_result, '-')
+
+    ax.set_xlabel(r"$\lambda$ [{}]".format(wavelengths.unit))
+    ax.set_ylabel(r"$D(\lambda)$")
+
+    plt.tight_layout()
+    plt.show()
