@@ -186,6 +186,21 @@ def test_empty_table():
     astropy_table = table.to_table()  # noqa
 
 
+def test_binary2_masked_strings():
+    """
+    Issue #8995
+    """
+    # Read a VOTable which sets the null mask bit for each empty string value.
+    votable = parse(get_pkg_data_filename('data/binary2_masked_strings.xml'))
+    table = votable.get_first_table()
+    astropy_table = table.to_table()
+
+    # Ensure string columns have no masked values and can be written out
+    assert not np.any(table.array.mask['epoch_photometry_url'])
+    output = io.BytesIO()
+    astropy_table.write(output, format='votable')
+
+
 class TestVerifyOptions:
 
     # Start off by checking the default (ignore)
