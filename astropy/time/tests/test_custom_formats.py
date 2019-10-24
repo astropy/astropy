@@ -196,7 +196,11 @@ def test_existing_types_ok_with_float64(f):
         (np.arange(3), np.arange(4)),
         ("foo", "bar"),
         (1j, 2j),
-        (np.longdouble(3), np.longdouble(5)),
+        pytest.param(
+            np.longdouble(3), np.longdouble(5),
+            marks=pytest.mark.skipif(
+                np.longdouble().itemsize > 8,
+                reason="long double == double on this platform")),
         ({1: 2}, {3: 4}),
         ({1, 2}, {3, 4}),
         ([1, 2], [3, 4]),
