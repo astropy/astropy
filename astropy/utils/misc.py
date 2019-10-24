@@ -6,7 +6,6 @@ a clear module/package to live in.
 """
 
 import abc
-import copy
 import contextlib
 import difflib
 import inspect
@@ -24,6 +23,8 @@ from itertools import zip_longest
 from contextlib import contextmanager
 from collections import defaultdict, OrderedDict
 
+import numpy as np
+
 from astropy.utils.decorators import deprecated
 
 
@@ -32,7 +33,7 @@ __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
            'JsonCustomEncoder', 'indent', 'InheritDocstrings',
            'OrderedDescriptor', 'OrderedDescriptorContainer', 'set_locale',
            'ShapedLikeNDArray', 'check_broadcast', 'IncompatibleShapeError',
-           'dtype_bytes_or_chars']
+           'dtype_bytes_or_chars', 'unbroadcast']
 
 
 def isiterable(obj):
@@ -1157,6 +1158,28 @@ def dtype_bytes_or_chars(dtype):
     match = re.search(r'(\d+)$', dtype.str)
     out = int(match.group(1)) if match else None
     return out
+
+
+def unbroadcast(array):
+    """
+    Given an array, return a new array that is the smallest subset of the
+    original array that can be re-broadcasted back to the original array.
+
+    See https://stackoverflow.com/questions/40845769/un-broadcasting-numpy-arrays
+    for more details.
+    """
+
+    if array.ndim == 0:
+        return array
+
+    array = array[tuple((slice(0, 1) if stride == 0 else slice(None))
+                        for stride in array.strides)]
+
+    # Remove leading ones, which are not needed in numpy broadcasting.
+    first_not_unity = next((i for (i, s) in enumerate(array.shape) if s > 1),
+                           array.ndim)
+
+    return array.reshape(array.shape[first_not_unity:])
 
 
 def pizza():  # pragma: no cover

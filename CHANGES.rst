@@ -214,6 +214,10 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Added a new ``astropy.utils.misc.unbroadcast`` function which can be used
+  to return the smallest array that can be broadcasted back to the initial
+  array. [#9209]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -232,6 +236,11 @@ astropy.visualization
 
 astropy.wcs
 ^^^^^^^^^^^
+
+- Added a ``astropy.wcs.wcsapi.pixel_to_pixel`` function that can be used
+  to transform pixel coordinates in one dataset with a WCS to pixel coordinates in
+  another dataset with a different WCS. This function is designed to be efficient
+  when the input arrays are broadcasted views of smaller arrays. [#9209]
 
 - Updated wcslib to v6.4. [#9125]
 

@@ -1,6 +1,7 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 import importlib
 import numpy as np
-
 
 __all__ = ['deserialize_class', 'wcs_info_str']
 
