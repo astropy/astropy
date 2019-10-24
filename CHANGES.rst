@@ -194,6 +194,9 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- Support for unicode parsing.
+  Supported at the moment are superscripts, Ohm, Ångström,  and the micro-sign. [#9348]
+
 - Accept non-unit type annotations in @quantity_input. [#8984]
 
 - For numpy 1.17 and later, the new ``__array_function__`` protocol is used to
