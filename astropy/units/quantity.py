@@ -1625,12 +1625,12 @@ class Quantity(np.ndarray):
     # Calculation: override methods that do not make sense.
 
     def all(self, axis=None, out=None):
-        raise NotImplementedError("cannot evaluate truth value of quantities. "
-                                  "Evaluate array with q.value.all(...)")
+        raise TypeError("cannot evaluate truth value of quantities. "
+                        "Evaluate array with q.value.all(...)")
 
     def any(self, axis=None, out=None):
-        raise NotImplementedError("cannot evaluate truth value of quantities. "
-                                  "Evaluate array with q.value.any(...)")
+        raise TypeError("cannot evaluate truth value of quantities. "
+                        "Evaluate array with q.value.any(...)")
 
     # Calculation: numpy functions that can be overridden with methods.
 
