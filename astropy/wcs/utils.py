@@ -850,7 +850,7 @@ def local_partial_pixel_derivatives(wcs, *pixel, normalize_by_world=False):
     world_ref = np.array(wcs.pixel_to_world_values(*pixel_ref))
 
     # Set up the derivative matrix
-    derivatives = np.zeros((wcs.pixel_n_dim, wcs.pixel_n_dim))
+    derivatives = np.zeros((wcs.world_n_dim, wcs.pixel_n_dim))
 
     for i in range(wcs.pixel_n_dim):
         pixel_off = pixel_ref.copy()
