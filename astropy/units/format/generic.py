@@ -17,12 +17,25 @@ Handles a "generic" string format for units
 import os
 import re
 import warnings
+import sys
 from fractions import Fraction
+import unicodedata
 
 from . import core, utils
 from .base import Base
 from astropy.utils import classproperty
 from astropy.utils.misc import did_you_mean
+
+
+def _is_ascii(s):
+    if sys.version_info >= (3, 7, 0):
+        return s.isascii()
+    else:
+        try:
+            s.encode('ascii')
+            return True
+        except UnicodeEncodeError:
+            return False
 
 
 def _to_string(cls, unit):
@@ -148,7 +161,7 @@ class Generic(Base):
             return t
 
         def t_UNIT(t):
-            r"%|([YZEPTGMkhdcmunpfazy]?'((?!\d)\w)+')|((?!\d)\w)+"
+            "%|([YZEPTGMkhdcmu\N{MICRO SIGN}npfazy]?"+r"'((?!\d)\w)+')|((?!\d)\w)+"
             t.value = cls._get_unit(t)
             return t
 
@@ -454,7 +467,16 @@ class Generic(Base):
         registry = core.get_current_unit_registry().registry
         if s == '%':
             return registry['percent']
-        elif s in registry:
+
+        if not _is_ascii(s):
+            if s[0] == '\N{MICRO SIGN}':
+                s = 'u' + s[1:]
+            if s[-1] == '\N{GREEK CAPITAL LETTER OMEGA}':
+                s = s[:-1] + 'Ohm'
+            elif s[-1] == '\N{LATIN CAPITAL LETTER A WITH RING ABOVE}':
+                s = s[:-1] + 'Angstrom'
+
+        if s in registry:
             return registry[s]
 
         if detailed_exception:
@@ -464,15 +486,72 @@ class Generic(Base):
         else:
             raise ValueError()
 
+    _translations = str.maketrans({
+        '\N{GREEK SMALL LETTER MU}': '\N{MICRO SIGN}',
+        '\N{MINUS SIGN}': '-',
+    })
+    """Character translations that should be applied before parsing a string.
+
+    Note that this does explicitly *not* generally translate MICRO SIGN to u,
+    since then a string like 'µ' would be interpreted as unit mass.
+    """
+
+    _superscripts = (
+        '\N{SUPERSCRIPT MINUS}'
+        '\N{SUPERSCRIPT PLUS SIGN}'
+        '\N{SUPERSCRIPT ZERO}'
+        '\N{SUPERSCRIPT ONE}'
+        '\N{SUPERSCRIPT TWO}'
+        '\N{SUPERSCRIPT THREE}'
+        '\N{SUPERSCRIPT FOUR}'
+        '\N{SUPERSCRIPT FIVE}'
+        '\N{SUPERSCRIPT SIX}'
+        '\N{SUPERSCRIPT SEVEN}'
+        '\N{SUPERSCRIPT EIGHT}'
+        '\N{SUPERSCRIPT NINE}'
+    )
+
+    _superscript_translations = str.maketrans(_superscripts, '-+0123456789')
+    _regex_superscript = re.compile(f'[{_superscripts}]+')
+    _regex_deg = re.compile('°([CF])?')
+
+    @classmethod
+    def _convert_superscript(cls, m):
+        return '({})'.format(
+            m.group().translate(cls._superscript_translations)
+        )
+
+    @classmethod
+    def _convert_deg(cls, m):
+        if len(m.string) == 1:
+            return 'deg'
+        return m.string.replace('°', 'deg_')
+
     @classmethod
     def parse(cls, s, debug=False):
         if not isinstance(s, str):
             s = s.decode('ascii')
+        elif not _is_ascii(s):
+            # common normalization of unicode strings to avoid
+            # having to deal with multiple representations of
+            # the same character. This normalizes to "composed" form
+            # and will e.g. convert OHM SIGN to GREEK CAPITAL LETTER OMEGA
+            s = unicodedata.normalize('NFC', s)
+            # Translate some basic unicode items that we'd like to support on
+            # input but are not standard.
+            s = s.translate(cls._translations)
+
+            # TODO: might the below be better done in the parser/lexer?
+            # Translate superscripts to parenthesized numbers; this ensures
+            # that mixes of superscripts and regular numbers fail.
+            s = cls._regex_superscript.sub(cls._convert_superscript, s)
+            # Translate possible degrees.
+            s = cls._regex_deg.sub(cls._convert_deg, s)
 
         result = cls._do_parse(s, debug=debug)
         # Check for excess solidi, but exclude fractional exponents (accepted)
-        if (s.count('/') > 1 and
-                s.count('/') - len(re.findall(r'\(\d+/\d+\)', s)) > 1):
+        n_slashes = s.count('/')
+        if n_slashes > 1 and (n_slashes - len(re.findall(r'\(\d+/\d+\)', s))) > 1:
             warnings.warn(
                 "'{}' contains multiple slashes, which is "
                 "discouraged by the FITS standard".format(s),
@@ -492,8 +571,7 @@ class Generic(Base):
                 if str(e):
                     raise
                 else:
-                    raise ValueError(
-                        f"Syntax error parsing unit '{s}'")
+                    raise ValueError(f"Syntax error parsing unit '{s}'")
 
     @classmethod
     def _get_unit_name(cls, unit):

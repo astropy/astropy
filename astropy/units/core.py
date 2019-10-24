@@ -2231,7 +2231,7 @@ def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
                 # for some formatters.
                 if prefix == 'u':
                     format['latex'] = r'\mu ' + u.get_format_name('latex')
-                    format['unicode'] = 'μ' + u.get_format_name('unicode')
+                    format['unicode'] = '\N{MICRO SIGN}' + u.get_format_name('unicode')
 
                 for key, val in u._format.items():
                     format.setdefault(key, prefix + val)
