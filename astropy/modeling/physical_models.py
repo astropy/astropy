@@ -14,7 +14,9 @@ from astropy import constants as const
 from astropy import units as u
 from astropy.utils.exceptions import AstropyUserWarning
 
-__all__ = ["BlackBody", "Drude1D", "WavelengthFromGratingEquation"]
+
+__all__ = ["BlackBody", "Drude1D", "WavelengthFromGratingEquation",
+           "AnglesFromGratingEquation3D"]
 
 
 class BlackBody(Fittable1DModel):
@@ -320,15 +322,16 @@ class Drude1D(Fittable1DModel):
 
         return (x0 - dx, x0 + dx)
 
-    class WavelengthFromGratingEquation(Model):
-    r"""
-    Solve the Grating Dispersion Law for the wavelength.
+class WavelengthFromGratingEquation(Model):
+    r""" Solve the Grating Dispersion Law for the wavelength.
+
     .. Note:: This form of the equation can be used for paraxial
     (small angle approximation) as well as oblique incident angles.
     With paraxial systems the inputs are sin of the angles and it
     transforms to :math:`\sin(alpha_in) + \sin(alpha_out) / m * d` .
     With oblique angles the inputs are the direction cosines of the
     angles.
+
     Parameters
     ----------
     groove_density : int
@@ -368,10 +371,7 @@ class Drude1D(Fittable1DModel):
         """ Wavelength."""
 
     def evaluate(self, alpha_in, alpha_out, groove_density, spectral_order):
-        result = alpha_in + alpha_out / (groove_density.value * spectral_order)
-        if isinstance(result, u.Quantity):
-            return result.value
-        return result
+        return (alpha_in + alpha_out) / (groove_density * spectral_order)
 
     @property
     def return_units(self):
@@ -379,4 +379,66 @@ class Drude1D(Fittable1DModel):
             return None
         else:
             return {'wavelength': u.Unit(1 / self.groove_density.unit)}
-        
+
+
+class AnglesFromGratingEquation3D(Model):
+    """
+    Solve the 3D Grating Dispersion Law for the refracted angle.
+
+    Parameters
+    ----------
+    groove_density : int
+        Grating ruling density in units of 1/m.
+    order : int
+        Spectral order.
+
+
+    Examples
+    --------
+    >>> from astropy.modeling.models import math
+    >>> model = AnglesFromGratingEquation3D(groove_density=20000*1/u.m, spectral_order=-1)
+    >>> alpha_in = (math.Deg2radUfunc() | math.SinUfunc())(.0001 * u.deg)
+    >>> beta_in = (math.Deg2radUfunc() | math.SinUfunc())(.0001 * u.deg)
+    >>> lam = 2e-6 * u.m
+    >>> alpha_out, beta_out = model(lam, alpha_in, beta_in)
+    >>> print(alpha_out, beta_out)
+    (<Quantity -0.03999825>, <Quantity -1.74532925e-06>)
+    """
+
+    _separable = False
+
+    linear = False
+
+    n_inputs = 3
+    n_outputs = 2
+
+    groove_density = Parameter(default=1)
+    """ Grating ruling density in units 1/ length."""
+
+    spectral_order = Parameter(default=1)
+    """ Spectral order."""
+
+    def __init__(self, groove_density, spectral_order, **kwargs):
+        super().__init__(groove_density=groove_density,
+                         spectral_order=spectral_order, **kwargs)
+        self.inputs = ("wavelength", "alpha_in", "beta_in")
+        """ Wavelength and 2 angle coordinates going into the grating."""
+
+        self.outputs = ("alpha_out", "beta_out")
+        """ Two angles coming out of the grating. """
+
+    def evaluate(self, wavelength, alpha_in, beta_in,
+                 groove_density, spectral_order):
+        if alpha_in.shape != beta_in.shape != gamma_in.shape:
+            raise ValueError("Expected input arrays to have the same shape.")
+        alpha_out = groove_density * spectral_order * wavelength + alpha_in
+        beta_out = - beta_in
+        return alpha_out, beta_out
+
+    @property
+    def return_units(self):
+        if self.groove_density.unit is None:
+            return None
+        else:
+            return {'alpha_out': u.Unit(1),
+                    'beta_out': u.Unit(1)}
