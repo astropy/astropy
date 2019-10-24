@@ -132,8 +132,7 @@ jobs:
           command: |
             # If it's not a PR, don't upload
             if [ -z "${CIRCLE_PULL_REQUEST}" ]; then
-              rm -r docs/_build/html/*
-              rm -rf docs/_build/html/.*
+              rm -r docs/_build/html
             else
               # If it is a PR, delete sources and doctrees, because it's a lot
               # of files which we don't really need to upload
