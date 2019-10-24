@@ -920,7 +920,7 @@ class ShapedLikeNDArray(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def shape(self):
-        """The shape of the instance and underlying arrays."""
+        """The shape of the underlying data."""
 
     @abc.abstractmethod
     def _apply(method, *args, **kwargs):
