@@ -40,11 +40,16 @@ It uses the non-masked version of data and it is faster::
 
     >>> tm.write('tm.ecsv', overwrite=True, serialize_method='data_mask') # doctest: +SKIP
 
-Reading a large FITS file in |Table| using
-:meth:`~astropy.table.Table.read` when ``memmap=False`` can be very slow
-because it reads full |Table| in the memory. When you want to read a 
-large FITS file using :meth:`~astropy.table.Table.read`, then use ``memmap=True``.
-It does not load the data:
+Read FILE with memmap=True
+--------------------------
+
+By default :meth:`~astropy.table.Table.read` will read the whole table into memory, which 
+will take a lot of memory and can take a lot of time, depending on the table size and 
+file format. In some cases, it's possibly to only read a subset of the table by choosing 
+the option ``memmap=True``.
+
+For FITS binary tables, the data is stored row by row, and it is possible to read only a 
+subset of rows, but reading a full column load the whole table data into memory:
 
 .. doctest-skip::
 
@@ -54,18 +59,19 @@ It does not load the data:
     ...               'b': np.arange(1e7, dtype=float),
     ...               'c': np.arange(1e7, dtype=float)})
     >>> tbl.write('test.fits', overwrite=True)
-    >>> t = Table.read('test.fits', memmap=True)
+    >>> table = Table.read("test.fits", memmap=True) # Very fast, doesn't actually load data
+    >>> table2 = tbl[:100] #  Fast, will read only first 100 rows
+    >>> print(table2) # accessing column data triggers the read
+     a    b    c  
+    ---- ---- ----
+    0.0  0.0  0.0
+    1.0  1.0  1.0
+    2.0  2.0  2.0
+    ...  ...  ...
+    98.0 98.0 98.0
+    99.0 99.0 99.0
+    Length = 100 rows
+    >>> col = table["my_column"] # Will load all table into memory
 
-When we use columns data it loads whole data. Reading a single or multiple |Column| is not 
-helpful because whole data will be loaded:
-
-.. doctest-skip::
-
-    >>> a = t['a']
-
-You can use ``memmap=True`` when want to slice data row-wise. |Table| will load only those
- rows in memory:
-
-.. doctest-skip::
-
-    >>> t2 = t[:1_000]
+Right now :meth:`~astropy.table.Table.read` does not supports ``memmap=True`` for HDF5 and ASCII 
+file formats.
