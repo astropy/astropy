@@ -14,6 +14,7 @@ import struct
 import sys
 import threading
 import time
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 try:
     import fcntl
@@ -834,14 +835,21 @@ class ProgressBar:
                         bar.update(i)
             else:
                 ctx = multiprocessing.get_context(multiprocessing_start_method)
-                with ctx.Pool(processes=(int(multiprocess)
-                                         if multiprocess is not True
-                                         else None)) as p:
-                    for i, result in enumerate(
-                        p.imap_unordered(function, items, chunksize=chunksize)
-                    ):
+                if sys.version_info >= (3, 7):
+                    kwargs = dict(mp_context=ctx)
+                else:
+                    kwargs = {}
+                with ProcessPoolExecutor(
+                        max_workers=(int(multiprocess)
+                                     if multiprocess is not True
+                                     else None),
+                        **kwargs) as p:
+                    for i, f in enumerate(
+                            as_completed(
+                                p.submit(function, item)
+                                for item in items)):
                         bar.update(i)
-                        results.append(result)
+                        results.append(f.result())
 
         return results
 
