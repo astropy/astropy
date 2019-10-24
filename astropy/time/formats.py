@@ -1462,7 +1462,11 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
 
 
 def _validate_jd_for_storage(jd):
-    if isinstance(jd, (np.float, np.float64, np.float32, np.float16)):
+    if isinstance(jd, (float, int)):
+        return np.array(jd, dtype=np.float)
+    if (isinstance(jd, np.generic)
+        and (jd.dtype.kind == 'f' and jd.dtype.itemsize <= 8
+             or jd.dtype.kind in 'iu')):
         return np.array(jd, dtype=np.float)
     elif (isinstance(jd, np.ndarray)
           and jd.dtype.kind == 'f'
@@ -1481,15 +1485,17 @@ def _broadcast_writeable(jd1, jd2):
     # warn-on-write, even the one that wasn't modified, and
     # require "C" only clears the flag if it actually copied
     # anything.
-    s = np.broadcast(jd1, jd2).shape
-    if jd1.shape == s:
+    shape = np.broadcast(jd1, jd2).shape
+    if jd1.shape == shape:
         s_jd1 = jd1
     else:
-        s_jd1 = np.require(np.broadcast_to(jd1, s), requirements=["C", "W"])
-    if jd2.shape == s:
+        s_jd1 = np.require(np.broadcast_to(jd1, shape),
+                           requirements=["C", "W"])
+    if jd2.shape == shape:
         s_jd2 = jd2
     else:
-        s_jd2 = np.require(np.broadcast_to(jd2, s), requirements=["C", "W"])
+        s_jd2 = np.require(np.broadcast_to(jd2, shape),
+                           requirements=["C", "W"])
     return s_jd1, s_jd2
 
 
