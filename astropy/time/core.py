@@ -418,12 +418,12 @@ class Time(ShapedLikeNDArray):
                 # check the location can be broadcast to self's shape.
                 self.location = np.broadcast_to(self.location, self.shape,
                                                 subok=True)
-            except Exception:
+            except Exception as e:
                 raise ValueError('The location with shape {} cannot be '
                                  'broadcast against time with shape {}. '
                                  'Typically, either give a single location or '
                                  'one for each time.'
-                                 .format(self.location.shape, self.shape))
+                                 .format(self.location.shape, self.shape)) from e
 
     def _init_from_vals(self, val, val2, format, scale, copy,
                         precision=None, in_subfmt=None, out_subfmt=None):

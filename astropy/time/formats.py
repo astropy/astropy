@@ -150,7 +150,7 @@ class TimeFormat(metaclass=TimeFormatMeta):
     def jd1(self, jd1):
         self._jd1 = _validate_jd_for_storage(jd1)
         if self._jd2 is not None:
-            self._jd1, self._jd2 = _broadcast_writable(self._jd1, self._jd2)
+            self._jd1, self._jd2 = _broadcast_writeable(self._jd1, self._jd2)
 
     @property
     def jd2(self):
@@ -160,7 +160,7 @@ class TimeFormat(metaclass=TimeFormatMeta):
     def jd2(self, jd2):
         self._jd2 = _validate_jd_for_storage(jd2)
         if self._jd1 is not None:
-            self._jd1, self._jd2 = _broadcast_writable(self._jd1, self._jd2)
+            self._jd1, self._jd2 = _broadcast_writeable(self._jd1, self._jd2)
 
     def __len__(self):
         return len(self.jd1)
@@ -462,7 +462,7 @@ class TimeFromEpoch(TimeFormat):
             raise ScaleValueError("Cannot convert from '{}' epoch scale '{}'"
                                   "to specified scale '{}', got error:\n{}"
                                   .format(self.name, self.epoch_scale,
-                                          self.scale, err))
+                                          self.scale, err)) from err
 
         self.jd1, self.jd2 = day_frac(tm._time.jd1, tm._time.jd2)
 
@@ -478,7 +478,7 @@ class TimeFromEpoch(TimeFormat):
                 raise ScaleValueError("Cannot convert from '{}' epoch scale '{}'"
                                       "to specified scale '{}', got error:\n{}"
                                       .format(self.name, self.epoch_scale,
-                                              self.scale, err))
+                                              self.scale, err)) from err
 
             jd1, jd2 = tm._time.jd1, tm._time.jd2
         else:
@@ -1462,7 +1462,7 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
 
 
 def _validate_jd_for_storage(jd):
-    if isinstance(jd, np.float):
+    if isinstance(jd, (np.float, np.float64, np.float32, np.float16)):
         return np.array(jd, dtype=np.float)
     elif (isinstance(jd, np.ndarray)
           and jd.dtype.kind == 'f'
@@ -1474,14 +1474,22 @@ def _validate_jd_for_storage(jd):
             f"of floats but we got {jd!r} of type {type(jd)}")
 
 
-def _broadcast_writable(jd1, jd2):
+def _broadcast_writeable(jd1, jd2):
     if jd1.shape == jd2.shape:
         return jd1, jd2
-    s_jd1, s_jd2 = np.broadcast_arrays(jd1, jd2, subok=True)
-    if s_jd1.shape != jd1.shape:
-        s_jd1 = np.require(s_jd1, requirements=["C"])
-    if s_jd2.shape != jd2.shape:
-        s_jd2 = np.require(s_jd2, requirements=["C"])
+    # When using broadcast_arrays, *both* are flagged with
+    # warn-on-write, even the one that wasn't modified, and
+    # require "C" only clears the flag if it actually copied
+    # anything.
+    s = np.broadcast(jd1, jd2).shape
+    if jd1.shape == s:
+        s_jd1 = jd1
+    else:
+        s_jd1 = np.require(np.broadcast_to(jd1, s), requirements=["C", "W"])
+    if jd2.shape == s:
+        s_jd2 = jd2
+    else:
+        s_jd2 = np.require(np.broadcast_to(jd2, s), requirements=["C", "W"])
     return s_jd1, s_jd2
 
 
