@@ -575,7 +575,7 @@ Next, we create a :class:`PrimaryHDU` object to encapsulate the data::
 
     >>> hdu = fits.PrimaryHDU(n)
 
-We then create a HDUList to contain the newly created primary HDU, and write to
+We then create an :class:`HDUList` to contain the newly created primary HDU, and write to
 a new file::
 
     >>> hdul = fits.HDUList([hdu])
