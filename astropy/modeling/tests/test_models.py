@@ -375,7 +375,7 @@ class Fittable1DModelTester:
         except NotImplementedError:
             pytest.skip("Bounding_box is not defined for model.")
 
-        if isinstance(model, models.Lorentz1D):
+        if isinstance(model, models.Lorentz1D) or isinstance(model, models.Drude1D):
             rtol = 0.01  # 1% agreement is enough due to very extended wings
             ddx = 0.1  # Finer sampling to "integrate" flux for narrow peak
         else:
