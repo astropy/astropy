@@ -717,7 +717,7 @@ def test_time_1d_location_unsupported():
 
 def test_time_1d_unsupported_ctype():
 
-    # For cases that we don't support yet, e.g. UT(...), use Quantity
+    # For cases that we don't support yet, e.g. UT(...), use Time and drop sub-scale
 
     # Case where the MJDREF is split into two for high precision
     header = Header.fromstring(HEADER_TIME_1D, sep='\n')
@@ -725,10 +725,10 @@ def test_time_1d_unsupported_ctype():
 
     wcs = WCS(header)
     with pytest.warns(UserWarning,
-                      match="Unrecognized time CTYPE=UT"):
+                      match="Dropping unsupported sub-scale WWV from scale UT"):
         time = wcs.pixel_to_world(10)
 
-    assert isinstance(time, Quantity)
+    assert isinstance(time, Time)
 
 
 ###############################################################################
