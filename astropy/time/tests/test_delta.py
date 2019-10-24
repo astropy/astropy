@@ -279,8 +279,8 @@ class TestTimeDelta:
         assert dt.to_value('jd') == 1.
         assert dt.to_value('jd', 'str') == '1.0'
         assert dt.to_value(subfmt='str') == '86400.0'
-        with pytest.raises(ValueError,
-                           match='format is not one.*trying to parse it'):
+        with pytest.raises(ValueError, match=("not one of the known formats.*"
+                                              "failed to parse as a unit")):
             dt.to_value('julian')
 
 

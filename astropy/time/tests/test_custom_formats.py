@@ -108,22 +108,26 @@ def test_custom_time_format_problematic_name():
 
         class Custom(TimeFormat):
             name = "sort"
+            _dtype = np.dtype([('jd1', 'f8'), ('jd2', 'f8')])
 
             def set_jds(self, val, val2):
                 self.jd1, self.jd2 = val, val2
 
             @property
             def value(self):
-                return self.jd1, self.jd2
+                result = np.empty(self.jd1.shape, self._dtype)
+                result['jd1'] = self.jd1
+                result['jd2'] = self.jd2
+                return result
 
         t = Time.now()
         assert t.sort() == t, "bogus time format clobbers everyone's Time objects"
 
         t.format = "sort"
-        if not isinstance(t.value, tuple):
-            pytest.xfail("No good way to detect that `sort` is invalid")
+        assert t.value.dtype == Custom._dtype
 
-        assert Time(7, 9, format="sort").value == (7, 9)
+        t2 = Time(7, 9, format="sort")
+        assert t2.value == np.array((7, 9), Custom._dtype)
 
     finally:
         Time.FORMATS.pop("sort", None)

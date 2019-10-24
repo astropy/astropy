@@ -972,7 +972,7 @@ class TestNumericalSubFormat:
     def test_basic_subformat_cache_does_not_crash(self):
         t = Time('2001', format='jyear', scale='tai')
         t.to_value('mjd', subfmt='str')
-        assert 'mjd_str' in t.cache['format']
+        assert ('mjd', 'str') in t.cache['format']
         t.to_value('mjd', 'str')
 
     @pytest.mark.parametrize("fmt", ["jd", "mjd", "cxcsec", "unix", "gps", "jyear"])
