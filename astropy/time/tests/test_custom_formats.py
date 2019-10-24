@@ -199,7 +199,7 @@ def test_existing_types_ok_with_float64(f):
         pytest.param(
             np.longdouble(3), np.longdouble(5),
             marks=pytest.mark.skipif(
-                np.longdouble().itemsize > 8,
+                np.longdouble().itemsize == np.dtype(float).itemsize,
                 reason="long double == double on this platform")),
         ({1: 2}, {3: 4}),
         ({1, 2}, {3, 4}),
