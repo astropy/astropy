@@ -661,6 +661,7 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
         compute the WCS. Optionally, a SIP can be fit to account for geometric
         distortion. Returns an `~astropy.wcs.WCS` object with the best fit
         parameters for mapping between input pixel and sky coordinates.
+
     Notes
     ------
     - Detector (pixel) coordinates are passed in as a tuple of arrays (`xy`),
@@ -673,9 +674,10 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
       objects passed in for `world_coords` and `proj_point`, the frame for
       `world_coords`  will override.
     - If `sip_distortion` is False, `degree` will be ignored. 
+
     Parameters
     ----------
-    yp : tuple of two `numpy.ndarray`
+    xy : tuple of two `numpy.ndarray`
         x & y pixel coordinates.
     world_coords : `~astropy.coordinates.SkyCoord`
         Skycoord object with world coordinates.
@@ -685,6 +687,17 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
         point for the projection, a Skycoord object with a coordinate pair can
         be passed in. For consistency, the units and frame of these coordinates
         will be transformed to match 'world_coords' if they don't.
+    projection : str or `~astropy.wcs.WCS`
+        Three letter projection code, of any of standard projections defined 
+        in the FITS WCS standard. Optionally, a WCS object with projection 
+        keywords set may be passed in. 
+    sip_distortion : bool
+        If True, will fit SIP of degree `degree` to points to account for 
+        geometric distortion. If False, only linear terms are fit. Defaults to 
+        True.  
+    degree : int
+        Degree of polynomial to fit. Only used if `sip_distortion` is True. 
+        Defaults to 4.
     """
 
     from scipy.optimize import least_squares
@@ -707,18 +720,27 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
         'CEA', 'CAR', 'MER', 'SFL', 'PAR', 'MOL', 'AIT', 'COP', 'COE',
         'COD', 'COO', 'BON', 'PCO', 'TSC', 'CSC', 'QSC', 'HPX', 'XPH'
     ]
-    if projection not in proj_codes:
-        raise ValueError("Must specify valid projection code from list of " +
-                         "supported types: ", ', '.join(proj_codes))
+    if type(projection) == str:
+        if projection not in proj_codes:
+            raise ValueError("Must specify valid projection code from list of " 
+                             + "supported types: ", ', '.join(proj_codes))
+        # empty wcs to fill in with fit values
+        wcs = celestial_frame_to_wcs(frame=world_coords.frame,
+                                     projection=projection)
+    else: #if projection is not string, should be wcs object. use as template.
+        wcs = copy.deepcopy(projection)
+        wcs.cdelt = (1., 1.) # make sure cdelt is 1
+
+    # Change PC to CD, since cdelt will be set to 1
+    if wcs.wcs.has_pc():
+        wcs.wcs.cd = wcs.wcs.pc
+        wcs.wcs.__delattr__('pc')
+
     if type(sip_distortion) != bool:
        raise ValueError("sip_distortion must be set to True or False.")
     if (sip_distortion is True) & (type(degree) != int):
         raise ValueError("If sip_distorion is True, an integer value for " +
                          "the polynomial order must be provided.")
-
-    # empty wcs to fill in with fit values
-    wcs = celestial_frame_to_wcs(frame=world_coords.frame,
-                                 projection=projection)
 
     # set pixel_shape to span of input points
     wcs.pixel_shape = (max(xp)-min(xp), max(yp)-min(yp))
@@ -735,7 +757,7 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
                          close(lon-wcs.wcs.crval[1], yp))
 
     # fit linear terms, assign to wcs
-    p0 = np.concatenate((wcs.wcs.pc.flatten(), wcs.wcs.crpix.flatten()))
+    p0 = np.concatenate([np.array([1., 0., 0., 1.]), wcs.wcs.crpix.flatten()])
     fit = least_squares(_linear_wcs_fit, p0,
                         args=(lon, lat, xp, yp, wcs))
     wcs.wcs.crpix = np.array(fit.x[4:6])
@@ -743,7 +765,9 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
 
     # fit SIP, if specified. Only fit forward coefficients
     if sip_distortion:
-        wcs.wcs.ctype = [x + '-SIP' for x in wcs.wcs.ctype]
+        if '-SIP' not in wcs.wcs.ctype[0]:
+            wcs.wcs.ctype = [x + '-SIP' for x in wcs.wcs.ctype]
+
         coef_names = ['{0}_{1}'.format(i, j) for i in range(degree+1)
                       for j in range(degree+1) if (i+j) < (degree+1) and
                       (i+j) > 1]
@@ -756,7 +780,7 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
                     list(fit.x[6+len(coef_names):]))
 
         # put fit values in wcs
-        wcs.wcs.pc = fit.x[2:6].reshape((2, 2))
+        wcs.wcs.cd = fit.x[2:6].reshape((2, 2))
         wcs.wcs.crpix = fit.x[0:2]
 
         a_vals = np.zeros((degree+1, degree+1))
@@ -767,10 +791,6 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
             b_vals[int(coef_name[0])][int(coef_name[2])] = coef_fit[1].pop(0)
 
         wcs.sip = Sip(a_vals, b_vals, np.zeros((degree+1, degree+1)), 
-                      np.zeros((degree+1, degree+1)), wcs.wcs.crpix)
-
-    # Change PC to CD, since cdelt=1
-    wcs.wcs.cd = wcs.wcs.pc
-    wcs.wcs.__delattr__('pc')
+                      np.zeros((degree+1, degree+1)), wcs.wcs.crpix) 
 
     return wcs
