@@ -89,7 +89,7 @@ class CoordinateHelper:
         self.transform = transform
         self.coord_index = coord_index
         self.coord_unit = coord_unit
-        self.format_unit = format_unit
+        self._format_unit = format_unit
         self.frame = frame
         self.name = name[0] if isinstance(name, (tuple, list)) else name
         self._auto_axislabel = True
@@ -203,7 +203,7 @@ class CoordinateHelper:
             else:
                 self._coord_scale_to_deg = self.coord_unit.to(u.deg)
             self._formatter_locator = AngleFormatterLocator(unit=self.coord_unit,
-                                                            format_unit=self.format_unit)
+                                                            format_unit=self._format_unit)
         else:
             raise ValueError("coord_type should be one of 'scalar', 'longitude', or 'latitude'")
 
@@ -496,7 +496,7 @@ class CoordinateHelper:
         return self._auto_axislabel
 
     def _get_default_axislabel(self):
-        unit = self.format_unit or self.coord_unit
+        unit = self.get_format_unit() or self.coord_unit
 
         if unit is None or self.coord_type in ('longitude', 'latitude'):
             return f"{self.name}"
