@@ -839,6 +839,29 @@ def spatial_wcs_2d_small_angle():
 
 
 @pytest.mark.parametrize("slices, bottom_axis", [
+    # Remember SLLWCS takes slices in array order
+    (np.s_[0, :], 'custom:pos.helioprojective.lon'),
+    (np.s_[:, 0], 'custom:pos.helioprojective.lat')])
+@pytest.mark.remote_data(source='astropy')
+@pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                               tolerance=0, style={})
+def test_1d_plot_1d_sliced_low_level_wcs(spatial_wcs_2d_small_angle, slices, bottom_axis):
+    """
+    Test that a SLLWCS through a coupled 2D WCS plots as line OK.
+    """
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection=spatial_wcs_2d_small_angle[slices])
+    lines, = ax.plot([10, 12, 14, 12, 10], '-o', color="orange")
+
+    # Draw to trigger rendering the ticks.
+    plt.draw()
+
+    assert ax.coords[bottom_axis].ticks.get_visible_axes() == ['b']
+
+    return fig
+
+
+@pytest.mark.parametrize("slices, bottom_axis", [
     (('x', 0), 'hpln'),
     ((0, 'x'), 'hplt')])
 @pytest.mark.remote_data(source='astropy')
