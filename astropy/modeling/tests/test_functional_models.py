@@ -265,3 +265,11 @@ def test_KingProjectedAnalytic1D_fit():
     fitter = fitting.LevMarLSQFitter()
     km_fit = fitter(km_init, xarr, yarr)
     assert_allclose(km_fit.param_sets, km.param_sets)
+
+
+def test_ExponentialAndLogarithmic1D_fit():
+    xarr = np.linspace(0.1, 10., 200)
+    em_model = models.Exponential1D(amplitude=1, tau=1)
+    log_model = models.Logarithmic1D(amplitude=1, tau=1)
+    assert_allclose(xarr, em_model.inverse(em_model(xarr)))
+    assert_allclose(xarr, log_model.inverse(log_model(xarr)))
