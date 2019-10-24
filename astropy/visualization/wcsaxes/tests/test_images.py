@@ -754,6 +754,7 @@ class TestBasic(BaseImageTests):
 def wave_wcs_1d():
     wcs = WCS(naxis=1)
     wcs.wcs.ctype = ['WAVE']
+    wcs.wcs.cunit = ['nm']
     wcs.wcs.crpix = [1]
     wcs.wcs.cdelt = [5]
     wcs.wcs.crval = [45]
@@ -771,6 +772,23 @@ def test_1d_plot_1d_wcs(wave_wcs_1d):
 
     ax.set_xlabel("this is the x-axis")
     ax.set_ylabel("this is the y-axis")
+
+    return fig
+
+
+@pytest.mark.remote_data(source='astropy')
+@pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                tolerance=0, style={})
+def test_1d_plot_1d_wcs_format_unit(wave_wcs_1d):
+    """
+    This test ensures that the format unit is updated and displayed for both
+    the axis ticks and default axis labels.
+    """
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection=wave_wcs_1d)
+    lines, = ax.plot([10, 12, 14, 12, 10])
+
+    ax.coords[0].set_format_unit("nm")
 
     return fig
 
