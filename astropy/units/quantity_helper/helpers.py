@@ -355,6 +355,12 @@ for ufunc in invariant_ufuncs:
 # ufuncs that require dimensionless input and and give dimensionless output
 dimensionless_to_dimensionless_ufuncs = (np.exp, np.expm1, np.exp2, np.log,
                                          np.log10, np.log2, np.log1p)
+# Default numpy does not ship an "erf" ufunc, but some versions hacked by
+# intel do.  This is bad, since it means code written for that numpy will
+# not run on non-hacked numpy.  But still, we might as well support it.
+if isinstance(getattr(np.core.umath, 'erf', None), np.ufunc):
+    dimensionless_to_dimensionless_ufuncs += (np.core.umath.erf,)
+
 for ufunc in dimensionless_to_dimensionless_ufuncs:
     UFUNC_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
 
