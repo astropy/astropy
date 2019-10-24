@@ -460,8 +460,8 @@ def table_to_hdu(table, character_as_bytes=False):
         unsupported_cols = table.columns.not_isinstance((BaseColumn, Quantity, Time))
         if unsupported_cols:
             unsupported_names = [col.info.name for col in unsupported_cols]
-            raise ValueError('cannot write table with mixin column(s) {}'
-                         .format(unsupported_names))
+            raise ValueError(f'cannot write table with mixin column(s) '
+                             f'{unsupported_names}')
 
         time_cols = table.columns.isinstance(Time)
         if time_cols:
@@ -519,17 +519,17 @@ def table_to_hdu(table, character_as_bytes=False):
             except UnitScaleError:
                 scale = unit.scale
                 raise UnitScaleError(
-                    "The column '{}' could not be stored in FITS format "
-                    "because it has a scale '({})' that "
-                    "is not recognized by the FITS standard. Either scale "
-                    "the data or change the units.".format(col.name, str(scale)))
+                    f"The column '{col.name}' could not be stored in FITS "
+                    f"format because it has a scale '({str(scale)})' that "
+                    f"is not recognized by the FITS standard. Either scale "
+                    f"the data or change the units.")
             except ValueError:
                 # Warn that the unit is lost, but let the details depend on
                 # whether the column was serialized (because it was a
                 # quantity), since then the unit can be recovered by astropy.
                 warning = (
-                    "The unit '{}' could not be saved in native FITS format "
-                    .format(unit.to_string()))
+                    f"The unit '{unit.to_string()}' could not be saved in "
+                    f"native FITS format ")
                 if any('SerializedColumn' in item and 'name: '+col.name in item
                        for item in table.meta.get('comments', [])):
                     warning += (
@@ -564,8 +564,9 @@ def table_to_hdu(table, character_as_bytes=False):
     for key, value in table.meta.items():
         if is_column_keyword(key.upper()) or key.upper() in REMOVE_KEYWORDS:
             warnings.warn(
-                "Meta-data keyword {} will be ignored since it conflicts "
-                "with a FITS reserved keyword".format(key), AstropyUserWarning)
+                f"Meta-data keyword {key} will be ignored since it conflicts "
+                f"with a FITS reserved keyword", AstropyUserWarning)
+            continue
 
         # Convert to FITS format
         if key == 'comments':
@@ -577,17 +578,15 @@ def table_to_hdu(table, character_as_bytes=False):
                     table_hdu.header.append((key, item))
                 except ValueError:
                     warnings.warn(
-                        "Attribute `{}` of type {} cannot be added to "
-                        "FITS Header - skipping".format(key, type(value)),
-                        AstropyUserWarning)
+                        f"Attribute `{key}` of type {type(value)} cannot be "
+                        f"added to FITS Header - skipping", AstropyUserWarning)
         else:
             try:
                 table_hdu.header[key] = value
             except ValueError:
                 warnings.warn(
-                    "Attribute `{}` of type {} cannot be added to FITS "
-                    "Header - skipping".format(key, type(value)),
-                    AstropyUserWarning)
+                    f"Attribute `{key}` of type {type(value)} cannot be "
+                    f"added to FITS Header - skipping", AstropyUserWarning)
     return table_hdu
 
 

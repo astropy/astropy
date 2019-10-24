@@ -12,8 +12,10 @@ from astropy import units as u
 from astropy.table import Table
 from astropy.io.fits import printdiff
 from astropy.tests.helper import catch_warnings
+from astropy.utils.exceptions import AstropyUserWarning
 
 from . import FitsTestCase
+from ..connect import REMOVE_KEYWORDS
 
 
 class TestConvenience(FitsTestCase):
@@ -88,6 +90,77 @@ class TestConvenience(FitsTestCase):
         assert hdu.header.get('comment') == ['This', 'is', 'a', 'comment']
         with pytest.raises(ValueError):
             hdu.header.index('comments')
+
+    def test_table_to_hdu_filter_reserved(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/9387
+        """
+        diag = 'be ignored since it conflicts with a FITS reserved keyword'
+        ins_cards = {'EXPTIME': 32.1, 'XTENSION': 'NEWTABLE',
+                     'NAXIS': 1, 'NAXIS1': 3, 'NAXIS2': 9,
+                     'PCOUNT': 42, 'OBSERVER': 'Adams'}
+        table = Table([[1, 2, 3], ['a', 'b', 'c'], [2.3, 4.5, 6.7]],
+                      names=['a', 'b', 'c'], dtype=['i4', 'U1', 'f8'])
+        table.meta.update(ins_cards)
+
+        with pytest.warns(AstropyUserWarning,
+                          match=rf'Meta-data keyword \w+ will {diag}') as w:
+            hdu = fits.table_to_hdu(table)
+
+        # This relies on the warnings being raised in the order of the
+        # meta dict (note that the first and last card are legitimate keys)
+        assert len(w) == len(ins_cards) - 2
+        for i, key in enumerate(list(ins_cards)[1:-1]):
+            assert f'Meta-data keyword {key}' in str(w[i].message)
+
+        assert hdu.header.get('XTENSION') == 'BINTABLE'
+        assert hdu.header.get('NAXIS') == 2
+        assert hdu.header.get('NAXIS1') == 13
+        assert hdu.header.get('NAXIS2') == 3
+        assert hdu.header.get('PCOUNT') == 0
+        np.testing.assert_almost_equal(hdu.header.get('EXPTIME'), 3.21e1)
+
+    @pytest.mark.parametrize('card', REMOVE_KEYWORDS)
+    def test_table_to_hdu_warn_reserved(self, card):
+        """
+        Test warning for each keyword in ..connect.REMOVE_KEYWORDS, 1 by 1
+        """
+        diag = 'be ignored since it conflicts with a FITS reserved keyword'
+        res_cards = {'XTENSION': 'BINTABLE', 'BITPIX': 8,
+                     'NAXIS': 2, 'NAXIS1': 12, 'NAXIS2': 3,
+                     'PCOUNT': 0, 'GCOUNT': 1, 'TFIELDS': 2, 'THEAP': None}
+        ins_cards = {'XTENSION': 'TABLE', 'BITPIX': 16,
+                     'NAXIS': 1, 'NAXIS1': 2, 'NAXIS2': 6,
+                     'PCOUNT': 2, 'GCOUNT': 2, 'TFIELDS': 4, 'THEAP': 36}
+
+        table = Table([[1.0, 2.0, 3.0], [2.3, 4.5, 6.7]],
+                      names=['wavelength', 'flux'], dtype=['f8', 'f4'])
+        table.meta['ORIGIN'] = 'Min.Silly Walks'
+        table.meta[card] = ins_cards[card]
+        assert table.meta.get(card) != res_cards[card]
+
+        with pytest.warns(AstropyUserWarning,
+                          match=f'Meta-data keyword {card} will {diag}'):
+            hdu = fits.table_to_hdu(table)
+
+        assert hdu.header.get(card) == res_cards[card]
+        assert hdu.header.get('ORIGIN') == 'Min.Silly Walks'
+
+    def test_table_to_hdu_filter_incompatible(self):
+        """
+        Test removal of unsupported data types from header
+        """
+        table = Table([[1, 2, 3], ['a', 'b', 'c'], [2.3, 4.5, 6.7]],
+                      names=['a', 'b', 'c'], dtype=['i4', 'U1', 'f8'])
+        table.meta.update({'OBSDATE': '2001-05-26', 'RAMP': np.arange(5),
+                           'TARGETS': {'PRIMARY': 1, 'SECONDAR': 3}})
+        with pytest.warns(AstropyUserWarning, match=r'Attribute \S+ of type '
+                          r'.+ cannot be added to FITS Header - skipping'):
+            hdu = fits.table_to_hdu(table)
+
+        assert hdu.header.get('OBSDATE') == '2001-05-26'
+        assert 'RAMP' not in hdu.header
+        assert 'TARGETS' not in hdu.header
 
     def test_table_writeto_header(self):
         """
