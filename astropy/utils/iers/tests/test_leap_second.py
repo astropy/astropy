@@ -351,6 +351,20 @@ class TestUpdateLeapSeconds(ERFALeapSecondsSafe):
         new_erfa_ls = erfa.leap_seconds.get()
         assert_array_equal(new_erfa_ls, self.erfa_ls)
 
+    def test_update_overwrite(self):
+        n_update = self.ls.update_erfa_leap_seconds(initialize_erfa='empty')
+        assert n_update == len(self.ls)
+        new_erfa_ls = erfa.leap_seconds.get()
+        assert new_erfa_ls['year'].min() > 1970
+        n_update2 = self.ls.update_erfa_leap_seconds()
+        assert n_update2 == 0
+        new_erfa_ls2 = erfa.leap_seconds.get()
+        assert_array_equal(new_erfa_ls2, new_erfa_ls)
+        n_update3 = self.ls.update_erfa_leap_seconds(initialize_erfa=True)
+        assert n_update3 == 0
+        new_erfa_ls3 = erfa.leap_seconds.get()
+        assert_array_equal(new_erfa_ls3, self.erfa_ls)
+
     def test_bad_jump(self):
         erfa.leap_seconds.set(self.erfa_ls[:-2])
         bad = self.ls.copy()

@@ -1132,11 +1132,15 @@ class LeapSeconds(QTable):
 
         Parameters
         ----------
-        initialize_erfa : bool, or 'only'
+        initialize_erfa : bool, or 'only', or 'empty'
             Initialize the ERFA leap second table to its built-in value before
             trying to expand it.  This is generally not needed but can help
             in case it somehow got corrupted.  If equal to 'only', the ERFA
             table is reinitialized and no attempt it made to update it.
+            If 'empty', the leap second table is emptied before updating, i.e.,
+            it is overwritten altogether (note that this may break things in
+            surprising ways, as most leap second tables do not include pre-1970
+            pseudo leap-seconds; you were warned).
 
         Returns
         -------
@@ -1153,6 +1157,11 @@ class LeapSeconds(QTable):
             by calling this method with an appropriate value for
             ``initialize_erfa``.
         """
+        if initialize_erfa == 'empty':
+            # Initialize to empty and update is the same as overwrite.
+            erfa.leap_seconds.set(self)
+            return len(self)
+
         if initialize_erfa:
             erfa.leap_seconds.set()
             if initialize_erfa == 'only':
