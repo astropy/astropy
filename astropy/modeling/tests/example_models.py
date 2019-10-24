@@ -220,14 +220,15 @@ models_1D = {
         'y_lim': [0, 10],
     },
 
-<<<<<<< HEAD
+
     Drude1D: {
         'parameters': [1.0, 8.0, 1.0],
         'x_values': [7.0, 8.0, 9.0, 10.0],
         'y_values': [0.17883212, 1.0, 0.21891892, 0.07163324],
         'x_lim': [1.0, 20.0],
         'y_lim': [0.0, 10.0]
-=======
+    },
+
     Exponential1D: {
         'parameters': [1, 1],
         'x_values': [0, 0.5, 1],
@@ -242,7 +243,6 @@ models_1D = {
         'y_values': [0, 1, 2],
         'x_lim': [1, np.e**2],
         'integral': (np.e**2 + 1),
->>>>>>> 472589f5d... Added Exponential1D and Logarithmic1D classes
     }
 }
 
