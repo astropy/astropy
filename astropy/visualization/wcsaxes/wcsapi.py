@@ -125,7 +125,7 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
     for i in range(len(coord_meta['type'])):
         coord_meta['visible'].append(i in world_map)
 
-    m = wcs.axis_correlation_matrix.copy()
+    m = transform_wcs.axis_correlation_matrix.copy()
     if invert_xy:
         m = m[:, ::-1]
 
@@ -134,11 +134,11 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
         for i, spine_name in enumerate('bltr'):
             pos = np.nonzero(m[:, i % 2])[0]
             if len(pos) > 0:
-                index = pos[0]
+                index = world_map[pos[0]]
                 coord_meta['default_axislabel_position'][index] = spine_name
                 coord_meta['default_ticklabel_position'][index] = spine_name
                 coord_meta['default_ticks_position'][index] = spine_name
-                m[index, :] = 0
+                m[pos[0], :] = 0
 
         # In the special and common case where the frame is rectangular and
         # we are dealing with 2-d WCS (after slicing), we show all ticks on
@@ -148,22 +148,21 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
                 coord_meta['default_ticks_position'][index] = 'bltr'
 
     elif frame_class is RectangularFrame1D:
-        x_pixel_ind = 0 if slices is None else slices.index('x')
-        derivs = np.abs(local_partial_pixel_derivatives(wcs, *[0]*wcs.pixel_n_dim,
-                                                        normalize_by_world=False))[:, x_pixel_ind]
+        derivs = np.abs(local_partial_pixel_derivatives(transform_wcs, *[0]*transform_wcs.pixel_n_dim,
+                                                        normalize_by_world=False))[:, 0]
         for i, spine_name in enumerate('bt'):
             # Here we are iterating over the correlated axes in world axis order.
             # We want to sort the correlated axes by their partial derivatives,
             # so we put the most rapidly changing world axis on the bottom.
-            pos = np.nonzero(m[:, x_pixel_ind])[0]
+            pos = np.nonzero(m[:, 0])[0]
             order = np.argsort(derivs[pos])[::-1]  # Sort largest to smallest
             pos = pos[order]
             if len(pos) > 0:
-                index = pos[0]
+                index = world_map[pos[0]]
                 coord_meta['default_axislabel_position'][index] = spine_name
                 coord_meta['default_ticklabel_position'][index] = spine_name
                 coord_meta['default_ticks_position'][index] = spine_name
-                m[index, :] = 0
+                m[pos[0], :] = 0
 
         # In the special and common case where the frame is rectangular and
         # we are dealing with 2-d WCS (after slicing), we show all ticks on
