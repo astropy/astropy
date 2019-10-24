@@ -425,7 +425,7 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
 
     Raises
     ------
-    urllib2.URLError, urllib.error.URLError
+    urllib.error.URLError
         If a remote file cannot be found.
     OSError
         If problems occur writing or reading a local file.
@@ -535,7 +535,7 @@ def get_pkg_data_filename(data_name, package=None, show_progress=True,
 
     Raises
     ------
-    urllib2.URLError, urllib.error.URLError
+    urllib.error.URLError
         If a remote file cannot be found.
     OSError
         If problems occur writing or reading a local file.
@@ -665,7 +665,7 @@ def get_pkg_data_contents(data_name, package=None, encoding=None, cache=True):
 
     Raises
     ------
-    urllib2.URLError, urllib.error.URLError
+    urllib.error.URLError
         If a remote file cannot be found.
     OSError
         If problems occur writing or reading a local file.
@@ -872,8 +872,8 @@ def _find_pkg_data_path(data_name, package=None):
 
     root_dir = os.path.dirname(rootpkg.__file__)
     if not _is_inside(path, root_dir):
-        raise RuntimeError("attempted to get a local data file outside "
-                           "of the {} tree.".format(rootpkgname))
+        raise RuntimeError(f"attempted to get a local data file outside "
+                           f"of the {rootpkgname} tree.")
 
     return path
 
@@ -940,10 +940,8 @@ def check_free_space_in_dir(path, size):
 
     space = get_free_space_in_dir(path)
     if space < size:
-        raise OSError(
-            "Not enough free space in '{}' "
-            "to download a {} file".format(
-                path, human_file_size(size)))
+        raise OSError(f"Not enough free space in {path} "
+                      f"to download a {human_file_size(size)} file")
 
 
 def _download_file_from_source(source_url, show_progress=True, timeout=None,
@@ -978,10 +976,8 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
         else:
             dlmsg = f"Downloading {remote_url} from {source_url}"
         with ProgressBarOrSpinner(size, dlmsg, file=progress_stream) as p:
-            with NamedTemporaryFile(
-                prefix="astropy-download-{}-".format(os.getpid()),
-                delete=False
-            ) as f:
+            with NamedTemporaryFile(prefix=f"astropy-download-{os.getpid()}-",
+                                    delete=False) as f:
                 try:
                     bytes_read = 0
                     block = remote.read(conf.download_block_size)
@@ -993,18 +989,14 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
                         block = remote.read(conf.download_block_size)
                         if size is not None and bytes_read > size:
                             raise urllib.error.URLError(
-                                "File was supposed to be {} bytes but server "
-                                "provides more, at least {} bytes. "
-                                "Download failed."
-                                .format(size, bytes_read)
-                            )
+                                f"File was supposed to be {size} bytes but "
+                                f"server provides more, at least {bytes_read} "
+                                f"bytes. Download failed.")
                     if size is not None and bytes_read < size:
                         raise urllib.error.ContentTooShortError(
-                            "File was supposed to be {} bytes but we only "
-                            "got {} bytes. Download failed."
-                            .format(size, bytes_read),
-                            content=None,
-                        )
+                            f"File was supposed to be {size} bytes but we "
+                            f"only got {bytes_read} bytes. Download failed.",
+                            content=None)
                 except BaseException:
                     if os.path.exists(f.name):
                         try:
@@ -1031,8 +1023,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
 
     cache : bool or "update", optional
         Whether to cache the contents of remote URLs. If "update",
-        check the remote URL for a new version but store the result
-        in the cache.
+        always download the remote URL in case there is a new version
+        and store the result in the cache.
 
     show_progress : bool, optional
         Whether to display a progress bar during the download (default
@@ -1062,7 +1054,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
 
     Raises
     ------
-    urllib2.URLError, urllib.error.URLError
+    urllib.error.URLError
         Whenever there's a problem getting the remote file.
 
     Note
@@ -1120,13 +1112,14 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
             errors[source_url] = e
         except socket.timeout as e:
             # this isn't supposed to happen, but occasionally a socket.timeout
-            # gets through.  It's supposed to be caught in `urrlib2` and raised
+            # gets through.  It's supposed to be caught in urllib and raised
             # in this way, but for some reason in mysterious circumstances it
-            # doesn't. So we'll just re-raise it here instead
+            # doesn't (or didn't in python2?). So we'll just re-raise it here
+            # instead.
             errors[source_url] = e
     else:   # No success
         raise urllib.error.URLError(
-            "Unable to open any source! Exceptions were {}".format(errors)) \
+            f"Unable to open any source! Exceptions were {errors}") \
             from errors[sources[0]]
 
     if cache:
@@ -1138,9 +1131,9 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
         except PermissionError:
             # Cache is readonly, we can't update it
             missing_cache = (
-                "Cache directory appears to be read-only, unable to import "
-                "downloaded file, providing data in temporary file instead."
-            )
+                f"Cache directory appears to be read-only, unable to import "
+                f"downloaded file, providing data in temporary file {f_name} "
+                f"instead.")
 
     if missing_cache:
         warn(CacheMissingWarning(missing_cache, f_name))
@@ -1165,8 +1158,9 @@ def is_url_in_cache(url_key, pkgname='astropy'):
 
     Returns
     -------
-    bool
-        `True` if a download from ``url_key`` is in the cache
+    in_cache : bool
+        `True` if a download from ``url_key`` is in the cache, `False` if not
+        or if the cache does not exist at all.
 
     See Also
     --------
@@ -1208,8 +1202,8 @@ def download_files_in_parallel(urls,
 
     cache : bool or "update", optional
         Whether to use the cache (default is `True`). If "update",
-        check the remote URLs to see if new data is available but then
-        store the result in cache.
+        always download the remote URLs to see if new data is available
+        and store the result in cache.
 
         .. versionchanged:: 4.0
             The default was changed to ``"update"`` and setting it to
@@ -1333,10 +1327,18 @@ def _deltemps():
 def clear_download_cache(hashorurl=None, pkgname='astropy'):
     """Clears the data file cache by deleting the local file(s).
 
+    Files in the cache are indexed by URLs; generally this URL is the location
+    the file is downloaded from, but in practice the file may be obtained from
+    a mirror or some other location. Regardless, the URL is the key used to
+    identify a particular file in the cache. For the purposes of this function,
+    a file can also be identified by a hash of its contents or by the filename
+    under which the data is stored (as returned by :func:`~download_file`, for
+    example).
+
     Parameters
     ----------
     hashorurl : str or None
-        If None, the whole cache is cleared.  Otherwise, specifies
+        If None, the whole cache is cleared.  Otherwise, specify
         a hash for the cached file that is supposed to be deleted,
         the full path to a file in the cache that should be deleted,
         or a URL that should be removed from the cache if present.
@@ -1370,10 +1372,8 @@ def clear_download_cache(hashorurl=None, pkgname='astropy'):
                 if not _is_inside(filepath, dldir):
                     # Should this be ValueError? IOError?
                     raise RuntimeError(
-                        "attempted to use clear_download_cache on the path {} "
-                        "outside the data cache directory {}"
-                        .format(filepath, dldir)
-                    )
+                        f"attempted to use clear_download_cache on the path "
+                        f"{filepath} outside the data cache directory {dldir}")
                 if os.path.exists(filepath):
                     # Convert to list because we'll be modifying it as we go
                     for k, v in list(url2hash.items()):
@@ -1426,14 +1426,25 @@ def _get_download_cache_locs(pkgname='astropy'):
             if not os.path.exists(datadir):
                 raise
     elif not os.path.isdir(datadir):
-        msg = 'Data cache directory {0} is not a directory'
-        raise OSError(msg.format(datadir))
+        raise OSError(f'Data cache directory {datadir} is not a directory')
 
     if os.path.isdir(shelveloc):
-        msg = 'Data cache shelve object location {0} is a directory'
-        raise OSError(msg.format(shelveloc))
+        raise OSError(
+            f'Data cache shelve object location {shelveloc} is a directory')
 
     return datadir, shelveloc
+
+
+def _keep_trying(timeout):
+    waited = 0.
+    yield waited
+    while waited < timeout:
+        pid_based_random = (hash(str(os.getpid()))
+                            / 2.**sys.hash_info.width)
+        dt = 0.05*(1+pid_based_random)
+        time.sleep(dt)
+        waited += dt
+        yield waited
 
 
 # the cache directory must be locked before any writes are performed.  Same for
@@ -1448,10 +1459,8 @@ def _cache_lock(need_write=False):
     pidfn = os.path.join(lockdir, 'pid')
     assume_cache_readonly = False
     try:
-        msg = ("Config file requests {} tries"
-               .format(conf.download_cache_lock_attempts))
-        waited = 0.
-        while True:
+        msg = f"Config file requests {conf.download_cache_lock_attempts} tries"
+        for waited in _keep_trying(conf.download_cache_lock_attempts):
             try:
                 os.mkdir(lockdir)
             except FileExistsError:
@@ -1460,12 +1469,9 @@ def _cache_lock(need_write=False):
                 # deletion and that of the directory containing it. This
                 # gets in the way of useful error messages.
                 msg = (
-                    "Cache is locked after {:.2f} s. This may indicate an "
-                    "astropy bug or that kill -9 "
-                    "was used. If you want to unlock the cache remove the "
-                    "directory or file \"{}\"."
-                    .format(waited, lockdir)
-                )
+                    f"Cache is locked after {waited:.2f} s. This may indicate "
+                    f"an astropy bug or that kill -9 was used. If you want to "
+                    f"unlock the cache remove the directory {lockdir}.")
             except PermissionError:
                 assume_cache_readonly = True
                 if need_write:
@@ -1478,20 +1484,9 @@ def _cache_lock(need_write=False):
                 with open(pidfn, 'w') as f:
                     f.write(str(os.getpid()))
                 break
-            if waited < conf.download_cache_lock_attempts:
-                # Wait to try again
-                # slightly random wait time to desynchronize retries
-                # unfortunately multiprocessing uses fork() so
-                # subprocesses all see the same random seed
-                # could include threading.current_thread().ident as well
-                pid_based_random = (hash(str(os.getpid()))
-                                    / 2.**sys.hash_info.width)
-                dt = 0.05*(1+pid_based_random)
-                time.sleep(dt)
-                waited += dt
-            else:
-                # Never did get the lock.
-                raise RuntimeError(msg)
+        else:
+            # Never did get the lock.
+            raise RuntimeError(msg)
 
         yield
 
@@ -1503,11 +1498,9 @@ def _cache_lock(need_write=False):
                     os.remove(pidfn)
                 os.rmdir(lockdir)
             else:
-                msg = (
-                    'Error releasing lock. "{}" exists but is not a directory.'
-                    .format(lockdir)
-                )
-                raise RuntimeError(msg)
+                raise RuntimeError(
+                    f'Error releasing lock. {lockdir} exists but is not '
+                    f'a directory.')
         else:
             # Just in case we were called from _clear_download_cache
             # or something went wrong before creating the directory
@@ -1520,7 +1513,7 @@ class ReadOnlyDict(dict):
         raise TypeError("This object is read-only.")
 
 
-nothing = ReadOnlyDict()  # might as well share.
+_NOTHING = ReadOnlyDict()  # might as well share.
 
 
 @contextlib.contextmanager
@@ -1566,7 +1559,7 @@ def _cache(pkgname, write=False):
             msg = 'Remote data cache could not be accessed due to '
             estr = '' if len(e.args) < 1 else (': ' + str(e))
             warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
-            yield None, nothing
+            yield None, _NOTHING
             return
     if write:
         with _cache_lock(pkgname, need_write=True), \
@@ -1583,7 +1576,7 @@ def _cache(pkgname, write=False):
             # you a plain dbm.error
             # Also the file doesn't have a platform-independent name, so good
             # luck diagnosing the problem if it is one.
-            d = nothing
+            d = _NOTHING
         yield dldir, d
 
 
@@ -1593,14 +1586,14 @@ class CacheDamaged(ValueError):
     Using clear_download_cache on the .bad_file or .bad_url attribute,
     whichever is not None, should resolve this particular problem.
     """
-    def __init__(self, *args, bad_url=None, bad_file=None, **kwargs):
+    def __init__(self, *args, bad_urls=None, bad_files=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.bad_url = bad_url
-        self.bad_file = bad_file
+        self.bad_urls = bad_urls if bad_urls is not None else []
+        self.bad_files = bad_files if bad_files is not None else []
 
 
 def check_download_cache(check_hashes=False, pkgname='astropy'):
-    """Do a consistency check on the cache
+    """Do a consistency check on the cache.
 
     Because the cache is shared by all versions of astropy in all virtualenvs
     run by your user, possibly concurrently, it could accumulate problems.
@@ -1609,7 +1602,7 @@ def check_download_cache(check_hashes=False, pkgname='astropy'):
     are indexed, files that are indexed but in the wrong place, and, if you
     request it, files whose content does not mash the hash that is indexed.
 
-    This funtion also returns a list of non-indexed files. A few will be
+    This function also returns a list of non-indexed files. A few will be
     associated with the shelve object; their exact names depend on the backend
     used but will probably be based on ``urlmap``. The presence of other files,
     particularly those that are 32-character hex strings or start with those,
@@ -1651,35 +1644,53 @@ def check_download_cache(check_hashes=False, pkgname='astropy'):
     with _cache(pkgname) as (dldir, url2hash):
         if dldir is None:
             raise OSError("Cache directory cannot be created or accessed")
+        nonexistent_targets = {}
+        bad_locations = {}
+        bad_hashes = {}
+        abandoned_files = set()
         leftover_files = set(os.path.join(dldir, k)
                              for k in os.listdir(dldir))
         leftover_files.discard(os.path.join(dldir, "urlmap"))
         leftover_files.discard(os.path.join(dldir, "lock"))
         for u, h in url2hash.items():
             if not os.path.exists(h):
-                msg = "URL '{}' points to nonexistent file '{}'".format(
-                        u, h)
-                raise CacheDamaged(msg, bad_url=u)
+                nonexistent_targets[u] = h
             leftover_files.discard(h)
             d, hexdigest = os.path.split(h)
             if dldir != d:
-                msg = ("Expected downloaded files to be in '{}' but "
-                       "URL '{}' points to file '{}'"
-                       .format(dldir, u, h))
-                raise CacheDamaged(msg, bad_url=u)
+                bad_locations[u] = h
             if check_hashes:
                 hexdigest_file = compute_hash(h)
                 if hexdigest_file != hexdigest:
-                    msg = ("File corresponding to {} has contents that "
-                           "do not match the hash value: '{}' "
-                           .format(u, hexdigest))
-                    raise CacheDamaged(msg, bad_file=h)
+                    bad_hashes[u] = h
         for h in leftover_files:
             h_base = os.path.basename(h)
-            if len(h_base) >= 32 and re.match("[0-9a-f]+", h_base):
-                raise CacheDamaged("Apparently abandoned hash file {}"
-                                   .format(h), bad_file=h)
-    return leftover_files
+            if len(h_base) >= 32 and re.match(r"[0-9a-f]+", h_base):
+                abandoned_files.add(h)
+        leftover_files -= abandoned_files
+
+        msgs = []
+        if nonexistent_targets:
+            msgs.append(
+                f"URL(s) point(s) to nonexistent file(s): {nonexistent_targets}")
+        if bad_locations:
+            msgs.append(
+                f"URL(s) point(s) to file(s) outside {dldir}: {bad_locations}")
+        if bad_hashes:
+            msgs.append(
+                f"Filename(s) does not match hash(es) of contents: {bad_hashes}")
+        if abandoned_files:
+            msgs.append(
+                f"Apparently abandoned files: {abandoned_files}")
+        if msgs:
+            raise CacheDamaged(
+                "\n".join(msgs),
+                bad_urls=(list(nonexistent_targets.keys())
+                          + list(bad_locations.keys())),
+                bad_files=(list(bad_hashes.values())
+                           + list(abandoned_files)))
+        else:
+            return leftover_files
 
 
 def import_to_cache(url_key, filename,
@@ -1739,8 +1750,7 @@ def import_to_cache(url_key, filename,
                     os.remove(os.path.join(dldir, old_hash))
                 except OSError as e:
                     warn("Unable to remove no-longer-referenced previous "
-                         "contents of {} because of: {}"
-                         .format(url_key, e),
+                         "contents of {url_key} because of: {e}",
                          AstropyWarning)
         return url2hash[url_key]
 

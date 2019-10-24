@@ -243,6 +243,39 @@ def test_download_file_threaded_many(temp_cache, valid_urls):
         assert get_file_contents(r) == c
 
 
+def test_download_file_threaded_many_partial_success(temp_cache, valid_urls, invalid_urls):
+    """Hammer download_file with multiple threaded requests.
+
+    The goal is to stress-test the locking system. Normal parallel downloading
+    also does this but coverage tools lose track of which paths are explored.
+    The hope is that if the parallelism happens in threads, and from here, the
+    code coverage tools should be able to cope, maybe?
+
+    """
+    urls = []
+    contents = {}
+    for i in range(n_thread_hammer):
+        u, c = next(valid_urls)
+        urls.append(u)
+        contents[u] = c
+        urls.append(next(invalid_urls))
+
+    def get(u):
+        try:
+            return download_file(u, cache=True)
+        except OSError:
+            return None
+    with ThreadPoolExecutor(max_workers=len(urls)) as P:
+        r = list(P.map(get, urls))
+    check_download_cache()
+    assert len(r) == len(urls)
+    for r, u in zip(r, urls):
+        if u in contents:
+            assert get_file_contents(r) == contents[u]
+        else:
+            assert r is None
+
+
 def test_clear_download_multiple_references_doesnt_corrupt_storage(temp_cache, tmpdir):
     """Check that files with the same hash don't confuse the storage."""
     content = "Test data; doesn't matter much.\n"
@@ -523,6 +556,20 @@ def test_download_parallel_partial_success(temp_cache, valid_urls, invalid_urls)
     # Actually some files may get downloaded, others not.
     # Is this good? Should we stubbornly keep trying?
     # assert not any([is_url_in_cache(u) for (u, c) in td])
+
+
+def test_download_parallel_partial_success_lock_safe(temp_cache, valid_urls, invalid_urls):
+    for _ in range(n_parallel_hammer):
+        td = []
+        for i in range(2):
+            u, c = next(valid_urls)
+            clear_download_cache(u)
+            td.append((u, c))
+
+        u_bad = next(invalid_urls)
+
+        with pytest.raises(urllib.request.URLError):
+            download_files_in_parallel([u_bad] + [u for (u, c) in td])
 
 
 def test_download_parallel_update(temp_cache, tmpdir):
