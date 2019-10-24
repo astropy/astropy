@@ -120,6 +120,21 @@ def test_biweight_location_axis_tuple():
                  biweight_location(data, axis=None))
 
 
+def test_biweight_location_ignore_nan():
+    data1d = np.array([1, 3, 5, 500, 2, np.nan])
+    data2d = np.array([data1d, data1d])
+
+    assert np.isnan(biweight_location(data1d, ignore_nan=False))
+
+    biw_expected = biweight_location(data1d[:-1], ignore_nan=False)
+    assert_equal(biweight_location(data1d, ignore_nan=True), biw_expected)
+
+    assert_equal(biweight_location(data2d, axis=0, ignore_nan=True),
+                 data1d)
+    assert_equal(biweight_location(data2d, axis=1, ignore_nan=True),
+                 [biw_expected, biw_expected])
+
+
 def test_biweight_scale():
     # NOTE:  biweight_scale is covered by biweight_midvariance tests
     data = [1, 3, 5, 500, 2]
@@ -191,6 +206,22 @@ def test_biweight_midvariance_axis_3d():
             bwi.append(biweight_midvariance(data[:, y, i]))
         bwi = np.array(bwi)
         assert_allclose(bw[y], bwi)
+
+
+def test_biweight_midvariance_ignore_nan():
+    data1d = np.array([1, 3, 5, 500, 2, np.nan])
+    data2d = np.array([data1d, data1d])
+
+    assert np.isnan(biweight_midvariance(data1d, ignore_nan=False))
+
+    biw_var = biweight_midvariance(data1d[:-1], ignore_nan=False)
+    biw_var_nonan = biweight_midvariance(data1d, ignore_nan=True)
+    assert_equal(biw_var_nonan, biw_var)
+
+    assert_equal(biweight_midvariance(data2d, axis=0, ignore_nan=True),
+                 [0., 0., 0., 0., 0., np.nan])
+    assert_equal(biweight_midvariance(data2d, axis=1, ignore_nan=True),
+                 [biw_var_nonan, biw_var_nonan])
 
 
 def test_biweight_scale_axis_tuple():
