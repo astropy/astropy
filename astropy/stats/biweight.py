@@ -12,7 +12,7 @@ __all__ = ['biweight_location', 'biweight_scale', 'biweight_midvariance',
            'biweight_midcovariance', 'biweight_midcorrelation']
 
 
-def biweight_location(data, c=6.0, M=None, axis=None, ignore_nan=False):
+def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
     r"""
     Compute the biweight location.
 
@@ -133,7 +133,7 @@ def biweight_location(data, c=6.0, M=None, axis=None, ignore_nan=False):
 
 
 def biweight_scale(data, c=9.0, M=None, axis=None, modify_sample_size=False,
-                   ignore_nan=False):
+                   *, ignore_nan=False):
     r"""
     Compute the biweight scale.
 
@@ -244,7 +244,7 @@ def biweight_scale(data, c=9.0, M=None, axis=None, modify_sample_size=False,
 
 
 def biweight_midvariance(data, c=9.0, M=None, axis=None,
-                         modify_sample_size=False, ignore_nan=False):
+                         modify_sample_size=False, *, ignore_nan=False):
     r"""
     Compute the biweight midvariance.
 
