@@ -589,42 +589,6 @@ lines to accomplish the same behavior::
 This will write a single HDU to a FITS file without having to manually
 encapsulate it in an :class:`HDUList` object first.
 
-Creating an Image File with Multiple Extensions
-"""""""""""""""""""""""""""""""""""""""""""""""
-
-In the previous example we created an :class:`HDUList` object with a single
-extension (a :class:`PrimaryHDU`). To create a file with multiple extensions we need to
-use :class:`ImageHDU`\s and append them to an :class:`HDUList`.
-
-First, we create some more data::
-
-    >>> n2 = np.ones((3, 3))
-    >>> n3 = np.ones((100, 100))
-
-Note that the data shapes of the different extensions do not need to be the same. Next,
-place the data into separate :class:`ImageHDU` objects::
-
-    >>> hdu2 = fits.ImageHDU(n2)
-    >>> hdu3 = fits.ImageHDU(n3)
-
-Now when we create the :class:`HDUList` we list all extensions we want to include::
-
-    >>> hdul = fits.HDUList([hdu, hdu2])
-
-Because :class:`HDUList` acts like a :class:`list` we can also append an :class:`ImageHDU`
-to an already existing :class:`HDUList`::
-
-    >>> hdul.append(hdu3)
-
-Multi-extension :class:`HDUList` are treated just like those with only a :class:`PrimaryHDU`,
-so to save the file use :func:`HDUList.writeto` as shown above.
-
-.. note::
-
-    The FITS standard enforces all files to have exactly one :class:`PrimaryHDU` that is the
-    first HDU present in the file. This standard is enforced during the call to
-    :func:`HDUList.writeto` and an error will be raised if it is not met. See the ``output_verify``
-    option in :func:`HDUList.writeto` for ways to fix or ignore these warnings.
 
 Creating a New Table File
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -682,7 +646,12 @@ Now, create a new binary table HDU object by using the
 
 This function returns (in this case) a :class:`BinTableHDU`.
 
-Of course, you can do this more concisely without creating intermediate
+The data structure used to represent FITS tables is called a :class:`FITS_rec`
+and is derived from the :class:`numpy.recarray` interface. When creating
+a new table HDU the individual column arrays will be assembled into a single
+:class:`FITS_rec` array.
+
+You can create a :class:`BinTableHDU` more concisely without creating intermediate
 variables for the individual columns and without manually creating a
 :class:`ColDefs` object::
 
@@ -698,16 +667,69 @@ This shortcut will automatically create a minimal primary HDU with no data and
 prepend it to the table HDU to create a valid FITS file. If you require
 additional data or header keywords in the primary HDU you may still create a
 :class:`PrimaryHDU` object and build up the FITS file manually using an
-:class:`HDUList`.
+:class:`HDUList`, as described in the next section.
 
-For example, first create a new :class:`Header` object to encapsulate any
-keywords you want to include in the primary HDU, then as before create a
-:class:`PrimaryHDU`::
+Creating a File with Multiple Extensions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In the previous examples we created files with a single meaningful extension (a
+:class:`PrimaryHDU` or :class:`BinTableHDU`). To create a file with multiple
+extensions we need to create extension HDUs and append them to an :class:`HDUList`.
+
+First, we create some data for Image extensions::
+
+    >>> import numpy as np
+    >>> n = np.ones((3, 3))
+    >>> n2 = np.ones((100, 100))
+    >>> n3 = np.ones((10, 10, 10))
+
+Note that the data shapes of the different extensions do not need to be the same.
+Next, place the data into separate :class:`PrimaryHDU` and :class:`ImageHDU`
+objects::
+
+    >>> primary_hdu = fits.PrimaryHDU(n)
+    >>> image_hdu = fits.ImageHDU(n2)
+    >>> image_hdu2 = fits.ImageHDU(n3)
+
+A multi-extension FITS file is not constrained to be only imaging or table data, we
+can mix them. To show this we'll use the example from the previous section to make a
+:class:`BinTableHDU`::
+
+    >>> c1 = fits.Column(name='a', array=np.array([1, 2]), format='K')
+    >>> c2 = fits.Column(name='b', array=np.array([4, 5]), format='K')
+    >>> c3 = fits.Column(name='c', array=np.array([7, 8]), format='K')
+    >>> table_hdu = fits.BinTableHDU.from_columns([c1, c2, c3])
+
+Now when we create the :class:`HDUList` we list all extensions we want to
+include::
+
+    >>> hdul = fits.HDUList([primary_hdu, image_hdu, table_hdu])
+
+Because :class:`HDUList` acts like a :class:`list` we can also append, for example,
+an :class:`ImageHDU` to an already existing :class:`HDUList`::
+
+    >>> hdul.append(image_hdu2)
+
+Multi-extension :class:`HDUList` are treated just like those with only a
+:class:`PrimaryHDU`, so to save the file use :func:`HDUList.writeto` as shown above.
+
+.. note::
+
+    The FITS standard enforces all files to have exactly one :class:`PrimaryHDU` that
+    is the first HDU present in the file. This standard is enforced during the call to
+    :func:`HDUList.writeto` and an error will be raised if it is not met. See the
+    ``output_verify`` option in :func:`HDUList.writeto` for ways to fix or ignore these
+    warnings.
+
+In the previous example the :class:`PrimaryHDU` contained actual data. In some cases it
+is desirable to have a minimal :class:`PrimaryHDU` with only basic header information.
+To do this, first create a new :class:`Header` object to encapsulate any keywords you want
+to include in the primary HDU, then as before create a :class:`PrimaryHDU`::
 
     >>> hdr = fits.Header()
     >>> hdr['OBSERVER'] = 'Edwin Hubble'
     >>> hdr['COMMENT'] = "Here's some commentary about this FITS file."
-    >>> primary_hdu = fits.PrimaryHDU(header=hdr)
+    >>> empty_primary = fits.PrimaryHDU(header=hdr)
 
 When we create a new primary HDU with a custom header as in the above example,
 this will automatically include any additional header keywords that are
@@ -715,26 +737,9 @@ this will automatically include any additional header keywords that are
 example). In general, users should not have to manually manage such keywords,
 and should only create and modify observation-specific informational keywords.
 
-We then create an HDUList containing both the primary HDU and the newly created
-table extension, and write to a new file::
+We then create an HDUList containing both the primary HDU and any other HDUs want::
 
-    >>> hdul = fits.HDUList([primary_hdu, hdu])
-    >>> hdul.writeto('table4.fits')
-
-Alternatively, we can append the table to the HDU list we already created in
-the image file section::
-
-    >>> hdul.append(hdu)
-    >>> hdul.writeto('image_and_table.fits')
-
-The data structure used to represent FITS tables is called a :class:`FITS_rec`
-and is derived from the :class:`numpy.recarray` interface. When creating
-a new table HDU the individual column arrays will be assembled into a single
-:class:`FITS_rec` array.
-
-So far, we have covered the most basic features of `astropy.io.fits`. In the
-following chapters we will show more advanced examples and explain options in
-each class and method.
+    >>> hdul = fits.HDUList([empty_primary, image_hdu2, table_hdu])
 
 .. topic:: Examples:
 
