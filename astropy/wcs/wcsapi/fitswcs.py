@@ -63,7 +63,7 @@ CTYPE_TO_UCD1 = {
     'TDB': 'time',
     'LOCAL': 'time'
 
-    # UT() is handled separately in world_axis_physical_types
+    # UT() and TT() are handled separately in world_axis_physical_types
 
 }
 
@@ -186,7 +186,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         types = []
         # TODO: need to support e.g. TT(TAI)
         for ctype in self.wcs.ctype:
-            if ctype.startswith('UT('):
+            if ctype.startswith(('UT(', 'TT(')):
                 types.append('time')
             else:
                 ctype_name = ctype.split('-')[0]
@@ -305,7 +305,8 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         # Avoid circular imports by importing here
         from astropy.wcs.utils import wcs_to_celestial_frame
         from astropy.coordinates import SkyCoord, EarthLocation
-        from astropy.time import Time
+        from astropy.time.formats import FITS_DEPRECATED_SCALES
+        from astropy.time import Time, TimeDelta
 
         components = [None] * self.naxis
         classes = {}
@@ -348,41 +349,31 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     else:
                         name = 'time'
 
-                    # Initalize JD offsets
-                    mjd1 = 0.
-                    mjd2 = 0.
+                    # Initialize delta
+                    reference_time_delta = None
 
                     # Extract time scale
                     scale = self.wcs.ctype[i].lower()
 
+                    # Drop sub-scales
+                    if '(' in scale:
+                        pos = scale.index('(')
+                        scale, subscale = scale[:pos], scale[pos+1:-1]
+                        warnings.warn(f'Dropping unsupported sub-scale '
+                                      f'{subscale.upper()} from scale {scale.upper()}',
+                                      UserWarning)
+
                     # TODO: consider having GPS as a scale in Time
                     # For now GPS is not a scale, we approximate this by TAI - 19s
                     if scale == 'gps':
-                        mjd2 += 19. / 86400.  # 19 seconds
+                        reference_time_delta = TimeDelta(19, format='sec')
                         scale = 'tai'
 
-                    # TDT is a deprecated name for TT
-                    elif scale == 'tdt':
-                        scale = 'tt'
-
-                    # IAT is a deprecated name for TAI
-                    elif scale == 'iat':
-                        scale = 'tai'
-
-                    # GMT is used for dates before 1972-01-01 and is continuous with UTC
-                    elif scale == 'gmt':
-                        scale = 'utc'
-
-                    # ET is used for dates before 1984-01-01 and is continuous with TT
-                    elif scale == 'et':
-                        scale = 'tt'
+                    elif scale.upper() in FITS_DEPRECATED_SCALES:
+                        scale = FITS_DEPRECATED_SCALES[scale.upper()]
 
                     elif scale not in Time.SCALES:
-                        warnings.warn(f'Unrecognized time CTYPE={self.wcs.ctype[i]}, treating as Quantity', UserWarning)
-                        continue
-
-                    mjd1 += self.wcs.mjdref[0]
-                    mjd2 += self.wcs.mjdref[1]
+                        raise ValueError(f'Unrecognized time CTYPE={self.wcs.ctype[i]}')
 
                     # Determine location
                     trefpos = self.wcs.trefpos.lower()
@@ -391,8 +382,8 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                         # Note that some headers use TOPOCENT instead of TOPOCENTER
                         if np.any(np.isnan(self.wcs.obsgeo[:3])):
                             warnings.warn('Missing or incomplete observer location '
-                                        'information, setting location in Time to None',
-                                        UserWarning)
+                                          'information, setting location in Time to None',
+                                          UserWarning)
                             location = None
                         else:
                             location = EarthLocation(*self.wcs.obsgeo[:3], unit=u.m)
@@ -404,15 +395,21 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                                        "supported, setting location in Time to None", UserWarning)
                         location = None
 
-                    reference_time = Time(mjd1, mjd2, format='mjd', scale=scale, location=location)
+                    reference_time = Time(self.wcs.mjdref[0],
+                                          self.wcs.mjdref[1],
+                                          format='mjd', scale=scale,
+                                          location=location)
+
+                    if reference_time_delta is not None:
+                        reference_time = reference_time + reference_time_delta
 
                     def time_from_reference_and_offset(offset):
                         if isinstance(offset, Time):
                             return offset
-                        return reference_time + u.Quantity(offset, unit=u.s)
+                        return reference_time + TimeDelta(offset, format='sec')
 
                     def offset_from_time_and_reference(time):
-                        return (time - reference_time).to_value(u.s)
+                        return (time - reference_time).sec
 
                     classes[name] = (Time, (), {}, time_from_reference_and_offset)
                     components[i] = (name, 0, offset_from_time_and_reference)
