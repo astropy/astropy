@@ -351,7 +351,6 @@ def akaike_info_criterion_lsq(ssr, n_params, n_samples):
     This example is based on Astropy Modeling webpage, Compound models
     section.
 
-    >>> import warnings
     >>> import numpy as np
     >>> from astropy.modeling import models, fitting
     >>> from astropy.stats.info_theory import akaike_info_criterion_lsq
@@ -367,9 +366,7 @@ def akaike_info_criterion_lsq(ssr, n_params, n_samples):
     ...            + models.Gaussian1D(.1, 0.2, 0.15)
     ...            + models.Gaussian1D(2., .4, 0.1))
     >>> fitter = fitting.LevMarLSQFitter()
-    >>> with warnings.catch_warnings():
-    ...     warnings.simplefilter('ignore')  # Ignore bad fit warning
-    ...     g3_fit = fitter(g3_init, x, y)
+    >>> g3_fit = fitter(g3_init, x, y)
     >>> # Fit with two Gaussians
     >>> g2_init = (models.Gaussian1D(.1, 0, 0.1) +
     ...            models.Gaussian1D(2, 0.5, 0.1))
