@@ -181,6 +181,14 @@ def test_existing_types_refuse_longdoubles(f):
         assert Time(np.longdouble(t2), format=f) != tm
 
 
+@pytest.mark.parametrize("f", ["mjd", "unix", "cxcsec"])
+def test_existing_types_ok_with_float64(f):
+    t = np.float64(getattr(Time(58000, format="mjd"), f))
+    t2 = t + np.finfo(np.float64).eps * 2 * t
+    tm = Time(np.float64(t), format=f)
+    assert Time(np.float64(t2), format=f) != tm
+
+
 @pytest.mark.parametrize(
     "jd1, jd2",
     [
@@ -293,3 +301,15 @@ def test_ymdhms():
     # NOTE: actually comes back as np.void for some reason
     # NOTE: not necessarily a python int; might be an int32
     assert t.ymdhms.year == 2015
+
+
+# There are two stages of validation now - one on input into a format, so that
+# the format conversion code has tidy matched arrays to work with, and the
+# other when object construction does not go through a format object. Or at
+# least, the format object is constructed with "from_jd=True". In this case the
+# normal input validation does not happen but the new input validation does,
+# and can ensure that strange broadcasting anomalies can't happen.
+# This form of construction uses from_jd=True.
+def test_broadcasting_writeable():
+    t = Time('J2015') + np.linspace(-1, 1, 10)*u.day
+    t[2] = Time(58000, format="mjd")
