@@ -148,13 +148,14 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
                 coord_meta['default_ticks_position'][index] = 'bltr'
 
     elif frame_class is RectangularFrame1D:
+        x_pixel_ind = slices.index('x')
         derivs = np.abs(local_partial_pixel_derivatives(wcs, *[0]*wcs.pixel_n_dim,
-                                                        normalize_by_world=False))[:,0]
+                                                        normalize_by_world=False))[:, x_pixel_ind]
         for i, spine_name in enumerate('bt'):
             # Here we are iterating over the correlated axes in world axis order.
             # We want to sort the correlated axes by their partial derivatives,
             # so we put the most rapidly changing world axis on the bottom.
-            pos = np.nonzero(m[:, 0])[0]
+            pos = np.nonzero(m[:, x_pixel_ind])[0]
             order = np.argsort(derivs[pos])[::-1]  # Sort largest to smallest
             pos = pos[order]
             if len(pos) > 0:

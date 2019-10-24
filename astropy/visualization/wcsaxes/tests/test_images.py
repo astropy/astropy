@@ -814,16 +814,19 @@ def spatial_wcs_2d_small_angle():
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ['HPLN-TAN', 'HPLT-TAN']
     wcs.wcs.crpix = [3.0] * 2
-    wcs.wcs.cdelt = [0.002] * 2
+    wcs.wcs.cdelt = [10/3600, 5/3600]
     wcs.wcs.crval = [0] * 2
     wcs.wcs.set()
     return wcs
 
 
+@pytest.mark.parametrize("slices, bottom_axis", [
+    (('x', 0), 'hpln'),
+    ((0, 'x'), 'hplt')])
 @pytest.mark.remote_data(source='astropy')
 @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                tolerance=0, style={})
-def test_1d_plot_put_varying_axis_on_bottom(spatial_wcs_2d_small_angle):
+                               tolerance=0, style={})
+def test_1d_plot_put_varying_axis_on_bottom_lon(spatial_wcs_2d_small_angle, slices, bottom_axis):
     """
     When we plot a 1D slice through spatial axes, we want to put the axis which
     actually changes on the bottom.
@@ -834,14 +837,12 @@ def test_1d_plot_put_varying_axis_on_bottom(spatial_wcs_2d_small_angle):
     correlated axis not the actual one you are plotting against.
     """
     fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1, projection=spatial_wcs_2d_small_angle, slices=(0, 'x'))
+    ax = fig.add_subplot(1, 1, 1, projection=spatial_wcs_2d_small_angle, slices=slices)
     lines, = ax.plot([10, 12, 14, 12, 10], '-o', color="orange")
 
     # Draw to trigger rendering the ticks.
     plt.draw()
 
-    # Because the latitude axis is the one varying, it should be on the bottom,
-    # even though it's the second WCS dimension.
-    assert ax.coords['hplt'].ticks.get_visible_axes() == ['b']
+    assert ax.coords[bottom_axis].ticks.get_visible_axes() == ['b']
 
     return fig
