@@ -442,7 +442,7 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
 
     .. math::
 
-        \zeta_{xy} = n \ \frac{\sum_{|u_i| < 1, \ |v_i| < 1} \
+        \zeta_{xy} = n_{xy} \ \frac{\sum_{|u_i| < 1, \ |v_i| < 1} \
             (x_i - M_x) (1 - u_i^2)^2 (y_i - M_y) (1 - v_i^2)^2}
             {(\sum_{|u_i| < 1} \ (1 - u_i^2) (1 - 5u_i^2))
             (\sum_{|v_i| < 1} \ (1 - v_i^2) (1 - 5v_i^2))}
@@ -463,17 +463,26 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
     :math:`x` and :math:`y` variables.  The biweight midvariance tuning
     constant ``c`` is typically 9.0 (the default).
 
-    For the standard definition of biweight midcovariance, :math:`n` is
-    the total number of observations of each variable.  That definition
-    is used if ``modify_sample_size`` is `False`, which is the default.
+    For the standard definition of biweight midcovariance,
+    :math:`n_{xy}` is the total number of observations of each variable.
+    That definition is used if ``modify_sample_size`` is `False`, which
+    is the default.
 
-    However, if ``modify_sample_size = True``, then :math:`n` is the
-    number of observations for which :math:`|u_i| < 1` and :math:`|v_i|
+    However, if ``modify_sample_size = True``, then :math:`n_{xy}` is the
+    number of observations for which :math:`|u_i| < 1` and/or :math:`|v_i|
     < 1`, i.e.
 
     .. math::
 
-        n = \sum_{|u_i| < 1, \ |v_i| < 1} \ 1
+        n_{xx} = \sum_{|u_i| < 1} \ 1
+
+    .. math::
+
+        n_{xy} = n_{yx} = \sum_{|u_i| < 1, \ |v_i| < 1} \ 1
+
+    .. math::
+
+        n_{yy} = \sum_{|v_i| < 1} \ 1
 
     which results in a value closer to the true variance for small
     sample sizes or for a large number of rejected values.
