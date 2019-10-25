@@ -23,12 +23,7 @@ def assert_wcs_seem_equal(wcs1, wcs2):
     assert isinstance(wcs2, WCS)
     if wcs1 is wcs2:
         return
-    assert wcs1.wcs.naxis == wcs2.wcs.naxis
-    np.testing.assert_array_equal(wcs1.wcs.crpix, wcs2.wcs.crpix)
-    np.testing.assert_array_equal(wcs1.wcs.crval, wcs2.wcs.crval)
-    np.testing.assert_array_equal(wcs1.wcs.cdelt, wcs2.wcs.cdelt)
-    for i in range(wcs1.wcs.naxis):
-        assert wcs1.wcs.ctype[i] == wcs2.wcs.ctype[i]
+    assert wcs1.wcs.compare(wcs2.wcs)
 
 
 def _create_wcs_simple(naxis, ctype, crpix, crval, cdelt):
