@@ -18,7 +18,7 @@ from matplotlib import rcParams
 from astropy import units as u
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
-from .frame import RectangularFrame1D
+from .frame import RectangularFrame1D, EllipticalFrame
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 from .ticks import Ticks
 from .ticklabels import TickLabels
@@ -93,6 +93,10 @@ class CoordinateHelper:
         self.frame = frame
         self.name = name[0] if isinstance(name, (tuple, list)) else name
         self._auto_axislabel = True
+        # Disable auto label for elliptical frames as it puts labels in
+        # annoying places.
+        if issubclass(self.parent_axes.frame_class, EllipticalFrame):
+            self._auto_axislabel = False
 
         self.set_coord_type(coord_type, coord_wrap)
 
@@ -484,7 +488,18 @@ class CoordinateHelper:
         """
         return self.axislabels.get_text()
 
-    def set_auto_axislabel(self):
+    def set_auto_axislabel(self, auto_label):
+        """
+        Render default axis labels if no explicit label is provided.
+
+        Parameters
+        -------
+        auto_label : `bool`
+            `True` if default labels will be rendered.
+        """
+        self._auto_axislabel = bool(auto_label)
+
+    def get_auto_axislabel(self):
         """
         Render default axis labels if no explicit label is provided.
 
@@ -498,7 +513,7 @@ class CoordinateHelper:
     def _get_default_axislabel(self):
         unit = self.get_format_unit() or self.coord_unit
 
-        if unit is None or self.coord_type in ('longitude', 'latitude'):
+        if not unit or unit is u.one or self.coord_type in ('longitude', 'latitude'):
             return f"{self.name}"
         else:
             return f"{self.name} [{unit:latex}]"

@@ -72,6 +72,8 @@ class TestBasic(BaseImageTests):
         ax.set_ylim(-0.5, 148.5)
         ax.coords[0].set_ticks([-0.30, 0., 0.20] * u.degree, size=5, width=1)
         ax.grid()
+        ax.coords[0].set_auto_axislabel(False)
+        ax.coords[1].set_auto_axislabel(False)
 
         # Add an image (default zorder=0).
         ax.imshow(np.zeros((64, 64)))
@@ -752,6 +754,9 @@ class TestBasic(BaseImageTests):
                                  labeltop=True, labelsize=10)
         ax.coords[1].display_minor_ticks(True)
         ax.coords[1].tick_params(which='minor', length=6)
+
+        ax.coords[0].set_auto_axislabel(False)
+        ax.coords[1].set_auto_axislabel(False)
 
         return fig
 
