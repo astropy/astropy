@@ -182,6 +182,11 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- The plugin that handles the custom header in the test output has been
+  moved to the ``pytest-astropy-header plugin`` package. See the README at
+  https://github.com/astropy/pytest-astropy-header for information about
+  using this new plugin. [#9214]
+
 astropy.time
 ^^^^^^^^^^^^
 
