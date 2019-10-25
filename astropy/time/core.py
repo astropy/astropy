@@ -418,12 +418,12 @@ class Time(ShapedLikeNDArray):
                 # check the location can be broadcast to self's shape.
                 self.location = np.broadcast_to(self.location, self.shape,
                                                 subok=True)
-            except Exception:
+            except Exception as err:
                 raise ValueError('The location with shape {} cannot be '
                                  'broadcast against time with shape {}. '
                                  'Typically, either give a single location or '
                                  'one for each time.'
-                                 .format(self.location.shape, self.shape))
+                                 .format(self.location.shape, self.shape)) from err
 
     def _init_from_vals(self, val, val2, format, scale, copy,
                         precision=None, in_subfmt=None, out_subfmt=None):
@@ -874,12 +874,29 @@ class Time(ShapedLikeNDArray):
                     reshaped.append(val)
 
     def _shaped_like_input(self, value):
-        out = value
-        if value.dtype.kind == 'M':
-            return value[()]
-        if not self._time.jd1.shape and not np.ma.is_masked(value):
-            out = value[()] if value.dtype.fields else value.item()
-        return out
+        if self._time.jd1.shape:
+            if isinstance(value, np.ndarray):
+                return value
+            else:
+                raise TypeError(
+                    f"JD is an array ({self._time.jd1!r}) but value "
+                    f"is not ({value!r})")
+        else:
+            # zero-dimensional array, is it safe to unbox?
+            if (isinstance(value, np.ndarray)
+                    and not value.shape
+                    and not np.ma.is_masked(value)):
+                if value.dtype.kind == 'M':
+                    # existing test doesn't want datetime64 converted
+                    return value[()]
+                elif value.dtype.fields:
+                    # Unpack but keep field names; .item() doesn't
+                    # Still don't get python types in the fields
+                    return value[()]
+                else:
+                    return value.item()
+            else:
+                return value
 
     @property
     def jd1(self):
