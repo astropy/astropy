@@ -1761,10 +1761,6 @@ class TestDatetimeFunctions(BasicTestSetup):
             np.is_busday(self.q)
 
 
-should_be_tested_functions = {
-    np.apply_along_axis, np.apply_over_axes,
-    }
-
 untested_functions = set()
 financial_functions = {f for f in all_wrapped_functions.values()
                        if f in np.lib.financial.__dict__.values()}
