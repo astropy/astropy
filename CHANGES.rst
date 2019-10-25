@@ -161,6 +161,10 @@ astropy.table
 - Added depth-wise stacking ``cstack()`` in higher level table operation.
   It help will in stacking table column depth-wise. [#8939]
 
+- Added a new table equality method ``values_equal()`` which allows comparison
+  table values to another table, list, or value, and returns an element-by-element
+  equality table. [#9068]
+
 - Added new ``join_type='cartesian'`` option to the ``join`` operation.
   [#9288]
 
