@@ -323,6 +323,8 @@ astropy.wcs
 - ``SlicedLowLevelWCS`` now raises ``IndexError`` rather than ``ValueError`` on
   an invalid slice. [#9067]
 
+- Added ``fit_wcs_from_points`` function to ``astropy.wcs.utils``. Fits a WCS 
+  object to set of matched detector/sky coordinates. 
 
 API Changes
 -----------
