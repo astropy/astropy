@@ -1038,7 +1038,7 @@ class Values(Element, _IDProperty):
                             (data.get('name'), data.get('value')))
                         warn_unknown_attrs(
                             'OPTION', data.keys(), config, pos,
-                            ['data', 'name'])
+                            ['value', 'name'])
                 elif tag == 'VALUES':
                     break
 
