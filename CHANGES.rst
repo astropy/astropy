@@ -324,7 +324,7 @@ astropy.wcs
   an invalid slice. [#9067]
 
 - Added ``fit_wcs_from_points`` function to ``astropy.wcs.utils``. Fits a WCS 
-  object to set of matched detector/sky coordinates. 
+  object to set of matched detector/sky coordinates. [#9469]
 
 API Changes
 -----------
