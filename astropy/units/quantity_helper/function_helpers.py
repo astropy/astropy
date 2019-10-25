@@ -108,8 +108,7 @@ SUBCLASS_SAFE_FUNCTIONS |= {np.ediff1d}
 
 # Subclass safe, but possibly better if overridden.
 # TODO: decide on desired behaviour.
-SUBCLASS_SAFE_FUNCTIONS |= {
-    np.array2string, np.array_repr, np.array_str}
+SUBCLASS_SAFE_FUNCTIONS |= {np.array2string}
 
 # Nonsensical for quantities.
 UNSUPPORTED_FUNCTIONS |= {
@@ -883,3 +882,30 @@ def apply_over_axes(func, a, axes):
     # Returning unit is None to signal nothing should happen to
     # the output.
     return val, None, None
+
+
+@dispatched_function
+def array_repr(arr, *args, **kwargs):
+    # TODO: The addition of "unit='...'" doesn't worry about line
+    # length.  Could copy & adapt _array_repr_implementation from
+    # numpy.core.arrayprint.py
+    cls_name = arr.__class__.__name__
+    fake_name = '_' * len(cls_name)
+    fake_cls = type(fake_name, (np.ndarray,), {})
+    no_unit = np.array_repr(arr.view(fake_cls),
+                            *args, **kwargs).replace(fake_name, cls_name)
+    unit_part = f"unit='{arr.unit}'"
+    pre, dtype, post = no_unit.rpartition('dtype')
+    if dtype:
+        return f"{pre}{unit_part}, {dtype}{post}", None, None
+    else:
+        return f"{no_unit[:-1]}, {unit_part})", None, None
+
+
+@dispatched_function
+def array_str(arr, *args, **kwargs):
+    # TODO: The addition of the unit doesn't worry about line length.
+    # Could copy & adapt _array_repr_implementation from
+    # numpy.core.arrayprint.py
+    no_unit = np.array_str(arr.value, *args, **kwargs)
+    return no_unit + arr._unitstr, None, None
