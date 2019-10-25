@@ -72,6 +72,10 @@ astropy.io.registry
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
+- Corrected a spurious warning issued for the ``value`` attribute of the
+  ``<OPTION>`` element in VOTable, as well as a test that erroneously
+  treated the warning as acceptable.  [#9470]
+
 astropy.logger
 ^^^^^^^^^^^^^^
 
