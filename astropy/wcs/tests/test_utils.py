@@ -1076,8 +1076,7 @@ A_DMAX  =    44.72893589844534
 B_DMAX  =    44.62692873032506       
 """
 
-    f = StringIO(header_str)
-    header = fits.Header.fromtextfile(f)
+    header = Header.fromstring(header_str, sep='\n')
     full_wcs = WCS(header,relax=True)
 
     # Getting the pixel coordinates
@@ -1085,15 +1084,15 @@ B_DMAX  =    44.62692873032506
     x = x.flatten()
     y = y.flatten()
 
-    # Calculating the true sku positions
-    world_pix = SkyCoord(full_wcs.all_pix2world(list(zip(x,y)), 1), unit='deg')
+    # Calculating the true sky positions
+    world_pix = full_wcs.pixel_to_world(x, y)
 
     # Fitting the wcs
     linear_wcs = fit_wcs_from_points((x, y), world_pix,
                                      proj_point='center', sip_distortion=False)
 
     # Getting the sky positions using the fitted wcs
-    world_pix_new = SkyCoord(linear_wcs.all_pix2world(list(zip(x,y)), 1), unit='deg')
+    world_pix_new = linear_wcs.pixel_to_world(x, y)
 
     # Checking the result
     dists = world_pix.separation(world_pix_new).to('deg')
