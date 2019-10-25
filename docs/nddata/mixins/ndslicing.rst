@@ -102,7 +102,7 @@ If ``wcs`` is set, it must be either implement
 This means that only integer or range slices without a step are supported. So
 slices like ``[::10]`` or array or boolean based slices will not work.
 
-If you want to slice the ``NDData`` object without the WCS you can remove the
+If you want to slice an ``NDData`` object called ``ndd`` without the WCS you can remove the
 WCS from the ``NDData`` object by running:
 
     >>> del(ndd.wcs)
@@ -113,7 +113,7 @@ Removing Masked Data
 
 .. warning::
     If ``wcs`` is set this will **NOT** be possible. But you can work around
-    this by deleting the wcs with ``del(NDData.wcs)`` before slicing.
+    this by deleting the wcs attribute with ``del(ndd.wcs)`` before slicing.
 
 By convention, the ``mask`` attribute indicates if a point is valid or invalid.
 So we are able to get all valid data points by slicing with the mask.

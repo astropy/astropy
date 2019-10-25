@@ -112,7 +112,6 @@ def test_slicing_all_npndarray_nd():
     assert_array_equal(data[2:5], nd2.data)
     assert_array_equal(mask[2:5], nd2.mask)
     assert_array_equal(uncertainty[2:5], nd2.uncertainty.array)
-    # assert_array_equal(wcs[2:5], nd2.wcs)
     # Slice 3D
     nd2 = nd[2:5, :, 4:7]
     assert_array_equal(data[2:5, :, 4:7], nd2.data)
