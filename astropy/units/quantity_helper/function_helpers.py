@@ -178,8 +178,12 @@ function_helper = FunctionAssigner(FUNCTION_HELPERS)
 dispatched_function = FunctionAssigner(DISPATCHED_FUNCTIONS)
 
 
-@function_helper(helps={np.copy, np.asfarray, np.real_if_close,
-                        np.sort_complex, np.resize})
+@function_helper(helps={
+    np.copy, np.asfarray, np.real_if_close, np.sort_complex, np.resize,
+    np.fft.fft, np.fft.ifft, np.fft.rfft, np.fft.irfft,
+    np.fft.fft2, np.fft.ifft2, np.fft.rfft2, np.fft.irfft2,
+    np.fft.fftn, np.fft.ifftn, np.fft.rfftn, np.fft.irfftn,
+    np.fft.hfft, np.fft.ihfft})
 def invariant_a_helper(a, *args, **kwargs):
     return (a.view(np.ndarray),) + args, kwargs, a.unit, None
 
@@ -187,6 +191,11 @@ def invariant_a_helper(a, *args, **kwargs):
 @function_helper(helps={np.tril, np.triu})
 def invariant_m_helper(m, *args, **kwargs):
     return (m.view(np.ndarray),) + args, kwargs, m.unit, None
+
+
+@function_helper(helps={np.fft.fftshift, np.fft.ifftshift})
+def invariant_x_helper(x, *args, **kwargs):
+    return (x.view(np.ndarray),) + args, kwargs, x.unit, None
 
 
 # Note that ones_like does *not* work by default (unlike zeros_like) since if
