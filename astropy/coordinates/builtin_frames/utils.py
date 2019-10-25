@@ -38,7 +38,7 @@ def get_polar_motion(time):
     gets the two polar motion components in radians for use with apio13
     """
     # Get the polar motion from the IERS table
-    iers_table = iers.earth_rotation_table.get()
+    iers_table = iers.earth_orientation_table.get()
     xp, yp, status = iers_table.pm_xy(time, return_status=True)
 
     wmsg = None

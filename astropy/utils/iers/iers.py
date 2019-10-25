@@ -27,7 +27,7 @@ from astropy.utils.compat import NUMPY_LT_1_17
 from astropy import utils
 from astropy.utils.exceptions import AstropyWarning
 
-__all__ = ['Conf', 'conf', 'earth_rotation_table',
+__all__ = ['Conf', 'conf', 'earth_orientation_table',
            'IERS', 'IERS_B', 'IERS_A', 'IERS_Auto',
            'FROM_IERS_B', 'FROM_IERS_A', 'FROM_IERS_A_PREDICTION',
            'TIME_BEFORE_IERS_RANGE', 'TIME_BEYOND_IERS_RANGE',
@@ -805,7 +805,7 @@ class IERS_Auto(IERS_A):
         return table
 
 
-class earth_rotation_table(ScienceState):
+class earth_orientation_table(ScienceState):
     """Default IERS table for Earth rotation and reference systems service.
 
     These tables are used to calculate the offsets between ``UT1`` and ``UTC``
@@ -823,20 +823,20 @@ class earth_rotation_table(ScienceState):
       >>> from astropy.utils import iers
       >>> from astropy.time import Time
       >>> iers_b = iers.IERS_B.open(iers.IERS_B_FILE)
-      >>> with iers.earth_rotation_table.set(iers_b):
+      >>> with iers.earth_orientation_table.set(iers_b):
       ...     print(Time('2000-01-01').ut1.isot)
       2000-01-01T00:00:00.355
 
     To use the most recent IERS-A file for the whole session::
 
       >>> iers_a = iers.IERS_A.open(iers.IERS_A_URL)  # doctest: +SKIP
-      >>> iers.earth_rotation_table.set(iers_a)  # doctest: +SKIP
-      <ScienceState earth_rotation_table: <IERS_A length=17463>...>
+      >>> iers.earth_orientation_table.set(iers_a)  # doctest: +SKIP
+      <ScienceState earth_orientation_table: <IERS_A length=17463>...>
 
     To go back to the default (of `~astropy.utils.iers.IERS_Auto`)::
 
-      >>> iers.earth_rotation_table.set(None)  # doctest: +SKIP
-      <ScienceState earth_rotation_table: <IERS_Auto length=17428>...>
+      >>> iers.earth_orientation_table.set(None)  # doctest: +SKIP
+      <ScienceState earth_orientation_table: <IERS_Auto length=17428>...>
     """
     _value = None
 
@@ -845,5 +845,5 @@ class earth_rotation_table(ScienceState):
         if value is None:
             value = IERS_Auto.open()
         if not isinstance(value, IERS):
-            raise ValueError("earth_rotation_table requires an IERS Table.")
+            raise ValueError("earth_orientation_table requires an IERS Table.")
         return value
