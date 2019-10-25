@@ -314,6 +314,56 @@ structured array by creating a copy or reference with ``np.array``::
   >>> data = np.array(t, copy=False)  # reference to data in t
 
 
+Table Equality
+--------------
+We can check table data equality using two different methods:
+
+- The ``==`` comparison operator.  This returns a ``True`` or ``False`` for
+  each row if the *entire row* matches.  This is the same as the behavior of
+  numpy structured arrays.
+- Table :meth:`~astropy.table.Table.values_equal` to compare table values
+  element-wise.  This returns a boolean ``True`` or ``False`` for each table
+  *element*, so one gets a `~astropy.table.Table` of values.
+
+Examples::
+
+  >>> t1 = Table(rows=[[1, 2, 3],
+  ...                  [4, 5, 6],
+  ...                  [7, 7, 9]], names=['a', 'b', 'c'])
+  >>> t2 = Table(rows=[[1, 2, -1],
+  ...                  [4, -1, 6],
+  ...                  [7, 7, 9]], names=['a', 'b', 'c'])
+
+  >>> t1 == t2
+  array([False, False,  True])
+
+  >>> t1.values_equal(t2)  # Compare to another table
+  <Table length=3>
+   a     b     c
+  bool  bool  bool
+  ---- ----- -----
+  True  True False
+  True False  True
+  True  True  True
+
+  >>> t1.values_equal([2, 4, 7])  # Compare to an array column-wise
+  <Table length=3>
+    a     b     c
+   bool  bool  bool
+  ----- ----- -----
+  False  True False
+   True False False
+   True  True False
+
+  >>> t1.values_equal(7)  # Compare to a scalar column-wise
+  <Table length=3>
+    a     b     c
+   bool  bool  bool
+  ----- ----- -----
+  False False False
+  False False False
+   True  True False
+
 Formatted printing
 ------------------
 

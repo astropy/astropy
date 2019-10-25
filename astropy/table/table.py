@@ -2998,6 +2998,35 @@ class Table:
         return super().__ge__(other)
 
     def __eq__(self, other):
+        return self._rows_equal(other)
+
+    def __ne__(self, other):
+        return ~self.__eq__(other)
+
+    def _rows_equal(self, other):
+        """
+        Row-wise comparison of table with any other object.
+
+        This is actual implementation for __eq__.
+
+        Returns a 1-D boolean numpy array showing result of row-wise comparison.
+        This is the same as the ``==`` comparison for tables.
+
+        Parameters
+        ----------
+        other : Table or DataFrame or ndarray
+             An object to compare with table
+
+        Examples
+        --------
+        Comparing one Table with other::
+
+            >>> t1 = Table([[1,2],[4,5],[7,8]], names=('a','b','c'))
+            >>> t2 = Table([[1,2],[4,5],[7,8]], names=('a','b','c'))
+            >>> t1._rows_equal(t2)
+            array([ True,  True])
+
+        """
 
         if isinstance(other, Table):
             other = other.as_array()
@@ -3021,8 +3050,80 @@ class Table:
 
         return result
 
-    def __ne__(self, other):
-        return ~self.__eq__(other)
+    def values_equal(self, other):
+        """
+        Element-wise comparison of table with another table, list, or scalar.
+
+        Returns a ``Table`` with the same columns containing boolean values
+        showing result of comparison.
+
+        Parameters
+        ----------
+        other : Table-like object or list or scalar
+             Object to compare with table
+
+        Examples
+        --------
+        Compare one Table with other::
+
+          >>> t1 = Table([[1, 2], [4, 5], [-7, 8]], names=('a', 'b', 'c'))
+          >>> t2 = Table([[1, 2], [-4, 5], [7, 8]], names=('a', 'b', 'c'))
+          >>> t1.values_equal(t2)
+          <Table length=2>
+           a     b     c
+          bool  bool  bool
+          ---- ----- -----
+          True False False
+          True  True  True
+
+        """
+        if isinstance(other, Table):
+            names = other.colnames
+        else:
+            try:
+                other = Table(other, copy=False)
+                names = other.colnames
+            except Exception:
+                # Broadcast other into a dict, so e.g. other = 2 will turn into
+                # other = {'a': 2, 'b': 2} and then equality does a
+                # column-by-column broadcasting.
+                names = self.colnames
+                other = {name: other for name in names}
+
+        # Require column names match but do not require same column order
+        if set(self.colnames) != set(names):
+            raise ValueError('cannot compare tables with different column names')
+
+        eqs = []
+        for name in names:
+            try:
+                np.broadcast(self[name], other[name])  # Check if broadcast-able
+                # Catch the numpy FutureWarning related to equality checking,
+                # "elementwise comparison failed; returning scalar instead, but
+                #  in the future will perform elementwise comparison".  Turn this
+                # into an exception since the scalar answer is not what we want.
+                with warnings.catch_warnings(record=True) as warns:
+                    warnings.simplefilter('always')
+                    eq = self[name] == other[name]
+                    if (warns and issubclass(warns[-1].category, FutureWarning) and
+                            'elementwise comparison failed' in str(warns[-1].message)):
+                        raise FutureWarning(warns[-1].message)
+            except Exception as err:
+                raise ValueError(f'unable to compare column {name}') from err
+
+            # Be strict about the result from the comparison. E.g. SkyCoord __eq__ is just
+            # broken and completely ignores that it should return an array.
+            if not (isinstance(eq, np.ndarray) and
+                    eq.dtype is np.dtype('bool') and
+                    len(eq) == len(self)):
+                raise TypeError(f'comparison for column {name} returned {eq} '
+                                f'instead of the expected boolean ndarray')
+
+            eqs.append(eq)
+
+        out = Table(eqs, names=names)
+
+        return out
 
     @property
     def groups(self):
