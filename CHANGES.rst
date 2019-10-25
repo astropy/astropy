@@ -111,6 +111,10 @@ astropy.modeling
 
 - Add ``Drude1D`` model. [#9452]
 
+- Added analytical King model (KingProjectedAnalytic1D) [#9084]
+
+- Added Exponential1D and Logarithmic1D models [#9351]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
@@ -358,9 +362,7 @@ astropy.modeling
 
 - Many private attributes and methods have changed (see documentation). [#8769]
 
-- Added analytical King model (KingProjectedAnalytic1D) [#9084]
-
-- Added Exponential1D and Logarithmic1D models [#9351]
+- The deprecated ``rotations.rotation_matrix_from_angle`` was removed. [#9363]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
