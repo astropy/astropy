@@ -106,10 +106,6 @@ if NUMPY_LT_1_18:
 # TODO: move latter to UNSUPPORTED? Would raise TypeError instead.
 SUBCLASS_SAFE_FUNCTIONS |= {np.ediff1d}
 
-# Subclass safe, but possibly better if overridden.
-# TODO: decide on desired behaviour.
-SUBCLASS_SAFE_FUNCTIONS |= {np.array2string}
-
 # Nonsensical for quantities.
 UNSUPPORTED_FUNCTIONS |= {
     np.packbits, np.unpackbits, np.unravel_index,
@@ -909,3 +905,36 @@ def array_str(arr, *args, **kwargs):
     # numpy.core.arrayprint.py
     no_unit = np.array_str(arr.value, *args, **kwargs)
     return no_unit + arr._unitstr, None, None
+
+
+@function_helper
+def array2string(a, *args, **kwargs):
+    # array2string breaks on quantities as it tries to turn individual
+    # items into float, which works only for dimensionless.  Since the
+    # defaults would not keep any unit anyway, this is rather pointless -
+    # we're better off just passing on the array view.  However, one can
+    # also work around this by passing on a formatter (as is done in Angle).
+    # So, we do nothing if the formatter argument is present and has the
+    # relevant formatter for our dtype.
+    formatter = args[6] if len(args) >= 7 else kwargs.get('formatter', None)
+
+    if formatter is None:
+        a = a.value
+    else:
+        # See whether it covers our dtype.
+        from numpy.core.arrayprint import _get_format_function
+
+        with np.printoptions(formatter=formatter) as options:
+            try:
+                ff = _get_format_function(a.value, **options)
+            except Exception:
+                # Shouldn't happen, but possibly we're just not being smart
+                # enough, so let's pass things on as is.
+                pass
+            else:
+                # If the selected format function is that of numpy, we know
+                # things will fail
+                if 'numpy' in ff.__module__:
+                    a = a.value
+
+    return (a,) + args, kwargs, None, None

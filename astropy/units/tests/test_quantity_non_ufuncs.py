@@ -1571,11 +1571,30 @@ class TestStringFunctions(metaclass=CoverageMeta):
     def setup(self):
         self.q = np.arange(3.) * u.Jy
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_array2string(self):
-        out = np.array2string(self.q)
-        expected = str(self.q)
-        assert out == expected
+        # The default formatters cannot handle units, so if we do not pass
+        # a relevant formatter, we are better off just treating it as an
+        # array (which happens for all subtypes).
+        out0 = np.array2string(self.q)
+        expected0 = str(self.q.value)
+        assert out0 == expected0
+        # Arguments are interpreted as usual.
+        out1 = np.array2string(self.q, separator=', ')
+        expected1 = '[0., 1., 2.]'
+        assert out1 == expected1
+        # If we do pass in a formatter, though, it should be used.
+        out2 = np.array2string(self.q, separator=', ', formatter={'all': str})
+        expected2 = '[0.0 Jy, 1.0 Jy, 2.0 Jy]'
+        assert out2 == expected2
+        # Also as positional argument (no, nobody will do this!)
+        out3 = np.array2string(self.q, None, None, None, ', ', '',
+                               np._NoValue, {'float': str})
+        assert out3 == expected2
+        # But not if the formatter is not relevant for us.
+        out4 = np.array2string(self.q, separator=', ', formatter={'int': str})
+        assert out4 == expected1
 
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
