@@ -517,6 +517,10 @@ astropy.visualization
 - The default ``clip`` value is now ``False`` in ``ImageNormalize``.
   [#9478]
 
+- Infinite values are now excluded when calculating limits in
+  ``ManualInterval`` and ``MinMaxInterval``.  They were already
+  excluded in all other interval classes. [#9480]
+
 astropy.wcs
 ^^^^^^^^^^^
 

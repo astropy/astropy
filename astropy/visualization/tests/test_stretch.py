@@ -3,10 +3,11 @@
 import pytest
 import numpy as np
 
-from astropy.visualization.stretch import (LinearStretch, SqrtStretch, PowerStretch,
-                       PowerDistStretch, SquaredStretch, LogStretch,
-                       AsinhStretch, SinhStretch, HistEqStretch,
-                       ContrastBiasStretch)
+from astropy.visualization.stretch import (LinearStretch, SqrtStretch,
+                                           PowerStretch, PowerDistStretch,
+                                           SquaredStretch, LogStretch,
+                                           AsinhStretch, SinhStretch,
+                                           HistEqStretch, ContrastBiasStretch)
 
 
 DATA = np.array([0.00, 0.25, 0.50, 0.75, 1.00])

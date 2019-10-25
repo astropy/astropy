@@ -40,6 +40,8 @@ class BaseInterval(BaseTransform):
             The mininium and maximum image value in the interval.
         """
 
+        raise NotImplementedError('Needs to be implemented in a subclass.')
+
     def __call__(self, values, clip=True, out=None):
         """
         Transform values using this interval.
@@ -99,8 +101,14 @@ class ManualInterval(BaseInterval):
         self.vmax = vmax
 
     def get_limits(self, values):
-        vmin = np.nanmin(values) if self.vmin is None else self.vmin
-        vmax = np.nanmax(values) if self.vmax is None else self.vmax
+        # Make sure values is a Numpy array
+        values = np.asarray(values).ravel()
+
+        # Filter out invalid values (inf, nan)
+        values = values[np.isfinite(values)]
+
+        vmin = np.min(values) if self.vmin is None else self.vmin
+        vmax = np.max(values) if self.vmax is None else self.vmax
         return vmin, vmax
 
 
@@ -110,7 +118,13 @@ class MinMaxInterval(BaseInterval):
     """
 
     def get_limits(self, values):
-        return np.nanmin(values), np.nanmax(values)
+        # Make sure values is a Numpy array
+        values = np.asarray(values).ravel()
+
+        # Filter out invalid values (inf, nan)
+        values = values[np.isfinite(values)]
+
+        return np.min(values), np.max(values)
 
 
 class AsymmetricPercentileInterval(BaseInterval):
@@ -148,9 +162,8 @@ class AsymmetricPercentileInterval(BaseInterval):
         values = values[np.isfinite(values)]
 
         # Determine values at percentiles
-        vmin, vmax = np.nanpercentile(values,
-                                      (self.lower_percentile,
-                                       self.upper_percentile))
+        vmin, vmax = np.percentile(values, (self.lower_percentile,
+                                            self.upper_percentile))
 
         return vmin, vmax
 
