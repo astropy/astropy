@@ -38,15 +38,12 @@ from astropy.utils.exceptions import ErfaError, ErfaWarning
 from astropy.utils.misc import check_broadcast
 
 from . import ufunc
-from .ufunc import (dt_eraASTROM, dt_eraLDBODY, dt_pv,
-                    dt_sign, dt_type, dt_ymdf, dt_hmsf, dt_dmsf)
 
 __all__ = ['ErfaError', 'ErfaWarning',
            {{ funcs|map(attribute='pyname')|surround("'","'")|join(", ") }},
            {{ constants|map(attribute='name')|surround("'","'")|join(", ") }},
            # TODO: delete the functions below when they can get auto-generated
-           'version', 'version_major', 'version_minor', 'version_micro', 'sofa_version',
-           'dt_eraASTROM', 'dt_eraLDBODY', 'dt_pv', 'dt_ymdf', 'dt_hmsf', 'dt_dmsf']
+           'version', 'version_major', 'version_minor', 'version_micro', 'sofa_version']
 
 
 # <---------------------------------Error-handling---------------------------->

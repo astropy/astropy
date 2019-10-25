@@ -1,8 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from datetime import datetime
 
+import pytest
 import numpy as np
+from numpy.testing import assert_array_equal
 
-from astropy._erfa import core as erfa
+from astropy import _erfa as erfa
 from astropy.tests.helper import catch_warnings
 
 
@@ -238,3 +241,127 @@ def test_float32_input():
     out64 = erfa.p2s(xyz)
     out32 = erfa.p2s(xyz.astype('f4'))
     np.testing.assert_allclose(out32, out64, rtol=1.e-5)
+
+
+class TestLeapSecondsBasics:
+    def test_get_leap_seconds(self):
+        leap_seconds = erfa.leap_seconds.get()
+        assert isinstance(leap_seconds, np.ndarray)
+        assert leap_seconds.dtype is erfa.dt_eraLEAPSECOND
+        # Very basic sanity checks.
+        assert np.all((leap_seconds['year'] >= 1960) &
+                      (leap_seconds['year'] < 3000))
+        assert np.all((leap_seconds['month'] >= 1) &
+                      (leap_seconds['month'] <= 12))
+        assert np.all(abs(leap_seconds['tai_utc'] < 1000.))
+
+    def test_leap_seconds_expires(self):
+        expires = erfa.leap_seconds.expires
+        assert isinstance(expires, datetime)
+        last_ls = erfa.leap_seconds.get()[-1]
+        dt_last = datetime(last_ls['year'], last_ls['month'], 1)
+        assert expires > dt_last
+
+
+class TestLeapSeconds:
+    """Test basic methods to control the ERFA leap-second table."""
+    def setup(self):
+        self.erfa_ls = erfa.leap_seconds.get()
+        self.expires = erfa.leap_seconds.expires
+        self._expires = erfa.leap_seconds._expires
+
+    def teardown(self):
+        erfa.leap_seconds.set(self.erfa_ls)
+        erfa.leap_seconds._expires = self._expires
+
+    def test_set_reset_leap_seconds(self):
+        erfa.leap_seconds.set()
+        leap_seconds = erfa.leap_seconds.get()
+
+        erfa.leap_seconds.set(leap_seconds[:-2])
+        new_leap_seconds = erfa.leap_seconds.get()
+        assert_array_equal(new_leap_seconds, leap_seconds[:-2])
+
+        erfa.leap_seconds.set()
+        reset_leap_seconds = erfa.leap_seconds.get()
+        assert_array_equal(reset_leap_seconds, leap_seconds)
+
+    def test_set_leap_seconds(self):
+        assert erfa.dat(2018, 1, 1, 0.) == 37.0
+        leap_seconds = erfa.leap_seconds.get()
+        # Set to a table that misses the 2017 leap second.
+        part_leap_seconds = leap_seconds[leap_seconds['year'] < 2017]
+        erfa.leap_seconds.set(part_leap_seconds)
+        new_leap_seconds = erfa.leap_seconds.get()
+        assert_array_equal(new_leap_seconds, part_leap_seconds)
+        # Check the 2017 leap second is indeed missing.
+        assert erfa.dat(2018, 1, 1, 0.) == 36.0
+        # And that this would be expected from the expiration date.
+        assert erfa.leap_seconds.expires < datetime(2018, 1, 1)
+        assert erfa.leap_seconds.expired
+        # Reset and check it is back.
+        erfa.leap_seconds.set()
+        assert erfa.dat(2018, 1, 1, 0.) == 37.0
+
+    @pytest.mark.parametrize('table,match', [
+        ([(2017, 3, 10.)], 'January'),
+        ([(2017, 1, 1.),
+          (2017, 7, 3.)], 'jump'),
+        ([[(2017, 1, 1.)],
+          [(2017, 7, 2.)]], 'dimension')])
+    def test_validation(self, table, match):
+        with pytest.raises(ValueError, match=match):
+            erfa.leap_seconds.set(table)
+        # Check leap-second table is not corrupted.
+        assert_array_equal(erfa.leap_seconds.get(), self.erfa_ls)
+        assert erfa.dat(2018, 1, 1, 0.) == 37.0
+
+    def test_update_leap_seconds(self):
+        assert erfa.dat(2018, 1, 1, 0.) == 37.0
+        leap_seconds = erfa.leap_seconds.get()
+        # Get old and new leap seconds
+        old_leap_seconds = leap_seconds[leap_seconds['year'] < 2017]
+        new_leap_seconds = leap_seconds[leap_seconds['year'] >= 2017]
+        # Updating with either of these should do nothing.
+        n_update = erfa.leap_seconds.update(new_leap_seconds)
+        assert n_update == 0
+        assert_array_equal(erfa.leap_seconds.get(), self.erfa_ls)
+        n_update = erfa.leap_seconds.update(old_leap_seconds)
+        assert n_update == 0
+        assert_array_equal(erfa.leap_seconds.get(), self.erfa_ls)
+
+        # But after setting to older part, update with newer should work.
+        erfa.leap_seconds.set(old_leap_seconds)
+        # Check the 2017 leap second is indeed missing.
+        assert erfa.dat(2018, 1, 1, 0.) == 36.0
+        # Update with missing leap seconds.
+        n_update = erfa.leap_seconds.update(new_leap_seconds)
+        assert n_update == len(new_leap_seconds)
+        assert erfa.dat(2018, 1, 1, 0.) == 37.0
+
+        # Also a final try with overlapping data.
+        erfa.leap_seconds.set(old_leap_seconds)
+        n_update = erfa.leap_seconds.update(leap_seconds)
+        assert n_update == len(new_leap_seconds)
+        assert erfa.dat(2018, 1, 1, 0.) == 37.0
+
+    def test_with_expiration(self):
+        class ExpiringArray(np.ndarray):
+            expires = datetime(2345, 1, 1)
+
+        leap_seconds = erfa.leap_seconds.get()
+        erfa.leap_seconds.set(leap_seconds.view(ExpiringArray))
+        assert erfa.leap_seconds.expires == ExpiringArray.expires
+
+        # Get old and new leap seconds
+        old_leap_seconds = leap_seconds[:-10]
+        new_leap_seconds = leap_seconds[-10:]
+
+        erfa.leap_seconds.set(old_leap_seconds)
+        # Check expiration is reset
+        assert erfa.leap_seconds.expires != ExpiringArray.expires
+        # Update with missing leap seconds.
+        n_update = erfa.leap_seconds.update(
+            new_leap_seconds.view(ExpiringArray))
+        assert n_update == len(new_leap_seconds)
+        assert erfa.leap_seconds.expires == ExpiringArray.expires
