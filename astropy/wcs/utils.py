@@ -4,6 +4,8 @@ import numpy as np
 
 from astropy import units as u
 from astropy.utils.misc import unbroadcast
+import copy
+from scipy.optimize import least_squares
 
 from .wcs import WCS, WCSSUB_LONGITUDE, WCSSUB_LATITUDE, WCSSUB_CELESTIAL
 
@@ -865,7 +867,9 @@ def local_partial_pixel_derivatives(wcs, *pixel, normalize_by_world=False):
 
 
 def _linear_wcs_fit(params, lon, lat, x, y, w_obj):
-    """Objective function for fitting linear terms.
+    """
+    Objective function for fitting linear terms.
+
     Parameters
     ----------
     params : array
@@ -894,7 +898,7 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
      Parameters
     -----------
     params : array
-        6 element array. First 4 elements are PC matrix, last 2 are CRPIX.
+        Fittable parameters. First 4 elements are PC matrix, last 2 are CRPIX.
     lon, lat: array
         Sky coordinates.
     u, v: array
@@ -939,8 +943,7 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
 
 
 def fit_wcs_from_points(xy, world_coords, proj_point='center', 
-                        projection='TAN', sip_degree=4):
-
+                        projection='TAN', sip_degree=None):
     """ 
     Given two matching sets of coordinates on detector and sky,
     compute the WCS. 
@@ -964,7 +967,7 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
     - The fiducial point for the spherical projection can be set to 'center'
       to use the mean position of input sky coordinates, or as an
       `~astropy.coordinates.SkyCoord` object.
-    - All output WCS will always be in degrees.
+    - Units in all output WCS objects will always be in degrees.
     - If the coordinate frame differs between `~astropy.coordinates.SkyCoord`
       objects passed in for `world_coords` and `proj_point`, the frame for
       `world_coords`  will override as the frame for the output WCS.
@@ -985,9 +988,9 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
         Three letter projection code, of any of standard projections defined 
         in the FITS WCS standard. Optionally, a WCS object with projection 
         keywords set may be passed in. 
-    sip_degree : int
+    sip_degree : None or int
         If set to a non-zero integer value, will fit SIP of degree `sip_degree` 
-        to model geometric distortion. 
+        to model geometric distortion. Defaults to None.
 
     Returns
     -------
@@ -997,12 +1000,14 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
 
     from astropy.coordinates import SkyCoord # here to avoid circular import
     import astropy.units as u
-    from scipy.optimize import least_squares
     from .wcs import Sip
-    import copy
 
-    xp, yp = xy
-    lon, lat = world_coords.data.lon.deg, world_coords.data.lat.deg
+    try:
+        xp, yp = xy
+        lon, lat = world_coords.data.lon.deg, world_coords.data.lat.deg
+    except AttributeError:
+        unit_sph =  world_coords.unit_spherical
+        lon, lat = unit_sph.lon.deg, unit_sph.lat.deg
 
     # verify input
     if (proj_point != 'center') and (type(proj_point) != type(world_coords)):
@@ -1038,18 +1043,18 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
        raise ValueError("sip_degree must be None, or integer.")
 
     # set pixel_shape to span of input points
-    wcs.pixel_shape = (max(xp)-min(xp), max(yp)-min(yp))
+    wcs.pixel_shape = (xp.max()-xp.min(), yp.max()-yp.min())
 
     # determine CRVAL from input
-    close = lambda l, p: p[np.where(np.abs(l) == min(np.abs(l)))[0][0]]
+    close = lambda l, p: p[np.argmin(np.abs(l))]
     if str(proj_point) == 'center':  # use center of input points
-        sc1 = SkyCoord(min(lon)*u.deg, max(lat)*u.deg)
-        sc2 = SkyCoord(max(lon)*u.deg, min(lat)*u.deg)
+        sc1 = SkyCoord(lon.min()*u.deg, lat.max()*u.deg)
+        sc2 = SkyCoord(lon.max()*u.deg, lat.min()*u.deg)
         pa = sc1.position_angle(sc2)
         sep = sc1.separation(sc2)
         midpoint_sc = sc1.directional_offset_by(pa, sep/2)
         wcs.wcs.crval = ((midpoint_sc.data.lon.deg, midpoint_sc.data.lat.deg))
-        wcs.wcs.crpix = ((max(xp)+min(xp))/2., (max(yp)+min(yp))/2.)
+        wcs.wcs.crpix = ((xp.max()+xp.min())/2., (yp.max()+yp.min())/2.)
     elif proj_point is not None:  # convert units, initial guess for crpix
         proj_point.transform_to(world_coords)
         wcs.wcs.crval = (proj_point.data.lon.deg, proj_point.data.lat.deg)
