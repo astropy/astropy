@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Interfaces to the ERFA library, in particular for leap seconds.
+Helpers to interact with the ERFA library, in particular for leap seconds.
 """
 from datetime import datetime, timedelta
 from warnings import warn
