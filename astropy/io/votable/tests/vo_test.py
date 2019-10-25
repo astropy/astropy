@@ -792,7 +792,7 @@ def test_validate(test_path_object=False):
 
     # Uncomment to generate new groundtruth
     # with open('validation.txt', 'wt', encoding='utf-8') as fd:
-    #     fd.write(u''.join(output))
+    #    fd.write(u''.join(output))
 
     with open(
         get_pkg_data_filename('data/validation.txt'),
@@ -997,3 +997,26 @@ def test_custom_datatype():
 
     table = votable.get_first_table()
     assert table.array.dtype['foo'] == np.int32
+
+
+def _timesys_tests(votable):
+    assert len(list(votable.iter_timesys())) == 1
+    timesys = votable.get_timesys_by_id('time_frame')
+    assert timesys.timeorigin == 2455197.5
+    assert timesys.timescale == 'TCB'
+    assert timesys.refposition == 'BARYCENTER'
+
+
+def test_timesys():
+    votable = parse(get_pkg_data_filename('data/timesys.xml'))
+    _timesys_tests(votable)
+
+
+def test_timesys_roundtrip():
+    orig_votable = parse(get_pkg_data_filename('data/timesys.xml'))
+    bio = io.BytesIO()
+    orig_votable.to_xml(bio)
+    bio.seek(0)
+    votable = parse(bio)
+
+    _timesys_tests(votable)
