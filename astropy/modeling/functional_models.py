@@ -14,7 +14,6 @@ from .parameters import Parameter, InputParameterError
 from .utils import ellipse_extent
 
 
-
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D', 'Gaussian2D',
            'Linear1D', 'Lorentz1D', 'RickerWavelet1D', 'RickerWavelet2D',
