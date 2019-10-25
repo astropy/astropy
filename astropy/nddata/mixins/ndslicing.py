@@ -119,5 +119,14 @@ class NDSlicingMixin:
         if self.wcs is None:
             return None
 
-        llwcs = SlicedLowLevelWCS(self.wcs.low_level_wcs, item)
-        return HighLevelWCSWrapper(llwcs)
+        try:
+            llwcs = SlicedLowLevelWCS(self.wcs.low_level_wcs, item)
+            return HighLevelWCSWrapper(llwcs)
+        except Exception as err:
+            self._handle_wcs_slicing_error(err, item)
+
+    # Implement this in a method to allow subclasses to customise the error.
+    def _handle_wcs_slicing_error(self, err, item):
+        raise IndexError(f"Slicing the WCS object with the slice '{item}' "
+        "failed, if you want to slice the NDData object without the WCS, you "
+        "can remove it with `del(NDData.wcs)` and then retry.") from err
