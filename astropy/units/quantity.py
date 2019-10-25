@@ -1477,7 +1477,7 @@ class Quantity(np.ndarray):
         ~astropy.units.UnitsError
             If operands have incompatible units.
         """
-        # A function should be in one of the following sets of dicts:
+        # A function should be in one of the following sets or dicts:
         # 1. SUBCLASS_SAFE_FUNCTIONS (set), if the numpy implementation
         #    supports Quantity; we pass on to ndarray.__array_function__.
         # 2. FUNCTION_HELPERS (dict), if the numpy implementation is usable
