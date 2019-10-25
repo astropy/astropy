@@ -964,7 +964,7 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
     - The fiducial point for the spherical projection can be set to 'center'
       to use the mean position of input sky coordinates, or as an
       `~astropy.coordinates.SkyCoord` object.
-    - All output will be in degrees.
+    - All output WCS will always be in degrees.
     - If the coordinate frame differs between `~astropy.coordinates.SkyCoord`
       objects passed in for `world_coords` and `proj_point`, the frame for
       `world_coords`  will override as the frame for the output WCS.
