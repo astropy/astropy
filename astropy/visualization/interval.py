@@ -101,6 +101,9 @@ class ManualInterval(BaseInterval):
         self.vmax = vmax
 
     def get_limits(self, values):
+        # Make sure values is a Numpy array
+        values = np.asarray(values).ravel()
+
         # Filter out invalid values (inf, nan)
         values = values[np.isfinite(values)]
 
@@ -114,6 +117,9 @@ class MinMaxInterval(BaseInterval):
     """
 
     def get_limits(self, values):
+        # Make sure values is a Numpy array
+        values = np.asarray(values).ravel()
+
         # Filter out invalid values (inf, nan)
         values = values[np.isfinite(values)]
 
