@@ -200,16 +200,14 @@ def test_coord_type_1d_2d_wcs_correlated():
 
 def test_coord_type_1d_2d_wcs_uncorrelated():
     wcs = WCS(naxis=2)
-    wcs.wcs.ctype = ['WAVE', 'TIME']
+    wcs.wcs.ctype = ['WAVE', 'UTC']
     wcs.wcs.crpix = [256.0] * 2
     wcs.wcs.cdelt = [-0.05] * 2
     wcs.wcs.crval = [50.0] * 2
     wcs.wcs.cunit = ['nm', 's']
     wcs.wcs.set()
 
-    with warnings.catch_warnings():
-        warnings.filterwarnings('ignore', category=FutureWarning)
-        _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame1D, slices=('x', 0))
+    _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame1D, slices=('x', 0))
 
     assert coord_meta['type'] == ['scalar', 'scalar']
     assert coord_meta['format_unit'] == [u.m, u.s]
