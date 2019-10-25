@@ -32,6 +32,7 @@ from astropy.wcs.utils import (proj_plane_pixel_scales,
                                _pixel_to_world_correlation_matrix,
                                local_partial_pixel_derivatives)
 
+
 def test_wcs_dropping():
     wcs = WCS(naxis=4)
     wcs.wcs.pc = np.zeros([4, 4])
