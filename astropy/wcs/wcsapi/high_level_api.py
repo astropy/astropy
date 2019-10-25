@@ -151,8 +151,10 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
 
                 if len(rest) == 0:
                     klass_gen = klass
-                else:
+                elif len(rest) == 1:
                     klass_gen = rest[0]
+                else:
+                    raise ValueError("Tuples in world_axis_object_classes should have length 3 or 4")
 
                 # FIXME: For now SkyCoord won't auto-convert upon initialization
                 # https://github.com/astropy/astropy/issues/7689
@@ -173,8 +175,10 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
 
                 if len(rest) == 0:
                     klass_gen = klass
-                else:
+                elif len(rest) == 1:
                     klass_gen = rest[0]
+                else:
+                    raise ValueError("Tuples in world_axis_object_classes should have length 3 or 4")
 
                 w = world_objects[ikey]
                 if not isinstance(w, klass):
@@ -241,8 +245,10 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
             klass, ar, kw, *rest = classes[key]
             if len(rest) == 0:
                 klass_gen = klass
-            else:
+            elif len(rest) == 1:
                 klass_gen = rest[0]
+            else:
+                raise ValueError("Tuples in world_axis_object_classes should have length 3 or 4")
             result.append(klass_gen(*args[key], *ar, **kwargs[key], **kw))
 
         if len(result) == 1:
