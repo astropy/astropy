@@ -161,11 +161,15 @@ class TestShapeManipulation(InvariantUnitTestSetup):
         self.check(np.rot90)
 
     def test_broadcast_to(self):
-        # TODO: should we change the default for subok?
+        # Decided *not* to change default for subok for Quantity, since
+        # that would be contrary to the docstring and might break code.
         self.check(np.broadcast_to, (3, 3, 3), subok=True)
+        out = np.broadcast_to(self.q, (3, 3, 3))
+        assert type(out) is np.ndarray  # NOT Quantity
 
     def test_broadcast_arrays(self):
-        # TODO: should we change the default for subok?
+        # Decided *not* to change default for subok for Quantity, since
+        # that would be contrary to the docstring and might break code.
         q2 = np.ones((3, 3, 3)) / u.s
         o1, o2 = np.broadcast_arrays(self.q, q2, subok=True)
         assert isinstance(o1, u.Quantity)
@@ -173,6 +177,9 @@ class TestShapeManipulation(InvariantUnitTestSetup):
         assert o1.shape == o2.shape == (3, 3, 3)
         assert np.all(o1 == self.q)
         assert np.all(o2 == q2)
+        a1, a2 = np.broadcast_arrays(self.q, q2)
+        assert type(a1) is np.ndarray
+        assert type(a2) is np.ndarray
 
 
 class TestArgFunctions(NoUnitTestSetup):
