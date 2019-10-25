@@ -355,6 +355,12 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     # Extract time scale
                     scale = self.wcs.ctype[i].lower()
 
+                    if scale == 'time':
+                        if self.wcs.timesys:
+                            scale = self.wcs.timesys.lower()
+                        else:
+                            scale = 'utc'
+
                     # Drop sub-scales
                     if '(' in scale:
                         pos = scale.index('(')
@@ -395,8 +401,8 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                                        "supported, setting location in Time to None", UserWarning)
                         location = None
 
-                    reference_time = Time(self.wcs.mjdref[0],
-                                          self.wcs.mjdref[1],
+                    reference_time = Time(np.nan_to_num(self.wcs.mjdref[0]),
+                                          np.nan_to_num(self.wcs.mjdref[1]),
                                           format='mjd', scale=scale,
                                           location=location)
 

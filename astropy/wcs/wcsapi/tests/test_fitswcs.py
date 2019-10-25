@@ -563,6 +563,13 @@ def test_time_1d_values_deprecated(header_time_1d):
     assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, 'tt', 'mjd')
 
 
+def test_time_1d_values_time(header_time_1d):
+    header_time_1d['CTYPE1'] = 'TIME'
+    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, 'utc', 'mjd')
+    header_time_1d['TIMESYS'] = 'TAI'
+    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, 'tai', 'mjd')
+
+
 @pytest.mark.parametrize('scale', ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc'))
 def test_time_1d_roundtrip(header_time_1d, scale):
 
