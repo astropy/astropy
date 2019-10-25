@@ -104,11 +104,17 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
         # For FITS-WCS, for backward-compatibility, we need to make sure that we
         # provide aliases based on CTYPE for the name.
         if is_fits_wcs:
+            name = []
             if isinstance(wcs, WCS):
-                alias = wcs.wcs.ctype[idx].lower()
+                name.append(wcs.wcs.ctype[idx].lower())
+                name.append(wcs.wcs.ctype[idx][:4].replace('-', '').lower())
             elif isinstance(wcs, SlicedLowLevelWCS):
-                alias = wcs._wcs.wcs.ctype[wcs._world_keep[idx]].lower()
-            name = (axis_type, alias) if axis_type else alias
+                name.append(wcs._wcs.wcs.ctype[wcs._world_keep[idx]].lower())
+                name.append(wcs._wcs.wcs.ctype[wcs._world_keep[idx]][:4].replace('-', '').lower())
+            name = list(set(name))
+            if axis_type:
+                name.insert(0, axis_type)
+            name = tuple(name) if len(name) > 1 else name[0]
         else:
             name = axis_type or ''
 
