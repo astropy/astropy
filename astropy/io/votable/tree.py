@@ -1753,7 +1753,8 @@ class TimeSys(SimpleElement):
         self.timescale = timescale
         self.refposition = refposition
 
-        warn_unknown_attrs('TIMESYS', extra.keys(), config, pos)
+        warn_unknown_attrs('TIMESYS', extra.keys(), config, pos,
+                           ['ID', 'timeorigin', 'timescale', 'refposition'])
 
     @property
     def ID(self):
@@ -1793,7 +1794,8 @@ class TimeSys(SimpleElement):
 
     @timeorigin.setter
     def timeorigin(self, timeorigin):
-        if timeorigin != 'MJD-origin' and timeorigin != 'JD-origin':
+        if (timeorigin is not None and
+            timeorigin != 'MJD-origin' and timeorigin != 'JD-origin'):
             try:
                 timeorigin = float(timeorigin)
             except ValueError:
@@ -3372,7 +3374,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     tests for building the rest of the structure depend on it.
     """
 
-    def __init__(self, ID=None, id=None, config=None, pos=None, version="1.3"):
+    def __init__(self, ID=None, id=None, config=None, pos=None, version="1.4"):
         if config is None:
             config = {}
         self._config = config
@@ -3390,9 +3392,9 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         self._groups = HomogeneousList(Group)
 
         version = str(version)
-        if version not in ("1.0", "1.1", "1.2", "1.3"):
+        if version not in ("1.0", "1.1", "1.2", "1.3", "1.4"):
             raise ValueError("'version' should be one of '1.0', '1.1', "
-                             "'1.2', or '1.3'")
+                             "'1.2', '1.3' or '1.4'")
 
         self._version = version
 
@@ -3410,10 +3412,10 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     @version.setter
     def version(self, version):
         version = str(version)
-        if version not in ('1.1', '1.2', '1.3'):
+        if version not in ('1.1', '1.2', '1.3', '1.4'):
             raise ValueError(
                 "astropy.io.votable only supports VOTable versions "
-                "1.1, 1.2 and 1.3")
+                "1.1, 1.2, 1.3 and 1.4")
         self._version = version
 
     @property
@@ -3515,12 +3517,23 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                                 W29, W29, config['version'], config, pos)
                             self._version = config['version'] = \
                                             config['version'][1:]
-                        if config['version'] not in ('1.1', '1.2', '1.3'):
+                        if config['version'] not in ('1.1', '1.2', '1.3', '1.4'):
                             vo_warn(W21, config['version'], config, pos)
 
                     if 'xmlns' in data:
+                        # Starting with VOTable 1.3, namespace URIs stop
+                        # incrementing with minor version changes.  See
+                        # this IVOA note for more info:
+                        # http://www.ivoa.net/documents/Notes/XMLVers/20180529/
+                        #
+                        # If this policy is in place for major version 2,
+                        # then this logic will need tweaking.
+                        if config['version'] in ('1.3', '1.4'):
+                            ns_version = '1.3'
+                        else:
+                            ns_version = config['version']
                         correct_ns = ('http://www.ivoa.net/xml/VOTable/v{}'.format(
-                                config['version']))
+                                ns_version))
                         if data['xmlns'] != correct_ns:
                             vo_warn(
                                 W41, (correct_ns, data['xmlns']), config, pos)

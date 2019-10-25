@@ -168,14 +168,14 @@ def test_write_with_format():
     output = io.BytesIO()
     t.write(output, format='votable', tabledata_format="binary")
     obuff = output.getvalue()
-    assert b'VOTABLE version="1.3"' in obuff
+    assert b'VOTABLE version="1.4"' in obuff
     assert b'BINARY' in obuff
     assert b'TABLEDATA' not in obuff
 
     output = io.BytesIO()
     t.write(output, format='votable', tabledata_format="binary2")
     obuff = output.getvalue()
-    assert b'VOTABLE version="1.3"' in obuff
+    assert b'VOTABLE version="1.4"' in obuff
     assert b'BINARY2' in obuff
     assert b'TABLEDATA' not in obuff
 
