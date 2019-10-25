@@ -19,9 +19,18 @@ NO_ARRAY_FUNCTION = not ARRAY_FUNCTION_ENABLED
 
 # To get the functions that could be covered, we look for those that
 # are wrapped.  Of course, this does not give a full list pre-1.17.
-all_wrapped_functions = {name: f for name, f in np.__dict__.items()
-                         if callable(f) and hasattr(f, '__wrapped__')
-                         and f is not np.printoptions}
+def get_wrapped_functions(*modules):
+    wrapped_functions = {}
+    for mod in modules:
+        for name, f in mod.__dict__.items():
+            if f is np.printoptions:
+                continue
+            if callable(f) and hasattr(f, '__wrapped__'):
+                wrapped_functions[name] = f
+    return wrapped_functions
+
+
+all_wrapped_functions = get_wrapped_functions(np)
 all_wrapped = set(all_wrapped_functions.values())
 
 
