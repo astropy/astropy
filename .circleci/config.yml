@@ -38,7 +38,9 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results"
+          command: |
+            pip install pytest-astropy-header --upgrade --no-deps
+            python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results"
       - store_artifacts:
           path: results
 
@@ -49,7 +51,9 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results"
+          command: |
+            pip install pytest-astropy-header --upgrade --no-deps
+            python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results"
       - store_artifacts:
           path: results
 
@@ -60,7 +64,9 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results"
+          command: |
+            pip install pytest-astropy-header --upgrade --no-deps
+            python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results"
       - store_artifacts:
           path: results
 
@@ -71,7 +77,9 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results"
+          command: |
+            pip install pytest-astropy-header --upgrade --no-deps
+            python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results"
       - store_artifacts:
           path: results
 

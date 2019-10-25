@@ -8,7 +8,7 @@ import os
 import builtins
 import tempfile
 
-from astropy.tests.plugins.display import PYTEST_HEADER_MODULES
+from pytest_astropy_header.display import PYTEST_HEADER_MODULES
 from astropy.tests.helper import enable_deprecations_as_exceptions
 
 try:
@@ -57,6 +57,12 @@ def pytest_configure(config):
     os.mkdir(os.path.join(os.environ['XDG_CONFIG_HOME'], 'astropy'))
     os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
 
+    config.option.astropy_header = True
+
+    PYTEST_HEADER_MODULES['Cython'] = 'cython'
+    PYTEST_HEADER_MODULES['Scikit-image'] = 'skimage'
+    PYTEST_HEADER_MODULES['asdf'] = 'asdf'
+
 
 def pytest_unconfigure(config):
     builtins._pytest_running = False
@@ -76,6 +82,24 @@ def pytest_unconfigure(config):
         os.environ['XDG_CACHE_HOME'] = builtins._xdg_cache_home_orig
 
 
-PYTEST_HEADER_MODULES['Cython'] = 'cython'
-PYTEST_HEADER_MODULES['Scikit-image'] = 'skimage'
-PYTEST_HEADER_MODULES['asdf'] = 'asdf'
+def pytest_terminal_summary(terminalreporter):
+    """Output a warning to IPython users in case any tests failed."""
+
+    try:
+        get_ipython()
+    except NameError:
+        return
+
+    if not terminalreporter.stats.get('failed'):
+        # Only issue the warning when there are actually failures
+        return
+
+    terminalreporter.ensure_newline()
+    terminalreporter.write_line(
+        'Some tests are known to fail when run from the IPython prompt; '
+        'especially, but not limited to tests involving logging and warning '
+        'handling.  Unless you are certain as to the cause of the failure, '
+        'please check that the failure occurs outside IPython as well.  See '
+        'http://docs.astropy.org/en/stable/known_issues.html#failing-logging-'
+        'tests-when-running-the-tests-in-ipython for more information.',
+        yellow=True, bold=True)

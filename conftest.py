@@ -8,12 +8,8 @@ import os
 import pkg_resources
 import tempfile
 
-from astropy.tests.plugins.display import PYTEST_HEADER_MODULES
+from pytest_astropy_header.display import PYTEST_HEADER_MODULES
 import astropy
-
-pytest_plugins = [
-    'astropy.tests.plugins.display',
-]
 
 if find_spec('asdf') is not None:
     from asdf import __version__ as asdf_version
