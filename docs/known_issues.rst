@@ -150,7 +150,8 @@ Quantities Float Comparison with np.isclose Fails
 -------------------------------------------------
 
 Comparing Quantities floats using the NumPy function `~numpy.isclose` fails on
-NumPy 1.9 as the comparison between ``a`` and ``b`` is made using the formula
+NumPy versions before 1.17 as the comparison between ``a`` and ``b``
+is made using the formula
 
 .. math::
 
@@ -160,14 +161,14 @@ This will result in the following traceback when using this with Quantities::
 
     >>> from astropy import units as u, constants as const
     >>> import numpy as np
-    >>> np.isclose(500 * u.km/u.s, 300 * u.km / u.s)  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> np.isclose(500 * u.km/u.s, 300 * u.km / u.s)  # doctest: +SKIP
     Traceback (most recent call last):
     ...
     UnitConversionError: Can only apply 'add' function to dimensionless quantities when other argument is not a quantity (unless the latter is all zero/infinity/nan)
 
-One solution is::
+If one cannot upgrade to numpy 1.17 or later, one solution is::
 
-    >>> np.isclose(500 * u.km/u.s, 300 * u.km / u.s, atol=1e-8 * u.mm / u.s) # doctest: +SKIP
+    >>> np.isclose(500 * u.km/u.s, 300 * u.km / u.s, atol=1e-8 * u.mm / u.s)
     False
 
 Quantities in np.linspace Failure on NumPy 1.10
