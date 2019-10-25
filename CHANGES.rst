@@ -120,6 +120,7 @@ astropy.nddata
 
 - Add a way for technically invalid but unambiguous units in a fits header to be
   parsed by ``CCDData``. [#9397]
+
 - ``NDData`` now only accepts WCS objects which implement either the high, or
   low level APE 14 WCS API. All WCS objects are converted to a high level WCS
   object, so ``NDData.wcs`` now always returns a high level APE 14 object. Not
