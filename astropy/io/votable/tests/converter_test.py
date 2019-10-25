@@ -270,3 +270,8 @@ def test_gemini_v1_2():
     '''
     table = parse_single_table(get_pkg_data_filename('data/gemini.xml'))
     assert table is not None
+
+    tt = table.to_table()
+    assert tt['access_url'][0] == (
+        b'http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/data/pub/GEMINI/'
+        b'S20120515S0064?runid=bx9b1o8cvk1qesrt')
