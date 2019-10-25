@@ -18,8 +18,8 @@ from astropy import modeling
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyUserWarning
 
-__all__ = ['timefunc', 'RunTimePredictor']
-__doctest_skip__ = ['timefunc']
+__all__ = []
+__doctest_skip__ = ['*']
 
 
 @deprecated('4.0', alternative='astroquery.utils.timer.timefunc')
