@@ -283,6 +283,13 @@ astropy.utils
 
 - A new ``astropy.utils.iers.LeapSeconds`` class has been added to track
   leap seconds. [#9365]
+- Allow ``astropy.utils.console.ProgressBarOrSpinner.map`` and
+  ``.map_unordered`` to take an argument ``multiprocessing_start_method`` to
+  control how subprocesses are started; the different methods (``fork``,
+  ``spawn``, and ``forkserver``) have different implications in terms of
+  security, efficiency, and behavioural anomalies. The option is useful in
+  particular for cross-platform testing because Windows supports only ``spawn``
+  while Linux defaults to ``fork``. [#9812]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
