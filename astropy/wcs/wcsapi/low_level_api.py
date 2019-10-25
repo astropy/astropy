@@ -146,8 +146,11 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
 
         * The third argument is a string giving the name of the property
           to access on the corresponding class from
-          `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_object_classes` in order to get numerical
-          values.
+          `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_object_classes` in
+          order to get numerical values. Alternatively, this argument can be a
+          callable Python object that taks a high-level coordinate object and
+          returns the numerical values suitable for passing to the low-level
+          WCS transformation methods.
 
         See the document
         `APE 14: A shared Python interface for World Coordinate Systems
@@ -163,7 +166,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
 
         Each key of the dictionary is a string key from
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_object_components`, and each value is a
-        tuple with three elements:
+        tuple with three elements or four elements:
 
         * The first element of the tuple must be a class or a string specifying
           the fully-qualified name of a class, which will specify the actual
@@ -175,8 +178,13 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
           world coordinates should be passed as a positional argument, this this
           tuple should include `None` placeholders for the world coordinates.
 
-        * The last tuple element must be a dictionary with the keyword
+        * The third tuple element must be a dictionary with the keyword
           arguments required to initialize the class.
+
+        * Optionally, for advanced use cases, the fourth element (if present)
+          should be a callable Python object that gets called instead of the
+          class and gets passed the positional and keyword arguments. It should
+          return an object of the type of the first element in the tuple.
 
         Note that we don't require the classes to be Astropy classes since there
         is no guarantee that Astropy will have all the classes to represent all

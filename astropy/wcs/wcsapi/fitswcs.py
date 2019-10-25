@@ -63,7 +63,7 @@ CTYPE_TO_UCD1 = {
     'TDB': 'time',
     'LOCAL': 'time'
 
-    # UT() is handled separately in world_axis_physical_types
+    # UT() and TT() are handled separately in world_axis_physical_types
 
 }
 
@@ -184,8 +184,9 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
     @property
     def world_axis_physical_types(self):
         types = []
+        # TODO: need to support e.g. TT(TAI)
         for ctype in self.wcs.ctype:
-            if ctype.startswith('UT('):
+            if ctype.startswith(('UT(', 'TT(')):
                 types.append('time')
             else:
                 ctype_name = ctype.split('-')[0]
@@ -303,7 +304,9 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
         # Avoid circular imports by importing here
         from astropy.wcs.utils import wcs_to_celestial_frame
-        from astropy.coordinates import SkyCoord
+        from astropy.coordinates import SkyCoord, EarthLocation
+        from astropy.time.formats import FITS_DEPRECATED_SCALES
+        from astropy.time import Time, TimeDelta
 
         components = [None] * self.naxis
         classes = {}
@@ -330,12 +333,95 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 components[self.wcs.lng] = ('celestial', 0, 'spherical.lon.degree')
                 components[self.wcs.lat] = ('celestial', 1, 'spherical.lat.degree')
 
-        # Fallback: for any remaining components that haven't been identified, just
-        # return Quantity as the class to use
+        # We can then make sure we correctly return Time objects where appropriate
+        # (https://www.aanda.org/articles/aa/pdf/2015/02/aa24653-14.pdf)
 
         if 'time' in self.world_axis_physical_types:
-            warnings.warn('In future, times will be represented by the Time class '
-                          'instead of Quantity', FutureWarning)
+
+            multiple_time = self.world_axis_physical_types.count('time') > 1
+
+            for i in range(self.naxis):
+
+                if self.world_axis_physical_types[i] == 'time':
+
+                    if multiple_time:
+                        name = f'time.{i}'
+                    else:
+                        name = 'time'
+
+                    # Initialize delta
+                    reference_time_delta = None
+
+                    # Extract time scale
+                    scale = self.wcs.ctype[i].lower()
+
+                    if scale == 'time':
+                        if self.wcs.timesys:
+                            scale = self.wcs.timesys.lower()
+                        else:
+                            scale = 'utc'
+
+                    # Drop sub-scales
+                    if '(' in scale:
+                        pos = scale.index('(')
+                        scale, subscale = scale[:pos], scale[pos+1:-1]
+                        warnings.warn(f'Dropping unsupported sub-scale '
+                                      f'{subscale.upper()} from scale {scale.upper()}',
+                                      UserWarning)
+
+                    # TODO: consider having GPS as a scale in Time
+                    # For now GPS is not a scale, we approximate this by TAI - 19s
+                    if scale == 'gps':
+                        reference_time_delta = TimeDelta(19, format='sec')
+                        scale = 'tai'
+
+                    elif scale.upper() in FITS_DEPRECATED_SCALES:
+                        scale = FITS_DEPRECATED_SCALES[scale.upper()]
+
+                    elif scale not in Time.SCALES:
+                        raise ValueError(f'Unrecognized time CTYPE={self.wcs.ctype[i]}')
+
+                    # Determine location
+                    trefpos = self.wcs.trefpos.lower()
+
+                    if trefpos.startswith('topocent'):
+                        # Note that some headers use TOPOCENT instead of TOPOCENTER
+                        if np.any(np.isnan(self.wcs.obsgeo[:3])):
+                            warnings.warn('Missing or incomplete observer location '
+                                          'information, setting location in Time to None',
+                                          UserWarning)
+                            location = None
+                        else:
+                            location = EarthLocation(*self.wcs.obsgeo[:3], unit=u.m)
+                    elif trefpos == 'geocenter':
+                        location = EarthLocation(0, 0, 0, unit=u.m)
+                    else:
+                        # TODO: implement support for more locations when Time supports it
+                        warnings.warn(f"Observation location '{trefpos}' is not "
+                                       "supported, setting location in Time to None", UserWarning)
+                        location = None
+
+                    reference_time = Time(np.nan_to_num(self.wcs.mjdref[0]),
+                                          np.nan_to_num(self.wcs.mjdref[1]),
+                                          format='mjd', scale=scale,
+                                          location=location)
+
+                    if reference_time_delta is not None:
+                        reference_time = reference_time + reference_time_delta
+
+                    def time_from_reference_and_offset(offset):
+                        if isinstance(offset, Time):
+                            return offset
+                        return reference_time + TimeDelta(offset, format='sec')
+
+                    def offset_from_time_and_reference(time):
+                        return (time - reference_time).sec
+
+                    classes[name] = (Time, (), {}, time_from_reference_and_offset)
+                    components[i] = (name, 0, offset_from_time_and_reference)
+
+        # Fallback: for any remaining components that haven't been identified, just
+        # return Quantity as the class to use
 
         for i in range(self.naxis):
             if components[i] is None:
