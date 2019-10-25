@@ -4,6 +4,7 @@
 from numpy.testing import assert_array_equal
 
 from asdf import yamlutil
+import astropy.units as u
 from astropy.tests.helper import assert_quantity_allclose
 from astropy import modeling
 from astropy.modeling import models
@@ -16,8 +17,8 @@ __all__ = ['GratingEquationType']
 class GratingEquationType(TransformType):
     name = "transform/grating_equation"
     version = '1.0.0'
-    types = ['modeling.models.AnglesFromGratingEquation',
-             'modeling.models.WavelengthFromGratingEquation']
+    types = ['astropy.modeling.models.AnglesFromGratingEquation3D',
+             'astropy.modeling.models.WavelengthFromGratingEquation']
 
     @classmethod
     def from_tree_transform(cls, node, ctx):
@@ -25,10 +26,10 @@ class GratingEquationType(TransformType):
         order = node['order']
         output = node['output']
         if output == "wavelength":
-            model = WavelengthFromGratingEquation(groove_density=groove_density,
+            model = models.WavelengthFromGratingEquation(groove_density=groove_density,
                                                   spectral_order=order)
         elif output == "angle":
-            model = AngleFromGratingEquation(groove_density=groove_density,
+            model = models.AnglesFromGratingEquation3D(groove_density=groove_density,
                                              spectral_order=order)
         else:
             raise ValueError("Can't create a GratingEquation model with "

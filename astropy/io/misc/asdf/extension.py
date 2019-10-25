@@ -25,6 +25,7 @@ from .tags.transform.compound import *
 from .tags.transform.math import *
 from .tags.transform.polynomial import *
 from .tags.transform.projections import *
+from .tags.transform.spectroscopy import *
 from .tags.transform.tabular import *
 from .tags.unit.quantity import *
 from .tags.unit.unit import *
