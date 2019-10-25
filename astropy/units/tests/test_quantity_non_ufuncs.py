@@ -19,9 +19,18 @@ NO_ARRAY_FUNCTION = not ARRAY_FUNCTION_ENABLED
 
 # To get the functions that could be covered, we look for those that
 # are wrapped.  Of course, this does not give a full list pre-1.17.
-all_wrapped_functions = {name: f for name, f in np.__dict__.items()
-                         if callable(f) and hasattr(f, '__wrapped__')
-                         and f is not np.printoptions}
+def get_wrapped_functions(*modules):
+    wrapped_functions = {}
+    for mod in modules:
+        for name, f in mod.__dict__.items():
+            if f is np.printoptions:
+                continue
+            if callable(f) and hasattr(f, '__wrapped__'):
+                wrapped_functions[name] = f
+    return wrapped_functions
+
+
+all_wrapped_functions = get_wrapped_functions(np, np.fft)
 all_wrapped = set(all_wrapped_functions.values())
 
 
@@ -1761,9 +1770,62 @@ class TestDatetimeFunctions(BasicTestSetup):
             np.is_busday(self.q)
 
 
-should_be_tested_functions = {
-    np.apply_along_axis, np.apply_over_axes,
-    }
+@pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                   reason="Needs __array_function__ support")
+class TestFFT(InvariantUnitTestSetup):
+    # These are all trivial, just preserve the unit.
+    def setup(self):
+        # Use real input; gets turned into complex as needed.
+        self.q = np.arange(128.).reshape(8, -1) * u.s
+
+    def test_fft(self):
+        self.check(np.fft.fft)
+
+    def test_ifft(self):
+        self.check(np.fft.ifft)
+
+    def test_rfft(self):
+        self.check(np.fft.rfft)
+
+    def test_irfft(self):
+        self.check(np.fft.irfft)
+
+    def test_fft2(self):
+        self.check(np.fft.fft2)
+
+    def test_ifft2(self):
+        self.check(np.fft.ifft2)
+
+    def test_rfft2(self):
+        self.check(np.fft.rfft2)
+
+    def test_irfft2(self):
+        self.check(np.fft.irfft2)
+
+    def test_fftn(self):
+        self.check(np.fft.fftn)
+
+    def test_ifftn(self):
+        self.check(np.fft.ifftn)
+
+    def test_rfftn(self):
+        self.check(np.fft.rfftn)
+
+    def test_irfftn(self):
+        self.check(np.fft.irfftn)
+
+    def test_hfft(self):
+        self.check(np.fft.hfft)
+
+    def test_ihfft(self):
+        self.check(np.fft.ihfft)
+
+    def test_fftshift(self):
+        self.check(np.fft.fftshift)
+
+    def test_ifftshift(self):
+        self.check(np.fft.ifftshift)
+
 
 untested_functions = set()
 financial_functions = {f for f in all_wrapped_functions.values()
