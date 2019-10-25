@@ -1559,9 +1559,8 @@ class TestSortFunctions(InvariantUnitTestSetup):
 
 
 class TestStringFunctions(metaclass=CoverageMeta):
-    # For all these functions, we could change it to work on Quantity,
-    # but it would mean deviating from the docstring.  Not clear whether
-    # that is worth it.
+    # For these, making behaviour work means deviating only slightly from
+    # the docstring, and by default they fail miserably.  So, might as well.
     def setup(self):
         self.q = np.arange(3.) * u.Jy
 
@@ -1571,14 +1570,17 @@ class TestStringFunctions(metaclass=CoverageMeta):
         expected = str(self.q)
         assert out == expected
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_array_repr(self):
         out = np.array_repr(self.q)
-        expected = (np.array_repr(self.q.value)[:-1] +
-                    ', {!r})'.format(str(self.q.unit)))
-        assert out == expected
+        assert out == "Quantity([0., 1., 2.], unit='Jy')"
+        q2 = self.q.astype('f4')
+        out2 = np.array_repr(q2)
+        assert out2 == "Quantity([0., 1., 2.], unit='Jy', dtype=float32)"
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_array_str(self):
         out = np.array_str(self.q)
         expected = str(self.q)
