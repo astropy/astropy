@@ -34,7 +34,10 @@ test_models = [
     astmodels.RotateNative2Celestial(5.63*u.deg, -72.5*u.deg, 180*u.deg),
     astmodels.RotateCelestial2Native(5.63*u.deg, -72.5*u.deg, 180*u.deg),
     astmodels.RotationSequence3D([1.2, 2.3, 3.4, .3], 'xyzx'),
-    astmodels.SphericalRotationSequence([1.2, 2.3, 3.4, .3], 'xyzy')
+    astmodels.SphericalRotationSequence([1.2, 2.3, 3.4, .3], 'xyzy'),
+    astmodels.WavelengthFromGratingEquation(50000, -1),
+    astmodels.AnglesFromGratingEquation3D(20000, 1),
+    astmodels.WavelengthFromGratingEquation(15000*1/u.m, -1),
 ]
 
 
