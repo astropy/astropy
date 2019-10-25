@@ -3372,7 +3372,7 @@ class Table:
         return DataFrame(out, **kwargs)
 
     @classmethod
-    def from_pandas(cls, dataframe, index=False):
+    def from_pandas(cls, dataframe, index=False, units=None):
         """
         Create a `~astropy.table.Table` from a :class:`pandas.DataFrame` instance
 
@@ -3386,6 +3386,9 @@ class Table:
             A pandas :class:`pandas.DataFrame` instance
         index : bool
             Include the index column in the returned table (default=False)
+        units: dict
+            A dict mapping column names to to a `~astropy.units.Unit`.
+            The columns will have the specified unit in the Table.
 
         Returns
         -------
@@ -3443,7 +3446,12 @@ class Table:
             datas.insert(0, np.array(dataframe.index))
             masks.insert(0, np.zeros(len(dataframe), dtype=bool))
 
-        for name, column, data, mask in zip(names, columns, datas, masks):
+        if units is None:
+            units = [None] * len(names)
+        else:
+            units = [units.get(name) for name in names]
+
+        for name, column, data, mask, unit in zip(names, columns, datas, masks, units):
 
             if data.dtype.kind == 'O':
                 # If all elements of an object array are string-like or np.nan
@@ -3477,9 +3485,9 @@ class Table:
 
             else:
                 if np.any(mask):
-                    out[name] = MaskedColumn(data=data, name=name, mask=mask)
+                    out[name] = MaskedColumn(data=data, name=name, mask=mask, unit=unit)
                 else:
-                    out[name] = Column(data=data, name=name)
+                    out[name] = Column(data=data, name=name, unit=unit)
 
         return cls(out)
 
