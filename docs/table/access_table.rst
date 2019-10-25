@@ -323,7 +323,7 @@ We can check table data equality using three different methods:
   (``True`` where every element in the row matches), so one gets a 1-d array.
 - The ``==`` comparison operator.  This is exactly the same as calling
   :meth:`~astropy.table.Table.rows_equal`.
-- Table :meth:`~astropy.table.Table.cols_equal` to compare table elements
+- Table :meth:`~astropy.table.Table.values_equal` to compare table elements
   column-wise.  This returns a boolean ``True`` or ``False`` for each table
   *element*, so one gets a `~astropy.table.Table` of values.
 
@@ -342,7 +342,7 @@ Examples::
   >>> t1.rows_equal(t2)  # Same thing as ==
   array([False, False,  True])
 
-  >>> t1.cols_equal(t2)  # Compare to another table
+  >>> t1.values_equal(t2)  # Compare to another table
   <Table length=3>
    a     b     c
   bool  bool  bool
@@ -351,7 +351,7 @@ Examples::
   True False  True
   True  True  True
 
-  >>> t1.cols_equal([2, 4, 7])  # Compare to an array column-wise
+  >>> t1.values_equal([2, 4, 7])  # Compare to an array column-wise
   <Table length=3>
     a     b     c
    bool  bool  bool
@@ -360,7 +360,7 @@ Examples::
    True False False
    True  True False
 
-  >>> t1.cols_equal(7)  # Compare to a scalar column-wise
+  >>> t1.values_equal(7)  # Compare to a scalar column-wise
   <Table length=3>
     a     b     c
    bool  bool  bool

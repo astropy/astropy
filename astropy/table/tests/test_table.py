@@ -1382,7 +1382,7 @@ def test_disallow_inequality_comparisons():
         t <= -1.1
 
 
-def test_cols_equal():
+def test_values_equal():
 
     col1 = [1, 2]
     col2 = [1.0, 2.0]
@@ -1401,37 +1401,37 @@ def test_cols_equal():
     tsk['sk'] = SkyCoord(1, 2,  unit='deg')
 
     with pytest.raises(ValueError):
-        t2.cols_equal(t1)
+        t2.values_equal(t1)
 
     with pytest.raises(ValueError):
-        t3.cols_equal(t1)
+        t3.values_equal(t1)
 
     with pytest.raises(ValueError):
-        t1.cols_equal(2)
+        t1.values_equal(2)
 
     with pytest.raises(ValueError):
-        t1.cols_equal([1, 2])
+        t1.values_equal([1, 2])
 
     with pytest.raises(ValueError):
-        tsk.cols_equal(tsk)
+        tsk.values_equal(tsk)
 
-    eq = t2.cols_equal(t2)
+    eq = t2.values_equal(t2)
     for col in eq.colnames:
         assert np.all(eq[col] == [True, True])
 
-    eq1 = tm1.cols_equal(tm)
+    eq1 = tm1.values_equal(tm)
     for col in eq1.colnames:
         assert np.all(eq1[col] == [True, True])
 
-    eq2 = tq.cols_equal(tq)
+    eq2 = tq.values_equal(tq)
     for col in eq2.colnames:
         assert np.all(eq2[col] == [True, True, True])
 
-    eq3 = t2.cols_equal(2)
+    eq3 = t2.values_equal(2)
     for col in eq3.colnames:
         assert np.all(eq3[col] == [False, True])
 
-    eq4 = t2.cols_equal([1, 2])
+    eq4 = t2.values_equal([1, 2])
     for col in eq4.colnames:
         assert np.all(eq4[col] == [True, True])
 
