@@ -741,8 +741,8 @@ class ProgressBar:
             Useful primarily for testing; if in doubt leave it as the default.
             When using multiprocessing, certain anomalies occur when starting
             processes with the "spawn" method (the only option on Windows);
-            other anomalies occur with the "fork" method (the default on Unix).
-
+            other anomalies occur with the "fork" method (the default on
+            Linux).
         """
 
         if multiprocess:
@@ -813,8 +813,8 @@ class ProgressBar:
             Useful primarily for testing; if in doubt leave it as the default.
             When using multiprocessing, certain anomalies occur when starting
             processes with the "spawn" method (the only option on Windows);
-            other anomalies occur with the "fork" method (the default on Unix).
-
+            other anomalies occur with the "fork" method (the default on
+            Linux).
         """
 
         results = []

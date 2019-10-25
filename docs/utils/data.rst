@@ -8,36 +8,42 @@ Introduction
 ============
 
 A number of Astropy's tools work with data sets that are either awkwardly
-large (for example `~astropy.coordinates.solar_system_ephemeris`) or
-regularly updated (for example `~astropy.utils.iers.IERS_B`) or both
-(for example `~astropy.utils.iers.IERS_A`). What's more, this kind of
+large (e.g. `~astropy.coordinates.solar_system_ephemeris`) or
+regularly updated (e.g. `~astropy.utils.iers.IERS_B`) or both
+(e.g. `~astropy.utils.iers.IERS_A`). What's more, this kind of
 data - authoritative data made available on the Web, and possibly updated
 from time to time - is reasonably common in astronomy. Astropy therefore
 provides some tools for working with such data.
 
-The primary tool for this is the Astropy *cache*. This is a repository
-of downloaded data, indexed by the URL where it was obtained. The tool
-`~astropy.utils.data.download_file` and various other things built upon
-it can use this cache to request the contents of a URL, and (if they
-choose to use the cache) the data will only be downloaded if it isn't
-already present in the cache. Of course they can be instructed to obtain
-a new copy of data that has been updated.
+The primary tool for this is the Astropy *cache*. This is a repository of
+downloaded data, indexed by the URL where it was obtained. The tool
+`~astropy.utils.data.download_file` and various other things built upon it can
+use this cache to request the contents of a URL, and (if they choose to use the
+cache) the data will only be downloaded if it isn't already present in the
+cache. The tools can, naturally, be instructed to obtain a new copy of data
+that is in the cache but has been updated online.
 
-The astropy cache is stored in a centralized place (on
-UNIX machines it is ``$HOME/.astropy/cache``, or if the
-environment variable ``XDG_CACHE_HOME`` is set, the cache is in
-``$XDG_CACHE_HOME/astropy``). This centralization means that the cache
-is persistent and shared between all Astropy runs in any virtualenv
-by your user on one machine (possibly more if your home directory is
-shared between multiple machines). This can dramatically accelerate
-Astropy operations and reduce load on servers, like those of the IERS,
-that were not designed for heavy Web traffic. If you find the cache has
-corrupted or out-of-date data in it, you can remove an entry or clear
-the whole thing with `~astropy.utils.data.clear_download_cache`.
+The astropy cache is stored in a centralized place (on UNIX machines it is
+``$HOME/.astropy/cache``, or if the environment variable ``XDG_CACHE_HOME`` is
+set, the cache is in ``$XDG_CACHE_HOME/astropy``; see :ref:`astropy_config` for
+more details).  You can check its location on your machine::
+
+   >>> import astropy.config.paths
+   >>> astropy.config.paths.get_cache_dir()  # doctest: +SKIP
+   '/home/burnell/.astropy/cache'
+
+This centralization means that the cache is persistent and
+shared between all Astropy runs in any virtualenv by one user on one machine
+(possibly more if your home directory is shared between multiple machines).
+This can dramatically accelerate Astropy operations and reduce load on servers,
+like those of the IERS, that were not designed for heavy Web traffic. If you
+find the cache has corrupted or outdated data in it, you can remove an entry or
+clear the whole thing with `~astropy.utils.data.clear_download_cache`.
 
 The files in the download cache directory are named according to a
-cryptographic hash of their contents (currently MD5, so malevolent entities can
-cause collisions). Thus files with the same content share storage. The
+cryptographic hash of their contents (currently MD5, so in principle malevolent
+entities can cause collisions, though the security risks this poses are
+marginal at most). Thus files with the same content share storage. The
 modification times on these files normally indicate when they were last
 downloaded from the Internet.
 
@@ -61,7 +67,7 @@ IERS data::
    |============================================| 3.2M/3.2M (100.00%)         1s
    <Time object: scale='ut1' format='datetime' value=2019-09-22 08:39:03.812731>
 
-But running it a second time doesn't require any new download::
+But running it a second time does not require any new download::
 
    >>> Time.now().ut1  # doctest: +SKIP
    <Time object: scale='ut1' format='datetime' value=2019-09-22 08:41:21.588836>
@@ -78,11 +84,10 @@ conveniently with the ``get_pkg_data_*`` functions::
 Usage From Outside Astropy
 ==========================
 
-Users of Astropy can also make use of Astropy's caching
-and downloading mechanism. Most simply, this amounts to using
-`~astropy.utils.data.download_file` with the ``cache=True``
-argument to obtain their data, from the cache if the data is
-there::
+Users of Astropy can also make use of Astropy's caching and downloading
+mechanism. In its simplest form, this amounts to using
+`~astropy.utils.data.download_file` with the ``cache=True`` argument to obtain
+their data, from the cache if the data is there::
 
    >>> from astropy.utils.iers import IERS_B_URL, IERS_B
    >>> from astropy.utils.data import download_file
@@ -121,29 +126,32 @@ This need not include the original source. Regardless, the data
 will be stored in the cache under the original URL requested::
 
    >>> f = download_file("ftp://ssd.jpl.nasa.gov/pub/eph/planets/bsp/de405.bsp",
-   ...     cache=False,
+   ...     cache=True,
    ...     sources=['https://data.nanograv.org/static/data/ephem/de405.bsp',
    ...              'ftp://ssd.jpl.nasa.gov/pub/eph/planets/bsp/de405.bsp'])  # doctest: +SKIP
    Downloading ftp://ssd.jpl.nasa.gov/pub/eph/planets/bsp/de405.bsp from https://data.nanograv.org/static/data/ephem/de405.bsp
    |========================================|  65M/ 65M (100.00%)        19s
 
-.. _Astropy data server: http://www.astropy.org/astropy-data/
+.. _Astropy data server: https://www.astropy.org/astropy-data/
 
 Cache Management
 ================
 
-Because the cache is persistent, it is possible for it to become
-inconveniently large, or become filled with no-longer-relevant data. While
-it is simply a directory on disk, each file is supposed to represent
-the contents of a URL, and many URLs do not make acceptable on-disk
-filenames. There is reason to worry that multiple astropy processes accessing
-the cache simultaneously might lead to cache corruption. The cache is
-therefore protected by a lock and indexed by a persistent dictionary
-mapping URLs to hashes of the file contents, while the file contents are
-stored in files named by their hashes. So access to the cache is easier
-with a few helpers provided by `~astropy.utils.data`.
+Because the cache is persistent, it is possible for it to become inconveniently
+large, or become filled with irrelevant data. While it is simply a
+directory on disk, each file is supposed to represent the contents of a URL,
+and many URLs do not make acceptable on-disk filenames (for example containing
+troublesome characters like ":" and "~"). There is reason to worry that
+multiple astropy processes accessing the cache simultaneously might lead to
+cache corruption. The cache is therefore protected by a lock and indexed by a
+persistent dictionary mapping URLs to hashes of the file contents, while the
+file contents are stored in files named by their hashes. So access to the cache
+is easier with a few helpers provided by `~astropy.utils.data`.
 
-If a single file is undesired or damaged, it can be removed by calling
+If your cache starts behaving oddly you can use
+`~astropy.utils.data.check_download_cache` to examine your cache contents and
+raise an exception if it finds any anomalies.  If a single file is undesired or
+damaged, it can be removed by calling
 `~astropy.utils.data.clear_download_cache` with an argument that is the URL it
 was obtained from, the filename of the downloaded file, or the hash of its
 contents. Should the cache ever become badly corrupted,
@@ -155,7 +163,7 @@ be possible until those processes terminate). So use
 `~astropy.utils.data.clear_download_cache` with care.
 
 To check the total space occupied by the cache, use
-`~astropy.utils.data.cache_total_size()`. The contents of the cache can be
+`~astropy.utils.data.cache_total_size`. The contents of the cache can be
 listed with `~astropy.utils.data.get_cached_urls`, and the presence of a
 particular URL in the cache can be tested with
 `~astropy.utils.data.is_url_in_cache`. More general manipulations can be
@@ -164,15 +172,15 @@ dict mapping URLs to on-disk filenames of their contents.
 
 If you want to transfer the cache to another computer, or preserve its contents
 for later use, you can use the functions `~astropy.utils.data.export_download_cache` to
-produce a zipfile listing some or all of the cache contents, and
+produce a ZIP file listing some or all of the cache contents, and
 `~astropy.utils.data.import_download_cache` to load the astropy cache from such a
-zipfile.
+ZIP file.
 
 Using Astropy With Limited or No Internet Access
 ================================================
 
 You might want to use astropy on a telescope control machine behind a strict
-firewall. Or you might be running contionuous integration on your Astropy
+firewall. Or you might be running continuous integration (CI) on your Astropy
 server and want to avoid hammering astronomy servers on every pull request for
 every architecture. Or you might not have access to US government or military
 web servers. Whichever is the case, you may need to avoid Astropy needing data
@@ -186,11 +194,11 @@ the data files you will require, including sufficiently up-to-date versions of
 files like the IERS data that update regularly. Then once the cache on this
 connected machine is loaded with everything necessary, transport the cache
 contents to your target machine by whatever means you have available, whether
-by copying via an intermediate machine, sneakernet, or carrier pigeon. The
-cache directory itself is somewhat portable between machines of the same UNIX
-flavour; this may be sufficient if you can persuade your CI system to cache the
-directory between runs. For greater portability, though, you can simply use
-`~astropy.utils.data.export_download_cache` and
+by copying via an intermediate machine, portable disk drive, or some other
+tool. The cache directory itself is somewhat portable between machines of the
+same UNIX flavour; this may be sufficient if you can persuade your CI system to
+cache the directory between runs. For greater portability, though, you can
+simply use `~astropy.utils.data.export_download_cache` and
 `~astropy.utils.data.import_download_cache`, which are portable and will allow
 adding files to an existing cache directory.
 
@@ -208,8 +216,10 @@ Astropy normally uses, if you can anticipate exactly which files will be needed
 (or just pick up after Astropy fails to obtain them) and make those files
 available somewhere else, you can request they be downloaded to the cache
 using `~astropy.utils.data.download_file` with the ``sources`` argument set
-to locations you know do work.
+to locations you know do work. You can also set ``sources`` to an empty list
+to ensure that `~astropy.utils.data.download_file` does not attempt to use
+the Internet at all.
 
 If you have a particular URL that is giving you trouble, you can download it
-using some other tool (for example ``wget``), possibly on another machine, and
-then use `~astropy.utils.data.import_to_cache`.
+using some other tool (e.g. ``wget``), possibly on another machine, and
+then use `~astropy.utils.data.import_file_to_cache`.

@@ -9,7 +9,6 @@ import fnmatch
 import hashlib
 import os
 import io
-import json
 import pathlib
 import re
 import shutil
@@ -40,7 +39,7 @@ __all__ = [
     'get_pkg_data_filenames',
     'is_url_in_cache', 'get_cached_urls',
     'cache_total_size', 'cache_contents',
-    'export_download_cache', 'import_download_cache', 'import_to_cache',
+    'export_download_cache', 'import_download_cache', 'import_file_to_cache',
     'check_download_cache',
     'clear_download_cache',
     'compute_hash',
@@ -76,8 +75,11 @@ class Conf(_config.ConfigNamespace):
         'Number of bytes of remote data to download per step.')
     download_cache_lock_attempts = _config.ConfigItem(
         5,
-        'Number of times to try to get the lock ' +
-        'while accessing the data cache before giving up.')
+        'Number of seconds to wait for the cache lock to be free. It should '
+        'normally only ever be held long enough to copy an already-downloaded '
+        'file into the cache, so this will normally only run over if '
+        'something goes wrong and the lock is left held by a dead process; '
+        'the exception raised should indicate this and what to do to fix it.')
     delete_temporary_downloads_at_exit = _config.ConfigItem(
         True,
         'If True, temporary download files created when the cache is '
@@ -109,8 +111,7 @@ def _is_url(string):
     # we can't just check that url.scheme is not an empty string, because
     # file paths in windows would return a non-empty scheme (e.g. e:\\
     # returns 'e').
-    return url.scheme.lower() in [
-        'http', 'https', 'ftp', 'sftp', 'ssh', 'file']
+    return url.scheme.lower() in ['http', 'https', 'ftp', 'sftp', 'ssh', 'file']
 
 
 def _is_inside(path, parent_path):
@@ -140,6 +141,12 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
 
         with get_readable_fileobj('file.dat') as f:
             contents = f.read()
+
+    If a URL is provided and the cache is in use, the provided URL will be the
+    name used in the cache. The contents may already be stored in the cache
+    under this URL provided, they may be downloaded from this URL, or they may
+    be downloaded from one of the locations listed in ``sources``. See
+    `~download_file` for details.
 
     Parameters
     ----------
@@ -1016,6 +1023,20 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
     returns the filename; if the file had to be downloaded, add it
     to the cache.
 
+    The cache is effectively a dictionary mapping URLs to files; by default the
+    file contains the contents of the URL that is its key, but in practice
+    these can be obtained from a mirror (using ``sources``) or imported from
+    the local filesystem (using `~import_file_to_cache` or
+    `~import_download_cache`).  Regardless, each file is regarded as
+    representing the contents of a particular URL, and this URL should be used
+    to look them up or otherwise manipulate them.
+
+    The files in the cache directory are named according to a cryptographic
+    hash of their contents (currently MD5, so hackers can cause collisions).
+    Thus files with the same content share storage. The modification times on
+    these files normally indicate when they were last downloaded from the
+    Internet.
+
     Parameters
     ----------
     remote_url : str
@@ -1040,7 +1061,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
         result will be stored under the original URL. The original URL
         will *not* be tried unless it is in this list; this is to prevent
         long waits for a primary server that is known to be inaccessible
-        at the moment.
+        at the moment. If an empty list is passed, then ``download_file``
+        will not attempt to connect to the Internet.
 
     pkgname : `str`, optional
         The package name to use to locate the download cache. i.e. for
@@ -1067,10 +1089,6 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
         timeout = conf.remote_timeout
     if sources is None:
         sources = [remote_url]
-    if not sources:
-        raise ValueError(
-            "No sources listed! Please include primary URL if you want it "
-            "to be included as a valid source.")
 
     missing_cache = ""
 
@@ -1118,16 +1136,24 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
             # instead.
             errors[source_url] = e
     else:   # No success
-        raise urllib.error.URLError(
-            f"Unable to open any source! Exceptions were {errors}") \
-            from errors[sources[0]]
+        if not sources:
+            raise KeyError(
+                f"No sources listed and file {remote_url} not in cache! "
+                f"Please include primary URL in sources if you want it to be "
+                f"included as a valid source.")
+        elif len(sources) == 1:
+            raise errors[sources[0]]
+        else:
+            raise urllib.error.URLError(
+                f"Unable to open any source! Exceptions were {errors}") \
+                from errors[sources[0]]
 
     if cache:
         try:
-            return import_to_cache(url_key, f_name,
-                                   hexdigest=hexdigest,
-                                   remove_original=True,
-                                   pkgname=pkgname)
+            return import_file_to_cache(url_key, f_name,
+                                        hexdigest=hexdigest,
+                                        remove_original=True,
+                                        pkgname=pkgname)
         except PermissionError:
             # Cache is readonly, we can't update it
             missing_cache = (
@@ -1144,7 +1170,11 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
 
 
 def is_url_in_cache(url_key, pkgname='astropy'):
-    """Check if a download from ``url_key`` is in the cache.
+    """Check if a download for ``url_key`` is in the cache.
+
+    The provided ``url_key`` will be the name used in the cache. The contents
+    may have been downloaded from this URL or from a mirror or they may have
+    been provided by the user. See `~download_file` for details.
 
     Parameters
     ----------
@@ -1159,7 +1189,7 @@ def is_url_in_cache(url_key, pkgname='astropy'):
     Returns
     -------
     in_cache : bool
-        `True` if a download from ``url_key`` is in the cache, `False` if not
+        `True` if a download for ``url_key`` is in the cache, `False` if not
         or if the cache does not exist at all.
 
     See Also
@@ -1194,6 +1224,10 @@ def download_files_in_parallel(urls,
 
     Blocks until all files have downloaded.  The result is a list of
     local file paths corresponding to the given urls.
+
+    The results will be stored in the cache under the values in `urls` even if
+    they are obtained from some other location via ``sources``. See
+    `~download_file` for details.
 
     Parameters
     ----------
@@ -1236,7 +1270,8 @@ def download_files_in_parallel(urls,
         Useful primarily for testing; if in doubt leave it as the default.
         When using multiprocessing, certain anomalies occur when starting
         processes with the "spawn" method (the only option on Windows);
-        other anomalies occur with the "fork" method (the default on Unix).
+        other anomalies occur with the "fork" method (the default on
+        Linux).
 
     pkgname : `str`, optional
         The package name to use to locate the download cache. i.e. for
@@ -1327,13 +1362,13 @@ def _deltemps():
 def clear_download_cache(hashorurl=None, pkgname='astropy'):
     """Clears the data file cache by deleting the local file(s).
 
-    Files in the cache are indexed by URLs; generally this URL is the location
-    the file is downloaded from, but in practice the file may be obtained from
-    a mirror or some other location. Regardless, the URL is the key used to
-    identify a particular file in the cache. For the purposes of this function,
-    a file can also be identified by a hash of its contents or by the filename
-    under which the data is stored (as returned by :func:`~download_file`, for
-    example).
+    If a URL is provided, it will be the name used in the cache. The contents
+    may have been downloaded from this URL or from a mirror or they may have
+    been provided by the user. See `~download_file` for details.
+
+    For the purposes of this function, a file can also be identified by a hash
+    of its contents or by the filename under which the data is stored (as
+    returned by `~download_file`, for example).
 
     Parameters
     ----------
@@ -1385,7 +1420,7 @@ def clear_download_cache(hashorurl=None, pkgname='astropy'):
                 # Clearing download cache just makes sure that the file or url
                 # is no longer in the cache regardless of starting condition.
     except OSError as e:
-        msg = 'Not clearing data cache - cache inacessible due to '
+        msg = 'Not clearing data cache - cache inaccessible due to '
         estr = '' if len(e.args) < 1 else (': ' + str(e))
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
         return
@@ -1486,6 +1521,15 @@ def _cache_lock(need_write=False):
                 break
         else:
             # Never did get the lock.
+            try:
+                # Might as well try to read and report the PID file, at
+                # this point it's unlikely we'll block someone else trying
+                # to exit cleanly.
+                pid = get_file_contents(pidfn)
+            except OSError:
+                pass
+            else:
+                msg += f" Lock claims to be held by process {pid}."
             raise RuntimeError(msg)
 
         yield
@@ -1535,12 +1579,6 @@ def _cache(pkgname, write=False):
     or non-functional, a CacheMissingWarning will be emitted and this context
     manager will yield an empty dict-like object and None as the download
     directory.
-
-    The files in the download cache directory are named according to a
-    cryptographic hash of their contents (currently MD5, so hackers can cause
-    collisions). Thus files with the same content share storage. The
-    modification times on these files normally indicate when they were last
-    downloaded from the Internet.
 
     Although this cache lives behind a lock, and files are not normally
     modified, it is possible to break concurrent access - most easily by using
@@ -1600,12 +1638,11 @@ def check_download_cache(check_hashes=False, pkgname='astropy'):
     This could lead to hard-to-debug problems or wasted space. This function
     detects a number of incorrect conditions, including nonexistent files that
     are indexed, files that are indexed but in the wrong place, and, if you
-    request it, files whose content does not mash the hash that is indexed.
+    request it, files whose content does not match the hash that is indexed.
 
     This function also returns a list of non-indexed files. A few will be
     associated with the shelve object; their exact names depend on the backend
-    used but will probably be based on ``urlmap``. The presence of other files,
-    particularly those that are 32-character hex strings or start with those,
+    used but will probably be based on ``urlmap``. The presence of other files
     probably indicates that something has gone wrong and inaccessible files
     have accumulated in the cache. These can be removed with
     `clear_download_cache`, either passing the filename returned here, or
@@ -1693,11 +1730,25 @@ def check_download_cache(check_hashes=False, pkgname='astropy'):
             return leftover_files
 
 
-def import_to_cache(url_key, filename,
-                    hexdigest=None,
-                    remove_original=False,
-                    pkgname='astropy'):
+def import_file_to_cache(url_key, filename,
+                         hexdigest=None,
+                         remove_original=False,
+                         pkgname='astropy'):
     """Import the on-disk file specified by filename to the cache.
+
+    The provided ``url_key`` will be the name used in the cache. The file
+    should contain the contents of this URL, at least notionally (the URL may
+    be temporarily or permanently unavailable). It is using ``url_key`` that
+    users will request these contents from the cache. See `~download_file` for
+    details.
+
+    If ``url_key`` already exists in the cache, it will be updated to point to
+    these imported contents, and its old contents will be deleted from the
+    cache if nothing else points there.
+
+    If a file already exists in the cache with the same contents (no matter the
+    ``url_key``), its modification time will be updated but this file will not
+    be copied/moved over it.
 
     Parameters
     ----------
@@ -1715,7 +1766,11 @@ def import_to_cache(url_key, filename,
         it is easier to compute the hash progressively as
         the file is downloaded.
     remove_original : bool
-        Whether to remove the original file once import is complete.
+        Whether to remove the original file (``filename``) once import is
+        complete. If the original is to be removed, and if the cache lives
+        on the same filesystem as the file to be imported, a simple rename
+        operation will move the file into the cache. Otherwise the file
+        will be copied and then the original deleted if appropriate.
     pkgname : `str`, optional
         The package name to use to locate the download cache. i.e. for
         ``pkgname='astropy'`` the default cache location is
@@ -1749,8 +1804,8 @@ def import_to_cache(url_key, filename,
                 try:
                     os.remove(os.path.join(dldir, old_hash))
                 except OSError as e:
-                    warn("Unable to remove no-longer-referenced previous "
-                         "contents of {url_key} because of: {e}",
+                    warn(f"Unable to remove no-longer-referenced previous "
+                         f"contents of {url_key} because of: {e}",
                          AstropyWarning)
         return url2hash[url_key]
 
@@ -1759,6 +1814,10 @@ def get_cached_urls(pkgname='astropy'):
     """
     Get the list of URLs in the cache. Especially useful for looking up what
     files are stored in your cache when you don't have internet access.
+
+    The listed URLs are the keys programs should use to access the file
+    contents, but those contents may have actually been obtained from a mirror.
+    See `~download_file` for details.
 
     Parameters
     ----------
@@ -1781,17 +1840,22 @@ def get_cached_urls(pkgname='astropy'):
 
 
 def cache_contents(pkgname='astropy'):
-    """Obtain a dict mapping cached URLs to filenames."""
+    """Obtain a dict mapping cached URLs to filenames.
+
+    This dictionary is a read-only snapshot of the state of the cache when this
+    function was called. If other processes are actively working with the
+    cache, it is possible for them to delete files that are listed in this
+    dictionary. Use with some caution if you are working on a system that is
+    busy with many running astropy processes, although the same issues apply to
+    most functions in this module.
+    """
     with _cache(pkgname) as (dldir, url2hash):
         return ReadOnlyDict((k, os.path.join(dldir, v))
                             for (k, v) in url2hash.items())
 
 
-_cache_zip_index_name = "index.json"
-
-
-def export_download_cache(filename_or_obj, urls=None, pkgname='astropy'):
-    """Exports the cache contents as a ZIP file
+def export_download_cache(filename_or_obj, urls=None, overwrite=False, pkgname='astropy'):
+    """Exports the cache contents as a ZIP file.
 
     Parameters
     ----------
@@ -1801,8 +1865,12 @@ def export_download_cache(filename_or_obj, urls=None, pkgname='astropy'):
     urls : iterable of str or None
         The URLs to include in the exported cache. The default is all
         URLs currently in the cache. If a URL is included in this list
-        but is not currently in the cache, it will be downloaded to the
-        cache first and then exported.
+        but is not currently in the cache, a KeyError will be raised.
+        To ensure that all are in the cache use `~download_file`
+        or `~download_files_in_parallel`.
+    overwrite : bool, optional
+        If filename_or_obj is a filename that exists, it will only be
+        overwritten if this is True.
     pkgname : `str`, optional
         The package name to use to locate the download cache. i.e. for
         ``pkgname='astropy'`` the default cache location is
@@ -1811,38 +1879,32 @@ def export_download_cache(filename_or_obj, urls=None, pkgname='astropy'):
     See Also
     --------
     import_download_cache : import the contents of such a ZIP file
-    import_to_cache : import a single file directly
+    import_file_to_cache : import a single file directly
     """
     if urls is None:
         urls = get_cached_urls(pkgname)
-    added = set()
-    with zipfile.ZipFile(filename_or_obj, 'w') as z:
-        index = {}
+    with zipfile.ZipFile(filename_or_obj, 'w' if overwrite else 'x') as z:
         for u in urls:
-            fn = download_file(u, cache=True, pkgname=pkgname)
+            fn = download_file(u, cache=True, sources=[], pkgname=pkgname)
             # Do not use os.path.join because ZIP files want
             # "/" on all platforms
-            z_fn = "cache/" + os.path.basename(fn)
-            if z_fn not in added:
-                index[u] = z_fn
-                z.write(fn, z_fn)
-                added.add(z_fn)
-        z.writestr(_cache_zip_index_name, json.dumps(index))
+            z_fn = urllib.parse.quote(u, safe="")
+            z.write(fn, z_fn)
 
 
 def import_download_cache(filename_or_obj, urls=None, update_cache=False, pkgname='astropy'):
-    """Imports the contents of a ZIP file into the cache
+    """Imports the contents of a ZIP file into the cache.
 
-    The ZIP file must be in the format produced by `export_download_cache`,
-    specifically it must have a file ``index.json`` that is a dictionary
-    mapping URLs to filenames inside the ZIP.
+    Each member of the ZIP file should be named by a quoted version of the
+    URL whose contents it stores. These names are decoded with
+    :func:`~urllib.parse.unquote`.
 
     Parameters
     ----------
     filename_or_obj : str or file-like
-        Where to put the created ZIP file. Must be something the zipfile
-        module can write to.
-    urls : iterable of str or None
+        Where the stored ZIP file is. Must be something the :mod:`~zipfile`
+        module can read from.
+    urls : set of str or list of str or None
         The URLs to import from the ZIP file. The default is all
         URLs in the file.
     update_cache : bool, optional
@@ -1856,27 +1918,30 @@ def import_download_cache(filename_or_obj, urls=None, update_cache=False, pkgnam
     See Also
     --------
     export_download_cache : export the contents the cache to of such a ZIP file
-    import_to_cache : import a single file directly
+    import_file_to_cache : import a single file directly
     """
-    block_size = 65536
     with zipfile.ZipFile(filename_or_obj, 'r') as z, TemporaryDirectory() as d:
-        index = json.loads(z.read(_cache_zip_index_name))
-        if urls is None:
-            urls = index.keys()
-        for i, k in enumerate(urls):
-            if not update_cache and is_url_in_cache(k, pkgname=pkgname):
+        for i, zf in enumerate(z.infolist()):
+            url = urllib.parse.unquote(zf.filename)
+            # FIXME(aarchiba): do we want some kind of validation on this URL?
+            # urllib.parse might do something sensible...but what URLs might
+            # they have?
+            # is_url in this file is probably a good check, not just here
+            # but throughout this file.
+            if urls is not None and url not in urls:
                 continue
-            v = index[k]
+            if not update_cache and is_url_in_cache(url, pkgname=pkgname):
+                continue
             f_temp_name = os.path.join(d, str(i))
-            with z.open(v) as f_zip, open(f_temp_name, "wb") as f_temp:
+            with z.open(zf) as f_zip, open(f_temp_name, "wb") as f_temp:
                 hasher = hashlib.md5()
-                block = f_zip.read(block_size)
+                block = f_zip.read(conf.download_block_size)
                 while block:
                     f_temp.write(block)
                     hasher.update(block)
-                    block = f_zip.read(block_size)
+                    block = f_zip.read(conf.download_block_size)
                 hexdigest = hasher.hexdigest()
-            import_to_cache(k, f_temp_name,
-                            hexdigest=hexdigest,
-                            remove_original=True,
-                            pkgname=pkgname)
+            import_file_to_cache(url, f_temp_name,
+                                 hexdigest=hexdigest,
+                                 remove_original=True,
+                                 pkgname=pkgname)
