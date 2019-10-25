@@ -54,12 +54,12 @@ class ImageNormalize(Normalize):
         The stretch object to apply to the data.  The default is
         `~astropy.visualization.LinearStretch`.
     clip : bool, optional
-        If `True` (default), data values outside the [0:1] range are
-        clipped to the [0:1] range.
+        If `True`, data values outside the [0:1] range are clipped to
+        the [0:1] range.
     """
 
     def __init__(self, data=None, interval=None, vmin=None, vmax=None,
-                 stretch=LinearStretch(), clip=True):
+                 stretch=LinearStretch(), clip=False):
         # this super call checks for matplotlib
         super().__init__(vmin=vmin, vmax=vmax, clip=clip)
 
