@@ -127,6 +127,6 @@ class NDSlicingMixin:
 
     # Implement this in a method to allow subclasses to customise the error.
     def _handle_wcs_slicing_error(self, err, item):
-        raise IndexError(f"Slicing the WCS object with the slice '{item}' "
+        raise ValueError(f"Slicing the WCS object with the slice '{item}' "
         "failed, if you want to slice the NDData object without the WCS, you "
         "can remove it with `del(NDData.wcs)` and then retry.") from err
