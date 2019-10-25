@@ -79,6 +79,13 @@ CFG_OPTIONS = [
 
 # Start off by parsing the setup.cfg file
 
+_err_help_msg = """
+If the problem persists consider installing astropy_helpers manually using pip
+(`pip install astropy_helpers`) or by manually downloading the source archive,
+extracting it, and installing by running `python setup.py install` from the
+root of the extracted source code.
+"""
+
 SETUP_CFG = ConfigParser()
 
 if os.path.exists('setup.cfg'):
@@ -919,14 +926,6 @@ def _silence():
     if not exception_occurred:
         sys.stdout = old_stdout
         sys.stderr = old_stderr
-
-
-_err_help_msg = """
-If the problem persists consider installing astropy_helpers manually using pip
-(`pip install astropy_helpers`) or by manually downloading the source archive,
-extracting it, and installing by running `python setup.py install` from the
-root of the extracted source code.
-"""
 
 
 class _AHBootstrapSystemExit(SystemExit):
