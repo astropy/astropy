@@ -70,10 +70,10 @@ def wcs_4d():
 
 @pytest.fixture
 def cube_wcs():
-      data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
-      cube_header = os.path.join(data_dir, 'cube_header')
-      header = fits.Header.fromtextfile(cube_header)
-      return WCS(header=header)
+    data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
+    cube_header = os.path.join(data_dir, 'cube_header')
+    header = fits.Header.fromtextfile(cube_header)
+    return WCS(header=header)
 
 
 def test_shorthand_inversion():
