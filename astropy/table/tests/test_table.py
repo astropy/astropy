@@ -1946,6 +1946,16 @@ class TestPandas:
                 else:
                     assert column.byteswap().newbyteorder().dtype == t2[name].dtype
 
+    def test_units(self):
+        import pandas as pd
+        import astropy.units as u
+
+        df = pd.DataFrame({'x': [1, 2, 3], 't': [1.3, 1.2, 1.8]})
+        t = table.Table.from_pandas(df, units={'x': u.m, 't': u.s})
+
+        assert t['x'].unit == u.m
+        assert t['t'].unit == u.s
+
 
 @pytest.mark.usefixtures('table_types')
 class TestReplaceColumn(SetupData):
