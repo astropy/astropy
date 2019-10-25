@@ -315,3 +315,28 @@ def test_array_repr_latex():
 
     distr = Distribution(arr)
     assert distr._repr_latex_() is None
+
+
+def test_distr_to():
+    distr = ds.normal(10*u.cm, n_samples=100, std=1*u.cm)
+    todistr = distr.to(u.m)
+    assert_quantity_allclose(distr.pdf_mean.to(u.m), todistr.pdf_mean)
+
+
+def test_distr_noq_to():
+    # this is an array distribution not a quantity
+    distr = ds.normal(10, n_samples=100, std=1)
+    with pytest.raises(AttributeError):
+        distr.to(u.m)
+
+
+def test_distr_to_value():
+    distr = ds.normal(10*u.cm, n_samples=100, std=1*u.cm)
+    tovdistr = distr.to_value(u.m)
+    assert np.allclose(distr.pdf_mean.to_value(u.m), tovdistr.pdf_mean)
+
+
+def test_distr_noq_to_value():
+    distr = ds.normal(10, n_samples=100, std=1)
+    with pytest.raises(AttributeError):
+        distr.to_value(u.m)
