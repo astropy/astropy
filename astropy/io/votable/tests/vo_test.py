@@ -718,7 +718,8 @@ def table_from_scratch():
 
 def test_open_files():
     for filename in get_pkg_data_filenames('data', pattern='*.xml'):
-        if filename.endswith('custom_datatype.xml'):
+        if (filename.endswith('custom_datatype.xml') or
+            filename.endswith('timesys_errors.xml')):
             continue
         parse(filename)
 
@@ -998,13 +999,32 @@ def test_custom_datatype():
     table = votable.get_first_table()
     assert table.array.dtype['foo'] == np.int32
 
+    #<TIMESYS ID="mjd_origin" refposition="EMBARYCENTER" timeorigin="MJD-origin" timescale="TDB"/>
+    #<TIMESYS ID="jd_origin" refposition="HELIOCENTER" timeorigin="JD-origin" timescale="TT"/>
+    #<TIMESYS ID="no_origin" refposition="TOPOCENTER" timescale="UTC"/>
 
 def _timesys_tests(votable):
-    assert len(list(votable.iter_timesys())) == 1
+    assert len(list(votable.iter_timesys())) == 4
+
     timesys = votable.get_timesys_by_id('time_frame')
     assert timesys.timeorigin == 2455197.5
     assert timesys.timescale == 'TCB'
     assert timesys.refposition == 'BARYCENTER'
+
+    timesys = votable.get_timesys_by_id('mjd_origin')
+    assert timesys.timeorigin == 'MJD-origin'
+    assert timesys.timescale == 'TDB'
+    assert timesys.refposition == 'EMBARYCENTER'
+
+    timesys = votable.get_timesys_by_id('jd_origin')
+    assert timesys.timeorigin == 'JD-origin'
+    assert timesys.timescale == 'TT'
+    assert timesys.refposition == 'HELIOCENTER'
+
+    timesys = votable.get_timesys_by_id('no_origin')
+    assert timesys.timeorigin == None
+    assert timesys.timescale == 'UTC'
+    assert timesys.refposition == 'TOPOCENTER'
 
 
 def test_timesys():
@@ -1020,3 +1040,11 @@ def test_timesys_roundtrip():
     votable = parse(bio)
 
     _timesys_tests(votable)
+
+def test_timesys_errors():
+    output = io.StringIO()
+    validate(get_pkg_data_filename('data/timesys_errors.xml'), output, xmllint=False)
+    outstr = output.getvalue()
+    assert("E23: Invalid timeorigin attribute 'bad-origin'" in outstr)
+    assert("E22: ID attribute is required for all TIMESYS elements" in outstr)
+    assert("W48: Unknown attribute 'refposition_mispelled' on TIMESYS" in outstr)

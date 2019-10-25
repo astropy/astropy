@@ -72,6 +72,10 @@ astropy.io.registry
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
+- Support VOTable version 1.4.  The main addition is the new element, TIMESYS,
+  which allows defining of metadata for temporal coordinates much like COOSYS
+  defines metadata for celestial coordinates. [#9475]
+
 astropy.logger
 ^^^^^^^^^^^^^^
 
