@@ -111,7 +111,8 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
             elif isinstance(wcs, SlicedLowLevelWCS):
                 name.append(wcs._wcs.wcs.ctype[wcs._world_keep[idx]].lower())
                 name.append(wcs._wcs.wcs.ctype[wcs._world_keep[idx]][:4].replace('-', '').lower())
-            name = list(set(name))
+            if name[0] == name[1]:
+                name = name[0:1]
             if axis_type:
                 name.insert(0, axis_type)
             name = tuple(name) if len(name) > 1 else name[0]
