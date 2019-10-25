@@ -1,6 +1,7 @@
 import numbers
 import numpy as np
 from astropy.wcs.wcsapi import BaseLowLevelWCS, wcs_info_str
+from astropy.utils import isiterable
 
 __all__ = ['sanitize_slices', 'SlicedLowLevelWCS']
 
@@ -17,6 +18,9 @@ def sanitize_slices(slices, ndim):
         raise ValueError(
             f"The dimensionality of the specified slice {slices} can not be greater "
             f"than the dimensionality ({ndim}) of the wcs.")
+    
+    if any((isiterable(s) for s in slices)):
+        raise IndexError("This slice is invalid, only integer or range slices are supported.")
 
     slices = list(slices)
 
@@ -37,9 +41,9 @@ def sanitize_slices(slices, ndim):
             slc = slices[i]
             if isinstance(slc, slice):
                 if slc.step and slc.step != 1:
-                    raise ValueError("Slicing WCS with a step is not supported.")
+                    raise IndexError("Slicing WCS with a step is not supported.")
             elif not isinstance(slc, numbers.Integral):
-                raise ValueError("Only integer or range slices are accepted.")
+                raise IndexError("Only integer or range slices are accepted.")
         else:
             slices.append(slice(None))
 
