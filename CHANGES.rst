@@ -162,9 +162,8 @@ astropy.table
   It help will in stacking table column depth-wise. [#8939]
 
 - Added a new table equality method ``values_equal()`` which allows comparison
-  of two tables and returns an element-by-element equality table.  Also added
-  a method ``rows_equal()`` which is the same as the existing ``==`` operator.
-  [#9068]
+  table values to another table, list, or value, and returns an element-by-element
+  equality table. [#9068]
 
 - Added new ``join_type='cartesian'`` option to the ``join`` operation.
   [#9288]
