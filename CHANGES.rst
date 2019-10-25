@@ -467,6 +467,9 @@ astropy.time
 - Custom time formats can now accept floating-point types with extended
   precision. Existing time formats raise exceptions rather than discarding
   extended precision through conversion to ordinary floating-point. [#9368]
+- Time formats (implemented in subclasses of ``TimeFormat``) now have
+  their input and output routines more thoroughly validated, making it more
+  difficult to create damaged ``Time`` objects. [#9375]
 
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^

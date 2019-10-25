@@ -628,6 +628,31 @@ class TestVal2:
         with pytest.raises(ValueError):
             Time([0.0, 50000.0], [0.0, 1.0, 2.0], format='mjd', scale='tai')
 
+    def test_broadcast_not_writable(self):
+        val = (2458000 + np.arange(3))[:, None]
+        val2 = np.linspace(0, 1, 4, endpoint=False)
+        t = Time(val=val, val2=val2, format="jd", scale="tai")
+        t_b = Time(val=val+0*val2, val2=0*val+val2, format="jd", scale="tai")
+        t_i = Time(val=57990, val2=0.3, format="jd", scale="tai")
+        t_b[1, 2] = t_i
+        t[1, 2] = t_i
+        assert t_b[1, 2] == t[1, 2], "writing worked"
+        assert t_b[0, 2] == t[0, 2], "broadcasting didn't cause problems"
+        assert t_b[1, 1] == t[1, 1], "broadcasting didn't cause problems"
+        assert np.all(t_b == t), "behaved as expected"
+
+    def test_broadcast_one_not_writable(self):
+        val = (2458000 + np.arange(3))
+        val2 = np.arange(1)
+        t = Time(val=val, val2=val2, format="jd", scale="tai")
+        t_b = Time(val=val+0*val2, val2=0*val+val2, format="jd", scale="tai")
+        t_i = Time(val=57990, val2=0.3, format="jd", scale="tai")
+        t_b[1] = t_i
+        t[1] = t_i
+        assert t_b[1] == t[1], "writing worked"
+        assert t_b[0] == t[0], "broadcasting didn't cause problems"
+        assert np.all(t_b == t), "behaved as expected"
+
 
 class TestSubFormat:
     """Test input and output subformat functionality"""
@@ -1312,11 +1337,10 @@ def test_writeable_flag():
     t[1] = 10.0
     assert allclose_sec(t[1].value, 10.0)
 
-    # Scalar is not writeable
+    # Scalar is writeable because it gets boxed into a zero-d array
     t = Time('2000:001', scale='utc')
-    with pytest.raises(ValueError) as err:
-        t[()] = '2000:002'
-    assert 'scalar Time object is read-only.' in str(err.value)
+    t[()] = '2000:002'
+    assert t.value.startswith('2000:002')
 
     # Transformed attribute is not writeable
     t = Time(['2000:001', '2000:002'], scale='utc')

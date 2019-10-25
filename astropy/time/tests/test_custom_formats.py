@@ -1,4 +1,5 @@
-from itertools import count
+from datetime import date
+from itertools import count, product
 
 import pytest
 
@@ -87,25 +88,15 @@ def test_custom_time_format_fine(custom_format_name):
 
 
 def test_custom_time_format_forgot_property(custom_format_name):
-    class Custom(TimeFormat):
-        name = custom_format_name
+    with pytest.raises(ValueError):
+        class Custom(TimeFormat):
+            name = custom_format_name
 
-        def set_jds(self, val, val2):
-            self.jd1, self.jd2 = val, val2
+            def set_jds(self, val, val2):
+                self.jd1, self.jd2 = val, val2
 
-        def value(self):
-            return self.jd1, self.jd2
-
-    t = Time.now()
-    with pytest.raises(AttributeError):
-        getattr(t, custom_format_name)
-
-    t.format = custom_format_name
-    with pytest.raises(AttributeError):
-        t.value
-
-    with pytest.raises(AttributeError):
-        Time(7, 9, format=custom_format_name).value
+            def value(self):
+                return self.jd1, self.jd2
 
 
 def test_custom_time_format_problematic_name():
@@ -188,3 +179,141 @@ def test_existing_types_refuse_longdoubles(f):
     else:
         # accepts long doubles, better preserve accuracy!
         assert Time(np.longdouble(t2), format=f) != tm
+
+
+@pytest.mark.parametrize("f", ["mjd", "unix", "cxcsec"])
+def test_existing_types_ok_with_float64(f):
+    t = np.float64(getattr(Time(58000, format="mjd"), f))
+    t2 = t + np.finfo(np.float64).eps * 2 * t
+    tm = Time(np.float64(t), format=f)
+    assert Time(np.float64(t2), format=f) != tm
+
+
+@pytest.mark.parametrize(
+    "jd1, jd2",
+    [
+        ("foo", None),
+        (np.arange(3), np.arange(4)),
+        ("foo", "bar"),
+        (1j, 2j),
+        pytest.param(
+            np.longdouble(3), np.longdouble(5),
+            marks=pytest.mark.skipif(
+                np.longdouble().itemsize == np.dtype(float).itemsize,
+                reason="long double == double on this platform")),
+        ({1: 2}, {3: 4}),
+        ({1, 2}, {3, 4}),
+        ([1, 2], [3, 4]),
+        (lambda: 4, lambda: 7),
+        (np.arange(3), np.arange(4)),
+    ],
+)
+def test_custom_format_cannot_make_bogus_jd1(custom_format_name, jd1, jd2):
+    class Custom(TimeFormat):
+        name = custom_format_name
+
+        def set_jds(self, val, val2):
+            self.jd1, self.jd2 = jd1, jd2
+
+        @property
+        def value(self):
+            return self.jd1 + self.jd2
+
+    with pytest.raises((ValueError, TypeError)):
+        Time(5, format=custom_format_name)
+
+
+def test_custom_format_scalar_jd1_jd2_okay(custom_format_name):
+    class Custom(TimeFormat):
+        name = custom_format_name
+
+        def set_jds(self, val, val2):
+            self.jd1, self.jd2 = 7.0, 3.0
+
+        @property
+        def value(self):
+            return self.jd1 + self.jd2
+
+    getattr(Time(5, format=custom_format_name), custom_format_name)
+
+
+@pytest.mark.parametrize(
+    "thing",
+    [
+        1,
+        1.0,
+        np.longdouble(1),
+        1.0j,
+        "foo",
+        b"foo",
+        Time(5, format="mjd"),
+        lambda: 7,
+        np.datetime64('2005-02-25'),
+        date(2006, 2, 25),
+    ],
+)
+def test_custom_format_can_return_any_scalar(custom_format_name, thing):
+    class Custom(TimeFormat):
+        name = custom_format_name
+
+        def set_jds(self, val, val2):
+            self.jd1, self.jd2 = 2., 0.
+
+        @property
+        def value(self):
+            return np.array(thing)
+
+    assert type(getattr(Time(5, format=custom_format_name),
+                        custom_format_name)) == type(thing)
+    assert np.all(getattr(Time(5, format=custom_format_name),
+                          custom_format_name) == thing)
+
+
+@pytest.mark.parametrize(
+    "thing",
+    [
+        (1, 2),
+        [1, 2],
+        np.array([2, 3]),
+        np.array([2, 3, 5, 7]),
+        {6: 7},
+        {1, 2},
+    ],
+)
+def test_custom_format_can_return_any_iterable(custom_format_name, thing):
+    class Custom(TimeFormat):
+        name = custom_format_name
+
+        def set_jds(self, val, val2):
+            self.jd1, self.jd2 = 2., 0.
+
+        @property
+        def value(self):
+            return thing
+
+    assert type(getattr(Time(5, format=custom_format_name),
+                        custom_format_name)) == type(thing)
+    assert np.all(getattr(Time(5, format=custom_format_name),
+                          custom_format_name) == thing)
+
+
+# Converted from doctest in astropy/test/formats.py for debugging
+def test_ymdhms():
+    t = Time({'year': 2015, 'month': 2, 'day': 3,
+              'hour': 12, 'minute': 13, 'second': 14.567},
+             scale='utc')
+    # NOTE: actually comes back as np.void for some reason
+    # NOTE: not necessarily a python int; might be an int32
+    assert t.ymdhms.year == 2015
+
+
+# There are two stages of validation now - one on input into a format, so that
+# the format conversion code has tidy matched arrays to work with, and the
+# other when object construction does not go through a format object. Or at
+# least, the format object is constructed with "from_jd=True". In this case the
+# normal input validation does not happen but the new input validation does,
+# and can ensure that strange broadcasting anomalies can't happen.
+# This form of construction uses from_jd=True.
+def test_broadcasting_writeable():
+    t = Time('J2015') + np.linspace(-1, 1, 10)*u.day
+    t[2] = Time(58000, format="mjd")

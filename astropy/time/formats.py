@@ -91,6 +91,8 @@ class TimeFormatMeta(type):
             # astropy.time.Time or astropy.time.TimeDelta, and at the point
             # where this is run neither of those classes have necessarily been
             # constructed yet.
+            if 'value' in members and not hasattr(members['value'], "fget"):
+                raise ValueError("If defined, 'value' must be a property")
             mcls._registry[cls.name] = cls
 
         if 'subfmts' in members:
@@ -131,12 +133,34 @@ class TimeFormat(metaclass=TimeFormatMeta):
         self.in_subfmt = in_subfmt
         self.out_subfmt = out_subfmt
 
+        self._jd1, self._jd2 = None, None
+
         if from_jd:
             self.jd1 = val1
             self.jd2 = val2
         else:
             val1, val2 = self._check_val_type(val1, val2)
             self.set_jds(val1, val2)
+
+    @property
+    def jd1(self):
+        return self._jd1
+
+    @jd1.setter
+    def jd1(self, jd1):
+        self._jd1 = _validate_jd_for_storage(jd1)
+        if self._jd2 is not None:
+            self._jd1, self._jd2 = _broadcast_writeable(self._jd1, self._jd2)
+
+    @property
+    def jd2(self):
+        return self._jd2
+
+    @jd2.setter
+    def jd2(self, jd2):
+        self._jd2 = _validate_jd_for_storage(jd2)
+        if self._jd1 is not None:
+            self._jd1, self._jd2 = _broadcast_writeable(self._jd1, self._jd2)
 
     def __len__(self):
         return len(self.jd1)
@@ -438,7 +462,7 @@ class TimeFromEpoch(TimeFormat):
             raise ScaleValueError("Cannot convert from '{}' epoch scale '{}'"
                                   "to specified scale '{}', got error:\n{}"
                                   .format(self.name, self.epoch_scale,
-                                          self.scale, err))
+                                          self.scale, err)) from err
 
         self.jd1, self.jd2 = day_frac(tm._time.jd1, tm._time.jd2)
 
@@ -454,7 +478,7 @@ class TimeFromEpoch(TimeFormat):
                 raise ScaleValueError("Cannot convert from '{}' epoch scale '{}'"
                                       "to specified scale '{}', got error:\n{}"
                                       .format(self.name, self.epoch_scale,
-                                              self.scale, err))
+                                              self.scale, err)) from err
 
             jd1, jd2 = tm._time.jd1, tm._time.jd2
         else:
@@ -1435,6 +1459,44 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
             out[...] = datetime.timedelta(days=jd.item())
 
         return self.mask_if_needed(iterator.operands[-1])
+
+
+def _validate_jd_for_storage(jd):
+    if isinstance(jd, (float, int)):
+        return np.array(jd, dtype=np.float)
+    if (isinstance(jd, np.generic)
+        and (jd.dtype.kind == 'f' and jd.dtype.itemsize <= 8
+             or jd.dtype.kind in 'iu')):
+        return np.array(jd, dtype=np.float)
+    elif (isinstance(jd, np.ndarray)
+          and jd.dtype.kind == 'f'
+          and jd.dtype.itemsize == 8):
+        return jd
+    else:
+        raise TypeError(
+            f"JD values must be arrays (possibly zero-dimensional) "
+            f"of floats but we got {jd!r} of type {type(jd)}")
+
+
+def _broadcast_writeable(jd1, jd2):
+    if jd1.shape == jd2.shape:
+        return jd1, jd2
+    # When using broadcast_arrays, *both* are flagged with
+    # warn-on-write, even the one that wasn't modified, and
+    # require "C" only clears the flag if it actually copied
+    # anything.
+    shape = np.broadcast(jd1, jd2).shape
+    if jd1.shape == shape:
+        s_jd1 = jd1
+    else:
+        s_jd1 = np.require(np.broadcast_to(jd1, shape),
+                           requirements=["C", "W"])
+    if jd2.shape == shape:
+        s_jd2 = jd2
+    else:
+        s_jd2 = np.require(np.broadcast_to(jd2, shape),
+                           requirements=["C", "W"])
+    return s_jd1, s_jd2
 
 
 from .core import Time, TIME_SCALES, TIME_DELTA_SCALES, ScaleValueError
