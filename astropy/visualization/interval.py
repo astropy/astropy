@@ -111,6 +111,7 @@ class ManualInterval(BaseInterval):
         vmax = np.max(values) if self.vmax is None else self.vmax
         return vmin, vmax
 
+
 class MinMaxInterval(BaseInterval):
     """
     Interval based on the minimum and maximum values in the data.
