@@ -48,6 +48,17 @@ with warnings.catch_warnings():
 WCS_SPECTRAL_CUBE.pixel_bounds = [(-1, 11), (-2, 18), (5, 15)]
 
 
+def test_invalid_slices():
+    with pytest.raises(IndexError):
+        SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [None, None, [False, False, False]])
+
+    with pytest.raises(IndexError):
+        SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [None, None, slice(None, None, 2)])
+
+    with pytest.raises(IndexError):
+        SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [None, None, 1000.100])
+
+
 @pytest.mark.parametrize("item, ndim, expected", (
     ([Ellipsis, 10], 4, [slice(None)] * 3 + [10]),
     ([10, slice(20, 30)], 5, [10, slice(20, 30)] + [slice(None)] * 3),
