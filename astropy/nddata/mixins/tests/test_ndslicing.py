@@ -168,7 +168,7 @@ def test_boolean_slicing():
 
     nd = NDDataSliceable(data, mask=mask, uncertainty=uncertainty, wcs=wcs)
 
-    with pytest.raises(IndexError):
+    with pytest.raises(ValueError):
         nd2 = nd[(nd.data >= 3) & (nd.data < 8)]
 
     del(nd.wcs)
