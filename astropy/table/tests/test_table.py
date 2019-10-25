@@ -15,6 +15,7 @@ from astropy.io import fits
 from astropy.table import Table, QTable, MaskedColumn
 from astropy.tests.helper import (assert_follows_unicode_guidelines,
                                   ignore_warnings, catch_warnings)
+from astropy.coordinates import SkyCoord
 
 from astropy.utils.data import get_pkg_data_filename
 from astropy import table
@@ -1382,7 +1383,7 @@ def test_disallow_inequality_comparisons():
         t <= -1.1
 
 
-def test_values_equal():
+def test_values_equal_part1():
 
     col1 = [1, 2]
     col2 = [1.0, 2.0]
@@ -1390,29 +1391,32 @@ def test_values_equal():
     t1 = table.Table([col1, col2, col3], names=['a', 'b', 'c'])
     t2 = table.Table([col1, col2], names=['a', 'b'])
     t3 = table.table_helpers.simple_table()
-    tm = table.Table([col1, col2, col3], names=['a', 'b', 'c'])
-    tm['tm'] = Time([1, 2], format='cxcsec')
-    tm1 = tm
-    tm1['tm'][0] = np.ma.masked
+    tm = t1.copy()
+    tm['time'] = Time([1, 2], format='cxcsec')
+    tm1 = tm.copy()
+    tm1['time'][0] = np.ma.masked
+
     tq = table.table_helpers.simple_table()
     tq['quantity'] = [1., 2., 3.]*u.m
+
     tsk = table.table_helpers.simple_table()
-    from astropy.coordinates import SkyCoord
     tsk['sk'] = SkyCoord(1, 2,  unit='deg')
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='cannot compare tables with different column names'):
         t2.values_equal(t1)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='unable to compare column a'):
+        # Shape mismatch
         t3.values_equal(t1)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='unable to compare column c'):
+        # Type mismatch in column c causes FutureWarning
         t1.values_equal(2)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='unable to compare column c'):
         t1.values_equal([1, 2])
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError, match='comparison for column sk'):
         tsk.values_equal(tsk)
 
     eq = t2.values_equal(t2)
@@ -1435,6 +1439,13 @@ def test_values_equal():
     for col in eq4.colnames:
         assert np.all(eq4[col] == [True, True])
 
+    # Compare table to its first row
+    t = table.Table(rows=[(1, 'a'),
+                          (1, 'b')])
+    eq = t.values_equal(t[0])
+    assert np.all(eq['col0'] == [True, True])
+    assert np.all(eq['col1'] == [True, False])
+
 
 def test_rows_equal():
 
@@ -1446,8 +1457,8 @@ def test_rows_equal():
                           ' 0 a 0.0 4',
                           ' 1 b 3.0 5',
                           ' 1 a 2.0 6',
-                          ' 1 a 1.0 7',
-                         ], format='ascii')
+                          ' 1 a 1.0 7'],
+                         format='ascii')
 
     # All rows are equal
     assert np.all(t == t)

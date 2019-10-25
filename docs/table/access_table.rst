@@ -316,15 +316,13 @@ structured array by creating a copy or reference with ``np.array``::
 
 Table Equality
 --------------
-We can check table data equality using three different methods:
+We can check table data equality using two different methods:
 
-- Table :meth:`~astropy.table.Table.rows_equal` to compare table elements
-  row-wise.  This returns a boolean ``True`` or ``False`` for each table *row*
-  (``True`` where every element in the row matches), so one gets a 1-d array.
-- The ``==`` comparison operator.  This is exactly the same as calling
-  :meth:`~astropy.table.Table.rows_equal`.
-- Table :meth:`~astropy.table.Table.values_equal` to compare table elements
-  column-wise.  This returns a boolean ``True`` or ``False`` for each table
+- The ``==`` comparison operator.  This returns a ``True`` or ``False`` for
+  each row if the *entire row* matches.  This is the same as the behavior of
+  numpy structured arrays.
+- Table :meth:`~astropy.table.Table.values_equal` to compare table values
+  element-wise.  This returns a boolean ``True`` or ``False`` for each table
   *element*, so one gets a `~astropy.table.Table` of values.
 
 Examples::
@@ -337,9 +335,6 @@ Examples::
   ...                  [7, 7, 9]], names=['a', 'b', 'c'])
 
   >>> t1 == t2
-  array([False, False,  True])
-
-  >>> t1.rows_equal(t2)  # Same thing as ==
   array([False, False,  True])
 
   >>> t1.values_equal(t2)  # Compare to another table

@@ -3077,9 +3077,6 @@ class Table:
           True  True  True
 
         """
-        # Check the length of other
-        check_len = True
-
         if isinstance(other, Table):
             names = other.colnames
         else:
@@ -3092,10 +3089,6 @@ class Table:
                 # column-by-column broadcasting.
                 names = self.colnames
                 other = {name: other for name in names}
-                check_len = False
-
-        if check_len and len(self) != len(other):
-            raise ValueError('cannot compare tables with different lengths')
 
         # Require column names match but do not require same column order
         if set(self.colnames) != set(names):
@@ -3104,12 +3097,29 @@ class Table:
         eqs = []
         for name in names:
             try:
-                eq = self[name] == other[name]
-                assert isinstance(eq, np.ndarray) and eq.dtype is np.dtype('bool')
-            except Exception:
-                raise ValueError(f'unable to compare column {name}')
-            else:
-                eqs.append(eq)
+                np.broadcast(self[name], other[name])  # Check if broadcast-able
+                # Catch the numpy FutureWarning related to equality checking,
+                # "elementwise comparison failed; returning scalar instead, but
+                #  in the future will perform elementwise comparison".  Turn this
+                # into an exception since the scalar answer is not what we want.
+                with warnings.catch_warnings(record=True) as warns:
+                    warnings.simplefilter('always')
+                    eq = self[name] == other[name]
+                    if (warns and issubclass(warns[-1].category, FutureWarning) and
+                            'elementwise comparison failed' in str(warns[-1].message)):
+                        raise FutureWarning(warns[-1].message)
+            except Exception as err:
+                raise ValueError(f'unable to compare column {name}') from err
+
+            # Be strict about the result from the comparison. E.g. SkyCoord __eq__ is just
+            # broken and completely ignores that it should return an array.
+            if not (isinstance(eq, np.ndarray) and
+                    eq.dtype is np.dtype('bool') and
+                    len(eq) == len(self)):
+                raise TypeError(f'comparison for column {name} returned {eq} '
+                                f'instead of the expected boolean ndarray')
+
+            eqs.append(eq)
 
         out = Table(eqs, names=names)
 
