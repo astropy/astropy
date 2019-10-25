@@ -105,9 +105,9 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
         # provide aliases based on CTYPE for the name.
         if is_fits_wcs:
             if isinstance(wcs, WCS):
-                alias = wcs.wcs.ctype[idx][:4].replace('-', '').lower()
+                alias = wcs.wcs.ctype[idx].lower()
             elif isinstance(wcs, SlicedLowLevelWCS):
-                alias = wcs._wcs.wcs.ctype[wcs._world_keep[idx]][:4].replace('-', '').lower()
+                alias = wcs._wcs.wcs.ctype[wcs._world_keep[idx]].lower()
             name = (axis_type, alias) if axis_type else alias
         else:
             name = axis_type or ''
