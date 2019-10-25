@@ -4,6 +4,8 @@ import warnings
 
 import pytest
 
+from io import StringIO
+
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_equal, assert_allclose
 
@@ -14,6 +16,7 @@ from astropy import units as u
 from astropy.utils.misc import unbroadcast
 from astropy.coordinates import SkyCoord
 from astropy.units import Quantity
+from astropy.io import fits
 
 from astropy.wcs.wcs import (WCS, Sip, WCSSUB_LONGITUDE, WCSSUB_LATITUDE,
                              FITSFixedWarning)
@@ -30,7 +33,8 @@ from astropy.wcs.utils import (proj_plane_pixel_scales,
                                _split_matrix,
                                _pixel_to_pixel_correlation_matrix,
                                _pixel_to_world_correlation_matrix,
-                               local_partial_pixel_derivatives)
+                               local_partial_pixel_derivatives,
+                               fit_wcs_from_points)
 
 
 def test_wcs_dropping():
@@ -1023,3 +1027,77 @@ def test_pixel_to_pixel_1d():
 
     # The broadcasting of the input should be retained
     assert unbroadcast(x).shape == (10,)
+
+
+def test_fit_wcs_from_points():
+
+    header_str =  """
+XTENSION= 'IMAGE   '           / Image extension                                
+BITPIX  =                  -32 / array data type                                
+NAXIS   =                    2 / number of array dimensions                     
+NAXIS1  =                   50                                                  
+NAXIS2  =                   50                                                  
+PCOUNT  =                    0 / number of parameters                           
+GCOUNT  =                    1 / number of groups                               
+RADESYS = 'ICRS    '                                                            
+EQUINOX =               2000.0                                                  
+WCSAXES =                    2                                                  
+CTYPE1  = 'RA---TAN-SIP'                                                        
+CTYPE2  = 'DEC--TAN-SIP'                                                        
+CRVAL1  =    250.3497414839765                                                  
+CRVAL2  =    2.280925599609063                                                  
+CRPIX1  =               1045.0                                                  
+CRPIX2  =               1001.0                                                  
+CD1_1   =   -0.005564478186178                                                  
+CD1_2   =   -0.001042099258152                                                  
+CD2_1   =     0.00118144146585                                                  
+CD2_2   =   -0.005590816683583                                                  
+A_ORDER =                    2                                                  
+B_ORDER =                    2                                                  
+A_2_0   =    2.02451189234E-05                                                  
+A_0_2   =   3.317603337918E-06                                                  
+A_1_1   = 1.73456334971071E-05                                                  
+B_2_0   =   3.331330003472E-06                                                  
+B_0_2   = 2.04247482482589E-05                                                  
+B_1_1   = 1.71476710804143E-05                                                  
+AP_ORDER=                    2                                                  
+BP_ORDER=                    2                                                  
+AP_1_0  = 0.000904700296389636                                                  
+AP_0_1  = 0.000627660715584716                                                  
+AP_2_0  =  -2.023482905861E-05                                                  
+AP_0_2  =  -3.332285841011E-06                                                  
+AP_1_1  =  -1.731636633824E-05                                                  
+BP_1_0  = 0.000627960882053211                                                  
+BP_0_1  = 0.000911222886084808                                                  
+BP_2_0  =  -3.343918167224E-06                                                  
+BP_0_2  =  -2.041598249021E-05                                                  
+BP_1_1  =  -1.711876336719E-05                                                  
+A_DMAX  =    44.72893589844534                                                  
+B_DMAX  =    44.62692873032506       
+"""
+
+    f = StringIO(header_str)
+    header = fits.Header.fromtextfile(f)
+    full_wcs = WCS(header,relax=True)
+
+    # Getting the pixel coordinates
+    x,y = np.meshgrid(list(range(10)),list(range(10)))
+    x = x.flatten()
+    y = y.flatten()
+
+    # Calculating the true sku positions
+    world_pix = SkyCoord(full_wcs.all_pix2world(list(zip(x,y)), 1), unit='deg')
+
+    # Fitting the wcs
+    linear_wcs = fit_wcs_from_points((x, y), world_pix,
+                                     proj_point='center', sip_distortion=False)
+
+    # Getting the sky positions using the fitted wcs
+    world_pix_new = SkyCoord(linear_wcs.all_pix2world(list(zip(x,y)), 1), unit='deg')
+
+    # Checking the result
+    dists = world_pix.separation(world_pix_new).to('deg')
+    sigma = np.sqrt(sum(dists.value**2))
+
+    assert dists.max().value < 7e-5
+    assert sigma < 2.5e-5
