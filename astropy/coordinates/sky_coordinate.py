@@ -1491,7 +1491,31 @@ class SkyCoord(ShapedLikeNDArray):
            rv = rv + vcorr + rv * vcorr / consts.c
 
         If your target is nearby and/or has finite proper motion you may need to account
-        for terms arising from this. See Wright & Eastmann (2014) for details.
+        for terms arising from this. See Wright & Eastman (2014) for details.
+
+        Also note that this method returns the correction velocity in the so called 
+        *optical convention*::
+   
+           vcorr = zb * consts.c  
+
+        where `zb` is the barycentric correction redshift as defined in section 3
+        of Wright & Eastman (2014). The application formula given above follows from their
+        equation (11) under assumption that the radial velocity `rv` has also been defined 
+        using the same optical convention. Note, this can be regarded as a matter of 
+        velocity definition and does not by itself imply any loss of accuracy, provided 
+        sufficient care has been taken during interpretation of the results. If one needs
+        the barycentric correction expressed as the full relativistic velocity (e.g. to provide
+        it as the input to another software which performs the application), the 
+        following recipe can be used::
+
+           zb = vcorr / consts.c
+           zb_plus_one_squared = (zb + 1) * (zb + 1)
+           vcorr_rel = consts.c * (zb_plus_one_squared - 1) / (zb_plus_one_squared + 1)
+
+        See also `~astropy.units.equivalencies.doppler_optical`, 
+        `~astropy.units.equivalencies.doppler_radio` and 
+        `~astropy.units.equivalencies.doppler_relativistic` for more information on
+        the velocity conventions. 
 
         The default is for this method to use the builtin ephemeris for
         computing the sun and earth location.  Other ephemerides can be chosen
