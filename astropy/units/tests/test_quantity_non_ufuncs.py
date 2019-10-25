@@ -30,7 +30,7 @@ def get_wrapped_functions(*modules):
     return wrapped_functions
 
 
-all_wrapped_functions = get_wrapped_functions(np)
+all_wrapped_functions = get_wrapped_functions(np, np.fft)
 all_wrapped = set(all_wrapped_functions.values())
 
 
@@ -1768,6 +1768,63 @@ class TestDatetimeFunctions(BasicTestSetup):
     def test_is_busday(self):
         with pytest.raises(TypeError):
             np.is_busday(self.q)
+
+
+@pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                   reason="Needs __array_function__ support")
+class TestFFT(InvariantUnitTestSetup):
+    # These are all trivial, just preserve the unit.
+    def setup(self):
+        # Use real input; gets turned into complex as needed.
+        self.q = np.arange(128.).reshape(8, -1) * u.s
+
+    def test_fft(self):
+        self.check(np.fft.fft)
+
+    def test_ifft(self):
+        self.check(np.fft.ifft)
+
+    def test_rfft(self):
+        self.check(np.fft.rfft)
+
+    def test_irfft(self):
+        self.check(np.fft.irfft)
+
+    def test_fft2(self):
+        self.check(np.fft.fft2)
+
+    def test_ifft2(self):
+        self.check(np.fft.ifft2)
+
+    def test_rfft2(self):
+        self.check(np.fft.rfft2)
+
+    def test_irfft2(self):
+        self.check(np.fft.irfft2)
+
+    def test_fftn(self):
+        self.check(np.fft.fftn)
+
+    def test_ifftn(self):
+        self.check(np.fft.ifftn)
+
+    def test_rfftn(self):
+        self.check(np.fft.rfftn)
+
+    def test_irfftn(self):
+        self.check(np.fft.irfftn)
+
+    def test_hfft(self):
+        self.check(np.fft.hfft)
+
+    def test_ihfft(self):
+        self.check(np.fft.ihfft)
+
+    def test_fftshift(self):
+        self.check(np.fft.fftshift)
+
+    def test_ifftshift(self):
+        self.check(np.fft.ifftshift)
 
 
 untested_functions = set()
