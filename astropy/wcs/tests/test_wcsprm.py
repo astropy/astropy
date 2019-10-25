@@ -17,7 +17,7 @@ from astropy.wcs import _wcs
 from astropy.wcs.wcs import FITSFixedWarning
 from astropy.utils.data import (
     get_pkg_data_contents, get_pkg_data_fileobj, get_pkg_data_filename)
-from astropy.utils.misc import set_locale
+from astropy.utils.misc import _set_locale
 from astropy import units as u
 from astropy.units.core import UnitsWarning
 
@@ -848,7 +848,7 @@ def test_header_parse():
 
 def test_locale():
     try:
-        with set_locale('fr_FR'):
+        with _set_locale('fr_FR'):
             header = get_pkg_data_contents('data/locale.hdr',
                                            encoding='binary')
             with pytest.warns(FITSFixedWarning):

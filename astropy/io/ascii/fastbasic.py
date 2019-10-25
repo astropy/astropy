@@ -7,7 +7,7 @@ from collections import OrderedDict
 from . import core
 from astropy.table import Table
 from . import cparser
-from astropy.utils import set_locale
+from astropy.utils.misc import _set_locale
 
 
 class FastBasic(metaclass=core.MetaBaseReader):
@@ -124,7 +124,7 @@ class FastBasic(metaclass=core.MetaBaseReader):
             try_float = {}
             try_string = {}
 
-        with set_locale('C'):
+        with _set_locale('C'):
             data, comments = self.engine.read(try_int, try_float, try_string)
         out = self.make_table(data, comments)
 
