@@ -45,7 +45,7 @@ Read FITS with memmap=True
 
 By default :meth:`~astropy.table.Table.read` will read the whole table into memory, which 
 can take a lot of memory and can take a lot of time, depending on the table size and 
-file format. In some cases, it's possibly to only read a subset of the table by choosing 
+file format. In some cases, it's possible to only read a subset of the table by choosing 
 the option ``memmap=True``.
 
 For FITS binary tables, the data is stored row by row, and it is possible to read only a 
@@ -59,7 +59,7 @@ subset of rows, but reading a full column load the whole table data into memory:
     ...               'b': np.arange(1e7, dtype=float),
     ...               'c': np.arange(1e7, dtype=float)})
     >>> tbl.write('test.fits', overwrite=True)
-    >>> table = Table.read("test.fits", memmap=True) # Very fast, doesn't actually load data
+    >>> table = Table.read('test.fits', memmap=True) # Very fast, doesn't actually load data
     >>> table2 = tbl[:100] #  Fast, will read only first 100 rows
     >>> print(table2) # accessing column data triggers the read
      a    b    c  
@@ -71,7 +71,7 @@ subset of rows, but reading a full column load the whole table data into memory:
     98.0 98.0 98.0
     99.0 99.0 99.0
     Length = 100 rows
-    >>> col = table["my_column"] # Will load all table into memory
+    >>> col = table['my_column'] # Will load all table into memory
 
 At the moment :meth:`~astropy.table.Table.read` does not support ``memmap=True`` for the HDF5 and 
 ASCII file formats.
