@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import os
 import warnings
 from textwrap import dedent
 
@@ -9,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.transforms import Affine2D, IdentityTransform
 
+from astropy.io import fits
 from astropy import units as u
 from astropy.wcs.wcsapi import BaseLowLevelWCS, SlicedLowLevelWCS
 from astropy.coordinates import SkyCoord
@@ -66,6 +68,14 @@ def wcs_4d():
     return WCS(header=header)
 
 
+@pytest.fixture
+def cube_wcs():
+      data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
+      cube_header = os.path.join(data_dir, 'cube_header')
+      header = fits.Header.fromtextfile(cube_header)
+      return WCS(header=header)
+
+
 def test_shorthand_inversion():
     """
     Test that the Matplotlib subtraction shorthand for composing and inverting
@@ -118,7 +128,19 @@ def test_3d():
     np.testing.assert_allclose(world[:, 1], world_2[:, 1])
 
 
-def test_coord_type_from_ctype():
+def test_coord_type_from_ctype(cube_wcs):
+
+    _, coord_meta = transform_coord_meta_from_wcs(cube_wcs, RectangularFrame,
+                                                  slices=(50, 'y', 'x'))
+
+    axislabel_position = coord_meta['default_axislabel_position']
+    ticklabel_position = coord_meta['default_ticklabel_position']
+    ticks_position = coord_meta['default_ticks_position']
+
+    # These axes are swapped due to the pixel derivatives
+    assert axislabel_position == ['l', 'r', 'b']
+    assert ticklabel_position == ['l', 'r', 'b']
+    assert ticks_position == ['l', 'r', 'b']
 
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ['GLON-TAN', 'GLAT-TAN']
@@ -145,6 +167,18 @@ def test_coord_type_from_ctype():
     assert coord_meta['type'] == ['longitude', 'latitude']
     assert coord_meta['format_unit'] == [u.arcsec, u.arcsec]
     assert coord_meta['wrap'] == [180., None]
+
+    _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame,
+                                                  slices=('y', 'x'))
+
+    axislabel_position = coord_meta['default_axislabel_position']
+    ticklabel_position = coord_meta['default_ticklabel_position']
+    ticks_position = coord_meta['default_ticks_position']
+
+    # These axes should be swapped because of slices
+    assert axislabel_position == ['l', 'b']
+    assert ticklabel_position == ['l', 'b']
+    assert ticks_position == ['bltr', 'bltr']
 
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ['HGLN-TAN', 'HGLT-TAN']

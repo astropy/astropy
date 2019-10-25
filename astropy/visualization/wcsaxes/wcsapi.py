@@ -125,14 +125,22 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
     for i in range(len(coord_meta['type'])):
         coord_meta['visible'].append(i in world_map)
 
+    inv_all_corr = [False] * wcs.world_n_dim
     m = transform_wcs.axis_correlation_matrix.copy()
     if invert_xy:
+        inv_all_corr = np.all(m, axis=1)
         m = m[:, ::-1]
 
     if frame_class is RectangularFrame:
 
         for i, spine_name in enumerate('bltr'):
             pos = np.nonzero(m[:, i % 2])[0]
+            # If all the axes we have are correlated with each other and we
+            # have inverted the axes, then we need to reverse the index so we
+            # put the 'y' on the left.
+            if inv_all_corr[i % 2]:
+                pos = pos[::-1]
+
             if len(pos) > 0:
                 index = world_map[pos[0]]
                 coord_meta['default_axislabel_position'][index] = spine_name
