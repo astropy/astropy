@@ -297,6 +297,8 @@ astropy.wcs
 
 - Updated the WCS class to now correctly take and return ``Time`` objects in the
   high-level APE 14 API (e.g. ``pixel_to_world``. [#9376]
+- ``SlicedLowLevelWCS`` now raises ``IndexError`` rather than ``ValueError`` on
+  an invalid slice. [#9067]
 
 API Changes
 -----------
