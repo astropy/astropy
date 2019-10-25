@@ -322,6 +322,7 @@ class Drude1D(Fittable1DModel):
 
         return (x0 - dx, x0 + dx)
 
+
 class WavelengthFromGratingEquation(Model):
     r""" Solve the Grating Dispersion Law for the wavelength.
 
@@ -347,7 +348,7 @@ class WavelengthFromGratingEquation(Model):
     >>> alpha_out = (math.Deg2radUfunc() | math.SinUfunc())(.0001 * u.deg)
     >>> lam = model(alpha_in, alpha_out)
     >>> print(lam)
-    1.745241985530844e-06 m
+    -1.7453292519934437e-10 m
     """
 
     _separable = False
@@ -383,7 +384,8 @@ class WavelengthFromGratingEquation(Model):
 
 class AnglesFromGratingEquation3D(Model):
     """
-    Solve the 3D Grating Dispersion Law for the refracted angle.
+    Solve the 3D Grating Dispersion Law in Direction Cosine
+    space for the refracted angle.
 
     Parameters
     ----------
@@ -400,9 +402,9 @@ class AnglesFromGratingEquation3D(Model):
     >>> alpha_in = (math.Deg2radUfunc() | math.SinUfunc())(.0001 * u.deg)
     >>> beta_in = (math.Deg2radUfunc() | math.SinUfunc())(.0001 * u.deg)
     >>> lam = 2e-6 * u.m
-    >>> alpha_out, beta_out = model(lam, alpha_in, beta_in)
-    >>> print(alpha_out, beta_out)
-    (<Quantity -0.03999825>, <Quantity -1.74532925e-06>)
+    >>> alpha_out, beta_out, gamma_out = model(lam, alpha_in, beta_in)
+    >>> print(alpha_out, beta_out, gamma_out)
+    -0.03999825467074801 -1.7453292519934436e-06 0.9991997496097804
     """
 
     _separable = False
@@ -410,7 +412,7 @@ class AnglesFromGratingEquation3D(Model):
     linear = False
 
     n_inputs = 3
-    n_outputs = 2
+    n_outputs = 3
 
     groove_density = Parameter(default=1)
     """ Grating ruling density in units 1/ length."""
@@ -424,16 +426,17 @@ class AnglesFromGratingEquation3D(Model):
         self.inputs = ("wavelength", "alpha_in", "beta_in")
         """ Wavelength and 2 angle coordinates going into the grating."""
 
-        self.outputs = ("alpha_out", "beta_out")
+        self.outputs = ("alpha_out", "beta_out", "gamma_out")
         """ Two angles coming out of the grating. """
 
     def evaluate(self, wavelength, alpha_in, beta_in,
                  groove_density, spectral_order):
-        if alpha_in.shape != beta_in.shape != gamma_in.shape:
+        if alpha_in.shape != beta_in.shape:
             raise ValueError("Expected input arrays to have the same shape.")
         alpha_out = groove_density * spectral_order * wavelength + alpha_in
         beta_out = - beta_in
-        return alpha_out, beta_out
+        gamma_out = np.sqrt(1 - alpha_out ** 2 - beta_out ** 2)
+        return alpha_out, beta_out, gamma_out
 
     @property
     def return_units(self):
@@ -441,4 +444,6 @@ class AnglesFromGratingEquation3D(Model):
             return None
         else:
             return {'alpha_out': u.Unit(1),
-                    'beta_out': u.Unit(1)}
+                    'beta_out': u.Unit(1),
+                    'gamma_out': u.Unit(1)
+                    }
