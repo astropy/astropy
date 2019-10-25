@@ -9,6 +9,7 @@ import pytest
 from numpy.testing import assert_equal, assert_allclose
 
 from astropy import units as u
+from astropy.time import Time
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import Quantity
 from astropy.coordinates import ICRS, FK5, Galactic, SkyCoord
@@ -429,20 +430,21 @@ def test_time_cube():
                                                [True, True, False],
                                                [False, False, True]])
 
-    with pytest.warns(FutureWarning):
-        assert wcs.world_axis_object_components == [
-            ('celestial', 1, 'spherical.lat.degree'),
-            ('celestial', 0, 'spherical.lon.degree'),
-            ('utc', 0, 'value')]
+    components = wcs.world_axis_object_components
+    assert components[0] == ('celestial', 1, 'spherical.lat.degree')
+    assert components[1] == ('celestial', 0, 'spherical.lon.degree')
+    assert components[2][:2] == ('time', 0)
+    assert callable(components[2][2])
 
-        assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
-        assert wcs.world_axis_object_classes['celestial'][1] == ()
-        assert isinstance(wcs.world_axis_object_classes['celestial'][2]['frame'], ICRS)
-        assert wcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
+    assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
+    assert wcs.world_axis_object_classes['celestial'][1] == ()
+    assert isinstance(wcs.world_axis_object_classes['celestial'][2]['frame'], ICRS)
+    assert wcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
 
-        assert wcs.world_axis_object_classes['utc'][0] is Quantity
-        assert wcs.world_axis_object_classes['utc'][1] == ()
-        assert wcs.world_axis_object_classes['utc'][2] == {'unit': 's'}
+    assert wcs.world_axis_object_classes['time'][0] is Time
+    assert wcs.world_axis_object_classes['time'][1] == ()
+    assert wcs.world_axis_object_classes['time'][2] == {}
+    assert callable(wcs.world_axis_object_classes['time'][3])
 
     assert_allclose(wcs.pixel_to_world_values(-449.2, 2955.6, 0),
                     (14.8289418840003, 2.01824372640628, 2375.341))
@@ -457,22 +459,272 @@ def test_time_cube():
 
     # High-level API
 
-    # Make sure that we get a FutureWarning about the time column
-    with warnings.catch_warnings(record=True) as warning_entries:
-        warnings.resetwarnings()
-        coord, time = wcs.pixel_to_world(29, 39, 44)
-
-    # Check that there's at least one warning of the right category/message
-    assert len(warning_entries) > 0
-    found_warning = False
-    for w in warning_entries:
-        msg = 'In future, times will be represented by the Time class'
-        if w.category is FutureWarning and str(w.message).startswith(msg):
-            found_warning = True
-    assert found_warning
-
+    coord, time = wcs.pixel_to_world(29, 39, 44)
     assert isinstance(coord, SkyCoord)
-    assert isinstance(time, Quantity)
+    assert isinstance(coord.frame, ICRS)
+    assert_allclose(coord.ra.deg, 1.7323356692202325)
+    assert_allclose(coord.dec.deg, 14.783516054817797)
+    assert isinstance(time, Time)
+    assert_allclose(time.mjd, 54746.03429755324)
+
+    coord, time = wcs.array_index_to_world(44, 39, 29)
+    assert isinstance(coord, SkyCoord)
+    assert isinstance(coord.frame, ICRS)
+    assert_allclose(coord.ra.deg, 1.7323356692202325)
+    assert_allclose(coord.dec.deg, 14.783516054817797)
+    assert isinstance(time, Time)
+    assert_allclose(time.mjd, 54746.03429755324)
+
+    x, y, z = wcs.world_to_pixel(coord, time)
+    assert_allclose(x, 29.)
+    assert_allclose(y, 39.)
+    assert_allclose(z, 44.)
+
+    # Order of world coordinates shouldn't matter
+    x, y, z = wcs.world_to_pixel(time, coord)
+    assert_allclose(x, 29.)
+    assert_allclose(y, 39.)
+    assert_allclose(z, 44.)
+
+    i, j, k = wcs.world_to_array_index(coord, time)
+    assert_equal(i, 44)
+    assert_equal(j, 39)
+    assert_equal(k, 29)
+
+    # Order of world coordinates shouldn't matter
+    i, j, k = wcs.world_to_array_index(time, coord)
+    assert_equal(i, 44)
+    assert_equal(j, 39)
+    assert_equal(k, 29)
+
+###############################################################################
+# The following tests are to make sure that Time objects are constructed
+# correctly for a variety of combinations of WCS keywords
+###############################################################################
+
+
+HEADER_TIME_1D = """
+SIMPLE  = T
+BITPIX  = -32
+NAXIS   = 1
+NAXIS1  = 2048
+TIMESYS = 'UTC'
+TREFPOS = 'TOPOCENT'
+MJDREF  = 50002.6
+CTYPE1  = 'UTC'
+CRVAL1  = 5
+CUNIT1  = 's'
+CRPIX1  = 1.0
+CDELT1  = 2
+OBSGEO-L= -20
+OBSGEO-B= -70
+OBSGEO-H= 2530
+"""
+
+
+@pytest.fixture
+def header_time_1d():
+    return Header.fromstring(HEADER_TIME_1D, sep='\n')
+
+
+def assert_time_at(header, position, jd1, jd2, scale, format):
+    wcs = WCS(header)
+    time = wcs.pixel_to_world(position)
+    assert_allclose(time.jd1, jd1, rtol=1e-10)
+    assert_allclose(time.jd2, jd2, rtol=1e-10)
+    assert time.format == format
+    assert time.scale == scale
+
+
+@pytest.mark.parametrize('scale', ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc', 'local'))
+def test_time_1d_values(header_time_1d, scale):
+
+    # Check that Time objects are instantiated with the correct values,
+    # scales, and formats.
+
+    header_time_1d['CTYPE1'] = scale.upper()
+    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, scale, 'mjd')
+
+
+def test_time_1d_values_gps(header_time_1d):
+    # Special treatment for GPS scale
+    header_time_1d['CTYPE1'] = 'GPS'
+    assert_time_at(header_time_1d, 1, 2450003, 0.1 + (7 + 19) / 3600 / 24, 'tai', 'mjd')
+
+
+def test_time_1d_values_deprecated(header_time_1d):
+    # Deprecated (in FITS) scales
+    header_time_1d['CTYPE1'] = 'TDT'
+    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, 'tt', 'mjd')
+    header_time_1d['CTYPE1'] = 'IAT'
+    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, 'tai', 'mjd')
+    header_time_1d['CTYPE1'] = 'GMT'
+    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, 'utc', 'mjd')
+    header_time_1d['CTYPE1'] = 'ET'
+    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, 'tt', 'mjd')
+
+
+def test_time_1d_values_time(header_time_1d):
+    header_time_1d['CTYPE1'] = 'TIME'
+    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, 'utc', 'mjd')
+    header_time_1d['TIMESYS'] = 'TAI'
+    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, 'tai', 'mjd')
+
+
+@pytest.mark.parametrize('scale', ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc'))
+def test_time_1d_roundtrip(header_time_1d, scale):
+
+    # Check that coordinates round-trip
+
+    pixel_in = np.arange(3, 10)
+
+    header_time_1d['CTYPE1'] = scale.upper()
+    wcs = WCS(header_time_1d)
+
+    # Simple test
+    time = wcs.pixel_to_world(pixel_in)
+    pixel_out = wcs.world_to_pixel(time)
+    assert_allclose(pixel_in, pixel_out)
+
+    # Test with an intermediate change to a different scale/format
+    time = wcs.pixel_to_world(pixel_in).tdb
+    time.format = 'isot'
+    pixel_out = wcs.world_to_pixel(time)
+    assert_allclose(pixel_in, pixel_out)
+
+
+def test_time_1d_high_precision(header_time_1d):
+
+    # Case where the MJDREF is split into two for high precision
+    del header_time_1d['MJDREF']
+    header_time_1d['MJDREFI'] = 52000.
+    header_time_1d['MJDREFF'] = 1e-11
+
+    wcs = WCS(header_time_1d)
+    time = wcs.pixel_to_world(10)
+
+    # Here we have to use a very small rtol to really test that MJDREFF is
+    # taken into account
+    assert_allclose(time.jd1, 2452001.0, rtol=1e-12)
+    assert_allclose(time.jd2, -0.5 + 25 / 3600 / 24 + 1e-11, rtol=1e-13)
+
+
+def test_time_1d_location_geodetic(header_time_1d):
+
+    # Make sure that the location is correctly returned (geodetic case)
+
+    wcs = WCS(header_time_1d)
+    time = wcs.pixel_to_world(10)
+
+    lon, lat, alt = time.location.to_geodetic()
+
+    # FIXME: alt won't work for now because ERFA doesn't implement the IAU 1976
+    # ellipsoid (https://github.com/astropy/astropy/issues/9420)
+    assert_allclose(lon.degree, -20)
+    assert_allclose(lat.degree, -70)
+    # assert_allclose(alt.to_value(u.m), 2530.)
+
+
+@pytest.fixture
+def header_time_1d_noobs():
+    header = Header.fromstring(HEADER_TIME_1D, sep='\n')
+    del header['OBSGEO-L']
+    del header['OBSGEO-B']
+    del header['OBSGEO-H']
+    return header
+
+
+def test_time_1d_location_geocentric(header_time_1d_noobs):
+
+    # Make sure that the location is correctly returned (geocentric case)
+
+    header = header_time_1d_noobs
+
+    header['OBSGEO-X'] = 10
+    header['OBSGEO-Y'] = -20
+    header['OBSGEO-Z'] = 30
+
+    wcs = WCS(header)
+    time = wcs.pixel_to_world(10)
+
+    x, y, z = time.location.to_geocentric()
+
+    assert_allclose(x.to_value(u.m), 10)
+    assert_allclose(y.to_value(u.m), -20)
+    assert_allclose(z.to_value(u.m), 30)
+
+
+def test_time_1d_location_geocenter(header_time_1d_noobs):
+
+    header_time_1d_noobs['TREFPOS'] = 'GEOCENTER'
+
+    wcs = WCS(header_time_1d_noobs)
+    time = wcs.pixel_to_world(10)
+
+    x, y, z = time.location.to_geocentric()
+
+    assert_allclose(x.to_value(u.m), 0)
+    assert_allclose(y.to_value(u.m), 0)
+    assert_allclose(z.to_value(u.m), 0)
+
+
+def test_time_1d_location_missing(header_time_1d_noobs):
+
+    # Check what happens when no location is present
+
+    wcs = WCS(header_time_1d_noobs)
+    with pytest.warns(UserWarning,
+                      match='Missing or incomplete observer location '
+                            'information, setting location in Time to None'):
+        time = wcs.pixel_to_world(10)
+
+    assert time.location is None
+
+
+def test_time_1d_location_incomplete(header_time_1d_noobs):
+
+    # Check what happens when location information is incomplete
+
+    header_time_1d_noobs['OBSGEO-L'] = 10.
+
+    wcs = WCS(header_time_1d_noobs)
+    with pytest.warns(UserWarning,
+                      match='Missing or incomplete observer location '
+                            'information, setting location in Time to None'):
+        time = wcs.pixel_to_world(10)
+
+    assert time.location is None
+
+
+def test_time_1d_location_unsupported(header_time_1d):
+
+    # Check what happens when TREFPOS is unsupported
+
+    header_time_1d['TREFPOS'] = 'BARYCENTER'
+
+    wcs = WCS(header_time_1d)
+    with pytest.warns(UserWarning,
+                      match="Observation location 'barycenter' is not "
+                            "supported, setting location in Time to None"):
+        time = wcs.pixel_to_world(10)
+
+    assert time.location is None
+
+
+def test_time_1d_unsupported_ctype(header_time_1d):
+
+    # For cases that we don't support yet, e.g. UT(...), use Time and drop sub-scale
+
+    # Case where the MJDREF is split into two for high precision
+    header_time_1d['CTYPE1'] = 'UT(WWV)'
+
+    wcs = WCS(header_time_1d)
+    with pytest.warns(UserWarning,
+                      match="Dropping unsupported sub-scale WWV from scale UT"):
+        time = wcs.pixel_to_world(10)
+
+    assert isinstance(time, Time)
+
 
 ###############################################################################
 # Extra corner cases
