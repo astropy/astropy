@@ -134,6 +134,9 @@ astropy.stats
 - Added an ``ignore_nan`` option to the ``biweight_location``,
   ``biweight_scale``, and ``biweight_midvariance`` functions. [#9457]
 
+- A numpy ``MaskedArray`` can now be input to the ``biweight_location``,
+  ``biweight_scale``, and ``biweight_midvariance`` functions. [#9466]
+
 astropy.table
 ^^^^^^^^^^^^^
 
