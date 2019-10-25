@@ -598,10 +598,10 @@ def _linear_wcs_fit(params, lon, lat, x, y, w_obj):
     w_obj: `~astropy.wcs.WCS`
         WCS object
         """
-    pc = params[0:4]
+    cd = params[0:4]
     crpix = params[4:6]
 
-    w_obj.wcs.pc = ((pc[0], pc[1]), (pc[2], pc[3]))
+    w_obj.wcs.cd = ((cd[0], cd[1]), (cd[2], cd[3]))
     w_obj.wcs.crpix = crpix
     lon2, lat2 = w_obj.wcs_pix2world(x, y, 1)
     resids = np.concatenate((lon-lon2, lat-lat2))
@@ -633,7 +633,7 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
     b_params = params[6+len(coeff_names):]
 
     # assign to wcs, used for transfomations in this function
-    w_obj.wcs.pc = cdx
+    w_obj.wcs.cd = cdx
     w_obj.wcs.crpix = crpix
 
     a_coeff, b_coeff = {}, {}
@@ -647,8 +647,9 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
 
     xo, yo = np.dot(cdx, np.array([u+fuv-crpix[0], v+guv-crpix[1]]))
 
-    x, y = w_obj.wcs_world2pix(lon, lat, 1)
-    x, y = np.dot(w_obj.wcs.pc, (x-w_obj.wcs.crpix[0], y-w_obj.wcs.crpix[1]))
+    # use all pix2world in case `projection` contains distortion table
+    x, y = w_obj.all_world2pix(lon, lat, 1) 
+    x, y = np.dot(w_obj.wcs.cd, (x-w_obj.wcs.crpix[0], y-w_obj.wcs.crpix[1]))
 
     resids = np.concatenate((x-xo, y-yo))
 
@@ -657,15 +658,24 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
 
 def fit_wcs_from_points(xy, world_coords, proj_point='center', 
                         projection='TAN', sip_distortion=True, degree=4):
-    """ Given two matching sets of coordinates on detector and sky,
-        compute the WCS. Optionally, a SIP can be fit to account for geometric
-        distortion. Returns an `~astropy.wcs.WCS` object with the best fit
-        parameters for mapping between input pixel and sky coordinates.
+
+    """ 
+    Given two matching sets of coordinates on detector and sky,
+    compute the WCS. Optionally, a SIP can be fit to account for geometric
+    distortion. Returns an `~astropy.wcs.WCS` object with the best fit
+    parameters for mapping between input pixel and sky coordinates.
+
+    The projection type (default 'TAN') can passed in as a string, one of 
+    the valid three-letter projection codes - or as a WCS object with
+    projection keywords already set. Note that if an input WCS has any 
+    non-polynomial distortion, this will be applied and reflected in the 
+    fit terms and coefficients. Passing in a WCS object in this way essentially 
+    allows it to be refit based on the matched input coordinates and projection 
+    point, but take care when using this option as non-projection related 
+    keywords in the input might cause unexpected behavior. 
 
     Notes
     ------
-    - Detector (pixel) coordinates are passed in as a tuple of arrays (`xy`),
-      and sky coordinates as a `~astropy.coordinates.SkyCoord` object.
     - The fiducial point for the spherical projection can be set to 'center'
       to use the mean position of input sky coordinates, or as an
       `~astropy.coordinates.SkyCoord` object.
@@ -730,6 +740,7 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
     else: #if projection is not string, should be wcs object. use as template.
         wcs = copy.deepcopy(projection)
         wcs.cdelt = (1., 1.) # make sure cdelt is 1
+        wcs.sip = None
 
     # Change PC to CD, since cdelt will be set to 1
     if wcs.wcs.has_pc():
@@ -757,11 +768,13 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
                          close(lon-wcs.wcs.crval[1], yp))
 
     # fit linear terms, assign to wcs
-    p0 = np.concatenate([np.array([1., 0., 0., 1.]), wcs.wcs.crpix.flatten()])
+    # use (1, 0, 0, 1) as initial guess, in case input wcs was passed in
+    # and cd terms are way off. 
+    p0 = np.concatenate([[1., 0., 0., 1], wcs.wcs.crpix.flatten()])
     fit = least_squares(_linear_wcs_fit, p0,
                         args=(lon, lat, xp, yp, wcs))
     wcs.wcs.crpix = np.array(fit.x[4:6])
-    wcs.wcs.pc = np.array(fit.x[0:4].reshape((2, 2)))
+    wcs.wcs.cd = np.array(fit.x[0:4].reshape((2, 2)))
 
     # fit SIP, if specified. Only fit forward coefficients
     if sip_distortion:
@@ -771,7 +784,7 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
         coef_names = ['{0}_{1}'.format(i, j) for i in range(degree+1)
                       for j in range(degree+1) if (i+j) < (degree+1) and
                       (i+j) > 1]
-        p0 = np.concatenate((np.array(wcs.wcs.crpix), wcs.wcs.pc.flatten(),
+        p0 = np.concatenate((np.array(wcs.wcs.crpix), wcs.wcs.cd.flatten(),
                              np.zeros(2*len(coef_names))))
 
         fit = least_squares(_sip_fit, p0,
