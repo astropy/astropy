@@ -283,6 +283,10 @@ class NDData(NDDataBase):
         """
         return self._wcs
 
+    @wcs.deleter
+    def wcs(self):
+        self._wcs = None
+
     @property
     def uncertainty(self):
         """

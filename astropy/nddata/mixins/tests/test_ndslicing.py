@@ -169,8 +169,10 @@ def test_boolean_slicing():
 
     nd = NDDataSliceable(data, mask=mask, uncertainty=uncertainty, wcs=wcs)
 
+    with pytest.raises(IndexError):
+        nd2 = nd[(nd.data >= 3) & (nd.data < 8)]
+
+    del(nd.wcs)
     nd2 = nd[(nd.data >= 3) & (nd.data < 8)]
     assert_array_equal(data[3:8], nd2.data)
     assert_array_equal(mask[3:8], nd2.mask)
-    assert nd2.wcs.pixel_to_world(1) == nd.wcs.pixel_to_world(4)
-    assert_array_equal(uncertainty.array[3:8], nd2.uncertainty.array)
