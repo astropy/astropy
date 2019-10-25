@@ -999,9 +999,6 @@ def test_custom_datatype():
     table = votable.get_first_table()
     assert table.array.dtype['foo'] == np.int32
 
-    #<TIMESYS ID="mjd_origin" refposition="EMBARYCENTER" timeorigin="MJD-origin" timescale="TDB"/>
-    #<TIMESYS ID="jd_origin" refposition="HELIOCENTER" timeorigin="JD-origin" timescale="TT"/>
-    #<TIMESYS ID="no_origin" refposition="TOPOCENTER" timescale="UTC"/>
 
 def _timesys_tests(votable):
     assert len(list(votable.iter_timesys())) == 4
@@ -1022,7 +1019,7 @@ def _timesys_tests(votable):
     assert timesys.refposition == 'HELIOCENTER'
 
     timesys = votable.get_timesys_by_id('no_origin')
-    assert timesys.timeorigin == None
+    assert timesys.timeorigin is None
     assert timesys.timescale == 'UTC'
     assert timesys.refposition == 'TOPOCENTER'
 
@@ -1038,13 +1035,15 @@ def test_timesys_roundtrip():
     orig_votable.to_xml(bio)
     bio.seek(0)
     votable = parse(bio)
-
     _timesys_tests(votable)
+
 
 def test_timesys_errors():
     output = io.StringIO()
-    validate(get_pkg_data_filename('data/timesys_errors.xml'), output, xmllint=False)
+    validate(get_pkg_data_filename('data/timesys_errors.xml'), output,
+             xmllint=False)
     outstr = output.getvalue()
     assert("E23: Invalid timeorigin attribute 'bad-origin'" in outstr)
     assert("E22: ID attribute is required for all TIMESYS elements" in outstr)
-    assert("W48: Unknown attribute 'refposition_mispelled' on TIMESYS" in outstr)
+    assert("W48: Unknown attribute 'refposition_mispelled' on TIMESYS"
+           in outstr)
