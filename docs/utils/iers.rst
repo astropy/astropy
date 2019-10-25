@@ -156,8 +156,8 @@ transformations.  For example::
   >>> iers_b = iers.IERS_B.open()
   >>> iers_b.ut1_utc(t)  # doctest: +FLOAT_CMP
   <Quantity 0.1140827 s>
-  >>> iers.earth_rotation_table.set(iers_b)
-  <ScienceState earth_rotation_table: <IERS_B length=...>...>
+  >>> iers.earth_orientation_table.set(iers_b)
+  <ScienceState earth_orientation_table: <IERS_B length=...>...>
   >>> t.ut1.iso
   '2010-01-01 00:00:00.114'
 
@@ -165,23 +165,23 @@ Instead of local copies of IERS files, one can also download them, using
 ``iers.IERS_A_URL`` (or ``iers.IERS_A_URL_MIRROR``) and ``iers.IERS_B_URL``,
 and then use those for future time and coordinate transformations (in this
 example, just for a single calculation, by using
-`~astropy.utils.iers.earth_rotation_table` as a context manager)::
+`~astropy.utils.iers.earth_orientation_table` as a context manager)::
 
   >>> iers_a = iers.IERS_A.open(iers.IERS_A_URL)  # doctest: +SKIP
-  >>> with iers.earth_rotation_table.set(iers_a):  # doctest: +SKIP
+  >>> with iers.earth_orientation_table.set(iers_a):  # doctest: +SKIP
   ...     print(t.ut1.iso)
   2010-01-01 00:00:00.114
 
 To reset to the default, pass in `None` (which is equivalent to passing in
 ``iers.IERS_Auto.open()``)::
 
-  >>> iers.earth_rotation_table.set(None)  # doctest: +REMOTE_DATA
-  <ScienceState earth_rotation_table: <IERS_Auto length=...>...>
+  >>> iers.earth_orientation_table.set(None)  # doctest: +REMOTE_DATA
+  <ScienceState earth_orientation_table: <IERS_Auto length=...>...>
 
 To see the internal IERS data that gets used in astropy you can do the
 following::
 
-  >>> dat = iers.earth_rotation_table.get()  # doctest: +REMOTE_DATA
+  >>> dat = iers.earth_orientation_table.get()  # doctest: +REMOTE_DATA
   >>> type(dat)  # doctest: +REMOTE_DATA
   <class 'astropy.utils.iers.iers.IERS_Auto'>
   >>> dat  # doctest: +SKIP

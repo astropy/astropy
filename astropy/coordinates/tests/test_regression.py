@@ -231,7 +231,7 @@ def test_regression_futuretimes_4302():
     # times outside the range of the table does not raise an exception.  Only
     # if using IERS_B (which happens without --remote-data, i.e. for all CI
     # testing) do we expect another warning.
-    if isinstance(iers.earth_rotation_table.get(), iers.IERS_B):
+    if isinstance(iers.earth_orientation_table.get(), iers.IERS_B):
         saw_iers_warnings = False
         for w in found_warnings:
             if issubclass(w.category, AstropyWarning):

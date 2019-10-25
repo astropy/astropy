@@ -493,7 +493,7 @@ def test_gcrs_self_transform_closeby():
 
 
 @pytest.mark.remote_data
-def test_earth_rotation_table():
+def test_earth_orientation_table():
     """Check that we can set the IERS table used as Earth Reference.
 
     Use the here and now to be sure we get a difference.
@@ -508,7 +508,7 @@ def test_earth_rotation_table():
 
     assert len(w) == 0
 
-    with iers.earth_rotation_table.set(iers.IERS_B.open()):
+    with iers.earth_orientation_table.set(iers.IERS_B.open()):
         with catch_warnings() as w:
             altaz_b = sc.transform_to(altaz)
         assert len(w) == 1

@@ -82,7 +82,7 @@ class TestTimeUT1SpecificIERSTable:
         assert tnow_ut1_jd != tnow.jd
 
         delta_ut1_utc = tnow.delta_ut1_utc
-        with iers.earth_rotation_table.set(iers_type.open()):
+        with iers.earth_orientation_table.set(iers_type.open()):
             delta2, status2 = tnow.get_delta_ut1_utc(return_status=True)
             assert status2 == status
             assert delta2.to_value('s') == delta_ut1_utc
@@ -105,7 +105,7 @@ class TestTimeUT1SpecificIERSTable:
         delta1, status1 = tnow.get_delta_ut1_utc(iers_b, return_status=True)
         assert status1 == iers.TIME_BEYOND_IERS_RANGE
 
-        with iers.earth_rotation_table.set(iers.IERS_B.open()):
+        with iers.earth_orientation_table.set(iers.IERS_B.open()):
             delta2, status2 = tnow.get_delta_ut1_utc(return_status=True)
             assert status2 == status1
 
