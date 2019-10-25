@@ -220,7 +220,7 @@ class TestVerifyOptions:
     def test_verify_warn(self):
         with catch_warnings(VOWarning) as w:
             parse(get_pkg_data_filename('data/gemini.xml'), verify='warn')
-        assert len(w) == 23
+        assert len(w) == 24
 
     def test_verify_exception(self):
         with pytest.raises(VOWarning):
@@ -231,7 +231,7 @@ class TestVerifyOptions:
     def test_pedantic_false(self):
         with catch_warnings(VOWarning, AstropyDeprecationWarning) as w:
             parse(get_pkg_data_filename('data/gemini.xml'), pedantic=False)
-        assert len(w) == 23
+        assert len(w) == 24
         # Make sure we don't yet emit a deprecation warning
         assert not any(isinstance(x.category, AstropyDeprecationWarning) for x in w)
 
@@ -251,7 +251,7 @@ class TestVerifyOptions:
         with conf.set_temp('verify', 'warn'):
             with catch_warnings(VOWarning) as w:
                 parse(get_pkg_data_filename('data/gemini.xml'))
-            assert len(w) == 23
+            assert len(w) == 24
 
     def test_conf_verify_exception(self):
         with conf.set_temp('verify', 'exception'):
@@ -271,7 +271,7 @@ class TestVerifyOptions:
 
             with catch_warnings(VOWarning, AstropyDeprecationWarning) as w:
                 parse(get_pkg_data_filename('data/gemini.xml'))
-            assert len(w) == 23
+            assert len(w) == 24
             # Make sure we don't yet emit a deprecation warning
             assert not any(isinstance(x.category, AstropyDeprecationWarning) for x in w)
 
