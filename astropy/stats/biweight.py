@@ -12,6 +12,20 @@ __all__ = ['biweight_location', 'biweight_scale', 'biweight_midvariance',
            'biweight_midcovariance', 'biweight_midcorrelation']
 
 
+def _stat_functions(data, ignore_nan=False):
+    if isinstance(data, np.ma.MaskedArray):
+        median_func = np.ma.median
+        sum_func = np.ma.sum
+    elif ignore_nan:
+        median_func = np.nanmedian
+        sum_func = np.nansum
+    else:
+        median_func = np.median
+        sum_func = np.sum
+
+    return median_func, sum_func
+
+
 def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
     r"""
     Compute the biweight location.
@@ -41,6 +55,7 @@ def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
     ----------
     data : array-like
         Input array or object that can be converted to an array.
+        ``data`` can be a `~numpy.ma.MaskedArray`.
     c : float, optional
         Tuning constant for the biweight estimator (default = 6.0).
     M : float or array-like, optional
@@ -88,12 +103,10 @@ def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
     -0.0175741540445
     """
 
-    if ignore_nan:
-        median_func = np.nanmedian
-        sum_func = np.nansum
-    else:
-        median_func = np.median
-        sum_func = np.sum
+    median_func, sum_func = _stat_functions(data, ignore_nan=ignore_nan)
+
+    if isinstance(data, np.ma.MaskedArray) and ignore_nan:
+        data = np.ma.masked_where(np.isnan(data), data, copy=True)
 
     data = np.asanyarray(data).astype(np.float64)
 
@@ -182,6 +195,7 @@ def biweight_scale(data, c=9.0, M=None, axis=None, modify_sample_size=False,
     ----------
     data : array-like
         Input array or object that can be converted to an array.
+        ``data`` can be a `~numpy.ma.MaskedArray`.
     c : float, optional
         Tuning constant for the biweight estimator (default = 9.0).
     M : float or array-like, optional
@@ -292,6 +306,7 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     ----------
     data : array-like
         Input array or object that can be converted to an array.
+        ``data`` can be a `~numpy.ma.MaskedArray`.
     c : float, optional
         Tuning constant for the biweight estimator (default = 9.0).
     M : float or array-like, optional
@@ -347,12 +362,10 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     0.97362869104
     """
 
-    if ignore_nan:
-        median_func = np.nanmedian
-        sum_func = np.nansum
-    else:
-        median_func = np.median
-        sum_func = np.sum
+    median_func, sum_func = _stat_functions(data, ignore_nan=ignore_nan)
+
+    if isinstance(data, np.ma.MaskedArray) and ignore_nan:
+        data = np.ma.masked_where(np.isnan(data), data, copy=True)
 
     data = np.asanyarray(data).astype(np.float64)
 
@@ -380,16 +393,21 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     # ignore RuntimeWarnings for comparisons with NaN data values
     with np.errstate(invalid='ignore'):
         mask = np.abs(u) < 1
-    u = u ** 2
+    if isinstance(mask, np.ma.MaskedArray):
+        mask = mask.filled(fill_value=False)  # exclude masked data values
 
-    nanmask = np.ones(data.shape)
-    if ignore_nan:
-        nanmask[np.isnan(data)] = 0
+    u = u ** 2
 
     if modify_sample_size:
         n = sum_func(mask, axis=axis)
     else:
-        n = np.sum(nanmask, axis=axis)
+        # set good values to 1, bad values to 0
+        include_mask = np.ones(data.shape)
+        if isinstance(data, np.ma.MaskedArray):
+            include_mask[data.mask] = 0
+        if ignore_nan:
+            include_mask[np.isnan(data)] = 0
+        n = np.sum(include_mask, axis=axis)
 
     f1 = d * d * (1. - u)**4
     f1[~mask] = 0.

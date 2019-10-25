@@ -113,6 +113,9 @@ def test_median_absolute_deviation_nans_masked():
     mad2 = funcs.median_absolute_deviation(data2, ignore_nan=True)
     assert_equal(mad1, mad2)
 
+    # ensure that input masked array is not modified
+    assert np.isnan(data2[1])
+
 
 def test_median_absolute_deviation_multidim_axis():
     array = np.ones((5, 4, 3)) * np.arange(5)[:, np.newaxis, np.newaxis]
