@@ -2998,14 +2998,16 @@ class Table:
         return super().__ge__(other)
 
     def __eq__(self, other):
-        return self.rows_equal(other)
+        return self._rows_equal(other)
 
     def __ne__(self, other):
-        return ~self.rows_equal(other)
+        return ~self.__eq__(other)
 
-    def rows_equal(self, other):
+    def _rows_equal(self, other):
         """
         Row-wise comparison of table with any other object.
+
+        This is actual implementation for __eq__.
 
         Returns a 1-D boolean numpy array showing result of row-wise comparison.
         This is the same as the ``==`` comparison for tables.
@@ -3021,7 +3023,7 @@ class Table:
 
             >>> t1 = Table([[1,2],[4,5],[7,8]], names=('a','b','c'))
             >>> t2 = Table([[1,2],[4,5],[7,8]], names=('a','b','c'))
-            >>> t1.rows_equal(t2)
+            >>> t1._rows_equal(t2)
             array([ True,  True])
 
         """
@@ -3048,7 +3050,7 @@ class Table:
 
         return result
 
-    def cols_equal(self, other):
+    def values_equal(self, other):
         """
         Element-wise comparison of table with another table, list, or scalar.
 
@@ -3066,7 +3068,7 @@ class Table:
 
           >>> t1 = Table([[1, 2], [4, 5], [-7, 8]], names=('a', 'b', 'c'))
           >>> t2 = Table([[1, 2], [-4, 5], [7, 8]], names=('a', 'b', 'c'))
-          >>> t1.cols_equal(t2)
+          >>> t1.values_equal(t2)
           <Table length=2>
            a     b     c
           bool  bool  bool
