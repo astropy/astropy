@@ -493,7 +493,7 @@ class CoordinateHelper:
         Render default axis labels if no explicit label is provided.
 
         Parameters
-        -------
+        ----------
         auto_label : `bool`
             `True` if default labels will be rendered.
         """
