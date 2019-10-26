@@ -1,11 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 """
 This module contains models representing polynomials and polynomial series.
 """
-
-from collections import OrderedDict
-
 import numpy as np
 
 from .core import FittableModel, Model
@@ -836,11 +832,11 @@ class Polynomial1D(PolynomialModel):
             return {'x': self.c0.unit / self.c1.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        mapping = []
+        mapping = {}
         for i in range(self.degree + 1):
             par = getattr(self, f'c{i}')
-            mapping.append((par.name, outputs_unit['y'] / inputs_unit['x'] ** i))
-        return OrderedDict(mapping)
+            mapping[par.name] = outputs_unit['y'] / inputs_unit['x'] ** i
+        return mapping
 
 
 class Polynomial2D(PolynomialModel):
@@ -1002,14 +998,14 @@ class Polynomial2D(PolynomialModel):
                     'y': self.c0_0.unit / self.c0_1.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        mapping = []
+        mapping = {}
         for i in range(self.degree + 1):
             for j in range(self.degree + 1):
                 if i + j > 2:
                     continue
                 par = getattr(self, f'c{i}_{j}')
-                mapping.append((par.name, outputs_unit['z'] / inputs_unit['x'] ** i / inputs_unit['y'] ** j))
-        return OrderedDict(mapping)
+                mapping[par.name] = outputs_unit['z'] / inputs_unit['x'] ** i / inputs_unit['y'] ** j  # noqa
+        return mapping
 
 
 class Chebyshev2D(OrthoPolynomialBase):
