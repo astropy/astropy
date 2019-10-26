@@ -10,7 +10,7 @@ celestial-to-terrestrial coordinate transformations
 """
 
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
 from warnings import warn
 
 try:
@@ -20,6 +20,7 @@ except ImportError:
 
 import numpy as np
 
+from astropy.time import Time, TimeDelta
 from astropy import _erfa as erfa
 from astropy import config as _config
 from astropy.io.ascii import convert_numpy
@@ -422,7 +423,6 @@ class IERS(QTable):
         Property to provide the current time, but also allow for explicitly setting
         the _time_now attribute for testing purposes.
         """
-        from astropy.time import Time
         try:
             return self._time_now
         except Exception:
@@ -889,6 +889,8 @@ class LeapSeconds(QTable):
     of ``leap-seconds.list`` for use with ``ntp`` (e.g., on Debian/Ubuntu
     systems, ``/usr/share/zoneinfo/leap-seconds.list``).
     """
+    # Note: Time instances in this class should use scale='tai' to avoid
+    # needing leap seconds in their creation or interpretation.
 
     _re_expires = re.compile(r'^#.*File expires on[:\s]+(\d+\s\w+\s\d+)\s*$')
     _expires = None
@@ -945,6 +947,13 @@ class LeapSeconds(QTable):
         except Exception:
             return cls.from_leap_seconds_list(file)
 
+    @staticmethod
+    def _today():
+        # Get current day in scale='tai' without going through a scale change
+        # (so we do not need leap seconds).
+        s = '{0.year:04d}-{0.month:02d}-{0.day:02d}'.format(datetime.utcnow())
+        return Time(s, scale='tai', format='iso', out_subfmt='date')
+
     @classmethod
     def auto_open(cls, files=None):
         """Attempt to get an up-to-date leap-second list.
@@ -976,7 +985,8 @@ class LeapSeconds(QTable):
         that expires more than 180 - `~astropy.utils.iers.Conf.auto_max_age`
         after the present.
         """
-        good_enough = datetime.now() + timedelta(180-conf.auto_max_age)
+        good_enough = cls._today() + TimeDelta(180-conf.auto_max_age,
+                                               format='jd')
 
         if files is None:
             # Basic files to go over (entries in _auto_open_files can be
@@ -996,7 +1006,6 @@ class LeapSeconds(QTable):
         if conf.auto_download:
             trials += [(f, False) for f in files if urlparse(f).netloc]
 
-        best_expires = datetime(1900, 1, 1)
         self = None
         err_list = []
         # Go through all entries, and return the first one that
@@ -1011,10 +1020,9 @@ class LeapSeconds(QTable):
                 err_list.append(exc)
                 continue
 
-            if self is None or trial.expires > best_expires:
+            if self is None or trial.expires > self.expires:
                 self = trial
                 self.meta['data_url'] = str(f)
-                best_expires = trial.expires
                 if self.expires > good_enough:
                     break
 
@@ -1022,7 +1030,7 @@ class LeapSeconds(QTable):
             raise ValueError('none of the files could be read. The '
                              'following errors were raised:\n' + str(err_list))
 
-        if self.expires < datetime.now():
+        if self.expires < self._today():
             warn('leap-second file is expired.', IERSStaleWarning)
 
         return self
@@ -1042,8 +1050,9 @@ class LeapSeconds(QTable):
             for line in lines:
                 match = cls._re_expires.match(line)
                 if match:
-                    expires = datetime.strptime(match.groups()[0],
-                                                '%d %B %Y')
+                    expires = Time.strptime(match.groups()[0], '%d %B %Y',
+                                            scale='tai', format='iso',
+                                            out_subfmt='date')
                     break
             else:
                 raise ValueError(f'did not find expiration date in {file}')
@@ -1094,12 +1103,11 @@ class LeapSeconds(QTable):
             file, names=names, include_names=names[:2],
             converters={'col1': [convert_numpy(np.int64)]})
         self['mjd'] = (self['ntp_seconds']/86400 + 15020).round()
-        # Note: cannot use Time in this routine.
-        dt = [datetime(1900, 1, 1) + timedelta(mjd-15020)
-              for mjd in self['mjd']]
-        self['day'] = [d.day for d in dt]
-        self['month'] = [d.month for d in dt]
-        self['year'] = [d.year for d in dt]
+        # Note: cannot use Time.ymdhms, since that might require leap seconds.
+        isot = Time(self['mjd'], format='mjd', scale='tai').isot
+        ymd = np.array([[int(part) for part in t.partition('T')[0].split('-')]
+                        for t in isot])
+        self['year'], self['month'], self['day'] = ymd.T
         return self
 
     @classmethod
@@ -1114,7 +1122,9 @@ class LeapSeconds(QTable):
             with erfa.
         """
         current = cls(erfa.leap_seconds.get())
-        current._expires = erfa.leap_seconds.expires
+        current._expires = Time('{0.year:04d}-{0.month:02d}-{0.day:02d}'
+                                .format(erfa.leap_seconds.expires),
+                                scale='tai')
         if not built_in:
             return current
 
