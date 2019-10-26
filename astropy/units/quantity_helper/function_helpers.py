@@ -104,23 +104,14 @@ if NUMPY_LT_1_18:
 # np.ediff1d is from setops, but we support it anyway; the others
 # currently return NotImplementedError.
 # TODO: move latter to UNSUPPORTED? Would raise TypeError instead.
-SUBCLASS_SAFE_FUNCTIONS |= {
-    np.ediff1d,
-    np.all, np.any, np.sometrue, np.alltrue}
-
-# Subclass safe, but possibly better if overridden (e.g., with different
-# default arguments for isclose, allclose).
-# TODO: decide on desired behaviour.
-SUBCLASS_SAFE_FUNCTIONS |= {
-    np.isclose, np.allclose,
-    np.array2string, np.array_repr, np.array_str}
+SUBCLASS_SAFE_FUNCTIONS |= {np.ediff1d}
 
 # Nonsensical for quantities.
 UNSUPPORTED_FUNCTIONS |= {
     np.packbits, np.unpackbits, np.unravel_index,
     np.ravel_multi_index, np.ix_, np.cov, np.corrcoef,
     np.busday_count, np.busday_offset, np.datetime_as_string,
-    np.is_busday}
+    np.is_busday, np.all, np.any, np.sometrue, np.alltrue}
 
 # The following are not just unsupported, but so unlikely to be thought
 # to be supported that we ignore them in testing.  (Kept in a separate
@@ -547,6 +538,17 @@ def count_nonzero(a, *args, **kwargs):
     return (a.value,) + args, kwargs, None, None
 
 
+@function_helper(helps={np.isclose, np.allclose})
+def close(a, b, rtol=1e-05, atol=1e-08, *args, **kwargs):
+    from astropy.units import Quantity
+
+    (a, b), unit = _quantities2arrays(a, b, unit_from_first=True)
+    # Allow number without a unit as having the unit.
+    atol = Quantity(atol, unit).value
+
+    return (a, b, rtol, atol) + args, kwargs, None, None
+
+
 @function_helper
 def array_equal(a1, a2):
     args, unit = _quantities2arrays(a1, a2)
@@ -876,3 +878,63 @@ def apply_over_axes(func, a, axes):
     # Returning unit is None to signal nothing should happen to
     # the output.
     return val, None, None
+
+
+@dispatched_function
+def array_repr(arr, *args, **kwargs):
+    # TODO: The addition of "unit='...'" doesn't worry about line
+    # length.  Could copy & adapt _array_repr_implementation from
+    # numpy.core.arrayprint.py
+    cls_name = arr.__class__.__name__
+    fake_name = '_' * len(cls_name)
+    fake_cls = type(fake_name, (np.ndarray,), {})
+    no_unit = np.array_repr(arr.view(fake_cls),
+                            *args, **kwargs).replace(fake_name, cls_name)
+    unit_part = f"unit='{arr.unit}'"
+    pre, dtype, post = no_unit.rpartition('dtype')
+    if dtype:
+        return f"{pre}{unit_part}, {dtype}{post}", None, None
+    else:
+        return f"{no_unit[:-1]}, {unit_part})", None, None
+
+
+@dispatched_function
+def array_str(arr, *args, **kwargs):
+    # TODO: The addition of the unit doesn't worry about line length.
+    # Could copy & adapt _array_repr_implementation from
+    # numpy.core.arrayprint.py
+    no_unit = np.array_str(arr.value, *args, **kwargs)
+    return no_unit + arr._unitstr, None, None
+
+
+@function_helper
+def array2string(a, *args, **kwargs):
+    # array2string breaks on quantities as it tries to turn individual
+    # items into float, which works only for dimensionless.  Since the
+    # defaults would not keep any unit anyway, this is rather pointless -
+    # we're better off just passing on the array view.  However, one can
+    # also work around this by passing on a formatter (as is done in Angle).
+    # So, we do nothing if the formatter argument is present and has the
+    # relevant formatter for our dtype.
+    formatter = args[6] if len(args) >= 7 else kwargs.get('formatter', None)
+
+    if formatter is None:
+        a = a.value
+    else:
+        # See whether it covers our dtype.
+        from numpy.core.arrayprint import _get_format_function
+
+        with np.printoptions(formatter=formatter) as options:
+            try:
+                ff = _get_format_function(a.value, **options)
+            except Exception:
+                # Shouldn't happen, but possibly we're just not being smart
+                # enough, so let's pass things on as is.
+                pass
+            else:
+                # If the selected format function is that of numpy, we know
+                # things will fail
+                if 'numpy' in ff.__module__:
+                    a = a.value
+
+    return (a,) + args, kwargs, None, None

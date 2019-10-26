@@ -161,11 +161,15 @@ class TestShapeManipulation(InvariantUnitTestSetup):
         self.check(np.rot90)
 
     def test_broadcast_to(self):
-        # TODO: should we change the default for subok?
+        # Decided *not* to change default for subok for Quantity, since
+        # that would be contrary to the docstring and might break code.
         self.check(np.broadcast_to, (3, 3, 3), subok=True)
+        out = np.broadcast_to(self.q, (3, 3, 3))
+        assert type(out) is np.ndarray  # NOT Quantity
 
     def test_broadcast_arrays(self):
-        # TODO: should we change the default for subok?
+        # Decided *not* to change default for subok for Quantity, since
+        # that would be contrary to the docstring and might break code.
         q2 = np.ones((3, 3, 3)) / u.s
         o1, o2 = np.broadcast_arrays(self.q, q2, subok=True)
         assert isinstance(o1, u.Quantity)
@@ -173,6 +177,9 @@ class TestShapeManipulation(InvariantUnitTestSetup):
         assert o1.shape == o2.shape == (3, 3, 3)
         assert np.all(o1 == self.q)
         assert np.all(o2 == q2)
+        a1, a2 = np.broadcast_arrays(self.q, q2)
+        assert type(a1) is np.ndarray
+        assert type(a2) is np.ndarray
 
 
 class TestArgFunctions(NoUnitTestSetup):
@@ -611,19 +618,19 @@ class TestUfuncReductions(InvariantUnitTestSetup):
         self.check(np.cumsum)
 
     def test_any(self):
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(TypeError):
             np.any(self.q)
 
     def test_all(self):
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(TypeError):
             np.all(self.q)
 
     def test_sometrue(self):
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(TypeError):
             np.sometrue(self.q)
 
     def test_alltrue(self):
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(TypeError):
             np.alltrue(self.q)
 
     def test_prod(self):
@@ -810,13 +817,23 @@ class TestUfuncLikeTests(metaclass=CoverageMeta):
         assert out.dtype.kind == 'b'
         assert np.all(out == expected)
 
-    @pytest.mark.xfail
-    def test_isclose_failure(self):
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason=("Needs __array_function__ support"))
+    def test_allclose_atol_default_unit(self):
         q_cm = self.q.to(u.cm)
-        # atol does not have units; TODO: should this work by default?
         out = np.isclose(self.q, q_cm)
         expected = np.isclose(self.q.value, q_cm.to_value(u.m))
         assert np.all(out == expected)
+        q1 = np.arange(3.) * u.m
+        q2 = np.array([0., 101., 198.]) * u.cm
+        out = np.isclose(q1, q2, atol=0.011, rtol=0)
+        expected = np.isclose(q1.value, q2.to_value(q1.unit),
+                              atol=0.011, rtol=0)
+        assert np.all(out == expected)
+        out2 = np.isclose(q2, q1, atol=0.011, rtol=0)
+        expected2 = np.isclose(q2.value, q1.to_value(q2.unit),
+                               atol=0.011, rtol=0)
+        assert np.all(out2 == expected2)
 
 
 class TestReductionLikeFunctions(InvariantUnitTestSetup):
@@ -892,16 +909,21 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
         assert np.allclose(q1, q2, atol=atol)
         assert np.allclose(q1, q2, atol=0., rtol=rtol)
 
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason=("Needs __array_function__ support"))
+    def test_allclose_atol_default_unit(self):
+        q1 = np.arange(3.) * u.m
+        q2 = np.array([0., 101., 199.]) * u.cm
+        assert np.allclose(q1, q2, atol=0.011, rtol=0)
+        assert not np.allclose(q2, q1, atol=0.011, rtol=0)
+
     def test_allclose_failures(self):
         q1 = np.arange(3.) * u.m
         q2 = np.array([0., 101., 199.]) * u.cm
         with pytest.raises(u.UnitsError):
-            # Default atol breaks code; TODO: should this work?
-            assert np.allclose(q1, q2)
+            np.allclose(q1, q2, atol=2*u.s, rtol=0)
         with pytest.raises(u.UnitsError):
-            np.allclose(q1, q2, atol=2, rtol=0)
-        with pytest.raises(u.UnitsError):
-            np.allclose(q1, q2, atol=0, rtol=1. * u.s)
+            np.allclose(q1, q2, atol=0, rtol=1.*u.s)
 
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
@@ -1544,26 +1566,47 @@ class TestSortFunctions(InvariantUnitTestSetup):
 
 
 class TestStringFunctions(metaclass=CoverageMeta):
-    # For all these functions, we could change it to work on Quantity,
-    # but it would mean deviating from the docstring.  Not clear whether
-    # that is worth it.
+    # For these, making behaviour work means deviating only slightly from
+    # the docstring, and by default they fail miserably.  So, might as well.
     def setup(self):
         self.q = np.arange(3.) * u.Jy
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_array2string(self):
-        out = np.array2string(self.q)
-        expected = str(self.q)
-        assert out == expected
+        # The default formatters cannot handle units, so if we do not pass
+        # a relevant formatter, we are better off just treating it as an
+        # array (which happens for all subtypes).
+        out0 = np.array2string(self.q)
+        expected0 = str(self.q.value)
+        assert out0 == expected0
+        # Arguments are interpreted as usual.
+        out1 = np.array2string(self.q, separator=', ')
+        expected1 = '[0., 1., 2.]'
+        assert out1 == expected1
+        # If we do pass in a formatter, though, it should be used.
+        out2 = np.array2string(self.q, separator=', ', formatter={'all': str})
+        expected2 = '[0.0 Jy, 1.0 Jy, 2.0 Jy]'
+        assert out2 == expected2
+        # Also as positional argument (no, nobody will do this!)
+        out3 = np.array2string(self.q, None, None, None, ', ', '',
+                               np._NoValue, {'float': str})
+        assert out3 == expected2
+        # But not if the formatter is not relevant for us.
+        out4 = np.array2string(self.q, separator=', ', formatter={'int': str})
+        assert out4 == expected1
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_array_repr(self):
         out = np.array_repr(self.q)
-        expected = (np.array_repr(self.q.value)[:-1] +
-                    ', {!r})'.format(str(self.q.unit)))
-        assert out == expected
+        assert out == "Quantity([0., 1., 2.], unit='Jy')"
+        q2 = self.q.astype('f4')
+        out2 = np.array_repr(q2)
+        assert out2 == "Quantity([0., 1., 2.], unit='Jy', dtype=float32)"
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_array_str(self):
         out = np.array_str(self.q)
         expected = str(self.q)
