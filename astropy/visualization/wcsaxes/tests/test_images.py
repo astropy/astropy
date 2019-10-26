@@ -718,6 +718,9 @@ class TestBasic(BaseImageTests):
         plt.tick_params(direction='in', length=20, width=5, pad=6, labelsize=6,
                         color='red', labelcolor='blue')
 
+        ax.coords[0].set_auto_axislabel(False)
+        ax.coords[1].set_auto_axislabel(False)
+
         # The second subplot tests:
         # - that specifying grid parameters doesn't actually cause the grid to
         #   be shown (as expected)
@@ -731,6 +734,9 @@ class TestBasic(BaseImageTests):
                         color='blue', labelcolor='purple', left=True, right=True,
                         grid_color='red')
 
+        ax.coords[0].set_auto_axislabel(False)
+        ax.coords[1].set_auto_axislabel(False)
+
         # The third subplot tests:
         # - that ax.tick_params works
         # - that the grid has the correct settings once shown explicitly
@@ -743,6 +749,9 @@ class TestBasic(BaseImageTests):
                        color='blue', labelcolor='purple', left=True, right=True,
                        grid_color='red')
         plt.grid()
+
+        ax.coords[0].set_auto_axislabel(False)
+        ax.coords[1].set_auto_axislabel(False)
 
         # The final subplot tests:
         # - that we can use tick_params on a specific coordinate
