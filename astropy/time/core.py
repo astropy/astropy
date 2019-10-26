@@ -2417,5 +2417,5 @@ def update_leap_seconds(files=None):
 
     except Exception as exc:
         warn("leap-second auto-update failed due to the following "
-             "exception: " + str(exc), AstropyWarning)
+             f"exception: {exc!r}", AstropyWarning)
         return 0
