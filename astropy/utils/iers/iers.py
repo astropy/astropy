@@ -1070,7 +1070,7 @@ class LeapSeconds(QTable):
         file : path, optional
             Full local or network path to the file holding leap-second data
             in a format consistent with that used by IERS.  By default, uses
-            `astropy.utils.iers.IERS_LEAP_SECOND_FILE`.
+            ``iers.IERS_LEAP_SECOND_FILE``.
 
         Notes
         -----
@@ -1089,7 +1089,7 @@ class LeapSeconds(QTable):
         file : path, optional
             Full local or network path to the file holding leap-second data
             in a format consistent with that used by IETF.  Up to date versions
-            can be retrieved from `astropy.utils.iers.IETF_LEAP_SECOND_URL`.
+            can be retrieved from ``iers.IETF_LEAP_SECOND_URL``.
 
         Notes
         -----

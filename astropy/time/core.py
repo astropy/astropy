@@ -2399,9 +2399,9 @@ def update_leap_seconds(files=None):
     Parameters
     ----------
     files : list of path, optional
-        List of files/URLs to attempt to open.  By default, uses those defined
-        by `astropy.utils.iers.LeapSecond.open`, which includes the table used
-        by ERFA itself, so if we're up to date already, nothing will happen.
+        List of files/URLs to attempt to open.  By default, uses defined by
+        `astropy.utils.iers.LeapSeconds.auto_open`, which includes the table
+        used by ERFA itself, so if that is up to date, nothing will happen.
 
     Returns
     -------
