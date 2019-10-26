@@ -171,7 +171,7 @@ def test_boolean_slicing():
     with pytest.raises(ValueError):
         nd2 = nd[(nd.data >= 3) & (nd.data < 8)]
 
-    del(nd.wcs)
+    nd.wcs = None
     nd2 = nd[(nd.data >= 3) & (nd.data < 8)]
     assert_array_equal(data[3:8], nd2.data)
     assert_array_equal(mask[3:8], nd2.mask)
