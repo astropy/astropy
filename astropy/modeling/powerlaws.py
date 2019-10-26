@@ -1,12 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 """
 Power law model variants
 """
-
-
-from collections import OrderedDict
-
 import numpy as np
 
 from .core import Fittable1DModel
@@ -72,8 +67,8 @@ class PowerLaw1D(Fittable1DModel):
             return {'x': self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('x_0', inputs_unit['x']),
-                            ('amplitude', outputs_unit['y'])])
+        return {'x_0': inputs_unit['x'],
+                'amplitude': outputs_unit['y']}
 
 
 class BrokenPowerLaw1D(Fittable1DModel):
@@ -146,8 +141,8 @@ class BrokenPowerLaw1D(Fittable1DModel):
             return {'x': self.x_break.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('x_break', inputs_unit['x']),
-                            ('amplitude', outputs_unit['y'])])
+        return {'x_break': inputs_unit['x'],
+                'amplitude': outputs_unit['y']}
 
 
 class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
@@ -382,8 +377,8 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
             return {'x': self.x_break.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('x_break', inputs_unit['x']),
-                            ('amplitude', outputs_unit['y'])])
+        return {'x_break': inputs_unit['x'],
+                'amplitude': outputs_unit['y']}
 
 
 class ExponentialCutoffPowerLaw1D(Fittable1DModel):
@@ -447,9 +442,9 @@ class ExponentialCutoffPowerLaw1D(Fittable1DModel):
             return {'x': self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('x_0', inputs_unit['x']),
-                            ('x_cutoff', inputs_unit['x']),
-                            ('amplitude', outputs_unit['y'])])
+        return {'x_0': inputs_unit['x'],
+                'x_cutoff': inputs_unit['x'],
+                'amplitude': outputs_unit['y']}
 
 
 class LogParabola1D(Fittable1DModel):
@@ -514,5 +509,5 @@ class LogParabola1D(Fittable1DModel):
             return {'x': self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('x_0', inputs_unit['x']),
-                            ('amplitude', outputs_unit['y'])])
+        return {'x_0': inputs_unit['x'],
+                'amplitude': outputs_unit['y']}
