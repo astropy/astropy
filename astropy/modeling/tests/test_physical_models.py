@@ -3,8 +3,8 @@
 
 import pytest
 import numpy as np
-
-from astropy.modeling.physical_models import BlackBody
+from numpy.testing import assert_allclose
+import astropy.modeling.physical_models as apm
 from astropy.modeling.fitting import LevMarLSQFitter
 
 from astropy.tests.helper import assert_quantity_allclose, catch_warnings
@@ -27,35 +27,35 @@ __doctest_skip__ = ["*"]
 @pytest.mark.parametrize("temperature", (3000 * u.K, 2726.85 * u.deg_C))
 def test_blackbody_evaluate(temperature):
 
-    b = BlackBody(temperature=temperature, scale=1.0)
+    b = apm.BlackBody(temperature=temperature, scale=1.0)
 
     assert_quantity_allclose(b(1.4 * u.micron), 486787299458.15656 * u.MJy / u.sr)
     assert_quantity_allclose(b(214.13747 * u.THz), 486787299458.15656 * u.MJy / u.sr)
 
 
 def test_blackbody_weins_law():
-    b = BlackBody(293.0 * u.K)
+    b = apm.BlackBody(293.0 * u.K)
     assert_quantity_allclose(b.lambda_max, 9.890006672986939 * u.micron)
     assert_quantity_allclose(b.nu_max, 17.22525080856469 * u.THz)
 
 
 def test_blackbody_sefanboltzman_law():
-    b = BlackBody(293.0 * u.K)
+    b = apm.BlackBody(293.0 * u.K)
     assert_quantity_allclose(b.bolometric_flux, 133.02471751812573 * u.W / (u.m * u.m))
 
 
 def test_blackbody_return_units():
     # return of evaluate has no units when temperature has no units
-    b = BlackBody(1000.0 * u.K, scale=1.0)
+    b = apm.BlackBody(1000.0 * u.K, scale=1.0)
     assert not isinstance(b.evaluate(1.0 * u.micron, 1000.0, 1.0), u.Quantity)
 
     # return has "standard" units when scale has no units
-    b = BlackBody(1000.0 * u.K, scale=1.0)
+    b = apm.BlackBody(1000.0 * u.K, scale=1.0)
     assert isinstance(b(1.0 * u.micron), u.Quantity)
     assert b(1.0 * u.micron).unit == u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr)
 
     # return has scale units when scale has units
-    b = BlackBody(1000.0 * u.K, scale=1.0 * u.MJy / u.sr)
+    b = apm.BlackBody(1000.0 * u.K, scale=1.0 * u.MJy / u.sr)
     assert isinstance(b(1.0 * u.micron), u.Quantity)
     assert b(1.0 * u.micron).unit == u.MJy / u.sr
 
@@ -65,7 +65,7 @@ def test_blackbody_fit():
 
     fitter = LevMarLSQFitter()
 
-    b = BlackBody(3000 * u.K, scale=5e-17 * u.Jy / u.sr)
+    b = apm.BlackBody(3000 * u.K, scale=5e-17 * u.Jy / u.sr)
 
     wav = np.array([0.5, 5, 10]) * u.micron
     fnu = np.array([1, 10, 5]) * u.Jy / u.sr
@@ -82,7 +82,7 @@ def test_blackbody_overflow():
     wave = [0.0, 1000.0, 100000.0, 1e55]  # Angstrom
     temp = 10000.0  # Kelvin
     with np.errstate(all="ignore"):
-        bb = BlackBody(temperature=temp * u.K, scale=1.0)
+        bb = apm.BlackBody(temperature=temp * u.K, scale=1.0)
         bb_lam = bb(wave) * u.sr
     flux = bb_lam.to(photlam, u.spectral_density(wave * u.AA)) / u.sr
 
@@ -102,11 +102,11 @@ def test_blackbody_exceptions_and_warnings():
 
     # Negative temperature
     with pytest.raises(ValueError) as exc:
-        bb = BlackBody(-100 * u.K)
+        bb = apm.BlackBody(-100 * u.K)
         bb(1.0 * u.micron)
     assert exc.value.args[0] == "Temperature should be positive: [-100.] K"
 
-    bb = BlackBody(5000 * u.K)
+    bb = apm.BlackBody(5000 * u.K)
 
     # Zero wavelength given for conversion to Hz
     with catch_warnings(AstropyUserWarning) as w:
@@ -122,14 +122,14 @@ def test_blackbody_exceptions_and_warnings():
 
     # Test that a non surface brightness converatable scale unit
     with pytest.raises(ValueError) as exc:
-        bb = BlackBody(5000 * u.K, scale=1.0 * u.Jy)
+        bb = apm.BlackBody(5000 * u.K, scale=1.0 * u.Jy)
         bb(1.0 * u.micron)
     assert exc.value.args[0] == "scale units not surface brightness: Jy"
 
 
 def test_blackbody_array_temperature():
     """Regression test to make sure that the temperature can be an array."""
-    multibb = BlackBody([100, 200, 300] * u.K)
+    multibb = apm.BlackBody([100, 200, 300] * u.K)
     flux = multibb(1.2 * u.mm)
     np.testing.assert_allclose(
         flux.value, [1.804908e-12, 3.721328e-12, 5.638513e-12], rtol=1e-5
@@ -140,6 +140,19 @@ def test_blackbody_array_temperature():
         flux.value, [6.657915e-13, 3.420677e-13, 2.291897e-13], rtol=1e-5
     )
 
-    multibb = BlackBody(np.ones(4) * u.K)
+    multibb = apm.BlackBody(np.ones(4) * u.K)
     flux = multibb(np.ones((3, 4)) * u.mm)
     assert flux.shape == (3, 4)
+
+
+def test_grating_equation():
+    lam = 2e-6 * u.m
+    agreq = apm.AnglesFromGratingEquation3D(20000, -1)
+    alpha_in = np.linspace(.01, .05, 20)
+    xout = -alpha_in - (agreq.groove_density * agreq.spectral_order *
+                        2e-6)
+
+    alpha_out, beta_out, gamma_out = agreq([2e-6]*alpha_in.size, -alpha_in, alpha_in)
+    assert_allclose(alpha_out, xout)
+    assert_allclose(beta_out, -alpha_in)
+    assert_allclose(gamma_out, np.sqrt(1 -  alpha_out**2 - beta_out**2))

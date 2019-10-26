@@ -433,7 +433,7 @@ class AnglesFromGratingEquation3D(Model):
                  groove_density, spectral_order):
         if alpha_in.shape != beta_in.shape:
             raise ValueError("Expected input arrays to have the same shape.")
-        alpha_out = groove_density * spectral_order * wavelength + alpha_in
+        alpha_out = -groove_density * spectral_order * wavelength + alpha_in
         beta_out = - beta_in
         gamma_out = np.sqrt(1 - alpha_out ** 2 - beta_out ** 2)
         return alpha_out, beta_out, gamma_out

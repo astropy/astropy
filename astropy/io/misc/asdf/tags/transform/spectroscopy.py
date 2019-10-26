@@ -27,10 +27,10 @@ class GratingEquationType(TransformType):
         output = node['output']
         if output == "wavelength":
             model = models.WavelengthFromGratingEquation(groove_density=groove_density,
-                                                  spectral_order=order)
+                                                         spectral_order=order)
         elif output == "angle":
             model = models.AnglesFromGratingEquation3D(groove_density=groove_density,
-                                             spectral_order=order)
+                                                       spectral_order=order)
         else:
             raise ValueError("Can't create a GratingEquation model with "
                              "output {0}".format(output))
