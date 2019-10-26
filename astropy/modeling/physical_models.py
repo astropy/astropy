@@ -404,7 +404,7 @@ class AnglesFromGratingEquation3D(Model):
     >>> lam = 2e-6 * u.m
     >>> alpha_out, beta_out, gamma_out = model(lam, alpha_in, beta_in)
     >>> print(alpha_out, beta_out, gamma_out)
-    -0.03999825467074801 -1.7453292519934436e-06 0.9991997496097804
+    0.04000174532925199 -1.7453292519934436e-06 0.9991996098716049
     """
 
     _separable = False
