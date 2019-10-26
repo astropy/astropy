@@ -1133,6 +1133,25 @@ class TestCopyReplicate:
         assert t.location.x == t_loc_x  # prove that it changed
 
 
+class TestStardate:
+    """Sync chronometers with Starfleet Command"""
+
+    def test_iso_to_stardate(self):
+        assert str(Time('2320-01-01').stardate)[:7] == '1368.99'
+        assert str(Time('2330-01-01').stardate)[:8] == '10552.76'
+        assert str(Time('2340-01-01').stardate)[:8] == '19734.02'
+
+    @pytest.mark.parametrize('dates',
+                             [(10000, '2329-05-26 03:02'),
+                              (20000, '2340-04-15 19:05'),
+                              (30000, '2351-03-07 11:08')])
+    def test_stardate_to_iso(self, dates):
+        stardate, iso = dates
+        t_star = Time(stardate, format='stardate')
+        t_iso = Time(t_star, format='iso', out_subfmt='date_hm')
+        assert t_iso.value == iso
+
+
 def test_python_builtin_copy():
     t = Time('2000:001', format='yday', scale='tai')
     t2 = copy.copy(t)
