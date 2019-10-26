@@ -72,6 +72,8 @@ class TestBasic(BaseImageTests):
         ax.set_ylim(-0.5, 148.5)
         ax.coords[0].set_ticks([-0.30, 0., 0.20] * u.degree, size=5, width=1)
         ax.grid()
+        ax.coords[0].set_auto_axislabel(False)
+        ax.coords[1].set_auto_axislabel(False)
 
         # Add an image (default zorder=0).
         ax.imshow(np.zeros((64, 64)))
@@ -335,10 +337,13 @@ class TestBasic(BaseImageTests):
         ax.set_ylim(-0.5, 106.5)
         ax.coords[0].set_ticks_position('')
         ax.coords[0].set_ticklabel_position('')
+        ax.coords[0].set_axislabel_position('')
         ax.coords[1].set_ticks_position('lr')
         ax.coords[1].set_ticklabel_position('l')
+        ax.coords[1].set_axislabel_position('l')
         ax.coords[2].set_ticks_position('bt')
         ax.coords[2].set_ticklabel_position('b')
+        ax.coords[2].set_axislabel_position('b')
         ax.coords[2].set_major_formatter('x.xx')
         ax.coords[2].set_format_unit(u.km / u.s)
         ax.coords[2].set_axislabel('Velocity km/s')
@@ -362,10 +367,13 @@ class TestBasic(BaseImageTests):
         ax.set_ylim(-0.5, 106.5)
         ax.coords[0].set_ticks_position('')
         ax.coords[0].set_ticklabel_position('')
+        ax.coords[0].set_axislabel_position('')
         ax.coords[1].set_ticks_position('lr')
         ax.coords[1].set_ticklabel_position('l')
+        ax.coords[1].set_axislabel_position('l')
         ax.coords[2].set_ticks_position('bt')
         ax.coords[2].set_ticklabel_position('b')
+        ax.coords[2].set_axislabel_position('b')
         ax.coords[2].set_ticklabel(exclude_overlapping=True)
         ax.coords[1].set_ticklabel(exclude_overlapping=True)
         ax.coords[2].display_minor_ticks(True)
@@ -710,6 +718,9 @@ class TestBasic(BaseImageTests):
         plt.tick_params(direction='in', length=20, width=5, pad=6, labelsize=6,
                         color='red', labelcolor='blue')
 
+        ax.coords[0].set_auto_axislabel(False)
+        ax.coords[1].set_auto_axislabel(False)
+
         # The second subplot tests:
         # - that specifying grid parameters doesn't actually cause the grid to
         #   be shown (as expected)
@@ -722,6 +733,9 @@ class TestBasic(BaseImageTests):
         plt.tick_params(axis='lat', direction='out', labelsize=8,
                         color='blue', labelcolor='purple', left=True, right=True,
                         grid_color='red')
+
+        ax.coords[0].set_auto_axislabel(False)
+        ax.coords[1].set_auto_axislabel(False)
 
         # The third subplot tests:
         # - that ax.tick_params works
@@ -736,6 +750,9 @@ class TestBasic(BaseImageTests):
                        grid_color='red')
         plt.grid()
 
+        ax.coords[0].set_auto_axislabel(False)
+        ax.coords[1].set_auto_axislabel(False)
+
         # The final subplot tests:
         # - that we can use tick_params on a specific coordinate
         # - that the label positioning can be customized
@@ -747,6 +764,9 @@ class TestBasic(BaseImageTests):
         ax.coords[1].display_minor_ticks(True)
         ax.coords[1].tick_params(which='minor', length=6)
 
+        ax.coords[0].set_auto_axislabel(False)
+        ax.coords[1].set_auto_axislabel(False)
+
         return fig
 
 
@@ -754,6 +774,7 @@ class TestBasic(BaseImageTests):
 def wave_wcs_1d():
     wcs = WCS(naxis=1)
     wcs.wcs.ctype = ['WAVE']
+    wcs.wcs.cunit = ['m']
     wcs.wcs.crpix = [1]
     wcs.wcs.cdelt = [5]
     wcs.wcs.crval = [45]
@@ -771,6 +792,23 @@ def test_1d_plot_1d_wcs(wave_wcs_1d):
 
     ax.set_xlabel("this is the x-axis")
     ax.set_ylabel("this is the y-axis")
+
+    return fig
+
+
+@pytest.mark.remote_data(source='astropy')
+@pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                tolerance=0, style={})
+def test_1d_plot_1d_wcs_format_unit(wave_wcs_1d):
+    """
+    This test ensures that the format unit is updated and displayed for both
+    the axis ticks and default axis labels.
+    """
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection=wave_wcs_1d)
+    lines, = ax.plot([10, 12, 14, 12, 10])
+
+    ax.coords[0].set_format_unit("nm")
 
     return fig
 
@@ -801,5 +839,71 @@ def test_1d_plot_2d_wcs_correlated(spatial_wcs_2d):
     ax.coords['glat'].set_ticks(color="blue")
     ax.coords['glat'].set_ticklabel(color="blue")
     ax.coords['glat'].grid(color="blue")
+
+    return fig
+
+
+@pytest.fixture
+def spatial_wcs_2d_small_angle():
+    """
+    This WCS has an almost linear correlation between the pixel and world axes
+    close to the reference pixel.
+    """
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ['HPLN-TAN', 'HPLT-TAN']
+    wcs.wcs.crpix = [3.0] * 2
+    wcs.wcs.cdelt = [10/3600, 5/3600]
+    wcs.wcs.crval = [0] * 2
+    wcs.wcs.set()
+    return wcs
+
+
+@pytest.mark.parametrize("slices, bottom_axis", [
+    # Remember SLLWCS takes slices in array order
+    (np.s_[0, :], 'custom:pos.helioprojective.lon'),
+    (np.s_[:, 0], 'custom:pos.helioprojective.lat')])
+@pytest.mark.remote_data(source='astropy')
+@pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                               tolerance=0, style={})
+def test_1d_plot_1d_sliced_low_level_wcs(spatial_wcs_2d_small_angle, slices, bottom_axis):
+    """
+    Test that a SLLWCS through a coupled 2D WCS plots as line OK.
+    """
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection=spatial_wcs_2d_small_angle[slices])
+    lines, = ax.plot([10, 12, 14, 12, 10], '-o', color="orange")
+
+    # Draw to trigger rendering the ticks.
+    plt.draw()
+
+    assert ax.coords[bottom_axis].ticks.get_visible_axes() == ['b']
+
+    return fig
+
+
+@pytest.mark.parametrize("slices, bottom_axis", [
+    (('x', 0), 'hpln'),
+    ((0, 'x'), 'hplt')])
+@pytest.mark.remote_data(source='astropy')
+@pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                               tolerance=0, style={})
+def test_1d_plot_put_varying_axis_on_bottom_lon(spatial_wcs_2d_small_angle, slices, bottom_axis):
+    """
+    When we plot a 1D slice through spatial axes, we want to put the axis which
+    actually changes on the bottom.
+
+    For example an aligned wcs, pixel grid where you plot a lon slice through a
+    lat axis, you would end up with no ticks on the bottom as the lon dosen't
+    change, and a set of lat ticks on the top because it does but it's the
+    correlated axis not the actual one you are plotting against.
+    """
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection=spatial_wcs_2d_small_angle, slices=slices)
+    lines, = ax.plot([10, 12, 14, 12, 10], '-o', color="orange")
+
+    # Draw to trigger rendering the ticks.
+    plt.draw()
+
+    assert ax.coords[bottom_axis].ticks.get_visible_axes() == ['b']
 
     return fig

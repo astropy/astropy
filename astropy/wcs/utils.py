@@ -14,7 +14,8 @@ __all__ = ['add_stokes_axis_to_wcs', 'celestial_frame_to_wcs',
            'proj_plane_pixel_area', 'is_proj_plane_distorted',
            'non_celestial_pixel_scales', 'skycoord_to_pixel',
            'pixel_to_skycoord', 'custom_wcs_to_frame_mappings',
-           'custom_frame_to_wcs_mappings', 'pixel_to_pixel']
+           'custom_frame_to_wcs_mappings', 'pixel_to_pixel',
+           'local_partial_pixel_derivatives']
 
 
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
@@ -825,3 +826,39 @@ def pixel_to_pixel(wcs_in, wcs_out, *inputs):
                 outputs[ipix] = np.broadcast_to(pixel_outputs[ipix], original_shape)
 
     return outputs[0] if wcs_out.pixel_n_dim == 1 else outputs
+
+
+def local_partial_pixel_derivatives(wcs, *pixel, normalize_by_world=False):
+    """
+    Return a matrix of shape ``(world_n_dim, pixel_n_dim)`` where each entry
+    ``[i, j]`` is the partial derivative d(world_i)/d(pixel_j) at the requested
+    pixel position.
+
+    Parameters
+    ----------
+    wcs : `~astropy.wcs.WCS`
+        The WCS transformation to evaluate the derivatives for.
+    *pixel : float
+        The scalar pixel coordinates at which to evaluate the derivatives.
+    normalize_by_world : bool
+        If `True`, the matrix is normalized so that for each world entry
+        the derivatives add up to 1.
+    """
+
+    # Find the world coordinates at the requested pixel
+    pixel_ref = np.array(pixel)
+    world_ref = np.array(wcs.pixel_to_world_values(*pixel_ref))
+
+    # Set up the derivative matrix
+    derivatives = np.zeros((wcs.world_n_dim, wcs.pixel_n_dim))
+
+    for i in range(wcs.pixel_n_dim):
+        pixel_off = pixel_ref.copy()
+        pixel_off[i] += 1
+        world_off = np.array(wcs.pixel_to_world_values(*pixel_off))
+        derivatives[:, i] = world_off - world_ref
+
+    if normalize_by_world:
+        derivatives /= derivatives.sum(axis=0)[:, np.newaxis]
+
+    return derivatives

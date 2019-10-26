@@ -258,6 +258,13 @@ astropy.visualization
 
 - Add support for one dimensional plots to ``WCSAxes``. [#9266]
 
+- Add a ``get_format_unit`` to ``wcsaxes.CoordinateHelper``. [#9392]
+
+- ``WCSAxes`` now, by default, sets a default label for plot axes which is the
+  WCS physical type (and unit) for that axis. This can be disabled using the
+  ``coords[i].set_auto_axislabel(False)`` or by explicitly setting an axis
+  label. [#9392]
+
 astropy.wcs
 ^^^^^^^^^^^
 
@@ -265,6 +272,10 @@ astropy.wcs
   to transform pixel coordinates in one dataset with a WCS to pixel coordinates in
   another dataset with a different WCS. This function is designed to be efficient
   when the input arrays are broadcasted views of smaller arrays. [#9209]
+
+- Added a ``local_partial_pixel_derivatives`` function that can be used to
+  determine a matrix of partial derivatives of each world coordinate with respect
+  to each pixel coordinate. [#9392]
 
 - Updated wcslib to v6.4. [#9125]
 

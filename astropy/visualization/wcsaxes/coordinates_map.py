@@ -89,7 +89,8 @@ class CoordinatesMap:
                                                  coord_wrap=coord_wrap,
                                                  coord_unit=coord_unit,
                                                  format_unit=format_unit,
-                                                 frame=self.frame))
+                                                 frame=self.frame,
+                                                 name=name))
 
             # Set up aliases for coordinates
             if isinstance(name, tuple):
@@ -166,7 +167,7 @@ class CoordinatesMap:
             aliases = [key for key, value in self._aliases.items() if value == icoord]
             row = OrderedDict([('index', icoord), ('aliases', ' '.join(aliases)),
                                ('type', coord.coord_type), ('unit', coord.coord_unit),
-                               ('wrap', coord.coord_wrap), ('format_unit', coord.format_unit),
+                               ('wrap', coord.coord_wrap), ('format_unit', coord.get_format_unit()),
                                ('visible', 'no' if coord.coord_index is None else 'yes')])
             rows.append(row)
         return Table(rows=rows)

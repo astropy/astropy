@@ -54,10 +54,14 @@ class BaseFormatterLocator:
     A joint formatter/locator
     """
 
-    def __init__(self, values=None, number=None, spacing=None, format=None):
+    def __init__(self, values=None, number=None, spacing=None, format=None,
+                 unit=None, format_unit=None):
 
         if len([x for x in (values, number, spacing) if x is None]) < 2:
             raise ValueError("At most one of values/number/spacing can be specifed")
+
+        self._unit = unit
+        self._format_unit = format_unit or unit
 
         if values is not None:
             self.values = values
@@ -150,13 +154,12 @@ class AngleFormatterLocator(BaseFormatterLocator):
             if decimal is False:
                 raise UnitsError("Units should be degrees or hours when using non-decimal (sexagesimal) mode")
 
-        self._unit = unit
-        self._format_unit = format_unit or unit
         self._decimal = decimal
         self._sep = None
         self.show_decimal_unit = show_decimal_unit
+
         super().__init__(values=values, number=number, spacing=spacing,
-                         format=format)
+                         format=format, unit=unit, format_unit=format_unit)
 
     @property
     def decimal(self):
@@ -455,17 +458,19 @@ class ScalarFormatterLocator(BaseFormatterLocator):
 
     def __init__(self, values=None, number=None, spacing=None, format=None,
                  unit=None, format_unit=None):
+
         if unit is not None:
-            self._unit = unit
-            self._format_unit = format_unit or unit
+            unit = unit
+            format_unit = format_unit or unit
         elif spacing is not None:
-            self._unit = spacing.unit
-            self._format_unit = format_unit or spacing.unit
+            unit = spacing.unit
+            format_unit = format_unit or spacing.unit
         elif values is not None:
-            self._unit = values.unit
-            self._format_unit = format_unit or values.unit
+            unit = values.unit
+            format_unit = format_unit or values.unit
+
         super().__init__(values=values, number=number, spacing=spacing,
-                         format=format)
+                         format=format, unit=unit, format_unit=format_unit)
 
     @property
     def spacing(self):

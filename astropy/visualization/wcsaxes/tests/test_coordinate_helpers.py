@@ -87,6 +87,23 @@ def test_label_visibility_rules_always(ax):
     assert_label_draw(ax, True, True)
 
 
+def test_format_unit(tmpdir):
+
+    fig = plt.figure()
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
+    fig.add_axes(ax)
+
+    # Force a draw which is required for format_coord to work
+    ax.figure.canvas.draw()
+
+    ori_fu = ax.coords[1].get_format_unit()
+    assert ori_fu == "deg"
+
+    ax.coords[1].set_format_unit("arcsec")
+    fu = ax.coords[1].get_format_unit()
+    assert fu == "arcsec"
+
+
 def test_set_separator(tmpdir):
 
     fig = plt.figure()
