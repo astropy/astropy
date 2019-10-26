@@ -63,8 +63,9 @@ class TestBasic(BaseImageTests):
                                    tolerance=0, style={})
     def test_axes_off(self):
         # Test for turning the axes off
-        fig = plt.figure(figsize=(6, 6))
+        fig = plt.figure(figsize=(3, 3))
         ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=WCS(self.msx_header))
+        ax.imshow(np.arange(12).reshape((3, 4)))
         ax.set_axis_off()
         return fig
 
