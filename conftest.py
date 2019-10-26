@@ -8,7 +8,11 @@ import os
 import pkg_resources
 import tempfile
 
-from pytest_astropy_header.display import PYTEST_HEADER_MODULES
+try:
+    from pytest_astropy_header.display import PYTEST_HEADER_MODULES
+except ImportError:
+    PYTEST_HEADER_MODULES = {}
+
 import astropy
 
 if find_spec('asdf') is not None:
