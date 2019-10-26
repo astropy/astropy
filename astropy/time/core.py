@@ -343,9 +343,9 @@ class Time(ShapedLikeNDArray):
     precision : int, optional
         Digits of precision in string representation of time
     in_subfmt : str, optional
-        Subformat for inputting string times
+        Unix glob to select subformats for parsing input times
     out_subfmt : str, optional
-        Subformat for outputting string times
+        Unix glob to select subformat for outputting times
     location : `~astropy.coordinates.EarthLocation` or tuple, optional
         If given as an tuple, it should be able to initialize an
         an EarthLocation instance, i.e., either contain 3 items with units of
@@ -918,28 +918,36 @@ class Time(ShapedLikeNDArray):
         return self._shaped_like_input(jd2)
 
     def to_value(self, format=None, subfmt=None):
-        """Get the time values as a scalar or array.
+        """Get time values expressed in specified output format.
+
+        This method allows representing the ``Time`` object in the desired
+        output ``format`` and optional sub-format ``subfmt``.  Available
+        built-in formats include ``jd``, ``mjd``, ``iso``, and so forth. Each
+        format can have its own sub-formats
+
+        For built-in numerical formats like ``jd`` or ``unix``, ``subfmt`` can
+        be one of 'float', 'long', 'decimal', 'str', or 'bytes'.  Here, 'long'
+        uses ``numpy.longdouble`` for somewhat enhanced precision (with
+        the enhancement depending on platform), and 'decimal'
+        :class:`decimal.Decimal` for full precision.  For 'str' and 'bytes', the
+        number of digits is also chosen such that time values are represented
+        accurately.
+
+        For built-in date-like string formats, one of 'date_hms', 'date_hm', or
+        'date' (or 'longdate_hms', etc., for 5-digit years in
+        `~astropy.time.TimeFITS`).  For sub-formats including seconds, the
+        number of digits used for the fractional seconds is as set by
+        `~astropy.time.Time.precision`.
 
         Parameters
         ----------
         format : str
-            The format in which one wants the time values.
-            Default: the current format.
+            The format in which one wants the time values. Default: the current
+            format.
         subfmt : str
-            Possible sub-format in which the values should be given.
-            For numerical formats, one of 'float', 'long', 'decimal', 'str',
-            or 'bytes'.  Here, 'long' uses :class:`~numpy.longdouble` for
-            somewhat enhanced precision (with the enhancement depending on
-            platform), and 'decimal' :class:`decimal.Decimal` for full
-            precision.  For 'str' and 'bytes', the number of digits is also
-            chosen such that time values are represented accurately.
-            For date-like string formats, one of 'date_hms', 'date_hm', or
-            'date' (or 'longdate_hms', etc., for 5-digit years in
-            `~astropy.time.TimeFITS`).  For sub-formats including seconds, the
-            number of digits used for the fractional seconds is as set by
-            `~astropy.time.Time.precision`.
-            Default: as set by ``out_subfmt`` (which by default picks the
-            first available for a given format, i.e., 'float' or 'date_hms').
+            Possible sub-format in which the values should be given. Default: as
+            set by ``out_subfmt`` (which by default picks the first available
+            for a given format, i.e., 'float' or 'date_hms').
         """
         # TODO: add a precision argument (but ensure it is keyword argument
         # only, to make life easier for TimeDelta.to_value()).
@@ -2294,35 +2302,58 @@ class TimeDelta(Time):
                           u.day).to(unit, equivalencies=equivalencies)
 
     def to_value(self, *args, **kwargs):
-        """The numerical value in the specified format or unit.
+        """Get time delta values expressed in specified output format or unit.
 
-        With positional arguments, if the first argument is `None` or a format,
-        any second argument will be interpreted as ``subfmt``.  Otherwise,
-        conversion will be done via a `~astropy.units.Quantity`, and any second
-        argument will be interpreted as ``equivalencies``.  To follow an
-        explicit path, use keyword arguments.
+        This method is flexible and handles both conversion to a specified
+        ``TimeDelta`` format / sub-format AND conversion to a specified unit.
+        If positional argument(s) are provided then the first one is checked
+        to see if it is a valid ``TimeDelta`` format, and next it is checked
+        to see if it is a valid unit or unit string.
+
+        To convert to a ``TimeDelta`` format and optional sub-format the options
+        are::
+
+          tm = TimeDelta(1.0 * u.s)
+          tm.to_value('jd')  # equivalent of tm.jd
+          tm.to_value('jd', 'decimal')  # convert to 'jd' as a Decimal object
+          tm.to_value('jd', subfmt='decimal')
+          tm.to_value(format='jd', subfmt='decimal')
+
+        To convert to a unit with optional equivalencies, the options are::
+
+          tm.to_value('hr')  # convert to u.hr (hours)
+          tm.to_value('hr', [])  # specify equivalencies as a positional arg
+          tm.to_value('hr', equivalencies=[])
+          tm.to_value(unit='hr', equivalencies=[])
+
+        The built-in `~astropy.time.TimeDelta` options for ``format`` are:
+        {'jd', 'sec', 'datetime'}.
+
+        For the two numerical formats 'jd' and 'sec', the available ``subfmt``
+        options are: {'float', 'long', 'decimal', 'str', 'bytes'}. Here, 'long'
+        uses ``numpy.longdouble`` for somewhat enhanced precision (with the
+        enhancement depending on platform), and 'decimal' instances of
+        :class:`decimal.Decimal` for full precision.  For the 'str' and 'bytes'
+        sub-formats, the number of digits is also chosen such that time values
+        are represented accurately.  Default: as set by ``out_subfmt`` (which by
+        default picks the first available for a given format, i.e., 'float').
 
         Parameters
         ----------
-        format : {'jd', 'sec', 'datetime'}, optional
+        format : str, optional
             The format in which one wants the `~astropy.time.TimeDelta` values.
             Default: the current format.
-        subfmt : {'float', 'long', 'decimal', 'str', 'bytes'}, optional
-            A possible subformat for formats 'jd' and 'sec'.  Here, 'long'
-            uses `~numpy.longdouble` for somewhat enhanced precision (with the
-            enhancement depending on platform), and 'decimal' instances of
-            :class:`decimal.Decimal` for full precision.  For the 'str' and
-            'bytes' sub-formats, the number of digits is also chosen such that
-            time values are represented accurately.  Default: as set by
-            ``out_subfmt`` (which by default picks the first available for a
-            given format, i.e., 'float').
+        subfmt : str, optional
+            Possible sub-format in which the values should be given. Default: as
+            set by ``out_subfmt`` (which by default picks the first available
+            for a given format, i.e., 'float' or 'date_hms').
         unit : `~astropy.units.UnitBase` instance or str, optional
             The unit in which the value should be given.
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to try if the units are not directly
             convertible (see :ref:`unit_equivalencies`). If `None`, no
-            equivalencies will be applied at all, not even any set globally
-            or within a context.
+            equivalencies will be applied at all, not even any set globally or
+            within a context.
 
         Returns
         -------
