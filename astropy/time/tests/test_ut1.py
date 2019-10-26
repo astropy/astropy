@@ -72,23 +72,42 @@ class TestTimeUT1:
             assert allclose_sec(t._delta_ut1_utc, -0.58682110003124965)
 
 
-@pytest.mark.skipif('not HAS_IERS_A')
-class TestTimeUT1_IERSA:
+class TestTimeUT1SpecificIERSTable:
+    def do_ut1_prediction_test(self, iers_type):
+        tnow = Time.now()
+        iers_tab = iers_type.open()
+        tnow.delta_ut1_utc, status = iers_tab.ut1_utc(tnow, return_status=True)
+        assert status == iers.FROM_IERS_A_PREDICTION
+        tnow_ut1_jd = tnow.ut1.jd
+        assert tnow_ut1_jd != tnow.jd
+
+        delta_ut1_utc = tnow.delta_ut1_utc
+        with iers.earth_orientation_table.set(iers_type.open()):
+            delta2, status2 = tnow.get_delta_ut1_utc(return_status=True)
+            assert status2 == status
+            assert delta2.to_value('s') == delta_ut1_utc
+
+            tnow_ut1 = tnow.ut1
+            assert tnow_ut1._delta_ut1_utc == delta_ut1_utc
+            assert tnow_ut1.jd != tnow.jd
+
+    @pytest.mark.skipif('not HAS_IERS_A')
     def test_ut1_iers_A(self):
-        tnow = Time.now()
-        iers_a = iers.IERS_A.open()
-        tnow.delta_ut1_utc, status = iers_a.ut1_utc(tnow, return_status=True)
-        assert status == iers.FROM_IERS_A_PREDICTION
-        tnow_ut1_jd = tnow.ut1.jd
-        assert tnow_ut1_jd != tnow.jd
+        self.do_ut1_prediction_test(iers.IERS_A)
 
-
-@pytest.mark.remote_data
-class TestTimeUT1_IERS_Auto:
+    @pytest.mark.remote_data
     def test_ut1_iers_auto(self):
+        self.do_ut1_prediction_test(iers.IERS_Auto)
+
+    def test_ut1_iers_B(self):
         tnow = Time.now()
-        iers_a = iers.IERS_Auto.open()
-        tnow.delta_ut1_utc, status = iers_a.ut1_utc(tnow, return_status=True)
-        assert status == iers.FROM_IERS_A_PREDICTION
-        tnow_ut1_jd = tnow.ut1.jd
-        assert tnow_ut1_jd != tnow.jd
+        iers_b = iers.IERS_B.open()
+        delta1, status1 = tnow.get_delta_ut1_utc(iers_b, return_status=True)
+        assert status1 == iers.TIME_BEYOND_IERS_RANGE
+
+        with iers.earth_orientation_table.set(iers.IERS_B.open()):
+            delta2, status2 = tnow.get_delta_ut1_utc(return_status=True)
+            assert status2 == status1
+
+            with pytest.raises(iers.IERSRangeError):
+                tnow.ut1

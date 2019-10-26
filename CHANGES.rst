@@ -237,6 +237,10 @@ astropy.utils
   to return the smallest array that can be broadcasted back to the initial
   array. [#9209]
 
+- The specific IERS Earth rotation parameter table used for time and
+  coordinate transformations can now be set, either in a context or per
+  session, using ``astropy.utils.iers.earth_rotation_table``. [#9244]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
