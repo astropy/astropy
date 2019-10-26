@@ -98,6 +98,9 @@ class TestFrame(BaseImageTests):
         ax.set_xlim(-0.5, 3.5)
         ax.set_ylim(-0.5, 11.5)
 
+        ax.coords[0].set_auto_axislabel(False)
+        ax.coords[1].set_auto_axislabel(False)
+
         return fig
 
     @pytest.mark.remote_data(source='astropy')
@@ -149,6 +152,9 @@ class TestFrame(BaseImageTests):
 
         ax.set_xlim(-0.5, 3.5)
         ax.set_ylim(-0.5, 11.5)
+
+        ax.coords[0].set_auto_axislabel(False)
+        ax.coords[1].set_auto_axislabel(False)
 
         return fig
 

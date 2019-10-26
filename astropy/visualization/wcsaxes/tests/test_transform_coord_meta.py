@@ -151,6 +151,9 @@ class TestTransformCoordMeta(BaseImageTests):
         ax.coords['lon'].grid(color='red', linestyle='solid', alpha=0.3)
         ax.coords['lat'].grid(color='blue', linestyle='solid', alpha=0.3)
 
+        ax.coords['lon'].set_auto_axislabel(False)
+        ax.coords['lat'].set_auto_axislabel(False)
+
         ax.coords['lon'].set_ticklabel(size=7, exclude_overlapping=True)
         ax.coords['lat'].set_ticklabel(size=7, exclude_overlapping=True)
 

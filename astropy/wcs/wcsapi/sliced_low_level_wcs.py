@@ -13,6 +13,11 @@ def sanitize_slices(slices, ndim):
     if not isinstance(slices, (tuple, list)):  # We just have a single int
         slices = (slices,)
 
+    if len(slices) > ndim:
+        raise ValueError(
+            f"The dimensionality of the specified slice {slices} can not be greater "
+            f"than the dimensionality ({ndim}) of the wcs.")
+
     slices = list(slices)
 
     if Ellipsis in slices:

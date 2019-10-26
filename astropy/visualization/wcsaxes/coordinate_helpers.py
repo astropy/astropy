@@ -18,7 +18,7 @@ from matplotlib import rcParams
 from astropy import units as u
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
-from .frame import RectangularFrame1D
+from .frame import RectangularFrame1D, EllipticalFrame
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 from .ticks import Ticks
 from .ticklabels import TickLabels
@@ -81,7 +81,7 @@ class CoordinateHelper:
 
     def __init__(self, parent_axes=None, parent_map=None, transform=None,
                  coord_index=None, coord_type='scalar', coord_unit=None,
-                 coord_wrap=None, frame=None, format_unit=None):
+                 coord_wrap=None, frame=None, format_unit=None, name=None):
 
         # Keep a reference to the parent axes and the transform
         self.parent_axes = parent_axes
@@ -89,8 +89,14 @@ class CoordinateHelper:
         self.transform = transform
         self.coord_index = coord_index
         self.coord_unit = coord_unit
-        self.format_unit = format_unit
+        self._format_unit = format_unit
         self.frame = frame
+        self.name = name[0] if isinstance(name, (tuple, list)) else name
+        self._auto_axislabel = True
+        # Disable auto label for elliptical frames as it puts labels in
+        # annoying places.
+        if issubclass(self.parent_axes.frame_class, EllipticalFrame):
+            self._auto_axislabel = False
 
         self.set_coord_type(coord_type, coord_wrap)
 
@@ -201,7 +207,7 @@ class CoordinateHelper:
             else:
                 self._coord_scale_to_deg = self.coord_unit.to(u.deg)
             self._formatter_locator = AngleFormatterLocator(unit=self.coord_unit,
-                                                            format_unit=self.format_unit)
+                                                            format_unit=self._format_unit)
         else:
             raise ValueError("coord_type should be one of 'scalar', 'longitude', or 'latitude'")
 
@@ -292,6 +298,12 @@ class CoordinateHelper:
         self._formatter_locator.format_unit = u.Unit(unit)
         self._formatter_locator.decimal = decimal
         self._formatter_locator.show_decimal_unit = show_decimal_unit
+
+    def get_format_unit(self):
+        """
+        Get the unit for the major tick labels.
+        """
+        return self._formatter_locator.format_unit
 
     def set_ticks(self, values=None, spacing=None, number=None, size=None,
                   width=None, color=None, alpha=None, direction=None,
@@ -450,7 +462,6 @@ class CoordinateHelper:
             can include keywords to set the ``color``, ``size``, ``weight``, and
             other text properties.
         """
-
         fontdict = kwargs.pop('fontdict', None)
 
         # NOTE: When using plt.xlabel/plt.ylabel, minpad can get set explicitly
@@ -476,6 +487,36 @@ class CoordinateHelper:
             The axis label
         """
         return self.axislabels.get_text()
+
+    def set_auto_axislabel(self, auto_label):
+        """
+        Render default axis labels if no explicit label is provided.
+
+        Parameters
+        ----------
+        auto_label : `bool`
+            `True` if default labels will be rendered.
+        """
+        self._auto_axislabel = bool(auto_label)
+
+    def get_auto_axislabel(self):
+        """
+        Render default axis labels if no explicit label is provided.
+
+        Returns
+        -------
+        auto_axislabel : `bool`
+            `True` if default labels will be rendered.
+        """
+        return self._auto_axislabel
+
+    def _get_default_axislabel(self):
+        unit = self.get_format_unit() or self.coord_unit
+
+        if not unit or unit is u.one or self.coord_type in ('longitude', 'latitude'):
+            return f"{self.name}"
+        else:
+            return f"{self.name} [{unit:latex}]"
 
     def set_axislabel_position(self, position):
         """
@@ -562,6 +603,9 @@ class CoordinateHelper:
         renderer.close_group('ticks')
 
     def _draw_axislabels(self, renderer, bboxes, ticklabels_bbox, ticks_locs, visible_ticks):
+        # Render the default axis label if no axis label is set.
+        if self._auto_axislabel and not self.get_axislabel():
+            self.set_axislabel(self._get_default_axislabel())
 
         renderer.open_group('axis labels')
 

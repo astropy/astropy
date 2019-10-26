@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import os
 import warnings
+from textwrap import dedent
 
 import pytest
 import numpy as np
@@ -8,8 +10,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.transforms import Affine2D, IdentityTransform
 
+from astropy.io import fits
 from astropy import units as u
-from astropy.wcs.wcsapi import BaseLowLevelWCS
+from astropy.wcs.wcsapi import BaseLowLevelWCS, SlicedLowLevelWCS
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from astropy.units import Quantity
@@ -17,7 +20,8 @@ from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
 from astropy.wcs import WCS
 from astropy.visualization.wcsaxes.frame import RectangularFrame, RectangularFrame1D
 from astropy.visualization.wcsaxes.wcsapi import (WCSWorld2PixelTransform,
-                                                  transform_coord_meta_from_wcs)
+                                                  transform_coord_meta_from_wcs,
+                                                  apply_slices)
 
 WCS2D = WCS(naxis=2)
 WCS2D.wcs.ctype = ['x', 'y']
@@ -32,6 +36,44 @@ WCS3D.wcs.cunit = ['km', 'km', 'km']
 WCS3D.wcs.crpix = [614.5, 856.5, 333]
 WCS3D.wcs.cdelt = [6.25, 6.25, 23]
 WCS3D.wcs.crval = [0., 0., 1.]
+
+
+@pytest.fixture
+def wcs_4d():
+    header = dedent("""\
+    WCSAXES =                    4 / Number of coordinate axes
+    CRPIX1  =                  0.0 / Pixel coordinate of reference point
+    CRPIX2  =                  0.0 / Pixel coordinate of reference point
+    CRPIX3  =                  0.0 / Pixel coordinate of reference point
+    CRPIX4  =                  5.0 / Pixel coordinate of reference point
+    CDELT1  =                  0.4 / [min] Coordinate increment at reference point
+    CDELT2  =                2E-11 / [m] Coordinate increment at reference point
+    CDELT3  =   0.0027777777777778 / [deg] Coordinate increment at reference point
+    CDELT4  =   0.0013888888888889 / [deg] Coordinate increment at reference point
+    CUNIT1  = 'min'                / Units of coordinate increment and value
+    CUNIT2  = 'm'                  / Units of coordinate increment and value
+    CUNIT3  = 'deg'                / Units of coordinate increment and value
+    CUNIT4  = 'deg'                / Units of coordinate increment and value
+    CTYPE1  = 'TIME'               / Coordinate type code
+    CTYPE2  = 'WAVE'               / Vacuum wavelength (linear)
+    CTYPE3  = 'HPLT-TAN'           / Coordinate type codegnomonic projection
+    CTYPE4  = 'HPLN-TAN'           / Coordinate type codegnomonic projection
+    CRVAL1  =                  0.0 / [min] Coordinate value at reference point
+    CRVAL2  =                  0.0 / [m] Coordinate value at reference point
+    CRVAL3  =                  0.0 / [deg] Coordinate value at reference point
+    CRVAL4  =                  0.0 / [deg] Coordinate value at reference point
+    LONPOLE =                180.0 / [deg] Native longitude of celestial pole
+    LATPOLE =                  0.0 / [deg] Native latitude of celestial pole
+    """)
+    return WCS(header=header)
+
+
+@pytest.fixture
+def cube_wcs():
+    data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
+    cube_header = os.path.join(data_dir, 'cube_header')
+    header = fits.Header.fromtextfile(cube_header)
+    return WCS(header=header)
 
 
 def test_shorthand_inversion():
@@ -86,7 +128,19 @@ def test_3d():
     np.testing.assert_allclose(world[:, 1], world_2[:, 1])
 
 
-def test_coord_type_from_ctype():
+def test_coord_type_from_ctype(cube_wcs):
+
+    _, coord_meta = transform_coord_meta_from_wcs(cube_wcs, RectangularFrame,
+                                                  slices=(50, 'y', 'x'))
+
+    axislabel_position = coord_meta['default_axislabel_position']
+    ticklabel_position = coord_meta['default_ticklabel_position']
+    ticks_position = coord_meta['default_ticks_position']
+
+    # These axes are swapped due to the pixel derivatives
+    assert axislabel_position == ['l', 'r', 'b']
+    assert ticklabel_position == ['l', 'r', 'b']
+    assert ticks_position == ['l', 'r', 'b']
 
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ['GLON-TAN', 'GLAT-TAN']
@@ -113,6 +167,18 @@ def test_coord_type_from_ctype():
     assert coord_meta['type'] == ['longitude', 'latitude']
     assert coord_meta['format_unit'] == [u.arcsec, u.arcsec]
     assert coord_meta['wrap'] == [180., None]
+
+    _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame,
+                                                  slices=('y', 'x'))
+
+    axislabel_position = coord_meta['default_axislabel_position']
+    ticklabel_position = coord_meta['default_ticklabel_position']
+    ticks_position = coord_meta['default_ticks_position']
+
+    # These axes should be swapped because of slices
+    assert axislabel_position == ['l', 'b']
+    assert ticklabel_position == ['l', 'b']
+    assert ticks_position == ['bltr', 'bltr']
 
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ['HGLN-TAN', 'HGLT-TAN']
@@ -213,6 +279,85 @@ def test_coord_type_1d_2d_wcs_uncorrelated():
     assert coord_meta['format_unit'] == [u.m, u.s]
     assert coord_meta['wrap'] == [None, None]
     assert coord_meta['visible'] == [True, False]
+
+
+def test_coord_meta_4d(wcs_4d):
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=FutureWarning)
+        _, coord_meta = transform_coord_meta_from_wcs(wcs_4d, RectangularFrame, slices=(0, 0, 'x', 'y'))
+
+    axislabel_position = coord_meta['default_axislabel_position']
+    ticklabel_position = coord_meta['default_ticklabel_position']
+    ticks_position = coord_meta['default_ticks_position']
+
+    assert axislabel_position == ['', '', 'b', 'l']
+    assert ticklabel_position == ['', '', 'b', 'l']
+    assert ticks_position == ['', '', 'bltr', 'bltr']
+
+
+def test_coord_meta_4d_line_plot(wcs_4d):
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=FutureWarning)
+        _, coord_meta = transform_coord_meta_from_wcs(wcs_4d, RectangularFrame1D, slices=(0, 0, 0, 'x'))
+
+    axislabel_position = coord_meta['default_axislabel_position']
+    ticklabel_position = coord_meta['default_ticklabel_position']
+    ticks_position = coord_meta['default_ticks_position']
+
+    # These axes are swapped due to the pixel derivatives
+    assert axislabel_position == ['', '', 't', 'b']
+    assert ticklabel_position == ['', '', 't', 'b']
+    assert ticks_position == ['', '', 't', 'b']
+
+
+@pytest.fixture
+def sub_wcs(wcs_4d, wcs_slice):
+    return SlicedLowLevelWCS(wcs_4d, wcs_slice)
+
+
+@pytest.mark.parametrize(("wcs_slice", "wcsaxes_slices", "world_map", "ndim"),
+                         [
+                             (np.s_[...], [0,0,'x','y'], (2, 3), 2),
+                             (np.s_[...], [0,'x',0,'y'], (1, 2, 3), 3),
+                             (np.s_[...], ['x',0,0,'y'], (0, 2, 3), 3),
+                             (np.s_[...], ['x','y',0,0], (0, 1), 2),
+                             (np.s_[:,:,0,:], [0, 'x', 'y'], (1, 2), 2),
+                             (np.s_[:,:,0,:], ['x', 0, 'y'], (0, 1, 2), 3),
+                             (np.s_[:,:,0,:], ['x', 'y', 0], (0, 1, 2), 3),
+                             (np.s_[:,0,:,:], ['x', 'y', 0], (0, 1), 2),
+                         ])
+def test_apply_slices(sub_wcs, wcs_slice, wcsaxes_slices, world_map, ndim):
+    transform_wcs, _, out_world_map = apply_slices(sub_wcs, wcsaxes_slices)
+    assert transform_wcs.world_n_dim == ndim
+
+    assert out_world_map == world_map
+
+
+# parametrize here to pass to the fixture
+@pytest.mark.parametrize("wcs_slice", [np.s_[:,:,0,:]])
+def test_sliced_ND_input(sub_wcs, wcs_slice):
+    slices_wcsaxes = [0, 'x', 'y']
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=FutureWarning)
+        _, coord_meta = transform_coord_meta_from_wcs(sub_wcs, RectangularFrame, slices=slices_wcsaxes)
+
+    assert all(len(x) == 3 for x in coord_meta.values())
+
+    coord_meta['name'] = ['time', 'custom:pos.helioprojective.lat', 'custom:pos.helioprojective.lon']
+    coord_meta['type'] = ['scalar', 'latitude', 'longitude']
+    coord_meta['wrap'] = [None, None, 180.0]
+    coord_meta['unit'] = [u.Unit("min"), u.Unit("deg"), u.Unit("deg")]
+    coord_meta['visible'] = [False, True, True]
+    coord_meta['format_unit'] = [u.Unit("min"), u.Unit("arcsec"), u.Unit("arcsec")]
+    coord_meta['default_axislabel_position'] = ['', 'b', 't']
+    coord_meta['default_ticklabel_position'] = ['', 'b', 't']
+    coord_meta['default_ticks_position'] = ['', 'btlr', 'btlr']
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=FutureWarning)
+        # Validate the axes initialize correctly
+        ax = plt.subplot(projection=sub_wcs, slices=slices_wcsaxes)
 
 
 class LowLevelWCS5D(BaseLowLevelWCS):

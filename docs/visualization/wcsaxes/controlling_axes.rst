@@ -36,6 +36,20 @@ can change the unit to an equivalent one by:
     ax.coords[2].set_major_formatter('x.x') # Otherwise values round to the nearest whole number
     ax.coords[2].set_format_unit(u.km / u.s)
 
+
+Disabling Automatic Labelling
+*****************************
+
+By default WCSAxes adds labels to the axes to indicate what world coordinate is
+being represented on that axis, and what unit is being used to display it. If
+you want to disable this behavior you can either set an explicit label for that
+axis with `~astropy.visualization.wcsaxes.CoordinateHelper.set_axislabel` or you
+can disable the feature per coordinate with::
+
+  ax = plt.subplot(projection=wcs)  # doctest: +SKIP
+  ax.coords[0].set_auto_axislabel(False)  # doctest: +SKIP
+
+
 Changing Axis Directions
 ************************
 
