@@ -1,17 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import urllib.request
 import os
-from datetime import datetime, timedelta
 
 import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
 from astropy import _erfa as erfa
-from astropy.time import Time
+from astropy.time import Time, TimeDelta
 from astropy.utils.iers import iers
 from astropy.utils.data import get_pkg_data_filename
-from astropy.tests.helper import catch_warnings
 
 
 SYSTEM_FILE = '/usr/share/zoneinfo/leap-seconds.list'
@@ -44,7 +42,7 @@ class TestReading:
         ls = iers.LeapSeconds.from_iers_leap_seconds(
             iers.IERS_LEAP_SECOND_FILE)
         # Below, >= to take into account we might ship and updated file.
-        assert ls.expires >= Time('2020-06-28')
+        assert ls.expires >= Time('2020-06-28', scale='tai')
         assert ls['mjd'][0] == 41317
         assert ls['tai_utc'][0] == 10
         assert ls['mjd'][-1] >= 57754
@@ -62,7 +60,7 @@ class TestReading:
         "file:" + urllib.request.pathname2url(LEAP_SECOND_LIST)))
     def test_read_leap_seconds_list(self, file):
         ls = iers.LeapSeconds.from_leap_seconds_list(file)
-        assert ls.expires == Time('2020-06-28')
+        assert ls.expires == Time('2020-06-28', scale='tai')
         assert ls['mjd'][0] == 41317
         assert ls['tai_utc'][0] == 10
         assert ls['mjd'][-1] == 57754
@@ -81,7 +79,7 @@ class TestReading:
                         reason=f'system does not have {SYSTEM_FILE}')
     def test_open_system_file(self):
         ls = iers.LeapSeconds.open(SYSTEM_FILE)
-        assert ls.expires > datetime.now()
+        assert ls.expires > Time.now()
 
 
 def make_fake_file(expiration, tmpdir):
@@ -97,20 +95,19 @@ def make_fake_file(expiration, tmpdir):
 def test_fake_file(tmpdir):
     fake_file = make_fake_file('28 June 2345', tmpdir)
     fake = iers.LeapSeconds.from_iers_leap_seconds(fake_file)
-    assert fake.expires == datetime(2345, 6, 28)
+    assert fake.expires == Time('2345-06-28', scale='tai')
 
 
+# For this set of tests, leap-seconds are allowed to be expired
+# except as explicitly tested.
+@pytest.mark.filterwarnings(iers.IERSStaleWarning)
 class TestAutoOpenExplicitLists:
     def test_auto_open_simple(self):
-        # Note: files allowed to be expired.
-        with catch_warnings(iers.IERSStaleWarning):
-            ls = iers.LeapSeconds.auto_open([iers.IERS_LEAP_SECOND_FILE])
+        ls = iers.LeapSeconds.auto_open([iers.IERS_LEAP_SECOND_FILE])
         assert ls.meta['data_url'] == iers.IERS_LEAP_SECOND_FILE
 
     def test_auto_open_erfa(self):
-        with catch_warnings(iers.IERSStaleWarning):
-            ls = iers.LeapSeconds.auto_open(['erfa',
-                                             iers.IERS_LEAP_SECOND_FILE])
+        ls = iers.LeapSeconds.auto_open(['erfa', iers.IERS_LEAP_SECOND_FILE])
         assert ls.meta['data_url'] in ['erfa', iers.IERS_LEAP_SECOND_FILE]
 
     def test_fake_future_file(self, tmpdir):
@@ -121,33 +118,29 @@ class TestAutoOpenExplicitLists:
         with iers.conf.set_temp('auto_max_age', -100000):
             ls = iers.LeapSeconds.auto_open([
                 'erfa', iers.IERS_LEAP_SECOND_FILE, fake_file])
-            assert ls.expires == datetime(2345, 6, 28)
+            assert ls.expires == Time('2345-06-28', scale='tai')
             assert ls.meta['data_url'] == str(fake_file)
             # And as URL
             fake_url = "file:" + urllib.request.pathname2url(fake_file)
             ls2 = iers.LeapSeconds.auto_open([
                 'erfa', iers.IERS_LEAP_SECOND_FILE, fake_url])
-            assert ls2.expires == datetime(2345, 6, 28)
+            assert ls2.expires == Time('2345-06-28', scale='tai')
             assert ls2.meta['data_url'] == str(fake_url)
 
     def test_fake_expired_file(self, tmpdir):
         fake_file1 = make_fake_file('28 June 2010', tmpdir)
         fake_file2 = make_fake_file('27 June 2012', tmpdir)
-        # Ignore warnings about possibly expired built-in file.
-        with catch_warnings(iers.IERSStaleWarning):
-            # Between these and the built-in one, the built-in file is best.
-            ls = iers.LeapSeconds.auto_open([fake_file1, fake_file2,
-                                             iers.IERS_LEAP_SECOND_FILE])
+        # Between these and the built-in one, the built-in file is best.
+        ls = iers.LeapSeconds.auto_open([fake_file1, fake_file2,
+                                         iers.IERS_LEAP_SECOND_FILE])
         assert ls.meta['data_url'] == iers.IERS_LEAP_SECOND_FILE
 
         # But if we remove the built-in one, the least expired one will be
-        # used.
         # used and we get a warning that it is stale.
-        with catch_warnings(iers.IERSStaleWarning) as w:
+        with pytest.warns(iers.IERSStaleWarning):
             ls2 = iers.LeapSeconds.auto_open([fake_file1, fake_file2])
         assert ls2.meta['data_url'] == fake_file2
-        assert ls2.expires == datetime(2012, 6, 27)
-        assert len(w) == 1
+        assert ls2.expires == Time('2012-06-27', scale='tai')
 
 
 @pytest.mark.remote_data
@@ -156,18 +149,18 @@ class TestRemoteURLs:
     # This is fine - no need to download again.
     def test_iers_url(self):
         ls = iers.LeapSeconds.auto_open([iers.IERS_LEAP_SECOND_URL])
-        assert ls.expires > datetime.now()
+        assert ls.expires > Time.now()
 
     def test_ietf_url(self):
         ls = iers.LeapSeconds.auto_open([iers.IETF_LEAP_SECOND_URL])
-        assert ls.expires > datetime.now()
+        assert ls.expires > Time.now()
 
 
 class TestDefaultAutoOpen:
     """Test auto_open with different _auto_open_files."""
     def setup(self):
-        self.good_enough = (datetime.now() +
-                            timedelta(179 - iers.conf.auto_max_age))
+        self.good_enough = (Time.now() +
+                            TimeDelta(179 - iers.conf.auto_max_age))
         self._auto_open_files = iers.LeapSeconds._auto_open_files.copy()
 
     def teardown(self):
@@ -203,14 +196,14 @@ class TestDefaultAutoOpen:
         with iers.conf.set_temp('auto_max_age', -100000), \
                 iers.conf.set_temp('system_leap_second_file', fake_file):
             ls = iers.LeapSeconds.open()
-        assert ls.expires == datetime(2345, 6, 28)
+        assert ls.expires == Time('2345-06-28', scale='tai')
         assert ls.meta['data_url'] == str(fake_file)
         # And as URL
         fake_url = "file:" + urllib.request.pathname2url(fake_file)
         with iers.conf.set_temp('auto_max_age', -100000), \
                 iers.conf.set_temp('iers_leap_second_auto_url', fake_url):
             ls2 = iers.LeapSeconds.open()
-        assert ls2.expires == datetime(2345, 6, 28)
+        assert ls2.expires == Time('2345-06-28', scale='tai')
         assert ls2.meta['data_url'] == str(fake_url)
 
     def test_fake_expired_file(self, tmpdir):
@@ -225,11 +218,10 @@ class TestDefaultAutoOpen:
             # But if we remove the built-in one, the expired one will be
             # used and we get a warning that it is stale.
             self.remove_auto_open_files(iers.IERS_LEAP_SECOND_FILE)
-            with catch_warnings(iers.IERSStaleWarning) as w:
+            with pytest.warns(iers.IERSStaleWarning):
                 ls2 = iers.LeapSeconds.open()
             assert ls2.meta['data_url'] == fake_file
-            assert ls2.expires == datetime(2010, 6, 28)
-            assert len(w) == 1
+            assert ls2.expires == Time('2010-06-28', scale='tai')
 
     @pytest.mark.skipif(not os.path.isfile(SYSTEM_FILE),
                         reason=f'system does not have {SYSTEM_FILE}')
@@ -245,7 +237,7 @@ class TestDefaultAutoOpen:
             fake_file = make_fake_file('28 June 2017', tmpdir)
             iers.LeapSeconds._auto_open_files[0] = fake_file
             ls2 = iers.LeapSeconds.open()
-            assert ls2.expires > datetime.now()
+            assert ls2.expires > Time.now()
             assert ls2.meta['data_url'] == SYSTEM_FILE
 
     @pytest.mark.remote_data
@@ -267,7 +259,7 @@ class ERFALeapSecondsSafe:
     def setup(self):
         # Keep current leap-second table and expiration.
         self.erfa_ls = self._erfa_ls = erfa.leap_seconds.get()
-        self._expires = erfa.leap_seconds._expires
+        self.erfa_expires = self._expires = erfa.leap_seconds._expires
 
     def teardown(self):
         # Restore leap-second table and expiration.
@@ -279,9 +271,17 @@ class TestFromERFA(ERFALeapSecondsSafe):
     def test_get_erfa_ls(self):
         ls = iers.LeapSeconds.from_erfa()
         assert ls.colnames == ['year', 'month', 'tai_utc']
-        assert ls.expires == erfa.leap_seconds.expires
+        assert isinstance(ls.expires, Time)
+        assert ls.expires == self.erfa_expires
         ls_array = np.array(ls['year', 'month', 'tai_utc'])
         assert np.all(ls_array == self.erfa_ls)
+
+    def test_get_built_in_erfa_ls(self):
+        ls = iers.LeapSeconds.from_erfa(built_in=True)
+        assert ls.colnames == ['year', 'month', 'tai_utc']
+        assert isinstance(ls.expires, Time)
+        ls_array = np.array(ls['year', 'month', 'tai_utc'])
+        assert np.all(ls_array == self.erfa_ls[:len(ls_array)])
 
     def test_get_modified_erfa_ls(self):
         erfa.leap_seconds.set(self.erfa_ls[:-10])
@@ -299,6 +299,8 @@ class TestFromERFA(ERFALeapSecondsSafe):
 
     def test_open(self):
         ls = iers.LeapSeconds.open('erfa')
+        assert isinstance(ls.expires, Time)
+        assert ls.expires == self.erfa_expires
         ls_array = np.array(ls['year', 'month', 'tai_utc'])
         assert np.all(ls_array == self.erfa_ls)
 
