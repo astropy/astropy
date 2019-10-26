@@ -223,13 +223,6 @@ class NDData(NDDataBase):
             unit = deepcopy(unit)
 
         # Validate the wcs
-        if wcs is None or isinstance(wcs, BaseHighLevelWCS):
-            pass
-        elif isinstance(wcs, BaseLowLevelWCS):
-            wcs = HighLevelWCSWrapper(wcs)
-        else:
-            raise TypeError("The wcs argument must implement either the high or"
-                            " low level WCS API.")
 
         # Store the attributes
         self._data = data
@@ -283,9 +276,15 @@ class NDData(NDDataBase):
         """
         return self._wcs
 
-    @wcs.deleter
-    def wcs(self):
-        self._wcs = None
+    @wcs.setter
+    def wcs(self, wcs):
+        if wcs is None or isinstance(wcs, BaseHighLevelWCS):
+            self._wcs = wcs
+        elif isinstance(wcs, BaseLowLevelWCS):
+            self._wcs = HighLevelWCSWrapper(wcs)
+        else:
+            raise TypeError("The wcs argument must implement either the high or"
+                            " low level WCS API.")
 
     @property
     def uncertainty(self):
