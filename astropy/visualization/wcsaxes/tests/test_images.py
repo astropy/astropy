@@ -60,6 +60,17 @@ class TestBasic(BaseImageTests):
 
     @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=0, style={})
+    def test_axes_off(self):
+        # Test for turning the axes off
+        fig = plt.figure(figsize=(3, 3))
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=WCS(self.msx_header))
+        ax.imshow(np.arange(12).reshape((3, 4)))
+        ax.set_axis_off()
+        return fig
+
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    tolerance=1.5, style={})
     @pytest.mark.parametrize('axisbelow', [True, False, 'line'])
     def test_axisbelow(self, axisbelow):

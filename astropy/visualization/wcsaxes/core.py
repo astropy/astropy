@@ -390,7 +390,8 @@ class WCSAxes(Axes):
             self.grid()
 
     def draw_wcsaxes(self, renderer):
-
+        if not self.axison:
+            return
         # Here need to find out range of all coordinates, and update range for
         # each coordinate axis. For now, just assume it covers the whole sky.
 
