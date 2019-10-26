@@ -73,7 +73,7 @@ The full power of output representation is available via the
 `subformat`_, for example using ``numpy.longdouble`` as the output type
 for higher precision::
 
-  >>> t.to_value('mjd', 'long')  # doctest: +FLOAT_CMP
+  >>> t.to_value('mjd', 'long')  # doctest: +SKIP
   array([51179.00000143, 55197.        ], dtype=float128)
 
 The default representation can be changed by setting the `format` attribute::
@@ -263,9 +263,10 @@ can have higher precision than the standard 64-bit float::
   >>> tm.to_value('mjd', subfmt='decimal')  # doctest: +SKIP
   Decimal('51544.00000000000000099920072216264')
   >>> tm.to_value('mjd', subfmt='str')
-  Decimal('51544.000000000000001')
+  '51544.000000000000001'
 
-The complete list of |TIME| subformat options is below:
+The complete list of subformat options for the |TIME| formats that
+have them is:
 
 ================ ========================================
 Format           Subformats
@@ -286,7 +287,8 @@ Format           Subformats
 ``yday``         date_hms, date_hm, date
 ================ ========================================
 
-The complete list of |TimeDelta| subformat options is below:
+The complete list of subformat options for the |TimeDelta| formats
+that have them is:
 
 ================ ========================================
 Format           Subformats
