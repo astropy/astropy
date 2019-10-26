@@ -55,13 +55,13 @@ subset of rows, but reading a full column load the whole table data into memory:
 
     >>> import numpy as np
     >>> from astropy.table import Table
-    >>> tbl = Table({ 'a': np.arange(1e7),
-    ...               'b': np.arange(1e7, dtype=float),
-    ...               'c': np.arange(1e7, dtype=float)})
+    >>> tbl = Table({'a': np.arange(1e7),
+    ...              'b': np.arange(1e7, dtype=float),
+    ...              'c': np.arange(1e7, dtype=float)})
     >>> tbl.write('test.fits', overwrite=True)
-    >>> table = Table.read('test.fits', memmap=True) # Very fast, doesn't actually load data
-    >>> table2 = tbl[:100] #  Fast, will read only first 100 rows
-    >>> print(table2) # accessing column data triggers the read
+    >>> table = Table.read('test.fits', memmap=True)  # Very fast, doesn't actually load data
+    >>> table2 = tbl[:100]  # Fast, will read only first 100 rows
+    >>> print(table2)  # Accessing column data triggers the read
      a    b    c  
     ---- ---- ----
     0.0  0.0  0.0
@@ -71,7 +71,7 @@ subset of rows, but reading a full column load the whole table data into memory:
     98.0 98.0 98.0
     99.0 99.0 99.0
     Length = 100 rows
-    >>> col = table['my_column'] # Will load all table into memory
+    >>> col = table['my_column']  # Will load all table into memory
 
 At the moment :meth:`~astropy.table.Table.read` does not support ``memmap=True`` for the HDF5 and 
 ASCII file formats.
