@@ -254,6 +254,10 @@ astropy.wcs
   another dataset with a different WCS. This function is designed to be efficient
   when the input arrays are broadcasted views of smaller arrays. [#9209]
 
+- Added a ``local_partial_pixel_derivatives`` function that can be used to
+  determine a matrix of partial derivatives of each world coordinate with respect
+  to each pixel coordinate. [#9392]
+
 - Updated wcslib to v6.4. [#9125]
 
 - Improved the  ``SlicedLowLevelWCS`` class in ``astropy.wcs.wcsapi`` to avoid
