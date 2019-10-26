@@ -1,11 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 """
 Tests that relate to fitting models with quantity parameters
 """
 import numpy as np
 import pytest
-
 
 from astropy.modeling import models
 from astropy import units as u
@@ -14,9 +12,8 @@ from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils import NumpyRNGContext
 from astropy.modeling import fitting
 
-
 try:
-    from scipy import optimize
+    from scipy import optimize  # noqa
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
@@ -93,15 +90,27 @@ def test_fitting_missing_data_units():
     """
     Raise an error if the model has units but the data doesn't
     """
-    g_init = models.Gaussian1D(amplitude=1. * u.mJy,
-                               mean=3 * u.cm,
-                               stddev=2 * u.mm)
+    class UnorderedGaussian1D(models.Gaussian1D):
+        # Parameters are ordered differently here from Gaussian1D
+        # to ensure the order does not break functionality.
+        def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+            return {'amplitude': outputs_unit['y'],
+                    'mean': inputs_unit['x'],
+                    'stddev': inputs_unit['x']}
+
+    g_init = UnorderedGaussian1D(amplitude=1. * u.mJy,
+                                 mean=3 * u.cm,
+                                 stddev=2 * u.mm)
     fit_g = fitting.LevMarLSQFitter()
 
+    # We define flux unit so that conversion fails at wavelength unit.
+    # This is because the order of parameter unit conversion seems to
+    # follow the order defined in _parameter_units_for_data_units method.
     with pytest.raises(UnitsError) as exc:
-        fit_g(g_init, [1, 2, 3], [4, 5, 6])
-    assert exc.value.args[0] == ("'cm' (length) and '' (dimensionless) are not "
-                                 "convertible")
+        fit_g(g_init, [1, 2, 3],
+              [4, 5, 6] * (u.erg / (u.s * u.cm * u.cm * u.Hz)))
+    assert exc.value.args[0] == ("'cm' (length) and '' (dimensionless) are "
+                                 "not convertible")
 
     with pytest.raises(UnitsError) as exc:
         fit_g(g_init, [1, 2, 3] * u.m, [4, 5, 6])
