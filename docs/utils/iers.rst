@@ -29,7 +29,7 @@ and how this can be controlled.
 Basic usage
 -----------
 
-The IERS data are managed via a instances of the
+By default, the IERS data are managed via instances of the
 :class:`~astropy.utils.iers.IERS_Auto` class.  These instances are created
 internally within the relevant time and coordinate objects during
 transformations.  If the astropy data cache does not have the required IERS
@@ -47,7 +47,7 @@ machine.  Here is an example that shows the typical download progress bar::
 Note that you can forcibly clear the download cache as follows::
 
   >>> from astropy.utils.data import clear_download_cache
-  >>> clear_download_cache()
+  >>> clear_download_cache()  # doctest: +SKIP
 
 The default IERS data used automatically is updated by the service every 7 days
 and includes transforms dating back to 1973-01-01.
@@ -146,34 +146,44 @@ Direct table access
 -------------------
 
 In most cases the automatic interface will suffice, but you may need to
-directly load and manipulate IERS tables.  IERS-B values are provided as
-part of astropy and can be used for transformations.  For example::
+directly load and manipulate IERS tables.  IERS-B values are provided as part
+of astropy and can be used to calculate time offsets and polar motion
+directly, or set up for internal use in further time and coordinate
+transformations.  For example::
 
   >>> from astropy.utils import iers
   >>> t = Time('2010:001')
   >>> iers_b = iers.IERS_B.open()
   >>> iers_b.ut1_utc(t)  # doctest: +FLOAT_CMP
   <Quantity 0.1140827 s>
-  >>> t.delta_ut1_utc = iers_b.ut1_utc(t)
+  >>> iers.earth_orientation_table.set(iers_b)
+  <ScienceState earth_orientation_table: <IERS_B length=...>...>
   >>> t.ut1.iso
   '2010-01-01 00:00:00.114'
 
 Instead of local copies of IERS files, one can also download them, using
-``iers.IERS_A_URL`` (or ``iers.IERS_A_URL_MIRROR``) and ``iers.IERS_B_URL``::
+``iers.IERS_A_URL`` (or ``iers.IERS_A_URL_MIRROR``) and ``iers.IERS_B_URL``,
+and then use those for future time and coordinate transformations (in this
+example, just for a single calculation, by using
+`~astropy.utils.iers.earth_orientation_table` as a context manager)::
 
   >>> iers_a = iers.IERS_A.open(iers.IERS_A_URL)  # doctest: +SKIP
+  >>> with iers.earth_orientation_table.set(iers_a):  # doctest: +SKIP
+  ...     print(t.ut1.iso)
+  2010-01-01 00:00:00.114
 
-For coordinate transformations that require IERS polar motion values,
-setting the values manually can be done as follows (where one could also
-select IERS_B)::
+To reset to the default, pass in `None` (which is equivalent to passing in
+``iers.IERS_Auto.open()``)::
 
-  >>> iers.conf.auto_download = False
-  >>> iers.IERS.iers_table = iers.IERS_A.open(iers.IERS_A_URL)  # doctest: +SKIP
+  >>> iers.earth_orientation_table.set(None)  # doctest: +REMOTE_DATA
+  <ScienceState earth_orientation_table: <IERS_Auto length=...>...>
 
 To see the internal IERS data that gets used in astropy you can do the
 following::
 
-  >>> dat = iers.IERS_Auto.open()  # doctest: +SKIP
+  >>> dat = iers.earth_orientation_table.get()  # doctest: +REMOTE_DATA
+  >>> type(dat)  # doctest: +REMOTE_DATA
+  <class 'astropy.utils.iers.iers.IERS_Auto'>
   >>> dat  # doctest: +SKIP
   <IERS_Auto length=16196>
    year month  day    MJD   PolPMFlag_A ... UT1Flag    PM_x     PM_y   PolPMFlag

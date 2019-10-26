@@ -225,7 +225,13 @@ def test_regression_futuretimes_4302():
         c = CIRS(1*u.deg, 2*u.deg, obstime=future_time)
         c.transform_to(ITRS(obstime=future_time))
 
-    if not isinstance(iers.IERS_Auto.iers_table, iers.IERS_Auto):
+    # check that out-of-range warning appears among any other warnings.  If
+    # tests are run with --remote-data then the IERS table will be an instance
+    # of IERS_Auto which is assured of being "fresh".  In this case getting
+    # times outside the range of the table does not raise an exception.  Only
+    # if using IERS_B (which happens without --remote-data, i.e. for all CI
+    # testing) do we expect another warning.
+    if isinstance(iers.earth_orientation_table.get(), iers.IERS_B):
         saw_iers_warnings = False
         for w in found_warnings:
             if issubclass(w.category, AstropyWarning):

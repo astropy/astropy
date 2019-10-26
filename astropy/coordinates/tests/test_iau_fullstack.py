@@ -117,7 +117,8 @@ def test_iau_fullstack(fullstack_icrs, fullstack_fiducial_altaz,
     assert np.all(addecs < tol), 'largest Dec change is {} mas, > {}'.format(np.max(addecs.arcsec*1000), tol)
 
     # check that we're consistent with the ERFA alt/az result
-    xp, yp = u.Quantity(iers.IERS_Auto.open().pm_xy(fullstack_times)).to_value(u.radian)
+    iers_tab = iers.earth_orientation_table.get()
+    xp, yp = u.Quantity(iers_tab.pm_xy(fullstack_times)).to_value(u.radian)
     lon = fullstack_locations.geodetic[0].to_value(u.radian)
     lat = fullstack_locations.geodetic[1].to_value(u.radian)
     height = fullstack_locations.geodetic[2].to_value(u.m)
@@ -178,7 +179,7 @@ def test_future_altaz():
     # table does not raise an exception.  Only if using IERS_B (which happens without
     # --remote-data, i.e. for all CI testing) do we expect another warning.
     messages_to_find = ["Tried to get polar motions for times after IERS data is valid."]
-    if isinstance(iers.IERS_Auto.iers_table, iers.IERS_B):
+    if isinstance(iers.earth_orientation_table.get(), iers.IERS_B):
         messages_to_find.append("(some) times are outside of range covered by IERS table.")
 
     messages_found = [False for _ in messages_to_find]

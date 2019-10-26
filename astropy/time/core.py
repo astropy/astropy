@@ -1654,8 +1654,9 @@ class Time(ShapedLikeNDArray):
         ----------
         iers_table : `~astropy.utils.iers.IERS` table, optional
             Table containing UT1-UTC differences from IERS Bulletins A
-            and/or B.  If `None`, use default combined version (see
-            `astropy.utils.iers.IERS_Auto`)
+            and/or B.  Default: `~astropy.utils.iers.earth_orientation_table`
+            (which in turn defaults to the combined version provided by
+            `~astropy.utils.iers.IERS_Auto`).
         return_status : bool
             Whether to return status values.  If `False` (default), iers
             raises `IndexError` if any time is out of the range
@@ -1689,8 +1690,8 @@ class Time(ShapedLikeNDArray):
             array([ True, False]...)
         """
         if iers_table is None:
-            from astropy.utils.iers import IERS_Auto
-            iers_table = IERS_Auto.open()
+            from astropy.utils.iers import earth_orientation_table
+            iers_table = earth_orientation_table.get()
 
         return iers_table.ut1_utc(self.utc, return_status=return_status)
 
@@ -1705,8 +1706,8 @@ class Time(ShapedLikeNDArray):
         # Sec. 4.3.1: the arg DUT is the quantity delta_UT1 = UT1 - UTC in
         # seconds. It is obtained from tables published by the IERS.
         if not hasattr(self, '_delta_ut1_utc'):
-            from astropy.utils.iers import IERS_Auto
-            iers_table = IERS_Auto.open()
+            from astropy.utils.iers import earth_orientation_table
+            iers_table = earth_orientation_table.get()
             # jd1, jd2 are normally set (see above), except if delta_ut1_utc
             # is access directly; ensure we behave as expected for that case
             if jd1 is None:
