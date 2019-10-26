@@ -1486,36 +1486,45 @@ class SkyCoord(ShapedLikeNDArray):
         care is needed in application. Strictly speaking, the barycentric correction is
         multiplicative and should be applied as::
 
-           sc = SkyCoord(1*u.deg, 2*u.deg)
-           vcorr = sc.rv_correction(kind='barycentric', obstime=t, location=loc)
-           rv = rv + vcorr + rv * vcorr / consts.c
+          >>> from astropy.time import Time
+          >>> from astropy.coordinates import SkyCoord, EarthLocation
+          >>> from astropy.constants import c
+          >>> t = Time(56370.5, format='mjd', scale='utc')
+          >>> loc = EarthLocation('149d33m00.5s','-30d18m46.385s',236.87*u.m)
+          >>> sc = SkyCoord(1*u.deg, 2*u.deg)
+          >>> vcorr = sc.radial_velocity_correction(kind='barycentric', obstime=t, location=loc)
+          >>> rv = rv + vcorr + rv * vcorr / c
 
         If your target is nearby and/or has finite proper motion you may need to account
         for terms arising from this. See Wright & Eastman (2014) for details.
 
-        Also note that this method returns the correction velocity in the so called 
+        Also note that this method returns the correction velocity in the so-called
         *optical convention*::
-   
-           vcorr = zb * consts.c  
 
-        where `zb` is the barycentric correction redshift as defined in section 3
+          >>> vcorr = zb * c
+
+        where ``zb`` is the barycentric correction redshift as defined in section 3
         of Wright & Eastman (2014). The application formula given above follows from their
-        equation (11) under assumption that the radial velocity `rv` has also been defined 
-        using the same optical convention. Note, this can be regarded as a matter of 
-        velocity definition and does not by itself imply any loss of accuracy, provided 
-        sufficient care has been taken during interpretation of the results. If one needs
-        the barycentric correction expressed as the full relativistic velocity (e.g. to provide
-        it as the input to another software which performs the application), the 
+        equation (11) under assumption that the radial velocity ``rv`` has also been defined
+        using the same optical convention. Note, this can be regarded as a matter of
+        velocity definition and does not by itself imply any loss of accuracy, provided
+        sufficient care has been taken during interpretation of the results. If you need
+        the barycentric correction expressed as the full relativistic velocity (e.g., to provide
+        it as the input to another software which performs the application), the
         following recipe can be used::
 
-           zb = vcorr / consts.c
-           zb_plus_one_squared = (zb + 1) * (zb + 1)
-           vcorr_rel = consts.c * (zb_plus_one_squared - 1) / (zb_plus_one_squared + 1)
+          >>> zb = vcorr / c
+          >>> zb_plus_one_squared = (zb + 1) ** 2
+          >>> vcorr_rel = c * (zb_plus_one_squared - 1) / (zb_plus_one_squared + 1)
 
-        See also `~astropy.units.equivalencies.doppler_optical`, 
-        `~astropy.units.equivalencies.doppler_radio` and 
+        or alternatively using just equivalencies::
+
+          >>> vcorr_rel = vcorr.to(u.Hz, u.doppler_optical(1*u.Hz)).to(vcorr.unit, u.doppler_relativistic(1*u.Hz))
+
+        See also `~astropy.units.equivalencies.doppler_optical`,
+        `~astropy.units.equivalencies.doppler_radio`, and
         `~astropy.units.equivalencies.doppler_relativistic` for more information on
-        the velocity conventions. 
+        the velocity conventions.
 
         The default is for this method to use the builtin ephemeris for
         computing the sun and earth location.  Other ephemerides can be chosen
@@ -1523,9 +1532,9 @@ class SkyCoord(ShapedLikeNDArray):
         either directly or via ``with`` statement.  For example, to use the JPL
         ephemeris, do::
 
-            sc = SkyCoord(1*u.deg, 2*u.deg)
-            with coord.solar_system_ephemeris.set('jpl'):
-                rv += sc.rv_correction(obstime=t, location=loc)
+          >>>  sc = SkyCoord(1*u.deg, 2*u.deg)
+          >>>  with coord.solar_system_ephemeris.set('jpl'):
+          ...      rv += sc.radial_velocity_correction(obstime=t, location=loc)
 
         """
         # has to be here to prevent circular imports
