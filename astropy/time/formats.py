@@ -664,6 +664,20 @@ class TimePlotDate(TimeFromEpoch):
     epoch_format = 'jd'
 
 
+class TimeStardate(TimeFromEpoch):
+    """
+    Stardate: date units from 2318-07-05 12:00:00 UTC.
+    For example, stardate 41153.7 is 00:52 on April 30, 2363.
+    See http://trekguide.com/Stardates.htm#TNG for calculations and reference points
+    """
+    name = 'stardate'
+    unit = 0.397766856 # Stardate units per day
+    epoch_val = '2318-07-05 11:00:00' # Date and time of stardate 00000.00
+    epoch_val2 = None
+    epoch_scale = 'utc'
+    epoch_format = 'iso'
+
+
 class TimeUnique(TimeFormat):
     """
     Base class for time formats that can uniquely create a time object

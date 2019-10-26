@@ -326,8 +326,8 @@ class Time(ShapedLikeNDArray):
 
       >>> list(Time.FORMATS)
       ['jd', 'mjd', 'decimalyear', 'unix', 'cxcsec', 'gps', 'plot_date',
-       'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64', 'fits',
-       'byear', 'jyear', 'byear_str', 'jyear_str']
+       'stardate', 'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64',
+       'fits', 'byear', 'jyear', 'byear_str', 'jyear_str']
 
     See also: http://docs.astropy.org/en/stable/time/
 
@@ -646,8 +646,8 @@ class Time(ShapedLikeNDArray):
 
           >>> list(Time.FORMATS)
           ['jd', 'mjd', 'decimalyear', 'unix', 'cxcsec', 'gps', 'plot_date',
-           'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64', 'fits', 'byear',
-           'jyear', 'byear_str', 'jyear_str']
+           'stardate', 'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64',
+           'fits', 'byear', 'jyear', 'byear_str', 'jyear_str']
         """
         return self._format
 
