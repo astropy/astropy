@@ -8,7 +8,11 @@ import os
 import builtins
 import tempfile
 
-from pytest_astropy_header.display import PYTEST_HEADER_MODULES
+try:
+    from pytest_astropy_header.display import PYTEST_HEADER_MODULES
+except ImportError:
+    PYTEST_HEADER_MODULES = {}
+
 from astropy.tests.helper import enable_deprecations_as_exceptions
 
 try:
