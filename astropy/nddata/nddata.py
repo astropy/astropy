@@ -278,6 +278,9 @@ class NDData(NDDataBase):
 
     @wcs.setter
     def wcs(self, wcs):
+        if self._wcs is not None and wcs is not None:
+            raise ValueError("You can only set the wcs attribute with a WCS if no WCS is present.")
+
         if wcs is None or isinstance(wcs, BaseHighLevelWCS):
             self._wcs = wcs
         elif isinstance(wcs, BaseLowLevelWCS):
