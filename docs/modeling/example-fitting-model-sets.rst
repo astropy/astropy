@@ -68,7 +68,7 @@ Fit the model. It fits the N models simultaneously::
 Fill an array with values computed from the best fit and reshape it to match the original::
 
     >>> best_fit = new_model(t, model_set_axis=False).T.reshape((depth, height, width))
-    print("We reshaped the best fit to dimensions: ", best_fit.shape)
+    >>> print("We reshaped the best fit to dimensions: ", best_fit.shape)
     We reshaped the best fit to dimensions:  (10, 3, 4)
 
 Now inspect the model::
