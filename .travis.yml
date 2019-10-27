@@ -100,6 +100,15 @@ matrix:
             - $INSTALL_CMD
             - $TEST_CMD
 
+        - os: linux
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.14
+               INSTALL_CMD='python setup.py build_ext --inplace'
+               PIP_DEPENDENCIES='pytest-astropy'
+               TEST_CMD='pytest --open-files --doctest-rst'
+          script:
+            - $INSTALL_CMD
+            - $TEST_CMD
+
         # Now try with all optional dependencies. We also include the --readonly
         # flag to make sure no files are being written to the temporary install
         # location during testing. We also use this build to make sure that the
