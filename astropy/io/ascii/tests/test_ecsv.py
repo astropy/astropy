@@ -184,11 +184,16 @@ def test_multidim_input():
     """
     Multi-dimensional column in input
     """
-    t = Table([np.arange(4).reshape(2, 2)], names=['a'])
+    t = Table([np.arange(4).reshape(2, 2), [1, 2]], names=['a', 'b'])
     out = StringIO()
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError,
+                       match="ECSV format does not support multidimensional column 'a'"):
         t.write(out, format='ascii.ecsv')
-    assert 'ECSV format does not support multidimensional column' in str(err.value)
+
+    # Now check that the hint works
+    names = [name for name in t.colnames if len(t[name].shape) <= 1]
+    assert names == ['b']
+    ascii.write(t[names], out, format='ecsv')
 
 
 @pytest.mark.skipif('not HAS_YAML')
