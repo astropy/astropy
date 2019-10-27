@@ -23,7 +23,7 @@ from astropy.utils.console import color_print
 from astropy.utils.metadata import MetaData
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
 from astropy.utils.misc import dtype_bytes_or_chars
-from astropy.utils.compat import NUMPY_LT_1_15
+from astropy.utils.compat import NUMPY_LT_1_14, NUMPY_LT_1_15
 from . import groups
 from . import pprint
 from .np_utils import fix_column_name
@@ -981,8 +981,9 @@ class Column(BaseColumn):
             if self.dtype.char == 'S':
                 other = self._encode_str(other)
 
-            if NUMPY_LT_1_15 and (isinstance(self, np.ma.MaskedArray) or
-                                  isinstance(other, np.ma.MaskedArray)):
+            if (not NUMPY_LT_1_14 and NUMPY_LT_1_15 and
+                    (isinstance(self, np.ma.MaskedArray) or
+                     isinstance(other, np.ma.MaskedArray))):
                 # On numpy 1.14, MaskedArray subclass comparison is broken.
                 return getattr(self.data, op)(other)
 
