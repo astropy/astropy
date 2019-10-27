@@ -326,7 +326,11 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
 class TestAccessingParts(InvariantUnitTestSetup):
     def test_diag(self):
         self.check(np.diag)
-        # Also check 1-D case
+
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
+    def test_diag_1d_input(self):
+        # Also check 1-D case; drops unit w/o __array_function__.
         q = self.q.ravel()
         o = np.diag(q)
         expected = np.diag(q.value) << q.unit
@@ -1886,8 +1890,9 @@ class TestFFT(InvariantUnitTestSetup):
         self.check(np.fft.ifftshift)
 
 
-class TestLinAlgSubclassSafe(metaclass=CoverageMeta):
+class TestLinAlg(metaclass=CoverageMeta):
     def setup(self):
+        # Use a matrix safe for inversion, etc.
         self.q = np.array([[1., -1., 2.],
                            [0., 3., -1.],
                            [-1., -1., 1.]]) << u.m
@@ -1897,6 +1902,40 @@ class TestLinAlgSubclassSafe(metaclass=CoverageMeta):
         expected = np.linalg.cond(self.q.value)
         assert c == expected
 
+    def test_matrix_rank(self):
+        r = np.linalg.matrix_rank(self.q)
+        x = np.linalg.matrix_rank(self.q.value)
+        assert r == x
+
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
+    def test_matrix_rank_with_tol(self):
+        # Use a matrix that is not so good, so tol=1 and tol=0.01 differ.
+        q = np.arange(9.).reshape(3, 3) / 4 * u.m
+        tol = 1. * u.cm
+        r2 = np.linalg.matrix_rank(q, tol)
+        x2 = np.linalg.matrix_rank(q.value, tol.to_value(q.unit))
+        assert r2 == x2
+
+    def test_matrix_power(self):
+        q1 = np.linalg.matrix_power(self.q, 1)
+        assert_array_equal(q1, self.q)
+        q2 = np.linalg.matrix_power(self.q, 2)
+        assert_array_equal(q2, self.q @ self.q)
+        q2 = np.linalg.matrix_power(self.q, 4)
+        assert_array_equal(q2, self.q @ self.q @ self.q @ self.q)
+
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
+    def test_matrix_inv_power(self):
+        qinv = np.linalg.inv(self.q.value) / self.q.unit
+        qm1 = np.linalg.matrix_power(self.q, -1)
+        assert_array_equal(qm1, qinv)
+        qm3 = np.linalg.matrix_power(self.q, -3)
+        assert_array_equal(qm3, qinv @ qinv @ qinv)
+
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_multi_dot(self):
         q2 = np.linalg.multi_dot([self.q, self.q])
         q2x = self.q @ self.q
@@ -1905,10 +1944,8 @@ class TestLinAlgSubclassSafe(metaclass=CoverageMeta):
         q3x = self.q @ self.q @ self.q
         assert_array_equal(q3, q3x)
 
-
-@pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                   reason="Needs __array_function__ support")
-class TestLinAlgNeedArrayFunction(TestLinAlgSubclassSafe):
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_svd(self):
         m = np.arange(10.) * np.arange(5.)[:, np.newaxis] * u.m
         svd_u, svd_s, svd_vt = np.linalg.svd(m, full_matrices=False)
@@ -1923,20 +1960,15 @@ class TestLinAlgNeedArrayFunction(TestLinAlgSubclassSafe):
         svd_s2x = np.linalg.svd(m.value, compute_uv=False) << m.unit
         assert_array_equal(s2, svd_s2x)
 
-    def test_matrix_rank(self):
-        r = np.linalg.matrix_rank(self.q)
-        x = np.linalg.matrix_rank(self.q.value)
-        assert r == x
-        tol = 1. * u.cm
-        r2 = np.linalg.matrix_rank(self.q, tol)
-        x2 = np.linalg.matrix_rank(self.q.value, tol.to_value(self.q.unit))
-        assert r2 == x2
-
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_inv(self):
         inv = np.linalg.inv(self.q)
         expected = np.linalg.inv(self.q.value) / self.q.unit
         assert_array_equal(inv, expected)
 
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_pinv(self):
         pinv = np.linalg.pinv(self.q)
         expected = np.linalg.pinv(self.q.value) / self.q.unit
@@ -1947,11 +1979,15 @@ class TestLinAlgNeedArrayFunction(TestLinAlgSubclassSafe):
                                    rcond.to_value(self.q.unit)) / self.q.unit
         assert_array_equal(pinv2, expected2)
 
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_tensorinv(self):
         inv = np.linalg.tensorinv(self.q, ind=1)
         expected = np.linalg.tensorinv(self.q.value, ind=1) / self.q.unit
         assert_array_equal(inv, expected)
 
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_det(self):
         det = np.linalg.det(self.q)
         expected = np.linalg.det(self.q.value)
@@ -1962,11 +1998,16 @@ class TestLinAlgNeedArrayFunction(TestLinAlgSubclassSafe):
         with pytest.raises(np.linalg.LinAlgError):
             np.linalg.det(self.q[:-1])  # Not square.
 
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_slogdet(self):
         # TODO: Could be supported if we had a natural logarithm unit.
         with pytest.raises(TypeError):
-            np.linalg.slogdet(self.q)
+            logdet = np.linalg.slogdet(self.q)
+            assert hasattr(logdet, 'unit')
 
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_solve(self):
         b = np.array([1., 2., 4.]) * u.m / u.s
         x = np.linalg.solve(self.q, b)
@@ -1975,6 +2016,8 @@ class TestLinAlgNeedArrayFunction(TestLinAlgSubclassSafe):
         assert_array_equal(x, xx)
         assert u.allclose(self.q @ x, b)
 
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_tensorsolve(self):
         b = np.array([1., 2., 4.]) * u.m / u.s
         x = np.linalg.tensorsolve(self.q, b)
@@ -1983,6 +2026,8 @@ class TestLinAlgNeedArrayFunction(TestLinAlgSubclassSafe):
         assert_array_equal(x, xx)
         assert u.allclose(self.q @ x, b)
 
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_lstsq(self):
         b = np.array([1., 2., 4.]) * u.m / u.s
         x, residuals, rank, s = np.linalg.lstsq(self.q, b, rcond=None)
@@ -2010,6 +2055,8 @@ class TestLinAlgNeedArrayFunction(TestLinAlgSubclassSafe):
         with pytest.raises(u.UnitsError):
             np.linalg.lstsq(m, b, rcond=1.*u.s)
 
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_norm(self):
         n = np.linalg.norm(self.q)
         expected = np.linalg.norm(self.q.value) << self.q.unit
@@ -2019,19 +2066,8 @@ class TestLinAlgNeedArrayFunction(TestLinAlgSubclassSafe):
         expected1 = np.linalg.norm(self.q[0].value, ord=0) << u.one
         assert_array_equal(n1, expected1)
 
-    def test_matrix_power(self):
-        q1 = np.linalg.matrix_power(self.q, 1)
-        assert_array_equal(q1, self.q)
-        q2 = np.linalg.matrix_power(self.q, 2)
-        assert_array_equal(q2, self.q @ self.q)
-        q2 = np.linalg.matrix_power(self.q, 4)
-        assert_array_equal(q2, self.q @ self.q @ self.q @ self.q)
-        qinv = np.linalg.inv(self.q)
-        qm1 = np.linalg.matrix_power(self.q, -1)
-        assert_array_equal(qm1, qinv)
-        qm3 = np.linalg.matrix_power(self.q, -3)
-        assert_array_equal(qm3, qinv @ qinv @ qinv)
-
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_cholesky(self):
         # Numbers from np.linalg.cholesky docstring.
         q = np.array([[1, -2j], [2j, 5]]) * u.m
@@ -2040,6 +2076,8 @@ class TestLinAlgNeedArrayFunction(TestLinAlgSubclassSafe):
         assert_array_equal(cd, cdx)
         assert u.allclose(cd @ cd.T.conj(), q)
 
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_qr(self):
         # This is not exhaustive...
         a = np.array([[1, -2j], [2j, 5]]) * u.m
@@ -2051,6 +2089,8 @@ class TestLinAlgNeedArrayFunction(TestLinAlgSubclassSafe):
         assert_array_equal(r, rx)
         assert u.allclose(q @ r, a)
 
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_eig(self):
         w, v = np.linalg.eig(self.q)
         wx, vx = np.linalg.eig(self.q.value)
@@ -2065,6 +2105,8 @@ class TestLinAlgNeedArrayFunction(TestLinAlgSubclassSafe):
         assert_array_equal(w, np.arange(1, 4) * u.m)
         assert_array_equal(v, np.eye(3))
 
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_eigvals(self):
         w = np.linalg.eigvals(self.q)
         wx = np.linalg.eigvals(self.q.value) << self.q.unit
@@ -2074,6 +2116,8 @@ class TestLinAlgNeedArrayFunction(TestLinAlgSubclassSafe):
         w = np.linalg.eigvals(q)
         assert_array_equal(w, np.arange(1, 4) * u.m)
 
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_eigh(self):
         w, v = np.linalg.eigh(self.q)
         wx, vx = np.linalg.eigh(self.q.value)
@@ -2082,6 +2126,8 @@ class TestLinAlgNeedArrayFunction(TestLinAlgSubclassSafe):
         assert_array_equal(w, wx)
         assert_array_equal(v, vx)
 
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_eigvalsh(self):
         w = np.linalg.eigvalsh(self.q)
         wx = np.linalg.eigvalsh(self.q.value) << self.q.unit
