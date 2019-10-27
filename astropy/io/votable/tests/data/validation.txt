@@ -54,10 +54,6 @@ Validation report for /tmp/astropy-test-D69Wr6/lib.linux-x86_64-2.7/astropy/io/v
   <VALUES null="-32769"/>
   ^
 
-50: W48: Unknown attribute 'value' on OPTION
-    <OPTION name="bogus" value="whatever"/>
-    ^
-
 52: W10: Unknown tag 'IGNORE_ME'.  Ignoring
   <IGNORE_ME/>
   ^
