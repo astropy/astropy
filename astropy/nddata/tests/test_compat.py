@@ -8,6 +8,7 @@ import numpy as np
 from astropy.nddata.nddata import NDData
 from astropy.nddata.compat import NDDataArray
 from astropy.nddata.nduncertainty import StdDevUncertainty
+from astropy.wcs import WCS
 from astropy import units as u
 
 
@@ -111,7 +112,7 @@ class SubNDData(NDDataArray):
 
 def test_init_of_subclass_in_convert_unit_to():
     data = np.ones([10, 10])
-    arr1 = SubNDData(data, unit='m', wcs=5)
+    arr1 = SubNDData(data, unit='m', wcs=WCS(naxis=2))
     result = arr1.convert_unit_to('km')
     np.testing.assert_array_equal(arr1.data, 1000 * result.data)
 

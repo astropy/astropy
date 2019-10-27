@@ -483,7 +483,7 @@ class NDArithmeticMixin:
         if not compare_wcs(self.wcs, operand.wcs, **kwds):
             raise ValueError("WCS are not equal.")
 
-        return self.wcs
+        return deepcopy(self.wcs)
 
     def _arithmetic_meta(self, operation, operand, handle_meta, **kwds):
         """

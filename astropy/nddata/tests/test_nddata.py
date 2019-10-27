@@ -13,8 +13,12 @@ from astropy.nddata.nddata import NDData
 from astropy.nddata.nduncertainty import StdDevUncertainty
 from astropy import units as u
 from astropy.utils import NumpyRNGContext
+from astropy.wcs import WCS
+from astropy.wcs.wcsapi import HighLevelWCSWrapper, SlicedLowLevelWCS, \
+                               BaseHighLevelWCS
 
 from .test_nduncertainty import FakeUncertainty
+from astropy.nddata import _testing as nd_testing
 
 
 class FakeNumpyArray:
@@ -215,10 +219,10 @@ def test_nddata_init_data_nddata():
 
     # Now let's see what happens if we have all explicitly set
     nd1 = NDData(np.array([1]), mask=False, uncertainty=StdDevUncertainty(10), unit=u.s,
-                 meta={'dest': 'mordor'}, wcs=10)
+                 meta={'dest': 'mordor'}, wcs=WCS(naxis=1))
     nd2 = NDData(nd1)
     assert nd2.data is nd1.data
-    assert nd2.wcs == nd1.wcs
+    assert nd2.wcs is nd1.wcs
     assert nd2.uncertainty.array == nd1.uncertainty.array
     assert nd2.mask == nd1.mask
     assert nd2.unit == nd1.unit
@@ -226,9 +230,9 @@ def test_nddata_init_data_nddata():
 
     # now what happens if we overwrite them all too
     nd3 = NDData(nd1, mask=True, uncertainty=StdDevUncertainty(200), unit=u.km,
-                 meta={'observer': 'ME'}, wcs=4)
+                 meta={'observer': 'ME'}, wcs=WCS(naxis=1))
     assert nd3.data is nd1.data
-    assert nd3.wcs != nd1.wcs
+    assert nd3.wcs is not nd1.wcs
     assert nd3.uncertainty.array != nd1.uncertainty.array
     assert nd3.mask != nd1.mask
     assert nd3.unit != nd1.unit
@@ -243,15 +247,16 @@ def test_nddata_init_data_nddata_subclass():
     # would have lead to a compromised nddata instance
     with pytest.raises(TypeError):
         NDData(bnd)
+
     # but if it has no actual incompatible attributes it passes
-    bnd_good = BadNDDataSubclass(np.array([1, 2]), uncert, 3, 2,
+    bnd_good = BadNDDataSubclass(np.array([1, 2]), uncert, 3, HighLevelWCSWrapper(WCS(naxis=1)),
                                  {'enemy': 'black knight'}, u.km)
     nd = NDData(bnd_good)
     assert nd.unit == bnd_good.unit
     assert nd.meta == bnd_good.meta
     assert nd.uncertainty == bnd_good.uncertainty
     assert nd.mask == bnd_good.mask
-    assert nd.wcs == bnd_good.wcs
+    assert nd.wcs is bnd_good.wcs
     assert nd.data is bnd_good.data
 
 
@@ -297,11 +302,11 @@ def test_param_uncertainty():
 
 def test_param_wcs():
     # Since everything is allowed we only need to test something
-    nd = NDData([1], wcs=3)
-    assert nd.wcs == 3
+    nd = NDData([1], wcs=WCS(naxis=1))
+    assert nd.wcs is not None
     # Test conflicting wcs (other NDData)
-    nd2 = NDData(nd, wcs=2)
-    assert nd2.wcs == 2
+    nd2 = NDData(nd, wcs=WCS(naxis=1))
+    assert nd2.wcs is not None and nd2.wcs is not nd.wcs
 
 
 def test_param_meta():
@@ -447,3 +452,39 @@ def test_arithmetic_not_supported():
     ndd = NDData(np.ones((5, 5)))
     with pytest.raises(TypeError):
         ndd + ndd
+
+
+def test_nddata_wcs_setter_error_cases():
+    ndd = NDData(np.ones((5, 5)))
+
+    # Setting with a non-WCS should raise an error
+    with pytest.raises(TypeError):
+        ndd.wcs = "I am not a WCS"
+
+    naxis = 2
+    # This should succeed since the WCS is currently None
+    ndd.wcs = nd_testing._create_wcs_simple(naxis=naxis,
+                                            ctype=['deg'] * naxis,
+                                            crpix=[0] * naxis,
+                                            crval=[10] * naxis,
+                                            cdelt=[1] * naxis)
+    with pytest.raises(ValueError):
+        # This should fail since the WCS is not None
+        ndd.wcs = nd_testing._create_wcs_simple(naxis=naxis,
+                                                ctype=['deg'] * naxis,
+                                                crpix=[0] * naxis,
+                                                crval=[10] * naxis,
+                                                cdelt=[1] * naxis)
+
+
+def test_nddata_wcs_setter_with_low_level_wcs():
+    ndd = NDData(np.ones((5, 5)))
+    wcs = WCS()
+    # If the wcs property is set with a low level WCS it should get
+    # wrapped to high level.
+    low_level = SlicedLowLevelWCS(wcs, 5)
+    assert not isinstance(low_level, BaseHighLevelWCS)
+
+    ndd.wcs = low_level
+
+    assert isinstance(ndd.wcs, BaseHighLevelWCS)

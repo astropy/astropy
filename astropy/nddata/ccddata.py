@@ -188,6 +188,11 @@ class CCDData(NDDataArray):
             raise ValueError("can't have both header and meta.")
 
         super().__init__(*args, **kwd)
+        if self._wcs is not None:
+            llwcs = self._wcs.low_level_wcs
+            if not isinstance(llwcs, WCS):
+                raise TypeError("the wcs must be a WCS instance.")
+            self._wcs = llwcs
 
         # Check if a unit is set. This can be temporarly disabled by the
         # _CCDDataUnit contextmanager.
@@ -208,6 +213,8 @@ class CCDData(NDDataArray):
 
     @wcs.setter
     def wcs(self, value):
+        if not isinstance(value, WCS):
+            raise TypeError("the wcs must be a WCS instance.")
         self._wcs = value
 
     @property

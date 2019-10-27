@@ -220,7 +220,7 @@ def test_slice_wcs():
     sub = mywcs[0]
     assert isinstance(sub, SlicedFITSWCS)
 
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(IndexError) as exc:
         mywcs[0, ::2]
     assert exc.value.args[0] == "Slicing WCS with a step is not supported."
 

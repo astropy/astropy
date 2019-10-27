@@ -20,6 +20,7 @@ Using the standard arithmetic methods requires that the first operand
 is an `~astropy.nddata.NDDataRef` instance:
 
     >>> from astropy.nddata import NDDataRef
+    >>> from astropy.wcs import WCS
     >>> import numpy as np
     >>> ndd1 = NDDataRef([1, 2, 3, 4])
 
@@ -255,8 +256,8 @@ or if the operation should be forbidden. The possible values are identical to
 
 - If ``None`` the resulting ``wcs`` will be an empty ``None``.
 
-      >>> ndd1 = NDDataRef(1, wcs=0)
-      >>> ndd2 = NDDataRef(1, wcs=1)
+      >>> ndd1 = NDDataRef(1, wcs=None)
+      >>> ndd2 = NDDataRef(1, wcs=WCS())
       >>> ndd1.add(ndd2, compare_wcs=None).wcs is None
       True
 
@@ -264,10 +265,11 @@ or if the operation should be forbidden. The possible values are identical to
   the first operand or if that is ``None``, the ``meta`` of the second operand
   is taken.
 
-      >>> ndd1 = NDDataRef(1, wcs=1)
-      >>> ndd2 = NDDataRef(1, wcs=0)
-      >>> ndd1.add(ndd2, compare_wcs='ff').wcs
-      1
+      >>> wcs = WCS()
+      >>> ndd1 = NDDataRef(1, wcs=wcs)
+      >>> ndd2 = NDDataRef(1, wcs=None)
+      >>> str(ndd1.add(ndd2, compare_wcs='ff').wcs) == str(wcs)
+      True
 
 - If it is a ``callable`` it must take at least two arguments. Both ``wcs``
   attributes will be passed to this function (even if one or both of them are
@@ -282,20 +284,22 @@ or if the operation should be forbidden. The possible values are identical to
       ...     if wcs1 is None or wcs2 is None:
       ...         return False  # one has WCS, the other doesn't not possible
       ...     else:
-      ...         return abs(wcs1 - wcs2) < allowed_deviation
+      ...         # Consider wcs close if centers are close enough
+      ...         return all(abs(wcs1.wcs.crpix - wcs2.wcs.crpix) < allowed_deviation)
 
-      >>> ndd1 = NDDataRef(1, wcs=1)
-      >>> ndd2 = NDDataRef(1, wcs=1)
+      >>> ndd1 = NDDataRef(1, wcs=None)
+      >>> ndd2 = NDDataRef(1, wcs=None)
       >>> ndd1.subtract(ndd2, compare_wcs=compare_wcs_scalar).wcs
-      1
+
 
   Additional arguments can be passed in prefixing them with ``wcs_`` (this
   prefix will be stripped away before passing it to the function)::
 
-      >>> ndd1 = NDDataRef(1, wcs=1)
-      >>> ndd2 = NDDataRef(1, wcs=2)
-      >>> ndd1.subtract(ndd2, compare_wcs=compare_wcs_scalar, wcs_allowed_deviation=2).wcs
-      1
+      >>> ndd1 = NDDataRef(1, wcs=WCS())
+      >>> ndd1.wcs.wcs.crpix = [1, 1]
+      >>> ndd2 = NDDataRef(1, wcs=WCS())
+      >>> ndd1.subtract(ndd2, compare_wcs=compare_wcs_scalar, wcs_allowed_deviation=2).wcs.wcs.crpix
+      array([1., 1.])
 
   If you are using `~astropy.wcs.WCS` objects, a very handy function to use
   might be::
