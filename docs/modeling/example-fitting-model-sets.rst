@@ -59,7 +59,7 @@ other words, we are reshaping to flatten last two axes and transposing to put th
     x axis is one dimensional:  (10,)
     y axis is two dimensional, N by len(x):  (12, 10)
 
-Fit the model. It does the looping over the N models implicitly::
+Fit the model. It fits the N models simultaneously::
 
     >>> new_model = fit(line, x=t, y=y)
     >>> print("We fit %d models" % len(new_model))
