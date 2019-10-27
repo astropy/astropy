@@ -56,8 +56,11 @@ class EcsvHeader(basic.BasicHeader):
 
         for col in self.cols:
             if len(getattr(col, 'shape', ())) > 1:
-                raise ValueError("ECSV format does not support multidimensional column '{}'"
-                                 .format(col.info.name))
+                raise ValueError(
+                    f"ECSV format does not support multidimensional column '{col.info.name}'\n"
+                    'One can filter out such columns using:\n'
+                    'names = [name for name in tbl.colnames if len(tbl[name].shape) <= 1]\n'
+                    'tbl[names].write(...)')
 
         # Now assemble the header dict that will be serialized by the YAML dumper
         header = {'cols': self.cols, 'schema': 'astropy-2.0'}
