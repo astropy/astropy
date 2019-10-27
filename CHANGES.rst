@@ -1,4 +1,4 @@
-2.0.16 (unreleased)
+2.0.16 (2019-10-27)
 ===================
 
 Bug Fixes
@@ -9,6 +9,13 @@ astropy.time
 
 - Fixed a troubling bug in which ``Time`` could loose precision, with deviations
   of 300 ns. [#9328]
+
+
+Other Changes and Additions
+---------------------------
+
+- Updated IERS A URLs due to USNO prolonged maintenance. [#9443]
+
 
 
 2.0.15 (2019-10-06)
