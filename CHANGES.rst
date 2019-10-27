@@ -622,6 +622,10 @@ astropy.io.votable
 - Address issue #8995 by ignoring BINARY2 null mask bits for string values
   on parsing a VOTable.  In this way, the reader should never create masked
   values for string types. [#9057]
+  
+- Corrected a spurious warning issued for the ``value`` attribute of the
+  ``<OPTION>`` element in VOTable, as well as a test that erroneously
+  treated the warning as acceptable.  [#9470]
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
