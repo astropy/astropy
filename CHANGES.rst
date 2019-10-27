@@ -41,6 +41,10 @@ astropy.coordinates
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
+- The pre-publication Planck 2018 cosmological parameters are included as the
+  ``Planck2018_arXiv_v2`` object.  Please note that the values are preliminary,
+  and when the paper is accepted a final version will be included as ``Planck18``.
+  [#8111]
 
 astropy.extern
 ^^^^^^^^^^^^^^
