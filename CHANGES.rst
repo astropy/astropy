@@ -557,6 +557,12 @@ astropy.coordinates
 - The ``QuantityAttribute`` class now supports a None default value if a unit
   is specified. [#9345]
 
+- When ``Representation`` classes with the same name are defined, this no
+  longer leads to a ``ValueError``, but instead to a warning and the removal
+  of both from the name registry (i.e., one either has to use the class itself
+  to set, e.g., ``representation_type``, or refer to the class by its fully
+  qualified name). [#8561]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
