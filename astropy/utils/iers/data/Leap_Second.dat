@@ -1,0 +1,41 @@
+#  Value of TAI-UTC in second valid beetween the initial value until
+#  the epoch given on the next line. The last line reads that NO
+#  leap second was introduced since the corresponding date
+#  Updated through IERS Bulletin 58 issued in July 2019
+#
+#
+#  File expires on 28 June 2020
+#
+#
+#    MJD        Date        TAI-UTC (s)
+#           day month year
+#    ---    --------------   ------
+#
+    41317.0    1  1 1972       10
+    41499.0    1  7 1972       11
+    41683.0    1  1 1973       12
+    42048.0    1  1 1974       13
+    42413.0    1  1 1975       14
+    42778.0    1  1 1976       15
+    43144.0    1  1 1977       16
+    43509.0    1  1 1978       17
+    43874.0    1  1 1979       18
+    44239.0    1  1 1980       19
+    44786.0    1  7 1981       20
+    45151.0    1  7 1982       21
+    45516.0    1  7 1983       22
+    46247.0    1  7 1985       23
+    47161.0    1  1 1988       24
+    47892.0    1  1 1990       25
+    48257.0    1  1 1991       26
+    48804.0    1  7 1992       27
+    49169.0    1  7 1993       28
+    49534.0    1  7 1994       29
+    50083.0    1  1 1996       30
+    50630.0    1  7 1997       31
+    51179.0    1  1 1999       32
+    53736.0    1  1 2006       33
+    54832.0    1  1 2009       34
+    56109.0    1  7 2012       35
+    57204.0    1  7 2015       36
+    57754.0    1  1 2017       37

@@ -8,7 +8,7 @@ from warnings import warn
 import numpy as np
 
 from astropy.utils.decorators import classproperty
-from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import ErfaWarning
 
 from .ufunc import get_leap_seconds, set_leap_seconds, dt_eraLEAPSECOND
 
@@ -41,6 +41,23 @@ class leap_seconds:
     def validate(cls, table):
         """Validate a leap-second table.
 
+        Parameters
+        ----------
+        table : array-like
+            Must have 'year', 'month', and 'tai_utc' entries.  If a 'day'
+            entry is present, it will be checked that it is always 1.
+            If ``table`` has an 'expires' attribute, it will be interpreted
+            as an expiration date.
+
+        Returns
+        -------
+        array : `~numpy.ndarray`
+            Structures array with 'year', 'month', 'tai_utc'.
+        expires: `~datetime.datetime` or None
+            Possible expiration date inferred from the table.  `None` if not
+            present or if not a `~datetime.datetime` or `~astropy.time.Time`
+            instance and not parsable as a 'dd month yyyy' string.
+
         Raises
         ------
         ValueError
@@ -51,6 +68,24 @@ class leap_seconds:
             day = table['day']
         except Exception:
             day = 1
+
+        expires = getattr(table, 'expires', None)
+        if expires is not None and not isinstance(expires, datetime):
+            # Maybe astropy Time? Cannot go via strftime, since that
+            # might need leap-seconds.  If not, try standard string
+            # format from leap_seconds.dat and leap_seconds.list
+            isot = getattr(expires, 'isot', None)
+            try:
+                if isot is not None:
+                    expires = datetime.strptime(isot.partition('T')[0],
+                                                '%Y-%m-%d')
+                else:
+                    expires = datetime.strptime(expires, '%d %B %Y')
+
+            except Exception as exc:
+                warn(f"ignoring non-datetime expiration {expires}; "
+                     f"parsing it raised {exc!r}", ErfaWarning)
+                expires = None
 
         # Take care of astropy Table.
         if hasattr(table, '__array__'):
@@ -73,7 +108,7 @@ class leap_seconds:
                   (np.diff(table['tai_utc']) != 1)):
             raise ValueError("jump in TAI-UTC by something else than one.")
 
-        return table
+        return table, expires
 
     @classmethod
     def set(cls, table=None):
@@ -97,8 +132,13 @@ class leap_seconds:
             If the leap seconds in the table are not on the 1st of January or
             July, or if the sorted TAI-UTC do not increase in increments of 1.
         """
-        set_leap_seconds(None if table is None else cls.validate(table))
-        cls._expires = getattr(table, 'expires', None)
+        if table is None:
+            expires = None
+        else:
+            table, expires = cls.validate(table)
+
+        set_leap_seconds(table)
+        cls._expires = expires
 
     @classproperty
     def expires(cls):
@@ -148,12 +188,11 @@ class leap_seconds:
             If the leap seconds in the table are not on the 1st of January or
             July, or if the sorted TAI-UTC do not increase in increments of 1.
         """
-        expires = getattr(table, 'expires', None)
-        table = cls.validate(table)
+        table, expires = cls.validate(table)
 
         # Get erfa table and check it is OK; if not, reset it.
         try:
-            erfa_ls = cls.validate(cls.get())
+            erfa_ls, _ = cls.validate(cls.get())
         except Exception:
             cls.set()
             erfa_ls = cls.get()
@@ -172,6 +211,6 @@ class leap_seconds:
         except Exception as exc:
             warn("table 'expires' attribute ignored as comparing it "
                  "with a datetime raised an error:\n" + str(exc),
-                 AstropyWarning)
+                 ErfaWarning)
 
         return len(ls) - len(erfa_ls)

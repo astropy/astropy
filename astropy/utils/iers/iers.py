@@ -9,6 +9,8 @@ celestial-to-terrestrial coordinate transformations
 (in `astropy.coordinates`).
 """
 
+import re
+from datetime import datetime
 from warnings import warn
 
 try:
@@ -18,10 +20,14 @@ except ImportError:
 
 import numpy as np
 
+from astropy.time import Time, TimeDelta
+from astropy import _erfa as erfa
 from astropy import config as _config
+from astropy.io.ascii import convert_numpy
 from astropy import units as u
 from astropy.table import QTable, MaskedColumn
-from astropy.utils.data import get_pkg_data_filename, clear_download_cache
+from astropy.utils.data import (get_pkg_data_filename, clear_download_cache,
+                                is_url_in_cache, get_readable_fileobj)
 from astropy.utils.state import ScienceState
 from astropy.utils.compat import NUMPY_LT_1_17
 from astropy import utils
@@ -33,7 +39,9 @@ __all__ = ['Conf', 'conf', 'earth_orientation_table',
            'TIME_BEFORE_IERS_RANGE', 'TIME_BEYOND_IERS_RANGE',
            'IERS_A_FILE', 'IERS_A_URL', 'IERS_A_URL_MIRROR', 'IERS_A_README',
            'IERS_B_FILE', 'IERS_B_URL', 'IERS_B_README',
-           'IERSRangeError', 'IERSStaleWarning']
+           'IERSRangeError', 'IERSStaleWarning',
+           'LeapSeconds', 'IERS_LEAP_SECOND_FILE', 'IERS_LEAP_SECOND_URL',
+           'IETF_LEAP_SECOND_URL']
 
 # IERS-A default file name, URL, and ReadMe with content description
 IERS_A_FILE = 'finals2000A.all'
@@ -45,6 +53,11 @@ IERS_A_README = get_pkg_data_filename('data/ReadMe.finals2000A')
 IERS_B_FILE = get_pkg_data_filename('data/eopc04_IAU2000.62-now')
 IERS_B_URL = 'http://hpiers.obspm.fr/iers/eop/eopc04/eopc04_IAU2000.62-now'
 IERS_B_README = get_pkg_data_filename('data/ReadMe.eopc04_IAU2000')
+
+# LEAP SECONDS default file name, URL, and alternative format/URL
+IERS_LEAP_SECOND_FILE = get_pkg_data_filename('data/Leap_Second.dat')
+IERS_LEAP_SECOND_URL = 'https://hpiers.obspm.fr/iers/bul/bulc/Leap_Second.dat'
+IETF_LEAP_SECOND_URL = 'https://www.ietf.org/timezones/data/leap-seconds.list'
 
 # Status/source values returned by IERS.ut1_utc
 FROM_IERS_B = 0
@@ -92,10 +105,12 @@ class Conf(_config.ConfigNamespace):
     auto_download = _config.ConfigItem(
         True,
         'Enable auto-downloading of the latest IERS data.  If set to False '
-        'then the local IERS-B file will be used by default. Default is True.')
+        'then the local IERS-B and leap-second files will be used by default. '
+        'Default is True.')
     auto_max_age = _config.ConfigItem(
         30.0,
-        'Maximum age (days) of predictive data before auto-downloading. Default is 30.')
+        'Maximum age (days) of predictive data before auto-downloading. '
+        'Default is 30.')
     iers_auto_url = _config.ConfigItem(
         IERS_A_URL,
         'URL for auto-downloading IERS file data.')
@@ -105,6 +120,15 @@ class Conf(_config.ConfigNamespace):
     remote_timeout = _config.ConfigItem(
         10.0,
         'Remote timeout downloading IERS file data (seconds).')
+    system_leap_second_file = _config.ConfigItem(
+        '',
+        'System file with leap seconds.')
+    iers_leap_second_auto_url = _config.ConfigItem(
+        IERS_LEAP_SECOND_URL,
+        'URL for auto-downloading leap seconds.')
+    ietf_leap_second_auto_url = _config.ConfigItem(
+        IETF_LEAP_SECOND_URL,
+        'Alternate URL for auto-downloading leap seconds.')
 
 
 conf = Conf()
@@ -399,7 +423,6 @@ class IERS(QTable):
         Property to provide the current time, but also allow for explicitly setting
         the _time_now attribute for testing purposes.
         """
-        from astropy.time import Time
         try:
             return self._time_now
         except Exception:
@@ -847,3 +870,311 @@ class earth_orientation_table(ScienceState):
         if not isinstance(value, IERS):
             raise ValueError("earth_orientation_table requires an IERS Table.")
         return value
+
+
+class LeapSeconds(QTable):
+    """Leap seconds class, holding TAI-UTC differences.
+
+    The table should hold columns 'year', 'month', 'tai_utc'.
+
+    Methods are provided to initialize the table from IERS ``Leap_Second.dat``,
+    IETF/ntp ``leap-seconds.list``, or built-in ERFA/SOFA, and to update the
+    list used by ERFA.
+
+    Notes
+    -----
+    Astropy has a built-in ``iers.IERS_LEAP_SECONDS_FILE``. Up to date versions
+    can be downloaded from ``iers.IERS_LEAP_SECONDS_URL`` or
+    ``iers.LEAP_SECONDS_LIST_URL``.  Many systems also store a version
+    of ``leap-seconds.list`` for use with ``ntp`` (e.g., on Debian/Ubuntu
+    systems, ``/usr/share/zoneinfo/leap-seconds.list``).
+    """
+    # Note: Time instances in this class should use scale='tai' to avoid
+    # needing leap seconds in their creation or interpretation.
+
+    _re_expires = re.compile(r'^#.*File expires on[:\s]+(\d+\s\w+\s\d+)\s*$')
+    _expires = None
+    _auto_open_files = ['erfa',
+                        IERS_LEAP_SECOND_FILE,
+                        'system_leap_second_file',
+                        'iers_leap_second_auto_url',
+                        'ietf_leap_second_auto_url']
+    """Files or conf attributes to try in auto_open."""
+
+    @classmethod
+    def open(cls, file=None, cache=False):
+        """Open a leap-second list.
+
+        Parameters
+        ----------
+        file : path, or None
+            Full local or network path to the file holding leap-second data,
+            for passing on to the various ``from_`` class methods.
+            If 'erfa', return the data used by the ERFA library.
+            If `None`, use default locations from file and configuration to
+            find a table that is not expired.
+        cache : bool
+            Whether to use cache. Defaults to False, since leap-second files
+            are regularly updated.
+
+        Returns
+        -------
+        leap_seconds : `~astropy.utils.iers.LeapSeconds`
+            Table with 'year', 'month', and 'tai_utc' columns, plus possibly
+            others.
+
+        Notes
+        -----
+        Bulletin C is released about 10 days after a possible leap second is
+        introduced, i.e., mid-January or mid-July.  Expiration days are thus
+        generally at least 150 days after the present.  For the auto-loading,
+        a list comprised of the table shipped with astropy, and files and
+        URLs in `~astropy.utils.iers.Conf` are tried, returning the first
+        that is sufficiently new, or the newest among them all.
+        """
+        if file is None:
+            return cls.auto_open()
+
+        if file.lower() == 'erfa':
+            return cls.from_erfa()
+
+        if urlparse(file).netloc:
+            file = download_file(file, cache=cache)
+
+        # Just try both reading methods.
+        try:
+            return cls.from_iers_leap_seconds(file)
+        except Exception:
+            return cls.from_leap_seconds_list(file)
+
+    @staticmethod
+    def _today():
+        # Get current day in scale='tai' without going through a scale change
+        # (so we do not need leap seconds).
+        s = '{0.year:04d}-{0.month:02d}-{0.day:02d}'.format(datetime.utcnow())
+        return Time(s, scale='tai', format='iso', out_subfmt='date')
+
+    @classmethod
+    def auto_open(cls, files=None):
+        """Attempt to get an up-to-date leap-second list.
+
+        The routine will try the files in sequence until it finds one
+        whose expiration date is "good enough" (see below).  If none
+        are good enough, it returns the one with the most recent expiration
+        date, warning if that file is expired.
+
+        For remote files that are cached already, the cached file is tried
+        first before attempting to retrieve it again.
+
+        Parameters
+        ----------
+        files : list of path, optional
+            List of files/URLs to attempt to open.  By default, uses
+            ``cls._auto_open_files``.
+
+        Returns
+        -------
+        leap_seconds : `~astropy.utils.iers.LeapSeconds`
+            Up to date leap-second table
+
+        Notes
+        -----
+        Bulletin C is released about 10 days after a possible leap second is
+        introduced, i.e., mid-January or mid-July.  Expiration days are thus
+        generally at least 150 days after the present.  We look for a file
+        that expires more than 180 - `~astropy.utils.iers.Conf.auto_max_age`
+        after the present.
+        """
+        good_enough = cls._today() + TimeDelta(180-conf.auto_max_age,
+                                               format='jd')
+
+        if files is None:
+            # Basic files to go over (entries in _auto_open_files can be
+            # configuration items, which we want to be sure are up to date).
+            files = [getattr(conf, f, f) for f in cls._auto_open_files]
+
+        # Remove empty entries.
+        files = [f for f in files if f]
+
+        # Our trials start with normal files and remote ones that are
+        # already in cache.  The bools here indicate that the cache
+        # should be used.
+        trials = [(f, True) for f in files
+                  if not urlparse(f).netloc or is_url_in_cache(f)]
+        # If we are allowed to download, we try downloading new versions
+        # if none of the above worked.
+        if conf.auto_download:
+            trials += [(f, False) for f in files if urlparse(f).netloc]
+
+        self = None
+        err_list = []
+        # Go through all entries, and return the first one that
+        # is not expired, or the most up to date one.
+        for f, allow_cache in trials:
+            if not allow_cache:
+                clear_download_cache(f)
+
+            try:
+                trial = cls.open(f, cache=True)
+            except Exception as exc:
+                err_list.append(exc)
+                continue
+
+            if self is None or trial.expires > self.expires:
+                self = trial
+                self.meta['data_url'] = str(f)
+                if self.expires > good_enough:
+                    break
+
+        if self is None:
+            raise ValueError('none of the files could be read. The '
+                             'following errors were raised:\n' + str(err_list))
+
+        if self.expires < self._today():
+            warn('leap-second file is expired.', IERSStaleWarning)
+
+        return self
+
+    @property
+    def expires(self):
+        """The limit of validity of the table."""
+        return self._expires
+
+    @classmethod
+    def _read_leap_seconds(cls, file, **kwargs):
+        """Read a file, identifying expiration by matching 'File expires'"""
+        expires = None
+        # Find expiration date.
+        with get_readable_fileobj(file) as fh:
+            lines = fh.readlines()
+            for line in lines:
+                match = cls._re_expires.match(line)
+                if match:
+                    expires = Time.strptime(match.groups()[0], '%d %B %Y',
+                                            scale='tai', format='iso',
+                                            out_subfmt='date')
+                    break
+            else:
+                raise ValueError(f'did not find expiration date in {file}')
+
+        self = cls.read(lines, format='ascii.no_header', **kwargs)
+        self._expires = expires
+        return self
+
+    @classmethod
+    def from_iers_leap_seconds(cls, file=IERS_LEAP_SECOND_FILE):
+        """Create a table from a file like the IERS ``Leap_Second.dat``.
+
+        Parameters
+        ----------
+        file : path, optional
+            Full local or network path to the file holding leap-second data
+            in a format consistent with that used by IERS.  By default, uses
+            ``iers.IERS_LEAP_SECOND_FILE``.
+
+        Notes
+        -----
+        The file *must* contain the expiration date in a comment line, like
+        '#  File expires on 28 June 2020'
+        """
+        return cls._read_leap_seconds(
+            file, names=['mjd', 'day', 'month', 'year', 'tai_utc'])
+
+    @classmethod
+    def from_leap_seconds_list(cls, file):
+        """Create a table from a file like the IETF ``leap-seconds.list``.
+
+        Parameters
+        ----------
+        file : path, optional
+            Full local or network path to the file holding leap-second data
+            in a format consistent with that used by IETF.  Up to date versions
+            can be retrieved from ``iers.IETF_LEAP_SECOND_URL``.
+
+        Notes
+        -----
+        The file *must* contain the expiration date in a comment line, like
+        '# File expires on:  28 June 2020'
+        """
+        names = ['ntp_seconds', 'tai_utc', 'comment', 'day', 'month', 'year']
+        # Note: ntp_seconds does not fit in 32 bit, so causes problems on
+        # 32-bit systems without the np.int64 converter.
+        self = cls._read_leap_seconds(
+            file, names=names, include_names=names[:2],
+            converters={'col1': [convert_numpy(np.int64)]})
+        self['mjd'] = (self['ntp_seconds']/86400 + 15020).round()
+        # Note: cannot use Time.ymdhms, since that might require leap seconds.
+        isot = Time(self['mjd'], format='mjd', scale='tai').isot
+        ymd = np.array([[int(part) for part in t.partition('T')[0].split('-')]
+                        for t in isot])
+        self['year'], self['month'], self['day'] = ymd.T
+        return self
+
+    @classmethod
+    def from_erfa(cls, built_in=False):
+        """Create table from the leap-second list in ERFA.
+
+        Parameters
+        ----------
+        built_in : bool
+            If `False` (default), retrieve the list currently used by ERFA,
+            which may have been updated.  If `True`, retrieve the list shipped
+            with erfa.
+        """
+        current = cls(erfa.leap_seconds.get())
+        current._expires = Time('{0.year:04d}-{0.month:02d}-{0.day:02d}'
+                                .format(erfa.leap_seconds.expires),
+                                scale='tai')
+        if not built_in:
+            return current
+
+        try:
+            erfa.leap_seconds.set(None)  # reset to defaults
+            return cls.from_erfa(built_in=False)
+        finally:
+            erfa.leap_seconds.set(current)
+
+    def update_erfa_leap_seconds(self, initialize_erfa=False):
+        """Add any leap seconds not already present to the ERFA table.
+
+        This method matches leap seconds with those present in the ERFA table,
+        and extends the latter as necessary.
+
+        Parameters
+        ----------
+        initialize_erfa : bool, or 'only', or 'empty'
+            Initialize the ERFA leap second table to its built-in value before
+            trying to expand it.  This is generally not needed but can help
+            in case it somehow got corrupted.  If equal to 'only', the ERFA
+            table is reinitialized and no attempt it made to update it.
+            If 'empty', the leap second table is emptied before updating, i.e.,
+            it is overwritten altogether (note that this may break things in
+            surprising ways, as most leap second tables do not include pre-1970
+            pseudo leap-seconds; you were warned).
+
+        Returns
+        -------
+        n_update : int
+            Number of items updated.
+
+        Raises
+        ------
+        ValueError
+            If the leap seconds in the table are not on 1st of January or July,
+            or if the matches are inconsistent.  This would normally suggest
+            a currupted leap second table, but might also indicate that the
+            ERFA table was corrupted.  If needed, the ERFA table can be reset
+            by calling this method with an appropriate value for
+            ``initialize_erfa``.
+        """
+        if initialize_erfa == 'empty':
+            # Initialize to empty and update is the same as overwrite.
+            erfa.leap_seconds.set(self)
+            return len(self)
+
+        if initialize_erfa:
+            erfa.leap_seconds.set()
+            if initialize_erfa == 'only':
+                return 0
+
+        return erfa.leap_seconds.update(self)

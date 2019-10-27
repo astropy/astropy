@@ -12,6 +12,7 @@ import copy
 import operator
 from datetime import datetime, date, timedelta
 from time import strftime, strptime
+from warnings import warn
 
 import numpy as np
 
@@ -21,6 +22,7 @@ from astropy.units import UnitConversionError
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.compat.misc import override__dir__
 from astropy.utils.data_info import MixinInfo, data_info_factory
+from astropy.utils.exceptions import AstropyWarning
 from .utils import day_frac
 from .formats import (TIME_FORMATS, TIME_DELTA_FORMATS,
                       TimeJD, TimeUnique, TimeAstropyTime, TimeDatetime)
@@ -30,8 +32,9 @@ from .formats import TimeFromEpoch  # pylint: disable=W0611
 
 from astropy.extern import _strptime
 
-__all__ = ['Time', 'TimeDelta', 'TIME_SCALES', 'STANDARD_TIME_SCALES', 'TIME_DELTA_SCALES',
-           'ScaleValueError', 'OperandTypeError', 'TimeInfo']
+__all__ = ['Time', 'TimeDelta',  'TimeInfo', 'update_leap_seconds',
+           'TIME_SCALES', 'STANDARD_TIME_SCALES', 'TIME_DELTA_SCALES',
+           'ScaleValueError', 'OperandTypeError']
 
 
 STANDARD_TIME_SCALES = ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
@@ -2382,3 +2385,37 @@ class OperandTypeError(TypeError):
             "'{}' and '{}'".format(op_string,
                                      left.__class__.__name__,
                                      right.__class__.__name__))
+
+
+def update_leap_seconds(files=None):
+    """If the current ERFA leap second table is out of date, try to update it.
+
+    Uses `astropy.utils.iers.LeapSeconds.auto_open` to try to find an
+    up-to-date table.  See that routine for the definition of "out of date".
+
+    In order to make it safe to call this any time, all exceptions are turned
+    into warnings,
+
+    Parameters
+    ----------
+    files : list of path, optional
+        List of files/URLs to attempt to open.  By default, uses defined by
+        `astropy.utils.iers.LeapSeconds.auto_open`, which includes the table
+        used by ERFA itself, so if that is up to date, nothing will happen.
+
+    Returns
+    -------
+    n_update : int
+        Number of items updated.
+
+    """
+    try:
+        from astropy.utils import iers
+
+        table = iers.LeapSeconds.auto_open(files)
+        return erfa.leap_seconds.update(table)
+
+    except Exception as exc:
+        warn("leap-second auto-update failed due to the following "
+             f"exception: {exc!r}", AstropyWarning)
+        return 0

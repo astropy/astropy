@@ -9,11 +9,16 @@ Introduction
 
 The `~astropy.utils.iers` package provides access to the tables provided by
 the International Earth Rotation and Reference Systems (IERS) service, in
-particular allowing interpolation of published UT1-UTC values for given
-times.  These are used in `astropy.time` to provide UT1 values.  The polar
-motions are also used for determining Earth orientation for
-celestial-to-terrestrial coordinate transformations
-(in `astropy.coordinates`).
+particular files allowing interpolation of published UT1-UTC and polar motion
+values for given times.  The UT1-UTC values are used in `astropy.time` to
+provide UT1 values, and the polar motions are used in `astropy.coordinates` to
+determine Earth orientation for celestial-to-terrestrial coordinate
+transformations.
+
+.. note:: The package also provides machinery to track leap seconds.  Since it
+          generally should not be necessary to deal with those by hand, this
+          is not discussed below.  For details, see the documentation of
+          `~astropy.utils.iers.LeapSeconds`.
 
 Getting started
 ===============

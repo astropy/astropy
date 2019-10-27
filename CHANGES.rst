@@ -247,6 +247,9 @@ astropy.utils
   coordinate transformations can now be set, either in a context or per
   session, using ``astropy.utils.iers.earth_rotation_table``. [#9244]
 
+- A new ``astropy.utils.iers.LeapSeconds`` class has been added to track
+  leap seconds. [#9365]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -672,6 +675,8 @@ Other Changes and Additions
 - The bundled ERFA was updated to version 1.6.0 (based on SOFA 20190722).
   This includes a fix that avoids precision loss for negative JDs. [#9323]
 
+- The leap seconds in the bundled ERFA library are now updated
+  automatically. [#9365]
 
 
 3.2.2 (2019-10-07)

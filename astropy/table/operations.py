@@ -20,7 +20,6 @@ import numpy as np
 from astropy.utils import metadata
 from .table import Table, QTable, Row, Column, MaskedColumn
 from astropy.units import Quantity
-from astropy.time import Time
 from astropy.utils.compat import NUMPY_LT_1_17
 
 from . import _np_utils
@@ -798,6 +797,8 @@ def _join(left, right, keys=None, join_type='inner',
     joined_table : `~astropy.table.Table` object
         New table containing the result of the join operation.
     """
+    from astropy.time import Time
+
     # Store user-provided col_name_map until the end
     _col_name_map = col_name_map
 
