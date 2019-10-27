@@ -68,6 +68,14 @@ formats by requesting the corresponding |Time| attributes::
   >>> t.mjd  # doctest: +FLOAT_CMP
   array([51179.00000143, 55197.        ])
 
+The full power of output representation is available via the
+`~astropy.time.Time.to_value` method which also allows controlling the
+`subformat`_, for example using ``numpy.longdouble`` as the output type
+for higher precision::
+
+  >>> t.to_value('mjd', 'long')  # doctest: +SKIP
+  array([51179.00000143, 55197.        ], dtype=float128)
+
 The default representation can be changed by setting the `format` attribute::
 
   >>> t.format = 'fits'
@@ -211,22 +219,15 @@ preserved::
   >>> t.value
   '2000-01-02T00:00:00.000'
 
-
 Subformat
 """""""""
 
-The time format classes :class:`~astropy.time.TimeISO`,
-:class:`~astropy.time.TimeISOT`, :class:`~astropy.time.TimeFITS`, and
-:class:`~astropy.time.TimeYearDayTime` support the concept of
-subformats.  This allows for variations on the basic theme of a format in both
-the input string parsing and the output.
+Many of the available time format classes support the concept of a
+subformat.  This allows for variations on the basic theme of a format in both
+the input parsing / validation and the output
 
-The supported subformats are ``date_hms``, ``date_hm``, and ``date``
-for all but the :class:`~astropy.time.TimeFITS` format; the latter
-does not support ``date_hm`` but does support ``longdate_hms`` and
-``longdate`` for years before the year 0 and after the year 10000.  The
-table below illustrates these subformats for ``iso``, ``fits``, ``yday``
-formats:
+The table below illustrates available subformats for the string formats
+ ``iso``, ``fits``, ``yday`` formats:
 
 ========  ============ ==============================
 Format    Subformat    Input / output
@@ -241,6 +242,60 @@ Format    Subformat    Input / output
 ``yday``  date_hm      2001:032:03:04
 ``yday``  date         2001:032
 ========  ============ ==============================
+
+Numerical formats such as ``mjd``, ``jyear``, or ``cxcsec`` all support the
+subformats: ``'float'``, ``'long'``, ``'decimal'``, ``'str'``, and ``'bytes'``.
+Here, ``'long'`` uses ``numpy.longdouble`` for somewhat enhanced precision (with
+the enhancement depending on platform), and ``'decimal'`` instances of
+:class:`decimal.Decimal` for full precision.  For the ``'str'`` and ``'bytes'``
+sub-formats, the number of digits is also chosen such that time values are
+represented accurately.
+
+When used on input, these formats allow creating a time using a single input
+value that accurately captures the value to the full available precision in
+|Time|.  Conversely, the single value on output using |Time|
+`~astropy.time.Time.to_value` or |TimeDelta| `~astropy.time.TimeDelta.to_value`
+can have higher precision than the standard 64-bit float::
+
+  >>> tm = Time('51544.000000000000001', format='mjd')  # String input
+  >>> tm.mjd  # float64 output loses last digit but Decimal gets it
+  51544.0
+  >>> tm.to_value('mjd', subfmt='decimal')  # doctest: +SKIP
+  Decimal('51544.00000000000000099920072216264')
+  >>> tm.to_value('mjd', subfmt='str')
+  '51544.000000000000001'
+
+The complete list of subformat options for the |TIME| formats that
+have them is:
+
+================ ========================================
+Format           Subformats
+================ ========================================
+``byear``        float, long, decimal, str, bytes
+``cxcsec``       float, long, decimal, str, bytes
+``datetime64``   date_hms, date_hm, date
+``decimalyear``  float, long, decimal, str, bytes
+``fits``         date_hms, date, longdate_hms, longdate
+``gps``          float, long, decimal, str, bytes
+``iso``          date_hms, date_hm, date
+``isot``         date_hms, date_hm, date
+``jd``           float, long, decimal, str, bytes
+``jyear``        float, long, decimal, str, bytes
+``mjd``          float, long, decimal, str, bytes
+``plot_date``    float, long, decimal, str, bytes
+``unix``         float, long, decimal, str, bytes
+``yday``         date_hms, date_hm, date
+================ ========================================
+
+The complete list of subformat options for the |TimeDelta| formats
+that have them is:
+
+================ ========================================
+Format           Subformats
+================ ========================================
+``jd``           float, long, decimal, str, bytes
+``sec``          float, long, decimal, str, bytes
+================ ========================================
 
 Time from epoch formats
 """""""""""""""""""""""
@@ -436,9 +491,9 @@ The allowed |Time| arguments to create a time object are listed below:
 **precision** : int between 0 and 9 inclusive
     Decimal precision when outputting seconds as floating point
 **in_subfmt** : str
-    Unix glob to select subformats for parsing string input times
+    Unix glob to select subformats for parsing input times
 **out_subfmt** : str
-    Unix glob to select subformats for outputting string times
+    Unix glob to select subformat for outputting times
 **location** : |EarthLocation| or tuple, optional
     If a tuple, 3 |Quantity| items with length units for geocentric coordinates,
     or a longitude, latitude, and optional height for geodetic coordinates.
@@ -519,7 +574,7 @@ in_subfmt
 ^^^^^^^^^
 
 The ``in_subfmt`` argument provides a mechanism to select one or more
-`subformat`_ values from the available subformats for string input.  Multiple
+`subformat`_ values from the available subformats for input. Multiple
 allowed subformats can be selected using Unix-style wildcard characters, in
 particular ``*`` and ``?``, as documented in the Python `fnmatch
 <https://docs.python.org/3/library/fnmatch.html>`_ module.
@@ -556,6 +611,10 @@ matching subformat is used.
   '2000-01-01 02:03:04.000'
   >>> Time('2000-01-01 02:03:04', out_subfmt='date*').iso
   '2000-01-01 02:03:04.000'
+  >>> Time('50814.123456789012345', format='mjd', out_subfmt='str').mjd
+  '50814.123456789012345'
+
+See also the `subformat`_ section.
 
 location
 ^^^^^^^^
@@ -998,8 +1057,17 @@ Use of the |TimeDelta| object is easily illustrated in the few examples below::
   '2010-01-08 18:00:00.000' '2010-01-16 12:00:00.000' '2010-01-24 06:00:00.000'
   '2010-02-01 00:00:00.000']>
 
+The |TimeDelta| has a `~astropy.time.TimeDelta.to_value` method which supports
+controlling the type of the output representation by providing either a format
+name and optional `subformat`_ or a valid astropy unit::
+
+  >>> dt.to_value(u.hr)
+  744.0
+  >>> dt.to_value('jd', 'str')
+  '31.0'
+
 Time Scales for Time Deltas
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Above, one sees that the difference between two UTC times is a |TimeDelta|
 with a scale of TAI.  This is because a UTC time difference cannot be uniquely

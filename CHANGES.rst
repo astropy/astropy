@@ -212,6 +212,15 @@ astropy.time
 - Improved error message when bad input is used to initialize a ``Time`` or
   ``TimeDelta`` object and the format is specified. [#9296]
 
+- Allow numeric time formats to be initialized with numpy ``longdouble``,
+  ``Decimal`` instances, and strings.  One can select just one of these
+  using ``in_subfmt``.  The output can be similarly set using ``out_subfmt``.
+  [#9361]
+
+- Introduce a new ``.to_value()`` method for ``Time`` (and adjusted the
+  existing method for ``TimeDelta``) so that one can get values in a given
+  ``format`` and possible ``subfmt`` (e.g., ``to_value('mjd', 'str')``. [#9361]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
@@ -498,6 +507,11 @@ astropy.time
 - Time formats (implemented in subclasses of ``TimeFormat``) now have
   their input and output routines more thoroughly validated, making it more
   difficult to create damaged ``Time`` objects. [#9375]
+
+- The ``TimeDelta.to_value()`` method now can also take the ``format`` name
+  as its argument, in which case the value will be calculated using the
+  ``TimeFormat`` machinery. For this case, one can also pass a ``subfmt``
+  argument to retrieve the value in another form than ``float``. [#9361]
 
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^

@@ -1,12 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import functools
 import itertools
-import numpy as np
 import operator
+from decimal import Decimal
+from datetime import timedelta
 
 import pytest
-
-from datetime import timedelta
+import numpy as np
 
 from astropy.time import (Time, TimeDelta, OperandTypeError, ScaleValueError,
                           TIME_SCALES, STANDARD_TIME_SCALES, TIME_DELTA_SCALES)
@@ -266,6 +266,25 @@ class TestTimeDelta:
         dt.format = 'datetime'
         assert dt.value == timedelta(days=1)
         assert dt.format == 'datetime'
+
+    def test_from_non_float(self):
+        dt = TimeDelta('1.000000000000001', format='jd')
+        assert dt != TimeDelta(1.000000000000001, format='jd')  # precision loss.
+        assert dt == TimeDelta(1, .000000000000001, format='jd')
+        dt2 = TimeDelta(Decimal('1.000000000000001'), format='jd')
+        assert dt2 == dt
+
+    def test_to_value(self):
+        dt = TimeDelta(86400.0, format='sec')
+        assert dt.to_value('jd') == 1.
+        assert dt.to_value('jd', 'str') == '1.0'
+        assert dt.to_value('sec', subfmt='str') == '86400.0'
+        with pytest.raises(ValueError, match=("not one of the known formats.*"
+                                              "failed to parse as a unit")):
+            dt.to_value('julian')
+
+        with pytest.raises(TypeError, match='missing required format or unit'):
+            dt.to_value()
 
 
 class TestTimeDeltaScales:
