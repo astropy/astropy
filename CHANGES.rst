@@ -1,3 +1,13 @@
+3.2.3 (2019-10-27)
+==================
+
+Other Changes and Additions
+---------------------------
+
+- Updated IERS A URLs due to USNO prolonged maintenance. [#9443]
+
+
+
 3.2.2 (2019-10-07)
 ==================
 
@@ -2067,6 +2077,26 @@ Other Changes and Additions
 
 
 
+2.0.16 (2019-10-27)
+===================
+
+Bug Fixes
+---------
+
+astropy.time
+^^^^^^^^^^^^
+
+- Fixed a troubling bug in which ``Time`` could loose precision, with deviations
+  of 300 ns. [#9328]
+
+
+Other Changes and Additions
+---------------------------
+
+- Updated IERS A URLs due to USNO prolonged maintenance. [#9443]
+
+
+
 2.0.15 (2019-10-06)
 ===================
 
@@ -2995,7 +3025,9 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
-- Fix the missing wcskey part in _read_sip_kw, this will cause error when reading sip wcs while there is no default CRPIX1 CRPIX2 keywords and only CRPIX1n CRPIX2n in header. [#6372]
+- Fix the missing wcskey part in _read_sip_kw, this will cause error when
+  reading sip wcs while there is no default CRPIX1 CRPIX2 keywords and only
+  CRPIX1n CRPIX2n in header. [#6372]
 
 
 2.0 (2017-07-07)
@@ -3457,12 +3489,6 @@ astropy.coordinates
   ``astropy.coordinates.search_around_3d``, and ``SkyCoord`` equivalent methods
   now correctly yield an ``astropy.coordinates.Angle`` as the third return type
   even if there are no matches (previously it returned a raw Quantity). [#6347]
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
@@ -4812,9 +4838,6 @@ astropy.coordinates
 - Fixed a problem with the ``Quantity._repr_latex_`` method causing errors
   when showing an ``EarthLocation`` in a Jupyter notebook. [#4542, #5068]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
@@ -4837,9 +4860,6 @@ astropy.io.fits
 
 - Made TFORMx keyword check more flexible in test of compressed images to
   enable compatibility of the test with cfitsio 3.380. [#4646, #4653]
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
 
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
