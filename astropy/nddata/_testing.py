@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Testing utilities. Not part of the public API!"""
 
-import numpy as np
-
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseHighLevelWCS
 
