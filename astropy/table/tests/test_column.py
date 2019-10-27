@@ -10,6 +10,7 @@ import numpy as np
 from astropy.tests.helper import assert_follows_unicode_guidelines, catch_warnings
 from astropy import table
 from astropy import units as u
+from astropy.utils.compat import NUMPY_LT_1_14, NUMPY_LT_1_15
 
 
 class TestColumn():
@@ -153,7 +154,15 @@ class TestColumn():
         assert np.all(c.unit == u.cm)
 
     def test_quantity_comparison(self, Column):
+
         # regression test for gh-6532
+
+        # On Numpy 1.14 and with masked arrays, this does not work as the bug
+        # was not fixed in this case due to issues with Numpy, so we do not
+        # expect this to work properly.
+        if Column is table.MaskedColumn and NUMPY_LT_1_15 and not NUMPY_LT_1_14:
+            pytest.xfail()
+
         c = Column([1, 2100, 3], unit='Hz')
         q = 2 * u.kHz
         check = c < q
