@@ -15,6 +15,8 @@ from astropy.wcs.utils import proj_plane_pixel_area
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
+from astropy.nddata import CCDData
+
 try:
     import skimage  # pylint: disable=W0611
     HAS_SKIMAGE = True
@@ -621,3 +623,17 @@ class TestCutout2D:
             w.all_pix2world(*w.wcs.crpix, 1), w.wcs.crval,
             rtol=0.0, atol=1e-6 * pscale
         )
+
+    def test_cutout_with_nddata_as_input(self):
+        # This is essentially a copy/paste of test_skycoord with the
+        # input a ccd with wcs attribute instead of passing the
+        # wcs separately.
+        ccd = CCDData(data=self.data, wcs=self.wcs, unit='adu')
+        c = Cutout2D(ccd, self.position, (3, 3))
+        skycoord_original = self.position.from_pixel(c.center_original[1],
+                                                     c.center_original[0],
+                                                     self.wcs)
+        skycoord_cutout = self.position.from_pixel(c.center_cutout[1],
+                                                   c.center_cutout[0], c.wcs)
+        assert_quantity_allclose(skycoord_original.ra, skycoord_cutout.ra)
+        assert_quantity_allclose(skycoord_original.dec, skycoord_cutout.dec)

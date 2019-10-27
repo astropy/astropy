@@ -636,6 +636,9 @@ class Cutout2D:
 
     def __init__(self, data, position, size, wcs=None, mode='trim',
                  fill_value=np.nan, copy=False):
+        if wcs is None:
+            wcs = getattr(data, 'wcs', None)
+
         if isinstance(position, SkyCoord):
             if wcs is None:
                 raise ValueError('wcs must be input if position is a '
