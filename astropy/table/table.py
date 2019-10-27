@@ -3269,12 +3269,14 @@ class Table:
 
         tbl = _encode_mixins(self)
 
-        badcols = [name for name, col in self.columns.items()
-                   if (getattr(col, 'ndim', 1) > 1)]
+        badcols = [name for name, col in self.columns.items() if len(col.shape) > 1]
         if badcols:
             raise ValueError(
-                "Cannot convert a table with multi-dimensional columns to a "
-                "pandas DataFrame. Offending columns are: {}".format(badcols))
+                f'Cannot convert a table with multidimensional columns to a '
+                f'pandas DataFrame. Offending columns are: {badcols}\n'
+                f'One can filter out such columns using:\n'
+                f'names = [name for name in tbl.colnames if len(tbl[name].shape) <= 1]\n'
+                f'tbl[names].to_pandas(...)')
 
         out = OrderedDict()
 
