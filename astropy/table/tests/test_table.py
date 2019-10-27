@@ -1792,11 +1792,9 @@ class TestPandas:
         t['a'] = [1, 2, 3]
         t['b'] = np.ones((3, 2))
 
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(ValueError,
+                           match='Cannot convert a table with multidimensional columns'):
             t.to_pandas()
-        assert (exc.value.args[0] ==
-            "Cannot convert a table with multi-dimensional columns "
-            "to a pandas DataFrame. Offending columns are: ['b']")
 
     def test_mixin_pandas(self):
         t = table.QTable()
