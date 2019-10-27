@@ -917,7 +917,7 @@ class Time(ShapedLikeNDArray):
         jd2 = self._time.mask_if_needed(self._time.jd2)
         return self._shaped_like_input(jd2)
 
-    def to_value(self, format=None, subfmt=None):
+    def to_value(self, format, subfmt='*'):
         """Get time values expressed in specified output format.
 
         This method allows representing the ``Time`` object in the desired
@@ -944,30 +944,35 @@ class Time(ShapedLikeNDArray):
         format : str
             The format in which one wants the time values. Default: the current
             format.
-        subfmt : str
-            Possible sub-format in which the values should be given. Default: as
-            set by ``out_subfmt`` (which by default picks the first available
-            for a given format, i.e., 'float' or 'date_hms').
+        subfmt : str or `None`, optional
+            Value or wildcard pattern to select the sub-format in which the
+            values should be given.  The default of '*' picks the first
+            available for a given format, i.e., 'float' or 'date_hms'.
+            If `None`, use the instance's ``out_subfmt``.
+
         """
         # TODO: add a precision argument (but ensure it is keyword argument
         # only, to make life easier for TimeDelta.to_value()).
-        if format is None:
-            format = self.format
-        elif format not in self.FORMATS:
+        if format not in self.FORMATS:
             raise ValueError('format must be one of {}'
                              .format(list(self.FORMATS)))
 
         cache = self.cache['format']
-        key = (format, subfmt) if subfmt is not None else format
+        # Try to keep cache behaviour like it was in astropy < 4.0.
+        key = format if subfmt is None else (format, subfmt)
         if key not in cache:
             if format == self.format:
                 tm = self
             else:
                 tm = self.replicate(format=format)
 
-            # Go via kwargs to ensure that custom TimeFormat subclasses
-            # created in astropy versions <= 4.0 do not break.
-            kwargs = {'out_subfmt': subfmt} if subfmt is not None else {}
+            # Custom TimeFormat subclasses created in astropy versions <= 4.0
+            # may not be able to handle being passes on a out_subfmt.
+            # But those do supposedly deal with `self.out_subfmt` internally,
+            # so if subfmt is the same, we do not pass it on.
+            kwargs = {}
+            if subfmt is not None and subfmt != tm.out_subfmt:
+                kwargs['out_subfmt'] = subfmt
             try:
                 value = tm._shaped_like_input(tm._time.to_value(
                     parent=tm, **kwargs))
@@ -982,7 +987,10 @@ class Time(ShapedLikeNDArray):
             cache[key] = value
         return cache[key]
 
-    value = property(to_value, doc="Time value(s) in current format")
+    @property
+    def value(self):
+        """Time value(s) in current format"""
+        return self.to_value(self.format, None)
 
     @property
     def masked(self):
@@ -1660,7 +1668,7 @@ class Time(ShapedLikeNDArray):
             return cache[attr]
 
         elif attr in self.FORMATS:
-            return self.to_value(attr)
+            return self.to_value(attr, subfmt=None)
 
         elif attr in TIME_SCALES:  # allowed ones done above (self.SCALES)
             if self.scale is None:
@@ -2366,11 +2374,13 @@ class TimeDelta(Time):
         value : The time value in the current format.
 
         """
-        # TODO: allow 'subfmt' also for units, keeping full precision
-        # (effectively, by doing the reverse of quantity_day_frac).
+        if not (args or kwargs):
+            raise TypeError('to_value() missing required format or unit argument')
+
+        # TODO: maybe allow 'subfmt' also for units, keeping full precision
+        # (effectively, by doing the reverse of quantity_day_frac)?
         # This way, only equivalencies could lead to possible precision loss.
         if ('format' in kwargs or
-                (args == () and 'unit' not in kwargs) or
                 (args != () and (args[0] is None or args[0] in self.FORMATS))):
             # Super-class will error with duplicate arguments, etc.
             return super().to_value(*args, **kwargs)

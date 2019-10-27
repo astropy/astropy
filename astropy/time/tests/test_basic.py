@@ -863,23 +863,23 @@ class TestNumericalSubFormat:
         assert t == Time(54321, 1e-12, format='mjd')
         assert t.mjd == 54321.  # Lost precision!
         assert t.value == 54321.  # Lost precision!
-        assert t.to_value() == 54321.  # Lost precision!
-        assert t.to_value(subfmt='str') == '54321.000000000001'
+        assert t.to_value('mjd') == 54321.  # Lost precision!
+        assert t.to_value('mjd', subfmt='str') == '54321.000000000001'
         assert t.to_value('mjd', 'bytes') == b'54321.000000000001'
         expected_long = np.longdouble(54321.) + np.longdouble(1e-12)
-        assert t.to_value(subfmt='long') == expected_long
+        assert t.to_value('mjd', subfmt='long') == expected_long
         t.out_subfmt = 'str'
         assert t.value == '54321.000000000001'
-        assert t.to_value() == '54321.000000000001'
+        assert t.to_value('mjd') == 54321.  # Lost precision!
         assert t.mjd == '54321.000000000001'
-        assert t.to_value(subfmt='bytes') == b'54321.000000000001'
-        assert t.to_value(subfmt='float') == 54321.  # Lost precision!
+        assert t.to_value('mjd', subfmt='bytes') == b'54321.000000000001'
+        assert t.to_value('mjd', subfmt='float') == 54321.  # Lost precision!
         t.out_subfmt = 'long'
         assert t.value == expected_long
-        assert t.to_value() == expected_long
+        assert t.to_value('mjd', subfmt=None) == expected_long
         assert t.mjd == expected_long
-        assert t.to_value(subfmt='str') == '54321.000000000001'
-        assert t.to_value(subfmt='float') == 54321.  # Lost precision!
+        assert t.to_value('mjd', subfmt='str') == '54321.000000000001'
+        assert t.to_value('mjd', subfmt='float') == 54321.  # Lost precision!
 
     @pytest.mark.skipif(np.finfo(np.longdouble).eps >= np.finfo(float).eps,
                         reason="long double is the same as float")
@@ -895,7 +895,7 @@ class TestNumericalSubFormat:
         assert t_float == Time(i, format='mjd')
         assert t_float != t
         assert t.value == 54321.  # Lost precision!
-        assert t.to_value(subfmt='long') == mjd_long
+        assert t.to_value('mjd', subfmt='long') == mjd_long
         t2 = Time(mjd_long, format='mjd', out_subfmt='long')
         assert t2.value == mjd_long
 
@@ -910,7 +910,7 @@ class TestNumericalSubFormat:
         tm = Time(t_fmt_long, format=fmt)
         tm2 = Time(t_fmt_long2, format=fmt)
         assert tm != tm2
-        tm_long2 = tm2.to_value(subfmt='long')
+        tm_long2 = tm2.to_value(fmt, subfmt='long')
         assert tm_long2 == t_fmt_long2
 
     def test_subformat_input(self):
@@ -938,7 +938,7 @@ class TestNumericalSubFormat:
 
         # Explicit sub-format.
         t = Time(i, f, format='mjd')
-        t_mjd_subfmt = t.to_value(subfmt=out_subfmt)
+        t_mjd_subfmt = t.to_value('mjd', subfmt=out_subfmt)
         assert np.all(t_mjd_subfmt == expected)
 
     @pytest.mark.parametrize('fmt,string,val1,val2', [
@@ -952,12 +952,13 @@ class TestNumericalSubFormat:
     def test_explicit_string_other_formats(self, fmt, string, val1, val2):
         t = Time(string, format=fmt)
         assert t == Time(val1, val2, format=fmt)
-        assert t.to_value(subfmt='str') == string
+        assert t.to_value(fmt, subfmt='str') == string
 
     def test_basic_subformat_setting(self):
         t = Time('2001', format='jyear', scale='tai')
         t.format = "mjd"
-        assert t.to_value(subfmt='str').startswith("5")
+        t.out_subfmt = "str"
+        assert t.value.startswith("5")
 
     def test_basic_subformat_cache_does_not_crash(self):
         t = Time('2001', format='jyear', scale='tai')
@@ -983,12 +984,12 @@ class TestNumericalSubFormat:
         t = Time(val=58000, val2=1e-14, format='mjd', scale='tai')
         with localcontext() as ctx:
             ctx.prec = 2
-            t_s_2 = t.to_value(subfmt='decimal')
+            t_s_2 = t.to_value('mjd', subfmt='decimal')
         t2 = Time(val=58000, val2=1e-14, format='mjd', scale='tai')
         with localcontext() as ctx:
             ctx.prec = 40
-            t_s_40 = t.to_value(subfmt='decimal')
-            t2_s_40 = t2.to_value(subfmt='decimal')
+            t_s_40 = t.to_value('mjd', subfmt='decimal')
+            t2_s_40 = t2.to_value('mjd', subfmt='decimal')
         assert t_s_2 == t_s_40, "Should be the same but cache might make this automatic"
         assert t_s_2 == t2_s_40, "Different precision should produce the same results"
 
@@ -1004,7 +1005,14 @@ class TestNumericalSubFormat:
         dt.format = f
         dt.out_subfmt = s
         assert isinstance(dt.value, t)
-        assert isinstance(dt.to_value(), t)
+        assert isinstance(dt.to_value(f, None), t)
+
+    def test_need_format_argument(self):
+        t = Time('J2000')
+        with pytest.raises(TypeError, match="missing.*required.*'format'"):
+            t.to_value()
+        with pytest.raises(ValueError, match='format must be one of'):
+            t.to_value('julian')
 
     def test_wrong_in_subfmt(self):
         with pytest.raises(ValueError, match='not among selected'):
@@ -1022,7 +1030,7 @@ class TestNumericalSubFormat:
     def test_wrong_out_subfmt(self):
         t = Time(58000., format='mjd')
         with pytest.raises(ValueError, match='must match one'):
-            t.to_value(subfmt='parrot')
+            t.to_value('mjd', subfmt='parrot')
 
         t.out_subfmt = 'parrot'
         with pytest.raises(ValueError):
