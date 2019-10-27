@@ -2340,10 +2340,7 @@ def _condition_arg(value):
     ValueError
         If value is not as expected
     """
-    if isinstance(value, (float, int, complex)):
-        return value
-
-    if isinstance(value, np.ndarray) and value.dtype.kind in ['i', 'f', 'c']:
+    if isinstance(value, (np.ndarray, float, int, complex)):
         return value
 
     avalue = np.array(value)
