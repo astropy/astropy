@@ -9,6 +9,7 @@ import functools
 import operator
 from collections import OrderedDict
 import inspect
+import warnings
 
 import numpy as np
 import astropy.units as u
@@ -17,6 +18,8 @@ from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from astropy._erfa import ufunc as erfa_ufunc
 from astropy.utils import ShapedLikeNDArray, classproperty
+from astropy.utils.exceptions import DuplicateRepresentationWarning
+
 
 __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
            "CartesianRepresentation", "SphericalRepresentation",
@@ -34,9 +37,16 @@ __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
 # classes get registered automatically.
 REPRESENTATION_CLASSES = {}
 DIFFERENTIAL_CLASSES = {}
+# set for tracking duplicates
+DUPLICATE_REPRESENTATIONS = set()
 
 # a hash for the content of the above two dicts, cached for speed.
 _REPRDIFF_HASH = None
+
+
+def _fqn_class(cls):
+    ''' Get the fully qualified name of a class '''
+    return cls.__module__ + '.' + cls.__qualname__
 
 
 def get_reprdiff_cls_hash():
@@ -409,10 +419,35 @@ class MetaBaseRepresentation(abc.ABCMeta):
                                       '"attr_classes" class attribute.')
 
         repr_name = cls.get_name()
-
+        # first time a duplicate is added
+        # remove first entry and add both using their qualnames
         if repr_name in REPRESENTATION_CLASSES:
-            raise ValueError("Representation class {} already defined"
-                             .format(repr_name))
+            DUPLICATE_REPRESENTATIONS.add(repr_name)
+
+            fqn_cls = _fqn_class(cls)
+            existing = REPRESENTATION_CLASSES[repr_name]
+            fqn_existing = _fqn_class(existing)
+
+            if fqn_cls == fqn_existing:
+                raise ValueError(f'Representation "{fqn_cls}" already defined')
+
+            msg = (
+                'Representation "{}" already defined, removing it to avoid confusion.'
+                'Use qualnames "{}" and "{}" or class instaces directly'
+            ).format(repr_name, fqn_cls, fqn_existing)
+            warnings.warn(msg, DuplicateRepresentationWarning)
+
+            del REPRESENTATION_CLASSES[repr_name]
+            REPRESENTATION_CLASSES[fqn_existing] = existing
+            repr_name = fqn_cls
+        # further definitions with the same name, just add qualname
+        elif repr_name in DUPLICATE_REPRESENTATIONS:
+            warnings.warn('Representation "{}" already defined, using qualname "{}".')
+            repr_name = _fqn_class(cls)
+            if repr_name in REPRESENTATION_CLASSES:
+                raise ValueError(
+                    f'Representation "{repr_name}" already defined'
+                )
 
         REPRESENTATION_CLASSES[repr_name] = cls
         _invalidate_reprdiff_cls_hash()
