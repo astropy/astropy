@@ -365,7 +365,7 @@ name of that package in the astropy config directory. i.e.
 
 It is possible to configure this behavior so that the a custom configuration
 directory is created for your package, for example
-``~/.packagename/packagename.cfg``. To do this create a `packagename.config`
+``~/.packagename/packagename.cfg``. To do this create a ``packagename.config``
 subpackage and put the following into the `__init__.py` file::
 
   import astropy.config as astropyconfig
