@@ -49,7 +49,7 @@ parametric model (model sets currently only work with linear models and fitters)
 
 We need to get the data to be fit into the right shape. It's not possible to just feed
 the 3D data cube. In this case, the time axis can be one dimensional. 
-The fluxes have to be organized into an array that is of shape `width*height,depth` --  in 
+The fluxes have to be organized into an array that is of shape ``width*height,depth`` --  in 
 other words, we are reshaping to flatten last two axes and transposing to put them first::
 
     >>> pixels = image.reshape((depth, width*height))
