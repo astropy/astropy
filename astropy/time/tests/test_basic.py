@@ -941,28 +941,18 @@ class TestNumericalSubFormat:
         t_mjd_subfmt = t.to_value(subfmt=out_subfmt)
         assert np.all(t_mjd_subfmt == expected)
 
-    def test_explicit_other_formats(self):
-        t = Time('2451544.5333981', format='jd', scale='tai')
-        assert t == Time(2451544.5, .0333981, format='jd', scale='tai')
-        assert t.to_value(subfmt='str') == '2451544.5333981'
-        t = Time('2000.54321', format='decimalyear')
-        assert t == Time(2000., 0.54321, format='decimalyear')
-        assert t.to_value(subfmt='str') == '2000.54321'
-        t = Time('100.0123456', format='cxcsec')
-        assert t == Time(100.0123456, format='cxcsec')
-        assert t.to_value(subfmt='str') == '100.0123456'
-        t = Time('100.0123456', format='unix')
-        assert t == Time(100.0123456, format='unix')
-        assert t.to_value(subfmt='str') == '100.0123456'
-        t = Time('100.0123456', format='gps')
-        assert t == Time(100.0123456, format='gps')
-        assert t.to_value(subfmt='str') == '100.0123456'
-        t = Time('1950.1', format='byear', scale='tai')
-        assert t == Time(1950.1, format='byear', scale='tai')
-        assert t.to_value(subfmt='str') == '1950.1'
-        t = Time('2000.1', format='jyear', scale='tai')
-        assert t == Time(2000.1, format='jyear', scale='tai')
-        assert t.to_value(subfmt='str') == '2000.1'
+    @pytest.mark.parametrize('fmt,string,val1,val2', [
+        ('jd', '2451544.5333981', 2451544.5, .0333981),
+        ('decimalyear', '2000.54321', 2000., .54321),
+        ('cxcsec', '100.0123456', 100.0123456, None),
+        ('unix', '100.0123456', 100.0123456, None),
+        ('gps', '100.0123456', 100.0123456, None),
+        ('byear', '1950.1', 1950.1, None),
+        ('jyear', '2000.1', 2000.1, None)])
+    def test_explicit_string_other_formats(self, fmt, string, val1, val2):
+        t = Time(string, format=fmt)
+        assert t == Time(val1, val2, format=fmt)
+        assert t.to_value(subfmt='str') == string
 
     def test_basic_subformat_setting(self):
         t = Time('2001', format='jyear', scale='tai')

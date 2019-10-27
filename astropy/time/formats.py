@@ -419,7 +419,7 @@ class TimeMJD(TimeNumeric):
         self.jd1, self.jd2 = day_frac(jd1, jd2)
 
     def to_value(self, **kwargs):
-        jd1 = self.jd1 - erfa.DJM0  # This cannot loose precision.
+        jd1 = self.jd1 - erfa.DJM0  # This cannot lose precision.
         jd2 = self.jd2
         return super().to_value(jd1=jd1, jd2=jd2, **kwargs)
 
