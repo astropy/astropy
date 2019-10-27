@@ -95,6 +95,9 @@ SIDEREAL_TIME_MODELS = {
         'IAU1994': {'function': erfa.gst94, 'scales': ('ut1',)}}}
 
 
+_LEAP_SECONDS_CHECKED = False
+
+
 class TimeInfo(MixinInfo):
     """
     Container for meta information like name, description, format.  This is
@@ -373,6 +376,17 @@ class Time(ShapedLikeNDArray):
     def __new__(cls, val, val2=None, format=None, scale=None,
                 precision=None, in_subfmt=None, out_subfmt=None,
                 location=None, copy=False):
+
+        # Because of import problems, this can only be done on
+        # first call of Time.
+        global _LEAP_SECONDS_CHECKED
+        if not _LEAP_SECONDS_CHECKED:
+            # *Must* set to True first as update_leap_seconds uses Time.
+            # In principle, this may cause wrong leap seconds in
+            # update_leap_seconds itself, but since expiration is in
+            # units of days, that is fine.
+            _LEAP_SECONDS_CHECKED = True
+            update_leap_seconds()
 
         if isinstance(val, cls):
             self = val.replicate(format=format, copy=copy)
