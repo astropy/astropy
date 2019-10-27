@@ -5,6 +5,7 @@ import copy
 import functools
 import datetime
 from copy import deepcopy
+from decimal import Decimal, localcontext
 
 import numpy as np
 from numpy.testing import assert_allclose
@@ -854,6 +855,186 @@ class TestSubFormat:
         # Values from issue #1118
         t = Time('2004-09-16T23:59:59', scale='utc')
         assert allclose_sec(t.unix, 1095379199.0)
+
+
+class TestNumericalSubFormat:
+    def test_explicit_example(self):
+        t = Time('54321.000000000001', format='mjd')
+        assert t == Time(54321, 1e-12, format='mjd')
+        assert t.mjd == 54321.  # Lost precision!
+        assert t.value == 54321.  # Lost precision!
+        assert t.to_value('mjd') == 54321.  # Lost precision!
+        assert t.to_value('mjd', subfmt='str') == '54321.000000000001'
+        assert t.to_value('mjd', 'bytes') == b'54321.000000000001'
+        expected_long = np.longdouble(54321.) + np.longdouble(1e-12)
+        assert t.to_value('mjd', subfmt='long') == expected_long
+        t.out_subfmt = 'str'
+        assert t.value == '54321.000000000001'
+        assert t.to_value('mjd') == 54321.  # Lost precision!
+        assert t.mjd == '54321.000000000001'
+        assert t.to_value('mjd', subfmt='bytes') == b'54321.000000000001'
+        assert t.to_value('mjd', subfmt='float') == 54321.  # Lost precision!
+        t.out_subfmt = 'long'
+        assert t.value == expected_long
+        assert t.to_value('mjd', subfmt=None) == expected_long
+        assert t.mjd == expected_long
+        assert t.to_value('mjd', subfmt='str') == '54321.000000000001'
+        assert t.to_value('mjd', subfmt='float') == 54321.  # Lost precision!
+
+    @pytest.mark.skipif(np.finfo(np.longdouble).eps >= np.finfo(float).eps,
+                        reason="long double is the same as float")
+    def test_explicit_longdouble(self):
+        i = 54321
+        f = 2.**(-np.finfo(np.longdouble).nmant) * 65536
+        mjd_long = np.longdouble(i) + np.longdouble(f)
+        assert mjd_long != i, "longdouble failure!"
+        t = Time(mjd_long, format='mjd')
+        expected = Time(i, f, format='mjd')
+        assert t == expected
+        t_float = Time(i+f, format='mjd')
+        assert t_float == Time(i, format='mjd')
+        assert t_float != t
+        assert t.value == 54321.  # Lost precision!
+        assert t.to_value('mjd', subfmt='long') == mjd_long
+        t2 = Time(mjd_long, format='mjd', out_subfmt='long')
+        assert t2.value == mjd_long
+
+    @pytest.mark.skipif(np.finfo(np.longdouble).eps >= np.finfo(float).eps,
+                        reason="long double is the same as float")
+    @pytest.mark.parametrize("fmt", ["mjd", "unix", "cxcsec"])
+    def test_longdouble_for_other_types(self, fmt):
+        t_fmt = getattr(Time(58000, format="mjd"), fmt)  # Get regular float
+        t_fmt_long = np.longdouble(t_fmt)
+        t_fmt_long2 = t_fmt_long * (np.finfo(np.longdouble).eps * 2 + 1)
+        assert t_fmt_long != t_fmt_long2, "longdouble weird!"
+        tm = Time(t_fmt_long, format=fmt)
+        tm2 = Time(t_fmt_long2, format=fmt)
+        assert tm != tm2
+        tm_long2 = tm2.to_value(fmt, subfmt='long')
+        assert tm_long2 == t_fmt_long2
+
+    def test_subformat_input(self):
+        s = '54321.01234567890123456789'
+        i, f = s.split('.')  # Note, OK only for fraction < 0.5
+        t = Time(float(i), float('.'+f), format='mjd')
+        t_str = Time(s, format='mjd')
+        t_bytes = Time(s.encode('ascii'), format='mjd')
+        t_decimal = Time(Decimal(s), format='mjd')
+        assert t_str == t
+        assert t_bytes == t
+        assert t_decimal == t
+
+    @pytest.mark.parametrize('out_subfmt', ('str', 'bytes'))
+    def test_subformat_output(self, out_subfmt):
+        i = 54321
+        f = np.array([0., 1e-9, 1e-12])
+        t = Time(i, f, format='mjd', out_subfmt=out_subfmt)
+        t_value = t.value
+        expected = np.array(['54321.0',
+                             '54321.000000001',
+                             '54321.000000000001'], dtype=out_subfmt)
+        assert np.all(t_value == expected)
+        assert np.all(Time(expected, format='mjd') == t)
+
+        # Explicit sub-format.
+        t = Time(i, f, format='mjd')
+        t_mjd_subfmt = t.to_value('mjd', subfmt=out_subfmt)
+        assert np.all(t_mjd_subfmt == expected)
+
+    @pytest.mark.parametrize('fmt,string,val1,val2', [
+        ('jd', '2451544.5333981', 2451544.5, .0333981),
+        ('decimalyear', '2000.54321', 2000., .54321),
+        ('cxcsec', '100.0123456', 100.0123456, None),
+        ('unix', '100.0123456', 100.0123456, None),
+        ('gps', '100.0123456', 100.0123456, None),
+        ('byear', '1950.1', 1950.1, None),
+        ('jyear', '2000.1', 2000.1, None)])
+    def test_explicit_string_other_formats(self, fmt, string, val1, val2):
+        t = Time(string, format=fmt)
+        assert t == Time(val1, val2, format=fmt)
+        assert t.to_value(fmt, subfmt='str') == string
+
+    def test_basic_subformat_setting(self):
+        t = Time('2001', format='jyear', scale='tai')
+        t.format = "mjd"
+        t.out_subfmt = "str"
+        assert t.value.startswith("5")
+
+    def test_basic_subformat_cache_does_not_crash(self):
+        t = Time('2001', format='jyear', scale='tai')
+        t.to_value('mjd', subfmt='str')
+        assert ('mjd', 'str') in t.cache['format']
+        t.to_value('mjd', 'str')
+
+    @pytest.mark.parametrize("fmt", ["jd", "mjd", "cxcsec", "unix", "gps", "jyear"])
+    def test_decimal_context_does_not_affect_string(self, fmt):
+        t = Time('2001', format='jyear', scale='tai')
+        t.format = fmt
+        with localcontext() as ctx:
+            ctx.prec = 2
+            t_s_2 = t.to_value(fmt, "str")
+        t2 = Time('2001', format='jyear', scale='tai')
+        t2.format = fmt
+        with localcontext() as ctx:
+            ctx.prec = 40
+            t2_s_40 = t.to_value(fmt, "str")
+        assert t_s_2 == t2_s_40, "String representation should not depend on Decimal context"
+
+    def test_decimal_context_caching(self):
+        t = Time(val=58000, val2=1e-14, format='mjd', scale='tai')
+        with localcontext() as ctx:
+            ctx.prec = 2
+            t_s_2 = t.to_value('mjd', subfmt='decimal')
+        t2 = Time(val=58000, val2=1e-14, format='mjd', scale='tai')
+        with localcontext() as ctx:
+            ctx.prec = 40
+            t_s_40 = t.to_value('mjd', subfmt='decimal')
+            t2_s_40 = t2.to_value('mjd', subfmt='decimal')
+        assert t_s_2 == t_s_40, "Should be the same but cache might make this automatic"
+        assert t_s_2 == t2_s_40, "Different precision should produce the same results"
+
+    @pytest.mark.parametrize("f, s, t", [("sec", "long", np.longdouble),
+                                         ("sec", "decimal", Decimal),
+                                         ("sec", "str", str)])
+    def test_timedelta_basic(self, f, s, t):
+        dt = (Time("58000", format="mjd", scale="tai")
+              - Time("58001", format="mjd", scale="tai"))
+
+        value = dt.to_value(f, s)
+        assert isinstance(value, t)
+        dt.format = f
+        dt.out_subfmt = s
+        assert isinstance(dt.value, t)
+        assert isinstance(dt.to_value(f, None), t)
+
+    def test_need_format_argument(self):
+        t = Time('J2000')
+        with pytest.raises(TypeError, match="missing.*required.*'format'"):
+            t.to_value()
+        with pytest.raises(ValueError, match='format must be one of'):
+            t.to_value('julian')
+
+    def test_wrong_in_subfmt(self):
+        with pytest.raises(ValueError, match='not among selected'):
+            Time("58000", format='mjd', in_subfmt='float')
+
+        with pytest.raises(ValueError, match='not among selected'):
+            Time(np.longdouble(58000), format='mjd', in_subfmt='float')
+
+        with pytest.raises(ValueError, match='not among selected'):
+            Time(58000., format='mjd', in_subfmt='str')
+
+        with pytest.raises(ValueError, match='not among selected'):
+            Time(58000., format='mjd', in_subfmt='long')
+
+    def test_wrong_out_subfmt(self):
+        t = Time(58000., format='mjd')
+        with pytest.raises(ValueError, match='must match one'):
+            t.to_value('mjd', subfmt='parrot')
+
+        t.out_subfmt = 'parrot'
+        with pytest.raises(ValueError):
+            t.value
 
 
 class TestSofaErrors:
@@ -1880,3 +2061,25 @@ def test_ymdhms_masked():
     assert isinstance(tm.value[0], np.ma.core.mvoid)
     for name in ymdhms_names:
         assert tm.value[0][name] is np.ma.masked
+
+
+# Converted from doctest in astropy/test/formats.py for debugging
+def test_ymdhms_output():
+    t = Time({'year': 2015, 'month': 2, 'day': 3,
+              'hour': 12, 'minute': 13, 'second': 14.567},
+             scale='utc')
+    # NOTE: actually comes back as np.void for some reason
+    # NOTE: not necessarily a python int; might be an int32
+    assert t.ymdhms.year == 2015
+
+
+# There are two stages of validation now - one on input into a format, so that
+# the format conversion code has tidy matched arrays to work with, and the
+# other when object construction does not go through a format object. Or at
+# least, the format object is constructed with "from_jd=True". In this case the
+# normal input validation does not happen but the new input validation does,
+# and can ensure that strange broadcasting anomalies can't happen.
+# This form of construction uses from_jd=True.
+def test_broadcasting_writeable():
+    t = Time('J2015') + np.linspace(-1, 1, 10)*u.day
+    t[2] = Time(58000, format="mjd")

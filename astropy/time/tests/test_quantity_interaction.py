@@ -128,12 +128,29 @@ class TestTimeDeltaQuantity:
         dt = TimeDelta(q)
         assert dt.to(u.day) == q
         assert dt.to_value(u.day) == q.value
+        assert dt.to_value('day') == q.value
         assert dt.to(u.second).value == q.to_value(u.second)
         assert dt.to_value(u.second) == q.to_value(u.second)
+        assert dt.to_value('s') == q.to_value(u.second)
+        # Following goes through "format", but should be the same.
+        assert dt.to_value('sec') == q.to_value(u.second)
+
+    def test_quantity_output_errors(self):
+        dt = TimeDelta(250., format='sec')
         with pytest.raises(u.UnitsError):
             dt.to(u.m)
         with pytest.raises(u.UnitsError):
             dt.to_value(u.m)
+        with pytest.raises(u.UnitsError):
+            dt.to_value(unit=u.m)
+        with pytest.raises(ValueError, match=("not one of the known formats.*"
+                                              "failed to parse as a unit")):
+            dt.to_value('parrot')
+        with pytest.raises(TypeError):
+            dt.to_value('sec', unit=u.s)
+        with pytest.raises(TypeError):
+            # TODO: would be nice to make this work!
+            dt.to_value(u.s, subfmt='str')
 
     def test_valid_quantity_operations1(self):
         """Check adding/substracting/comparing a time-valued quantity works

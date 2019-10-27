@@ -1,11 +1,12 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 from datetime import date
-from itertools import count, product
+from itertools import count
 
 import pytest
 
 import numpy as np
 
-import astropy.units as u
 from astropy._erfa import DJM0
 from astropy.time import Time, TimeFormat
 from astropy.time.utils import day_frac
@@ -107,22 +108,26 @@ def test_custom_time_format_problematic_name():
 
         class Custom(TimeFormat):
             name = "sort"
+            _dtype = np.dtype([('jd1', 'f8'), ('jd2', 'f8')])
 
             def set_jds(self, val, val2):
                 self.jd1, self.jd2 = val, val2
 
             @property
             def value(self):
-                return self.jd1, self.jd2
+                result = np.empty(self.jd1.shape, self._dtype)
+                result['jd1'] = self.jd1
+                result['jd2'] = self.jd2
+                return result
 
         t = Time.now()
         assert t.sort() == t, "bogus time format clobbers everyone's Time objects"
 
         t.format = "sort"
-        if not isinstance(t.value, tuple):
-            pytest.xfail("No good way to detect that `sort` is invalid")
+        assert t.value.dtype == Custom._dtype
 
-        assert Time(7, 9, format="sort").value == (7, 9)
+        t2 = Time(7, 9, format="sort")
+        assert t2.value == np.array((7, 9), Custom._dtype)
 
     finally:
         Time.FORMATS.pop("sort", None)
@@ -154,39 +159,6 @@ def test_mjd_longdouble_preserves_precision(custom_format_name):
     assert t != t2
     assert isinstance(getattr(t, custom_format_name), np.longdouble)
     assert getattr(t, custom_format_name) != getattr(t2, custom_format_name)
-
-
-def test_mjd_unit_validation():
-    with pytest.raises(u.UnitConversionError):
-        Time(58000 * u.m, format="mjd")
-
-
-def test_mjd_unit_conversion():
-    assert Time(58000 * u.day, format="mjd") == Time(58000 * u.day, format="mjd")
-    assert Time(58000 * u.day, format="mjd") != Time(58000 * u.s, format="mjd")
-    assert Time(58000 * u.day, format="mjd") == Time(58000 * 86400 * u.s, format="mjd")
-
-
-@pytest.mark.parametrize("f", ["mjd", "unix", "cxcsec"])
-def test_existing_types_refuse_longdoubles(f):
-    t = np.longdouble(getattr(Time(58000, format="mjd"), f))
-    t2 = t + np.finfo(np.longdouble).eps * 2 * t
-    try:
-        tm = Time(np.longdouble(t), format=f)
-    except ValueError:
-        # Time processing makes it always ValueError not TypeError
-        return
-    else:
-        # accepts long doubles, better preserve accuracy!
-        assert Time(np.longdouble(t2), format=f) != tm
-
-
-@pytest.mark.parametrize("f", ["mjd", "unix", "cxcsec"])
-def test_existing_types_ok_with_float64(f):
-    t = np.float64(getattr(Time(58000, format="mjd"), f))
-    t2 = t + np.finfo(np.float64).eps * 2 * t
-    tm = Time(np.float64(t), format=f)
-    assert Time(np.float64(t2), format=f) != tm
 
 
 @pytest.mark.parametrize(
@@ -295,25 +267,3 @@ def test_custom_format_can_return_any_iterable(custom_format_name, thing):
                         custom_format_name)) == type(thing)
     assert np.all(getattr(Time(5, format=custom_format_name),
                           custom_format_name) == thing)
-
-
-# Converted from doctest in astropy/test/formats.py for debugging
-def test_ymdhms():
-    t = Time({'year': 2015, 'month': 2, 'day': 3,
-              'hour': 12, 'minute': 13, 'second': 14.567},
-             scale='utc')
-    # NOTE: actually comes back as np.void for some reason
-    # NOTE: not necessarily a python int; might be an int32
-    assert t.ymdhms.year == 2015
-
-
-# There are two stages of validation now - one on input into a format, so that
-# the format conversion code has tidy matched arrays to work with, and the
-# other when object construction does not go through a format object. Or at
-# least, the format object is constructed with "from_jd=True". In this case the
-# normal input validation does not happen but the new input validation does,
-# and can ensure that strange broadcasting anomalies can't happen.
-# This form of construction uses from_jd=True.
-def test_broadcasting_writeable():
-    t = Time('J2015') + np.linspace(-1, 1, 10)*u.day
-    t[2] = Time(58000, format="mjd")

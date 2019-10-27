@@ -11,7 +11,7 @@ import os
 import copy
 import operator
 from datetime import datetime, date, timedelta
-from time import strftime, strptime
+from time import strftime
 from warnings import warn
 
 import numpy as np
@@ -343,9 +343,9 @@ class Time(ShapedLikeNDArray):
     precision : int, optional
         Digits of precision in string representation of time
     in_subfmt : str, optional
-        Subformat for inputting string times
+        Unix glob to select subformats for parsing input times
     out_subfmt : str, optional
-        Subformat for outputting string times
+        Unix glob to select subformat for outputting times
     location : `~astropy.coordinates.EarthLocation` or tuple, optional
         If given as an tuple, it should be able to initialize an
         an EarthLocation instance, i.e., either contain 3 items with units of
@@ -917,14 +917,80 @@ class Time(ShapedLikeNDArray):
         jd2 = self._time.mask_if_needed(self._time.jd2)
         return self._shaped_like_input(jd2)
 
+    def to_value(self, format, subfmt='*'):
+        """Get time values expressed in specified output format.
+
+        This method allows representing the ``Time`` object in the desired
+        output ``format`` and optional sub-format ``subfmt``.  Available
+        built-in formats include ``jd``, ``mjd``, ``iso``, and so forth. Each
+        format can have its own sub-formats
+
+        For built-in numerical formats like ``jd`` or ``unix``, ``subfmt`` can
+        be one of 'float', 'long', 'decimal', 'str', or 'bytes'.  Here, 'long'
+        uses ``numpy.longdouble`` for somewhat enhanced precision (with
+        the enhancement depending on platform), and 'decimal'
+        :class:`decimal.Decimal` for full precision.  For 'str' and 'bytes', the
+        number of digits is also chosen such that time values are represented
+        accurately.
+
+        For built-in date-like string formats, one of 'date_hms', 'date_hm', or
+        'date' (or 'longdate_hms', etc., for 5-digit years in
+        `~astropy.time.TimeFITS`).  For sub-formats including seconds, the
+        number of digits used for the fractional seconds is as set by
+        `~astropy.time.Time.precision`.
+
+        Parameters
+        ----------
+        format : str
+            The format in which one wants the time values. Default: the current
+            format.
+        subfmt : str or `None`, optional
+            Value or wildcard pattern to select the sub-format in which the
+            values should be given.  The default of '*' picks the first
+            available for a given format, i.e., 'float' or 'date_hms'.
+            If `None`, use the instance's ``out_subfmt``.
+
+        """
+        # TODO: add a precision argument (but ensure it is keyword argument
+        # only, to make life easier for TimeDelta.to_value()).
+        if format not in self.FORMATS:
+            raise ValueError('format must be one of {}'
+                             .format(list(self.FORMATS)))
+
+        cache = self.cache['format']
+        # Try to keep cache behaviour like it was in astropy < 4.0.
+        key = format if subfmt is None else (format, subfmt)
+        if key not in cache:
+            if format == self.format:
+                tm = self
+            else:
+                tm = self.replicate(format=format)
+
+            # Custom TimeFormat subclasses created in astropy versions <= 4.0
+            # may not be able to handle being passes on a out_subfmt.
+            # But those do supposedly deal with `self.out_subfmt` internally,
+            # so if subfmt is the same, we do not pass it on.
+            kwargs = {}
+            if subfmt is not None and subfmt != tm.out_subfmt:
+                kwargs['out_subfmt'] = subfmt
+            try:
+                value = tm._shaped_like_input(tm._time.to_value(
+                    parent=tm, **kwargs))
+            except ValueError as exc:
+                if 'subformats match' in str(exc):
+                    raise ValueError('subformat must match one of {}'
+                                     .format([option[0] for option in
+                                              tm._time.subfmts])) from None
+                else:
+                    raise
+
+            cache[key] = value
+        return cache[key]
+
     @property
     def value(self):
         """Time value(s) in current format"""
-        # The underlying way to get the time values for the current format is:
-        #     self._shaped_like_input(self._time.to_value(parent=self))
-        # This is done in __getattr__.  By calling getattr(self, self.format)
-        # the ``value`` attribute is cached.
-        return getattr(self, self.format)
+        return self.to_value(self.format, None)
 
     @property
     def masked(self):
@@ -1602,15 +1668,7 @@ class Time(ShapedLikeNDArray):
             return cache[attr]
 
         elif attr in self.FORMATS:
-            cache = self.cache['format']
-            if attr not in cache:
-                if attr == self.format:
-                    tm = self
-                else:
-                    tm = self.replicate(format=attr)
-                value = tm._shaped_like_input(tm._time.to_value(parent=tm))
-                cache[attr] = value
-            return cache[attr]
+            return self.to_value(attr, subfmt=None)
 
         elif attr in TIME_SCALES:  # allowed ones done above (self.SCALES)
             if self.scale is None:
@@ -1961,6 +2019,8 @@ class Time(ShapedLikeNDArray):
         return self._time_comparison(other, operator.ge)
 
     def to_datetime(self, timezone=None):
+        # TODO: this could likely go through to_value, as long as that
+        # had an **kwargs part that was just passed on to _time.
         tm = self.replicate(format='datetime')
         return tm._shaped_like_input(tm._time.to_value(timezone))
 
@@ -2249,32 +2309,95 @@ class TimeDelta(Time):
         return u.Quantity(self._time.jd1 + self._time.jd2,
                           u.day).to(unit, equivalencies=equivalencies)
 
-    def to_value(self, unit, equivalencies=[]):
-        """
-        The numerical value in the specified unit.
+    def to_value(self, *args, **kwargs):
+        """Get time delta values expressed in specified output format or unit.
+
+        This method is flexible and handles both conversion to a specified
+        ``TimeDelta`` format / sub-format AND conversion to a specified unit.
+        If positional argument(s) are provided then the first one is checked
+        to see if it is a valid ``TimeDelta`` format, and next it is checked
+        to see if it is a valid unit or unit string.
+
+        To convert to a ``TimeDelta`` format and optional sub-format the options
+        are::
+
+          tm = TimeDelta(1.0 * u.s)
+          tm.to_value('jd')  # equivalent of tm.jd
+          tm.to_value('jd', 'decimal')  # convert to 'jd' as a Decimal object
+          tm.to_value('jd', subfmt='decimal')
+          tm.to_value(format='jd', subfmt='decimal')
+
+        To convert to a unit with optional equivalencies, the options are::
+
+          tm.to_value('hr')  # convert to u.hr (hours)
+          tm.to_value('hr', [])  # specify equivalencies as a positional arg
+          tm.to_value('hr', equivalencies=[])
+          tm.to_value(unit='hr', equivalencies=[])
+
+        The built-in `~astropy.time.TimeDelta` options for ``format`` are:
+        {'jd', 'sec', 'datetime'}.
+
+        For the two numerical formats 'jd' and 'sec', the available ``subfmt``
+        options are: {'float', 'long', 'decimal', 'str', 'bytes'}. Here, 'long'
+        uses ``numpy.longdouble`` for somewhat enhanced precision (with the
+        enhancement depending on platform), and 'decimal' instances of
+        :class:`decimal.Decimal` for full precision.  For the 'str' and 'bytes'
+        sub-formats, the number of digits is also chosen such that time values
+        are represented accurately.  Default: as set by ``out_subfmt`` (which by
+        default picks the first available for a given format, i.e., 'float').
 
         Parameters
         ----------
+        format : str, optional
+            The format in which one wants the `~astropy.time.TimeDelta` values.
+            Default: the current format.
+        subfmt : str, optional
+            Possible sub-format in which the values should be given. Default: as
+            set by ``out_subfmt`` (which by default picks the first available
+            for a given format, i.e., 'float' or 'date_hms').
         unit : `~astropy.units.UnitBase` instance or str, optional
             The unit in which the value should be given.
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to try if the units are not directly
             convertible (see :ref:`unit_equivalencies`). If `None`, no
-            equivalencies will be applied at all, not even any set globally
-            or within a context.
+            equivalencies will be applied at all, not even any set globally or
+            within a context.
 
         Returns
         -------
         value : `~numpy.ndarray` or scalar
-            The value in the units specified.
+            The value in the format or units specified.
 
         See also
         --------
         to : Convert to a `~astropy.units.Quantity` instance in a given unit.
         value : The time value in the current format.
+
         """
+        if not (args or kwargs):
+            raise TypeError('to_value() missing required format or unit argument')
+
+        # TODO: maybe allow 'subfmt' also for units, keeping full precision
+        # (effectively, by doing the reverse of quantity_day_frac)?
+        # This way, only equivalencies could lead to possible precision loss.
+        if ('format' in kwargs or
+                (args != () and (args[0] is None or args[0] in self.FORMATS))):
+            # Super-class will error with duplicate arguments, etc.
+            return super().to_value(*args, **kwargs)
+
+        # With positional arguments, we try parsing the first one as a unit,
+        # so that on failure we can give a more informative exception.
+        if args:
+            try:
+                unit = u.Unit(args[0])
+            except ValueError as exc:
+                raise ValueError("first argument is not one of the known "
+                                 "formats ({}) and failed to parse as a unit."
+                                 .format(list(self.FORMATS))) from exc
+            args = (unit,) + args[1:]
+
         return u.Quantity(self._time.jd1 + self._time.jd2,
-                          u.day).to_value(unit, equivalencies=equivalencies)
+                          u.day).to_value(*args, **kwargs)
 
     def _make_value_equivalent(self, item, value):
         """Coerce setitem value into an equivalent TimeDelta object"""
