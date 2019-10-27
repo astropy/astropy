@@ -121,6 +121,12 @@ astropy.nddata
 - Add a way for technically invalid but unambiguous units in a fits header to be
   parsed by ``CCDData``. [#9397]
 
+- ``NDData`` now only accepts WCS objects which implement either the high, or
+  low level APE 14 WCS API. All WCS objects are converted to a high level WCS
+  object, so ``NDData.wcs`` now always returns a high level APE 14 object. Not
+  all array slices are valid for wcs objects, so some slicing operations which
+  used to work may now fail. [#9067]
+
 astropy.samp
 ^^^^^^^^^^^^
 
@@ -291,6 +297,8 @@ astropy.wcs
 
 - Updated the WCS class to now correctly take and return ``Time`` objects in the
   high-level APE 14 API (e.g. ``pixel_to_world``. [#9376]
+- ``SlicedLowLevelWCS`` now raises ``IndexError`` rather than ``ValueError`` on
+  an invalid slice. [#9067]
 
 API Changes
 -----------

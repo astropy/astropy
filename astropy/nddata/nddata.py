@@ -10,6 +10,8 @@ from .nduncertainty import NDUncertainty, UnknownUncertainty
 from astropy import log
 from astropy.units import Unit, Quantity
 from astropy.utils.metadata import MetaData
+from astropy.wcs.wcsapi import (BaseLowLevelWCS, BaseHighLevelWCS,
+                                SlicedLowLevelWCS, HighLevelWCSWrapper)
 
 __all__ = ['NDData']
 
@@ -220,6 +222,8 @@ class NDData(NDDataBase):
             # than sorry :-)
             unit = deepcopy(unit)
 
+        # Validate the wcs
+
         # Store the attributes
         self._data = data
         self.mask = mask
@@ -271,6 +275,19 @@ class NDData(NDDataBase):
         any type : A world coordinate system (WCS) for the dataset, if any.
         """
         return self._wcs
+
+    @wcs.setter
+    def wcs(self, wcs):
+        if self._wcs is not None and wcs is not None:
+            raise ValueError("You can only set the wcs attribute with a WCS if no WCS is present.")
+
+        if wcs is None or isinstance(wcs, BaseHighLevelWCS):
+            self._wcs = wcs
+        elif isinstance(wcs, BaseLowLevelWCS):
+            self._wcs = HighLevelWCSWrapper(wcs)
+        else:
+            raise TypeError("The wcs argument must implement either the high or"
+                            " low level WCS API.")
 
     @property
     def uncertainty(self):

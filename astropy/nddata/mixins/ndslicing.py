@@ -3,6 +3,8 @@
 
 
 from astropy import log
+from astropy.wcs.wcsapi import (BaseLowLevelWCS, BaseHighLevelWCS,
+                                SlicedLowLevelWCS, HighLevelWCSWrapper)
 
 __all__ = ['NDSlicingMixin']
 
@@ -116,8 +118,15 @@ class NDSlicingMixin:
     def _slice_wcs(self, item):
         if self.wcs is None:
             return None
+
         try:
-            return self.wcs[item]
-        except TypeError:
-            log.info("wcs cannot be sliced.")
-        return self.wcs
+            llwcs = SlicedLowLevelWCS(self.wcs.low_level_wcs, item)
+            return HighLevelWCSWrapper(llwcs)
+        except Exception as err:
+            self._handle_wcs_slicing_error(err, item)
+
+    # Implement this in a method to allow subclasses to customise the error.
+    def _handle_wcs_slicing_error(self, err, item):
+        raise ValueError(f"Slicing the WCS object with the slice '{item}' "
+        "failed, if you want to slice the NDData object without the WCS, you "
+        "can remove by setting `NDData.wcs = None` and then retry.") from err

@@ -1,6 +1,7 @@
 import numbers
 import numpy as np
 from astropy.wcs.wcsapi import BaseLowLevelWCS, wcs_info_str
+from astropy.utils import isiterable
 
 __all__ = ['sanitize_slices', 'SlicedLowLevelWCS']
 
@@ -17,6 +18,9 @@ def sanitize_slices(slices, ndim):
         raise ValueError(
             f"The dimensionality of the specified slice {slices} can not be greater "
             f"than the dimensionality ({ndim}) of the wcs.")
+
+    if any((isiterable(s) for s in slices)):
+        raise IndexError("This slice is invalid, only integer or range slices are supported.")
 
     slices = list(slices)
 
@@ -37,9 +41,9 @@ def sanitize_slices(slices, ndim):
             slc = slices[i]
             if isinstance(slc, slice):
                 if slc.step and slc.step != 1:
-                    raise ValueError("Slicing WCS with a step is not supported.")
+                    raise IndexError("Slicing WCS with a step is not supported.")
             elif not isinstance(slc, numbers.Integral):
-                raise ValueError("Only integer or range slices are accepted.")
+                raise IndexError("Only integer or range slices are accepted.")
         else:
             slices.append(slice(None))
 
@@ -161,6 +165,9 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
 
         pixel_arrays_new = np.broadcast_arrays(*pixel_arrays_new)
         world_arrays = self._wcs.pixel_to_world_values(*pixel_arrays_new)
+        # Detect the case of a length 0 array
+        if isinstance(world_arrays, np.ndarray) and not world_arrays.shape:
+            return world_arrays
         world = [world_arrays[iw] for iw in self._world_keep]
         if self.world_n_dim == 1 and self._wcs.world_n_dim > 1:
             world = world[0]
@@ -186,6 +193,9 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
             if isinstance(self._slices_pixel[ipixel], slice) and self._slices_pixel[ipixel].start is not None:
                 pixel_arrays[ipixel] -= self._slices_pixel[ipixel].start
 
+        # Detect the case of a length 0 array
+        if isinstance(pixel_arrays, np.ndarray) and not pixel_arrays.shape:
+            return pixel_arrays
         pixel = [pixel_arrays[ip] for ip in self._pixel_keep]
         if self.pixel_n_dim == 1 and self._wcs.pixel_n_dim > 1:
             pixel = pixel[0]

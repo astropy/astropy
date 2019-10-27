@@ -8,9 +8,11 @@ import numpy as np
 from astropy.tests.helper import catch_warnings
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy import units as u
+from astropy.wcs import WCS
 
 from astropy.nddata.nddata import NDData
 from astropy.nddata.decorators import support_nddata
+from astropy.nddata import _testing as nd_testing
 
 
 class CCDData(NDData):
@@ -35,7 +37,7 @@ def test_pass_numpy():
 def test_pass_all_separate():
 
     data_in = np.array([1, 2, 3])
-    wcs_in = "the wcs"
+    wcs_in = WCS(naxis=1)
     unit_in = u.Jy
 
     data_out, wcs_out, unit_out = wrapped_function_1(data=data_in, wcs=wcs_in, unit=unit_in)
@@ -48,7 +50,7 @@ def test_pass_all_separate():
 def test_pass_nddata():
 
     data_in = np.array([1, 2, 3])
-    wcs_in = "the wcs"
+    wcs_in = WCS(naxis=1)
     unit_in = u.Jy
 
     nddata_in = NDData(data_in, wcs=wcs_in, unit=unit_in)
@@ -63,7 +65,7 @@ def test_pass_nddata():
 def test_pass_nddata_and_explicit():
 
     data_in = np.array([1, 2, 3])
-    wcs_in = "the wcs"
+    wcs_in = WCS(naxis=1)
     unit_in = u.Jy
     unit_in_alt = u.mJy
 
@@ -84,7 +86,7 @@ def test_pass_nddata_and_explicit():
 def test_pass_nddata_ignored():
 
     data_in = np.array([1, 2, 3])
-    wcs_in = "the wcs"
+    wcs_in = WCS(naxis=1)
     unit_in = u.Jy
 
     nddata_in = NDData(data_in, wcs=wcs_in, unit=unit_in, mask=[0, 1, 0])
@@ -307,15 +309,15 @@ def test_parameter_default_identical_to_explicit_passed_argument():
     # If the default is identical to the explicitly passed argument this
     # should still raise a Warning and use the explicit one.
     @support_nddata
-    def func(data, wcs=[1, 2, 3]):
-        return wcs
+    def func(data, meta={'a': 1}):
+        return meta
 
     with catch_warnings(AstropyUserWarning) as w:
-        assert func(NDData(1, wcs=[1, 2]), [1, 2, 3]) == [1, 2, 3]
+        assert func(NDData(1, meta={'b': 2}), {'a': 1}) == {'a': 1}
         assert len(w) == 1
 
     with catch_warnings(AstropyUserWarning) as w:
-        assert func(NDData(1, wcs=[1, 2])) == [1, 2]
+        assert func(NDData(1, meta={'b': 2})) == {'b': 2}
         assert len(w) == 0
 
 
