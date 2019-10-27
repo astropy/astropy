@@ -116,6 +116,7 @@ def test_config_file():
 
     reload_config('astropy')
 
+
 def test_configitem():
 
     from astropy.config.configuration import ConfigNamespace, ConfigItem, get_config
