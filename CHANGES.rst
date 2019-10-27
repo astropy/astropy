@@ -615,6 +615,9 @@ astropy.modeling
 astropy.nddata
 ^^^^^^^^^^^^^^
 
+- ``Cutout2D`` will now get the WCS from its first argument if that argument
+  has with WCS property. [#9492]
+
 astropy.samp
 ^^^^^^^^^^^^
 
