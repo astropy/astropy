@@ -311,8 +311,10 @@ astropy.wcs
 
 - Updated the WCS class to now correctly take and return ``Time`` objects in the
   high-level APE 14 API (e.g. ``pixel_to_world``. [#9376]
+
 - ``SlicedLowLevelWCS`` now raises ``IndexError`` rather than ``ValueError`` on
   an invalid slice. [#9067]
+
 
 API Changes
 -----------
@@ -504,6 +506,7 @@ astropy.time
 - Custom time formats can now accept floating-point types with extended
   precision. Existing time formats raise exceptions rather than discarding
   extended precision through conversion to ordinary floating-point. [#9368]
+
 - Time formats (implemented in subclasses of ``TimeFormat``) now have
   their input and output routines more thoroughly validated, making it more
   difficult to create damaged ``Time`` objects. [#9375]
@@ -570,6 +573,7 @@ astropy.visualization
 
 astropy.wcs
 ^^^^^^^^^^^
+
 
 Bug Fixes
 ---------
@@ -669,6 +673,9 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- Ensure that output from test functions of and comparisons between quantities
+  can be stored into pre-allocated output arrays (using ``out=array``) [#9273]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
@@ -683,6 +690,11 @@ astropy.visualization
 
 - Calling ``WCSAxes.set_axis_off()`` now correctly turns off drawing the Axes.
   [#9411]
+
+- Fix incorrect transformation behavior in ``WCSAxes.plot_coord`` and correctly
+  handle when input coordinates are not already in spherical representations.
+  [#8927]
+
 
 astropy.wcs
 ^^^^^^^^^^^
@@ -705,6 +717,16 @@ Other Changes and Additions
 
 - The leap seconds in the bundled ERFA library are now updated
   automatically. [#9365]
+
+
+3.2.3 (2019-10-27)
+==================
+
+Other Changes and Additions
+---------------------------
+
+- Updated IERS A URLs due to USNO prolonged maintenance. [#9443]
+
 
 
 3.2.2 (2019-10-07)
@@ -2776,6 +2798,26 @@ Other Changes and Additions
 
 
 
+2.0.16 (2019-10-27)
+===================
+
+Bug Fixes
+---------
+
+astropy.time
+^^^^^^^^^^^^
+
+- Fixed a troubling bug in which ``Time`` could loose precision, with deviations
+  of 300 ns. [#9328]
+
+
+Other Changes and Additions
+---------------------------
+
+- Updated IERS A URLs due to USNO prolonged maintenance. [#9443]
+
+
+
 2.0.15 (2019-10-06)
 ===================
 
@@ -3704,7 +3746,10 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
-- Fix the missing wcskey part in _read_sip_kw, this will cause error when reading sip wcs while there is no default CRPIX1 CRPIX2 keywords and only CRPIX1n CRPIX2n in header. [#6372]
+- Fix the missing wcskey part in _read_sip_kw, this will cause error when
+  reading sip wcs while there is no default CRPIX1 CRPIX2 keywords and only
+  CRPIX1n CRPIX2n in header. [#6372]
+
 
 
 2.0 (2017-07-07)
@@ -3847,8 +3892,8 @@ astropy.modeling
 - Added infrastructure support for units on parameters and during
   model evaluation and fitting, added support for units on all
   functional, power-law, polynomial, and rotation models where this
-  is appropriate. A new BlackBody1D model has been added. [#4855, #6183,
-  #6204, #6235]
+  is appropriate. A new BlackBody1D model has been added.
+  [#4855, #6183, #6204, #6235]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
@@ -4166,12 +4211,6 @@ astropy.coordinates
   ``astropy.coordinates.search_around_3d``, and ``SkyCoord`` equivalent methods
   now correctly yield an ``astropy.coordinates.Angle`` as the third return type
   even if there are no matches (previously it returned a raw Quantity). [#6347]
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
@@ -5521,9 +5560,6 @@ astropy.coordinates
 - Fixed a problem with the ``Quantity._repr_latex_`` method causing errors
   when showing an ``EarthLocation`` in a Jupyter notebook. [#4542, #5068]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
@@ -5531,8 +5567,8 @@ astropy.io.ascii
   fail on non-US locales. [#4363]
 
 - Fix astropy.io.ascii.read handling of units for IPAC formatted files.
-  Columns with no unit are treated as unitless not dimensionless. [#4867,
-  #4947]
+  Columns with no unit are treated as unitless not dimensionless.
+  [#4867, #4947]
 
 - Fix problems the header parsing in the sextractor reader. [#4603, #4910]
 
@@ -5546,9 +5582,6 @@ astropy.io.fits
 
 - Made TFORMx keyword check more flexible in test of compressed images to
   enable compatibility of the test with cfitsio 3.380. [#4646, #4653]
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
 
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
