@@ -20,11 +20,13 @@ sudo: false
 
 # The apt packages below are needed for sphinx builds, which can no longer
 # be installed with sudo apt-get.
+# tzdata is included to ensure system leap seconds are up to date.
 addons:
     apt:
         packages:
             - graphviz
             - language-pack-de
+            - tzdata
 
 env:
     global:

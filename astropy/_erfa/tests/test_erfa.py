@@ -6,6 +6,7 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 from astropy import _erfa as erfa
+from astropy.time import Time
 from astropy.tests.helper import catch_warnings
 
 
@@ -345,13 +346,17 @@ class TestLeapSeconds:
         assert n_update == len(new_leap_seconds)
         assert erfa.dat(2018, 1, 1, 0.) == 37.0
 
-    def test_with_expiration(self):
+    @pytest.mark.parametrize('expiration', [
+        datetime(2345, 1, 1),
+        '1 January 2345',
+        Time('2345-01-01', scale='tai')])
+    def test_with_expiration(self, expiration):
         class ExpiringArray(np.ndarray):
-            expires = datetime(2345, 1, 1)
+            expires = expiration
 
         leap_seconds = erfa.leap_seconds.get()
         erfa.leap_seconds.set(leap_seconds.view(ExpiringArray))
-        assert erfa.leap_seconds.expires == ExpiringArray.expires
+        assert erfa.leap_seconds.expires == datetime(2345, 1, 1)
 
         # Get old and new leap seconds
         old_leap_seconds = leap_seconds[:-10]
@@ -359,9 +364,18 @@ class TestLeapSeconds:
 
         erfa.leap_seconds.set(old_leap_seconds)
         # Check expiration is reset
-        assert erfa.leap_seconds.expires != ExpiringArray.expires
+        assert erfa.leap_seconds.expires != datetime(2345, 1, 1)
         # Update with missing leap seconds.
         n_update = erfa.leap_seconds.update(
             new_leap_seconds.view(ExpiringArray))
         assert n_update == len(new_leap_seconds)
-        assert erfa.leap_seconds.expires == ExpiringArray.expires
+        assert erfa.leap_seconds.expires == datetime(2345, 1, 1)
+
+    def test_with_expiration_warning(self):
+        class ExpiringArray(np.ndarray):
+            expires = 'incomprehensible'
+
+        leap_seconds = erfa.leap_seconds.get()
+        with pytest.warns(erfa.ErfaWarning,
+                          match='non-datetime.*parsing it raised'):
+            erfa.leap_seconds.set(leap_seconds.view(ExpiringArray))
