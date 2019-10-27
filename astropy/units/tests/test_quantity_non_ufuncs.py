@@ -1820,6 +1820,15 @@ class TestDatetimeFunctions(BasicTestSetup):
             np.is_busday(self.q)
 
 
+# These functions always worked; ensure they do not regress.
+# Note that they are *not* wrapped so no need to check coverage.
+@pytest.mark.parametrize('function', [np.fft.fftfreq, np.fft.rfftfreq])
+def test_fft_frequencies(function):
+    out = function(128, d=0.1*u.s)
+    expected = function(128, d=0.1) / u.s
+    assert_array_equal(out, expected)
+
+
 @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                    reason="Needs __array_function__ support")
 class TestFFT(InvariantUnitTestSetup):
