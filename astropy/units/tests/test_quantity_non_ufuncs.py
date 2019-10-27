@@ -30,7 +30,7 @@ def get_wrapped_functions(*modules):
     return wrapped_functions
 
 
-all_wrapped_functions = get_wrapped_functions(np, np.fft)
+all_wrapped_functions = get_wrapped_functions(np, np.fft, np.linalg)
 all_wrapped = set(all_wrapped_functions.values())
 
 
@@ -326,6 +326,13 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
 class TestAccessingParts(InvariantUnitTestSetup):
     def test_diag(self):
         self.check(np.diag)
+        # Also check 1-D case
+        q = self.q.ravel()
+        o = np.diag(q)
+        expected = np.diag(q.value) << q.unit
+        assert o.unit == self.q.unit
+        assert o.shape == expected.shape
+        assert_array_equal(o, expected)
 
     def test_diagonal(self):
         self.check(np.diagonal)
@@ -1868,6 +1875,208 @@ class TestFFT(InvariantUnitTestSetup):
 
     def test_ifftshift(self):
         self.check(np.fft.ifftshift)
+
+
+class TestLinAlgSubclassSafe(metaclass=CoverageMeta):
+    def setup(self):
+        self.q = np.array([[1., -1., 2.],
+                           [0., 3., -1.],
+                           [-1., -1., 1.]]) << u.m
+
+    def test_cond(self):
+        c = np.linalg.cond(self.q)
+        expected = np.linalg.cond(self.q.value)
+        assert c == expected
+
+    def test_multi_dot(self):
+        q2 = np.linalg.multi_dot([self.q, self.q])
+        q2x = self.q @ self.q
+        assert_array_equal(q2, q2x)
+        q3 = np.linalg.multi_dot([self.q, self.q, self.q])
+        q3x = self.q @ self.q @ self.q
+        assert_array_equal(q3, q3x)
+
+
+@pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                   reason="Needs __array_function__ support")
+class TestLinAlgNeedArrayFunction(TestLinAlgSubclassSafe):
+    def test_svd(self):
+        m = np.arange(10.) * np.arange(5.)[:, np.newaxis] * u.m
+        svd_u, svd_s, svd_vt = np.linalg.svd(m, full_matrices=False)
+        svd_ux, svd_sx, svd_vtx = np.linalg.svd(m.value, full_matrices=False)
+        svd_sx <<= m.unit
+        assert_array_equal(svd_u, svd_ux)
+        assert_array_equal(svd_vt, svd_vtx)
+        assert_array_equal(svd_s, svd_sx)
+        assert u.allclose(svd_u @ np.diag(svd_s) @ svd_vt, m)
+
+        s2 = np.linalg.svd(m, compute_uv=False)
+        svd_s2x = np.linalg.svd(m.value, compute_uv=False) << m.unit
+        assert_array_equal(s2, svd_s2x)
+
+    def test_matrix_rank(self):
+        r = np.linalg.matrix_rank(self.q)
+        x = np.linalg.matrix_rank(self.q.value)
+        assert r == x
+        tol = 1. * u.cm
+        r2 = np.linalg.matrix_rank(self.q, tol)
+        x2 = np.linalg.matrix_rank(self.q.value, tol.to_value(self.q.unit))
+        assert r2 == x2
+
+    def test_inv(self):
+        inv = np.linalg.inv(self.q)
+        expected = np.linalg.inv(self.q.value) / self.q.unit
+        assert_array_equal(inv, expected)
+
+    def test_pinv(self):
+        pinv = np.linalg.pinv(self.q)
+        expected = np.linalg.pinv(self.q.value) / self.q.unit
+        assert_array_equal(pinv, expected)
+        rcond = 0.01 * u.cm
+        pinv2 = np.linalg.pinv(self.q, rcond)
+        expected2 = np.linalg.pinv(self.q.value,
+                                   rcond.to_value(self.q.unit)) / self.q.unit
+        assert_array_equal(pinv2, expected2)
+
+    def test_tensorinv(self):
+        inv = np.linalg.tensorinv(self.q, ind=1)
+        expected = np.linalg.tensorinv(self.q.value, ind=1) / self.q.unit
+        assert_array_equal(inv, expected)
+
+    def test_det(self):
+        det = np.linalg.det(self.q)
+        expected = np.linalg.det(self.q.value)
+        expected <<= self.q.unit ** self.q.shape[-1]
+        assert_array_equal(det, expected)
+        with pytest.raises(np.linalg.LinAlgError):
+            np.linalg.det(self.q[0])  # Not 2-D
+        with pytest.raises(np.linalg.LinAlgError):
+            np.linalg.det(self.q[:-1])  # Not square.
+
+    def test_slogdet(self):
+        # TODO: Could be supported if we had a natural logarithm unit.
+        with pytest.raises(TypeError):
+            np.linalg.slogdet(self.q)
+
+    def test_solve(self):
+        b = np.array([1., 2., 4.]) * u.m / u.s
+        x = np.linalg.solve(self.q, b)
+        xx = np.linalg.solve(self.q.value, b.value)
+        xx <<= b.unit / self.q.unit
+        assert_array_equal(x, xx)
+        assert u.allclose(self.q @ x, b)
+
+    def test_tensorsolve(self):
+        b = np.array([1., 2., 4.]) * u.m / u.s
+        x = np.linalg.tensorsolve(self.q, b)
+        xx = np.linalg.tensorsolve(self.q.value, b.value)
+        xx <<= b.unit / self.q.unit
+        assert_array_equal(x, xx)
+        assert u.allclose(self.q @ x, b)
+
+    def test_lstsq(self):
+        b = np.array([1., 2., 4.]) * u.m / u.s
+        x, residuals, rank, s = np.linalg.lstsq(self.q, b, rcond=None)
+        xx, residualsx, rankx, sx = np.linalg.lstsq(self.q.value, b.value,
+                                                    rcond=None)
+        xx <<= b.unit / self.q.unit
+        residualsx <<= b.unit ** 2
+        sx <<= self.q.unit
+
+        assert_array_equal(x, xx)
+        assert_array_equal(residuals, residualsx)
+        assert_array_equal(s, sx)
+        assert rank == rankx
+        assert u.allclose(self.q @ x, b)
+
+        # Also do one where we can check the answer...
+        m = np.eye(3)
+        b = np.arange(3) * u.m
+        x, residuals, rank, s = np.linalg.lstsq(m, b, rcond=1.*u.percent)
+        assert_array_equal(x, b)
+        assert np.all(residuals == 0 * u.m**2)
+        assert rank == 3
+        assert_array_equal(s, np.array([1., 1., 1.]) << u.one)
+
+        with pytest.raises(u.UnitsError):
+            np.linalg.lstsq(m, b, rcond=1.*u.s)
+
+    def test_norm(self):
+        n = np.linalg.norm(self.q)
+        expected = np.linalg.norm(self.q.value) << self.q.unit
+        assert_array_equal(n, expected)
+        # Special case: 1-D, ord=0.
+        n1 = np.linalg.norm(self.q[0], ord=0)
+        expected1 = np.linalg.norm(self.q[0].value, ord=0) << u.one
+        assert_array_equal(n1, expected1)
+
+    def test_matrix_power(self):
+        q1 = np.linalg.matrix_power(self.q, 1)
+        assert_array_equal(q1, self.q)
+        q2 = np.linalg.matrix_power(self.q, 2)
+        assert_array_equal(q2, self.q @ self.q)
+        q2 = np.linalg.matrix_power(self.q, 4)
+        assert_array_equal(q2, self.q @ self.q @ self.q @ self.q)
+        qinv = np.linalg.inv(self.q)
+        qm1 = np.linalg.matrix_power(self.q, -1)
+        assert_array_equal(qm1, qinv)
+        qm3 = np.linalg.matrix_power(self.q, -3)
+        assert_array_equal(qm3, qinv @ qinv @ qinv)
+
+    def test_cholesky(self):
+        # Numbers from np.linalg.cholesky docstring.
+        q = np.array([[1, -2j], [2j, 5]]) * u.m
+        cd = np.linalg.cholesky(q)
+        cdx = np.linalg.cholesky(q.value) << q.unit ** 0.5
+        assert_array_equal(cd, cdx)
+        assert u.allclose(cd @ cd.T.conj(), q)
+
+    def test_qr(self):
+        # This is not exhaustive...
+        a = np.array([[1, -2j], [2j, 5]]) * u.m
+        q, r = np.linalg.qr(a)
+        qx, rx = np.linalg.qr(a.value)
+        qx <<= u.one
+        rx <<= a.unit
+        assert_array_equal(q, qx)
+        assert_array_equal(r, rx)
+        assert u.allclose(q @ r, a)
+
+    def test_eig(self):
+        w, v = np.linalg.eig(self.q)
+        wx, vx = np.linalg.eig(self.q.value)
+        wx <<= self.q.unit
+        vx <<= u.one
+        assert_array_equal(w, wx)
+        assert_array_equal(v, vx)
+
+        # Comprehensible example
+        q = np.diag((1, 2, 3) * u.m)
+        w, v = np.linalg.eig(q)
+        assert_array_equal(w, np.arange(1, 4) * u.m)
+        assert_array_equal(v, np.eye(3))
+
+    def test_eigvals(self):
+        w = np.linalg.eigvals(self.q)
+        wx = np.linalg.eigvals(self.q.value) << self.q.unit
+        assert_array_equal(w, wx)
+        # Comprehensible example
+        q = np.diag((1, 2, 3) * u.m)
+        w = np.linalg.eigvals(q)
+        assert_array_equal(w, np.arange(1, 4) * u.m)
+
+    def test_eigh(self):
+        w, v = np.linalg.eigh(self.q)
+        wx, vx = np.linalg.eigh(self.q.value)
+        wx <<= self.q.unit
+        vx <<= u.one
+        assert_array_equal(w, wx)
+        assert_array_equal(v, vx)
+
+    def test_eigvalsh(self):
+        w = np.linalg.eigvalsh(self.q)
+        wx = np.linalg.eigvalsh(self.q.value) << self.q.unit
+        assert_array_equal(w, wx)
 
 
 untested_functions = set()

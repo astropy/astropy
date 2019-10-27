@@ -75,7 +75,7 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.argmin, np.argmax, np.argsort, np.lexsort, np.searchsorted,
     np.nonzero, np.argwhere, np.flatnonzero,
     np.diag_indices_from, np.triu_indices_from, np.tril_indices_from,
-    np.real, np.imag, np.diag, np.diagonal, np.diagflat,
+    np.real, np.imag, np.diagonal, np.diagflat,
     np.empty_like, np.zeros_like,
     np.compress, np.extract, np.delete, np.trim_zeros, np.roll, np.take,
     np.put, np.fill_diagonal, np.tile, np.repeat,
@@ -95,7 +95,8 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.common_type, np.result_type, np.can_cast, np.min_scalar_type,
     np.iscomplexobj, np.isrealobj,
     np.shares_memory, np.may_share_memory,
-    np.apply_along_axis, np.take_along_axis, np.put_along_axis}
+    np.apply_along_axis, np.take_along_axis, np.put_along_axis,
+    np.linalg.cond, np.linalg.multi_dot}
 
 if NUMPY_LT_1_18:
     SUBCLASS_SAFE_FUNCTIONS |= {np.alen}
@@ -112,6 +113,9 @@ UNSUPPORTED_FUNCTIONS |= {
     np.ravel_multi_index, np.ix_, np.cov, np.corrcoef,
     np.busday_count, np.busday_offset, np.datetime_as_string,
     np.is_busday, np.all, np.any, np.sometrue, np.alltrue}
+
+# Could be supported if we had a natural logarithm unit.
+UNSUPPORTED_FUNCTIONS |= {np.linalg.slogdet}
 
 # The following are not just unsupported, but so unlikely to be thought
 # to be supported that we ignore them in testing.  (Kept in a separate
@@ -139,7 +143,7 @@ class FunctionAssigner:
     def __init__(self, assignments):
         self.assignments = assignments
 
-    def __call__(self, f=None, helps=None):
+    def __call__(self, f=None, helps=None, module=np):
         """Add a helper to a numpy function.
 
         Normally used as a decorator.
@@ -152,14 +156,14 @@ class FunctionAssigner:
         """
         if f is not None:
             if helps is None:
-                helps = getattr(np, f.__name__)
+                helps = getattr(module, f.__name__)
             if not isiterable(helps):
                 helps = (helps,)
             for h in helps:
                 self.assignments[h] = f
             return f
-        elif helps is not None:
-            return functools.partial(self.__call__, helps=helps)
+        elif helps is not None or module is not np:
+            return functools.partial(self.__call__, helps=helps, module=module)
         else:  # pragma: no cover
             raise ValueError("function_helper requires at least one argument.")
 
@@ -174,7 +178,8 @@ dispatched_function = FunctionAssigner(DISPATCHED_FUNCTIONS)
     np.fft.fft, np.fft.ifft, np.fft.rfft, np.fft.irfft,
     np.fft.fft2, np.fft.ifft2, np.fft.rfft2, np.fft.irfft2,
     np.fft.fftn, np.fft.ifftn, np.fft.rfftn, np.fft.irfftn,
-    np.fft.hfft, np.fft.ihfft})
+    np.fft.hfft, np.fft.ihfft,
+    np.linalg.eigvals, np.linalg.eigvalsh})
 def invariant_a_helper(a, *args, **kwargs):
     return (a.view(np.ndarray),) + args, kwargs, a.unit, None
 
@@ -938,3 +943,111 @@ def array2string(a, *args, **kwargs):
                     a = a.value
 
     return (a,) + args, kwargs, None, None
+
+
+@function_helper
+def diag(v, *args, **kwargs):
+    # Function works for *getting* the diagonal, but not *setting*.
+    # So, override always.
+    return (v.value,) + args, kwargs, v.unit, None
+
+
+@function_helper(module=np.linalg)
+def svd(a, full_matrices=True, compute_uv=True, hermitian=False):
+    unit = a.unit
+    if compute_uv:
+        unit = (None, unit, None)
+
+    return ((a.view(np.ndarray), full_matrices, compute_uv, hermitian),
+            {}, unit, None)
+
+
+def _interpret_tol(tol, unit):
+    from astropy.units import Quantity
+
+    return Quantity(tol, unit).value
+
+
+@function_helper(module=np.linalg)
+def matrix_rank(M, tol=None, *args, **kwargs):
+    if tol is not None:
+        tol = _interpret_tol(tol, M.unit)
+
+    return (M.view(np.ndarray), tol) + args, kwargs, None, None
+
+
+@function_helper(helps={np.linalg.inv, np.linalg.tensorinv})
+def inv(a, *args, **kwargs):
+    return (a.view(np.ndarray),)+args, kwargs, 1/a.unit, None
+
+
+@function_helper(module=np.linalg)
+def pinv(a, rcond=1e-15, *args, **kwargs):
+    rcond = _interpret_tol(rcond, a.unit)
+
+    return (a.view(np.ndarray), rcond) + args, kwargs, 1/a.unit, None
+
+
+@function_helper(module=np.linalg)
+def det(a):
+    return (a.view(np.ndarray),), {}, a.unit ** a.shape[-1], None
+
+
+@function_helper(helps={np.linalg.solve, np.linalg.tensorsolve})
+def solve(a, b, *args, **kwargs):
+    a, b = _as_quantities(a, b)
+
+    return ((a.view(np.ndarray), b.view(np.ndarray)) + args, kwargs,
+            b.unit / a.unit, None)
+
+
+@function_helper(module=np.linalg)
+def lstsq(a, b, rcond="warn"):
+    a, b = _as_quantities(a, b)
+
+    if rcond not in (None, "warn", -1):
+        rcond = _interpret_tol(rcond, a.unit)
+
+    return ((a.view(np.ndarray), b.view(np.ndarray), rcond), {},
+            (b.unit / a.unit, b.unit ** 2, None, a.unit), None)
+
+
+@function_helper(module=np.linalg)
+def norm(x, ord=None, *args, **kwargs):
+    if ord == 0:
+        from astropy.units import dimensionless_unscaled
+
+        unit = dimensionless_unscaled
+    else:
+        unit = x.unit
+    return (x.view(np.ndarray), ord)+args, kwargs, unit, None
+
+
+@function_helper(module=np.linalg)
+def matrix_power(a, n):
+    return (a.value, n), {}, a.unit ** n, None
+
+
+@function_helper(module=np.linalg)
+def cholesky(a):
+    return (a.value,), {}, a.unit ** 0.5, None
+
+
+@function_helper(module=np.linalg)
+def qr(a, mode='reduced'):
+    if mode.startswith('e'):
+        units = None
+    elif mode == 'r':
+        units = a.unit
+    else:
+        from astropy.units import dimensionless_unscaled
+        units = (dimensionless_unscaled, a.unit)
+
+    return (a.value, mode), {}, units, None
+
+
+@function_helper(helps={np.linalg.eig, np.linalg.eigh})
+def eig(a, *args, **kwargs):
+    from astropy.units import dimensionless_unscaled
+
+    return (a.value,)+args, kwargs, (a.unit, dimensionless_unscaled), None
