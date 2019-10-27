@@ -278,10 +278,13 @@ class TestTimeDelta:
         dt = TimeDelta(86400.0, format='sec')
         assert dt.to_value('jd') == 1.
         assert dt.to_value('jd', 'str') == '1.0'
-        assert dt.to_value(subfmt='str') == '86400.0'
+        assert dt.to_value('sec', subfmt='str') == '86400.0'
         with pytest.raises(ValueError, match=("not one of the known formats.*"
                                               "failed to parse as a unit")):
             dt.to_value('julian')
+
+        with pytest.raises(TypeError, match='missing required format or unit'):
+            dt.to_value()
 
 
 class TestTimeDeltaScales:
