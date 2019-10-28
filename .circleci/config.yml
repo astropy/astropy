@@ -32,10 +32,10 @@ jobs:
           command: PYTHONHASHSEED=42 /opt/python/cp37-cp37m/bin/python setup.py test --parallel=4 -a "--durations=50"
       - run:
           name: Install dependencies for Python 3.8
-          command: /opt/python/cp38-cp38m/bin/pip install numpy pytest pytest-astropy pytest-xdist Cython jinja2 pandas
+          command: /opt/python/cp38-cp38/bin/pip install numpy pytest pytest-astropy pytest-xdist Cython jinja2 pandas
       - run:
           name: Run tests for Python 3.8
-          command: PYTHONHASHSEED=42 /opt/python/cp38-cp38m/bin/python setup.py test --parallel=4 -a "--durations=50"
+          command: PYTHONHASHSEED=42 /opt/python/cp38-cp38/bin/python setup.py test --parallel=4 -a "--durations=50"
 
   image-tests-mpl212:
     docker:
