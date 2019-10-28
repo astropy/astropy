@@ -726,6 +726,9 @@ Other Changes and Additions
 - The leap seconds in the bundled ERFA library are now updated
   automatically. [#9365]
 
+- The default server for the IERS data files has been updated to reflect
+  long-term downtime of the canonical USNO server. [#9443, #9487]
+
 
 3.2.3 (2019-10-27)
 ==================
