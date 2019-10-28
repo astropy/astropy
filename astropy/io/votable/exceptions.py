@@ -621,12 +621,12 @@ class W20(VOTableSpecWarning):
 class W21(UnimplementedWarning):
     """
     Unknown issues may arise using ``astropy.io.votable`` with VOTable files
-    from a version other than 1.1, 1.2 or 1.3.
+    from a version other than 1.1, 1.2, 1.3, or 1.4.
     """
 
     message_template = (
-        'astropy.io.votable is designed for VOTable version 1.1, 1.2 and 1.3, but ' +
-        'this file is {}')
+        'astropy.io.votable is designed for VOTable version 1.1, 1.2, 1.3,'
+        ' and 1.4, but this file is {}')
     default_args = ('x',)
 
 
@@ -1070,6 +1070,18 @@ class W53(VOTableSpecWarning):
     default_args = ()
 
 
+class W54(VOTableSpecWarning):
+    """
+    The TIMESYS element was introduced in VOTable 1.4.  It should
+    not be present in files marked as an earlier version.
+    """
+
+    message_template = (
+        "The TIMESYS element was introduced in VOTable 1.4, but "
+        "this file is declared as version '{}'")
+    default_args = ('1.3',)
+
+
 class E01(VOWarning, ValueError):
     """
     The size specifier for a ``char`` or ``unicode`` field must be
@@ -1411,6 +1423,29 @@ class E21(VOWarning, ValueError):
 
     message_template = "Data has fewer columns ({}) than are defined in the header ({})"
     default_args = ('x', 'y')
+
+
+class E22(VOWarning, ValueError):
+    """
+    All ``TIMESYS`` elements must have an ``ID`` attribute.
+    """
+
+    message_template = "ID attribute is required for all TIMESYS elements"
+
+
+class E23(VOTableSpecWarning):
+    """
+    The ``timeorigin`` attribute on the ``TIMESYS`` element must be
+    either a floating point literal specifiying a valid Julian Date,
+    or, for convenience, the string "MJD-origin" (standing for 2400000.5)
+    or the string "JD-origin" (standing for 0).
+
+    **References**: `1.4
+    <http://www.ivoa.net/documents/VOTable/20191021/REC-VOTable-1.4-20191021.html#ToC21>`__
+    """
+
+    message_template = "Invalid timeorigin attribute '{}'"
+    default_args = ('x',)
 
 
 def _get_warning_and_exception_classes(prefix):

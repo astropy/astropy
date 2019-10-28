@@ -24,8 +24,8 @@ from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
                          warn_unknown_attrs, W06, W07, W08, W09, W10, W11, W12,
                          W13, W15, W17, W18, W19, W20, W21, W22, W26, W27, W28,
                          W29, W32, W33, W35, W36, W37, W38, W40, W41, W42, W43,
-                         W44, W45, W50, W52, W53, E06, E08, E09, E10, E11, E12,
-                         E13, E15, E16, E17, E18, E19, E20, E21)
+                         W44, W45, W50, W52, W53, W54, E06, E08, E09, E10, E11,
+                         E12, E13, E15, E16, E17, E18, E19, E20, E21, E22, E23)
 from . import ucd as ucd_mod
 from . import util
 from . import xmlutil
@@ -38,7 +38,7 @@ except ImportError:
 
 
 __all__ = [
-    'Link', 'Info', 'Values', 'Field', 'Param', 'CooSys',
+    'Link', 'Info', 'Values', 'Field', 'Param', 'CooSys', 'TimeSys',
     'FieldRef', 'ParamRef', 'Group', 'Table', 'Resource',
     'VOTableFile'
     ]
@@ -1353,7 +1353,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
     def ref(self):
         """
         On FIELD_ elements, ref is used only for informational
-        purposes, for example to refer to a COOSYS_ element.
+        purposes, for example to refer to a COOSYS_ or TIMESYS_ element.
         """
         return self._ref
 
@@ -1722,6 +1722,123 @@ class CooSys(SimpleElement):
     @epoch.deleter
     def epoch(self):
         self._epoch = None
+
+
+class TimeSys(SimpleElement):
+    """
+    TIMESYS_ element: defines a time system.
+
+    The keyword arguments correspond to setting members of the same
+    name, documented below.
+    """
+    _attr_list = ['ID', 'timeorigin', 'timescale', 'refposition']
+    _element_name = 'TIMESYS'
+
+    def __init__(self, ID=None, timeorigin=None, timescale=None, refposition=None, id=None,
+                 config=None, pos=None, **extra):
+        if config is None:
+            config = {}
+        self._config = config
+        self._pos = pos
+
+        # TIMESYS is supported starting in version 1.4
+        if not config['version_1_4_or_later']:
+            warn_or_raise(
+                W54, W54, config['version'], config, pos)
+
+        SimpleElement.__init__(self)
+
+        self.ID = resolve_id(ID, id, config, pos)
+        self.timeorigin = timeorigin
+        self.timescale = timescale
+        self.refposition = refposition
+
+        warn_unknown_attrs('TIMESYS', extra.keys(), config, pos,
+                           ['ID', 'timeorigin', 'timescale', 'refposition'])
+
+    @property
+    def ID(self):
+        """
+        [*required*] The XML ID of the TIMESYS_ element, used for
+        cross-referencing.  Must be a string conforming to
+        XML ID_ syntax.
+        """
+        return self._ID
+
+    @ID.setter
+    def ID(self, ID):
+        if ID is None:
+            vo_raise(E22, (), self._config, self._pos)
+        xmlutil.check_id(ID, 'ID', self._config, self._pos)
+        self._ID = ID
+
+    @property
+    def timeorigin(self):
+        """
+        Specifies the time origin of the time coordinate,
+        given as a Julian Date for the the time scale and
+        reference point defined. It is usually given as a
+        floating point literal; for convenience, the magic
+        strings "MJD-origin" (standing for 2400000.5) and
+        "JD-origin" (standing for 0) are also allowed.
+
+        The timeorigin attribute MUST be given unless the
+        time’s representation contains a year of a calendar
+        era, in which case it MUST NOT be present. In VOTables,
+        these representations currently are Gregorian calendar
+        years with xtype="timestamp", or years in the Julian
+        or Besselian calendar when a column has yr, a, or Ba as
+        its unit and no time origin is given.
+        """
+        return self._timeorigin
+
+    @timeorigin.setter
+    def timeorigin(self, timeorigin):
+        if (timeorigin is not None and
+                timeorigin != 'MJD-origin' and timeorigin != 'JD-origin'):
+            try:
+                timeorigin = float(timeorigin)
+            except ValueError:
+                warn_or_raise(E23, E23, timeorigin, self._config, self._pos)
+        self._timeorigin = timeorigin
+
+    @timeorigin.deleter
+    def timeorigin(self):
+        self._timeorigin = None
+
+    @property
+    def timescale(self):
+        """
+        [*required*] String specifying the time scale used. Values
+        should be taken from the IVOA timescale vocabulary (documented
+        at http://www.ivoa.net/rdf/timescale).
+        """
+        return self._timescale
+
+    @timescale.setter
+    def timescale(self, timescale):
+        self._timescale = timescale
+
+    @timescale.deleter
+    def timescale(self):
+        self._timescale = None
+
+    @property
+    def refposition(self):
+        """
+        [*required*] String specifying the reference position. Values
+        should be taken from the IVOA refposition vocabulary (documented
+        at http://www.ivoa.net/rdf/refposition).
+        """
+        return self._refposition
+
+    @refposition.setter
+    def refposition(self, refposition):
+        self._refposition = refposition
+
+    @refposition.deleter
+    def refposition(self):
+        self._refposition = None
 
 
 class FieldRef(SimpleElement, _UtypeProperty, _UcdProperty):
@@ -2991,6 +3108,7 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         self.description = None
 
         self._coordinate_systems = HomogeneousList(CooSys)
+        self._time_systems = HomogeneousList(TimeSys)
         self._groups = HomogeneousList(Group)
         self._params = HomogeneousList(Param)
         self._infos = HomogeneousList(Info)
@@ -3044,6 +3162,14 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         the RESOURCE_.  Must contain only `CooSys` objects.
         """
         return self._coordinate_systems
+
+    @property
+    def time_systems(self):
+        """
+        A list of time system definitions (TIMESYS_ elements) for
+        the RESOURCE_.  Must contain only `TimeSys` objects.
+        """
+        return self._time_systems
 
     @property
     def infos(self):
@@ -3118,6 +3244,11 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         self.coordinate_systems.append(coosys)
         coosys.parse(iterator, config)
 
+    def _add_timesys(self, iterator, tag, data, config, pos):
+        timesys = TimeSys(config=config, pos=pos, **data)
+        self.time_systems.append(timesys)
+        timesys.parse(iterator, config)
+
     def _add_resource(self, iterator, tag, data, config, pos):
         resource = Resource(config=config, pos=pos, **data)
         self.resources.append(resource)
@@ -3135,8 +3266,9 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
             'TABLE': self._add_table,
             'INFO': self._add_info,
             'PARAM': self._add_param,
-            'GROUP' : self._add_group,
+            'GROUP': self._add_group,
             'COOSYS': self._add_coosys,
+            'TIMESYS': self._add_timesys,
             'RESOURCE': self._add_resource,
             'LINK': self._add_link,
             'DESCRIPTION': self._ignore_add
@@ -3163,9 +3295,9 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         with w.tag('RESOURCE', attrib=attrs):
             if self.description is not None:
                 w.element("DESCRIPTION", self.description, wrap=True)
-            for element_set in (self.coordinate_systems, self.params,
-                                self.infos, self.links, self.tables,
-                                self.resources):
+            for element_set in (self.coordinate_systems, self.time_systems,
+                                self.params, self.infos, self.links,
+                                self.tables, self.resources):
                 for element in element_set:
                     element.to_xml(w, **kwargs)
 
@@ -3205,6 +3337,17 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
             for coosys in resource.iter_coosys():
                 yield coosys
 
+    def iter_timesys(self):
+        """
+        Recursively iterates over all the TIMESYS_ elements in the
+        resource and nested resources.
+        """
+        for timesys in self.time_systems:
+            yield timesys
+        for resource in self.resources:
+            for timesys in resource.iter_timesys():
+                yield timesys
+
     def iter_info(self):
         """
         Recursively iterates over all the INFO_ elements in the
@@ -3231,7 +3374,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     tests for building the rest of the structure depend on it.
     """
 
-    def __init__(self, ID=None, id=None, config=None, pos=None, version="1.3"):
+    def __init__(self, ID=None, id=None, config=None, pos=None, version="1.4"):
         if config is None:
             config = {}
         self._config = config
@@ -3242,15 +3385,16 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         self.description = None
 
         self._coordinate_systems = HomogeneousList(CooSys)
+        self._time_systems = HomogeneousList(TimeSys)
         self._params = HomogeneousList(Param)
         self._infos = HomogeneousList(Info)
         self._resources = HomogeneousList(Resource)
         self._groups = HomogeneousList(Group)
 
         version = str(version)
-        if version not in ("1.0", "1.1", "1.2", "1.3"):
+        if version not in ("1.0", "1.1", "1.2", "1.3", "1.4"):
             raise ValueError("'version' should be one of '1.0', '1.1', "
-                             "'1.2', or '1.3'")
+                             "'1.2', '1.3', or '1.4'")
 
         self._version = version
 
@@ -3268,10 +3412,10 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     @version.setter
     def version(self, version):
         version = str(version)
-        if version not in ('1.1', '1.2', '1.3'):
+        if version not in ('1.1', '1.2', '1.3', '1.4'):
             raise ValueError(
                 "astropy.io.votable only supports VOTable versions "
-                "1.1, 1.2 and 1.3")
+                "1.1, 1.2, 1.3, and 1.4")
         self._version = version
 
     @property
@@ -3281,6 +3425,14 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         contain only `CooSys` objects.
         """
         return self._coordinate_systems
+
+    @property
+    def time_systems(self):
+        """
+        A list of time system descriptions for the file.  Must
+        contain only `TimeSys` objects.
+        """
+        return self._time_systems
 
     @property
     def params(self):
@@ -3330,6 +3482,11 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         self.coordinate_systems.append(coosys)
         coosys.parse(iterator, config)
 
+    def _add_timesys(self, iterator, tag, data, config, pos):
+        timesys = TimeSys(config=config, pos=pos, **data)
+        self.time_systems.append(timesys)
+        timesys.parse(iterator, config)
+
     def _add_info(self, iterator, tag, data, config, pos):
         info = Info(config=config, pos=pos, **data)
         self.infos.append(info)
@@ -3360,12 +3517,23 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                                 W29, W29, config['version'], config, pos)
                             self._version = config['version'] = \
                                             config['version'][1:]
-                        if config['version'] not in ('1.1', '1.2', '1.3'):
+                        if config['version'] not in ('1.1', '1.2', '1.3', '1.4'):
                             vo_warn(W21, config['version'], config, pos)
 
                     if 'xmlns' in data:
+                        # Starting with VOTable 1.3, namespace URIs stop
+                        # incrementing with minor version changes.  See
+                        # this IVOA note for more info:
+                        # http://www.ivoa.net/documents/Notes/XMLVers/20180529/
+                        #
+                        # If this policy is in place for major version 2,
+                        # then this logic will need tweaking.
+                        if config['version'] in ('1.3', '1.4'):
+                            ns_version = '1.3'
+                        else:
+                            ns_version = config['version']
                         correct_ns = ('http://www.ivoa.net/xml/VOTable/v{}'.format(
-                                config['version']))
+                                ns_version))
                         if data['xmlns'] != correct_ns:
                             vo_warn(
                                 W41, (correct_ns, data['xmlns']), config, pos)
@@ -3381,11 +3549,14 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             util.version_compare(config['version'], '1.2') >= 0
         config['version_1_3_or_later'] = \
             util.version_compare(config['version'], '1.3') >= 0
+        config['version_1_4_or_later'] = \
+            util.version_compare(config['version'], '1.4') >= 0
 
         tag_mapping = {
             'PARAM': self._add_param,
             'RESOURCE': self._add_resource,
             'COOSYS': self._add_coosys,
+            'TIMESYS': self._add_timesys,
             'INFO': self._add_info,
             'DEFINITIONS': self._add_definitions,
             'DESCRIPTION': self._ignore_add,
@@ -3439,6 +3610,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                 util.version_compare(self.version, '1.2') >= 0,
             'version_1_3_or_later':
                 util.version_compare(self.version, '1.3') >= 0,
+            'version_1_4_or_later':
+                util.version_compare(self.version, '1.4') >= 0,
             'tabledata_format':
                 tabledata_format,
             '_debug_python_based_parser': _debug_python_based_parser,
@@ -3469,8 +3642,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                             f"http://www.ivoa.net/xml/VOTable/v{version}"}):
                 if self.description is not None:
                     w.element("DESCRIPTION", self.description, wrap=True)
-                element_sets = [self.coordinate_systems, self.params,
-                                self.infos, self.resources]
+                element_sets = [self.coordinate_systems, self.time_systems,
+                                self.params, self.infos, self.resources]
                 if kwargs['version_1_2_or_later']:
                     element_sets[0] = self.groups
                 for element_set in element_sets:
@@ -3601,6 +3774,21 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     get_coosys_by_id = _lookup_by_attr_factory(
         'ID', True, 'iter_coosys', 'COOSYS',
         """Looks up a COOSYS_ element by the given ID.""")
+
+    def iter_timesys(self):
+        """
+        Recursively iterate over all TIMESYS_ elements in the VOTABLE_
+        file.
+        """
+        for timesys in self.time_systems:
+            yield timesys
+        for resource in self.resources:
+            for timesys in resource.iter_timesys():
+                yield timesys
+
+    get_timesys_by_id = _lookup_by_attr_factory(
+        'ID', True, 'iter_timesys', 'TIMESYS',
+        """Looks up a TIMESYS_ element by the given ID.""")
 
     def iter_info(self):
         """
