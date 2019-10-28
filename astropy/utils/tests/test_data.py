@@ -1214,7 +1214,7 @@ def test_clear_download_cache_refuses_to_delete_outside_the_cache(tmpdir):
 def test_check_download_cache_finds_unreferenced_files(temp_cache, valid_urls):
     u, c = next(valid_urls)
     download_file(u, cache=True)
-    with _cache(write=True) as (dldir, urlmap):
+    with _cache(pkgname='astropy', write=True) as (dldir, urlmap):
         del urlmap[u]
     with pytest.raises(ValueError):
         check_download_cache()
@@ -1232,7 +1232,7 @@ def test_check_download_cache_finds_missing_files(temp_cache, valid_urls):
 def test_check_download_cache_finds_bogus_entries(temp_cache, valid_urls):
     u, c = next(valid_urls)
     download_file(u, cache=True)
-    with _cache(write=True) as (dldir, urlmap):
+    with _cache(pkgname='astropy', write=True) as (dldir, urlmap):
         bd = os.path.join(dldir, "bogus")
         os.mkdir(bd)
         bf = os.path.join(bd, "file")
@@ -1414,12 +1414,12 @@ def test_cache_contents_not_writable(temp_cache, valid_urls):
 
 
 def test_cache_read_not_writable(temp_cache, valid_urls):
-    with _cache() as (dldir, urlmap):
+    with _cache(pkgname='astropy') as (dldir, urlmap):
         with pytest.raises(TypeError):
             urlmap["foo"] = 7
     u, _ = next(valid_urls)
     download_file(u, cache=True)
-    with _cache() as (dldir, urlmap):
+    with _cache(pkgname='astropy') as (dldir, urlmap):
         assert u in urlmap
         with pytest.raises(TypeError):
             urlmap["foo"] = 7
@@ -1635,3 +1635,118 @@ def test_download_file_cache_fake_readonly_update(fake_readonly_cache):
 
 def test_check_download_cache_works_if_fake_readonly(fake_readonly_cache):
     check_download_cache(check_hashes=True)
+
+
+def test_pkgname_isolation(temp_cache, valid_urls):
+    a = "bogus_cache_name"
+
+    assert not get_cached_urls()
+    assert not get_cached_urls(pkgname=a)
+
+    for u, _ in islice(valid_urls, FEW):
+        download_file(u, cache=True, pkgname=a)
+    assert not get_cached_urls()
+    assert len(get_cached_urls(pkgname=a)) == FEW
+    assert cache_total_size() < cache_total_size(pkgname=a)
+
+    for u, _ in islice(valid_urls, FEW+1):
+        download_file(u, cache=True)
+    assert len(get_cached_urls()) == FEW+1
+    assert len(get_cached_urls(pkgname=a)) == FEW
+    assert cache_total_size() > cache_total_size(pkgname=a)
+
+    assert set(get_cached_urls()) == set(cache_contents().keys())
+    assert set(get_cached_urls(pkgname=a)) == set(cache_contents(pkgname=a).keys())
+    for i in get_cached_urls():
+        assert is_url_in_cache(i)
+        assert not is_url_in_cache(i, pkgname=a)
+    for i in get_cached_urls(pkgname=a):
+        assert not is_url_in_cache(i)
+        assert is_url_in_cache(i, pkgname=a)
+
+    # FIXME: need to break a cache to test whether we check the right one
+    check_download_cache()
+    check_download_cache(pkgname=a)
+
+    # FIXME: check that cache='update' works
+
+    u = get_cached_urls()[0]
+    with pytest.raises(KeyError):
+        download_file(u, cache=True, sources=[], pkgname=a)
+    clear_download_cache(u, pkgname=a)
+    assert len(get_cached_urls()) == FEW+1, "wrong pkgname should do nothing"
+    assert len(get_cached_urls(pkgname=a)) == FEW, "wrong pkgname should do nothing"
+
+    f = download_file(u, sources=[], cache=True)
+    with pytest.raises(RuntimeError):
+        clear_download_cache(f, pkgname=a)
+
+    ua = get_cached_urls(pkgname=a)[0]
+    with pytest.raises(KeyError):
+        download_file(ua, cache=True, sources=[])
+
+    fa = download_file(ua, sources=[], cache=True, pkgname=a)
+    with pytest.raises(RuntimeError):
+        clear_download_cache(fa)
+
+    clear_download_cache(ua, pkgname=a)
+    assert len(get_cached_urls()) == FEW+1
+    assert len(get_cached_urls(pkgname=a)) == FEW-1
+
+    clear_download_cache(u)
+    assert len(get_cached_urls()) == FEW
+    assert len(get_cached_urls(pkgname=a)) == FEW-1
+
+    clear_download_cache(pkgname=a)
+    assert len(get_cached_urls()) == FEW
+    assert not get_cached_urls(pkgname=a)
+
+    clear_download_cache()
+    assert not get_cached_urls()
+    assert not get_cached_urls(pkgname=a)
+
+
+def test_transport_cache_via_zip(temp_cache, valid_urls):
+    a = "bogus_cache_name"
+
+    assert not get_cached_urls()
+    assert not get_cached_urls(pkgname=a)
+
+    for u, _ in islice(valid_urls, FEW):
+        download_file(u, cache=True)
+
+    with io.BytesIO() as f:
+        export_download_cache(f)
+        b = f.getvalue()
+    with io.BytesIO(b) as f:
+        import_download_cache(f, pkgname=a)
+
+    check_download_cache()
+    check_download_cache(pkgname=a)
+
+    assert set(get_cached_urls()) == set(get_cached_urls(pkgname=a))
+    cca = cache_contents(pkgname=a)
+    for k, v in cache_contents().items():
+        assert v != cca[k]
+        assert get_file_contents(v) == get_file_contents(cca[k])
+    clear_download_cache()
+
+    with io.BytesIO() as f:
+        export_download_cache(f, pkgname=a)
+        b = f.getvalue()
+    with io.BytesIO(b) as f:
+        import_download_cache(f)
+
+    assert set(get_cached_urls()) == set(get_cached_urls(pkgname=a))
+
+
+def test_download_parallel_respects_pkgname(temp_cache, valid_urls):
+    a = "bogus_cache_name"
+
+    assert not get_cached_urls()
+    assert not get_cached_urls(pkgname=a)
+
+    download_files_in_parallel([u for (u, c) in islice(valid_urls, FEW)],
+                               pkgname=a)
+    assert not get_cached_urls()
+    assert len(get_cached_urls(pkgname=a)) == FEW

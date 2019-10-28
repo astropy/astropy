@@ -1225,8 +1225,8 @@ def download_files_in_parallel(urls,
     Blocks until all files have downloaded.  The result is a list of
     local file paths corresponding to the given urls.
 
-    The results will be stored in the cache under the values in `urls` even if
-    they are obtained from some other location via ``sources``. See
+    The results will be stored in the cache under the values in ``urls`` even
+    if they are obtained from some other location via ``sources``. See
     `~download_file` for details.
 
     Parameters
@@ -1489,7 +1489,7 @@ def _keep_trying(timeout):
 # be open for reading if someone has it open for writing. So we need to lock
 # access to the shelve even for reading.
 @contextlib.contextmanager
-def _cache_lock(need_write=False):
+def _cache_lock(pkgname, need_write=False):
     lockdir = os.path.join(_get_download_cache_locs(pkgname)[0], 'lock')
     pidfn = os.path.join(lockdir, 'pid')
     assume_cache_readonly = False
