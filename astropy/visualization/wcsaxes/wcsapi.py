@@ -240,7 +240,7 @@ def apply_slices(wcs, slices):
 
 
 def wcsapi_to_celestial_frame(wcs):
-    for cls, args, kwargs in wcs.world_axis_object_classes.values():
+    for cls, args, kwargs, *rest in wcs.world_axis_object_classes.values():
         if issubclass(cls, SkyCoord):
             return kwargs.get('frame', ICRS())
         elif issubclass(cls, BaseCoordinateFrame):
