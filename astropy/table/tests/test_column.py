@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import operator
 
 import pytest
@@ -676,6 +675,23 @@ def test_col_unicode_sandwich_create_from_str(Column):
     assert isinstance(c[0], str)
     assert isinstance(c[:0], table.Column)
     assert np.all(c[:2] == np.array([uba, 'def']))
+
+
+@pytest.mark.parametrize('Column', (table.Column, table.MaskedColumn))
+def test_col_unicode_sandwich_bytes_obj(Column):
+    """
+    Create a Column of dtype object with bytestring in it and make sure
+    it keeps the bytestring and not convert to str with accessed.
+    """
+    c = Column([None, b'def'])
+    assert c.dtype.char == 'O'
+    assert not c[0]
+    assert c[1] == b'def'
+    assert isinstance(c[1], bytes)
+    assert not isinstance(c[1], str)
+    assert isinstance(c[:0], table.Column)
+    assert np.all(c[:2] == np.array([None, b'def']))
+    assert not np.all(c[:2] == np.array([None, 'def']))
 
 
 @pytest.mark.parametrize('Column', (table.Column, table.MaskedColumn))
