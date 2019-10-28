@@ -496,8 +496,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                     del repr_kwargs['distance']
 
                 if (issubclass(representation_cls,
-                               r.SphericalRepresentation) and
-                        'distance' not in repr_kwargs):
+                               r.SphericalRepresentation)
+                        and 'distance' not in repr_kwargs):
                     representation_cls = representation_cls._unit_representation
 
                 try:
@@ -509,8 +509,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                     # come from the representation instead of the frame's
                     # attribute names.
                     try:
-                        representation_data = representation_cls\
-                            ._unit_representation(copy=copy, **repr_kwargs)
+                        representation_data = (
+                            representation_cls._unit_representation(
+                                copy=copy, **repr_kwargs))
                     except Exception:
                         msg = str(e)
                         names = self.get_representation_component_names()
@@ -1279,10 +1280,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                 return True
             elif isinstance(right_fattr, r.BaseRepresentationOrDifferential):
                 # both are representations.
-                if ((hasattr(left_fattr, 'differentials') and
-                     left_fattr.differentials) or
-                        hasattr(right_fattr, 'differentials') and
-                        right_fattr.differentials):
+                if (getattr(left_fattr, 'differentials', False) or
+                        getattr(right_fattr, 'differentials', False)):
                     warnings.warn('Two representation frame attributes were '
                                   'checked for equivalence when at least one of'
                                   ' them has differentials.  This yields False '
