@@ -37,7 +37,7 @@ def test_against_wcslib(inp):
     assert_allclose(minv(*radec), xy, atol=1e-12)
 
 
-@pytest.mark.parametrize(('inp'), [(0, 0), (40, -20.56), (21.5, 45.9)])
+@pytest.mark.parametrize(('inp'), [(1e-5, 1e-4), (40, -20.56), (21.5, 45.9)])
 def test_roundtrip_sky_rotation(inp):
     lon, lat, lon_pole = 42, 43, 44
     n2c = models.RotateNative2Celestial(lon, lat, lon_pole)
