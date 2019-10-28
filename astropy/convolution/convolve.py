@@ -593,7 +593,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
 
     # NaN and inf catching
     nanmaskarray = np.isnan(array) | np.isinf(array)
-    array[nanmaskarray] = 0
+    if nan_treatment == 'fill':
+        array[nanmaskarray] = fill_value
+    else:
+        array[nanmaskarray] = 0
     nanmaskkernel = np.isnan(kernel) | np.isinf(kernel)
     kernel[nanmaskkernel] = 0
 
