@@ -55,8 +55,8 @@ class SkyCoordInfo(MixinInfo):
             return None
 
         sc = self._parent
-        if (issubclass(sc.representation_type, SphericalRepresentation) and
-                isinstance(sc.data, UnitSphericalRepresentation)):
+        if (issubclass(sc.representation_type, SphericalRepresentation)
+                and isinstance(sc.data, UnitSphericalRepresentation)):
             repr_data = sc.represent_as(sc.data.__class__, in_frame_units=True)
         else:
             repr_data = sc.represent_as(sc.representation_type,
@@ -217,8 +217,8 @@ class SkyCoord(ShapedLikeNDArray):
         # to make this the fastest way to create a SkyCoord instance. Many of
         # the classmethods implemented for performance enhancements will use
         # this as the initialization path
-        if (len(args) == 1 and len(kwargs) == 0 and
-                isinstance(args[0], (BaseCoordinateFrame, SkyCoord))):
+        if (len(args) == 1 and len(kwargs) == 0
+                and isinstance(args[0], (BaseCoordinateFrame, SkyCoord))):
 
             coords = args[0]
             if isinstance(coords, SkyCoord):
@@ -414,12 +414,12 @@ class SkyCoord(ShapedLikeNDArray):
             for attr in frame_transform_graph.frame_attributes:
                 self_val = getattr(self, attr, None)
                 frame_val = getattr(frame, attr, None)
-                if (frame_val is not None and
-                    not (merge_attributes and
-                         frame.is_frame_attr_default(attr))):
+                if (frame_val is not None
+                    and not (merge_attributes
+                             and frame.is_frame_attr_default(attr))):
                     frame_kwargs[attr] = frame_val
-                elif (self_val is not None and
-                      not self.is_frame_attr_default(attr)):
+                elif (self_val is not None
+                      and not self.is_frame_attr_default(attr)):
                     frame_kwargs[attr] = self_val
                 elif frame_val is not None:
                     frame_kwargs[attr] = frame_val
@@ -1030,8 +1030,8 @@ class SkyCoord(ShapedLikeNDArray):
         """
         from .matching import match_coordinates_sky
 
-        if (isinstance(catalogcoord, (SkyCoord, BaseCoordinateFrame)) and
-                catalogcoord.has_data):
+        if (isinstance(catalogcoord, (SkyCoord, BaseCoordinateFrame))
+                and catalogcoord.has_data):
             self_in_catalog_frame = self.transform_to(catalogcoord)
         else:
             raise TypeError('Can only get separation to another SkyCoord or a '
@@ -1095,8 +1095,8 @@ class SkyCoord(ShapedLikeNDArray):
         """
         from .matching import match_coordinates_3d
 
-        if (isinstance(catalogcoord, (SkyCoord, BaseCoordinateFrame)) and
-                catalogcoord.has_data):
+        if (isinstance(catalogcoord, (SkyCoord, BaseCoordinateFrame))
+                and catalogcoord.has_data):
             self_in_catalog_frame = self.transform_to(catalogcoord)
         else:
             raise TypeError('Can only get separation to another SkyCoord or a '
