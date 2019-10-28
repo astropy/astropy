@@ -320,7 +320,7 @@ def test_data_noastropy_fallback(monkeypatch):
     from astropy.config import paths
 
     # needed for testing the *real* lock at the end
-    lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
+    lockdir = os.path.join(_get_download_cache_locs('astropy')[0], 'lock')
 
     # better yet, set the configuration to make sure the temp files are deleted
     conf.delete_temporary_downloads_at_exit = True
@@ -336,13 +336,13 @@ def test_data_noastropy_fallback(monkeypatch):
 
     # make sure the _find_or_create_astropy_dir function fails as though the
     # astropy dir could not be accessed
-    def osraiser(dirnm, linkto):
+    def osraiser(dirnm, linkto, pkgname=None):
         raise OSError
-    monkeypatch.setattr(paths, '_find_or_create_astropy_dir', osraiser)
+    monkeypatch.setattr(paths, '_find_or_create_root_dir', osraiser)
 
     with pytest.raises(OSError):
         # make sure the config dir search fails
-        paths.get_cache_dir()
+        paths.get_cache_dir(rootname='astropy')
 
     # first try with cache
     with catch_warnings(CacheMissingWarning) as w:
