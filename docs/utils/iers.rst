@@ -114,7 +114,7 @@ polar motion values:
   the IERS service.
 
 The IERS Service provides the default online table
-(`<https://datacenter.iers.org/data/9/finals2000A.all>`_) and updates the content
+(set by ``astropy.utils.iers.IERS_A_URL``) and updates the content
 once each 7 days.  The default value of ``auto_max_age`` is 30 days to avoid
 unnecessary network access, but one can reduce this to as low as 10 days.
 
