@@ -16,6 +16,8 @@ from astropy.io.ascii.core import ParameterError, FastOptionsError, Inconsistent
 from astropy.io.ascii.cparser import CParserError
 from astropy.io.ascii.fastbasic import (
     FastBasic, FastCsv, FastTab, FastCommentedHeader, FastRdb, FastNoHeader)
+from astropy.tests.helper import catch_warnings
+from astropy.utils.exceptions import AstropyWarning
 from .common import assert_equal, assert_almost_equal, assert_true
 
 
@@ -1040,7 +1042,7 @@ def test_data_out_of_range(parallel, fast_reader, guess):
     # Python reader and strtod() are expected to return precise results
     rtol = 1.e-30
 
-    # Update fast_reader dict
+    # Update fast_reader dict; adapt relative precision for fast_converter
     if fast_reader:
         fast_reader['parallel'] = parallel
         if fast_reader.get('use_fast_converter'):
@@ -1057,8 +1059,14 @@ def test_data_out_of_range(parallel, fast_reader, guess):
 
     fields = ['10.1E+199', '3.14e+313', '2048e+306', '0.6E-325', '-2.e345']
     values = np.array([1.01e200, np.inf, np.inf, 0.0, -np.inf])
-    t = ascii.read(StringIO(' '.join(fields)), format='no_header',
-                   guess=guess, fast_reader=fast_reader)
+    with catch_warnings(AstropyWarning) as w:
+        t = ascii.read(StringIO(' '.join(fields)), format='no_header',
+                       guess=guess, fast_reader=fast_reader)
+    if fast_reader and not parallel:  # Assert precision warnings for cols 2-5
+        assert len(w) == 4
+        for i in range(len(w)):
+            assert (f"OverflowError converting to FloatType in column col{i+2}"
+                    in str(w[i].message))
     read_values = np.array([col[0] for col in t.itercols()])
     assert_almost_equal(read_values, values, rtol=rtol, atol=1.e-324)
 
@@ -1066,8 +1074,14 @@ def test_data_out_of_range(parallel, fast_reader, guess):
     fields = ['.0101E202', '0.000000314E+314', '1777E+305', '-1799E+305',
               '0.2e-323', '5200e-327', ' 0.0000000000000000000001024E+330']
     values = np.array([1.01e200, 3.14e307, 1.777e308, -np.inf, 0.0, 4.94e-324, 1.024e308])
-    t = ascii.read(StringIO(' '.join(fields)), format='no_header',
-                   guess=guess, fast_reader=fast_reader)
+    with catch_warnings(AstropyWarning) as w:
+        t = ascii.read(StringIO(' '.join(fields)), format='no_header',
+                       guess=guess, fast_reader=fast_reader)
+    if fast_reader and not parallel:  # Assert precision warnings for cols 4-6
+        assert len(w) == 3
+        for i in range(len(w)):
+            assert (f"OverflowError converting to FloatType in column col{i+4}"
+                    in str(w[i].message))
     read_values = np.array([col[0] for col in t.itercols()])
     assert_almost_equal(read_values, values, rtol=rtol, atol=1.e-324)
 
@@ -1079,10 +1093,75 @@ def test_data_out_of_range(parallel, fast_reader, guess):
 
     fields = ['.0101D202', '0.000000314d+314', '1777+305', '-1799E+305',
               '0.2e-323', '2500-327', ' 0.0000000000000000000001024Q+330']
-    t = ascii.read(StringIO(' '.join(fields)), format='no_header',
-                   guess=guess, fast_reader=fast_reader)
+    with catch_warnings(AstropyWarning) as w:
+        t = ascii.read(StringIO(' '.join(fields)), format='no_header',
+                       guess=guess, fast_reader=fast_reader)
+    if fast_reader and not parallel:
+        assert len(w) == 3
     read_values = np.array([col[0] for col in t.itercols()])
     assert_almost_equal(read_values, values, rtol=rtol, atol=1.e-324)
+
+
+@pytest.mark.parametrize("guess", [True, False])
+# fast_reader configurations: False| 'use_fast_converter'=False|True
+@pytest.mark.parametrize('fast_reader', [False, dict(use_fast_converter=False),
+                                         dict(use_fast_converter=True)])
+@pytest.mark.parametrize("parallel", [False, True])
+def test_data_at_range_limit(parallel, fast_reader, guess):
+    """
+    Test parsing of fixed-format float64 numbers near range limits
+    (|~4.94e-324 to 1.7977e+308|) - within limit for full precision
+    (|~2.5e-307| for strtod C parser, factor 10 better for fast_converter)
+    exact numbers shall be returned, beyond that an Overflow warning raised.
+    Input of exactly 0.0 must not raise an OverflowError.
+    """
+    # Python reader and strtod() are expected to return precise results
+    rtol = 1.e-30
+
+    # Update fast_reader dict; adapt relative precision for fast_converter
+    if fast_reader:
+        fast_reader['parallel'] = parallel
+        if fast_reader.get('use_fast_converter'):
+            rtol = 1.e-15
+        elif np.iinfo(np.int).dtype == np.dtype(np.int32):
+            # On 32bit the standard C parser (strtod) returns strings for these
+            pytest.xfail("C parser cannot handle float64 on 32bit systems")
+
+    if parallel:
+        if not fast_reader:
+            pytest.skip("Multiprocessing only available in fast reader")
+        elif TRAVIS:
+            pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
+
+    # Test very long fixed-format strings (to strtod range limit w/o Overflow)
+    for D in 99, 202, 305:
+        t = ascii.read(StringIO(99*'0' + '.' + D*'0' + '1'), format='no_header',
+                       guess=guess, fast_reader=fast_reader)
+        assert_almost_equal(t['col1'][0], 10.**-(D+1), rtol=rtol, atol=1.e-324)
+    for D in 99, 202, 308:
+        t = ascii.read(StringIO('1' + D*'0' + '.0'), format='no_header',
+                       guess=guess, fast_reader=fast_reader)
+        assert_almost_equal(t['col1'][0], 10.**D, rtol=rtol, atol=1.e-324)
+
+    # 0.0 is always exact (no Overflow warning)!
+    for s in '0.0', '0.0e+0', 399*'0'+'.'+365*'0':
+        with pytest.warns(None) as w:
+            t = ascii.read(StringIO(s), format='no_header',
+                           guess=guess, fast_reader=fast_reader)
+        assert t['col1'][0] == 0.0
+        assert len(w) == 0
+
+    # Test OverflowError at precision limit with laxer rtol
+    if parallel:
+        pytest.skip("Catching warnings broken in parallel mode")
+    elif not fast_reader:
+        pytest.skip("Python/numpy reader does not raise on Overflow")
+    with pytest.warns(AstropyWarning, match=r'OverflowError converting to '
+                      r'FloatType in column col1, possibly resulting in '
+                      r'degraded precision'):
+        t = ascii.read(StringIO('0.' + 314*'0' + '1'), format='no_header',
+                       guess=guess, fast_reader=fast_reader)
+    assert_almost_equal(t['col1'][0], 1.e-315, rtol=1.e-10, atol=1.e-324)
 
 
 @pytest.mark.parametrize("guess", [True, False])
@@ -1094,33 +1173,52 @@ def test_int_out_of_range(parallel, guess):
     """
     imin = np.iinfo(int).min+1
     imax = np.iinfo(int).max-1
-    huge = '{:d}'.format(imax+2)
+    huge = f'{imax+2:d}'
 
     text = f'P M S\n {imax:d} {imin:d} {huge:s}'
     expected = Table([[imax], [imin], [huge]], names=('P', 'M', 'S'))
-    table = ascii.read(text, format='basic', guess=guess,
-                       fast_reader={'parallel': parallel})
+    with catch_warnings(AstropyWarning) as w:
+        table = ascii.read(text, format='basic', guess=guess,
+                           fast_reader={'parallel': parallel})
+    if not parallel:
+        assert len(w) == 1
+        assert ("OverflowError converting to IntType in column S, reverting to String"
+                in str(w[0].message))
     assert_table_equal(table, expected)
 
-    # check with leading zeroes to make sure strtol does not read them as octal
-    text = 'P M S\n000{:d} -0{:d} 00{:s}'.format(imax, -imin, huge)
+    # Check with leading zeroes to make sure strtol does not read them as octal
+    text = f'P M S\n000{imax:d} -0{-imin:d} 00{huge:s}'
     expected = Table([[imax], [imin], ['00'+huge]], names=('P', 'M', 'S'))
-    table = ascii.read(text, format='basic', guess=guess,
-                       fast_reader={'parallel': parallel})
+    with catch_warnings(AstropyWarning) as w:
+        table = ascii.read(text, format='basic', guess=guess,
+                           fast_reader={'parallel': parallel})
+    if not parallel:
+        assert len(w) == 1
+        assert ("OverflowError converting to IntType in column S, reverting to String"
+                in str(w[0].message))
     assert_table_equal(table, expected)
 
-    # Mixed columns should be returned as float, but if the out-of-range integer
-    # shows up first, it will produce a string column - with both readers
-    pytest.xfail("Integer fallback depends on order of rows")
-    text = 'A B\n 12.3 {0:d}9\n {0:d}9 45.6e7'.format(imax)
-    expected = Table([[12.3, 10.*imax], [10.*imax, 4.56e8]],
+
+@pytest.mark.parametrize("guess", [True, False])
+def test_int_out_of_order(guess):
+    """
+    Mixed columns should be returned as float, but if the out-of-range integer
+    shows up first, it will produce a string column - with both readers.
+    Broken with the parallel fast_reader.
+    """
+    imax = np.iinfo(int).max-1
+    text = f'A B\n 12.3 {imax:d}0\n {imax:d}0 45.6e7'
+    expected = Table([[12.3, 10.*imax], [f'{imax:d}0', '45.6e7']],
                      names=('A', 'B'))
 
-    table = ascii.read(text, format='basic', guess=guess,
-                       fast_reader={'parallel': parallel})
-    assert_table_equal(table, expected)
-    table = ascii.read(text, format='basic', guess=guess, fast_reader=False)
-    assert_table_equal(table, expected)
+    with pytest.warns(AstropyWarning, match=r'OverflowError converting to '
+                      r'IntType in column B, reverting to String'):
+        table = ascii.read(text, format='basic', guess=guess, fast_reader=True)
+        assert_table_equal(table, expected)
+    with pytest.warns(AstropyWarning, match=r'OverflowError converting to '
+                      r'IntType in column B, reverting to String'):
+        table = ascii.read(text, format='basic', guess=guess, fast_reader=False)
+        assert_table_equal(table, expected)
 
 
 @pytest.mark.parametrize("guess", [True, False])
@@ -1131,7 +1229,7 @@ def test_fortran_reader(parallel, guess):
     using the fast_reader.
     """
 
-    # check for nominal np.float64 precision
+    # Check for nominal np.float64 precision
     rtol = 1.e-15
     atol = 0.0
     text = 'A B C D\n100.01{:s}99       2.0  2.0{:s}-103 3\n' + \
