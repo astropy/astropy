@@ -54,6 +54,10 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- Removed incorrect warnings on ``Overflow`` when reading in
+  ``FloatType`` 0.0 with ``use_fast_converter``; synchronised
+  ``IntType`` ``Overflow`` warning messages. [#9082]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
