@@ -621,12 +621,12 @@ class W20(VOTableSpecWarning):
 class W21(UnimplementedWarning):
     """
     Unknown issues may arise using ``astropy.io.votable`` with VOTable files
-    from a version other than 1.1, 1.2 or 1.3.
+    from a version other than 1.1, 1.2, 1.3, or 1.4.
     """
 
     message_template = (
-        'astropy.io.votable is designed for VOTable version 1.1, 1.2 and 1.3, but ' +
-        'this file is {}')
+        'astropy.io.votable is designed for VOTable version 1.1, 1.2, 1.3,'
+        ' and 1.4, but this file is {}')
     default_args = ('x',)
 
 
@@ -1076,8 +1076,9 @@ class W54(VOTableSpecWarning):
     not be present in files marked as an earlier version.
     """
 
-    message_template = ("The TIMESYS element was introduced in VOTable 1.4, but "
-               "this file is declared as version '{}'")
+    message_template = (
+        "The TIMESYS element was introduced in VOTable 1.4, but "
+        "this file is declared as version '{}'")
     default_args = ('1.3',)
 
 

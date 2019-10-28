@@ -1787,7 +1787,7 @@ class TimeSys(SimpleElement):
         era, in which case it MUST NOT be present. In VOTables,
         these representations currently are Gregorian calendar
         years with xtype="timestamp", or years in the Julian
-        or Besselian calendar when a column has yr, a or Ba as
+        or Besselian calendar when a column has yr, a, or Ba as
         its unit and no time origin is given.
         """
         return self._timeorigin
@@ -1795,7 +1795,7 @@ class TimeSys(SimpleElement):
     @timeorigin.setter
     def timeorigin(self, timeorigin):
         if (timeorigin is not None and
-            timeorigin != 'MJD-origin' and timeorigin != 'JD-origin'):
+                timeorigin != 'MJD-origin' and timeorigin != 'JD-origin'):
             try:
                 timeorigin = float(timeorigin)
             except ValueError:
@@ -3394,7 +3394,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         version = str(version)
         if version not in ("1.0", "1.1", "1.2", "1.3", "1.4"):
             raise ValueError("'version' should be one of '1.0', '1.1', "
-                             "'1.2', '1.3' or '1.4'")
+                             "'1.2', '1.3', or '1.4'")
 
         self._version = version
 
@@ -3415,7 +3415,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         if version not in ('1.1', '1.2', '1.3', '1.4'):
             raise ValueError(
                 "astropy.io.votable only supports VOTable versions "
-                "1.1, 1.2, 1.3 and 1.4")
+                "1.1, 1.2, 1.3, and 1.4")
         self._version = version
 
     @property
