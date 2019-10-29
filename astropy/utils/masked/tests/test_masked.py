@@ -193,10 +193,11 @@ class TestMaskedArrayItems(MaskedArraySetup):
         expected_data = self.a.copy()
         expected_mask = self.mask_a.copy()
         for mask in True, False:
-            value = self.ma.__class__(base[0, 0], mask)
+            value = Masked(base[0, 0], mask)
             base[item] = value
             expected_data[item] = value.unmasked
             expected_mask[item] = value.mask
+            assert_array_equal(base.unmasked, expected_data)
             assert_array_equal(base.mask, expected_mask)
 
 
