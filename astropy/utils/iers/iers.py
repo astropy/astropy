@@ -43,10 +43,16 @@ __all__ = ['Conf', 'conf', 'earth_orientation_table',
            'LeapSeconds', 'IERS_LEAP_SECOND_FILE', 'IERS_LEAP_SECOND_URL',
            'IETF_LEAP_SECOND_URL']
 
+# maps specific download urls to the additional http headers needed for them -
+# populated where specific urls are given below.
+SPECIAL_HTTP_HEADERS_NEEDED = {}
+
 # IERS-A default file name, URL, and ReadMe with content description
 IERS_A_FILE = 'finals2000A.all'
 IERS_A_URL = 'ftp://cddis.gsfc.nasa.gov/pub/products/iers/finals2000A.all'
 IERS_A_URL_MIRROR = 'https://datacenter.iers.org/data/9/finals2000A.all'
+SPECIAL_HTTP_HEADERS_NEEDED[IERS_A_URL_MIRROR] = {'User-Agent': 'astropy/iers',
+                                                  'Accept': '*/*'}
 IERS_A_README = get_pkg_data_filename('data/ReadMe.finals2000A')
 
 # IERS-B default file name, URL, and ReadMe with content description
@@ -671,6 +677,9 @@ class IERS_Auto(IERS_A):
 
         for url in all_urls:
             try:
+                http_headers = {}
+                if url in SPECIAL_HTTP_HEADERS_NEEDED:
+                    http_headers.update(SPECIAL_HTTP_HEADERS_NEEDED[url])
                 filename = download_file(url, cache=True)
             except Exception as err:
                 err_list.append(str(err))
