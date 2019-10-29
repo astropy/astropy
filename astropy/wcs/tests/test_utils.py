@@ -44,7 +44,6 @@ else:
     HAS_SCIPY = True
 
 
-
 def test_wcs_dropping():
     wcs = WCS(naxis=4)
     wcs.wcs.pc = np.zeros([4, 4])
