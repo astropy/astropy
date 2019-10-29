@@ -1040,7 +1040,7 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
         wcs.wcs.__delattr__('pc')
 
     if (type(sip_degree) != type(None)) and (type(sip_degree) != int):
-       raise ValueError("sip_degree must be None, or integer.")
+        raise ValueError("sip_degree must be None, or integer.")
 
     # set pixel_shape to span of input points
     wcs.pixel_shape = (xp.max()-xp.min(), yp.max()-yp.min())
