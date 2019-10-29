@@ -968,9 +968,9 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
       `~astropy.coordinates.SkyCoord` object.
     - Units in all output WCS objects will always be in degrees.
     - If the coordinate frame differs between `~astropy.coordinates.SkyCoord`
-      objects passed in for `world_coords` and `proj_point`, the frame for
+      objects passed in for ``world_coords`` and ``proj_point``, the frame for
       `world_coords`  will override as the frame for the output WCS.
-    - If a WCS object is passed in to `projection` the CD/PC matrix will
+    - If a WCS object is passed in to ``projection`` the CD/PC matrix will
       be used as an initial guess for the fit. If this is known to be
       significantly off and may throw off the fit, set to the identity matrix
       (for example, by doing wcs.wcs.pc = [(1., 0.,), (0., 1.)])
@@ -986,7 +986,7 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
         coordinates will be used as the projection point. To specify an exact
         point for the projection, a Skycoord object with a coordinate pair can
         be passed in. For consistency, the units and frame of these coordinates
-        will be transformed to match 'world_coords' if they don't.
+        will be transformed to match ``world_coords`` if they don't.
     projection : str or `~astropy.wcs.WCS`
         Three letter projection code, of any of standard projections defined
         in the FITS WCS standard. Optionally, a WCS object with projection
