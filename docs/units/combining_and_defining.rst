@@ -70,7 +70,7 @@ can be enabled by calling `~astropy.units.add_enabled_units`::
 
   >>> kmph = u.def_unit('kmph', u.km / u.h)
   >>> (u.m / u.s).find_equivalent_units()
-  []
+  There are no equivalent units
   >>> u.add_enabled_units([kmph])
   <astropy.units.core._UnitContext object at ...>
   >>> (u.m / u.s).find_equivalent_units()
