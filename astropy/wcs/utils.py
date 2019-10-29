@@ -971,6 +971,10 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
     - If the coordinate frame differs between `~astropy.coordinates.SkyCoord`
       objects passed in for `world_coords` and `proj_point`, the frame for
       `world_coords`  will override as the frame for the output WCS.
+    - If a WCS object is passed in to `projection` the CD/PC matrix will
+      be used as an initial guess for the fit. If this is known to be 
+      significantly off and may throw off the fit, set to the identity matrix
+      (for example, by doing wcs.wcs.pc = [(1., 0.,), (0., 1.)])
 
     Parameters
     ----------
@@ -1064,7 +1068,7 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
     # fit linear terms, assign to wcs
     # use (1, 0, 0, 1) as initial guess, in case input wcs was passed in
     # and cd terms are way off.
-    p0 = np.concatenate([[1., 0., 0., 1], wcs.wcs.crpix.flatten()])
+    p0 = np.concatenate([wcs.wcs.cd.flatten(), wcs.wcs.crpix.flatten()])
     fit = least_squares(_linear_wcs_fit, p0,
                         args=(lon, lat, xp, yp, wcs))
     wcs.wcs.crpix = np.array(fit.x[4:6])
