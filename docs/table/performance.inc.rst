@@ -39,3 +39,39 @@ then use ``serialize_method='data_mask'``.
 It uses the non-masked version of data and it is faster::
 
     >>> tm.write('tm.ecsv', overwrite=True, serialize_method='data_mask') # doctest: +SKIP
+
+Read FITS with memmap=True
+--------------------------
+
+By default :meth:`~astropy.table.Table.read` will read the whole table into memory, which 
+can take a lot of memory and can take a lot of time, depending on the table size and 
+file format. In some cases, it is possible to only read a subset of the table by choosing 
+the option ``memmap=True``.
+
+For FITS binary tables, the data is stored row by row, and it is possible to read only a 
+subset of rows, but reading a full column loads the whole table data into memory:
+
+.. doctest-skip::
+
+    >>> import numpy as np
+    >>> from astropy.table import Table
+    >>> tbl = Table({'a': np.arange(1e7),
+    ...              'b': np.arange(1e7, dtype=float),
+    ...              'c': np.arange(1e7, dtype=float)})
+    >>> tbl.write('test.fits', overwrite=True)
+    >>> table = Table.read('test.fits', memmap=True)  # Very fast, doesn't actually load data
+    >>> table2 = tbl[:100]  # Fast, will read only first 100 rows
+    >>> print(table2)  # Accessing column data triggers the read
+     a    b    c  
+    ---- ---- ----
+    0.0  0.0  0.0
+    1.0  1.0  1.0
+    2.0  2.0  2.0
+    ...  ...  ...
+    98.0 98.0 98.0
+    99.0 99.0 99.0
+    Length = 100 rows
+    >>> col = table['my_column']  # Will load all table into memory
+
+At the moment :meth:`~astropy.table.Table.read` does not support ``memmap=True`` for the HDF5 and 
+ASCII file formats.
