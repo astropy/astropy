@@ -1391,7 +1391,7 @@ class UnitBase:
             if len(self) == 0:
                 return self.NO_EQUIV_UNITS_MSG
             else:
-                lines = self.process_equivalent_units(self)
+                lines = self._process_equivalent_units(self)
                 lines.insert(0, self.HEADING_NAMES)
                 widths = [0] * self.ROW_LEN
                 for line in lines:
@@ -1414,7 +1414,7 @@ class UnitBase:
                 return "<p>{}</p>".format(self.NO_EQUIV_UNITS_MSG)
             else:
                 # HTML tags to use to compose the table in HTML
-                blank_table = '<table style="width:100%">{}</table>'
+                blank_table = '<table style="width:50%">{}</table>'
                 blank_row_container = "<tr>{}</tr>"
                 heading_row_content = "<th>{}</th>" * self.ROW_LEN
                 data_row_content = "<td>{}</td>" * self.ROW_LEN
@@ -1423,7 +1423,7 @@ class UnitBase:
                 # bother to include newlines & indentation for the HTML code.
                 heading_row = blank_row_container.format(
                     heading_row_content.format(*self.HEADING_NAMES))
-                data_rows = self.process_equivalent_units(self)
+                data_rows = self._process_equivalent_units(self)
                 all_rows = heading_row
                 for row in data_rows:
                     html_row = blank_row_container.format(
@@ -1432,7 +1432,7 @@ class UnitBase:
                 return blank_table.format(all_rows)
 
         @staticmethod
-        def process_equivalent_units(equiv_units_data):
+        def _process_equivalent_units(equiv_units_data):
             """
             Extract attributes, and sort, the equivalent units pre-formatting.
             """
