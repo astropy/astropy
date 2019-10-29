@@ -36,6 +36,14 @@ from astropy.wcs.utils import (proj_plane_pixel_scales,
                                local_partial_pixel_derivatives,
                                fit_wcs_from_points)
 
+try:
+    import scipy
+except ImportError:
+    HAS_SCIPY = False
+else:
+    HAS_SCIPY = True
+
+
 
 def test_wcs_dropping():
     wcs = WCS(naxis=4)
@@ -1029,6 +1037,7 @@ def test_pixel_to_pixel_1d():
     assert unbroadcast(x).shape == (10,)
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_fit_wcs_from_points():
     header_str_linear = """
 XTENSION= 'IMAGE   '           / Image extension
