@@ -556,6 +556,9 @@ astropy.units
 - Removed the ``magnitude_zero_points`` module, which was deprecated in
   favour of ``astropy.units.photometric`` since 3.1. [#9353]
 
+- ``EquivalentUnitsList`` now has a ``_repr_html_`` method to output a HTML
+  table on a call to ``find_equivalent_units`` in Jupyter notebooks. [#9495]
+
 astropy.utils
 ^^^^^^^^^^^^^
 

@@ -806,3 +806,24 @@ def test_add_equivelencies():
 
     e2 = u.pixel_scale(10*u.arcsec/u.pixel) + [1, 2, 3]
     assert isinstance(e2, list)
+
+
+def test_pprint():
+    pprint_class = u.UnitBase.EquivalentUnitsList
+    equiv_units_to_Hz = u.Hz.find_equivalent_units()
+    assert pprint_class.__repr__(equiv_units_to_Hz).splitlines() == [
+        '  Primary name | Unit definition | Aliases     ',
+        '[',
+        '  Bq           | 1 / s           | becquerel    ,',
+        '  Ci           | 3.7e+10 / s     | curie        ,',
+        '  Hz           | 1 / s           | Hertz, hertz ,',
+        ']'
+    ]
+    assert pprint_class._repr_html_(equiv_units_to_Hz) == (
+        '<table style="width:50%">'
+        '<tr><th>Primary name</th><th>Unit definition</th>'
+        '<th>Aliases</th></tr>'
+        '<tr><td>Bq</td><td>1 / s</td><td>becquerel</td></tr>'
+        '<tr><td>Ci</td><td>3.7e+10 / s</td><td>curie</td></tr>'
+        '<tr><td>Hz</td><td>1 / s</td><td>Hertz, hertz</td></tr></table>'
+    )
