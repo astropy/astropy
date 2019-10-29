@@ -992,8 +992,9 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
         in the FITS WCS standard. Optionally, a WCS object with projection
         keywords set may be passed in.
     sip_degree : None or int
-        If set to a non-zero integer value, will fit SIP of degree `sip_degree`
-        to model geometric distortion. Defaults to None.
+        If set to a non-zero integer value, will fit SIP of degree
+        ``sip_degree`` to model geometric distortion. Defaults to None, meaning
+        no distortion corrections will be fit.
 
     Returns
     -------
