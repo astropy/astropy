@@ -325,3 +325,15 @@ def test_IERS_B_parameters_loading_into_IERS_Auto():
             A[name][ok_A], B[name][i_B], rtol=1e-15,
             err_msg=("Bug #9206 IERS B parameter {} not copied over "
                      "correctly to IERS Auto".format(name)))
+
+
+@pytest.mark.parametrize('iersa_url', [iers.IERS_A_URL, iers.IERS_A_URL_MIRROR])
+@pytest.mark.remote_data
+def test_iers_a_dl(iersa_url):
+    iers_tab = iers.IERS_A.open(iersa_url, cache=False)
+    try:
+        # some basic checks to ensure the format makes sense
+        assert len(iers_tab) > 0
+        assert 'UT1_UTC_A' in iers_tab.colnames
+    finally:
+        iers.IERS_A.close()
