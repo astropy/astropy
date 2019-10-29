@@ -5,7 +5,6 @@ import numpy as np
 from astropy import units as u
 from astropy.utils.misc import unbroadcast
 import copy
-from scipy.optimize import least_squares
 
 from .wcs import WCS, WCSSUB_LONGITUDE, WCSSUB_LATITUDE, WCSSUB_CELESTIAL
 
@@ -1005,6 +1004,7 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
     from astropy.coordinates import SkyCoord # here to avoid circular import
     import astropy.units as u
     from .wcs import Sip
+    from scipy.optimize import least_squares
 
     try:
         xp, yp = xy
