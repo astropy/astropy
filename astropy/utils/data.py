@@ -952,12 +952,15 @@ def check_free_space_in_dir(path, size):
 
 
 def _download_file_from_source(source_url, show_progress=True, timeout=None,
-                               remote_url=None, cache=False, pkgname='astropy'):
+                               remote_url=None, cache=False, pkgname='astropy',
+                               http_headers={}):
     from astropy.utils.console import ProgressBarOrSpinner
 
     if remote_url is None:
         remote_url = source_url
-    with urllib.request.urlopen(source_url, timeout=timeout) as remote:
+
+    req = urllib.request.Request(source_url, headers=http_headers)
+    with urllib.request.urlopen(req, timeout=timeout) as remote:
         # keep a hash to rename the local file to the hashed name
         hasher = hashlib.md5()
 
@@ -1015,7 +1018,7 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
 
 
 def download_file(remote_url, cache=False, show_progress=True, timeout=None,
-                  sources=None, pkgname='astropy'):
+                  sources=None, pkgname='astropy', http_headers={}):
     """Downloads a URL and optionally caches the result.
 
     It returns the filename of a file containing the URL's contents.
@@ -1069,6 +1072,9 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
         ``pkgname='astropy'`` the default cache location is
         ``~/.astropy/cache``.
 
+    http_headers : dict
+        Headers to pass into ``urlopen`` if needed.
+
     Returns
     -------
     local_path : str
@@ -1114,7 +1120,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
                     show_progress=show_progress,
                     cache=cache,
                     remote_url=remote_url,
-                    pkgname=pkgname)
+                    pkgname=pkgname,
+                    http_headers=http_headers)
             # Success!
             break
 
