@@ -971,7 +971,7 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
       objects passed in for `world_coords` and `proj_point`, the frame for
       `world_coords`  will override as the frame for the output WCS.
     - If a WCS object is passed in to `projection` the CD/PC matrix will
-      be used as an initial guess for the fit. If this is known to be 
+      be used as an initial guess for the fit. If this is known to be
       significantly off and may throw off the fit, set to the identity matrix
       (for example, by doing wcs.wcs.pc = [(1., 0.,), (0., 1.)])
 
