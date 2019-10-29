@@ -40,7 +40,7 @@ parametric model (model sets currently only work with linear models and fitters)
     >>> N = width * height
     >>> line = models.Polynomial1D(degree=1, n_models=N)
     >>> fit = fitting.LinearLSQFitter()
-    >>> print("We created %d models" % len(line))
+    >>> print(f"We created {len(line)} models")
     We created 12 models
 
 We need to get the data to be fit into the right shape. It's not possible to just feed
@@ -58,7 +58,7 @@ other words, we are reshaping to flatten last two axes and transposing to put th
 Fit the model. It fits the N models simultaneously::
 
     >>> new_model = fit(line, x=t, y=y)
-    >>> print("We fit %d models" % len(new_model))
+    >>> print(f"We fit {len(new_model)} models")
     We fit 12 models
 
 Fill an array with values computed from the best fit and reshape it to match the original::
@@ -94,10 +94,8 @@ Now inspect the model::
     >>> print("The new_model has a param_sets attribute with shape: ",new_model.param_sets.shape)
     The new_model has a param_sets attribute with shape:  (2, 12)
 
-    >>> print("And values that are the best-fit parameters for each pixel: ")
+    >>> print(f"And values that are the best-fit parameters for each pixel:\n{new_model.param_sets}") # doctest: +FLOAT_CMP
     And values that are the best-fit parameters for each pixel:
-
-    >>> print(new_model.param_sets) # doctest: +FLOAT_CMP
     [[  0.          -0.52066063   0.64019304   0.1134713   -3.35564204
         6.78222337   3.6282205   -5.88283096 -11.67653874  -6.17932186
        -4.72585414   4.95631952]
@@ -108,8 +106,8 @@ Now inspect the model::
 Plot the fit along a couple of pixels:
 
     >>> def plotramp(t, image, best_fit, row, col):
-    ...     plt.plot(t, image[:, row, col], '.', label='data pixel %d,%d' % (row, col))
-    ...     plt.plot(t, best_fit[:, row, col], '-', label='fit to pixel %d,%d' % (row, col))
+    ...     plt.plot(t, image[:, row, col], '.', label=f'data pixel {row},{col}')
+    ...     plt.plot(t, best_fit[:, row, col], '-', label=f'fit to pixel {row},{col}')
     ...     plt.xlabel('Time')
     ...     plt.ylabel('Counts')
     ...     plt.legend(loc='upper left')
@@ -160,8 +158,8 @@ The data and the best fit model are shown together on one plot.
 
     # Plot the fit along a couple of pixels
     def plotramp(t, image, best_fit, row, col):
-        plt.plot(t, image[:, row, col], '.', label='data pixel %d,%d' % (row, col))
-        plt.plot(t, best_fit[:, row, col], '-', label='fit to pixel %d,%d' % (row, col))
+        plt.plot(t, image[:, row, col], '.', label=f'data pixel {row},{col}')
+        plt.plot(t, best_fit[:, row, col], '-', label=f'fit to pixel {row},{col}')
         plt.xlabel('Time')
         plt.ylabel('Counts')
         plt.legend(loc='upper left')
