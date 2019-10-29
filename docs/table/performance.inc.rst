@@ -45,11 +45,11 @@ Read FITS with memmap=True
 
 By default :meth:`~astropy.table.Table.read` will read the whole table into memory, which 
 can take a lot of memory and can take a lot of time, depending on the table size and 
-file format. In some cases, it's possible to only read a subset of the table by choosing 
+file format. In some cases, it is possible to only read a subset of the table by choosing 
 the option ``memmap=True``.
 
 For FITS binary tables, the data is stored row by row, and it is possible to read only a 
-subset of rows, but reading a full column load the whole table data into memory:
+subset of rows, but reading a full column loads the whole table data into memory:
 
 .. doctest-skip::
 
