@@ -103,7 +103,7 @@ class NDArrayShapeMethods:
         return self._apply('take', indices, axis=axis, mode=mode)
 
 
-class Masked:
+class Masked(NDArrayShapeMethods):
     """A scalar value or array of values with associated mask.
 
     This object will take its exact type from whatever the contents are.
@@ -118,46 +118,93 @@ class Masked:
 
     """
     _generated_subclasses = {}
+    _data_cls = np.ndarray
+    _mask = None
 
-    def __new__(cls, data, mask=None):
+    def __new__(cls, data, mask=None, copy=False):
+        data = np.array(data, subok=True, copy=copy)
         data, data_mask = cls._data_mask(data)
-        data = np.asanyarray(data)
-
         if mask is None:
             mask = False if data_mask is None else data_mask
 
         if data.dtype.names:
             raise NotImplementedError("cannot deal with structured dtype.")
 
-        data_cls = type(data)
-        masked_cls = cls._generated_subclasses.get(data_cls, None)
-        if masked_cls is None:
-            # Make sure first letter is uppercase, but note that we can't use
-            # str.capitalize since that converts the rest of the name to lowercase.
-            new_name = (cls.__name__ +
-                        data_cls.__name__[0].upper() + data_cls.__name__[1:])
-            masked_cls = type(new_name,
-                              (cls, NDArrayShapeMethods, data_cls), {})
-            cls._generated_subclasses[data_cls] = masked_cls
-
-        self = data.view(masked_cls)
-        self._data = data
-        self.mask = mask
+        subclass = cls._get_subclass(data.__class__)
+        self = data.view(subclass)
+        self._set_mask(mask, copy=copy)
         return self
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        subclass = cls.__mro__[1]
+        # If not explicitly defined for this class, use defaults.
+        # (TODO: metaclass better in this case?)
+        if '_data_cls' not in cls.__dict__:
+            cls._data_cls = subclass
+        cls._generated_subclasses[subclass] = cls
+
+    @classmethod
+    def _get_subclass(cls, subclass):
+        if subclass is np.ndarray:
+            return MaskedNDArray
+        elif subclass is None:
+            return cls
+        elif issubclass(subclass, Masked):
+            return subclass
+
+        if not issubclass(subclass, np.ndarray):
+            raise ValueError('can only pass in an ndarray subtype.')
+
+        masked_subclass = cls._generated_subclasses.get(subclass)
+        if masked_subclass is None:
+            # Create (and therefore register) new Measurement subclass.
+            new_name = 'Masked' + subclass.__name__
+            # Walk through MRO and find closest generated class
+            # (e.g., MaskedQuantity for Angle).
+            for mro_item in subclass.__mro__:
+                base_cls = cls._generated_subclasses.get(mro_item)
+                if base_cls is not None:
+                    break
+            else:
+                base_cls = MaskedNDArray
+
+            masked_subclass = type(new_name, (subclass, base_cls), {})
+
+        return masked_subclass
+
+    def view(self, dtype=None, type=None):
+        if type is None and issubclass(dtype, np.ndarray):
+            type = dtype
+            dtype = None
+        elif dtype is not None:
+            raise ValueError('{} cannot be viewed with new dtype.'
+                             .format(self.__class__))
+        return super().view(self._get_subclass(type))
+
+    def __array_finalize__(self, obj):
+        if obj is None or type(obj) is np.ndarray:
+            return None
+
+        super_array_finalize = super().__array_finalize__
+        if super_array_finalize:
+            super_array_finalize(obj)
+
+        if self._mask is None:
+            self._mask = getattr(obj, '_mask', None)
 
     @staticmethod
     def _data_mask(data):
         mask = getattr(data, 'mask', None)
         if mask is not None:
-            if isinstance(data, Masked):
+            if isinstance(data, MaskedNDArray):
                 data = data.unmasked
             elif hasattr(data, 'filled'):
                 data = data.filled()
 
         return data, mask
 
-    @property
-    def mask(self):
+    def _get_mask(self):
         """The mask.
 
         If set, replace the original mask, with whatever it is set with,
@@ -165,45 +212,48 @@ class Masked:
         """
         return self._mask
 
-    @mask.setter
-    def mask(self, mask):
+    def _set_mask(self, mask, copy=False):
         ma = np.asanyarray(mask, dtype='?')
         if ma.shape != self.shape:
             # This will fail (correctly) if not broadcastable.
             self._mask = np.empty(self.shape, dtype='?')
             self._mask[...] = ma
         elif ma is mask:
-            # Use a view so that shape setting does not propagate.
-            self._mask = mask.view()
+            # Even if not copying use a view so that shape setting
+            # does not propagate.
+            self._mask = mask.copy() if copy else mask.view()
         else:
             self._mask = ma
 
+    mask = property(_get_mask, _set_mask)
+
     def unmask(self, fill_value=None):
+        result = super().view(self._data_cls)
         if fill_value is None:
-            return self._data
+            return result
         else:
-            result = self._data.copy()
+            result = result.copy()
             result[self.mask] = fill_value
             return result
 
-    @property
-    def unmasked(self):
-        return self._data
+    unmasked = property(unmask)
 
     def _apply(self, method, *args, **kwargs):
         # For use with NDArrayShapeMethods.
         if callable(method):
-            data = method(self._data, *args, **kwargs)
+            data = method(self.unmasked, *args, **kwargs)
             mask = method(self._mask, *args, **kwargs)
         else:
-            data = getattr(self._data, method)(*args, **kwargs)
+            data = getattr(self.unmasked, method)(*args, **kwargs)
             mask = getattr(self._mask, method)(*args, **kwargs)
 
-        return self.__class__(data, mask=mask)
+        result = data[...].view(self.__class__)
+        result._mask = mask
+        return result
 
     def __setitem__(self, item, value):
         value, mask = self._data_mask(value)
-        self._data[item] = value
+        super().__setitem__(item, value)
         self._mask[item] = mask
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
@@ -339,3 +389,7 @@ class Masked:
         datastr = str(self._data)
         toadd = ' with mask={}'.format(self.mask)
         return datastr + toadd
+
+
+class MaskedNDArray(Masked, np.ndarray):
+    _data_cls = np.ndarray
