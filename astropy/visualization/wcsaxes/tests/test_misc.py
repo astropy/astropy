@@ -423,3 +423,19 @@ def test_repr():
 
     ax = plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1))
     assert repr(ax.coords) == EXPECTED_REPR_2
+
+
+@pytest.fixture
+def time_spectral_wcs_2d():
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ['FREQ', 'TIME']
+    wcs.wcs.set()
+    return wcs
+
+
+def test_time_wcs(time_spectral_wcs_2d):
+
+    # Regression test for a bug that caused WCSAxes to error when using a WCS
+    # with a time axis.
+
+    plt.subplot(projection=time_spectral_wcs_2d)
