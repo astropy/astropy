@@ -273,5 +273,5 @@ def test_gemini_v1_2():
 
     tt = table.to_table()
     assert tt['access_url'][0] == (
-        b'http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/data/pub/GEMINI/'
-        b'S20120515S0064?runid=bx9b1o8cvk1qesrt')
+        'http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/data/pub/GEMINI/'
+        'S20120515S0064?runid=bx9b1o8cvk1qesrt')
