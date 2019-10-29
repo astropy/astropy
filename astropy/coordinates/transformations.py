@@ -90,7 +90,10 @@ class TransformGraph:
             for c in self.frame_set:
                 nm = getattr(c, 'name', None)
                 if nm is not None:
-                    dct[nm] = c
+                    if not isinstance(nm, list):
+                        nm = [nm]
+                    for name in nm:
+                        dct[name] = c
 
         return self._cached_names_dct
 
@@ -500,10 +503,12 @@ class TransformGraph:
             if node not in nodes:
                 nodes.append(node)
         nodenames = []
-        invclsaliases = dict([(v, k) for k, v in self._cached_names.items()])
+        invclsaliases = dict([(f, [k for k, v in self._cached_names.items() if v == f])
+                              for f in self.frame_set])
         for n in nodes:
             if n in invclsaliases:
-                nodenames.append('{0} [shape=oval label="{0}\\n`{1}`"]'.format(n.__name__, invclsaliases[n]))
+                aliases = '`\\n`'.join(invclsaliases[n])
+                nodenames.append('{0} [shape=oval label="{0}\\n`{1}`"]'.format(n.__name__, aliases))
             else:
                 nodenames.append(n.__name__ + '[ shape=oval ]')
 

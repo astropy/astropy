@@ -565,13 +565,20 @@ class SkyCoord(ShapedLikeNDArray):
         frattrs['obstime'] = new_obstime
         return self.__class__(icrs2, **frattrs).transform_to(self.frame)
 
+    def _is_name(self, string):
+        """
+        Returns whether a string is one of the aliases for the frame.
+        """
+        return (self.frame.name == string or
+                (isinstance(self.frame.name, list) and string in self.frame.name))
+
     def __getattr__(self, attr):
         """
         Overrides getattr to return coordinates that this can be transformed
         to, based on the alias attr in the master transform graph.
         """
         if '_sky_coord_frame' in self.__dict__:
-            if self.frame.name == attr:
+            if self._is_name(attr):
                 return self  # Should this be a deepcopy of self?
 
             # Anything in the set of all possible frame_attr_names is handled
@@ -600,7 +607,7 @@ class SkyCoord(ShapedLikeNDArray):
     def __setattr__(self, attr, val):
         # This is to make anything available through __getattr__ immutable
         if '_sky_coord_frame' in self.__dict__:
-            if self.frame.name == attr:
+            if self._is_name(attr):
                 raise AttributeError(f"'{attr}' is immutable")
 
             if not attr.startswith('_') and hasattr(self._sky_coord_frame, attr):
@@ -627,7 +634,7 @@ class SkyCoord(ShapedLikeNDArray):
     def __delattr__(self, attr):
         # mirror __setattr__ above
         if '_sky_coord_frame' in self.__dict__:
-            if self.frame.name == attr:
+            if self._is_name(attr):
                 raise AttributeError(f"'{attr}' is immutable")
 
             if not attr.startswith('_') and hasattr(self._sky_coord_frame,
