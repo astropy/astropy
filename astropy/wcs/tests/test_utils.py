@@ -1030,7 +1030,7 @@ def test_pixel_to_pixel_1d():
 
 
 def test_fit_wcs_from_points():
-    header_str_linear =  """
+    header_str_linear = """
 XTENSION= 'IMAGE   '           / Image extension
 BITPIX  =                  -32 / array data type
 NAXIS   =                    2 / number of array dimensions
@@ -1053,7 +1053,7 @@ CD2_1   =     0.00118144146585
 CD2_2   =   -0.005590816683583
 """
 
-    header_str_sip =  """
+    header_str_sip = """
 XTENSION= 'IMAGE   '           / Image extension
 BITPIX  =                  -32 / array data type
 NAXIS   =                    2 / number of array dimensions
@@ -1097,33 +1097,32 @@ BP_1_1  =  -1.711876336719E-05
 A_DMAX  =    44.72893589844534
 B_DMAX  =    44.62692873032506
 """
-    
     header_linear = fits.Header.fromstring(header_str_linear, sep='\n')
     header_sip = fits.Header.fromstring(header_str_sip, sep='\n')
-    
+
     true_wcs_linear = WCS(header_linear, relax=True)
     true_wcs_sip = WCS(header_sip, relax=True)
 
     # Getting the pixel coordinates
-    x, y = np.meshgrid(list(range(10)),list(range(10)))
+    x, y = np.meshgrid(list(range(10)), list(range(10)))
     x = x.flatten()
     y = y.flatten()
-    
+
     # Calculating the true sky positions
     world_pix_linear = true_wcs_linear.pixel_to_world(x, y)
     world_pix_sip = true_wcs_sip.pixel_to_world(x, y)
 
     # Fitting the wcs, no distortion.
-    fit_wcs_linear = fit_wcs_from_points((x, y), world_pix_linear, proj_point='center',
-                                          sip_degree=None)
-    
+    fit_wcs_linear = fit_wcs_from_points((x, y), world_pix_linear,
+                                         proj_point='center', sip_degree=None)
+
     # Fitting the wcs, with distortion.
-    fit_wcs_sip = fit_wcs_from_points((x, y), world_pix_sip, proj_point='center',
-                                          sip_degree=2)
+    fit_wcs_sip = fit_wcs_from_points((x, y), world_pix_sip,
+                                      proj_point='center', sip_degree=2)
 
     # Validate that the true sky coordinates calculated with `true_wcs_linear`
-    # match the sky coordinates calculated from the wcs fit with only linear terms
-    
+    # match sky coordinates calculated from the wcs fit with only linear terms
+
     world_pix_linear_new = fit_wcs_linear.pixel_to_world(x, y)
 
     dists = world_pix_linear.separation(world_pix_linear_new)
@@ -1134,9 +1133,9 @@ B_DMAX  =    44.62692873032506
     # Validate that the true sky coordinates calculated with `true_wcs_sip`
     # match the sky coordinates calculated from the wcs fit with SIP of same
     # degree (2)
-    
+
     world_pix_sip_new = fit_wcs_sip.pixel_to_world(x, y)
     dists = world_pix_sip.separation(world_pix_sip_new)
-    
+
     assert dists.max() < 7e-6*u.deg
     assert np.std(dists) < 2.5e-6*u.deg
