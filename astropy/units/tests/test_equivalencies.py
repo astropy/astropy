@@ -820,7 +820,7 @@ def test_pprint():
         ']'
     ]
     assert pprint_class._repr_html_(equiv_units_to_Hz) == (
-        '<table style="width:100%">'
+        '<table style="width:50%">'
         '<tr><th>Primary name</th><th>Unit definition</th>'
         '<th>Aliases</th></tr>'
         '<tr><td>Bq</td><td>1 / s</td><td>becquerel</td></tr>'
