@@ -607,7 +607,7 @@ class Quantity(np.ndarray):
         if obj is None:
             obj = self.view(np.ndarray)
         else:
-            obj = np.array(obj, copy=False)
+            obj = np.array(obj, copy=False, subok=True)
 
         # Take the view, set the unit, and update possible other properties
         # such as ``info``, ``wrap_angle`` in `Longitude`, etc.
@@ -1369,9 +1369,9 @@ class Quantity(np.ndarray):
         if check_precision:
             # If, e.g., we are casting double to float, we want to fail if
             # precision is lost, but let things pass if it works.
-            _value = np.array(_value, copy=False)
+            _value = np.array(_value, copy=False, subok=True)
             if not np.can_cast(_value.dtype, self.dtype):
-                self_dtype_array = np.array(_value, self.dtype)
+                self_dtype_array = np.array(_value, self.dtype, subok=True)
                 if not np.all(np.logical_or(self_dtype_array == _value,
                                             np.isnan(_value))):
                     raise TypeError("cannot convert value type to array type "
