@@ -319,23 +319,13 @@ class Char(Converter):
             self.binoutput = self._binoutput_fixed
             self._struct_format = f">{self.arraysize:d}s"
 
-        if config.get('verify', 'ignore') == 'exception':
-            self.parse = self._ascii_parse
-        else:
-            self.parse = self._str_parse
-
     def supports_empty_values(self, config):
         return True
 
-    def _ascii_parse(self, value, config=None, pos=None):
+    def parse(self, value, config=None, pos=None):
         if self.arraysize != '*' and len(value) > self.arraysize:
             vo_warn(W46, ('char', self.arraysize), config, pos)
-        return value.encode('ascii'), False
-
-    def _str_parse(self, value, config=None, pos=None):
-        if self.arraysize != '*' and len(value) > self.arraysize:
-            vo_warn(W46, ('char', self.arraysize), config, pos)
-        return value.encode('utf-8'), False
+        return value, False
 
     def output(self, value, mask):
         if mask:
@@ -346,11 +336,12 @@ class Char(Converter):
 
     def _binparse_var(self, read):
         length = self._parse_length(read)
-        return read(length), False
+        return read(length).decode('ascii'), False
 
     def _binparse_fixed(self, read):
         s = struct_unpack(self._struct_format, read(self.arraysize))[0]
         end = s.find(_zero_byte)
+        s = s.decode('ascii')
         if end != -1:
             return s[:end], False
         return s, False
@@ -358,11 +349,15 @@ class Char(Converter):
     def _binoutput_var(self, value, mask):
         if mask or value is None or value == '':
             return _zero_int
+        if isinstance(value, str):
+            value = value.encode('ascii')
         return self._write_length(len(value)) + value
 
     def _binoutput_fixed(self, value, mask):
         if mask:
             value = _empty_bytes
+        elif isinstance(value, str):
+            value = value.encode('ascii')
         return struct_pack(self._struct_format, value)
 
 
@@ -394,7 +389,7 @@ class UnicodeChar(Converter):
             self.format = f'U{self.arraysize:d}'
             self.binparse = self._binparse_fixed
             self.binoutput = self._binoutput_fixed
-            self._struct_format = ">{:d}s".format(self.arraysize * 2)
+            self._struct_format = f">{self.arraysize*2:d}s"
 
     def parse(self, value, config=None, pos=None):
         if self.arraysize != '*' and len(value) > self.arraysize:
@@ -1311,20 +1306,6 @@ numpy_dtype_to_field_mapping = {
 numpy_dtype_to_field_mapping[np.bytes_().dtype.num] = 'char'
 
 
-def _all_bytes(column):
-    for x in column:
-        if not isinstance(x, bytes):
-            return False
-    return True
-
-
-def _all_unicode(column):
-    for x in column:
-        if not isinstance(x, str):
-            return False
-    return True
-
-
 def _all_matching_dtype(column):
     first_dtype = False
     first_shape = ()
@@ -1414,12 +1395,9 @@ def table_column_to_votable_datatype(column):
        set on a VOTable FIELD element.
     """
     if column.dtype.char == 'O':
-        if isinstance(column[0], bytes):
-            if _all_bytes(column[1:]):
-                return {'datatype': 'char', 'arraysize': '*'}
-        elif isinstance(column[0], str):
-            if _all_unicode(column[1:]):
-                return {'datatype': 'unicodeChar', 'arraysize': '*'}
+        if '_votable_string_dtype' in column.info.meta:
+            string_dtype = column.info.meta['_votable_string_dtype']
+            return {'datatype': string_dtype, 'arraysize': '*'}
         elif isinstance(column[0], np.ndarray):
             dtype, shape = _all_matching_dtype(column)
             if dtype is not False:

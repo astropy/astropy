@@ -249,7 +249,7 @@ def test_select_columns_by_index():
         get_pkg_data_filename('data/regression.xml'), columns=columns).get_first_table()  # noqa
     array = table.array
     mask = table.array.mask
-    assert array['string_test'][0] == b"String & test"
+    assert array['string_test'][0] == "String & test"
     columns = ['string_test', 'unsignedByte', 'bitarray']
     for c in columns:
         assert not np.all(mask[c])
@@ -262,7 +262,7 @@ def test_select_columns_by_name():
         get_pkg_data_filename('data/regression.xml'), columns=columns).get_first_table()  # noqa
     array = table.array
     mask = table.array.mask
-    assert array['string_test'][0] == b"String & test"
+    assert array['string_test'][0] == "String & test"
     for c in columns:
         assert not np.all(mask[c])
     assert np.all(mask['unicode_test'])
@@ -280,8 +280,7 @@ class TestParse:
                           np.object_)
         assert_array_equal(
             self.array['string_test'],
-            [b'String & test', b'String &amp; test', b'XXXX',
-             b'', b''])
+            ['String & test', 'String &amp; test', 'XXXX', '', ''])
 
     def test_fixed_string_test(self):
         assert issubclass(self.array['string_test_2'].dtype.type,
