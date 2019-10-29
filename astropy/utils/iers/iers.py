@@ -96,6 +96,10 @@ def download_file(*args, **kwargs):
     ``**kwargs`` after temporarily setting the download_file remote timeout to
     the local ``iers.conf.remote_timeout`` value.
     """
+    url = kwargs.get('remote_url', args[0] if len(args) > 0 else None)
+    if url in SPECIAL_HTTP_HEADERS_NEEDED:
+        kwargs['http_headers'] = SPECIAL_HTTP_HEADERS_NEEDED[url]
+
     with utils.data.conf.set_temp('remote_timeout', conf.remote_timeout):
         return utils.data.download_file(*args, **kwargs)
 
@@ -677,9 +681,6 @@ class IERS_Auto(IERS_A):
 
         for url in all_urls:
             try:
-                http_headers = {}
-                if url in SPECIAL_HTTP_HEADERS_NEEDED:
-                    http_headers.update(SPECIAL_HTTP_HEADERS_NEEDED[url])
                 filename = download_file(url, cache=True)
             except Exception as err:
                 err_list.append(str(err))
