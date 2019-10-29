@@ -262,7 +262,7 @@ class Masked(NDArrayShapeMethods):
             if any(out_ is not None and not isinstance(out_, Masked)
                    for out_ in out):
                 return NotImplemented
-            kwargs['out'] = tuple((None if out_ is None else out_._data)
+            kwargs['out'] = tuple((None if out_ is None else out_.unmasked)
                                   for out_ in out)
             if ufunc.nout == 1:
                 out = out[0]
@@ -306,6 +306,17 @@ class Masked(NDArrayShapeMethods):
             return result
 
         return self._masked_result(result, mask, out)
+
+    def __array_function__(self, function, types, args, kwargs):
+        if function is np.array2string:
+            # Complete hack.
+            if self.shape == ():
+                return str(self)
+
+            kwargs.setdefault('formatter',
+                              {'all': self.__class__.__str__})
+
+        return super().__array_function__(function, types, args, kwargs)
 
     def _masked_result(self, result, mask, out):
         if isinstance(result, tuple):
@@ -370,25 +381,23 @@ class Masked(NDArrayShapeMethods):
         result /= n
         return result
 
-    # TODO: improve (greatly) repr and str!!
-    def __repr__(self):
-        reprarr = repr(self._data)
-        if reprarr.endswith('>'):
-            firstspace = reprarr.find(' ')
-            reprarr = reprarr[firstspace+1:-1]  # :-1] removes the ending '>'
-            return '<{} {} with mask={}>'.format(self.__class__.__name__,
-                                                 reprarr, self.mask)
-        else:  # numpy array-like
-            firstparen = reprarr.find('(')
-            reprarr = reprarr[firstparen:]
-            return '{}{} with mask={}'.format(self.__class__.__name__,
-                                              reprarr, self.mask)
-            return reprarr
-
+    # TODO: improve (greatly) str and repr!!
     def __str__(self):
-        datastr = str(self._data)
-        toadd = ' with mask={}'.format(self.mask)
-        return datastr + toadd
+        if self.shape == ():
+            string = str(self.unmasked)
+            if self.mask:
+                # Strikethrough would be neat, but it doesn't show in konsole.
+                # return ''.join(s+'\u0336' for s in string)
+                return '\u2014' * len(string)
+            else:
+                return string
+
+        with np.printoptions(formatter={'all': self.__class__.__str__}):
+            return super().__str__()
+
+    def __repr__(self):
+        with np.printoptions(formatter={'all': self.__class__.__str__}):
+            return super().__repr__()
 
 
 class MaskedNDArray(Masked, np.ndarray):
