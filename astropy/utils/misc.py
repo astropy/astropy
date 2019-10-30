@@ -23,15 +23,13 @@ from itertools import zip_longest
 from contextlib import contextmanager
 from collections import defaultdict, OrderedDict
 
-import numpy as np
-
 from astropy.utils.decorators import deprecated
 
 
 __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
            'find_api_page', 'is_path_hidden', 'walk_skip_hidden',
-           'JsonCustomEncoder', 'indent', 'InheritDocstrings',
-           'OrderedDescriptor', 'OrderedDescriptorContainer', 'set_locale',
+           'JsonCustomEncoder', 'indent',
+           'OrderedDescriptor', 'OrderedDescriptorContainer',
            'ShapedLikeNDArray', 'check_broadcast', 'IncompatibleShapeError',
            'dtype_bytes_or_chars', 'unbroadcast']
 
@@ -515,10 +513,10 @@ class InheritDocstrings(type):
     For example::
 
         >>> import warnings
-        >>> from astropy.utils.misc import InheritDocstrings
         >>> with warnings.catch_warnings():
         ...     # Ignore deprecation warning
         ...     warnings.simplefilter('ignore')
+        ...     from astropy.utils.misc import InheritDocstrings
         ...     class A(metaclass=InheritDocstrings):
         ...         def wiggle(self):
         ...             "Wiggle the thingamajig"
@@ -858,7 +856,7 @@ LOCALE_LOCK = threading.Lock()
 
 
 @contextmanager
-def set_locale(name):
+def _set_locale(name):
     """
     Context manager to temporarily set the locale to ``name``.
 
@@ -866,7 +864,7 @@ def set_locale(name):
     function will use "." as the decimal point to enable consistent
     numerical string parsing.
 
-    Note that one cannot nest multiple set_locale() context manager
+    Note that one cannot nest multiple _set_locale() context manager
     statements as this causes a threading lock.
 
     This code taken from https://stackoverflow.com/questions/18593661/how-do-i-strftime-a-date-object-in-a-different-locale.
@@ -889,6 +887,12 @@ def set_locale(name):
                 yield
             finally:
                 locale.setlocale(locale.LC_ALL, saved)
+
+
+set_locale = deprecated('4.0')(_set_locale)
+set_locale.__doc__ = """Deprecated version of :func:`_set_locale` above.
+See https://github.com/astropy/astropy/issues/9196
+"""
 
 
 class ShapedLikeNDArray(metaclass=abc.ABCMeta):

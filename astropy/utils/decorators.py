@@ -362,7 +362,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
         2
         >>> test(sigma=2)
         2
-        >>> test(sig=2)
+        >>> test(sig=2)  # doctest: +SKIP
         2
 
     To deprecate an argument caught inside the ``**kwargs`` the
@@ -375,7 +375,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
 
         >>> test(sigma=2)
         2
-        >>> test(sig=2)
+        >>> test(sig=2)  # doctest: +SKIP
         2
 
     By default providing the new and old keyword will lead to an Exception. If
@@ -385,7 +385,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
         ... def test(sigma):
         ...     return sigma
 
-        >>> test(sig=2)
+        >>> test(sig=2)  # doctest: +SKIP
         2
 
     It is also possible to replace multiple arguments. The ``old_name``,
@@ -397,7 +397,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
         ... def test(alpha, beta):
         ...     return alpha, beta
 
-        >>> test(a=2, b=3)
+        >>> test(a=2, b=3)  # doctest: +SKIP
         (2, 3)
 
     In this case ``arg_in_kwargs`` and ``relax`` can be a single value (which
