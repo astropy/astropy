@@ -700,6 +700,9 @@ astropy.stats
 
 - Fixed a bug where ``bayesian_blocks`` returned a single edge. [#8560]
 
+- Fixed input data type validation for ``bayesian_blocks`` to work int
+  arrays. [#9513]
+
 astropy.table
 ^^^^^^^^^^^^^
 
