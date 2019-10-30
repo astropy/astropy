@@ -7,103 +7,15 @@ import functools
 
 import numpy as np
 
+from astropy.utils.misc import ShapedLikeNDArray
 
 __all__ = ['Masked']
 
 
-# Note: at present, cannot directly use ShapedLikeNDArray, because of
-# metaclass problems.
-# TODO: split this off in misc.py
-class NDArrayShapeMethods:
-    def __getitem__(self, item):
-        try:
-            return self._apply('__getitem__', item)
-        except IndexError:
-            if self.shape == ():
-                raise TypeError('scalar {0!r} object is not subscriptable.'
-                                .format(self.__class__.__name__))
-            else:
-                raise
-
-    def copy(self, *args, **kwargs):
-        """Return an instance containing copies of the internal data.
-
-        Parameters are as for :meth:`~numpy.ndarray.copy`.
-        """
-        return self._apply('copy', *args, **kwargs)
-
-    def reshape(self, *args, **kwargs):
-        """Returns an instance containing the same data with a new shape.
-
-        Parameters are as for :meth:`~numpy.ndarray.reshape`.  Note that it is
-        not always possible to change the shape of an array without copying the
-        data (see :func:`~numpy.reshape` documentation). If you want an error
-        to be raise if the data is copied, you should assign the new shape to
-        the shape attribute (note: this may not be implemented for all classes
-        using ``ShapedLikeNDArray``).
-        """
-        return self._apply('reshape', *args, **kwargs)
-
-    def ravel(self, *args, **kwargs):
-        """Return an instance with the array collapsed into one dimension.
-
-        Parameters are as for :meth:`~numpy.ndarray.ravel`. Note that it is
-        not always possible to unravel an array without copying the data.
-        If you want an error to be raise if the data is copied, you should
-        should assign shape ``(-1,)`` to the shape attribute.
-        """
-        return self._apply('ravel', *args, **kwargs)
-
-    def flatten(self, *args, **kwargs):
-        """Return a copy with the array collapsed into one dimension.
-
-        Parameters are as for :meth:`~numpy.ndarray.flatten`.
-        """
-        return self._apply('flatten', *args, **kwargs)
-
-    def transpose(self, *args, **kwargs):
-        """Return an instance with the data transposed.
-
-        Parameters are as for :meth:`~numpy.ndarray.transpose`.  All internal
-        data are views of the data of the original.
-        """
-        return self._apply('transpose', *args, **kwargs)
-
-    def swapaxes(self, *args, **kwargs):
-        """Return an instance with the given axes interchanged.
-
-        Parameters are as for :meth:`~numpy.ndarray.swapaxes`:
-        ``axis1, axis2``.  All internal data are views of the data of the
-        original.
-        """
-        return self._apply('swapaxes', *args, **kwargs)
-
-    def diagonal(self, *args, **kwargs):
-        """Return an instance with the specified diagonals.
-
-        Parameters are as for :meth:`~numpy.ndarray.diagonal`.  All internal
-        data are views of the data of the original.
-        """
-        return self._apply('diagonal', *args, **kwargs)
-
-    def squeeze(self, *args, **kwargs):
-        """Return an instance with single-dimensional shape entries removed
-
-        Parameters are as for :meth:`~numpy.ndarray.squeeze`.  All internal
-        data are views of the data of the original.
-        """
-        return self._apply('squeeze', *args, **kwargs)
-
-    def take(self, indices, axis=None, mode='raise'):
-        """Return a new instance formed from the elements at the given indices.
-
-        Parameters are as for :meth:`~numpy.ndarray.take`, except that,
-        obviously, no output array can be given.
-        """
-        return self._apply('take', indices, axis=axis, mode=mode)
-
-
-class Masked(NDArrayShapeMethods):
+# Note: at present, ShapedLikeNDArray is a bit unhandy because it forces
+# one to unnecessarily override shape.  Would be good to split off
+# a separate NDArrayShapeMethods, which is not an ABC.
+class Masked(ShapedLikeNDArray):
     """A scalar value or array of values with associated mask.
 
     This object will take its exact type from whatever the contents are.
@@ -134,6 +46,10 @@ class Masked(NDArrayShapeMethods):
         self = data.view(subclass)
         self._set_mask(mask, copy=copy)
         return self
+
+    @property
+    def shape(self):
+        return super(ShapedLikeNDArray, self).shape
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
