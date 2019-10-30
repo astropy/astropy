@@ -154,15 +154,19 @@ def test_fold_phase():
     assert_allclose(tsf.time.value, [0, 1/3, -1/3, 1/3, -1/3, -1/3], rtol=1e-6)
 
     # Try with midpoint epoch
-    tsf = ts.fold(period=4 * u.s, epoch=Time(2.5, format='unix'))
+    tsf = ts.fold(period=4 * u.s, epoch_time=Time(2.5, format='unix'))
     assert isinstance(tsf.time, u.Quantity)
     assert_allclose(tsf.time.value, [-0.375, -0.125, 0.125, 0.375, -0.375, 0.375], rtol=1e-6)
 
     # Try half phase
-    tfs = ts.fold(period=4*u.s, phase_range=0.6)
+    tfs = ts.fold(period=4*u.s, phase_length=0.6)
     assert len(tfs) == 5
     assert_allclose(tfs.time.value, [0, 0.25, -0.25, 0, -0.25], atol=1e-3)
 
+    # Try half phase with epoch_phase
+    tfs = ts.fold(period=4*u.s, phase_length=0.6, epoch_phase=0.2)
+    assert len(tfs) == 5
+    assert_allclose(tfs.time.value, [0.2, 0.45, -0.05, 0.2, -0.05], atol=1e-3)
 
 
 def test_fold():
@@ -171,13 +175,13 @@ def test_fold():
     ts = TimeSeries(time=times)
     ts['flux'] = [1, 4, 4, 3, 2, 3]
 
-    # Try without midpoint epoch, as it should default to the first time
+    # Try without epoch time, as it should default to the first time
     tsf = ts.fold(period=3 * u.s, normalize_phase=False)
     assert isinstance(tsf.time, TimeDelta)
     assert_allclose(tsf.time.sec, [0, 1, -1, 1, -1, -1], rtol=1e-6)
 
-    # Try with midpoint epoch
-    tsf = ts.fold(period=4 * u.s, epoch=Time(2.5, format='unix'), normalize_phase=False)
+    # Try with epoch time
+    tsf = ts.fold(period=4 * u.s, epoch_time=Time(2.5, format='unix'), normalize_phase=False)
     assert isinstance(tsf.time, TimeDelta)
     assert_allclose(tsf.time.sec, [-1.5, -0.5, 0.5, 1.5, -1.5, 1.5], rtol=1e-6)
 
