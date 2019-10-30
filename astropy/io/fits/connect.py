@@ -181,10 +181,10 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
                 raise ValueError(f"No table found in hdu={hdu}")
 
         elif len(tables) == 1:
-            if hdu != 1:
+            if not (hdu is None or hdu in tables):
                 warnings.warn(f"No table found in specified hdu={hdu},"
                               " reading in first available "
-                              f"table (hdu={first(tables)}) instead!", 
+                              f"table (hdu={first(tables)}) instead!",
                               AstropyUserWarning)
             table = tables[first(tables)]
         else:

@@ -276,6 +276,8 @@ class TestMultipleHDU:
         hdu4 = ImageHDU(np.ones((3, 3)), name='third')
 
         self.hdus = HDUList([hdu1, hdu2, hdu3, hdu4])
+        self.hdub = HDUList([hdu1, hdu4, hdu3, hdu2])
+        self.hdu3 = HDUList([hdu1, hdu4, hdu3])
         self.hdu2 = HDUList([hdu1, hdu2, hdu4])
         self.hdu1 = HDUList([hdu1, hdu2])
 
@@ -288,12 +290,21 @@ class TestMultipleHDU:
     def test_read(self, tmpdir):
         filename = str(tmpdir.join('test_read.fits'))
         self.hdus.writeto(filename)
-        with catch_warnings() as l:
+        with pytest.warns(AstropyUserWarning,
+                          match=r"hdu= was not specified but multiple tables "
+                                r"are present, reading in first available "
+                                r"table \(hdu=1\)"):
             t = Table.read(filename)
-        assert len(l) == 1
-        assert str(l[0].message).startswith(
-            'hdu= was not specified but multiple tables are present, reading in first available table (hdu=1)')
         assert equal_data(t, self.data1)
+
+        filename = str(tmpdir.join('test_read_2.fits'))
+        self.hdub.writeto(filename)
+        with pytest.warns(AstropyUserWarning,
+                          match=r"hdu= was not specified but multiple tables "
+                                r"are present, reading in first available "
+                                r"table \(hdu=2\)"):
+            t3 = Table.read(filename)
+        assert equal_data(t3, self.data2)
 
     def test_read_with_hdu_0(self, tmpdir):
         filename = str(tmpdir.join('test_read_with_hdu_0.fits'))
@@ -332,24 +343,43 @@ class TestMultipleHDU:
         filename = str(tmpdir.join('test_warn_with_hdu_2.fits'))
         self.hdu2.writeto(filename)
         with pytest.warns(AstropyUserWarning,
-                          match=rf"No table found in specified hdu={hdu},"):
+                          match=rf"No table found in specified hdu={hdu}, "
+                                r"reading in first available table \(hdu=1\)"):
             t2 = Table.read(filename, hdu=hdu)
         assert equal_data(t2, self.data1)
 
         filename = str(tmpdir.join('test_warn_with_hdu_1.fits'))
         self.hdu1.writeto(filename)
         with pytest.warns(AstropyUserWarning,
-                          match=rf"No table found in specified hdu={hdu},"):
+                          match=rf"No table found in specified hdu={hdu}, "
+                                r"reading in first available table \(hdu=1\)"):
             t1 = Table.read(filename, hdu=hdu)
         assert equal_data(t1, self.data1)
 
+    @pytest.mark.parametrize('hdu', [0, 1])
+    def test_read_in_last_hdu(self, tmpdir, hdu):
+        filename = str(tmpdir.join('test_warn_with_hdu_3.fits'))
+        self.hdu3.writeto(filename)
+        with pytest.warns(AstropyUserWarning,
+                          match=rf"No table found in specified hdu={hdu}, "
+                                r"reading in first available table \(hdu=2\)"):
+            t3 = Table.read(filename, hdu=hdu)
+        assert equal_data(t3, self.data2)
+
     def test_read_from_hdulist(self):
-        with catch_warnings() as l:
+        with pytest.warns(AstropyUserWarning,
+                          match=r"hdu= was not specified but multiple tables "
+                                r"are present, reading in first available "
+                                r"table \(hdu=1\)"):
             t = Table.read(self.hdus)
-        assert len(l) == 1
-        assert str(l[0].message).startswith(
-            'hdu= was not specified but multiple tables are present, reading in first available table (hdu=1)')
         assert equal_data(t, self.data1)
+
+        with pytest.warns(AstropyUserWarning,
+                          match=r"hdu= was not specified but multiple tables "
+                                r"are present, reading in first available "
+                                r"table \(hdu=2\)"):
+            t3 = Table.read(self.hdub)
+        assert equal_data(t3, self.data2)
 
     def test_read_from_hdulist_with_hdu_0(self, tmpdir):
         with pytest.raises(ValueError) as exc:
@@ -378,14 +408,24 @@ class TestMultipleHDU:
     @pytest.mark.parametrize('hdu', [0, 2, 3])
     def test_read_from_hdulist_with_hdu_warning(self, tmpdir, hdu):
         with pytest.warns(AstropyUserWarning,
-                          match=rf"No table found in specified hdu={hdu},"):
+                          match=rf"No table found in specified hdu={hdu}, "
+                                r"reading in first available table \(hdu=1\)"):\
             t2 = Table.read(self.hdu2, hdu=hdu)
         assert equal_data(t2, self.data1)
 
         with pytest.warns(AstropyUserWarning,
-                          match=rf"No table found in specified hdu={hdu},"):
+                          match=rf"No table found in specified hdu={hdu}, "
+                                r"reading in first available table \(hdu=1\)"):
             t1 = Table.read(self.hdu1, hdu=hdu)
         assert equal_data(t1, self.data1)
+
+    @pytest.mark.parametrize('hdu', [0, 1])
+    def test_read_from_hdulist_in_last_hdu(self, tmpdir, hdu):
+        with pytest.warns(AstropyUserWarning,
+                          match=rf"No table found in specified hdu={hdu}, "
+                                r"reading in first available table \(hdu=2\)"):
+            t3 = Table.read(self.hdu3, hdu=hdu)
+        assert equal_data(t3, self.data2)
 
     def test_read_from_single_hdu(self):
         with catch_warnings() as l:
