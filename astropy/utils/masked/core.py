@@ -288,7 +288,16 @@ class Masked(NDArrayShapeMethods):
                 # By default, we simply propagate masks, since for
                 # things like np.sum, it makes no sense to do otherwise.
                 # Individual methods need to override as needed.
-                mask = np.logical_or.reduce(inputs[0].mask, **kwargs)
+                # TODO take care of 'out' too?
+                axis = kwargs.get('axis', None)
+                keepdims = kwargs.get('keepdims', False)
+                where = kwargs.get('where', True)
+                mask = np.logical_or.reduce(inputs[0].mask, where=where,
+                                            axis=axis, keepdims=keepdims)
+                if where is not True:
+                    # Mask also whole rows that were not selected by where.
+                    mask &= np.logical_and.reduce(inputs[0].mask, where=where,
+                                                  axis=axis, keepdims=keepdims)
                 converted = inputs[0].unmasked
 
             elif 'out' in kwargs and isinstance(kwargs['out'][0], Masked):
@@ -332,53 +341,26 @@ class Masked(NDArrayShapeMethods):
         out._mask = mask
         return out
 
-    def _masked_function(self, function, axis=None, out=None, keepdims=False,
-                         where=True, **kwargs):
-        if out is not None:
-            if not isinstance(out, Masked):
-                raise TypeError('output should be a Masked instance')
-            out_mask = out.mask
-            out_data = out.unmasked
-        else:
-            out_mask = out_data = None
+    def _reduce_defaults(self, kwargs={}, initial_func=None):
+        if 'where' not in kwargs:
+            kwargs['where'] = ~self.mask
+        if initial_func is not None and 'initial' not in kwargs:
+            kwargs['initial'] = initial_func(self.unmasked)
+        return kwargs
 
-        # Output mask is set if *all* elements are masked.  Calculate *without*
-        # a possible initial kwarg (but passing on axis, where, etc.).
-        mask = np.logical_and.reduce(self.mask, axis=axis, out=out_mask,
-                                     keepdims=keepdims, where=where)
-        where_data = ~self.mask
-        if where is not True:
-            # In-place in our inverted mask to ensure shape is OK.
-            where_data &= where
+    def min(self, axis=None, out=None, **kwargs):
+        return super().min(axis=axis, out=out,
+                           **self._reduce_defaults(kwargs, np.max))
 
-        result = function(self.unmasked, axis=axis, out=out_data,
-                          keepdims=keepdims, where=where_data, **kwargs)
-        if out is None:
-            out = Masked(result, mask)
-
-        return out
-
-    def min(self, axis=None, out=None, keepdims=False, initial=None,
-            where=True):
-        if initial is None:
-            initial = self.unmasked.max()
-        return self._masked_function(np.min, axis=axis, out=out,
-                                     keepdims=False, initial=initial,
-                                     where=where)
-
-    def max(self, axis=None, out=None, keepdims=False, initial=None,
-            where=True):
-        if initial is None:
-            initial = self.unmasked.min()
-        return self._masked_function(np.max, axis=axis, out=out,
-                                     keepdims=False, initial=initial,
-                                     where=where)
+    def max(self, axis=None, out=None, **kwargs):
+        return super().max(axis=axis, out=out,
+                           **self._reduce_defaults(kwargs, np.min))
 
     def mean(self, axis=None, dtype=None, out=None, keepdims=False):
-        result = self._masked_function(np.sum, axis=axis, out=out,
-                                       keepdims=keepdims, dtype=dtype)
+        result = super().sum(axis=axis, dtype=dtype, out=out,
+                             keepdims=keepdims, **self._reduce_defaults())
         n = np.add.reduce(~self.mask, axis=axis, keepdims=keepdims)
-        result /= n
+        result = result / n
         return result
 
     # TODO: improve (greatly) str and repr!!
