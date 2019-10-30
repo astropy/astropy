@@ -276,26 +276,13 @@ astropy.utils
   session, using ``astropy.utils.iers.earth_rotation_table``. [#9244]
 
 - Added ``export_cache`` and ``import_cache`` to permit transporting
-  downloaded data to machines with no Internet connection. Also
-  ``check_download_cache`` to confirm that the persistent cache has not become
-  damaged. ``download_file`` and related functions now accept a list of fallback
-  sources, and they are able to update the cache at the user's request. Several new
-  functions are available to investigate the cache contents. [#9182]
+  downloaded data to machines with no Internet connection. Several new
+  functions are available to investigate the cache contents; e.g.,
+  ``check_download_cache`` can be used to confirm that the persistent
+  cache has not become damaged. [#9182]
 
 - A new ``astropy.utils.iers.LeapSeconds`` class has been added to track
   leap seconds. [#9365]
-
-- Allow ``astropy.utils.console.ProgressBarOrSpinner.map`` and
-  ``.map_unordered`` to take an argument ``multiprocessing_start_method`` to
-  control how subprocesses are started; the different methods (``fork``,
-  ``spawn``, and ``forkserver``) have different implications in terms of
-  security, efficiency, and behavioural anomalies. The option is useful in
-  particular for cross-platform testing because Windows supports only ``spawn``
-  while Linux defaults to ``fork``. [#9182]
-
-- All operations that act on the astropy download cache now take an argument
-  ``pkgname`` that allows one to specify which package's cache to use.
-  [#8237]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -351,7 +338,7 @@ astropy.wcs
 - ``SlicedLowLevelWCS`` now raises ``IndexError`` rather than ``ValueError`` on
   an invalid slice. [#9067]
 
-- Added ``fit_wcs_from_points`` function to ``astropy.wcs.utils``. Fits a WCS 
+- Added ``fit_wcs_from_points`` function to ``astropy.wcs.utils``. Fits a WCS
   object to set of matched detector/sky coordinates. [#9469]
 
 API Changes
@@ -582,6 +569,21 @@ astropy.units
 
 astropy.utils
 ^^^^^^^^^^^^^
+
+- ``download_file`` and related functions now accept a list of fallback
+  sources, and they are able to update the cache at the user's request. [#9182]
+
+- Allow ``astropy.utils.console.ProgressBarOrSpinner.map`` and
+  ``.map_unordered`` to take an argument ``multiprocessing_start_method`` to
+  control how subprocesses are started; the different methods (``fork``,
+  ``spawn``, and ``forkserver``) have different implications in terms of
+  security, efficiency, and behavioural anomalies. The option is useful in
+  particular for cross-platform testing because Windows supports only ``spawn``
+  while Linux defaults to ``fork``. [#9182]
+
+- All operations that act on the astropy download cache now take an argument
+  ``pkgname`` that allows one to specify which package's cache to use.
+  [#8237, #9182]
 
 - Removed deprecated ``funcsigs`` and ``futures`` from
   ``astropy.utils.compat``. [#8909]
