@@ -4,7 +4,7 @@
 from astropy import units as u
 from astropy.utils.decorators import format_doc
 from astropy.coordinates import representation as r
-from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
+from astropy.coordinates.baseframe import BaseCoordinateFrame, base_doc
 from astropy.coordinates.attributes import TimeAttribute, QuantityAttribute
 from .utils import EQUINOX_J2000, DEFAULT_OBSTIME
 

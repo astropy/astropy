@@ -5,8 +5,9 @@ from astropy import units as u
 from astropy.utils.decorators import format_doc
 from astropy.time import Time
 from astropy.coordinates import representation as r
-from astropy.coordinates.baseframe import (BaseCoordinateFrame, RepresentationMapping,
-                         frame_transform_graph, base_doc)
+from astropy.coordinates.baseframe import (BaseCoordinateFrame,
+                                           RepresentationMapping,
+                                           frame_transform_graph, base_doc)
 from astropy.coordinates.transformations import AffineTransform
 from astropy.coordinates.attributes import DifferentialAttribute
 

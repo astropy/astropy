@@ -30,20 +30,20 @@ __all__ = ["get_body", "get_moon", "get_body_barycentric",
 DEFAULT_JPL_EPHEMERIS = 'de430'
 
 """List of kernel pairs needed to calculate positions of a given object."""
-BODY_NAME_TO_KERNEL_SPEC = OrderedDict(
-                                      (('sun', [(0, 10)]),
-                                       ('mercury', [(0, 1), (1, 199)]),
-                                       ('venus', [(0, 2), (2, 299)]),
-                                       ('earth-moon-barycenter', [(0, 3)]),
-                                       ('earth', [(0, 3), (3, 399)]),
-                                       ('moon', [(0, 3), (3, 301)]),
-                                       ('mars', [(0, 4)]),
-                                       ('jupiter', [(0, 5)]),
-                                       ('saturn', [(0, 6)]),
-                                       ('uranus', [(0, 7)]),
-                                       ('neptune', [(0, 8)]),
-                                       ('pluto', [(0, 9)]))
-                                      )
+BODY_NAME_TO_KERNEL_SPEC = OrderedDict([
+    ('sun', [(0, 10)]),
+    ('mercury', [(0, 1), (1, 199)]),
+    ('venus', [(0, 2), (2, 299)]),
+    ('earth-moon-barycenter', [(0, 3)]),
+    ('earth', [(0, 3), (3, 399)]),
+    ('moon', [(0, 3), (3, 301)]),
+    ('mars', [(0, 4)]),
+    ('jupiter', [(0, 5)]),
+    ('saturn', [(0, 6)]),
+    ('uranus', [(0, 7)]),
+    ('neptune', [(0, 8)]),
+    ('pluto', [(0, 9)])
+])
 
 """Indices to the plan94 routine for the given object."""
 PLAN94_BODY_NAME_TO_PLANET_INDEX = OrderedDict(
@@ -273,7 +273,7 @@ def _get_body_barycentric_posvel(body, time, ephemeris=None,
         # Note that we use the new jd1.shape here to create a 1D result array.
         # It is reshaped below.
         body_posvel_bary = np.zeros((2 if get_velocity else 1, 3) +
-                                     getattr(jd1, 'shape', ()))
+                                    getattr(jd1, 'shape', ()))
         for pair in kernel_spec:
             spk = kernel[pair]
             if spk.data_type == 3:
