@@ -429,7 +429,7 @@ possible to broadcast a single input value to all models in the set::
     >>> g(0)  # doctest: +FLOAT_CMP
     array([1., 2.])
 
-Or when the input is arrays::
+Or when the input is an array::
 
     >>> x = np.array([[0, 0, 0], [0.1, 0.1, 0.1]])
     >>> print(x)
@@ -455,7 +455,7 @@ Sometimes it may be useful to pass inputs along a different axis, for example th
      [0.  0.1]]
 
 Because there are two models in this model set and we are passing three inputs
-along the 0th axis evaluation will fail::
+along the 0th axis, evaluation will fail::
 
     >>> g(x)
     Traceback (most recent call last):
@@ -481,7 +481,8 @@ Or when the model is initialized::
            [1.        , 1.76499381],
            [1.        , 1.76499381]])
 
-Note that in the latter case the shape fo the individual parameters has changed to 2D.
+Note that in the latter case the shape fo the individual parameters has changed to 2D
+because now the parameters are defined along the 1st axis.
 
 The value of ``model_set_axis`` is either an integer number, representing the axis along which
 the different parameter sets and inputs are defined, or a boolean of value ``False``,
@@ -523,15 +524,15 @@ models can only be evaluated.
 
 .. _modeling-asdf:
 
-Model Serialization
-===================
+Model Serialization (Writing a model to a file)
+===============================================
 
 Many models are serializable using the `ASDF`_
 format. This can be useful in many contexts, one of which is the implementation of a
 `Generalized World Coordinate System (GWCS)`_.
 Serializing a model to disk is as simple as assigning the object to ``AsdfFile.tree``::
 
-.. doctest-skip::
+.. doctest-requires:: asdf
 
     >>> from asdf import AsdfFile
     >>> from astropy.modeling import models
@@ -542,7 +543,7 @@ Serializing a model to disk is as simple as assigning the object to ``AsdfFile.t
 
 To read the file and create the model::
 
-.. doctest-skip::
+.. doctest-requires:: asdf
 
     >>> import asdf
     >>> f = asdf.open('rotation.asdf')
