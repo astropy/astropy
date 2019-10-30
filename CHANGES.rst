@@ -267,6 +267,9 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- ``astropy.utils.data.download_file`` now provides an `http_headers` keyword to
+  pass in specific request headers for the download. [#9508]
+
 - Added a new ``astropy.utils.misc.unbroadcast`` function which can be used
   to return the smallest array that can be broadcasted back to the initial
   array. [#9209]
@@ -351,7 +354,7 @@ astropy.wcs
 - ``SlicedLowLevelWCS`` now raises ``IndexError`` rather than ``ValueError`` on
   an invalid slice. [#9067]
 
-- Added ``fit_wcs_from_points`` function to ``astropy.wcs.utils``. Fits a WCS 
+- Added ``fit_wcs_from_points`` function to ``astropy.wcs.utils``. Fits a WCS
   object to set of matched detector/sky coordinates. [#9469]
 
 API Changes
@@ -763,7 +766,7 @@ Other Changes and Additions
   automatically. [#9365]
 
 - The default server for the IERS data files has been updated to reflect
-  long-term downtime of the canonical USNO server. [#9443, #9487]
+  long-term downtime of the canonical USNO server. [#9443, #9487, #9508]
 
 
 3.2.3 (2019-10-27)
