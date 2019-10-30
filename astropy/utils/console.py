@@ -14,6 +14,7 @@ import struct
 import sys
 import threading
 import time
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 try:
     import fcntl
@@ -692,11 +693,11 @@ class ProgressBar:
 
     @classmethod
     def map(cls, function, items, multiprocess=False, file=None, step=100,
-            ipython_widget=False):
-        """
-        Does a `map` operation while displaying a progress bar with
-        percentage complete. The map operation may run on arbitrary order
-        on the items, but the results are returned in sequential order.
+            ipython_widget=False, multiprocessing_start_method=None):
+        """Map function over items while displaying a progress bar with percentage complete.
+
+        The map operation may run in arbitrary order on the items, but the results are
+        returned in sequential order.
 
         ::
 
@@ -735,15 +736,24 @@ class ProgressBar:
             of the chunks of ``items`` that are submitted as separate tasks
             to the process pool.  A large step size may make the job
             complete faster if ``items`` is very long.
+
+        multiprocessing_start_method : str, optional
+            Useful primarily for testing; if in doubt leave it as the default.
+            When using multiprocessing, certain anomalies occur when starting
+            processes with the "spawn" method (the only option on Windows);
+            other anomalies occur with the "fork" method (the default on
+            Linux).
         """
 
         if multiprocess:
             function = _mapfunc(function)
             items = list(enumerate(items))
 
-        results = cls.map_unordered(function, items, multiprocess=multiprocess,
-                                    file=file, step=step,
-                                    ipython_widget=ipython_widget)
+        results = cls.map_unordered(
+            function, items, multiprocess=multiprocess,
+            file=file, step=step,
+            ipython_widget=ipython_widget,
+            multiprocessing_start_method=multiprocessing_start_method)
 
         if multiprocess:
             _, results = zip(*sorted(results))
@@ -753,8 +763,10 @@ class ProgressBar:
 
     @classmethod
     def map_unordered(cls, function, items, multiprocess=False, file=None,
-                      step=100, ipython_widget=False):
-        """
+                      step=100, ipython_widget=False,
+                      multiprocessing_start_method=None):
+        """Map function over items, reporting the progress.
+
         Does a `map` operation while displaying a progress bar with
         percentage complete. The map operation may run on arbitrary order
         on the items, and the results may be returned in arbitrary order.
@@ -796,6 +808,13 @@ class ProgressBar:
             of the chunks of ``items`` that are submitted as separate tasks
             to the process pool.  A large step size may make the job
             complete faster if ``items`` is very long.
+
+        multiprocessing_start_method : str, optional
+            Useful primarily for testing; if in doubt leave it as the default.
+            When using multiprocessing, certain anomalies occur when starting
+            processes with the "spawn" method (the only option on Windows);
+            other anomalies occur with the "fork" method (the default on
+            Linux).
         """
 
         results = []
@@ -815,14 +834,22 @@ class ProgressBar:
                     if (i % chunksize) == 0:
                         bar.update(i)
             else:
-                p = multiprocessing.Pool(
-                    processes=(int(multiprocess) if multiprocess is not True else None))
-                for i, result in enumerate(
-                    p.imap_unordered(function, items, chunksize=chunksize)):
-                    bar.update(i)
-                    results.append(result)
-                p.close()
-                p.join()
+                ctx = multiprocessing.get_context(multiprocessing_start_method)
+                if sys.version_info >= (3, 7):
+                    kwargs = dict(mp_context=ctx)
+                else:
+                    kwargs = {}
+                with ProcessPoolExecutor(
+                        max_workers=(int(multiprocess)
+                                     if multiprocess is not True
+                                     else None),
+                        **kwargs) as p:
+                    for i, f in enumerate(
+                            as_completed(
+                                p.submit(function, item)
+                                for item in items)):
+                        bar.update(i)
+                        results.append(f.result())
 
         return results
 
