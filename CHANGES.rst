@@ -295,7 +295,7 @@ astropy.utils
 
 - All operations that act on the astropy download cache now take an argument
   ``pkgname`` that allows one to specify which package's cache to use.
-  [#8327]
+  [#8237]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
