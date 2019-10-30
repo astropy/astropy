@@ -167,7 +167,7 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
             if hdu is None:
                 warnings.warn("hdu= was not specified but multiple tables"
                               " are present, reading in first available"
-                              " table (hdu={})".format(first(tables)),
+                              f" table (hdu={first(tables)})",
                               AstropyUserWarning)
                 hdu = first(tables)
 
@@ -181,6 +181,11 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
                 raise ValueError(f"No table found in hdu={hdu}")
 
         elif len(tables) == 1:
+            if hdu != 1:
+                warnings.warn(f"No table found in specified hdu={hdu},"
+                              " reading in first available "
+                              f"table (hdu={first(tables)}) instead!", 
+                              AstropyUserWarning)
             table = tables[first(tables)]
         else:
             raise ValueError("No table found")
