@@ -13,7 +13,6 @@ python:
       extra_requirements:
         - docs
         - all
-    - requirements: docs/rtd_requirements.txt
 
 submodules:
   include: all
