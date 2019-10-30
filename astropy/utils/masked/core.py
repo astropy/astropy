@@ -9,6 +9,9 @@ import numpy as np
 
 from astropy.utils.misc import ShapedLikeNDArray
 
+from .function_helpers import APPLY_TO_BOTH_FUNCTIONS
+
+
 __all__ = ['Masked']
 
 
@@ -233,6 +236,17 @@ class Masked(ShapedLikeNDArray):
         return self._masked_result(result, mask, out)
 
     def __array_function__(self, function, types, args, kwargs):
+        if function in APPLY_TO_BOTH_FUNCTIONS:
+            helper = APPLY_TO_BOTH_FUNCTIONS[function]
+            data, masks, args, kwargs, out = helper(*args, **kwargs)
+            mask = function(masks, *args, **kwargs)
+            if out is not None:
+                if not isinstance(out, Masked):
+                    return NotImplemented
+                kwargs['out'] = out.unmasked
+            result = function(data, *args, **kwargs)
+            return self._masked_result(result, mask, out)
+
         if function is np.array2string:
             # Complete hack.
             if self.shape == ():
