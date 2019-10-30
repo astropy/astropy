@@ -141,7 +141,7 @@ class TimeSeries(BaseTimeSeries):
         """
         return self['time']
 
-    @deprecated_renamed_argument('epoch_time', 'midpoint_epoch', '4.0')
+    @deprecated_renamed_argument('midpoint_epoch', 'epoch_time', '4.0')
     def fold(self, period=None, epoch_time=None, epoch_phase=0, normalize_phase=True,
              phase_length=1):
         """
