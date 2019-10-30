@@ -52,8 +52,8 @@ Explanation of keywords of the dictionaries:
 
 from astropy.modeling.functional_models import (
     Gaussian1D, Sine1D, Box1D, Linear1D, Lorentz1D,
-    MexicanHat1D, Trapezoid1D, Const1D, Moffat1D,
-    Gaussian2D, Const2D, Box2D, MexicanHat2D,
+    RickerWavelet1D, Trapezoid1D, Const1D, Moffat1D,
+    Gaussian2D, Const2D, Box2D, RickerWavelet2D,
     TrapezoidDisk2D, AiryDisk2D, Moffat2D, Disk2D,
     Ring2D, Sersic1D, Sersic2D, Voigt1D, Planar2D, KingProjectedAnalytic1D,
     Exponential1D, Logarithmic1D)
@@ -106,7 +106,7 @@ models_1D = {
         'integral': 1
     },
 
-    MexicanHat1D: {
+    RickerWavelet1D: {
         'parameters': [1, 0, 1],
         'x_values': [0, 1, -1, 3, -3],
         'y_values': [1.0, 0.0, 0.0, -0.088872, -0.088872],
@@ -282,7 +282,7 @@ models_2D = {
         'integral': 100
     },
 
-    MexicanHat2D: {
+    RickerWavelet2D: {
         'parameters': [1, 0, 0, 1],
         'x_values': [0, 0, 0, 0, 0, 1, -1, 3, -3],
         'y_values': [0, 1, -1, 3, -3, 0, 0, 0, 0],

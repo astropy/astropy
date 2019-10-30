@@ -9,8 +9,8 @@ from numpy.testing import assert_almost_equal, assert_allclose
 from astropy.convolution.convolve import convolve, convolve_fft
 from astropy.convolution.kernels import (
     Gaussian1DKernel, Gaussian2DKernel, Box1DKernel, Box2DKernel,
-    Trapezoid1DKernel, TrapezoidDisk2DKernel, MexicanHat1DKernel,
-    Tophat2DKernel, MexicanHat2DKernel, AiryDisk2DKernel, Ring2DKernel,
+    Trapezoid1DKernel, TrapezoidDisk2DKernel, RickerWavelet1DKernel,
+    Tophat2DKernel, RickerWavelet2DKernel, AiryDisk2DKernel, Ring2DKernel,
     CustomKernel, Model1DKernel, Model2DKernel, Kernel1D, Kernel2D)
 
 from astropy.convolution.utils import KernelSizeError
@@ -29,7 +29,7 @@ MODES = ['center', 'linear_interp', 'oversample', 'integrate']
 KERNEL_TYPES = [Gaussian1DKernel, Gaussian2DKernel,
                 Box1DKernel, Box2DKernel,
                 Trapezoid1DKernel, TrapezoidDisk2DKernel,
-                MexicanHat1DKernel, Tophat2DKernel, AiryDisk2DKernel,
+                RickerWavelet1DKernel, Tophat2DKernel, AiryDisk2DKernel,
                 Ring2DKernel]
 
 
@@ -76,10 +76,10 @@ class TestKernels:
     @pytest.mark.parametrize(('width'), WIDTHS_ODD)
     def test_scipy_filter_gaussian_laplace(self, width):
         """
-        Test MexicanHat kernels against SciPy ndimage gaussian laplace filters.
+        Test RickerWavelet kernels against SciPy ndimage gaussian laplace filters.
         """
-        mexican_kernel_1D = MexicanHat1DKernel(width)
-        mexican_kernel_2D = MexicanHat2DKernel(width)
+        mexican_kernel_1D = RickerWavelet1DKernel(width)
+        mexican_kernel_2D = RickerWavelet2DKernel(width)
 
         astropy_1D = convolve(delta_pulse_1D, mexican_kernel_1D, boundary='fill', normalize_kernel=False)
         astropy_2D = convolve(delta_pulse_2D, mexican_kernel_2D, boundary='fill', normalize_kernel=False)
