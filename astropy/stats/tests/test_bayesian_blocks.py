@@ -27,7 +27,8 @@ def test_duplicate_events(rseed=0):
     t = rng.rand(100)
     t[80:] = t[:20]
 
-    x = np.ones_like(t)
+    # Using int array as a regression test for gh-6877
+    x = np.ones(t.shape, dtype=int)
     x[:20] += 1
 
     with pytest.warns(AstropyUserWarning,
