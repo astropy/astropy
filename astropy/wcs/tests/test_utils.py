@@ -4,6 +4,8 @@ import warnings
 
 import pytest
 
+from io import StringIO
+
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_equal, assert_allclose
 
@@ -14,6 +16,7 @@ from astropy import units as u
 from astropy.utils.misc import unbroadcast
 from astropy.coordinates import SkyCoord
 from astropy.units import Quantity
+from astropy.io import fits
 
 from astropy.wcs.wcs import (WCS, Sip, WCSSUB_LONGITUDE, WCSSUB_LATITUDE,
                              FITSFixedWarning)
@@ -30,7 +33,15 @@ from astropy.wcs.utils import (proj_plane_pixel_scales,
                                _split_matrix,
                                _pixel_to_pixel_correlation_matrix,
                                _pixel_to_world_correlation_matrix,
-                               local_partial_pixel_derivatives)
+                               local_partial_pixel_derivatives,
+                               fit_wcs_from_points)
+
+try:
+    import scipy
+except ImportError:
+    HAS_SCIPY = False
+else:
+    HAS_SCIPY = True
 
 
 def test_wcs_dropping():
@@ -1023,3 +1034,116 @@ def test_pixel_to_pixel_1d():
 
     # The broadcasting of the input should be retained
     assert unbroadcast(x).shape == (10,)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_fit_wcs_from_points():
+    header_str_linear = """
+XTENSION= 'IMAGE   '           / Image extension
+BITPIX  =                  -32 / array data type
+NAXIS   =                    2 / number of array dimensions
+NAXIS1  =                   50
+NAXIS2  =                   50
+PCOUNT  =                    0 / number of parameters
+GCOUNT  =                    1 / number of groups
+RADESYS = 'ICRS    '
+EQUINOX =               2000.0
+WCSAXES =                    2
+CTYPE1  = 'RA---TAN'
+CTYPE2  = 'DEC--TAN'
+CRVAL1  =    250.3497414839765
+CRVAL2  =    2.280925599609063
+CRPIX1  =               1045.0
+CRPIX2  =               1001.0
+CD1_1   =   -0.005564478186178
+CD1_2   =   -0.001042099258152
+CD2_1   =     0.00118144146585
+CD2_2   =   -0.005590816683583
+"""
+
+    header_str_sip = """
+XTENSION= 'IMAGE   '           / Image extension
+BITPIX  =                  -32 / array data type
+NAXIS   =                    2 / number of array dimensions
+NAXIS1  =                   50
+NAXIS2  =                   50
+PCOUNT  =                    0 / number of parameters
+GCOUNT  =                    1 / number of groups
+RADESYS = 'ICRS    '
+EQUINOX =               2000.0
+WCSAXES =                    2
+CTYPE1  = 'RA---TAN-SIP'
+CTYPE2  = 'DEC--TAN-SIP'
+CRVAL1  =    250.3497414839765
+CRVAL2  =    2.280925599609063
+CRPIX1  =               1045.0
+CRPIX2  =               1001.0
+CD1_1   =   -0.005564478186178
+CD1_2   =   -0.001042099258152
+CD2_1   =     0.00118144146585
+CD2_2   =   -0.005590816683583
+A_ORDER =                    2
+B_ORDER =                    2
+A_2_0   =    2.02451189234E-05
+A_0_2   =   3.317603337918E-06
+A_1_1   = 1.73456334971071E-05
+B_2_0   =   3.331330003472E-06
+B_0_2   = 2.04247482482589E-05
+B_1_1   = 1.71476710804143E-05
+AP_ORDER=                    2
+BP_ORDER=                    2
+AP_1_0  = 0.000904700296389636
+AP_0_1  = 0.000627660715584716
+AP_2_0  =  -2.023482905861E-05
+AP_0_2  =  -3.332285841011E-06
+AP_1_1  =  -1.731636633824E-05
+BP_1_0  = 0.000627960882053211
+BP_0_1  = 0.000911222886084808
+BP_2_0  =  -3.343918167224E-06
+BP_0_2  =  -2.041598249021E-05
+BP_1_1  =  -1.711876336719E-05
+A_DMAX  =    44.72893589844534
+B_DMAX  =    44.62692873032506
+"""
+    header_linear = fits.Header.fromstring(header_str_linear, sep='\n')
+    header_sip = fits.Header.fromstring(header_str_sip, sep='\n')
+
+    true_wcs_linear = WCS(header_linear, relax=True)
+    true_wcs_sip = WCS(header_sip, relax=True)
+
+    # Getting the pixel coordinates
+    x, y = np.meshgrid(list(range(10)), list(range(10)))
+    x = x.flatten()
+    y = y.flatten()
+
+    # Calculating the true sky positions
+    world_pix_linear = true_wcs_linear.pixel_to_world(x, y)
+    world_pix_sip = true_wcs_sip.pixel_to_world(x, y)
+
+    # Fitting the wcs, no distortion.
+    fit_wcs_linear = fit_wcs_from_points((x, y), world_pix_linear,
+                                         proj_point='center', sip_degree=None)
+
+    # Fitting the wcs, with distortion.
+    fit_wcs_sip = fit_wcs_from_points((x, y), world_pix_sip,
+                                      proj_point='center', sip_degree=2)
+
+    # Validate that the true sky coordinates calculated with `true_wcs_linear`
+    # match sky coordinates calculated from the wcs fit with only linear terms
+
+    world_pix_linear_new = fit_wcs_linear.pixel_to_world(x, y)
+
+    dists = world_pix_linear.separation(world_pix_linear_new)
+
+    assert dists.max() < 7e-5*u.deg
+    assert np.std(dists) < 2.5e-5*u.deg
+
+    # Validate that the true sky coordinates calculated with `true_wcs_sip`
+    # match the sky coordinates calculated from the wcs fit with SIP of same
+    # degree (2)
+
+    world_pix_sip_new = fit_wcs_sip.pixel_to_world(x, y)
+    dists = world_pix_sip.separation(world_pix_sip_new)
+
+    assert dists.max() < 7e-6*u.deg
+    assert np.std(dists) < 2.5e-6*u.deg
