@@ -277,7 +277,9 @@ astropy.utils
 
 - Added ``export_cache`` and ``import_cache`` to permit transporting
   downloaded data to machines with no Internet connection. Several new
-  functions are available to investigate the cache contents. [#9182]
+  functions are available to investigate the cache contents; e.g.,
+  ``check_download_cache`` can be used to confirm that the persistent
+  cache has not become damaged. [#9182]
 
 - A new ``astropy.utils.iers.LeapSeconds`` class has been added to track
   leap seconds. [#9365]
@@ -569,9 +571,7 @@ astropy.utils
 ^^^^^^^^^^^^^
 
 - ``download_file`` and related functions now accept a list of fallback
-  sources, and they are able to update the cache at the user's request.
-  ``check_download_cache`` now also checks to confirm that the persistent
-  cache has not become damaged. [#9182]
+  sources, and they are able to update the cache at the user's request. [#9182]
 
 - Allow ``astropy.utils.console.ProgressBarOrSpinner.map`` and
   ``.map_unordered`` to take an argument ``multiprocessing_start_method`` to
