@@ -1,7 +1,7 @@
 .. _utils-data:
 
 ***************************************************
-Downloadable data management (`astropy.utils.data`)
+Downloadable Data Management (`astropy.utils.data`)
 ***************************************************
 
 Introduction
