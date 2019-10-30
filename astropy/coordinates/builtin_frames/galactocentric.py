@@ -13,7 +13,8 @@ from astropy.coordinates.angles import Angle
 from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
 from astropy.coordinates import representation as r
 from astropy.coordinates.baseframe import (BaseCoordinateFrame,
-                                           frame_transform_graph, base_doc)
+                                           frame_transform_graph,
+                                           base_doc)
 from astropy.coordinates.attributes import (CoordinateAttribute,
                                             QuantityAttribute,
                                             DifferentialAttribute)

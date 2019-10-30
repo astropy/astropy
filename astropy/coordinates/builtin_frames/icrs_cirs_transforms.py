@@ -10,8 +10,10 @@ import numpy as np
 from astropy import units as u
 from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference, AffineTransform
-from astropy.coordinates.representation import (SphericalRepresentation, CartesianRepresentation,
-                              UnitSphericalRepresentation, CartesianDifferential)
+from astropy.coordinates.representation import (SphericalRepresentation,
+                                                CartesianRepresentation,
+                                                UnitSphericalRepresentation,
+                                                CartesianDifferential)
 from astropy import _erfa as erfa
 
 from .icrs import ICRS
@@ -211,8 +213,8 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, GCRS)
 def gcrs_to_gcrs(from_coo, to_frame):
-    if (np.all(from_coo.obstime == to_frame.obstime)
-        and np.all(from_coo.obsgeoloc == to_frame.obsgeoloc)):
+    if (np.all(from_coo.obstime == to_frame.obstime) and
+            np.all(from_coo.obsgeoloc == to_frame.obsgeoloc)):
         return to_frame.realize_frame(from_coo.data)
     else:
         # like CIRS, we do this self-transform via ICRS

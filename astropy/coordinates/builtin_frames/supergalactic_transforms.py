@@ -2,7 +2,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from astropy.coordinates.matrix_utilities import (rotation_matrix,
-                                matrix_product, matrix_transpose)
+                                                  matrix_product,
+                                                  matrix_transpose)
 from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.transformations import StaticMatrixTransform
 
