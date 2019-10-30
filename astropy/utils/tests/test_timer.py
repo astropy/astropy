@@ -16,8 +16,6 @@ import pytest
 import numpy as np
 
 # LOCAL
-from astropy.utils.exceptions import (
-    AstropyUserWarning, AstropyDeprecationWarning)
 from astropy.utils.timer import RunTimePredictor
 from astropy.modeling.fitting import ModelsError
 
@@ -35,11 +33,10 @@ def func_to_time(x):
     return y
 
 
+@pytest.mark.filterwarnings("ignore")
 def test_timer():
     """Test function timer."""
-    with pytest.warns(AstropyDeprecationWarning,
-                      match='astroquery.utils.timer.RunTimePredictor'):
-        p = RunTimePredictor(func_to_time)
+    p = RunTimePredictor(func_to_time)
 
     # --- These must run before data points are introduced. ---
 
@@ -51,9 +48,7 @@ def test_timer():
 
     # --- These must run next to set up data points. ---
 
-    with pytest.warns(AstropyUserWarning, match="ufunc 'multiply' did not "
-                      "contain a loop with signature matching types"):
-        p.time_func([2.02, 2.04, 2.1, 'a', 2.3])
+    p.time_func([2.02, 2.04, 2.1, 'a', 2.3])
     p.time_func(2.2)  # Test OrderedDict
 
     assert p._funcname == 'func_to_time'

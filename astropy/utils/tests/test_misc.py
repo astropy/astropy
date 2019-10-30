@@ -9,7 +9,6 @@ import pytest
 import numpy as np
 
 from astropy.utils import data, misc
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_isiterable():
@@ -79,17 +78,17 @@ def test_JsonCustomEncoder():
     assert newd == tmpd
 
 
+@pytest.mark.filterwarnings("ignore")
 def test_inherit_docstrings():
-    with pytest.warns(AstropyDeprecationWarning, match="inherits docstring"):
-        class Base(metaclass=misc.InheritDocstrings):
-            def __call__(self, *args):
-                "FOO"
-                pass
+    class Base(metaclass=misc.InheritDocstrings):
+        def __call__(self, *args):
+            "FOO"
+            pass
 
-            @property
-            def bar(self):
-                "BAR"
-                pass
+        @property
+        def bar(self):
+            "BAR"
+            pass
 
     class Subclass(Base):
         def __call__(self, *args):
@@ -121,16 +120,16 @@ def test_set_locale():
     date = datetime(2000, 10, 1, 0, 0, 0)
     day_mon = date.strftime('%a, %b')
 
-    with misc.set_locale('en_US'):
+    with misc._set_locale('en_US'):
         assert date.strftime('%a, %b') == 'Sun, Oct'
 
-    with misc.set_locale('de_DE'):
+    with misc._set_locale('de_DE'):
         assert date.strftime('%a, %b') == 'So, Okt'
 
     # Back to original
     assert date.strftime('%a, %b') == day_mon
 
-    with misc.set_locale(current):
+    with misc._set_locale(current):
         assert date.strftime('%a, %b') == day_mon
 
 
