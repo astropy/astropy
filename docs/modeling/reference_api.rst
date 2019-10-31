@@ -16,6 +16,9 @@ Pre-Defined Models
 ******************
 
 .. automodapi:: astropy.modeling.functional_models
+   :skip: MexicanHat1D
+   :skip: MexicanHat2D
+
 .. automodapi:: astropy.modeling.physical_models
 .. automodapi:: astropy.modeling.powerlaws
 .. automodapi:: astropy.modeling.polynomial
