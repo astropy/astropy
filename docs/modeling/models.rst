@@ -530,7 +530,7 @@ Model Serialization (Writing a Model to a File)
 Many models are serializable using the `ASDF`_
 format. This can be useful in many contexts, one of which is the implementation of a
 `Generalized World Coordinate System (GWCS)`_.
-Serializing a model to disk is possible by assigning the object to ``AsdfFile.tree``::
+Serializing a model to disk is possible by assigning the object to ``AsdfFile.tree``:
 
 .. doctest-requires:: asdf
 
@@ -541,7 +541,7 @@ Serializing a model to disk is possible by assigning the object to ``AsdfFile.tr
     >>> f.tree['model'] = rotation
     >>> f.write_to('rotation.asdf')
 
-To read the file and create the model::
+To read the file and create the model:
 
 .. doctest-requires:: asdf
 
