@@ -7,13 +7,11 @@ Create a multi-extension FITS (MEF) file from scratch
 This example demonstrates how to create a multi-extension FITS (MEF)
 file from scratch using `astropy.io.fits`.
 
--------------------
 
 *By: Erik Bray*
 
 *License: BSD*
 
--------------------
 
 """
 

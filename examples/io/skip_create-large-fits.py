@@ -7,13 +7,11 @@ Create a very large FITS file from scratch
 This example demonstrates how to create a large file (larger than will fit in
 memory) from scratch using `astropy.io.fits`.
 
--------------------
 
 *By: Erik Bray*
 
 *License: BSD*
 
--------------------
 """
 
 ##############################################################################

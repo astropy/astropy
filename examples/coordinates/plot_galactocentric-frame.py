@@ -21,13 +21,11 @@ instead by inputting the proper motion of Sgr A*.
 Note that, for brevity, we may refer to the solar system barycenter as just "the
 sun" in the examples below.
 
--------------------
 
 *By: Adrian Price-Whelan*
 
 *License: BSD*
 
--------------------
 
 """
 

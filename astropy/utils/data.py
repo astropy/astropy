@@ -1079,8 +1079,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
     urllib.error.URLError
         Whenever there's a problem getting the remote file.
 
-    Note
-    ----
+    Notes
+    -----
     Because this returns a filename, another process could run
     clear_download_cache before you actually open the file, leaving
     you with a filename that no longer points to a usable file.
@@ -1283,8 +1283,8 @@ def download_files_in_parallel(urls,
     paths : list of str
         The local file paths corresponding to the downloaded URLs.
 
-    Note
-    ----
+    Notes
+    -----
     If a URL is unreachable, the downloading will grind to a halt and the
     exception will propagate upward, but an unpredictable number of
     files will have been successfully downloaded and will remain in

@@ -10,13 +10,11 @@ FITS (image) file.
 This example uses `pillow <http://python-pillow.org>`_ to read the image,
 `matplotlib.pyplot` to display the image, and `astropy.io.fits` to save FITS files.
 
--------------------
 
 *By: Erik Bray, Adrian Price-Whelan*
 
 *License: BSD*
 
--------------------
 
 """
 
