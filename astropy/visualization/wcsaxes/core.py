@@ -96,6 +96,8 @@ class WCSAxes(Axes):
     def __init__(self, fig, rect, wcs=None, transform=None, coord_meta=None,
                  transData=None, slices=None, frame_class=None,
                  **kwargs):
+        """
+        """
 
         super().__init__(fig, rect, **kwargs)
         self._bboxes = []
