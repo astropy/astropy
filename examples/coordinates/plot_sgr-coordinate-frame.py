@@ -32,13 +32,11 @@ See Also
   Triaxial Milky Way Halo", https://arxiv.org/abs/1003.1132
 * David Law's Sgr info page http://www.stsci.edu/~dlaw/Sgr/
 
----
 
 *By: Adrian Price-Whelan, Erik Tollerud*
 
 *License: BSD*
 
----
 
 """
 
