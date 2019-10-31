@@ -14,13 +14,13 @@ frame relative to the bary- or Heliocentric frame. It also depends on the
 assumed solar velocity vector. Here we'll demonstrate how to perform this
 transformation using a sky position and barycentric radial-velocity.
 
--------------------
+---
 
 *By: Adrian Price-Whelan*
 
 *License: BSD*
 
--------------------
+---
 
 """
 

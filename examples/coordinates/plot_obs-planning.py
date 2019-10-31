@@ -16,13 +16,13 @@ This example is meant to demonstrate the capabilities of the
 planning, consider the `astroplan <https://astroplan.readthedocs.org/>`_
 package.
 
--------------------
+---
 
 *By: Erik Tollerud, Kelle Cruz*
 
 *License: BSD*
 
--------------------
+---
 
 """
 
