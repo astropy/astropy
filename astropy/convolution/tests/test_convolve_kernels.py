@@ -10,7 +10,7 @@ from astropy import units as u
 from astropy.convolution.convolve import convolve, convolve_fft
 from astropy.convolution.kernels import Gaussian2DKernel, Box2DKernel, Tophat2DKernel
 from astropy.convolution.kernels import Moffat2DKernel
-
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 SHAPES_ODD = [[15, 15], [31, 31]]
 SHAPES_EVEN = [[8, 8], [16, 16], [32, 32]]  # FIXME: not used ?!
@@ -135,3 +135,18 @@ def test_gaussian_2d_kernel_quantity():
     kernel1 = Gaussian2DKernel(x_stddev=2, y_stddev=4, theta=45 * u.deg)
     kernel2 = Gaussian2DKernel(x_stddev=2, y_stddev=4, theta=np.pi / 4)
     assert_allclose(kernel1.array, kernel2.array)
+
+
+def test_deprecated_hat():
+
+    # 'MexicanHat' was deprecated as a name for the kernels which are now
+    # 'RickerWavelet'. This test ensures that the kernels are correctly
+    # deprecated, and can be imported from the top-level package.
+
+    from astropy.convolution import MexicanHat1DKernel, MexicanHat2DKernel
+
+    with pytest.warns(AstropyDeprecationWarning):
+        MexicanHat1DKernel(2)
+
+    with pytest.warns(AstropyDeprecationWarning):
+        MexicanHat2DKernel(2)
