@@ -12,13 +12,13 @@ The example uses `astropy.utils.data` to download multi-extension FITS (MEF)
 file, `astropy.io.fits` to investigate the header, and
 `astropy.table.Table` to explore the data.
 
--------------------
+---
 
 *By: Lia Corrales, Adrian Price-Whelan, and Kelle Cruz*
 
 *License: BSD*
 
--------------------
+---
 
 """
 
