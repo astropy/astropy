@@ -273,3 +273,17 @@ def test_ExponentialAndLogarithmic1D_fit():
     log_model = models.Logarithmic1D(amplitude=1, tau=1)
     assert_allclose(xarr, em_model.inverse(em_model(xarr)))
     assert_allclose(xarr, log_model.inverse(log_model(xarr)))
+
+
+def test_deprecated_hat():
+
+    # The name 'MexicanHat' was deprecated as a name for the models which are
+    # now 'RickerWavelet'. This test ensures that the tests are correctly
+    # deprecated.
+
+    with pytest.warns(AstropyDeprecationWarning):
+        models.MexicanHat1D()
+
+    with pytest.warns(AstropyDeprecationWarning):
+        models.MexicanHat2D()
+
