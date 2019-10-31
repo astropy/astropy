@@ -50,6 +50,11 @@ py:class astropy.time.core.TimeUnique
 
 # astropy.visualization
 py:class matplotlib.axes._subplots.WCSAxesSubplot
+py:obj Bbox
+py:obj Transform
+py:obj Patch
+py:obj Figure
+py:obj AbstractPathEffect
 
 # numpy inherited docstrings
 py:obj dtype
