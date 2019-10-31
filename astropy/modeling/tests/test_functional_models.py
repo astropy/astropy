@@ -286,4 +286,3 @@ def test_deprecated_hat_kernel():
 
     with pytest.warns(AstropyDeprecationWarning):
         models.MexicanHat2D()
-
