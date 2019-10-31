@@ -62,15 +62,15 @@ independently of the fitting features of the package.
 Instantiating and Evaluating Models
 -----------------------------------
 
-In general models are instantiated by supplying the parameter values that
+In general, models are instantiated by supplying the parameter values that
 define that instance of the model to the constructor, as demonstrated in
 the section on :ref:`modeling-parameters`.
 
 Additionally, a `~astropy.modeling.Model` instance may represent a single model
 with one set of parameters, or a :ref:`Model set <modeling-model-sets>` consisting
 of a set of parameters each representing a different parameterization of the same
-parametric model. For example one may instantiate a single Gaussian model
-with one mean, standard deviation, and amplitude.  Or one may create a set
+parametric model. For example, you may instantiate a single Gaussian model
+with one mean, standard deviation, and amplitude. Or you may create a set
 of N Gaussians, each one of which would be evaluated on, for example, a
 different plane in an image cube.
 
@@ -242,7 +242,7 @@ with `~astropy.modeling.custom_model` or as a `~astropy.modeling.core.CompoundMo
     ((-4.0, 4.0), (-3.0, 3.0), (-2.0, 2.0))
 
 By default models are evaluated on any inputs. By passing a flag they can be evaluated
-only on inputs within the bounding box. For inputs outside the bounding_box a ``fill_value`` is
+only on inputs within the bounding box. For inputs outside of the bounding_box a ``fill_value`` is
 returned (``np.nan`` by default)::
 
     >>> model(-5, 1, 1)
@@ -439,7 +439,7 @@ Or when the input is an array::
     array([[1.        , 1.        , 1.        ],
            [1.76499381, 1.76499381, 1.76499381]])
 
-Internally the shape of the inputs, outputs and parameter values is controlled
+Internally the shape of the inputs, outputs, and parameter values is controlled
 by an attribute - ``model_set_axis``. In the above case ``model_set_axis=0``::
 
     >>> g.model_set_axis
@@ -481,14 +481,14 @@ Or when the model is initialized::
            [1.        , 1.76499381],
            [1.        , 1.76499381]])
 
-Note that in the latter case the shape fo the individual parameters has changed to 2D
+Note that in the latter case, the shape of the individual parameters has changed to 2D
 because now the parameters are defined along the 1st axis.
 
 The value of ``model_set_axis`` is either an integer number, representing the axis along which
 the different parameter sets and inputs are defined, or a boolean of value ``False``,
 in which case it indicates all model sets should use the same inputs on evaluation.
-For example the above model has a value of 1 for ``model_set_axis``.
-If ``model_set_axis=False`` is passed the 2 models will be evaluated on the same input::
+For example, the above model has a value of 1 for ``model_set_axis``.
+If ``model_set_axis=False`` is passed the two models will be evaluated on the same input::
 
     >>> g.model_set_axis
     1
@@ -514,23 +514,23 @@ If ``model_set_axis=False`` is passed the 2 models will be evaluated on the same
 Currently model sets are most useful for fitting a set of **linear** models
 (:ref:`example <example-fitting-model-sets>`)
 allowing a large number of models of the same type to be fitted simultaneously
-(and independently from each other) to some large set of inputs, for example,
+(and independently from each other) to some large set of inputs, such as
 fitting a polynomial to the time response of each pixel in a data cube.
 This can greatly speed up the fitting process. The speed-up is due to solving
-the set of equations to find the exact solution. Non-linear models, which require
-an iterative algorithm, cannot be currently fit using model sets. Model sets of non-linear
+the set of equations to find the exact solution. Nonlinear models, which require
+an iterative algorithm, cannot be currently fit using model sets. Model sets of nonlinear
 models can only be evaluated.
 
 
 .. _modeling-asdf:
 
-Model Serialization (Writing a model to a file)
+Model Serialization (Writing a Model to a File)
 ===============================================
 
 Many models are serializable using the `ASDF`_
 format. This can be useful in many contexts, one of which is the implementation of a
 `Generalized World Coordinate System (GWCS)`_.
-Serializing a model to disk is as simple as assigning the object to ``AsdfFile.tree``::
+Serializing a model to disk is possible by assigning the object to ``AsdfFile.tree``::
 
 .. doctest-requires:: asdf
 
