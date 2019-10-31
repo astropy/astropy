@@ -1,3 +1,5 @@
+.. _example-fitting-model-sets:
+
 Fitting Model Sets
 ==================
 
