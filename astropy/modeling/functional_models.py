@@ -1952,7 +1952,13 @@ class TrapezoidDisk2D(Fittable2DModel):
 
 class RickerWavelet1D(Fittable1DModel):
     """
-    One dimensional Ricker Wavelet model (sometimes known as a "Mexican Hat" model).
+    One dimensional Ricker Wavelet model (sometimes known as a "Mexican Hat"
+    model).
+
+    .. note::
+
+        See https://github.com/astropy/astropy/pull/9445 for discussions
+        related to renaming of this model.
 
     Parameters
     ----------
@@ -2040,7 +2046,13 @@ class RickerWavelet1D(Fittable1DModel):
 
 class RickerWavelet2D(Fittable2DModel):
     """
-    Two dimensional Ricker Wavelet model (sometimes known as a "Mexican Hat" model).
+    Two dimensional Ricker Wavelet model (sometimes known as a "Mexican Hat"
+    model).
+
+    .. note::
+
+        See https://github.com/astropy/astropy/pull/9445 for discussions
+        related to renaming of this model.
 
     Parameters
     ----------

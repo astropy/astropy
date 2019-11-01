@@ -539,7 +539,8 @@ class TrapezoidDisk2DKernel(Kernel2D):
 
 class RickerWavelet1DKernel(Kernel1D):
     """
-    1D Ricker wavelet filter kernel.
+    1D Ricker wavelet filter kernel (sometimes known as a "Mexican Hat"
+    kernel).
 
     The Ricker wavelet, or inverted Gaussian-Laplace filter, is a
     bandpass filter. It smooths the data and removes slowly varying
@@ -551,6 +552,11 @@ class RickerWavelet1DKernel(Kernel1D):
     at the kernels center of 1. / (sqrt(2 * pi) * width ** 3). The
     normalization is the same as for `scipy.ndimage.gaussian_laplace`,
     except for a minus sign.
+
+    .. note::
+
+        See https://github.com/astropy/astropy/pull/9445 for discussions
+        related to renaming of this kernel.
 
     Parameters
     ----------
@@ -609,7 +615,8 @@ class RickerWavelet1DKernel(Kernel1D):
 
 class RickerWavelet2DKernel(Kernel2D):
     """
-    2D Ricker wavelet filter kernel.
+    2D Ricker wavelet filter kernel (sometimes known as a "Mexican Hat"
+    kernel).
 
     The Ricker wavelet, or inverted Gaussian-Laplace filter, is a
     bandpass filter. It smooths the data and removes slowly varying
@@ -621,6 +628,11 @@ class RickerWavelet2DKernel(Kernel2D):
     at the kernels center of 1. / (pi * width ** 4). The normalization
     is the same as for `scipy.ndimage.gaussian_laplace`, except
     for a minus sign.
+
+    .. note::
+
+        See https://github.com/astropy/astropy/pull/9445 for discussions
+        related to renaming of this kernel.
 
     Parameters
     ----------
