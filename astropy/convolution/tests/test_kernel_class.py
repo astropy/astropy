@@ -78,22 +78,21 @@ class TestKernels:
         """
         Test RickerWavelet kernels against SciPy ndimage gaussian laplace filters.
         """
-        mexican_kernel_1D = RickerWavelet1DKernel(width)
-        mexican_kernel_2D = RickerWavelet2DKernel(width)
+        ricker_kernel_1D = RickerWavelet1DKernel(width)
+        ricker_kernel_2D = RickerWavelet2DKernel(width)
 
-        astropy_1D = convolve(delta_pulse_1D, mexican_kernel_1D, boundary='fill', normalize_kernel=False)
-        astropy_2D = convolve(delta_pulse_2D, mexican_kernel_2D, boundary='fill', normalize_kernel=False)
+        astropy_1D = convolve(delta_pulse_1D, ricker_kernel_1D, boundary='fill', normalize_kernel=False)
+        astropy_2D = convolve(delta_pulse_2D, ricker_kernel_2D, boundary='fill', normalize_kernel=False)
 
         with pytest.raises(Exception) as exc:
-            astropy_1D = convolve(delta_pulse_1D, mexican_kernel_1D, boundary='fill', normalize_kernel=True)
+            astropy_1D = convolve(delta_pulse_1D, ricker_kernel_1D, boundary='fill', normalize_kernel=True)
         assert 'sum is close to zero' in exc.value.args[0]
 
         with pytest.raises(Exception) as exc:
-            astropy_2D = convolve(delta_pulse_2D, mexican_kernel_2D, boundary='fill', normalize_kernel=True)
+            astropy_2D = convolve(delta_pulse_2D, ricker_kernel_2D, boundary='fill', normalize_kernel=True)
         assert 'sum is close to zero' in exc.value.args[0]
 
-        # The Laplace of Gaussian filter is an inverted Mexican Hat
-        # filter.
+        # The Laplace of Gaussian filter is an inverted Ricker Wavelet filter.
         scipy_1D = -filters.gaussian_laplace(delta_pulse_1D, width)
         scipy_2D = -filters.gaussian_laplace(delta_pulse_2D, width)
 

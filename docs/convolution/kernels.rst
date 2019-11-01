@@ -185,7 +185,7 @@ scale compared to the original image.
 
 The Gaussian kernel has better smoothing properties compared to the Box and the
 Top Hat. The Box filter is not isotropic and can produce artifacts (the source
-appears rectangular). The Mexican Hat filter removes noise and slowly varying
+appears rectangular). The Ricker Wavelet filter removes noise and slowly varying
 structures (i.e., background), but produces a negative ring around the source.
 The best choice for the filter strongly depends on the application.
 

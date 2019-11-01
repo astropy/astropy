@@ -1952,7 +1952,7 @@ class TrapezoidDisk2D(Fittable2DModel):
 
 class RickerWavelet1D(Fittable1DModel):
     """
-    One dimensional Mexican Hat model.
+    One dimensional Ricker Wavelet model (sometimes known as a "Mexican Hat" model).
 
     Parameters
     ----------
@@ -1961,7 +1961,7 @@ class RickerWavelet1D(Fittable1DModel):
     x_0 : float
         Position of the peak
     sigma : float
-        Width of the Mexican hat
+        Width of the Ricker wavelet
 
     See Also
     --------
@@ -2005,7 +2005,7 @@ class RickerWavelet1D(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, amplitude, x_0, sigma):
-        """One dimensional Mexican Hat model function"""
+        """One dimensional Ricker Wavelet model function"""
 
         xx_ww = (x - x_0) ** 2 / (2 * sigma ** 2)
         return amplitude * (1 - 2 * xx_ww) * np.exp(-xx_ww)
@@ -2040,7 +2040,7 @@ class RickerWavelet1D(Fittable1DModel):
 
 class RickerWavelet2D(Fittable2DModel):
     """
-    Two dimensional symmetric Mexican Hat model.
+    Two dimensional Ricker Wavelet model (sometimes known as a "Mexican Hat" model).
 
     Parameters
     ----------
@@ -2051,7 +2051,7 @@ class RickerWavelet2D(Fittable2DModel):
     y_0 : float
         y position of the peak
     sigma : float
-        Width of the Mexican hat
+        Width of the Ricker wavelet
 
     See Also
     --------
@@ -2076,7 +2076,7 @@ class RickerWavelet2D(Fittable2DModel):
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, sigma):
-        """Two dimensional Mexican Hat model function"""
+        """Two dimensional Ricker Wavelet model function"""
 
         rr_ww = ((x - x_0) ** 2 + (y - y_0) ** 2) / (2 * sigma ** 2)
         return amplitude * (1 - rr_ww) * np.exp(- rr_ww)
