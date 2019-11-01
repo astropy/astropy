@@ -20,7 +20,7 @@ __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'RedshiftScaleFactor', 'Multiply', 'Planar2D', 'Scale',
            'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D',
            'TrapezoidDisk2D', 'Ring2D', 'Voigt1D', 'KingProjectedAnalytic1D',
-           'Exponential1D', 'Logarithmic1D', 'MexicanHat1D', 'MexicanHat2D']
+           'Exponential1D', 'Logarithmic1D']
 
 TWOPI = 2 * np.pi
 FLOAT_EPSILON = float(np.finfo(np.float32).tiny)

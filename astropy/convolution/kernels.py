@@ -14,8 +14,7 @@ __all__ = ['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
            'Box1DKernel', 'Box2DKernel', 'Tophat2DKernel',
            'Trapezoid1DKernel', 'RickerWavelet1DKernel', 'RickerWavelet2DKernel',
            'AiryDisk2DKernel', 'Moffat2DKernel', 'Model1DKernel',
-           'Model2DKernel', 'TrapezoidDisk2DKernel', 'Ring2DKernel',
-           'MexicanHat1DKernel', 'MexicanHat2DKernel']
+           'Model2DKernel', 'TrapezoidDisk2DKernel', 'Ring2DKernel']
 
 
 def _round_up_to_odd_integer(value):
