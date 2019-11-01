@@ -539,9 +539,9 @@ class TrapezoidDisk2DKernel(Kernel2D):
 
 class RickerWavelet1DKernel(Kernel1D):
     """
-    1D Mexican hat filter kernel.
+    1D Ricker wavelet filter kernel.
 
-    The Mexican Hat, or inverted Gaussian-Laplace filter, is a
+    The Ricker wavelet, or inverted Gaussian-Laplace filter, is a
     bandpass filter. It smooths the data and removes slowly varying
     or constant structures (e.g. Background). It is useful for peak or
     multi-scale detection.
@@ -590,8 +590,8 @@ class RickerWavelet1DKernel(Kernel1D):
 
         import matplotlib.pyplot as plt
         from astropy.convolution import RickerWavelet1DKernel
-        mexicanhat_1D_kernel = RickerWavelet1DKernel(10)
-        plt.plot(mexicanhat_1D_kernel, drawstyle='steps')
+        ricker_1d_kernel = RickerWavelet1DKernel(10)
+        plt.plot(ricker_1d_kernel, drawstyle='steps')
         plt.xlabel('x [pixels]')
         plt.ylabel('value')
         plt.show()
@@ -609,9 +609,9 @@ class RickerWavelet1DKernel(Kernel1D):
 
 class RickerWavelet2DKernel(Kernel2D):
     """
-    2D Mexican hat filter kernel.
+    2D Ricker wavelet filter kernel.
 
-    The Mexican Hat, or inverted Gaussian-Laplace filter, is a
+    The Ricker wavelet, or inverted Gaussian-Laplace filter, is a
     bandpass filter. It smooths the data and removes slowly varying
     or constant structures (e.g. Background). It is useful for peak or
     multi-scale detection.
@@ -663,8 +663,8 @@ class RickerWavelet2DKernel(Kernel2D):
 
         import matplotlib.pyplot as plt
         from astropy.convolution import RickerWavelet2DKernel
-        mexicanhat_2D_kernel = RickerWavelet2DKernel(10)
-        plt.imshow(mexicanhat_2D_kernel, interpolation='none', origin='lower')
+        ricker_2d_kernel = RickerWavelet2DKernel(10)
+        plt.imshow(ricker_2d_kernel, interpolation='none', origin='lower')
         plt.xlabel('x [pixels]')
         plt.ylabel('y [pixels]')
         plt.colorbar()
