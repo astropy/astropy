@@ -338,6 +338,30 @@ class TestMaskedLongitudeMethods(TestMaskedArrayMethods, LongitudeSetup):
     pass
 
 
+class TestMaskedArrayRepr(MaskedArraySetup):
+    def test_array_str(self):
+        # very blunt check they work at all.
+        str(self.ma)
+        str(self.mb)
+        str(self.mb)
+
+    def test_scalar_str(self):
+        assert self.mb[0].shape == ()
+        str(self.mb[0])
+
+    def test_array_repr(self):
+        repr(self.ma)
+        repr(self.mb)
+        repr(self.mc)
+
+    def test_scalar_repr(self):
+        repr(self.mb[0])
+
+
+class TestMaskedQuantityRepr(TestMaskedArrayRepr, QuantitySetup):
+    pass
+
+
 class TestMaskedArrayConcatenation(MaskedArraySetup):
     def test_concatenate(self):
         mb = self.mb[np.newaxis]

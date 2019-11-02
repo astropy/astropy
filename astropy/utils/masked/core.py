@@ -252,8 +252,7 @@ class Masked(ShapedLikeNDArray):
             if self.shape == ():
                 return str(self)
 
-            kwargs.setdefault('formatter',
-                              {'all': self.__class__.__str__})
+            kwargs.setdefault('formatter', {'all': self._to_string})
 
         return super().__array_function__(function, types, args, kwargs)
 
@@ -293,22 +292,28 @@ class Masked(ShapedLikeNDArray):
         result = result / n
         return result
 
-    # TODO: improve (greatly) str and repr!!
-    def __str__(self):
-        if self.shape == ():
-            string = str(self.unmasked)
-            if self.mask:
+    def _to_string(self, a):
+        # This exists only to work around a numpy annoyance that array scalars
+        # always get turned into plain ndarray items and thus loose the mask.
+        if a.shape == () and self.shape == () and a == self.unmasked:
+            a = self
+
+        if a.shape == ():
+            string = str(a.unmasked)
+            if a.mask:
                 # Strikethrough would be neat, but it doesn't show in konsole.
                 # return ''.join(s+'\u0336' for s in string)
-                return '\u2014' * len(string)
+                return ' ' * (len(string)-3) + '\u2014' * 3
             else:
                 return string
 
-        with np.printoptions(formatter={'all': self.__class__.__str__}):
+    # TODO: improve (greatly) str and repr!!
+    def __str__(self):
+        with np.printoptions(formatter={'all': self._to_string}):
             return super().__str__()
 
     def __repr__(self):
-        with np.printoptions(formatter={'all': self.__class__.__str__}):
+        with np.printoptions(formatter={'all': self._to_string}):
             return super().__repr__()
 
 
