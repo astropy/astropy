@@ -673,6 +673,9 @@ astropy.io.fits
 - Implemented skip (after warning) of header cards with reserved
   keywords in ``table_to_hdu``. [#9390]
 
+- Add ``AstropyDeprecationWarning`` to ``read_table_fits`` when ``hdu=`` is selected, but
+  does not match single present table HDU. [#9512]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
