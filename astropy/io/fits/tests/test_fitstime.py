@@ -456,10 +456,10 @@ class TestFitsTime(FitsTestCase):
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
 
         with catch_warnings() as w:
-            tm = table_types.read(self.temp('time.fits'), astropy_native=True)
-            assert len(w) == 1
-            assert ('observatory position is not properly specified' in
-                    str(w[0].message))
+            table_types.read(self.temp('time.fits'), astropy_native=True)
+        assert len(w) == 1
+        assert ('observatory position is not properly specified' in
+                str(w[0].message))
 
         # Warning for default value of time reference position "TOPOCENTER"
         # not generated when there is no specified observatory position.
@@ -469,5 +469,5 @@ class TestFitsTime(FitsTestCase):
         bhdu = fits.BinTableHDU.from_columns([c])
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
         with catch_warnings() as w:
-            tm = table_types.read(self.temp('time.fits'), astropy_native=True)
-            assert len(w) == 0
+            table_types.read(self.temp('time.fits'), astropy_native=True)
+        assert len(w) == 0

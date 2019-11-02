@@ -23,12 +23,12 @@ class TestConvenience(FitsTestCase):
     def test_resource_warning(self):
         warnings.simplefilter('always', ResourceWarning)
         with catch_warnings() as w:
-            data = fits.getdata(self.data('test0.fits'))
-            assert len(w) == 0
+            fits.getdata(self.data('test0.fits'))
+        assert len(w) == 0
 
         with catch_warnings() as w:
-            header = fits.getheader(self.data('test0.fits'))
-            assert len(w) == 0
+            fits.getheader(self.data('test0.fits'))
+        assert len(w) == 0
 
     def test_fileobj_not_closed(self):
         """
@@ -39,11 +39,11 @@ class TestConvenience(FitsTestCase):
         """
 
         f = open(self.data('test0.fits'), 'rb')
-        data = fits.getdata(f)
+        fits.getdata(f)
         assert not f.closed
 
         f.seek(0)
-        header = fits.getheader(f)
+        fits.getheader(f)
         assert not f.closed
 
         f.close()  # Close it now

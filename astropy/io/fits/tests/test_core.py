@@ -7,6 +7,7 @@ import mmap
 import errno
 import os
 import pathlib
+import urllib.request
 import warnings
 import zipfile
 from unittest.mock import patch
@@ -594,7 +595,7 @@ class TestFileFunctions(FitsTestCase):
         # But opening in ostream or append mode should be okay, since they
         # allow writing new files
         for mode in ('ostream', 'append'):
-            with fits.open(self.temp('foobar.fits'), mode=mode) as h:
+            with fits.open(self.temp('foobar.fits'), mode=mode):
                 pass
 
             assert os.path.exists(self.temp('foobar.fits'))
@@ -603,24 +604,24 @@ class TestFileFunctions(FitsTestCase):
     def test_open_file_handle(self):
         # Make sure we can open a FITS file from an open file handle
         with open(self.data('test0.fits'), 'rb') as handle:
-            with fits.open(handle) as fitsfile:
+            with fits.open(handle):
                 pass
 
         with open(self.temp('temp.fits'), 'wb') as handle:
-            with fits.open(handle, mode='ostream') as fitsfile:
+            with fits.open(handle, mode='ostream'):
                 pass
 
         # Opening without explicitly specifying binary mode should fail
         with pytest.raises(ValueError):
             with open(self.data('test0.fits')) as handle:
-                with fits.open(handle) as fitsfile:
+                with fits.open(handle):
                     pass
 
         # All of these read modes should fail
         for mode in ['r', 'rt']:
             with pytest.raises(ValueError):
                 with open(self.data('test0.fits'), mode=mode) as handle:
-                    with fits.open(handle) as fitsfile:
+                    with fits.open(handle):
                         pass
 
         # These update or write modes should fail as well
@@ -628,51 +629,44 @@ class TestFileFunctions(FitsTestCase):
                      'a', 'at', 'a+', 'at+']:
             with pytest.raises(ValueError):
                 with open(self.temp('temp.fits'), mode=mode) as handle:
-                    with fits.open(handle) as fitsfile:
+                    with fits.open(handle):
                         pass
 
     def test_fits_file_handle_mode_combo(self):
         # This should work fine since no mode is given
         with open(self.data('test0.fits'), 'rb') as handle:
-            with fits.open(handle) as fitsfile:
+            with fits.open(handle):
                 pass
 
         # This should work fine since the modes are compatible
         with open(self.data('test0.fits'), 'rb') as handle:
-            with fits.open(handle, mode='readonly') as fitsfile:
+            with fits.open(handle, mode='readonly'):
                 pass
 
         # This should not work since the modes conflict
         with pytest.raises(ValueError):
             with open(self.data('test0.fits'), 'rb') as handle:
-                with fits.open(handle, mode='ostream') as fitsfile:
+                with fits.open(handle, mode='ostream'):
                     pass
 
     def test_open_from_url(self):
-        import urllib.request
-        file_url = 'file:///' +  self.data('test0.fits').lstrip('/')
+        file_url = 'file:///' + self.data('test0.fits').lstrip('/')
         with urllib.request.urlopen(file_url) as urlobj:
-            with fits.open(urlobj) as fits_handle:
+            with fits.open(urlobj):
                 pass
 
         # It will not be possible to write to a file that is from a URL object
         for mode in ('ostream', 'append', 'update'):
             with pytest.raises(ValueError):
                 with urllib.request.urlopen(file_url) as urlobj:
-                    with fits.open(urlobj, mode=mode) as fits_handle:
+                    with fits.open(urlobj, mode=mode):
                         pass
 
     @pytest.mark.remote_data(source='astropy')
     def test_open_from_remote_url(self):
-
-        import urllib.request
-
         for dataurl in (conf.dataurl, conf.dataurl_mirror):
-
             remote_url = '{}/{}'.format(dataurl, 'allsky/allsky_rosat.fits')
-
             try:
-
                 with urllib.request.urlopen(remote_url) as urlobj:
                     with fits.open(urlobj) as fits_handle:
                         assert len(fits_handle) == 1
@@ -682,7 +676,6 @@ class TestFileFunctions(FitsTestCase):
                         with urllib.request.urlopen(remote_url) as urlobj:
                             with fits.open(urlobj, mode=mode) as fits_handle:
                                 assert len(fits_handle) == 1
-
             except (urllib.error.HTTPError, urllib.error.URLError):
                 continue
             else:
@@ -750,7 +743,7 @@ class TestFileFunctions(FitsTestCase):
         'append' mode raises an error"""
 
         with pytest.raises(OSError):
-            with fits.open(self._make_gzip_file('append.gz'), mode='append') as fits_handle:
+            with fits.open(self._make_gzip_file('append.gz'), mode='append'):
                 pass
 
     def test_open_bzipped(self):
