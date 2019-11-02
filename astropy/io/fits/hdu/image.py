@@ -375,10 +375,11 @@ class _ImageBaseHDU(_ValidHDU):
         # Added original_was_unsigned with the intent of facilitating the
         # special case of do_not_scale_image_data=True and uint=True
         # eventually.
-        if self._dtype_for_bitpix() is not None:
-            original_was_unsigned = self._dtype_for_bitpix().kind == 'u'
-        else:
-            original_was_unsigned = False
+        # FIXME: unused, maybe it should be useful?
+        # if self._dtype_for_bitpix() is not None:
+        #     original_was_unsigned = self._dtype_for_bitpix().kind == 'u'
+        # else:
+        #     original_was_unsigned = False
 
         if (self._do_not_scale_image_data or
                 (self._orig_bzero == 0 and self._orig_bscale == 1)):

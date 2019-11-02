@@ -472,7 +472,8 @@ class _File:
         """Open a FITS file from a file object (including compressed files)."""
 
         closed = fileobj_closed(fileobj)
-        fmode = fileobj_mode(fileobj) or IO_FITS_MODES[mode]
+        # FIXME: this variable was unused, check if it was useful
+        # fmode = fileobj_mode(fileobj) or IO_FITS_MODES[mode]
 
         if mode == 'ostream':
             self._overwrite_existing(overwrite, fileobj, closed)

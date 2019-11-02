@@ -566,7 +566,6 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         # if data is touched, use data info.
         if self._data_loaded:
             if self.data is None:
-                shape, format = (), ''
                 nrows = 0
             else:
                 nrows = len(self.data)
@@ -576,7 +575,6 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
         # if data is not touched yet, use header info.
         else:
-            shape = ()
             nrows = self._header['NAXIS2']
             ncols = self._header['TFIELDS']
             format = ', '.join([self._header['TFORM' + str(j + 1)]

@@ -634,8 +634,7 @@ class TestImageFunctions(FitsTestCase):
         """
         Regression test for https://github.com/astropy/astropy/issues/6399
         """
-        hdu1 = fits.PrimaryHDU()
-        hdu2 = fits.ImageHDU(np.random.rand(100,100))
+        hdu2 = fits.ImageHDU(np.random.rand(100, 100))
         # The line below raised an exception in astropy 2.0, so if it does not
         # raise an error here, that is progress.
         hdu2.scale(type='uint8', bscale=1, bzero=0)
