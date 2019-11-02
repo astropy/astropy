@@ -2455,10 +2455,17 @@ class CompoundModel(Model):
             self.outputs = combine_labels(left.outputs, right.outputs)
             if inverse is None and self.both_inverses_exist():
                 self._has_inverse = True
-                self._inverse = CompoundModel('&',
-                                              self.left.inverse,
-                                              self.right.inverse,
-                                              inverse=self)
+                inv = CompoundModel('&',
+                                     self.left.inverse,
+                                     self.right.inverse,
+                                     inverse=self)
+                if left._user_inverse is not None or right._user_inverse is not None:
+                    self._user_inverse = inv
+                    if self.inverse._has_inverse:
+                        del self._user_inverse._user_inverse
+                        self.inverse._has_inverse = False
+                else:
+                    self._inverse = inv
         elif op == '|':
             if left.n_outputs != right.n_inputs:
                 raise ModelDefinitionError(
@@ -2475,10 +2482,17 @@ class CompoundModel(Model):
             self.outputs = right.outputs
             if inverse is None and self.both_inverses_exist():
                 self._has_inverse = True
-                self._inverse = CompoundModel('|',
-                                              self.right.inverse,
-                                              self.left.inverse,
-                                              inverse=self)
+                inv = CompoundModel('|',
+                                    self.right.inverse,
+                                    self.left.inverse,
+                                    inverse=self)
+                if left._user_inverse is not None or right._user_inverse is not None:
+                    self._user_inverse = inv
+                    if self.inverse._has_inverse:
+                        del self._user_inverse._user_inverse
+                    self.inverse._has_inverse = False
+                else:
+                    self._inverse = inv
         elif op == 'fix_inputs':
             if not isinstance(left, Model):
                 raise ValueError('First argument to "fix_inputs" must be an instance of an astropy Model.')
