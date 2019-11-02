@@ -117,15 +117,17 @@ TDISP_RE_DICT['EN'] = TDISP_RE_DICT['ES'] = \
 # D: Double-precision Floating Point with exponential
 #    (E but for double precision)
 # G: Double-precision Floating Point, may or may not show exponent
-TDISP_FMT_DICT = {'I' : '{{:{width}d}}',
-                  'B' : '{{:{width}b}}',
-                  'O' : '{{:{width}o}}',
-                  'Z' : '{{:{width}x}}',
-                  'F' : '{{:{width}.{precision}f}}',
-                  'G' : '{{:{width}.{precision}g}}'}
+TDISP_FMT_DICT = {
+    'I': '{{:{width}d}}',
+    'B': '{{:{width}b}}',
+    'O': '{{:{width}o}}',
+    'Z': '{{:{width}x}}',
+    'F': '{{:{width}.{precision}f}}',
+    'G': '{{:{width}.{precision}g}}'
+}
 TDISP_FMT_DICT['A'] = TDISP_FMT_DICT['L'] = '{{:>{width}}}'
 TDISP_FMT_DICT['E'] = TDISP_FMT_DICT['D'] =  \
-    TDISP_FMT_DICT['EN'] = TDISP_FMT_DICT['ES'] ='{{:{width}.{precision}e}}'
+    TDISP_FMT_DICT['EN'] = TDISP_FMT_DICT['ES'] = '{{:{width}.{precision}e}}'
 
 # tuple of column/field definition common names and keyword names, make
 # sure to preserve the one-to-one correspondence when updating the list(s).
@@ -1155,7 +1157,7 @@ class Column(NotifierMixin):
                     invalid[k] = (v, msg)
 
         if time_ref_pos is not None and time_ref_pos != '':
-            msg=None
+            msg = None
             if not isinstance(time_ref_pos, str):
                 msg = (
                     "Time coordinate reference position option (TRPOSn) must be "
@@ -1510,8 +1512,7 @@ class ColDefs(NotifierMixin):
         # columns can't be transferred
         # TODO: Catch exceptions here and raise an explicit error about
         # column format conversion
-        new_column.format = self._col_format_cls.from_column_format(
-                column.format)
+        new_column.format = self._col_format_cls.from_column_format(column.format)
 
         # Handle a few special cases of column format options that are not
         # compatible between ASCII an binary tables
@@ -2482,7 +2483,7 @@ def _parse_tdisp_format(tdisp):
 
     # Use appropriate regex for format type
     tdisp = tdisp.strip()
-    fmt_key = tdisp[0] if tdisp[0] !='E' or tdisp[1] not in 'NS' else tdisp[:2]
+    fmt_key = tdisp[0] if tdisp[0] != 'E' or tdisp[1] not in 'NS' else tdisp[:2]
     try:
         tdisp_re = TDISP_RE_DICT[fmt_key]
     except KeyError:
@@ -2538,7 +2539,7 @@ def _fortran_to_python_format(tdisp):
         raise VerifyError(f'Format {format_type} is not recognized.')
 
 
-def python_to_tdisp(format_string, logical_dtype = False):
+def python_to_tdisp(format_string, logical_dtype=False):
     """
     Turn the Python format string to a TDISP FITS compliant format string. Not
     all formats convert. these will cause a Warning and return None.
@@ -2568,7 +2569,7 @@ def python_to_tdisp(format_string, logical_dtype = False):
     if format_string[0] == '{' and format_string != "{}":
         fmt_str = format_string.lstrip("{:").rstrip('}')
     elif format_string[0] == '%':
-            fmt_str = format_string.lstrip("%")
+        fmt_str = format_string.lstrip("%")
     else:
         fmt_str = format_string
 
