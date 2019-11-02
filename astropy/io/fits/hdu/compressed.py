@@ -20,11 +20,10 @@ from astropy.io.fits.column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
 from astropy.io.fits.fitsrec import FITS_rec
 from astropy.io.fits.header import Header
 from astropy.io.fits.util import (_is_pseudo_unsigned, _unsigned_zero, _is_int,
-                    _get_array_mmap)
+                                  _get_array_mmap)
 
 from astropy.utils import lazyproperty
-from astropy.utils.exceptions import (AstropyPendingDeprecationWarning,
-                                  AstropyUserWarning)
+from astropy.utils.exceptions import AstropyUserWarning
 
 try:
     from astropy.io.fits import compression
@@ -390,13 +389,6 @@ class CompImageHDU(BinTableHDU):
     Compressed Image HDU class.
     """
 
-    # Maps deprecated keyword arguments to __init__ to their new names
-    DEPRECATED_KWARGS = {
-        'compressionType': 'compression_type', 'tileSize': 'tile_size',
-        'hcompScale': 'hcomp_scale', 'hcompSmooth': 'hcomp_smooth',
-        'quantizeLevel': 'quantize_level'
-    }
-
     _manages_own_heap = True
     """
     The calls to CFITSIO lay out the heap data in memory, and we write it out
@@ -626,23 +618,6 @@ class CompImageHDU(BinTableHDU):
 
         compression_type = CMTYPE_ALIASES.get(compression_type, compression_type)
 
-        # Handle deprecated keyword arguments
-        compression_opts = {}
-        for oldarg, newarg in self.DEPRECATED_KWARGS.items():
-            if oldarg in kwargs:
-                warnings.warn('Keyword argument {} to {} is pending '
-                              'deprecation; use {} instead'.format(
-                        oldarg, self.__class__.__name__, newarg),
-                              AstropyPendingDeprecationWarning)
-                compression_opts[newarg] = kwargs[oldarg]
-                del kwargs[oldarg]
-            else:
-                compression_opts[newarg] = locals()[newarg]
-        # Include newer compression options that don't required backwards
-        # compatibility with deprecated spellings
-        compression_opts['quantize_method'] = quantize_method
-        compression_opts['dither_seed'] = dither_seed
-
         if data is DELAYED:
             # Reading the HDU from a file
             super().__init__(data=data, header=header)
@@ -660,7 +635,14 @@ class CompImageHDU(BinTableHDU):
             # image header (if any) and ensure it matches the input
             # data; Create the initially empty table data array to
             # hold the compressed data.
-            self._update_header_data(header, name, **compression_opts)
+            self._update_header_data(header, name,
+                                     compression_type=compression_type,
+                                     tile_size=tile_size,
+                                     hcomp_scale=hcomp_scale,
+                                     hcomp_smooth=hcomp_smooth,
+                                     quantize_level=quantize_level,
+                                     quantize_method=quantize_method,
+                                     dither_seed=dither_seed)
 
         # TODO: A lot of this should be passed on to an internal image HDU o
         # something like that, see ticket #88
