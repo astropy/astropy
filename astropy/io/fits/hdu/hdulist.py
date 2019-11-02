@@ -727,7 +727,7 @@ class HDUList(list, _Verify):
                 name = name.strip().upper()
             # 'PRIMARY' should always work as a reference to the first HDU
             if ((name == _key or (_key == 'PRIMARY' and idx == 0)) and
-                (_ver is None or _ver == hdu.ver)):
+                    (_ver is None or _ver == hdu.ver)):
                 found = idx
                 break
 
@@ -1121,7 +1121,7 @@ class HDUList(list, _Verify):
             self._in_read_next_hdu = True
 
             if ('disable_image_compression' in kwargs and
-                kwargs['disable_image_compression']):
+                    kwargs['disable_image_compression']):
                 compressed.COMPRESSION_ENABLED = False
 
             # read all HDUs
