@@ -4,12 +4,9 @@ import glob
 import logging
 import os
 import sys
-import textwrap
-import warnings
 
 from astropy.io import fits
 from astropy.io.fits.util import fill
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 log = logging.getLogger('fitsdiff')
@@ -105,12 +102,6 @@ def handle_options(argv=None):
         metavar='INTEGER',
         help='Max number of data differences (image pixel or table element) '
              'to report per extension (default %(default)s).')
-
-    parser.add_argument(
-        '-d', '--difference-tolerance', type=float, default=None,
-        dest='tolerance', metavar='NUMBER',
-        help='DEPRECATED. Alias for "--relative-tolerance". '
-             'Deprecated, provided for backward compatibility (default %(default)s).')
 
     parser.add_argument(
         '-r', '--rtol', '--relative-tolerance', type=float, default=None,
@@ -286,13 +277,6 @@ def main(args=None):
 
     opts = handle_options(args)
 
-    if opts.tolerance is not None:
-        warnings.warn(
-            '"-d" ("--difference-tolerance") was deprecated in version 2.0 '
-            'and will be removed in a future version. '
-            'Use "-r" ("--relative-tolerance") instead.',
-            AstropyDeprecationWarning)
-        opts.rtol = opts.tolerance
     if opts.rtol is None:
         opts.rtol = 0.0
     if opts.atol is None:
