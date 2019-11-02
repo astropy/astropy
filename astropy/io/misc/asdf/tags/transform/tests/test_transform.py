@@ -9,10 +9,24 @@ from astropy import __minimum_asdf_version__
 asdf = pytest.importorskip('asdf', minversion=__minimum_asdf_version__)
 from asdf import util
 from asdf.tests import helpers
+from asdf import AsdfFile
+import asdf
 
 import astropy.units as u
 from astropy.modeling.core import fix_inputs
 from astropy.modeling import models as astmodels
+
+
+def custom_and_analytical_inverse():
+    p1 = astmodels.Polynomial1D(1)
+    p2 = astmodels.Polynomial1D(1)
+    p3 = astmodels.Polynomial1D(1)
+    p4 = astmodels.Polynomial1D(1)
+    m1 = p1 & p2
+    m2 = p3 & p4
+    m1.inverse = m2
+    return m1
+
 
 test_models = [
     astmodels.Identity(2), astmodels.Polynomial1D(2, c0=1, c1=2, c2=3),
@@ -34,7 +48,8 @@ test_models = [
     astmodels.RotateNative2Celestial(5.63*u.deg, -72.5*u.deg, 180*u.deg),
     astmodels.RotateCelestial2Native(5.63*u.deg, -72.5*u.deg, 180*u.deg),
     astmodels.RotationSequence3D([1.2, 2.3, 3.4, .3], 'xyzx'),
-    astmodels.SphericalRotationSequence([1.2, 2.3, 3.4, .3], 'xyzy')
+    astmodels.SphericalRotationSequence([1.2, 2.3, 3.4, .3], 'xyzy'),
+    custom_and_analytical_inverse(),
 ]
 
 
@@ -201,3 +216,20 @@ def test_fix_inputs_type():
         'compound': astmodels.Pix2Sky_TAN() & {'x': 45}
         }
         helpers.assert_roundtrip_tree(tree, tmpdir)
+
+
+def test_custom_and_analytical():
+    m1 = custom_and_analytical_inverse()
+    m = astmodels.Shift(1) & astmodels.Shift(2) | m1
+    fa = AsdfFile()
+    fa.tree['model'] = m
+    fa.write_to('custom_and_analytical_inverse.asdf')
+    f = asdf.open('custom_and_analytical_inverse.asdf')
+    assert f.tree['model'].inverse is not None
+
+    m = astmodels.Shift(1) & m1
+    fa = AsdfFile()
+    fa.tree['model'] = m
+    fa.write_to('custom_and_analytical_inverse.asdf')
+    f = asdf.open('custom_and_analytical_inverse.asdf')
+    assert f.tree['model'].inverse is not None
