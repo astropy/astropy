@@ -375,7 +375,7 @@ def _convert_time_column(col, column_info):
         # directly converted to Time, as they are absolute (relative
         # to a globally accepted zero point).
         if (column_info['ref_time']['val'] == 0 and
-            column_info['ref_time']['format'] in ['jd', 'mjd']):
+                column_info['ref_time']['format'] in ['jd', 'mjd']):
             # (jd1, jd2) where jd = jd1 + jd2
             if col.shape[-1] == 2 and col.ndim > 1:
                 return Time(col[..., 0], col[..., 1], scale=column_info['scale'],

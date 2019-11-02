@@ -76,7 +76,7 @@ def comparerecords(a, b):
         if fieldb.dtype.char == 'S':
             fieldb = decode_ascii(fieldb)
         if (not isinstance(fielda, type(fieldb)) and not
-            isinstance(fieldb, type(fielda))):
+                isinstance(fieldb, type(fielda))):
             print("type(fielda): ", type(fielda), " fielda: ", fielda)
             print("type(fieldb): ", type(fieldb), " fieldb: ", fieldb)
             print(f'field {i} type differs')
