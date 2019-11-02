@@ -11,7 +11,6 @@ import io
 import operator
 import os.path
 import textwrap
-import warnings
 
 from collections import defaultdict
 from inspect import signature
@@ -27,9 +26,8 @@ from astropy.utils.decorators import deprecated_renamed_argument
 # HDUList is used in one of the doctests
 from .hdu.hdulist import fitsopen, HDUList  # pylint: disable=W0611
 from .hdu.table import _TableLikeHDU
-from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.diff import (report_diff_values, fixed_width_indent,
-                           where_not_allclose, diff_values)
+                                where_not_allclose, diff_values)
 
 __all__ = ['FITSDiff', 'HDUDiff', 'HeaderDiff', 'ImageDataDiff', 'RawDataDiff',
            'TableDataDiff']
@@ -205,7 +203,7 @@ class FITSDiff(_BaseDiff):
     def __init__(self, a, b, ignore_hdus=[], ignore_keywords=[],
                  ignore_comments=[], ignore_fields=[],
                  numdiffs=10, rtol=0.0, atol=0.0,
-                 ignore_blanks=True, ignore_blank_cards=True, tolerance=None):
+                 ignore_blanks=True, ignore_blank_cards=True):
         """
         Parameters
         ----------
@@ -253,8 +251,7 @@ class FITSDiff(_BaseDiff):
             are considered to be different.
             The underlying function used for comparison is `numpy.allclose`.
 
-            .. versionchanged:: 2.0
-               ``rtol`` replaces the deprecated ``tolerance`` argument.
+            .. versionadded:: 2.0
 
         atol : float, optional
             The allowed absolute difference. See also ``rtol`` parameter.
@@ -300,14 +297,6 @@ class FITSDiff(_BaseDiff):
         self.numdiffs = numdiffs
         self.rtol = rtol
         self.atol = atol
-
-        if tolerance is not None:  # This should be removed in the next astropy version
-            warnings.warn(
-                '"tolerance" was deprecated in version 2.0 and will be removed in '
-                'a future version. Use argument "rtol" instead.',
-                AstropyDeprecationWarning)
-            self.rtol = tolerance  # when tolerance is provided *always* ignore `rtol`
-                                   # during the transition/deprecation period
 
         self.ignore_blanks = ignore_blanks
         self.ignore_blank_cards = ignore_blank_cards
@@ -462,7 +451,7 @@ class HDUDiff(_BaseDiff):
 
     def __init__(self, a, b, ignore_keywords=[], ignore_comments=[],
                  ignore_fields=[], numdiffs=10, rtol=0.0, atol=0.0,
-                 ignore_blanks=True, ignore_blank_cards=True, tolerance=None):
+                 ignore_blanks=True, ignore_blank_cards=True):
         """
         Parameters
         ----------
@@ -504,8 +493,7 @@ class HDUDiff(_BaseDiff):
             are considered to be different.
             The underlying function used for comparison is `numpy.allclose`.
 
-            .. versionchanged:: 2.0
-               ``rtol`` replaces the deprecated ``tolerance`` argument.
+            .. versionadded:: 2.0
 
         atol : float, optional
             The allowed absolute difference. See also ``rtol`` parameter.
@@ -528,14 +516,6 @@ class HDUDiff(_BaseDiff):
 
         self.rtol = rtol
         self.atol = atol
-
-        if tolerance is not None:  # This should be removed in the next astropy version
-            warnings.warn(
-                '"tolerance" was deprecated in version 2.0 and will be removed in '
-                'a future version. Use argument "rtol" instead.',
-                AstropyDeprecationWarning)
-            self.rtol = tolerance  # when tolerance is provided *always* ignore `rtol`
-                                   # during the transition/deprecation period
 
         self.numdiffs = numdiffs
         self.ignore_blanks = ignore_blanks
@@ -655,8 +635,7 @@ class HeaderDiff(_BaseDiff):
     """
 
     def __init__(self, a, b, ignore_keywords=[], ignore_comments=[],
-                 rtol=0.0, atol=0.0, ignore_blanks=True, ignore_blank_cards=True,
-                 tolerance=None):
+                 rtol=0.0, atol=0.0, ignore_blanks=True, ignore_blank_cards=True):
         """
         Parameters
         ----------
@@ -694,8 +673,7 @@ class HeaderDiff(_BaseDiff):
             are considered to be different.
             The underlying function used for comparison is `numpy.allclose`.
 
-            .. versionchanged:: 2.0
-               ``rtol`` replaces the deprecated ``tolerance`` argument.
+            .. versionadded:: 2.0
 
         atol : float, optional
             The allowed absolute difference. See also ``rtol`` parameter.
@@ -717,14 +695,6 @@ class HeaderDiff(_BaseDiff):
 
         self.rtol = rtol
         self.atol = atol
-
-        if tolerance is not None:  # This should be removed in the next astropy version
-            warnings.warn(
-                '"tolerance" was deprecated in version 2.0 and will be removed in '
-                'a future version. Use argument "rtol" instead.',
-                AstropyDeprecationWarning)
-            self.rtol = tolerance  # when tolerance is provided *always* ignore `rtol`
-                                   # during the transition/deprecation period
 
         self.ignore_blanks = ignore_blanks
         self.ignore_blank_cards = ignore_blank_cards
@@ -962,7 +932,7 @@ class ImageDataDiff(_BaseDiff):
       of pixels in the arrays.
     """
 
-    def __init__(self, a, b, numdiffs=10, rtol=0.0, atol=0.0, tolerance=None):
+    def __init__(self, a, b, numdiffs=10, rtol=0.0, atol=0.0):
         """
         Parameters
         ----------
@@ -991,8 +961,7 @@ class ImageDataDiff(_BaseDiff):
             are considered to be different.
             The underlying function used for comparison is `numpy.allclose`.
 
-            .. versionchanged:: 2.0
-               ``rtol`` replaces the deprecated ``tolerance`` argument.
+            .. versionadded:: 2.0
 
         atol : float, optional
             The allowed absolute difference. See also ``rtol`` parameter.
@@ -1003,14 +972,6 @@ class ImageDataDiff(_BaseDiff):
         self.numdiffs = numdiffs
         self.rtol = rtol
         self.atol = atol
-
-        if tolerance is not None:  # This should be removed in the next astropy version
-            warnings.warn(
-                '"tolerance" was deprecated in version 2.0 and will be removed in '
-                'a future version. Use argument "rtol" instead.',
-                AstropyDeprecationWarning)
-            self.rtol = tolerance  # when tolerance is provided *always* ignore `rtol`
-                                   # during the transition/deprecation period
 
         self.diff_dimensions = ()
         self.diff_pixels = []
@@ -1215,8 +1176,7 @@ class TableDataDiff(_BaseDiff):
     those columns.
     """
 
-    def __init__(self, a, b, ignore_fields=[], numdiffs=10, rtol=0.0, atol=0.0,
-                 tolerance=None):
+    def __init__(self, a, b, ignore_fields=[], numdiffs=10, rtol=0.0, atol=0.0):
         """
         Parameters
         ----------
@@ -1249,8 +1209,7 @@ class TableDataDiff(_BaseDiff):
             are considered to be different.
             The underlying function used for comparison is `numpy.allclose`.
 
-            .. versionchanged:: 2.0
-               ``rtol`` replaces the deprecated ``tolerance`` argument.
+            .. versionadded:: 2.0
 
         atol : float, optional
             The allowed absolute difference. See also ``rtol`` parameter.
@@ -1262,14 +1221,6 @@ class TableDataDiff(_BaseDiff):
         self.numdiffs = numdiffs
         self.rtol = rtol
         self.atol = atol
-
-        if tolerance is not None:  # This should be removed in the next astropy version
-            warnings.warn(
-                '"tolerance" was deprecated in version 2.0 and will be removed in '
-                'a future version. Use argument "rtol" instead.',
-                AstropyDeprecationWarning)
-            self.rtol = tolerance  # when tolerance is provided *always* ignore `rtol`
-                                   # during the transition/deprecation period
 
         self.common_columns = []
         self.common_column_names = set()

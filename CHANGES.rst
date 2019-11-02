@@ -420,6 +420,13 @@ astropy.io.fits
   As a result of this change, the private subclass ``CompImageHeader`` now always
   should be passed an explicit ``image_header``. [#9229]
 
+- Removed the deprecated ``tolerance`` option in ``fitsdiff`` and
+  ``io.fits.diff`` classes. [#9520]
+
+- Removed deprecated keyword arguments for ``CompImageHDU``:
+  ``compressionType``, ``tileSize``, ``hcompScale``, ``hcompSmooth``,
+  ``quantizeLevel``. [#9520]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
