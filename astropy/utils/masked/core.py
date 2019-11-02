@@ -198,7 +198,14 @@ class Masked(ShapedLikeNDArray):
 
             result = getattr(ufunc, method)(*converted, **kwargs)
             if masks:
-                mask = functools.reduce(np.logical_or, masks)
+                if ufunc.signature:
+                    if ufunc.nin > 1:
+                        return NotImplemented
+                    # TODO: need to check for axes, keepdims too...
+                    mask = np.logical_or.reduce(masks[0],
+                                                axis=kwargs.get('axis', -1))
+                else:
+                    mask = functools.reduce(np.logical_or, masks)
             else:
                 mask = False
 
@@ -292,6 +299,16 @@ class Masked(ShapedLikeNDArray):
         result = result / n
         return result
 
+    def any(self, axis=None, out=None, keepdims=False):
+        return np.logical_or.reduce(self, axis=axis, out=out,
+                                    keepdims=keepdims,
+                                    **self._reduce_defaults())
+
+    def all(self, axis=None, out=None, keepdims=False):
+        return np.logical_and.reduce(self, axis=axis, out=out,
+                                     keepdims=keepdims,
+                                     **self._reduce_defaults())
+
     def _to_string(self, a):
         # This exists only to work around a numpy annoyance that array scalars
         # always get turned into plain ndarray items and thus loose the mask.
@@ -319,3 +336,14 @@ class Masked(ShapedLikeNDArray):
 
 class MaskedNDArray(Masked, np.ndarray):
     _data_cls = np.ndarray
+
+    # Override ShapedLikeNDArray __bool__ for ndarray.
+    def __bool__(self):
+        if self.size == 1:
+            if self.mask:
+                return False
+            else:
+                return self.unmasked.__bool__()
+
+        # Raise ndarray error.
+        return np.ndarray.__bool__(self)
