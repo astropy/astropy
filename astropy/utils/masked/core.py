@@ -330,5 +330,75 @@ class Masked(NDArrayShapeMethods):
             return super().__repr__()
 
 
+class MaskedIterator:
+    """
+    Flat iterator object to iterate over Masked Arrays.
+
+    A `~astropy.utils.masked.MaskedIterator` iterator is returned by ``m.flat``
+    for any masked array ``m``.  It allows iterating over the array as if it
+    were a 1-D array, either in a for-loop or by calling its `next` method.
+
+    Iteration is done in C-contiguous style, with the last index varying the
+    fastest. The iterator can also be indexed using basic slicing or
+    advanced indexing.
+
+    Notes
+    -----
+    The design of `~astropy.utils.masked.MaskedIterator` follows that of
+    `~numpy.ma.core.MaskedIterator`.  It is not exported by the
+    `~astropy.utils.masked` module.  Instead of instantiating directly,
+    use the ``flat`` method in the masked array instance.
+    """
+
+    def __init__(self, m):
+        self._masked = m
+        self._dataiter = m.unmasked.flat
+        self._maskiter = m.mask.flat
+
+    def __iter__(self):
+        return self
+
+    def __getitem__(self, indx):
+        out = self._dataiter.__getitem__(indx)
+        mask = self._maskiter.__getitem__(indx)
+        # For single elements, ndarray.flat.__getitem__ returns scalars; these
+        # need a new view as a Masked array.
+        if not isinstance(out, np.ndarray):
+            out = out[...]
+            mask = mask[...]
+
+        out = out.view(self._masked.__class__)
+        out._mask = mask
+        return out
+
+    def __setitem__(self, index, value):
+        data, mask = self._masked._data_mask(value)
+        self._dataiter[index] = data
+        self._maskiter[index] = mask
+
+    def __next__(self):
+        """
+        Return the next value, or raise StopIteration.
+        """
+        out = next(self._dataiter)[...]
+        mask = next(self._maskiter)[...]
+        out = out.view(self._masked.__class__)
+        out._mask = mask
+        return out
+
+    next = __next__
+
+
 class MaskedNDArray(Masked, np.ndarray):
     _data_cls = np.ndarray
+
+    @property
+    def flat(self):
+        """A 1-D iterator over the Quantity array.
+
+        This returns a ``QuantityIterator`` instance, which behaves the same
+        as the `~numpy.flatiter` instance returned by `~numpy.ndarray.flat`,
+        and is similar to, but not a subclass of, Python's built-in iterator
+        object.
+        """
+        return MaskedIterator(self)
