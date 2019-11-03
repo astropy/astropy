@@ -3,8 +3,8 @@
 """
 Built-in mask mixin class.
 """
+import builtins
 import functools
-from warnings import warn
 
 import numpy as np
 
@@ -87,7 +87,8 @@ class Masked(NDArrayShapeMethods):
         return masked_subclass
 
     def view(self, dtype=None, type=None):
-        if type is None and issubclass(dtype, np.ndarray):
+        if type is None and (isinstance(dtype, builtins.type) and
+                             issubclass(dtype, np.ndarray)):
             type = dtype
             dtype = None
         elif dtype is not None:
@@ -268,7 +269,7 @@ class Masked(NDArrayShapeMethods):
             return Masked(result, mask)
 
         assert isinstance(out, Masked)
-        out._mask = mask
+        out._mask[...] = mask
         return out
 
     def _reduce_defaults(self, kwargs, initial_func=None):
@@ -287,10 +288,22 @@ class Masked(NDArrayShapeMethods):
                            **self._reduce_defaults(kwargs, np.min))
 
     def mean(self, axis=None, dtype=None, out=None, keepdims=False):
+        # Cast bool, unsigned int, and int to float64 by default,
+        # and do float16 at higher precision.
+        is_float16_result = False
+        if dtype is None:
+            if issubclass(self.dtype.type, (np.integer, np.bool_)):
+                dtype = np.dtype('f8')
+            elif issubclass(self.dtype.type, np.float16):
+                dtype = np.dtype('f4')
+                is_float16_result = out is None
+
         result = self.sum(axis=axis, dtype=dtype, out=out,
                           keepdims=keepdims, where=~self.mask)
         n = np.add.reduce(~self.mask, axis=axis, keepdims=keepdims)
-        result = result / n
+        result /= n
+        if is_float16_result:
+            result = result.astype(self.dtype)
         return result
 
     def var(self, axis=None, dtype=None, out=None, ddof=0, keepdims=False):
