@@ -215,7 +215,7 @@ class Masked(NDArrayShapeMethods):
                                             axis=axis, keepdims=keepdims)
                 if where is not True:
                     # Mask also whole rows that were not selected by where.
-                    mask &= np.logical_and.reduce(inputs[0].mask, where=where,
+                    mask |= np.logical_and.reduce(inputs[0].mask, where=where,
                                                   axis=axis, keepdims=keepdims)
                 converted = inputs[0].unmasked
 
@@ -270,7 +270,7 @@ class Masked(NDArrayShapeMethods):
         out._mask = mask
         return out
 
-    def _reduce_defaults(self, kwargs={}, initial_func=None):
+    def _reduce_defaults(self, kwargs, initial_func=None):
         if 'where' not in kwargs:
             kwargs['where'] = ~self.mask
         if initial_func is not None and 'initial' not in kwargs:
@@ -287,20 +287,23 @@ class Masked(NDArrayShapeMethods):
 
     def mean(self, axis=None, dtype=None, out=None, keepdims=False):
         result = super().sum(axis=axis, dtype=dtype, out=out,
-                             keepdims=keepdims, **self._reduce_defaults())
+                             keepdims=keepdims, where=~self.mask)
         n = np.add.reduce(~self.mask, axis=axis, keepdims=keepdims)
         result = result / n
         return result
 
+    def __bool__(self):
+        # First get result from array itself; this will error if not a scalar.
+        result = super().__bool__()
+        return result and not self.mask
+
     def any(self, axis=None, out=None, keepdims=False):
         return np.logical_or.reduce(self, axis=axis, out=out,
-                                    keepdims=keepdims,
-                                    **self._reduce_defaults())
+                                    keepdims=keepdims, where=~self.mask)
 
     def all(self, axis=None, out=None, keepdims=False):
         return np.logical_and.reduce(self, axis=axis, out=out,
-                                     keepdims=keepdims,
-                                     **self._reduce_defaults())
+                                     keepdims=keepdims, where=~self.mask)
 
     def _to_string(self, a):
         # This exists only to work around a numpy annoyance that array scalars
