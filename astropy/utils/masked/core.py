@@ -4,6 +4,7 @@
 Built-in mask mixin class.
 """
 import functools
+from warnings import warn
 
 import numpy as np
 
@@ -286,11 +287,36 @@ class Masked(NDArrayShapeMethods):
                            **self._reduce_defaults(kwargs, np.min))
 
     def mean(self, axis=None, dtype=None, out=None, keepdims=False):
-        result = super().sum(axis=axis, dtype=dtype, out=out,
-                             keepdims=keepdims, where=~self.mask)
+        result = self.sum(axis=axis, dtype=dtype, out=out,
+                          keepdims=keepdims, where=~self.mask)
         n = np.add.reduce(~self.mask, axis=axis, keepdims=keepdims)
         result = result / n
         return result
+
+    def var(self, axis=None, dtype=None, out=None, ddof=0, keepdims=False):
+        n = np.add.reduce(~self.mask, axis=axis, keepdims=keepdims)[...]
+
+        # Cast bool, unsigned int, and int to float64 by default.
+        if dtype is None and issubclass(self.dtype.type,
+                                        (np.integer, np.bool_)):
+            dtype = np.dtype('f8')
+        mean = self.mean(axis=axis, dtype=dtype, keepdims=True)
+
+        x = self - mean
+        x *= x.conjugate()  # Conjugate just returns x if not complex.
+
+        result = x.sum(axis=axis, dtype=dtype, out=out,
+                       keepdims=keepdims, where=~x.mask)
+        n -= ddof
+        n = np.maximum(n, 0, out=n)
+        result /= n
+        result._mask |= (n == 0)
+        return result
+
+    def std(self, axis=None, dtype=None, out=None, ddof=0, keepdims=False):
+        result = self.var(axis=axis, dtype=dtype, out=out, ddof=ddof,
+                          keepdims=keepdims)
+        return np.sqrt(result, out=result)
 
     def __bool__(self):
         # First get result from array itself; this will error if not a scalar.
