@@ -6,11 +6,11 @@ from itertools import zip_longest
 
 import numpy as np
 
-__all__ = ['ShapedLikeNDArray', 'check_broadcast', 'IncompatibleShapeError',
-           'unbroadcast']
+__all__ = ['NDArrayShapeMethods', 'ShapedLikeNDArray',
+           'check_broadcast', 'IncompatibleShapeError', 'unbroadcast']
 
 
-class ShapedLikeNDArray(metaclass=abc.ABCMeta):
+class NDArrayShapeMethods:
     """Mixin class to provide shape-changing methods.
 
     The class proper is assumed to have some underlying data, which are arrays
@@ -24,9 +24,10 @@ class ShapedLikeNDArray(metaclass=abc.ABCMeta):
     (and, unlike the ``reshape`` method raises an exception if this is not
     possible).
 
-    This class also defines default implementations for ``ndim`` and ``size``
-    properties, calculating those from the ``shape``.  These can be overridden
-    by subclasses if there are faster ways to obtain those numbers.
+    This class only provides the shape-changing methods and is meant in
+    particular for `~numpy.ndarray` subclasses that need to keep track of
+    other arrays.  For other classes, `~astropy.utils.shapes.ShapedLikeNDArray`
+    is recommended.
 
     """
 
@@ -37,81 +38,8 @@ class ShapedLikeNDArray(metaclass=abc.ABCMeta):
     # copies rather than views of data (see the special-case treatment of
     # 'flatten' in Time).
 
-    @property
-    @abc.abstractmethod
-    def shape(self):
-        """The shape of the underlying data."""
-
-    @abc.abstractmethod
-    def _apply(method, *args, **kwargs):
-        """Create a new instance, with ``method`` applied to underlying data.
-
-        The method is any of the shape-changing methods for `~numpy.ndarray`
-        (``reshape``, ``swapaxes``, etc.), as well as those picking particular
-        elements (``__getitem__``, ``take``, etc.). It will be applied to the
-        underlying arrays (e.g., ``jd1`` and ``jd2`` in `~astropy.time.Time`),
-        with the results used to create a new instance.
-
-        Parameters
-        ----------
-        method : str
-            Method to be applied to the instance's internal data arrays.
-        args : tuple
-            Any positional arguments for ``method``.
-        kwargs : dict
-            Any keyword arguments for ``method``.
-
-        """
-
-    @property
-    def ndim(self):
-        """The number of dimensions of the instance and underlying arrays."""
-        return len(self.shape)
-
-    @property
-    def size(self):
-        """The size of the object, as calculated from its shape."""
-        size = 1
-        for sh in self.shape:
-            size *= sh
-        return size
-
-    @property
-    def isscalar(self):
-        return self.shape == ()
-
-    def __len__(self):
-        if self.isscalar:
-            raise TypeError(f"Scalar {self.__class__.__name__!r} object has no len()")
-        return self.shape[0]
-
-    def __bool__(self):
-        """Any instance should evaluate to True, except when it is empty."""
-        return self.size > 0
-
     def __getitem__(self, item):
-        try:
-            return self._apply('__getitem__', item)
-        except IndexError:
-            if self.isscalar:
-                raise TypeError('scalar {!r} object is not subscriptable.'
-                                .format(self.__class__.__name__))
-            else:
-                raise
-
-    def __iter__(self):
-        if self.isscalar:
-            raise TypeError('scalar {!r} object is not iterable.'
-                            .format(self.__class__.__name__))
-
-        # We cannot just write a generator here, since then the above error
-        # would only be raised once we try to use the iterator, rather than
-        # upon its definition using iter(self).
-        def self_iter():
-            for idx in range(len(self)):
-                yield self[idx]
-
-        return self_iter()
+        return self._apply('__getitem__', item)
 
     def copy(self, *args, **kwargs):
         """Return an instance containing copies of the internal data.
@@ -128,7 +56,7 @@ class ShapedLikeNDArray(metaclass=abc.ABCMeta):
         data (see :func:`~numpy.reshape` documentation). If you want an error
         to be raise if the data is copied, you should assign the new shape to
         the shape attribute (note: this may not be implemented for all classes
-        using ``ShapedLikeNDArray``).
+        using ``NDArrayShapeMethods``).
         """
         return self._apply('reshape', *args, **kwargs)
 
@@ -201,6 +129,111 @@ class ShapedLikeNDArray(metaclass=abc.ABCMeta):
         obviously, no output array can be given.
         """
         return self._apply('take', indices, axis=axis, mode=mode)
+
+
+class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
+    """Mixin class to provide shape-changing methods.
+
+    The class proper is assumed to have some underlying data, which are arrays
+    or array-like structures. It must define a ``shape`` property, which gives
+    the shape of those data, as well as an ``_apply`` method that creates a new
+    instance in which a `~numpy.ndarray` method has been applied to those.
+
+    Furthermore, for consistency with `~numpy.ndarray`, it is recommended to
+    define a setter for the ``shape`` property, which, like the
+    `~numpy.ndarray.shape` property allows in-place reshaping the internal data
+    (and, unlike the ``reshape`` method raises an exception if this is not
+    possible).
+
+    This class also defines default implementations for ``ndim`` and ``size``
+    properties, calculating those from the ``shape``.  These can be overridden
+    by subclasses if there are faster ways to obtain those numbers.
+
+    """
+
+    # Note to developers: if new methods are added here, be sure to check that
+    # they work properly with the classes that use this, such as Time and
+    # BaseRepresentation, i.e., look at their ``_apply`` methods and add
+    # relevant tests.  This is particularly important for methods that imply
+    # copies rather than views of data (see the special-case treatment of
+    # 'flatten' in Time).
+
+    @property
+    @abc.abstractmethod
+    def shape(self):
+        """The shape of the underlying data."""
+
+    @abc.abstractmethod
+    def _apply(method, *args, **kwargs):
+        """Create a new instance, with ``method`` applied to underlying data.
+
+        The method is any of the shape-changing methods for `~numpy.ndarray`
+        (``reshape``, ``swapaxes``, etc.), as well as those picking particular
+        elements (``__getitem__``, ``take``, etc.). It will be applied to the
+        underlying arrays (e.g., ``jd1`` and ``jd2`` in `~astropy.time.Time`),
+        with the results used to create a new instance.
+
+        Parameters
+        ----------
+        method : str
+            Method to be applied to the instance's internal data arrays.
+        args : tuple
+            Any positional arguments for ``method``.
+        kwargs : dict
+            Any keyword arguments for ``method``.
+
+        """
+
+    @property
+    def ndim(self):
+        """The number of dimensions of the instance and underlying arrays."""
+        return len(self.shape)
+
+    @property
+    def size(self):
+        """The size of the object, as calculated from its shape."""
+        size = 1
+        for sh in self.shape:
+            size *= sh
+        return size
+
+    @property
+    def isscalar(self):
+        return self.shape == ()
+
+    def __len__(self):
+        if self.isscalar:
+            raise TypeError("Scalar {!r} object has no len()"
+                            .format(self.__class__.__name__))
+        return self.shape[0]
+
+    def __bool__(self):
+        """Any instance should evaluate to True, except when it is empty."""
+        return self.size > 0
+
+    def __getitem__(self, item):
+        try:
+            return self._apply('__getitem__', item)
+        except IndexError:
+            if self.isscalar:
+                raise TypeError('scalar {!r} object is not subscriptable.'
+                                .format(self.__class__.__name__))
+            else:
+                raise
+
+    def __iter__(self):
+        if self.isscalar:
+            raise TypeError('scalar {!r} object is not iterable.'
+                            .format(self.__class__.__name__))
+
+        # We cannot just write a generator here, since then the above error
+        # would only be raised once we try to use the iterator, rather than
+        # upon its definition using iter(self).
+        def self_iter():
+            for idx in range(len(self)):
+                yield self[idx]
+
+        return self_iter()
 
     # Functions that change shape or essentially do indexing.
     _APPLICABLE_FUNCTIONS = {
