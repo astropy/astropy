@@ -7,7 +7,7 @@ import functools
 
 import numpy as np
 
-from astropy.utils.misc import ShapedLikeNDArray
+from astropy.utils.shapes import NDArrayShapeMethods
 
 from .function_helpers import APPLY_TO_BOTH_FUNCTIONS
 
@@ -15,10 +15,7 @@ from .function_helpers import APPLY_TO_BOTH_FUNCTIONS
 __all__ = ['Masked']
 
 
-# Note: at present, ShapedLikeNDArray is a bit unhandy because it forces
-# one to unnecessarily override shape.  Would be good to split off
-# a separate NDArrayShapeMethods, which is not an ABC.
-class Masked(ShapedLikeNDArray):
+class Masked(NDArrayShapeMethods):
     """A scalar value or array of values with associated mask.
 
     This object will take its exact type from whatever the contents are.
@@ -49,10 +46,6 @@ class Masked(ShapedLikeNDArray):
         self = data.view(subclass)
         self._set_mask(mask, copy=copy)
         return self
-
-    @property
-    def shape(self):
-        return super(ShapedLikeNDArray, self).shape
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -336,14 +329,3 @@ class Masked(ShapedLikeNDArray):
 
 class MaskedNDArray(Masked, np.ndarray):
     _data_cls = np.ndarray
-
-    # Override ShapedLikeNDArray __bool__ for ndarray.
-    def __bool__(self):
-        if self.size == 1:
-            if self.mask:
-                return False
-            else:
-                return self.unmasked.__bool__()
-
-        # Raise ndarray error.
-        return np.ndarray.__bool__(self)
