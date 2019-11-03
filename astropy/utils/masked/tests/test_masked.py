@@ -138,6 +138,22 @@ class TestMaskedArrayCopyFilled(MaskedArraySetup):
         result = self.ma.unmask(fill_value)
         assert_array_equal(expected, result)
 
+    def test_flat(self):
+        ma_copy = self.ma.copy()
+        ma_flat = ma_copy.flat
+        # Check that single item keeps class and mask
+        ma_flat1 = ma_flat[1]
+        assert ma_flat1.unmasked == self.a.flat[1]
+        assert ma_flat1.mask == self.mask_a.flat[1]
+        # As well as getting items via iteration.
+        assert all((ma.unmasked == a and ma.mask == m) for (ma, a, m)
+                   in zip(self.ma.flat, self.a.flat, self.mask_a.flat))
+
+        # check that flat works like a view of the real array
+        ma_flat[1] = self.b[1]
+        assert ma_flat[1] == self.b[1]
+        assert ma_copy[0, 1] == self.b[1]
+
 
 class TestMaskedQuantityCopyFilled(TestMaskedArrayCopyFilled, QuantitySetup):
     pass
