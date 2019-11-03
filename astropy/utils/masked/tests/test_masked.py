@@ -12,6 +12,8 @@ from ....tests.helper import pytest
 
 
 class ArraySetup:
+    _data_cls = np.ndarray
+
     def setup_arrays(self):
         self.a = np.arange(6.).reshape(2, 3)
         self.mask_a = np.array([[True, False, False],
@@ -26,6 +28,8 @@ class ArraySetup:
 
 
 class QuantitySetup(ArraySetup):
+    _data_cls = Quantity
+
     def setup_arrays(self):
         super().setup_arrays()
         self.a = Quantity(self.a, u.m)
@@ -34,6 +38,8 @@ class QuantitySetup(ArraySetup):
 
 
 class LongitudeSetup(ArraySetup):
+    _data_cls = Longitude
+
     def setup_arrays(self):
         super().setup_arrays()
         self.a = Longitude(self.a, u.deg)
@@ -328,6 +334,55 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         expected_data = filled.max(axis)
         assert_array_equal(ma_max.unmasked, expected_data)
         assert not np.any(ma_max.mask)
+
+    def test_all_explicit(self):
+        a1 = np.array([[1., 2.],
+                       [3., 4.]])
+        a2 = np.array([[1., 0.],
+                       [3., 4.]])
+        if self._data_cls is not np.ndarray:
+            a1 = self._data_cls(a1, self.a.unit)
+            a2 = self._data_cls(a2, self.a.unit)
+        ma1 = Masked(a1, mask=[[False, False],
+                               [True, True]])
+        ma2 = Masked(a2, mask=[[False, True],
+                               [False, True]])
+        ma1_eq_ma2 = ma1 == ma2
+        assert_array_equal(ma1_eq_ma2.unmasked, np.array([[True, False],
+                                                          [True, True]]))
+        assert_array_equal(ma1_eq_ma2.mask, np.array([[False, True],
+                                                      [True, True]]))
+        assert ma1_eq_ma2.all()
+        assert not (ma1 != ma2).all()
+        ma_eq1 = ma1_eq_ma2.all(1)
+        assert_array_equal(ma_eq1.mask, np.array([False, True]))
+        assert bool(ma_eq1[0]) is True
+        assert bool(ma_eq1[1]) is False
+        ma_eq0 = ma1_eq_ma2.all(0)
+        assert_array_equal(ma_eq0.mask, np.array([False, True]))
+        assert bool(ma_eq1[0]) is True
+        assert bool(ma_eq1[1]) is False
+
+    @pytest.mark.parametrize('method', ['any', 'all'])
+    @pytest.mark.parametrize('array,axis', [
+        ('a', 0), ('a', 1), ('a', None),
+        ('b', None),
+        ('c', 0), ('c', 1), ('c', None)])
+    def test_all_and_any(self, array, axis, method):
+        ma = getattr(self, 'm'+array)
+        ma_eq = ma == ma
+        a_eq = ma.unmasked == ma.unmasked
+        ma_all_or_any = getattr(ma_eq, method)(axis=axis)
+        filled = ma_eq.unmasked.copy()
+        filled[ma_eq.mask] = method == 'all'
+        a_all_or_any = getattr(filled, method)(axis=axis)
+        all_masked = ma.mask.all(axis)
+        assert_array_equal(ma_all_or_any.mask, all_masked)
+        assert_array_equal(ma_all_or_any.unmasked, a_all_or_any)
+        # interpretation as bool
+        as_bool = [bool(a) for a in ma_all_or_any.ravel()]
+        expected = [bool(a) for a in (a_all_or_any & ~all_masked).ravel()]
+        assert as_bool == expected
 
 
 class TestMaskedQuantityMethods(TestMaskedArrayMethods, QuantitySetup):
