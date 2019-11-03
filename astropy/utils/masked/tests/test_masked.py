@@ -11,6 +11,11 @@ from ..core import Masked
 from ....tests.helper import pytest
 
 
+def assert_masked_equal(a, b):
+    assert_array_equal(a.unmasked, b.unmasked)
+    assert_array_equal(a.mask, b.mask)
+
+
 class ArraySetup:
     _data_cls = np.ndarray
 
@@ -263,6 +268,20 @@ class MaskedUfuncTests(MaskedArraySetup):
         assert_array_equal(ma_mb.unmasked, expected_data)
         assert_array_equal(ma_mb.mask, expected_mask)
 
+    @pytest.mark.parametrize('ufunc', (np.add, np.subtract, np.divide,
+                                       np.arctan2, np.minimum))
+    def test_ufunc_inplace(self, ufunc):
+        ma_mb = ufunc(self.ma, self.mb)
+        out = Masked(np.zeros_like(ma_mb.unmasked))
+        result = ufunc(self.ma, self.mb, out=out)
+        assert result is out
+        assert_masked_equal(result, ma_mb)
+
+    def test_ufunc_inplace_error(self):
+        out = np.zeros(self.ma.shape)
+        with pytest.raises(TypeError):
+            np.add(self.ma, self.mb, out=out)
+
     def test_3op_ufunc(self):
         ma_mb = np.clip(self.ma, self.mb, self.mc)
         expected_data = np.clip(self.a, self.b, self.c)
@@ -306,11 +325,19 @@ class TestMaskedArrayUfuncs(MaskedUfuncTests, ArraySetup):
 
 
 class TestMaskedQuantityUfuncs(MaskedUfuncTests, QuantitySetup):
-    pass
+    def test_ufunc_inplace_error2(self):
+        out = Masked(np.zeros(self.ma.shape))
+        with pytest.raises(TypeError):
+            np.add(self.ma, self.mb, out=out)
 
 
 class TestMaskedLongitudeUfuncs(MaskedUfuncTests, LongitudeSetup):
-    pass
+    def test_ufunc_inplace_quantity_initial(self):
+        out = Masked(np.zeros(self.ma.shape) << u.m)
+        result = np.add(self.ma, self.mb, out=out)
+        assert result is out
+        expected = np.add(self.ma, self.mb).view(Quantity)
+        assert_masked_equal(result, expected)
 
 
 class TestMaskedArrayMethods(MaskedArraySetup):
@@ -332,6 +359,19 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         expected_mask = self.ma.mask.all(axis)
         assert_array_equal(ma_mean.unmasked, expected_data)
         assert_array_equal(ma_mean.mask, expected_mask)
+
+    def test_mean_float16(self):
+        ma = self.ma.astype('f2')
+        ma_mean = ma.mean()
+        expected = self.ma.mean().astype('f2')
+        assert_masked_equal(ma_mean, expected)
+
+    def test_mean_inplace(self):
+        expected = self.ma.mean(1)
+        out = Masked(np.zeros_like(expected.unmasked))
+        result = self.ma.mean(1, out=out)
+        assert result is out
+        assert_masked_equal(out, expected)
 
     @pytest.mark.parametrize('axis', (0, 1, None))
     def test_var(self, axis):
@@ -356,8 +396,14 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         ma_std = self.ma.std(1, ddof=1)
         ma_var1 = self.ma.var(1, ddof=1)
         expected = np.sqrt(ma_var1)
-        assert_array_equal(ma_std.unmasked, expected.unmasked)
-        assert_array_equal(ma_std.mask, expected.mask)
+        assert_masked_equal(ma_std, expected)
+
+    def test_std_inplace(self):
+        expected = self.ma.std(1, ddof=1)
+        out = Masked(np.zeros_like(expected.unmasked))
+        result = self.ma.std(1, ddof=1, out=out)
+        assert result is out
+        assert_masked_equal(result, expected)
 
     @pytest.mark.parametrize('axis', (0, 1, None))
     def test_min(self, axis):
@@ -425,6 +471,14 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         as_bool = [bool(a) for a in ma_all_or_any.ravel()]
         expected = [bool(a) for a in (a_all_or_any & ~all_masked).ravel()]
         assert as_bool == expected
+
+    def test_any_inplace(self):
+        ma_eq = self.ma == self.ma
+        expected = ma_eq.any(1)
+        out = Masked(np.zeros_like(expected.unmasked))
+        result = ma_eq.any(1, out=out)
+        assert result is out
+        assert_masked_equal(result, expected)
 
 
 class TestMaskedQuantityMethods(TestMaskedArrayMethods, QuantitySetup):
