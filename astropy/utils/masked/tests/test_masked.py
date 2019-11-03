@@ -315,7 +315,7 @@ class TestMaskedLongitudeUfuncs(MaskedUfuncTests, LongitudeSetup):
 
 class TestMaskedArrayMethods(MaskedArraySetup):
     @pytest.mark.parametrize('axis', (0, 1, None))
-    def test_sum_method(self, axis):
+    def test_sum(self, axis):
         ma_sum = self.ma.sum(axis)
         expected_data = self.a.sum(axis)
         expected_mask = self.ma.mask.any(axis)
@@ -323,15 +323,41 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         assert_array_equal(ma_sum.mask, expected_mask)
 
     @pytest.mark.parametrize('axis', (0, 1, None))
-    def test_mean_method(self, axis):
+    def test_mean(self, axis):
         ma_mean = self.ma.mean(axis)
         filled = self.a.copy()
         filled[self.mask_a] = 0.
-        count = 1 - self.ma.mask.copy().astype(int)
+        count = 1 - self.ma.mask.astype(int)
         expected_data = filled.sum(axis) / count.sum(axis)
         expected_mask = self.ma.mask.all(axis)
         assert_array_equal(ma_mean.unmasked, expected_data)
         assert_array_equal(ma_mean.mask, expected_mask)
+
+    @pytest.mark.parametrize('axis', (0, 1, None))
+    def test_var(self, axis):
+        ma_var = self.ma.var(axis)
+        filled = (self.a - self.ma.mean(axis, keepdims=True))**2
+        filled[self.mask_a] = 0.
+        count = (1 - self.ma.mask.astype(int)).sum(axis)
+        expected_data = filled.sum(axis) / count
+        expected_mask = self.ma.mask.all(axis)
+        assert_array_equal(ma_var.unmasked, expected_data)
+        assert_array_equal(ma_var.mask, expected_mask)
+        ma_var1 = self.ma.var(axis, ddof=1)
+        expected_data1 = filled.sum(axis) / (count - 1)
+        expected_mask1 = self.ma.mask.all(axis) | (count <= 1)
+        assert_array_equal(ma_var1.unmasked, expected_data1)
+        assert_array_equal(ma_var1.mask, expected_mask1)
+        ma_var5 = self.ma.var(axis, ddof=5)
+        assert np.all(~np.isfinite(ma_var5.unmasked))
+        assert ma_var5.mask.all()
+
+    def test_std(self):
+        ma_std = self.ma.std(1, ddof=1)
+        ma_var1 = self.ma.var(1, ddof=1)
+        expected = np.sqrt(ma_var1)
+        assert_array_equal(ma_std.unmasked, expected.unmasked)
+        assert_array_equal(ma_std.mask, expected.mask)
 
     @pytest.mark.parametrize('axis', (0, 1, None))
     def test_min(self, axis):
