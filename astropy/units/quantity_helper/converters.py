@@ -315,14 +315,18 @@ def check_output(output, unit, inputs, function=None):
                                 (f" from {function.__name__} function"
                                  if function is not None else ""),
                                 type(output)))
-
-        if output.__quantity_subclass__(unit)[0] is not type(output):
+        # Check whether the type of quantity is right by trying to
+        # set the unit.  In order to ensure we do not change the output
+        # before a possible error, we try it on a view.
+        try:
+            output.view()._set_unit(unit)
+        except Exception as exc:
             raise UnitTypeError(
                 "Cannot store output with unit '{}'{} "
                 "in {} instance.  Use {} instance instead."
                 .format(unit, (f" from {function.__name__} function"
                                if function is not None else ""), type(output),
-                        output.__quantity_subclass__(unit)[0]))
+                        output.__quantity_subclass__(unit)[0])) from exc
 
         # check we can handle the dtype (e.g., that we are not int
         # when float is required).  Note that we only do this for Quantity
