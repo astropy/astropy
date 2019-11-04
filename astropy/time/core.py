@@ -682,7 +682,7 @@ class Time(ShapedLikeNDArray):
             else:
                 return ("<{} object: scale='{}' format='{}' value=[{} ... {}]>"
                         .format(self.__class__.__name__, self.scale, self.format,
-                                getattr(self, self.format)[0], 
+                                getattr(self, self.format)[0],
                                 getattr(self, self.format)[-1]))
         except IndexError:
             return ("<{} object: scale='{}' format='{}' value={}>"
