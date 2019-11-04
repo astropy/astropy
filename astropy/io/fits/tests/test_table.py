@@ -3076,13 +3076,13 @@ class TestColumnFunctions(FitsTestCase):
         """
 
         with pytest.raises(AssertionError) as err:
-            fits.Column(1, format='I', array=[1, 2, 3, 4, 5])
+            _ = fits.Column(1, format='I', array=[1, 2, 3, 4, 5])
         assert 'Column name must be a string able to fit' in str(err.value)
 
         with pytest.raises(VerifyError) as err:
-            fits.Column('col', format='I', null='Nan', disp=1, coord_type=1,
-                        coord_unit=2, coord_ref_point='1', coord_ref_value='1',
-                        coord_inc='1', time_ref_pos=1)
+            _ = fits.Column('col', format='I', null='Nan', disp=1, coord_type=1,
+                            coord_unit=2, coord_ref_point='1', coord_ref_value='1',
+                            coord_inc='1', time_ref_pos=1)
         err_msgs = ['keyword arguments to Column were invalid', 'TNULL', 'TDISP',
                     'TCTYP', 'TCUNI', 'TCRPX', 'TCRVL', 'TCDLT', 'TRPOS']
         for msg in err_msgs:
@@ -3099,15 +3099,15 @@ class TestColumnFunctions(FitsTestCase):
         """
 
         with pytest.raises(VerifyError) as err:
-            fits.Column('a', format='B', start='a', array=[1, 2, 3])
+            _ = fits.Column('a', format='B', start='a', array=[1, 2, 3])
         assert "start option (TBCOLn) is not allowed for binary table columns" in str(err.value)
 
         with pytest.raises(VerifyError) as err:
-            fits.Column('a', format='I', start='a', array=[1, 2, 3])
+            _ = fits.Column('a', format='I', start='a', array=[1, 2, 3])
         assert "start option (TBCOLn) must be a positive integer (got 'a')." in str(err.value)
 
         with pytest.raises(VerifyError) as err:
-            fits.Column('a', format='I', start='-56', array=[1, 2, 3])
+            _ = fits.Column('a', format='I', start='-56', array=[1, 2, 3])
         assert "start option (TBCOLn) must be a positive integer (got -56)." in str(err.value)
 
 
