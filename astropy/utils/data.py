@@ -1073,7 +1073,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
         ``~/.astropy/cache``.
 
     http_headers : dict
-        Headers to pass into ``urlopen`` if needed.
+        HTTP request headers to pass into ``urlopen`` if needed.
 
     Returns
     -------

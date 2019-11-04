@@ -278,7 +278,7 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
-- ``astropy.utils.data.download_file`` now provides an `http_headers` keyword to
+- ``astropy.utils.data.download_file`` now provides an ``http_headers`` keyword to
   pass in specific request headers for the download. [#9508]
 
 - Added a new ``astropy.utils.misc.unbroadcast`` function which can be used
