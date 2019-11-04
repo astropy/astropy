@@ -675,10 +675,15 @@ class Time(ShapedLikeNDArray):
 
     def __repr__(self):
         try:
-            return ("<{} object: scale='{}' format='{}' value=[{} ... {}]>"
+            if isinstance(getattr(self, self.format), str):
+                return ("<{} object: scale='{}' format='{}' value={}>"
                     .format(self.__class__.__name__, self.scale, self.format,
-                            getattr(self, self.format)[0], 
-                            getattr(self, self.format)[-1]))
+                            getattr(self, self.format)))
+            else:
+                return ("<{} object: scale='{}' format='{}' value=[{} ... {}]>"
+                        .format(self.__class__.__name__, self.scale, self.format,
+                                getattr(self, self.format)[0], 
+                                getattr(self, self.format)[-1]))
         except IndexError:
             return ("<{} object: scale='{}' format='{}' value={}>"
                     .format(self.__class__.__name__, self.scale, self.format,
