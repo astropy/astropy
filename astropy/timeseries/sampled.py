@@ -142,8 +142,7 @@ class TimeSeries(BaseTimeSeries):
         return self['time']
 
     @deprecated_renamed_argument('midpoint_epoch', 'epoch_time', '4.0')
-    def fold(self, period=None, epoch_time=None, epoch_phase=0, normalize_phase=True,
-             phase_length=1):
+    def fold(self, period=None, epoch_time=None, epoch_phase=0, normalize_phase=True):
         """
         Return a new `~astropy.timeseries.TimeSeries` folded with a period and
         epoch.
@@ -161,9 +160,6 @@ class TimeSeries(BaseTimeSeries):
         normalize_phase : bool
             If False phase is returned as `~astropy.time.TimeDelta`, otherwise
             as dimensionless `~astropy.units.Quantity`.
-        phase_length : float
-            Length of phase to return, centered on ``epoch_phase``. Default is 1 to
-            return the full phase.
 
         Returns
         -------
@@ -193,9 +189,6 @@ class TimeSeries(BaseTimeSeries):
             folded.remove_column('time')
             folded.add_column(folded_time, name='time', index=0)
 
-        if phase_length < 1:
-            folded = folded[np.abs(folded['time'] - epoch_phase * period) <
-                            (period_sec * phase_length / 2)]
         return folded
 
     def __getitem__(self, item):
