@@ -497,7 +497,7 @@ class _File:
             # to properly process the FITS header (and handle the possibility
             # of a compressed file).
             self._file.seek(0)
-        except (OSError, OSError):
+        except OSError:
             return
 
         self._try_read_compressed(fileobj, magic, mode)
