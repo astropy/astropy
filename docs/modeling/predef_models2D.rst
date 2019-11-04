@@ -45,7 +45,7 @@ an amplitude.
   a Gaussian with x,y standard deviations and rotation angle
 
 - :class:`~astropy.modeling.functional_models.RickerWavelet2D` model computes
-  a symmetric Mexican Hat function with the specified sigma
+  a symmetric RickerWavelet function with the specified sigma
 
 - :class:`~astropy.modeling.functional_models.Sersic2D` model computes
   a Sersic profile with an effective half-light radius, rotation, and

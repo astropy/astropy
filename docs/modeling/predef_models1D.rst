@@ -82,7 +82,7 @@ These models provide profiles, often used for lines in spectra.
   a Lorentzian with an amplitude centered at x_0 with the specified width.
 
 - :class:`~astropy.modeling.functional_models.RickerWavelet1D` model computes
-  a MexicanHat function with an amplitude centered at x_0 with the specified width.
+  a RickerWavelet function with an amplitude centered at x_0 with the specified width.
 
 - :class:`~astropy.modeling.functional_models.Moffat1D` model computes a
   Moffat function with an amplitude centered at x_0 with the specified width.
