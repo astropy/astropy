@@ -279,7 +279,8 @@ astropy.utils
 ^^^^^^^^^^^^^
 
 - ``astropy.utils.data.download_file`` now provides an ``http_headers`` keyword to
-  pass in specific request headers for the download. [#9508]
+  pass in specific request headers for the download. It also now defaults to
+  providing ``User-Agent: Astropy`` and ``Accept: */*`` headers.  [#9508]
 
 - Added a new ``astropy.utils.misc.unbroadcast`` function which can be used
   to return the smallest array that can be broadcasted back to the initial
