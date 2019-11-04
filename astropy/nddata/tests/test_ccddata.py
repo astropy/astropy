@@ -15,7 +15,7 @@ from astropy.wcs import WCS, FITSFixedWarning
 from astropy.tests.helper import catch_warnings
 from astropy.utils import NumpyRNGContext
 from astropy.utils.data import (get_pkg_data_filename, get_pkg_data_filenames,
-                           get_pkg_data_contents)
+                                get_pkg_data_contents)
 
 from astropy.nddata.ccddata import CCDData
 from astropy.nddata import _testing as nd_testing
@@ -643,6 +643,9 @@ def test_wcs_attribute(tmpdir):
     assert ccd_new_hdu_mod_wcs.header['CDELT2'] == ccd_new.wcs.wcs.cdelt[1]
 
 
+@pytest.mark.filterwarnings(
+    'ignore:Some non-standard WCS keywords were excluded')
+@pytest.mark.filterwarnings('ignore:.*made the change.*')
 def test_wcs_keywords_removed_from_header():
     """
     Test, for the file included with the nddata tests, that WCS keywords are
@@ -676,13 +679,12 @@ def test_wcs_SIP_coefficient_keywords_removed():
     # not being removed from the header even though they are WCS-related.
 
     data_file = get_pkg_data_filename('data/sip-wcs.fits')
+    test_keys = ['A_0_0', 'B_0_1']
 
     # Make sure the keywords added to this file for testing are there
-    hdu = fits.open(data_file)
-
-    test_keys = ['A_0_0', 'B_0_1']
-    for key in test_keys:
-        assert key in hdu[0].header
+    with fits.open(data_file) as hdu:
+        for key in test_keys:
+            assert key in hdu[0].header
 
     ccd = CCDData.read(data_file)
 
@@ -691,6 +693,7 @@ def test_wcs_SIP_coefficient_keywords_removed():
         assert key not in ccd.header
 
 
+@pytest.mark.filterwarnings('ignore')
 def test_wcs_keyword_removal_for_wcs_test_files():
     """
     Test, for the WCS test files, that keyword removal works as
