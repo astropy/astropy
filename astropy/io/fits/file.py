@@ -145,7 +145,7 @@ class _File:
 
         # Handle raw URLs
         if (isinstance(fileobj, str) and
-            mode not in ('ostream', 'append', 'update') and _is_url(fileobj)):
+                mode not in ('ostream', 'append', 'update') and _is_url(fileobj)):
             self.name = download_file(fileobj, cache=cache)
         # Handle responses from URL requests that have already been opened
         elif isinstance(fileobj, http.client.HTTPResponse):
@@ -201,7 +201,7 @@ class _File:
         # For 'ab+' mode, the pointer is at the end after the open in
         # Linux, but is at the beginning in Solaris.
         if (mode == 'ostream' or self.compression or
-            not hasattr(self._file, 'seek')):
+                not hasattr(self._file, 'seek')):
             # For output stream start with a truncated file.
             # For compressed files we can't really guess at the size
             self.size = 0
@@ -428,7 +428,7 @@ class _File:
 
         # The file will be overwritten...
         if ((self.file_like and hasattr(fileobj, 'len') and fileobj.len > 0) or
-            (os.path.exists(self.name) and os.path.getsize(self.name) != 0)):
+                (os.path.exists(self.name) and os.path.getsize(self.name) != 0)):
             if overwrite:
                 if self.file_like and hasattr(fileobj, 'truncate'):
                     fileobj.truncate(0)
@@ -472,7 +472,8 @@ class _File:
         """Open a FITS file from a file object (including compressed files)."""
 
         closed = fileobj_closed(fileobj)
-        fmode = fileobj_mode(fileobj) or IO_FITS_MODES[mode]
+        # FIXME: this variable was unused, check if it was useful
+        # fmode = fileobj_mode(fileobj) or IO_FITS_MODES[mode]
 
         if mode == 'ostream':
             self._overwrite_existing(overwrite, fileobj, closed)
@@ -496,7 +497,7 @@ class _File:
             # to properly process the FITS header (and handle the possibility
             # of a compressed file).
             self._file.seek(0)
-        except (OSError,OSError):
+        except OSError:
             return
 
         self._try_read_compressed(fileobj, magic, mode)
@@ -522,7 +523,7 @@ class _File:
         # If there is not seek or tell methods then set the mode to
         # output streaming.
         if (not hasattr(self._file, 'seek') or
-            not hasattr(self._file, 'tell')):
+                not hasattr(self._file, 'tell')):
             self.mode = mode = 'ostream'
 
         if mode == 'ostream':
@@ -530,7 +531,7 @@ class _File:
 
         # Any "writeable" mode requires a write() method on the file object
         if (self.mode in ('update', 'append', 'ostream') and
-            not hasattr(self._file, 'write')):
+                not hasattr(self._file, 'write')):
             raise OSError("File-like object does not have a 'write' "
                           "method, required for mode '{}'.".format(self.mode))
 

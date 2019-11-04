@@ -375,7 +375,7 @@ def _convert_time_column(col, column_info):
         # directly converted to Time, as they are absolute (relative
         # to a globally accepted zero point).
         if (column_info['ref_time']['val'] == 0 and
-            column_info['ref_time']['format'] in ['jd', 'mjd']):
+                column_info['ref_time']['format'] in ['jd', 'mjd']):
             # (jd1, jd2) where jd = jd1 + jd2
             if col.shape[-1] == 2 and col.ndim > 1:
                 return Time(col[..., 0], col[..., 1], scale=column_info['scale'],
@@ -545,8 +545,8 @@ def time_to_fits(table):
         jd12 = np.rollaxis(jd12, 0, jd12.ndim)
         newtable.replace_column(col.info.name, Column(jd12, unit='d'))
 
-        # Get column position(index)
-        n = table.colnames.index(col.info.name) + 1
+        # Get column position(index); FIXME: unused ?
+        # n = table.colnames.index(col.info.name) + 1
 
         # Time column-specific override keywords
         coord_meta[col.info.name]['coord_type'] = col.scale.upper()
@@ -566,7 +566,7 @@ def time_to_fits(table):
             # Compatibility of Time Scales and Reference Positions
             if col.scale in BARYCENTRIC_SCALES:
                 warnings.warn(
-                    'Earth Location "TOPOCENTER" for Time Column "{}" is incompatabile '
+                    'Earth Location "TOPOCENTER" for Time Column "{}" is incompatible '
                     'with scale "{}".'.format(col.info.name, col.scale.upper()),
                     AstropyUserWarning)
 

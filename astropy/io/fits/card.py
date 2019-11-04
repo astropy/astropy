@@ -235,7 +235,7 @@ class Card(_Verify):
             keyword = keyword.rstrip()
             keyword_upper = keyword.upper()
             if (len(keyword) <= KEYWORD_LENGTH and
-                self._keywd_FSC_RE.match(keyword_upper)):
+                    self._keywd_FSC_RE.match(keyword_upper)):
                 # For keywords with length > 8 they will be HIERARCH cards,
                 # and can have arbitrary case keywords
                 if keyword_upper == 'END':
@@ -356,7 +356,7 @@ class Card(_Verify):
             value = bool(value)
 
         if (conf.strip_header_whitespace and
-            (isinstance(oldvalue, str) and isinstance(value, str))):
+                (isinstance(oldvalue, str) and isinstance(value, str))):
             # Ignore extra whitespace when comparing the new value to the old
             different = oldvalue.rstrip() != value.rstrip()
         elif isinstance(oldvalue, bool) or isinstance(value, bool):
@@ -996,7 +996,7 @@ class Card(_Verify):
             # try not to use CONTINUE if the string value can fit in one line.
             # Instead, just truncate the comment
             if (isinstance(self.value, str) and
-                len(value) > (self.length - 10)):
+                    len(value) > (self.length - 10)):
                 output = self._format_long_image()
             else:
                 warnings.warn('Card is too long, comment will be truncated.',
