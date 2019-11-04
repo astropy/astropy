@@ -750,7 +750,7 @@ The column data values, shape, and data type are specified in one of two ways:
   Examples include:
 
   - Python non-string type (float, int, bool)
-  - Numpy non-string type (e.g. np.float32, np.int64, np.bool_)
+  - Numpy non-string type (e.g. np.float32, np.int64)
   - Numpy.dtype array-protocol type strings (e.g. 'i4', 'f8', 'S15')
 
   If no ``dtype`` value is provided then the type is inferred using
