@@ -172,7 +172,7 @@ resulting mask will be. There are several options.
   Custom functions are also possible::
 
       >>> def take_alternating_values(mask1, mask2, start=0):
-      ...     result = np.zeros(mask1.shape, dtype=np.bool)
+      ...     result = np.zeros(mask1.shape, dtype=np.bool_)
       ...     result[start::2] = mask1[start::2]
       ...     result[start+1::2] = mask2[start+1::2]
       ...     return result
