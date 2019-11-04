@@ -11,6 +11,8 @@ jobs:
   32bit:
     docker:
       - image: quay.io/pypa/manylinux1_i686
+    environment:
+        HYPOTHESIS_PROFILE: ci
     steps:
       - checkout
       - run:
@@ -20,19 +22,19 @@ jobs:
               printf "unicode_output = True\nmax_width = 500" > $HOME/.astropy/config/astropy.cfg
       - run:
           name: Install dependencies for Python 3.6
-          command: /opt/python/cp36-cp36m/bin/pip install "numpy<1.17" scipy pytest pytest-astropy pytest-xdist Cython jinja2
+          command: /opt/python/cp36-cp36m/bin/pip install "numpy<1.17" scipy pytest hypothesis pytest-astropy pytest-xdist Cython jinja2
       - run:
           name: Run tests for Python 3.6
           command: PYTHONHASHSEED=42 /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4 -a "--durations=50"
       - run:
           name: Install dependencies for Python 3.7
-          command: /opt/python/cp37-cp37m/bin/pip install "numpy<1.17" scipy pytest pytest-astropy pytest-xdist Cython jinja2 pandas
+          command: /opt/python/cp37-cp37m/bin/pip install "numpy<1.17" scipy pytest hypothesis pytest-astropy pytest-xdist Cython jinja2 pandas
       - run:
           name: Run tests for Python 3.7
           command: PYTHONHASHSEED=42 /opt/python/cp37-cp37m/bin/python setup.py test --parallel=4 -a "--durations=50"
       - run:
           name: Install dependencies for Python 3.8
-          command: /opt/python/cp38-cp38/bin/pip install numpy pytest pytest-astropy pytest-xdist Cython jinja2
+          command: /opt/python/cp38-cp38/bin/pip install numpy pytest hypothesis pytest-astropy pytest-xdist Cython jinja2
       - run:
           name: Run tests for Python 3.8
           command: PYTHONHASHSEED=42 /opt/python/cp38-cp38/bin/python setup.py test --parallel=4 -a "--durations=50"
@@ -40,6 +42,8 @@ jobs:
   image-tests-mpl212:
     docker:
       - image: astropy/image-tests-py36-mpl212:1.8
+    environment:
+        HYPOTHESIS_PROFILE: ci
     steps:
       - checkout
       - run:
@@ -51,6 +55,8 @@ jobs:
   image-tests-mpl222:
     docker:
       - image: astropy/image-tests-py36-mpl222:1.8
+    environment:
+        HYPOTHESIS_PROFILE: ci
     steps:
       - checkout
       - run:
@@ -62,6 +68,8 @@ jobs:
   image-tests-mpl302:
     docker:
       - image: astropy/image-tests-py37-mpl302:1.8
+    environment:
+        HYPOTHESIS_PROFILE: ci
     steps:
       - checkout
       - run:
@@ -73,6 +81,8 @@ jobs:
   image-tests-mpl310:
     docker:
       - image: astropy/image-tests-py37-mpl311:1.8
+    environment:
+        HYPOTHESIS_PROFILE: ci
     steps:
       - checkout
       - run:
@@ -84,6 +94,8 @@ jobs:
   image-tests-mpldev:
     docker:
       - image: astropy/image-tests-py37-base:1.2
+    environment:
+        HYPOTHESIS_PROFILE: ci
     steps:
       - checkout
       - run:
@@ -93,7 +105,7 @@ jobs:
             apt install -y g++
       - run:
           name: Install Python dependencies, including developer version of Matplotlib
-          command: pip3 install pytest pytest-mpl pytest-astropy numpy scipy git+https://github.com/matplotlib/matplotlib.git
+          command: pip3 install pytest pytest-mpl hypothesis pytest-astropy numpy scipy git+https://github.com/matplotlib/matplotlib.git
       - run:
           name: Run tests
           command: python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results"

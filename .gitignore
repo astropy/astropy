@@ -68,3 +68,6 @@ v
 
 # VSCode
 .vscode
+
+# hypothesis
+.hypothesis

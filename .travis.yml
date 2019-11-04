@@ -36,7 +36,7 @@ env:
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
         - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml pandas pytz html5lib beautifulsoup4 ipython mpmath bleach bottleneck'
-        - DEV_PIP_DEP='asdf>=2.3 Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz html5lib beautifulsoup4 ipython mpmath bleach bottleneck'
+        - DEV_PIP_DEP='asdf>=2.3 Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz html5lib beautifulsoup4 ipython mpmath bleach bottleneck hypothesis'
         - ASDF_PIP_DEP='asdf>=2.3'
         - SETUP_XVFB=True
         - EVENT_TYPE='push pull_request'
@@ -49,6 +49,7 @@ env:
         - USE_CI_HELPERS=True
         # Use this for the dependencies when not using ci-helpers
         - OTHER_DEPENDENCY_PREFERENCES=''
+        - HYPOTHESIS_PROFILE='ci'
 
         # PEP8 errors/warnings:
         # E101 - mix of tabs and spaces
@@ -96,7 +97,7 @@ matrix:
           stage: Cron tests
           env: SETUP_CMD='test --remote-data=astropy'
                CONDA_DEPENDENCIES="$CONDA_ALL_DEPENDENCIES clang"
-               PIP_DEPENDENCIES="scikit-image jplephem $ASDF_PIP_DEP"
+               PIP_DEPENDENCIES="scikit-image jplephem hypothesis $ASDF_PIP_DEP"
                CCOMPILER=clang
                EVENT_TYPE='cron'
                DOUBLE_PLAY=True
@@ -108,7 +109,7 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.16
                INSTALL_CMD='python setup.py build_ext --inplace'
-               PIP_DEPENDENCIES='pytest-astropy'
+               PIP_DEPENDENCIES='pytest-astropy hypothesis'
                TEST_CMD='pytest --open-files --doctest-rst'
           script:
             - $INSTALL_CMD
@@ -128,7 +129,7 @@ matrix:
         - os: linux
           stage: Initial tests
           env: PYTHON_VERSION=3.7 CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES="scikit-image $ASDF_PIP_DEP"
+               PIP_DEPENDENCIES="scikit-image hypothesis $ASDF_PIP_DEP"
                SETUP_CMD='test -a "--durations=50"'
           compiler: clang
 
@@ -136,7 +137,7 @@ matrix:
         - os: linux
           env: SETUP_CMD='test --coverage --remote-data=astropy --readonly'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES="scikit-image codecov objgraph jplephem bintrees sortedcontainers $ASDF_PIP_DEP"
+               PIP_DEPENDENCIES="scikit-image codecov objgraph jplephem bintrees sortedcontainers hypothesis $ASDF_PIP_DEP"
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='--coverage -fno-inline-functions -O0'
                MATPLOTLIB_VERSION=2.1
@@ -147,7 +148,7 @@ matrix:
           stage: Final tests
           env: PYTHON_VERSION=3.7 SETUP_CMD='test --readonly'
                CONDA_DEPENDENCIES=""
-               PIP_DEPENDENCIES="Cython scipy h5py beautifulsoup4 html5lib jinja2 pyyaml matplotlib scikit-image pytz pandas objgraph asdf"
+               PIP_DEPENDENCIES="Cython scipy h5py beautifulsoup4 html5lib jinja2 pyyaml matplotlib scikit-image pytz pandas objgraph asdf hypothesis"
 
         # Do a PEP8/pyflakes test with flake8
         - os: linux

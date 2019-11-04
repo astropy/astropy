@@ -1,28 +1,165 @@
-import functools
-
 import decimal
+import functools
+from datetime import datetime, timedelta
+from decimal import Decimal
+
 import pytest
+from hypothesis import assume, example, given, target
+from hypothesis.extra.numpy import array_shapes, arrays
+from hypothesis.strategies import (composite, datetimes, floats, integers,
+                                   one_of, sampled_from, timedeltas)
+
 import numpy as np
+<<<<<<< HEAD
 from decimal import Decimal
 from datetime import datetime
+=======
+>>>>>>> Add hypothesis testing for Time precision
 
-import astropy.units as u
 import astropy._erfa as erfa
-from astropy.time import Time, TimeDelta
+import astropy.units as u
+from astropy.tests.helper import assert_quantity_allclose
+from astropy.time import STANDARD_TIME_SCALES, Time, TimeDelta
 from astropy.time.utils import day_frac, two_sum
 from astropy.utils import iers
-from astropy.utils.exceptions import ErfaWarning
+from astropy.utils.exceptions import ErfaWarning, ErfaError
 
-allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
-allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,
-                                 atol=2. ** -52)  # 20 ps atol
-allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
-                                 atol=2. ** -52 * 24 * 3600)  # 20 ps atol
+allclose_jd = functools.partial(np.allclose, rtol=np.finfo(float).eps, atol=0)
+allclose_jd2 = functools.partial(np.allclose, rtol=np.finfo(float).eps,
+                                 atol=np.finfo(float).eps)  # 20 ps atol
+allclose_sec = functools.partial(np.allclose, rtol=np.finfo(float).eps,
+                                 atol=np.finfo(float).eps * 24 * 3600)
 
-tiny = 2. ** -52
+tiny = np.finfo(float).eps
 dt_tiny = TimeDelta(tiny, format='jd')
 
 
+def assert_almost_equal(a, b, *, rtol=None, atol=None, label=''):
+    """Assert numbers are almost equal
+
+    This version does this with two separate assertions, one that triggers with
+    severe failures (by a factor of a hundred), and another that triggers with
+    normal failures. The goal is that hypothesis should recognize that these
+    are different situations - severe failure versus marginal failure - and
+    avoid shrinking severe failures down to marginal ones.
+
+    This version also lets hypothesis know how far apart the inputs are, so
+    that it can work towards a failure (and, ultimately, perhaps present the
+    worst failure ever seen as well as the simplest, which often just barely
+    exceeds the threshold).
+    """
+    __tracebackhide__ = True
+    if rtol is None or rtol == 0:
+        thresh = atol
+    elif atol is None:
+        thresh = rtol*(abs(a)+abs(b))/2
+    else:
+        thresh = atol + rtol*(abs(a)+abs(b))/2
+
+    amb = (a-b)
+    if isinstance(amb, TimeDelta):
+        ambv = amb.to_value(u.s)
+        target(ambv, label=label + " amb")
+        target(-ambv, label=label + " bma")
+        if isinstance(thresh, u.Quantity):
+            amb = amb.to(thresh.unit)
+    else:
+        try:
+            target(float(amb), label=label + " amb")
+            target(-float(amb), label=label + " bma")
+        except TypeError:
+            pass
+
+    # assert abs(amb) < 100*thresh
+    assert abs(amb) < thresh
+
+
+# Days that end with leap seconds
+# Some time scales use a so-called "leap smear" to cope with these,
+# others have times they can't represent or can represent two different
+# ways. In any case these days are liable to cause trouble in time
+# conversions.
+# Note that from_erfa includes some weird non-integer steps before 1970.
+leap_second_table = iers.LeapSeconds.from_iers_leap_seconds()
+# Days that contain leap_seconds
+leap_second_days = leap_second_table["mjd"] - 1
+leap_second_deltas = list(zip(leap_second_days[1:],
+                              np.diff(leap_second_table["tai_utc"])))
+
+today = Time.now()
+mjd0 = Time(0, format="mjd")
+
+
+@composite
+def reasonable_ordinary_jd(draw):
+    return draw(floats(2440000, 2470000)), draw(floats(-0.5, 0.5))
+
+
+@composite
+def leap_second_tricky(draw):
+    mjd = draw(one_of(sampled_from(leap_second_days),
+                      sampled_from(leap_second_days+1),
+                      sampled_from(leap_second_days-1)))
+    return mjd+mjd0.jd1+mjd0.jd2, draw(floats(0, 1))
+
+
+@composite
+def reasonable_jd(draw):
+    """Pick a reasonable JD.
+
+    These should be not too far in the past or future (so that date conversion
+    routines don't have to deal with anything too exotic), but they should
+    include leap second days as a special case, and they should include several
+    particularly simple cases (today, the beginning of the MJD scale, a
+    reasonable date) so that hypothesis' example simplification produces
+    obviously simple examples when they trigger problems.
+    """
+    return draw(one_of(sampled_from([(2455000., 0.),
+                                     (mjd0.jd1, mjd0.jd2),
+                                     (today.jd1, today.jd2)]),
+                       reasonable_ordinary_jd(),
+                       leap_second_tricky()))
+
+
+@composite
+def unreasonable_ordinary_jd(draw):
+    """JD pair that might be unordered or far away"""
+    return draw(floats(-1e7, 1e7)), draw(floats(-1e7, 1e7))
+
+
+@composite
+def ordered_jd(draw):
+    """JD pair that is ordered but not necessarily near now"""
+    return draw(floats(-1e7, 1e7)), draw(floats(-0.5, 0.5))
+
+
+@composite
+def unreasonable_jd(draw):
+    return draw(one_of(reasonable_jd(),
+                       ordered_jd(),
+                       unreasonable_ordinary_jd()))
+
+
+@composite
+def jd_arrays(draw, jd_values):
+    s = draw(array_shapes())
+    d = np.dtype([("jd1", float), ("jd2", float)])
+    jdv = jd_values.map(lambda x: np.array((x[0], x[1]), dtype=d))
+    a = draw(arrays(d, s, elements=jdv))
+    return a["jd1"], a["jd2"]
+
+
+@composite
+def unreasonable_delta(draw):
+    return draw(floats(-1e7, 1e7)), draw(floats(-1e7, 1e7))
+
+
+@composite
+def reasonable_delta(draw):
+    return draw(floats(-1e4, 1e4)), draw(floats(-0.5, 0.5))
+
+
+# redundant?
 def test_abs_jd2_always_less_than_half():
     """Make jd2 approach +/-0.5, and check that it doesn't go over."""
     t1 = Time(2400000.5, [-tiny, +tiny], format='jd')
@@ -32,6 +169,22 @@ def test_abs_jd2_always_less_than_half():
                          [-0.5-tiny, -0.5+tiny]], format='jd')
     assert np.all(t2.jd1 % 1 == 0)
     assert np.all(abs(t2.jd2) < 0.5)
+
+
+@given(jd_arrays(unreasonable_jd()))
+def test_abs_jd2_always_less_than_half_on_construction(jds):
+    jd1, jd2 = jds
+    t = Time(jd1, jd2, format="jd")
+    target(np.amax(np.abs(t.jd2)))
+    assert np.all(t.jd1 % 1 == 0)
+    assert np.all(abs(t.jd2) <= 0.5)
+    assert np.all((abs(t.jd2) < 0.5) | (t.jd1 % 2 == 0))
+
+
+@given(integers(-10**8, 10**8), sampled_from([-0.5, 0.5]))
+def test_round_to_even(jd1, jd2):
+    t = Time(jd1, jd2, format="jd")
+    assert (abs(t.jd2) == 0.5) and (t.jd1 % 2 == 0)
 
 
 def test_addition():
@@ -142,69 +295,320 @@ def test_leap_seconds_rounded_correctly():
     # with the bug, both yielded '2012-06-30 23:59:60.000'
 
 
-def test_two_sum_simple():
+@given(integers(-2**52+2, 2**52-2), floats(-1, 1))
+@example(i=65536, f=3.637978807091714e-12)
+def test_two_sum(i, f):
     with decimal.localcontext(decimal.Context(prec=40)):
-        i, f = 65536, 3.637978807091714e-12
         a = Decimal(i) + Decimal(f)
         s, r = two_sum(i, f)
         b = Decimal(s) + Decimal(r)
-        assert (abs(a-b)*u.day).to(u.ns) < 1*u.ns
+        assert_almost_equal(a, b, atol=Decimal(tiny), rtol=Decimal(0))
 
 
-def test_day_frac_harmless():
+@given(floats(), floats())
+def test_two_sum_symmetric(f1, f2):
+    assert (two_sum(f1, f2) == two_sum(f2, f1)
+            or np.any(np.isnan(two_sum(f1, f2))))
+
+
+@given(floats(allow_nan=False, allow_infinity=False),
+       floats(allow_nan=False, allow_infinity=False))
+@example(f1=8.988465674311579e+307, f2=8.98846567431158e+307)
+@example(f1=8.988465674311579e+307, f2=-8.98846567431158e+307)
+@example(f1=-8.988465674311579e+307, f2=-8.98846567431158e+307)
+def test_two_sum_size(f1, f2):
+    r1, r2 = two_sum(f1, f2)
+    assert (abs(r1) > abs(r2)/np.finfo(float).eps
+            or r1 == r2 == 0
+            or not np.isfinite(f1+f2))
+
+
+@given(integers(-2**52+2, 2**52-2), floats(-1, 1))
+@example(i=65536, f=3.637978807091714e-12)
+def test_day_frac_harmless(i, f):
     with decimal.localcontext(decimal.Context(prec=40)):
-        i, f = 65536, 3.637978807091714e-12
         a = Decimal(i) + Decimal(f)
         i_d, f_d = day_frac(i, f)
         a_d = Decimal(i_d) + Decimal(f_d)
-        assert (abs(a-a_d)*u.day).to(u.ns) < 1*u.ns
+        assert_almost_equal(a, a_d, atol=Decimal(tiny), rtol=Decimal(0))
 
 
-def test_day_frac_idempotent():
-    i, f = 65536, 3.637978807091714e-12
+@given(integers(-2**52+2, 2**52-2), floats(-0.5, 0.5))
+@example(i=65536, f=3.637978807091714e-12)
+def test_day_frac_exact(i, f):
+    assume(abs(f) < 0.5 or i % 2 == 0)
     i_d, f_d = day_frac(i, f)
-    assert i_d, f_d == day_frac(i_d, f_d)
+    assert i == i_d
+    assert f == f_d
 
 
-def test_mjd_initialization_precise():
-    i, f = 65536, 3.637978807091714e-12  # Found using hypothesis
+@given(integers(-2**52+2, 2**52-2), floats(-1, 1))
+@example(i=65536, f=3.637978807091714e-12)
+def test_day_frac_idempotent(i, f):
+    i_d, f_d = day_frac(i, f)
+    assert (i_d, f_d) == day_frac(i_d, f_d)
+
+
+@given(integers(-2**52+2, 2**52-2), floats(-1, 1))
+@example(i=65536, f=3.637978807091714e-12)
+def test_mjd_initialization_precise(i, f):
     t = Time(val=i, val2=f, format="mjd", scale="tai")
     jd1, jd2 = day_frac(i + erfa.DJM0, f)
     jd1_t, jd2_t = day_frac(t.jd1, t.jd2)
     assert (abs((jd1-jd1_t) + (jd2-jd2_t))*u.day).to(u.ns) < 1*u.ns
 
 
-def test_conversion_preserves_jd1_jd2_invariant():
-    """Conversion can leave jd1 not an integer"""
-    scale1 = 'tai'
-    scale2 = 'tcb'
-    jd1, jd2 = 0., 0.
+@given(jd_arrays(unreasonable_jd()))
+def test_day_frac_always_less_than_half(jds):
+    jd1, jd2 = jds
+    t_jd1, t_jd2 = day_frac(jd1, jd2)
+    assert np.all(t_jd1 % 1 == 0)
+    assert np.all(abs(t_jd2) <= 0.5)
+    assert np.all((abs(t_jd2) < 0.5) | (t_jd1 % 2 == 0))
+
+
+@given(integers(-10**8, 10**8), sampled_from([-0.5, 0.5]))
+def test_day_frac_round_to_even(jd1, jd2):
+    t_jd1, t_jd2 = day_frac(jd1, jd2)
+    assert (abs(t_jd2) == 0.5) and (t_jd1 % 2 == 0)
+
+
+_scales = STANDARD_TIME_SCALES
+@given(sampled_from(_scales), unreasonable_jd())
+@example(scale="tai", jds=(0.0, 0.0))
+@example(scale="tai", jds=(0.0, -31738.500000000346))
+def test_resolution_never_decreases(scale, jds):
+    jd1, jd2 = jds
+    assume(not scale == 'utc' or 2440000 < jd1+jd2 < 2460000)
+    t = Time(jd1, jd2, format="jd", scale=scale)
+    assert t != t+dt_tiny
+
+
+@given(reasonable_jd())
+def test_resolution_never_decreases_utc(jds):
+    """UTC is very unhappy with unreasonable times"""
+    jd1, jd2 = jds
+    t = Time(jd1, jd2, format="jd", scale="utc")
+    assert t != t+dt_tiny
+
+
+@given(sampled_from(_scales), sampled_from(_scales), unreasonable_jd())
+@example(scale1='tcg', scale2='ut1', jds=(2445149.5, 0.47187700984387526))
+@example(scale1='tai', scale2='tcb', jds=(2441316.5, 0.0))
+@example(scale1='tai', scale2='tcb', jds=(0.0, 0.0))
+def test_conversion_preserves_jd1_jd2_invariant(scale1, scale2, jds):
+    jd1, jd2 = jds
     t = Time(jd1, jd2, scale=scale1, format="jd")
-    with pytest.warns(
-            ErfaWarning,
-            match=r'ERFA function "taiutc" yielded 1 of "dubious year'):
+    try:
         t2 = getattr(t, scale2)
+    except iers.IERSRangeError:  # UT1 conversion needs IERS data
+        assume(False)
+    except ErfaError:
+        assume(False)
     assert t2.jd1 % 1 == 0
     assert abs(t2.jd2) <= 0.5
     assert abs(t2.jd2) < 0.5 or t2.jd1 % 2 == 0
 
 
-def test_conversion_preserves_jd1_jd2_invariant_2():
-    """Conversion can leave abs(jd2)>0.5"""
-    scale1 = 'tai'
-    scale2 = 'tcb'
-    jd1, jd2 = (2441316.5, 0.0)
+@given(sampled_from(_scales), sampled_from(_scales), reasonable_jd())
+def test_conversion_never_loses_precision(scale1, scale2, jds):
+    jd1, jd2 = jds
     t = Time(jd1, jd2, scale=scale1, format="jd")
-    t2 = getattr(t, scale2)
-    assert t2.jd1 % 1 == 0
-    assert abs(t2.jd2) <= 0.5
-    assert abs(t2.jd2) < 0.5 or t2.jd1 % 2 == 0
+    # If the rates ever differ, might lose one ULP
+    t2 = t + 2*dt_tiny
+    try:
+        assert getattr(t, scale2) < getattr(t2, scale2)
+    except iers.IERSRangeError:  # UT1 conversion needs IERS data
+        assume(scale1 != 'ut1' or 2440000 < jd1+jd2 < 2458000)
+        assume(scale2 != 'ut1' or 2440000 < jd1+jd2 < 2458000)
+        raise
 
 
-def test_datetime_difference_agrees_with_timedelta():
+@given(sampled_from(leap_second_deltas), floats(0.1, 0.9))
+def test_leap_stretch_mjd(d, f):
+    mjd, delta = d
+    t0 = Time(mjd, format="mjd", scale="utc")
+    th = Time(mjd+f, format="mjd", scale="utc")
+    t1 = Time(mjd+1, format="mjd", scale="utc")
+    assert_quantity_allclose((t1-t0).to(u.s), (1*u.day+delta*u.s))
+    assert_quantity_allclose((th-t0).to(u.s), f*(1*u.day+delta*u.s))
+    assert_quantity_allclose((t1-th).to(u.s), (1-f)*(1*u.day+delta*u.s))
+
+
+@given(sampled_from(_scales), unreasonable_jd(), floats(-10000, 10000))
+@example(scale='utc',
+         jds=(0.0, 2.2204460492503136e-13),
+         delta=6.661338147750941e-13)
+@example(scale='utc',
+         jds=(2441682.5, 2.2204460492503136e-16),
+         delta=7.327471962526035e-12)
+@example(scale='utc', jds=(0.0, 5.787592627370942e-13), delta=0.0)
+def test_jd_add_subtract_round_trip(scale, jds, delta):
+    jd1, jd2 = jds
+    if scale == 'utc' and 1 > abs(jd1+jd2):
+        # near-zero UTC times degrade accuracy; why?
+        thresh = 100*u.us
+    else:
+        thresh = 2*dt_tiny
+    t = Time(jd1, jd2, scale=scale, format="jd")
+    try:
+        t2 = t + delta*u.day
+        if abs(delta) >= np.finfo(float).eps:
+            assert t2 != t
+        t3 = t2 - delta*u.day
+        assert_almost_equal(t3, t, atol=thresh, rtol=0)
+    except ErfaError:
+        assume(scale != 'utc' or 2440000 < jd1+jd2 < 2460000)
+        raise
+
+
+@given(sampled_from(_scales), unreasonable_jd(), unreasonable_jd())
+@example(scale='utc',
+         jds_a=(2455000.0, 0.0),
+         jds_b=(2443144.5, 0.5000462962962965))
+def test_timedelta_full_precision(scale, jds_a, jds_b):
+    jd1_a, jd2_a = jds_a
+    jd1_b, jd2_b = jds_b
+    assume(scale != 'utc'
+           or (2440000 < jd1_a+jd2_a < 2460000
+               and 2440000 < jd1_b+jd2_b < 2460000))
+    t_a = Time(jd1_a, jd2_a, scale=scale, format="jd")
+    t_b = Time(jd1_b, jd2_b, scale=scale, format="jd")
+    dt = t_b - t_a
+    assert dt != (t_b + dt_tiny) - t_a
+    assert_almost_equal(t_b-dt/2, t_a+dt/2, atol=2*dt_tiny, rtol=0,
+                        label="midpoint")
+    assert_almost_equal(t_b+dt, t_a+2*dt, atol=2*dt_tiny, rtol=0, label="up")
+    assert_almost_equal(t_b-2*dt, t_a-dt, atol=2*dt_tiny, rtol=0, label="down")
+
+
+@given(sampled_from(_scales),
+       unreasonable_jd(),
+       unreasonable_jd(),
+       integers(1, 100),
+       integers(1, 100))
+def test_timedelta_full_precision_arithmetic(scale, jds_a, jds_b, x, y):
+    jd1_a, jd2_a = jds_a
+    jd1_b, jd2_b = jds_b
+    t_a = Time(jd1_a, jd2_a, scale=scale, format="jd")
+    t_b = Time(jd1_b, jd2_b, scale=scale, format="jd")
+    try:
+        dt = t_b - t_a
+        dt_x = x*dt/(x+y)
+        dt_y = y*dt/(x+y)
+        assert_almost_equal(
+            dt_x + dt_y, dt, atol=(x+y)*dt_tiny, rtol=0)
+    except ErfaError:
+        assume(scale != 'utc'
+               or (2440000 < jd1_a+jd2_a < 2460000
+                   and 2440000 < jd1_b+jd2_b < 2460000))
+        raise
+
+
+@given(sampled_from(_scales), sampled_from(_scales),
+       reasonable_jd(), reasonable_jd())
+def test_timedelta_conversion(scale1, scale2, jds_a, jds_b):
+    jd1_a, jd2_a = jds_a
+    jd1_b, jd2_b = jds_b
+    # not translation invariant so can't convert TimeDelta
+    assume('utc' not in [scale1, scale2])
+    # Conversions a problem but within UT1 it should work
+    assume(('ut1' not in [scale1, scale2]) or scale1 == scale2)
+    t_a = Time(jd1_a, jd2_a, scale=scale1, format="jd")
+    t_b = Time(jd1_b, jd2_b, scale=scale2, format="jd")
+    dt = t_b - t_a
+    t_a_2 = getattr(t_a, scale2)
+    t_b_2 = getattr(t_b, scale2)
+    dt_2 = getattr(dt, scale2)
+    assert_almost_equal(t_b_2 - t_a_2, dt_2, atol=dt_tiny, rtol=0,
+                        label="converted")
+    # Implicit conversion
+    assert_almost_equal(t_b_2 - t_a_2, dt, atol=dt_tiny, rtol=0,
+                        label="not converted")
+
+
+# UTC disagrees when there are leap seconds
+_utc_bad = [(pytest.param(s, marks=pytest.mark.xfail) if s == 'utc' else s)
+            for s in _scales]
+# datetimes have microsecond resolution
+@pytest.mark.xfail
+@given(datetimes(), datetimes())
+@example(dt1=datetime(1235, 1, 1, 0, 0),
+         dt2=datetime(9950, 1, 1, 0, 0, 0, 890773))
+@pytest.mark.parametrize("scale", _utc_bad)
+def test_datetime_difference_agrees_with_timedelta(scale, dt1, dt2):
+    t1 = Time(dt1, scale=scale)
+    t2 = Time(dt2, scale=scale)
+    assert_almost_equal(t2-t1,
+                        TimeDelta(dt2-dt1,
+                                  scale=None if scale == 'utc' else scale),
+                        atol=25*u.us)
+
+
+@pytest.mark.xfail
+def test_datetime_difference_agrees_with_timedelta_no_hypothesis():
     scale = "tai"
     dt1 = datetime(1235, 1, 1, 0, 0)
     dt2 = datetime(9950, 1, 1, 0, 0, 0, 890773)
     t1 = Time(dt1, scale=scale)
     t2 = Time(dt2, scale=scale)
     assert(abs((t2-t1) - TimeDelta(dt2-dt1, scale=scale)) < 1*u.us)
+
+
+# datetimes have microsecond resolution
+@pytest.mark.xfail
+@given(datetimes(), timedeltas())
+@example(dt=datetime(2000, 1, 1, 0, 0),
+         td=timedelta(days=-397683, microseconds=2))
+@example(dt=datetime(2179, 1, 1, 0, 0),
+         td=timedelta(days=-795365, microseconds=53))
+@example(dt=datetime(2000, 1, 1, 0, 0),
+         td=timedelta(days=1590729, microseconds=10))
+@example(dt=datetime(4357, 1, 1, 0, 0),
+         td=timedelta(days=-1590729, microseconds=107770))
+@example(dt=datetime(4357, 1, 1, 0, 0, 0, 29),
+         td=timedelta(days=-1590729, microseconds=746292))
+@pytest.mark.parametrize("scale", _utc_bad)
+def test_datetime_timedelta_sum(scale, dt, td):
+    try:
+        dt + td
+    except OverflowError:
+        assume(False)
+    dt_a = Time(dt, scale=scale)
+    td_a = TimeDelta(td, scale=None if scale == 'utc' else scale)
+    assert_almost_equal(dt_a+td_a,
+                        Time(dt+td, scale=scale),
+                        atol=10*u.us)
+
+
+# should probably move hypothesis helpers somewhere more global so this can
+# go in test_sidereal.py instead.
+
+sidereal_day_frac = ((1*u.year-1*u.day)/(1*u.year)).to_value(1)
+@pytest.mark.xfail
+@given(reasonable_jd(), floats(-180, 180))
+@example(kind='mean', jds=(2455000.0, 0.0), lon=-85.87226916203973)
+@pytest.mark.parametrize("kind", ["apparent", "mean"])
+def test_sidereal_range(kind, jds, lon):
+    jd1, jd2 = jds
+    t = Time(jd1, jd2, scale="ut1", format="jd")
+    try:
+        assert (0*u.degree
+                <= t.sidereal_time(kind, lon)
+                < 24*u.hourangle*sidereal_day_frac)
+    except iers.IERSRangeError:
+        assume(False)
+
+
+@given(reasonable_jd(), floats(-90, 90), floats(-90, 90), floats(-180, 180))
+@pytest.mark.parametrize("kind", ["apparent", "mean"])
+def test_sidereal_lat_independent(kind, jds, lat1, lat2, lon):
+    jd1, jd2 = jds
+    t1 = Time(jd1, jd2, scale="ut1", format="jd", location=(lon, lat1))
+    t2 = Time(jd1, jd2, scale="ut1", format="jd", location=(lon, lat2))
+    try:
+        assert_almost_equal(t1.sidereal_time(kind),
+                            t2.sidereal_time(kind),
+                            atol=1*u.uas)
+    except iers.IERSRangeError:
+        assume(False)

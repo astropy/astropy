@@ -8,6 +8,8 @@ import os
 import pkg_resources
 import tempfile
 
+import hypothesis
+
 try:
     from pytest_astropy_header.display import PYTEST_HEADER_MODULES
 except ImportError:
@@ -24,6 +26,17 @@ if find_spec('asdf') is not None:
         if "asdf_schema_tester" not in entry_points:
             pytest_plugins += ['asdf.tests.schema_tester']
         PYTEST_HEADER_MODULES['Asdf'] = 'asdf'
+
+# Tell Hypothesis that we might be running slow tests, to print the seed blob
+# so we can easily reproduce failures from CI, and derive a fuzzing profile
+# to try many more inputs.  Select profiles with the environment variable.
+
+hypothesis.settings.register_profile("normal", deadline=None)
+hypothesis.settings.register_profile("ci", deadline=None, print_blob=True)
+hypothesis.settings.register_profile(
+    "fuzzing", parent=hypothesis.settings.get_profile("ci"), max_examples=10**4
+)
+hypothesis.settings.load_profile(os.environ.get("HYPOTHESIS_PROFILE", "normal"))
 
 # Make sure we use temporary directories for the config and cache
 # so that the tests are insensitive to local configuration.
