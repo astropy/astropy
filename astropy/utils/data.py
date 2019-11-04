@@ -953,7 +953,8 @@ def check_free_space_in_dir(path, size):
 
 def _download_file_from_source(source_url, show_progress=True, timeout=None,
                                remote_url=None, cache=False, pkgname='astropy',
-                               http_headers={}):
+                               http_headers={'User-Agent': 'astropy',
+                                             'Accept': '*/*'}):
     from astropy.utils.console import ProgressBarOrSpinner
 
     if remote_url is None:
@@ -1073,7 +1074,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
         ``~/.astropy/cache``.
 
     http_headers : dict
-        HTTP request headers to pass into ``urlopen`` if needed.
+        HTTP request headers to pass into ``urlopen`` if needed. (These headers
+        are ignored if the ``remote_url`` is not http.)
 
     Returns
     -------
