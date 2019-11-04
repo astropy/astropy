@@ -803,7 +803,7 @@ Other Changes and Additions
   automatically. [#9365]
 
 - The default server for the IERS data files has been updated to reflect
-  long-term downtime of the canonical USNO server. [#9443, #9487, #9508]
+  long-term downtime of the canonical USNO server. [#9487, #9508]
 
 
 3.2.3 (2019-10-27)
