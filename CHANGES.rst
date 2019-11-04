@@ -242,6 +242,8 @@ astropy.time
   existing method for ``TimeDelta``) so that one can get values in a given
   ``format`` and possible ``subfmt`` (e.g., ``to_value('mjd', 'str')``. [#9361]
 
+- ``Time`` will correctly display __repr__() values. [#9525]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
