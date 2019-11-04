@@ -595,7 +595,7 @@ class TestFileFunctions(FitsTestCase):
         # But opening in ostream or append mode should be okay, since they
         # allow writing new files
         for mode in ('ostream', 'append'):
-            with fits.open(self.temp('foobar.fits'), mode=mode):
+            with fits.open(self.temp('foobar.fits'), mode=mode) as _:
                 pass
 
             assert os.path.exists(self.temp('foobar.fits'))
@@ -604,24 +604,24 @@ class TestFileFunctions(FitsTestCase):
     def test_open_file_handle(self):
         # Make sure we can open a FITS file from an open file handle
         with open(self.data('test0.fits'), 'rb') as handle:
-            with fits.open(handle):
+            with fits.open(handle) as _:
                 pass
 
         with open(self.temp('temp.fits'), 'wb') as handle:
-            with fits.open(handle, mode='ostream'):
+            with fits.open(handle, mode='ostream') as _:
                 pass
 
         # Opening without explicitly specifying binary mode should fail
         with pytest.raises(ValueError):
             with open(self.data('test0.fits')) as handle:
-                with fits.open(handle):
+                with fits.open(handle) as _:
                     pass
 
         # All of these read modes should fail
         for mode in ['r', 'rt']:
             with pytest.raises(ValueError):
                 with open(self.data('test0.fits'), mode=mode) as handle:
-                    with fits.open(handle):
+                    with fits.open(handle) as _:
                         pass
 
         # These update or write modes should fail as well
@@ -629,37 +629,37 @@ class TestFileFunctions(FitsTestCase):
                      'a', 'at', 'a+', 'at+']:
             with pytest.raises(ValueError):
                 with open(self.temp('temp.fits'), mode=mode) as handle:
-                    with fits.open(handle):
+                    with fits.open(handle) as _:
                         pass
 
     def test_fits_file_handle_mode_combo(self):
         # This should work fine since no mode is given
         with open(self.data('test0.fits'), 'rb') as handle:
-            with fits.open(handle):
+            with fits.open(handle) as _:
                 pass
 
         # This should work fine since the modes are compatible
         with open(self.data('test0.fits'), 'rb') as handle:
-            with fits.open(handle, mode='readonly'):
+            with fits.open(handle, mode='readonly') as _:
                 pass
 
         # This should not work since the modes conflict
         with pytest.raises(ValueError):
             with open(self.data('test0.fits'), 'rb') as handle:
-                with fits.open(handle, mode='ostream'):
+                with fits.open(handle, mode='ostream') as _:
                     pass
 
     def test_open_from_url(self):
         file_url = 'file:///' + self.data('test0.fits').lstrip('/')
         with urllib.request.urlopen(file_url) as urlobj:
-            with fits.open(urlobj):
+            with fits.open(urlobj) as _:
                 pass
 
         # It will not be possible to write to a file that is from a URL object
         for mode in ('ostream', 'append', 'update'):
             with pytest.raises(ValueError):
                 with urllib.request.urlopen(file_url) as urlobj:
-                    with fits.open(urlobj, mode=mode):
+                    with fits.open(urlobj, mode=mode) as _:
                         pass
 
     @pytest.mark.remote_data(source='astropy')
@@ -743,7 +743,7 @@ class TestFileFunctions(FitsTestCase):
         'append' mode raises an error"""
 
         with pytest.raises(OSError):
-            with fits.open(self._make_gzip_file('append.gz'), mode='append'):
+            with fits.open(self._make_gzip_file('append.gz'), mode='append') as _:
                 pass
 
     def test_open_bzipped(self):

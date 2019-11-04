@@ -31,7 +31,7 @@ class TestDivisionFunctions(FitsTestCase):
 
     def test_hdu_get_size(self):
         with catch_warnings() as w:
-            with fits.open(self.data('tb.fits')):
+            with fits.open(self.data('tb.fits')) as _:
                 pass
         assert len(w) == 0
 
