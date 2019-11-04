@@ -158,16 +158,6 @@ def test_fold_phase():
     assert isinstance(tsf.time, u.Quantity)
     assert_allclose(tsf.time.value, [-0.375, -0.125, 0.125, 0.375, -0.375, 0.375], rtol=1e-6)
 
-    # Try half phase
-    tfs = ts.fold(period=4*u.s, phase_length=0.6)
-    assert len(tfs) == 5
-    assert_allclose(tfs.time.value, [0, 0.25, -0.25, 0, -0.25], atol=1e-3)
-
-    # Try half phase with epoch_phase
-    tfs = ts.fold(period=4*u.s, phase_length=0.6, epoch_phase=0.2)
-    assert len(tfs) == 5
-    assert_allclose(tfs.time.value, [0.2, 0.45, -0.05, 0.2, -0.05], atol=1e-3)
-
 
 def test_fold():
     times = Time([1, 2, 3, 8, 9, 12], format='unix')
