@@ -746,10 +746,6 @@ class Header:
 
             if not fileobj.simulateonly:
                 fileobj.flush()
-                try:
-                    offset = fileobj.tell()
-                except (AttributeError, OSError):
-                    offset = 0
                 fileobj.write(blocks.encode('ascii'))
                 fileobj.flush()
         finally:

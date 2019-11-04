@@ -4,7 +4,6 @@
 import os
 import re
 import warnings
-from collections import OrderedDict
 
 from astropy.io import registry as io_registry
 from astropy import units as u
