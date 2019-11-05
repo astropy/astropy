@@ -65,7 +65,7 @@ def wcs_4d():
     LONPOLE =                180.0 / [deg] Native longitude of celestial pole
     LATPOLE =                  0.0 / [deg] Native latitude of celestial pole
     """)
-    return WCS(header=header)
+    return WCS(header=fits.Header.fromstring(header, sep='\n'))
 
 
 @pytest.fixture
@@ -282,9 +282,8 @@ def test_coord_type_1d_2d_wcs_uncorrelated():
 
 
 def test_coord_meta_4d(wcs_4d):
-    with warnings.catch_warnings():
-        warnings.filterwarnings('ignore', category=FutureWarning)
-        _, coord_meta = transform_coord_meta_from_wcs(wcs_4d, RectangularFrame, slices=(0, 0, 'x', 'y'))
+
+    _, coord_meta = transform_coord_meta_from_wcs(wcs_4d, RectangularFrame, slices=(0, 0, 'x', 'y'))
 
     axislabel_position = coord_meta['default_axislabel_position']
     ticklabel_position = coord_meta['default_ticklabel_position']
@@ -296,9 +295,8 @@ def test_coord_meta_4d(wcs_4d):
 
 
 def test_coord_meta_4d_line_plot(wcs_4d):
-    with warnings.catch_warnings():
-        warnings.filterwarnings('ignore', category=FutureWarning)
-        _, coord_meta = transform_coord_meta_from_wcs(wcs_4d, RectangularFrame1D, slices=(0, 0, 0, 'x'))
+
+    _, coord_meta = transform_coord_meta_from_wcs(wcs_4d, RectangularFrame1D, slices=(0, 0, 0, 'x'))
 
     axislabel_position = coord_meta['default_axislabel_position']
     ticklabel_position = coord_meta['default_ticklabel_position']

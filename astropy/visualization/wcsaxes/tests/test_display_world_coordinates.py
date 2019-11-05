@@ -13,6 +13,7 @@ from astropy.time import Time
 from astropy.utils.data import get_pkg_data_filename
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.wcs import WCS
+from astropy.coordinates import galactocentric_frame_defaults
 
 from .test_images import BaseImageTests
 
@@ -155,7 +156,8 @@ class TestDisplayWorldCoordinate(BaseImageTests):
     def test_plot_coord_3d_transform(self):
         wcs = WCS(self.msx_header)
 
-        coord = SkyCoord(0 * u.kpc, 0 * u.kpc, 0 * u.kpc, frame='galactocentric')
+        with galactocentric_frame_defaults.set('latest'):
+            coord = SkyCoord(0 * u.kpc, 0 * u.kpc, 0 * u.kpc, frame='galactocentric')
 
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1, projection=wcs)
