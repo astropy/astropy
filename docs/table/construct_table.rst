@@ -750,7 +750,7 @@ The column data values, shape, and data type are specified in one of two ways:
   Examples include:
 
   - Python non-string type (float, int, bool)
-  - Numpy non-string type (e.g. np.float32, np.int64, np.bool)
+  - Numpy non-string type (e.g. np.float32, np.int64)
   - Numpy.dtype array-protocol type strings (e.g. 'i4', 'f8', 'S15')
 
   If no ``dtype`` value is provided then the type is inferred using
@@ -996,7 +996,7 @@ fields.  This might look something like::
                   # corresponding to self['params'][item] for each row.  This
                   # might not exist in some rows so mark as masked (missing) in
                   # those cases.
-                  mask = np.zeros(len(self), dtype=np.bool)
+                  mask = np.zeros(len(self), dtype=np.bool_)
                   item = item.upper()
                   values = [params.get(item) for params in self['params']]
                   for ii, value in enumerate(values):

@@ -96,7 +96,7 @@ def separability_matrix(transform):
     """
     if transform.n_inputs == 1 and transform.n_outputs > 1:
         return np.ones((transform.n_outputs, transform.n_inputs),
-                       dtype=np.bool)
+                       dtype=np.bool_)
     separable_matrix = _separable(transform)
     separable_matrix = np.where(separable_matrix != 0, True, False)
     return separable_matrix

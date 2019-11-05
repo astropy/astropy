@@ -189,7 +189,7 @@ other a variable length array::
 
     >>> col1 = fits.Column(
     ...    name='var', format='PI()',
-    ...    array=np.array([[45, 56], [11, 12, 13]], dtype=np.object))
+    ...    array=np.array([[45, 56], [11, 12, 13]], dtype=np.object_))
     >>> col2 = fits.Column(name='xyz', format='2I', array=[[11, 3], [12, 4]])
     >>> hdu = fits.BinTableHDU.from_columns([col1, col2])
     >>> data = hdu.data
