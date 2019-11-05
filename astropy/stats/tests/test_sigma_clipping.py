@@ -244,7 +244,7 @@ def test_sigma_clip_axis_tuple_3D():
     """
 
     data = np.sin(0.78 * np.arange(27)).reshape(3, 3, 3)
-    mask = np.zeros_like(data, dtype=np.bool)
+    mask = np.zeros_like(data, dtype=np.bool_)
 
     data_t = np.rollaxis(data, 1, 0)
     mask_t = np.rollaxis(mask, 1, 0)

@@ -203,7 +203,7 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
 
     def world_to_array_index_values(self, *world_arrays):
         pixel_arrays = self.world_to_pixel_values(*world_arrays, 0)[::-1]
-        array_indices = tuple(np.asarray(np.floor(pixel + 0.5), dtype=np.int) for pixel in pixel_arrays)
+        array_indices = tuple(np.asarray(np.floor(pixel + 0.5), dtype=np.int_) for pixel in pixel_arrays)
         return array_indices
 
     @property
