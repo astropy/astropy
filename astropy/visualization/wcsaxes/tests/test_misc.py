@@ -27,6 +27,10 @@ MATPLOTLIB_LT_21 = LooseVersion(matplotlib.__version__) < LooseVersion("2.1")
 DATA = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 
 
+def teardown_function(function):
+    plt.close('all')
+
+
 @ignore_matplotlibrc
 def test_grid_regression():
     # Regression test for a bug that meant that if the rc parameter

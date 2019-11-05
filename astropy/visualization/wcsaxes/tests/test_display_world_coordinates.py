@@ -20,6 +20,9 @@ from .test_images import BaseImageTests
 
 class TestDisplayWorldCoordinate(BaseImageTests):
 
+    def teardown_method(self, method):
+        plt.close('all')
+
     @ignore_matplotlibrc
     def test_overlay_coords(self, tmpdir):
         wcs = WCS(self.msx_header)

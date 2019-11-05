@@ -352,10 +352,9 @@ def test_sliced_ND_input(sub_wcs, wcs_slice):
     coord_meta['default_ticklabel_position'] = ['', 'b', 't']
     coord_meta['default_ticks_position'] = ['', 'btlr', 'btlr']
 
-    with warnings.catch_warnings():
-        warnings.filterwarnings('ignore', category=FutureWarning)
-        # Validate the axes initialize correctly
-        ax = plt.subplot(projection=sub_wcs, slices=slices_wcsaxes)
+    # Validate the axes initialize correctly
+    plt.subplot(projection=sub_wcs, slices=slices_wcsaxes)
+    plt.close('all')
 
 
 class LowLevelWCS5D(BaseLowLevelWCS):
@@ -407,6 +406,9 @@ class LowLevelWCS5D(BaseLowLevelWCS):
 
 
 class TestWCSAPI:
+
+    def teardown_method(self, method):
+        plt.close('all')
 
     @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,

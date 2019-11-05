@@ -43,6 +43,9 @@ class BaseImageTests:
         slice_header = os.path.join(cls._data_dir, 'slice_header')
         cls.slice_header = fits.Header.fromtextfile(slice_header)
 
+    def teardown_method(self, method):
+        plt.close('all')
+
 
 class TestBasic(BaseImageTests):
 
