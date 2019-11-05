@@ -4,13 +4,14 @@
 import pytest
 import numpy as np
 
-from astropy.modeling.blackbody import BlackBody1D, blackbody_nu, blackbody_lambda, FNU
-from astropy.modeling.fitting import LevMarLSQFitter
-
-from astropy.tests.helper import assert_quantity_allclose, catch_warnings
 from astropy import constants as const
 from astropy import units as u
+from astropy.tests.helper import assert_quantity_allclose, catch_warnings
 from astropy.utils.exceptions import AstropyUserWarning
+
+from astropy.modeling.fitting import LevMarLSQFitter
+from astropy.modeling.blackbody import (
+    BlackBody1D, blackbody_nu, blackbody_lambda, FNU)
 
 try:
     from scipy import optimize, integrate  # noqa
@@ -21,6 +22,7 @@ except ImportError:
 __doctest_skip__ = ['*']
 
 
+@pytest.mark.filterwarnings("ignore:BlackBody provides the same capabilities")
 class TestBlackbody1D:
 
     # Make sure the temperature equivalency automatically applies by trying
@@ -54,6 +56,7 @@ class TestBlackbody1D:
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.filterwarnings("ignore:BlackBody provides the same capabilities")
 def test_blackbody_scipy():
     """Test Planck function.
 
@@ -73,6 +76,9 @@ def test_blackbody_scipy():
     np.testing.assert_allclose(intflux, ans.value, rtol=0.01)  # 1% accuracy
 
 
+@pytest.mark.filterwarnings("ignore:BlackBody provides the same capabilities")
+@pytest.mark.filterwarnings(
+    r"ignore:Input contains invalid wavelength/frequency value\(s\)")
 def test_blackbody_overflow():
     """Test Planck function with overflow."""
     photlam = u.photon / (u.cm**2 * u.s * u.AA)
@@ -94,6 +100,7 @@ def test_blackbody_overflow():
     assert flux.value == 0
 
 
+@pytest.mark.filterwarnings("ignore:BlackBody provides the same capabilities")
 def test_blackbody_synphot():
     """Test that it is consistent with IRAF SYNPHOT BBFUNC."""
     # Solid angle of solar radius at 1 kpc
@@ -111,6 +118,7 @@ def test_blackbody_synphot():
         rtol=0.01)  # 1% accuracy
 
 
+@pytest.mark.filterwarnings("ignore:BlackBody provides the same capabilities")
 def test_blackbody_exceptions_and_warnings():
     """Test exceptions."""
 
@@ -132,6 +140,7 @@ def test_blackbody_exceptions_and_warnings():
     assert 'invalid' in w[0].message.args[0]
 
 
+@pytest.mark.filterwarnings("ignore:BlackBody provides the same capabilities")
 def test_blackbody_array_temperature():
     """Regression test to make sure that the temperature can be an array."""
     flux = blackbody_nu(1.2 * u.mm, [100, 200, 300] * u.K)
