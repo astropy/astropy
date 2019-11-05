@@ -315,7 +315,8 @@ def test_contour_empty():
     fig = plt.figure()
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
     fig.add_axes(ax)
-    ax.contour(np.zeros((4, 4)), transform=ax.get_transform('world'))
+    with pytest.warns(UserWarning, match='No contour levels were found within the data range'):
+        ax.contour(np.zeros((4, 4)), transform=ax.get_transform('world'))
 
 
 @ignore_matplotlibrc
