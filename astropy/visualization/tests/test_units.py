@@ -35,7 +35,7 @@ def test_units():
         assert plt.gca().xaxis.get_units() == u.m
         assert plt.gca().yaxis.get_units() == u.kg
 
-    plt.clf()
+    plt.close()
 
 
 @pytest.mark.skipif('not HAS_PLT')
@@ -54,7 +54,7 @@ def test_units_errbarr():
         assert ax.xaxis.get_units() == u.s
         assert ax.yaxis.get_units() == u.m
 
-    plt.clf()
+    plt.close()
 
 
 @pytest.mark.skipif('not HAS_PLT')
@@ -75,7 +75,7 @@ def test_incompatible_units():
         with pytest.raises(err_type):
             plt.plot([105, 210, 315] * u.kg)
 
-    plt.clf()
+    plt.close()
 
 
 @pytest.mark.skipif('not HAS_PLT')
@@ -96,6 +96,7 @@ def test_quantity_subclass():
         assert plt.gca().xaxis.get_units() == u.deg
         assert plt.gca().yaxis.get_units() == u.kg
 
+    plt.close()
 
 @pytest.mark.skipif('not HAS_PLT')
 def test_nested():
@@ -117,3 +118,5 @@ def test_nested():
 
         assert ax.xaxis.get_units() == u.arcsec
         assert ax.yaxis.get_units() == u.pc
+
+        plt.close()

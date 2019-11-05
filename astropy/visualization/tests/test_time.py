@@ -97,6 +97,7 @@ def test_formatter_locator(interval, expected):
         ax = fig.add_subplot(1, 1, 1)
         ax.set_xlim(Time(interval[0]), Time(interval[1]))
         assert get_ticklabels(ax.xaxis) == expected
+        plt.close(fig)
 
 
 FORMAT_CASES = [
@@ -127,6 +128,7 @@ def test_formats(format, expected):
         ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
         assert get_ticklabels(ax.xaxis) == expected
         ax.get_xlabel() == f'Time ({format})'
+        plt.close(fig)
 
 
 @pytest.mark.parametrize(('format', 'expected'), FORMAT_CASES)
@@ -139,6 +141,7 @@ def test_auto_formats(format, expected):
                     Time('2077-03-22T12:30:32.1'))
         assert get_ticklabels(ax.xaxis) == expected
         ax.get_xlabel() == f'Time ({format})'
+        plt.close(fig)
 
 
 FORMAT_CASES_SIMPLIFY = [
@@ -157,6 +160,7 @@ def test_formats_simplify(format, expected):
         ax = fig.add_subplot(1, 1, 1)
         ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
         assert get_ticklabels(ax.xaxis) == expected
+        plt.close(fig)
 
 
 def test_plot():
@@ -168,6 +172,7 @@ def test_plot():
         ax.plot(Time(['2015-03-22T12:30:30.9',
                       '2018-03-22T12:30:30.9',
                       '2021-03-22T12:30:30.9']))
+        plt.close(fig)
 
 
 def test_nested():
@@ -180,6 +185,7 @@ def test_nested():
             ax = fig.add_subplot(1, 1, 1)
             ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
             assert get_ticklabels(ax.xaxis) == ['2020', '2040', '2060']
+            plt.close(fig)
 
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
@@ -187,3 +193,4 @@ def test_nested():
         assert get_ticklabels(ax.xaxis) == ['2020-01-01 00:00:00.000',
                                             '2040-01-01 00:00:00.000',
                                             '2060-01-01 00:00:00.000']
+        plt.close(fig)
