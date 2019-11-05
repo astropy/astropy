@@ -16,6 +16,10 @@ ROOT = os.path.join(os.path.dirname(__file__))
 MSX_HEADER = fits.Header.fromtextfile(os.path.join(ROOT, 'data', 'msx_header'))
 
 
+def teardown_function(function):
+    plt.close('all')
+
+
 @ignore_matplotlibrc
 def test_getaxislabel():
 
