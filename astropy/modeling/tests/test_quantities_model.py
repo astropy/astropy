@@ -1,8 +1,11 @@
 # Various tests of models not related to evaluation, fitting, or parameters
+import warnings
+
 import pytest
 
-from astropy.tests.helper import assert_quantity_allclose
 from astropy import units as u
+from astropy.tests.helper import assert_quantity_allclose
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from astropy.modeling.models import Mapping, Pix2Sky_TAN, Gaussian1D
 from astropy.modeling import models
@@ -111,7 +114,10 @@ def _allmodels():
         model = getattr(models, name)
         if type(model) is _ModelMeta:
             try:
-                m = model()
+                with warnings.catch_warnings():
+                    # Ignore deprecation warnings from BlackBody1D and MexicanHat
+                    warnings.simplefilter('ignore', category=AstropyDeprecationWarning)
+                    m = model()
             except Exception:
                 pass
             allmodels.append(m)
