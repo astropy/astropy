@@ -179,6 +179,13 @@ an exception like the following would occur::
   ValueError: Unable to insert row because of exception in column 'skycoord':
   'SkyCoord' object has no attribute 'insert'
 
+**Sorting tables**
+
+For the same reason, tables with mixin classes that are not mutable cannot be 
+sorted. Trying to do so might raise an exception like::
+
+  TypeError: 'SkyCoord' object does not support item assignment
+
 **Initializing from a list of rows or a list of dicts**
 
 This mode of initializing a table does not work with mixin columns, so both of
