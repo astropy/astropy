@@ -27,6 +27,10 @@ MATPLOTLIB_LT_21 = LooseVersion(matplotlib.__version__) < LooseVersion("2.1")
 DATA = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 
 
+def teardown_function(function):
+    plt.close('all')
+
+
 @ignore_matplotlibrc
 def test_grid_regression():
     # Regression test for a bug that meant that if the rc parameter
@@ -315,7 +319,8 @@ def test_contour_empty():
     fig = plt.figure()
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
     fig.add_axes(ax)
-    ax.contour(np.zeros((4, 4)), transform=ax.get_transform('world'))
+    with pytest.warns(UserWarning, match='No contour levels were found within the data range'):
+        ax.contour(np.zeros((4, 4)), transform=ax.get_transform('world'))
 
 
 @ignore_matplotlibrc
