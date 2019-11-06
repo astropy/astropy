@@ -313,7 +313,7 @@ astropy.visualization
   label. [#9392]
 
 - Fixed the display of tick labels when plotting all sky images that have a
-  coord_wrap less than 360. [#9541]
+  coord_wrap less than 360. [#9542]
 
 astropy.wcs
 ^^^^^^^^^^^
