@@ -589,7 +589,9 @@ def test_noncelestial_scale(cdelt, pc, cd):
 
     # TODO: Some inputs emit RuntimeWarning from here onwards.
     #       Fix the test data. See @nden's comment in PR 9010.
-    mywcs.wcs.cdelt = cdelt
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', 'cdelt will be ignored since cd is present', RuntimeWarning)
+        mywcs.wcs.cdelt = cdelt
 
     mywcs.wcs.ctype = ['RA---TAN', 'FREQ']
 
