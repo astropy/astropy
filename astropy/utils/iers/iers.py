@@ -90,7 +90,6 @@ def download_file(*args, **kwargs):
     ``**kwargs`` after temporarily setting the download_file remote timeout to
     the local ``iers.conf.remote_timeout`` value.
     """
-    url = kwargs.get('remote_url', args[0] if len(args) > 0 else None)
     kwargs.setdefault('http_headers', {'User-Agent': 'astropy/iers',
                                        'Accept': '*/*'})
 
