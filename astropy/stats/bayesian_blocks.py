@@ -213,10 +213,6 @@ class FitnessFunc:
         """
         # validate array input
         t = np.asarray(t, dtype=float)
-        if x is not None:
-            x = np.asarray(x)
-        if sigma is not None:
-            sigma = np.asarray(sigma)
 
         # find unique values of t
         t = np.array(t)
@@ -242,7 +238,8 @@ class FitnessFunc:
         # if x is specified, then we need to simultaneously sort t and x
         else:
             # TODO: allow broadcasted x?
-            x = np.asarray(x)
+            x = np.asarray(x, dtype=float)
+
             if x.shape not in [(), (1,), (t.size,)]:
                 raise ValueError("x does not match shape of t")
             x += np.zeros_like(t)
@@ -257,7 +254,7 @@ class FitnessFunc:
         if sigma is None:
             sigma = 1
         else:
-            sigma = np.asarray(sigma)
+            sigma = np.asarray(sigma, dtype=float)
             if sigma.shape not in [(), (1,), (t.size,)]:
                 raise ValueError('sigma does not match the shape of x')
 
