@@ -3,6 +3,7 @@
 """Tests for polynomial models."""
 
 import os
+import warnings
 
 from itertools import product
 
@@ -14,15 +15,17 @@ from numpy.testing import assert_allclose
 from astropy.modeling import fitting
 from astropy import wcs
 from astropy.io import fits
-from astropy.modeling.polynomial import (Chebyshev1D, Hermite1D, Legendre1D, Polynomial1D,
-                          Chebyshev2D, Hermite2D, Legendre2D, Polynomial2D, SIP,
-                          PolynomialBase, OrthoPolynomialBase)
+from astropy.modeling.polynomial import (
+    Chebyshev1D, Hermite1D, Legendre1D, Polynomial1D,
+    Chebyshev2D, Hermite2D, Legendre2D, Polynomial2D, SIP,
+    PolynomialBase, OrthoPolynomialBase)
 from astropy.modeling.functional_models import Linear1D
 from astropy.modeling.mappings import Identity
 from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.exceptions import AstropyUserWarning
 
 try:
-    from scipy import optimize  # pylint: disable=W0611
+    from scipy import optimize  # pylint: disable=W0611 # noqa
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
@@ -125,7 +128,11 @@ class TestFitting:
         model = model_class(*model_args['args'], **kwargs)
 
         y1 = model(self.x1)
-        model_lin = self.linear_fitter(model, self.x1, y1 + self.n1)
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                'ignore', message=r'The fit may be poorly conditioned',
+                category=AstropyUserWarning)
+            model_lin = self.linear_fitter(model, self.x1, y1 + self.n1)
 
         if constraints:
             # For the constraints tests we're not checking the overall fit,
@@ -155,7 +162,9 @@ class TestFitting:
         model = model_class(*model_args['args'], **kwargs)
 
         y1 = model(self.x1)
-        model_nlin = self.non_linear_fitter(model, self.x1, y1 + self.n1)
+        with pytest.warns(AstropyUserWarning,
+                          match='Model is linear in parameters'):
+            model_nlin = self.non_linear_fitter(model, self.x1, y1 + self.n1)
 
         if constraints:
             fixed = model_args['constraints'].get('fixed', None)
@@ -183,7 +192,11 @@ class TestFitting:
         model = model_class(*model_args['args'], **kwargs)
 
         z = model(self.x2, self.y2)
-        model_lin = self.linear_fitter(model, self.x2, self.y2, z + self.n2)
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                'ignore', message=r'The fit may be poorly conditioned',
+                category=AstropyUserWarning)
+            model_lin = self.linear_fitter(model, self.x2, self.y2, z + self.n2)
 
         if constraints:
             fixed = model_args['constraints'].get('fixed', None)
@@ -211,8 +224,10 @@ class TestFitting:
         model = model_class(*model_args['args'], **kwargs)
 
         z = model(self.x2, self.y2)
-        model_nlin = self.non_linear_fitter(model, self.x2, self.y2,
-                                            z + self.n2)
+        with pytest.warns(AstropyUserWarning,
+                          match='Model is linear in parameters'):
+            model_nlin = self.non_linear_fitter(model, self.x2, self.y2,
+                                                z + self.n2)
 
         if constraints:
             fixed = model_args['constraints'].get('fixed', None)
@@ -379,13 +394,17 @@ def test_2d_orthopolynomial_in_compound_model():
 
     fitter = fitting.LevMarLSQFitter()
     simple_model = Chebyshev2D(2, 2)
-    simple_fit = fitter(simple_model, x, y, z)
+    with pytest.warns(AstropyUserWarning,
+                      match='Model is linear in parameters'):
+        simple_fit = fitter(simple_model, x, y, z)
 
     fitter = fitting.LevMarLSQFitter()  # re-init to compare like with like
     compound_model = Identity(2) | Chebyshev2D(2, 2)
-    #compound_model.map_parameters()
+    # compound_model.map_parameters()
     compound_model.fittable = True
     compound_model.linear = True
-    compound_fit = fitter(compound_model, x, y, z)
+    with pytest.warns(AstropyUserWarning,
+                      match='Model is linear in parameters'):
+        compound_fit = fitter(compound_model, x, y, z)
 
     assert_allclose(simple_fit(x, y), compound_fit(x, y), atol=1e-15)

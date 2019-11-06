@@ -335,6 +335,7 @@ class Fittable1DModelTester:
         self.y1 = np.arange(1, 10, .1)
         self.y2, self.x2 = np.mgrid[:10, :8]
 
+    @pytest.mark.filterwarnings(r'ignore:.*:RuntimeWarning')
     def test_input1D(self, model_class, test_parameters):
         """Test model with different input types."""
 
@@ -427,6 +428,7 @@ class Fittable1DModelTester:
         assert_allclose(fitted, expected, atol=self.fit_error)
 
     @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.filterwarnings(r'ignore:.*:RuntimeWarning')
     def test_deriv_1D(self, model_class, test_parameters):
         """
         Test the derivative of a model by comparing results with an estimated
@@ -482,12 +484,15 @@ def create_model(model_class, test_parameters, use_constraints=True,
         return model_class(*test_parameters[parameter_key], **constraints)
 
 
+@pytest.mark.filterwarnings(r'ignore:Model is linear in parameters.*')
+@pytest.mark.filterwarnings(r'ignore:The fit may be unsuccessful.*')
 @pytest.mark.parametrize(('model_class', 'test_parameters'),
                          sorted(models_1D.items(), key=lambda x: str(x[0])))
 class TestFittable1DModels(Fittable1DModelTester):
     pass
 
 
+@pytest.mark.filterwarnings(r'ignore:Model is linear in parameters.*')
 @pytest.mark.parametrize(('model_class', 'test_parameters'),
                          sorted(models_2D.items(), key=lambda x: str(x[0])))
 class TestFittable2DModels(Fittable2DModelTester):

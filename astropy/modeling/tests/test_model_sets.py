@@ -22,7 +22,7 @@ class TParModel(Model):
     A toy model to test parameters machinery
     """
     # standard_broadasting = False
-    inputs = ('x',)
+    n_inputs = 1
     outputs = ('x',)
     coeff = Parameter()
     e = Parameter()
@@ -155,8 +155,8 @@ def test_negative_axis():
 
     xxt = xx.T
     y = p1(xxt)
-    assert_allclose(y[: ,0], t1(xxt[: ,0]))
-    assert_allclose(y[: ,1], t2(xxt[: ,1]))
+    assert_allclose(y[:, 0], t1(xxt[:, 0]))
+    assert_allclose(y[:, 1], t2(xxt[:, 1]))
 
 
 def test_shapes():

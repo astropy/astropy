@@ -6,24 +6,26 @@ import numpy as np
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
 
-from astropy.modeling.functional_models import (Gaussian1D,
-                                                Sersic1D, Sine1D, Linear1D,
-                                                Lorentz1D, Voigt1D, Const1D,
-                                                Box1D, Trapezoid1D, RickerWavelet1D,
-                                                Moffat1D, Gaussian2D, Const2D, Ellipse2D,
-                                                Disk2D, Ring2D, Box2D, TrapezoidDisk2D,
-                                                RickerWavelet2D, AiryDisk2D, Moffat2D, Sersic2D,
-                                                KingProjectedAnalytic1D)
+from astropy.modeling.functional_models import (
+    Gaussian1D,
+    Sersic1D, Sine1D, Linear1D,
+    Lorentz1D, Voigt1D, Const1D,
+    Box1D, Trapezoid1D, RickerWavelet1D,
+    Moffat1D, Gaussian2D, Const2D, Ellipse2D,
+    Disk2D, Ring2D, Box2D, TrapezoidDisk2D,
+    RickerWavelet2D, AiryDisk2D, Moffat2D, Sersic2D,
+    KingProjectedAnalytic1D)
 
-from astropy.modeling.powerlaws import (PowerLaw1D, BrokenPowerLaw1D, SmoothlyBrokenPowerLaw1D,
-                                        ExponentialCutoffPowerLaw1D, LogParabola1D)
+from astropy.modeling.powerlaws import (
+    PowerLaw1D, BrokenPowerLaw1D, SmoothlyBrokenPowerLaw1D,
+    ExponentialCutoffPowerLaw1D, LogParabola1D)
 
 from astropy.modeling.polynomial import Polynomial1D, Polynomial2D
 
 from astropy.modeling.fitting import LevMarLSQFitter
 
 try:
-    from scipy import optimize
+    from scipy import optimize  # noqa
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
@@ -303,6 +305,9 @@ def test_models_bounding_box(model):
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.filterwarnings(r'ignore:.*:RuntimeWarning')
+@pytest.mark.filterwarnings(r'ignore:Model is linear in parameters.*')
+@pytest.mark.filterwarnings(r'ignore:The fit may be unsuccessful.*')
 @pytest.mark.parametrize('model', MODELS)
 def test_models_fitting(model):
 
