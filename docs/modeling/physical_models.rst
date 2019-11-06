@@ -1,3 +1,6 @@
+.. _predef_physicalmodels:
+
+***************
 Physical Models
 ***************
 
@@ -87,7 +90,7 @@ Drude1D
 =======
 
 The :class:`~astropy.modeling.physical_models.Drude1D` model provides a model
-for the behavior of an election in a material
+for the behavior of an electron in a material
 (see `Drude Model <https://en.wikipedia.org/wiki/Drude_model>`_).
 Like the :class:`~astropy.modeling.functional_models.Lorentz1D` model, the Drude model
 has broader wings than the :class:`~astropy.modeling.functional_models.Gaussian1D`
