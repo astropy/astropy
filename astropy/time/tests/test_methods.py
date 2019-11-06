@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
 import itertools
 import copy
 
@@ -380,6 +381,11 @@ class TestArithmetic:
             assert np.all(t0v[:-10] == ravel)
         else:
             assert np.all(self.t0.argsort(axis=None) == ravel)
+
+    def test_argsort_warning(self, masked):
+        with warnings.catch_warnings(record=True) as wlist:
+            Time([1, 2, 3], format='jd', scale='tai').argsort()
+        assert len(wlist) == 0
 
     def test_min(self, masked):
         assert self.t0.min() == self.t0[0, 0, 2]

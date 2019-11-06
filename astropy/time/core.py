@@ -1580,7 +1580,7 @@ class Time(ShapedLikeNDArray):
         it uses :func:`~numpy.lexsort`, and hence no sort method can be chosen.
         """
         jd_approx = self.jd
-        jd_remainder = (self - self.__class__(jd_approx, format='jd')).jd
+        jd_remainder = (self - self.__class__(jd_approx, format='jd', scale=self.scale)).jd
         if axis is None:
             return np.lexsort((jd_remainder.ravel(), jd_approx.ravel()))
         else:
