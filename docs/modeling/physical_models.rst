@@ -11,7 +11,7 @@ BlackBody
 .. _blackbody-planck-law:
 
 The :class:`~astropy.modeling.physical_models.BlackBody` model provides a model
-for using `Planck's Law <https://en.wikipedia.org/wiki/Planck%27s_law/>`_.
+for using `Planck's Law <https://en.wikipedia.org/wiki/Planck%27s_law>`_.
 The blackbody function is
 
 .. math::
