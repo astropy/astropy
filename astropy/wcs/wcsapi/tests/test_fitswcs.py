@@ -638,7 +638,7 @@ def test_time_1d_location_geodetic(header_time_1d):
 
 
 @pytest.fixture
-def header_time_1d_noobs():
+def header_time_1d_no_obs():
     header = Header.fromstring(HEADER_TIME_1D, sep='\n')
     del header['OBSGEO-L']
     del header['OBSGEO-B']
@@ -646,11 +646,11 @@ def header_time_1d_noobs():
     return header
 
 
-def test_time_1d_location_geocentric(header_time_1d_noobs):
+def test_time_1d_location_geocentric(header_time_1d_no_obs):
 
     # Make sure that the location is correctly returned (geocentric case)
 
-    header = header_time_1d_noobs
+    header = header_time_1d_no_obs
 
     header['OBSGEO-X'] = 10
     header['OBSGEO-Y'] = -20
@@ -669,11 +669,11 @@ def test_time_1d_location_geocentric(header_time_1d_noobs):
     assert_allclose(z.to_value(u.m), 30)
 
 
-def test_time_1d_location_geocenter(header_time_1d_noobs):
+def test_time_1d_location_geocenter(header_time_1d_no_obs):
 
-    header_time_1d_noobs['TREFPOS'] = 'GEOCENTER'
+    header_time_1d_no_obs['TREFPOS'] = 'GEOCENTER'
 
-    wcs = WCS(header_time_1d_noobs)
+    wcs = WCS(header_time_1d_no_obs)
     time = wcs.pixel_to_world(10)
 
     x, y, z = time.location.to_geocentric()
@@ -683,11 +683,11 @@ def test_time_1d_location_geocenter(header_time_1d_noobs):
     assert_allclose(z.to_value(u.m), 0)
 
 
-def test_time_1d_location_missing(header_time_1d_noobs):
+def test_time_1d_location_missing(header_time_1d_no_obs):
 
     # Check what happens when no location is present
 
-    wcs = WCS(header_time_1d_noobs)
+    wcs = WCS(header_time_1d_no_obs)
     with pytest.warns(UserWarning,
                       match='Missing or incomplete observer location '
                             'information, setting location in Time to None'):
@@ -696,15 +696,15 @@ def test_time_1d_location_missing(header_time_1d_noobs):
     assert time.location is None
 
 
-def test_time_1d_location_incomplete(header_time_1d_noobs):
+def test_time_1d_location_incomplete(header_time_1d_no_obs):
 
     # Check what happens when location information is incomplete
 
-    header_time_1d_noobs['OBSGEO-L'] = 10.
+    header_time_1d_no_obs['OBSGEO-L'] = 10.
 
     with warnings.catch_warnings():
         warnings.simplefilter('ignore', FITSFixedWarning)
-        wcs = WCS(header_time_1d_noobs)
+        wcs = WCS(header_time_1d_no_obs)
 
     with pytest.warns(UserWarning,
                       match='Missing or incomplete observer location '
@@ -714,13 +714,13 @@ def test_time_1d_location_incomplete(header_time_1d_noobs):
     assert time.location is None
 
 
-def test_time_1d_location_unsupported(header_time_1d_noobs):
+def test_time_1d_location_unsupported(header_time_1d_no_obs):
 
     # Check what happens when TREFPOS is unsupported
 
-    header_time_1d_noobs['TREFPOS'] = 'BARYCENTER'
+    header_time_1d_no_obs['TREFPOS'] = 'BARYCENTER'
 
-    wcs = WCS(header_time_1d_noobs)
+    wcs = WCS(header_time_1d_no_obs)
     with pytest.warns(UserWarning,
                       match="Observation location 'barycenter' is not "
                             "supported, setting location in Time to None"):
@@ -729,14 +729,14 @@ def test_time_1d_location_unsupported(header_time_1d_noobs):
     assert time.location is None
 
 
-def test_time_1d_unsupported_ctype(header_time_1d_noobs):
+def test_time_1d_unsupported_ctype(header_time_1d_no_obs):
 
     # For cases that we don't support yet, e.g. UT(...), use Time and drop sub-scale
 
     # Case where the MJDREF is split into two for high precision
-    header_time_1d_noobs['CTYPE1'] = 'UT(WWV)'
+    header_time_1d_no_obs['CTYPE1'] = 'UT(WWV)'
 
-    wcs = WCS(header_time_1d_noobs)
+    wcs = WCS(header_time_1d_no_obs)
     with pytest.warns(UserWarning,
                       match="Dropping unsupported sub-scale WWV from scale UT"):
         time = wcs.pixel_to_world(10)
