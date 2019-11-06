@@ -190,7 +190,7 @@ def test_coord_type_from_ctype(cube_wcs):
     _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame)
 
     assert coord_meta['type'] == ['longitude', 'latitude']
-    assert coord_meta['format_unit'] == [u.arcsec, u.arcsec]
+    assert coord_meta['format_unit'] == [u.deg, u.deg]
     assert coord_meta['wrap'] == [180., None]
 
     wcs = WCS(naxis=2)
@@ -203,7 +203,7 @@ def test_coord_type_from_ctype(cube_wcs):
     _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame)
 
     assert coord_meta['type'] == ['longitude', 'latitude']
-    assert coord_meta['format_unit'] == [u.arcsec, u.arcsec]
+    assert coord_meta['format_unit'] == [u.deg, u.deg]
     assert coord_meta['wrap'] == [360., None]
 
     wcs = WCS(naxis=2)
