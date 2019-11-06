@@ -220,12 +220,15 @@ doc_footer = """
     ``transform_to()`` method of a coordinate frame or
     `~astropy.coordinates.SkyCoord` object::
 
+        >>> import warnings
         >>> import astropy.units as u
         >>> import astropy.coordinates as coord
         >>> c = coord.ICRS(ra=[158.3122, 24.5] * u.degree,
         ...                dec=[-17.3, 81.52] * u.degree,
         ...                distance=[11.5, 24.12] * u.kpc)
-        >>> c.transform_to(coord.Galactocentric) # doctest: +FLOAT_CMP
+        >>> with warnings.catch_warnings():
+        ...     warnings.simplefilter('ignore')  # Ignore deprecation warning
+        ...     c.transform_to(coord.Galactocentric) # doctest: +FLOAT_CMP
         <Galactocentric Coordinate (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
             ( 266.4051, -28.936175)>, galcen_distance=8.3 kpc, galcen_v_sun=( 11.1,  232.24,  7.25) km / s, z_sun=27.0 pc, roll=0.0 deg): (x, y, z) in kpc
             [( -9.6083819 ,  -9.40062188,  6.52056066),
@@ -234,7 +237,9 @@ doc_footer = """
     To specify a custom set of parameters, you have to include extra keyword
     arguments when initializing the Galactocentric frame object::
 
-        >>> c.transform_to(coord.Galactocentric(galcen_distance=8.1*u.kpc)) # doctest: +FLOAT_CMP
+        >>> with warnings.catch_warnings():
+        ...     warnings.simplefilter('ignore')  # Ignore deprecation warning
+        ...     c.transform_to(coord.Galactocentric(galcen_distance=8.1*u.kpc)) # doctest: +FLOAT_CMP
         <Galactocentric Coordinate (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
             ( 266.4051, -28.936175)>, galcen_distance=8.1 kpc, galcen_v_sun=( 11.1,  232.24,  7.25) km / s, z_sun=27.0 pc, roll=0.0 deg): (x, y, z) in kpc
             [( -9.40785924,  -9.40062188,  6.52066574),
@@ -242,9 +247,11 @@ doc_footer = """
 
     Similarly, transforming from the Galactocentric frame to another coordinate frame::
 
-        >>> c = coord.Galactocentric(x=[-8.3, 4.5] * u.kpc,
-        ...                          y=[0., 81.52] * u.kpc,
-        ...                          z=[0.027, 24.12] * u.kpc)
+        >>> with warnings.catch_warnings():
+        ...     warnings.simplefilter('ignore')  # Ignore deprecation warning
+        ...     c = coord.Galactocentric(x=[-8.3, 4.5] * u.kpc,
+        ...                              y=[0., 81.52] * u.kpc,
+        ...                              z=[0.027, 24.12] * u.kpc)
         >>> c.transform_to(coord.ICRS) # doctest: +FLOAT_CMP
         <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
             [(  86.22349059, 28.83894138,  4.39157788e-05),
@@ -252,10 +259,12 @@ doc_footer = """
 
     Or, with custom specification of the Galactic center::
 
-        >>> c = coord.Galactocentric(x=[-8.0, 4.5] * u.kpc,
-        ...                          y=[0., 81.52] * u.kpc,
-        ...                          z=[21.0, 24120.0] * u.pc,
-        ...                          z_sun=21 * u.pc, galcen_distance=8. * u.kpc)
+        >>> with warnings.catch_warnings():
+        ...     warnings.simplefilter('ignore')  # Ignore deprecation warning
+        ...     c = coord.Galactocentric(x=[-8.0, 4.5] * u.kpc,
+        ...                              y=[0., 81.52] * u.kpc,
+        ...                              z=[21.0, 24120.0] * u.pc,
+        ...                              z_sun=21 * u.pc, galcen_distance=8. * u.kpc)
         >>> c.transform_to(coord.ICRS) # doctest: +FLOAT_CMP
         <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
             [(  86.2585249 ,  28.85773187,  2.75625475e-05),

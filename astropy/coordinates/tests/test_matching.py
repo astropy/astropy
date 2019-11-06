@@ -301,6 +301,8 @@ def test_match_catalog_empty():
 
 @pytest.mark.skipif(not HAS_SCIPY or OLDER_SCIPY,
                     reason="Requires scipy > 0.12.0 ")
+@pytest.mark.filterwarnings(
+    r'ignore:invalid value encountered in.*:RuntimeWarning')
 def test_match_catalog_nan():
     from astropy.coordinates import SkyCoord, Galactic
 
