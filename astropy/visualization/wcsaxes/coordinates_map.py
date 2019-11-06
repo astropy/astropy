@@ -154,7 +154,8 @@ class CoordinatesMap:
         return find_coordinate_range(self._transform,
                                      extent,
                                      [coord.coord_type for coord in self if coord.coord_index is not None],
-                                     [coord.coord_unit for coord in self if coord.coord_index is not None])
+                                     [coord.coord_unit for coord in self if coord.coord_index is not None],
+                                     [coord.coord_wrap for coord in self if coord.coord_index is not None])
 
     def _as_table(self):
 
