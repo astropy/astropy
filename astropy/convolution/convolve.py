@@ -763,7 +763,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         return fftmult
 
     if interpolate_nan:
-        with np.errstate(divide='ignore'):
+        with np.errstate(divide='ignore', invalid='ignore'):
             # divide by zeros are expected here; if the weight is zero, we want
             # the output to be nan or inf
             rifft = (ifftn(fftmult)) / bigimwt
