@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
+
 import pytest
 import numpy as np
 
@@ -540,3 +542,14 @@ def test_get_index():
         get_index(t, names=['a'], table_copy=t[['a']])
     with pytest.raises(ValueError):
         get_index(t, names=None, table_copy=None)
+
+
+def test_table_index_time_warning(engine):
+    # Make sure that no ERFA warnings are emitted when indexing a table by
+    # a Time column with a non-default time scale
+    tab = Table()
+    tab['a'] = Time([1, 2, 3], format='jyear', scale='tai')
+    tab['b'] = [4, 3, 2]
+    with warnings.catch_warnings(record=True) as wlist:
+        tab.add_index(('a', 'b'), engine=engine)
+    assert len(wlist) == 0
