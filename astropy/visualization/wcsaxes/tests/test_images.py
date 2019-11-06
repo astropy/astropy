@@ -918,3 +918,41 @@ def test_1d_plot_put_varying_axis_on_bottom_lon(spatial_wcs_2d_small_angle, slic
     assert ax.coords[bottom_axis].ticks.get_visible_axes() == ['b']
 
     return fig
+
+
+@pytest.mark.remote_data(source='astropy')
+@pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                               tolerance=0, style={})
+def test_allsky_labels_wrap():
+
+    # Regression test for a bug that caused some tick labels to not be shown
+    # when looking at all-sky maps in the case where coord_wrap < 360
+
+    fig = plt.figure(figsize=(4, 4))
+
+    icen = 0
+
+    for ctype in [('GLON-CAR', 'GLAT-CAR'), ('HGLN-CAR', 'HGLT-CAR')]:
+
+        for cen in [0, 90, 180, 270]:
+
+            icen += 1
+
+            wcs = WCS(naxis=2)
+            wcs.wcs.ctype = ctype
+            wcs.wcs.crval = cen, 0
+            wcs.wcs.crpix = 360.5, 180.5
+            wcs.wcs.cdelt = -0.5, 0.5
+
+            ax = fig.add_subplot(8, 1, icen, projection=wcs)
+            ax.set_xlim(-0.5, 719.5)
+            ax.coords[0].set_ticks(spacing=50 * u.deg)
+            ax.coords[0].set_ticks_position('b')
+            ax.coords[0].set_auto_axislabel(False)
+            ax.coords[1].set_auto_axislabel(False)
+            ax.coords[1].set_ticklabel_visible(False)
+            ax.coords[1].set_ticks_visible(False)
+
+    fig.subplots_adjust(hspace=2, left=0.05, right=0.95, bottom=0.1, top=0.95)
+
+    return fig
