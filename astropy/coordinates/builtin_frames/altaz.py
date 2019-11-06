@@ -53,7 +53,7 @@ doc_footer = """
     temperature : `~astropy.units.Quantity`
         The ground-level temperature as an `~astropy.units.Quantity` in
         deg C.  This is necessary for performing refraction corrections.
-    relative_humidity`` : `~astropy.units.Quantity` or number.
+    relative_humidity : `~astropy.units.Quantity` or number.
         The relative humidity as a dimensionless quantity between 0 to 1.
         This is necessary for performing refraction corrections.
     obswl : `~astropy.units.Quantity`
