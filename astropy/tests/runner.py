@@ -413,7 +413,7 @@ class TestRunner(TestRunnerBase):
 
         return []
 
-    @keyword(default_value=['astropy.tests.plugins.display'])
+    @keyword(default_value=[])
     def plugins(self, plugins, kwargs):
         """
         plugins : list, optional
