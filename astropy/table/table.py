@@ -2918,8 +2918,12 @@ class Table:
             prev_frozen = sort_index._frozen
             sort_index._frozen = True
 
-        for col in self.columns.values():
-            col[:] = col.take(indexes, axis=0)
+        for name, col in self.columns.items():
+            new_col = col.take(indexes, axis=0)
+            try:
+                col[:] = new_col
+            except Exception:
+                self[col.info.name] = new_col
 
         if sort_index is not None:
             # undo index freeze

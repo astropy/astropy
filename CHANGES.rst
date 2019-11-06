@@ -211,6 +211,8 @@ astropy.table
   missing data in the table. [#9425]
 
 - Prevent unecessary ERFA warnings when indexing by ``Time`` columns. [#9545]
+- Added support for sorting tables which contain non-mutable mixin columns (like
+  ``SkyCoord``) for which in-place item update is not allowed. [#9549]
 
 astropy.tests
 ^^^^^^^^^^^^^
