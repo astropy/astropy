@@ -953,12 +953,13 @@ def check_free_space_in_dir(path, size):
 
 def _download_file_from_source(source_url, show_progress=True, timeout=None,
                                remote_url=None, cache=False, pkgname='astropy',
-                               http_headers={'User-Agent': 'astropy',
-                                             'Accept': '*/*'}):
+                               http_headers=None):
     from astropy.utils.console import ProgressBarOrSpinner
 
     if remote_url is None:
         remote_url = source_url
+    if http_headers is None:
+        http_headers = {}
 
     req = urllib.request.Request(source_url, headers=http_headers)
     with urllib.request.urlopen(req, timeout=timeout) as remote:
@@ -1019,7 +1020,7 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
 
 
 def download_file(remote_url, cache=False, show_progress=True, timeout=None,
-                  sources=None, pkgname='astropy', http_headers={}):
+                  sources=None, pkgname='astropy', http_headers=None):
     """Downloads a URL and optionally caches the result.
 
     It returns the filename of a file containing the URL's contents.
@@ -1075,7 +1076,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
 
     http_headers : dict
         HTTP request headers to pass into ``urlopen`` if needed. (These headers
-        are ignored if the ``remote_url`` is not http.)
+        are ignored if the protocol for the ``remote_url``/``sources`` entry
+        is not http.)
 
     Returns
     -------
@@ -1097,6 +1099,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
         timeout = conf.remote_timeout
     if sources is None:
         sources = [remote_url]
+    if http_headers is None:
+        http_headers = {'User-Agent': 'astropy','Accept': '*/*'}
 
     missing_cache = ""
 
