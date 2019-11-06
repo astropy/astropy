@@ -210,6 +210,8 @@ astropy.table
   found in the input data, and any missing key/value pairs are turned into
   missing data in the table. [#9425]
 
+- Prevent unecessary ERFA warnings when indexing by ``Time`` columns. [#9545]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -241,6 +243,8 @@ astropy.time
 - Introduce a new ``.to_value()`` method for ``Time`` (and adjusted the
   existing method for ``TimeDelta``) so that one can get values in a given
   ``format`` and possible ``subfmt`` (e.g., ``to_value('mjd', 'str')``. [#9361]
+
+- Prevent unecessary ERFA warnings when sorting ``Time`` objects. [#9545]
 
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
