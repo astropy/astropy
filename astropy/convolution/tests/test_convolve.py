@@ -8,7 +8,7 @@ from astropy.convolution.convolve import convolve, convolve_fft
 from astropy.convolution.kernels import Gaussian2DKernel
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy import units as u
-
+from astropy.utils.compat.context import nullcontext
 
 from numpy.testing import (assert_array_almost_equal_nulp,
                            assert_array_almost_equal,
@@ -220,9 +220,20 @@ class TestConvolve1D:
 
         y = np.array([0., 1., 0.], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary, nan_treatment=nan_treatment,
-                     normalize_kernel=normalize_kernel,
-                     preserve_nan=preserve_nan)
+        # Since the kernel is actually only one pixel wide (because of the
+        # zeros) the NaN value doesn't get interpolated over so a warning is
+        # expected.
+        if nan_treatment == 'interpolate' and not preserve_nan:
+            ctx = pytest.warns(AstropyUserWarning,
+                               match="nan_treatment='interpolate', however, "
+                                     "NaN values detected")
+        else:
+            ctx = nullcontext()
+
+        with ctx:
+            z = convolve(x, y, boundary=boundary, nan_treatment=nan_treatment,
+                        normalize_kernel=normalize_kernel,
+                        preserve_nan=preserve_nan)
 
         if preserve_nan:
             assert np.isnan(z[1])
