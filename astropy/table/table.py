@@ -3425,7 +3425,8 @@ class Table:
             else:
                 out[name] = column
 
-            if out[name].dtype.byteorder not in ('=', '|'):
+            if (hasattr(out[name].dtype, 'byteorder') and
+                out[name].dtype.byteorder not in ('=', '|')):
                 out[name] = out[name].byteswap().newbyteorder()
 
         kwargs = {'index': out.pop(index)} if index else {}
