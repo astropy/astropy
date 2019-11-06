@@ -76,6 +76,9 @@ def test_blackbody_fit():
     assert_quantity_allclose(b_fit.scale, 5.803783292762381e-17 * u.Jy / u.sr)
 
 
+@pytest.mark.filterwarnings(
+    r'ignore: Input contains invalid wavelength/frequency value\(s\)')
+@pytest.mark.filterwarnings(r'ignore:divide by zero encountered in log10.*')
 def test_blackbody_overflow():
     """Test Planck function with overflow."""
     photlam = u.photon / (u.cm ** 2 * u.s * u.AA)
