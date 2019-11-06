@@ -71,7 +71,7 @@ def test_str():
     t = Time(['2000:001', '2000:002'])
     t[1] = np.ma.masked
     assert str(t) == "['2000:001:00:00:00.000' --]"
-    assert repr(t) == "<Time object: scale='utc' format='yday' value=[2000:001:00:00:00.000 ... 0.0]>"
+    assert repr(t) == "<Time object: scale='utc' format='yday' value=['2000:001:00:00:00.000' --]>"
 
     expected = ["masked_array(data=['2000-01-01 00:00:00.000', --],",
                 '             mask=[False,  True],',
