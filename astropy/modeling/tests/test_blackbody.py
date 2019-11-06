@@ -77,15 +77,16 @@ def test_blackbody_scipy():
 
 
 @pytest.mark.filterwarnings("ignore:BlackBody provides the same capabilities")
-@pytest.mark.filterwarnings(
-    r"ignore:Input contains invalid wavelength/frequency value\(s\)")
 def test_blackbody_overflow():
     """Test Planck function with overflow."""
     photlam = u.photon / (u.cm**2 * u.s * u.AA)
     wave = [0, 1000.0, 100000.0, 1e55]  # Angstrom
     temp = 10000.0  # Kelvin
-    with np.errstate(all='ignore'):
-        bb_lam = blackbody_lambda(wave, temp) * u.sr
+    with pytest.warns(
+            AstropyUserWarning,
+            match=r'Input contains invalid wavelength/frequency value\(s\)'):
+        with np.errstate(all='ignore'):
+            bb_lam = blackbody_lambda(wave, temp) * u.sr
     flux = bb_lam.to(photlam, u.spectral_density(wave * u.AA)) / u.sr
 
     # First element is NaN, last element is very small, others normal
