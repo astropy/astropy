@@ -3353,7 +3353,7 @@ class Table:
           2002-01-01  2.0    6.0     8.0 00:03:20
 
         """
-        from pandas import DataFrame
+        from pandas import DataFrame, Series
 
         if index is not False:
             if index in (None, True):
@@ -3417,10 +3417,7 @@ class Table:
         for name, column in tbl.columns.items():
             if isinstance(column, MaskedColumn) and np.any(column.mask):
                 if column.dtype.kind in ['i', 'u']:
-                    out[name] = column.astype(float).filled(np.nan)
-                    warnings.warn(
-                        "converted column '{}' from integer to float".format(
-                            name), TableReplaceWarning, stacklevel=3)
+                    out[name] = Series(column, dtype='Int64')
                 elif column.dtype.kind in ['f', 'c']:
                     out[name] = column.filled(np.nan)
                 else:
