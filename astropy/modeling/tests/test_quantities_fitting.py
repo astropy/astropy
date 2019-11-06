@@ -160,6 +160,7 @@ def test_fitting_incompatible_units():
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.filterwarnings(r'ignore:The fit may be unsuccessful.*')
 @pytest.mark.parametrize('model', compound_models_no_units)
 def test_compound_without_units(model):
     x = np.linspace(-5, 5, 10) * u.Angstrom
