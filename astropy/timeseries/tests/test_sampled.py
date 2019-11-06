@@ -157,7 +157,7 @@ def test_fold_phase():
     tsf = ts.fold(period=3*u.s, epoch_phase=0)
     assert isinstance(tsf.time, u.Quantity)
     assert_allclose(tsf.time.value, [0, 1 / 3, -1 / 3, 1 / 3, -1 / 3, -1 / 3], rtol=1e-6)
-        
+
     # Try with epoch_time
     tsf = ts.fold(period=4 * u.s, epoch_time=Time(2.5, format='unix'))
     assert isinstance(tsf.time, u.Quantity)

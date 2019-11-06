@@ -186,7 +186,7 @@ class TimeSeries(BaseTimeSeries):
             folded_time = (folded_time / period).decompose()
             period = period_sec = 1
         else:
-             epoch_phase = 0
+            epoch_phase = 0
 
         with folded._delay_required_column_checks():
             folded_time += epoch_phase * period
