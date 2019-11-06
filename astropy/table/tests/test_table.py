@@ -2463,8 +2463,8 @@ def test_sort_with_non_mutable():
     t['sc'].info.meta = meta
     t.sort('a')
     assert np.all(t['a'] == [1, 2])
-    assert np.allclose(t['sc'].ra, [3, 4] * u.deg)
-    assert np.allclose(t['sc'].dec, [5, 6] * u.deg)
+    assert np.allclose(t['sc'].ra.to_value(u.deg), [3, 4])
+    assert np.allclose(t['sc'].dec.to_value(u.deg), [5, 6])
 
     # Got a deep copy of SkyCoord column
     t['sc'].info.meta['a'][0] = 100
