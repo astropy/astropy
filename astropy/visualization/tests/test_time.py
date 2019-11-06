@@ -9,11 +9,21 @@ import matplotlib.pyplot as plt
 
 from astropy.time import Time
 from astropy.visualization.time import time_support
+from astropy.utils.exceptions import ErfaWarning
+from astropy.utils.compat.context import nullcontext
+
+# Since some of the examples below use times/dates in the future, we use the
+# TAI time scale to avoid ERFA warnings about dubious years.
+DEFAULT_SCALE = 'tai'
 
 
 def get_ticklabels(axis):
     axis.figure.canvas.draw()
     return [x.get_text() for x in axis.get_ticklabels()]
+
+
+def teardown_function(function):
+    plt.close('all')
 
 
 # We first check that we get the expected labels for different time intervals
@@ -95,7 +105,8 @@ def test_formatter_locator(interval, expected):
     with time_support():
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
-        ax.set_xlim(Time(interval[0]), Time(interval[1]))
+        ax.set_xlim(Time(interval[0], scale=DEFAULT_SCALE),
+                    Time(interval[1], scale=DEFAULT_SCALE))
         assert get_ticklabels(ax.xaxis) == expected
 
 
@@ -124,7 +135,11 @@ def test_formats(format, expected):
     with time_support(format=format, simplify=False):
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
-        ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
+        # Getting unix time and plot_date requires going through a scale for
+        # which ERFA emits a warning about the date being dubious
+        with pytest.warns(ErfaWarning) if format in ['unix', 'plot_date'] else nullcontext():
+            ax.set_xlim(Time('2014-03-22T12:30:30.9', scale=DEFAULT_SCALE),
+                        Time('2077-03-22T12:30:32.1', scale=DEFAULT_SCALE))
         assert get_ticklabels(ax.xaxis) == expected
         ax.get_xlabel() == f'Time ({format})'
 
@@ -135,8 +150,11 @@ def test_auto_formats(format, expected):
     with time_support(simplify=False):
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
-        ax.set_xlim(Time(Time('2014-03-22T12:30:30.9'), format=format),
-                    Time('2077-03-22T12:30:32.1'))
+        # Getting unix time and plot_date requires going through a scale for
+        # which ERFA emits a warning about the date being dubious
+        with pytest.warns(ErfaWarning) if format in ['unix', 'plot_date'] else nullcontext():
+            ax.set_xlim(Time(Time('2014-03-22T12:30:30.9', scale=DEFAULT_SCALE), format=format),
+                        Time('2077-03-22T12:30:32.1', scale=DEFAULT_SCALE))
         assert get_ticklabels(ax.xaxis) == expected
         ax.get_xlabel() == f'Time ({format})'
 
@@ -155,7 +173,8 @@ def test_formats_simplify(format, expected):
     with time_support(format=format, simplify=True):
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
-        ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
+        ax.set_xlim(Time('2014-03-22T12:30:30.9', scale=DEFAULT_SCALE),
+                    Time('2077-03-22T12:30:32.1', scale=DEFAULT_SCALE))
         assert get_ticklabels(ax.xaxis) == expected
 
 
@@ -164,10 +183,11 @@ def test_plot():
     with time_support():
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
-        ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
+        ax.set_xlim(Time('2014-03-22T12:30:30.9', scale=DEFAULT_SCALE),
+                    Time('2077-03-22T12:30:32.1', scale=DEFAULT_SCALE))
         ax.plot(Time(['2015-03-22T12:30:30.9',
                       '2018-03-22T12:30:30.9',
-                      '2021-03-22T12:30:30.9']))
+                      '2021-03-22T12:30:30.9'], scale=DEFAULT_SCALE))
 
 
 def test_nested():
@@ -178,12 +198,14 @@ def test_nested():
 
             fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1)
-            ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
+            ax.set_xlim(Time('2014-03-22T12:30:30.9', scale=DEFAULT_SCALE),
+                        Time('2077-03-22T12:30:32.1', scale=DEFAULT_SCALE))
             assert get_ticklabels(ax.xaxis) == ['2020', '2040', '2060']
 
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
-        ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
+        ax.set_xlim(Time('2014-03-22T12:30:30.9', scale=DEFAULT_SCALE),
+                    Time('2077-03-22T12:30:32.1', scale=DEFAULT_SCALE))
         assert get_ticklabels(ax.xaxis) == ['2020-01-01 00:00:00.000',
                                             '2040-01-01 00:00:00.000',
                                             '2060-01-01 00:00:00.000']

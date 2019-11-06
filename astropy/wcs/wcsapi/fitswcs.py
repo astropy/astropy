@@ -395,6 +395,8 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                             location = EarthLocation(*self.wcs.obsgeo[:3], unit=u.m)
                     elif trefpos == 'geocenter':
                         location = EarthLocation(0, 0, 0, unit=u.m)
+                    elif trefpos == '':
+                        location = None
                     else:
                         # TODO: implement support for more locations when Time supports it
                         warnings.warn(f"Observation location '{trefpos}' is not "
