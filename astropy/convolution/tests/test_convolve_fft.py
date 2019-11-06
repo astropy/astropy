@@ -55,7 +55,6 @@ def expected_boundary_warning(boundary=None):
     return ctx
 
 
-
 def assert_floatclose(x, y):
     """Assert arrays are close to within expected floating point rounding.
 
