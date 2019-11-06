@@ -179,8 +179,11 @@ globally set the frame defaults at runtime. For example, the default parameter
 values can be seen by initializing the `~astropy.coordinates.Galactocentric`
 frame with no arguments::
 
+    >>> import warnings
     >>> from astropy.coordinates import Galactocentric
-    >>> Galactocentric()
+    >>> with warnings.catch_warnings():
+    ...     warnings.simplefilter('ignore')  # Ignore deprecation warning
+    ...     Galactocentric()
     <Galactocentric Frame (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
         (266.4051, -28.936175)>, galcen_distance=8.3 kpc, galcen_v_sun=(11.1, 232.24, 7.25) km / s, z_sun=27.0 pc, roll=0.0 deg)>
 
