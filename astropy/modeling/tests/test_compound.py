@@ -384,14 +384,20 @@ def test_indexing_on_instance():
     m = Gaussian1D(1, 0, 0.1) + Const1D(2)
     assert isinstance(m[0], Gaussian1D)
     assert isinstance(m[1], Const1D)
-    # assert isinstance(m['Gaussian1D'], Gaussian1D)
-    # assert isinstance(m['Const1D'], Const1D)
 
     # Test parameter equivalence
-    assert m[0].amplitude == 1
-    assert m[0].mean == 0
-    assert m[0].stddev == 0.1
-    assert m[1].amplitude == 2
+    assert m[0].amplitude == 1 == m.amplitude_0
+    assert m[0].mean == 0 == m.mean_0
+    assert m[0].stddev == 0.1 == m.stddev_0
+    assert m[1].amplitude == 2 == m.amplitude_1
+
+    # Test that parameter value updates are symmetric between the compound
+    # model and the submodel returned by indexing
+    const = m[1]
+    m.amplitude_1 = 42
+    assert const.amplitude == 42
+    const.amplitude = 137
+    assert m.amplitude_1 == 137
 
     # Similar couple of tests, but now where the compound model was created
     # from model instances
@@ -402,6 +408,12 @@ def test_indexing_on_instance():
     assert m[1].name == 'p'
     assert m['g'].name == 'g'
     assert m['p'].name == 'p'
+
+    poly = m[1]
+    m.c0_1 = 12345
+    assert poly.c0 == 12345
+    poly.c1 = 6789
+    assert m.c1_1 == 6789
 
     # Test negative indexing
     assert isinstance(m[-1], Polynomial1D)
@@ -633,3 +645,33 @@ def test_bounding_box_with_units():
     t = Tabular1D(points, lt)
 
     assert(t(1 * u.pix, with_bounding_box=True) == 1. * u.AA)
+
+
+@pytest.mark.parametrize('poly', [Chebyshev2D(1, 2), Polynomial2D(2), Legendre2D(1, 2)])
+def test_compound_with_polynomials_2d(poly):
+    """
+    Tests that polynomials are scaled when used in compound models.
+    Issue #3699
+    """
+    poly.parameters = [1, 2, 3, 4, 1, 2]
+    shift = Shift(3)
+    model = poly | shift
+    x, y = np.mgrid[:20, :37]
+    result_compound = model(x, y)
+    result = shift(poly(x, y))
+    assert_allclose(result, result_compound)
+
+
+@pytest.mark.parametrize('poly', [Chebyshev1D(5), Legendre1D(5), Polynomial1D(5)])
+def test_compound_with_polynomials_1d(poly):
+    """
+    Tests that polynomials are scaled when used in compound models.
+    Issue #3699
+    """
+    poly.parameters = [1, 2, 3, 4, 1, 2]
+    shift = Shift(3)
+    model = poly | shift
+    x = np.linspace(-5, 5, 10)
+    result_compound = model(x)
+    result = shift(poly(x))
+    assert_allclose(result, result_compound)
