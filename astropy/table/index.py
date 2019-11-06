@@ -109,7 +109,7 @@ class Index:
             for col in columns:
                 if isinstance(col, Time):
                     new_columns.append(col.jd)
-                    remainder = col - col.__class__(col.jd, format='jd')
+                    remainder = col - col.__class__(col.jd, format='jd', scale=col.scale)
                     new_columns.append(remainder.jd)
                 else:
                     new_columns.append(col)
