@@ -528,7 +528,9 @@ def header_time_1d():
 
 
 def assert_time_at(header, position, jd1, jd2, scale, format):
-    wcs = WCS(header)
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', FITSFixedWarning)
+        wcs = WCS(header)
     time = wcs.pixel_to_world(position)
     assert_allclose(time.jd1, jd1, rtol=1e-10)
     assert_allclose(time.jd2, jd2, rtol=1e-10)
@@ -571,6 +573,7 @@ def test_time_1d_values_time(header_time_1d):
     assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, 'tai', 'mjd')
 
 
+@pytest.mark.remote_data
 @pytest.mark.parametrize('scale', ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc'))
 def test_time_1d_roundtrip(header_time_1d, scale):
 
@@ -579,7 +582,10 @@ def test_time_1d_roundtrip(header_time_1d, scale):
     pixel_in = np.arange(3, 10)
 
     header_time_1d['CTYPE1'] = scale.upper()
-    wcs = WCS(header_time_1d)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', FITSFixedWarning)
+        wcs = WCS(header_time_1d)
 
     # Simple test
     time = wcs.pixel_to_world(pixel_in)
@@ -600,7 +606,10 @@ def test_time_1d_high_precision(header_time_1d):
     header_time_1d['MJDREFI'] = 52000.
     header_time_1d['MJDREFF'] = 1e-11
 
-    wcs = WCS(header_time_1d)
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', FITSFixedWarning)
+        wcs = WCS(header_time_1d)
+
     time = wcs.pixel_to_world(10)
 
     # Here we have to use a very small rtol to really test that MJDREFF is
@@ -613,7 +622,10 @@ def test_time_1d_location_geodetic(header_time_1d):
 
     # Make sure that the location is correctly returned (geodetic case)
 
-    wcs = WCS(header_time_1d)
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', FITSFixedWarning)
+        wcs = WCS(header_time_1d)
+
     time = wcs.pixel_to_world(10)
 
     lon, lat, alt = time.location.to_geodetic()
@@ -644,7 +656,10 @@ def test_time_1d_location_geocentric(header_time_1d_noobs):
     header['OBSGEO-Y'] = -20
     header['OBSGEO-Z'] = 30
 
-    wcs = WCS(header)
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', FITSFixedWarning)
+        wcs = WCS(header)
+
     time = wcs.pixel_to_world(10)
 
     x, y, z = time.location.to_geocentric()
@@ -687,7 +702,10 @@ def test_time_1d_location_incomplete(header_time_1d_noobs):
 
     header_time_1d_noobs['OBSGEO-L'] = 10.
 
-    wcs = WCS(header_time_1d_noobs)
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', FITSFixedWarning)
+        wcs = WCS(header_time_1d_noobs)
+
     with pytest.warns(UserWarning,
                       match='Missing or incomplete observer location '
                             'information, setting location in Time to None'):
@@ -696,13 +714,13 @@ def test_time_1d_location_incomplete(header_time_1d_noobs):
     assert time.location is None
 
 
-def test_time_1d_location_unsupported(header_time_1d):
+def test_time_1d_location_unsupported(header_time_1d_noobs):
 
     # Check what happens when TREFPOS is unsupported
 
-    header_time_1d['TREFPOS'] = 'BARYCENTER'
+    header_time_1d_noobs['TREFPOS'] = 'BARYCENTER'
 
-    wcs = WCS(header_time_1d)
+    wcs = WCS(header_time_1d_noobs)
     with pytest.warns(UserWarning,
                       match="Observation location 'barycenter' is not "
                             "supported, setting location in Time to None"):
@@ -711,14 +729,14 @@ def test_time_1d_location_unsupported(header_time_1d):
     assert time.location is None
 
 
-def test_time_1d_unsupported_ctype(header_time_1d):
+def test_time_1d_unsupported_ctype(header_time_1d_noobs):
 
     # For cases that we don't support yet, e.g. UT(...), use Time and drop sub-scale
 
     # Case where the MJDREF is split into two for high precision
-    header_time_1d['CTYPE1'] = 'UT(WWV)'
+    header_time_1d_noobs['CTYPE1'] = 'UT(WWV)'
 
-    wcs = WCS(header_time_1d)
+    wcs = WCS(header_time_1d_noobs)
     with pytest.warns(UserWarning,
                       match="Dropping unsupported sub-scale WWV from scale UT"):
         time = wcs.pixel_to_world(10)

@@ -3076,7 +3076,9 @@ reduce these to 2 dimensions using the naxis kwarg.
         except InconsistentAxisTypesError:
             try:
                 # for non-celestial axes, get_cdelt doesn't work
-                cdelt = np.dot(self.wcs.cd, np.diag(self.wcs.cdelt))
+                with warnings.catch_warnings():
+                    warnings.filterwarnings('ignore', 'cdelt will be ignored since cd is present', RuntimeWarning)
+                    cdelt = np.dot(self.wcs.cd, np.diag(self.wcs.cdelt))
             except AttributeError:
                 cdelt = np.diag(self.wcs.cdelt)
 
