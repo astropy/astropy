@@ -312,6 +312,9 @@ astropy.visualization
   ``coords[i].set_auto_axislabel(False)`` or by explicitly setting an axis
   label. [#9392]
 
+- Fixed the display of tick labels when plotting all sky images that have a
+  coord_wrap less than 360. [#9541]
+
 astropy.wcs
 ^^^^^^^^^^^
 
