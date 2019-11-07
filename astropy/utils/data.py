@@ -190,10 +190,11 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         long waits for a primary server that is known to be inaccessible
         at the moment.
 
-    http_headers : dict
+    http_headers : dict or None
         HTTP request headers to pass into ``urlopen`` if needed. (These headers
         are ignored if the protocol for the ``name_or_obj``/``sources`` entry
-        is not a remote HTTP URL.)
+        is not a remote HTTP URL.) In the default case (None), the headers are
+        "User-Agent: astropy" and "Accept: */*".
 
     Returns
     -------
@@ -1080,10 +1081,11 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
         ``pkgname='astropy'`` the default cache location is
         ``~/.astropy/cache``.
 
-    http_headers : dict
+    http_headers : dict or None
         HTTP request headers to pass into ``urlopen`` if needed. (These headers
-        are ignored if the protocol for the ``remote_url``/``sources`` entry
-        is not HTTP.)
+        are ignored if the protocol for the ``name_or_obj``/``sources`` entry
+        is not a remote HTTP URL.) In the default case (None), the headers are
+        "User-Agent: astropy" and "Accept: */*".
 
     Returns
     -------
