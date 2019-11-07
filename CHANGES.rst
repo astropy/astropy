@@ -775,6 +775,8 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+- Fix incorrect value returned by ``wcsapi.HighLevelWCSWrapper.axis_correlation_matrix``.
+  [#9554]
 
 Other Changes and Additions
 ---------------------------
