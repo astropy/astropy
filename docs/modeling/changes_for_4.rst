@@ -170,11 +170,6 @@ compound models and correspondingly no longer supports
 expressions of model classes, but only expressions of
 model instances. Previously the expression tree was a private
 attribute. Now the compound class is itself an expression
-tree. The mapping of constituent parameters to the
-compound is not automatically done except when certain
-method or attribute calls are made, which are not normally
-done on subexpressions. There may be some special cases
-where it is necessary to force this by calling the `.map_parameters`
-method.
+tree.
 
 Many of the private methods of Compound Models have changed.

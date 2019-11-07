@@ -270,7 +270,6 @@ class Parameter(OrderedDescriptor):
         # Get the existing value and check whether it even makes sense to
         # apply this index
         oldvalue = self.value
-
         if isinstance(key, slice):
             if len(oldvalue[key]) == 0:
                 raise InputParameterError(
@@ -334,7 +333,6 @@ class Parameter(OrderedDescriptor):
 
     @value.setter
     def value(self, value):
-
         if isinstance(value, Quantity):
             raise TypeError("The .value property on parameters should be set"
                             " to unitless values, not Quantity objects. To set"

@@ -67,7 +67,6 @@ class CompoundType(TransformType):
             model = getattr(left, oper)(right)
 
         model = cls._from_tree_base_transform_members(model, node, ctx)
-        model.map_parameters()
         return model
 
     @classmethod
