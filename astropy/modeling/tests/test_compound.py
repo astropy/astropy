@@ -384,6 +384,7 @@ def test_indexing_on_instance():
     m = Gaussian1D(1, 0, 0.1) + Const1D(2)
     assert isinstance(m[0], Gaussian1D)
     assert isinstance(m[1], Const1D)
+    assert m.param_names == ('amplitude_0', 'mean_0', 'stddev_0', 'amplitude_1')
 
     # Test parameter equivalence
     assert m[0].amplitude == 1 == m.amplitude_0
@@ -459,11 +460,7 @@ def test_inherit_constraints():
     """
     model = (Gaussian1D(bounds={'stddev': (0, 0.3)}, fixed={'mean': True}) +
              Gaussian1D(fixed={'mean': True}))
-    # We have to copy the model before modifying it, otherwise the test fails
-    # if it is run twice in a row, because the state of the model instance
-    # would be preserved from one run to the next.
-    model = deepcopy(model)
-    model.map_parameters()
+
     # Lots of assertions in this test as there are multiple interfaces to
     # parameter constraints
 
@@ -533,7 +530,6 @@ def test_pickle_compound():
     g1 = Gaussian1D(1.0, 0.0, 0.1)
     g2 = Gaussian1D([2.0, 3.0], [0.0, 0.0], [0.2, 0.3])
     m = g1 + g2
-    m.map_parameters()
     m2 = pickle.loads(pickle.dumps(m))
     assert m.param_names == m2.param_names
     assert m.__class__.__name__ == m2.__class__.__name__
@@ -545,7 +541,6 @@ def test_update_parameters():
     offx = Shift(1)
     scl = Scale(2)
     m = offx | scl
-    m.map_parameters()
     assert(m(1) == 4)
 
     offx.offset = 42
@@ -675,3 +670,4 @@ def test_compound_with_polynomials_1d(poly):
     result_compound = model(x)
     result = shift(poly(x))
     assert_allclose(result, result_compound)
+    assert model.param_names == ('c0_0', 'c1_0', 'c2_0', 'c3_0', 'c4_0', 'c5_0', 'offset_1')
