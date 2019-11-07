@@ -17,7 +17,7 @@ import astropy.units as u
 from astropy.tests.helper import assert_quantity_allclose
 
 try:
-    import scipy  # pylint: disable=W0611
+    import scipy  # pylint: disable=W0611 # noqa
 except ImportError:
     HAS_SCIPY = False
 else:
@@ -215,7 +215,7 @@ def test_custom_inverse_reset():
     """Test resetting a custom inverse to the model's default inverse."""
 
     class TestModel(Model):
-        inputs = ()
+        n_inputs = 0
         outputs = ('y',)
 
         @property
@@ -312,6 +312,7 @@ def test_render_model_1d():
                     assert ((flux - np.sum(boxed)) / flux) < 1e-7
 
 
+@pytest.mark.filterwarnings('ignore:invalid value encountered in less')
 def test_render_model_3d():
     imshape = (17, 21, 27)
     image = np.zeros(imshape)

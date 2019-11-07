@@ -13,7 +13,7 @@ from astropy.modeling.core import Model, FittableModel, Fittable1DModel
 from astropy.modeling.parameters import Parameter
 
 try:
-    from scipy import optimize  # pylint: disable=W0611
+    from scipy import optimize  # pylint: disable=W0611 # noqa
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
@@ -827,7 +827,6 @@ class TInputFormatter(Model):
     """
     n_inputs = 2
     n_outputs = 2
-    inputs = ('x', 'y')
     outputs = ('x', 'y')
 
     @staticmethod
