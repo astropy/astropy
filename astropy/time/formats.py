@@ -674,7 +674,7 @@ class TimeStardate(TimeFromEpoch):
     unit = 0.397766856 # Stardate units per day
     epoch_val = '2318-07-05 11:00:00' # Date and time of stardate 00000.00
     epoch_val2 = None
-    epoch_scale = 'utc'
+    epoch_scale = 'tai'
     epoch_format = 'iso'
 
 
