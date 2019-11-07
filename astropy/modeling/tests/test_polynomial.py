@@ -400,7 +400,6 @@ def test_2d_orthopolynomial_in_compound_model():
 
     fitter = fitting.LevMarLSQFitter()  # re-init to compare like with like
     compound_model = Identity(2) | Chebyshev2D(2, 2)
-    # compound_model.map_parameters()
     compound_model.fittable = True
     compound_model.linear = True
     with pytest.warns(AstropyUserWarning,

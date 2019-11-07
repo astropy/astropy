@@ -2560,7 +2560,7 @@ class CompoundModel(Model):
             self.linear = False
         self.eqcons = []
         self.ineqcons = []
-        self.map_parameters()
+        self._map_parameters()
 
     def __len__(self):
         return self._n_models
@@ -2620,7 +2620,6 @@ class CompoundModel(Model):
         # names.
 
         if 'equivalencies' in kw:
-            #self.map_parameters()
             # Restructure to be useful for the individual model lookup
             kw['inputs_map'] = [(value[0], (value[1], key)) for
                                 key, value in self.inputs_map().items()]
@@ -2756,7 +2755,6 @@ class CompoundModel(Model):
         # caused by deepcopy. There may be other such cases discovered.
         if name == '__setstate__':
             raise AttributeError
-        self.map_parameters()
         if name in self._param_names:
             return self.__dict__[name]
         else:
@@ -2929,7 +2927,7 @@ class CompoundModel(Model):
 
     def _format_components(self):
         if self._parameters_ is None:
-            self.map_parameters()
+            self._map_parameters()
         return '\n\n'.join('[{0}]: {1!r}'.format(idx, m)
                            for idx, m in enumerate(self._leaflist))
 
@@ -2977,7 +2975,7 @@ class CompoundModel(Model):
     def fittable(self):
         if self._fittable is None:
             if self._leaflist is None:
-                self.map_parameters()
+                self._map_parameters()
             self._fittable = all(m.fittable for m in self._leaflist)
         return self._fittable
 
@@ -2996,7 +2994,7 @@ class CompoundModel(Model):
         if self.param_names is None:
             raise RuntimeError("Compound model parameter interface is not "
                                "supported\n"
-                               "until the .map_parameters() method is called.")
+                               "until the ._map_parameters() method is called.")
 
         self._parameters_to_array()
         start = self._param_metrics[self.param_names[0]]['slice'].start
@@ -3014,7 +3012,7 @@ class CompoundModel(Model):
         if self.param_names is None:
             raise RuntimeError("Compound model parameter interface is not "
                                "supported\n"
-                               "until the .map_parameters() method is called.")
+                               "until the ._map_parameters() method is called.")
 
         start = self._param_metrics[self.param_names[0]]['slice'].start
         stop = self._param_metrics[self.param_names[-1]]['slice'].stop
@@ -3043,7 +3041,7 @@ class CompoundModel(Model):
     __or__ = _model_oper('|')
     __and__ = _model_oper('&')
 
-    def map_parameters(self):
+    def _map_parameters(self):
         """
         Map all the constituent model parameters to the compound object,
         renaming as necessary by appending a suffix number.
@@ -3161,7 +3159,7 @@ class CompoundModel(Model):
 
     def _parameter_units_for_data_units(self, input_units, output_units):
         if self._leaflist is None:
-            self.map_parameters()
+            self._map_parameters()
         units_for_data = {}
         for imodel, model in enumerate(self._leaflist):
             units_for_data_leaf = model._parameter_units_for_data_units(input_units, output_units)
