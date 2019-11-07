@@ -693,7 +693,7 @@ class TestAddRow(SetupData):
         assert len(t) == 4
         assert np.all(t['a'] == np.array([1, 2, 3, 4]))
         assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 7.2]))
-        assert np.all(t['c'] == np.array(['7', '8', '9', '1']))
+        assert np.all(t['c'] == np.array(['7', '8', '9', '10']))
 
     def test_add_with_dict(self, table_types):
         self._setup(table_types)
