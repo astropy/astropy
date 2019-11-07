@@ -71,7 +71,7 @@ def test_wrapper():
     assert wrapper.world_axis_units == ['deg', 'deg']
     assert wrapper.array_shape is None
     assert wrapper.pixel_bounds is None
-    assert wrapper.axis_correlation_matrix is None
+    assert np.all(wrapper.axis_correlation_matrix)
 
 
 def test_wrapper_invalid():
