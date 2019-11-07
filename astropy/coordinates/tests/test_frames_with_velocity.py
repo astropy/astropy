@@ -15,7 +15,7 @@ from astropy.coordinates import representation as r
 
 def test_api():
     # transform observed Barycentric velocities to full-space Galactocentric
-    with galactocentric_frame_defaults.set('pre-v4.0'):
+    with galactocentric_frame_defaults.set('latest'):
         gc_frame = Galactocentric()
         icrs = ICRS(ra=151.*u.deg, dec=-16*u.deg, distance=101*u.pc,
                     pm_ra_cosdec=21*u.mas/u.yr, pm_dec=-71*u.mas/u.yr,
@@ -179,7 +179,7 @@ def test_frame_affinetransform(kwargs, expect_success):
     an AffineTransform fails without full-space data, but this just checks that
     things work as expected at the frame level as well.
     """
-    with galactocentric_frame_defaults.set('pre-v4.0'):
+    with galactocentric_frame_defaults.set('latest'):
         icrs = ICRS(**kwargs)
 
         if expect_success:
