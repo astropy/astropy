@@ -2456,6 +2456,21 @@ def test_custom_masked_column_in_nonmasked_table():
         assert type(t['e']) is MySubMaskedColumn  # sub-class not downgraded
 
 
+def test_sort_with_non_mutable():
+    """Test sorting a table that has a non-mutable column such as SkyCoord"""
+    t = Table([[2, 1], SkyCoord([4, 3], [6, 5], unit='deg,deg')], names=['a', 'sc'])
+    meta = {'a': [1, 2]}
+    t['sc'].info.meta = meta
+    t.sort('a')
+    assert np.all(t['a'] == [1, 2])
+    assert np.allclose(t['sc'].ra.to_value(u.deg), [3, 4])
+    assert np.allclose(t['sc'].dec.to_value(u.deg), [5, 6])
+
+    # Got a deep copy of SkyCoord column
+    t['sc'].info.meta['a'][0] = 100
+    assert meta['a'][0] == 1
+
+
 def test_init_with_list_of_masked_arrays():
     """Test the fix for #8977"""
     m0 = np.ma.array([0, 1, 2], mask=[True, False, True])
