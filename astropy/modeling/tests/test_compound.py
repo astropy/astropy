@@ -645,7 +645,7 @@ def test_bounding_box_with_units():
 @pytest.mark.parametrize('poly', [Chebyshev2D(1, 2), Polynomial2D(2), Legendre2D(1, 2)])
 def test_compound_with_polynomials_2d(poly):
     """
-    Tests that polynomials are scaled when used in compound models.
+    Tests that polynomials are offset when used in compound models.
     Issue #3699
     """
     poly.parameters = [1, 2, 3, 4, 1, 2]
@@ -660,7 +660,7 @@ def test_compound_with_polynomials_2d(poly):
 @pytest.mark.parametrize('poly', [Chebyshev1D(5), Legendre1D(5), Polynomial1D(5)])
 def test_compound_with_polynomials_1d(poly):
     """
-    Tests that polynomials are scaled when used in compound models.
+    Tests that polynomials are offset when used in compound models.
     Issue #3699
     """
     poly.parameters = [1, 2, 3, 4, 1, 2]
