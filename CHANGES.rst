@@ -737,6 +737,10 @@ astropy.table
   as long as the custom unit is enabled during reading (otherwise, the unit
   will become an ``UnrecognizedUnit``). [#9015]
 
+- Fix bug where string values could be truncated when inserting into a
+  ``Column`` or ``MaskedColumn``, or when adding or inserting a row containing
+  string values. [#9559]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
