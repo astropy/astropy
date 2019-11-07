@@ -15,7 +15,8 @@ from astropy.wcs import WCS, FITSFixedWarning
 from astropy.tests.helper import catch_warnings
 from astropy.utils import NumpyRNGContext
 from astropy.utils.data import (get_pkg_data_filename, get_pkg_data_filenames,
-                           get_pkg_data_contents)
+                                get_pkg_data_contents)
+from astropy.utils.exceptions import AstropyWarning
 
 from astropy.nddata.ccddata import CCDData
 from astropy.nddata import _testing as nd_testing
@@ -652,13 +653,16 @@ def test_wcs_keywords_removed_from_header():
     keepers = set(_KEEP_THESE_KEYWORDS_IN_HEADER)
     data_file = get_pkg_data_filename('data/sip-wcs.fits')
     ccd = CCDData.read(data_file)
-    wcs_header = ccd.wcs.to_header()
+    with pytest.warns(AstropyWarning,
+                      match=r'Some non-standard WCS keywords were excluded'):
+        wcs_header = ccd.wcs.to_header()
     assert not (set(wcs_header) & set(ccd.meta) - keepers)
 
     # Make sure that exceptions are not raised when trying to remove missing
     # keywords. o4sp040b0_raw.fits of io.fits is missing keyword 'PC1_1'.
     data_file1 = get_pkg_data_filename('../../io/fits/tests/data/o4sp040b0_raw.fits')
-    ccd = CCDData.read(data_file1, unit='count')
+    with pytest.warns(FITSFixedWarning, match=r"'unitfix' made the change"):
+        ccd = CCDData.read(data_file1, unit='count')
 
 
 def test_wcs_SIP_coefficient_keywords_removed():
@@ -676,13 +680,12 @@ def test_wcs_SIP_coefficient_keywords_removed():
     # not being removed from the header even though they are WCS-related.
 
     data_file = get_pkg_data_filename('data/sip-wcs.fits')
+    test_keys = ['A_0_0', 'B_0_1']
 
     # Make sure the keywords added to this file for testing are there
-    hdu = fits.open(data_file)
-
-    test_keys = ['A_0_0', 'B_0_1']
-    for key in test_keys:
-        assert key in hdu[0].header
+    with fits.open(data_file) as hdu:
+        for key in test_keys:
+            assert key in hdu[0].header
 
     ccd = CCDData.read(data_file)
 
@@ -691,6 +694,7 @@ def test_wcs_SIP_coefficient_keywords_removed():
         assert key not in ccd.header
 
 
+@pytest.mark.filterwarnings('ignore')
 def test_wcs_keyword_removal_for_wcs_test_files():
     """
     Test, for the WCS test files, that keyword removal works as
