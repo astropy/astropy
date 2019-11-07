@@ -14,6 +14,7 @@ Fitters support constrained fitting.
   to the data minus that constant. However, the fixed coefficient value is
   restored when evaluating the model, to fit the original data values::
 
+      >>> import warnings
       >>> import numpy as np
       >>> from astropy.modeling import models, fitting
       >>> x = np.arange(1, 10, .1)
@@ -24,7 +25,9 @@ Fitters support constrained fitting.
       >>> y = p1(x, model_set_axis=False)
       >>> p1.c0.fixed = True
       >>> pfit = fitting.LinearLSQFitter()
-      >>> new_model = pfit(p1, x, y)
+      >>> with warnings.catch_warnings():
+      ...     warnings.simplefilter('ignore')  # Ignore fit warning
+      ...     new_model = pfit(p1, x, y)
       >>> print(new_model)  # doctest: +SKIP
       Model: Polynomial1D
       Inputs: ('x',)

@@ -8,11 +8,10 @@ from numpy.testing import assert_allclose, assert_array_equal, assert_array_less
 from astropy.modeling import models, InputParameterError
 from astropy.coordinates import Angle
 from astropy.modeling import fitting
-from astropy.tests.helper import catch_warnings
-from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 try:
-    from scipy import optimize  # pylint: disable=W0611
+    from scipy import optimize  # pylint: disable=W0611  # noqa
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
@@ -205,7 +204,9 @@ def test_Shift_model_levmar_fit():
     y = x+0.1
 
     fitter = fitting.LevMarLSQFitter()
-    fitted_model = fitter(init_model, x, y)
+    with pytest.warns(AstropyUserWarning,
+                      match='Model is linear in parameters'):
+        fitted_model = fitter(init_model, x, y)
 
     assert_allclose(fitted_model.parameters, [0.1], atol=1e-15)
 

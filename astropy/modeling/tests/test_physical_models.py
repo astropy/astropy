@@ -81,14 +81,18 @@ def test_blackbody_overflow():
     photlam = u.photon / (u.cm ** 2 * u.s * u.AA)
     wave = [0.0, 1000.0, 100000.0, 1e55]  # Angstrom
     temp = 10000.0  # Kelvin
-    with np.errstate(all="ignore"):
-        bb = BlackBody(temperature=temp * u.K, scale=1.0)
-        bb_lam = bb(wave) * u.sr
+    bb = BlackBody(temperature=temp * u.K, scale=1.0)
+    with pytest.warns(
+            AstropyUserWarning,
+            match=r'Input contains invalid wavelength/frequency value\(s\)'):
+        with np.errstate(all="ignore"):
+            bb_lam = bb(wave) * u.sr
     flux = bb_lam.to(photlam, u.spectral_density(wave * u.AA)) / u.sr
 
     # First element is NaN, last element is very small, others normal
     assert np.isnan(flux[0])
-    assert np.log10(flux[-1].value) < -134
+    with np.errstate(all="ignore"):
+        assert np.log10(flux[-1].value) < -134
     np.testing.assert_allclose(
         flux.value[1:-1], [0.00046368, 0.04636773], rtol=1e-3
     )  # 0.1% accuracy in PHOTLAM/sr

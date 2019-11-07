@@ -11,6 +11,7 @@ from astropy.modeling.core import Fittable1DModel
 from astropy.modeling.parameters import Parameter
 from astropy.modeling import models
 from astropy.modeling import fitting
+from astropy.utils.exceptions import AstropyUserWarning
 
 from .utils import ignore_non_integer_warning
 
@@ -133,7 +134,9 @@ class TestBounds:
         line_model = models.Linear1D(guess_slope, guess_intercept,
                                      bounds=bounds)
         fitter = fitting.LevMarLSQFitter()
-        model = fitter(line_model, self.x, self.y)
+        with pytest.warns(AstropyUserWarning,
+                          match=r'Model is linear in parameters'):
+            model = fitter(line_model, self.x, self.y)
         slope = model.slope.value
         intercept = model.intercept.value
         assert slope + 10 ** -5 >= bounds['slope'][0]
@@ -169,7 +172,9 @@ class TestBounds:
                                   x_stddev=4., y_stddev=4., theta=0.5,
                                   bounds=bounds)
         gauss_fit = fitting.LevMarLSQFitter()
-        model = gauss_fit(gauss, X, Y, self.data)
+        with pytest.warns(AstropyUserWarning,
+                          match='The fit may be unsuccessful'):
+            model = gauss_fit(gauss, X, Y, self.data)
         x_mean = model.x_mean.value
         y_mean = model.y_mean.value
         x_stddev = model.x_stddev.value
@@ -226,7 +231,9 @@ class TestLinearConstraints:
         self.p1.c0.fixed = True
         self.p1.c1.fixed = True
         pfit = fitting.LinearLSQFitter()
-        model = pfit(self.p1, self.x, self.y)
+        with pytest.warns(AstropyUserWarning,
+                          match=r'The fit may be poorly conditioned'):
+            model = pfit(self.p1, self.x, self.y)
         assert_allclose(self.y, model(self.x))
 
 # Test constraints as parameter properties
@@ -479,7 +486,10 @@ def test_gaussian2d_positive_stddev():
 
 # Issue #6403
 @pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.filterwarnings(r'ignore:Model is linear in parameters.*')
 def test_2d_model():
+    from astropy.utils import NumpyRNGContext
+
     # 2D model with LevMarLSQFitter
     gauss2d = models.Gaussian2D(10.2, 4.3, 5, 2, 1.2, 1.4)
     fitter = fitting.LevMarLSQFitter()
@@ -489,7 +499,6 @@ def test_2d_model():
     z = gauss2d(x, y)
     w = np.ones(x.size)
     w.shape = x.shape
-    from astropy.utils import NumpyRNGContext
 
     with NumpyRNGContext(1234567890):
 
