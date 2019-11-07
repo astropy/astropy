@@ -68,4 +68,4 @@ class HighLevelWCSWrapper(HighLevelWCSMixin):
         """
         See `~astropy.wcs.wcsapi.BaseLowLevelWCS.axis_correlation_matrix`
         """
-        return self.low_level_wcs.pixel_bounds
+        return self.low_level_wcs.axis_correlation_matrix
