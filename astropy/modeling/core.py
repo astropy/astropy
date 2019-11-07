@@ -1081,7 +1081,6 @@ class Model(metaclass=_ModelMeta):
         A `dict` mapping parameter names to their upper and lower bounds as
         ``(min, max)`` tuples or ``[min, max]`` lists.
         """
-
         return self._constraints['bounds']
 
     @property
@@ -2561,6 +2560,7 @@ class CompoundModel(Model):
             self.linear = False
         self.eqcons = []
         self.ineqcons = []
+        self.map_parameters()
 
     def __len__(self):
         return self._n_models
@@ -2620,7 +2620,7 @@ class CompoundModel(Model):
         # names.
 
         if 'equivalencies' in kw:
-            self.map_parameters()
+            #self.map_parameters()
             # Restructure to be useful for the individual model lookup
             kw['inputs_map'] = [(value[0], (value[1], key)) for
                                 key, value in self.inputs_map().items()]
@@ -2730,8 +2730,6 @@ class CompoundModel(Model):
 
     @property
     def param_names(self):
-        if self._param_names is None:
-            self.map_parameters()
         return self._param_names
 
     def _make_leaflist(self):

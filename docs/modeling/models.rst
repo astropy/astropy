@@ -265,7 +265,7 @@ Efficient evaluation with `Model.render() <astropy.modeling.Model.render>`
 
 When a model is evaluated over a range much larger than the model itself, it
 may be prudent to use the :func:`Model.render <astropy.modeling.Model.render>`
-method if efficiency is a concern. The :func:`render <astropy.modeling.Model.render>` 
+method if efficiency is a concern. The :func:`render <astropy.modeling.Model.render>`
 method can be used to evaluate the model on an
 array of the same dimensions.  ``model.render()`` can be called with no
 arguments to return a "postage stamp" of the bounding box region.
@@ -546,8 +546,8 @@ To read the file and create the model:
 .. doctest-requires:: asdf
 
     >>> import asdf
-    >>> f = asdf.open('rotation.asdf')
-    >>> model = f.tree['model']
+    >>> with asdf.open('rotation.asdf') as f:
+    ...     model = f.tree['model']
     >>> print(model)
     Model: Rotation2D
     Inputs: ('x', 'y')
