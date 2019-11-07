@@ -193,7 +193,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     http_headers : dict
         HTTP request headers to pass into ``urlopen`` if needed. (These headers
         are ignored if the protocol for the ``name_or_obj``/``sources`` entry
-        is not a remote http URL.)
+        is not a remote HTTP URL.)
 
     Returns
     -------
@@ -1083,7 +1083,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
     http_headers : dict
         HTTP request headers to pass into ``urlopen`` if needed. (These headers
         are ignored if the protocol for the ``remote_url``/``sources`` entry
-        is not http.)
+        is not HTTP.)
 
     Returns
     -------
