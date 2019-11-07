@@ -218,18 +218,17 @@ def test_fix_inputs_type():
         helpers.assert_roundtrip_tree(tree, tmpdir)
 
 
-def test_custom_and_analytical():
-    m1 = custom_and_analytical_inverse()
-    m = astmodels.Shift(1) & astmodels.Shift(2) | m1
-    fa = AsdfFile()
-    fa.tree['model'] = m
-    fa.write_to('custom_and_analytical_inverse.asdf')
-    f = asdf.open('custom_and_analytical_inverse.asdf')
-    assert f.tree['model'].inverse is not None
+comp_model = custom_and_analytical_inverse()
 
-    m = astmodels.Shift(1) & m1
+
+@pytest.mark.parametrize(('model'), [astmodels.Shift(1) & astmodels.Shift(2) | comp_model,
+                                     comp_model | astmodels.Shift(1) & astmodels.Shift(2),
+                                     astmodels.Shift(1) & comp_model,
+                                     comp_model & astmodels.Shift(1)
+                                     ])
+def test_custom_and_analytical(model):
     fa = AsdfFile()
-    fa.tree['model'] = m
+    fa.tree['model'] = model
     fa.write_to('custom_and_analytical_inverse.asdf')
     f = asdf.open('custom_and_analytical_inverse.asdf')
     assert f.tree['model'].inverse is not None

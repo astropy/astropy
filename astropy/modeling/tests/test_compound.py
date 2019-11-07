@@ -384,14 +384,21 @@ def test_indexing_on_instance():
     m = Gaussian1D(1, 0, 0.1) + Const1D(2)
     assert isinstance(m[0], Gaussian1D)
     assert isinstance(m[1], Const1D)
-    # assert isinstance(m['Gaussian1D'], Gaussian1D)
-    # assert isinstance(m['Const1D'], Const1D)
+    assert m.param_names == ('amplitude_0', 'mean_0', 'stddev_0', 'amplitude_1')
 
     # Test parameter equivalence
-    assert m[0].amplitude == 1
-    assert m[0].mean == 0
-    assert m[0].stddev == 0.1
-    assert m[1].amplitude == 2
+    assert m[0].amplitude == 1 == m.amplitude_0
+    assert m[0].mean == 0 == m.mean_0
+    assert m[0].stddev == 0.1 == m.stddev_0
+    assert m[1].amplitude == 2 == m.amplitude_1
+
+    # Test that parameter value updates are symmetric between the compound
+    # model and the submodel returned by indexing
+    const = m[1]
+    m.amplitude_1 = 42
+    assert const.amplitude == 42
+    const.amplitude = 137
+    assert m.amplitude_1 == 137
 
     # Similar couple of tests, but now where the compound model was created
     # from model instances
@@ -402,6 +409,12 @@ def test_indexing_on_instance():
     assert m[1].name == 'p'
     assert m['g'].name == 'g'
     assert m['p'].name == 'p'
+
+    poly = m[1]
+    m.c0_1 = 12345
+    assert poly.c0 == 12345
+    poly.c1 = 6789
+    assert m.c1_1 == 6789
 
     # Test negative indexing
     assert isinstance(m[-1], Polynomial1D)
@@ -447,11 +460,7 @@ def test_inherit_constraints():
     """
     model = (Gaussian1D(bounds={'stddev': (0, 0.3)}, fixed={'mean': True}) +
              Gaussian1D(fixed={'mean': True}))
-    # We have to copy the model before modifying it, otherwise the test fails
-    # if it is run twice in a row, because the state of the model instance
-    # would be preserved from one run to the next.
-    model = deepcopy(model)
-    model.map_parameters()
+
     # Lots of assertions in this test as there are multiple interfaces to
     # parameter constraints
 
@@ -521,7 +530,6 @@ def test_pickle_compound():
     g1 = Gaussian1D(1.0, 0.0, 0.1)
     g2 = Gaussian1D([2.0, 3.0], [0.0, 0.0], [0.2, 0.3])
     m = g1 + g2
-    m.map_parameters()
     m2 = pickle.loads(pickle.dumps(m))
     assert m.param_names == m2.param_names
     assert m.__class__.__name__ == m2.__class__.__name__
@@ -533,7 +541,6 @@ def test_update_parameters():
     offx = Shift(1)
     scl = Scale(2)
     m = offx | scl
-    m.map_parameters()
     assert(m(1) == 4)
 
     offx.offset = 42
@@ -633,3 +640,34 @@ def test_bounding_box_with_units():
     t = Tabular1D(points, lt)
 
     assert(t(1 * u.pix, with_bounding_box=True) == 1. * u.AA)
+
+
+@pytest.mark.parametrize('poly', [Chebyshev2D(1, 2), Polynomial2D(2), Legendre2D(1, 2)])
+def test_compound_with_polynomials_2d(poly):
+    """
+    Tests that polynomials are offset when used in compound models.
+    Issue #3699
+    """
+    poly.parameters = [1, 2, 3, 4, 1, 2]
+    shift = Shift(3)
+    model = poly | shift
+    x, y = np.mgrid[:20, :37]
+    result_compound = model(x, y)
+    result = shift(poly(x, y))
+    assert_allclose(result, result_compound)
+
+
+@pytest.mark.parametrize('poly', [Chebyshev1D(5), Legendre1D(5), Polynomial1D(5)])
+def test_compound_with_polynomials_1d(poly):
+    """
+    Tests that polynomials are offset when used in compound models.
+    Issue #3699
+    """
+    poly.parameters = [1, 2, 3, 4, 1, 2]
+    shift = Shift(3)
+    model = poly | shift
+    x = np.linspace(-5, 5, 10)
+    result_compound = model(x)
+    result = shift(poly(x))
+    assert_allclose(result, result_compound)
+    assert model.param_names == ('c0_0', 'c1_0', 'c2_0', 'c3_0', 'c4_0', 'c5_0', 'offset_1')
