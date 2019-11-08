@@ -16,42 +16,42 @@ apply_to_both = FunctionAssigner(APPLY_TO_BOTH_FUNCTIONS)
 dispatched_function = FunctionAssigner(DISPATCHED_FUNCTIONS)
 
 
-def _data_mask(array):
+def _data_masks(*args):
+    """Separate out arguments into tuples of data and masks.
+
+    An all-False mask is created if an argument does not have a mask.
+    """
     from .core import Masked
 
-    if isinstance(array, Masked):
-        return array.unmasked, array.mask
-    else:
-        return array, np.zeros(np.shape(array), bool)
-
-
-def _data_masks(*args):
     data = []
     masks = []
     for arg in args:
-        datum, mask = _data_mask(arg)
-        data.append(datum)
-        masks.append(mask)
+        if isinstance(arg, Masked):
+            data.append(arg.unmasked)
+            masks.append(arg.mask)
+        else:
+            data.append(arg)
+            masks.append(np.zeros(np.shape(arg), bool))
 
-    return data, masks
+    return tuple(data), tuple(masks)
 
 
 @apply_to_both
 def concatenate(arrays, axis=0, out=None):
     data, masks = _data_masks(*arrays)
-    return data, masks, (axis,), {}, out
+    return (data,), (masks,), dict(axis=axis), out
 
 
 @apply_to_both
-def take_along_axis(arr, indices, axis):
-    data, mask = _data_mask(arr)
-    return data, mask, (indices, axis), {}, None
+def take_along_axis(arr, *args, **kwargs):
+    data, mask = _data_masks(arr)
+    return data+args, mask+args, kwargs, None
 
 
 @apply_to_both
 def broadcast_to(array, shape, subok=True):
-    data, mask = _data_mask(array) if subok else (array.unmasked, None)
-    return data, mask, (shape, subok), {}, None
+    data, mask = _data_masks(array) if subok else ((array.unmasked,), None)
+    return data, mask, dict(shape=shape, subok=subok), None
 
 
 @dispatched_function
@@ -72,3 +72,16 @@ def broadcast_arrays(*args, subok=True):
     results = [(Masked(result, mask) if mask is not None else result)
                for (result, mask) in zip(results, masks)]
     return (results if len(results) > 1 else results[0]), None, None
+
+
+@apply_to_both
+def insert(arr, obj, values, axis=None):
+    data, masks = _data_masks(arr, values)
+    return ((data[0], obj, data[1], axis),
+            (masks[0], obj, masks[1], axis), {}, None)
+
+
+@apply_to_both
+def append(arr, values, *args, **kwargs):
+    data, masks = _data_masks(arr, values)
+    return data + args, masks + args, kwargs, None
