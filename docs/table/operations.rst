@@ -595,14 +595,14 @@ Stack depth-wise
 ----------------
 
 The |Table| class supports stacking columns within tables depth-wise using
-the `~astropy.table.cstack` function. It corresponds roughly
+the `~astropy.table.dstack` function. It corresponds roughly
 to running the `numpy.dstack` function on the individual columns matched
 by name.
 
 For example, suppose one has tables of data for sources giving information on the enclosed
 source counts for different PSF fractions::
 
-  >>> from astropy.table import Table, cstack
+  >>> from astropy.table import Table, dstack
   >>> src1 = Table.read("""psf_frac  counts
   ...                      0.10        45
   ...                      0.50        90
@@ -618,7 +618,7 @@ source counts for different PSF fractions::
 Now we can stack these two tables depth-wise to get a single table with the
 characteristics of both sources::
 
-  >>> srcs = cstack([src1, src2])
+  >>> srcs = dstack([src1, src2])
   >>> print(srcs)
   psf_frac [2] counts [2]
   ------------ ----------
