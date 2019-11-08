@@ -102,6 +102,11 @@ def bayesian_blocks(t, x=None, sigma=None,
 
     Examples
     --------
+
+    .. testsetup::
+
+        >>> np.random.seed(12345)
+
     Event data:
 
     >>> t = np.random.normal(size=100)
