@@ -215,6 +215,11 @@ doc_footer = """
 
     Examples
     --------
+    .. testsetup::
+
+        >>> from astropy.coordinates import galactocentric_frame_defaults
+        >>> _ = galactocentric_frame_defaults.set('pre-v4.0')
+
     To transform to the Galactocentric frame with the default
     frame attributes, pass the uninstantiated class name to the
     ``transform_to()`` method of a coordinate frame or
