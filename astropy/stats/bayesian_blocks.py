@@ -105,13 +105,13 @@ def bayesian_blocks(t, x=None, sigma=None,
     Event data:
 
     >>> t = np.random.normal(size=100)
-    >>> edges = bayesian_blocks(t, fitness='events', p0=0.01)
+    >>> edges = bayesian_blocks(t, fitness='events', gamma=1)
 
     Event data with repeats:
 
     >>> t = np.random.normal(size=100)
     >>> t[80:] = t[:20]
-    >>> edges = bayesian_blocks(t, fitness='events', p0=0.01)
+    >>> edges = bayesian_blocks(t, fitness='events', gamma=1)
 
     Regular event data:
 

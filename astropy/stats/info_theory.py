@@ -364,7 +364,7 @@ def akaike_info_criterion_lsq(ssr, n_params, n_samples):
     >>> # Fit with three Gaussians
     >>> g3_init = (models.Gaussian1D(.1, 0, 0.1)
     ...            + models.Gaussian1D(.1, 0.2, 0.15)
-    ...            + models.Gaussian1D(2., .4, 0.1))
+    ...            + models.Gaussian1D(2.4, .4, 0.1))
     >>> fitter = fitting.LevMarLSQFitter()
     >>> g3_fit = fitter(g3_init, x, y)
     >>> # Fit with two Gaussians
@@ -379,7 +379,7 @@ def akaike_info_criterion_lsq(ssr, n_params, n_samples):
     >>> ssr_g2 = np.sum((g2_fit(x) - y)**2.0)
     >>> ssr_g1 = np.sum((g1_fit(x) - y)**2.0)
     >>> akaike_info_criterion_lsq(ssr_g3, 9, x.shape[0]) # doctest: +FLOAT_CMP
-    -660.41075962620482
+    -634.5257517810961
     >>> akaike_info_criterion_lsq(ssr_g2, 6, x.shape[0]) # doctest: +FLOAT_CMP
     -662.83834510232043
     >>> akaike_info_criterion_lsq(ssr_g1, 3, x.shape[0]) # doctest: +FLOAT_CMP
