@@ -164,6 +164,10 @@ astropy.stats
 - A numpy ``MaskedArray`` can now be input to the ``biweight_location``,
   ``biweight_scale``, and ``biweight_midvariance`` functions. [#9466]
 
+- Removed the warning related to p0 in the Bayesian blocks algorithm.
+  The caveat related to p0 is described in the docstring for ``Events``.
+  [#9567]
+
 astropy.table
 ^^^^^^^^^^^^^
 
