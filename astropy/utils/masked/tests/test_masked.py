@@ -247,6 +247,16 @@ class TestMaskedArrayOperators(MaskedArraySetup):
         assert_array_equal(mapmb.unmasked, expected_data)
         assert_array_equal(mapmb.mask, expected_mask)
 
+    @pytest.mark.parametrize('op', (operator.eq, operator.ne))
+    def test_equality(self, op):
+        mapmb = op(self.ma, self.mb)
+        expected_data = op(self.a, self.b)
+        expected_mask = (self.ma.mask | self.mb.mask)
+        # Note: assert_array_equal also checks type, i.e., that boolean
+        # output is represented as plain Masked ndarray.
+        assert_array_equal(mapmb.unmasked, expected_data)
+        assert_array_equal(mapmb.mask, expected_mask)
+
 
 class TestMaskedQuantityOperators(TestMaskedArrayOperators, QuantitySetup):
     pass
@@ -315,6 +325,7 @@ class MaskedUfuncTests(MaskedArraySetup):
 
 
 class TestMaskedArrayUfuncs(MaskedUfuncTests, ArraySetup):
+    # multiply.reduce does not work with units, so test only for plain array.
     @pytest.mark.parametrize('axis', (0, 1, None))
     def test_multiply_reduce(self, axis):
         ma_reduce = np.multiply.reduce(self.ma, axis=axis)
@@ -423,6 +434,40 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         assert_array_equal(ma_max.unmasked, expected_data)
         assert not np.any(ma_max.mask)
 
+    @pytest.mark.parametrize('axis', (0, 1, None))
+    def test_argmin(self, axis):
+        ma_argmin = self.ma.argmin(axis)
+        filled = self.a.copy()
+        filled[self.mask_a] = self.a.max()
+        expected_data = filled.argmin(axis)
+        assert_array_equal(ma_argmin, expected_data)
+
+    @pytest.mark.parametrize('axis', (0, 1, None))
+    def test_argmax(self, axis):
+        ma_argmax = self.ma.argmax(axis)
+        filled = self.a.copy()
+        filled[self.mask_a] = self.a.min()
+        expected_data = filled.argmax(axis)
+        assert_array_equal(ma_argmax, expected_data)
+
+    @pytest.mark.parametrize('axis', (0, 1))
+    def test_argsort(self, axis):
+        ma_argsort = self.ma.argsort(axis)
+        filled = self.a.copy()
+        filled[self.mask_a] = self.a.max() * 1.1
+        expected_data = filled.argsort(axis)
+        assert_array_equal(ma_argsort, expected_data)
+
+    @pytest.mark.parametrize('axis', (0, 1))
+    def test_sort(self, axis):
+        ma_sort = self.ma.copy()
+        ma_sort.sort(axis)
+        indices = self.ma.argsort(axis)
+        expected_data = np.take_along_axis(self.ma.unmasked, indices, axis)
+        expected_mask = np.take_along_axis(self.ma.mask, indices, axis)
+        assert_array_equal(ma_sort.unmasked, expected_data)
+        assert_array_equal(ma_sort.mask, expected_mask)
+
     def test_all_explicit(self):
         a1 = np.array([[1., 2.],
                        [3., 4.]])
@@ -459,7 +504,6 @@ class TestMaskedArrayMethods(MaskedArraySetup):
     def test_all_and_any(self, array, axis, method):
         ma = getattr(self, 'm'+array)
         ma_eq = ma == ma
-        a_eq = ma.unmasked == ma.unmasked
         ma_all_or_any = getattr(ma_eq, method)(axis=axis)
         filled = ma_eq.unmasked.copy()
         filled[ma_eq.mask] = method == 'all'
