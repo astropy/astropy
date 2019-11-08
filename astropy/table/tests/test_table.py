@@ -12,7 +12,7 @@ import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy.io import fits
-from astropy.table import Table, QTable, MaskedColumn
+from astropy.table import Table, QTable, MaskedColumn, TableReplaceWarning
 from astropy.tests.helper import (assert_follows_unicode_guidelines,
                                   ignore_warnings, catch_warnings)
 from astropy.coordinates import SkyCoord
@@ -1914,7 +1914,9 @@ class TestPandas:
                        2584288728310999296]
         t['Source'].mask = [False, False, False]
 
-        d = t.to_pandas()
+        with pytest.warns(TableReplaceWarning,
+                          match="converted column 'a' from integer to float"):
+            d = t.to_pandas()
 
         t2 = table.Table.from_pandas(d)
 
