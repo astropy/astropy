@@ -185,7 +185,7 @@ astropy.table
 - ``MaskedColumn.data`` will now return a plain ``MaskedArray`` rather than
   the previous (unintended) ``masked_BaseColumn``. [#8855]
 
-- Added depth-wise stacking ``cstack()`` in higher level table operation.
+- Added depth-wise stacking ``dstack()`` in higher level table operation.
   It help will in stacking table column depth-wise. [#8939]
 
 - Added a new table equality method ``values_equal()`` which allows comparison

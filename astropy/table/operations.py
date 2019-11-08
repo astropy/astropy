@@ -5,7 +5,7 @@ High-level table operations:
 - setdiff()
 - hstack()
 - vstack()
-- cstack()
+- dstack()
 """
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
@@ -233,7 +233,7 @@ def setdiff(table1, table2, keys=None):
     return t12_diff
 
 
-def cstack(tables, join_type='outer', metadata_conflicts='warn'):
+def dstack(tables, join_type='outer', metadata_conflicts='warn'):
     """
     Stack columns within tables depth-wise
 
@@ -279,7 +279,7 @@ def cstack(tables, join_type='outer', metadata_conflicts='warn'):
       --- ---
         5   7
         6   8
-      >>> print(cstack([t1, t2]))
+      >>> print(dstack([t1, t2]))
       a [2]  b [2]
       ------ ------
       1 .. 5 3 .. 7
@@ -291,7 +291,7 @@ def cstack(tables, join_type='outer', metadata_conflicts='warn'):
 
     n_rows = set(len(table) for table in tables)
     if len(n_rows) != 1:
-        raise ValueError('Table lengths must all match for cstack')
+        raise ValueError('Table lengths must all match for dstack')
     n_row = n_rows.pop()
 
     out = vstack(tables, join_type, metadata_conflicts)

@@ -1039,7 +1039,7 @@ class TestCStack():
                               ' 6.  foo  3'], format='ascii')
 
     @staticmethod
-    def compare_cstack(tables, out):
+    def compare_dstack(tables, out):
         for ii, tbl in enumerate(tables):
             for name, out_col in out.columns.items():
                 if name in tbl.colnames:
@@ -1059,15 +1059,15 @@ class TestCStack():
                     # Column missing for this table, out must have a mask with all True.
                     assert np.all(out[name].mask[:, ii])
 
-    def test_cstack_table_column(self, operation_table_type):
+    def test_dstack_table_column(self, operation_table_type):
         """Stack a table with 3 cols and one column (gets auto-converted to Table).
         """
         self._setup(operation_table_type)
         t2 = self.t1.copy()
-        out = table.cstack([self.t1, t2['a']])
-        self.compare_cstack([self.t1, t2[('a',)]], out)
+        out = table.dstack([self.t1, t2['a']])
+        self.compare_dstack([self.t1, t2[('a',)]], out)
 
-    def test_cstack_basic_outer(self, operation_table_type):
+    def test_dstack_basic_outer(self, operation_table_type):
         if operation_table_type is QTable:
             pytest.xfail('Quantity columns do not support masking.')
         self._setup(operation_table_type)
@@ -1076,56 +1076,56 @@ class TestCStack():
         t4 = self.t4
         t4['a'].mask[0] = True
         # Test for non-masked table
-        t12 = table.cstack([t1, t2], join_type='outer')
+        t12 = table.dstack([t1, t2], join_type='outer')
         assert type(t12) is operation_table_type
         assert type(t12['a']) is type(t1['a'])
         assert type(t12['b']) is type(t1['b'])
-        self.compare_cstack([t1, t2], t12)
+        self.compare_dstack([t1, t2], t12)
 
         # Test for masked table
-        t124 = table.cstack([t1, t2, t4], join_type='outer')
+        t124 = table.dstack([t1, t2, t4], join_type='outer')
         assert type(t124) is operation_table_type
         assert type(t124['a']) is type(t4['a'])
         assert type(t124['b']) is type(t4['b'])
-        self.compare_cstack([t1, t2, t4], t124)
+        self.compare_dstack([t1, t2, t4], t124)
 
-    def test_cstack_basic_inner(self, operation_table_type):
+    def test_dstack_basic_inner(self, operation_table_type):
         self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
         t4 = self.t4
 
         # Test for masked table
-        t124 = table.cstack([t1, t2, t4], join_type='inner')
+        t124 = table.dstack([t1, t2, t4], join_type='inner')
         assert type(t124) is operation_table_type
         assert type(t124['a']) is type(t4['a'])
         assert type(t124['b']) is type(t4['b'])
-        self.compare_cstack([t1, t2, t4], t124)
+        self.compare_dstack([t1, t2, t4], t124)
 
-    def test_cstack_multi_dimension_column(self, operation_table_type):
+    def test_dstack_multi_dimension_column(self, operation_table_type):
         self._setup(operation_table_type)
         t3 = self.t3
         t5 = self.t5
         t2 = self.t2
-        t35 = table.cstack([t3, t5])
+        t35 = table.dstack([t3, t5])
         assert type(t35) is operation_table_type
         assert type(t35['a']) is type(t3['a'])
         assert type(t35['b']) is type(t3['b'])
-        self.compare_cstack([t3, t5], t35)
+        self.compare_dstack([t3, t5], t35)
 
         with pytest.raises(TableMergeError):
-            table.cstack([t2, t3])
+            table.dstack([t2, t3])
 
-    def test_cstack_different_length_table(self, operation_table_type):
+    def test_dstack_different_length_table(self, operation_table_type):
         self._setup(operation_table_type)
         t2 = self.t2
         t6 = self.t6
         with pytest.raises(ValueError):
-            table.cstack([t2, t6])
+            table.dstack([t2, t6])
 
-    def test_cstack_single_table(self):
+    def test_dstack_single_table(self):
         self._setup(Table)
-        out = table.cstack(self.t1)
+        out = table.dstack(self.t1)
         assert np.all(out == self.t1)
 
 
