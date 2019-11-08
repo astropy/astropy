@@ -142,22 +142,19 @@ def _expand_string_array_for_values(arr, values):
     arr_expanded : np.ndarray
 
     """
-    # If this is not a string type then just return original arr
-    if arr.dtype.kind not in ('U', 'S'):
-        return arr
+    if arr.dtype.kind in ('U', 'S'):
+        # Find the length of the longest string in the new values.
+        values_str_len = np.char.str_len(values).max()
 
-    # Find the length of the longest string in the new values.
-    values_str_len = np.char.str_len(values).max()
+        # Determine character repeat count of arr.dtype.  Returns a positive
+        # int or None (something like 'U0' is not possible in numpy).  If new values
+        # are longer than current then make a new (wider) version of arr.
+        arr_str_len = dtype_bytes_or_chars(arr.dtype)
+        if arr_str_len and values_str_len > arr_str_len:
+            arr_dtype = arr.dtype.byteorder + arr.dtype.kind + str(values_str_len)
+            arr = arr.astype(arr_dtype)
 
-    # Determine character repeat count of self.dtype.  Returns a positive
-    # int or None (something like 'U0' is not possible in numpy).  If new values
-    # are longer than current then make a new (wider) version of self.
-    arr_str_len = dtype_bytes_or_chars(arr.dtype)
-    if arr_str_len and values_str_len > arr_str_len:
-        arr_dtype = arr.dtype.byteorder + arr.dtype.kind + str(values_str_len)
-        return arr.astype(arr_dtype)
-    else:
-        return arr
+    return arr
 
 
 class ColumnInfo(BaseColumnInfo):
