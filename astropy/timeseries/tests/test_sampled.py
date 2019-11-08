@@ -25,7 +25,7 @@ CSV_FILE = get_pkg_data_filename('data/sampled.csv')
 
 def test_empty_initialization():
     ts = TimeSeries()
-    ts['time'] = Time([1, 2, 3], format='mjd')
+    ts['time'] = Time([50001, 50002, 50003], format='mjd')
 
 
 def test_empty_initialization_invalid():
