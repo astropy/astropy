@@ -1,6 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
+import warnings
+from distutils.version import LooseVersion
+
 import pytest
 import numpy as np
 
@@ -94,8 +97,12 @@ def test_inverse_transforms(tmpdir):
 
 @pytest.mark.parametrize(('model'), test_models)
 def test_single_model(tmpdir, model):
-    tree = {'single_model': model}
-    helpers.assert_roundtrip_tree(tree, tmpdir)
+    with warnings.catch_warnings():
+        # Some schema files are missing from asdf<=2.4.2 which causes warnings
+        if LooseVersion(asdf.__version__) <= '2.4.2':
+            warnings.filterwarnings('ignore', 'Unable to locate schema file')
+        tree = {'single_model': model}
+        helpers.assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_name(tmpdir):
@@ -195,13 +202,19 @@ def test_tabular_model_units(tmpdir):
 
 
 def test_fix_inputs(tmpdir):
-    model = astmodels.Pix2Sky_TAN() | astmodels.Rotation2D()
-    tree = {
-        'compound': fix_inputs(model, {'x': 45}),
-        'compound1': fix_inputs(model, {0: 45})
-    }
 
-    helpers.assert_roundtrip_tree(tree, tmpdir)
+    with warnings.catch_warnings():
+        # Some schema files are missing from asdf<=2.4.2 which causes warnings
+        if LooseVersion(asdf.__version__) <= '2.4.2':
+            warnings.filterwarnings('ignore', 'Unable to locate schema file')
+
+        model = astmodels.Pix2Sky_TAN() | astmodels.Rotation2D()
+        tree = {
+            'compound': fix_inputs(model, {'x': 45}),
+            'compound1': fix_inputs(model, {0: 45})
+        }
+
+        helpers.assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_fix_inputs_type():
