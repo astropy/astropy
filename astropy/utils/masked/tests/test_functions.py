@@ -19,6 +19,19 @@ class TestMaskedArrayConcatenation(MaskedArraySetup):
         assert_array_equal(concat_a_b.unmasked, expected_data)
         assert_array_equal(concat_a_b.mask, expected_mask)
 
+    @pytest.mark.parametrize('obj', (1, slice(2, 3)))
+    def test_insert(self, obj):
+        mc_in_a = np.insert(self.ma, obj, self.mc, axis=-1)
+        expected = Masked(np.insert(self.a, obj, self.c, axis=-1),
+                          np.insert(self.mask_a, obj, self.mask_c, axis=-1))
+        assert_masked_equal(mc_in_a, expected)
+
+    def test_append(self):
+        mc_to_a = np.append(self.ma, self.mc, axis=-1)
+        expected = Masked(np.append(self.a, self.c, axis=-1),
+                          np.append(self.mask_a, self.mask_c, axis=-1))
+        assert_masked_equal(mc_to_a, expected)
+
 
 class TestMaskedQuantityConcatenation(TestMaskedArrayConcatenation,
                                       QuantitySetup):

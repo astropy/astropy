@@ -245,9 +245,9 @@ class Masked(NDArrayShapeMethods):
 
         elif function in APPLY_TO_BOTH_FUNCTIONS:
             helper = APPLY_TO_BOTH_FUNCTIONS[function]
-            data, mask, args, kwargs, out = helper(*args, **kwargs)
-            if mask is not None:
-                mask = function(mask, *args, **kwargs)
+            data_args, mask_args, kwargs, out = helper(*args, **kwargs)
+            if mask_args is not None:
+                mask = function(*mask_args, **kwargs)
             if out is not None:
                 if isinstance(out, Masked):
                     if mask is None:
@@ -256,7 +256,7 @@ class Masked(NDArrayShapeMethods):
                 elif mask is not None:
                     return NotImplemented
                 kwargs['out'] = out
-            result = function(data, *args, **kwargs)
+            result = function(*data_args, **kwargs)
 
         elif function in DISPATCHED_FUNCTIONS:
             dispatched_function = DISPATCHED_FUNCTIONS[function]
