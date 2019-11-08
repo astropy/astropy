@@ -29,6 +29,9 @@ from astropy import coordinates
 from astropy import units as u
 from astropy.table.column import BaseColumn
 from astropy.table import table_helpers
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.metadata import MergeConflictWarning
+
 from .conftest import MIXIN_COLS
 
 
@@ -127,6 +130,7 @@ def test_votable_quantity_write(tmpdir):
     assert qt['a'].unit == 'Angstrom'
 
 
+@pytest.mark.remote_data
 @pytest.mark.parametrize('table_types', (Table, QTable))
 def test_io_time_write_fits_standard(tmpdir, table_types):
     """
@@ -216,8 +220,12 @@ def test_io_time_write_fits_local(tmpdir, table_types):
     filename = str(tmpdir.join('table-tmp'))
 
     # Show that FITS format succeeds
-    t.write(filename, format='fits', overwrite=True)
-    tm = table_types.read(filename, format='fits', astropy_native=True)
+
+    with pytest.warns(AstropyUserWarning, match='Time Column "b_local" has no specified location'):
+        t.write(filename, format='fits', overwrite=True)
+
+    with pytest.warns(AstropyUserWarning, match='Time column reference position "TRPOSn" is not specified.'):
+        tm = table_types.read(filename, format='fits', astropy_native=True)
 
     for ab in ('a', 'b'):
         name = ab + '_local'
@@ -318,7 +326,9 @@ def test_join(table_types):
     assert 'one or more key columns are not sortable' in str(exc.value)
 
     # Join does work for a mixin which is a subclass of np.ndarray
-    t12 = join(t1, t2, keys=['quantity'])
+    with pytest.warns(MergeConflictWarning,
+                      match="In merged column 'quantity' the 'description' attribute does not match"):
+        t12 = join(t1, t2, keys=['quantity'])
     assert np.all(t12['a_1'] == t1['a'])
 
 
