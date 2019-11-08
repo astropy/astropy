@@ -177,7 +177,14 @@ As with other `~astropy.utils.state.ScienceState` subclasses, the
 `~astropy.coordinates.galactocentric_frame_defaults` class can be used to
 globally set the frame defaults at runtime. For example, the default parameter
 values can be seen by initializing the `~astropy.coordinates.Galactocentric`
-frame with no arguments::
+frame with no arguments:
+
+.. testsetup::
+
+    >>> from astropy.coordinates import galactocentric_frame_defaults
+    >>> _ = galactocentric_frame_defaults.set('pre-v4.0')
+
+::
 
     >>> from astropy.coordinates import Galactocentric
     >>> Galactocentric()
