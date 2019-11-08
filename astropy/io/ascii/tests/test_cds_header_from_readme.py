@@ -1,7 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import numpy as np
 from astropy.io import ascii
-from .common import (assert_equal, assert_almost_equal, has_isnan,
+from .common import (assert_equal, assert_almost_equal,
                      setup_function, teardown_function)
 
 
@@ -138,14 +139,12 @@ def test_header_from_readme():
          1.958,
          1.416,
          0.949]
-    if has_isnan:
-        from .common import isnan
-        for i, val in enumerate(table.field('Q')):
-            if isnan(val):
-                # text value for a missing value in that table
-                assert Q[i] == -9.999
-            else:
-                assert val == Q[i]
+    for i, val in enumerate(table.field('Q')):
+        if val is np.ma.masked:
+            # text value for a missing value in that table
+            assert Q[i] == -9.999
+        else:
+            assert val == Q[i]
 
 
 def test_cds_units():
