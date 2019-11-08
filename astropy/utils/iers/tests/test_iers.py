@@ -13,6 +13,9 @@ from astropy import units as u
 from astropy.table import QTable
 from astropy.time import Time, TimeDelta
 
+
+TRAVIS = os.environ.get('TRAVIS', False)
+
 FILE_NOT_FOUND_ERROR = getattr(__builtins__, 'FileNotFoundError', OSError)
 
 try:
@@ -328,6 +331,7 @@ def test_IERS_B_parameters_loading_into_IERS_Auto():
 
 
 @pytest.mark.parametrize('iersa_url', [iers.IERS_A_URL, iers.IERS_A_URL_MIRROR])
+@pytest.mark.skipif('not TRAVIS')
 @pytest.mark.remote_data
 def test_iers_a_dl(iersa_url):
     iersa_tab = iers.IERS_A.open(iersa_url, cache=False)
@@ -339,6 +343,7 @@ def test_iers_a_dl(iersa_url):
         iers.IERS_A.close()
 
 
+@pytest.mark.skipif('not TRAVIS')
 @pytest.mark.remote_data
 def test_iers_b_dl():
     iersb_tab = iers.IERS_B.open(iers.IERS_B_URL, cache=False)
