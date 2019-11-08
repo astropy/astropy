@@ -293,6 +293,12 @@ class Masked(NDArrayShapeMethods):
             kwargs['initial'] = initial_func(self.unmasked)
         return kwargs
 
+    def trace(self, offset=0, axis1=0, axis2=1, dtype=None, out=None):
+        # Unfortunately, cannot override the call to diagonal inside trace, so
+        # duplicate implementation in numpy/core/src/multiarray/calculation.c.
+        diagonal = self.diagonal(offset=offset, axis1=axis1, axis2=axis2)
+        return diagonal.sum(-1, dtype=dtype, out=out)
+
     def min(self, axis=None, out=None, **kwargs):
         return super().min(axis=axis, out=out,
                            **self._reduce_defaults(kwargs, np.max))
