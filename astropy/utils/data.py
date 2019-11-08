@@ -63,6 +63,11 @@ class Conf(_config.ConfigNamespace):
     dataurl_mirror = _config.ConfigItem(
         'http://www.astropy.org/astropy-data/',
         'Mirror URL for astropy remote data site.')
+    default_http_user_agent = _config.ConfigItem(
+        'astropy',
+        'Default User-Agent for HTTP request headers. This can be overwritten'
+        'for a particular call via http_headers option, where available.'
+        'This only provides the default value when not set by https_headers.')
     remote_timeout = _config.ConfigItem(
         10.,
         'Time to wait for remote data queries (in seconds).',
@@ -194,7 +199,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         HTTP request headers to pass into ``urlopen`` if needed. (These headers
         are ignored if the protocol for the ``name_or_obj``/``sources`` entry
         is not a remote HTTP URL.) In the default case (None), the headers are
-        ``User-Agent: astropy`` and ``Accept: */*``.
+        ``User-Agent: some_value`` and ``Accept: */*``, where ``some_value``
+        is set by ``astropy.utils.data.conf.default_http_user_agent``.
 
     Returns
     -------
@@ -1085,7 +1091,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
         HTTP request headers to pass into ``urlopen`` if needed. (These headers
         are ignored if the protocol for the ``name_or_obj``/``sources`` entry
         is not a remote HTTP URL.) In the default case (None), the headers are
-        ``User-Agent: astropy`` and ``Accept: */*``.
+        ``User-Agent: some_value`` and ``Accept: */*``, where ``some_value``
+        is set by ``astropy.utils.data.conf.default_http_user_agent``.
 
     Returns
     -------
@@ -1108,7 +1115,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
     if sources is None:
         sources = [remote_url]
     if http_headers is None:
-        http_headers = {'User-Agent': 'astropy','Accept': '*/*'}
+        http_headers = {'User-Agent': conf.default_http_user_agent,
+                        'Accept': '*/*'}
 
     missing_cache = ""
 
