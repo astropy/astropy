@@ -1760,8 +1760,8 @@ class Time(ShapedLikeNDArray):
 
             >>> from astropy.utils.iers import TIME_BEFORE_IERS_RANGE
             >>> t = Time(['1961-01-01', '2000-01-01'], scale='utc')
-            >>> delta, status = t.get_delta_ut1_utc(return_status=True)
-            >>> status == TIME_BEFORE_IERS_RANGE
+            >>> delta, status = t.get_delta_ut1_utc(return_status=True)  # doctest: +REMOTE_DATA
+            >>> status == TIME_BEFORE_IERS_RANGE  # doctest: +REMOTE_DATA
             array([ True, False]...)
         """
         if iers_table is None:

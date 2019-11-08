@@ -1137,9 +1137,9 @@ class TestStardate:
     """Sync chronometers with Starfleet Command"""
 
     def test_iso_to_stardate(self):
-        assert str(Time('2320-01-01').stardate)[:7] == '1368.99'
-        assert str(Time('2330-01-01').stardate)[:8] == '10552.76'
-        assert str(Time('2340-01-01').stardate)[:8] == '19734.02'
+        assert str(Time('2320-01-01', scale='tai').stardate)[:7] == '1368.99'
+        assert str(Time('2330-01-01', scale='tai').stardate)[:8] == '10552.76'
+        assert str(Time('2340-01-01', scale='tai').stardate)[:8] == '19734.02'
 
     @pytest.mark.parametrize('dates',
                              [(10000, '2329-05-26 03:02'),
