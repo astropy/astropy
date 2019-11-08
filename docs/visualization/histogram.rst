@@ -148,10 +148,8 @@ the results of these procedures for the above dataset:
 
     fig.subplots_adjust(left=0.1, right=0.95, bottom=0.15)
     for i, bins in enumerate(['knuth', 'blocks']):
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')  # Ignore bayesian block p0 warning
-            hist(t, bins=bins, ax=ax[i], histtype='stepfilled',
-                 alpha=0.2, density=True)
+        hist(t, bins=bins, ax=ax[i], histtype='stepfilled',
+                alpha=0.2, density=True)
         ax[i].set_xlabel('t')
         ax[i].set_ylabel('P(t)')
         ax[i].set_title('hist(t, bins="{0}")'.format(bins),
