@@ -418,14 +418,6 @@ class Events(FitnessFunc):
         gamma})`.
         If ``ncp_prior`` is specified, ``gamma`` and ``p0`` is ignored.
     """
-    def __init__(self, p0=0.05, gamma=None, ncp_prior=None):
-        if p0 is not None and gamma is None and ncp_prior is None:
-            warnings.warn('p0 does not seem to accurately represent the false '
-                          'positive rate for event data. It is highly '
-                          'recommended that you run random trials on signal-'
-                          'free noise to calibrate ncp_prior to achieve a '
-                          'desired false positive rate.', AstropyUserWarning)
-        super().__init__(p0, gamma, ncp_prior)
 
     def fitness(self, N_k, T_k):
         # eq. 19 from Scargle 2012

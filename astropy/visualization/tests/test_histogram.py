@@ -49,7 +49,6 @@ def test_hist_specify_ax(rseed=0):
 
 
 @pytest.mark.skipif('not HAS_PLT')
-@pytest.mark.filterwarnings('ignore:p0 does not seem to accurately represent')
 def test_hist_autobin(rseed=0):
     rng = np.random.RandomState(rseed)
     x = rng.randn(100)
