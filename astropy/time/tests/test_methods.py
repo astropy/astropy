@@ -382,9 +382,12 @@ class TestArithmetic:
         else:
             assert np.all(self.t0.argsort(axis=None) == ravel)
 
-    def test_argsort_warning(self, masked):
+    @pytest.mark.parametrize('scale', Time.SCALES)
+    def test_argsort_warning(self, masked, scale):
+        if scale == 'utc':
+            pytest.xfail()
         with warnings.catch_warnings(record=True) as wlist:
-            Time([1, 2, 3], format='jd', scale='tai').argsort()
+            Time([1, 2, 3], format='jd', scale=scale).argsort()
         assert len(wlist) == 0
 
     def test_min(self, masked):
