@@ -7,7 +7,7 @@ import numpy as np
 from astropy.table import groups, QTable, Table
 from astropy.time import Time, TimeDelta
 from astropy import units as u
-from astropy.units import Quantity
+from astropy.units import Quantity, UnitsError
 from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.timeseries.core import BaseTimeSeries, autocheck_required_columns
 
@@ -179,6 +179,9 @@ class TimeSeries(BaseTimeSeries):
             The folded time series object with phase as the ``time`` column.
         """
 
+        if not isinstance(period, Quantity) or period.unit.physical_type != 'time':
+            raise UnitsError('period should be a Quantity in units of time')
+
         folded = self.copy()
 
         if epoch_time is None:
@@ -189,11 +192,15 @@ class TimeSeries(BaseTimeSeries):
         period_sec = period.to_value(u.s)
 
         if normalize_phase:
+            if isinstance(epoch_phase, Quantity) and epoch_phase.unit.physical_type != 'dimensionless':
+                raise UnitsError('epoch_phase should be a dimensionless Quantity or a float when normalize_phase=True')
             epoch_phase_sec = epoch_phase * period_sec
         else:
             if epoch_phase == 0:
                 epoch_phase_sec = 0.
             else:
+                if not isinstance(epoch_phase, Quantity) or epoch_phase.unit.physical_type != 'time':
+                    raise UnitsError('epoch_phase should be a Quantity in units of time when normalize_phase=False')
                 epoch_phase_sec = epoch_phase.to_value(u.s)
 
         if wrap_phase_at is None:
@@ -201,14 +208,20 @@ class TimeSeries(BaseTimeSeries):
         else:
             if normalize_phase:
                 if isinstance(wrap_phase_at, Quantity) and not wrap_phase_at.unit.is_equivalent(u.one):
-                    raise UnitsError('wrap_phase_at should be dimensionless since normalize_phase=True')
+                    raise UnitsError('wrap_phase_at should be dimensionless when normalize_phase=True')
                 else:
-                    wrap_phase_at = wrap_phase_at * period_sec
+                    if wrap_phase_at < 0 or wrap_phase_at > 1:
+                        raise ValueError('wrap_phase_at should be between 0 and 1')
+                    else:
+                        wrap_phase_at = wrap_phase_at * period_sec
             else:
                 if isinstance(wrap_phase_at, Quantity) and wrap_phase_at.unit.physical_type == 'time':
-                    wrap_phase_at = wrap_phase_at.to_value(u.s)
+                    if wrap_phase_at < 0 or wrap_phase_at > period:
+                        raise ValueError('wrap_phase_at should be between 0 and the period')
+                    else:
+                        wrap_phase_at = wrap_phase_at.to_value(u.s)
                 else:
-                    raise UnitsError('wrap_phase_at should be a Quantity in units of time since normalize_phase=False')
+                    raise UnitsError('wrap_phase_at should be a Quantity in units of time when normalize_phase=False')
 
         relative_time_sec = (((self.time - epoch_time).sec + epoch_phase_sec + (period_sec - wrap_phase_at))
                              % period_sec - (period_sec - wrap_phase_at))
