@@ -174,7 +174,7 @@ an epoch as a :class:`~astropy.time.Time`, which defines a zero time offset:
    :include-source:
    :context:
 
-    kepler_folded = kepler.fold(period=2.2 * u.day, midpoint_epoch='2009-05-02T20:53:40')
+    kepler_folded = kepler.fold(period=2.2 * u.day, epoch_time='2009-05-02T20:53:40')
 
     plt.plot(kepler_folded.time.jd, kepler_folded['sap_flux'], 'k.', markersize=1)
     plt.xlabel('Time from midpoint epoch (days)')
@@ -204,7 +204,7 @@ sigma-clipped median value.
 
    example_data = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
    kepler = TimeSeries.read(example_data, format='kepler.fits')
-   kepler_folded = kepler.fold(period=2.2 * u.day, midpoint_epoch='2009-05-02T20:53:40')
+   kepler_folded = kepler.fold(period=2.2 * u.day, epoch_time='2009-05-02T20:53:40')
 
 .. plot::
    :include-source:
