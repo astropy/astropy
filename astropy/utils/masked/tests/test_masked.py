@@ -352,6 +352,12 @@ class TestMaskedLongitudeUfuncs(MaskedUfuncTests, LongitudeSetup):
 
 
 class TestMaskedArrayMethods(MaskedArraySetup):
+    def test_round(self):
+        # Goes via ufunc, hence easy.
+        mrc = self.mc.round()
+        expected = Masked(self.c.round(), self.mask_c)
+        assert_masked_equal(mrc, expected)
+
     @pytest.mark.parametrize('axis', (0, 1, None))
     def test_sum(self, axis):
         ma_sum = self.ma.sum(axis)
@@ -523,6 +529,20 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         result = ma_eq.any(1, out=out)
         assert result is out
         assert_masked_equal(result, expected)
+
+    @pytest.mark.parametrize('offset', (0, 1))
+    def test_diagonal(self, offset):
+        mda = self.ma.diagonal(offset=offset)
+        expected = Masked(self.a.diagonal(offset=offset),
+                          self.mask_a.diagonal(offset=offset))
+        assert_masked_equal(mda, expected)
+
+    @pytest.mark.parametrize('offset', (0, 1))
+    def test_trace(self, offset):
+        mta = self.ma.trace(offset=offset)
+        expected = Masked(self.a.trace(offset=offset),
+                          self.mask_a.trace(offset=offset, dtype=bool))
+        assert_masked_equal(mta, expected)
 
 
 class TestMaskedQuantityMethods(TestMaskedArrayMethods, QuantitySetup):
