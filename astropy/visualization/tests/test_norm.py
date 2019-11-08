@@ -190,7 +190,7 @@ class TestImageScaling:
 def test_imshow_norm():
     image = np.random.randn(10, 10)
 
-    ax = plt.subplot()
+    ax = plt.subplot(label='test_imshow_norm')
     imshow_norm(image, ax=ax)
 
     with pytest.raises(ValueError):
@@ -212,3 +212,5 @@ def test_imshow_norm():
     imres, norm = imshow_norm(image, ax=None)
 
     assert isinstance(norm, ImageNormalize)
+
+    plt.close('all')
