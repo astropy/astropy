@@ -287,6 +287,55 @@ class Masked(NDArrayShapeMethods):
         return super().max(axis=axis, out=out,
                            **self._reduce_defaults(kwargs, np.min))
 
+    def argmin(self, axis=None, fill_value=None, out=None):
+        if fill_value is None:
+            fill_value = np.max(self.unmasked)
+        return self.unmask(fill_value=fill_value).argmin(axis=axis, out=out)
+
+    def argmax(self, axis=None, fill_value=None, out=None):
+        if fill_value is None:
+            fill_value = np.min(self.unmasked)
+        return self.unmask(fill_value=fill_value).argmax(axis=axis, out=out)
+
+    def argsort(self, axis=-1, kind=None, order=None):
+        """Returns the indices that would sort an array.
+
+        Perform an indirect sort along the given axis on both the array
+        and the mask, with masked items being sorted to the end.
+
+        Parameters
+        ----------
+        axis : int or None, optional
+            Axis along which to sort.  The default is -1 (the last axis).
+            If None, the flattened array is used.
+        kind : str or None, ignored.
+            The kind of sort.  Present only to allow subclasses to work.
+        order : str or list of str, not yet implemented
+            Way to sort structured arrays.
+
+        Returns
+        -------
+        index_array : ndarray, int
+
+            Array of indices that sorts along the specified ``axis``.  Use
+            ``np.take_along_axis(self, index_array, axis=axis)`` to obtain
+            the sorted array.
+
+        """
+        if order is not None:
+            raise NotImplementedError("structured arrays cannot yet "
+                                      "be sorted.")
+        data, mask = self.unmasked, self.mask
+        if axis is None:
+            data = data.ravel()
+            mask = mask.ravel()
+            axis = -1
+        return np.lexsort((data, mask), axis=axis)
+
+    def sort(self, axis=-1, kind=None, order=None):
+        indices = self.argsort(axis, kind=kind, order=order)
+        self[:] = np.take_along_axis(self, indices, axis=axis)
+
     def mean(self, axis=None, dtype=None, out=None, keepdims=False):
         # Cast bool, unsigned int, and int to float64 by default,
         # and do float16 at higher precision.
