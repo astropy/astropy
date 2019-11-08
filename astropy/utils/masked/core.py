@@ -10,7 +10,7 @@ import numpy as np
 
 from astropy.utils.shapes import NDArrayShapeMethods
 
-from .function_helpers import APPLY_TO_BOTH_FUNCTIONS
+from .function_helpers import APPLY_TO_BOTH_FUNCTIONS, DISPATCHED_FUNCTIONS
 
 
 __all__ = ['Masked']
@@ -240,23 +240,37 @@ class Masked(NDArrayShapeMethods):
     def __array_function__(self, function, types, args, kwargs):
         if function in APPLY_TO_BOTH_FUNCTIONS:
             helper = APPLY_TO_BOTH_FUNCTIONS[function]
-            data, masks, args, kwargs, out = helper(*args, **kwargs)
-            mask = function(masks, *args, **kwargs)
+            data, mask, args, kwargs, out = helper(*args, **kwargs)
+            if mask is not None:
+                mask = function(mask, *args, **kwargs)
             if out is not None:
-                if not isinstance(out, Masked):
+                if isinstance(out, Masked):
+                    if mask is None:
+                        return NotImplemented
+                    kwargs['out'] = out.unmasked
+                elif mask is not None:
                     return NotImplemented
-                kwargs['out'] = out.unmasked
+                kwargs['out'] = out
             result = function(data, *args, **kwargs)
+
+        elif function in DISPATCHED_FUNCTIONS:
+            dispatched_function = DISPATCHED_FUNCTIONS[function]
+            result, mask, out = dispatched_function(*args, **kwargs)
+
+        else:
+            if function is np.array2string:
+                # Complete hack.
+                if self.shape == ():
+                    return str(self)
+
+                kwargs.setdefault('formatter', {'all': self._to_string})
+
+            return super().__array_function__(function, types, args, kwargs)
+
+        if mask is None:
+            return result
+        else:
             return self._masked_result(result, mask, out)
-
-        if function is np.array2string:
-            # Complete hack.
-            if self.shape == ():
-                return str(self)
-
-            kwargs.setdefault('formatter', {'all': self._to_string})
-
-        return super().__array_function__(function, types, args, kwargs)
 
     def _masked_result(self, result, mask, out):
         if isinstance(result, tuple):
