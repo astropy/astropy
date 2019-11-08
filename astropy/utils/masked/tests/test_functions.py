@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
@@ -61,4 +62,36 @@ class TestMaskedQuantityBroadcast(TestMaskedArrayBroadcast, QuantitySetup):
 
 
 class TestMaskedLongitudeBroadcast(TestMaskedArrayBroadcast, LongitudeSetup):
+    pass
+
+
+class TestMaskedArrayCalculation(MaskedArraySetup):
+    @pytest.mark.parametrize('n,axis', [(1, -1), (2, -1), (1, 0)])
+    def test_diff(self, n, axis):
+        mda = np.diff(self.ma, n=n, axis=axis)
+        expected_data = np.diff(self.a, n, axis)
+        nan_mask = np.zeros_like(self.a)
+        nan_mask[self.ma.mask] = np.nan
+        expected_mask = np.isnan(np.diff(nan_mask, n=n, axis=axis))
+        assert_array_equal(mda.unmasked, expected_data)
+        assert_array_equal(mda.mask, expected_mask)
+
+    def test_diff_explicit(self):
+        ma = Masked(np.arange(8.),
+                    [True, False, False, False, False, True, False, False])
+        mda = np.diff(ma)
+        assert np.all(mda.unmasked == 1.)
+        assert np.all(mda.mask ==
+                      [True, False, False, False, True, True, False])
+        mda = np.diff(ma, n=2)
+        assert np.all(mda.unmasked == 0.)
+        assert np.all(mda.mask == [True, False, False, True, True, True])
+
+
+class TestMaskedQuantityCalculation(TestMaskedArrayCalculation, QuantitySetup):
+    pass
+
+
+class TestMaskedLongitudeCalculation(TestMaskedArrayCalculation,
+                                     LongitudeSetup):
     pass
