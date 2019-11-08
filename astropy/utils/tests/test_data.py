@@ -1001,6 +1001,7 @@ def test_is_url_in_cache_local(temp_cache, valid_urls, invalid_urls):
     assert not is_url_in_cache(nonexistent)
 
 
+@pytest.mark.filterwarnings('ignore:Not clearing data cache - cache inaccessible due to FileNotFoundError')
 def test_check_download_cache(tmpdir, temp_cache, valid_urls, invalid_urls):
     testurl, testurl_contents = next(valid_urls)
     testurl2, testurl2_contents = next(valid_urls)
