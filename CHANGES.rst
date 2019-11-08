@@ -245,7 +245,7 @@ astropy.time
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
-- Addig ``epoch_phase`` and ``normalize_phase`` keywords to
+- Addig ``epoch_phase``, ``wrap_phase`` and ``normalize_phase`` keywords to
   ``TimeSeries.fold()`` to control the phase of the epoch and to return
   normalized phase rather than time for the folded TimeSeries. [#9455]
 
