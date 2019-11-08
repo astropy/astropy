@@ -10,7 +10,9 @@ import numpy as np
 
 from astropy.utils.shapes import NDArrayShapeMethods
 
-from .function_helpers import APPLY_TO_BOTH_FUNCTIONS, DISPATCHED_FUNCTIONS
+from .function_helpers import (MASKED_SAFE_FUNCTIONS,
+                               APPLY_TO_BOTH_FUNCTIONS,
+                               DISPATCHED_FUNCTIONS)
 
 
 __all__ = ['Masked']
@@ -238,7 +240,10 @@ class Masked(NDArrayShapeMethods):
         return self._masked_result(result, mask, out)
 
     def __array_function__(self, function, types, args, kwargs):
-        if function in APPLY_TO_BOTH_FUNCTIONS:
+        if function in MASKED_SAFE_FUNCTIONS:
+            return super().__array_function__(function, types, args, kwargs)
+
+        elif function in APPLY_TO_BOTH_FUNCTIONS:
             helper = APPLY_TO_BOTH_FUNCTIONS[function]
             data, mask, args, kwargs, out = helper(*args, **kwargs)
             if mask is not None:

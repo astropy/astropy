@@ -4,8 +4,12 @@ import numpy as np
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
 
 
+MASKED_SAFE_FUNCTIONS = set()
 APPLY_TO_BOTH_FUNCTIONS = {}
 DISPATCHED_FUNCTIONS = {}
+
+
+MASKED_SAFE_FUNCTIONS |= {np.diff}
 
 
 apply_to_both = FunctionAssigner(APPLY_TO_BOTH_FUNCTIONS)
