@@ -193,14 +193,16 @@ class TimeSeries(BaseTimeSeries):
 
         if normalize_phase:
             if isinstance(epoch_phase, Quantity) and epoch_phase.unit.physical_type != 'dimensionless':
-                raise UnitsError('epoch_phase should be a dimensionless Quantity or a float when normalize_phase=True')
+                raise UnitsError('epoch_phase should be a dimensionless Quantity '
+                                 'or a float when normalize_phase=True')
             epoch_phase_sec = epoch_phase * period_sec
         else:
             if epoch_phase == 0:
                 epoch_phase_sec = 0.
             else:
                 if not isinstance(epoch_phase, Quantity) or epoch_phase.unit.physical_type != 'time':
-                    raise UnitsError('epoch_phase should be a Quantity in units of time when normalize_phase=False')
+                    raise UnitsError('epoch_phase should be a Quantity in units '
+                                     'of time when normalize_phase=False')
                 epoch_phase_sec = epoch_phase.to_value(u.s)
 
         if wrap_phase is None:
@@ -208,7 +210,8 @@ class TimeSeries(BaseTimeSeries):
         else:
             if normalize_phase:
                 if isinstance(wrap_phase, Quantity) and not wrap_phase.unit.is_equivalent(u.one):
-                    raise UnitsError('wrap_phase should be dimensionless when normalize_phase=True')
+                    raise UnitsError('wrap_phase should be dimensionless when '
+                                     'normalize_phase=True')
                 else:
                     if wrap_phase < 0 or wrap_phase > 1:
                         raise ValueError('wrap_phase should be between 0 and 1')
@@ -221,10 +224,13 @@ class TimeSeries(BaseTimeSeries):
                     else:
                         wrap_phase = wrap_phase.to_value(u.s)
                 else:
-                    raise UnitsError('wrap_phase should be a Quantity in units of time when normalize_phase=False')
+                    raise UnitsError('wrap_phase should be a Quantity in units '
+                                     'of time when normalize_phase=False')
 
-        relative_time_sec = (((self.time - epoch_time).sec + epoch_phase_sec + (period_sec - wrap_phase))
-                             % period_sec - (period_sec - wrap_phase))
+        relative_time_sec = (((self.time - epoch_time).sec
+                              + epoch_phase_sec
+                              + (period_sec - wrap_phase)) % period_sec
+                             - (period_sec - wrap_phase))
 
         folded_time = TimeDelta(relative_time_sec * u.s)
 
