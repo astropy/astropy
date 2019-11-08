@@ -12,6 +12,8 @@ celestial-to-terrestrial coordinate transformations
 import re
 from datetime import datetime
 from warnings import warn
+import hashlib
+import socket
 
 try:
     from urlparse import urlparse
@@ -44,9 +46,11 @@ __all__ = ['Conf', 'conf', 'earth_orientation_table',
            'IETF_LEAP_SECOND_URL']
 
 # IERS-A default file name, URL, and ReadMe with content description
+# The checksums are only provided by cddis and are not duplicated on the iers.org
 IERS_A_FILE = 'finals2000A.all'
 IERS_A_URL = 'ftp://cddis.gsfc.nasa.gov/pub/products/iers/finals2000A.all'
 IERS_A_URL_MIRROR = 'https://datacenter.iers.org/data/9/finals2000A.all'
+IERS_A_CHECKSUM_URL = 'ftp://cddis.gsfc.nasa.gov/pub/products/iers/checksums.sha512'
 IERS_A_README = get_pkg_data_filename('data/ReadMe.finals2000A')
 
 # IERS-B default file name, URL, and ReadMe with content description
@@ -100,6 +104,8 @@ def download_file(*args, **kwargs):
 class IERSStaleWarning(AstropyWarning):
     pass
 
+class ChecksumValidationFailed(AstropyWarning):
+    pass
 
 class Conf(_config.ConfigNamespace):
     """
@@ -114,6 +120,13 @@ class Conf(_config.ConfigNamespace):
         30.0,
         'Maximum age (days) of predictive data before auto-downloading. '
         'Default is 30.')
+    iers_validate_download = _config.ConfigItem(
+        True,
+        'Verify that the file was not corrupted during download. Compares '
+        'checksum values of the downloaded and hosted file.')
+    iers_checksum_url = _config.ConfigItem(
+        IERS_A_CHECKSUM_URL,
+        'URL targeting the checksum of IERS data.')
     iers_auto_url = _config.ConfigItem(
         IERS_A_URL,
         'URL for auto-downloading IERS file data.')
@@ -680,6 +693,25 @@ class IERS_Auto(IERS_A):
             else:
                 dl_success = True
                 break
+
+        # all of this should be a method of IERS capable
+        # of comparing to iers_table directly, but it's unclear
+        # to me how to print that table back in original form to
+        # something hashable.
+        if conf.iers_validate_download:
+            shasumfile = download_file(conf.iers_checksum_url, cache=False)
+            downloadedContent = open(filename, "rb").read()
+
+            # the extension convention offers a hack around
+            # something that should be a config?
+            for algorithm in hashlib.algorithms_guaranteed:
+                if algorithm in conf.iers_checksum_url:
+                    hasher = hashlib.new(algorithm)
+
+            hasher.update(downloadedContent)
+            if hasher.hexdigest() not in open(shasumfile, "r").read():
+                warn(ChecksumValidationFailed('Checksum of downloaded file does not '
+                                              'match the checksum provided by IERS!'))
 
         if not dl_success:
             # Issue a warning here, perhaps user is offline.  An exception

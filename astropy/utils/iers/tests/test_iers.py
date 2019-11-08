@@ -159,7 +159,7 @@ class TestIERS_AExcerpt():
         assert len(iers_tab[:2]) == 2
 
 
-@pytest.mark.skipif('not HAS_IERS_A')
+@pytest.mark.skipif(not HAS_IERS_A, reason="Does not have IERS_A file")
 class TestIERS_A():
 
     def test_simple(self):
@@ -202,6 +202,7 @@ class TestIERS_Auto():
         """
         iers.IERS_Auto.close()
 
+    @pytest.mark.remote_data
     def test_interpolate_error_formatting(self):
         """Regression test: make sure the error message in
         IERS_Auto._check_interpolate_indices() is formatted correctly.
@@ -219,6 +220,7 @@ class TestIERS_Auto():
                             iers_table.ut1_utc(self.t.jd1, self.t.jd2)
         assert str(err.value) == iers.INTERPOLATE_ERROR.format(self.ame)
 
+    @pytest.mark.remote_data
     def test_auto_max_age_none(self):
         """Make sure that iers.INTERPOLATE_ERROR's advice about setting
         auto_max_age = None actually works.
@@ -231,6 +233,8 @@ class TestIERS_Auto():
         assert delta.shape == (self.N,)
         assert_quantity_allclose(delta, np.array([-0.2246227]*self.N)*u.s)
 
+
+    @pytest.mark.remote_data
     def test_auto_max_age_minimum(self):
         """Check that the minimum auto_max_age is enforced.
         """
