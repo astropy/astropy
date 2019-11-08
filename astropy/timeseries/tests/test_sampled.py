@@ -160,8 +160,8 @@ def test_fold():
     assert isinstance(tsf.time, TimeDelta)
     assert_allclose(tsf.time.sec, [-0.6, 0.4, 1.4, 0.0, 1.0, 0.8], rtol=1e-6, atol=1e-6)
 
-    # Now with wrap_phase_at set to the full period
-    tsf = ts.fold(period=3.2 * u.s, wrap_phase_at=3.2 * u.s)
+    # Now with wrap_phase set to the full period
+    tsf = ts.fold(period=3.2 * u.s, wrap_phase=3.2 * u.s)
     assert isinstance(tsf.time, TimeDelta)
     assert_allclose(tsf.time.sec, [0, 1, 2, 0.6, 1.6, 1.4], rtol=1e-6)
 
@@ -170,8 +170,8 @@ def test_fold():
     assert isinstance(tsf.time, TimeDelta)
     assert_allclose(tsf.time.sec, [0.8, -1.4, -0.4, 1.4, -0.8, -1.0], rtol=1e-6)
 
-    # And combining epoch_phase and wrap_phase_at
-    tsf = ts.fold(period=3.2 * u.s, epoch_phase=0.8 * u.s, wrap_phase_at=3.2 * u.s)
+    # And combining epoch_phase and wrap_phase
+    tsf = ts.fold(period=3.2 * u.s, epoch_phase=0.8 * u.s, wrap_phase=3.2 * u.s)
     assert isinstance(tsf.time, TimeDelta)
     assert_allclose(tsf.time.sec, [0.8, 1.8, 2.8, 1.4, 2.4, 2.2], rtol=1e-6)
 
@@ -188,8 +188,8 @@ def test_fold():
     assert isinstance(tsf.time, Quantity)
     assert_allclose(tsf.time.to_value(u.one), [-0.6/3.2, 0.4/3.2, 1.4/3.2, 0.0/3.2, 1.0/3.2, 0.8/3.2], rtol=1e-6, atol=1e-6)
 
-    # Now with wrap_phase_at set to the full period
-    tsf = ts.fold(period=3.2 * u.s, wrap_phase_at=1, normalize_phase=True)
+    # Now with wrap_phase set to the full period
+    tsf = ts.fold(period=3.2 * u.s, wrap_phase=1, normalize_phase=True)
     assert isinstance(tsf.time, Quantity)
     assert_allclose(tsf.time.to_value(u.one), [0, 1/3.2, 2/3.2, 0.6/3.2, 1.6/3.2, 1.4/3.2], rtol=1e-6)
 
@@ -198,8 +198,8 @@ def test_fold():
     assert isinstance(tsf.time, Quantity)
     assert_allclose(tsf.time.to_value(u.one), [0.8/3.2, -1.4/3.2, -0.4/3.2, 1.4/3.2, -0.8/3.2, -1.0/3.2], rtol=1e-6)
 
-    # And combining epoch_phase and wrap_phase_at
-    tsf = ts.fold(period=3.2 * u.s, epoch_phase=0.25, wrap_phase_at=1, normalize_phase=True)
+    # And combining epoch_phase and wrap_phase
+    tsf = ts.fold(period=3.2 * u.s, epoch_phase=0.25, wrap_phase=1, normalize_phase=True)
     assert isinstance(tsf.time, Quantity)
     assert_allclose(tsf.time.to_value(u.one), [0.8/3.2, 1.8/3.2, 2.8/3.2, 1.4/3.2, 2.4/3.2, 2.2/3.2], rtol=1e-6)
 
@@ -223,23 +223,23 @@ def test_fold_invalid_options():
     with pytest.raises(u.UnitsError, match=f'epoch_phase should be a dimensionless Quantity or a float when normalize_phase=True'):
         ts.fold(period=3.2 * u.s, epoch_phase=0.2 * u.s, normalize_phase=True)
 
-    with pytest.raises(u.UnitsError, match=f'wrap_phase_at should be a Quantity in units of time when normalize_phase=False'):
-        ts.fold(period=3.2 * u.s, wrap_phase_at=0.2)
+    with pytest.raises(u.UnitsError, match=f'wrap_phase should be a Quantity in units of time when normalize_phase=False'):
+        ts.fold(period=3.2 * u.s, wrap_phase=0.2)
 
-    with pytest.raises(u.UnitsError, match=f'wrap_phase_at should be dimensionless when normalize_phase=True'):
-        ts.fold(period=3.2 * u.s, wrap_phase_at=0.2 * u.s, normalize_phase=True)
+    with pytest.raises(u.UnitsError, match=f'wrap_phase should be dimensionless when normalize_phase=True'):
+        ts.fold(period=3.2 * u.s, wrap_phase=0.2 * u.s, normalize_phase=True)
 
-    with pytest.raises(ValueError, match=f'wrap_phase_at should be between 0 and the period'):
-        ts.fold(period=3.2 * u.s, wrap_phase_at=-0.1 * u.s)
+    with pytest.raises(ValueError, match=f'wrap_phase should be between 0 and the period'):
+        ts.fold(period=3.2 * u.s, wrap_phase=-0.1 * u.s)
 
-    with pytest.raises(ValueError, match=f'wrap_phase_at should be between 0 and the period'):
-        ts.fold(period=3.2 * u.s, wrap_phase_at=-4.2 * u.s)
+    with pytest.raises(ValueError, match=f'wrap_phase should be between 0 and the period'):
+        ts.fold(period=3.2 * u.s, wrap_phase=-4.2 * u.s)
 
-    with pytest.raises(ValueError, match=f'wrap_phase_at should be between 0 and 1'):
-        ts.fold(period=3.2 * u.s, wrap_phase_at=-0.1, normalize_phase=True)
+    with pytest.raises(ValueError, match=f'wrap_phase should be between 0 and 1'):
+        ts.fold(period=3.2 * u.s, wrap_phase=-0.1, normalize_phase=True)
 
-    with pytest.raises(ValueError, match='wrap_phase_at should be between 0 and 1'):
-        ts.fold(period=3.2 * u.s, wrap_phase_at=2.2, normalize_phase=True)
+    with pytest.raises(ValueError, match='wrap_phase should be between 0 and 1'):
+        ts.fold(period=3.2 * u.s, wrap_phase=2.2, normalize_phase=True)
 
 
 def test_pandas():

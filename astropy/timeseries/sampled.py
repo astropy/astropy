@@ -143,7 +143,7 @@ class TimeSeries(BaseTimeSeries):
 
     @deprecated_renamed_argument('midpoint_epoch', 'epoch_time', '4.0')
     def fold(self, period=None, epoch_time=None, epoch_phase=0,
-             wrap_phase_at=None, normalize_phase=False):
+             wrap_phase=None, normalize_phase=False):
         """
         Return a new `~astropy.timeseries.TimeSeries` folded with a period and
         epoch.
@@ -161,7 +161,7 @@ class TimeSeries(BaseTimeSeries):
             should be a dimensionless value, while if ``normalize_phase`` is
             ``False``, this should be a `~astropy.units.Quantity` with time
             units. Defaults to 0.
-        wrap_phase_at : float or `~astropy.units.Quantity`
+        wrap_phase : float or `~astropy.units.Quantity`
             The value of the phase above which values are wrapped back by one
             period. If ``normalize_phase`` is `True`, this should be a
             dimensionless value, while if ``normalize_phase`` is ``False``,
@@ -203,28 +203,28 @@ class TimeSeries(BaseTimeSeries):
                     raise UnitsError('epoch_phase should be a Quantity in units of time when normalize_phase=False')
                 epoch_phase_sec = epoch_phase.to_value(u.s)
 
-        if wrap_phase_at is None:
-            wrap_phase_at = period_sec / 2
+        if wrap_phase is None:
+            wrap_phase = period_sec / 2
         else:
             if normalize_phase:
-                if isinstance(wrap_phase_at, Quantity) and not wrap_phase_at.unit.is_equivalent(u.one):
-                    raise UnitsError('wrap_phase_at should be dimensionless when normalize_phase=True')
+                if isinstance(wrap_phase, Quantity) and not wrap_phase.unit.is_equivalent(u.one):
+                    raise UnitsError('wrap_phase should be dimensionless when normalize_phase=True')
                 else:
-                    if wrap_phase_at < 0 or wrap_phase_at > 1:
-                        raise ValueError('wrap_phase_at should be between 0 and 1')
+                    if wrap_phase < 0 or wrap_phase > 1:
+                        raise ValueError('wrap_phase should be between 0 and 1')
                     else:
-                        wrap_phase_at = wrap_phase_at * period_sec
+                        wrap_phase = wrap_phase * period_sec
             else:
-                if isinstance(wrap_phase_at, Quantity) and wrap_phase_at.unit.physical_type == 'time':
-                    if wrap_phase_at < 0 or wrap_phase_at > period:
-                        raise ValueError('wrap_phase_at should be between 0 and the period')
+                if isinstance(wrap_phase, Quantity) and wrap_phase.unit.physical_type == 'time':
+                    if wrap_phase < 0 or wrap_phase > period:
+                        raise ValueError('wrap_phase should be between 0 and the period')
                     else:
-                        wrap_phase_at = wrap_phase_at.to_value(u.s)
+                        wrap_phase = wrap_phase.to_value(u.s)
                 else:
-                    raise UnitsError('wrap_phase_at should be a Quantity in units of time when normalize_phase=False')
+                    raise UnitsError('wrap_phase should be a Quantity in units of time when normalize_phase=False')
 
-        relative_time_sec = (((self.time - epoch_time).sec + epoch_phase_sec + (period_sec - wrap_phase_at))
-                             % period_sec - (period_sec - wrap_phase_at))
+        relative_time_sec = (((self.time - epoch_time).sec + epoch_phase_sec + (period_sec - wrap_phase))
+                             % period_sec - (period_sec - wrap_phase))
 
         folded_time = TimeDelta(relative_time_sec * u.s)
 
