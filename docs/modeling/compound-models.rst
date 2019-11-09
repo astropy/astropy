@@ -100,8 +100,9 @@ Some terminology
 
 It is possible to create new models just by
 combining existing models using the arithmetic operators ``+``, ``-``, ``*``,
-``/``, and ``**``, as well as by model composition using ``|`` and
-concatenation (explained below) with ``&``.
+``/``, and ``**``, or by model composition using ``|`` and
+concatenation (explained below) with ``&``, as well as using the :func:`~astropy.modeling.fix_inputs`
+and :func:`~astropy.convolution.convolve_models` functions.
 
 
 In discussing the compound model feature, it is useful to be clear about a
