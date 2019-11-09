@@ -4,9 +4,9 @@
 
 .. _vo-samp:
 
-************************************************************
-SAMP (Simple Application Messaging Protocol (`astropy.samp`)
-************************************************************
+*************************************************************
+SAMP (Simple Application Messaging Protocol) (`astropy.samp`)
+*************************************************************
 
 `astropy.samp` is a Python implementation of the SAMP messaging system.
 
