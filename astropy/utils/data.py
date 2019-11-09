@@ -126,7 +126,7 @@ def _is_inside(path, parent_path):
 @contextlib.contextmanager
 def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
                          show_progress=True, remote_timeout=None,
-                         sources=None):
+                         sources=None, http_headers=None):
     """Yield a readable, seekable file-like object from a file or URL.
 
     This supports passing filenames, URLs, and readable file-like objects,
@@ -190,6 +190,12 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         long waits for a primary server that is known to be inaccessible
         at the moment.
 
+    http_headers : dict or None
+        HTTP request headers to pass into ``urlopen`` if needed. (These headers
+        are ignored if the protocol for the ``name_or_obj``/``sources`` entry
+        is not a remote HTTP URL.) In the default case (None), the headers are
+        ``User-Agent: astropy`` and ``Accept: */*``.
+
     Returns
     -------
     file : readable file-like object
@@ -219,7 +225,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         if is_url:
             name_or_obj = download_file(
                 name_or_obj, cache=cache, show_progress=show_progress,
-                timeout=remote_timeout, sources=sources)
+                timeout=remote_timeout, sources=sources,
+                http_headers=http_headers)
         fileobj = io.FileIO(name_or_obj, 'r')
         if is_url and not cache:
             delete_fds.append(fileobj)
@@ -952,12 +959,17 @@ def check_free_space_in_dir(path, size):
 
 
 def _download_file_from_source(source_url, show_progress=True, timeout=None,
-                               remote_url=None, cache=False, pkgname='astropy'):
+                               remote_url=None, cache=False, pkgname='astropy',
+                               http_headers=None):
     from astropy.utils.console import ProgressBarOrSpinner
 
     if remote_url is None:
         remote_url = source_url
-    with urllib.request.urlopen(source_url, timeout=timeout) as remote:
+    if http_headers is None:
+        http_headers = {}
+
+    req = urllib.request.Request(source_url, headers=http_headers)
+    with urllib.request.urlopen(req, timeout=timeout) as remote:
         # keep a hash to rename the local file to the hashed name
         hasher = hashlib.md5()
 
@@ -1015,7 +1027,7 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
 
 
 def download_file(remote_url, cache=False, show_progress=True, timeout=None,
-                  sources=None, pkgname='astropy'):
+                  sources=None, pkgname='astropy', http_headers=None):
     """Downloads a URL and optionally caches the result.
 
     It returns the filename of a file containing the URL's contents.
@@ -1069,6 +1081,12 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
         ``pkgname='astropy'`` the default cache location is
         ``~/.astropy/cache``.
 
+    http_headers : dict or None
+        HTTP request headers to pass into ``urlopen`` if needed. (These headers
+        are ignored if the protocol for the ``name_or_obj``/``sources`` entry
+        is not a remote HTTP URL.) In the default case (None), the headers are
+        ``User-Agent: astropy`` and ``Accept: */*``.
+
     Returns
     -------
     local_path : str
@@ -1089,6 +1107,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
         timeout = conf.remote_timeout
     if sources is None:
         sources = [remote_url]
+    if http_headers is None:
+        http_headers = {'User-Agent': 'astropy','Accept': '*/*'}
 
     missing_cache = ""
 
@@ -1114,7 +1134,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
                     show_progress=show_progress,
                     cache=cache,
                     remote_url=remote_url,
-                    pkgname=pkgname)
+                    pkgname=pkgname,
+                    http_headers=http_headers)
             # Success!
             break
 
