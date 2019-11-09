@@ -190,6 +190,8 @@ class Fitter(metaclass=_FitterMeta):
         Statistic function
     """
 
+    supported_constraints = []
+
     def __init__(self, optimizer, statistic):
         if optimizer is None:
             raise ValueError("Expected an optimizer.")
@@ -1348,9 +1350,10 @@ def _fitter_to_model_params(model, fps):
             if model.tied[name]:
                 value = model.tied[name](model)
                 slice_ = param_metrics[name]['slice']
-                model.parameters[slice_] = value
+
                 # To handle multiple tied constraints, model parameters
                 # need to be updated after each iterration.
+                parameters[slice_] = value
                 model._array_to_parameters()
 
 
