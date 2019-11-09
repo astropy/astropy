@@ -1289,8 +1289,9 @@ def test_cache_dir_is_actually_a_file(tmpdir, valid_urls):
             # as far as that is possible?
         with pytest.warns(CacheMissingWarning):
             assert not is_url_in_cache(u)
-        with pytest.raises(OSError):
-            check_download_cache()
+        with pytest.warns(CacheMissingWarning):
+            with pytest.raises(OSError):
+                check_download_cache()
 
     # set_temp_cache acts weird if it is pointed at a file (see below)
     # but we want to see what happens when the cache is pointed
@@ -1584,14 +1585,16 @@ def test_download_file_cache_readonly(readonly_cache):
 
 def test_download_file_cache_readonly_cache_miss(readonly_cache, valid_urls):
     u, c = next(valid_urls)
-    f = download_file(u, cache=True)
+    with pytest.warns(CacheMissingWarning):
+        f = download_file(u, cache=True)
     assert get_file_contents(f) == c
     assert not is_url_in_cache(u)
 
 
 def test_download_file_cache_readonly_update(readonly_cache):
     for u in readonly_cache:
-        f = download_file(u, cache="update")
+        with pytest.warns(CacheMissingWarning):
+            f = download_file(u, cache="update")
         assert f != readonly_cache[u]
         assert compute_hash(f) == os.path.basename(readonly_cache[u])
 
@@ -1621,14 +1624,16 @@ def test_download_file_cache_fake_readonly(fake_readonly_cache):
 
 def test_download_file_cache_fake_readonly_cache_miss(fake_readonly_cache, valid_urls):
     u, c = next(valid_urls)
-    f = download_file(u, cache=True)
+    with pytest.warns(CacheMissingWarning):
+        f = download_file(u, cache=True)
     assert get_file_contents(f) == c
     assert not is_url_in_cache(u)
 
 
 def test_download_file_cache_fake_readonly_update(fake_readonly_cache):
     for u in fake_readonly_cache:
-        f = download_file(u, cache="update")
+        with pytest.warns(CacheMissingWarning):
+            f = download_file(u, cache="update")
         assert f != fake_readonly_cache[u]
         assert compute_hash(f) == os.path.basename(fake_readonly_cache[u])
 
