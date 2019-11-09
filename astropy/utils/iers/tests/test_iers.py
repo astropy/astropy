@@ -330,11 +330,9 @@ def test_IERS_B_parameters_loading_into_IERS_Auto():
                      "correctly to IERS Auto".format(name)))
 
 
-@pytest.mark.parametrize('iersa_url', [iers.IERS_A_URL, iers.IERS_A_URL_MIRROR])
-@pytest.mark.xfail('TRAVIS')
 @pytest.mark.remote_data
-def test_iers_a_dl(iersa_url):
-    iersa_tab = iers.IERS_A.open(iersa_url, cache=False)
+def test_iers_a_dl():
+    iersa_tab = iers.IERS_A.open(iers.IERS_A_URL, cache=False)
     try:
         # some basic checks to ensure the format makes sense
         assert len(iersa_tab) > 0
@@ -343,7 +341,19 @@ def test_iers_a_dl(iersa_url):
         iers.IERS_A.close()
 
 
+# Issue with FTP, rework test into previous one when it's fixed
 @pytest.mark.xfail('TRAVIS')
+@pytest.mark.remote_data
+def test_iers_a_dl_mirror():
+    iersa_tab = iers.IERS_A.open(iers.IERS_A_URL_MIRROR, cache=False)
+    try:
+        # some basic checks to ensure the format makes sense
+        assert len(iersa_tab) > 0
+        assert 'UT1_UTC_A' in iersa_tab.colnames
+    finally:
+        iers.IERS_A.close()
+
+
 @pytest.mark.remote_data
 def test_iers_b_dl():
     iersb_tab = iers.IERS_B.open(iers.IERS_B_URL, cache=False)
