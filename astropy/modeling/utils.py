@@ -11,6 +11,7 @@ from inspect import signature
 import numpy as np
 
 from astropy.utils import isiterable, check_broadcast
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from astropy import units as u
 
@@ -22,6 +23,8 @@ class ExpressionTree:
     __slots__ = ['left', 'right', 'value', 'inputs', 'outputs']
 
     def __init__(self, value, left=None, right=None, inputs=None, outputs=None):
+        raise AstropyDeprecationWarning('The "ExpressionTree" class has been '
+                                        'deprecated and will be removed in v 4.1.')
         self.value = value
         self.inputs = inputs
         self.outputs = outputs
