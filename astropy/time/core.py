@@ -790,6 +790,7 @@ class Time(ShapedLikeNDArray):
         if self.masked:
             jd2[self.mask] = np.nan
 
+        jd1, jd2 = day_frac(jd1, jd2)
         self._time = self.FORMATS[self.format](jd1, jd2, scale, self.precision,
                                                self.in_subfmt, self.out_subfmt,
                                                from_jd=True)
