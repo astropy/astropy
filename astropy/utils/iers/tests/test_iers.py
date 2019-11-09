@@ -330,6 +330,8 @@ def test_IERS_B_parameters_loading_into_IERS_Auto():
                      "correctly to IERS Auto".format(name)))
 
 
+# Issue with FTP, rework test into previous one when it's fixed
+@pytest.mark.xfail('TRAVIS')
 @pytest.mark.remote_data
 def test_iers_a_dl():
     iersa_tab = iers.IERS_A.open(iers.IERS_A_URL, cache=False)
@@ -341,8 +343,6 @@ def test_iers_a_dl():
         iers.IERS_A.close()
 
 
-# Issue with FTP, rework test into previous one when it's fixed
-@pytest.mark.xfail('TRAVIS')
 @pytest.mark.remote_data
 def test_iers_a_dl_mirror():
     iersa_tab = iers.IERS_A.open(iers.IERS_A_URL_MIRROR, cache=False)
