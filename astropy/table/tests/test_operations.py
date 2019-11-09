@@ -1012,7 +1012,7 @@ class TestVStack():
                     'vstack unavailable' in str(err.value))
 
 
-class TestCStack():
+class TestDStack():
 
     def _setup(self, t_cls=Table):
         self.t1 = t_cls.read([' a   b',
