@@ -278,6 +278,12 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- ``astropy.utils.data.download_file`` and
+  ``astropy.utils.data.get_readable_fileobj`` now provides an ``http_headers``
+  keyword to pass in specific request headers for the download. It also now
+  defaults to providing ``User-Agent: Astropy`` and ``Accept: */*``
+  headers. [#9508]
+
 - Added a new ``astropy.utils.misc.unbroadcast`` function which can be used
   to return the smallest array that can be broadcasted back to the initial
   array. [#9209]
@@ -800,7 +806,7 @@ Other Changes and Additions
   automatically. [#9365]
 
 - The default server for the IERS data files has been updated to reflect
-  long-term downtime of the canonical USNO server. [#9443, #9487]
+  long-term downtime of the canonical USNO server. [#9487, #9508]
 
 
 3.2.3 (2019-10-27)
