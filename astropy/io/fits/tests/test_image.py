@@ -241,8 +241,7 @@ class TestImageFunctions(FitsTestCase):
         with fits.open(self.temp('test.fits')) as hdul:
             assert hdul[0].name == 'XPRIMARY2'
 
-    @pytest.mark.xfail(platform.system() == 'Windows',
-                       reason='https://github.com/astropy/astropy/issues/5797')
+    # https://github.com/astropy/astropy/issues/5797
     def test_io_manipulation(self):
         # Get a keyword value.  An extension can be referred by name or by
         # number.  Both extension and keyword names are case insensitive.
