@@ -225,13 +225,13 @@ For more information on available periodogram algorithms, see
 We can now fold the time series using the period we've found above using the
 :meth:`~astropy.timeseries.TimeSeries.fold` method::
 
-    >>> ts_folded = ts.fold(period=period, midpoint_epoch=transit_time)  # doctest: +REMOTE_DATA
+    >>> ts_folded = ts.fold(period=period, epoch_time=transit_time)  # doctest: +REMOTE_DATA
 
 .. plot::
    :context:
    :nofigs:
 
-   ts_folded = ts.fold(period=period, midpoint_epoch=transit_time)
+   ts_folded = ts.fold(period=period, epoch_time=transit_time)
 
 Let's take a look at the folded time series:
 

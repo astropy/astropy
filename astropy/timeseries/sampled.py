@@ -7,8 +7,8 @@ import numpy as np
 from astropy.table import groups, QTable, Table
 from astropy.time import Time, TimeDelta
 from astropy import units as u
-from astropy.units import Quantity
-
+from astropy.units import Quantity, UnitsError
+from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.timeseries.core import BaseTimeSeries, autocheck_required_columns
 
 __all__ = ['TimeSeries']
@@ -141,32 +141,102 @@ class TimeSeries(BaseTimeSeries):
         """
         return self['time']
 
-    def fold(self, period=None, midpoint_epoch=None):
+    @deprecated_renamed_argument('midpoint_epoch', 'epoch_time', '4.0')
+    def fold(self, period=None, epoch_time=None, epoch_phase=0,
+             wrap_phase=None, normalize_phase=False):
         """
         Return a new `~astropy.timeseries.TimeSeries` folded with a period and
-        midpoint epoch.
+        epoch.
 
         Parameters
         ----------
         period : `~astropy.units.Quantity`
             The period to use for folding
-        midpoint_epoch : `~astropy.time.Time`
-            The time to use as the midpoint epoch, at which the relative
-            time offset will be 0. Defaults to the first time in the time
-            series.
+        epoch_time : `~astropy.time.Time`
+            The time to use as the reference epoch, at which the relative time
+            offset / phase will be ``epoch_phase``. Defaults to the first time
+            in the time series.
+        epoch_phase : float or `~astropy.units.Quantity`
+            Phase of ``epoch_time``. If ``normalize_phase`` is `True`, this
+            should be a dimensionless value, while if ``normalize_phase`` is
+            ``False``, this should be a `~astropy.units.Quantity` with time
+            units. Defaults to 0.
+        wrap_phase : float or `~astropy.units.Quantity`
+            The value of the phase above which values are wrapped back by one
+            period. If ``normalize_phase`` is `True`, this should be a
+            dimensionless value, while if ``normalize_phase`` is ``False``,
+            this should be a `~astropy.units.Quantity` with time units.
+            Defaults to half the period, so that the resulting time series goes
+            from ``-period / 2`` to ``period / 2`` (if ``normalize_phase`` is
+            `False`) or -0.5 to 0.5 (if ``normalize_phase`` is `True`).
+        normalize_phase : bool
+            If `False` phase is returned as `~astropy.time.TimeDelta`,
+            otherwise as a dimensionless `~astropy.units.Quantity`.
+
+        Returns
+        -------
+        folded_timeseries : `~astropy.timeseries.TimeSeries`
+            The folded time series object with phase as the ``time`` column.
         """
+
+        if not isinstance(period, Quantity) or period.unit.physical_type != 'time':
+            raise UnitsError('period should be a Quantity in units of time')
 
         folded = self.copy()
 
-        if midpoint_epoch is None:
-            midpoint_epoch = self.time[0]
+        if epoch_time is None:
+            epoch_time = self.time[0]
         else:
-            midpoint_epoch = Time(midpoint_epoch)
+            epoch_time = Time(epoch_time)
 
         period_sec = period.to_value(u.s)
-        relative_time_sec = ((self.time - midpoint_epoch).sec + period_sec / 2) % period_sec - period_sec / 2
+
+        if normalize_phase:
+            if isinstance(epoch_phase, Quantity) and epoch_phase.unit.physical_type != 'dimensionless':
+                raise UnitsError('epoch_phase should be a dimensionless Quantity '
+                                 'or a float when normalize_phase=True')
+            epoch_phase_sec = epoch_phase * period_sec
+        else:
+            if epoch_phase == 0:
+                epoch_phase_sec = 0.
+            else:
+                if not isinstance(epoch_phase, Quantity) or epoch_phase.unit.physical_type != 'time':
+                    raise UnitsError('epoch_phase should be a Quantity in units '
+                                     'of time when normalize_phase=False')
+                epoch_phase_sec = epoch_phase.to_value(u.s)
+
+        if wrap_phase is None:
+            wrap_phase = period_sec / 2
+        else:
+            if normalize_phase:
+                if isinstance(wrap_phase, Quantity) and not wrap_phase.unit.is_equivalent(u.one):
+                    raise UnitsError('wrap_phase should be dimensionless when '
+                                     'normalize_phase=True')
+                else:
+                    if wrap_phase < 0 or wrap_phase > 1:
+                        raise ValueError('wrap_phase should be between 0 and 1')
+                    else:
+                        wrap_phase = wrap_phase * period_sec
+            else:
+                if isinstance(wrap_phase, Quantity) and wrap_phase.unit.physical_type == 'time':
+                    if wrap_phase < 0 or wrap_phase > period:
+                        raise ValueError('wrap_phase should be between 0 and the period')
+                    else:
+                        wrap_phase = wrap_phase.to_value(u.s)
+                else:
+                    raise UnitsError('wrap_phase should be a Quantity in units '
+                                     'of time when normalize_phase=False')
+
+        relative_time_sec = (((self.time - epoch_time).sec
+                              + epoch_phase_sec
+                              + (period_sec - wrap_phase)) % period_sec
+                             - (period_sec - wrap_phase))
 
         folded_time = TimeDelta(relative_time_sec * u.s)
+
+        if normalize_phase:
+            folded_time = (folded_time / period).decompose()
+            period = period_sec = 1
 
         with folded._delay_required_column_checks():
             folded.remove_column('time')

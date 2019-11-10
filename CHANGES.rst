@@ -252,6 +252,10 @@ astropy.time
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
+- Addig ``epoch_phase``, ``wrap_phase`` and ``normalize_phase`` keywords to
+  ``TimeSeries.fold()`` to control the phase of the epoch and to return
+  normalized phase rather than time for the folded TimeSeries. [#9455]
+
 astropy.uncertainty
 ^^^^^^^^^^^^^^^^^^^
 
@@ -576,6 +580,8 @@ astropy.time
 
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
+
+- Keyword ``midpoint_epoch`` is renamed to ``epoch_time``. [#9455]
 
 astropy.uncertainty
 ^^^^^^^^^^^^^^^^^^^
