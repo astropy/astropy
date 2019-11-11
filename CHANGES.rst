@@ -612,7 +612,9 @@ astropy.utils
   ``astropy.utils.data.get_readable_fileobj`` now provides an ``http_headers``
   keyword to pass in specific request headers for the download. It also now
   defaults to providing ``User-Agent: Astropy`` and ``Accept: */*``
-  headers. [#9508]
+  headers. The default ``User-Agent`` value can be set with a new
+  ``astropy.data.conf.default_http_user_agent`` configuration item.
+  [#9508, #9564]
 
 - Added a new ``astropy.utils.misc.unbroadcast`` function which can be used
   to return the smallest array that can be broadcasted back to the initial
