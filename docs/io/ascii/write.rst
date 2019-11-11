@@ -25,7 +25,7 @@ To write a formatted ASCII table using the |write| function::
   >>> from astropy.io import ascii
   >>> x = np.array([1, 2, 3])
   >>> y = x ** 2
-  >>> ascii.write([x, y], 'values.dat', names=['x', 'y'])
+  >>> ascii.write([x, y], 'values.dat', names=['x', 'y'], overwrite=True)
 
 The ``values.dat`` file will then contain::
 
