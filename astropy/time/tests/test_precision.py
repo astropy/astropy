@@ -10,6 +10,7 @@ import astropy._erfa as erfa
 from astropy.time import Time, TimeDelta
 from astropy.time.utils import day_frac, two_sum
 from astropy.utils import iers
+from astropy.utils.exceptions import ErfaWarning
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
 allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,
@@ -178,7 +179,10 @@ def test_conversion_preserves_jd1_jd2_invariant():
     scale2 = 'tcb'
     jd1, jd2 = 0., 0.
     t = Time(jd1, jd2, scale=scale1, format="jd")
-    t2 = getattr(t, scale2)
+    with pytest.warns(
+            ErfaWarning,
+            match=r'ERFA function "taiutc" yielded 1 of "dubious year'):
+        t2 = getattr(t, scale2)
     assert t2.jd1 % 1 == 0
     assert abs(t2.jd2) <= 0.5
     assert abs(t2.jd2) < 0.5 or t2.jd1 % 2 == 0
