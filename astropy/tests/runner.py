@@ -174,7 +174,7 @@ class TestRunnerBase:
         "Test dependencies are missing: {module}. You should install the "
         "'pytest-astropy' package (you may need to update the package if you "
         "have a previous version installed, e.g., "
-        "`pip install pytest-astropy --upgrade` or the equivalent with conda).")
+        "'pip install pytest-astropy --upgrade' or the equivalent with conda).")
 
 
     @classmethod
