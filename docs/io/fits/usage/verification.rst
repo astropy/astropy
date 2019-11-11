@@ -234,8 +234,8 @@ Fixable Cards:
 6. Unparsable values will be "fixed" as a string::
 
     >>> c = fits.Card.fromstring('FIX6    = 2 10 ')
-    >>> c.verify('fix+warn')
-    >>> print(c)
+    >>> c.verify('fix+warn')  # doctest: +SKIP
+    >>> print(c)  # doctest: +SKIP
     FIX6    = '2 10    '
 
 Unfixable Cards:
