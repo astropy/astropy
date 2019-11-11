@@ -176,7 +176,6 @@ class TestRunnerBase:
         "have a previous version installed, e.g., "
         "'pip install pytest-astropy --upgrade' or the equivalent with conda).")
 
-
     @classmethod
     def _has_test_dependencies(cls):  # pragma: no cover
         # Using the test runner will not work without these dependencies, but
