@@ -170,3 +170,27 @@ def test_mjd_initialization_precise():
     jd1, jd2 = day_frac(i + erfa.DJM0, f)
     jd1_t, jd2_t = day_frac(t.jd1, t.jd2)
     assert (abs((jd1-jd1_t) + (jd2-jd2_t))*u.day).to(u.ns) < 1*u.ns
+
+
+def test_conversion_preserves_jd1_jd2_invariant():
+    """Conversion can leave jd1 not an integer"""
+    scale1 = 'tai'
+    scale2 = 'tcb'
+    jd1, jd2 = 0., 0.
+    t = Time(jd1, jd2, scale=scale1, format="jd")
+    t2 = getattr(t, scale2)
+    assert t2.jd1 % 1 == 0
+    assert abs(t2.jd2) <= 0.5
+    assert abs(t2.jd2) < 0.5 or t2.jd1 % 2 == 0
+
+
+def test_conversion_preserves_jd1_jd2_invariant_2():
+    """Conversion can leave abs(jd2)>0.5"""
+    scale1 = 'tai'
+    scale2 = 'tcb'
+    jd1, jd2 = (2441316.5, 0.0)
+    t = Time(jd1, jd2, scale=scale1, format="jd")
+    t2 = getattr(t, scale2)
+    assert t2.jd1 % 1 == 0
+    assert abs(t2.jd2) <= 0.5
+    assert abs(t2.jd2) < 0.5 or t2.jd1 % 2 == 0
