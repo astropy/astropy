@@ -328,6 +328,15 @@ class TestColumn():
         c1 = c.insert(0, ['c', 'def'])
         assert np.all(c1 == ['c', 'def', 'a', 'b'])
 
+    def test_insert_string_type_error(self, Column):
+        c = Column([1, 2])
+        with pytest.raises(ValueError, match='invalid literal for int'):
+            c.insert(0, 'string')
+
+        c = Column(['a', 'b'])
+        with pytest.raises(TypeError, match='string operation on non-string array'):
+            c.insert(0, 1)
+
     def test_insert_multidim(self, Column):
         c = Column([[1, 2],
                     [3, 4]], name='a', dtype=int)

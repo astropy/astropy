@@ -1381,7 +1381,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             if self.dtype.kind == 'O':
                 mask = False
             else:
-                mask = np.zeros(np.broadcast(values).shape, dtype=bool)
+                mask = np.zeros(np.shape(values), dtype=bool)
         new_mask = np.insert(self_ma.mask, obj, mask, axis=axis)
         new_ma = np.ma.array(new_data, mask=new_mask, copy=False)
 
