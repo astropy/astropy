@@ -641,6 +641,10 @@ def test_footprint_to_file(tmpdir):
         w.footprint_to_file(testfile)
 
 
+# Ignore FITSFixedWarning about keyrecords following the END keyrecord were
+# ignored, which comes from src/astropy_wcs.c . Only a blind catch like this
+# seems to work when pytest warnings are turned into exceptions.
+@pytest.mark.filterwarnings('ignore')
 def test_validate_faulty_wcs():
     """
     From github issue #2053
