@@ -187,10 +187,12 @@ To write scaled data with the `~ImageHDU.scale` method::
 
     >>> # scale the data to Int16 with user specified bscale/bzero
     >>> hdu.scale('int16', bzero=32768)
-    >>> # scale the data to Int32 with the min/max of the data range
-    >>> hdu.scale('int32', 'minmax')
-    >>> # scale the data, using the original BSCALE/BZERO
-    >>> hdu.scale('int32', 'old')
+    >>> # scale the data to Int32 with the min/max of the data range, emits
+    >>> # RuntimeWarning: overflow encountered in short_scalars
+    >>> hdu.scale('int32', 'minmax')  # doctest: +SKIP
+    >>> # scale the data, using the original BSCALE/BZERO, emits
+    >>> # RuntimeWarning: invalid value encountered in add
+    >>> hdu.scale('int32', 'old')  # doctest: +SKIP
     >>> hdul.close()
 
 The first example above shows how to store an unsigned short integer array.
