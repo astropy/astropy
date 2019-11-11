@@ -96,13 +96,7 @@ if HAS_SCIPY:
 def test_histogram(bin_type, N=1000, rseed=0):
     rng = np.random.RandomState(rseed)
     x = rng.randn(N)
-
-    # Warning is emitted for blocks
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            'ignore', message=r'.*p0 does not seem to accurate.*',
-            category=AstropyUserWarning)
-        counts, bins = histogram(x, bin_type)
+    counts, bins = histogram(x, bin_type)
     assert (counts.sum() == len(x))
     assert (len(counts) == len(bins) - 1)
 
@@ -116,12 +110,7 @@ def test_histogram_range(bin_type, N=1000, rseed=0):
     x = rng.randn(N)
     range = (0.1, 0.8)
 
-    # Warning is emitted for blocks
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            'ignore', message=r'.*p0 does not seem to accurate.*',
-            category=AstropyUserWarning)
-        bins = calculate_bin_edges(x, bin_type, range=range)
+    bins = calculate_bin_edges(x, bin_type, range=range)
     assert bins.max() == range[1]
     assert bins.min() == range[0]
 
@@ -171,9 +160,7 @@ def test_histogram_output():
                            -0.17288406, 0.42214237, 1.01716881, 1.61219525,
                            2.20722169, 2.80224813])
 
-    with pytest.warns(AstropyUserWarning,
-                      match=r'p0 does not seem to accurate'):
-        counts, bins = histogram(X, bins='blocks')
+    counts, bins = histogram(X, bins='blocks')
     assert_allclose(counts, [10, 61, 29])
     assert_allclose(bins, [-2.55298982, -1.24381059, 0.46422235, 2.26975462])
 
