@@ -64,9 +64,9 @@ the time, but these are now somewhat out of date. With v4.0, we have added
 functionality for globally controlling the default parameter values used by this
 frame by setting the `~astropy.coordinates.galactocentric_frame_defaults` object
 with the name of a parameter set. The parameter set names can currently be one
-of `"pre-v4.0"` (to get the original, pre-version-4.0 values of the parameters),
-`"v4.0"` (to get a more modern set of values adopted in v4.0), and `"latest"`
-(which is currently an alias for `"v4.0"` and will always alias the most recent
+of ``"pre-v4.0"`` (to get the original, pre-version-4.0 values of the parameters),
+``"v4.0"`` (to get a more modern set of values adopted in v4.0), and ``"latest"``
+(which is currently an alias for ``"v4.0"`` and will always alias the most recent
 set of parameters).
 
 If your code depends sensitively on the choice of
@@ -74,8 +74,8 @@ If your code depends sensitively on the choice of
 set the parameter set in your code, for example, after importing
 :ref:`astropy.coordinates <astropy-coordinates>`::
 
-    import astropy.coordinates as coord
-    coord.galactocentric_frame_defaults.set('v4.0')
+    >>> import astropy.coordinates as coord
+    >>> coord.galactocentric_frame_defaults.set('v4.0')  # doctest: +IGNORE_OUTPUT
 
 The `~astropy.coordinates.Galactocentric` frame now also maintains a list of
 references to scientific papers for the default values of the frame attributes.
@@ -84,7 +84,7 @@ retrieve the references (as a dictionary of links to ADS) for the parameters
 using the ``.frame_attribute_references`` attribute::
 
     >>> import astropy.coordinates as coord
-    >>> coord.galactocentric_frame_defaults.set('v4.0')
+    >>> coord.galactocentric_frame_defaults.set('v4.0')  # doctest: +IGNORE_OUTPUT
     >>> galcen = coord.Galactocentric()
     >>> galcen  # doctest: +FLOAT_CMP
     <Galactocentric Frame (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
@@ -189,6 +189,60 @@ that involve time::
 Improvements to folding for time series
 ---------------------------------------
 
+The :meth:`TimeSeries.fold <astropy.timeseries.TimeSeries.fold>` method now
+includes more options for controlling the resulting phase values. First, the
+``midpoint_epoch`` argument has been renamed to ``epoch_time`` so as to be more
+general, and the ``epoch_phase`` can be used to specify the phase at which the
+epoch is given. In addition, a new ``wrap_phase`` argument can be used to
+specify at what phase to wrap - for example if this is set to half the period,
+the resulting phase will go from minus half the period to half the period,
+whereas if it is set to the period the resulting phase will go from zero to the
+period::
+
+    >>> from astropy import units as u
+    >>> from astropy.timeseries import TimeSeries
+    >>> ts = TimeSeries(time_start='2019-11-01T00:00:00', time_delta=0.3 * u.day,
+    ...                 n_samples=10)
+    >>> tf1 = ts.fold(1 * u.day, epoch_time='2019-11-01T12:00:00',
+    ...               wrap_phase=1 * u.day)
+    >>> tf1  # doctest: +FLOAT_CMP
+    <TimeSeries length=10>
+            time
+           object
+    -------------------
+                    0.5
+                    0.8
+                    0.1
+                    0.4
+                    0.7
+                    0.0
+                    0.3
+                    0.6
+                    0.9
+                    0.2
+
+Finally, the new ``normalize_phase`` keyword argument can be used to
+specify whether the final phase should be a relative time or whether it should
+be normalized to a dimensionless value in the range 0 to 1::
+
+    >>> tf2 = ts.fold(1 * u.day, epoch_time='2019-11-01T12:00:00',
+    ...               normalize_phase=True)
+    >>> tf2  # doctest: +FLOAT_CMP
+    <TimeSeries length=10>
+            time
+    <BLANKLINE>
+          float64
+    -------------------
+                   -0.5
+                   -0.2
+                    0.1
+                    0.4
+                   -0.3
+                    0.0
+                    0.3
+                   -0.4
+                   -0.1
+                    0.2
 
 Support for surface brightnesses in spectral_density equivalencies
 ------------------------------------------------------------------
