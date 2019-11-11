@@ -1204,3 +1204,44 @@ def test_galactocentric_default_warning():
         Galactocentric()
 
     reset_galactocentric_defaults()
+
+
+def test_galactocentric_references():
+    # references in the "scientific paper"-sense
+
+    from astropy.coordinates import (Galactocentric,
+                                     galactocentric_frame_defaults,
+                                     BaseCoordinateFrame,
+                                     CartesianDifferential)
+
+    with galactocentric_frame_defaults.set('pre-v4.0'):
+        galcen_pre40 = Galactocentric()
+
+        for k in galcen_pre40.get_frame_attr_names():
+            if k == 'roll':  # no reference for this parameter
+                continue
+
+            assert k in galcen_pre40.frame_attribute_references
+
+    with galactocentric_frame_defaults.set('v4.0'):
+        galcen_40 = Galactocentric()
+
+        for k in galcen_40.get_frame_attr_names():
+            if k == 'roll':  # no reference for this parameter
+                continue
+
+            assert k in galcen_40.frame_attribute_references
+
+    with galactocentric_frame_defaults.set('v4.0'):
+        galcen_custom = Galactocentric(z_sun=15*u.pc)
+
+        for k in galcen_custom.get_frame_attr_names():
+            if k == 'roll':  # no reference for this parameter
+                continue
+
+            if k == 'z_sun':
+                assert k not in galcen_custom.frame_attribute_references
+            else:
+                assert k in galcen_custom.frame_attribute_references
+
+    reset_galactocentric_defaults()
