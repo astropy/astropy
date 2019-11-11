@@ -787,6 +787,7 @@ class Time(ShapedLikeNDArray):
             conv_func = getattr(erfa, sys1 + sys2)
             jd1, jd2 = conv_func(*args)
 
+        jd1, jd2 = day_frac(jd1, jd2)
         if self.masked:
             jd2[self.mask] = np.nan
 
