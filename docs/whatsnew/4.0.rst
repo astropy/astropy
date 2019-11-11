@@ -50,6 +50,68 @@ Consistency of physical constants and units
 Updates to Galactocentric frame
 -------------------------------
 
+Most coordinate frames implemented in :ref:`astropy.coordinates
+<astropy-coordinates>` have standard parameters that are set by IAU consensus
+(e.g., the ``ICRS`` frame). Unlike these, the
+`~astropy.coordinates.Galactocentric` coordinate frame does not have an absolute
+definition: Its parameters (the solar motion and position relative to the
+Galactic center) are measurements that continue to be refined as newer stellar
+surveys are executed and analyzed. When it was added, the default parameter
+values used by the `~astropy.coordinates.Galactocentric` frame — i.e. the
+parameter values assumed when defining a frame without explicitly setting
+values, like ``galcen = Galactocentric()`` — were set to commonly-used values at
+the time, but these are now somewhat out of date. With v4.0, we have added
+functionality for globally controlling the default parameter values used by this
+frame by setting the `~astropy.coordinates.galactocentric_frame_defaults` object
+with the name of a parameter set. The parameter set names can currently be one
+of `"pre-v4.0"` (to get the original, pre-version-4.0 values of the parameters),
+`"v4.0"` (to get a more modern set of values adopted in v4.0), and `"latest"`
+(which is currently an alias for `"v4.0"` and will always alias the most recent
+set of parameters).
+
+If your code depends sensitively on the choice of
+`~astropy.coordinates.Galactocentric` frame parameters, make sure to explicitly
+set the parameter set in your code, for example, after importing
+:ref:`astropy.coordinates <astropy-coordinates>`::
+
+    import astropy.coordinates as coord
+    coord.galactocentric_frame_defaults.set('v4.0')
+
+The `~astropy.coordinates.Galactocentric` frame now also maintains a list of
+references to scientific papers for the default values of the frame attributes.
+For example, after adopting the v4.0 parameter set and defining a frame, we can
+retrieve the references (as a dictionary of links to ADS) for the parameters
+using the ``.frame_attribute_references`` attribute::
+
+    >>> import astropy.coordinates as coord
+    >>> coord.galactocentric_frame_defaults.set('v4.0')
+    >>> galcen = coord.Galactocentric()
+    >>> galcen  # doctest: +FLOAT_CMP
+    <Galactocentric Frame (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
+        (266.4051, -28.936175)>, galcen_distance=8.122 kpc, galcen_v_sun=(12.9, 245.6, 7.78) km / s, z_sun=20.8 pc, roll=0.0 deg)>
+    >>> galcen.frame_attribute_references
+    {'galcen_coord': 'http://adsabs.harvard.edu/abs/2004ApJ...616..872R',
+     'galcen_distance': 'https://ui.adsabs.harvard.edu/abs/2018A%26A...615L..15G',
+     'galcen_v_sun': ['https://ui.adsabs.harvard.edu/abs/2018RNAAS...2..210D',
+      'https://ui.adsabs.harvard.edu/abs/2018A%26A...615L..15G',
+      'https://ui.adsabs.harvard.edu/abs/2004ApJ...616..872R'],
+     'z_sun': 'https://ui.adsabs.harvard.edu/abs/2019MNRAS.482.1417B'}
+
+Note, however, if a frame parameter is set by the user, it is removed from the
+reference list::
+
+    >>> import astropy.units as u
+    >>> galcen = coord.Galactocentric(z_sun=10*u.pc)
+    >>> galcen.frame_attribute_references
+    {'galcen_coord': 'http://adsabs.harvard.edu/abs/2004ApJ...616..872R',
+     'galcen_distance': 'https://ui.adsabs.harvard.edu/abs/2018A%26A...615L..15G',
+     'galcen_v_sun': ['https://ui.adsabs.harvard.edu/abs/2018RNAAS...2..210D',
+      'https://ui.adsabs.harvard.edu/abs/2018A%26A...615L..15G',
+      'https://ui.adsabs.harvard.edu/abs/2004ApJ...616..872R']}
+
+More information can be found in the documentation for the frame class:
+`~astropy.coordinates.Galactocentric`.
+
 
 New ``ymdhms`` Time format
 --------------------------
