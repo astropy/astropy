@@ -489,6 +489,8 @@ astropy.modeling
 - Deprecated and renamed ``MexicanHat1D`` and ``MexicanHat2D``
   to ``RickerWavelet1D`` and ``RickerWavelet2D``. [#9445]
 
+- Deprecated ``modeling.utils.ExpressionTree``. [#9576]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
