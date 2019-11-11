@@ -16,7 +16,6 @@ import pytest
 import numpy as np
 
 # LOCAL
-from astropy.utils.timer import RunTimePredictor
 from astropy.modeling.fitting import ModelsError
 
 
@@ -36,6 +35,7 @@ def func_to_time(x):
 @pytest.mark.filterwarnings("ignore")
 def test_timer():
     """Test function timer."""
+    from astropy.utils.timer import RunTimePredictor
     p = RunTimePredictor(func_to_time)
 
     # --- These must run before data points are introduced. ---
