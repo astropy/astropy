@@ -26,6 +26,94 @@ smaller improvements and bug fixes, which are described in the
 * xxx distinct people have contributed code
 
 
+Pre-publication Planck 2018 cosmological parameters
+---------------------------------------------------
+
+
+New models
+----------
+
+.. Blackbody changes
+.. Drude1D
+.. Analytical King
+.. Exponential1D and Logarithmic1D
+
+
+New functions/modes for combining tables
+----------------------------------------
+
+.. dstack
+.. cartesian join
+
+Consistency of physical constants and units
+-------------------------------------------
+
+
+Updates to Galactocentric frame
+-------------------------------
+
+
+New ``ymdhms`` Time format
+--------------------------
+
+
+New context manager for plotting Time values
+--------------------------------------------
+
+
+Support for parsing high-precision values with Time
+---------------------------------------------------
+
+
+Improved compatibility of Quantity objects with Numpy functions
+---------------------------------------------------------------
+
+
+Plotting 1-d profile plots with WCSAxes
+---------------------------------------
+
+
+Default labelling with WCSAxes
+------------------------------
+
+
+New function to fit WCS to pairs of pixel/world coordinates
+-----------------------------------------------------------
+
+
+Support for WCS transformations between pixel and Time values
+-------------------------------------------------------------
+
+
+Improvements to folding for time series
+---------------------------------------
+
+
+Support for surface brightnesses in spectral_density equivalencies
+------------------------------------------------------------------
+
+
+New cache import/export utilities
+---------------------------------
+
+
+Performance improvements for tables
+-----------------------------------
+
+
+Improved handling of leap second updates
+----------------------------------------
+
+.. custom IERS table
+.. LeapSecond class
+
+
+API changes in astropy.modeling
+-------------------------------
+
+.. changes for compound models
+
+
 Full change log
 ===============
 
