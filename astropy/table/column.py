@@ -125,6 +125,38 @@ class FalseArray(np.ndarray):
                              .format(self.__class__.__name__))
 
 
+def _expand_string_array_for_values(arr, values):
+    """
+    For string-dtype return a version of ``arr`` that is wide enough for ``values``.
+    If ``arr`` is not string-dtype or does not need expansion then return ``arr``.
+
+    Parameters
+    ----------
+    arr : np.ndarray
+        Input array
+    values : scalar or array-like
+        Values for width comparison for string arrays
+
+    Returns
+    -------
+    arr_expanded : np.ndarray
+
+    """
+    if arr.dtype.kind in ('U', 'S'):
+        # Find the length of the longest string in the new values.
+        values_str_len = np.char.str_len(values).max()
+
+        # Determine character repeat count of arr.dtype.  Returns a positive
+        # int or None (something like 'U0' is not possible in numpy).  If new values
+        # are longer than current then make a new (wider) version of arr.
+        arr_str_len = dtype_bytes_or_chars(arr.dtype)
+        if arr_str_len and values_str_len > arr_str_len:
+            arr_dtype = arr.dtype.byteorder + arr.dtype.kind + str(values_str_len)
+            arr = arr.astype(arr_dtype)
+
+    return arr
+
+
 class ColumnInfo(BaseColumnInfo):
     """
     Container for meta information like name, description, format.
@@ -1030,10 +1062,9 @@ class Column(BaseColumn):
             data = np.insert(self, obj, None, axis=axis)
             data[obj] = values
         else:
-            # Explicitly convert to dtype of this column.  Needed because numpy 1.7
-            # enforces safe casting by default, so .  This isn't the case for 1.6 or 1.8+.
-            values = np.asarray(values, dtype=self.dtype)
-            data = np.insert(self, obj, values, axis=axis)
+            self_for_insert = _expand_string_array_for_values(self, values)
+            data = np.insert(self_for_insert, obj, values, axis=axis)
+
         out = data.view(self.__class__)
         out.__array_finalize__(self)
         return out
@@ -1343,16 +1374,14 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             new_data = np.insert(self_ma.data, obj, None, axis=axis)
             new_data[obj] = values
         else:
-            # Explicitly convert to dtype of this column.  Needed because numpy 1.7
-            # enforces safe casting by default, so .  This isn't the case for 1.6 or 1.8+.
-            values = np.asarray(values, dtype=self.dtype)
+            self_ma = _expand_string_array_for_values(self_ma, values)
             new_data = np.insert(self_ma.data, obj, values, axis=axis)
 
         if mask is None:
             if self.dtype.kind == 'O':
                 mask = False
             else:
-                mask = np.zeros(values.shape, dtype=bool)
+                mask = np.zeros(np.shape(values), dtype=bool)
         new_mask = np.insert(self_ma.mask, obj, mask, axis=axis)
         new_ma = np.ma.array(new_data, mask=new_mask, copy=False)
 

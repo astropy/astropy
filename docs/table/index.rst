@@ -228,7 +228,7 @@ Adding a new row of data to the table is as follows.  Note that the unit
 value is given in ``cm / s`` but will be added to the table as ``0.1 m / s`` in
 accord with the existing unit.
 
-  >>> t.add_row([-8, -9, 10 * u.cm / u.s, 11])
+  >>> t.add_row([-8, 'string', 10 * u.cm / u.s, 10])
   >>> len(t)
   4
 
