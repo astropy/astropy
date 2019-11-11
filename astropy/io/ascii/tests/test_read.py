@@ -23,6 +23,7 @@ from .common import (raises, assert_equal, assert_almost_equal,
                      assert_true)
 from astropy.io.ascii import core
 from astropy.io.ascii.ui import _probably_html, get_read_trace, cparser
+from astropy.utils.exceptions import AstropyWarning
 
 # setup/teardown function to have the tests run in the correct directory
 from .common import setup_function, teardown_function
@@ -46,8 +47,9 @@ def test_convert_overflow(fast_reader):
     return inf (kind 'f') for this.
     """
     expected_kind = 'U'
-    dat = ascii.read(['a', '1' * 10000], format='basic',
-                     fast_reader=fast_reader, guess=False)
+    with pytest.warns(AstropyWarning, match="OverflowError converting to IntType in column a"):
+        dat = ascii.read(['a', '1' * 10000], format='basic',
+                         fast_reader=fast_reader, guess=False)
     assert dat['a'].dtype.kind == expected_kind
 
 

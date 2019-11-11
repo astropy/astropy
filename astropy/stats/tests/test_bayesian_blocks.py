@@ -14,9 +14,7 @@ def test_single_change_point(rseed=0):
     x = np.concatenate([rng.rand(100),
                         1 + rng.rand(200)])
 
-    with pytest.warns(AstropyUserWarning,
-                      match=r'p0 does not seem to accurate'):
-        bins = bayesian_blocks(x)
+    bins = bayesian_blocks(x)
 
     assert (len(bins) == 3)
     assert_allclose(bins[1], 1, rtol=0.02)
@@ -31,10 +29,8 @@ def test_duplicate_events(rseed=0):
     x = np.ones(t.shape, dtype=int)
     x[:20] += 1
 
-    with pytest.warns(AstropyUserWarning,
-                      match=r'p0 does not seem to accurate'):
-        bins1 = bayesian_blocks(t)
-        bins2 = bayesian_blocks(t[:80], x[:80])
+    bins1 = bayesian_blocks(t)
+    bins2 = bayesian_blocks(t[:80], x[:80])
 
     assert_allclose(bins1, bins2)
 
@@ -90,47 +86,33 @@ def test_errors():
 
     # x must be integer or None for events
     with pytest.raises(ValueError):
-        with pytest.warns(AstropyUserWarning,
-                          match=r'p0 does not seem to accurate'):
-            bayesian_blocks(t, fitness='events', x=t)
+        bayesian_blocks(t, fitness='events', x=t)
 
     # x must be binary for regular events
     with pytest.raises(ValueError):
-        with pytest.warns(AstropyUserWarning,
-                          match=r'p0 does not seem to accurate'):
-            bayesian_blocks(t, fitness='regular_events', x=10 * t, dt=1)
+        bayesian_blocks(t, fitness='regular_events', x=10 * t, dt=1)
 
     # x must be specified for measures
     with pytest.raises(ValueError):
-        with pytest.warns(AstropyUserWarning,
-                          match=r'p0 does not seem to accurate'):
-            bayesian_blocks(t, fitness='measures')
+        bayesian_blocks(t, fitness='measures')
 
     # sigma cannot be specified without x
     with pytest.raises(ValueError):
-        with pytest.warns(AstropyUserWarning,
-                          match=r'p0 does not seem to accurate'):
-            bayesian_blocks(t, fitness='events', sigma=0.5)
+        bayesian_blocks(t, fitness='events', sigma=0.5)
 
     # length of x must match length of t
     with pytest.raises(ValueError):
-        with pytest.warns(AstropyUserWarning,
-                          match=r'p0 does not seem to accurate'):
-            bayesian_blocks(t, fitness='measures', x=t[:-1])
+        bayesian_blocks(t, fitness='measures', x=t[:-1])
 
     # repeated values in t fail when x is specified
     t2 = t.copy()
     t2[1] = t2[0]
     with pytest.raises(ValueError):
-        with pytest.warns(AstropyUserWarning,
-                          match=r'p0 does not seem to accurate'):
-            bayesian_blocks(t2, fitness='measures', x=t)
+        bayesian_blocks(t2, fitness='measures', x=t)
 
     # sigma must be broadcastable with x
     with pytest.raises(ValueError):
-        with pytest.warns(AstropyUserWarning,
-                          match=r'p0 does not seem to accurate'):
-            bayesian_blocks(t, fitness='measures', x=t, sigma=t[:-1])
+        bayesian_blocks(t, fitness='measures', x=t, sigma=t[:-1])
 
 
 def test_fitness_function_results():
@@ -139,16 +121,12 @@ def test_fitness_function_results():
 
     # Event Data
     t = rng.randn(100)
-    with pytest.warns(AstropyUserWarning,
-                      match=r'p0 does not seem to accurate'):
-        edges = bayesian_blocks(t, fitness='events')
+    edges = bayesian_blocks(t, fitness='events')
     assert_allclose(edges, [-2.6197451, -0.71094865, 0.36866702, 1.85227818])
 
     # Event data with repeats
     t[80:] = t[:20]
-    with pytest.warns(AstropyUserWarning,
-                      match=r'p0 does not seem to accurate'):
-        edges = bayesian_blocks(t, fitness='events', p0=0.01)
+    edges = bayesian_blocks(t, fitness='events', p0=0.01)
     assert_allclose(edges, [-2.6197451, -0.47432431, -0.46202823, 1.85227818])
 
     # Regular event data
@@ -196,8 +174,6 @@ def test_zero_change_points(rseed=0):
     # Using the failed edge case from
     # https://github.com/astropy/astropy/issues/8558
     values = np.array([1, 1, 1, 1, 1, 1, 1, 1, 2])
-    with pytest.warns(AstropyUserWarning,
-                      match=r'p0 does not seem to accurate'):
-        bins = bayesian_blocks(values)
+    bins = bayesian_blocks(values)
     assert values.min() == bins[0]
     assert values.max() == bins[-1]
