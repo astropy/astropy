@@ -170,11 +170,12 @@ class TestRunnerBase:
         """
 
     _required_dependencies = ['pytest', 'pytest_remotedata', 'pytest_doctestplus', 'pytest_astropy_header']
-    _missing_dependancy_error = ("Test dependencies are missing: {module}. You "
-                                 "should install the 'pytest-astropy' package "
-                                 "(you may need to run `pip install "
-                                 "pytest-astropy --upgrade` if you have a "
-                                 "previous version installed).")
+    _missing_dependancy_error = (
+        "Test dependencies are missing: {module}. You should install the "
+        "'pytest-astropy' package (you may need to update the package if you "
+        "have a previous version installed, e.g., "
+        "`pip install pytest-astropy --upgrade` or the equivalent with conda).")
+
 
     @classmethod
     def _has_test_dependencies(cls):  # pragma: no cover
