@@ -120,6 +120,7 @@ def test_biweight_location_axis_tuple():
                  biweight_location(data, axis=None))
 
 
+@pytest.mark.filterwarnings('ignore:All-NaN slice encountered')
 def test_biweight_location_ignore_nan():
     data1d = np.array([1, 3, 5, 500, 2, np.nan])
     data2d = np.array([data1d, data1d])
@@ -135,6 +136,7 @@ def test_biweight_location_ignore_nan():
                  [biw_expected, biw_expected])
 
 
+@pytest.mark.filterwarnings('ignore:All-NaN slice encountered')
 def test_biweight_location_masked():
     data1d = np.array([1, 3, 5, 500, 2, np.nan])
     data2d = np.array([data1d, data1d])
@@ -246,6 +248,7 @@ def test_biweight_midvariance_axis_3d():
         assert_allclose(bw[y], bwi)
 
 
+@pytest.mark.filterwarnings('ignore:All-NaN slice encountered')
 def test_biweight_midvariance_ignore_nan():
     data1d = np.array([1, 3, 5, 500, 2, np.nan])
     data2d = np.array([data1d, data1d])
@@ -262,6 +265,7 @@ def test_biweight_midvariance_ignore_nan():
                  [biw_var_nonan, biw_var_nonan])
 
 
+@pytest.mark.filterwarnings('ignore:All-NaN slice encountered')
 def test_biweight_midvariance_masked():
     data1d = np.array([1, 3, 5, 500, 2, np.nan])
     data2d = np.array([data1d, data1d])
