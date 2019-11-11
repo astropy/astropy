@@ -1,5 +1,3 @@
-.. doctest-skip-all
-
 .. _whatsnew-4.0:
 
 **************************
@@ -60,6 +58,31 @@ New ``ymdhms`` Time format
 New context manager for plotting Time values
 --------------------------------------------
 
+Matplotlib natively provides a mechanism for plotting dates and times on one
+or both of the axes, as described in
+`Date tick labels <https://matplotlib.org/3.1.0/gallery/text_labels_and_annotations/date.html>`_.
+To make use of this, you can use the ``plot_date`` attribute of :class:`~astropy.time.Time` to get
+values in the time system used by Matplotlib.
+
+However, in many cases, you will probably want to have more control over the
+precise scale and format to use for the tick labels, in which case you can make
+use of the `~astropy.visualization.time_support` function which can be called
+either directly or as a context manager, and after which :class:`~astropy.time.Time` objects can be
+passed to matplotlib plotting functions. The axes are then automatically labeled
+with times formatted using the :class:`~astropy.time.Time` class:
+
+.. plot::
+   :include-source:
+   :context: reset
+
+    >>> from matplotlib import pyplot as plt
+    >>> from astropy.time import Time
+    >>> from astropy.visualization import time_support
+    >>> time_support(format='isot', scale='tai')  # doctest: +IGNORE_OUTPUT
+    >>> plt.figure(figsize=(5,3))  # doctest: +IGNORE_OUTPUT
+    >>> plt.plot(Time([52000, 53000, 54000], format='mjd'), [1.2, 3.3, 2.3])  # doctest: +IGNORE_OUTPUT
+
+For more information, see :ref:`plotting-times`.
 
 Support for parsing high-precision values with Time
 ---------------------------------------------------
@@ -84,6 +107,22 @@ New function to fit WCS to pairs of pixel/world coordinates
 Support for WCS transformations between pixel and Time values
 -------------------------------------------------------------
 
+The :meth:`WCS.world_to_pixel <astropy.wcs.WCS.world_to_pixel>` and
+:meth:`WCS.pixel_to_world <astropy.wcs.WCS.pixel_to_world>` methods can now
+take and return :class:`~astropy.time.Time` objects for WCS transforamtions
+that involve time::
+
+    >>> from astropy.io import fits
+    >>> from astropy.wcs import WCS
+    >>> header = fits.Header()
+    >>> header['CTYPE1'] = 'TIME'
+    >>> header['CDELT1'] = 86400.
+    >>> header['MJDREF'] = 58788.
+    >>> wcs = WCS(header)
+    >>> wcs.pixel_to_world([2, 3, 4])
+    <Time object: scale='utc' format='mjd' value=[58791. 58792. 58793.]>
+    >>> wcs.world_to_pixel(Time('2019-11-02T10:30:22'))
+    array(0.43775463)
 
 Improvements to folding for time series
 ---------------------------------------
