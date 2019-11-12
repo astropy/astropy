@@ -52,10 +52,8 @@ class FitsHDU(NonstandardExtHDU):
             Gzip compress the FITS file
         """
 
-        hdulist = HDUList.fromfile(filename)
-        fitshdu = cls.fromhdulist(hdulist, compress=compress)
-        hdulist.close()
-        return fitshdu
+        with HDUList.fromfile(filename) as hdulist:
+            return cls.fromhdulist(hdulist, compress=compress)
 
     @classmethod
     def fromhdulist(cls, hdulist, compress=False):
