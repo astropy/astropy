@@ -223,7 +223,7 @@ def _encode_mixins(tbl):
 
 def write_table_hdf5(table, output, path=None, compression=False,
                      append=False, overwrite=False, serialize_meta=False,
-                     create_dataset_kwargs=None):
+                     **create_dataset_kwargs):
     """
     Write a Table object to an HDF5 file
 
@@ -252,7 +252,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
         Whether to overwrite any existing file without warning.
         If ``append=True`` and ``overwrite=True`` then only the dataset will be
         replaced; the file/group will not be overwritten.
-    create_dataset_kwargs : `dict`
+    **create_dataset_kwargs
         Additional keyword arguments are passed to `h5py.File.create_dataset`.
     """
 
@@ -267,9 +267,6 @@ def write_table_hdf5(table, output, path=None, compression=False,
         path = '__astropy_table__'
     elif path.endswith('/'):
         raise ValueError("table path should end with table name, not /")
-
-    if create_dataset_kwargs is None:
-        create_dataset_kwargs = dict()
 
     if '/' in path:
         group, name = path.rsplit('/', 1)
