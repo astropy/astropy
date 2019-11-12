@@ -5,6 +5,7 @@
 import atexit
 import contextlib
 import dbm
+import errno
 import fnmatch
 import hashlib
 import os
@@ -1414,11 +1415,13 @@ def clear_download_cache(hashorurl=None, pkgname='astropy'):
 
     """
 
+    zapped_cache = False
     try:
         with _cache(pkgname, write=True) as (dldir, url2hash):
             if hashorurl is None:
                 if os.path.exists(dldir):
                     shutil.rmtree(dldir)
+                    zapped_cache = True
             elif _is_url(hashorurl):
                 try:
                     filepath = url2hash.pop(hashorurl)
@@ -1449,10 +1452,16 @@ def clear_download_cache(hashorurl=None, pkgname='astropy'):
                 # Clearing download cache just makes sure that the file or url
                 # is no longer in the cache regardless of starting condition.
     except OSError as e:
-        msg = 'Not clearing data cache - cache inaccessible due to '
-        estr = '' if len(e.args) < 1 else (': ' + str(e))
-        warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
-        return
+        if zapped_cache and e.errno == errno.ENOENT:
+            # We just deleted the directory and, on Windows (?) the "dumb"
+            # backend tried to write itself out to a nonexistent directory.
+            # It's fine for this to fail.
+            return
+        else:
+            msg = 'Not clearing data cache - cache inaccessible due to '
+            estr = '' if len(e.args) < 1 else (': ' + str(e))
+            warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
+            return
 
 
 def _get_download_cache_locs(pkgname='astropy'):

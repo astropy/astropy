@@ -3,6 +3,7 @@
 
 import io
 import os
+import dbm
 import sys
 import stat
 import base64
@@ -12,6 +13,7 @@ import hashlib
 import pathlib
 import platform
 import tempfile
+import importlib
 import itertools
 import contextlib
 import urllib.error
@@ -26,6 +28,7 @@ import pytest
 
 from astropy.utils import data
 from astropy.config import paths
+from astropy.utils.compat.context import nullcontext
 from astropy.utils.data import (
     CacheMissingWarning,
     CacheDamaged,
@@ -186,6 +189,26 @@ def fake_readonly_cache(tmpdir, valid_urls, monkeypatch):
             check_download_cache(check_hashes=True)
 
 
+_shelve_possible_backends = ["dbm.dumb", "dbm.ndbm", "dbm.gnu"]
+
+
+@contextlib.contextmanager
+def shelve_backend(name):
+    """Ensure that shelve has access only to one backend."""
+    defaultmod = dbm._defaultmod
+    modules = dbm._modules
+    try:
+        try:
+            dbm._defaultmod = __import__(name, fromlist=['open'])
+        except ImportError:
+            pytest.skip(f"module {name} not available")
+        dbm._modules = {name: dbm._defaultmod}
+        yield
+    finally:
+        dbm._defaultmod = defaultmod
+        dbm._modules = modules
+
+
 @pytest.mark.remote_data(source="astropy")
 def test_download_nocache_from_internet():
     fnout = download_file(TESTURL, cache=False)
@@ -255,21 +278,23 @@ def test_download_with_sources_and_bogus_original(
         assert is_url_in_cache(u)
 
 
-def test_download_file_threaded_many(temp_cache, valid_urls):
+@pytest.mark.parametrize("b", _shelve_possible_backends)
+def test_download_file_threaded_many(b, temp_cache, valid_urls):
     """Hammer download_file with multiple threaded requests.
 
     The goal is to stress-test the locking system. Normal parallel downloading
     also does this but coverage tools lose track of which paths are explored.
 
     """
-    urls = list(islice(valid_urls, N_THREAD_HAMMER))
-    with ThreadPoolExecutor(max_workers=len(urls)) as P:
-        r = list(P.map(lambda u: download_file(u, cache=True),
-                       [u for (u, c) in urls]))
-    check_download_cache()
-    assert len(r) == len(urls)
-    for r, (u, c) in zip(r, urls):
-        assert get_file_contents(r) == c
+    with shelve_backend(b):
+        urls = list(islice(valid_urls, N_THREAD_HAMMER))
+        with ThreadPoolExecutor(max_workers=len(urls)) as P:
+            r = list(P.map(lambda u: download_file(u, cache=True),
+                           [u for (u, c) in urls]))
+        check_download_cache()
+        assert len(r) == len(urls)
+        for r, (u, c) in zip(r, urls):
+            assert get_file_contents(r) == c
 
 
 def test_download_file_threaded_many_partial_success(
@@ -1755,3 +1780,61 @@ def test_download_parallel_respects_pkgname(temp_cache, valid_urls):
                                pkgname=a)
     assert not get_cached_urls()
     assert len(get_cached_urls(pkgname=a)) == FEW
+
+
+@pytest.mark.parametrize("b", _shelve_possible_backends)
+def test_cache_with_different_shelve_backends(b, temp_cache, valid_urls):
+    """Without special handling this emits a warning for dbm.dumb."""
+    with shelve_backend(b):
+        clear_download_cache()
+
+        uc = list(islice(valid_urls, FEW))
+        for u, c in uc:
+            download_file(u, cache=True)
+
+        check_download_cache()
+
+        for u, c in uc:
+            assert get_file_contents(
+                download_file(u, cache=True, sources=[])) == c
+
+        clear_download_cache()
+
+
+@pytest.mark.parametrize("b", _shelve_possible_backends)
+def test_lock_behaviour_if_directory_disappears(b, temp_cache):
+    dldir, urlmapfn = _get_download_cache_locs()
+    try:
+        dbm = importlib.import_module(b)
+    except ImportError:
+        pytest.skip(f"module {b} not available")
+    if b == "dbm.dumb":
+        c = pytest.raises(FileNotFoundError)
+    else:
+        c = nullcontext()
+    with dbm.open(urlmapfn, "c"):
+        pass
+    with c:
+        with _cache("astropy", write=True) as (dldir, url2hash):
+            url2hash["1"] = 2
+            shutil.rmtree(dldir)
+
+
+@pytest.mark.parametrize("b1b2", [(b1, b2)
+                                  for b1 in _shelve_possible_backends
+                                  for b2 in _shelve_possible_backends
+                                  if b1 != b2
+                                  ])
+def test_wrong_backend_reports_useful_error(b1b2, temp_cache, valid_urls):
+    b1, b2 = b1b2
+    with shelve_backend(b1):
+        for u, c in islice(valid_urls, FEW):
+            download_file(u, cache=True)
+        with shelve_backend(b2):
+            for u, c in islice(valid_urls, FEW):
+                with pytest.raises(dbm.error) as e:
+                    download_file(u, cache=True)
+                assert "module" in str(e.value)
+                assert b1 in str(e.value)
+            with pytest.raises(CacheDamaged):
+                check_download_cache()
