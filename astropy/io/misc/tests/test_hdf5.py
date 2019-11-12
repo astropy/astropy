@@ -356,7 +356,7 @@ def test_write_create_dataset_kwargs(tmpdir):
         t1 = Table()
         t1.add_column(Column(name='a', data=[1, 2, 3]))
         t1.write(output_file, path=the_path,
-                 create_dataset_kwargs=dict(maxshape=(None, )))
+                 maxshape=(None, ))
 
     # A roundabout way of checking this, but the table created above should be
     # resizable if the kwarg was passed through successfully
