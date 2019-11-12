@@ -268,6 +268,9 @@ def write_table_hdf5(table, output, path=None, compression=False,
     elif path.endswith('/'):
         raise ValueError("table path should end with table name, not /")
 
+    if create_dataset_kwargs is None:
+        create_dataset_kwargs = dict()
+
     if '/' in path:
         group, name = path.rsplit('/', 1)
     else:
