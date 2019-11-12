@@ -92,7 +92,6 @@ rst_epilog += """
 .. |minimum_numpy_version| replace:: {0.__minimum_numpy_version__}
 
 .. Astropy
-.. _Astropy: http://astropy.org
 .. _`Astropy mailing list`: https://mail.python.org/mailman/listinfo/astropy
 .. _`astropy-dev mailing list`: http://groups.google.com/group/astropy-dev
 """.format(astropy)
