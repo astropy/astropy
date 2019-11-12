@@ -337,12 +337,13 @@ class Galactocentric(BaseCoordinateFrame):
 
         warn = False
         for k in default_params:
-            # If a frame attribute is set by the user, remove its reference
-            self.frame_attribute_references.pop(k, None)
+            if k in kwargs:
+                # If a frame attribute is set by the user, remove its reference
+                self.frame_attribute_references.pop(k, None)
 
-            # If a parameter is read from the defaults, we might want to warn
-            # the user that the defaults will change (see below)
-            if k not in kwargs:
+            else:
+                # If a parameter is read from the defaults, we might want to
+                # warn the user that the defaults will change (see below)
                 warn = True
 
             # Keep the frame attribute if it is set by the user, otherwise use
