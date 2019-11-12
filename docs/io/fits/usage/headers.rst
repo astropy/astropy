@@ -305,10 +305,11 @@ the example below is flagged by such verification. More about verification in
 
 ::
 
-    >>> c1 = fits.Card.fromstring('ABC = 3.456D023')
+    >>> c1 = fits.Card.fromstring('ABC     = 3.456D023')
     >>> c2 = fits.Card.fromstring("P.I. ='Hubble'")
-    >>> print(c1); print(c2)
-    ABC     =            3.456D023
+    >>> print(c1)
+    ABC     = 3.456D023
+    >>> print(c2)  # doctest: +SKIP
     P.I. ='Hubble'
     >>> c2.verify()  # doctest: +SKIP
     Output verification result:
@@ -405,8 +406,8 @@ Examples
 more than eight characters::
 
     >>> # this will result in a Warning because a HIERARCH card is implicitly created
-    >>> c = fits.Card('abcdefghi', 10)
-    >>> print(c)
+    >>> c = fits.Card('abcdefghi', 10)  # doctest: +SKIP
+    >>> print(c)  # doctest: +SKIP
     HIERARCH abcdefghi = 10
     >>> c = fits.Card('hierarch abcdefghi', 10)
     >>> print(c)
@@ -441,5 +442,5 @@ more than eight characters::
     quirks of the FITS format, ``astropy`` tries to make it so that you have to
     think about it as little as possible. If there are any areas that are left
     vague or difficult to understand about how the header is constructed, please
-    let help@stsci.edu know, as there are probably areas where this can be
+    let us know, as there are probably areas where this can be
     improved on even more.
