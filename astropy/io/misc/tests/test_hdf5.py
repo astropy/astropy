@@ -370,7 +370,6 @@ def test_write_create_dataset_kwargs(tmpdir):
     assert np.all(t3['a'] == [1, 2, 3, 4, 5])
 
 
-
 @pytest.mark.skipif('not HAS_H5PY')
 def test_write_filobj_group(tmpdir):
 
