@@ -128,17 +128,6 @@ and fit Gaussians to the lines simultaneously while linking the flux of the OIII
     >>> cont = np.where(flux > mean_flux, mean_flux, flux)
     >>> linfitter = fitting.LinearLSQFitter()
     >>> poly_cont = linfitter(models.Polynomial1D(1), wave, cont)
-    >>> print(poly_cont)  # doctest +SKIP
-    Model: Polynomial1D
-    Inputs: ('x',)
-    Outputs: ('y',)
-    Model set size: 1
-    Degree: 1
-    Parameters:
-                 c0                  c1         
-        ------------------- --------------------
-        -0.8012383558421297 9.79731629578092e-05
-
     
     Create a compound model for the three lines and the continuum.
 
@@ -151,12 +140,12 @@ and fit Gaussians to the lines simultaneously while linking the flux of the OIII
     >>> fitted_lines = fitted_model(wave)
 
     >>> from matplotlib import pyplot as plt
-    >>> plt.figure(figsize=(9, 6))
-    >>> plt.plot(wave, flux, label="data")
-    >>> plt.plot(wave, fitted_lines, 'r', label="fit")
-    >>> plt.legend()
-    >>> plt.xlabel("Wavelength")
-    >>> plt.ylabel("Flux")
+    >>> fig = plt.figure(figsize=(9, 6))
+    >>> p = plt.plot(wave, flux, label="data")
+    >>> p = plt.plot(wave, fitted_lines, 'r', label="fit")
+    >>> p = plt.legend()
+    >>> p = plt.xlabel("Wavelength")
+    >>> p = plt.ylabel("Flux")
     >>> t = plt.text(4800, 70, 'Hbeta', rotation=90)
     >>> t = plt.text(4900, 100, 'OIII_1', rotation=90)
     >>> t = plt.text(4950, 180, 'OIII_2', rotation=90)
