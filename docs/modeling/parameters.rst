@@ -82,7 +82,7 @@ or using the ``bounds`` property::
     >>> g.mean.bounds = (2.2, 2.4)
 
 `astropy.modeling.Parameter.tied` is a user supplied callable
-which takes a model instance and returns a value for the paramter.  It is most useful
+which takes a model instance and returns a value for the parameter.  It is most useful
 with setting constraints on compounds models, for example a ratio between two parameters (:ref:`example<tied>`).
 
 Constraints can also be set when the model is initialized. For example::
