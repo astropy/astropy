@@ -83,7 +83,7 @@ class RotationSequence3D(Model):
     n_inputs = 3
     n_outputs = 3
 
-    angles = Parameter(getter=np.rad2deg, setter=np.deg2rad)
+    angles = Parameter(default=[], getter=_to_orig_unit, setter=_to_radian)
 
     def __init__(self, angles, axes_order, name=None):
         self.axes = ['x', 'y', 'z']
