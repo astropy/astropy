@@ -22,7 +22,7 @@ def assert_frame_allclose(frame1, frame2,
     #   the other one can have zero velocities
     # - if velocities are present, they are equal to some tolerance
     # Ideally this should accept both frames and SkyCoords
-    assert frame1 is frame2
+    pass
 
 
 def test_create_spectral_coord_orig():
