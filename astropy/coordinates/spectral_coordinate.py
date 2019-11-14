@@ -48,7 +48,7 @@ class SpectralCoord(u.Quantity):
     """
     _quantity_class = u.Quantity
 
-    def __new__(cls, value, unit=None, rest=None, velocity_convention=None,
+    def __new__(cls, value, *, unit=None, rest=None, velocity_convention=None,
                 observer=None, target=None, **kwargs):
         obj = super().__new__(cls, value, unit=unit, subok=True, **kwargs)
 
@@ -420,4 +420,3 @@ class SpectralCoord(u.Quantity):
             f'\trest_value={self.rest}, ' \
             f'velocity_convention={self.velocity_convention}, ' \
             f'observer={obs_frame}, target={tar_frame}>'
-
