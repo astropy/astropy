@@ -101,7 +101,6 @@ def test_create_spectral_coord_observer_target(observer, target):
 
     assert coord.rest is None
     assert coord.velocity_convention is None
-    assert coord.radial_velocity is None
 
     if observer is None or target is None:
         assert coord.redshift is None
