@@ -102,7 +102,7 @@ jobs:
 
   html-docs:
     docker:
-      - image: circleci/python:3.6
+      - image: circleci/python:3.7
     steps:
       - checkout
       - run:
