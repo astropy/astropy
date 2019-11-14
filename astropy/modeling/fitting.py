@@ -1336,6 +1336,9 @@ def _fitter_to_model_params(model, fps):
         parameters[slice_] = values
         offset += size
 
+    # Update model parameters before calling ``tied`` constraints.
+    model._array_to_parameters()
+
     # This has to be done in a separate loop due to how tied parameters are
     # currently evaluated (the fitted parameters need to actually be *set* on
     # the model first, for use in evaluating the "tied" expression--it might be
@@ -1345,8 +1348,10 @@ def _fitter_to_model_params(model, fps):
             if model.tied[name]:
                 value = model.tied[name](model)
                 slice_ = param_metrics[name]['slice']
-                parameters[slice_] = value
-    model._array_to_parameters()
+                model.parameters[slice_] = value
+                # To handle multiple tied constraints, model parameters
+                # need to be updated after each iterration.
+                model._array_to_parameters()
 
 
 def _model_to_fit_params(model):
