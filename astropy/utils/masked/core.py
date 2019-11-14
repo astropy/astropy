@@ -183,7 +183,41 @@ class Masked(NDArrayShapeMethods):
             if ufunc.nout == 1:
                 out = out[0]
 
-        if method == '__call__':
+        if ufunc.signature:
+            # Ignore axes for now...  More generally, the mask can be
+            # generated purely based on the signature.
+            assert 'axes' not in kwargs
+            converted = []
+            masks = []
+            for input_ in inputs:
+                if isinstance(input_, Masked):
+                    masks.append(input_.mask)
+                    converted.append(input_.unmasked)
+                else:
+                    masks.append(np.zeros(input_.shape, bool))
+                    converted.append(input_)
+
+            result = ufunc(*converted, **kwargs)
+            if ufunc.nin == 1:
+                mask = np.logical_or.reduce(
+                    masks[0], axis=kwargs.get('axis', -1),
+                    keepdims=kwargs.get('keepdims', False))
+
+            elif ufunc is np.matmul:
+                mask0, mask1 = masks
+                if mask1.ndim > 1:
+                    mask0 = np.logical_or.reduce(mask0, axis=-1, keepdims=True)
+                    mask1 = np.logical_or.reduce(mask1, axis=-2, keepdims=True)
+                else:
+                    mask0 = np.logical_or.reduce(mask0, axis=-1)
+                    mask1 = np.logical_or.reduce(mask1)
+
+                mask = np.logical_or(mask0, mask1)
+
+            else:
+                return NotImplemented
+
+        elif method == '__call__':
             converted = []
             masks = []
             for input_ in inputs:
@@ -193,16 +227,9 @@ class Masked(NDArrayShapeMethods):
                 else:
                     converted.append(input_)
 
-            result = getattr(ufunc, method)(*converted, **kwargs)
+            result = ufunc(*converted, **kwargs)
             if masks:
-                if ufunc.signature:
-                    if ufunc.nin > 1:
-                        return NotImplemented
-                    # TODO: need to check for axes, keepdims too...
-                    mask = np.logical_or.reduce(masks[0],
-                                                axis=kwargs.get('axis', -1))
-                else:
-                    mask = functools.reduce(np.logical_or, masks)
+                mask = functools.reduce(np.logical_or, masks)
             else:
                 mask = False
 
