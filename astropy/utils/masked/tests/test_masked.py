@@ -257,6 +257,57 @@ class TestMaskedArrayOperators(MaskedArraySetup):
         assert_array_equal(mapmb.unmasked, expected_data)
         assert_array_equal(mapmb.mask, expected_mask)
 
+    def test_matmul(self):
+        result = self.ma.T @ self.ma
+        assert_array_equal(result.unmasked, self.a.T @ self.a)
+        mask1 = np.any(self.mask_a, axis=0)
+        expected_mask = np.logical_or.outer(mask1, mask1)
+        assert_array_equal(result.mask, expected_mask)
+        result2 = self.ma.T @ self.a
+        assert_array_equal(result2.unmasked, self.a.T @ self.a)
+        expected_mask2 = np.logical_or.outer(mask1, np.zeros(3, bool))
+        assert_array_equal(result2.mask, expected_mask2)
+        result3 = self.a.T @ self.ma
+        assert_array_equal(result3.unmasked, self.a.T @ self.a)
+        expected_mask3 = np.logical_or.outer(np.zeros(3, bool), mask1)
+        assert_array_equal(result3.mask, expected_mask3)
+
+    def test_matvec(self):
+        result = self.ma @ self.mb
+        assert np.all(result.mask)
+        assert_array_equal(result.unmasked, self.a @ self.b)
+        # Just using the masked vector still has all elements masked.
+        result2 = self.a @ self.mb
+        assert np.all(result2.mask)
+        assert_array_equal(result2.unmasked, self.a @ self.b)
+        new_ma = self.ma.copy()
+        new_ma.mask[0, 0] = False
+        result3 = new_ma @ self.b
+        assert_array_equal(result3.unmasked, self.a @ self.b)
+        assert_array_equal(result3.mask, new_ma.mask.any(-1))
+
+    def test_vecmat(self):
+        result = self.mb @ self.ma.T
+        assert np.all(result.mask)
+        assert_array_equal(result.unmasked, self.b @ self.a.T)
+        result2 = self.b @ self.ma.T
+        assert np.all(result2.mask)
+        assert_array_equal(result2.unmasked, self.b @ self.a.T)
+        new_ma = self.ma.T.copy()
+        new_ma.mask[0, 0] = False
+        result3 = self.b @ new_ma
+        assert_array_equal(result3.unmasked, self.b @ self.a.T)
+        assert_array_equal(result3.mask, new_ma.mask.any(0))
+
+    def test_vecvec(self):
+        result = self.mb @ self.mb
+        assert result.shape == ()
+        assert result.mask
+        assert result.unmasked == self.b @ self.b
+        mb_no_mask = Masked(self.b, False)
+        result2 = mb_no_mask @ mb_no_mask
+        assert not result2.mask
+
 
 class TestMaskedQuantityOperators(TestMaskedArrayOperators, QuantitySetup):
     pass
