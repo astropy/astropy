@@ -18,7 +18,8 @@ def assert_frame_allclose(frame1, frame2,
     # TODO: write a function that checks that:
     # - the positions are equal to within some tolerance (the relative tolerance
     #   should be dimensionless, the absolute tolerance should be a distance)
-    # - either both or nether frame has velocities
+    # - either both or nether frame has velocities, or if one has no velocities
+    #   the other one can have zero velocities
     # - if velocities are present, they are equal to some tolerance
     # Ideally this should accept both frames and SkyCoords
     assert frame1 is frame2
@@ -54,7 +55,12 @@ LSRD = Galactic(u=0 * u.km, v=0 * u.km, w=0 * u.km,
                 U=9 * u.km / u.s, V=12 * u.km / u.s, W=7 * u.km / u.s,
                 representation_type='cartesian', differential_type='cartesian')
 
-LSRD_EQUIV = [LSRD, SkyCoord(LSRD), LSRD.transform_to(ICRS), LSRD.represent_as('spherical')]
+LSRD_EQUIV = [
+              LSRD,
+              SkyCoord(LSRD),  # as a SkyCoord
+              LSRD.transform_to(ICRS),  # different frame
+              LSRD.transform_to(ICRS).transform_to(Galactic)  # different representation
+              ]
 
 
 @pytest.fixture(params=[None] + LSRD_EQUIV)
@@ -66,8 +72,12 @@ def observer(request):
 LSRD_DIR_STATIONARY = Galactic(u=9 * u.km, v=12 * u.km, w=7 * u.km,
                                representation_type='cartesian')
 
-LSRD_DIR_STATIONARY_EQUIV = [LSRD_DIR_STATIONARY, SkyCoord(LSRD_DIR_STATIONARY),
-                             LSRD_DIR_STATIONARY.transform_to(FK5()), LSRD_DIR_STATIONARY.represent_as('cylindrical')]
+LSRD_DIR_STATIONARY_EQUIV = [
+                             LSRD_DIR_STATIONARY,
+                             SkyCoord(LSRD_DIR_STATIONARY),  # as a SkyCoord
+                             LSRD_DIR_STATIONARY.transform_to(FK5()),  # different frame
+                             LSRD_DIR_STATIONARY.transform_to(ICRS()).transform_to(Galactic())  # different representation
+                            ]
 
 
 @pytest.fixture(params=[None] + LSRD_DIR_STATIONARY_EQUIV)
