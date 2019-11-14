@@ -127,7 +127,7 @@ jobs:
             flake8 astropy --count --select=E101,W191,W291,W292,W293,W391,E111,E112,E113,E30,E502,E722,E901,E902,E999,F822,F823
       - run:
           name: Build Docs
-          command: venv/bin/python setup.py build_docs -w
+          command: venv/bin/python setup.py build_docs -w --parallel=4
           environment:
             LC_CTYPE: C
             LC_ALL: C
