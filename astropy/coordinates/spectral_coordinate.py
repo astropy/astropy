@@ -61,6 +61,10 @@ class SpectralCoord(u.Quantity):
         obj.rest = rest
         obj.velocity_convention = velocity_convention
 
+        if not isinstance(observer, (SkyCoord, BaseCoordinateFrame)):
+            raise ValueError("Observer must be a sky coordinate or coordinate"
+                             "frame.")
+
         obj._observer = observer
         obj.target = target
 
@@ -297,8 +301,8 @@ class SpectralCoord(u.Quantity):
         # Convert observer and target to ICRS to avoid finite
         # differencing calculations that lack numerical precision.
         if observer is None:
-            raise ValueError("No observer has been specified; cannot calculate "
-                             "radial velocity.")
+            raise ValueError("No observer has been specified; cannot "
+                             "calculate radial velocity.")
 
         observer_icrs = observer.transform_to(ICRS)
 
@@ -414,9 +418,16 @@ class SpectralCoord(u.Quantity):
             if self.observer is not None else 'None'
         tar_frame = self.target.__class__.__name__ \
             if self.target is not None else 'None'
+
+        try:
+            radial_velocity = self.radial_velocity
+            redshift = self.redshift
+        except ValueError:
+            radial_velocity = redshift = 'Undefined'
+
         return f'{prefixstr}{arrstr}{self._unitstr:s}, \n' \
-            f'radial_velocity={self.radial_velocity}, ' \
-            f'redshift={self.redshift}, ' \
+            f'radial_velocity={radial_velocity}, ' \
+            f'redshift={redshift}, ' \
             f'\trest_value={self.rest}, ' \
             f'velocity_convention={self.velocity_convention}, ' \
             f'observer={obs_frame}, target={tar_frame}>'
