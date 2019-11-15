@@ -2,7 +2,6 @@
 Fitting Models to Data
 **********************
 
-
 This module provides wrappers, called Fitters, around some Numpy and Scipy
 fitting functions. All Fitters can be called as functions. They take an
 instance of `~astropy.modeling.FittableModel` as input and modify its

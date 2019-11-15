@@ -55,13 +55,10 @@ class BlackBody1D(Fittable1DModel):
 
     Examples
     --------
-    >>> import warnings
     >>> from astropy.modeling import models
     >>> from astropy import units as u
-    >>> with warnings.catch_warnings():
-    ...     warnings.simplefilter('ignore')  # Ignore deprecation warning
-    ...     bb = models.BlackBody1D()
-    ...     bb(6000 * u.AA)  # doctest: +FLOAT_CMP
+    >>> bb = models.BlackBody1D()  # doctest: +IGNORE_WARNINGS
+    >>> bb(6000 * u.AA)  # doctest: +FLOAT_CMP +IGNORE_WARNINGS
     <Quantity 1.3585381201978953e-15 erg / (cm2 Hz s)>
 
     .. plot::

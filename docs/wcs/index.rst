@@ -1,4 +1,3 @@
-
 .. _astropy-wcs:
 
 ***************************************
@@ -91,7 +90,6 @@ The basic workflow is as follows:
 
 For example, to convert pixel coordinates from a two dimensional image to world coordinates::
 
-    >>> import warnings
     >>> from astropy.wcs import WCS
     >>> w = WCS('image.fits')  # doctest: +IGNORE_WARNINGS
     >>> lon, lat = w.all_pix2world(30, 40, 0)
