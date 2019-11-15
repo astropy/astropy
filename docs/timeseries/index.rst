@@ -252,7 +252,6 @@ Let's take a look at the folded time series:
 Using the :ref:`stats` module, we can normalize the flux by sigma-clipping
 the data to determine the baseline flux::
 
-    >>> import warnings
     >>> from astropy.stats import sigma_clipped_stats
     >>> mean, median, stddev = sigma_clipped_stats(ts_folded['sap_flux'])  # doctest: +REMOTE_DATA +IGNORE_WARNINGS
     >>> ts_folded['sap_flux_norm'] = ts_folded['sap_flux'] / median  # doctest: +REMOTE_DATA
@@ -268,7 +267,6 @@ the data to determine the baseline flux::
 and we can downsample the time series by binning the points into bins of equal
 time - this returns a |BinnedTimeSeries|::
 
-    >>> import warnings
     >>> from astropy.timeseries import aggregate_downsample
     >>> ts_binned = aggregate_downsample(ts_folded, time_bin_size=0.03 * u.day)  # doctest: +REMOTE_DATA +IGNORE_WARNINGS
     >>> ts_binned  # doctest: +FLOAT_CMP +REMOTE_DATA

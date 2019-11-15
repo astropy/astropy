@@ -248,7 +248,6 @@ Furthermore, two kernels can be convolved with each other, which is useful when
 data is filtered with two different kinds of kernels or to create a new,
 special kernel:
 
->>> import warnings
 >>> from astropy.convolution import Gaussian1DKernel, convolve
 >>> gauss_1 = Gaussian1DKernel(10)
 >>> gauss_2 = Gaussian1DKernel(16)

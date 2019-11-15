@@ -721,7 +721,6 @@ whether its unit is a FITS recognized time unit (``TUNITn`` is a time unit).
 For example, reading a Chandra event list which has the above mentioned header
 and the time coordinate column ``time`` as ``[1, 2]`` will give::
 
-    >>> import warnings
     >>> from astropy.table import Table
     >>> from astropy.time import Time, TimeDelta
     >>> from astropy.utils.data import get_pkg_data_filename
