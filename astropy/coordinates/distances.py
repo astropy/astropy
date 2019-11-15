@@ -178,7 +178,11 @@ class Distance(u.SpecificTypeQuantity):
             cls, value, unit, dtype=dtype, copy=copy, order=order,
             subok=subok, ndmin=ndmin)
 
-        if not allow_negative and np.any(distance.value < 0):
+        # Make sure NaNs don't emit a warning
+        with np.errstate(invalid='ignore'):
+            any_negative = np.any(distance.value < 0)
+
+        if not allow_negative and any_negative:
             raise ValueError("Distance must be >= 0.  Use the argument "
                              "'allow_negative=True' to allow negative values.")
 
