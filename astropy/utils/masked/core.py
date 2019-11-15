@@ -170,7 +170,9 @@ class Masked(NDArrayShapeMethods):
             data = getattr(self.unmasked, method)(*args, **kwargs)
             mask = getattr(self._mask, method)(*args, **kwargs)
 
-        result = data[...].view(self.__class__)
+        if not isinstance(data, np.ndarray):
+            data = np.array(data)
+        result = data.view(self.__class__)
         result._mask = mask
         return result
 
