@@ -432,6 +432,16 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                 else:
                     reshaped.append(val)
 
+    @property
+    def mask(self):
+        masks = [getattr(getattr(self, component), 'mask', False)
+                 for component in self.components]
+        masks = [mask for mask in masks if mask is not False]
+        if masks:
+            return functools.reduce(np.logical_or, masks)
+        else:
+            return np.broadcast_to(np.False_, self.shape)
+
     # Required to support multiplication and division, and defined by the base
     # representation and differential classes.
     @abc.abstractmethod
