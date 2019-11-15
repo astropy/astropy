@@ -292,3 +292,8 @@ def test_distance_to_quantity_when_not_units_of_length():
     assert area.unit.is_equivalent(u.m**2)
     assert not isinstance(area, Distance)
     assert type(area) is u.Quantity
+
+
+def test_distance_nan():
+    # Check that giving NaNs to Distance doesn't emit a warning
+    Distance([0, np.nan, 1] * u.m)
