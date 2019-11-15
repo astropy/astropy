@@ -122,12 +122,15 @@ class NDArrayShapeMethods:
         """
         return self._apply('squeeze', *args, **kwargs)
 
-    def take(self, indices, axis=None, mode='raise'):
+    def take(self, indices, axis=None, out=None, mode='raise'):
         """Return a new instance formed from the elements at the given indices.
 
         Parameters are as for :meth:`~numpy.ndarray.take`, except that,
         obviously, no output array can be given.
         """
+        if out is not None:
+            return NotImplementedError("cannot pass 'out' argument to 'take.")
+
         return self._apply('take', indices, axis=axis, mode=mode)
 
 
