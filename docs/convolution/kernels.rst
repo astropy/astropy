@@ -252,9 +252,7 @@ special kernel:
 >>> from astropy.convolution import Gaussian1DKernel, convolve
 >>> gauss_1 = Gaussian1DKernel(10)
 >>> gauss_2 = Gaussian1DKernel(16)
->>> with warnings.catch_warnings():
-...     warnings.simplefilter('ignore')  # Ignore warning for doctest
-...     broad_gaussian = convolve(gauss_2,  gauss_1)
+>>> broad_gaussian = convolve(gauss_2,  gauss_1)  # doctest: +IGNORE_WARNINGS
 
 Or in case of multistage smoothing:
 
@@ -274,9 +272,7 @@ You would rather do the following:
 
 >>> gauss = Gaussian1DKernel(3)
 >>> box = Box1DKernel(5)
->>> with warnings.catch_warnings():
-...     warnings.simplefilter('ignore')  # Ignore warning for doctest
-...     smoothed_gauss_box = convolve(data_1D, convolve(box, gauss))
+>>> smoothed_gauss_box = convolve(data_1D, convolve(box, gauss))  # doctest: +IGNORE_WARNINGS
 
 Which, in most cases, will also be faster than the first method because only
 one convolution with the often times larger data array will be necessary.

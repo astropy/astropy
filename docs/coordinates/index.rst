@@ -8,7 +8,7 @@
 
 .. testsetup::
     >>> from astropy.coordinates import EarthLocation
-    >>> EarthLocation.of_site('greenwich') # doctest: +IGNORE_OUTPUT
+    >>> EarthLocation.of_site('greenwich') # doctest: +IGNORE_OUTPUT +IGNORE_WARNINGS
 
 .. _astropy-coordinates:
 

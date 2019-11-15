@@ -93,9 +93,7 @@ For example, to convert pixel coordinates from a two dimensional image to world 
 
     >>> import warnings
     >>> from astropy.wcs import WCS
-    >>> with warnings.catch_warnings():
-    ...     warnings.simplefilter('ignore')
-    ...     w = WCS('image.fits')
+    >>> w = WCS('image.fits')  # doctest: +IGNORE_WARNINGS
     >>> lon, lat = w.all_pix2world(30, 40, 0)
     >>> print(lon, lat)
     31.0 41.0
