@@ -370,6 +370,8 @@ astropy.coordinates
   for attribute-style access or as the target of ``tranform_to()`` calls.
   [#8834]
 
+- Passing a NaN to ``Distance`` no longer raises a warning. [#9598]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 - The pre-publication Planck 2018 cosmological parameters are included as the
