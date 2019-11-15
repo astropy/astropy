@@ -254,9 +254,7 @@ the data to determine the baseline flux::
 
     >>> import warnings
     >>> from astropy.stats import sigma_clipped_stats
-    >>> with warnings.catch_warnings():
-    ...     warnings.simplefilter('ignore')  # Ignore warning about invalid values
-    ...     mean, median, stddev = sigma_clipped_stats(ts_folded['sap_flux'])  # doctest: +REMOTE_DATA
+    >>> mean, median, stddev = sigma_clipped_stats(ts_folded['sap_flux'])  # doctest: +REMOTE_DATA +IGNORE_WARNINGS
     >>> ts_folded['sap_flux_norm'] = ts_folded['sap_flux'] / median  # doctest: +REMOTE_DATA
 
 .. plot::
@@ -272,9 +270,7 @@ time - this returns a |BinnedTimeSeries|::
 
     >>> import warnings
     >>> from astropy.timeseries import aggregate_downsample
-    >>> with warnings.catch_warnings():
-    ...     warnings.simplefilter('ignore')  # Ignore empty slice warning
-    ...     ts_binned = aggregate_downsample(ts_folded, time_bin_size=0.03 * u.day)  # doctest: +REMOTE_DATA
+    >>> ts_binned = aggregate_downsample(ts_folded, time_bin_size=0.03 * u.day)  # doctest: +REMOTE_DATA +IGNORE_WARNINGS
     >>> ts_binned  # doctest: +FLOAT_CMP +REMOTE_DATA
     <BinnedTimeSeries length=74>
        time_bin_start     time_bin_size    ...   sap_flux_norm

@@ -27,7 +27,6 @@ polynomial model will fit a polynomial with the zero-th order term missing
 to the data minus that constant. The fixed coefficients and corresponding terms
 are restored to the fit polynomial and this is the polynomial returned from the fitter::
 
-      >>> import warnings
       >>> import numpy as np
       >>> np.random.seed(seed=12345)
       >>> from astropy.modeling import models, fitting
@@ -40,9 +39,7 @@ are restored to the fit polynomial and this is the polynomial returned from the 
       >>> n = (np.random.randn(y.size)).reshape(y.shape)
       >>> p1.c0.fixed = True
       >>> pfit = fitting.LinearLSQFitter()
-      >>> with warnings.catch_warnings():
-      ...     warnings.simplefilter('ignore')  # Ignore fit warning
-      ...     new_model = pfit(p1, x, y + n)
+      >>> new_model = pfit(p1, x, y + n)  # doctest: +IGNORE_WARNINGS
       >>> print(new_model)  # doctest: +SKIP
       Model: Polynomial1D
       Inputs: ('x',)
@@ -50,7 +47,7 @@ are restored to the fit polynomial and this is the polynomial returned from the 
       Model set size: 2
       Degree: 2
       Parameters:
-           c0         c1                 c2        
+           c0         c1                 c2
           --- ------------------ ------------------
           1.0  2.072116176718454   2.99115839177437
           1.0 1.9818866652726403 3.0024208951927585
@@ -85,7 +82,7 @@ and fit Gaussians to the lines simultaneously while linking the flux of the OIII
 
 .. plot::
     :include-source:
-		      
+
     import numpy as np
     from astropy.io import ascii
     from astropy.utils.data import get_pkg_data_filename
@@ -94,7 +91,7 @@ and fit Gaussians to the lines simultaneously while linking the flux of the OIII
     spec = ascii.read(fname)
     wave = spec['lambda']
     flux = spec['flux']
-    
+
     # Use the rest wavelengths of known lines as initial values for the fit.
 
     Hbeta = 4862.721
@@ -129,11 +126,11 @@ and fit Gaussians to the lines simultaneously while linking the flux of the OIII
     cont = np.where(flux > mean_flux, mean_flux, flux)
     linfitter = fitting.LinearLSQFitter()
     poly_cont = linfitter(models.Polynomial1D(1), wave, cont)
-    
+
     # Create a compound model for the three lines and the continuum.
 
     hbeta_combo = h_beta + o3_1 + o3_2 + poly_cont
-    
+
     # Fit all lines simultaneously.
 
     fitter = fitting.LevMarLSQFitter()

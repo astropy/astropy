@@ -727,9 +727,7 @@ and the time coordinate column ``time`` as ``[1, 2]`` will give::
     >>> from astropy.utils.data import get_pkg_data_filename
     >>> chandra_events = get_pkg_data_filename('data/chandra_time.fits',
     ...                                        package='astropy.io.fits.tests')
-    >>> with warnings.catch_warnings():
-    ...     warnings.simplefilter('ignore')  # Ignore Time column warning
-    ...     native = Table.read(chandra_events, astropy_native=True)
+    >>> native = Table.read(chandra_events, astropy_native=True)  # doctest: +IGNORE_WARNINGS
     >>> native['time']  # doctest: +FLOAT_CMP
     <Time object: scale='tt' format='mjd' value=[57413.76033393 57413.76033393]>
     >>> non_native = Table.read(chandra_events)
