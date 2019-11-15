@@ -101,7 +101,7 @@ class Masked(NDArrayShapeMethods):
         return super().view(self._get_subclass(type))
 
     def __array_finalize__(self, obj):
-        if obj is None or type(obj) is np.ndarray:
+        if obj is None:
             return None
 
         super_array_finalize = super().__array_finalize__
@@ -109,7 +109,10 @@ class Masked(NDArrayShapeMethods):
             super_array_finalize(obj)
 
         if self._mask is None:
-            self._mask = getattr(obj, '_mask', None)
+            mask = getattr(obj, '_mask', None)
+            if mask is None:
+                mask = np.zeros(self.shape, dtype=bool)
+            self._mask = mask
 
     @staticmethod
     def _data_mask(data):
