@@ -46,7 +46,7 @@ Parameter constraints
 as properties of `~astropy.modeling.Parameter`, the class which defines all fittable
 parameters, and can be set on individual parameters or on model instances.
 
-The `astropy.modeling.Parameter.fixed` constraint is boolen and indicates
+The `astropy.modeling.Parameter.fixed` constraint is boolean and indicates
 whether a paramater is kept "fixed" or "frozen" during fitting. For example, fixing the
 ``stddev`` of a :class:`~astropy.modeling.functional_models.Gaussian1D` model
 means it will be excluded from the list of fitted parameters::

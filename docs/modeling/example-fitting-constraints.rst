@@ -24,8 +24,8 @@ For linear fitters, freezing a polynomial coefficient means that the
 corresponding term will be subtracted from the data before fitting a
 polynomial without that term to the result. For example, fixing ``c0`` in a
 polynomial model will fit a polynomial with the zero-th order term missing
-to the data minus that constant. However, the fixed coefficient value is
-restored when evaluating the model, to fit the original data values::
+to the data minus that constant. The fixed coefficients and corresponding terms
+are restored to the fit polynomial and this is the polynomial returned from the fitter::
 
       >>> import warnings
       >>> import numpy as np
