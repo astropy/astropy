@@ -302,11 +302,13 @@ class TestIERS_Auto():
 
             # Look at times before and after the test file begins.  This forces a new download.
             assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.1292905)
-            assert np.allclose(dat.ut1_utc(Time(60000, format='mjd').jd).value, -0.3)
+            # https://github.com/astropy/astropy/issues/9600
+            with pytest.raises(ValueError):
+                assert np.allclose(dat.ut1_utc(Time(60000, format='mjd').jd).value, -0.3)
 
             # Now the time range should be different.
             assert dat['MJD'][0] == 57359.0 * u.d
-            assert dat['MJD'][-1] == (57539.0 + 60) * u.d
+            assert dat['MJD'][-1] == (57539.0 + 48) * u.d
 
 
 @pytest.mark.remote_data
