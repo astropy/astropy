@@ -211,6 +211,17 @@ class MaskedItemTests(MaskedArraySetup):
         assert_array_equal(ma_part.unmasked, expected_data)
         assert_array_equal(ma_part.mask, expected_mask)
 
+    @pytest.mark.parametrize('indices,axis', [
+        ([0, 1], 1), ([0, 1], 0), ([0, 1], None), ([[0, 1], [2, 3]], None)])
+    def test_take(self, indices, axis):
+        ma_take = self.ma.take(indices, axis=axis)
+        expected_data = self.a.take(indices, axis=axis)
+        expected_mask = self.mask_a.take(indices, axis=axis)
+        assert_array_equal(ma_take.unmasked, expected_data)
+        assert_array_equal(ma_take.mask, expected_mask)
+        ma_take2 = np.take(self.ma, indices, axis=axis)
+        assert_masked_equal(ma_take2, ma_take)
+
     @pytest.mark.parametrize('item', ((1, 1),
                                       slice(None, 1),
                                       (),
