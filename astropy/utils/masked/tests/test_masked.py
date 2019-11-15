@@ -114,6 +114,11 @@ class TestMaskSetting(ArraySetup):
         assert np.may_share_memory(ma.mask, mask)
         assert_array_equal(ma.mask, mask)
 
+    def test_viewing(self):
+        ma = Masked(self.a)
+        ma2 = self.a.view(type(ma))
+        assert_masked_equal(ma2, ma)
+
 
 # Following are tests where we trust the initializer works.
 
