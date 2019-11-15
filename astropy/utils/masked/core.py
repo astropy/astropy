@@ -15,7 +15,7 @@ from .function_helpers import (MASKED_SAFE_FUNCTIONS,
                                DISPATCHED_FUNCTIONS)
 
 
-__all__ = ['Masked']
+__all__ = ['Masked', 'MaskedNDArray']
 
 
 class Masked(NDArrayShapeMethods):
@@ -39,6 +39,8 @@ class Masked(NDArrayShapeMethods):
     def __new__(cls, data, mask=None, copy=False):
         data = np.array(data, subok=True, copy=copy)
         data, data_mask = cls._data_mask(data)
+        if data is None:
+            raise NotImplementedError("cannot initialize with np.ma.masked.")
         if mask is None:
             mask = False if data_mask is None else data_mask
 
@@ -115,8 +117,10 @@ class Masked(NDArrayShapeMethods):
         if mask is not None:
             if isinstance(data, MaskedNDArray):
                 data = data.unmasked
-            elif hasattr(data, 'filled'):
-                data = data.filled()
+            elif data is np.ma.masked:
+                data = None
+            elif isinstance(data, np.ma.MaskedArray):
+                data = data.data
 
         return data, mask
 
@@ -169,7 +173,8 @@ class Masked(NDArrayShapeMethods):
 
     def __setitem__(self, item, value):
         value, mask = self._data_mask(value)
-        super().__setitem__(item, value)
+        if value is not None:
+            super().__setitem__(item, value)
         self._mask[item] = mask
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
@@ -513,7 +518,8 @@ class MaskedIterator:
 
     def __setitem__(self, index, value):
         data, mask = self._masked._data_mask(value)
-        self._dataiter[index] = data
+        if data is not None:
+            self._dataiter[index] = data
         self._maskiter[index] = mask
 
     def __next__(self):
@@ -534,9 +540,9 @@ class MaskedNDArray(Masked, np.ndarray):
 
     @property
     def flat(self):
-        """A 1-D iterator over the Quantity array.
+        """A 1-D iterator over the Masked array.
 
-        This returns a ``QuantityIterator`` instance, which behaves the same
+        This returns a ``MaskedIterator`` instance, which behaves the same
         as the `~numpy.flatiter` instance returned by `~numpy.ndarray.flat`,
         and is similar to, but not a subclass of, Python's built-in iterator
         object.
