@@ -335,7 +335,8 @@ def test_kepler_astropy():
 @pytest.mark.remote_data(source='astropy')
 def test_tess_astropy():
     filename = get_pkg_data_filename('timeseries/hlsp_tess-data-alerts_tess_phot_00025155310-s01_tess_v1_lc.fits')
-    timeseries = TimeSeries.read(filename, format='tess.fits')
+    with pytest.warns(UserWarning, match='Ignoring 815 rows with NaN times'):
+        timeseries = TimeSeries.read(filename, format='tess.fits')
     assert timeseries["time"].format == 'isot'
     assert timeseries["time"].scale == 'tdb'
     assert timeseries["sap_flux"].unit.to_string() == 'electron / s'
