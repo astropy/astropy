@@ -260,6 +260,12 @@ class MaskedItemTests(MaskedArraySetup):
 
 
 class TestMaskedArrayItems(MaskedItemTests):
+    def setup(self):
+        super().setup()
+        self.d = np.array(['aa', 'bb'])
+        self.mask_d = np.array([True, False])
+        self.md = Masked(self.d, self.mask_d)
+
     # TODO: make this work for Quantity & Longitude as well.
     # Or decide that it just shouldn't work...
     @pytest.mark.parametrize('item', ((1, 1),
@@ -273,6 +279,21 @@ class TestMaskedArrayItems(MaskedItemTests):
         expected_mask[item] = True
         assert_array_equal(base.unmasked, self.a)
         assert_array_equal(base.mask, expected_mask)
+
+    # Quantity, Longitude cannot hold strings.
+    def test_getitem_strings(self):
+        md = self.md.copy()
+        md0 = md[0]
+        assert md0.unmasked == self.d[0]
+        assert md0.mask
+        md_all = md[:]
+        assert_masked_equal(md_all, md)
+
+    def test_setitem_strings_np_ma_masked(self):
+        md = self.md.copy()
+        md[1] = np.ma.masked
+        assert_array_equal(md.unmasked, self.d)
+        assert_array_equal(md.mask, np.ones(2, bool))
 
 
 class TestMaskedQuantityItems(MaskedItemTests, QuantitySetup):
