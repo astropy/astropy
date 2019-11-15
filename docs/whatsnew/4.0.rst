@@ -27,6 +27,15 @@ smaller improvements and bug fixes, which are described in the
 Pre-publication Planck 2018 cosmological parameters
 ---------------------------------------------------
 
+A pre-publication version of the Planck 2018 cosmological parameters
+has been included based on version 2 of the submitted paper.  This
+will be replaced with a final version when the paper is accepted.
+
+.. doctest-requires:: scipy
+  >>> from astropy.cosmology import Planck18_arXiv_v2
+  >>> Planck18_arXiv_v2.age(0)  # doctest: +FLOAT_CMP
+  <Quantity 13.7868853 Gyr>
+
 
 New models
 ----------
