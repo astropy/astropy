@@ -199,7 +199,7 @@ class TestMaskedArrayShaping(MaskedArraySetup):
             assert_array_equal(ma.mask, m)
 
 
-class TestMaskedArrayItems(MaskedArraySetup):
+class MaskedItemTests(MaskedArraySetup):
     @pytest.mark.parametrize('item', ((1, 1),
                                       slice(None, 1),
                                       (),
@@ -220,19 +220,50 @@ class TestMaskedArrayItems(MaskedArraySetup):
         expected_data = self.a.copy()
         expected_mask = self.mask_a.copy()
         for mask in True, False:
-            value = Masked(base[0, 0], mask)
+            value = Masked(self.a[0, 0], mask)
             base[item] = value
             expected_data[item] = value.unmasked
             expected_mask[item] = value.mask
             assert_array_equal(base.unmasked, expected_data)
             assert_array_equal(base.mask, expected_mask)
 
+    @pytest.mark.parametrize('item', ((1, 1),
+                                      slice(None, 1),
+                                      (),
+                                      1))
+    def test_setitem_without_mask(self, item):
+        base = self.ma.copy()
+        expected_data = self.a.copy()
+        expected_mask = self.mask_a.copy()
+        value = self.a[0, 0]
+        base[item] = value
+        expected_data[item] = value
+        expected_mask[item] = False
+        assert_array_equal(base.unmasked, expected_data)
+        assert_array_equal(base.mask, expected_mask)
 
-class TestMaskedQuantityItems(TestMaskedArrayItems, QuantitySetup):
+
+class TestMaskedArrayItems(MaskedItemTests):
+    # TODO: make this work for Quantity & Longitude as well.
+    # Or decide that it just shouldn't work...
+    @pytest.mark.parametrize('item', ((1, 1),
+                                      slice(None, 1),
+                                      (),
+                                      1))
+    def test_setitem_np_ma_masked(self, item):
+        base = self.ma.copy()
+        expected_mask = self.mask_a.copy()
+        base[item] = np.ma.masked
+        expected_mask[item] = True
+        assert_array_equal(base.unmasked, self.a)
+        assert_array_equal(base.mask, expected_mask)
+
+
+class TestMaskedQuantityItems(MaskedItemTests, QuantitySetup):
     pass
 
 
-class TestMaskedLongitudeItems(TestMaskedArrayItems, LongitudeSetup):
+class TestMaskedLongitudeItems(MaskedItemTests, LongitudeSetup):
     pass
 
 
