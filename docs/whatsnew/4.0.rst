@@ -165,6 +165,24 @@ For more information, see :ref:`plotting-times`.
 Support for parsing high-precision values with Time
 ---------------------------------------------------
 
+For numerical formats, :class:`~astropy.time.Time` can now be instantiated
+from strings, quadruple precision numpy floats (if available on a given
+platform), and :class:`Decimal` instances.  For instance, in the example below
+one sees how in a string we can give full precision, while entering the same
+number as a float gives precision loss::
+
+    >>> from astropy.time import Time
+    >>> t = Time('2450000.123456789012345', format='jd')
+    >>> t - Time(2450000, .123456789012345, format='jd')
+    <TimeDelta object: scale='tai' format='jd' value=0.0>
+    >>> t - Time(2450000.123456789012345, format='jd')  # doctest: +FLOAT_CMP
+    <TimeDelta object: scale='tai' format='jd' value=-1.6829138083096495e-10>
+
+One can also output values as string, etc.::
+
+    >>> t.to_value('jd', subfmt='str')
+    '2450000.123456789012345'
+
 Major improvements in compatibility of Quantity objects with Numpy functions
 ----------------------------------------------------------------------------
 
