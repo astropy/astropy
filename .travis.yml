@@ -42,6 +42,7 @@ env:
         - EVENT_TYPE='push pull_request'
         - SETUP_CMD='test'
         - INSTALL_WITH_PIP=False
+        - PIP_FLAGS=""
         - EXTRAS_INSTALL=""
         # Run test suite twice in a row without cleaning
         - DOUBLE_PLAY=False
@@ -195,7 +196,7 @@ matrix:
           dist: xenial
           python: 3.8-dev
           env: INSTALL_WITH_PIP=True EXTRAS_INSTALL="test" USE_CI_HELPERS=False
-               OTHER_DEPENDENCY_PREFERENCES='numpy==1.17.3'
+               OTHER_DEPENDENCY_PREFERENCES='numpy==1.17.3' PIP_FLAGS="--pre"
 
     allow_failures:
       - os: linux
@@ -229,9 +230,9 @@ install:
       fi
     - if [[ $INSTALL_WITH_PIP == True ]]; then
         if [ -z $EXTRAS_INSTALL ]; then
-          pip install -e . ${OTHER_DEPENDENCY_PREFERENCES};
+          pip install -e . ${OTHER_DEPENDENCY_PREFERENCES} ${PIP_FLAGS};
         else
-          pip install -e .[$EXTRAS_INSTALL] ${OTHER_DEPENDENCY_PREFERENCES};
+          pip install -e .[$EXTRAS_INSTALL] ${OTHER_DEPENDENCY_PREFERENCES} ${PIP_FLAGS};
         fi
       fi
 
