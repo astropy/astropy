@@ -55,6 +55,13 @@ New functions/modes for combining tables
 Consistency of physical constants and units
 -------------------------------------------
 
+Physical constants and units using them are based on measurements that improve
+and therefore not "constant" numerically.  Generally, one wants to just use
+the latest values, but sometimes it helps to reproduce earlier results by
+going back in time.  For that purpose, astropy 4.0 introduces the new
+`~astropy.physical_constants` and `~astropy.astronomical_constants` science
+state functions, which can be set to use previous versions.  For more details,
+see `astropy-constants-prior`_.
 
 Updates to Galactocentric frame
 -------------------------------
