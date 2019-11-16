@@ -3,7 +3,6 @@
 import os
 import urllib.request
 import warnings
-from urllib.error import URLError
 
 import pytest
 import numpy as np
@@ -252,6 +251,7 @@ class TestIERS_Auto():
         assert type(t) is iers.IERS_B
 
     @pytest.mark.remote_data
+    @pytest.mark.xfail(reason='See issue 9600')
     def test_simple(self):
 
         with iers.conf.set_temp('iers_auto_url', self.iers_a_url_1):
@@ -303,15 +303,11 @@ class TestIERS_Auto():
 
             # Look at times before and after the test file begins.  This forces a new download.
             assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.1292905)
-            # https://github.com/astropy/astropy/issues/9600
-            with pytest.raises(ValueError):
-                assert np.allclose(dat.ut1_utc(Time(60000, format='mjd').jd).value, -0.3)
+            assert np.allclose(dat.ut1_utc(Time(60000, format='mjd').jd).value, -0.3)
 
             # Now the time range should be different.
             assert dat['MJD'][0] == 57359.0 * u.d
-            # https://github.com/astropy/astropy/issues/9600 -- 60 becomes 48?
-            with pytest.raises(AssertionError):
-                assert dat['MJD'][-1] == (57539.0 + 60) * u.d
+            assert dat['MJD'][-1] == (57539.0 + 60) * u.d
 
 
 @pytest.mark.remote_data
@@ -335,16 +331,22 @@ def test_IERS_B_parameters_loading_into_IERS_Auto():
                      "correctly to IERS Auto".format(name)))
 
 
+# Issue with FTP, rework test into previous one when it's fixed
+@pytest.mark.xfail('TRAVIS')
 @pytest.mark.remote_data
-@pytest.mark.parametrize('url', (iers.IERS_A_URL, iers.IERS_A_URL_MIRROR))
-def test_iers_a_dl(url):
+def test_iers_a_dl():
+    iersa_tab = iers.IERS_A.open(iers.IERS_A_URL, cache=False)
     try:
-        iersa_tab = iers.IERS_A.open(url, cache=False)
-    except URLError:
-        if os.environ.get('TRAVIS') and url == iers.IERS_A_URL:
-            pytest.xfail('FTP timed out on Travis CI')
-        else:
-            raise
+        # some basic checks to ensure the format makes sense
+        assert len(iersa_tab) > 0
+        assert 'UT1_UTC_A' in iersa_tab.colnames
+    finally:
+        iers.IERS_A.close()
+
+
+@pytest.mark.remote_data
+def test_iers_a_dl_mirror():
+    iersa_tab = iers.IERS_A.open(iers.IERS_A_URL_MIRROR, cache=False)
     try:
         # some basic checks to ensure the format makes sense
         assert len(iersa_tab) > 0

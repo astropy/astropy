@@ -115,19 +115,15 @@ def test_fixes():
             assert 'm/s' in str(item.message)
 
 
+# Ignore "PV2_2 = 0.209028857410973 invalid keyvalue" warning seen on Windows.
+@pytest.mark.filterwarnings(r'ignore:PV2_2')
 def test_outside_sky():
     """
     From github issue #107
     """
-    if sys.platform.startswith('win'):
-        ctx = pytest.warns(FITSFixedWarning, match='invalid keyvalue')
-    else:
-        ctx = nullcontext()
-
     header = get_pkg_data_contents(
         'data/outside_sky.hdr', encoding='binary')
-    with ctx:
-        w = wcs.WCS(header)
+    w = wcs.WCS(header)
 
     assert np.all(np.isnan(w.wcs_pix2world([[100., 500.]], 0)))  # outside sky
     assert np.all(np.isnan(w.wcs_pix2world([[200., 200.]], 0)))  # outside sky
@@ -1222,12 +1218,11 @@ NAXIS2  =                 2078 / length of second array dimension
     hasCoord = test_wcs.footprint_contains(SkyCoord(240, 2, unit='deg'))
     assert not hasCoord
 
+    # Ignore "invalid value encountered in less" warning on Windows.
     if sys.platform.startswith('win'):
-        ctx = pytest.warns(
-            RuntimeWarning, match='invalid value encountered in less')
+        ctx = np.errstate(invalid='ignore')
     else:
         ctx = nullcontext()
-
     with ctx:
         hasCoord = test_wcs.footprint_contains(SkyCoord(24, 2, unit='deg'))
     assert not hasCoord

@@ -2,13 +2,11 @@
 
 import os
 import pickle
-import sys
 
 import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 
-from astropy.utils.compat.context import nullcontext
 from astropy.utils.data import get_pkg_data_contents, get_pkg_data_fileobj
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import NumpyRNGContext
@@ -84,17 +82,13 @@ def test_sip2():
         assert_array_almost_equal(world1, world2)
 
 
+# Ignore "PV2_2 = 0.209028857410973 invalid keyvalue" warning seen on Windows.
+@pytest.mark.filterwarnings(r'ignore:PV2_2')
 def test_wcs():
     header = get_pkg_data_contents(
         os.path.join("data", "outside_sky.hdr"), encoding='binary')
 
-    if sys.platform.startswith('win'):
-        ctx = pytest.warns(FITSFixedWarning, match='invalid keyvalue')
-    else:
-        ctx = nullcontext()
-
-    with ctx:
-        wcs1 = wcs.WCS(header)
+    wcs1 = wcs.WCS(header)
     s = pickle.dumps(wcs1)
     with pytest.warns(FITSFixedWarning):
         wcs2 = pickle.loads(s)
