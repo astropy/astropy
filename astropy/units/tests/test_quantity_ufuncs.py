@@ -712,13 +712,13 @@ class TestComparisonUfuncs:
         assert np.all(out == ufunc(q.value))
 
     def test_sign(self):
+        q = [1., np.inf, -np.inf, np.nan, -1., 0.] * u.m
+
+        # Ignore "invalid value encountered in sign" warning on Windows.
         if sys.platform.startswith('win'):
-            ctx = pytest.warns(
-                RuntimeWarning, match='invalid value encountered in sign')
+            ctx = np.errstate(invalid='ignore')
         else:
             ctx = nullcontext()
-
-        q = [1., np.inf, -np.inf, np.nan, -1., 0.] * u.m
         with ctx:
             out = np.sign(q)
             assert not isinstance(out, u.Quantity)
@@ -919,14 +919,14 @@ class TestInplaceUfuncs:
         assert np.all(out == ufunc(q.value))
 
     def test_sign_inplace(self):
-        if sys.platform.startswith('win'):
-            ctx = pytest.warns(
-                RuntimeWarning, match='invalid value encountered in sign')
-        else:
-            ctx = nullcontext()
-
         q = [1., np.inf, -np.inf, np.nan, -1., 0.] * u.m
         check = np.empty(q.shape, q.dtype)
+
+        # Ignore "invalid value encountered in sign" warning on Windows.
+        if sys.platform.startswith('win'):
+            ctx = np.errstate(invalid='ignore')
+        else:
+            ctx = nullcontext()
         with ctx:
             np.sign(q.value, out=check)
 
