@@ -619,6 +619,7 @@ class TestHDUListFunctions(FitsTestCase):
         with fits.open(self.temp('temp.fits')) as hdul:
             assert (hdul[0].data == data).all()
 
+    # This test used to fail on Windows - if it fails again in future, see
     # https://github.com/astropy/astropy/issues/5797
     # The warning appears on Windows but cannot be explicitly caught.
     @pytest.mark.filterwarnings("ignore:Assigning the 'data' attribute is an "
