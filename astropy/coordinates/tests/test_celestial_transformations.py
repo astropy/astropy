@@ -5,9 +5,11 @@ import pytest
 import numpy as np
 
 from astropy import units as u
+from astropy.coordinates import galactocentric_frame_defaults
 from astropy.coordinates.distances import Distance
-from astropy.coordinates.builtin_frames import (ICRS, FK5, FK4, FK4NoETerms, Galactic,
-                              Supergalactic, Galactocentric, HCRS, GCRS, LSR)
+from astropy.coordinates.builtin_frames import (
+    ICRS, FK5, FK4, FK4NoETerms, Galactic,
+    Supergalactic, Galactocentric, HCRS, GCRS, LSR)
 from astropy.coordinates import SkyCoord
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.coordinates import EarthLocation, CartesianRepresentation
@@ -16,7 +18,8 @@ from astropy.units import allclose
 
 # used below in the next parametrized test
 m31_sys = [ICRS, FK5, FK4, Galactic]
-m31_coo = [(10.6847929, 41.2690650), (10.6847929, 41.2690650), (10.0004738, 40.9952444), (121.1744050, -21.5729360)]
+m31_coo = [(10.6847929, 41.2690650), (10.6847929, 41.2690650),
+           (10.0004738, 40.9952444), (121.1744050, -21.5729360)]
 m31_dist = Distance(770, u.kpc)
 convert_precision = 1 * u.arcsec
 roundtrip_precision = 1e-4 * u.degree
@@ -101,7 +104,8 @@ def test_galactocentric():
                       distance=1.*u.kpc)
 
     g_xyz = icrs_coord.transform_to(Galactic).cartesian.xyz
-    gc_xyz = icrs_coord.transform_to(Galactocentric(z_sun=0*u.kpc)).cartesian.xyz
+    with galactocentric_frame_defaults.set('pre-v4.0'):
+        gc_xyz = icrs_coord.transform_to(Galactocentric(z_sun=0*u.kpc)).cartesian.xyz
     diff = np.abs(g_xyz - gc_xyz)
 
     assert allclose(diff[0], 8.3*u.kpc, atol=1E-5*u.kpc)
@@ -110,7 +114,8 @@ def test_galactocentric():
     # generate some test coordinates
     g = Galactic(l=[0, 0, 45, 315]*u.deg, b=[-45, 45, 0, 0]*u.deg,
                  distance=[np.sqrt(2)]*4*u.kpc)
-    xyz = g.transform_to(Galactocentric(galcen_distance=1.*u.kpc, z_sun=0.*u.pc)).cartesian.xyz
+    with galactocentric_frame_defaults.set('pre-v4.0'):
+        xyz = g.transform_to(Galactocentric(galcen_distance=1.*u.kpc, z_sun=0.*u.pc)).cartesian.xyz
     true_xyz = np.array([[0, 0, -1.], [0, 0, 1], [0, 1, 0], [0, -1, 0]]).T*u.kpc
     assert allclose(xyz.to(u.kpc), true_xyz.to(u.kpc), atol=1E-5*u.kpc)
 
@@ -121,29 +126,30 @@ def test_galactocentric():
     y = np.linspace(-10., 10., 100) * u.kpc
     z = np.zeros_like(x)
 
-    g1 = Galactocentric(x=x, y=y, z=z)
-    g2 = Galactocentric(x=x.reshape(100, 1, 1), y=y.reshape(100, 1, 1),
-                        z=z.reshape(100, 1, 1))
-
-    g1t = g1.transform_to(Galactic)
-    g2t = g2.transform_to(Galactic)
-
-    assert_allclose(g1t.cartesian.xyz, g2t.cartesian.xyz[:, :, 0, 0])
-
     # from Galactic to Galactocentric
     l = np.linspace(15, 30., 100) * u.deg
     b = np.linspace(-10., 10., 100) * u.deg
     d = np.ones_like(l.value) * u.kpc
 
-    g1 = Galactic(l=l, b=b, distance=d)
-    g2 = Galactic(l=l.reshape(100, 1, 1), b=b.reshape(100, 1, 1),
-                  distance=d.reshape(100, 1, 1))
+    with galactocentric_frame_defaults.set('latest'):
+        g1 = Galactocentric(x=x, y=y, z=z)
+        g2 = Galactocentric(x=x.reshape(100, 1, 1), y=y.reshape(100, 1, 1),
+                            z=z.reshape(100, 1, 1))
 
-    g1t = g1.transform_to(Galactocentric)
-    g2t = g2.transform_to(Galactocentric)
+        g1t = g1.transform_to(Galactic)
+        g2t = g2.transform_to(Galactic)
 
-    np.testing.assert_almost_equal(g1t.cartesian.xyz.value,
-                                   g2t.cartesian.xyz.value[:, :, 0, 0])
+        assert_allclose(g1t.cartesian.xyz, g2t.cartesian.xyz[:, :, 0, 0])
+
+        g1 = Galactic(l=l, b=b, distance=d)
+        g2 = Galactic(l=l.reshape(100, 1, 1), b=b.reshape(100, 1, 1),
+                      distance=d.reshape(100, 1, 1))
+
+        g1t = g1.transform_to(Galactocentric)
+        g2t = g2.transform_to(Galactocentric)
+
+        np.testing.assert_almost_equal(g1t.cartesian.xyz.value,
+                                       g2t.cartesian.xyz.value[:, :, 0, 0])
 
 
 def test_supergalactic():
