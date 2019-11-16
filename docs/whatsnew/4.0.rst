@@ -316,9 +316,10 @@ Performance improvements for tables
 Improved handling of leap second updates
 ----------------------------------------
 
-.. custom IERS table
-.. LeapSecond class
-
+Astropy now automatically checks for and applies new leap seconds the first
+time a :class:`~astropy.time.Time` is instantiated.  This is done with the new
+:class:`~astropy.utils.iers.LeapSecond` class, which can, in the hopefully
+unlikely case it is needed, also be used directly.
 
 API changes in astropy.modeling
 -------------------------------
