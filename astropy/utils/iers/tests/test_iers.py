@@ -3,6 +3,7 @@
 import os
 import urllib.request
 import warnings
+from urllib.error import URLError
 
 import pytest
 import numpy as np
@@ -334,22 +335,16 @@ def test_IERS_B_parameters_loading_into_IERS_Auto():
                      "correctly to IERS Auto".format(name)))
 
 
-# Issue with FTP, rework test into previous one when it's fixed
-@pytest.mark.xfail('TRAVIS')
 @pytest.mark.remote_data
-def test_iers_a_dl():
-    iersa_tab = iers.IERS_A.open(iers.IERS_A_URL, cache=False)
+@pytest.mark.parametrize('url', (iers.IERS_A_URL, iers.IERS_A_URL_MIRROR))
+def test_iers_a_dl(url):
     try:
-        # some basic checks to ensure the format makes sense
-        assert len(iersa_tab) > 0
-        assert 'UT1_UTC_A' in iersa_tab.colnames
-    finally:
-        iers.IERS_A.close()
-
-
-@pytest.mark.remote_data
-def test_iers_a_dl_mirror():
-    iersa_tab = iers.IERS_A.open(iers.IERS_A_URL_MIRROR, cache=False)
+        iersa_tab = iers.IERS_A.open(url, cache=False)
+    except URLError:
+        if os.environ.get('TRAVIS') and url == iers.IERS_A_URL:
+            pytest.xfail('FTP timed out on Travis CI')
+        else:
+            raise
     try:
         # some basic checks to ensure the format makes sense
         assert len(iersa_tab) > 0
