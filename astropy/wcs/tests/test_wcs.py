@@ -2,6 +2,7 @@
 
 import io
 import os
+import sys
 import warnings
 from datetime import datetime
 
@@ -15,6 +16,7 @@ from astropy.tests.helper import raises, catch_warnings
 from astropy import wcs
 from astropy.wcs import _wcs  # noqa
 from astropy.wcs.wcs import FITSFixedWarning
+from astropy.utils.compat.context import nullcontext
 from astropy.utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
 from astropy.utils.misc import NumpyRNGContext
@@ -117,9 +119,15 @@ def test_outside_sky():
     """
     From github issue #107
     """
+    if sys.platform.startswith('win'):
+        ctx = pytest.warns(FITSFixedWarning, match='invalid keyvalue')
+    else:
+        ctx = nullcontext()
+
     header = get_pkg_data_contents(
         'data/outside_sky.hdr', encoding='binary')
-    w = wcs.WCS(header)
+    with ctx:
+        w = wcs.WCS(header)
 
     assert np.all(np.isnan(w.wcs_pix2world([[100., 500.]], 0)))  # outside sky
     assert np.all(np.isnan(w.wcs_pix2world([[200., 200.]], 0)))  # outside sky
@@ -1214,7 +1222,14 @@ NAXIS2  =                 2078 / length of second array dimension
     hasCoord = test_wcs.footprint_contains(SkyCoord(240, 2, unit='deg'))
     assert not hasCoord
 
-    hasCoord = test_wcs.footprint_contains(SkyCoord(24, 2, unit='deg'))
+    if sys.platform.startswith('win'):
+        ctx = pytest.warns(
+            RuntimeWarning, match='invalid value encountered in less')
+    else:
+        ctx = nullcontext()
+
+    with ctx:
+        hasCoord = test_wcs.footprint_contains(SkyCoord(24, 2, unit='deg'))
     assert not hasCoord
 
 

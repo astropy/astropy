@@ -27,14 +27,7 @@ enable_deprecations_as_exceptions(
     # This is a workaround for the OpenSSL deprecation warning that comes from
     # the `requests` module. It only appears when both asdf and sphinx are
     # installed. This can be removed once pyopenssl 1.7.20+ is released.
-    # It also ignores collections.abc warning from html5lib in bleach that has been fixed
-    # in dev but not in release (html5lib/html5lib-python#419)
-    modules_to_ignore_on_import=['requests', 'bleach'],
-    warnings_to_ignore_by_pyver={
-        # This warning shows up in mpl <3.1.2 on python 3.8,
-        # remove once 3.1.2 is released
-        (3, 8): set([(r"In future, it will be an error for 'np.bool_' scalars "
-                      "to be interpreted as an index", DeprecationWarning),])})
+    modules_to_ignore_on_import=['requests'])
 
 if HAS_MATPLOTLIB:
     matplotlib.use('Agg')
