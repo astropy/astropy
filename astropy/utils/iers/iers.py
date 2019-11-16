@@ -669,23 +669,15 @@ class IERS_Auto(IERS_A):
             if cls.iers_table.meta.get('data_url') in all_urls:
                 return cls.iers_table
 
-        dl_success = False
-        err_msg = ''
-
         try:
             filename = download_file(all_urls[0], sources=all_urls, cache=True)
         except Exception as err:
-            err_msg = str(err)
-        else:
-            dl_success = True
-
-        if not dl_success:
             # Issue a warning here, perhaps user is offline.  An exception
             # will be raised downstream when actually trying to interpolate
             # predictive values.
             warn(AstropyWarning(
                 f'failed to download {" and ".join(all_urls)}, '
-                f'using local IERS-B: {err_msg}'))
+                f'using local IERS-B: {err}'))
             cls.iers_table = IERS_B.open()
             return cls.iers_table
 
@@ -742,11 +734,9 @@ class IERS_Auto(IERS_A):
             raise ValueError('IERS auto_max_age configuration value must be larger than 10 days')
 
         if (max_input_mjd > predictive_mjd and
-                now_mjd - predictive_mjd > auto_max_age):
+                (now_mjd - predictive_mjd) > auto_max_age):
 
             all_urls = (conf.iers_auto_url, conf.iers_auto_url_mirror)
-            dl_success = False
-            err_msg = ''
 
             # Get the latest version
             try:
@@ -754,16 +744,11 @@ class IERS_Auto(IERS_A):
                 filename = download_file(
                     all_urls[0], sources=all_urls, cache=True)
             except Exception as err:
-                err_msg = str(err)
-            else:
-                dl_success = True
-
-            if not dl_success:
                 # Issue a warning here, perhaps user is offline.  An exception
                 # will be raised downstream when actually trying to interpolate
                 # predictive values.
                 warn(AstropyWarning(
-                    f'failed to download {" and ".join(all_urls)}: {err_msg}.\n'
+                    f'failed to download {" and ".join(all_urls)}: {err}.\n'
                     'A coordinate or time-related '
                     'calculation might be compromised or fail because the dates are '
                     'not covered by the available IERS file.  See the '
