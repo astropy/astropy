@@ -10,6 +10,8 @@ import numpy as np
 from astropy.io.registry import _readers, _writers, _identifiers
 from astropy.io import registry as io_registry
 from astropy.table import Table
+from astropy.utils.compat.context import nullcontext
+from astropy.utils.exceptions import AstropyUserWarning
 from astropy import units as u
 
 # Since we reset the readers/writers below, we need to also import any
@@ -25,7 +27,7 @@ from astropy import timeseries  # noqa
 ORIGINAL = {}
 
 try:
-    import yaml  # pylint: disable=W0611
+    import yaml  # pylint: disable=W0611 # noqa
     HAS_YAML = True
 except ImportError:
     HAS_YAML = False
@@ -464,8 +466,16 @@ class TestSubclass:
         mt['a'].format = '.4f'
         mt['a'].description = 'hello'
 
+        if HAS_YAML:
+            ctx = nullcontext()
+        else:
+            ctx = pytest.warns(
+                AstropyUserWarning,
+                match="These will be dropped unless you install PyYAML")
+
         testfile = str(tmpdir.join('junk.fits'))
-        mt.write(testfile, overwrite=True)
+        with ctx:
+            mt.write(testfile, overwrite=True)
 
         t = MTable.read(testfile)
         assert np.all(mt == t)
