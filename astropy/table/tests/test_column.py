@@ -12,6 +12,7 @@ from astropy.tests.helper import assert_follows_unicode_guidelines
 from astropy import table
 from astropy import time
 from astropy import units as u
+from astropy.utils.masked import MaskedNDArray
 
 
 class TestColumn():
@@ -42,7 +43,7 @@ class TestColumn():
                 if Column is table.Column:
                     assert type(eq) == np.ndarray
                 else:
-                    assert type(eq) == np.ma.core.MaskedArray
+                    assert type(eq) == MaskedNDArray
                 assert eq.dtype.str == '|b1'
 
         lt = c - 1 < arr
@@ -65,7 +66,7 @@ class TestColumn():
             if Column is table.Column:
                 assert type(result) == np.ndarray
             else:
-                assert type(result) == np.ma.core.MaskedArray
+                assert type(result) == MaskedNDArray
                 if ufunc is not np.sign:
                     assert result.dtype.str == '|b1'
 
@@ -110,9 +111,7 @@ class TestColumn():
         # Mean and sum for a 1-d float column
         c = table.Column(name='a', data=[1., 2., 3.])
         assert np.allclose(c.mean(), 2.0)
-        assert isinstance(c.mean(), (np.floating, float))
         assert np.allclose(c.sum(), 6.)
-        assert isinstance(c.sum(), (np.floating, float))
 
         # Non-reduction ufunc preserves Column class
         assert isinstance(np.cos(c), table.Column)
@@ -120,13 +119,11 @@ class TestColumn():
         # Sum for a 1-d int column
         c = table.Column(name='a', data=[1, 2, 3])
         assert np.allclose(c.sum(), 6)
-        assert isinstance(c.sum(), (np.integer, int))
 
         # Sum for a 2-d int column
         c = table.Column(name='a', data=[[1, 2, 3],
                                          [4, 5, 6]])
         assert c.sum() == 21
-        assert isinstance(c.sum(), (np.integer, int))
         assert np.all(c.sum(axis=0) == [5, 7, 9])
         assert c.sum(axis=0).shape == (3,)
         assert isinstance(c.sum(axis=0), np.ndarray)
@@ -134,9 +131,7 @@ class TestColumn():
         # Sum and mean for a 1-d masked column
         c = table.MaskedColumn(name='a', data=[1., 2., 3.], mask=[0, 0, 1])
         assert np.allclose(c.mean(), 1.5)
-        assert isinstance(c.mean(), (np.floating, float))
-        assert np.allclose(c.sum(), 3.)
-        assert isinstance(c.sum(), (np.floating, float))
+        assert c.sum().mask
 
     def test_name_none(self, Column):
         """Can create a column without supplying name, which defaults to None"""
@@ -263,7 +258,7 @@ class TestColumn():
             i0 = int_type(0)
             i1 = int_type(1)
             assert np.all(c[i0] == [1, 2])
-            assert type(c[i0]) == (np.ma.MaskedArray if hasattr(Column, 'mask') else np.ndarray)
+            assert type(c[i0]) == (MaskedNDArray if hasattr(Column, 'mask') else np.ndarray)
             assert c[i0].shape == (2,)
 
             c01 = c[i0:i1]
@@ -273,7 +268,6 @@ class TestColumn():
 
             c = Column([1, 2])
             assert np.all(c[i0] == 1)
-            assert isinstance(c[i0], np.integer)
             assert c[i0].shape == ()
 
             c01 = c[i0:i1]
@@ -381,14 +375,14 @@ class TestColumn():
 
         # Basic insert
         c1 = c.insert(1, 100)
-        assert np.all(c1.data.data == [0, 100, 1, 2])
+        assert np.all(c1.data.unmasked == [0, 100, 1, 2])
         assert c1.fill_value == 9999
         assert np.all(c1.data.mask == [False, False, True, False])
         assert type(c) is type(c1)
 
         for mask in (False, True):
             c1 = c.insert(1, 100, mask=mask)
-            assert np.all(c1.data.data == [0, 100, 1, 2])
+            assert np.all(c1.data.unmasked == [0, 100, 1, 2])
             assert np.all(c1.data.mask == [False, mask, True, False])
 
     def test_masked_multidim_as_list(self):
@@ -402,11 +396,11 @@ class TestColumn():
                                 [3, 4]], name='a', dtype=int)
 
         c1 = c.insert(1, [100, 200], mask=True)
-        assert np.all(c1.data.data == [[1, 2], [100, 200], [3, 4]])
+        assert np.all(c1.data.unmasked == [[1, 2], [100, 200], [3, 4]])
         assert np.all(c1.data.mask == [[False, False], [True, True], [False, False]])
 
         c1 = c.insert(1, [100, 200], mask=[True, False])
-        assert np.all(c1.data.data == [[1, 2], [100, 200], [3, 4]])
+        assert np.all(c1.data.unmasked == [[1, 2], [100, 200], [3, 4]])
         assert np.all(c1.data.mask == [[False, False], [True, False], [False, False]])
 
         with pytest.raises(ValueError):
@@ -675,7 +669,8 @@ def test_string_truncation_warning_masked():
 
     with pytest.warns(table.StringTruncateWarning, match=r'truncated right side '
                       r'string\(s\) longer than 2 character\(s\)') as w:
-        mc[:] = [np.ma.masked, 'ggg']  # replace item with string that gets truncated
+        # replace item with string that gets truncated
+        mc[:] = np.ma.MaskedArray([np.ma.masked, 'ggg'])
     assert mc[1] == 'gg'
     assert np.all(mc.mask == [True, False])
     assert len(w) == 1
@@ -707,8 +702,6 @@ def test_col_unicode_sandwich_bytes_obj(Column):
     assert c.dtype.char == 'O'
     assert not c[0]
     assert c[1] == b'def'
-    assert isinstance(c[1], bytes)
-    assert not isinstance(c[1], str)
     assert isinstance(c[:0], table.Column)
     assert np.all(c[:2] == np.array([None, b'def']))
     assert not np.all(c[:2] == np.array([None, 'def']))
@@ -786,26 +779,25 @@ def test_masked_col_unicode_sandwich():
     c = table.MaskedColumn([b'abc', b'def'])
     c[1] = np.ma.masked
     assert isinstance(c[:0], table.MaskedColumn)
-    assert isinstance(c[0], str)
 
     assert c[0] == 'abc'
-    assert c[1] is np.ma.masked
+    assert c[1].mask
 
     assert isinstance(c[:], table.MaskedColumn)
     assert c[:].dtype.char == 'S'
 
     ok = c == ['abc', 'def']
     assert ok[0] == True  # noqa
-    assert ok[1] is np.ma.masked
+    assert ok[1].mask
     assert np.all(c == [b'abc', b'def'])
     assert np.all(c == np.array(['abc', 'def']))
     assert np.all(c == np.array([b'abc', b'def']))
 
     for cmp in ('abc', b'abc'):
         ok = c == cmp
-        assert type(ok) is np.ma.MaskedArray
+        assert type(ok) is MaskedNDArray
         assert ok[0] == True  # noqa
-        assert ok[1] is np.ma.masked
+        assert ok[1].mask
 
 
 @pytest.mark.parametrize('Column', (table.Column, table.MaskedColumn))
@@ -876,15 +868,15 @@ def test_unicode_sandwich_masked_compare():
                             mask=[True, True, False, False])
 
     for cmp in ((c1 == c2), (c2 == c1)):
-        assert cmp[0] is np.ma.masked
-        assert cmp[1] is np.ma.masked
-        assert cmp[2] is np.ma.masked
+        assert cmp[0].mask
+        assert cmp[1].mask
+        assert cmp[2].mask
         assert cmp[3]
 
     for cmp in ((c1 != c2), (c2 != c1)):
-        assert cmp[0] is np.ma.masked
-        assert cmp[1] is np.ma.masked
-        assert cmp[2] is np.ma.masked
+        assert cmp[0].mask
+        assert cmp[1].mask
+        assert cmp[2].mask
         assert not cmp[3]
 
     # Note: comparisons <, >, >=, <= fail to return a masked array entirely,

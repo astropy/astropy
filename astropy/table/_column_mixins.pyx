@@ -24,6 +24,8 @@ Column is itself an array.
 
 import sys
 import numpy as np
+from astropy.utils.masked import MaskedNDArray
+
 
 cdef tuple INTEGER_TYPES = (int, np.integer)
 
@@ -51,10 +53,10 @@ ctypedef object (*item_getter)(object, object)
 
 
 cdef inline object base_getitem(object self, object item, item_getter getitem):
-    if (<ndarray>self).ndim > 1 and isinstance(item, INTEGER_TYPES):
-        return self.data[item]
-
-    value = getitem(self, item)
+    if isinstance(item, INTEGER_TYPES):
+        value = self.data[item]
+    else:
+        value = getitem(self, item)
 
     try:
         if value.dtype.char == 'S' and not value.shape:
@@ -74,14 +76,20 @@ cdef class _ColumnGetitemShim:
         return base_getitem(self, item, column_getitem)
 
 
-MaskedArray = np.ma.MaskedArray
-
-
-cdef inline object masked_column_getitem(object self, object item):
-    value = MaskedArray.__getitem__(self, item)
-    return self._copy_attrs_slice(value)
-
-
 cdef class _MaskedColumnGetitemShim(_ColumnGetitemShim):
     def __getitem__(self, item):
-        return base_getitem(self, item, masked_column_getitem)
+        if isinstance(item, INTEGER_TYPES):
+            value = self.unmasked[item]
+            mask = self.mask[item]
+            try:
+                if value.dtype.char == 'S' and not value.shape:
+                    value = value.decode('utf-8', errors='replace')
+            except AttributeError:
+                pass
+
+            if mask.shape or mask:
+                return MaskedNDArray(value, mask)
+            else:
+                return value
+
+        return MaskedNDArray.__getitem__(self, item)

@@ -14,6 +14,7 @@ from astropy.utils.console import color_print
 from astropy.utils.metadata import MetaData
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
 from astropy.utils.misc import dtype_bytes_or_chars
+from astropy.utils.masked import MaskedNDArray
 from . import groups
 from . import pprint
 from .np_utils import fix_column_name
@@ -918,8 +919,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             arr = np.asarray(value)
             if arr.dtype.char == 'U':
                 arr = np.char.encode(arr, encoding='utf-8')
-                if isinstance(value, np.ma.MaskedArray):
-                    arr = np.ma.array(arr, mask=value.mask, copy=False)
+                if hasattr(value, 'mask'):
+                    arr = MaskedNDArray(arr, mask=value.mask, copy=False)
             value = arr
 
         return value
@@ -1080,6 +1081,8 @@ class Column(BaseColumn):
         """
         # Convert input ``value`` to the string dtype of this column and
         # find the length of the longest string in the array.
+        if value is np.ma.masked:
+            return
         value = np.asanyarray(value, dtype=self.dtype.type)
         if value.size == 0:
             return
@@ -1116,36 +1119,15 @@ class Column(BaseColumn):
         Make comparison methods which encode the ``other`` object to utf-8
         in the case of a bytestring dtype for Py3+.
         """
-        swapped_oper = {'__eq__': '__eq__',
-                        '__ne__': '__ne__',
-                        '__gt__': '__lt__',
-                        '__lt__': '__gt__',
-                        '__ge__': '__le__',
-                        '__le__': '__ge__'}[oper]
-
         def _compare(self, other):
-            op = oper  # copy enclosed ref to allow swap below
-
-            # Special case to work around #6838.  Other combinations work OK,
-            # see tests.test_column.test_unicode_sandwich_compare().  In this
-            # case just swap self and other.
-            #
-            # This is related to an issue in numpy that was addressed in np 1.13.
-            # However that fix does not make this problem go away, but maybe
-            # future numpy versions will do so.  NUMPY_LT_1_13 to get the
-            # attention of future maintainers to check (by deleting or versioning
-            # the if block below).  See #6899 discussion.
-            # 2019-06-21: still needed with numpy 1.16.
-            if (isinstance(self, MaskedColumn) and self.dtype.kind == 'U'
-                    and isinstance(other, MaskedColumn) and other.dtype.kind == 'S'):
-                self, other = other, self
-                op = swapped_oper
-
             if self.dtype.char == 'S':
                 other = self._encode_str(other)
+            elif isinstance(other, Column) and other.dtype.char == 'S':
+                # Let other take care!
+                return NotImplemented
 
             # Now just let the regular ndarray.__eq__, etc., take over.
-            result = getattr(super(), op)(other)
+            result = getattr(super(), oper)(other)
             # But we should not return Column instances for this case.
             return result.data if isinstance(result, Column) else result
 
@@ -1275,7 +1257,7 @@ class MaskedColumnInfo(ColumnInfo):
         return out
 
 
-class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
+class MaskedColumn(Column, _MaskedColumnGetitemShim, MaskedNDArray):
     """Define a masked data column for use in a Table object.
 
     Parameters
@@ -1372,19 +1354,11 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         else:
             mask = deepcopy(mask)
 
-        # Create self using MaskedArray as a wrapper class, following the example of
-        # class MSubArray in
-        # https://github.com/numpy/numpy/blob/maintenance/1.8.x/numpy/ma/tests/test_subclassing.py
-        # This pattern makes it so that __array_finalize__ is called as expected (e.g. #1471 and
-        # https://github.com/astropy/astropy/commit/ff6039e8)
-
-        # First just pass through all args and kwargs to BaseColumn, then wrap that object
-        # with MaskedArray.
-        self_data = BaseColumn(data, dtype=dtype, shape=shape, length=length, name=name,
+        self = super().__new__(cls, data, dtype=dtype, shape=shape, length=length, name=name,
                                unit=unit, format=format, description=description,
                                meta=meta, copy=copy, copy_indices=copy_indices)
-        self = ma.MaskedArray.__new__(cls, data=self_data, mask=mask)
 
+        self._set_mask(mask, copy=copy)
         # Note: do not set fill_value in the MaskedArray constructor because this does not
         # go through the fill_value workarounds.
         if fill_value is None and getattr(data, 'fill_value', None) is not None:
@@ -1395,48 +1369,22 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
         self.parent_table = None
 
-        # needs to be done here since self doesn't come from BaseColumn.__new__
-        for index in self.indices:
-            index.replace_col(self_data, self)
-
         return self
 
     @property
     def fill_value(self):
-        return self.get_fill_value()  # defer to native ma.MaskedArray method
+        return self._fill_value
 
     @fill_value.setter
     def fill_value(self, val):
         """Set fill value both in the masked column view and in the parent table
         if it exists.  Setting one or the other alone doesn't work."""
-
-        # another ma bug workaround: If the value of fill_value for a string array is
-        # requested but not yet set then it gets created as 'N/A'.  From this point onward
-        # any new fill_values are truncated to 3 characters.  Note that this does not
-        # occur if the masked array is a structured array (as in the previous block that
-        # deals with the parent table).
-        #
-        # >>> x = ma.array(['xxxx'])
-        # >>> x.fill_value  # fill_value now gets represented as an 'S3' array
-        # 'N/A'
-        # >>> x.fill_value='yyyy'
-        # >>> x.fill_value
-        # 'yyy'
-        #
-        # To handle this we are forced to reset a private variable first:
-        self._fill_value = None
-
-        self.set_fill_value(val)  # defer to native ma.MaskedArray method
+        self._fill_value = val
 
     @property
     def data(self):
         """The plain MaskedArray data held by this column."""
-        out = self.view(np.ma.MaskedArray)
-        # By default, a MaskedArray view will set the _baseclass to be the
-        # same as that of our own class, i.e., BaseColumn.  Since we want
-        # to return a plain MaskedArray, we reset the baseclass accordingly.
-        out._baseclass = np.ndarray
-        return out
+        return self.view(np.ndarray)
 
     def filled(self, fill_value=None):
         """Return a copy of self, with masked values filled with a given value.
@@ -1457,14 +1405,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         if fill_value is None:
             fill_value = self.fill_value
 
-        data = super().filled(fill_value)
-        # Use parent table definition of Column if available
-        column_cls = self.parent_table.Column if (self.parent_table is not None) else Column
-
-        out = column_cls(name=self.name, data=data, unit=self.unit,
-                         format=self.format, description=self.description,
-                         meta=deepcopy(self.meta))
-        return out
+        return super().unmasked(fill_value)
 
     def insert(self, obj, values, mask=None, axis=0):
         """
@@ -1525,41 +1466,8 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
         return out
 
-    def _copy_attrs_slice(self, out):
-        # Fixes issue #3023: when calling getitem with a MaskedArray subclass
-        # the original object attributes are not copied.
-        if out.__class__ is self.__class__:
-            out.parent_table = None
-            # we need this because __getitem__ does a shallow copy of indices
-            if out.indices is self.indices:
-                out.indices = []
-            out._copy_attrs(self)
-        return out
-
-    def __setitem__(self, index, value):
-        # Issue warning for string assignment that truncates ``value``
-        if self.dtype.char == 'S':
-            value = self._encode_str(value)
-
-        if issubclass(self.dtype.type, np.character):
-            # Account for a bug in np.ma.MaskedArray setitem.
-            # https://github.com/numpy/numpy/issues/8624
-            value = np.ma.asanyarray(value, dtype=self.dtype.type)
-
-            # Check for string truncation after filling masked items with
-            # empty (zero-length) string.  Note that filled() does not make
-            # a copy if there are no masked items.
-            self._check_string_truncate(value.filled(''))
-
-        # update indices
-        self.info.adjust_indices(index, value, len(self))
-
-        ma.MaskedArray.__setitem__(self, index, value)
-
-    # We do this to make the methods show up in the API docs
-    name = BaseColumn.name
-    copy = BaseColumn.copy
-    more = BaseColumn.more
-    pprint = BaseColumn.pprint
-    pformat = BaseColumn.pformat
-    convert_unit_to = BaseColumn.convert_unit_to
+    def take(self, indices, axis=None, out=None, mode='raise'):
+        if isinstance(indices, (int, np.integer)):
+            return self.data.take(indices, axis, out, mode)
+        else:
+            return super().take(indices, axis, out, mode)
