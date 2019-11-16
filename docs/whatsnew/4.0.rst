@@ -12,7 +12,7 @@ the 3.2.x series of releases.
 
 In particular, this release includes:
 
-*
+* Major improvements in compatibility of Quantities with numpy functions
 *
 
 In addition to these major changes, Astropy v4.0 includes a large number of
@@ -158,10 +158,33 @@ For more information, see :ref:`plotting-times`.
 Support for parsing high-precision values with Time
 ---------------------------------------------------
 
+Major improvements in compatibility of Quantity objects with Numpy functions
+----------------------------------------------------------------------------
 
-Improved compatibility of Quantity objects with Numpy functions
----------------------------------------------------------------
+While :class:`~astropy.units.Quantity` objects have worked well in arithmetic
+operations via numpy's "universal functions" (ufuncs), for other numpy
+functions it has been a bit hit and miss.  For instance, units would be lost
+when trying to concatenate quantities, making histogrammes, or in functions
+such as `numpy.where`.
 
+For numpy version 1.17 and later, however, it is possible to override the
+behaviour of numpy functions, and this is used in astropy 4.0 to make
+essentially all functions work as expected with quantities.  If a numpy
+function does not work as expected, it is now a bug that we can fix!
+
+Two simple examples:
+
+    >>> import numpy as np
+    >>> from astropy import units as u
+    >>> np.where([True, False, False], [1., 2., 3.]*u.m, 1.*u.cm)
+    <Quantity [1.  , 0.01, 0.01] m>
+    >>> np.hstack(([1., 2., 3.]*u.m, 1.*u.cm))
+    <Quantity [1.  , 2.  , 3.  , 0.01] m>
+
+.. note:: for numpy 1.16, one can get the same behaviour by setting
+          environment variable ``NUMPY_EXPERIMENTAL_ARRAY_FUNCTION=1``.
+          For details, see
+          `NEP 18 <https://numpy.org/neps/nep-0018-array-function-protocol.html>`_
 
 Plotting 1-d profile plots with WCSAxes
 ---------------------------------------
