@@ -47,7 +47,7 @@ as properties of `~astropy.modeling.Parameter`, the class which defines all fitt
 parameters, and can be set on individual parameters or on model instances.
 
 The `astropy.modeling.Parameter.fixed` constraint is boolean and indicates
-whether a paramater is kept "fixed" or "frozen" during fitting. For example, fixing the
+whether a parameter is kept "fixed" or "frozen" during fitting. For example, fixing the
 ``stddev`` of a :class:`~astropy.modeling.functional_models.Gaussian1D` model
 means it will be excluded from the list of fitted parameters::
 
@@ -89,8 +89,7 @@ Constraints can also be set when the model is initialized. For example::
 
     >>> g = Gaussian1D(amplitude=10.2, mean=2.3, stddev=1.2,
     ...                fixed={'stddev': True},
-    ... 	       bounds={'mean': (2.2, 2.4)}
-    ...		       )
+    ... 	        bounds={'mean': (2.2, 2.4)})
     >>> g.stddev.fixed
     True
     >>> g.mean.bounds
