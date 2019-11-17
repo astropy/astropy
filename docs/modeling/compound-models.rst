@@ -100,8 +100,9 @@ Some terminology
 
 It is possible to create new models just by
 combining existing models using the arithmetic operators ``+``, ``-``, ``*``,
-``/``, and ``**``, as well as by model composition using ``|`` and
-concatenation (explained below) with ``&``.
+``/``, and ``**``, or by model composition using ``|`` and
+concatenation (explained below) with ``&``, as well as using :func:`~astropy.modeling.fix_inputs`
+for :ref:`reducing the number of inputs to a model <model-reduction>`.
 
 
 In discussing the compound model feature, it is useful to be clear about a
@@ -1370,7 +1371,8 @@ graphs.  Currently the tools do not exist to make it easy to navigate and
 reason about highly complex compound models that use these mappings, but that
 is a possible enhancement for future versions.
 
-
+.. _model-reduction:
+   
 Model Reduction
 ---------------
 

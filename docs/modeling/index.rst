@@ -131,7 +131,7 @@ Examples
     defining and using a Tabular1D model
     statistics functions and how to make your own
     compound models
-    model sets w/ fitting
+
 
 Reference/API
 =============
