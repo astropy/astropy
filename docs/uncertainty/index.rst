@@ -62,9 +62,9 @@ Monte Carlo sampling) trivially with |distribution| arithmetic and attributes::
   >>> c = a + b
   >>> c # doctest: +ELLIPSIS
   <QuantityDistribution [...] kpc with n_samples=10000>
-  >>> c.pdf_mean # doctest: +FLOAT_CMP
+  >>> c.pdf_mean() # doctest: +FLOAT_CMP
   <Quantity 2.99970555 kpc>
-  >>> c.pdf_std.to(u.pc) # doctest: +FLOAT_CMP
+  >>> c.pdf_std().to(u.pc) # doctest: +FLOAT_CMP
   <Quantity 50.07120457 pc>
 
 Indeed these are close to the expectations. While this may seem unnecessary for
@@ -75,9 +75,9 @@ through::
   >>> d = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=10000)
   >>> e = unc.Distribution(((np.random.beta(2,5, 10000)-(2/7))/2 + 3)*u.kpc)
   >>> f = (c * d * e) ** (1/3)
-  >>> f.pdf_mean # doctest: +FLOAT_CMP
+  >>> f.pdf_mean() # doctest: +FLOAT_CMP
   <Quantity 2.99786227 kpc>
-  >>> f.pdf_std # doctest: +FLOAT_CMP
+  >>> f.pdf_std() # doctest: +FLOAT_CMP
   <Quantity 0.08330476 kpc>
   >>> from matplotlib import pyplot as plt # doctest: +SKIP
   >>> from astropy.visualization import quantity_support # doctest: +SKIP
@@ -185,17 +185,17 @@ the sampled distributions::
   Unit("ct")
   >>> distr.n_samples
   1000
-  >>> distr.pdf_mean # doctest: +FLOAT_CMP
+  >>> distr.pdf_mean() # doctest: +FLOAT_CMP
   <Quantity [  0.998,   5.017,  30.085, 400.345] ct>
-  >>> distr.pdf_std # doctest: +FLOAT_CMP
+  >>> distr.pdf_std() # doctest: +FLOAT_CMP
   <Quantity [ 0.97262326,  2.32222114,  5.47629208, 20.6328373 ] ct>
-  >>> distr.pdf_var # doctest: +FLOAT_CMP
+  >>> distr.pdf_var() # doctest: +FLOAT_CMP
   <Quantity [  0.945996,   5.392711,  29.989775, 425.713975] ct2>
-  >>> distr.pdf_median
+  >>> distr.pdf_median()
   <Quantity [   1.,   5.,  30., 400.] ct>
-  >>> distr.pdf_mad  # Median absolute deviation # doctest: +FLOAT_CMP
+  >>> distr.pdf_mad()  # Median absolute deviation # doctest: +FLOAT_CMP
   <Quantity [ 1.,  2.,  4., 14.] ct>
-  >>> distr.pdf_smad  # Median absolute deviation, rescaled to match std for normal # doctest: +FLOAT_CMP
+  >>> distr.pdf_smad()  # Median absolute deviation, rescaled to match std for normal # doctest: +FLOAT_CMP
   <Quantity [ 1.48260222,  2.96520444,  5.93040887, 20.75643106] ct>
   >>> distr.pdf_percentiles([10, 50, 90])
   <Quantity [[  0. ,   2. ,  23. , 374. ],
@@ -222,9 +222,9 @@ essentially assuming the |quantity| is a Dirac delta distribution::
 
   >>> distr_in_kpc = distr * u.kpc/u.count  # for the sake of round numbers in examples
   >>> distrplus = distr_in_kpc + [2000,0,0,500]*u.pc
-  >>> distrplus.pdf_median
+  >>> distrplus.pdf_median()
   <Quantity [   3. ,   5. ,  30. , 400.5] kpc>
-  >>> distrplus.pdf_var # doctest: +FLOAT_CMP
+  >>> distrplus.pdf_var() # doctest: +FLOAT_CMP
   <Quantity [  0.945996,   5.392711,  29.989775, 425.713975] kpc2>
 
 It also operates as expected with other distributions  (But see below for a
@@ -232,9 +232,9 @@ discussion of covariances)::
 
   >>> another_distr = unc.Distribution((np.random.randn(1000,4)*[1000,.01 , 3000, 10] + [2000, 0, 0, 500]).T * u.pc)
   >>> combined_distr = distr_in_kpc + another_distr
-  >>> combined_distr.pdf_median # doctest: +FLOAT_CMP
+  >>> combined_distr.pdf_median()  # doctest: +FLOAT_CMP
   <Quantity [  3.01847755,   4.99999576,  29.60559788, 400.49176321] kpc>
-  >>> combined_distr.pdf_var # doctest: +FLOAT_CMP
+  >>> combined_distr.pdf_var()  # doctest: +FLOAT_CMP
   <Quantity [  1.8427705 ,   5.39271147,  39.5343726 , 425.71324244] kpc2>
 
 

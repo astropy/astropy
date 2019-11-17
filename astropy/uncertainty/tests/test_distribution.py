@@ -82,62 +82,100 @@ class TestDistributionStatistics():
     def test_pdf_mean(self):
         # Mean of each PDF
         expected = np.mean(self.data, axis=-1) * self.distr.unit
-        assert_quantity_allclose(self.distr.pdf_mean, expected)
-        assert_quantity_allclose(self.distr.pdf_mean, [1, 2, 3, 4] * self.distr.unit, rtol=0.05)
+        pdf_mean = self.distr.pdf_mean()
+        assert_quantity_allclose(pdf_mean, expected)
+        assert_quantity_allclose(pdf_mean, [1, 2, 3, 4] * self.distr.unit, rtol=0.05)
 
         # make sure the right type comes out - should be a Quantity because it's
         # now a summary statistic
-        assert not isinstance(self.distr.pdf_mean, Distribution)
-        assert isinstance(self.distr.pdf_mean, u.Quantity)
+        assert not isinstance(pdf_mean, Distribution)
+        assert isinstance(pdf_mean, u.Quantity)
+
+        # Check with out argument.
+        out = pdf_mean * 0.
+        pdf_mean2 = self.distr.pdf_mean(out=out)
+        assert pdf_mean2 is out
+        assert np.all(pdf_mean2 == pdf_mean)
 
     def test_pdf_std(self):
         # Standard deviation of each PDF
         expected = np.std(self.data, axis=-1) * self.distr.unit
-        assert_quantity_allclose(self.distr.pdf_std, expected)
-        assert_quantity_allclose(self.distr.pdf_std, [3, 2, 4, 5] * self.distr.unit, rtol=0.05)
+        pdf_std = self.distr.pdf_std()
+        assert_quantity_allclose(pdf_std, expected)
+        assert_quantity_allclose(pdf_std, [3, 2, 4, 5] * self.distr.unit, rtol=0.05)
 
         # make sure the right type comes out - should be a Quantity because it's
         # now a summary statistic
-        assert not isinstance(self.distr.pdf_std, Distribution)
-        assert isinstance(self.distr.pdf_std, u.Quantity)
+        assert not isinstance(pdf_std, Distribution)
+        assert isinstance(pdf_std, u.Quantity)
+
+        # Check with proper ddof, using out argument.
+        out = pdf_std * 0.
+        expected = np.std(self.data, axis=-1, ddof=1) * self.distr.unit
+        pdf_std2 = self.distr.pdf_std(ddof=1, out=out)
+        assert pdf_std2 is out
+        assert np.all(pdf_std2 == expected)
 
     def test_pdf_var(self):
         # Variance of each PDF
         expected = np.var(self.data, axis=-1) * self.distr.unit**2
-        assert_quantity_allclose(self.distr.pdf_var, expected)
-        assert_quantity_allclose(self.distr.pdf_var, [9, 4, 16, 25] * self.distr.unit**2, rtol=0.1)
+        pdf_var = self.distr.pdf_var()
+        assert_quantity_allclose(pdf_var, expected)
+        assert_quantity_allclose(pdf_var, [9, 4, 16, 25] * self.distr.unit**2, rtol=0.1)
 
         # make sure the right type comes out - should be a Quantity because it's
         # now a summary statistic
-        assert not isinstance(self.distr.pdf_var, Distribution)
-        assert isinstance(self.distr.pdf_var, u.Quantity)
+        assert not isinstance(pdf_var, Distribution)
+        assert isinstance(pdf_var, u.Quantity)
+
+        # Check with proper ddof, using out argument.
+        out = pdf_var * 0.
+        expected = np.var(self.data, axis=-1, ddof=1) * self.distr.unit**2
+        pdf_var2 = self.distr.pdf_var(ddof=1, out=out)
+        assert pdf_var2 is out
+        assert np.all(pdf_var2 == expected)
 
     def test_pdf_median(self):
         # Median of each PDF
         expected = np.median(self.data, axis=-1) * self.distr.unit
-        assert_quantity_allclose(self.distr.pdf_median, expected)
-        assert_quantity_allclose(self.distr.pdf_median, [1, 2, 3, 4] * self.distr.unit, rtol=0.1)
+        pdf_median = self.distr.pdf_median()
+        assert_quantity_allclose(pdf_median, expected)
+        assert_quantity_allclose(pdf_median, [1, 2, 3, 4] * self.distr.unit, rtol=0.1)
 
         # make sure the right type comes out - should be a Quantity because it's
         # now a summary statistic
-        assert not isinstance(self.distr.pdf_median, Distribution)
-        assert isinstance(self.distr.pdf_median, u.Quantity)
+        assert not isinstance(pdf_median, Distribution)
+        assert isinstance(pdf_median, u.Quantity)
+
+        # Check with out argument.
+        out = pdf_median * 0.
+        pdf_median2 = self.distr.pdf_median(out=out)
+        assert pdf_median2 is out
+        assert np.all(pdf_median2 == expected)
 
     @pytest.mark.skipif(not HAS_SCIPY, reason='no scipy')
     def test_pdf_mad_smad(self):
         # Median absolute deviation of each PDF
         median = np.median(self.data, axis=-1, keepdims=True)
         expected = np.median(np.abs(self.data - median), axis=-1) * self.distr.unit
-        assert_quantity_allclose(self.distr.pdf_mad, expected)
-        assert_quantity_allclose(self.distr.pdf_smad, self.distr.pdf_mad * SMAD_FACTOR, rtol=1e-5)
-        assert_quantity_allclose(self.distr.pdf_smad, [3, 2, 4, 5] * self.distr.unit, rtol=0.05)
+        pdf_mad = self.distr.pdf_mad()
+        assert_quantity_allclose(pdf_mad, expected)
+        pdf_smad = self.distr.pdf_smad()
+        assert_quantity_allclose(pdf_smad, pdf_mad * SMAD_FACTOR, rtol=1e-5)
+        assert_quantity_allclose(pdf_smad, [3, 2, 4, 5] * self.distr.unit, rtol=0.05)
 
         # make sure the right type comes out - should be a Quantity because it's
         # now a summary statistic
-        assert not isinstance(self.distr.pdf_mad, Distribution)
-        assert isinstance(self.distr.pdf_mad, u.Quantity)
-        assert not isinstance(self.distr.pdf_smad, Distribution)
-        assert isinstance(self.distr.pdf_smad, u.Quantity)
+        assert not isinstance(pdf_mad, Distribution)
+        assert isinstance(pdf_mad, u.Quantity)
+        assert not isinstance(pdf_smad, Distribution)
+        assert isinstance(pdf_smad, u.Quantity)
+
+        # Check out argument for smad (which checks mad too).
+        out = pdf_smad * 0.
+        pdf_smad2 = self.distr.pdf_smad(out=out)
+        assert pdf_smad2 is out
+        assert np.all(pdf_smad2 == pdf_smad)
 
     def test_percentile(self):
         expected = np.percentile(self.data, [10, 50, 90], axis=-1) * self.distr.unit
@@ -153,9 +191,9 @@ class TestDistributionStatistics():
     def test_add_quantity(self):
         distrplus = self.distr + [2000, 0, 0, 500] * u.pc
         expected = (np.median(self.data, axis=-1) + np.array([2, 0, 0, 0.5])) * self.distr.unit
-        assert_quantity_allclose(distrplus.pdf_median, expected)
+        assert_quantity_allclose(distrplus.pdf_median(), expected)
         expected = np.var(self.data, axis=-1) * self.distr.unit**2
-        assert_quantity_allclose(distrplus.pdf_var, expected)
+        assert_quantity_allclose(distrplus.pdf_var(), expected)
 
     def test_add_distribution(self):
         another_data = (np.random.randn(4, 10000)
@@ -167,10 +205,10 @@ class TestDistributionStatistics():
 
         expected = np.median(self.data + another_data/1000,
                              axis=-1) * self.distr.unit
-        assert_quantity_allclose(combined_distr.pdf_median, expected)
+        assert_quantity_allclose(combined_distr.pdf_median(), expected)
 
         expected = np.var(self.data + another_data/1000, axis=-1) * self.distr.unit**2
-        assert_quantity_allclose(combined_distr.pdf_var, expected)
+        assert_quantity_allclose(combined_distr.pdf_var(), expected)
 
 
 def test_helper_normal_samples():
@@ -181,13 +219,13 @@ def test_helper_normal_samples():
         assert n_dist.distribution.shape == (4, 100)
         assert n_dist.shape == (4, )
         assert n_dist.unit == u.kpc
-        assert np.all(n_dist.pdf_std > 100*u.pc)
+        assert np.all(n_dist.pdf_std() > 100*u.pc)
 
         n_dist2 = ds.normal(centerq, std=[0.2, 1.5, 4, 1]*u.pc, n_samples=20000)
         assert n_dist2.distribution.shape == (4, 20000)
         assert n_dist2.shape == (4, )
         assert n_dist2.unit == u.kpc
-        assert np.all(n_dist2.pdf_std < 100*u.pc)
+        assert np.all(n_dist2.pdf_std() < 100*u.pc)
 
 
 def test_helper_poisson_samples():
@@ -202,7 +240,7 @@ def test_helper_poisson_samples():
         assert isinstance(p_min, Distribution)
         assert p_min.shape == ()
         assert np.all(p_min >= 0)
-        assert np.all(np.abs(p_dist.pdf_mean - centerqcounts) < centerqcounts)
+        assert np.all(np.abs(p_dist.pdf_mean() - centerqcounts) < centerqcounts)
 
 
 def test_helper_uniform_samples():
@@ -320,7 +358,7 @@ def test_array_repr_latex():
 def test_distr_to():
     distr = ds.normal(10*u.cm, n_samples=100, std=1*u.cm)
     todistr = distr.to(u.m)
-    assert_quantity_allclose(distr.pdf_mean.to(u.m), todistr.pdf_mean)
+    assert_quantity_allclose(distr.pdf_mean().to(u.m), todistr.pdf_mean())
 
 
 def test_distr_noq_to():
@@ -333,7 +371,7 @@ def test_distr_noq_to():
 def test_distr_to_value():
     distr = ds.normal(10*u.cm, n_samples=100, std=1*u.cm)
     tovdistr = distr.to_value(u.m)
-    assert np.allclose(distr.pdf_mean.to_value(u.m), tovdistr.pdf_mean)
+    assert np.allclose(distr.pdf_mean().to_value(u.m), tovdistr.pdf_mean())
 
 
 def test_distr_noq_to_value():
