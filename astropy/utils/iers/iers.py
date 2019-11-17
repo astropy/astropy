@@ -669,30 +669,20 @@ class IERS_Auto(IERS_A):
             if cls.iers_table.meta.get('data_url') in all_urls:
                 return cls.iers_table
 
-        dl_success = False
-        err_list = []
-
-        for url in all_urls:
-            try:
-                filename = download_file(url, cache=True)
-            except Exception as err:
-                err_list.append(str(err))
-            else:
-                dl_success = True
-                break
-
-        if not dl_success:
+        try:
+            filename = download_file(all_urls[0], sources=all_urls, cache=True)
+        except Exception as err:
             # Issue a warning here, perhaps user is offline.  An exception
             # will be raised downstream when actually trying to interpolate
             # predictive values.
-            warn(AstropyWarning('failed to download {}, using local IERS-B: {}'
-                                .format(' and '.join(all_urls),
-                                        ';'.join(err_list))))  # noqa
+            warn(AstropyWarning(
+                f'failed to download {" and ".join(all_urls)}, '
+                f'using local IERS-B: {err}'))
             cls.iers_table = IERS_B.open()
             return cls.iers_table
 
         cls.iers_table = cls.read(file=filename)
-        cls.iers_table.meta['data_url'] = str(url)
+        cls.iers_table.meta['data_url'] = all_urls[0]
 
         return cls.iers_table
 
@@ -744,37 +734,30 @@ class IERS_Auto(IERS_A):
             raise ValueError('IERS auto_max_age configuration value must be larger than 10 days')
 
         if (max_input_mjd > predictive_mjd and
-                now_mjd - predictive_mjd > auto_max_age):
+                (now_mjd - predictive_mjd) > auto_max_age):
 
             all_urls = (conf.iers_auto_url, conf.iers_auto_url_mirror)
-            dl_success = False
-            err_list = []
 
             # Get the latest version
-            for url in all_urls:
-                try:
-                    clear_download_cache(url)
-                    filename = download_file(url, cache=True)
-                except Exception as err:
-                    err_list.append(str(err))
-                else:
-                    dl_success = True
-                    break
-
-            if not dl_success:
+            try:
+                clear_download_cache(all_urls[0])
+                filename = download_file(
+                    all_urls[0], sources=all_urls, cache=True)
+            except Exception as err:
                 # Issue a warning here, perhaps user is offline.  An exception
                 # will be raised downstream when actually trying to interpolate
                 # predictive values.
-                warn(AstropyWarning('failed to download {}: {}.\nA coordinate or time-related '
-                                    'calculation might be compromised or fail because the dates are '
-                                    'not covered by the available IERS file.  See the '
-                                    '"IERS data access" section of the astropy documentation '
-                                    'for additional information on working offline.'
-                                    .format(' and '.join(all_urls), ';'.join(err_list))))
+                warn(AstropyWarning(
+                    f'failed to download {" and ".join(all_urls)}: {err}.\n'
+                    'A coordinate or time-related '
+                    'calculation might be compromised or fail because the dates are '
+                    'not covered by the available IERS file.  See the '
+                    '"IERS data access" section of the astropy documentation '
+                    'for additional information on working offline.'))
                 return
 
             new_table = self.__class__.read(file=filename)
-            new_table.meta['data_url'] = str(url)
+            new_table.meta['data_url'] = str(all_urls[0])
 
             # New table has new values?
             if new_table['MJD'][-1] > self['MJD'][-1]:
