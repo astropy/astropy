@@ -12,7 +12,7 @@ Basics
 Most models in this package are "parametric" in the sense that each subclass
 of `~astropy.modeling.Model` represents an entire family of models, each
 member of which is distinguished by a fixed set of parameters that fit that
-model to some some dependent and independent variable(s) (also referred to
+model to some dependent and independent variable(s) (also referred to
 throughout the package as the outputs and inputs of the model).
 
 Parameters are used in three different contexts within this package: Basic
@@ -27,7 +27,7 @@ other property of the model (the degree in the case of polynomials).
 
 Models maintain a list of parameter names,
 `~astropy.modeling.Model.param_names`.  Single parameters are instances of
-`~astropy.modeling.Parameter` which provide a proxy for the actual parameter
+`~astropy.modeling.Parameter` which provides a proxy for the actual parameter
 values.  Simple mathematical operations can be performed with them, but they
 also contain additional attributes specific to model parameters, such as any
 constraints on their values and documentation.
@@ -42,9 +42,62 @@ the standard `Numpy broadcasting rules`_.
 Parameter constraints
 =====================
 
+`astropy.modeling` supports several types of parameter constraints. They are implemented 
+as properties of `~astropy.modeling.Parameter`, the class which defines all fittable
+parameters, and can be set on individual parameters or on model instances.
+
+The `astropy.modeling.Parameter.fixed` constraint is boolean and indicates
+whether a parameter is kept "fixed" or "frozen" during fitting. For example, fixing the
+``stddev`` of a :class:`~astropy.modeling.functional_models.Gaussian1D` model
+means it will be excluded from the list of fitted parameters::
+
+    >>> from astropy.modeling.models import Gaussian1D
+    >>> g = Gaussian1D(amplitude=10.2, mean=2.3, stddev=1.2)
+    >>> g.stddev.fixed
+    False
+    >>> g.stddev.fixed = True
+    >>> g.stddev.fixed
+    True
+
+`astropy.modeling.Parameter.bounds` is a tuple of numbers
+setting minimum and maximum value for a parameter. ``(None, None)`` indicates
+the parameter values are not bound. ``bounds`` can be set also using the
+`~astropy.modeling.Parameter.min` and
+`~astropy.modeling.Parameter.max` properties. Assigning ``None`` to
+the corresponding property removes the bound on the parameter. For example, setting
+bounds on the ``mean`` value of a :class:`~astropy.modeling.functional_models.Gaussian1D`
+model can be done either by setting ``min`` and ``max``::
+
+    >>> g.mean.bounds
+    (None, None)
+    >>> g.mean.min = 2.2
+    >>> g.mean.bounds
+    (2.2, None)
+    >>> g.mean.max = 2.4
+    >>> g.mean.bounds
+    (2.2, 2.4)
+
+or using the ``bounds`` property::
+
+    >>> g.mean.bounds = (2.2, 2.4)
+
+`astropy.modeling.Parameter.tied` is a user supplied callable
+which takes a model instance and returns a value for the parameter.  It is most useful
+with setting constraints on compounds models, for example a ratio between two parameters (:ref:`example<tied>`).
+
+Constraints can also be set when the model is initialized. For example::
+
+    >>> g = Gaussian1D(amplitude=10.2, mean=2.3, stddev=1.2,
+    ...                fixed={'stddev': True},
+    ... 	        bounds={'mean': (2.2, 2.4)})
+    >>> g.stddev.fixed
+    True
+    >>> g.mean.bounds
+    (2.2, 2.4)
+
 
 Parameter examples
-------------------
+==================
 
 - Model classes can be introspected directly to find out what parameters they
   accept::
