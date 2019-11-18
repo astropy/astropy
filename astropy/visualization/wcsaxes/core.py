@@ -758,6 +758,16 @@ class WCSAxes(Axes):
         kwargs : dict
             Keyword arguments are handed to
             `matplotib.axes.Axes.set_aspect`.
+
+        Warnings
+        --------
+        Setting an equal world aspect only makes sense when the transformation
+        from pixel to world coordinates is linear.
+
+        Notes
+        -----
+        The aspect is calculated using the ratio of the difference between
+        pixel and world coordinates at (0, 0) and (1, 1) in pixel coordinates.
         """
         xunit, yunit = self.wcs.world_axis_units
         x0, y0 = self.wcs.pixel_to_world_values((0, ), (0, ))
