@@ -127,6 +127,13 @@ using:
 downsample using:
 
 .. plot::
+   :context:
+   :nofigs:
+
+   import warnings
+   warnings.filterwarnings('ignore', message='All-NaN slice encountered')
+
+.. plot::
    :include-source:
    :context:
    :nofigs:
@@ -205,6 +212,13 @@ sigma-clipped median value.
    example_data = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
    kepler = TimeSeries.read(example_data, format='kepler.fits')
    kepler_folded = kepler.fold(period=2.2 * u.day, epoch_time='2009-05-02T20:53:40')
+
+.. plot::
+   :context:
+   :nofigs:
+
+   import warnings
+   warnings.filterwarnings('ignore', message='Input data contains invalid values')
 
 .. plot::
    :include-source:

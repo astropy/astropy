@@ -29,6 +29,10 @@ import astropy.units as u
 import astropy.coordinates as coord
 
 ################################################################################
+# Use the latest convention for the Galactocentric coordinates
+coord.galactocentric_frame_defaults.set('latest')
+
+################################################################################
 # For this example, let's work with the coordinates and barycentric radial
 # velocity of the star HD 155967, as obtained from
 # `Simbad <http://simbad.harvard.edu/simbad/>`_:

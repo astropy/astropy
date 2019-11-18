@@ -260,6 +260,9 @@ the data to determine the baseline flux::
    :context:
    :nofigs:
 
+   import warnings
+   warnings.filterwarnings('ignore', message='Input data contains invalid values')
+
    from astropy.stats import sigma_clipped_stats
    mean, median, stddev = sigma_clipped_stats(ts_folded['sap_flux'])
    ts_folded['sap_flux_norm'] = ts_folded['sap_flux'] / median
@@ -296,9 +299,13 @@ time - this returns a |BinnedTimeSeries|::
      1.0577883629517035             2592.0 ... 0.9999105930328369
      1.0877883629517036 2592.0000000000095 ... 0.9998687505722046
 
+
 .. plot::
    :context:
    :nofigs:
+
+   import warnings
+   warnings.filterwarnings('ignore', message='Mean of empty slice')
 
    from astropy.timeseries import aggregate_downsample
    ts_binned = aggregate_downsample(ts_folded, time_bin_size=0.03 * u.day)
