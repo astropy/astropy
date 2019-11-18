@@ -113,3 +113,57 @@ def test_create_spectral_coord_observer_target(observer, target):
 
 
 # SCIENCE USE CASE TESTS
+
+def test_spectral_coord_jupiter():
+    """
+    Checks that jupiter yields an RV consistent with the solar system
+    """
+    obstime = time.Time('2018-12-13 9:00')
+    obs = EarthLocation.of_site('greenwich').get_gcrs(obstime)  # always built-in, no download required
+
+    # jupiter = get_body('jupiter', obstime)  # not supported by astropy yet, but this is the eventual goal, which should return:
+    pos, vel = get_body_barycentric_posvel('jupiter', obstime)
+    jupiter = SkyCoord(pos.with_differentials(CartesianDifferential(vel.xyz)), obstime=obstime)
+
+    spc = SpectralCoord([100, 200, 300] * u.nm, observer=obs, target=jupiter)
+
+    # "magic number" of 45 is actually  ~43 + a bit extra, because the
+    # maximum possible speed should be the earth-jupiter relative velocity
+    assert np.abs(spc.radial_velocity) < (45*u.km/u.s)
+
+
+def test_spectral_coord_alphacen():
+    """
+    Checks that a nearby star yields a reasonable RV
+    """
+    obstime = time.Time('2018-12-13 9:00')
+    obs = EarthLocation.of_site('greenwich').get_gcrs(obstime)  # always built-in, no download required
+
+    #acen = SkyCoord.from_name('alpha cen')  # coordinates are from here, but hard-coded below so no download required
+    acen = SkyCoord(ra=219.90085*u.deg, dec=-60.83562*u.deg, frame='icrs',
+                    distance=4.37*u.lightyear, radial_velocity=-18.*u.km/u.s)
+
+    spc = SpectralCoord([100, 200, 300] * u.nm, observer=obs, target=acen)
+
+    # "magic number" of 50 is actually  ~18 + 30 + a bit extra, because the
+    # maximum possible speed should be the star + earth + earth's surface
+    assert np.abs(spc.radial_velocity) < (50*u.km/u.s)
+
+
+def test_spectral_coord_m31():
+    """
+    Checks that a nearby star yields a reasonable RV
+    """
+    obstime = time.Time('2018-12-13 9:00')
+    obs = EarthLocation.of_site('greenwich').get_gcrs(obstime)  # always built-in, no download required
+
+    #acen = SkyCoord.from_name('alpha cen')  # coordinates are from here, but hard-coded below so no download required
+    m31 = SkyCoord(ra=10.6847*u.deg, dec=41.269*u.deg,
+                   distance=710*u.kpc, radial_velocity=-300*u.km/u.s)
+
+    spc = SpectralCoord([100, 200, 300] * u.nm, observer=obs, target=acen)
+
+    # "magic number"  is actually  ~300 + 30 + a bit extra km/s, because the
+    # maximum possible speed should be M31 + earth + earth's surface.  Then
+    # transform to an approximate redshift bound
+    assert np.abs(spc.redshift) < 0.00112
