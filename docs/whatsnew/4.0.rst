@@ -341,7 +341,7 @@ of reworking how parameters and compound models work.
   (if copies are desired, an explicit copy() should be used in the compound
   model expression).
 
-There are other, more minor, changes to the API that are detailed in :ref:<changes_for_4>
+There are other, more minor, changes to the API that are detailed in :ref:`changes_for_4`
 
 * ``inputs`` and ``outputs`` were deprecated as class variables and are instance variables,
   while ``n_inputs`` and ``n_outputs`` are now class variables. As a result ``inputs`` and
