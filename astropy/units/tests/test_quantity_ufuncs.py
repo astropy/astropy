@@ -1,6 +1,7 @@
 # The purpose of these tests are to ensure that calling ufuncs with quantities
 # returns quantities with the right units, or raises exceptions.
 
+import sys
 import warnings
 from collections import namedtuple
 
@@ -12,9 +13,10 @@ from astropy import units as u
 from astropy.units import quantity_helper as qh
 from astropy._erfa import ufunc as erfa_ufunc
 from astropy.tests.helper import raises, catch_warnings
+from astropy.utils.compat.context import nullcontext
 
 try:
-    import scipy  # pylint: disable=W0611
+    import scipy  # pylint: disable=W0611 # noqa
 except ImportError:
     HAS_SCIPY = False
 else:
@@ -711,11 +713,18 @@ class TestComparisonUfuncs:
 
     def test_sign(self):
         q = [1., np.inf, -np.inf, np.nan, -1., 0.] * u.m
-        out = np.sign(q)
-        assert not isinstance(out, u.Quantity)
-        assert out.dtype == q.dtype
-        assert np.all((out == np.sign(q.value)) |
-                      (np.isnan(out) & np.isnan(q.value)))
+
+        # Ignore "invalid value encountered in sign" warning on Windows.
+        if sys.platform.startswith('win'):
+            ctx = np.errstate(invalid='ignore')
+        else:
+            ctx = nullcontext()
+        with ctx:
+            out = np.sign(q)
+            assert not isinstance(out, u.Quantity)
+            assert out.dtype == q.dtype
+            assert np.all((out == np.sign(q.value)) |
+                          (np.isnan(out) & np.isnan(q.value)))
 
 
 class TestInplaceUfuncs:
@@ -912,15 +921,22 @@ class TestInplaceUfuncs:
     def test_sign_inplace(self):
         q = [1., np.inf, -np.inf, np.nan, -1., 0.] * u.m
         check = np.empty(q.shape, q.dtype)
-        np.sign(q.value, out=check)
 
-        result = np.empty(q.shape, q.dtype)
-        out = np.sign(q, out=result)
-        assert out is result
-        assert type(out) is np.ndarray
-        assert out.dtype == q.dtype
-        assert np.all((out == np.sign(q.value)) |
-                      (np.isnan(out) & np.isnan(q.value)))
+        # Ignore "invalid value encountered in sign" warning on Windows.
+        if sys.platform.startswith('win'):
+            ctx = np.errstate(invalid='ignore')
+        else:
+            ctx = nullcontext()
+        with ctx:
+            np.sign(q.value, out=check)
+
+            result = np.empty(q.shape, q.dtype)
+            out = np.sign(q, out=result)
+            assert out is result
+            assert type(out) is np.ndarray
+            assert out.dtype == q.dtype
+            assert np.all((out == np.sign(q.value)) |
+                          (np.isnan(out) & np.isnan(q.value)))
 
 
 @pytest.mark.skipif(not hasattr(np.core.umath, 'clip'),

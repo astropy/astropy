@@ -2,6 +2,7 @@
 
 import io
 import os
+import sys
 import warnings
 from datetime import datetime
 
@@ -15,6 +16,7 @@ from astropy.tests.helper import raises, catch_warnings
 from astropy import wcs
 from astropy.wcs import _wcs  # noqa
 from astropy.wcs.wcs import FITSFixedWarning
+from astropy.utils.compat.context import nullcontext
 from astropy.utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
 from astropy.utils.misc import NumpyRNGContext
@@ -113,6 +115,8 @@ def test_fixes():
             assert 'm/s' in str(item.message)
 
 
+# Ignore "PV2_2 = 0.209028857410973 invalid keyvalue" warning seen on Windows.
+@pytest.mark.filterwarnings(r'ignore:PV2_2')
 def test_outside_sky():
     """
     From github issue #107
@@ -1214,7 +1218,13 @@ NAXIS2  =                 2078 / length of second array dimension
     hasCoord = test_wcs.footprint_contains(SkyCoord(240, 2, unit='deg'))
     assert not hasCoord
 
-    hasCoord = test_wcs.footprint_contains(SkyCoord(24, 2, unit='deg'))
+    # Ignore "invalid value encountered in less" warning on Windows.
+    if sys.platform.startswith('win'):
+        ctx = np.errstate(invalid='ignore')
+    else:
+        ctx = nullcontext()
+    with ctx:
+        hasCoord = test_wcs.footprint_contains(SkyCoord(24, 2, unit='deg'))
     assert not hasCoord
 
 

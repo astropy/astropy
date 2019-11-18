@@ -379,7 +379,7 @@ result is a `numpy.ndarray`; the mask, metadata, etc. are discarded:
 .. doctest-requires:: skimage
 
     >>> from astropy.nddata import block_reduce, block_replicate
-    >>> smaller = block_reduce(ccd, 4)
+    >>> smaller = block_reduce(ccd, 4)  # doctest: +IGNORE_WARNINGS
     >>> smaller
     array(...)
     >>> plt.imshow(smaller, origin='lower')  # doctest: +SKIP

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 from copy import deepcopy
 import numpy as np
 import pytest
@@ -15,7 +14,7 @@ from astropy.coordinates import representation as r
 from astropy.coordinates.representation import REPRESENTATION_CLASSES
 from astropy.units import allclose
 
-from .test_representation import unitphysics  # this fixture is used below
+from .test_representation import unitphysics  # this fixture is used below # noqa
 
 
 def setup_function(func):
@@ -1188,10 +1187,6 @@ def test_galactocentric_default_warning(reset_galactocentric_defaults):
     from astropy.coordinates import (Galactocentric,
                                      galactocentric_frame_defaults)
 
-    # Note: this is necessary because the doctests may alter the state of the
-    # class globally and simultaneously when the tests are run in parallel
-    # reset_galactocentric_defaults()
-
     # Make sure a warning is thrown if the frame is created with no args
     with pytest.warns(AstropyDeprecationWarning,
                       match=r"In v4\.1 and later versions"):
@@ -1211,9 +1206,7 @@ def test_galactocentric_references(reset_galactocentric_defaults):
     # references in the "scientific paper"-sense
 
     from astropy.coordinates import (Galactocentric,
-                                     galactocentric_frame_defaults,
-                                     BaseCoordinateFrame,
-                                     CartesianDifferential)
+                                     galactocentric_frame_defaults)
 
     with galactocentric_frame_defaults.set('pre-v4.0'):
         galcen_pre40 = Galactocentric()

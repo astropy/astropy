@@ -584,7 +584,7 @@ def test_read_h5py_objects(tmpdir):
         t1.add_column(Column(name='a', data=[1, 2, 3]))
         t1.write(output_file, path='the_table')
 
-    f = h5py.File(test_file)
+    f = h5py.File(test_file, mode='r')
 
     t2 = Table.read(f, path='the_table')
     assert np.all(t2['a'] == [1, 2, 3])
