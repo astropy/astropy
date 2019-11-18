@@ -58,7 +58,7 @@ of WCSAxes.  An example of this usage is:
    :include-source:
    :align: center
 
-    ax = plt.subplot(projection=wcs)
+    ax = plt.subplot(projection=wcs, label='overlays')
 
     ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 

@@ -110,11 +110,11 @@ can also be explicitly controlled by passing arguments to ``time_support``:
 
     time_support(format='mjd', scale='tai')
     plt.figure(figsize=(5,3))
-    plt.plot(Time([58000, 59000, 62000], format='mjd'), [1.2, 3.3, 2.3])
+    plt.plot(Time([50000, 52000, 54000], format='mjd'), [1.2, 3.3, 2.3])
 
 To make sure support for plotting times is turned off afterward, you can use
 `~astropy.visualization.time_support` as a context manager::
 
     with time_support(format='mjd', scale='tai'):
         plt.figure(figsize=(5,3))
-        plt.plot(Time([58000, 59000, 62000], format='mjd'))
+        plt.plot(Time([50000, 52000, 54000], format='mjd'))
