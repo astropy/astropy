@@ -304,7 +304,7 @@ class TestMaskedLongitudeItems(MaskedItemTests, LongitudeSetup):
     pass
 
 
-class TestMaskedArrayOperators(MaskedArraySetup):
+class MaskedOperatorTests(MaskedArraySetup):
     @pytest.mark.parametrize('op', (operator.add, operator.sub))
     def test_add_subtract(self, op):
         mapmb = op(self.ma, self.mb)
@@ -377,11 +377,25 @@ class TestMaskedArrayOperators(MaskedArraySetup):
         assert not result2.mask
 
 
-class TestMaskedQuantityOperators(TestMaskedArrayOperators, QuantitySetup):
+class TestMaskedArrayOperators(MaskedOperatorTests):
+    # Some further tests that use strings, which are not useful for Quantity.
+    @pytest.mark.parametrize('op', (operator.eq, operator.ne))
+    def test_equality_strings(self, op):
+        m1 = Masked(np.array(['a', 'b', 'c']), mask=[True, False, False])
+        m2 = Masked(np.array(['a', 'b', 'd']), mask=[False, False, False])
+        result = op(m1, m2)
+        assert_array_equal(result.unmasked, op(m1.unmasked, m2.unmasked))
+        assert_array_equal(result.mask, m1.mask | m2.mask)
+
+        result2 = op(m1, m2.unmasked)
+        assert_masked_equal(result2, result)
+
+
+class TestMaskedQuantityOperators(MaskedOperatorTests, QuantitySetup):
     pass
 
 
-class TestMaskedLongitudeOperators(TestMaskedArrayOperators, LongitudeSetup):
+class TestMaskedLongitudeOperators(MaskedOperatorTests, LongitudeSetup):
     pass
 
 
