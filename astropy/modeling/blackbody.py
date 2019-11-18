@@ -67,6 +67,10 @@ class BlackBody1D(Fittable1DModel):
     .. plot::
         :include-source:
 
+        # Ignore warnings about deprecation of BlackBody1D
+        import warnings
+        warnings.simplefilter('ignore')
+
         import numpy as np
         import matplotlib.pyplot as plt
 

@@ -12,7 +12,17 @@ The equivalency between the
 is shown in the plot below.
 
 .. plot::
+    :nofigs:
+    :context: reset
+
+    # Ignore deprecation warnings from Blackbody1D
+    import warnings
+    warnings.simplefilter('ignore')
+
+
+.. plot::
     :include-source:
+    :context:
 
     import numpy as np
     import matplotlib.pyplot as plt
@@ -67,7 +77,17 @@ func:`~astropy.modeling.blackbody.blackbody_nu` and
 func:`~astropy.modeling.blackbody.blackbody_lambda` is shown in the plot below.
 
 .. plot::
+    :nofigs:
+    :context: reset
+
+    # Ignore deprecation warnings from Blackbody1D
+    import warnings
+    warnings.simplefilter('ignore')
+
+
+.. plot::
     :include-source:
+    :context:
 
     import numpy as np
     import matplotlib.pyplot as plt

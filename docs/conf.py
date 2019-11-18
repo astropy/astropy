@@ -225,6 +225,12 @@ try:
         'abort_on_example_error': True
     }
 
+    # Filter out backend-related warnings as described in
+    # https://github.com/sphinx-gallery/sphinx-gallery/pull/564
+    warnings.filterwarnings("ignore", category=UserWarning,
+                            message='Matplotlib is currently using agg, which is a'
+                                    ' non-GUI backend, so cannot show the figure.')
+
 except ImportError:
     def setup(app):
         msg = ('The sphinx_gallery extension is not installed, so the '
