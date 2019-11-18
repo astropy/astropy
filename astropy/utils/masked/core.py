@@ -18,6 +18,18 @@ from .function_helpers import (MASKED_SAFE_FUNCTIONS,
 __all__ = ['Masked', 'MaskedNDArray']
 
 
+def _comparison_method(op):
+    def _compare(self, other):
+        other_data, other_mask = self._data_mask(other)
+        result = getattr(super(Masked, self), op)(other_data)
+        if result is NotImplemented:
+            return NotImplemented
+        mask = self.mask | (other_mask if other_mask is not None else False)
+        return self._masked_result(result, mask, None)
+
+    return _compare
+
+
 class Masked(NDArrayShapeMethods):
     """A scalar value or array of values with associated mask.
 
@@ -181,6 +193,13 @@ class Masked(NDArrayShapeMethods):
         if value is not None:
             super().__setitem__(item, value)
         self._mask[item] = mask
+
+    __lt__ = _comparison_method('__lt__')
+    __le__ = _comparison_method('__le__')
+    __eq__ = _comparison_method('__eq__')
+    __ne__ = _comparison_method('__ne__')
+    __gt__ = _comparison_method('__gt__')
+    __ge__ = _comparison_method('__ge__')
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         out = kwargs.pop('out', None)
