@@ -39,29 +39,29 @@ jobs:
 
   image-tests-mpl212:
     docker:
-      - image: astropy/image-tests-py36-mpl212:1.7
+      - image: astropy/image-tests-py36-mpl212:1.8
     steps:
       - checkout
       - run:
           name: Run tests
-          command: python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results"
+          command: python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar"
       - store_artifacts:
           path: results
 
   image-tests-mpl222:
     docker:
-      - image: astropy/image-tests-py36-mpl222:1.7
+      - image: astropy/image-tests-py36-mpl222:1.8
     steps:
       - checkout
       - run:
           name: Run tests
-          command: python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results"
+          command: python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar"
       - store_artifacts:
           path: results
 
   image-tests-mpl302:
     docker:
-      - image: astropy/image-tests-py37-mpl302:1.7
+      - image: astropy/image-tests-py37-mpl302:1.8
     steps:
       - checkout
       - run:
@@ -72,7 +72,7 @@ jobs:
 
   image-tests-mpl310:
     docker:
-      - image: astropy/image-tests-py37-mpl311:1.7
+      - image: astropy/image-tests-py37-mpl311:1.8
     steps:
       - checkout
       - run:

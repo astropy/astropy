@@ -82,6 +82,8 @@ def test_sip2():
         assert_array_almost_equal(world1, world2)
 
 
+# Ignore "PV2_2 = 0.209028857410973 invalid keyvalue" warning seen on Windows.
+@pytest.mark.filterwarnings(r'ignore:PV2_2')
 def test_wcs():
     header = get_pkg_data_contents(
         os.path.join("data", "outside_sky.hdr"), encoding='binary')

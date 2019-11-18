@@ -371,6 +371,7 @@ def test_mad_std_warns():
             assert np.isnan(rslt)
 
 
+@pytest.mark.filterwarnings('ignore:Invalid value encountered in median')
 def test_mad_std_withnan():
     with NumpyRNGContext(12345):
         data = np.empty([102, 102])

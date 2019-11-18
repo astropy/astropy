@@ -1,9 +1,7 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-
 import math
 import os
-import platform
 import re
 import time
 import warnings
@@ -241,8 +239,11 @@ class TestImageFunctions(FitsTestCase):
         with fits.open(self.temp('test.fits')) as hdul:
             assert hdul[0].name == 'XPRIMARY2'
 
-    @pytest.mark.xfail(platform.system() == 'Windows',
-                       reason='https://github.com/astropy/astropy/issues/5797')
+    # This test used to fail on Windows - if it fails again in future, see
+    # https://github.com/astropy/astropy/issues/5797
+    # The warning appears on Windows but cannot be explicitly caught.
+    @pytest.mark.filterwarnings("ignore:Assigning the 'data' attribute is an "
+                                "inherently unsafe operation")
     def test_io_manipulation(self):
         # Get a keyword value.  An extension can be referred by name or by
         # number.  Both extension and keyword names are case insensitive.
@@ -344,7 +345,7 @@ class TestImageFunctions(FitsTestCase):
                 del u[2]
                 u.flush()
 
-                # the write method in HDUList class writes the current HDUList,
+                # The write method in HDUList class writes the current HDUList,
                 # with all changes made up to now, to a new file.  This method
                 # works the same disregard the mode the HDUList was opened
                 # with.

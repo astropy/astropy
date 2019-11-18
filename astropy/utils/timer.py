@@ -100,14 +100,10 @@ class RunTimePredictor:
 
     Examples
     --------
-    >>> import warnings
-
     Set up a predictor for :math:`10^{x}`:
 
-    >>> with warnings.catch_warnings():
-    ...     warnings.simplefilter('ignore')  # Ignore deprecation warning
-    ...     from astropy.utils.timer import RunTimePredictor
-    ...     p = RunTimePredictor(pow, 10)
+    >>> from astropy.utils.timer import RunTimePredictor  # doctest: +IGNORE_WARNINGS
+    >>> p = RunTimePredictor(pow, 10)  # doctest: +IGNORE_WARNINGS
 
     Give it baseline data to use for prediction and
     get the function output values:
