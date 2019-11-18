@@ -132,6 +132,8 @@ astropy.utils
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
+- Added `astropy.visualization.WCSAxes.set_world_aspect()` to set the aspect
+  of WCSAxes in world coordinates. [#9410]
 
 astropy.wcs
 ^^^^^^^^^^^
