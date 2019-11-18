@@ -270,6 +270,12 @@ astropy.uncertainty
   yielding new distributions of the kind expected for the starting distribution,
   and ``to_value`` yielding ``NdarrayDistribution`` instances. [#9429, #9442]
 
+- The ``pdf_*`` properties that were used to calculate statistical properties
+  of ``Distrubution`` instances were changed into methods. This allows one
+  to pass parameters such as ``ddof`` to ``pdf_std`` and ``pdf_var`` (which
+  generally should equal 1 instead of the default 0), and reflects that these
+  are fairly involved calcuations, not just "properties". [#9613]
+
 astropy.units
 ^^^^^^^^^^^^^
 
