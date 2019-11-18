@@ -121,6 +121,7 @@ def test_biweight_location_axis_tuple():
 
 
 @pytest.mark.filterwarnings('ignore:All-NaN slice encountered')
+@pytest.mark.filterwarnings('ignore:Invalid value encountered in median')
 def test_biweight_location_ignore_nan():
     data1d = np.array([1, 3, 5, 500, 2, np.nan])
     data2d = np.array([data1d, data1d])
@@ -137,6 +138,7 @@ def test_biweight_location_ignore_nan():
 
 
 @pytest.mark.filterwarnings('ignore:All-NaN slice encountered')
+@pytest.mark.filterwarnings('ignore:Invalid value encountered in median')
 def test_biweight_location_masked():
     data1d = np.array([1, 3, 5, 500, 2, np.nan])
     data2d = np.array([data1d, data1d])
@@ -249,6 +251,7 @@ def test_biweight_midvariance_axis_3d():
 
 
 @pytest.mark.filterwarnings('ignore:All-NaN slice encountered')
+@pytest.mark.filterwarnings('ignore:Invalid value encountered in median')
 def test_biweight_midvariance_ignore_nan():
     data1d = np.array([1, 3, 5, 500, 2, np.nan])
     data2d = np.array([data1d, data1d])
@@ -266,6 +269,7 @@ def test_biweight_midvariance_ignore_nan():
 
 
 @pytest.mark.filterwarnings('ignore:All-NaN slice encountered')
+@pytest.mark.filterwarnings('ignore:Invalid value encountered in median')
 def test_biweight_midvariance_masked():
     data1d = np.array([1, 3, 5, 500, 2, np.nan])
     data2d = np.array([data1d, data1d])

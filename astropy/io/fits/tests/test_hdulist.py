@@ -3,7 +3,6 @@
 import glob
 import io
 import os
-import platform
 import sys
 import copy
 import subprocess
@@ -620,8 +619,11 @@ class TestHDUListFunctions(FitsTestCase):
         with fits.open(self.temp('temp.fits')) as hdul:
             assert (hdul[0].data == data).all()
 
-    @pytest.mark.xfail(platform.system() == 'Windows',
-                       reason='https://github.com/astropy/astropy/issues/5797')
+    # This test used to fail on Windows - if it fails again in future, see
+    # https://github.com/astropy/astropy/issues/5797
+    # The warning appears on Windows but cannot be explicitly caught.
+    @pytest.mark.filterwarnings("ignore:Assigning the 'data' attribute is an "
+                                "inherently unsafe operation")
     def test_update_resized_header(self):
         """
         Test saving updates to a file where the header is one block smaller

@@ -2,14 +2,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 try:
-    import h5py  # pylint: disable=W0611
+    import h5py  # pylint: disable=W0611 # noqa
 except ImportError:
     HAS_H5PY = False
 else:
     HAS_H5PY = True
 
 try:
-    import yaml  # pylint: disable=W0611
+    import yaml  # pylint: disable=W0611 # noqa
     HAS_YAML = True
 except ImportError:
     HAS_YAML = False
@@ -154,8 +154,15 @@ def test_io_time_write_fits_standard(tmpdir, table_types):
     filename = str(tmpdir.join('table-tmp'))
 
     # Show that FITS format succeeds
-    t.write(filename, format='fits', overwrite=True)
-    tm = table_types.read(filename, format='fits', astropy_native=True)
+    with pytest.warns(
+            AstropyUserWarning,
+            match='Time Column "btai" has no specified location, '
+            'but global Time Position is present'):
+        t.write(filename, format='fits', overwrite=True)
+    with pytest.warns(
+            AstropyUserWarning,
+            match='Time column reference position "TRPOSn" is not specified'):
+        tm = table_types.read(filename, format='fits', astropy_native=True)
 
     for scale in time.STANDARD_TIME_SCALES:
         for ab in ('a', 'b'):
