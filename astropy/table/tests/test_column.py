@@ -328,6 +328,17 @@ class TestColumn():
         c1 = c.insert(0, ['c', 'def'])
         assert np.all(c1 == ['c', 'def', 'a', 'b'])
 
+    def test_insert_string_masked_values(self):
+        c = table.MaskedColumn(['a', 'b'])
+        c1 = c.insert(0, np.ma.masked)
+        assert np.all(c1 == ['', 'a', 'b'])
+        assert np.all(c1.mask == [True, False, False])
+        assert c1.dtype == 'U1'
+        c2 = c.insert(1, np.ma.MaskedArray(['ccc', 'dd'], mask=[True, False]))
+        assert np.all(c2 == ['a', '', 'dd', 'b'])
+        assert np.all(c2.mask == [False, True, False, False])
+        assert c2.dtype == 'U2'
+
     def test_insert_string_type_error(self, Column):
         c = Column([1, 2])
         with pytest.raises(ValueError, match='invalid literal for int'):
