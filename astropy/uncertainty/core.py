@@ -124,48 +124,74 @@ class Distribution:
         """
         return self.dtype['samples'].shape[0]
 
-    @property
-    def pdf_mean(self):
+    def pdf_mean(self, dtype=None, out=None):
         """
         The mean of this distribution.
-        """
-        return self.distribution.mean(axis=-1)
 
-    @property
-    def pdf_std(self):
+        Arguments are as for `numpy.mean`.
+        """
+        return self.distribution.mean(axis=-1, dtype=dtype, out=out)
+
+    def pdf_std(self, dtype=None, out=None, ddof=0):
         """
         The standard deviation of this distribution.
-        """
-        return self.distribution.std(axis=-1)
 
-    @property
-    def pdf_var(self):
+        Arguments are as for `numpy.std`.
+        """
+        return self.distribution.std(axis=-1, dtype=dtype, out=out, ddof=ddof)
+
+    def pdf_var(self, dtype=None, out=None, ddof=0):
         """
         The variance of this distribution.
-        """
-        return self.distribution.var(axis=-1)
 
-    @property
-    def pdf_median(self):
+        Arguments are as for `numpy.var`.
+        """
+        return self.distribution.var(axis=-1, dtype=dtype, out=out, ddof=ddof)
+
+    def pdf_median(self, out=None):
         """
         The median of this distribution.
-        """
-        return np.median(self.distribution, axis=-1)
 
-    @property
-    def pdf_mad(self):
+        Parameters
+        ----------
+        out : array, optional
+            Alternative output array in which to place the result. It must
+            have the same shape and buffer length as the expected output,
+            but the type (of the output) will be cast if necessary.
+        """
+        return np.median(self.distribution, axis=-1, out=out)
+
+    def pdf_mad(self, out=None):
         """
         The median absolute deviation of this distribution.
-        """
-        return np.abs(self - self.pdf_median).pdf_median
 
-    @property
-    def pdf_smad(self):
+        Parameters
+        ----------
+        out : array, optional
+            Alternative output array in which to place the result. It must
+            have the same shape and buffer length as the expected output,
+            but the type (of the output) will be cast if necessary.
+        """
+        median = self.pdf_median(out=out)
+        absdiff = np.abs(self - median)
+        return np.median(absdiff.distribution, axis=-1, out=median,
+                         overwrite_input=True)
+
+    def pdf_smad(self, out=None):
         """
         The median absolute deviation of this distribution rescaled to match the
         standard deviation for a normal distribution.
+
+        Parameters
+        ----------
+        out : array, optional
+            Alternative output array in which to place the result. It must
+            have the same shape and buffer length as the expected output,
+            but the type (of the output) will be cast if necessary.
         """
-        return self.pdf_mad * SMAD_SCALE_FACTOR
+        result = self.pdf_mad(out=out)
+        result *= SMAD_SCALE_FACTOR
+        return result
 
     def pdf_percentiles(self, percentile, **kwargs):
         """
