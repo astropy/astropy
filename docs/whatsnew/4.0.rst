@@ -324,7 +324,44 @@ unlikely case it is needed, also be used directly.
 API changes in astropy.modeling
 -------------------------------
 
-.. changes for compound models
+.. changes for compound models::
+
+A number of significant changes have been made to modeling API as a result
+of reworking how parameters and compound models work.
+
+* It is no longer possible to create compound model classes (as opposed
+  to compound model instances).
+
+* Parameters now hold their values directly with the consequence that compound models
+  share the same parameter instances as the constituent model they are constructed
+  from (previously the values were copied and changes to one or the other had no
+  effect on the corresponding model).
+
+* In compound models, the constituent models are references, not copies
+  (if copies are desired, an explicit copy() should be used in the compound
+  model expression).
+
+There are other, more minor, changes to the API that are detailed in :ref:<changes_for_4>
+
+* ``inputs`` and ``outputs`` were deprecated as class variables and are instance variables,
+  while ``n_inputs`` and ``n_outputs`` are now class variables. As a result ``inputs`` and
+  ``outputs`` of a model can be renamed.
+
+* Assigning slices of the model parameter array does not automatically get
+  reflected in parameter values
+
+* Previously it was possible to use arbitrary slices on compound models (which had
+  the possibility of returning submodes with entirely different meanings than they
+  had in the original compound model). Now only a restricted set of slices is permitted.
+
+* Use of “imputed” units is much more restricted. Previously these could end up with
+  unexpected units being assigned.
+
+* Many private methods have been added, changed, or deleted.
+
+A large reorganization has been made of the modeling documentation to make it easier to find relevant topics.
+
+
 
 
 Full change log
