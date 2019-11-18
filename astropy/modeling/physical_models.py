@@ -237,7 +237,6 @@ class Drude1D(Fittable1DModel):
         ax.set_xlabel('x')
         ax.set_ylabel('F(x)')
 
-        ax.legend(loc='best')
         plt.show()
     """
 
