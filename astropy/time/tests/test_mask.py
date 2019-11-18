@@ -149,6 +149,15 @@ def test_masked_input():
     assert t2.masked is True
 
 
+def test_all_masked_input():
+    """Fix for #9612"""
+    # Test with jd=0 and jd=np.nan. Both triggered an exception prior to #9624
+    # due to astropy.utils.exceptions.ErfaError.
+    for val in (0, np.nan):
+        t = Time(np.ma.masked_array([val], mask=[True]), format='jd')
+        assert str(t.iso) == '[--]'
+
+
 def test_serialize_fits_masked(tmpdir):
     tm = Time([1, 2, 3], format='cxcsec')
     tm[1] = np.ma.masked

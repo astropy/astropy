@@ -489,6 +489,7 @@ class Time(ShapedLikeNDArray):
         # with shape broadcastable to jd2.
         if mask is not False:
             mask = np.broadcast_to(mask, self._time.jd2.shape)
+            self._time.jd1[mask] = 2451544.5  # Set to JD for 2000-01-01
             self._time.jd2[mask] = np.nan
 
     def _get_time_fmt(self, val, val2, format, scale,
