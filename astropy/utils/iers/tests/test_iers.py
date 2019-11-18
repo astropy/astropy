@@ -251,7 +251,6 @@ class TestIERS_Auto():
         assert type(t) is iers.IERS_B
 
     @pytest.mark.remote_data
-    @pytest.mark.xfail(reason='See issue 9600')
     def test_simple(self):
 
         with iers.conf.set_temp('iers_auto_url', self.iers_a_url_1):
