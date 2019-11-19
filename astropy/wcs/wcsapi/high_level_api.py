@@ -3,6 +3,7 @@ from collections import defaultdict, OrderedDict
 
 import numpy as np
 
+from astropy.utils import isiterable
 from .utils import deserialize_class
 
 __all__ = ['BaseHighLevelWCS', 'HighLevelWCSMixin']
@@ -214,7 +215,7 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
         # Compute the world coordinate values
         world = self.low_level_wcs.pixel_to_world_values(*pixel_arrays)
 
-        if self.world_n_dim == 1:
+        if self.world_n_dim == 1 and not (isiterable(world) and len(world) == 1):
             world = (world,)
 
         # Cache the classes and components since this may be expensive
