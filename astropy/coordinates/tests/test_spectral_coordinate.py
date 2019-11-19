@@ -16,14 +16,32 @@ from ..spectra.spectral_coordinate import SpectralCoord
 def assert_frame_allclose(frame1, frame2,
                           pos_rtol=1e-7, pos_atol=1 * u.m,
                           vel_rtol=1e-7, vel_atol=1 * u.mm / u.s):
-    # TODO: write a function that checks that:
+    # checks that:
     # - the positions are equal to within some tolerance (the relative tolerance
-    #   should be dimensionless, the absolute tolerance should be a distance)
+    #   should be dimensionless, the absolute tolerance should be a distance).
+    #   note that these are the tolerances *in 3d*
     # - either both or nether frame has velocities, or if one has no velocities
     #   the other one can have zero velocities
     # - if velocities are present, they are equal to some tolerance
     # Ideally this should accept both frames and SkyCoords
-    pass
+    if hasattr(frame1, 'frame'):  # SkyCoord-like
+        frame1 = frame1.frame
+    if hasattr(frame2, 'frame'):  # SkyCoord-like
+        frame2 = frame2.frame
+
+    assert (frame1.differentials and frame2.differentials or
+            (not frame1.differentials and not frame2.differentials))
+
+    frame2_in_1 = frame2.transform_to(frame1)
+
+    assert_quantity_allclose(0, frame1.separation_3d(frame2_in_1), rtol=pos_rtol, atol=pos_atol)
+
+    if frame1.differentials:
+        d1 = frame1.data.represent_as(CartesianRepresentation, CartesianDifferential).differentials['s']
+        d2 = frame2_in_1.data.represent_as(CartesianRepresentation, CartesianDifferential).differentials['s']
+
+        assert_quantity_allclose(0, d1.norm(d2), rtol=pos_rtol, atol=pos_atol)
+
 
 
 def test_create_spectral_coord_orig():
