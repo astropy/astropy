@@ -265,8 +265,9 @@ class SpectralCoord(u.Quantity):
         coordinate frame in that this calculates the radial velocity with
         respect to the *observer*, not the origin of the frame.
         """
-        return np.sum(self._calculate_radial_velocity(
-            self.observer, self.target), axis=0)
+        if self.observer is not None and self.target is not None:
+            return np.sum(self._calculate_radial_velocity(
+                self.observer, self.target), axis=0)
 
     @property
     def redshift(self):
@@ -279,7 +280,8 @@ class SpectralCoord(u.Quantity):
         float
             Redshift of target.
         """
-        return self.radial_velocity.to('', equivalencies=RV_RS_EQUIV)
+        if self.radial_velocity is not None:
+            return self.radial_velocity.to('', equivalencies=RV_RS_EQUIV)
 
     @staticmethod
     def _calculate_radial_velocity(observer, target):
