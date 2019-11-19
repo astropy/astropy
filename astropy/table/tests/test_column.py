@@ -335,9 +335,9 @@ class TestColumn():
         assert np.all(c1.mask == [True, False, False])
         assert c1.dtype == 'U1'
         c2 = c.insert(1, np.ma.MaskedArray(['ccc', 'dd'], mask=[True, False]))
-        assert np.all(c2 == ['a', '', 'dd', 'b'])
+        assert np.all(c2 == ['a', 'ccc', 'dd', 'b'])
         assert np.all(c2.mask == [False, True, False, False])
-        assert c2.dtype == 'U2'
+        assert c2.dtype == 'U3'
 
     def test_insert_string_type_error(self, Column):
         c = Column([1, 2])
