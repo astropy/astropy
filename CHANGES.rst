@@ -543,6 +543,9 @@ astropy.table
 - Added support for sorting tables which contain non-mutable mixin columns (like
   ``SkyCoord``) for which in-place item update is not allowed. [#9549]
 
+- Ensured that inserting ``np.ma.masked`` (or any other value with a mask) into
+  a ``MaskedColumn`` causes a masked entry to be inserted. [#9623]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
