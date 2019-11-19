@@ -94,6 +94,7 @@ PyTabprm*
 PyTabprm_cnew(PyObject* wcsprm, struct tabprm* x) {
   PyTabprm* self;
   self = (PyTabprm*)(&PyTabprmType)->tp_alloc(&PyTabprmType, 0);
+  if (self == NULL) return NULL;
   self->x = x;
   Py_INCREF(wcsprm);
   self->owner = wcsprm;
@@ -124,8 +125,7 @@ PyTabprm_set(
     return NULL;
   }
 
-  Py_INCREF(Py_None);
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
 /*@null@*/ static PyObject*
@@ -139,13 +139,10 @@ PyTabprm_print_contents(
   /* This is not thread-safe, but since we're holding onto the GIL,
      we can assume we won't have thread conflicts */
   wcsprintf_set(NULL);
-
   tabprt(self->x);
-
   printf("%s", wcsprintf_buf());
-
-  Py_INCREF(Py_None);
-  return Py_None;
+  fflush(stdout);
+  Py_RETURN_NONE;
 }
 
 /*@null@*/ static PyObject*
@@ -413,7 +410,7 @@ PyTypeObject PyTabprmType = {
   0,                            /*tp_getattr*/
   0,                            /*tp_setattr*/
   0,                            /*tp_compare*/
-  (reprfunc)PyTabprm___str__,   /*tp_repr*/
+  0,                            /*tp_repr*/
   0,                            /*tp_as_number*/
   0,                            /*tp_as_sequence*/
   0,                            /*tp_as_mapping*/

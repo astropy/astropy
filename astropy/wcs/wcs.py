@@ -103,6 +103,21 @@ if _wcs is not None:
         if key.startswith(('WCSSUB', 'WCSHDR', 'WCSHDO')):
             locals()[key] = val
             __all__.append(key)
+
+    # Set coordinate extraction callback for WCS -TAB:
+    def _load_tab_bintable(hdulist, extnam, extver, extlev, kind, ttype, row, ndim):
+        arr = hdulist[(extnam, extver)].data[ttype][row - 1]
+
+        if arr.ndim != ndim:
+            if kind == 'c' and ndim == 2:
+                arr = arr.reshape((arr.size, 1))
+            else:
+                raise ValueError("Bad TDIM")
+
+        return np.ascontiguousarray(arr, dtype=np.double)
+
+    _wcs.set_wtbarr_fitsio_callback(_load_tab_bintable)
+
 else:
     WCSBase = object
     Wcsprm = object
@@ -417,6 +432,10 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                 header_bytes = header_string
                 header_string = header_string.decode('ascii')
 
+            if not (fobj is None or isinstance(fobj, fits.HDUList)):
+                raise AssertionError("'fobj' must be either None or an "
+                                     "astropy.io.fits.HDUList object.")
+
             try:
                 tmp_header = fits.Header.fromstring(header_string)
                 self._remove_sip_kw(tmp_header)
@@ -425,7 +444,8 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                     tmp_header_bytes = tmp_header_bytes.encode('ascii')
                 tmp_wcsprm = _wcs.Wcsprm(header=tmp_header_bytes, key=key,
                                          relax=relax, keysel=keysel_flags,
-                                         colsel=colsel, warnings=False)
+                                         colsel=colsel, warnings=False,
+                                         hdulist=fobj)
             except _wcs.NoWcsKeywordsFoundError:
                 est_naxis = 0
             else:
@@ -463,7 +483,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
             try:
                 wcsprm = _wcs.Wcsprm(header=header_bytes, key=key,
                                      relax=relax, keysel=keysel_flags,
-                                     colsel=colsel)
+                                     colsel=colsel, hdulist=fobj)
             except _wcs.NoWcsKeywordsFoundError:
                 # The header may have SIP or distortions, but no core
                 # WCS.  That isn't an error -- we want a "default"
@@ -471,7 +491,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                 if colsel is None:
                     wcsprm = _wcs.Wcsprm(header=None, key=key,
                                          relax=relax, keysel=keysel_flags,
-                                         colsel=colsel)
+                                         colsel=colsel, hdulist=fobj)
                 else:
                     raise
 
