@@ -142,7 +142,7 @@ def _expand_string_array_for_values(arr, values):
     arr_expanded : np.ndarray
 
     """
-    if arr.dtype.kind in ('U', 'S'):
+    if arr.dtype.kind in ('U', 'S') and values is not np.ma.masked:
         # Find the length of the longest string in the new values.
         values_str_len = np.char.str_len(values).max()
 
@@ -1041,9 +1041,9 @@ class Column(BaseColumn):
             Object that defines the index or indices before which ``values`` is
             inserted.
         values : array_like
-            Value(s) to insert.  If the type of ``values`` is different
-            from that of quantity, ``values`` is converted to the matching type.
-            ``values`` should be shaped so that it can be broadcast appropriately
+            Value(s) to insert.  If the type of ``values`` is different from
+            that of the column, ``values`` is converted to the matching type.
+            ``values`` should be shaped so that it can be broadcast appropriately.
         axis : int, optional
             Axis along which to insert ``values``.  If ``axis`` is None then
             the column array is flattened before insertion.  Default is 0,
@@ -1349,11 +1349,12 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             Object that defines the index or indices before which ``values`` is
             inserted.
         values : array_like
-            Value(s) to insert.  If the type of ``values`` is different
-            from that of quantity, ``values`` is converted to the matching type.
-            ``values`` should be shaped so that it can be broadcast appropriately
+            Value(s) to insert.  If the type of ``values`` is different from
+            that of the column, ``values`` is converted to the matching type.
+            ``values`` should be shaped so that it can be broadcast appropriately.
         mask : boolean array_like
-            Mask value(s) to insert.  If not supplied then False is used.
+            Mask value(s) to insert.  If not supplied, and values does not have
+            a mask either, then False is used.
         axis : int, optional
             Axis along which to insert ``values``.  If ``axis`` is None then
             the column array is flattened before insertion.  Default is 0,
@@ -1378,10 +1379,13 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             new_data = np.insert(self_ma.data, obj, values, axis=axis)
 
         if mask is None:
-            if self.dtype.kind == 'O':
-                mask = False
-            else:
-                mask = np.zeros(np.shape(values), dtype=bool)
+            mask = getattr(values, 'mask', np.ma.nomask)
+            if mask is np.ma.nomask:
+                if self.dtype.kind == 'O':
+                    mask = False
+                else:
+                    mask = np.zeros(np.shape(values), dtype=bool)
+
         new_mask = np.insert(self_ma.mask, obj, mask, axis=axis)
         new_ma = np.ma.array(new_data, mask=new_mask, copy=False)
 
