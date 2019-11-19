@@ -142,14 +142,8 @@ def _expand_string_array_for_values(arr, values):
     arr_expanded : np.ndarray
 
     """
-    if arr.dtype.kind in ('U', 'S'):
-        # Find the length of the longest string in the new values,
-        # ignoring any masked values.
-        if hasattr(values, 'mask'):
-            if values is np.ma.masked:
-                values = ''
-            else:
-                values = values.filled('')
+    if arr.dtype.kind in ('U', 'S') and values is not np.ma.masked:
+        # Find the length of the longest string in the new values.
         values_str_len = np.char.str_len(values).max()
 
         # Determine character repeat count of arr.dtype.  Returns a positive
