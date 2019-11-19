@@ -247,8 +247,8 @@ def test_shift_to_rest_star_withobserver():
     # now make sure the change the barycentric shift did is comparable to the
     # offset rv_correction produces
     barytarg = SkyCoord(barycentric_spc.target)
-    vcorr = barytarg.rv_correction(kind='barycentric', obstime=obstime,
-                                   location=eloc)
+    vcorr = barytarg.radial_velocity_correction(kind='barycentric',
+                                                obstime=obstime, location=eloc)
 
     drv = baryrest_spc.radial_velocity - observed_spc.radial_velocity
 
