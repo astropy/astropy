@@ -91,6 +91,7 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+- Implemented support for the ``-TAB`` algorithm (WCS Paper III). [#9641]
 
 API Changes
 -----------

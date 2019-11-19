@@ -1,6 +1,5 @@
 /*
  Author: Michael Droettboom
-         mdroe@stsci.edu
 */
 
 #ifndef __WCSLIB_WRAP_H__
@@ -22,5 +21,9 @@ PyWcsprm_find_all_wcs(
     PyObject* self,
     PyObject* args,
     PyObject* kwds);
+
+int _update_wtbarr_from_hdulist(PyObject *hdulist, struct wtbarr *wtb);
+
+void _set_wtbarr_callback(PyObject* callback);
 
 #endif

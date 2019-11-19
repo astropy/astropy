@@ -7,7 +7,12 @@ What's New in Astropy 4.1?
 Overview
 ========
 
-Astropy 4.1 is a major release that ...  since
+Astropy 4.1 is a major release that contains bug fixes and new features since
 the 4.0.x series of releases.
 
 In particular, this release includes:
+
+1. Support for the ``-TAB`` algorithm in FITS WCS as described in
+   `WCS Paper III <https://www.atnf.csiro.au/people/mcalabre/WCS/scs.pdf>`__ .
+   In particular, ``astropy.wcs`` will be able to support ``-TAB`` in WCS if
+   already defined in the ``astropy.io.fits.HDUList`` object.
