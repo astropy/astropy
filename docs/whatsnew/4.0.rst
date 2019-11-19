@@ -361,7 +361,18 @@ There are other, more minor, changes to the API that are detailed in :ref:`chang
 
 A large reorganization has been made of the modeling documentation to make it easier to find relevant topics.
 
+API changes in astropy.uncertainty
+----------------------------------
 
+For the experimental :class:`~astropy.uncertainty.Distribution` class, the
+earlier ``pdf_mean``, ``pdf_var``, etc., properties were turned into methods,
+both for consistency with the numpy methods that are used underneath, and to
+allow one to pass on parameters (such as the degrees of freedom ``ddof`` for
+:meth:`~astropy.uncertainty.Distribution.pdf_var`).
+
+While the module remains experimental, and further enhancements and
+refactoring are planned, we do not foresee any further significant changes in
+the API.
 
 
 Full change log
