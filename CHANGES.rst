@@ -775,6 +775,8 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- Fix bug when ``Time`` object is created with only masked elements. [#9624]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
