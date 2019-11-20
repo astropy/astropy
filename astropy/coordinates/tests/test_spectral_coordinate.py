@@ -1,10 +1,10 @@
 import pytest
 
-from astropy.tests.helper import assert_quantity_allclose
+from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
 from astropy.coordinates import (SkyCoord, EarthLocation, ICRS, GCRS, Galactic,
                                  CartesianDifferential, SphericalRepresentation,
                                  RadialDifferential, get_body_barycentric_posvel,
-                                 FK5)
+                                 FK5, CartesianRepresentation)
 from astropy import time
 import numpy as np
 import astropy.units as u
@@ -140,7 +140,8 @@ def test_spectral_coord_jupiter():
     obstime = time.Time('2018-12-13 9:00')
     obs = EarthLocation.of_site('greenwich').get_gcrs(obstime)  # always built-in, no download required
 
-    # jupiter = get_body('jupiter', obstime)  # not supported by astropy yet, but this is the eventual goal, which should return:
+    # jupiter = get_body('jupiter', obstime)  # not supported by astropy yet,
+    # but this is the eventual goal, which should return:
     pos, vel = get_body_barycentric_posvel('jupiter', obstime)
     jupiter = SkyCoord(pos.with_differentials(CartesianDifferential(vel.xyz)), obstime=obstime)
 
@@ -158,7 +159,8 @@ def test_spectral_coord_alphacen():
     obstime = time.Time('2018-12-13 9:00')
     obs = EarthLocation.of_site('greenwich').get_gcrs(obstime)  # always built-in, no download required
 
-    #acen = SkyCoord.from_name('alpha cen')  # coordinates are from here, but hard-coded below so no download required
+    # acen = SkyCoord.from_name('alpha cen')  # coordinates are from here,
+    # but hard-coded below so no download required
     acen = SkyCoord(ra=219.90085*u.deg, dec=-60.83562*u.deg, frame='icrs',
                     distance=4.37*u.lightyear, radial_velocity=-18.*u.km/u.s)
 
@@ -176,11 +178,12 @@ def test_spectral_coord_m31():
     obstime = time.Time('2018-12-13 9:00')
     obs = EarthLocation.of_site('greenwich').get_gcrs(obstime)  # always built-in, no download required
 
-    #acen = SkyCoord.from_name('alpha cen')  # coordinates are from here, but hard-coded below so no download required
+    # acen = SkyCoord.from_name('alpha cen')  # coordinates are from here, but
+    # hard-coded below so no download required
     m31 = SkyCoord(ra=10.6847*u.deg, dec=41.269*u.deg,
                    distance=710*u.kpc, radial_velocity=-300*u.km/u.s)
 
-    spc = SpectralCoord([100, 200, 300] * u.nm, observer=obs, target=acen)
+    spc = SpectralCoord([100, 200, 300] * u.nm, observer=obs, target=m31)
 
     # "magic number"  is actually  ~300 + 30 + a bit extra km/s, because the
     # maximum possible speed should be M31 + earth + earth's surface.  Then
@@ -200,25 +203,24 @@ def test_shift_to_rest_galaxy():
     rest_spc = observed_spc.to_rest()
     # alternatively:
     # rest_spc = observed_spc.with_observer(observed_spec.target)
-    # although then it would have to be clearly documented, or the `to_rest` implemented in Spectrum1D?
+    # although then it would have to be clearly documented, or the `to_rest`
+    # implemented in Spectrum1D?
 
     assert_quantity_allclose(rest_spc, rest_line_wls)
     assert_frame_allclose(rest_spc.observer, rest_spc.target)
 
-    with pytest.raises:
+    with pytest.raises(ValueError):
         # *any* observer shift should fail, since we didn't specify one at the
         # outset
-        rest_spc.with_observer(ICRS())
-
+        rest_spc.with_observer(ICRS(CartesianRepresentation([0,0,0]*u.au)))
 
     # note: it may be an acceptable fallback for the next part to onle work on
     # spectrum1D but not SpectralCoord - the thinking being that the shift to
-    # rest might require dropping the "observer" information from spectralcoord.
+    # rest might require dropping the "observer" information from spectralcoord
     # but maybe not? So including the test here.
 
     roundtrip_obs_spc = rest_spc.to_observed()
     assert_quantity_allclose(roundtrip_obs_spc, rest_line_wls*(z+1))
-
 
 
 def test_shift_to_rest_star_withobserver():
@@ -232,7 +234,8 @@ def test_shift_to_rest_star_withobserver():
                     distance=4.37*u.lightyear)
     # Note that above the rv is missing from the SkyCoord.
     # That's intended, as it will instead be set in the `SpectralCoord`.  But
-    # the SpectralCoord machinery should yield something comparable to test_spectral_coord_alphacen
+    # the SpectralCoord machinery should yield something comparable to test_
+    # spectral_coord_alphacen
 
     observed_spc = SpectralCoord(rest_line_wls*(rv/c + 1),
                                  observer=obs, target=acen, radial_velocity=rv)
@@ -240,9 +243,9 @@ def test_shift_to_rest_star_withobserver():
     rest_spc = observed_spc.to_rest()
     assert_quantity_allclose(rest_spc, rest_line_wls)
 
-    barycentric_spc = observed_spc.with_observer(ICRS())
-    baryrest_spc = observed_spc.to_rest()
-    assert not u.quantity_allclose(baryrest_spc, rest_line_wls)
+    barycentric_spc = observed_spc.with_observer(ICRS(CartesianRepresentation([0,0,0]*u.au)))
+    baryrest_spc = barycentric_spc.to_rest()
+    assert not quantity_allclose(baryrest_spc, rest_line_wls)
 
     # now make sure the change the barycentric shift did is comparable to the
     # offset rv_correction produces

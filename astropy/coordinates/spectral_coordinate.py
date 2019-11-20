@@ -16,8 +16,8 @@ DOPPLER_CONVENTIONS = {
 }
 
 RV_RS_EQUIV = [(u.cm / u.s, u.Unit(''),
-                lambda x: x/c.cgs.value - 1,
-                lambda x: (x + 1) * c.cgs.value)]
+                lambda x: np.sqrt((1 + x/c.cgs.value)/(1 - x/c.cgs.value)) - 1,
+                lambda x: ((x + 1) ** 2 - 1) / ((x + 1) ** 2 + 1) * c.cgs.value)]
 
 __all__ = ['SpectralCoord']
 
@@ -48,8 +48,10 @@ class SpectralCoord(u.Quantity):
     """
     _quantity_class = u.Quantity
 
+    @u.quantity_input(rest='length', radial_velocity='speed')
     def __new__(cls, value, *, unit=None, rest=None, velocity_convention=None,
-                observer=None, target=None, **kwargs):
+                observer=None, target=None, radial_velocity=None,
+                redshift=None, **kwargs):
         obj = super().__new__(cls, value, unit=unit, subok=True, **kwargs)
 
         # The quantity machinery will drop the unit because type(value) !=
@@ -61,12 +63,17 @@ class SpectralCoord(u.Quantity):
         obj.rest = rest
         obj.velocity_convention = velocity_convention
 
-        if not isinstance(observer, (SkyCoord, BaseCoordinateFrame)):
-            raise ValueError("Observer must be a sky coordinate or coordinate"
-                             "frame.")
+        for x in [y for y in [observer, target] if y is not None]:
+            if not isinstance(x, (SkyCoord, BaseCoordinateFrame)):
+                raise ValueError("Observer must be a sky coordinate or "
+                                 "coordinate frame.")
 
         obj._observer = observer
         obj.target = target
+
+        # TODO: I'm not sure what this radial velocity represents
+        obj._radial_velocity = radial_velocity
+        obj._redshift = redshift
 
         return obj
 
@@ -80,6 +87,9 @@ class SpectralCoord(u.Quantity):
 
         self._observer = getattr(obj, '_observer', None)
         self.target = getattr(obj, 'target', None)
+
+        self._radial_velocity = getattr(obj, '_radial_velocity', None)
+        self._redshift = getattr(obj, '_redshift', None)
 
     def __quantity_subclass__(self, unit):
         """
@@ -148,8 +158,19 @@ class SpectralCoord(u.Quantity):
             'rest': self.rest,
             'velocity_convention': self.velocity_convention,
             'observer': self.observer,
-            'target': self.target
+            'target': self.target,
+            'radial_velocity': self._radial_velocity,
+            'redshift': self._redshift
         }
+
+        # If the new kwargs dict contains a value argument and it is a
+        #  quantity, use the unit information provided by that quantity.
+        # TODO: if a new quantity value is provided *and* the unit is set,
+        #  do we implicitly try and convert to the provided unit?
+        new_value = kwargs.get('value')
+
+        if isinstance(new_value, u.Quantity):
+            kwargs['unit'] = None
 
         default_kwargs.update(kwargs)
 
@@ -265,6 +286,13 @@ class SpectralCoord(u.Quantity):
         coordinate frame in that this calculates the radial velocity with
         respect to the *observer*, not the origin of the frame.
         """
+        if self._radial_velocity is not None:
+            return self._radial_velocity
+
+        if self._redshift is not None:
+            return u.Quantity(self._redshift).to('km/s',
+                                                 equivalencies=RV_RS_EQUIV)
+
         if self.observer is not None and self.target is not None:
             return np.sum(self._calculate_radial_velocity(
                 self.observer, self.target), axis=0)
@@ -280,6 +308,9 @@ class SpectralCoord(u.Quantity):
         float
             Redshift of target.
         """
+        if self._redshift is not None:
+            return self._redshift
+
         if self.radial_velocity is not None:
             return self.radial_velocity.to('', equivalencies=RV_RS_EQUIV)
 
@@ -339,6 +370,10 @@ class SpectralCoord(u.Quantity):
             The new coordinate object representing the spectral data
             transformed to the new observer frame.
         """
+        if self.observer is None:
+            raise ValueError("No observer has been set, cannot transform "
+                             "observer frame.")
+
         if target is not None:
             self.target = target
 
@@ -353,22 +388,39 @@ class SpectralCoord(u.Quantity):
         fin_obs_vel = self._calculate_radial_velocity(new_obs,
                                                       self.target)
 
-        # Calculate the velocity shift between the two vectors
-        obs_vel_shift = init_obs_vel - fin_obs_vel
-
         # Project the velocity shift vector onto the the line-on-sight vector
         # between the target and the new observation frame.
-        delta_vel = np.dot(init_obs_vel, fin_obs_vel) / np.linalg.norm(
+        init_proj_vel = np.dot(init_obs_vel, fin_obs_vel) / np.linalg.norm(
             fin_obs_vel) * init_obs_vel.unit
+
+        # Calculate the velocity shift between the two vectors
+        delta_vel = fin_obs_vel - init_proj_vel
+        delta_vel = np.sum(delta_vel, axis=0)
 
         # Store the new frame as the current observer frame
         self._observer = new_obs
 
         # Apply the velocity shift to the stored spectral data
         new_data = (self.to('Hz') * (1 + delta_vel / c.cgs)).to(self.unit)
-        new_coord = self._copy(value=new_data, unit=new_data.unit)
+        new_coord = self._copy(value=new_data)
 
         return new_coord
+
+    def to_rest(self):
+        """
+        Transforms the spectral axis to the rest frame.
+        """
+        rest_frame_value = self / (1 + self.redshift)
+
+        return self._copy(value=rest_frame_value)
+
+    def to_observed(self):
+        """
+        Transforms the spectral axis to the observed frame.
+        """
+        rest_frame_value = self * (1 + self.redshift)
+
+        return self._copy(value=rest_frame_value)
 
     def to(self, *args, rest=None, velocity_convention='relativistic',
            **kwargs):
