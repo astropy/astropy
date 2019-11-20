@@ -39,6 +39,8 @@ typedef size_t omp_iter_var;
 void PyInit__convolve(void);
 #endif
 
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#define NO_IMPORT_ARRAY
 #include "numpy/ndarrayobject.h"
 #define DTYPE npy_float64
 
