@@ -122,8 +122,3 @@ Simple 2-D model fitting
       plt.imshow(z - p(x, y), origin='lower', interpolation='nearest', vmin=-1e4,
                  vmax=5e4)
       plt.title("Residual")
-
-  The fitting framework includes many useful features that are not demonstrated here, such as
-  weighting of datapoints, fixing or linking parameters, and placing lower or
-  upper limits on parameters. For more information on these, take a look at the
-  :doc:`fitting` documentation.
