@@ -5,6 +5,7 @@ import operator
 
 import pytest
 import numpy as np
+from numpy.testing import assert_array_equal
 
 from astropy.tests.helper import assert_follows_unicode_guidelines, catch_warnings
 from astropy import table
@@ -898,3 +899,11 @@ def test_unicode_sandwich_masked_compare():
 
     # Note: comparisons <, >, >=, <= fail to return a masked array entirely,
     # see https://github.com/numpy/numpy/issues/10092.
+
+
+def test_structured_masked_column_roundtrip():
+    mc = table.MaskedColumn([(1., 2.), (3., 4.)],
+                            mask=[(False, False), (False, False)], dtype='f8,f8')
+    assert len(mc.dtype.fields) == 2
+    mc2 = table.MaskedColumn(mc)
+    assert_array_equal(mc2, mc)

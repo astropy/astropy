@@ -1262,7 +1262,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         if fill_value is None and getattr(data, 'fill_value', None) is not None:
             # Coerce the fill_value to the correct type since `data` may be a
             # different dtype than self.
-            fill_value = self.dtype.type(data.fill_value)
+            fill_value = np.array(data.fill_value, self.dtype)[()]
         self.fill_value = fill_value
 
         self.parent_table = None
