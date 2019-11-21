@@ -1069,6 +1069,9 @@ astropy.nddata
 - ``Cutout2D`` will now get the WCS from its first argument if that argument
   has with WCS property. [#9492]
 
+- ``overlap_slices`` will now raise a ``ValueError`` if the input
+  position contains any non-finite values (e.g. NaN or inf). [#9648]
+
 astropy.samp
 ^^^^^^^^^^^^
 
