@@ -23,6 +23,8 @@ class SetupData:
         self.d = MaskedColumn(name='d', data=[7, 8, 7], mask=self.d_mask)
         self.t = Table([self.a, self.b], masked=True)
         self.ca = Column(name='ca', data=[1, 2, 3])
+        self.sc = MaskedColumn(name='sc', data=[(1, 1.), (2, 2.), (3, 3.)],
+                               dtype='i8,f8', fill_value=(0, -1.))
 
 
 class TestPprint(SetupData):
@@ -121,6 +123,15 @@ class TestFillValue(SetupData):
         assert np.all(c.filled() == ['ABCD', 'yyyy'])
         assert np.all(c.filled('XY') == ['XY', 'yyyy'])
 
+    def test_set_get_fill_value_for_structured_column(self):
+        assert self.sc.fill_value == np.array((0, -1.), self.sc.dtype)
+        sc = self.sc.copy()
+        assert sc.fill_value.item() == (0, -1.)
+        sc.fill_value = (-1, np.inf)
+        assert sc.fill_value == np.array((-1, np.inf), self.sc.dtype)
+        sc2 = MaskedColumn(sc, fill_value=(-2, -np.inf))
+        assert sc2.fill_value == np.array((-2, -np.inf), sc2.dtype)
+
     def test_table_column_mask_not_ref(self):
         """Table column mask is not ref of original column mask"""
         self.b.fill_value = -999
@@ -173,6 +184,38 @@ class TestMaskedColumnInit(SetupData):
 
 class TestTableInit(SetupData):
     """Initializing a table"""
+    def test_initialization_with_all_columns(self):
+        t1 = Table([self.a, self.b, self.c, self.d, self.ca, self.sc])
+        assert t1.colnames == ['a', 'b', 'c', 'd', 'ca', 'sc']
+        # Check we get the same result by passing in as list of dict.
+        # (Regression test for error uncovered by scintillometry package.)
+        lofd = [{k: row[k] for k in t1.colnames} for row in t1]
+        t2 = Table(lofd)
+        for k in t1.colnames:
+            assert np.all(t1[k] == t2[k]) in (True, np.ma.masked)
+            assert np.all(getattr(t1[k], 'mask', False) ==
+                          getattr(t2[k], 'mask', False))
+
+    # Filter warnings since these are set to lead to exceptions,
+    # which changes behaviour in Table._convert_data_to_col
+    # (causing conversion of columns with masked elements to object dtype).
+    @pytest.mark.filterwarnings('ignore:.*converting a masked element.*')
+    def test_initialization_with_all_columns(self):
+        t1 = Table([self.a, self.b, self.c, self.d, self.ca, self.sc])
+        assert t1.colnames == ['a', 'b', 'c', 'd', 'ca', 'sc']
+        # Check we get the same result by passing in as list of dict.
+        # (Regression test for error uncovered by scintillometry package.)
+        lofd = [{k: row[k] for k in t1.colnames} for row in t1]
+        t2 = Table(lofd)
+        for k in t1.colnames:
+            # TODO: the final dtype should not depend on the presence of
+            # masked elements, but unfortunately np.ma.MaskedArray does take
+            # it into account.
+            if k not in ('b', 'd'):
+                assert t1[k].dtype == t2[k].dtype
+            assert np.all(t1[k] == t2[k]) in (True, np.ma.masked)
+            assert np.all(getattr(t1[k], 'mask', False) ==
+                          getattr(t2[k], 'mask', False))
 
     def test_mask_false_if_input_mask_not_true(self):
         """Masking is always False if initial masked arg is not True"""
