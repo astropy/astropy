@@ -124,6 +124,9 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
     coord_meta['default_axislabel_position'] = [''] * wcs.world_n_dim
     coord_meta['default_ticklabel_position'] = [''] * wcs.world_n_dim
     coord_meta['default_ticks_position'] = [''] * wcs.world_n_dim
+    # If the world axis has a name use it, else display the world axis physical type.
+    fallback_label = name[0] if isinstance(name, list) else name
+    coord_meta['default_axis_label'] = [wcs.world_axis_names[i] or fallback_label for i, name in enumerate(coord_meta['name'])]
 
     transform_wcs, invert_xy, world_map = apply_slices(wcs, slices)
 
