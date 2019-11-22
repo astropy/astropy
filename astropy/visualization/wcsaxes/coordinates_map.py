@@ -73,7 +73,7 @@ class CoordinatesMap:
             if 'format_unit' in coord_meta:
                 format_unit = coord_meta['format_unit'][index]
 
-            default_label = None
+            default_label = name[0] if isinstance(name, (tuple, list)) else name
             if 'default_axis_label' in coord_meta:
                 default_label = coord_meta['default_axis_label'][index]
 
