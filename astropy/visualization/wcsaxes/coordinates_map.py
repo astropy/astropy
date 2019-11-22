@@ -65,21 +65,22 @@ class CoordinatesMap:
             coord_unit = coord_meta['unit'][index]
             name = coord_meta['name'][index]
 
+            visible = True
             if 'visible' in coord_meta:
                 visible = coord_meta['visible'][index]
-            else:
-                visible = True
 
+            format_unit = None
             if 'format_unit' in coord_meta:
                 format_unit = coord_meta['format_unit'][index]
-            else:
-                format_unit = None
 
+            default_label = None
+            if 'default_axis_label' in coord_meta:
+                default_label = coord_meta['default_axis_label'][index]
+
+            coord_index = None
             if visible:
                 visible_count += 1
                 coord_index = visible_count - 1
-            else:
-                coord_index = None
 
             self._coords.append(CoordinateHelper(parent_axes=axes,
                                                  parent_map=self,
@@ -90,7 +91,7 @@ class CoordinatesMap:
                                                  coord_unit=coord_unit,
                                                  format_unit=format_unit,
                                                  frame=self.frame,
-                                                 name=name))
+                                                 default_label=default_label))
 
             # Set up aliases for coordinates
             if isinstance(name, tuple):

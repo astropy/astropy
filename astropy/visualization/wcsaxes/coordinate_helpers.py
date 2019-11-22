@@ -81,7 +81,7 @@ class CoordinateHelper:
 
     def __init__(self, parent_axes=None, parent_map=None, transform=None,
                  coord_index=None, coord_type='scalar', coord_unit=None,
-                 coord_wrap=None, frame=None, format_unit=None, name=None):
+                 coord_wrap=None, frame=None, format_unit=None, default_label=None):
 
         # Keep a reference to the parent axes and the transform
         self.parent_axes = parent_axes
@@ -91,7 +91,7 @@ class CoordinateHelper:
         self.coord_unit = coord_unit
         self._format_unit = format_unit
         self.frame = frame
-        self.name = name[0] if isinstance(name, (tuple, list)) else name
+        self.default_label = default_label or ''
         self._auto_axislabel = True
         # Disable auto label for elliptical frames as it puts labels in
         # annoying places.
@@ -514,9 +514,9 @@ class CoordinateHelper:
         unit = self.get_format_unit() or self.coord_unit
 
         if not unit or unit is u.one or self.coord_type in ('longitude', 'latitude'):
-            return f"{self.name}"
+            return f"{self.default_label}"
         else:
-            return f"{self.name} [{unit:latex}]"
+            return f"{self.default_label} [{unit:latex}]"
 
     def set_axislabel_position(self, position):
         """
