@@ -16,8 +16,9 @@ from .groups import GroupsHDU
 from .image import PrimaryHDU, ImageHDU
 from astropy.io.fits.file import _File, FILE_MODES
 from astropy.io.fits.header import _pad_length
-from astropy.io.fits.util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
-                    _get_array_mmap, _free_space_check, fileobj_mode, isfile)
+from astropy.io.fits.util import (_is_int, _tmp_name, fileobj_closed,
+                                  ignore_sigint, _get_array_mmap,
+                                  _free_space_check, fileobj_mode, isfile)
 from astropy.io.fits.verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from astropy.utils import indent
 from astropy.utils.exceptions import AstropyUserWarning
