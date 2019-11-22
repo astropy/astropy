@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import gzip
-import bz2
 import io
 import mmap
 import errno
@@ -26,6 +25,13 @@ from astropy.tests.helper import raises, catch_warnings, ignore_warnings
 from astropy.utils.data import conf, get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils import data
+
+try:
+    import bz2  # pylint: disable=W0611
+except ImportError:
+    HAS_BZ2 = False
+else:
+    HAS_BZ2 = True
 
 
 class TestCore(FitsTestCase):
@@ -746,6 +752,7 @@ class TestFileFunctions(FitsTestCase):
             with fits.open(self._make_gzip_file('append.gz'), mode='append') as _:
                 pass
 
+    @pytest.mark.skipif(not HAS_BZ2, reason='Python built without bz2 module')
     def test_open_bzipped(self):
         bzip_file = self._make_bzip2_file()
         with ignore_warnings():
@@ -757,12 +764,14 @@ class TestFileFunctions(FitsTestCase):
                 assert fits_handle._file.compression == 'bzip2'
                 assert len(fits_handle) == 5
 
+    @pytest.mark.skipif(not HAS_BZ2, reason='Python built without bz2 module')
     def test_open_bzipped_from_handle(self):
         with open(self._make_bzip2_file(), 'rb') as handle:
             with fits.open(handle) as fits_handle:
                 assert fits_handle._file.compression == 'bzip2'
                 assert len(fits_handle) == 5
 
+    @pytest.mark.skipif(not HAS_BZ2, reason='Python built without bz2 module')
     def test_detect_bzipped(self):
         """Test detection of a bzip2 file when the extension is not .bz2."""
         with ignore_warnings():
@@ -770,6 +779,7 @@ class TestFileFunctions(FitsTestCase):
                 assert fits_handle._file.compression == 'bzip2'
                 assert len(fits_handle) == 5
 
+    @pytest.mark.skipif(not HAS_BZ2, reason='Python built without bz2 module')
     def test_writeto_bzip2_fileobj(self):
         """Test writing to a bz2.BZ2File file like object"""
         fileobj = bz2.BZ2File(self.temp('test.fits.bz2'), 'w')
@@ -782,6 +792,7 @@ class TestFileFunctions(FitsTestCase):
         with fits.open(self.temp('test.fits.bz2')) as hdul:
             assert hdul[0].header == h.header
 
+    @pytest.mark.skipif(not HAS_BZ2, reason='Python built without bz2 module')
     def test_writeto_bzip2_filename(self):
         """Test writing to a bzip2 file by name"""
         filename = self.temp('testname.fits.bz2')

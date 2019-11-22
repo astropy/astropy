@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 
-import bz2
 import gzip
 import itertools
 import os
@@ -23,6 +22,13 @@ from astropy.io.fits.verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from astropy.utils import indent
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.decorators import deprecated_renamed_argument
+
+try:
+    import bz2
+except ImportError:
+    HAS_BZ2 = False
+else:
+    HAS_BZ2 = True
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
@@ -1279,6 +1285,10 @@ class HDUList(list, _Verify):
             if self._file.compression == 'gzip':
                 new_file = gzip.GzipFile(name, mode='ab+')
             elif self._file.compression == 'bzip2':
+                if not HAS_BZ2:
+                    raise ValueError(
+                        ".bz2 format files are not supported since the Python "
+                        "interpreter does not include the bz2 module")
                 new_file = bz2.BZ2File(name, mode='w')
             else:
                 new_file = name

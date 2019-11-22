@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 
-import bz2
 import gzip
 import errno
 import http.client
@@ -26,6 +25,13 @@ from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
 from astropy.utils.data import download_file, _is_url
 from astropy.utils.decorators import classproperty, deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyUserWarning
+
+try:
+    import bz2
+except ImportError:
+    HAS_BZ2 = False
+else:
+    HAS_BZ2 = True
 
 
 # Maps astropy.io.fits-specific file mode names to the appropriate file
@@ -74,6 +80,13 @@ MEMMAP_MODES = {'readonly': mmap.ACCESS_COPY,
 GZIP_MAGIC = b'\x1f\x8b\x08'
 PKZIP_MAGIC = b'\x50\x4b\x03\x04'
 BZIP2_MAGIC = b'\x42\x5a'
+
+
+def _is_bz2file(fileobj):
+    if HAS_BZ2:
+        return isinstance(fileobj, bz2.BZ2File)
+    else:
+        return False
 
 
 def _normalize_fits_mode(mode):
@@ -188,7 +201,7 @@ class _File:
         elif isinstance(fileobj, zipfile.ZipFile):
             # Reading from zip files is supported but not writing (yet)
             self.compression = 'zip'
-        elif isinstance(fileobj, bz2.BZ2File):
+        elif _is_bz2file(fileobj):
             self.compression = 'bzip2'
 
         if (mode in ('readonly', 'copyonwrite', 'denywrite') or
@@ -462,6 +475,10 @@ class _File:
             if mode in ['update', 'append']:
                 raise OSError("update and append modes are not supported "
                               "with bzip2 files")
+            if not HAS_BZ2:
+                raise ValueError(
+                    ".bz2 format files are not supported since the Python "
+                    "interpreter does not include the bz2 module")
             # bzip2 only supports 'w' and 'r' modes
             bzip2_mode = 'w' if mode == 'ostream' else 'r'
             self._file = bz2.BZ2File(obj_or_name, mode=bzip2_mode)
@@ -561,7 +578,7 @@ class _File:
         # Make certain we're back at the beginning of the file
         # BZ2File does not support seek when the file is open for writing, but
         # when opening a file for write, bz2.BZ2File always truncates anyway.
-        if not (isinstance(self._file, bz2.BZ2File) and mode == 'ostream'):
+        if not (_is_bz2file(self._file) and mode == 'ostream'):
             self._file.seek(0)
 
     @classproperty(lazy=True)
