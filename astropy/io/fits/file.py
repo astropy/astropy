@@ -582,7 +582,7 @@ class _File:
             self._file.seek(0)
 
     @classproperty(lazy=True)
-    def _mmap_available(cls):
+    def _mmap_available(self):
         """Tests that mmap, and specifically mmap.flush works.  This may
         be the case on some uncommon platforms (see
         https://github.com/astropy/astropy/issues/968).
