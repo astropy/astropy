@@ -128,7 +128,7 @@ SAMP connections and opens the appropriate dialog::
 
     h.stop()
 
-If you run the above script, a window will open which says "Example SAMP Tk
+If you run the above script, a window will open that says "Example SAMP Tk
 application." If you then go to the following page, for example:
 
 http://astrojs.github.io/sampjs/examples/pinger.html
