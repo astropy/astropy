@@ -51,6 +51,7 @@ from astropy.utils.data import (
     get_pkg_data_filename,
     import_download_cache,
     get_free_space_in_dir,
+    WrongDBMModuleWarning,
     check_free_space_in_dir,
     _get_download_cache_locs,
     download_files_in_parallel,
@@ -1831,9 +1832,12 @@ def test_wrong_backend_reports_useful_error(b1b2, temp_cache, valid_urls):
             download_file(u, cache=True)
         with shelve_backend(b2):
             for u, c in islice(valid_urls, FEW):
-                with pytest.raises(dbm.error) as e:
-                    download_file(u, cache=True)
-                assert "module" in str(e.value)
-                assert b1 in str(e.value)
+                with pytest.warns(WrongDBMModuleWarning) as w:
+                    f = download_file(u, cache=True)
+                    assert get_file_contents(f) == c
+                for wi in w:
+                    assert "module" in str(wi.message.args[0])
+                    assert b1 in str(wi.message.args[0])
             with pytest.raises(CacheDamaged):
-                check_download_cache()
+                with pytest.warns(WrongDBMModuleWarning):
+                    check_download_cache()
