@@ -1416,12 +1416,27 @@ def clear_download_cache(hashorurl=None, pkgname='astropy'):
         The package name to use to locate the download cache. i.e. for
         ``pkgname='astropy'`` the default cache location is
         ``~/.astropy/cache``.
-
     """
-
     zapped_cache = False
     try:
-        with _cache(pkgname, write=True) as (dldir, url2hash):
+        with contextlib.ExitStack() as stack:
+            try:
+                dldir, url2hash = stack.enter_context(
+                    _cache(pkgname, write=True))
+            except OSError as e:
+                # Problem arose when trying to open the cache
+                msg = 'Not clearing data cache - cache inaccessible due to '
+                estr = '' if len(e.args) < 1 else (': ' + str(e))
+                warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
+                return
+            except RuntimeError:  # Couldn't get lock
+                if hashorurl is None:
+                    # Release lock by blowing away cache
+                    # Need to get locations
+                    dldir, _ = _get_download_cache_locs(pkgname)
+                else:
+                    # Can't do specific deletion without the lock
+                    raise
             if hashorurl is None:
                 if os.path.exists(dldir):
                     shutil.rmtree(dldir)
@@ -1462,7 +1477,7 @@ def clear_download_cache(hashorurl=None, pkgname='astropy'):
             # It's fine for this to fail.
             return
         else:
-            msg = 'Not clearing data cache - cache inaccessible due to '
+            msg = 'Not clearing data from cache - problem arose '
             estr = '' if len(e.args) < 1 else (': ' + str(e))
             warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
             return
@@ -1535,6 +1550,7 @@ def _cache_lock(pkgname, need_write=False):
     lockdir = os.path.join(_get_download_cache_locs(pkgname)[0], 'lock')
     pidfn = os.path.join(lockdir, 'pid')
     assume_cache_readonly = False
+    got_lock = False
     try:
         msg = f"Config file requests {conf.download_cache_lock_attempts} tries"
         for waited in _keep_trying(conf.download_cache_lock_attempts):
@@ -1556,7 +1572,7 @@ def _cache_lock(pkgname, need_write=False):
                 else:
                     break
             else:
-                # Got the lock!
+                got_lock = True
                 # write the pid of this process for informational purposes
                 with open(pidfn, 'w') as f:
                     f.write(str(os.getpid()))
@@ -1577,7 +1593,8 @@ def _cache_lock(pkgname, need_write=False):
         yield
 
     finally:
-        if not assume_cache_readonly and os.path.exists(lockdir):
+        # clear_download_cache might have deleted the lockdir
+        if got_lock and os.path.exists(lockdir):
             if os.path.isdir(lockdir):
                 # if the pid file is present, be sure to remove it
                 if os.path.exists(pidfn):
