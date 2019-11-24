@@ -202,12 +202,12 @@ Prerequisites for Linux
 
 On Linux, using the package manager for your distribution will usually be the
 easiest route to making sure you have the prerequisites to build ``astropy``. In
-order to build from source, you will need the Python development package for
-your Linux distribution.
+order to build from source, you will need the Python and numpy development
+package for your Linux distribution, as well as a number of helper packages.
 
 For Debian/Ubuntu::
 
-    sudo apt-get install python-dev
+    sudo apt-get install python3-dev python3-numpy-dev python3-setuptools cython3 python3-jinja2 python3-pytest-astropy
 
 For Fedora/RHEL::
 
