@@ -161,7 +161,7 @@ class Generic(Base):
             return t
 
         def t_UNIT(t):
-            "%|([YZEPTGMkhdcmu\N{MICRO SIGN}npfazy]?"+r"'((?!\d)\w)+')|((?!\d)\w)+"
+            "%|([YZEPTGMkhdcmu\N{MICRO SIGN}npfazy]?'((?!\\d)\\w)+')|((?!\\d)\\w)+"
             t.value = cls._get_unit(t)
             return t
 
