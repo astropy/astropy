@@ -46,12 +46,6 @@ New models
 .. Exponential1D and Logarithmic1D
 
 
-New functions/modes for combining tables
-----------------------------------------
-
-.. dstack
-.. cartesian join
-
 Consistency of physical constants and units
 -------------------------------------------
 
@@ -309,9 +303,94 @@ New cache import/export utilities
 ---------------------------------
 
 
-Performance improvements for tables
------------------------------------
+Table improvements and changes
+------------------------------
 
+The `astropy.table <https://docs.astropy.org/en/v4.0.x/table/index.html>`_
+sub-package saw a lot of development for the 4.0 release and you are encouraged
+to see the `Full Changelog for 4.0
+<https://docs.astropy.org/en/v4.0.x/changelog.html>`_ for details.  The
+highlights are discussed below.
+
+Performance
+^^^^^^^^^^^
+
+A number of performance improvements were introduced in version 4.0 that can
+substantially improve the speed of ``Table`` manipulations.
+
+A key area was the handling of replacing and adding columns, which is now 2 to
+10 times faster in common cases. The implementation was changed so that the time
+for replacing or adding is independent of the number of existing columns (like a
+``dict``). This means one can now *efficiently* build a table from scratch by
+creating an empty table and then adding columns one at a time.
+
+Another improvement was in the performance of table and column slicing. In
+addition to internal implementation changes, there was a change to reduce
+unnecessary copy and deepcopy of table and column ``meta`` attributes. In
+particular table or column slices will now get a shallow key-only copy of the
+metadata instead of a deep copy.
+
+Table row access speed was improved by a factor of a few, and getting the length
+of a table is now typically 3 to 10 times faster. A new method
+`~astropy.table.Table.iterrows` was added to make row-wise iteration even faster
+for the common case of only needing a subset of the available columns::
+
+  >>> from astropy.table.table_helpers import simple_table
+  >>> t = simple_table(size=2, cols=10)
+  >>> print(t)
+   a   b   c   d   e   f   g   h   i   j
+  --- --- --- --- --- --- --- --- --- ---
+    1 1.0   c   4 4.0   f   7 7.0   i  10
+    2 2.0   d   5 5.0   g   8 8.0   j  11
+  >>> for a, f in t.iterrows('a', 'f'):
+  ...     print(a, f)
+  ...
+  1 f
+  2 g
+
+New methods and options
+^^^^^^^^^^^^^^^^^^^^^^^
+
+A new method `~astropy.table.Table.dstack` was added to allow depth-wise stacking
+of tables to turn a list of similar tables into a single "3-d" table with
+(rows, columns, depth).
+
+A new method to compare tables `~astropy.table.Table.values_equal` was added
+to allow element-wise comparison of a table to either another table, a list of
+values, or a single value. This returns a new ``Table`` with the boolean result
+of the comparisons.
+
+The `~astropy.table.Table.join` operation now supports cartesian joins,
+enumerating all possible combinations of the left and right table rows.
+
+A `~astropy.table.Table` can now be initialized with a with a list of dict where
+the dict keys are not the same in every row. The table column names are the set
+of all keys found in the input data, and any missing key/value pairs are turned
+into missing data in the table.
+
+The `~astropy.table.Table.add_column` and `~astropy.table.Table.add_columns`
+methods can now accept any object(s) which can be converted or broadcasted
+to a valid column for the table.  Previously these methods required a valid
+`~astropy.table.Column` or mixin column object.
+
+API changes
+^^^^^^^^^^^
+
+The handling of masked columns in tables has changed in a way that may impact
+program behavior. Now a :class:`~astropy.table.Table` object with
+``masked=False`` may contain both ``Column`` and ``MaskedColumn`` objects, and
+adding a masked column or row to a table no longer "upgrades" the table and all
+other columns to masked. This means that tables with masked data which are read
+via ``Table.read()`` will now always have ``masked=False``, though specific
+columns will be masked as needed. The same applies to the output of table
+operations like `~astropy.table.Table.join`, `~astropy.table.Table.vstack`, and
+`~astropy.table.Table.hstack`. Two new table properties ``has_masked_columns``
+and ``has_masked_values`` were added. See the `Masking change in astropy 4.0
+<https://docs.astropy.org/en/v4.0.x/table/masking.html#masking-change-in-astropy-4-0>`_
+section for details.
+
+As noted earlier, the handling of table and column ``meta`` attributes has
+changed and one no longer gets deep copies in most cases.
 
 Improved handling of leap second updates
 ----------------------------------------
