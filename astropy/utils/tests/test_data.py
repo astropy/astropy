@@ -25,6 +25,7 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 import py.path
 import pytest
+from _pytest.monkeypatch import MonkeyPatch
 
 from astropy.utils import data
 from astropy.config import paths
@@ -34,6 +35,7 @@ from astropy.utils.data import (
     CacheDamaged,
     conf,
     _cache,
+    _cache_lock,
     compute_hash,
     download_file,
     cache_contents,
@@ -191,23 +193,30 @@ def fake_readonly_cache(tmpdir, valid_urls, monkeypatch):
 
 
 _shelve_possible_backends = ["dbm.dumb", "dbm.ndbm", "dbm.gnu"]
+for n in _shelve_possible_backends:
+    if n not in dbm._modules:
+        try:
+            dbm._modules[n] = __import__(n, fromlist=['open'])
+        except ImportError:
+            pass
 
 
 @contextlib.contextmanager
 def shelve_backend(name):
     """Ensure that shelve has access only to one backend."""
-    defaultmod = dbm._defaultmod
-    modules = dbm._modules
-    try:
+    # WARNING: there is something weird and fragile about this.
+    # Using it can cause weird order-dependent test failures in
+    # the second shelve_backend test if the two meet certain
+    # mysterious criteria.
+    with MonkeyPatch().context() as mp:
         try:
-            dbm._defaultmod = __import__(name, fromlist=['open'])
-        except ImportError:
-            pytest.skip(f"module {name} not available")
-        dbm._modules = {name: dbm._defaultmod}
+            m = dbm._modules[name]
+        except KeyError:
+            pytest.skip(f"Backend {name} not available")
+
+        mp.setattr(dbm, "_defaultmod", m)
+        mp.setattr(dbm, "_modules", {name: m})
         yield
-    finally:
-        dbm._defaultmod = defaultmod
-        dbm._modules = modules
 
 
 @pytest.mark.remote_data(source="astropy")
@@ -287,15 +296,21 @@ def test_download_file_threaded_many(b, temp_cache, valid_urls):
     also does this but coverage tools lose track of which paths are explored.
 
     """
+    u, c = next(valid_urls)
+    # Ensure download cache exists in appropriate format
     with shelve_backend(b):
-        urls = list(islice(valid_urls, N_THREAD_HAMMER))
-        with ThreadPoolExecutor(max_workers=len(urls)) as P:
-            r = list(P.map(lambda u: download_file(u, cache=True),
-                           [u for (u, c) in urls]))
-        check_download_cache()
-        assert len(r) == len(urls)
-        for r, (u, c) in zip(r, urls):
-            assert get_file_contents(r) == c
+        download_file(u, cache=True)
+        clear_download_cache(u)
+
+    # Run test outside of non-thread-safe context manager
+    urls = list(islice(valid_urls, N_THREAD_HAMMER))
+    with ThreadPoolExecutor(max_workers=len(urls)) as P:
+        r = list(P.map(lambda u: download_file(u, cache=True),
+                       [u for (u, c) in urls]))
+    check_download_cache()
+    assert len(r) == len(urls)
+    for r, (u, c) in zip(r, urls):
+        assert get_file_contents(r) == c
 
 
 def test_download_file_threaded_many_partial_success(
@@ -1791,8 +1806,15 @@ def test_cache_with_different_shelve_backends(b, temp_cache, valid_urls):
         uc = list(islice(valid_urls, FEW))
         for u, c in uc:
             download_file(u, cache=True)
+            assert is_url_in_cache(u)
+
+        for u, _ in uc:
+            assert is_url_in_cache(u)
 
         check_download_cache()
+
+        for u, _ in uc:
+            assert is_url_in_cache(u)
 
         for u, c in uc:
             assert get_file_contents(
@@ -1841,3 +1863,30 @@ def test_wrong_backend_reports_useful_error(b1b2, temp_cache, valid_urls):
             with pytest.raises(CacheDamaged):
                 with pytest.warns(WrongDBMModuleWarning):
                     check_download_cache()
+            clear_download_cache()
+        clear_download_cache()
+
+
+# What happens when the lock can't be obtained in a timely manner?
+def test_lock_unavailable_raises_runtimeerror_and_clear_frees_lock(
+        temp_cache, valid_urls):
+    u, c = next(valid_urls)
+    download_file(u, cache=True)
+    with _cache_lock("astropy", need_write=True):
+        with conf.set_temp("download_cache_lock_attempts", 0):
+            with pytest.raises(RuntimeError):
+                with _cache_lock("astropy", need_write=True):
+                    pass
+            # Ensure that the cache doesn't accidentally get unlocked!
+            with pytest.raises(RuntimeError):
+                with _cache_lock("astropy", need_write=True):
+                    pass
+            # Download
+            with pytest.raises(RuntimeError):
+                is_url_in_cache(u), "if locked, act like cache empty"
+            with pytest.raises(RuntimeError):
+                download_file(u, cache=True, sources=[])
+            with pytest.raises(RuntimeError):
+                download_file(u, cache=True)
+            clear_download_cache()  # breaks lock
+            is_url_in_cache(u)
