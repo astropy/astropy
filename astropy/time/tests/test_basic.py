@@ -867,7 +867,10 @@ class TestNumericalSubFormat:
         assert t.to_value('mjd', subfmt='str') == '54321.000000000001'
         assert t.to_value('mjd', 'bytes') == b'54321.000000000001'
         expected_long = np.longdouble(54321.) + np.longdouble(1e-12)
-        assert t.to_value('mjd', subfmt='long') == expected_long
+        # Check we're the same to within the double holding jd2
+        # (which is less precise than longdouble on arm64).
+        assert np.allclose(t.to_value('mjd', subfmt='long'),
+                           expected_long, rtol=0, atol=2.**-52)
         t.out_subfmt = 'str'
         assert t.value == '54321.000000000001'
         assert t.to_value('mjd') == 54321.  # Lost precision!
@@ -875,9 +878,10 @@ class TestNumericalSubFormat:
         assert t.to_value('mjd', subfmt='bytes') == b'54321.000000000001'
         assert t.to_value('mjd', subfmt='float') == 54321.  # Lost precision!
         t.out_subfmt = 'long'
-        assert t.value == expected_long
-        assert t.to_value('mjd', subfmt=None) == expected_long
-        assert t.mjd == expected_long
+        assert np.allclose(t.value, expected_long, rtol=0., atol=2.**-52)
+        assert np.allclose(t.to_value('mjd', subfmt=None), expected_long,
+                           rtol=0., atol=2.**-52)
+        assert np.allclose(t.mjd, expected_long, rtol=0., atol=2.**-52)
         assert t.to_value('mjd', subfmt='str') == '54321.000000000001'
         assert t.to_value('mjd', subfmt='float') == 54321.  # Lost precision!
 
@@ -885,19 +889,22 @@ class TestNumericalSubFormat:
                         reason="long double is the same as float")
     def test_explicit_longdouble(self):
         i = 54321
-        f = 2.**(-np.finfo(np.longdouble).nmant) * 65536
+        # Create a different long double (which will give a different jd2
+        # even when long doubles are more precise than Time, as on arm64).
+        f = max(2.**(-np.finfo(np.longdouble).nmant) * 65536, 2.**(-52))
         mjd_long = np.longdouble(i) + np.longdouble(f)
         assert mjd_long != i, "longdouble failure!"
         t = Time(mjd_long, format='mjd')
         expected = Time(i, f, format='mjd')
-        assert t == expected
+        assert abs(t - expected) <= 20.*u.ps
         t_float = Time(i+f, format='mjd')
         assert t_float == Time(i, format='mjd')
         assert t_float != t
         assert t.value == 54321.  # Lost precision!
-        assert t.to_value('mjd', subfmt='long') == mjd_long
+        assert np.allclose(t.to_value('mjd', subfmt='long'), mjd_long,
+                           rtol=0., atol=2.**-52)
         t2 = Time(mjd_long, format='mjd', out_subfmt='long')
-        assert t2.value == mjd_long
+        assert np.allclose(t2.value, mjd_long, rtol=0., atol=2.**-52)
 
     @pytest.mark.skipif(np.finfo(np.longdouble).eps >= np.finfo(float).eps,
                         reason="long double is the same as float")
@@ -905,13 +912,17 @@ class TestNumericalSubFormat:
     def test_longdouble_for_other_types(self, fmt):
         t_fmt = getattr(Time(58000, format="mjd"), fmt)  # Get regular float
         t_fmt_long = np.longdouble(t_fmt)
-        t_fmt_long2 = t_fmt_long * (np.finfo(np.longdouble).eps * 2 + 1)
+        # Create a different long double (ensuring it will give a different jd2
+        # even when long doubles are more precise than Time, as on arm64).
+        atol = 2.**(-52) * (1. if fmt == 'mjd' else 24.*3600.)
+        t_fmt_long2 = t_fmt_long + max(
+            t_fmt_long * np.finfo(np.longdouble).eps * 2, atol)
         assert t_fmt_long != t_fmt_long2, "longdouble weird!"
         tm = Time(t_fmt_long, format=fmt)
         tm2 = Time(t_fmt_long2, format=fmt)
         assert tm != tm2
         tm_long2 = tm2.to_value(fmt, subfmt='long')
-        assert tm_long2 == t_fmt_long2
+        assert np.allclose(tm_long2, t_fmt_long2, rtol=0., atol=atol)
 
     def test_subformat_input(self):
         s = '54321.01234567890123456789'
