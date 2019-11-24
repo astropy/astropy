@@ -202,7 +202,7 @@ Prerequisites for Linux
 
 On Linux, using the package manager for your distribution will usually be the
 easiest route to making sure you have the prerequisites to build ``astropy``. In
-order to build from source, you will need the Python and numpy development
+order to build from source, you will need the Python and Numpy development
 package for your Linux distribution, as well as a number of helper packages.
 
 For Debian/Ubuntu::
@@ -211,7 +211,14 @@ For Debian/Ubuntu::
 
 For Fedora/RHEL::
 
-    sudo yum install python-devel
+    sudo yum install python3-devel python3-numpy python3-setuptools python3-Cython python3-jinja2 python3-pytest-astropy
+
+.. note:: Building the developer version of ``astropy`` may require
+          newer versions of the above packages than are available in
+          your distribution's repository.  If so, you could either try
+          a more up to date version (such as Debian ``testing``), or
+          install more up-to-date versions using ``pip`` or ``conda``
+          in a virtual environment.
 
 Prerequisites for Mac OS X
 --------------------------
