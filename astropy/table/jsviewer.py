@@ -172,7 +172,7 @@ class JSViewer:
 
 def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
                          table_class="display compact", jskwargs=None,
-                         css=DEFAULT_CSS, htmldict=None):
+                         css=DEFAULT_CSS, htmldict=None, **kwargs):
     if table_id is None:
         table_id = 'table{id}'.format(id=id(table))
 
@@ -194,7 +194,7 @@ def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
 
     if max_lines < len(table):
         table = table[:max_lines]
-    table.write(filename, format='html', htmldict=html_options)
+    table.write(filename, format='html', htmldict=html_options, **kwargs)
 
 
 io_registry.register_writer('jsviewer', Table, write_table_jsviewer)

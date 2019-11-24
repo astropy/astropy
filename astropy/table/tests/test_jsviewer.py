@@ -161,6 +161,37 @@ def test_write_jsviewer_local(tmpdir):
         assert f.read().strip() == ref.strip()
 
 
+
+def test_write_jsviewer_local_passformatskwarg(tmpdir):
+    # separate test that formats get passed to writer
+    t = Table()
+    t['a'] = [1, 2, 3, 4, 5]
+    t['b'] = ['a', 'b', 'c', 'd', 'e']
+    t['a'].unit = 'm'
+
+    tmpfile = tmpdir.join('test.html').strpath
+
+    # crappy formatter but a reasonable test...
+    formatter = lambda x: f'a{x}'
+
+    formats = {'a': formatter}
+    t.write(tmpfile, format='jsviewer', table_id='test',
+            formats=formats,
+            jskwargs={'use_local_files': True})
+    ref = REFERENCE % dict(
+        lines=format_lines(map(formatter, t['a']), t['b']),
+        table_class='display compact',
+        table_id='test',
+        length='50',
+        display_length='10, 25, 50, 100, 500, 1000',
+        datatables_css_url='file://' + join(EXTERN_DIR, 'css', 'jquery.dataTables.css'),
+        datatables_js_url='file://' + join(EXTERN_DIR, 'js', 'jquery.dataTables.min.js'),
+        jquery_url='file://' + join(EXTERN_DIR, 'js', 'jquery-3.1.1.min.js')
+    )
+    with open(tmpfile) as f:
+        assert f.read().strip() == ref.strip()
+
+
 @pytest.mark.skipif('not HAS_IPYTHON')
 def test_show_in_notebook():
     t = Table()
