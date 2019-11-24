@@ -711,20 +711,16 @@ class TestComparisonUfuncs:
         assert out.dtype == bool
         assert np.all(out == ufunc(q.value))
 
+    # Ignore RuntimeWarning raised on Windows and s390.
+    @pytest.mark.filterwarnings('ignore:.*invalid value encountered in sign')
     def test_sign(self):
         q = [1., np.inf, -np.inf, np.nan, -1., 0.] * u.m
 
-        # Ignore "invalid value encountered in sign" warning on Windows.
-        if sys.platform.startswith('win'):
-            ctx = np.errstate(invalid='ignore')
-        else:
-            ctx = nullcontext()
-        with ctx:
-            out = np.sign(q)
-            assert not isinstance(out, u.Quantity)
-            assert out.dtype == q.dtype
-            assert np.all((out == np.sign(q.value)) |
-                          (np.isnan(out) & np.isnan(q.value)))
+        out = np.sign(q)
+        assert not isinstance(out, u.Quantity)
+        assert out.dtype == q.dtype
+        assert np.all((out == np.sign(q.value)) |
+                      (np.isnan(out) & np.isnan(q.value)))
 
 
 class TestInplaceUfuncs:
@@ -918,25 +914,21 @@ class TestInplaceUfuncs:
         assert out.dtype == bool
         assert np.all(out == ufunc(q.value))
 
+    # Ignore RuntimeWarning raised on Windows and s390.
+    @pytest.mark.filterwarnings('ignore:.*invalid value encountered in sign')
     def test_sign_inplace(self):
         q = [1., np.inf, -np.inf, np.nan, -1., 0.] * u.m
         check = np.empty(q.shape, q.dtype)
 
-        # Ignore "invalid value encountered in sign" warning on Windows.
-        if sys.platform.startswith('win'):
-            ctx = np.errstate(invalid='ignore')
-        else:
-            ctx = nullcontext()
-        with ctx:
-            np.sign(q.value, out=check)
+        np.sign(q.value, out=check)
 
-            result = np.empty(q.shape, q.dtype)
-            out = np.sign(q, out=result)
-            assert out is result
-            assert type(out) is np.ndarray
-            assert out.dtype == q.dtype
-            assert np.all((out == np.sign(q.value)) |
-                          (np.isnan(out) & np.isnan(q.value)))
+        result = np.empty(q.shape, q.dtype)
+        out = np.sign(q, out=result)
+        assert out is result
+        assert type(out) is np.ndarray
+        assert out.dtype == q.dtype
+        assert np.all((out == np.sign(q.value)) |
+                      (np.isnan(out) & np.isnan(q.value)))
 
 
 @pytest.mark.skipif(not hasattr(np.core.umath, 'clip'),
