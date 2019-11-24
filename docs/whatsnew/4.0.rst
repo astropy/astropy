@@ -122,13 +122,26 @@ reference list::
 More information can be found in the documentation for the frame class:
 `~astropy.coordinates.Galactocentric`.
 
+Time improvements and changes
+-----------------------------
 
 New ``ymdhms`` Time format
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A new `~astropy.time.Time` format was added to allow convenient input and output
+of times via year, month, day, hour, minute, second values.  For example::
+
+  >>> from astropy.time import Time
+  >>> t = Time({'year': 2015, 'month': 2, 'day': 3,
+  ...           'hour': 12, 'minute': 13, 'second': 14.567})
+  >>> t.iso
+  '2015-02-03 12:13:14.567'
+  >>> t.ymdhms.year
+  2015
 
 
 New context manager for plotting Time values
---------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Matplotlib natively provides a mechanism for plotting dates and times on one
 or both of the axes, as described in
@@ -157,7 +170,7 @@ with times formatted using the :class:`~astropy.time.Time` class:
 For more information, see :ref:`plotting-times`.
 
 Support for parsing high-precision values with Time
----------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For numerical formats, :class:`~astropy.time.Time` can now be instantiated
 from strings, quadruple precision numpy floats (if available on a given
