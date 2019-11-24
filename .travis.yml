@@ -37,7 +37,7 @@ env:
         # TOXARGS are arguments passed to tox, and TOXPOSARGS are arguments
         # that tox passes through to the {posargs} indicator in tox.ini.
         # The latter can be used for example to pass arguments to pytest.
-        - TOXENV='test'
+        - TOXENV=''
         - TOXARGS='-v'
         - TOXPOSARGS=''
 
@@ -163,6 +163,15 @@ matrix:
           stage: Final tests
           env: TOXENV='py38-test'
 
+        # Also regularly try the big-endian s390 architecture, in the
+        # process checking that installing dependencies with apt works.
+        - name: big-endian s390 architecture with apt
+          arch: s390
+          language: c
+          dist: bionic
+          stage: Final tests
+          env: APT_DEPENDENCIES="python3-pip python3-dev python3-venv python3-setuptools cython3 ipython3 python3-jinja2 python3-numpy python3-pytest-astropy python3-pytest-cov python3-pytest-xdist python3-pytest-filter-subpackage python3-objgraph python3-coverage tzdata"
+
     allow_failures:
         - language: python
           python: 3.7
@@ -202,10 +211,24 @@ install:
         git clone git://github.com/astropy/ci-helpers.git;
         source ci-helpers/travis/setup_conda.sh;
       fi
+    # For APT key updates, see https://ftp-master.debian.org/keys.html
+    - if [ -z $TOXENV ]; then
+        curl https://ftp-master.debian.org/keys/archive-key-10.asc | sudo apt-key add -;
+        echo "deb http://ftp.us.debian.org/debian testing main" | sudo tee -a /etc/apt/sources.list;
+        sudo apt-get -qq update;
+        sudo apt-get install -y --no-install-recommends ${APT_DEPENDENCIES};
+      fi
 
 script:
-    - pip install tox
-    - tox $TOXARGS -- $TOXPOSARGS
+    - if [ ! -z $TOXENV ]; then
+        pip install tox;
+        tox $TOXARGS -- $TOXPOSARGS;
+      else
+        python3 -m venv --system-site-packages tests;
+        source tests/bin/activate;
+        pip3 install -e .[test];
+        pytest-3;
+      fi
 
 after_success:
     - if [[ $TOXENV == *-cov ]]; then
