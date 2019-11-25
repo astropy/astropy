@@ -44,7 +44,7 @@ smaller improvements and bug fixes, which are described in the
 .. _whatsnew-4.0-planck2018:
 
 Pre-publication Planck 2018 cosmological parameters
----------------------------------------------------
+===================================================
 
 A pre-publication version of the Planck 2018 cosmological parameters
 has been included based on version 2 of the submitted paper.  This
@@ -59,7 +59,7 @@ will be replaced with a final version when the paper is accepted.
 .. _whatsnew-4.0-constants-units:
 
 Improved consistency of physical constants and units
-----------------------------------------------------
+====================================================
 
 Physical constants and units using them are based on measurements that improve
 over time and therefore are not "constant" numerically.  Generally, one wants to
@@ -73,7 +73,7 @@ see :ref:`astropy-constants-prior`.
 .. _whatsnew-4.0-galactocentric:
 
 Updates to Galactocentric frame
--------------------------------
+===============================
 
 Most coordinate frames implemented in :ref:`astropy.coordinates
 <astropy-coordinates>` have standard parameters that are set by IAU consensus
@@ -140,7 +140,7 @@ More information can be found in the documentation for the frame class:
 .. _whatsnew-4.0-time-ymdhms:
 
 New ``ymdhms`` Time format
---------------------------
+==========================
 
 A new `~astropy.time.Time` format was added to allow convenient input and output
 of times via year, month, day, hour, minute, second values.  For example::
@@ -156,7 +156,7 @@ of times via year, month, day, hour, minute, second values.  For example::
 .. _whatsnew-4.0-time-plotting:
 
 New context manager for plotting Time values
---------------------------------------------
+============================================
 
 Matplotlib natively provides a mechanism for plotting dates and times on one
 or both of the axes, as described in
@@ -187,7 +187,7 @@ For more information, see :ref:`plotting-times`.
 .. _whatsnew-4.0-time-high-precision:
 
 Support for parsing high-precision values with Time
----------------------------------------------------
+===================================================
 
 For numerical formats, :class:`~astropy.time.Time` can now be instantiated
 from strings, quadruple precision numpy floats (if available on a given
@@ -210,7 +210,7 @@ One can also output values as string, etc.::
 .. _whatsnew-4.0-time-leap-seconds:
 
 Improved handling of leap second updates
-----------------------------------------
+========================================
 
 Astropy now automatically checks for and applies new leap seconds the first
 time a :class:`~astropy.time.Time` is instantiated.  This is done with the new
@@ -220,7 +220,7 @@ unlikely case it is needed, also be used directly.
 .. _whatsnew-4.0-quantity:
 
 Major improvements in compatibility of Quantity objects with Numpy functions
-----------------------------------------------------------------------------
+============================================================================
 
 While :class:`~astropy.units.Quantity` objects have worked well in arithmetic
 operations via numpy's "universal functions" (ufuncs), for other numpy
@@ -250,7 +250,7 @@ Two simple examples:
 .. _whatsnew-4.0-wcsaxes-1d:
 
 Plotting 1-d profile plots with WCSAxes
----------------------------------------
+=======================================
 
 The :ref:`astropy.visualization.wcsaxes <wcsaxes>` module now supports plotting
 data with 1-dimensional WCS (including 1-d profiles extracted from higher
@@ -278,7 +278,7 @@ that slice, all three coordinates are still shown in the final plot:
 .. _whatsnew-4.0-wcsaxes-default:
 
 Default labelling with WCSAxes
-------------------------------
+==============================
 
 As seen in the example in :ref:`whatsnew-4.0-wcsaxes-1d`, axis
 labels are now shown by default, using either the names of the
@@ -298,7 +298,7 @@ or you can also set the axis label to what you want instead::
 .. _whatsnew-4.0-wcs-fit:
 
 New function to fit WCS to pairs of pixel/world coordinates
------------------------------------------------------------
+===========================================================
 
 A new function :func:`astropy.wcs.utils.fit_wcs_from_points` has been added
 to fit a (FITS) WCS to a set of points for which both pixel and world coordinates
@@ -329,7 +329,7 @@ we can find the best-fitting WCS with::
 .. _whatsnew-4.0-wcs-time:
 
 Support for WCS transformations between pixel and Time values
--------------------------------------------------------------
+=============================================================
 
 The :meth:`WCS.world_to_pixel <astropy.wcs.WCS.world_to_pixel>` and
 :meth:`WCS.pixel_to_world <astropy.wcs.WCS.pixel_to_world>` methods can now
@@ -351,7 +351,7 @@ that involve time::
 .. _whatsnew-4.0-timeseries-fold:
 
 Improvements to folding for time series
----------------------------------------
+=======================================
 
 The :meth:`TimeSeries.fold <astropy.timeseries.TimeSeries.fold>` method now
 includes more options for controlling the resulting phase values. First, the
@@ -411,7 +411,7 @@ be normalized to a dimensionless value in the range 0 to 1::
 .. _whatsnew-4.0-table-new:
 
 New Table methods and options
------------------------------
+=============================
 
 A new method `~astropy.table.dstack` was added to allow depth-wise stacking
 of tables to turn a list of similar tables into a single "3-d" table with
@@ -438,7 +438,7 @@ to a valid column for the table.  Previously these methods required a valid
 .. _whatsnew-4.0-table-performance:
 
 Improvements to performance for tables
---------------------------------------
+======================================
 
 A number of performance improvements were introduced in version 4.0 that can
 substantially improve the speed of ``Table`` manipulations.
@@ -476,7 +476,7 @@ for the common case of only needing a subset of the available columns::
 .. _whatsnew-4.0-modeling-new-models:
 
 New models
-----------
+==========
 
 The following models have now been added:
 
@@ -493,7 +493,7 @@ The following models have now been added:
 .. _whatsnew-4.0-cache:
 
 Downloading and caching files from the Internet
------------------------------------------------
+===============================================
 
 The existing :func:`~astropy.utils.data.download_file` mechanism has been
 substantially upgraded to be more reliable and more capable, and tools have been
@@ -527,7 +527,7 @@ packages to maintain separate caches.
 .. _whatsnew-4.0-modeling-api:
 
 API changes in astropy.modeling
--------------------------------
+===============================
 
 A number of significant changes have been made to modeling API as a result
 of reworking how parameters and compound models work.
@@ -573,7 +573,7 @@ the deprecated class and functions, see :ref:`deprecated-blackbody`.
 .. _whatsnew-4.0-table-api:
 
 API changes in astropy.table
-----------------------------
+============================
 
 The handling of masked columns in tables has changed in a way that may impact
 program behavior. Now a :class:`~astropy.table.Table` object with
@@ -594,7 +594,7 @@ changed and one no longer gets deep copies in most cases.
 .. _whatsnew-4.0-uncertainty-api:
 
 API changes in astropy.uncertainty
-----------------------------------
+==================================
 
 For the experimental :class:`~astropy.uncertainty.Distribution` class, the
 earlier ``pdf_mean``, ``pdf_var``, etc., properties were turned into methods,
