@@ -48,7 +48,8 @@ def add_stokes_axis_to_wcs(wcs, add_before_ind):
 def _wcs_to_celestial_frame_builtin(wcs):
 
     # Import astropy.coordinates here to avoid circular imports
-    from astropy.coordinates import FK4, FK4NoETerms, FK5, ICRS, ITRS, Galactic
+    from astropy.coordinates import (FK4, FK4NoETerms, FK5, ICRS, ITRS,
+                                     Galactic, SphericalRepresentation)
 
     # Import astropy.time here otherwise setup.py fails before extensions are compiled
     from astropy.time import Time
@@ -93,7 +94,10 @@ def _wcs_to_celestial_frame_builtin(wcs):
         if xcoord == 'GLON' and ycoord == 'GLAT':
             frame = Galactic()
         elif xcoord == 'TLON' and ycoord == 'TLAT':
-            frame = ITRS(obstime=wcs.wcs.dateobs or None)
+            # The default representation for ITRS is cartesian, but for WCS
+            # purposes, we need the spherical representation.
+            frame = ITRS(representation_type=SphericalRepresentation,
+                         obstime=wcs.wcs.dateobs or None)
         else:
             frame = None
 

@@ -1149,3 +1149,22 @@ B_DMAX  =    44.62692873032506
 
     assert dists.max() < 7e-6*u.deg
     assert np.std(dists) < 2.5e-6*u.deg
+
+
+@pytest.mark.remote_data
+@pytest.mark.parametrize('x_in,y_in', [[0, 0], [np.arange(5), np.arange(5)]])
+def test_pixel_to_world_itrs(x_in, y_in):
+    """Regression test for https://github.com/astropy/astropy/pull/9609"""
+    wcs = WCS({'NAXIS': 2,
+               'CTYPE1': 'TLON-CAR',
+               'CTYPE2': 'TLAT-CAR',
+               'RADESYS': 'ITRS ',
+               'DATE-OBS': '2017-08-17T12:41:04.444'})
+
+    # This shouldn't raise an exception.
+    coord = wcs.pixel_to_world(x_in, y_in)
+
+    # Check round trip transformation.
+    x, y = wcs.world_to_pixel(coord)
+    np.testing.assert_almost_equal(x, x_in)
+    np.testing.assert_almost_equal(y, y_in)
