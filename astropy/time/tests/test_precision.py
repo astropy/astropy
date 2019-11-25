@@ -4,6 +4,7 @@ import decimal
 import pytest
 import numpy as np
 from decimal import Decimal
+from datetime import datetime
 
 import astropy.units as u
 import astropy._erfa as erfa
@@ -198,3 +199,12 @@ def test_conversion_preserves_jd1_jd2_invariant_2():
     assert t2.jd1 % 1 == 0
     assert abs(t2.jd2) <= 0.5
     assert abs(t2.jd2) < 0.5 or t2.jd1 % 2 == 0
+
+
+def test_datetime_difference_agrees_with_timedelta_no_hypothesis():
+    scale = "tai"
+    dt1 = datetime(1235, 1, 1, 0, 0)
+    dt2 = datetime(9950, 1, 1, 0, 0, 0, 890773)
+    t1 = Time(dt1, scale=scale)
+    t2 = Time(dt2, scale=scale)
+    assert(abs((t2-t1) - TimeDelta(dt2-dt1, scale=scale)) < 25*u.us)
