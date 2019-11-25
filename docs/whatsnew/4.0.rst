@@ -495,26 +495,30 @@ The following models have now been added:
 Downloading and caching files from the Internet
 -----------------------------------------------
 
-The existing `download_file` mechanism has been substantially upgraded to be
-more reliable and more capable, and tools have been added to manage the
-collection of cached downloaded files. Most notably:
+The existing :func:`~astropy.utils.data.download_file` mechanism has been
+substantially upgraded to be more reliable and more capable, and tools have been
+added to manage the collection of cached downloaded files. Most notably:
 
-* `download_file` can accept a list of locations where the file can be
-  obtained; wherever it was obtained it will be indexed under its "official"
-  location.
-* `download_file` can be told, using ``cache="update"``, to check the Internet
-  to see whether a new version of the file is available, and if so, update the
-  version in the cache; if something goes wrong the cache is left intact.
+* :func:`~astropy.utils.data.download_file` can accept a list of locations where
+  the file can be obtained; wherever it was obtained it will be indexed under
+  its "official" location.
+* :func:`~astropy.utils.data.download_file` can be told, using
+  ``cache="update"``, to check the Internet to see whether a new version of the
+  file is available, and if so, update the version in the cache; if something
+  goes wrong the cache is left intact.
 * Concurrent use of the cache by multiple processes will be more reliable, and
-  `download_files_in_parallel` will allow you to use this within one process.
+  :func:`~astropy.utils.data.download_files_in_parallel` will allow you to use
+  this within one process.
 * Part or all of the cache can be exported to or imported from a ZIP file with
-  `export_download_cache` and `import_download_cache`. This can be useful for
+  :func:`~astropy.utils.data.export_download_cache` and
+  :func:`~astropy.utils.data.import_download_cache`. This can be useful for
   setting up machines that will not have an Internet connection.
-* If the cache is behaving oddly `check_download_cache` can be used to try to
-  diagnose any problems, and `clear_download_cache` can remove problem objects
-  or completely get rid of a damaged cache.
+* If the cache is behaving oddly
+  :func:`~astropy.utils.data.check_download_cache` can be used to try to
+  diagnose any problems, and :func:`~astropy.utils.data.clear_download_cache`
+  can remove problem objects or completely get rid of a damaged cache.
 * The amount of space being used by the cache is available with
-  `cache_total_size`.
+  :func:`~astropy.utils.data.cache_total_size`.
 
 This mechanism is also available to other packages that want to use it, so most
 functions now also accept a ``pkgname`` argument, which allows different
