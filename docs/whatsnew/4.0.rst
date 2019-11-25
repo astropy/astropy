@@ -175,12 +175,12 @@ with times formatted using the :class:`~astropy.time.Time` class:
    :include-source:
    :context: reset
 
-    >>> from matplotlib import pyplot as plt
-    >>> from astropy.time import Time
-    >>> from astropy.visualization import time_support
-    >>> time_support(format='isot', scale='tai')  # doctest: +IGNORE_OUTPUT
-    >>> plt.figure(figsize=(5,3))  # doctest: +IGNORE_OUTPUT
-    >>> plt.plot(Time([52000, 53000, 54000], format='mjd'), [1.2, 3.3, 2.3])  # doctest: +IGNORE_OUTPUT
+    import matplotlib.pyplot as plt
+    from astropy.time import Time
+    from astropy.visualization import time_support
+    time_support(format='isot', scale='tai')  # doctest: +IGNORE_OUTPUT
+    plt.figure(figsize=(5,3))  # doctest: +IGNORE_OUTPUT
+    plt.plot(Time([52000, 53000, 54000], format='mjd'), [1.2, 3.3, 2.3])  # doctest: +IGNORE_OUTPUT
 
 For more information, see :ref:`plotting-times`.
 
