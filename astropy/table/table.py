@@ -961,7 +961,8 @@ class Table:
 
         # Structured ndarray gets viewed as a mixin unless already a valid
         # mixin class
-        if isinstance(data, np.ndarray) and len(data.dtype) > 1 and not data_is_mixin:
+        if (not isinstance(data, Column) and not data_is_mixin and
+                isinstance(data, np.ndarray) and len(data.dtype) > 1):
             data = data.view(NdarrayMixin)
             data_is_mixin = True
 
