@@ -20,7 +20,6 @@ from astropy.utils.data import get_pkg_data_filename
 from astropy.wcs.wcs import WCS, FITSFixedWarning
 from astropy.wcs.wcsapi.fitswcs import custom_ctype_to_ucd_mapping
 
-from .utils import validate_low_level_wcs_types
 
 ###############################################################################
 # The following example is the simplest WCS with default values
@@ -919,8 +918,10 @@ def test_sub_wcsapi_attributes():
 
 
 def test_low_level_types(header_time_1d):
-    # TODO: make all these fixtures
+    pytest.importorskip("typeguard")
+    from .utils import validate_low_level_wcs_types
 
+    # TODO: make all these fixtures
     wcses = [WCS_TIME_CUBE, WCS_EMPTY, WCS_SIMPLE_CELESTIAL]
 
     with warnings.catch_warnings():
