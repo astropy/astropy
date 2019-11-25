@@ -13,6 +13,7 @@ from matplotlib.transforms import Affine2D, Bbox, Transform
 import astropy.units as u
 from astropy.coordinates import SkyCoord, BaseCoordinateFrame
 from astropy.wcs import WCS
+from astropy.wcs.wcsapi import BaseHighLevelWCS
 
 from .transforms import CoordinateTransform
 from .coordinates_map import CoordinatesMap
@@ -346,6 +347,9 @@ class WCSAxes(Axes):
                 # wcs.set() method
                 if isinstance(wcs, WCS):
                     wcs.wcs.set()
+
+                if isinstance(wcs, BaseHighLevelWCS):
+                    wcs = wcs.low_level_wcs
 
             self.wcs = wcs
 
