@@ -546,6 +546,9 @@ astropy.table
 - Ensured that inserting ``np.ma.masked`` (or any other value with a mask) into
   a ``MaskedColumn`` causes a masked entry to be inserted. [#9623]
 
+- Fixed a bug that caused an exception when initializing a ``MaskedColumn`` from
+  another ``MaskedColumn`` that has a structured dtype. [#9651]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
