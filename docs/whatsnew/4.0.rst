@@ -12,8 +12,26 @@ the 3.2.x series of releases.
 
 In particular, this release includes:
 
-* Major improvements in compatibility of Quantities with numpy functions
-*
+* :ref:`whatsnew-4.0-planck2018`
+* :ref:`whatsnew-4.0-constants-units`
+* :ref:`whatsnew-4.0-galactocentric`
+* :ref:`whatsnew-4.0-time-ymdhms`
+* :ref:`whatsnew-4.0-time-plotting`
+* :ref:`whatsnew-4.0-time-high-precision`
+* :ref:`whatsnew-4.0-time-leap-seconds`
+* :ref:`whatsnew-4.0-quantity`
+* :ref:`whatsnew-4.0-wcsaxes-1d`
+* :ref:`whatsnew-4.0-wcsaxes-default`
+* :ref:`whatsnew-4.0-wcs-fit`
+* :ref:`whatsnew-4.0-wcs-time`
+* :ref:`whatsnew-4.0-timeseries-fold`
+* :ref:`whatsnew-4.0-table-new`
+* :ref:`whatsnew-4.0-table-performance`
+* :ref:`whatsnew-4.0-modeling-new-models`
+* :ref:`whatsnew-4.0-cache`
+* :ref:`whatsnew-4.0-modeling-api`
+* :ref:`whatsnew-4.0-table-api`
+* :ref:`whatsnew-4.0-uncertainty-api`
 
 In addition to these major changes, Astropy v4.0 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -23,6 +41,7 @@ smaller improvements and bug fixes, which are described in the
 * xxx pull requests have been merged since v3.2
 * xxx distinct people have contributed code
 
+.. _whatsnew-4.0-planck2018:
 
 Pre-publication Planck 2018 cosmological parameters
 ---------------------------------------------------
@@ -32,30 +51,26 @@ has been included based on version 2 of the submitted paper.  This
 will be replaced with a final version when the paper is accepted.
 
 .. doctest-requires:: scipy
-  >>> from astropy.cosmology import Planck18_arXiv_v2
-  >>> Planck18_arXiv_v2.age(0)  # doctest: +FLOAT_CMP
-  <Quantity 13.7868853 Gyr>
 
+    >>> from astropy.cosmology import Planck18_arXiv_v2
+    >>> Planck18_arXiv_v2.age(0)  # doctest: +FLOAT_CMP
+    <Quantity 13.7868853 Gyr>
 
-New models
-----------
+.. _whatsnew-4.0-constants-units:
 
-.. Blackbody changes
-.. Drude1D
-.. Analytical King
-.. Exponential1D and Logarithmic1D
-
-
-Consistency of physical constants and units
--------------------------------------------
+Improved consistency of physical constants and units
+----------------------------------------------------
 
 Physical constants and units using them are based on measurements that improve
-and therefore not "constant" numerically.  Generally, one wants to just use
-the latest values, but sometimes it helps to reproduce earlier results by
-going back in time.  For that purpose, astropy 4.0 introduces the new
-`~astropy.physical_constants` and `~astropy.astronomical_constants` science
-state functions, which can be set to use previous versions.  For more details,
-see `astropy-constants-prior`_.
+over time and therefore are not "constant" numerically.  Generally, one wants to
+just use the latest values, but sometimes it is necessary to reproduce earlier
+results by going back in time.  For that purpose, we have now introduced new
+``astropy.physical_constants`` and ``astropy.astronomical_constants`` science
+state objects, which can be used to set to use previous versions, and to make
+sure that units and physical constants are self-consistent. For more details,
+see :ref:`astropy-constants-prior`.
+
+.. _whatsnew-4.0-galactocentric:
 
 Updates to Galactocentric frame
 -------------------------------
@@ -64,7 +79,7 @@ Most coordinate frames implemented in :ref:`astropy.coordinates
 <astropy-coordinates>` have standard parameters that are set by IAU consensus
 (e.g., the ``ICRS`` frame). Unlike these, the
 `~astropy.coordinates.Galactocentric` coordinate frame does not have an absolute
-definition: Its parameters (the solar motion and position relative to the
+definition: its parameters (the solar motion and position relative to the
 Galactic center) are measurements that continue to be refined as newer stellar
 surveys are executed and analyzed. When it was added, the default parameter
 values used by the `~astropy.coordinates.Galactocentric` frame — i.e. the
@@ -122,26 +137,26 @@ reference list::
 More information can be found in the documentation for the frame class:
 `~astropy.coordinates.Galactocentric`.
 
-Time improvements and changes
------------------------------
+.. _whatsnew-4.0-time-ymdhms:
 
 New ``ymdhms`` Time format
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------
 
 A new `~astropy.time.Time` format was added to allow convenient input and output
 of times via year, month, day, hour, minute, second values.  For example::
 
-  >>> from astropy.time import Time
-  >>> t = Time({'year': 2015, 'month': 2, 'day': 3,
-  ...           'hour': 12, 'minute': 13, 'second': 14.567})
-  >>> t.iso
-  '2015-02-03 12:13:14.567'
-  >>> t.ymdhms.year
-  2015
+    >>> from astropy.time import Time
+    >>> t = Time({'year': 2015, 'month': 2, 'day': 3,
+    ...           'hour': 12, 'minute': 13, 'second': 14.567})
+    >>> t.iso
+    '2015-02-03 12:13:14.567'
+    >>> t.ymdhms.year
+    2015
 
+.. _whatsnew-4.0-time-plotting:
 
 New context manager for plotting Time values
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------------
 
 Matplotlib natively provides a mechanism for plotting dates and times on one
 or both of the axes, as described in
@@ -169,12 +184,14 @@ with times formatted using the :class:`~astropy.time.Time` class:
 
 For more information, see :ref:`plotting-times`.
 
+.. _whatsnew-4.0-time-high-precision:
+
 Support for parsing high-precision values with Time
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------------------------
 
 For numerical formats, :class:`~astropy.time.Time` can now be instantiated
 from strings, quadruple precision numpy floats (if available on a given
-platform), and :class:`Decimal` instances.  For instance, in the example below
+platform), and :class:`~decimal.Decimal` instances.  For instance, in the example below
 one sees how in a string we can give full precision, while entering the same
 number as a float gives precision loss::
 
@@ -189,6 +206,18 @@ One can also output values as string, etc.::
 
     >>> t.to_value('jd', subfmt='str')
     '2450000.123456789012345'
+
+.. _whatsnew-4.0-time-leap-seconds:
+
+Improved handling of leap second updates
+----------------------------------------
+
+Astropy now automatically checks for and applies new leap seconds the first
+time a :class:`~astropy.time.Time` is instantiated.  This is done with the new
+:class:`~astropy.utils.iers.LeapSeconds` class, which can, in the hopefully
+unlikely case it is needed, also be used directly.
+
+.. _whatsnew-4.0-quantity:
 
 Major improvements in compatibility of Quantity objects with Numpy functions
 ----------------------------------------------------------------------------
@@ -213,22 +242,91 @@ Two simple examples:
     >>> np.hstack(([1., 2., 3.]*u.m, 1.*u.cm))
     <Quantity [1.  , 2.  , 3.  , 0.01] m>
 
-.. note:: for numpy 1.16, one can get the same behaviour by setting
+.. note:: for NumPy 1.16, one can get the same behaviour by setting
           environment variable ``NUMPY_EXPERIMENTAL_ARRAY_FUNCTION=1``.
           For details, see
           `NEP 18 <https://numpy.org/neps/nep-0018-array-function-protocol.html>`_
 
+.. _whatsnew-4.0-wcsaxes-1d:
+
 Plotting 1-d profile plots with WCSAxes
 ---------------------------------------
 
+The :ref:`astropy.visualization.wcsaxes <wcsaxes>` module now supports plotting
+data with 1-dimensional WCS (including 1-d profiles extracted from higher
+dimensional objects). The following example shows a plot of a 1-d profile
+extracted from a 3-d spectral cube - because all world coordinates vary along
+that slice, all three coordinates are still shown in the final plot:
+
+.. plot::
+   :context: reset
+   :align: center
+   :include-source:
+
+    import matplotlib.pyplot as plt
+    import astropy.units as u
+    from astropy.wcs import WCS
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
+
+    filename = get_pkg_data_filename('l1448/l1448_13co.fits')
+    hdu = fits.open(filename)[0]
+
+    ax = plt.subplot(projection=WCS(hdu.header), slices=(50, 'x', 'y'))
+    ax.imshow(hdu.data[:, :, 50])
+
+.. _whatsnew-4.0-wcsaxes-default:
 
 Default labelling with WCSAxes
 ------------------------------
 
+As seen in the example in :ref:`whatsnew-4.0-wcsaxes-1d`, axis
+labels are now shown by default, using either the names of the
+coordinates axes, if available, or the physical types of the
+axes. To disable this, you can use::
+
+   ax.coords[0].set_auto_axislabel(False)
+   ax.coords[1].set_auto_axislabel(False)
+   ax.coords[2].set_auto_axislabel(False)
+
+or you can also set the axis label to what you want instead::
+
+   ax.coords[0].set_axislabel("Right Ascension")
+   ax.coords[1].set_axislabel("Declination")
+   ax.coords[2].set_axislabel("Velocity (m/s)")
+
+.. _whatsnew-4.0-wcs-fit:
 
 New function to fit WCS to pairs of pixel/world coordinates
 -----------------------------------------------------------
 
+A new function :func:`astropy.wcs.utils.fit_wcs_from_points` has been added
+to fit a (FITS) WCS to a set of points for which both pixel and world coordinates
+are available. For instance, if we have an image in which four stars have known
+pixel and celestial coordinates::
+
+    >>> from astropy.coordinates import SkyCoord
+    >>> stars_pixel = [np.array([153, 64, 593, 663]),
+    ...                np.array([581, 199, 190, 445])]
+    >>> stars_world = SkyCoord([266.729, 266.872, 266.031, 265.921],
+    ...                        [-28.627, -29.156, -29.170, -28.815],
+    ...                        unit='deg', frame='fk5')
+
+we can find the best-fitting WCS with::
+
+    >>> from astropy.wcs.utils import fit_wcs_from_points
+    >>> fit_wcs_from_points(stars_pixel, stars_world)  # doctest: +FLOAT_CMP
+    WCS Keywords
+    <BLANKLINE>
+    Number of WCS axes: 2
+    CTYPE : 'RA---TAN'  'DEC--TAN'
+    CRVAL : 266.3952562116589  -28.89933479456074
+    CRPIX : 364.8753661483385  385.9573650918672
+    CD1_1 CD1_2  : -0.001388743579175224  4.580696254922365e-08
+    CD2_1 CD2_2  : -8.098819668907673e-07  0.0013876745578212755
+    NAXIS : 599  391
+
+.. _whatsnew-4.0-wcs-time:
 
 Support for WCS transformations between pixel and Time values
 -------------------------------------------------------------
@@ -249,6 +347,8 @@ that involve time::
     <Time object: scale='utc' format='mjd' value=[58791. 58792. 58793.]>
     >>> wcs.world_to_pixel(Time('2019-11-02T10:30:22'))
     array(0.43775463)
+
+.. _whatsnew-4.0-timeseries-fold:
 
 Improvements to folding for time series
 ---------------------------------------
@@ -308,25 +408,37 @@ be normalized to a dimensionless value in the range 0 to 1::
                    -0.1
                     0.2
 
-Support for surface brightnesses in spectral_density equivalencies
-------------------------------------------------------------------
+.. _whatsnew-4.0-table-new:
 
+New Table methods and options
+-----------------------------
 
-New cache import/export utilities
----------------------------------
+A new method `~astropy.table.dstack` was added to allow depth-wise stacking
+of tables to turn a list of similar tables into a single "3-d" table with
+(rows, columns, depth).
 
+A new method to compare tables `~astropy.table.Table.values_equal` was added
+to allow element-wise comparison of a table to either another table, a list of
+values, or a single value. This returns a new ``Table`` with the boolean result
+of the comparisons.
 
-Table improvements and changes
-------------------------------
+The `~astropy.table.join` operation now supports cartesian joins,
+enumerating all possible combinations of the left and right table rows.
 
-The `astropy.table <https://docs.astropy.org/en/v4.0.x/table/index.html>`_
-sub-package saw a lot of development for the 4.0 release and you are encouraged
-to see the `Full Changelog for 4.0
-<https://docs.astropy.org/en/v4.0.x/changelog.html>`_ for details.  The
-highlights are discussed below.
+A `~astropy.table.Table` can now be initialized with a with a list of dict where
+the dict keys are not the same in every row. The table column names are the set
+of all keys found in the input data, and any missing key/value pairs are turned
+into missing data in the table.
 
-Performance
-^^^^^^^^^^^
+The `~astropy.table.Table.add_column` and `~astropy.table.Table.add_columns`
+methods can now accept any object(s) which can be converted or broadcasted
+to a valid column for the table.  Previously these methods required a valid
+`~astropy.table.Column` or mixin column object.
+
+.. _whatsnew-4.0-table-performance:
+
+Improvements to performance for tables
+--------------------------------------
 
 A number of performance improvements were introduced in version 4.0 that can
 substantially improve the speed of ``Table`` manipulations.
@@ -348,75 +460,45 @@ of a table is now typically 3 to 10 times faster. A new method
 `~astropy.table.Table.iterrows` was added to make row-wise iteration even faster
 for the common case of only needing a subset of the available columns::
 
-  >>> from astropy.table.table_helpers import simple_table
-  >>> t = simple_table(size=2, cols=10)
-  >>> print(t)
-   a   b   c   d   e   f   g   h   i   j
-  --- --- --- --- --- --- --- --- --- ---
-    1 1.0   c   4 4.0   f   7 7.0   i  10
-    2 2.0   d   5 5.0   g   8 8.0   j  11
-  >>> for a, f in t.iterrows('a', 'f'):
-  ...     print(a, f)
-  ...
-  1 f
-  2 g
+    >>> from astropy.table.table_helpers import simple_table
+    >>> t = simple_table(size=2, cols=10)
+    >>> print(t)
+    a   b   c   d   e   f   g   h   i   j
+    --- --- --- --- --- --- --- --- --- ---
+        1 1.0   c   4 4.0   f   7 7.0   i  10
+        2 2.0   d   5 5.0   g   8 8.0   j  11
+    >>> for a, f in t.iterrows('a', 'f'):
+    ...     print(a, f)
+    ...
+    1 f
+    2 g
 
-New methods and options
-^^^^^^^^^^^^^^^^^^^^^^^
+.. _whatsnew-4.0-modeling-new-models:
 
-A new method `~astropy.table.Table.dstack` was added to allow depth-wise stacking
-of tables to turn a list of similar tables into a single "3-d" table with
-(rows, columns, depth).
+New models
+----------
 
-A new method to compare tables `~astropy.table.Table.values_equal` was added
-to allow element-wise comparison of a table to either another table, a list of
-values, or a single value. This returns a new ``Table`` with the boolean result
-of the comparisons.
+The following models have now been added:
 
-The `~astropy.table.Table.join` operation now supports cartesian joins,
-enumerating all possible combinations of the left and right table rows.
+* :class:`~astropy.modeling.physical_models.Drude1D`: a model based one the
+  transport properties of electons in materials (esp. metals).
+* :class:`~astropy.modeling.functional_models.KingProjectedAnalytic1D`: a model
+  typically used to represent the density distribution of stars in clusters
+  (`King, 1962 <http://articles.adsabs.harvard.edu/pdf/1962AJ.....67..471K>`_)
+* :class:`~astropy.modeling.functional_models.Exponential1D`: a one-dimensional
+  exponential model.
+* :class:`~astropy.modeling.functional_models.Logarithmic1D`: a one-dimensional
+  logarithmic model.
 
-A `~astropy.table.Table` can now be initialized with a with a list of dict where
-the dict keys are not the same in every row. The table column names are the set
-of all keys found in the input data, and any missing key/value pairs are turned
-into missing data in the table.
+.. _whatsnew-4.0-cache:
 
-The `~astropy.table.Table.add_column` and `~astropy.table.Table.add_columns`
-methods can now accept any object(s) which can be converted or broadcasted
-to a valid column for the table.  Previously these methods required a valid
-`~astropy.table.Column` or mixin column object.
+New cache import/export utilities
+---------------------------------
 
-API changes
-^^^^^^^^^^^
-
-The handling of masked columns in tables has changed in a way that may impact
-program behavior. Now a :class:`~astropy.table.Table` object with
-``masked=False`` may contain both ``Column`` and ``MaskedColumn`` objects, and
-adding a masked column or row to a table no longer "upgrades" the table and all
-other columns to masked. This means that tables with masked data which are read
-via ``Table.read()`` will now always have ``masked=False``, though specific
-columns will be masked as needed. The same applies to the output of table
-operations like `~astropy.table.Table.join`, `~astropy.table.Table.vstack`, and
-`~astropy.table.Table.hstack`. Two new table properties ``has_masked_columns``
-and ``has_masked_values`` were added. See the `Masking change in astropy 4.0
-<https://docs.astropy.org/en/v4.0.x/table/masking.html#masking-change-in-astropy-4-0>`_
-section for details.
-
-As noted earlier, the handling of table and column ``meta`` attributes has
-changed and one no longer gets deep copies in most cases.
-
-Improved handling of leap second updates
-----------------------------------------
-
-Astropy now automatically checks for and applies new leap seconds the first
-time a :class:`~astropy.time.Time` is instantiated.  This is done with the new
-:class:`~astropy.utils.iers.LeapSecond` class, which can, in the hopefully
-unlikely case it is needed, also be used directly.
+.. _whatsnew-4.0-modeling-api:
 
 API changes in astropy.modeling
 -------------------------------
-
-.. changes for compound models::
 
 A number of significant changes have been made to modeling API as a result
 of reworking how parameters and compound models work.
@@ -430,10 +512,10 @@ of reworking how parameters and compound models work.
   effect on the corresponding model).
 
 * In compound models, the constituent models are references, not copies
-  (if copies are desired, an explicit copy() should be used in the compound
+  (if copies are desired, an explicit ``copy()`` should be used in the compound
   model expression).
 
-There are other, more minor, changes to the API that are detailed in :ref:`changes_for_4`
+There are other, more minor, changes to the API that are detailed in :ref:`modeling-major-changes-for-4.0`:
 
 * ``inputs`` and ``outputs`` were deprecated as class variables and are instance variables,
   while ``n_inputs`` and ``n_outputs`` are now class variables. As a result ``inputs`` and
@@ -451,7 +533,36 @@ There are other, more minor, changes to the API that are detailed in :ref:`chang
 
 * Many private methods have been added, changed, or deleted.
 
-A large reorganization has been made of the modeling documentation to make it easier to find relevant topics.
+In addition, a new :class:`~astropy.modeling.physical_models.BlackBody` class has been
+added and replaces the now-deprecated :class:`~astropy.modeling.blackbody.BlackBody1D` class
+and the :func:`~astropy.modeling.blackbody.blackbody_nu`
+and :func:`~astropy.modeling.blackbody.blackbody_lambda` functions. To find out more
+about the new class, see :ref:`blackbody-planck-law`, and for information about
+the correspondance between :class:`~astropy.modeling.physical_models.BlackBody` and
+the deprecated class and functions, see :ref:`deprecated-blackbody`.
+
+.. _whatsnew-4.0-table-api:
+
+API changes in astropy.table
+----------------------------
+
+The handling of masked columns in tables has changed in a way that may impact
+program behavior. Now a :class:`~astropy.table.Table` object with
+``masked=False`` may contain both ``Column`` and ``MaskedColumn`` objects, and
+adding a masked column or row to a table no longer "upgrades" the table and all
+other columns to masked. This means that tables with masked data which are read
+via ``Table.read()`` will now always have ``masked=False``, though specific
+columns will be masked as needed. The same applies to the output of table
+operations like `~astropy.table.join`, `~astropy.table.vstack`, and
+`~astropy.table.hstack`. Two new table properties ``has_masked_columns``
+and ``has_masked_values`` were added. See the `Masking change in astropy 4.0
+<https://docs.astropy.org/en/v4.0.x/table/masking.html#masking-change-in-astropy-4-0>`_
+section for details.
+
+As noted earlier, the handling of table and column ``meta`` attributes has
+changed and one no longer gets deep copies in most cases.
+
+.. _whatsnew-4.0-uncertainty-api:
 
 API changes in astropy.uncertainty
 ----------------------------------
