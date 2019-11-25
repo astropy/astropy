@@ -20,12 +20,12 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from itertools import islice
+from importlib import import_module
 from concurrent.futures import ThreadPoolExecutor
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 import py.path
 import pytest
-from _pytest.monkeypatch import MonkeyPatch
 
 from astropy.utils import data
 from astropy.config import paths
@@ -196,9 +196,22 @@ _shelve_possible_backends = ["dbm.dumb", "dbm.ndbm", "dbm.gnu"]
 for n in _shelve_possible_backends:
     if n not in dbm._modules:
         try:
-            dbm._modules[n] = __import__(n, fromlist=['open'])
+            dbm._modules[n] = import_module(n)
         except ImportError:
             pass
+
+
+def create_cache_with_backend(name, pkgname='astropy'):
+    dldir, urlmapfn = _get_download_cache_locs(pkgname)
+    e = dbm.whichdb(urlmapfn)
+    if e is not None:
+        raise IOError(f"Cache already exists in format {e} ({name} requested)")
+    try:
+        m = import_module(name)
+    except ImportError:
+        pytest.skip(f"Module {name} not available")
+    with m.open(urlmapfn, "c"):
+        pass
 
 
 @contextlib.contextmanager
@@ -208,15 +221,16 @@ def shelve_backend(name):
     # Using it can cause weird order-dependent test failures in
     # the second shelve_backend test if the two meet certain
     # mysterious criteria.
-    with MonkeyPatch().context() as mp:
-        try:
-            m = dbm._modules[name]
-        except KeyError:
-            pytest.skip(f"Backend {name} not available")
-
-        mp.setattr(dbm, "_defaultmod", m)
-        mp.setattr(dbm, "_modules", {name: m})
+    try:
+        m = dbm._modules[name]
+    except KeyError:
+        pytest.skip(f"Backend {name} not available")
+    defaultmod, modules = dbm._defaultmod, dbm._modules
+    try:
+        dbm._defaultmod, dbm._modules = m, {name: m}
         yield
+    finally:
+        dbm._defaultmod, dbm._modules = defaultmod, modules
 
 
 @pytest.mark.remote_data(source="astropy")
@@ -296,11 +310,7 @@ def test_download_file_threaded_many(b, temp_cache, valid_urls):
     also does this but coverage tools lose track of which paths are explored.
 
     """
-    u, c = next(valid_urls)
-    # Ensure download cache exists in appropriate format
-    with shelve_backend(b):
-        download_file(u, cache=True)
-        clear_download_cache(u)
+    create_cache_with_backend(b)
 
     # Run test outside of non-thread-safe context manager
     urls = list(islice(valid_urls, N_THREAD_HAMMER))
@@ -1800,27 +1810,26 @@ def test_download_parallel_respects_pkgname(temp_cache, valid_urls):
 @pytest.mark.parametrize("b", _shelve_possible_backends)
 def test_cache_with_different_shelve_backends(b, temp_cache, valid_urls):
     """Without special handling this emits a warning for dbm.dumb."""
-    with shelve_backend(b):
-        clear_download_cache()
+    create_cache_with_backend(b)
 
-        uc = list(islice(valid_urls, FEW))
-        for u, c in uc:
-            download_file(u, cache=True)
-            assert is_url_in_cache(u)
+    uc = list(islice(valid_urls, FEW))
+    for u, c in uc:
+        download_file(u, cache=True)
+        assert is_url_in_cache(u)
 
-        for u, _ in uc:
-            assert is_url_in_cache(u)
+    for u, _ in uc:
+        assert is_url_in_cache(u)
 
-        check_download_cache()
+    check_download_cache()
 
-        for u, _ in uc:
-            assert is_url_in_cache(u)
+    for u, _ in uc:
+        assert is_url_in_cache(u)
 
-        for u, c in uc:
-            assert get_file_contents(
-                download_file(u, cache=True, sources=[])) == c
+    for u, c in uc:
+        assert get_file_contents(
+            download_file(u, cache=True, sources=[])) == c
 
-        clear_download_cache()
+    clear_download_cache()
 
 
 @pytest.mark.parametrize("b", _shelve_possible_backends)
@@ -1849,7 +1858,10 @@ def test_lock_behaviour_if_directory_disappears(b, temp_cache):
                                   ])
 def test_wrong_backend_reports_useful_error(b1b2, temp_cache, valid_urls):
     b1, b2 = b1b2
-    with shelve_backend(b1):
+    create_cache_with_backend(b1)
+    for u, c in islice(valid_urls, FEW):
+        download_file(u, cache=True)
+    with shelve_backend(b2):
         for u, c in islice(valid_urls, FEW):
             download_file(u, cache=True)
         with shelve_backend(b2):
@@ -1864,7 +1876,6 @@ def test_wrong_backend_reports_useful_error(b1b2, temp_cache, valid_urls):
                 with pytest.warns(WrongDBMModuleWarning):
                     check_download_cache()
             clear_download_cache()
-        clear_download_cache()
 
 
 # What happens when the lock can't be obtained in a timely manner?
