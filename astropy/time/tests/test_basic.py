@@ -26,12 +26,13 @@ try:
 except ImportError:
     HAS_PYTZ = False
 
-allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
-allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,
-                                 atol=2. ** -52)  # 20 ps atol
-allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
-                                 atol=2. ** -52 * 24 * 3600)  # 20 ps atol
-allclose_year = functools.partial(np.allclose, rtol=2. ** -52,
+
+allclose_jd = functools.partial(np.allclose, rtol=np.finfo(float).eps, atol=0)
+allclose_jd2 = functools.partial(np.allclose, rtol=np.finfo(float).eps,
+                                 atol=np.finfo(float).eps)  # 20 ps atol
+allclose_sec = functools.partial(np.allclose, rtol=np.finfo(float).eps,
+                                 atol=np.finfo(float).eps * 24 * 3600)
+allclose_year = functools.partial(np.allclose, rtol=np.finfo(float).eps,
                                   atol=0.)  # 14 microsec at current epoch
 
 
@@ -870,7 +871,7 @@ class TestNumericalSubFormat:
         # Check we're the same to within the double holding jd2
         # (which is less precise than longdouble on arm64).
         assert np.allclose(t.to_value('mjd', subfmt='long'),
-                           expected_long, rtol=0, atol=2.**-52)
+                           expected_long, rtol=0, atol=np.finfo(float).eps)
         t.out_subfmt = 'str'
         assert t.value == '54321.000000000001'
         assert t.to_value('mjd') == 54321.  # Lost precision!
@@ -878,10 +879,12 @@ class TestNumericalSubFormat:
         assert t.to_value('mjd', subfmt='bytes') == b'54321.000000000001'
         assert t.to_value('mjd', subfmt='float') == 54321.  # Lost precision!
         t.out_subfmt = 'long'
-        assert np.allclose(t.value, expected_long, rtol=0., atol=2.**-52)
+        assert np.allclose(t.value, expected_long,
+                           rtol=0., atol=np.finfo(float).eps)
         assert np.allclose(t.to_value('mjd', subfmt=None), expected_long,
-                           rtol=0., atol=2.**-52)
-        assert np.allclose(t.mjd, expected_long, rtol=0., atol=2.**-52)
+                           rtol=0., atol=np.finfo(float).eps)
+        assert np.allclose(t.mjd, expected_long,
+                           rtol=0., atol=np.finfo(float).eps)
         assert t.to_value('mjd', subfmt='str') == '54321.000000000001'
         assert t.to_value('mjd', subfmt='float') == 54321.  # Lost precision!
 
@@ -891,7 +894,8 @@ class TestNumericalSubFormat:
         i = 54321
         # Create a different long double (which will give a different jd2
         # even when long doubles are more precise than Time, as on arm64).
-        f = max(2.**(-np.finfo(np.longdouble).nmant) * 65536, 2.**(-52))
+        f = max(2.**(-np.finfo(np.longdouble).nmant) * 65536,
+                np.finfo(float).eps)
         mjd_long = np.longdouble(i) + np.longdouble(f)
         assert mjd_long != i, "longdouble failure!"
         t = Time(mjd_long, format='mjd')
@@ -902,9 +906,10 @@ class TestNumericalSubFormat:
         assert t_float != t
         assert t.value == 54321.  # Lost precision!
         assert np.allclose(t.to_value('mjd', subfmt='long'), mjd_long,
-                           rtol=0., atol=2.**-52)
+                           rtol=0., atol=np.finfo(float).eps)
         t2 = Time(mjd_long, format='mjd', out_subfmt='long')
-        assert np.allclose(t2.value, mjd_long, rtol=0., atol=2.**-52)
+        assert np.allclose(t2.value, mjd_long,
+                           rtol=0., atol=np.finfo(float).eps)
 
     @pytest.mark.skipif(np.finfo(np.longdouble).eps >= np.finfo(float).eps,
                         reason="long double is the same as float")
@@ -914,7 +919,7 @@ class TestNumericalSubFormat:
         t_fmt_long = np.longdouble(t_fmt)
         # Create a different long double (ensuring it will give a different jd2
         # even when long doubles are more precise than Time, as on arm64).
-        atol = 2.**(-52) * (1. if fmt == 'mjd' else 24.*3600.)
+        atol = np.finfo(float).eps * (1. if fmt == 'mjd' else 24.*3600.)
         t_fmt_long2 = t_fmt_long + max(
             t_fmt_long * np.finfo(np.longdouble).eps * 2, atol)
         assert t_fmt_long != t_fmt_long2, "longdouble weird!"
