@@ -1539,24 +1539,28 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
 
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # Validate scale.
-        iterator = np.nditer([val1, None],
+        iterator = np.nditer([val1, None, None],
                              flags=['refs_ok', 'zerosize_ok'],
-                             op_dtypes=[None] + [np.double])
+                             op_dtypes=[None, np.double, np.double])
 
-        for val, sec in iterator:
-            sec[...] = val.item().total_seconds()
+        day = datetime.timedelta(days=1)
+        for val, jd1, jd2 in iterator:
+            jd1[...], other = divmod(val.item(), day)
+            jd2[...] = other/day
 
-        self.jd1, self.jd2 = day_frac(iterator.operands[-1], 0.0,
-                                      divisor=erfa.DAYSEC)
+        self.jd1, self.jd2 = day_frac(iterator.operands[-2],
+                                      iterator.operands[-1])
 
     @property
     def value(self):
-        iterator = np.nditer([self.jd1 + self.jd2, None],
+        iterator = np.nditer([self.jd1, self.jd2, None],
                              flags=['refs_ok', 'zerosize_ok'],
-                             op_dtypes=[None] + [object])
+                             op_dtypes=[None, None, object])
 
-        for jd, out in iterator:
-            out[...] = datetime.timedelta(days=jd.item())
+        for jd1, jd2, out in iterator:
+            jd1_, jd2_ = day_frac(jd1.item(), jd2.item())
+            out[...] = datetime.timedelta(days=jd1_,
+                                          microseconds=jd2_*86400*1e6)
 
         return self.mask_if_needed(iterator.operands[-1])
 
