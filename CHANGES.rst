@@ -774,6 +774,13 @@ astropy.wcs
   previously all world coordinates were masked even if uncorrelated with the
   celestial axes, but this is no longer the case. [#9688]
 
+- The default WCS to celestial frame mapping for world coordinate systems that
+  specify ``TLON`` and ``TLAT`` coordinates will now return an ITRS frame with
+  the representation class set to ``SphericalRepresentation``. This fixes a bug
+  that caused ``WCS.pixel_to_world`` to raise an error for such world
+  coordinate systems. [#9609]
+
+
 Other Changes and Additions
 ---------------------------
 
