@@ -158,7 +158,7 @@ def test_mjd_longdouble_preserves_precision(custom_format_name):
     # Pick a different long double (ensuring it will give a different jd2
     # even when long doubles are more precise than Time, as on arm64).
     m2 = np.longdouble(m) + max(2. * m * np.finfo(np.longdouble).eps,
-                                2.**(-52))
+                                np.finfo(float).eps)
     assert m2 != m, 'long double is weird!'
     t2 = Time(m2, format=custom_format_name)
     assert t != t2
