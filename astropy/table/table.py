@@ -636,14 +636,14 @@ class Table:
         if isinstance(values, dict):
             for name, value in values.items():
                 if name not in self.columns:
-                    raise ValueError(f'invalid olumn name {name} for setting {attr} attribute')
-                setattr(self[name], attr, value)
+                    raise ValueError(f'invalid column name {name} for setting {attr} attribute')
+                setattr(self[name].info, attr, value)
         else:
             if len(values) != len(self.columns):
                 raise ValueError(f'sequence of {attr} values must match number of columns')
             for col, value in zip(self.itercols(), values):
                 if value is not None:
-                    setattr(col, attr, value)
+                    setattr(col.info, attr, value)
 
     def __getstate__(self):
         columns = OrderedDict((key, col if isinstance(col, BaseColumn) else col_copy(col))
