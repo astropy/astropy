@@ -16,9 +16,9 @@ from .groups import GroupsHDU
 from .image import PrimaryHDU, ImageHDU
 from astropy.io.fits.file import _File, FILE_MODES
 from astropy.io.fits.header import _pad_length
-from astropy.io.fits.util import (_is_int, _tmp_name, fileobj_closed,
-                                  ignore_sigint, _get_array_mmap,
-                                  _free_space_check, fileobj_mode, isfile)
+from astropy.io.fits.util import (_free_space_check, _get_array_mmap, _is_int,
+                                  _tmp_name, fileobj_closed, fileobj_mode,
+                                  ignore_sigint, isfile)
 from astropy.io.fits.verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from astropy.utils import indent
 from astropy.utils.exceptions import AstropyUserWarning
@@ -1287,9 +1287,8 @@ class HDUList(list, _Verify):
                 new_file = gzip.GzipFile(name, mode='ab+')
             elif self._file.compression == 'bzip2':
                 if not HAS_BZ2:
-                    raise ValueError(
-                        ".bz2 format files are not supported since the Python "
-                        "interpreter does not include the bz2 module")
+                    raise ModuleNotFoundError(
+                        "This Python installation does not provide the bz2 module.")
                 new_file = bz2.BZ2File(name, mode='w')
             else:
                 new_file = name

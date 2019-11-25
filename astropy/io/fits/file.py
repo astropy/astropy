@@ -476,9 +476,8 @@ class _File:
                 raise OSError("update and append modes are not supported "
                               "with bzip2 files")
             if not HAS_BZ2:
-                raise ValueError(
-                    ".bz2 format files are not supported since the Python "
-                    "interpreter does not include the bz2 module")
+                raise ModuleNotFoundError(
+                    "This Python installation does not provide the bz2 module.")
             # bzip2 only supports 'w' and 'r' modes
             bzip2_mode = 'w' if mode == 'ostream' else 'r'
             self._file = bz2.BZ2File(obj_or_name, mode=bzip2_mode)
@@ -582,7 +581,7 @@ class _File:
             self._file.seek(0)
 
     @classproperty(lazy=True)
-    def _mmap_available(self):
+    def _mmap_available(cls):
         """Tests that mmap, and specifically mmap.flush works.  This may
         be the case on some uncommon platforms (see
         https://github.com/astropy/astropy/issues/968).
