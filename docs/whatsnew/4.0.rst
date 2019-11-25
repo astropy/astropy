@@ -612,7 +612,3 @@ Full change log
 
 To see a detailed list of all changes in version v4.0, including changes in
 API, please see the :ref:`changelog`.
-
-
-Renamed/removed functionality
-=============================
