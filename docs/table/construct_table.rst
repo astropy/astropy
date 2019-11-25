@@ -535,16 +535,30 @@ Initialization Details
 A table object is created by initializing a |Table| class
 object with the following arguments, all of which are optional:
 
-``data`` : numpy ndarray, dict, list, or Table
+``data`` : numpy ndarray, dict, list, Table, or table-like object, optional
     Data to initialize table.
-``names`` : list
-    Specify column names
-``dtype`` : list
-    Specify column data types
-``meta`` : dict-like
-    Meta-Data associated with the table
-``copy`` : boolean
-    Copy the input data (default=True).
+``masked`` : bool, optional
+    Specify whether the table is masked.
+``names`` : list, optional
+    Specify column names.
+``dtype`` : list, optional
+    Specify column data types.
+``meta`` : dict, optional
+    Metadata associated with the table.
+``copy`` : bool, optional
+    Copy the input data. If the input is a Table the ``meta`` is always
+    copied regardless of the ``copy`` parameter.
+    Default is True.
+``rows`` : numpy ndarray, list of lists, optional
+    Row-oriented data for table instead of ``data`` argument.
+``copy_indices`` : bool, optional
+    Copy any indices in the input data. Default is True.
+``units`` : list, dict, optional
+    List or dict of units to apply to columns
+``descriptions`` : list, dict, optional
+    List or dict of descriptions to apply to columns
+``**kwargs`` : dict, optional
+    Additional keyword args when converting table-like object.    
 
 The following subsections provide further detail on the values and options for
 each of the keyword arguments that can be used to create a new |Table| object.
@@ -664,6 +678,43 @@ advantage of reducing memory use and being faster.  However one should take
 care because any modifications to the new Table data will also be seen in the
 original input data.  See the `Copy versus Reference`_ section for more
 information.
+
+rows
+----
+
+This argument allows providing data as a sequence of rows, in contrast
+to the ``data`` keyword which generally assumes data are a sequence of columns.
+The `Row data` section provides details.
+
+copy_indices
+------------
+
+If you are initializing a table from another table that has table
+indices defined, then this option allows copying that table *without* copying
+the indices by setting ``copy_indices=False``.  By default the indices are
+copied.
+
+units
+-----
+
+This allows setting the unit for one or more columns at the time of creating the
+table.  The input can be either a list of unit values corresponding to each of
+the columns in the table (using ``None`` for no unit), or a ``dict`` that
+provides the unit for specified column names.  For example::
+
+  >>> from astropy.table import QTable
+  >>> dat = [[1, 2] * u.m, ['hello', 'world']]
+  >>> qt = QTable(dat, names=['a', 'b'], units=(u.m, None))
+  >>> qt = QTable(dat, names=['a', 'b'], units={'a': u.m})
+
+descriptions
+------------
+
+This allows setting the description for one or more columns at the time of
+creating the table.  The input can be either a list of description values
+corresponding to each of the columns in the table (using ``None`` for no
+description), or a ``dict`` that provides the description for specified column
+names.  This works the same as the ``units`` example above.
 
 
 .. _copy_versus_reference:
