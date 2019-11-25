@@ -27,7 +27,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils import data
 
 try:
-    import bz2  # pylint: disable=W0611
+    import bz2
 except ImportError:
     HAS_BZ2 = False
 else:
