@@ -147,6 +147,7 @@ def test_coord_type_from_ctype(cube_wcs):
     wcs.wcs.crpix = [256.0] * 2
     wcs.wcs.cdelt = [-0.05] * 2
     wcs.wcs.crval = [50.0] * 2
+    wcs.wcs.cname = ['Longitude', '']
     wcs.wcs.set()
 
     _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame)
@@ -154,6 +155,7 @@ def test_coord_type_from_ctype(cube_wcs):
     assert coord_meta['type'] == ['longitude', 'latitude']
     assert coord_meta['format_unit'] == [u.deg, u.deg]
     assert coord_meta['wrap'] == [None, None]
+    assert coord_meta['default_axis_label'] == ['Longitude', 'pos.galactic.lat']
 
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ['HPLN-TAN', 'HPLT-TAN']
