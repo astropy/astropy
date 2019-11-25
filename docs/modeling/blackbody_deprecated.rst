@@ -1,5 +1,7 @@
 :orphan:
 
+.. _deprecated-blackbody:
+
 Blackbody Module (deprecated capabilities)
 ==========================================
 
