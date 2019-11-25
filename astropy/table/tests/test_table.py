@@ -2400,6 +2400,51 @@ def test_tolist():
     assert isinstance(t['c'].tolist()[0][0], str)
 
 
+def test_set_units_fail():
+    dat = [[1.0, 2.0], ['aa', 'bb']]
+    with pytest.raises(ValueError, match='sequence of unit values must match number of columns'):
+        Table(dat, units=[u.m])
+    with pytest.raises(ValueError, match='invalid column name c for setting unit attribute'):
+        Table(dat, units={'c': u.m})
+
+
+def test_set_units():
+    dat = [[1.0, 2.0], ['aa', 'bb']]
+    exp_units = (u.m, None)
+    for cls in Table, QTable:
+        for units in ({'a': u.m}, exp_units):
+            qt = cls(dat, units=units, names=['a', 'b'])
+            if cls is QTable:
+                assert isinstance(qt['a'], u.Quantity)
+            for col, unit in zip(qt.itercols(), exp_units):
+                assert col.info.unit is unit
+
+
+def test_set_descriptions():
+    dat = [[1.0, 2.0], ['aa', 'bb']]
+    exp_descriptions = ('my description', None)
+    for cls in Table, QTable:
+        for descriptions in ({'a': 'my description'}, exp_descriptions):
+            qt = cls(dat, descriptions=descriptions, names=['a', 'b'])
+            for col, description in zip(qt.itercols(), exp_descriptions):
+                assert col.info.description == description
+
+
+def test_set_units_descriptions_read():
+    """Test setting units and descriptions via Table.read.  The test here
+    is less comprehensive because the implementation is exactly the same
+    as for Table.__init__ (calling Table._set_column_attribute) """
+    for cls in Table, QTable:
+        t = cls.read(['a b', '1 2'], 
+                     format='ascii', 
+                     units=[u.m, u.s], 
+                     descriptions=['hi', 'there'])
+        assert t['a'].info.unit is u.m
+        assert t['b'].info.unit is u.s
+        assert t['a'].info.description == 'hi'
+        assert t['b'].info.description == 'there'
+
+
 def test_broadcasting_8933():
     """Explicitly check re-work of code related to broadcasting in #8933"""
     t = table.Table([[1, 2]])  # Length=2 table

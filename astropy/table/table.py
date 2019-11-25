@@ -374,6 +374,10 @@ class Table:
         Row-oriented data for table instead of ``data`` argument.
     copy_indices : bool, optional
         Copy any indices in the input data. Default is True.
+    units : list, dict, optional
+        List or dict of units to apply to columns
+    descriptions : list, dict, optional
+        List or dict of descriptions to apply to columns
     **kwargs : dict, optional
         Additional keyword args when converting table-like object.
     """
@@ -453,6 +457,7 @@ class Table:
 
     def __init__(self, data=None, masked=False, names=None, dtype=None,
                  meta=None, copy=True, rows=None, copy_indices=True,
+                 units=None, descriptions=None,
                  **kwargs):
 
         # Set up a placeholder empty table
@@ -617,6 +622,28 @@ class Table:
         # Whatever happens above, the masked property should be set to a boolean
         if self.masked not in (None, True, False):
             raise TypeError("masked property must be None, True or False")
+
+        self._set_column_attribute('unit', units)
+        self._set_column_attribute('description', descriptions)
+
+    def _set_column_attribute(self, attr, values):
+        """Set ``attr`` for columns to ``values``, which can be either a dict (keyed by column
+        name) or a dict of name: value pairs.
+        """
+        if not values:
+            return
+
+        if isinstance(values, dict):
+            for name, value in values.items():
+                if name not in self.columns:
+                    raise ValueError(f'invalid olumn name {name} for setting {attr} attribute')
+                setattr(self[name], attr, value)
+        else:
+            if len(values) != len(self.columns):
+                raise ValueError(f'sequence of {attr} values must match number of columns')
+            for col, value in zip(self.itercols(), values):
+                if value is not None:
+                    setattr(col, attr, value)
 
     def __getstate__(self):
         columns = OrderedDict((key, col if isinstance(col, BaseColumn) else col_copy(col))
