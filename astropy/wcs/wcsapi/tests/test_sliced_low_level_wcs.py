@@ -11,6 +11,19 @@ from astropy.units import Quantity
 from astropy.wcs.wcsapi.sliced_low_level_wcs import SlicedLowLevelWCS, sanitize_slices, combine_slices
 import astropy.units as u
 
+
+def validate_types_or_skip(wcs):
+    """
+    Validate the types if we can import typeguard otherwise noop.
+    """
+    try:
+        from astropy.wcs.wcsapi.tests.utils import validate_low_level_wcs_types
+    except ImportError:
+        return
+
+    validate_low_level_wcs_types(wcs)
+
+
 # To test the slicing we start off from standard FITS WCS
 # objects since those implement the low-level API. We create
 # a WCS for a spectral cube with axes in non-standard order
@@ -103,6 +116,7 @@ World Dim    0    1    2
 def test_ellipsis():
 
     wcs = SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, Ellipsis)
+    validate_types_or_skip(wcs)
 
     assert wcs.pixel_n_dim == 3
     assert wcs.world_n_dim == 3
@@ -178,6 +192,7 @@ World Dim    0    1
 def test_spectral_slice():
 
     wcs = SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [slice(None), 10])
+    validate_types_or_skip(wcs)
 
     assert wcs.pixel_n_dim == 2
     assert wcs.world_n_dim == 2
@@ -239,6 +254,7 @@ World Dim    0    1    2
 def test_spectral_range():
 
     wcs = SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [slice(None), slice(4, 10)])
+    validate_types_or_skip(wcs)
 
     assert wcs.pixel_n_dim == 3
     assert wcs.world_n_dim == 3
@@ -304,6 +320,7 @@ World Dim    0    1
 def test_celestial_slice():
 
     wcs = SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [Ellipsis, 5])
+    validate_types_or_skip(wcs)
 
     assert wcs.pixel_n_dim == 2
     assert wcs.world_n_dim == 3
@@ -370,6 +387,7 @@ World Dim    0    1    2
 def test_celestial_range():
 
     wcs = SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [Ellipsis, slice(5, 10)])
+    validate_types_or_skip(wcs)
 
     assert wcs.pixel_n_dim == 3
     assert wcs.world_n_dim == 3
@@ -446,6 +464,7 @@ World Dim    0    1    2
 def test_celestial_range_rot():
 
     wcs = SlicedLowLevelWCS(WCS_SPECTRAL_CUBE_ROT, [Ellipsis, slice(5, 10)])
+    validate_types_or_skip(wcs)
 
     assert wcs.pixel_n_dim == 3
     assert wcs.world_n_dim == 3
@@ -535,6 +554,7 @@ World Dim    0    1    2
 def test_no_array_shape():
 
     wcs = SlicedLowLevelWCS(WCS_NO_SHAPE_CUBE, Ellipsis)
+    validate_types_or_skip(wcs)
 
     assert wcs.pixel_n_dim == 3
     assert wcs.world_n_dim == 3
@@ -623,6 +643,7 @@ World Dim    0    1    2
 def test_ellipsis_none_types():
 
     wcs = SlicedLowLevelWCS(WCS_SPECTRAL_CUBE_NONE_TYPES, Ellipsis)
+    validate_types_or_skip(wcs)
 
     assert wcs.pixel_n_dim == 3
     assert wcs.world_n_dim == 3
@@ -690,7 +711,9 @@ def test_nested_slicing():
                     SlicedLowLevelWCS(wcs, [slice(None), slice(1, 10), slice(None)]),
                     [3, slice(2, None)]),
                 [slice(None), slice(2, 8)])
+    validate_types_or_skip(sub1)
     sub2 = wcs[3, 3:10, 2:8]
+    validate_types_or_skip(sub2)
     assert_allclose(sub1.pixel_to_world_values(3, 5),
                     sub2.pixel_to_world_values(3, 5))
     assert not isinstance(sub1._wcs, SlicedLowLevelWCS)
