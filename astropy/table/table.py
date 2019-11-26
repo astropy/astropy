@@ -995,6 +995,7 @@ class Table:
             try:
                 col = data[0].__class__(data)
                 col.info.name = name
+                col.info.indices = []
                 return col
             except Exception:
                 # If that didn't work for some reason, just turn it into np.array of object
