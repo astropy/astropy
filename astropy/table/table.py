@@ -374,6 +374,10 @@ class Table:
         Row-oriented data for table instead of ``data`` argument.
     copy_indices : bool, optional
         Copy any indices in the input data. Default is True.
+    units : list, dict, optional
+        List or dict of units to apply to columns.
+    descriptions : list, dict, optional
+        List or dict of descriptions to apply to columns.
     **kwargs : dict, optional
         Additional keyword args when converting table-like object.
     """
@@ -453,6 +457,7 @@ class Table:
 
     def __init__(self, data=None, masked=False, names=None, dtype=None,
                  meta=None, copy=True, rows=None, copy_indices=True,
+                 units=None, descriptions=None,
                  **kwargs):
 
         # Set up a placeholder empty table
@@ -617,6 +622,39 @@ class Table:
         # Whatever happens above, the masked property should be set to a boolean
         if self.masked not in (None, True, False):
             raise TypeError("masked property must be None, True or False")
+
+        self._set_column_attribute('unit', units)
+        self._set_column_attribute('description', descriptions)
+
+    def _set_column_attribute(self, attr, values):
+        """Set ``attr`` for columns to ``values``, which can be either a dict (keyed by column
+        name) or a dict of name: value pairs.  This is used for handling the ``units`` and
+        ``descriptions`` kwargs to ``__init__``.
+        """
+        if not values:
+            return
+
+        if isinstance(values, Row):
+            # For a Row object transform to an equivalent dict.
+            values = {name: values[name] for name in values.colnames}
+
+        if not isinstance(values, dict):
+            # If not a dict map, assume iterable and map to dict if the right length
+            if len(values) != len(self.columns):
+                raise ValueError(f'sequence of {attr} values must match number of columns')
+            values = dict(zip(self.colnames, values))
+
+        for name, value in values.items():
+            if name not in self.columns:
+                raise ValueError(f'invalid column name {name} for setting {attr} attribute')
+
+            # Special case: ignore unit if it is an empty or blank string
+            if attr == 'unit' and isinstance(value, str):
+                if value.strip() == '':
+                    value = None
+
+            if value not in (np.ma.masked, None):
+                setattr(self[name].info, attr, value)
 
     def __getstate__(self):
         columns = OrderedDict((key, col if isinstance(col, BaseColumn) else col_copy(col))
