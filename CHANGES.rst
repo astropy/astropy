@@ -1151,6 +1151,9 @@ astropy.wcs
 - Fix incorrect value returned by ``wcsapi.HighLevelWCSWrapper.axis_correlation_matrix``.
   [#9554]
 
+- ``FITSWCSAPIMixin`` now returns tuples not lists from ``pixel_to_world`` and
+  ``world_to_pixel``. [#9678]
+
 Other Changes and Additions
 ---------------------------
 

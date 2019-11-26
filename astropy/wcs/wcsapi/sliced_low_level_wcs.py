@@ -168,7 +168,7 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
         # Detect the case of a length 0 array
         if isinstance(world_arrays, np.ndarray) and not world_arrays.shape:
             return world_arrays
-        world = [world_arrays[iw] for iw in self._world_keep]
+        world = tuple(world_arrays[iw] for iw in self._world_keep)
         if self.world_n_dim == 1 and self._wcs.world_n_dim > 1:
             world = world[0]
         return world
@@ -196,7 +196,7 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
         # Detect the case of a length 0 array
         if isinstance(pixel_arrays, np.ndarray) and not pixel_arrays.shape:
             return pixel_arrays
-        pixel = [pixel_arrays[ip] for ip in self._pixel_keep]
+        pixel = tuple(pixel_arrays[ip] for ip in self._pixel_keep)
         if self.pixel_n_dim == 1 and self._wcs.pixel_n_dim > 1:
             pixel = pixel[0]
         return pixel
@@ -240,7 +240,7 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
                 start = self._slices_pixel[idx].start
                 bounds.append((imin - start, imax - start))
 
-        return bounds
+        return tuple(bounds)
 
     @property
     def axis_correlation_matrix(self):
