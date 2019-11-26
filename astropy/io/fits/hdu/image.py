@@ -952,7 +952,7 @@ class PrimaryHDU(_ImageBaseHDU):
         data : array or DELAYED, optional
             The data in the HDU.
 
-        header : :class:`~astropy.io.fits.Header`, optional
+        header : `~astropy.io.fits.Header`, optional
             The header to be used (as a template).  If ``header`` is `None`, a
             minimal header will be provided.
 
@@ -1047,7 +1047,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
         data : array
             The data in the HDU.
 
-        header : :class:`~astropy.io.fits.Header`
+        header : `~astropy.io.fits.Header`
             The header to be used (as a template).  If ``header`` is
             `None`, a minimal header will be provided.
 
