@@ -87,6 +87,10 @@ def overlap_slices(large_array_shape, small_array_shape, position,
     if np.isscalar(position):
         position = (position, )
 
+    if any(~np.isfinite(position)):
+        raise ValueError('Input position contains invalid values (NaNs or '
+                         'infs).')
+
     if len(small_array_shape) != len(large_array_shape):
         raise ValueError('"large_array_shape" and "small_array_shape" must '
                          'have the same number of dimensions.')
@@ -207,6 +211,7 @@ def extract_array(array_large, shape, position, mode='partial',
 
     if mode not in ['partial', 'trim', 'strict']:
         raise ValueError("Valid modes are 'partial', 'trim', and 'strict'.")
+
     large_slices, small_slices = overlap_slices(array_large.shape,
                                                 shape, position, mode=mode)
     extracted_array = array_large[large_slices]
