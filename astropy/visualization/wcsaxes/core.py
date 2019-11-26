@@ -757,7 +757,7 @@ class WCSAxes(Axes):
              times the width in world coordinates.
         kwargs : dict
             Keyword arguments are handed to
-            `matplotib.axes.Axes.set_aspect`.
+            :meth:`~matplotib.axes.Axes.set_aspect`.
 
         Warnings
         --------
