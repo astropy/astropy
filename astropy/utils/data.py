@@ -1184,6 +1184,10 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
                                         hexdigest=hexdigest,
                                         remove_original=True,
                                         pkgname=pkgname)
+        except WrongDBMModule as e:
+            missing_cache = (
+                f"{e}; Unable to use cache, providing data in temporary file "
+                f"{f_name} instead.")
         except PermissionError:
             # Cache is readonly, we can't update it
             missing_cache = (
@@ -1598,6 +1602,18 @@ class ReadOnlyDict(dict):
 _NOTHING = ReadOnlyDict()  # might as well share.
 
 
+class WrongDBMModule(dbm.error[0]):
+    pass
+
+
+class WrongDBMModuleWarning(CacheMissingWarning):
+    """
+    This warning indicates the standard cache directory is not accessible,
+    specifically because it exists but is in a format that the current python
+    interpreter cannot understand.
+    """
+
+
 @contextlib.contextmanager
 def _cache(pkgname, write=False):
     """Download cache context manager.
@@ -1637,21 +1653,34 @@ def _cache(pkgname, write=False):
             warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
             yield None, _NOTHING
             return
+    wrong_dbm_message = (
+        "Existing astropy cache is in an unsupported format, "
+        "either install the appropriate package or use "
+        "astropy.utils.data.clear_download_cache() to delete the "
+        "whole cache; ")
     if write:
-        with _cache_lock(pkgname, need_write=True), \
-                shelve.open(urlmapfn, flag="c") as url2hash:
-            yield dldir, url2hash
+        try:
+            with _cache_lock(pkgname, need_write=True), \
+                    shelve.open(urlmapfn, flag="c") as url2hash:
+                yield dldir, url2hash
+        except dbm.error as e:
+            if "module is not available" in str(e):
+                raise WrongDBMModule(wrong_dbm_message + str(e))
+            else:
+                raise
     else:
         try:
             with _cache_lock(pkgname), shelve.open(urlmapfn, flag="r") as url2hash:
                 # Copy so we can release the lock.
                 d = ReadOnlyDict(url2hash.items())
-        except dbm.error:
+        except dbm.error as e:
             # Might be a "file not found" - that is, an un-initialized cache,
             # might be something serious, no way to tell as shelve just gives
             # you a plain dbm.error
             # Also the file doesn't have a platform-independent name, so good
             # luck diagnosing the problem if it is one.
+            if "module is not available" in str(e):
+                warn(WrongDBMModuleWarning(wrong_dbm_message + str(e)))
             d = _NOTHING
         yield dldir, d
 
