@@ -317,6 +317,8 @@ pixel and celestial coordinates::
 
 we can find the best-fitting WCS with::
 
+.. doctest-requires:: scipy
+
     >>> from astropy.wcs.utils import fit_wcs_from_points
     >>> fit_wcs_from_points(stars_pixel, stars_world)  # doctest: +FLOAT_CMP
     WCS Keywords
