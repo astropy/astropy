@@ -10,11 +10,8 @@ from hypothesis.strategies import (composite, datetimes, floats, integers,
                                    one_of, sampled_from, timedeltas)
 
 import numpy as np
-<<<<<<< HEAD
 from decimal import Decimal
 from datetime import datetime
-=======
->>>>>>> Add hypothesis testing for Time precision
 
 import astropy._erfa as erfa
 import astropy.units as u
@@ -22,7 +19,7 @@ from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import STANDARD_TIME_SCALES, Time, TimeDelta
 from astropy.time.utils import day_frac, two_sum
 from astropy.utils import iers
-from astropy.utils.exceptions import ErfaWarning, ErfaError
+from astropy.utils.exceptions import ErfaError
 
 allclose_jd = functools.partial(np.allclose, rtol=np.finfo(float).eps, atol=0)
 allclose_jd2 = functools.partial(np.allclose, rtol=np.finfo(float).eps,
@@ -70,7 +67,8 @@ def assert_almost_equal(a, b, *, rtol=None, atol=None, label=''):
         except TypeError:
             pass
 
-    # assert abs(amb) < 100*thresh
+    #assert abs(amb) < 100*thresh
+    #assert abs(amb) < 10*thresh
     assert abs(amb) < thresh
 
 
@@ -531,7 +529,6 @@ def test_timedelta_conversion(scale1, scale2, jds_a, jds_b):
 _utc_bad = [(pytest.param(s, marks=pytest.mark.xfail) if s == 'utc' else s)
             for s in _scales]
 # datetimes have microsecond resolution
-@pytest.mark.xfail
 @given(datetimes(), datetimes())
 @example(dt1=datetime(1235, 1, 1, 0, 0),
          dt2=datetime(9950, 1, 1, 0, 0, 0, 890773))
@@ -542,10 +539,44 @@ def test_datetime_difference_agrees_with_timedelta(scale, dt1, dt2):
     assert_almost_equal(t2-t1,
                         TimeDelta(dt2-dt1,
                                   scale=None if scale == 'utc' else scale),
-                        atol=25*u.us)
+                        atol=2*u.us)
 
 
-@pytest.mark.xfail
+@given(integers(-3000*365, 3000*365), integers(0, 24*60*60*1000000))
+@pytest.mark.parametrize("scale", _utc_bad)
+def test_datetime_to_timedelta(scale, days, microseconds):
+    td = timedelta(days=days, microseconds=microseconds)
+    assert (TimeDelta(td, scale=scale)
+            == TimeDelta(days, microseconds/(86400*1e6), scale=scale))
+
+
+@given(integers(-3000*365, 3000*365), integers(0, 24*60*60*1000000))
+@pytest.mark.parametrize("scale", _utc_bad)
+def test_datetime_timedelta_roundtrip(scale, days, microseconds):
+    td = timedelta(days=days, microseconds=microseconds)
+    assert td == TimeDelta(td, scale=scale).value
+
+
+@given(integers(-3000*365, 3000*365), floats(0, 1))
+@example(days=262144, day_frac=2.314815006343452e-11)
+@example(days=1048576, day_frac=1.157407503171726e-10)
+@pytest.mark.parametrize("scale", _utc_bad)
+def test_timedelta_datetime_roundtrip(scale, days, day_frac):
+    td = TimeDelta(days, day_frac, format="jd", scale=scale)
+    td.format = "datetime"
+    assert_almost_equal(td,
+                        TimeDelta(td.value, scale=scale),
+                        atol=2*u.us)
+
+
+@given(integers(-3000*365, 3000*365), floats(0, 1))
+@example(days=262144, day_frac=2.314815006343452e-11)
+@pytest.mark.parametrize("scale", _utc_bad)
+def test_timedelta_from_parts(scale, days, day_frac):
+    assert (TimeDelta(days, day_frac, format="jd", scale=scale)
+            == TimeDelta(days, scale=scale) + TimeDelta(day_frac, scale=scale))
+
+
 def test_datetime_difference_agrees_with_timedelta_no_hypothesis():
     scale = "tai"
     dt1 = datetime(1235, 1, 1, 0, 0)
@@ -556,7 +587,6 @@ def test_datetime_difference_agrees_with_timedelta_no_hypothesis():
 
 
 # datetimes have microsecond resolution
-@pytest.mark.xfail
 @given(datetimes(), timedeltas())
 @example(dt=datetime(2000, 1, 1, 0, 0),
          td=timedelta(days=-397683, microseconds=2))
@@ -578,26 +608,7 @@ def test_datetime_timedelta_sum(scale, dt, td):
     td_a = TimeDelta(td, scale=None if scale == 'utc' else scale)
     assert_almost_equal(dt_a+td_a,
                         Time(dt+td, scale=scale),
-                        atol=10*u.us)
-
-
-# should probably move hypothesis helpers somewhere more global so this can
-# go in test_sidereal.py instead.
-
-sidereal_day_frac = ((1*u.year-1*u.day)/(1*u.year)).to_value(1)
-@pytest.mark.xfail
-@given(reasonable_jd(), floats(-180, 180))
-@example(kind='mean', jds=(2455000.0, 0.0), lon=-85.87226916203973)
-@pytest.mark.parametrize("kind", ["apparent", "mean"])
-def test_sidereal_range(kind, jds, lon):
-    jd1, jd2 = jds
-    t = Time(jd1, jd2, scale="ut1", format="jd")
-    try:
-        assert (0*u.degree
-                <= t.sidereal_time(kind, lon)
-                < 24*u.hourangle*sidereal_day_frac)
-    except iers.IERSRangeError:
-        assume(False)
+                        atol=2*u.us)
 
 
 @given(reasonable_jd(), floats(-90, 90), floats(-90, 90), floats(-180, 180))
