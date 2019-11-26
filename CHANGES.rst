@@ -787,6 +787,9 @@ astropy.wcs
   coordinate systems. [#9609]
 
 
+- ``FITSWCSAPIMixin`` now returns tuples not lists from ``pixel_to_world`` and
+  ``world_to_pixel``. [#9678]
+
 Other Changes and Additions
 ---------------------------
 

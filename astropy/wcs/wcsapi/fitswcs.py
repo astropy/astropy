@@ -247,15 +247,15 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
     def pixel_to_world_values(self, *pixel_arrays):
         world = self.all_pix2world(*pixel_arrays, 0)
-        return world[0] if self.world_n_dim == 1 else world
+        return world[0] if self.world_n_dim == 1 else tuple(world)
 
     def array_index_to_world_values(self, *indices):
         world = self.all_pix2world(*indices[::-1], 0)
-        return world[0] if self.world_n_dim == 1 else world
+        return world[0] if self.world_n_dim == 1 else tuple(world)
 
     def world_to_pixel_values(self, *world_arrays):
         pixel = self.all_world2pix(*world_arrays, 0)
-        return pixel[0] if self.pixel_n_dim == 1 else pixel
+        return pixel[0] if self.pixel_n_dim == 1 else tuple(pixel)
 
     def world_to_array_index_values(self, *world_arrays):
         pixel_arrays = self.all_world2pix(*world_arrays, 0)[::-1]
