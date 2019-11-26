@@ -2510,7 +2510,10 @@ def test_data_to_col_convert_strategy():
 
 
 def test_rows_with_mixins():
-    """Test for #9165 to allow adding a list of mixin objects"""
+    """Test for #9165 to allow adding a list of mixin objects.
+    Also test for fix to #9357 where group_by() failed due to
+    mixin object not having info.indices set to [].
+    """
     tm = Time([1, 2], format='cxcsec')
     q = [1, 2] * u.m
     mixed1 = [1 * u.m, 2]  # Mixed input, fails to convert to Quantity
@@ -2533,6 +2536,17 @@ def test_rows_with_mixins():
     assert t['m1'].dtype is np.dtype(object)
     assert type(t['m2']) is table.Column
     assert t['m2'].dtype is np.dtype(object)
+
+    # Ensure group_by() runs without failing for sortable columns.
+    # The columns 'm1', and 'm2' are object dtype and not sortable.
+    for name in ['col0', 'col1', 'col2', 'a', 'b']:
+        t.group_by(name)
+
+    # For good measure include exactly the failure in #9357 in which the
+    # list of Time() objects is in the Table initializer.
+    mjds = [Time(58000, format="mjd")]
+    t = Table([mjds, ["gbt"]], names=("mjd", "obs"))
+    t.group_by("obs")
 
 
 def test_iterrows():
