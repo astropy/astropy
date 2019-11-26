@@ -37,6 +37,8 @@ test_slices = [slice(10.52, 3.12), slice(5.62, 12.97),
 subsampling = 5
 
 test_pos_bad = [(-1, -4), (-2, 0), (6, 2), (6, 6)]
+test_nonfinite_positions= [(np.nan, np.nan), (np.inf, np.inf), (1, np.nan),
+                           (np.nan, 2), (2, -np.inf), (-np.inf, 3)]
 
 
 def test_slices_different_dim():
@@ -110,6 +112,17 @@ def test_slices_overlap_wrong_mode():
     with pytest.raises(ValueError) as e:
         overlap_slices((5,), (3,), (0,), mode='full')
     assert "Mode can be only" in str(e.value)
+
+
+@pytest.mark.parametrize('position', test_nonfinite_positions)
+def test_slices_no_overlap(position):
+    """
+    A ValueError should be raised if position contains a non-finite
+    value.
+    """
+
+    with pytest.raises(ValueError):
+        overlap_slices((7, 7), (3, 3), position)
 
 
 def test_extract_array_even_shape_rounding():
