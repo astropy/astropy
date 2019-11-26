@@ -1315,3 +1315,32 @@ class TestWcsWithTime:
     def test_transforms(self):
         assert_allclose(self.w.all_pix2world(*self.w.wcs.crpix, 1),
                         self.w.wcs.crval)
+
+
+def test_invalid_coordinate_masking():
+
+    # Regression test for an issue which caused all coordinates to be set to NaN
+    # after a transformation rather than just the invalid ones as reported by
+    # WCSLIB. A specific example of this is that when considering an all-sky
+    # spectral cube with a spectral axis that is not correlated with the sky
+    # axes, if transforming pixel coordinates that did not fall 'in' the sky,
+    # the spectral world value was also masked even though that coordinate
+    # was valid.
+
+    w = wcs.WCS(naxis=3)
+    w.wcs.ctype = 'VELO_LSR', 'GLON-CAR', 'GLAT-CAR'
+    w.wcs.crval = -20, 0, 0
+    w.wcs.crpix = 1, 1441, 241
+    w.wcs.cdelt = 1.3, -0.125, 0.125
+
+    px = [-10, -10, 20]
+    py = [-10, 10, 20]
+    pz = [-10, 10, 20]
+
+    wx, wy, wz = w.wcs_pix2world(px, py, pz, 0)
+
+    # Before fixing this, wx used to return np.nan for the first element
+
+    assert_allclose(wx, [-33, -33, 6])
+    assert_allclose(wy, [np.nan, 178.75, 177.5])
+    assert_allclose(wz, [np.nan, -28.75, -27.5])
