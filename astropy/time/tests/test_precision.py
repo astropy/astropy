@@ -623,3 +623,20 @@ def test_sidereal_lat_independent(kind, jds, lat1, lat2, lon):
                             atol=1*u.uas)
     except iers.IERSRangeError:
         assume(False)
+
+
+@given(reasonable_jd(), floats(-90, 90), floats(-180, 180), floats(-360, 360))
+@pytest.mark.parametrize("kind", ["apparent", "mean"])
+def test_sidereal_lon_independent(kind, jds, lat, lon, lon_delta):
+    jd1, jd2 = jds
+    t1 = Time(jd1, jd2, scale="ut1", format="jd",
+              location=(lon, lat))
+    t2 = Time(jd1, jd2, scale="ut1", format="jd",
+              location=(lon+lon_delta, lat))
+    try:
+        assert_almost_equal(((t1.sidereal_time(kind) + lon_delta*u.degree
+                             - t2.sidereal_time(kind)).to_value(u.degree) + 180) % 360,
+                            180,
+                            atol=1/(60*60*1000))
+    except iers.IERSRangeError:
+        assume(False)
