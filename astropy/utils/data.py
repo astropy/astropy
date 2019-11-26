@@ -1212,7 +1212,7 @@ def is_url_in_cache(url_key, pkgname='astropy'):
 
     Parameters
     ----------
-    url_key : string
+    url_key : str
         The URL retrieved
     pkgname : `str`, optional
         The package name to use to locate the download cache. i.e. for

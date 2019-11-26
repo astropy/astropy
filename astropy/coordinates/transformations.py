@@ -1214,7 +1214,7 @@ class StaticMatrixTransform(BaseAffineTransform):
 
     Parameters
     ----------
-    matrix : array-like or callable
+    matrix : array_like or callable
         A 3 x 3 matrix for transforming 3-vectors. In most cases will
         be unitary (although this is not strictly required). If a callable,
         will be called *with no arguments* to get the matrix.

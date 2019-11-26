@@ -134,7 +134,7 @@ def _expand_string_array_for_values(arr, values):
     ----------
     arr : np.ndarray
         Input array
-    values : scalar or array-like
+    values : scalar or array_like
         Values for width comparison for string arrays
 
     Returns
@@ -511,7 +511,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
         Returns
         -------
-        equal : boolean
+        equal : bool
             True if all attributes are equal
         """
         if not isinstance(col, BaseColumn):
@@ -1352,7 +1352,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             Value(s) to insert.  If the type of ``values`` is different from
             that of the column, ``values`` is converted to the matching type.
             ``values`` should be shaped so that it can be broadcast appropriately.
-        mask : boolean array_like
+        mask : bool or array_like
             Mask value(s) to insert.  If not supplied, and values does not have
             a mask either, then False is used.
         axis : int, optional

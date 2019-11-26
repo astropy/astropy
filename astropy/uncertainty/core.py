@@ -31,7 +31,7 @@ class Distribution:
 
     Parameters
     ----------
-    samples : array-like
+    samples : array_like
         The distribution, with sampling along the *leading* axis. If 1D, the
         sole dimension is used as the sampling axis (i.e., it is a scalar
         distribution).
@@ -304,7 +304,7 @@ class _DistributionRepr:
             reprarr = reprarr[firstspace+1:-1]  # :-1] removes the ending '>'
             return '<{} {} with n_samples={}>'.format(self.__class__.__name__,
                                                       reprarr, self.n_samples)
-        else:  # numpy array-like
+        else:  # numpy array_like
             firstparen = reprarr.find('(')
             reprarr = reprarr[firstparen:]
             return '{}{} with n_samples={}'.format(self.__class__.__name__,

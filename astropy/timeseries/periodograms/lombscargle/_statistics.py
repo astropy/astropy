@@ -54,7 +54,7 @@ def pdf_single(z, N, normalization, dH=1, dK=3):
 
     Parameters
     ----------
-    z : array-like
+    z : array_like
         The periodogram value.
     N : int
         The number of data points from which the periodogram was computed.
@@ -105,7 +105,7 @@ def fap_single(z, N, normalization, dH=1, dK=3):
 
     Parameters
     ----------
-    z : array-like
+    z : array_like
         The periodogram value.
     N : int
         The number of data points from which the periodogram was computed.
@@ -156,7 +156,7 @@ def inv_fap_single(fap, N, normalization, dH=1, dK=3):
 
     Parameters
     ----------
-    fap : array-like
+    fap : array_like
         The false alarm probability.
     N : int
         The number of data points from which the periodogram was computed.
@@ -209,7 +209,7 @@ def cdf_single(z, N, normalization, dH=1, dK=3):
 
     Parameters
     ----------
-    z : array-like
+    z : array_like
         The periodogram value.
     N : int
         The number of data points from which the periodogram was computed.
@@ -395,11 +395,11 @@ def false_alarm_probability(Z, fmax, t, y, dy, normalization='standard',
 
     Parameters
     ----------
-    Z : array-like
+    Z : array_like
         The periodogram value.
     fmax : float
         The maximum frequency of the periodogram.
-    t, y, dy : array-like
+    t, y, dy : array_like
         The data times, values, and errors.
     normalization : {'standard', 'model', 'log', 'psd'}, optional
         The periodogram normalization.
@@ -455,7 +455,7 @@ def false_alarm_level(p, fmax, t, y, dy, normalization,
 
     Parameters
     ----------
-    p : array-like
+    p : array_like
         The false alarm probability (0 < p < 1).
     fmax : float
         The maximum frequency of the periodogram.
