@@ -1148,7 +1148,7 @@ class BinTableHDU(_TableBaseHDU):
             replaced with the contents of the ASCII file instead of
             just updating the current header.
 
-        header : :class:`~astropy.io.fits.Header`, optional
+        header : `~astropy.io.fits.Header`, optional
             When the cdfile and hfile are missing, use this Header object in
             the creation of the new table and HDU.  Otherwise this Header
             supersedes the keywords from hfile, which is only used to update
