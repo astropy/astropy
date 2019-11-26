@@ -294,6 +294,8 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+* Fix inaccuracy when converting between TimeDelta and datetime.timedelta [#9579]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
