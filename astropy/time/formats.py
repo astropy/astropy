@@ -1558,7 +1558,7 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
                              op_dtypes=[None, None, object])
 
         for jd1, jd2, out in iterator:
-            jd1_, jd2_ = day_frac(jd1.item(), jd2.item())
+            jd1_, jd2_ = day_frac(jd1, jd2)
             out[...] = datetime.timedelta(days=jd1_,
                                           microseconds=jd2_*86400*1e6)
 
