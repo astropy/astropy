@@ -174,7 +174,7 @@ def extract_array(array_large, shape, position, mode='partial',
         small array that do not overlap with the input ``array_large``.
         ``fill_value`` must have the same ``dtype`` as the
         ``array_large`` array.
-    return_position : boolean, optional
+    return_position : bool, optional
         If `True`, return the coordinates of ``position`` in the
         coordinate system of the returned array.
 
@@ -296,7 +296,7 @@ def subpixel_indices(position, subsampling):
 
     Parameters
     ----------
-    position : `~numpy.ndarray` or array-like
+    position : `~numpy.ndarray` or array_like
         Positions in pixels.
     subsampling : int
         Subsampling factor per pixel.
@@ -356,7 +356,7 @@ def block_reduce(data, block_size, func=np.sum):
 
     Returns
     -------
-    output : array-like
+    output : array_like
         The resampled data.
 
     Examples
@@ -494,7 +494,7 @@ class Cutout2D:
         `~astropy.coordinates.SkyCoord`, in which case ``wcs`` is a
         required input.
 
-    size : int, array-like, `~astropy.units.Quantity`
+    size : int, array_like, `~astropy.units.Quantity`
         The size of the cutout array along each axis.  If ``size``
         is a scalar number or a scalar `~astropy.units.Quantity`,
         then a square cutout of ``size`` will be created.  If

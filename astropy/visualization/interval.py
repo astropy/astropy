@@ -48,7 +48,7 @@ class BaseInterval(BaseTransform):
 
         Parameters
         ----------
-        values : array-like
+        values : array_like
             The input values.
         clip : bool, optional
             If `True` (default), values outside the [0:1] range are

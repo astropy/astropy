@@ -43,7 +43,7 @@ class leap_seconds:
 
         Parameters
         ----------
-        table : array-like
+        table : array_like
             Must have 'year', 'month', and 'tai_utc' entries.  If a 'day'
             entry is present, it will be checked that it is always 1.
             If ``table`` has an 'expires' attribute, it will be interpreted
@@ -120,7 +120,7 @@ class leap_seconds:
 
         Parameters
         ----------
-        table : array-like or `None`
+        table : array_like or `None`
             Leap-second table that should at least hold columns of 'year',
             'month', and 'tai_utc'.  Only simple validation is done before it
             is being used, so care need to be taken that entries are correct.
@@ -173,7 +173,7 @@ class leap_seconds:
 
         Parameters
         ----------
-        table : array-like or `~astropy.utils.iers.LeapSeconds`
+        table : array_like or `~astropy.utils.iers.LeapSeconds`
             Array or table with TAI-UTC from leap seconds.  Should have
             'year', 'month', and 'tai_utc' columns.
 

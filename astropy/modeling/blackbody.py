@@ -189,11 +189,11 @@ def blackbody_nu(in_x, temperature):
 
     Parameters
     ----------
-    in_x : number, array-like, or `~astropy.units.Quantity`
+    in_x : number, array_like, or `~astropy.units.Quantity`
         Frequency, wavelength, or wave number.
         If not a Quantity, it is assumed to be in Hz.
 
-    temperature : number, array-like, or `~astropy.units.Quantity`
+    temperature : number, array_like, or `~astropy.units.Quantity`
         Blackbody temperature.
         If not a Quantity, it is assumed to be in Kelvin.
 
@@ -257,11 +257,11 @@ def blackbody_lambda(in_x, temperature):
 
     Parameters
     ----------
-    in_x : number, array-like, or `~astropy.units.Quantity`
+    in_x : number, array_like, or `~astropy.units.Quantity`
         Frequency, wavelength, or wave number.
         If not a Quantity, it is assumed to be in Angstrom.
 
-    temperature : number, array-like, or `~astropy.units.Quantity`
+    temperature : number, array_like, or `~astropy.units.Quantity`
         Blackbody temperature.
         If not a Quantity, it is assumed to be in Kelvin.
 

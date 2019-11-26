@@ -129,16 +129,16 @@ def uniform(*, lower=None, upper=None, center=None, width=None, n_samples,
 
     Parameters
     ----------
-    lower : array-like
+    lower : array_like
         The lower edge of this distribution. If a `~astropy.units.Quantity`, the
         distribution will have the same units as ``lower``.
     upper : `~astropy.units.Quantity`
         The upper edge of this distribution. Must match shape and if a
         `~astropy.units.Quantity` must have compatible units with ``lower``.
-    center : array-like
+    center : array_like
         The center value of the distribution. Cannot be provided at the same
         time as ``lower``/``upper``.
-    width : array-like
+    width : array_like
         The width of the distribution.  Must have the same shape and compatible
         units with ``center`` (if any).
     n_samples : int

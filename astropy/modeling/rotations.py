@@ -68,7 +68,7 @@ class RotationSequence3D(Model):
 
     Parameters
     ----------
-    angles : array-like
+    angles : array_like
         Angles of rotation in deg in the order of axes_order.
     axes_order : str
         A sequence of 'x', 'y', 'z' corresponding to axis of rotation.
@@ -456,7 +456,7 @@ class Rotation2D(Model):
 
         Parameters
         ----------
-        x, y : ndarray-like
+        x, y : array_like
             Input quantities
         angle : float (deg) or `~astropy.units.Quantity`
             Angle of rotations.
