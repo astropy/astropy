@@ -20,7 +20,6 @@ void set_invalid_to_nan(
   const int* s = stat;
   const int* s_end = stat + ncoord;
   double n;
-  int bit;
 
   #ifndef NAN
     #define INF (DBL_MAX+DBL_MAX)
@@ -34,14 +33,14 @@ void set_invalid_to_nan(
 
   for ( ; s != s_end; ++s) {
     if (*s) {
-      bit = 1;
+      int bit = 1;
       for (i = 0; i < nelem; ++i) {
-        if ((*s & bit) == bit) {
+        if (*s & bit) {
           *d++ = n;
         } else {
           d++;
         }
-        bit *= 2;
+        bit <<= 1;
       }
     } else {
       d += nelem;
