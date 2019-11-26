@@ -632,10 +632,10 @@ class Longitude(Angle):
         wrap_angle_floor = wrap_angle - a360
         self_angle = self.value
         # Do the wrapping, but only if any angles need to be wrapped
-        if np.any(self_angle < wrap_angle_floor) or np.any(self_angle >= wrap_angle):
-            wrapped = np.mod(self_angle - wrap_angle, a360) + wrap_angle_floor
-            value = u.Quantity(wrapped, self.unit)
-            super().__setitem__((), value)
+        with np.errstate(invalid='ignore'):
+            wraps = (self_angle - wrap_angle_floor) // a360
+        if np.any(wraps != 0):
+            self -= (wraps * a360) << self.unit
 
     @property
     def wrap_angle(self):
