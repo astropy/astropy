@@ -235,6 +235,8 @@ function does not work as expected, it is now a bug that we can fix!
 
 Two simple examples:
 
+.. doctest-requires:: numpy>=1.17
+
     >>> import numpy as np
     >>> from astropy import units as u
     >>> np.where([True, False, False], [1., 2., 3.]*u.m, 1.*u.cm)
@@ -305,6 +307,7 @@ to fit a (FITS) WCS to a set of points for which both pixel and world coordinate
 are available. For instance, if we have an image in which four stars have known
 pixel and celestial coordinates::
 
+    >>> import numpy as np
     >>> from astropy.coordinates import SkyCoord
     >>> stars_pixel = [np.array([153, 64, 593, 663]),
     ...                np.array([581, 199, 190, 445])]
@@ -391,22 +394,22 @@ be normalized to a dimensionless value in the range 0 to 1::
 
     >>> tf2 = ts.fold(1 * u.day, epoch_time='2019-11-01T12:00:00',
     ...               normalize_phase=True)
-    >>> tf2  # doctest: +FLOAT_CMP
+    >>> tf2  # doctest: +IGNORE_OUTPUT
     <TimeSeries length=10>
             time
     <BLANKLINE>
           float64
-    -------------------
-                   -0.5
-                   -0.2
-                    0.1
-                    0.4
-                   -0.3
-                    0.0
-                    0.3
-                   -0.4
-                   -0.1
-                    0.2
+    --------------------
+                    -0.5
+                    -0.2
+                     0.1
+                     0.4
+                    -0.3
+                     0.0
+                     0.3
+                    -0.4
+                    -0.1
+                     0.2
 
 .. _whatsnew-4.0-table-new:
 
