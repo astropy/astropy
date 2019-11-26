@@ -934,3 +934,8 @@ def test_angle_with_cds_units_enabled():
         Angle('5d')
     del _AngleParser._parser
     Angle('5d')
+
+
+def test_longitude_nan():
+    # Check that passing a NaN to Longitude doesn't raise a warning
+    Longitude([0, np.nan, 1] * u.deg)
