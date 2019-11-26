@@ -699,11 +699,11 @@ units
 
 This allows setting the unit for one or more columns at the time of creating the
 table.  The input can be either a list of unit values corresponding to each of
-the columns in the table (using ``None`` for no unit), or a ``dict`` that
-provides the unit for specified column names.  For example::
+the columns in the table (using ``None`` or ``''`` for no unit), or a ``dict``
+that provides the unit for specified column names.  For example::
 
   >>> from astropy.table import QTable
-  >>> dat = [[1, 2] * u.m, ['hello', 'world']]
+  >>> dat = [[1, 2], ['hello', 'world']]
   >>> qt = QTable(dat, names=['a', 'b'], units=(u.m, None))
   >>> qt = QTable(dat, names=['a', 'b'], units={'a': u.m})
 

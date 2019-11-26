@@ -2409,13 +2409,15 @@ def test_set_units_fail():
 
 
 def test_set_units():
-    dat = [[1.0, 2.0], ['aa', 'bb']]
-    exp_units = (u.m, None)
+    dat = [[1.0, 2.0], ['aa', 'bb'], [3, 4]]
+    exp_units = (u.m, None, None)
     for cls in Table, QTable:
-        for units in ({'a': u.m}, exp_units):
-            qt = cls(dat, units=units, names=['a', 'b'])
+        for units in ({'a': u.m, 'c': ''}, exp_units):
+            qt = cls(dat, units=units, names=['a', 'b', 'c'])
             if cls is QTable:
                 assert isinstance(qt['a'], u.Quantity)
+                assert isinstance(qt['b'], table.Column)
+                assert isinstance(qt['c'], table.Column)
             for col, unit in zip(qt.itercols(), exp_units):
                 assert col.info.unit is unit
 
@@ -2428,6 +2430,18 @@ def test_set_descriptions():
             qt = cls(dat, descriptions=descriptions, names=['a', 'b'])
             for col, description in zip(qt.itercols(), exp_descriptions):
                 assert col.info.description == description
+
+
+def test_set_units_from_row():
+    text = ['a,b',
+            ',s',
+            '1,2',
+            '3,4']
+    units = Table.read(text, format='ascii', data_start=1, data_end=2)[0]
+    t = Table.read(text, format='ascii', data_start=2, units=units)
+    assert isinstance(units, table.Row)
+    assert t['a'].info.unit is None
+    assert t['b'].info.unit is u.s
 
 
 def test_set_units_descriptions_read():

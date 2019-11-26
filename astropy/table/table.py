@@ -628,22 +628,33 @@ class Table:
 
     def _set_column_attribute(self, attr, values):
         """Set ``attr`` for columns to ``values``, which can be either a dict (keyed by column
-        name) or a dict of name: value pairs.
+        name) or a dict of name: value pairs.  This is used for handling the ``units`` and
+        ``descriptions`` kwargs to ``__init__``.
         """
         if not values:
             return
 
-        if isinstance(values, dict):
-            for name, value in values.items():
-                if name not in self.columns:
-                    raise ValueError(f'invalid column name {name} for setting {attr} attribute')
-                setattr(self[name].info, attr, value)
-        else:
+        if isinstance(values, Row):
+            # For a Row object transform to an equivalent dict.
+            values = {name: values[name] for name in values.colnames}
+
+        if not isinstance(values, dict):
+            # If not a dict map, assume iterable and map to dict if the right length
             if len(values) != len(self.columns):
                 raise ValueError(f'sequence of {attr} values must match number of columns')
-            for col, value in zip(self.itercols(), values):
-                if value is not None:
-                    setattr(col.info, attr, value)
+            values = dict(zip(self.colnames, values))
+
+        for name, value in values.items():
+            if name not in self.columns:
+                raise ValueError(f'invalid column name {name} for setting {attr} attribute')
+
+            # Special case: ignore unit if it is an empty or blank string
+            if attr == 'unit' and isinstance(value, str):
+                if value.strip() == '':
+                    value = None
+
+            if value not in (np.ma.masked, None):
+                setattr(self[name].info, attr, value)
 
     def __getstate__(self):
         columns = OrderedDict((key, col if isinstance(col, BaseColumn) else col_copy(col))
