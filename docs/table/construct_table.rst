@@ -558,7 +558,7 @@ object with the following arguments, all of which are optional:
 ``descriptions`` : list, dict, optional
     List or dict of descriptions to apply to columns
 ``**kwargs`` : dict, optional
-    Additional keyword args when converting table-like object.    
+    Additional keyword args when converting table-like object.
 
 The following subsections provide further detail on the values and options for
 each of the keyword arguments that can be used to create a new |Table| object.
@@ -684,7 +684,7 @@ rows
 
 This argument allows providing data as a sequence of rows, in contrast
 to the ``data`` keyword which generally assumes data are a sequence of columns.
-The `Row data` section provides details.
+The `Row data`_ section provides details.
 
 copy_indices
 ------------

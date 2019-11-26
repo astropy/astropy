@@ -52,6 +52,11 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Added ``units`` and ``descriptions`` keyword arguments to the Table object
+  initialization and ``Table.read()`` methods.  This allows directly setting
+  the ``unit`` and ``description`` for the table columns at the time of
+  creating or reading the table. [#9671]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -548,11 +553,6 @@ astropy.table
 
 - Fixed a bug that caused an exception when initializing a ``MaskedColumn`` from
   another ``MaskedColumn`` that has a structured dtype. [#9651]
-
-- Added ``units`` and ``descriptions`` keyword arguments to the Table object
-  initialization and ``Table.read()`` methods.  This allows directly setting
-  the ``unit`` and ``description`` for the table columns at the time of
-  creating or reading the table. [#9673]
 
 astropy.tests
 ^^^^^^^^^^^^^
