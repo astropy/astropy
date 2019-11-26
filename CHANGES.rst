@@ -76,6 +76,12 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+``BaseLowLevelWCS`` now has a full description of the return types as part of
+the API using type hinting. In addition to this a helper function
+``astropy.wcs.wcsapi.tests.utils.validate_low_level_wcs_types`` has been added
+which can be used to test APE 14 compatible implementations against these type
+annotations. [#9677]
+
 API Changes
 -----------
 
