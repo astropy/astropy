@@ -375,9 +375,9 @@ class Table:
     copy_indices : bool, optional
         Copy any indices in the input data. Default is True.
     units : list, dict, optional
-        List or dict of units to apply to columns
+        List or dict of units to apply to columns.
     descriptions : list, dict, optional
-        List or dict of descriptions to apply to columns
+        List or dict of descriptions to apply to columns.
     **kwargs : dict, optional
         Additional keyword args when converting table-like object.
     """

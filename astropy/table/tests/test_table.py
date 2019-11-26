@@ -2449,9 +2449,9 @@ def test_set_units_descriptions_read():
     is less comprehensive because the implementation is exactly the same
     as for Table.__init__ (calling Table._set_column_attribute) """
     for cls in Table, QTable:
-        t = cls.read(['a b', '1 2'], 
-                     format='ascii', 
-                     units=[u.m, u.s], 
+        t = cls.read(['a b', '1 2'],
+                     format='ascii',
+                     units=[u.m, u.s],
                      descriptions=['hi', 'there'])
         assert t['a'].info.unit is u.m
         assert t['b'].info.unit is u.s
