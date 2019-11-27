@@ -65,12 +65,6 @@ class ImageNormalize(Normalize):
 
         self.vmin = vmin
         self.vmax = vmax
-        if data is not None and interval is not None:
-            _vmin, _vmax = interval.get_limits(data)
-            if self.vmin is None:
-                self.vmin = _vmin
-            if self.vmax is None:
-                self.vmax = _vmax
 
         if stretch is None:
             raise ValueError('stretch must be input')
@@ -86,6 +80,24 @@ class ImageNormalize(Normalize):
 
         self.inverse_stretch = stretch.inverse
         self.clip = clip
+
+        # Define vmin and vmax if not None and data was input
+        if data is not None:
+            self._set_limits(data)
+
+    def _set_limits(self, data):
+        # Define vmin and vmax from the interval class if not None
+        if self.interval is None:
+            if self.vmin is None:
+                self.vmin = np.min(data[np.isfinite(data)])
+            if self.vmax is None:
+                self.vmax = np.max(data[np.isfinite(data)])
+        else:
+            _vmin, _vmax = self.interval.get_limits(data)
+            if self.vmin is None:
+                self.vmin = _vmin
+            if self.vmax is None:
+                self.vmax = _vmax
 
     def __call__(self, values, clip=None):
         if clip is None:
@@ -107,18 +119,8 @@ class ImageNormalize(Normalize):
             # copy because of in-place operations after
             values = np.array(values, copy=True, dtype=float)
 
-        # Define vmin and vmax from the interval class if not None
-        if self.interval is None:
-            if self.vmin is None:
-                self.vmin = np.nanmin(values)
-            if self.vmax is None:
-                self.vmax = np.nanmax(values)
-        else:
-            _vmin, _vmax = self.interval.get_limits(values)
-            if self.vmin is None:
-                self.vmin = _vmin
-            if self.vmax is None:
-                self.vmax = _vmax
+        # Define vmin and vmax if not None
+        self._set_limits(values)
 
         # Normalize based on vmin and vmax
         np.subtract(values, self.vmin, out=values)
