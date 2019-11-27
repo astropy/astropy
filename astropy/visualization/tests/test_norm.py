@@ -168,16 +168,16 @@ class TestImageScaling:
 
     def test_min(self):
         """Test linear scaling."""
-        norm = simple_norm(DATA2, stretch='linear', min_cut=1.)
+        norm = simple_norm(DATA2, stretch='linear', min_cut=1., clip=True)
         assert_allclose(norm(DATA2), [0., 0., 1.], atol=0, rtol=1.e-5)
 
     def test_percent(self):
         """Test percent keywords."""
-        norm = simple_norm(DATA2, stretch='linear', percent=99.)
+        norm = simple_norm(DATA2, stretch='linear', percent=99., clip=True)
         assert_allclose(norm(DATA2), DATA2SCL, atol=0, rtol=1.e-5)
 
         norm2 = simple_norm(DATA2, stretch='linear', min_percent=0.5,
-                         max_percent=99.5)
+                            max_percent=99.5, clip=True)
         assert_allclose(norm(DATA2), norm2(DATA2), atol=0, rtol=1.e-5)
 
     def test_invalid_stretch(self):
