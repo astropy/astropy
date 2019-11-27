@@ -4,31 +4,31 @@
 
 .. _vo-samp-example-table-image:
 
-Sending/receiving tables and images over SAMP
-*********************************************
+Sending and Receiving Tables and Images over SAMP
+*************************************************
 
 In the following examples, we make use of:
 
 * `TOPCAT <http://www.star.bris.ac.uk/~mbt/topcat/>`_, which is a tool to
   explore tabular data.
-* `SAO Ds9 <http://ds9.si.edu/>`_, which is an image
-  visualization tool, which can also overplot catalogs.
+* `SAO DS9 <http://ds9.si.edu/>`_, which is an image
+  visualization tool that can overplot catalogs.
 * `Aladin Desktop <http://aladin.u-strasbg.fr>`_, which is another tool that
   can visualize images and catalogs.
 
-TOPCAT and Aladin will run a SAMP Hub is none is found, so for the following
+TOPCAT and Aladin will run a SAMP Hub if none is found, so for the following
 examples you can either start up one of these applications first, or you can
 start up the `astropy.samp` hub. You can start this using the following
 command::
 
     $ samp_hub
 
-Sending a table to TOPCAT and Ds9
+Sending a Table to TOPCAT and DS9
 =================================
 
 The easiest way to send a VO table to TOPCAT is to make use of the
-|SAMPIntegratedClient| class. Once TOPCAT is open, then first instantiate a
-|SAMPIntegratedClient| instance and connect to the hub::
+|SAMPIntegratedClient| class. Once TOPCAT is open, first instantiate a
+|SAMPIntegratedClient| instance and then connect to the hub::
 
     >>> from astropy.samp import SAMPIntegratedClient
     >>> client = SAMPIntegratedClient()
@@ -50,8 +50,8 @@ which is a human-readable name for the table. The URL can be a local URL
                 >>> params["url"] = urlparse.urljoin('file:', os.path.abspath("aj285677t3_votable.xml"))
 
 Now we can set up the message itself. This includes the type of message (here
-we use ``table.load.votable`` which indicates that a VO table should be loaded,
-and the details of the table that we set above::
+we use ``table.load.votable``, which indicates that a VO table should be loaded
+and the details of the table that we set above)::
 
     >>> message = {}
     >>> message["samp.mtype"] = "table.load.votable"
@@ -64,16 +64,16 @@ Finally, we can broadcast this to all clients that are listening for
     >>> client.notify_all(message)
 
 The above message will actually be broadcast to all applications connected via
-SAMP. For example, if we open `SAO Ds9 <http://ds9.si.edu/>`_ in
+SAMP. For example, if we open `SAO DS9 <http://ds9.si.edu/>`_ in
 addition to TOPCAT, and we run the above command, both applications will load
 the table. We can use the
 :meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.get_registered_clients` method to
-find all the clients connected to the hub::
+find all of the clients connected to the hub::
 
     >>> client.get_registered_clients()
     ['hub', 'c1', 'c2']
 
-These IDs don't mean much, but we can find out more using::
+These IDs do not mean much, but we can find out more using::
 
    >>> client.get_metadata('c1')
    {'author.affiliation': 'Astrophysics Group, Bristol University',
@@ -86,7 +86,7 @@ These IDs don't mean much, but we can find out more using::
     'samp.name': 'topcat',
     'topcat.version': '4.0-1'}
 
-We can see that ``c1`` is the TOPCAT client. We can now re-send the data, but
+We can see that ``c1`` is the TOPCAT client. We can now resend the data, but
 this time only to TOPCAT, using the
 :meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.notify` method::
 
@@ -96,7 +96,7 @@ Once finished, we should make sure we disconnect from the hub::
 
     >>> client.disconnect()
 
-Receiving a table from TOPCAT
+Receiving a Table from TOPCAT
 =============================
 
 To receive a table from TOPCAT, we have to set up a client that listens for
@@ -107,7 +107,7 @@ instance and connect to the hub::
     >>> client = SAMPIntegratedClient()
     >>> client.connect()
 
-We now set up a receiver class which will handle any received message. We need
+We now set up a receiver class which will handle any received messages. We need
 to take care to write handlers for both notifications and calls (the difference
 between the two being that calls expect a reply)::
 
@@ -123,14 +123,15 @@ between the two being that calls expect a reply)::
     ...         self.params = params
     ...         self.received = True
 
-and we instantiate it:
+And we instantiate it:
 
     >>> r = Receiver(client)
 
 We can now use the
-:meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.bind_receive_call` and
-:meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.bind_receive_notification` methods
-to tell our receiver to listen to all ``table.load.votable`` messages::
+:meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.bind_receive_call`
+and
+:meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.bind_receive_notification`
+methods to tell our receiver to listen to all ``table.load.votable`` messages::
 
     >>> client.bind_receive_call("table.load.votable", r.receive_call)
     >>> client.bind_receive_notification("table.load.votable", r.receive_notification)
@@ -140,13 +141,14 @@ We can now check that the message has not been received yet::
     >>> r.received
     False
 
-Let's now broadcast the table from TOPCAT. After a few seconds, we can try and
-check again if the message has been received::
+We can now broadcast the table from TOPCAT. After a few seconds, we can check
+again if the message has been received::
 
     >>> r.received
     True
 
-Success! The table URL should now be available in ``r.params['url']``, so we can do::
+Success! The table URL should now be available in ``r.params['url']``, so we
+can do::
 
     >>> from astropy.table import Table
     >>> t = Table.read(r.params['url'])
@@ -162,6 +164,13 @@ Success! The table URL should now be available in ``r.params['url']``, so we can
 As before, we should remember to disconnect from the hub once we are done::
 
     >>> client.disconnect()
+
+Example
+=======
+
+..
+  EXAMPLE START
+  Receiving and Reading a Table over SAMP
 
 The following is a full example of a script that can be used to receive and
 read a table. It includes a loop that waits until the message is received, and
@@ -216,12 +225,16 @@ reads the table once it has::
     # Print out table
     print t
 
-Sending an image to Ds9 and Aladin
+..
+  EXAMPLE END
+
+Sending an Image to DS9 and Aladin
 ==================================
 
-As for tables, the easiest way to send a FITS image over SAMP is to make use of
-the |SAMPIntegratedClient| class. Once Aladin or Ds9 are open, then first
-instantiate a |SAMPIntegratedClient| instance and connect to the hub as before::
+As for tables, the most convenient way to send a FITS image over SAMP is to
+make use of the |SAMPIntegratedClient| class. Once Aladin or DS9 are open,
+first instantiate a |SAMPIntegratedClient| instance and then connect to the hub
+as before::
 
     >>> from astropy.samp import SAMPIntegratedClient
     >>> client = SAMPIntegratedClient()
@@ -236,10 +249,10 @@ which is a human-readable name for the table. The URL can be a local URL
     >>> params["url"] = 'file:///Users/tom/Desktop/MSX_E.fits'
     >>> params["name"] = "MSX Band E Image of the Galactic Center"
 
-See `Sending a table to TOPCAT and Ds9`_ for an example of how to construct local URLs
-more easily. Now we can set up the message itself. This includes the type of
-message (here we use ``image.load.fits`` which indicates that a FITS image
-should be loaded, and the details of the table that we set above::
+See `Sending a Table to TOPCAT and DS9`_ for an example of a recommended way to
+construct local URLs. Now we can set up the message itself. This includes the
+type of message (here we use ``image.load.fits`` which indicates that a FITS
+image should be loaded, and the details of the table that we set above)::
 
     >>> message = {}
     >>> message["samp.mtype"] = "image.load.fits"
@@ -250,9 +263,9 @@ Finally, we can broadcast this to all clients that are listening for
 
     >>> client.notify_all(message)
 
-As for `Sending a table to TOPCAT and Ds9`_, the
+As for `Sending a Table to TOPCAT and DS9`_, the
 :meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.notify_all`
-method will broadcast the image to all listening clients, and as for tables it
+method will broadcast the image to all listening clients, and for tables it
 is possible to instead use the
 :meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.notify` method
 to send it to a specific client.
@@ -261,14 +274,13 @@ Once finished, we should make sure we disconnect from the hub::
 
     >>> client.disconnect()
 
-Receiving a table from Ds9 or Aladin
+Receiving a Table from DS9 or Aladin
 ====================================
 
-Receiving images over SAMP is identical to `Receiving a table from TOPCAT`_,
+Receiving images over SAMP is identical to `Receiving a Table from TOPCAT`_,
 with the exception that the message type should be ``image.load.fits`` instead
 of ``table.load.votable``. Once the URL has been received, the FITS image can
 be opened with::
 
     >>> from astropy.io import fits
     >>> fits.open(r.params['url'])
-
