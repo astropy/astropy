@@ -105,6 +105,9 @@ class ImageNormalize(Normalize):
             # copy because of in-place operations after
             values = np.array(values, copy=True, dtype=float)
 
+        # Filter out invalid values (inf, nan)
+        values = values[np.isfinite(values)]
+
         # Set default values for vmin and vmax if not specified
         self.autoscale_None(values)
 
