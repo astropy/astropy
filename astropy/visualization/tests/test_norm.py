@@ -3,10 +3,10 @@
 import pytest
 import numpy as np
 from numpy import ma
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_equal
 
 from astropy.visualization.mpl_normalize import ImageNormalize, simple_norm, imshow_norm
-from astropy.visualization.interval import ManualInterval
+from astropy.visualization.interval import ManualInterval, PercentileInterval
 from astropy.visualization.stretch import SqrtStretch
 
 try:
@@ -41,6 +41,10 @@ class TestNormalize:
         with pytest.raises(TypeError):
             ImageNormalize(vmin=2., vmax=10., stretch=SqrtStretch,
                            clip=True)
+
+    def test_stretch_none(self):
+        with pytest.raises(ValueError):
+            ImageNormalize(vmin=2., vmax=10., stretch=None)
 
     def test_scalar(self):
         norm = ImageNormalize(vmin=2., vmax=10., stretch=SqrtStretch(),
@@ -119,6 +123,28 @@ class TestNormalize:
 
         assert_allclose(norm.inverse(norm(DATA))[1:], DATA[1:])
         assert_allclose(output, norm2(mdata))
+
+    def test_invalid_data(self):
+        data = np.arange(25.).reshape((5, 5))
+        data[2, 2] = np.nan
+        data[1, 2] = np.inf
+        percent = 85.0
+        interval = PercentileInterval(percent)
+
+        # initialized without data
+        norm = ImageNormalize(interval=interval)
+        norm(data)  # sets vmin/vmax
+        assert_equal((norm.vmin, norm.vmax), (1.65, 22.35))
+
+        # initialized with data
+        norm2 = ImageNormalize(data, interval=interval)
+        assert_equal((norm2.vmin, norm2.vmax), (norm.vmin, norm.vmax))
+
+        norm3 = simple_norm(data, 'linear', percent=percent)
+        assert_equal((norm3.vmin, norm3.vmax), (norm.vmin, norm.vmax))
+
+        assert_allclose(norm(data), norm2(data))
+        assert_allclose(norm(data), norm3(data))
 
 
 @pytest.mark.skipif('not HAS_MATPLOTLIB')
