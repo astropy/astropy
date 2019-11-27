@@ -146,7 +146,7 @@ Galactic coordinates and these will automatically be converted::
     >>> coord = SkyCoord('00h00m00s +00d00m00s', frame='galactic')
     >>> pixels = wcs.world_to_pixel(coord)  # doctest: +REMOTE_DATA
     >>> pixels  # doctest: +REMOTE_DATA
-    [array(356.85179997), array(357.45340331)]
+    (array(356.85179997), array(357.45340331))
 
 If you are looking to index the original data using these pixel coordinates,
 be sure to instead use
@@ -211,7 +211,7 @@ and back::
     >>> coord = SkyCoord('03h26m36.4901s +30d45m22.2012s')
     >>> pixels = wcs.world_to_pixel(coord, 3000 * u.m / u.s)  # doctest: +REMOTE_DATA
     >>> pixels  # doctest: +REMOTE_DATA
-    [array(8.11341207), array(71.0956641), array(7.10297292)]
+    (array(8.11341207), array(71.0956641), array(7.10297292))
 
 And as before we can index array values using::
 
