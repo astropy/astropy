@@ -144,7 +144,7 @@ class ImageNormalize(Normalize):
 
 def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
                 max_cut=None, min_percent=None, max_percent=None,
-                percent=None, clip=True, log_a=1000):
+                percent=None, clip=False, log_a=1000):
     """
     Return a Normalization class that can be used for displaying images
     with Matplotlib.
@@ -207,8 +207,8 @@ def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
         either ``min_percent`` or ``max_percent`` is input.
 
     clip : bool, optional
-        If `True` (default), data values outside the [0:1] range are
-        clipped to the [0:1] range.
+        If `True`, data values outside the [0:1] range are clipped to
+        the [0:1] range.
 
     Returns
     -------
