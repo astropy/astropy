@@ -126,6 +126,10 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
         self._world_keep = np.nonzero(
             self._wcs.axis_correlation_matrix[:, self._pixel_keep].any(axis=1))[0]
 
+        if len(self._pixel_keep) == 0 or len(self._world_keep) == 0:
+            raise ValueError("Cannot slice WCS: the resulting WCS should have "
+                             "at least one pixel and one world dimension.")
+
     @property
     def pixel_n_dim(self):
         return len(self._pixel_keep)
