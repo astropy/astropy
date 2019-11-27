@@ -107,20 +107,18 @@ class ImageNormalize(Normalize):
             # copy because of in-place operations after
             values = np.array(values, copy=True, dtype=float)
 
-        # Filter out invalid values (inf, nan)
-        values = values[np.isfinite(values)]
-
         # Define vmin and vmax from the interval class if not None
-        if self.interval is not None:
+        if self.interval is None:
+            if self.vmin is None:
+                self.vmin = np.nanmin(values)
+            if self.vmax is None:
+                self.vmax = np.nanmax(values)
+        else:
             _vmin, _vmax = self.interval.get_limits(values)
             if self.vmin is None:
                 self.vmin = _vmin
             if self.vmax is None:
                 self.vmax = _vmax
-
-        # Define vmin and vmax (as the min and max of the values array)
-        # if not specified and the interval class is None
-        self.autoscale_None(values)
 
         # Normalize based on vmin and vmax
         np.subtract(values, self.vmin, out=values)
