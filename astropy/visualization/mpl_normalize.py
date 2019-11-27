@@ -108,7 +108,16 @@ class ImageNormalize(Normalize):
         # Filter out invalid values (inf, nan)
         values = values[np.isfinite(values)]
 
-        # Set default values for vmin and vmax if not specified
+        # Define vmin and vmax from the interval class if not None
+        if self.interval is not None:
+            _vmin, _vmax = self.interval.get_limits(values)
+            if self.vmin is None:
+                self.vmin = _vmin
+            if self.vmax is None:
+                self.vmax = _vmax
+
+        # Define vmin and vmax (as the min and max of the values array)
+        # if not specified and the interval class is None
         self.autoscale_None(values)
 
         # Normalize based on vmin and vmax
