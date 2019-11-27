@@ -1,5 +1,5 @@
-4.0rc1 (2019-11-18)
-===================
+4.0 (unreleased)
+================
 
 New Features
 ------------
@@ -722,6 +722,9 @@ astropy.time
 ^^^^^^^^^^^^
 
 - Fix bug when ``Time`` object is created with only masked elements. [#9624]
+
+- Fix inaccuracy when converting between TimeDelta and datetime.timedelta.
+  [#9679]
 
 astropy.units
 ^^^^^^^^^^^^^
