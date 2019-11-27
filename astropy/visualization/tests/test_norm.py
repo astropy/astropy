@@ -3,10 +3,10 @@
 import pytest
 import numpy as np
 from numpy import ma
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_equal
 
 from astropy.visualization.mpl_normalize import ImageNormalize, simple_norm, imshow_norm
-from astropy.visualization.interval import ManualInterval
+from astropy.visualization.interval import ManualInterval, PercentileInterval
 from astropy.visualization.stretch import SqrtStretch
 
 try:
@@ -41,6 +41,10 @@ class TestNormalize:
         with pytest.raises(TypeError):
             ImageNormalize(vmin=2., vmax=10., stretch=SqrtStretch,
                            clip=True)
+
+    def test_stretch_none(self):
+        with pytest.raises(ValueError):
+            ImageNormalize(vmin=2., vmax=10., stretch=None)
 
     def test_scalar(self):
         norm = ImageNormalize(vmin=2., vmax=10., stretch=SqrtStretch(),
@@ -120,6 +124,35 @@ class TestNormalize:
         assert_allclose(norm.inverse(norm(DATA))[1:], DATA[1:])
         assert_allclose(output, norm2(mdata))
 
+    def test_invalid_data(self):
+        data = np.arange(25.).reshape((5, 5))
+        data[2, 2] = np.nan
+        data[1, 2] = np.inf
+        percent = 85.0
+        interval = PercentileInterval(percent)
+
+        # initialized without data
+        norm = ImageNormalize(interval=interval)
+        norm(data)  # sets vmin/vmax
+        assert_equal((norm.vmin, norm.vmax), (1.65, 22.35))
+
+        # initialized with data
+        norm2 = ImageNormalize(data, interval=interval)
+        assert_equal((norm2.vmin, norm2.vmax), (norm.vmin, norm.vmax))
+
+        norm3 = simple_norm(data, 'linear', percent=percent)
+        assert_equal((norm3.vmin, norm3.vmax), (norm.vmin, norm.vmax))
+
+        assert_allclose(norm(data), norm2(data))
+        assert_allclose(norm(data), norm3(data))
+
+        norm4 = ImageNormalize()
+        norm4(data)  # sets vmin/vmax
+        assert_equal((norm4.vmin, norm4.vmax), (0, 24))
+
+        norm5 = ImageNormalize(data)
+        assert_equal((norm5.vmin, norm5.vmax), (norm4.vmin, norm4.vmax))
+
 
 @pytest.mark.skipif('not HAS_MATPLOTLIB')
 class TestImageScaling:
@@ -168,16 +201,16 @@ class TestImageScaling:
 
     def test_min(self):
         """Test linear scaling."""
-        norm = simple_norm(DATA2, stretch='linear', min_cut=1.)
+        norm = simple_norm(DATA2, stretch='linear', min_cut=1., clip=True)
         assert_allclose(norm(DATA2), [0., 0., 1.], atol=0, rtol=1.e-5)
 
     def test_percent(self):
         """Test percent keywords."""
-        norm = simple_norm(DATA2, stretch='linear', percent=99.)
+        norm = simple_norm(DATA2, stretch='linear', percent=99., clip=True)
         assert_allclose(norm(DATA2), DATA2SCL, atol=0, rtol=1.e-5)
 
         norm2 = simple_norm(DATA2, stretch='linear', min_percent=0.5,
-                         max_percent=99.5)
+                            max_percent=99.5, clip=True)
         assert_allclose(norm(DATA2), norm2(DATA2), atol=0, rtol=1.e-5)
 
     def test_invalid_stretch(self):

@@ -650,6 +650,9 @@ astropy.visualization
 
 - The default ``clip`` value is now ``False`` in ``ImageNormalize``. [#9478]
 
+- The default ``clip`` value is now ``False`` in ``simple_norm``.
+  [#9698]
+
 - Infinite values are now excluded when calculating limits in
   ``ManualInterval`` and ``MinMaxInterval``.  They were already excluded in
   all other interval classes. [#9480]
@@ -750,6 +753,12 @@ astropy.visualization
 - Fix incorrect transformation behavior in ``WCSAxes.plot_coord`` and correctly
   handle when input coordinates are not already in spherical representations.
   [#8927]
+
+- Fixed ``ImageNormalize`` so that when it is intialized without
+  ``data`` it will still use the input ``interval`` class. [#9698]
+
+- Fixed ``ImageNormalize`` to handle input data with non-finite
+  values. [#9698]
 
 astropy.wcs
 ^^^^^^^^^^^

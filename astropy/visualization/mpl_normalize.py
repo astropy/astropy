@@ -46,11 +46,11 @@ class ImageNormalize(Normalize):
         ``data`` is also input.  ``data`` and ``interval`` are used to
         compute the vmin and/or vmax values only if ``vmin`` or ``vmax``
         are not input.
-    vmin, vmax : float
+    vmin, vmax : float, optional
         The minimum and maximum levels to show for the data.  The
         ``vmin`` and ``vmax`` inputs override any calculated values from
         the ``interval`` and ``data`` inputs.
-    stretch : `~astropy.visualization.BaseStretch` subclass instance, optional
+    stretch : `~astropy.visualization.BaseStretch` subclass instance
         The stretch object to apply to the data.  The default is
         `~astropy.visualization.LinearStretch`.
     clip : bool, optional
@@ -65,14 +65,10 @@ class ImageNormalize(Normalize):
 
         self.vmin = vmin
         self.vmax = vmax
-        if data is not None and interval is not None:
-            _vmin, _vmax = interval.get_limits(data)
-            if self.vmin is None:
-                self.vmin = _vmin
-            if self.vmax is None:
-                self.vmax = _vmax
 
-        if stretch is not None and not isinstance(stretch, BaseStretch):
+        if stretch is None:
+            raise ValueError('stretch must be input')
+        if not isinstance(stretch, BaseStretch):
             raise TypeError('stretch must be an instance of a BaseStretch '
                             'subclass')
         self.stretch = stretch
@@ -84,6 +80,24 @@ class ImageNormalize(Normalize):
 
         self.inverse_stretch = stretch.inverse
         self.clip = clip
+
+        # Define vmin and vmax if not None and data was input
+        if data is not None:
+            self._set_limits(data)
+
+    def _set_limits(self, data):
+        # Define vmin and vmax from the interval class if not None
+        if self.interval is None:
+            if self.vmin is None:
+                self.vmin = np.min(data[np.isfinite(data)])
+            if self.vmax is None:
+                self.vmax = np.max(data[np.isfinite(data)])
+        else:
+            _vmin, _vmax = self.interval.get_limits(data)
+            if self.vmin is None:
+                self.vmin = _vmin
+            if self.vmax is None:
+                self.vmax = _vmax
 
     def __call__(self, values, clip=None):
         if clip is None:
@@ -105,8 +119,8 @@ class ImageNormalize(Normalize):
             # copy because of in-place operations after
             values = np.array(values, copy=True, dtype=float)
 
-        # Set default values for vmin and vmax if not specified
-        self.autoscale_None(values)
+        # Define vmin and vmax if not None
+        self._set_limits(values)
 
         # Normalize based on vmin and vmax
         np.subtract(values, self.vmin, out=values)
@@ -132,7 +146,7 @@ class ImageNormalize(Normalize):
 
 def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
                 max_cut=None, min_percent=None, max_percent=None,
-                percent=None, clip=True, log_a=1000):
+                percent=None, clip=False, log_a=1000):
     """
     Return a Normalization class that can be used for displaying images
     with Matplotlib.
@@ -195,8 +209,8 @@ def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
         either ``min_percent`` or ``max_percent`` is input.
 
     clip : bool, optional
-        If `True` (default), data values outside the [0:1] range are
-        clipped to the [0:1] range.
+        If `True`, data values outside the [0:1] range are clipped to
+        the [0:1] range.
 
     Returns
     -------
