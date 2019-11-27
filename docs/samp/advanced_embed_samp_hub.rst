@@ -2,43 +2,43 @@
 
 .. doctest-skip-all
 
-Embedding a SAMP hub in a GUI
+Embedding a SAMP Hub in a GUI
 *****************************
 
 Overview
 ========
 
-If you wish to embed a SAMP hub in your Python GUI tool, you will need to start
-the hub programmatically using::
+If you wish to embed a SAMP hub in your Python Graphical User Interface (GUI)
+tool, you will need to start the hub programmatically using::
 
     from astropy.samp import SAMPHubServer
     hub = SAMPHubServer()
     hub.start()
 
 This launches the hub in a thread and is non-blocking. If you are not
-interested in connections from web SAMP clients, then you can simply use::
+interested in connections from web SAMP clients, then you can use::
 
     from astropy.samp import SAMPHubServer
     hub = SAMPHubServer(web_profile=False)
     hub.start()
 
-and this should be all you need to do. However, if you want to keep the web
-profile active, there is an additional consideration, which is that when a web
+This should be all you need to do. However, if you want to keep the Web
+Profile active, there is an additional consideration: when a web
 SAMP client connects, you will need to ask the user whether they accept the
 connection (for security reasons). By default, the confirmation message is a
 text-based message in the terminal, but if you have a GUI tool, you will
-instead likely want to open a GUI dialog.
+likely want to open a GUI dialog instead.
 
-To do this, you will need to define a class that handles the dialog,
-and you should then pass an **instance** of the class to
-|SAMPHubServer| (not the class itself).  This class should inherit
-from `astropy.samp.WebProfileDialog` and add the following:
+To do this, you will need to define a class that handles the dialog, and then
+pass an **instance** of the class to |SAMPHubServer| (not the class itself).
+This class should inherit from `astropy.samp.WebProfileDialog` and add the
+following:
 
-    1) It should have a GUI timer callback that periodically calls
+    1) A GUI timer callback that periodically calls
        ``WebProfileDialog.handle_queue`` (available as
        ``self.handle_queue``).
 
-    2) Implement a ``show_dialog`` method to display a consent dialog.
+    2) A ``show_dialog`` method to display a consent dialog.
        It should take the following arguments:
 
            - ``samp_name``: The name of the application making the request.
@@ -59,10 +59,14 @@ from `astropy.samp.WebProfileDialog` and add the following:
        This may, in some cases, be the result of another GUI callback.
 
 Example of embedding a SAMP hub in a Tk application
-===================================================
+---------------------------------------------------
 
-The following code is a full example of a simple Tk application that watches
-for web SAMP connections and opens the appropriate dialog::
+..
+  EXAMPLE START
+  Embedding a SAMP Hub in a Tk Application
+
+The following code is a full example of a Tk application that watches for web
+SAMP connections and opens the appropriate dialog::
 
 
     import Tkinter as tk
@@ -124,11 +128,14 @@ for web SAMP connections and opens the appropriate dialog::
 
     h.stop()
 
-If you run the above script, a window will open saying "Example SAMP Tk
-application". If you then go to the following page for example:
+If you run the above script, a window will open that says "Example SAMP Tk
+application." If you then go to the following page, for example:
 
 http://astrojs.github.io/sampjs/examples/pinger.html
 
 and click on the Ping button, you will see the dialog open in the Tk
-application. Once you click on 'CONFIRM', future 'Ping' calls will no longer
+application. Once you click on "CONFIRM," future "Ping" calls will no longer
 bring up the dialog.
+
+..
+  EXAMPLE END

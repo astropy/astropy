@@ -5,12 +5,12 @@
 .. _vo-samp-example_clients:
 
 
-Communication between integrated clients objects
+Communication between Integrated Clients Objects
 ************************************************
 
 As shown in :doc:`example_table_image`, the |SAMPIntegratedClient| class can be
 used to communicate with other SAMP-enabled tools such as `TOPCAT
-<http://www.star.bris.ac.uk/~mbt/topcat/>`_, `SAO Ds9
+<http://www.star.bris.ac.uk/~mbt/topcat/>`_, `SAO DS9
 <http://ds9.si.edu/>`_, or `Aladin Desktop
 <http://aladin.u-strasbg.fr>`_.
 
@@ -29,7 +29,8 @@ Next, we create two clients and connect them to the hub::
    >>> client1.connect()
    >>> client2.connect()
 
-We now define functions to call when receiving a notification, call or response::
+We now define functions to call when receiving a notification, call or
+response::
 
    >>> def test_receive_notification(private_key, sender_id, mtype, params, extra):
    ...     print("Notification:", private_key, sender_id, mtype, params, extra)
@@ -60,8 +61,8 @@ notifies all clients using the "samp.app.echo" message type via the hub::
    Notification: 0d7f4500225981c104a197c7666a8e4e cli#2 samp.app.echo {'txt':
    'Hello world!'} {'host': 'antigone.lambrate.inaf.it', 'user': 'unknown'}
 
-We can also find a dictionary giving the clients that would currently receive
-``samp.app.echo`` messages::
+We can also find a dictionary that specifies which clients would currently
+receive ``samp.app.echo`` messages::
 
    >>> print(client2.get_subscribed_clients("samp.app.echo"))
    {'cli#2': {}}
