@@ -151,6 +151,7 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
         return [self._wcs.world_axis_names[i] for i in self._world_keep]
 
     def pixel_to_world_values(self, *pixel_arrays):
+        pixel_arrays = tuple(map(np.asanyarray, pixel_arrays))
         pixel_arrays_new = []
         ipix_curr = -1
         for ipix in range(self._wcs.pixel_n_dim):
@@ -165,18 +166,25 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
 
         pixel_arrays_new = np.broadcast_arrays(*pixel_arrays_new)
         world_arrays = self._wcs.pixel_to_world_values(*pixel_arrays_new)
+
         # Detect the case of a length 0 array
         if isinstance(world_arrays, np.ndarray) and not world_arrays.shape:
             return world_arrays
-        world = tuple(world_arrays[iw] for iw in self._world_keep)
-        if self.world_n_dim == 1 and self._wcs.world_n_dim > 1:
-            world = world[0]
-        return world
+
+        if self._wcs.world_n_dim > 1:
+            # Select the dimensions of the original WCS we are keeping.
+            world_arrays = [world_arrays[iw] for iw in self._world_keep]
+            # If there is only one world dimension (after slicing) we shouldn't return a tuple.
+            if self.world_n_dim == 1:
+                world_arrays = world_arrays[0]
+
+        return world_arrays
 
     def array_index_to_world_values(self, *index_arrays):
         return self.pixel_to_world_values(*index_arrays[::-1])
 
     def world_to_pixel_values(self, *world_arrays):
+        world_arrays = tuple(map(np.asanyarray, world_arrays))
         world_arrays_new = []
         iworld_curr = -1
         for iworld in range(self._wcs.world_n_dim):
