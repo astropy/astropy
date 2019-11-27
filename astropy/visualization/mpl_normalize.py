@@ -46,11 +46,11 @@ class ImageNormalize(Normalize):
         ``data`` is also input.  ``data`` and ``interval`` are used to
         compute the vmin and/or vmax values only if ``vmin`` or ``vmax``
         are not input.
-    vmin, vmax : float
+    vmin, vmax : float, optional
         The minimum and maximum levels to show for the data.  The
         ``vmin`` and ``vmax`` inputs override any calculated values from
         the ``interval`` and ``data`` inputs.
-    stretch : `~astropy.visualization.BaseStretch` subclass instance, optional
+    stretch : `~astropy.visualization.BaseStretch` subclass instance
         The stretch object to apply to the data.  The default is
         `~astropy.visualization.LinearStretch`.
     clip : bool, optional
@@ -72,7 +72,9 @@ class ImageNormalize(Normalize):
             if self.vmax is None:
                 self.vmax = _vmax
 
-        if stretch is not None and not isinstance(stretch, BaseStretch):
+        if stretch is None:
+            raise ValueError('stretch must be input')
+        if not isinstance(stretch, BaseStretch):
             raise TypeError('stretch must be an instance of a BaseStretch '
                             'subclass')
         self.stretch = stretch
