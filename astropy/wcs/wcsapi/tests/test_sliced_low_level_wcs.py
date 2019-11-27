@@ -694,3 +694,11 @@ def test_nested_slicing():
     assert_allclose(sub1.pixel_to_world_values(3, 5),
                     sub2.pixel_to_world_values(3, 5))
     assert not isinstance(sub1._wcs, SlicedLowLevelWCS)
+
+
+def test_too_much_slicing():
+    wcs = WCS_SPECTRAL_CUBE
+    with pytest.raises(ValueError, match='Cannot slice WCS: the resulting WCS '
+                                         'should have at least one pixel and '
+                                         'one world dimension'):
+        wcs[0, 1, 2]
