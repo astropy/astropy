@@ -36,10 +36,12 @@ void set_invalid_to_nan(
       int bit = 1;
       for (i = 0; i < nelem; ++i) {
         if (*s & bit) {
-          *d++ = n;
-        } else {
-          d++;
+          *d = n;
         }
+        d++;
+        // We don't need to worry about overflow here because the WCS
+        // class cannot be used for naxis > 15 so nelem will always
+        // be <=15.
         bit <<= 1;
       }
     } else {
