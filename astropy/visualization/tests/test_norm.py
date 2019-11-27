@@ -146,6 +146,13 @@ class TestNormalize:
         assert_allclose(norm(data), norm2(data))
         assert_allclose(norm(data), norm3(data))
 
+        norm4 = ImageNormalize()
+        norm4(data)  # sets vmin/vmax
+        assert_equal((norm4.vmin, norm4.vmax), (0, 24))
+
+        norm5 = ImageNormalize(data)
+        assert_equal((norm5.vmin, norm5.vmax), (norm4.vmin, norm4.vmax))
+
 
 @pytest.mark.skipif('not HAS_MATPLOTLIB')
 class TestImageScaling:
