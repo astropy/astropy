@@ -1423,13 +1423,7 @@ def clear_download_cache(hashorurl=None, pkgname='astropy'):
             try:
                 dldir, url2hash = stack.enter_context(
                     _cache(pkgname, write=True))
-            except OSError as e:
-                # Problem arose when trying to open the cache
-                msg = 'Not clearing data cache - cache inaccessible due to '
-                estr = '' if len(e.args) < 1 else (': ' + str(e))
-                warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
-                return
-            except RuntimeError:  # Couldn't get lock
+            except (RuntimeError, WrongDBMModule):  # Couldn't get lock
                 if hashorurl is None:
                     # Release lock by blowing away cache
                     # Need to get locations
@@ -1437,6 +1431,12 @@ def clear_download_cache(hashorurl=None, pkgname='astropy'):
                 else:
                     # Can't do specific deletion without the lock
                     raise
+            except OSError as e:
+                # Problem arose when trying to open the cache
+                msg = 'Not clearing data cache - cache inaccessible due to '
+                estr = '' if len(e.args) < 1 else (': ' + str(e))
+                warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
+                return
             if hashorurl is None:
                 if os.path.exists(dldir):
                     shutil.rmtree(dldir)
