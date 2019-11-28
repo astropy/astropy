@@ -257,6 +257,44 @@ def a_file(tmp_path):
     yield fn, contents
 
 
+def test_temp_cache(tmpdir):
+    dldir0, urlmapfn0 = _get_download_cache_locs()
+    check_download_cache(check_hashes=True)
+
+    with paths.set_temp_cache(tmpdir):
+        dldir1, urlmapfn1 = _get_download_cache_locs()
+        check_download_cache(check_hashes=True)
+        assert dldir1 != dldir0
+        assert urlmapfn1 != urlmapfn0
+
+    dldir2, urlmapfn2 = _get_download_cache_locs()
+    check_download_cache(check_hashes=True)
+    assert dldir2 != dldir1
+    assert urlmapfn2 != urlmapfn1
+    assert dldir2 == dldir0
+    assert urlmapfn2 == urlmapfn0
+
+    # Check that things are okay even if we exit via an exception
+    class Special(Exception):
+        pass
+    try:
+        with paths.set_temp_cache(tmpdir):
+            dldir3, urlmapfn3 = _get_download_cache_locs()
+            check_download_cache(check_hashes=True)
+            assert dldir3 == dldir1
+            assert urlmapfn3 == urlmapfn1
+            raise Special
+    except Special:
+        pass
+
+    dldir4, urlmapfn4 = _get_download_cache_locs()
+    check_download_cache(check_hashes=True)
+    assert dldir4 != dldir3
+    assert urlmapfn4 != urlmapfn3
+    assert dldir4 == dldir0
+    assert urlmapfn4 == urlmapfn0
+
+
 @pytest.mark.parametrize("parallel", [False, True])
 def test_download_with_sources_and_bogus_original(
         valid_urls, invalid_urls, temp_cache, parallel):
@@ -1342,6 +1380,7 @@ def test_cache_dir_is_actually_a_file(tmpdir, valid_urls):
             with pytest.raises(OSError):
                 check_download_cache()
 
+    dldir, urlmapfn = _get_download_cache_locs()
     # set_temp_cache acts weird if it is pointed at a file (see below)
     # but we want to see what happens when the cache is pointed
     # at a file instead of a directory, so make a directory we can
@@ -1356,12 +1395,14 @@ def test_cache_dir_is_actually_a_file(tmpdir, valid_urls):
         with pytest.raises(OSError):
             paths.get_cache_dir()
         check_quietly_ignores_bogus_cache()
+    assert (dldir, urlmapfn) == _get_download_cache_locs()
     assert get_file_contents(fn) == ct, "File should not be harmed."
 
     # See what happens when set_temp_cache is pointed at a file
     with pytest.raises(OSError):
         with paths.set_temp_cache(fn):
             pass
+    assert (dldir, urlmapfn) == _get_download_cache_locs()
     assert get_file_contents(str(fn)) == ct
 
     # Now the cache directory is normal but the subdirectory it wants
@@ -1371,6 +1412,7 @@ def test_cache_dir_is_actually_a_file(tmpdir, valid_urls):
         f.write(ct)
     with paths.set_temp_cache(tmpdir):
         check_quietly_ignores_bogus_cache()
+    assert (dldir, urlmapfn) == _get_download_cache_locs()
     assert get_file_contents(cd) == ct
     os.remove(cd)
 
@@ -1381,6 +1423,7 @@ def test_cache_dir_is_actually_a_file(tmpdir, valid_urls):
         f.write(ct)
     with paths.set_temp_cache(tmpdir):
         check_quietly_ignores_bogus_cache()
+    assert (dldir, urlmapfn) == _get_download_cache_locs()
     assert get_file_contents(cd) == ct
     os.remove(cd)
 
@@ -1392,6 +1435,7 @@ def test_cache_dir_is_actually_a_file(tmpdir, valid_urls):
         f.write(ct)
     with paths.set_temp_cache(tmpdir):
         check_quietly_ignores_bogus_cache()
+    assert (dldir, urlmapfn) == _get_download_cache_locs()
     assert get_file_contents(cd) == ct
     os.remove(cd)
 
@@ -1403,6 +1447,7 @@ def test_cache_dir_is_actually_a_file(tmpdir, valid_urls):
     os.makedirs(cd)
     with paths.set_temp_cache(tmpdir):
         check_quietly_ignores_bogus_cache()
+    assert (dldir, urlmapfn) == _get_download_cache_locs()
 
 
 def test_get_fileobj_str(a_file):
