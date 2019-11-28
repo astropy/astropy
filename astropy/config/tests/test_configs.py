@@ -74,6 +74,18 @@ def test_set_temp_cache(tmpdir, monkeypatch):
     assert not os.path.exists(temp_cache_dir)
 
 
+def test_set_temp_cache_resets_on_exception(tmpdir):
+    """Test for regression of  bug #9704"""
+    t = paths.get_cache_dir()
+    a = tmpdir / 'a'
+    with open(a, 'wt') as f:
+        f.write("not a good cache\n")
+    with pytest.raises(OSError):
+        with paths.set_temp_cache(a):
+            pass
+    assert t == paths.get_cache_dir()
+
+
 def test_config_file():
     from astropy.config.configuration import get_config, reload_config
 
