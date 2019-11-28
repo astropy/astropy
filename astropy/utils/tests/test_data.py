@@ -312,7 +312,6 @@ def test_download_file_threaded_many(b, temp_cache, valid_urls):
     """
     create_cache_with_backend(b)
 
-    # Run test outside of non-thread-safe context manager
     urls = list(islice(valid_urls, N_THREAD_HAMMER))
     with ThreadPoolExecutor(max_workers=len(urls)) as P:
         r = list(P.map(lambda u: download_file(u, cache=True),
@@ -1863,19 +1862,17 @@ def test_wrong_backend_reports_useful_error(b1b2, temp_cache, valid_urls):
         download_file(u, cache=True)
     with shelve_backend(b2):
         for u, c in islice(valid_urls, FEW):
-            download_file(u, cache=True)
-        with shelve_backend(b2):
-            for u, c in islice(valid_urls, FEW):
-                with pytest.warns(WrongDBMModuleWarning) as w:
-                    f = download_file(u, cache=True)
-                    assert get_file_contents(f) == c
-                for wi in w:
-                    assert "module" in str(wi.message.args[0])
-                    assert b1 in str(wi.message.args[0])
-            with pytest.raises(CacheDamaged):
-                with pytest.warns(WrongDBMModuleWarning):
-                    check_download_cache()
-            clear_download_cache()
+            with pytest.warns(WrongDBMModuleWarning) as w:
+                f = download_file(u, cache=True)
+                assert get_file_contents(f) == c
+            for wi in w:
+                assert "module" in str(wi.message.args[0])
+                assert b1 in str(wi.message.args[0])
+        with pytest.raises(CacheDamaged):
+            with pytest.warns(WrongDBMModuleWarning):
+                check_download_cache()
+        # We should still be able to wipe out the cache!
+        clear_download_cache()
 
 
 # What happens when the lock can't be obtained in a timely manner?
