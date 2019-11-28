@@ -2,7 +2,9 @@ import warnings
 
 import pytest
 
+import numpy as np
 from numpy.testing import assert_equal, assert_allclose
+from astropy.wcs.wcs import WCS, FITSFixedWarning
 from astropy.wcs import WCS
 from astropy.io.fits import Header
 from astropy.io.fits.verify import VerifyWarning
@@ -702,3 +704,40 @@ def test_too_much_slicing():
                                          'should have at least one pixel and '
                                          'one world dimension'):
         wcs[0, 1, 2]
+
+
+HEADER_TIME_1D = """
+SIMPLE  = T
+BITPIX  = -32
+NAXIS   = 1
+NAXIS1  = 2048
+TIMESYS = 'UTC'
+TREFPOS = 'TOPOCENT'
+MJDREF  = 50002.6
+CTYPE1  = 'UTC'
+CRVAL1  = 5
+CUNIT1  = 's'
+CRPIX1  = 1.0
+CDELT1  = 2
+OBSGEO-L= -20
+OBSGEO-B= -70
+OBSGEO-H= 2530
+"""
+
+
+@pytest.fixture
+def header_time_1d():
+    return Header.fromstring(HEADER_TIME_1D, sep='\n')
+
+@pytest.fixture
+def time_1d_wcs(header_time_1d):
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', FITSFixedWarning)
+        return WCS(header_time_1d)
+
+
+def test_1d_sliced_low_level(time_1d_wcs):
+    sll = SlicedLowLevelWCS(time_1d_wcs, np.s_[10:20])
+    world = sll.pixel_to_world_values([1, 2])
+    assert isinstance(world, np.ndarray)
+    assert np.allclose(world, [27, 29])
