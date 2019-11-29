@@ -199,6 +199,19 @@ class CCDData(NDDataArray):
         if _config_ccd_requires_unit and self.unit is None:
             raise ValueError("a unit for CCDData must be specified.")
 
+    def _slice_wcs(self, item):
+        """
+        Override the WCS slicing behaviour so that the wcs attribute continues
+        to be an `astropy.wcs.WCS`.
+        """
+        if self.wcs is None:
+            return None
+
+        try:
+            return self.wcs[item]
+        except Exception as err:
+            self._handle_wcs_slicing_error(err, item)
+
     @property
     def data(self):
         return self._data
