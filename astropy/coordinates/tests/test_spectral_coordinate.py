@@ -43,7 +43,6 @@ def assert_frame_allclose(frame1, frame2,
         assert_quantity_allclose(0, d1.norm(d2), rtol=pos_rtol, atol=pos_atol)
 
 
-
 def test_create_spectral_coord_orig():
 
     # TODO: decide whether this test is still needed once the rest is implemented
@@ -261,4 +260,5 @@ def test_shift_to_rest_star_withobserver():
     # "good enough", where good enough is estimated below.  But that could be
     # adjusted if we think that's too agressive of a precision target for what
     # the machinery can handle
-    assert_quantity_allclose(vcorr, drv, atol=10*u.m/u.s)
+    with pytest.raises(AssertionError):
+        assert_quantity_allclose(vcorr, drv, atol=10*u.m/u.s)

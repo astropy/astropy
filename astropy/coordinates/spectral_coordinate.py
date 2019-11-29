@@ -68,8 +68,8 @@ class SpectralCoord(u.Quantity):
                 raise ValueError("Observer must be a sky coordinate or "
                                  "coordinate frame.")
 
-        obj._observer = observer
-        obj.target = target
+        obj._observer = observer.frame if hasattr(observer, 'frame') else observer
+        obj.target = target.frame if hasattr(observer, 'frame') else target
 
         # TODO: I'm not sure what this radial velocity represents
         obj._radial_velocity = radial_velocity
@@ -350,7 +350,7 @@ class SpectralCoord(u.Quantity):
         pos_hat = d_pos / d_pos.norm()
         d_vel = target_icrs.velocity - observer_icrs.velocity
 
-        return d_vel.d_xyz * pos_hat.xyz
+        return np.sum(d_vel.d_xyz * pos_hat.xyz, axis=0)
 
     def with_observer(self, observer, target=None):
         """
@@ -374,8 +374,7 @@ class SpectralCoord(u.Quantity):
             raise ValueError("No observer has been set, cannot transform "
                              "observer frame.")
 
-        if target is not None:
-            self.target = target
+        target = self.target if target is None else target
 
         # Check velocities and distance values on the new frame. This is
         # handled in the frame validation.
@@ -383,10 +382,14 @@ class SpectralCoord(u.Quantity):
         new_obs = self.observer.transform_to(observer)
 
         # Calculate the initial los velocity and the final
-        init_obs_vel = self._calculate_radial_velocity(self.observer,
-                                                       self.target)
+        if self._radial_velocity is not None:
+            init_obs_vel = self._radial_velocity
+        else:
+            init_obs_vel = self._calculate_radial_velocity(self.observer,
+                                                           target)
+
         fin_obs_vel = self._calculate_radial_velocity(new_obs,
-                                                      self.target)
+                                                      target)
 
         # Project the velocity shift vector onto the the line-on-sight vector
         # between the target and the new observation frame.
@@ -395,14 +398,13 @@ class SpectralCoord(u.Quantity):
 
         # Calculate the velocity shift between the two vectors
         delta_vel = fin_obs_vel - init_proj_vel
-        delta_vel = np.sum(delta_vel, axis=0)
-
-        # Store the new frame as the current observer frame
-        self._observer = new_obs
 
         # Apply the velocity shift to the stored spectral data
         new_data = (self.to('Hz') * (1 + delta_vel / c.cgs)).to(self.unit)
-        new_coord = self._copy(value=new_data)
+        new_coord = self._copy(value=new_data,
+                               observer=new_obs,
+                               target=target,
+                               radial_velocity=None)
 
         return new_coord
 
