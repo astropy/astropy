@@ -280,8 +280,9 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         except ImportError:
             for fd in close_fds:
                 fd.close()
-            raise ModuleNotFoundError(
-                "This Python installation does not provide the bz2 module.")
+            raise ValueError(
+                ".bz2 format files are not supported since the Python "
+                "interpreter does not include the bz2 module")
         try:
             # bz2.BZ2File does not support file objects, only filenames, so we
             # need to write the data to a temporary file
@@ -306,8 +307,9 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         except ImportError:
             for fd in close_fds:
                 fd.close()
-            raise ModuleNotFoundError(
-                "This Python installation does not provide the lzma module.")
+            raise ValueError(
+                ".xz format files are not supported since the Python "
+                "interpreter does not include the lzma module.")
         except (OSError, EOFError):  # invalid xz file
             fileobj.seek(0)
             fileobj_new.close()
