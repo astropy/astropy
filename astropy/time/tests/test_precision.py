@@ -1,7 +1,9 @@
 import decimal
+import warnings
 import functools
-from datetime import datetime, timedelta
+import contextlib
 from decimal import Decimal
+from datetime import datetime, timedelta
 
 import pytest
 from hypothesis import assume, example, given, target
@@ -17,7 +19,7 @@ from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import STANDARD_TIME_SCALES, Time, TimeDelta
 from astropy.time.utils import day_frac, two_sum
 from astropy.utils import iers
-from astropy.utils.exceptions import ErfaError
+from astropy.utils.exceptions import ErfaError, ErfaWarning
 
 allclose_jd = functools.partial(np.allclose, rtol=np.finfo(float).eps, atol=0)
 allclose_jd2 = functools.partial(np.allclose, rtol=np.finfo(float).eps,
@@ -32,6 +34,13 @@ dt_tiny = TimeDelta(tiny, format='jd')
 @pytest.fixture
 def iers_b():
     with iers.earth_orientation_table.set(iers.IERS_B.open(iers.IERS_B_FILE)):
+        yield
+
+
+@contextlib.contextmanager
+def quiet_erfa():
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=ErfaWarning)
         yield
 
 
@@ -383,7 +392,8 @@ def test_resolution_never_decreases(scale, jds):
     jd1, jd2 = jds
     assume(not scale == 'utc' or 2440000 < jd1+jd2 < 2460000)
     t = Time(jd1, jd2, format="jd", scale=scale)
-    assert t != t+dt_tiny
+    with quiet_erfa():
+        assert t != t+dt_tiny
 
 
 @given(reasonable_jd())
@@ -391,7 +401,8 @@ def test_resolution_never_decreases_utc(jds):
     """UTC is very unhappy with unreasonable times"""
     jd1, jd2 = jds
     t = Time(jd1, jd2, format="jd", scale="utc")
-    assert t != t+dt_tiny
+    with quiet_erfa():
+        assert t != t+dt_tiny
 
 
 @given(sampled_from(_scales), sampled_from(_scales), unreasonable_jd())
@@ -402,7 +413,8 @@ def test_conversion_preserves_jd1_jd2_invariant(iers_b, scale1, scale2, jds):
     jd1, jd2 = jds
     t = Time(jd1, jd2, scale=scale1, format="jd")
     try:
-        t2 = getattr(t, scale2)
+        with quiet_erfa():
+            t2 = getattr(t, scale2)
     except iers.IERSRangeError:  # UT1 conversion needs IERS data
         assume(False)
     except ErfaError:
@@ -417,13 +429,14 @@ def test_conversion_never_loses_precision(iers_b, scale1, scale2, jds):
     jd1, jd2 = jds
     t = Time(jd1, jd2, scale=scale1, format="jd")
     # If the rates ever differ, might lose one ULP
-    t2 = t + 2*dt_tiny
-    try:
-        assert getattr(t, scale2) < getattr(t2, scale2)
-    except iers.IERSRangeError:  # UT1 conversion needs IERS data
-        assume(scale1 != 'ut1' or 2440000 < jd1+jd2 < 2458000)
-        assume(scale2 != 'ut1' or 2440000 < jd1+jd2 < 2458000)
-        raise
+    with quiet_erfa():
+        t2 = t + 2*dt_tiny
+        try:
+            assert getattr(t, scale2) < getattr(t2, scale2)
+        except iers.IERSRangeError:  # UT1 conversion needs IERS data
+            assume(scale1 != 'ut1' or 2440000 < jd1+jd2 < 2458000)
+            assume(scale2 != 'ut1' or 2440000 < jd1+jd2 < 2458000)
+            raise
 
 
 @given(sampled_from(leap_second_deltas), floats(0.1, 0.9))
@@ -454,11 +467,12 @@ def test_jd_add_subtract_round_trip(scale, jds, delta):
         thresh = 2*dt_tiny
     t = Time(jd1, jd2, scale=scale, format="jd")
     try:
-        t2 = t + delta*u.day
-        if abs(delta) >= np.finfo(float).eps:
-            assert t2 != t
-        t3 = t2 - delta*u.day
-        assert_almost_equal(t3, t, atol=thresh, rtol=0)
+        with quiet_erfa():
+            t2 = t + delta*u.day
+            if abs(delta) >= np.finfo(float).eps:
+                assert t2 != t
+            t3 = t2 - delta*u.day
+            assert_almost_equal(t3, t, atol=thresh, rtol=0)
     except ErfaError:
         assume(scale != 'utc' or 2440000 < jd1+jd2 < 2460000)
         raise
@@ -478,10 +492,11 @@ def test_timedelta_full_precision(scale, jds_a, jds_b):
     t_b = Time(jd1_b, jd2_b, scale=scale, format="jd")
     dt = t_b - t_a
     assert dt != (t_b + dt_tiny) - t_a
-    assert_almost_equal(t_b-dt/2, t_a+dt/2, atol=2*dt_tiny, rtol=0,
-                        label="midpoint")
-    assert_almost_equal(t_b+dt, t_a+2*dt, atol=2*dt_tiny, rtol=0, label="up")
-    assert_almost_equal(t_b-2*dt, t_a-dt, atol=2*dt_tiny, rtol=0, label="down")
+    with quiet_erfa():
+        assert_almost_equal(t_b-dt/2, t_a+dt/2, atol=2*dt_tiny, rtol=0,
+                            label="midpoint")
+        assert_almost_equal(t_b+dt, t_a+2*dt, atol=2*dt_tiny, rtol=0, label="up")
+        assert_almost_equal(t_b-2*dt, t_a-dt, atol=2*dt_tiny, rtol=0, label="down")
 
 
 @given(sampled_from(_scales),
@@ -494,17 +509,18 @@ def test_timedelta_full_precision_arithmetic(scale, jds_a, jds_b, x, y):
     jd1_b, jd2_b = jds_b
     t_a = Time(jd1_a, jd2_a, scale=scale, format="jd")
     t_b = Time(jd1_b, jd2_b, scale=scale, format="jd")
-    try:
-        dt = t_b - t_a
-        dt_x = x*dt/(x+y)
-        dt_y = y*dt/(x+y)
-        assert_almost_equal(
-            dt_x + dt_y, dt, atol=(x+y)*dt_tiny, rtol=0)
-    except ErfaError:
-        assume(scale != 'utc'
-               or (2440000 < jd1_a+jd2_a < 2460000
-                   and 2440000 < jd1_b+jd2_b < 2460000))
-        raise
+    with quiet_erfa():
+        try:
+            dt = t_b - t_a
+            dt_x = x*dt/(x+y)
+            dt_y = y*dt/(x+y)
+            assert_almost_equal(
+                dt_x + dt_y, dt, atol=(x+y)*dt_tiny, rtol=0)
+        except ErfaError:
+            assume(scale != 'utc'
+                   or (2440000 < jd1_a+jd2_a < 2460000
+                       and 2440000 < jd1_b+jd2_b < 2460000))
+            raise
 
 
 @given(sampled_from(_scales), sampled_from(_scales),
@@ -518,15 +534,16 @@ def test_timedelta_conversion(scale1, scale2, jds_a, jds_b):
     assume(('ut1' not in [scale1, scale2]) or scale1 == scale2)
     t_a = Time(jd1_a, jd2_a, scale=scale1, format="jd")
     t_b = Time(jd1_b, jd2_b, scale=scale2, format="jd")
-    dt = t_b - t_a
-    t_a_2 = getattr(t_a, scale2)
-    t_b_2 = getattr(t_b, scale2)
-    dt_2 = getattr(dt, scale2)
-    assert_almost_equal(t_b_2 - t_a_2, dt_2, atol=dt_tiny, rtol=0,
-                        label="converted")
-    # Implicit conversion
-    assert_almost_equal(t_b_2 - t_a_2, dt, atol=dt_tiny, rtol=0,
-                        label="not converted")
+    with quiet_erfa():
+        dt = t_b - t_a
+        t_a_2 = getattr(t_a, scale2)
+        t_b_2 = getattr(t_b, scale2)
+        dt_2 = getattr(dt, scale2)
+        assert_almost_equal(t_b_2 - t_a_2, dt_2, atol=dt_tiny, rtol=0,
+                            label="converted")
+        # Implicit conversion
+        assert_almost_equal(t_b_2 - t_a_2, dt, atol=dt_tiny, rtol=0,
+                            label="not converted")
 
 
 # UTC disagrees when there are leap seconds
