@@ -1026,8 +1026,10 @@ def test_read_returns_image(tmpdir):
 # https://github.com/astropy/astropy/issues/9664
 def test_sliced_ccdata_to_hdu():
     wcs = WCS(naxis=2)
-    wcs.crpix = 10, 10
+    wcs.wcs.crpix = 10, 10
     ccd = CCDData(np.ones((10, 10)), wcs=wcs, unit='pixel')
     trimmed = ccd[2:-2, 2:-2]
-    hdu = trimmed.to_hdu()
-    assert isinstance(hdu, fits.HDUList)
+    hdul = trimmed.to_hdu()
+    assert isinstance(hdul, fits.HDUList)
+    assert hdul[0].header['CRPIX1'] == 8
+    assert hdul[0].header['CRPIX2'] == 8
