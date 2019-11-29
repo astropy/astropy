@@ -1021,3 +1021,13 @@ def test_read_returns_image(tmpdir):
     ccd = CCDData.read(filename, unit='adu')
     # Expecting to get (5, 5), the size of the image
     assert ccd.data.shape == (5, 5)
+
+
+# https://github.com/astropy/astropy/issues/9664
+def test_sliced_ccdata_to_hdu():
+    wcs = WCS(naxis=2)
+    wcs.crpix = 10, 10
+    ccd = CCDData(np.ones((10, 10)), wcs=wcs, unit='pixel')
+    trimmed = ccd[2:-2, 2:-2]
+    hdu = trimmed.to_hdu()
+    assert isinstance(hdu, fits.HDUList)
