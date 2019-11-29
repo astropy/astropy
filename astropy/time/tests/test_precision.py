@@ -10,8 +10,6 @@ from hypothesis.strategies import (composite, datetimes, floats, integers,
                                    one_of, sampled_from, timedeltas)
 
 import numpy as np
-from decimal import Decimal
-from datetime import datetime
 
 import astropy._erfa as erfa
 import astropy.units as u
@@ -29,6 +27,12 @@ allclose_sec = functools.partial(np.allclose, rtol=np.finfo(float).eps,
 
 tiny = np.finfo(float).eps
 dt_tiny = TimeDelta(tiny, format='jd')
+
+
+@pytest.fixture
+def iers_b():
+    with iers.earth_orientation_table.set(iers.IERS_B.open(iers.IERS_B_FILE)):
+        yield
 
 
 def assert_almost_equal(a, b, *, rtol=None, atol=None, label=''):
@@ -394,7 +398,7 @@ def test_resolution_never_decreases_utc(jds):
 @example(scale1='tcg', scale2='ut1', jds=(2445149.5, 0.47187700984387526))
 @example(scale1='tai', scale2='tcb', jds=(2441316.5, 0.0))
 @example(scale1='tai', scale2='tcb', jds=(0.0, 0.0))
-def test_conversion_preserves_jd1_jd2_invariant(scale1, scale2, jds):
+def test_conversion_preserves_jd1_jd2_invariant(iers_b, scale1, scale2, jds):
     jd1, jd2 = jds
     t = Time(jd1, jd2, scale=scale1, format="jd")
     try:
@@ -409,7 +413,7 @@ def test_conversion_preserves_jd1_jd2_invariant(scale1, scale2, jds):
 
 
 @given(sampled_from(_scales), sampled_from(_scales), reasonable_jd())
-def test_conversion_never_loses_precision(scale1, scale2, jds):
+def test_conversion_never_loses_precision(iers_b, scale1, scale2, jds):
     jd1, jd2 = jds
     t = Time(jd1, jd2, scale=scale1, format="jd")
     # If the rates ever differ, might lose one ULP
@@ -613,7 +617,7 @@ def test_datetime_timedelta_sum(scale, dt, td):
 
 @given(reasonable_jd(), floats(-90, 90), floats(-90, 90), floats(-180, 180))
 @pytest.mark.parametrize("kind", ["apparent", "mean"])
-def test_sidereal_lat_independent(kind, jds, lat1, lat2, lon):
+def test_sidereal_lat_independent(iers_b, kind, jds, lat1, lat2, lon):
     jd1, jd2 = jds
     t1 = Time(jd1, jd2, scale="ut1", format="jd", location=(lon, lat1))
     t2 = Time(jd1, jd2, scale="ut1", format="jd", location=(lon, lat2))
@@ -627,7 +631,7 @@ def test_sidereal_lat_independent(kind, jds, lat1, lat2, lon):
 
 @given(reasonable_jd(), floats(-90, 90), floats(-180, 180), floats(-360, 360))
 @pytest.mark.parametrize("kind", ["apparent", "mean"])
-def test_sidereal_lon_independent(kind, jds, lat, lon, lon_delta):
+def test_sidereal_lon_independent(iers_b, kind, jds, lat, lon, lon_delta):
     jd1, jd2 = jds
     t1 = Time(jd1, jd2, scale="ut1", format="jd",
               location=(lon, lat))
