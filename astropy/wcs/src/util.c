@@ -26,12 +26,23 @@ void set_invalid_to_nan(
     #define NAN (INF-INF)
   #endif
 
+  // Note that stat is a bit mask, so we need to mask only some of
+  // the coordinates depending on the bit mask values.
+
   n = NAN;
 
   for ( ; s != s_end; ++s) {
     if (*s) {
+      int bit = 1;
       for (i = 0; i < nelem; ++i) {
-        *d++ = n;
+        if (*s & bit) {
+          *d = n;
+        }
+        d++;
+        // We don't need to worry about overflow here because the WCS
+        // class cannot be used for naxis > 15 so nelem will always
+        // be <=15.
+        bit <<= 1;
       }
     } else {
       d += nelem;
