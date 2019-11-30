@@ -749,7 +749,7 @@ def test_tabular1d_inverse():
         t.inverse(100)
     t = models.Tabular1D(points, values, bounds_error=False, fill_value=None)
     result = t.inverse(100)
-    assert_allclose(result, t(result))
+    assert_allclose(t(result), 100)
 
 
 class classmodel(FittableModel):
