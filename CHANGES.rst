@@ -767,6 +767,13 @@ astropy.wcs
   ``wcsapi.HighLevelWCSWrapper.axis_correlation_matrix``. [#9554]
 
 
+- Fix NaN-masking of world coordinates when some but not all of the coordinates
+  were flagged as invalid by WCSLIB. This occurred for example with WCS with >2
+  dimensions where two of the dimensions were celestial coordinates and pixel
+  coordinates ouside of the 'sky' were converted to world coordinates -
+  previously all world coordinates were masked even if uncorrelated with the
+  celestial axes, but this is no longer the case. [#9688]
+
 Other Changes and Additions
 ---------------------------
 
