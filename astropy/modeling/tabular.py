@@ -251,7 +251,8 @@ class _Tabular(Model):
             else:
                 # equal-valued or double-valued lookup_table
                 raise NotImplementedError
-            return Tabular1D(points=points, lookup_table=lookup_table)
+            return Tabular1D(points=points, lookup_table=lookup_table, method=self.method,
+                             bounds_error=self.bounds_error, fill_value=self.fill_value)
         else:
             raise NotImplementedError("An analytical inverse transform "
                 "has not been implemented for this model.")
