@@ -239,9 +239,11 @@ comp_model = custom_and_analytical_inverse()
                                      astmodels.Shift(1) & comp_model,
                                      comp_model & astmodels.Shift(1)
                                      ])
-def test_custom_and_analytical(model):
+def test_custom_and_analytical(model, tmpdir):
     fa = AsdfFile()
     fa.tree['model'] = model
-    fa.write_to('custom_and_analytical_inverse.asdf')
-    f = asdf.open('custom_and_analytical_inverse.asdf')
+    file_path = str(tmpdir.join('custom_and_analytical_inverse.asdf'))
+    fa.write_to(file_path)
+    f = asdf.open(file_path)
     assert f.tree['model'].inverse is not None
+    f.close()
