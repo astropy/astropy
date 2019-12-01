@@ -247,9 +247,8 @@ class Parameter(OrderedDescriptor):
         self._order = None
 
         self._validator = None
-
-        # Only Parameters declared as class-level descriptors require
-        # and ordering ID
+        self._prior = None
+        self._posterior = None
 
     def __len__(self):
         val = self.value
@@ -433,48 +432,30 @@ class Parameter(OrderedDescriptor):
 
     @property
     def prior(self):
-        if self._model is not None:
-            prior = self._model._constraints['prior']
-            return prior.get(self._name, self._prior)
-        else:
-            return self._prior
+        return self._prior
 
     @prior.setter
     def prior(self, val):
-        if self._model is not None:
-            self._model._constraints['prior'][self._name] = val
-        else:
-            raise AttributeError("can't set attribute 'prior' on Parameter "
-                                 "definition")
+        self._prior = val
 
     @property
     def posterior(self):
-        if self._model is not None:
-            posterior = self._model._constraints['posterior']
-            return posterior.get(self._name, self._posterior)
-        else:
-            return self._posterior
+        return self._posterior
 
     @posterior.setter
     def posterior(self, val):
-        if self._model is not None:
-            self._model._constraints['posterior'][self._name] = val
-        else:
-            raise AttributeError("can't set attribute 'posterior' on Parameter "
-                                 "definition")
+        self._posterior = val
 
     @property
     def fixed(self):
         """
         Boolean indicating if the parameter is kept fixed during fitting.
         """
-
         return self._fixed
 
     @fixed.setter
     def fixed(self, value):
-        """Fix a parameter"""
-
+        """ Fix a parameter. """
         if not isinstance(value, bool):
             raise ValueError("Value must be boolean")
         self._fixed = value
