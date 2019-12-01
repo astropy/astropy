@@ -370,6 +370,8 @@ astropy.wcs
 - Added ``fit_wcs_from_points`` function to ``astropy.wcs.utils``. Fits a WCS
   object to set of matched detector/sky coordinates. [#9469]
 
+- Fix various bugs in ``SlicedLowLevelWCS`` when the WCS being sliced was one
+  dimensional. [#9693]
 
 API Changes
 -----------
