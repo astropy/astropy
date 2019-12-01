@@ -4,7 +4,7 @@ import numpy as np
 
 import astropy.units as u
 from astropy.constants import c
-from astropy.coordinates import SkyCoord, ICRS, Distance, GCRS, RadialDifferential, CartesianDifferential
+from astropy.coordinates import SkyCoord, ICRS, Distance, GCRS
 from astropy.coordinates.baseframe import BaseCoordinateFrame, FrameMeta
 from astropy.utils.compat import NUMPY_LT_1_14
 from astropy.utils.exceptions import AstropyUserWarning
@@ -68,12 +68,23 @@ class SpectralCoord(u.Quantity):
                 raise ValueError("Observer must be a sky coordinate or "
                                  "coordinate frame.")
 
-        obj.observer = observer
-        obj.target = target
+        if observer is None:
+            observer = ICRS(ra=0 * u.degree, dec=0 * u.degree, 
+                            distance=0 * u.pc, radial_velocity=0 * u.km/u.s)
+        
+        if target is None:
+            if radial_velocity is None:
+                radial_velocity = 0 * u.km/u.s
+                
+                if redshift is not None:
+                    radial_velocity = u.Quantity(self._redshift).to(
+                        'km/s', equivalencies=RV_RS_EQUIV)
 
-        # TODO: I'm not sure what this radial velocity represents
-        obj._radial_velocity = radial_velocity
-        obj._redshift = redshift
+            target = ICRS(ra=0 * u.degree, dec=0 * u.degree, 
+                          distance=400 * u.pc, radial_velocity=radial_velocity)
+
+        obj._observer = observer.frame if hasattr(observer, 'frame') else observer
+        obj.target = target.frame if hasattr(observer, 'frame') else target
 
         return obj
 
@@ -87,9 +98,6 @@ class SpectralCoord(u.Quantity):
 
         self._observer = getattr(obj, '_observer', None)
         self.target = getattr(obj, 'target', None)
-
-        self._radial_velocity = getattr(obj, '_radial_velocity', None)
-        self._redshift = getattr(obj, '_redshift', None)
 
     def __quantity_subclass__(self, unit):
         """
@@ -127,11 +135,8 @@ class SpectralCoord(u.Quantity):
 
             # If no distance value is defined on the frame, assume a default
             # distance of either zero (for an observer), or 1000 kpc for target
-            if (not hasattr(coord, 'distance') or
-                not isinstance(coord.distance, Distance)) and \
-                (not hasattr(coord, 'spherical') or
-                 not isinstance(coord.spherical.distance, Distance)):
-
+            if not hasattr(coord, 'distance') or \
+                    not isinstance(coord.distance, Distance):
                 auto_dist = 0 * u.AU if is_observer else 1000 * u.kpc
 
                 warnings.warn(
@@ -150,10 +155,7 @@ class SpectralCoord(u.Quantity):
                        frame_loc, u.Quantity([0, 0, 0], unit=u.km/u.s)),
                     AstropyUserWarning)
 
-                vel_to_add = CartesianDifferential(
-                    0 * u.km / u.s, 0 * u.km / u.s, 0 * u.km/u.s)
-                new_data = coord.data.to_cartesian().with_differentials(vel_to_add)
-                coord = coord.realize_frame(new_data)
+                coord = SkyCoord(coord, radial_velocity=0 * u.km / u.s).frame
 
         return coord
 
@@ -164,9 +166,7 @@ class SpectralCoord(u.Quantity):
             'rest': self.rest,
             'velocity_convention': self.velocity_convention,
             'observer': self.observer,
-            'target': self.target,
-            'radial_velocity': self._radial_velocity,
-            'redshift': self._redshift
+            'target': self.target
         }
 
         # If the new kwargs dict contains a value argument and it is a
@@ -193,12 +193,6 @@ class SpectralCoord(u.Quantity):
             The astropy coordinate frame representing the observation.
         """
         return self._observer
-
-    @observer.setter
-    def observer(self, value):
-        value = self._validate_coordinate(value, True)
-
-        self._observer = value
 
     @property
     def target(self):
@@ -298,16 +292,7 @@ class SpectralCoord(u.Quantity):
         coordinate frame in that this calculates the radial velocity with
         respect to the *observer*, not the origin of the frame.
         """
-        if self._radial_velocity is not None:
-            return self._radial_velocity
-
-        if self._redshift is not None:
-            return u.Quantity(self._redshift).to('km/s',
-                                                 equivalencies=RV_RS_EQUIV)
-
-        if self.observer is not None and self.target is not None:
-            return np.sum(self._calculate_radial_velocity(
-                self.observer, self.target), axis=0)
+        return self._calculate_radial_velocity(self.observer, self.target)
 
     @property
     def redshift(self):
@@ -320,11 +305,7 @@ class SpectralCoord(u.Quantity):
         float
             Redshift of target.
         """
-        if self._redshift is not None:
-            return self._redshift
-
-        if self.radial_velocity is not None:
-            return self.radial_velocity.to('', equivalencies=RV_RS_EQUIV)
+        return self.radial_velocity.to('', equivalencies=RV_RS_EQUIV)
 
     @staticmethod
     def _calculate_radial_velocity(observer, target):
@@ -355,7 +336,7 @@ class SpectralCoord(u.Quantity):
             raise ValueError("No target has been specified; cannot calculate "
                              "radial velocity.")
 
-        target_icrs = target.transform_to(ICRS)
+        target_icrs = target.transform_to(observer_icrs)
 
         d_pos = (target_icrs.data.without_differentials() -
                  observer_icrs.data.without_differentials()).to_cartesian()
