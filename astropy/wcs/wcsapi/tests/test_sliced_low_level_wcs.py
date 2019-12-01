@@ -729,6 +729,7 @@ OBSGEO-H= 2530
 def header_time_1d():
     return Header.fromstring(HEADER_TIME_1D, sep='\n')
 
+
 @pytest.fixture
 def time_1d_wcs(header_time_1d):
     with warnings.catch_warnings():
