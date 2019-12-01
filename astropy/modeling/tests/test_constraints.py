@@ -539,3 +539,42 @@ def test_set_prior_posterior():
 
     model.c0.posterior = models.Linear1D(1, .2)
     assert model.c0.posterior(1) == 1.2
+
+
+def test_set_constraints():
+    g = models.Gaussian1D()
+    p = models.Polynomial1D(1)
+
+    # Set bounds before model combination
+    g.stddev.bounds = (0, 3)
+    m = g + p
+    assert m.bounds == {'amplitude_0': (None, None),
+                        'mean_0': (None, None),
+                        'stddev_0': (0.0, 3.0),
+                        'c0_1': (None, None),
+                        'c1_1': (None, None)}
+
+    # Set bounds on the compound model
+    m.stddev_0.bounds = (1, 3)
+    assert m.bounds == {'amplitude_0': (None, None),
+                        'mean_0': (None, None),
+                            'stddev_0': (1.0, 3.0),
+                            'c0_1': (None, None),
+                            'c1_1': (None, None)}
+
+    # Set the bounds of a Parameter directly in the bounds dict
+    m.bounds['stddev_0'] = (4, 5)
+    assert m.bounds == {'amplitude_0': (None, None),
+                        'mean_0': (None, None),
+                        'stddev_0': (4, 5),
+                        'c0_1': (None, None),
+                        'c1_1': (None, None)}
+
+    # Set the bounds of a Parameter on the child model bounds dict
+    g.bounds['stddev'] = (1,5)
+    m = g + p
+    assert m.bounds == {'amplitude_0': (None, None),
+                        'mean_0': (None, None),
+                        'stddev_0': (1, 5),
+                        'c0_1': (None, None),
+                        'c1_1': (None, None)}
