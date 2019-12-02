@@ -244,6 +244,5 @@ def test_custom_and_analytical(model, tmpdir):
     fa.tree['model'] = model
     file_path = str(tmpdir.join('custom_and_analytical_inverse.asdf'))
     fa.write_to(file_path)
-    f = asdf.open(file_path)
-    assert f.tree['model'].inverse is not None
-    f.close()
+    with asdf.open(file_path) as f:
+        assert f.tree['model'].inverse is not None
