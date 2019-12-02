@@ -66,9 +66,9 @@ over time and therefore are not "constant" numerically. Generally, you want to
 use the latest values, but sometimes it is necessary to reproduce earlier
 results by going back in time. For that purpose, we have now introduced new
 ``astropy.physical_constants`` and ``astropy.astronomical_constants`` science
-state objects, which can be used to set to use previous versions, and to make
-sure that units and physical constants are self-consistent. For more details,
-see :ref:`astropy-constants-prior`.
+state objects, which can be used to enable previous versions of the constants,
+and to make sure that units and physical constants are self-consistent. For more
+details, see :ref:`astropy-constants-prior`.
 
 .. _whatsnew-4.0-galactocentric:
 
@@ -420,7 +420,7 @@ New Table Methods and Options
 
 A new method `~astropy.table.dstack` was added to allow depth-wise stacking
 of tables to turn a list of similar tables into a single "3D" table with
-(rows, columns, depth).
+shape ``(rows, columns, depth)``.
 
 A new method to compare tables `~astropy.table.Table.values_equal` was added
 to allow element-wise comparison of a table to either another table, a list of
