@@ -68,20 +68,24 @@ class SpectralCoord(u.Quantity):
                 raise ValueError("Observer must be a sky coordinate or "
                                  "coordinate frame.")
 
+        # If no observer is defined, create a default observer centered in the
+        #  ICRS frame.
         if observer is None:
-            observer = ICRS(ra=0 * u.degree, dec=0 * u.degree, 
+            observer = ICRS(ra=0 * u.degree, dec=0 * u.degree,
                             distance=0 * u.pc, radial_velocity=0 * u.km/u.s)
-        
+
+        # If not target is defined, create a default target with any provided
+        #  redshift/radial velocities.
         if target is None:
             if radial_velocity is None:
                 radial_velocity = 0 * u.km/u.s
-                
+
                 if redshift is not None:
-                    radial_velocity = u.Quantity(self._redshift).to(
+                    radial_velocity = u.Quantity(redshift).to(
                         'km/s', equivalencies=RV_RS_EQUIV)
 
-            target = ICRS(ra=0 * u.degree, dec=0 * u.degree, 
-                          distance=400 * u.pc, radial_velocity=radial_velocity)
+            target = ICRS(ra=0 * u.degree, dec=0 * u.degree,
+                          distance=400 * u.pc, radial_velocity=radial_velocity or 0 * u.km/u.s)
 
         obj._observer = observer.frame if hasattr(observer, 'frame') else observer
         obj.target = target.frame if hasattr(observer, 'frame') else target

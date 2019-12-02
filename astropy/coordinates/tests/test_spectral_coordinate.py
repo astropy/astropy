@@ -4,7 +4,7 @@ from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
 from astropy.coordinates import (SkyCoord, EarthLocation, ICRS, GCRS, Galactic,
                                  CartesianDifferential, SphericalRepresentation,
                                  RadialDifferential, get_body_barycentric_posvel,
-                                 FK5, CartesianRepresentation)
+                                 FK5, CartesianRepresentation, BaseCoordinateFrame)
 from astropy import time
 import numpy as np
 import astropy.units as u
@@ -108,12 +108,12 @@ def test_create_spectral_coord_observer_target(observer, target):
     coord = SpectralCoord([100, 200, 300] * u.nm, observer=observer, target=target)
 
     if observer is None:
-        assert coord.observer is None
+        assert issubclass(coord.observer.__class__, BaseCoordinateFrame)
     else:
         assert_frame_allclose(observer, coord.observer)
 
     if target is None:
-        assert coord.target is None
+        assert issubclass(coord.target.__class__, BaseCoordinateFrame)
     else:
         assert_frame_allclose(target, coord.target)
 
@@ -121,8 +121,8 @@ def test_create_spectral_coord_observer_target(observer, target):
     assert coord.velocity_convention is None
 
     if observer is None or target is None:
-        assert coord.redshift is None
-        assert coord.radial_velocity is None
+        assert quantity_allclose(coord.redshift, 0)
+        assert quantity_allclose(coord.radial_velocity, 0 * u.km/u.s)
     elif observer in LSRD_EQUIV and target in LSRD_DIR_STATIONARY_EQUIV:
         assert_quantity_allclose(coord.redshift, ((1 + 274 / 299792.458**2) / (1 - 274 / 299792.458**2)) ** 0.5 - 1)
         assert_quantity_allclose(coord.radial_velocity, 274 ** 0.5 * u.km / u.s)
