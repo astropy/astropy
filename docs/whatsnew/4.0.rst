@@ -562,7 +562,7 @@ There are other more minor changes to the API that are detailed in :ref:`modelin
   the possibility of returning submodes with entirely different meanings than they
   had in the original compound model). Now only a restricted set of slices is permitted.
 
-* Use of “imputed” units is much more restricted. Previously these could end up with
+* Use of “inputed” units is much more restricted. Previously these could end up with
   unexpected units being assigned.
 
 * Many private methods have been added, changed, or deleted.
