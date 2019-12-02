@@ -197,7 +197,7 @@ number as a float gives precision loss::
 
     >>> from astropy.time import Time
     >>> t = Time('2450000.123456789012345', format='jd')
-    >>> t - Time(2450000, .123456789012345, format='jd')
+    >>> t - Time(2450000, 0.123456789012345, format='jd')
     <TimeDelta object: scale='tai' format='jd' value=0.0>
     >>> t - Time(2450000.123456789012345, format='jd')  # doctest: +FLOAT_CMP
     <TimeDelta object: scale='tai' format='jd' value=-1.6829138083096495e-10>
