@@ -101,6 +101,17 @@ class Row:
         for col in self._table.columns.values():
             yield col[index]
 
+    def keys(self):
+        return self._table.columns.keys()
+
+    def values(self):
+        return self.__iter__()
+
+    def items(self):
+        index = self._index
+        for name, col in self._table.columns.items():
+            yield name, col[index]
+
     @property
     def table(self):
         return self._table
