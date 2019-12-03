@@ -1178,6 +1178,8 @@ def test_scalar_inputs():
     assert result[0].shape == (1,)
 
 
+# Ignore RuntimeWarning raised on s390.
+@pytest.mark.filterwarnings('ignore:.*invalid value encountered in.*')
 def test_footprint_contains():
     """
     Test WCS.footprint_contains(skycoord)
@@ -1218,13 +1220,7 @@ NAXIS2  =                 2078 / length of second array dimension
     hasCoord = test_wcs.footprint_contains(SkyCoord(240, 2, unit='deg'))
     assert not hasCoord
 
-    # Ignore "invalid value encountered in less" warning on Windows.
-    if sys.platform.startswith('win'):
-        ctx = np.errstate(invalid='ignore')
-    else:
-        ctx = nullcontext()
-    with ctx:
-        hasCoord = test_wcs.footprint_contains(SkyCoord(24, 2, unit='deg'))
+    hasCoord = test_wcs.footprint_contains(SkyCoord(24, 2, unit='deg'))
     assert not hasCoord
 
 
