@@ -208,7 +208,7 @@ class TestRow():
                                  names=orig_tab.dtype.names)
         assert np.all(orig_tab == new_tab)
 
-    def test_row_keys_values_items(self, table_types):
+    def test_row_keys_values(self, table_types):
         self._setup(table_types)
         row = self.t[0]
         for row_key, col_key in zip(row.keys(), self.t.columns.keys()):
@@ -216,10 +216,6 @@ class TestRow():
 
         for row_value, col in zip(row.values(), self.t.columns.values()):
             assert row_value == col[0]
-
-        for row_item, col_item in zip(row.items(), self.t.columns.items()):
-            assert row_item[0] == col_item[0]
-            assert row_item[1] == col_item[1][0]
 
     def test_row_as_mapping(self, table_types):
         self._setup(table_types)
