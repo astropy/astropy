@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 
-import bz2
 import gzip
 import itertools
 import os
@@ -17,12 +16,20 @@ from .groups import GroupsHDU
 from .image import PrimaryHDU, ImageHDU
 from astropy.io.fits.file import _File, FILE_MODES
 from astropy.io.fits.header import _pad_length
-from astropy.io.fits.util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
-                    _get_array_mmap, _free_space_check, fileobj_mode, isfile)
+from astropy.io.fits.util import (_free_space_check, _get_array_mmap, _is_int,
+                                  _tmp_name, fileobj_closed, fileobj_mode,
+                                  ignore_sigint, isfile)
 from astropy.io.fits.verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from astropy.utils import indent
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.decorators import deprecated_renamed_argument
+
+try:
+    import bz2
+except ImportError:
+    HAS_BZ2 = False
+else:
+    HAS_BZ2 = True
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
@@ -1279,6 +1286,9 @@ class HDUList(list, _Verify):
             if self._file.compression == 'gzip':
                 new_file = gzip.GzipFile(name, mode='ab+')
             elif self._file.compression == 'bzip2':
+                if not HAS_BZ2:
+                    raise ModuleNotFoundError(
+                        "This Python installation does not provide the bz2 module.")
                 new_file = bz2.BZ2File(name, mode='w')
             else:
                 new_file = name
