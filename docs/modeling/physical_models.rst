@@ -8,10 +8,10 @@ These are models that are physical motivated, generally as solutions to
 physical problems.  This is in contrast to those that are mathematically motivated,
 generally as solutions to mathematical problems.
 
+.. _blackbody-planck-law:
+
 BlackBody
 =========
-
-.. _blackbody-planck-law:
 
 The :class:`~astropy.modeling.physical_models.BlackBody` model provides a model
 for using `Planck's Law <https://en.wikipedia.org/wiki/Planck%27s_law>`_.
@@ -53,7 +53,7 @@ default units returned by :class:`~astropy.modeling.physical_models.BlackBody`.
     # blackbody parameters
     temperature = 10000 * u.K
 
-    # BlackBody1D provides the results in ergs/(cm^2 Hz s sr) when scale has no units
+    # BlackBody provides the results in ergs/(cm^2 Hz s sr) when scale has no units
     bb = BlackBody(temperature=temperature, scale=10000.0)
     bb_result = bb(wavelengths)
 
