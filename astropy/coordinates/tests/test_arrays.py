@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
+from contextlib import ExitStack
 
 import pytest
 import numpy as np
@@ -9,9 +9,10 @@ from numpy import testing as npt
 from astropy import units as u
 from astropy.time import Time
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
+from astropy.utils.compat import NUMPY_LT_1_18
 
 from astropy.coordinates import (Angle, ICRS, FK4, FK5, Galactic, SkyCoord,
-                CartesianRepresentation)
+                                 CartesianRepresentation)
 from astropy.coordinates.angle_utilities import dms_to_degrees, hms_to_hours
 
 
@@ -41,10 +42,16 @@ def test_angle_arrays():
     npt.assert_almost_equal(a6.value, 945.0)
     assert a6.unit is u.degree
 
-    with pytest.raises(TypeError):
+    with ExitStack() as stack:
+        stack.enter_context(pytest.raises(TypeError))
         # Arrays where the elements are Angle objects are not supported -- it's
         # really tricky to do correctly, if at all, due to the possibility of
         # nesting.
+        if not NUMPY_LT_1_18:
+            stack.enter_context(
+                pytest.warns(DeprecationWarning,
+                             match='automatic object dtype is deprecated'))
+
         a7 = Angle([a1, a2, a3], unit=u.degree)
 
     a8 = Angle(["04:02:02", "03:02:01", "06:02:01"], unit=u.degree)
