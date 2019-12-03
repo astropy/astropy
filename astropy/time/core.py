@@ -2449,7 +2449,12 @@ def _make_array(val, copy=False):
     val : ndarray
         Array version of ``val``.
     """
-    val = np.array(val, copy=copy, subok=True)
+    if isinstance(val, (tuple, list)) and len(val) > 0 and isinstance(val[0], Time):
+        dtype = object
+    else:
+        dtype = None
+
+    val = np.array(val, copy=copy, subok=True, dtype=dtype)
 
     # Allow only float64, string or object arrays as input
     # (object is for datetime, maybe add more specific test later?)
