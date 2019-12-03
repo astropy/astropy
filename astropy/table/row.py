@@ -107,11 +107,6 @@ class Row:
     def values(self):
         return self.__iter__()
 
-    def items(self):
-        index = self._index
-        for name, col in self._table.columns.items():
-            yield name, col[index]
-
     @property
     def table(self):
         return self._table
