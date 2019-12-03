@@ -460,7 +460,14 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
                 if key not in sig.parameters:
                     del new_kwargs[key]
 
-        hdu = cls(data=DELAYED, header=header, **new_kwargs)
+        try:
+            hdu = cls(data=DELAYED, header=header, **new_kwargs)
+        except TypeError:
+            if isinstance(header, _BasicHeader):
+                header = Header.fromstring(header_str)
+                hdu = cls(data=DELAYED, header=header, **new_kwargs)
+            else:
+                raise
 
         # One of these may be None, depending on whether the data came from a
         # file or a string buffer--later this will be further abstracted
