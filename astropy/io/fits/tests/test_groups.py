@@ -212,3 +212,11 @@ class TestGroupsFunctions(FitsTestCase):
             assert x.dtype.names == ('abc', 'xyz', '_abc', 'DATA')
             assert x.par('abc')[0] == 5
             assert (x.par('abc')[1:] == pdata1[1:] * 2).all()
+
+    def test_group_bad_naxis(self):
+        """Test file without NAXIS1 keyword.
+        Regression test for https://github.com/astropy/astropy/issues/9709
+        """
+        with fits.open(self.data('group_invalid.fits')) as hdul:
+            assert len(hdul) == 1
+            assert hdul[0].header['GROUPS']
