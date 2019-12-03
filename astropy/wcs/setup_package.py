@@ -184,19 +184,20 @@ def get_wcslib_cfg(cfg, wcslib_files, include_paths):
         ('ASTROPY_WCS_BUILD', None),
         ('_GNU_SOURCE', None)])
 
-    if (not setup_helpers.use_system_library('wcslib') or
-            sys.platform == 'win32'):
+    if ((int(os.environ.get('ASTROPY_USE_SYSTEM_WCSLIB', 0))
+            or int(os.environ.get('ASTROPY_USE_SYSTEM_ALL', 0)))
+            and not sys.platform == 'win32'):
+        wcsconfig_h_path = join(WCSROOT, 'include', 'wcsconfig.h')
+        if os.path.exists(wcsconfig_h_path):
+            os.unlink(wcsconfig_h_path)
+        cfg.update(setup_helpers.pkg_config(['wcslib'], ['wcs']))
+    else:
         write_wcsconfig_h(include_paths)
 
         wcslib_path = join("cextern", "wcslib")  # Path to wcslib
         wcslib_cpath = join(wcslib_path, "C")  # Path to wcslib source files
         cfg['sources'].extend(join(wcslib_cpath, x) for x in wcslib_files)
         cfg['include_dirs'].append(wcslib_cpath)
-    else:
-        wcsconfig_h_path = join(WCSROOT, 'include', 'wcsconfig.h')
-        if os.path.exists(wcsconfig_h_path):
-            os.unlink(wcsconfig_h_path)
-        cfg.update(setup_helpers.pkg_config(['wcslib'], ['wcs']))
 
     if debug:
         cfg['define_macros'].append(('DEBUG', None))
@@ -319,7 +320,3 @@ def get_extensions():
                 shutil.copy(source, dest)
 
     return [Extension('astropy.wcs._wcs', **cfg)]
-
-
-def get_external_libraries():
-    return ['wcslib']

@@ -19,7 +19,9 @@ def _get_compression_extension():
     cfg['sources'].append(os.path.join(os.path.dirname(__file__), 'src',
                                        'compressionmodule.c'))
 
-    if not setup_helpers.use_system_library('cfitsio'):
+    if int(os.environ.get('ASTROPY_USE_SYSTEM_CFITSIO', 0)) or int(os.environ.get('ASTROPY_USE_SYSTEM_ALL', 0)):
+        cfg.update(setup_helpers.pkg_config(['cfitsio'], ['cfitsio']))
+    else:
         if setup_helpers.get_compiler_option() == 'msvc':
             # These come from the CFITSIO vcc makefile, except the last
             # which ensures on windows we do not include unistd.h (in regular
@@ -57,15 +59,9 @@ def _get_compression_extension():
         cfg['include_dirs'].append(cfitsio_zlib_path)
         cfg['sources'].extend(cfitsio_files)
         cfg['sources'].extend(cfitsio_zlib_files)
-    else:
-        cfg.update(setup_helpers.pkg_config(['cfitsio'], ['cfitsio']))
 
     return Extension('astropy.io.fits.compression', **cfg)
 
 
 def get_extensions():
     return [_get_compression_extension()]
-
-
-def get_external_libraries():
-    return ['cfitsio']

@@ -248,9 +248,14 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
-- Nothing changed yet.
-
-
+- The way in which users can specify whether to build astropy against
+  existing installations of C libraries rather than the bundled one
+  has changed, and should now be done via environment variables rather
+  than setup.py flags (e.g. --use-system-erfa). The available variables
+  are ``ASTROPY_USE_SYSTEM_CFITSIO``, ``ASTROPY_USE_SYSTEM_ERFA``,
+  ``ASTROPY_USE_SYSTEM_EXPAT``, ``ASTROPY_USE_SYSTEM_WCSLIB``, and
+  ``ASTROPY_USE_SYSTEM_ALL``. These should be set to ``1`` to build
+  against the system libraries. [#9730]
 
 
 4.0.1 (unreleased)

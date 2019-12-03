@@ -84,7 +84,7 @@ def get_extensions():
     include_dirs = ['numpy']
     libraries = []
 
-    if setup_helpers.use_system_library('erfa'):
+    if int(os.environ.get('ASTROPY_USE_SYSTEM_ERFA', 0)) or int(os.environ.get('ASTROPY_USE_SYSTEM_ALL', 0)):
         libraries.append('erfa')
     else:
         # get all of the .c files in the cextern/erfa directory
@@ -102,7 +102,3 @@ def get_extensions():
         language="c",)
 
     return [erfa_ext]
-
-
-def get_external_libraries():
-    return ['erfa']
