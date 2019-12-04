@@ -281,6 +281,8 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- ``prior`` and ``posterior`` are now attributes of ``Parameter``. [#9708]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
