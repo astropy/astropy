@@ -741,6 +741,16 @@ def test_tabular1d_inverse():
     with pytest.raises(NotImplementedError):
         t3.inverse((3, 3))
 
+    # Check that it uses the same kwargs as the original model
+    points = np.arange(5)
+    values = np.array([1.5, 3.4, 6.7, 7, 32])
+    t = models.Tabular1D(points, values)
+    with pytest.raises(ValueError):
+        t.inverse(100)
+    t = models.Tabular1D(points, values, bounds_error=False, fill_value=None)
+    result = t.inverse(100)
+    assert_allclose(t(result), 100)
+
 
 class classmodel(FittableModel):
     f = Parameter(default=1)
