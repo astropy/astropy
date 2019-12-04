@@ -31,7 +31,7 @@ class Distribution:
 
     Parameters
     ----------
-    samples : array-like
+    samples : array_like
         The distribution, with sampling along the *leading* axis. If 1D, the
         sole dimension is used as the sampling axis (i.e., it is a scalar
         distribution).

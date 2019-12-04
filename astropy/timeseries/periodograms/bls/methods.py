@@ -12,15 +12,15 @@ from ._impl import bls_impl
 def bls_slow(t, y, ivar, period, duration, oversample, use_likelihood):
     """Compute the periodogram using a brute force reference method
 
-    t : array-like
+    t : array_like
         Sequence of observation times.
-    y : array-like
+    y : array_like
         Sequence of observations associated with times t.
-    ivar : array-like
+    ivar : array_like
         The inverse variance of ``y``.
-    period : array-like
+    period : array_like
         The trial periods where the periodogram should be computed.
-    duration : array-like
+    duration : array_like
         The durations that should be tested.
     oversample :
         The resolution of the phase grid in units of durations.
@@ -29,21 +29,21 @@ def bls_slow(t, y, ivar, period, duration, oversample, use_likelihood):
 
     Returns
     -------
-    power : array-like
+    power : array_like
         The periodogram evaluated at the periods in ``period``.
-    depth : array-like
+    depth : array_like
         The estimated depth of the maximum power model at each period.
-    depth_err : array-like
+    depth_err : array_like
         The 1-sigma uncertainty on ``depth``.
-    duration : array-like
+    duration : array_like
         The maximum power duration at each period.
-    transit_time : array-like
+    transit_time : array_like
         The maximum power phase of the transit in units of time. This
         indicates the mid-transit time and it will always be in the range
         (0, period).
-    depth_snr : array-like
+    depth_snr : array_like
         The signal-to-noise with which the depth is measured at maximum power.
-    log_likelihood : array-like
+    log_likelihood : array_like
         The log likelihood of the maximum power model.
 
     """
@@ -55,15 +55,15 @@ def bls_slow(t, y, ivar, period, duration, oversample, use_likelihood):
 def bls_fast(t, y, ivar, period, duration, oversample, use_likelihood):
     """Compute the periodogram using an optimized Cython implementation
 
-    t : array-like
+    t : array_like
         Sequence of observation times.
-    y : array-like
+    y : array_like
         Sequence of observations associated with times t.
-    ivar : array-like
+    ivar : array_like
         The inverse variance of ``y``.
-    period : array-like
+    period : array_like
         The trial periods where the periodogram should be computed.
-    duration : array-like
+    duration : array_like
         The durations that should be tested.
     oversample :
         The resolution of the phase grid in units of durations.
@@ -72,21 +72,21 @@ def bls_fast(t, y, ivar, period, duration, oversample, use_likelihood):
 
     Returns
     -------
-    power : array-like
+    power : array_like
         The periodogram evaluated at the periods in ``period``.
-    depth : array-like
+    depth : array_like
         The estimated depth of the maximum power model at each period.
-    depth_err : array-like
+    depth_err : array_like
         The 1-sigma uncertainty on ``depth``.
-    duration : array-like
+    duration : array_like
         The maximum power duration at each period.
-    transit_time : array-like
+    transit_time : array_like
         The maximum power phase of the transit in units of time. This
         indicates the mid-transit time and it will always be in the range
         (0, period).
-    depth_snr : array-like
+    depth_snr : array_like
         The signal-to-noise with which the depth is measured at maximum power.
-    log_likelihood : array-like
+    log_likelihood : array_like
         The log likelihood of the maximum power model.
 
     """

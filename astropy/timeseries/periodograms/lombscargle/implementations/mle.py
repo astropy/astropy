@@ -14,7 +14,7 @@ def design_matrix(t, frequency, dy=None, bias=True, nterms=1):
         times at which to compute the design matrix
     frequency : float
         frequency for the design matrix
-    dy : float or array_like (optional)
+    dy : float or array_like, optional
         data uncertainties: should be broadcastable with `t`
     bias : bool (default=True)
         If true, include a bias column in the matrix

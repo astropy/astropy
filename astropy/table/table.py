@@ -1382,7 +1382,7 @@ class Table:
             table classes may make use of bootstrap, as this is loaded with the
             notebook.  See `this page <https://getbootstrap.com/css/#tables>`_
             for the list of classes.
-        css : string
+        css : str
             A valid CSS string declaring the formatting for the table. Defaults
             to ``astropy.table.jsviewer.DEFAULT_CSS_NB``.
         display_length : int, optional
@@ -1461,7 +1461,7 @@ class Table:
             A string with a list of HTML classes used to style the table.
             Default is "display compact", and other possible values can be
             found in https://www.datatables.net/manual/styling/classes
-        css : string
+        css : str
             A valid CSS string declaring the formatting for the table. Defaults
             to ``astropy.table.jsviewer.DEFAULT_CSS``.
         show_row_index : str or False

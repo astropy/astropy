@@ -781,7 +781,7 @@ class TimeDatetime(TimeUnique):
 
         Parameters
         ----------
-        timezone : {`~datetime.tzinfo`, None} (optional)
+        timezone : {`~datetime.tzinfo`, None}, optional
             If not `None`, return timezone-aware datetime.
 
         Returns
@@ -975,12 +975,12 @@ class TimezoneInfo(datetime.tzinfo):
         """
         Parameters
         ----------
-        utc_offset : `~astropy.units.Quantity` (optional)
+        utc_offset : `~astropy.units.Quantity`, optional
             Offset from UTC in days. Defaults to zero.
-        dst : `~astropy.units.Quantity` (optional)
+        dst : `~astropy.units.Quantity`, optional
             Daylight Savings Time offset in days. Defaults to zero
             (no daylight savings).
-        tzname : string, `None` (optional)
+        tzname : str or `None`, optional
             Name of timezone
 
         Examples

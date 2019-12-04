@@ -47,7 +47,7 @@ class _Tabular(Model):
     ----------
     points : tuple of ndarray of float, with shapes (m1, ), ..., (mn, ), optional
         The points defining the regular grid in n dimensions.
-    lookup_table : array-like, shape (m1, ..., mn, ...)
+    lookup_table : array_like, shape (m1, ..., mn, ...)
         The data on a regular grid in n dimensions.
     method : str, optional
         The method of interpolation to perform. Supported are "linear" and
@@ -355,9 +355,9 @@ Tabular1D.__doc__ = """
 
     Parameters
     ----------
-    points : array-like of float of ndim=1.
+    points : array_like of float of ndim=1.
         The points defining the regular grid in n dimensions.
-    lookup_table : array-like, of ndim=1.
+    lookup_table : array_like, of ndim=1.
         The data in one dimensions.
 """ + _tab_docs
 
@@ -369,7 +369,7 @@ Tabular2D.__doc__ = """
     ----------
     points : tuple of ndarray of float, with shapes (m1, m2), optional
         The points defining the regular grid in n dimensions.
-    lookup_table : array-like, shape (m1, m2)
+    lookup_table : array_like, shape (m1, m2)
         The data on a regular grid in 2 dimensions.
 
 """ + _tab_docs

@@ -60,7 +60,7 @@ class BaseStretch(BaseTransform):
 
         Parameters
         ----------
-        values : array-like
+        values : array_like
             The input values, which should already be normalized to the
             [0:1] range.
         clip : bool, optional
@@ -399,9 +399,9 @@ class HistEqStretch(BaseStretch):
 
     Parameters
     ----------
-    data : array-like
+    data : array_like
         The data defining the equalization.
-    values : array-like, optional
+    values : array_like, optional
         The input image values, which should already be normalized to
         the [0:1] range.
     """
@@ -437,9 +437,9 @@ class InvertedHistEqStretch(BaseStretch):
 
     Parameters
     ----------
-    data : array-like
+    data : array_like
         The data defining the equalization.
-    values : array-like, optional
+    values : array_like, optional
         The input image values, which should already be normalized to
         the [0:1] range.
     """

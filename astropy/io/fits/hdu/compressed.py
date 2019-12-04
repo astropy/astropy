@@ -414,7 +414,7 @@ class CompImageHDU(BinTableHDU):
         data : array, optional
             Uncompressed image data
 
-        header : Header instance, optional
+        header : `~astropy.io.fits.Header`, optional
             Header to be associated with the image; when reading the HDU from a
             file (data=DELAYED), the header read from the file
 
@@ -717,7 +717,7 @@ class CompImageHDU(BinTableHDU):
 
         Parameters
         ----------
-        image_header : Header instance
+        image_header : `~astropy.io.fits.Header`
             header to be associated with the image
 
         name : str, optional

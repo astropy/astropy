@@ -20,7 +20,7 @@ def hist(x, bins=10, ax=None, max_bins=1e5, **kwargs):
     x : array_like
         array of data to be histogrammed
 
-    bins : int or list or str (optional)
+    bins : int, list, or str, optional
         If bins is a string, then it must be one of:
 
         - 'blocks' : use bayesian blocks for dynamic bin widths
@@ -31,11 +31,11 @@ def hist(x, bins=10, ax=None, max_bins=1e5, **kwargs):
 
         - 'freedman' : use the Freedman-Diaconis rule to determine bins
 
-    ax : Axes instance (optional)
+    ax : Axes instance, optional
         specify the Axes on which to draw the histogram.  If not specified,
         then the current active axes will be used.
 
-    max_bins : int (optional)
+    max_bins : int, optional
         Maximum number of bins allowed. With more than a few thousand bins
         the performance of matplotlib will not be great. If the number of
         bins is large *and* the number of input data points is large then

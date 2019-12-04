@@ -238,7 +238,7 @@ class RunTimePredictor:
 
         Returns
         -------
-        a : array-like
+        a : array_like
             Fitted `~astropy.modeling.FittableModel` parameters.
 
         Raises

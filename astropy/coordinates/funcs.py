@@ -46,11 +46,11 @@ def cartesian_to_spherical(x, y, z):
 
     Parameters
     ----------
-    x : scalar, array-like, or `~astropy.units.Quantity`
+    x : scalar, array_like, or `~astropy.units.Quantity`
         The first cartesian coordinate.
-    y : scalar, array-like, or `~astropy.units.Quantity`
+    y : scalar, array_like, or `~astropy.units.Quantity`
         The second cartesian coordinate.
-    z : scalar, array-like, or `~astropy.units.Quantity`
+    z : scalar, array_like, or `~astropy.units.Quantity`
         The third cartesian coordinate.
 
     Returns
@@ -92,11 +92,11 @@ def spherical_to_cartesian(r, lat, lon):
 
     Parameters
     ----------
-    r : scalar, array-like, or `~astropy.units.Quantity`
+    r : scalar, array_like, or `~astropy.units.Quantity`
         The radial coordinate (in the same units as the inputs).
-    lat : scalar, array-like, or `~astropy.units.Quantity`
+    lat : scalar, array_like, or `~astropy.units.Quantity`
         The latitude (in radians if array or scalar)
-    lon : scalar, array-like, or `~astropy.units.Quantity`
+    lon : scalar, array_like, or `~astropy.units.Quantity`
         The longitude (in radians if array or scalar)
 
     Returns
