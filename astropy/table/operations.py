@@ -475,7 +475,7 @@ def unique(input_table, keys=None, silent=False, keep='first'):
         removed, leaving only rows that are already unique in
         the input.
         Default is 'first'.
-    silent : boolean
+    silent : bool
         If `True`, masked value column(s) are silently removed from
         ``keys``. If `False`, an exception is raised when ``keys``
         contains masked value column(s).

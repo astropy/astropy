@@ -1143,12 +1143,12 @@ class BinTableHDU(_TableBaseHDU):
             `None`, the header parameter definitions are taken from
             the current values in this objects header.
 
-        replace : bool
+        replace : bool, optional
             When `True`, indicates that the entire header should be
             replaced with the contents of the ASCII file instead of
             just updating the current header.
 
-        header : Header object
+        header : `~astropy.io.fits.Header`, optional
             When the cdfile and hfile are missing, use this Header object in
             the creation of the new table and HDU.  Otherwise this Header
             supersedes the keywords from hfile, which is only used to update

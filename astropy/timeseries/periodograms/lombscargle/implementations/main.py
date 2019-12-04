@@ -124,7 +124,7 @@ def lombscargle(t, y, dy=None,
         sequence of observation times
     y : array_like
         sequence of observations associated with times t
-    dy : float or array_like (optional)
+    dy : float or array_like, optional
         error or sequence of observational errors associated with times t
     frequency : array_like
         frequencies (not angular frequencies) at which to evaluate the
@@ -132,7 +132,7 @@ def lombscargle(t, y, dy=None,
         a heuristic which will attempt to provide sufficient frequency range
         and sampling so that peaks will not be missed. Note that in order to
         use method='fast', frequencies must be regularly spaced.
-    method : string (optional)
+    method : str, optional
         specify the lomb scargle implementation to use. Options are:
 
         - 'auto': choose the best method based on the input
@@ -148,23 +148,23 @@ def lombscargle(t, y, dy=None,
           implementation written in C. Note that this does not support
           heteroskedastic errors.
 
-    assume_regular_frequency : bool (optional)
+    assume_regular_frequency : bool, optional
         if True, assume that the input frequency is of the form
         freq = f0 + df * np.arange(N). Only referenced if method is 'auto'
         or 'fast'.
-    normalization : string (optional, default='standard')
+    normalization : str, optional
         Normalization to use for the periodogram.
         Options are 'standard' or 'psd'.
-    fit_mean : bool (optional, default=True)
+    fit_mean : bool, optional
         if True, include a constant offset as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
-    center_data : bool (optional, default=True)
+    center_data : bool, optional
         if True, pre-center the data by subtracting the weighted mean
         of the input data. This is especially important if `fit_mean = False`
-    method_kwds : dict (optional)
+    method_kwds : dict, optional
         additional keywords to pass to the lomb-scargle method
-    nterms : int (default=1)
+    nterms : int, optional
         number of Fourier terms to use in the periodogram.
         Not supported with every method.
 

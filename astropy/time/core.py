@@ -586,9 +586,9 @@ class Time(ShapedLikeNDArray):
 
         Parameters
         ----------
-        time_string : string, sequence, ndarray
+        time_string : str, sequence, or ndarray
             Objects containing time data of type string
-        format_string : string
+        format_string : str
             String specifying format of time_string.
         kwargs : dict
             Any keyword arguments for ``Time``.  If the ``format`` keyword
@@ -710,12 +710,12 @@ class Time(ShapedLikeNDArray):
 
         Parameters
         ----------
-        format_spec : string
+        format_spec : str
             Format definition of return string.
 
         Returns
         -------
-        formatted : string, numpy.array
+        formatted : str or numpy.array
             String or numpy.array of strings formatted according to the given
             format string.
 

@@ -767,7 +767,7 @@ def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
 
     Parameters
     ----------
-    data : array-like
+    data : array_like
         Input array or object that can be converted to an array.
     axis : `None`, int, or tuple of ints, optional
         The axis or axes along which the MADs are computed.  The default
@@ -865,7 +865,7 @@ def mad_std(data, axis=None, func=None, ignore_nan=False):
 
     Parameters
     ----------
-    data : array-like
+    data : array_like
         Data array or object that can be converted to an array.
     axis : `None`, int, or tuple of ints, optional
         The axis or axes along which the robust standard deviations are
@@ -1366,7 +1366,7 @@ def kuiper(data, cdf=lambda x: x, args=()):
 
     Parameters
     ----------
-    data : array-like
+    data : array_like
         The data values.
     cdf : callable
         A callable to evaluate the CDF of the distribution being tested
@@ -1432,9 +1432,9 @@ def kuiper_two(data1, data2):
 
     Parameters
     ----------
-    data1 : array-like
+    data1 : array_like
         The first set of data values.
-    data2 : array-like
+    data2 : array_like
         The second set of data values.
 
     Returns

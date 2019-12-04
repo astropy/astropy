@@ -18,17 +18,17 @@ def lombscargle_chi2(t, y, dy, frequency, normalization='standard',
         broadcastable to the same shape.
     frequency : array_like
         frequencies (not angular frequencies) at which to calculate periodogram
-    normalization : string (optional, default='standard')
+    normalization : str, optional
         Normalization to use for the periodogram.
         Options are 'standard', 'model', 'log', or 'psd'.
-    fit_mean : bool (optional, default=True)
+    fit_mean : bool, optional
         if True, include a constant offset as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
-    center_data : bool (optional, default=True)
+    center_data : bool, optional
         if True, pre-center the data by subtracting the weighted mean
         of the input data. This is especially important if ``fit_mean = False``
-    nterms : int (optional, default=1)
+    nterms : int, optional
         Number of Fourier terms in the fit
 
     Returns

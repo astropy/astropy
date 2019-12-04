@@ -40,16 +40,16 @@ class LombScargle(BasePeriodogram):
         sequence of observation times
     y : array_like or Quantity
         sequence of observations associated with times t
-    dy : float, array_like or Quantity (optional)
+    dy : float, array_like, or Quantity, optional
         error or sequence of observational errors associated with times t
-    fit_mean : bool (optional, default=True)
+    fit_mean : bool, optional
         if True, include a constant offset as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
-    center_data : bool (optional, default=True)
+    center_data : bool, optional
         if True, pre-center the data by subtracting the weighted mean
         of the input data. This is especially important if fit_mean = False
-    nterms : int (optional, default=1)
+    nterms : int, optional
         number of terms to use in the Fourier fit
     normalization : {'standard', 'model', 'log', 'psd'}, optional
         Normalization to use for the periodogram.
@@ -206,18 +206,18 @@ class LombScargle(BasePeriodogram):
 
         Parameters
         ----------
-        samples_per_peak : float (optional, default=5)
+        samples_per_peak : float, optional
             The approximate number of desired samples across the typical peak
-        nyquist_factor : float (optional, default=5)
+        nyquist_factor : float, optional
             The multiple of the average nyquist frequency used to choose the
             maximum frequency if maximum_frequency is not provided.
-        minimum_frequency : float (optional)
+        minimum_frequency : float, optional
             If specified, then use this minimum frequency rather than one
             chosen based on the size of the baseline.
-        maximum_frequency : float (optional)
+        maximum_frequency : float, optional
             If specified, then use this maximum frequency rather than one
             chosen based on the average nyquist frequency.
-        return_freq_limits : bool (optional)
+        return_freq_limits : bool, optional
             if True, return only the frequency limits rather than the full
             frequency grid.
 
@@ -253,7 +253,7 @@ class LombScargle(BasePeriodogram):
 
         Parameters
         ----------
-        method : string (optional)
+        method : str, optional
             specify the lomb scargle implementation to use. Options are:
 
             - 'auto': choose the best method based on the input
@@ -271,19 +271,19 @@ class LombScargle(BasePeriodogram):
               implementation written in C. Note that this does not support
               heteroskedastic errors.
 
-        method_kwds : dict (optional)
+        method_kwds : dict, optional
             additional keywords to pass to the lomb-scargle method
         normalization : {'standard', 'model', 'log', 'psd'}, optional
             If specified, override the normalization specified at instantiation.
-        samples_per_peak : float (optional, default=5)
+        samples_per_peak : float, optional
             The approximate number of desired samples across the typical peak
-        nyquist_factor : float (optional, default=5)
+        nyquist_factor : float, optional
             The multiple of the average nyquist frequency used to choose the
             maximum frequency if maximum_frequency is not provided.
-        minimum_frequency : float (optional)
+        minimum_frequency : float, optional
             If specified, then use this minimum frequency rather than one
             chosen based on the size of the baseline.
-        maximum_frequency : float (optional)
+        maximum_frequency : float, optional
             If specified, then use this maximum frequency rather than one
             chosen based on the average nyquist frequency.
 
@@ -312,7 +312,7 @@ class LombScargle(BasePeriodogram):
             frequencies (not angular frequencies) at which to evaluate the
             periodogram. Note that in order to use method='fast', frequencies
             must be regularly-spaced.
-        method : string (optional)
+        method : str, optional
             specify the lomb scargle implementation to use. Options are:
 
             - 'auto': choose the best method based on the input
@@ -330,20 +330,20 @@ class LombScargle(BasePeriodogram):
               implementation written in C. Note that this does not support
               heteroskedastic errors.
 
-        assume_regular_frequency : bool (optional)
+        assume_regular_frequency : bool, optional
             if True, assume that the input frequency is of the form
             freq = f0 + df * np.arange(N). Only referenced if method is 'auto'
             or 'fast'.
         normalization : {'standard', 'model', 'log', 'psd'}, optional
             If specified, override the normalization specified at instantiation.
-        fit_mean : bool (optional, default=True)
+        fit_mean : bool, optional
             If True, include a constant offset as part of the model at each
             frequency. This can lead to more accurate results, especially in
             the case of incomplete phase coverage.
-        center_data : bool (optional, default=True)
+        center_data : bool, optional
             If True, pre-center the data by subtracting the weighted mean of
             the input data. This is especially important if fit_mean = False.
-        method_kwds : dict (optional)
+        method_kwds : dict, optional
             additional keywords to pass to the lomb-scargle method
 
         Returns
@@ -536,7 +536,7 @@ class LombScargle(BasePeriodogram):
         ----------
         power : array_like
             The periodogram power at which to compute the distribution.
-        cumulative : bool (optional)
+        cumulative : bool, optional
             If True, then return the cumulative distribution.
 
         See Also
@@ -567,13 +567,13 @@ class LombScargle(BasePeriodogram):
 
         Parameters
         ----------
-        power : array-like
+        power : array_like
             The periodogram value.
         method : {'baluev', 'davies', 'naive', 'bootstrap'}, optional
             The approximation method to use.
         maximum_frequency : float
             The maximum frequency of the periodogram.
-        method_kwds : dict (optional)
+        method_kwds : dict, optional
             Additional method-specific keywords.
 
         Returns
@@ -638,7 +638,7 @@ class LombScargle(BasePeriodogram):
 
         Parameters
         ----------
-        false_alarm_probability : array-like
+        false_alarm_probability : array_like
             The false alarm probability (0 < fap < 1).
         maximum_frequency : float
             The maximum frequency of the periodogram.

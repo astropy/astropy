@@ -204,7 +204,7 @@ class EarthLocation(u.Quantity):
 
         Parameters
         ----------
-        x, y, z : `~astropy.units.Quantity` or array-like
+        x, y, z : `~astropy.units.Quantity` or array_like
             Cartesian coordinates.  If not quantities, ``unit`` should be given.
         unit : `~astropy.units.UnitBase` object or None
             Physical unit of the coordinate values.  If ``x``, ``y``, and/or
@@ -385,12 +385,12 @@ class EarthLocation(u.Quantity):
             The address to get the location for. As per the Google maps API,
             this can be a fully specified street address (e.g., 123 Main St.,
             New York, NY) or a city name (e.g., Danbury, CT), or etc.
-        get_height : bool (optional)
+        get_height : bool, optional
             This only works when using the Google API! See the ``google_api_key``
             block below. Use the retrieved location to perform a second query to
             the Google maps elevation API to retrieve the height of the input
             address [3]_.
-        google_api_key : str (optional)
+        google_api_key : str, optional
             A Google API key with the Geocoding API and (optionally) the
             elevation API enabled. See [4]_ for more information.
 

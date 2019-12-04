@@ -97,9 +97,9 @@ def trig_sum(t, h, df, N, f0=0, freq_factor=1,
         frequency spacing
     N : int
         number of frequency bins to return
-    f0 : float (optional, default=0)
+    f0 : float, optional
         The low frequency to use
-    freq_factor : float (optional, default=1)
+    freq_factor : float, optional
         Factor which multiplies the frequency
     use_fft : bool
         if True, use the approximate FFT algorithm to compute the result.

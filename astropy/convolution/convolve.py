@@ -113,7 +113,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
     Parameters
     ----------
-    array : `~astropy.nddata.NDData` or `numpy.ndarray` or array-like
+    array : `~astropy.nddata.NDData` or `numpy.ndarray` or array_like
         The array to convolve. This should be a 1, 2, or 3-dimensional array
         or a list or a set of nested lists representing a 1, 2, or
         3-dimensional array.  If an `~astropy.nddata.NDData`, the ``mask`` of
@@ -138,7 +138,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         The value to use outside the array when using ``boundary='fill'``
     normalize_kernel : bool, optional
         Whether to normalize the kernel to have a sum of one.
-    nan_treatment : 'interpolate', 'fill'
+    nan_treatment : {'interpolate', 'fill'}
         interpolate will result in renormalization of the kernel at each
         position ignoring (pixels that are NaN in the image) in both the image
         and the kernel.
@@ -430,7 +430,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         convolution
     fill_value : float, optional
         The value to use outside the array when using boundary='fill'
-    nan_treatment : 'interpolate', 'fill'
+    nan_treatment : {'interpolate', 'fill'}
         ``interpolate`` will result in renormalization of the kernel at each
         position ignoring (pixels that are NaN in the image) in both the image
         and the kernel.  ``fill`` will replace the NaN pixels with a fixed

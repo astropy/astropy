@@ -322,9 +322,9 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             model to fit to x, y, z
         x : array
             Input coordinates
-        y : array-like
+        y : array_like
             Input coordinates
-        z : array-like (optional)
+        z : array_like, optional
             Input coordinates.
             If the dependent (``y`` or ``z``) co-ordinate values are provided
             as a `numpy.ma.MaskedArray`, any masked points are ignored when
@@ -332,7 +332,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             there are masked points (not just an empty mask), as the matrix
             equation has to be solved for each model separately when their
             co-ordinate grids differ.
-        weights : array (optional)
+        weights : array, optional
             Weights for fitting.
             For data with Gaussian uncertainties, the weights should be
             1/sigma.
@@ -570,9 +570,9 @@ class FittingWithOutlierRemoval:
         sets (unless overridden in ``outlier_kwargs``), to find outliers for
         each model separately; otherwise, the same filtering must be performed
         in a loop over models, which is almost an order of magnitude slower.
-    niter : int (optional)
+    niter : int, optional
         Number of iterations.
-    outlier_kwargs : dict (optional)
+    outlier_kwargs : dict, optional
         Keyword arguments for outlier_func.
     """
 
@@ -605,15 +605,15 @@ class FittingWithOutlierRemoval:
             An analytic model which will be fit to the provided data.
             This also contains the initial guess for an optimization
             algorithm.
-        x : array-like
+        x : array_like
             Input coordinates.
-        y : array-like
+        y : array_like
             Data measurements (1D case) or input coordinates (2D case).
-        z : array-like (optional)
+        z : array_like, optional
             Data measurements (2D case).
-        weights : array-like (optional)
+        weights : array_like, optional
             Weights to be passed to the fitter.
-        kwargs : dict (optional)
+        kwargs : dict, optional
             Keyword arguments to be passed to the fitter.
 
         Returns
@@ -840,9 +840,9 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
            input coordinates
         y : array
            input coordinates
-        z : array (optional)
+        z : array, optional
            input coordinates
-        weights : array (optional)
+        weights : array, optional
             Weights for fitting.
             For data with Gaussian uncertainties, the weights should be
             1/sigma.
@@ -990,9 +990,9 @@ class SLSQPLSQFitter(Fitter):
             input coordinates
         y : array
             input coordinates
-        z : array (optional)
+        z : array, optional
             input coordinates
-        weights : array (optional)
+        weights : array, optional
             Weights for fitting.
             For data with Gaussian uncertainties, the weights should be
             1/sigma.
@@ -1061,9 +1061,9 @@ class SimplexLSQFitter(Fitter):
             input coordinates
         y : array
             input coordinates
-        z : array (optional)
+        z : array, optional
             input coordinates
-        weights : array (optional)
+        weights : array, optional
             Weights for fitting.
             For data with Gaussian uncertainties, the weights should be
             1/sigma.
