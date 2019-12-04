@@ -76,7 +76,10 @@ For example, if you are reading in a file called :download:`sampled.csv
 you can do::
 
     >>> from astropy.timeseries import TimeSeries
-    >>> ts = TimeSeries.read('docs/timeseries/sampled.csv', format='ascii.csv',
+    >>> from astropy.utils.data import get_pkg_data_filename
+    >>> sampled_filename = get_pkg_data_filename('data/sampled.csv',
+    ...                                          package='astropy.timeseries.tests')
+    >>> ts = TimeSeries.read(sampled_filename, format='ascii.csv',
     ...                      time_column='Date')
     >>> ts[:3]
     <TimeSeries length=3>
@@ -93,7 +96,9 @@ and ``bin_size`` giving the size of each bin, you can do::
 
     >>> from astropy import units as u
     >>> from astropy.timeseries import BinnedTimeSeries
-    >>> ts = BinnedTimeSeries.read('docs/timeseries/binned.csv', format='ascii.csv',
+    >>> binned_filename = get_pkg_data_filename('data/binned.csv',
+    ...                                          package='astropy.timeseries.tests')
+    >>> ts = BinnedTimeSeries.read(binned_filename, format='ascii.csv',
     ...                            time_bin_start_column='time_start',
     ...                            time_bin_size_column='bin_size',
     ...                            time_bin_size_unit=u.s)
