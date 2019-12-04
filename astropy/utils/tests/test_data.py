@@ -1889,12 +1889,13 @@ def test_lock_unavailable_raises_runtimeerror_and_clear_frees_lock(
             with pytest.raises(RuntimeError):
                 with _cache_lock("astropy", need_write=True):
                     pass
-            # Download
+            # Trying to do anything should raise an exception
             with pytest.raises(RuntimeError):
-                is_url_in_cache(u), "if locked, act like cache empty"
+                is_url_in_cache(u)
             with pytest.raises(RuntimeError):
                 download_file(u, cache=True, sources=[])
             with pytest.raises(RuntimeError):
                 download_file(u, cache=True)
             clear_download_cache()  # breaks lock
-            is_url_in_cache(u)
+            is_url_in_cache(u)  # False but doesn't raise an exception
+    # Exiting the lock should succeed even though it was broken open
