@@ -1065,8 +1065,7 @@ class Model(metaclass=_ModelMeta):
         A ``dict`` mapping parameter names to their fixed constraint.
         """
 
-        fixed = _ConstraintsDict(self, 'fixed')
-        return fixed
+        return _ConstraintsDict(self, 'fixed')
 
     @property
     def bounds(self):
@@ -1074,8 +1073,7 @@ class Model(metaclass=_ModelMeta):
         A ``dict`` mapping parameter names to their upper and lower bounds as
         ``(min, max)`` tuples or ``[min, max]`` lists.
         """
-        bounds = _ConstraintsDict(self, 'bounds')
-        return bounds
+        return _ConstraintsDict(self, 'bounds')
 
     @property
     def tied(self):
@@ -1083,8 +1081,7 @@ class Model(metaclass=_ModelMeta):
         A ``dict`` mapping parameter names to their tied constraint.
         """
 
-        tied = _ConstraintsDict(self, 'tied')
-        return tied
+        return _ConstraintsDict(self, 'tied')
 
     @property
     def eqcons(self):
@@ -1790,58 +1787,6 @@ class Model(metaclass=_ModelMeta):
         obviously 1.
         """
         return 1
-
-    # *** Internal methods ***
-    @sharedmethod
-    def _from_existing(self, existing, param_names):
-        """
-        Creates a new instance of ``cls`` that shares its underlying parameter
-        values with an existing model instance given by ``existing``.
-
-        This is used primarily by compound models to return a view of an
-        individual component of a compound model.  ``param_names`` should be
-        the names of the parameters in the *existing* model to use as the
-        parameters in this new model.  Its length should equal the number of
-        parameters this model takes, so that it can map parameters on the
-        existing model to parameters on this model one-to-one.
-        """
-
-        # Basically this is an alternative __init__
-        if isinstance(self, type):
-            # self is a class, not an instance
-            needs_initialization = True
-            dummy_args = (0,) * len(param_names)
-
-            self = self.__new__(self, *dummy_args)
-            self.__init__()
-        if isinstance(self, CompoundModel):
-            # Need to set parameter attributes
-            self._parameters_ = [getattr(existing, param_name)
-                                 for param_name in param_names]
-            for param_name in param_names:
-                self.__dict__[param_name] = getattr(existing, param_name)
-        else:
-            needs_initialization = False
-            self = self.copy()
-
-        aliases = dict(zip(self.param_names, param_names))
-        # This is basically an alternative _initialize_constraints
-        constraints = {}
-        for cons_type in self.parameter_constraints:
-            orig = existing._constraints[cons_type]
-            constraints[cons_type] = AliasDict(orig, aliases)
-
-        self._constraints = constraints
-
-        self._n_models = existing._n_models
-        self._model_set_axis = existing._model_set_axis
-
-        for param_a, param_b in aliases.items():
-            setattr(self, param_a, getattr(existing, param_b))
-        if needs_initialization:
-            self.__init__(*dummy_args)
-
-        return self
 
     def _initialize_constraints(self, kwargs):
         """
