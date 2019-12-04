@@ -980,7 +980,7 @@ class TimezoneInfo(datetime.tzinfo):
         dst : `~astropy.units.Quantity`, optional
             Daylight Savings Time offset in days. Defaults to zero
             (no daylight savings).
-        tzname : str, `None`, optional
+        tzname : str or `None`, optional
             Name of timezone
 
         Examples

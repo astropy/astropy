@@ -431,7 +431,7 @@ class FunctionQuantity(Quantity):
         converted to the function unit, after, if necessary, converting it to
         the physical unit inferred from ``unit``.
 
-    unit : str, `~astropy.units.UnitBase` or `~astropy.units.function.FunctionUnitBase` instance, optional
+    unit : str, `~astropy.units.UnitBase`, or `~astropy.units.function.FunctionUnitBase`, optional
         For an `~astropy.units.function.FunctionUnitBase` instance, the
         physical unit will be taken from it; for other input, it will be
         inferred from ``value``. By default, ``unit`` is set by the subclass.

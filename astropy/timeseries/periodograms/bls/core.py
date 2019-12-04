@@ -37,7 +37,7 @@ class BoxLeastSquares(BasePeriodogram):
         Sequence of observation times.
     y : array_like or `~astropy.units.Quantity`
         Sequence of observations associated with times ``t``.
-    dy : float, array_like or `~astropy.units.Quantity`, optional
+    dy : float, array_like, or `~astropy.units.Quantity`, optional
         Error or sequence of observational errors associated with times ``t``.
 
     Examples
@@ -123,7 +123,7 @@ class BoxLeastSquares(BasePeriodogram):
 
         Parameters
         ----------
-        duration : float, array_like or `~astropy.units.Quantity`
+        duration : float, array_like, or `~astropy.units.Quantity`
             The set of durations that will be considered.
         minimum_period, maximum_period : float or `~astropy.units.Quantity`, optional
             The minimum/maximum periods to search. If not provided, these will
@@ -239,7 +239,7 @@ class BoxLeastSquares(BasePeriodogram):
         ----------
         period : array_like or `~astropy.units.Quantity`
             The periods where the power should be computed
-        duration : float, array_like or `~astropy.units.Quantity`
+        duration : float, array_like, or `~astropy.units.Quantity`
             The set of durations to test
         objective : {'likelihood', 'snr'}, optional
             The scalar that should be optimized to find the best fit phase,
@@ -377,7 +377,7 @@ class BoxLeastSquares(BasePeriodogram):
 
         Parameters
         ----------
-        t_model : array_like or `~astropy.units.Quantity` or `~astropy.time.Time`
+        t_model : array_like, `~astropy.units.Quantity`, or `~astropy.time.Time`
             Times at which to compute the model.
         period : float or `~astropy.units.Quantity`
             The period of the transits.
@@ -611,12 +611,12 @@ class BoxLeastSquares(BasePeriodogram):
             Sequence of observation times.
         y : array_like or `~astropy.units.Quantity`
             Sequence of observations associated with times t.
-        dy : float, array_like or `~astropy.units.Quantity`
+        dy : float, array_like, or `~astropy.units.Quantity`
             Error or sequence of observational errors associated with times t.
 
         Returns
         -------
-        t, y, dy : array_like or `~astropy.units.Quantity` or `~astropy.time.Time`
+        t, y, dy : array_like, `~astropy.units.Quantity`, or `~astropy.time.Time`
             The inputs with consistent shapes and units.
         Raises
         ------
@@ -645,7 +645,7 @@ class BoxLeastSquares(BasePeriodogram):
 
         Parameters
         ----------
-        duration : float, array_like or `~astropy.units.Quantity`
+        duration : float, array_like, or `~astropy.units.Quantity`
             The set of durations that will be considered.
 
         Returns
@@ -669,9 +669,9 @@ class BoxLeastSquares(BasePeriodogram):
 
         Parameters
         ----------
-        period : float, array_like or `~astropy.units.Quantity`
+        period : float, array_like, or `~astropy.units.Quantity`
             The set of test periods.
-        duration : float, array_like or `~astropy.units.Quantity`
+        duration : float, array_like, or `~astropy.units.Quantity`
             The set of durations that will be considered.
 
         Returns
@@ -779,7 +779,7 @@ class BoxLeastSquaresResults(dict):
         The 1-sigma uncertainty on ``depth``.
     duration : array_like or `~astropy.units.Quantity`
         The maximum power duration at each period.
-    transit_time : array_like or `~astropy.units.Quantity` or `~astropy.time.Time`
+    transit_time : array_like, `~astropy.units.Quantity`, or `~astropy.time.Time`
         The maximum power phase of the transit in units of time. This
         indicates the mid-transit time and it will always be in the range
         (0, period).

@@ -494,7 +494,7 @@ class Cutout2D:
         `~astropy.coordinates.SkyCoord`, in which case ``wcs`` is a
         required input.
 
-    size : int, array_like, `~astropy.units.Quantity`
+    size : int, array_like, or `~astropy.units.Quantity`
         The size of the cutout array along each axis.  If ``size``
         is a scalar number or a scalar `~astropy.units.Quantity`,
         then a square cutout of ``size`` will be created.  If

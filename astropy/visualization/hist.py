@@ -20,7 +20,7 @@ def hist(x, bins=10, ax=None, max_bins=1e5, **kwargs):
     x : array_like
         array of data to be histogrammed
 
-    bins : int or list or str, optional
+    bins : int, list, or str, optional
         If bins is a string, then it must be one of:
 
         - 'blocks' : use bayesian blocks for dynamic bin widths
