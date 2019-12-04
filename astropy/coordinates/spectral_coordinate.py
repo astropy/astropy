@@ -87,8 +87,8 @@ class SpectralCoord(u.Quantity):
             target = ICRS(ra=0 * u.degree, dec=0 * u.degree,
                           distance=400 * u.pc, radial_velocity=radial_velocity or 0 * u.km/u.s)
 
-        obj._observer = observer.frame if hasattr(observer, 'frame') else observer
-        obj.target = target.frame if hasattr(observer, 'frame') else target
+        obj.observer = observer
+        obj.target = target
 
         return obj
 
@@ -137,10 +137,13 @@ class SpectralCoord(u.Quantity):
                                      "`BaseCoordinateFrame` or "
                                      "`SkyCoord`.".format(coord))
 
+            # This is a workaround for frames that, for whatever reason, refuse
+            #  to have correct properties defined.
+            coord = coord.transform_to(ICRS).transform_to(type(coord))
+
             # If no distance value is defined on the frame, assume a default
             # distance of either zero (for an observer), or 1000 kpc for target
-            if not hasattr(coord, 'distance') or \
-                    not isinstance(coord.distance, Distance):
+            if (not hasattr(coord, 'distance') or not isinstance(coord.distance, Distance)):
                 auto_dist = 0 * u.AU if is_observer else 1000 * u.kpc
 
                 warnings.warn(
@@ -197,6 +200,12 @@ class SpectralCoord(u.Quantity):
             The astropy coordinate frame representing the observation.
         """
         return self._observer
+
+    @observer.setter
+    def observer(self, value):
+        value = self._validate_coordinate(value, True)
+
+        self._observer = value
 
     @property
     def target(self):

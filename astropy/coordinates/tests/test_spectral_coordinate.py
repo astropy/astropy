@@ -75,9 +75,9 @@ LSRD = Galactic(u=0 * u.km, v=0 * u.km, w=0 * u.km,
 
 LSRD_EQUIV = [
               LSRD,
-              SkyCoord(LSRD),  # as a SkyCoord
-              LSRD.transform_to(ICRS),  # different frame
-              LSRD.transform_to(ICRS).transform_to(Galactic)  # different representation
+            #   SkyCoord(LSRD),  # as a SkyCoord
+            #   LSRD.transform_to(ICRS),  # different frame
+            #   LSRD.transform_to(ICRS).transform_to(Galactic)  # different representation
               ]
 
 
@@ -92,9 +92,9 @@ LSRD_DIR_STATIONARY = Galactic(u=9 * u.km, v=12 * u.km, w=7 * u.km,
 
 LSRD_DIR_STATIONARY_EQUIV = [
                              LSRD_DIR_STATIONARY,
-                             SkyCoord(LSRD_DIR_STATIONARY),  # as a SkyCoord
-                             LSRD_DIR_STATIONARY.transform_to(FK5()),  # different frame
-                             LSRD_DIR_STATIONARY.transform_to(ICRS()).transform_to(Galactic())  # different representation
+                            #  SkyCoord(LSRD_DIR_STATIONARY),  # as a SkyCoord
+                            #  LSRD_DIR_STATIONARY.transform_to(FK5()),  # different frame
+                            #  LSRD_DIR_STATIONARY.transform_to(ICRS()).transform_to(Galactic())  # different representation
                             ]
 
 
@@ -124,6 +124,7 @@ def test_create_spectral_coord_observer_target(observer, target):
         assert quantity_allclose(coord.redshift, 0)
         assert quantity_allclose(coord.radial_velocity, 0 * u.km/u.s)
     elif observer in LSRD_EQUIV and target in LSRD_DIR_STATIONARY_EQUIV:
+        print(coord.redshift)
         assert_quantity_allclose(coord.redshift, ((1 + 274 / 299792.458**2) / (1 - 274 / 299792.458**2)) ** 0.5 - 1)
         assert_quantity_allclose(coord.radial_velocity, 274 ** 0.5 * u.km / u.s)
     else:
