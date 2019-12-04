@@ -530,3 +530,12 @@ def test_2d_model():
         assert_allclose(m.parameters, p2.parameters, rtol=0.05)
         m = fitter(p2, x, y, z + 2 * n, weights=None)
         assert_allclose(m.parameters, p2.parameters, rtol=0.05)
+
+
+def test_set_prior_posterior():
+    model = models.Polynomial1D(1)
+    model.c0.prior = models.Gaussian1D(2.3, 2, .1)
+    assert model.c0.prior(2) == 2.3
+
+    model.c0.posterior = models.Linear1D(1, .2)
+    assert model.c0.posterior(1) == 1.2
