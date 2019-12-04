@@ -24,13 +24,13 @@ def lombscargle_fast(t, y, dy, f0, df, Nf,
     fit_mean : bool (default=True)
         If True, then compute the floating-mean periodogram; i.e. let the mean
         vary with the fit.
-    normalization : string (optional, default='standard')
+    normalization : str, optional
         Normalization to use for the periodogram.
         Options are 'standard', 'model', 'log', or 'psd'.
     use_fft : bool (default=True)
         If True, then use the Press & Rybicki O[NlogN] algorithm to compute
         the result. Otherwise, use a slower O[N^2] algorithm
-    trig_sum_kwds : dict or None (optional)
+    trig_sum_kwds : dict or None, optional
         extra keyword arguments to pass to the ``trig_sum`` utility.
         Options are ``oversampling`` and ``Mfft``. See documentation
         of ``trig_sum`` for details.

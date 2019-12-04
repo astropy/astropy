@@ -46,7 +46,7 @@ def rotation_matrix(angle, axis='z', unit=None):
     ----------
     angle : convertible to `~astropy.coordinates.Angle`
         The amount of rotation the matrices should represent.  Can be an array.
-    axis : str, or array-like
+    axis : str or array_like
         Either ``'x'``, ``'y'``, ``'z'``, or a (x,y,z) specifying the axis to
         rotate about. If ``'x'``, ``'y'``, or ``'z'``, the rotation sense is
         counterclockwise looking down the + axis (e.g. positive rotations obey
@@ -104,7 +104,7 @@ def angle_axis(matrix):
 
     Parameters
     ----------
-    matrix : array-like
+    matrix : array_like
         A 3 x 3 unitary rotation matrix (or stack of matrices).
 
     Returns

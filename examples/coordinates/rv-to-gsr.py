@@ -80,7 +80,7 @@ def rv_to_gsr(c, v_sun=None):
     c : `~astropy.coordinates.BaseCoordinateFrame` subclass instance
         The radial velocity, associated with a sky coordinates, to be
         transformed.
-    v_sun : `~astropy.units.Quantity` (optional)
+    v_sun : `~astropy.units.Quantity`, optional
         The 3D velocity of the solar system barycenter in the GSR frame.
         Defaults to the same solar motion as in the
         `~astropy.coordinates.Galactocentric` frame.

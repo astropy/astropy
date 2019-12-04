@@ -61,9 +61,9 @@ def bayesian_blocks(t, x=None, sigma=None,
     ----------
     t : array_like
         data times (one dimensional, length N)
-    x : array_like (optional)
+    x : array_like, optional
         data values
-    sigma : array_like or float (optional)
+    sigma : array_like or float, optional
         data errors
     fitness : str or object
         the fitness function to use for the model.
@@ -206,9 +206,9 @@ class FitnessFunc:
         ----------
         t : array_like
             times of observations
-        x : array_like (optional)
+        x : array_like, optional
             values observed at each time
-        sigma : float or array_like (optional)
+        sigma : float or array_like, optional
             errors in values x
 
         Returns
@@ -306,9 +306,9 @@ class FitnessFunc:
         ----------
         t : array_like
             data times (one dimensional, length N)
-        x : array_like (optional)
+        x : array_like, optional
             data values
-        sigma : array_like or float (optional)
+        sigma : array_like or float, optional
             data errors
 
         Returns
@@ -404,7 +404,7 @@ class Events(FitnessFunc):
 
     Parameters
     ----------
-    p0 : float (optional)
+    p0 : float, optional
         False alarm probability, used to compute the prior on
         :math:`N_{\rm blocks}` (see eq. 21 of Scargle 2012). For the Events
         type data, ``p0`` does not seem to be an accurate representation of the
@@ -413,11 +413,11 @@ class Events(FitnessFunc):
         statistical trials on signal-free noise to determine an appropriate
         value of ``gamma`` or ``ncp_prior`` to use for a desired false alarm
         rate.
-    gamma : float (optional)
+    gamma : float, optional
         If specified, then use this gamma to compute the general prior form,
         :math:`p \sim {\tt gamma}^{N_{\rm blocks}}`.  If gamma is specified, p0
         is ignored.
-    ncp_prior : float (optional)
+    ncp_prior : float, optional
         If specified, use the value of ``ncp_prior`` to compute the prior as
         above, using the definition :math:`{\tt ncp\_prior} = -\ln({\tt
         gamma})`.
@@ -446,11 +446,11 @@ class RegularEvents(FitnessFunc):
     ----------
     dt : float
         tick rate for data
-    p0 : float (optional)
+    p0 : float, optional
         False alarm probability, used to compute the prior on :math:`N_{\rm
         blocks}` (see eq. 21 of Scargle 2012). If gamma is specified, p0 is
         ignored.
-    ncp_prior : float (optional)
+    ncp_prior : float, optional
         If specified, use the value of ``ncp_prior`` to compute the prior as
         above, using the definition :math:`{\tt ncp\_prior} = -\ln({\tt
         gamma})`.  If ``ncp_prior`` is specified, ``gamma`` and ``p0`` are
@@ -488,11 +488,11 @@ class PointMeasures(FitnessFunc):
 
     Parameters
     ----------
-    p0 : float (optional)
+    p0 : float, optional
         False alarm probability, used to compute the prior on :math:`N_{\rm
         blocks}` (see eq. 21 of Scargle 2012). If gamma is specified, p0 is
         ignored.
-    ncp_prior : float (optional)
+    ncp_prior : float, optional
         If specified, use the value of ``ncp_prior`` to compute the prior as
         above, using the definition :math:`{\tt ncp\_prior} = -\ln({\tt
         gamma})`.  If ``ncp_prior`` is specified, ``gamma`` and ``p0`` are

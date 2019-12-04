@@ -1449,7 +1449,7 @@ class Model(metaclass=_ModelMeta):
         out : `numpy.ndarray`, optional
             An array that the evaluated model will be added to.  If this is not
             given (or given as ``None``), a new array will be created.
-        coords : array-like, optional
+        coords : array_like, optional
             An array to be used to translate from the model's input coordinates
             to the ``out`` array. It should have the property that
             ``self(coords)`` yields the same shape as ``out``.  If ``out`` is
@@ -3479,7 +3479,7 @@ class CompoundModel(Model):
         out : `numpy.ndarray`, optional
             An array that the evaluated model will be added to.  If this is not
             given (or given as ``None``), a new array will be created.
-        coords : array-like, optional
+        coords : array_like, optional
             An array to be used to translate from the model's input coordinates
             to the ``out`` array. It should have the property that
             ``self(coords)`` yields the same shape as ``out``.  If ``out`` is
@@ -3820,7 +3820,7 @@ def render_model(model, arr=None, coords=None):
         Model to be evaluated.
     arr : `numpy.ndarray`, optional
         Array on which the model is evaluated.
-    coords : array-like, optional
+    coords : array_like, optional
         Coordinate arrays mapping to ``arr``, such that
         ``arr[coords] == arr``.
 

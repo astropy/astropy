@@ -112,7 +112,7 @@ class HeaderFormatter:
             Keywords for which the value(s) should be returned.
             If not specified, then the entire header is returned.
 
-        compressed : boolean, optional
+        compressed : bool, optional
             If True, shows the header describing the compression, rather than
             the header obtained after decompression. (Affects FITS files
             containing `CompImageHDU` extensions only.)
@@ -177,7 +177,7 @@ class HeaderFormatter:
         keywords : list of str, optional
             Keywords for which the cards should be returned.
 
-        compressed : boolean, optional
+        compressed : bool, optional
             If True, shows the header describing the compression.
 
         Raises

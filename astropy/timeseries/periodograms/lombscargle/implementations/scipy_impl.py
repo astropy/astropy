@@ -17,10 +17,10 @@ def lombscargle_scipy(t, y, frequency, normalization='standard',
         broadcastable to the same shape.
     frequency : array_like
         frequencies (not angular frequencies) at which to calculate periodogram
-    normalization : string (optional, default='standard')
+    normalization : str, optional
         Normalization to use for the periodogram.
         Options are 'standard', 'model', 'log', or 'psd'.
-    center_data : bool (optional, default=True)
+    center_data : bool, optional
         if True, pre-center the data by subtracting the weighted mean
         of the input data.
 

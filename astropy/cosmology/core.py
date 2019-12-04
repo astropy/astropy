@@ -475,7 +475,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -500,7 +500,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -524,7 +524,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -550,7 +550,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -583,7 +583,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -608,7 +608,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -634,7 +634,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -653,7 +653,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -681,7 +681,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -699,7 +699,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -797,7 +797,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -847,7 +847,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -881,7 +881,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -929,7 +929,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : float or array-like
+        z : float or array_like
           Input redshift.
 
         Returns
@@ -999,7 +999,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -1017,7 +1017,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -1039,7 +1039,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.  Must be 1D or scalar
 
         Returns
@@ -1061,7 +1061,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.  Must be 1D or scalar
 
         Returns
@@ -1079,7 +1079,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.  Must be 1D or scalar
 
         Returns
@@ -1100,7 +1100,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.  Must be 1D or scalar
 
         Returns
@@ -1115,7 +1115,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1136,7 +1136,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1153,7 +1153,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1175,7 +1175,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -1196,7 +1196,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1217,7 +1217,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z1, z2 : array-like, shape (N,)
+        z1, z2 : array_like, shape (N,)
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1237,7 +1237,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z1, z2 : array-like, shape (N,)
+        z1, z2 : array_like, shape (N,)
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1261,7 +1261,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1288,7 +1288,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z1, z2 : array-like, shape (N,)
+        z1, z2 : array_like, shape (N,)
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1326,7 +1326,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1349,7 +1349,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1377,7 +1377,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z1, z2 : array-like, shape (N,)
+        z1, z2 : array_like, shape (N,)
           Input redshifts. z2 must be large than z1.
 
         Returns
@@ -1401,7 +1401,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1427,7 +1427,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1457,7 +1457,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1493,7 +1493,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -1511,7 +1511,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1529,7 +1529,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1547,7 +1547,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1565,7 +1565,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1687,7 +1687,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -1714,7 +1714,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -1749,7 +1749,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z1, z2 : array-like
+        z1, z2 : array_like
           Input redshifts.
 
         Returns
@@ -1821,7 +1821,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z1, z2 : array-like, shape (N,)
+        z1, z2 : array_like, shape (N,)
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1850,7 +1850,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z1, z2 : array-like, shape (N,)
+        z1, z2 : array_like, shape (N,)
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1883,7 +1883,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z1, z2 : array-like
+        z1, z2 : array_like
           Input redshifts.
 
         Returns
@@ -1926,7 +1926,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -1946,7 +1946,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -1969,7 +1969,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -2000,7 +2000,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.  Must be 1D or scalar
 
         Returns
@@ -2023,7 +2023,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -2048,7 +2048,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.  Must be 1D or scalar
 
         Returns
@@ -2063,7 +2063,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -2095,7 +2095,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -2204,7 +2204,7 @@ class FlatLambdaCDM(LambdaCDM):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -2236,7 +2236,7 @@ class FlatLambdaCDM(LambdaCDM):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -2362,7 +2362,7 @@ class wCDM(FLRW):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -2389,7 +2389,7 @@ class wCDM(FLRW):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -2413,7 +2413,7 @@ class wCDM(FLRW):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -2443,7 +2443,7 @@ class wCDM(FLRW):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -2564,7 +2564,7 @@ class FlatwCDM(wCDM):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -2594,7 +2594,7 @@ class FlatwCDM(wCDM):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -2733,7 +2733,7 @@ class w0waCDM(FLRW):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -2760,7 +2760,7 @@ class w0waCDM(FLRW):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -3015,7 +3015,7 @@ class wpwaCDM(FLRW):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -3044,7 +3044,7 @@ class wpwaCDM(FLRW):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -3191,7 +3191,7 @@ class w0wzCDM(FLRW):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns
@@ -3218,7 +3218,7 @@ class w0wzCDM(FLRW):
 
         Parameters
         ----------
-        z : array-like
+        z : array_like
           Input redshifts.
 
         Returns

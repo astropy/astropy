@@ -75,7 +75,7 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
     path : str
         The path from which to read the table inside the HDF5 file.
         This should be relative to the input file or group.
-    character_as_bytes: boolean
+    character_as_bytes: bool
         If `True` then Table columns are left as bytes.
         If `False` then Table columns are converted to unicode.
     """

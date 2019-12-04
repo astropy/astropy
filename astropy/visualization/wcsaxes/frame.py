@@ -213,7 +213,7 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
 
         Parameters
         ----------
-        color : string
+        color : str
             The color of the frame.
         """
         self._color = color

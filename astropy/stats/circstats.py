@@ -160,7 +160,7 @@ def circmoment(data, p=1.0, centered=False, axis=None, weights=None):
         radians whenever ``data`` is ``numpy.ndarray``.
     p : float, optional
         Order of the circular moment.
-    centered : Boolean, optional
+    centered : bool, optional
         If ``True``, central circular moments are computed. Default value is
         ``False``.
     axis : int, optional

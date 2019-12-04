@@ -217,7 +217,7 @@ The sections of the docstring are:
    When two or more input parameters have exactly the same type, shape and
    description, they can be combined::
 
-     x1, x2 : array-like
+     x1, x2 : array_like
          Input arrays, description of `x1`, `x2`.
 
 5. **Returns**
@@ -530,10 +530,10 @@ Other points to keep in mind
   and are not often necessary. One situation in which a warning can
   be useful is for marking a known bug that is not yet fixed.
 
-* ``array-like`` : For functions that take arguments which can have not only
+* ``array_like`` : For functions that take arguments which can have not only
   a type ``ndarray``, but also types that can be converted to an ndarray
   (i.e. scalar types, sequence types), those arguments can be documented
-  with type ``array-like``.
+  with type ``array_like``.
 
 Common reST concepts
 ====================

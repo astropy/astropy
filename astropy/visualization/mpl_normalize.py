@@ -257,7 +257,7 @@ def imshow_norm(data, ax=None, imshow_only_kwargs={}, **kwargs):
 
     Parameters
     ----------
-    data : 2D or 3D array-like - see `~matplotlib.pyplot.imshow`
+    data : 2D or 3D array_like - see `~matplotlib.pyplot.imshow`
         The data to show. Can be whatever `~matplotlib.pyplot.imshow` and
         `ImageNormalize` both accept.
     ax : None or `~matplotlib.axes.Axes`, optional
