@@ -23,7 +23,7 @@ def calculate_bin_edges(a, bins=10, range=None, weights=None):
     a : array_like
         Input data. The bin edges are calculated over the flattened array.
 
-    bins : int or list or str, optional
+    bins : int, list, or str, optional
         If ``bins`` is an int, it is the number of bins. If it is a list
         it is taken to be the bin edges. If it is a string, it must be one
         of  'blocks', 'knuth', 'scott' or 'freedman'. See
@@ -96,7 +96,7 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
     a : array_like
         array of data to be histogrammed
 
-    bins : int or list or str, optional
+    bins : int, list, or str, optional
         If bins is a string, then it must be one of:
 
         - 'blocks' : use bayesian blocks for dynamic bin widths

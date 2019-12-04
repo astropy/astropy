@@ -40,7 +40,7 @@ class LombScargle(BasePeriodogram):
         sequence of observation times
     y : array_like or Quantity
         sequence of observations associated with times t
-    dy : float, array_like or Quantity, optional
+    dy : float, array_like, or Quantity, optional
         error or sequence of observational errors associated with times t
     fit_mean : bool, optional
         if True, include a constant offset as part of the model at each

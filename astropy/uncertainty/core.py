@@ -304,7 +304,7 @@ class _DistributionRepr:
             reprarr = reprarr[firstspace+1:-1]  # :-1] removes the ending '>'
             return '<{} {} with n_samples={}>'.format(self.__class__.__name__,
                                                       reprarr, self.n_samples)
-        else:  # numpy array_like
+        else:  # numpy array-like
             firstparen = reprarr.find('(')
             reprarr = reprarr[firstparen:]
             return '{}{} with n_samples={}'.format(self.__class__.__name__,
