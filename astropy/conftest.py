@@ -7,6 +7,7 @@ making use of astropy's test runner).
 import os
 import builtins
 import tempfile
+import warnings
 
 try:
     from pytest_astropy_header.display import PYTEST_HEADER_MODULES
@@ -39,8 +40,10 @@ def pytest_configure(config):
     builtins._pytest_running = True
     # do not assign to matplotlibrc_cache in function scope
     if HAS_MATPLOTLIB:
-        matplotlibrc_cache.update(matplotlib.rcParams)
-        matplotlib.rcdefaults()
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            matplotlibrc_cache.update(matplotlib.rcParams)
+            matplotlib.rcdefaults()
 
     # Make sure we use temporary directories for the config and cache
     # so that the tests are insensitive to local configuration. Note that this
