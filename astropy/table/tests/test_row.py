@@ -208,6 +208,44 @@ class TestRow():
                                  names=orig_tab.dtype.names)
         assert np.all(orig_tab == new_tab)
 
+    def test_row_keys_values(self, table_types):
+        self._setup(table_types)
+        row = self.t[0]
+        for row_key, col_key in zip(row.keys(), self.t.columns.keys()):
+            assert row_key == col_key
+
+        for row_value, col in zip(row.values(), self.t.columns.values()):
+            assert row_value == col[0]
+
+    def test_row_as_mapping(self, table_types):
+        self._setup(table_types)
+        row = self.t[0]
+        row_dict = dict(row)
+        for key, value in row_dict.items():
+            assert row[key] == value
+
+        def f(**kwargs):
+            return kwargs
+
+        row_splatted = f(**row)
+        for key, value in row_splatted.items():
+            assert row[key] == value
+
+    def test_row_as_sequence(self, table_types):
+        self._setup(table_types)
+        row = self.t[0]
+        row_tuple = tuple(row)
+        keys = tuple(row.keys())
+        for key, value in zip(keys, row_tuple):
+            assert row[key] == value
+
+        def f(*args):
+            return args
+
+        row_splatted = f(*row)
+        for key, value in zip(keys, row_splatted):
+            assert row[key] == value
+
 
 def test_row_tuple_column_slice():
     """

@@ -57,6 +57,10 @@ astropy.table
   the ``unit`` and ``description`` for the table columns at the time of
   creating or reading the table. [#9671]
 
+- Make table ``Row`` work as mappings, by adding ``.keys()`` and ``.values()``
+  methods. With this ``**row`` becomes possible, as does, more simply, turning
+  a ``Row`` into a dictionary with ``dict(row)``. [#9712]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
