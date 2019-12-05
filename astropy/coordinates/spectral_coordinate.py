@@ -4,7 +4,7 @@ import numpy as np
 
 import astropy.units as u
 from astropy.constants import c
-from astropy.coordinates import SkyCoord, ICRS, Distance, GCRS
+from astropy.coordinates import SkyCoord, ICRS, Distance, GCRS, RadialDifferential, CartesianDifferential
 from astropy.coordinates.baseframe import BaseCoordinateFrame, FrameMeta
 from astropy.utils.compat import NUMPY_LT_1_14
 from astropy.utils.exceptions import AstropyUserWarning
@@ -72,9 +72,10 @@ class SpectralCoord(u.Quantity):
         #  ICRS frame.
         if observer is None:
             observer = ICRS(ra=0 * u.degree, dec=0 * u.degree,
+                            pm_ra_cosdec=0 * u.mas/u.yr, pm_dec=0 * u.mas/u.yr,
                             distance=0 * u.pc, radial_velocity=0 * u.km/u.s)
 
-        # If not target is defined, create a default target with any provided
+        # If no target is defined, create a default target with any provided
         #  redshift/radial velocities.
         if target is None:
             if radial_velocity is None:
@@ -84,8 +85,24 @@ class SpectralCoord(u.Quantity):
                     radial_velocity = u.Quantity(redshift).to(
                         'km/s', equivalencies=RV_RS_EQUIV)
 
-            target = ICRS(ra=0 * u.degree, dec=0 * u.degree,
-                          distance=400 * u.pc, radial_velocity=radial_velocity or 0 * u.km/u.s)
+            target = ICRS(ra=0 * u.degree,
+                          dec=0 * u.degree,
+                          distance=400 * u.pc,
+                          radial_velocity=observer.radial_velocity + radial_velocity)
+
+        # target = SkyCoord(observer, representation_type='spherical',
+        #                   differential_type='spherical').frame
+        #
+        # print("HERE", observer.radial_velocity, radial_velocity)
+        # data_with_rv = target.data.with_differentials(
+        #     {'s': RadialDifferential(observer.radial_velocity + radial_velocity)})
+        # target = target.realize_frame(data_with_rv)
+        # print("HERE2", target.radial_velocity, data_with_rv.velocity)
+        #
+        # target = SkyCoord(target.realize_frame(data_with_rv),
+        #                   representation_type=observer.representation_type,
+        #                   differential_type=observer.differential_type).frame
+        # print("HERE2", target.radial_velocity, target.velocity)
 
         obj.observer = observer
         obj.target = target
@@ -137,13 +154,13 @@ class SpectralCoord(u.Quantity):
                                      "`BaseCoordinateFrame` or "
                                      "`SkyCoord`.".format(coord))
 
-            # This is a workaround for frames that, for whatever reason, refuse
-            #  to have correct properties defined.
-            coord = coord.transform_to(ICRS).transform_to(type(coord))
-
             # If no distance value is defined on the frame, assume a default
             # distance of either zero (for an observer), or 1000 kpc for target
-            if (not hasattr(coord, 'distance') or not isinstance(coord.distance, Distance)):
+            if (not hasattr(coord, 'distance') or
+                not isinstance(coord.distance, Distance)) and \
+                (not hasattr(coord, 'spherical') or
+                 not isinstance(coord.spherical.distance, Distance)):
+
                 auto_dist = 0 * u.AU if is_observer else 1000 * u.kpc
 
                 warnings.warn(
@@ -162,7 +179,10 @@ class SpectralCoord(u.Quantity):
                        frame_loc, u.Quantity([0, 0, 0], unit=u.km/u.s)),
                     AstropyUserWarning)
 
-                coord = SkyCoord(coord, radial_velocity=0 * u.km / u.s).frame
+                vel_to_add = CartesianDifferential(
+                    0 * u.km / u.s, 0 * u.km / u.s, 0 * u.km/u.s)
+                new_data = coord.data.to_cartesian().with_differentials(vel_to_add)
+                coord = coord.realize_frame(new_data)
 
         return coord
 
@@ -349,11 +369,12 @@ class SpectralCoord(u.Quantity):
             raise ValueError("No target has been specified; cannot calculate "
                              "radial velocity.")
 
-        target_icrs = target.transform_to(observer_icrs)
+        target_icrs = target.transform_to(ICRS)
 
         d_pos = (target_icrs.data.without_differentials() -
                  observer_icrs.data.without_differentials()).to_cartesian()
-        pos_hat = d_pos / d_pos.norm()
+
+        pos_hat = d_pos / (d_pos.norm() or 1)
         d_vel = target_icrs.velocity - observer_icrs.velocity
 
         return np.sum(d_vel.d_xyz * pos_hat.xyz, axis=0)
@@ -419,6 +440,9 @@ class SpectralCoord(u.Quantity):
         Transforms the spectral axis to the rest frame.
         """
         rest_frame_value = self / (1 + self.redshift)
+        print(self.redshift)
+        print(rest_frame_value)
+        print(self.radial_velocity)
 
         return self._copy(value=rest_frame_value)
 
