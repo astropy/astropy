@@ -2,8 +2,8 @@
 requires = ["setuptools",
             "setuptools_scm",
             "wheel",
-            "cython",
-            "jinja2",
+            "cython==0.29.14",
+            "jinja2==2.10.3",
             "oldest-supported-numpy",
             "extension-helpers"]
 build-backend = 'setuptools.build_meta'
