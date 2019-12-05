@@ -187,7 +187,11 @@ class _SetTempPath:
 
     def __enter__(self):
         self.__class__._temp_path = self._path
-        return self._default_path_getter('astropy')
+        try:
+            return self._default_path_getter('astropy')
+        except Exception:
+            self.__class__._temp_path = self._prev_path
+            raise
 
     def __exit__(self, *args):
         self.__class__._temp_path = self._prev_path
