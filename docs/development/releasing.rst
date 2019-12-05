@@ -15,7 +15,6 @@ There are several different procedures below, depending on the situation:
     - :ref:`release-procedure-bug-fix-backport`
     - :ref:`release-procedure-bug-fix-direct`
     - :ref:`release-procedure-bug-fix-release`
-* :ref:`helpers-release-info`
 
 For a signed release, see :ref:`key-signing-info` for relevant setup
 instructions.
@@ -64,27 +63,11 @@ packages that use the full bugfix/maintenance branch approach.)
    step is only required on major releases, but can be done for bugfix releases
    as time allows.)
 
-#. (Optional) You may want to set up a clean environment to build the release.
-   For more on setting up virtual environments, see :ref:`virtual_envs`, but
-   for the sake of example we will assume you're using `Anaconda`_. This is not
-   necessary if you know your normal python environment has what you need, but
-   you might want to do something like this for safety's sake::
+#. To build the source distribution in an isolated environment and make sure you
+   have all the dependencies required for it, install the `pep517
+   <https://pypi.org/project/pep517/>`_ package::
 
-      $ conda create -n astropy_release_build_v<version> astropy
-      $ source activate astropy_release_build_v<version>
-      $ conda uninstall astropy  # still keeps the dependencies
-      $ pip install -e .[docs,test]  # any that might be left over
-      $ pip uninstall astropy
-
-#. Make sure you have the latest Cython version installed for use with
-   releasing. To pick up the latest Cython release from PyPI::
-
-      $ pip install Cython --upgrade
-
-#. Before doing a release of Astropy, you may need to do a release of
-   astropy-helpers.  This is not always necessary, as there are not always any
-   significant changes in the helpers.  See :ref:`helpers-release-info` for more
-   on this.
+      $ pip install pep517 --upgrade
 
 #. Ensure you have a GPG key pair available for when git needs to sign the
    tag you create for the release.  See :ref:`key-signing-info` for more on
@@ -92,8 +75,7 @@ packages that use the full bugfix/maintenance branch approach.)
 
 #. Obtain a *clean* version of the `astropy core repository`_.  That is, one
    where you don't have any intermediate build files.  Either use a fresh
-   ``git clone`` or do ``git clean -dfx``. If you choose to clean the working tree,
-   don't forget to clean the ``astropy_helpers`` submodule, too.
+   ``git clone`` or do ``git clean -dfx``.
 
 #. Be sure you're on the branch appropriate for the version you're about to
    release.  For example, if releasing version 1.2.2 make sure to::
@@ -103,12 +85,10 @@ packages that use the full bugfix/maintenance branch approach.)
 #. Make sure that the continuous integration services (e.g., Travis or CircleCI) are passing
    for the `astropy core repository`_ branch you are going to release. You may
    also want to locally run the tests (with remote data on to ensure all of the
-   tests actually run), and make sure the description in ``setup.cfg`` is
-   reStructuredText-compliant::
+   tests actually run), using tox to do a thorough test in an isolated environment::
 
-      $ python setup.py test --remote-data=any
-      $ TEST_READ_HUGE_FILE=1 pytest -sv astropy/io/ascii/tests/test_c_reader.py -k big_table
-      $ python setup.py check --restructuredtext
+      $ pip install tox --upgrade
+      $ TEST_READ_HUGE_FILE=1 tox -e test-alldeps -- --remote-data=any
 
 #. Edit the ``CHANGES.rst`` file by changing the date for the version you are
    about to release from "unreleased" to today's date.  Also be sure to remove
@@ -122,14 +102,6 @@ packages that use the full bugfix/maintenance branch approach.)
       $ git add CHANGES.rst
       $ git commit -m "Finalizing changelog for v<version>"
 
-#. Edit the ``setup.cfg`` file by removing the ``".dev"`` at the end of the
-   ``version`` string, then add and commit that change as the final step prior
-   to release::
-
-      <use your favorite editor on setup.cfg>
-      $ git add setup.cfg
-      $ git commit -m "Preparing release v<version>"
-
 #. Tag the commit with ``v<version>``, being certain to sign the tag with the
    ``-s`` option::
 
@@ -140,11 +112,9 @@ packages that use the full bugfix/maintenance branch approach.)
 
       $ git checkout v1.2.2
 
-   Don't forget to remove any non-committed files both from the main working tree
-   and ``astropy_helpers`` submodules with::
+   Don't forget to remove any non-committed files both from the main working tree with::
 
       $ git clean -dfx
-      $ cd astropy_helpers; git clean -dfx; cd ..
 
 #. Make sure the source distribution doesn't inherit limited permissions
    following your default umask::
@@ -154,20 +124,7 @@ packages that use the full bugfix/maintenance branch approach.)
 
 #. (Optional) Create the source distribution by doing::
 
-         $ python setup.py build sdist
-
-   .. note::
-
-       In the future, the ``build`` command may run automatically as a
-       prerequisite for ``sdist``.  But for now, make sure to run it
-       whenever running ``sdist`` to ensure that all Cython sources and
-       other generated files are built.
-
-   .. note::
-
-      `Git worktree <https://git-scm.com/docs/git-worktree>`_ does not work
-      well with submodule. Remember to go back to the main source checkout
-      (not in a worktree) before creating ``sdist``.
+     $ python -m pep517.build --source .
 
 #. (Optional) Run the tests in an environment that mocks up a "typical user" scenario.
    This is not strictly necessary because you ran the tests above, but
@@ -236,18 +193,16 @@ packages that use the full bugfix/maintenance branch approach.)
    you didn't leave anything from the previous step::
 
       $ git clean -dfx
-      $ cd astropy_helpers; git clean -dfx; cd ..
 
 #. Upload the source distribution to PyPI; this is preceded by re-running
-   the sdist command, which makes sure the source code is packaged up and ready
+   the source build command, which makes sure the source code is packaged up and ready
    to be uploaded. You also need to GPG sign the release, before using twine to
    upload it to PyPI. (You may need to install `twine`_ if you haven't used it yet)::
 
-      $ python setup.py build sdist
+      $ python -m pep517.build --source .
       $ gpg --detach-sign -a dist/astropy-<version>.tar.gz
       $ twine check dist/*
       $ twine upload dist/astropy-<version>*
-
 
 Congratulations!  You have completed the release! Now there are just a few
 clean-up tasks to finalize the process.
@@ -257,18 +212,11 @@ clean-up tasks to finalize the process.
 Post-Release procedures
 -----------------------
 
-#. Go back to release branch (e.g., ``1.2.x``) and edit the ``version`` in
-   ``setup.cfg`` to be the next version number, but with
-   a ``.dev`` suffix at the end (e.g., ``1.2.3.dev``).  Then add and commit::
-
-      $ git checkout v1.2.x
-      <use your favorite editor on setup.cfg>
-      $ git add setup.cfg
-      $ git commit -m "Back to development: v<next_version>.dev"
-
-#. Also update the ``CHANGES.rst`` file with a new section for the next version.
+#. Go back to release branch (e.g., ``1.2.x``) and update the ``CHANGES.rst``
+   file with a new section for the next version.
    Then add and commit::
 
+      $ git checkout v1.2.x
       <use your favorite editor on CHANGES.rst>
       $ git add CHANGES.rst
       $ git commit -m "Add v<next_version> to the changelog"
@@ -365,15 +313,11 @@ modified.
 
 The primary modifications to the release procedure are:
 
-* When entering the new version number, instead of just removing the
-  ``.dev``, enter "1.2b1" or "1.2rc1".  It is critical that you follow this
+* When entering tagging the release, include a ``b?`` or ``rc??`` suffix after
+  the version number, e.g. "1.2b1" or "1.2rc1".  It is critical that you follow this
   numbering scheme (``x.yb#`` or ``x.y.zrc#``), as it will ensure the release
   is ordered "before" the main release by various automated tools, and also
   tells PyPI that this is a "pre-release."
-* Do *not* do the step of adding ``.dev`` in the "back to development" stage.
-  If an RC goes well, there is no need for a "dev" stage, as the same version
-  will be released with only minor doc updates, and strings like "x.yrcz.dev"
-  confuse some version number parsing tools.
 * Do not do steps in :ref:`post-release-procedure`.
 
 Once a release candidate is available, create a new Wiki page under
@@ -407,20 +351,18 @@ The procedure for this is straightforward:
 
       $ git branch v<version>.x
 
-#. Update the ``version`` in ``setup.cfg`` to reflect the new major version. For
-   example, if you are about to issue a feature freeze for version ``1.2``, you
-   will want to set the new version to ``'1.3.dev'``. Then add and commit that::
-
-      <use your favorite editor on setup.cfg>
-      $ git add setup.cfg
-      $ git commit -m "Next major version: <next_version>"
-
 #. Update the ``CHANGES.rst`` file with a new section at the very top for the
    next major version. Then add and commit those changes::
 
       <use your favorite editor on CHANGES.rst>
       $ git add CHANGES.rst
       $ git commit -m "Add <next_version> to changelog"
+
+#. Tag this commit using the next major version followed by ``.dev``. For example,
+   if you have just branched ``4.0``, create the ``v4.1.dev`` tag on the commit
+   adding the ``4.1`` section to the changelog::
+
+      $ git tag -s "v<next_version>.dev" -m "Back to development: v<next_version>"
 
 #. Also update the "what's new" section of the docs to include a section for the
    next major version.  E.g.::
@@ -450,8 +392,6 @@ The procedure for this is straightforward:
       whatever remote name you use for the `astropy core repository`_.
 
 #. On the github issue tracker, add a new milestone for the next major version.
-
-#. Repeat the above steps for the astropy-helpers, using the same version series.
 
 .. _release-procedure-bug-fix:
 
@@ -684,94 +624,6 @@ be fixed soon to a new release milestone.  If the upcoming bug fix release is
 'v1.2.2', then go ahead and create a 'v1.2.3' milestone and reassign to it any
 issues that you don't expect to be fixed in time for 'v1.2.2'.
 
-
-.. _helpers-release-info:
-
-Coordinating Astropy and astropy-helpers Releases
-=================================================
-
-A bit more initial effort is required for an Astropy release that has a
-corresponding astropy-helpers release.  The main reason for this more complex
-procedure is to allow the Astropy core to be tested against the new helpers
-before anything is released.  Hence the following procedure should be added
-to the beginning of the above procedure when this is required. This procedure
-applies both for regular release *and* release candidates are the same
-(except that version numbers have ``rc#`` at the end).
-
-#. In the `astropy-helpers repository`_, create a new (temporary) branch
-   "tmp-release-v<version>"::
-
-      $ cd /wherever/you/put/astropy/astropy_helpers
-      $ git branch tmp-release-v<version> <maintenance branch name>
-
-#. In that branch, create release commits by updating the changelog and then the
-   version info and as described in the release instructions above.
-
-#. Push the branch you just created to the `astropy-helpers repository`_ on
-   github::
-
-      $ git push upstream tmp-release-v<version>
-
-#. In astropy master (or the relevant maintenance branch for the release you
-   are doing), issue a PR updating the helpers to the commit described in the
-   last step (i.e., the commit at the head of the "tmp-release-v<version>"
-   branch you just created).  The easiest way to do this is::
-
-      $ cd /wherever/you/put/astropy
-      $ cd astropy_helpers
-      $ git fetch upstream  # you probably did this already in the previous step
-      $ git checkout upstream/tmp-release-v<version>
-      $ cd ..
-      $ cp astropy_helpers/ah_bootstrap.py .
-      $ git add astropy_helpers ah_bootstrap.py
-      $ git commit -m "updated helpers to v<version>"
-
-#. Wait for the continuous integration services (e.g., Travis) to run on the PR
-   to ensure the release commit of the helpers works with the to-be-released
-   version of Astropy.
-
-#. If the PR's tests fail, fix whatever the problem is, and then re-do this
-   procedure. You'll need to either delete the previous "tmp-release-v<version>"
-   branch on the github `astropy-helpers repository`_ or use ``git push -f``
-   when you push up the replacement temporary release branch. You can re-use the
-   PR into the `astropy core repository`_ (created in the step just before this
-   one) by updating the ``astropy_helpers`` submodule to point to the new
-   "tmp-release-v<version>" from  *after* the fix - that way you don't need to
-   make another PR for the fixed version.
-
-#. Once the tests all succeed, finish the release of the helpers by doing this
-   in the helpers repo::
-
-      $ git checkout <maintenance branch name>
-      $ git merge --no-ff tmp-release-v<version>
-      $ git tag -s "v<version>" -m "Tagging v<version>"
-      $ git clean -dfx
-      $ umask 0022
-      $ chmod -R a+Xr .
-      $ python setup.py build sdist
-      $ gpg --detach-sign -a dist/astropy-helpers-<version>.tar.gz
-      $ twine check dist/*
-      $ twine upload dist/astropy-helpers-<version>.tar.gz*
-      $ git push upstream v<version>.x
-      $ git push upstream v<version>
-
-
-#. Update the changelog and version number in *master* of the
-   `astropy-helpers repository`_ to reflect the release you just did (detailed
-   instructions are above).
-
-#. Delete the temporary branch from github::
-
-      $ git push upstream :tmp-release-v<version>
-
-#. Merge the PR for the `astropy core repository`_ that updates the helpers, and
-   continue with the release process for the core as described above.
-
-This way the commit of the helpers that is tagged as the release is the same
-commit that the astropy_helpers submodule will be on when the PR to astropy
-testing the release gets merged.
-
-
 .. _key-signing-info:
 
 Creating a GPG Signing Key and a Signed Tag
@@ -901,5 +753,4 @@ that for you.  You can delete this tag by doing::
 .. _cython: http://www.cython.org/
 .. _astropy-procedures repository: https://github.com/astropy/astropy-procedures
 .. _Anaconda: https://conda.io/docs/
-.. _astropy-helpers repository: https://github.com/astropy/astropy-helpers
 .. _twine: https://packaging.python.org/key_projects/#twine

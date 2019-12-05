@@ -280,7 +280,7 @@ If the test *don't* complete successfully, that is itself a bug--please
 To run the tests, navigate back to the directory your copy of astropy is in on
 your computer, then, at the shell prompt, type::
 
-    python setup.py test
+    pytest
 
 This is another good time to get some coffee or tea. The number of test is
 large. When the test are done running you will see a message something like

@@ -13,7 +13,7 @@ Requirements
 
 - `Numpy`_ |minimum_numpy_version| or later
 
-- `pytest`_ 3.1 or later
+- `pytest <https://docs.pytest.org/en/latest/>`_ 3.1 or later
 
 ``astropy`` also depends on other packages for optional features:
 
@@ -78,7 +78,11 @@ Requirements
   of sigma-clipping and other functionality that may require computing
   statistics on arrays with NaN values.
 
-And the following packages can optionally be used when testing:
+However, note that these packages require installation only if those particular
+features are needed. ``astropy`` will import even if these dependencies are not
+installed.
+
+The following packages can optionally be used when testing:
 
 - `pytest-astropy <https://github.com/astropy/pytest-astropy>`_: See
   :ref:`sourcebuildtest`
@@ -100,9 +104,8 @@ And the following packages can optionally be used when testing:
 - `skyfield <https://rhodesmill.org/skyfield/>`_: Used for testing Solar System
   coordinates.
 
-However, note that these packages require installation only if those particular
-features are needed. ``astropy`` will import even if these dependencies are not
-installed.
+- `tox <https://tox.readthedocs.io/en/latest/>`_: Used to automate testing
+  and documentation builds.
 
 Installing ``astropy``
 ======================
@@ -129,7 +132,11 @@ available optional dependencies, you can do::
 
     pip install astropy[all]
 
-Note that you will need a C compiler (e.g. ``gcc`` or ``clang``) to be installed
+In most cases, this will install a pre-compiled version (called a *wheel*) of
+astropy, but if you are using a very recent version of Python, if a new version
+of astropy has just been released, or if you are building astropy for a platform
+that is not common, astropy will be installed from a source file. Note that in
+this case you will need a C compiler (e.g. ``gcc`` or ``clang``) to be installed
 (see `Building from source`_ below) for the installation to succeed.
 
 If you get a ``PermissionError`` this means that you do not have the required
@@ -188,37 +195,28 @@ Building from Source
 Prerequisites
 -------------
 
-You will need a compiler suite and the development headers for Python and
-NumPy in order to build ``astropy``.
-
-If you are building the latest developer version rather than using a stable
-release, you will also need `Cython <https://cython.org/>`_ (v0.29.13 or later) and
-`jinja2 <https://jinja.palletsprojects.com/en/master/>`_ (v2.7 or later) installed. The
-released packages have the necessary C files packaged with them, and hence do
-not require Cython.
+You will need a compiler suite and the development headers for Python in order
+to build ``astropy``. You do not need to install any other specific build
+dependencies (such as `Cython <https://cython.org/>`_ or
+`jinja2 <https://jinja.palletsprojects.com/en/master/>`_) since these are
+declared in the ``pyproject.toml`` file and will be automatically installed into
+a temporary build environment by pip.
 
 Prerequisites for Linux
 -----------------------
 
 On Linux, using the package manager for your distribution will usually be the
 easiest route to making sure you have the prerequisites to build ``astropy``. In
-order to build from source, you will need the Python and Numpy development
-package for your Linux distribution, as well as a number of helper packages.
+order to build from source, you will need the Python development
+package for your Linux distribution, as well as pip.
 
 For Debian/Ubuntu::
 
-    sudo apt-get install python3-dev python3-numpy-dev python3-setuptools cython3 python3-jinja2 python3-pytest-astropy
+    sudo apt-get install python3-dev python3-pip
 
 For Fedora/RHEL::
 
-    sudo yum install python3-devel python3-numpy python3-setuptools python3-Cython python3-jinja2 python3-pytest-astropy
-
-.. note:: Building the developer version of ``astropy`` may require
-          newer versions of the above packages than are available in
-          your distribution's repository.  If so, you could either try
-          a more up to date version (such as Debian ``testing``), or
-          install more up-to-date versions using ``pip`` or ``conda``
-          in a virtual environment.
+    sudo yum install python3-devel python3-pip
 
 Prerequisites for Mac OS X
 --------------------------
@@ -251,22 +249,14 @@ Development Repository
 The latest development version of ``astropy`` can be cloned from GitHub
 using this command::
 
-   git clone --recursive git://github.com/astropy/astropy.git
+   git clone git://github.com/astropy/astropy.git
 
 If you wish to participate in the development of ``astropy``, see
-:ref:`developer-docs`. This document covers only the basics necessary to
+:ref:`developer-docs`. The present document covers only the basics necessary to
 installing ``astropy``.
 
 Building and Installing
 -----------------------
-
-``astropy`` uses the Python built-in `distutils framework
-<https://docs.python.org/install/index.html>`_ for building and
-installing, and requires the `setuptools`_ package.
-
-If NumPy is not already installed in your Python environment, the ``astropy``
-setup process will try to download and install it before continuing to install
-``astropy``.
 
 To build and install ``astropy`` (from the root of the source tree)::
 
@@ -278,8 +268,8 @@ use::
 
     pip install -e .
 
-which installs ``astropy`` in develop/editable mode, which means that changes in
-the code are immediately reflected in the installed version.
+which installs ``astropy`` in develop/editable mode -- this then means that
+changes in the code are immediately reflected in the installed version.
 
 Troubleshooting
 ---------------
@@ -303,14 +293,13 @@ one of those libraries, you can set environment variables with the
 pattern ``ASTROPY_USE_SYSTEM_???`` to ``1`` when building/installing
 the package.
 
-For example, to build ``astropy`` using the system `libexpat
-<http://www.libexpat.org/>`_, use::
+For example, to build ``astropy`` using the system expat, use::
 
-    ASTROPY_USE_SYSTEM_EXPAT=1 python setup.py build
+    ASTROPY_USE_SYSTEM_EXPAT=1 pip install -e .
 
 To build using all of the system libraries, use::
 
-    ASTROPY_USE_SYSTEM_ALL=1 python setup.py build
+    ASTROPY_USE_SYSTEM_ALL=1 pip install -e .
 
 The C libraries currently bundled with ``astropy`` include:
 
@@ -379,10 +368,20 @@ Dependencies
 ^^^^^^^^^^^^
 
 Building the documentation requires the ``astropy`` source code and some
-additional packages, including those in :ref:`astropy-main-req`. The easiest
-way to install the extra dependencies for documentation is to install
-the `sphinx-astropy <https://github.com/astropy/sphinx-astropy>`_ package,
-either with pip::
+additional packages. The easiest way to build the documentation is to use `tox
+<https://tox.readthedocs.io/en/latest/>`_ as detailed in
+:ref:`astropy-doc-building`. If you are happy to do this, you can skip the rest
+of this section.
+
+On the other hand, if you wish to call Sphinx manually to build the
+documentation, you will need to make sure that a number of dependencies are
+installed. The easiest way to install these is to specify ``[docs]`` when
+installing ``astropy`` with pip::
+
+    pip install -e .[docs]
+
+You can alternatively install the `sphinx-astropy
+<https://github.com/astropy/sphinx-astropy>`_ package, either with pip::
 
     pip install sphinx-astropy
 
@@ -394,7 +393,7 @@ In addition to providing configuration common to packages in the Astropy
 ecosystem, this package also serves as a way to automatically get the main
 dependencies, including:
 
-* `Sphinx <http://www.sphinx-doc.org/>`_ - the main package we use to build
+* `Sphinx <http://www.sphinx-doc.org>`_ - the main package we use to build
   the documentation
 * `astropy-sphinx-theme <https://github.com/astropy/astropy-sphinx-theme>`_ -
   the default 'bootstrap' theme used by ``astropy`` and a number of affiliated
@@ -418,34 +417,41 @@ a Python package.
 Building
 ^^^^^^^^
 
-There are two ways to build the Astropy documentation. The first way is to
-execute the command (from the ``astropy`` source directory)::
+There are two ways to build the Astropy documentation. The easiest way is to
+execute the following tox command (from the ``astropy`` source directory)::
 
-    python setup.py build_docs
+    tox -e docs
 
-The documentation will be built in the ``docs/_build/html`` directory, and can
-be read by pointing a web browser to ``docs/_build/html/index.html``.
+If you do this, you do not need to install any of the documentation dependencies
+as this will be done automatically. The documentation will be built in the
+``docs/_build/html`` directory, and can be read by pointing a web browser to
+``docs/_build/html/index.html``.
 
-In the second way, LaTeX documentation can be generated by using the command::
-
-    python setup.py build_docs -b latex
-
-The LaTeX file ``Astropy.tex`` will be created in the ``docs/_build/latex``
-directory, and can be compiled using ``pdflatex``.
-
-The above method builds the API documentation from the source code.
 Alternatively, you can do::
 
     cd docs
     make html
 
-And the documentation will be generated in the same location, but using the
-*installed* version of ``astropy``.
+And the documentation will be generated in the same location. Note that
+this uses the installed version of astropy, so if you want to make sure
+the current repository version is used, you will need to install it with
+e.g.::
+
+    pip install -e .[docs]
+
+before changing to the ``docs`` directory.
+
+In the second way, LaTeX documentation can be generated by using the command::
+
+    make latex
+
+The LaTeX file ``Astropy.tex`` will be created in the ``docs/_build/latex``
+directory, and can be compiled using ``pdflatex``.
 
 Reporting Issues/Requesting Features
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-As mentioned above, building the documentation depends on a number of sphinx
+As mentioned above, building the documentation depends on a number of Sphinx
 extensions and other packages. Since it is not always possible to know which
 package is causing issues or would need to have a new feature implemented, you
 can open an issue in the `core astropy package issue
@@ -470,20 +476,12 @@ can also open issues in the repositories for some of the dependencies:
 Testing a Source Code Build of ``astropy``
 ------------------------------------------
 
-Before running tests, it is necessary to make sure that Astropy's test
-dependencies are installed. This can be done with the following command::
+The easiest way to run the tests in a source checkout of ``astropy``
+is to use `tox <https://tox.readthedocs.io/en/latest/>`_::
 
-    pip install pytest-astropy
+    tox -e test-all
 
-More information on what the ``pytest-astropy`` package provides can be found
-in :ref:`testing-dependencies`.
-
-The most convenient way to test that your Astropy built correctly
-(without installing ``astropy``) is to run this from the root of the source tree::
-
-    python setup.py test
-
-There are also alternative methods of :ref:`running-tests`. Note that you will
-need `pytest <http://pytest.org>`_ to be installed for this to work.
+There are also alternative methods of :ref:`running-tests` if you
+would like more control over the testing process.
 
 .. include:: development/workflow/known_projects.inc
