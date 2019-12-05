@@ -4,7 +4,7 @@
 This module provides utility functions for the models package
 """
 
-from collections import deque
+from collections import deque, UserDict
 from collections.abc import MutableMapping
 from inspect import signature
 
@@ -744,3 +744,23 @@ def _to_orig_unit(value, raw_unit=None, orig_unit=None):
         return (value * raw_unit).to(orig_unit)
     else:
         return np.rad2deg(value)
+
+
+class _ConstraintsDict(UserDict):
+    """
+    Wrapper around UserDict to allow updating the constraints
+    on a Parameter when the dictionary is updated.
+    """
+    def __init__(self, model, constraint_type):
+        self._model = model
+        self.constraint_type = constraint_type
+        c = {}
+        for name in model.param_names:
+            param = getattr(model, name)
+            c[name] = getattr(param, constraint_type)
+        super().__init__(c)
+
+    def __setitem__(self, key, val):
+        super().__setitem__(key, val)
+        param = getattr(self._model, key)
+        setattr(param, self.constraint_type, val)
