@@ -38,7 +38,7 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import get_parameters
 from .utils import (combine_labels, make_binary_operator_eval,
                     AliasDict, get_inputs_and_params,
-                    _BoundingBox, _combine_equivalency_dict)
+                    _BoundingBox, _combine_equivalency_dict, _ConstraintsDict)
 from astropy.nddata.utils import add_array, extract_array
 from .parameters import (Parameter, InputParameterError,
                          param_repr_oneline, _tofloat)
@@ -1062,38 +1062,38 @@ class Model(metaclass=_ModelMeta):
     @property
     def fixed(self):
         """
-        A `dict` mapping parameter names to their fixed constraint.
+        A ``dict`` mapping parameter names to their fixed constraint.
         """
 
-        return self._constraints['fixed']
-
-    @property
-    def tied(self):
-        """
-        A `dict` mapping parameter names to their tied constraint.
-        """
-
-        return self._constraints['tied']
+        return _ConstraintsDict(self, 'fixed')
 
     @property
     def bounds(self):
         """
-        A `dict` mapping parameter names to their upper and lower bounds as
+        A ``dict`` mapping parameter names to their upper and lower bounds as
         ``(min, max)`` tuples or ``[min, max]`` lists.
         """
-        return self._constraints['bounds']
+        return _ConstraintsDict(self, 'bounds')
+
+    @property
+    def tied(self):
+        """
+        A ``dict`` mapping parameter names to their tied constraint.
+        """
+
+        return _ConstraintsDict(self, 'tied')
 
     @property
     def eqcons(self):
         """List of parameter equality constraints."""
 
-        return self._constraints['eqcons']
+        return self._mconstraints['eqcons']
 
     @property
     def ineqcons(self):
         """List of parameter inequality constraints."""
 
-        return self._constraints['ineqcons']
+        return self._mconstraints['ineqcons']
 
     @property
     def inverse(self):
@@ -1788,58 +1788,6 @@ class Model(metaclass=_ModelMeta):
         """
         return 1
 
-    # *** Internal methods ***
-    @sharedmethod
-    def _from_existing(self, existing, param_names):
-        """
-        Creates a new instance of ``cls`` that shares its underlying parameter
-        values with an existing model instance given by ``existing``.
-
-        This is used primarily by compound models to return a view of an
-        individual component of a compound model.  ``param_names`` should be
-        the names of the parameters in the *existing* model to use as the
-        parameters in this new model.  Its length should equal the number of
-        parameters this model takes, so that it can map parameters on the
-        existing model to parameters on this model one-to-one.
-        """
-
-        # Basically this is an alternative __init__
-        if isinstance(self, type):
-            # self is a class, not an instance
-            needs_initialization = True
-            dummy_args = (0,) * len(param_names)
-
-            self = self.__new__(self, *dummy_args)
-            self.__init__()
-        if isinstance(self, CompoundModel):
-            # Need to set parameter attributes
-            self._parameters_ = [getattr(existing, param_name)
-                                 for param_name in param_names]
-            for param_name in param_names:
-                self.__dict__[param_name] = getattr(existing, param_name)
-        else:
-            needs_initialization = False
-            self = self.copy()
-
-        aliases = dict(zip(self.param_names, param_names))
-        # This is basically an alternative _initialize_constraints
-        constraints = {}
-        for cons_type in self.parameter_constraints:
-            orig = existing._constraints[cons_type]
-            constraints[cons_type] = AliasDict(orig, aliases)
-
-        self._constraints = constraints
-
-        self._n_models = existing._n_models
-        self._model_set_axis = existing._model_set_axis
-
-        for param_a, param_b in aliases.items():
-            setattr(self, param_a, getattr(existing, param_b))
-        if needs_initialization:
-            self.__init__(*dummy_args)
-
-        return self
-
     def _initialize_constraints(self, kwargs):
         """
         Pop parameter constraint values off the keyword arguments passed to
@@ -1856,27 +1804,6 @@ class Model(metaclass=_ModelMeta):
         for constraint in self.model_constraints:
             values = kwargs.pop(constraint, [])
             self._mconstraints[constraint] = values
-
-    @property
-    def _constraints(self):
-        """
-        Extract parameter constraints into dictionary of dictionaries
-        """
-        constraints = {}
-        for constraint in self.parameter_constraints:
-            tdict = {}
-            for param_name in self.param_names:
-                param = getattr(self, param_name)
-                tdict[param_name] = getattr(param, constraint)
-            constraints[constraint] = tdict
-        for constraint in self.model_constraints:
-            constraints[constraint] = self._mconstraints[constraint]
-
-        return constraints
-
-    @_constraints.setter
-    def _constraints(self, constraints):
-        self._initialize_constraints(constraints)
 
     def _initialize_parameters(self, args, kwargs):
         """
@@ -3084,7 +3011,6 @@ class CompoundModel(Model):
         self._param_map =  param_map
         self._param_map_inverse = dict((v, k) for k, v in param_map.items())
         self._initialize_slices()
-        self._initialize_constraints()
         self._param_names = tuple(self._param_names)
 
     def _initialize_slices(self):
@@ -3245,26 +3171,6 @@ class CompoundModel(Model):
                 else:
                     outputs_map[out] = self.left, out
         return outputs_map
-
-    @property
-    def _constraints(self):
-        return self._constraints_compound
-
-    @_constraints.setter
-    def _constraints(self, value):
-        self._constraints_compound = value
-
-    def _initialize_constraints(self):
-        self._constraints = {}
-        for constraint in Parameter.constraints:
-            self._constraints[constraint] = {}
-            # Update with default parameter constraints
-            for param_name in self.param_names:
-                param = getattr(self, param_name)
-                # Parameters don't have all constraint types
-                value = getattr(param, constraint)
-                if value is not None:
-                    self._constraints[constraint][param_name] = value
 
     def _parameters_to_array(self):
         # Now set the parameter values (this will also fill
@@ -3440,31 +3346,6 @@ class CompoundModel(Model):
         """
 
         return self._user_bounding_box is not None
-
-    @property
-    def fixed(self):
-        """
-        A `dict` mapping parameter names to their fixed constraint.
-        """
-
-        return self._constraints['fixed']
-
-    @property
-    def tied(self):
-        """
-        A `dict` mapping parameter names to their tied constraint.
-        """
-
-        return self._constraints['tied']
-
-    @property
-    def bounds(self):
-        """
-        A `dict` mapping parameter names to their upper and lower bounds as
-        ``(min, max)`` tuples.
-        """
-
-        return self._constraints['bounds']
 
     def render(self, out=None, coords=None):
         """
