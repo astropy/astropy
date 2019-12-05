@@ -35,34 +35,37 @@ by ``CHANGES.md`` in the instructions.
    ``unreleased``, to the current date in ``yyyy-mm-dd`` format.
 
 #. Update the version number in ``setup.cfg`` to the version you're about to
-   release, without the ``.dev`` suffix (e.g. ``0.1``).
+   release, without the ``.dev`` suffix (e.g. ``0.1``). If your package uses
+   setuptools_scm to manage version numbers, you can skip this step.
 
 #. Run ``git clean -fxd`` to remove any untracked files (WARNING: this will
    permanently remove any files that have not been previously committed, so
    make sure that you don't need to keep any of these files).
 
-#. Run::
+#. At this point, the command to run to build the tar file will depend on
+   whether your package has a ``pyproject.toml`` file or not. If it does
+   not, then::
 
         python setup.py build sdist --format=gztar
 
-   and make sure that generated file is good to
-   go by going inside ``dist``, expanding the tar file, going inside the
-   expanded directory, and running the tests with::
+   If it does, then first make sure the `pep517 <https://pypi.org/project/pep517/>`_
+   package is installed and up-to-date::
 
-        python setup.py test
+        pip install pep517 --upgrade
+
+   then create the source distribution with::
+
+        python -m pep517.build --source .
+
+   In both cases, make sure that generated file is good to go by going inside
+   ``dist``, expanding the tar file, going inside the expanded directory, and
+   running the tests with::
+
+        pip install -e .[test]
+        pytest
 
    You may need to add the ``--remote-data`` flag or any other flags that you
    normally add when fully testing your package.
-
-   .. note::
-
-       Running ``python setup.py build sdist`` runs two setup commands in
-       succession.  First it runs ``build``, then immediately runs ``sdist``
-       to create the source distribution.  The reason to do this is that
-       there are several generated source files that must be included in the
-       source distribution for it to be valid.  Running ``build`` first
-       ensures that those files will be generated and packaged in the source
-       distribution.
 
 #. Go back to the root of the directory and remove the generated files with::
 

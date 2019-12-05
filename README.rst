@@ -48,16 +48,6 @@ License
 Astropy is licensed under a 3-clause BSD style license - see the
 `LICENSE.rst <LICENSE.rst>`_ file.
 
-Notes for Package Managers
---------------------------
-
-For system packagers: Please install `astropy` with the command::
-
-    $ python setup.py --offline install
-
-This will prevent the astropy_helpers bootstrap script from attempting to
-reach out to PyPI.
-
 .. |Travis Status| image:: https://travis-ci.org/astropy/astropy.svg
     :target: https://travis-ci.org/astropy/astropy
     :alt: Astropy's Travis CI Status

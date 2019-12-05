@@ -9,7 +9,6 @@
 #
 # All configuration values have a default. Some values are defined in
 # the global Astropy configuration which is loaded here before anything else.
-# See astropy.sphinx.conf for which values are set there.
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -24,6 +23,7 @@
 # version in the build directory (if "python setup.py build_docs" is used).
 # Thus, any C-extensions that are needed to build the documentation will *not*
 # be accessible, and the documentation will not build correctly.
+# See sphinx_astropy.conf for which values are set there.
 
 from datetime import datetime
 import os
@@ -59,8 +59,8 @@ needs_sphinx = '1.7'
 # major.minor, call `check_sphinx_version("x.y.z")` here.
 check_sphinx_version("1.2.1")
 
-# The intersphinx_mapping in astropy_helpers.sphinx.conf refers to astropy for
-# the benefit of affiliated packages who want to refer to objects in the
+# The intersphinx_mapping in sphinx_astropy.sphinx refers to astropy for
+# the benefit of other packages who want to refer to objects in the
 # astropy core.  However, we don't want to cyclically reference astropy in its
 # own build so we remove it here.
 del intersphinx_mapping['astropy']
@@ -83,7 +83,6 @@ exclude_patterns.append('**/*.inc.rst')  # .inc.rst mean *include* files, don't 
 if 'templates_path' not in locals():  # in case parent conf.py defines it
     templates_path = []
 templates_path.append('_templates')
-
 
 # This is added to the end of RST files - a good place to put substitutions to
 # be used globally.

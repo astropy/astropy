@@ -5,33 +5,23 @@
 Coding Guidelines
 *****************
 
-This section describes requirements and guidelines that should be followed
-both for the core package and for affiliated packages.
-
-.. note:: Affiliated packages will only be considered for integration as a
-          module in the core package once these guidelines have been
-          followed.
+This section describes requirements and guidelines that should be followed both
+by the core package and by coordinated packages, and these are also recommended
+for affiliated packages.
 
 Interface and Dependencies
 ==========================
 
-* All code must be compatible with Python 3.5 and later.
-  Usage of ``six``, ``__future__``, and ``2to3`` is not longer acceptable.
+* All code must be compatible with Python 3.6 and later.
+  Usage of ``six``, ``__future__``, and ``2to3`` is no longer acceptable.
 
 * The new Python 3 formatting style should be used (i.e.
   ``"{0:s}".format("spam")`` instead of ``"%s" % "spam"``).
 
-* The core package and affiliated packages should be importable with no
+* The core package should be importable with no
   dependencies other than components already in the Astropy core, the
   `Python Standard Library <https://docs.python.org/3/library/index.html>`_,
   and NumPy_ |minimum_numpy_version| or later.
-
-* The package should be importable from the source tree at build time. This
-  means that, for example, if the package relies on C extensions that have
-  yet to be built, the Python code is still importable, even if none of its
-  functionality will work. One way to ensure this is to import the functions
-  in the C extensions only within the functions/methods that require them
-  (see next bullet point).
 
 * Additional dependencies - such as SciPy_, Matplotlib_, or other
   third-party packages - are allowed for sub-modules or in function
@@ -39,7 +29,8 @@ Interface and Dependencies
   should only affect the relevant component.  In functions and
   methods, the optional dependency should use a normal ``import``
   statement, which will raise an ``ImportError`` if the dependency is
-  not available.
+  not available. In the astropy core package, such optional dependencies should
+  be recorded in the ``setup.cfg`` file in the ``extras_require`` entry.
 
   At the module level, one can subclass a class from an optional dependency
   like so::
@@ -47,22 +38,18 @@ Interface and Dependencies
       try:
           from opdep import Superclass
       except ImportError:
-          warn(AstropyWarning('opdep is not present, so <functionality below> will not work.'))
-          class SuperClass(object): pass
+          warn(AstropyWarning('opdep is not present, so <functionality>'
+                              'will not work.'))
+          class Superclass(object): pass
 
-      class Whatever(Superclass):
+      class Customclass(Superclass):
           ...
 
-  In the astropy core package, such optional dependencies should be recorded in
-  the ``setup.py`` file in the ``extras_require`` entry.
-
 * General utilities necessary for but not specific to the package or
-  sub-package should be placed in the ``packagename.utils`` module. These
-  utilities will be moved to the :mod:`astropy.utils` module when the
-  package is integrated into the core package. If a utility is already
-  present in :mod:`astropy.utils`, the package should always use that
-  utility instead of re-implementing it in ``packagename.utils`` module.
-
+  sub-package should be placed in a ``packagename.utils`` module (e.g.
+  ``astropy.utils`` for the core package). If a utility is already present in
+  :mod:`astropy.utils`, packages should always use that utility instead of
+  re-implementing it in ``packagename.utils`` module.
 
 Documentation and Testing
 =========================
@@ -86,13 +73,14 @@ Data and Configuration
 
 * Packages can include data in a directory named ``data`` inside a subpackage
   source directory as long as it is less than about 100 kB. These data should
-  always be accessed via the :func:`astropy.utils.data.get_pkg_data_fileobj` or
-  :func:`astropy.utils.data.get_pkg_data_filename` functions. If the data
+  always be accessed via the :func:`~astropy.utils.data.get_pkg_data_fileobj` or
+  :func:`~astropy.utils.data.get_pkg_data_filename` functions. If the data
   exceeds this size, it should be hosted outside the source code repository,
-  either at a third-party location on the internet or the astropy data server.
+  either at a third-party location on the internet or the `astropy data server
+  <https://github.com/astropy/astropy-data>`_.
   In either case, it should always be downloaded using the
-  :func:`astropy.utils.data.get_pkg_data_fileobj` or
-  :func:`astropy.utils.data.get_pkg_data_filename` functions. If a specific
+  :func:`~astropy.utils.data.get_pkg_data_fileobj` or
+  :func:`~astropy.utils.data.get_pkg_data_filename` functions. If a specific
   version of a data file is needed, the hash mechanism described in
   :mod:`astropy.utils.data` should be used.
 
@@ -134,7 +122,7 @@ be imported using::
 Coding Style/Conventions
 ========================
 
-* The code will follow the standard `PEP8 Style Guide for Python Code
+* The code should follow the standard `PEP8 Style Guide for Python Code
   <https://www.python.org/dev/peps/pep-0008/>`_. In particular, this includes
   using only 4 spaces for indentation, and never tabs.
 
@@ -171,23 +159,31 @@ Coding Style/Conventions
 
       # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-* The ``import numpy as np``, ``import matplotlib as mpl``, and ``import
-  matplotlib.pyplot as plt`` naming conventions should be used wherever
-  relevant. ``from packagename import *`` should never be used, except as a
-  tool to flatten the namespace of a module. An example of the allowed usage
-  is given in :ref:`import-star-example`.
+* The following naming conventions::
+
+    import numpy as np
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+
+  should be used wherever relevant. On the other hand::
+
+    from packagename import *
+
+  should never be used, except as a tool to flatten the namespace of a module.
+  An example of the allowed usage is given in the :ref:`import-star-example`
+  example.
 
 * Classes should either use direct variable access, or Python’s property
   mechanism for setting object instance variables. ``get_value``/``set_value``
   style methods should be used only when getting and setting the values
-  requires a computationally-expensive operation. :ref:`prop-get-set-example`
-  below illustrates this guideline.
+  requires a computationally-expensive operation. The
+  :ref:`prop-get-set-example` example below illustrates this guideline.
 
 * Classes should use the builtin :func:`super` function when making calls to
   methods in their super-class(es) unless there are specific reasons not to.
   :func:`super` should be used consistently in all subclasses since it does not
-  work otherwise.  :ref:`super-vs-direct-example` illustrates why this is
-  important.
+  work otherwise. The :ref:`super-vs-direct-example` example below illustrates
+  why this is important.
 
 * Multiple inheritance should be avoided in general without good reason.
   Multiple inheritance is complicated to implement well, which is why many
@@ -239,7 +235,7 @@ below, the phrase "string instance" is used to refer to `str`, while
   may contain non-ASCII characters when applicable.
 
 - ``__format__``: Return a "string instance".  If
-  ``astropy.UNICODE_OUTPUT`` is `False`, it must contain only 7-bit
+  ``astropy.conf.unicode_output`` is `False`, it must contain only 7-bit
   characters.  If ``astropy.conf.unicode_output`` is `True`, it may contain
   non-ASCII characters when applicable.
 
@@ -295,17 +291,18 @@ Including C Code
   provided the needed functionality. When C extensions are used, the Python
   interface must meet the aforementioned Python interface guidelines.
 
-* The use of Cython_ is strongly recommended for C extensions, as per the
-  example in the template package. Cython_ extensions should store ``.pyx``
-  files in the source code repository, but they should be compiled to ``.c``
-  files that are updated in the repository when important changes are made to
-  the ``.pyx`` file.
+* The use of Cython_ is strongly recommended for C extensions. Cython_
+  extensions should store ``.pyx`` files in the source code repository,
+  but not the generated ``.c`` files.
 
 * If a C extension has a dependency on an external C library, the source code
   for the library should be bundled with the Astropy core, provided the
   license for the C library is compatible with the Astropy license.
   Additionally, the package must be compatible with using a system-installed
-  library in place of the library included in Astropy.
+  library in place of the library included in Astropy, and a user installing
+  the package should be able to opt-in to using the system version using
+  a ``ASTROPY_USE_SYSTEM_???`` environment variable, where ``???`` is the name
+  of the library.
 
 * In cases where C extensions are needed but Cython_ cannot be used, the `PEP 7
   Style Guide for C Code <https://www.python.org/dev/peps/pep-0007/>`_ is
@@ -324,25 +321,12 @@ Requirements Specific to Affiliated Packages
   package) will not be accepted - the package should only include the
   required functionality and relevant extensions.
 
-* Affiliated packages are required to follow the layout and documentation form
-  of the template package included in the core package source distribution.
-
 * Affiliated packages must be registered on the `Python Package Index
   <https://pypi.org/>`_, with proper metadata for downloading and
   installing the source package.
 
 * The ``astropy`` root package name should not be used by affiliated
-  packages - it is reserved for use by the core package. Recommended naming
-  conventions for an affiliated package are either simply ``packagename``
-  or ``awastropy.packagename`` ("affiliated with Astropy").
-
-* If the affiliated package requires compatibility with Python 2, it should
-  pin to ``astropy<3`` until it is ready to drop Python 2 support.
-  On the other hand, package that only supports Python 3 may still use
-  ``astropy<3``. New affiliated packages created from Astropy's package template
-  should check with template maintainers regarding Python versions supported
-  if unsure.
-
+  packages - it is reserved for use by the core package.
 
 Examples
 ========
