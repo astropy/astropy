@@ -35,7 +35,7 @@ kpc = IAU2012('kpc', "Kiloparsec",
               1000. * au.uncertainty / np.tan(np.radians(1. / 3600.)),
               "Derived from au", system='si')
 
-# Luminosity
+# Luminosity not defined till 2015 (https://arxiv.org/abs/1510.06262)
 L_bol0 = IAU2012('L_bol0', "Luminosity for absolute bolometric magnitude 0",
                  3.0128e28, "W", 0.0, "IAU 2015 Resolution B 2", system='si')
 

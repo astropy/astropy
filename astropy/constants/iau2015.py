@@ -20,7 +20,7 @@ class IAU2015(Constant):
 
 # DISTANCE
 
-# Astronomical Unit
+# Astronomical Unit (did not change from 2012)
 au = IAU2015('au', "Astronomical Unit", 1.49597870700e11, 'm', 0.0,
              "IAU 2012 Resolution B2", system='si')
 
