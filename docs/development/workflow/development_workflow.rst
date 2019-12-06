@@ -312,8 +312,9 @@ In more detail
 
    For more details on running tests, please see :ref:`testing-guidelines`.
 
-#. Make sure your code includes appropriate docstrings, described at
-   :ref:`doc-rules`. If appropriate, as when you are adding a new feature,
+#. Make sure your code includes appropriate docstrings, in the
+   [numpydoc format](https://numpydoc.readthedocs.io/en/latest/format.html).
+   If appropriate, as when you are adding a new feature,
    you should update the appropriate documentation in the ``docs`` directory;
    a detailed description is in :ref:`documentation-guidelines`.
 
