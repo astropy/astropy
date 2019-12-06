@@ -155,7 +155,7 @@ package.
 
 **Documentation**
   * Are the [documentation guidelines](http://docs.astropy.org/en/latest/development/docguide.html) followed?
-  * Is there a [docstring](http://docs.astropy.org/en/latest/development/docrules.html) in the function describing:
+  * Is there a docstring in [numpydoc format](https://numpydoc.readthedocs.io/en/latest/format.html) in the function describing:
     * What the code does?
     * The format of the inputs of the function?
     * The format of the outputs of the function?
