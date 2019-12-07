@@ -293,6 +293,31 @@ def get_extensions():
     cfg['sources'] = [str(x) for x in cfg['sources']]
     cfg = dict((str(key), val) for key, val in cfg.items())
 
+    # Copy over header files from WCSLIB into the installed version of Astropy
+    # so that other Python packages can write extensions that link to it. We
+    # do the copying here then include the data in [options.package_data] in
+    # the setup.cfg file
+
+    wcslib_headers = [
+        'cel.h',
+        'lin.h',
+        'prj.h',
+        'spc.h',
+        'spx.h',
+        'tab.h',
+        'wcs.h',
+        'wcserr.h',
+        'wcsmath.h',
+        'wcsprintf.h',
+    ]
+
+    if not setup_helpers.use_system_library('wcslib'):
+        for header in wcslib_headers:
+            source = join('cextern', 'wcslib', 'C', header)
+            dest = join('astropy', 'wcs', 'include', 'wcslib', header)
+            if newer_group([source], dest, 'newer'):
+                shutil.copy(source, dest)
+
     return [Extension('astropy.wcs._wcs', **cfg)]
 
 
