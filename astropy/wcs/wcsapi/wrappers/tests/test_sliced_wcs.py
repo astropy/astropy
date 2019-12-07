@@ -10,7 +10,7 @@ from astropy.io.fits import Header
 from astropy.io.fits.verify import VerifyWarning
 from astropy.coordinates import SkyCoord, Galactic
 from astropy.units import Quantity
-from astropy.wcs.wcsapi.sliced_low_level_wcs import SlicedLowLevelWCS, sanitize_slices, combine_slices
+from astropy.wcs.wcsapi.wrappers.sliced_wcs import SlicedLowLevelWCS, sanitize_slices, combine_slices
 import astropy.units as u
 
 # To test the slicing we start off from standard FITS WCS
