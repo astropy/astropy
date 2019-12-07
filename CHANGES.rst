@@ -335,7 +335,9 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
-
+- The bundled ERFA was updated to version 1.7.0.  Like 1.6.0, this is based on
+  SOFA 20190722, but includes additional routines to allow updates to the
+  leap-second table. [#9734]
 
 
 4.0 (unreleased)
