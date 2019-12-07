@@ -15,7 +15,7 @@ from astropy.constants import c
 
 from .low_level_api import BaseLowLevelWCS
 from .high_level_api import HighLevelWCSMixin
-from .sliced_low_level_wcs import SlicedLowLevelWCS
+from .wrappers import SlicedLowLevelWCS
 
 __all__ = ['custom_ctype_to_ucd_mapping', 'SlicedFITSWCS', 'FITSWCSAPIMixin']
 
@@ -200,21 +200,17 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
     @property
     def array_shape(self):
-        if self._naxis == [0, 0]:
+        if self.pixel_shape is None:
             return None
         else:
-            return tuple(self._naxis[::-1])
+            return self.pixel_shape[::-1]
 
     @array_shape.setter
     def array_shape(self, value):
         if value is None:
-            self._naxis = [0, 0]
+            self.pixel_shape = None
         else:
-            if len(value) != self.naxis:
-                raise ValueError("The number of data axes, "
-                                 "{}, does not equal the "
-                                 "shape {}.".format(self.naxis, len(value)))
-            self._naxis = list(value)[::-1]
+            self.pixel_shape = value[::-1]
 
     @property
     def pixel_shape(self):
@@ -317,18 +313,9 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         world = self.all_pix2world(*pixel_arrays, 0)
         return world[0] if self.world_n_dim == 1 else tuple(world)
 
-    def array_index_to_world_values(self, *indices):
-        world = self.all_pix2world(*indices[::-1], 0)
-        return world[0] if self.world_n_dim == 1 else tuple(world)
-
     def world_to_pixel_values(self, *world_arrays):
         pixel = self.all_world2pix(*world_arrays, 0)
         return pixel[0] if self.pixel_n_dim == 1 else tuple(pixel)
-
-    def world_to_array_index_values(self, *world_arrays):
-        pixel_arrays = self.all_world2pix(*world_arrays, 0)[::-1]
-        array_indices = tuple(np.asarray(np.floor(pixel + 0.5), dtype=np.int_) for pixel in pixel_arrays)
-        return array_indices[0] if self.pixel_n_dim == 1 else array_indices
 
     @property
     def world_axis_object_components(self):

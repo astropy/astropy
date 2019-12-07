@@ -381,15 +381,9 @@ class LowLevelWCS5D(BaseLowLevelWCS):
         pixel_arrays = (list(pixel_arrays) * 3)[:-1]  # make list have 5 elements
         return [np.asarray(pix) * scale for pix, scale in zip(pixel_arrays, [10, 0.2, 0.4, 0.39, 2])]
 
-    def array_index_to_world_values(self, *index_arrays):
-        return self.pixel_to_world_values(index_arrays[::-1])[::-1]
-
     def world_to_pixel_values(self, *world_arrays):
         world_arrays = world_arrays[:2]  # make list have 2 elements
         return [np.asarray(world) / scale for world, scale in zip(world_arrays, [10, 0.2])]
-
-    def world_to_array_index_values(self, *world_arrays):
-        return np.round(self.world_to_array_index_values(world_arrays[::-1])[::-1]).astype(int)
 
     @property
     def world_axis_object_components(self):
