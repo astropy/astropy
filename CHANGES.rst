@@ -1,5 +1,5 @@
-4.0 (unreleased)
-================
+4.0rc2 (2019-12-07)
+===================
 
 New Features
 ------------
@@ -704,9 +704,6 @@ astropy.nddata
 - ``overlap_slices`` will now raise a ``ValueError`` if the input
   position contains any non-finite values (e.g. NaN or inf). [#9648]
 
-astropy.samp
-^^^^^^^^^^^^
-
 astropy.stats
 ^^^^^^^^^^^^^
 
@@ -774,7 +771,6 @@ astropy.wcs
 - Fix incorrect value returned by
   ``wcsapi.HighLevelWCSWrapper.axis_correlation_matrix``. [#9554]
 
-
 - Fix NaN-masking of world coordinates when some but not all of the coordinates
   were flagged as invalid by WCSLIB. This occurred for example with WCS with >2
   dimensions where two of the dimensions were celestial coordinates and pixel
@@ -804,11 +800,10 @@ Other Changes and Additions
 - Updated the bundled CFITSIO library to 3.470. See
   ``cextern/cfitsio/docs/changes.txt`` for additional information. [#9233]
 
-- The bundled ERFA was updated to version 1.6.0 (based on SOFA 20190722).
-  This includes a fix that avoids precision loss for negative JDs. [#9323]
-
-- The leap seconds in the bundled ERFA library are now updated
-  automatically. [#9365]
+- The bundled ERFA was updated to version 1.7.0. This is based on
+  SOFA 20190722. This includes a fix to avoid precision loss for negative
+  JDs, and also includes additional routines to allow updates to the
+  leap-second table. [#9323, #9734]
 
 - The default server for the IERS data files has been updated to reflect
   long-term downtime of the canonical USNO server. [#9487, #9508]
