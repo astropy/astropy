@@ -109,6 +109,12 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- Changed the behavior when reading a table where both the ``names`` argument
+  is provided (to specify the output column names) and the ``converters``
+  argument is provided (to specify column conversion functions). Previously the
+  ``converters`` dict names referred to the *input* table column names, but now
+  they refer to the *output* table column names. [#9739]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 

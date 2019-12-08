@@ -618,6 +618,48 @@ class BaseHeader:
         return tuple(col.name if isinstance(col, Column) else col.info.name
                      for col in self.cols)
 
+    def remove_columns(self, names):
+        """
+        Remove several columns from the table.
+
+        Parameters
+        ----------
+        names : list
+            A list containing the names of the columns to remove
+        """
+        colnames = self.colnames
+        for name in names:
+            if name not in colnames:
+                raise KeyError(f"Column {name} does not exist")
+
+        self.cols = [col for col in self.cols if col.name not in names]
+
+    def rename_column(self, name, new_name):
+        """
+        Rename a column.
+
+        Parameters
+        ----------
+        name : str
+            The current name of the column.
+        new_name : str
+            The new name for the column
+        """
+        try:
+            idx = self.colnames.index(name)
+        except ValueError:
+            raise KeyError(f"Column {name} does not exist")
+
+        col = self.cols[idx]
+
+        # For writing self.cols can contain cols that are not Column.  Raise
+        # exception in that case.
+        if isinstance(col, Column):
+            col.name = new_name
+        else:
+            raise TypeError(f'got column type {type(col)} instead of required '
+                            f'{Column}')
+
     def get_type_map_key(self, col):
         return col.raw_type
 
@@ -1046,11 +1088,14 @@ def _is_number(x):
 
 def _apply_include_exclude_names(table, names, include_names, exclude_names):
     """
-    Apply names, include_names and exclude_names to a table.
+    Apply names, include_names and exclude_names to a table or BaseHeader.
+
+    For the latter this relies on BaseHeader implementing ``colnames``,
+    ``rename_column``, and ``remove_columns``.
 
     Parameters
     ----------
-    table : `~astropy.table.Table`
+    table : `~astropy.table.Table`, `~astropy.io.ascii.BaseHeader`
         Input table
     names : list
         List of names to override those in table (set to None to use existing names)
@@ -1201,10 +1246,11 @@ class BaseReader(metaclass=MetaBaseReader):
         self.data.masks(cols)
         if hasattr(self.header, 'table_meta'):
             self.meta['table'].update(self.header.table_meta)
-        table = self.outputter(cols, self.meta)
-        self.cols = self.header.cols
 
-        _apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names)
+        _apply_include_exclude_names(self.header, self.names, self.include_names, self.exclude_names)
+
+        table = self.outputter(self.header.cols, self.meta)
+        self.cols = self.header.cols
 
         return table
 
