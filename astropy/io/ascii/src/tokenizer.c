@@ -1003,7 +1003,7 @@ double xstrtod(const char *str, char **endptr, char decimal,
         else if (exponent < 0)
             number /= e[-exponent];
 
-        if (number == HUGE_VAL || number == -HUGE_VAL)
+        if (number >= HUGE_VAL || number <= -HUGE_VAL)
             errno = ERANGE;
     }
 
