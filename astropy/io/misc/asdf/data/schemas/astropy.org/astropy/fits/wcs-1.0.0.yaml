@@ -1,0 +1,12 @@
+%YAML 1.1
+---
+$schema: "http://stsci.edu/schemas/yaml-schema/draft-01"
+id: "http://astropy.org/schemas/astropy/fits/wcs-1.0.0"
+title: >
+  A representation of a FITS WCS.
+description: |
+  A FITS WCS is serialized to a FITS header, which for an asdf file is just an
+  object. However, this schema allows identifying it as a WCS and implementing a
+  tag to represent it as such.
+
+type: object

@@ -17,6 +17,7 @@ from .tags.coordinates.earthlocation import *
 from .tags.coordinates.skycoord import *
 from .tags.coordinates.representation import *
 from .tags.fits.fits import *
+from .tags.fits.wcs import *
 from .tags.table.table import *
 from .tags.time.time import *
 from .tags.time.timedelta import *
