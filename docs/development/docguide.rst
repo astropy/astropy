@@ -34,8 +34,8 @@ module, as well as the standard Astropy docstring format.
 
 * Docstrings must be provided for all public classes, methods, and functions.
 
-* Docstrings will be incorporated into the documentation using a version of
-  numpydoc included with Astropy, and should follow the :doc:`docrules`.
+* Docstrings should follow the `numpydoc format
+  <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
 
 * Examples and/or tutorials are strongly encouraged for typical use-cases of a
   particular module or class.
@@ -47,12 +47,6 @@ module, as well as the standard Astropy docstring format.
 
 * Configuration options using the :mod:`astropy.config` mechanisms must be
   explicitly mentioned in the documentation.
-
-
-The details of the docstring format are described on a separate page:
-
-.. toctree::
-    docrules
 
 
 Sphinx Documentation Themes
