@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import sys
+import mmap
 import warnings
 
 import numpy as np
@@ -11,6 +12,11 @@ from astropy.io.fits.util import _is_pseudo_unsigned, _unsigned_zero, _is_int
 from astropy.io.fits.verify import VerifyWarning
 
 from astropy.utils import isiterable, lazyproperty
+
+try:
+    from dask.array import Array
+except ImportError:
+    class Array: pass
 
 
 class _ImageBaseHDU(_ValidHDU):
@@ -244,7 +250,7 @@ class _ImageBaseHDU(_ValidHDU):
             self._data_replaced = True
             was_unsigned = False
 
-        if data is not None and not isinstance(data, np.ndarray):
+        if data is not None and not isinstance(data, (np.ndarray, Array)):
             # Try to coerce the data into a numpy array--this will work, on
             # some level, for most objects
             try:
@@ -260,7 +266,9 @@ class _ImageBaseHDU(_ValidHDU):
         self.__dict__['data'] = data
         self._modified = True
 
-        if isinstance(data, np.ndarray):
+        if self.data is None:
+            self._axes = []
+        else:
             # Set new values of bitpix, bzero, and bscale now, but wait to
             # revise original values until header is updated.
             self._bitpix = DTYPE2BITPIX[data.dtype.name]
@@ -269,10 +277,6 @@ class _ImageBaseHDU(_ValidHDU):
             self._blank = None
             self._axes = list(data.shape)
             self._axes.reverse()
-        elif self.data is None:
-            self._axes = []
-        else:
-            raise ValueError('not a valid data array')
 
         # Update the header, including adding BZERO/BSCALE if new data is
         # unsigned. Does not change the values of self._bitpix,
@@ -605,7 +609,11 @@ class _ImageBaseHDU(_ValidHDU):
     def _writedata_internal(self, fileobj):
         size = 0
 
-        if self.data is not None:
+        if self.data is None:
+            return size
+        elif isinstance(self.data, Array):
+            return self._writeinternal_dask(fileobj)
+        else:
             # Based on the system type, determine the byteorders that
             # would need to be swapped to get to big-endian output
             if sys.byteorder == 'little':
@@ -642,7 +650,60 @@ class _ImageBaseHDU(_ValidHDU):
 
             size += output.size * output.itemsize
 
-        return size
+            return size
+
+    @staticmethod
+    def _dask_byteswap(array):
+        import dask.array
+        from dask import delayed
+
+        @delayed
+        def _byteswap(arr):
+            return np.array(arr).byteswap(True).newbyteorder("S")
+
+        return dask.array.from_delayed(_byteswap(array), shape=array.shape,
+                                       dtype=array.dtype.newbyteorder("S"))
+
+    def _writeinternal_dask(self, fileobj):
+        size = 0
+
+        if sys.byteorder == 'little':
+            swap_types = ('<', '=')
+        else:
+            swap_types = ('<',)
+        # deal with unsigned integer 16, 32 and 64 data
+        if _is_pseudo_unsigned(self.data.dtype):
+            raise NotImplementedError("This dtype isn't currently supported with dask.")
+        else:
+            output = self.data
+            byteorder = output.dtype.str[0]
+            should_swap = (byteorder in swap_types)
+
+        if should_swap:
+            # output = output.map_blocks(M.byteswap, True).map_blocks(M.newbyteorder, "S")
+            output = self._dask_byteswap(output)
+
+        initial_position = fileobj.tell()
+        n_bytes = output.nbytes
+        end_length = initial_position + n_bytes
+
+        # Extend the file n_bytes into the future
+        fileobj.seek(initial_position + n_bytes)
+        fileobj.write(b'\0')
+        fileobj.flush()
+
+        outmmap = mmap.mmap(fileobj._file.fileno(),
+                            initial_position+n_bytes,
+                            access=mmap.ACCESS_WRITE)
+
+        outarr = np.ndarray(shape=output.shape,
+                            dtype=output.dtype,
+                            offset=initial_position,
+                            buffer=outmmap)
+
+        output.store(outarr, lock=True, compute=True)
+
+        return n_bytes
 
     def _dtype_for_bitpix(self):
         """
