@@ -112,7 +112,7 @@ install sphinx-astropy_ and all its dependencies automatically.
 .. _numpydoc: https://pypi.org/project/numpydoc/
 .. _Matplotlib: https://matplotlib.org/
 .. _SciPy: https://www.scipy.org/
-.. _Sphinx: http://sphinx.pocoo.org
+.. _Sphinx: http://www.sphinx-doc.org/
 .. _sphinx-automodapi: https://github.com/astropy/sphinx-automodapi
 .. _astropy-sphinx-theme: https://github.com/astropy/astropy-sphinx-theme
 .. _sphinx-astropy: https://github.com/astropy/sphinx-astropy
