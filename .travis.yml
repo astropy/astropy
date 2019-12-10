@@ -95,7 +95,7 @@ matrix:
         # Try MacOS X.
         - os: osx
           stage: Cron tests
-          env: SETUP_CMD='test --remote-data=astropy -a "--hypothesis-verbosity=verbose"'
+          env: SETUP_CMD='test --remote-data=astropy -a --hypothesis-verbosity=verbose'
                CONDA_DEPENDENCIES="$CONDA_ALL_DEPENDENCIES clang"
                PIP_DEPENDENCIES="scikit-image jplephem hypothesis $ASDF_PIP_DEP"
                CCOMPILER=clang
@@ -120,7 +120,7 @@ matrix:
         # location during testing. We also use this build to make sure that the
         # dependencies get correctly installed with pip.
         - os: linux
-          env: SETUP_CMD='test --remote-data=astropy --readonly -a "--hypothesis-verbosity=verbose"'
+          env: SETUP_CMD='test --remote-data=astropy --readonly -a --hypothesis-verbosity=verbose'
                LC_CTYPE=C.ascii LC_ALL=C
                PIP_DEPENDENCIES="" CONDA_DEPENDENCIES=""
                INSTALL_WITH_PIP=True
@@ -130,12 +130,12 @@ matrix:
           stage: Initial tests
           env: PYTHON_VERSION=3.7 CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="scikit-image hypothesis $ASDF_PIP_DEP"
-               SETUP_CMD='test -a "--durations=50 --hypothesis-verbosity=verbose"'
+               SETUP_CMD="test -a '--durations=50 --hypothesis-verbosity=verbose' "
           compiler: clang
 
         # Full tests with coverage checks.
         - os: linux
-          env: SETUP_CMD='test --coverage --remote-data=astropy --readonly -a "--hypothesis-verbosity=verbose"'
+          env: SETUP_CMD='test --coverage --remote-data=astropy --readonly -a --hypothesis-verbosity=verbose'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="scikit-image codecov objgraph jplephem bintrees sortedcontainers hypothesis $ASDF_PIP_DEP"
                LC_CTYPE=C.ascii LC_ALL=C
@@ -146,7 +146,7 @@ matrix:
         # Try on Windows
         - os: windows
           stage: Final tests
-          env: PYTHON_VERSION=3.7 SETUP_CMD='test --readonly -a "--hypothesis-verbosity=verbose"'
+          env: PYTHON_VERSION=3.7 SETUP_CMD='test --readonly -a --hypothesis-verbosity=verbose'
                CONDA_DEPENDENCIES=""
                PIP_DEPENDENCIES="Cython scipy h5py beautifulsoup4 html5lib jinja2 pyyaml matplotlib scikit-image pytz pandas objgraph asdf hypothesis"
 
@@ -161,7 +161,7 @@ matrix:
         # mark as an allowed failure below.
         - os: linux
           stage: Final tests
-          env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data -a "--hypothesis-verbosity=verbose"'
+          env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data -a --hypothesis-verbosity=verbose'
                CONDA_DEPENDENCIES=''
                PIP_DEPENDENCIES=$DEV_PIP_DEP
                MATPLOTLIB_VERSION=dev
@@ -202,7 +202,7 @@ matrix:
     allow_failures:
       - os: linux
         stage: Final tests
-        env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data -a "--hypothesis-verbosity=verbose"'
+        env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data -a --hypothesis-verbosity=verbose'
              CONDA_DEPENDENCIES=''
              PIP_DEPENDENCIES=$DEV_PIP_DEP
              MATPLOTLIB_VERSION=dev
