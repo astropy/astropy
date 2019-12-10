@@ -336,8 +336,8 @@ for keywords, a proposal was made in:
     https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/ofwg_recomm/r13.html
 
 by using the CONTINUE keyword after the regular 80 column containing the
-keyword. ``astropy`` does support this convention, even though it is not a FITS
-standard.
+keyword. ``astropy`` does support this convention, which is a part of the FITS
+standard since version 4.0.
 
 Examples
 --------
