@@ -13,12 +13,11 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
+from astropy.utils.data import get_pkg_data_filename
 from astropy.visualization.wcsaxes import WCSAxes
 from astropy.visualization.wcsaxes.frame import EllipticalFrame
 from astropy.visualization.wcsaxes.patches import SphericalCircle
 from astropy.wcs import WCS
-
-from . import datasets
 
 
 class BaseImageTests:
@@ -106,7 +105,10 @@ class TestBasic(BaseImageTests):
                                    tolerance=0, style={})
     def test_contour_overlay(self):
         # Test for overlaying contours on images
-        hdu_msx = datasets.fetch_msx_hdu()
+        path = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
+        with fits.open(path) as pf:
+            data = pf[0].data
+
         wcs_msx = WCS(self.msx_header)
 
         fig = plt.figure(figsize=(6, 6))
@@ -117,7 +119,7 @@ class TestBasic(BaseImageTests):
         ax.set_ylim(-0.5, 720.5)
 
         # Overplot contour
-        ax.contour(hdu_msx.data, transform=ax.get_transform(wcs_msx),
+        ax.contour(data, transform=ax.get_transform(wcs_msx),
                    colors='orange', levels=[2.5e-5, 5e-5, 1.e-4])
         ax.coords[0].set_ticks(size=5, width=1)
         ax.coords[1].set_ticks(size=5, width=1)
@@ -137,7 +139,10 @@ class TestBasic(BaseImageTests):
                                    tolerance=0, style={})
     def test_contourf_overlay(self):
         # Test for overlaying contours on images
-        hdu_msx = datasets.fetch_msx_hdu()
+        path = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
+        with fits.open(path) as pf:
+            data = pf[0].data
+
         wcs_msx = WCS(self.msx_header)
 
         fig = plt.figure(figsize=(6, 6))
@@ -148,7 +153,7 @@ class TestBasic(BaseImageTests):
         ax.set_ylim(-0.5, 720.5)
 
         # Overplot contour
-        ax.contourf(hdu_msx.data, transform=ax.get_transform(wcs_msx),
+        ax.contourf(data, transform=ax.get_transform(wcs_msx),
                     levels=[2.5e-5, 5e-5, 1.e-4])
         ax.coords[0].set_ticks(size=5, width=1)
         ax.coords[1].set_ticks(size=5, width=1)
