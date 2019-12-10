@@ -1087,7 +1087,7 @@ class LeapSeconds(QTable):
         # 32-bit systems without the np.int64 converter.
         self = cls._read_leap_seconds(
             file, names=names, include_names=names[:2],
-            converters={'col1': [convert_numpy(np.int64)]})
+            converters={'ntp_seconds': [convert_numpy(np.int64)]})
         self['mjd'] = (self['ntp_seconds']/86400 + 15020).round()
         # Note: cannot use Time.ymdhms, since that might require leap seconds.
         isot = Time(self['mjd'], format='mjd', scale='tai').isot
