@@ -59,9 +59,7 @@ def test_read_specify_converters_with_names():
     converters arguments, the converters dictionary ignores the user-supplied
     names and requires that you know the guessed names.
     """
-    csv_text = '''a,b,c
-    1,2,3
-    4,5,6'''
+    csv_text = ['a,b,c', '1,2,3', '4,5,6']
     names = ['A', 'B', 'C']
 
     converters = {
@@ -73,6 +71,24 @@ def test_read_specify_converters_with_names():
     assert t['A'].dtype.kind == 'f'
     assert t['B'].dtype.kind == 'i'
     assert t['C'].dtype.kind == 'U'
+
+
+def test_read_remove_and_rename_columns():
+    csv_text = ['a,b,c', '1,2,3', '4,5,6']
+    reader = ascii.get_reader(Reader=ascii.Csv)
+    data = reader.read(csv_text)
+    header = reader.header
+    with pytest.raises(KeyError, match='Column NOT-EXIST does not exist'):
+        header.remove_columns(['NOT-EXIST'])
+
+    header.remove_columns(['c'])
+    assert header.colnames == ('a', 'b')
+
+    header.rename_column('a', 'aa')
+    assert header.colnames == ('aa', 'b')
+
+    with pytest.raises(KeyError, match='Column NOT-EXIST does not exist'):
+        header.rename_column('NOT-EXIST', 'aa')
 
 
 def test_guess_with_names_arg():
