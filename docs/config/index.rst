@@ -83,8 +83,14 @@ configuration file as described above. Values can also, however, be
 modified in an active Python session by setting any of the properties
 on a ``conf`` object.
 
-For example, if there is a part of your configuration file that looks
-like:
+Example
+-------
+
+..
+  EXAMPLE START
+  Changing the Persistent State of Configuration Values at Runtime
+
+If there is a part of your configuration file that looks like:
 
 .. code-block:: ini
 
@@ -110,12 +116,23 @@ You should be able to modify the values at runtime this way::
     >>> conf.remote_timeout
     4.5
 
+..
+  EXAMPLE END
+
 Reloading Configuration
 -----------------------
 
 Instead of modifying the variables in Python, you can also modify the
-configuration files and then reload them. For example, if you modify the
-configuration file to say:
+configuration files and then reload them.
+
+Example
+-------
+
+..
+  EXAMPLE START
+  Modifying and Reloading Configuration Files
+
+If you modify the configuration file to say:
 
 .. code-block:: ini
 
@@ -156,6 +173,9 @@ do with the configuration file on disk::
     >>> conf.reset('dataurl')
     >>> conf.dataurl
     'http://data.astropy.org/'
+
+..
+  EXAMPLE END
 
 Upgrading ``astropy``
 ---------------------
