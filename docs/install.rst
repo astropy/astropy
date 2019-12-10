@@ -404,7 +404,7 @@ In addition to providing configuration common to packages in the Astropy
 ecosystem, this package also serves as a way to automatically get the main
 dependencies, including:
 
-* `Sphinx <http://sphinx.pocoo.org>`_ - the main package we use to build
+* `Sphinx <http://www.sphinx-doc.org/>`_ - the main package we use to build
   the documentation
 * `astropy-sphinx-theme <https://github.com/astropy/astropy-sphinx-theme>`_ -
   the default 'bootstrap' theme used by ``astropy`` and a number of affiliated
