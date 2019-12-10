@@ -143,6 +143,10 @@ Coding Style/Conventions
   maximum line length for different subpackages (typically either 80 or 100
   characters).  Please try to maintain the style when adding or modifying code.
 
+* The use of automatic code formatters (e.g.,
+  `Black <https://black.readthedocs.io/en/stable/>`_) is strongly discouraged in
+  contributions to Astropy.
+
 * Following PEP8's recommendation, absolute imports are to be used in general.
   The exception to this is relative imports of the form
   ``from . import modname``, best when referring to files within the same
