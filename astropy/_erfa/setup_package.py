@@ -84,7 +84,8 @@ def get_extensions():
     include_dirs = ['numpy']
     libraries = []
 
-    if int(os.environ.get('ASTROPY_USE_SYSTEM_ERFA', 0)) or int(os.environ.get('ASTROPY_USE_SYSTEM_ALL', 0)):
+    if (int(os.environ.get('ASTROPY_USE_SYSTEM_ERFA', 0)) or
+            int(os.environ.get('ASTROPY_USE_SYSTEM_ALL', 0))):
         libraries.append('erfa')
     else:
         # get all of the .c files in the cextern/erfa directory
