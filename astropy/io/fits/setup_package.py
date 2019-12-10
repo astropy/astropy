@@ -19,7 +19,8 @@ def _get_compression_extension():
     cfg['sources'].append(os.path.join(os.path.dirname(__file__), 'src',
                                        'compressionmodule.c'))
 
-    if int(os.environ.get('ASTROPY_USE_SYSTEM_CFITSIO', 0)) or int(os.environ.get('ASTROPY_USE_SYSTEM_ALL', 0)):
+    if (int(os.environ.get('ASTROPY_USE_SYSTEM_CFITSIO', 0)) or
+            int(os.environ.get('ASTROPY_USE_SYSTEM_ALL', 0))):
         cfg.update(setup_helpers.pkg_config(['cfitsio'], ['cfitsio']))
     else:
         if setup_helpers.get_compiler_option() == 'msvc':

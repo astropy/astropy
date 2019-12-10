@@ -15,7 +15,8 @@ def get_extensions(build_type='release'):
         'sources': [join(XML_DIR, "iterparse.c")]
         })
 
-    if int(os.environ.get('ASTROPY_USE_SYSTEM_EXPAT', 0)) or int(os.environ.get('ASTROPY_USE_SYSTEM_ALL', 0)):
+    if (int(os.environ.get('ASTROPY_USE_SYSTEM_EXPAT', 0)) or
+            int(os.environ.get('ASTROPY_USE_SYSTEM_ALL', 0))):
         cfg.update(setup_helpers.pkg_config(['expat'], ['expat']))
     else:
         EXPAT_DIR = 'cextern/expat/lib'
