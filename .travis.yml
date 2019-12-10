@@ -130,7 +130,7 @@ matrix:
           stage: Initial tests
           env: PYTHON_VERSION=3.7 CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="scikit-image hypothesis $ASDF_PIP_DEP"
-               SETUP_CMD="test -a \"--durations=50 --hypothesis-verbosity=verbose\" "
+               SETUP_CMD="test -a --durations=50"
           compiler: clang
 
         # Full tests with coverage checks.
