@@ -138,10 +138,21 @@ Coding Style/Conventions
   <https://www.python.org/dev/peps/pep-0008/>`_. In particular, this includes
   using only 4 spaces for indentation, and never tabs.
 
+* Our testing infrastructure currently enforces a subset of the PEP8 style
+  guide. You can check locally whether your changes have followed these by
+  running `flake8 <https://pypi.org/project/flake8/>`_ with the following
+  command::
+
+    flake8 astropy --count --select=E101,W191,W291,W292,W293,W391,E111,E112,E113,E30,E502,E722,E901,E902,E999,F822,F823
+
 * *Follow the existing coding style* within a subpackage and avoid making
   changes that are purely stylistic.  In particular, there is variation in the
   maximum line length for different subpackages (typically either 80 or 100
   characters).  Please try to maintain the style when adding or modifying code.
+
+* The use of automatic code formatters (e.g.,
+  `Black <https://black.readthedocs.io/en/stable/>`_) is strongly discouraged in
+  contributions to Astropy.
 
 * Following PEP8's recommendation, absolute imports are to be used in general.
   The exception to this is relative imports of the form
