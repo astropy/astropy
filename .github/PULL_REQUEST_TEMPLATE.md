@@ -12,6 +12,16 @@ http://docs.astropy.org/en/latest/development/workflow/development_workflow.html
 There is even a practical example at
 https://docs.astropy.org/en/latest/development/workflow/git_edit_workflow_examples.html#astropy-fix-example . -->
 
+<!-- Astropy coding style guidelines can be found here:
+https://docs.astropy.org/en/latest/development/codeguide.html#coding-style-conventions
+Our testing infrastructure enforces to follow a subset of the PEP8 to be
+followed. You can check locally whether your changes have followed these by
+running the following command:
+
+flake8 astropy --count --select=E101,W191,W291,W292,W293,W391,E111,E112,E113,E30,E502,E722,E901,E902,E999,F822,F823
+
+-->
+
 <!-- Please just have a quick search on GitHub to see if a similar
 pull request has already been posted.
 We have old closed pull requests that might provide useful code or ideas
