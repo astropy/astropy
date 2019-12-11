@@ -192,7 +192,9 @@ def test_serialize_hdf5_masked(tmpdir):
     assert np.all(t2['col0'].value == t['col0'].value)
 
 
+# Ignore warning in MIPS https://github.com/astropy/astropy/issues/9750
 @pytest.mark.skipif('not HAS_YAML')
+@pytest.mark.filterwarnings('ignore:invalid value encountered')
 def test_serialize_ecsv_masked(tmpdir):
     tm = Time([1, 2, 3], format='cxcsec')
     tm[1] = np.ma.masked
