@@ -148,35 +148,40 @@ def test_name_resolve_cache(tmpdir):
     temp_cache_dir = str(tmpdir.mkdir('cache'))
     with paths.set_temp_cache(temp_cache_dir, delete=True):
         download_dir, urlmapfn = _get_download_cache_locs()
+
+        with shelve.open(urlmapfn) as url2hash:
+            assert len(url2hash) == 0
+
         icrs = get_icrs_coordinates("castor", cache=True)
 
         with shelve.open(urlmapfn) as url2hash:
+            assert len(url2hash) == 1
             for k in url2hash.keys():
+                # check for expected search url in URL hash dict:
                 if 'nph-sesame/A?castor' in k:
-                    filename = url2hash[k]
+                    filename = url2hash[k]  # used below to check mtime
                     break
             else:
                 raise AssertionError('sesame url key not added to cache')
 
-        assert os.path.isdir(download_dir)
-        assert os.path.isfile(filename)
-        mtime1 = os.path.getmtime(filename)
-        nfiles1 = len(os.listdir(download_dir))
-
-        # Try reloading coordinates, now doesn't require a remote connection:
+        # Try reloading coordinates, now should just reload cached data:
         icrs = get_icrs_coordinates("castor", cache=True)
-        mtime2 = os.path.getmtime(filename)
-        nfiles2 = len(os.listdir(download_dir))
-        assert mtime1 == mtime2
-        assert nfiles1 == nfiles2
+        with shelve.open(urlmapfn) as url2hash:
+            assert len(url2hash) == 1
+            print(dict(url2hash).values())
 
         # Try reloading coordinates again, but overwrite, which now should fire
         # off an http request:
+        print(url2hash.values())
+        # mtime1 = os.path.getmtime(filename)
         icrs = get_icrs_coordinates("castor", cache=True, overwrite=True)
-        mtime3 = os.path.getmtime(filename)
-        nfiles3 = len(os.listdir(download_dir))
-        assert mtime1 != mtime3
-        assert nfiles1 == nfiles3
+        with shelve.open(urlmapfn) as url2hash:
+            assert len(url2hash) == 1
+            print(dict(url2hash).values())
+        # mtime2 = os.path.getmtime(filename)
+        with shelve.open(urlmapfn) as url2hash:
+            assert len(url2hash) == 1
+        assert mtime2 > mtime1
 
         # This argument combination is not allowed:
         with pytest.raises(ValueError):
