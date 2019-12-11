@@ -21,3 +21,22 @@ from .sky_coordinate import *
 from .funcs import *
 from .calculation import *
 from .solar_system import *
+
+
+from astropy import config as _config
+
+
+class Conf(_config.ConfigNamespace):
+    """
+    Configuration parameters for `astropy.coordinates`.
+    """
+
+    skycoord_init_counter_warn_threshold = _config.ConfigItem(
+        100,
+        'This controls the (globally-counted) number of SkyCoord '
+        'initializations that will trigger a warning to the user. To disable '
+        'this counter and warning, set this config item to 0.'
+    )
+
+
+conf = Conf()

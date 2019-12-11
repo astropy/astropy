@@ -1,6 +1,7 @@
 
 import re
 import copy
+import warnings
 
 import numpy as np
 
@@ -10,6 +11,7 @@ from astropy import units as u
 from astropy.constants import c as speed_of_light
 from astropy.wcs.utils import skycoord_to_pixel, pixel_to_skycoord
 from astropy.utils.data_info import MixinInfo
+from astropy.utils.exceptions import AstropyWarning
 from astropy.utils import ShapedLikeNDArray
 from astropy.time import Time
 
@@ -206,11 +208,35 @@ class SkyCoord(ShapedLikeNDArray):
     # info property.
     info = SkyCoordInfo()
 
+    # A counter to keep track of the (global) number of times SkyCoord has been
+    # initialized
+    _init_counter = 0
+
     def __init__(self, *args, copy=True, **kwargs):
 
         # these are frame attributes set on this SkyCoord but *not* a part of
         # the frame object this SkyCoord contains
         self._extra_frameattr_names = set()
+
+        # Increment the SkyCoord init counter:
+        SkyCoord._init_counter += 1
+
+        # If there is a threshold in the config, check the number of times
+        # SkyCoord has been initialized and possibly issue a warning
+        from . import conf
+        _counter_lim = conf.skycoord_init_counter_warn_threshold
+        if _counter_lim > 0 and SkyCoord._init_counter > _counter_lim:
+            url = "http://docs.astropy.org/en/latest/coordinates/skycoord.html#array-operations"
+            warnings.warn("We noticed that you have initialized SkyCoord more "
+                          f"than {_counter_lim} times. It is generally much "
+                          "more efficient to instead create a single SkyCoord "
+                          "instance with array-valued coordinate components, "
+                          f"as demonstrated in this documentation page: {url} "
+                          "However, if you do need to initialize many SkyCoord "
+                          "instances and would like to remove this check, set "
+                          "the astropy.coordinates configuration item "
+                          "'skycoord_init_counter_warn_threshold=0'",
+                          AstropyWarning)
 
         # If all that is passed in is a frame instance that already has data,
         # we should bypass all of the parsing and logic below. This is here
