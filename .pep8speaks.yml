@@ -1,0 +1,47 @@
+scanner:
+    diff_only: True
+    linter: flake8
+
+flake8:
+    max-line-length: 100
+    select:
+        - E101 # mix of tabs and spaces
+        - W191 # use of tabs
+        - W291 # trailing whitespace
+        - W292 # no newline at end of file
+        - W293 # trailing whitespace
+        - W391 # blank line at end of file
+        - E111 # 4 spaces per indentation level
+        - E112 # 4 spaces per indentation level
+        - E113 # 4 spaces per indentation level
+        - E301 # expected 1 blank line, found 0
+        - E302 # expected 2 blank lines, found 0
+        - E303 # too many blank lines (3)
+        - E304 # blank lines found after function decorator
+        - E305 # expected 2 blank lines after class or function definition
+        - E306 # expected 1 blank line before a nested definition
+        - E502 # the backslash is redundant between brackets
+        - E722 # do not use bare except
+        - E901 # SyntaxError or IndentationError
+        - E902 # IOError
+        - E999 # SyntaxError -- failed to compile a file into an Abstract Syntax Tree
+        - F822 # undefined name in __all__
+        - F823 # local variable name referenced before assignment
+
+no_blank_comment: True
+descending_issues_order: False
+
+message:
+    opened:
+        header: >
+          Hello @{name} :wave:! Thanks for opening this pull request, we are
+          very grateful for your contribution! I'm a friendly :robot: that
+          checks for style issues in this pull request, since this project
+          follows the [PEP8](https://www.python.org/dev/peps/pep-0008/) style
+          guidelines. I've listed some small issues I found below, but please
+          don't hesitate to ask if any of them are unclear!
+    updated:
+        header: >
+          Hello @{name} :wave:! It looks like you've made some changes in your
+          pull request, so I've checked the code again for style.
+    no_errors: "There are no PEP8 style issues with this pull request - thanks! :tada:"
