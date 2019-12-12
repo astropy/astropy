@@ -825,10 +825,10 @@ def test_local_data_obj_invalid(bad_compressed):
     # created by pytest. However, we can still use get_readable_fileobj for the
     # test.
     if (not HAS_BZ2 and is_bz2) or (not HAS_XZ and is_xz):
-        with pytest.raises(ValueError) as e:
+        with pytest.raises(ModuleNotFoundError,
+                           match=r'does not provide the [lb]z[2m]a? module\.'):
             with get_readable_fileobj(bad_compressed, encoding="binary") as f:
                 f.read()
-        assert " format files are not supported" in str(e.value)
     else:
         with get_readable_fileobj(bad_compressed, encoding="binary") as f:
             assert f.read().rstrip().endswith(b"invalid")
