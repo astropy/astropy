@@ -16,6 +16,12 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- The ``SkyCoord`` class now maintains a counter to keep track of the number of
+  times it has been initialized. Once the number exceeds the config value
+  ``skycoord_init_counter_warn_threshold``, the initializer raises a warning to
+  suggest that the user use array-valued components. Set the threshold to 0 to
+  disable. [#9764]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
