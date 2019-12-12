@@ -160,6 +160,10 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Changed the exception raised by ``get_readable_fileobj`` on missing
+  compression modules (for ``bz2`` or ``lzma``/``xz`` support) to
+  ``ModuleNotFoundError``, consistent with ``io.fits`` file handlers. [#9761]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
