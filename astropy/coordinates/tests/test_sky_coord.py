@@ -14,6 +14,7 @@ import numpy.testing as npt
 
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
+from astropy.tests.helper import catch_warnings
 from astropy.coordinates.representation import REPRESENTATION_CLASSES
 from astropy.coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                                  SphericalRepresentation, CartesianRepresentation,
@@ -24,9 +25,11 @@ from astropy.coordinates import Latitude, EarthLocation
 from astropy.coordinates.transformations import FunctionTransform
 from astropy.time import Time
 from astropy.utils import minversion, isiterable
+from astropy.utils.exceptions import AstropyWarning
 from astropy.units import allclose as quantity_allclose
 from astropy.io import fits
 from astropy.wcs import WCS
+from astropy.config import set_temp_config, reload_config
 
 RA = 1.0 * u.deg
 DEC = 2.0 * u.deg
@@ -1580,3 +1583,22 @@ def test_multiple_aliases():
     assert isinstance(coord.transform_to('alias_2').frame, MultipleAliasesFrame)
 
     ftrans.unregister(frame_transform_graph)
+
+
+def test_init_counter_warning(tmpdir):
+    with set_temp_config(tmpdir.strpath):
+
+        with open(tmpdir.join('astropy').join('astropy.cfg').strpath, 'w') as f:
+            f.write('[coordinates]\n'
+                    'skycoord_init_counter_warn_threshold = 100')
+
+        reload_config('astropy.coordinates')
+
+        SkyCoord._init_counter = 0
+        for i in range(100):
+            SkyCoord(1*u.deg, 2*u.deg)
+
+        with catch_warnings(AstropyWarning) as w:
+            SkyCoord(1*u.deg, 2*u.deg)
+            assert len(w) == 1
+            assert 'We noticed that you' in str(w[0].message)
