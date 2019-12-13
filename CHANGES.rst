@@ -1,5 +1,5 @@
-4.0rc2 (2019-12-07)
-===================
+4.0 (2019-12-16)
+================
 
 New Features
 ------------
@@ -372,6 +372,7 @@ astropy.wcs
 
 - Fix various bugs in ``SlicedLowLevelWCS`` when the WCS being sliced was one
   dimensional. [#9693]
+
 
 API Changes
 -----------
@@ -787,6 +788,7 @@ astropy.wcs
 
 - ``FITSWCSAPIMixin`` now returns tuples not lists from ``pixel_to_world`` and
   ``world_to_pixel``. [#9678]
+
 
 Other Changes and Additions
 ---------------------------
