@@ -81,7 +81,7 @@ def get_auto_format_func(
             return col.info._format_funcs[format_](format_, val)
 
         if callable(format_):
-            format_func = lambda format_, val: format_(val)
+            format_func = lambda format_, val: format_(val)  # noqa
             try:
                 out = format_func(format_, val)
                 if not isinstance(out, str):
@@ -412,8 +412,8 @@ class TableFormatter:
         #    enclosed variables.
         col_format = col.info.format or getattr(col.info, 'default_format',
                                                 None)
-        pssf = (getattr(col.info, 'possible_string_format_functions', None) or
-                _possible_string_format_functions)
+        pssf = (getattr(col.info, 'possible_string_format_functions', None)
+                or _possible_string_format_functions)
         auto_format_func = get_auto_format_func(col, pssf)
         format_func = col.info._format_funcs.get(col_format, auto_format_func)
 
@@ -453,7 +453,7 @@ class TableFormatter:
                     raise ValueError(
                         'Unable to parse format string "{}" for entry "{}" '
                         'in column "{}"'.format(col_format, col[idx],
-                                                 col.info.name))
+                                                col.info.name))
 
         outs['show_length'] = show_length
         outs['n_header'] = n_header
@@ -550,7 +550,10 @@ class TableFormatter:
         n_header = outs['n_header']
 
         n_rows = len(cols[0])
-        outwidth = lambda cols: sum(len(c[0]) for c in cols) + len(cols) - 1
+
+        def outwidth(cols):
+            return sum(len(c[0]) for c in cols) + len(cols) - 1
+
         dots_col = ['...'] * n_rows
         middle = len(cols) // 2
         while outwidth(cols) > max_width:

@@ -131,15 +131,15 @@ def table_type(request):
 # Stuff for testing mixin columns
 
 MIXIN_COLS = {'quantity': [0, 1, 2, 3] * u.m,
-              'longitude': coordinates.Longitude([0., 1., 5., 6.]*u.deg,
-                                                  wrap_angle=180.*u.deg),
-              'latitude': coordinates.Latitude([5., 6., 10., 11.]*u.deg),
+              'longitude': coordinates.Longitude([0., 1., 5., 6.] * u.deg,
+                                                 wrap_angle=180. * u.deg),
+              'latitude': coordinates.Latitude([5., 6., 10., 11.] * u.deg),
               'time': time.Time([2000, 2001, 2002, 2003], format='jyear'),
               'skycoord': coordinates.SkyCoord(ra=[0, 1, 2, 3] * u.deg,
                                                dec=[0, 1, 2, 3] * u.deg),
               'arraywrap': table_helpers.ArrayWrapper([0, 1, 2, 3]),
               'ndarray': np.array([(7, 'a'), (8, 'b'), (9, 'c'), (9, 'c')],
-                           dtype='<i4,|S1').view(table.NdarrayMixin),
+                                  dtype='<i4,|S1').view(table.NdarrayMixin),
               }
 MIXIN_COLS['earthlocation'] = coordinates.EarthLocation(
     lon=MIXIN_COLS['longitude'], lat=MIXIN_COLS['latitude'],
@@ -166,15 +166,15 @@ def mixin_cols(request):
 @pytest.fixture(params=[False, True])
 def T1(request):
     T = Table.read([' a b c d',
-                 ' 2 c 7.0 0',
-                 ' 2 b 5.0 1',
-                 ' 2 b 6.0 2',
-                 ' 2 a 4.0 3',
-                 ' 0 a 0.0 4',
-                 ' 1 b 3.0 5',
-                 ' 1 a 2.0 6',
-                 ' 1 a 1.0 7',
-                 ], format='ascii')
+                    ' 2 c 7.0 0',
+                    ' 2 b 5.0 1',
+                    ' 2 b 6.0 2',
+                    ' 2 a 4.0 3',
+                    ' 0 a 0.0 4',
+                    ' 1 b 3.0 5',
+                    ' 1 a 2.0 6',
+                    ' 1 a 1.0 7',
+                    ], format='ascii')
     T.meta.update({'ta': 1})
     T['c'].meta.update({'a': 1})
     T['c'].description = 'column c'
