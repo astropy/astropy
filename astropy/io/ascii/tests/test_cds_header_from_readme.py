@@ -2,8 +2,8 @@
 
 import numpy as np
 from astropy.io import ascii
-from .common import (assert_equal, assert_almost_equal,
-                     setup_function, teardown_function)
+from .common import (assert_equal, assert_almost_equal,  # noqa
+                     setup_function, teardown_function)  # noqa
 
 
 def read_table1(readme, data):

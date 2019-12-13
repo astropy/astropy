@@ -310,7 +310,9 @@ class Latex(core.BaseReader):
     data_class = LatexData
     inputter_class = LatexInputter
 
-    def __init__(self, ignore_latex_commands=['hline', 'vspace', 'tableline', 'toprule', 'midrule', 'bottomrule'],
+    def __init__(self,
+                 ignore_latex_commands=['hline', 'vspace', 'tableline',
+                                        'toprule', 'midrule', 'bottomrule'],
                  latexdict={}, caption='', col_align=None):
 
         super().__init__()

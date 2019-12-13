@@ -2,7 +2,7 @@
 """ An extensible ASCII table reader and writer.
 
 """
-
+# flake8: noqa
 
 from .core import (InconsistentTableError,
                    ParameterError,

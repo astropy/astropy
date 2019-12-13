@@ -41,7 +41,7 @@ def test_read_normal_names():
 ======= =========
 """
     reader = ascii.get_reader(Reader=ascii.RST,
-                                   names=('name1', 'name2'))
+                              names=('name1', 'name2'))
     dat = reader.read(table)
     assert_equal(dat.colnames, ['name1', 'name2'])
     assert_almost_equal(dat[1][0], 2.4)
@@ -59,8 +59,8 @@ def test_read_normal_names_include():
 =======  ========== ======
 """
     reader = ascii.get_reader(Reader=ascii.RST,
-                                   names=('name1', 'name2', 'name3'),
-                                   include_names=('name1', 'name3'))
+                              names=('name1', 'name2', 'name3'),
+                              include_names=('name1', 'name3'))
     dat = reader.read(table)
     assert_equal(dat.colnames, ['name1', 'name3'])
     assert_almost_equal(dat[1][0], 2.4)
@@ -78,7 +78,7 @@ def test_read_normal_exclude():
 ======= ==========
 """
     reader = ascii.get_reader(Reader=ascii.RST,
-                                   exclude_names=('Col1',))
+                              exclude_names=('Col1',))
     dat = reader.read(table)
     assert_equal(dat.colnames, ['Col2'])
     assert_equal(dat[1][0], "'s worlds")

@@ -133,15 +133,19 @@ class FixedWidthHeader(basic.BasicHeader):
                 # more intuitive user interface).
                 line = self.get_line(lines, position_line)
                 if len(set(line) - set([self.splitter.delimiter, ' '])) != 1:
-                    raise InconsistentTableError('Position line should only contain delimiters and one other character, e.g. "--- ------- ---".')
+                    raise InconsistentTableError(
+                        'Position line should only contain delimiters and '
+                        'one other character, e.g. "--- ------- ---".')
                     # The line above lies. It accepts white space as well.
                     # We don't want to encourage using three different
                     # characters, because that can cause ambiguities, but white
                     # spaces are so common everywhere that practicality beats
                     # purity here.
-                charset = self.set_of_position_line_characters.union(set([self.splitter.delimiter, ' ']))
+                charset = self.set_of_position_line_characters.union(
+                    set([self.splitter.delimiter, ' ']))
                 if not set(line).issubset(charset):
-                    raise InconsistentTableError(f'Characters in position line must be part of {charset}')
+                    raise InconsistentTableError(
+                        f'Characters in position line must be part of {charset}')
                 vals, self.col_starts, col_ends = self.get_fixedwidth_params(line)
                 self.col_ends = [x - 1 if x is not None else None for x in col_ends]
 
@@ -189,7 +193,8 @@ class FixedWidthHeader(basic.BasicHeader):
         # been given, so figure out whichever wasn't given.
         if self.col_starts is not None and self.col_ends is not None:
             starts = list(self.col_starts)  # could be any iterable, e.g. np.array
-            ends = [x + 1 if x is not None else None for x in self.col_ends]  # user supplies inclusive endpoint
+            # user supplies inclusive endpoint
+            ends = [x + 1 if x is not None else None for x in self.col_ends]
             if len(starts) != len(ends):
                 raise ValueError('Fixed width col_starts and col_ends must have the same length')
             vals = [line[start:end].strip() for start, end in zip(starts, ends)]
