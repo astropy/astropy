@@ -3449,6 +3449,15 @@ class Table:
         if units is None:
             units = [None] * len(names)
         else:
+            if not isinstance(units, Mapping):
+                raise TypeError('Expected a Mapping "column-name" -> "unit"')
+
+            not_found = set(units.keys()) - set(names)
+            if not_found:
+                warnings.warn('`units` contains additionial columns: {}'.format(
+                    not_found
+                ))
+
             units = [units.get(name) for name in names]
 
         for name, column, data, mask, unit in zip(names, columns, datas, masks, units):
