@@ -5,6 +5,7 @@ import io
 # THIRD-PARTY
 import numpy as np
 from numpy.testing import assert_array_equal
+import pytest
 
 # LOCAL
 from astropy.io.votable import converters
@@ -67,25 +68,38 @@ def test_unicode_mask():
 
 def test_unicode_as_char():
     config = {'verify': 'exception'}
-    with catch_warnings(exceptions.W55) as w:
-        field = tree.Field(
-            None, name='unicode_in_char', datatype='char',
-            config=config)
-        c = converters.get_converter(field, config=config)
-
-        c.parse("XXX")  # ASCII
-        c.parse("zła")  # non-ASCII
-    assert len(w) == 1
-
-
-@raises(exceptions.E24)
-def test_unicode_as_char_binary():
-    config = {'verify': 'warn'}
+    #with catch_warnings(exceptions.W55) as w:
     field = tree.Field(
         None, name='unicode_in_char', datatype='char',
-        config=config)
+        arraysize='*', config=config)
     c = converters.get_converter(field, config=config)
-    c._binoutput_var('zła', False)
+
+    c.parse("XXX")  # ASCII succeeds
+
+    with pytest.raises(
+        exceptions.W55,
+        match=r'.*FIELD \(unicode_in_char\) has datatype="char" but contains non-ASCII value.*'):
+        c.parse("zła")  # non-ASCII
+
+
+def test_unicode_as_char_binary():
+    config = {'verify': 'exception'}
+
+    field = tree.Field(
+        None, name='unicode_in_char', datatype='char',
+         arraysize='*', config=config)
+    c = converters.get_converter(field, config=config)
+    c._binoutput_var('abc', False)  # ASCII succeeds
+    with pytest.raises(exceptions.E24, match=r".*E24: Attempt to write non-ASCII value.*"):
+        c._binoutput_var('zła', False)
+
+    field = tree.Field(
+        None, name='unicode_in_char', datatype='char',
+         arraysize='3', config=config)
+    c = converters.get_converter(field, config=config)
+    c._binoutput_fixed('xyz', False)
+    with pytest.raises(exceptions.E24, match=r".*E24: Attempt to write non-ASCII value.*"):
+        c._binoutput_fixed('zła', False)
 
 
 @raises(exceptions.E02)
