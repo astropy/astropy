@@ -418,6 +418,16 @@ between the Celsius, Fahrenheit, and Kelvin. For example::
 
 .. note:: You can also use ``u.deg_C`` instead of ``u.Celsius``.
 
+Mass-energy Equivalency
+-----------------------
+
+In a special relativity context, mass and energy can be equivalent units. For
+example::
+
+    >>> import astropy.units as u
+    >>> (1*u.g).to(u.eV, u.mass_energy())  # doctest: +FLOAT_CMP
+    <Quantity 5.60958865e+32 eV>
+
 
 Writing new equivalencies
 =========================
