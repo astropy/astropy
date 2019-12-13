@@ -3,9 +3,8 @@
 
 
 import re
-import functools
 
-from astropy.io import registry as io_registry
+from astropy.io import registry as io_registry  # noqa
 from astropy.table import Table
 
 __all__ = []

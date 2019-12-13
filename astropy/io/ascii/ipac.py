@@ -423,7 +423,8 @@ class Ipac(basic.Basic):
 
     DBMS : bool, optional
         If true, this verifies that written tables adhere (semantically)
-        to the `IPAC/DBMS <https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html>`_
+        to the `IPAC/DBMS
+        <https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html>`_
         definition of IPAC tables. If 'False' it only checks for the (less strict)
         `IPAC <https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
         definition.
@@ -506,7 +507,7 @@ class Ipac(basic.Basic):
                  "IPAC metadata must be in the form {{'keywords':"
                  "{{'keyword': {{'value': value}} }}".format(ignored_keys),
                  AstropyUserWarning
-                )
+                 )
 
         # Usually, this is done in data.write, but since the header is written
         # first, we need that here.

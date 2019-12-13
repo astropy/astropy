@@ -34,13 +34,15 @@ class SExtractorHeader(core.BaseHeader):
         # header comment string of the format: "# 1 ID short description [unit]"
         # However, some may be missing and must be inferred from skipped column numbers
         columns = {}
-        # E.g. '# 1 ID identification number' (without units) or '# 2 MAGERR magnitude of error [mag]'
+        # E.g. '# 1 ID identification number' (no units) or '# 2 MAGERR magnitude of error [mag]'
         # Updated along with issue #4603, for more robust parsing of unit
         re_name_def = re.compile(r"""^\s* \# \s*             # possible whitespace around #
                                  (?P<colnumber> [0-9]+)\s+   # number of the column in table
                                  (?P<colname> [-\w]+)        # name of the column
-                                 (?:\s+(?P<coldescr> \w .+)  # column description, match any character until...
-                                 (?:(?<!(\]))$|(?=(?:(?<=\S)\s+\[.+\]))))?  # ...until [non-space][space][unit] or [not-right-bracket][end]
+                                 # column description, match any character until...
+                                 (?:\s+(?P<coldescr> \w .+)
+                                 # ...until [non-space][space][unit] or [not-right-bracket][end]
+                                 (?:(?<!(\]))$|(?=(?:(?<=\S)\s+\[.+\]))))?
                                  (?:\s*\[(?P<colunit>.+)\])?.* # match units in brackets
                                  """, re.VERBOSE)
         dataline = None
@@ -65,7 +67,8 @@ class SExtractorHeader(core.BaseHeader):
         if dataline is not None:
             n_data_cols = len(dataline.split())
         else:
-            n_data_cols = colnumbers[-1]  # handles no data, where we have to rely on the last column number
+            # handles no data, where we have to rely on the last column number
+            n_data_cols = colnumbers[-1]
         # sextractor column number start at 1.
         columns[n_data_cols + 1] = (None, None, None)
         colnumbers.append(n_data_cols + 1)
@@ -73,8 +76,9 @@ class SExtractorHeader(core.BaseHeader):
             previous_column = 0
             for n in colnumbers:
                 if n != previous_column + 1:
-                    for c in range(previous_column+1, n):
-                        column_name = columns[previous_column][0]+"_{}".format(c-previous_column)
+                    for c in range(previous_column + 1, n):
+                        column_name = columns[previous_column][0] + \
+                            "_{}".format(c - previous_column)
                         column_descr = columns[previous_column][1]
                         column_unit = columns[previous_column][2]
                         columns[c] = (column_name, column_descr, column_unit)

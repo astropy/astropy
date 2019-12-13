@@ -27,7 +27,7 @@ from astropy.io import ascii
 from astropy import units as u
 
 try:
-    import yaml  # pylint: disable=W0611
+    import yaml  # noqa
     HAS_YAML = True
 except ImportError:
     HAS_YAML = False
@@ -134,10 +134,10 @@ def test_write_read_roundtrip():
         t.write(out, format='ascii.ecsv', delimiter=delimiter)
 
         t2s = [Table.read(out.getvalue(), format='ascii.ecsv'),
-                Table.read(out.getvalue(), format='ascii'),
-                ascii.read(out.getvalue()),
-                ascii.read(out.getvalue(), format='ecsv', guess=False),
-                ascii.read(out.getvalue(), format='ecsv')]
+               Table.read(out.getvalue(), format='ascii'),
+               ascii.read(out.getvalue()),
+               ascii.read(out.getvalue(), format='ecsv', guess=False),
+               ascii.read(out.getvalue(), format='ecsv')]
         for t2 in t2s:
             assert t.meta == t2.meta
             for name in t.colnames:
@@ -227,8 +227,8 @@ def test_regression_5604():
     See https://github.com/astropy/astropy/issues/5604 for more.
     """
     t = Table()
-    t.meta = {"foo": 5*u.km, "foo2": u.s}
-    t["bar"] = [7]*u.km
+    t.meta = {"foo": 5 * u.km, "foo2": u.s}
+    t["bar"] = [7] * u.km
 
     out = StringIO()
     t.write(out, format="ascii.ecsv")
@@ -281,7 +281,7 @@ mixin_cols = {
                     obstime=['J1990.5'] * 2),
     'q': [1, 2] * u.m,
     'lat': Latitude([1, 2] * u.deg),
-    'lon': Longitude([1, 2] * u.deg, wrap_angle=180.*u.deg),
+    'lon': Longitude([1, 2] * u.deg, wrap_angle=180. * u.deg),
     'ang': Angle([1, 2] * u.deg),
     'el': el,
     # 'nd': NdarrayMixin(el)  # not supported yet

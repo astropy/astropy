@@ -16,10 +16,10 @@ TEST_DIR = os.path.dirname(__file__)
 
 has_isnan = True
 try:
-    from math import isnan  # pylint: disable=W0611
+    from math import isnan  # noqa
 except ImportError:
     try:
-        from numpy import isnan  # pylint: disable=W0611
+        from numpy import isnan  # noqa
     except ImportError:
         has_isnan = False
         print('Tests requiring isnan will fail')

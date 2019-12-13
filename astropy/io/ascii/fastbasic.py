@@ -29,8 +29,8 @@ class FastBasic(metaclass=core.MetaBaseReader):
         # Make sure user does not set header_start to None for a reader
         # that expects a non-None value (i.e. a number >= 0).  This mimics
         # what happens in the Basic reader.
-        if (default_kwargs.get('header_start', 0) is not None and
-                user_kwargs.get('header_start', 0) is None):
+        if (default_kwargs.get('header_start', 0) is not None
+                and user_kwargs.get('header_start', 0) is None):
             raise ValueError('header_start cannot be set to None for this Reader')
 
         # Set up kwargs and copy any user kwargs.  Use deepcopy user kwargs
@@ -50,8 +50,8 @@ class FastBasic(metaclass=core.MetaBaseReader):
         self.header_start = kwargs.pop('header_start', 0)
         # If data_start is not specified, start reading
         # data right after the header line
-        data_start_default = user_kwargs.get('data_start', self.header_start +
-                                    1 if self.header_start is not None else 1)
+        data_start_default = user_kwargs.get('data_start', self.header_start
+                                             + 1 if self.header_start is not None else 1)
         self.data_start = kwargs.pop('data_start', data_start_default)
         self.kwargs = kwargs
         self.strip_whitespace_lines = True
@@ -72,7 +72,7 @@ class FastBasic(metaclass=core.MetaBaseReader):
         elif self.data_start is None:
             raise core.ParameterError("The C reader does not allow data_start to be None")
         elif self.header_start is not None and self.header_start < 0 and \
-             not isinstance(self, FastCommentedHeader):
+                not isinstance(self, FastCommentedHeader):
             raise core.ParameterError("The C reader does not allow header_start to be "
                                       "negative except for commented-header files")
         elif self.data_start < 0:
@@ -146,10 +146,10 @@ class FastBasic(metaclass=core.MetaBaseReader):
             # Impose strict requirements on column names (normally used in guessing)
             bads = [" ", ",", "|", "\t", "'", '"']
             for name in names:
-                if (core._is_number(name) or
-                    len(name) == 0 or
-                    name[0] in bads or
-                    name[-1] in bads):
+                if (core._is_number(name)
+                    or len(name) == 0
+                    or name[0] in bads
+                        or name[-1] in bads):
                     raise ValueError('Column name {!r} does not meet strict name requirements'
                                      .format(name))
         # When guessing require at least two columns
@@ -168,10 +168,10 @@ class FastBasic(metaclass=core.MetaBaseReader):
                header_output=True, output_types=False):
 
         write_kwargs = {'delimiter': self.delimiter,
-                         'quotechar': self.quotechar,
-                         'strip_whitespace': self.strip_whitespace_fields,
-                         'comment': self.write_comment
-                         }
+                        'quotechar': self.quotechar,
+                        'strip_whitespace': self.strip_whitespace_fields,
+                        'comment': self.write_comment
+                        }
         write_kwargs.update(default_kwargs)
         # user kwargs take precedence over default kwargs
         write_kwargs.update(self.kwargs)
@@ -266,7 +266,7 @@ class FastCommentedHeader(FastBasic):
             idx = self.header_start
             if idx < 0:
                 idx = len(comments) + idx
-            meta['comments'] = comments[:idx] + comments[idx+1:]
+            meta['comments'] = comments[:idx] + comments[idx + 1:]
             if not meta['comments']:
                 del meta['comments']
 
@@ -339,11 +339,11 @@ class FastRdb(FastBasic):
 
         if len(self.engine.get_names()) != len(types):
             raise core.InconsistentTableError('RDB header mismatch between number of '
-                             'column names and column types')
+                                              'column names and column types')
 
         if any(not re.match(r'\d*(N|S)$', x, re.IGNORECASE) for x in types):
             raise core.InconsistentTableError('RDB type definitions do not all match '
-                             '[num](N|S): {}'.format(types))
+                                              '[num](N|S): {}'.format(types))
 
         try_int = {}
         try_float = {}
