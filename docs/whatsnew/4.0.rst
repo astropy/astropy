@@ -37,9 +37,9 @@ In addition to these major changes, Astropy v4.0 includes a large number of
 smaller improvements and bug fixes, which are described in the
 :ref:`changelog`. By the numbers:
 
-* xxx issues have been closed since v3.2
-* xxx pull requests have been merged since v3.2
-* xxx distinct people have contributed code
+* 948 issues have been closed since v3.2
+* 493 pull requests have been merged since v3.2
+* 74 distinct people have contributed code, 26 of which are first time contributors to Astropy
 
 .. _whatsnew-4.0-planck2018:
 
@@ -617,3 +617,85 @@ Full change log
 
 To see a detailed list of all changes in version v4.0, including changes in
 API, please see the :ref:`changelog`.
+
+
+Contributors to the v4.0 release
+================================
+
+.. hlist::
+  :columns: 4
+
+  *    Aarya Patil
+  *    Adam Ginsburg
+  *    Adrian Price-Whelan
+  *    Albert Y. Shih
+  *    Alex Conley
+  *    Anne Archibald
+  *    Arthur Eigenbrot  *
+  *    Benjamin Alan Weaver
+  *    Brett M. Morris  *
+  *    Brigitta Sipőcz
+  *    Bryce Kalmbach  *
+  *    Christoph Deil
+  *    Clara Brasseur
+  *    Clare Shanahan  *
+  *    Dan Foreman-Mackey
+  *    Daria Cara
+  *    David Shupe
+  *    David Stansby
+  *    Derek Homeier
+  *    Douglas Burke
+  *    Drew Leonard  *
+  *    Erik M. Bray
+  *    Erik Tollerud
+  *    Frédéric Chapoton
+  *    Geert Barentsen
+  *    Gregory Dubois-Felsmann  *
+  *    Hannes Breytenbach
+  *    Hans Moritz Günther
+  *    Harry Ferguson
+  *    Himanshu Pathak
+  *    James Davies
+  *    John Fisher  *
+  *    John Parejko
+  *    Johnny Greco
+  *    Juan Luis Cano Rodríguez
+  *    Julien Woillez
+  *    Karl Gordon
+  *    Kewei Li  *
+  *    Larry Bradley
+  *    Lauren Glattly
+  *    Leo Singer
+  *    Lia Corrales  *
+  *    M Atakan Gürkan  *
+  *    Mark Fardal  *
+  *    Marten van Kerkwijk
+  *    Matteo Bachetti
+  *    Matthew Craig
+  *    Maximilian Nöthe
+  *    Michael Seifert
+  *    Mihai Cara
+  *    Nadia Dencheva
+  *    Nora Luetzgendorf  *
+  *    Perry Greenfield
+  *    Pey Lian Lim
+  *    Rasmus Handberg  *
+  *    Rui Xue  *
+  *    SF Graves  *
+  *    Sadie Bartholomew  *
+  *    Semyeong Oh
+  *    Shreyas Bapat  *
+  *    Simon Conseil
+  *    Simon Torres  *
+  *    Stuart Mumford
+  *    Thomas Robitaille
+  *    Tiffany Jansen  *
+  *    Tom Aldcroft
+  *    Tom Donaldson  *
+  *    Tom J Wilson  *
+  *    Vishnunarayan K I
+  *    Wilfred Tyler Gee  *
+  *    Yash Sharma  *
+  *    Yingqi Ying  *
+  *    Zachary Kurtz  *
+  *    rtolesnikov  *

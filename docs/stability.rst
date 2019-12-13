@@ -292,7 +292,7 @@ The current planned and existing sub-packages are:
                 <span class="dev"></span>
             </td>
             <td>
-                New in v3.1, in heavy development.
+                New in v3.1, in development.
             </td>
         </tr>
         <tr>

@@ -8,11 +8,11 @@
 Uncertainties and Distributions (`astropy.uncertainty`)
 *******************************************************
 
-.. warning::
+.. note::
 
-    `astropy.uncertainty` is currently a work-in-progress, and thus it is quite
-    possible there will be API changes in later versions of Astropy. If you have
-    specific ideas for how it might be improved, please  let us know on the
+    `astropy.uncertainty` is relatively new (Astropy v3.1), and thus it is
+    possible there will be API changes in upcoming versions of Astropy. If you
+    have specific ideas for how it might be improved, please  let us know on the
     `astropy-dev mailing list`_ or at http://feedback.astropy.org .
 
 Introduction
