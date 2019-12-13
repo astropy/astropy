@@ -163,6 +163,8 @@ except (ImportError, AssertionError):
     sys.stderr.write("ERROR: setuptools 30.3 or later is required by astropy-helpers\n")
     sys.exit(1)
 
+SETUPTOOLS_LT_42 = LooseVersion(setuptools.__version__) < LooseVersion('42')
+
 # typing as a dependency for 1.6.1+ Sphinx causes issues when imported after
 # initializing submodule with ah_boostrap.py
 # See discussion and references in
@@ -533,7 +535,9 @@ class _Bootstrapper(object):
                         opts['find_links'] = ('setup script', find_links)
                     if index_url is not None:
                         opts['index_url'] = ('setup script', index_url)
-                    if allow_hosts is not None:
+                    # For setuptools>=42, the allow_hosts option can't
+                    # be used because pip doesn't support it.
+                    if allow_hosts is not None and SETUPTOOLS_LT_42:
                         opts['allow_hosts'] = ('setup script', allow_hosts)
                 return opts
 
