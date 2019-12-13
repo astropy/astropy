@@ -11,7 +11,7 @@ from collections import OrderedDict, defaultdict
 import numpy as np
 
 from astropy.utils.decorators import lazyproperty
-from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy import units as u
 from astropy import _erfa as erfa
 
@@ -215,8 +215,8 @@ class TimeFormat(metaclass=TimeFormatMeta):
         ok1 = (val1.dtype.kind == 'f' and val1.dtype.itemsize >= 8
                and np.all(np.isfinite(val1)) or val1.size == 0)
         ok2 = val2 is None or (
-            val2.dtype.kind == 'f' and val2.dtype.itemsize >= 8 and
-            not np.any(np.isinf(val2))) or val2.size == 0
+            val2.dtype.kind == 'f' and val2.dtype.itemsize >= 8
+            and not np.any(np.isinf(val2))) or val2.size == 0
         if not (ok1 and ok2):
             raise TypeError('Input values for {} class must be finite doubles'
                             .format(self.name))
@@ -334,10 +334,10 @@ class TimeNumeric(TimeFormat):
         """Input value validation, typically overridden by derived classes"""
         if val1.dtype.kind == 'f':
             val1, val2 = super()._check_val_type(val1, val2)
-        elif (val2 is not None or
-              not (val1.dtype.kind in 'US' or
-                   (val1.dtype.kind == 'O' and
-                    all(isinstance(v, Decimal) for v in val1.flat)))):
+        elif (val2 is not None
+              or not (val1.dtype.kind in 'US'
+                      or (val1.dtype.kind == 'O'
+                          and all(isinstance(v, Decimal) for v in val1.flat)))):
             raise TypeError(
                 'for {} class, input should be doubles, string, or Decimal, '
                 'and second values are only allowed for doubles.'
@@ -671,8 +671,8 @@ class TimeStardate(TimeFromEpoch):
     See http://trekguide.com/Stardates.htm#TNG for calculations and reference points
     """
     name = 'stardate'
-    unit = 0.397766856 # Stardate units per day
-    epoch_val = '2318-07-05 11:00:00' # Date and time of stardate 00000.00
+    unit = 0.397766856  # Stardate units per day
+    epoch_val = '2318-07-05 11:00:00'  # Date and time of stardate 00000.00
     epoch_val2 = None
     epoch_scale = 'tai'
     epoch_format = 'iso'
@@ -754,7 +754,7 @@ class TimeDatetime(TimeUnique):
         # Iterate through the datetime objects, getting year, month, etc.
         iterator = np.nditer([val1, None, None, None, None, None, None],
                              flags=['refs_ok', 'zerosize_ok'],
-                             op_dtypes=[None] + 5*[np.intc] + [np.double])
+                             op_dtypes=[None] + 5 * [np.intc] + [np.double])
         for val, iy, im, id, ihr, imin, dsec in iterator:
             dt = val.item()
 
@@ -805,7 +805,7 @@ class TimeDatetime(TimeUnique):
         ifracs = ihmsfs['f']
         iterator = np.nditer([iys, ims, ids, ihrs, imins, isecs, ifracs, None],
                              flags=['refs_ok', 'zerosize_ok'],
-                             op_dtypes=7*[None] + [object])
+                             op_dtypes=7 * [None] + [object])
 
         for iy, im, id, ihr, imin, isec, ifracsec, out in iterator:
             if isec >= 60:
@@ -888,9 +888,9 @@ class TimeYMDHMS(TimeUnique):
             # Input was empty list [], so set to None and set_jds will handle this
             return None, None
 
-        elif (val1.dtype.kind == 'O' and
-              val1.shape == () and
-              isinstance(val1.item(), dict)):
+        elif (val1.dtype.kind == 'O'
+              and val1.shape == ()
+              and isinstance(val1.item(), dict)):
             # Code gets here for input as a dict.  The dict input
             # can be either scalar values or N-d arrays.
 
@@ -971,7 +971,7 @@ class TimezoneInfo(datetime.tzinfo):
     a workaround for users without pytz.
     """
     @u.quantity_input(utc_offset=u.day, dst=u.day)
-    def __init__(self, utc_offset=0*u.day, dst=0*u.day, tzname=None):
+    def __init__(self, utc_offset=0 * u.day, dst=0 * u.day, tzname=None):
         """
         Parameters
         ----------
@@ -1083,7 +1083,7 @@ class TimeString(TimeUnique):
                      lambda x: str(x.item(), encoding='ascii'))
         iterator = np.nditer([val1, None, None, None, None, None, None],
                              flags=['zerosize_ok'],
-                             op_dtypes=[None] + 5*[np.intc] + [np.double])
+                             op_dtypes=[None] + 5 * [np.intc] + [np.double])
         for val, iy, im, id, ihr, imin, dsec in iterator:
             val = to_string(val)
             iy[...], im[...], id[...], ihr[...], imin[...], dsec[...] = (
@@ -1499,7 +1499,7 @@ class TimeDeltaNumeric(TimeDeltaFormat, TimeNumeric):
 
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # Validate scale.
-        self.jd1, self.jd2 = day_frac(val1, val2, divisor=1./self.unit)
+        self.jd1, self.jd2 = day_frac(val1, val2, divisor=1. / self.unit)
 
     def to_value(self, **kwargs):
         # Note that 1/unit is always exactly representable, so the
@@ -1546,7 +1546,7 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
         day = datetime.timedelta(days=1)
         for val, jd1, jd2 in iterator:
             jd1[...], other = divmod(val.item(), day)
-            jd2[...] = other/day
+            jd2[...] = other / day
 
         self.jd1, self.jd2 = day_frac(iterator.operands[-2],
                                       iterator.operands[-1])
@@ -1560,7 +1560,7 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
         for jd1, jd2, out in iterator:
             jd1_, jd2_ = day_frac(jd1, jd2)
             out[...] = datetime.timedelta(days=jd1_,
-                                          microseconds=jd2_*86400*1e6)
+                                          microseconds=jd2_ * 86400 * 1e6)
 
         return self.mask_if_needed(iterator.operands[-1])
 
@@ -1603,4 +1603,4 @@ def _broadcast_writeable(jd1, jd2):
     return s_jd1, s_jd2
 
 
-from .core import Time, TIME_SCALES, TIME_DELTA_SCALES, ScaleValueError
+from .core import Time, TIME_SCALES, TIME_DELTA_SCALES, ScaleValueError  # noqa
