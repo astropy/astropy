@@ -1088,6 +1088,8 @@ def test_is_url_in_cache_local(temp_cache, valid_urls, invalid_urls):
     assert not is_url_in_cache(nonexistent)
 
 
+# TODO: Un-skip this test when non-deterministic failure is fixed.
+@pytest.mark.skip(reason='https://github.com/astropy/astropy/issues/9765')
 def test_check_download_cache(tmpdir, temp_cache, valid_urls, invalid_urls):
     testurl, testurl_contents = next(valid_urls)
     testurl2, testurl2_contents = next(valid_urls)
