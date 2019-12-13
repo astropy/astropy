@@ -65,6 +65,29 @@ def test_unicode_mask():
     assert c.output("Foo", True) == ''
 
 
+def test_unicode_as_char():
+    config = {'verify': 'exception'}
+    with catch_warnings(exceptions.W55) as w:
+        field = tree.Field(
+            None, name='unicode_in_char', datatype='char',
+            config=config)
+        c = converters.get_converter(field, config=config)
+
+        c.parse("XXX")  # ASCII
+        c.parse("zła")  # non-ASCII
+    assert len(w) == 1
+
+
+@raises(exceptions.E24)
+def test_unicode_as_char_binary():
+    config = {'verify': 'warn'}
+    field = tree.Field(
+        None, name='unicode_in_char', datatype='char',
+        config=config)
+    c = converters.get_converter(field, config=config)
+    c._binoutput_var('zła', False)
+
+
 @raises(exceptions.E02)
 def test_wrong_number_of_elements():
     config = {'verify': 'exception'}

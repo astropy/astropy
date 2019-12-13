@@ -1082,6 +1082,19 @@ class W54(VOTableSpecWarning):
     default_args = ('1.3',)
 
 
+class W55(VOTableSpecWarning):
+    """
+    When non-ASCII characters are detected when reading
+    a TABLEDATA value for a FIELD with datatype="char", we
+    can issue this warning.
+    """
+
+    message_template = (
+        'FIELD ({}) has datatype="char" but contains non-ASCII '
+        'value ({})')
+    default_args = ('', '')
+
+
 class E01(VOWarning, ValueError):
     """
     The size specifier for a ``char`` or ``unicode`` field must be
@@ -1446,6 +1459,18 @@ class E23(VOTableSpecWarning):
 
     message_template = "Invalid timeorigin attribute '{}'"
     default_args = ('x',)
+
+
+class E24(VOWarning, ValueError):
+    """
+    Non-ASCII unicode values cannot be written in BINARY or BINARY2 serialization
+    when the FIELD datatype="char".
+    """
+
+    message_template = (
+        'Attempt to write non-ASCII value ({}) to FIELD ({}) which '
+        'has datatype="char"')
+    default_args = ('', '')
 
 
 def _get_warning_and_exception_classes(prefix):
