@@ -1420,7 +1420,7 @@ def test_cache_dir_is_actually_a_file(tmpdir, valid_urls):
 
     # Ditto one level deeper
     os.makedirs(cd)
-    cd = str(tmpdir.join("astropy" / "download"))
+    cd = str(tmpdir.join(os.path.join("astropy", "download")))
     with open(cd, "w") as f:
         f.write(ct)
     with paths.set_temp_cache(tmpdir.strpath):
@@ -1432,7 +1432,7 @@ def test_cache_dir_is_actually_a_file(tmpdir, valid_urls):
     # Ditto another level deeper
     os.makedirs(cd)
     py_version = "py" + str(sys.version_info.major)
-    cd = str(tmpdir.join("astropy" / "download" / py_version))
+    cd = str(tmpdir.join(os.path.join("astropy", "download", py_version)))
     with open(cd, "w") as f:
         f.write(ct)
     with paths.set_temp_cache(tmpdir.strpath):
@@ -1445,7 +1445,7 @@ def test_cache_dir_is_actually_a_file(tmpdir, valid_urls):
     # be okay if the shelve object has a funny naming convention
     # (the relation between the string you hand shelve and the names of
     # any files it may create is explicitly system-dependent)
-    cd = str(tmpdir.join("astropy" / "download" / py_version / "urlmap"))
+    cd = str(tmpdir.join(os.path.join("astropy", "download", py_version, "urlmap")))
     os.makedirs(cd)
     with paths.set_temp_cache(tmpdir.strpath):
         check_quietly_ignores_bogus_cache()
