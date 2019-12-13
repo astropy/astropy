@@ -148,6 +148,8 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
+- ``Table.from_pandas`` no supports a ``units`` dictionary as argument to pass units
+  for columns in the ``DataFrame``. [#9472]
 
 astropy.tests
 ^^^^^^^^^^^^^
