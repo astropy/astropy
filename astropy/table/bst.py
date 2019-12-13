@@ -24,8 +24,6 @@ class MaxValue:
     def __repr__(self):
         return "MAX"
 
-    __le__ = __lt__
-    __ge__ = __gt__
     __str__ = __repr__
 
 
@@ -50,8 +48,6 @@ class MinValue:
     def __repr__(self):
         return "MIN"
 
-    __le__ = __lt__
-    __ge__ = __gt__
     __str__ = __repr__
 
 
@@ -454,7 +450,7 @@ class BST:
         return str(self)
 
     def _print(self, node, level):
-        line = '\t'*level + str(node) + '\n'
+        line = '\t' * level + str(node) + '\n'
         if node.left is not None:
             line += self._print(node.left, level + 1)
         if node.right is not None:
@@ -586,12 +582,12 @@ class FastBase:
         '''
         Return all nodes in this BST.
         '''
-        l = []
+        ll = []
         for key, data in self.data.items():
             n = Node(key, key)
             n.data = data
-            l.append(n)
-        return l
+            ll.append(n)
+        return ll
 
     def items(self):
         '''
@@ -634,10 +630,10 @@ class FastBase:
             lower = Epsilon(lower)
         if bounds[1]:  # key <= upper
             upper = Epsilon(upper)
-        l = [v for v in self.data.value_slice(lower, upper)]
+        ll = [v for v in self.data.value_slice(lower, upper)]
         if self.unique:
-            return l
-        return [x for sublist in l for x in sublist]
+            return ll
+        return [x for sublist in ll for x in sublist]
 
     def replace_rows(self, row_map):
         '''

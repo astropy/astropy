@@ -157,7 +157,7 @@ class TestInitFromListOfLists(BaseInitFromListLike):
     def test_partial_names_dtype(self, table_type):
         self._setup(table_type)
         t = table_type(self.data, names=['b', None, 'c'],
-                  dtype=['f4', None, 'f8'])
+                       dtype=['f4', None, 'f8'])
         assert t.colnames == ['b', 'col1', 'c']
         assert t['b'].dtype.type == np.float32
         assert t['col1'].dtype.type == np.int32

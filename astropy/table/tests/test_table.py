@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from astropy.utils.tests.test_metadata import MetaBaseTest
 import gc
 import sys
 import copy
@@ -27,7 +28,7 @@ try:
     with ignore_warnings(DeprecationWarning):
         # Ignore DeprecationWarning on pandas import in Python 3.5--see
         # https://github.com/astropy/astropy/issues/4380
-        import pandas  # pylint: disable=W0611
+        import pandas  # noqa
 except ImportError:
     HAS_PANDAS = False
 else:
@@ -268,7 +269,7 @@ class TestNewFromColumns():
 
     def test_from_np_array(self, table_types):
         cols = [table_types.Column(name='a', data=np.array([1, 2, 3], dtype=np.int64),
-                       dtype=np.float64),
+                                   dtype=np.float64),
                 table_types.Column(name='b', data=np.array([4, 5, 6], dtype=np.float32))]
         t = table_types.Table(cols)
         assert np.all(t['a'] == np.array([1, 2, 3], dtype=np.float64))
@@ -297,7 +298,7 @@ class TestReverse():
 
     def test_reverse(self, table_types):
         t = table_types.Table([[1, 2, 3],
-                   ['a', 'b', 'cc']])
+                               ['a', 'b', 'cc']])
         t.reverse()
         assert np.all(t['col0'] == np.array([3, 2, 1]))
         assert np.all(t['col1'] == np.array(['cc', 'b', 'a']))
@@ -593,7 +594,8 @@ class TestAddColumns(SetupData):
         self._setup(table_types)
         t = table_types.Table([self.a, self.b, self.c])
         with pytest.raises(ValueError):
-            t.add_columns([table_types.Column(name='a', data=[0, 1, 2]), table_types.Column(name='b', data=[0, 1, 2])])
+            t.add_columns([table_types.Column(name='a', data=[0, 1, 2]),
+                           table_types.Column(name='b', data=[0, 1, 2])])
         t.add_columns([table_types.Column(name='a', data=[0, 1, 2]),
                        table_types.Column(name='b', data=[0, 1, 2])],
                       rename_duplicate=True)
@@ -850,8 +852,8 @@ class TestRemove(SetupData):
         assert self.t.as_array().size == 0
         # Regression test for gh-8640
         assert not self.t
-        assert isinstance(self.t == None, np.ndarray)
-        assert (self.t == None).size == 0
+        assert isinstance(self.t == None, np.ndarray)  # noqa
+        assert (self.t == None).size == 0  # noqa
 
     def test_2(self, table_types):
         self._setup(table_types)
@@ -965,8 +967,8 @@ class TestRemove(SetupData):
         assert self.t.as_array().size == 0
         # Regression test for gh-8640
         assert not self.t
-        assert isinstance(self.t == None, np.ndarray)
-        assert (self.t == None).size == 0
+        assert isinstance(self.t == None, np.ndarray)  # noqa
+        assert (self.t == None).size == 0  # noqa
 
     def test_delitem2(self, table_types):
         self._setup(table_types)
@@ -995,8 +997,8 @@ class TestKeep(SetupData):
         assert t.as_array().size == 0
         # Regression test for gh-8640
         assert not t
-        assert isinstance(t == None, np.ndarray)
-        assert (t == None).size == 0
+        assert isinstance(t == None, np.ndarray)  # noqa
+        assert (t == None).size == 0  # noqa
 
     def test_2(self, table_types):
         self._setup(table_types)
@@ -1331,8 +1333,8 @@ class TestConvertNumpyArray():
 
             arr2 = t.as_array(keep_byteorder=True)
             for colname in data.columns.names:
-                assert (data[colname].dtype.byteorder ==
-                        arr2[colname].dtype.byteorder)
+                assert (data[colname].dtype.byteorder
+                        == arr2[colname].dtype.byteorder)
 
 
 def _assert_copies(t, t2, deep=True):
@@ -1405,10 +1407,10 @@ def test_values_equal_part1():
     tm1['time'][0] = np.ma.masked
 
     tq = table.table_helpers.simple_table()
-    tq['quantity'] = [1., 2., 3.]*u.m
+    tq['quantity'] = [1., 2., 3.] * u.m
 
     tsk = table.table_helpers.simple_table()
-    tsk['sk'] = SkyCoord(1, 2,  unit='deg')
+    tsk['sk'] = SkyCoord(1, 2, unit='deg')
 
     with pytest.raises(ValueError, match='cannot compare tables with different column names'):
         t2.values_equal(t1)
@@ -1489,7 +1491,7 @@ def test_rows_equal():
                            ' 1 b 3.0 5',
                            ' 1 c 2.0 6',
                            ' 1 a 1.0 7',
-                          ], format='ascii')
+                           ], format='ascii')
 
     # In the above cases, Row.__eq__ gets called, but now need to make sure
     # Table.__eq__ also gets called.
@@ -1512,7 +1514,7 @@ def test_equality_masked():
                           ' 1 b 3.0 5',
                           ' 1 a 2.0 6',
                           ' 1 a 1.0 7',
-                         ], format='ascii')
+                          ], format='ascii')
 
     # Make into masked table
     t = table.Table(t, masked=True)
@@ -1538,7 +1540,7 @@ def test_equality_masked():
                            ' 1 b 3.0 5',
                            ' 1 c 2.0 6',
                            ' 1 a 1.0 7',
-                          ], format='ascii')
+                           ], format='ascii')
 
     # In the above cases, Row.__eq__ gets called, but now need to make sure
     # Table.__eq__ also gets called.
@@ -1572,7 +1574,7 @@ def test_equality_masked_bug():
                           ' 1 b 3.0 5',
                           ' 1 a 2.0 6',
                           ' 1 a 1.0 7',
-                         ], format='ascii')
+                          ], format='ascii')
 
     t = table.Table(t, masked=True)
 
@@ -1585,7 +1587,7 @@ def test_equality_masked_bug():
                            ' 1 b 3.0 5',
                            ' 1 c 2.0 6',
                            ' 1 a 1.0 7',
-                          ], format='ascii')
+                           ], format='ascii')
 
     assert np.all((t.as_array() == t2) == np.array([0, 1, 0, 1, 0, 1, 0, 1], dtype=bool))
 
@@ -1593,8 +1595,6 @@ def test_equality_masked_bug():
 # Check that the meta descriptor is working as expected. The MetaBaseTest class
 # takes care of defining all the tests, and we simply have to define the class
 # and any minimal set of args to pass.
-
-from astropy.utils.tests.test_metadata import MetaBaseTest
 
 
 class TestMetaTable(MetaBaseTest):
@@ -1632,7 +1632,7 @@ def test_unicode_policy():
                           ' 1 b 3.0 5',
                           ' 1 a 2.0 6',
                           ' 1 a 1.0 7',
-                         ], format='ascii')
+                          ], format='ascii')
     assert_follows_unicode_guidelines(t)
 
 
@@ -1954,7 +1954,9 @@ class TestReplaceColumn(SetupData):
         self._setup(table_types)
         t = table_types.Table([self.a, self.b])
 
-        with pytest.raises(ValueError, match=r"Cannot replace column 'a'.  Use Table.replace_column.. instead."):
+        with pytest.raises(ValueError,
+                           match=r"Cannot replace column 'a'.  Use "
+                           "Table.replace_column.. instead."):
             t.columns['a'] = [1, 2, 3]
 
         with pytest.raises(ValueError, match=r"column name not there is not in the table"):
@@ -2265,7 +2267,7 @@ def test_replace_update_column_via_setitem_warnings_refcount():
     Reference count changes.
     """
     t = table.Table([[1, 2, 3], [4, 5, 6]], names=['a', 'b'])
-    ta = t['a']  # Generate an extra reference to original column
+    ta = t['a']  # noqa : Generate an extra reference to original column
 
     with catch_warnings() as w:
         with table.conf.set_temp('replace_warnings',

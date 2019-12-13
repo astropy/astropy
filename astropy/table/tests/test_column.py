@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from astropy.utils.tests.test_metadata import MetaBaseTest
 import operator
 
 import pytest
@@ -210,7 +211,7 @@ class TestColumn():
         assert np.all(d_nounit.to(u.dimensionless_unscaled) == np.array([1, 2, 3]))
 
         # make sure the correct copy/no copy behavior is happening
-        q = [1, 3, 5]*u.km
+        q = [1, 3, 5] * u.km
 
         # to should always make a copy
         d.to(u.km)[:] = q
@@ -498,9 +499,6 @@ class TestAttrEqual():
 # and any minimal set of args to pass.
 
 
-from astropy.utils.tests.test_metadata import MetaBaseTest
-
-
 class TestMetaColumn(MetaBaseTest):
     test_class = table.Column
     args = ()
@@ -527,7 +525,8 @@ def test_getitem_metadata_regression():
     assert c[1:2].format == '%i'
     assert c[1:2].meta['c'] == 8
 
-    c = table.MaskedColumn(data=[1, 2], name='a', description='b', unit='m', format="%i", meta={'c': 8})
+    c = table.MaskedColumn(data=[1, 2], name='a', description='b',
+                           unit='m', format="%i", meta={'c': 8})
     assert c[1:2].name == 'a'
     assert c[1:2].description == 'b'
     assert c[1:2].unit == 'm'
@@ -536,7 +535,8 @@ def test_getitem_metadata_regression():
 
     # As above, but with take() - check the method and the function
 
-    c = table.Column(data=[1, 2, 3], name='a', description='b', unit='m', format="%i", meta={'c': 8})
+    c = table.Column(data=[1, 2, 3], name='a', description='b',
+                     unit='m', format="%i", meta={'c': 8})
     for subset in [c.take([0, 1]), np.take(c, [0, 1])]:
         assert subset.name == 'a'
         assert subset.description == 'b'
@@ -550,7 +550,8 @@ def test_getitem_metadata_regression():
         assert subset.shape == ()
         assert not isinstance(subset, table.Column)
 
-    c = table.MaskedColumn(data=[1, 2, 3], name='a', description='b', unit='m', format="%i", meta={'c': 8})
+    c = table.MaskedColumn(data=[1, 2, 3], name='a', description='b',
+                           unit='m', format="%i", meta={'c': 8})
     for subset in [c.take([0, 1]), np.take(c, [0, 1])]:
         assert subset.name == 'a'
         assert subset.description == 'b'
@@ -605,7 +606,7 @@ def test_qtable_column_conversion():
 
     # Regression test for #5342: if a function unit is assigned, the column
     # should become the appropriate FunctionQuantity subclass.
-    qtab['f'].unit = u.dex(u.cm/u.s**2)
+    qtab['f'].unit = u.dex(u.cm / u.s**2)
     assert isinstance(qtab['f'], u.Dex)
 
 
@@ -805,7 +806,7 @@ def test_masked_col_unicode_sandwich():
     assert c[:].dtype.char == 'S'
 
     ok = c == ['abc', 'def']
-    assert ok[0] == True
+    assert ok[0] == True  # noqa
     assert ok[1] is np.ma.masked
     assert np.all(c == [b'abc', b'def'])
     assert np.all(c == np.array(['abc', 'def']))
@@ -814,7 +815,7 @@ def test_masked_col_unicode_sandwich():
     for cmp in ('abc', b'abc'):
         ok = c == cmp
         assert type(ok) is np.ma.MaskedArray
-        assert ok[0] == True
+        assert ok[0] == True  # noqa
         assert ok[1] is np.ma.masked
 
 

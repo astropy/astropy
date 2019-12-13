@@ -146,15 +146,16 @@ class TestRow():
                                          '--- ---',
                                          '  1   4']
 
-        assert row._repr_html_().splitlines() == ['<i>{} {}{}</i>'
-                                                  .format(row.__class__.__name__,
-                                                          'index=0',
-                                                          ' masked=True' if table.masked else ''),
-                                                  '<table id="table{}">'.format(id(table)),
-                                                  '<thead><tr><th>a</th><th>b</th></tr></thead>',
-                                                  '<thead><tr><th>int64</th><th>int64</th></tr></thead>',
-                                                  '<tr><td>1</td><td>4</td></tr>',
-                                                  '</table>']
+        assert row._repr_html_().splitlines() == [
+            '<i>{} {}{}</i>'
+            .format(row.__class__.__name__,
+                    'index=0',
+                    ' masked=True' if table.masked else ''),
+            '<table id="table{}">'.format(id(table)),
+            '<thead><tr><th>a</th><th>b</th></tr></thead>',
+            '<thead><tr><th>int64</th><th>int64</th></tr></thead>',
+            '<tr><td>1</td><td>4</td></tr>',
+            '</table>']
 
     def test_as_void(self, table_types):
         """Test the as_void() method"""
