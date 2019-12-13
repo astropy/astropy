@@ -28,8 +28,8 @@ def test_abs_jd2_always_less_than_half():
     t1 = Time(2400000.5, [-tiny, +tiny], format='jd')
     assert np.all(t1.jd1 % 1 == 0)
     assert np.all(abs(t1.jd2) < 0.5)
-    t2 = Time(2400000., [[0.5-tiny, 0.5+tiny],
-                         [-0.5-tiny, -0.5+tiny]], format='jd')
+    t2 = Time(2400000., [[0.5 - tiny, 0.5 + tiny],
+                         [-0.5 - tiny, -0.5 + tiny]], format='jd')
     assert np.all(t2.jd1 % 1 == 0)
     assert np.all(abs(t2.jd2) < 0.5)
 
@@ -148,7 +148,7 @@ def test_two_sum_simple():
         a = Decimal(i) + Decimal(f)
         s, r = two_sum(i, f)
         b = Decimal(s) + Decimal(r)
-        assert (abs(a-b)*u.day).to(u.ns) < 1*u.ns
+        assert (abs(a - b) * u.day).to(u.ns) < 1 * u.ns
 
 
 def test_day_frac_harmless():
@@ -157,7 +157,7 @@ def test_day_frac_harmless():
         a = Decimal(i) + Decimal(f)
         i_d, f_d = day_frac(i, f)
         a_d = Decimal(i_d) + Decimal(f_d)
-        assert (abs(a-a_d)*u.day).to(u.ns) < 1*u.ns
+        assert (abs(a - a_d) * u.day).to(u.ns) < 1 * u.ns
 
 
 def test_day_frac_idempotent():
@@ -171,7 +171,7 @@ def test_mjd_initialization_precise():
     t = Time(val=i, val2=f, format="mjd", scale="tai")
     jd1, jd2 = day_frac(i + erfa.DJM0, f)
     jd1_t, jd2_t = day_frac(t.jd1, t.jd2)
-    assert (abs((jd1-jd1_t) + (jd2-jd2_t))*u.day).to(u.ns) < 1*u.ns
+    assert (abs((jd1 - jd1_t) + (jd2 - jd2_t)) * u.day).to(u.ns) < 1 * u.ns
 
 
 def test_conversion_preserves_jd1_jd2_invariant():
@@ -207,4 +207,4 @@ def test_datetime_difference_agrees_with_timedelta():
     dt2 = datetime(9950, 1, 1, 0, 0, 0, 890773)
     t1 = Time(dt1, scale=scale)
     t2 = Time(dt2, scale=scale)
-    assert(abs((t2-t1) - TimeDelta(dt2-dt1, scale=scale)) < 1*u.us)
+    assert(abs((t2 - t1) - TimeDelta(dt2 - dt1, scale=scale)) < 1 * u.us)

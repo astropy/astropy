@@ -54,7 +54,7 @@ class TestBasic:
         assert (repr(t) == "<Time object: scale='utc' format='iso' "
                 "value=['1999-01-01 00:00:00.123' '2010-01-01 00:00:00.000']>")
         assert allclose_jd(t.jd1, np.array([2451180., 2455198.]))
-        assert allclose_jd2(t.jd2, np.array([-0.5+1.4288980208333335e-06,
+        assert allclose_jd2(t.jd2, np.array([-0.5 + 1.4288980208333335e-06,
                                              -0.50000000e+00]))
 
         # Set scale to TAI
@@ -62,8 +62,8 @@ class TestBasic:
         assert (repr(t) == "<Time object: scale='tai' format='iso' "
                 "value=['1999-01-01 00:00:32.123' '2010-01-01 00:00:34.000']>")
         assert allclose_jd(t.jd1, np.array([2451180., 2455198.]))
-        assert allclose_jd2(t.jd2, np.array([-0.5+0.00037179926839122024,
-                                             -0.5+0.00039351851851851852]))
+        assert allclose_jd2(t.jd2, np.array([-0.5 + 0.00037179926839122024,
+                                             -0.5 + 0.00039351851851851852]))
 
         # Get a new ``Time`` object which is referenced to the TT scale
         # (internal JD1 and JD1 are now with respect to TT scale)"""
@@ -91,7 +91,7 @@ class TestBasic:
         val2 = 0.
         t3 = Time(val, val2, format='jd')
         assert t3.isscalar is False and t3.shape == val.shape
-        val2 = (np.arange(5.)/10.).reshape(5, 1)
+        val2 = (np.arange(5.) / 10.).reshape(5, 1)
         # now see if broadcasting to two-dimensional works
         t4 = Time(val, val2, format='jd')
         assert t4.isscalar is False
@@ -300,11 +300,11 @@ class TestBasic:
 
         lat = 19.48125
         lon = -155.933222
-        t = Time(['2006-01-15 21:24:37.5']*2, format='iso', scale='utc',
+        t = Time(['2006-01-15 21:24:37.5'] * 2, format='iso', scale='utc',
                  precision=6, location=(lon, lat))
         assert np.all(t.utc.iso == '2006-01-15 21:24:37.500000')
         assert np.all(t.tdb.iso[0] == '2006-01-15 21:25:42.684373')
-        t2 = Time(['2006-01-15 21:24:37.5']*2, format='iso', scale='utc',
+        t2 = Time(['2006-01-15 21:24:37.5'] * 2, format='iso', scale='utc',
                   precision=6, location=(np.array([lon, 0]),
                                          np.array([lat, 0])))
         assert np.all(t2.utc.iso == '2006-01-15 21:24:37.500000')
@@ -315,7 +315,7 @@ class TestBasic:
                  precision=6, location=(np.array([lon, 0]),
                                         np.array([lat, 0])))
         with pytest.raises(ValueError):  # 3 times, but two locations
-            Time(['2006-01-15 21:24:37.5']*3, format='iso', scale='utc',
+            Time(['2006-01-15 21:24:37.5'] * 3, format='iso', scale='utc',
                  precision=6, location=(np.array([lon, 0]),
                                         np.array([lat, 0])))
         # multidimensional
@@ -390,27 +390,27 @@ class TestBasic:
         ScalevalueError
         """
         t = Time('2006-01-15 21:24:37.5', scale='local')
-        assert_allclose(t.jd, 2453751.3921006946, atol=0.001/3600./24., rtol=0.)
-        assert_allclose(t.mjd, 53750.892100694444, atol=0.001/3600./24., rtol=0.)
-        assert_allclose(t.decimalyear, 2006.0408002758752, atol=0.001/3600./24./365., rtol=0.)
+        assert_allclose(t.jd, 2453751.3921006946, atol=0.001 / 3600. / 24., rtol=0.)
+        assert_allclose(t.mjd, 53750.892100694444, atol=0.001 / 3600. / 24., rtol=0.)
+        assert_allclose(t.decimalyear, 2006.0408002758752, atol=0.001 / 3600. / 24. / 365., rtol=0.)
         assert t.datetime == datetime.datetime(2006, 1, 15, 21, 24, 37, 500000)
         assert t.isot == '2006-01-15T21:24:37.500'
         assert t.yday == '2006:015:21:24:37.500'
         assert t.fits == '2006-01-15T21:24:37.500'
-        assert_allclose(t.byear, 2006.04217888831, atol=0.001/3600./24./365., rtol=0.)
-        assert_allclose(t.jyear, 2006.0407723496082, atol=0.001/3600./24./365., rtol=0.)
+        assert_allclose(t.byear, 2006.04217888831, atol=0.001 / 3600. / 24. / 365., rtol=0.)
+        assert_allclose(t.jyear, 2006.0407723496082, atol=0.001 / 3600. / 24. / 365., rtol=0.)
         assert t.byear_str == 'B2006.042'
         assert t.jyear_str == 'J2006.041'
 
         # epochTimeFormats
         with pytest.raises(ScaleValueError):
-            t2 = t.gps
+            t.gps
         with pytest.raises(ScaleValueError):
-            t2 = t.unix
+            t.unix
         with pytest.raises(ScaleValueError):
-            t2 = t.cxcsec
+            t.cxcsec
         with pytest.raises(ScaleValueError):
-            t2 = t.plot_date
+            t.plot_date
 
     def test_datetime(self):
         """
@@ -433,7 +433,7 @@ class TestBasic:
         assert t.datetime == datetime.datetime(2000, 1, 1, 1, 1, 1, 123457)
 
         # broadcasting
-        dt3 = (dt + (dt2-dt)*np.arange(12)).reshape(4, 3)
+        dt3 = (dt + (dt2 - dt) * np.arange(12)).reshape(4, 3)
         t3 = Time(dt3, scale='utc')
         assert t3.shape == (4, 3)
         assert t3[2, 1].value == dt3[2, 1]
@@ -467,7 +467,7 @@ class TestBasic:
         assert t.datetime64 == np.datetime64('2000-01-01T01:01:01.123456789')
 
         # broadcasting
-        dt3 = (dt64 + (dt64_2-dt64)*np.arange(12)).reshape(4, 3)
+        dt3 = (dt64 + (dt64_2 - dt64) * np.arange(12)).reshape(4, 3)
         t3 = Time(dt3, scale='utc', format='datetime64')
         assert t3.shape == (4, 3)
         assert t3[2, 1].value == dt3[2, 1]
@@ -544,7 +544,7 @@ class TestBasic:
             if month == 6:
                 yyyy_mm_dd_plus1 = f'{year:04d}-07-01'
             else:
-                yyyy_mm_dd_plus1 = '{:04d}-01-01'.format(year+1)
+                yyyy_mm_dd_plus1 = '{:04d}-01-01'.format(year + 1)
 
             with pytest.warns(ErfaWarning):
                 t1 = Time(yyyy_mm_dd + ' 23:59:61.0', scale='utc')
@@ -596,7 +596,7 @@ class TestBasic:
         # throw error when deriving local scale time
         # from non local time scale
         with pytest.raises(ValueError):
-            t6 = Time(t1, scale='local')
+            Time(t1, scale='local')
 
 
 class TestVal2:
@@ -634,7 +634,7 @@ class TestVal2:
         val = (2458000 + np.arange(3))[:, None]
         val2 = np.linspace(0, 1, 4, endpoint=False)
         t = Time(val=val, val2=val2, format="jd", scale="tai")
-        t_b = Time(val=val+0*val2, val2=0*val+val2, format="jd", scale="tai")
+        t_b = Time(val=val + 0 * val2, val2=0 * val + val2, format="jd", scale="tai")
         t_i = Time(val=57990, val2=0.3, format="jd", scale="tai")
         t_b[1, 2] = t_i
         t[1, 2] = t_i
@@ -647,7 +647,7 @@ class TestVal2:
         val = (2458000 + np.arange(3))
         val2 = np.arange(1)
         t = Time(val=val, val2=val2, format="jd", scale="tai")
-        t_b = Time(val=val+0*val2, val2=0*val+val2, format="jd", scale="tai")
+        t_b = Time(val=val + 0 * val2, val2=0 * val + val2, format="jd", scale="tai")
         t_i = Time(val=57990, val2=0.3, format="jd", scale="tai")
         t_b[1] = t_i
         t[1] = t_i
@@ -900,8 +900,8 @@ class TestNumericalSubFormat:
         assert mjd_long != i, "longdouble failure!"
         t = Time(mjd_long, format='mjd')
         expected = Time(i, f, format='mjd')
-        assert abs(t - expected) <= 20.*u.ps
-        t_float = Time(i+f, format='mjd')
+        assert abs(t - expected) <= 20. * u.ps
+        t_float = Time(i + f, format='mjd')
         assert t_float == Time(i, format='mjd')
         assert t_float != t
         assert t.value == 54321.  # Lost precision!
@@ -919,7 +919,7 @@ class TestNumericalSubFormat:
         t_fmt_long = np.longdouble(t_fmt)
         # Create a different long double (ensuring it will give a different jd2
         # even when long doubles are more precise than Time, as on arm64).
-        atol = np.finfo(float).eps * (1. if fmt == 'mjd' else 24.*3600.)
+        atol = np.finfo(float).eps * (1. if fmt == 'mjd' else 24. * 3600.)
         t_fmt_long2 = t_fmt_long + max(
             t_fmt_long * np.finfo(np.longdouble).eps * 2, atol)
         assert t_fmt_long != t_fmt_long2, "longdouble weird!"
@@ -932,7 +932,7 @@ class TestNumericalSubFormat:
     def test_subformat_input(self):
         s = '54321.01234567890123456789'
         i, f = s.split('.')  # Note, OK only for fraction < 0.5
-        t = Time(float(i), float('.'+f), format='mjd')
+        t = Time(float(i), float('.' + f), format='mjd')
         t_str = Time(s, format='mjd')
         t_bytes = Time(s.encode('ascii'), format='mjd')
         t_decimal = Time(Decimal(s), format='mjd')
@@ -1226,7 +1226,7 @@ def test_fits_year10000():
     assert t.fits == '+10000-01-01T00:00:00.000'
     t = Time(5373484.5 - 365., format='jd', scale='tai')
     assert t.fits == '9999-01-01T00:00:00.000'
-    t = Time(5373484.5, -1./24./3600., format='jd', scale='tai')
+    t = Time(5373484.5, -1. / 24. / 3600., format='jd', scale='tai')
     assert t.fits == '9999-12-31T23:59:59.000'
 
 
@@ -1407,7 +1407,7 @@ def test_isiterable():
 
 
 def test_to_datetime():
-    tz = TimezoneInfo(utc_offset=-10*u.hour, tzname='US/Hawaii')
+    tz = TimezoneInfo(utc_offset=-10 * u.hour, tzname='US/Hawaii')
     # The above lines produces a `datetime.tzinfo` object similar to:
     #     tzinfo = pytz.timezone('US/Hawaii')
     time = Time('2010-09-03 00:00:00')
@@ -1978,13 +1978,13 @@ def test_get_time_fmt_exception_messages():
 
     with pytest.raises(ValueError) as err:
         Time('200', format='iso')
-    assert ('Input values did not match the format class iso:' + os.linesep +
-            'ValueError: Time 200 does not match iso format') == str(err.value)
+    assert ('Input values did not match the format class iso:' + os.linesep
+            + 'ValueError: Time 200 does not match iso format') == str(err.value)
 
     with pytest.raises(ValueError) as err:
         Time(200, format='iso')
-    assert ('Input values did not match the format class iso:' + os.linesep +
-            'TypeError: Input values for iso class must be strings') == str(err.value)
+    assert ('Input values did not match the format class iso:' + os.linesep
+            + 'TypeError: Input values for iso class must be strings') == str(err.value)
 
 
 def test_ymdhms_defaults():
@@ -2116,5 +2116,5 @@ def test_ymdhms_output():
 # and can ensure that strange broadcasting anomalies can't happen.
 # This form of construction uses from_jd=True.
 def test_broadcasting_writeable():
-    t = Time('J2015') + np.linspace(-1, 1, 10)*u.day
+    t = Time('J2015') + np.linspace(-1, 1, 10) * u.day
     t[2] = Time(58000, format="mjd")

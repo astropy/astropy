@@ -76,8 +76,8 @@ class TestUpdateLeapSeconds:
         # Create similarly expired file.
         expired_file = str(tmpdir.join('expired.dat'))
         with open(expired_file, 'w') as fh:
-            fh.write('\n'.join(['# File expires on 28 June 2010'] +
-                               [str(item) for item in expired]))
+            fh.write('\n'.join(['# File expires on 28 June 2010']
+                               + [str(item) for item in expired]))
 
         with pytest.warns(iers.IERSStaleWarning):
             update_leap_seconds(['erfa', expired_file])

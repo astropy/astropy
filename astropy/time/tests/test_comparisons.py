@@ -26,12 +26,12 @@ class TestTimeComparisons:
                            (operator.gt, '>'),
                            (operator.le, '<='),
                            (operator.lt, '<')):
-            with pytest.raises(TypeError) as err:
+            with pytest.raises(TypeError):
                 op(t1, None)
         # Keep == and != as they are specifically meant to test Time.__eq__
         # and Time.__ne__
-        assert (t1 == None) is False  # nopep8
-        assert (t1 != None) is True  # nopep8
+        assert (t1 == None) is False  # noqa
+        assert (t1 != None) is True  # noqa
 
     def test_time(self):
         t1_lt_t2 = self.t1 < self.t2
