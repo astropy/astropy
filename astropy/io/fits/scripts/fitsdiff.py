@@ -246,7 +246,8 @@ def match_files(paths):
             filelists[i] = sorted(files)
         elif os.path.isdir(path):
             dirnames[i] = path
-            filelists[i] = sorted(os.listdir(path))
+            filelists[i] = [f for f in sorted(os.listdir(path))
+                            if os.path.isfile(os.path.join(path, f))]
         elif os.path.isfile(path):
             dirnames[i] = os.path.dirname(path)
             filelists[i] = [os.path.basename(path)]
