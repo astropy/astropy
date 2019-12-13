@@ -75,10 +75,10 @@ def _test_regression(tmpdir, _python_based=False, binary_mode=1):
 
     dtypes = [
         (('string test', 'string_test'), '|O8'),
-        (('fixed string test', 'string_test_2'), '|S10'),
+        (('fixed string test', 'string_test_2'), '<U10'),
         ('unicode_test', '|O8'),
         (('unicode test', 'fixed_unicode_test'), '<U10'),
-        (('string array test', 'string_array_test'), '|S4'),
+        (('string array test', 'string_array_test'), '<U4'),
         ('unsignedByte', '|u1'),
         ('short', '<i2'),
         ('int', '<i4'),
@@ -284,10 +284,10 @@ class TestParse:
 
     def test_fixed_string_test(self):
         assert issubclass(self.array['string_test_2'].dtype.type,
-                          np.string_)
+                          np.unicode_)
         assert_array_equal(
             self.array['string_test_2'],
-            [b'Fixed stri', b'0123456789', b'XXXX', b'', b''])
+            ['Fixed stri', '0123456789', 'XXXX', '', ''])
 
     def test_unicode_test(self):
         assert issubclass(self.array['unicode_test'].dtype.type,

@@ -20,7 +20,8 @@ from astropy.utils.xml.writer import xml_escape_cdata
 
 # LOCAL
 from .exceptions import (vo_raise, vo_warn, warn_or_raise, W01,
-    W30, W31, W39, W46, W47, W49, W51, E01, E02, E03, E04, E05, E06)
+    W30, W31, W39, W46, W47, W49, W51, W55, E01, E02, E03, E04,
+    E05, E06, E24)
 
 
 __all__ = ['get_converter', 'Converter', 'table_column_to_votable_datatype']
@@ -298,6 +299,8 @@ class Char(Converter):
 
         Converter.__init__(self, field, config, pos)
 
+        self.field_name = field.name
+
         if field.arraysize is None:
             vo_warn(W47, (), config, pos)
             field.arraysize = '1'
@@ -314,7 +317,7 @@ class Char(Converter):
                 self.arraysize = int(field.arraysize)
             except ValueError:
                 vo_raise(E01, (field.arraysize, 'char', field.ID), config)
-            self.format = f'S{self.arraysize:d}'
+            self.format = f'U{self.arraysize:d}'
             self.binparse = self._binparse_fixed
             self.binoutput = self._binoutput_fixed
             self._struct_format = f">{self.arraysize:d}s"
@@ -325,6 +328,12 @@ class Char(Converter):
     def parse(self, value, config=None, pos=None):
         if self.arraysize != '*' and len(value) > self.arraysize:
             vo_warn(W46, ('char', self.arraysize), config, pos)
+
+        # Warn about non-ascii characters if warnings are enabled.
+        try:
+            value.encode('ascii')
+        except UnicodeEncodeError:
+            vo_warn(W55, (self.field_name, value), config, pos)
         return value, False
 
     def output(self, value, mask):
@@ -350,14 +359,20 @@ class Char(Converter):
         if mask or value is None or value == '':
             return _zero_int
         if isinstance(value, str):
-            value = value.encode('ascii')
+            try:
+                value = value.encode('ascii')
+            except ValueError:
+                vo_raise(E24, (value, self.field_name))
         return self._write_length(len(value)) + value
 
     def _binoutput_fixed(self, value, mask):
         if mask:
             value = _empty_bytes
         elif isinstance(value, str):
-            value = value.encode('ascii')
+            try:
+                value = value.encode('ascii')
+            except ValueError:
+                vo_raise(E24, (value, self.field_name))
         return struct_pack(self._struct_format, value)
 
 
@@ -1394,9 +1409,12 @@ def table_column_to_votable_datatype(column):
        A dict containing 'datatype' and 'arraysize' keys that can be
        set on a VOTable FIELD element.
     """
+    votable_string_dtype = None
+    if column.info.meta is not None:
+        votable_string_dtype = column.info.meta.get('_votable_string_dtype')
     if column.dtype.char == 'O':
-        if '_votable_string_dtype' in column.info.meta:
-            string_dtype = column.info.meta['_votable_string_dtype']
+        if votable_string_dtype is not None:
+            string_dtype = votable_string_dtype
             return {'datatype': string_dtype, 'arraysize': '*'}
         elif isinstance(column[0], np.ndarray):
             dtype, shape = _all_matching_dtype(column)
@@ -1411,4 +1429,10 @@ def table_column_to_votable_datatype(column):
         # All bets are off, do the most generic thing
         return {'datatype': 'unicodeChar', 'arraysize': '*'}
 
-    return numpy_to_votable_dtype(column.dtype, column.shape[1:])
+    # For fixed size string columns, datatype here will be unicodeChar,
+    # but honor the original FIELD datatype if present.
+    result = numpy_to_votable_dtype(column.dtype, column.shape[1:])
+    if result['datatype'] == 'unicodeChar' and votable_string_dtype == 'char':
+        result['datatype'] = 'char'
+
+    return result
