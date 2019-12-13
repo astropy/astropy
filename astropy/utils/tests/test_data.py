@@ -95,32 +95,34 @@ def url_to(path):
 
 @pytest.fixture
 def valid_urls(tmpdir):
-    def _valid_urls(tmpdir):
+    def _valid_urls():
+        nonlocal tmpdir
         for i in itertools.count():
             c = os.urandom(16).hex()
-            fn = os.path.join(tmpdir, "valid_" + str(i))
+            fn = str(tmpdir.join("valid_" + str(i)))
             with open(fn, "w") as f:
                 f.write(c)
             u = url_to(fn)
             yield u, c
 
-    return _valid_urls(tmpdir)
+    return _valid_urls()
 
 
 @pytest.fixture
 def invalid_urls(tmpdir):
-    def _invalid_urls(tmpdir):
+    def _invalid_urls():
+        nonlocal tmpdir
         for i in itertools.count():
-            fn = os.path.join(tmpdir, "invalid_" + str(i))
+            fn = str(tmpdir.join("invalid_" + str(i)))
             if not os.path.exists(fn):
                 yield url_to(fn)
 
-    return _invalid_urls(tmpdir)
+    return _invalid_urls()
 
 
 @pytest.fixture
 def temp_cache(tmpdir):
-    with paths.set_temp_cache(tmpdir):
+    with paths.set_temp_cache(tmpdir.strpath):
         yield None
         check_download_cache(check_hashes=True)
 
@@ -157,7 +159,7 @@ def readonly_dir(d):
 
 @pytest.fixture
 def readonly_cache(tmpdir, valid_urls):
-    with TemporaryDirectory(dir=tmpdir) as d:
+    with TemporaryDirectory(dir=tmpdir.strpath) as d:
         # other fixtures use the same tmpdir so we need a subdirectory
         # to make into the cache
         d = pathlib.Path(d)
@@ -178,7 +180,7 @@ def fake_readonly_cache(tmpdir, valid_urls, monkeypatch):
     def no_mkdir(p):
         raise PermissionError("os.mkdir monkeypatched out")
 
-    with TemporaryDirectory(dir=tmpdir) as d:
+    with TemporaryDirectory(dir=tmpdir.strpath) as d:
         # other fixtures use the same tmpdir so we need a subdirectory
         # to make into the cache
         d = pathlib.Path(d)
@@ -261,7 +263,7 @@ def test_temp_cache(tmpdir):
     dldir0, urlmapfn0 = _get_download_cache_locs()
     check_download_cache(check_hashes=True)
 
-    with paths.set_temp_cache(tmpdir):
+    with paths.set_temp_cache(tmpdir.strpath):
         dldir1, urlmapfn1 = _get_download_cache_locs()
         check_download_cache(check_hashes=True)
         assert dldir1 != dldir0
@@ -278,7 +280,7 @@ def test_temp_cache(tmpdir):
     class Special(Exception):
         pass
     try:
-        with paths.set_temp_cache(tmpdir):
+        with paths.set_temp_cache(tmpdir.strpath):
             dldir3, urlmapfn3 = _get_download_cache_locs()
             check_download_cache(check_hashes=True)
             assert dldir3 == dldir1
@@ -398,7 +400,7 @@ def test_clear_download_multiple_references_doesnt_corrupt_storage(temp_cache, t
     content = "Test data; doesn't matter much.\n"
 
     def make_url():
-        with NamedTemporaryFile("w", dir=str(tmpdir), delete=False) as f:
+        with NamedTemporaryFile("w", dir=tmpdir.strpath, delete=False) as f:
             f.write(content)
         url = url_to(f.name)
         clear_download_cache(url)
@@ -446,7 +448,7 @@ def test_download_file_local_cache_survives(tmpdir, temp_cache, use_cache):
     astropy data.
 
     """
-    fn = tmpdir / "file"
+    fn = str(tmpdir.join("file"))
     contents = "some text"
     with open(fn, "w") as f:
         f.write(contents)
@@ -507,7 +509,7 @@ def test_sources_multiple_missing(temp_cache, valid_urls, invalid_urls):
 
 
 def test_update_url(tmpdir, temp_cache):
-    with TemporaryDirectory(dir=tmpdir) as d:
+    with TemporaryDirectory(dir=tmpdir.strpath) as d:
         f_name = os.path.join(d, "f")
         with open(f_name, "w") as f:
             f.write("old")
@@ -594,7 +596,7 @@ def test_download_parallel_fills_cache(tmpdir, valid_urls, method):
     urls = []
     # tmpdir is shared between many tests, and that can cause weird
     # interactions if we set the temporary cache too directly
-    with paths.set_temp_cache(tmpdir):
+    with paths.set_temp_cache(tmpdir.strpath):
         for um, c in islice(valid_urls, FEW):
             assert not is_url_in_cache(um)
             urls.append((um, c))
@@ -704,7 +706,7 @@ def test_download_parallel_update(temp_cache, tmpdir):
     td = []
     for i in range(N_PARALLEL_HAMMER):
         c = f"{i:04d}"
-        fn = os.path.join(tmpdir, c)
+        fn = str(tmpdir.join(c))
         with open(fn, "w") as f:
             f.write(c)
         u = url_to(fn)
@@ -719,7 +721,7 @@ def test_download_parallel_update(temp_cache, tmpdir):
     td2 = []
     for (fn, u, c) in td:
         c_plus = c + " updated"
-        fn = os.path.join(tmpdir, c)
+        fn = str(tmpdir.join(c))
         with open(fn, "w") as f:
             f.write(c_plus)
         td2.append((fn, u, c, c_plus))
@@ -878,7 +880,7 @@ def test_compute_hash(tmpdir):
 
     rands = b"1234567890abcdefghijklmnopqrstuvwxyz"
 
-    filename = tmpdir.join("tmp.dat").strpath
+    filename = str(tmpdir.join("tmp.dat"))
 
     with open(filename, "wb") as ntf:
         ntf.write(rands)
@@ -1092,7 +1094,7 @@ def test_check_download_cache(tmpdir, temp_cache, valid_urls, invalid_urls):
     testurl, testurl_contents = next(valid_urls)
     testurl2, testurl2_contents = next(valid_urls)
 
-    zip_file_name = os.path.join(tmpdir, "the.zip")
+    zip_file_name = str(tmpdir.join("the.zip"))
     clear_download_cache()
     check_download_cache()
 
@@ -1118,7 +1120,7 @@ def test_export_import_roundtrip_one(tmpdir, temp_cache, valid_urls):
     assert get_file_contents(f) == contents
     normal = check_download_cache()
     initial_urls_in_cache = set(get_cached_urls())
-    zip_file_name = os.path.join(tmpdir, "the.zip")
+    zip_file_name = str(tmpdir.join("the.zip"))
 
     export_download_cache(zip_file_name, [testurl])
     clear_download_cache(testurl)
@@ -1143,7 +1145,7 @@ def test_export_url_not_present(temp_cache, valid_urls):
 def test_import_one(tmpdir, temp_cache, valid_urls):
     testurl, testurl_contents = next(valid_urls)
     testurl2, testurl2_contents = next(valid_urls)
-    zip_file_name = os.path.join(tmpdir, "the.zip")
+    zip_file_name = str(tmpdir.join("the.zip"))
 
     download_file(testurl, cache=True)
     download_file(testurl2, cache=True)
@@ -1157,7 +1159,7 @@ def test_import_one(tmpdir, temp_cache, valid_urls):
 
 
 def test_export_import_roundtrip(tmpdir, temp_cache, valid_urls):
-    zip_file_name = os.path.join(tmpdir, "the.zip")
+    zip_file_name = str(tmpdir.join("the.zip"))
     for u, c in islice(valid_urls, FEW):
         download_file(u, cache=True)
     normal = check_download_cache()
@@ -1189,7 +1191,7 @@ def test_export_import_roundtrip_stream(temp_cache, valid_urls):
 
 
 def test_export_overwrite_flag_works(temp_cache, valid_urls, tmpdir):
-    fn = tmpdir / "f.zip"
+    fn = str(tmpdir.join("f.zip"))
     c = b"Some contents\nto check later"
     with open(fn, "wb") as f:
         f.write(c)
@@ -1205,9 +1207,9 @@ def test_export_overwrite_flag_works(temp_cache, valid_urls, tmpdir):
 
 
 def test_export_import_roundtrip_different_location(tmpdir, valid_urls):
-    original_cache = tmpdir / "original"
+    original_cache = str(tmpdir.join("original"))
     os.mkdir(original_cache)
-    zip_file_name = tmpdir / "the.zip"
+    zip_file_name = str(tmpdir.join("the.zip"))
 
     urls = list(islice(valid_urls, FEW))
     initial_urls_in_cache = set(u for (u, c) in urls)
@@ -1217,7 +1219,7 @@ def test_export_import_roundtrip_different_location(tmpdir, valid_urls):
         assert set(get_cached_urls()) == initial_urls_in_cache
         export_download_cache(zip_file_name)
 
-    new_cache = tmpdir / "new"
+    new_cache = str(tmpdir.join("new"))
     os.mkdir(new_cache)
     with paths.set_temp_cache(new_cache):
         import_download_cache(zip_file_name)
@@ -1256,16 +1258,16 @@ def test_cache_contents_agrees_with_get_urls(temp_cache, valid_urls):
 
 def test_free_space_checker_huge(tmpdir):
     with pytest.raises(OSError):
-        check_free_space_in_dir(tmpdir, 1_000_000_000_000_000_000)
+        check_free_space_in_dir(tmpdir.strpath, 1_000_000_000_000_000_000)
 
 
 def test_get_free_space_file_directory(tmpdir):
-    fn = tmpdir / "file"
+    fn = str(tmpdir.join("file"))
     with open(fn, "w"):
         pass
     with pytest.raises(OSError):
         get_free_space_in_dir(fn)
-    assert get_free_space_in_dir(tmpdir) > 0
+    assert get_free_space_in_dir(tmpdir.strpath) > 0
 
 
 def test_download_file_bogus_settings(invalid_urls, temp_cache):
@@ -1278,7 +1280,7 @@ def test_download_file_local_directory(tmpdir):
     """Make sure we get a URLError rather than OSError even if it's a
     local directory."""
     with pytest.raises(urllib.request.URLError):
-        download_file(url_to(tmpdir))
+        download_file(url_to(tmpdir.strpath))
 
 
 def test_download_file_schedules_deletion(valid_urls):
@@ -1289,7 +1291,7 @@ def test_download_file_schedules_deletion(valid_urls):
 
 
 def test_clear_download_cache_refuses_to_delete_outside_the_cache(tmpdir):
-    fn = os.path.abspath(os.path.join(tmpdir, "file"))
+    fn = str(tmpdir.join("file"))
     with open(fn, "w") as f:
         f.write("content")
     assert os.path.exists(fn)
@@ -1385,7 +1387,7 @@ def test_cache_dir_is_actually_a_file(tmpdir, valid_urls):
     # but we want to see what happens when the cache is pointed
     # at a file instead of a directory, so make a directory we can
     # replace later.
-    fn = str(tmpdir / "file")
+    fn = str(tmpdir.join("file"))
     ct = "contents\n"
     os.mkdir(fn)
     with paths.set_temp_cache(fn):
@@ -1407,10 +1409,10 @@ def test_cache_dir_is_actually_a_file(tmpdir, valid_urls):
 
     # Now the cache directory is normal but the subdirectory it wants
     # to make is a file
-    cd = str(tmpdir / "astropy")
+    cd = str(tmpdir.join("astropy"))
     with open(cd, "w") as f:
         f.write(ct)
-    with paths.set_temp_cache(tmpdir):
+    with paths.set_temp_cache(tmpdir.strpath):
         check_quietly_ignores_bogus_cache()
     assert (dldir, urlmapfn) == _get_download_cache_locs()
     assert get_file_contents(cd) == ct
@@ -1418,10 +1420,10 @@ def test_cache_dir_is_actually_a_file(tmpdir, valid_urls):
 
     # Ditto one level deeper
     os.makedirs(cd)
-    cd = str(tmpdir / "astropy" / "download")
+    cd = str(tmpdir.join("astropy" / "download"))
     with open(cd, "w") as f:
         f.write(ct)
-    with paths.set_temp_cache(tmpdir):
+    with paths.set_temp_cache(tmpdir.strpath):
         check_quietly_ignores_bogus_cache()
     assert (dldir, urlmapfn) == _get_download_cache_locs()
     assert get_file_contents(cd) == ct
@@ -1430,10 +1432,10 @@ def test_cache_dir_is_actually_a_file(tmpdir, valid_urls):
     # Ditto another level deeper
     os.makedirs(cd)
     py_version = "py" + str(sys.version_info.major)
-    cd = str(tmpdir / "astropy" / "download" / py_version)
+    cd = str(tmpdir.join("astropy" / "download" / py_version))
     with open(cd, "w") as f:
         f.write(ct)
-    with paths.set_temp_cache(tmpdir):
+    with paths.set_temp_cache(tmpdir.strpath):
         check_quietly_ignores_bogus_cache()
     assert (dldir, urlmapfn) == _get_download_cache_locs()
     assert get_file_contents(cd) == ct
@@ -1443,9 +1445,9 @@ def test_cache_dir_is_actually_a_file(tmpdir, valid_urls):
     # be okay if the shelve object has a funny naming convention
     # (the relation between the string you hand shelve and the names of
     # any files it may create is explicitly system-dependent)
-    cd = str(tmpdir / "astropy" / "download" / py_version / "urlmap")
+    cd = str(tmpdir.join("astropy" / "download" / py_version / "urlmap"))
     os.makedirs(cd)
-    with paths.set_temp_cache(tmpdir):
+    with paths.set_temp_cache(tmpdir.strpath):
         check_quietly_ignores_bogus_cache()
     assert (dldir, urlmapfn) == _get_download_cache_locs()
 
@@ -1522,8 +1524,8 @@ def test_cache_read_not_writable(temp_cache, valid_urls):
 
 def test_cache_not_relocatable(tmpdir, valid_urls):
     u, c = next(valid_urls)
-    d1 = tmpdir / "1"
-    d2 = tmpdir / "2"
+    d1 = str(tmpdir.join("1"))
+    d2 = str(tmpdir.join("2"))
     os.mkdir(d1)
     with paths.set_temp_cache(d1):
         p1 = download_file(u, cache=True)
@@ -1550,7 +1552,7 @@ def test_get_readable_fileobj_cleans_up_temporary_files(tmpdir, monkeypatch):
     url = url_to(TESTLOCAL)
 
     # Save temporary files to a known location
-    monkeypatch.setattr(tempfile, "tempdir", str(tmpdir))
+    monkeypatch.setattr(tempfile, "tempdir", tmpdir.strpath)
 
     # Call get_readable_fileobj() as a context manager
     with get_readable_fileobj(url) as f:
@@ -1634,8 +1636,8 @@ def test_download_file_wrong_size(monkeypatch):
 
 def test_can_make_directories_readonly(tmpdir):
     try:
-        with readonly_dir(tmpdir):
-            assert is_dir_readonly(tmpdir)
+        with readonly_dir(tmpdir.strpath):
+            assert is_dir_readonly(tmpdir.strpath)
     except AssertionError:
         if hasattr(os, "geteuid") and os.geteuid() == 0:
             pytest.skip(
@@ -1651,11 +1653,11 @@ def test_can_make_directories_readonly(tmpdir):
 
 
 def test_can_make_files_readonly(tmpdir):
-    fn = tmpdir / "test"
+    fn = str(tmpdir.join("test"))
     c = "contents\n"
     with open(fn, "w") as f:
         f.write(c)
-    with readonly_dir(tmpdir):
+    with readonly_dir(tmpdir.strpath):
         try:
             with open(fn, "w+") as f:
                 f.write("more contents\n")
