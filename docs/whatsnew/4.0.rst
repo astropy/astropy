@@ -37,8 +37,8 @@ In addition to these major changes, Astropy v4.0 includes a large number of
 smaller improvements and bug fixes, which are described in the
 :ref:`changelog`. By the numbers:
 
-* 848 issues have been closed since v3.2
-* 449 pull requests have been merged since v3.2
+* 948 issues have been closed since v3.2
+* 493 pull requests have been merged since v3.2
 * 74 distinct people have contributed code, 26 of which are first time contributors to Astropy
 
 .. _whatsnew-4.0-planck2018:
@@ -624,7 +624,6 @@ Contributors to the v4.0 release
 
 .. hlist::
   :columns: 4
-
 
 *    Aarya Patil
 *    Adam Ginsburg
