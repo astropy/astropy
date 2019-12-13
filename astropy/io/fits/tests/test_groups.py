@@ -217,6 +217,7 @@ class TestGroupsFunctions(FitsTestCase):
         """Test file without NAXIS1 keyword.
         Regression test for https://github.com/astropy/astropy/issues/9709
         """
-        with fits.open(self.data('group_invalid.fits')) as hdul:
+        testfile = os.path.join('invalid', 'group_invalid.fits')
+        with fits.open(self.data(testfile)) as hdul:
             assert len(hdul) == 1
             assert hdul[0].header['GROUPS']
