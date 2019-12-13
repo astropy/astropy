@@ -1956,6 +1956,16 @@ class TestPandas:
         assert t['x'].unit == u.m
         assert t['t'].unit == u.s
 
+        # test error if not a mapping
+        with pytest.raises(TypeError):
+            table.Table.from_pandas(df, units=[u.m, u.s])
+
+        # test warning is raised if additional columns in units dict
+        with pytest.warns(UserWarning) as record:
+            table.Table.from_pandas(df, units={'x': u.m, 't': u.s, 'y': u.m})
+        assert len(record) == 1
+        assert "{'y'}" in record[0].message.args[0]
+
 
 @pytest.mark.usefixtures('table_types')
 class TestReplaceColumn(SetupData):
