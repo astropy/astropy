@@ -7,9 +7,8 @@ from ..low_level_api import BaseLowLevelWCS
 __all__ = ['CompoundLowLevelWCS']
 
 
-
-def listsum(lists):
-    return reduce(list.__add__, map(list, lists))
+def tuplesum(lists):
+    return reduce(tuple.__add__, map(tuple, lists))
 
 
 class CompoundLowLevelWCS(BaseLowLevelWCS):
@@ -35,11 +34,11 @@ class CompoundLowLevelWCS(BaseLowLevelWCS):
 
     @property
     def world_axis_physical_types(self):
-        return listsum([w.world_axis_physical_types for w in self._wcs])
+        return tuplesum([w.world_axis_physical_types for w in self._wcs])
 
     @property
     def world_axis_units(self):
-        return listsum([w.world_axis_units for w in self._wcs])
+        return tuplesum([w.world_axis_units for w in self._wcs])
 
     def pixel_to_world_values(self, *pixel_arrays):
         world_arrays = []
@@ -87,7 +86,7 @@ class CompoundLowLevelWCS(BaseLowLevelWCS):
         if any(w.array_shape is None for w in self._wcs):
             return None
         else:
-            return listsum(w.array_shape for w in self._wcs)
+            return tuplesum(w.array_shape for w in self._wcs)
 
     @property
     def pixel_shape(self):
@@ -101,15 +100,15 @@ class CompoundLowLevelWCS(BaseLowLevelWCS):
         if any(w.pixel_bounds is None for w in self._wcs):
             return None
         else:
-            return listsum(w.pixel_bounds for w in self._wcs)
+            return tuplesum(w.pixel_bounds for w in self._wcs)
 
     @property
     def pixel_axis_names(self):
-        return listsum(w.pixel_axis_names for w in self._wcs)
+        return tuplesum(w.pixel_axis_names for w in self._wcs)
 
     @property
     def world_axis_names(self):
-        return listsum(w.world_axis_names for w in self._wcs)
+        return tuplesum(w.world_axis_names for w in self._wcs)
 
     @property
     def axis_correlation_matrix(self):
