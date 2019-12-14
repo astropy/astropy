@@ -39,7 +39,7 @@ class TestTimeDelta:
         self.t2 = Time('2010-01-02 00:00:01', scale='utc')
         self.t3 = Time('2010-01-03 01:02:03', scale='utc', precision=9,
                        in_subfmt='date_hms', out_subfmt='date_hm',
-                       location=(-75.*u.degree, 30.*u.degree, 500*u.m))
+                       location=(-75. * u.degree, 30. * u.degree, 500 * u.m))
         self.t4 = Time('2010-01-01', scale='local')
         self.dt = TimeDelta(100.0, format='sec')
         self.dt_array = TimeDelta(np.arange(100, 1000, 100), format='sec')
@@ -297,7 +297,7 @@ class TestTimeDeltaScales:
                           '2012-07-01 00:00:00', '2012-07-01 12:00:00']
         self.t = dict((scale, Time(self.iso_times, scale=scale, precision=9))
                       for scale in TIME_SCALES)
-        self.dt = dict((scale, self.t[scale]-self.t[scale][0])
+        self.dt = dict((scale, self.t[scale] - self.t[scale][0])
                        for scale in TIME_SCALES)
 
     def test_delta_scales_definition(self):
