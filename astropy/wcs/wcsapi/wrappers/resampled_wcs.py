@@ -60,10 +60,6 @@ class ResampledLowLevelWCS(BaseLowLevelWCS):
         return self._wcs.world_axis_object_components
 
     @property
-    def array_shape(self):
-        return self.pixel_shape[::-1]
-
-    @property
     def pixel_shape(self):
         return tuple(self._wcs.pixel_shape[i] / self._factor[i]
                      for i in range(self.pixel_n_dim))

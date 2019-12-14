@@ -132,21 +132,17 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
     @property
     def array_shape(self):
-        if self._naxis == [0, 0]:
+        if self.pixel_shape is None:
             return None
         else:
-            return tuple(self._naxis[::-1])
+            return self.pixel_shape[::-1]
 
     @array_shape.setter
     def array_shape(self, value):
         if value is None:
-            self._naxis = [0, 0]
+            self.pixel_shape = None
         else:
-            if len(value) != self.naxis:
-                raise ValueError("The number of data axes, "
-                                 "{}, does not equal the "
-                                 "shape {}.".format(self.naxis, len(value)))
-            self._naxis = list(value)[::-1]
+            self.pixel_shape = value[::-1]
 
     @property
     def pixel_shape(self):

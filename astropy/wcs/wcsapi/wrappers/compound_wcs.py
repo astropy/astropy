@@ -82,18 +82,11 @@ class CompoundLowLevelWCS(BaseLowLevelWCS):
         return all_classes
 
     @property
-    def array_shape(self):
+    def pixel_shape(self):
         if any(w.array_shape is None for w in self._wcs):
             return None
         else:
-            return tuplesum(w.array_shape for w in self._wcs)
-
-    @property
-    def pixel_shape(self):
-        if self.array_shape is None:
-            return None
-        else:
-            return self.array_shape[::-1]
+            return tuplesum(w.pixel_shape for w in self._wcs)
 
     @property
     def pixel_bounds(self):

@@ -3,7 +3,7 @@ from itertools import product
 import pytest
 
 import numpy as np
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_equal
 
 from astropy.units import Quantity
 from astropy import units as u
@@ -34,6 +34,25 @@ def test_celestial_spectral_ape14(spectral_wcs, celestial_wcs):
     assert wcs.world_n_dim == 3
     assert tuple(wcs.world_axis_physical_types) == ('em.freq', 'pos.eq.ra', 'pos.eq.dec')
     assert tuple(wcs.world_axis_units) == ('Hz', 'deg', 'deg')
+    assert tuple(wcs.pixel_axis_names) == ('', '', '')
+    assert tuple(wcs.world_axis_names) == ('Frequency',
+                                           'Right Ascension',
+                                           'Declination')
+    assert_equal(wcs.axis_correlation_matrix, np.array([[1, 0, 0],
+                                                        [0, 1, 1],
+                                                        [0, 1, 1]]))
+
+    # If any of the individual shapes are None, return None overall
+    assert wcs.pixel_shape is None
+    assert wcs.array_shape is None
+    assert wcs.pixel_bounds is None
+
+    # Set the shape and bounds on the spectrum and test again
+    spectral_wcs.pixel_shape = (3,)
+    spectral_wcs.pixel_bounds = [(1, 2)]
+    assert wcs.pixel_shape == (3, 6, 7)
+    assert wcs.array_shape == (7, 6, 3)
+    assert wcs.pixel_bounds == ((1, 2), (-1, 5), (1, 7))
 
     pixel_scalar = (2.3, 4.3, 1.3)
     world_scalar = (-1.91e10, 5.4, -9.4)

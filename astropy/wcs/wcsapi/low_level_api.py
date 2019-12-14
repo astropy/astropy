@@ -235,7 +235,10 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         objects. This is an optional property, and it should return `None`
         if a shape is not known or relevant.
         """
-        return None
+        if self.pixel_shape is None:
+            return None
+        else:
+            return self.pixel_shape[::-1]
 
     @property
     def pixel_shape(self):
