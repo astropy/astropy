@@ -754,7 +754,7 @@ class TimeDatetime(TimeUnique):
         # Iterate through the datetime objects, getting year, month, etc.
         iterator = np.nditer([val1, None, None, None, None, None, None],
                              flags=['refs_ok', 'zerosize_ok'],
-                             op_dtypes=[None] + 5 * [np.intc] + [np.double])
+                             op_dtypes=[None] + 5*[np.intc] + [np.double])
         for val, iy, im, id, ihr, imin, dsec in iterator:
             dt = val.item()
 
@@ -805,7 +805,7 @@ class TimeDatetime(TimeUnique):
         ifracs = ihmsfs['f']
         iterator = np.nditer([iys, ims, ids, ihrs, imins, isecs, ifracs, None],
                              flags=['refs_ok', 'zerosize_ok'],
-                             op_dtypes=7 * [None] + [object])
+                             op_dtypes=7*[None] + [object])
 
         for iy, im, id, ihr, imin, isec, ifracsec, out in iterator:
             if isec >= 60:

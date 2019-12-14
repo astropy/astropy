@@ -433,7 +433,7 @@ class TestBasic:
         assert t.datetime == datetime.datetime(2000, 1, 1, 1, 1, 1, 123457)
 
         # broadcasting
-        dt3 = (dt + (dt2 - dt) * np.arange(12)).reshape(4, 3)
+        dt3 = (dt + (dt2-dt) * np.arange(12)).reshape(4, 3)
         t3 = Time(dt3, scale='utc')
         assert t3.shape == (4, 3)
         assert t3[2, 1].value == dt3[2, 1]
@@ -467,7 +467,7 @@ class TestBasic:
         assert t.datetime64 == np.datetime64('2000-01-01T01:01:01.123456789')
 
         # broadcasting
-        dt3 = (dt64 + (dt64_2 - dt64) * np.arange(12)).reshape(4, 3)
+        dt3 = (dt64 + (dt64_2-dt64) * np.arange(12)).reshape(4, 3)
         t3 = Time(dt3, scale='utc', format='datetime64')
         assert t3.shape == (4, 3)
         assert t3[2, 1].value == dt3[2, 1]
