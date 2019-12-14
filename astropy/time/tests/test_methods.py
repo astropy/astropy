@@ -170,8 +170,8 @@ class TestManipulation:
         t2_reshape_t_reshape = t2_reshape_t.reshape(10, 5)
         assert t2_reshape_t_reshape.shape == (10, 5)
         assert not np.may_share_memory(t2_reshape_t_reshape.jd1, self.t2.jd1)
-        assert (t2_reshape_t_reshape.location.shape ==
-                t2_reshape_t_reshape.shape)
+        assert (t2_reshape_t_reshape.location.shape
+                == t2_reshape_t_reshape.shape)
         assert not np.may_share_memory(t2_reshape_t_reshape.location,
                                        t2_reshape_t.location)
 
@@ -300,7 +300,7 @@ class TestArithmetic:
 
     def setup(self):
         mjd = np.arange(50000, 50100, 10).reshape(2, 5, 1)
-        frac = np.array([0.1, 0.1+1.e-15, 0.1-1.e-15, 0.9+2.e-16, 0.9])
+        frac = np.array([0.1, 0.1 + 1.e-15, 0.1 - 1.e-15, 0.9 + 2.e-16, 0.9])
         if use_masked_data:
             frac = np.ma.array(frac)
             frac[1] = np.ma.masked
@@ -423,8 +423,8 @@ class TestArithmetic:
         assert np.all(self.t0.sort(1) == self.t0)
         assert np.all(self.t0.sort(2) == self.t0[:, :, order])
         if not masked:
-            assert np.all(self.t0.sort(None) ==
-                          self.t0[:, :, order].ravel())
+            assert np.all(self.t0.sort(None)
+                          == self.t0[:, :, order].ravel())
             # Bit superfluous, but good to check.
             assert np.all(self.t0.sort(-1)[:, :, 0] == self.t0.min(-1))
             assert np.all(self.t0.sort(-1)[:, :, -1] == self.t0.max(-1))
