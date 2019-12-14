@@ -11,8 +11,8 @@ from astropy.utils import iers
 
 allclose_hours = functools.partial(np.allclose, rtol=1e-15, atol=3e-8)
 # 0.1 ms atol; IERS-B files change at that level.
-within_1_second = functools.partial(np.allclose, rtol=1., atol=1./3600.)
-within_2_seconds = functools.partial(np.allclose, rtol=1., atol=2./3600.)
+within_1_second = functools.partial(np.allclose, rtol=1., atol=1. / 3600.)
+within_2_seconds = functools.partial(np.allclose, rtol=1., atol=2. / 3600.)
 
 
 def test_doc_string_contains_models():
@@ -31,9 +31,9 @@ class TestERFATestCases:
     # reproduce this exactly. Now it does not really matter,
     # but may as well fake this (and avoid IERS table lookup here)
     time_ut1.delta_ut1_utc = 0.
-    time_ut1.delta_ut1_utc = 24*3600*(
-        (time_ut1.tt.jd1-time_tt.jd1) + (time_ut1.tt.jd2-time_tt.jd2))
-    assert np.allclose((time_ut1.tt.jd1-time_tt.jd1)
+    time_ut1.delta_ut1_utc = 24 * 3600 * (
+        (time_ut1.tt.jd1 - time_tt.jd1) + (time_ut1.tt.jd2 - time_tt.jd2))
+    assert np.allclose((time_ut1.tt.jd1 - time_tt.jd1)
                        + (time_ut1.tt.jd2 - time_tt.jd2),
                        0., atol=1.e-14)
 
@@ -50,11 +50,11 @@ class TestERFATestCases:
         if name[4] == 'm':
             kind = 'mean'
             model_name = 'IAU{:2d}{:s}'.format(20 if name[7] == '0' else 19,
-                                                 name[7:])
+                                               name[7:])
         else:
             kind = 'apparent'
             model_name = 'IAU{:2d}{:s}'.format(20 if name[6] == '0' else 19,
-                                                 name[6:].upper())
+                                               name[6:].upper())
 
         assert kind in SIDEREAL_TIME_MODELS.keys()
         assert model_name in SIDEREAL_TIME_MODELS[kind]
@@ -134,7 +134,7 @@ class TestST:
         gmst2 = self.t2.sidereal_time(kind, 'greenwich')
         lmst2 = self.t2.sidereal_time(kind)
         assert allclose_hours(lmst2.value, lst_compare[kind])
-        assert allclose_hours((lmst2-gmst2).wrap_at('12h').value,
+        assert allclose_hours((lmst2 - gmst2).wrap_at('12h').value,
                               self.t2.location.lon.to_value('hourangle'))
         # check it also works when one gives longitude explicitly
         lmst1 = self.t1.sidereal_time(kind, self.t2.location.lon)
@@ -183,8 +183,8 @@ class TestModelInterpretation:
         with pytest.raises(ValueError):
             self.t.sidereal_time(kind, 'greenwich', 'nonsense')
 
-        for model in (set(SIDEREAL_TIME_MODELS[other].keys()) -
-                      set(SIDEREAL_TIME_MODELS[kind].keys())):
+        for model in (set(SIDEREAL_TIME_MODELS[other].keys())
+                      - set(SIDEREAL_TIME_MODELS[kind].keys())):
             with pytest.raises(ValueError):
                 self.t.sidereal_time(kind, 'greenwich', model)
             with pytest.raises(ValueError):

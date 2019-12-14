@@ -28,18 +28,19 @@ from .formats import (TIME_FORMATS, TIME_DELTA_FORMATS,
                       TimeJD, TimeUnique, TimeAstropyTime, TimeDatetime)
 # Import TimeFromEpoch to avoid breaking code that followed the old example of
 # making a custom timescale in the documentation.
-from .formats import TimeFromEpoch  # pylint: disable=W0611
+from .formats import TimeFromEpoch  # noqa
 
 from astropy.extern import _strptime
 
-__all__ = ['Time', 'TimeDelta',  'TimeInfo', 'update_leap_seconds',
+__all__ = ['Time', 'TimeDelta', 'TimeInfo', 'update_leap_seconds',
            'TIME_SCALES', 'STANDARD_TIME_SCALES', 'TIME_DELTA_SCALES',
            'ScaleValueError', 'OperandTypeError']
 
 
 STANDARD_TIME_SCALES = ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
 LOCAL_SCALES = ('local',)
-TIME_TYPES = dict((scale, scales) for scales in (STANDARD_TIME_SCALES, LOCAL_SCALES) for scale in scales)
+TIME_TYPES = dict((scale, scales) for scales in (STANDARD_TIME_SCALES, LOCAL_SCALES)
+                  for scale in scales)
 TIME_SCALES = STANDARD_TIME_SCALES + LOCAL_SCALES
 MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
               ('tai', 'tcg'): ('tt',),
@@ -429,8 +430,8 @@ class Time(ShapedLikeNDArray):
                                  precision, in_subfmt, out_subfmt)
             self.SCALES = TIME_TYPES[self.scale]
 
-        if self.location is not None and (self.location.size > 1 and
-                                          self.location.shape != self.shape):
+        if self.location is not None and (self.location.size > 1
+                                          and self.location.shape != self.shape):
             try:
                 # check the location can be broadcast to self's shape.
                 self.location = np.broadcast_to(self.location, self.shape,
@@ -469,11 +470,11 @@ class Time(ShapedLikeNDArray):
                                  'they cannot be broadcast together.')
 
         if scale is not None:
-            if not (isinstance(scale, str) and
-                    scale.lower() in self.SCALES):
+            if not (isinstance(scale, str)
+                    and scale.lower() in self.SCALES):
                 raise ScaleValueError("Scale {!r} is not in the allowed scales "
                                       "{}".format(scale,
-                                                   sorted(self.SCALES)))
+                                                  sorted(self.SCALES)))
 
         # If either of the input val, val2 are masked arrays then
         # find the masked elements and fill them.
@@ -503,8 +504,8 @@ class Time(ShapedLikeNDArray):
         guess available formats and stop when one matches.
         """
 
-        if (format is None and
-                (val.dtype.kind in ('S', 'U', 'O', 'M') or val.dtype.names)):
+        if (format is None
+                and (val.dtype.kind in ('S', 'U', 'O', 'M') or val.dtype.names)):
             # Input is a string, object, datetime, or a table-like ndarray
             # (structured array, recarray). These input types can be
             # uniquely identified by the format classes.
@@ -515,15 +516,15 @@ class Time(ShapedLikeNDArray):
             # but try to guess it at the end.
             formats.append(('astropy_time', TimeAstropyTime))
 
-        elif not (isinstance(format, str) and
-                  format.lower() in self.FORMATS):
+        elif not (isinstance(format, str)
+                  and format.lower() in self.FORMATS):
             if format is None:
                 raise ValueError("No time format was given, and the input is "
                                  "not unique")
             else:
                 raise ValueError("Format {!r} is not one of the allowed "
                                  "formats {}".format(format,
-                                                      sorted(self.FORMATS)))
+                                                     sorted(self.FORMATS)))
         else:
             formats = [(format, self.FORMATS[format])]
 
@@ -538,7 +539,7 @@ class Time(ShapedLikeNDArray):
                 # If ``format`` specified then there is only one possibility, so raise
                 # immediately and include the upstream exception message to make it
                 # easier for user to see what is wrong.
-                if len(formats)==1:
+                if len(formats) == 1:
                     raise ValueError(
                         f'Input values did not match the format class {format}:'
                         + os.linesep
@@ -728,7 +729,8 @@ class Time(ShapedLikeNDArray):
                               date_tuple[6], date_tuple[7], -1)
             fmtd_str = format_spec
             if '%f' in fmtd_str:
-                fmtd_str = fmtd_str.replace('%f', '{frac:0{precision}}'.format(frac=sk['fracsec'], precision=self.precision))
+                fmtd_str = fmtd_str.replace('%f', '{frac:0{precision}}'.format(
+                    frac=sk['fracsec'], precision=self.precision))
             fmtd_str = strftime(fmtd_str, datetime_tuple)
             formatted_strings.append(fmtd_str)
 
@@ -1105,8 +1107,8 @@ class Time(ShapedLikeNDArray):
             # a Location object.
             if self_location is None and value.location is None:
                 match = True
-            elif ((self_location is None and value.location is not None) or
-                  (self_location is not None and value.location is None)):
+            elif ((self_location is None and value.location is not None)
+                  or (self_location is not None and value.location is None)):
                 match = False
             else:
                 match = np.all(self_location == value.location)
@@ -1204,7 +1206,7 @@ class Time(ShapedLikeNDArray):
             location = self.location
 
         from astropy.coordinates import (UnitSphericalRepresentation, CartesianRepresentation,
-                                   HCRS, ICRS, GCRS, solar_system_ephemeris)
+                                         HCRS, ICRS, GCRS, solar_system_ephemeris)
 
         # ensure sky location is ICRS compatible
         if not skycoord.is_transformable_to(ICRS()):
@@ -1292,11 +1294,11 @@ class Time(ShapedLikeNDArray):
             longitude = self.location.lon
         elif longitude == 'greenwich':
             longitude = Longitude(0., u.degree,
-                                  wrap_angle=180.*u.degree)
+                                  wrap_angle=180. * u.degree)
         else:
             # sanity check on input
             longitude = Longitude(longitude, u.degree,
-                                  wrap_angle=180.*u.degree)
+                                  wrap_angle=180. * u.degree)
 
         gst = self._erfa_sidereal_time(available_models[model.upper()])
         return Longitude(gst + longitude, u.hourangle)
@@ -1528,10 +1530,17 @@ class Time(ShapedLikeNDArray):
 
         if keepdims and indices.ndim < self.ndim:
             indices = np.expand_dims(indices, axis)
-        return tuple([(indices if i == axis else np.arange(s).reshape(
-            (1,)*(i if keepdims or i < axis else i-1) + (s,) +
-            (1,)*(ndim-i-(1 if keepdims or i > axis else 2))))
-                for i, s in enumerate(self.shape)])
+
+        index = [indices
+                 if i == axis
+                 else np.arange(s).reshape(
+                     (1,) * (i if keepdims or i < axis else i - 1)
+                     + (s,)
+                     + (1,) * (ndim - i - (1 if keepdims or i > axis else 2))
+                 )
+                 for i, s in enumerate(self.shape)]
+
+        return tuple(index)
 
     def argmin(self, axis=None, out=None):
         """Return indices of the minimum values along the given axis.
@@ -1634,8 +1643,8 @@ class Time(ShapedLikeNDArray):
         if out is not None:
             raise ValueError("Since `Time` instances are immutable, ``out`` "
                              "cannot be set to anything but ``None``.")
-        return (self.max(axis, keepdims=keepdims) -
-                self.min(axis, keepdims=keepdims))
+        return (self.max(axis, keepdims=keepdims)
+                - self.min(axis, keepdims=keepdims))
 
     def sort(self, axis=-1):
         """Return a copy sorted along the specified axis.
@@ -1993,13 +2002,13 @@ class Time(ShapedLikeNDArray):
                 # Let other have a go.
                 return NotImplemented
 
-        if(self.scale is not None and self.scale not in other.SCALES or
-           other.scale is not None and other.scale not in self.SCALES):
+        if(self.scale is not None and self.scale not in other.SCALES
+           or other.scale is not None and other.scale not in self.SCALES):
             # Other will also not be able to do it, so raise a TypeError
             # immediately, allowing us to explain why it doesn't work.
             raise TypeError("Cannot compare {} instances with scales "
                             "'{}' and '{}'".format(self.__class__.__name__,
-                                                     self.scale, other.scale))
+                                                   self.scale, other.scale))
 
         if self.scale is not None and other.scale is not None:
             other = getattr(other, self.scale)
@@ -2160,8 +2169,8 @@ class TimeDelta(Time):
                 return NotImplemented
 
         # the scales should be compatible (e.g., cannot convert TDB to TAI)
-        if(self.scale is not None and self.scale not in other.SCALES or
-           other.scale is not None and other.scale not in self.SCALES):
+        if(self.scale is not None and self.scale not in other.SCALES
+           or other.scale is not None and other.scale not in self.SCALES):
             raise TypeError("Cannot add TimeDelta instances with scales "
                             "'{}' and '{}'".format(self.scale, other.scale))
 
@@ -2192,8 +2201,8 @@ class TimeDelta(Time):
                 return NotImplemented
 
         # the scales should be compatible (e.g., cannot convert TDB to TAI)
-        if(self.scale is not None and self.scale not in other.SCALES or
-           other.scale is not None and other.scale not in self.SCALES):
+        if(self.scale is not None and self.scale not in other.SCALES
+           or other.scale is not None and other.scale not in self.SCALES):
             raise TypeError("Cannot subtract TimeDelta instances with scales "
                             "'{}' and '{}'".format(self.scale, other.scale))
 
@@ -2234,9 +2243,9 @@ class TimeDelta(Time):
         # would enter here again (via __rmul__)
         if isinstance(other, Time) and not isinstance(other, TimeDelta):
             raise OperandTypeError(self, other, '*')
-        elif ((isinstance(other, u.UnitBase) and
-               other == u.dimensionless_unscaled) or
-              (isinstance(other, str) and other == '')):
+        elif ((isinstance(other, u.UnitBase)
+               and other == u.dimensionless_unscaled)
+                or (isinstance(other, str) and other == '')):
             return self.copy()
 
         # If other is something consistent with a dimensionless quantity
@@ -2267,9 +2276,9 @@ class TimeDelta(Time):
     def __truediv__(self, other):
         """Division of `TimeDelta` objects by numbers/arrays."""
         # Cannot do __mul__(1./other) as that looses precision
-        if ((isinstance(other, u.UnitBase) and
-             other == u.dimensionless_unscaled) or
-                (isinstance(other, str) and other == '')):
+        if ((isinstance(other, u.UnitBase)
+             and other == u.dimensionless_unscaled)
+                or (isinstance(other, str) and other == '')):
             return self.copy()
 
         # If other is something consistent with a dimensionless quantity
@@ -2396,8 +2405,8 @@ class TimeDelta(Time):
         # TODO: maybe allow 'subfmt' also for units, keeping full precision
         # (effectively, by doing the reverse of quantity_day_frac)?
         # This way, only equivalencies could lead to possible precision loss.
-        if ('format' in kwargs or
-                (args != () and (args[0] is None or args[0] in self.FORMATS))):
+        if ('format' in kwargs
+                or (args != () and (args[0] is None or args[0] in self.FORMATS))):
             # Super-class will error with duplicate arguments, etc.
             return super().to_value(*args, **kwargs)
 
@@ -2522,8 +2531,8 @@ class OperandTypeError(TypeError):
         super().__init__(
             "Unsupported operand type(s){}: "
             "'{}' and '{}'".format(op_string,
-                                     left.__class__.__name__,
-                                     right.__class__.__name__))
+                                   left.__class__.__name__,
+                                   right.__class__.__name__))
 
 
 def update_leap_seconds(files=None):
