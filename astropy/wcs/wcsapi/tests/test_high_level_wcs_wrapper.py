@@ -29,13 +29,7 @@ class CustomLowLevelWCS(BaseLowLevelWCS):
     def pixel_to_world_values(self, *pixel_arrays):
         return [np.asarray(pix) * 2 for pix in pixel_arrays]
 
-    def array_index_to_world_values(self, *index_arrays):
-        return [np.asarray(pix) * 2 for pix in index_arrays]
-
     def world_to_pixel_values(self, *world_arrays):
-        return [np.asarray(world) / 2 for world in world_arrays]
-
-    def world_to_array_index_values(self, *world_arrays):
         return [np.asarray(world) / 2 for world in world_arrays]
 
     @property

@@ -1,5 +1,7 @@
 import numbers
+
 import numpy as np
+
 from astropy.wcs.wcsapi import BaseLowLevelWCS, wcs_info_str
 from astropy.utils import isiterable
 
@@ -184,9 +186,6 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
 
         return world_arrays
 
-    def array_index_to_world_values(self, *index_arrays):
-        return self.pixel_to_world_values(*index_arrays[::-1])
-
     def world_to_pixel_values(self, *world_arrays):
         world_arrays = tuple(map(np.asanyarray, world_arrays))
         world_arrays_new = []
@@ -212,11 +211,6 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
         if self.pixel_n_dim == 1 and self._wcs.pixel_n_dim > 1:
             pixel = pixel[0]
         return pixel
-
-    def world_to_array_index_values(self, *world_arrays):
-        pixel_arrays = self.world_to_pixel_values(*world_arrays, 0)[::-1]
-        array_indices = tuple(np.asarray(np.floor(pixel + 0.5), dtype=np.int_) for pixel in pixel_arrays)
-        return array_indices
 
     @property
     def world_axis_object_components(self):

@@ -1,4 +1,4 @@
-from .sliced_low_level_wcs import SlicedLowLevelWCS
+from .sliced_wcs import SlicedLowLevelWCS
 
 __all__ = ['ReorderedLowLevelWCS']
 

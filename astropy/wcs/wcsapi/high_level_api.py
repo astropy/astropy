@@ -51,7 +51,6 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         indexing and ordering conventions.
         """
 
-    @abc.abstractmethod
     def array_index_to_world(self, *index_arrays):
         """
         Convert array indices to world coordinates (represented by Astropy
@@ -64,6 +63,7 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.array_index_to_world_values` for
         pixel indexing and ordering conventions.
         """
+        return self.pixel_to_world(*index_arrays[::-1])
 
     @abc.abstractmethod
     def world_to_pixel(self, *world_objects):
@@ -78,7 +78,6 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         indexing and ordering conventions.
         """
 
-    @abc.abstractmethod
     def world_to_array_index(self, *world_objects):
         """
         Convert world coordinates (represented by Astropy objects) to array
@@ -91,6 +90,10 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         pixel indexing and ordering conventions. The indices should be returned
         as rounded integers.
         """
+        if self.pixel_n_dim == 1:
+            return np.round(self.world_to_pixel(*world_objects)).astype(int)
+        else:
+            return tuple(np.round(self.world_to_pixel(*world_objects)[::-1]).astype(int).tolist())
 
 
 class HighLevelWCSMixin(BaseHighLevelWCS):
@@ -255,12 +258,3 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
             return result[0]
         else:
             return result
-
-    def array_index_to_world(self, *index_arrays):
-        return self.pixel_to_world(*index_arrays[::-1])
-
-    def world_to_array_index(self, *world_objects):
-        if self.pixel_n_dim == 1:
-            return np.round(self.world_to_pixel(*world_objects)).astype(int)
-        else:
-            return tuple(np.round(self.world_to_pixel(*world_objects)[::-1]).astype(int).tolist())

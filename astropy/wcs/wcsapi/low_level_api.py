@@ -74,7 +74,6 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         arrays is returned.
         """
 
-    @abc.abstractmethod
     def array_index_to_world_values(self, *index_arrays):
         """
         Convert array indices to world coordinates.
@@ -88,6 +87,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         method returns a single scalar or array, otherwise a tuple of scalars or
         arrays is returned.
         """
+        return self.pixel_to_world_values(*index_arrays[::-1])
 
     @abc.abstractmethod
     def world_to_pixel_values(self, *world_arrays):
@@ -108,7 +108,6 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         arrays is returned.
         """
 
-    @abc.abstractmethod
     def world_to_array_index_values(self, *world_arrays):
         """
         Convert world coordinates to array indices.
@@ -123,6 +122,13 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         method returns a single scalar or array, otherwise a tuple of scalars or
         arrays is returned.
         """
+        pixel_arrays = self.world_to_pixel_values(*world_arrays)
+        if self.pixel_n_dim == 1:
+            pixel_arrays = (pixel_arrays,)
+        else:
+            pixel_arrays = pixel_arrays[::-1]
+        array_indices = tuple(np.asarray(np.floor(pixel + 0.5), dtype=np.int_) for pixel in pixel_arrays)
+        return array_indices[0] if self.pixel_n_dim == 1 else array_indices
 
     @property
     @abc.abstractmethod

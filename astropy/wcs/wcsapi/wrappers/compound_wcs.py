@@ -1,10 +1,12 @@
+from functools import reduce
+
 import numpy as np
-from .low_level_api import BaseLowLevelWCS
+
+from ..low_level_api import BaseLowLevelWCS
 
 __all__ = ['CompoundLowLevelWCS']
 
 
-from functools import reduce
 
 def listsum(lists):
     return reduce(list.__add__, map(list, lists))
@@ -51,9 +53,6 @@ class CompoundLowLevelWCS(BaseLowLevelWCS):
                 world_arrays.append(world_arrays_sub)
         return tuple(world_arrays)
 
-    def array_index_to_world_values(self, *index_arrays):
-        return self.pixel_to_world_values(*index_arrays[-1])
-
     def world_to_pixel_values(self, *world_arrays):
         pixel_arrays = []
         for w in self._wcs:
@@ -64,23 +63,23 @@ class CompoundLowLevelWCS(BaseLowLevelWCS):
                 pixel_arrays.extend(pixel_arrays_sub)
             else:
                 pixel_arrays.append(pixel_arrays_sub)
-        return tuple(world_arrays)
-
-    def world_to_array_index_values(self, *world_arrays):
-        pixel_arrays = self.world_to_pixel_values(*world_arrays)
-        array_indices = tuple(np.asarray(np.floor(pixel + 0.5), dtype=np.int_) for pixel in pixel_arrays)
-        return array_indices
+        return tuple(pixel_arrays)
 
     @property
     def world_axis_object_components(self):
-        return listsum([w.world_axis_object_components for w in self._wcs])
+        all_components = []
+        for iw, w in enumerate(self._wcs):
+            for component in w.world_axis_object_components:
+                all_components.append((f'{component[0]}_{iw}',) + component[1:])
+        return all_components
 
     @property
     def world_axis_object_classes(self):
         # TODO: deal with name conflicts
         all_classes = {}
-        for w in self._wcs:
-            all_classes.update(w.world_axis_object_components)
+        for iw, w in enumerate(self._wcs):
+            for key, value in w.world_axis_object_classes.items():
+                all_classes[f'{key}_{iw}'] = value
         return all_classes
 
     @property

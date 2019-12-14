@@ -1,5 +1,6 @@
 import numpy as np
-from .low_level_api import BaseLowLevelWCS
+
+from ..low_level_api import BaseLowLevelWCS
 
 __all__ = ['ResampledLowLevelWCS']
 
@@ -44,19 +45,11 @@ class ResampledLowLevelWCS(BaseLowLevelWCS):
                         for i in range(self.pixel_n_dim)]
         return self._wcs.pixel_to_world_values(*pixel_arrays)
 
-    def array_index_to_world_values(self, *index_arrays):
-        return self.pixel_to_world_values(*index_arrays[-1])
-
     def world_to_pixel_values(self, *world_arrays):
         pixel_arrays = self._wcs.world_to_pixel_values(*world_arrays)
         pixel_arrays = [np.asarray(pixel_arrays[i]) / self._factor[i]
                         for i in range(self.pixel_n_dim)]
         return pixel_arrays
-
-    def world_to_array_index_values(self, *world_arrays):
-        pixel_arrays = self.world_to_pixel_values(*world_arrays)
-        array_indices = tuple(np.asarray(np.floor(pixel + 0.5), dtype=np.int_) for pixel in pixel_arrays)
-        return array_indices
 
     @property
     def world_axis_object_components(self):
