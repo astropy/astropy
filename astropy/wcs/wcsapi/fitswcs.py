@@ -168,7 +168,10 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
     @property
     def pixel_bounds(self):
-        return self._pixel_bounds
+        pb = self._pixel_bounds
+        if pb is not None:
+            pb = tuple(pb)
+        return pb
 
     @pixel_bounds.setter
     def pixel_bounds(self, value):
@@ -196,7 +199,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                         break
                 else:
                     types.append(CTYPE_TO_UCD1.get(ctype_name, None))
-        return types
+        return tuple(types)
 
     @property
     def world_axis_units(self):
@@ -212,11 +215,11 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 except u.UnitsError:
                     unit = ''
             units.append(unit)
-        return units
+        return tuple(units)
 
     @property
     def world_axis_names(self):
-        return list(self.wcs.cname)
+        return tuple(self.wcs.cname)
 
     @property
     def axis_correlation_matrix(self):

@@ -40,10 +40,10 @@ def test_empty():
     assert wcs.world_n_dim == 1
     assert wcs.array_shape is None
     assert wcs.pixel_shape is None
-    assert wcs.world_axis_physical_types == [None]
-    assert wcs.world_axis_units == ['']
-    assert wcs.pixel_axis_names == ['']
-    assert wcs.world_axis_names == ['']
+    assert wcs.world_axis_physical_types == (None,)
+    assert wcs.world_axis_units == ('',)
+    assert wcs.pixel_axis_names == ('',)
+    assert wcs.world_axis_names == ('',)
 
     assert_equal(wcs.axis_correlation_matrix, True)
 
@@ -121,10 +121,10 @@ def test_simple_celestial():
     assert wcs.world_n_dim == 2
     assert wcs.array_shape is None
     assert wcs.pixel_shape is None
-    assert wcs.world_axis_physical_types == ['pos.eq.ra', 'pos.eq.dec']
-    assert wcs.world_axis_units == ['deg', 'deg']
-    assert wcs.pixel_axis_names == ['', '']
-    assert wcs.world_axis_names == ['', '']
+    assert wcs.world_axis_physical_types == ('pos.eq.ra', 'pos.eq.dec')
+    assert wcs.world_axis_units == ('deg', 'deg')
+    assert wcs.pixel_axis_names == ('', '')
+    assert wcs.world_axis_names == ('', '')
 
     assert_equal(wcs.axis_correlation_matrix, True)
 
@@ -235,10 +235,10 @@ def test_spectral_cube():
     assert wcs.world_n_dim == 3
     assert wcs.array_shape is None
     assert wcs.pixel_shape is None
-    assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
-    assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
-    assert wcs.pixel_axis_names == ['', '', '']
-    assert wcs.world_axis_names == ['Latitude', 'Frequency', 'Longitude']
+    assert wcs.world_axis_physical_types == ('pos.galactic.lat', 'em.freq', 'pos.galactic.lon')
+    assert wcs.world_axis_units == ('deg', 'Hz', 'deg')
+    assert wcs.pixel_axis_names == ('', '', '')
+    assert wcs.world_axis_names == ('Latitude', 'Frequency', 'Longitude')
 
     assert_equal(wcs.axis_correlation_matrix, [[True, False, True],
                                                [False, True, False],
@@ -325,10 +325,10 @@ def test_spectral_cube_nonaligned():
 
     wcs = WCS_SPECTRAL_CUBE_NONALIGNED
 
-    assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
-    assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
-    assert wcs.pixel_axis_names == ['', '', '']
-    assert wcs.world_axis_names == ['Latitude', 'Frequency', 'Longitude']
+    assert wcs.world_axis_physical_types == ('pos.galactic.lat', 'em.freq', 'pos.galactic.lon')
+    assert wcs.world_axis_units == ('deg', 'Hz', 'deg')
+    assert wcs.pixel_axis_names == ('', '', '')
+    assert wcs.world_axis_names == ('Latitude', 'Frequency', 'Longitude')
 
     assert_equal(wcs.axis_correlation_matrix, [[True, True, True],
                                                [False, True, True],
@@ -422,10 +422,10 @@ def test_time_cube():
     assert wcs.world_n_dim == 3
     assert wcs.array_shape == (11, 2048, 2048)
     assert wcs.pixel_shape == (2048, 2048, 11)
-    assert wcs.world_axis_physical_types == ['pos.eq.dec', 'pos.eq.ra', 'time']
-    assert wcs.world_axis_units == ['deg', 'deg', 's']
-    assert wcs.pixel_axis_names == ['', '', '']
-    assert wcs.world_axis_names == ['', '', '']
+    assert wcs.world_axis_physical_types == ('pos.eq.dec', 'pos.eq.ra', 'time')
+    assert wcs.world_axis_units == ('deg', 'deg', 's')
+    assert wcs.pixel_axis_names == ('', '', '')
+    assert wcs.world_axis_names == ('', '', '')
 
     assert_equal(wcs.axis_correlation_matrix, [[True, True, False],
                                                [True, True, False],
@@ -755,7 +755,7 @@ def test_unrecognized_unit():
     wcs = WCS(naxis=1)
     with pytest.warns(UnitsWarning):
         wcs.wcs.cunit = ['bananas // sekonds']
-        assert wcs.world_axis_units == ['bananas // sekonds']
+        assert wcs.world_axis_units == ('bananas // sekonds', )
 
 
 def test_distortion_correlations():
@@ -793,35 +793,35 @@ def test_custom_ctype_to_ucd_mappings():
     wcs = WCS(naxis=1)
     wcs.wcs.ctype = ['SPAM']
 
-    assert wcs.world_axis_physical_types == [None]
+    assert wcs.world_axis_physical_types == (None, )
 
     # Check simple behavior
 
     with custom_ctype_to_ucd_mapping({'APPLE': 'food.fruit'}):
-        assert wcs.world_axis_physical_types == [None]
+        assert wcs.world_axis_physical_types == (None, )
 
     with custom_ctype_to_ucd_mapping({'APPLE': 'food.fruit', 'SPAM': 'food.spam'}):
-        assert wcs.world_axis_physical_types == ['food.spam']
+        assert wcs.world_axis_physical_types == ('food.spam', )
 
     # Check nesting
 
     with custom_ctype_to_ucd_mapping({'SPAM': 'food.spam'}):
         with custom_ctype_to_ucd_mapping({'APPLE': 'food.fruit'}):
-            assert wcs.world_axis_physical_types == ['food.spam']
+            assert wcs.world_axis_physical_types == ('food.spam', )
 
     with custom_ctype_to_ucd_mapping({'APPLE': 'food.fruit'}):
         with custom_ctype_to_ucd_mapping({'SPAM': 'food.spam'}):
-            assert wcs.world_axis_physical_types == ['food.spam']
+            assert wcs.world_axis_physical_types == ('food.spam', )
 
     # Check priority in nesting
 
     with custom_ctype_to_ucd_mapping({'SPAM': 'notfood'}):
         with custom_ctype_to_ucd_mapping({'SPAM': 'food.spam'}):
-            assert wcs.world_axis_physical_types == ['food.spam']
+            assert wcs.world_axis_physical_types == ('food.spam', )
 
     with custom_ctype_to_ucd_mapping({'SPAM': 'food.spam'}):
         with custom_ctype_to_ucd_mapping({'SPAM': 'notfood'}):
-            assert wcs.world_axis_physical_types == ['notfood']
+            assert wcs.world_axis_physical_types == ('notfood', )
 
 
 def test_caching_components_and_classes():
@@ -871,10 +871,10 @@ def test_sub_wcsapi_attributes():
     assert wcs_sub1.world_n_dim == 2
     assert wcs_sub1.array_shape == (50, 30)
     assert wcs_sub1.pixel_shape == (30, 50)
-    assert wcs_sub1.pixel_bounds == [(-1, 11), (5, 15)]
-    assert wcs_sub1.world_axis_physical_types == ['pos.galactic.lat', 'pos.galactic.lon']
-    assert wcs_sub1.world_axis_units == ['deg', 'deg']
-    assert wcs_sub1.world_axis_names == ['Latitude', 'Longitude']
+    assert wcs_sub1.pixel_bounds == ((-1, 11), (5, 15))
+    assert wcs_sub1.world_axis_physical_types == ('pos.galactic.lat', 'pos.galactic.lon')
+    assert wcs_sub1.world_axis_units == ('deg', 'deg')
+    assert wcs_sub1.world_axis_names == ('Latitude', 'Longitude')
 
     # Try adding axes
 
@@ -884,10 +884,10 @@ def test_sub_wcsapi_attributes():
     assert wcs_sub2.world_n_dim == 3
     assert wcs_sub2.array_shape == (None, 40, None)
     assert wcs_sub2.pixel_shape == (None, 40, None)
-    assert wcs_sub2.pixel_bounds == [None, (-2, 18), None]
-    assert wcs_sub2.world_axis_physical_types == [None, 'em.freq', None]
-    assert wcs_sub2.world_axis_units == ['', 'Hz', '']
-    assert wcs_sub2.world_axis_names == ['', 'Frequency', '']
+    assert wcs_sub2.pixel_bounds == (None, (-2, 18), None)
+    assert wcs_sub2.world_axis_physical_types == (None, 'em.freq', None)
+    assert wcs_sub2.world_axis_units == ('', 'Hz', '')
+    assert wcs_sub2.world_axis_names == ('', 'Frequency', '')
 
     # Use strings
 
@@ -897,10 +897,10 @@ def test_sub_wcsapi_attributes():
     assert wcs_sub3.world_n_dim == 2
     assert wcs_sub3.array_shape == (30, 50)
     assert wcs_sub3.pixel_shape == (50, 30)
-    assert wcs_sub3.pixel_bounds == [(5, 15), (-1, 11)]
-    assert wcs_sub3.world_axis_physical_types == ['pos.galactic.lon', 'pos.galactic.lat']
-    assert wcs_sub3.world_axis_units == ['deg', 'deg']
-    assert wcs_sub3.world_axis_names == ['Longitude', 'Latitude']
+    assert wcs_sub3.pixel_bounds == ((5, 15), (-1, 11))
+    assert wcs_sub3.world_axis_physical_types == ('pos.galactic.lon', 'pos.galactic.lat')
+    assert wcs_sub3.world_axis_units == ('deg', 'deg')
+    assert wcs_sub3.world_axis_names == ('Longitude', 'Latitude')
 
     # Now try without CNAME set
 
@@ -911,10 +911,10 @@ def test_sub_wcsapi_attributes():
     assert wcs_sub4.world_n_dim == 2
     assert wcs_sub4.array_shape == (30, 50)
     assert wcs_sub4.pixel_shape == (50, 30)
-    assert wcs_sub4.pixel_bounds == [(5, 15), (-1, 11)]
-    assert wcs_sub4.world_axis_physical_types == ['pos.galactic.lon', 'pos.galactic.lat']
-    assert wcs_sub4.world_axis_units == ['deg', 'deg']
-    assert wcs_sub4.world_axis_names == ['', '']
+    assert wcs_sub4.pixel_bounds == ((5, 15), (-1, 11))
+    assert wcs_sub4.world_axis_physical_types == ('pos.galactic.lon', 'pos.galactic.lat')
+    assert wcs_sub4.world_axis_units == ('deg', 'deg')
+    assert wcs_sub4.world_axis_names == ('', '')
 
 
 def test_low_level_types(header_time_1d):

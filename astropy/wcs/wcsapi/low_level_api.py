@@ -11,6 +11,10 @@ __all__ = ['BaseLowLevelWCS', 'validate_physical_types']
 scalar_or_array = Union[float, np.ndarray]
 scalar_or_array_or_tuple = Union[scalar_or_array, Tuple[scalar_or_array, ...]]
 
+# World axis object classes
+waoc_no_callable = Mapping[str, Tuple[Union[str, type], tuple, dict]]
+waoc_with_callable = Mapping[str, Tuple[Union[str, type], tuple, dict, Optional[Callable]]]
+
 
 class BaseLowLevelWCS(metaclass=abc.ABCMeta):
     """
@@ -36,7 +40,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def world_axis_physical_types(self) -> List[Union[str, None]]:
+    def world_axis_physical_types(self) -> Tuple[Union[str, None], ...]:
         """
         An iterable of strings describing the physical type for each world axis.
 
@@ -49,7 +53,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def world_axis_units(self) -> List[str]:
+    def world_axis_units(self) -> Tuple[str, ...]:
         """
         An iterable of strings given the units of the world coordinates for each
         axis.
@@ -165,7 +169,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def world_axis_object_classes(self) -> Mapping[str, Tuple[Union[str, type], tuple, dict, Optional[Callable]]]:
+    def world_axis_object_classes(self) -> Union[waoc_no_callable, waoc_with_callable]:
         """
         A dictionary giving information on constructing high-level objects for
         the world coordinates.
@@ -273,7 +277,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         return None
 
     @property
-    def pixel_axis_names(self) -> List[str]:
+    def pixel_axis_names(self) -> Tuple[str, ...]:
         """
         An iterable of strings describing the name for each pixel axis.
 
@@ -282,10 +286,10 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         override this property). Note that these names are just for display
         purposes and are not standardized.
         """
-        return [''] * self.pixel_n_dim
+        return tuple([''] * self.pixel_n_dim)
 
     @property
-    def world_axis_names(self) -> List[str]:
+    def world_axis_names(self) -> Tuple[str, ...]:
         """
         An iterable of strings describing the name for each world axis.
 
@@ -295,7 +299,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         purposes and are not standardized. For standardized axis types, see
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_physical_types`.
         """
-        return [''] * self.world_n_dim
+        return tuple([''] * self.world_n_dim)
 
     @property
     def axis_correlation_matrix(self) -> np.ndarray:

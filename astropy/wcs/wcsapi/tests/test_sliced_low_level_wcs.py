@@ -122,16 +122,16 @@ def test_ellipsis():
     assert wcs.world_n_dim == 3
     assert wcs.array_shape == (30, 20, 10)
     assert wcs.pixel_shape == (10, 20, 30)
-    assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
-    assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
-    assert wcs.pixel_axis_names == ['', '', '']
-    assert wcs.world_axis_names == ['Latitude', 'Frequency', 'Longitude']
+    assert wcs.world_axis_physical_types == ('pos.galactic.lat', 'em.freq', 'pos.galactic.lon')
+    assert wcs.world_axis_units == ('deg', 'Hz', 'deg')
+    assert wcs.pixel_axis_names == ('', '', '')
+    assert wcs.world_axis_names == ('Latitude', 'Frequency', 'Longitude')
 
     assert_equal(wcs.axis_correlation_matrix, [[True, False, True], [False, True, False], [True, False, True]])
 
     assert wcs.world_axis_object_components == [('celestial', 1, 'spherical.lat.degree'),
-                                                  ('freq', 0, 'value'),
-                                                  ('celestial', 0, 'spherical.lon.degree')]
+                                                ('freq', 0, 'value'),
+                                                ('celestial', 0, 'spherical.lon.degree')]
 
     assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
     assert wcs.world_axis_object_classes['celestial'][1] == ()
@@ -198,10 +198,10 @@ def test_spectral_slice():
     assert wcs.world_n_dim == 2
     assert wcs.array_shape == (30, 10)
     assert wcs.pixel_shape == (10, 30)
-    assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'pos.galactic.lon']
-    assert wcs.world_axis_units == ['deg', 'deg']
-    assert wcs.pixel_axis_names == ['', '']
-    assert wcs.world_axis_names == ['Latitude', 'Longitude']
+    assert wcs.world_axis_physical_types == ('pos.galactic.lat', 'pos.galactic.lon')
+    assert wcs.world_axis_units == ('deg', 'deg')
+    assert wcs.pixel_axis_names == ('', '')
+    assert wcs.world_axis_names == ('Latitude', 'Longitude')
 
     assert_equal(wcs.axis_correlation_matrix, [[True, True], [True, True]])
 
@@ -260,10 +260,10 @@ def test_spectral_range():
     assert wcs.world_n_dim == 3
     assert wcs.array_shape == (30, 6, 10)
     assert wcs.pixel_shape == (10, 6, 30)
-    assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
-    assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
-    assert wcs.pixel_axis_names == ['', '', '']
-    assert wcs.world_axis_names == ['Latitude', 'Frequency', 'Longitude']
+    assert wcs.world_axis_physical_types == ('pos.galactic.lat', 'em.freq', 'pos.galactic.lon')
+    assert wcs.world_axis_units == ('deg', 'Hz', 'deg')
+    assert wcs.pixel_axis_names == ('', '', '')
+    assert wcs.world_axis_names == ('Latitude', 'Frequency', 'Longitude')
 
     assert_equal(wcs.axis_correlation_matrix, [[True, False, True], [False, True, False], [True, False, True]])
 
@@ -326,10 +326,10 @@ def test_celestial_slice():
     assert wcs.world_n_dim == 3
     assert wcs.array_shape == (30, 20)
     assert wcs.pixel_shape == (20, 30)
-    assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
-    assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
-    assert wcs.pixel_axis_names == ['', '']
-    assert wcs.world_axis_names == ['Latitude', 'Frequency', 'Longitude']
+    assert wcs.world_axis_physical_types == ('pos.galactic.lat', 'em.freq', 'pos.galactic.lon')
+    assert wcs.world_axis_units == ('deg', 'Hz', 'deg')
+    assert wcs.pixel_axis_names == ('', '')
+    assert wcs.world_axis_names == ('Latitude', 'Frequency', 'Longitude')
 
     assert_equal(wcs.axis_correlation_matrix, [[False, True], [True, False], [False, True]])
 
@@ -393,10 +393,10 @@ def test_celestial_range():
     assert wcs.world_n_dim == 3
     assert wcs.array_shape == (30, 20, 5)
     assert wcs.pixel_shape == (5, 20, 30)
-    assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
-    assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
-    assert wcs.pixel_axis_names == ['', '', '']
-    assert wcs.world_axis_names == ['Latitude', 'Frequency', 'Longitude']
+    assert wcs.world_axis_physical_types == ('pos.galactic.lat', 'em.freq', 'pos.galactic.lon')
+    assert wcs.world_axis_units == ('deg', 'Hz', 'deg')
+    assert wcs.pixel_axis_names == ('', '', '')
+    assert wcs.world_axis_names == ('Latitude', 'Frequency', 'Longitude')
 
     assert_equal(wcs.axis_correlation_matrix, [[True, False, True], [False, True, False], [True, False, True]])
 
@@ -470,10 +470,10 @@ def test_celestial_range_rot():
     assert wcs.world_n_dim == 3
     assert wcs.array_shape == (30, 20, 5)
     assert wcs.pixel_shape == (5, 20, 30)
-    assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
-    assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
-    assert wcs.pixel_axis_names == ['', '', '']
-    assert wcs.world_axis_names == ['Latitude', 'Frequency', 'Longitude']
+    assert wcs.world_axis_physical_types == ('pos.galactic.lat', 'em.freq', 'pos.galactic.lon')
+    assert wcs.world_axis_units == ('deg', 'Hz', 'deg')
+    assert wcs.pixel_axis_names == ('', '', '')
+    assert wcs.world_axis_names == ('Latitude', 'Frequency', 'Longitude')
 
     assert_equal(wcs.axis_correlation_matrix, [[True, False, True], [False, True, False], [True, False, True]])
 
@@ -560,8 +560,8 @@ def test_no_array_shape():
     assert wcs.world_n_dim == 3
     assert wcs.array_shape is None
     assert wcs.pixel_shape is None
-    assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
-    assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
+    assert wcs.world_axis_physical_types == ('pos.galactic.lat', 'em.freq', 'pos.galactic.lon')
+    assert wcs.world_axis_units == ('deg', 'Hz', 'deg')
 
     assert_equal(wcs.axis_correlation_matrix, [[True, False, True], [False, True, False], [True, False, True]])
 
@@ -649,8 +649,8 @@ def test_ellipsis_none_types():
     assert wcs.world_n_dim == 3
     assert wcs.array_shape == (30, 20, 10)
     assert wcs.pixel_shape == (10, 20, 30)
-    assert wcs.world_axis_physical_types == ['pos.galactic.lat', None, 'pos.galactic.lon']
-    assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
+    assert wcs.world_axis_physical_types == ('pos.galactic.lat', None, 'pos.galactic.lon')
+    assert wcs.world_axis_units == ('deg', 'Hz', 'deg')
 
     assert_equal(wcs.axis_correlation_matrix, [[True, False, True],
                                                [False, True, False], [True, False, True]])

@@ -136,19 +136,19 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
 
     @property
     def world_axis_physical_types(self):
-        return [self._wcs.world_axis_physical_types[i] for i in self._world_keep]
+        return tuple(self._wcs.world_axis_physical_types[i] for i in self._world_keep)
 
     @property
     def world_axis_units(self):
-        return [self._wcs.world_axis_units[i] for i in self._world_keep]
+        return tuple(self._wcs.world_axis_units[i] for i in self._world_keep)
 
     @property
     def pixel_axis_names(self):
-        return [self._wcs.pixel_axis_names[i] for i in self._pixel_keep]
+        return tuple(self._wcs.pixel_axis_names[i] for i in self._pixel_keep)
 
     @property
     def world_axis_names(self):
-        return [self._wcs.world_axis_names[i] for i in self._world_keep]
+        return tuple(self._wcs.world_axis_names[i] for i in self._world_keep)
 
     def pixel_to_world_values(self, *pixel_arrays):
         pixel_arrays_new = []
