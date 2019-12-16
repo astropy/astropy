@@ -169,6 +169,14 @@ def_unit(['littleh'], namespace=_ns, prefixes=False,
          doc="Reduced/\"dimensionless\" Hubble constant",
          format={'latex': r'h_{100}'})
 
+# The torr is almost the same as mmHg but not quite.
+# See https://en.wikipedia.org/wiki/Torr
+# Define the unit here despite it not being an astrophysical unit.
+# It may be moved if more similar units are created later.
+def_unit(['Torr', 'torr'], _si.atm.value/760. * si.Pa, namespace=_ns,
+         prefixes=[(['m'], ['milli'], 1.e-3)],
+         doc="Unit of pressure based on an absolute scale, now defined as "
+             "exactly 1/760 of a standard atmosphere")
 
 ###########################################################################
 # CLEANUP
