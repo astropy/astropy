@@ -1793,10 +1793,10 @@ class Table:
         return list(self.columns.keys())
 
     def values(self):
-        list_to_return = []
-        for i in self.as_array():
-            list_to_return.append(list(i)[:-1])
-        return list_to_return
+        return self.columns.values()
+
+    def items(self):
+        return self.columns.items()
 
     def __len__(self):
         # For performance reasons (esp. in Row) cache the first column name
