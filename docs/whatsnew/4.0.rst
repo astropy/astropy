@@ -38,7 +38,7 @@ smaller improvements and bug fixes, which are described in the
 :ref:`changelog`. By the numbers:
 
 * 948 issues have been closed since v3.2
-* 493 pull requests have been merged since v3.2
+* 494 pull requests have been merged since v3.2
 * 74 distinct people have contributed code, 26 of which are first time contributors to Astropy
 
 .. _whatsnew-4.0-planck2018:
