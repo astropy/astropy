@@ -62,9 +62,11 @@ def rotation_matrix(angle, axis='z', unit=None):
         A unitary rotation matrix.
     """
     if unit is None:
-        unit = u.degree
-
-    angle = Angle(angle, unit=unit)
+        angle = np.deg2rad(angle)
+    else:
+        unit = u.Unit(unit)
+        if unit is not u.rad:
+            angle = Angle(angle, unit=unit)
 
     s = np.sin(angle)
     c = np.cos(angle)
@@ -88,7 +90,7 @@ def rotation_matrix(angle, axis='z', unit=None):
     else:
         a1 = (i + 1) % 3
         a2 = (i + 2) % 3
-        R = np.zeros(angle.shape + (3, 3))
+        R = np.zeros(np.shape(angle) + (3, 3))
         R[..., i, i] = 1.
         R[..., a1, a1] = c
         R[..., a1, a2] = s
