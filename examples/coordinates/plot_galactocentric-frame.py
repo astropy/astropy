@@ -80,10 +80,10 @@ print(gc1.v_x, gc1.v_y, gc1.v_z)
 # respectively. The velocity of the sun can be specified as an
 # `~astropy.units.Quantity` object with velocity units and is interepreted as a
 # Cartesian velocity, as in the example below. Note that, as with the positions,
-# the Galactocentric frame is a right-handed system (i.e. the Sun is at negative
+# the Galactocentric frame is a right-handed system (i.e., the Sun is at negative
 # x values) so ``v_x`` is opposite of the Galactocentric radial velocity:
 
-v_sun = [11.1, 244, 7.25] * u.km/u.s  # [vx, vy, vz]
+v_sun = [11.1, 244, 7.25] * (u.km / u.s)  # [vx, vy, vz]
 gc_frame = coord.Galactocentric(
     galcen_distance=8*u.kpc,
     galcen_v_sun=v_sun,
@@ -109,7 +109,7 @@ vy, vz = -(galcen_distance * pm_gal_sgrA).to(u.km/u.s, u.dimensionless_angles())
 # We still have to assume a line-of-sight velocity for the Galactic center,
 # which we will again take to be 11 km/s:
 vx = 11.1 * u.km/u.s
-v_sun2 = u.Quantity([vx, vy, vz])
+v_sun2 = u.Quantity([vx, vy, vz])  # List of Quantity -> a single Quantity
 
 gc_frame2 = coord.Galactocentric(galcen_distance=galcen_distance,
                                  galcen_v_sun=v_sun2,
