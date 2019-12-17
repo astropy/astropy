@@ -77,16 +77,17 @@ print(gc1.v_x, gc1.v_y, gc1.v_z)
 # changes values using the keywords ``galcen_distance``, ``galcen_v_sun``, and
 # ``z_sun`` which set the sun-Galactic center distance, the 3D velocity vector
 # of the sun, and the height of the sun above the Galactic midplane,
-# respectively. The velocity of the sun must be specified as a
-# `~astropy.coordinates.CartesianDifferential` instance, as in the example
-# below. Note that, as with the positions, the Galactocentric frame is a
-# right-handed system - the x-axis is positive towards the Galactic center, so
-# ``v_x`` is opposite of the Galactocentric radial velocity:
+# respectively. The velocity of the sun can be specified as an
+# `~astropy.units.Quantity` object with velocity units and is interepreted as a
+# Cartesian velocity, as in the example below. Note that, as with the positions,
+# the Galactocentric frame is a right-handed system (i.e., the Sun is at negative
+# x values) so ``v_x`` is opposite of the Galactocentric radial velocity:
 
-v_sun = coord.CartesianDifferential([11.1, 244, 7.25]*u.km/u.s)
-gc_frame = coord.Galactocentric(galcen_distance=8*u.kpc,
-                                galcen_v_sun=v_sun,
-                                z_sun=0*u.pc)
+v_sun = [11.1, 244, 7.25] * (u.km / u.s)  # [vx, vy, vz]
+gc_frame = coord.Galactocentric(
+    galcen_distance=8*u.kpc,
+    galcen_v_sun=v_sun,
+    z_sun=0*u.pc)
 
 ##############################################################################
 # We can then transform to this frame instead, with our custom parameters:
@@ -108,9 +109,10 @@ vy, vz = -(galcen_distance * pm_gal_sgrA).to(u.km/u.s, u.dimensionless_angles())
 # We still have to assume a line-of-sight velocity for the Galactic center,
 # which we will again take to be 11 km/s:
 vx = 11.1 * u.km/u.s
+v_sun2 = u.Quantity([vx, vy, vz])  # List of Quantity -> a single Quantity
 
 gc_frame2 = coord.Galactocentric(galcen_distance=galcen_distance,
-                                 galcen_v_sun=coord.CartesianDifferential(vx, vy, vz),
+                                 galcen_v_sun=v_sun2,
                                  z_sun=0*u.pc)
 gc3 = c1.transform_to(gc_frame2)
 print(gc3.v_x, gc3.v_y, gc3.v_z)
