@@ -14,325 +14,349 @@ Astropy Project Coordinators
 Core Package Contributors
 =========================
 
-* Ryan Abernathey
-* Mohan Agrawal
-* Shailesh Ahuja
-* Tom Aldcroft
-* Mike Alexandersen
-* Anne Archibald
-* Cristian Ardelean
-* Humna Awan
-* Tomas Babej
-* Matteo Bachetti
-* Alexander Bakanov
-* Steven Bamford
-* Kyle Barbary
-* Geert Barentsen
-* Pauline Barmby
-* Paul Barrett
-* Juanjo Bazán
-* Andreas Baumbach
-* Chris Beaumont
-* Stefan Becker
-* Manas Satish Bedmutha
-* Alexandre Beelen
-* T. Carl Beery
-* Daniel Bell
-* Elijah Bernstein-Cooper
-* Kristin Berry
-* Edward Betts
-* Nimit Bhardwaj
-* Mavani Bhautik
-* Francesco Biscani
-* Manish Biswas
-* Thompson Le Blanc
-* Christopher Bonnett
-* Joseph Jon Booker
-* Médéric Boquien
-* Azalee Bostroem
-* Luke G. Bouma
-* Matthew Bourque
-* Larry Bradley
-* Gustavo Bragança
-* Gabriel Brammer
-* Clara Brasseur
-* Erik M. Bray
-* Eli Bressert
-* Matthew Brett
-* Hannes Breytenbach
-* Samuel Brice
-* Hugo Buddelmeijer
-* Doug Burke
-* Giorgio Calderone
-* Tito Dal Canton
-* Daria Cara
-* Mihai Cara
-* Patti Carroll
-* Mabry Cervin
-* Frédéric Chapoton
-* Pritish Chakraborty
-* Sourabh Cheedella
-* Christian Clauss
-* Alex Conley
-* Jean Connelly
-* Simon Conseil
-* Ryan Cooke
-* Yannick Copin
-* Michele Costa
-* Matthew Craig
-* Steve Crawford
-* Devin Crichton
-* Neil Crighton
-* Robert Cross
-* Kelle Cruz
-* Dan P. Cunningham
-* Daniel D'Avella
-* Ritwick DSouza
-* Daniel Datsev
-* James Davies
-* Matt Davis
-* James Dearman
-* Emily Deibert
-* Christoph Deil
-* Nadia Dencheva
-* Eric Depagne
-* Akash Deshpande
-* Jörg Dietrich
-* Axel Donath
-* Bili Dong
-* Alex Drlica-Wagner
-* Michael Droettboom
-* Sanjeev Dubey
-* Zach Edwards
-* Jonathan Eisenhamer
-* Thomas Erben
-* Henry Ferguson
-* Vital Fernández
-* Leonardo Ferreira
-* Tyler Finethy
-* Dan Foreman-Mackey
-* Jonathan Foster
-* Ryan Fox
-* Nabil Freij
-* Leah Fulmer
-* Lehman Garrison
-* Simon Gibbons
+* Aaron Meisner
+* Aarya Patil
+* Abhinuv Nitin Pitale
+* Abigail Stevens
 * Adam Ginsburg
-* Lauren Glattly
-* Martin Glatzle
-* Christoph Gohlke
-* Danny Goldstein
-* Ralf Gommers
-* Karl Gordon
-* J. Goutin
-* Javier Pascual Granado
-* Johnny Greco
-* Perry Greenfield
-* Dylan Gregersen
-* Austen Groener
-* Frédéric Grollier
-* Karan Grover
-* Kevin Gullikson
-* Hans Moritz Günther
-* Chris Hanley
-* Alex Hagen
-* Andrew Hearin
-* Christian Hettlage
-* Paul Hirst
-* Moataz Hisham
-* Michael Hoenig
-* Emma Hogan
-* Derek Homeier
-* Anthony Horton
-* JC Hsu
-* Griffin Hosseinzadeh
-* Lingyi Hu
-* Jurien Huisman
-* Joe Hunkeler
-* Zeljko Ivezic
-* Anchit Jain
-* Anany Shrey Jain
-* VSN Reddy Janga
-* Grant Jenks
-* Tim Jenness
-* Eric Jeschke
-* Graham Kanarek
-* Rohit Kapoor
-* Anirudh Katipally
-* Sarah Kendrew
-* Marten van Kerkwijk
-* Nicholas S. Kern
-* Wolfgang Kerzendorf
-* Lennard Kiehl
-* Rashid Khan
+* Adele Plunkett
+* Aditya Sharma
+* Adrian Price-Whelan
+* Akash Deshpande
+* Al Niessner
+* Albert Y. Shih
 * Aleh Khvalko
-* Rocio Kiman
-* David Kirkby
-* Dominik Klaes
-* Eric Koch
-* Tom Kooij
-* Kacper Kowalik
-* Roban Hultman Kramer
-* Mangala Gowri Krishnamoorthy
-* Aniket Kulkarni
+* Alex Conley
+* Alex Drlica-Wagner
+* Alex Hagen
+* Alex Rudy
+* Alex de la Vega
+* Alexander Bakanov
+* Alexandre Beelen
 * Amit Kumar
-* Yash Kumar
+* Ana Posses
+* Anany Shrey Jain
+* Anchit Jain
+* Andreas Baumbach
+* Andrew Hearin
+* Aniket Kulkarni
+* Anirudh Katipally
+* Anne Archibald
+* Anthony Horton
+* Antony Lee
+* Arfon Smith
 * Arie Kurniawan
 * Arne de Laat
-* Antony Lee
-* Katrin Leinweber
-* Daniel Lenz
-* Kieran Leschinski
-* Simon Liedtke
-* Pey Lian Lim
-* Stuart Littlefair
-* Joseph Long
-* Joe Lyman
-* Jerry Ma
-* Duncan Macleod
-* Ritiek Malhotra
-* Lisa Martin
-* Michele Mastropietro
-* Jeffrey McBeth
-* Mike McCarty
-* Curtis McCully
-* Vinayak Mehta
-* Aaron Meisner
-* Mikhail Minin
-* Sashank Mishra
-* Serge Montagnac
-* Francesco Montanari
-* José Sabater Montes
-* Francesco Montesano
-* Brett Morris
-* Michael Mueller
-* Stuart Mumford
-* Demitri Muna
-* Nick Murphy
-* Prasanth Nair
-* Stefan Nelson
-* Giang Nguyen
-* Bogdan Nicula
-* Al Niessner
-* Joe Philip Ninan
-* Asra Nizami
-* Bryce Nordgren
-* James Noss
-* Sigurd Næss
-* Maximilian Nöthe
-* Ricardo Ogando
-* Sara Ogaz
-* Georgiana Ogrean
-* Semyeong Oh
-* Bruno Oliveira
-* Kyle Oman
-* Miruna Oprescu
-* Carl Osterwisch
-* Luigi Paioro
-* David M. Palmer
+* Arthur Eigenbrot
 * Asish Panda
-* John Parejko
-* Madhura Parikh
-* Neil Parley
-* Sergio Pascual
-* Pratik Patel
-* Himanshu Pathak
-* Aarya Patil
-* Rohit Patil
-* Sushobhana Patra
-* Molly Peeples
-* David Pérez-Suárez
-* Matthew Petroff
-* Abhinuv Nitin Pitale
-* Ray Plante
-* Tim Plummer
-* Adele Plunkett
-* Orion Poplawski
-* Stephen Portillo
-* Ana Posses
-* Joanna Power
-* Paul Price
-* Adrian Price-Whelan
-* J. Xavier Prochaska
-* Rohan Rajpal
-* Tanuj Rastogi
-* Jane Rigby
-* Clément Robert
-* Thomas Robitaille
-* Juan Luis Cano Rodríguez
-* Patricio Rojo
-* Evert Rol
-* Benjamin Roulston
-* Alex Rudy
-* Joseph Ryan
-* Saurav Sachidanand
-* Eloy Salinas
-* Esteban Pardo Sánchez
-* Nicholas Saunders
-* Gerrit Schellenberger
-* Joseph Schlitz
-* Michael Seifert
-* Srikrishna Sekhar
-* Mathieu Servillat
-* Aditya Sharma
-* Swapnil Sharma
-* Helen Sherwood-Taylor
-* David Shiga
-* Albert Y. Shih
-* David Shupe
-* Jonathan Sick
-* Max Silbiger
-* Bernie Simon
-* Sudheesh Singanamalla
-* Leo Singer
-* Brigitta Sipocz
-* Paul Sladen
-* Arfon Smith
-* Kevin Sooley
-* Shivan Sornarajah
-* Megan Sosey
-* Shantanu Srivastava
-* David Stansby
-* Kris Stern
-* Abigail Stevens
-* Ole Streicher
-* Matej Stuchlik
-* Bernardo Sulzbach
-* Jonas Große Sundrup
-* Jani Šumak
-* Vatsala Swaroop
-* Dan Taranu
-* James Taylor
-* Jeff Taylor
-* Mark Taylor
-* Kirill Tchernyshyov
-* Régis Terrier
-* Víctor Terrón
-* Peter Teuben
-* Scott Thomas
-* Erik Tollerud
-* Matthew Turk
-* James Turner
-* Miguel de Val-Borro
-* Jake VanderPlas
-* Alex de la Vega
-* Shresth Verma
-* Sam Verstocken
-* Zé Vinicius
-* Vishnunarayan K I
-* Karl Vyhmeister
-* Lisa Walter
-* Laura Watkins
+* Asra Nizami
+* Austen Groener
+* Axel Donath
+* Azalee Bostroem
 * Benjamin Alan Weaver
-* Jonathan Whitmore
+* Benjamin Roulston
 * Benjamin Winkel
-* Julien Woillez
-* Michael Wood-Vasey
-* Maneesh Yadav
+* Bernardo Sulzbach
+* Bernie Simon
+* Bili Dong
+* Bogdan Nicula
+* Brett Morris
+* Brigitta Sipőcz
+* Bruno Oliveira
+* Bryce Kalmbach
+* Bryce Nordgren
+* Carl Osterwisch
+* Chris Beaumont
+* Chris Hanley
+* Christian Clauss
+* Christian Hettlage
+* Christoph Deil
+* Christoph Gohlke
+* Christopher Bonnett
+* Clara Brasseur
+* Clare Shanahan
+* Clément Robert
+* Cristian Ardelean
+* Curtis McCully
+* Dan Foreman-Mackey
+* Dan P. Cunningham
+* Dan Taranu
+* Daniel Bell
+* Daniel D'Avella
+* Daniel Datsev
+* Daniel Lenz
+* Danny Goldstein
+* Daria Cara
+* David Kirkby
+* David M. Palmer
+* David Pérez-Suárez
+* David Shiga
+* David Shupe
+* David Stansby
+* Demitri Muna
+* Derek Homeier
+* Devin Crichton
+* Dominik Klaes
+* Doug Burke
+* Drew Leonard
+* Duncan Macleod
+* Dylan Gregersen
+* Edward Betts
+* Eli Bressert
+* Elijah Bernstein-Cooper
+* Eloy Salinas
+* Emily Deibert
+* Emma Hogan
+* Eric Depagne
+* Eric Jeschke
+* Eric Koch
+* Erik M. Bray
+* Erik Tollerud
+* Esteban Pardo Sánchez
+* Evert Rol
 * Felix Yan
-* Víctor Zabalza
+* Francesco Biscani
+* Francesco Montanari
+* Francesco Montesano
+* Frédéric Chapoton
+* Frédéric Grollier
+* Gabriel Brammer
+* Geert Barentsen
+* Georgiana Ogrean
+* Gerrit Schellenberger
+* Giang Nguyen
+* Giorgio Calderone
+* Graham Kanarek
+* Grant Jenks
+* Gregory Dubois-Felsmann
+* Griffin Hosseinzadeh
+* Gustavo Bragança
+* Hannes Breytenbach
+* Hans Moritz Günther
+* Helen Sherwood-Taylor
+* Henry Ferguson
+* Himanshu Pathak
+* Hugo Buddelmeijer
+* Humna Awan
+* J. Goutin
+* J. Xavier Prochaska
+* JC Hsu
+* Jake VanderPlas
+* James Davies
+* James Dearman
+* James Noss
+* James Taylor
+* James Turner
+* Jane Rigby
+* Jani Šumak
+* Javier Pascual Granado
+* Jean Connelly
+* Jeff Taylor
+* Jeffrey McBeth
+* Jerry Ma
+* Joanna Power
+* Joe Hunkeler
+* Joe Lyman
+* Joe Philip Ninan
+* John Fisher
+* John Parejko
+* Johnny Greco
+* Jonas Große Sundrup
+* Jonathan Eisenhamer
+* Jonathan Foster
+* Jonathan Sick
+* Jonathan Whitmore
+* Jörg Dietrich
+* Joseph Jon Booker
+* Joseph Long
+* Joseph Ryan
+* Joseph Schlitz
+* José Sabater Montes
+* Juan Luis Cano Rodríguez
+* Juanjo Bazán
+* Julien Woillez
+* Jurien Huisman
+* Kacper Kowalik
+* Karan Grover
+* Karl Gordon
+* Karl Vyhmeister
+* Katrin Leinweber
+* Kelle Cruz
+* Kevin Gullikson
+* Kevin Sooley
+* Kewei Li
+* Kieran Leschinski
+* Kirill Tchernyshyov
+* Kris Stern
+* Kristin Berry
+* Kyle Barbary
+* Kyle Oman
+* Larry Bradley
+* Laura Watkins
+* Lauren Glattly
+* Leah Fulmer
+* Lehman Garrison
+* Lennard Kiehl
+* Leo Singer
+* Leonardo Ferreira
+* Lia Corrales
+* Lingyi Hu
+* Lisa Martin
+* Lisa Walter
+* Luigi Paioro
+* Luke G. Bouma
+* M Atakan Gürkan
+* Mabry Cervin
+* Madhura Parikh
+* Manas Satish Bedmutha
+* Maneesh Yadav
+* Mangala Gowri Krishnamoorthy
+* Manish Biswas
+* Mark Fardal
+* Mark Taylor
+* Marten van Kerkwijk
+* Martin Glatzle
+* Matej Stuchlik
+* Mathieu Servillat
+* Matt Davis
+* Matteo Bachetti
+* Matthew Bourque
+* Matthew Brett
+* Matthew Craig
+* Matthew Petroff
+* Matthew Turk
+* Mavani Bhautik
+* Max Silbiger
+* Maximilian Nöthe
+* Médéric Boquien
+* Megan Sosey
+* Michael Droettboom
+* Michael Hoenig
+* Michael Mueller
+* Michael Seifert
+* Michael Wood-Vasey
 * Michael Zhang
+* Michele Costa
+* Michele Mastropietro
+* Miguel de Val-Borro
+* Mihai Cara
+* Mike Alexandersen
+* Mike McCarty
+* Mikhail Minin
+* Miruna Oprescu
+* Moataz Hisham
+* Mohan Agrawal
+* Molly Peeples
+* Nabil Freij
+* Nadia Dencheva
+* Neil Crighton
+* Neil Parley
+* Nicholas S. Kern
+* Nicholas Saunders
+* Nick Murphy
+* Nimit Bhardwaj
 * Noah Zuckman
+* Nora Luetzgendorf
+* Ole Streicher
+* Orion Poplawski
+* Patricio Rojo
+* Patti Carroll
+* Paul Barrett
+* Paul Hirst
+* Paul Price
+* Paul Sladen
+* Pauline Barmby
+* Perry Greenfield
+* Peter Teuben
+* Pey Lian Lim
+* Prasanth Nair
+* Pratik Patel
+* Pritish Chakraborty
+* Ralf Gommers
+* Rashid Khan
+* Rasmus Handberg
+* Ray Plante
+* Régis Terrier
+* Ricardo Ogando
+* Ritiek Malhotra
+* Ritwick DSouza
+* Roban Hultman Kramer
+* Robert Cross
+* Rocio Kiman
+* Rohan Rajpal
+* Rohit Kapoor
+* Rohit Patil
+* Rui Xue
+* Ryan Abernathey
+* Ryan Cooke
+* Ryan Fox
+* Sadie Bartholomew
+* Sam Verstocken
+* Samuel Brice
+* Sanjeev Dubey
+* Sara Ogaz
+* Sarah Kendrew
+* Sashank Mishra
+* Saurav Sachidanand
+* Scott Thomas
+* Semyeong Oh
+* Serge Montagnac
+* Sergio Pascual
+* SF Graves
+* Shailesh Ahuja
+* Shantanu Srivastava
+* Shivan Sornarajah
+* Shresth Verma
+* Shreyas Bapat
+* Sigurd Næss
+* Simon Conseil
+* Simon Gibbons
+* Simon Liedtke
+* Simon Torres
+* Sourabh Cheedella
+* Srikrishna Sekhar
+* Stefan Becker
+* Stefan Nelson
+* Stephen Portillo
+* Steve Crawford
+* Steven Bamford
+* Stuart Littlefair
+* Stuart Mumford
+* Sudheesh Singanamalla
+* Sushobhana Patra
+* Swapnil Sharma
+* T. Carl Beery
+* Tanuj Rastogi
+* Thomas Erben
+* Thomas Robitaille
+* Thompson Le Blanc
+* Tiffany Jansen
+* Tim Jenness
+* Tim Plummer
+* Tito Dal Canton
+* Tom Aldcroft
+* Tom Donaldson
+* Tom J Wilson
+* Tom Kooij
+* Tomas Babej
+* Tyler Finethy
+* VSN Reddy Janga
+* Vatsala Swaroop
+* Vinayak Mehta
+* Vishnunarayan K I
+* Vital Fernández
+* Víctor Terrón
+* Víctor Zabalza
+* Wilfred Tyler Gee
+* Wolfgang Kerzendorf
+* Yannick Copin
+* Yash Kumar
+* Yash Sharma
+* Yingqi Ying
+* Zach Edwards
+* Zachary Kurtz
+* Zeljko Ivezic
+* Zé Vinicius
 
 Other Credits
 =============
