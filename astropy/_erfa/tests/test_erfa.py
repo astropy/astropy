@@ -244,6 +244,22 @@ def test_float32_input():
     np.testing.assert_allclose(out32, out64, rtol=1.e-5)
 
 
+def test_scalar_astrom_input():
+    # Regression test for gh-9799
+    mjd = 58827.15925499
+    utc2mjd = 2400000.5
+    paranal_long = -1.228798
+    paranal_lat = -0.42982
+    paranal_height = 2669.
+    apco_param = [utc2mjd, mjd, 0.0, paranal_long, paranal_lat,
+                  paranal_height, 0.0, 0.0, 0.0, 0.0, 0.0, 2.5]
+    astrom0, eo0 = erfa.apco13(*apco_param)
+    assert type(astrom0) is np.void
+    # This caused a TypeError before, as astrom0 was a void
+    astrom = erfa.aper13(utc2mjd, mjd, astrom0)
+    assert type(astrom) is np.void
+
+
 class TestLeapSecondsBasics:
     def test_get_leap_seconds(self):
         leap_seconds = erfa.leap_seconds.get()
