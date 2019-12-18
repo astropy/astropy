@@ -8,7 +8,7 @@ jobs:
       - checkout
       - run: python setup.py egg_info
 
-  32bit:
+  32bit-and-parallel:
     docker:
       - image: quay.io/pypa/manylinux1_i686
     steps:
@@ -160,7 +160,7 @@ workflows:
     jobs:
       - egg-info-37
       - html-docs
-      - 32bit
+      - 32bit-and-parallel
       - image-tests-mpl212
       - image-tests-mpl222
       - image-tests-mpl302
