@@ -463,6 +463,12 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
         try:
             hdu = cls(data=DELAYED, header=header, **new_kwargs)
         except TypeError:
+            # This may happen because some HDU class (e.g. GroupsHDU) wants
+            # to set a keyword on the header, which is not possible with the
+            # _BasicHeader. While HDU classes should not need to modify the
+            # header in general, sometimes this is needed to fix it. So in
+            # this case we build a full Header and try again to create the
+            # HDU object.
             if isinstance(header, _BasicHeader):
                 header = Header.fromstring(header_str)
                 hdu = cls(data=DELAYED, header=header, **new_kwargs)
