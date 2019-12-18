@@ -154,7 +154,7 @@ The following writes a table as a simple space-delimited file::
   >>> x = np.array([1, 2, 3])
   >>> y = x ** 2
   >>> data = Table([x, y], names=['x', 'y'])
-  >>> ascii.write(data, 'values.dat')
+  >>> ascii.write(data, 'values.dat', overwrite=True)
 
 The ``values.dat`` file will then contain::
 
