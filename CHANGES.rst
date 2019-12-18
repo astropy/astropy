@@ -268,6 +268,19 @@ Other Changes and Additions
   ``ASTROPY_USE_SYSTEM_ALL``. These should be set to ``1`` to build
   against the system libraries. [#9730]
 
+- The infrastructure of the package has been updated in line with the
+  APE 17 roadmap (https://github.com/astropy/astropy-APEs/blob/master/APE17.rst).
+  The main changes are that the ``python setup.py test`` and
+  ``python setup.py build_docs`` commands will no longer work. The easiest
+  way to replicate these commands is to install the tox
+  (https://tox.readthedocs.io) package and run ``tox -e test`` and
+  ``tox -e build_docs``. It is also possible to run pytest and sphinx
+  directly. Other significant changes include switching to setuptools_scm to
+  manage the version number, and adding a ``pyproject.toml`` to opt in to
+  isolated builds as described in PEP 517/518. [#9726]
+
+- The minimum supported version of asdf has been updated to 2.4. [#9726]
+
 4.0.1 (unreleased)
 ==================
 
