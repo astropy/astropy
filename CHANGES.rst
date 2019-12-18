@@ -31,6 +31,12 @@ astropy.io.misc
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Fix regression with ``GroupsHDU`` which needs to modify the header to handle
+  invalid headers. [#9711]
+
+- Fix ``fitsdiff`` when its arguments are directories that contain other
+  directories. [#9711]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
