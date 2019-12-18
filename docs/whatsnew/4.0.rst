@@ -7,8 +7,9 @@ What's New in Astropy 4.0?
 Overview
 ========
 
-Astropy 4.0 is a major release that ...  since
-the 3.2.x series of releases.
+Astropy 4.0 is a major release that adds significant new functionality since the
+3.2.x series of releases. In addition, it is a long-term support release (LTS)
+which will be supported with bug fixes for two years.
 
 In particular, this release includes:
 
