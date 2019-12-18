@@ -312,7 +312,8 @@ def get_extensions():
         'wcsprintf.h',
     ]
 
-    if not setup_helpers.use_system_library('wcslib'):
+    if not (int(os.environ.get('ASTROPY_USE_SYSTEM_WCSLIB', 0))
+            or int(os.environ.get('ASTROPY_USE_SYSTEM_ALL', 0))):
         for header in wcslib_headers:
             source = join('cextern', 'wcslib', 'C', header)
             dest = join('astropy', 'wcs', 'include', 'wcslib', header)
