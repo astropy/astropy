@@ -460,7 +460,20 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
                 if key not in sig.parameters:
                     del new_kwargs[key]
 
-        hdu = cls(data=DELAYED, header=header, **new_kwargs)
+        try:
+            hdu = cls(data=DELAYED, header=header, **new_kwargs)
+        except TypeError:
+            # This may happen because some HDU class (e.g. GroupsHDU) wants
+            # to set a keyword on the header, which is not possible with the
+            # _BasicHeader. While HDU classes should not need to modify the
+            # header in general, sometimes this is needed to fix it. So in
+            # this case we build a full Header and try again to create the
+            # HDU object.
+            if isinstance(header, _BasicHeader):
+                header = Header.fromstring(header_str)
+                hdu = cls(data=DELAYED, header=header, **new_kwargs)
+            else:
+                raise
 
         # One of these may be None, depending on whether the data came from a
         # file or a string buffer--later this will be further abstracted
