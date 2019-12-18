@@ -76,6 +76,8 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- Added ``torr`` pressure unit. [#9787]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
