@@ -1,15 +1,18 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import os
+import sys
 
 from distutils.core import Extension
 from glob import glob
 
 from astropy_helpers import setup_helpers
-from astropy_helpers.distutils_helpers import get_distutils_build_option
 
 
 def _get_compression_extension():
+
+    debug = '--debug' in sys.argv
+
     # 'numpy' will be replaced with the proper path to the numpy includes
     cfg = setup_helpers.DistutilsExtensionArgs()
     cfg['include_dirs'].append('numpy')
@@ -33,7 +36,7 @@ def _get_compression_extension():
                 '-Wno-declaration-after-statement'
             ])
 
-            if not get_distutils_build_option('debug'):
+            if not debug:
                 # these switches are to silence warnings from compiling CFITSIO
                 # For full silencing, some are added that only are used in
                 # later versions of gcc (versions approximate; see #6474)

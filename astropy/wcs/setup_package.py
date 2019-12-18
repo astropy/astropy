@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import io
+import os
 from os.path import join
 import os.path
 import shutil
@@ -12,7 +13,6 @@ from distutils.dep_util import newer_group
 
 from astropy_helpers.utils import import_file
 from astropy_helpers import setup_helpers
-from astropy_helpers.distutils_helpers import get_distutils_build_option
 
 WCSROOT = os.path.relpath(os.path.dirname(__file__))
 WCSVERSION = "6.4.0"
@@ -175,7 +175,7 @@ MSVC, do not support string literals greater than 256 characters.
 
 def get_wcslib_cfg(cfg, wcslib_files, include_paths):
 
-    debug = import_file(os.path.join(WCSROOT, '..', 'version.py')).debug
+    debug = '--debug' in sys.argv
 
     cfg['include_dirs'].append('numpy')
     cfg['define_macros'].extend([
@@ -226,7 +226,7 @@ def get_wcslib_cfg(cfg, wcslib_files, include_paths):
 
     # Squelch a few compilation warnings in WCSLIB
     if setup_helpers.get_compiler_option() in ('unix', 'mingw32'):
-        if not get_distutils_build_option('debug'):
+        if not debug:
             cfg['extra_compile_args'].extend([
                 '-Wno-strict-prototypes',
                 '-Wno-unused-function',
