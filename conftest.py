@@ -15,16 +15,6 @@ except ImportError:
 
 import astropy
 
-if find_spec('asdf') is not None:
-    from asdf import __version__ as asdf_version
-    if asdf_version >= astropy.__minimum_asdf_version__:
-        entry_points = []
-        for entry_point in pkg_resources.iter_entry_points('pytest11'):
-            entry_points.append(entry_point.name)
-        if "asdf_schema_tester" not in entry_points:
-            pytest_plugins += ['asdf.tests.schema_tester']
-        PYTEST_HEADER_MODULES['Asdf'] = 'asdf'
-
 # Make sure we use temporary directories for the config and cache
 # so that the tests are insensitive to local configuration.
 
