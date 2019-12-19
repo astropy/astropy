@@ -7,13 +7,23 @@ omit =
    astropy/*/tests/*
    astropy/tests/test_*
    astropy/extern/*
-   astropy/sphinx/*
    astropy/utils/compat/*
    astropy/version*
    astropy/wcs/docstrings*
    astropy/_erfa/*
 
 [report]
+omit =
+   astropy/__init__*
+   astropy/conftest.py
+   astropy/*setup*
+   astropy/*/tests/*
+   astropy/tests/test_*
+   astropy/extern/*
+   astropy/utils/compat/*
+   astropy/version*
+   astropy/wcs/docstrings*
+   astropy/_erfa/*
 exclude_lines =
    # Have to re-enable the standard pragma
    pragma: no cover
