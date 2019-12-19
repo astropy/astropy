@@ -37,6 +37,22 @@ jobs:
           name: Run tests for Python 3.8
           command: PYTHONHASHSEED=42 /opt/python/cp38-cp38/bin/python setup.py test --parallel=4 -a "--durations=50"
 
+  double-test:
+    # Check that running tests twice in a row in the same Python session works
+    # without issues. This catches cases where running the tests changes the
+    # module state permanently.
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - checkout
+      - run:
+          name: Run tests twice
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -e .[test]
+            python -c 'import sys; from astropy import test; test(); sys.exit(test())'
+
   image-tests-mpl212:
     docker:
       - image: astropy/image-tests-py36-mpl212:1.8
@@ -160,6 +176,7 @@ workflows:
     jobs:
       - egg-info-37
       - html-docs
+      - double-test
       - 32bit-and-parallel
       - image-tests-mpl212
       - image-tests-mpl222
