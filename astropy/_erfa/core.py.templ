@@ -136,7 +136,11 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
 
     Notes
     -----
-    The ERFA documentation is below.
+    The ERFA documentation is below.  {% if func.args_by_inout('inout') -%}
+    Note that, unlike the erfa routine,
+    the python wrapper does not change {{ func.args_by_inout('inout')
+    | map(attribute='name')|join(', ') }} in-place.
+    {%- endif %}
 
 {{ func.doc }}
     """
