@@ -299,44 +299,34 @@ External C Libraries
 The ``astropy`` source ships with the C source code of a number of
 libraries. By default, these internal copies are used to build
 ``astropy``. However, if you wish to use the system-wide installation of
-one of those libraries, you can pass one or more of the
-``--use-system-X`` flags to the ``setup.py build`` command.
+one of those libraries, you can set environment variables with the
+pattern ``ASTROPY_USE_SYSTEM_???`` to ``1`` when building/installing
+the package.
 
 For example, to build ``astropy`` using the system `libexpat
 <http://www.libexpat.org/>`_, use::
 
-    python setup.py build --use-system-expat
+    ASTROPY_USE_SYSTEM_EXPAT=1 python setup.py build
 
 To build using all of the system libraries, use::
 
-    python setup.py build --use-system-libraries
-
-To see which system libraries ``astropy`` knows how to build against, use::
-
-    python setup.py build --help
-
-As with all distutils command line options, they may also be provided in a
-``setup.cfg`` in the same directory as ``setup.py``. For example, to use
-the system `libexpat <http://www.libexpat.org/>`_, add the following to the
-``setup.cfg`` file::
-
-    [build]
-    use_system_expat=1
-
+    ASTROPY_USE_SYSTEM_ALL=1 python setup.py build
 
 The C libraries currently bundled with ``astropy`` include:
 
 - `wcslib <https://www.atnf.csiro.au/people/mcalabre/WCS/>`_ see
-  ``cextern/wcslib/README`` for the bundled version.
+  ``cextern/wcslib/README`` for the bundled version. To use the
+  system version, set ``ASTROPY_USE_SYSTEM_WCSLIB=1``.
 
 - `cfitsio <https://heasarc.gsfc.nasa.gov/fitsio/fitsio.html>`_ see
-  ``cextern/cfitsio/changes.txt`` for the bundled version.
+  ``cextern/cfitsio/changes.txt`` for the bundled version. To use the
+  system version, set ``ASTROPY_USE_SYSTEM_CFITSIO=1``.
 
 - `erfa <https://github.com/liberfa>`_ see ``cextern/erfa/README.rst`` for the
-  bundled version.
+  bundled version. To use the system version, set ``ASTROPY_USE_SYSTEM_ERFA=1``.
 
 - `expat <http://expat.sourceforge.net/>`_ see ``cextern/expat/README`` for the
-  bundled version.
+  bundled version. To use the system version, set ``ASTROPY_USE_SYSTEM_EXPAT=1``.
 
 
 Installing ``astropy`` into CASA
