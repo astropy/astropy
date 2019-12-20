@@ -624,14 +624,14 @@ To aid this process, there are a series of related scripts in the
 `astropy-procedures repository`_, in the ``pr_consistency`` directory.  These scripts
 essentially check that the above two conditions are met. Detailed documentation
 for these scripts is given in their repository, but here we summarize the basic
-workflow.  Run the scripts in order (they are numbered 1.<something>.py,
-2.<something>.py, etc.), entering your github login credentials as needed (if
-you are going to run them multiple times, using a ``~/.netrc`` file is
+workflow.  Run the scripts in order (they are numbered ``1.<something>.py``,
+``2.<something>.py``, etc.), entering your github login credentials as needed
+(if you are going to run them multiple times, using a ``~/.netrc`` file is
 recommended - see `this Stack Overflow post
 <https://stackoverflow.com/questions/5343068/is-there-a-way-to-cache-github-credentials-for-pushing-commits/18362082#18362082>`_
 for more on how to do that, or
 `a similar github help page <https://help.github.com/en/articles/caching-your-github-password-in-git>`_).
-The script to actually check consistency should be run like:
+The script to actually check consistency should be run like::
 
     $ python 4.check_consistency.py > consistency.html
 
@@ -646,6 +646,8 @@ The end of the ``consistency.html`` page will then show a series of
 ``git cherry-pick`` commands to update the maintenance branch with the PRs that
 are needed to make the milestones and branches consistent.  Make sure you're in
 the correct maintenance branch with e.g.,
+
+::
 
     $ git checkout v1.3.x
     $ git pull upstream v1.3.x  # Or possibly a rebase if conflicts exist
@@ -758,7 +760,7 @@ applies both for regular release *and* release candidates are the same
    `astropy-helpers repository`_ to reflect the release you just did (detailed
    instructions are above).
 
-#. Delete the temporary branch from github:
+#. Delete the temporary branch from github::
 
       $ git push upstream :tmp-release-v<version>
 
