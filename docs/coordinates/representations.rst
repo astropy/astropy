@@ -111,7 +111,17 @@ Array Values and NumPy Array Method Analogs
 
 Array `~astropy.units.Quantity` objects can also be passed to representations,
 and such representations can be sliced, reshaped, etc., using the same
-methods as are available to `~numpy.ndarray`::
+methods as are available to `~numpy.ndarray`.
+
+Example
+-------
+
+..
+  EXAMPLE START
+  Array Values and NumPy Array Method Analogs
+
+To pass array `~astropy.units.Quantity` objects to representations and
+manipulate::
 
   >>> import numpy as np
   >>> x = np.linspace(0., 5., 6)
@@ -131,6 +141,8 @@ methods as are available to `~numpy.ndarray`::
        [(2., 12., 22.), (3., 13., 23.)],
        [(4., 14., 24.), (5., 15., 25.)]]>
 
+..
+  EXAMPLE END
 
 .. _astropy-coordinates-representations-arithmetic:
 
@@ -150,7 +162,15 @@ and multiplying with matrices.
    representation. Hence, for optimal speed it may be best to work using
    Cartesian representations.
 
-To see how the operations work, consider the following examples::
+Examples
+--------
+
+..
+  EXAMPLE START
+  Vector Arithmetic Operations with Representation Objects
+
+To see how vector arithmetic operations work with representation objects,
+consider the following examples::
 
   >>> car_array = CartesianRepresentation([[1., 0., 0.], [3., 5.,  3.]] * u.m,
   ...                                     [[0., 2., 0.], [4., 0., -4.]] * u.m,
@@ -212,6 +232,9 @@ To see how the operations work, consider the following examples::
         ( 3.06161700e-16, -5.00000000e+00,  12.),
         (-4.00000000e+00, -3.00000000e+00, -12.)]]>
 
+..
+  EXAMPLE END
+
 .. _astropy-coordinates-differentials:
 
 Differentials and Derivatives of Representations
@@ -227,7 +250,15 @@ direction of the corresponding coordinate. (Although for any representation
 other than Cartesian, this is only defined relative to a specific location, as
 the unit vectors are not invariant.)
 
-To see how this works, consider the following::
+Examples
+--------
+
+..
+  EXAMPLE START
+  Differentials and Derivatives of Representations
+
+To see how the ``Differential`` classes of representations works, consider the
+following::
 
   >>> from astropy.coordinates import SphericalRepresentation, SphericalDifferential
   >>> sph_coo = SphericalRepresentation(lon=0.*u.deg, lat=0.*u.deg,
@@ -261,6 +292,13 @@ important::
   >>> sph_coo + (big_offset + big_offset)  # doctest: +FLOAT_CMP
   <SphericalRepresentation (lon, lat, distance) in (rad, rad, kpc)
       (1.10714872, 0., 2.23606798)>
+
+..
+  EXAMPLE END
+
+..
+  EXAMPLE START
+  Proper Motion and Radial Velocities of Representation Objects
 
 Often, you may have just a proper motion or a radial velocity, but not both::
 
@@ -322,6 +360,9 @@ supply the ``base`` (representation)::
    acceleration units) will succeed, but any transformations that occur through
    re-representation of the differential will not necessarily be correct.
 
+..
+  EXAMPLE END
+
 Attaching ``Differential`` Objects to ``Representation`` Objects
 ================================================================
 
@@ -333,8 +374,16 @@ Attaching ``Differential`` Objects to ``Representation`` Objects
 ``Differential`` objects can be attached to ``Representation`` objects as a way
 to encapsulate related information into a single object. ``Differential``
 objects can be passed in to the initializer of any of the built-in
-``Representation`` classes. For example, to store a single velocity
-differential with a position::
+``Representation`` classes.
+
+Example
+-------
+
+..
+  EXAMPLE START
+  Attaching Differential Objects to Representation Objects
+
+To store a single velocity differential with a position::
 
   >>> from astropy.coordinates import representation as r
   >>> dif = r.SphericalDifferential(d_lon=1 * u.mas/u.yr,
@@ -351,14 +400,22 @@ differential with a position::
   {'s': <SphericalDifferential (d_lon, d_lat, d_distance) in (mas / yr, mas / yr, km / s)
        (1., 2., 3.)>}
 
+..
+  EXAMPLE END
+
 The ``Differential`` objects are stored as a Python dictionary on the
 ``Representation`` object with keys equal to the (string) unit with which the
-differential derivatives are taken (converted to SI). For example, in this case
-the key is ``'s'`` (second) because the ``Differential`` units are velocities, a
-time derivative. Passing a single differential to the ``Representation``
-initializer will automatically generate the necessary key and store it in the
-differentials dictionary, but a dictionary is required to specify multiple
-differentials::
+differential derivatives are taken (converted to SI).
+
+..
+  EXAMPLE START
+  Differential and Representation Object Storage
+
+In this case the key is ``'s'`` (second) because the ``Differential`` units are
+velocities, a time derivative. Passing a single differential to the
+``Representation`` initializer will automatically generate the necessary key
+and store it in the differentials dictionary, but a dictionary is required to
+specify multiple differentials::
 
   >>> dif2 = r.SphericalDifferential(d_lon=4 * u.mas/u.yr**2,
   ...                                d_lat=5 * u.mas/u.yr**2,
@@ -372,6 +429,13 @@ differentials::
   >>> rep.differentials['s2']  # doctest: +FLOAT_CMP
   <SphericalDifferential (d_lon, d_lat, d_distance) in (mas / yr2, mas / yr2, km / s2)
       (4., 5., 6.)>
+
+..
+  EXAMPLE END
+
+..
+  EXAMPLE START
+  Attaching Differential Objects to a Representation after Creation
 
 ``Differential`` objects can also be attached to a ``Representation`` after
 creation::
@@ -396,6 +460,13 @@ This works for array data as well, as long as the shape of the
   <CartesianRepresentation (x, y, z) in AU
       [(0., 4.,  8.), (1., 5.,  9.), (2., 6., 10.), (3., 7., 11.)]
    (has differentials w.r.t.: 's')>
+
+..
+  EXAMPLE END
+
+..
+  EXAMPLE START
+  Converting Positional Data to a New Representation
 
 As with a ``Representation`` instance without a differential, to convert the
 positional data to a new representation, use the ``.represent_as()``::
@@ -426,6 +497,13 @@ must specify target classes for the ``Differential`` as well::
        (-2.77555756e-17, 5.55111512e-17, 10.34408043),
        ( 0.00000000e+00, 0.00000000e+00, 11.83215957),
        ( 5.55111512e-17, 0.00000000e+00, 13.37908816)]>
+
+..
+  EXAMPLE END
+
+..
+  EXAMPLE START
+  Shape-Changing Operations with Differential Objects
 
 Shape-changing operations (e.g., reshapes) are propagated to all
 ``Differential`` objects because they are guaranteed to have the same shape as
@@ -473,6 +551,9 @@ object and use this ``Differential``-free object for any arithmetic operation::
   <CartesianRepresentation (x, y, z) in AU
       [( 0.,  60., 120.), (15.,  75., 135.), (30.,  90., 150.),
        (45., 105., 165.)]>
+
+..
+  EXAMPLE END
 
 .. _astropy-coordinates-create-repr:
 

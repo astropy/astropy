@@ -5,7 +5,15 @@ Formatting Coordinate Strings
 
 Getting a string representation of a coordinate is most powerfully
 approached by treating the components (e.g., RA and Dec) separately.
-For example::
+
+Examples
+--------
+
+..
+  EXAMPLE START
+  Getting and Formatting String Representations of Coordinates
+
+To get the string representation of a coordinate::
 
   >>> from astropy.coordinates import ICRS
   >>> from astropy import units as u
@@ -33,3 +41,6 @@ string expressions, such as IAU-style coordinates or even full sentences::
   'SDSS J123049.42+122328.03'
   >>> 'The galaxy M87, at an RA of {0.ra.hour:.2f} hours and Dec of {0.dec.deg:.1f} degrees, has an impressive jet.'.format(c)
   'The galaxy M87, at an RA of 12.51 hours and Dec of 12.4 degrees, has an impressive jet.'
+
+..
+  EXAMPLE END
