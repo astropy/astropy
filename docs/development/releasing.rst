@@ -146,10 +146,9 @@ packages that use the full bugfix/maintenance branch approach.)
       $ python -c 'import astropy; astropy.test(remote_data=True)'
       $ conda deactivate
 
-#. Push up these changes and the tag to the `astropy core repository`_
+#. Push up the tag to the `astropy core repository`_
    (the tag needs to be available for wheels in the next step)::
 
-      $ git push upstream v<version branch>.x
       $ git push upstream v<version branch>
 
    .. note::
