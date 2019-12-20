@@ -15,7 +15,7 @@ as methods on the coordinate objects.
 Separations
 ===========
 
-The on-sky separation is easily computed with the
+The on-sky separation can be computed with the
 :meth:`astropy.coordinates.BaseCoordinateFrame.separation` or
 :meth:`astropy.coordinates.SkyCoord.separation` methods,
 which computes the great-circle distance (*not* the small-angle approximation)::
