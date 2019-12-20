@@ -124,6 +124,7 @@ matrix:
                PIP_DEPENDENCIES="" CONDA_DEPENDENCIES=""
                INSTALL_WITH_PIP=True
                EXTRAS_INSTALL="test,all"
+               PYTHON_VERSION=3.8
 
         - os: linux
           stage: Initial tests
@@ -187,16 +188,6 @@ matrix:
                PIP_DEPENDENCIES="" CONDA_DEPENDENCIES=""
                INSTALL_WITH_PIP=True
                EXTRAS_INSTALL="docs"
-
-        # Testing with Travis provided Python3.8. Change this job to a regular
-        # one once conda supports python3.8. Make sure we use released numpy rather
-        # than some kind of dev coming natively from the Travis environment
-        - language: python
-          stage: Final tests
-          dist: xenial
-          python: 3.8-dev
-          env: INSTALL_WITH_PIP=True EXTRAS_INSTALL="test" USE_CI_HELPERS=False
-               OTHER_DEPENDENCY_PREFERENCES='numpy==1.17.3' PIP_FLAGS="--pre"
 
     allow_failures:
       - os: linux
