@@ -195,8 +195,9 @@ def test_slicing_warnings(tmpdir):
     # For easy debugging if there are indeed warnings
     for warning in warning_lines:
         print(warning)
-
-    assert len(warning_lines) == 0
+        # https://github.com/astropy/astropy/issues/9690
+        if 'PY_SSIZE_T_CLEAN' not in str(warning.message):
+            raise AssertionError(f'Unexpected warning: {warning}')
 
     # Angle case
 
@@ -210,8 +211,9 @@ def test_slicing_warnings(tmpdir):
     # For easy debugging if there are indeed warnings
     for warning in warning_lines:
         print(warning)
-
-    assert len(warning_lines) == 0
+        # https://github.com/astropy/astropy/issues/9690
+        if 'PY_SSIZE_T_CLEAN' not in str(warning.message):
+            raise AssertionError(f'Unexpected warning: {warning}')
 
 
 def test_plt_xlabel_ylabel(tmpdir):
