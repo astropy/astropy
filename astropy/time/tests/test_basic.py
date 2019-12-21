@@ -2118,3 +2118,32 @@ def test_ymdhms_output():
 def test_broadcasting_writeable():
     t = Time('J2015') + np.linspace(-1, 1, 10) * u.day
     t[2] = Time(58000, format="mjd")
+
+
+def test_format_subformat_compatibility():
+    """Test that changing format with out_subfmt defined is not a problem.
+    See #9812, #9810."""
+    t = Time('2019-12-20', out_subfmt='date_??')
+    assert t.mjd == 58837.0
+    assert t.yday == '2019:354:00:00'  # Preserves out_subfmt
+
+    t2 = t.replicate(format='mjd')
+    assert t2.out_subfmt == '*'  # Changes to default
+
+    t2 = t.copy(format='mjd')
+    assert t2.out_subfmt == '*'
+
+    t2 = Time(t, format='mjd')
+    assert t2.out_subfmt == '*'
+
+    t2 = t.copy(format='yday')
+    assert t2.out_subfmt == 'date_??'
+    assert t2.value == '2019:354:00:00'
+
+    t.format = 'yday'
+    assert t.value == '2019:354:00:00'
+    assert t.out_subfmt == 'date_??'
+
+    t = Time('2019-12-20', out_subfmt='date')
+    assert t.mjd == 58837.0
+    assert t.yday == '2019:354'
