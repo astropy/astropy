@@ -1593,3 +1593,7 @@ def test_multiple_aliases():
     assert isinstance(coord.transform_to('alias_2').frame, MultipleAliasesFrame)
 
     ftrans.unregister(frame_transform_graph)
+
+    # Need to remove MultipleAliasesFrame manually from transform graph
+    assert frame_transform_graph._graph.pop(MultipleAliasesFrame) == {}
+
