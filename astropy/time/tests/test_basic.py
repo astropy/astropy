@@ -1043,14 +1043,35 @@ class TestNumericalSubFormat:
         with pytest.raises(ValueError, match='not among selected'):
             Time(58000., format='mjd', in_subfmt='long')
 
-    def test_wrong_out_subfmt(self):
+    def test_wrong_subfmt(self):
         t = Time(58000., format='mjd')
         with pytest.raises(ValueError, match='must match one'):
             t.to_value('mjd', subfmt='parrot')
 
-        t.out_subfmt = 'parrot'
-        with pytest.raises(ValueError):
-            t.value
+        with pytest.raises(ValueError, match='must match one'):
+            t.out_subfmt = 'parrot'
+
+        with pytest.raises(ValueError, match='must match one'):
+            t.in_subfmt = 'parrot'
+
+    def test_not_allowed_subfmt(self):
+        """Test case where format has no defined subfmts"""
+        t = Time('J2000')
+        match = 'subformat not allowed for format jyear_str'
+        with pytest.raises(ValueError, match=match):
+            t.to_value('jyear_str', subfmt='parrot')
+
+        with pytest.raises(ValueError, match=match):
+            t.out_subfmt = 'parrot'
+
+        with pytest.raises(ValueError, match=match):
+            Time('J2000', out_subfmt='parrot')
+
+        with pytest.raises(ValueError, match=match):
+            t.in_subfmt = 'parrot'
+
+        with pytest.raises(ValueError, match=match):
+            Time('J2000', format='jyear_str', in_subfmt='parrot')
 
 
 class TestSofaErrors:

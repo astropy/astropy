@@ -174,6 +174,11 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- Require that ``in_subfmt`` and ``out_subfmt`` properties of a ``Time`` object
+  have allowed values at the time of being set, either when creating the object
+  or when setting those properties on an existing ``Time`` instance.  Previously
+  the validation of those properties was not strictly enforced. [#9868]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
