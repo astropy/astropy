@@ -893,11 +893,7 @@ PyMODINIT_FUNC PyInit_ufunc(void)
         goto fail;
     }
     {%- endif %}
-    {%- if func.signature and 'd3' in func.signature and not func.d3_fix_arg %}
-    ufunc->type_resolver = &ErfaUFuncD3CheckTypeResolver;
-    {%- else %}
     ufunc->type_resolver = &ErfaUFuncTypeResolver;
-    {%- endif %}
     PyDict_SetItemString(d, "{{ func.pyname }}", (PyObject *)ufunc);
     Py_DECREF(ufunc);
     {%- endfor %}
