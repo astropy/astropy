@@ -129,6 +129,7 @@ class TimeFormat(metaclass=TimeFormatMeta):
     """
 
     _default_scale = 'utc'  # As of astropy 0.4
+    subfmts = ()
 
     def __init__(self, val1, val2, scale, precision,
                  in_subfmt, out_subfmt, from_jd=False):
