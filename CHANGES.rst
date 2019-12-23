@@ -284,6 +284,13 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Fixed a bug where a vestigal trace of a frame class could persist in the
+  transformation graph even after the removal of all transformations involving
+  that frame class. [#9815]
+
+- Fixed a bug with ``TransformGraph.remove_transform()`` when the "from" and
+  "to" frame classes are not explicitly specified. [#9815]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 

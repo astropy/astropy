@@ -526,3 +526,56 @@ def test_multiple_aliases():
     # Test that both aliases appear in the graphviz DOT format output
     dotstr = graph.to_dot_graph()
     assert '`alias_1`\\n`alias_2`' in dotstr
+
+
+def test_remove_transform_and_unregister():
+    # Register transforms
+    graph = t.TransformGraph()
+    tfun = lambda c, f: f.__class__(ra=c.ra, dec=c.dec)
+    ftrans1 = t.FunctionTransform(tfun, TCoo1, TCoo1, register_graph=graph)
+    ftrans2 = t.FunctionTransform(tfun, TCoo2, TCoo2, register_graph=graph)
+    _ = t.FunctionTransform(tfun, TCoo1, TCoo2, register_graph=graph)
+
+    # Confirm that the frames are part of the graph
+    assert TCoo1 in graph.frame_set
+    assert TCoo2 in graph.frame_set
+
+    # Use all three ways to remove a transform
+
+    # Remove the only transform with TCoo2 as the "from" frame
+    ftrans2.unregister(graph)
+    # TCoo2 should still be part of the graph because it is the "to" frame of a transform
+    assert TCoo2 in graph.frame_set
+
+    # Remove the remaining transform that involves TCoo2
+    graph.remove_transform(TCoo1, TCoo2, None)
+    # Now TCoo2 should not be part of the graph
+    assert TCoo2 not in graph.frame_set
+
+    # Remove the remaining  transform that involves TCoo1
+    graph.remove_transform(None, None, ftrans1)
+    # Now TCoo1 should not be part of the graph
+    assert TCoo1 not in graph.frame_set
+
+
+def test_remove_transform_errors():
+    graph = t.TransformGraph()
+    tfun = lambda c, f: f.__class__(ra=c.ra, dec=c.dec)
+    _ = t.FunctionTransform(tfun, TCoo1, TCoo1, register_graph=graph)
+
+    # Test bad calls to remove_transform
+
+    with pytest.raises(ValueError):
+        graph.remove_transform(None, TCoo1, None)
+
+    with pytest.raises(ValueError):
+        graph.remove_transform(TCoo1, None, None)
+
+    with pytest.raises(ValueError):
+        graph.remove_transform(None, None, None)
+
+    with pytest.raises(ValueError):
+        graph.remove_transform(None, None, 1)
+
+    with pytest.raises(ValueError):
+        graph.remove_transform(TCoo1, TCoo1, 1)
