@@ -10,9 +10,9 @@ from astropy.io import fits
 from astropy import __minimum_asdf_version__
 
 asdf = pytest.importorskip('asdf', minversion=__minimum_asdf_version__)
-from asdf.tests import helpers
+from asdf.tests import helpers  # noqa
 
-from ...tests.helpers import run_schema_example_test
+from ...tests.helpers import run_schema_example_test  # noqa
 
 
 def test_complex_structure(tmpdir):
@@ -40,6 +40,8 @@ def test_fits_table(tmpdir):
     helpers.assert_roundtrip_tree(tree, tmpdir, raw_yaml_check_func=check_yaml)
 
 
+# NOTE: Remove xfail as part of the fix for Issue 9816.
+@pytest.mark.xfail(reason='Deprecation in ASDF 2.5.0')
 def test_backwards_compat():
     """
     Make sure that we can continue to read FITS HDUs that use the schema from
