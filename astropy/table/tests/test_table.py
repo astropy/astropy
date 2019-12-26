@@ -2627,6 +2627,7 @@ def test_iterrows():
     with pytest.raises(ValueError, match='d is not a valid column name'):
         t.iterrows('d')
 
+
 def test_values():
     dat = [(1, 2, 3),
            (4, 5, 6),
@@ -2636,14 +2637,14 @@ def test_values():
     for i in t.values():
         assert isinstance(i, table.column.Column)
 
+
 def test_items():
     dat = [(1, 2, 3),
            (4, 5, 6),
-           (7, 8, 6)]
+           (7, 8, 9)]
     t = table.Table(rows=dat, names=('a', 'b', 'c'))
 
     assert isinstance(t.items(), type(OrderedDict({}).items()))
 
     for i in list(t.items()):
         assert isinstance(i, tuple)
-
