@@ -618,6 +618,7 @@ class BoxLeastSquares(BasePeriodogram):
         -------
         t, y, dy : array_like, `~astropy.units.Quantity`, or `~astropy.time.Time`
             The inputs with consistent shapes and units.
+
         Raises
         ------
         ValueError
