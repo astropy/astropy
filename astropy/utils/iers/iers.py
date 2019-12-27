@@ -224,6 +224,7 @@ class IERS(QTable):
         jd2 : float or array, optional
             second part of two-part JD.
             Default is 0., ignored if jd1 is `~astropy.time.Time`.
+
         Returns
         -------
         mjd : float or array
