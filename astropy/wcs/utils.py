@@ -898,8 +898,9 @@ def _linear_wcs_fit(params, lon, lat, x, y, w_obj):
 def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
 
     """ Objective function for fitting SIP.
-     Parameters
-    -----------
+
+    Parameters
+    ----------
     params : array
         Fittable parameters. First 4 elements are PC matrix, last 2 are CRPIX.
     lon, lat: array
