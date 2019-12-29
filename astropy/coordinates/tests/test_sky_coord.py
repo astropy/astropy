@@ -1596,4 +1596,3 @@ def test_multiple_aliases():
 
     # Need to remove MultipleAliasesFrame manually from transform graph
     assert frame_transform_graph._graph.pop(MultipleAliasesFrame) == {}
-
