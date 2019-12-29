@@ -61,6 +61,9 @@ astropy.table
   methods. With this ``**row`` becomes possible, as does, more simply, turning
   a ``Row`` into a dictionary with ``dict(row)``. [#9712]
 
+- Added a new features namely ``.items()`` and ``.values()`` which return as
+  the name suggests return the items and values of the table respectively. [#9780]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
