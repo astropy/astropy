@@ -1,0 +1,13 @@
+.. _whatsnew-4.1:
+
+**************************
+What's New in Astropy 4.1?
+**************************
+
+Overview
+========
+
+Astropy 4.1 is a major release that ...  since
+the 4.0.x series of releases.
+
+In particular, this release includes:
