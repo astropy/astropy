@@ -15,6 +15,7 @@ def extirpolate(x, y, N=None, M=4):
     """
     Extirpolate the values (x, y) onto an integer grid range(N),
     using lagrange polynomial weights on the M nearest points.
+
     Parameters
     ----------
     x : array_like
@@ -80,9 +81,11 @@ def extirpolate(x, y, N=None, M=4):
 def trig_sum(t, h, df, N, f0=0, freq_factor=1,
              oversampling=5, use_fft=True, Mfft=4):
     """Compute (approximate) trigonometric sums for a number of frequencies
-    This routine computes weighted sine and cosine sums:
+    This routine computes weighted sine and cosine sums::
+
         S_j = sum_i { h_i * sin(2 pi * f_j * t_i) }
         C_j = sum_i { h_i * cos(2 pi * f_j * t_i) }
+
     Where f_j = freq_factor * (f0 + j * df) for the values j in 1 ... N.
     The sums can be computed either by a brute force O[N^2] method, or
     by an FFT-based O[Nlog(N)] method.

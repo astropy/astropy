@@ -328,14 +328,14 @@ class AliasDict(MutableMapping):
     3
 
     Keys in the original parent dict are not visible if they were not
-    aliased::
+    aliased:
 
     >>> alias_dict['b']
     Traceback (most recent call last):
     ...
     KeyError: 'b'
 
-    Likewise, updates to aliased keys are reflected back in the parent dict::
+    Likewise, updates to aliased keys are reflected back in the parent dict:
 
     >>> alias_dict['foo'] = 42
     >>> alias_dict['foo']
@@ -344,7 +344,7 @@ class AliasDict(MutableMapping):
     42
 
     However, updates/insertions to keys that are *not* aliased are not
-    reflected in the parent dict::
+    reflected in the parent dict:
 
     >>> alias_dict['qux'] = 99
     >>> alias_dict['qux']
@@ -356,7 +356,7 @@ class AliasDict(MutableMapping):
     one of the aliased keys in the parent dict does *not* update the parent
     dict.  For example, ``alias_dict`` aliases ``'foo'`` to ``'a'``.  But
     assigning to a key ``'a'`` on the `AliasDict` does not impact the
-    parent::
+    parent:
 
     >>> alias_dict['a'] = 'nope'
     >>> alias_dict['a']

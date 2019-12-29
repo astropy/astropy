@@ -48,7 +48,7 @@ def sortmore(*args, **kw):
         Sort by evaluated value for all items in the lists
         (call signature of this function needs to be such that it accepts an
         argument tuple of items from each list.
-        eg.: globalkey = lambda *l: sum(l) will order all the lists by the
+        eg.: ``globalkey = lambda *l: sum(l)`` will order all the lists by the
         sum of the items from each list
 
     if key: None
@@ -69,7 +69,8 @@ def sortmore(*args, **kw):
 
     Examples
     --------
-    Capture sorting indeces:
+    Capture sorting indices::
+
         l = list('CharacterS')
         In [1]: sortmore( l, range(len(l)) )
         Out[1]: (['C', 'S', 'a', 'a', 'c', 'e', 'h', 'r', 'r', 't'],

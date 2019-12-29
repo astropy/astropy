@@ -310,6 +310,7 @@ class TestFitsTime(FitsTestCase):
         Test that FITS table with time columns (standard compliant)
         can be read by io.fits as a table with Time columns.
         This tests the following:
+
         1. The special-case where a column has the name 'TIME' and a
            time unit
         2. Time from Epoch (Reference time) is appropriately converted.
