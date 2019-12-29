@@ -22,6 +22,8 @@ sudo: false
 addons:
     apt:
         packages:
+            # We include the german language pack because we use the
+            # de_DE locale in some of the io.ascii tests.
             - language-pack-de
             - tzdata
 
@@ -31,7 +33,7 @@ env:
         - USE_CI_HELPERS=False
         - SETUP_XVFB=True
         - TOXENV='test'
-        - TOXARGS=''
+        - TOXARGS='-v'
         - TOXPOSARGS=''
         - COVERAGE=False
         - EVENT_TYPE='push pull_request'
@@ -116,7 +118,7 @@ matrix:
           python: 3.7
           stage: Final tests
           env: TOXENV="test-devdeps"
-               TOXPOSARGS="--remote-data"
+               TOXPOSARGS="--remote-data=any"
 
         # We check numpy-dev also in a job that only runs from cron, so that
         # we can spot issues sooner. We do not use remote data here, since
@@ -153,7 +155,7 @@ matrix:
           python: 3.7
           stage: Final tests
           env: TOXENV="test-devdeps"
-               TOXPOSARGS="--remote-data"
+               TOXPOSARGS="--remote-data=any"
 
 before_install:
 
@@ -179,7 +181,7 @@ before_install:
         export TOXPOSARGS=$TOXPOSARGS" --cov-report=xml:"$TRAVIS_BUILD_DIR"/coverage.xml";
       fi
 
-    - echo "TOXENG="$TOXENG
+    - echo "TOXENV="$TOXENV
     - echo "TOXARGS="$TOXARGS
     - echo "TOXPOSARGS="$TOXPOSARGS
 
@@ -193,7 +195,7 @@ install:
 
 script:
     - pip install tox
-    - tox -e $TOXENV $TOXARGS -- $TOXPOSARGS
+    - tox $TOXARGS -- $TOXPOSARGS
 
 after_success:
     - pip install codecov
