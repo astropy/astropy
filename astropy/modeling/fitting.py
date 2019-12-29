@@ -1442,6 +1442,7 @@ def populate_entry_points(entry_points):
                   entry_points are objects which encapsulate
                   importable objects and are defined on the
                   installation of a package.
+
     Notes
     -----
     An explanation of entry points can be found `here <http://setuptools.readthedocs.io/en/latest/setuptools.html#dynamic-discovery-of-services-and-plugins>`
