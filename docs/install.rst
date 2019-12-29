@@ -479,7 +479,7 @@ Testing a Source Code Build of ``astropy``
 The easiest way to run the tests in a source checkout of ``astropy``
 is to use `tox <https://tox.readthedocs.io/en/latest/>`_::
 
-    tox -e test-all
+    tox -e test-alldeps
 
 There are also alternative methods of :ref:`running-tests` if you
 would like more control over the testing process.

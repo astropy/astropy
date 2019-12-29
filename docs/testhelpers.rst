@@ -36,7 +36,7 @@ Reference/API
 Astropy Test Runner
 ===================
 
-When executing tests with either `astropy.test` the call to pytest is controlled
+When executing tests with `astropy.test` the call to pytest is controlled
 by the `astropy.tests.runner.TestRunner` class.
 
 The `~astropy.tests.runner.TestRunner` class is used to generate the

@@ -45,7 +45,7 @@ install pytest-astropy directly::
 or install the core package in 'editable' mode specifying the ``[test]``
 option::
 
-    pip install .[test]
+    pip install -e .[test]
 
 A detailed description of the plugins can be found in the :ref:`pytest-plugins`
 section.
@@ -90,7 +90,8 @@ in editable mode::
     pip install -e .[test]
 
 The latter is required if you need to test parts of the package that rely
-on certain entry points being installed.
+on certain `entry points <https://setuptools.readthedocs.io/en/latest/pkg_resources.html#entry-points>`_
+being installed.
 
 It is possible to run only the tests for a particular subpackage or set of
 subpackages.  For example, to run only the ``wcs`` tests from the
@@ -127,7 +128,7 @@ Tests can be run from an installed version of Astropy with::
 
 This will run all the default tests for Astropy (but will not run the
 documentation tests in the ``.rst`` documentation since those files are
-not installed.
+not installed).
 
 Tests for a specific package can be run by specifying the package in the call
 to the ``test()`` function::
@@ -183,7 +184,7 @@ then run the basic test suite with::
 
 or run the test suite with all optional dependencies with::
 
-    tox -e test-all
+    tox -e test-alldeps
 
 You can see a list of available test environments with::
 
@@ -195,13 +196,15 @@ You can also run checks or commands not directly related to tests - for instance
 
 will run checks using the flake8 tool.
 
-Note that when running tests with ``tox``, it is not possible with the provided
-configuration to run just part of the test suite - for this we recommend running
-the tests as described in :ref:`running-pytest`. However, if is possible to pass
-options to pytest - to do this, add a ``--`` after the regular tox command, and
-anything after this will be passed to pytest, e.g.::
+Is is possible to pass options to pytest when running tox - to do this, add a
+``--`` after the regular tox command, and anything after this will be passed to
+pytest, e.g.::
 
     tox -e test -- -v --pdb
+
+This can be used in conjunction with the ``-P`` option provided by the
+`pytest-filter-subpackage <https://github.com/astropy/pytest-filter-subpackage>`_
+plugin to run just part of the test suite.
 
 Test-running options
 ====================
