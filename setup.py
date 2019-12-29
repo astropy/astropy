@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+# NOTE: The configuration for the package, including the name, version, and
+# other information are set in the setup.cfg file.
+
 import os
 import sys
 
@@ -23,7 +26,7 @@ If you don't already have tox installed, you can install it with:
 If you only want to run part of the test suite, you can also use pytest
 directly with::
 
-    pip install -e .
+    pip install -e .[test]
     pytest
 
 For more information, see:
@@ -45,6 +48,12 @@ If you don't already have tox installed, you can install it with:
 
     pip install tox
 
+You can also build the documentation with Sphinx directly using::
+
+    pip install -e .[docs]
+    cd docs
+    make html
+
 For more information, see:
 
   http://docs.astropy.org/en/latest/install.html#builddocs
@@ -54,9 +63,5 @@ if 'build_docs' in sys.argv or 'build_sphinx' in sys.argv:
     print(DOCS_HELP)
     sys.exit(1)
 
-# NOTE: The configuration for the package, including the name, version, and
-# other information are set in the setup.cfg file. Here we mainly set up
-# setup_requires and install_requires since these are determined
-# programmatically.
-
-setup(use_scm_version={'write_to': os.path.join('astropy', 'version.py')}, ext_modules=get_extensions())
+setup(use_scm_version={'write_to': os.path.join('astropy', 'version.py')},
+      ext_modules=get_extensions())
