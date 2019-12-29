@@ -46,9 +46,9 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: |
-            pip install -e .[test] pytest-mpl
-            pytest astropy/visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
+          command:
+            pip install -e .[test] pytest-mpl git+https://github.com/astropy/pytest-filter-subpackage
+            pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
       - store_artifacts:
           path: results
 
@@ -60,8 +60,8 @@ jobs:
       - run:
           name: Run tests
           command: |
-            pip install -e .[test] pytest-mpl
-            pytest astropy/visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
+            pip install -e .[test] pytest-mpl git+https://github.com/astropy/pytest-filter-subpackage
+            pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
       - store_artifacts:
           path: results
 
@@ -73,8 +73,8 @@ jobs:
       - run:
           name: Run tests
           command: |
-            pip install -e .[test] pytest-mpl
-            pytest astropy/visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
+            pip install -e .[test] pytest-mpl git+https://github.com/astropy/pytest-filter-subpackage
+            pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
       - store_artifacts:
           path: results
 
@@ -86,8 +86,8 @@ jobs:
       - run:
           name: Run tests
           command: |
-            pip install -e .[test] pytest-mpl
-            pytest astropy/visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
+            pip install -e .[test] pytest-mpl git+https://github.com/astropy/pytest-filter-subpackage
+            pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
       - store_artifacts:
           path: results
 
@@ -105,10 +105,10 @@ jobs:
           name: Install Python dependencies, including developer version of Matplotlib
           command: |
             pip3 install git+https://github.com/matplotlib/matplotlib.git
-            pip3 install -e .[test] pytest-mpl
+            pip3 install -e .[test] pytest-mpl git+https://github.com/astropy/pytest-filter-subpackage
       - run:
           name: Run tests
-          command: pytest astropy/visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results
+          command: pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
       - store_artifacts:
           path: results
 
