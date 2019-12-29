@@ -71,7 +71,7 @@ class HTMLInputter(core.BaseInputter):
     Input lines of HTML in a valid form.
 
     This requires `BeautifulSoup
-        <http://www.crummy.com/software/BeautifulSoup/>`_ to be installed.
+    <http://www.crummy.com/software/BeautifulSoup/>`_ to be installed.
     """
 
     def process_lines(self, lines):

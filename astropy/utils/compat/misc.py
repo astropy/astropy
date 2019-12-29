@@ -46,9 +46,11 @@ def override__dir__(f):
     Example
     -------
 
-    @override__dir__
-    def __dir__(self):
-        return ['special_method1', 'special_method2']
+    Your class could define __dir__ as follows::
+
+        @override__dir__
+        def __dir__(self):
+            return ['special_method1', 'special_method2']
     """
     # http://bugs.python.org/issue12166
 

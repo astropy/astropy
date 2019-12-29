@@ -1742,8 +1742,7 @@ class LambdaCDM(FLRW):
 
         For Omega_rad = 0 the comoving distance can be directly calculated
         as an elliptic integral.
-        Equation here taken from
-            Kantowski, Kao, and Thomas, arXiv:0002334
+        Equation here taken from Kantowski, Kao, and Thomas, arXiv:0002334
 
         Not valid or appropriate for flat cosmologies (Ok0=0).
 
@@ -1878,8 +1877,8 @@ class LambdaCDM(FLRW):
 
         For Omega_radiation = 0 the comoving distance can be directly calculated
         as a hypergeometric function.
-        Equation here taken from
-            Baes, Camps, Van De Putte, 2017, MNRAS, 468, 927.
+
+        Equation here taken from Baes, Camps, Van De Putte, 2017, MNRAS, 468, 927.
 
         Parameters
         ----------
@@ -1911,8 +1910,7 @@ class LambdaCDM(FLRW):
 
         Note:
         The scipy.special.hyp2f1 code already implements the hypergeometric
-        transformation suggested by
-            Baes, Camps, Van De Putte, 2017, MNRAS, 468, 927.
+        transformation suggested by Baes, Camps, Van De Putte, 2017, MNRAS, 468, 927.
         for use in actual numerical evaulations.
 
         """
@@ -1941,8 +1939,7 @@ class LambdaCDM(FLRW):
 
         For Omega_radiation = 0 (T_CMB = 0; massless neutrinos)
         the age can be directly calculated as an elliptic integral.
-        See, e.g.,
-            Thomas and Kantowski, arXiv:0003463
+        See, e.g., Thomas and Kantowski, arXiv:0003463
 
         Parameters
         ----------
@@ -1964,8 +1961,7 @@ class LambdaCDM(FLRW):
 
         For Omega_radiation = 0 (T_CMB = 0; massless neutrinos)
         the age can be directly calculated as an elliptic integral.
-        See, e.g.,
-            Thomas and Kantowski, arXiv:0003463
+        See, e.g., Thomas and Kantowski, arXiv:0003463
 
         Parameters
         ----------
