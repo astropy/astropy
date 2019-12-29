@@ -15,8 +15,10 @@ Interface and Dependencies
 * All code must be compatible with Python 3.6 and later.
   Usage of ``six``, ``__future__``, and ``2to3`` is no longer acceptable.
 
-* The new Python 3 formatting style should be used (i.e.
-  ``"{0:s}".format("spam")`` instead of ``"%s" % "spam"``).
+* `f-strings <https://docs.python.org/3/reference/lexical_analysis.html#f-strings>`_
+  should be used when possible, and if not, Python 3
+  formatting should be used (i.e. ``"{0:s}".format("spam")``)
+  instead of the ``%`` operator (``"%s" % "spam"``).
 
 * The core package should be importable with no
   dependencies other than components already in the Astropy core, the
