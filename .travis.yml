@@ -164,7 +164,7 @@ matrix:
           stage: Final tests
           env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
                CONDA_DEPENDENCIES=''
-               PIP_DEPENDENCIES=$DEV_PIP_DEP $ASDF_DEV
+               PIP_DEPENDENCIES="$DEV_PIP_DEP $ASDF_DEV"
                MATPLOTLIB_VERSION=dev
 
         # We check numpy-dev also in a job that only runs from cron, so that
@@ -176,7 +176,7 @@ matrix:
           stage: Cron tests
           env: NUMPY_VERSION=dev MATPLOTLIB_VERSION=dev EVENT_TYPE='cron'
                CONDA_DEPENDENCIES=''
-               PIP_DEPENDENCIES=$DEV_PIP_DEP $ASDF_DEV
+               PIP_DEPENDENCIES="$DEV_PIP_DEP $ASDF_DEV"
 
         # Run documentation link check in a cron job.
         # Was originally in CircleCI doc build but links are too flaky, so
@@ -195,7 +195,7 @@ matrix:
         stage: Final tests
         env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
              CONDA_DEPENDENCIES=''
-             PIP_DEPENDENCIES=$DEV_PIP_DEP
+             PIP_DEPENDENCIES="$DEV_PIP_DEP $ASDF_DEV"
              MATPLOTLIB_VERSION=dev
 
 before_install:
