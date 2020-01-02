@@ -404,7 +404,6 @@ def doane_bin_width(data, return_bins=False):
     root_b = abs(((data - avg)**3).sum() / sigma**3)
     sigma_root_b = ((6*(n-2)) / ((n+1)*(n+3)))**(1/2)
 
-
     dx = (data.max() - data.min()) / \
          (1 + np.log2(n) + np.log2(1 + root_b/sigma_root_b))
 
