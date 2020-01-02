@@ -10,7 +10,8 @@ import numpy as np
 from . import bayesian_blocks
 
 __all__ = ['histogram', 'scott_bin_width', 'freedman_bin_width',
-           'knuth_bin_width', 'calculate_bin_edges']
+           'knuth_bin_width', 'calculate_bin_edges', 'sturges_bin_width',
+           'rice_bin_width', 'doane_bin_width']
 
 
 def calculate_bin_edges(a, bins=10, range=None, weights=None):
@@ -26,8 +27,8 @@ def calculate_bin_edges(a, bins=10, range=None, weights=None):
     bins : int, list, or str, optional
         If ``bins`` is an int, it is the number of bins. If it is a list
         it is taken to be the bin edges. If it is a string, it must be one
-        of  'blocks', 'knuth', 'scott' or 'freedman'. See
-        `~astropy.stats.histogram` for a description of each method.
+        of  'blocks', 'doane' 'knuth', 'rice', 'scott', 'sturges' or 'freedman'.
+         See `~astropy.stats.histogram` for a description of each method.
 
     range : tuple or None, optional
         The minimum and maximum range for the histogram.  If not specified,
@@ -57,10 +58,16 @@ def calculate_bin_edges(a, bins=10, range=None, weights=None):
 
         if bins == 'blocks':
             bins = bayesian_blocks(a)
+        elif bins == 'doane':
+            da, bins = doane_bin_width(a, True)
         elif bins == 'knuth':
             da, bins = knuth_bin_width(a, True)
+        elif bins == 'rice':
+            da, bins = rice_bin_width(a, True)
         elif bins == 'scott':
             da, bins = scott_bin_width(a, True)
+        elif bins == 'sturges':
+            da, bins = sturges_bin_width(a, True)
         elif bins == 'freedman':
             da, bins = freedman_bin_width(a, True)
         else:
@@ -101,9 +108,15 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
 
         - 'blocks' : use bayesian blocks for dynamic bin widths
 
+        - 'doane' : use Doane's rule to determine bins
+
         - 'knuth' : use Knuth's rule to determine bins
 
+        - 'rice' : use The Rice rule to determine bins
+
         - 'scott' : use Scott's rule to determine bins
+
+        - 'sturges' : use Sturges' rule to determine bins
 
         - 'freedman' : use the Freedman-Diaconis rule to determine bins
 
@@ -175,6 +188,9 @@ def scott_bin_width(data, return_bins=False):
 
     See Also
     --------
+    doane_bin_width
+    rice_bin_width
+    sturges_bin_width
     knuth_bin_width
     freedman_bin_width
     bayesian_blocks
@@ -188,6 +204,209 @@ def scott_bin_width(data, return_bins=False):
     sigma = np.std(data)
 
     dx = 3.5 * sigma / (n ** (1 / 3))
+
+    if return_bins:
+        Nbins = np.ceil((data.max() - data.min()) / dx)
+        Nbins = max(1, Nbins)
+        bins = data.min() + dx * np.arange(Nbins + 1)
+        return dx, bins
+    else:
+        return dx
+
+
+def sturges_bin_width(data, return_bins=False):
+    r"""Return the optimal histogram bin width using Sturges' rule
+
+    Sturges' rule s derived from a binomial distribution and implicitly
+    assumes an approximately normal distribution.
+
+    Parameters
+    ----------
+    data : array_like, ndim=1
+        observed (one-dimensional) data
+    return_bins : bool, optional
+        if True, then return the bin edges
+
+    Returns
+    -------
+    width : float
+        optimal bin width using Sturges' rule
+    bins : ndarray
+        bin edges: returned if ``return_bins`` is True
+
+    Notes
+    -----
+    The optimal bin width is
+
+    .. math::
+        \Delta_b = \frac{R}{1 + \log_2(n)}
+
+    where :math:`R` is the range of the data, and
+    :math:`n` is the number of data points.
+
+    References
+    ----------
+    .. [1] Sturges, H. A. (1926). "The choice of a class interval".
+    Journal of the American Statistical Association. 21 (153): 65–66.
+    doi:10.1080/01621459.1926.10502161. JSTOR 2965501.
+
+    See Also
+    --------
+    doane_bin_width
+    rice_bin_width
+    scott_bin_width
+    knuth_bin_width
+    freedman_bin_width
+    bayesian_blocks
+    histogram
+    """
+    data = np.asarray(data)
+    if data.ndim != 1:
+        raise ValueError("data should be one-dimensional")
+
+    n = data.size
+
+    dx = (data.max() - data.min()) / (1 + np.log2(n))
+
+    if return_bins:
+        Nbins = np.ceil((data.max() - data.min()) / dx)
+        Nbins = max(1, Nbins)
+        bins = data.min() + dx * np.arange(Nbins + 1)
+        return dx, bins
+    else:
+        return dx
+
+
+def rice_bin_width(data, return_bins=False):
+    r"""Return the optimal histogram bin width using The Rice Rule
+
+    The Rice rule s presented as a simple alternative to Sturges's rule.
+
+    Parameters
+    ----------
+    data : array_like, ndim=1
+        observed (one-dimensional) data
+    return_bins : bool, optional
+        if True, then return the bin edges
+
+    Returns
+    -------
+    width : float
+        optimal bin width using The Rice rule
+    bins : ndarray
+        bin edges: returned if ``return_bins`` is True
+
+    Notes
+    -----
+    The optimal bin width is
+
+    .. math::
+        \Delta_b = \frac{R}{\lceil 2 \sqrt[3]{n}\rceil}
+
+    :math:`R` is the range of the data, and
+    :math:`n` is the number of data points.
+
+    References
+    ----------
+    .. [1] Online Statistics Education: A Multimedia Course of Study
+    (http://onlinestatbook.com/). Project Leader: David M. Lane, Rice University
+    (chapter 2 "Graphing Distributions", section "Histograms")
+
+    See Also
+    --------
+    scott_bin_width
+    sturges_bin_width
+    doane_bin_width
+    knuth_bin_width
+    freedman_bin_width
+    bayesian_blocks
+    histogram
+    """
+    data = np.asarray(data)
+    if data.ndim != 1:
+        raise ValueError("data should be one-dimensional")
+
+    n = data.size
+
+    dx = (data.max() - data.min()) / np.ceil(2 * n ** (1/3))
+
+    if return_bins:
+        Nbins = np.ceil((data.max() - data.min()) / dx)
+        Nbins = max(1, Nbins)
+        bins = data.min() + dx * np.arange(Nbins + 1)
+        return dx, bins
+    else:
+        return dx
+
+
+def doane_bin_width(data, return_bins=False):
+    r"""Return the optimal histogram bin width using Doane's Rule
+
+    Doane's rule is a modification of Sturges' formula which
+    attempts to improve its performance with non-normal data.
+
+    Parameters
+    ----------
+    data : array_like, ndim=1
+        observed (one-dimensional) data
+    return_bins : bool, optional
+        if True, then return the bin edges
+
+    Returns
+    -------
+    width : float
+        optimal bin width using Doane's
+    bins : ndarray
+        bin edges: returned if ``return_bins`` is True
+
+    Notes
+    -----
+    The optimal bin width is
+
+    .. math::
+        \Delta_b = \frac{R}{1 + \log_2(n) + \log_2(1+\frac{\mid\sqrt{b}\mid}{\sigma\sqrt{b}})}
+
+    where :math:`\sqrt{b}` is the estimated 3rd-moment-skewness of the distribution
+    given by
+
+    .. math::
+        \sqrt{b} =\frac{\sum_{i=1}^{n}(X_i-\bar{X})^3}{[\sum_{i=1}^{n}(X_{i}-\bar{X})^2]^{(3/2)}}
+
+    and
+
+    .. :math::
+        \sigma\sqrt{b} = \sqrt{\frac{6(n-2)}{(n+1)(n+3)}}
+
+    and :math:`R` is the range of the data, and
+    :math:`n` is the number of data points.
+
+    References
+    ----------
+    .. Doane DP (1976) Aesthetic frequency classification.
+    American Statistician, 30: 181–183. doi: 10.1080/00031305.1976.10479172
+
+    See Also
+    --------
+    scott_bin_width
+    sturges_bin_width
+    knuth_bin_width
+    freedman_bin_width
+    bayesian_blocks
+    histogram
+    """
+    data = np.asarray(data)
+    if data.ndim != 1:
+        raise ValueError("data should be one-dimensional")
+
+    n = data.size
+    sigma = np.std(data)
+    avg = data.mean()
+    root_b = abs(((data - avg)**3).sum() / sigma**3)
+    sigma_root_b = ((6*(n-2)) / ((n+1)*(n+3)))**(1/2)
+
+
+    dx = (data.max() - data.min()) / \
+         (1 + np.log2(n) + np.log2(1 + root_b/sigma_root_b))
 
     if return_bins:
         Nbins = np.ceil((data.max() - data.min()) / dx)
@@ -237,6 +456,9 @@ def freedman_bin_width(data, return_bins=False):
 
     See Also
     --------
+    doane_bin_width
+    rice_bin_width
+    sturges_bin_width
     knuth_bin_width
     scott_bin_width
     bayesian_blocks
@@ -315,6 +537,9 @@ def knuth_bin_width(data, return_bins=False, quiet=True):
 
     See Also
     --------
+    doane_bin_width
+    rice_bin_width
+    sturges_bin_width
     freedman_bin_width
     scott_bin_width
     bayesian_blocks

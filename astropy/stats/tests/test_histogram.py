@@ -7,7 +7,8 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 from astropy.stats import (histogram, calculate_bin_edges, scott_bin_width,
-                           freedman_bin_width, knuth_bin_width)
+                           freedman_bin_width, knuth_bin_width,
+                           sturges_bin_width, rice_bin_width, doane_bin_width)
 from astropy.utils.exceptions import AstropyUserWarning
 
 try:
@@ -30,6 +31,60 @@ def test_scott_bin_width(N=10000, rseed=0):
 
     with pytest.raises(ValueError):
         scott_bin_width(rng.rand(2, 10))
+
+
+def test_sturges_bin_width(N=10000, rseed=0):
+    rng = np.random.RandomState(rseed)
+    X = rng.randn(N)
+
+    delta = sturges_bin_width(X)
+    correct_delta = (X.max() - X.min()) /  (1 + np.log2(N))
+
+    assert_allclose(delta, correct_delta)
+
+    delta, bins = sturges_bin_width(X, return_bins=True)
+    assert_allclose(delta, correct_delta)
+
+    with pytest.raises(ValueError):
+        sturges_bin_width(rng.rand(2, 10))
+
+
+def test_rice_bin_width(N=10000, rseed=0):
+    rng = np.random.RandomState(rseed)
+    X = rng.randn(N)
+
+    delta = rice_bin_width(X)
+    correct_delta = (X.max() - X.min()) / np.ceil(2 * N ** (1/3))
+
+    assert_allclose(delta, correct_delta)
+
+    delta, bins = rice_bin_width(X, return_bins=True)
+    assert_allclose(delta, correct_delta)
+
+    with pytest.raises(ValueError):
+        sturges_bin_width(rng.rand(2, 10))
+
+
+def test_doane_bin_width(N=10000, rseed=0):
+    rng = np.random.RandomState(rseed)
+    X = rng.randn(N)
+
+    delta = doane_bin_width(X)
+
+    avg = X.mean()
+    root_b = abs(((X - avg)**3).sum() / X.std()**3)
+    sigma_root_b = ((6*(N-2)) / ((N+1)*(N+3)))**(1/2)
+
+    correct_delta = (X.max() - X.min()) / \
+                    (1 + np.log2(N) + np.log2(1 + root_b/sigma_root_b))
+
+    assert_allclose(delta, correct_delta)
+
+    delta, bins = doane_bin_width(X, return_bins=True)
+    assert_allclose(delta, correct_delta)
+
+    with pytest.raises(ValueError):
+        sturges_bin_width(rng.rand(2, 10))
 
 
 def test_freedman_bin_width(N=10000, rseed=0):
@@ -85,7 +140,8 @@ def test_knuth_histogram(N=1000, rseed=0):
     assert (len(counts) == len(bins) - 1)
 
 
-_bin_types_to_test = [30, 'scott', 'freedman', 'blocks']
+_bin_types_to_test = [30, 'scott', 'freedman', 'blocks',
+                      'sturges', 'rice', 'doane']
 
 if HAS_SCIPY:
     _bin_types_to_test += ['knuth']
