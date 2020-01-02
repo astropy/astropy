@@ -1447,7 +1447,7 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     if 'fast_reader' in kwargs:
         if kwargs['fast_reader']['enable'] == 'force':
             raise ParameterError('fast_reader required with '
-                                 + '{}, but this is not a fast C reader: {}'
+                                 '{}, but this is not a fast C reader: {}'
                                  .format(kwargs['fast_reader'], Reader))
         else:
             del kwargs['fast_reader']  # Otherwise ignore fast_reader parameter
