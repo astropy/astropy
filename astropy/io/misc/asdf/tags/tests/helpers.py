@@ -11,8 +11,8 @@ def run_schema_example_test(organization, standard, name, version, check_func=No
     from asdf.schema import load_schema
 
     tag = format_tag(organization, standard, version, name)
-    uri = asdf.resolver.default_tag_to_url_mapping(tag)
-    r = asdf.AsdfFile().resolver
+    uri = asdf.extension.default_extensions.extension_list.tag_mapping(tag)
+    r = asdf.extension.get_default_resolver()
 
     examples = []
     schema = load_schema(uri, resolver=r)
