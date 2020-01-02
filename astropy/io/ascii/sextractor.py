@@ -77,8 +77,8 @@ class SExtractorHeader(core.BaseHeader):
             for n in colnumbers:
                 if n != previous_column + 1:
                     for c in range(previous_column + 1, n):
-                        column_name = columns[previous_column][0] + \
-                            "_{}".format(c - previous_column)
+                        column_name = (columns[previous_column][0]
+                                       + "_{}".format(c - previous_column))
                         column_descr = columns[previous_column][1]
                         column_unit = columns[previous_column][2]
                         columns[c] = (column_name, column_descr, column_unit)
