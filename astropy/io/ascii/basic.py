@@ -159,7 +159,7 @@ class CommentedHeader(Basic):
             idx = self.header.start_line
             if idx < 0:
                 idx = len(out.meta['comments']) + idx
-            out.meta['comments'] = out.meta['comments'][:idx] + out.meta['comments'][idx+1:]
+            out.meta['comments'] = out.meta['comments'][:idx] + out.meta['comments'][idx + 1:]
             if not out.meta['comments']:
                 del out.meta['comments']
 
@@ -337,10 +337,12 @@ class RdbHeader(TabHeader):
         self.names, raw_types = header_vals_list
 
         if len(self.names) != len(raw_types):
-            raise core.InconsistentTableError('RDB header mismatch between number of column names and column types.')
+            raise core.InconsistentTableError(
+                'RDB header mismatch between number of column names and column types.')
 
         if any(not re.match(r'\d*(N|S)$', x, re.IGNORECASE) for x in raw_types):
-            raise core.InconsistentTableError(f'RDB types definitions do not all match [num](N|S): {raw_types}')
+            raise core.InconsistentTableError(
+                f'RDB types definitions do not all match [num](N|S): {raw_types}')
 
         self._set_cols_from_names()
         for col, raw_type in zip(self.cols, raw_types):

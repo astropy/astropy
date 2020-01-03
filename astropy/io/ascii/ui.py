@@ -34,14 +34,14 @@ from . import fastbasic
 from . import cparser
 from . import fixedwidth
 
-from astropy.table import Table, vstack, MaskedColumn
+from astropy.table import Table, MaskedColumn
 from astropy.utils.data import get_readable_fileobj
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
 _read_trace = []
 
 try:
-    import yaml  # pylint: disable=W0611
+    import yaml  # noqa
     HAS_YAML = True
 except ImportError:
     HAS_YAML = False
@@ -67,7 +67,7 @@ def _probably_html(table, maxchars=100000):
                 size += len(line)
                 if size > maxchars:
                     break
-            table = os.linesep.join(table[:i+1])
+            table = os.linesep.join(table[:i + 1])
         except Exception:
             pass
 
@@ -317,7 +317,7 @@ def read(table, guess=None, **kwargs):
                 _read_trace.append({'kwargs': copy.deepcopy(new_kwargs),
                                     'Reader': reader.__class__,
                                     'status': 'Success with slow reader after failing'
-                                             ' with fast (no guessing)'})
+                                    ' with fast (no guessing)'})
         else:
             reader = get_reader(**new_kwargs)
             dat = reader.read(table)
@@ -366,7 +366,7 @@ def _guess(table, read_kwargs, format, fast_reader):
 
     # If a fast version of the reader is available, try that before the slow version
     if (fast_reader['enable'] and format is not None and f'fast_{format}' in
-        core.FAST_CLASSES):
+            core.FAST_CLASSES):
         fast_kwargs = copy.deepcopy(read_kwargs)
         fast_kwargs['Reader'] = core.FAST_CLASSES[f'fast_{format}']
         full_list_guess = [fast_kwargs] + full_list_guess
@@ -380,8 +380,8 @@ def _guess(table, read_kwargs, format, fast_reader):
 
     for guess_kwargs in full_list_guess:
         # If user specified slow reader then skip all fast readers
-        if (fast_reader['enable'] is False and
-                guess_kwargs['Reader'] in core.FAST_CLASSES.values()):
+        if (fast_reader['enable'] is False
+                and guess_kwargs['Reader'] in core.FAST_CLASSES.values()):
             _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
                                 'Reader': guess_kwargs['Reader'].__class__,
                                 'status': 'Disabled: reader only available in fast version',
@@ -389,8 +389,8 @@ def _guess(table, read_kwargs, format, fast_reader):
             continue
 
         # If user required a fast reader then skip all non-fast readers
-        if (fast_reader['enable'] == 'force' and
-                guess_kwargs['Reader'] not in core.FAST_CLASSES.values()):
+        if (fast_reader['enable'] == 'force'
+                and guess_kwargs['Reader'] not in core.FAST_CLASSES.values()):
             _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
                                 'Reader': guess_kwargs['Reader'].__class__,
                                 'status': 'Disabled: no fast version of reader available',
@@ -454,7 +454,7 @@ def _guess(table, read_kwargs, format, fast_reader):
         except guess_exception_classes as err:
             _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
                                 'status': '{}: {}'.format(err.__class__.__name__,
-                                                            str(err)),
+                                                          str(err)),
                                 'dt': '{:.3f} ms'.format((time.time() - t0) * 1000)})
             failed_kwargs.append(guess_kwargs)
     else:
@@ -471,7 +471,7 @@ def _guess(table, read_kwargs, format, fast_reader):
         except guess_exception_classes as err:
             _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
                                 'status': '{}: {}'.format(err.__class__.__name__,
-                                                            str(err))})
+                                                          str(err))})
             failed_kwargs.append(read_kwargs)
             lines = ['\nERROR: Unable to guess table format with the guesses listed below:']
             for kwargs in failed_kwargs:
@@ -777,7 +777,7 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
 
     table0 = table[:0].copy()
     core._apply_include_exclude_names(table0, kwargs.get('names'),
-                    kwargs.get('include_names'), kwargs.get('exclude_names'))
+                                      kwargs.get('include_names'), kwargs.get('exclude_names'))
     diff_format_with_names = set(kwargs.get('formats', [])) - set(table0.colnames)
 
     if diff_format_with_names:

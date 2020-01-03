@@ -22,14 +22,14 @@ from astropy.table.table_helpers import simple_table
 from .common import (raises, assert_equal, assert_almost_equal,
                      assert_true)
 from astropy.io.ascii import core
-from astropy.io.ascii.ui import _probably_html, get_read_trace, cparser
+from astropy.io.ascii.ui import _probably_html, get_read_trace
 from astropy.utils.exceptions import AstropyWarning
 
 # setup/teardown function to have the tests run in the correct directory
-from .common import setup_function, teardown_function
+from .common import setup_function, teardown_function  # noqa
 
 try:
-    import bz2  # pylint: disable=W0611
+    import bz2  # noqa
 except ImportError:
     HAS_BZ2 = False
 else:
@@ -124,7 +124,7 @@ def test_guess_with_delimiter_arg():
     # Forcing space as delimiter produces type str columns ('10.1E+19,')
     t1 = ascii.read(asciiIO(', '.join(fields)), guess=True, delimiter=' ')
     for n, v in zip(t1.colnames[:-1], fields[:-1]):
-        assert t1[n][0] == v+','
+        assert t1[n][0] == v + ','
 
 
 def test_reading_mixed_delimiter_tabs_spaces():
@@ -491,7 +491,7 @@ def test_masking_Cds():
     f = 'data/cds.dat'
     testfile = get_testfiles(f)
     data = ascii.read(f,
-                           **testfile['opts'])
+                      **testfile['opts'])
     assert_true(data['AK'].mask[0])
     assert not hasattr(data['Fit'], 'mask')
 
@@ -835,7 +835,7 @@ def get_testfiles(name=None):
     ]
 
     try:
-        import bs4  # pylint: disable=W0611
+        import bs4  # noqa
         testfiles.append({'cols': ('Column 1', 'Column 2', 'Column 3'),
                           'name': 'data/html.html',
                           'nrows': 3,
@@ -860,7 +860,7 @@ def test_header_start_exception():
                         ascii.BaseReader, ascii.FixedWidthNoHeader,
                         ascii.Cds, ascii.Daophot]:
         with pytest.raises(ValueError):
-            reader = ascii.core._get_reader(readerclass, header_start=5)
+            ascii.core._get_reader(readerclass, header_start=5)
 
 
 def test_csv_table_read():
@@ -914,19 +914,23 @@ def test_sextractor_last_column_array():
     table = ascii.read('data/sextractor3.dat', Reader=ascii.SExtractor, guess=False)
     expected_columns = ['X_IMAGE', 'Y_IMAGE', 'ALPHA_J2000', 'DELTA_J2000',
                         'MAG_AUTO', 'MAGERR_AUTO',
-                        'MAG_APER', 'MAG_APER_1', 'MAG_APER_2', 'MAG_APER_3', 'MAG_APER_4', 'MAG_APER_5', 'MAG_APER_6',
-                        'MAGERR_APER', 'MAGERR_APER_1', 'MAGERR_APER_2', 'MAGERR_APER_3', 'MAGERR_APER_4', 'MAGERR_APER_5', 'MAGERR_APER_6']
+                        'MAG_APER', 'MAG_APER_1', 'MAG_APER_2', 'MAG_APER_3',
+                        'MAG_APER_4', 'MAG_APER_5', 'MAG_APER_6',
+                        'MAGERR_APER', 'MAGERR_APER_1', 'MAGERR_APER_2', 'MAGERR_APER_3',
+                        'MAGERR_APER_4', 'MAGERR_APER_5', 'MAGERR_APER_6']
     expected_units = [Unit('pix'), Unit('pix'), Unit('deg'), Unit('deg'),
                       Unit('mag'), Unit('mag'),
-                      Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'),
-                      Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag')]
+                      Unit('mag'), Unit('mag'), Unit('mag'),
+                      Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'),
+                      Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'),
+                      Unit('mag'), Unit('mag')]
     expected_descrs = ['Object position along x', None,
                        'Right ascension of barycenter (J2000)',
                        'Declination of barycenter (J2000)',
                        'Kron-like elliptical aperture magnitude',
                        'RMS error for AUTO magnitude', ] + [
-                       'Fixed aperture magnitude vector'] * 7 + [
-                       'RMS error vector for fixed aperture mag.'] * 7
+        'Fixed aperture magnitude vector'] * 7 + [
+        'RMS error vector for fixed aperture mag.'] * 7
     for i, colname in enumerate(table.colnames):
         assert table[colname].name == expected_columns[i]
         assert table[colname].unit == expected_units[i]
@@ -981,7 +985,8 @@ def test_guess_fail():
 
     # Test the case with guessing enabled but with all params specified
     with pytest.raises(ValueError) as err:
-        ascii.read('asfdasdf\n1 2 3', format='basic', quotechar='"', delimiter=' ', fast_reader=False)
+        ascii.read('asfdasdf\n1 2 3', format='basic',
+                   quotechar='"', delimiter=' ', fast_reader=False)
     assert 'Number of header columns (1) inconsistent with data columns (3)' in str(err.value)
 
 
@@ -1089,7 +1094,7 @@ def test_probably_html():
     """
     Test the routine for guessing if a table input to ascii.read is probably HTML
     """
-    for table in ('data/html.html',
+    for tabl0 in ('data/html.html',
                   'http://blah.com/table.html',
                   'https://blah.com/table.html',
                   'file://blah/table.htm',
@@ -1099,10 +1104,10 @@ def test_probably_html():
                   'junk < table baz> <tr foo > <td bar> </td> </tr> </table> junk',
                   ['junk < table baz>', ' <tr foo >', ' <td bar> ', '</td> </tr>', '</table> junk'],
                   (' <! doctype html > ', ' hello world'),
-                   ):
-        assert _probably_html(table) is True
+                  ):
+        assert _probably_html(tabl0) is True
 
-    for table in ('data/html.htms',
+    for tabl0 in ('data/html.htms',
                   'Xhttp://blah.com/table.html',
                   ' https://blah.com/table.htm',
                   'fole://blah/table.htm',
@@ -1111,8 +1116,8 @@ def test_probably_html():
                   ['junk < table baz>', ' <t foo >', ' <td bar> ', '</td> </tr>', '</table> junk'],
                   (' <! doctype htm > ', ' hello world'),
                   [[1, 2, 3]],
-                   ):
-        assert _probably_html(table) is False
+                  ):
+        assert _probably_html(tabl0) is False
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
@@ -1126,7 +1131,7 @@ def test_data_header_start(fast_reader):
               [{'header_start': 1},
                {'header_start': 1, 'data_start': 2}
                ]
-               ),
+              ),
 
              (['# comment',
                '',
@@ -1232,7 +1237,10 @@ def test_non_C_locale_with_fast_reader():
         else:
             locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
 
-        for fast_reader in (True, False, {'use_fast_converter': False}, {'use_fast_converter': True}):
+        for fast_reader in (True,
+                            False,
+                            {'use_fast_converter': False},
+                            {'use_fast_converter': True}):
             t = ascii.read(['a b', '1.5 2'], format='basic', guess=False,
                            fast_reader=fast_reader)
             assert t['a'].dtype.kind == 'f'

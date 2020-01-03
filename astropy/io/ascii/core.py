@@ -299,8 +299,8 @@ class BaseInputter:
             List of lines
         """
         try:
-            if (hasattr(table, 'read') or
-                    ('\n' not in table + '' and '\r' not in table + '')):
+            if (hasattr(table, 'read')
+                    or ('\n' not in table + '' and '\r' not in table + '')):
                 with get_readable_fileobj(table,
                                           encoding=self.encoding) as fileobj:
                     table = fileobj.read()
@@ -653,16 +653,18 @@ class BaseHeader:
             for name in self.colnames:
                 if (_is_number(name) or len(name) == 0
                         or name[0] in bads or name[-1] in bads):
-                    raise InconsistentTableError('Column name {!r} does not meet strict name requirements'
-                                                 .format(name))
+                    raise InconsistentTableError(
+                        'Column name {!r} does not meet strict name requirements'
+                        .format(name))
         # When guessing require at least two columns
         if guessing and len(self.colnames) <= 1:
             raise ValueError('Table format guessing requires at least two columns, got {}'
                              .format(list(self.colnames)))
 
         if names is not None and len(names) != len(self.colnames):
-            raise InconsistentTableError('Length of names argument ({}) does not match number'
-                             ' of table columns ({})'.format(len(names), len(self.colnames)))
+            raise InconsistentTableError(
+                'Length of names argument ({}) does not match number'
+                ' of table columns ({})'.format(len(names), len(self.colnames)))
 
 
 class BaseData:
@@ -961,10 +963,12 @@ class BaseOutputter:
                     col.converters.pop(0)
                     last_err = err
                 except OverflowError as err:
-                    # Overflow during conversion (most likely an int that doesn't fit in native C long).
-                    # Put string at the top of the converters list for the next while iteration.
-                    warnings.warn("OverflowError converting to {} in column {}, reverting to String."
-                                  .format(converter_type.__name__, col.name), AstropyWarning)
+                    # Overflow during conversion (most likely an int that
+                    # doesn't fit in native C long). Put string at the top of
+                    # the converters list for the next while iteration.
+                    warnings.warn(
+                        "OverflowError converting to {} in column {}, reverting to String."
+                        .format(converter_type.__name__, col.name), AstropyWarning)
                     col.converters.insert(0, convert_numpy(numpy.str))
                     last_err = err
                 except IndexError:
@@ -1023,16 +1027,16 @@ class MetaBaseReader(type):
         for io_format in io_formats:
             func = functools.partial(connect.io_read, io_format)
             header = f"ASCII reader '{io_format}' details\n"
-            func.__doc__ = (inspect.cleandoc(READ_DOCSTRING).strip() + '\n\n' +
-                            header + re.sub('.', '=', header) + '\n')
+            func.__doc__ = (inspect.cleandoc(READ_DOCSTRING).strip() + '\n\n'
+                            + header + re.sub('.', '=', header) + '\n')
             func.__doc__ += inspect.cleandoc(cls.__doc__).strip()
             connect.io_registry.register_reader(io_format, Table, func)
 
             if dct.get('_io_registry_can_write', True):
                 func = functools.partial(connect.io_write, io_format)
                 header = f"ASCII writer '{io_format}' details\n"
-                func.__doc__ = (inspect.cleandoc(WRITE_DOCSTRING).strip() + '\n\n' +
-                                header + re.sub('.', '=', header) + '\n')
+                func.__doc__ = (inspect.cleandoc(WRITE_DOCSTRING).strip() + '\n\n'
+                                + header + re.sub('.', '=', header) + '\n')
                 func.__doc__ += inspect.cleandoc(cls.__doc__).strip()
                 connect.io_registry.register_writer(io_format, Table, func)
 
@@ -1201,6 +1205,7 @@ class BaseReader(metaclass=MetaBaseReader):
         self.data.masks(cols)
         if hasattr(self.header, 'table_meta'):
             self.meta['table'].update(self.header.table_meta)
+
         table = self.outputter(cols, self.meta)
         self.cols = self.header.cols
 
@@ -1360,8 +1365,8 @@ class WhitespaceSplitter(DefaultSplitter):
         in_quote = False
         lastchar = None
         for char in line:
-            if char == self.quotechar and (self.escapechar is None or
-                                           lastchar != self.escapechar):
+            if char == self.quotechar and (self.escapechar is None
+                                           or lastchar != self.escapechar):
                 in_quote = not in_quote
             if char == '\t' and not in_quote:
                 char = ' '
@@ -1395,7 +1400,7 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     # (e.g. by passing non-default options), raise an error for slow readers
     if 'fast_reader' in kwargs:
         if kwargs['fast_reader']['enable'] == 'force':
-            raise ParameterError('fast_reader required with ' +
+            raise ParameterError('fast_reader required with '
                                  '{}, but this is not a fast C reader: {}'
                                  .format(kwargs['fast_reader'], Reader))
         else:

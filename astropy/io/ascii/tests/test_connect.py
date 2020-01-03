@@ -17,13 +17,13 @@ files = ['data/cds.dat', 'data/ipac.dat', 'data/daophot.dat', 'data/latex1.tex',
 # Check to see if the BeautifulSoup dependency is present.
 
 try:
-    from bs4 import BeautifulSoup  # pylint: disable=W0611
+    from bs4 import BeautifulSoup  # noqa
     HAS_BEAUTIFUL_SOUP = True
 except ImportError:
     HAS_BEAUTIFUL_SOUP = False
 
 try:
-    import yaml
+    import yaml  # noqa
     HAS_YAML = True
 except ImportError:
     HAS_YAML = False
@@ -153,7 +153,7 @@ def test_write_csv(tmpdir):
 @pytest.mark.skipif('not HAS_YAML')
 def test_auto_identify_ecsv(tmpdir):
     tbl = simple_table()
-    tmpfile =  str(tmpdir.join('/tmpFile.ecsv'))
+    tmpfile = str(tmpdir.join('/tmpFile.ecsv'))
     tbl.write(tmpfile)
     tbl2 = Table.read(tmpfile)
     assert np.all(tbl == tbl2)
