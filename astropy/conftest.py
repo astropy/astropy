@@ -70,8 +70,10 @@ def pytest_unconfigure(config):
     builtins._pytest_running = False
     # do not assign to matplotlibrc_cache in function scope
     if HAS_MATPLOTLIB:
-        matplotlib.rcParams.update(matplotlibrc_cache)
-        matplotlibrc_cache.clear()
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            matplotlib.rcParams.update(matplotlibrc_cache)
+            matplotlibrc_cache.clear()
 
     if builtins._xdg_config_home_orig is None:
         os.environ.pop('XDG_CONFIG_HOME')
