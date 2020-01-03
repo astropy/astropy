@@ -3,8 +3,6 @@
 
 from io import StringIO
 
-import numpy as np
-
 from astropy.io import ascii
 
 from .common import assert_equal
@@ -43,7 +41,7 @@ def test_ipac_read_types():
    2.09708   2956        73765    2.06000   B8IVpMnHg
 """
     reader = ascii.get_reader(Reader=ascii.Ipac)
-    dat = reader.read(table)
+    reader.read(table)
     types = [ascii.FloatType,
              ascii.FloatType,
              ascii.IntType,

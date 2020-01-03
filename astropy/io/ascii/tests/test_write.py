@@ -17,11 +17,11 @@ from astropy.tests.helper import catch_warnings
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from astropy import units as u
 
-from .common import setup_function, teardown_function
+from .common import setup_function, teardown_function  # noqa
 
 # Check to see if the BeautifulSoup dependency is present.
 try:
-    from bs4 import BeautifulSoup, FeatureNotFound
+    from bs4 import BeautifulSoup, FeatureNotFound  # noqa
     HAS_BEAUTIFUL_SOUP = True
 except ImportError:
     HAS_BEAUTIFUL_SOUP = False
@@ -114,7 +114,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 18 & 18.114 & 280.170 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error
 \\enddata
 \\end{deluxetable}
-"""
+"""  # noqa
          ),
     dict(
         kwargs=dict(Writer=ascii.AASTex, caption='Mag values \\label{tab1}', latexdict={
@@ -129,15 +129,15 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 18 & 18.114 & 280.170 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error
 \\enddata
 \\end{deluxetable*}
-"""
+"""  # noqa
     ),
     dict(
         kwargs=dict(Writer=ascii.Latex, caption='Mag values \\label{tab1}',
                     latexdict={'preamble': '\\begin{center}', 'tablefoot': '\\end{center}',
                                'data_end': ['\\hline', '\\hline'],
                                'units':{'MAG': '[mag]', 'XCENTER': '[pixel]'},
-                    'tabletype': 'table*',
-                    'tablealign': 'h'},
+                               'tabletype': 'table*',
+                               'tablealign': 'h'},
                     col_align='|lcccccccccc|'),
         out="""\
 \\begin{table*}[h]
@@ -281,7 +281,7 @@ table,th,td{border:1px solid black;  </style>
 |     null|      null|      null|        null|          null|           null|  null|                   null|        null|  null|         null|
  14        138.538    256.405    15.461       0.003          34.85955        4      -0.032                  0.802        0      No_error
  18        18.114     280.170    22.329       0.206          30.12784        4      -2.544                  1.104        0      No_error
-"""
+"""  # noqa
          ),
 ]
 
@@ -565,7 +565,7 @@ def test_latex_units():
     **latexdict** does not specify units.
     """
     t = table.Table([table.Column(name='date', data=['a', 'b']),
-               table.Column(name='NUV exp.time', data=[1, 2])])
+                     table.Column(name='NUV exp.time', data=[1, 2])])
     latexdict = copy.deepcopy(ascii.latexdicts['AA'])
     latexdict['units'] = {'NUV exp.time': 's'}
     out = StringIO()
@@ -632,7 +632,7 @@ def test_names_with_formats(names, include_names, exclude_names, formats, issues
     with catch_warnings(AstropyWarning) as ASwarn:
         out = StringIO()
         ascii.write(t, out, names=names, include_names=include_names,
-        exclude_names=exclude_names, formats=formats)
+                    exclude_names=exclude_names, formats=formats)
     assert (issues_warning == (len(ASwarn) == 1))
 
 

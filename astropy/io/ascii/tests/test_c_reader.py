@@ -13,7 +13,6 @@ from numpy import ma
 from astropy.table import Table, MaskedColumn
 from astropy.io import ascii
 from astropy.io.ascii.core import ParameterError, FastOptionsError, InconsistentTableError
-from astropy.io.ascii.cparser import CParserError
 from astropy.io.ascii.fastbasic import (
     FastBasic, FastCsv, FastTab, FastCommentedHeader, FastRdb, FastNoHeader)
 from astropy.tests.helper import catch_warnings
@@ -173,7 +172,8 @@ def test_no_header(parallel, read_basic, read_no_header):
         read_basic("A B C\n1 2 3\n4 5 6", header_start=None, data_start=0, parallel=parallel)
 
     t2 = read_no_header("A B C\n1 2 3\n4 5 6", parallel=parallel)
-    expected = Table([['A', '1', '4'], ['B', '2', '5'], ['C', '3', '6']], names=('col1', 'col2', 'col3'))
+    expected = Table([['A', '1', '4'], ['B', '2', '5'], ['C', '3', '6']],
+                     names=('col1', 'col2', 'col3'))
     assert_table_equal(t2, expected)
 
 
@@ -344,7 +344,7 @@ def test_doubled_quotes_segv():
     tbl = dedent("""
     "ID","TIMESTAMP","addendum_id","bib_reference","bib_reference_url","client_application","client_category","client_sort_key","color","coordsys","creator","creator_did","data_pixel_bitpix","dataproduct_subtype","dataproduct_type","em_max","em_min","format","hips_builder","hips_copyright","hips_creation_date","hips_creation_date_1","hips_creator","hips_data_range","hips_estsize","hips_frame","hips_glu_tag","hips_hierarchy","hips_initial_dec","hips_initial_fov","hips_initial_ra","hips_lon_asc","hips_master_url","hips_order","hips_order_1","hips_order_4","hips_order_min","hips_overlay","hips_pixel_bitpix","hips_pixel_cut","hips_pixel_scale","hips_progenitor_url","hips_publisher","hips_release_date","hips_release_date_1","hips_rgb_blue","hips_rgb_green","hips_rgb_red","hips_sampling","hips_service_url","hips_service_url_1","hips_service_url_2","hips_service_url_3","hips_service_url_4","hips_service_url_5","hips_service_url_6","hips_service_url_7","hips_service_url_8","hips_skyval","hips_skyval_method","hips_skyval_value","hips_status","hips_status_1","hips_status_2","hips_status_3","hips_status_4","hips_status_5","hips_status_6","hips_status_7","hips_status_8","hips_tile_format","hips_tile_format_1","hips_tile_format_4","hips_tile_width","hips_version","hipsgen_date","hipsgen_date_1","hipsgen_date_10","hipsgen_date_11","hipsgen_date_12","hipsgen_date_2","hipsgen_date_3","hipsgen_date_4","hipsgen_date_5","hipsgen_date_6","hipsgen_date_7","hipsgen_date_8","hipsgen_date_9","hipsgen_params","hipsgen_params_1","hipsgen_params_10","hipsgen_params_11","hipsgen_params_12","hipsgen_params_2","hipsgen_params_3","hipsgen_params_4","hipsgen_params_5","hipsgen_params_6","hipsgen_params_7","hipsgen_params_8","hipsgen_params_9","label","maxOrder","moc_access_url","moc_order","moc_release_date","moc_sky_fraction","obs_ack","obs_collection","obs_copyrigh_url","obs_copyright","obs_copyright_1","obs_copyright_url","obs_copyright_url_1","obs_description","obs_description_url","obs_descrition_url","obs_id","obs_initial_dec","obs_initial_fov","obs_initial_ra","obs_provenance","obs_regime","obs_title","ohips_frame","pixelCut","pixelRange","prov_did","prov_progenitor","prov_progenitor_url","publisher_did","publisher_id","s_pixel_scale","t_max","t_min"
     "CDS/P/2MASS/H","1524123841000","","2006AJ....131.1163S","http://cdsbib.u-strasbg.fr/cgi-bin/cdsbib?2006AJ....131.1163S","AladinDesktop","Image/Infrared/2MASS","04-001-03","","","","ivo://CDS/P/2MASS/H","","","image","1.798E-6","1.525E-6","","Aladin/HipsGen v9.017","CNRS/Unistra","2013-05-06T20:36Z","","CDS (A.Oberto)","","","equatorial","","mean","","","","","","9","","","","","","0 60","2.236E-4","","","2016-04-22T13:48Z","","","","","","http://alasky.u-strasbg.fr/2MASS/H","https://irsa.ipac.caltech.edu/data/hips/CDS/2MASS/H","http://alaskybis.u-strasbg.fr/2MASS/H","https://alaskybis.u-strasbg.fr/2MASS/H","","","","","","","","","public master clonableOnce","public mirror unclonable","public mirror clonableOnce","public mirror clonableOnce","","","","","","jpeg fits","","","512","1.31","","","","","","","","","","","","","","","","","","","","","","","","","","","","","http://alasky.u-strasbg.fr/2MASS/H/Moc.fits","9","","1","University of Massachusetts & IPAC/Caltech","The Two Micron All Sky Survey - H band (2MASS H)","","University of Massachusetts & IPAC/Caltech","","http://www.ipac.caltech.edu/2mass/","","2MASS has uniformly scanned the entire sky in three near-infrared bands to detect and characterize point sources brighter than about 1 mJy in each band, with signal-to-noise ratio (SNR) greater than 10, using a pixel size of 2.0"". This has achieved an 80,000-fold improvement in sensitivity relative to earlier surveys. 2MASS used two highly-automated 1.3-m telescopes, one at Mt. Hopkins, AZ, and one at CTIO, Chile. Each telescope was equipped with a three-channel camera, each channel consisting of a 256x256 array of HgCdTe detectors, capable of observing the sky simultaneously at J (1.25 microns), H (1.65 microns), and Ks (2.17 microns). The University of Massachusetts (UMass) was responsible for the overall management of the project, and for developing the infrared cameras and on-site computing systems at both facilities. The Infrared Processing and Analysis Center (IPAC) is responsible for all data processing through the Production Pipeline, and construction and distribution of the data products. Funding is provided primarily by NASA and the NSF","","","","+0","0.11451621372724685","0","","Infrared","2MASS H (1.66um)","","","","","IPAC/NASA","","","","","51941","50600"
-    """)
+    """)  # noqa
     ascii.read(tbl, format='csv', fast_reader=True, guess=False)
 
 
@@ -376,7 +376,8 @@ def test_quoted_fields(parallel, read_basic):
     ('data_start', -1),  # data_start negative
     ('quotechar', '##'),  # multi-char quote signifier
     ('header_start', -1),  # negative header_start
-    ('converters', dict((i + 1, ascii.convert_numpy(np.uint)) for i in range(3))),  # passing converters
+    ('converters', dict((i + 1, ascii.convert_numpy(np.uint))
+                        for i in range(3))),  # passing converters
     ('Inputter', ascii.ContinuationLinesInputter),  # passing Inputter
     ('header_Splitter', ascii.DefaultSplitter),  # passing Splitter
     ('data_Splitter', ascii.DefaultSplitter)])
@@ -413,7 +414,7 @@ def test_too_many_cols1():
     11 12 13
     """)
     with pytest.raises(InconsistentTableError) as e:
-        table = FastBasic().read(text)
+        FastBasic().read(text)
     assert 'Number of header columns (3) ' \
            'inconsistent with data columns in data line 2' in str(e.value)
 
@@ -425,7 +426,7 @@ aaa,bbb
 3,4,
 """
     with pytest.raises(InconsistentTableError) as e:
-        table = FastCsv().read(text)
+        FastCsv().read(text)
     assert 'Number of header columns (2) ' \
            'inconsistent with data columns in data line 0' in str(e.value)
 
@@ -437,7 +438,7 @@ aaa,bbb
 3,4,
 """
     with pytest.raises(InconsistentTableError) as e:
-        table = FastCsv().read(text)
+        FastCsv().read(text)
     assert 'Number of header columns (2) ' \
            'inconsistent with data columns in data line 0' in str(e.value)
 
@@ -458,7 +459,7 @@ A,B,C
     assert table['B'][1] is not ma.masked
     assert table['C'][1] is ma.masked
 
-    with pytest.raises(InconsistentTableError) as e:
+    with pytest.raises(InconsistentTableError):
         table = FastBasic(delimiter=',').read(text)
 
 
@@ -570,8 +571,9 @@ nan, 5, -9999
     for name in 'ABC':
         assert not isinstance(table[name], MaskedColumn)
 
-    table = read_basic(text, delimiter=',', fill_values=[('', '0', 'A'),
-                                ('nan', '999', 'A', 'C')], parallel=parallel)
+    table = read_basic(text, delimiter=',',
+                       fill_values=[('', '0', 'A'),
+                                    ('nan', '999', 'A', 'C')], parallel=parallel)
     assert np.isnan(table['B'][3])  # nan filling skips column B
     assert table['B'][3] is not ma.masked  # should skip masking as well as replacing nan
     assert table['A'][0] is ma.masked
@@ -605,7 +607,8 @@ A, B, C
     assert table['A'][0] is not ma.masked
     assert table['B'][1] is not ma.masked  # A and B excluded from fill handling
 
-    table = read_csv(text, fill_include_names=['A', 'B'], fill_exclude_names=['B'], parallel=parallel)
+    table = read_csv(text, fill_include_names=['A', 'B'],
+                     fill_exclude_names=['B'], parallel=parallel)
     assert table['A'][0] is ma.masked
     assert table['B'][1] is not ma.masked  # fill_exclude_names applies after fill_include_names
     assert table['C'][2] is not ma.masked
@@ -720,7 +723,8 @@ def test_commented_header(parallel, read_commented_header):
     text = '# first commented line\n # second commented line\n\n' + text
     t2 = read_commented_header(text, header_start=2, data_start=0, parallel=parallel)
     assert_table_equal(t2, expected)
-    t3 = read_commented_header(text, header_start=-1, data_start=0, parallel=parallel)  # negative indexing allowed
+    t3 = read_commented_header(text, header_start=-1, data_start=0,
+                               parallel=parallel)  # negative indexing allowed
     assert_table_equal(t3, expected)
 
     text += '7 8 9'
@@ -729,7 +733,8 @@ def test_commented_header(parallel, read_commented_header):
     assert_table_equal(t4, expected)
 
     with pytest.raises(ParameterError):
-        read_commented_header(text, header_start=-1, data_start=-1, parallel=parallel)  # data_start cannot be negative
+        read_commented_header(text, header_start=-1, data_start=-1,
+                              parallel=parallel)  # data_start cannot be negative
 
 
 @pytest.mark.parametrize("parallel", [True, False])
@@ -958,10 +963,9 @@ def test_fast_tab_with_names(parallel, read_tab):
     """
     content = """#
 \tdecDeg\tRate_pn_offAxis\tRate_mos2_offAxis\tObsID\tSourceID\tRADeg\tversion\tCounts_pn\tRate_pn\trun\tRate_mos1\tRate_mos2\tInserted_pn\tInserted_mos2\tbeta\tRate_mos1_offAxis\trcArcsec\tname\tInserted\tCounts_mos1\tInserted_mos1\tCounts_mos2\ty\tx\tCounts\toffAxis\tRot
--3.007559\t0.0000\t0.0010\t0013140201\t0\t213.462574\t0\t2\t0.0002\t0\t0.0001\t0.0001\t0\t1\t0.66\t0.0217\t3.0\tfakeXMMXCS J1413.8-0300\t3\t1\t2\t1\t398.000\t127.000\t5\t13.9\t72.3\t"""
+-3.007559\t0.0000\t0.0010\t0013140201\t0\t213.462574\t0\t2\t0.0002\t0\t0.0001\t0.0001\t0\t1\t0.66\t0.0217\t3.0\tfakeXMMXCS J1413.8-0300\t3\t1\t2\t1\t398.000\t127.000\t5\t13.9\t72.3\t"""  # noqa
     head = [f'A{i}' for i in range(28)]
-    table = read_tab(content, data_start=1,
-                     parallel=parallel, names=head)
+    read_tab(content, data_start=1, parallel=parallel, names=head)
 
 
 @pytest.mark.skipif(not os.getenv('TEST_READ_HUGE_FILE'),
@@ -982,7 +986,7 @@ def test_read_big_table(tmpdir):
 
     print(f"Creating a {NB_ROWS} rows table ({NB_COLS} columns).")
     data = np.random.random(NB_ROWS)
-    t = Table(data=[data]*NB_COLS, names=[str(i) for i in range(NB_COLS)])
+    t = Table(data=[data] * NB_COLS, names=[str(i) for i in range(NB_COLS)])
     data = None
 
     print(f"Saving the table to {filename}")
@@ -1136,16 +1140,16 @@ def test_data_at_range_limit(parallel, fast_reader, guess):
 
     # Test very long fixed-format strings (to strtod range limit w/o Overflow)
     for D in 99, 202, 305:
-        t = ascii.read(StringIO(99*'0' + '.' + D*'0' + '1'), format='no_header',
+        t = ascii.read(StringIO(99 * '0' + '.' + D * '0' + '1'), format='no_header',
                        guess=guess, fast_reader=fast_reader)
-        assert_almost_equal(t['col1'][0], 10.**-(D+1), rtol=rtol, atol=1.e-324)
+        assert_almost_equal(t['col1'][0], 10.**-(D + 1), rtol=rtol, atol=1.e-324)
     for D in 99, 202, 308:
-        t = ascii.read(StringIO('1' + D*'0' + '.0'), format='no_header',
+        t = ascii.read(StringIO('1' + D * '0' + '.0'), format='no_header',
                        guess=guess, fast_reader=fast_reader)
         assert_almost_equal(t['col1'][0], 10.**D, rtol=rtol, atol=1.e-324)
 
     # 0.0 is always exact (no Overflow warning)!
-    for s in '0.0', '0.0e+0', 399*'0'+'.'+365*'0':
+    for s in '0.0', '0.0e+0', 399 * '0' + '.' + 365 * '0':
         with pytest.warns(None) as w:
             t = ascii.read(StringIO(s), format='no_header',
                            guess=guess, fast_reader=fast_reader)
@@ -1160,7 +1164,7 @@ def test_data_at_range_limit(parallel, fast_reader, guess):
     with pytest.warns(AstropyWarning, match=r'OverflowError converting to '
                       r'FloatType in column col1, possibly resulting in '
                       r'degraded precision'):
-        t = ascii.read(StringIO('0.' + 314*'0' + '1'), format='no_header',
+        t = ascii.read(StringIO('0.' + 314 * '0' + '1'), format='no_header',
                        guess=guess, fast_reader=fast_reader)
     assert_almost_equal(t['col1'][0], 1.e-315, rtol=1.e-10, atol=1.e-324)
 
@@ -1172,8 +1176,8 @@ def test_int_out_of_range(parallel, guess):
     Integer numbers outside int range shall be returned as string columns
     consistent with the standard (Python) parser (no 'upcasting' to float).
     """
-    imin = np.iinfo(int).min+1
-    imax = np.iinfo(int).max-1
+    imin = np.iinfo(int).min + 1
+    imax = np.iinfo(int).max - 1
     huge = f'{imax+2:d}'
 
     text = f'P M S\n {imax:d} {imin:d} {huge:s}'
@@ -1189,7 +1193,7 @@ def test_int_out_of_range(parallel, guess):
 
     # Check with leading zeroes to make sure strtol does not read them as octal
     text = f'P M S\n000{imax:d} -0{-imin:d} 00{huge:s}'
-    expected = Table([[imax], [imin], ['00'+huge]], names=('P', 'M', 'S'))
+    expected = Table([[imax], [imin], ['00' + huge]], names=('P', 'M', 'S'))
     with catch_warnings(AstropyWarning) as w:
         table = ascii.read(text, format='basic', guess=guess,
                            fast_reader={'parallel': parallel})
@@ -1207,9 +1211,9 @@ def test_int_out_of_order(guess):
     shows up first, it will produce a string column - with both readers.
     Broken with the parallel fast_reader.
     """
-    imax = np.iinfo(int).max-1
+    imax = np.iinfo(int).max - 1
     text = f'A B\n 12.3 {imax:d}0\n {imax:d}0 45.6e7'
-    expected = Table([[12.3, 10.*imax], [f'{imax:d}0', '45.6e7']],
+    expected = Table([[12.3, 10. * imax], [f'{imax:d}0', '45.6e7']],
                      names=('A', 'B'))
 
     with pytest.warns(AstropyWarning, match=r'OverflowError converting to '
@@ -1238,14 +1242,14 @@ def test_fortran_reader(parallel, guess):
     expc = Table([[1.0001e101, 0.42], [2, 0.5], [2.e-103, 6.e3], [3, 1.7e307]],
                  names=('A', 'B', 'C', 'D'))
 
-    expstyles = {'e': 6*('E'),
+    expstyles = {'e': 6 * ('E'),
                  'D': ('D', 'd', 'd', 'D', 'd', 'D'),
-                 'Q': 3*('q', 'Q'),
-                  'Fortran': ('E', '0', 'D', 'Q', 'd', '0')}
+                 'Q': 3 * ('q', 'Q'),
+                 'Fortran': ('E', '0', 'D', 'Q', 'd', '0')}
 
     # C strtod (not-fast converter) can't handle Fortran exp
     with pytest.raises(FastOptionsError) as e:
-        ascii.read(text.format(*(6*('D'))), format='basic', guess=guess,
+        ascii.read(text.format(*(6 * ('D'))), format='basic', guess=guess,
                    fast_reader={'use_fast_converter': False,
                                 'parallel': parallel, 'exponent_style': 'D'})
     assert 'fast_reader: exponent_style requires use_fast_converter' in str(e.value)
@@ -1283,18 +1287,18 @@ def test_fortran_invalid_exp(parallel, guess):
     # then for different specified exponents
     fields = ['1.0001+1', '.42d1', '2.3+10', '0.5', '3+1001', '3000.',
               '2', '4.56e-2.3', '8000', '4.2-022', '.00000145e314']
-    vals_e = ['1.0001+1', '.42d1', '2.3+10',   0.5, '3+1001',  3.e3,
-              2, '4.56e-2.3',    8000,  '4.2-022', 1.45e308]
-    vals_d = ['1.0001+1',     4.2, '2.3+10',   0.5, '3+1001',  3.e3,
-              2, '4.56e-2.3',    8000,  '4.2-022', '.00000145e314']
-    vals_a = ['1.0001+1',     4.2, '2.3+10',   0.5, '3+1001',  3.e3,
-              2, '4.56e-2.3',    8000,   4.2e-22,  1.45e308]
-    vals_v = ['1.0001+1', 4.2, '2.3+10',   0.5, '3+1001',  3.e3,
-               2, '4.56e-2.3',    8000,  '4.2-022', 1.45e308]
+    vals_e = ['1.0001+1', '.42d1', '2.3+10', 0.5, '3+1001', 3.e3,
+              2, '4.56e-2.3', 8000, '4.2-022', 1.45e308]
+    vals_d = ['1.0001+1', 4.2, '2.3+10', 0.5, '3+1001', 3.e3,
+              2, '4.56e-2.3', 8000, '4.2-022', '.00000145e314']
+    vals_a = ['1.0001+1', 4.2, '2.3+10', 0.5, '3+1001', 3.e3,
+              2, '4.56e-2.3', 8000, 4.2e-22, 1.45e308]
+    vals_v = ['1.0001+1', 4.2, '2.3+10', 0.5, '3+1001', 3.e3,
+              2, '4.56e-2.3', 8000, '4.2-022', 1.45e308]
 
     # Iterate over supported format types and separators
     for f, s in formats.items():
-        t1 = ascii.read(StringIO(s.join(header)+'\n'+s.join(fields)),
+        t1 = ascii.read(StringIO(s.join(header) + '\n' + s.join(fields)),
                         format=f, guess=guess,
                         fast_reader={'parallel': parallel, 'exponent_style': 'A'})
         assert_table_equal(t1, Table([[col] for col in vals_a], names=header))
@@ -1306,29 +1310,29 @@ def test_fortran_invalid_exp(parallel, guess):
         formats = {'basic': ' '}
 
     for s in formats.values():
-        t2 = ascii.read(StringIO(s.join(header)+'\n'+s.join(fields)), guess=guess,
-                fast_reader={'parallel': parallel, 'exponent_style': 'a'})
+        t2 = ascii.read(StringIO(s.join(header) + '\n' + s.join(fields)), guess=guess,
+                        fast_reader={'parallel': parallel, 'exponent_style': 'a'})
 
         assert_table_equal(t2, Table([[col] for col in vals_a], names=header))
 
     # Iterate for (default) expchar 'E'
     for s in formats.values():
-        t3 = ascii.read(StringIO(s.join(header)+'\n'+s.join(fields)), guess=guess,
-                fast_reader={'parallel': parallel, 'use_fast_converter': True})
+        t3 = ascii.read(StringIO(s.join(header) + '\n' + s.join(fields)), guess=guess,
+                        fast_reader={'parallel': parallel, 'use_fast_converter': True})
 
         assert_table_equal(t3, Table([[col] for col in vals_e], names=header))
 
     # Iterate for expchar 'D'
     for s in formats.values():
-        t4 = ascii.read(StringIO(s.join(header)+'\n'+s.join(fields)), guess=guess,
-                fast_reader={'parallel': parallel, 'exponent_style': 'D'})
+        t4 = ascii.read(StringIO(s.join(header) + '\n' + s.join(fields)), guess=guess,
+                        fast_reader={'parallel': parallel, 'exponent_style': 'D'})
 
         assert_table_equal(t4, Table([[col] for col in vals_d], names=header))
 
     # Iterate for regular converter (strtod)
     for s in formats.values():
-        t5 = ascii.read(StringIO(s.join(header)+'\n'+s.join(fields)), guess=guess,
-                fast_reader={'parallel': parallel, 'use_fast_converter': False})
+        t5 = ascii.read(StringIO(s.join(header) + '\n' + s.join(fields)), guess=guess,
+                        fast_reader={'parallel': parallel, 'use_fast_converter': False})
 
         read_values = [col[0] for col in t5.itercols()]
         if os.name == 'nt':
@@ -1391,18 +1395,18 @@ def test_fortran_reader_notbasic():
     assert t5['b'].dtype.kind == 'f'
 
     with pytest.raises(ParameterError):
-        t6 = ascii.read(tabrst.split('\n'), format='rst', guess=False,
-                        fast_reader='force')
+        ascii.read(tabrst.split('\n'), format='rst', guess=False,
+                   fast_reader='force')
 
     with pytest.raises(ParameterError):
-        t7 = ascii.read(tabrst.split('\n'), format='rst', guess=False,
-                        fast_reader=dict(use_fast_converter=False))
+        ascii.read(tabrst.split('\n'), format='rst', guess=False,
+                   fast_reader=dict(use_fast_converter=False))
 
     tabrst = tabrst.replace('E', 'D')
 
     with pytest.raises(ParameterError):
-        t8 = ascii.read(tabrst.split('\n'), format='rst', guess=False,
-                        fast_reader=dict(exponent_style='D'))
+        ascii.read(tabrst.split('\n'), format='rst', guess=False,
+                   fast_reader=dict(exponent_style='D'))
 
 
 @pytest.mark.parametrize("guess", [True, False])
@@ -1416,8 +1420,8 @@ def test_dict_kwarg_integrity(fast_reader, guess):
     expstyle = fast_reader.get('exponent_style', 'E')
     fields = ['10.1D+199', '3.14d+313', '2048d+306', '0.6D-325', '-2.d345']
 
-    t = ascii.read(StringIO(' '.join(fields)), guess=guess,
-                   fast_reader=fast_reader)
+    ascii.read(StringIO(' '.join(fields)), guess=guess,
+               fast_reader=fast_reader)
     assert fast_reader.get('exponent_style', None) == expstyle
 
 
