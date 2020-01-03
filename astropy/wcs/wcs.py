@@ -501,7 +501,12 @@ reduce these to 2 dimensions using the naxis kwarg.
         WCSBase.__init__(self, sip, cpdis, wcsprm, det2im)
 
         if fix:
-            self.fix(translate_units=translate_units)
+            if header is None:
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore', FITSFixedWarning)
+                    self.fix(translate_units=translate_units)
+            else:
+                self.fix(translate_units=translate_units)
 
         if _do_set:
             self.wcs.set()

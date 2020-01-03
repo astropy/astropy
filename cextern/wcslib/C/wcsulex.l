@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.4 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2019, Mark Calabretta
+  WCSLIB 7.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2020, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsulex.l,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
+  $Id: wcsulex.l,v 7.1 2019/12/31 13:25:19 mcalabre Exp $
 *=============================================================================
 *
 * wcsulex.l is a Flex description file containing the definition of a
@@ -84,10 +84,6 @@ ADD_UNIT  {ADD_ALL}|{ADD_SUP}|{ADD_SUB}|{ADD_NONE}
 %x PAREN PREFIX UNITS EXPON FLUSH
 
 %{
-/* To get the prototype for fileno() from stdio.h when gcc is invoked with
- * -std=c89 (same as -ansi) or -std=c99 since we do not define YY_INPUT. */
-#define _POSIX_SOURCE 1
-
 #include <math.h>
 #include <setjmp.h>
 #include <stdio.h>
@@ -129,6 +125,9 @@ int wcsulexe(
 #define YY_DECL int wcsulex_scanner(const char unitstr[], int *func, \
  double *scale, double units[WCSUNITS_NTYPE], struct wcserr **err, \
  yyscan_t yyscanner)
+
+/* Dummy definition to circumvent compiler warnings. */
+#define YY_INPUT(inbuff, count, bufsize) { count = YY_NULL; }
 
 /* Used in preempting the call to exit() by yy_fatal_error(). */
 jmp_buf wcsulex_abort_jmp_env;

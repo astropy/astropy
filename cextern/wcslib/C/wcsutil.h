@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.4 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2019, Mark Calabretta
+  WCSLIB 7.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2020, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutil.h,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
+  $Id: wcsutil.h,v 7.1 2019/12/31 13:25:19 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 6.4 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.1 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -60,22 +60,58 @@
 *             void
 *
 *
+* wcsutil_strcvt() - Copy character string with padding
+* -----------------------------------------------------
+* INTERNAL USE ONLY.
+*
+* wcsutil_strcvt() copies one character string to another up to the specified
+* maximum number of characters.
+*
+* If the given string is null-terminated, then the terminating NULL character,
+* and all characters following it up to the specified maximum, are replaced
+* with the specified substitute character, either blank or NULL.
+*
+* If the source string is not null-terminated and the substitute character is
+* blank, then copy the maximum number of characters and do nothing further.
+* However, if the substitute character is NULL, then the last character and
+* all consecutive blank characters preceding it will be replaced with NULLs.
+*
+* Used by the Fortran wrapper functions in translating C strings into Fortran
+* CHARACTER variables and vice versa.
+*
+* Given:
+*   n         int       Maximum number of characters to copy.
+*
+*   c         char      Substitute character, either NULL or blank (anything
+*                       other than NULL).
+*
+*   src       const char[]
+*                       Character string to be copied.  Need not be
+*                       null-terminated.
+*
+* Returned:
+*   dst       char[]    Destination character string, which must be long
+*                       enough to hold n characters.  Note that this string
+*                       will not be null-terminated if the substitute
+*                       character is blank.
+*
+* Function return value:
+*             void
+*
+*
 * wcsutil_blank_fill() - Fill a character string with blanks
 * ----------------------------------------------------------
 * INTERNAL USE ONLY.
 *
-* wcsutil_blank_fill() pads a character string with blanks starting with the
-* terminating NULL character.
-*
-* Used by the Fortran wrapper functions in translating C character strings
-* into Fortran CHARACTER variables.
+* wcsutil_blank_fill() pads a character sub-string with blanks starting with
+* the terminating NULL character (if any).
 *
 * Given:
-*   n         int       Length of the character array, c[].
+*   n         int       Length of the sub-string.
 *
 * Given and returned:
-*   c         char[]    The character string.  It will not be null-terminated
-*                       on return.
+*   c         char[]    The character sub-string, which will not be
+*                       null-terminated on return.
 *
 * Function return value:
 *             void
@@ -85,18 +121,22 @@
 * --------------------------------------------------------
 * INTERNAL USE ONLY.
 *
-* wcsutil_null_fill() strips off trailing blanks and pads the character array
-* holding the string with NULL characters.
+* wcsutil_null_fill() strips trailing blanks from a string (or sub-string) and
+* propagates the terminating NULL character (if any) to the end of the string.
 *
-* Used mainly to make character strings intelligible in the GNU debugger which
-* prints the rubbish following the terminating NULL, obscuring the valid part
-* of the string.
+* If the string is not null-terminated, then the last character and all
+* consecutive blank characters preceding it will be replaced with NULLs.
+*
+* Mainly used in the C library to strip trailing blanks from FITS keyvalues.
+* Also used to make character strings intelligible in the GNU debugger, which
+* prints the rubbish following the terminating NULL character, thereby
+* obscuring the valid part of the string.
 *
 * Given:
 *   n         int       Number of characters.
 *
 * Given and returned:
-*   c         char[]    The character string.
+*   c         char[]    The character (sub-)string.
 *
 * Function return value:
 *             void
@@ -365,6 +405,8 @@ extern "C" {
 #endif
 
 void wcsdealloc(void *ptr);
+
+void wcsutil_strcvt(int n, char c, const char src[], char dst[]);
 
 void wcsutil_blank_fill(int n, char c[]);
 void wcsutil_null_fill (int n, char c[]);
