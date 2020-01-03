@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.4 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2019, Mark Calabretta
+  WCSLIB 7.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2020, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcshdr.c,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
+  $Id: wcshdr.c,v 7.1 2019/12/31 13:25:19 mcalabre Exp $
 *===========================================================================*/
 
 #include <ctype.h>
@@ -505,13 +505,14 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
   const int  nTPD[] = {1, 4, 7, 12, 17, 24, 31, 40, 49, 60};
 
   char alt, comment[72], ctemp[32], *ctypei, format[16], fmt01[8],
-       keyvalue[96], keyword[16], *kp, *kp0, obsg[8] = "OBSG?",
+       keyvalue[96], keyword[16], *kp, obsg[8] = "OBSG?",
        obsgeo[8] = "OBSGEO-?", pq, ptype, xtype, term[16], timeunit[16],
        tpdsrc[24], xyz[] = "XYZ";
   int  *axmap, bintab, *colax, colnum, degree, direct = 0, doaux = 0, dofmt,
-       dosip, dotpd, dotpv, i, idis, idp, *iparm, j, jhat, k, m, naxis,
-       ncoeff, Nhat, p, pixlist, precision, primage, q, status = 0;
+       dosip, dotpd, dotpv, i, idis, idp, *iparm, j, jhat, k, kp0, kpi, m,
+       naxis, ncoeff, Nhat, p, pixlist, precision, primage, q, status = 0;
   double *dparm, keyval;
+  struct auxprm *aux;
   struct disprm *dis;
   struct dpkey  *keyp;
   struct wcserr **err;
@@ -1319,8 +1320,53 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
       keyvalue, "[deg] Velocity orientation angle", nkeyrec, header, &status);
   }
 
+  /* - - - - - - - - - - - - - - - - - - - Additional auxiliary parameters. */
 
-  /* Write distortion function parameters. */
+  if ((aux = wcs->aux)) {
+    if (!undefined(aux->rsun_ref)) {
+      wcsutil_double2str(keyvalue, format, aux->rsun_ref);
+      wcshdo_util(ctrl, "RSUN_REF", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
+        keyvalue, "[m] Solar radius", nkeyrec, header, &status);
+    }
+
+    if (!undefined(aux->dsun_obs)) {
+      wcsutil_double2str(keyvalue, format, aux->dsun_obs);
+      wcshdo_util(ctrl, "DSUN_OBS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
+        keyvalue, "[m] Distance from centre of Sun to observer", nkeyrec,
+        header, &status);
+    }
+
+    if (!undefined(aux->crln_obs)) {
+      wcsutil_double2str(keyvalue, format, aux->crln_obs);
+      wcshdo_util(ctrl, "CRLN_OBS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
+        keyvalue, "[deg] Carrington heliographic lng of observer", nkeyrec,
+        header, &status);
+
+      if (!undefined(aux->hglt_obs)) {
+        wcsutil_double2str(keyvalue, format, aux->hglt_obs);
+        wcshdo_util(ctrl, "CRLT_OBS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
+          keyvalue, "[deg] Heliographic latitude of observer", nkeyrec,
+          header, &status);
+      }
+    }
+
+    if (!undefined(aux->hgln_obs)) {
+      wcsutil_double2str(keyvalue, format, aux->hgln_obs);
+      wcshdo_util(ctrl, "HGLN_OBS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
+        keyvalue, "[deg] Stonyhurst heliographic lng of observer", nkeyrec,
+        header, &status);
+
+      if (!undefined(aux->hglt_obs)) {
+        wcsutil_double2str(keyvalue, format, aux->hglt_obs);
+        wcshdo_util(ctrl, "HGLT_OBS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
+          keyvalue, "[deg] Heliographic latitude of observer", nkeyrec,
+          header, &status);
+      }
+    }
+  }
+
+  /* - - - - - - - - - - - - - - - - - - - Distortion function parameters.  */
+
   if (dosip) {
     /* Simple Imaging Polynomial (SIP) is handled by translating its dpkey */
     /* records.  Determine a suitable numerical precision for the          */
@@ -1329,18 +1375,18 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
     dis = wcs->lin.dispre;
     if (dofmt) {
       keyp = dis->dp;
-      kp0  = keyvalue + 2;
+      kp0  = 2;
       for (idp = 0; idp < dis->ndp; idp++, keyp++) {
         cp = strchr(keyp->field, '.') + 1;
         if (strncmp(cp, "SIP.", 4) != 0) continue;
         wcsutil_double2str(keyvalue, "%20.13E", dpkeyd(keyp));
 
-        kp = keyvalue + 15;
-        while (kp0 < kp && *kp == '0') kp--;
-        kp0 = kp;
+        kpi = 15;
+        while (kp0 < kpi && keyvalue[kpi] == '0') kpi--;
+        kp0 = kpi;
       }
 
-      precision = kp0 - (keyvalue + 2);
+      precision = kp0 - 2;
       if (precision < 1)  precision = 1;
       if (13 < precision) precision = 13;
       sprintf(format, "%%20.%dE", precision);
@@ -1876,8 +1922,8 @@ void wcshdo_format(
   char *format)
 
 {
-  char *cp, *cp0, cval[24];
-  int  i, expmax, expon, nsig, precision;
+  char cval[24];
+  int  cp0, cpi, i, expmax, expon, nsig, precision;
 
   if (fmt == 'G') {
     fmt = 'f';
@@ -1889,22 +1935,22 @@ void wcshdo_format(
     }
   }
 
-  cp0 = cval + 2;
+  cp0 = 2;
   expmax = -999;
   for (i = 0; i < nval; i++) {
     /* Double precision has at least 15 significant digits, and up to 17:  */
     /* http://en.wikipedia.org/wiki/Double-precision_floating-point_format */
     wcsutil_double2str(cval, "%21.14E", val[i]);
 
-    cp = cval + 16;
-    while (cp0 < cp && *cp == '0') cp--;
-    cp0 = cp;
+    cpi = 16;
+    while (cp0 < cpi && cval[cpi] == '0') cpi--;
+    cp0 = cpi;
 
     sscanf(cval+18, "%d", &expon);
     if (expmax < expon) expmax = expon;
   }
 
-  nsig = cp0 - (cval + 2) + 1;
+  nsig = cp0 - 1;
 
 
   if (fmt == 'f') {
@@ -1949,13 +1995,13 @@ void wcshdo_tpdterm(
     k = degree - (m - nTPD[degree-1]);
 
     if (k < 0) {
-      strncpy(term, "rrrrrrrrr", degree);
+      memcpy(term, "rrrrrrrrr", degree);
     } else if (direct) {
-      strncpy(term, "xxxxxxxxx", k);
-      strncpy(term+k, "yyyyyyyyy", degree-k);
+      memcpy(term, "xxxxxxxxx", k);
+      memcpy(term+k, "yyyyyyyyy", degree-k);
     } else {
-      strncpy(term, "yyyyyyyyy", k);
-      strncpy(term+k, "xxxxxxxxx", degree-k);
+      memcpy(term, "yyyyyyyyy", k);
+      memcpy(term+k, "xxxxxxxxx", degree-k);
     }
 
     term[degree] = '\0';

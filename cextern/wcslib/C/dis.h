@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.4 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2019, Mark Calabretta
+  WCSLIB 7.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2020, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.h,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
+  $Id: dis.h,v 7.1 2019/12/31 13:25:19 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 6.4 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.1 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -869,6 +869,20 @@
 *     It is not necessary to reset the disprm struct (via disset()) when
 *     disprm::totdis is changed.
 *
+*   int *docorr
+*     (Returned) Pointer to the first element of an array of int containing
+*     flags that indicate the mode of correction for each axis.
+*
+*     If docorr is zero, the distortion function returns the corrected
+*     coordinates directly.  Any other value indicates that the distortion
+*     function computes a correction to be added to pixel coordinates (prior
+*     distortion) or intermediate pixel coordinates (sequent distortion).
+*
+*   int *Nhat
+*     (Returned) Pointer to the first element of an array of int containing
+*     the number of coordinate axes that form the independent variables of the
+*     distortion function for each axis.
+*
 *   int **axmap
 *     (Returned) Pointer to the first element of an array of int* containing
 *     pointers to the first elements of the axis mapping arrays for each axis.
@@ -888,23 +902,20 @@
 *     where -1 indicates that there is no corresponding independent
 *     variable.
 *
-*   int *Nhat
-*     (Returned) Pointer to the first element of an array of int* containing
-*     the number of coordinate axes that form the independent variables of the
-*     distortion function.
-*
 *   double **offset
 *     (Returned) Pointer to the first element of an array of double*
-*     containing an offset used to renormalize the independent variables of
-*     the distortion function for each axis.
+*     containing pointers to the first elements of arrays of offsets used to
+*     renormalize the independent variables of the distortion function for
+*     each axis.
 *
 *     The offsets are subtracted from the independent variables before
 *     scaling.
 *
 *   double **scale
 *     (Returned) Pointer to the first element of an array of double*
-*     containing a scale used to renormalize the independent variables of the
-*     distortion function for each axis.
+*     containing pointers to the first elements of arrays of scales used to
+*     renormalize the independent variables of the distortion function for
+*     each axis.
 *
 *     The scale is applied to the independent variables after the offsets are
 *     subtracted.
@@ -1049,10 +1060,11 @@ struct disprm {
 
   /* Information derived from the parameters supplied.                      */
   /*------------------------------------------------------------------------*/
-  int    **axmap;		/* For each axis, the axis mapping array.   */
+  int    *docorr;		/* For each axis, the mode of correction.   */
   int    *Nhat;			/* For each axis, the number of coordinate  */
 				/* axes that form the independent variables */
 				/* of the distortion function.              */
+  int    **axmap;		/* For each axis, the axis mapping array.   */
   double **offset;		/* For each axis, renormalization offsets.  */
   double **scale;		/* For each axis, renormalization scales.   */
   int    **iparm;		/* For each axis, the array of integer      */

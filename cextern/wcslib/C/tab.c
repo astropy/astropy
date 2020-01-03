@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.4 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2019, Mark Calabretta
+  WCSLIB 7.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2020, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: tab.c,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
+  $Id: tab.c,v 7.1 2019/12/31 13:25:19 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -1111,9 +1111,11 @@ int tabx2s(
       tab->delta[m] = upsilon - p1;
 
       if (p1 == 0) {
+        /* Extrapolation below p1 == 1. */
         tab->p0[m] += 1;
         tab->delta[m] -= 1.0;
       } else if (p1 == *Km && *Km > 1) {
+        /* Extrapolation above p1 == K_m. */
         tab->p0[m] -= 1;
         tab->delta[m] += 1.0;
       }
@@ -1169,6 +1171,12 @@ next:
 
 /*--------------------------------------------------------------------------*/
 
+/* Helper functions used only by tabs2x(). */
+static int tabedge(struct tabprm *);
+static int tabrow(struct tabprm *, const double *);
+static int tabvox(struct tabprm *, const double *, int, double **,
+                  unsigned int *);
+
 int tabs2x(
   struct tabprm* tab,
   int ncoord,
@@ -1179,10 +1187,6 @@ int tabs2x(
 
 {
   static const char *function = "tabs2x";
-
-  int tabedge(struct tabprm *);
-  int tabrow(struct tabprm *, const double *);
-  int tabvox(struct tabprm *, const double *, int, double **, unsigned int *);
 
   int edge, i, ic, iv, k, *Km, M, m, n, nv, offset, status;
   double *dcrd, delta, *Psi, psi_m, **tabcoord, upsilon;
@@ -1227,8 +1231,10 @@ int tabs2x(
         if (edge || tabrow(tab, wp)) {
           /* No, skip it. */
           ic += tab->K[0];
-          tab->p0[1]++;
-          edge = tabedge(tab);
+          if (1 < M) {
+            tab->p0[1]++;
+            edge = tabedge(tab);
+          }
 
           /* Because ic will be incremented when the loop is reentered. */
           ic--;
@@ -1376,24 +1382,28 @@ int tabs2x(
 }
 
 /*----------------------------------------------------------------------------
-* Convenience routine to deal with of edge effects in tabprm::p0.
+* Convenience routine to check whether tabprm::p0 has been incremented beyond
+* the end of an index vector and if so move it to the start of the next one.
+* Returns 1 if tabprm::p0 is sitting at the end of any non-degenerate index
+* vector.
 *---------------------------------------------------------------------------*/
 
 int tabedge(struct tabprm* tab)
 
 {
-  int edge, *Km, m;
+  int edge, m;
 
   edge = 0;
-  Km = tab->K;
-  for (m = 0; m < tab->M; m++, Km++) {
-    if (tab->p0[m] == *Km) {
-      /* p0 has been incremented beyond the end of the row, point it to the
-         next one. */
+  for (m = 0; m < tab->M; m++) {
+    if (tab->p0[m] == tab->K[m]) {
+      /* p0 has been incremented beyond the end of an index vector, point it
+         to the next one. */
       tab->p0[m] = 0;
-      tab->p0[m+1]++;
-    } else if (tab->p0[m] == *Km - 1 && *Km > 1) {
-      /* p0 is sitting at the end of a non-degenerate row. */
+      if (m < tab->M-1) {
+        tab->p0[m+1]++;
+      }
+    } else if (tab->p0[m] == tab->K[m]-1 && tab->K[m] > 1) {
+      /* p0 is sitting at the end of a non-degenerate index vector. */
       edge = 1;
     }
   }
@@ -1519,7 +1529,7 @@ int tabrow(struct tabprm* tab, const double *wp)
 * dissect the voxel.  It is ignored when tabvox() is called from outside
 * (level == 0).
 *
-* It is assumed that the image dimensions are no greater than 16.
+* It is assumed that the image dimensions are no greater than 32.
 ----------------------------------------------------------------------------*/
 
 int tabvox(
@@ -1531,9 +1541,9 @@ int tabvox(
 
 {
   int i, M, m;
-  unsigned int eq, et, gt, iv, jv, lt, nv, vox2[16];
+  unsigned int eq, et, gt, iv, jv, lt, nv, vox2[32];
   const double tol = 1e-10;
-  double coord[16], *cp, dv, w, wgt;
+  double coord[32], *cp, dv, w, wgt;
 
   M = tab->M;
 

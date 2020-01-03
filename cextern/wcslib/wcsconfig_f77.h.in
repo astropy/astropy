@@ -1,12 +1,12 @@
 /*============================================================================
 *
 * wcsconfig_f77.h is generated from wcsconfig_f77.h.in by 'configure'.  It
-* contains C preprocessor definitions for building the WCSLIB 6.4 Fortran
+* contains C preprocessor definitions for building the WCSLIB 7.1 Fortran
 * wrappers.
 *
 * Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 * http://www.atnf.csiro.au/people/Mark.Calabretta
-* $Id: wcsconfig_f77.h.in,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
+* $Id: wcsconfig_f77.h.in,v 7.1 2019/12/31 13:25:19 mcalabre Exp $
 *===========================================================================*/
 
 /* Integer array type large enough to hold an address.  Set here to int[2] for

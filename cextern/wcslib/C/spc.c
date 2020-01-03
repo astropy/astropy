@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.4 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2019, Mark Calabretta
+  WCSLIB 7.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2020, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spc.c,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
+  $Id: spc.c,v 7.1 2019/12/31 13:25:19 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -259,7 +259,7 @@ int spcset(struct spcprm *spc)
 
   /* Analyse the spectral axis type. */
   memset(ctype, 0, 9);
-  strncpy(ctype, spc->type, 4);
+  memcpy(ctype, spc->type, 4);
   if (*(spc->code) != ' ') {
     sprintf(ctype+4, "-%s", spc->code);
   }
@@ -875,7 +875,7 @@ int spctype(
 
   /* Copy results. */
   if (stype) {
-    strncpy(stype, ctype, 4);
+    memcpy(stype, ctype, 4);
     stype[4] = '\0';
   }
   if (scode) strcpy(scode, ctype+5);
