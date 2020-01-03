@@ -1792,6 +1792,12 @@ class Table:
     def keys(self):
         return list(self.columns.keys())
 
+    def values(self):
+        return self.columns.values()
+
+    def items(self):
+        return self.columns.items()
+
     def __len__(self):
         # For performance reasons (esp. in Row) cache the first column name
         # and use that subsequently for the table length.  If might not be
