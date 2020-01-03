@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
-import sys
 
 import pytest
 import numpy as np
@@ -11,14 +10,14 @@ ROOT = os.path.abspath(os.path.dirname(__file__))
 
 
 try:
-    import bz2  # pylint: disable=W0611
+    import bz2  # noqa
 except ImportError:
     HAS_BZ2 = False
 else:
     HAS_BZ2 = True
 
 try:
-    import lzma
+    import lzma  # noqa
 except ImportError:
     HAS_XZ = False
 else:

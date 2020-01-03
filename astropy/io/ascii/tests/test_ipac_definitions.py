@@ -66,7 +66,9 @@ def test_too_long_colname_notstrict():
         ascii.write(table, out, Writer=Ipac, DBMS=False)
 
 
-@pytest.mark.parametrize(("strict_", "Err"), [(True, IpacFormatErrorDBMS), (False, IpacFormatError)])
+@pytest.mark.parametrize(("strict_", "Err"),
+                         [(True, IpacFormatErrorDBMS),
+                          (False, IpacFormatError)])
 def test_non_alfnum_colname(strict_, Err):
     table = Table([[3]], names=['a123456789 01234'])
     out = StringIO()

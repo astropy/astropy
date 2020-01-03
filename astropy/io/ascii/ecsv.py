@@ -6,7 +6,6 @@ writing all the meta data associated with an astropy Table object.
 
 import re
 from collections import OrderedDict
-import contextlib
 import warnings
 
 from . import core, basic
@@ -24,6 +23,7 @@ class EcsvHeader(basic.BasicHeader):
     """Header class for which the column definition line starts with the
     comment character.  See the :class:`CommentedHeader` class  for an example.
     """
+
     def process_lines(self, lines):
         """Return only non-blank lines that start with the comment regexp.  For these
         lines strip out the matching characters and leading/trailing whitespace."""
@@ -160,8 +160,8 @@ class EcsvHeader(basic.BasicHeader):
         # Check for consistency of the ECSV vs. CSV header column names
         if header_names != self.names:
             raise core.InconsistentTableError('column names from ECSV header {} do not '
-                             'match names from header line of CSV data {}'
-                             .format(self.names, header_names))
+                                              'match names from header line of CSV data {}'
+                                              .format(self.names, header_names))
 
         # BaseHeader method to create self.cols, which is a list of
         # io.ascii.core.Column objects (*not* Table Column objects).
@@ -230,8 +230,8 @@ class EcsvData(basic.BasicData):
         # as a MaskedColumn.  Without 'data_mask', MaskedColumn objects are
         # stored to ECSV as normal columns.
         for col in cols:
-            if (col.dtype == 'str' and col.name in scs and
-                    scs[col.name]['__class__'] == 'astropy.table.column.MaskedColumn'):
+            if (col.dtype == 'str' and col.name in scs
+                    and scs[col.name]['__class__'] == 'astropy.table.column.MaskedColumn'):
                 col.fill_values = {}  # No data value replacement
 
 
