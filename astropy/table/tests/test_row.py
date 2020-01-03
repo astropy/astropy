@@ -20,7 +20,7 @@ def test_masked_row_with_object_col():
     t['col0'].mask = False
     assert t[0]['col0'] == 1
     t['col0'].mask = True
-    assert t[0]['col0'] is np.ma.masked
+    assert t[0]['col0'].mask
 
 
 @pytest.mark.usefixtures('table_types')
@@ -185,7 +185,7 @@ class TestRow():
             # row_void is not a view, need to re-make
             assert row_void['a'] == 1
             row_void = row.as_void()  # but row is a view
-            assert row['a'] is np.ma.masked
+            assert row['a'].mask
 
     def test_row_and_as_void_with_objects(self, table_types):
         """Test the deprecated data property and as_void() method"""
