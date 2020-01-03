@@ -16,6 +16,7 @@ from matplotlib.path import Path
 from matplotlib import rcParams
 
 from astropy import units as u
+from astropy.units import Quantity
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .frame import RectangularFrame1D, EllipticalFrame
@@ -43,8 +44,10 @@ LINES_TO_PATCHES_LINESTYLE = {'-': 'solid',
 def wrap_angle_at(values, coord_wrap):
     # On ARM processors, np.mod emits warnings if there are NaN values in the
     # array, although this doesn't seem to happen on other processors.
+    if type(coord_wrap) is not Quantity:
+        coord_wrap = coord_wrap * u.deg
     with np.errstate(invalid='ignore'):
-        return np.mod(values - coord_wrap, 360.) - (360. - coord_wrap)
+        return np.mod(values - coord_wrap.value, 360.) - (360. - coord_wrap.value)
 
 
 class CoordinateHelper:
@@ -73,7 +76,7 @@ class CoordinateHelper:
         The unit that this coordinate is in given the output of transform.
     format_unit : `~astropy.units.Unit`, optional
         The unit to use to display the coordinates.
-    coord_wrap : float
+    coord_wrap : `~astropy.units.Quantity`, float (DEPRECATED), optional
         The angle at which the longitude wraps (defaults to 360)
     frame : `~astropy.visualization.wcsaxes.frame.BaseFrame`
         The frame of the :class:`~astropy.visualization.wcsaxes.WCSAxes`.
@@ -183,11 +186,15 @@ class CoordinateHelper:
         ----------
         coord_type : str
             One of 'longitude', 'latitude' or 'scalar'
-        coord_wrap : float, optional
+        coord_wrap : `~astropy.units.Quantity`, float(DEPRECATED), optional
             The value to wrap at for angular coordinates
         """
 
         self.coord_type = coord_type
+        if type(coord_wrap) is float:
+            warnings.warn('`coord_wrap` input of type `float` are deprecated. '
+                          '`Quantity` is the only accepted type',
+                          DeprecationWarning)
 
         if coord_type == 'longitude' and coord_wrap is None:
             self.coord_wrap = 360
@@ -196,6 +203,9 @@ class CoordinateHelper:
                                       'for non-longitude coordinates')
         else:
             self.coord_wrap = coord_wrap
+
+        if self.coord_wrap is not None:
+            self.coord_wrap = self.coord_wrap * u.deg
 
         # Initialize tick formatter/locator
         if coord_type == 'scalar':
