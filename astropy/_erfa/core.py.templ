@@ -145,17 +145,6 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
      # Call the ufunc. Note that we pass inout twice, once as input
      # and once as output, so that changes are done in-place
      #}
-    {%- if func.d3_fix_arg %}
-    {% if func.args_by_inout('in|inout') -%}
-    ({{ func.args_by_inout('in|inout')|map(attribute='name')|join(', ') }},)
-    {%- else -%}_{%- endif -%}, {{ func.d3_fix_arg.name
-        }} = arrayify_inputs_and_create_d3_fix(
-        [{{ func.args_by_inout('in|inout')|map(attribute='name')|list()|join(', ')
-        }}], core_dims=[{{
-        func.args_by_inout('in|inout')|map(attribute='ndim')|list()|join(', ')
-        }}], out_core_shape={{ func.d3_fix_arg.shape
-        }}, out_dtype=numpy.{{ func.d3_fix_arg.ctype }})
-    {%- endif %}
     {{ func.python_call }}
     {#-
      # Check whether any warnings or errors occurred.
