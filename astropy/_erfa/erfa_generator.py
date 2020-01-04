@@ -450,38 +450,11 @@ class Function:
              for args in (self.args_by_inout('in|inout'),
                           self.args_by_inout('inout|out|ret|stat'))])
 
-    def _d3_fix_arg_and_index(self):
-        if not any('d3' in arg.signature_shape
-                   for arg in self.args_by_inout('in|inout')):
-            for j, arg in enumerate(self.args_by_inout('out')):
-                if 'd3' in arg.signature_shape:
-                    return j, arg
-
-        return None, None
-
-    @property
-    def d3_fix_op_index(self):
-        """Whether only output arguments have a d3 dimension."""
-        index = self._d3_fix_arg_and_index()[0]
-        if index is not None:
-            len_in = len(list(self.args_by_inout('in')))
-            len_inout = len(list(self.args_by_inout('inout')))
-            index += + len_in + 2 * len_inout
-        return index
-
-    @property
-    def d3_fix_arg(self):
-        """Whether only output arguments have a d3 dimension."""
-        return self._d3_fix_arg_and_index()[1]
-
     @property
     def python_call(self):
         outnames = [arg.name for arg in self.args_by_inout('inout|out|stat|ret')]
         argnames = [arg.name for arg in self.args_by_inout('in|inout')]
         argnames += [arg.name for arg in self.args_by_inout('inout')]
-        d3fix_index = self._d3_fix_arg_and_index()[0]
-        if d3fix_index is not None:
-            argnames += ['None'] * d3fix_index + [self.d3_fix_arg.name]
         return '{out} = {func}({args})'.format(out=', '.join(outnames),
                                                func='ufunc.' + self.pyname,
                                                args=', '.join(argnames))
