@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.4 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2019, Mark Calabretta
+  WCSLIB 7.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2020, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -23,7 +23,7 @@
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   Module author: Michael Droettboom
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcserr.c,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
+  $Id: wcserr.c,v 7.1 2019/12/31 13:25:19 mcalabre Exp $
 *===========================================================================*/
 
 #include <stdarg.h>
@@ -104,7 +104,6 @@ int wcserr_set(
   ...)
 
 {
-  char fmt[2048];
   int  msglen;
   struct wcserr *err;
   va_list argp;
@@ -131,12 +130,9 @@ int wcserr_set(
     err->line_no  = line_no;
     err->msg      = 0x0;
 
-    /* Workaround for a compiler segv from gcc 4.2.1 in MacOSX 10.7. */
-    strncpy(fmt, format, 2048);
-
     /* Determine the required message buffer size. */
     va_start(argp, format);
-    msglen = vsnprintf(0x0, 0, fmt, argp) + 1;
+    msglen = vsnprintf(0x0, 0, format, argp) + 1;
     va_end(argp);
 
     if (msglen <= 0 || (err->msg = malloc(msglen)) == 0x0) {
@@ -146,7 +142,7 @@ int wcserr_set(
 
     /* Write the message. */
     va_start(argp, format);
-    msglen = vsnprintf(err->msg, msglen, fmt, argp);
+    msglen = vsnprintf(err->msg, msglen, format, argp);
     va_end(argp);
 
     if (msglen < 0) {
@@ -162,7 +158,7 @@ int wcserr_set(
 int wcserr_copy(const struct wcserr *src, struct wcserr *dst)
 
 {
-  int msglen;
+  size_t msglen;
 
   if (src == 0x0) {
     if (dst) {

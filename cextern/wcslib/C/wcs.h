@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.4 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2019, Mark Calabretta
+  WCSLIB 7.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2020, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.h,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
+  $Id: wcs.h,v 7.1 2019/12/31 13:25:19 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 6.4 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.1 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -180,7 +180,9 @@
 *
 * Given:
 *   alloc     int       If true, allocate memory unconditionally for the
-*                       crpix, etc. arrays.
+*                       crpix, etc. arrays.  Please note that memory is never
+*                       allocated by wcsinit() for the auxprm, tabprm, nor
+*                       wtbarr structs.
 *
 *                       If false, it is assumed that pointers to these arrays
 *                       have been set by the user except if they are null
@@ -227,6 +229,34 @@
 *
 *                       For returns > 1, a detailed error message is set in
 *                       wcsprm::err if enabled, see wcserr_enable().
+*
+*
+* wcsauxi() - Default constructor for the auxprm struct
+* -----------------------------------------------------
+* wcsauxi() optionally allocates memory for an auxprm struct, attaches it to
+* wcsprm, and sets all members of the struct to default values.
+*
+* Given:
+*   alloc     int       If true, allocate memory unconditionally for the
+*                       auxprm struct.
+*
+*                       If false, it is assumed that wcsprm::aux has already
+*                       been set to point to an auxprm struct, in which case
+*                       the user is responsible for managing that memory.
+*                       However, if wcsprm::aux is a null pointer, memory will
+*                       be allocated regardless.  (In other words, setting
+*                       alloc true saves having to initalize the pointer to
+*                       zero.)
+*
+* Given and returned:
+*   wcs       struct wcsprm*
+*                       Coordinate transformation parameters.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
+*                         1: Null wcsprm pointer passed.
+*                         2: Memory allocation failed.
 *
 *
 * wcssub() - Subimage extraction routine for the wcsprm struct
@@ -382,7 +412,7 @@
 *                         WCSCOMPARE_CRPIX: Ignore any differences at all in
 *                           CRPIXja.  The two WCSes cover different regions
 *                           of the same map projection but may not align on
-*                           the same grid map.  Overrides WCSCOMPARE_TILING.
+*                           the same map grid.  Overrides WCSCOMPARE_TILING.
 *
 *   tol       double    Tolerance for comparison of floating-point values.
 *                       For example, for tol == 1e-6, all floating-point
@@ -1468,6 +1498,15 @@
 *     It is not necessary to reset the wcsprm struct (via wcsset()) when
 *     wcsprm::velangl is changed.
 *
+*   struct auxprm *aux
+*     (Given, auxiliary) This struct holds auxiliary coordinate system
+*     information of a specialist nature.  While these parameters may be
+*     widely recognized within particular fields of astronomy, they differ
+*     from the above auxiliary parameters in not being defined by any of the
+*     FITS WCS standards.  Collecting them together in a separate struct that
+*     is allocated only when required helps to control bloat in the size of
+*     the wcsprm struct.
+*
 *   int ntab
 *     (Given) See wcsprm::tab.
 *
@@ -1647,6 +1686,35 @@
 *     (Given) Parameter value.
 *
 *
+* auxprm struct - Additional auxiliary parameters
+* -----------------------------------------------
+* The auxprm struct holds auxiliary coordinate system information of a
+* specialist nature.  It is anticipated that this struct will expand in future
+* to accomodate additional parameters.
+*
+* All members of this struct are to be set by the user.
+*
+*   double rsun_ref
+*     (Given, auxiliary) Reference radius of the Sun used in coordinate
+*     calculations (m).
+*
+*   double dsun_obs
+*     (Given, auxiliary) Distance between the centre of the Sun and the
+*     observer (m).
+*
+*   double crln_obs
+*     (Given, auxiliary) Carrington heliographic longitude of the observer
+*     (deg).
+*
+*   double hgln_obs
+*     (Given, auxiliary) Stonyhurst heliographic longitude of the observer
+*     (deg).
+*
+*   double hglt_obs
+*     (Given, auxiliary) Heliographic latitude (Carrington or Stonyhurst) of
+*     the observer (deg).
+*
+*
 * Global variable: const char *wcs_errmsg[] - Status return messages
 * ------------------------------------------------------------------
 * Error messages to match the status value returned from each function.
@@ -1726,6 +1794,18 @@ struct pscard {
 /* Size of the pscard struct in int units, used by the Fortran wrappers. */
 #define PSLEN (sizeof(struct pscard)/sizeof(int))
 
+/* Struct used to hold additional auxiliary parameters.                     */
+struct auxprm {
+  double rsun_ref;              /* Solar radius.                            */
+  double dsun_obs;              /* Distance from Sun centre to observer.    */
+  double crln_obs;              /* Carrington heliographic lng of observer. */
+  double hgln_obs;              /* Stonyhurst heliographic lng of observer. */
+  double hglt_obs;              /* Heliographic latitude of observer.       */
+};
+
+/* Size of the auxprm struct in int units, used by the Fortran wrappers. */
+#define AUXLEN (sizeof(struct auxprm)/sizeof(int))
+
 
 struct wcsprm {
   /* Initialization flag (see the prologue above).                          */
@@ -1767,8 +1847,9 @@ struct wcsprm {
 				/*   Bit 2: CROTAi is present.              */
   int    velref;		/* AIPS velocity code, VELREF.              */
 
-  /* Auxiliary coordinate system information, not used by WCSLIB.  Refer to */
-  /* the prologue comments above for a brief explanation of these values.   */
+  /* Auxiliary coordinate system information of a general nature.  Not      */
+  /* used by WCSLIB.  Refer to the prologue comments above for a brief      */
+  /* explanation of these values.                                           */
   char   alt[4];
   int    colnum;
   int    *colax;
@@ -1806,6 +1887,10 @@ struct wcsprm {
   double zsource;
   char   ssyssrc[72];
   double velangl;
+
+  /* Additional auxiliary coordinate system information of a specialist     */
+  /* nature.  Not used by WCSLIB.  Refer to the prologue comments above.    */
+  struct auxprm *aux;
 
   /* Coordinate lookup tables (see the prologue above).                     */
   /*------------------------------------------------------------------------*/
@@ -1846,6 +1931,7 @@ struct wcsprm {
   int    *m_colax;
   char  (*m_cname)[72];
   double *m_crder, *m_csyer, *m_czphs, *m_cperi;
+  struct auxprm *m_aux;
   struct tabprm *m_tab;
   struct wtbarr *m_wtb;
 };
@@ -1862,6 +1948,8 @@ int wcsini(int alloc, int naxis, struct wcsprm *wcs);
 
 int wcsinit(int alloc, int naxis, struct wcsprm *wcs, int npvmax, int npsmax,
             int ndpmax);
+
+int wcsauxi(int alloc, struct wcsprm *wcs);
 
 int wcssub(int alloc, const struct wcsprm *wcssrc, int *nsub, int axes[],
            struct wcsprm *wcsdst);

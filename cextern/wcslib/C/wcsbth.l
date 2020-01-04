@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.4 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2019, Mark Calabretta
+  WCSLIB 7.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2020, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsbth.l,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
+  $Id: wcsbth.l,v 7.1 2019/12/31 13:25:19 mcalabre Exp $
 *=============================================================================
 *
 * wcsbth.l is a Flex description file containing the definition of a lexical
@@ -114,6 +114,7 @@ INLINE " "*(\/.*)?
 %{
 #include <math.h>
 #include <setjmp.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -197,8 +198,8 @@ int wcsbth(
    yyless(): put yytext followed by a blank back onto the input stream. */
 #define WCSBTH_PUTBACK \
   sprintf(strtmp, "%s ", yytext); \
-  itmp = strlen(strtmp); \
-  while (itmp) unput(strtmp[--itmp]);
+  iz = strlen(strtmp); \
+  while (iz) unput(strtmp[--iz]);
 
 /* These global variables are required by YY_INPUT. */
 static char *wcsbth_hdr;
@@ -226,7 +227,7 @@ static int wcsbth_final(struct wcsbth_alts *alts, int *nwcs,
         struct wcsprm **wcs);
 static struct wcsprm *wcsbth_idx(struct wcsprm *wcs, struct wcsbth_alts *alts,
         int keytype, int n, char a);
-static int wcsbth_init1(struct wcsbth_alts *alts, int *nwcs,
+static int wcsbth_init1(struct wcsbth_alts *alts, int auxprm, int *nwcs,
         struct wcsprm **wcs);
 static int wcsbth_pass1(int keytype, int i, int j, int n, int k, char a,
         char ptype, struct wcsbth_alts *alts);
@@ -254,11 +255,15 @@ jmp_buf wcsbth_abort_jmp_env;
 	
 	char *cptr, *errmsg, errtxt[80], exclude[1000], gotone, *hptr, *keep,
 	     *keyname, *keyrec, ptype, strtmp[80];
-	int  altlin, ialt, icol, incl, imherit, inttmp, ipass, ipx, itmp, ix,
-	     jx, keytype, nother, nsel, npass, nvalid, status, valtype, voff;
+	int  altlin, auxprm, ialt, icol, incl, imherit, inttmp, ipass, ipx,
+	     itmp, ix, jx, keytype, naux, nother, nsel, npass, nvalid, status,
+	     valtype;
+	ptrdiff_t voff;
+	size_t iz;
 	double dbltmp, dbl2tmp[2];
 	void   *vptr, *wptr;
 	struct wcsbth_alts alts;
+	struct auxprm *auxp, auxtem;
 	struct wcsprm *wcsp, wcstem;
 	int (*chekval)(double);
 	int (*special)(double *, const double *);
@@ -316,6 +321,8 @@ jmp_buf wcsbth_abort_jmp_env;
 	ptype   = ' ';
 	chekval = 0x0;
 	special = 0x0;
+	auxprm  = 0;
+	naux    = 0;
 	
 	/* Selection by column number. */
 	nsel = colsel ? colsel[0] : 0;
@@ -1820,6 +1827,52 @@ jmp_buf wcsbth_abort_jmp_env;
 	  }
 	}
 
+^RSUN_REF {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.rsun_ref);
+	
+	  keyname = "RSUN_REF";
+	  BEGIN(CCCCCCCC);
+	}
+
+^DSUN_OBS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.dsun_obs);
+	
+	  keyname = "DSUN_OBS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^CRLN_OBS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.crln_obs);
+	
+	  keyname = "CRLN_OBS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^HGLN_OBS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.hgln_obs);
+	
+	  keyname = "HGLN_OBS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^CRLT_OBS |
+^HGLT_OBS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.hglt_obs);
+	
+	  keyname = "HGLT_OBS";
+	  BEGIN(CCCCCCCC);
+	}
+
 ^END" "{77} {
 	  if (wcsbth_nkeyrec) {
 	    wcsbth_nkeyrec = 0;
@@ -2765,8 +2818,16 @@ jmp_buf wcsbth_abort_jmp_env;
 	      gotone = 1;
 	
 	      if (vptr) {
-	        voff = (char *)vptr - (char *)(&wcstem);
-	        wptr = (void *)((char *)wcsp + voff);
+	        if (auxprm) {
+	          /* Additional auxiliary parameter. */
+	          auxp = wcsp->aux;
+	          voff = (char *)vptr - (char *)(&auxtem);
+	          wptr = (void *)((char *)auxp + voff);
+	        } else {
+	          /* A parameter that lives directly in wcsprm. */
+	          voff = (char *)vptr - (char *)(&wcstem);
+	          wptr = (void *)((char *)wcsp + voff);
+	        }
 	
 	        if (valtype == INTEGER) {
 	          *((int *)wptr) = inttmp;
@@ -2914,6 +2975,8 @@ jmp_buf wcsbth_abort_jmp_env;
 	    hptr += 80;
 	  }
 	
+	  naux += auxprm;
+	
 	  /* Throw away the rest of the line and reset for the next one. */
 	  i = j = 0;
 	  n = k = 0;
@@ -2938,7 +3001,7 @@ jmp_buf wcsbth_abort_jmp_env;
 <<EOF>>	 {
 	  /* End-of-input. */
 	  if (ipass == 1) {
-	    if ((status = wcsbth_init1(&alts, nwcs, wcs)) ||
+	    if ((status = wcsbth_init1(&alts, naux, nwcs, wcs)) ||
 	        (*nwcs == 0 && ctrl == 0)) {
 	      return status;
 	    }
@@ -2978,6 +3041,7 @@ jmp_buf wcsbth_abort_jmp_env;
 	    ptype  = ' ';
 	    chekval = 0x0;
 	    special = 0x0;
+	    auxprm  = 0;
 	
 	    yyrestart(yyin, yyscanner);
 	
@@ -3172,6 +3236,7 @@ int wcsbth_pass1(
 
 int wcsbth_init1(
   struct wcsbth_alts *alts,
+  int naux,
   int *nwcs,
   struct wcsprm **wcs)
 
@@ -3278,6 +3343,13 @@ int wcsbth_init1(
             wcsp->alt[0] = 'A' + ialt - 1;
           }
 
+          /* Any additional auxiliary keywords present? */
+          if (naux) {
+            if (wcsauxi(1, wcsp)) {
+              return WCSHDRERR_MEMORY;
+            }
+          }
+
           /* Record the table column number. */
           wcsp->colnum = icol;
 
@@ -3309,6 +3381,13 @@ int wcsbth_init1(
         /* Record the alternate version code. */
         if (ialt) {
           wcsp->alt[0] = 'A' + ialt - 1;
+        }
+
+        /* Any additional auxiliary keywords present? */
+        if (naux) {
+          if (wcsauxi(1, wcsp)) {
+            return WCSHDRERR_MEMORY;
+          }
         }
 
         /* Record the pixel list column numbers. */

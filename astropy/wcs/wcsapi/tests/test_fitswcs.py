@@ -3,6 +3,7 @@
 # a mix-in)
 
 import warnings
+from distutils.version import LooseVersion
 
 import numpy as np
 import pytest
@@ -19,6 +20,7 @@ from astropy.units.core import UnitsWarning
 from astropy.utils.data import get_pkg_data_filename
 from astropy.wcs.wcs import WCS, FITSFixedWarning
 from astropy.wcs.wcsapi.fitswcs import custom_ctype_to_ucd_mapping
+from astropy.wcs._wcs import __version__ as wcsver
 
 ###############################################################################
 # The following example is the simplest WCS with default values
@@ -520,6 +522,9 @@ OBSGEO-L= -20
 OBSGEO-B= -70
 OBSGEO-H= 2530
 """
+
+if LooseVersion(wcsver) >= '7.1':
+    HEADER_TIME_1D += "DATEREF = '1995-10-12T14:24:00'\n"
 
 
 @pytest.fixture

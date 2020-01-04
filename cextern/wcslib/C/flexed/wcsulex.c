@@ -7151,8 +7151,8 @@ static const yy_state_type yy_NUL_trans[375] =
 #line 1 "wcsulex.l"
 /*============================================================================
 
-  WCSLIB 6.4 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2019, Mark Calabretta
+  WCSLIB 7.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2020, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -7173,7 +7173,7 @@ static const yy_state_type yy_NUL_trans[375] =
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsulex.c,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
+  $Id: wcsulex.c,v 7.1 2019/12/31 13:25:19 mcalabre Exp $
 *=============================================================================
 *
 * wcsulex.l is a Flex description file containing the definition of a
@@ -7199,10 +7199,6 @@ static const yy_state_type yy_NUL_trans[375] =
 /* Exclusive start states. */
 
 #line 87 "wcsulex.l"
-/* To get the prototype for fileno() from stdio.h when gcc is invoked with
- * -std=c89 (same as -ansi) or -std=c99 since we do not define YY_INPUT. */
-#define _POSIX_SOURCE 1
-
 #include <math.h>
 #include <setjmp.h>
 #include <stdio.h>
@@ -7245,12 +7241,15 @@ int wcsulexe(
  double *scale, double units[WCSUNITS_NTYPE], struct wcserr **err, \
  yyscan_t yyscanner)
 
+/* Dummy definition to circumvent compiler warnings. */
+#define YY_INPUT(inbuff, count, bufsize) { count = YY_NULL; }
+
 /* Used in preempting the call to exit() by yy_fatal_error(). */
 jmp_buf wcsulex_abort_jmp_env;
 #define exit(status) longjmp(wcsulex_abort_jmp_env, status)
 
+#line 7252 "wcsulex.c"
 #line 7253 "wcsulex.c"
-#line 7254 "wcsulex.c"
 
 #define INITIAL 0
 #define PAREN 1
@@ -7502,9 +7501,9 @@ YY_DECL
 		}
 
 	{
-#line 139 "wcsulex.l"
+#line 138 "wcsulex.l"
 
-#line 141 "wcsulex.l"
+#line 140 "wcsulex.l"
 	static const char *function = "wcsulexe";
 	
 	char ctmp[72];
@@ -7548,7 +7547,7 @@ YY_DECL
 	fprintf(stderr, "\n%s ->\n", unitstr);
 #endif
 
-#line 7552 "wcsulex.c"
+#line 7551 "wcsulex.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -7602,7 +7601,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 184 "wcsulex.l"
+#line 183 "wcsulex.l"
 {
 	  /* Pretend initial whitespace doesn't exist. */
 	  yy_set_bol(1);
@@ -7610,7 +7609,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 189 "wcsulex.l"
+#line 188 "wcsulex.l"
 {
 	  if (bracket++) {
 	    BEGIN(FLUSH);
@@ -7621,7 +7620,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 197 "wcsulex.l"
+#line 196 "wcsulex.l"
 {
 	  status = wcserr_set(WCSERR_SET(UNITSERR_BAD_NUM_MULTIPLIER),
 	    "Invalid exponent in '%s'", unitstr);
@@ -7630,7 +7629,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 203 "wcsulex.l"
+#line 202 "wcsulex.l"
 {
 	  factor = 10.0;
 	  BEGIN(EXPON);
@@ -7638,7 +7637,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 208 "wcsulex.l"
+#line 207 "wcsulex.l"
 {
 	  *func = 1;
 	  unput('(');
@@ -7647,7 +7646,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 214 "wcsulex.l"
+#line 213 "wcsulex.l"
 {
 	  *func = 2;
 	  unput('(');
@@ -7656,7 +7655,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 220 "wcsulex.l"
+#line 219 "wcsulex.l"
 {
 	  *func = 3;
 	  unput('(');
@@ -7665,7 +7664,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 226 "wcsulex.l"
+#line 225 "wcsulex.l"
 {
 	  /* Leading binary multiply. */
 	  status = wcserr_set(WCSERR_SET(UNITSERR_DANGLING_BINOP),
@@ -7675,12 +7674,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 233 "wcsulex.l"
+#line 232 "wcsulex.l"
 /* Discard whitespace in INITIAL context. */
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 235 "wcsulex.l"
+#line 234 "wcsulex.l"
 {
 	  expon /= 2.0;
 	  unput('(');
@@ -7689,7 +7688,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 241 "wcsulex.l"
+#line 240 "wcsulex.l"
 {
 	  /* Gather terms in parentheses. */
 	  yyless(0);
@@ -7698,7 +7697,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 247 "wcsulex.l"
+#line 246 "wcsulex.l"
 {
 	  if (operator++) {
 	    BEGIN(FLUSH);
@@ -7706,10 +7705,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 13:
-#line 254 "wcsulex.l"
+#line 253 "wcsulex.l"
 case 14:
 YY_RULE_SETUP
-#line 254 "wcsulex.l"
+#line 253 "wcsulex.l"
 {
 	  if (operator++) {
 	    BEGIN(FLUSH);
@@ -7720,7 +7719,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 262 "wcsulex.l"
+#line 261 "wcsulex.l"
 {
 	  operator = 0;
 	  yyless(0);
@@ -7728,12 +7727,12 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 16:
-#line 269 "wcsulex.l"
+#line 268 "wcsulex.l"
 case 17:
-#line 270 "wcsulex.l"
+#line 269 "wcsulex.l"
 case 18:
 YY_RULE_SETUP
-#line 270 "wcsulex.l"
+#line 269 "wcsulex.l"
 {
 	  operator = 0;
 	  yyless(0);
@@ -7742,7 +7741,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 276 "wcsulex.l"
+#line 275 "wcsulex.l"
 {
 	  bracket = !bracket;
 	  BEGIN(FLUSH);
@@ -7750,7 +7749,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 281 "wcsulex.l"
+#line 280 "wcsulex.l"
 {
 	  status = wcserr_set(WCSERR_SET(UNITSERR_BAD_INITIAL_SYMBOL),
 	    "Invalid symbol in INITIAL context in '%s'", unitstr);
@@ -7759,7 +7758,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 287 "wcsulex.l"
+#line 286 "wcsulex.l"
 {
 	  paren++;
 	  operator = 0;
@@ -7768,7 +7767,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 293 "wcsulex.l"
+#line 292 "wcsulex.l"
 {
 	  paren--;
 	  if (paren) {
@@ -7800,14 +7799,14 @@ YY_RULE_SETUP
 case 23:
 /* rule 23 can match eol */
 YY_RULE_SETUP
-#line 321 "wcsulex.l"
+#line 320 "wcsulex.l"
 {
 	  yymore();
 	}
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 325 "wcsulex.l"
+#line 324 "wcsulex.l"
 {
 	  factor = 1e-1;
 	  BEGIN(UNITS);
@@ -7815,7 +7814,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 330 "wcsulex.l"
+#line 329 "wcsulex.l"
 {
 	  factor = 1e-2;
 	  BEGIN(UNITS);
@@ -7823,7 +7822,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 335 "wcsulex.l"
+#line 334 "wcsulex.l"
 {
 	  factor = 1e-3;
 	  BEGIN(UNITS);
@@ -7831,7 +7830,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 340 "wcsulex.l"
+#line 339 "wcsulex.l"
 {
 	  factor = 1e-6;
 	  BEGIN(UNITS);
@@ -7839,7 +7838,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 345 "wcsulex.l"
+#line 344 "wcsulex.l"
 {
 	  factor = 1e-9;
 	  BEGIN(UNITS);
@@ -7847,7 +7846,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 350 "wcsulex.l"
+#line 349 "wcsulex.l"
 {
 	  factor = 1e-12;
 	  BEGIN(UNITS);
@@ -7855,7 +7854,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 355 "wcsulex.l"
+#line 354 "wcsulex.l"
 {
 	  factor = 1e-15;
 	  BEGIN(UNITS);
@@ -7863,7 +7862,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 360 "wcsulex.l"
+#line 359 "wcsulex.l"
 {
 	  factor = 1e-18;
 	  BEGIN(UNITS);
@@ -7871,7 +7870,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 365 "wcsulex.l"
+#line 364 "wcsulex.l"
 {
 	  factor = 1e-21;
 	  BEGIN(UNITS);
@@ -7879,7 +7878,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 370 "wcsulex.l"
+#line 369 "wcsulex.l"
 {
 	  factor = 1e-24;
 	  BEGIN(UNITS);
@@ -7887,7 +7886,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 375 "wcsulex.l"
+#line 374 "wcsulex.l"
 {
 	  factor = 1e+1;
 	  BEGIN(UNITS);
@@ -7895,7 +7894,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 380 "wcsulex.l"
+#line 379 "wcsulex.l"
 {
 	  factor = 1e+2;
 	  BEGIN(UNITS);
@@ -7903,7 +7902,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 385 "wcsulex.l"
+#line 384 "wcsulex.l"
 {
 	  factor = 1e+3;
 	  BEGIN(UNITS);
@@ -7911,7 +7910,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 390 "wcsulex.l"
+#line 389 "wcsulex.l"
 {
 	  factor = 1e+6;
 	  BEGIN(UNITS);
@@ -7919,7 +7918,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 395 "wcsulex.l"
+#line 394 "wcsulex.l"
 {
 	  factor = 1e+9;
 	  BEGIN(UNITS);
@@ -7927,7 +7926,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 400 "wcsulex.l"
+#line 399 "wcsulex.l"
 {
 	  factor = 1e+12;
 	  BEGIN(UNITS);
@@ -7935,7 +7934,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 405 "wcsulex.l"
+#line 404 "wcsulex.l"
 {
 	  factor = 1e+15;
 	  BEGIN(UNITS);
@@ -7943,7 +7942,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 410 "wcsulex.l"
+#line 409 "wcsulex.l"
 {
 	  factor = 1e+18;
 	  BEGIN(UNITS);
@@ -7951,7 +7950,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 415 "wcsulex.l"
+#line 414 "wcsulex.l"
 {
 	  factor = 1e+21;
 	  BEGIN(UNITS);
@@ -7959,7 +7958,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 420 "wcsulex.l"
+#line 419 "wcsulex.l"
 {
 	  factor = 1e+24;
 	  BEGIN(UNITS);
@@ -7967,7 +7966,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 425 "wcsulex.l"
+#line 424 "wcsulex.l"
 {
 	  /* Internal parser error. */
 	  status = wcserr_set(WCSERR_SET(UNITSERR_PARSER_ERROR),
@@ -7977,7 +7976,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 432 "wcsulex.l"
+#line 431 "wcsulex.l"
 {
 	  /* Ampere. */
 	  types[WCSUNITS_CHARGE] += 1.0;
@@ -7987,7 +7986,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 439 "wcsulex.l"
+#line 438 "wcsulex.l"
 {
 	  /* Julian year (annum). */
 	  factor *= 31557600.0;
@@ -7997,7 +7996,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 446 "wcsulex.l"
+#line 445 "wcsulex.l"
 {
 	  /* Analogue-to-digital converter units. */
 	  types[WCSUNITS_COUNT] += 1.0;
@@ -8006,7 +8005,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 452 "wcsulex.l"
+#line 451 "wcsulex.l"
 {
 	  /* Angstrom. */
 	  factor *= 1e-10;
@@ -8016,7 +8015,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 459 "wcsulex.l"
+#line 458 "wcsulex.l"
 {
 	  /* Minute of arc. */
 	  factor /= 60.0;
@@ -8026,7 +8025,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 466 "wcsulex.l"
+#line 465 "wcsulex.l"
 {
 	  /* Second of arc. */
 	  factor /= 3600.0;
@@ -8036,7 +8035,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 473 "wcsulex.l"
+#line 472 "wcsulex.l"
 {
 	  /* Astronomical unit. */
 	  factor *= 1.49598e+11;
@@ -8046,7 +8045,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 480 "wcsulex.l"
+#line 479 "wcsulex.l"
 {
 	  /* Barn. */
 	  factor *= 1e-28;
@@ -8056,7 +8055,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 487 "wcsulex.l"
+#line 486 "wcsulex.l"
 {
 	  /* Beam, as in Jy/beam. */
 	  types[WCSUNITS_BEAM] += 1.0;
@@ -8065,7 +8064,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 493 "wcsulex.l"
+#line 492 "wcsulex.l"
 {
 	  /* Bin (e.g. histogram). */
 	  types[WCSUNITS_BIN] += 1.0;
@@ -8074,7 +8073,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 499 "wcsulex.l"
+#line 498 "wcsulex.l"
 {
 	  /* Bit. */
 	  types[WCSUNITS_BIT] += 1.0;
@@ -8083,7 +8082,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 505 "wcsulex.l"
+#line 504 "wcsulex.l"
 {
 	  /* Byte. */
 	  factor *= 8.0;
@@ -8093,7 +8092,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 512 "wcsulex.l"
+#line 511 "wcsulex.l"
 {
 	  /* Coulomb. */
 	  types[WCSUNITS_CHARGE] += 1.0;
@@ -8102,7 +8101,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 518 "wcsulex.l"
+#line 517 "wcsulex.l"
 {
 	  /* Candela. */
 	  types[WCSUNITS_LUMINTEN] += 1.0;
@@ -8111,7 +8110,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 524 "wcsulex.l"
+#line 523 "wcsulex.l"
 {
 	  /* Channel. */
 	  types[WCSUNITS_BIN] += 1.0;
@@ -8120,7 +8119,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 530 "wcsulex.l"
+#line 529 "wcsulex.l"
 {
 	  /* Count. */
 	  types[WCSUNITS_COUNT] += 1.0;
@@ -8129,7 +8128,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 536 "wcsulex.l"
+#line 535 "wcsulex.l"
 {
 	  /* Julian century. */
 	  factor *= 3155760000.0;
@@ -8139,7 +8138,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 543 "wcsulex.l"
+#line 542 "wcsulex.l"
 {
 	  /* Debye. */
 	  factor *= 1e-29 / 3.0;
@@ -8150,7 +8149,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 551 "wcsulex.l"
+#line 550 "wcsulex.l"
 {
 	  /* Day. */
 	  factor *= 86400.0;
@@ -8160,7 +8159,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 558 "wcsulex.l"
+#line 557 "wcsulex.l"
 {
 	  /* Degree. */
 	  types[WCSUNITS_PLANE_ANGLE] += 1.0;
@@ -8169,7 +8168,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 564 "wcsulex.l"
+#line 563 "wcsulex.l"
 {
 	  /* Erg. */
 	  factor *= 1e-7;
@@ -8181,7 +8180,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 573 "wcsulex.l"
+#line 572 "wcsulex.l"
 {
 	  /* Electron volt. */
 	  factor *= 1.6021765e-19;
@@ -8193,7 +8192,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 582 "wcsulex.l"
+#line 581 "wcsulex.l"
 {
 	  /* Farad. */
 	  types[WCSUNITS_MASS]   -= 1.0;
@@ -8205,7 +8204,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 591 "wcsulex.l"
+#line 590 "wcsulex.l"
 {
 	  /* Gauss. */
 	  factor *= 1e-4;
@@ -8217,7 +8216,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 600 "wcsulex.l"
+#line 599 "wcsulex.l"
 {
 	  /* Gram. */
 	  factor *= 1e-3;
@@ -8227,7 +8226,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 607 "wcsulex.l"
+#line 606 "wcsulex.l"
 {
 	  /* Henry. */
 	  types[WCSUNITS_MASS]   += 1.0;
@@ -8239,7 +8238,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 616 "wcsulex.l"
+#line 615 "wcsulex.l"
 {
 	  /* Hour. */
 	  factor *= 3600.0;
@@ -8249,7 +8248,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 623 "wcsulex.l"
+#line 622 "wcsulex.l"
 {
 	  /* Hertz. */
 	  types[WCSUNITS_TIME] -= 1.0;
@@ -8258,7 +8257,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 629 "wcsulex.l"
+#line 628 "wcsulex.l"
 {
 	  /* Joule. */
 	  types[WCSUNITS_MASS]   += 1.0;
@@ -8269,7 +8268,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 637 "wcsulex.l"
+#line 636 "wcsulex.l"
 {
 	  /* Jansky. */
 	  factor *= 1e-26;
@@ -8280,7 +8279,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 645 "wcsulex.l"
+#line 644 "wcsulex.l"
 {
 	  /* Kelvin. */
 	  types[WCSUNITS_TEMPERATURE] += 1.0;
@@ -8289,7 +8288,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 651 "wcsulex.l"
+#line 650 "wcsulex.l"
 {
 	  /* Lumen. */
 	  types[WCSUNITS_LUMINTEN]    += 1.0;
@@ -8299,7 +8298,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 658 "wcsulex.l"
+#line 657 "wcsulex.l"
 {
 	  /* Lux. */
 	  types[WCSUNITS_LUMINTEN]    += 1.0;
@@ -8310,7 +8309,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 666 "wcsulex.l"
+#line 665 "wcsulex.l"
 {
 	  /* Light year. */
 	  factor *= 2.99792458e8 * 31557600.0;
@@ -8320,7 +8319,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 673 "wcsulex.l"
+#line 672 "wcsulex.l"
 {
 	  /* Metre. */
 	  types[WCSUNITS_LENGTH] += 1.0;
@@ -8329,7 +8328,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 679 "wcsulex.l"
+#line 678 "wcsulex.l"
 {
 	  /* Stellar magnitude. */
 	  types[WCSUNITS_MAGNITUDE] += 1.0;
@@ -8338,7 +8337,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 685 "wcsulex.l"
+#line 684 "wcsulex.l"
 {
 	  /* Milli-arcsec. */
 	  factor /= 3600e+3;
@@ -8348,7 +8347,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 692 "wcsulex.l"
+#line 691 "wcsulex.l"
 {
 	  /* Minute. */
 	  factor *= 60.0;
@@ -8358,7 +8357,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 699 "wcsulex.l"
+#line 698 "wcsulex.l"
 {
 	  /* Mole. */
 	  types[WCSUNITS_MOLE] += 1.0;
@@ -8367,7 +8366,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 705 "wcsulex.l"
+#line 704 "wcsulex.l"
 {
 	  /* Newton. */
 	  types[WCSUNITS_MASS]   += 1.0;
@@ -8378,7 +8377,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 713 "wcsulex.l"
+#line 712 "wcsulex.l"
 {
 	  /* Ohm. */
 	  types[WCSUNITS_MASS]   += 1.0;
@@ -8390,7 +8389,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-#line 722 "wcsulex.l"
+#line 721 "wcsulex.l"
 {
 	  /* Pascal. */
 	  types[WCSUNITS_MASS]   += 1.0;
@@ -8401,7 +8400,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
-#line 730 "wcsulex.l"
+#line 729 "wcsulex.l"
 {
 	  /* Parsec. */
 	  factor *= 3.0857e16;
@@ -8411,7 +8410,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
-#line 737 "wcsulex.l"
+#line 736 "wcsulex.l"
 {
 	  /* Photon. */
 	  types[WCSUNITS_COUNT] += 1.0;
@@ -8420,7 +8419,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 89:
 YY_RULE_SETUP
-#line 743 "wcsulex.l"
+#line 742 "wcsulex.l"
 {
 	  /* Pixel. */
 	  types[WCSUNITS_PIXEL] += 1.0;
@@ -8429,7 +8428,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 90:
 YY_RULE_SETUP
-#line 749 "wcsulex.l"
+#line 748 "wcsulex.l"
 {
 	  /* Rayleigh. */
 	  factor *= 1e10 / (4.0 * PI);
@@ -8441,7 +8440,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 91:
 YY_RULE_SETUP
-#line 758 "wcsulex.l"
+#line 757 "wcsulex.l"
 {
 	  /* Radian. */
 	  factor *= 180.0 / PI;
@@ -8451,7 +8450,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 92:
 YY_RULE_SETUP
-#line 765 "wcsulex.l"
+#line 764 "wcsulex.l"
 {
 	  /* Rydberg. */
 	  factor *= 13.605692 * 1.6021765e-19;
@@ -8463,7 +8462,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 93:
 YY_RULE_SETUP
-#line 774 "wcsulex.l"
+#line 773 "wcsulex.l"
 {
 	  /* Siemen. */
 	  types[WCSUNITS_MASS]   -= 1.0;
@@ -8475,7 +8474,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 94:
 YY_RULE_SETUP
-#line 783 "wcsulex.l"
+#line 782 "wcsulex.l"
 {
 	  /* Second. */
 	  types[WCSUNITS_TIME] += 1.0;
@@ -8484,7 +8483,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 95:
 YY_RULE_SETUP
-#line 789 "wcsulex.l"
+#line 788 "wcsulex.l"
 {
 	  /* Solar luminosity. */
 	  factor *= 3.8268e26;
@@ -8496,7 +8495,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 96:
 YY_RULE_SETUP
-#line 798 "wcsulex.l"
+#line 797 "wcsulex.l"
 {
 	  /* Solar mass. */
 	  factor *= 1.9891e30;
@@ -8506,7 +8505,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 97:
 YY_RULE_SETUP
-#line 805 "wcsulex.l"
+#line 804 "wcsulex.l"
 {
 	  /* Solar radius. */
 	  factor *= 6.9599e8;
@@ -8516,7 +8515,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 98:
 YY_RULE_SETUP
-#line 812 "wcsulex.l"
+#line 811 "wcsulex.l"
 {
 	  /* Steradian. */
 	  types[WCSUNITS_SOLID_ANGLE] += 1.0;
@@ -8525,7 +8524,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 99:
 YY_RULE_SETUP
-#line 818 "wcsulex.l"
+#line 817 "wcsulex.l"
 {
 	  /* Sun (with respect to). */
 	  types[WCSUNITS_SOLRATIO] += 1.0;
@@ -8534,7 +8533,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 100:
 YY_RULE_SETUP
-#line 824 "wcsulex.l"
+#line 823 "wcsulex.l"
 {
 	  /* Tesla. */
 	  types[WCSUNITS_MASS]   += 1.0;
@@ -8545,7 +8544,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 101:
 YY_RULE_SETUP
-#line 832 "wcsulex.l"
+#line 831 "wcsulex.l"
 {
 	  /* Turn. */
 	  factor *= 360.0;
@@ -8555,7 +8554,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 102:
 YY_RULE_SETUP
-#line 839 "wcsulex.l"
+#line 838 "wcsulex.l"
 {
 	  /* Unified atomic mass unit. */
 	  factor *= 1.6605387e-27;
@@ -8565,7 +8564,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 103:
 YY_RULE_SETUP
-#line 846 "wcsulex.l"
+#line 845 "wcsulex.l"
 {
 	  /* Volt. */
 	  types[WCSUNITS_MASS]   += 1.0;
@@ -8577,7 +8576,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 104:
 YY_RULE_SETUP
-#line 855 "wcsulex.l"
+#line 854 "wcsulex.l"
 {
 	  /* Voxel. */
 	  types[WCSUNITS_VOXEL] += 1.0;
@@ -8586,7 +8585,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 105:
 YY_RULE_SETUP
-#line 861 "wcsulex.l"
+#line 860 "wcsulex.l"
 {
 	  /* Watt. */
 	  types[WCSUNITS_MASS]   += 1.0;
@@ -8597,7 +8596,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 106:
 YY_RULE_SETUP
-#line 869 "wcsulex.l"
+#line 868 "wcsulex.l"
 {
 	  /* Weber. */
 	  types[WCSUNITS_MASS]   += 1.0;
@@ -8609,7 +8608,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 107:
 YY_RULE_SETUP
-#line 878 "wcsulex.l"
+#line 877 "wcsulex.l"
 {
 	  /* Internal parser error. */
 	  status = wcserr_set(WCSERR_SET(UNITSERR_PARSER_ERROR),
@@ -8619,7 +8618,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 108:
 YY_RULE_SETUP
-#line 885 "wcsulex.l"
+#line 884 "wcsulex.l"
 {
 	  /* Exponentiation. */
 	  if (operator++) {
@@ -8629,7 +8628,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 109:
 YY_RULE_SETUP
-#line 892 "wcsulex.l"
+#line 891 "wcsulex.l"
 {
 	  sscanf(yytext, " %d", &i);
 	  expon *= (double)i;
@@ -8640,7 +8639,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 110:
 YY_RULE_SETUP
-#line 900 "wcsulex.l"
+#line 899 "wcsulex.l"
 {
 	  sscanf(yytext, " (%d)", &i);
 	  expon *= (double)i;
@@ -8651,7 +8650,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 111:
 YY_RULE_SETUP
-#line 908 "wcsulex.l"
+#line 907 "wcsulex.l"
 {
 	  sscanf(yytext, " (%d/%d)", &i, &j);
 	  expon *= (double)i / (double)j;
@@ -8662,7 +8661,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 112:
 YY_RULE_SETUP
-#line 916 "wcsulex.l"
+#line 915 "wcsulex.l"
 {
 	  sscanf(yytext, " (%s)", ctmp);
 	  wcsutil_str2double(ctmp, &dexp);
@@ -8674,7 +8673,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 113:
 YY_RULE_SETUP
-#line 925 "wcsulex.l"
+#line 924 "wcsulex.l"
 {
 	  /* Multiply. */
 	  if (operator++) {
@@ -8687,7 +8686,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 114:
 YY_RULE_SETUP
-#line 935 "wcsulex.l"
+#line 934 "wcsulex.l"
 {
 	  /* Multiply. */
 	  if (operator) {
@@ -8701,7 +8700,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 115:
 YY_RULE_SETUP
-#line 946 "wcsulex.l"
+#line 945 "wcsulex.l"
 {
 	  /* Multiply. */
 	  if (operator) {
@@ -8714,7 +8713,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 116:
 YY_RULE_SETUP
-#line 956 "wcsulex.l"
+#line 955 "wcsulex.l"
 {
 	  /* Divide. */
 	  if (operator++) {
@@ -8728,7 +8727,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 117:
 YY_RULE_SETUP
-#line 967 "wcsulex.l"
+#line 966 "wcsulex.l"
 {
 	  add(&factor, types, &expon, scale, units);
 	  bracket = !bracket;
@@ -8737,7 +8736,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 118:
 YY_RULE_SETUP
-#line 973 "wcsulex.l"
+#line 972 "wcsulex.l"
 {
 	  status = wcserr_set(WCSERR_SET(UNITSERR_BAD_EXPON_SYMBOL),
 	    "Invalid symbol in EXPON context in '%s'", unitstr);
@@ -8746,7 +8745,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 119:
 YY_RULE_SETUP
-#line 979 "wcsulex.l"
+#line 978 "wcsulex.l"
 {
 	  /* Discard any remaining input. */
 	}
@@ -8757,7 +8756,7 @@ case YY_STATE_EOF(PREFIX):
 case YY_STATE_EOF(UNITS):
 case YY_STATE_EOF(EXPON):
 case YY_STATE_EOF(FLUSH):
-#line 983 "wcsulex.l"
+#line 982 "wcsulex.l"
 {
 	  /* End-of-string. */
 	  if (YY_START == EXPON) {
@@ -8794,10 +8793,10 @@ case YY_STATE_EOF(FLUSH):
 	YY_BREAK
 case 120:
 YY_RULE_SETUP
-#line 1017 "wcsulex.l"
+#line 1016 "wcsulex.l"
 ECHO;
 	YY_BREAK
-#line 8801 "wcsulex.c"
+#line 8800 "wcsulex.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -9962,7 +9961,7 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 1017 "wcsulex.l"
+#line 1016 "wcsulex.l"
 
 
 /*----------------------------------------------------------------------------
