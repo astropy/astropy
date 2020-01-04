@@ -44,10 +44,9 @@ LINES_TO_PATCHES_LINESTYLE = {'-': 'solid',
 def wrap_angle_at(values, coord_wrap):
     # On ARM processors, np.mod emits warnings if there are NaN values in the
     # array, although this doesn't seem to happen on other processors.
-    if type(coord_wrap) is not Quantity:
-        coord_wrap = coord_wrap * u.deg
     with np.errstate(invalid='ignore'):
-        return np.mod(values - coord_wrap.value, 360.) - (360. - coord_wrap.value)
+        return np.mod(values - Quantity(coord_wrap, u.deg).value, 360.)
+        - (360. - Quantity(coord_wrap, u.deg).value)
 
 
 class CoordinateHelper:
@@ -194,7 +193,7 @@ class CoordinateHelper:
         if type(coord_wrap) is float:
             warnings.warn('`coord_wrap` input of type `float` are deprecated. '
                           '`Quantity` is the only accepted type',
-                          DeprecationWarning)
+                          AstropyDeprecationWarning)
 
         if coord_type == 'longitude' and coord_wrap is None:
             self.coord_wrap = 360
