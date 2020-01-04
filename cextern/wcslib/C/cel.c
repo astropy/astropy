@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.4 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2019, Mark Calabretta
+  WCSLIB 7.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2020, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: cel.c,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
+  $Id: cel.c,v 7.1 2019/12/31 13:25:19 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -285,6 +285,9 @@ int celset(struct celprm *cel)
         } else if (latp < -90.0) {
           latp = -90.0;
         }
+
+        /* Avert a spurious compiler warning. */
+	u = v = 0.0;
 
       } else {
         slz = slat0/z;

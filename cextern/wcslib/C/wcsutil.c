@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.4 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2019, Mark Calabretta
+  WCSLIB 7.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2020, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutil.c,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
+  $Id: wcsutil.c,v 7.1 2019/12/31 13:25:19 mcalabre Exp $
 *===========================================================================*/
 
 #include <ctype.h>
@@ -47,13 +47,76 @@ void wcsdealloc(void *ptr)
 
 /*--------------------------------------------------------------------------*/
 
+void wcsutil_strcvt(int n, char c, const char src[], char dst[])
+
+{
+  int j;
+
+  if (n <= 0) return;
+
+  if (c != '\0') c = ' ';
+
+  if (src == 0x0) {
+    if (dst) {
+       memset(dst, c, n);
+    }
+
+    return;
+  }
+
+  /* Copy to the first NULL character. */
+  for (j = 0; j < n; j++) {
+    if ((dst[j] = src[j]) == '\0') {
+      break;
+    }
+  }
+
+  if (j < n) {
+    /* The given string is null-terminated. */
+    memset(dst+j, c, n-j);
+
+  } else {
+    /* The given string is not null-terminated. */
+    if (c == '\0') {
+      j = n - 1;
+      dst[j] = '\0';
+
+      j--;
+
+      /* Work backwards, looking for the first non-blank. */
+      for (; j >= 0; j--) {
+        if (dst[j] != ' ') {
+          break;
+        }
+      }
+
+      j++;
+      memset(dst+j, '\0', n-j);
+    }
+  }
+
+  return;
+}
+
+/*--------------------------------------------------------------------------*/
+
 void wcsutil_blank_fill(int n, char c[])
 
 {
-  int k;
+  int j;
 
-  for (k = strlen(c); k < n; k++) {
-    c[k] = ' ';
+  if (n <= 0) return;
+
+  if (c == 0x0) {
+    return;
+  }
+
+  /* Replace the terminating null and all successive characters. */
+  for (j = 0; j < n; j++) {
+    if (c[j] == '\0') {
+      memset(c+j, ' ', n-j);
+      break;
+    }
   }
 
   return;
@@ -64,27 +127,40 @@ void wcsutil_blank_fill(int n, char c[])
 void wcsutil_null_fill(int n, char c[])
 
 {
-  int j, k;
+  int j;
 
   if (n <= 0) return;
 
-  /* Null-fill the string. */
-  *(c+n-1) = '\0';
+  if (c == 0x0) {
+    return;
+  }
+
+  /* Find the first NULL character. */
   for (j = 0; j < n; j++) {
     if (c[j] == '\0') {
-      for (k = j+1; k < n; k++) {
-        c[k] = '\0';
-      }
       break;
     }
   }
 
-  for (k = j-1; k > 0; k--) {
-    if (c[k] != ' ') break;
-    c[k] = '\0';
+  /* Ensure null-termination. */
+  if (j == n) {
+    j = n - 1;
+    c[j] = '\0';
   }
 
-   return;
+  /* Work backwards, looking for the first non-blank. */
+  j--;
+  for (; j > 0; j--) {
+    if (c[j] != ' ') {
+      break;
+    }
+  }
+
+  if (++j < n) {
+    memset(c+j, '\0', n-j);
+  }
+
+  return;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -346,7 +422,7 @@ static const char *wcsutil_dot_to_locale(const char *inbuf, char *outbuf)
 
     for ( ; *inbuf; inbuf++) {
       if (*inbuf == '.') {
-        strncpy(out, decimal_point, decimal_point_len);
+        memcpy(out, decimal_point, decimal_point_len);
         out += decimal_point_len;
       } else {
         *out++ = *inbuf;

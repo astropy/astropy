@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.4 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2019, Mark Calabretta
+  WCSLIB 7.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2020, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutrn.l,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
+  $Id: wcsutrn.l,v 7.1 2019/12/31 13:25:19 mcalabre Exp $
 *=============================================================================
 *
 * wcsutrn.l is a Flex description file containing the definition of a lexical
@@ -48,10 +48,6 @@
 %x NEXT FLUSH
 
 %{
-/* To get the prototype for fileno() from stdio.h when gcc is invoked with
- * -std=c89 (same as -ansi) or -std=c99 since we do not define YY_INPUT. */
-#define _POSIX_SOURCE 1
-
 #include <setjmp.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -87,6 +83,9 @@ int wcsutrne(
 
 #define YY_DECL int wcsutrne_scanner(int ctrl, char unitstr[], \
  struct wcserr **err, yyscan_t yyscanner)
+
+/* Dummy definition to circumvent compiler warnings. */
+#define YY_INPUT(inbuff, count, bufsize) { count = YY_NULL; }
 
 /* Used in preempting the call to exit() by yy_fatal_error(). */
 jmp_buf wcsutrn_abort_jmp_env;

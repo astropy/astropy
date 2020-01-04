@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.4 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2019, Mark Calabretta
+  WCSLIB 7.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2020, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsfix.h,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
+  $Id: wcsfix.h,v 7.1 2019/12/31 13:25:19 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 6.4 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.1 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -100,10 +100,10 @@
 *   - datfix(): recast an older DATE-OBS date format in dateobs to year-2000
 *     standard form.
 *
-*     Derive mjdobs from dateobs if not already set.  Alternatively, if mjdobs
-*     is set and dateobs isn't, then derive dateobs from it.  If both are set,
-*     then check consistency.  Likewise for datebeg and mjdbeg; dateavg and
-*     mjdavg; and dateend and mjdend.
+*     Derive dateref from mjdref if not already set.  Alternatively, if
+*     dateref is set and mjdref isn't, then derive mjdref from it.  If both
+*     are set, then check consistency.  Likewise for dateobs and mjdobs;
+*     datebeg and mjdbeg; dateavg and mjdavg; and dateend and mjdend.
 *
 *   - obsfix(): if only one half of obsgeo[] is set, then derive the other
 *     half from it.  If both halves are set, then check consistency.
@@ -194,11 +194,12 @@
 * datfix() translates the old DATE-OBS date format set in wcsprm::dateobs to
 * year-2000 standard form (yyyy-mm-ddThh:mm:ss).
 *
-* datfix() derives wcsprm::mjdobs from wcsprm::datobs if not already set.
-* Alternatively, if mjdobs is set and dateobs isn't, then it derives dateobs
+* datfix() derives wcsprm::dateref from wcsprm::mjdref if not already set.
+* Alternatively, if dateref is set and mjdref isn't, then it derives mjdref
 * from it.  If both are set but disagree by more than 0.001 day (86.4 seconds)
-* then status 5 is returned.  Likewise for wcsprm::datebeg and wcsprm::mjdbeg;
-* wcsprm::dateavg and wcsprm::mjdavg; and wcsprm::dateend and wcsprm::mjdend.
+* then status 5 is returned.  Likewise for wcsprm::dateobs and wcsprm::mjdobs;
+* wcsprm::datebeg and wcsprm::mjdbeg; wcsprm::dateavg and wcsprm::mjdavg; and
+* wcsprm::dateend and wcsprm::mjdend.
 *
 * If neither dateobs nor mjdobs are set, but wcsprm::jepoch (primarily) or
 * wcsprm::bepoch is, then both are derived from it.  If jepoch and/or bepoch
@@ -208,6 +209,7 @@
 * Given and returned:
 *   wcs       struct wcsprm*
 *                       Coordinate transformation parameters.
+*                       wcsprm::dateref and/or wcsprm::mjdref may be changed.
 *                       wcsprm::dateobs and/or wcsprm::mjdobs may be changed.
 *                       wcsprm::datebeg and/or wcsprm::mjdbeg may be changed.
 *                       wcsprm::dateavg and/or wcsprm::mjdavg may be changed.

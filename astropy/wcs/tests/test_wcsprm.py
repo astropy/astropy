@@ -5,6 +5,7 @@
 import gc
 import locale
 import re
+from distutils.version import LooseVersion
 
 import pytest
 import numpy as np
@@ -411,8 +412,10 @@ def test_fix():
         'celfix': 'No change',
         'obsfix': 'No change'}
     version = wcs._wcs.__version__
-    if version[0] <= "5":
+    if LooseVersion(version) <= '5':
         del fix_ref['obsfix']
+    if LooseVersion(version) >= '7.1':
+        w.dateref = '1858-11-17'
     assert w.fix() == fix_ref
 
 
@@ -428,9 +431,13 @@ def test_fix2():
         'unitfix': 'No change',
         'celfix': 'No change'}
     version = wcs._wcs.__version__
-    if version[0] <= "5":
+    if LooseVersion(version) <= "5":
         del fix_ref['obsfix']
         fix_ref['datfix'] = "Changed '31/12/99' to '1999-12-31'"
+
+    if LooseVersion(version) >= '7.1':
+        fix_ref['datfix'] = "Set DATE-REF to '1858-11-17' from MJD-REF.\n" + fix_ref['datfix']
+
     assert w.fix() == fix_ref
     assert w.dateobs == '1999-12-31'
     assert w.mjdobs == 51543.0
@@ -448,9 +455,13 @@ def test_fix3():
         'unitfix': 'No change',
         'celfix': 'No change'}
     version = wcs._wcs.__version__
-    if version[0] <= "5":
+    if LooseVersion(version) <= "5":
         del fix_ref['obsfix']
         fix_ref['datfix'] = "Invalid parameter value: invalid date '31/12/F9'"
+
+    if LooseVersion(version) >= '7.1':
+        fix_ref['datfix'] = "Set DATE-REF to '1858-11-17' from MJD-REF.\n" + fix_ref['datfix']
+
     assert w.fix() == fix_ref
     assert w.dateobs == '31/12/F9'
     assert np.isnan(w.mjdobs)
@@ -1104,6 +1115,10 @@ def test_datebeg():
         'spcfix': 'No change',
         'unitfix': 'No change',
         'celfix': 'No change'}
+
+    if LooseVersion(wcs._wcs.__version__) >= '7.1':
+        fix_ref['datfix'] = "Set DATE-REF to '1858-11-17' from MJD-REF.\n" + fix_ref['datfix']
+
     assert w.fix() == fix_ref
 
 
@@ -1139,14 +1154,14 @@ def test_num_keys(key):
         setattr(w, key, "foo")
 
 
-array_keys = ['czphs', 'cperi', 'mjdref']
-
-
-@pytest.mark.parametrize('key', array_keys)
+@pytest.mark.parametrize('key', ['czphs', 'cperi', 'mjdref'])
 def test_array_keys(key):
     w = _wcs.Wcsprm()
     attr = getattr(w, key)
-    assert np.all(np.isnan(attr))
+    if key == 'mjdref' and LooseVersion(_wcs.__version__) >= '7.1':
+        assert np.allclose(attr, [0, 0])
+    else:
+        assert np.all(np.isnan(attr))
     assert attr.dtype == float
     setattr(w, key, [1., 2.])
     assert_array_equal(getattr(w, key), [1., 2.])
