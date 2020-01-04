@@ -12,7 +12,7 @@
 #
 # Reminder: add '-d' to FLFLAGS for debugging.
 #
-# $Id: flavours,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
+# $Id: flavours,v 7.1 2019/12/31 13:25:19 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
 # The list of FLAVOURs can be set on the command line.
@@ -59,14 +59,14 @@ ifeq "$(FLAVOUR)" "Linux"
   endif
 endif
 
-ifeq "$(FLAVOUR)" "Linux8"
+ifeq "$(FLAVOUR)" "Linux9"
   F := $(FLAVOUR)
   SANITIZE        := -fsanitize=address -fsanitize=undefined
   CWARNINGS       := -Wall -Wextra -Wno-clobbered -Wno-long-long
-  export CC       := gcc-8 -std=c99 -pedantic
+  export CC       := gcc-9.2.0 -std=c99 -pedantic
   export CPPFLAGS := -D_FORTIFY_SOURCE=2
   export CFLAGS   := -g -O2 $(SANITIZE) $(CWARNINGS)
-  export F77      := gfortran-8
+  export F77      := gfortran-9.2.0
   export FFLAGS   := -g -O2 -fimplicit-none -I. $(SANITIZE) -Wall
   export LDFLAGS  := $(SANITIZE)
   export LD_RUN_PATH := /usr/local/lib64

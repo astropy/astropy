@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 6.4 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2019, Mark Calabretta
+  WCSLIB 7.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2020, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsfix.c,v 6.4 2019/08/15 09:30:18 mcalabre Exp $
+  $Id: wcsfix.c,v 7.1 2019/12/31 13:25:19 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -283,7 +283,7 @@ static void write_date(char *buf, int hour, int minute, double sec)
 static char *newline(char **cp)
 
 {
-  int k;
+  size_t k;
 
   if ((k = strlen(*cp))) {
     *cp += k;
@@ -311,7 +311,7 @@ int datfix(struct wcsprm *wcs)
   const char *dateid;
   char *cp, *date, infomsg[512], orig_date[72];
   int  day, dd, hour = 0, i, jd, minute = 0, month, msec, n4, status, year;
-  double bepoch, jepoch, mjd, sec = 0.0, t, *wcsmjd;
+  double bepoch, jepoch, mjd[2], mjdsum, mjdtmp, sec = 0.0, t, *wcsmjd;
   struct wcserr **err;
 
   if (wcs == 0x0) return FIXERR_NULL_POINTER;
@@ -321,50 +321,70 @@ int datfix(struct wcsprm *wcs)
   *cp = '\0';
   status = FIXERR_NO_CHANGE;
 
-  for (i = 0; i < 4; i++) {
+  for (i = 0; i < 5; i++) {
+    /* MJDREF is split into integer and fractional parts, wheres MJDOBS and
+       the rest are a single value. */
     if (i == 0) {
+      dateid = "REF";
+      date   = wcs->dateref;
+      wcsmjd = wcs->mjdref;
+    } else if (i == 1) {
       dateid = "OBS";
       date   = wcs->dateobs;
       wcsmjd = &(wcs->mjdobs);
-    } else if (i == 1) {
+    } else if (i == 2) {
       dateid = "BEG";
       date   = wcs->datebeg;
       wcsmjd = &(wcs->mjdbeg);
-    } else if (i == 2) {
+    } else if (i == 3) {
       dateid = "AVG";
       date   = wcs->dateavg;
       wcsmjd = &(wcs->mjdavg);
-    } else if (i == 3) {
+    } else if (i == 4) {
       dateid = "END";
       date   = wcs->dateend;
       wcsmjd = &(wcs->mjdend);
     }
 
     strncpy(orig_date, date, 72);
-    mjd = *wcsmjd;
 
     if (date[0] == '\0') {
+      /* Fill in DATE from MJD if possible. */
 
-      if (i == 0 && undefined(mjd)) {
+      if (i == 1 && undefined(*wcsmjd)) {
         /* See if we have jepoch or bepoch. */
         if (!undefined(wcs->jepoch)) {
-          mjd = mjd2000 + (wcs->jepoch - 2000.0)*djy;
-          *wcsmjd = mjd;
-          sprintf(newline(&cp), "Set MJD-OBS to %.6f from JEPOCH", mjd);
+          *wcsmjd = mjd2000 + (wcs->jepoch - 2000.0)*djy;
+          sprintf(newline(&cp), "Set MJD-OBS to %.6f from JEPOCH", *wcsmjd);
 
         } else if (!undefined(wcs->bepoch)) {
-          mjd = mjd1900 + (wcs->bepoch - 1900.0)*dty;
-          *wcsmjd = mjd;
-          sprintf(newline(&cp), "Set MJD-OBS to %.6f from BEPOCH", mjd);
+          *wcsmjd = mjd1900 + (wcs->bepoch - 1900.0)*dty;
+          sprintf(newline(&cp), "Set MJD-OBS to %.6f from BEPOCH", *wcsmjd);
         }
       }
 
-      if (undefined(mjd)) {
+      if (undefined(*wcsmjd)) {
         /* No date information was provided. */
 
       } else {
-        /* Calendar date from MJD. */
-        jd = 2400001 + (int)mjd;
+        /* Calendar date from MJD, with allowance for MJD < 0. */
+        if (i == 0) {
+          /* MJDREF is already split into integer and fractional parts. */
+          mjd[0] = wcsmjd[0];
+          mjd[1] = wcsmjd[1];
+          if (1.0 < mjd[1]) {
+            /* Ensure the fractional part lies between 0 and +1. */
+            t = floor(mjd[1]);
+            mjd[0] += t;
+            mjd[1] -= t;
+          }
+        } else {
+          /* Split it into integer and fractional parts. */
+          mjd[0] = floor(*wcsmjd);
+          mjd[1] = *wcsmjd - mjd[0];
+        }
+
+        jd = 2400001 + (int)mjd[0];
 
         n4 =  4*(jd + ((2*((4*jd - 17918)/146097)*3)/4 + 1)/2 - 37);
         dd = 10*(((n4-237)%1461)/4) + 5;
@@ -375,7 +395,7 @@ int datfix(struct wcsprm *wcs)
         sprintf(date, "%.4d-%.2d-%.2d", year, month, day);
 
         /* Write time part only if non-zero. */
-        if ((t = mjd - (int)mjd) > 0.0) {
+        if (0.0 < (t = mjd[1])) {
           t *= 24.0;
           hour = (int)t;
           t = 60.0 * (t - hour);
@@ -464,7 +484,7 @@ int datfix(struct wcsprm *wcs)
         date[7]  = '-';
 
       } else {
-        if (i == 0 && date[2] == '/' && date[5] == '/') {
+        if (i == 1 && date[2] == '/' && date[5] == '/') {
           /* Old format DATE-OBS date: DD/MM/YY, also allowing DD/MM/CCYY. */
           if (sscanf(date, "%2d/%2d/%4d", &day, &month, &year) < 3) {
             status = FIXERR_BAD_PARAM;
@@ -473,7 +493,7 @@ int datfix(struct wcsprm *wcs)
             continue;
           }
 
-        } else if (i == 0 && date[2] == '-' && date[5] == '-') {
+        } else if (i == 1 && date[2] == '-' && date[5] == '-') {
           /* Also recognize DD-MM-YY and DD-MM-CCYY */
           if (sscanf(date, "%2d-%2d-%4d", &day, &month, &year) < 3) {
             status = FIXERR_BAD_PARAM;
@@ -496,20 +516,32 @@ int datfix(struct wcsprm *wcs)
       }
 
       /* Compute MJD. */
-      mjd = (double)((1461*(year - (12-month)/10 + 4712))/4
-            + (306*((month+9)%12) + 5)/10
-            - (3*((year - (12-month)/10 + 4900)/100))/4
-            + day - 2399904)
-            + (hour + (minute + sec/60.0)/60.0)/24.0;
+      mjd[0] = (double)((1461*(year - (12-month)/10 + 4712))/4
+               + (306*((month+9)%12) + 5)/10
+               - (3*((year - (12-month)/10 + 4900)/100))/4
+               + day - 2399904);
+      mjd[1] = (hour + (minute + sec/60.0)/60.0)/24.0;
+      mjdsum = mjd[0] + mjd[1];
 
       if (undefined(*wcsmjd)) {
-        *wcsmjd = mjd;
-        sprintf(newline(&cp), "Set MJD-%s to %.6f from DATE-%s", dateid, mjd,
-          dateid);
+        if (i == 0) {
+          wcsmjd[0] = mjd[0];
+          wcsmjd[1] = mjd[1];
+        } else {
+          *wcsmjd = mjdsum;
+        }
+        sprintf(newline(&cp), "Set MJD-%s to %.6f from DATE-%s", dateid,
+          mjdsum, dateid);
 
       } else {
         /* Check for consistency. */
-        if (fabs(mjd - *wcsmjd) > 0.001) {
+        if (i == 0) {
+          mjdtmp = wcsmjd[0] + wcsmjd[1];
+        } else {
+          mjdtmp = *wcsmjd;
+        }
+
+        if (0.001 < fabs(mjdsum - mjdtmp)) {
           status = FIXERR_BAD_PARAM;
           sprintf(newline(&cp),
             "Invalid parameter values: MJD-%s and DATE-%s are inconsistent",
@@ -517,12 +549,12 @@ int datfix(struct wcsprm *wcs)
         }
       }
 
-      if (i == 0) {
+      if (i == 1) {
         if (!undefined(wcs->jepoch)) {
           /* Check consistency of JEPOCH. */
-          jepoch = 2000.0 + (mjd - mjd2000) / djy;
+          jepoch = 2000.0 + (*wcsmjd - mjd2000) / djy;
 
-          if (fabs(jepoch - wcs->jepoch) > 0.000002) {
+          if (0.000002 < fabs(jepoch - wcs->jepoch)) {
             /* Informational only, no error. */
             sprintf(newline(&cp), "JEPOCH is inconsistent with DATE-OBS");
           }
@@ -530,9 +562,9 @@ int datfix(struct wcsprm *wcs)
 
         if (!undefined(wcs->bepoch)) {
           /* Check consistency of BEPOCH. */
-          bepoch = 1900.0 + (mjd - mjd1900) / dty;
+          bepoch = 1900.0 + (*wcsmjd - mjd1900) / dty;
 
-          if (fabs(bepoch - wcs->bepoch) > 0.000002) {
+          if (0.000002 < fabs(bepoch - wcs->bepoch)) {
             /* Informational only, no error. */
             sprintf(newline(&cp), "BEPOCH is inconsistent with DATE-OBS");
           }
@@ -572,7 +604,8 @@ int obsfix(int ctrl, struct wcsprm *wcs)
   const double e2 = (2.0 - f)*f;
 
   char   *cp, infomsg[256];
-  int    havelbh = 7, havexyz = 7, i, k, status;
+  int    havelbh = 7, havexyz = 7, i, status;
+  size_t k;
   double coslat, coslng, d, hgt, lat, lng, n, r2, rho, sinlat, sinlng, x, y,
          z, zeta;
   struct wcserr **err;
@@ -770,8 +803,9 @@ int unitfix(int ctrl, struct wcsprm *wcs)
 {
   const char *function = "unitfix";
 
-  int  i, msglen, result, status = FIXERR_NO_CHANGE;
-  char orig_unit[72], msg[512], msgtmp[192];
+  char   orig_unit[72], msg[512], msgtmp[192];
+  int    i, result, status = FIXERR_NO_CHANGE;
+  size_t msglen;
   struct wcserr **err;
 
   if (wcs == 0x0) return FIXERR_NULL_POINTER;
@@ -780,7 +814,7 @@ int unitfix(int ctrl, struct wcsprm *wcs)
   strncpy(msg, "Changed units:", 512);
 
   for (i = 0; i < wcs->naxis; i++) {
-    strncpy(orig_unit, wcs->cunit[i], 72);
+    strncpy(orig_unit, wcs->cunit[i], 71);
     result = wcsutrne(ctrl, wcs->cunit[i], &(wcs->err));
     if (result == 0 || result == 12) {
       msglen = strlen(msg);
