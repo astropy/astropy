@@ -322,6 +322,14 @@ class TestReverse():
         assert np.all(t['x'] == x[::-1])
         assert np.all(t['y'] == y[::-1])
 
+    def test_reverse_mixin(self):
+        """Test reverse for a mixin with no item assignment, fix for #9836"""
+        sc = SkyCoord([1, 2], [3, 4], unit='deg')
+        t = Table([[2, 1], sc], names=['a', 'sc'])
+        t.reverse()
+        assert np.all(t['a'] == [1, 2])
+        assert np.allclose(t['sc'].ra.to_value('deg'), [2, 1])
+
 
 @pytest.mark.usefixtures('table_types')
 class TestColumnAccess():
