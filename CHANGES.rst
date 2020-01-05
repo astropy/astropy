@@ -91,6 +91,9 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+- Fix a memory corruption issue in WCS due to uninitialized value of
+  ``wcsprm.flag`` before ``wcscopy``. [#9838]
+
 
 API Changes
 -----------

@@ -181,6 +181,7 @@ static PyWcsprm*
 PyWcsprm_cnew(void) {
   PyWcsprm* self;
   self = (PyWcsprm*)(&PyWcsprmType)->tp_alloc(&PyWcsprmType, 0);
+  memset(&self->x, 0, sizeof(struct wcsprm));
   return self;
 }
 
@@ -192,6 +193,7 @@ PyWcsprm_new(
 
   PyWcsprm* self;
   self = (PyWcsprm*)type->tp_alloc(type, 0);
+  memset(&self->x, 0, sizeof(struct wcsprm));
   return (PyObject*)self;
 }
 
@@ -257,7 +259,6 @@ PyWcsprm_init(
       return -1;
     }
 
-    note_change(self);
     self->x.flag = -1;
     status = wcsini(1, naxis, &self->x);
 
@@ -434,6 +435,7 @@ PyWcsprm_init(
       return -1;
     }
 
+    self->x.flag = -1;
     if (wcscopy(1, wcs + i, &self->x) != 0) {
       wcsvfree(&nwcs, &wcs);
       PyErr_SetString(
