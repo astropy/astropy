@@ -58,6 +58,9 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Fixed bug in ``Table.reverse`` for tables that contain non-mutable mixin columns
+  (like ``SkyCoord``) for which in-place item update is not allowed. [#9839]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
