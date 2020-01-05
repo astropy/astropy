@@ -3015,7 +3015,18 @@ class Table:
                   Max  Miller  12
         '''
         for col in self.columns.values():
-            col[:] = col[::-1]
+            # First statement in try: will succeed if the column supports an in-place
+            # update, and matches the legacy behavior of astropy Table.  However,
+            # some mixin classes may not support this, so in that case just drop
+            # in the entire new column. See #9836, #9553, and #9536 for discussion.
+            new_col = col[::-1]
+            try:
+                col[:] = new_col
+            except Exception:
+                # In-place update failed for some reason, exception class not
+                # predictable for arbitrary mixin.
+                self[col.info.name] = new_col
+
         for index in self.indices:
             index.reverse()
 
