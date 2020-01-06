@@ -168,6 +168,14 @@ Using `astropy.units`
    constants_versions
    conversion
 
+Acknowledgments
+===============
+
+This code was originally based on the `pynbody
+<https://github.com/pynbody/pynbody>`__ units module written by Andrew
+Pontzen, who has granted the Astropy Project permission to use the code
+under a BSD license.
+
 See Also
 ========
 
@@ -228,11 +236,3 @@ Reference/API
 .. automodapi:: astropy.units.deprecated
 
 .. automodapi:: astropy.units.required_by_vounit
-
-Acknowledgments
-===============
-
-This code is adapted from the `pynbody
-<https://github.com/pynbody/pynbody>`__ units module written by Andrew
-Pontzen, who has granted the Astropy Project permission to use the code
-under a BSD license.
