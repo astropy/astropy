@@ -80,6 +80,7 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- Added spectral_resolution conversion to equivalencies.
 - Added ``torr`` pressure unit. [#9787]
 
 astropy.utils

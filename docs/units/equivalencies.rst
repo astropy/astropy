@@ -192,6 +192,38 @@ its arguments the |quantity| for the spectral location. For example::
     ...      equivalencies=u.spectral_density(5500 * u.AA)) # doctest: +FLOAT_CMP
     <Quantity 3.6443382634999996e-23 erg / (Hz s)>
 
+Spectral Resolution
+-------------------
+
+Spectral resolution allows you to convert between delta wavelength and
+delta frequency. The conversion between the wavelength and the frequency-based
+description of resolution therefore depends on the relationship between the
+differential wavelength and differential frequency. If :math:`w` is the
+wavelength, :math:`f` is the observed frequency, and :math:`c` is the speed
+of light:
+
+    :math: `w = c/f`
+
+the spectral resolution equivalency calculates:
+
+    :math: `abs(dw) = abs(df) * c/f^2`
+    or
+    :math:`abs(df) = abs(dw) * c/w^2`
+
+For example::
+
+    >>> mean_frequency = 115000000000.0 * u.Hz
+    >>> delta_freq = 15625000.0 * u.Hz
+    >>> spectral_res = u.spectral_resolution(mean_frequency)
+    >>> delta_wavelength = delta_freq.to(u.m, equivalencies=spectral_res)
+    >>> delta_wavelength  # doctest: +FLOAT_CMP
+    <Quantity 3.54197138e-07 m>
+    >>> mean_wavelength = 2.6e-3 * u.m
+    >>> spectral_res = u.spectral_resolution(mean_wavelength)
+    >>> delta_frequency = delta_wavelength.to(u.Hz, equivalencies=spectral_res)
+    >>> delta_frequency  # doctest: +FLOAT_CMP
+    <Quantity 15707933.54410217 Hz>
+
 Brightness Temperature / Surface Brightness Equivalency
 -------------------------------------------------------
 

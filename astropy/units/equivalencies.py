@@ -20,11 +20,12 @@ from .core import UnitsError, Unit
 
 
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
-           'doppler_optical', 'doppler_relativistic', 'mass_energy',
-           'brightness_temperature', 'thermodynamic_temperature',
-           'beam_angular_area', 'dimensionless_angles', 'logarithmic',
-           'temperature', 'temperature_energy', 'molar_mass_amu',
-           'pixel_scale', 'plate_scale', 'with_H0']
+           'doppler_optical', 'doppler_relativistic', 'spectral_resolution',
+           'mass_energy', 'brightness_temperature',
+           'thermodynamic_temperature', 'beam_angular_area',
+           'dimensionless_angles', 'logarithmic', 'temperature',
+           'temperature_energy', 'molar_mass_amu', 'pixel_scale',
+           'plate_scale', 'with_H0']
 
 
 class Equivalency(UserList):
@@ -502,6 +503,72 @@ def doppler_relativistic(rest):
             (si.AA, si.km/si.s, to_vel_wav, from_vel_wav),
             (si.eV, si.km/si.s, to_vel_en, from_vel_en),
             ], "doppler_relativistic", {'rest': rest})
+
+
+def spectral_resolution(mean):
+    """
+    Return the equivalency for the change in wavelength or frequency
+    between measured values of wavelength or frequency. The conversion
+    between the wavelength and the frequency-based description of resolution
+    therefore depends on the relationship between the differential
+    wavelength and differential frequency. Formally:
+
+    :math: `abs(dw) = abs(df) * c/f^2`
+    or
+    :math:`abs(df) = abs(dw) * c/w^2`
+
+    Parameters
+    ----------
+    mean : `~astropy.units.Quantity`
+        A quantity with the same units as the value being converted.
+        (i.e. frequency if converting to wavelength, and wavelength if
+        converting to frequency). This is based on the assumption that
+        the quantities available to clients will be the same.
+
+    References
+    ----------
+
+    Differentiate:
+    :math: `w = c/f`
+
+    which results in:
+    :math: `d(w) = d(c/f)`
+
+    and then pull the constants outside of the differential:
+    :math: `d(w) = c * d(1/f)`
+
+    where the derivative of 1/x is -1/x^2 times the derivative of x:
+    :math: `d(w) = c * [-d(f) / f^2]`
+
+    The change in frequency or change in wavelength is expressed as an absolute
+    number in the context of wavelength or frequency resolutions; the negative
+    just means that when the wavelength gets larger, the frequency gets
+    smaller, and vice-versa. The two resolutions/change in
+    wavelengths/frequency could be formally expressed using:
+    :math: abs[d(w)] = c / f^2 * abs[d(f)]
+
+    Examples
+    --------
+    >>> import astropy.units as u
+    >>> mean_frequency = 115000000000.0 * u.Hz
+    >>> delta_freq = 15625000.0 * u.Hz
+    >>> spectral_res = u.spectral_resolution(mean_frequency)
+    >>> delta_wavelength = delta_freq.to(u.m, equivalencies=spectral_res)
+    >>> delta_wavelength  # doctest: +FLOAT_CMP
+    <Quantity 3.54197138e-07 m>
+    >>> mean_wavelength = 2.6e-3 * u.m
+    >>> spectral_res = u.spectral_resolution(mean_wavelength)
+    >>> delta_frequency = delta_wavelength.to(u.Hz, equivalencies=spectral_res)
+    >>> delta_frequency  # doctest: +FLOAT_CMP
+    <Quantity 15707933.54410217 Hz>
+    """
+
+    def convert_diff(x):
+        return (x * _si.c) / (mean ** 2)
+
+    return Equivalency([(si.m, si.Hz, convert_diff)],
+                       "spectral_resolution",
+                       {'mean': mean})
 
 
 def molar_mass_amu():

@@ -144,6 +144,26 @@ def test_bad_restfreqs(function, value):
         function(value)
 
 
+def test_spectral_resolution():
+    mean_frequency = 115000000000.0 * u.Hz
+    delta_freq = 15625000.0 * u.Hz
+
+    # to wavelength
+    expected_delta_wl_value = 3.541971384688091e-07
+    delta_wl = delta_freq.to(
+        u.m, equivalencies=u.spectral_resolution(mean_frequency))
+    np.testing.assert_almost_equal(
+        delta_wl.value, expected_delta_wl_value, decimal=7)
+
+    # to frequency
+    mean_wavelength = 2.6e-3 * u.m
+    expected_delta_frequency_value = 15707933.544102168
+    delta_f = delta_wl.to(
+        u.Hz, equivalencies=u.spectral_resolution(mean_wavelength))
+    np.testing.assert_almost_equal(
+        delta_f.value, expected_delta_frequency_value, decimal=7)
+
+
 def test_massenergy():
     # The relative tolerance of these tests is set by the uncertainties
     # in the charge of the electron, which is known to about
