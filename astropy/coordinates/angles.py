@@ -523,7 +523,10 @@ class Latitude(Angle):
             angles = self
         lower = u.degree.to(angles.unit, -90.0)
         upper = u.degree.to(angles.unit, 90.0)
-        if np.any(angles.value < lower) or np.any(angles.value > upper):
+        with np.errstate(invalid='ignore'):
+            invalid_angles = (np.any(angles.value < lower) or
+                              np.any(angles.value > upper))
+        if invalid_angles:
             raise ValueError('Latitude angle(s) must be within -90 deg <= angle <= 90 deg, '
                              'got {}'.format(angles.to(u.degree)))
 
