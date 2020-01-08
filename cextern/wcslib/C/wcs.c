@@ -1260,7 +1260,7 @@ int wcssub(
     for (m = 0; m < wcssrc->tab[itab].M; m++) {
       i = wcssrc->tab[itab].map[m];
 
-      if (map[i-1]) {
+      if (map[i]) { /* temporary bug fix - mcara */
         wcsdst->ntab++;
         break;
       }
@@ -1284,7 +1284,7 @@ int wcssub(
     for (m = 0; m < wcssrc->tab[itab].M; m++) {
       i = wcssrc->tab[itab].map[m];
 
-      if (map[i-1]) {
+      if (map[i]) { /* temporary bug fix - mcara */
         if ((status = tabcpy(1, wcssrc->tab + itab, tab))) {
           wcserr_set(WCS_ERRMSG(wcs_taberr[status]));
           goto cleanup;
