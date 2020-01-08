@@ -19,6 +19,9 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include <tab.h>
+#include <wtbarr.h>
+
 /***************************************************************************
  * Wcs type
  ***************************************************************************/
@@ -26,6 +29,22 @@
 static PyTypeObject WcsType;
 
 static int _setup_wcs_type(PyObject* m);
+
+
+PyObject* PyWcsprm_set_wtbarr_fitsio_callback(PyObject *dummy, PyObject *args) {
+    PyObject *callback;
+
+    if (PyArg_ParseTuple(args, "O:set_wtbarr_fitsio_callback", &callback)) {
+        if (!PyCallable_Check(callback)) {
+            PyErr_SetString(PyExc_TypeError, "parameter must be callable");
+            return NULL;
+        }
+        _set_wtbarr_callback(callback);
+
+        Py_RETURN_NONE;
+    }
+    return NULL;
+}
 
 
 /***************************************************************************
@@ -724,6 +743,7 @@ static PyMethodDef Wcs_methods[] = {
 static PyMethodDef module_methods[] = {
   {"_sanity_check", (PyCFunction)_sanity_check, METH_NOARGS, ""},
   {"find_all_wcs", (PyCFunction)PyWcsprm_find_all_wcs, METH_VARARGS|METH_KEYWORDS, doc_find_all_wcs},
+  {"set_wtbarr_fitsio_callback", (PyCFunction)PyWcsprm_set_wtbarr_fitsio_callback, METH_VARARGS, NULL},
   {NULL}  /* Sentinel */
 };
 
@@ -837,7 +857,7 @@ PyInit__wcs(void)
       _setup_unit_list_proxy_type(m)||
       _setup_wcsprm_type(m)         ||
       _setup_tabprm_type(m)         ||
-      /* _setup_wtbarr_type(m)         || */
+      _setup_wtbarr_type(m)         ||
       _setup_distortion_type(m)     ||
       _setup_sip_type(m)            ||
       _setup_wcs_type(m)          ||
