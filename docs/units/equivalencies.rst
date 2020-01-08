@@ -195,20 +195,22 @@ its arguments the |quantity| for the spectral location. For example::
 Spectral Resolution
 -------------------
 
-Spectral resolution allows you to convert between delta wavelength and
+Spectral resolution converts between delta wavelength and
 delta frequency. The conversion between the wavelength and the frequency-based
-description of resolution therefore depends on the relationship between the
-differential wavelength and differential frequency. If :math:`w` is the
-wavelength, :math:`f` is the observed frequency, and :math:`c` is the speed
+description of resolution depends on the relationship between the
+differential wavelength and differential frequency. If :math:`\lambda` is the
+wavelength, :math:`\nu` is the observed frequency, and :math:`c` is the speed
 of light:
 
-    :math: `w = c/f`
+    :math:`\lambda = \frac{c}{\nu}`
 
 the spectral resolution equivalency calculates:
 
-    :math: `abs(dw) = abs(df) * c/f^2`
-    or
-    :math:`abs(df) = abs(dw) * c/w^2`
+    :math:`\lvert \Delta \lambda \rvert = \lvert \Delta \nu \rvert \frac{c}{\nu^2}`
+
+or:
+
+    :math:`\lvert \Delta \nu \rvert = \lvert \Delta \lambda \rvert \frac{c}{\lambda^2}`
 
 For example::
 

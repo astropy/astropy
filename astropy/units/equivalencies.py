@@ -506,16 +506,18 @@ def doppler_relativistic(rest):
 
 
 def spectral_resolution(mean):
-    """
+    r"""
     Return the equivalency for the change in wavelength or frequency
     between measured values of wavelength or frequency. The conversion
     between the wavelength and the frequency-based description of resolution
-    therefore depends on the relationship between the differential
+    depends on the relationship between the differential
     wavelength and differential frequency. Formally:
 
-    :math: `abs(dw) = abs(df) * c/f^2`
+    :math:`\lvert \Delta \nu \rvert = \lvert \Delta \lambda \rvert \frac{c}{\lambda^2}`
+
     or
-    :math:`abs(df) = abs(dw) * c/w^2`
+
+    :math:`\lvert \Delta \lambda \rvert = \lvert \Delta \nu \rvert \frac{c}{\nu^2}`
 
     Parameters
     ----------
@@ -523,29 +525,34 @@ def spectral_resolution(mean):
         A quantity with the same units as the value being converted.
         (i.e. frequency if converting to wavelength, and wavelength if
         converting to frequency). This is based on the assumption that
-        the quantities available to clients will be the same.
+        the quantities available to clients will have the same units.
 
     References
     ----------
 
     Differentiate:
-    :math: `w = c/f`
+
+    :math:`\lambda = \frac{c}{\nu}`
 
     which results in:
-    :math: `d(w) = d(c/f)`
+
+    :math:`\Delta \lambda = \Delta \frac{c}{\nu}`
 
     and then pull the constants outside of the differential:
-    :math: `d(w) = c * d(1/f)`
 
-    where the derivative of 1/x is -1/x^2 times the derivative of x:
-    :math: `d(w) = c * [-d(f) / f^2]`
+    :math:`\Delta \lambda = c  \Delta \frac{1}{\nu}`
+
+    where the derivative of :math:`\frac{1}{x}` is :math:`\frac{-1}{x^2}\Delta x`:
+
+    :math:`\Delta \lambda = c [-\frac{\Delta \nu}{\nu^2}]`
 
     The change in frequency or change in wavelength is expressed as an absolute
     number in the context of wavelength or frequency resolutions; the negative
     just means that when the wavelength gets larger, the frequency gets
     smaller, and vice-versa. The two resolutions/change in
     wavelengths/frequency could be formally expressed using:
-    :math: abs[d(w)] = c / f^2 * abs[d(f)]
+
+    :math:`\lvert \Delta \lambda \rvert = \lvert \Delta \nu \rvert \frac{c}{\nu^2}`
 
     Examples
     --------
