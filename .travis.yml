@@ -29,12 +29,21 @@ addons:
 
 env:
     global:
+
         # Set defaults to avoid repeating in most cases
-        - USE_CI_HELPERS=False
-        - SETUP_XVFB=True
+
+        # The following three variables are for tox. TOXENV is a standard
+        # variable that tox uses to determine the environment to run,
+        # TOXARGS are arguments passed to tox, and TOXPOSARGS are arguments
+        # that tox passes through to the {posargs} indicator in tox.ini.
+        # The latter can be used for example to pass arguments to pytest.
         - TOXENV='test'
         - TOXARGS='-v'
         - TOXPOSARGS=''
+
+        # The following is needed to avoid issues if e.g. Matplotlib tries
+        # to open a GUI window.
+        - SETUP_XVFB=True
         - COVERAGE=False
         - EVENT_TYPE='push pull_request'
 
@@ -62,7 +71,6 @@ matrix:
                TOXPOSARGS="--remote-data=astropy"
                CONDA_DEPENDENCIES="clang"
                CCOMPILER=clang
-               USE_CI_HELPERS=True
                EVENT_TYPE='cron'
 
         # Try all python versions and Numpy versions. Since we can assume that
@@ -103,7 +111,6 @@ matrix:
         - os: windows
           stage: Final tests
           env: PYTHON_VERSION=3.7
-               USE_CI_HELPERS=True
                TOXENV='test-alldeps'
 
         # Do a PEP8/pyflakes test with flake8
@@ -190,7 +197,7 @@ before_install:
 
 
 install:
-    - if [[ $USE_CI_HELPERS == True ]]; then
+    - if [[ $TRAVIS_OS_NAME == osx || $TRAVIS_OS_NAME == windows ]]; then
         git clone git://github.com/astropy/ci-helpers.git;
         source ci-helpers/travis/setup_conda.sh;
       fi
