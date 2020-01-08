@@ -212,11 +212,18 @@ package for your Linux distribution, as well as pip.
 
 For Debian/Ubuntu::
 
-    sudo apt-get install python3-dev python3-pip
+    sudo apt-get install python3-dev python3-numpy-dev python3-setuptools cython3 python3-jinja2 python3-pytest-astropy
 
 For Fedora/RHEL::
 
-    sudo yum install python3-devel python3-pip
+    sudo yum install python3-devel python3-numpy python3-setuptools python3-Cython python3-jinja2 python3-pytest-astropy
+
+.. note:: Building the developer version of ``astropy`` may require
+          newer versions of the above packages than are available in
+          your distribution's repository.  If so, you could either try
+          a more up to date version (such as Debian ``testing``), or
+          install more up-to-date versions using ``pip`` or ``conda``
+          in a virtual environment.
 
 Prerequisites for Mac OS X
 --------------------------
