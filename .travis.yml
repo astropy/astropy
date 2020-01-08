@@ -44,7 +44,6 @@ env:
         # The following is needed to avoid issues if e.g. Matplotlib tries
         # to open a GUI window.
         - SETUP_XVFB=True
-        - COVERAGE=False
         - EVENT_TYPE='push pull_request'
 
 stages:
@@ -99,9 +98,8 @@ matrix:
         # Full tests with coverage checks.
         - language: python
           python: 3.7
-          env: TOXENV="test-alldeps"
+          env: TOXENV="test-alldeps-cov"
                TOXPOSARGS="--remote-data=astropy"
-               COVERAGE=True
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='--coverage -fno-inline-functions -O0'
                EVENT_TYPE='push pull_request cron'
@@ -186,7 +184,7 @@ before_install:
     - mkdir -p $HOME/.astropy/config/
     - printf "unicode_output = True\nmax_width = 500" > $HOME/.astropy/config/astropy.cfg
 
-    - if [[ $COVERAGE == True ]]; then
+    - if [[ $TOXENV == *-cov ]]; then
         export TOXPOSARGS=$TOXPOSARGS" --cov-report=xml:"$TRAVIS_BUILD_DIR"/coverage.xml";
       fi
 
