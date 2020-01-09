@@ -188,7 +188,9 @@ or run the test suite with all optional dependencies with::
 
 You can see a list of available test environments with::
 
-    tox -l
+    tox -l -v
+
+which will also explain what each of them does.
 
 You can also run checks or commands not directly related to tests - for instance::
 
