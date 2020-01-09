@@ -1736,30 +1736,44 @@ class SpecificTypeQuantity(Quantity):
         super()._set_unit(unit)
 
 
-def isclose(a, b, rtol=1.e-5, atol=None, **kwargs):
+def allclose(a, b, rtol=1.e-5, atol=0, equal_nan=False, **kwargs):
     """
+    Return `True` if two arrays are element-wise equal within a
+    tolerance, and `False` otherwise.
+
+    Parameters
+    ----------
+    a, b : array_like or :class:`~astropy.units.Quantity`
+        Input values or arrays to compare
+    rtol : array_like or dimensionless :class:`~astropy.units.Quantity`
+        The relative tolerance for the comparison, which defaults to
+        ``1e-5``.  If ``rtol`` is a :class:`~astropy.units.Quantity`,
+        then it must be dimensionless.
+    atol : number or :class:`~astropy.units.Quantity`
+        The absolute tolerance for the comparison.  The units (or lack
+        thereof) of ``a``, ``b``, and ``atol`` must be consistent with
+        each other.  If `None`, ``atol`` defaults to zero.
+    equal_nan : `bool`
+        Whether to compare NaN’s as equal. If `True`, NaNs in ``a`` will
+        be considered equal to NaN’s in ``b``.
+
     Notes
     -----
-    Returns True if two arrays are element-wise equal within a tolerance.
-
-    This is a :class:`~astropy.units.Quantity`-aware version of
-    :func:`numpy.isclose`.
-    """
-    return np.isclose(*_unquantify_allclose_arguments(a, b, rtol, atol),
-                      **kwargs)
-
-
-def allclose(a, b, rtol=1.e-5, atol=None, **kwargs):
-    """
-    Notes
-    -----
-    Returns True if two arrays are element-wise equal within a tolerance.
-
     This is a :class:`~astropy.units.Quantity`-aware version of
     :func:`numpy.allclose`.
+
+    Raises
+    ------
+    UnitsError
+        If the dimensions of ``a``, ``b``, or ``atol`` are incompatible,
+        or if ``rtol`` is not dimensionless.
+
+    See also
+    --------
+    isclose
     """
-    return np.allclose(*_unquantify_allclose_arguments(a, b, rtol, atol),
-                       **kwargs)
+    unquantified_args = _unquantify_allclose_arguments(a, b, rtol, atol)
+    return np.allclose(*unquantified_args, equal_nan=equal_nan, **kwargs)
 
 
 def _unquantify_allclose_arguments(actual, desired, rtol, atol):
@@ -1769,9 +1783,10 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
     try:
         desired = desired.to(actual.unit)
     except UnitsError:
-        raise UnitsError("Units for 'desired' ({}) and 'actual' ({}) "
-                         "are not convertible"
-                         .format(desired.unit, actual.unit))
+        raise UnitsError(
+            f"Units for `desired` ({desired.unit}) and `actual` "
+            f"({actual.unit}) are not convertible"
+        )
 
     if atol is None:
         # by default, we assume an absolute tolerance of 0
@@ -1781,9 +1796,10 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
         try:
             atol = atol.to(actual.unit)
         except UnitsError:
-            raise UnitsError("Units for 'atol' ({}) and 'actual' ({}) "
-                             "are not convertible"
-                             .format(atol.unit, actual.unit))
+            raise UnitsError(
+                f"Units for `atol` ({atol.unit} and `actual` "
+                f"({actual.unit}) are not convertible"
+            )
 
     rtol = Quantity(rtol, subok=True, copy=False)
     try:

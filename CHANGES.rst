@@ -82,6 +82,9 @@ astropy.units
 
 - Added ``torr`` pressure unit. [#9787]
 
+- Added the ``equal_nan`` keyword argument to ``isclose`` and ``allclose``, and
+  updated the docstrings. [#9849]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
@@ -264,7 +267,6 @@ Other Changes and Additions
   ``ASTROPY_USE_SYSTEM_EXPAT``, ``ASTROPY_USE_SYSTEM_WCSLIB``, and
   ``ASTROPY_USE_SYSTEM_ALL``. These should be set to ``1`` to build
   against the system libraries. [#9730]
-
 
 4.0.1 (unreleased)
 ==================
