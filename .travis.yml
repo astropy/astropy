@@ -62,11 +62,11 @@ matrix:
 
     include:
 
-      # Try MacOS X.
+        # Try MacOS X.
         - os: osx
           stage: Cron tests
           env: PYTHON_VERSION=3.7
-               TOXENV="test-alldeps"
+               TOXENV="py37-test-alldeps"
                TOXPOSARGS="--remote-data=astropy"
                CONDA_DEPENDENCIES="clang"
                CCOMPILER=clang
@@ -83,25 +83,23 @@ matrix:
         # impact on running the tests, hence why it is not enabled by default.
         - language: python
           python: 3.6
-          env: TOXENV="test-oldestdeps"
+          env: TOXENV="py36-test-oldestdeps"
                TOXPOSARGS="--open-files"
 
         # Now try with all optional dependencies.
-
         - language: python
           python: 3.6
           stage: Initial tests
-          env: TOXENV="test-alldeps"
+          env: TOXENV="py36-test-alldeps"
                TOXPOSARGS="--durations=50""
           compiler: clang
 
         # Full tests with coverage checks.
         - language: python
           python: 3.7
-          env: TOXENV="test-alldeps-cov"
+          env: TOXENV="py37-test-alldeps-cov"
                TOXPOSARGS="--remote-data=astropy"
                LC_CTYPE=C.ascii LC_ALL=C
-               CFLAGS='--coverage -fno-inline-functions -O0'
                EVENT_TYPE='push pull_request cron'
 
         # Try on Windows
@@ -109,13 +107,13 @@ matrix:
         - os: windows
           stage: Final tests
           env: PYTHON_VERSION=3.7
-               TOXENV='test-alldeps'
+               TOXENV='py37-test-alldeps'
 
         # Do a PEP8/pyflakes test with flake8
         - language: python
           python: 3.7
           stage: Initial tests
-          env: TOXENV=codestyle
+          env: TOXENV='py37-codestyle'
 
         # Try developer version of Numpy with optional dependencies and also
         # run all remote tests. Since both cases will be potentially
@@ -124,7 +122,7 @@ matrix:
         - language: python
           python: 3.7
           stage: Final tests
-          env: TOXENV="test-devdeps"
+          env: TOXENV="py37-test-devdeps"
                TOXPOSARGS="--remote-data=any"
 
         # We check numpy-dev also in a job that only runs from cron, so that
@@ -135,7 +133,7 @@ matrix:
         - language: python
           python: 3.7
           stage: Final tests
-          env: TOXENV="test-devdeps"
+          env: TOXENV="py37-test-devdeps"
                EVENT_TYPE='cron'
 
         # Run documentation link check in a cron job.
@@ -144,7 +142,7 @@ matrix:
         - language: python
           python: 3.7
           stage: Cron tests
-          env: TOXENV='linkcheck'
+          env: TOXENV='py37-linkcheck'
                EVENT_TYPE='cron'
           addons:
               apt:
@@ -156,12 +154,13 @@ matrix:
           stage: Final tests
           dist: xenial
           python: 3.8
+          env: TOXENV='py38-test'
 
     allow_failures:
         - language: python
           python: 3.7
           stage: Final tests
-          env: TOXENV="test-devdeps"
+          env: TOXENV="py37-test-devdeps"
                TOXPOSARGS="--remote-data=any"
 
 before_install:
@@ -192,8 +191,6 @@ before_install:
     - echo "TOXARGS="$TOXARGS
     - echo "TOXPOSARGS="$TOXPOSARGS
 
-
-
 install:
     - if [[ $TRAVIS_OS_NAME == osx || $TRAVIS_OS_NAME == windows ]]; then
         git clone git://github.com/astropy/ci-helpers.git;
@@ -205,5 +202,7 @@ script:
     - tox $TOXARGS -- $TOXPOSARGS
 
 after_success:
-    - pip install codecov
-    - codecov --gcov-glob "*cextern*";
+    - if [[ $TOXENV == *-cov ]]; then
+        pip install codecov;
+        codecov --gcov-glob "*cextern*";
+      fi

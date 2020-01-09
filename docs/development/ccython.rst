@@ -19,7 +19,7 @@ loaded in separate extensions if they are not in ``get_extensions``. For
 Cython extensions located in this way, headers for numpy C functions are
 included in the build, but no other external headers are included. ``.pyx``
 files present in the extensions returned by ``get_extensions`` are not
-included in the list of extensions automatically generated extensions.
+included in the list of automatically generated extensions.
 
 .. note::
 

@@ -34,7 +34,7 @@ jobs:
       # here.
       - run:
           name: Install dependencies for Python 3.8
-          command: /opt/python/cp38-cp38/bin/pip install .[test]
+          command: /opt/python/cp38-cp38/bin/pip install -e .[test]
       - run:
           name: Run tests for Python 3.8
           command: PYTHONHASHSEED=42 /opt/python/cp38-cp38/bin/python -c 'import sys; from astropy import test; test(); sys.exit(test())'
@@ -126,10 +126,10 @@ jobs:
           command: pip install tox --user
       - run:
           name: Make sure style checks pass
-          command: tox -e codestyle
+          command: tox -e py37-codestyle
       - run:
           name: Build Docs
-          command: tox -e build_docs -- -j=4
+          command: tox -e py37-build_docs -- -j=4
           environment:
             LC_CTYPE: C
             LC_ALL: C
