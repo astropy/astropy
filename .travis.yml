@@ -113,7 +113,7 @@ matrix:
         - language: python
           python: 3.7
           stage: Initial tests
-          env: TOXENV='py37-codestyle'
+          env: TOXENV='codestyle'
 
         # Try developer version of Numpy with optional dependencies and also
         # run all remote tests. Since both cases will be potentially
@@ -142,7 +142,7 @@ matrix:
         - language: python
           python: 3.7
           stage: Cron tests
-          env: TOXENV='py37-linkcheck'
+          env: TOXENV='linkcheck'
                EVENT_TYPE='cron'
           addons:
               apt:

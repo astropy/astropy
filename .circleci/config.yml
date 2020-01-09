@@ -126,10 +126,10 @@ jobs:
           command: pip install tox --user
       - run:
           name: Make sure style checks pass
-          command: tox -e py37-codestyle
+          command: tox -e codestyle
       - run:
           name: Build Docs
-          command: tox -e py37-build_docs -- -j=4
+          command: tox -e build_docs -- -j=4
           environment:
             LC_CTYPE: C
             LC_ALL: C
