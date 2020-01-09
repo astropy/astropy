@@ -45,10 +45,11 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install dependencies
+          command: pip install -e .[test] pytest-mpl git+https://github.com/astropy/pytest-filter-subpackage
+      - run:
           name: Run tests
-          command:
-            pip install -e .[test] pytest-mpl git+https://github.com/astropy/pytest-filter-subpackage
-            pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
+          command: pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
       - store_artifacts:
           path: results
 
@@ -58,10 +59,11 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install dependencies
+          command: pip install -e .[test] pytest-mpl git+https://github.com/astropy/pytest-filter-subpackage
+      - run:
           name: Run tests
-          command: |
-            pip install -e .[test] pytest-mpl git+https://github.com/astropy/pytest-filter-subpackage
-            pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
+          command: pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
       - store_artifacts:
           path: results
 
@@ -71,10 +73,11 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install dependencies
+          command: pip install -e .[test] pytest-mpl git+https://github.com/astropy/pytest-filter-subpackage
+      - run:
           name: Run tests
-          command: |
-            pip install -e .[test] pytest-mpl git+https://github.com/astropy/pytest-filter-subpackage
-            pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
+          command: pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
       - store_artifacts:
           path: results
 
@@ -84,10 +87,11 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install dependencies
+          command: pip install -e .[test] pytest-mpl git+https://github.com/astropy/pytest-filter-subpackage
+      - run:
           name: Run tests
-          command: |
-            pip install -e .[test] pytest-mpl git+https://github.com/astropy/pytest-filter-subpackage
-            pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
+          command: pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
       - store_artifacts:
           path: results
 
@@ -127,7 +131,7 @@ jobs:
           command: pip install tox --user
       - run:
           name: Make sure style checks pass
-          command: tox -e style
+          command: tox -e codestyle
       - run:
           name: Build Docs
           command: tox -e build_docs -- -j=4
