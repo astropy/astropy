@@ -115,7 +115,7 @@ matrix:
         - language: python
           python: 3.7
           stage: Initial tests
-          env: TOXENV=style
+          env: TOXENV=codestyle
 
         # Try developer version of Numpy with optional dependencies and also
         # run all remote tests. Since both cases will be potentially
