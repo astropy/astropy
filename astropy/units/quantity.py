@@ -1736,7 +1736,48 @@ class SpecificTypeQuantity(Quantity):
         super()._set_unit(unit)
 
 
-def allclose(a, b, rtol=1.e-5, atol=0, equal_nan=False, **kwargs):
+def isclose(a, b, rtol=1.e-5, atol=None, equal_nan=False, **kwargs):
+    """
+    Returns a boolean array where two arrays are element-wise equal
+    within a tolerance.
+
+    Parameters
+    ----------
+    a, b : array_like or :class:`~astropy.units.Quantity`
+        Input values or arrays to compare
+    rtol : array_like or dimensionless :class:`~astropy.units.Quantity`
+        The relative tolerance for the comparison, which defaults to
+        ``1e-5``.  If ``rtol`` is a :class:`~astropy.units.Quantity`,
+        then it must be dimensionless.
+    atol : number or :class:`~astropy.units.Quantity`
+        The absolute tolerance for the comparison.  The units (or lack
+        thereof) of ``a``, ``b``, and ``atol`` must be consistent with
+        each other.  If `None`, ``atol`` defaults to zero in the
+        appropriate units.
+    equal_nan : `bool`
+        Whether to compare NaN’s as equal. If `True`, NaNs in ``a`` will
+        be considered equal to NaN’s in ``b``.
+
+    Notes
+    -----
+    This is a :class:`~astropy.units.Quantity`-aware version of
+    :func:`numpy.isclose`.
+
+    Raises
+    ------
+    UnitsError
+        If the dimensions of ``a``, ``b``, or ``atol`` are incompatible,
+        or if ``rtol`` is not dimensionless.
+
+    See also
+    --------
+    allclose
+    """
+    unquantified_args = _unquantify_allclose_arguments(a, b, rtol, atol)
+    return np.isclose(*unquantified_args, equal_nan=equal_nan, **kwargs)
+
+
+def allclose(a, b, rtol=1.e-5, atol=None, equal_nan=False, **kwargs):
     """
     Return `True` if two arrays are element-wise equal within a
     tolerance, and `False` otherwise.
@@ -1752,7 +1793,8 @@ def allclose(a, b, rtol=1.e-5, atol=0, equal_nan=False, **kwargs):
     atol : number or :class:`~astropy.units.Quantity`
         The absolute tolerance for the comparison.  The units (or lack
         thereof) of ``a``, ``b``, and ``atol`` must be consistent with
-        each other.  If `None`, ``atol`` defaults to zero.
+        each other.  If `None`, ``atol`` defaults to zero in the
+        appropriate units.
     equal_nan : `bool`
         Whether to compare NaN’s as equal. If `True`, NaNs in ``a`` will
         be considered equal to NaN’s in ``b``.
@@ -1789,7 +1831,9 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
         )
 
     if atol is None:
-        # by default, we assume an absolute tolerance of 0
+        # By default, we assume an absolute tolerance of 0.  The default
+        # value of None for atol is needed because the units of atol
+        # must be consistent with the units for a and b.
         atol = Quantity(0)
     else:
         atol = Quantity(atol, subok=True, copy=False)
