@@ -192,7 +192,7 @@ You can see a list of available test environments with::
 
 You can also run checks or commands not directly related to tests - for instance::
 
-    tox -e style
+    tox -e codestyle
 
 will run checks using the flake8 tool.
 
@@ -627,13 +627,6 @@ If your tests need to use `pytest helper functions
 ``pytest.raises``, import ``pytest`` into your test module like so::
 
     import pytest
-
-Prior to Astropy 2.0, it was possible to import pytest from a
-bundled version using e.g.::
-
-    from ...tests.helper import pytest
-
-but this is no longer supported.
 
 Testing warnings
 ================
