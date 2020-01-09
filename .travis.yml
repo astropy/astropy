@@ -44,7 +44,6 @@ env:
         # The following is needed to avoid issues if e.g. Matplotlib tries
         # to open a GUI window.
         - SETUP_XVFB=True
-        - EVENT_TYPE='push pull_request'
 
 stages:
    # Do the style check and a single test job, don't proceed if it fails
@@ -70,7 +69,6 @@ matrix:
                TOXPOSARGS="--remote-data=astropy"
                CONDA_DEPENDENCIES="clang"
                CCOMPILER=clang
-               EVENT_TYPE='cron'
 
         # Try all python versions and Numpy versions. Since we can assume that
         # the Numpy developers have taken care of testing Numpy with different
@@ -100,7 +98,6 @@ matrix:
           env: TOXENV="py37-test-alldeps-cov"
                TOXPOSARGS="--remote-data=astropy"
                LC_CTYPE=C.ascii LC_ALL=C
-               EVENT_TYPE='push pull_request cron'
 
         # Try on Windows
         # NOTE: Can't use Numpy 1.18 until Issue 9871 is resolved
@@ -132,9 +129,8 @@ matrix:
         # releases.
         - language: python
           python: 3.7
-          stage: Final tests
+          stage: Cron tests
           env: TOXENV="py37-test-devdeps"
-               EVENT_TYPE='cron'
 
         # Run documentation link check in a cron job.
         # Was originally in CircleCI doc build but links are too flaky, so
@@ -143,7 +139,6 @@ matrix:
           python: 3.7
           stage: Cron tests
           env: TOXENV='linkcheck'
-               EVENT_TYPE='cron'
           addons:
               apt:
                   packages:
