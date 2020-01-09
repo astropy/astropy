@@ -39,6 +39,7 @@ from .itrs import ITRS
 from .hcrs import HCRS
 from .ecliptic import *  # there are a lot of these so we don't list them all explicitly
 from .skyoffset import SkyOffsetFrame
+from .intvis import InterferometricVisibility
 # need to import transformations so that they get registered in the graph
 from . import icrs_fk5_transforms
 from . import fk4_fk5_transforms
@@ -62,7 +63,8 @@ __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
            'HeliocentricTrueEcliptic',
            'SkyOffsetFrame', 'GalacticLSR', 'LSR',
            'BaseEclipticFrame', 'BaseRADecFrame', 'make_transform_graph_docs',
-           'HeliocentricEclipticIAU76', 'CustomBarycentricEcliptic']
+           'HeliocentricEclipticIAU76', 'CustomBarycentricEcliptic',
+           'InterferometricVisibility']
 
 
 def make_transform_graph_docs(transform_graph):
