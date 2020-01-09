@@ -12,8 +12,12 @@ for affiliated packages.
 Interface and Dependencies
 ==========================
 
-* All code must be compatible with Python 3.6 and later.
-  Usage of ``six``, ``__future__``, and ``2to3`` is no longer acceptable.
+* All code must be compatible with the versions of Python indicated by the
+  ``python_requires`` key in the `setup.cfg
+  <https://github.com/astropy/astropy/blob/master/setup.cfg>`_ file of the
+  core package.
+
+* Usage of ``six``, ``__future__``, and ``2to3`` is no longer acceptable.
 
 * `f-strings <https://docs.python.org/3/reference/lexical_analysis.html#f-strings>`_
   should be used when possible, and if not, Python 3
