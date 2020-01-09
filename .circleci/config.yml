@@ -101,11 +101,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install C++ compiler
-          command: |
-            apt update
-            apt install -y g++
-      - run:
           name: Install Python dependencies, including developer version of Matplotlib
           command: |
             pip3 install git+https://github.com/matplotlib/matplotlib.git
