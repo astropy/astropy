@@ -1738,7 +1738,7 @@ class SpecificTypeQuantity(Quantity):
 
 def isclose(a, b, rtol=1.e-5, atol=None, equal_nan=False, **kwargs):
     """
-    Returns a boolean array where two arrays are element-wise equal
+    Return a boolean array where two arrays are element-wise equal
     within a tolerance.
 
     Parameters
@@ -1777,10 +1777,9 @@ def isclose(a, b, rtol=1.e-5, atol=None, equal_nan=False, **kwargs):
     return np.isclose(*unquantified_args, equal_nan=equal_nan, **kwargs)
 
 
-def allclose(a, b, rtol=1.e-5, atol=None, equal_nan=False, **kwargs):
+def allclose(a, b, rtol=1.e-5, atol=None, equal_nan=False, **kwargs) -> bool:
     """
-    Return `True` if two arrays are element-wise equal within a
-    tolerance, and `False` otherwise.
+    Whether two arrays are element-wise equal within a tolerance.
 
     Parameters
     ----------
@@ -1826,7 +1825,7 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
         desired = desired.to(actual.unit)
     except UnitsError:
         raise UnitsError(
-            f"Units for `desired` ({desired.unit}) and `actual` "
+            f"Units for 'desired' ({desired.unit}) and 'actual' "
             f"({actual.unit}) are not convertible"
         )
 
@@ -1841,7 +1840,7 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
             atol = atol.to(actual.unit)
         except UnitsError:
             raise UnitsError(
-                f"Units for `atol` ({atol.unit} and `actual` "
+                f"Units for 'atol' ({atol.unit} and 'actual' "
                 f"({actual.unit}) are not convertible"
             )
 
@@ -1849,6 +1848,6 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
     try:
         rtol = rtol.to(dimensionless_unscaled)
     except Exception:
-        raise UnitsError("`rtol` should be dimensionless")
+        raise UnitsError("'rtol' should be dimensionless")
 
     return actual.value, desired.value, rtol.value, atol.value
