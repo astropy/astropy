@@ -7,6 +7,7 @@ test_api_ape5.py
 """
 
 import copy
+from copy import deepcopy
 
 import pytest
 import numpy as np
@@ -14,7 +15,7 @@ import numpy.testing as npt
 
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
-from astropy.coordinates.representation import REPRESENTATION_CLASSES
+from astropy.coordinates.representation import REPRESENTATION_CLASSES, DUPLICATE_REPRESENTATIONS
 from astropy.coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                                  SphericalRepresentation, CartesianRepresentation,
                                  UnitSphericalRepresentation, AltAz,
@@ -51,6 +52,18 @@ if HAS_SCIPY and minversion(scipy, '0.12.0', inclusive=False):
     OLDER_SCIPY = False
 else:
     OLDER_SCIPY = True
+
+
+def setup_function(func):
+    func.REPRESENTATION_CLASSES_ORIG = deepcopy(REPRESENTATION_CLASSES)
+    func.DUPLICATE_REPRESENTATIONS_ORIG = deepcopy(DUPLICATE_REPRESENTATIONS)
+
+
+def teardown_function(func):
+    REPRESENTATION_CLASSES.clear()
+    REPRESENTATION_CLASSES.update(func.REPRESENTATION_CLASSES_ORIG)
+    DUPLICATE_REPRESENTATIONS.clear()
+    DUPLICATE_REPRESENTATIONS.update(func.DUPLICATE_REPRESENTATIONS_ORIG)
 
 
 def test_transform_to():
@@ -1580,3 +1593,6 @@ def test_multiple_aliases():
     assert isinstance(coord.transform_to('alias_2').frame, MultipleAliasesFrame)
 
     ftrans.unregister(frame_transform_graph)
+
+    # Need to remove MultipleAliasesFrame manually from transform graph
+    assert frame_transform_graph._graph.pop(MultipleAliasesFrame) == {}

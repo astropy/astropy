@@ -18,6 +18,8 @@ jobs:
           command: |
               mkdir -p $HOME/.astropy/config/
               printf "unicode_output = True\nmax_width = 500" > $HOME/.astropy/config/astropy.cfg
+      # In addition to testing 32-bit, we also use the 3.6 and 3.7 builds to
+      # test the ability to run the test suite in parallel.
       - run:
           name: Install dependencies for Python 3.6
           command: /opt/python/cp36-cp36m/bin/pip install "numpy<1.17" scipy pytest pytest-astropy pytest-xdist Cython jinja2
@@ -30,12 +32,18 @@ jobs:
       - run:
           name: Run tests for Python 3.7
           command: PYTHONHASHSEED=42 /opt/python/cp37-cp37m/bin/python setup.py test --parallel=4 -a "--durations=50"
+      # We use the 3.8 build to check that running tests twice in a row in the
+      # same Python session works without issues. This catches cases where
+      # running the tests changes the module state permanently. Note that we
+      # shouldn't also test the parallel build here since that enforces a degree
+      # of isolation of tests which will interfere with what we are trying to do
+      # here.
       - run:
           name: Install dependencies for Python 3.8
           command: /opt/python/cp38-cp38/bin/pip install numpy pytest pytest-astropy pytest-xdist Cython jinja2
       - run:
           name: Run tests for Python 3.8
-          command: PYTHONHASHSEED=42 /opt/python/cp38-cp38/bin/python setup.py test --parallel=4 -a "--durations=50"
+          command: PYTHONHASHSEED=42 /opt/python/cp38-cp38/bin/python -c 'import sys; from astropy import test; test(); sys.exit(test())'
 
   image-tests-mpl212:
     docker:
