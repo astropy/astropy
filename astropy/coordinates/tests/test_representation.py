@@ -17,6 +17,7 @@ from astropy.coordinates.angles import Longitude, Latitude, Angle
 from astropy.coordinates.distances import Distance
 from astropy.coordinates.representation import (REPRESENTATION_CLASSES,
                                                 DIFFERENTIAL_CLASSES,
+                                                DUPLICATE_REPRESENTATIONS,
                                                 BaseRepresentation,
                                                 SphericalRepresentation,
                                                 UnitSphericalRepresentation,
@@ -33,11 +34,14 @@ from astropy.coordinates.representation import (REPRESENTATION_CLASSES,
 #   the test file doesn't add a persistent test subclass (LogDRepresentation)
 def setup_function(func):
     func.REPRESENTATION_CLASSES_ORIG = deepcopy(REPRESENTATION_CLASSES)
+    func.DUPLICATE_REPRESENTATIONS_ORIG = deepcopy(DUPLICATE_REPRESENTATIONS)
 
 
 def teardown_function(func):
     REPRESENTATION_CLASSES.clear()
     REPRESENTATION_CLASSES.update(func.REPRESENTATION_CLASSES_ORIG)
+    DUPLICATE_REPRESENTATIONS.clear()
+    DUPLICATE_REPRESENTATIONS.update(func.DUPLICATE_REPRESENTATIONS_ORIG)
 
 
 class TestSphericalRepresentation:
