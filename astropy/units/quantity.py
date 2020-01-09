@@ -1830,9 +1830,10 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
         )
 
     if atol is None:
-        # By default, we assume an absolute tolerance of 0.  The default
-        # value of None for atol is needed because the units of atol
-        # must be consistent with the units for a and b.
+        # By default, we assume an absolute tolerance of zero in the
+        # appropriate units.  The default value of None for atol is
+        # needed because the units of atol must be consistent with the
+        # units for a and b.
         atol = Quantity(0)
     else:
         atol = Quantity(atol, subok=True, copy=False)
@@ -1840,7 +1841,7 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
             atol = atol.to(actual.unit)
         except UnitsError:
             raise UnitsError(
-                f"Units for 'atol' ({atol.unit} and 'actual' "
+                f"Units for 'atol' ({atol.unit}) and 'actual' "
                 f"({actual.unit}) are not convertible"
             )
 
