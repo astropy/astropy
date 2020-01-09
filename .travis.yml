@@ -45,8 +45,6 @@ env:
         - INSTALL_WITH_PIP=False
         - PIP_FLAGS=""
         - EXTRAS_INSTALL=""
-        # Run test suite twice in a row without cleaning
-        - DOUBLE_PLAY=False
         - USE_CI_HELPERS=True
         # Use this for the dependencies when not using ci-helpers
         - OTHER_DEPENDENCY_PREFERENCES=''
@@ -100,7 +98,6 @@ matrix:
                PIP_DEPENDENCIES="scikit-image jplephem $ASDF_PIP_DEP"
                CCOMPILER=clang
                EVENT_TYPE='cron'
-               DOUBLE_PLAY=True
 
         # Try all python versions and Numpy versions. Since we can assume that
         # the Numpy developers have taken care of testing Numpy with different
@@ -229,12 +226,7 @@ install:
       fi
 
 script:
-    - if [[ $DOUBLE_PLAY == True ]]; then
-          $MAIN_CMD $SETUP_CMD;
-          $MAIN_CMD $SETUP_CMD;
-      else
-          $MAIN_CMD $SETUP_CMD;
-      fi
+    - $MAIN_CMD $SETUP_CMD;
 
 after_success:
     - if [[ $SETUP_CMD == *--coverage* ]]; then

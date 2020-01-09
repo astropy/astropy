@@ -834,7 +834,7 @@ def test_caching_components_and_classes():
     # are updated (we use a cache internally, so we need to make sure the cache
     # is invalidated if needed)
 
-    wcs = WCS_SIMPLE_CELESTIAL
+    wcs = WCS_SIMPLE_CELESTIAL.deepcopy()
 
     assert wcs.world_axis_object_components == [('celestial', 0, 'spherical.lon.degree'),
                                                 ('celestial', 1, 'spherical.lat.degree')]
@@ -863,7 +863,7 @@ def test_sub_wcsapi_attributes():
     # incorrect when using WCS.sub or WCS.celestial (which is an alias for sub
     # with lon/lat types).
 
-    wcs = WCS_SPECTRAL_CUBE
+    wcs = WCS_SPECTRAL_CUBE.deepcopy()
     wcs.pixel_shape = (30, 40, 50)
     wcs.pixel_bounds = [(-1, 11), (-2, 18), (5, 15)]
 

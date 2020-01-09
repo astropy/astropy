@@ -944,6 +944,10 @@ def test_call_keyword_mappings(model):
     assert_allclose(positional, model(x0=1, x1=2))
     assert_allclose(positional, model(1, x1=2))
 
+    # We take a copy before modifying the model since otherwise this changes
+    # the instance used in the parametrize call and affects future test runs.
+    model = model.copy()
+
     model.inputs = ('r', 't')
     assert_allclose(positional, model(r=1, t=2))
     assert_allclose(positional, model(1, t=2))
