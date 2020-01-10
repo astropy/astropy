@@ -233,9 +233,14 @@ class TransformGraph:
             for a in self._graph:
                 agraph = self._graph[a]
                 for b in agraph:
-                    if b is transform:
+                    if agraph[b] is transform:
                         del agraph[b]
+                        fromsys = a
                         break
+
+                # If the transform was found, need to break out of the outer for loop too
+                if fromsys:
+                    break
             else:
                 raise ValueError('Could not find transform {} in the '
                                  'graph'.format(transform))
@@ -250,6 +255,11 @@ class TransformGraph:
                 else:
                     raise ValueError('Current transform from {} to {} is not '
                                      '{}'.format(fromsys, tosys, transform))
+
+        # Remove the subgraph if it is now empty
+        if self._graph[fromsys] == {}:
+            self._graph.pop(fromsys)
+
         self.invalidate_cache()
 
     def find_shortest_path(self, fromsys, tosys):
