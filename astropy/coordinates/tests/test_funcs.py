@@ -62,6 +62,23 @@ def test_constellations(recwarn):
     assert boores == 'Boötes'
     assert isinstance(boores, str) or getattr(boores, 'shape', None) == tuple()
 
+    # Test edge cases close to borders, using B1875.0 coordinates
+    # Look for HMS / DMS roundoff-to-decimal issues from Roman (1987) data
+    # as documented in https://github.com/astropy/astropy/issues/9855
+    # The actual boundary on the west side of Orion at Dec +3.0 is
+    # 06h14m30 == 6.2416666666666...
+    ras = [6.24100, 6.24160, 6.24166, 6.24168]
+    # aka ['6h14m27.6s' '6h14m29.76s' '6h14m29.976s' '6h14m30.048s']
+    decs = [3.0, 3.0, 3.0, 3.0]
+    shortnames = ['Ori', 'Ori', 'Ori', 'Mon']
+
+    testcoos = FK5(ras*u.hour, decs*u.deg, equinox='B1875')
+    npt.assert_equal(get_constellation(testcoos, short_name=True), shortnames,
+      "get_constellation() uses Roman approximations, not IAU boundaries from Delporte")
+
+    # When that's fixed, add other tests with coords that are in different constellations
+    # depending on equinox
+
 
 def test_concatenate():
     from astropy.coordinates import FK5, SkyCoord, ICRS
