@@ -1511,6 +1511,31 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
         return new
 
+    def __setitem__(self, item, value):
+        if self.__class__ is not value.__class__:
+            raise TypeError(f'can only set frame to object of same class '
+                            f'{self.__class__.__name__}')
+
+        if not self.is_equivalent_frame(value):
+            raise ValueError('can only set frame item from an equivalent frame')
+
+        if self.shape == ():
+            raise TypeError('cannot set item on scalar frame')
+
+        if self._data is None:
+            raise ValueError('can only set frame if it has data')
+
+        if value._data is None:
+            raise ValueError('can only set frame with value that has data')
+
+        # Set representation data
+        self._data._setitem(item, value._data)
+
+        # Frame attributes required to be identical by is_equivalent_frame,
+        # no need to set them here.
+
+        self.cache.clear()
+
     @override__dir__
     def __dir__(self):
         """

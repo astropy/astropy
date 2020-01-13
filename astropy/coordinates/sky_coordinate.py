@@ -1,6 +1,7 @@
 import re
 import copy
 import warnings
+import contextlib
 
 import numpy as np
 
@@ -25,6 +26,63 @@ from .sky_coordinate_parsers import (_get_frame_class, _get_frame_without_data,
                                      _parse_coordinate_data)
 
 __all__ = ['SkyCoord', 'SkyCoordInfo']
+
+
+@contextlib.contextmanager
+def _set_time_writeable_true(obj):
+    """Context manager to allow __setitem__ to operate on frame attributes.
+
+    Not used in current implementation which just insists that they are
+    equivalent but see commit 4e3f99943.
+    """
+    is_time = isinstance(obj, Time)
+    try:
+        if is_time:
+            writeable = obj.writeable
+            obj.writeable = True
+        yield
+    finally:
+        if is_time:
+            obj.writeable = writeable
+
+
+def _frame_attribute_setitem(frame, attr, item, value):
+    """Set a frame attribute ``frame.attr[item] = value```
+
+    This is not used in the current implementation of __setitem__ but here in
+    the WIP for reference of what might be possible.
+
+    The trick is that frame attributes can be scalars and they might need to be
+    broadcast to the SkyCoord shape.  For example if a SkyCoord ``sc1`` has
+    shape=(3,) with scalar equinox='B1999', and ``sc2`` has equinox='B2015',
+    then setting ``sc1[1] = sc2[2]`` needs to make sc1.equinox into shape=(3,)
+    and result in ['B1999', 'B2015', 'B1999'].
+
+    It isn't obvious if this can cause problems, so don't do that without
+    some discussion.
+    """
+    _attr = '_' + attr
+    frame_attr = getattr(frame, _attr)
+    value_attr = getattr(value, _attr)
+    frame_attr_shape = getattr(frame_attr, 'shape', ())
+
+    # If all the same then do nothing
+    if np.all(frame_attr == value_attr):
+        return
+
+    # At this point we need to ensure frame_attr has the same shape as frame
+    # because ``item`` is referenced to frame shape and we will set frame_attr[item].
+    if frame_attr_shape == ():
+        frame_attr = frame_attr.take(np.zeros(frame.shape))
+        setattr(frame, _attr, frame_attr)
+
+    elif frame_attr_shape != frame.shape:
+        # How to broadcast a ShapedLikeNDArray subclass like Time. E.g.
+        # an obstime attribute with shape (3,) and the frame has shape (10, 3).
+        raise NotImplementedError('help me @mhvk!')
+
+    # Finally do the setting
+    frame_attr[item] = value_attr
 
 
 class SkyCoordInfo(MixinInfo):
@@ -355,6 +413,30 @@ class SkyCoord(ShapedLikeNDArray):
             new.info = self.info
 
         return new
+
+    def __setitem__(self, item, value):
+        if self.__class__ is not value.__class__:
+            raise TypeError(f'can only set item from object of same class '
+                            f'{self.__class__.__name__}')
+
+        # Make sure that any extra frame attribute names are equivalent.
+        # Could relax this in future to set the attribute values appropriately.
+        for attr in self._extra_frameattr_names:
+            if not self.frame._frameattr_equiv(getattr(self, attr),
+                                               getattr(value, attr)):
+                raise ValueError(f'attribute {attr} is not equivalent')
+
+        # Instead, setting extra frame attributes in the same way as frame would
+        # look something like
+        #
+        # for attr in self._extra_frameattr_names:
+        #     with _set_time_writeable_true(getattr(self, attr)):
+        #         _frame_attribute_setitem(self, attr, item, value)
+
+        # Set the frame values.  This checks frame equivalence.
+        self._sky_coord_frame[item] = value._sky_coord_frame
+
+        self.cache.clear()
 
     def transform_to(self, frame, merge_attributes=True):
         """Transform this coordinate to a new frame.
