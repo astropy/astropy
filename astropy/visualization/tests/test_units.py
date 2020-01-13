@@ -115,3 +115,15 @@ def test_nested():
 
         assert ax.xaxis.get_units() == u.arcsec
         assert ax.yaxis.get_units() == u.pc
+
+
+@pytest.mark.skipif('not HAS_PLT')
+def test_empty_hist():
+
+    with quantity_support():
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        ax.hist([1, 2, 3, 4] * u.mmag, bins=100)
+        # The second call results in an empty list being passed to the
+        # unit converter in matplotlib >= 3.1
+        ax.hist([] * u.mmag, bins=100)
