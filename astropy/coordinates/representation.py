@@ -255,6 +255,19 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                     apply_method(getattr(self, component)))
         return new
 
+    def _setitem(self, item, value):
+        """Private version of __setitem__.
+
+        This cannot be exposed as __setitem__ because it would allow changing
+        frame representation data (frame.data) without clearing the frame cache.
+        """
+        if self.__class__ is not value.__class__:
+            raise TypeError(f'can only set to object of same class '
+                            f'{self.__class__.__name__}')
+
+        for component in self.components:
+            getattr(self, '_' + component)[item] = getattr(value, '_' + component)
+
     @property
     def shape(self):
         """The shape of the instance and underlying arrays.
@@ -790,6 +803,24 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
             [(k, diff._apply(method, *args, **kwargs))
              for k, diff in self._differentials.items()])
         return rep
+
+    def _setitem(self, item, value):
+        """Private version of __setitem__.
+
+        This cannot be exposed as __setitem__ because it would allow changing
+        frame representation data (frame.data) without clearing the frame cache.
+        """
+        if self.__class__ is not value.__class__:
+            raise TypeError(f'can only set to object of same class '
+                            f'{self.__class__.__name__}')
+
+        if self._differentials.keys() != value._differentials.keys():
+            raise ValueError(f'setitem value must have same differentials')
+
+        super()._setitem(item, value)
+        for self_diff, value_diff in zip(self._differentials.values(),
+                                         value._differentials.values()):
+            self_diff._setitem(item, value_diff)
 
     def _scale_operation(self, op, *args):
         """Scale all non-angular components, leaving angular ones unchanged.
