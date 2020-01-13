@@ -34,7 +34,7 @@ command. -->
 
 ### Steps to Reproduce
 <!-- Ideally a code example could be provided so we can run it ourselves. -->
-<!-- If you are pasting code, use tripe backticks (```) around
+<!-- If you are pasting code, use triple backticks (```) around
 your code snippet. -->
 <!-- If necessary, sanitize your screen output to be pasted so you do not
 reveal secrets like tokens and passwords. -->
@@ -53,6 +53,6 @@ Please run the following snippet and paste the output below:
 import platform; print(platform.platform())
 import sys; print("Python", sys.version)
 import numpy; print("Numpy", numpy.__version__)
-import scipy; print("Scipy", scipy.__version__)
 import astropy; print("astropy", astropy.__version__)
+import scipy; print("Scipy", scipy.__version__)
 -->
