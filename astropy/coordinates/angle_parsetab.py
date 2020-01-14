@@ -16,9 +16,9 @@ _tabversion = '3.10'
 
 _lr_method = 'LALR'
 
-_lr_signature = 'SIGN UINT UFLOAT COLON DEGREE HOUR MINUTE SECOND SIMPLE_UNIT\n            angle : hms\n                  | dms\n                  | arcsecond\n                  | arcminute\n                  | simple\n            \n            sign : SIGN\n                 |\n            \n            ufloat : UFLOAT\n                   | UINT\n            \n            colon : sign UINT COLON ufloat\n                  | sign UINT COLON UINT COLON ufloat\n            \n            spaced : sign UINT ufloat\n                   | sign UINT UINT ufloat\n            \n            generic : colon\n                    | spaced\n                    | sign UFLOAT\n                    | sign UINT\n            \n            hms : sign UINT HOUR\n                | sign UINT HOUR ufloat\n                | sign UINT HOUR UINT MINUTE\n                | sign UINT HOUR UFLOAT MINUTE\n                | sign UINT HOUR UINT MINUTE ufloat\n                | sign UINT HOUR UINT MINUTE ufloat SECOND\n                | generic HOUR\n            \n            dms : sign UINT DEGREE\n                | sign UINT DEGREE ufloat\n                | sign UINT DEGREE UINT MINUTE\n                | sign UINT DEGREE UFLOAT MINUTE\n                | sign UINT DEGREE UINT MINUTE ufloat\n                | sign UINT DEGREE UINT MINUTE ufloat SECOND\n                | generic DEGREE\n            \n            simple : generic\n                   | generic SIMPLE_UNIT\n            \n            arcsecond : generic SECOND\n            \n            arcminute : generic MINUTE\n            '
-
-_lr_action_items = {'SIGN':([0,],[9,]),'UINT':([0,7,9,12,19,20,23,24,35,37,39,],[-7,12,-6,19,25,27,30,33,25,25,25,]),'UFLOAT':([0,7,9,12,19,20,23,24,35,37,39,],[-7,13,-6,22,22,29,32,22,22,22,22,]),'$end':([1,2,3,4,5,6,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23,25,26,27,28,29,30,31,32,33,34,35,36,37,38,40,41,42,43,44,],[0,-1,-2,-3,-4,-5,-32,-14,-15,-17,-16,-24,-31,-34,-35,-33,-9,-18,-12,-8,-25,-9,-13,-9,-19,-8,-9,-26,-8,-9,-10,-20,-21,-27,-28,-22,-29,-11,-23,-30,]),'HOUR':([8,10,11,12,13,19,21,22,25,26,33,34,42,],[14,-14,-15,20,-16,-9,-12,-8,-9,-13,-9,-10,-11,]),'DEGREE':([8,10,11,12,13,19,21,22,25,26,33,34,42,],[15,-14,-15,23,-16,-9,-12,-8,-9,-13,-9,-10,-11,]),'SECOND':([8,10,11,12,13,19,21,22,25,26,33,34,40,41,42,],[16,-14,-15,-17,-16,-9,-12,-8,-9,-13,-9,-10,43,44,-11,]),'MINUTE':([8,10,11,12,13,19,21,22,25,26,27,29,30,32,33,34,42,],[17,-14,-15,-17,-16,-9,-12,-8,-9,-13,35,36,37,38,-9,-10,-11,]),'SIMPLE_UNIT':([8,10,11,12,13,19,21,22,25,26,33,34,42,],[18,-14,-15,-17,-16,-9,-12,-8,-9,-13,-9,-10,-11,]),'COLON':([12,33,],[24,39,]),}
+_lr_signature = 'SIGN UINT UFLOAT COLON DEGREE HOUR MINUTE SECOND SIMPLE_UNIT DIRECTION\n            angle : hms\n                  | dms\n                  | arcsecond\n                  | arcminute\n                  | simple\n            \n            sign : SIGN\n                 |\n            \n            dir : DIRECTION\n                |\n            \n            ufloat : UFLOAT\n                   | UINT\n            \n            colon : sign UINT COLON ufloat\n                  | sign UINT COLON UINT COLON ufloat\n            \n            spaced : sign UINT ufloat\n                   | sign UINT UINT ufloat\n                   | sign UINT ufloat dir\n                   | sign UINT UINT ufloat dir\n            \n            generic : colon\n                    | spaced\n                    | sign UFLOAT\n                    | sign UINT\n                    | sign UFLOAT dir\n                    | sign UINT dir\n            \n            hms : sign UINT HOUR\n                | sign UINT HOUR ufloat\n                | sign UINT HOUR UINT MINUTE\n                | sign UINT HOUR UFLOAT MINUTE\n                | sign UINT HOUR UINT MINUTE ufloat\n                | sign UINT HOUR UINT MINUTE ufloat SECOND\n                | sign UINT HOUR dir\n                | sign UINT HOUR ufloat dir\n                | sign UINT HOUR UINT MINUTE dir\n                | sign UINT HOUR UFLOAT MINUTE dir\n                | sign UINT HOUR UINT MINUTE ufloat dir\n                | sign UINT HOUR UINT MINUTE ufloat SECOND dir\n                | generic HOUR\n            \n            dms : sign UINT DEGREE\n                | sign UINT DEGREE ufloat\n                | sign UINT DEGREE UINT MINUTE\n                | sign UINT DEGREE UFLOAT MINUTE\n                | sign UINT DEGREE UINT MINUTE ufloat\n                | sign UINT DEGREE UINT MINUTE ufloat SECOND\n                | sign UINT DEGREE dir\n                | sign UINT DEGREE ufloat dir\n                | sign UINT DEGREE UINT MINUTE dir\n                | sign UINT DEGREE UFLOAT MINUTE dir\n                | sign UINT DEGREE UINT MINUTE ufloat dir\n                | sign UINT DEGREE UINT MINUTE ufloat SECOND dir\n                | generic DEGREE\n            \n            simple : generic\n                   | generic SIMPLE_UNIT\n            \n            arcsecond : generic SECOND\n            \n            arcminute : generic MINUTE\n            '
+    
+_lr_action_items = {'SIGN':([0,],[9,]),'UINT':([0,7,9,12,19,20,24,25,42,45,48,],[-7,12,-6,19,28,30,35,39,28,28,28,]),'UFLOAT':([0,7,9,12,19,20,24,25,42,45,48,],[-7,13,-6,22,22,32,37,22,22,22,22,]),'$end':([1,2,3,4,5,6,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,49,50,51,52,53,54,55,56,57,58,59,60,61,],[0,-1,-2,-3,-4,-5,-50,-18,-19,-9,-9,-36,-49,-52,-53,-51,-11,-9,-9,-10,-23,-9,-8,-22,-11,-9,-11,-9,-10,-30,-16,-11,-9,-10,-43,-11,-12,-17,-9,-31,-9,-9,-44,-9,-9,-32,-33,-9,-45,-46,-13,-9,-34,-9,-47,-35,-48,]),'HOUR':([8,10,11,12,13,19,21,22,23,26,27,28,29,34,39,40,41,55,],[14,-18,-19,20,-9,-11,-9,-10,-23,-8,-22,-11,-9,-16,-11,-12,-17,-13,]),'DEGREE':([8,10,11,12,13,19,21,22,23,26,27,28,29,34,39,40,41,55,],[15,-18,-19,24,-9,-11,-9,-10,-23,-8,-22,-11,-9,-16,-11,-12,-17,-13,]),'SECOND':([8,10,11,12,13,19,21,22,23,26,27,28,29,34,39,40,41,49,52,55,],[16,-18,-19,-9,-9,-11,-9,-10,-23,-8,-22,-11,-9,-16,-11,-12,-17,56,58,-13,]),'MINUTE':([8,10,11,12,13,19,21,22,23,26,27,28,29,30,32,34,35,37,39,40,41,55,],[17,-18,-19,-9,-9,-11,-9,-10,-23,-8,-22,-11,-9,42,44,-16,45,47,-11,-12,-17,-13,]),'SIMPLE_UNIT':([8,10,11,12,13,19,21,22,23,26,27,28,29,34,39,40,41,55,],[18,-18,-19,-9,-9,-11,-9,-10,-23,-8,-22,-11,-9,-16,-11,-12,-17,-13,]),'COLON':([12,39,],[25,48,]),'DIRECTION':([12,13,19,20,21,22,24,28,29,30,31,32,35,36,37,42,44,45,47,49,52,56,58,],[26,26,-11,26,26,-10,26,-11,26,-11,26,-10,-11,26,-10,26,26,26,26,26,26,26,26,]),}
 
 _lr_action = {}
 for _k, _v in _lr_action_items.items():
@@ -27,7 +27,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'angle':([0,],[1,]),'hms':([0,],[2,]),'dms':([0,],[3,]),'arcsecond':([0,],[4,]),'arcminute':([0,],[5,]),'simple':([0,],[6,]),'sign':([0,],[7,]),'generic':([0,],[8,]),'colon':([0,],[10,]),'spaced':([0,],[11,]),'ufloat':([12,19,20,23,24,35,37,39,],[21,26,28,31,34,40,41,42,]),}
+_lr_goto_items = {'angle':([0,],[1,]),'hms':([0,],[2,]),'dms':([0,],[3,]),'arcsecond':([0,],[4,]),'arcminute':([0,],[5,]),'simple':([0,],[6,]),'sign':([0,],[7,]),'generic':([0,],[8,]),'colon':([0,],[10,]),'spaced':([0,],[11,]),'ufloat':([12,19,20,24,25,42,45,48,],[21,29,31,36,40,49,52,55,]),'dir':([12,13,20,21,24,29,31,36,42,44,45,47,49,52,56,58,],[23,27,33,34,38,41,43,46,50,51,53,54,57,59,60,61,]),}
 
 _lr_goto = {}
 for _k, _v in _lr_goto_items.items():
@@ -37,39 +37,57 @@ for _k, _v in _lr_goto_items.items():
 del _lr_goto_items
 _lr_productions = [
   ("S' -> angle","S'",1,None,None,None),
-  ('angle -> hms','angle',1,'p_angle','angle_utilities.py',157),
-  ('angle -> dms','angle',1,'p_angle','angle_utilities.py',158),
-  ('angle -> arcsecond','angle',1,'p_angle','angle_utilities.py',159),
-  ('angle -> arcminute','angle',1,'p_angle','angle_utilities.py',160),
-  ('angle -> simple','angle',1,'p_angle','angle_utilities.py',161),
-  ('sign -> SIGN','sign',1,'p_sign','angle_utilities.py',167),
-  ('sign -> <empty>','sign',0,'p_sign','angle_utilities.py',168),
-  ('ufloat -> UFLOAT','ufloat',1,'p_ufloat','angle_utilities.py',177),
-  ('ufloat -> UINT','ufloat',1,'p_ufloat','angle_utilities.py',178),
-  ('colon -> sign UINT COLON ufloat','colon',4,'p_colon','angle_utilities.py',184),
-  ('colon -> sign UINT COLON UINT COLON ufloat','colon',6,'p_colon','angle_utilities.py',185),
-  ('spaced -> sign UINT ufloat','spaced',3,'p_spaced','angle_utilities.py',194),
-  ('spaced -> sign UINT UINT ufloat','spaced',4,'p_spaced','angle_utilities.py',195),
-  ('generic -> colon','generic',1,'p_generic','angle_utilities.py',204),
-  ('generic -> spaced','generic',1,'p_generic','angle_utilities.py',205),
-  ('generic -> sign UFLOAT','generic',2,'p_generic','angle_utilities.py',206),
-  ('generic -> sign UINT','generic',2,'p_generic','angle_utilities.py',207),
-  ('hms -> sign UINT HOUR','hms',3,'p_hms','angle_utilities.py',216),
-  ('hms -> sign UINT HOUR ufloat','hms',4,'p_hms','angle_utilities.py',217),
-  ('hms -> sign UINT HOUR UINT MINUTE','hms',5,'p_hms','angle_utilities.py',218),
-  ('hms -> sign UINT HOUR UFLOAT MINUTE','hms',5,'p_hms','angle_utilities.py',219),
-  ('hms -> sign UINT HOUR UINT MINUTE ufloat','hms',6,'p_hms','angle_utilities.py',220),
-  ('hms -> sign UINT HOUR UINT MINUTE ufloat SECOND','hms',7,'p_hms','angle_utilities.py',221),
-  ('hms -> generic HOUR','hms',2,'p_hms','angle_utilities.py',222),
-  ('dms -> sign UINT DEGREE','dms',3,'p_dms','angle_utilities.py',235),
-  ('dms -> sign UINT DEGREE ufloat','dms',4,'p_dms','angle_utilities.py',236),
-  ('dms -> sign UINT DEGREE UINT MINUTE','dms',5,'p_dms','angle_utilities.py',237),
-  ('dms -> sign UINT DEGREE UFLOAT MINUTE','dms',5,'p_dms','angle_utilities.py',238),
-  ('dms -> sign UINT DEGREE UINT MINUTE ufloat','dms',6,'p_dms','angle_utilities.py',239),
-  ('dms -> sign UINT DEGREE UINT MINUTE ufloat SECOND','dms',7,'p_dms','angle_utilities.py',240),
-  ('dms -> generic DEGREE','dms',2,'p_dms','angle_utilities.py',241),
-  ('simple -> generic','simple',1,'p_simple','angle_utilities.py',254),
-  ('simple -> generic SIMPLE_UNIT','simple',2,'p_simple','angle_utilities.py',255),
-  ('arcsecond -> generic SECOND','arcsecond',2,'p_arcsecond','angle_utilities.py',264),
-  ('arcminute -> generic MINUTE','arcminute',2,'p_arcminute','angle_utilities.py',270),
+  ('angle -> hms','angle',1,'p_angle','angle_utilities.py',170),
+  ('angle -> dms','angle',1,'p_angle','angle_utilities.py',171),
+  ('angle -> arcsecond','angle',1,'p_angle','angle_utilities.py',172),
+  ('angle -> arcminute','angle',1,'p_angle','angle_utilities.py',173),
+  ('angle -> simple','angle',1,'p_angle','angle_utilities.py',174),
+  ('sign -> SIGN','sign',1,'p_sign','angle_utilities.py',180),
+  ('sign -> <empty>','sign',0,'p_sign','angle_utilities.py',181),
+  ('dir -> DIRECTION','dir',1,'p_dir','angle_utilities.py',190),
+  ('dir -> <empty>','dir',0,'p_dir','angle_utilities.py',191),
+  ('ufloat -> UFLOAT','ufloat',1,'p_ufloat','angle_utilities.py',201),
+  ('ufloat -> UINT','ufloat',1,'p_ufloat','angle_utilities.py',202),
+  ('colon -> sign UINT COLON ufloat','colon',4,'p_colon','angle_utilities.py',208),
+  ('colon -> sign UINT COLON UINT COLON ufloat','colon',6,'p_colon','angle_utilities.py',209),
+  ('spaced -> sign UINT ufloat','spaced',3,'p_spaced','angle_utilities.py',218),
+  ('spaced -> sign UINT UINT ufloat','spaced',4,'p_spaced','angle_utilities.py',219),
+  ('spaced -> sign UINT ufloat dir','spaced',4,'p_spaced','angle_utilities.py',220),
+  ('spaced -> sign UINT UINT ufloat dir','spaced',5,'p_spaced','angle_utilities.py',221),
+  ('generic -> colon','generic',1,'p_generic','angle_utilities.py',236),
+  ('generic -> spaced','generic',1,'p_generic','angle_utilities.py',237),
+  ('generic -> sign UFLOAT','generic',2,'p_generic','angle_utilities.py',238),
+  ('generic -> sign UINT','generic',2,'p_generic','angle_utilities.py',239),
+  ('generic -> sign UFLOAT dir','generic',3,'p_generic','angle_utilities.py',240),
+  ('generic -> sign UINT dir','generic',3,'p_generic','angle_utilities.py',241),
+  ('hms -> sign UINT HOUR','hms',3,'p_hms','angle_utilities.py',254),
+  ('hms -> sign UINT HOUR ufloat','hms',4,'p_hms','angle_utilities.py',255),
+  ('hms -> sign UINT HOUR UINT MINUTE','hms',5,'p_hms','angle_utilities.py',256),
+  ('hms -> sign UINT HOUR UFLOAT MINUTE','hms',5,'p_hms','angle_utilities.py',257),
+  ('hms -> sign UINT HOUR UINT MINUTE ufloat','hms',6,'p_hms','angle_utilities.py',258),
+  ('hms -> sign UINT HOUR UINT MINUTE ufloat SECOND','hms',7,'p_hms','angle_utilities.py',259),
+  ('hms -> sign UINT HOUR dir','hms',4,'p_hms','angle_utilities.py',260),
+  ('hms -> sign UINT HOUR ufloat dir','hms',5,'p_hms','angle_utilities.py',261),
+  ('hms -> sign UINT HOUR UINT MINUTE dir','hms',6,'p_hms','angle_utilities.py',262),
+  ('hms -> sign UINT HOUR UFLOAT MINUTE dir','hms',6,'p_hms','angle_utilities.py',263),
+  ('hms -> sign UINT HOUR UINT MINUTE ufloat dir','hms',7,'p_hms','angle_utilities.py',264),
+  ('hms -> sign UINT HOUR UINT MINUTE ufloat SECOND dir','hms',8,'p_hms','angle_utilities.py',265),
+  ('hms -> generic HOUR','hms',2,'p_hms','angle_utilities.py',266),
+  ('dms -> sign UINT DEGREE','dms',3,'p_dms','angle_utilities.py',290),
+  ('dms -> sign UINT DEGREE ufloat','dms',4,'p_dms','angle_utilities.py',291),
+  ('dms -> sign UINT DEGREE UINT MINUTE','dms',5,'p_dms','angle_utilities.py',292),
+  ('dms -> sign UINT DEGREE UFLOAT MINUTE','dms',5,'p_dms','angle_utilities.py',293),
+  ('dms -> sign UINT DEGREE UINT MINUTE ufloat','dms',6,'p_dms','angle_utilities.py',294),
+  ('dms -> sign UINT DEGREE UINT MINUTE ufloat SECOND','dms',7,'p_dms','angle_utilities.py',295),
+  ('dms -> sign UINT DEGREE dir','dms',4,'p_dms','angle_utilities.py',296),
+  ('dms -> sign UINT DEGREE ufloat dir','dms',5,'p_dms','angle_utilities.py',297),
+  ('dms -> sign UINT DEGREE UINT MINUTE dir','dms',6,'p_dms','angle_utilities.py',298),
+  ('dms -> sign UINT DEGREE UFLOAT MINUTE dir','dms',6,'p_dms','angle_utilities.py',299),
+  ('dms -> sign UINT DEGREE UINT MINUTE ufloat dir','dms',7,'p_dms','angle_utilities.py',300),
+  ('dms -> sign UINT DEGREE UINT MINUTE ufloat SECOND dir','dms',8,'p_dms','angle_utilities.py',301),
+  ('dms -> generic DEGREE','dms',2,'p_dms','angle_utilities.py',302),
+  ('simple -> generic','simple',1,'p_simple','angle_utilities.py',326),
+  ('simple -> generic SIMPLE_UNIT','simple',2,'p_simple','angle_utilities.py',327),
+  ('arcsecond -> generic SECOND','arcsecond',2,'p_arcsecond','angle_utilities.py',336),
+  ('arcminute -> generic MINUTE','arcminute',2,'p_arcminute','angle_utilities.py',342),
 ]

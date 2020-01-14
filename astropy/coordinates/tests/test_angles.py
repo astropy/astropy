@@ -572,6 +572,14 @@ def test_angle_string():
     a = Angle("10'")
     assert_allclose(a.value, 10.0)
     assert a.unit == u.arcminute
+    with pytest.raises(ValueError):
+        Angle('00:00:60N', u.deg)
+    with pytest.raises(ValueError):
+        Angle('00:00:10S', u.hour)
+    with pytest.raises(ValueError):
+        Angle('45°55′12″NS')
+    a = Angle('45°55′12″S')
+    assert str(a) == '-45d55m12s'
 
 
 def test_angle_repr():
