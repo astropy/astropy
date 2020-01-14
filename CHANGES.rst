@@ -15,6 +15,9 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
+- Added the ``direction`` feature to the angle initialization.
+  Now one can add the direction to the ``string`` instance while
+  initializing the angle.
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
