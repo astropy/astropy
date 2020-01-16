@@ -237,7 +237,8 @@ Test coverage reports
 ---------------------
 
 Coverage reports can be generated using the `pytest-cov
-<https://pypi.org/project/pytest-cov/>`_ plugin by using e.g.::
+<https://pypi.org/project/pytest-cov/>`_ plugin (which is installed
+automatically when installing pytest-astropy) by using e.g.::
 
     pytest --cov astropy --cov-report html
 
