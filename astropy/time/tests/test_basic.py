@@ -14,7 +14,7 @@ from astropy.tests.helper import catch_warnings, pytest
 from astropy.utils.exceptions import AstropyDeprecationWarning, ErfaWarning
 from astropy.utils import isiterable, iers
 from astropy.time import (Time, TimeDelta, ScaleValueError, STANDARD_TIME_SCALES,
-                          TimeString, TimezoneInfo)
+                          TimeString, TimezoneInfo, TIME_FORMATS)
 from astropy.coordinates import EarthLocation
 from astropy import units as u
 from astropy import _erfa as erfa
@@ -2147,3 +2147,14 @@ def test_format_subformat_compatibility():
     t = Time('2019-12-20', out_subfmt='date')
     assert t.mjd == 58837.0
     assert t.yday == '2019:354'
+
+
+@pytest.mark.parametrize('fmt_name,fmt_class', TIME_FORMATS.items())
+def test_to_value_with_subfmt_for_every_format(fmt_name, fmt_class):
+    """From a starting Time value, test that every valid combination of
+    to_value(format, subfmt) works.  See #9812, #9361.
+    """
+    t = Time('2000-01-01')
+    subfmts = list(subfmt[0] for subfmt in fmt_class.subfmts) + [None, '*']
+    for subfmt in subfmts:
+        t.to_value(fmt_name, subfmt)
