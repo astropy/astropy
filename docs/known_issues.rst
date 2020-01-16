@@ -388,3 +388,37 @@ this can be fixed by updating to the latest version of the ``_astropy_init.py``
 file. The root cause of this issue is that pytest now tries to pick up the
 top-level ``test()`` function as a test, so we need to make sure that we set a
 ``test.__test__`` attribute on the function to ``False``.
+
+
+Workarounds for Unspported Versions
+===================================
+
+These are problems in *earlier* versions of Astropy which are caused by
+changes to something outside of the control of Astropy itself.  Workarounds
+are provided as a way to potentially keep code that depends on older versions
+functioning.  This are to be considered "as-is" or "best effort", though, as
+older versions of Astropy cannot be supported for arbitrarily long amounts of
+time.
+
+IERS server changes
+-------------------
+
+In late 2019, the canonical server for providing the most precise earth rotation
+parameters (the USNO IERS server) was taken offline for an extended period.
+While current versions of Astropy have been updated to use a mirror server,
+older versions (i.e. prior to 3.2.3) still have as their default the server
+that is unavilable (at the time of this writing).  A workaround is to use the
+following code::
+
+    from astropy.utils import iers
+    iers.Conf.iers_auto_url.set('ftp://cddis.gsfc.nasa.gov/pub/products/iers/finals2000A.all')
+
+this must be executed *before* any code that makes use of IERS (much of
+`astropy.coordinates` and significant portions of `astropy.time`) - the safest
+choice is to run it before *any* other Astropy code.
+
+These servers are not under Astropy's control so it is possible they may change
+again in the future. In that case the above snippet can be used but the URL
+would need to be changed to whatever the new server might be.
+
+See: https://github.com/astropy/astropy/issues/9427
