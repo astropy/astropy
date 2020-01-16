@@ -47,7 +47,7 @@ jobs:
 
   image-tests-mpl212:
     docker:
-      - image: astropy/image-tests-py36-mpl212:1.8
+      - image: astropy/image-tests-py36-mpl212:1.10
     steps:
       - checkout
       - run:
@@ -58,7 +58,7 @@ jobs:
 
   image-tests-mpl222:
     docker:
-      - image: astropy/image-tests-py36-mpl222:1.8
+      - image: astropy/image-tests-py36-mpl222:1.10
     steps:
       - checkout
       - run:
@@ -69,7 +69,7 @@ jobs:
 
   image-tests-mpl302:
     docker:
-      - image: astropy/image-tests-py37-mpl302:1.8
+      - image: astropy/image-tests-py37-mpl302:1.10
     steps:
       - checkout
       - run:
@@ -80,7 +80,7 @@ jobs:
 
   image-tests-mpl310:
     docker:
-      - image: astropy/image-tests-py37-mpl311:1.8
+      - image: astropy/image-tests-py37-mpl311:1.10
     steps:
       - checkout
       - run:
@@ -91,7 +91,7 @@ jobs:
 
   image-tests-mpldev:
     docker:
-      - image: astropy/image-tests-py37-base:1.2
+      - image: astropy/image-tests-py37-base:1.4
     steps:
       - checkout
       - run:
