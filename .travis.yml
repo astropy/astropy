@@ -15,6 +15,10 @@ os:
 
 stage: Comprehensive tests
 
+# We need a full clone to make sure setuptools_scm works properly
+git:
+    depth: false
+
 # Setting sudo to false opts in to Travis-CI container-based builds.
 sudo: false
 
@@ -159,10 +163,6 @@ matrix:
                TOXPOSARGS="--remote-data=any"
 
 before_install:
-
-    # We need a full clone to make sure setuptools_scm works properly
-    - git fetch --unshallow .
-    - git fetch --depth=1000000
 
     # We need to use CCOMPILER otherwise Travis overwrites CC if we define it
     # in env: above.
