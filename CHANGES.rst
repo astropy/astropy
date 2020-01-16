@@ -279,8 +279,6 @@ Other Changes and Additions
   manage the version number, and adding a ``pyproject.toml`` to opt in to
   isolated builds as described in PEP 517/518. [#9726]
 
-- The minimum supported version of asdf has been updated to 2.4. [#9726]
-
 4.0.1 (unreleased)
 ==================
 
