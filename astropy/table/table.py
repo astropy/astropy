@@ -3030,6 +3030,29 @@ class Table:
         for index in self.indices:
             index.reverse()
 
+    def round(self, decimals=0):
+        '''
+        Round columns to a specific number of decimals.
+
+        Parameters
+        ----------
+        decimals: int, dict
+            Number of decimals to round the columns to. If a dict is given,
+            the columns will be rounded to the number specified as the value.
+            If a certain column is not in the dict given, it will remain the
+            same.
+        '''
+        if isinstance(decimals, dict):
+            for k, v in decimals.items():
+                if self.columns[k].info.dtype.kind == 'f':
+                    np.around(self.columns[k], decimals=v, out=self.columns[k])
+        elif isinstance(decimals, int):
+            for col in self.itercols():
+                if col.info.dtype.kind == 'f':
+                    np.around(col, decimals=decimals, out=col)
+        else:
+            raise ValueError("Value must be an int or a dict")
+
     def copy(self, copy_data=True):
         '''
         Return a copy of the table.
