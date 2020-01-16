@@ -15,10 +15,9 @@ try:
     import matplotlib    # pylint: disable=W0611
     from matplotlib import pyplot as plt
     HAS_MATPLOTLIB = True
+    MATPLOTLIB_LT_32 = LooseVersion(matplotlib.__version__) < '3.2'
 except ImportError:
     HAS_MATPLOTLIB = False
-
-MATPLOTLIB_LT_32 = LooseVersion(matplotlib.__version__) < '3.2'
 
 DATA = np.linspace(0., 15., 6)
 DATA2 = np.arange(3)
