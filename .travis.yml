@@ -67,6 +67,7 @@ matrix:
 
         # Try MacOS X.
         - os: osx
+          name: Python 3.7 with all optional dependencies
           stage: Cron tests
           env: PYTHON_VERSION=3.7
                TOXENV="py37-test-alldeps"
@@ -85,12 +86,14 @@ matrix:
         # impact on running the tests, hence why it is not enabled by default.
         - language: python
           python: 3.6
+          name: Python 3.6 with oldest supported version of all dependencies
           env: TOXENV="py36-test-oldestdeps"
                TOXPOSARGS="--open-files"
 
         # Now try with all optional dependencies.
         - language: python
           python: 3.6
+          name: Python 3.6 with all optional dependencies
           stage: Initial tests
           env: TOXENV="py36-test-alldeps"
                TOXPOSARGS="--durations=50""
@@ -99,6 +102,7 @@ matrix:
         # Full tests with coverage checks.
         - language: python
           python: 3.7
+          name: Python 3.7 with all optional dependencies and coverage
           env: TOXENV="py37-test-alldeps-cov"
                TOXPOSARGS="--remote-data=astropy"
                LC_CTYPE=C.ascii LC_ALL=C
@@ -107,12 +111,14 @@ matrix:
         # NOTE: Can't use Numpy 1.18 until Issue 9871 is resolved
         - os: windows
           stage: Final tests
+          name: Python 3.7 with all optional dependencies
           env: PYTHON_VERSION=3.7
                TOXENV='py37-test-alldeps'
 
         # Do a PEP8/pyflakes test with flake8
         - language: python
           python: 3.7
+          name: Code style checks
           stage: Initial tests
           env: TOXENV='codestyle'
 
@@ -122,6 +128,7 @@ matrix:
         # mark as an allowed failure below.
         - language: python
           python: 3.7
+          name: Python 3.7 with remote data and dev version of key dependencies
           stage: Final tests
           env: TOXENV="py37-test-devdeps"
                TOXPOSARGS="--remote-data=any"
@@ -133,6 +140,7 @@ matrix:
         # releases.
         - language: python
           python: 3.7
+          name: Python 3.7 with dev version of key dependencies
           stage: Cron tests
           env: TOXENV="py37-test-devdeps"
 
@@ -141,6 +149,7 @@ matrix:
         # we moved it here instead.
         - language: python
           python: 3.7
+          name: Documentation link check
           stage: Cron tests
           env: TOXENV='linkcheck'
           addons:
@@ -150,14 +159,16 @@ matrix:
 
         # Testing with Travis provided Python3.8.
         - language: python
-          stage: Final tests
           dist: xenial
           python: 3.8
+          name: Python 3.8 with required dependencies
+          stage: Final tests
           env: TOXENV='py38-test'
 
     allow_failures:
         - language: python
           python: 3.7
+          name: Python 3.7 with remote data and dev version of key dependencies
           stage: Final tests
           env: TOXENV="py37-test-devdeps"
                TOXPOSARGS="--remote-data=any"
