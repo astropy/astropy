@@ -46,7 +46,7 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: pip install -e .[test] pytest-mpl git+https://github.com/astropy/pytest-filter-subpackage
+          command: pip install -e .[test] pytest-mpl
       - run:
           name: Run tests
           command: pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
@@ -60,7 +60,7 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: pip install -e .[test] pytest-mpl git+https://github.com/astropy/pytest-filter-subpackage
+          command: pip install -e .[test] pytest-mpl
       - run:
           name: Run tests
           command: pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
@@ -74,7 +74,7 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: pip install -e .[test] pytest-mpl git+https://github.com/astropy/pytest-filter-subpackage
+          command: pip install -e .[test] pytest-mpl
       - run:
           name: Run tests
           command: pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
@@ -88,7 +88,7 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: pip install -e .[test] pytest-mpl git+https://github.com/astropy/pytest-filter-subpackage
+          command: pip install -e .[test] pytest-mpl
       - run:
           name: Run tests
           command: pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
@@ -104,7 +104,7 @@ jobs:
           name: Install Python dependencies, including developer version of Matplotlib
           command: |
             pip3 install git+https://github.com/matplotlib/matplotlib.git
-            pip3 install -e .[test] pytest-mpl git+https://github.com/astropy/pytest-filter-subpackage
+            pip3 install -e .[test] pytest-mpl
       - run:
           name: Run tests
           command: pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
