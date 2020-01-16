@@ -242,11 +242,8 @@ automatically when installing pytest-astropy) by using e.g.::
 
     pytest --cov astropy --cov-report html
 
-There is a `coveragerc
-<https://coverage.readthedocs.io/en/latest/config.html>`_ file that
-defines files to omit as well as lines to exclude.  It is installed
-along with astropy so that the ``astropy`` testing framework can use
-it.  In the source tree, it is at ``astropy/tests/coveragerc``.
+There is some configuration inside the ``setup.cfg`` file that
+defines files to omit as well as lines to exclude.
 
 Running tests in parallel
 -------------------------
