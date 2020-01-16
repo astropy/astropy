@@ -293,15 +293,43 @@ class TimeFormat(metaclass=TimeFormatMeta):
         """
         raise NotImplementedError
 
-    def to_value(self, parent=None):
+    def to_value(self, parent=None, out_subfmt=None):
         """
-        Return time representation from internal jd1 and jd2.  This is
-        the base method that ignores ``parent`` and requires that
-        subclasses implement the ``value`` property.  Subclasses that
-        require ``parent`` or have other optional args for ``to_value``
-        should compute and return the value directly.
+        Return time representation from internal jd1 and jd2 in specified
+        ``out_subfmt``.
+
+        This is the base method that ignores ``parent`` and uses the ``value``
+        property to compute the output. This is done by temporarily setting
+        ``self.out_subfmt`` and calling ``self.value``. This is required for
+        legacy Format subclasses prior to astropy 4.0  New code should instead
+        implement the value functionality in ``to_value()`` and then make the
+        ``value`` property be a simple call to ``self.to_value()``.
+
+        Parameters
+        ----------
+        parent : obj
+            Parent `~astropy.time.Time` object associated with this
+            `~astropy.time.TimeFormat` object
+        out_subfmt : str or `None`
+            Output subformt (use existing self.out_subfmt if `None`)
+
+        Returns
+        -------
+        value : numpy.array, numpy.ma.array
+            Array or masked array of formatted time representation values
         """
-        return self.mask_if_needed(self.value)
+        # Get value via ``value`` property, overriding out_subfmt temporarily if needed.
+        if out_subfmt is not None:
+            out_subfmt_orig = self.out_subfmt
+            try:
+                self.out_subfmt = out_subfmt
+                value = self.value
+            finally:
+                self.out_subfmt = out_subfmt_orig
+        else:
+            value = self.value
+
+        return self.mask_if_needed(value)
 
     @property
     def value(self):
@@ -488,7 +516,7 @@ class TimeDecimalYear(TimeNumeric):
         dt_end = (jd1_end - jd1_start) + (jd2_end - jd2_start)
         decimalyear = iy_start + dt / dt_end
 
-        return super().to_value(jd1=decimalyear, jd2=0., **kwargs)
+        return super().to_value(jd1=decimalyear, jd2=np.float64(0.0), **kwargs)
 
     value = property(to_value)
 
@@ -773,7 +801,7 @@ class TimeDatetime(TimeUnique):
                               *iterator.operands[1:])
         self.jd1, self.jd2 = day_frac(jd1, jd2)
 
-    def to_value(self, timezone=None, parent=None):
+    def to_value(self, timezone=None, parent=None, out_subfmt=None):
         """
         Convert to (potentially timezone-aware) `~datetime.datetime` object.
 
@@ -790,6 +818,11 @@ class TimeDatetime(TimeUnique):
         `~datetime.datetime`
             If ``timezone`` is not ``None``, output will be timezone-aware.
         """
+        if out_subfmt is not None:
+            # Out_subfmt not allowed for this format, so raise the standard
+            # exception by trying to validate the value.
+            self._select_subfmts(out_subfmt)
+
         if timezone is not None:
             if self._scale != 'utc':
                 raise ScaleValueError("scale is {}, must be 'utc' when timezone "
@@ -1390,7 +1423,7 @@ class TimeEpochDate(TimeNumeric):
     def to_value(self, **kwargs):
         jd_to_epoch = getattr(erfa, self.jd_to_epoch)
         value = jd_to_epoch(self.jd1, self.jd2)
-        return super().to_value(jd1=value, jd2=0., **kwargs)
+        return super().to_value(jd1=value, jd2=np.float64(0.0), **kwargs)
 
     value = property(to_value)
 
