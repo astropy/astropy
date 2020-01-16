@@ -9,7 +9,6 @@ include pyproject.toml
 
 include ah_bootstrap.py
 include setup.cfg
-include astropy/tests/coveragerc
 recursive-include astropy *.pyx *.c *.h *.map *.templ
 
 include astropy/astropy.cfg
