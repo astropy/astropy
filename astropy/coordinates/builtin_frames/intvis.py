@@ -77,7 +77,7 @@ class InterferometricVisibility(BaseCoordinateFrame):
 
     obstime = TimeAttribute(default=None)
     location = EarthLocationAttribute(default=None)
-    phase = CoordinateAttribute(ICRS,default=None)
+    phase = CoordinateAttribute(ICRS, default=None)
 
     def __init__(self, *args, **kwargs):
         super(InterferometricVisibility, self).__init__(*args, **kwargs)
@@ -89,7 +89,7 @@ def itrs_to_uvw(itrs_coo, uvw_frame):
                         itrs_coo.cartesian.x.unit == u.one)
     lon, lat, height = uvw_frame.location.to_geodetic('WGS84')
     lst = uvw_frame.obstime.sidereal_time('mean',longitude=lon).to(u.radian).value
-    ha = (lst - uvw_frame.phase.ra).to(u.radian).value
+    ha = lst - uvw_frame.phase.ra.to(u.radian).value
     dec = uvw_frame.phase.dec.to(u.radian).value
     lonrad = lon.to(u.radian).value - ha
     latrad = dec
