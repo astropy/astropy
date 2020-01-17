@@ -59,6 +59,9 @@ htmlcov
 # Mac OSX
 .DS_Store
 
+#log files
+.log
+
 # PyCharm
 .idea
 
