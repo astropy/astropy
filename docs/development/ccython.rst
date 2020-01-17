@@ -39,7 +39,7 @@ need access to the numpy C headers.  When doing this, you should use
     import numpy
 
     def get_extensions():
-        return Extension(name='myextension', sources=['myext.pyx'],
+        return Extension(name='myextension', sources=['myext.c'],
                          include_dirs=[numpy.get_include()])
 
 
