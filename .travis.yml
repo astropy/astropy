@@ -22,13 +22,13 @@ git:
 # Setting sudo to false opts in to Travis-CI container-based builds.
 sudo: false
 
-# tzdata is included to ensure system leap seconds are up to date.
 addons:
     apt:
         packages:
             # We include the german language pack because we use the
             # de_DE locale in some of the io.ascii tests.
             - language-pack-de
+            # tzdata is included to ensure system leap seconds are up to date.
             - tzdata
 
 env:
