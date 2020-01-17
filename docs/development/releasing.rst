@@ -343,7 +343,7 @@ The procedure for this is straightforward:
 
 #. Update your local master branch to use to the latest version from github::
 
-      $ git fetch upstream
+      $ git fetch upstream --tags
       $ git checkout -B master upstream/master
 
 #. Create a new branch from master at the point you want the feature freeze to
