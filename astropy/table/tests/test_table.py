@@ -332,6 +332,29 @@ class TestReverse():
 
 
 @pytest.mark.usefixtures('table_types')
+class TestRound():
+
+    def test_round_int(self, table_types):
+        t = table_types.Table([['a', 'b', 'c'],
+                               [1.11, 2.3, 3.0],
+                               [1.123456, 2.9876, 3.901]])
+        t.round()
+        assert np.all(t['col0'] == np.array(['a', 'b', 'c']))
+        assert np.all(t['col1'] == np.array([1., 2., 3.]))
+        assert np.all(t['col2'] == np.array([1., 3., 4.]))
+
+    def test_round_dict(self, table_types):
+        t = table_types.Table([['a', 'b', 'c'],
+                               [1.11, 2.6, 3.0111],
+                               [1.123456, 2.9876, 3.901]])
+
+        t.round({'col1': 1, 'col2': 3})
+        assert np.all(t['col0'] == np.array(['a', 'b', 'c']))
+        assert np.all(t['col1'] == np.array([1.1, 2.6, 3.0]))
+        assert np.all(t['col2'] == np.array([1.123, 2.988, 3.901]))
+
+
+@pytest.mark.usefixtures('table_types')
 class TestColumnAccess():
 
     def test_1(self, table_types):
