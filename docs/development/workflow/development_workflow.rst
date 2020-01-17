@@ -191,7 +191,7 @@ Fetch the latest Astropy
 From time to time you should fetch the development version (i.e. Astropy
 ``astropy/master``) changes from GitHub::
 
-   git fetch astropy
+   git fetch astropy --tags
 
 This will pull down any commits you don't have, and set the remote branches to
 point to the latest commit. For example, 'trunk' is the branch referred to by
@@ -221,7 +221,7 @@ Always make your branch from ``astropy/master`` so that you are basing your
 changes on the latest version of Astropy::
 
     # Update the mirror of trunk
-    git fetch astropy
+    git fetch astropy --tags
 
     # Make new feature branch starting at astropy/master
     git branch my-new-feature astropy/master
