@@ -60,7 +60,7 @@ Running Tests
 There are currently three different ways to invoke Astropy tests. Each
 method invokes `pytest`_ to run the tests but offers different options when
 calling. To run the tests, you will need to make sure you have the `pytest`_
-package (version 3.1 or later) installed.
+package installed.
 
 In addition to running the Astropy tests, these methods can also be called
 so that they check Python source code for `PEP8 compliance
@@ -69,28 +69,79 @@ options require the `pytest-pep8 plugin
 <https://pypi.org/project/pytest-pep8>`_, which must be installed
 separately.
 
+
+tox
+===
+
+The most robust way to run the tests (which can also be the slowest) is
+to make use of `Tox <https://tox.readthedocs.io/en/latest/>`__, which is a
+general purpose tool for automating Python testing. One of the benefits of tox
+is that it first creates a source distribution of the package being tested, and
+installs it into a new virtual environment, along with any dependencies that are
+declared in the package, before running the tests. This can therefore catch
+issues related to undeclared package data, or missing dependencies. Since we use
+tox to run many of the tests on continuous integration services, it can also be
+used in many cases to reproduce issues seen on those services.
+
+To run the tests with tox, first make sure that tox is installed, e.g.::
+
+    pip install tox
+
+then run the basic test suite with::
+
+    tox -e test
+
+or run the test suite with all optional dependencies with::
+
+    tox -e test-alldeps
+
+You can see a list of available test environments with::
+
+    tox -l -v
+
+which will also explain what each of them does.
+
+You can also run checks or commands not directly related to tests - for instance::
+
+    tox -e codestyle
+
+will run checks using the flake8 tool.
+
+Is is possible to pass options to pytest when running tox - to do this, add a
+``--`` after the regular tox command, and anything after this will be passed to
+pytest, e.g.::
+
+    tox -e test -- -v --pdb
+
+This can be used in conjunction with the ``-P`` option provided by the
+`pytest-filter-subpackage <https://github.com/astropy/pytest-filter-subpackage>`_
+plugin to run just part of the test suite.
+
 .. _running-pytest:
 
 pytest
 ======
 
-The test suite can be run directly from the native ``pytest`` command. In this
-case, it is important for developers to be aware that they must manually
+The test suite can also be run directly from the native ``pytest`` command,
+which is generally faster than using tox for iterative development. In
+this case, it is important for developers to be aware that they must manually
 rebuild any extensions by running::
 
-    python setup.py build_ext --inplace
+    pip install -e .[test]
 
 before running the test with pytest with::
 
     pytest
 
-Instead of calling ``build_ext --inplace``, you can also install the package
-in editable mode::
+Instead of calling ``pip install -e .[test]``, you can also build the
+extensions with::
 
-    pip install -e .[test]
+    python setup.py build_ext --inplace
 
-The latter is required if you need to test parts of the package that rely
-on certain `entry points <https://setuptools.readthedocs.io/en/latest/pkg_resources.html#entry-points>`_
+which avoids also installing the developer version of astropy into your current
+environment - however note that the ``pip`` command is required if you need to
+test parts of the package that rely on certain `entry points
+<https://setuptools.readthedocs.io/en/latest/pkg_resources.html#entry-points>`_
 being installed.
 
 It is possible to run only the tests for a particular subpackage or set of
@@ -160,53 +211,6 @@ Astropy Test Function
 ---------------------
 
 .. autofunction:: astropy.test
-
-tox
-===
-
-Finally, the most robust way to run the tests (which can also be the slowest) is
-to make use of `Tox <https://tox.readthedocs.io/en/latest/>`__, which is a
-general purpose tool for automating Python testing. One of the benefits of tox
-is that it first creates a source distribution of the package being tested, and
-installs it into a new virtual environment, along with any dependencies that are
-declared in the package, before running the tests. This can therefore catch
-issues related to undeclared package data, or missing dependencies. Since we use
-tox to run many of the tests on continuous integration services, it can also be
-used in many cases to reproduce issues seen on those services.
-
-To run the tests with tox, first make sure that tox is installed, e.g.::
-
-    pip install tox
-
-then run the basic test suite with::
-
-    tox -e test
-
-or run the test suite with all optional dependencies with::
-
-    tox -e test-alldeps
-
-You can see a list of available test environments with::
-
-    tox -l -v
-
-which will also explain what each of them does.
-
-You can also run checks or commands not directly related to tests - for instance::
-
-    tox -e codestyle
-
-will run checks using the flake8 tool.
-
-Is is possible to pass options to pytest when running tox - to do this, add a
-``--`` after the regular tox command, and anything after this will be passed to
-pytest, e.g.::
-
-    tox -e test -- -v --pdb
-
-This can be used in conjunction with the ``-P`` option provided by the
-`pytest-filter-subpackage <https://github.com/astropy/pytest-filter-subpackage>`_
-plugin to run just part of the test suite.
 
 Test-running options
 ====================
