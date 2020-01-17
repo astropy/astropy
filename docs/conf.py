@@ -29,6 +29,8 @@ from datetime import datetime
 import os
 import sys
 
+from pkg_resources import get_distribution
+
 import astropy
 
 try:
@@ -105,7 +107,10 @@ copyright = u'2011–{0}, '.format(datetime.utcnow().year) + author
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 
-release = version = astropy.__version__
+# The full version, including alpha/beta/rc tags.
+release = get_distribution(project).version
+# The short X.Y version.
+version = '.'.join(release.split('.')[:2])
 
 # -- Options for the module index ---------------------------------------------
 

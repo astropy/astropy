@@ -13,8 +13,6 @@ Requirements
 
 - `Numpy`_ |minimum_numpy_version| or later
 
-- `pytest <https://docs.pytest.org/en/latest/>`_ 3.1 or later
-
 ``astropy`` also depends on other packages for optional features:
 
 - `scipy`_: To power a variety of features in several modules.
@@ -289,6 +287,7 @@ installing with::
 
 which will install into a default directory in your home directory.
 
+.. _external_c_libraries:
 
 External C Libraries
 ^^^^^^^^^^^^^^^^^^^^

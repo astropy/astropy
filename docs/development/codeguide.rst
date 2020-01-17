@@ -308,7 +308,8 @@ Including C Code
   library in place of the library included in Astropy, and a user installing
   the package should be able to opt-in to using the system version using
   a ``ASTROPY_USE_SYSTEM_???`` environment variable, where ``???`` is the name
-  of the library.
+  of the library, e.g. ``ASTROPY_USE_SYSTEM_WCSLIB`` (see also
+  :ref:`external_c_libraries`).
 
 * In cases where C extensions are needed but Cython_ cannot be used, the `PEP 7
   Style Guide for C Code <https://www.python.org/dev/peps/pep-0007/>`_ is
