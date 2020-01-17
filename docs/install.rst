@@ -136,7 +136,7 @@ In most cases, this will install a pre-compiled version (called a *wheel*) of
 astropy, but if you are using a very recent version of Python, if a new version
 of astropy has just been released, or if you are building astropy for a platform
 that is not common, astropy will be installed from a source file. Note that in
-this case you will need a C compiler (e.g. ``gcc`` or ``clang``) to be installed
+this case you will need a C compiler (e.g., ``gcc`` or ``clang``) to be installed
 (see `Building from source`_ below) for the installation to succeed.
 
 If you get a ``PermissionError`` this means that you do not have the required
