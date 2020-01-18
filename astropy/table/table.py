@@ -3032,7 +3032,41 @@ class Table:
 
     def round(self, decimals=0):
         '''
-        Round columns to a specific number of decimals.
+        Round numeric columns in-place to the specified number of decimals.
+        Non-numeric columns will be ignored.
+
+        Examples
+        --------
+        Create three columns with different types:
+
+            >>> t = Table([[1, 4, 5], [-25.55, 12.123, 85],
+            ...     ['a', 'b', 'c']], names=('a', 'b', 'c'))
+            >>> print(t)
+             a    b     c
+            --- ------ ---
+              1 -25.55   a
+              4 12.123   b
+              5   85.0   c
+
+        Round them all to 0:
+
+            >>> t.round(0)
+            >>> print(t)
+             a    b    c
+            --- ----- ---
+              1 -26.0   a
+              4  12.0   b
+              5  85.0   c
+
+        Round column 'a' to -1 decimal:
+
+            >>> t.round({'a':-1})
+            >>> print(t)
+             a    b    c
+            --- ----- ---
+              0 -26.0   a
+              0  12.0   b
+              0  85.0   c
 
         Parameters
         ----------
@@ -3043,15 +3077,17 @@ class Table:
             same.
         '''
         if isinstance(decimals, dict):
-            for k, v in decimals.items():
-                if self.columns[k].info.dtype.kind == 'f':
-                    np.around(self.columns[k], decimals=v, out=self.columns[k])
+            decimal_values = decimals.values()
+            column_names = decimals.keys()
         elif isinstance(decimals, int):
-            for col in self.itercols():
-                if col.info.dtype.kind == 'f':
-                    np.around(col, decimals=decimals, out=col)
+            decimal_values = itertools.repeat(decimals)
+            column_names = self.colnames
         else:
-            raise ValueError("Value must be an int or a dict")
+            raise ValueError("'decimals' argument must be an int or a dict")
+
+        for colname, decimal in zip(column_names, decimal_values):
+            if self.columns[colname].info.dtype.kind in 'iufc':
+                self.replace_column(colname, np.around(self.columns[colname], decimals=decimal))
 
     def copy(self, copy_data=True):
         '''
