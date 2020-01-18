@@ -339,19 +339,24 @@ class TestRound():
                                [1.11, 2.3, 3.0],
                                [1.123456, 2.9876, 3.901]])
         t.round()
-        assert np.all(t['col0'] == np.array(['a', 'b', 'c']))
-        assert np.all(t['col1'] == np.array([1., 2., 3.]))
-        assert np.all(t['col2'] == np.array([1., 3., 4.]))
+        assert np.all(t['col0'] == ['a', 'b', 'c'])
+        assert np.all(t['col1'] == [1., 2., 3.])
+        assert np.all(t['col2'] == [1., 3., 4.])
 
     def test_round_dict(self, table_types):
         t = table_types.Table([['a', 'b', 'c'],
-                               [1.11, 2.6, 3.0111],
+                               [1.5, 2.5, 3.0111],
                                [1.123456, 2.9876, 3.901]])
 
-        t.round({'col1': 1, 'col2': 3})
-        assert np.all(t['col0'] == np.array(['a', 'b', 'c']))
-        assert np.all(t['col1'] == np.array([1.1, 2.6, 3.0]))
-        assert np.all(t['col2'] == np.array([1.123, 2.988, 3.901]))
+        t.round({'col1': 0, 'col2': 3})
+        assert np.all(t['col0'] == ['a', 'b', 'c'])
+        assert np.all(t['col1'] == [2.0, 2.0, 3.0])
+        assert np.all(t['col2'] == [1.123, 2.988, 3.901])
+
+    def test_round_invalid(self, table_types):
+        t = table_types.Table([[1, 2, 3]])
+        with pytest.raises(ValueError):
+            t.round(0.5)
 
 
 @pytest.mark.usefixtures('table_types')
