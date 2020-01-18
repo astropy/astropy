@@ -8,6 +8,7 @@ from collections.abc import Mapping
 import warnings
 from copy import deepcopy
 import types
+import itertools
 
 import numpy as np
 from numpy import ma
@@ -1704,7 +1705,6 @@ class Table:
                     vals = (value[name] for name in value.dtype.names)
 
                 elif np.isscalar(value):
-                    import itertools
                     vals = itertools.repeat(value, n_cols)
 
                 else:  # Assume this is an iterable that will work
