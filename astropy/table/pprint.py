@@ -310,7 +310,6 @@ class TableFormatter:
 
         if outs['show_length']:
             col_strs.append('Length = {} rows'.format(len(col)))
-
         return col_strs, outs
 
     def _pformat_col_iter(self, col, max_lines, show_name, show_unit, outs,
@@ -588,9 +587,14 @@ class TableFormatter:
                 # _pformat_col output has a header line '----' which is not needed here
                 if i == n_header - 1:
                     continue
-                td = 'th' if i < n_header else 'td'
-                vals = ('<{}>{}</{}>'.format(td, xml_escape(col[i].strip()), td)
-                        for col in cols)
+                if any(col.info.description for col in table.columns.values()) and i < 1:
+                    vals = ('<th data-toggle="tooltip" title="{}">{}</th>'.format
+                     (table[col[i].strip()].info.description,
+                     xml_escape(col[i].strip()))for col in cols)
+                else:
+                    td = 'th' if i < n_header else 'td'
+                    vals = ('<{}>{}</{}>'.format(td, xml_escape(col[i].strip()), td)
+                            for col in cols)
                 row = ('<tr>' + ''.join(vals) + '</tr>')
                 if i < n_header:
                     row = ('<thead>' + row + '</thead>')
@@ -600,7 +604,6 @@ class TableFormatter:
             for i in range(n_rows):
                 row = ' '.join(col[i] for col in cols)
                 rows.append(row)
-
         return rows, outs
 
     def _more_tabcol(self, tabcol, max_lines=None, max_width=None,
