@@ -1477,12 +1477,14 @@ class Time(ShapedLikeNDArray):
         tm._format = new_format
         tm.SCALES = self.SCALES
 
-        # If current output subformat does not match any subfmts in new format
-        # then replace with default '*'.
-        try:
-            tm._time._select_subfmts(tm.out_subfmt)
-        except ValueError:
-            tm.out_subfmt = '*'
+        # If format has changed and current output subformat does not match any
+        # subfmts in new format then replace with default '*'.  If format is
+        # unchanged then the original out_subfmt is by definition OK.
+        if new_format != self.format:
+            try:
+                tm._time._select_subfmts(tm.out_subfmt)
+            except ValueError:
+                tm.out_subfmt = '*'
 
         return tm
 
