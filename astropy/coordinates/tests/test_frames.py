@@ -1238,6 +1238,7 @@ def test_galactocentric_references(reset_galactocentric_defaults):
             else:
                 assert k in galcen_custom.frame_attribute_references
 
+
 def test_uvw_frame():
     """Test the UVW frame by ensuring it meets the conventions defined in:
     https://casa.nrao.edu/Memos/CoordConvention.pdf
@@ -1256,10 +1257,10 @@ def test_uvw_frame():
     # with X - East, Z - NCP and Y - Down
     time = at.Time("2017-01-26T17:07:00.000",format='isot',scale='utc')
     loc = ac.EarthLocation(lon=10*u.deg,lat=10*u.deg,height=0*u.km)
-    enu = ac.ENU(location=loc,obstime=time)
+#    enu = ac.ENU(location=loc,obstime=time)
     lst = time.sidereal_time('mean',10*u.deg)
-    phase_enu = ac.ICRS(lst,10*u.deg)
-    enu = ac.UVW(location=loc,obstime=time,phase=phase_enu)
+#    phase_enu = ac.ICRS(lst,10*u.deg)
+    enu = ac.UVW(location=loc, obstime=time)#, phase=phase_enu)
     x = ac.SkyCoord(1,0,0,frame=enu)
     z = ac.SkyCoord(0,np.cos(loc.geodetic[1].rad),np.sin(loc.geodetic[1].rad),frame=enu)
     #ncp = ac.SkyCoord(0*u.one,0*u.one,1*u.one,frame='itrs').transform_to(enu)
