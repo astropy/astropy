@@ -362,6 +362,9 @@ astropy.visualization
 - Fixed bug from matplotlib >=3.1 where an empty Quantity array is
   sent for unit conversion as an empty list. [#9848]
 
+- Fixed compatibility with latest developer version of Matplotlib.
+  [#9875]
+
 astropy.wcs
 ^^^^^^^^^^^
 
