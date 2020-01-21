@@ -142,9 +142,11 @@ matrix:
                EVENT_TYPE='push pull_request cron'
 
         # Try on Windows
+        # NOTE: Can't use Numpy 1.18 until Issue 9871 is resolved
         - os: windows
           stage: Final tests
           env: PYTHON_VERSION=3.7 SETUP_CMD='test --readonly'
+               NUMPY_VERSION=1.17
                CONDA_DEPENDENCIES=""
                PIP_DEPENDENCIES="Cython scipy h5py beautifulsoup4 html5lib jinja2 pyyaml matplotlib scikit-image pytz pandas objgraph asdf"
 
