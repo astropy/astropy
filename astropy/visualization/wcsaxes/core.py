@@ -464,7 +464,7 @@ class WCSAxes(Axes):
     # xlabel). While these are meant to be a single positional argument,
     # Matplotlib internally sometimes specifies e.g. set_xlabel(xlabel=...).
 
-    def set_xlabel(self, xlabel=None, labelpad=1, **kwargs):
+    def set_xlabel(self, xlabel=None, labelpad=1, loc=None, **kwargs):
         if xlabel is None:
             xlabel = kwargs.pop('label', None)
             if xlabel is None:
@@ -474,7 +474,7 @@ class WCSAxes(Axes):
                 coord.set_axislabel(xlabel, minpad=labelpad, **kwargs)
                 break
 
-    def set_ylabel(self, ylabel=None, labelpad=1, **kwargs):
+    def set_ylabel(self, ylabel=None, labelpad=1, loc=None, **kwargs):
         if ylabel is None:
             ylabel = kwargs.pop('label', None)
             if ylabel is None:
