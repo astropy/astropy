@@ -497,7 +497,7 @@ def read(cls, *args, format=None, **kwargs):
             fileobj = None
 
             if len(args):
-                if isinstance(args[0], PATH_TYPES):
+                if isinstance(args[0], PATH_TYPES) and not os.path.isdir(args[0]):
                     from astropy.utils.data import get_readable_fileobj
                     # path might be a pathlib.Path object
                     if isinstance(args[0], pathlib.Path):

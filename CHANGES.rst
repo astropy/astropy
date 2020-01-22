@@ -32,6 +32,12 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+astropy.io
+^^^^^^^^^^
+
+- Fixed a bug that prevented the unified I/O infrastructure from working with
+  datasets that are represented by directories rather than files. [#9866]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
