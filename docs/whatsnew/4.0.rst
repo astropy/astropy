@@ -179,9 +179,9 @@ with times formatted using the :class:`~astropy.time.Time` class:
     import matplotlib.pyplot as plt
     from astropy.time import Time
     from astropy.visualization import time_support
-    time_support(format='isot', scale='tai')  # doctest: +IGNORE_OUTPUT
-    plt.figure(figsize=(5,3))  # doctest: +IGNORE_OUTPUT
-    plt.plot(Time([52000, 53000, 54000], format='mjd'), [1.2, 3.3, 2.3])  # doctest: +IGNORE_OUTPUT
+    time_support(format='isot', scale='tai')
+    plt.figure(figsize=(5, 3))
+    plt.plot(Time([52000, 53000, 54000], format='mjd'), [1.2, 3.3, 2.3])
 
 For more information, see :ref:`plotting-times`.
 
@@ -316,7 +316,7 @@ pixel and celestial coordinates::
     ...                        [-28.627, -29.156, -29.170, -28.815],
     ...                        unit='deg', frame='fk5')
 
-we can find the best-fitting WCS with::
+we can find the best-fitting WCS with:
 
 .. doctest-requires:: scipy
 
