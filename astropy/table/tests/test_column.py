@@ -370,7 +370,8 @@ class TestColumn():
 
         # Basic insert
         c1 = c.insert(1, [100, 200])
-        assert np.all(c1 == ['a', [100, 200], 1, None])
+        assert np.all(c1 == np.array(['a', [100, 200], 1, None],
+                                     dtype=object))
 
     def test_insert_masked(self):
         c = table.MaskedColumn([0, 1, 2], name='a', fill_value=9999,
