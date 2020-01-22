@@ -1247,64 +1247,27 @@ def test_uvw_frame():
     from ... import units as u
     from ... import coordinates as ac
 
-    def compVectors(a,b):
-        a = a.cartesian.xyz.value
-        a /= np.linalg.norm(a)
-        b = b.cartesian.xyz.value
-        b /= np.linalg.norm(b)
-        h = np.linalg.norm(a-b)
-        return h < 1e-8
     # with X - East, Z - NCP and Y - Down
-    time = at.Time("2017-01-26T17:07:00.000",format='isot',scale='utc')
-    loc = ac.EarthLocation(lon=10*u.deg,lat=10*u.deg,height=0*u.km)
-#    enu = ac.ENU(location=loc,obstime=time)
-    lst = time.sidereal_time('mean',10*u.deg)
-#    phase_enu = ac.ICRS(lst,10*u.deg)
-    enu = ac.UVW(location=loc, obstime=time)#, phase=phase_enu)
-    x = ac.SkyCoord(1,0,0,frame=enu)
-    z = ac.SkyCoord(0,np.cos(loc.geodetic[1].rad),np.sin(loc.geodetic[1].rad),frame=enu)
-    #ncp = ac.SkyCoord(0*u.one,0*u.one,1*u.one,frame='itrs').transform_to(enu)
-    y = ac.SkyCoord(0,np.sin(loc.geodetic[1].rad),-np.cos(loc.geodetic[1].rad),frame=enu)
-    lst = ac.AltAz(alt=90*u.deg,az=0*u.deg,location=loc,obstime=time).transform_to(ac.ICRS).ra
-    #ha = lst - ra
+    time = at.Time("2017-01-26T17:07:00.000", format='isot', scale='utc')
+    loc = ac.EarthLocation(lon=10*u.deg, lat=10*u.deg, height=0*u.km)
+    uvw_frame = ac.InterferometricVisibility(location=loc, obstime=time)
+
     print("a) when ha=0,dec=90  uvw aligns with xyz")
-    ha = 0*u.deg
-    ra = lst - ha
+    lst = time.sidereal_time('mean', loc.lon)
+    ra = lst
     dec = 90*u.deg
-    phaseTrack = ac.SkyCoord(ra,dec,frame=ac.ICRS)
-    uvw = ac.UVW(obstime=time,location=loc,phase=phaseTrack)
-    U = ac.SkyCoord(1,0,0,frame=uvw).transform_to(enu)
-    V = ac.SkyCoord(0,1,0,frame=uvw).transform_to(enu)
-    W = ac.SkyCoord(0,0,1,frame=uvw).transform_to(enu)
-    assert compVectors(U,x),"fail test a, u != x"
-    assert compVectors(V,y),"fail test a, v != y"
-    assert compVectors(W,z),"fail test a, w != z"
-    #print("passed a")
-    #print("b) v, w, z are always on great circle")
+
+    coo = ac.SkyCoord(ra=ra, dec=dec, frame=ac.ICRS)
+    assert coo.transform_to(uvw_frame).u.value == uvw_frame.location.x.value, "u != x"
+    assert coo.transform_to(uvw_frame).v.value == uvw_frame.location.y.value, "v != y"
+    assert coo.transform_to(uvw_frame).w.value == uvw_frame.location.z.value, "w != z"
+
+    print("b) v, w, z are always on great circle")
     assert np.cross(V.cartesian.xyz.value,W.cartesian.xyz.value).dot(z.cartesian.xyz.value) < 1e-10, "Not on the great circle"
-    #print("passed b")
-    #print("c) when ha = 0 U points east")
-    ha = 0*u.deg
-    ra = lst - ha
-    dec = 35*u.deg
-    phaseTrack = ac.SkyCoord(ra,dec,frame=ac.ICRS)
-    uvw = ac.UVW(obstime=time,location=loc,phase=phaseTrack)
-    U = ac.SkyCoord(1*u.m,0*u.m,0*u.m,frame=uvw).transform_to(enu)
-    V = ac.SkyCoord(0*u.m,1*u.m,0*u.m,frame=uvw).transform_to(enu)
-    W = ac.SkyCoord(0*u.m,0*u.m,1*u.m,frame=uvw).transform_to(enu)
-    assert np.cross(V.cartesian.xyz.value,W.cartesian.xyz.value).dot(z.cartesian.xyz.value) < 1e-10, "Not on the great circle"
-    east = ac.SkyCoord(1,0,0,frame=enu)
-    assert compVectors(U,east),"fail test c, u != east"
-    #print("passed c")
-    #print("d) when dec=0 and ha = -6 w points east")
+
+    print("c) when dec=0 and ha = -6 w points east")
     ha = -6*u.hourangle
     ra = lst - ha
     dec = 0*u.deg
-    phaseTrack = ac.SkyCoord(ra,dec,frame=ac.ICRS)
-    uvw = ac.UVW(obstime=time,location=loc,phase=phaseTrack)
-    U = ac.SkyCoord(1*u.m,0*u.m,0*u.m,frame=uvw).transform_to(enu)
-    V = ac.SkyCoord(0*u.m,1*u.m,0*u.m,frame=uvw).transform_to(enu)
-    W = ac.SkyCoord(0*u.m,0*u.m,1*u.m,frame=uvw).transform_to(enu)
-    assert np.cross(V.cartesian.xyz.value,W.cartesian.xyz.value).dot(z.cartesian.xyz.value) < 1e-10, "Not on the great circle"
-    assert compVectors(W,east),"fail test d, w != east"
-    #print("passed d")
+    coo = ac.SkyCoord(ra=ra, dec=dec, frame=ac.ICRS)
+    assert coo.transform_to(uvw_frame).w.value == uvw_frame.location.x.value, "w != x"
