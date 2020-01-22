@@ -348,7 +348,7 @@ that involve time::
     >>> header['CTYPE1'] = 'TIME'
     >>> header['CDELT1'] = 86400.
     >>> header['MJDREF'] = 58788.
-    >>> wcs = WCS(header)
+    >>> wcs = WCS(header)  # doctest: +IGNORE_WARNINGS
     >>> wcs.pixel_to_world([2, 3, 4])
     <Time object: scale='utc' format='mjd' value=[58791. 58792. 58793.]>
     >>> wcs.world_to_pixel(Time('2019-11-02T10:30:22'))
