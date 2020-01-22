@@ -487,3 +487,25 @@ class TestSubclass:
             assert t['a'].description == 'hello'
         else:
             assert t['a'].description is None
+
+
+def test_directory(tmpdir):
+
+    # Regression test for a bug that caused the I/O registry infrastructure to
+    # not work correctly for datasets that are represented by folders as
+    # opposed to files, when using the descriptors to add read/write methods.
+
+    io_registry.register_identifier('test_folder_format', TestData,
+                                    lambda o, *x, **y: o == 'read')
+    io_registry.register_reader('test_folder_format', TestData,
+                                empty_reader)
+
+    filename = tmpdir.mkdir('folder_dataset').strpath
+
+    # With the format explicitly specified
+    dataset = TestData.read(filename, format='test_folder_format')
+    assert isinstance(dataset, TestData)
+
+    # With the auto-format identification
+    dataset = TestData.read(filename)
+    assert isinstance(dataset, TestData)
