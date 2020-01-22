@@ -58,8 +58,9 @@ class InterferometricVisibility(BaseCoordinateFrame):
     It enables simple transformation between various other frames and the
     observers frame during the radio synthesis.
     It enables easily calculating elevation of a field with e.g.
-    >>> coord = astropy.coordinates.SkyCoord(ra=0*u.deg dec=0*u.deg)
-    >>> location = astropy.coordinates.EarthLocation(*observatory name*)
+    >>> import astropy
+    >>> coo = astropy.coordinates.SkyCoord(ra=0*u.deg, dec=0*u.deg)
+    >>> location = astropy.coordinates.EarthLocation(lon=-107.61828306, lat=34.07874917)
     >>> now = astropy.time.Time.now()
     >>> uvw_frame=astropy.coordinates.InterferometricVisibility(location=location, obstime=now)
     >>> uvw = coo.transform_to(uvw_frame) 

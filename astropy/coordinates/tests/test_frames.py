@@ -1238,7 +1238,7 @@ def test_galactocentric_references(reset_galactocentric_defaults):
             else:
                 assert k in galcen_custom.frame_attribute_references
 
-
+@pytest.mark.remote_data
 def test_uvw_frame():
     """Test the UVW frame by ensuring it meets the conventions defined in:
     https://casa.nrao.edu/Memos/CoordConvention.pdf
