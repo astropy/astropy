@@ -1,0 +1,43 @@
+repos:
+  # The warnings/errors we check for here are:
+  # E101 - mix of tabs and spaces
+  # W191 - use of tabs
+  # W291 - trailing whitespace
+  # W292 - no newline at end of file
+  # W293 - trailing whitespace
+  # W391 - blank line at end of file
+  # E111 - 4 spaces per indentation level
+  # E112 - 4 spaces per indentation level
+  # E113 - 4 spaces per indentation level
+  # E301 - expected 1 blank line, found 0
+  # E302 - expected 2 blank lines, found 0
+  # E303 - too many blank lines (3)
+  # E304 - blank lines found after function decorator
+  # E305 - expected 2 blank lines after class or function definition
+  # E306 - expected 1 blank line before a nested definition
+  # E502 - the backslash is redundant between brackets
+  # E722 - do not use bare except
+  # E901 - SyntaxError or IndentationError
+  # E902 - IOError
+  # F822: undefined name in __all__
+  # F823: local variable name referenced before assignment
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: 3.7.9
+    hooks:
+      - id: flake8
+        args: ['--count', '--select', 'E101,W191,W291,W292,W293,W391,E111,E112,E113,E301,E302,E303,E304,E306,E502,E722,E901,E902,F822,F823']
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.4.0
+    hooks:
+      - id: check-ast
+      - id: check-case-conflict
+      - id: trailing-whitespace
+        exclude: ".*(data|extern).*"
+      - id: check-yaml
+      - id: debug-statements
+      - id: check-added-large-files
+      - id: end-of-file-fixer
+        exclude: ".*(data|extern).*"
+      - id: mixed-line-ending
+        exclude: ".*(data|extern).*"
