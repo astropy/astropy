@@ -14,7 +14,7 @@ from astropy.coordinates.transformations import FunctionTransform
 from astropy.coordinates.representation import (SphericalRepresentation,
                               UnitSphericalRepresentation,CartesianRepresentation)
 
-from . import (ITRS, ICRS)
+from . import (ICRS, CIRS)
 
 
 class InterferometricVisibility(BaseCoordinateFrame):
@@ -87,8 +87,9 @@ def icrs_to_uvw(icrs_loc, uvw_frame):
 
     lon, lat, height = uvw_frame.location.to_geodetic('WGS84')
     lst = uvw_frame.obstime.sidereal_time('mean', longitude=lon).to(u.radian).value
-    ha = lst - icrs_loc.ra.to(u.radian).value
-    dec = icrs_loc.dec.to(u.rad)
+    # use CIRS frame to correct for nutation-precession
+    ha = lst - icrs_loc.transform_to(CIRS).ra.to(u.radian).value  
+    dec = icrs_loc.transform_to(CIRS).dec.to(u.rad)
 
     sinha = np.sin(ha)
     cosha = np.cos(ha)
