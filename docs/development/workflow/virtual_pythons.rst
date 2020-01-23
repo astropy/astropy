@@ -192,4 +192,3 @@ which the ``ENV`` is located; both also provide commands to make that a bit easi
 .. _virtualenvwrapper command documentation: https://virtualenvwrapper.readthedocs.io/en/latest/command_ref.html
 .. _documentation for the conda command: https://docs.conda.io/projects/conda/en/latest/commands.html
 .. _blog post announcing anaconda environments: https://www.anaconda.com/category/developer-blog/
-

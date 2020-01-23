@@ -42,7 +42,7 @@ the standard `Numpy broadcasting rules`_.
 Parameter constraints
 =====================
 
-`astropy.modeling` supports several types of parameter constraints. They are implemented 
+`astropy.modeling` supports several types of parameter constraints. They are implemented
 as properties of `~astropy.modeling.Parameter`, the class which defines all fittable
 parameters, and can be set on individual parameters or on model instances.
 

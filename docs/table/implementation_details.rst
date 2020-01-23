@@ -37,4 +37,3 @@ In some cases it is desirable to have a static copy of the full row.  This is
 available via the `~astropy.table.Row.as_void()` method, which creates and
 returns a ``numpy.void`` or ``numpy.ma.mvoid`` object with a copy of the
 original data.
-

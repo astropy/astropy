@@ -157,4 +157,3 @@ Reference/API
 
 .. automodapi:: astropy.logger
     :no-inheritance-diagram:
-

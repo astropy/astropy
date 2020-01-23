@@ -277,7 +277,7 @@ Combining stretches and Matplotlib normalization
 ================================================
 
 Stretches can also be combined with other stretches, just like transformations.
-The resulting :class:`~astropy.visualization.stretch.CompositeStretch` can be 
+The resulting :class:`~astropy.visualization.stretch.CompositeStretch` can be
 used to normalize Matplotlib images like any other stretch. For example, a
 composite stretch can stretch residual images with negative values:
 

@@ -63,6 +63,7 @@ import astropy.units as u
 # ``Sagittarius`` and make it a subclass of
 # `~astropy.coordinates.BaseCoordinateFrame`:
 
+
 class Sagittarius(coord.BaseCoordinateFrame):
     """
     A Heliocentric spherical coordinate system defined by the orbit
@@ -138,6 +139,7 @@ SGR_MATRIX = matrix_product(A, B, C, D)
 # the inverse of a rotation matrix is just its transpose, the required
 # transformation functions are very simple:
 
+
 @frame_transform_graph.transform(coord.StaticMatrixTransform, coord.Galactic, Sagittarius)
 def galactic_to_sgr():
     """ Compute the transformation matrix from Galactic spherical to
@@ -153,6 +155,7 @@ def galactic_to_sgr():
 #
 # We then register the inverse transformation by using the transpose of the
 # rotation matrix (which is faster to compute than the inverse):
+
 
 @frame_transform_graph.transform(coord.StaticMatrixTransform, Sagittarius, coord.Galactic)
 def sgr_to_galactic():

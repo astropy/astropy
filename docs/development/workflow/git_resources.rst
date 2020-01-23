@@ -48,7 +48,3 @@ online manual pages for some common commands:
 * `git status`_
 
 .. include:: links.inc
-
-
-
-

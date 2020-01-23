@@ -1372,7 +1372,7 @@ reason about highly complex compound models that use these mappings, but that
 is a possible enhancement for future versions.
 
 .. _model-reduction:
-   
+
 Model Reduction
 ---------------
 
