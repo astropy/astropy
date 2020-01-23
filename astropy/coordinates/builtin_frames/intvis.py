@@ -90,7 +90,12 @@ def icrs_to_uvw(icrs_loc, uvw_frame):
     # use CIRS frame to correct for nutation-precession
     ha = lst - icrs_loc.transform_to(CIRS).ra.to(u.radian).value  
     dec = icrs_loc.transform_to(CIRS).dec.to(u.rad)
+    xyz = [uvw_frame.location.x.value, uvw_frame.location.y.value, uvw_frame.location.z.value]
 
+    # rotate ITRS xyz to telescope local frame as in TMS
+#    ...
+
+    # rotate xyz to uvw as in TMS
     sinha = np.sin(ha)
     cosha = np.cos(ha)
     sindec = np.sin(dec)
@@ -100,8 +105,7 @@ def icrs_to_uvw(icrs_loc, uvw_frame):
              sindec*sinha,
              cosdec]
     up = [cosdec*cosha, -cosdec*sinha, sindec]
-    R = np.array([east,north,up])
-    xyz = [uvw_frame.location.x.value, uvw_frame.location.y.value, uvw_frame.location.z.value]
+    R = np.array([east,north,up]) 
 
     uvw = R.dot(xyz)
     rep = CartesianRepresentation(x = uvw[0],
