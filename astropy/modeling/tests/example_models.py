@@ -57,7 +57,7 @@ from astropy.modeling.functional_models import (
     TrapezoidDisk2D, AiryDisk2D, Moffat2D, Disk2D,
     Ring2D, Sersic1D, Sersic2D, Voigt1D, Planar2D, KingProjectedAnalytic1D,
     Exponential1D, Logarithmic1D)
-from astropy.modeling.physical_models import Drude1D
+from astropy.modeling.physical_models import Drude1D, Plummer1D
 from astropy.modeling.polynomial import Polynomial1D, Polynomial2D
 from astropy.modeling.powerlaws import (
     PowerLaw1D, BrokenPowerLaw1D, SmoothlyBrokenPowerLaw1D, ExponentialCutoffPowerLaw1D,
@@ -220,13 +220,19 @@ models_1D = {
         'y_lim': [0, 10],
     },
 
-
     Drude1D: {
         'parameters': [1.0, 8.0, 1.0],
         'x_values': [7.0, 8.0, 9.0, 10.0],
         'y_values': [0.17883212, 1.0, 0.21891892, 0.07163324],
         'x_lim': [1.0, 20.0],
         'y_lim': [0.0, 10.0]
+    },
+
+    Plummer1D: {
+        'parameters': [10., 0.5],
+        'x_values': [1.0000e-03, 2.5005e+00, 5.0000e+00],
+        'y_values': [1.90984022e+01, 5.53541843e-03, 1.86293603e-04],
+        'x_lim': [0.001, 100]
     },
 
     Exponential1D: {

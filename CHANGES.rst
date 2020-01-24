@@ -41,6 +41,7 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
+- Added Plummer1D model to ``functional_models``. [#9896]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
