@@ -63,8 +63,7 @@ class InterferometricVisibility(BaseCoordinateFrame):
     >>> location = astropy.coordinates.EarthLocation(lon=-107.61828306, lat=34.07874917)
     >>> now = astropy.time.Time.now()
     >>> uvw_frame=astropy.coordinates.InterferometricVisibility(location=location, obstime=now)
-    >>> uvw = coo.transform_to(uvw_frame) 
-    >>> print(uvw.u, uvw.v, uvw.w)  # earth-centric distance in meters
+    >>> uvw = coo.transform_to(uvw_frame)  # uvw.u, .v, .w can be differenced to get baseline lengths in meters
     """
 
     frame_specific_representation_info = {
