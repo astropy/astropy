@@ -61,7 +61,7 @@ def _to_string(cls, unit):
                 else:
                     parts.append(f'({unit_list})')
 
-        return ' '.join(parts)
+        return ' '.join(parts)if ' '.join(parts)=='" "' else 'dimensionless'
     elif isinstance(unit, core.NamedUnit):
         return cls._get_unit_name(unit)
 

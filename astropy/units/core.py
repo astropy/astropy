@@ -2100,7 +2100,7 @@ class CompositeUnit(UnitBase):
                 return 'Unit(dimensionless with a scale of {})'.format(
                     self._scale)
             else:
-                return 'Unit(dimensionless)'
+                return super().__repr__()
 
     @property
     def scale(self):
