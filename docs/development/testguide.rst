@@ -8,15 +8,14 @@ Testing Guidelines
 ******************
 
 This section describes the testing framework and format standards for tests in
-Astropy core packages (this also serves as recommendations for affiliated
-packages).
+Astropy core and coordinated packages, and also serves as recommendations for
+affiliated packages.
 
 Testing Framework
 *****************
 
 The testing framework used by astropy (and packages using the :doc:`Astropy
-package template <astropy-package-template>`) is the `pytest`_ framework,
-accessed through the ``python setup.py test`` command.
+package template <astropy-package-template>`) is the `pytest`_ framework.
 
 .. _pytest: https://pytest.org/en/latest/
 
@@ -30,20 +29,23 @@ accessed through the ``python setup.py test`` command.
 Testing Dependencies
 ********************
 
-As of Astropy 3.0, the dependencies used by the Astropy test runner are
-provided by a separate package called `pytest-astropy`_. This package provides
-the ``pytest`` dependency itself, in addition to several ``pytest`` plugins
-that are used by Astropy, and will also be of general use to other packages.
+The dependencies used by the Astropy test runner are provided by a separate
+package called `pytest-astropy`_. This package provides the ``pytest``
+dependency itself, in addition to several ``pytest`` plugins that are used by
+Astropy, and will also be of general use to other packages.
 
 Since the testing dependencies are not actually required to install or use
-Astropy, they are not included in ``install_requires`` in ``setup.py``.
-However, for technical reasons it is not currently possible to express these
-dependencies in ``tests_require`` either. Therefore, ``pytest-astropy`` is
-listed as an extra dependency using ``extras_require`` in ``setup.py``.
-Developers who want to run the test suite will need to install the testing
-package using pip::
+Astropy, they are not included in ``install_requires`` in ``setup.cfg``.
+Instead, they are listed in an ``extras_require`` section called ``test`` in
+``setup.cfg``. Developers who want to run the test suite will need to either
+install pytest-astropy directly::
 
-    > pip install pytest-astropy
+    pip install pytest-astropy
+
+or install the core package in 'editable' mode specifying the ``[test]``
+option::
+
+    pip install -e .[test]
 
 A detailed description of the plugins can be found in the :ref:`pytest-plugins`
 section.
@@ -58,7 +60,7 @@ Running Tests
 There are currently three different ways to invoke Astropy tests. Each
 method invokes `pytest`_ to run the tests but offers different options when
 calling. To run the tests, you will need to make sure you have the `pytest`_
-package (version 3.1 or later) installed.
+package installed.
 
 In addition to running the Astropy tests, these methods can also be called
 so that they check Python source code for `PEP8 compliance
@@ -67,50 +69,117 @@ options require the `pytest-pep8 plugin
 <https://pypi.org/project/pytest-pep8>`_, which must be installed
 separately.
 
-setup.py test
-=============
 
-The astropy core package and the Astropy package template provide a ``test``
-setup command, invoked by running ``python setup.py test`` while in the
-package root directory. Run ``python setup.py test --help`` to see the
-options to the test command.
+tox
+===
 
-Since ``python setup.py test`` wraps the widely-used pytest framework, you may
-from time to time want to pass options to the ``pytest`` command itself. For
-example, the ``-x`` option to stop after the first failure can be passed
-through with the ``--args`` argument::
+The most robust way to run the tests (which can also be the slowest) is
+to make use of `Tox <https://tox.readthedocs.io/en/latest/>`__, which is a
+general purpose tool for automating Python testing. One of the benefits of tox
+is that it first creates a source distribution of the package being tested, and
+installs it into a new virtual environment, along with any dependencies that are
+declared in the package, before running the tests. This can therefore catch
+issues related to undeclared package data, or missing dependencies. Since we use
+tox to run many of the tests on continuous integration services, it can also be
+used in many cases to reproduce issues seen on those services.
 
-    > python setup.py test --args "-x"
+To run the tests with tox, first make sure that tox is installed, e.g.::
 
-`pytest`_ will look for files that
-:ref:`look like tests <pytest:python test discovery>`, per default
-in the current directory and all recursive directories, then run all
-the code that looks like tests (essentially all functions or methods
-with ``test_`` prefixes or inside ``Test`` prefixed classes) within
-those files.
+    pip install tox
 
-Turn on PEP8 checking by passing ``--pep8`` to the ``test`` command. This will
-turn off regular testing and enable PEP8 testing.
+then run the basic test suite with::
 
-Note also that this test runner actually installs astropy into a temporary
-directory and uses that for running the tests.  This means that tests of things
-like entry points or data file paths should act just like they would once
-astropy is installed.  The other two approaches described below do *not* do
-this, and hence may give different results when run from the astropy source
-code. Hence if you're running the tests because you've modified code that might
-be impacted by this, the ``setup.py test`` approach is the recommended method.
+    tox -e test
+
+or run the test suite with all optional dependencies with::
+
+    tox -e test-alldeps
+
+You can see a list of available test environments with::
+
+    tox -l -v
+
+which will also explain what each of them does.
+
+You can also run checks or commands not directly related to tests - for instance::
+
+    tox -e codestyle
+
+will run checks using the flake8 tool.
+
+Is is possible to pass options to pytest when running tox - to do this, add a
+``--`` after the regular tox command, and anything after this will be passed to
+pytest, e.g.::
+
+    tox -e test -- -v --pdb
+
+This can be used in conjunction with the ``-P`` option provided by the
+`pytest-filter-subpackage <https://github.com/astropy/pytest-filter-subpackage>`_
+plugin to run just part of the test suite.
+
+.. _running-pytest:
+
+pytest
+======
+
+The test suite can also be run directly from the native ``pytest`` command,
+which is generally faster than using tox for iterative development. In
+this case, it is important for developers to be aware that they must manually
+rebuild any extensions by running::
+
+    pip install -e .[test]
+
+before running the test with pytest with::
+
+    pytest
+
+Instead of calling ``pip install -e .[test]``, you can also build the
+extensions with::
+
+    python setup.py build_ext --inplace
+
+which avoids also installing the developer version of astropy into your current
+environment - however note that the ``pip`` command is required if you need to
+test parts of the package that rely on certain `entry points
+<https://setuptools.readthedocs.io/en/latest/pkg_resources.html#entry-points>`_
+being installed.
+
+It is possible to run only the tests for a particular subpackage or set of
+subpackages.  For example, to run only the ``wcs`` tests from the
+commandline::
+
+    pytest -P wcs
+
+Or, to run only the ``wcs`` and ``utils`` tests::
+
+    pytest -P wcs,utils
+
+You can also specify a single directory or file to test from the commandline,
+e.g.::
+
+    pytest astropy/modeling
+
+or::
+
+    pytest astropy/wcs/tests/test_wcs.py
+
+and this works for ``.rst`` files too::
+
+    pytest astropy/wcs/index.rst
 
 .. _astropy.test():
 
 astropy.test()
 ==============
 
-Tests can be run from within Astropy with::
+Tests can be run from an installed version of Astropy with::
 
     import astropy
     astropy.test()
 
-This will run all the default tests for Astropy.
+This will run all the default tests for Astropy (but will not run the
+documentation tests in the ``.rst`` documentation since those files are
+not installed).
 
 Tests for a specific package can be run by specifying the package in the call
 to the ``test()`` function::
@@ -143,63 +212,22 @@ Astropy Test Function
 
 .. autofunction:: astropy.test
 
-pytest
-======
-
-The test suite can be run directly from the native ``pytest`` command. In this
-case, it is important for developers to be aware that they must manually
-rebuild any extensions by running ``setup.py build_ext`` before testing.
-
-In contrast to the case of running from ``setup.py``, the ``--doctest-plus``
-and ``--doctest-rst`` options are not enabled by default when running the
-``pytest`` command directly. This flags should be explicitly given if they are
-needed.
-
 Test-running options
 ====================
-
-Running parts of the test suite
--------------------------------
-
-It is possible to run only the tests for a particular subpackage or set of
-subpackages.  For example, to run only the ``wcs`` tests from the
-commandline::
-
-    python setup.py test -P wcs
-
-Or, to run only the ``wcs`` and ``utils`` tests::
-
-    python setup.py test -P wcs,utils
-
-Or from Python::
-
-    >>> import astropy
-    >>> astropy.test(package="wcs,utils")
-
-You can also specify a single file to test from the commandline::
-
-    python setup.py test -t astropy/wcs/tests/test_wcs.py
-
-When the ``-t`` option is given a relative path, it is relative to the
-installed root of astropy.  When ``-t`` is given a relative path to a
-documentation ``.rst`` file to test, it is relative to the root of the
-documentation, i.e. the ``docs`` directory in the source tree.  For
-example::
-
-    python setup.py test -t units/index.rst
 
 .. _open-files:
 
 Testing for open files
 ----------------------
 
-Astropy can test whether any of the unit tests inadvertently leave any
-files open.  Since this greatly slows down the time it takes to run
-the tests, it is turned off by default.
+Using the :ref:`openfiles-plugin` plugin (which is installed automatically
+when installing pytest-astropy),  we can test whether any of the unit tests
+inadvertently leave any files open.  Since this greatly slows down the time it
+takes to run the tests, it is turned off by default.
 
 To use it from the commandline, do::
 
-    python setup.py test --open-files
+    pytest --open-files
 
 To use it from Python, do::
 
@@ -212,52 +240,33 @@ For more information on the ``pytest-openfiles`` plugin see
 Test coverage reports
 ---------------------
 
-Astropy can use `coverage.py <https://coverage.readthedocs.io/en/latest/>`_ to
-generate test coverage reports.  To generate a test coverage report, use::
+Coverage reports can be generated using the `pytest-cov
+<https://pypi.org/project/pytest-cov/>`_ plugin (which is installed
+automatically when installing pytest-astropy) by using e.g.::
 
-    python setup.py test --coverage
+    pytest --cov astropy --cov-report html
 
-There is a `coveragerc
-<https://coverage.readthedocs.io/en/latest/config.html>`_ file that
-defines files to omit as well as lines to exclude.  It is installed
-along with astropy so that the ``astropy`` testing framework can use
-it.  In the source tree, it is at ``astropy/tests/coveragerc``.
+There is some configuration inside the ``setup.cfg`` file that
+defines files to omit as well as lines to exclude.
 
 Running tests in parallel
 -------------------------
 
 It is possible to speed up astropy's tests using the `pytest-xdist
-<https://pypi.org/project/pytest-xdist>`_ plugin.  This plugin can be
-installed using `pip`_::
+<https://pypi.org/project/pytest-xdist>`_ plugin.
 
-    pip install pytest-xdist
+Once installed, tests can be run in parallel using the ``'-n'``
+commandline option. For example, to use 4 processes::
 
-Once installed, tests can be run in parallel using the ``'--parallel'``
-commandline option.  For example, to use 4 processes::
+    pytest -n 4
 
-    python setup.py test --parallel=4
-
-Pass ``--parallel=auto`` to create the same number of processes as cores
+Pass ``-n auto`` to create the same number of processes as cores
 on your machine.
 
-Similarly, this feature can be invoked from Python::
+Similarly, this feature can be invoked from ``astropy.test``::
 
     >>> import astropy
     >>> astropy.test(parallel=4)
-
-Running tests to catch permissions errors
------------------------------------------
-
-It is possible to write code or tests that write into the source directory. This
-is not desirable because Python packages can be (and frequently are) installed
-in locations where the user may not have write permissions.  To check for these
-cases, the test runner has an option to have the test-runner
-directory be set as read-only to ensure the tests are not writing to that
-location.  This mode can be triggered by running the tests like so::
-
-    python setup.py test --readonly
-
-
 
 .. _writing-tests:
 
@@ -364,14 +373,13 @@ Tests that may retrieve remote data should be marked with the
 ``REMOTE_DATA`` flag.  Tests marked in this way will be skipped by default by
 ``astropy.test()`` to prevent test runs from taking too long. These tests can
 be run by ``astropy.test()`` by adding the ``remote_data='any'`` flag.  Turn on
-the remote data tests at the command line with ``python setup.py test
---remote-data=any``.
+the remote data tests at the command line with ``pytest --remote-data=any``.
 
 It is possible to mark tests using
 ``@pytest.mark.remote_data(source='astropy')``, which can be used to indicate
 that the only required data is from the http://data.astropy.org server. To
 enable just these tests, you can run the
-tests with ``python setup.py test --remote-data=astropy``.
+tests with ``pytest --remote-data=astropy``.
 
 For more information on the ``pytest-remotedata`` plugin, see
 :ref:`remotedata-plugin`.
@@ -424,14 +432,9 @@ a context manager within a test to temporarily set the cache to a custom
 location, or as a *decorator* that takes effect for an entire test function
 (not including setup or teardown, which would have to be decorated separately).
 
-Furthermore, it is possible to set an option ``astropy_cache_dir`` in the
-pytest config file which sets the cache location for the entire test run.  A
-``--astropy-cache-dir`` command-line option is also supported (which overrides
-all other settings).  Currently it is not directly supported by the
-``./setup.py test`` command, so it is necessary to use it with the ``-a``
-argument like::
-
-    $ ./setup.py test -a "--astropy-cache-dir=/path/to/custom/cache/dir"
+Furthermore, it is possible to change the location of the cache directory
+for the duration of the test run by setting the ``XDG_CACHE_HOME``
+environment variable.
 
 
 Tests that create files
@@ -629,13 +632,6 @@ If your tests need to use `pytest helper functions
 
     import pytest
 
-Prior to Astropy 2.0, it was possible to import pytest from a
-bundled version using e.g.::
-
-    from ...tests.helper import pytest
-
-but this is no longer the recommended method.
-
 Testing warnings
 ================
 
@@ -749,7 +745,7 @@ with reference files on a pixel-by-pixel basis (this is used for instance in
 
 To run the Astropy tests with the image comparison, use::
 
-    python setup.py test -a "--mpl" --remote-data
+    pytest --mpl --remote-data
 
 However, note that the output can be very sensitive to the version of Matplotlib
 as well as all its dependencies (e.g. freetype), so we recommend running the
@@ -775,7 +771,8 @@ your local version of the repository you are testing::
 
 You can then run the tests as above::
 
-    python3 setup.py test -a "--mpl" --remote-data
+    pip install -e .[test]
+    pytest --mpl --remote-data
 
 Type ``exit`` to exit the container.
 
@@ -810,7 +807,8 @@ start up one of the Docker containers using e.g.::
 then run the tests inside ``/repo`` with the ``--mpl-generate-path`` argument, e.g::
 
     cd repo
-    python3 setup.py test -a "--mpl --mpl-generate-path=reference_tmp" --remote-data
+    pip install -e .[test]
+    pytest --mpl --mpl-generate-path=reference_tmp --remote-data
 
 This will create a ``reference_tmp`` folder and put the generated reference
 images inside it - the folder will be available in the repository outside of
@@ -871,9 +869,9 @@ write them, see the full :mod:`doctest` documentation.
 
 .. note::
 
-   Since the narrative Sphinx documentation is not installed alongside
-   the astropy source code, it can only be tested by running ``python
-   setup.py test``, not by ``import astropy; astropy.test()``.
+   Since the narrative Sphinx documentation is not installed alongside the
+   astropy source code, it can only be tested by running ``pytest`` directly (or
+   via tox), not by ``import astropy; astropy.test()``.
 
 For more information on the ``pytest-doctestplus`` plugin used by Astropy, see
 :ref:`doctestplus-plugin`.
@@ -1050,7 +1048,7 @@ These continuously test the package for each commit and pull request that is
 pushed to GitHub to notice when something breaks.
 
 Astropy and many affiliated packages use an external package called
-`ci-helpers <https://github.com/astropy/astropy-helpers>`_ to provide
+`ci-helpers <https://github.com/astropy/ci-helpers>`_ to provide
 support for the generic parts of the CI systems. ``ci-helpers`` consists of
 a set of scripts that are used by the ``.travis.yml`` and ``appveyor.yml``
 files to set up the conda environment, and install dependencies.
@@ -1060,18 +1058,12 @@ environment variables in ``.travis.yml`` and ``appveyor.yml``. For more
 details on how to set up this machinery, see the `package-template
 <https://github.com/astropy/package-template>`_ and `ci-helpers`_.
 
-The 32-bit tests on CircleCI use a pre-defined Docker image defined `here
-<https://github.com/astropy/astropy-docker/>`__ which includes a 32-bit
-Python environment. If you want to run tests for packages in the same way,
-you can use the same set-up on CircleCI as the core package, but just be
-sure to install Astropy first using::
-
-    easy_install pip
-    pip install astropy
-
-For convenience, you can also use the ``astropy/affiliated-32bit-test-env``
-Docker image instead of ``astropy/astropy-32bit-test-env`` - the former includes
-the latest stable version of Astropy pre-installed.
+The 32-bit tests on CircleCI use the
+`quay.io/pypa/manylinux1_i686 <https://quay.io/pypa/manylinux1_i686>`_
+docker image which includes a 32-bit Python environment for each major Python
+version. See the CircleCI
+`configuration file <https://github.com/astropy/astropy/blob/master/.circleci/config.yml>`_
+for the core package for how to access the different Python versions.
 
 In some cases, you may see failures on continuous integration services that
 you do not see locally, for example because the operating system is different,
@@ -1090,26 +1082,25 @@ Then, make sure you have a version of the git repository (either the main
 Astropy repository or your fork) for which you want to run the tests. Go to that
 directory, then run Docker with::
 
-    $ docker run -i -v ${PWD}:/astropy_src -t astropy/astropy-32bit-test-env:1.6 bash
+    $ docker run -i -v ${PWD}:/astropy_src -t quay.io/pypa/manylinux1_i686 bash
 
 This will put you in the bash shell inside the Docker container. Once inside,
-you can go to the ``astropy_src`` directory, and you should see the files that
+you can go to the ``/astropy_src`` directory, and you should see the files that
 are in your local git repository::
 
     root@5e2b89d7b07c:/# cd /astropy_src
     root@5e2b89d7b07c:/astropy_src# ls
-    ah_bootstrap.py  CONTRIBUTING.md       pip-requirements-doc
-    appveyor.yml     docs                  README.rst
-    astropy          examples              readthedocs.yml
-    astropy_helpers  ez_setup.py           setup.cfg
-    cextern          licenses              setup.py
-    CHANGES.rst      MANIFEST.in           static
-    circle.yml       pip-requirements      CITATION
-    pip-requirements-dev
+    astropy		        conftest.py      licenses	       setup.py
+    cextern		        CONTRIBUTING.md  MANIFEST.in       static
+    CHANGES.rst	        docs	         pip-requirements  tox.ini
+    CITATION	        examples	     pyproject.toml
+    codecov.yml         GOVERNANCE.md    README.rst
+    CODE_OF_CONDUCT.md  LICENSE.rst      setup.cfg
 
-You can then run the tests with::
+You can then run the tests with e.g.::
 
-    root@5e2b89d7b07c:/astropy_src# python setup.py test
+    root@5e2b89d7b07c:/astropy_src# /opt/python/cp36-cp36m/bin/pip install -e .[test]
+    root@5e2b89d7b07c:/astropy_src# pytest
 
 .. _pytest-plugins:
 
@@ -1117,10 +1108,10 @@ Pytest Plugins
 **************
 
 The following ``pytest`` plugins are maintained and used by Astropy. They are
-included in the ``pytest-astropy`` package, which is now required for testing
-Astropy. More information on all of the  plugins provided by the
-``pytest-astropy`` package (including dependencies not maintained by Astropy)
-can be found `here <https://github.com/astropy/pytest-astropy>`__.
+included as dependencies to the ``pytest-astropy`` package, which is now
+required for testing Astropy. More information on all of the  plugins provided
+by the ``pytest-astropy`` package (including dependencies not maintained by
+Astropy) can be found `here <https://github.com/astropy/pytest-astropy>`__.
 
 .. _remotedata-plugin:
 

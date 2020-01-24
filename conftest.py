@@ -13,8 +13,6 @@ try:
 except ImportError:
     PYTEST_HEADER_MODULES = {}
 
-import astropy
-
 # Make sure we use temporary directories for the config and cache
 # so that the tests are insensitive to local configuration.
 

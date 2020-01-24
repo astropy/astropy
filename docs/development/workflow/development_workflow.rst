@@ -191,7 +191,7 @@ Fetch the latest Astropy
 From time to time you should fetch the development version (i.e. Astropy
 ``astropy/master``) changes from GitHub::
 
-   git fetch astropy
+   git fetch astropy --tags
 
 This will pull down any commits you don't have, and set the remote branches to
 point to the latest commit. For example, 'trunk' is the branch referred to by
@@ -221,7 +221,7 @@ Always make your branch from ``astropy/master`` so that you are basing your
 changes on the latest version of Astropy::
 
     # Update the mirror of trunk
-    git fetch astropy
+    git fetch astropy --tags
 
     # Make new feature branch starting at astropy/master
     git branch my-new-feature astropy/master
@@ -304,11 +304,11 @@ In more detail
    Tests can also be run from the command line while in the package
    root directory, e.g.::
 
-     python setup.py test
+     pytest
 
    To run the tests in only a single package, e.g. Time, you can do::
 
-     python setup.py test -P time
+     pytest -P time
 
    For more details on running tests, please see :ref:`testing-guidelines`.
 
@@ -322,14 +322,11 @@ In more detail
    the documentation builds and looks correct by running, from the
    ``astropy`` directory::
 
-     python setup.py build_docs
+     cd docs
+     make html
 
    The last line should just state ``build succeeded``, and should not mention
    any warnings.  (For more details, see :ref:`documentation-guidelines`.)
-
-   .. note::
-       If the build_docs command is not found, try running ``python setup.py
-       build_sphinx`` instead.
 
 #. Add tests of your new code, if appropriate. Some changes (e.g. to
    documentation) do not need tests. Detailed instructions are at

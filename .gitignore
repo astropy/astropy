@@ -68,3 +68,6 @@ v
 
 # VSCode
 .vscode
+
+.tmp
+pip-wheel-metadata

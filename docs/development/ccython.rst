@@ -13,15 +13,13 @@ subpackage designer, and can be customized however is relevant for the
 extensions in the subpackage.
 
 While C extensions must always be defined through the ``get_extensions``
-mechanism, Cython files (ending in ``.pyx``) are automatically located and
+mechanism, Cython files (ending in ``.pyx``) are automatically located
+by `extension-helpers <https://extension-helpers.readthedocs.io/>`_ and
 loaded in separate extensions if they are not in ``get_extensions``. For
 Cython extensions located in this way, headers for numpy C functions are
 included in the build, but no other external headers are included. ``.pyx``
 files present in the extensions returned by ``get_extensions`` are not
-included in the list of extensions automatically generated extensions. Note
-that this allows disabling a Cython file by providing an extension that
-includes the Cython file, but giving it the special ``name`` 'cython_skip'. Any
-extension with this package name will not be built by ``setup.py``.
+included in the list of automatically generated extensions.
 
 .. note::
 
@@ -34,22 +32,15 @@ Using Numpy C headers
 =====================
 
 If your C or Cython extensions uses `numpy` at the C level, you probably
-need access to the numpy C headers.  A common idiom you can find in the numpy
-docs or other examples involves getting the include directory by calling
-``numpy.get_include()``.  However, using this in ``setup_package.py`` will *not*
-work, because ``setup_package.py`` needs to be able to import even when none of
-the dependencies are present.  To work around this need, simply include the
-string ``'numpy'`` in the list that is passed to the ``include_dirs`` argument
-of `distutils.core.Extension`.  The astropy setup helpers will then use
-``numpy.get_include()`` downstream once it is certain that the dependencies
-have actually been processed.  For example::
+need access to the numpy C headers.  When doing this, you should use
+``numpy.get_include()`` to specify the include directory to use, for example::
 
     from distutils.extension import Extension
+    import numpy
 
     def get_extensions():
-        return Extension(name='myextension', sources=['myext.pyx'],
-                         include_dirs=['numpy'])
-
+        return Extension(name='myextension', sources=['myext.c'],
+                         include_dirs=[numpy.get_include()])
 
 
 Installing C header files
@@ -61,38 +52,22 @@ you probably want to install its header files along side the Python module.
     1) Create an ``include`` directory inside of your package for
        all of the header files.
 
-    2) Use the ``get_package_data`` hook in ``setup_package.py`` to
-       install those header files.  For example, the `astropy.wcs`
-       package has this::
+    2) Use the ``[options.package_data]`` section in your ``setup.cfg``
+       file to include those header files in the package. For example, the
+       `astropy.wcs` package has the following entries in the
+       ``[options.package_data]`` section::
 
-           def get_package_data():
-               return {'astropy.wcs': ['include/*.h']}
+           [options.package_data]
+           ...
+           astropy.wcs = include/*/*.h
+           ...
 
 Preventing importing at build time
 ==================================
 
-In rare cases, some packages may need to be imported at build time.
-Unfortunately, anything that requires a C or Cython extension will fail to
-import until the build phase has completed. In this cases, the
-``_ASTROPY_SETUP_`` variable can be used to determine if the package is being
-imported as part of the build and choose to not import problematic modules.
-``_ASTROPY_SETUP_`` is inserted into the builtins, and is `True` when inside
-of astropy's ``setup.py`` script, and `False` otherwise.
-
-For example, suppose there is a subpackage ``foo`` that needs to
-import a module called ``version.py`` at build time in order to set
-some version information, and also has a C extension, ``process``,
-that will not be available in the source tree.  In this case,
-``astropy/foo/__init__.py`` would probably want to check the value of
-``_ASTROPY_SETUP_`` before importing the C extension::
-
-    try:
-        from . import process
-    except ImportError:
-        if not _ASTROPY_SETUP_:
-            raise
-
-    from . import version
+It is important to make sure that ``setup_package.py`` files do not trigger an
+import of the package they are in - so they should be able to be executed without
+relying on imports to other parts of the package.
 
 Speed up your builds with ccache
 ================================
