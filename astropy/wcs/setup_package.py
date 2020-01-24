@@ -6,13 +6,14 @@ from os.path import join
 import os.path
 import shutil
 import sys
+from collections import defaultdict
 
 from distutils.core import Extension
 from distutils.dep_util import newer_group
 
+import numpy
 
-from astropy_helpers.utils import import_file
-from astropy_helpers import setup_helpers
+from extension_helpers import import_file, write_if_different, get_compiler, pkg_config
 
 WCSROOT = os.path.relpath(os.path.dirname(__file__))
 WCSVERSION = "7.1.0"
@@ -103,7 +104,7 @@ def write_wcsconfig_h(paths):
     """.format(WCSVERSION, determine_64_bit_int()))
     content = h_file.getvalue().encode('ascii')
     for path in paths:
-        setup_helpers.write_if_different(path, content)
+        write_if_different(path, content)
 
 
 ######################################################################
@@ -138,7 +139,7 @@ its contents, edit astropy/wcs/docstrings.py
         h_file.write('extern char doc_{}[{}];\n'.format(key, len(val)))
     h_file.write("\n#endif\n\n")
 
-    setup_helpers.write_if_different(
+    write_if_different(
         join(WCSROOT, 'include', 'astropy_wcs', 'docstrings.h'),
         h_file.getvalue().encode('utf-8'))
 
@@ -168,7 +169,7 @@ MSVC, do not support string literals greater than 256 characters.
 
         c_file.write("    };\n\n")
 
-    setup_helpers.write_if_different(
+    write_if_different(
         join(WCSROOT, 'src', 'docstrings.c'),
         c_file.getvalue().encode('utf-8'))
 
@@ -177,7 +178,7 @@ def get_wcslib_cfg(cfg, wcslib_files, include_paths):
 
     debug = '--debug' in sys.argv
 
-    cfg['include_dirs'].append('numpy')
+    cfg['include_dirs'].append(numpy.get_include())
     cfg['define_macros'].extend([
         ('ECHO', None),
         ('WCSTRIG_MACRO', None),
@@ -190,7 +191,7 @@ def get_wcslib_cfg(cfg, wcslib_files, include_paths):
         wcsconfig_h_path = join(WCSROOT, 'include', 'wcsconfig.h')
         if os.path.exists(wcsconfig_h_path):
             os.unlink(wcsconfig_h_path)
-        cfg.update(setup_helpers.pkg_config(['wcslib'], ['wcs']))
+        cfg.update(pkg_config(['wcslib'], ['wcs']))
     else:
         write_wcsconfig_h(include_paths)
 
@@ -226,7 +227,7 @@ def get_wcslib_cfg(cfg, wcslib_files, include_paths):
         cfg['define_macros'].append(('HAVE_SINCOS', None))
 
     # Squelch a few compilation warnings in WCSLIB
-    if setup_helpers.get_compiler_option() in ('unix', 'mingw32'):
+    if get_compiler() in ('unix', 'mingw32'):
         if not debug:
             cfg['extra_compile_args'].extend([
                 '-Wno-strict-prototypes',
@@ -240,7 +241,7 @@ def get_extensions():
 
     ######################################################################
     # DISTUTILS SETUP
-    cfg = setup_helpers.DistutilsExtensionArgs()
+    cfg = defaultdict(list)
 
     wcslib_files = [  # List of wcslib files to compile
         'flexed/wcsbth.c',

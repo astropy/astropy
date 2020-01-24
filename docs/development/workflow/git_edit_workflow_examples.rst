@@ -55,7 +55,7 @@ separately to outline the process in words as well as code.
 Inform your local copy of Astropy about the latest changes in the development
 version with::
 
-    git fetch astropy
+    git fetch astropy --tags
 
 Set up an isolated workspace
 ============================
@@ -76,9 +76,9 @@ Set up an isolated workspace
   If you are using a different distribution, see :ref:`virtual_envs` for
   instructions for creating and activating a new environment.
 + Install our branch in this environment with::
-  
+
     pip install -e .
-  
+
   Remember also to use the proper version of pip or python in this context.
 
 Do you really have to set up a separate python environment for each fix? No,

@@ -2,34 +2,78 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # NOTE: The configuration for the package, including the name, version, and
-# other information are set in the setup.cfg file. Here we mainly set up
-# setup_requires and install_requires since these are determined
-# programmatically.
+# other information are set in the setup.cfg file.
 
 import os
-import builtins
+import sys
 
-import ah_bootstrap  # noqa
+from setuptools import setup
+from extension_helpers import get_extensions
 
-from astropy_helpers.distutils_helpers import is_distutils_display_option
-from astropy_helpers.setup_helpers import setup
+# First provide helpful messages if contributors try and run legacy commands
+# for tests or docs.
 
-from setuptools.config import read_configuration
+TEST_HELP = """
+Note: running tests is no longer done using 'python setup.py test'. Instead
+you will need to run:
 
-# We set up the following variable because we then use this in astropy/__init__.py
-# to make sure that we aren't importing astropy during the setup process (we used
-# to do this)
-builtins._ASTROPY_CORE_SETUP_ = True
+    tox -e test
 
-if is_distutils_display_option():
-    # Avoid installing setup_requires dependencies if the user just
-    # queries for information
-    setup_requires = []
-else:
-    setup_requires = read_configuration('setup.cfg')['options']['setup_requires']
-    # Make sure we have the packages needed for building astropy, but do not
-    # require them when installing from an sdist as the c files are included.
-    if not os.path.exists(os.path.join(os.path.dirname(__file__), 'PKG-INFO')):
-        setup_requires.extend(['cython>=0.29.13', 'jinja2>=2.7'])
+If you don't already have tox installed, you can install it with:
 
-setup(setup_requires=setup_requires)
+    pip install tox
+
+If you only want to run part of the test suite, you can also use pytest
+directly with::
+
+    pip install -e .[test]
+    pytest
+
+For more information, see:
+
+  http://docs.astropy.org/en/latest/development/testguide.html#running-tests
+"""
+
+if 'test' in sys.argv:
+    print(TEST_HELP)
+    sys.exit(1)
+
+DOCS_HELP = """
+Note: building the documentation is no longer done using
+'python setup.py build_docs'. Instead you will need to run:
+
+    tox -e build_docs
+
+If you don't already have tox installed, you can install it with:
+
+    pip install tox
+
+You can also build the documentation with Sphinx directly using::
+
+    pip install -e .[docs]
+    cd docs
+    make html
+
+For more information, see:
+
+  http://docs.astropy.org/en/latest/install.html#builddocs
+"""
+
+if 'build_docs' in sys.argv or 'build_sphinx' in sys.argv:
+    print(DOCS_HELP)
+    sys.exit(1)
+
+VERSION_TEMPLATE = """
+# Note that we need to fall back to the hard-coded version if either
+# setuptools_scm can't be imported or setuptools_scm can't determine the
+# version, so we catch the generic 'Exception'.
+try:
+    from setuptools_scm import get_version
+    version = get_version(root='..', relative_to=__file__)
+except Exception:
+    version = '{version}'
+""".lstrip()
+
+setup(use_scm_version={'write_to': os.path.join('astropy', 'version.py'),
+                       'write_to_template': VERSION_TEMPLATE},
+      ext_modules=get_extensions())

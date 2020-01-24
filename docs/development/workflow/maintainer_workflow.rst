@@ -29,7 +29,7 @@ It's good to have your upstream remote have a scary name, to remind you that
 it's a read-write remote::
 
     git remote add upstream-rw git@github.com:astropy/astropy.git
-    git fetch upstream-rw
+    git fetch upstream-rw --tags
 
 Let's say you have some changes that need to go into trunk
 (``upstream-rw/master``).

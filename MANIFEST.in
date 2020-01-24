@@ -5,10 +5,10 @@ include CHANGES.rst
 include pip-requirements*
 include CITATION
 include astropy/CITATION
+include pyproject.toml
 
 include ah_bootstrap.py
 include setup.cfg
-include astropy/tests/coveragerc
 recursive-include astropy *.pyx *.c *.h *.map *.templ
 
 include astropy/astropy.cfg
@@ -28,26 +28,5 @@ recursive-include static *
 
 prune docs/_build
 prune build
-
-
-# the next few stanzas are for astropy_helpers.  It's derived from the
-# astropy_helpers/MANIFEST.in, but requires additional includes for the actual
-# package directory and egg-info.
-
-include astropy_helpers/README.rst
-include astropy_helpers/CHANGES.rst
-include astropy_helpers/LICENSE.rst
-recursive-include astropy_helpers/licenses *
-
-include astropy_helpers/ah_bootstrap.py
-
-recursive-include astropy_helpers/astropy_helpers *.py *.pyx *.c *.h *.rst
-recursive-include astropy_helpers/astropy_helpers.egg-info *
-# include the sphinx stuff with "*" because there are css/html/rst/etc.
-recursive-include astropy_helpers/astropy_helpers/sphinx *
-
-prune astropy_helpers/build
-prune astropy_helpers/astropy_helpers/tests
-
 
 global-exclude *.pyc *.o

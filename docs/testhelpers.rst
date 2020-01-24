@@ -36,8 +36,8 @@ Reference/API
 Astropy Test Runner
 ===================
 
-When executing tests with either `astropy.test` or ``python setup.py test`` the
-call to pytest is controlled by the `astropy.tests.runner.TestRunner` class.
+When executing tests with `astropy.test` the call to pytest is controlled
+by the `astropy.tests.runner.TestRunner` class.
 
 The `~astropy.tests.runner.TestRunner` class is used to generate the
 `astropy.test` function, the test function generates a set of command line

@@ -6,25 +6,11 @@ Python. It also provides an index for other astronomy packages and tools for
 managing them.
 """
 
-# Prior to Astropy 3.2, astropy was imported during setup.py commands. If we are
-# in setup mode, then astropy-helpers defines an _ASTROPY_SETUP_ variable, which
-# we used to use to conditionally import C extensions for example. However, the
-# behavior of importing the package during the setup process is not good
-# practice and we therefore now explicitly prevent the package from being
-# imported in that case to prevent any regressions. We use _ASTROPY_CORE_SETUP_
-# (defined in setup.py) rather than _ASTROPY_SETUP_ since the latter is also
-# set up for affiliated packages, and those need to be able to import the
-# (installed) core package during e.g. python setup.py test.
-try:
-    _ASTROPY_CORE_SETUP_
-except NameError:
-    pass
-else:
-    raise RuntimeError("The astropy package cannot be imported during setup")
-
 import sys
 import os
 from warnings import warn
+
+from .version import version as __version__
 
 __minimum_python_version__ = '3.6'
 __minimum_numpy_version__ = '1.16.0'
@@ -73,18 +59,6 @@ def _is_astropy_setup():
     return (getattr(main_mod, '__file__', False) and
             os.path.basename(main_mod.__file__).rstrip('co') == 'setup.py' and
             _is_astropy_source(main_mod.__file__))
-
-
-try:
-    from .version import version as __version__
-except ImportError:
-    # TODO: Issue a warning using the logging framework
-    __version__ = ''
-try:
-    from .version import githash as __githash__
-except ImportError:
-    # TODO: Issue a warning using the logging framework
-    __githash__ = ''
 
 
 # The location of the online documentation for astropy
