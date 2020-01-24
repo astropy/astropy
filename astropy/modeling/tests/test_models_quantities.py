@@ -16,6 +16,8 @@ from astropy.modeling.functional_models import (
     RickerWavelet2D, AiryDisk2D, Moffat2D, Sersic2D,
     KingProjectedAnalytic1D)
 
+from astropy.modeling.physical_models import Plummer1D
+
 from astropy.modeling.powerlaws import (
     PowerLaw1D, BrokenPowerLaw1D, SmoothlyBrokenPowerLaw1D,
     ExponentialCutoffPowerLaw1D, LogParabola1D)
@@ -81,6 +83,14 @@ FUNC_MODELS_1D = [
  'evaluation': [(0.5 * u.pc, 0.2 * u.Msun/u.pc**2)],
  'bounding_box': [0. * u.pc, 2. * u.pc]}
  ]
+
+PHYS_MODELS_1D = [
+{'class': Plummer1D,
+ 'parameters': {'mass': 3 * u.kg, 'r_plum': 0.5 * u.m},
+ 'evaluation': [(1* u.m, 0.10249381 * u.kg / (u.m **3))],
+ 'bounding_box': False}
+ ]
+
 FUNC_MODELS_2D = [
 {'class': Gaussian2D,
  'parameters': {'amplitude': 3 * u.Jy, 'x_mean': 2 * u.m, 'y_mean': 1 * u.m,
@@ -193,7 +203,7 @@ POLY_MODELS = [
  ]
 
 
-MODELS = FUNC_MODELS_1D + FUNC_MODELS_2D + POWERLAW_MODELS
+MODELS = FUNC_MODELS_1D + FUNC_MODELS_2D + POWERLAW_MODELS + PHYS_MODELS_1D
 
 SCIPY_MODELS = set([Sersic1D, Sersic2D, AiryDisk2D])
 
