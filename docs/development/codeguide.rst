@@ -134,10 +134,9 @@ Coding Style/Conventions
 
 * Our testing infrastructure currently enforces a subset of the PEP8 style
   guide. You can check locally whether your changes have followed these by
-  running `flake8 <https://pypi.org/project/flake8/>`_ with the following
-  command::
+  running the following `tox <https://tox.readthedocs.io/>`__ command::
 
-    flake8 astropy --count --select=E101,W191,W291,W292,W293,W391,E111,E112,E113,E30,E502,E722,E901,E902,E999,F822,F823
+    tox -e codestyle
 
 * *Follow the existing coding style* within a subpackage and avoid making
   changes that are purely stylistic.  In particular, there is variation in the

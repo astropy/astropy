@@ -18,7 +18,7 @@ Our testing infrastructure enforces to follow a subset of the PEP8 to be
 followed. You can check locally whether your changes have followed these by
 running the following command:
 
-flake8 astropy --count --select=E101,W191,W291,W292,W293,W391,E111,E112,E113,E30,E502,E722,E901,E902,E999,F822,F823
+tox -e codestyle
 
 -->
 
