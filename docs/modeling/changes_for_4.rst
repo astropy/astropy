@@ -66,9 +66,9 @@ unless you want to understand why some changes were necessary.
 
 - The use of 'imputed' units, i.e., supplying input/output units
   to a compound model without them but where the component models
-  support the _parameter_units_for_data_units() method is much more
+  support the ``_parameter_units_for_data_units()`` method is much more
   restricted in its applicability, which will only work when the
-  compound expression uses the '+' or '-' operators. Past behavior
+  compound expression uses the ``+`` or ``-`` operators. Past behavior
   led to sometimes arbitrary assignments of units, and sometimes
   incorrect units to the parameters.
 
@@ -123,7 +123,7 @@ had to create their own array holding values for all the parameters
 of the compound model. As a result, the parameter values in a
 compound model were completely disassociated with those in
 the constituent model that made up the compound model. Changes
-to one were not reflected in the other, often leadin to confusion.
+to one were not reflected in the other, often leading to confusion.
 
 The new implementation still uses attributes defined at the
 class level for the parameters, but only
