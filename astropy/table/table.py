@@ -3086,8 +3086,9 @@ class Table:
             raise ValueError("'decimals' argument must be an int or a dict")
 
         for colname, decimal in zip(column_names, decimal_values):
-            if self.columns[colname].info.dtype.kind in 'iufc':
-                self.replace_column(colname, np.around(self.columns[colname], decimals=decimal))
+            col = self.columns[colname]
+            if np.issubdtype(col.info.dtype, np.number):
+                self.replace_column(colname, np.around(col, decimals=decimal))
 
     def copy(self, copy_data=True):
         '''
