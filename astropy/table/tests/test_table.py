@@ -355,7 +355,7 @@ class TestRound():
 
     def test_round_invalid(self, table_types):
         t = table_types.Table([[1, 2, 3]])
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="'decimals' argument must be an int or a dict"):
             t.round(0.5)
 
 
