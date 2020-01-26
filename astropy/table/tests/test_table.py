@@ -358,6 +358,14 @@ class TestRound():
         with pytest.raises(ValueError, match="'decimals' argument must be an int or a dict"):
             t.round(0.5)
 
+    def test_round_kind(self, table_types):
+        for typecode in 'bBhHiIlLqQpPefdgFDG': # AllInteger, AllFloat
+            arr = np.array([4, 16], dtype=typecode)
+            t = Table([arr])
+            col0 = t['col0']
+            t.round(decimals=-1) # Round to nearest 10
+            assert np.all(t['col0'] == [0, 20])
+
 
 @pytest.mark.usefixtures('table_types')
 class TestColumnAccess():
