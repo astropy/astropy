@@ -3088,7 +3088,11 @@ class Table:
         for colname, decimal in zip(column_names, decimal_values):
             col = self.columns[colname]
             if np.issubdtype(col.info.dtype, np.number):
-                self.replace_column(colname, np.around(col, decimals=decimal))
+                try:
+                    np.around(col, decimals=decimal, out=col)
+                except TypeError:
+                    # Bug in numpy see https://github.com/numpy/numpy/issues/15438
+                    col[()] = np.around(col, decimals=decimal)
 
     def copy(self, copy_data=True):
         '''
