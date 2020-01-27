@@ -365,6 +365,7 @@ class TestRound():
             col0 = t['col0']
             t.round(decimals=-1) # Round to nearest 10
             assert np.all(t['col0'] == [0, 20])
+            assert t['col0'] is col0
 
 
 @pytest.mark.usefixtures('table_types')
