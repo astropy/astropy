@@ -17,7 +17,7 @@ astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 - Added the ``direction`` feature to the angle initialization.
   Now one can add the direction to the ``string`` instance while
-  initializing the angle.
+  initializing the angle. [#9859]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
