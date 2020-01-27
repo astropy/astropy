@@ -11,7 +11,7 @@
 
 # angle_lextab.py. This file automatically created by PLY (version 3.10). Don't edit!
 _tabversion   = '3.10'
-_lextokens    = set(('UINT', 'SECOND', 'DEGREE', 'HOUR', 'MINUTE', 'SIGN', 'SIMPLE_UNIT', 'DIRECTION', 'UFLOAT', 'COLON'))
+_lextokens    = set(('HOUR', 'SECOND', 'COLON', 'DIRECTION', 'UFLOAT', 'UINT', 'SIGN', 'DEGREE', 'MINUTE', 'SIMPLE_UNIT'))
 _lexreflags   = 64
 _lexliterals  = ''
 _lexstateinfo = {'INITIAL': 'inclusive'}

@@ -126,7 +126,8 @@ class _AngleParser:
 
         def t_DIRECTION(t):
             r'[NSEW]$'
-
+            # We cannot use lower-case letters otherwise we'll confuse
+            # s[outh] with s[econd]
             t.value = -1.0 if t.value in 'SW' else 1.0
             return t
 
@@ -216,8 +217,6 @@ class _AngleParser:
                    | sign UINT ufloat dir
                    | sign UINT UINT ufloat dir
             '''
-
-
             if len(p) == 4:
                 p[0] = (p[1] * p[2], p[3])
             elif len(p) == 5:
@@ -236,8 +235,6 @@ class _AngleParser:
                     | sign UFLOAT dir
                     | sign UINT dir
             '''
-
-
             if len(p) == 2:
                 p[0] = p[1]
             elif len(p) == 3:
@@ -247,73 +244,43 @@ class _AngleParser:
 
         def p_hms(p):
             '''
-            hms : sign UINT HOUR
-                | sign UINT HOUR ufloat
-                | sign UINT HOUR UINT MINUTE
-                | sign UINT HOUR UFLOAT MINUTE
-                | sign UINT HOUR UINT MINUTE ufloat
-                | sign UINT HOUR UINT MINUTE ufloat SECOND
-                | sign UINT HOUR dir
+            hms : sign UINT HOUR dir
                 | sign UINT HOUR ufloat dir
                 | sign UINT HOUR UINT MINUTE dir
                 | sign UINT HOUR UFLOAT MINUTE dir
                 | sign UINT HOUR UINT MINUTE ufloat dir
                 | sign UINT HOUR UINT MINUTE ufloat SECOND dir
-                | generic HOUR
+                | generic HOUR dir
             '''
 
-            if p.slice[len(p) - 1].type == 'dir':
-                if len(p) == 5:
-                    p[0] = (p[1] * p[2] * p[4], u.hourangle)
-                elif len(p) in (6,7):
-                    p[0] = ((p[1] * p[2] * p[len(p) - 1], p[4]), u.hourangle)
-                elif len(p) in (8, 9):
-                    p[0] = ((p[1] * p[2] * p[len(p) - 1], p[4], p[6]), u.hourangle)
-
-            else:
-                if len(p) == 3:
-                    p[0] = (p[1], u.hourangle)
-                elif len(p) == 4:
-                    p[0] = (p[1] * p[2], u.hourangle)
-                elif len(p) in (5, 6):
-                    p[0] = ((p[1] * p[2], p[4]), u.hourangle)
-                elif len(p) in (7, 8):
-                    p[0] = ((p[1] * p[2], p[4], p[6]), u.hourangle)
+            if len(p) == 4:
+                p[0] = (p[1] * p[3], u.hourangle)
+            elif len(p) == 5:
+                p[0] = (p[1] * p[2] * p[4], u.hourangle)
+            elif len(p) in (6, 7):
+                p[0] = ((p[1] * p[2] * p[len(p) - 1], p[4]), u.hourangle)
+            elif len(p) in (8, 9):
+                p[0] = ((p[1] * p[2] * p[len(p) - 1], p[4], p[6]), u.hourangle)
 
         def p_dms(p):
             '''
-            dms : sign UINT DEGREE
-                | sign UINT DEGREE ufloat
-                | sign UINT DEGREE UINT MINUTE
-                | sign UINT DEGREE UFLOAT MINUTE
-                | sign UINT DEGREE UINT MINUTE ufloat
-                | sign UINT DEGREE UINT MINUTE ufloat SECOND
-                | sign UINT DEGREE dir
+            dms : sign UINT DEGREE dir
                 | sign UINT DEGREE ufloat dir
                 | sign UINT DEGREE UINT MINUTE dir
                 | sign UINT DEGREE UFLOAT MINUTE dir
                 | sign UINT DEGREE UINT MINUTE ufloat dir
                 | sign UINT DEGREE UINT MINUTE ufloat SECOND dir
-                | generic DEGREE
+                | generic DEGREE dir
             '''
 
-            if p.slice[len(p) - 1].type == 'dir':
-                if len(p) == 5:
-                    p[0] = (p[1] * p[2] * p[4], u.degree)
-                elif len(p) in (6, 7):
-                    p[0] = ((p[1] * p[2] * p[len(p) - 1], p[4]), u.degree)
-                elif len(p) in (8, 9):
-                    p[0] = ((p[1] * p[2] * p[len(p) - 1], p[4], p[6]), u.degree)
-
-            else:
-                if len(p) == 3:
-                    p[0] = (p[1], u.degree)
-                elif len(p) == 4:
-                    p[0] = (p[1] * p[2], u.degree)
-                elif len(p) in (5, 6):
-                    p[0] = ((p[1] * p[2], p[4]), u.degree)
-                elif len(p) in (7, 8):
-                    p[0] = ((p[1] * p[2], p[4], p[6]), u.degree)
+            if len(p) == 4:
+                p[0] = (p[1] * p[3], u.degree)
+            elif len(p) == 5:
+                p[0] = (p[1] * p[2] * p[4], u.degree)
+            elif len(p) in (6, 7):
+                p[0] = ((p[1] * p[2] * p[len(p) - 1], p[4]), u.degree)
+            elif len(p) in (8, 9):
+                p[0] = ((p[1] * p[2] * p[len(p) - 1], p[4], p[6]), u.degree)
 
         def p_simple(p):
             '''
