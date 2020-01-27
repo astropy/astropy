@@ -95,7 +95,8 @@ class _AngleParser:
             'MINUTE',
             'SECOND',
             'SIMPLE_UNIT',
-            'DIRECTION'
+            'EASTWEST',
+            'NORTHSOUTH'
         )
 
         # NOTE THE ORDERING OF THESE RULES IS IMPORTANT!!
@@ -124,11 +125,16 @@ class _AngleParser:
                 t.value = -1.0
             return t
 
-        def t_DIRECTION(t):
-            r'[NSEW]$'
+        def t_EASTWEST(t):
+            r'[EW]$'
+            t.value = -1.0 if t.value == 'W' else 1.0
+            return t
+
+        def t_NORTHSOUTH(t):
+            r'[NS]$'
             # We cannot use lower-case letters otherwise we'll confuse
             # s[outh] with s[econd]
-            t.value = -1.0 if t.value in 'SW' else 1.0
+            t.value = -1.0 if t.value == 'S' else 1.0
             return t
 
         def t_SIMPLE_UNIT(t):
@@ -164,13 +170,18 @@ class _AngleParser:
 
         def p_angle(p):
             '''
-            angle : hms
-                  | dms
-                  | arcsecond
-                  | arcminute
-                  | simple
+            angle : sign hms eastwest
+                  | sign dms dir
+                  | sign arcsecond dir
+                  | sign arcminute dir
+                  | sign simple dir
             '''
-            p[0] = p[1]
+            sign = p[1] * p[3]
+            value, unit = p[2]
+            if isinstance(value, tuple):
+                p[0] = ((sign * value[0],) + value[1:], unit)
+            else:
+                p[0] = (sign * value, unit)
 
         def p_sign(p):
             '''
@@ -182,12 +193,22 @@ class _AngleParser:
             else:
                 p[0] = 1.0
 
+        def p_eastwest(p):
+            '''
+            eastwest : EASTWEST
+                     |
+            '''
+            if len(p) == 2:
+                p[0] = p[1]
+            else:
+                p[0] = 1.0
+
         def p_dir(p):
             '''
-            dir : DIRECTION
+            dir : EASTWEST
+                | NORTHSOUTH
                 |
             '''
-
             if len(p) == 2:
                 p[0] = p[1]
             else:
@@ -198,89 +219,69 @@ class _AngleParser:
             ufloat : UFLOAT
                    | UINT
             '''
-            p[0] = float(p[1])
+            p[0] = p[1]
 
         def p_colon(p):
             '''
-            colon : sign UINT COLON ufloat
-                  | sign UINT COLON UINT COLON ufloat
+            colon : UINT COLON ufloat
+                  | UINT COLON UINT COLON ufloat
             '''
-            if len(p) == 5:
-                p[0] = (p[1] * p[2], p[4])
-            elif len(p) == 7:
-                p[0] = (p[1] * p[2], p[4], p[6])
+            if len(p) == 4:
+                p[0] = (p[1], p[3])
+            elif len(p) == 6:
+                p[0] = (p[1], p[3], p[5])
 
         def p_spaced(p):
             '''
-            spaced : sign UINT ufloat
-                   | sign UINT UINT ufloat
-                   | sign UINT ufloat dir
-                   | sign UINT UINT ufloat dir
+            spaced : UINT ufloat
+                   | UINT UINT ufloat
             '''
-            if len(p) == 4:
-                p[0] = (p[1] * p[2], p[3])
-            elif len(p) == 5:
-                p[0] = (p[1] * p[2] * p[4], p[3])
-            elif len(p) == 5:
-                p[0] = (p[1] * p[2], p[3], p[4])
-            elif len(p) == 6:
-                p[0] = (p[1] * p[2] * p[5], p[3], p[4])
+            if len(p) == 3:
+                p[0] = (p[1], p[2])
+            elif len(p) == 4:
+                p[0] = (p[1], p[2], p[3])
 
         def p_generic(p):
             '''
             generic : colon
                     | spaced
-                    | sign UFLOAT
-                    | sign UINT
-                    | sign UFLOAT dir
-                    | sign UINT dir
+                    | ufloat
             '''
-            if len(p) == 2:
-                p[0] = p[1]
-            elif len(p) == 3:
-                p[0] = p[1] * p[2]
-            elif len(p) == 4:
-                p[0] = p[1] * p[2] * p[3]
+            p[0] = p[1]
 
         def p_hms(p):
             '''
-            hms : sign UINT HOUR dir
-                | sign UINT HOUR ufloat dir
-                | sign UINT HOUR UINT MINUTE dir
-                | sign UINT HOUR UFLOAT MINUTE dir
-                | sign UINT HOUR UINT MINUTE ufloat dir
-                | sign UINT HOUR UINT MINUTE ufloat SECOND dir
-                | generic HOUR dir
+            hms : UINT HOUR
+                | UINT HOUR ufloat
+                | UINT HOUR UINT MINUTE
+                | UINT HOUR UFLOAT MINUTE
+                | UINT HOUR UINT MINUTE ufloat
+                | UINT HOUR UINT MINUTE ufloat SECOND
+                | generic HOUR
             '''
-
-            if len(p) == 4:
-                p[0] = (p[1] * p[3], u.hourangle)
-            elif len(p) == 5:
-                p[0] = (p[1] * p[2] * p[4], u.hourangle)
+            if len(p) == 3:
+                p[0] = (p[1], u.hourangle)
+            elif len(p) in (4, 5):
+                p[0] = ((p[1], p[3]), u.hourangle)
             elif len(p) in (6, 7):
-                p[0] = ((p[1] * p[2] * p[len(p) - 1], p[4]), u.hourangle)
-            elif len(p) in (8, 9):
-                p[0] = ((p[1] * p[2] * p[len(p) - 1], p[4], p[6]), u.hourangle)
+                p[0] = ((p[1], p[3], p[5]), u.hourangle)
 
         def p_dms(p):
             '''
-            dms : sign UINT DEGREE dir
-                | sign UINT DEGREE ufloat dir
-                | sign UINT DEGREE UINT MINUTE dir
-                | sign UINT DEGREE UFLOAT MINUTE dir
-                | sign UINT DEGREE UINT MINUTE ufloat dir
-                | sign UINT DEGREE UINT MINUTE ufloat SECOND dir
-                | generic DEGREE dir
+            dms : UINT DEGREE
+                | UINT DEGREE ufloat
+                | UINT DEGREE UINT MINUTE
+                | UINT DEGREE UFLOAT MINUTE
+                | UINT DEGREE UINT MINUTE ufloat
+                | UINT DEGREE UINT MINUTE ufloat SECOND
+                | generic DEGREE
             '''
-
-            if len(p) == 4:
-                p[0] = (p[1] * p[3], u.degree)
-            elif len(p) == 5:
-                p[0] = (p[1] * p[2] * p[4], u.degree)
+            if len(p) == 3:
+                p[0] = (p[1], u.degree)
+            elif len(p) in (4, 5):
+                p[0] = ((p[1], p[3]), u.degree)
             elif len(p) in (6, 7):
-                p[0] = ((p[1] * p[2] * p[len(p) - 1], p[4]), u.degree)
-            elif len(p) in (8, 9):
-                p[0] = ((p[1] * p[2] * p[len(p) - 1], p[4], p[6]), u.degree)
+                p[0] = ((p[1], p[3], p[5]), u.degree)
 
         def p_simple(p):
             '''
