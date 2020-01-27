@@ -125,13 +125,9 @@ class _AngleParser:
             return t
 
         def t_DIRECTION(t):
-            r'[NnSsEeWw]$'
-            #if t.value[-1] == 'N' or t.value[-1] == 'n' or t.value[-1] == 'E' or t.value[-1] == 'e':
-            #    multiplier = '1'
-            #if t.value[-1] == 'S' or t.value[-1] == 's' or t.value[-1] == 'W' or t.value[-1] == 'w':
-             #   multiplier = '-1'
+            r'[NSEW]$'
 
-            t.value = 1.0 if t.value in 'NnEe' else -1.0
+            t.value = -1.0 if t.value in 'SW' else 1.0
             return t
 
         def t_SIMPLE_UNIT(t):
@@ -266,7 +262,6 @@ class _AngleParser:
                 | generic HOUR
             '''
 
-
             if p.slice[len(p) - 1].type == 'dir':
                 if len(p) == 5:
                     p[0] = (p[1] * p[2] * p[4], u.hourangle)
@@ -301,7 +296,6 @@ class _AngleParser:
                 | sign UINT DEGREE UINT MINUTE ufloat SECOND dir
                 | generic DEGREE
             '''
-
 
             if p.slice[len(p) - 1].type == 'dir':
                 if len(p) == 5:
