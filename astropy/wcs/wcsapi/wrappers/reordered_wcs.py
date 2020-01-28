@@ -26,6 +26,10 @@ class ReorderedLowLevelWCS(BaseLowLevelWCS):
         new WCS.
     """
     def __init__(self, wcs, pixel_order, world_order):
+        if sorted(pixel_order) != list(range(wcs.pixel_n_dim)):
+            raise ValueError(f'pixel_order should be a permutation of {list(range(wcs.pixel_n_dim))}')
+        if sorted(world_order) != list(range(wcs.world_n_dim)):
+            raise ValueError(f'world_order should be a permutation of {list(range(wcs.world_n_dim))}')
         self._wcs = wcs
         self._pixel_order = pixel_order
         self._world_order = world_order

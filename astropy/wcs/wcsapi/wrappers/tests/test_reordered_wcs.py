@@ -1,3 +1,5 @@
+import re
+
 import pytest
 
 import numpy as np
@@ -106,3 +108,17 @@ def test_spectral_cube(spectral_cube_3d_fitswcs):
 
     assert str(wcs) == EXPECTED_SPECTRAL_CUBE_REPR
     assert repr(wcs) == EXPECTED_SPECTRAL_CUBE_REPR
+
+
+@pytest.mark.parametrize('order', [(1,), (1, 2, 2), (0, 1, 2, 3)])
+def test_invalid(spectral_cube_3d_fitswcs, order):
+
+    with pytest.raises(ValueError, match=re.escape('pixel_order should be a permutation of [0, 1, 2]')):
+        ReorderedLowLevelWCS(spectral_cube_3d_fitswcs,
+                             pixel_order=order,
+                             world_order=[2, 0, 1])
+
+    with pytest.raises(ValueError, match=re.escape('world_order should be a permutation of [0, 1, 2]')):
+        ReorderedLowLevelWCS(spectral_cube_3d_fitswcs,
+                             pixel_order=[1, 2, 0],
+                             world_order=order)
