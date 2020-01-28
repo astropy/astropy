@@ -1,6 +1,6 @@
 import numpy as np
 
-from ..low_level_api import BaseLowLevelWCS
+from astropy.wcs.wcsapi import BaseLowLevelWCS, wcs_info_str
 
 __all__ = ['ResampledLowLevelWCS']
 
@@ -57,7 +57,7 @@ class ResampledLowLevelWCS(BaseLowLevelWCS):
 
     @property
     def world_axis_object_classes(self):
-        return self._wcs.world_axis_object_components
+        return self._wcs.world_axis_object_classes
 
     @property
     def pixel_shape(self):
@@ -85,3 +85,9 @@ class ResampledLowLevelWCS(BaseLowLevelWCS):
     @property
     def serialized_classes(self):
         return self._wcs.serialized_classes
+
+    def __repr__(self):
+        return wcs_info_str(self)
+
+    def __str__(self):
+        return wcs_info_str(self)

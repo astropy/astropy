@@ -44,6 +44,21 @@ def celestial_2d_fitswcs():
     return wcs
 
 
+@pytest.fixture
+def spectral_cube_3d_fitswcs():
+    wcs = WCS(naxis=3)
+    wcs.wcs.ctype = 'RA---CAR', 'DEC--CAR', 'FREQ'
+    wcs.wcs.cunit = 'deg', 'deg', 'Hz'
+    wcs.wcs.cdelt = -2., 2., 3.e9
+    wcs.wcs.crval = 4., 0., 4.e9
+    wcs.wcs.crpix = 6., 7., 11.
+    wcs.wcs.cname = 'Right Ascension', 'Declination', 'Frequency'
+    wcs.pixel_shape = (6, 7, 3)
+    wcs.pixel_bounds = [(-1, 5), (1, 7), (1, 2.5)]
+    return wcs
+
+
+
 class Spectral1DLowLevelWCS(BaseLowLevelWCS):
 
     @property

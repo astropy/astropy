@@ -2,7 +2,7 @@ from functools import reduce
 
 import numpy as np
 
-from ..low_level_api import BaseLowLevelWCS
+from astropy.wcs.wcsapi import BaseLowLevelWCS, wcs_info_str
 
 __all__ = ['CompoundLowLevelWCS']
 
@@ -116,3 +116,9 @@ class CompoundLowLevelWCS(BaseLowLevelWCS):
     @property
     def serialized_classes(self):
         return any([w.serialized_classes for w in self._wcs])
+
+    def __repr__(self):
+        return wcs_info_str(self)
+
+    def __str__(self):
+        return wcs_info_str(self)

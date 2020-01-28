@@ -229,7 +229,7 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
     @property
     def pixel_shape(self):
         if self.array_shape:
-            return self.array_shape[::-1]
+            return tuple(self.array_shape[::-1])
 
     @property
     def pixel_bounds(self):
