@@ -1229,6 +1229,8 @@ astropy.io.fits
 
 - Prevent instantiation of ``PrimaryHDU`` and ``ImageHDU`` with a scalar.
   [#10041]
+- Fix integer formats of ``TFORMn=Iw`` columns in ASCII tables to correctly read
+  values exceeding int32 - setting int16, int32 or int64 according to ``w``. [#9901]
 
 - Fix column access by attribute with FITS_rec: columns with scaling or columns
   from ASCII tables where not properly converted when accessed by attribute
