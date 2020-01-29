@@ -843,7 +843,10 @@ class FITS_rec(np.recarray):
         """
 
         format = column.format
-        recformat = ASCII2NUMPY[format[0]]
+        if hasattr(column, 'dtype'):
+            recformat = column.dtype
+        else:
+            recformat = ASCII2NUMPY[format[0]]
         # if the string = TNULL, return ASCIITNULL
         nullval = str(column.null).strip().encode('ascii')
         if len(nullval) > format.width:

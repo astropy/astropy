@@ -311,6 +311,20 @@ class TestTableFunctions(FitsTestCase):
         with fits.open(self.temp('toto.fits')) as hdul:
             assert comparerecords(hdu.data, hdul[1].data)
 
+        # Test Integer precision according to width
+
+        c1 = fits.Column(name='t2', format='I2', array=[91, 92, 93])
+        c2 = fits.Column(name='t4', format='I5', array=[91, 92, 93])
+        c3 = fits.Column(name='t8', format='I10', array=[91, 92, 93])
+        hdu = fits.TableHDU.from_columns([c1, c2, c3])
+
+        assert c1.array.dtype == np.int16
+        assert c2.array.dtype == np.int32
+        assert c3.array.dtype == np.int64
+        hdu.writeto(self.temp('toto.fits'), overwrite=True)
+        with fits.open(self.temp('toto.fits')) as hdul:
+            assert comparerecords(hdu.data, hdul[1].data)
+
         a.close()
 
     def test_endianness(self):
