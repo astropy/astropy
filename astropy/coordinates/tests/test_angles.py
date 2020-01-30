@@ -554,8 +554,20 @@ def test_angle_string():
     with pytest.warns(IllegalSecondWarning):
         a = Angle('00:00:60', u.deg)
     assert str(a) == '0d01m00s'
+    a = Angle('00:00:59S', u.deg)
+    assert str(a) == '-0d00m59s'
+    a = Angle('00:00:59N', u.deg)
+    assert str(a) == '0d00m59s'
+    a = Angle('00:00:59E', u.deg)
+    assert str(a) == '0d00m59s'
+    a = Angle('00:00:59W', u.deg)
+    assert str(a) == '-0d00m59s'
     a = Angle('-00:00:10', u.hour)
     assert str(a) == '-0h00m10s'
+    a = Angle('00:00:59E', u.hour)
+    assert str(a) == '0h00m59s'
+    a = Angle('00:00:59W', u.hour)
+    assert str(a) == '-0h00m59s'
     a = Angle(3.2, u.radian)
     assert str(a) == '3.2rad'
     a = Angle(4.2, u.microarcsecond)
@@ -563,15 +575,68 @@ def test_angle_string():
     a = Angle('1.0uarcsec')
     assert a.value == 1.0
     assert a.unit == u.microarcsecond
+    a = Angle('1.0uarcsecN')
+    assert a.value == 1.0
+    assert a.unit == u.microarcsecond
+    a = Angle('1.0uarcsecS')
+    assert a.value == -1.0
+    assert a.unit == u.microarcsecond
+    a = Angle('1.0uarcsecE')
+    assert a.value == 1.0
+    assert a.unit == u.microarcsecond
+    a = Angle('1.0uarcsecW')
+    assert a.value == -1.0
+    assert a.unit == u.microarcsecond
     a = Angle("3d")
     assert_allclose(a.value, 3.0)
+    assert a.unit == u.degree
+    a = Angle("3dN")
+    assert str(a) == "3d00m00s"
+    assert a.unit == u.degree
+    a = Angle("3dS")
+    assert str(a) == "-3d00m00s"
+    assert a.unit == u.degree
+    a = Angle("3dE")
+    assert str(a) == "3d00m00s"
+    assert a.unit == u.degree
+    a = Angle("3dW")
+    assert str(a) == "-3d00m00s"
     assert a.unit == u.degree
     a = Angle('10"')
     assert_allclose(a.value, 10.0)
     assert a.unit == u.arcsecond
-    a = Angle("10'")
+    a = Angle("10'N")
     assert_allclose(a.value, 10.0)
     assert a.unit == u.arcminute
+    a = Angle("10'S")
+    assert_allclose(a.value, -10.0)
+    assert a.unit == u.arcminute
+    a = Angle("10'E")
+    assert_allclose(a.value, 10.0)
+    assert a.unit == u.arcminute
+    a = Angle("10'W")
+    assert_allclose(a.value, -10.0)
+    assert a.unit == u.arcminute
+    a = Angle('45°55′12″N')
+    assert str(a) == '45d55m12s'
+    assert_allclose(a.value, 45.92)
+    assert a.unit == u.deg
+    a = Angle('45°55′12″S')
+    assert str(a) == '-45d55m12s'
+    assert_allclose(a.value, -45.92)
+    assert a.unit == u.deg
+    a = Angle('45°55′12″E')
+    assert str(a) == '45d55m12s'
+    assert_allclose(a.value, 45.92)
+    assert a.unit == u.deg
+    a = Angle('45°55′12″W')
+    assert str(a) == '-45d55m12s'
+    assert_allclose(a.value, -45.92)
+    assert a.unit == u.deg
+    with pytest.raises(ValueError):
+        Angle('00h00m10sN')
+    with pytest.raises(ValueError):
+        Angle('45°55′12″NS')
 
 
 def test_angle_repr():

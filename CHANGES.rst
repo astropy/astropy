@@ -15,6 +15,8 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
+- Angle parsing now supports ``cardinal direction`` in the cases 
+  where angles are initialized as ``string`` instances. eg ``"17°53'27"W"``.[#9859]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^

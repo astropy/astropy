@@ -37,10 +37,16 @@ to create an |Angle|::
     <Angle [1., 2., 3., 4., 5., 6., 7.] deg>
     >>> Angle('1°2′3″')               # Unicode degree, arcmin and arcsec symbols  # doctest: +FLOAT_CMP
     <Angle 1.03416667 deg>
+    >>> Angle('1°2′3″N')               # Unicode degree, arcmin, arcsec symbols and direction  # doctest: +FLOAT_CMP
+    <Angle 1.03416667 deg>
     >>> Angle('1d2m3.4s')              # Degree, arcmin, arcsec.  # doctest: +FLOAT_CMP
     <Angle 1.03427778 deg>
+    >>> Angle('1d2m3.4sS')              # Degree, arcmin, arcsec, diection.  # doctest: +FLOAT_CMP
+    <Angle -1.03427778 deg>
     >>> Angle('-1h2m3s')               # Hour, minute, second  # doctest: +FLOAT_CMP
     <Angle -1.03416667 hourangle>
+    >>> Angle('-1h2m3sW')               # Hour, minute, second, direction  # doctest: +FLOAT_CMP
+    <Angle 1.03416667 hourangle>
     >>> Angle((-1, 2, 3), unit=u.deg)  # (degree, arcmin, arcsec)  # doctest: +FLOAT_CMP
     <Angle -1.03416667 deg>
     >>> Angle(10.2345 * u.deg)         # From a Quantity object in degrees  # doctest: +FLOAT_CMP
