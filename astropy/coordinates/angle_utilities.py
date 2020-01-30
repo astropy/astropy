@@ -51,7 +51,7 @@ class _AngleParser:
        * 1°2′3″
        * 1d2m3s
        * -1h2m3s
-       * 1°2′3N″
+       * 1°2′3″N
 
     This class should not be used directly.  Use `parse_angle`
     instead.
