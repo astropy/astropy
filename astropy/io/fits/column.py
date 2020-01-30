@@ -320,6 +320,10 @@ class _AsciiColumnFormat(_BaseColumnFormat):
         self.format, self.width, self.precision = \
             _parse_ascii_tformat(format, strict)
 
+        # If no width has been specified, set the dtype here to default as well
+        if format == self.format:
+            self.recformat = ASCII2NUMPY[format]
+
         # This is to support handling logical (boolean) data from binary tables
         # in an ASCII table
         self._pseudo_logical = False
