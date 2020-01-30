@@ -1,3 +1,4 @@
+
 4.1 (unreleased)
 ================
 
@@ -27,10 +28,6 @@ astropy.io.ascii
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
-
-- Added serializaton to ASDF of orthonormal polynomial models the 
-  domain and window attributes, without which the serialized model
-  will not properly evaluate its arguments [#9906]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
@@ -322,6 +319,10 @@ astropy.io
 
 - Fixed a bug that prevented the unified I/O infrastructure from working with
   datasets that are represented by directories rather than files. [#9866]
+
+- Added serializaton to ASDF of orthonormal polynomial models the 
+  domain and window attributes, without which the serialized model
+  will not properly evaluate its arguments [#9906]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
