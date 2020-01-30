@@ -85,7 +85,7 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500):
 
     Finally interpolate to find the redshift at each distance modulus:
 
-    >>> zvals = np.interp(Dvals.value, zgrid, Dgrid.value)
+    >>> zvals = np.interp(Dvals.value, Dgrid.value, zgrid)
 
     Examples
     --------
