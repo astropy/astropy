@@ -564,6 +564,10 @@ def test_angle_string():
     assert str(a) == '-0d00m59s'
     a = Angle('-00:00:10', u.hour)
     assert str(a) == '-0h00m10s'
+    a = Angle('00:00:59E', u.hour)
+    assert str(a) == '0h00m59s'
+    a = Angle('00:00:59W', u.hour)
+    assert str(a) == '-0h00m59s'
     a = Angle(3.2, u.radian)
     assert str(a) == '3.2rad'
     a = Angle(4.2, u.microarcsecond)
