@@ -1174,7 +1174,7 @@ dynamical models). An example using the JPL ephemerides is:
     >>> ltt_bary_jpl = times.light_travel_time(ip_peg, ephemeris='jpl') # doctest: +REMOTE_DATA +IGNORE_OUTPUT
     >>> ltt_bary_jpl # doctest: +REMOTE_DATA +FLOAT_CMP
     <TimeDelta object: scale='tdb' format='jd' value=[-0.0037715  -0.00377286]>
-    >>> (ltt_bary_jpl - ltt_bary).to(u.ms) # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> (ltt_bary_jpl - ltt_bary).to(u.ms) # doctest: +REMOTE_DATA +IGNORE_OUTPUT
     <Quantity [-0.00132325, -0.00132861] ms>
 
 The difference between the builtin ephemerides and the JPL ephemerides is normally

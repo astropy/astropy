@@ -379,7 +379,7 @@ class TestBasic:
         dt = datetime.datetime(2000, 1, 2, 3, 4, 5, 123456)
         Time(dt, format='datetime', scale='tai')
         Time([dt, dt], format='datetime', scale='tai')
-        dt64 = np.datetime64('2012-06-18T02:00:05.453000000', format='datetime64')
+        dt64 = np.datetime64('2012-06-18T02:00:05.453000000')
         Time(dt64, format='datetime64', scale='tai')
         Time([dt64, dt64], format='datetime64', scale='tai')
 
