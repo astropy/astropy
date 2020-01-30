@@ -176,18 +176,26 @@ class OrthoPolynomialType(TransformType):
         n_dim = coefficients.ndim
         poly_type = node['polynomial_type']
         if n_dim == 1:
-            model = cls.types[cls.typemap[poly_type]](coefficients.size - 1)
+            domain = node.get('domain')
+            window = node.get('window')
+            model = cls.types[cls.typemap[poly_type]](coefficients.size - 1,
+                              domain=domain, window=window)
             model.parameters = coefficients
         elif n_dim == 2:
+            x_domain, y_domain = node.get('domain', (None, None))
+            x_window, y_window = node.get('window', (None, None))
+
             coeffs = {}
             shape = coefficients.shape
             x_degree = shape[0] - 1
-            y_degree = shape[1] -1
+            y_degree = shape[1] - 1
             for i in range(x_degree + 1):
                 for j in range(y_degree + 1):
                     name = f'c{i}_{j}'
                     coeffs[name] = coefficients[i, j]
-            model = cls.types[cls.typemap[poly_type]+1](x_degree, y_degree, **coeffs)
+            model = cls.types[cls.typemap[poly_type] + 1](x_degree, y_degree,
+                        x_domain=x_domain, y_domain=y_domain,
+                        x_window=x_window, y_window=y_window, **coeffs)
         else:
             raise NotImplementedError(
                 "Asdf currently only supports 1D or 2D polynomial transforms.")
@@ -207,6 +215,16 @@ class OrthoPolynomialType(TransformType):
                     name = f'c{i}_{j}'
                     coefficients[i, j] = getattr(model, name).value
         node = {'polynomial_type': poly_type, 'coefficients': coefficients}
+        if ndim == 1:
+            if model.domain is not None:
+                node['domain'] = model.domain
+            if model.window is not None:
+                node['window'] = model.window
+        else:
+            if model.x_domain or model.y_domain is not None:
+                node['domain'] = [model.x_domain, model.y_domain]
+            if model.x_window or model.y_window is not None:
+                node['window'] = [model.x_window, model.y_window]
         return yamlutil.custom_tree_to_tagged_tree(node, ctx)
 
     @classmethod
