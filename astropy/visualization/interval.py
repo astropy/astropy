@@ -260,7 +260,7 @@ class ZScaleInterval(BaseInterval):
         ngrow = max(1, int(npix * 0.01))
         kernel = np.ones(ngrow, dtype=bool)
 
-        for niter in range(self.max_iterations):
+        for _ in range(self.max_iterations):
             if ngoodpix >= last_ngoodpix or ngoodpix < minpix:
                 break
 
@@ -284,7 +284,7 @@ class ZScaleInterval(BaseInterval):
             ngoodpix = np.sum(~badpix)
 
         if ngoodpix >= minpix:
-            slope, intercept = fit
+            slope, _ = fit
 
             if self.contrast > 0:
                 slope = slope / self.contrast
