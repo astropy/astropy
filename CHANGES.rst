@@ -30,7 +30,7 @@ astropy.io.misc
 
 - Added serializaton to ASDF of orthonormal polynomial models the 
   domain and window attributes, without which the serialized model
-  will not properly evaluate its arguments [#xxxx]
+  will not properly evaluate its arguments [#9906]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
