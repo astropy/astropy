@@ -28,7 +28,6 @@ from .errors import (IllegalHourWarning, IllegalHourError,
 from astropy.utils import format_exception
 from astropy import units as u
 
-
 TAB_HEADER = """# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
@@ -52,6 +51,7 @@ class _AngleParser:
        * 1°2′3″
        * 1d2m3s
        * -1h2m3s
+       * 1°2′3″N
 
     This class should not be used directly.  Use `parse_angle`
     instead.
@@ -94,7 +94,9 @@ class _AngleParser:
             'HOUR',
             'MINUTE',
             'SECOND',
-            'SIMPLE_UNIT'
+            'SIMPLE_UNIT',
+            'EASTWEST',
+            'NORTHSOUTH'
         )
 
         # NOTE THE ORDERING OF THESE RULES IS IMPORTANT!!
@@ -123,9 +125,22 @@ class _AngleParser:
                 t.value = -1.0
             return t
 
+        def t_EASTWEST(t):
+            r'[EW]$'
+            t.value = -1.0 if t.value == 'W' else 1.0
+            return t
+
+        def t_NORTHSOUTH(t):
+            r'[NS]$'
+            # We cannot use lower-case letters otherwise we'll confuse
+            # s[outh] with s[econd]
+            t.value = -1.0 if t.value == 'S' else 1.0
+            return t
+
         def t_SIMPLE_UNIT(t):
             t.value = u.Unit(t.value)
             return t
+
         t_SIMPLE_UNIT.__doc__ = '|'.join(
             f'(?:{x})' for x in cls._get_simple_unit_names())
 
@@ -144,7 +159,7 @@ class _AngleParser:
                 f"Invalid character at col {t.lexpos}")
 
         lexer_exists = os.path.exists(os.path.join(os.path.dirname(__file__),
-                                      'angle_lextab.py'))
+                                                   'angle_lextab.py'))
 
         # Build the lexer
         lexer = lex.lex(optimize=True, lextab='angle_lextab',
@@ -155,13 +170,18 @@ class _AngleParser:
 
         def p_angle(p):
             '''
-            angle : hms
-                  | dms
-                  | arcsecond
-                  | arcminute
-                  | simple
+            angle : sign hms eastwest
+                  | sign dms dir
+                  | sign arcsecond dir
+                  | sign arcminute dir
+                  | sign simple dir
             '''
-            p[0] = p[1]
+            sign = p[1] * p[3]
+            value, unit = p[2]
+            if isinstance(value, tuple):
+                p[0] = ((sign * value[0],) + value[1:], unit)
+            else:
+                p[0] = (sign * value, unit)
 
         def p_sign(p):
             '''
@@ -173,82 +193,95 @@ class _AngleParser:
             else:
                 p[0] = 1.0
 
+        def p_eastwest(p):
+            '''
+            eastwest : EASTWEST
+                     |
+            '''
+            if len(p) == 2:
+                p[0] = p[1]
+            else:
+                p[0] = 1.0
+
+        def p_dir(p):
+            '''
+            dir : EASTWEST
+                | NORTHSOUTH
+                |
+            '''
+            if len(p) == 2:
+                p[0] = p[1]
+            else:
+                p[0] = 1.0
+
         def p_ufloat(p):
             '''
             ufloat : UFLOAT
                    | UINT
             '''
-            p[0] = float(p[1])
+            p[0] = p[1]
 
         def p_colon(p):
             '''
-            colon : sign UINT COLON ufloat
-                  | sign UINT COLON UINT COLON ufloat
+            colon : UINT COLON ufloat
+                  | UINT COLON UINT COLON ufloat
             '''
-            if len(p) == 5:
-                p[0] = (p[1] * p[2], p[4])
-            elif len(p) == 7:
-                p[0] = (p[1] * p[2], p[4], p[6])
+            if len(p) == 4:
+                p[0] = (p[1], p[3])
+            elif len(p) == 6:
+                p[0] = (p[1], p[3], p[5])
 
         def p_spaced(p):
             '''
-            spaced : sign UINT ufloat
-                   | sign UINT UINT ufloat
+            spaced : UINT ufloat
+                   | UINT UINT ufloat
             '''
-            if len(p) == 4:
-                p[0] = (p[1] * p[2], p[3])
-            elif len(p) == 5:
-                p[0] = (p[1] * p[2], p[3], p[4])
+            if len(p) == 3:
+                p[0] = (p[1], p[2])
+            elif len(p) == 4:
+                p[0] = (p[1], p[2], p[3])
 
         def p_generic(p):
             '''
             generic : colon
                     | spaced
-                    | sign UFLOAT
-                    | sign UINT
+                    | ufloat
             '''
-            if len(p) == 2:
-                p[0] = p[1]
-            else:
-                p[0] = p[1] * p[2]
+            p[0] = p[1]
 
         def p_hms(p):
             '''
-            hms : sign UINT HOUR
-                | sign UINT HOUR ufloat
-                | sign UINT HOUR UINT MINUTE
-                | sign UINT HOUR UFLOAT MINUTE
-                | sign UINT HOUR UINT MINUTE ufloat
-                | sign UINT HOUR UINT MINUTE ufloat SECOND
+            hms : UINT HOUR
+                | UINT HOUR ufloat
+                | UINT HOUR UINT MINUTE
+                | UINT HOUR UFLOAT MINUTE
+                | UINT HOUR UINT MINUTE ufloat
+                | UINT HOUR UINT MINUTE ufloat SECOND
                 | generic HOUR
             '''
             if len(p) == 3:
                 p[0] = (p[1], u.hourangle)
-            elif len(p) == 4:
-                p[0] = (p[1] * p[2], u.hourangle)
-            elif len(p) in (5, 6):
-                p[0] = ((p[1] * p[2], p[4]), u.hourangle)
-            elif len(p) in (7, 8):
-                p[0] = ((p[1] * p[2], p[4], p[6]), u.hourangle)
+            elif len(p) in (4, 5):
+                p[0] = ((p[1], p[3]), u.hourangle)
+            elif len(p) in (6, 7):
+                p[0] = ((p[1], p[3], p[5]), u.hourangle)
 
         def p_dms(p):
             '''
-            dms : sign UINT DEGREE
-                | sign UINT DEGREE ufloat
-                | sign UINT DEGREE UINT MINUTE
-                | sign UINT DEGREE UFLOAT MINUTE
-                | sign UINT DEGREE UINT MINUTE ufloat
-                | sign UINT DEGREE UINT MINUTE ufloat SECOND
+            dms : UINT DEGREE
+                | UINT DEGREE ufloat
+                | UINT DEGREE UINT MINUTE
+                | UINT DEGREE UFLOAT MINUTE
+                | UINT DEGREE UINT MINUTE ufloat
+                | UINT DEGREE UINT MINUTE ufloat SECOND
                 | generic DEGREE
             '''
             if len(p) == 3:
                 p[0] = (p[1], u.degree)
-            elif len(p) == 4:
-                p[0] = (p[1] * p[2], u.degree)
-            elif len(p) in (5, 6):
-                p[0] = ((p[1] * p[2], p[4]), u.degree)
-            elif len(p) in (7, 8):
-                p[0] = ((p[1] * p[2], p[4], p[6]), u.degree)
+            elif len(p) in (4, 5):
+                p[0] = ((p[1], p[3]), u.degree)
+            elif len(p) in (6, 7):
+                p[0] = ((p[1], p[3], p[5]), u.degree)
 
         def p_simple(p):
             '''
@@ -276,7 +309,7 @@ class _AngleParser:
             raise ValueError
 
         parser_exists = os.path.exists(os.path.join(os.path.dirname(__file__),
-                                       'angle_parsetab.py'))
+                                                    'angle_parsetab.py'))
 
         parser = yacc.yacc(debug=False, tabmodule='angle_parsetab',
                            outputdir=os.path.dirname(__file__),
