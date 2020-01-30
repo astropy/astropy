@@ -283,9 +283,9 @@ class ZScaleInterval(BaseInterval):
             last_ngoodpix = ngoodpix
             ngoodpix = np.sum(~badpix)
 
-        slope, intercept = fit
-
         if ngoodpix >= minpix:
+            slope, intercept = fit
+
             if self.contrast > 0:
                 slope = slope / self.contrast
             center_pixel = (npix - 1) // 2
