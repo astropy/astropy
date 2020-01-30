@@ -186,8 +186,9 @@ def test_domain_orthopoly(tmpdir):
         assert f.tree['model1d'](1.8) == model1d(1.8)
         assert f.tree['model2d'](1.8, -1.5) == model2d(1.8, -1.5)
 
+
 def test_window_orthopoly(tmpdir):
-    model1d = astmodels.Chebyshev1D(2, c0=2, c1=3, c2=0.5, 
+    model1d = astmodels.Chebyshev1D(2, c0=2, c1=3, c2=0.5,
                                     domain=[-2, 2], window=[-0.5, 0.5])
     model2d = astmodels.Chebyshev2D(1, 1, c0_0=1, c0_1=2, c1_0=3,
                                     x_domain=[-2, 2], y_domain=[-2, 2],
