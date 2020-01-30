@@ -2892,6 +2892,18 @@ class TestColumnFunctions(FitsTestCase):
         assert c.format.recformat == 'i2'
         c = fits.Column('TEST', 'I', ascii=True)
         assert c.format == 'I10'
+        assert c.format.recformat == 'i4'
+
+        # With specified widths, integer precision should be set appropriately
+        c = fits.Column('TEST', 'I4', ascii=True)
+        assert c.format == 'I4'
+        assert c.format.recformat == 'i2'
+        c = fits.Column('TEST', 'I9', ascii=True)
+        assert c.format == 'I9'
+        assert c.format.recformat == 'i4'
+        c = fits.Column('TEST', 'I12', ascii=True)
+        assert c.format == 'I12'
+        assert c.format.recformat == 'i8'
 
         c = fits.Column('TEST', 'E')
         assert c.format == 'E'
