@@ -186,15 +186,21 @@ class TestDefaultAutoOpen:
             ls = iers.LeapSeconds.open()
         assert ls.meta['data_url'] == 'erfa'
 
-    def test_builtin_found_and_not_expired(self):
+    def test_builtin_found(self):
         # Set huge maximum age such that built-in file is always OK.
         # If we remove 'erfa', it should thus be found.
         self.remove_auto_open_files('erfa')
         with iers.conf.set_temp('auto_max_age', 100000):
             ls = iers.LeapSeconds.open()
         assert ls.meta['data_url'] == iers.IERS_LEAP_SECOND_FILE
-        # The built-in file should be kept up to date.
+
+    # The test below is marked remote_data only to ensure it runs
+    # as an allowed-fail job on travis: i.e., we will notice it (eventually)
+    # but will not be misled in thinking that a PR is bad.
+    @pytest.mark.remote_data
+    def test_builtin_not_expired(self):
         # TODO: would be nice to have automatic PRs for this!
+        ls = iers.LeapSeconds.open(iers.IERS_LEAP_SECOND_FILE)
         assert ls.expires > self.good_enough, \
             "The leap second file built in to astropy is expired. PR needed!"
 
