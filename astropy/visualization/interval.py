@@ -216,9 +216,9 @@ class ZScaleInterval(BaseInterval):
         the returned values are the minimum and maximum of the data.
         Defaults to 0.5.
     min_npixels : int, optional
-        If less than ``min_npixels`` pixels are rejected, then the
-        returned values are the minimum and maximum of the data.
-        Defaults to 5.
+        If there are less than ``min_npixels`` pixels remaining after
+        the pixel rejection, then the returned values are the minimum
+        and maximum of the data.  Defaults to 5.
     krej : float, optional
         The number of sigma used for the rejection. Defaults to 2.5.
     max_iterations : int, optional
