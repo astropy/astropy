@@ -4,6 +4,7 @@ colorbars.
 """
 
 import inspect
+import warnings
 
 import numpy as np
 from numpy import ma
@@ -12,6 +13,7 @@ from .interval import (PercentileInterval, AsymmetricPercentileInterval,
                        ManualInterval, MinMaxInterval, BaseInterval)
 from .stretch import (LinearStretch, SqrtStretch, PowerStretch, LogStretch,
                       AsinhStretch, BaseStretch)
+from ..utils.exceptions import AstropyDeprecationWarning
 
 try:
     import matplotlib  # pylint: disable=W0611
@@ -267,6 +269,9 @@ def imshow_norm(data, ax=None, imshow_only_kwargs={}, **kwargs):
         If None, use pyplot's imshow.  Otherwise, calls ``imshow`` method of the
         supplied axes.
     imshow_only_kwargs : dict, optional
+        Deprecated since Astropy v4.1.  Note that settting both ``norm``
+        and ``vmin/vmax`` is deprecated in ``matplotlib >= 3.3``.
+
         Arguments to be passed directly to `~matplotlib.pyplot.imshow` without
         first trying `ImageNormalize`.  This is only for keywords that have the
         same name in both `ImageNormalize` and `~matplotlib.pyplot.imshow` - if
@@ -307,6 +312,11 @@ def imshow_norm(data, ax=None, imshow_only_kwargs={}, **kwargs):
                                stretch=SqrtStretch())
         fig.colorbar(im)
     """
+
+    if imshow_only_kwargs:
+        warnings.warn('imshow_only_kwargs is deprecated since v4.1 and will '
+                      'be removed in a future version.',
+                      AstropyDeprecationWarning)
 
     if 'X' in kwargs:
         raise ValueError('Cannot give both ``X`` and ``data``')
