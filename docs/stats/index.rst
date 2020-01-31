@@ -8,11 +8,11 @@ Introduction
 ============
 
 The `astropy.stats` package holds statistical functions or algorithms
-used in astronomy.  While the `scipy.stats` and `statsmodel
+used in astronomy.  While the `scipy.stats` and `statsmodels
 <http://www.statsmodels.org/stable/index.html>`_ packages contains a
 wide range of statistical tools, they are general-purpose packages and
 are missing some tools that are particularly useful or specific to
-astronomy.  This package is intended to provide such functionality,
+astronomy. This package is intended to provide such functionality,
 but *not* to replace `scipy.stats` if its implementation satisfies
 astronomers' needs.
 
@@ -25,18 +25,34 @@ they can be accessed by importing them::
 
     >>> from astropy import stats
 
-A full list of the different tools are provided below.  Please see the
-documentation for their different usage.  For example, sigma clipping,
-which is common way to estimate the background of an image, can be
-performed with the :func:`~astropy.stats.sigma_clip` function.  By
+A full list of the different tools are provided below. Please see the
+documentation for their different usages. For example, sigma clipping,
+which is a common way to estimate the background of an image, can be
+performed with the :func:`~astropy.stats.sigma_clip` function. By
 default, the function returns a masked array where outliers are
-masked::
+masked.
+
+Examples
+--------
+
+..
+  EXAMPLE START
+  Sigma Clipping with Astropy Stats sigma_clip Function
+
+To estimate the background of an image::
 
     >>> data = [1, 5, 6, 8, 100, 5, 3, 2]
     >>> stats.sigma_clip(data, sigma=2, maxiters=5)
     masked_array(data=[1, 5, 6, 8, --, 5, 3, 2],
                  mask=[False, False, False, False,  True, False, False, False],
            fill_value=999999)
+
+..
+  EXAMPLE END
+
+..
+  EXAMPLE START
+  Sigma Clipping with Astropy Stats SigmaClip Class
 
 Alternatively, the :class:`~astropy.stats.SigmaClip` class provides an
 object-oriented interface to sigma clipping, which also returns a
@@ -48,8 +64,15 @@ masked array by default::
                  mask=[False, False, False, False,  True, False, False, False],
            fill_value=999999)
 
+..
+  EXAMPLE END
+
+..
+  EXAMPLE START
+  Calculating Sigma Clipping Statistics
+
 In addition, there are also several convenience functions for making
-the calculation of statistics even easier.  For example,
+the calculation of statistics even more convenient. For example,
 :func:`~astropy.stats.sigma_clipped_stats` will return the mean,
 median, and standard deviation of a sigma-clipped array::
 
@@ -60,6 +83,9 @@ There are also tools for calculating :ref:`robust statistics
 <stats-robust>`, sampling the data, :ref:`circular statistics
 <stats-circular>`, confidence limits, spatial statistics, and adaptive
 histograms.
+
+..
+  EXAMPLE END
 
 Most tools are fairly self-contained, and include relevant examples in
 their docstrings.
@@ -110,17 +136,17 @@ See Also
 ========
 
 * :mod:`scipy.stats`
-    This scipy package contains a variety of useful statistical functions and
-    classes.  The functionality in `astropy.stats` is intended to supplement
+    This SciPy package contains a variety of useful statistical functions
+    and classes. The functionality in `astropy.stats` is intended to supplement
     this, *not* replace it.
 
-* `statsmodel <http://www.statsmodels.org/stable/index.html>`_
-    The statsmodel package provides functionality for estimating
+* `statsmodels <http://www.statsmodels.org/stable/index.html>`_
+    The statsmodels package provides functionality for estimating
     different statistical models, tests, and data exploration.
 
 * `astroML <http://www.astroml.org/>`_
     The astroML package is a Python module for machine learning and
-    data mining.  Some of the tools from this package have been
+    data mining. Some of the tools from this package have been
     migrated here, but there are still a number of tools there that
     are useful for astronomy and statistical analysis.
 
