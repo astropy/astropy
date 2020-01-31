@@ -86,6 +86,9 @@ class ImageNormalize(Normalize):
             self._set_limits(data)
 
     def _set_limits(self, data):
+        if self.vmin is not None and self.vmax is not None:
+            return
+
         # Define vmin and vmax from the interval class if not None
         if self.interval is None:
             if self.vmin is None:
