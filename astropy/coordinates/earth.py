@@ -13,7 +13,7 @@ from astropy import units as u
 from astropy import constants as consts
 from astropy.units.quantity import QuantityInfoBase
 from astropy.utils.exceptions import AstropyUserWarning
-from .angles import Longitude, Latitude
+from .angles import Angle, Longitude, Latitude
 from .representation import CartesianRepresentation, CartesianDifferential
 from .errors import UnknownSiteException
 from astropy.utils import data
@@ -280,7 +280,10 @@ class EarthLocation(u.Quantity):
         ``gd2gc`` is used.  See https://github.com/liberfa/erfa
         """
         ellipsoid = _check_ellipsoid(ellipsoid, default=cls._ellipsoid)
-        lon = Longitude(lon, u.degree, wrap_angle=180*u.degree, copy=False)
+        # We use Angle here since there is no need to wrap the longitude -
+        # gd2gc will just take cos/sin anyway.  And wrapping might fail
+        # on readonly input.
+        lon = Angle(lon, u.degree, copy=False)
         lat = Latitude(lat, u.degree, copy=False)
         # don't convert to m by default, so we can use the height unit below.
         if not isinstance(height, u.Quantity):

@@ -23,6 +23,9 @@ astropy.coordinates
 - Fixed a bug with ``TransformGraph.remove_transform()`` when the "from" and
   "to" frame classes are not explicitly specified. [#9815]
 
+- Read-only longitudes can now be passed in to ``EarthLocation`` even if
+  they include angles outside of the range of -180 to 180 degrees. [#9900]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 

@@ -396,3 +396,11 @@ def test_gravitational_redshift():
                   'moon': 1*u.km,  # wrong units!
                   'earth': constants.G*constants.M_earth}
         someloc.gravitational_redshift(sometime, masses=masses)
+
+
+def test_read_only_input():
+    lon = np.array([80., 440.]) * u.deg
+    lat = np.array([45.]) * u.deg
+    lon.flags.writeable = lat.flags.writeable = False
+    loc = EarthLocation.from_geodetic(lon=lon, lat=lat)
+    assert quantity_allclose(loc[1].x, loc[0].x)
