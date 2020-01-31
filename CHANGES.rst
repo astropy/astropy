@@ -186,6 +186,9 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Deprecated the ``imshow_only_kwargs`` keyword in ``imshow_norm``.
+  [#9915]
+
 astropy.wcs
 ^^^^^^^^^^^
 
