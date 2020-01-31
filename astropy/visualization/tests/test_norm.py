@@ -7,6 +7,7 @@ import numpy as np
 from numpy import ma
 from numpy.testing import assert_allclose, assert_equal
 
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.visualization.mpl_normalize import ImageNormalize, simple_norm, imshow_norm
 from astropy.visualization.interval import ManualInterval, PercentileInterval
 from astropy.visualization.stretch import SqrtStretch
@@ -238,14 +239,15 @@ def test_imshow_norm():
 
     imshow_norm(image, ax=ax, vmin=0, vmax=1)
 
-    # Note that the following is deprecated in Matplotlib 3.2
-    if MATPLOTLIB_LT_32:
-        # vmin/vmax "shadow" the MPL versions, so imshow_only_kwargs allows direct-setting
-        imshow_norm(image, ax=ax, imshow_only_kwargs=dict(vmin=0, vmax=1))
+    with pytest.warns(AstropyDeprecationWarning):
+        # Note that the following is deprecated in Matplotlib 3.2
+        if MATPLOTLIB_LT_32:
+            # vmin/vmax "shadow" the MPL versions, so imshow_only_kwargs allows direct-setting
+            imshow_norm(image, ax=ax, imshow_only_kwargs=dict(vmin=0, vmax=1))
 
-    # but it should fail for an argument that is not in ImageNormalize
-    with pytest.raises(ValueError):
-        imshow_norm(image, ax=ax, imshow_only_kwargs=dict(cmap='jet'))
+        # but it should fail for an argument that is not in ImageNormalize
+        with pytest.raises(ValueError):
+            imshow_norm(image, ax=ax, imshow_only_kwargs=dict(cmap='jet'))
 
     # make sure the pyplot version works
     imres, norm = imshow_norm(image, ax=None)
