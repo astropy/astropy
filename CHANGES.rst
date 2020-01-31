@@ -384,6 +384,10 @@ astropy.visualization
 - Fixed bug from matplotlib >=3.1 where an empty Quantity array is
   sent for unit conversion as an empty list. [#9848]
 
+- Fix bug in ``ZScaleInterval`` to return the array minimum and
+  maximum when there are less then ``min_npixels`` in the input array.
+  [#9913]
+
 astropy.wcs
 ^^^^^^^^^^^
 
