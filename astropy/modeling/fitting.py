@@ -20,7 +20,7 @@ function.  `~astropy.modeling.fitting.LevMarLSQFitter` uses
 `~scipy.optimize.leastsq` which combines optimization and statistic in one
 implementation.
 """
-
+# pylint: disable=invalid-name
 
 import abc
 import inspect
@@ -31,11 +31,12 @@ from functools import reduce, wraps
 
 import numpy as np
 
-from .utils import poly_map_domain, _combine_equivalency_dict
 from astropy.units import Quantity
 from astropy.utils.exceptions import AstropyUserWarning
+from .utils import poly_map_domain, _combine_equivalency_dict
 from .optimizers import (SLSQP, Simplex)
 from .statistic import (leastsquare)
+from .optimizers import (DEFAULT_MAXITER, DEFAULT_EPS, DEFAULT_ACC)
 
 # Check pkg_resources exists
 try:
@@ -54,9 +55,6 @@ STATISTICS = [leastsquare]
 
 # Optimizers implemented in `astropy.modeling.optimizers.py
 OPTIMIZERS = [Simplex, SLSQP]
-
-from .optimizers import (DEFAULT_MAXITER, DEFAULT_EPS, DEFAULT_ACC)
-
 
 class ModelsError(Exception):
     """Base class for model exceptions"""
@@ -122,19 +120,19 @@ def fitter_unit_support(func):
 
                 if model.input_units is not None:
                     if isinstance(x, Quantity):
-                        x = x.to(model.input_units['x'], equivalencies=input_units_equivalencies['x'])
+                        x = x.to(model.input_units['x'],
+                                 equivalencies=input_units_equivalencies['x'])
                     if isinstance(y, Quantity) and z is not None:
-                        y = y.to(model.input_units['y'], equivalencies=input_units_equivalencies['y'])
+                        y = y.to(model.input_units['y'],
+                                 equivalencies=input_units_equivalencies['y'])
 
                 # We now strip away the units from the parameters, taking care to
                 # first convert any parameters to the units that correspond to the
                 # input units (to make sure that initial guesses on the parameters)
                 # are in the right unit system
-
                 model = model.without_units_for_data(x=x, y=y, z=z)
 
                 # We strip away the units from the input itself
-
                 add_back_units = False
 
                 if isinstance(x, Quantity):
@@ -169,7 +167,8 @@ def fitter_unit_support(func):
 
             else:
 
-                raise NotImplementedError("This model does not support being fit to data with units")
+                raise NotImplementedError("This model does not support being "
+                                          "fit to data with units.")
 
         else:
 
@@ -415,7 +414,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                 lhs = self._deriv_with_constraints(model_copy,
                                                    fitparam_indices, x=x, y=y)
                 fixderivs = self._deriv_with_constraints(model_copy,
-                                                    fixparam_indices, x=x, y=y)
+                                                         fixparam_indices, x=x, y=y)
             else:
                 lhs = model_copy.fit_deriv(x, y, *model_copy.parameters)
             sum_of_implicit_terms = model_copy.sum_of_implicit_terms(x, y)
@@ -585,7 +584,7 @@ class FittingWithOutlierRemoval:
     def __str__(self):
         return ("Fitter: {0}\nOutlier function: {1}\nNum. of iterations: {2}" +
                 ("\nOutlier func. args.: {3}"))\
-                .format(self.fitter__class__.__name__,
+                .format(self.fitter.__class__.__name__,
                         self.outlier_func.__name__, self.niter,
                         self.outlier_kwargs)
 
@@ -650,7 +649,7 @@ class FittingWithOutlierRemoval:
         # Construct input co-ordinate tuples for fitters & models that are
         # appropriate for the dimensionality being fitted:
         if z is None:
-            coords = x,
+            coords = (x, )
             data = y
         else:
             coords = x, y
@@ -950,13 +949,13 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
             return [np.ravel(_) for _ in residues]
         else:
             if z is None:
-                return [np.ravel(_) for _ in np.ravel(weights) * np.array(model.fit_deriv(x, *params))]
+                return [np.ravel(_) for _ in np.ravel(weights) *
+                        np.array(model.fit_deriv(x, *params))]
             else:
                 if not model.col_fit_deriv:
-                    return [np.ravel(_) for _ in (
-                        np.ravel(weights) * np.array(model.fit_deriv(x, y, *params)).T).T]
-                else:
-                    return [np.ravel(_) for _ in (weights * np.array(model.fit_deriv(x, y, *params)))]
+                    return [np.ravel(_) for _ in
+                            (np.ravel(weights) * np.array(model.fit_deriv(x, y, *params)).T).T]
+                return [np.ravel(_) for _ in weights * np.array(model.fit_deriv(x, y, *params))]
 
 
 class SLSQPLSQFitter(Fitter):
@@ -1022,9 +1021,9 @@ class SLSQPLSQFitter(Fitter):
         model_copy = _validate_model(model, self._opt_method.supported_constraints)
         farg = _convert_input(x, y, z)
         farg = (model_copy, weights, ) + farg
-        p0, _ = _model_to_fit_params(model_copy)
+        init_values, _ = _model_to_fit_params(model_copy)
         fitparams, self.fit_info = self._opt_method(
-            self.objective_function, p0, farg, **kwargs)
+            self.objective_function, init_values, farg, **kwargs)
         _fitter_to_model_params(model_copy, fitparams)
 
         return model_copy
@@ -1089,10 +1088,10 @@ class SimplexLSQFitter(Fitter):
         farg = _convert_input(x, y, z)
         farg = (model_copy, weights, ) + farg
 
-        p0, _ = _model_to_fit_params(model_copy)
+        init_values, _ = _model_to_fit_params(model_copy)
 
         fitparams, self.fit_info = self._opt_method(
-            self.objective_function, p0, farg, **kwargs)
+            self.objective_function, init_values, farg, **kwargs)
         _fitter_to_model_params(model_copy, fitparams)
         return model_copy
 
@@ -1191,14 +1190,14 @@ class JointFitter(metaclass=_FitterMeta):
     def _verify_input(self):
         if len(self.models) <= 1:
             raise TypeError("Expected >1 models, {} is given".format(
-                    len(self.models)))
+                len(self.models)))
         if len(self.jointparams.keys()) < 2:
             raise TypeError("At least two parameters are expected, "
                             "{} is given".format(len(self.jointparams.keys())))
         for j in self.jointparams.keys():
             if len(self.jointparams[j]) != len(self.initvals):
                 raise TypeError("{} parameter(s) provided but {} expected".format(
-                        len(self.jointparams[j]), len(self.initvals)))
+                    len(self.jointparams[j]), len(self.initvals)))
 
     def __call__(self, *args):
         """
@@ -1378,8 +1377,7 @@ def _model_to_fit_params(model):
                 del params[slice_]
                 del fitparam_indices[idx]
         return (np.array(params), fitparam_indices)
-    else:
-        return (model.parameters, fitparam_indices)
+    return (model.parameters, fitparam_indices)
 
 
 def _validate_constraints(supported_constraints, model):
@@ -1390,16 +1388,16 @@ def _validate_constraints(supported_constraints, model):
     if (any(model.fixed.values()) and
             'fixed' not in supported_constraints):
         raise UnsupportedConstraintError(
-                message.format('fixed parameter'))
+            message.format('fixed parameter'))
 
     if any(model.tied.values()) and 'tied' not in supported_constraints:
         raise UnsupportedConstraintError(
-                message.format('tied parameter'))
+            message.format('tied parameter'))
 
     if (any(tuple(b) != (None, None) for b in model.bounds.values()) and
             'bounds' not in supported_constraints):
         raise UnsupportedConstraintError(
-                message.format('bound parameter'))
+            message.format('bound parameter'))
 
     if model.eqcons and 'eqcons' not in supported_constraints:
         raise UnsupportedConstraintError(message.format('equality'))
@@ -1455,13 +1453,12 @@ def populate_entry_points(entry_points):
             entry_point = entry_point.load()
         except Exception as e:
             # This stops the fitting from choking if an entry_point produces an error.
-            warnings.warn(AstropyUserWarning('{type} error occurred in entry '
-                                             'point {name}.' .format(type=type(e).__name__, name=name)))
+            warnings.warn(AstropyUserWarning(
+                f'{type(e).__name__} error occurred in entry point {name}.'))
         else:
             if not inspect.isclass(entry_point):
                 warnings.warn(AstropyUserWarning(
-                    'Modeling entry point {} expected to be a '
-                    'Class.' .format(name)))
+                    f'Modeling entry point {name} expected to be a Class.'))
             else:
                 if issubclass(entry_point, Fitter):
                     name = entry_point.__name__

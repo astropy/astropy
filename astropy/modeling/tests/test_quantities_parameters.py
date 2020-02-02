@@ -3,15 +3,15 @@
 """
 Tests that relate to using quantities/units on parameters of models.
 """
-
+# pylint: disable=invalid-name, no-member
 
 import numpy as np
 import pytest
 
-from astropy.modeling.core import Model, Fittable1DModel, InputParameterError
+from astropy.modeling.core import Fittable1DModel, InputParameterError
 from astropy.modeling.parameters import Parameter, ParameterDefinitionError
 from astropy.modeling.models import (Gaussian1D, Pix2Sky_TAN, RotateNative2Celestial,
-                      Rotation2D)
+                                     Rotation2D)
 from astropy import units as u
 from astropy.units import UnitsError
 from astropy.tests.helper import assert_quantity_allclose

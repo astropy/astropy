@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Tests for physical functions."""
-
+# pylint: disable=no-member, invalid-name
 import pytest
 import numpy as np
 

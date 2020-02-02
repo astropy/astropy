@@ -1,4 +1,5 @@
 # Various tests of models not related to evaluation, fitting, or parameters
+# pylint: disable=invalid-name, no-member
 import warnings
 
 import pytest

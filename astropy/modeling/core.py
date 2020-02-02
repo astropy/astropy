@@ -12,7 +12,7 @@ represent either a single model, or a "model set" representing multiple copies
 of the same type of model, but with potentially different values of the
 parameters in each model making up the set.
 """
-
+# pylint: disable=invalid-name, protected-access, redefined-outer-name
 import abc
 import copy
 import inspect
@@ -21,7 +21,7 @@ import operator
 import types
 import warnings
 
-from collections import defaultdict, OrderedDict
+from collections import defaultdict, OrderedDict, deque
 from inspect import signature
 from itertools import chain
 
@@ -36,14 +36,12 @@ from astropy.utils import (sharedmethod, find_current_module,
 from astropy.utils.codegen import make_function_with_signature
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import get_parameters
-from .utils import (combine_labels, make_binary_operator_eval,
-                    AliasDict, get_inputs_and_params,
-                    _BoundingBox, _combine_equivalency_dict, _ConstraintsDict)
 from astropy.nddata.utils import add_array, extract_array
+from .utils import (combine_labels, make_binary_operator_eval,
+                    get_inputs_and_params, _BoundingBox, _combine_equivalency_dict,
+                    _ConstraintsDict)
 from .parameters import (Parameter, InputParameterError,
                          param_repr_oneline, _tofloat)
-
-from collections import deque
 
 
 __all__ = ['Model', 'FittableModel', 'Fittable1DModel', 'Fittable2DModel',
@@ -166,20 +164,19 @@ class _ModelMeta(abc.ABCMeta):
             # Just return a string specifying where the class can be imported
             # from
             return cls.__name__
-        else:
-            members = dict(cls.__dict__)
-            # Delete any ABC-related attributes--these will be restored when
-            # the class is reconstructed:
-            for key in list(members):
-                if key.startswith('_abc_'):
-                    del members[key]
+        members = dict(cls.__dict__)
+        # Delete any ABC-related attributes--these will be restored when
+        # the class is reconstructed:
+        for key in list(members):
+            if key.startswith('_abc_'):
+                del members[key]
 
-            # Delete custom __init__ and __call__ if they exist:
-            for key in ('__init__', '__call__'):
-                if key in members:
-                    del members[key]
+        # Delete custom __init__ and __call__ if they exist:
+        for key in ('__init__', '__call__'):
+            if key in members:
+                del members[key]
 
-            return (type(cls), (cls.__name__, cls.__bases__, members))
+        return (type(cls), (cls.__name__, cls.__bases__, members))
 
     @property
     def name(cls):
@@ -298,7 +295,6 @@ class _ModelMeta(abc.ABCMeta):
             sig = signature(bounding_box)
             # May be a method that only takes 'self' as an argument (like a
             # property, but the @property decorator was forgotten)
-            # TODO: Maybe warn in the above case?
             #
             # However, if the method takes additional arguments then this is a
             # parameterized bounding box and should be callable
@@ -370,10 +366,10 @@ class _ModelMeta(abc.ABCMeta):
             wrapper.__doc__ = getattr(cls, wrapper.__name__).__doc__
             if hasattr(cls, '__qualname__'):
                 wrapper.__qualname__ = '{0}.{1}'.format(
-                        cls.__qualname__, wrapper.__name__)
+                    cls.__qualname__, wrapper.__name__)
 
         if ('__call__' not in members and 'n_inputs' in members and
-            isinstance(members['n_inputs'], int) and members['n_inputs'] > 0):
+                isinstance(members['n_inputs'], int) and members['n_inputs'] > 0):
 
             # Don't create a custom __call__ for classes that already have one
             # explicitly defined (this includes the Model base class, and any
@@ -403,7 +399,7 @@ class _ModelMeta(abc.ABCMeta):
                            ('inputs_map', None)])
 
             new_call = make_function_with_signature(
-                    __call__, args, kwargs, varargs='inputs', varkwargs='new_inputs')
+                __call__, args, kwargs, varargs='inputs', varkwargs='new_inputs')
 
             # The following makes it look like __call__
             # was defined in the class
@@ -438,7 +434,7 @@ class _ModelMeta(abc.ABCMeta):
                 return super(cls, self).__init__(*params, **kwargs)
 
             new_init = make_function_with_signature(
-                    __init__, args, kwargs, varkwargs='kwargs')
+                __init__, args, kwargs, varkwargs='kwargs')
             update_wrapper(new_init, cls)
             cls.__init__ = new_init
 
@@ -476,13 +472,12 @@ class _ModelMeta(abc.ABCMeta):
                 if not issubclass(base, Model):
                     continue
                 elif (inspect.isabstract(base) or
-                        base.__name__.startswith('_')):
+                      base.__name__.startswith('_')):
                     break
                 bases.append(base.name)
             if bases:
                 return '{0} ({1})'.format(cls.name, ' -> '.join(bases))
-            else:
-                return cls.name
+            return cls.name
 
         try:
             default_keywords = [
@@ -727,11 +722,11 @@ class Model(metaclass=_ModelMeta):
     def _inputs_deprecation(self):
         if hasattr(self.__class__, 'inputs') and isinstance(self.__class__.inputs, tuple):
             warnings.warn(
-            f"""Class {self.__class__.__name__} defines class attributes ``inputs``.
-            This has been deprecated in v4.0 and support will be removed in v4.1.
-            Starting with v4.0 classes must define a class attribute ``n_inputs``.
-            Please consult the documentation for details.
-            """, AstropyDeprecationWarning)
+                f"""Class {self.__class__.__name__} defines class attributes ``inputs``.
+                This has been deprecated in v4.0 and support will be removed in v4.1.
+                Starting with v4.0 classes must define a class attribute ``n_inputs``.
+                Please consult the documentation for details.
+                """, AstropyDeprecationWarning)
 
     def _default_inputs_outputs(self):
         if self.n_inputs == 1 and self.n_outputs == 1:
@@ -828,8 +823,7 @@ class Model(metaclass=_ModelMeta):
         val = self._input_units_strict
         if isinstance(val, bool):
             return {key: val for key in self.inputs}
-        else:
-            return dict(zip(self.inputs, val.values()))
+        return dict(zip(self.inputs, val.values()))
 
     @property
     def input_units_allow_dimensionless(self):
@@ -844,8 +838,7 @@ class Model(metaclass=_ModelMeta):
         val = self._input_units_allow_dimensionless
         if isinstance(val, bool):
             return {key: val for key in self.inputs}
-        else:
-            return dict(zip(self.inputs, val.values()))
+        return dict(zip(self.inputs, val.values()))
 
     @property
     def uses_quantity(self):
@@ -871,8 +864,8 @@ class Model(metaclass=_ModelMeta):
     def __setattr__(self, attr, value):
         if isinstance(self, CompoundModel):
             param_names = self._param_names
-        else:
-            param_names = self.param_names
+        param_names = self.param_names
+
         if param_names is not None and attr in self.param_names:
             param = self.__dict__[attr]
             value = _tofloat(value)
@@ -900,13 +893,11 @@ class Model(metaclass=_ModelMeta):
                     param.value = value
             else:
                 if not isinstance(value, Quantity):
-                    raise UnitsError("The '{0}' parameter should be given as a"
+                    raise UnitsError(f"The '{param.name}' parameter should be given as a"
                                      " Quantity because it was originally "
-                                     "initialized as a Quantity".format(
-                                                            param.name))
-                else:
-                    param._unit = value.unit
-                    param.value = value.value
+                                     "initialized as a Quantity")
+                param._unit = value.unit
+                param.value = value.value
         else:
             if attr in ['fittable', 'linear']:
                 self.__dict__[attr] = value
@@ -1225,7 +1216,7 @@ class Model(metaclass=_ModelMeta):
             return self._user_bounding_box
         elif self._bounding_box is None:
             raise NotImplementedError(
-                    "No bounding box is defined for this model.")
+                "No bounding box is defined for this model.")
         elif isinstance(self._bounding_box, _BoundingBox):
             # This typically implies a hard-coded bounding box.  This will
             # probably be rare, but it is an option
@@ -1253,7 +1244,7 @@ class Model(metaclass=_ModelMeta):
             # opposed to no user bounding box defined)
             bounding_box = NotImplemented
         elif (isinstance(self._bounding_box, type) and
-                issubclass(self._bounding_box, _BoundingBox)):
+              issubclass(self._bounding_box, _BoundingBox)):
             cls = self._bounding_box
         else:
             cls = _BoundingBox
@@ -1286,10 +1277,9 @@ class Model(metaclass=_ModelMeta):
 
         if self._separable is not None:
             return self._separable
-        else:
-            raise NotImplementedError(
-                'The "separable" property is not defined for '
-                'model {}'.format(self.__class__.__name__))
+        raise NotImplementedError(
+            'The "separable" property is not defined for '
+            'model {}'.format(self.__class__.__name__))
 
     # *** Public methods ***
 
@@ -1323,19 +1313,16 @@ class Model(metaclass=_ModelMeta):
 
         if isinstance(self, CompoundModel):
             self._make_opset()
-            if not self._opset.issubset(
-                set(('+', '-'))):
+            if not self._opset.issubset(set(('+', '-'))):
                 raise ValueError(
                     "Fitting a compound model without units can only be performed on"
                     "compound models that only use the arithmetic operators + and -")
 
         model = self.copy()
-        inputs_unit = {inp: getattr(kwargs[inp], 'unit',
-                       dimensionless_unscaled)
+        inputs_unit = {inp: getattr(kwargs[inp], 'unit', dimensionless_unscaled)
                        for inp in self.inputs if kwargs[inp] is not None}
 
-        outputs_unit = {out: getattr(kwargs[out], 'unit',
-                        dimensionless_unscaled)
+        outputs_unit = {out: getattr(kwargs[out], 'unit', dimensionless_unscaled)
                         for out in self.outputs if kwargs[out] is not None}
         parameter_units = self._parameter_units_for_data_units(inputs_unit,
                                                                outputs_unit)
@@ -1383,12 +1370,10 @@ class Model(metaclass=_ModelMeta):
 
         model = self.copy()
 
-        inputs_unit = {inp: getattr(kwargs[inp], 'unit',
-                       dimensionless_unscaled)
+        inputs_unit = {inp: getattr(kwargs[inp], 'unit', dimensionless_unscaled)
                        for inp in self.inputs if kwargs[inp] is not None}
 
-        outputs_unit = {out: getattr(kwargs[out], 'unit',
-                        dimensionless_unscaled)
+        outputs_unit = {out: getattr(kwargs[out], 'unit', dimensionless_unscaled)
                         for out in self.outputs if kwargs[out] is not None}
 
         parameter_units = self._parameter_units_for_data_units(inputs_unit,
@@ -1624,10 +1609,8 @@ class Model(metaclass=_ModelMeta):
         _validate_input_shapes(inputs, self.inputs, n_models,
                                model_set_axis, self.standard_broadcasting)
 
-        if 'inputs_map' in kwargs:
-            inputs_map = kwargs['inputs_map']
-        else:
-            inputs_map = None
+        inputs_map = kwargs.get('inputs_map', None)
+
         inputs = self._validate_input_units(inputs, equivalencies, inputs_map)
 
         # The input formatting required for single models versus a multiple
@@ -1723,8 +1706,8 @@ class Model(metaclass=_ModelMeta):
                     # exception.
 
                     if (not self.input_units_allow_dimensionless[input_name] and
-                       input_unit is not dimensionless_unscaled and
-                       input_unit is not None):
+                        input_unit is not dimensionless_unscaled and
+                        input_unit is not None):
                         if np.any(inputs[i] != 0):
                             raise UnitsError("{0}: Units of input '{1}', (dimensionless), could not be "
                                              "converted to required input units of "
@@ -1742,14 +1725,14 @@ class Model(metaclass=_ModelMeta):
                 return_units = self.return_units
 
             outputs = tuple([Quantity(out, return_units.get(out_name, None), subok=True)
-                            for out, out_name in zip(outputs, self.outputs)])
+                             for out, out_name in zip(outputs, self.outputs)])
         return outputs
 
     def prepare_outputs(self, format_info, *outputs, **kwargs):
         model_set_axis = kwargs.get('model_set_axis', None)
 
         if len(self) == 1:
-            return _prepare_outputs_single_model(self, outputs, format_info)
+            return _prepare_outputs_single_model(outputs, format_info)
         else:
             return _prepare_outputs_model_set(self, outputs, format_info, model_set_axis)
 
@@ -1833,7 +1816,7 @@ class Model(metaclass=_ModelMeta):
         else:
             if not (model_set_axis is False or
                     (isinstance(model_set_axis, int) and
-                        not isinstance(model_set_axis, bool))):
+                     not isinstance(model_set_axis, bool))):
                 raise ValueError(
                     "model_set_axis must be either False or an integer "
                     "specifying the parameter array axis to map to each "
@@ -2012,11 +1995,6 @@ class Model(metaclass=_ModelMeta):
     def _parameters_to_array(self):
         # Now set the parameter values (this will also fill
         # self._parameters)
-        # TODO: This is a bit ugly, but easier to deal with than how this was
-        # done previously.  There's still lots of opportunity for refactoring
-        # though, in particular once we move the _get/set_model_value methods
-        # out of Parameter and into Model (renaming them
-        # _get/set_parameter_value)
         param_metrics = self._param_metrics
         for name in self.param_names:
             param = getattr(self, name)
@@ -2151,11 +2129,6 @@ class Model(metaclass=_ModelMeta):
             psets[:] = values
             return psets
 
-        # TODO: Returning an array from this method may be entirely pointless
-        # for internal use--perhaps only the external param_sets method should
-        # return an array (and just for backwards compat--I would prefer to
-        # maybe deprecate that method)
-
         return np.array(values)
 
     def _format_repr(self, args=[], kwargs={}, defaults={}):
@@ -2166,8 +2139,6 @@ class Model(metaclass=_ModelMeta):
         override the default ``__repr__`` while keeping the same basic
         formatting.
         """
-
-        # TODO: I think this could be reworked to preset model sets better
 
         parts = [repr(a) for a in args]
 
@@ -2310,7 +2281,6 @@ def _join_operator(f, g):
             f[1] + g[1], f[2] + g[2])
 
 
-# TODO: Support a couple unary operators--at least negation?
 BINARY_OPERATORS = {
     '+': _make_arithmetic_operator(operator.add),
     '-': _make_arithmetic_operator(operator.sub),
@@ -2357,23 +2327,22 @@ class CompoundModel(Model):
         if op != 'fix_inputs' and len(left) != len(right):
             raise ValueError(
                 'Both operands must have equal values for n_models')
-        else:
-            self._n_models = len(left)
+        self._n_models = len(left)
+
         if op != 'fix_inputs' and ((left.model_set_axis != right.model_set_axis)
-                or left.model_set_axis):  # not False and not 0
+                                   or left.model_set_axis):  # not False and not 0
             raise ValueError("model_set_axis must be False or 0 and consistent for operands")
-        else:
-            self._model_set_axis = left.model_set_axis
+        self._model_set_axis = left.model_set_axis
+
         if op in ['+', '-', '*', '/', '**'] or op in SPECIAL_OPERATORS:
             if (left.n_inputs != right.n_inputs) or \
                (left.n_outputs != right.n_outputs):
                 raise ModelDefinitionError(
                     'Both operands must match numbers of inputs and outputs')
-            else:
-                self.n_inputs = left.n_inputs
-                self.n_outputs = left.n_outputs
-                self.inputs = left.inputs
-                self.outputs = left.outputs
+            self.n_inputs = left.n_inputs
+            self.n_outputs = left.n_outputs
+            self.inputs = left.inputs
+            self.outputs = left.outputs
         elif op == '&':
             self.n_inputs = left.n_inputs + right.n_inputs
             self.n_outputs = left.n_outputs + right.n_outputs
@@ -2382,9 +2351,9 @@ class CompoundModel(Model):
             if inverse is None and self.both_inverses_exist():
                 self._has_inverse = True
                 inv = CompoundModel('&',
-                                     self.left.inverse,
-                                     self.right.inverse,
-                                     inverse=self)
+                                    self.left.inverse,
+                                    self.right.inverse,
+                                    inverse=self)
                 if left._user_inverse is not None or right._user_inverse is not None:
                     self._user_inverse = inv
                     if self.inverse._has_inverse:
@@ -2441,12 +2410,10 @@ class CompoundModel(Model):
                         raise ValueError(
                             'Substitution key integer value '
                             'not among possible input choices.')
-                    else:
-                        if key in input_ind:
-                            raise ValueError("Duplicate specification of "
-                                             "same input (index/name).")
-                        else:
-                            input_ind.append(key)
+                    if key in input_ind:
+                        raise ValueError("Duplicate specification of "
+                                         "same input (index/name).")
+                    input_ind.append(key)
                 elif isinstance(key, str):
                     if key not in left.inputs:
                         raise ValueError(
@@ -2458,8 +2425,7 @@ class CompoundModel(Model):
                     if ind in input_ind:
                         raise ValueError("Duplicate specification of "
                                          "same input (index/name).")
-                    else:
-                        input_ind.append(ind)
+                    input_ind.append(ind)
             # Remove substituted inputs
             input_ind.sort()
             input_ind.reverse()
@@ -2489,9 +2455,6 @@ class CompoundModel(Model):
         self.ineqcons = []
         self._map_parameters()
 
-    def __len__(self):
-        return self._n_models
-
     def evaluate(self, *args, **kwargs):
         pass
 
@@ -2501,12 +2464,13 @@ class CompoundModel(Model):
             self._make_leaflist()
         return len(self._leaflist)
 
-    @property
-    def model_set_axis(self):
-        return self._model_set_axis
+    # @property
+    # def model_set_axis(self):
+    #     return self._model_set_axis
 
     @property
     def submodel_names(self):
+        """ Return the names of submodels in a ``CompoundModel``."""
         if self._leaflist is None:
             self._make_leaflist()
         names = [item.name for item in self._leaflist]
@@ -2559,8 +2523,7 @@ class CompoundModel(Model):
             # first check inputs are consistent in shape
             input_shape = _validate_input_shapes(args, (), self._n_models,
                                                  self.model_set_axis, self.standard_broadcasting)
-            vinputs, valid_ind, allout = prepare_bounding_box_inputs(
-                                         self, input_shape, args, bbox)
+            vinputs, valid_ind, allout = prepare_bounding_box_inputs(self, input_shape, args, bbox)
             if not allout:
                 valid_result = self._evaluate(*vinputs, **kw)
                 if self.n_outputs == 1:
@@ -2571,8 +2534,7 @@ class CompoundModel(Model):
                 outputs = [np.zeros(input_shape) + fill_value for i in range(self.n_outputs)]
             if self.n_outputs == 1:
                 return outputs[0]
-            else:
-                return outputs
+            return outputs
         else:
             return self._evaluate(*args, **kw)
 
@@ -2634,7 +2596,7 @@ class CompoundModel(Model):
                     ind = self.inputs.index(kwkey)
                     if ind < len(args):
                         raise ValueError("Keyword argument duplicates "
-                                        "positional value supplied.")
+                                         "positional value supplied.")
                     kwind.append(ind)
                     kwval.append(kw[kwkey])
                     del kw[kwkey]
@@ -2648,7 +2610,7 @@ class CompoundModel(Model):
             if subinds:
                 subargs = list(zip(subinds, subvals))
                 subargs.sort()
-                subindsorted, subvalsorted = list(zip(*subargs))
+                #subindsorted, subvalsorted = list(zip(*subargs))
             # The substitutions must be inserted in order
             for ind, val in subargs:
                 newargs.insert(ind, val)
@@ -2656,6 +2618,7 @@ class CompoundModel(Model):
 
     @property
     def param_names(self):
+        """ An ordered list of parameter names."""
         return self._param_names
 
     def _make_leaflist(self):
@@ -2666,9 +2629,7 @@ class CompoundModel(Model):
         self._tdict = tdict
 
     def _make_opset(self):
-        """
-        Determine the set of operations used in this tree
-        """
+        """ Determine the set of operations used in this tree."""
         self._opset = set()
         get_ops(self, self._opset)
 
@@ -2747,6 +2708,7 @@ class CompoundModel(Model):
 
     @property
     def n_inputs(self):
+        """ The number of inputs of a model."""
         return self._n_inputs
 
     @n_inputs.setter
@@ -2755,6 +2717,7 @@ class CompoundModel(Model):
 
     @property
     def n_outputs(self):
+        """ The number of outputs of a model."""
         return self._n_outputs
 
     @n_outputs.setter
@@ -2778,6 +2741,7 @@ class CompoundModel(Model):
         self._eqcons = value
 
     def traverse_postorder(self, include_operator=False):
+        """ Postorder traversal of the CompoundModel tree."""
         res = []
         if isinstance(self.left, CompoundModel):
             res = res + self.left.traverse_postorder(include_operator)
@@ -2821,37 +2785,6 @@ class CompoundModel(Model):
 
         return ''.join(operands)
 
-    def _format_repr(self, args=[], kwargs={}, defaults={}):
-        """
-        Internal implementation of ``__repr__``.
-
-        This is separated out for ease of use by subclasses that wish to
-        override the default ``__repr__`` while keeping the same basic
-        formatting.
-        """
-
-        # TODO: I think this could be reworked to preset model sets better
-
-        parts = [repr(a) for a in args]
-
-        parts.extend(
-            "{0}={1}".format(name,
-                             param_repr_oneline(getattr(self, name)))
-            for name in self.param_names)
-
-        if self.name is not None:
-            parts.append('name={0!r}'.format(self.name))
-
-        for kwarg, value in kwargs.items():
-            if kwarg in defaults and defaults[kwarg] != value:
-                continue
-            parts.append('{0}={1!r}'.format(kwarg, value))
-
-        if len(self) > 1:
-            parts.append("n_models={0}".format(len(self)))
-
-        return '<{0}({1})>'.format(self.__class__.__name__, ', '.join(parts))
-
     def _format_components(self):
         if self._parameters_ is None:
             self._map_parameters()
@@ -2883,13 +2816,14 @@ class CompoundModel(Model):
         if self.has_inverse():
             if self._user_inverse is not None:
                 return self._user_inverse
-            else:
-                return self._inverse
+            return self._inverse
         else:
             raise NotImplementedError("Inverse function not provided")
 
     @inverse.setter
     def inverse(self, value):
+        if not isinstance(value, Model):
+            raise ValueError("Attempt to assign non model to inverse")
         self._user_inverse = value
         self._has_inverse = True
 
@@ -2900,65 +2834,13 @@ class CompoundModel(Model):
 
     @property
     def fittable(self):
+        """ Set the fittable attribute on a compound model."""
         if self._fittable is None:
             if self._leaflist is None:
                 self._map_parameters()
             self._fittable = all(m.fittable for m in self._leaflist)
         return self._fittable
 
-    @property
-    def parameters(self):
-        """
-        A flattened array of all parameter values in all parameter sets.
-
-        Fittable parameters maintain this list and fitters modify it.
-        """
-
-        # Currently the sequence of a model's parameters must be contiguous
-        # within the _parameters array (which may be a view of a larger array,
-        # for example when taking a sub-expression of a compound model), so
-        # the assumption here is reliable:
-        if self.param_names is None:
-            raise RuntimeError("Compound model parameter interface is not "
-                               "supported\n"
-                               "until the ._map_parameters() method is called.")
-
-        self._parameters_to_array()
-        start = self._param_metrics[self.param_names[0]]['slice'].start
-        stop = self._param_metrics[self.param_names[-1]]['slice'].stop
-
-        return self._parameters[start:stop]
-
-    @parameters.setter
-    def parameters(self, value):
-        """
-        Assigning to this attribute updates the parameters array rather than
-        replacing it.
-        """
-
-        if self.param_names is None:
-            raise RuntimeError("Compound model parameter interface is not "
-                               "supported\n"
-                               "until the ._map_parameters() method is called.")
-
-        start = self._param_metrics[self.param_names[0]]['slice'].start
-        stop = self._param_metrics[self.param_names[-1]]['slice'].stop
-
-        try:
-            value = np.array(value).flatten()
-            self._parameters[start:stop] = value
-        except ValueError as e:
-            raise InputParameterError(
-                "Input parameter values not compatible with the model "
-                "parameters array: {0}".format(e))
-        self._array_to_parameters()
-
-    @inverse.setter
-    def inverse(self, invmodel):
-        if not isinstance(invmodel, Model):
-            raise ValueError("Attempt to assign non model to inverse")
-        self._has_inverse = True
-        self._user_inverse = invmodel
 
     __add__ = _model_oper('+')
     __sub__ = _model_oper('-')
@@ -3008,13 +2890,12 @@ class CompoundModel(Model):
                     self._param_names.append(new_param_name)
                     param_map[new_param_name] = (lindex, param_name)
         self._param_metrics = {}
-        self._param_map =  param_map
+        self._param_map = param_map
         self._param_map_inverse = dict((v, k) for k, v in param_map.items())
         self._initialize_slices()
         self._param_names = tuple(self._param_names)
 
     def _initialize_slices(self):
-        # TODO eliminate redundant code with core here and next two methods
         param_metrics = self._param_metrics
         total_size = 0
 
@@ -3035,8 +2916,7 @@ class CompoundModel(Model):
     def _recursive_lookup(branch, adict, key):
         if isinstance(branch, CompoundModel):
             return adict[key]
-        else:
-            return branch, key
+        return branch, key
 
     def inputs_map(self):
         """
@@ -3067,12 +2947,10 @@ class CompoundModel(Model):
                         inputs_map[inp] = self.left, self.left.inputs[i]
                 else:  # Get from right
                     if isinstance(self.right, CompoundModel):
-
-                        inputs_map[inp] = r_inputs_map[self.right.inputs[i
-                                                                   - len(self.left.inputs)]]
+                        inputs_map[inp] = r_inputs_map[
+                            self.right.inputs[i - len(self.left.inputs)]]
                     else:
-                        inputs_map[inp] = self.right, self.right.inputs[i
-                                                                   - len(self.left.inputs)]
+                        inputs_map[inp] = self.right, self.right.inputs[i - len(self.left.inputs)]
         else:
             if isinstance(self.left, CompoundModel):
                 l_inputs_map = self.left.inputs_map()
@@ -3098,12 +2976,11 @@ class CompoundModel(Model):
     def input_units(self):
         inputs_map = self.inputs_map()
         input_units_dict = {key: inputs_map[key][0].input_units[orig_key]
-                for key, (mod, orig_key) in inputs_map.items()
-                if inputs_map[key][0].input_units is not None}
+                            for key, (mod, orig_key) in inputs_map.items()
+                            if inputs_map[key][0].input_units is not None}
         if input_units_dict:
             return input_units_dict
-        else:
-            return None
+        return None
 
     @property
     def input_units_equivalencies(self):
@@ -3172,155 +3049,6 @@ class CompoundModel(Model):
                     outputs_map[out] = self.left, out
         return outputs_map
 
-    def _parameters_to_array(self):
-        # Now set the parameter values (this will also fill
-        # self._parameters)
-        # TODO: This is a bit ugly, but easier to deal with than how this was
-        # done previously.  There's still lots of opportunity for refactoring
-        # though, in particular once we move the _get/set_model_value methods
-        # out of Parameter and into Model (renaming them
-        # _get/set_parameter_value)
-        param_metrics = self._param_metrics
-        for name in self.param_names:
-            param = getattr(self, name)
-            value = param.value
-            if not isinstance(value, np.ndarray):
-                value = np.array([value])
-            self._parameters[param_metrics[name]['slice']] = value.ravel()
-
-    def _array_to_parameters(self):
-        param_metrics = self._param_metrics
-        for name in self.param_names:
-            param = getattr(self, name)
-            param.value = self._parameters[param_metrics[name]['slice']]
-            param.shape = param_metrics[name]['shape']
-
-    @property
-    def _has_units(self):
-        # Returns True if any of the parameters have units
-        for param in self.param_names:
-            if getattr(self, param).unit is not None:
-                return True
-        else:
-            return False
-
-    @property
-    def bounding_box(self):
-        r"""
-        A `tuple` of length `n_inputs` defining the bounding box limits, or
-        `None` for no bounding box.
-
-        The default limits are given by a ``bounding_box`` property or method
-        defined in the class body of a specific model.  If not defined then
-        this property just raises `NotImplementedError` by default (but may be
-        assigned a custom value by a user).  ``bounding_box`` can be set
-        manually to an array-like object of shape ``(model.n_inputs, 2)``. For
-        further usage, see :ref:`bounding-boxes`
-
-        The limits are ordered according to the `numpy` indexing
-        convention, and are the reverse of the model input order,
-        e.g. for inputs ``('x', 'y', 'z')``, ``bounding_box`` is defined:
-
-        * for 1D: ``(x_low, x_high)``
-        * for 2D: ``((y_low, y_high), (x_low, x_high))``
-        * for 3D: ``((z_low, z_high), (y_low, y_high), (x_low, x_high))``
-
-        Examples
-        --------
-
-        Setting the ``bounding_box`` limits for a 1D and 2D model:
-
-        >>> from astropy.modeling.models import Gaussian1D, Gaussian2D
-        >>> model_1d = Gaussian1D()
-        >>> model_2d = Gaussian2D(x_stddev=1, y_stddev=1)
-        >>> model_1d.bounding_box = (-5, 5)
-        >>> model_2d.bounding_box = ((-6, 6), (-5, 5))
-
-        Setting the bounding_box limits for a user-defined 3D `custom_model`:
-
-        >>> from astropy.modeling.models import custom_model
-        >>> def const3d(x, y, z, amp=1):
-        ...    return amp
-        ...
-        >>> Const3D = custom_model(const3d)
-        >>> model_3d = Const3D()
-        >>> model_3d.bounding_box = ((-6, 6), (-5, 5), (-4, 4))
-
-        To reset ``bounding_box`` to its default limits just delete the
-        user-defined value--this will reset it back to the default defined
-        on the class:
-
-        >>> del model_1d.bounding_box
-
-        To disable the bounding box entirely (including the default),
-        set ``bounding_box`` to `None`:
-
-        >>> model_1d.bounding_box = None
-        >>> model_1d.bounding_box  # doctest: +IGNORE_EXCEPTION_DETAIL
-        Traceback (most recent call last):
-          File "<stdin>", line 1, in <module>
-          File "astropy\modeling\core.py", line 980, in bounding_box
-            "No bounding box is defined for this model (note: the "
-        NotImplementedError: No bounding box is defined for this model (note:
-        the bounding box was explicitly disabled for this model; use `del
-        model.bounding_box` to restore the default bounding box, if one is
-        defined for this model).
-        """
-
-        if self._user_bounding_box is not None:
-            if self._user_bounding_box is NotImplemented:
-                raise NotImplementedError(
-                    "No bounding box is defined for this model (note: the "
-                    "bounding box was explicitly disabled for this model; "
-                    "use `del model.bounding_box` to restore the default "
-                    "bounding box, if one is defined for this model).")
-            return self._user_bounding_box
-        elif self._bounding_box is None:
-            raise NotImplementedError(
-                    "No bounding box is defined for this model.")
-        elif isinstance(self._bounding_box, _BoundingBox):
-            # This typically implies a hard-coded bounding box.  This will
-            # probably be rare, but it is an option
-            return self._bounding_box
-        elif isinstance(self._bounding_box, types.MethodType):
-            return self._bounding_box()
-        else:
-            # The only other allowed possibility is that it's a _BoundingBox
-            # subclass, so we call it with its default arguments and return an
-            # instance of it (that can be called to recompute the bounding box
-            # with any optional parameters)
-            # (In other words, in this case self._bounding_box is a *class*)
-            bounding_box = self._bounding_box((), _model=self)()
-            return self._bounding_box(bounding_box, _model=self)
-
-    @bounding_box.setter
-    def bounding_box(self, bounding_box):
-        """
-        Assigns the bounding box limits.
-        """
-
-        if bounding_box is None:
-            cls = None
-            # We use this to explicitly set an unimplemented bounding box (as
-            # opposed to no user bounding box defined)
-            bounding_box = NotImplemented
-        elif (isinstance(self._bounding_box, type) and
-                issubclass(self._bounding_box, _BoundingBox)):
-            cls = self._bounding_box
-        else:
-            cls = _BoundingBox
-
-        if cls is not None:
-            try:
-                bounding_box = cls.validate(self, bounding_box)
-            except ValueError as exc:
-                raise ValueError(exc.args[0])
-
-        self._user_bounding_box = bounding_box
-
-    @bounding_box.deleter
-    def bounding_box(self):
-        self._user_bounding_box = None
 
     def _fix_input_bounding_box(self, input_ind):
         """
@@ -3470,8 +3198,7 @@ def binary_operation(binoperator, left, right):
     if isinstance(left, tuple) and isinstance(right, tuple):
         return tuple([binoperator(item[0], item[1])
                       for item in zip(left, right)])
-    else:
-        return binoperator(left, right)
+    return binoperator(left, right)
 
 
 def get_ops(tree, opset):
@@ -3508,7 +3235,7 @@ def make_subtree_dict(tree, nodepath, tdict, leaflist):
         tdict[nodepath] = (tree, leftmostind, rightmostind)
 
 
-_ORDER_OF_OPERATORS = [('fix_inputs',),('|',), ('&',), ('+', '-'), ('*', '/'), ('**',)]
+_ORDER_OF_OPERATORS = [('fix_inputs',), ('|',), ('&',), ('+', '-'), ('*', '/'), ('**',)]
 OPERATOR_PRECEDENCE = {}
 for idx, ops in enumerate(_ORDER_OF_OPERATORS):
     for op in ops:
@@ -3666,7 +3393,7 @@ def _custom_model_wrapper(func, fit_deriv=None):
         output_names = ('x',)
 
     params = OrderedDict((param.name, Parameter(param.name,
-                         default=param.default)) for param in params)
+                                                default=param.default)) for param in params)
 
     mod = find_current_module(2)
     if mod:
@@ -3677,10 +3404,10 @@ def _custom_model_wrapper(func, fit_deriv=None):
     members = OrderedDict([
         ('__module__', str(modname)),
         ('__doc__', func.__doc__),
-        ('n_inputs', len(inputs)), #tuple(x.name for x in inputs)),
+        ('n_inputs', len(inputs)),
+        #tuple(x.name for x in inputs)),
         ('n_outputs', len(output_names)),
-        ('evaluate', staticmethod(func))]
-    )
+        ('evaluate', staticmethod(func))])
 
     if fit_deriv is not None:
         members['fit_deriv'] = staticmethod(fit_deriv)
@@ -3833,20 +3560,19 @@ def _prepare_inputs_single_model(model, params, inputs, **kwargs):
                 "case some of the inputs had different shapes, so it is "
                 "ambiguous how to format outputs for this model.  Try using "
                 "inputs that are all the same size and shape.")
-        else:
-            # Extend the broadcasts list to include shapes for all outputs
-            extra_outputs = model.n_outputs - model.n_inputs
-            if not broadcasts:
-                # If there were no inputs then the broadcasts list is empty
-                # just add a None since there is no broadcasting of outputs and
-                # inputs necessary (see _prepare_outputs_single_model)
-                broadcasts.append(None)
-            broadcasts.extend([broadcasts[0]] * extra_outputs)
+        # Extend the broadcasts list to include shapes for all outputs
+        extra_outputs = model.n_outputs - model.n_inputs
+        if not broadcasts:
+            # If there were no inputs then the broadcasts list is empty
+            # just add a None since there is no broadcasting of outputs and
+            # inputs necessary (see _prepare_outputs_single_model)
+            broadcasts.append(None)
+        broadcasts.extend([broadcasts[0]] * extra_outputs)
 
     return inputs, (broadcasts,)
 
 
-def _prepare_outputs_single_model(model, outputs, format_info):
+def _prepare_outputs_single_model(outputs, format_info):
     broadcasts = format_info[0]
     outputs = list(outputs)
     for idx, output in enumerate(outputs):
@@ -3970,7 +3696,7 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
                     "For model_set_axis={0}, all inputs must be at "
                     "least {1}-dimensional.".format(
                         model_set_axis, model_set_axis + 1))
-            elif input_shape[model_set_axis] != n_models:
+            if input_shape[model_set_axis] != n_models:
                 try:
                     argname = argnames[idx]
                 except IndexError:
@@ -4020,15 +3746,21 @@ def check_consistent_shapes(*shapes):
         return ()
     if len(ashapes) == 1:
         return ashapes[0]
-    else:
-        rshape = ashapes[0]
-        for shape in ashapes[1:]:
-            if shape != rshape:
-                return None
-        return rshape
+    rshape = ashapes[0]
+    for shape in ashapes[1:]:
+        if shape != rshape:
+            return None
+    return rshape
 
 
 def get_bounding_box(self):
+    """
+    Return the ``bounding_box`` of a modelself.
+
+    Raises:
+    NotImplementedError
+        If ``bounding_box`` is not defined.
+    """
     try:
         bbox = self.bounding_box
     except NotImplementedError:
@@ -4037,6 +3769,7 @@ def get_bounding_box(self):
 
 
 def generic_call(self, *inputs, **kwargs):
+    """ The base ``Model. __call__`` method."""
     inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
     if isinstance(self, CompoundModel):
         # CompoundModels do not normally hold parameters at that level
@@ -4051,7 +3784,7 @@ def generic_call(self, *inputs, **kwargs):
             inputs, self.inputs, self._n_models, self.model_set_axis,
             self.standard_broadcasting)
         vinputs, valid_ind, allout = prepare_bounding_box_inputs(
-                                        self, input_shape, inputs, bbox)
+            self, input_shape, inputs, bbox)
         valid_result_unit = None
         if not allout:
             valid_result = self.evaluate(*chain(vinputs, parameters))
@@ -4074,12 +3807,13 @@ def generic_call(self, *inputs, **kwargs):
 
     if self.n_outputs == 1:
         return outputs[0]
-    else:
-        return outputs
+    return outputs
 
 
 def prepare_bounding_box_inputs(self, input_shape, inputs, bbox):
-
+    """
+    Assign a value of ``np.nan`` to indices outside the bounding box.
+    """
     allout = False
     if self.n_inputs > 1:
         # bounding_box is in python order -
@@ -4106,16 +3840,18 @@ def prepare_bounding_box_inputs(self, input_shape, inputs, bbox):
     # inputs holds only inputs within the bbox
     args = []
     if not allout:
-        for input in inputs:
+        for inp in inputs:
             if input_shape:
-                args.append(np.array(input)[valid_ind])
+                args.append(np.array(inp)[valid_ind])
             else:
-                args.append(input)
+                args.append(inp)
     return args, valid_ind, allout
 
 
-def prepare_bounding_box_outputs(valid_result, valid_ind,
-                                 input_shape, fill_value):
+def prepare_bounding_box_outputs(valid_result, valid_ind, input_shape, fill_value):
+    """
+    Populate the output arrays with ``fill_value``.
+    """
     result = [np.zeros(input_shape) + fill_value
               for vr in valid_result]
     for ind, r in enumerate(valid_result):

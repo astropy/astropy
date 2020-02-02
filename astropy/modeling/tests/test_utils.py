@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
+# pylint: disable=invalid-name
 import operator
 
 import numpy as np
@@ -23,8 +23,6 @@ def test_traverse_postorder_duplicate_subtrees():
     assert traversal == [1, 2, '+', 1, 2, '+', '+']
 
 
-# TODO: It might prove useful to implement a simple expression parser to build
-# trees; this would be easy and might find use elsewhere
 def test_tree_evaluate_subexpression():
     """Test evaluating a subexpression from an expression tree."""
 

@@ -2,16 +2,16 @@
 """
 Module to test fitting routines
 """
-
+# pylint: disable=invalid-name
 import os.path
+import warnings
+from unittest import mock
 
 import pytest
 import numpy as np
 from numpy import linalg
 from numpy.testing import assert_allclose, assert_almost_equal
-from unittest import mock
 
-from . import irafutil
 from astropy.modeling import models
 from astropy.modeling.core import Fittable2DModel, Parameter
 from astropy.modeling.fitting import (
@@ -19,12 +19,12 @@ from astropy.modeling.fitting import (
     JointFitter, Fitter, FittingWithOutlierRemoval)
 from astropy.utils import NumpyRNGContext
 from astropy.utils.data import get_pkg_data_filename
-from .utils import ignore_non_integer_warning
 from astropy.stats import sigma_clip
 
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.modeling.fitting import populate_entry_points
-import warnings
+from .utils import ignore_non_integer_warning
+from . import irafutil
 
 try:
     from scipy import optimize
@@ -184,7 +184,7 @@ class TestJointFitter:
 
         def errfunc(p, x1, y1, x2, y2):
             return np.ravel(np.r_[model(p[0], p[1:3], x1) - y1,
-                            model(p[0], p[3:], x2) - y2])
+                                  model(p[0], p[3:], x2) - y2])
 
         coeff, _ = optimize.leastsq(errfunc, p,
                                     args=(self.x, self.ny1, self.x, self.ny2))

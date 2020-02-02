@@ -2,18 +2,18 @@
 """
 Tests models.parameters
 """
-
+# pylint: disable=invalid-name
 
 import itertools
 
 import pytest
 import numpy as np
 
-from . import irafutil
 from astropy.modeling import models, fitting
 from astropy.modeling.core import Model, FittableModel
 from astropy.modeling.parameters import Parameter, InputParameterError
 from astropy.utils.data import get_pkg_data_filename
+from . import irafutil
 
 
 def setter1(val):
@@ -33,9 +33,6 @@ class SetterModel(FittableModel):
     xc = Parameter(default=1, setter=setter1)
     yc = Parameter(default=1, setter=setter2)
 
-    def evaluate(self, x, y, xc, yc):
-        return ((x - xc)**2 + (y - yc)**2)
-
     def do_something(self, v):
         pass
 
@@ -46,7 +43,7 @@ class SetterModel(FittableModel):
         self.yc = yc
 
     def evaluate(self, x, y, xc, yc):
-        return ((x - xc)**2 + (y - yc)**2)
+        return (x - xc)**2 + (y - yc)**2
 
     def do_something(self, v):
         pass
@@ -104,7 +101,6 @@ def test_parameter_properties():
     assert p.min is None
 
     assert p.max is None
-   # TODO: shouldn't setting a max < min give an error?
     p.max = 41
     assert p.max == 41
 
@@ -157,7 +153,7 @@ def test_parameter_inheritance():
     assert mod.m3d == 20.
     for key in ['m1a', 'm1b', 'm2c', 'm3d']:
         assert key in mod.__dict__
-    assert mod.param_names  == ('m1a', 'm1b', 'm2c', 'm3d')
+    assert mod.param_names == ('m1a', 'm1b', 'm2c', 'm3d')
 
 
 def test_param_metric():
@@ -500,7 +496,7 @@ class TestParameterInitialization:
         assert np.all(t.param_sets[1] == [[1, 2], [3, 4]])
         assert np.all(t.parameters == [10, 20, 1, 2, 3, 4])
         assert t.coeff.shape == (2,)
-        assert t.e.shape == (2,2)
+        assert t.e.shape == (2, 2)
 
     def test_two_model_1d_array_parameters(self):
         t = TParModel([[10, 20], [30, 40]], [[1, 2], [3, 4]], n_models=2)
@@ -545,7 +541,7 @@ class TestParameterInitialization:
 
     def test_two_model_2d_array_parameters(self):
         t = TParModel([[[10, 20], [30, 40]], [[50, 60], [70, 80]]],
-                         [[[1, 2], [3, 4]], [[5, 6], [7, 8]]], n_models=2)
+                      [[[1, 2], [3, 4]], [[5, 6], [7, 8]]], n_models=2)
         assert len(t) == 2
         assert t.model_set_axis == 0
         assert np.all(t.param_sets == [[[[10, 20], [30, 40]],
