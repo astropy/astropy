@@ -686,10 +686,12 @@ def test_equivalency_context_manager():
 
 
 def test_temperature():
-    from astropy.units.imperial import deg_F
+    from astropy.units.imperial import deg_F, deg_R
     t_k = 0 * u.K
     assert_allclose(t_k.to_value(u.deg_C, u.temperature()), -273.15)
     assert_allclose(t_k.to_value(deg_F, u.temperature()), -459.67)
+    t_k = 20 * u.K
+    assert_allclose(t_k.to_value(deg_R, u.temperature()), 36.0)
 
 
 def test_temperature_energy():
