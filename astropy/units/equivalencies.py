@@ -713,12 +713,15 @@ def temperature():
     """Convert between Kelvin, Celsius, and Fahrenheit here because
     Unit and CompositeUnit cannot do addition or subtraction properly.
     """
-    from .imperial import deg_F
+    from .imperial import deg_F, deg_R
     return Equivalency([
         (si.K, si.deg_C, lambda x: x - 273.15, lambda x: x + 273.15),
         (si.deg_C, deg_F, lambda x: x * 1.8 + 32.0, lambda x: (x - 32.0) / 1.8),
         (si.K, deg_F, lambda x: (x - 273.15) * 1.8 + 32.0,
-         lambda x: ((x - 32.0) / 1.8) + 273.15)], "temperature")
+         lambda x: ((x - 32.0) / 1.8) + 273.15),
+        (deg_R, deg_F, lambda x: x - 459.67, lambda x: x + 459.67),
+        (deg_R, si.deg_C, lambda x: (x - 491.67) * (5/9), lambda x: x * 1.8 + 491.67),
+        (deg_R, si.K, lambda x: x * (5/9), lambda x: x * 1.8)], "temperature")
 
 
 def temperature_energy():
