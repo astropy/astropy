@@ -87,6 +87,8 @@ astropy.units
 - Added the ``equal_nan`` keyword argument to ``isclose`` and ``allclose``, and
   updated the docstrings. [#9849]
 
+- Added ``Rankine`` temperature unit. [#9916]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
