@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
+# pylint: disable=invalid-name, no-member
 
 import pytest
 import numpy as np
@@ -94,9 +94,9 @@ def test_attributes():
     assert_allclose(n2c.lon._raw_value, 0.09704030641088472)
     assert_allclose(n2c.lon_pole.value, np.pi)
     assert_allclose(n2c.lon_pole._raw_value, np.pi)
-    assert(n2c.lon.unit is u.Unit("arcsec"))
-    assert(n2c.lon.internal_unit is u.Unit("rad"))
-    assert(n2c.lat.unit is u.Unit("deg"))
-    assert(n2c.lat.internal_unit is u.Unit("rad"))
-    assert(n2c.lon_pole.unit is u.Unit("rad"))
-    assert(n2c.lon_pole.internal_unit is u.Unit("rad"))
+    assert n2c.lon.unit is u.Unit("arcsec")
+    assert n2c.lon.internal_unit is u.Unit("rad")
+    assert n2c.lat.unit is u.Unit("deg")
+    assert n2c.lat.internal_unit is u.Unit("rad")
+    assert n2c.lon_pole.unit is u.Unit("rad")
+    assert n2c.lon_pole.internal_unit is u.Unit("rad")

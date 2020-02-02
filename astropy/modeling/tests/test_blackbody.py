@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Tests for blackbody model and functions."""
+# pylint: disable=invalid-name, no-member
 
 import pytest
 import numpy as np
@@ -14,7 +15,7 @@ from astropy.modeling.blackbody import (
     BlackBody1D, blackbody_nu, blackbody_lambda, FNU)
 
 try:
-    from scipy import optimize, integrate  # noqa
+    from scipy import integrate  # noqa
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False

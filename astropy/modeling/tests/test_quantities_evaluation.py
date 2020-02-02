@@ -3,7 +3,7 @@
 """
 Tests that relate to evaluating models with quantity parameters
 """
-
+# pylint: disable=invalid-name, no-member
 
 import numpy as np
 import pytest
@@ -162,7 +162,7 @@ class TestInputUnits():
         self.model.input_units_equivalencies = {'x': u.spectral()}
 
         assert_quantity_allclose(self.model(3 * u.PHz, 3),
-                                3 * (3 * u.PHz).to(u.micron, equivalencies=u.spectral()))
+                                 3 * (3 * u.PHz).to(u.micron, equivalencies=u.spectral()))
 
     def test_return_units(self):
 

@@ -2,16 +2,17 @@
 """
 Models that have physical origins.
 """
+# pylint: disable=invalid-name, no-member
 
 import warnings
 
 import numpy as np
 
-from .core import Fittable1DModel
-from .parameters import Parameter, InputParameterError
 from astropy import constants as const
 from astropy import units as u
 from astropy.utils.exceptions import AstropyUserWarning
+from .core import Fittable1DModel
+from .parameters import Parameter, InputParameterError
 
 __all__ = ["BlackBody", "Drude1D", "Plummer1D"]
 
@@ -163,8 +164,7 @@ class BlackBody(Fittable1DModel):
         # units temporarily.
         if hasattr(temperature, "unit"):
             return y
-        else:
-            return y.value
+        return y.value
 
     @property
     def input_units(self):
@@ -281,8 +281,7 @@ class Drude1D(Fittable1DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        else:
-            return {"x": self.x_0.unit}
+        return {"x": self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -295,11 +294,11 @@ class Drude1D(Fittable1DModel):
     def return_units(self):
         if self.amplitude.unit is None:
             return None
-        else:
-            return {'y': self.amplitude.unit}
+        return {'y': self.amplitude.unit}
 
     @x_0.validator
     def x_0(self, val):
+        """ Ensure `x_0` is not 0."""
         if val == 0:
             raise InputParameterError("0 is not an allowed value for x_0")
 

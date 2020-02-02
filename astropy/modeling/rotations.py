@@ -18,15 +18,16 @@ References
 ----------
 .. [1] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
 """
+# pylint: disable=invalid-name, too-many-arguments, no-member
 
 import math
 
 import numpy as np
 
-from .core import Model
-from .parameters import Parameter
 from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product
 from astropy import units as u
+from .core import Model
+from .parameters import Parameter
 from .utils import _to_radian, _to_orig_unit
 
 __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D',
@@ -240,6 +241,7 @@ class EulerAngleRotation(_EulerRotation, Model):
         self._inputs = ('alpha', 'delta')
         self._outputs = ('alpha', 'delta')
 
+    @property
     def inverse(self):
         return self.__class__(phi=-self.psi,
                               theta=-self.theta,
@@ -488,8 +490,7 @@ class Rotation2D(Model):
         x.shape = y.shape = orig_shape
         if has_units:
             return u.Quantity(x, unit=x_unit), u.Quantity(y, unit=y_unit)
-        else:
-            return x, y
+        return x, y
 
     @staticmethod
     def _compute_matrix(angle):
