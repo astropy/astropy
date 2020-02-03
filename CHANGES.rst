@@ -315,14 +315,17 @@ astropy.cosmology
 astropy.extern
 ^^^^^^^^^^^^^^
 
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
 astropy.io
 ^^^^^^^^^^
 
 - Fixed a bug that prevented the unified I/O infrastructure from working with
   datasets that are represented by directories rather than files. [#9866]
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+- Fixed a bug in the ``fast_reader`` C parsers incorrectly returning entries
+  of isolated positive/negative signs as ``float`` instead of ``str``. [#9918]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^

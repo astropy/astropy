@@ -845,9 +845,10 @@ double xstrtod(const char *str, char **endptr, char decimal,
     case '+': p++;
     }
 
-    // No data following sign - make no conversion and return zero,
+    // No numerical value following sign - make no conversion and return zero,
     // resetting endptr to beginning of str (consistent with strtod behaviour)
-    if (!isdigit(*p) && *p != decimal)
+    // E.g. -1.e0 and -.0e1 are valid, -.e0 is not!
+    if (!(isdigit(*p) || (*p == decimal && isdigit(*(p + 1)))))
     {
         if (endptr) *endptr = (char *) str;
         return 0e0;
