@@ -42,6 +42,7 @@ _tag_to_method_mapping = {
 class CompoundType(TransformType):
     name = ['transform/' + x for x in _tag_to_method_mapping.keys()]
     types = [CompoundModel]
+    version = '1.2.0'
     handle_dynamic_subclasses = True
 
     @classmethod
