@@ -222,16 +222,18 @@ class Distribution:
             return percs
             
     def pdf_asymstd(self):
-        """ a convenience function that computes the 50% percentile
+        """ 
+        a convenience function that computes the 50% percentile
         value and the asymmetric uncertainties around that value.
-        The function could return the 50% value, 1-sigma plus unc, and 1-sigma minus unc.
-        This can be calculated from the pdf_percentiles function
-        (e.g., p50, p84-p50, p50-p16).
+        ( p50, p84-p50, p50-p16).
+        
         Returns
         -------
-        50% value percentile, 1-sigma plus unc, and 1-sigma minus unc.
+        percentiles : tuple of three `~astropy.units.Quantity`
+                   50% percentile value and the asymmetric uncertainties
+                   around that value.( p50, p84-p50, p50-p16).           
         """
-        p50=self.pdf_percentiles(50)
+        p50 = self.pdf_percentiles(50)
         return p50, self.pdf_percentiles(84)-p50, p50-self.pdf_percentiles(16)
 
     def pdf_histogram(self, **kwargs):
