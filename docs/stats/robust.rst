@@ -4,9 +4,9 @@
 Robust Statistical Estimators
 *****************************
 
-Robust statistics provide reliable estimates of basic statistics for complex
-distributions.  The statistics package includes several robust statistical
-functions that are commonly used in astronomy.  This includes methods for
+Robust statistics provides reliable estimates of basic statistics for complex
+distributions. The statistics package includes several robust statistical
+functions that are commonly used in astronomy. This includes methods for
 rejecting outliers as well as statistical description of the underlying
 distributions.
 
@@ -16,19 +16,26 @@ rejection using :func:`~astropy.modeling.fitting.FittingWithOutlierRemoval`.
 Sigma Clipping
 ==============
 
-Sigma clipping provides a fast method to identify outliers in a
-distribution.  For a distribution of points, a center and a standard
-deviation are calculated.  Values which are less or more than a
+Sigma clipping provides a fast method for identifying outliers in a
+distribution. For a distribution of points, a center and a standard
+deviation are calculated. Values which are less or more than a
 specified number of standard deviations from a center value are
-rejected.  The process can be iterated to further reject outliers.
+rejected. The process can be iterated to further reject outliers.
 
 The `astropy.stats` package provides both a functional and
-object-oriented interface for sigma clipping.  The function is called
+object-oriented interface for sigma clipping. The function is called
 :func:`~astropy.stats.sigma_clip` and the class is called
-:class:`~astropy.stats.SigmaClip`.  By default, they both return a
+:class:`~astropy.stats.SigmaClip`. By default, they both return a
 masked array where the rejected points are masked.
 
-First, let's generate some data that has a mean of 0 and standard
+Examples
+--------
+
+..
+  EXAMPLE START
+  Functional Sigma Clipping with astropy.stats.sigma_clip
+
+We can start by generating some data that has a mean of 0 and standard
 deviation of 0.2, but with outliers:
 
 .. doctest-requires:: scipy
@@ -42,7 +49,7 @@ deviation of 0.2, but with outliers:
      >>> y += (np.random.normal(0., 0.2, x.shape) +
      ...       c*np.random.normal(3.0, 5.0, x.shape))
 
-Now, let's use :func:`~astropy.stats.sigma_clip` to perform sigma
+Now we can use :func:`~astropy.stats.sigma_clip` to perform sigma
 clipping on the data:
 
 .. doctest-requires:: scipy
@@ -52,6 +59,13 @@ clipping on the data:
 
 The output masked array then can be used to calculate statistics on
 the data, fit models to the data, or otherwise explore the data.
+
+..
+  EXAMPLE END
+
+..
+  EXAMPLE START
+  Object-Oriented Sigma Clipping with the astropy.stats.SigmaClip Class
 
 To perform the same sigma clipping with the
 :class:`~astropy.stats.SigmaClip` class:
@@ -71,13 +85,23 @@ To perform the same sigma clipping with the
      >>> filtered_data = sigclip(y)
 
 Note that once the ``sigclip`` instance is defined above, it can be
-applied to other data, using the same, already-defined, sigma-clipping
+applied to other data using the same already defined, sigma-clipping
 parameters.
+
+..
+  EXAMPLE END
 
 For basic statistics, :func:`~astropy.stats.sigma_clipped_stats` is a
 convenience function to calculate the sigma-clipped mean, median, and
-standard deviation of an array.   As can be seen, rejecting the
-outliers returns accurate values for the underlying distribution:
+standard deviation of an array. As can be seen, rejecting the
+outliers returns accurate values for the underlying distribution.
+
+..
+  EXAMPLE START
+  Calculating the Sigma-Clipped Mean, Median, and Standard Deviation of an Array
+
+To use :func:`~astropy.stats.sigma_clipped_stats` for sigma-clipped statistics
+calculation:
 
 .. doctest-requires:: scipy
 
@@ -120,15 +144,16 @@ statistics to provide improved outlier rejection as well.
 
 .. automodapi:: astropy.stats.sigma_clipping
 
+..
+  EXAMPLE END
 
 Median Absolute Deviation
 =========================
 
 The median absolute deviation (MAD) is a measure of the spread of a
-distribution and is defined as ``median(abs(a - median(a)))``.  The
-MAD can be calculated using
-`~astropy.stats.median_absolute_deviation`.   For a normal
-distribution, the MAD is related to the standard deviation by a factor
+distribution and is defined as ``median(abs(a - median(a)))``. The
+MAD can be calculated using `~astropy.stats.median_absolute_deviation`. For a
+normal distribution, the MAD is related to the standard deviation by a factor
 of 1.4826, and a convenience function, `~astropy.stats.mad_std`, is
 available to apply the conversion.
 
@@ -136,10 +161,10 @@ available to apply the conversion.
 
    A function can be supplied to the
    `~astropy.stats.median_absolute_deviation` to specify the median
-   function to be used in the calculation.  Depending on the version
-   of numpy and whether the array is masked or contains irregular
+   function to be used in the calculation. Depending on the version
+   of NumPy and whether the array is masked or contains irregular
    values, significant performance increases can be had by
-   pre-selecting the median function.  If the median function is not
+   preselecting the median function. If the median function is not
    specified, `~astropy.stats.median_absolute_deviation` will attempt
    to select the most relevant function according to the input data.
 
@@ -147,7 +172,10 @@ available to apply the conversion.
 Biweight Estimators
 ===================
 
-A set of functions are included in the `astropy.stats` package that use the biweight formalism.  These functions have long been used in astronomy, particularly to calculate the velocity dispersion of galaxy clusters [1]_.   The following set of tasks are available for biweight measurements:
+A set of functions are included in the `astropy.stats` package that use the
+biweight formalism. These functions have long been used in astronomy,
+particularly to calculate the velocity dispersion of galaxy clusters [1]_. The
+following set of tasks are available for biweight measurements:
 
 .. automodapi:: astropy.stats.biweight
 
