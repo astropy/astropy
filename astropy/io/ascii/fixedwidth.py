@@ -341,7 +341,7 @@ class FixedWidthNoHeader(FixedWidth):
       2.4many words 7
 
     This class is just a convenience wrapper around the ``FixedWidth`` reader
-    but with ``header.start_line = None`` and ``data.start_line = 0``.
+    but with ``header_start=None`` and ``data_start=0``.
 
     See the :ref:`fixed_width_gallery` for specific usage examples.
 
