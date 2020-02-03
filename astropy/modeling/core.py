@@ -1763,6 +1763,148 @@ class Model(metaclass=_ModelMeta):
         new_model._name = name
         return new_model
 
+    def coerce_units(
+        self,
+        input_units=None,
+        return_units=None,
+        input_units_equivalencies=None,
+        input_units_allow_dimensionless=False
+    ):
+        """
+        Attach units to this (unitless) model.
+
+        Parameters
+        ----------
+        input_units : dict or tuple, optional
+            Input units to attach.  If dict, each key is the name of a model input,
+            and the value is the unit to attach.  If tuple, the elements are units
+            to attach in order corresponding to `Model.inputs`.
+        return_units : dict or tuple, optional
+            Output units to attach.  If dict, each key is the name of a model output,
+            and the value is the unit to attach.  If tuple, the elements are units
+            to attach in order corresponding to `Model.outputs`.
+        input_units_equivalencies : dict, optional
+            Default equivalencies to apply to input values.  If set, this should be a
+            dictionary where each key is a string that corresponds to one of the
+            model inputs.
+        input_units_allow_dimensionless : bool or dict, optional
+            Allow dimensionless input. If this is True, input values to evaluate will
+            gain the units specified in input_units. If this is a dictionary then it
+            should map input name to a bool to allow dimensionless numbers for that
+            input.
+
+        Returns
+        -------
+        `CompoundModel`
+            A `CompoundModel` composed of the current model plus
+            `~astropy.modeling.mappings.UnitsMapping` model(s) that attach the units.
+
+        Raises
+        ------
+        ValueError
+            If the current model already has units.
+
+        Examples
+        --------
+
+        Wrapping a unitless model to require and convert units:
+
+        >>> from astropy.modeling.models import Polynomial1D
+        >>> from astropy import units as u
+        >>> poly = Polynomial1D(1, c0=1, c1=2)
+        >>> model = poly.coerce_units((u.m,), (u.s,))
+        >>> model(u.Quantity(10, u.m))  # doctest: +FLOAT_CMP
+        <Quantity 21. s>
+        >>> model(u.Quantity(1000, u.cm))  # doctest: +FLOAT_CMP
+        <Quantity 21. s>
+        >>> model(u.Quantity(10, u.cm))  # doctest: +FLOAT_CMP
+        <Quantity 1.2 s>
+
+        Wrapping a unitless model but still permitting unitless input:
+
+        >>> from astropy.modeling.models import Polynomial1D
+        >>> from astropy import units as u
+        >>> poly = Polynomial1D(1, c0=1, c1=2)
+        >>> model = poly.coerce_units((u.m,), (u.s,), input_units_allow_dimensionless=True)
+        >>> model(u.Quantity(10, u.m))  # doctest: +FLOAT_CMP
+        <Quantity 21. s>
+        >>> model(10)  # doctest: +FLOAT_CMP
+        <Quantity 21. s>
+        """
+        from .mappings import UnitsMapping
+
+        result = self
+
+        if input_units is not None:
+            if self.input_units is not None:
+                model_units = self.input_units
+            else:
+                model_units = {}
+
+            for unit in [model_units.get(i) for i in self.inputs]:
+                if unit is not None and unit != dimensionless_unscaled:
+                    raise ValueError("Cannot specify input_units for model with existing input units")
+
+            if isinstance(input_units, dict):
+                if input_units.keys() != set(self.inputs):
+                    message = (
+                        f"""input_units keys ({", ".join(input_units.keys())}) """
+                        f"""do not match model inputs ({", ".join(self.inputs)})"""
+                    )
+                    raise ValueError(message)
+                input_units = [input_units[i] for i in self.inputs]
+
+            if len(input_units) != self.n_inputs:
+                message = (
+                    "input_units length does not match n_inputs: "
+                    f"expected {self.n_inputs}, received {len(input_units)}"
+                )
+                raise ValueError(message)
+
+            mapping = tuple((unit, model_units.get(i)) for i, unit in zip(self.inputs, input_units))
+            input_mapping = UnitsMapping(
+                mapping,
+                input_units_equivalencies=input_units_equivalencies,
+                input_units_allow_dimensionless=input_units_allow_dimensionless
+            )
+            input_mapping.inputs = self.inputs
+            input_mapping.outputs = self.inputs
+            result = input_mapping | result
+
+        if return_units is not None:
+            if self.return_units is not None:
+                model_units = self.return_units
+            else:
+                model_units = {}
+
+            for unit in [model_units.get(i) for i in self.outputs]:
+                if unit is not None and unit != dimensionless_unscaled:
+                    raise ValueError("Cannot specify return_units for model with existing output units")
+
+            if isinstance(return_units, dict):
+                if return_units.keys() != set(self.outputs):
+                    message = (
+                        f"""return_units keys ({", ".join(return_units.keys())}) """
+                        f"""do not match model outputs ({", ".join(self.outputs)})"""
+                    )
+                    raise ValueError(message)
+                return_units = [return_units[i] for i in self.outputs]
+
+            if len(return_units) != self.n_outputs:
+                message = (
+                    "return_units length does not match n_outputs: "
+                    f"expected {self.n_outputs}, received {len(return_units)}"
+                )
+                raise ValueError(message)
+
+            mapping = tuple((model_units.get(i), unit) for i, unit in zip(self.outputs, return_units))
+            return_mapping = UnitsMapping(mapping)
+            return_mapping.inputs = self.outputs
+            return_mapping.outputs = self.outputs
+            result = result | return_mapping
+
+        return result
+
     @property
     def n_submodels(self):
         """
