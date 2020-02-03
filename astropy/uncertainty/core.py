@@ -220,6 +220,7 @@ class Distribution:
             return self.distribution._new_view(percs)
         else:
             return percs
+            
     def pdf_asymstd(self):
         """ a convenience function that computes the 50% percentile
         value and the asymmetric uncertainties around that value.
