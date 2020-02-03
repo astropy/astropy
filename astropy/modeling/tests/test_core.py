@@ -478,3 +478,50 @@ def test_rename_inputs_outputs():
 
     with pytest.raises(ValueError):
         g2.outputs = ("w", "e")
+
+
+def test_coerce_units():
+    model = models.Polynomial1D(1, c0=1, c1=2)
+
+    with pytest.raises(u.UnitsError):
+        model(u.Quantity(10, u.m))
+
+    with_input_units = model.coerce_units({"x": u.m})
+    result = with_input_units(u.Quantity(10, u.m))
+    assert np.isclose(result, 21.0)
+
+    with_input_units_tuple = model.coerce_units((u.m,))
+    result = with_input_units_tuple(u.Quantity(10, u.m))
+    assert np.isclose(result, 21.0)
+
+    with_return_units = model.coerce_units(return_units={"y": u.s})
+    result = with_return_units(10)
+    assert np.isclose(result.value, 21.0)
+    assert result.unit == u.s
+
+    with_return_units_tuple = model.coerce_units(return_units=(u.s,))
+    result = with_return_units_tuple(10)
+    assert np.isclose(result.value, 21.0)
+    assert result.unit == u.s
+
+    with_both = model.coerce_units({"x": u.m}, {"y": u.s})
+
+    result = with_both(u.Quantity(10, u.m))
+    assert np.isclose(result.value, 21.0)
+    assert result.unit == u.s
+
+    with pytest.raises(ValueError, match=r"input_units keys.*do not match model inputs"):
+        model.coerce_units({"q": u.m})
+
+    with pytest.raises(ValueError, match=r"input_units length does not match n_inputs"):
+        model.coerce_units((u.m, u.s))
+
+    model_with_existing_input_units = models.BlackBody()
+    with pytest.raises(ValueError, match=r"Cannot specify input_units for model with existing input units"):
+        model_with_existing_input_units.coerce_units({"x": u.m})
+
+    with pytest.raises(ValueError, match=r"return_units keys.*do not match model outputs"):
+        model.coerce_units(return_units={"q": u.m})
+
+    with pytest.raises(ValueError, match=r"return_units length does not match n_outputs"):
+        model.coerce_units(return_units=(u.m, u.s))

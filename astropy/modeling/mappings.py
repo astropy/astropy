@@ -4,10 +4,11 @@ which outputs from a source model are mapped to which inputs of a target model.
 """
 # pylint: disable=invalid-name
 
-from .core import FittableModel
+from .core import FittableModel, Model
+from astropy.units import Quantity
 
 
-__all__ = ['Mapping', 'Identity']
+__all__ = ['Mapping', 'Identity', 'UnitsMapping']
 
 
 class Mapping(FittableModel):
@@ -176,3 +177,151 @@ class Identity(Mapping):
         """
 
         return self
+
+
+class UnitsMapping(Model):
+    """
+    Mapper that operates on the units of the input, first converting to
+    canonical units, then assigning new units without further conversion.
+    Used by Model.coerce_units to support units on otherwise unitless models
+    such as Polynomial1D.
+
+    Parameters
+    ----------
+    mapping : tuple
+        A tuple of (input_unit, output_unit) pairs, one per input, matched to the
+        inputs by position.  The first element of the each pair is the unit that
+        the model will accept (specify ``dimensionless_unscaled``
+        to accept dimensionless input).  The second element is the unit that the
+        model will return.  Specify ``dimensionless_unscaled``
+        to return dimensionless Quantity, and `None` to return raw values without
+        Quantity.
+    input_units_equivalencies : dict, optional
+        Default equivalencies to apply to input values.  If set, this should be a
+        dictionary where each key is a string that corresponds to one of the
+        model inputs.
+    input_units_allow_dimensionless : dict or bool, optional
+        Allow dimensionless input. If this is True, input values to evaluate will
+        gain the units specified in input_units. If this is a dictionary then it
+        should map input name to a bool to allow dimensionless numbers for that
+        input.
+    name : str, optional
+        A human-friendly name associated with this model instance
+        (particularly useful for identifying the individual components of a
+        compound model).
+    meta : dict-like, optional
+        Free-form metadata to associate with this model.
+
+    Examples
+    --------
+
+    Wrapping a unitless model to require and convert units:
+
+    >>> from astropy.modeling.models import Polynomial1D, UnitsMapping
+    >>> from astropy import units as u
+    >>> poly = Polynomial1D(1, c0=1, c1=2)
+    >>> model = UnitsMapping(((u.m, None),)) | poly
+    >>> model = model | UnitsMapping(((None, u.s),))
+    >>> model(u.Quantity(10, u.m))  # doctest: +FLOAT_CMP
+    <Quantity 21. s>
+    >>> model(u.Quantity(1000, u.cm)) # doctest: +FLOAT_CMP
+    <Quantity 21. s>
+    >>> model(u.Quantity(10, u.cm)) # doctest: +FLOAT_CMP
+    <Quantity 1.2 s>
+
+    Wrapping a unitless model but still permitting unitless input:
+
+    >>> from astropy.modeling.models import Polynomial1D, UnitsMapping
+    >>> from astropy import units as u
+    >>> poly = Polynomial1D(1, c0=1, c1=2)
+    >>> model = UnitsMapping(((u.m, None),), input_units_allow_dimensionless=True) | poly
+    >>> model = model | UnitsMapping(((None, u.s),))
+    >>> model(u.Quantity(10, u.m))  # doctest: +FLOAT_CMP
+    <Quantity 21. s>
+    >>> model(10)  # doctest: +FLOAT_CMP
+    <Quantity 21. s>
+    """
+    def __init__(
+        self,
+        mapping,
+        input_units_equivalencies=None,
+        input_units_allow_dimensionless=False,
+        name=None,
+        meta=None
+    ):
+        self._mapping = mapping
+
+        none_mapping_count = len([m for m in mapping if m[-1] is None])
+        if none_mapping_count > 0 and none_mapping_count != len(mapping):
+            raise ValueError("If one return unit is None, then all must be None")
+
+        # These attributes are read and handled by Model
+        self._input_units_strict = True
+        self.input_units_equivalencies = input_units_equivalencies
+        self._input_units_allow_dimensionless = input_units_allow_dimensionless
+
+        super().__init__(name=name, meta=meta)
+
+        # Can't invoke this until after super().__init__, since
+        # we need self.inputs and self.outputs to be populated.
+        self._rebuild_units()
+
+    def _rebuild_units(self):
+        self._input_units = {input_name: input_unit for input_name, (input_unit, _) in zip(self.inputs, self.mapping)}
+
+    @property
+    def n_inputs(self):
+        return len(self._mapping)
+
+    @property
+    def n_outputs(self):
+        return len(self._mapping)
+
+    @property
+    def inputs(self):
+        return super().inputs
+
+    @inputs.setter
+    def inputs(self, value):
+        super(UnitsMapping, self.__class__).inputs.fset(self, value)
+        self._rebuild_units()
+
+    @property
+    def outputs(self):
+        return super().outputs
+
+    @outputs.setter
+    def outputs(self, value):
+        super(UnitsMapping, self.__class__).outputs.fset(self, value)
+        self._rebuild_units()
+
+    @property
+    def input_units(self):
+        return self._input_units
+
+    @property
+    def mapping(self):
+        return self._mapping
+
+    def evaluate(self, *args):
+        result = []
+        for arg, (_, return_unit) in zip(args, self.mapping):
+            if isinstance(arg, Quantity):
+                value = arg.value
+            else:
+                value = arg
+            if return_unit is None:
+                result.append(value)
+            else:
+                result.append(Quantity(value, return_unit, subok=True))
+
+        if self.n_outputs == 1:
+            return result[0]
+        else:
+            return tuple(result)
+
+    def __repr__(self):
+        if self.name is None:
+            return f"<UnitsMapping({self.mapping})>"
+        else:
+            return f"<UnitsMapping({self.mapping}, name={self.name!r})>"
