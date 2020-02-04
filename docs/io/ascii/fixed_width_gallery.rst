@@ -125,7 +125,7 @@ FixedWidth
 
 **Table with no header row and auto-column naming:**
 
-Use header_start and data_start keywords to indicate no header line.
+Use ``header_start`` and ``data_start`` keywords to indicate no header line.
 ::
 
   >>> table = """
@@ -153,8 +153,8 @@ header_start and data_start keywords to indicate no header line.
   ...          "|  Mary  | 555-2134 |192.168.1.12|  ",
   ...          "|   Bob  | 555-4527 | 192.168.1.9|  "]
   >>> ascii.read(table, format='fixed_width',
-  ...                 header_start=None, data_start=0,
-  ...                 names=('Name', 'Phone', 'TCP'))
+  ...            header_start=None, data_start=0,
+  ...            names=('Name', 'Phone', 'TCP'))
   <Table length=3>
   Name  Phone       TCP
   str4   str8      str12
@@ -167,8 +167,8 @@ header_start and data_start keywords to indicate no header line.
 FixedWidthNoHeader
 ------------------
 
-**Table with no header row and auto-column naming. Use the FixedWidthNoHeader
-convenience class:**
+**Table with no header row and auto-column naming. Use the
+``fixed_width_no_header`` format for convenience:**
 ::
 
   >>> table = """
