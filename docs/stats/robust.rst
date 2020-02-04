@@ -85,7 +85,7 @@ To perform the same sigma clipping with the
      >>> filtered_data = sigclip(y)
 
 Note that once the ``sigclip`` instance is defined above, it can be
-applied to other data using the same already defined, sigma-clipping
+applied to other data using the same already defined sigma-clipping
 parameters.
 
 ..
