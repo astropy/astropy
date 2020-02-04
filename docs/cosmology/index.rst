@@ -255,7 +255,7 @@ If you know a cosmological quantity and you want to know the
 redshift which it corresponds to, you can use ``z_at_value``.
 
 Example
--------
+^^^^^^^
 
 ..
   EXAMPLE START
@@ -382,7 +382,7 @@ performance is critical, it is particularly useful to calculate them on
 a grid and use interpolation.
 
 Examples
---------
+^^^^^^^^
 
 ..
   EXAMPLE START
