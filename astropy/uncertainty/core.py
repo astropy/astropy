@@ -225,16 +225,16 @@ class Distribution:
         """ 
         a convenience function that computes the 50% percentile
         value and the asymmetric uncertainties around that value.
-        ( p50, p84-p50, p50-p16).
+        (50%, +34%, -34%).
         
         Returns
         -------
         percentiles : tuple of three `~astropy.units.Quantity`
                    50% percentile value and the asymmetric uncertainties
-                   around that value.( p50, p84-p50, p50-p16).           
+                   around that value.(50%, +34%, -34%).           
         """
-        p50 = self.pdf_percentiles(50)
-        return p50, self.pdf_percentiles(84)-p50, p50-self.pdf_percentiles(16)
+        p = self.pdf_percentiles([50,84,16])
+        return p[0], p[1]-p[0], p[0]-p[2]
 
     def pdf_histogram(self, **kwargs):
         """
