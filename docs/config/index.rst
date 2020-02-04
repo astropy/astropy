@@ -84,7 +84,7 @@ modified in an active Python session by setting any of the properties
 on a ``conf`` object.
 
 Example
--------
+^^^^^^^
 
 ..
   EXAMPLE START
@@ -126,7 +126,7 @@ Instead of modifying the variables in Python, you can also modify the
 configuration files and then reload them.
 
 Example
--------
+^^^^^^^
 
 ..
   EXAMPLE START
@@ -374,18 +374,18 @@ Or, if the option needs to be available as a function parameter::
 
 
 
-Customising Config in Affiliated Packages
+Customizing Config in Affiliated Packages
 =========================================
 
-The `astropy.config` package can be used by other pacakges. By default creating
+The `astropy.config` package can be used by other packages. By default creating
 a config object in another package will lead to a configuration file taking the
-name of that package in the astropy config directory. i.e.
-``<astropy_config>/packagename.cfg``.
+name of that package in the ``astropy`` config directory (i.e.,
+``<astropy_config>/packagename.cfg``).
 
 
 It is possible to configure this behavior so that the a custom configuration
-directory is created for your package, for example
-``~/.packagename/packagename.cfg``. To do this create a ``packagename.config``
+directory is created for your package, for example,
+``~/.packagename/packagename.cfg``. To do this, create a ``packagename.config``
 subpackage and put the following into the ``__init__.py`` file::
 
   import astropy.config as astropyconfig
