@@ -221,19 +221,25 @@ class Distribution:
         else:
             return percs
             
-    def pdf_asymstd(self):
+    def pdf_asymunc(self, quantile_range=68):
         """ 
-        a convenience function that computes the 50% percentile
+        A convenience function that computes the 50% percentile
         value and the asymmetric uncertainties around that value.
-        (50%, +34%, -34%).
+               
+        Parameters
+        ---------- 
+        quantile_range : float, optional
+           Quantile (i.e., on [0,100]). 
+           Defaults to 68.        
         
         Returns
         -------
         percentiles : tuple of three `~astropy.units.Quantity`
                    50% percentile value and the asymmetric uncertainties
-                   around that value.(50%, +34%, -34%).           
+                   around that value.           
         """
-        p = self.pdf_percentiles([50,84,16])
+        p = self.pdf_percentiles([50, 50+0.50*quantile_range,
+                                     50-0.50*quantile_range])
         return p[0], p[1]-p[0], p[0]-p[2]
 
     def pdf_histogram(self, **kwargs):
