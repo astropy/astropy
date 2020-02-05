@@ -1481,3 +1481,19 @@ def test_conversion_fast(fast_reader):
     assert table['F'].dtype.kind in ('S', 'U')
     assert table['G'].dtype.kind in ('S', 'U')
     assert table['H'].dtype.kind in ('S', 'U')
+
+
+@pytest.mark.parametrize('delimiter', ['\n', '\r'])
+@pytest.mark.parametrize('fast_reader', [False,
+                                         dict(parallel=True),
+                                         dict(parallel=False)])
+def test_newline_as_delimiter(delimiter, fast_reader):
+    """
+    Check that with delimiter set to a newline character, lines are still
+    correctly split along newlines. Tests the fix for #9928.
+    """
+    text = "a  b c \n 1 '2'  3\r 4   5 6 "
+
+    t = ascii.read(text, delimiter=delimiter, fast_reader=fast_reader)
+    assert len(t) == 2
+    assert t.colnames == ['a  b c']
