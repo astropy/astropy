@@ -1,9 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import json
-import os
-from datetime import datetime
 import locale
+import os
+import socket
+from datetime import datetime
 
 import pytest
 import numpy as np
@@ -27,8 +28,14 @@ def test_signal_number_to_name_no_failure():
 
 @pytest.mark.remote_data
 def test_api_lookup():
-    strurl = misc.find_api_page('astropy.utils.misc', 'dev', False, timeout=3)
-    objurl = misc.find_api_page(misc, 'dev', False, timeout=3)
+    try:
+        strurl = misc.find_api_page('astropy.utils.misc', 'dev', False, timeout=3)
+        objurl = misc.find_api_page(misc, 'dev', False, timeout=3)
+    except socket.timeout:
+        if os.environ.get('CI', False):
+            pytest.xfail('Timed out in CI')
+        else:
+            raise
 
     assert strurl == objurl
     assert strurl == 'http://devdocs.astropy.org/utils/index.html#module-astropy.utils.misc'  # noqa
