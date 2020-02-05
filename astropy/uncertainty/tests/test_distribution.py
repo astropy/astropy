@@ -187,7 +187,13 @@ class TestDistributionStatistics():
         # now a summary statistic
         assert not isinstance(percs, Distribution)
         assert isinstance(percs, u.Quantity)
-
+    
+    def test_asymunc(self):
+        dis = Distribution([3,4,5,6,6])
+        expected = (5.0, 1.0, 1.3599999999999999)
+        asymunc = dis.pdf_asymunc()
+        assert asymunc == expected
+        
     def test_add_quantity(self):
         distrplus = self.distr + [2000, 0, 0, 500] * u.pc
         expected = (np.median(self.data, axis=-1) + np.array([2, 0, 0, 0.5])) * self.distr.unit
