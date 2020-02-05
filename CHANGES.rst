@@ -328,7 +328,9 @@ astropy.io.ascii
   of isolated positive/negative signs as ``float`` instead of ``str``. [#9918]
 
 - Fixed a segmentation fault in the ``fast_reader`` C parsers when parsing an
-  invalid file with ``guess=True``. [#9923]
+  invalid file with ``guess=True`` and the file contains inconsistent column
+  numbers in combination with a quoted field; e.g., ``"1  2\n 3  4 '5'"``.
+  [#9923]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
