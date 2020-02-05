@@ -79,7 +79,7 @@ astropy.timeseries
 astropy.uncertainty
 ^^^^^^^^^^^^^^^^^^^
 
-- Added a function in `Distribution` called `pdf_asymunc()` a convenience function
+- Added a function in `Distribution` called ``pdf_asymunc()`` a convenience function
   that computes the 50% value and asymmetric uncertainty around that value. [#9903] 
 
 astropy.units
