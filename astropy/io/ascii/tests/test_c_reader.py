@@ -240,14 +240,15 @@ def test_rstrip_whitespace(parallel, read_basic):
 def test_conversion(parallel, read_basic):
     """
     The reader should try to convert each column to ints. If this fails, the
-    reader should try to convert to floats. Failing this, it should fall back
-    to strings.
+    reader should try to convert to floats. Failing this, i.e. on parsing
+    non-numeric input including isolated positive/negative signs, it should
+    fall back to strings.
     """
     text = """
-A B C D E
-1 a 3 4 5
-2. 1 9 10 -5.3e4
-4 2 -12 .4 six
+A B C D E F G H
+1 a 3 4 5 6 7 8
+2. 1 9 -.1e1 10.0 8.7 6 -5.3e4
+4 2 -12 .4 +.e1 - + six
 """
     table = read_basic(text, parallel=parallel)
     assert_equal(table['A'].dtype.kind, 'f')
@@ -255,6 +256,9 @@ A B C D E
     assert_equal(table['C'].dtype.kind, 'i')
     assert_equal(table['D'].dtype.kind, 'f')
     assert table['E'].dtype.kind in ('S', 'U')
+    assert table['F'].dtype.kind in ('S', 'U')
+    assert table['G'].dtype.kind in ('S', 'U')
+    assert table['H'].dtype.kind in ('S', 'U')
 
 
 @pytest.mark.parametrize("parallel", [True, False])
@@ -1442,3 +1446,29 @@ def test_read_empty_basic_table_with_comments(fast_reader):
     assert t.meta['comments'] == ['comment 1', 'comment 2']
     assert len(t) == 0
     assert t.colnames == ['col1', 'col2']
+
+
+@pytest.mark.parametrize('fast_reader', [dict(use_fast_converter=True),
+                                         dict(exponent_style='A')])
+def test_conversion_fast(fast_reader):
+    """
+    The reader should try to convert each column to ints. If this fails, the
+    reader should try to convert to floats. Failing this, i.e. on parsing
+    non-numeric input including isolated positive/negative signs, it should
+    fall back to strings.
+    """
+    text = """
+    A B C D E F G H
+    1 a 3 4 5 6 7 8
+    2. 1 9 -.1e1 10.0 8.7 6 -5.3e4
+    4 2 -12 .4 +.e1 - + six
+    """
+    table = ascii.read(text, fast_reader=fast_reader)
+    assert_equal(table['A'].dtype.kind, 'f')
+    assert table['B'].dtype.kind in ('S', 'U')
+    assert_equal(table['C'].dtype.kind, 'i')
+    assert_equal(table['D'].dtype.kind, 'f')
+    assert table['E'].dtype.kind in ('S', 'U')
+    assert table['F'].dtype.kind in ('S', 'U')
+    assert table['G'].dtype.kind in ('S', 'U')
+    assert table['H'].dtype.kind in ('S', 'U')
