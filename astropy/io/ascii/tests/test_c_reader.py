@@ -16,11 +16,12 @@ from astropy.io.ascii.core import ParameterError, FastOptionsError, Inconsistent
 from astropy.io.ascii.fastbasic import (
     FastBasic, FastCsv, FastTab, FastCommentedHeader, FastRdb, FastNoHeader)
 from astropy.tests.helper import catch_warnings
+from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyWarning
 from .common import assert_equal, assert_almost_equal, assert_true
 
 
-StringIO = lambda x: BytesIO(x.encode('ascii'))
+StringIO = lambda x: BytesIO(x.encode('ascii'))  # noqa
 TRAVIS = os.environ.get('TRAVIS', False)
 
 
@@ -445,6 +446,14 @@ aaa,bbb
         FastCsv().read(text)
     assert 'Number of header columns (2) ' \
            'inconsistent with data columns in data line 0' in str(e.value)
+
+
+def test_too_many_cols4():
+    # https://github.com/astropy/astropy/issues/9922
+    with pytest.raises(InconsistentTableError) as e:
+        ascii.read(get_pkg_data_filename('data/conf_py.txt'),
+                   fast_reader=True, guess=True)
+    assert 'Unable to guess table format with the guesses listed below' in str(e.value)
 
 
 @pytest.mark.parametrize("parallel", [True, False])
