@@ -649,7 +649,7 @@ double str_to_double(tokenizer_t *self, char *str)
     {
         val = xstrtod(str, &tmp, '.', self->expchar, ',', 1);
 
-        if (*tmp)
+        if (errno == EINVAL || tmp == str || *tmp != '\0')
         {
             goto conversion_error;
         }
@@ -716,9 +716,9 @@ conversion_error:
         }
         val *= INFINITY;
     }
-
-    if (tmp == str || *tmp != '\0')
+    else
     {
+       // Original (tmp == str || *tmp != '\0') case, no NaN or inf found
         self->code = CONVERSION_ERROR;
         val = 0;
     }
@@ -843,6 +843,15 @@ double xstrtod(const char *str, char **endptr, char decimal,
     {
     case '-': negative = 1; // Fall through to increment position
     case '+': p++;
+    }
+
+    // No numerical value following sign - make no conversion and return zero,
+    // resetting endptr to beginning of str (consistent with strtod behaviour)
+    // E.g. -1.e0 and -.0e1 are valid, -.e0 is not!
+    if (!(isdigit(*p) || (*p == decimal && isdigit(*(p + 1)))))
+    {
+        if (endptr) *endptr = (char *) str;
+        return 0e0;
     }
 
     number = 0.;
