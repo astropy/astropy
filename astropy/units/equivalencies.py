@@ -710,7 +710,7 @@ def thermodynamic_temperature(frequency, T_cmb=None):
 
 
 def temperature():
-    """Convert between Kelvin, Celsius, and Fahrenheit here because
+    """Convert between Kelvin, Celsius, Rankine and Fahrenheit here because
     Unit and CompositeUnit cannot do addition or subtraction properly.
     """
     from .imperial import deg_F, deg_R
