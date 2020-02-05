@@ -453,8 +453,7 @@ def test_too_many_cols4():
     with pytest.raises(InconsistentTableError) as e:
         ascii.read(get_pkg_data_filename('data/conf_py.txt'),
                    fast_reader=True, guess=True)
-    assert 'Number of header columns (2) ' \
-           'inconsistent with data columns in data line 0' in str(e.value)
+    assert 'Unable to guess table format with the guesses listed below' in str(e.value)
 
 
 @pytest.mark.parametrize("parallel", [True, False])
