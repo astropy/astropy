@@ -459,6 +459,13 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
             }
             else if (c == self->quotechar) // start parsing quoted field
             {
+
+                if (col >= self->num_cols)
+                {
+                    // Avoid segfault reported in
+                    // https://github.com/astropy/astropy/issues/9922
+                    RETURN(TOO_MANY_COLS);
+                }
                 self->state = START_QUOTED_FIELD;
                 break;
             }
@@ -564,12 +571,6 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
             }
             else if (c == '\n')
                 self->state = QUOTED_FIELD_NEWLINE;
-            else if (col >= self->num_cols)
-            {
-                // Avoid segfault reported in
-                // https://github.com/astropy/astropy/issues/9922
-                RETURN(TOO_MANY_COLS);
-            }
             else
             {
                 PUSH(c);
