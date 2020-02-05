@@ -692,7 +692,16 @@ def test_temperature():
     assert_allclose(t_k.to_value(deg_F, u.temperature()), -459.67)
     t_k = 20 * u.K
     assert_allclose(t_k.to_value(deg_R, u.temperature()), 36.0)
-
+    t_k = 20 * deg_R
+    assert_allclose(t_k.to_value(u.K, u.temperature()), 11.11, atol=0.01)
+    t_k = 20 * deg_F
+    assert_allclose(t_k.to_value(deg_R, u.temperature()), 479.67)
+    t_k = 20 * deg_R
+    assert_allclose(t_k.to_value(deg_F, u.temperature()), -439.67)
+    t_k = 20 * u.deg_C
+    assert_allclose(t_k.to_value(deg_R, u.temperature()), 527.67)
+    t_k = 20 * deg_R
+    assert_allclose(t_k.to_value(u.deg_C, u.temperature()), -262.039, atol=0.01)
 
 def test_temperature_energy():
     x = 1000 * u.K
