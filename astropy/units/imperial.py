@@ -132,6 +132,7 @@ def_unit(['hp', 'horsepower'], si.W / 0.00134102209, namespace=_ns,
 
 def_unit(['deg_F', 'Fahrenheit'], namespace=_ns, doc='Degrees Fahrenheit',
          format={'latex': r'{}^{\circ}F', 'unicode': '°F'})
+def_unit(['deg_R', 'Rankine'], namespace=_ns, doc='Rankine scale: absolute scale of thermodynamic temperature')
 
 
 ###########################################################################
