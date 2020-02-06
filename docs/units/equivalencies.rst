@@ -415,8 +415,8 @@ between the Celsius, Fahrenheit, Rankine and Kelvin. For example::
     >>> temp_F = temp_C.to(u.imperial.deg_F, equivalencies=u.temperature())
     >>> temp_F  # doctest: +FLOAT_CMP
     <Quantity 32. deg_F>
-    >>> temp_F = temp_C.to(u.imperial.deg_R, equivalencies=u.temperature())
-    >>> temp_F  # doctest: +FLOAT_CMP
+    >>> temp_R = temp_C.to(u.imperial.deg_R, equivalencies=u.temperature())
+    >>> temp_R  # doctest: +FLOAT_CMP
     <Quantity 491.67 deg_R>
 
 .. note:: You can also use ``u.deg_C`` instead of ``u.Celsius``.
