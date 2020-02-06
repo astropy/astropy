@@ -75,7 +75,7 @@ An Astropy |Table| object or a NumPy `structured array`_ (or record array) can
 serve as input to the |write| function.
 
 Example
--------
+^^^^^^^
 
 ..
   EXAMPLE START
@@ -152,7 +152,7 @@ Since a Python dictionary is not ordered, the output column order will be
 unpredictable unless the ``names`` argument is provided.
 
 Example
--------
+^^^^^^^
 
 ..
   EXAMPLE START
@@ -346,7 +346,7 @@ original column. For example, a `~astropy.coordinates.SkyCoord` mixin column in
 ``frame``.
 
 Example
--------
+^^^^^^^
 
 ..
   EXAMPLE START
@@ -436,7 +436,7 @@ shown in the example below. For further context see the section on
 :ref:`table_serialization_methods`.
 
 Example
--------
+^^^^^^^
 
 ..
   EXAMPLE START

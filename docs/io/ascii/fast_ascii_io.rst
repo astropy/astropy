@@ -95,7 +95,7 @@ be a ``dict`` specifying any of three additional parameters, ``parallel``,
 ``use_fast_converter`` and ``exponent_style``.
 
 Example
--------
+^^^^^^^
 
 ..
   EXAMPLE START

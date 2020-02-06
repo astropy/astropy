@@ -190,7 +190,7 @@ The lowest level, the Card, also has the most complicated verification
 possibilities.
 
 Examples
---------
+^^^^^^^^
 
 ..
   EXAMPLE START
