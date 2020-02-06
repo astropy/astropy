@@ -148,7 +148,7 @@ flags that *must be considered* when creating the boolean mask, and all other
 flags should be ignored.
 
 Example
--------
+^^^^^^^
 
 ..
   EXAMPLE START
@@ -200,7 +200,7 @@ This can be accomplished by changing the ``good_mask_value`` parameter from
 its default value (`False`) to `True`.
 
 Example
--------
+^^^^^^^
 
 ..
   EXAMPLE START

@@ -27,7 +27,7 @@ The data is the base of `~astropy.nddata.NDData` and is required to be
 instance and it cannot be directly set on the instance.
 
 Example
-=======
+-------
 
 ..
   EXAMPLE START
@@ -71,7 +71,7 @@ During initialization it is possible to provide data that is not a
 `numpy.ndarray` but convertible to one.
 
 Examples
---------
+^^^^^^^^
 
 ..
   EXAMPLE START

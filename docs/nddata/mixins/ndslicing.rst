@@ -119,7 +119,7 @@ By convention, the ``mask`` attribute indicates if a point is valid or invalid.
 So we are able to get all valid data points by slicing with the mask.
 
 Examples
---------
+^^^^^^^^
 
 ..
   EXAMPLE START
