@@ -1492,8 +1492,11 @@ def test_newline_as_delimiter(delimiter, fast_reader):
     Check that with delimiter set to a newline character, lines are still
     correctly split along newlines. Tests the fix for #9928.
     """
-    text = "a  b c \n 1 '2'  3\r 4   5 6 "
+    text = "a  b c \n 1 '2'  3\r 4   5 6\r\n7  8 9 "
 
-    t = ascii.read(text, delimiter=delimiter, fast_reader=fast_reader)
-    assert len(t) == 2
-    assert t.colnames == ['a  b c']
+    t0 = ascii.read(text, delimiter='|', fast_reader=False)
+    t1 = ascii.read(text, delimiter=delimiter, fast_reader=fast_reader)
+    assert t1.colnames == ['a  b c']
+    assert len(t1) == 3
+    assert t1['a  b c'].dtype.kind in ('S', 'U')
+    assert_table_equal(t1, t0)

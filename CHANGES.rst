@@ -473,6 +473,8 @@ astropy.io.ascii
   [#9923]
 
 - Magnitude, decibel, and dex can now be stored in ``ecsv`` files. [#9933]
+- Fixed a bug with the C ``fast_reader`` not correctly parsing newlines when
+  ``delimiter`` was also set to ``\n`` or ``\r``. [#9929]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
