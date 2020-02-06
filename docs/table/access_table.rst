@@ -330,9 +330,7 @@ We can check table data equality using two different methods:
 Examples
 ^^^^^^^^
 
-..
-  EXAMPLE START
-  Checking Table Equality
+.. EXAMPLE START: Checking Table Equality
 
 To check table equality::
 
@@ -373,8 +371,7 @@ To check table equality::
   False False False
    True  True False
 
-..
-  EXAMPLE END
+.. EXAMPLE END
 
 Formatted Printing
 ------------------
@@ -405,9 +402,7 @@ too large, then rows and/or columns are cut from the middle so it fits.
 Example
 ^^^^^^^
 
-..
-  EXAMPLE START
-  Formatted Table Printing
+.. EXAMPLE START: Formatted Table Printing
 
 To print a formatted table::
 
@@ -440,8 +435,7 @@ To print a formatted table::
   2970 2971 2972 2973 2974 2975 2976 ...  2993  2994  2995  2996  2997  2998  2999
   Length = 100 rows
 
-..
-  EXAMPLE END
+.. EXAMPLE END
 
 more() method
 ^^^^^^^^^^^^^
@@ -775,9 +769,7 @@ unacceptable.
 Examples
 """"""""
 
-..
-  EXAMPLE START
-  Bytestring Data in Astropy
+.. EXAMPLE START: Bytestring Data in Astropy
 
 The examples below illustrate dealing with bytestring data in ``astropy``.
 
@@ -822,6 +814,4 @@ The examples below illustrate dealing with bytestring data in ``astropy``.
         bä
        def
 
-..
-  EXAMPLE START
-  
+.. EXAMPLE END
