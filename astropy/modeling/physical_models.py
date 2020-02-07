@@ -13,8 +13,7 @@ from astropy import constants as const
 from astropy import units as u
 from astropy.utils.exceptions import AstropyUserWarning
 
-__all__ = ["BlackBody", "Drude1D"]
-
+__all__ = ["BlackBody", "Drude1D", "Plummer1D"]
 
 class BlackBody(Fittable1DModel):
     """
@@ -317,3 +316,58 @@ class Drude1D(Fittable1DModel):
         dx = factor * self.fwhm
 
         return (x0 - dx, x0 + dx)
+
+
+class Plummer1D(Fittable1DModel):
+    r"""One dimensional Plummer density profile model.
+
+    Parameters
+    ----------
+    mass : float
+        Total mass of cluster.
+    r_plum : float
+        Scale parameter which sets the size of the cluster core.
+
+    Notes
+    -----
+    Model formula:
+
+    .. math::
+
+        \rho(r)=\frac{3M}{4\pi a^3}(1+\frac{r^2}{a^2})^{-5/2}
+
+    References
+    ----------
+    .. [1] http://adsabs.harvard.edu/full/1911MNRAS..71..460P
+    """
+
+    mass = Parameter(default=1.0)
+    r_plum = Parameter(default=1.0)
+
+    @staticmethod
+    def evaluate(x, mass, r_plum):
+        """
+        Evaluate plummer density profile model.
+        """
+        return (3*mass)/(4 * np.pi * r_plum**3) * (1+(x/r_plum)**2)**(-5/2)
+
+    @staticmethod
+    def fit_deriv(x, mass, r_plum):
+        """
+        Plummer1D model derivatives.
+        """
+        d_mass = 3 / ((4*np.pi*r_plum**3) * (((x/r_plum)**2 + 1)**(5/2)))
+        d_r_plum = (6*mass*x**2-9*mass*r_plum**2) / ((4*np.pi * r_plum**6) *
+                                                     (1+(x/r_plum)**2)**(7/2))
+        return [d_mass, d_r_plum]
+
+    @property
+    def input_units(self):
+        if self.mass.unit is None and self.r_plum.unit is None:
+            return None
+        else:
+            return {'x': self.r_plum.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return {'mass': outputs_unit['y'] * inputs_unit['x'] ** 3,
+                'r_plum': inputs_unit['x']}
