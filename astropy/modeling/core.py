@@ -2464,10 +2464,6 @@ class CompoundModel(Model):
             self._make_leaflist()
         return len(self._leaflist)
 
-    # @property
-    # def model_set_axis(self):
-    #     return self._model_set_axis
-
     @property
     def submodel_names(self):
         """ Return the names of submodels in a ``CompoundModel``."""
@@ -2947,8 +2943,7 @@ class CompoundModel(Model):
                         inputs_map[inp] = self.left, self.left.inputs[i]
                 else:  # Get from right
                     if isinstance(self.right, CompoundModel):
-                        inputs_map[inp] = r_inputs_map[
-                            self.right.inputs[i - len(self.left.inputs)]]
+                        inputs_map[inp] = r_inputs_map[self.right.inputs[i - len(self.left.inputs)]]
                     else:
                         inputs_map[inp] = self.right, self.right.inputs[i - len(self.left.inputs)]
         else:
@@ -3755,9 +3750,10 @@ def check_consistent_shapes(*shapes):
 
 def get_bounding_box(self):
     """
-    Return the ``bounding_box`` of a modelself.
+    Return the ``bounding_box`` of a model.
 
-    Raises:
+    Raises
+    ------
     NotImplementedError
         If ``bounding_box`` is not defined.
     """
