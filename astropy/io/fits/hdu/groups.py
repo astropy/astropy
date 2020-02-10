@@ -290,6 +290,9 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
         data.
         """
 
+        if self._axes == [0]:
+            return
+
         data = self._get_tbdata()
         data._coldefs = self.columns
         data.parnames = self.parnames

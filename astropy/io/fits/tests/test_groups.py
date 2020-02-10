@@ -221,3 +221,4 @@ class TestGroupsFunctions(FitsTestCase):
         with fits.open(self.data(testfile)) as hdul:
             assert len(hdul) == 1
             assert hdul[0].header['GROUPS']
+            assert hdul[0].data is None
