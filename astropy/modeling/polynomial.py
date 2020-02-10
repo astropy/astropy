@@ -1051,8 +1051,6 @@ class Chebyshev2D(OrthoPolynomialBase):
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
                  y_domain=None, y_window=[-1, 1], n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
-        x_window = x_window
-        y_window = y_window
         super().__init__(
             x_degree, y_degree, x_domain=x_domain, y_domain=y_domain,
             x_window=x_window, y_window=y_window, n_models=n_models,
