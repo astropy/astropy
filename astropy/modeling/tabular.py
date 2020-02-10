@@ -170,7 +170,6 @@ class _Tabular(Model):
         if not isinstance(pts, u.Quantity):
             return None
         return dict([(x, pts.unit) for x in self.inputs])
-        #return {x:pts.unit for x in self.inputs}
 
     @property
     def return_units(self):

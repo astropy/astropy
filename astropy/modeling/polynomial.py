@@ -338,10 +338,10 @@ class Chebyshev1D(PolynomialModel):
 
     _separable = True
 
-    def __init__(self, degree, domain=None, window=None, n_models=None,
+    def __init__(self, degree, domain=None, window=[-1, 1], n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
         self.domain = domain
-        self.window = window or [-1, 1]
+        self.window = window
         super().__init__(
             degree, n_models=n_models, model_set_axis=model_set_axis,
             name=name, meta=meta, **params)
@@ -676,10 +676,10 @@ class Legendre1D(PolynomialModel):
 
     _separable = True
 
-    def __init__(self, degree, domain=None, window=None, n_models=None,
+    def __init__(self, degree, domain=None, window=[-1, 1], n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
         self.domain = domain
-        self.window = window or [-1, 1]
+        self.window = window
         super().__init__(
             degree, n_models=n_models, model_set_axis=model_set_axis,
             name=name, meta=meta, **params)
@@ -770,10 +770,10 @@ class Polynomial1D(PolynomialModel):
 
     _separable = True
 
-    def __init__(self, degree, domain=None, window=None, n_models=None,
+    def __init__(self, degree, domain=[-1, 1], window=[-1, 1], n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
-        self.domain = domain or [-1, 1]
-        self.window = window or [-1, 1]
+        self.domain = domain
+        self.window = window
         super().__init__(
             degree, n_models=n_models, model_set_axis=model_set_axis,
             name=name, meta=meta, **params)
@@ -872,16 +872,16 @@ class Polynomial2D(PolynomialModel):
 
     _separable = False
 
-    def __init__(self, degree, x_domain=None, y_domain=None,
-                 x_window=None, y_window=None, n_models=None,
+    def __init__(self, degree, x_domain=[-1, 1], y_domain=[-1, 1],
+                 x_window=[-1, 1], y_window=[-1, 1], n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
         super().__init__(
             degree, n_models=n_models, model_set_axis=model_set_axis,
             name=name, meta=meta, **params)
-        self.x_domain = x_domain or [-1, 1]
-        self.y_domain = y_domain or [-1, 1]
-        self.x_window = x_window or [-1, 1]
-        self.y_window = y_window or [-1, 1]
+        self.x_domain = x_domain
+        self.y_domain = y_domain
+        self.x_window = x_window
+        self.y_window = y_window
 
     def prepare_inputs(self, x, y, **kwargs):
 
@@ -1048,11 +1048,11 @@ class Chebyshev2D(OrthoPolynomialBase):
     """
     _separable = False
 
-    def __init__(self, x_degree, y_degree, x_domain=None, x_window=None,
-                 y_domain=None, y_window=None, n_models=None,
+    def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
+                 y_domain=None, y_window=[-1, 1], n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
-        x_window = x_window or [-1, 1]
-        y_window = y_window or [-1, 1]
+        x_window = x_window
+        y_window = y_window
         super().__init__(
             x_degree, y_degree, x_domain=x_domain, y_domain=y_domain,
             x_window=x_window, y_window=y_window, n_models=n_models,
