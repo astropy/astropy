@@ -3,7 +3,7 @@
 """
 Statistic functions used in `~astropy.modeling.fitting`.
 """
-
+# pylint: disable=invalid-name
 import numpy as np
 
 __all__ = ['leastsquare']
@@ -36,7 +36,7 @@ def leastsquare(measured_vals, updated_model, weights, x, y=None):
         model_vals = updated_model(x)
     else:
         model_vals = updated_model(x, y)
+
     if weights is None:
         return np.sum((model_vals - measured_vals) ** 2)
-    else:
-        return np.sum((weights * (model_vals - measured_vals)) ** 2)
+    return np.sum((weights * (model_vals - measured_vals)) ** 2)

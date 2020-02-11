@@ -4,22 +4,22 @@
 Tests for model evaluation.
 Compare the results of some models with other programs.
 """
-
+# pylint: disable=invalid-name, no-member
 import pytest
 import numpy as np
 
 from numpy.testing import assert_allclose, assert_equal
 
-from .example_models import models_1D, models_2D
+from astropy import units as u
 from astropy.modeling import fitting, models
 from astropy.modeling.models import Gaussian2D
 from astropy.modeling.core import FittableModel
 from astropy.modeling.parameters import Parameter
 from astropy.modeling.polynomial import PolynomialBase
-from astropy import units as u
 from astropy.utils import minversion
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils import NumpyRNGContext
+from .example_models import models_1D, models_2D
 
 try:
     import scipy
@@ -96,12 +96,12 @@ def test_inconsistent_input_shapes():
     x = np.arange(-1., 1, .2)
     y = x.copy()
     # check scalar input broadcasting works
-    assert np.abs(g(x,0) - g(x, 0*x)).sum() == 0
+    assert np.abs(g(x, 0) - g(x, 0 * x)).sum() == 0
     # but not array broadcasting
     x.shape = (10, 1)
     y.shape = (1, 10)
     with pytest.raises(ValueError):
-        g(x,y)
+        g(x, y)
 
 
 def test_custom_model_bounding_box():
@@ -585,11 +585,11 @@ def test_tabular_interp_1d():
 @pytest.mark.skipif("not HAS_SCIPY_14")
 def test_tabular_interp_2d():
     table = np.array([
-       [-0.04614432, -0.02512547, -0.00619557, 0.0144165, 0.0297525],
-       [-0.04510594, -0.03183369, -0.01118008, 0.01201388, 0.02496205],
-       [-0.05464094, -0.02804499, -0.00960086, 0.01134333, 0.02284104],
-       [-0.04879338, -0.02539565, -0.00440462, 0.01795145, 0.02122417],
-       [-0.03637372, -0.01630025, -0.00157902, 0.01649774, 0.01952131]])
+        [-0.04614432, -0.02512547, -0.00619557, 0.0144165, 0.0297525],
+        [-0.04510594, -0.03183369, -0.01118008, 0.01201388, 0.02496205],
+        [-0.05464094, -0.02804499, -0.00960086, 0.01134333, 0.02284104],
+        [-0.04879338, -0.02539565, -0.00440462, 0.01795145, 0.02122417],
+        [-0.03637372, -0.01630025, -0.00157902, 0.01649774, 0.01952131]])
 
     points = np.arange(0, 5)
     points = (points, points)
@@ -680,7 +680,7 @@ def test_with_bounding_box():
 
     t3 = models.Shift(10) & models.Scale(2) & models.Shift(-1)
     t3.bounding_box = ((4.3, 6.9), (6, 15), (-1, 10))
-    assert_allclose(t3([1, 1], [7, 7], [3, 5],with_bounding_box=True),
+    assert_allclose(t3([1, 1], [7, 7], [3, 5], with_bounding_box=True),
                     [[np.nan, 11], [np.nan, 14], [np.nan, 4]])
 
     trans3 = models.Shift(10) & models.Scale(2) & models.Shift(-1)
@@ -781,5 +781,5 @@ def test_parameter_inheritance():
     b = subclassmodel()
     assert b.param_names == ('f', 'x', 'y', 'h')
     assert b.h == 5
-    assert b.f ==3
+    assert b.f == 3
     assert b.f.fixed == True

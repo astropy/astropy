@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+# pylint: disable=invalid-name
 
 import types
 
@@ -558,9 +559,9 @@ def test_set_constraints():
     m.stddev_0.bounds = (1, 3)
     assert m.bounds == {'amplitude_0': (None, None),
                         'mean_0': (None, None),
-                            'stddev_0': (1.0, 3.0),
-                            'c0_1': (None, None),
-                            'c1_1': (None, None)}
+                        'stddev_0': (1.0, 3.0),
+                        'c0_1': (None, None),
+                        'c1_1': (None, None)}
 
     # Set the bounds of a Parameter directly in the bounds dict
     m.bounds['stddev_0'] = (4, 5)
@@ -571,7 +572,7 @@ def test_set_constraints():
                         'c1_1': (None, None)}
 
     # Set the bounds of a Parameter on the child model bounds dict
-    g.bounds['stddev'] = (1,5)
+    g.bounds['stddev'] = (1, 5)
     m = g + p
     assert m.bounds == {'amplitude_0': (None, None),
                         'mean_0': (None, None),

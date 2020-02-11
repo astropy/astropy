@@ -16,14 +16,14 @@ Examples
 ...                fill_value=None, method='nearest')
 
 """
-
+# pylint: disable=invalid-name
 import abc
 
 import numpy as np
 
-from .core import Model
 from astropy import units as u
 from astropy.utils import minversion
+from .core import Model
 
 try:
     import scipy
@@ -169,15 +169,13 @@ class _Tabular(Model):
         pts = self.points[0]
         if not isinstance(pts, u.Quantity):
             return None
-        else:
-            return dict([(x, pts.unit) for x in self.inputs])
+        return dict([(x, pts.unit) for x in self.inputs])
 
     @property
     def return_units(self):
         if not isinstance(self.lookup_table, u.Quantity):
             return None
-        else:
-            return {'y': self.lookup_table.unit}
+        return {'y': self.lookup_table.unit}
 
     @property
     def bounding_box(self):
@@ -253,9 +251,8 @@ class _Tabular(Model):
                 raise NotImplementedError
             return Tabular1D(points=points, lookup_table=lookup_table, method=self.method,
                              bounds_error=self.bounds_error, fill_value=self.fill_value)
-        else:
-            raise NotImplementedError("An analytical inverse transform "
-                "has not been implemented for this model.")
+        raise NotImplementedError("An analytical inverse transform "
+                                  "has not been implemented for this model.")
 
 
 def tabular_model(dim, name=None):

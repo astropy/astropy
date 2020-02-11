@@ -2,13 +2,14 @@
 """
 This module contains models representing polynomials and polynomial series.
 """
+# pylint: disable=invalid-name
 import numpy as np
 
+from astropy.utils import indent, check_broadcast
 from .core import FittableModel, Model
 from .functional_models import Shift
 from .parameters import Parameter
 from .utils import poly_map_domain, comb
-from astropy.utils import indent, check_broadcast
 
 
 __all__ = [
@@ -165,10 +166,6 @@ class OrthoPolynomialBase(PolynomialBase):
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=None,
                  y_domain=None, y_window=None, n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
-        # TODO: Perhaps some of these other parameters should be properties?
-        # TODO: An awful lot of the functionality in this method is still
-        # shared by PolynomialModel; perhaps some of it can be generalized in
-        # PolynomialBase
         self.x_degree = x_degree
         self.y_degree = y_degree
         self._order = self.get_num_coeff()
@@ -276,8 +273,11 @@ class OrthoPolynomialBase(PolynomialBase):
         return tuple(names)
 
     def _fcache(self, x, y):
-        # TODO: Write a docstring explaining the actual purpose of this method
-        """To be implemented by subclasses"""
+        """
+        Computation and store the individual functions.
+
+        To be implemented by subclasses"
+        """
 
         raise NotImplementedError("Subclasses should implement this")
 
@@ -758,7 +758,7 @@ class Polynomial1D(PolynomialModel):
         degree of the series
     domain : list or None, optional
     window : list or None, optional
-        If None, it is set to [-1,1]
+        If None, it is set to [-1, 1]
         Fitters will remap the domain to this window
     **params : dict
         keyword: value pairs, representing parameter_name: value
@@ -993,9 +993,8 @@ class Polynomial2D(PolynomialModel):
     def input_units(self):
         if self.degree == 0 or (self.c1_0.unit is None and self.c0_1.unit is None):
             return None
-        else:
-            return {'x': self.c0_0.unit / self.c1_0.unit,
-                    'y': self.c0_0.unit / self.c0_1.unit}
+        return {'x': self.c0_0.unit / self.c1_0.unit,
+                'y': self.c0_0.unit / self.c0_1.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         mapping = {}
@@ -1203,7 +1202,7 @@ class Legendre2D(OrthoPolynomialBase):
         kfunc[x_terms + 1] = y.copy()
         for n in range(2, x_terms):
             kfunc[n] = (((2 * (n - 1) + 1) * x * kfunc[n - 1] -
-                        (n - 1) * kfunc[n - 2]) / n)
+                         (n - 1) * kfunc[n - 2]) / n)
         for n in range(2, y_terms):
             kfunc[n + x_terms] = ((2 * (n - 1) + 1) * y * kfunc[n + x_terms - 1] -
                                   (n - 1) * kfunc[n + x_terms - 2]) / (n)
@@ -1421,7 +1420,7 @@ class SIP(Model):
 
     def __repr__(self):
         return '<{}({!r})>'.format(self.__class__.__name__,
-            [self.shift_a, self.shift_b, self.sip1d_a, self.sip1d_b])
+                                   [self.shift_a, self.shift_b, self.sip1d_a, self.sip1d_b])
 
     def __str__(self):
         parts = [f'Model: {self.__class__.__name__}']
@@ -1496,7 +1495,7 @@ class InverseSIP(Model):
 
     def __repr__(self):
         return '<{}({!r})>'.format(self.__class__.__name__,
-            [self.sip1d_ap, self.sip1d_bp])
+                                   [self.sip1d_ap, self.sip1d_bp])
 
     def __str__(self):
         parts = [f'Model: {self.__class__.__name__}']
