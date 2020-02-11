@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-
+# pylint: disable=invalid-name
 """
 Implements projections--particularly sky projections defined in WCS Paper II
 [1]_.
@@ -18,11 +18,10 @@ import abc
 
 import numpy as np
 
-from .core import Model
-from .parameters import Parameter, InputParameterError
-
 from astropy import units as u
 
+from .core import Model
+from .parameters import Parameter, InputParameterError
 from . import _projections
 from .utils import _to_radian, _to_orig_unit
 
@@ -96,7 +95,7 @@ __all__ = ['Projection', 'Pix2SkyProjection', 'Sky2PixProjection',
            'Pix2Sky_QSC', 'Sky2Pix_QSC',
            'Pix2Sky_HPX', 'Sky2Pix_HPX',
            'Pix2Sky_XPH', 'Sky2Pix_XPH'
-]
+           ]
 
 
 class Projection(Model):
@@ -218,7 +217,6 @@ class Pix2Sky_ZenithalPerspective(Pix2SkyProjection, Zenithal):
 
     def __init__(self, mu=mu.default, gamma=gamma.default, **kwargs):
         # units : mu - in spherical radii, gamma - in deg
-        # TODO: Support quantity objects here and in similar contexts
         super().__init__(mu, gamma, **kwargs)
 
     @mu.validator
@@ -2066,8 +2064,7 @@ class AffineTransformation2D(Model):
         augmented_matrix[2] = [0, 0, 1]
         if unit is not None:
             return augmented_matrix * unit
-        else:
-            return augmented_matrix
+        return augmented_matrix
 
     @property
     def input_units(self):

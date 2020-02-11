@@ -3,6 +3,7 @@
 Test separability of models.
 
 """
+# pylint: disable=invalid-name
 import pytest
 import numpy as np
 from numpy.testing import assert_allclose
@@ -37,19 +38,19 @@ compound_models = {
             ),
     'cm3': (map2 | rot & scl1,
             (np.array([False, False, True]),
-            np.array([[True, False], [True, False], [False, True]]))
+             np.array([[True, False], [True, False], [False, True]]))
             ),
     'cm4': (sh1 & sh2 | map2 | rot & scl1,
             (np.array([False, False, True]),
-            np.array([[True, False], [True, False], [False, True]]))
+             np.array([[True, False], [True, False], [False, True]]))
             ),
     'cm5': (map3 | sh1 & sh2 | scl1 & scl2,
             (np.array([False, False]),
-            np.array([[True], [True]]))
+             np.array([[True], [True]]))
             ),
     'cm7': (map2 | p2 & sh1,
             (np.array([False, True]),
-            np.array([[True, False], [False, True]]))
+             np.array([[True, False], [False, True]]))
             )
 }
 

@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
+# pylint: disable=invalid-name
 from math import cos, sin
 
 import pytest
@@ -109,14 +109,14 @@ def test_euler_angles(axes_order):
     s3 = sin(psi)
 
     matrices = {'zxz': np.array([[(c1*c3 - c2*s1*s3), (-c1*s3 - c2*c3*s1), (s1*s2)],
-                        [(c3*s1 + c1*c2*s3), (c1*c2*c3 - s1*s3), (-c1*s2)],
-                        [(s2*s3), (c3*s2), (c2)]]),
+                                 [(c3*s1 + c1*c2*s3), (c1*c2*c3 - s1*s3), (-c1*s2)],
+                                 [(s2*s3), (c3*s2), (c2)]]),
                 'zyz': np.array([[(c1*c2*c3 - s1*s3), (-c3*s1 - c1*c2*s3), (c1*s2)],
-                        [(c1*s3 + c2*c3*s1), (c1*c3 - c2*s1*s3), (s1*s2)],
-                        [(-c3*s2), (s2*s3), (c2)]]),
+                                 [(c1*s3 + c2*c3*s1), (c1*c3 - c2*s1*s3), (s1*s2)],
+                                 [(-c3*s2), (s2*s3), (c2)]]),
                 'yzy': np.array([[(c1*c2*c3 - s1*s3), (-c1*s2), (c3*s1+c1*c2*s3)],
-                                  [(c3*s2), (c2), (s2*s3)],
-                                  [(-c1*s3 - c2*c3*s1), (s1*s2), (c1*c3-c2*s1*s3)]]),
+                                 [(c3*s2), (c2), (s2*s3)],
+                                 [(-c1*s3 - c2*c3*s1), (s1*s2), (c1*c3-c2*s1*s3)]]),
                 'yxy': np.array([[(c1*c3 - c2*s1*s3), (s1*s2), (c1*s3+c2*c3*s1)],
                                  [(s2*s3), (c2), (-c3*s2)],
                                  [(-c3*s1 - c1*c2*s3), (c1*s2), (c1*c2*c3 - s1*s3)]]),
