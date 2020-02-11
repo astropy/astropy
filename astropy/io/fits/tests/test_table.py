@@ -17,6 +17,7 @@ except ImportError:
     HAVE_OBJGRAPH = False
 
 from astropy.io import fits
+from astropy.table import Table
 from astropy.units import UnitsWarning
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
@@ -2619,6 +2620,21 @@ class TestTableFunctions(FitsTestCase):
         # Now check the file
         with fits.open(self.temp("b.fits")) as hdul:
             assert hdul[1].data['c1'][0] == 10
+
+    def test_ascii_inttypes(self):
+        """
+        Test correct integer dtypes according to ASCII table field widths.
+        Regression for https://github.com/astropy/astropy/issues/9899
+        """
+        i08 = np.array([2**3, 2**23, -2**22, 10, 2**23], dtype='i4')
+        i10 = np.array([2**8, 2**31-1, -2**29, 30, 2**31-1], dtype='i8')
+        i20 = np.array([2**16, 2**63-1, -2**63, 40, 2**63-1], dtype='i8')
+        i02 = np.array([2**8, 2**13, -2**9, 50, 2**13], dtype='i2')
+        t0 = Table([i08, i08*2, i10, i20, i02])
+
+        t1 = Table.read(self.data('ascii_i4-i20.fits'))
+        assert t1.dtype == t0.dtype
+        assert comparerecords(t1, t0)
 
 
 @contextlib.contextmanager
