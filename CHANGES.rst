@@ -68,6 +68,9 @@ astropy.table
   respectively ``tbl.columns.items()`` (iterator over name, column tuples)  and
   ``tbl.columns.values()`` (list of columns) for a ``Table`` object ``tbl``. [#9780]
 
+- Added new ``Table`` method ``.round()``, which rounds numeric columns to the
+  specified number of decimals. [#9862]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
