@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+# pylint: disable=invalid-name
 
 """
 Optimization algorithms used in `~astropy.modeling.fitting`.
@@ -84,6 +85,7 @@ class Optimization(metaclass=abc.ABCMeta):
 
     @property
     def opt_method(self):
+        """ Return the optimization method."""
         return self._opt_method
 
     @abc.abstractmethod

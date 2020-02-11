@@ -1,3 +1,5 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+# pylint: disable=invalid-name, no-member
 from collections import OrderedDict
 
 import pytest
@@ -163,33 +165,33 @@ POWERLAW_MODELS = [
 ]
 
 POLY_MODELS = [
-    {'class': Polynomial1D,
-        'parameters': {'degree': 2, 'c0': 3 * u.one, 'c1': 2 / u.m, 'c2': 3 / u.m**2},
-        'evaluation': [(3 * u.m, 36 * u.one)],
-        'bounding_box': False},
-    {'class': Polynomial1D,
-        'parameters': {'degree': 2, 'c0': 3 * u.kg, 'c1': 2 * u.kg / u.m, 'c2': 3 * u.kg / u.m**2},
-        'evaluation': [(3 * u.m, 36 * u.kg)],
-        'bounding_box': False},
-    {'class': Polynomial1D,
-        'parameters': {'degree': 2, 'c0': 3 * u.kg, 'c1': 2 * u.kg, 'c2': 3 * u.kg},
-        'evaluation': [(3 * u.one, 36 * u.kg)],
-        'bounding_box': False},
-    {'class': Polynomial2D,
-        'parameters': {'degree': 2, 'c0_0': 3 * u.one, 'c1_0': 2 / u.m, 'c2_0': 3 / u.m**2,
-                       'c0_1': 3 / u.s, 'c0_2': -2 / u.s**2, 'c1_1': 5 / u.m / u.s},
-        'evaluation': [(3 * u.m, 2 * u.s, 64 * u.one)],
-        'bounding_box': False},
-    {'class': Polynomial2D,
-        'parameters': {'degree': 2, 'c0_0': 3 * u.kg, 'c1_0': 2 * u.kg / u.m, 'c2_0': 3 * u.kg / u.m**2,
-                       'c0_1': 3 * u.kg / u.s, 'c0_2': -2 * u.kg / u.s**2, 'c1_1': 5 * u.kg / u.m / u.s},
-        'evaluation': [(3 * u.m, 2 * u.s, 64 * u.kg)],
-        'bounding_box': False},
-    {'class': Polynomial2D,
-        'parameters': {'degree': 2, 'c0_0': 3 * u.kg, 'c1_0': 2 * u.kg, 'c2_0': 3 * u.kg,
-                       'c0_1': 3 * u.kg, 'c0_2': -2 * u.kg, 'c1_1': 5 * u.kg},
-        'evaluation': [(3 * u.one, 2 * u.one, 64 * u.kg)],
-        'bounding_box': False},
+{'class': Polynomial1D,
+ 'parameters': {'degree': 2, 'c0': 3 * u.one, 'c1': 2 / u.m, 'c2': 3 / u.m**2},
+ 'evaluation': [(3 * u.m, 36 * u.one)],
+ 'bounding_box': False},
+{'class': Polynomial1D,
+ 'parameters': {'degree': 2, 'c0': 3 * u.kg, 'c1': 2 * u.kg / u.m, 'c2': 3 * u.kg / u.m**2},
+ 'evaluation': [(3 * u.m, 36 * u.kg)],
+ 'bounding_box': False},
+{'class': Polynomial1D,
+ 'parameters': {'degree': 2, 'c0': 3 * u.kg, 'c1': 2 * u.kg, 'c2': 3 * u.kg},
+ 'evaluation': [(3 * u.one, 36 * u.kg)],
+ 'bounding_box': False},
+{'class': Polynomial2D,
+ 'parameters': {'degree': 2, 'c0_0': 3 * u.one, 'c1_0': 2 / u.m, 'c2_0': 3 / u.m**2,
+                'c0_1': 3 / u.s, 'c0_2': -2 / u.s**2, 'c1_1': 5 / u.m / u.s},
+ 'evaluation': [(3 * u.m, 2 * u.s, 64 * u.one)],
+ 'bounding_box': False},
+{'class': Polynomial2D,
+ 'parameters': {'degree': 2, 'c0_0': 3 * u.kg, 'c1_0': 2 * u.kg / u.m, 'c2_0': 3 * u.kg / u.m**2,
+                'c0_1': 3 * u.kg / u.s, 'c0_2': -2 * u.kg / u.s**2, 'c1_1': 5 * u.kg / u.m / u.s},
+ 'evaluation': [(3 * u.m, 2 * u.s, 64 * u.kg)],
+ 'bounding_box': False},
+{'class': Polynomial2D,
+ 'parameters': {'degree': 2, 'c0_0': 3 * u.kg, 'c1_0': 2 * u.kg, 'c2_0': 3 * u.kg,
+                'c0_1': 3 * u.kg, 'c0_2': -2 * u.kg, 'c1_1': 5 * u.kg},
+ 'evaluation': [(3 * u.one, 2 * u.one, 64 * u.kg)],
+ 'bounding_box': False},
  ]
 
 

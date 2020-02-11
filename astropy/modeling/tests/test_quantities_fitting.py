@@ -2,6 +2,7 @@
 """
 Tests that relate to fitting models with quantity parameters
 """
+# pylint: disable=invalid-name, no-member
 import numpy as np
 import pytest
 

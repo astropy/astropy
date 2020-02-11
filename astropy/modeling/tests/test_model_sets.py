@@ -2,6 +2,7 @@
 """
 This module tests model set evaluation for some common use cases.
 """
+# pylint: disable=invalid-name
 import pytest
 import numpy as np
 from numpy.testing import assert_allclose
@@ -75,7 +76,7 @@ def test_model_axis_2():
     Test that a model initialized with model_set_axis=2
     can be evaluated with model_set_axis=False.
     """
-    p1 = Polynomial1D(1, c0=[[[1, 2,3 ]]], c1=[[[10, 20, 30]]],
+    p1 = Polynomial1D(1, c0=[[[1, 2, 3]]], c1=[[[10, 20, 30]]],
                       n_models=3, model_set_axis=2)
     t1 = Polynomial1D(1, c0=1, c1=10)
     t2 = Polynomial1D(1, c0=2, c1=20)
@@ -93,8 +94,8 @@ def test_model_axis_2():
     assert_allclose(y[:, :, 1].flatten(), t2(x))
     assert_allclose(y[:, :, 2].flatten(), t3(x))
 
-    p2 = Polynomial2D(1, c0_0=[[[0,1,2]]], c0_1=[[[3,4,5]]],
-                      c1_0=[[[5,6,7]]], n_models=3, model_set_axis=2)
+    p2 = Polynomial2D(1, c0_0=[[[0, 1, 2]]], c0_1=[[[3, 4, 5]]],
+                      c1_0=[[[5, 6, 7]]], n_models=3, model_set_axis=2)
     t1 = Polynomial2D(1, c0_0=0, c0_1=3, c1_0=5)
     t2 = Polynomial2D(1, c0_0=1, c0_1=4, c1_0=6)
     t3 = Polynomial2D(1, c0_0=2, c0_1=5, c1_0=7)
@@ -144,8 +145,8 @@ def test_axis_0():
 
 def test_negative_axis():
     p1 = Polynomial1D(1, c0=[1, 2], c1=[3, 4], n_models=2, model_set_axis=-1)
-    t1 = Polynomial1D(1, c0=1,c1=3)
-    t2 = Polynomial1D(1, c0=2,c1=4)
+    t1 = Polynomial1D(1, c0=1, c1=3)
+    t2 = Polynomial1D(1, c0=2, c1=4)
 
     with pytest.raises(ValueError):
         p1(x)

@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
+# pylint: disable=invalid-name
 import os
 import sys
 import subprocess
@@ -41,14 +41,14 @@ def test_Model_instance_repr_and_str():
     m = NonFittableModel(42.5)
     assert repr(m) == "<NonFittableModel(a=42.5)>"
     assert (str(m) ==
-        "Model: NonFittableModel\n"
-        "Inputs: ()\n"
-        "Outputs: ()\n"
-        "Model set size: 1\n"
-        "Parameters:\n"
-        "     a  \n"
-        "    ----\n"
-        "    42.5")
+            "Model: NonFittableModel\n"
+            "Inputs: ()\n"
+            "Outputs: ()\n"
+            "Model set size: 1\n"
+            "Parameters:\n"
+            "     a  \n"
+            "    ----\n"
+            "    42.5")
 
     assert len(m) == 1
 
@@ -329,7 +329,7 @@ def test_render_model_3d():
             return ((self.z0 - self.c, self.z0 + self.c),
                     (self.y0 - self.b, self.y0 + self.b),
                     (self.x0 - self.a, self.x0 + self.a))
-
+   
     model = Ellipsoid3D()
 
     # test points for edges
@@ -388,7 +388,7 @@ def test_n_submodels_in_single_models():
 
 
 def test_compound_deepcopy():
-    model = (models.Gaussian1D(10, 2,3) | models.Shift(2)) & models.Rotation2D(21.3)
+    model = (models.Gaussian1D(10, 2, 3) | models.Shift(2)) & models.Rotation2D(21.3)
     new_model = model.deepcopy()
     assert id(model) != id(new_model)
     assert id(model._leaflist) != id(new_model._leaflist)

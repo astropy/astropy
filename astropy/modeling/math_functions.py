@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+Define Numpy Ufuncs as Models.
+"""
 import warnings
 import numpy as np
 
@@ -34,6 +37,7 @@ def _make_class_name(name):
 
 
 def ufunc_model(name):
+    """ Define a Model from a Numpy ufunc name."""
     ufunc = getattr(np, name)
     nin = ufunc.nin
     nout = ufunc.nout

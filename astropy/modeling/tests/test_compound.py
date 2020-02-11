@@ -1,9 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+# pylint: disable=invalid-name, pointless-statement
 
-import pytest
 import pickle
-
-from copy import deepcopy
+import pytest
 
 import numpy as np
 
@@ -53,7 +52,7 @@ def test_model_set_raises_value_error(expr, result):
        different raise a value error
     """
     with pytest.raises(ValueError):
-        s = expr(Const1D((2, 2), n_models=2), Const1D(3, n_models=1))
+        expr(Const1D((2, 2), n_models=2), Const1D(3, n_models=1))
 
 
 @pytest.mark.parametrize(('expr', 'result'),
@@ -305,35 +304,19 @@ def test_compound_with_polynomials_2d(poly):
     result = shift(poly(x, y))
     assert_allclose(result, result_compound)
 
-
-@pytest.mark.parametrize('poly', [Chebyshev1D(5), Legendre1D(5), Polynomial1D(5)])
-def test_compound_with_polynomials_1d(poly):
-    """
-    Tests that polynomials are scaled when used in compound models.
-    Issue #3699
-    """
-    poly.parameters = [1, 2, 3, 4, 1, 2]
-    shift = Shift(3)
-    model = poly | shift
-    x, y = np.mgrid[:20, :37]
-    result_compound = model(x)
-    result = shift(poly(x))
-    assert_allclose(result, result_compound)
-
-
 def test_fix_inputs():
     g1 = Gaussian2D(1, 0, 0, 1, 2)
     g2 = Gaussian2D(1.5, .5, -.2, .5, .3)
     sg1_1 = fix_inputs(g1, {1: 0})
     assert_allclose(sg1_1(0), g1(0, 0))
-    assert_allclose(sg1_1([0,1,3]), g1([0,1,3],[0,0,0]))
+    assert_allclose(sg1_1([0, 1, 3]), g1([0, 1, 3], [0, 0, 0]))
     sg1_2 = fix_inputs(g1, {'x': 1})
     assert_allclose(sg1_2(1.5), g1(1, 1.5))
     gg1 = g1 & g2
     sgg1_1 = fix_inputs(gg1, {1: 0.1, 3: 0.2})
     assert_allclose(sgg1_1(0, 0), gg1(0, 0.1, 0, 0.2))
     sgg1_2 = fix_inputs(gg1, {'x0': -.1, 2: .1})
-    assert_allclose(sgg1_2(1,1), gg1(-0.1, 1, 0.1, 1))
+    assert_allclose(sgg1_2(1, 1), gg1(-0.1, 1, 0.1, 1))
     assert_allclose(sgg1_2(y0=1, y1=1), gg1(-0.1, 1, 0.1, 1))
 
 
@@ -362,14 +345,14 @@ def test_fix_inputs_invalid():
 def test_fix_inputs_with_bounding_box():
     g1 = Gaussian2D(1, 0, 0, 1, 1)
     g2 = Gaussian2D(1, 0, 0, 1, 1)
-    assert g1.bounding_box == ((-5.5,5.5), (-5.5,5.5))
+    assert g1.bounding_box == ((-5.5, 5.5), (-5.5, 5.5))
 
     gg1 = g1 & g2
-    gg1.bounding_box = ((-5.5,5.5), (-5.4,5.4), (-5.3,5.3), (-5.2,5.2))
-    assert gg1.bounding_box == ((-5.5,5.5), (-5.4,5.4), (-5.3,5.3), (-5.2,5.2))
+    gg1.bounding_box = ((-5.5, 5.5), (-5.4, 5.4), (-5.3, 5.3), (-5.2, 5.2))
+    assert gg1.bounding_box == ((-5.5, 5.5), (-5.4, 5.4), (-5.3, 5.3), (-5.2, 5.2))
 
     sg = fix_inputs(gg1, {0: 0, 2: 0})
-    assert sg.bounding_box == ((-5.4,5.4), (-5.2,5.2))
+    assert sg.bounding_box == ((-5.4, 5.4), (-5.2, 5.2))
 
     g1 = Gaussian1D(10, 3, 1)
     g = g1 & g1
@@ -541,15 +524,15 @@ def test_update_parameters():
     offx = Shift(1)
     scl = Scale(2)
     m = offx | scl
-    assert(m(1) == 4)
+    assert m(1) == 4
 
     offx.offset = 42
-    assert(m(1) == 86)
+    assert m(1) == 86
 
     m.factor_1 = 100
-    assert(m(1) == 4300)
+    assert m(1) == 4300
     m2 = m | offx
-    assert(m2(1) == 4342)
+    assert m2(1) == 4342
 
 
 def test_name():
@@ -629,8 +612,8 @@ def test_bounding_box():
     mask = ~np.isnan(val)
     assert_allclose(val[mask], compare[mask])
     val2 = g(x+2, y+2, with_bounding_box=True)
-    assert(np.isnan(val2).sum() == 100)
-    val3 = g(.1, .1, with_bounding_box=True)
+    assert np.isnan(val2).sum() == 100
+    # val3 = g(.1, .1, with_bounding_box=True)
 
 
 @pytest.mark.skipif("not HAS_SCIPY_14")
@@ -639,22 +622,7 @@ def test_bounding_box_with_units():
     lt = np.arange(5) * u.AA
     t = Tabular1D(points, lt)
 
-    assert(t(1 * u.pix, with_bounding_box=True) == 1. * u.AA)
-
-
-@pytest.mark.parametrize('poly', [Chebyshev2D(1, 2), Polynomial2D(2), Legendre2D(1, 2)])
-def test_compound_with_polynomials_2d(poly):
-    """
-    Tests that polynomials are offset when used in compound models.
-    Issue #3699
-    """
-    poly.parameters = [1, 2, 3, 4, 1, 2]
-    shift = Shift(3)
-    model = poly | shift
-    x, y = np.mgrid[:20, :37]
-    result_compound = model(x, y)
-    result = shift(poly(x, y))
-    assert_allclose(result, result_compound)
+    assert t(1 * u.pix, with_bounding_box=True) == 1. * u.AA
 
 
 @pytest.mark.parametrize('poly', [Chebyshev1D(5), Legendre1D(5), Polynomial1D(5)])

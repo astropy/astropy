@@ -2,6 +2,7 @@
 Special models useful for complex compound models where control is needed over
 which outputs from a source model are mapped to which inputs of a target model.
 """
+# pylint: disable=invalid-name
 
 from .core import FittableModel
 
@@ -47,7 +48,8 @@ class Mapping(FittableModel):
     linear = True  # FittableModel is non-linear by default
 
     def __init__(self, mapping, n_inputs=None, name=None, meta=None):
-
+        self._inputs = ()
+        self._outputs = ()
         if n_inputs is None:
             self._n_inputs = max(mapping) + 1
         else:
@@ -56,14 +58,9 @@ class Mapping(FittableModel):
         self._n_outputs = len(mapping)
         super().__init__(name=name, meta=meta)
 
-        if n_inputs is None:
-            self.inputs = tuple('x' + str(idx)
-                                for idx in range(max(mapping) + 1))
-            self.outputs = tuple('x' + str(idx) for idx in range(len(mapping)))
-        else:
-            self.inputs = tuple('x' + str(idx)
-                                for idx in range(n_inputs))
-            self.outputs = tuple('x' + str(idx) for idx in range(len(mapping)))
+        self.inputs = tuple('x' + str(idx) for idx in range(self._n_inputs))
+        self.outputs = tuple('x' + str(idx) for idx in range(self._n_outputs))
+
         self._mapping = mapping
         self._input_units_strict = {key: False for key in self._inputs}
         self._input_units_allow_dimensionless = {key: False for key in self._inputs}
@@ -79,14 +76,12 @@ class Mapping(FittableModel):
     @property
     def mapping(self):
         """Integers representing indices of the inputs."""
-
         return self._mapping
 
     def __repr__(self):
         if self.name is None:
             return f'<Mapping({self.mapping})>'
-        else:
-            return f'<Mapping({self.mapping}, name={self.name!r})>'
+        return f'<Mapping({self.mapping}, name={self.name!r})>'
 
     def evaluate(self, *args):
         if len(args) != self.n_inputs:
@@ -170,8 +165,7 @@ class Identity(Mapping):
     def __repr__(self):
         if self.name is None:
             return f'<Identity({self.n_inputs})>'
-        else:
-            return f'<Identity({self.n_inputs}, name={self.name!r})>'
+        return f'<Identity({self.n_inputs}, name={self.name!r})>'
 
     @property
     def inverse(self):

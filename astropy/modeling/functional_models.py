@@ -1,14 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """Mathematical models."""
-
+# pylint: disable=line-too-long, too-many-lines, too-many-arguments, invalid-name
 import numpy as np
 
 from astropy import units as u
 from astropy.units import Quantity, UnitsError
 from astropy.utils.decorators import deprecated
-from .core import (Fittable1DModel, Fittable2DModel,
-                   ModelDefinitionError)
+from .core import (Fittable1DModel, Fittable2DModel)
 
 from .parameters import Parameter, InputParameterError
 from .utils import ellipse_extent
@@ -179,8 +178,7 @@ class Gaussian1D(Fittable1DModel):
     def input_units(self):
         if self.mean.unit is None:
             return None
-        else:
-            return {'x': self.mean.unit}
+        return {'x': self.mean.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {'mean': inputs_unit['x'],
@@ -288,21 +286,16 @@ class Gaussian2D(Fittable2DModel):
             if x_stddev is not None or y_stddev is not None or theta is not None:
                 raise InputParameterError("Cannot specify both cov_matrix and "
                                           "x/y_stddev/theta")
-            else:
-                # Compute principle coordinate system transformation
-                cov_matrix = np.array(cov_matrix)
+            # Compute principle coordinate system transformation
+            cov_matrix = np.array(cov_matrix)
 
-                if cov_matrix.shape != (2, 2):
-                    # TODO: Maybe it should be possible for the covariance matrix
-                    # to be some (x, y, ..., z, 2, 2) array to be broadcast with
-                    # other parameters of shape (x, y, ..., z)
-                    # But that's maybe a special case to work out if/when needed
-                    raise ValueError("Covariance matrix must be 2x2")
+            if cov_matrix.shape != (2, 2):
+                raise ValueError("Covariance matrix must be 2x2")
 
-                eig_vals, eig_vecs = np.linalg.eig(cov_matrix)
-                x_stddev, y_stddev = np.sqrt(eig_vals)
-                y_vec = eig_vecs[:, 0]
-                theta = np.arctan2(y_vec[1], y_vec[0])
+            eig_vals, eig_vecs = np.linalg.eig(cov_matrix)
+            x_stddev, y_stddev = np.sqrt(eig_vals)
+            y_vec = eig_vecs[:, 0]
+            theta = np.arctan2(y_vec[1], y_vec[0])
 
         # Ensure stddev makes sense if its bounds are not explicitly set.
         # stddev must be non-zero and positive.
@@ -432,9 +425,8 @@ class Gaussian2D(Fittable2DModel):
     def input_units(self):
         if self.x_mean.unit is None and self.y_mean.unit is None:
             return None
-        else:
-            return {'x': self.x_mean.unit,
-                    'y': self.y_mean.unit}
+        return {'x': self.x_mean.unit,
+                'y': self.y_mean.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -467,8 +459,7 @@ class Shift(Fittable1DModel):
     def input_units(self):
         if self.offset.unit is None:
             return None
-        else:
-            return {'x': self.offset.unit}
+        return {'x': self.offset.unit}
 
     @property
     def inverse(self):
@@ -526,8 +517,7 @@ class Scale(Fittable1DModel):
     def input_units(self):
         if self.factor.unit is None:
             return None
-        else:
-            return {'x': self.factor.unit}
+        return {'x': self.factor.unit}
 
     @property
     def inverse(self):
@@ -722,8 +712,7 @@ class Sersic1D(Fittable1DModel):
     def input_units(self):
         if self.r_eff.unit is None:
             return None
-        else:
-            return {'x': self.r_eff.unit}
+        return {'x': self.r_eff.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {'r_eff': inputs_unit['x'],
@@ -808,8 +797,7 @@ class Sine1D(Fittable1DModel):
     def input_units(self):
         if self.frequency.unit is None:
             return None
-        else:
-            return {'x': 1. / self.frequency.unit}
+        return {'x': 1. / self.frequency.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {'frequency': inputs_unit['x'] ** -1,
@@ -867,8 +855,7 @@ class Linear1D(Fittable1DModel):
     def input_units(self):
         if self.intercept.unit is None and self.slope.unit is None:
             return None
-        else:
-            return {'x': self.intercept.unit / self.slope.unit}
+        return {'x': self.intercept.unit / self.slope.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {'intercept': outputs_unit['y'],
@@ -1013,8 +1000,7 @@ class Lorentz1D(Fittable1DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        else:
-            return {'x': self.x_0.unit}
+        return {'x': self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {'x_0': inputs_unit['x'],
@@ -1110,15 +1096,15 @@ class Voigt1D(Fittable1DModel):
         dyda = [-constant * dVdx * 2 * sqrt_ln2 / fwhm_G,
                 constant * V / amplitude_L,
                 constant * (V / fwhm_L + dVdy * sqrt_ln2 / fwhm_G),
-                -constant * (V + (sqrt_ln2 / fwhm_G) * (2 * (x - x_0) * dVdx + fwhm_L * dVdy)) / fwhm_G]
+                -constant * (V + (sqrt_ln2 / fwhm_G) * (2 * (x - x_0) *
+                                                        dVdx + fwhm_L * dVdy)) / fwhm_G]
         return dyda
 
     @property
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        else:
-            return {'x': self.x_0.unit}
+        return {'x': self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {'x_0': inputs_unit['x'],
@@ -1186,8 +1172,7 @@ class Const1D(Fittable1DModel):
 
         if isinstance(amplitude, Quantity):
             return Quantity(x, unit=amplitude.unit, copy=False)
-        else:
-            return x
+        return x
 
     @staticmethod
     def fit_deriv(x, amplitude):
@@ -1242,8 +1227,7 @@ class Const2D(Fittable2DModel):
 
         if isinstance(amplitude, Quantity):
             return Quantity(x, unit=amplitude.unit, copy=False)
-        else:
-            return x
+        return x
 
     @property
     def input_units(self):
@@ -1345,8 +1329,7 @@ class Ellipse2D(Fittable2DModel):
 
         if isinstance(amplitude, Quantity):
             return Quantity(result, unit=amplitude.unit, copy=False)
-        else:
-            return result
+        return result
 
     @property
     def bounding_box(self):
@@ -1368,9 +1351,8 @@ class Ellipse2D(Fittable2DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        else:
-            return {'x': self.x_0.unit,
-                    'y': self.y_0.unit}
+        return {'x': self.x_0.unit,
+                'y': self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -1433,8 +1415,7 @@ class Disk2D(Fittable2DModel):
 
         if isinstance(amplitude, Quantity):
             return Quantity(result, unit=amplitude.unit, copy=False)
-        else:
-            return result
+        return result
 
     @property
     def bounding_box(self):
@@ -1451,9 +1432,8 @@ class Disk2D(Fittable2DModel):
     def input_units(self):
         if self.x_0.unit is None and self.y_0.unit is None:
             return None
-        else:
-            return {'x': self.x_0.unit,
-                    'y': self.y_0.unit}
+        return {'x': self.x_0.unit,
+                'y': self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -1538,8 +1518,7 @@ class Ring2D(Fittable2DModel):
 
         if isinstance(amplitude, Quantity):
             return Quantity(result, unit=amplitude.unit, copy=False)
-        else:
-            return result
+        return result
 
     @property
     def bounding_box(self):
@@ -1558,9 +1537,8 @@ class Ring2D(Fittable2DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        else:
-            return {'x': self.x_0.unit,
-                    'y': self.y_0.unit}
+        return {'x': self.x_0.unit,
+                'y': self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -1573,20 +1551,6 @@ class Ring2D(Fittable2DModel):
                 'r_in': inputs_unit['x'],
                 'width': inputs_unit['x'],
                 'amplitude': outputs_unit['z']}
-
-
-class Delta1D(Fittable1DModel):
-    """One dimensional Dirac delta function."""
-
-    def __init__(self):
-        raise ModelDefinitionError("Not implemented")
-
-
-class Delta2D(Fittable2DModel):
-    """Two dimensional Dirac delta function."""
-
-    def __init__(self):
-        raise ModelDefinitionError("Not implemented")
 
 
 class Box1D(Fittable1DModel):
@@ -1669,15 +1633,13 @@ class Box1D(Fittable1DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        else:
-            return {'x': self.x_0.unit}
+        return {'x': self.x_0.unit}
 
     @property
     def return_units(self):
         if self.amplitude.unit is None:
             return None
-        else:
-            return {'y': self.amplitude.unit}
+        return {'y': self.amplitude.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {'x_0': inputs_unit['x'],
@@ -1741,8 +1703,7 @@ class Box2D(Fittable2DModel):
 
         if isinstance(amplitude, Quantity):
             return Quantity(result, unit=amplitude.unit, copy=False)
-        else:
-            return result
+        return result
 
     @property
     def bounding_box(self):
@@ -1762,9 +1723,8 @@ class Box2D(Fittable2DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        else:
-            return {'x': self.x_0.unit,
-                    'y': self.y_0.unit}
+        return {'x': self.x_0.unit,
+                'y': self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {'x_0': inputs_unit['x'],
@@ -1843,8 +1803,7 @@ class Trapezoid1D(Fittable1DModel):
 
         if isinstance(amplitude, Quantity):
             return Quantity(result, unit=amplitude.unit, copy=False)
-        else:
-            return result
+        return result
 
     @property
     def bounding_box(self):
@@ -1862,8 +1821,7 @@ class Trapezoid1D(Fittable1DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        else:
-            return {'x': self.x_0.unit}
+        return {'x': self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {'x_0': inputs_unit['x'],
@@ -1913,8 +1871,7 @@ class TrapezoidDisk2D(Fittable2DModel):
 
         if isinstance(amplitude, Quantity):
             return Quantity(result, unit=amplitude.unit, copy=False)
-        else:
-            return result
+        return result
 
     @property
     def bounding_box(self):
@@ -1933,9 +1890,8 @@ class TrapezoidDisk2D(Fittable2DModel):
     def input_units(self):
         if self.x_0.unit is None and self.y_0.unit is None:
             return None
-        else:
-            return {'x': self.x_0.unit,
-                    'y': self.y_0.unit}
+        return {'x': self.x_0.unit,
+                'y': self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -2035,8 +1991,7 @@ class RickerWavelet1D(Fittable1DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        else:
-            return {'x': self.x_0.unit}
+        return {'x': self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {'x_0': inputs_unit['x'],
@@ -2097,9 +2052,8 @@ class RickerWavelet2D(Fittable2DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        else:
-            return {'x': self.x_0.unit,
-                    'y': self.y_0.unit}
+        return {'x': self.x_0.unit,
+                'y': self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -2198,9 +2152,8 @@ class AiryDisk2D(Fittable2DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        else:
-            return {'x': self.x_0.unit,
-                    'y': self.y_0.unit}
+        return {'x': self.x_0.unit,
+                'y': self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -2300,8 +2253,7 @@ class Moffat1D(Fittable1DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        else:
-            return {'x': self.x_0.unit}
+        return {'x': self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {'x_0': inputs_unit['x'],
@@ -2503,9 +2455,8 @@ class Sersic2D(Fittable2DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        else:
-            return {'x': self.x_0.unit,
-                    'y': self.y_0.unit}
+        return {'x': self.x_0.unit,
+                'y': self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -2596,10 +2547,10 @@ class KingProjectedAnalytic1D(Fittable1DModel):
         """
 
         result = amplitude * r_core ** 2 * (1/np.sqrt(x ** 2 + r_core ** 2) -
-                                          1/np.sqrt(r_tide ** 2 + r_core ** 2)) ** 2
+                                            1/np.sqrt(r_tide ** 2 + r_core ** 2)) ** 2
 
         # Set invalid r values to 0
-        bounds = (x >= r_tide) | (x<0)
+        bounds = (x >= r_tide) | (x < 0)
         result[bounds] = result[bounds] * 0.
 
         return result
@@ -2646,8 +2597,7 @@ class KingProjectedAnalytic1D(Fittable1DModel):
     def input_units(self):
         if self.r_core.unit is None:
             return None
-        else:
-            return {'x': self.r_core.unit}
+        return {'x': self.r_core.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {'r_core': inputs_unit['x'],
@@ -2697,8 +2647,7 @@ class Logarithmic1D(Fittable1DModel):
     def input_units(self):
         if self.tau.unit is None:
             return None
-        else:
-            return {'x': self.tau.unit}
+        return {'x': self.tau.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {'tau': inputs_unit['x'],
@@ -2727,6 +2676,7 @@ class Exponential1D(Fittable1DModel):
 
     @staticmethod
     def fit_deriv(x, amplitude, tau):
+        ''' Derivative with respect to parameters'''
         d_amplitude = np.exp(x / tau)
         d_tau = -amplitude * (x / tau**2) * np.exp(x / tau)
         return [d_amplitude, d_tau]
@@ -2739,6 +2689,7 @@ class Exponential1D(Fittable1DModel):
 
     @tau.validator
     def tau(self, val):
+        ''' tau cannot be 0'''
         if val == 0:
             raise ValueError("0 is not an allowed value for tau")
 
@@ -2746,8 +2697,7 @@ class Exponential1D(Fittable1DModel):
     def input_units(self):
         if self.tau.unit is None:
             return None
-        else:
-            return {'x': self.tau.unit}
+        return {'x': self.tau.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {'tau': inputs_unit['x'],
@@ -2756,9 +2706,9 @@ class Exponential1D(Fittable1DModel):
 
 @deprecated('4.0', alternative='RickerWavelet1D')
 class MexicanHat1D(RickerWavelet1D):
-    pass
+    """ Deprecated."""
 
 
 @deprecated('4.0', alternative='RickerWavelet2D')
 class MexicanHat2D(RickerWavelet2D):
-    pass
+    """  Deprecated."""
