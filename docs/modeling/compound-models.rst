@@ -157,8 +157,8 @@ few terms where there have been points of confusion:
 
 - A *compound model* can be created by combining two or more existing model instances
   which can be models that come with Astropy, :doc:`user defined models <new-model>`, or
-  other compound models--using Python expressions consisting of one or more of the s
-  upported binary operators. The combination of model classes is deprecated and will
+  other compound models--using Python expressions consisting of one or more of the
+  supported binary operators. The combination of model classes is deprecated and will
   be removed in version 4.0.
 
 - In some places the term *composite model* is used interchangeably with
@@ -521,40 +521,40 @@ transformation matrix::
     >>> allclose(scale_and_rotate(1, 2), affine(1, 2))
     True
 
-    Other Topics
-    ============
+Other Topics
+============
 
-    Model names
-    -----------
+Model names
+-----------
 
-    In the above two examples another notable feature of the generated compound
-    model classes is that the class name, as displayed when printing the class at
-    the command prompt, is not "TwoGaussians", "FourGaussians", etc.  Instead it is
-    a generated name consisting of "CompoundModel" followed by an essentially
-    arbitrary integer that is chosen simply so that every compound model has a
-    unique default name.  This is a limitation at present, due to the limitation
-    that it is not generally possible in Python when an object is created by an
-    expression for it to "know" the name of the variable it will be assigned to, if
-    any.
-    It is possible to directly assign a name to the compound model instance
-    by using the `Model.name <astropy.modeling.Model.name>` attribute.
+In the above two examples another notable feature of the generated compound
+model classes is that the class name, as displayed when printing the class at
+the command prompt, is not "TwoGaussians", "FourGaussians", etc.  Instead it is
+a generated name consisting of "CompoundModel" followed by an essentially
+arbitrary integer that is chosen simply so that every compound model has a
+unique default name.  This is a limitation at present, due to the limitation
+that it is not generally possible in Python when an object is created by an
+expression for it to "know" the name of the variable it will be assigned to, if
+any.
+It is possible to directly assign a name to the compound model instance
+by using the `Model.name <astropy.modeling.Model.name>` attribute::
 
-        >>> two_gaussians.name = "TwoGaussians"
-        >>> print(two_gaussians)  # doctest: +SKIP
-        Model: CompoundModel...
-        Name: TwoGaussians
-        Inputs: ('x',)
-        Outputs: ('y',)
-        Model set size: 1
-        Expression: [0] + [1]
-        Components:
-            [0]: <Gaussian1D(amplitude=1.1, mean=0.1, stddev=0.2)>
-            <BLANKLINE>
-            [1]: <Gaussian1D(amplitude=2.5, mean=0.5, stddev=0.1)>
-        Parameters:
-            amplitude_0 mean_0 stddev_0 amplitude_1 mean_1 stddev_1
-            ----------- ------ -------- ----------- ------ --------
-                    1.1    0.1      0.2         2.5    0.5      0.1
+    >>> two_gaussians.name = "TwoGaussians"
+    >>> print(two_gaussians)  # doctest: +SKIP
+    Model: CompoundModel...
+    Name: TwoGaussians
+    Inputs: ('x',)
+    Outputs: ('y',)
+    Model set size: 1
+    Expression: [0] + [1]
+    Components:
+        [0]: <Gaussian1D(amplitude=1.1, mean=0.1, stddev=0.2)>
+        <BLANKLINE>
+        [1]: <Gaussian1D(amplitude=2.5, mean=0.5, stddev=0.1)>
+    Parameters:
+        amplitude_0 mean_0 stddev_0 amplitude_1 mean_1 stddev_1
+        ----------- ------ -------- ----------- ------ --------
+                1.1    0.1      0.2         2.5    0.5      0.1
 
 .. _compound-model-indexing:
 
@@ -1372,7 +1372,7 @@ reason about highly complex compound models that use these mappings, but that
 is a possible enhancement for future versions.
 
 .. _model-reduction:
-   
+
 Model Reduction
 ---------------
 
