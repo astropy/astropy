@@ -8,6 +8,7 @@ from collections.abc import Mapping
 import warnings
 from copy import deepcopy
 import types
+import itertools
 
 import numpy as np
 from numpy import ma
@@ -1704,7 +1705,6 @@ class Table:
                     vals = (value[name] for name in value.dtype.names)
 
                 elif np.isscalar(value):
-                    import itertools
                     vals = itertools.repeat(value, n_cols)
 
                 else:  # Assume this is an iterable that will work
@@ -3029,6 +3029,70 @@ class Table:
 
         for index in self.indices:
             index.reverse()
+
+    def round(self, decimals=0):
+        '''
+        Round numeric columns in-place to the specified number of decimals.
+        Non-numeric columns will be ignored.
+
+        Examples
+        --------
+        Create three columns with different types:
+
+            >>> t = Table([[1, 4, 5], [-25.55, 12.123, 85],
+            ...     ['a', 'b', 'c']], names=('a', 'b', 'c'))
+            >>> print(t)
+             a    b     c
+            --- ------ ---
+              1 -25.55   a
+              4 12.123   b
+              5   85.0   c
+
+        Round them all to 0:
+
+            >>> t.round(0)
+            >>> print(t)
+             a    b    c
+            --- ----- ---
+              1 -26.0   a
+              4  12.0   b
+              5  85.0   c
+
+        Round column 'a' to -1 decimal:
+
+            >>> t.round({'a':-1})
+            >>> print(t)
+             a    b    c
+            --- ----- ---
+              0 -26.0   a
+              0  12.0   b
+              0  85.0   c
+
+        Parameters
+        ----------
+        decimals: int, dict
+            Number of decimals to round the columns to. If a dict is given,
+            the columns will be rounded to the number specified as the value.
+            If a certain column is not in the dict given, it will remain the
+            same.
+        '''
+        if isinstance(decimals, dict):
+            decimal_values = decimals.values()
+            column_names = decimals.keys()
+        elif isinstance(decimals, int):
+            decimal_values = itertools.repeat(decimals)
+            column_names = self.colnames
+        else:
+            raise ValueError("'decimals' argument must be an int or a dict")
+
+        for colname, decimal in zip(column_names, decimal_values):
+            col = self.columns[colname]
+            if np.issubdtype(col.info.dtype, np.number):
+                try:
+                    np.around(col, decimals=decimal, out=col)
+                except TypeError:
+                    # Bug in numpy see https://github.com/numpy/numpy/issues/15438
+                    col[()] = np.around(col, decimals=decimal)
 
     def copy(self, copy_data=True):
         '''

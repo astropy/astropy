@@ -332,6 +332,43 @@ class TestReverse():
 
 
 @pytest.mark.usefixtures('table_types')
+class TestRound():
+
+    def test_round_int(self, table_types):
+        t = table_types.Table([['a', 'b', 'c'],
+                               [1.11, 2.3, 3.0],
+                               [1.123456, 2.9876, 3.901]])
+        t.round()
+        assert np.all(t['col0'] == ['a', 'b', 'c'])
+        assert np.all(t['col1'] == [1., 2., 3.])
+        assert np.all(t['col2'] == [1., 3., 4.])
+
+    def test_round_dict(self, table_types):
+        t = table_types.Table([['a', 'b', 'c'],
+                               [1.5, 2.5, 3.0111],
+                               [1.123456, 2.9876, 3.901]])
+
+        t.round({'col1': 0, 'col2': 3})
+        assert np.all(t['col0'] == ['a', 'b', 'c'])
+        assert np.all(t['col1'] == [2.0, 2.0, 3.0])
+        assert np.all(t['col2'] == [1.123, 2.988, 3.901])
+
+    def test_round_invalid(self, table_types):
+        t = table_types.Table([[1, 2, 3]])
+        with pytest.raises(ValueError, match="'decimals' argument must be an int or a dict"):
+            t.round(0.5)
+
+    def test_round_kind(self, table_types):
+        for typecode in 'bBhHiIlLqQpPefdgFDG': # AllInteger, AllFloat
+            arr = np.array([4, 16], dtype=typecode)
+            t = Table([arr])
+            col0 = t['col0']
+            t.round(decimals=-1) # Round to nearest 10
+            assert np.all(t['col0'] == [0, 20])
+            assert t['col0'] is col0
+
+
+@pytest.mark.usefixtures('table_types')
 class TestColumnAccess():
 
     def test_1(self, table_types):
