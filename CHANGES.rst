@@ -279,6 +279,9 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- Allow reading in ASCII tables which have duplicate column names.  In this
+  case a warning is issued and the names are adjusted to be unique. [#9939]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 

@@ -309,7 +309,7 @@ cdef class CParser:
         self.tokenizer.source = self.source_bytes
         self.tokenizer.source_len = <size_t>len(self.source_bytes)
 
-    def read_header(self):
+    def read_header(self, deduplicate=True):
         self.tokenizer.source_pos = 0
 
         # header_start is a valid line number
@@ -334,6 +334,8 @@ cdef class CParser:
                 else:
                     name += chr(c)
             self.width = <int>len(self.header_names)
+            if deduplicate:
+                self.header_names = core._deduplicate_names(self.header_names)
 
         else:
             # Get number of columns from first data row
