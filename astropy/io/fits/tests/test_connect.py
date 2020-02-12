@@ -88,10 +88,10 @@ class TestSingleTable:
         filename = str(tmpdir.join('test_simple.fits'))
         t1 = Table(self.data)
         t1.meta['ttype1'] = 'spam'
-        with catch_warnings() as l:
+        with catch_warnings() as ww:
             t1.write(filename, overwrite=True)
-        assert len(l) == 1
-        assert str(l[0].message).startswith(
+        assert len(ww) == 1
+        assert str(ww[0].message).startswith(
             'Meta-data keyword ttype1 will be ignored since it conflicts with a FITS reserved keyword')
 
     def test_simple_noextension(self, tmpdir):
@@ -324,18 +324,18 @@ class TestMultipleHDU:
     def test_read_with_hdu_1(self, tmpdir, hdu):
         filename = str(tmpdir.join('test_read_with_hdu_1.fits'))
         self.hdus.writeto(filename)
-        with catch_warnings() as l:
+        with catch_warnings() as ww:
             t = Table.read(filename, hdu=hdu)
-        assert len(l) == 0
+        assert len(ww) == 0
         assert equal_data(t, self.data1)
 
     @pytest.mark.parametrize('hdu', [2, 'second'])
     def test_read_with_hdu_2(self, tmpdir, hdu):
         filename = str(tmpdir.join('test_read_with_hdu_2.fits'))
         self.hdus.writeto(filename)
-        with catch_warnings() as l:
+        with catch_warnings() as ww:
             t = Table.read(filename, hdu=hdu)
-        assert len(l) == 0
+        assert len(ww) == 0
         assert equal_data(t, self.data2)
 
     @pytest.mark.parametrize('hdu', [3, 'third'])
@@ -348,9 +348,9 @@ class TestMultipleHDU:
     def test_read_with_hdu_4(self, tmpdir):
         filename = str(tmpdir.join('test_read_with_hdu_4.fits'))
         self.hdus.writeto(filename)
-        with catch_warnings() as l:
+        with catch_warnings() as ww:
             t = Table.read(filename, hdu=4)
-        assert len(l) == 0
+        assert len(ww) == 0
         assert equal_data(t, self.data3)
 
     @pytest.mark.parametrize('hdu', [2, 3, '1', 'second', ''])
@@ -405,23 +405,23 @@ class TestMultipleHDU:
 
     @pytest.mark.parametrize('hdu', [1, 'first', None])
     def test_read_from_hdulist_with_single_table(self, hdu):
-        with catch_warnings() as l:
+        with catch_warnings() as ww:
             t = Table.read(self.hdus1, hdu=hdu)
-        assert len(l) == 0
+        assert len(ww) == 0
         assert equal_data(t, self.data1)
 
     @pytest.mark.parametrize('hdu', [1, 'first'])
     def test_read_from_hdulist_with_hdu_1(self, hdu):
-        with catch_warnings() as l:
+        with catch_warnings() as ww:
             t = Table.read(self.hdus, hdu=hdu)
-        assert len(l) == 0
+        assert len(ww) == 0
         assert equal_data(t, self.data1)
 
     @pytest.mark.parametrize('hdu', [2, 'second'])
     def test_read_from_hdulist_with_hdu_2(self, hdu):
-        with catch_warnings() as l:
+        with catch_warnings() as ww:
             t = Table.read(self.hdus, hdu=hdu)
-        assert len(l) == 0
+        assert len(ww) == 0
         assert equal_data(t, self.data2)
 
     @pytest.mark.parametrize('hdu', [3, 'third'])
@@ -433,7 +433,7 @@ class TestMultipleHDU:
     def test_read_from_hdulist_with_hdu_warning(self, hdu):
         with pytest.warns(AstropyDeprecationWarning,
                           match=rf"No table found in specified hdu={hdu}, "
-                                r"reading in first available table \(hdu=1\)"):\
+                                r"reading in first available table \(hdu=1\)"):
             t2 = Table.read(self.hdus2, hdu=hdu)
         assert equal_data(t2, self.data1)
 
@@ -455,9 +455,9 @@ class TestMultipleHDU:
 
     @pytest.mark.parametrize('hdu', [None, 1, 'first'])
     def test_read_from_single_hdu(self, hdu):
-        with catch_warnings() as l:
+        with catch_warnings() as ww:
             t = Table.read(self.hdus[1])
-        assert len(l) == 0
+        assert len(ww) == 0
         assert equal_data(t, self.data1)
 
 
@@ -572,14 +572,15 @@ def test_unit_warnings_read_write(tmpdir):
     t1['a'].unit = 'm/s'
     t1['b'].unit = 'not-a-unit'
 
-    with catch_warnings() as l:
+    with catch_warnings() as ww:
         t1.write(filename, overwrite=True)
-        assert len(l) == 1
-        assert str(l[0].message).startswith("'not-a-unit' did not parse as fits unit")
+        assert len(ww) == 1
+        assert str(ww[0].message).startswith(
+            "'not-a-unit' did not parse as fits unit")
 
-    with catch_warnings() as l:
+    with catch_warnings() as ww:
         Table.read(filename, hdu=1)
-    assert len(l) == 0
+    assert len(ww) == 0
 
 
 def test_convert_comment_convention(tmpdir):

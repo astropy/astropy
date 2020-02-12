@@ -33,7 +33,9 @@ except ImportError:
     path_like = (str,)
 
 
-cmp = lambda a, b: (a > b) - (a < b)
+def cmp(a, b):
+    return(a > b) - (a < b)
+
 
 all_integer_types = (int, np.integer)
 
@@ -619,7 +621,8 @@ def _array_to_file(arr, outfile):
     """
 
     if isfile(outfile) and not isinstance(outfile, io.BufferedIOBase):
-        write = lambda a, f: a.tofile(f)
+        def write(a, f):
+            return a.tofile(f)
     else:
         write = _array_to_file_like
 

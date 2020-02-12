@@ -49,8 +49,8 @@ class TestCore(FitsTestCase):
             assert 'NAXIS3' not in hdulist[1].header
 
     def test_byteswap(self):
-        p = fits.PrimaryHDU()
-        l = fits.HDUList()
+        phdu = fits.PrimaryHDU()
+        hdul = fits.HDUList()
 
         n = np.zeros(3, dtype='i2')
         n[0] = 1
@@ -61,13 +61,13 @@ class TestCore(FitsTestCase):
                         array=n)
         t = fits.BinTableHDU.from_columns([c])
 
-        l.append(p)
-        l.append(t)
+        hdul.append(phdu)
+        hdul.append(t)
 
-        l.writeto(self.temp('test.fits'), overwrite=True)
+        hdul.writeto(self.temp('test.fits'), overwrite=True)
 
-        with fits.open(self.temp('test.fits')) as p:
-            assert p[1].data[1]['foo'] == 60000.0
+        with fits.open(self.temp('test.fits')) as newhdul:
+            assert newhdul[1].data[1]['foo'] == 60000.0
 
     def test_fits_file_path_object(self):
         """

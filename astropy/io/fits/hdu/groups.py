@@ -512,7 +512,9 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
                        option, errs)
 
         after = self._header['NAXIS'] + 3
-        pos = lambda x: x >= after
+
+        def pos(x):
+            return x >= after
 
         self.req_cards('GCOUNT', pos, _is_int, 1, option, errs)
         self.req_cards('PCOUNT', pos, _is_int, 0, option, errs)

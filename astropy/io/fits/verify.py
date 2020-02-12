@@ -90,7 +90,8 @@ class _Verify:
         if fix_opt == 'silentfix':
             # Don't print out fixable issues; the first element of each verify
             # item is a boolean indicating whether or not the issue was fixable
-            line_filter = lambda x: not x[0]
+            def line_filter(x):
+                return not x[0]
         elif fix_opt == 'fix' and report_opt == 'ignore':
             # Don't print *unfixable* issues, but do print fixed issues; this
             # is probably not very useful but the option exists for

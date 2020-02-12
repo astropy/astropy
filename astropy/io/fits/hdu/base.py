@@ -1144,7 +1144,9 @@ class _ValidHDU(_BaseHDU, _Verify):
         # lambda)
         if _is_int(pos):
             insert_pos = pos
-            pos = lambda x: x == insert_pos
+
+            def pos(x):
+                return x == insert_pos
 
         # if the card does not exist
         if index is None:
