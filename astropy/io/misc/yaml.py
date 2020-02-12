@@ -248,9 +248,8 @@ class AstropyDumper(yaml.SafeDumper):
                 return True
 
 
-AstropyDumper.add_representer(u.IrreducibleUnit, _unit_representer)
-AstropyDumper.add_representer(u.CompositeUnit, _unit_representer)
-AstropyDumper.add_multi_representer(u.Unit, _unit_representer)
+AstropyDumper.add_multi_representer(u.UnitBase, _unit_representer)
+AstropyDumper.add_multi_representer(u.FunctionUnitBase, _unit_representer)
 AstropyDumper.add_representer(tuple, AstropyDumper._represent_tuple)
 AstropyDumper.add_representer(np.ndarray, _ndarray_representer)
 AstropyDumper.add_representer(Time, _time_representer)
@@ -289,6 +288,9 @@ AstropyLoader.add_constructor('!astropy.table.SerializedColumn',
                               _serialized_column_constructor)
 
 for cls, tag in ((u.Quantity, '!astropy.units.Quantity'),
+                 (u.Magnitude, '!astropy.units.Magnitude'),
+                 (u.Dex, '!astropy.units.Dex'),
+                 (u.Decibel, '!astropy.units.Decibel'),
                  (coords.Angle, '!astropy.coordinates.Angle'),
                  (coords.Latitude, '!astropy.coordinates.Latitude'),
                  (coords.Longitude, '!astropy.coordinates.Longitude'),
