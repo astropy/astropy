@@ -832,8 +832,8 @@ class Column(NotifierMixin):
 
         # This ensures that the new name can fit into a single FITS card
         # without any special extension like CONTINUE cards or the like.
-        if (not isinstance(name, str)
-                or len(str(Card('TTYPE', name))) != CARD_LENGTH):
+        if (not isinstance(name, str) or
+                len(str(Card('TTYPE', name))) != CARD_LENGTH):
             raise AssertionError(
                 'Column name must be a string able to fit in a single '
                 'FITS card--typically this means a maximum of 68 '
@@ -845,46 +845,44 @@ class Column(NotifierMixin):
         if coord_type is None:
             return
 
-        if (not isinstance(coord_type, str)
-                or len(coord_type) > 8):
+        if not isinstance(coord_type, str) or len(coord_type) > 8:
             raise AssertionError(
                 'Coordinate/axis type must be a string of atmost 8 '
                 'characters.')
 
     @ColumnAttribute('TCUNI')
     def coord_unit(col, coord_unit):
-        if (coord_unit is not None
-                and not isinstance(coord_unit, str)):
+        if coord_unit is not None and not isinstance(coord_unit, str):
             raise AssertionError(
                 'Coordinate/axis unit must be a string.')
 
     @ColumnAttribute('TCRPX')
     def coord_ref_point(col, coord_ref_point):
-        if (coord_ref_point is not None
-                and not isinstance(coord_ref_point, numbers.Real)):
+        if (coord_ref_point is not None and
+                not isinstance(coord_ref_point, numbers.Real)):
             raise AssertionError(
                 'Pixel coordinate of the reference point must be '
                 'real floating type.')
 
     @ColumnAttribute('TCRVL')
     def coord_ref_value(col, coord_ref_value):
-        if (coord_ref_value is not None
-                and not isinstance(coord_ref_value, numbers.Real)):
+        if (coord_ref_value is not None and
+                not isinstance(coord_ref_value, numbers.Real)):
             raise AssertionError(
                 'Coordinate value at reference point must be real '
                 'floating type.')
 
     @ColumnAttribute('TCDLT')
     def coord_inc(col, coord_inc):
-        if (coord_inc is not None
-                and not isinstance(coord_inc, numbers.Real)):
+        if (coord_inc is not None and
+                not isinstance(coord_inc, numbers.Real)):
             raise AssertionError(
                 'Coordinate increment must be real floating type.')
 
     @ColumnAttribute('TRPOS')
     def time_ref_pos(col, time_ref_pos):
-        if (time_ref_pos is not None
-                and not isinstance(time_ref_pos, str)):
+        if (time_ref_pos is not None and
+                not isinstance(time_ref_pos, str)):
             raise AssertionError(
                 'Time reference position must be a string.')
 

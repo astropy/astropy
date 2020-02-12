@@ -689,8 +689,8 @@ def _array_to_file_like(arr, fileobj):
         # The problem with flatiter is it doesn't preserve the original
         # byteorder
         byteorder = arr.dtype.byteorder
-        if ((sys.byteorder == 'little' and byteorder == '>')
-                or (sys.byteorder == 'big' and byteorder == '<')):
+        if ((sys.byteorder == 'little' and byteorder == '>') or
+                (sys.byteorder == 'big' and byteorder == '<')):
             for item in arr.flat:
                 fileobj.write(item.byteswap().tobytes())
         else:

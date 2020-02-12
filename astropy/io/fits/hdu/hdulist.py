@@ -965,8 +965,8 @@ class HDUList(list, _Verify):
         """
 
         try:
-            if (self._file and self._file.mode in ('append', 'update')
-                    and not self._file.closed):
+            if (self._file and self._file.mode in ('append', 'update') and
+                    not self._file.closed):
                 self.flush(output_verify=output_verify, verbose=verbose)
         finally:
             if self._file and closed and hasattr(self._file, 'close'):

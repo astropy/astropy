@@ -257,8 +257,8 @@ class _ImageBaseHDU(_ValidHDU):
             try:
                 data = np.array(data)
             except Exception:
-                raise TypeError('data object {!r} could not be coerced into an '
-                                'ndarray'.format(data))
+                raise TypeError('data object {!r} could not be coerced into '
+                                'an ndarray'.format(data))
 
             if data.shape == ():
                 raise TypeError('data object {!r} should have at least one '
@@ -940,8 +940,8 @@ class Section:
         if not isinstance(key, tuple):
             key = (key,)
         naxis = len(self.hdu.shape)
-        return_scalar = (all(isinstance(k, (int, np.integer)) for k in key)
-                         and len(key) == naxis)
+        return_scalar = (all(isinstance(k, (int, np.integer)) for k in key) and
+                         len(key) == naxis)
         if not any(k is Ellipsis for k in key):
             # We can always add a ... at the end, after making note of whether
             # to return a scalar.
@@ -952,8 +952,8 @@ class Section:
         # Insert extra dimensions as needed.
         idx = next(i for i, k in enumerate(key + (Ellipsis,)) if k is Ellipsis)
         key = key[:idx] + (slice(None),) * (naxis - len(key) + 1) + key[idx + 1:]
-        return_0dim = (all(isinstance(k, (int, np.integer)) for k in key)
-                       and len(key) == naxis)
+        return_0dim = (all(isinstance(k, (int, np.integer)) for k in key) and
+                       len(key) == naxis)
 
         dims = []
         offset = 0

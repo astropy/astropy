@@ -2805,9 +2805,9 @@ class TestRecordValuedKeywordCards(FitsTestCase):
             assert len(mytable) == len(fitsobj[0].header)
             # Repeat the above test when multiple HDUs are requested
             mytable = formatter.parse(extensions=['AIPS FQ', 2, "4"])
-            assert len(mytable) == (len(fitsobj['AIPS FQ'].header)
-                                    + len(fitsobj[2].header)
-                                    + len(fitsobj[4].header))
+            assert len(mytable) == (len(fitsobj['AIPS FQ'].header) +
+                                    len(fitsobj[2].header) +
+                                    len(fitsobj[4].header))
 
         # Can we recover the filename and extension name from the table?
         mytable = formatter.parse(extensions=['AIPS FQ'])
