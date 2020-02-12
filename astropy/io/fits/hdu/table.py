@@ -19,10 +19,10 @@ from .base import DELAYED, _ValidHDU, ExtensionHDU
 # astropy.io.fits.column has fewer dependencies overall, so it's easier to
 # keep table/column-related utilities in astropy.io.fits.column
 from astropy.io.fits.column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_TO_ATTRIBUTE,
-                      ATTRIBUTE_TO_KEYWORD, TDEF_RE, Column, ColDefs,
-                      _AsciiColDefs, _FormatP, _FormatQ, _makep,
-                      _parse_tformat, _scalar_to_format, _convert_format,
-                      _cmp_recformats)
+                                    ATTRIBUTE_TO_KEYWORD, TDEF_RE, Column, ColDefs,
+                                    _AsciiColDefs, _FormatP, _FormatQ, _makep,
+                                    _parse_tformat, _scalar_to_format, _convert_format,
+                                    _cmp_recformats)
 from astropy.io.fits.fitsrec import FITS_rec, _get_recarray_field, _has_unicode_fields
 from astropy.io.fits.header import Header, _pad_length
 from astropy.io.fits.util import _is_int, _str_to_num
@@ -769,7 +769,7 @@ class TableHDU(_TableBaseHDU):
                 # The last column is padded out to the value of NAXIS1
                 if self._header['NAXIS1'] > itemsize:
                     data_type = 'S' + str(columns.spans[idx] +
-                                self._header['NAXIS1'] - itemsize)
+                                          self._header['NAXIS1'] - itemsize)
             dtype[columns.names[idx]] = (data_type, columns.starts[idx] - 1)
 
         raw_data = self._get_raw_data(self._nrows, dtype, self._data_offset)
@@ -1264,7 +1264,7 @@ class BinTableHDU(_TableBaseHDU):
                             line.append(format_value(value, array_format))
                     else:
                         line.append(format_value(row[column.name],
-                                    array_format))
+                                                 array_format))
             linewriter.writerow(line)
         if close_file:
             fileobj.close()

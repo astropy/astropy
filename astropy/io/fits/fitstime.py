@@ -580,7 +580,7 @@ def time_to_fits(table):
                 else:
                     hdr.extend([Card(keyword='OBSGEO-{}'.format(dim.upper()),
                                      value=getattr(location, dim).to_value(u.m))
-                            for dim in ('x', 'y', 'z')])
+                                for dim in ('x', 'y', 'z')])
             elif location != col.location:
                 raise ValueError('Multiple Time Columns with different geocentric '
                                  'observatory locations ({}, {}) encountered.'

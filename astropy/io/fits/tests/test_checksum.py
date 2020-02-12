@@ -168,7 +168,7 @@ class TestChecksumFunctions(FitsTestCase):
     def test_variable_length_table_data(self):
         c1 = fits.Column(name='var', format='PJ()',
                          array=np.array([[45.0, 56], np.array([11, 12, 13])],
-                         'O'))
+                                        'O'))
         c2 = fits.Column(name='xyz', format='2I', array=[[11, 3], [12, 4]])
         tbhdu = fits.BinTableHDU.from_columns([c1, c2])
         tbhdu.writeto(self.temp('tmp.fits'), overwrite=True, checksum=True)

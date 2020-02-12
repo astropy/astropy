@@ -1252,7 +1252,7 @@ class CompImageHDU(BinTableHDU):
                     dither_seed = self._header['ZDITHER0']
                 else:
                     dither_seed = self._generate_dither_seed(
-                            DEFAULT_DITHER_SEED)
+                        DEFAULT_DITHER_SEED)
 
                 self._header.set('ZDITHER0', dither_seed,
                                  'dithering offset when quantizing floats',
@@ -1403,10 +1403,10 @@ class CompImageHDU(BinTableHDU):
     @data.setter
     def data(self, data):
         if (data is not None) and (not isinstance(data, np.ndarray) or
-                data.dtype.fields is not None):
+                                   data.dtype.fields is not None):
             raise TypeError('CompImageHDU data has incorrect type:{}; '
                             'dtype.fields = {}'.format(
-                    type(data), data.dtype.fields))
+                                type(data), data.dtype.fields))
 
     @lazyproperty
     def compressed_data(self):

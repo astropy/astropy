@@ -1327,7 +1327,7 @@ def _ascii_encode(inarray, out=None):
     """
 
     out_dtype = np.dtype(('S{}'.format(inarray.dtype.itemsize // 4),
-                         inarray.dtype.shape))
+                          inarray.dtype.shape))
     if out is not None:
         out = out.view(out_dtype)
 

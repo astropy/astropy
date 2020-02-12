@@ -15,8 +15,8 @@ from astropy.io.fits.file import _File
 from astropy.io.fits.header import (Header, _BasicHeader, _pad_length,
                                     _DelayedHeader)
 from astropy.io.fits.util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
-                    itersubclasses, decode_ascii, _get_array_mmap, first,
-                    _free_space_check, _extract_number)
+                                  itersubclasses, decode_ascii, _get_array_mmap, first,
+                                  _free_space_check, _extract_number)
 from astropy.io.fits.verify import _Verify, _ErrList
 
 from astropy.utils import lazyproperty
@@ -1159,7 +1159,7 @@ class _ValidHDU(_BaseHDU, _Verify):
                     self._header.insert(insert_pos, card)
 
             errs.append(self.run_option(option, err_text=err_text,
-                        fix_text=fix_text, fix=fix, fixable=fixable))
+                                        fix_text=fix_text, fix=fix, fixable=fixable))
         else:
             # if the supposed location is specified
             if pos is not None:
@@ -1175,23 +1175,23 @@ class _ValidHDU(_BaseHDU, _Verify):
                         self._header.insert(insert_pos, card)
 
                     errs.append(self.run_option(option, err_text=err_text,
-                                fix_text=fix_text, fix=fix))
+                                                fix_text=fix_text, fix=fix))
 
             # if value checking is specified
             if test:
                 val = self._header[keyword]
                 if not test(val):
                     err_text = ("'{}' card has invalid value '{}'.".format(
-                            keyword, val))
+                        keyword, val))
                     fix_text = ("Fixed by setting a new value '{}'.".format(
-                            fix_value))
+                        fix_value))
 
                     if fixable:
                         def fix(self=self, keyword=keyword, val=fix_value):
                             self._header[keyword] = fix_value
 
                     errs.append(self.run_option(option, err_text=err_text,
-                                fix_text=fix_text, fix=fix, fixable=fixable))
+                                                fix_text=fix_text, fix=fix, fixable=fixable))
 
         return errs
 

@@ -71,7 +71,7 @@ class _ImageBaseHDU(_ValidHDU):
 
             if isinstance(self, GroupsHDU):
                 cards.append(('GROUPS', True,
-                             self.standard_keyword_comments['GROUPS']))
+                              self.standard_keyword_comments['GROUPS']))
 
             if isinstance(self, (ExtensionHDU, GroupsHDU)):
                 cards.append(('PCOUNT', 0,

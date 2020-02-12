@@ -62,10 +62,10 @@ class Card(_Verify):
     # This regex helps delete leading zeros from numbers, otherwise
     # Python might evaluate them as octal values (this is not-greedy, however,
     # so it may not strip leading zeros from a float, which is fine)
-    _number_FSC_RE = re.compile(r'(?P<sign>[+-])?0*?(?P<digt>{})'.format(
-            _digits_FSC))
-    _number_NFSC_RE = re.compile(r'(?P<sign>[+-])? *0*?(?P<digt>{})'.format(
-            _digits_NFSC))
+    _number_FSC_RE = re.compile(r'(?P<sign>[+-])?0*?(?P<digt>{})'
+                                .format(_digits_FSC))
+    _number_NFSC_RE = re.compile(r'(?P<sign>[+-])? *0*?(?P<digt>{})'
+                                 .format(_digits_NFSC))
 
     # FSC commentary card string which must contain printable ASCII characters.
     # Note: \Z matches the end of the string without allowing newlines
@@ -78,7 +78,7 @@ class Card(_Verify):
     # None, meaning the keyword is undefined.  The comment field will
     # return a match if the comment separator is found, though the
     # comment maybe an empty string.
-    _value_FSC_RE = re.compile(
+    _value_FSC_RE = re.compile(  # noqa
         r'(?P<valu_field> *'
             r'(?P<valu>'
 
@@ -108,7 +108,7 @@ class Card(_Verify):
             r'(?P<comm>[!-~][ -~]*)?'
         r')?$')
 
-    _value_NFSC_RE = re.compile(
+    _value_NFSC_RE = re.compile(  # noqa
         r'(?P<valu_field> *'
             r'(?P<valu>'
                 r'\'(?P<strg>([ -~]+?|\'\'|) *?)\'(?=$|/| )|'
@@ -126,11 +126,11 @@ class Card(_Verify):
     _rvkc_identifier = r'[a-zA-Z_]\w*'
     _rvkc_field = _rvkc_identifier + r'(\.\d+)?'
     _rvkc_field_specifier_s = fr'{_rvkc_field}(\.{_rvkc_field})*'
-    _rvkc_field_specifier_val = (r'(?P<keyword>{}): (?P<val>{})'.format(
-            _rvkc_field_specifier_s, _numr_FSC))
+    _rvkc_field_specifier_val = (r'(?P<keyword>{}): (?P<val>{})'
+                                 .format(_rvkc_field_specifier_s, _numr_FSC))
     _rvkc_keyword_val = fr'\'(?P<rawval>{_rvkc_field_specifier_val})\''
-    _rvkc_keyword_val_comm = (r' *{} *(/ *(?P<comm>[ -~]*))?$'.format(
-            _rvkc_keyword_val))
+    _rvkc_keyword_val_comm = (r' *{} *(/ *(?P<comm>[ -~]*))?$'
+                              .format(_rvkc_keyword_val))
 
     _rvkc_field_specifier_val_RE = re.compile(_rvkc_field_specifier_val + '$')
 
@@ -138,8 +138,8 @@ class Card(_Verify):
     # string that is being used to index into a card list that contains
     # record value keyword cards (ex. 'DP1.AXIS.1')
     _rvkc_keyword_name_RE = (
-        re.compile(r'(?P<keyword>{})\.(?P<field_specifier>{})$'.format(
-                _rvkc_identifier, _rvkc_field_specifier_s)))
+        re.compile(r'(?P<keyword>{})\.(?P<field_specifier>{})$'
+                   .format(_rvkc_identifier, _rvkc_field_specifier_s)))
 
     # regular expression to extract the field specifier and value and comment
     # from the string value of a record value keyword card
@@ -376,7 +376,7 @@ class Card(_Verify):
                     self._value = _int_or_float(self._value)
                 except ValueError:
                     raise ValueError('value {} is not a float'.format(
-                            self._value))
+                        self._value))
 
     @value.deleter
     def value(self):
@@ -1111,7 +1111,7 @@ class Card(_Verify):
                     errs.append(self.run_option(
                         option,
                         err_text='Card keyword {!r} is not upper case.'.format(
-                                  keyword),
+                            keyword),
                         fix_text=fix_text,
                         fix=self._fix_keyword))
 
@@ -1135,7 +1135,7 @@ class Card(_Verify):
                     option,
                     err_text='Unprintable string {!r}; commentary cards may '
                              'only contain printable ASCII characters'.format(
-                             valuecomment),
+                                 valuecomment),
                     fixable=False))
         else:
             m = self._value_FSC_RE.match(valuecomment)
@@ -1175,8 +1175,8 @@ class Card(_Verify):
             card = Card.fromstring(self._image[idx:idx + Card.length])
             if idx > 0 and card.keyword.upper() != 'CONTINUE':
                 raise VerifyError(
-                        'Long card images must have CONTINUE cards after '
-                        'the first card.')
+                    'Long card images must have CONTINUE cards after '
+                    'the first card.')
 
             if not isinstance(card.value, str):
                 raise VerifyError('CONTINUE cards must have string values.')

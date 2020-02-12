@@ -274,7 +274,7 @@ class FITSDiff(_BaseDiff):
                 a = fitsopen(a)
             except Exception as exc:
                 raise OSError("error opening file a ({}): {}: {}".format(
-                        a, exc.__class__.__name__, exc.args[0]))
+                    a, exc.__class__.__name__, exc.args[0]))
             close_a = True
         else:
             close_a = False
@@ -284,7 +284,7 @@ class FITSDiff(_BaseDiff):
                 b = fitsopen(b)
             except Exception as exc:
                 raise OSError("error opening file b ({}): {}: {}".format(
-                        b, exc.__class__.__name__, exc.args[0]))
+                    b, exc.__class__.__name__, exc.args[0]))
             close_b = True
         else:
             close_b = False
@@ -888,14 +888,14 @@ class HeaderDiff(_BaseDiff):
                 else:
                     val = self.a[keyword]
                 self._writeln(' Extra keyword {!r:8} in a: {!r}'.format(
-                                keyword, val))
+                    keyword, val))
             for keyword in self.diff_keywords[1]:
                 if keyword in Card._commentary_keywords:
                     val = self.b[keyword][0]
                 else:
                     val = self.b[keyword]
                 self._writeln(' Extra keyword {!r:8} in b: {!r}'.format(
-                                keyword, val))
+                    keyword, val))
 
         if self.diff_duplicate_keywords:
             for keyword, count in sorted(self.diff_duplicate_keywords.items()):
@@ -1416,11 +1416,11 @@ class TableDataDiff(_BaseDiff):
             for name in self.diff_column_names[0]:
                 format = self.diff_columns[0][name.lower()].format
                 self._writeln(' Extra column {} of format {} in a'.format(
-                                name, format))
+                    name, format))
             for name in self.diff_column_names[1]:
                 format = self.diff_columns[1][name.lower()].format
                 self._writeln(' Extra column {} of format {} in b'.format(
-                                name, format))
+                    name, format))
 
         col_attrs = dict(_COL_ATTRS)
         # Now go through each table again and show columns with common
@@ -1428,7 +1428,7 @@ class TableDataDiff(_BaseDiff):
         for col_attr, vals in self.diff_column_attributes:
             name, attr = col_attr
             self._writeln(' Column {} has different {}:'.format(
-                    name, col_attrs[attr]))
+                name, col_attrs[attr]))
             report_diff_values(vals[0], vals[1], fileobj=self._fileobj,
                                indent_width=self._indent + 1)
 
@@ -1450,7 +1450,7 @@ class TableDataDiff(_BaseDiff):
 
         if self.diff_values and self.numdiffs < self.diff_total:
             self._writeln(' ...{} additional difference(s) found.'.format(
-                                self.diff_total - self.numdiffs))
+                self.diff_total - self.numdiffs))
 
         if self.diff_total > self.numdiffs:
             self._writeln(' ...')

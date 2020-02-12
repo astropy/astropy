@@ -373,13 +373,13 @@ class TestImageFunctions(FitsTestCase):
         # notice that the header has the right NAXIS's since it is constructed
         # with ImageHDU
         hdu2 = fits.ImageHDU(header=r[1].header, data=np.array([1, 2],
-                             dtype='int32'))
+                                                               dtype='int32'))
 
         assert ('\n'.join(str(x) for x in hdu2.header.cards[1:5]) ==
-            "BITPIX  =                   32 / array data type                                \n"
-            "NAXIS   =                    1 / number of array dimensions                     \n"
-            "NAXIS1  =                    2                                                  \n"
-            "PCOUNT  =                    0 / number of parameters                           ")
+                "BITPIX  =                   32 / array data type                                \n"
+                "NAXIS   =                    1 / number of array dimensions                     \n"
+                "NAXIS1  =                    2                                                  \n"
+                "PCOUNT  =                    0 / number of parameters                           ")
 
     def test_memory_mapping(self):
         # memory mapping
@@ -624,7 +624,7 @@ class TestImageFunctions(FitsTestCase):
         """
 
         fits.writeto(self.temp('test_new.fits'), data=np.array([],
-                     dtype='uint8'))
+                                                               dtype='uint8'))
         d = np.zeros([100, 100]).astype('uint16')
         fits.append(self.temp('test_new.fits'), data=d)
 
@@ -1536,7 +1536,7 @@ class TestCompressedImage(FitsTestCase):
                 hdr[keyword] = value
                 assert len(w) == 1
                 assert str(w[0].message).startswith(
-                        f"Keyword {keyword!r} is reserved")
+                    f"Keyword {keyword!r} is reserved")
                 assert keyword not in hdr
 
         with fits.open(self.data('comp.fits')) as hdul:

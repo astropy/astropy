@@ -565,7 +565,7 @@ class TestTableFunctions(FitsTestCase):
              ('NGC6', 434, '', z, True),
              ('NGC7', 408, '', z, False),
              ('NCG8', 417, '', z, False)],
-             formats='a10,u4,a10,5f4,l')
+            formats='a10,u4,a10,5f4,l')
 
         assert comparerecords(hdu.data, array)
 
@@ -673,7 +673,7 @@ class TestTableFunctions(FitsTestCase):
              ('NGC2', 334, '', z, False),
              ('NGC3', 308, '', z, True),
              ('NCG4', 317, '', z, True)],
-             formats='a10,u4,a10,5f4,l')
+            formats='a10,u4,a10,5f4,l')
         assert comparerecords(tbhdu1.data, array)
 
     def test_merge_tables(self):
@@ -714,7 +714,7 @@ class TestTableFunctions(FitsTestCase):
              ('NGC2', 334, '', z, False, 'NGC6', 434, '', z, True),
              ('NGC3', 308, '', z, True, 'NGC7', 408, '', z, False),
              ('NCG4', 317, '', z, True, 'NCG8', 417, '', z, False)],
-             formats='a10,u4,a10,5f4,l,a10,u4,a10,5f4,l')
+            formats='a10,u4,a10,5f4,l,a10,u4,a10,5f4,l')
         assert comparerecords(hdu.data, array)
 
         hdu.writeto(self.temp('newtable.fits'))
@@ -775,7 +775,7 @@ class TestTableFunctions(FitsTestCase):
              ('NGC2', 334, '', z, False, 'NGC6', 434, '', z, True),
              ('NGC3', 308, '', z, True, 'NGC7', 408, '', z, False),
              ('NCG4', 317, '', z, True, 'NCG8', 417, '', z, False)],
-             formats='a10,u4,a10,5f4,l,a10,u4,a10,5f4,l')
+            formats='a10,u4,a10,5f4,l,a10,u4,a10,5f4,l')
         assert comparerecords(hdu.data, array)
 
         # Same verification from the file
@@ -2197,8 +2197,8 @@ class TestTableFunctions(FitsTestCase):
                 h[1].data['F1']
         except ValueError as e:
             assert str(e).endswith(
-                         "the header may be missing the necessary TNULL1 "
-                         "keyword or the table contains invalid data")
+                "the header may be missing the necessary TNULL1 "
+                "keyword or the table contains invalid data")
 
     def test_blank_field_zero(self):
         """Regression test for https://github.com/astropy/astropy/issues/5134
@@ -2632,7 +2632,7 @@ def _refcounting(type_):
     yield refcount
     gc.collect()
     assert len(objgraph.by_type(type_)) <= refcount, \
-            "More {0!r} objects still in memory than before."
+        "More {0!r} objects still in memory than before."
 
 
 class TestVLATables(FitsTestCase):
@@ -3164,7 +3164,7 @@ def test_regression_5383():
 def test_table_to_hdu():
     from astropy.table import Table
     table = Table([[1, 2, 3], ['a', 'b', 'c'], [2.3, 4.5, 6.7]],
-                    names=['a', 'b', 'c'], dtype=['i', 'U1', 'f'])
+                  names=['a', 'b', 'c'], dtype=['i', 'U1', 'f'])
     table['a'].unit = 'm/s'
     table['b'].unit = 'not-a-unit'
     table.meta['foo'] = 'bar'

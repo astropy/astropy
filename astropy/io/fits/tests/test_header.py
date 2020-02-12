@@ -383,12 +383,12 @@ class TestHeaderFunctions(FitsTestCase):
         # test long string value
         c = fits.Card('abc', 'long string value ' * 10, 'long comment ' * 10)
         assert (str(c) ==
-            "ABC     = 'long string value long string value long string value long string &' "
-            "CONTINUE  'value long string value long string value long string value long &'  "
-            "CONTINUE  'string value long string value long string value &'                  "
-            "CONTINUE  '&' / long comment long comment long comment long comment long        "
-            "CONTINUE  '&' / comment long comment long comment long comment long comment     "
-            "CONTINUE  '' / long comment                                                     ")
+                "ABC     = 'long string value long string value long string value long string &' "
+                "CONTINUE  'value long string value long string value long string value long &'  "
+                "CONTINUE  'string value long string value long string value &'                  "
+                "CONTINUE  '&' / long comment long comment long comment long comment long        "
+                "CONTINUE  '&' / comment long comment long comment long comment long comment     "
+                "CONTINUE  '' / long comment                                                     ")
 
     def test_long_unicode_string(self):
         """Regression test for
@@ -421,14 +421,14 @@ class TestHeaderFunctions(FitsTestCase):
         header['TEST3'] = ('Regular value', 'Regular comment')
 
         assert (repr(header).splitlines() ==
-            [str(fits.Card('TEST1', 'Regular value', 'Regular comment')),
-             "TEST2   = 'long string value long string value long string value long string &' ",
-             "CONTINUE  'value long string value long string value long string value long &'  ",
-             "CONTINUE  'string value long string value long string value &'                  ",
-             "CONTINUE  '&' / long comment long comment long comment long comment long        ",
-             "CONTINUE  '&' / comment long comment long comment long comment long comment     ",
-             "CONTINUE  '' / long comment                                                     ",
-             str(fits.Card('TEST3', 'Regular value', 'Regular comment'))])
+                [str(fits.Card('TEST1', 'Regular value', 'Regular comment')),
+                 "TEST2   = 'long string value long string value long string value long string &' ",
+                 "CONTINUE  'value long string value long string value long string value long &'  ",
+                 "CONTINUE  'string value long string value long string value &'                  ",
+                 "CONTINUE  '&' / long comment long comment long comment long comment long        ",
+                 "CONTINUE  '&' / comment long comment long comment long comment long comment     ",
+                 "CONTINUE  '' / long comment                                                     ",
+                 str(fits.Card('TEST3', 'Regular value', 'Regular comment'))])
 
     def test_blank_keyword_long_value(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/194
@@ -461,22 +461,22 @@ class TestHeaderFunctions(FitsTestCase):
         c = hdul[0].header.cards['abc']
         hdul.close()
         assert (str(c) ==
-            "ABC     = 'long string value long string value long string value long string &' "
-            "CONTINUE  'value long string value long string value long string value long &'  "
-            "CONTINUE  'string value long string value long string value &'                  "
-            "CONTINUE  '&' / long comment long comment long comment long comment long        "
-            "CONTINUE  '&' / comment long comment long comment long comment long comment     "
-            "CONTINUE  '' / long comment                                                     ")
+                "ABC     = 'long string value long string value long string value long string &' "
+                "CONTINUE  'value long string value long string value long string value long &'  "
+                "CONTINUE  'string value long string value long string value &'                  "
+                "CONTINUE  '&' / long comment long comment long comment long comment long        "
+                "CONTINUE  '&' / comment long comment long comment long comment long comment     "
+                "CONTINUE  '' / long comment                                                     ")
 
     def test_word_in_long_string_too_long(self):
         # if a word in a long string is too long, it will be cut in the middle
         c = fits.Card('abc', 'longstringvalue' * 10, 'longcomment' * 10)
         assert (str(c) ==
-            "ABC     = 'longstringvaluelongstringvaluelongstringvaluelongstringvaluelongstr&'"
-            "CONTINUE  'ingvaluelongstringvaluelongstringvaluelongstringvaluelongstringvalu&'"
-            "CONTINUE  'elongstringvalue&'                                                   "
-            "CONTINUE  '&' / longcommentlongcommentlongcommentlongcommentlongcommentlongcomme"
-            "CONTINUE  '' / ntlongcommentlongcommentlongcommentlongcomment                   ")
+                "ABC     = 'longstringvaluelongstringvaluelongstringvaluelongstringvaluelongstr&'"
+                "CONTINUE  'ingvaluelongstringvaluelongstringvaluelongstringvaluelongstringvalu&'"
+                "CONTINUE  'elongstringvalue&'                                                   "
+                "CONTINUE  '&' / longcommentlongcommentlongcommentlongcommentlongcommentlongcomme"
+                "CONTINUE  '' / ntlongcommentlongcommentlongcommentlongcomment                   ")
 
     def test_long_string_value_via_fromstring(self, capsys):
         # long string value via fromstring() method
@@ -526,11 +526,11 @@ class TestHeaderFunctions(FitsTestCase):
 
         c = fits.Card('TEST', 'long value' * 10, 'long comment &' * 10)
         assert (str(c) ==
-            "TEST    = 'long valuelong valuelong valuelong valuelong valuelong valuelong &'  "
-            "CONTINUE  'valuelong valuelong valuelong value&'                                "
-            "CONTINUE  '&' / long comment &long comment &long comment &long comment &long    "
-            "CONTINUE  '&' / comment &long comment &long comment &long comment &long comment "
-            "CONTINUE  '' / &long comment &                                                  ")
+                "TEST    = 'long valuelong valuelong valuelong valuelong valuelong valuelong &'  "
+                "CONTINUE  'valuelong valuelong valuelong value&'                                "
+                "CONTINUE  '&' / long comment &long comment &long comment &long comment &long    "
+                "CONTINUE  '&' / comment &long comment &long comment &long comment &long comment "
+                "CONTINUE  '' / &long comment &                                                  ")
 
     def test_hierarch_card_creation(self):
         # Test automatic upgrade to hierarch card
@@ -547,7 +547,7 @@ class TestHeaderFunctions(FitsTestCase):
         c = fits.Card('hierarch abcdefghi', 10)
         assert str(c) == _pad("HIERARCH abcdefghi = 10")
         c = fits.Card('HIERARCH ESO INS SLIT2 Y1FRML',
-                        'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)')
+                      'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)')
         assert (str(c) ==
                 "HIERARCH ESO INS SLIT2 Y1FRML= "
                 "'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)'")
@@ -572,7 +572,7 @@ class TestHeaderFunctions(FitsTestCase):
         """
 
         c = fits.Card.fromstring(
-                "HIERARCH  key.META_4    = 'calFileVersion'")
+            "HIERARCH  key.META_4    = 'calFileVersion'")
         assert c.keyword == 'key.META_4'
         assert c.value == 'calFileVersion'
         assert c.comment == ''
@@ -1037,7 +1037,7 @@ class TestHeaderFunctions(FitsTestCase):
         with fits.open(self.data('arange.fits')) as hdul:
             assert (list(hdul[0].header) ==
                     ['SIMPLE', 'BITPIX', 'NAXIS', 'NAXIS1', 'NAXIS2', 'NAXIS3',
-                    'EXTEND'])
+                     'EXTEND'])
 
     def test_header_list_like_pop(self):
         header = fits.Header([('A', 'B'), ('C', 'D'), ('E', 'F'),
@@ -1845,7 +1845,7 @@ class TestHeaderFunctions(FitsTestCase):
         assert (str(h.cards['FOCALLEN']) ==
                 _pad("FOCALLEN= +1.550000000000E+002"))
         assert (str(h.cards['APERTURE']) ==
-                     _pad("APERTURE= +0.000000000000E+000"))
+                _pad("APERTURE= +0.000000000000E+000"))
 
     def test_invalid_float_cards2(self, capsys):
         """

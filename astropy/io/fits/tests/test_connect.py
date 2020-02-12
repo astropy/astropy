@@ -184,7 +184,7 @@ class TestSingleTable:
         filename = str(tmpdir.join('test_masked_nan.fits'))
         data = np.array(list(zip([5.2, 8.4, 3.9, 6.3],
                                  [2.3, 4.5, 6.7, 8.9])),
-                                dtype=[('a', np.float64), ('b', np.float32)])
+                        dtype=[('a', np.float64), ('b', np.float32)])
         t1 = Table(data, masked=True)
         t1.mask['a'] = [1, 0, 1, 0]
         t1.mask['b'] = [1, 0, 0, 1]

@@ -995,8 +995,8 @@ def _getext(filename, mode, *args, ext=None, extname=None, extver=None,
     """
 
     err_msg = ('Redundant/conflicting extension arguments(s): {}'.format(
-            {'args': args, 'ext': ext, 'extname': extname,
-             'extver': extver}))
+        {'args': args, 'ext': ext, 'extname': extname,
+         'extver': extver}))
 
     # This code would be much simpler if just one way of specifying an
     # extension were picked.  But now we need to support all possible ways for

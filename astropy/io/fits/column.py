@@ -2620,7 +2620,7 @@ def python_to_tdisp(format_string, logical_dtype=False):
             if width == "":
                 ascii_key = ftype if ftype != 'G' else 'F'
                 width = str(int(precision) + (ASCII_DEFAULT_WIDTHS[ascii_key][0] -
-                                     ASCII_DEFAULT_WIDTHS[ascii_key][1]))
+                                              ASCII_DEFAULT_WIDTHS[ascii_key][1]))
         # Otherwise we just have a width
         else:
             width = fmt_str

@@ -615,8 +615,8 @@ class _File:
 
         if mode in ('update', 'append'):
             raise OSError(
-                  "Writing to zipped fits files is not currently "
-                  "supported")
+                "Writing to zipped fits files is not currently "
+                "supported")
 
         if not isinstance(fileobj, zipfile.ZipFile):
             zfile = zipfile.ZipFile(fileobj)
@@ -628,7 +628,7 @@ class _File:
         namelist = zfile.namelist()
         if len(namelist) != 1:
             raise OSError(
-              "Zip files with multiple members are not supported.")
+                "Zip files with multiple members are not supported.")
         self._file = tempfile.NamedTemporaryFile(suffix='.fits')
         self._file.write(zfile.read(namelist[0]))
 

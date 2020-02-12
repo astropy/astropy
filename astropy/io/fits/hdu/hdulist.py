@@ -354,7 +354,7 @@ class HDUList(list, _Verify):
             self._try_while_unread_hdus(super().__setitem__, _key, hdu)
         except IndexError:
             raise IndexError('Extension {} is out of bound or not found.'
-                            .format(key))
+                             .format(key))
 
         self._resize = True
         self._truncate = False
@@ -803,7 +803,7 @@ class HDUList(list, _Verify):
 
         if self._file.mode not in ('append', 'update', 'ostream'):
             warnings.warn("Flush for '{}' mode is not supported."
-                         .format(self._file.mode), AstropyUserWarning)
+                          .format(self._file.mode), AstropyUserWarning)
             return
 
         save_backup = self._open_kwargs.get('save_backup', False)
@@ -818,7 +818,7 @@ class HDUList(list, _Verify):
                     backup = filename + '.bak.' + str(idx)
                     idx += 1
                 warnings.warn('Saving a backup of {} to {}.'.format(
-                        filename, backup), AstropyUserWarning)
+                    filename, backup), AstropyUserWarning)
                 try:
                     shutil.copy(filename, backup)
                 except OSError as exc:
