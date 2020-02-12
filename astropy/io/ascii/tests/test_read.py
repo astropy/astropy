@@ -8,6 +8,8 @@ from collections import OrderedDict
 import locale
 import platform
 from io import StringIO
+from contextlib import ExitStack
+import warnings
 
 import pathlib
 import pytest
@@ -1509,3 +1511,46 @@ def test_kwargs_dict_guess(enable):
     for k in get_read_trace():
         if not k.get('status', 'Disabled').startswith('Disabled'):
             assert k.get('kwargs').get('fast_reader').get('enable') is enable
+
+
+@pytest.mark.parametrize('rdb', [False, True])
+@pytest.mark.parametrize('fast_reader', [False, 'force'])
+def test_deduplicate_names_basic(rdb, fast_reader):
+    """Test that duplicate column names are successfully de-duplicated for the
+    basic format.
+    """
+    lines = ['a a_2 a_1 a a']
+    if rdb:
+        lines += ['N N N N N']
+    lines += ['1 2 3 4 5', '10 20 30 40 50']
+
+    if rdb:
+        lines = ['\t'.join(line.split()) for line in lines]
+
+    with pytest.warns(AstropyWarning, match='Duplicate'):
+        dat = ascii.read(lines, fast_reader=fast_reader)
+    assert dat.colnames == ['a', 'a_2', 'a_1', 'a_3', 'a_4']
+
+    with ExitStack() as stack:
+        # include_names doesn't work for the fast_reader and RDB (even for unique
+        # colnames), so expect an exception in this case.
+        if rdb is True and fast_reader == 'force':
+            stack.enter_context(pytest.raises(AssertionError))
+
+        with pytest.warns(AstropyWarning, match='Duplicate'):
+            dat = ascii.read(lines, fast_reader=fast_reader, include_names=['a', 'a_2', 'a_3'])
+        assert len(dat) == 2
+        assert dat.colnames == ['a', 'a_2', 'a_3']
+        assert np.all(dat['a'] == [1, 10])
+        assert np.all(dat['a_2'] == [2, 20])
+        assert np.all(dat['a_3'] == [4, 40])
+
+        with pytest.warns(AstropyWarning, match='Duplicate'):
+            dat = ascii.read(lines, fast_reader=fast_reader,
+                             names=['b1', 'b2', 'b3', 'b4', 'b5'],
+                             include_names=['b1', 'b2', 'b4'])
+        assert len(dat) == 2
+        assert dat.colnames == ['b1', 'b2', 'b4']
+        assert np.all(dat['b1'] == [1, 10])
+        assert np.all(dat['b2'] == [2, 20])
+        assert np.all(dat['b4'] == [4, 40])
