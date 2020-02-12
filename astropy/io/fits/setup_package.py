@@ -18,11 +18,12 @@ def _get_compression_extension():
 
     cfg = defaultdict(list)
     cfg['include_dirs'].append(numpy.get_include())
-    cfg['sources'].append(os.path.join(os.path.dirname(__file__), 'src', 'compressionmodule.c'))
+    cfg['sources'].append(os.path.join(os.path.dirname(__file__),
+                                       'src', 'compressionmodule.c'))
 
     if (int(os.environ.get('ASTROPY_USE_SYSTEM_CFITSIO', 0)) or
             int(os.environ.get('ASTROPY_USE_SYSTEM_ALL', 0))):
-        cfg.update(setup_helpers.pkg_config(['cfitsio'], ['cfitsio']))
+        cfg.update(pkg_config(['cfitsio'], ['cfitsio']))
     else:
         if get_compiler() == 'msvc':
             # These come from the CFITSIO vcc makefile, except the last
