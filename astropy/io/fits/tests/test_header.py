@@ -2265,7 +2265,7 @@ class TestHeaderFunctions(FitsTestCase):
         assert str(h).startswith('TEST    =                    1')
 
         # int -> complex
-        h['TEST'] = 1.0+0.0j
+        h['TEST'] = 1.0 + 0.0j
         assert isinstance(h['TEST'], complex)
         assert str(h).startswith('TEST    =           (1.0, 0.0)')
 
@@ -2275,7 +2275,7 @@ class TestHeaderFunctions(FitsTestCase):
         assert str(h).startswith('TEST    =                  1.0')
 
         # float -> complex
-        h['TEST'] = 1.0+0.0j
+        h['TEST'] = 1.0 + 0.0j
         assert isinstance(h['TEST'], complex)
         assert str(h).startswith('TEST    =           (1.0, 0.0)')
 
@@ -2298,7 +2298,7 @@ class TestHeaderFunctions(FitsTestCase):
         assert str(h).startswith('TEST    =                    0')
 
         # int -> complex
-        h['TEST'] = 0.0+0.0j
+        h['TEST'] = 0.0 + 0.0j
         assert isinstance(h['TEST'], complex)
         assert str(h).startswith('TEST    =           (0.0, 0.0)')
 
@@ -2308,7 +2308,7 @@ class TestHeaderFunctions(FitsTestCase):
         assert str(h).startswith('TEST    =                  0.0')
 
         # float -> complex
-        h['TEST'] = 0.0+0.0j
+        h['TEST'] = 0.0 + 0.0j
         assert isinstance(h['TEST'], complex)
         assert str(h).startswith('TEST    =           (0.0, 0.0)')
 

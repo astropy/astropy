@@ -167,7 +167,7 @@ class TestImageFunctions(FitsTestCase):
 
     def test_fortran_array(self):
         # Test that files are being correctly written+read for "C" and "F" order arrays
-        a = np.arange(21).reshape(3,7)
+        a = np.arange(21).reshape(3, 7)
         b = np.asfortranarray(a)
 
         afits = self.temp('a_str.fits')
@@ -190,7 +190,7 @@ class TestImageFunctions(FitsTestCase):
 
     def test_fortran_array_non_contiguous(self):
         # Test that files are being correctly written+read for 'C' and 'F' order arrays
-        a = np.arange(105).reshape(3,5,7)
+        a = np.arange(105).reshape(3, 5, 7)
         b = np.asfortranarray(a)
 
         # writting to str specified files
@@ -1153,7 +1153,7 @@ class TestCompressedImage(FitsTestCase):
         """
         import scipy.misc
         np.random.seed(42)
-        data = scipy.misc.ascent() + np.random.randn(512, 512)*10
+        data = scipy.misc.ascent() + np.random.randn(512, 512) * 10
 
         fits.ImageHDU(data).writeto(self.temp('im1.fits'))
         fits.CompImageHDU(data, compression_type='RICE_1', quantize_method=1,
@@ -1202,7 +1202,7 @@ class TestCompressedImage(FitsTestCase):
         with fits.open(self.temp('test.fits')) as hdul:
             # HCOMPRESSed images are allowed to deviate from the original by
             # about 1/quantize_level of the RMS in each tile.
-            assert np.abs(hdul['SCI'].data - cube).max() < 1./15.
+            assert np.abs(hdul['SCI'].data - cube).max() < 1. / 15.
 
     def test_subtractive_dither_seed(self):
         """
@@ -1790,7 +1790,7 @@ class TestCompressedImage(FitsTestCase):
 
         """
         mid = np.iinfo(dtype).max // 2
-        data = np.arange(mid-50, mid+50, dtype=dtype)
+        data = np.arange(mid - 50, mid + 50, dtype=dtype)
         testfile = self.temp('test.fits')
         hdu = fits.CompImageHDU(data=data)
         hdu.writeto(testfile, overwrite=True)
@@ -1835,10 +1835,10 @@ def test_comphdu_bscale(tmpdir):
     filename1 = tmpdir.join('3hdus.fits').strpath
     filename2 = tmpdir.join('3hdus_comp.fits').strpath
 
-    x = np.random.random((100, 100))*100
+    x = np.random.random((100, 100)) * 100
 
     x0 = fits.PrimaryHDU()
-    x1 = fits.ImageHDU(np.array(x-50, dtype=int), uint=True)
+    x1 = fits.ImageHDU(np.array(x - 50, dtype=int), uint=True)
     x1.header['BZERO'] = 20331
     x1.header['BSCALE'] = 2.3
     hdus = fits.HDUList([x0, x1])

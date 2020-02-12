@@ -850,7 +850,7 @@ class _ImageBaseHDU(_ValidHDU):
                 format = ''
             else:
                 format = self.data.dtype.name
-                format = format[format.rfind('.')+1:]
+                format = format[format.rfind('.') + 1:]
         else:
             if self.shape and all(self.shape):
                 # Only show the format if all the dimensions are non-zero
@@ -951,7 +951,7 @@ class Section:
             raise IndexError('too many indices for array')
         # Insert extra dimensions as needed.
         idx = next(i for i, k in enumerate(key + (Ellipsis,)) if k is Ellipsis)
-        key = key[:idx] + (slice(None),) * (naxis - len(key) + 1) + key[idx+1:]
+        key = key[:idx] + (slice(None),) * (naxis - len(key) + 1) + key[idx + 1:]
         return_0dim = (all(isinstance(k, (int, np.integer)) for k in key)
                        and len(key) == naxis)
 

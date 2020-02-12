@@ -164,7 +164,7 @@ Primary HDU:\n\n   Data contains differences:
     def test_wildcard(self):
         tmp1 = self.temp("tmp_file1")
         with pytest.raises(SystemExit) as e:
-            fitsdiff.main([tmp1+"*", "ACME"])
+            fitsdiff.main([tmp1 + "*", "ACME"])
         assert e.value.code == 2
 
     def test_not_quiet(self, capsys):
@@ -236,9 +236,9 @@ No differences found.\n""".format(version, tmp_a, tmp_b)
         # globbing
         with pytest.warns(UserWarning, match=r"Field 'ORBPARM' has a repeat "
                           r"count of 0 in its format code"):
-            assert fitsdiff.main(["-q", self.data_dir+'/*.fits',
+            assert fitsdiff.main(["-q", self.data_dir + '/*.fits',
                                   self.data_dir]) == 0
-        assert fitsdiff.main(["-q", self.data_dir+'/g*.fits', tmp_d]) == 0
+        assert fitsdiff.main(["-q", self.data_dir + '/g*.fits', tmp_d]) == 0
 
         # one file and a directory
         tmp_f = self.data('tb.fits')

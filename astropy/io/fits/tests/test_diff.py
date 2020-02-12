@@ -372,8 +372,8 @@ class TestDiff(FitsTestCase):
         c5 = Column('E', format='A3', array=['abc', 'def'])
         c6 = Column('F', format='E', unit='m', array=[0.0, 1.0])
         c7 = Column('G', format='D', bzero=-0.1, array=[0.0, 1.0])
-        c8 = Column('H', format='C', array=[0.0+1.0j, 2.0+3.0j])
-        c9 = Column('I', format='M', array=[4.0+5.0j, 6.0+7.0j])
+        c8 = Column('H', format='C', array=[0.0 + 1.0j, 2.0 + 3.0j])
+        c9 = Column('I', format='M', array=[4.0 + 5.0j, 6.0 + 7.0j])
         c10 = Column('J', format='PI(2)', array=[[0, 1], [2, 3]])
 
         columns = [c1, c2, c3, c4, c5, c6, c7, c8, c9, c10]
@@ -518,8 +518,8 @@ class TestDiff(FitsTestCase):
         ca5 = Column('E', format='A3', array=['abc', 'def'])
         ca6 = Column('F', format='E', unit='m', array=[0.0, 1.0])
         ca7 = Column('G', format='D', bzero=-0.1, array=[0.0, 1.0])
-        ca8 = Column('H', format='C', array=[0.0+1.0j, 2.0+3.0j])
-        ca9 = Column('I', format='M', array=[4.0+5.0j, 6.0+7.0j])
+        ca8 = Column('H', format='C', array=[0.0 + 1.0j, 2.0 + 3.0j])
+        ca9 = Column('I', format='M', array=[4.0 + 5.0j, 6.0 + 7.0j])
         ca10 = Column('J', format='PI(2)', array=[[0, 1], [2, 3]])
 
         cb1 = Column('A', format='L', array=[False, False])
@@ -530,8 +530,8 @@ class TestDiff(FitsTestCase):
         cb5 = Column('E', format='A3', array=['abc', 'ghi'])
         cb6 = Column('F', format='E', unit='m', array=[1.0, 2.0])
         cb7 = Column('G', format='D', bzero=-0.1, array=[2.0, 3.0])
-        cb8 = Column('H', format='C', array=[1.0+1.0j, 2.0+3.0j])
-        cb9 = Column('I', format='M', array=[5.0+5.0j, 6.0+7.0j])
+        cb8 = Column('H', format='C', array=[1.0 + 1.0j, 2.0 + 3.0j])
+        cb9 = Column('I', format='M', array=[5.0 + 5.0j, 6.0 + 7.0j])
         cb10 = Column('J', format='PI(2)', array=[[1, 2], [3, 4]])
 
         ta = BinTableHDU.from_columns([ca1, ca2, ca3, ca4, ca5, ca6, ca7,
@@ -554,8 +554,8 @@ class TestDiff(FitsTestCase):
         assert diff.diff_values[6] == (('F', 1), (1.0, 2.0))
         assert diff.diff_values[7] == (('G', 0), (0.0, 2.0))
         assert diff.diff_values[8] == (('G', 1), (1.0, 3.0))
-        assert diff.diff_values[9] == (('H', 0), (0.0+1.0j, 1.0+1.0j))
-        assert diff.diff_values[10] == (('I', 0), (4.0+5.0j, 5.0+5.0j))
+        assert diff.diff_values[9] == (('H', 0), (0.0 + 1.0j, 1.0 + 1.0j))
+        assert diff.diff_values[10] == (('I', 0), (4.0 + 5.0j, 5.0 + 5.0j))
         assert diff.diff_values[11][0] == ('J', 0)
         assert (diff.diff_values[11][1][0] == [0, 1]).all()
         assert (diff.diff_values[11][1][1] == [1, 2]).all()

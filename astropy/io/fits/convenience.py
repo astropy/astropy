@@ -535,7 +535,7 @@ def table_to_hdu(table, character_as_bytes=False):
                 warning = (
                     f"The unit '{unit.to_string()}' could not be saved in "
                     f"native FITS format ")
-                if any('SerializedColumn' in item and 'name: '+col.name in item
+                if any('SerializedColumn' in item and 'name: ' + col.name in item
                        for item in table.meta.get('comments', [])):
                     warning += (
                         "and hence will be lost to non-astropy fits readers. "

@@ -25,7 +25,7 @@ class TestUintFunctions(FitsTestCase):
         [('u2', False), ('u4', False), ('u8', False), ('u2', True),
          ('u4', True)])  # ,('u8',True)])
     def test_uint(self, utype, compressed):
-        bits = 8*int(utype[1])
+        bits = 8 * int(utype[1])
         if platform.architecture()[0] == '64bit' or bits != 64:
             if compressed:
                 hdu = fits.CompImageHDU(np.array([-3, -2, -1, 0, 1, 2, 3], dtype=np.int64))
@@ -34,7 +34,7 @@ class TestUintFunctions(FitsTestCase):
                 hdu = fits.PrimaryHDU(np.array([-3, -2, -1, 0, 1, 2, 3], dtype=np.int64))
                 hdu_number = 0
 
-            hdu.scale(f'int{bits:d}', '', bzero=2 ** (bits-1))
+            hdu.scale(f'int{bits:d}', '', bzero=2 ** (bits - 1))
 
             with ignore_warnings():
                 hdu.writeto(self.temp('tempfile.fits'), overwrite=True)
@@ -65,11 +65,11 @@ class TestUintFunctions(FitsTestCase):
         https://github.com/astropy/astropy/pull/906
         """
 
-        bits = 8*int(utype[1])
+        bits = 8 * int(utype[1])
         if platform.architecture()[0] == '64bit' or bits != 64:
-            bzero = self.utype_map[utype](2**(bits-1))
+            bzero = self.utype_map[utype](2**(bits - 1))
             one = self.utype_map[utype](1)
-            u0 = np.arange(bits+1, dtype=self.utype_map[utype])
+            u0 = np.arange(bits + 1, dtype=self.utype_map[utype])
             u = 2**u0 - one
             if bits == 64:
                 u[63] = bzero - one
