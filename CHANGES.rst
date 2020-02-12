@@ -341,8 +341,12 @@ astropy.io.ascii
   numbers in combination with a quoted field; e.g., ``"1  2\n 3  4 '5'"``.
   [#9923]
 
+- Magnitude, decibel, and dex can now be stored in ``ecsv`` files. [#9933]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
+
+- Magnitude, decibel, and dex can now be stored in ``hdf5`` files. [#9933]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
@@ -376,6 +380,9 @@ astropy.table
 
 - Fixed bug in ``Table.reverse`` for tables that contain non-mutable mixin columns
   (like ``SkyCoord``) for which in-place item update is not allowed. [#9839]
+
+- Tables containing Magnitude, decibel, and dex columns can now be saved to
+  ``ecsv`` files. [#9933]
 
 astropy.tests
 ^^^^^^^^^^^^^
