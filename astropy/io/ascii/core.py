@@ -1037,23 +1037,16 @@ def _deduplicate_names(names):
     """
     new_names = []
     existing_names = set()
-    duplicate_names = set()
 
     for name in names:
         orig_name = name
         i = 1
         while name in existing_names:
-            duplicate_names.add(orig_name)
             # Iterate until a unique name is found
             name = orig_name + '_' + str(i)
             i += 1
         new_names.append(name)
         existing_names.add(name)
-
-    if duplicate_names:
-        duplicate_names = ', '.join(f"'{name}'" for name in duplicate_names)
-        warnings.warn(f'Duplicate column name(s) {duplicate_names} found, '
-                      f'replacing with unique names', AstropyWarning)
 
     return new_names
 

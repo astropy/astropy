@@ -1527,8 +1527,7 @@ def test_deduplicate_names_basic(rdb, fast_reader):
     if rdb:
         lines = ['\t'.join(line.split()) for line in lines]
 
-    with pytest.warns(AstropyWarning, match='Duplicate'):
-        dat = ascii.read(lines, fast_reader=fast_reader)
+    dat = ascii.read(lines, fast_reader=fast_reader)
     assert dat.colnames == ['a', 'a_2', 'a_1', 'a_3', 'a_4']
 
     with ExitStack() as stack:
@@ -1537,18 +1536,16 @@ def test_deduplicate_names_basic(rdb, fast_reader):
         if rdb is True and fast_reader == 'force':
             stack.enter_context(pytest.raises(AssertionError))
 
-        with pytest.warns(AstropyWarning, match='Duplicate'):
-            dat = ascii.read(lines, fast_reader=fast_reader, include_names=['a', 'a_2', 'a_3'])
+        dat = ascii.read(lines, fast_reader=fast_reader, include_names=['a', 'a_2', 'a_3'])
         assert len(dat) == 2
         assert dat.colnames == ['a', 'a_2', 'a_3']
         assert np.all(dat['a'] == [1, 10])
         assert np.all(dat['a_2'] == [2, 20])
         assert np.all(dat['a_3'] == [4, 40])
 
-        with pytest.warns(AstropyWarning, match='Duplicate'):
-            dat = ascii.read(lines, fast_reader=fast_reader,
-                             names=['b1', 'b2', 'b3', 'b4', 'b5'],
-                             include_names=['b1', 'b2', 'b4'])
+        dat = ascii.read(lines, fast_reader=fast_reader,
+                         names=['b1', 'b2', 'b3', 'b4', 'b5'],
+                         include_names=['b1', 'b2', 'b4'])
         assert len(dat) == 2
         assert dat.colnames == ['b1', 'b2', 'b4']
         assert np.all(dat['b1'] == [1, 10])
