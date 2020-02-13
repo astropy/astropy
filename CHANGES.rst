@@ -399,6 +399,11 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- Fix for ``quantity_input`` annotation raising an exception on iterable
+  types that don't define a general ``__contains__`` for checking if ``None``
+  is contained (e.g. Enum as of python3.8), by instead checking for instance of
+  Sequence. [#9948]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
