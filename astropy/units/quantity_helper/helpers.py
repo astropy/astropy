@@ -16,6 +16,7 @@ from . import UFUNC_HELPERS, UNSUPPORTED_UFUNCS
 from astropy.units.core import (
     UnitsError, UnitConversionError, UnitTypeError,
     dimensionless_unscaled, get_current_unit_registry)
+from astropy.utils.compat import NUMPY_LT_1_19
 
 
 def _d(unit):
@@ -135,8 +136,9 @@ def helper_modf(f, unit):
                             .format(f.__name__))
 
 
-def helper__ones_like(f, unit):
-    return [None], dimensionless_unscaled
+if NUMPY_LT_1_19:
+    def helper__ones_like(f, unit):
+        return [None], dimensionless_unscaled
 
 
 def helper_dimensionless_to_dimensionless(f, unit):
@@ -391,9 +393,10 @@ UFUNC_HELPERS[np.sqrt] = helper_sqrt
 UFUNC_HELPERS[np.square] = helper_square
 UFUNC_HELPERS[np.reciprocal] = helper_reciprocal
 UFUNC_HELPERS[np.cbrt] = helper_cbrt
-UFUNC_HELPERS[np.core.umath._ones_like] = helper__ones_like
 UFUNC_HELPERS[np.modf] = helper_modf
 UFUNC_HELPERS[np.frexp] = helper_frexp
+if NUMPY_LT_1_19:
+    UFUNC_HELPERS[np.core.umath._ones_like] = helper__ones_like
 
 
 # TWO ARGUMENT UFUNCS
