@@ -1086,8 +1086,8 @@ def _stat_filename_or_fileobj(filename):
 
     noexist_or_empty = ((name and
                          (not os.path.exists(name) or
-                          (os.path.getsize(name) == 0)))
-                        or (not name and loc == 0))
+                          (os.path.getsize(name) == 0))) or
+                        (not name and loc == 0))
 
     return name, closed, noexist_or_empty
 

@@ -65,22 +65,22 @@ conf = Conf()
 # Public API compatibility imports
 # These need to come after the global config variables, as some of the
 # submodules use them
-from . import card
-from . import column
-from . import convenience
-from . import hdu
-from .card import *
-from .column import *
-from .convenience import *
-from .diff import *
-from .fitsrec import FITS_record, FITS_rec
-from .hdu import *
+from . import card  # noqa
+from . import column  # noqa
+from . import convenience  # noqa
+from . import hdu  # noqa
+from .card import *  # noqa
+from .column import *  # noqa
+from .convenience import *  # noqa
+from .diff import *  # noqa
+from .fitsrec import FITS_record, FITS_rec  # noqa
+from .hdu import *  # noqa
 
-from .hdu.groups import GroupData
-from .hdu.hdulist import fitsopen as open
-from .hdu.image import Section
-from .header import Header
-from .verify import VerifyError
+from .hdu.groups import GroupData  # noqa
+from .hdu.hdulist import fitsopen as open  # noqa
+from .hdu.image import Section  # noqa
+from .header import Header  # noqa
+from .verify import VerifyError  # noqa
 
 
 __all__ = (['Conf', 'conf'] + card.__all__ + column.__all__ +
