@@ -68,7 +68,7 @@ setting `~astropy.modeling.Parameter.min` and `~astropy.modeling.Parameter.max`
 attributes on a parameter.  Bounds for the
 `~astropy.modeling.fitting.LevMarLSQFitter` are always exactly satisfied--if
 the value of the parameter is outside the fitting interval, it will be reset to
-the value at the bounds. The `~astropy.modeling.fitting.SLSQPLSQFitter` optimiztion
+the value at the bounds. The `~astropy.modeling.fitting.SLSQPLSQFitter` optimization
 algorithm handles bounds internally.
 
 .. _tied:
