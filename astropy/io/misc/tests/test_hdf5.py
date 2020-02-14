@@ -871,3 +871,26 @@ def test_round_trip_masked_table_default(tmpdir):
         t[name].mask = False
         t2[name].mask = False
         assert np.all(t2[name] == t[name])
+
+
+@pytest.mark.skipif('not HAS_YAML or not HAS_H5PY')
+def test_overwrite_serialized_meta():
+    # This used to cause an error because the meta data table
+    # was not removed from the existing file.
+
+    with h5py.File('test_data.h5', 'w', driver='core', backing_store=False) as out:
+        t1 = Table()
+        t1.add_column(Column(data=[4, 8, 15], unit='cm'))
+        t1.write(out, path='data', serialize_meta=True)
+
+        t2 = Table.read(out, path='data')
+        assert all(t1 == t2)
+        assert t1.info(out=None) == t2.info(out=None)
+
+        t3 = Table()
+        t3.add_column(Column(data=[16, 23, 42], unit='g'))
+        t3.write(out, path='data', serialize_meta=True, append=True, overwrite=True)
+
+        t2 = Table.read(out, path='data')
+        assert all(t3 == t2)
+        assert t3.info(out=None) == t2.info(out=None)
