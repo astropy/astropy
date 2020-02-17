@@ -52,6 +52,8 @@ test_models = [
     astmodels.RotateCelestial2Native(5.63*u.deg, -72.5*u.deg, 180*u.deg),
     astmodels.RotationSequence3D([1.2, 2.3, 3.4, .3], 'xyzx'),
     astmodels.SphericalRotationSequence([1.2, 2.3, 3.4, .3], 'xyzy'),
+    astmodels.Gaussian1D(10., 5., 3.),
+    astmodels.Gaussian2D(10., 5., 5., 3., 3., 0.),
     custom_and_analytical_inverse(),
 ]
 

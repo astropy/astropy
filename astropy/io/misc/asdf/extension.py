@@ -22,6 +22,7 @@ from .tags.time.time import *
 from .tags.time.timedelta import *
 from .tags.transform.basic import *
 from .tags.transform.compound import *
+from .tags.transform.functional_models import *
 from .tags.transform.math import *
 from .tags.transform.polynomial import *
 from .tags.transform.projections import *
