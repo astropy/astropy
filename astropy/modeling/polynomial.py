@@ -141,6 +141,10 @@ class OrthoPolynomialBase(PolynomialBase):
 
     The polynomials implemented here require a maximum degree in x and y.
 
+    For explanation of ``x_domain``, ``y_domain``, ```x_window`` and ```y_window``
+    see :ref:`Notes regarding usage of domain and window <domain-window-note>`.
+
+
     Parameters
     ----------
 
@@ -312,6 +316,9 @@ class Chebyshev1D(PolynomialModel):
 
     where ``T_i(x)`` is the corresponding Chebyshev polynomial of the 1st kind.
 
+    For explanation of ```domain``, and ``window`` see
+    :ref:`Notes regarding usage of domain and window <domain-window-note>`.
+
     Parameters
     ----------
     degree : int
@@ -418,6 +425,9 @@ class Hermite1D(PolynomialModel):
 
     where ``H_i(x)`` is the corresponding Hermite polynomial ("Physicist's kind").
 
+    For explanation of ``domain``, and ``window`` see
+    :ref:`Notes regarding usage of domain and window <domain-window-note>`.
+
     Parameters
     ----------
     degree : int
@@ -521,6 +531,9 @@ class Hermite2D(OrthoPolynomialBase):
     .. math:: P_{nm}(x,y) = \sum_{n,m=0}^{n=d,m=d}C_{nm} H_n(x) H_m(y)
 
     where ``H_n(x)`` and ``H_m(y)`` are Hermite polynomials.
+
+    For explanation of ``x_domain``, ``y_domain``, ``x_window`` and ``y_window``
+    see :ref:`Notes regarding usage of domain and window <domain-window-note>`.
 
     Parameters
     ----------
@@ -648,6 +661,9 @@ class Legendre1D(PolynomialModel):
 
     where ``L_i(x)`` is the corresponding Legendre polynomial.
 
+    For explanation of ``domain``, and ``window`` see
+    :ref:`Notes regarding usage of domain and window <domain-window-note>`.
+
     Parameters
     ----------
     degree : int
@@ -752,6 +768,9 @@ class Polynomial1D(PolynomialModel):
 
         P = \sum_{i=0}^{i=n}C_{i} * x^{i}
 
+    For explanation of ``domain``, and ``window`` see
+    :ref:`Notes regarding usage of domain and window <domain-window-note>`.
+
     Parameters
     ----------
     degree : int
@@ -849,6 +868,9 @@ class Polynomial2D(PolynomialModel):
 
         P(x,y) = c_{00} + c_{10}x + ...+ c_{n0}x^n + c_{01}y + ...+ c_{0n}y^n
         + c_{11}xy + c_{12}xy^2 + ... + c_{1(n-1)}xy^{n-1}+ ... + c_{(n-1)1}x^{n-1}y
+
+    For explanation of ``x_domain``, ``y_domain``, ``x_window`` and ``y_window``
+    see :ref:`Notes regarding usage of domain and window <domain-window-note>`.
 
     Parameters
     ----------
@@ -1017,6 +1039,8 @@ class Chebyshev2D(OrthoPolynomialBase):
 
     where ``T_n(x)`` and ``T_m(y)`` are Chebyshev polynomials of the first kind.
 
+    For explanation of ``x_domain``, ``y_domain``, ``x_window`` and ``y_window``
+    see :ref:`Notes regarding usage of domain and window <domain-window-note>`.
 
     Parameters
     ----------
@@ -1141,6 +1165,9 @@ class Legendre2D(OrthoPolynomialBase):
     .. math:: P_{n_m}(x,y) = \sum_{n,m=0}^{n=d,m=d}C_{nm}  L_n(x ) L_m(y)
 
     where ``L_n(x)`` and ``L_m(y)`` are Legendre polynomials.
+
+    For explanation of ``x_domain``, ``y_domain``, ``x_window`` and ``y_window``
+    see :ref:`Notes regarding usage of domain and window <domain-window-note>`.
 
     Parameters
     ----------
