@@ -9,7 +9,7 @@ import numpy as np
 
 from astropy import __minimum_asdf_version__
 
-asdf = pytest.importorskip('asdf', minversion=__minimum_asdf_version__)
+#asdf = pytest.importorskip('asdf', minversion=__minimum_asdf_version__)
 from asdf import util
 from asdf.tests import helpers
 from asdf import AsdfFile
@@ -64,6 +64,11 @@ for kl in astmodels.math.__all__:
 
 test_models.extend(math_models)
 
+test_models_with_constraints = [astmodels.Legendre2D(x_degree=1, y_degree=1,
+                                c0_0=1, c0_1=2, c1_0=3,
+                                fixed={'c1_0': True, 'c0_1': True},
+                                bounds={'c0_0': (-10, 10)})]
+test_models.extend(test_models_with_constraints)
 
 def test_transforms_compound(tmpdir):
     tree = {
