@@ -27,37 +27,37 @@ polynomial model will fit a polynomial with the zero-th order term missing
 to the data minus that constant. The fixed coefficients and corresponding terms
 are restored to the fit polynomial and this is the polynomial returned from the fitter::
 
-      >>> import numpy as np
-      >>> np.random.seed(seed=12345)
-      >>> from astropy.modeling import models, fitting
-      >>> x = np.arange(1, 10, .1)
-      >>> p1 = models.Polynomial1D(2, c0=[1, 1], c1=[2, 2], c2=[3, 3],
-      ...                          n_models=2)
-      >>> p1  # doctest: +FLOAT_CMP
-      <Polynomial1D(2, c0=[1., 1.], c1=[2., 2.], c2=[3., 3.], n_models=2)>
-      >>> y = p1(x, model_set_axis=False)
-      >>> n = (np.random.randn(y.size)).reshape(y.shape)
-      >>> p1.c0.fixed = True
-      >>> pfit = fitting.LinearLSQFitter()
-      >>> new_model = pfit(p1, x, y + n)  # doctest: +IGNORE_WARNINGS
-      >>> print(new_model)  # doctest: +SKIP
-      Model: Polynomial1D
-      Inputs: ('x',)
-      Outputs: ('y',)
-      Model set size: 2
-      Degree: 2
-      Parameters:
-           c0         c1                 c2
-          --- ------------------ ------------------
-          1.0  2.072116176718454   2.99115839177437
-          1.0 1.9818866652726403 3.0024208951927585
+    >>> import numpy as np
+    >>> np.random.seed(seed=12345)
+    >>> from astropy.modeling import models, fitting
+    >>> x = np.arange(1, 10, .1)
+    >>> p1 = models.Polynomial1D(2, c0=[1, 1], c1=[2, 2], c2=[3, 3],
+    ...                          n_models=2)
+    >>> p1  # doctest: +FLOAT_CMP
+    <Polynomial1D(2, c0=[1., 1.], c1=[2., 2.], c2=[3., 3.], n_models=2)>
+    >>> y = p1(x, model_set_axis=False)
+    >>> n = (np.random.randn(y.size)).reshape(y.shape)
+    >>> p1.c0.fixed = True
+    >>> pfit = fitting.LinearLSQFitter()
+    >>> new_model = pfit(p1, x, y + n)  # doctest: +IGNORE_WARNINGS
+    >>> print(new_model)  # doctest: +SKIP
+    Model: Polynomial1D
+    Inputs: ('x',)
+    Outputs: ('y',)
+    Model set size: 2
+    Degree: 2
+    Parameters:
+         c0         c1                 c2
+        --- ------------------ ------------------
+        1.0  2.072116176718454   2.99115839177437
+        1.0 1.9818866652726403 3.0024208951927585
 
 
   The syntax to fix the same parameter ``c0`` using an argument to the model
   instead of ``p1.c0.fixed = True`` would be::
 
-      >>> p1 = models.Polynomial1D(2, c0=[1, 1], c1=[2, 2], c2=[3, 3],
-      ...                          n_models=2, fixed={'c0': True})
+    >>> p1 = models.Polynomial1D(2, c0=[1, 1], c1=[2, 2], c2=[3, 3],
+    ...                          n_models=2, fixed={'c0': True})
 
 
 Bounded Constraints
@@ -68,7 +68,7 @@ setting `~astropy.modeling.Parameter.min` and `~astropy.modeling.Parameter.max`
 attributes on a parameter.  Bounds for the
 `~astropy.modeling.fitting.LevMarLSQFitter` are always exactly satisfied--if
 the value of the parameter is outside the fitting interval, it will be reset to
-the value at the bounds. The `~astropy.modeling.fitting.SLSQPLSQFitter` optimiztion
+the value at the bounds. The `~astropy.modeling.fitting.SLSQPLSQFitter` optimization
 algorithm handles bounds internally.
 
 .. _tied:
