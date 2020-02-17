@@ -33,6 +33,7 @@ astropy.io.ascii
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
+- Added serialization of parameter constraints `fixed` and `bounds`.  [#10082]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
