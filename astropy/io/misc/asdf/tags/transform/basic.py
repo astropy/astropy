@@ -129,16 +129,27 @@ class IdentityType(TransformType):
 
 class ConstantType(TransformType):
     name = "transform/constant"
-    types = ['astropy.modeling.functional_models.Const1D']
+    version = '1.4.0'
+    types = ['astropy.modeling.functional_models.Const1D',
+             'astropy.modeling.functional_models.Const2D']
 
     @classmethod
     def from_tree_transform(cls, node, ctx):
-        return functional_models.Const1D(node['value'])
+        if node['dimensions'] == 1:
+            return functional_models.Const1D(node['value'])
+        elif node['dimensions'] == 2:
+            return functional_models.Const2D(node['value'])
+
 
     @classmethod
     def to_tree_transform(cls, data, ctx):
+        if isinstance(data, functional_models.Const1D):
+            dimension = 1
+        elif isinstance(data, functional_models.Const2D):
+            dimension = 2
         return {
-            'value': data.amplitude.value
+            'value': data.amplitude.value,
+            'dimensions': dimension
         }
 
 
