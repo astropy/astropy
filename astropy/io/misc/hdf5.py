@@ -317,6 +317,8 @@ def write_table_hdf5(table, output, path=None, compression=False,
         if append and overwrite:
             # Delete only the dataset itself
             del output_group[name]
+            if serialize_meta and name + '.__table_column_meta__' in output_group:
+                del output_group[name + '.__table_column_meta__']
         else:
             raise OSError(f"Table {path} already exists")
 
