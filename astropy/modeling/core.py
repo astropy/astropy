@@ -2837,7 +2837,6 @@ class CompoundModel(Model):
             self._fittable = all(m.fittable for m in self._leaflist)
         return self._fittable
 
-
     __add__ = _model_oper('+')
     __sub__ = _model_oper('-')
     __mul__ = _model_oper('*')
@@ -3043,7 +3042,6 @@ class CompoundModel(Model):
                 else:
                     outputs_map[out] = self.left, out
         return outputs_map
-
 
     def _fix_input_bounding_box(self, input_ind):
         """

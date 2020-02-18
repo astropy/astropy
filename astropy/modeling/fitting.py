@@ -49,12 +49,12 @@ except ImportError:
 __all__ = ['LinearLSQFitter', 'LevMarLSQFitter', 'FittingWithOutlierRemoval',
            'SLSQPLSQFitter', 'SimplexLSQFitter', 'JointFitter', 'Fitter']
 
-
 # Statistic functions implemented in `astropy.modeling.statistic.py
 STATISTICS = [leastsquare]
 
 # Optimizers implemented in `astropy.modeling.optimizers.py
 OPTIMIZERS = [Simplex, SLSQP]
+
 
 class ModelsError(Exception):
     """Base class for model exceptions"""

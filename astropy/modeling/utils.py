@@ -473,7 +473,7 @@ class _BoundingBox(tuple):
         nd = model.n_inputs
 
         if nd == 1:
-            MESSAGE = f"""Bounding box for {model.__class__.__name__} model must be a sequence 
+            MESSAGE = f"""Bounding box for {model.__class__.__name__} model must be a sequence
             of length 2 consisting of a lower and upper bound, or a 1-tuple
             containing such a sequence as its sole element."""
 
