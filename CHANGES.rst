@@ -56,6 +56,9 @@ astropy.io.misc
 
 - Magnitude, decibel, and dex can now be stored in ``hdf5`` files. [#9933]
 
+- Fixed serialization of polynomial models to include non default values of
+  domain and window values. [#9956]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
