@@ -99,6 +99,7 @@ class MultiplyType(TransformType):
 
 class PolynomialType(TransformType):
     name = "transform/polynomial"
+    version = '1.2.0'
     types = ['astropy.modeling.models.Polynomial1D',
              'astropy.modeling.models.Polynomial2D']
 
@@ -108,9 +109,15 @@ class PolynomialType(TransformType):
         n_dim = coefficients.ndim
 
         if n_dim == 1:
-            model = modeling.models.Polynomial1D(coefficients.size - 1)
+            domain = node.get('domain', None)
+            window = node.get('window', None)
+
+            model = modeling.models.Polynomial1D(coefficients.size - 1,
+                                                 domain=domain, window=window)
             model.parameters = coefficients
         elif n_dim == 2:
+            x_domain, y_domain = tuple(node.get('domain', (None, None)))
+            x_window, y_window = tuple(node.get('window', (None, None)))
             shape = coefficients.shape
             degree = shape[0] - 1
             if shape[0] != shape[1]:
@@ -122,7 +129,12 @@ class PolynomialType(TransformType):
                     if i + j < degree + 1:
                         name = 'c' + str(i) + '_' +str(j)
                         coeffs[name] = coefficients[i, j]
-            model = modeling.models.Polynomial2D(degree, **coeffs)
+            model = modeling.models.Polynomial2D(degree,
+                                                 x_domain=x_domain,
+                                                 y_domain=y_domain,
+                                                 x_window=x_window,
+                                                 y_window=y_window,
+                                                 **coeffs)
         else:
             raise NotImplementedError(
                 "Asdf currently only supports 1D or 2D polynomial transform.")
@@ -141,6 +153,19 @@ class PolynomialType(TransformType):
                         name = 'c' + str(i) + '_' + str(j)
                         coefficients[i, j] = getattr(model, name).value
         node = {'coefficients': coefficients}
+        typeindex = cls.types.index(model.__class__)
+        ndim = (typeindex % 2) + 1
+        if ndim == 1:
+            if model.domain is not None:
+                node['domain'] = model.domain
+            if model.window is not None:
+                node['window'] = model.window
+        else:
+            if model.x_domain or model.y_domain is not None:
+                node['domain'] = (model.x_domain, model.y_domain)
+            if model.x_window or model.y_window is not None:
+                node['window'] = (model.x_window, model.y_window)
+
         return yamlutil.custom_tree_to_tagged_tree(node, ctx)
 
     @classmethod
@@ -176,9 +201,14 @@ class OrthoPolynomialType(TransformType):
         n_dim = coefficients.ndim
         poly_type = node['polynomial_type']
         if n_dim == 1:
-            model = cls.types[cls.typemap[poly_type]](coefficients.size - 1)
+            domain = node.get('domain', None)
+            window = node.get('window', None)
+            model = cls.types[cls.typemap[poly_type]](coefficients.size - 1,
+                                                      domain=domain, window=window)
             model.parameters = coefficients
         elif n_dim == 2:
+            x_domain, y_domain = tuple(node.get('domain', (None, None)))
+            x_window, y_window = tuple(node.get('window', (None, None)))
             coeffs = {}
             shape = coefficients.shape
             x_degree = shape[0] - 1
@@ -187,7 +217,12 @@ class OrthoPolynomialType(TransformType):
                 for j in range(y_degree + 1):
                     name = f'c{i}_{j}'
                     coeffs[name] = coefficients[i, j]
-            model = cls.types[cls.typemap[poly_type]+1](x_degree, y_degree, **coeffs)
+            model = cls.types[cls.typemap[poly_type]+1](x_degree, y_degree,
+                                                        x_domain=x_domain,
+                                                        y_domain=y_domain,
+                                                        x_window=x_window,
+                                                        y_window=y_window,
+                                                        **coeffs)
         else:
             raise NotImplementedError(
                 "Asdf currently only supports 1D or 2D polynomial transforms.")
@@ -207,6 +242,16 @@ class OrthoPolynomialType(TransformType):
                     name = f'c{i}_{j}'
                     coefficients[i, j] = getattr(model, name).value
         node = {'polynomial_type': poly_type, 'coefficients': coefficients}
+        if ndim == 1:
+            if model.domain is not None:
+                node['domain'] = model.domain
+            if model.window is not None:
+                node['window'] = model.window
+        else:
+            if model.x_domain or model.y_domain is not None:
+                node['domain'] = (model.x_domain, model.y_domain)
+            if model.x_window or model.y_window is not None:
+                node['window'] = (model.x_window, model.y_window)
         return yamlutil.custom_tree_to_tagged_tree(node, ctx)
 
     @classmethod

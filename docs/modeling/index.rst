@@ -109,6 +109,7 @@ Some of the pre-defined models are listed and illustrated.
    1D Models <predef_models1D.rst>
    2D Models <predef_models2D.rst>
    Physical Models <physical_models.rst>
+   Polynomial Models <polynomial_models.rst>
 
 Examples
 ========
