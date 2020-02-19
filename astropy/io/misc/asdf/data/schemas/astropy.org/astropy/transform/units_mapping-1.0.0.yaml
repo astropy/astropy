@@ -19,20 +19,40 @@ examples:
       !<tag:astropy.org:astropy/transform/units_mapping-1.0.0>
         inputs:
           - name: x
-            units: !unit/unit-1.0.0
+            unit: !unit/unit-1.0.0
         outputs:
           - name: x
-            units: !unit/unit-1.0.0 s
+            unit: !unit/unit-1.0.0 s
   -
     - Convert input to meters, then assign dimensionless units.
     - |
       !<tag:astropy.org:astropy/transform/units_mapping-1.0.0>
         inputs:
           - name: x
-            units: !unit/unit-1.0.0 m
+            unit: !unit/unit-1.0.0 m
         outputs:
           - name: x
-            units: !unit/unit-1.0.0
+            unit: !unit/unit-1.0.0
+
+  -
+    - Convert input to meters, then drop units entirely.
+    - |
+      !<tag:astropy.org:astropy/transform/units_mapping-1.0.0>
+        inputs:
+          - name: x
+            unit: !unit/unit-1.0.0 m
+        outputs:
+          - name: x
+
+  -
+    - Accept any units, then replace with meters.
+    - |
+      !<tag:astropy.org:astropy/transform/units_mapping-1.0.0>
+        inputs:
+          - name: x
+        outputs:
+          - name: x
+            unit: !unit/unit-1.0.0 m
 
 allOf:
   - $ref: "http://stsci.edu/schemas/asdf/transform/transform-1.2.0"
@@ -62,18 +82,18 @@ definitions:
         description: |
           Value name.
         type: string
-      units:
+      unit:
         description: |
-          Expected units.
+          Expected unit.
         $ref: "http://stsci.edu/schemas/asdf/unit/unit-1.0.0"
       equivalencies:
         description: |
-          Equivalencies to apply when converting value to expected units.
+          Equivalencies to apply when converting value to expected unit.
         $ref: "http://astropy.org/schemas/astropy/units/equivalency-1.0.0"
       allow_dimensionless:
         description: |
           Allow this value to receive dimensionless data.
         type: boolean
         default: false
-    required: [name, units]
+    required: [name]
 ...
