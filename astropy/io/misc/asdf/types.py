@@ -7,6 +7,11 @@ from asdf.types import CustomType, ExtensionTypeMeta
 __all__ = ['AstropyType', 'AstropyAsdfType']
 
 
+# Names of AstropyType or AstropyAsdfType subclasses that are base classes
+# and aren't used directly for serialization.
+_TYPE_BASE_CLASS_NAMES = {'PolynomialTypeBase'}
+
+
 _astropy_types = set()
 _astropy_asdf_types = set()
 
@@ -20,10 +25,11 @@ class AstropyTypeMeta(ExtensionTypeMeta):
         cls = super().__new__(mcls, name, bases, attrs)
         # Classes using this metaclass are automatically added to the list of
         # astropy extensions
-        if cls.organization == 'astropy.org' and cls.standard == 'astropy':
-            _astropy_types.add(cls)
-        elif cls.organization == 'stsci.edu' and cls.standard == 'asdf':
-            _astropy_asdf_types.add(cls)
+        if cls.__name__ not in _TYPE_BASE_CLASS_NAMES:
+            if cls.organization == 'astropy.org' and cls.standard == 'astropy':
+                _astropy_types.add(cls)
+            elif cls.organization == 'stsci.edu' and cls.standard == 'asdf':
+                _astropy_asdf_types.add(cls)
 
         return cls
 
