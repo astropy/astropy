@@ -170,9 +170,6 @@ class UnitsMappingType(AstropyType):
 
     @classmethod
     def to_tree(cls, node, ctx):
-        if any(m for m in node.mapping if m[-1] is None):
-            raise ValueError("Due to a limitation in ASDF, we are currently unable to serialize a UnitsMapping that maps to None")
-
         tree = {}
 
         if node.name is not None:
@@ -183,17 +180,20 @@ class UnitsMappingType(AstropyType):
         for i, o, m in zip(node.inputs, node.outputs, node.mapping):
             input = {
                 "name": i,
-                "units": yamlutil.custom_tree_to_tagged_tree(m[0], ctx),
                 "allow_dimensionless": node.input_units_allow_dimensionless[i],
             }
+            if m[0] is not None:
+                input["unit"] = yamlutil.custom_tree_to_tagged_tree(m[0], ctx)
             if node.input_units_equivalencies is not None and i in node.input_units_equivalencies:
                 input["equivalencies"] = yamlutil.custom_tree_to_tagged_tree(node.input_units_equivalencies[i], ctx)
             inputs.append(input)
 
-            outputs.append({
+            output = {
                 "name": o,
-                "units": yamlutil.custom_tree_to_tagged_tree(m[-1], ctx),
-            })
+            }
+            if m[-1] is not None:
+                output["unit"] = yamlutil.custom_tree_to_tagged_tree(m[-1], ctx)
+            outputs.append(output)
 
         tree["inputs"] = inputs
         tree["outputs"] = outputs
@@ -203,7 +203,7 @@ class UnitsMappingType(AstropyType):
 
     @classmethod
     def from_tree(cls, tree, ctx):
-        mapping = tuple((i["units"], o["units"]) for i, o in zip(tree["inputs"], tree["outputs"]))
+        mapping = tuple((i.get("unit"), o.get("unit")) for i, o in zip(tree["inputs"], tree["outputs"]))
 
         equivalencies = None
         for i in tree["inputs"]:

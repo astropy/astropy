@@ -44,8 +44,12 @@ def test_basic(tmpdir):
 
 def test_remove_units(tmpdir):
     m = UnitsMapping(((u.m, None),))
-    with pytest.raises(ValueError, match=r"Due to a limitation in ASDF"):
-        assert_model_roundtrip(m, tmpdir)
+    assert_model_roundtrip(m, tmpdir)
+
+
+def test_accept_any_units(tmpdir):
+    m = UnitsMapping(((None, u.m),))
+    assert_model_roundtrip(m, tmpdir)
 
 
 def test_with_equivalencies(tmpdir):
