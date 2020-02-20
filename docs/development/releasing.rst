@@ -64,6 +64,13 @@ packages that use the full bugfix/maintenance branch approach.)
    step is only required on major releases, but can be done for bugfix releases
    as time allows.)
 
+#. (astropy specific) Ensure the built-in IERS earth rotation parameter and
+   leap second tables are up to date by changing directory to
+   ``astropy/utils/iers/data`` and executing ``update_builtin_iers.sh``.
+   Check the result with ``git diff`` (do not be surprised to find many lines
+   in the ``eopc04_IAU2000.62-now`` file change; those data are reanalyzed
+   periodically) and committing.
+
 #. (Optional) You may want to set up a clean environment to build the release.
    For more on setting up virtual environments, see :ref:`virtual_envs`, but
    for the sake of example we will assume you're using `Anaconda`_. This is not
