@@ -403,17 +403,6 @@ class Time(ShapedLikeNDArray):
                  precision=None, in_subfmt=None, out_subfmt=None,
                  location=None, copy=False):
 
-        if location is not None:
-            from astropy.coordinates import EarthLocation
-            if isinstance(location, EarthLocation):
-                self.location = location
-            else:
-                self.location = EarthLocation(*location)
-            if self.location.size == 1:
-                self.location = self.location.squeeze()
-        else:
-            self.location = None
-
         if isinstance(val, self.__class__):
             # Update _time formatting parameters if explicitly specified
             if precision is not None:
@@ -426,6 +415,17 @@ class Time(ShapedLikeNDArray):
             if scale is not None:
                 self._set_scale(scale)
         else:
+            if location is not None:
+                from astropy.coordinates import EarthLocation
+                if isinstance(location, EarthLocation):
+                    self.location = location
+                else:
+                    self.location = EarthLocation(*location)
+                if self.location.size == 1:
+                    self.location = self.location.squeeze()
+            else:
+                self.location = None
+
             self._init_from_vals(val, val2, format, scale, copy,
                                  precision, in_subfmt, out_subfmt)
             self.SCALES = TIME_TYPES[self.scale]
@@ -484,6 +484,10 @@ class Time(ShapedLikeNDArray):
         self._time = self._get_time_fmt(val, val2, format, scale,
                                         precision, in_subfmt, out_subfmt)
         self._format = self._time.name
+
+        if hasattr(self._time, '_location'):
+            self.location = self._time._location
+            del self._time._location
 
         # If any inputs were masked then masked jd2 accordingly.  From above
         # routine ``mask`` must be either Python bool False or an bool ndarray
