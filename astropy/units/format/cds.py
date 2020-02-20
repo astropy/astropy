@@ -45,6 +45,8 @@ class CDS(Base):
         'DIVISION',
         'OPEN_PAREN',
         'CLOSE_PAREN',
+        'OPEN_BRACKET',
+        'CLOSE_BRACKET',
         'X',
         'SIGN',
         'UINT',
@@ -88,9 +90,12 @@ class CDS(Base):
         t_DIVISION = r'/'
         t_OPEN_PAREN = r'\('
         t_CLOSE_PAREN = r'\)'
+        t_OPEN_BRACKET = r'\['
+        t_CLOSE_BRACKET = r'\]'
 
         # NOTE THE ORDERING OF THESE RULES IS IMPORTANT!!
         # Regular expression rules for simple tokens
+
         def t_UFLOAT(t):
             r'((\d+\.?\d+)|(\.\d+))([eE][+-]?\d+)?'
             if not re.search(r'[eE\.]', t.value):
@@ -157,11 +162,15 @@ class CDS(Base):
             '''
             main : factor combined_units
                  | combined_units
+                 | OPEN_BRACKET combined_units CLOSE_BRACKET
                  | factor
             '''
             from astropy.units.core import Unit
+            from astropy.units import dex
             if len(p) == 3:
                 p[0] = Unit(p[1] * p[2])
+            elif len(p) == 4:
+                p[0] = dex(p[2])
             else:
                 p[0] = Unit(p[1])
 
