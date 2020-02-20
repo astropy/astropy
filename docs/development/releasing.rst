@@ -68,7 +68,7 @@ packages that use the full bugfix/maintenance branch approach.)
    ``astropy/utils/iers/data`` and executing ``update_builtin_iers.sh``.
    Check the result with ``git diff`` (do not be surprised to find many lines
    in the ``eopc04_IAU2000.62-now`` file change; those data are reanalyzed
-   periodically), and committing.
+   periodically) and committing.
 
 #. To build the source distribution in an isolated environment and make sure you
    have all the dependencies required for it, install the `pep517
