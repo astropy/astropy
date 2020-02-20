@@ -45,7 +45,7 @@ __all__ = ['Conf', 'conf', 'earth_orientation_table',
 
 # IERS-A default file name, URL, and ReadMe with content description
 IERS_A_FILE = 'finals2000A.all'
-IERS_A_URL = 'ftp://cddis.gsfc.nasa.gov/pub/products/iers/finals2000A.all'
+IERS_A_URL = 'ftp://anonymous:mail%40astropy.org@gdc.cddis.eosdis.nasa.gov/pub/products/iers/finals2000A.all'
 IERS_A_URL_MIRROR = 'https://datacenter.iers.org/data/9/finals2000A.all'
 IERS_A_README = get_pkg_data_filename('data/ReadMe.finals2000A')
 
@@ -92,6 +92,7 @@ def download_file(*args, **kwargs):
     """
     kwargs.setdefault('http_headers', {'User-Agent': 'astropy/iers',
                                        'Accept': '*/*'})
+    kwarg.setdefault('ftp_tls', True)
 
     with utils.data.conf.set_temp('remote_timeout', conf.remote_timeout):
         return utils.data.download_file(*args, **kwargs)
