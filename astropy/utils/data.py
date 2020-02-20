@@ -21,6 +21,7 @@ import urllib.error
 import urllib.parse
 import shelve
 import zipfile
+import ftplib
 
 from tempfile import NamedTemporaryFile, gettempdir, TemporaryDirectory
 from warnings import warn
@@ -963,9 +964,24 @@ def check_free_space_in_dir(path, size):
                       f"to download a {human_file_size(size)} file")
 
 
+class _ftptlswrapper(urllib.request.ftpwrapper):
+    def init(self):
+        self.busy = 0
+        self.ftp = ftplib.FTP_TLS()
+        self.ftp.connect(self.host, self.port, self.timeout)
+        self.ftp.login(self.user, self.passwd)
+        self.ftp.prot_p()
+        _target = '/'.join(self.dirs)
+        self.ftp.cwd(_target)
+
+class _FTPTLSHandler(urllib.request.FTPHandler):
+    def connect_ftp(self, user, passwd, host, port, dirs, timeout):
+        return _ftptlswrapper(user, passwd, host, port, dirs, timeout,
+                              persistent=False)
+
 def _download_file_from_source(source_url, show_progress=True, timeout=None,
                                remote_url=None, cache=False, pkgname='astropy',
-                               http_headers=None):
+                               http_headers=None, ftp_tls=False):
     from astropy.utils.console import ProgressBarOrSpinner
 
     if remote_url is None:
@@ -973,8 +989,13 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
     if http_headers is None:
         http_headers = {}
 
+    if ftp_tls:
+        urlopener = urllib.request.build_opener(_FTPTLSHandler())
+    else:
+        urlopener = urllib.request.build_opener()
+
     req = urllib.request.Request(source_url, headers=http_headers)
-    with urllib.request.urlopen(req, timeout=timeout) as remote:
+    with urlopener.open(req, timeout=timeout) as remote:
         # keep a hash to rename the local file to the hashed name
         hasher = hashlib.md5()
 
@@ -1032,7 +1053,8 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
 
 
 def download_file(remote_url, cache=False, show_progress=True, timeout=None,
-                  sources=None, pkgname='astropy', http_headers=None):
+                  sources=None, pkgname='astropy', http_headers=None,
+                  ftp_tls=False):
     """Downloads a URL and optionally caches the result.
 
     It returns the filename of a file containing the URL's contents.
@@ -1093,6 +1115,9 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
         ``User-Agent: some_value`` and ``Accept: */*``, where ``some_value``
         is set by ``astropy.utils.data.conf.default_http_user_agent``.
 
+    ftp_tls : bool
+        If True, use TLS with ftp URLs instead of the standard unsecured FTP.
+
     Returns
     -------
     local_path : str
@@ -1142,7 +1167,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
                     cache=cache,
                     remote_url=remote_url,
                     pkgname=pkgname,
-                    http_headers=http_headers)
+                    http_headers=http_headers,
+                    ftp_tls=ftp_tls)
             # Success!
             break
 
