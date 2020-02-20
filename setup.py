@@ -75,11 +75,14 @@ except Exception:
 
 from distutils.version import LooseVersion
 
-v_tuple = LooseVersion(version).version
-major = v_tuple[0]
-minor = v_tuple[1]
-bugfix = v_tuple[2]
-del v_tuple
+version_info = LooseVersion(version).version
+major = version_info[0]
+minor = version_info[1]
+bugfix = version_info[2]
+
+del LooseVersion  # clean up the namespace
+
+release = 'dev' not in version
 """.lstrip()
 
 setup(use_scm_version={'write_to': os.path.join('astropy', 'version.py'),
