@@ -2,7 +2,6 @@
 
 import warnings
 import weakref
-import re
 
 from copy import deepcopy
 
@@ -422,9 +421,10 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
            (see #1446 and #1685)
         """
         out_arr = super().__array_wrap__(out_arr, context)
-        if (self.shape != out_arr.shape or
-            (isinstance(out_arr, BaseColumn) and
-             (context is not None and context[0] in _comparison_functions))):
+        if (self.shape != out_arr.shape
+            or (isinstance(out_arr, BaseColumn)
+                and (context is not None
+                     and context[0] in _comparison_functions))):
             return out_arr.data[()]
         else:
             return out_arr
@@ -1008,8 +1008,8 @@ class Column(BaseColumn):
             # attention of future maintainers to check (by deleting or versioning
             # the if block below).  See #6899 discussion.
             # 2019-06-21: still needed with numpy 1.16.
-            if (isinstance(self, MaskedColumn) and self.dtype.kind == 'U' and
-                    isinstance(other, MaskedColumn) and other.dtype.kind == 'S'):
+            if (isinstance(self, MaskedColumn) and self.dtype.kind == 'U'
+                    and isinstance(other, MaskedColumn) and other.dtype.kind == 'S'):
                 self, other = other, self
                 op = swapped_oper
 

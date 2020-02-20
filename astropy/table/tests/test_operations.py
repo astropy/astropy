@@ -315,7 +315,7 @@ class TestJoin():
         # masked, but col 'c' stays since MyMaskedCol supports masking.
         for name, exp_type in (('a', MyCol), ('b', MaskedColumn), ('c', MyMaskedCol),
                                ('d', MyCol), ('e', MyMaskedCol)):
-            assert type(t12[name] is exp_type)
+            assert type(t21[name] is exp_type)
 
     def test_col_rename(self, operation_table_type):
         self._setup(operation_table_type)
@@ -544,8 +544,8 @@ class TestJoin():
             for join_type in ('outer', 'left', 'right'):
                 with pytest.raises(NotImplementedError) as err:
                     table.join(t1, t2, join_type='outer')
-                assert ('join requires masking' in str(err.value) or
-                        'join unavailable' in str(err.value))
+                assert ('join requires masking' in str(err.value)
+                        or 'join unavailable' in str(err.value))
 
     def test_cartesian_join(self, operation_table_type):
         t1 = Table(rows=[(1, 'a'),
@@ -614,7 +614,7 @@ class TestSetdiff():
         self._setup(operation_table_type)
 
         with pytest.raises(ValueError):
-            out = table.setdiff(self.t3, self.t1)
+            table.setdiff(self.t3, self.t1)
 
     def test_extra_col_right_table(self, operation_table_type):
         self._setup(operation_table_type)
@@ -642,7 +642,7 @@ class TestSetdiff():
         self._setup(operation_table_type)
 
         with pytest.raises(ValueError):
-            out = table.setdiff(self.t3, self.t1, keys=['a', 'd'])
+            table.setdiff(self.t3, self.t1, keys=['a', 'd'])
 
 
 class TestVStack():
@@ -1008,8 +1008,8 @@ class TestVStack():
         else:
             with pytest.raises(NotImplementedError) as err:
                 table.vstack([t, t2], join_type='outer')
-            assert ('vstack requires masking' in str(err.value) or
-                    'vstack unavailable' in str(err.value))
+            assert ('vstack requires masking' in str(err.value)
+                    or 'vstack unavailable' in str(err.value))
 
 
 class TestDStack():
@@ -1398,7 +1398,7 @@ def test_unique(operation_table_type):
          ' 0 a 0.0 4',
          ' 1 a 2.0 6',
          ' 1 c 3.0 5',
-        ], format='ascii')
+         ], format='ascii')
 
     tu = operation_table_type(np.sort(t[:-1]))
 
@@ -1482,7 +1482,7 @@ def test_unique(operation_table_type):
                                '  2   b 7.0   0',
                                ' --   c 3.0   5']
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         t1_mu = table.unique(t1_m, silent=True, keys='a')
 
     t1_m = operation_table_type(t, masked=True)

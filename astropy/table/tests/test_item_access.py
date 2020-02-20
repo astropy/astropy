@@ -251,7 +251,7 @@ class TestTableItems(BaseTestItems):
         """
         t = table_data.Table(table_data.COLS)
         idxs = np.random.randint(len(t), size=2)
-        item = t[idxs[1]]
+        t[idxs[1]]
 
     def test_select_bad_column(self, table_data):
         """Select column name that does not exist"""
