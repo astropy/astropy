@@ -752,6 +752,8 @@ class TimeAstropyTime(TimeUnique):
                     location = np.broadcast_to(tm.location, tm._time.jd1.shape)
                     locations.append(np.atleast_1d(location))
                 location = np.concatenate(locations)
+            else:
+                location = None
         else:
             val = getattr(val1_0, scale)._time
             jd1, jd2 = val.jd1, val.jd2
