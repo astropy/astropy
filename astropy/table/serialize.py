@@ -235,6 +235,7 @@ class _TableLite(OrderedDict):
     When this happens in a real table then all other columns are immediately
     Masked and a warning is issued. This is not desirable.
     """
+
     def add_column(self, col, index=0):
         colnames = self.colnames
         self[col.info.name] = col

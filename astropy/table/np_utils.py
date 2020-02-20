@@ -5,15 +5,11 @@ Some code and inspiration taken from numpy.lib.recfunctions.join_by().
 Redistribution license restrictions apply.
 """
 
-from itertools import chain
 import collections
 from collections import OrderedDict, Counter
 from collections.abc import Sequence
 
 import numpy as np
-import numpy.ma as ma
-
-from . import _np_utils
 
 __all__ = ['TableMergeError']
 
@@ -107,7 +103,7 @@ def get_descrs(arrays, col_name_map):
         # Make sure all input shapes are the same
         uniq_shapes = set(col.shape[1:] for col in in_cols)
         if len(uniq_shapes) != 1:
-            raise TableMergeError(f'Key columns {name!r} have different shape')
+            raise TableMergeError(f'Key columns have different shape')
         shape = uniq_shapes.pop()
 
         out_descrs.append((fix_column_name(out_name), dtype, shape))

@@ -13,7 +13,7 @@ except ImportError:
     HAS_BLEACH = False
 
 try:
-    import IPython  # pylint: disable=W0611
+    import IPython  # noqa
 except ImportError:
     HAS_IPYTHON = False
 else:

@@ -112,8 +112,8 @@ class SortedArray:
             if exact and (t == len(key_slice) or key_slice[t] != key[i]):
                 # no match
                 return -1
-            elif t == len(key_slice) or (t == 0 and len(key_slice) > 0 and
-                                         key[i] < key_slice[0]):
+            elif t == len(key_slice) or (t == 0 and len(key_slice) > 0
+                                         and key[i] < key_slice[0]):
                 # too small or too large
                 return begin + t
             end = begin + _searchsorted(key_slice, key[i], side='right')

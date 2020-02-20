@@ -13,10 +13,10 @@ from astropy.table.table import QTable, Row, Table
 from astropy import units as u
 from astropy.time import Time
 from astropy.table.column import BaseColumn
-from astropy.table.index import get_index,SlicedIndex
+from astropy.table.index import get_index, SlicedIndex
 
 try:
-    import bintrees
+    import bintrees  # noqa
 except ImportError:
     HAS_BINTREES = False
 else:
@@ -105,21 +105,21 @@ class TestIndex(SetupData):
         assert np.allclose(t['b'], np.array([4.0, 5.1, 7.0, 1.1, 6.0, 5.0]))
         assert np.all(t['c'].data == np.array(['7', '8', '10', '11', '7', '9']))
         index = t.indices[0]
-        l = list(index.data.items())
+        ll = list(index.data.items())
 
         if composite:
-            assert np.all(l == [((2, 5.1), [1]),
-                                ((4, 4.0), [0]),
-                                ((4, 5.0), [5]),
-                                ((5, 1.1), [3]),
-                                ((6, 6.0), [4]),
-                                ((10, 7.0), [2])])
+            assert np.all(ll == [((2, 5.1), [1]),
+                                 ((4, 4.0), [0]),
+                                 ((4, 5.0), [5]),
+                                 ((5, 1.1), [3]),
+                                 ((6, 6.0), [4]),
+                                 ((10, 7.0), [2])])
         else:
-            assert np.all(l == [((2,), [1]),
-                                ((4,), [0, 5]),
-                                ((5,), [3]),
-                                ((6,), [4]),
-                                ((10,), [2])])
+            assert np.all(ll == [((2,), [1]),
+                                 ((4,), [0, 5]),
+                                 ((5,), [3]),
+                                 ((6,), [4]),
+                                 ((10,), [2])])
         t.remove_indices('a')
         assert len(t.indices) == 0
 
@@ -261,13 +261,13 @@ class TestIndex(SetupData):
         assert_col_equal(evens['a'], expected[::2])
         assert_col_equal(reverse['a'], expected[::2][::-1])
         # first ten evens are now zero
-        assert np.all(t.indices[0].sorted_data() ==
-                      [0, 2, 4, 6, 8, 10, 12, 14, 16, 18,
-                       1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
-                      + [i for i in range(20, 50)])
+        assert np.all(t.indices[0].sorted_data()
+                      == ([0, 2, 4, 6, 8, 10, 12, 14, 16, 18,
+                           1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
+                          + [i for i in range(20, 50)]))
         assert np.all(evens.indices[0].sorted_data() == [i for i in range(25)])
-        assert np.all(reverse.indices[0].sorted_data() ==
-                      [i for i in range(24, -1, -1)])
+        assert np.all(reverse.indices[0].sorted_data()
+                      == [i for i in range(24, -1, -1)])
 
         # try different step sizes of slice
         t2 = t[1:20:2]
@@ -437,8 +437,8 @@ class TestIndex(SetupData):
 
         # list search
         t2 = t.loc_indices[[self.make_val(1), self.make_val(4), self.make_val(2)]]
-        for i, p in zip(t2,[1,4,2]):  # same order as input list
-            assert i == p-1
+        for i, p in zip(t2, [1, 4, 2]):  # same order as input list
+            assert i == p - 1
 
     def test_invalid_search(self, main_col, table_types, engine):
         # using .loc and .loc_indices with a value not present should raise an exception
@@ -487,12 +487,13 @@ class TestIndex(SetupData):
 
     def test_updating_row_byindex(self, main_col, table_types, engine):
         self._setup(main_col, table_types)
-        t = Table([['a', 'b', 'c', 'd'], [2, 3, 4, 5], [3, 4, 5, 6]], names=('a', 'b', 'c'), meta={'name': 'first table'})
+        t = Table([['a', 'b', 'c', 'd'], [2, 3, 4, 5], [3, 4, 5, 6]],
+                  names=('a', 'b', 'c'), meta={'name': 'first table'})
 
         t.add_index('a', engine=engine)
         t.add_index('b', engine=engine)
 
-        t.loc['c'] = ['g', 40, 50] # single label, with primary key 'a'
+        t.loc['c'] = ['g', 40, 50]  # single label, with primary key 'a'
         t2 = t[2]
         assert list(t2) == ['g', 40, 50]
 
@@ -500,16 +501,17 @@ class TestIndex(SetupData):
         t.loc[['a', 'd', 'b']] = [['a', 20, 30], ['d', 50, 60], ['b', 30, 40]]
         t2 = [['a', 20, 30], ['d', 50, 60], ['b', 30, 40]]
         for i, p in zip(t2, [1, 4, 2]):  # same order as input list
-            assert list(t[p-1]) == i
+            assert list(t[p - 1]) == i
 
     def test_invalid_updates(self, main_col, table_types, engine):
         # using .loc and .loc_indices with a value not present should raise an exception
         self._setup(main_col, table_types)
-        t = Table([[1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6]], names=('a', 'b', 'c'), meta={'name': 'first table'})
+        t = Table([[1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6]],
+                  names=('a', 'b', 'c'), meta={'name': 'first table'})
 
         t.add_index('a')
         with pytest.raises(ValueError):
-            t.loc[3] = [[1,2,3]]
+            t.loc[3] = [[1, 2, 3]]
         with pytest.raises(ValueError):
             t.loc[[1, 4, 2]] = [[1, 2, 3], [4, 5, 6]]
         with pytest.raises(ValueError):

@@ -81,7 +81,7 @@ def test_bst_remove(bst):
         assert bst.remove(val) is True
         assert bst.is_valid()
         assert set([x.key for x in bst.traverse('inorder')]) == \
-                vals.difference(order[:i+1])
+            vals.difference(order[:i + 1])
         assert bst.size == 10 - i - 1
         assert bst.remove(-val) is False
 

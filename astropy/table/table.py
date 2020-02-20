@@ -20,7 +20,6 @@ from astropy.utils.console import color_print
 from astropy.utils.metadata import MetaData
 from astropy.utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
 from astropy.utils.decorators import format_doc
-from astropy.utils.exceptions import AstropyDeprecationWarning, NoValue
 from astropy.io.registry import UnifiedReadWriteMethod
 
 from . import groups
@@ -512,9 +511,9 @@ class Table:
             raise TypeError('__init__() got unexpected keyword argument {!r}'
                             .format(list(kwargs.keys())[0]))
 
-        if (isinstance(data, np.ndarray) and
-                data.shape == (0,) and
-                not data.dtype.names):
+        if (isinstance(data, np.ndarray)
+                and data.shape == (0,)
+                and not data.dtype.names):
             data = None
 
         if isinstance(data, self.Row):
@@ -523,8 +522,8 @@ class Table:
         if isinstance(data, (list, tuple)):
             # Get column names from `data` if it is a list of dict, otherwise this is None.
             # This might be previously defined if `rows` was supplied as an init arg.
-            names_from_list_of_dict = (names_from_list_of_dict or
-                                       _get_names_from_list_of_dict(data))
+            names_from_list_of_dict = (names_from_list_of_dict
+                                       or _get_names_from_list_of_dict(data))
             if names_from_list_of_dict:
                 init_func = self._init_from_list_of_dicts
                 n_cols = len(names_from_list_of_dict)
@@ -884,8 +883,8 @@ class Table:
         # if it is ordered, or alphabetically.  Starting with Python 3.7, dict
         # is ordered so this test can be relaxed.  (In practice CPython 3.6 is
         # this way, but not according to the formal spec).
-        if (isinstance(data[0], OrderedDict) and
-                set(data[0].keys()) == names_from_data):
+        if (isinstance(data[0], OrderedDict)
+                and set(data[0].keys()) == names_from_data):
             names_from_data = list(data[0].keys())
         else:
             names_from_data = sorted(names_from_data)
@@ -1000,8 +999,8 @@ class Table:
 
         # Structured ndarray gets viewed as a mixin unless already a valid
         # mixin class
-        if (not isinstance(data, Column) and not data_is_mixin and
-                isinstance(data, np.ndarray) and len(data.dtype) > 1):
+        if (not isinstance(data, Column) and not data_is_mixin
+                and isinstance(data, np.ndarray) and len(data.dtype) > 1):
             data = data.view(NdarrayMixin)
             data_is_mixin = True
 
@@ -1382,7 +1381,7 @@ class Table:
 
     @format_doc(_pprint_docs)
     def pprint_all(self, max_lines=-1, max_width=-1, show_name=True,
-               show_unit=None, show_dtype=False, align=None):
+                   show_unit=None, show_dtype=False, align=None):
         """Print a formatted string representation of the entire table.
 
         This method is the same as `astropy.table.Table.pprint` except that
@@ -1392,13 +1391,13 @@ class Table:
 
         """
         return self.pprint(max_lines, max_width, show_name,
-               show_unit, show_dtype, align)
+                           show_unit, show_dtype, align)
 
     def _make_index_row_display_table(self, index_row_name):
         if index_row_name not in self.columns:
             idx_col = self.ColumnClass(name=index_row_name, data=np.arange(len(self)))
             return self.__class__([idx_col] + self.columns.values(),
-                                           copy=False)
+                                  copy=False)
         else:
             return self
 
@@ -1448,7 +1447,7 @@ class Table:
 
         if tableid is None:
             tableid = 'table{}-{}'.format(id(self),
-                                            np.random.randint(1, 1e6))
+                                          np.random.randint(1, 1e6))
 
         jsv = JSViewer(display_length=display_length)
         if show_row_index:
@@ -1577,8 +1576,8 @@ class Table:
 
     @format_doc(_pformat_docs, id="{id}")
     def pformat_all(self, max_lines=-1, max_width=-1, show_name=True,
-                show_unit=None, show_dtype=False, html=False, tableid=None,
-                align=None, tableclass=None):
+                    show_unit=None, show_dtype=False, html=False, tableid=None,
+                    align=None, tableclass=None):
         """Return a list of lines for the formatted string representation of
         the entire table.
 
@@ -1595,8 +1594,8 @@ class Table:
         """
 
         return self.pformat(max_lines, max_width, show_name,
-                show_unit, show_dtype, html, tableid,
-                align, tableclass)
+                            show_unit, show_dtype, html, tableid,
+                            align, tableclass)
 
     def more(self, max_lines=None, max_width=None, show_name=True,
              show_unit=None, show_dtype=False):
@@ -1650,15 +1649,15 @@ class Table:
                                              keys=self.groups._keys)
             out.meta = self.meta.copy()  # Shallow copy for meta
             return out
-        elif ((isinstance(item, np.ndarray) and item.size == 0) or
-              (isinstance(item, (tuple, list)) and not item)):
+        elif ((isinstance(item, np.ndarray) and item.size == 0)
+              or (isinstance(item, (tuple, list)) and not item)):
             # If item is an empty array/list/tuple then return the table with no rows
             return self._new_from_slice([])
-        elif (isinstance(item, slice) or
-              isinstance(item, np.ndarray) or
-              isinstance(item, list) or
-              isinstance(item, tuple) and all(isinstance(x, np.ndarray)
-                                              for x in item)):
+        elif (isinstance(item, slice)
+              or isinstance(item, np.ndarray)
+              or isinstance(item, list)
+              or isinstance(item, tuple) and all(isinstance(x, np.ndarray)
+                                                 for x in item)):
             # here for the many ways to give a slice; a tuple of ndarray
             # is produced by np.where, as in t[np.where(t['a'] > 2)]
             # For all, a new table is constructed with slice of all columns
@@ -1692,11 +1691,11 @@ class Table:
             elif isinstance(item, (int, np.integer)):
                 self._set_row(idx=item, colnames=self.colnames, vals=value)
 
-            elif (isinstance(item, slice) or
-                  isinstance(item, np.ndarray) or
-                  isinstance(item, list) or
-                  (isinstance(item, tuple) and  # output from np.where
-                   all(isinstance(x, np.ndarray) for x in item))):
+            elif (isinstance(item, slice)
+                  or isinstance(item, np.ndarray)
+                  or isinstance(item, list)
+                  or (isinstance(item, tuple)  # output from np.where
+                      and all(isinstance(x, np.ndarray) for x in item))):
 
                 if isinstance(value, Table):
                     vals = (col for col in value.columns.values())
@@ -1725,11 +1724,11 @@ class Table:
             self.remove_column(item)
         elif isinstance(item, (int, np.integer)):
             self.remove_row(item)
-        elif (isinstance(item, (list, tuple, np.ndarray)) and
-              all(isinstance(x, str) for x in item)):
+        elif (isinstance(item, (list, tuple, np.ndarray))
+              and all(isinstance(x, str) for x in item)):
             self.remove_columns(item)
-        elif (isinstance(item, (list, np.ndarray)) and
-              np.asarray(item).dtype.kind == 'i'):
+        elif (isinstance(item, (list, np.ndarray))
+              and np.asarray(item).dtype.kind == 'i'):
             self.remove_rows(item)
         elif isinstance(item, slice):
             self.remove_rows(item)
@@ -1786,8 +1785,8 @@ class Table:
     @staticmethod
     def _is_list_or_tuple_of_str(names):
         """Check that ``names`` is a tuple or list of strings"""
-        return (isinstance(names, (tuple, list)) and names and
-                all(isinstance(x, str) for x in names))
+        return (isinstance(names, (tuple, list)) and names
+                and all(isinstance(x, str) for x in names))
 
     def keys(self):
         return list(self.columns.keys())
@@ -1944,10 +1943,10 @@ class Table:
             new_shape = (len(self),) + getattr(col, 'shape', ())[1:]
             if isinstance(col, np.ndarray):
                 col = np.broadcast_to(col, shape=new_shape,
-                                       subok=True)
+                                      subok=True)
             elif isinstance(col, ShapedLikeNDArray):
                 col = col._apply(np.broadcast_to, shape=new_shape,
-                                   subok=True)
+                                 subok=True)
 
             # broadcast_to() results in a read-only array.  Apparently it only changes
             # the view to look like the broadcasted array.  So copy.
@@ -3239,17 +3238,17 @@ class Table:
                 with warnings.catch_warnings(record=True) as warns:
                     warnings.simplefilter('always')
                     eq = self[name] == other[name]
-                    if (warns and issubclass(warns[-1].category, FutureWarning) and
-                            'elementwise comparison failed' in str(warns[-1].message)):
+                    if (warns and issubclass(warns[-1].category, FutureWarning)
+                            and 'elementwise comparison failed' in str(warns[-1].message)):
                         raise FutureWarning(warns[-1].message)
             except Exception as err:
                 raise ValueError(f'unable to compare column {name}') from err
 
             # Be strict about the result from the comparison. E.g. SkyCoord __eq__ is just
             # broken and completely ignores that it should return an array.
-            if not (isinstance(eq, np.ndarray) and
-                    eq.dtype is np.dtype('bool') and
-                    len(eq) == len(self)):
+            if not (isinstance(eq, np.ndarray)
+                    and eq.dtype is np.dtype('bool')
+                    and len(eq) == len(self)):
                 raise TypeError(f'comparison for column {name} returned {eq} '
                                 f'instead of the expected boolean ndarray')
 
@@ -3371,7 +3370,6 @@ class Table:
             astropy Columns + appropriate meta-data to allow subsequent decoding.
             """
             from . import serialize
-            from astropy.utils.data_info import MixinInfo, serialize_context_as
             from astropy.time import Time, TimeDelta
 
             # Convert any Time or TimeDelta columns and pay attention to masking

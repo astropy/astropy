@@ -38,9 +38,9 @@ class TestFilled:
     def setup_method(self, method):
         mask = [True, False, False]
         self.meta = {'a': 1, 'b': [2, 3]}
-        a = self.a = MaskedColumn(name='a', data=[1, 2, 3], fill_value=10, mask=mask, meta={'a': 1})
-        b = self.b = MaskedColumn(name='b', data=[4.0, 5.0, 6.0], fill_value=10.0, mask=mask)
-        c = self.c = MaskedColumn(name='c', data=['7', '8', '9'], fill_value='1', mask=mask)
+        self.a = MaskedColumn(name='a', data=[1, 2, 3], fill_value=10, mask=mask, meta={'a': 1})
+        self.b = MaskedColumn(name='b', data=[4.0, 5.0, 6.0], fill_value=10.0, mask=mask)
+        self.c = MaskedColumn(name='c', data=['7', '8', '9'], fill_value='1', mask=mask)
 
     def test_filled_column(self):
         f = self.a.filled()
@@ -184,6 +184,7 @@ class TestMaskedColumnInit(SetupData):
 
 class TestTableInit(SetupData):
     """Initializing a table"""
+
     def test_initialization_with_all_columns(self):
         t1 = Table([self.a, self.b, self.c, self.d, self.ca, self.sc])
         assert t1.colnames == ['a', 'b', 'c', 'd', 'ca', 'sc']
@@ -193,14 +194,14 @@ class TestTableInit(SetupData):
         t2 = Table(lofd)
         for k in t1.colnames:
             assert np.all(t1[k] == t2[k]) in (True, np.ma.masked)
-            assert np.all(getattr(t1[k], 'mask', False) ==
-                          getattr(t2[k], 'mask', False))
+            assert np.all(getattr(t1[k], 'mask', False)
+                          == getattr(t2[k], 'mask', False))
 
     # Filter warnings since these are set to lead to exceptions,
     # which changes behaviour in Table._convert_data_to_col
     # (causing conversion of columns with masked elements to object dtype).
     @pytest.mark.filterwarnings('ignore:.*converting a masked element.*')
-    def test_initialization_with_all_columns(self):
+    def test_initialization_with_all_columns2(self):
         t1 = Table([self.a, self.b, self.c, self.d, self.ca, self.sc])
         assert t1.colnames == ['a', 'b', 'c', 'd', 'ca', 'sc']
         # Check we get the same result by passing in as list of dict.
@@ -214,8 +215,8 @@ class TestTableInit(SetupData):
             if k not in ('b', 'd'):
                 assert t1[k].dtype == t2[k].dtype
             assert np.all(t1[k] == t2[k]) in (True, np.ma.masked)
-            assert np.all(getattr(t1[k], 'mask', False) ==
-                          getattr(t2[k], 'mask', False))
+            assert np.all(getattr(t1[k], 'mask', False)
+                          == getattr(t2[k], 'mask', False))
 
     def test_mask_false_if_input_mask_not_true(self):
         """Masking is always False if initial masked arg is not True"""
@@ -444,9 +445,9 @@ class TestAddRow:
         t.add_row((3 * u.m,))  # No problem
         with pytest.raises(ValueError) as exc:
             t.add_row((3 * u.m,), mask=(True,))
-        assert (exc.value.args[0].splitlines() ==
-                ["Unable to insert row because of exception in column 'a':",
-                 "mask was supplied for column 'a' but it does not support masked values"])
+        assert (exc.value.args[0].splitlines()
+                == ["Unable to insert row because of exception in column 'a':",
+                    "mask was supplied for column 'a' but it does not support masked values"])
 
 
 def test_setting_from_masked_column():
@@ -515,14 +516,14 @@ def test_masked_as_array_with_mixin():
     assert isinstance(ta, np.ma.MaskedArray)
     assert np.all(ta['a'].mask == [False, True])
     assert np.isclose(ta['a'][0].cxcsec, 1.0)
-    assert np.all(ta['b'].mask == False)
-    assert np.all(ta['c'].mask == False)
+    assert np.all(ta['b'].mask == False)  # noqa
+    assert np.all(ta['c'].mask == False)  # noqa
 
     # Check table ``mask`` property
     tm = t.mask
     assert np.all(tm['a'] == [False, True])
-    assert np.all(tm['b'] == False)
-    assert np.all(tm['c'] == False)
+    assert np.all(tm['b'] == False)  # noqa
+    assert np.all(tm['c'] == False)  # noqa
 
 
 def test_masked_column_with_unit_in_qtable():

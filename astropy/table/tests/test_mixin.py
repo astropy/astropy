@@ -144,11 +144,11 @@ def test_io_time_write_fits_standard(tmpdir, table_types):
     """
     t = table_types([[1, 2], ['string', 'column']])
     for scale in time.STANDARD_TIME_SCALES:
-        t['a'+scale] = time.Time([[1, 2], [3, 4]], format='cxcsec',
-                                 scale=scale, location=EarthLocation(
-                                     -2446354, 4237210, 4077985, unit='m'))
-        t['b'+scale] = time.Time(['1999-01-01T00:00:00.123456789',
-                                  '2010-01-01T00:00:00'], scale=scale)
+        t['a' + scale] = time.Time([[1, 2], [3, 4]], format='cxcsec',
+                                   scale=scale, location=EarthLocation(
+            -2446354, 4237210, 4077985, unit='m'))
+        t['b' + scale] = time.Time(['1999-01-01T00:00:00.123456789',
+                                    '2010-01-01T00:00:00'], scale=scale)
     t['c'] = [3., 4.]
 
     filename = str(tmpdir.join('table-tmp'))
@@ -228,10 +228,12 @@ def test_io_time_write_fits_local(tmpdir, table_types):
 
     # Show that FITS format succeeds
 
-    with pytest.warns(AstropyUserWarning, match='Time Column "b_local" has no specified location'):
+    with pytest.warns(AstropyUserWarning,
+                      match='Time Column "b_local" has no specified location'):
         t.write(filename, format='fits', overwrite=True)
 
-    with pytest.warns(AstropyUserWarning, match='Time column reference position "TRPOSn" is not specified.'):
+    with pytest.warns(AstropyUserWarning,
+                      match='Time column reference position "TRPOSn" is not specified.'):
         tm = table_types.read(filename, format='fits', astropy_native=True)
 
     for ab in ('a', 'b'):
@@ -334,7 +336,8 @@ def test_join(table_types):
 
     # Join does work for a mixin which is a subclass of np.ndarray
     with pytest.warns(MergeConflictWarning,
-                      match="In merged column 'quantity' the 'description' attribute does not match"):
+                      match="In merged column 'quantity' the 'description' "
+                            "attribute does not match"):
         t12 = join(t1, t2, keys=['quantity'])
     assert np.all(t12['a_1'] == t1['a'])
 
