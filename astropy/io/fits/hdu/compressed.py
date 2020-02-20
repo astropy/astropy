@@ -1654,6 +1654,10 @@ class CompImageHDU(BinTableHDU):
             # First delete the original compressed data, if it exists
             del self.compressed_data
 
+            # Make sure that the data is contiguous otherwise CFITSIO
+            # will not write the expected data
+            self.data = np.ascontiguousarray(self.data)
+
             # Compress the data.
             # The current implementation of compress_hdu assumes the empty
             # compressed data table has already been initialized in

@@ -72,6 +72,8 @@ astropy.io.fits
 - Fix ``fitsdiff`` when its arguments are directories that contain other
   directories. [#9711]
 
+- Fix writing noncontiguous data to a compressed HDU. [#9958]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
