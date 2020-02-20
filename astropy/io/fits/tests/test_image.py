@@ -1790,6 +1790,33 @@ class TestCompressedImage(FitsTestCase):
         new = fits.getdata(testfile)
         np.testing.assert_array_equal(data, new)
 
+    def test_write_non_contiguous_data(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/2150
+        """
+        orig = np.arange(100, dtype=float).reshape((10, 10), order='f')
+        assert not orig.flags.contiguous
+        primary = fits.PrimaryHDU()
+        hdu = fits.CompImageHDU(orig)
+        hdulist = fits.HDUList([primary, hdu])
+        hdulist.writeto(self.temp('test.fits'))
+
+        actual = fits.getdata(self.temp('test.fits'))
+        assert_equal(orig, actual)
+
+    def test_slice_and_write_comp_hdu(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/9955
+        """
+        with fits.open(self.data('comp.fits')) as hdul:
+            hdul[1].data = hdul[1].data[:200, :100]
+            assert not hdul[1].data.flags.contiguous
+            hdul[1].writeto(self.temp('test.fits'))
+
+        with fits.open(self.data('comp.fits')) as hdul1:
+            with fits.open(self.temp('test.fits')) as hdul2:
+                assert_equal(hdul1[1].data[:200, :100], hdul2[1].data)
+
 
 def test_comphdu_bscale(tmpdir):
     """
