@@ -4,6 +4,7 @@ import numpy as np
 from astropy.io import ascii
 from .common import (assert_equal, assert_almost_equal,  # noqa
                      setup_function, teardown_function)  # noqa
+from astropy import units as u
 
 
 def read_table1(readme, data):
@@ -156,6 +157,18 @@ def test_cds_units():
     # make sure this is parsed correctly, not as a "string" unit
     assert table['Fit'].to(units.solMass).unit == units.solMass
 
+
+def test_cds_function_units():
+    from astropy.units import dex
+    data_and_readme = 'data/cdsFunctional.dat'
+    reader = ascii.get_reader(ascii.Cds)
+    table = reader.read(data_and_readme)
+    assert table['logg'].unit == u.dex(u.cm/u.s**2)
+    assert table['logTe'].unit == u.dex(u.K)
+    assert table['Mass'].unit == u.Msun
+    assert table['e_Mass'].unit == u.Msun
+    assert table['Age'].unit == u.Myr
+    assert table['e_Age'].unit == u.Myr
 
 if __name__ == "__main__":  # run from main directory; not from test/
     test_header_from_readme()

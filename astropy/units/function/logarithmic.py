@@ -150,6 +150,12 @@ class DexUnit(LogUnit):
     def _quantity_class(self):
         return Dex
 
+    def to_string(self, format='generic'):
+        if format == 'cds':
+            return "[{}]".format(self.physical_unit.to_string(format=format))
+        else:
+            return super(DexUnit, self).to_string()
+
 
 class DecibelUnit(LogUnit):
     """Logarithmic physical units expressed in dB
