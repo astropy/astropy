@@ -661,18 +661,19 @@ class Time(ShapedLikeNDArray):
                              .format(list(self.FORMATS)))
         format_cls = self.FORMATS[format]
 
-        # If current output subformat is not in the new format then replace
-        # with default '*'
-        if hasattr(format_cls, 'subfmts'):
-            subfmt_names = [subfmt[0] for subfmt in format_cls.subfmts]
-            if self.out_subfmt not in subfmt_names:
-                self.out_subfmt = '*'
-
         self._time = format_cls(self._time.jd1, self._time.jd2,
                                 self._time._scale, self.precision,
                                 in_subfmt=self.in_subfmt,
                                 out_subfmt=self.out_subfmt,
                                 from_jd=True)
+
+        # If current output subformat does not match any subfmts in new format
+        # then replace with default '*'
+        try:
+            self._time._select_subfmts(self.out_subfmt)
+        except ValueError:
+            self.out_subfmt = '*'
+
         self._format = format
 
     def __repr__(self):
@@ -1468,12 +1469,23 @@ class Time(ShapedLikeNDArray):
                              .format(list(tm.FORMATS)))
 
         NewFormat = tm.FORMATS[new_format]
+
         tm._time = NewFormat(tm._time.jd1, tm._time.jd2,
                              tm._time._scale, tm.precision,
                              tm.in_subfmt, tm.out_subfmt,
                              from_jd=True)
         tm._format = new_format
         tm.SCALES = self.SCALES
+
+        # If format has changed and current output subformat does not match any
+        # subfmts in new format then replace with default '*'.  If format is
+        # unchanged then the original out_subfmt is by definition OK.
+        if new_format != self.format:
+            try:
+                tm._time._select_subfmts(tm.out_subfmt)
+            except ValueError:
+                tm.out_subfmt = '*'
+
         return tm
 
     def __copy__(self):

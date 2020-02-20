@@ -397,6 +397,15 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- Fix inaccuracy when converting between TimeDelta and datetime.timedelta. [#9679]
+
+- Fixed exception when changing ``format`` in the case when ``out_subfmt`` is
+  defined and is incompatible with the new format. [#9812]
+
+- Fixed exceptions in ``Time.to_value()``: when supplying any ``subfmt`` argument
+  for string-based formats like 'iso', and for ``subfmt='long'`` for the formats
+  'byear', 'jyear', and 'decimalyear'. [#9812]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
