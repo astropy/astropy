@@ -99,8 +99,6 @@ def test_votable(capsys):
     showtable.main([os.path.join(VOTABLE_ROOT, 'data/regression.xml'),
                     '--table-id', 'main_table', '--max-width', '50'])
     out, err = capsys.readouterr()
-    print('output:')
-    print(out.splitlines())
     assert out.splitlines() == [
         '   string_test    string_test_2 ... bitarray2 [16]',
         '----------------- ------------- ... --------------',
