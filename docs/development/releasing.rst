@@ -63,6 +63,13 @@ packages that use the full bugfix/maintenance branch approach.)
    step is only required on major releases, but can be done for bugfix releases
    as time allows.)
 
+#. (astropy specific) Ensure the built-in IERS earth rotation parameter and
+   leap second tables are up to date by changing directory to
+   ``astropy/utils/iers/data`` and executing ``update_builtin_iers.sh``.
+   Check the result with ``git diff`` (do not be surprised to find many lines
+   in the ``eopc04_IAU2000.62-now`` file change; those data are reanalyzed
+   periodically) and committing.
+
 #. To build the source distribution in an isolated environment and make sure you
    have all the dependencies required for it, install the `pep517
    <https://pypi.org/project/pep517/>`_ package::
