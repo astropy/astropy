@@ -72,6 +72,14 @@ try:
     version = get_version(root='..', relative_to=__file__)
 except Exception:
     version = '{version}'
+
+from distutils.version import LooseVersion
+
+v_tuple = LooseVersion(version).version
+major = v_tuple[0]
+minor = v_tuple[1]
+bugfix = v_tuple[2]
+del v_tuple
 """.lstrip()
 
 setup(use_scm_version={'write_to': os.path.join('astropy', 'version.py'),
