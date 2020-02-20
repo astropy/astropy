@@ -231,9 +231,6 @@ astropy.io.registry
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
-- For FIELDs with datatype="char", store the values as strings instead 
-  of bytes. [#9505]
-
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
@@ -377,6 +374,9 @@ astropy.io.registry
 
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
+
+- For FIELDs with datatype="char", store the values as strings instead
+  of bytes. [#9505]
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
