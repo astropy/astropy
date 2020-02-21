@@ -43,6 +43,9 @@ astropy.modeling
 ^^^^^^^^^^^^^^^^
 - Added Plummer1D model to ``functional_models``. [#9896]
 
+- Added ``UnitsMapping`` model and ``Model.coerce_units`` to support units on otherwise
+  unitless models. [#9936]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 

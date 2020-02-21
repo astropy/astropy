@@ -6,7 +6,7 @@ from asdf import tagged, yamlutil
 from astropy.modeling import mappings
 from astropy.utils import minversion
 from astropy.modeling import functional_models
-from astropy.io.misc.asdf.types import AstropyAsdfType
+from astropy.io.misc.asdf.types import AstropyAsdfType, AstropyType
 
 
 __all__ = ['TransformType', 'IdentityType', 'ConstantType']
@@ -161,3 +161,63 @@ class GenericType(TransformType):
             'n_inputs': data.n_inputs,
             'n_outputs': data.n_outputs
         }
+
+
+class UnitsMappingType(AstropyType):
+    name = "transform/units_mapping"
+    version = "1.0.0"
+    types = [mappings.UnitsMapping]
+
+    @classmethod
+    def to_tree(cls, node, ctx):
+        tree = {}
+
+        if node.name is not None:
+            tree["name"] = node.name
+
+        inputs = []
+        outputs = []
+        for i, o, m in zip(node.inputs, node.outputs, node.mapping):
+            input = {
+                "name": i,
+                "allow_dimensionless": node.input_units_allow_dimensionless[i],
+            }
+            if m[0] is not None:
+                input["unit"] = yamlutil.custom_tree_to_tagged_tree(m[0], ctx)
+            if node.input_units_equivalencies is not None and i in node.input_units_equivalencies:
+                input["equivalencies"] = yamlutil.custom_tree_to_tagged_tree(node.input_units_equivalencies[i], ctx)
+            inputs.append(input)
+
+            output = {
+                "name": o,
+            }
+            if m[-1] is not None:
+                output["unit"] = yamlutil.custom_tree_to_tagged_tree(m[-1], ctx)
+            outputs.append(output)
+
+        tree["inputs"] = inputs
+        tree["outputs"] = outputs
+
+        return tree
+
+
+    @classmethod
+    def from_tree(cls, tree, ctx):
+        mapping = tuple((i.get("unit"), o.get("unit")) for i, o in zip(tree["inputs"], tree["outputs"]))
+
+        equivalencies = None
+        for i in tree["inputs"]:
+            if "equivalencies" in i:
+                if equivalencies is None:
+                    equivalencies = {}
+                equivalencies[i["name"]] = yamlutil.tagged_tree_to_custom_tree(i["equivalencies"], ctx)
+
+        kwargs = {
+            "input_units_equivalencies": equivalencies,
+            "input_units_allow_dimensionless": {i["name"]: i.get("allow_dimensionless", False) for i in tree["inputs"]},
+        }
+
+        if "name" in tree:
+            kwargs["name"] = tree["name"]
+
+        return mappings.UnitsMapping(mapping, **kwargs)
