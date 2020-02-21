@@ -743,6 +743,8 @@ class TimeAstropyTime(TimeUnique):
             vals = [getattr(val, scale)._time for val in val1]
             jd1 = np.concatenate([np.atleast_1d(val.jd1) for val in vals])
             jd2 = np.concatenate([np.atleast_1d(val.jd2) for val in vals])
+
+            # Collect individual location values and merge into a single location.
             if any(tm.location is not None for tm in val1):
                 if any(tm.location is None for tm in val1):
                     raise ValueError('cannot concatenate times unless all locations '
