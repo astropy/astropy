@@ -2158,3 +2158,49 @@ def test_to_value_with_subfmt_for_every_format(fmt_name, fmt_class):
     subfmts = list(subfmt[0] for subfmt in fmt_class.subfmts) + [None, '*']
     for subfmt in subfmts:
         t.to_value(fmt_name, subfmt)
+
+
+@pytest.mark.parametrize('location', [None, (45, 45)])
+def test_location_init(location):
+    """Test fix in #9969 for issue #9962 where the location attribute is
+    lost when initializing Time from an existing Time instance of list of
+    Time instances.
+    """
+    tm = Time('J2010', location=location)
+
+    # Init from a scalar Time
+    tm2 = Time(tm)
+    assert np.all(tm.location == tm2.location)
+    assert type(tm.location) is type(tm2.location)
+
+    # From a list of Times
+    tm2 = Time([tm, tm])
+    if location is None:
+        assert tm2.location is None
+    else:
+        for loc in tm2.location:
+            assert loc == tm.location
+    assert type(tm.location) is type(tm2.location)
+
+    # Effectively the same as a list of Times, but just to be sure that
+    # Table mixin inititialization is working as expected.
+    tm2 = Table([[tm, tm]])['col0']
+    if location is None:
+        assert tm2.location is None
+    else:
+        for loc in tm2.location:
+            assert loc == tm.location
+    assert type(tm.location) is type(tm2.location)
+
+
+def test_location_init_fail():
+    """Test fix in #9969 for issue #9962 where the location attribute is
+    lost when initializing Time from an existing Time instance of list of
+    Time instances.  Make sure exception is correct.
+    """
+    tm = Time('J2010', location=(45, 45))
+    tm2 = Time('J2010')
+
+    with pytest.raises(ValueError,
+                       match='cannot concatenate times unless all locations'):
+        Time([tm, tm2])

@@ -738,17 +738,46 @@ class TimeAstropyTime(TimeUnique):
 
         if scale is None:
             scale = val1_0.scale
+
         if val1.shape:
             vals = [getattr(val, scale)._time for val in val1]
             jd1 = np.concatenate([np.atleast_1d(val.jd1) for val in vals])
             jd2 = np.concatenate([np.atleast_1d(val.jd2) for val in vals])
+
+            # Collect individual location values and merge into a single location.
+            if any(tm.location is not None for tm in val1):
+                if any(tm.location is None for tm in val1):
+                    raise ValueError('cannot concatenate times unless all locations '
+                                     'are set or no locations are set')
+                locations = []
+                for tm in val1:
+                    location = np.broadcast_to(tm.location, tm._time.jd1.shape,
+                                               subok=True)
+                    locations.append(np.atleast_1d(location))
+
+                # Once we no longer have to support NUMPY_LT_1_17, we can
+                # just write np.concatenate(locations).  Right now, we
+                # effectively do what __array_function__ does directly.
+                location0 = locations[0]
+                unit = location0.unit
+                location = np.concatenate([location.to_value(unit)
+                                           for location in locations])
+                location = location0._new_view(location)
+
+            else:
+                location = None
         else:
             val = getattr(val1_0, scale)._time
             jd1, jd2 = val.jd1, val.jd2
+            location = val1_0.location
 
         OutTimeFormat = val1_0._time.__class__
         self = OutTimeFormat(jd1, jd2, scale, precision, in_subfmt, out_subfmt,
                              from_jd=True)
+
+        # Make a temporary hidden attribute to transfer location back to the
+        # parent Time object where it needs to live.
+        self._location = location
 
         return self
 
