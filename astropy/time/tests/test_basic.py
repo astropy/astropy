@@ -2158,3 +2158,30 @@ def test_to_value_with_subfmt_for_every_format(fmt_name, fmt_class):
     subfmts = list(subfmt[0] for subfmt in fmt_class.subfmts) + [None, '*']
     for subfmt in subfmts:
         t.to_value(fmt_name, subfmt)
+
+
+def test_location_init():
+    """Test fix in #9969 for issue #9962 where the location attribute is
+    lost when initializing Time from an existing Time instance of list of
+    Time instances.
+    """
+    tm = Time('J2010', location=(45, 45))
+    # (3194419.14506057, 3194419.14506057, 4487348.40886592) m
+
+    # Init from a scalar Time
+    tm2 = Time(tm)
+    assert np.all(tm.location == tm2.location)
+    assert type(tm.location) is type(tm2.location)
+
+    # From a list of Times
+    tm2 = Time([tm, tm])
+    for loc in tm2.location:
+        assert np.all(tm.location == loc)
+    assert type(tm.location) is type(tm2.location)
+
+    # Effectively the same as a list of Times, but just to be sure that
+    # Table mixin inititialization is working as expected.
+    tm2 = Table([[tm, tm]])['col0']
+    for loc in tm2.location:
+        assert np.all(tm.location == loc)
+    assert type(tm.location) is type(tm2.location)
