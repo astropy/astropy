@@ -754,7 +754,16 @@ class TimeAstropyTime(TimeUnique):
                     location = np.broadcast_to(tm.location, tm._time.jd1.shape,
                                                subok=True)
                     locations.append(np.atleast_1d(location))
-                location = np.concatenate(locations)
+
+                # Once we no longer have to support NUMPY_LT_1_17, we can
+                # just write np.concatenate(locations).  Right now, we
+                # effectively do what __array_function__ does directly.
+                location0 = locations[0]
+                unit = location0.unit
+                location = np.concatenate([location.to_value(unit)
+                                           for location in locations])
+                location = location0._new_view(location)
+
             else:
                 location = None
         else:
