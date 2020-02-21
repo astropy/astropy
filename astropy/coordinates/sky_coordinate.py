@@ -1482,7 +1482,8 @@ class SkyCoord(ShapedLikeNDArray):
         Use barycentric corrections if m/s precision is required.
 
         The algorithm here is sufficient to perform corrections at the mm/s level, but
-        care is needed in application. Strictly speaking, the barycentric correction is
+        care is needed in application. The barycentric correction returned uses the optical
+        approximation v = z * c. Strictly speaking, the barycentric correction is
         multiplicative and should be applied as::
 
           >>> from astropy.time import Time
@@ -1493,9 +1494,6 @@ class SkyCoord(ShapedLikeNDArray):
           >>> sc = SkyCoord(1*u.deg, 2*u.deg)
           >>> vcorr = sc.radial_velocity_correction(kind='barycentric', obstime=t, location=loc)  # doctest: +REMOTE_DATA
           >>> rv = rv + vcorr + rv * vcorr / c  # doctest: +SKIP
-
-        If your target is nearby and/or has finite proper motion you may need to account
-        for terms arising from this. See Wright & Eastman (2014) for details.
 
         Also note that this method returns the correction velocity in the so-called
         *optical convention*::

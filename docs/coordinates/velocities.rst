@@ -518,9 +518,11 @@ Precision of `~astropy.coordinates.SkyCoord.radial_velocity_correction`
 ------------------------------------------------------------------------
 
 The correction computed by `~astropy.coordinates.SkyCoord.radial_velocity_correction`
-can be added to any observed radial velocity to provide a correction that is
-accurate to a level of approximately 3 m/s. If you need more precise
-corrections, there are a number of subtleties of which you must be aware.
+uses the optical approximation :math:`v = zc` (see :ref:`astropy-units-dopper-equivalencies`
+for details). The corretion can be added to any observed radial velocity
+to provide a correction that is accurate to a level of approximately 3 m/s.
+If you need more precise corrections, there are a number of subtleties of
+which you must be aware.
 
 The first is that you should always use a barycentric correction, as the
 barycenter is a fixed point where gravity is constant. Since the heliocenter
@@ -534,7 +536,7 @@ surface. For these reasons, the barycentric correction in
 be used for high precision work.
 
 Other considerations necessary for radial velocity corrections at the cm/s
-level are outlined in `Wright & Eastmann (2014) <http://adsabs.harvard.edu/abs/2014PASP..126..838W>`_.
+level are outlined in `Wright & Eastman (2014) <http://adsabs.harvard.edu/abs/2014PASP..126..838W>`_.
 Most important is that the barycentric correction is, strictly speaking,
 *multiplicative*, so that you should apply it as:
 
@@ -550,9 +552,7 @@ the barycentric correction in this way leads to errors of order 3 m/s.
 The barycentric correction in `~astropy.coordinates.SkyCoord.radial_velocity_correction` is consistent
 with the `IDL implementation <http://astroutils.astronomy.ohio-state.edu/exofast/barycorr.html>`_ of
 the Wright & Eastmann (2014) paper to a level of 10 mm/s for a source at
-infinite distance. We do not include the Shapiro delay, nor any effect related
-to the finite distance or proper motion of the source. The Shapiro delay is
-unlikely to be important unless you seek mm/s precision, but the effects of the
-source's parallax and proper motion can be important at the cm/s level. These
-effects are likely to be added to future versions of Astropy along with
-velocity support for |skycoord|, but in the meantime see `Wright & Eastmann (2014) <http://adsabs.harvard.edu/abs/2014PASP..126..838W>`_.
+infinite distance. We do not include the Shapiro delay nor the light
+travel time correction from equation 28 of that paper. The neglected terms
+are not important unless you require accuracies of better than 1 cm/s.
+If you do require that precision, see `Wright & Eastmann (2014) <http://adsabs.harvard.edu/abs/2014PASP..126..838W>`_.
