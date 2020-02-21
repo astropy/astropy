@@ -1598,7 +1598,7 @@ class SkyCoord(ShapedLikeNDArray):
         else:
             # skycoord has distances so apply parallax
             obs_icrs_cart = pos_earth + gcrs_p
-            icrs_cart = self.icrs.cartesian
+            icrs_cart = self.icrs.cartesian.without_differentials()
             targcart = icrs_cart - obs_icrs_cart
             targcart /= targcart.norm()
 
