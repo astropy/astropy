@@ -299,6 +299,10 @@ Bug fixes
 astropy.config
 ^^^^^^^^^^^^^^
 
+- Fixed a bug where importing a development version of a package that uses
+  ``astropy`` configuration system can result in a
+  ``~/.astropy/config/package..cfg``file. [#9975]
+
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 
