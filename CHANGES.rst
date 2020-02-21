@@ -349,7 +349,7 @@ astropy.io.misc
 - Magnitude, decibel, and dex can now be stored in ``hdf5`` files. [#9933]
 
 - Fixed serialization of polynomial models to include non default values of
-  domain and window values. [#9956]
+  domain and window values. [#9956, #9961]
 - Fixed a bug which affected overwriting tables within ``hdf5`` files.
   Overwriting an existing path with associated column meta data now also
   overwrites the meta data associated with the table. [#9950]
