@@ -178,7 +178,8 @@ class Distance(u.SpecificTypeQuantity):
             cls, value, unit, dtype=dtype, copy=copy, order=order,
             subok=subok, ndmin=ndmin)
 
-        # Make sure NaNs don't emit a warning
+        # This invalid catch block can be removed when the minimum numpy
+        # version is >= 1.19 (NUMPY_LT_1_19)
         with np.errstate(invalid='ignore'):
             any_negative = np.any(distance.value < 0)
 

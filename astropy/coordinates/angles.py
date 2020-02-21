@@ -42,7 +42,7 @@ class Angle(u.SpecificTypeQuantity):
       Angle('1°2′3″N')
       Angle('1d2m3.4s')
       Angle('1d2m3.4sS')
-      Angle('-1h2m3s') 
+      Angle('-1h2m3s')
       Angle('-1h2m3sE')
       Angle('-1h2.5m')
       Angle('-1h2.5mW')
@@ -523,6 +523,8 @@ class Latitude(Angle):
             angles = self
         lower = u.degree.to(angles.unit, -90.0)
         upper = u.degree.to(angles.unit, 90.0)
+        # This invalid catch block can be removed when the minimum numpy
+        # version is >= 1.19 (NUMPY_LT_1_19)
         with np.errstate(invalid='ignore'):
             invalid_angles = (np.any(angles.value < lower) or
                               np.any(angles.value > upper))
@@ -639,6 +641,9 @@ class Longitude(Angle):
         wrap_angle_floor = wrap_angle - a360
         self_angle = self.value
         # Do the wrapping, but only if any angles need to be wrapped
+        #
+        # This invalid catch block can be removed when the minimum numpy
+        # version is >= 1.19 (NUMPY_LT_1_19)
         with np.errstate(invalid='ignore'):
             wraps = (self_angle - wrap_angle_floor) // a360
         if np.any(wraps != 0):
