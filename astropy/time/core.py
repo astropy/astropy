@@ -412,7 +412,8 @@ class Time(ShapedLikeNDArray):
             if self.location.size == 1:
                 self.location = self.location.squeeze()
         else:
-            self.location = None
+            if not hasattr(self, 'location'):
+                self.location = None
 
         if isinstance(val, self.__class__):
             # Update _time formatting parameters if explicitly specified
@@ -484,6 +485,13 @@ class Time(ShapedLikeNDArray):
         self._time = self._get_time_fmt(val, val2, format, scale,
                                         precision, in_subfmt, out_subfmt)
         self._format = self._time.name
+
+        # Hack from #9969 to allow passing the location value that has been
+        # collected by the TimeAstropyTime format class up to the Time level.
+        # TODO: find a nicer way.
+        if hasattr(self._time, '_location'):
+            self.location = self._time._location
+            del self._time._location
 
         # If any inputs were masked then masked jd2 accordingly.  From above
         # routine ``mask`` must be either Python bool False or an bool ndarray
