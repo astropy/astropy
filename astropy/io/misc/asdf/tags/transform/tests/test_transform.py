@@ -172,6 +172,20 @@ def test_bounding_box(tmpdir):
     helpers.assert_roundtrip_tree(tree, tmpdir)
 
 
+@pytest.mark.parametrize("standard_version", asdf.versioning.supported_versions)
+@pytest.mark.parametrize("model", [
+    astmodels.Polynomial1D(1, c0=5, c1=17),
+    astmodels.Polynomial1D(1, c0=5, c1=17, domain=[-5, 4], window=[-2, 3]),
+    astmodels.Polynomial2D(2, c0_0=3, c1_0=5, c0_1=7),
+    astmodels.Polynomial2D(
+        2, c0_0=3, c1_0=5, c0_1=7, x_domain=[-2, 2], y_domain=[-4, 4],
+        x_window=[-6, 6], y_window=[-8, 8]
+    ),
+])
+def test_polynomial(tmpdir, standard_version, model):
+    helpers.assert_roundtrip_tree({"model": model}, tmpdir, init_options={"version": standard_version})
+
+
 def test_domain_orthopoly(tmpdir):
     model1d = astmodels.Chebyshev1D(2, c0=2, c1=3, c2=0.5, domain=[-2, 2])
     model2d = astmodels.Chebyshev2D(1, 1, c0_0=1, c0_1=2, c1_0=3,

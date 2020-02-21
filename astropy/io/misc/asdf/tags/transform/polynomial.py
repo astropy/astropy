@@ -5,13 +5,14 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 from asdf import yamlutil
+from asdf.versioning import AsdfVersion
 
 import astropy.units as u
 from astropy import modeling
 from .basic import TransformType
 from . import _parameter_to_value
 
-__all__ = ['ShiftType', 'ScaleType', 'PolynomialType', 'Linear1DType']
+__all__ = ['ShiftType', 'ScaleType', 'Linear1DType']
 
 
 class ShiftType(TransformType):
@@ -97,9 +98,10 @@ class MultiplyType(TransformType):
         assert_array_equal(a.factor, b.factor)
 
 
-class PolynomialType(TransformType):
+class PolynomialTypeBase(TransformType):
+    DOMAIN_WINDOW_MIN_VERSION = AsdfVersion("1.2.0")
+
     name = "transform/polynomial"
-    version = '1.2.0'
     types = ['astropy.modeling.models.Polynomial1D',
              'astropy.modeling.models.Polynomial2D']
 
@@ -155,16 +157,21 @@ class PolynomialType(TransformType):
         node = {'coefficients': coefficients}
         typeindex = cls.types.index(model.__class__)
         ndim = (typeindex % 2) + 1
-        if ndim == 1:
-            if model.domain is not None:
-                node['domain'] = model.domain
-            if model.window is not None:
-                node['window'] = model.window
-        else:
-            if model.x_domain or model.y_domain is not None:
-                node['domain'] = (model.x_domain, model.y_domain)
-            if model.x_window or model.y_window is not None:
-                node['window'] = (model.x_window, model.y_window)
+
+        if cls.version >= PolynomialTypeBase.DOMAIN_WINDOW_MIN_VERSION:
+            # Schema versions prior to 1.2 included an unrelated "domain"
+            # property.  We can't serialize the new domain values with those
+            # versions because they don't validate.
+            if ndim == 1:
+                if model.domain is not None:
+                    node['domain'] = model.domain
+                if model.window is not None:
+                    node['window'] = model.window
+            else:
+                if model.x_domain or model.y_domain is not None:
+                    node['domain'] = (model.x_domain, model.y_domain)
+                if model.x_window or model.y_window is not None:
+                    node['window'] = (model.x_window, model.y_window)
 
         return yamlutil.custom_tree_to_tagged_tree(node, ctx)
 
@@ -175,6 +182,30 @@ class PolynomialType(TransformType):
         assert (isinstance(a, (modeling.models.Polynomial1D, modeling.models.Polynomial2D)) and
                 isinstance(b, (modeling.models.Polynomial1D, modeling.models.Polynomial2D)))
         assert_array_equal(a.parameters, b.parameters)
+
+        if cls.version > PolynomialTypeBase.DOMAIN_WINDOW_MIN_VERSION:
+            # Schema versions prior to 1.2 are known not to serialize
+            # domain or window.
+            if isinstance(a, modeling.models.Polynomial1D):
+                assert a.domain == b.domain
+                assert a.window == b.window
+            else:
+                assert a.x_domain == b.x_domain
+                assert a.x_window == b.x_window
+                assert a.y_domain == b.y_domain
+                assert a.y_window == b.y_window
+
+
+class PolynomialType1_0(PolynomialTypeBase):
+    version = "1.0.0"
+
+
+class PolynomialType1_1(PolynomialTypeBase):
+    version = "1.1.0"
+
+
+class PolynomialType1_2(PolynomialTypeBase):
+    version = "1.2.0"
 
 
 class OrthoPolynomialType(TransformType):
