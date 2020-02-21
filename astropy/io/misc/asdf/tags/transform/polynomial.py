@@ -196,15 +196,15 @@ class PolynomialTypeBase(TransformType):
                 assert a.y_window == b.y_window
 
 
-class PolynomialType10(PolynomialTypeBase):
+class PolynomialType1_0(PolynomialTypeBase):
     version = "1.0.0"
 
 
-class PolynomialType11(PolynomialTypeBase):
+class PolynomialType1_1(PolynomialTypeBase):
     version = "1.1.0"
 
 
-class PolynomialType12(PolynomialTypeBase):
+class PolynomialType1_2(PolynomialTypeBase):
     version = "1.2.0"
 
 
