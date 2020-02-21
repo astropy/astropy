@@ -141,15 +141,14 @@ packages that use the full bugfix/maintenance branch approach.)
    assume you're using `Anaconda`_. Do::
 
       $ conda create -n astropy_release_test_v<version> numpy
-      $ source activate astropy_release_test_v<version>
+      $ conda activate astropy_release_test_v<version>
       $ pip install dist/astropy-<version>.tar.gz[all]
       $ python -c 'import astropy; astropy.test(remote_data=True)'
-      $ source deactivate
+      $ conda deactivate
 
-#. Push up these changes and the tag to the `astropy core repository`_
+#. Push up the tag to the `astropy core repository`_
    (the tag needs to be available for wheels in the next step)::
 
-      $ git push upstream v<version branch>.x
       $ git push upstream v<version branch>
 
    .. note::
