@@ -486,6 +486,9 @@ class Time(ShapedLikeNDArray):
                                         precision, in_subfmt, out_subfmt)
         self._format = self._time.name
 
+        # Hack from #9969 to allow passing the location value that has been
+        # collected by the TimeAstropyTime format class up to the Time level.
+        # TODO: find a nicer way.
         if hasattr(self._time, '_location'):
             self.location = self._time._location
             del self._time._location
