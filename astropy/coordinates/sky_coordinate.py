@@ -1593,13 +1593,14 @@ class SkyCoord(ShapedLikeNDArray):
         gcrs_p, gcrs_v = location.get_gcrs_posvel(obstime)
         # transforming to GCRS is not the correct thing to do here, since we don't want to
         # include aberration (or light deflection)? Instead, only apply parallax if necessary
+        icrs_cart = self.icrs.cartesian
+        icrs_cart_novel = icrs_cart.without_differentials()
         if self.data.__class__ is UnitSphericalRepresentation:
-            targcart = self.icrs.cartesian
+            targcart = icrs_cart
         else:
             # skycoord has distances so apply parallax
             obs_icrs_cart = pos_earth + gcrs_p
-            icrs_cart = self.icrs.cartesian.without_differentials()
-            targcart = icrs_cart - obs_icrs_cart
+            targcart = icrs_cart_novel - obs_icrs_cart
             targcart /= targcart.norm()
 
         if kind == 'barycentric':
@@ -1608,7 +1609,16 @@ class SkyCoord(ShapedLikeNDArray):
             gr = location.gravitational_redshift(obstime)
             # barycentric redshift according to eq 28 in Wright & Eastmann (2014),
             # neglecting Shapiro delay and effects of the star's own motion
-            zb = gamma_obs * (1 + targcart.dot(beta_obs)) / (1 + gr/speed_of_light) - 1
+            zb = gamma_obs * (1 + targcart.dot(beta_obs)) / (1 + gr/speed_of_light)
+            # try and get terms corresponding to stellar motion. If this fails
+            # then do so silently
+            try:
+                beta_star = icrs_cart.differentials['s'].to_cartesian() / speed_of_light
+                ro = icrs_cart_novel/icrs_cart_novel.norm()
+                zb *= (1 + beta_star.dot(ro)) / (1 + beta_star.dot(targcart))
+            except KeyError:
+                pass
+
             return zb * speed_of_light
         else:
             # do a simpler correction ignoring time dilation and gravitational redshift
