@@ -939,3 +939,8 @@ def test_angle_with_cds_units_enabled():
 def test_longitude_nan():
     # Check that passing a NaN to Longitude doesn't raise a warning
     Longitude([0, np.nan, 1] * u.deg)
+
+
+def test_latitude_nan():
+    # Check that passing a NaN to Latitude doesn't raise a warning
+    Latitude([0, np.nan, 1] * u.deg)
