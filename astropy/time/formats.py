@@ -749,7 +749,8 @@ class TimeAstropyTime(TimeUnique):
                                      'are set or no locations are set')
                 locations = []
                 for tm in val1:
-                    location = np.broadcast_to(tm.location, tm._time.jd1.shape)
+                    location = np.broadcast_to(tm.location, tm._time.jd1.shape,
+                                               subok=True)
                     locations.append(np.atleast_1d(location))
                 location = np.concatenate(locations)
             else:
