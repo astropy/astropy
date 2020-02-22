@@ -426,7 +426,7 @@ Building
 There are two ways to build the Astropy documentation. The easiest way is to
 execute the following tox command (from the ``astropy`` source directory)::
 
-    tox -e docs
+    tox -e build_docs
 
 If you do this, you do not need to install any of the documentation dependencies
 as this will be done automatically. The documentation will be built in the
