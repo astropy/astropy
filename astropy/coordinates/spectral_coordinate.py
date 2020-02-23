@@ -6,7 +6,6 @@ import astropy.units as u
 from astropy.constants import c
 from astropy.coordinates import SkyCoord, ICRS, Distance, GCRS, RadialDifferential, CartesianDifferential
 from astropy.coordinates.baseframe import BaseCoordinateFrame, FrameMeta
-from astropy.utils.compat import NUMPY_LT_1_14
 from astropy.utils.exceptions import AstropyUserWarning
 
 DOPPLER_CONVENTIONS = {
@@ -435,14 +434,38 @@ class SpectralCoord(u.Quantity):
 
         return new_coord
 
+    def in_velocity_frame(self, frame):
+        """
+        Alters the velocity frame of the observer, but not the position.
+
+        Parameters
+        ----------
+        frame : `BaseCoordinateFrame` or `SkyCoord`
+            The observation frame containing the new velocity for the observer.
+
+        Returns
+        -------
+        `SpectralCoord`
+            The new coordinate object representing the spectral data
+            transformed based on the observer's new velocity frame.
+        """
+        if hasattr(frame, 'frame'):
+            frame = frame.frame
+
+        if not frame.data.differentials:
+            raise ValueError("Frame has no velocities, cannot transform "
+                             "velocity frame.")
+
+        data_with_rv = self.observer.data.with_differentials(
+            {'s': }
+        )
+
+
     def to_rest(self):
         """
         Transforms the spectral axis to the rest frame.
         """
         rest_frame_value = self / (1 + self.redshift)
-        print(self.redshift)
-        print(rest_frame_value)
-        print(self.radial_velocity)
 
         return self._copy(value=rest_frame_value)
 
@@ -497,7 +520,7 @@ class SpectralCoord(u.Quantity):
 
     def __repr__(self):
         prefixstr = '<' + self.__class__.__name__ + ' '
-        sep = ',' if NUMPY_LT_1_14 else ', '
+        sep = ', '
         arrstr = np.array2string(self.view(np.ndarray), separator=sep,
                                  prefix=prefixstr)
         obs_frame = self.observer.__class__.__name__ \
