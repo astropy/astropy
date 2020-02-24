@@ -222,3 +222,17 @@ def test_return_annotation_none():
 
     solarx = myfunc_args(1*u.arcsec)
     assert solarx is None
+
+
+def test_enum_annotation():
+    # Regression test for gh-9932
+    from enum import Enum, auto
+
+    class BasicEnum(Enum):
+        AnOption = auto()
+
+    @u.quantity_input
+    def myfunc_args(a: BasicEnum, b: u.arcsec) -> None:
+        pass
+
+    myfunc_args(BasicEnum.AnOption, 1*u.arcsec)
