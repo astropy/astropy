@@ -963,8 +963,22 @@ class Column(NotifierMixin):
         valid = {}
         invalid = {}
 
-        format, recformat = cls._determine_formats(format, start, dim, ascii)
-        valid.update(format=format, recformat=recformat)
+        try:
+            format, recformat = cls._determine_formats(format, start, dim, ascii)
+            valid.update(format=format, recformat=recformat)
+        except (ValueError, VerifyError) as err:
+            msg = (
+                f'Column format option (TFORMn) failed verification: {err!s} '
+                'The invalid value will be ignored for the purpose of '
+                'formatting the data in this column.')
+            invalid['format'] = (format, msg)
+        except AttributeError as err:
+            msg = (
+                f'Column format option (TFORMn) must be a string with a valid '
+                f'FITS table format (got {format!s}: {err!s}). '
+                'The invalid value will be ignored for the purpose of '
+                'formatting the data in this column.')
+            invalid['format'] = (format, msg)
 
         # Currently we don't have any validation for name, unit, bscale, or
         # bzero so include those by default

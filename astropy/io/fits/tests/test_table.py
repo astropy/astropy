@@ -3080,11 +3080,12 @@ class TestColumnFunctions(FitsTestCase):
         assert 'Column name must be a string able to fit' in str(err.value)
 
         with pytest.raises(VerifyError) as err:
-            _ = fits.Column('col', format='I', null='Nan', disp=1, coord_type=1,
-                            coord_unit=2, coord_ref_point='1', coord_ref_value='1',
-                            coord_inc='1', time_ref_pos=1)
-        err_msgs = ['keyword arguments to Column were invalid', 'TNULL', 'TDISP',
-                    'TCTYP', 'TCUNI', 'TCRPX', 'TCRVL', 'TCDLT', 'TRPOS']
+            _ = fits.Column('col', format=0, null='Nan', disp=1, coord_type=1,
+                            coord_unit=2, coord_inc='1', time_ref_pos=1,
+                            coord_ref_point='1', coord_ref_value='1')
+        err_msgs = ['keyword arguments to Column were invalid',
+                    'TFORM', 'TNULL', 'TDISP', 'TCTYP', 'TCUNI', 'TCRPX',
+                    'TCRVL', 'TCDLT', 'TRPOS']
         for msg in err_msgs:
             assert msg in str(err.value)
 
@@ -3109,6 +3110,24 @@ class TestColumnFunctions(FitsTestCase):
         with pytest.raises(VerifyError) as err:
             _ = fits.Column('a', format='I', start='-56', array=[1, 2, 3])
         assert "start option (TBCOLn) must be a positive integer (got -56)." in str(err.value)
+
+    @pytest.mark.parametrize('keys',
+                             [{'TFORM': 'Z', 'TDISP': 'E'},
+                              {'TFORM': '2', 'TDISP': '2E'},
+                              {'TFORM': 3, 'TDISP': 6.3},
+                              {'TFORM': float, 'TDISP': np.float64},
+                              {'TFORM': '', 'TDISP': 'E.5'}])
+    def test_column_verify_formats(self, keys):
+        """
+        Additional tests for verification of 'TFORM' and 'TDISP' keyword
+        arguments used to initialize a Column.
+        """
+        with pytest.raises(VerifyError) as err:
+            _ = fits.Column('col', format=keys['TFORM'], disp=keys['TDISP'])
+
+        for key in keys.keys():
+            assert key in str(err.value)
+            assert str(keys[key]) in str(err.value)
 
 
 def test_regression_5383():
