@@ -1,5 +1,6 @@
 import re
 import copy
+import warnings
 
 import numpy as np
 
@@ -11,6 +12,7 @@ from astropy.wcs.utils import skycoord_to_pixel, pixel_to_skycoord
 from astropy.utils.data_info import MixinInfo
 from astropy.utils import ShapedLikeNDArray
 from astropy.time import Time
+from astropy.utils.exceptions import AstropyUserWarning
 
 from .distances import Distance
 from .angles import Angle
@@ -1608,15 +1610,23 @@ class SkyCoord(ShapedLikeNDArray):
             # barycentric redshift according to eq 28 in Wright & Eastmann (2014),
             # neglecting Shapiro delay and effects of the star's own motion
             zb = gamma_obs * (1 + targcart.dot(beta_obs)) / (1 + gr/speed_of_light)
-            # try and get terms corresponding to stellar motion. If this fails
-            # then do so silently
+            # try and get terms corresponding to stellar motion.
+            # Fail silently if there are no differentials, but raise a warning if
+            # differentials exist but are not sufficient to calculate space velocity
             try:
                 beta_star = icrs_cart.differentials['s'].to_cartesian() / speed_of_light
                 ro = icrs_cart_novel/icrs_cart_novel.norm()
                 zb *= (1 + beta_star.dot(ro)) / (1 + beta_star.dot(targcart))
             except KeyError:
                 pass
+            except u.UnitConversionError:
+                warnings.warn("SkyCoord contains some velocity information, but not enough to "
+                              "calculate the full space motion of the source, and so this has "
+                              "been ignored for the purposes of calculating the radial velocity "
+                              "correction. This can lead to errors on the order of metres/second.",
+                              AstropyUserWarning)
 
+            zb = zb - 1
             return zb * speed_of_light
         else:
             # do a simpler correction ignoring time dilation and gravitational redshift
