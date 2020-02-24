@@ -301,3 +301,94 @@ def test_invalid_argument_combos():
 
     with pytest.raises(ValueError):
         scwattrs.radial_velocity_correction(timel)
+
+
+def test_regression_9645():
+    sc = SkyCoord(10*u.deg, 20*u.deg, distance=5*u.pc,
+                  pm_ra_cosdec=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr, radial_velocity=0*u.km/u.s)
+    sc_novel = SkyCoord(10*u.deg, 20*u.deg, distance=5*u.pc)
+    corr = sc.radial_velocity_correction(obstime=test_input_time, location=test_input_loc)
+    corr_novel = sc_novel.radial_velocity_correction(obstime=test_input_time, location=test_input_loc)
+    assert_quantity_allclose(corr, corr_novel)
+
+
+@pytest.mark.remote_data
+def test_barycorr_withvels():
+    # this is the result of calling _get_barycorr_bvcs_withvels
+    barycorr_bvcs = u.Quantity(
+        [-10335.94901398, -14198.49074135, -2237.58603184,
+         -14198.49030979, -17425.47907834, -17131.72454389,
+         2424.38453928, 2130.62856716, -17425.47852064,
+         -19872.51346598, -24442.3888212, -11017.09452282,
+         6978.07440406, 11547.94841586, -1877.34538839,
+         -19872.51256396, -21430.09440631, -27669.15820551,
+         -16917.09266796, 2729.57728906, 16476.50782874,
+         13971.98025823, -2898.04441526, -21430.09317332,
+         -22028.52360593, -29301.93584671, -21481.13829465,
+         -3147.44812726, 14959.5072031, 22232.91879544,
+         14412.12149724, -3921.56784245, -22028.52196585,
+         -21641.02245985, -29373.06002768, -24205.91188603,
+         -8557.34397026, 10250.50467491, 23417.23250086,
+         24781.98159696, 13706.17139042, -4627.70476083,
+         -21641.02032556, -20284.9303734, -28193.92149786,
+         -22908.5203847, -6901.82469681, 12336.45463077,
+         25804.51284952, 27200.49627844, 15871.20965329,
+         -2882.25075298, -20284.92789334, -18020.92912708,
+         -25752.96566033, -20585.82158138, -4937.26072294,
+         13870.58130079, 27037.30623272, 28402.05764536,
+         17326.25428387, -1007.62298192, -18020.92629577,
+         -14950.3271854, -22223.73822407, -14402.95127754,
+         3930.72291792, 22037.66667233, 29311.07829935,
+         21490.29301495, 3156.62395395, -14950.32432903,
+         -11210.52709262, -17449.59090902, -6697.54579712,
+         12949.09890328, 26696.01926168, 24191.50484946,
+         7321.507315, -11210.5243125, -6968.87637548,
+         -11538.75489728, 1886.5050118, 19881.64323346,
+         24451.52233565, 11026.26444463, -6968.87377902,
+         -2415.17913524, -2121.44617927, 17434.60437916,
+         17140.87243824, -2415.17725544, 2246.79681159,
+         14207.61324454, 2246.79782408, 6808.43882788], u.m/u.s)
+    coos = _get_test_input_radecvels()
+    bvcs_astropy = coos.radial_velocity_correction(obstime=test_input_time, location=test_input_loc)
+    assert_quantity_allclose(bvcs_astropy, barycorr_bvcs, atol=10*u.mm/u.s)
+    return bvcs_astropy, barycorr_bvcs  # for interactively examination
+
+
+def _get_test_input_radecvels():
+    coos = _get_test_input_radecs()
+    ras = coos.ra
+    decs = coos.dec
+    pmra = np.linspace(-1000, 1000, coos.size)*u.mas/u.yr
+    pmdec = np.linspace(0, 1000, coos.size)*u.mas/u.yr
+    rvs = np.linspace(0, 100, coos.size)*u.km/u.s
+    distance = np.linspace(10, 1000, coos.size)*u.pc
+    return SkyCoord(ras, decs, pm_ra_cosdec=pmra, pm_dec=pmdec, radial_velocity=rvs, distance=distance)
+
+
+def _get_barycorr_bvcs_withvels(coos, loc, injupyter=False):
+    """
+    Gets the barycentric correction of the test data from the
+    http://astroutils.astronomy.ohio-state.edu/exofast/barycorr.html web site.
+    Requires the https://github.com/tronsgaard/barycorr python interface to that
+    site.
+
+    Provided to reproduce the test data above, but not required to actually run
+    the tests.
+    """
+    import barycorr
+    from astropy.utils.console import ProgressBar
+
+    bvcs = []
+    for coo in ProgressBar(coos, ipython_widget=injupyter):
+        res = barycorr.bvc(test_input_time.utc.jd,
+                           coo.ra.deg, coo.dec.deg,
+                           lat=loc.geodetic[1].deg,
+                           lon=loc.geodetic[0].deg,
+                           pmra=coo.pm_ra_cosdec.to_value(u.mas/u.yr),
+                           pmdec=coo.pm_dec.to_value(u.mas/u.yr),
+                           parallax=coo.distance.to_value(u.mas, equivalencies=u.parallax()),
+                           rv=coo.radial_velocity.to_value(u.m/u.s),
+                           epoch=test_input_time.utc.jd,
+                           elevation=loc.geodetic[2].to(u.m).value)
+        bvcs.append(res)
+    return bvcs*u.m/u.s
