@@ -303,6 +303,7 @@ def test_invalid_argument_combos():
         scwattrs.radial_velocity_correction(timel)
 
 
+@pytest.mark.remote_data
 def test_regression_9645():
     sc = SkyCoord(10*u.deg, 20*u.deg, distance=5*u.pc,
                   pm_ra_cosdec=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr, radial_velocity=0*u.km/u.s)
