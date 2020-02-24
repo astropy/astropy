@@ -3,9 +3,9 @@
 
 __all__ = ['quantity_input']
 
+from collections.abc import Sequence
 import inspect
 from astropy.utils.decorators import wraps
-from astropy.utils.misc import isiterable
 
 from .core import Unit, UnitBase, UnitsError, add_enabled_equivalencies
 from .physical import _unit_physical_mapping
@@ -204,7 +204,7 @@ class QuantityInput:
                 #   were specified in the decorator/annotation, or whether a
                 #   single string (unit or physical type) or a Unit object was
                 #   specified
-                if isinstance(targets, str) or not isiterable(targets):
+                if isinstance(targets, str) or not isinstance(targets, Sequence):
                     valid_targets = [targets]
 
                 # Check for None in the supplied list of allowed units and, if
