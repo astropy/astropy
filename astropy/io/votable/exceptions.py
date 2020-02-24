@@ -1463,8 +1463,8 @@ class E23(VOTableSpecWarning):
 
 class E24(VOWarning, ValueError):
     """
-    Non-ASCII unicode values cannot be written in BINARY or BINARY2 serialization
-    when the FIELD datatype="char".
+    Non-ASCII unicode values should not be written when the FIELD datatype="char",
+    and cannot be written in BINARY or BINARY2 serialization.
     """
 
     message_template = (

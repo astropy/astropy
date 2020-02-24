@@ -339,8 +339,23 @@ class Char(Converter):
     def output(self, value, mask):
         if mask:
             return ''
-        if not isinstance(value, str):
-            value = value.decode('ascii')
+
+        # The output methods for Char assume that value is either str or bytes.
+        # This method needs to return a str, but needs to warn if the str contains
+        # non-ASCII characters.
+        try:
+            if isinstance(value, str):
+                value.encode('ascii')
+            else:
+                # Check for non-ASCII chars in the bytes object.
+                value = value.decode('ascii')
+        except (ValueError, UnicodeEncodeError):
+            warn_or_raise(E24, UnicodeEncodeError, (value, self.field_name))
+        finally:
+            if isinstance(value, bytes):
+                # Convert the bytes to str regardless of non-ASCII chars.
+                value = value.decode('utf-8')
+
         return xml_escape_cdata(value)
 
     def _binparse_var(self, read):
