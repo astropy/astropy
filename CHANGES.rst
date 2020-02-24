@@ -414,7 +414,7 @@ astropy.time
 - Fixed exceptions in ``Time.to_value()``: when supplying any ``subfmt`` argument
   for string-based formats like 'iso', and for ``subfmt='long'`` for the formats
   'byear', 'jyear', and 'decimalyear'. [#9812]
-  
+
 - Fixed bug where the location attribute was lost when creating a new ``Time``
   object from an existing ``Time`` or list of ``Time`` objects. [#9969]
 
@@ -434,6 +434,9 @@ astropy.units
 
 astropy.utils
 ^^^^^^^^^^^^^
+
+- Fixed ``deprecated_renamed_argument`` not passing in user value to
+  deprecated keyword when the keyword has no new name. [#9981]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
