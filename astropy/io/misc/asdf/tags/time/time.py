@@ -76,7 +76,12 @@ class TimeType(AstropyAsdfType):
             # This code does get tested in CI, but we don't run a coverage test
             if cls.version == '1.0.0': # pragma: no cover
                 unit = node.location.unit
-                d['location'] = { 'x': x, 'y': y, 'z': z, 'unit': unit }
+                d['location'] = {
+                    'x': x.value,
+                    'y': y.value,
+                    'z': z.value,
+                    'unit': yamlutil.custom_tree_to_tagged_tree(unit, ctx)
+                }
             else:
                 d['location'] = {
                     # It seems like EarthLocations can be represented either in

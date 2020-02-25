@@ -66,6 +66,8 @@ astropy.io.misc
   Overwriting an existing path with associated column meta data now also
   overwrites the meta data associated with the table. [#9950]
 
+- Fixed serialization of Time objects with location under time-1.0.0
+  ASDF schema. [#9983]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
