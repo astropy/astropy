@@ -68,6 +68,7 @@ initializing a |Table| object. This is documented in detail in the
 columns, a dictionary of columns, or from `numpy` arrays (either structured or
 homogeneous).
 
+
 Table or NumPy Structured Array
 -------------------------------
 
@@ -75,7 +76,7 @@ An Astropy |Table| object or a NumPy `structured array`_ (or record array) can
 serve as input to the |write| function.
 
 Example
-^^^^^^^
+=======
 
 ..
   EXAMPLE START
@@ -113,6 +114,7 @@ object that can be an input to the |write| function.
 ..
   EXAMPLE END
 
+
 List of ``list`` Objects
 ------------------------
 
@@ -141,6 +143,7 @@ from the output::
     2 world
     3 !!!
 
+
 ``dict`` of ``list`` Objects
 ----------------------------
 
@@ -152,7 +155,7 @@ Since a Python dictionary is not ordered, the output column order will be
 unpredictable unless the ``names`` argument is provided.
 
 Example
-^^^^^^^
+=======
 
 ..
   EXAMPLE START
@@ -174,8 +177,9 @@ To write a table from a ``dict`` of ``list`` objects::
 
 .. _io_ascii_write_parameters:
 
+
 Parameters for ``write()``
-==========================
+--------------------------
 
 The |write| function accepts a number of parameters that specify the detailed
 output table format. Each of the :ref:`supported_formats` is handled by a
@@ -305,7 +309,7 @@ details.
 .. _ecsv_format:
 
 ECSV Format
-===========
+-----------
 
 The `Enhanced Character-Separated Values (ECSV) format
 <https://github.com/astropy/astropy-APEs/blob/master/APE6.rst>`_ can be used to
@@ -345,8 +349,9 @@ original column. For example, a `~astropy.coordinates.SkyCoord` mixin column in
 ``distance``, along with object attributes like ``representation_type`` or
 ``frame``.
 
+
 Example
-^^^^^^^
+=======
 
 ..
   EXAMPLE START
@@ -436,7 +441,7 @@ shown in the example below. For further context see the section on
 :ref:`table_serialization_methods`.
 
 Example
-^^^^^^^
+=======
 
 ..
   EXAMPLE START
