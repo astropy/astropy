@@ -326,6 +326,9 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- The default IERS server has been updated to use the FTPS server hosted by
+  CDDIS. [#9964]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -363,6 +366,15 @@ Other Changes and Additions
 ==================
 
 Bug Fixes
+New Features
+------------
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- ``astropy.utils.data.download_file` now supports FTPS/FTP over TLS. [#9964]
+
+Bug fixes
 ---------
 
 astropy.config
