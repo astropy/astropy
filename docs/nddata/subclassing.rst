@@ -127,7 +127,7 @@ Adding another operation is possible provided the ``data`` and ``unit`` allow
 it within the framework of `~astropy.units.Quantity`.
 
 Examples
---------
+^^^^^^^^
 
 ..
   EXAMPLE START
@@ -189,7 +189,7 @@ behavior too. The actual operation on the attribute (except for ``unit``) is
 done in a method ``_arithmetic_*`` where ``*`` is the name of the property.
 
 Examples
---------
+^^^^^^^^
 
 ..
   EXAMPLE START
@@ -254,7 +254,7 @@ default value of existing parameters by changing it in the method signature of
 ``_arithmetic``.
 
 Example
--------
+^^^^^^^
 
 ..
   EXAMPLE START
