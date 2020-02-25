@@ -106,7 +106,7 @@ images. To get started, we will construct a two-dimensional image with a few
 sources, some Gaussian noise, and a "cosmic ray" which we will later mask out.
 
 Examples
---------
+^^^^^^^^
 
 ..
   EXAMPLE START
@@ -205,7 +205,7 @@ propagation of uncertainties. Three uncertainty types are supported: variance
 (`~astropy.nddata.InverseVariance`).
 
 Examples
---------
+^^^^^^^^
 
 ..
   EXAMPLE START
@@ -270,7 +270,7 @@ Though slicing directly is one way to extract a subframe,
 data.
 
 Examples
-^^^^^^^^
+~~~~~~~~
 
 ..
   EXAMPLE START
@@ -367,7 +367,7 @@ The functions `~astropy.nddata.block_reduce` and
 `~astropy.nddata.block_replicate` resize images.
 
 Example
-^^^^^^^
+~~~~~~~
 
 ..
   EXAMPLE START
