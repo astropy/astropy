@@ -352,7 +352,7 @@ The default (``0``) represents uncorrelated while ``1`` means correlated and
 element-wise correlation coefficient.
 
 Examples
---------
+^^^^^^^^
 
 ..
   EXAMPLE START
