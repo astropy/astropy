@@ -440,7 +440,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
                 pass
             else:
                 if new_name[i] is None:
-                    continue
+                    param = arguments[old_name[i]]
                 elif new_name[i] in arguments:
                     param = arguments[new_name[i]]
                 # In case the argument is not found in the list of arguments
@@ -449,16 +449,19 @@ def deprecated_renamed_argument(old_name, new_name, since,
                 # This case has to be explicitly specified, otherwise throw
                 # an exception!
                 else:
-                    raise TypeError('"{}" was not specified in the function '
-                                    'signature. If it was meant to be part of '
-                                    '"**kwargs" then set "arg_in_kwargs" to "True"'
-                                    '.'.format(new_name[i]))
+                    raise TypeError(
+                        f'"{new_name[i]}" was not specified in the function '
+                        'signature. If it was meant to be part of '
+                        '"**kwargs" then set "arg_in_kwargs" to "True"')
 
                 # There are several possibilities now:
 
                 # 1.) Positional or keyword argument:
                 if param.kind == param.POSITIONAL_OR_KEYWORD:
-                    position[i] = keys.index(new_name[i])
+                    if new_name[i] is None:
+                        position[i] = keys.index(old_name[i])
+                    else:
+                        position[i] = keys.index(new_name[i])
 
                 # 2.) Keyword only argument:
                 elif param.kind == param.KEYWORD_ONLY:
@@ -468,12 +471,16 @@ def deprecated_renamed_argument(old_name, new_name, since,
                 # 3.) positional-only argument, varargs, varkwargs or some
                 #     unknown type:
                 else:
-                    raise TypeError('cannot replace argument "{}" of kind '
-                                    '{!r}.'.format(new_name[i], param.kind))
+                    raise TypeError(f'cannot replace argument "{new_name[i]}" '
+                                    f'of kind {repr(param.kind)}.')
 
         @functools.wraps(function)
         def wrapper(*args, **kwargs):
             for i in range(n):
+                message = (f'"{old_name[i]}" was deprecated in version '
+                           f'{since[i]} and will be removed in a future '
+                           'version. ')
+
                 # The only way to have oldkeyword inside the function is
                 # that it is passed as kwarg because the oldkeyword
                 # parameter was renamed to newkeyword.
@@ -482,15 +489,10 @@ def deprecated_renamed_argument(old_name, new_name, since,
                     # Display the deprecation warning only when it's not
                     # pending.
                     if not pending[i]:
-                        message = ('"{}" was deprecated in version {} '
-                                   'and will be removed in a future version. '
-                                   .format(old_name[i], since[i]))
                         if new_name[i] is not None:
-                            message += ('Use argument "{}" instead.'
-                                        .format(new_name[i]))
+                            message += f'Use argument "{new_name[i]}" instead.'
                         elif alternative:
-                            message += ('\n        Use {} instead.'
-                                        .format(alternative))
+                            message += f'\n        Use {alternative} instead.'
                         warnings.warn(message, warning_type, stacklevel=2)
 
                     # Check if the newkeyword was given as well.
@@ -504,14 +506,14 @@ def deprecated_renamed_argument(old_name, new_name, since,
                             # True or raise an Exception is relax is False.
                             if relax[i]:
                                 warnings.warn(
-                                    '"{0}" and "{1}" keywords were set. '
-                                    'Using the value of "{1}".'
-                                    ''.format(old_name[i], new_name[i]),
+                                    f'"{old_name[i]}" and "{new_name[i]}" '
+                                    'keywords were set. '
+                                    f'Using the value of "{new_name[i]}".',
                                     AstropyUserWarning)
                             else:
                                 raise TypeError(
-                                    'cannot specify both "{}" and "{}"'
-                                    '.'.format(old_name[i], new_name[i]))
+                                    f'cannot specify both "{old_name[i]}" and '
+                                    f'"{new_name[i]}".')
                     else:
                         # Pass the value of the old argument with the
                         # name of the new argument to the function
@@ -521,6 +523,14 @@ def deprecated_renamed_argument(old_name, new_name, since,
                         # https://github.com/astropy/astropy/issues/9914
                         else:
                             kwargs[old_name[i]] = value
+
+                # Deprecated keyword without replacement is given as
+                # positional argument.
+                elif (not pending[i] and not new_name[i] and position[i] and
+                      len(args) > position[i]):
+                    if alternative:
+                        message += f'\n        Use {alternative} instead.'
+                    warnings.warn(message, warning_type, stacklevel=2)
 
             return function(*args, **kwargs)
 
