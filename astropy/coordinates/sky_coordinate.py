@@ -1579,12 +1579,14 @@ class SkyCoord(ShapedLikeNDArray):
             # warn the user if the object has differentials set
             if 's' in self.data.differentials:
                 warnings.warn(
-                    "SkyCoord has space motion, and therefore the posiion "
-                    "of the SkyCoord at `obstime` may not be the same as "
+                    "SkyCoord has space motion, and therefore the specified "
+                    "position of the SkyCoord may not be the same as "
                     "the `obstime` for the radial velocity measurement. "
-                    "However, if you want to apply space motion of the "
-                    "SkyCoord to correct for this, the `obstime` attribute of"
-                    "the SkyCoord must be set", AstropyUserWarning
+                    "This may affect the rv correction at the order of km/s"
+                    "for very high proper motions sources. If you wish to "
+                    "apply space motion of the SkyCoord to correct for this"
+                    "the `obstime` attribute of the SkyCoord must be set",
+                    AstropyUserWarning
                 )
             coo_at_rv_obstime = self
 
