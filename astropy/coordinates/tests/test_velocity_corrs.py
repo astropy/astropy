@@ -6,8 +6,10 @@ import numpy as np
 from astropy.tests.helper import assert_quantity_allclose
 from astropy import units as u
 from astropy.time import Time
-from astropy.coordinates import EarthLocation, SkyCoord, Angle
+from astropy.coordinates import EarthLocation, SkyCoord, Angle, Distance
 from astropy.coordinates.sites import get_builtin_sites
+from astropy.utils.data import download_file
+from astropy.constants import c as speed_of_light
 
 
 @pytest.mark.remote_data
@@ -302,7 +304,6 @@ def test_invalid_argument_combos():
     with pytest.raises(ValueError):
         scwattrs.radial_velocity_correction(timel)
 
-
 @pytest.mark.remote_data
 def test_regression_9645():
     sc = SkyCoord(10*u.deg, 20*u.deg, distance=5*u.pc,
@@ -393,3 +394,30 @@ def _get_barycorr_bvcs_withvels(coos, loc, injupyter=False):
                            elevation=loc.geodetic[2].to(u.m).value)
         bvcs.append(res)
     return bvcs*u.m/u.s
+
+
+@pytest.mark.remote_data
+def test_regression_XXXX():
+    # Wright & Eastman (2014) Table2
+    # Corrections for tau Ceti
+    jds, tempo2, barycorr = np.loadtxt(
+        download_file('http://astroutils.astronomy.ohio-state.edu/exofast/pro/exofast/bary/zb.txt'))
+
+    # tau Ceti Hipparchos data
+    tauCet = SkyCoord('01 44 05.1275 -15 56 22.4006',
+                      unit=(u.hour, u.deg),
+                      pm_ra_cosdec=-1721.05*u.mas/u.yr,
+                      pm_dec=854.16*u.mas/u.yr,
+                      distance=Distance(parallax=273.96*u.mas),
+                      radial_velocity=-16.597*u.km/u.s,
+                      obstime=Time(48348.5625, format='mjd'))
+    # CTIO
+    xyz = u.Quantity([1814985.3, -5213916.8, -3187738.1], u.m)
+    obs = EarthLocation(*xyz)
+    times = Time(jds + 2400000, format='jd')
+    tempo2 = tempo2 * speed_of_light
+    barycorr = barycorr * speed_of_light
+    astropy = tauCet.radial_velocity_correction(location=obs, obstime=times)
+
+    assert_quantity_allclose(astropy, tempo2, atol=5*u.mm/u.s)
+    assert_quantity_allclose(astropy, barycorr, atol=5*u.mm/u.s)
