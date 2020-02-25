@@ -67,6 +67,20 @@ def test_time_with_location(tmpdir):
     helpers.assert_roundtrip_tree(tree, tmpdir)
 
 
+def test_time_with_location_1_0_0(tmpdir):
+    from astropy import units as u
+    from astropy.coordinates.earth import EarthLocation
+
+    location = EarthLocation(x=6378100*u.m, y=0*u.m, z=0*u.m)
+
+    t = time.Time('J2000.000', location=location, format='jyear_str')
+
+    tree = {'time': t}
+
+    # The version refers to ASDF Standard 1.0.0, which includes time-1.0.0
+    helpers.assert_roundtrip_tree(tree, tmpdir, init_options={"version": "1.0.0"})
+
+
 def test_isot(tmpdir):
     tree = {
         'time': time.Time('2000-01-01T00:00:00.000')
