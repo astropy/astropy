@@ -517,6 +517,10 @@ def deprecated_renamed_argument(old_name, new_name, since,
                         # name of the new argument to the function
                         if new_name[i] is not None:
                             kwargs[new_name[i]] = value
+                        # If old argument has no replacement, cast it back.
+                        # https://github.com/astropy/astropy/issues/9914
+                        else:
+                            kwargs[old_name[i]] = value
 
             return function(*args, **kwargs)
 
