@@ -1574,7 +1574,7 @@ class SkyCoord(ShapedLikeNDArray):
                                 'SkyCoord frame attribute or in the method '
                                 'call.')
         elif self.obstime is not None:
-            actual_coo = self.apply_space_motion(obstime)
+            coo_at_rv_obstime = self.apply_space_motion(obstime)
         elif self.obstime is None:
             # warn the user if the object has differentials set
             if 's' in self.data.differentials:
@@ -1586,7 +1586,7 @@ class SkyCoord(ShapedLikeNDArray):
                     "SkyCoord to correct for this, the `obstime` attribute of"
                     "the SkyCoord must be set", AstropyUserWarning
                 )
-            actual_coo = self
+            coo_at_rv_obstime = self
 
         pos_earth, v_earth = get_body_barycentric_posvel('earth', obstime)
         if kind == 'barycentric':
@@ -1602,7 +1602,7 @@ class SkyCoord(ShapedLikeNDArray):
         gcrs_p, gcrs_v = location.get_gcrs_posvel(obstime)
         # transforming to GCRS is not the correct thing to do here, since we don't want to
         # include aberration (or light deflection)? Instead, only apply parallax if necessary
-        icrs_cart = actual_coo.icrs.cartesian
+        icrs_cart = coo_at_rv_obstime.icrs.cartesian
         icrs_cart_novel = icrs_cart.without_differentials()
         if self.data.__class__ is UnitSphericalRepresentation:
             targcart = icrs_cart_novel
