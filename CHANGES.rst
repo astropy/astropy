@@ -18,6 +18,9 @@ astropy.coordinates
 - Angle parsing now supports ``cardinal direction`` in the cases
   where angles are initialized as ``string`` instances. eg ``"17°53'27"W"``.[#9859]
 
+- ```SkyCoord.radial_velocity_correction``` no longer raises an Exception when space motion
+  information is present on the SkyCoord. [#9980]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
