@@ -477,21 +477,15 @@ def test_deprecated_argument_remove():
         assert test(x=1, dummy=10) == (10, 1)
         assert len(w) == 1
 
-    assert test() == (11, 3)
-    assert test(121) == (121, 3)
-    assert test(dummy=121) == (121, 3)
-
-
-# Put this back in test_deprecated_argument_remove() when fixed.
-@pytest.mark.xfail(reason='Issue 9914')
-def test_deprecated_argument_remove_called_as_pos_arg():
-    @deprecated_renamed_argument('x', None, '2.0', alternative='astropy.y')
-    def test(dummy=11, x=3):
-        return dummy, x
-
     with pytest.warns(AstropyDeprecationWarning,
                       match=r'Use astropy.y instead'):
         test(121, 1) == (121, 1)
+
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        assert test() == (11, 3)
+        assert test(121) == (121, 3)
+        assert test(dummy=121) == (121, 3)
+        assert len(w) == 0
 
 
 def test_sharedmethod_reuse_on_subclasses():

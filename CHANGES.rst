@@ -437,6 +437,9 @@ astropy.utils
 
 - Fixed ``deprecated_renamed_argument`` not passing in user value to
   deprecated keyword when the keyword has no new name. [#9981]
+- Fixed ``deprecated_renamed_argument`` not issuing a deprecation warning when
+  deprecated keyword without new name is passed in as positional argument.
+  [#9985]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
