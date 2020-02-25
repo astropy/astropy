@@ -68,9 +68,8 @@ Example of embedding a SAMP hub in a Tk application
 The following code is a full example of a Tk application that watches for web
 SAMP connections and opens the appropriate dialog::
 
-
-    import Tkinter as tk
-    import tkMessageBox
+    import tkinter as tk
+    import tkinter.messagebox as tkMessageBox
 
     from astropy.samp import SAMPHubServer
     from astropy.samp.hub import WebProfileDialog
