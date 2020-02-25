@@ -1568,6 +1568,7 @@ class SkyCoord(ShapedLikeNDArray):
         # obstime validation
         if obstime is None:
             obstime = self.obstime
+            coo_at_rv_obstime = self
             if obstime is None:
                 raise TypeError('Must provide an `obstime` to '
                                 'radial_velocity_correction, either as a '
