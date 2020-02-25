@@ -305,6 +305,7 @@ def test_invalid_argument_combos():
         scwattrs.radial_velocity_correction(timel)
 
 @pytest.mark.remote_data
+@pytest.mark.filterwarnings('ignore')
 def test_regression_9645():
     sc = SkyCoord(10*u.deg, 20*u.deg, distance=5*u.pc,
                   pm_ra_cosdec=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr, radial_velocity=0*u.km/u.s)
@@ -315,6 +316,7 @@ def test_regression_9645():
 
 
 @pytest.mark.remote_data
+@pytest.mark.filterwarnings('ignore')
 def test_barycorr_withvels():
     # this is the result of calling _get_barycorr_bvcs_withvels
     barycorr_bvcs = u.Quantity(
@@ -401,7 +403,7 @@ def test_regression_XXXX():
     # Wright & Eastman (2014) Table2
     # Corrections for tau Ceti
     jds, tempo2, barycorr = np.loadtxt(
-        download_file('http://astroutils.astronomy.ohio-state.edu/exofast/pro/exofast/bary/zb.txt'))
+        download_file('http://astroutils.astronomy.ohio-state.edu/exofast/pro/exofast/bary/zb.txt')).T
 
     # tau Ceti Hipparchos data
     tauCet = SkyCoord('01 44 05.1275 -15 56 22.4006',
