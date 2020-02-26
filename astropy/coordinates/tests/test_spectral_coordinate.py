@@ -208,7 +208,11 @@ def test_shift_to_rest_galaxy():
     # implemented in Spectrum1D?
 
     assert_quantity_allclose(rest_spc, rest_line_wls)
-    assert_frame_allclose(rest_spc.observer, rest_spc.target)
+
+    # No frames are explicitly defined, so to the user, the observer and
+    #  target are not set.
+    with pytest.raises(AttributeError):
+        assert_frame_allclose(rest_spc.observer, rest_spc.target)
 
     with pytest.raises(ValueError):
         # *any* observer shift should fail, since we didn't specify one at the
@@ -225,7 +229,7 @@ def test_shift_to_rest_galaxy():
 
 
 def test_shift_to_rest_star_withobserver():
-    rv = -18*u.km/u.s
+    rv = -8.3283011*u.km/u.s
     rest_line_wls = [5007, 6563]*u.angstrom
 
     obstime = time.Time('2018-12-13 9:00')
@@ -239,7 +243,7 @@ def test_shift_to_rest_star_withobserver():
     # spectral_coord_alphacen
 
     observed_spc = SpectralCoord(rest_line_wls*(rv/c + 1),
-                                 observer=obs, target=acen, radial_velocity=rv)
+                                 observer=obs, target=acen)
 
     rest_spc = observed_spc.to_rest()
     assert_quantity_allclose(rest_spc, rest_line_wls)
@@ -262,8 +266,8 @@ def test_shift_to_rest_star_withobserver():
     # "good enough", where good enough is estimated below.  But that could be
     # adjusted if we think that's too agressive of a precision target for what
     # the machinery can handle
-    with pytest.raises(AssertionError):
-        assert_quantity_allclose(vcorr, drv, atol=10*u.m/u.s)
+    # with pytest.raises(AssertionError):
+    assert_quantity_allclose(vcorr, drv, atol=10*u.m/u.s)
 
 
 def test_change_velocity_frame():
