@@ -95,7 +95,6 @@ def test_unicode_as_char():
         c.output(value_bytes, False)  # non-ASCII bytes raises
 
 
-
 def test_unicode_as_char_binary():
     config = {'verify': 'exception'}
 
