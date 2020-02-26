@@ -65,8 +65,8 @@ class SpectralCoord(u.Quantity):
                 raise ValueError("Observer must be a sky coordinate or "
                                  "coordinate frame.")
 
-        obj._observer = cls._validate_coordinate(observer)
-        obj._target = cls._validate_coordinate(target)
+        obj._observer = cls._validate_coordinate(observer) if observer is not None else None
+        obj._target = cls._validate_coordinate(target) if target is not None else None
 
         return obj
 
