@@ -7,7 +7,8 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from astropy.modeling.models import Polynomial1D, Polynomial2D
+from astropy.modeling.models import (Polynomial1D, Polynomial2D,
+                                     Chebyshev2D)
 from astropy.modeling.fitting import LinearLSQFitter
 from astropy.modeling.core import Model
 from astropy.modeling.parameters import Parameter
@@ -107,6 +108,13 @@ def test_model_axis_2():
     assert_allclose(y[:, :, 0].flatten(), t1(x, x))
     assert_allclose(y[:, :, 1].flatten(), t2(x, x))
     assert_allclose(y[:, :, 2].flatten(), t3(x, x))
+
+    cheb = Chebyshev2D(1, 1, c0_0=[[[0, 1, 2]]], c0_1=[[[3, 4, 5]]],
+                      c1_0=[[[5, 6, 7]]], c1_1=[[[1,1,1]]],
+                      n_models=3, model_set_axis=2)
+    assert cheb.c0_0.shape == (1, 1, 3)
+    y = cheb(x, x, model_set_axis=False)
+    assert y.shape == (1, 4, 3)
 
 
 def test_axis_0():

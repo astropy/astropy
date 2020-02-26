@@ -181,9 +181,9 @@ class OrthoPolynomialBase(PolynomialBase):
         if n_models:
             if model_set_axis is None:
                 model_set_axis = 0
-             minshape = (1,) * model_set_axis + (n_models,)
-         else:
-             minshape = ()
+            minshape = (1,) * model_set_axis + (n_models,)
+        else:
+            minshape = ()
 
         for param_name in self._param_names:
             self._parameters_[param_name] = \
