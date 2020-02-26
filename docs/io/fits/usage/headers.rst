@@ -181,7 +181,7 @@ to the last commentary card with the same keyword, rather than to the end of
 the header.
 
 Example
--------
+^^^^^^^
 
 ..
   EXAMPLE START
