@@ -35,7 +35,7 @@ def assert_frame_allclose(frame1, frame2,
 
     frame2_in_1 = frame2.transform_to(frame1)
 
-    assert_quantity_allclose(0, frame1.separation_3d(frame2_in_1), rtol=pos_rtol, atol=pos_atol)
+    assert_quantity_allclose(0 * u.m, frame1.separation_3d(frame2_in_1), rtol=pos_rtol, atol=pos_atol)
 
     if frame1.data.differentials:
         d1 = frame1.data.represent_as(CartesianRepresentation, CartesianDifferential).differentials['s']
@@ -46,7 +46,8 @@ def assert_frame_allclose(frame1, frame2,
 
 def test_create_spectral_coord_orig():
 
-    # TODO: decide whether this test is still needed once the rest is implemented
+    # TODO: decide whether this test is still needed once the rest is
+    #  implemented
 
     keck = EarthLocation.of_site('keck')
     obstime = time.Time('2018-12-13 9:00')
@@ -54,7 +55,7 @@ def test_create_spectral_coord_orig():
     observer_gcrs = keck.get_gcrs(obstime)
 
     spectral_axis = np.linspace(500, 2500, 1000) * u.AA
-    spec_coord = SpectralCoord(spectral_axis)
+    spec_coord = SpectralCoord(spectral_axis, observer=observer_gcrs)
 
     assert isinstance(spec_coord, u.Quantity)
     assert len(spec_coord) == 1000
@@ -212,7 +213,7 @@ def test_shift_to_rest_galaxy():
     with pytest.raises(ValueError):
         # *any* observer shift should fail, since we didn't specify one at the
         # outset
-        rest_spc.with_observer(ICRS(CartesianRepresentation([0,0,0]*u.au)))
+        rest_spc._change_observer_to(ICRS(CartesianRepresentation([0, 0, 0] * u.au)))
 
     # note: it may be an acceptable fallback for the next part to onle work on
     # spectrum1D but not SpectralCoord - the thinking being that the shift to
@@ -243,7 +244,7 @@ def test_shift_to_rest_star_withobserver():
     rest_spc = observed_spc.to_rest()
     assert_quantity_allclose(rest_spc, rest_line_wls)
 
-    barycentric_spc = observed_spc.with_observer(ICRS(CartesianRepresentation([0,0,0]*u.au)))
+    barycentric_spc = observed_spc._change_observer_to(ICRS(CartesianRepresentation([0, 0, 0] * u.au)))
     baryrest_spc = barycentric_spc.to_rest()
     assert not quantity_allclose(baryrest_spc, rest_line_wls)
 
@@ -263,3 +264,28 @@ def test_shift_to_rest_star_withobserver():
     # the machinery can handle
     with pytest.raises(AssertionError):
         assert_quantity_allclose(vcorr, drv, atol=10*u.m/u.s)
+
+
+def test_change_velocity_frame(observer, target):
+    # Create spectral coodinate object
+    spectral_axis = np.linspace(500, 2500, 1000) * u.AA
+    spec_coord = SpectralCoord(spectral_axis, observer=observer)
+
+    # Change the velocity frame of the GCRS observer to match that of the
+    #  ICRS observer
+    new_spec_coord = spec_coord.in_observer_velocity_frame(target)
+
+    assert quantity_allclose(spec_coord.observer.data,
+                             new_spec_coord.observer.data)
+    assert not quantity_allclose(spec_coord.observer.velocity,
+                                 new_spec_coord.velocity)
+
+
+def test_rv_los_shift_target(observer, target):
+    # Create spectral coodinate object
+    spectral_axis = np.linspace(500, 2500, 1000) * u.AA
+    spec_coord = SpectralCoord(spectral_axis, observer=observer, target=target)
+    new_spec_coord = spec_coord.with_los_shift(target=20 * u.km/u.s)
+
+    assert_quantity_allclose(spec_coord.target.velocity - new_spec_coord.target.velocity,
+                             20 * u.km/u.s)
