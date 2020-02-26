@@ -115,7 +115,7 @@ For integer data type, the scaled data will always be single precision floating
 point (``numpy.float32``).
 
 Example
--------
+^^^^^^^
 
 ..
   EXAMPLE START
@@ -177,7 +177,7 @@ scaled data as much as possible. However, ``astropy`` does provide ways to
 write scaled data with the `~ImageHDU.scale` method.
 
 Examples
---------
+^^^^^^^^
 
 ..
   EXAMPLE START

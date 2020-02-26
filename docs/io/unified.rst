@@ -145,7 +145,7 @@ For convenience, the command-line tool ``showtable`` can be used to print the
 content of tables for the formats supported by the unified I/O interface.
 
 Example
--------
+^^^^^^^
 
 ..
   EXAMPLE START
@@ -231,7 +231,7 @@ that all supported ASCII table formats will be tried in order to successfully
 parse the input.
 
 Examples
---------
+^^^^^^^^
 
 ..
   EXAMPLE START
@@ -925,7 +925,7 @@ Since HDF5 files can contain multiple tables, the full path to the table
 should be specified via the ``path=`` argument when reading and writing.
 
 Examples
---------
+^^^^^^^^
 
 ..
   EXAMPLE START
@@ -1059,7 +1059,7 @@ allow to visualize interactively an HTML table (with columns sorting, search,
 and pagination).
 
 Example
--------
+^^^^^^^
 
 ..
   EXAMPLE START
@@ -1097,7 +1097,7 @@ file, but if not, or if writing to disk, then the format should be explicitly
 specified.
 
 Examples
---------
+^^^^^^^^
 
 ..
   EXAMPLE START

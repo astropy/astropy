@@ -76,7 +76,7 @@ Like images, the ``.data`` attribute of a table HDU contains the data of the
 table.
 
 Example
--------
+^^^^^^^
 
 ..
   EXAMPLE START
@@ -134,7 +134,7 @@ Like image data, we can use the same "mask array" idea to pick out desired
 records from a table and make a new table out of it.
 
 Examples
---------
+^^^^^^^^
 
 ..
   EXAMPLE START
@@ -168,7 +168,7 @@ Merging Tables
 Merging different tables is very convenient in ``astropy``.
 
 Examples
---------
+^^^^^^^^
 
 ..
   EXAMPLE START
@@ -226,7 +226,7 @@ Appending one table after another is slightly trickier, since the two tables
 may have different field attributes.
 
 Examples
---------
+^^^^^^^^
 
 ..
   EXAMPLE START
@@ -331,7 +331,7 @@ header keywords and descriptions:
     array                                 the data of the column
 
 Examples
---------
+^^^^^^^^
 
 ..
   EXAMPLE START

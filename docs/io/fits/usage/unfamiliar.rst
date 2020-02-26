@@ -178,7 +178,7 @@ letter, and secondly, the field data must be an objects array (as included in
 the ``numpy`` module).
 
 Example
--------
+^^^^^^^
 
 ..
   EXAMPLE START
@@ -272,7 +272,7 @@ The data part of a Random Access Group HDU is, like other HDUs, in the
 ``.data`` attribute. It includes both parameter(s) and image array(s).
 
 Examples
---------
+^^^^^^^^
 
 ..
   EXAMPLE START
@@ -372,7 +372,7 @@ encapsulate the data into the group data structure, and use :class:`GroupsHDU`
 to create the HDU itself.
 
 Example
--------
+^^^^^^^
 
 ..
   EXAMPLE START
@@ -474,7 +474,7 @@ Since the HDU is actually a binary table, it may not appear as a primary HDU in
 a FITS file.
 
 Example
--------
+^^^^^^^
 
 ..
   EXAMPLE START
@@ -560,7 +560,7 @@ and ZBLANK to hold the integer value used to represent undefined pixels (if
 any) in the image.
 
 Example
--------
+^^^^^^^
 
 ..
   EXAMPLE START
@@ -599,7 +599,7 @@ associated image header. From there, the HDU can be treated just like any
 other image HDU.
 
 Example
--------
+^^^^^^^
 
 ..
   EXAMPLE START
