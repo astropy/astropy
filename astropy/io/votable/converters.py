@@ -1429,7 +1429,6 @@ def table_column_to_votable_datatype(column):
         votable_string_dtype = column.info.meta.get('_votable_string_dtype')
     if column.dtype.char == 'O':
         if votable_string_dtype is not None:
-            string_dtype = votable_string_dtype
             return {'datatype': votable_string_dtype, 'arraysize': '*'}
         elif isinstance(column[0], np.ndarray):
             dtype, shape = _all_matching_dtype(column)
