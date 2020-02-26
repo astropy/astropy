@@ -152,7 +152,7 @@ def check_builtin_matches_remote(download_url=True):
     for name in builtin_registry.names:
         in_dl[name] = name in dl_registry
         if in_dl[name]:
-            matches[name] = quantity_allclose(builtin_registry[name], dl_registry[name])
+            matches[name] = quantity_allclose(builtin_registry[name].geocentric, dl_registry[name].geocentric)
         else:
             matches[name] = False
 
