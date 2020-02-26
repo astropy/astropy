@@ -1430,7 +1430,7 @@ def table_column_to_votable_datatype(column):
     if column.dtype.char == 'O':
         if votable_string_dtype is not None:
             string_dtype = votable_string_dtype
-            return {'datatype': string_dtype, 'arraysize': '*'}
+            return {'datatype': votable_string_dtype, 'arraysize': '*'}
         elif isinstance(column[0], np.ndarray):
             dtype, shape = _all_matching_dtype(column)
             if dtype is not False:
