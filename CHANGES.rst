@@ -62,6 +62,7 @@ astropy.io.misc
 
 - Fixed serialization of polynomial models to include non default values of
   domain and window values. [#9956, #9961]
+
 - Fixed a bug which affected overwriting tables within ``hdf5`` files.
   Overwriting an existing path with associated column meta data now also
   overwrites the meta data associated with the table. [#9950]
@@ -88,6 +89,9 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
+
+- Fixed a bug in setting default values of parameters of orthonormal
+  polynomials when constructing a model set. [#9987]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
