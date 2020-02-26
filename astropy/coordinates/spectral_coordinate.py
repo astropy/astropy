@@ -34,21 +34,21 @@ class SpectralCoord(u.Quantity):
         Spectral axis data values.
     unit : str or `Unit`
         Unit for the given data.
-    doppler_rest : `Quantity`, optional
-        The rest value to use for velocity space transformations.
-    doppler_convention : str
-        The convention to use when converting the spectral data to/from
-        velocity space.
     observer : `BaseCoordinateFrame` or `SkyCoord`, optional
         The coordinate (position and velocity) of observer.
     target : `BaseCoordinateFrame` or `SkyCoord`, optional
         The coordinate (position and velocity) of observer.
+    doppler_rest : `Quantity`, optional
+        The rest value to use for velocity space transformations.
+    doppler_convention : str, optional
+        The convention to use when converting the spectral data to/from
+        velocity space.
     """
     _quantity_class = u.Quantity
 
-    @u.quantity_input(rest='length', radial_velocity='speed')
-    def __new__(cls, value, *, unit=None, doppler_rest=None, doppler_convention=None,
-                observer=None, target=None, **kwargs):
+    @u.quantity_input(doppler_rest=['length', 'frequency', None])
+    def __new__(cls, value, unit=None, observer=None, target=None,
+                doppler_rest=None, doppler_convention=None, **kwargs):
         obj = super().__new__(cls, value, unit=unit, subok=True, **kwargs)
 
         # The quantity machinery will drop the unit because type(value) !=
@@ -65,26 +65,18 @@ class SpectralCoord(u.Quantity):
                 raise ValueError("Observer must be a sky coordinate or "
                                  "coordinate frame.")
 
-        obj._observer = None
-        obj._target = None
-
-        obj.observer = observer
-        obj.target = target
+        obj._observer = cls._validate_coordinate(observer)
+        obj._target = cls._validate_coordinate(target)
 
         return obj
 
     def __array_finalize__(self, obj):
-        # If we're a new object or viewing an ndarray, nothing has to be done.
-        if obj is None or obj.__class__ is np.ndarray:
-            return
+        super().__array_finalize__(obj)
 
         self._doppler_conversion = getattr(obj, '_doppler_conversion', None)
 
-        self._observer = None
-        self._target = None
-
-        self.observer = getattr(obj, 'observer', None)
-        self.target = getattr(obj, 'target', None)
+        self._observer = getattr(obj, 'observer', None)
+        self._target = getattr(obj, 'target', None)
 
     def __quantity_subclass__(self, unit):
         """
@@ -94,7 +86,7 @@ class SpectralCoord(u.Quantity):
         return SpectralCoord, True
 
     @staticmethod
-    def _validate_coordinate(coord, is_observer):
+    def _validate_coordinate(coord):
         """
         Checks the type of the frame and whether a velocity differential and a
         distance has been defined on the frame object.
@@ -106,49 +98,28 @@ class SpectralCoord(u.Quantity):
         ----------
         coord : `BaseCoordinateFrame`
             The new frame to be used for target or observer.
-        is_observer : bool
-            Whether the frame represents the observer or target.
         """
-        if coord is not None:
-            frame_loc = 'observer' if is_observer else 'target'
+        if not issubclass(coord.__class__, (BaseCoordinateFrame, FrameMeta)):
+            if isinstance(coord, SkyCoord):
+                coord = coord.frame
+            else:
+                raise ValueError("`{}` is not a subclass of "
+                                 "`BaseCoordinateFrame` or "
+                                 "`SkyCoord`.".format(coord))
 
-            if not issubclass(coord.__class__, (BaseCoordinateFrame, FrameMeta)):
-                if isinstance(coord, SkyCoord):
-                    coord = coord.frame
-                else:
-                    raise ValueError("`{}` is not a subclass of "
-                                     "`BaseCoordinateFrame` or "
-                                     "`SkyCoord`.".format(coord))
+        # If the observer frame does not contain information about the
+        # velocity of the system, assume that the velocity is zero in the
+        # system.
+        if 's' not in coord.data.differentials:
+            warnings.warn(
+                "No velocity defined on frame, assuming {}.".format(
+                   u.Quantity([0, 0, 0], unit=u.km/u.s)),
+                AstropyUserWarning)
 
-            # If no distance value is defined on the frame, assume a default
-            # distance of either zero (for an observer), or 1000 kpc for target
-            # if (not hasattr(coord, 'distance') or
-            #     not isinstance(coord.distance, Distance)) and \
-            #     (not hasattr(coord, 'spherical') or
-            #      not isinstance(coord.spherical.distance, Distance)):
-            #
-            #     auto_dist = 0 * u.AU if is_observer else 1000 * u.kpc
-            #
-            #     warnings.warn(
-            #         "No distance defined on the {} frame, assuming {}.".format(
-            #             frame_loc, auto_dist),
-            #         AstropyUserWarning)
-            #
-            #     coord = SkyCoord(coord, distance=auto_dist).frame
-
-            # If the observer frame does not contain information about the
-            # velocity of the system, assume that the velocity is zero in the
-            # system.
-            if 's' not in coord.data.differentials:
-                warnings.warn(
-                    "No velocity defined on {} frame, assuming {}.".format(
-                       frame_loc, u.Quantity([0, 0, 0], unit=u.km/u.s)),
-                    AstropyUserWarning)
-
-                vel_to_add = CartesianDifferential(
-                    0 * u.km / u.s, 0 * u.km / u.s, 0 * u.km/u.s)
-                new_data = coord.data.to_cartesian().with_differentials(vel_to_add)
-                coord = coord.realize_frame(new_data)
+            vel_to_add = CartesianDifferential(
+                0 * u.km / u.s, 0 * u.km / u.s, 0 * u.km/u.s)
+            new_data = coord.data.to_cartesian().with_differentials(vel_to_add)
+            coord = coord.realize_frame(new_data)
 
         return coord
 
@@ -191,9 +162,9 @@ class SpectralCoord(u.Quantity):
     def observer(self, value):
         if self.observer is not None:
             raise ValueError("Spectral coordinate already has a defined "
-                             "target.")
+                             "observer.")
 
-        value = self._validate_coordinate(value, True)
+        value = self._validate_coordinate(value)
 
         self._observer = value
 
@@ -215,7 +186,7 @@ class SpectralCoord(u.Quantity):
             raise ValueError("Spectral coordinate already has a defined "
                              "target.")
 
-        value = self._validate_coordinate(value, False)
+        value = self._validate_coordinate(value)
 
         self._target = value
 
@@ -230,7 +201,7 @@ class SpectralCoord(u.Quantity):
         `Quantity`
             Rest value as an astropy `Quantity` object.
         """
-        return self._doppler_conversion.doppler_rest
+        return self._doppler_conversion.rest
 
     @doppler_rest.setter
     @u.quantity_input(value=['length', 'frequency', 'energy', 'speed', None])
@@ -307,6 +278,9 @@ class SpectralCoord(u.Quantity):
         coordinate frame in that this calculates the radial velocity with
         respect to the *observer*, not the origin of the frame.
         """
+        if self.observer is None or self.target is None:
+            return 0 * u.km / u.s
+
         return self._calculate_radial_velocity(self.observer, self.target)
 
     @property
@@ -387,7 +361,7 @@ class SpectralCoord(u.Quantity):
 
         # Check velocities and distance values on the new frame. This is
         #  handled in the frame validation.
-        observer = self._validate_coordinate(observer, True)
+        observer = self._validate_coordinate(observer)
 
         # Calculate the initial and final los velocity
         init_obs_vel = self._calculate_radial_velocity(self.observer, target)
