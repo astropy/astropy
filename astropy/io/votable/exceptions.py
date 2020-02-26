@@ -1085,7 +1085,7 @@ class W54(VOTableSpecWarning):
 class W55(VOTableSpecWarning):
     """
     When non-ASCII characters are detected when reading
-    a TABLEDATA value for a FIELD with datatype="char", we
+    a TABLEDATA value for a FIELD with ``datatype="char"``, we
     can issue this warning.
     """
 
