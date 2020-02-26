@@ -5,7 +5,7 @@ from collections import namedtuple
 
 import astropy.units as u
 from astropy.constants import c
-from astropy.coordinates import SkyCoord, ICRS, Distance, GCRS, RadialDifferential, CartesianDifferential
+from astropy.coordinates import SkyCoord, ICRS, Distance, GCRS, RadialDifferential, CartesianDifferential, SphericalDifferential
 from astropy.coordinates.baseframe import BaseCoordinateFrame, FrameMeta
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -38,6 +38,10 @@ class SpectralCoord(u.Quantity):
         The coordinate (position and velocity) of observer.
     target : `BaseCoordinateFrame` or `SkyCoord`, optional
         The coordinate (position and velocity) of observer.
+    radial_velocity : `Quantity`, optional
+        The radial velocity of the target with respect to the observer.
+    redshift : float, optional
+        The redshift of the target with respect to the observer.
     doppler_rest : `Quantity`, optional
         The rest value to use for velocity space transformations.
     doppler_convention : str, optional
@@ -46,9 +50,11 @@ class SpectralCoord(u.Quantity):
     """
     _quantity_class = u.Quantity
 
-    @u.quantity_input(doppler_rest=['length', 'frequency', None])
+    @u.quantity_input(doppler_rest=['length', 'frequency', None],
+                      radial_velocity=['speed'])
     def __new__(cls, value, unit=None, observer=None, target=None,
-                doppler_rest=None, doppler_convention=None, **kwargs):
+                radial_velocity=None, redshift=None, doppler_rest=None,
+                doppler_convention=None, **kwargs):
         obj = super().__new__(cls, value, unit=unit, subok=True, **kwargs)
 
         # The quantity machinery will drop the unit because type(value) !=
@@ -56,6 +62,11 @@ class SpectralCoord(u.Quantity):
         #  here to avoid this.
         if isinstance(value, u.Quantity) and unit is None:
             obj._unit = value.unit
+
+        # Store state about whether the observer and target were defined
+        #  explicitly (True), or implicity from rv/redshift (False)
+        obj._frames_state = dict(observer=observer is not None,
+                                 target=target is not None)
 
         obj._doppler_conversion = DopplerConversion(
             rest=doppler_rest, convention=doppler_convention)
@@ -65,6 +76,43 @@ class SpectralCoord(u.Quantity):
                 raise ValueError("Observer must be a sky coordinate or "
                                  "coordinate frame.")
 
+        # If no observer is defined, create a default observer centered in the
+        #  ICRS frame.
+        if observer is None:
+            observer = ICRS(ra=0 * u.degree, dec=0 * u.degree,
+                            pm_ra_cosdec=0 * u.mas/u.yr, pm_dec=0 * u.mas/u.yr,
+                            distance=0 * u.pc, radial_velocity=0 * u.km/u.s)
+
+        # If no target is defined, create a default target with any provided
+        #  redshift/radial velocities.
+        if target is None:
+            if radial_velocity is None:
+                radial_velocity = 0 * u.km/u.s
+
+                if redshift is not None:
+                    radial_velocity = u.Quantity(redshift).to(
+                        'km/s', equivalencies=RV_RS_EQUIV)
+
+            observer_icrs = observer.transform_to(ICRS)
+
+            target = ICRS(ra=observer_icrs.ra,
+                          dec=observer_icrs.dec,
+                          pm_ra_cosdec=observer_icrs.pm_ra_cosdec,
+                          pm_dec=observer_icrs.pm_dec,
+                          distance=1 * u.kpc)
+
+            d_pos = (target.cartesian.without_differentials() -
+                     observer_icrs.cartesian.without_differentials())
+
+            pos_hat = d_pos / (d_pos.norm() or 1)
+
+            tot_rv = radial_velocity + observer_icrs.radial_velocity
+            target_velocity = target.velocity + tot_rv * pos_hat
+
+            target = target.realize_frame(
+                target.cartesian.with_differentials(
+                    CartesianDifferential(target_velocity.xyz)))
+
         obj._observer = cls._validate_coordinate(observer) if observer is not None else None
         obj._target = cls._validate_coordinate(target) if target is not None else None
 
@@ -73,10 +121,11 @@ class SpectralCoord(u.Quantity):
     def __array_finalize__(self, obj):
         super().__array_finalize__(obj)
 
+        self._frames_state = getattr(obj, '_frames_state', None)
         self._doppler_conversion = getattr(obj, '_doppler_conversion', None)
 
-        self._observer = getattr(obj, 'observer', None)
-        self._target = getattr(obj, 'target', None)
+        self._observer = getattr(obj, '_observer', None)
+        self._target = getattr(obj, '_target', None)
 
     def __quantity_subclass__(self, unit):
         """
@@ -130,7 +179,8 @@ class SpectralCoord(u.Quantity):
             'doppler_rest': self.doppler_rest,
             'doppler_convention': self.doppler_convention,
             'observer': self.observer,
-            'target': self.target
+            'target': self.target,
+            'radial_velocity': self.radial_velocity
         }
 
         # If the new kwargs dict contains a value argument and it is a
@@ -156,13 +206,16 @@ class SpectralCoord(u.Quantity):
         `BaseCoordinateFrame`
             The astropy coordinate frame representing the observation.
         """
-        return self._observer
+        if self._frames_state['observer']:
+            return self._observer
 
     @observer.setter
     def observer(self, value):
         if self.observer is not None:
             raise ValueError("Spectral coordinate already has a defined "
                              "observer.")
+
+        self._frames_state['observer'] = value is not None
 
         value = self._validate_coordinate(value)
 
@@ -178,13 +231,16 @@ class SpectralCoord(u.Quantity):
         `BaseCoordinateFrame`
             The astropy coordinate frame representing the target.
         """
-        return self._target
+        if self._frames_state['target']:
+            return self._target
 
     @target.setter
     def target(self, value):
         if self.target is not None:
             raise ValueError("Spectral coordinate already has a defined "
                              "target.")
+
+        self._frames_state['target'] = value is not None
 
         value = self._validate_coordinate(value)
 
@@ -278,10 +334,7 @@ class SpectralCoord(u.Quantity):
         coordinate frame in that this calculates the radial velocity with
         respect to the *observer*, not the origin of the frame.
         """
-        if self.observer is None or self.target is None:
-            return 0 * u.km / u.s
-
-        return self._calculate_radial_velocity(self.observer, self.target)
+        return self._calculate_radial_velocity(self._observer, self._target)
 
     @property
     def redshift(self):
@@ -436,9 +489,20 @@ class SpectralCoord(u.Quantity):
                              "before applying a velocity shift.")
 
         for arg in [x for x in [target, observer] if x is not None]:
-            if isinstance(arg, u.Quantity) and arg.unit.physical_type != 'speed':
-                raise u.UnitsError("Argument must has unit physical type "
-                                   "'speed'.")
+            if isinstance(arg, u.Quantity):
+                if arg.unit.physical_type != 'speed':
+                    raise u.UnitsError("Argument must has unit physical type "
+                                       "'speed'.")
+
+        # The target or observer value is defined but is not a quantity object,
+        #  assume it's a redshift float value and convert to velocity
+        if target is not None and target is not u.Quantity:
+            target = u.Quantity(target).to(
+                'km/s', equivalencies=RV_RS_EQUIV)
+
+        if observer is not None and observer is not u.Quantity:
+            observer = u.Quantity(observer).to(
+                'km/s', equivalencies=RV_RS_EQUIV)
 
         target_icrs = self.target.transform_to(ICRS)
         observer_icrs = self.observer.transform_to(ICRS)
@@ -446,8 +510,8 @@ class SpectralCoord(u.Quantity):
         target_shift = 0 * u.km / u.s if target is None else target
         observer_shift = 0 * u.km / u.s if observer is None else observer
 
-        d_pos = (target_icrs.data.without_differentials() -
-                 observer_icrs.data.without_differentials()).to_cartesian()
+        d_pos = (observer_icrs.data.without_differentials() -
+                 target_icrs.data.without_differentials()).to_cartesian()
 
         pos_hat = d_pos / (d_pos.norm() or 1)
 
@@ -456,14 +520,30 @@ class SpectralCoord(u.Quantity):
 
         new_target = self.target.realize_frame(
             self.target.data.with_differentials(
-                CartesianDifferential(target_velocity)))
+                CartesianDifferential(target_velocity.xyz)))
 
         new_observer = self.observer.realize_frame(
             self.observer.data.with_differentials(
-                CartesianDifferential(observer_velocity)))
+                CartesianDifferential(observer_velocity.xyz)))
 
         return self._copy(observer=new_observer,
                           target=new_target)
+
+    def to_rest(self):
+        """
+        Transforms the spectral axis to the rest frame.
+        """
+        rest_frame_value = self / (1 + self.redshift)
+
+        return self._copy(value=rest_frame_value)
+
+    def to_observed(self):
+        """
+        Transforms the spectral axis to the observed frame.
+        """
+        rest_frame_value = self * (1 + self.redshift)
+
+        return self._copy(value=rest_frame_value)
 
     def to(self, *args, doppler_rest=None, doppler_convention=None, **kwargs):
         """
