@@ -84,7 +84,7 @@ tables, you may need to give `astropy.io.ascii` additional hints about
 the format.
 
 Examples
---------
+^^^^^^^^
 
 ..
   EXAMPLE START
@@ -141,7 +141,7 @@ The |write| function provides a way to write a data table as a formatted ASCII
 table.
 
 Examples
---------
+^^^^^^^^
 
 ..
   EXAMPLE START
