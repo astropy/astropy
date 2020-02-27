@@ -17,11 +17,14 @@ from astropy.coordinates import SkyCoord
 from astropy.tests.helper import catch_warnings
 
 from astropy.visualization.wcsaxes.core import WCSAxes
-from astropy.visualization.wcsaxes.frame import RectangularFrame, RectangularFrame1D
+from astropy.visualization.wcsaxes.frame import (
+    EllipticalFrame, RectangularFrame, RectangularFrame1D)
 from astropy.visualization.wcsaxes.utils import get_coord_meta
 from astropy.visualization.wcsaxes.transforms import CurvedTransform
 
 MATPLOTLIB_LT_21 = LooseVersion(matplotlib.__version__) < LooseVersion("2.1")
+MATPLOTLIB_LT_22 = LooseVersion(matplotlib.__version__) < LooseVersion("2.2")
+TEX_UNAVAILABLE = not matplotlib.checkdep_usetex(True)
 
 DATA = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 
@@ -435,3 +438,36 @@ def test_time_wcs(time_spectral_wcs_2d):
     # with a time axis.
 
     plt.subplot(projection=time_spectral_wcs_2d)
+
+
+@pytest.mark.skipif('MATPLOTLIB_LT_22 or TEX_UNAVAILABLE')
+def test_simplify_labels_usetex(ignore_matplotlibrc, tmpdir):
+    """Regression test for https://github.com/astropy/astropy/issues/8004."""
+    plt.rc('text', usetex=True)
+
+    header = {
+        'NAXIS': 2,
+        'NAXIS1': 360,
+        'NAXIS2': 180,
+        'CRPIX1': 180.5,
+        'CRPIX2': 90.5,
+        'CRVAL1': 180.0,
+        'CRVAL2': 0.0,
+        'CDELT1': -2 * np.sqrt(2) / np.pi,
+        'CDELT2': 2 * np.sqrt(2) / np.pi,
+        'CTYPE1': 'RA---MOL',
+        'CTYPE2': 'DEC--MOL',
+        'RADESYS': 'ICRS'}
+
+    wcs = WCS(header)
+    fig, ax = plt.subplots(
+        subplot_kw=dict(frame_class=EllipticalFrame, projection=wcs))
+    ax.set_xlim(-0.5, header['NAXIS1'] - 0.5)
+    ax.set_ylim(-0.5, header['NAXIS2'] - 0.5)
+    ax.coords[0].set_ticklabel(exclude_overlapping=True)
+    ax.coords[1].set_ticklabel(exclude_overlapping=True)
+    ax.coords[0].set_ticks(spacing=45 * u.deg)
+    ax.coords[1].set_ticks(spacing=30 * u.deg)
+    ax.grid()
+
+    fig.savefig(tmpdir / 'plot.png')

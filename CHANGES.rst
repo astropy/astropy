@@ -496,6 +496,9 @@ astropy.visualization
   maximum when there are less then ``min_npixels`` in the input array.
   [#9913]
 
+- Fix a bug in simplifying axis labels that affected non-rectangular frames.
+  [#8004, #9991]
+
 astropy.wcs
 ^^^^^^^^^^^
 
