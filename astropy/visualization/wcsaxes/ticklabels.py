@@ -93,6 +93,9 @@ class TickLabels(Text):
                     self.text[axis][i] = self.text[axis][i][start:]
                     if starts_dollar:
                         self.text[axis][i] = '$' + self.text[axis][i]
+                # Remove any empty LaTeX inline math mode string
+                if self.text[axis][i] == '$$':
+                    self.text[axis][i] = ''
 
     def set_pad(self, value):
         self._pad = value
