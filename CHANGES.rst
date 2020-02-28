@@ -168,6 +168,7 @@ Other Changes and Additions
 
 - Updated wcslib to v7.1. [#9829]
 
+- Increase minimum asdf version to 2.5.2. [#9996]
 
 
 4.0 (2019-12-16)
