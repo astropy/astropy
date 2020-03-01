@@ -83,8 +83,14 @@ configuration file as described above. Values can also, however, be
 modified in an active Python session by setting any of the properties
 on a ``conf`` object.
 
-For example, if there is a part of your configuration file that looks
-like:
+Example
+^^^^^^^
+
+..
+  EXAMPLE START
+  Changing the Persistent State of Configuration Values at Runtime
+
+If there is a part of your configuration file that looks like:
 
 .. code-block:: ini
 
@@ -110,12 +116,23 @@ You should be able to modify the values at runtime this way::
     >>> conf.remote_timeout
     4.5
 
+..
+  EXAMPLE END
+
 Reloading Configuration
 -----------------------
 
 Instead of modifying the variables in Python, you can also modify the
-configuration files and then reload them. For example, if you modify the
-configuration file to say:
+configuration files and then reload them.
+
+Example
+^^^^^^^
+
+..
+  EXAMPLE START
+  Modifying and Reloading Configuration Files
+
+If you modify the configuration file to say:
 
 .. code-block:: ini
 
@@ -156,6 +173,9 @@ do with the configuration file on disk::
     >>> conf.reset('dataurl')
     >>> conf.dataurl
     'http://data.astropy.org/'
+
+..
+  EXAMPLE END
 
 Upgrading ``astropy``
 ---------------------
@@ -354,18 +374,18 @@ Or, if the option needs to be available as a function parameter::
 
 
 
-Customising Config in Affiliated Packages
+Customizing Config in Affiliated Packages
 =========================================
 
-The `astropy.config` package can be used by other pacakges. By default creating
+The `astropy.config` package can be used by other packages. By default creating
 a config object in another package will lead to a configuration file taking the
-name of that package in the astropy config directory. i.e.
-``<astropy_config>/packagename.cfg``.
+name of that package in the ``astropy`` config directory (i.e.,
+``<astropy_config>/packagename.cfg``).
 
 
 It is possible to configure this behavior so that the a custom configuration
-directory is created for your package, for example
-``~/.packagename/packagename.cfg``. To do this create a ``packagename.config``
+directory is created for your package, for example,
+``~/.packagename/packagename.cfg``. To do this, create a ``packagename.config``
 subpackage and put the following into the ``__init__.py`` file::
 
   import astropy.config as astropyconfig
