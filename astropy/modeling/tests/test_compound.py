@@ -710,3 +710,198 @@ def test_replace_submodel():
     m2 = m.replace_submodel('S3', Shift(4))
     assert m2(1, 2) == (2, 8)
     assert m2.inverse(2, 8) == (1, 2)
+
+
+@pytest.mark.parametrize(
+    "expr",
+    [
+        lambda m1, m2: m1 + m2,
+        lambda m1, m2: m1 - m2,
+        lambda m1, m2: m1 * m2,
+        lambda m1, m2: m1 / m2,
+    ],
+)
+def test_compound_evaluate(expr):
+    """
+    Tests that compound evaluate function produces the same
+    result as the models with the operator applied
+    """
+    x = np.linspace(-5, 5, 10)
+    # Some evaluate functions assume that inputs are numpy arrays or quantities including Const1D
+    p1 = np.array([1, 2, 3, 4, 1, 2])
+    p2 = np.array([1, 0, 0.5])
+
+    model1 = Polynomial1D(5)
+    model2 = Gaussian1D(2, 1, 5)
+    compound = expr(model1, model2)
+
+    assert_array_equal(
+        compound.evaluate(x, *p1, *p2),
+        expr(model1.evaluate(x, *p1), model2.evaluate(x, *p2)),
+    )
+
+
+def test_compound_evaluate_power():
+    """
+    Tests that compound evaluate function produces the same
+    result as the models with the power operator applied
+    """
+    x = np.linspace(-5, 5, 10)
+    p1 = np.array([1, 0, 0.2])
+    p2 = np.array([3])
+
+    model1 = Gaussian1D(2, 1, 5)
+    model2 = Const1D(2)
+    compound = model1 ** model2
+
+    assert_array_equal(
+        compound.evaluate(x, *p1, *p2),
+        model1.evaluate(x, *p1) ** model2.evaluate(x, *p2),
+    )
+
+
+def test_compound_evaluate_double_shift():
+    x = np.linspace(-5, 5, 10)
+    y = np.linspace(-5, 5, 10)
+
+    m1 = Gaussian2D(1, 0, 0, 1, 1, 1)
+    m2 = Shift(1)
+    m3 = Shift(2)
+    m = Gaussian2D(1, 0, 0, 1, 1, 1) & Shift(1) & Shift(2)
+    assert_array_equal(
+        m.evaluate(x, y, x - 10, y + 20, 1, 0, 0, 1, 1, 1, 1, 2),
+        [
+            m1.evaluate(x, y, 1, 0, 0, 1, 1, 1),
+            m2.evaluate(x - 10, 1),
+            m3.evaluate(y + 20, 2),
+        ],
+    )
+
+
+@pytest.mark.parametrize(
+    "expr",
+    [
+        lambda m1, m2: m1 + m2,
+        lambda m1, m2: m1 - m2,
+        lambda m1, m2: m1 * m2,
+        lambda m1, m2: m1 / m2,
+    ],
+)
+def test_compound_evaluate_named_param(expr):
+    """
+    Tests that compound evaluate function produces the same
+    result as the models with the operator applied
+    """
+    x = np.linspace(-5, 5, 10)
+    p1 = np.array([1, 0, 0.2])
+    p2 = np.array([3, 0.5, 0.5])
+
+    model1 = Gaussian1D(2, 1, 5)
+    model2 = Gaussian1D(2, 1, 5)
+    compound = expr(model1, model2)
+
+    assert_array_equal(
+        compound.evaluate(
+            x, *p2, amplitude_0=p1[0], mean_0=p1[1], stddev_0=p1[2]
+        ),
+        expr(model1.evaluate(x, *p1), model2.evaluate(x, *p2)),
+    )
+
+
+def test_compound_evaluate_name_param_power():
+    """
+    Tests that compound evaluate function produces the same
+    result as the models with the power operator applied
+    """
+    x = np.linspace(-5, 5, 10)
+    p1 = np.array([1, 0, 0.2])
+    p2 = np.array([3])
+
+    model1 = Gaussian1D(2, 1, 5)
+    model2 = Const1D(2)
+    compound = model1 ** model2
+
+    assert_array_equal(
+        compound.evaluate(
+            x, *p2, amplitude_0=p1[0], mean_0=p1[1], stddev_0=p1[2]
+        ),
+        model1.evaluate(x, *p1) ** model2.evaluate(x, *p2),
+    )
+
+
+def test_compound_evaluate_and():
+    """
+    Tests that compound evaluate function produces the same
+    result as the models with the operator applied
+    """
+    x = np.linspace(-5, 5, 10)
+    p1 = np.array([1, 0.1, 0.5])
+    p2 = np.array([3])
+
+    model1 = Gaussian1D()
+    model2 = Shift()
+    compound = model1 & model2
+
+    assert_array_equal(
+        compound.evaluate(x, x, *p1, p2),
+        [model1.evaluate(x, *p1), model2.evaluate(x, p2)],
+    )
+
+
+def test_compound_evaluate_or():
+    """
+    Tests that compound evaluate function produces the same
+    result as the models with the operator applied
+    """
+    x = np.linspace(-5, 5, 10)
+    p1 = np.array([0.5])
+    p2_amplitude = np.array([3])
+    p2_mean = np.array([0])
+    p2_std = np.array([0.1])
+
+    model1 = Shift(0.5)
+    model2 = Gaussian1D(1, 0, 0.5)
+    compound = model1 | model2
+
+    assert_array_equal(
+        compound.evaluate(x, p1, p2_amplitude, p2_mean, p2_std),
+        model2.evaluate(model1.evaluate(x, p1), p2_amplitude, p2_mean, p2_std),
+    )
+
+
+def test_compound_evaluate_fix_inputs_by_keyword():
+    """
+    Tests that compound evaluate function produces the same
+    result as the models fix_inputs operator is applied
+    when using the keyword
+    """
+    y, x = np.mgrid[:10, :10]
+
+    model_params = [3, 0, 0.1, 1, 0.5, 0]
+
+    model = Gaussian2D(1, 2, 0, 0.5)
+    compound = fix_inputs(model, {"x": x + 5})
+
+    assert_array_equal(
+        compound.evaluate(x, y, *model_params),
+        model.evaluate(x + 5, y, *model_params),
+    )
+
+
+def test_compound_evaluate_fix_inputs_by_position():
+    """
+    Tests that compound evaluate function produces the same
+    result as the models fix_inputs operator is applied
+    when using the input index
+    """
+    y, x = np.mgrid[:10, :10]
+
+    model_params = [3, 0, 0.1, 1, 0.5, 0]
+
+    model = Gaussian2D(1, 2, 0, 0.5)
+    compound = fix_inputs(model, {0: x + 5})
+
+    assert_array_equal(
+        compound.evaluate(x, y, *model_params),
+        model.evaluate(x + 5, y, *model_params),
+    )

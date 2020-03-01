@@ -41,6 +41,8 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Added missing logic for evaluate to compound models [#10002]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 

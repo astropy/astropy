@@ -16,6 +16,7 @@ parameters in each model making up the set.
 import abc
 import copy
 import inspect
+import itertools
 import functools
 import operator
 import types
@@ -2577,10 +2578,124 @@ class CompoundModel(Model):
             self.linear = False
         self.eqcons = []
         self.ineqcons = []
+        self.n_left_params = len(self.left.parameters)
         self._map_parameters()
 
-    def evaluate(self, *args, **kwargs):
-        pass
+    def _get_left_inputs_from_args(self, args):
+        return args[:self.left.n_inputs]
+
+    def _get_right_inputs_from_args(self, args):
+        op = self.op
+        if op == '&':
+            # Args expected to look lik (*left inputs, *right inputs, *left params, *right params)
+            return args[self.left.n_inputs: self.left.n_inputs + self.right.n_inputs]
+        elif op == '|' or  op == 'fix_inputs':
+            return None
+        else:
+            return args[:self.left.n_inputs]
+
+    def _get_left_params_from_args(self, args):
+        op = self.op
+        if op == '&':
+            # Args expected to look lik (*left inputs, *right inputs, *left params, *right params)
+            n_inputs = self.left.n_inputs + self.right.n_inputs
+            return args[n_inputs: n_inputs + self.n_left_params]
+        else:
+            return args[self.left.n_inputs: self.left.n_inputs + self.n_left_params]
+
+    def _get_right_params_from_args(self, args):
+        op = self.op
+        if op == 'fix_inputs':
+            return None
+        if op == '&':
+            # Args expected to look lik (*left inputs, *right inputs, *left params, *right params)
+            return args[self.left.n_inputs + self.right.n_inputs + self.n_left_params:]
+        else:
+            return args[self.left.n_inputs + self.n_left_params:]
+
+    def _get_kwarg_model_parameters_as_positional(self, args, kwargs):
+        # could do it with inserts but rebuilding seems like simpilist way
+
+        #TODO: Check if any param names are in kwargs maybe as an intersection of sets?
+        if self.op == "&":
+            new_args = list(args[:self.left.n_inputs + self.right.n_inputs])
+            args_pos = self.left.n_inputs + self.right.n_inputs
+        else:
+            new_args = list(args[:self.left.n_inputs])
+            args_pos = self.left.n_inputs
+
+        for param_name in self.param_names:
+            kw_value = kwargs.pop(param_name, None)
+            if kw_value is not None:
+                value = kw_value
+            else:
+                try:
+                    value = args[args_pos]
+                except IndexError:
+                    raise IndexError("Missing parameter or input")
+
+                args_pos += 1
+            new_args.append(value)
+
+        return new_args, kwargs
+
+    def _apply_operators_to_value_lists(self, leftval, rightval, **kw):
+        op = self.op
+        if op == '+':
+            return binary_operation(operator.add, leftval, rightval)
+        elif op == '-':
+            return binary_operation(operator.sub, leftval, rightval)
+        elif op == '*':
+            return binary_operation(operator.mul, leftval, rightval)
+        elif op == '/':
+            return binary_operation(operator.truediv, leftval, rightval)
+        elif op == '**':
+            return binary_operation(operator.pow, leftval, rightval)
+        elif op == '&':
+            if not isinstance(leftval, tuple):
+                leftval = (leftval,)
+            if not isinstance(rightval, tuple):
+                rightval = (rightval,)
+            return leftval + rightval
+        elif op in SPECIAL_OPERATORS:
+            return binary_operation(SPECIAL_OPERATORS[op], leftval, rightval)
+        else:
+            raise ModelDefinitionError('Unrecognized operator {op}')
+
+    def evaluate(self, *args, **kw):
+        op = self.op
+        args, kw = self._get_kwarg_model_parameters_as_positional(args, kw)
+        left_inputs = self._get_left_inputs_from_args(args)
+        left_params = self._get_left_params_from_args(args)
+
+        if op == 'fix_inputs':
+            pos_index = dict(zip(self.left.inputs, range(self.left.n_inputs)))
+            fixed_inputs = {
+                key if isinstance(key, int) else pos_index[key]: value
+                for key, value in self.right.items()
+            }
+            left_inputs = [
+                fixed_inputs[ind] if ind in fixed_inputs.keys() else inp
+                for ind, inp in enumerate(left_inputs)
+            ]
+
+        leftval = self.left.evaluate(*itertools.chain(left_inputs, left_params))
+
+        if op == 'fix_inputs':
+            return leftval
+
+        right_inputs = self._get_right_inputs_from_args(args)
+        right_params = self._get_right_params_from_args(args)
+
+        if op == "|":
+            if isinstance(leftval, tuple):
+                return self.right.evaluate(*itertools.chain(leftval, right_params))
+            else:
+                return self.right.evaluate(leftval, *right_params)
+        else:
+            rightval = self.right.evaluate(*itertools.chain(right_inputs, right_params))
+
+        return self._apply_operators_to_value_lists(leftval, rightval, **kw)
 
     @property
     def n_submodels(self):
@@ -2666,36 +2781,22 @@ class CompoundModel(Model):
                 leftval = self.left(*args, **kw)
                 if op != '|':
                     rightval = self.right(*args, **kw)
+                else:
+                    rightval = None
 
             else:
                 leftval = self.left(*(args[:self.left.n_inputs]), **kw)
                 rightval = self.right(*(args[self.left.n_inputs:]), **kw)
-            if op == '+':
-                return binary_operation(operator.add, leftval, rightval)
-            elif op == '-':
-                return binary_operation(operator.sub, leftval, rightval)
-            elif op == '*':
-                return binary_operation(operator.mul, leftval, rightval)
-            elif op == '/':
-                return binary_operation(operator.truediv, leftval, rightval)
-            elif op == '**':
-                return binary_operation(operator.pow, leftval, rightval)
-            elif op == '&':
-                if not isinstance(leftval, tuple):
-                    leftval = (leftval,)
-                if not isinstance(rightval, tuple):
-                    rightval = (rightval,)
-                return leftval + rightval
+
+            if op != "|":
+                return self._apply_operators_to_value_lists(leftval, rightval, **kw)
+
             elif op == '|':
                 if isinstance(leftval, tuple):
                     return self.right(*leftval, **kw)
                 else:
                     return self.right(leftval, **kw)
-            elif op in SPECIAL_OPERATORS:
-                return binary_operation(SPECIAL_OPERATORS[op], leftval, rightval)
-            else:
 
-                raise ModelDefinitionError('Unrecognized operator {op}')
         else:
             subs = self.right
             newargs = list(args)
