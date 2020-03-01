@@ -32,7 +32,7 @@ Examples
 
 ..
   EXAMPLE START
-  Calculating SkyCoord of Solar System Ephemerides
+  Using the Solar System Ephemerides
 
 Here is an example of using these functions with built-in ephemerides (i.e.,
 without the need to download a large ephemerides file)::

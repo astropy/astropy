@@ -543,7 +543,7 @@ Examples
 
 ..
   EXAMPLE START
-  Transforming from One Frame to Another in Coordinates
+  Transforming Between Frames
 
 To transform from one frame to another::
 

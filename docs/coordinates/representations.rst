@@ -298,7 +298,7 @@ important::
 
 ..
   EXAMPLE START
-  Proper Motion and Radial Velocities of Representation Objects
+  Working with Proper Motions and Radial Velocities in Differential Objects
 
 Often, you may have just a proper motion or a radial velocity, but not both::
 
