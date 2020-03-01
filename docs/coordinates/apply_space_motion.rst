@@ -6,10 +6,18 @@ Accounting for Space Motion
 ***************************
 
 The |SkyCoord| object supports updating the position of a source given its space
-motion and a time at which to evaluate the new position (or a difference between the coordinate's current time and a new one). This is
+motion and a time at which to evaluate the new position (or a difference
+between the coordinate's current time and a new one). This is
 done using the :meth:`~astropy.coordinates.SkyCoord.apply_space_motion` method.
-As an example, first we'll create a |SkyCoord| object with a specified
-``obstime``::
+
+Example
+-------
+
+..
+  EXAMPLE START
+  Accounting for Space Motion with SkyCoord Objects
+
+First we will create a |SkyCoord| object with a specified ``obstime``::
 
     >>> import astropy.units as u
     >>> from astropy.time import Time
@@ -42,6 +50,9 @@ Or, we can specify the new time to evaluate the position at::
      (pm_l_cosb, pm_b, radial_velocity) in (mas / yr, mas / yr, km / s)
         ( 33.99944073, -117.00016248,  0.00098937)>
 
+..
+  EXAMPLE END
+
 If the |SkyCoord| object has no specified radial velocity (RV), the RV is
 assumed to be 0. The new position of the source is determined assuming the
 source moves in a straight line with constant velocity in an inertial frame.
@@ -53,7 +64,11 @@ packages).
 Example: Use velocity to compute sky position at different epochs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In this example, we'll use *Gaia* `TGAS
+..
+  EXAMPLE START
+  Using Velocity to Compute Sky Position at Different Epochs
+
+In this example, we will use *Gaia* `TGAS
 <https://www.cosmos.esa.int/web/gaia/dr1>`_ astrometry for a nearby star to
 compute the sky position of the source on the date that the 2MASS survey
 observed that region of the sky. The TGAS astrometry is provided on the
@@ -61,8 +76,8 @@ reference epoch J2015.0, whereas the 2MASS survey occurred in the late 1990's.
 For the star of interest, the proper motion is large enough that there are
 appreciable differences in the sky position between the two surveys.
 
-After computing the previous position of the source, we'll then cross-match the
-source with the 2MASS catalog to compute *Gaia*-2MASS colors for this object
+After computing the previous position of the source, we will then cross-match
+the source with the 2MASS catalog to compute *Gaia*-2MASS colors for this object
 source.
 
 .. note::
@@ -120,9 +135,9 @@ The 2MASS data for all sources within 1 arcminute around the above position
     ...                           '1998-10-24', '1998-10-24', '1998-10-24',
     ...                           '1998-10-24'])
 
-We'll first create a |SkyCoord| object from the information provided in the TGAS
-catalog. Note that we set the ``obstime`` of the object to the reference epoch
-provided by the TGAS catalog (J2015.0)::
+We will first create a |SkyCoord| object from the information provided in the
+TGAS catalog. Note that we set the ``obstime`` of the object to the reference
+epoch provided by the TGAS catalog (J2015.0)::
 
     >>> import astropy.units as u
     >>> from astropy.coordinates import SkyCoord, Distance
@@ -168,3 +183,6 @@ colors::
     >>> K = result_2mass['Kmag'][idx] # doctest: +SKIP
     >>> G - J, G - K # doctest: +SKIP
     (1.0151743233481962, 1.3731746233481958)
+
+..
+  EXAMPLE END

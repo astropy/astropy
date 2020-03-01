@@ -27,6 +27,13 @@ return |SkyCoord| objects in the `~astropy.coordinates.GCRS` frame, while the
 latter returns a `~astropy.coordinates.CartesianRepresentation` of the
 barycentric position of a body (i.e., in the `~astropy.coordinates.ICRS` frame).
 
+Examples
+--------
+
+..
+  EXAMPLE START
+  Using the Solar System Ephemerides
+
 Here is an example of using these functions with built-in ephemerides (i.e.,
 without the need to download a large ephemerides file)::
 
@@ -79,6 +86,9 @@ to the various functions:
   <CartesianRepresentation (x, y, z) in km
       (  1.50107516e+08, -866828.92702829, -418980.15907332)>
 
+..
+  EXAMPLE END
+
 For a list of the bodies for which positions can be calculated, do:
 
 .. note that we skip the next test if jplephem is not installed because if
@@ -123,7 +133,7 @@ For a list of the bodies for which positions can be calculated, do:
 
 .. _astropy-coordinates-solarsystem-erfa-precision:
 
-Precision of the built-in ephemeris
+Precision of the Built-In Ephemeris
 ===================================
 
 The algorithm for calcuting positions and velocities for planets other than

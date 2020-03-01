@@ -175,9 +175,17 @@ Astropy version 4.0.
 
 As with other `~astropy.utils.state.ScienceState` subclasses, the
 `~astropy.coordinates.galactocentric_frame_defaults` class can be used to
-globally set the frame defaults at runtime. For example, the default parameter
-values can be seen by initializing the `~astropy.coordinates.Galactocentric`
-frame with no arguments:
+globally set the frame defaults at runtime.
+
+Examples
+--------
+
+..
+  EXAMPLE START
+  Setting Galactocentric Coordinate Frame Defaults at Runtime
+
+The default parameter values can be seen by initializing the
+`~astropy.coordinates.Galactocentric` frame with no arguments:
 
 .. testsetup::
 
@@ -219,6 +227,9 @@ attributes that are explicitly specified::
     ...     print(Galactocentric(galcen_distance=8.0*u.kpc)) # doctest: +FLOAT_CMP
     <Galactocentric Frame (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
         (266.4051, -28.936175)>, galcen_distance=8.0 kpc, galcen_v_sun=(11.1, 232.24, 7.25) km / s, z_sun=27.0 pc, roll=0.0 deg)>
+
+..
+  EXAMPLE END
 
 Starting with Astropy v4.1, unless set with the
 `~astropy.coordinates.galactocentric_frame_defaults` class, the default

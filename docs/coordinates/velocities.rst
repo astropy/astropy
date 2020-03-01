@@ -9,9 +9,17 @@ Using Velocities with ``SkyCoord``
 ==================================
 
 The best way to start getting a coordinate object with velocities is to use the
-|skycoord| interface. For example, a |skycoord| to represent a star with a
-measured radial velocity but unknown proper motion and distance could be
-created as::
+|skycoord| interface.
+
+Examples
+--------
+
+..
+  EXAMPLE START
+  Using SkyCoord to Get Coordinate Objects with Velocities
+
+A |skycoord| to represent a star with a measured radial velocity but unknown
+proper motion and distance could be created as::
 
     >>> from astropy.coordinates import SkyCoord
     >>> import astropy.units as u
@@ -37,6 +45,9 @@ a star with proper motions measured in ICRS::
       ( 99.63785528, -58.70969293)
     (pm_l_cosb, pm_b) in mas / yr
       ( 0.22240398,  0.02316181)>
+
+..
+  EXAMPLE END
 
 For more details on valid operations and limitations of velocity support in
 `astropy.coordinates` (particularly the :ref:`current accuracy limitations
@@ -66,7 +77,17 @@ and/or a radial velocity because the default differential for most frames is the
 proper motion components all begin with ``pm_`` and, by default, the
 longitudinal component is expected to already include the ``cos(latitude)``
 term. For example, the proper motion components for the ``ICRS`` frame are
-(``pm_ra_cosdec``, ``pm_dec``)::
+(``pm_ra_cosdec``, ``pm_dec``).
+
+Examples
+--------
+
+..
+  EXAMPLE START
+  Creating Frame Objects with Proper Motions
+
+To create frame objects with velocity data in the form of proper motion
+components::
 
     >>> from astropy.coordinates import ICRS
     >>> ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
@@ -97,11 +118,18 @@ longitude and latitude names::
 Like the positional data, velocity data must be passed in as
 `~astropy.units.Quantity` objects.
 
+..
+  EXAMPLE END
+
+..
+  EXAMPLE START
+  Changing the Differential Class when Creating Frame Objects
+
 The expected differential class can be changed to control the argument names
-that the frame expects. As mentioned above, by default the proper motion
-components are expected to contain the ``cos(latitude)``, but this can be
-changed by specifying the `~astropy.coordinates.SphericalDifferential` class
-(instead of the default `~astropy.coordinates.SphericalCosLatDifferential`)::
+that the frame expects. By default the proper motion components are expected to
+contain the ``cos(latitude)``, but this can be changed by specifying the
+`~astropy.coordinates.SphericalDifferential` class (instead of the default
+`~astropy.coordinates.SphericalCosLatDifferential`)::
 
     >>> from astropy.coordinates import SphericalDifferential
     >>> Galactic(l=11.23*u.degree, b=58.13*u.degree,
@@ -140,6 +168,13 @@ position and velocity components. For other frames, these are just ``x,y,z`` and
      (v_x, v_y, v_z) in km / s
         (31., -10., 75.)>
 
+..
+  EXAMPLE END
+
+..
+  EXAMPLE START
+  Shorthands for Convenient Access to Velocity Data in Frame Objects
+
 For any frame with velocity data with any representation, there are also
 shorthands that provide easier access to the underlying velocity data in
 commonly needed formats. With any frame object with 3D velocity data, the 3D
@@ -162,6 +197,9 @@ the radial (line-of-sight) velocity::
     >>> icrs.radial_velocity # doctest: +FLOAT_CMP
     <Quantity 23.42 km / s>
 
+..
+  EXAMPLE END
+
 Adding Velocities to Existing Frame Objects
 ===========================================
 
@@ -169,9 +207,19 @@ Another use case similar to the above comes up when you have an existing frame
 object (or |skycoord|) and want an object with the same position but with
 velocities added. The most conceptually direct way to do this is to
 use the differential objects along with
-`~astropy.coordinates.BaseCoordinateFrame.realize_frame`. The following snippet
-accomplishes a well-defined case where the desired velocities are known in
-the Cartesian representation::
+`~astropy.coordinates.BaseCoordinateFrame.realize_frame`.
+
+Examples
+--------
+
+..
+  EXAMPLE START
+  Adding Velocities to Existing Frame Objects
+
+The following snippet accomplishes a well-defined case where the desired
+velocities are known in the Cartesian representation. To add the velocities to
+the existing frame using
+`~astropy.coordinates.BaseCoordinateFrame.realize_frame`::
 
     >>> icrs = ICRS(1*u.deg, 2*u.deg, distance=3*u.kpc)
     >>> icrs # doctest: +FLOAT_CMP
@@ -212,6 +260,9 @@ radial velocity when you create the object::
      (radial_velocity) in km / s
         (500.,)>
 
+..
+  EXAMPLE END
+
 .. _astropy-coordinate-transform-with-velocities:
 
 Transforming Frames with Velocities
@@ -219,7 +270,16 @@ Transforming Frames with Velocities
 
 Transforming coordinate frame instances that contain velocity data to a
 different frame (which may involve both position and velocity transformations)
-is done exactly the same way as transforming position-only frame instances::
+is done exactly the same way as transforming position-only frame instances.
+
+Example
+-------
+
+..
+  EXAMPLE START
+  Transforming Coordinate Frames with Velocities
+
+To transform a coordinate frame that contains velocity data::
 
     >>> from astropy.coordinates import Galactic
     >>> icrs = ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
@@ -229,6 +289,9 @@ is done exactly the same way as transforming position-only frame instances::
         (120.38084191, -9.69872044)
      (pm_l_cosb, pm_b) in mas / yr
         (3.78957965, -15.44359693)>
+
+..
+  EXAMPLE END
 
 However, the details of how the velocity components are transformed depends on
 the particular set of transforms required to get from the starting frame to the
@@ -253,7 +316,16 @@ a velocity offset are implemented as affine transformations using the
 
 Matrix-only transformations (e.g., rotations such as
 `~astropy.coordinates.ICRS` to `~astropy.coordinates.Galactic`) can be performed
-on proper-motion-only data or full-space, 3D velocities::
+on proper-motion-only data or full-space, 3D velocities.
+
+Examples
+^^^^^^^^
+
+..
+  EXAMPLE START
+  Affine Frame Transformations
+
+To perform a matrix-only transformation::
 
     >>> icrs = ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
     ...             pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr,
@@ -279,6 +351,9 @@ for example, `~astropy.coordinates.ICRS` to `~astropy.coordinates.LSR`::
         (8.67, 53.09, 117.)
      (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
         (-24.51315607, -2.67935501, 27.07339176)>
+
+..
+  EXAMPLE END
 
 .. _astropy-coordinate-finite-difference-velocities:
 
@@ -315,8 +390,14 @@ elements of the transformation:
     ``obtime`` frame attribute, although it is an option that can be set when
     defining a finite difference transformation function.
 
+Example
+^^^^^^^
 
-However, it is important to recognize that the finite difference transformations
+..
+  EXAMPLE START
+  Transforming Velocity Data Between Frames Using a Finite Difference Scheme
+
+It is important to recognize that the finite difference transformations
 have inherent limits set by the finite difference algorithm and machine
 precision. To illustrate this problem, consider the AltAz to GCRS  (i.e.,
 geocentric) transformation. Let us try to compute the radial velocity in the
@@ -381,6 +462,9 @@ But beware that this will *not* help in cases like the above, where the relevant
 timescales for the velocities are seconds. (The velocity of the Earth relative
 to a particular direction changes dramatically over the course of one year.)
 
+..
+  EXAMPLE END
+
 Future versions of Astropy will improve on this algorithm to make the results
 more numerically stable and practical for use in these (not unusual) use cases.
 
@@ -397,11 +481,18 @@ current implementation is independent to ensure sufficient accuracy (see
 `~astropy.coordinates.SkyCoord.radial_velocity_correction` API docs for
 details).
 
-An example of this is below. It demonstrates how to compute this correction if
-observing some object at a known RA and Dec from the Keck observatory at a
-particular time. If a precision of around 3 m/s is sufficient, the computed
-correction can then be added to any observed radial velocity to determine
-the final heliocentric radial velocity::
+Example
+-------
+
+..
+  EXAMPLE START
+  Computing Barycentric or Heliocentric Radial Velocity Corrections
+
+This example demonstrates how to compute this correction if observing some
+object at a known RA and Dec from the Keck observatory at a particular time. If
+a precision of around 3 m/s is sufficient, the computed correction can then be
+added to any observed radial velocity to determine the final heliocentric
+radial velocity::
 
     >>> from astropy.time import Time
     >>> from astropy.coordinates import SkyCoord, EarthLocation
@@ -419,6 +510,9 @@ Note that there are a few different ways to specify the options for the
 correction (e.g., the location, observation time, etc.). See the
 `~astropy.coordinates.SkyCoord.radial_velocity_correction` docs for more
 information.
+
+..
+  EXAMPLE END
 
 Precision of `~astropy.coordinates.SkyCoord.radial_velocity_correction`
 ------------------------------------------------------------------------
