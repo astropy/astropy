@@ -28,7 +28,16 @@ need, you can do:
 
 and then subsequently use, for example, ``const.G``. Constants are fully-fledged
 `~astropy.units.Quantity` objects, so you can conveniently convert them to
-different units. For example::
+different units.
+
+Example
+-------
+
+..
+  EXAMPLE START
+  Converting Constants to Different Units
+
+To convert constants to different units::
 
     >>> print(const.c)
       Name   = Speed of light in vacuum
@@ -69,6 +78,9 @@ cannot be used in expressions without specifying a system::
     values without specifying a system (eg. e.emu)
     >>> 100 * const.e.esu  # doctest: +FLOAT_CMP
     <Quantity 4.8032045057134676e-08 Fr>
+
+..
+  EXAMPLE END
 
 .. _astropy-constants-prior:
 
