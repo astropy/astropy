@@ -84,8 +84,7 @@ Examples
 
 ..
   EXAMPLE START
-  Creating Frame Objects with Velocity Data in the Form of Proper Motion
-  Components
+  Creating Frame Objects with Proper Motions
 
 To create frame objects with velocity data in the form of proper motion
 components::
@@ -278,7 +277,7 @@ Example
 
 ..
   EXAMPLE START
-  Transforming Frames with Velocities
+  Transforming Coordinate Frames with Velocities
 
 To transform a coordinate frame that contains velocity data::
 
@@ -396,7 +395,7 @@ Example
 
 ..
   EXAMPLE START
-  Finite Difference Transformations
+  Transforming Velocity Data Between Frames Using a Finite Difference Scheme
 
 It is important to recognize that the finite difference transformations
 have inherent limits set by the finite difference algorithm and machine

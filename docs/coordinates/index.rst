@@ -37,7 +37,7 @@ Example
 
 ..
   EXAMPLE START
-  Using the Skycoord Class
+  Using the SkyCoord Class
 
 To create a |skycoord| object to represent an ICRS (Right ascension [RA],
 Declination [Dec]) sky position::
@@ -196,7 +196,7 @@ Example
 
 ..
   EXAMPLE START
-  Working with Nonspherical Coordinate Representation
+  Working with Nonspherical Coordinate Representations
 
 To initialize or work with a coordinate using a different representation such
 as Cartesian or Cylindrical::
@@ -231,7 +231,7 @@ Examples
 
 ..
   EXAMPLE START
-  Specifying a Distance from Frame Origin with Skycoord
+  Specifying a Distance with SkyCoord
 
 Two angles and a distance specify a unique point in 3D space, which also allows
 converting the coordinates to a Cartesian representation::
@@ -267,7 +267,7 @@ Examples
 
 ..
   EXAMPLE START
-  Skycoord Convenience Methods
+  SkyCoord Convenience Methods
 
 To compute on-sky and 3D separations between two coordinates::
 
@@ -295,7 +295,7 @@ for a particular named object.
 
 ..
   EXAMPLE START
-  Retrieving Coordinates for a Named Object with Skycoord
+  Retrieving Coordinates for a Named Object with SkyCoord
 
 To retrieve coordinates for a particular named object::
 

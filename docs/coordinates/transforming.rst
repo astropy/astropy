@@ -22,7 +22,7 @@ Examples
 
 ..
   EXAMPLE START
-  Transforming Coordinates from One Frame to Another
+  Transforming Coordinates to Another Frame
 
 The recommended method of transformation is shown below::
 
