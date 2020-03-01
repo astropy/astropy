@@ -19,7 +19,16 @@ The creation of an |Angle| object is quite flexible and supports a wide
 variety of input object types and formats. The type of the input angle(s)
 can be array, scalar, tuple, string, `~astropy.units.Quantity` or another
 |Angle|. This is best illustrated with a number of examples of valid ways
-to create an |Angle|::
+to create an |Angle|.
+
+Examples
+--------
+
+..
+  EXAMPLE START
+  Different Ways to Create an Angle Object
+
+There are a number of ways to create an |Angle|::
 
     >>> import numpy as np
     >>> from astropy import units as u
@@ -54,12 +63,23 @@ to create an |Angle|::
     >>> Angle(Angle(10.2345 * u.deg))  # From another Angle object  # doctest: +FLOAT_CMP
     <Angle 10.2345 deg>
 
+..
+  EXAMPLE END
 
 Representation
 ==============
 
 The |Angle| object also supports a variety of ways of representing the value
-of the angle, both as a floating point number and as a string::
+of the angle, both as a floating point number and as a string.
+
+Examples
+--------
+
+..
+  EXAMPLE START
+  Representation of Angle Object Values
+
+There are many ways to represent the value of an |Angle|::
 
     >>> a = Angle(1, u.radian)
     >>> a  # doctest: +FLOAT_CMP
@@ -95,11 +115,22 @@ of the angle, both as a floating point number and as a string::
     >>> a.to_string(unit=u.hour, decimal=True)
     '3.81972'
 
+..
+  EXAMPLE END
 
 Usage
 =====
 
-Angles will also behave correctly for appropriate arithmetic operations::
+Angles will also behave correctly for appropriate arithmetic operations.
+
+Example
+-------
+
+..
+  EXAMPLE START
+  Arithmetic Operations Using Angle Objects
+
+To use |Angle| objects in arithmetic operations::
 
     >>> a = Angle(1.0, u.radian)
     >>> a + 0.5 * u.radian + 2 * a  # doctest: +FLOAT_CMP
@@ -111,13 +142,27 @@ Angles will also behave correctly for appropriate arithmetic operations::
     >>> a == (a + a)    # doctest: +SKIP
     array(False, dtype=bool)
 
-|Angle| objects can also be used for creating coordinate objects::
+..
+  EXAMPLE END
+
+|Angle| objects can also be used for creating coordinate objects.
+
+Example
+-------
+
+..
+  EXAMPLE START
+  Creating Coordinate Objects with Angle Objects
+
+To create a coordinate object using an |Angle|::
 
     >>> from astropy.coordinates import ICRS
     >>> ICRS(Angle(1, u.deg), Angle(0.5, u.deg))  # doctest: +FLOAT_CMP
     <ICRS Coordinate: (ra, dec) in deg
         (1., 0.5)>
 
+..
+  EXAMPLE END
 
 Wrapping and Bounds
 ===================

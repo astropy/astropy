@@ -67,7 +67,14 @@ section on `Representations`_. First, some imports::
   >>> import astropy.units as u
   >>> import numpy as np
 
-The coordinate values and frame specification can now be provided using
+Examples
+--------
+
+..
+  EXAMPLE START
+  Initializing SkyCoord Objects Using Spherical Coordinates
+
+The coordinate values and frame specification can be provided using
 positional and keyword arguments. First we show positional arguments for
 RA and Dec::
 
@@ -135,6 +142,9 @@ have certain default attribute values. For instance, the
 not explicitly set. If the coordinate above were created with
 ``c = FK4(1 * u.deg, 2 * u.deg, equinox='B1960')`` then creating a |SkyCoord|
 with a different ``equinox`` would raise an exception.
+
+..
+  EXAMPLE END
 
 Initialization Syntax
 ---------------------
@@ -291,7 +301,16 @@ Array Operations
 
 It is possible to store arrays of coordinates in a |SkyCoord| object, and
 manipulations done in this way will be orders of magnitude faster than
-looping over a list of individual |SkyCoord| objects::
+looping over a list of individual |SkyCoord| objects.
+
+Examples
+--------
+
+..
+  EXAMPLE START
+  Storing Arrays of Coordinates in a SkyCoord Object
+
+To store arrays of coordinates in a |SkyCoord| object::
 
   >>> ra = np.linspace(0, 36000, 1001) * u.deg
   >>> dec = np.linspace(-90, 90, 1001) * u.deg
@@ -303,6 +322,13 @@ looping over a list of individual |SkyCoord| objects::
   >>> sc = SkyCoord(ra, dec, frame='icrs')
   >>> timeit sc_gal = sc.galactic  # doctest: +SKIP
   100 loops, best of 3: 21.8 ms per loop
+
+..
+  EXAMPLE END
+
+..
+  EXAMPLE START
+  Array Operations Using SkyCoord
 
 In addition to vectorized transformations, you can do the usual array slicing,
 dicing, and selection using the same methods and attributes that you use for
@@ -328,16 +354,18 @@ use new views of the data, with the data copied only if that is impossible
 (as discussed, for example, in the documentation for NumPy
 :func:`~numpy.reshape`).
 
+..
+  EXAMPLE END
 
 Attributes
-===========
+==========
 
 The |SkyCoord| object has a number of useful attributes which come in handy.
 By digging through these we will learn a little bit about |SkyCoord| and how it
 works.
 
 To begin, one of the most important tools for
-learning about attributes and methods of objects is "TAB-discovery". From
+learning about attributes and methods of objects is "TAB-discovery." From
 within IPython you can type an object name, the period, and then the <TAB> key
 to see what is available. This can often be faster than reading the
 documentation::
@@ -508,7 +536,16 @@ another frame. You can do this in a few different ways: if you only want the
 default version of that frame, you can use attribute-style access (as mentioned
 previously). For more control, you can use the
 `~astropy.coordinates.SkyCoord.transform_to` method, which accepts a frame
-name, frame class, frame instance, or |SkyCoord|::
+name, frame class, frame instance, or |SkyCoord|.
+
+Examples
+--------
+
+..
+  EXAMPLE START
+  Transforming Between Frames
+
+To transform from one frame to another::
 
   >>> from astropy.coordinates import FK5
   >>> sc = SkyCoord(1, 2, frame='icrs', unit='deg')
@@ -532,6 +569,9 @@ coordinates are in the exact same reference frame::
   <SkyCoord (FK4: equinox=B1960.000, obstime=J1978.123): (ra, dec) in deg
       (0.48726331, 1.77731617)>
 
+..
+  EXAMPLE END
+
 .. _astropy-skycoord-representations:
 
 Representations
@@ -551,7 +591,16 @@ Initialization
 Most of what you need to know can be inferred from the examples below and
 by extrapolating the previous documentation for spherical representations.
 Initialization requires setting the ``representation_type`` keyword and
-supplying the corresponding components for that representation::
+supplying the corresponding components for that representation.
+
+Examples
+^^^^^^^^
+
+..
+  EXAMPLE START
+  Initialization of a SkyCoord Object Using Different Representations
+
+To initialize an object using a representation type other than spherical::
 
     >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', representation_type='cartesian')
     >>> c  # doctest: +FLOAT_CMP
@@ -592,6 +641,9 @@ In this case, the ``keyword_args`` now includes the element
 ``representation_type=REPRESENTATION``. In the above description, elements in
 all capital letters (e.g., ``FRAME``) describe a user input of that element
 type. Elements in square brackets are optional.
+
+..
+  EXAMPLE END
 
 **COMP1**, **COMP2**, **COMP3**
 
@@ -702,7 +754,7 @@ names for that frame to the component name on the representation class::
     OrderedDict([('ra', 'lon'), ('dec', 'lat'), ('distance', 'distance')])
 
 Changing Representation
---------------------------
+-----------------------
 
 The representation of the coordinate object can be changed, as shown
 below. This actually does *nothing* to the object internal data which
@@ -715,7 +767,17 @@ data in two ways:
 
 Setting the ``representation_type`` thus changes a *property* of the
 object (how it appears) without changing the intrinsic object itself
-which represents a point in 3D space::
+which represents a point in 3D space.
+
+Examples
+^^^^^^^^
+
+..
+  EXAMPLE START
+  Changing the Representation of a Coordinate Object
+
+To change the representation of a coordinate object by setting the
+``representation_type`` ::
 
     >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', representation_type='cartesian')
     >>> c  # doctest: +FLOAT_CMP
@@ -760,9 +822,15 @@ state of the |SkyCoord| object, you should instead use the
     >>> c.representation_type
     <class 'astropy.coordinates.representation.SphericalRepresentation'>
 
+..
+  EXAMPLE END
 
 Example 1: Plotting random data in Aitoff projection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+..
+  EXAMPLE START
+  Plotting Random Data in Aitoff Projection
 
 This is an example of how to make a plot in the Aitoff projection using data
 in a |SkyCoord| object. Here, a randomly generated data set will be used.
@@ -859,10 +927,15 @@ its usual position to avoid overlap with the axis labels.
     plt.subplots_adjust(top=0.95, bottom=0.0)
     plt.show()
 
-
+..
+  EXAMPLE END
 
 Example 2: Plotting star positions in bulge and disk
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+..
+  EXAMPLE START
+  Plotting Star Positions in Bulge and Disk
 
 This is a more realistic example of how to make a plot in the Aitoff projection
 using data in a |SkyCoord| object. Here, a randomly generated data set
@@ -949,9 +1022,11 @@ We use the same plotting setup as in the last example:
     plt.subplots_adjust(top=0.95,bottom=0.0)
     plt.show()
 
+..
+  EXAMPLE END
 
 Convenience Methods
-====================
+===================
 
 A number of convenience methods are available, and you are encouraged to read
 the available docstrings below:

@@ -21,7 +21,17 @@ single |skycoord| with arrays of values as opposed to looping over the
 |skycoord| and transforming them individually.
 
 Finally, for more advanced users, note that you can use broadcasting to
-transform |skycoord| objects into frames with vector properties. For example::
+transform |skycoord| objects into frames with vector properties.
+
+Example
+-------
+
+..
+  EXAMPLE START
+  Performance Tips for Transforming SkyCoord Objects
+
+To use broadcasting to transform |skycoord| objects into frames with vector
+properties::
 
     >>> from astropy.coordinates import SkyCoord, EarthLocation
     >>> from astropy import coordinates as coord
@@ -43,3 +53,6 @@ transform |skycoord| objects into frames with vector properties. For example::
 
     >>> # calculate alt-az of each object at each time.
     >>> aa_coos = coos.transform_to(aa_frame)  # doctest: +REMOTE_DATA
+
+..
+  EXAMPLE END
