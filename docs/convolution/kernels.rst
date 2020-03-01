@@ -22,6 +22,10 @@ Examples
 1D Kernels
 ----------
 
+..
+  EXAMPLE START
+  Using 1D Kernels to Smooth Noisy Data
+
 One application of filtering is to smooth noisy data. In this case we
 consider a noisy Lorentz curve:
 
@@ -85,8 +89,15 @@ but will not work properly if NaN values are present in the data.
 
 >>> smoothed = np.convolve(data_1D, box_kernel.array)
 
+..
+  EXAMPLE END
+
 2D Kernels
 ----------
+
+..
+  EXAMPLE START
+  Using 2D Kernels to Smooth Noisy Data
 
 As all 2D kernels are symmetric, it is sufficient to specify the width in one
 direction. Therefore the use of 2D kernels is basically the same as for 1D
@@ -189,6 +200,8 @@ appears rectangular). The Ricker Wavelet filter removes noise and slowly varying
 structures (i.e., background), but produces a negative ring around the source.
 The best choice for the filter strongly depends on the application.
 
+..
+  EXAMPLE END
 
 Available Kernels
 =================
@@ -219,8 +232,17 @@ Addition and Subtraction
 ------------------------
 
 As convolution is a linear operation, kernels can be added or subtracted from
-each other. They can also be multiplied with some number. One basic example
-would be the definition of a Difference of Gaussian filter:
+each other. They can also be multiplied with some number.
+
+Examples
+^^^^^^^^
+
+..
+  EXAMPLE START
+  Adding and Subtracting Kernels in astropy.convolution
+
+One basic example of subtracting kernels would be the definition of a
+Difference of Gaussian filter:
 
 >>> from astropy.convolution import Gaussian1DKernel
 >>> gauss_1 = Gaussian1DKernel(10)
@@ -240,13 +262,24 @@ explicitly:
 
 >>> SoG.normalize()
 
+..
+  EXAMPLE END
 
 Convolution
 -----------
 
 Furthermore, two kernels can be convolved with each other, which is useful when
 data is filtered with two different kinds of kernels or to create a new,
-special kernel:
+special kernel.
+
+Examples
+^^^^^^^^
+
+..
+  EXAMPLE START
+  Convolving Kernels in astropy.convolution
+
+To convolve two kernels with each other:
 
 >>> from astropy.convolution import Gaussian1DKernel, convolve
 >>> gauss_1 = Gaussian1DKernel(10)
@@ -275,6 +308,9 @@ You would rather do the following:
 
 Which, in most cases, will also be faster than the first method because only
 one convolution with the often times larger data array will be necessary.
+
+..
+  EXAMPLE END
 
 Discretization
 ==============
