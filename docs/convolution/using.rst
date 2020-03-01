@@ -45,7 +45,11 @@ use::
     >>> result = convolve(image, kernel, normalize_kernel=True)  # doctest: +SKIP
 
 Examples
-========
+--------
+
+..
+  EXAMPLE START
+  Smoothing Arrays with Custom Kernels
 
 Smooth a 1D array with a custom kernel and no boundary treatment::
 
@@ -65,6 +69,13 @@ interpolated using the kernel::
     >>> convolve([1, 4, 5, 6, np.nan, 7, 8], [0.2, 0.6, 0.2], boundary='extend')  # doctest: +FLOAT_CMP
     array([1.6 , 3.6 , 5.  , 5.75, 6.5 , 7.25, 7.8 ])
 
+..
+  EXAMPLE END
+
+..
+  EXAMPLE START
+  Constructing Kernels from Lists
+
 Kernels and arrays can be specified either as lists or as ``numpy``
 arrays. The following examples show how to construct a 1D array as a
 list::
@@ -72,19 +83,22 @@ list::
     >>> kernel = [0, 1, 0]
     >>> result = convolve(spectrum, kernel)  # doctest: +SKIP
 
-a 2D array as a list::
+A 2D array as a list::
 
     >>> kernel = [[0, 1, 0],
     ...           [1, 2, 1],
     ...           [0, 1, 0]]
     >>> result = convolve(image, kernel)  # doctest: +SKIP
 
-and a 3D array as a list::
+And a 3D array as a list::
 
     >>> kernel = [[[0, 0, 0], [0, 2, 0], [0, 0, 0]],
     ...           [[0, 1, 0], [2, 3, 2], [0, 1, 0]],
     ...           [[0, 0, 0], [0, 2, 0], [0, 0, 0]]]
     >>> result = convolve(cube, kernel)  # doctest: +SKIP
+
+..
+  EXAMPLE END
 
 Kernels
 =======

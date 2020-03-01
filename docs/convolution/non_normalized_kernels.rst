@@ -10,7 +10,15 @@ can be done in one step::
 
     convolve(image, kernel)
 
-For example, we can try to run a commonly used peak enhancing kernel:
+Examples
+--------
+
+..
+  EXAMPLE START
+  Convolving with Unnormalized Kernels
+
+For an example of applying a filter with a kernel that is not normalized, we
+can try to run a commonly used peak enhancing kernel:
 
 .. plot::
    :context: reset
@@ -49,6 +57,13 @@ For example, we can try to run a commonly used peak enhancing kernel:
     ax2 = plt.subplot(1, 2, 2)
     im = ax2.imshow(astropy_conv, vmin=-6., vmax=5.e1, origin='lower',
                     interpolation='nearest', cmap='viridis')
+
+..
+  EXAMPLE END
+
+..
+  EXAMPLE START
+  Replacing NaN Values with Interpolated Values Using Kernels
 
 If you have an image with missing values (NaNs), you have to replace them with
 real values first. Often, the best way to do this is to replace the NaN values
@@ -103,3 +118,6 @@ before applying the peak-finding kernel.
    ax3.set_title("Peak-Finding")
    im = ax3.imshow(peaked_image, vmin=-6., vmax=5.e1, origin='lower',
                    interpolation='nearest', cmap='viridis')
+
+..
+  EXAMPLE END
