@@ -19,7 +19,7 @@ from astropy import table
 from astropy.units import Unit
 from astropy.table.table_helpers import simple_table
 
-from .common import (raises, assert_equal, assert_almost_equal,
+from .common import (assert_equal, assert_almost_equal,
                      assert_true)
 from astropy.io.ascii import core
 from astropy.io.ascii.ui import _probably_html, get_read_trace
@@ -246,6 +246,22 @@ def test_guess_all_files():
             assert_equal(table.dtype.names, testfile['cols'])
             for colname in table.dtype.names:
                 assert_equal(len(table[colname]), testfile['nrows'])
+
+
+def test_validate_read_kwargs():
+    lines = ['a b', '1 2', '3 4']
+    # Check that numpy integers are allowed
+    out = ascii.read(lines, data_start=np.int16(2))
+    assert np.all(out['a'] == [3])
+
+    with pytest.raises(TypeError, match=r"read\(\) argument 'data_end' must be a "
+                       r"\(<class 'int'>, <class 'numpy.integer'>\) object, "
+                       r"got <class 'str'> instead"):
+        ascii.read(lines, data_end='needs integer')
+
+    with pytest.raises(TypeError, match=r"read\(\) argument 'fill_include_names' must "
+                       r"be a list-like object, got <class 'str'> instead"):
+        ascii.read(lines, fill_include_names='ID')
 
 
 def test_daophot_indef():
