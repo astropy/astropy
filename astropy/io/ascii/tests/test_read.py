@@ -255,7 +255,7 @@ def test_validate_read_kwargs():
     assert np.all(out['a'] == [3])
 
     with pytest.raises(TypeError, match=r"read\(\) argument 'data_end' must be a "
-                       r"\(<class 'int'>, <class 'numpy.integer'>\) object, "
+                       r"<class 'int'> object, "
                        r"got <class 'str'> instead"):
         ascii.read(lines, data_end='needs integer')
 

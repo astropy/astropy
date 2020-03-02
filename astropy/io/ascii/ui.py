@@ -206,6 +206,22 @@ def _get_fast_reader_dict(kwargs):
 def _validate_read_write_kwargs(read_write, **kwargs):
     """Validate keyword arg inputs to read() or write()."""
 
+    def is_ducktype(val, cls):
+        if cls == 'list-like':
+            ok = (not isinstance(val, str)
+                  and isinstance(val, collections.abc.Iterable))
+        else:
+            ok = isinstance(val, cls)
+            if not ok:
+                try:
+                    new_val = cls(val)
+                    assert new_val == val
+                except Exception:
+                    ok = False
+                else:
+                    ok = True
+        return ok
+
     kwarg_types = READ_KWARG_TYPES if read_write == 'read' else WRITE_KWARG_TYPES
 
     for arg, val in kwargs.items():
@@ -215,16 +231,15 @@ def _validate_read_write_kwargs(read_write, **kwargs):
         if arg not in kwarg_types or val is None:
             continue
 
-        exp_type = kwarg_types[arg]
-        if exp_type == 'list-like':
-            ok = (not isinstance(val, str)
-                  and isinstance(val, collections.abc.Iterable))
-        else:
-            ok = isinstance(val, exp_type)
+        types = kwarg_types[arg]
+        err_msg = (f"{read_write}() argument '{arg}' must be a "
+                   f"{types} object, got {type(val)} instead")
 
-        if not ok:
-            raise TypeError(f"{read_write}() argument '{arg}' must be a "
-                            f"{exp_type} object, got {type(val)} instead")
+        if not isinstance(types, tuple):
+            types = [types]
+
+        if not any(is_ducktype(val, cls) for cls in types):
+            raise TypeError(err_msg)
 
 
 def read(table, guess=None, **kwargs):

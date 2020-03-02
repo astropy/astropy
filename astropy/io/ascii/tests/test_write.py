@@ -789,7 +789,6 @@ def test_validate_write_kwargs():
     t = table.QTable([[1, 2], [1, 2]], names=['a', 'b'])
 
     with pytest.raises(TypeError, match=r"write\(\) argument 'fast_writer' must be a "
-                       r"\(<class 'bool'>, <class 'numpy.bool_'>, "
-                       r"<class 'str'>, <class 'numpy.str_'>\) object, "
+                       r"\(<class 'bool'>, <class 'str'>\) object, "
                        r"got <class 'int'> instead"):
         ascii.write(t, out, fast_writer=12)
