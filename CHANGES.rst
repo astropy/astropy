@@ -81,6 +81,9 @@ astropy.io.fits
 
 - Fix writing noncontiguous data to a compressed HDU. [#9958]
 
+- Added verification of ``disp`` (``TDISP``) keyword to ``fits.Column`` and
+  extended tests for ``TFORM`` and ``TDISP`` validation. [#9978]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
