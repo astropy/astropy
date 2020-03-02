@@ -27,6 +27,9 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- Added type validation of key arguments in calls to ``io.ascii.read()`` and
+  ``io.ascii.write()`` functions. [#10005]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
