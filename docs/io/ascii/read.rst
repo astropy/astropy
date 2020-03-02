@@ -120,11 +120,14 @@ Parameters for ``read()``
   for more information and examples. The default is that any blank table
   values are treated as missing.
 
-**fill_include_names** : list of column names, which are affected by ``fill_values``.
-  If not supplied, then ``fill_values`` can affect all columns.
+**fill_include_names** : list of column names affected by ``fill_values``.
+  From the list of column names found from the header or the ``names``
+  parameter, select for filling only columns within this list. If not supplied,
+  then apply ``fill_values`` to all columns.
 
-**fill_exclude_names** : list of column names, which are not affected by ``fill_values``.
-  If not supplied, then ``fill_values`` can affect all columns.
+**fill_exclude_names** : list of column names not affected by ``fill_values``.
+  Exclude these names from the list of columns for filling. This is applied *after*
+  the ``fill_include_names`` filtering. If not specified then no columns are excluded.
 
 **Outputter** : Outputter class
   This converts the raw data tables value into the
