@@ -96,12 +96,12 @@ READ_KWARG_TYPES = {
     # 'Reader'
     # 'Inputter'
     # 'Outputter'
-    'delimiter': (str, np.str_),
-    'comment': (str, np.str_),
-    'quotechar': (str, np.str_),
-    'header_start': (int, np.integer),
-    'data_start': (int, np.integer, str, np.str_),  # CDS allows 'guess'
-    'data_end': (int, np.integer),
+    'delimiter': str,
+    'comment': str,
+    'quotechar': str,
+    'header_start': int,
+    'data_start': (int, str),  # CDS allows 'guess'
+    'data_end': int,
     'converters': dict,
     # 'data_Splitter'
     # 'header_Splitter'
@@ -111,8 +111,8 @@ READ_KWARG_TYPES = {
     'fill_values': 'list-like',
     'fill_include_names': 'list-like',
     'fill_exclude_names': 'list-like',
-    'fast_reader': (bool, np.bool_, str, np.str_, dict),
-    'encoding': (str, np.str_),
+    'fast_reader': (bool, str, dict),
+    'encoding': str,
 }
 
 
@@ -170,16 +170,16 @@ WRITE_DOCSTRING = """
 WRITE_KWARG_TYPES = {
     # 'table'
     # 'output'
-    'format': (str, np.str_),
-    'delimiter': (str, np.str_),
-    'comment': (str, np.str_, bool, np.bool_),
-    'quotechar': (str, np.str_),
-    'header_start': (int, np.integer),
+    'format': str,
+    'delimiter': str,
+    'comment': (str, bool),
+    'quotechar': str,
+    'header_start': int,
     'formats': dict,
-    'strip_whitespace': (bool, np.bool_),
+    'strip_whitespace': (bool),
     'names': 'list-like',
     'include_names': 'list-like',
     'exclude_names': 'list-like',
-    'fast_writer': (bool, np.bool_, str, np.str_),
-    'overwrite': (bool, np.bool_),
+    'fast_writer': (bool, str),
+    'overwrite': (bool),
 }
