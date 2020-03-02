@@ -963,8 +963,22 @@ class Column(NotifierMixin):
         valid = {}
         invalid = {}
 
-        format, recformat = cls._determine_formats(format, start, dim, ascii)
-        valid.update(format=format, recformat=recformat)
+        try:
+            format, recformat = cls._determine_formats(format, start, dim, ascii)
+            valid.update(format=format, recformat=recformat)
+        except (ValueError, VerifyError) as err:
+            msg = (
+                f'Column format option (TFORMn) failed verification: {err!s} '
+                'The invalid value will be ignored for the purpose of '
+                'formatting the data in this column.')
+            invalid['format'] = (format, msg)
+        except AttributeError as err:
+            msg = (
+                f'Column format option (TFORMn) must be a string with a valid '
+                f'FITS table format (got {format!s}: {err!s}). '
+                'The invalid value will be ignored for the purpose of '
+                'formatting the data in this column.')
+            invalid['format'] = (format, msg)
 
         # Currently we don't have any validation for name, unit, bscale, or
         # bzero so include those by default
@@ -1020,9 +1034,9 @@ class Column(NotifierMixin):
             msg = None
             if not isinstance(disp, str):
                 msg = (
-                    'Column disp option (TDISPn) must be a string (got {!r}).'
-                    'The invalid value will be ignored for the purpose of '
-                    'formatting the data in this column.'.format(disp))
+                    f'Column disp option (TDISPn) must be a string (got '
+                    f'{disp!r}). The invalid value will be ignored for the '
+                    'purpose of formatting the data in this column.')
 
             elif (isinstance(format, _AsciiColumnFormat) and
                     disp[0].upper() == 'L'):
@@ -1035,7 +1049,15 @@ class Column(NotifierMixin):
                     "column.")
 
             if msg is None:
-                valid['disp'] = disp
+                try:
+                    _parse_tdisp_format(disp)
+                    valid['disp'] = disp
+                except VerifyError as err:
+                    msg = (
+                        f'Column disp option (TDISPn) failed verification: '
+                        f'{err!s} The invalid value will be ignored for the '
+                        'purpose of formatting the data in this column.')
+                    invalid['disp'] = (disp, msg)
             else:
                 invalid['disp'] = (disp, msg)
 
@@ -2483,7 +2505,8 @@ def _parse_tdisp_format(tdisp):
 
     # Use appropriate regex for format type
     tdisp = tdisp.strip()
-    fmt_key = tdisp[0] if tdisp[0] != 'E' or tdisp[1] not in 'NS' else tdisp[:2]
+    fmt_key = tdisp[0] if tdisp[0] != 'E' or (
+        len(tdisp) > 1 and tdisp[1] not in 'NS') else tdisp[:2]
     try:
         tdisp_re = TDISP_RE_DICT[fmt_key]
     except KeyError:
