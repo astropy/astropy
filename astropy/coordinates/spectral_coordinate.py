@@ -524,6 +524,48 @@ class SpectralCoord(u.Quantity):
         return self._copy(observer=new_observer,
                           target=new_target)
 
+    @u.quantity_input(rv=['speed'])
+    def with_radial_velocity(self, rv):
+        """
+        Creates a new `SpectralCoord` object with the updated radial
+        velocity values.
+
+        Parameters
+        ----------
+        rv : `Quantity`
+            New radial velocity to a store in the `SpectralCoord` object.
+
+        Returns
+        -------
+        `SpectralCoord`
+            A new instance with the updated radial velocity value.
+        """
+        if self.observer is not None and self.target is not None:
+            raise ValueError("Redshift cannot be set explicitly when "
+                             "providing both an observer and target.")
+
+        return self._copy(radial_velocity=rv)
+
+    def with_redshift(self, rs):
+        """
+        Creates a new `SpectralCoord` object with the updated redshift value.
+
+        Parameters
+        ----------
+        rs : float
+            New redshift to a store in the `SpectralCoord` object.
+
+        Returns
+        -------
+        `SpectralCoord`
+            A new instance with the updated redshift value.
+        """
+        if self.observer is not None and self.target is not None:
+            raise ValueError("Redshift cannot be set explicitly when "
+                             "providing both an observer and target.")
+
+        return self._copy(redshift=rs)
+
     def to_rest(self):
         """
         Transforms the spectral axis to the rest frame.
