@@ -921,7 +921,7 @@ class Lorentz1D(Fittable1DModel):
     x_0 : float
         Position of the peak
     fwhm : float
-        Full width at half maximum
+        Full width at half maximum (FWHM)
 
     See Also
     --------
@@ -934,6 +934,8 @@ class Lorentz1D(Fittable1DModel):
     .. math::
 
         f(x) = \\frac{A \\gamma^{2}}{\\gamma^{2} + \\left(x - x_{0}\\right)^{2}}
+
+    where :math:`\\gamma` is half of given FWHM.
 
     Examples
     --------
