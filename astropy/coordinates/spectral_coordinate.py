@@ -5,7 +5,7 @@ from collections import namedtuple
 
 import astropy.units as u
 from astropy.constants import c
-from astropy.coordinates import SkyCoord, ICRS, Distance, GCRS, RadialDifferential, CartesianDifferential, SphericalDifferential
+from astropy.coordinates import SkyCoord, ICRS, Distance, GCRS, CartesianRepresentation, CartesianDifferential, SphericalDifferential, SphericalRepresentation
 from astropy.coordinates.baseframe import BaseCoordinateFrame, FrameMeta
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -18,6 +18,8 @@ DOPPLER_CONVENTIONS = {
 RV_RS_EQUIV = [(u.cm / u.s, u.Unit(''),
                 lambda x: np.sqrt((1 + x/c.cgs.value)/(1 - x/c.cgs.value)) - 1,
                 lambda x: ((x + 1) ** 2 - 1) / ((x + 1) ** 2 + 1) * c.cgs.value)]
+
+DEFAULT_DISTANCE = 1 * u.AU
 
 DopplerConversion = namedtuple('DopplerConversion', ['rest', 'convention'])
 
@@ -95,23 +97,16 @@ class SpectralCoord(u.Quantity):
 
             observer_icrs = observer.transform_to(ICRS)
 
-            target = ICRS(ra=observer_icrs.ra,
-                          dec=observer_icrs.dec,
-                          pm_ra_cosdec=observer_icrs.pm_ra_cosdec,
-                          pm_dec=observer_icrs.pm_dec,
-                          distance=1 * u.kpc)
-
-            d_pos = (target.cartesian.without_differentials() -
-                     observer_icrs.cartesian.without_differentials())
-
-            pos_hat = d_pos / (d_pos.norm() or 1)
+            d = observer_icrs.cartesian.norm()
+            drep = CartesianRepresentation([(d + DEFAULT_DISTANCE).to(d.unit),
+                                            0 * d.unit, 0 * d.unit])
 
             tot_rv = radial_velocity + observer_icrs.radial_velocity
-            target_velocity = target.velocity + tot_rv * pos_hat
 
-            target = target.realize_frame(
-                target.cartesian.with_differentials(
-                    CartesianDifferential(target_velocity.xyz)))
+            target = (observer_icrs.cartesian.without_differentials() + drep).with_differentials(
+                CartesianDifferential([tot_rv, 0 * tot_rv.unit, 0 * tot_rv.unit]))
+
+            target = observer_icrs.realize_frame(target)
 
         obj._observer = cls._validate_coordinate(observer) if observer is not None else None
         obj._target = cls._validate_coordinate(target) if target is not None else None
