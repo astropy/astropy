@@ -239,6 +239,13 @@ class TestRoundtripCDS(RoundtripBase):
 
         self.check_roundtrip_decompose(unit)
 
+    @pytest.mark.parametrize('unit', [u.dex(unit) for unit in
+                                      (u.cm/u.s**2, u.K, u.Lsun)])
+    def test_roundtrip_dex(self, unit):
+        string = unit.to_string(format='cds')
+        recovered = u.Unit(string, format='cds')
+        assert recovered == unit
+
 
 class TestRoundtripOGIP(RoundtripBase):
     format_ = 'ogip'
