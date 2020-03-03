@@ -1531,6 +1531,10 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         if (isinstance(self.converter, converters.FloatingPoint) and
                 self.converter.output_format != '{!r:>}'):
             column.format = self.converter.output_format
+        elif isinstance(self.converter, converters.Char):
+            column.info.meta['_votable_string_dtype'] = 'char'
+        elif isinstance(self.converter, converters.UnicodeChar):
+            column.info.meta['_votable_string_dtype'] = 'unicodeChar'
 
     @classmethod
     def from_table_column(cls, votable, column):

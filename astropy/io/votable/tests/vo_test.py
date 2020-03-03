@@ -75,10 +75,10 @@ def _test_regression(tmpdir, _python_based=False, binary_mode=1):
 
     dtypes = [
         (('string test', 'string_test'), '|O8'),
-        (('fixed string test', 'string_test_2'), '|S10'),
+        (('fixed string test', 'string_test_2'), '<U10'),
         ('unicode_test', '|O8'),
         (('unicode test', 'fixed_unicode_test'), '<U10'),
-        (('string array test', 'string_array_test'), '|S4'),
+        (('string array test', 'string_array_test'), '<U4'),
         ('unsignedByte', '|u1'),
         ('short', '<i2'),
         ('int', '<i4'),
@@ -249,7 +249,7 @@ def test_select_columns_by_index():
         get_pkg_data_filename('data/regression.xml'), columns=columns).get_first_table()  # noqa
     array = table.array
     mask = table.array.mask
-    assert array['string_test'][0] == b"String & test"
+    assert array['string_test'][0] == "String & test"
     columns = ['string_test', 'unsignedByte', 'bitarray']
     for c in columns:
         assert not np.all(mask[c])
@@ -262,7 +262,7 @@ def test_select_columns_by_name():
         get_pkg_data_filename('data/regression.xml'), columns=columns).get_first_table()  # noqa
     array = table.array
     mask = table.array.mask
-    assert array['string_test'][0] == b"String & test"
+    assert array['string_test'][0] == "String & test"
     for c in columns:
         assert not np.all(mask[c])
     assert np.all(mask['unicode_test'])
@@ -280,15 +280,14 @@ class TestParse:
                           np.object_)
         assert_array_equal(
             self.array['string_test'],
-            [b'String & test', b'String &amp; test', b'XXXX',
-             b'', b''])
+            ['String & test', 'String &amp; test', 'XXXX', '', ''])
 
     def test_fixed_string_test(self):
         assert issubclass(self.array['string_test_2'].dtype.type,
-                          np.string_)
+                          np.unicode_)
         assert_array_equal(
             self.array['string_test_2'],
-            [b'Fixed stri', b'0123456789', b'XXXX', b'', b''])
+            ['Fixed stri', '0123456789', 'XXXX', '', ''])
 
     def test_unicode_test(self):
         assert issubclass(self.array['unicode_test'].dtype.type,
