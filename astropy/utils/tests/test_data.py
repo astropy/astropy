@@ -342,7 +342,8 @@ def test_download_with_sources_and_bogus_original(
         assert is_url_in_cache(u)
 
 
-@pytest.mark.skip(reason="causes mystery segfault! possibly bug #10008")
+@pytest.mark.skipif((3, 7) <= sys.version_info < (3, 8),
+                    reason="causes mystery segfault! possibly bug #10008")
 @pytest.mark.parametrize("b", _shelve_possible_backends)
 def test_download_file_threaded_many(b, temp_cache, valid_urls):
     """Hammer download_file with multiple threaded requests.
@@ -363,21 +364,8 @@ def test_download_file_threaded_many(b, temp_cache, valid_urls):
         assert get_file_contents(r) == c
 
 
-@pytest.mark.skip(reason="causes mystery segfault! possibly bug #10008")
-def test_download_file_threaded_many_no_cache(valid_urls):
-    """Hammer download_file with multiple threaded requests.
-
-    The goal is to see whether this triggers segfaults even without the
-    caching machinery.
-
-    """
-    urls = list(islice(valid_urls, N_THREAD_HAMMER))
-    with ThreadPoolExecutor(max_workers=len(urls)) as P:
-        list(P.map(lambda u: download_file(u, cache=False),
-                   [u for (u, c) in urls]))
-
-
-@pytest.mark.skip(reason="causes mystery segfault! possibly bug #10008")
+@pytest.mark.skipif((3, 7) <= sys.version_info < (3, 8),
+                    reason="causes mystery segfault! possibly bug #10008")
 def test_threaded_segfault(valid_urls):
     """Demonstrate urllib's segfault."""
     def slurp_url(u):
@@ -392,7 +380,8 @@ def test_threaded_segfault(valid_urls):
                    [u for (u, c) in urls]))
 
 
-@pytest.mark.skip(reason="causes mystery segfault! possibly bug #10008")
+@pytest.mark.skipif((3, 7) <= sys.version_info < (3, 8),
+                    reason="causes mystery segfault! possibly bug #10008")
 def test_download_file_threaded_many_partial_success(
         temp_cache, valid_urls, invalid_urls):
     """Hammer download_file with multiple threaded requests.
