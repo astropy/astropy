@@ -1554,14 +1554,45 @@ def _keep_trying(timeout):
 # access to the shelve even for reading.
 @contextlib.contextmanager
 def _cache_lock(pkgname, need_write=False):
-    lockdir = os.path.join(_get_download_cache_locs(pkgname)[0], 'lock')
-    pidfn = os.path.join(lockdir, 'pid')
-    got_lock = False
-    try:
+    cache_dir = _get_download_cache_locs(pkgname)[0]
+    lock_name = 'lock'
+    lock_dir = os.path.join(cache_dir, lock_name)
+
+    def rmdir_fd(fd):
+        # Remove the lock directory given a file descriptor
+        # pointing to the cache directory.
+        try:
+            lock_fd = os.open(lock_name, os.O_RDONLY, dir_fd=fd)
+            try:
+                os.rmdir(lock_name, dir_fd=fd)
+            finally:
+                os.close(lock_fd)
+        except NotImplementedError:
+            shutil.rmtree(lock_dir)
+
+    @contextlib.contextmanager
+    def make_lock_dir():
+        os.mkdir(lock_dir)
+        fd = None
+        try:
+            fd = os.open(cache_dir, os.O_RDONLY)
+            yield
+        finally:
+            try:
+                rmdir_fd(fd)
+            except FileNotFoundError:
+                # already gone, that's fine
+                pass
+            finally:
+                os.close(fd)
+
+    with contextlib.ExitStack() as stack:
         msg = f"Config file requests {conf.download_cache_lock_attempts} tries"
         for waited in _keep_trying(conf.download_cache_lock_attempts):
             try:
-                os.mkdir(lockdir)
+                stack.enter_context(make_lock_dir())
+                # Got the lock
+                break
             except FileExistsError:
                 # It is not safe to open and inspect the pid file here
                 # on Windows, because while it is open that prevents its
@@ -1570,56 +1601,24 @@ def _cache_lock(pkgname, need_write=False):
                 msg = (
                     f"Cache is locked after {waited:.2f} s. This may indicate "
                     f"an astropy bug or that kill -9 was used. If you want to "
-                    f"unlock the cache remove the directory {lockdir}.")
+                    f"unlock the cache remove the directory {lock_dir}.")
             except OSError as e:
-                # PermissionError doesn't cover all read-only-ness, just EACCES
-                if e.errno in [errno.EPERM,    # Operation not permitted
-                               errno.EACCES,   # Permission denied
-                               errno.EROFS]:   # File system is read-only
-                    if need_write:
-                        raise
-                    else:
-                        break
+                # Can't write to the cache
+                # PermissionError doesn't cover all read-only-ness,
+                # just EACCES and EPERM
+                if not need_write and e.errno in [
+                            errno.EPERM,    # Operation not permitted
+                            errno.EACCES,   # Permission denied
+                            errno.EROFS,    # File system is read-only
+                        ]:
+                    # Cache is fine just read-only
+                    break
                 else:
                     raise
-            else:
-                got_lock = True
-                # write the pid of this process for informational purposes
-                with open(pidfn, 'w') as f:
-                    f.write(str(os.getpid()))
-                break
         else:
             # Never did get the lock.
-            try:
-                # Might as well try to read and report the PID file, at
-                # this point it's unlikely we'll block someone else trying
-                # to exit cleanly.
-                pid = get_file_contents(pidfn)
-            except OSError:
-                pass
-            else:
-                msg += f" Lock claims to be held by process {pid}."
             raise RuntimeError(msg)
-
         yield
-
-    finally:
-        # clear_download_cache might have deleted the lockdir
-        if got_lock and os.path.exists(lockdir):
-            if os.path.isdir(lockdir):
-                # if the pid file is present, be sure to remove it
-                if os.path.exists(pidfn):
-                    os.remove(pidfn)
-                os.rmdir(lockdir)
-            else:
-                raise RuntimeError(
-                    f'Error releasing lock. {lockdir} exists but is not '
-                    f'a directory.')
-        else:
-            # Just in case we were called from _clear_download_cache
-            # or something went wrong before creating the directory
-            # or the cache was readonly; no need to clean it up then.
-            pass
 
 
 class ReadOnlyDict(dict):

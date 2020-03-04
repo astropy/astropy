@@ -987,7 +987,7 @@ def test_data_noastropy_fallback(monkeypatch):
     has_noclear_warning = False
     for wi in w:
         if wi.category == CacheMissingWarning:
-            if "Not clearing data cache - cache inaccessible" in str(wi.message):
+            if "Not clearing data" in str(wi.message):
                 has_noclear_warning = True
     assert has_noclear_warning
 
