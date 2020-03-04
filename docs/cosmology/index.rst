@@ -102,7 +102,7 @@ Examples
 
 ..
   EXAMPLE START
-  Working with the FLRW Class Through Subclass FlatLambdaCDM
+  Working with the FlatLambdaCDM Class
 
 You can create a new `~astropy.cosmology.FlatLambdaCDM` object with
 arguments giving the Hubble parameter and Omega matter (both at z=0)::
@@ -157,7 +157,7 @@ methods and attributes available.
 
 ..
   EXAMPLE START
-  Working with the FLRW Class Through Subclass LambdaCDM
+  Working with Non-flat Universes with the LambdaCDM Class
 
 In addition to flat universes, non-flat varieties are supported, such as
 `~astropy.cosmology.LambdaCDM`. A variety of standard cosmologies with the
@@ -232,7 +232,7 @@ Note that you cannot change the type of cosmology with this operation
 
 ..
   EXAMPLE START
-  Making New Cosmology Instances with the Clone Operation
+  Making New Cosmology Instances with the .clone() Method
 
 To make a copy of a cosmological instance using the ``clone`` operation:
 
@@ -259,7 +259,7 @@ Example
 
 ..
   EXAMPLE START
-  Finding the Redshift at a Given Value of a Cosmological Quantity
+  Compute the Redshift at a Given Universe Age
 
 To find the redshift using ``z_at_value``:
 
@@ -386,7 +386,7 @@ Examples
 
 ..
   EXAMPLE START
-  Calculating the Contribution of Photons and Neutrinos with Cosmology
+  Calculating the Contribution of Photons and Neutrinos to the Energy Density
 
 The contribution of photons and neutrinos to the total mass-energy density
 can be found as a function of redshift::
