@@ -402,7 +402,7 @@ too large, then rows and/or columns are cut from the middle so it fits.
 Example
 ^^^^^^^
 
-.. EXAMPLE START: Formatted Table Printing
+.. EXAMPLE START: Printing Formatted Tables
 
 To print a formatted table::
 
@@ -769,7 +769,7 @@ unacceptable.
 Examples
 """"""""
 
-.. EXAMPLE START: Bytestring Data in Astropy
+.. EXAMPLE START: Bytestring Data in Astropy Tables
 
 The examples below illustrate dealing with bytestring data in ``astropy``.
 

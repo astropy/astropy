@@ -679,7 +679,7 @@ by name.
 Examples
 ^^^^^^^^
 
-.. .. EXAMPLE START: Stacking (or Concatenating) Tables Depth-Wise
+.. EXAMPLE START: Stacking (or Concatenating) Tables Depth-Wise
 
 Suppose we have tables of data for sources giving information on the enclosed
 source counts for different PSF fractions::
@@ -854,7 +854,7 @@ available rows. In this case one there are no key columns (and supplying a
 Non-Identical Key Column Names
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. EXAMPLE START: Non-Identical Key Column Names in Tables
+.. EXAMPLE START: Joining Tables with Unique Key Column Names
 
 The |join| function requires the key column names to be identical in the
 two tables. However, in the following, one table has a ``'name'`` column

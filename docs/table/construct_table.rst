@@ -150,7 +150,7 @@ Notice that in the third column the existing column name ``'axis'`` is used.
 Dict of Columns
 ---------------
 
-.. EXAMPLE START: Creating an Astropy Table from a Dict of Columns
+.. EXAMPLE START: Creating an Astropy Table from a Dictionary of Columns
 
 A dictionary of column data can be used to initialize a |Table|.
 
