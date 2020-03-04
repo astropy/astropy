@@ -26,6 +26,7 @@ astropy.extern
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
+- Functional Units can now be processed in CDS-tables. [#9971]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
@@ -2588,6 +2589,7 @@ astropy.io.ascii
 
 - Units in CDS-formatted tables are now parsed correctly by the units
   module. [#7348]
+
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^

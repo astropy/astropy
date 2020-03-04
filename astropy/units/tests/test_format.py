@@ -14,7 +14,7 @@ from numpy.testing import assert_allclose
 from astropy.tests.helper import catch_warnings
 from astropy import units as u
 from astropy.constants import si
-from astropy.units import core
+from astropy.units import core, dex
 from astropy.units import format as u_format
 from astropy.units.utils import is_effectively_unity
 
@@ -82,7 +82,9 @@ def test_unit_grammar_fail(string):
     (["°/s"], u.degree / u.s),
     (["Å"], u.AA),
     (["Å/s"], u.AA / u.s),
-    (["\\h"], si.h)])
+    (["\\h"], si.h),
+    (["[cm/s2]"], dex(u.cm / u.s ** 2)),
+    (["[K]"], dex(u.K))])
 def test_cds_grammar(strings, unit):
     for s in strings:
         print(s)
@@ -236,6 +238,13 @@ class TestRoundtripCDS(RoundtripBase):
             return
 
         self.check_roundtrip_decompose(unit)
+
+    @pytest.mark.parametrize('unit', [u.dex(unit) for unit in
+                                      (u.cm/u.s**2, u.K, u.Lsun)])
+    def test_roundtrip_dex(self, unit):
+        string = unit.to_string(format='cds')
+        recovered = u.Unit(string, format='cds')
+        assert recovered == unit
 
 
 class TestRoundtripOGIP(RoundtripBase):

@@ -181,6 +181,8 @@ class TestLogUnitStrings:
         assert lu1.to_string('generic') == 'mag(Jy)'
         with pytest.raises(ValueError):
             lu1.to_string('fits')
+        with pytest.raises(ValueError):
+            lu1.to_string(format='cds')
 
         lu2 = u.dex()
         assert str(lu2) == 'dex'
