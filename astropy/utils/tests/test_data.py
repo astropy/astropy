@@ -6,6 +6,7 @@ import os
 import dbm
 import sys
 import stat
+import errno
 import base64
 import random
 import shutil
@@ -176,7 +177,8 @@ def readonly_cache(tmpdir, valid_urls):
 @pytest.fixture
 def fake_readonly_cache(tmpdir, valid_urls, monkeypatch):
     def no_mkdir(p):
-        raise PermissionError("os.mkdir monkeypatched out")
+        raise OSError(errno.EPERM,
+                      "os.mkdir monkeypatched out")
 
     with TemporaryDirectory(dir=tmpdir) as d:
         # other fixtures use the same tmpdir so we need a subdirectory
@@ -340,6 +342,8 @@ def test_download_with_sources_and_bogus_original(
         assert is_url_in_cache(u)
 
 
+@pytest.mark.skipif((3, 7) <= sys.version_info < (3, 8),
+                    reason="causes mystery segfault! possibly bug #10008")
 @pytest.mark.parametrize("b", _shelve_possible_backends)
 def test_download_file_threaded_many(b, temp_cache, valid_urls):
     """Hammer download_file with multiple threaded requests.
@@ -360,6 +364,24 @@ def test_download_file_threaded_many(b, temp_cache, valid_urls):
         assert get_file_contents(r) == c
 
 
+@pytest.mark.skipif((3, 7) <= sys.version_info < (3, 8),
+                    reason="causes mystery segfault! possibly bug #10008")
+def test_threaded_segfault(valid_urls):
+    """Demonstrate urllib's segfault."""
+    def slurp_url(u):
+        with urllib.request.urlopen(u) as remote:
+            block = True
+            while block:
+                block = remote.read(1024)
+
+    urls = list(islice(valid_urls, N_THREAD_HAMMER))
+    with ThreadPoolExecutor(max_workers=len(urls)) as P:
+        list(P.map(lambda u: slurp_url(u),
+                   [u for (u, c) in urls]))
+
+
+@pytest.mark.skipif((3, 7) <= sys.version_info < (3, 8),
+                    reason="causes mystery segfault! possibly bug #10008")
 def test_download_file_threaded_many_partial_success(
         temp_cache, valid_urls, invalid_urls):
     """Hammer download_file with multiple threaded requests.
