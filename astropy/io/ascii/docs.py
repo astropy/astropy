@@ -1,3 +1,5 @@
+import numpy as np
+
 READ_DOCSTRING = """
     Read the input ``table`` and return the table.  Most of
     the default behavior for various parameters is determined by the Reader
@@ -48,13 +50,13 @@ READ_DOCSTRING = """
         List of names to include in output.
     exclude_names : list
         List of names to exclude from output (applied after ``include_names``)
-    fill_values : dict
+    fill_values : tuple, list of tuple
         specification of fill values for bad or missing table values
     fill_include_names : list
         List of names to include in fill_values.
     fill_exclude_names : list
         List of names to exclude from fill_values (applied after ``fill_include_names``)
-    fast_reader : bool or dict
+    fast_reader : bool, str or dict
         Whether to use the C engine, can also be a dict with options which
         defaults to `False`; parameters for options dict:
 
@@ -84,6 +86,38 @@ READ_DOCSTRING = """
 
     """
 
+# Specify allowed types for core write() keyword arguments.  Each entry
+# corresponds to the name of an argument and either a type (e.g. int) or a
+# list of types.  These get used in io.ascii.ui._validate_read_write_kwargs().
+# -  The commented-out kwargs are too flexible for a useful check
+# -  'list-list' is a special case for an iterable that is not a string.
+READ_KWARG_TYPES = {
+    # 'table'
+    'guess': bool,
+    # 'format'
+    # 'Reader'
+    # 'Inputter'
+    # 'Outputter'
+    'delimiter': str,
+    'comment': str,
+    'quotechar': str,
+    'header_start': int,
+    'data_start': (int, str),  # CDS allows 'guess'
+    'data_end': int,
+    'converters': dict,
+    # 'data_Splitter'
+    # 'header_Splitter'
+    'names': 'list-like',
+    'include_names': 'list-like',
+    'exclude_names': 'list-like',
+    'fill_values': 'list-like',
+    'fill_include_names': 'list-like',
+    'fill_exclude_names': 'list-like',
+    'fast_reader': (bool, str, dict),
+    'encoding': str,
+}
+
+
 WRITE_DOCSTRING = """
     Write the input ``table`` to ``filename``.  Most of the default behavior
     for various parameters is determined by the Writer class.
@@ -104,8 +138,9 @@ WRITE_DOCSTRING = """
         Output table format. Defaults to 'basic'.
     delimiter : str
         Column delimiter string
-    comment : str
-        String defining a comment line in table
+    comment : str, bool
+        String defining a comment line in table.  If `False` then comments
+        are not written out.
     quotechar : str
         One-character string to quote fields containing special characters
     formats : dict
@@ -118,8 +153,10 @@ WRITE_DOCSTRING = """
         List of names to include in output.
     exclude_names : list
         List of names to exclude from output (applied after ``include_names``)
-    fast_writer : bool
-        Whether to use the fast Cython writer.
+    fast_writer : bool, str
+        Whether to use the fast Cython writer.  Can be `True` (use fast writer
+        if available), `False` (do not use fast writer), or ``'force'`` (use
+        fast writer and fail if not available, mostly for testing).
     overwrite : bool
         If ``overwrite=None`` (default) and the file exists, then a
         warning will be issued. In a future release this will instead
@@ -129,3 +166,24 @@ WRITE_DOCSTRING = """
         (e.g., a file object).
 
     """
+# Specify allowed types for core write() keyword arguments.  Each entry
+# corresponds to the name of an argument and either a type (e.g. int) or a
+# list of types.  These get used in io.ascii.ui._validate_read_write_kwargs().
+# -  The commented-out kwargs are too flexible for a useful check
+# -  'list-list' is a special case for an iterable that is not a string.
+WRITE_KWARG_TYPES = {
+    # 'table'
+    # 'output'
+    'format': str,
+    'delimiter': str,
+    'comment': (str, bool),
+    'quotechar': str,
+    'header_start': int,
+    'formats': dict,
+    'strip_whitespace': (bool),
+    'names': 'list-like',
+    'include_names': 'list-like',
+    'exclude_names': 'list-like',
+    'fast_writer': (bool, str),
+    'overwrite': (bool),
+}
