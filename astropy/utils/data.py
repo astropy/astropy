@@ -1547,7 +1547,6 @@ def _keep_trying(timeout):
 def _cache_lock(pkgname, need_write=False):
     lockdir = os.path.join(_get_download_cache_locs(pkgname)[0], 'lock')
     pidfn = os.path.join(lockdir, 'pid')
-    assume_cache_readonly = False
     got_lock = False
     try:
         msg = f"Config file requests {conf.download_cache_lock_attempts} tries"
@@ -1563,12 +1562,17 @@ def _cache_lock(pkgname, need_write=False):
                     f"Cache is locked after {waited:.2f} s. This may indicate "
                     f"an astropy bug or that kill -9 was used. If you want to "
                     f"unlock the cache remove the directory {lockdir}.")
-            except PermissionError:
-                assume_cache_readonly = True
-                if need_write:
-                    raise
+            except OSError as e:
+                # PermissionError doesn't cover all read-only-ness, just EACCES
+                if e.errno in [errno.EPERM,    # Operation not permitted
+                               errno.EACCES,   # Permission denied
+                               errno.EROFS]:   # File system is read-only
+                    if need_write:
+                        raise
+                    else:
+                        break
                 else:
-                    break
+                    raise
             else:
                 got_lock = True
                 # write the pid of this process for informational purposes

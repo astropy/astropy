@@ -6,6 +6,7 @@ import os
 import dbm
 import sys
 import stat
+import errno
 import base64
 import random
 import shutil
@@ -176,7 +177,8 @@ def readonly_cache(tmpdir, valid_urls):
 @pytest.fixture
 def fake_readonly_cache(tmpdir, valid_urls, monkeypatch):
     def no_mkdir(p):
-        raise PermissionError("os.mkdir monkeypatched out")
+        raise OSError(errno.EPERM,
+                      "os.mkdir monkeypatched out")
 
     with TemporaryDirectory(dir=tmpdir) as d:
         # other fixtures use the same tmpdir so we need a subdirectory
