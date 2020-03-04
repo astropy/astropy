@@ -157,12 +157,12 @@ Index Modes
 
 The |index_mode| method allows for some flexibility in the behavior of table
 indexing by allowing the user to enter a specific indexing mode via a context
-manager. There are currently three indexing modes: *freeze*, *copy_on_getitem*,
-and *discard_on_copy*.
+manager. There are currently three indexing modes: ``freeze``,
+``copy_on_getitem``, and ``discard_on_copy``.
 
 .. EXAMPLE START: Table Indexing with the "freeze" Index Mode
 
-The *freeze* mode prevents automatic index updates whenever a column of the
+The ``freeze`` mode prevents automatic index updates whenever a column of the
 index is modified, and all indices refresh themselves after the context ends::
 
   >>> with t.index_mode('freeze'):
@@ -186,8 +186,8 @@ index is modified, and all indices refresh themselves after the context ends::
 
 .. EXAMPLE START: Table Indexing with the "copy_on_getitem" Index Mode
 
-The *copy_on_getitem* mode forces columns to copy and relabel their indices upon
-slicing. In the absence of this mode, table slices will preserve
+The ``copy_on_getitem`` mode forces columns to copy and relabel their indices
+upon slicing. In the absence of this mode, table slices will preserve
 indices while column slices will not::
 
   >>> ca = t['a'][[1, 3]]
@@ -205,8 +205,8 @@ indices while column slices will not::
 
 .. EXAMPLE START: Table Indexing with the "discard_on_copy" Index Mode
 
-The *discard_on_copy* mode prevents indices from being copied whenever a column
-or table is copied::
+The ``discard_on_copy`` mode prevents indices from being copied whenever a
+column or table is copied::
 
   >>> t2 = Table(t)
   >>> t2.indices['a']
