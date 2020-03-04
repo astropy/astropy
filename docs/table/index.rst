@@ -10,7 +10,7 @@ Introduction
 ============
 
 `astropy.table` provides functionality for storing and manipulating
-heterogeneous tables of data in a way that is familiar to `NumPy` users. A few
+heterogeneous tables of data in a way that is familiar to ``numpy`` users. A few
 notable capabilities of this package are:
 
 * Initialize a table from a wide variety of input data structures and types.
@@ -159,7 +159,7 @@ Now examine some high-level information about the table::
   >>> t.meta
   {'name': 'first table'}
 
-Access the data by column or row using familiar `NumPy` structured array
+Access the data by column or row using familiar ``numpy`` structured array
 syntax::
 
   >>> t['a']       # Column 'a'
