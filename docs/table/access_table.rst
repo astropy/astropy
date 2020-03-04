@@ -81,7 +81,7 @@ Details
 =======
 
 For all of the following examples it is assumed that the table has been created
-as below::
+as follows::
 
   >>> from astropy.table import Table, Column
   >>> import numpy as np
@@ -742,7 +742,7 @@ expressions (see the warning below for caveats to this)::
 
 .. _bytestring-columns-python-3:
 
-Bytestring columns
+Bytestring Columns
 ^^^^^^^^^^^^^^^^^^
 
 Using bytestring columns (``numpy`` ``'S'`` dtype) is possible
