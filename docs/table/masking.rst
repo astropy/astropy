@@ -174,7 +174,7 @@ To get the indices of masked elements, use an expression like::
 Filling
 -------
 
-.. EXAMPLE START: Manipulating Tables with Missing Data using Filling
+.. EXAMPLE START: Manipulating Tables with Missing Data by Filling Masked Values
 
 The entries which are masked (i.e., missing or invalid) can be replaced
 with specified fill values. In this case the |MaskedColumn| or masked

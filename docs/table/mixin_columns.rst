@@ -71,7 +71,7 @@ probably the best class to use.
 Example
 -------
 
-.. EXAMPLE START: Using Quantity and QTables in Tables
+.. EXAMPLE START: Using Quantity Columns and QTables
 
 To illustrate these concepts we first create a standard |Table| where we supply
 as input a |Time| object and a |Quantity| object with units of ``m / s``. In
