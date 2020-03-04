@@ -6,7 +6,7 @@ Accessing a Table
 *****************
 
 Accessing table properties and data is generally consistent with the basic
-interface for `NumPy` structured arrays.
+interface for ``numpy`` structured arrays.
 
 Basics
 ======
@@ -308,7 +308,7 @@ operators.  ::
        9.000  10  11
       12.000  13  14
 
-Finally, you can access the underlying table data as a native `NumPy`
+Finally, you can access the underlying table data as a native ``numpy``
 structured array by creating a copy or reference with ``np.array``::
 
   >>> data = np.array(t)  # copy of data in t as a structured array
@@ -652,7 +652,7 @@ column name header::
   5 .. 60
 
 In order to see all of the data values for a multidimensional column use the
-column representation. This uses the standard `NumPy` mechanism for printing
+column representation. This uses the standard ``numpy`` mechanism for printing
 any array::
 
   >>> t['a'].data
@@ -751,7 +751,7 @@ Python string (``str``) type. See `The bytes/str dichotomy in Python 3
 <https://eli.thegreenplace.net/2012/01/30/the-bytesstr-dichotomy-in-python-3>`_
 for a very brief overview of the difference.
 
-The standard method of representing strings in `NumPy` is via the
+The standard method of representing strings in ``numpy`` is via the
 unicode ``'U'`` dtype. The problem is that this requires 4 bytes per
 character, and if you have a very large number of strings in memory this could
 fill memory and impact performance. A very common use case is that these
