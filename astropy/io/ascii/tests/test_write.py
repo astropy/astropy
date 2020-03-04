@@ -782,3 +782,13 @@ def test_write_formatted_mixin(fast_writer):
     assert out.getvalue().splitlines() == ['a b',
                                            '01 1.00',
                                            '02 2.00']
+
+
+def test_validate_write_kwargs():
+    out = StringIO()
+    t = table.QTable([[1, 2], [1, 2]], names=['a', 'b'])
+
+    with pytest.raises(TypeError, match=r"write\(\) argument 'fast_writer' must be a "
+                       r"\(<class 'bool'>, <class 'str'>\) object, "
+                       r"got <class 'int'> instead"):
+        ascii.write(t, out, fast_writer=12)

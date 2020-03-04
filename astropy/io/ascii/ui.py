@@ -16,6 +16,7 @@ import copy
 import time
 import warnings
 import contextlib
+import collections
 from io import StringIO
 
 import numpy as np
@@ -33,6 +34,7 @@ from . import rst
 from . import fastbasic
 from . import cparser
 from . import fixedwidth
+from .docs import READ_KWARG_TYPES, WRITE_KWARG_TYPES
 
 from astropy.table import Table, MaskedColumn
 from astropy.utils.data import get_readable_fileobj
@@ -139,7 +141,7 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
         Line index for the end of data not counting comment or blank lines.
         This value can be negative to count from the end.
     converters : dict
-        Dictionary of converters.
+        Dict of converters.
     data_Splitter : `~astropy.io.ascii.BaseSplitter`
         Splitter class to split data columns.
     header_Splitter : `~astropy.io.ascii.BaseSplitter`
@@ -150,7 +152,7 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
         List of names to include in output.
     exclude_names : list
         List of names to exclude from output (applied after ``include_names``).
-    fill_values : dict
+    fill_values : tuple, list of tuple
         Specification of fill values for bad or missing table values.
     fill_include_names : list
         List of names to include in fill_values.
@@ -201,12 +203,63 @@ def _get_fast_reader_dict(kwargs):
     return fast_reader
 
 
+def _validate_read_write_kwargs(read_write, **kwargs):
+    """Validate types of keyword arg inputs to read() or write()."""
+
+    def is_ducktype(val, cls):
+        """Check if ``val`` is an instance of ``cls`` or "seems" like one:
+        ``cls(val) == val`` does not raise and exception and is `True`. In
+        this way you can pass in ``np.int16(2)`` and have that count as `int`.
+
+        This has a special-case of ``cls`` being 'list-like', meaning it is
+        an iterable but not a string.
+        """
+        if cls == 'list-like':
+            ok = (not isinstance(val, str)
+                  and isinstance(val, collections.abc.Iterable))
+        else:
+            ok = isinstance(val, cls)
+            if not ok:
+                # See if ``val`` walks and quacks like a ``cls```.
+                try:
+                    new_val = cls(val)
+                    assert new_val == val
+                except Exception:
+                    ok = False
+                else:
+                    ok = True
+        return ok
+
+    kwarg_types = READ_KWARG_TYPES if read_write == 'read' else WRITE_KWARG_TYPES
+
+    for arg, val in kwargs.items():
+        # Kwarg type checking is opt-in, so kwargs not in the list are considered OK.
+        # This reflects that some readers allow additional arguments that may not
+        # be well-specified, e.g. ```__init__(self, **kwargs)`` is an option.
+        if arg not in kwarg_types or val is None:
+            continue
+
+        # Single type or tuple of types for this arg (like isinstance())
+        types = kwarg_types[arg]
+        err_msg = (f"{read_write}() argument '{arg}' must be a "
+                   f"{types} object, got {type(val)} instead")
+
+        # Force `types` to be a tuple for the any() check below
+        if not isinstance(types, tuple):
+            types = (types,)
+
+        if not any(is_ducktype(val, cls) for cls in types):
+            raise TypeError(err_msg)
+
+
 def read(table, guess=None, **kwargs):
     # Docstring defined below
     del _read_trace[:]
 
     # Downstream readers might munge kwargs
     kwargs = copy.deepcopy(kwargs)
+
+    _validate_read_write_kwargs('read', **kwargs)
 
     # Convert 'fast_reader' key in kwargs into a dict if not already and make sure
     # 'enable' key is available.
@@ -740,6 +793,10 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
 def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
           overwrite=None, **kwargs):
     # Docstring inserted below
+
+    _validate_read_write_kwargs('write', format=format, fast_writer=fast_writer,
+                                overwrite=overwrite, **kwargs)
+
     if isinstance(output, str):
         if os.path.lexists(output):
             if overwrite is None:

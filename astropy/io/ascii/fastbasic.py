@@ -266,7 +266,7 @@ class FastCommentedHeader(FastBasic):
             idx = self.header_start
             if idx < 0:
                 idx = len(comments) + idx
-            meta['comments'] = comments[:idx] + comments[idx+1:]
+            meta['comments'] = comments[:idx] + comments[idx+1:]  # noqa
             if not meta['comments']:
                 del meta['comments']
 

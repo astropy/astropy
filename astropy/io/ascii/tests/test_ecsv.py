@@ -281,7 +281,7 @@ mixin_cols = {
                     obstime=['J1990.5'] * 2),
     'q': [1, 2] * u.m,
     'qdb': [10, 20] * u.dB(u.mW),
-    'qdex': [4.5, 5.5] * u.dex(u.cm/u.s**2),
+    'qdex': [4.5, 5.5] * u.dex(u.cm / u.s**2),
     'qmag': [21, 22] * u.ABmag,
     'lat': Latitude([1, 2] * u.deg),
     'lon': Longitude([1, 2] * u.deg, wrap_angle=180. * u.deg),
