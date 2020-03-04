@@ -340,6 +340,7 @@ def test_download_with_sources_and_bogus_original(
         assert is_url_in_cache(u)
 
 
+@pytest.mark.skip(reason="causes mystery segfault! possibly bug #9699")
 @pytest.mark.parametrize("b", _shelve_possible_backends)
 def test_download_file_threaded_many(b, temp_cache, valid_urls):
     """Hammer download_file with multiple threaded requests.
@@ -360,6 +361,7 @@ def test_download_file_threaded_many(b, temp_cache, valid_urls):
         assert get_file_contents(r) == c
 
 
+@pytest.mark.skip(reason="causes mystery segfault! possibly bug #9699")
 def test_download_file_threaded_many_partial_success(
         temp_cache, valid_urls, invalid_urls):
     """Hammer download_file with multiple threaded requests.
