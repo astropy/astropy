@@ -454,6 +454,8 @@ astropy.utils
 - Fixed ``deprecated_renamed_argument`` not passing in user value to
   deprecated keyword when the keyword has no new name. [#9981]
 
+- Fixed detection of read-only filesystems in the caching code. [#10007]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
