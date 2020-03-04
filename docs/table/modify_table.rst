@@ -234,11 +234,11 @@ table data. This depends on the detailed layout of Python objects in memory
 and cannot be reliably controlled. In some cases it may be possible to build a
 table row by row in less than O(N**2) time but you cannot count on it.
 
-Another subtlety to keep in mind is certain cases where the return value of an
-operation results in a new table in memory versus a view of the existing
-table data. As an example, imagine trying to set two table elements
-using column selection with ``t['a', 'c']`` in combination with row index
-selection::
+Another subtlety to keep in mind is that in some cases the return value of an
+operation results in a new table in memory while in other cases it results in a
+view of the existing table data. As an example, imagine trying to set two table
+elements using column selection with ``t['a', 'c']`` in combination with row
+index selection::
 
   >>> t = Table([[1, 2], [3, 4], [5, 6]], names=('a', 'b', 'c'))
   >>> t['a', 'c'][1] = (100, 100)
