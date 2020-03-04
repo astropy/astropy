@@ -204,15 +204,23 @@ def _get_fast_reader_dict(kwargs):
 
 
 def _validate_read_write_kwargs(read_write, **kwargs):
-    """Validate keyword arg inputs to read() or write()."""
+    """Validate types of keyword arg inputs to read() or write()."""
 
     def is_ducktype(val, cls):
+        """Check if ``val`` is an instance of ``cls`` or "seems" like one:
+        ``cls(val) == val`` does not raise and exception and is `True`. In
+        this way you can pass in ``np.int16(2)`` and have that count as `int`.
+
+        This has a special-case of ``cls`` being 'list-like', meaning it is
+        an iterable but not a string.
+        """
         if cls == 'list-like':
             ok = (not isinstance(val, str)
                   and isinstance(val, collections.abc.Iterable))
         else:
             ok = isinstance(val, cls)
             if not ok:
+                # See if ``val`` walks and quacks like a ``cls```.
                 try:
                     new_val = cls(val)
                     assert new_val == val
@@ -231,12 +239,14 @@ def _validate_read_write_kwargs(read_write, **kwargs):
         if arg not in kwarg_types or val is None:
             continue
 
+        # Single type or tuple of types for this arg (like isinstance())
         types = kwarg_types[arg]
         err_msg = (f"{read_write}() argument '{arg}' must be a "
                    f"{types} object, got {type(val)} instead")
 
+        # Force `types` to be a tuple for the any() check below
         if not isinstance(types, tuple):
-            types = [types]
+            types = (types,)
 
         if not any(is_ducktype(val, cls) for cls in types):
             raise TypeError(err_msg)
