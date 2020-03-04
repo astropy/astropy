@@ -86,9 +86,11 @@ READ_DOCSTRING = """
 
     """
 
-# Specify allowed types for core read() keyword arguments.
-#   The commented-out kwargs are too flexible for a useful check
-#   'list-list' is basically an iterable that is not a string.
+# Specify allowed types for core write() keyword arguments.  Each entry
+# corresponds to the name of an argument and either a type (e.g. int) or a
+# list of types.  These get used in io.ascii.ui._validate_read_write_kwargs().
+# -  The commented-out kwargs are too flexible for a useful check
+# -  'list-list' is a special case for an iterable that is not a string.
 READ_KWARG_TYPES = {
     # 'table'
     'guess': bool,
@@ -164,9 +166,11 @@ WRITE_DOCSTRING = """
         (e.g., a file object).
 
     """
-# Specify allowed types for core write() keyword arguments.
-#   The commented-out kwargs are too flexible for a useful check
-#   'list-list' is basically an iterable that is not a string.
+# Specify allowed types for core write() keyword arguments.  Each entry
+# corresponds to the name of an argument and either a type (e.g. int) or a
+# list of types.  These get used in io.ascii.ui._validate_read_write_kwargs().
+# -  The commented-out kwargs are too flexible for a useful check
+# -  'list-list' is a special case for an iterable that is not a string.
 WRITE_KWARG_TYPES = {
     # 'table'
     # 'output'
