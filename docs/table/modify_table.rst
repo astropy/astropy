@@ -6,7 +6,7 @@ Modifying a Table
 *****************
 
 The data values within a |Table| object can be modified in much the same manner
-as for `NumPy` structured arrays by accessing columns or rows of data and
+as for ``numpy`` structured arrays by accessing columns or rows of data and
 assigning values appropriately. A key enhancement provided by the |Table| class
 is the ability to modify the structure of the table: you can add or remove
 columns, and add new rows of data.
@@ -39,7 +39,7 @@ Examples
   >>> t[0:3]['c'] = 100              # Set column 'c' of rows 0, 1, 2
 
 Note that ``table[row][column]`` assignments will not work with
-`NumPy` "fancy" ``row`` indexing (in that case ``table[row]`` would be
+``numpy`` "fancy" ``row`` indexing (in that case ``table[row]`` would be
 a *copy* instead of a *view*). "Fancy" `NumPy` indices include a
 `list`, `numpy.ndarray`, or `tuple` of `numpy.ndarray` (e.g., the
 return from `numpy.where`)::
