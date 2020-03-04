@@ -1391,6 +1391,44 @@ def _deltemps():
                     pass
 
 
+def _remove_download_cache(pkgname='astropy'):
+    zapped_cache = False
+    try:
+        with contextlib.ExitStack() as stack:
+            try:
+                dldir, url2hash = stack.enter_context(
+                    _cache(pkgname, write=True))
+            except (RuntimeError, WrongDBMModule):  # Couldn't get lock
+                # Release lock by blowing away cache
+                # Need to get locations
+                dldir, _ = _get_download_cache_locs(pkgname)
+                url2hash = None
+            except OSError as e:
+                # Problem arose when trying to open the cache
+                msg = 'Not clearing data cache - cache inaccessible due to '
+                estr = '' if len(e.args) < 1 else (': ' + str(e))
+                warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
+                return
+            if os.path.exists(dldir):
+                # This can be awkward if the shelve is still open
+                # NFS can't delete an open file
+                if url2hash is not None:
+                    url2hash.close()
+                shutil.rmtree(dldir)
+                zapped_cache = True
+    except OSError as e:
+        if zapped_cache and e.errno == errno.ENOENT:
+            # We just deleted the directory and, on Windows (?) the "dumb"
+            # backend tried to write itself out to a nonexistent directory.
+            # It's fine for this to fail.
+            return
+        else:
+            msg = 'Not clearing data from cache - problem arose '
+            estr = '' if len(e.args) < 1 else (': ' + str(e))
+            warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
+            return
+
+
 def clear_download_cache(hashorurl=None, pkgname='astropy'):
     """Clears the data file cache by deleting the local file(s).
 
@@ -1415,31 +1453,11 @@ def clear_download_cache(hashorurl=None, pkgname='astropy'):
         ``pkgname='astropy'`` the default cache location is
         ``~/.astropy/cache``.
     """
-    zapped_cache = False
+    if hashorurl is None:
+        return _remove_download_cache(pkgname=pkgname)
     try:
-        with contextlib.ExitStack() as stack:
-            try:
-                dldir, url2hash = stack.enter_context(
-                    _cache(pkgname, write=True))
-            except (RuntimeError, WrongDBMModule):  # Couldn't get lock
-                if hashorurl is None:
-                    # Release lock by blowing away cache
-                    # Need to get locations
-                    dldir, _ = _get_download_cache_locs(pkgname)
-                else:
-                    # Can't do specific deletion without the lock
-                    raise
-            except OSError as e:
-                # Problem arose when trying to open the cache
-                msg = 'Not clearing data cache - cache inaccessible due to '
-                estr = '' if len(e.args) < 1 else (': ' + str(e))
-                warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
-                return
-            if hashorurl is None:
-                if os.path.exists(dldir):
-                    shutil.rmtree(dldir)
-                    zapped_cache = True
-            elif _is_url(hashorurl):
+        with _cache(pkgname, write=True) as (dldir, url2hash):
+            if _is_url(hashorurl):
                 try:
                     filepath = url2hash.pop(hashorurl)
                     if not any(v == filepath for v in url2hash.values()):
@@ -1448,7 +1466,6 @@ def clear_download_cache(hashorurl=None, pkgname='astropy'):
                         except FileNotFoundError:
                             # Maybe someone else got it first
                             pass
-                    return
                 except KeyError:
                     pass
             else:  # it's a path
@@ -1464,21 +1481,13 @@ def clear_download_cache(hashorurl=None, pkgname='astropy'):
                         if v == filepath:
                             del url2hash[k]
                     os.unlink(filepath)
-                    return
                 # Otherwise could not find file or url, but no worries.
                 # Clearing download cache just makes sure that the file or url
                 # is no longer in the cache regardless of starting condition.
     except OSError as e:
-        if zapped_cache and e.errno == errno.ENOENT:
-            # We just deleted the directory and, on Windows (?) the "dumb"
-            # backend tried to write itself out to a nonexistent directory.
-            # It's fine for this to fail.
-            return
-        else:
-            msg = 'Not clearing data from cache - problem arose '
-            estr = '' if len(e.args) < 1 else (': ' + str(e))
-            warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
-            return
+        msg = 'Not clearing data from cache - problem arose '
+        estr = '' if len(e.args) < 1 else (': ' + str(e))
+        warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
 
 
 def _get_download_cache_locs(pkgname='astropy'):
