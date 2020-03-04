@@ -9,7 +9,7 @@ Table Implementation Details
 This page provides a brief overview of the |Table| class implementation, in
 particular highlighting the internal data storage architecture. This is aimed
 at developers and/or users who are interested in optimal use of the |Table|
-class. Note that this applies to ``astropy`` version 1.0 and later.
+class.
 
 The image below illustrates the basic architecture of the |Table| class.
 The fundamental data container is an ordered dictionary of individual column
