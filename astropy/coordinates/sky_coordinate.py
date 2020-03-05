@@ -1,4 +1,3 @@
-
 import re
 import copy
 
@@ -1493,7 +1492,7 @@ class SkyCoord(ShapedLikeNDArray):
           >>> loc = EarthLocation('149d33m00.5s','-30d18m46.385s',236.87*u.m)
           >>> sc = SkyCoord(1*u.deg, 2*u.deg)
           >>> vcorr = sc.radial_velocity_correction(kind='barycentric', obstime=t, location=loc)  # doctest: +REMOTE_DATA
-          >>> rv = rv + vcorr + rv * vcorr / c
+          >>> rv = rv + vcorr + rv * vcorr / c  # doctest: +SKIP
 
         If your target is nearby and/or has finite proper motion you may need to account
         for terms arising from this. See Wright & Eastman (2014) for details.
@@ -1501,7 +1500,7 @@ class SkyCoord(ShapedLikeNDArray):
         Also note that this method returns the correction velocity in the so-called
         *optical convention*::
 
-          >>> vcorr = zb * c
+          >>> vcorr = zb * c  # doctest: +SKIP
 
         where ``zb`` is the barycentric correction redshift as defined in section 3
         of Wright & Eastman (2014). The application formula given above follows from their
@@ -1513,13 +1512,13 @@ class SkyCoord(ShapedLikeNDArray):
         it as the input to another software which performs the application), the
         following recipe can be used::
 
-          >>> zb = vcorr / c
-          >>> zb_plus_one_squared = (zb + 1) ** 2
-          >>> vcorr_rel = c * (zb_plus_one_squared - 1) / (zb_plus_one_squared + 1)
+          >>> zb = vcorr / c  # doctest: +REMOTE_DATA
+          >>> zb_plus_one_squared = (zb + 1) ** 2  # doctest: +REMOTE_DATA
+          >>> vcorr_rel = c * (zb_plus_one_squared - 1) / (zb_plus_one_squared + 1)  # doctest: +REMOTE_DATA
 
         or alternatively using just equivalencies::
 
-          >>> vcorr_rel = vcorr.to(u.Hz, u.doppler_optical(1*u.Hz)).to(vcorr.unit, u.doppler_relativistic(1*u.Hz))
+          >>> vcorr_rel = vcorr.to(u.Hz, u.doppler_optical(1*u.Hz)).to(vcorr.unit, u.doppler_relativistic(1*u.Hz))  # doctest: +REMOTE_DATA
 
         See also `~astropy.units.equivalencies.doppler_optical`,
         `~astropy.units.equivalencies.doppler_radio`, and
@@ -1532,9 +1531,10 @@ class SkyCoord(ShapedLikeNDArray):
         either directly or via ``with`` statement.  For example, to use the JPL
         ephemeris, do::
 
-          >>>  sc = SkyCoord(1*u.deg, 2*u.deg)
-          >>>  with coord.solar_system_ephemeris.set('jpl'):
-          ...      rv += sc.radial_velocity_correction(obstime=t, location=loc)
+          >>> from astropy.coordinates import solar_system_ephemeris
+          >>> sc = SkyCoord(1*u.deg, 2*u.deg)
+          >>> with solar_system_ephemeris.set('jpl'):  # doctest: +REMOTE_DATA
+          ...     rv += sc.radial_velocity_correction(obstime=t, location=loc)  # doctest: +SKIP
 
         """
         # has to be here to prevent circular imports
