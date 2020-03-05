@@ -100,6 +100,9 @@ astropy.units
 
 - Added ``Rankine`` temperature unit. [#9916]
 
+- Added integrated flux unit conversion to ``spectral_density`` equivalency.
+  [#10015]
+
 astropy.utils
 ^^^^^^^^^^^^^
 

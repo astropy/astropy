@@ -307,6 +307,16 @@ def test_spectraldensity2():
     a = flambda.to(fnu, 1, u.spectral_density(u.Quantity(3500, u.AA)))
     assert_allclose(a, 4.086160166177361e-12)
 
+    # integrated flux
+    f_int = u.erg / u.cm ** 2 / u.s
+    phot_int = u.ph / u.cm ** 2 / u.s
+
+    a = f_int.to(phot_int, 1, u.spectral_density(u.Quantity(3500, u.AA)))
+    assert_allclose(a, 1.7619408e+11)
+
+    a = phot_int.to(f_int, 1, u.spectral_density(u.Quantity(3500, u.AA)))
+    assert_allclose(a, 5.67555959e-12)
+
     # luminosity density
     llambda = u.erg / u.angstrom / u.s
     lnu = u.erg / u.Hz / u.s
