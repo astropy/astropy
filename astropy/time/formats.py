@@ -147,6 +147,40 @@ class TimeFormat(metaclass=TimeFormatMeta):
             val1, val2 = self._check_val_type(val1, val2)
             self.set_jds(val1, val2)
 
+    @classmethod
+    def _get_allowed_subfmt(cls, subfmt):
+        """Get an allowed subfmt for this class, either the input ``subfmt``
+        if this is valid or '*' as a default.  This method gets used in situations
+        where the format of an existing Time object is changing and so the
+        out_ or in_subfmt may need to be coerced to the default '*' if that
+        ``subfmt`` is no longer valid.
+        """
+        try:
+            cls._select_subfmts(subfmt)
+        except ValueError:
+            subfmt = '*'
+        return subfmt
+
+    @property
+    def in_subfmt(self):
+        return self._in_subfmt
+
+    @in_subfmt.setter
+    def in_subfmt(self, subfmt):
+        # Validate subfmt value for this class, raises ValueError if not.
+        self._select_subfmts(subfmt)
+        self._in_subfmt = subfmt
+
+    @property
+    def out_subfmt(self):
+        return self._out_subfmt
+
+    @out_subfmt.setter
+    def out_subfmt(self, subfmt):
+        # Validate subfmt value for this class, raises ValueError if not.
+        self._select_subfmts(subfmt)
+        self._out_subfmt = subfmt
+
     @property
     def jd1(self):
         return self._jd1
@@ -335,16 +369,29 @@ class TimeFormat(metaclass=TimeFormatMeta):
     def value(self):
         raise NotImplementedError
 
-    def _select_subfmts(self, pattern):
+    @classmethod
+    def _select_subfmts(cls, pattern):
         """
         Return a list of subformats where name matches ``pattern`` using
         fnmatch.
-        """
 
-        fnmatchcase = fnmatch.fnmatchcase
-        subfmts = [x for x in self.subfmts if fnmatchcase(x[0], pattern)]
-        if len(subfmts) == 0:
-            raise ValueError(f'No subformats match {pattern}')
+        If no subformat matches pattern then a ValueError is raised.  A special
+        case is a format with no allowed subformats, i.e. subfmts=(), and
+        pattern='*'.  This is OK and happens when this method is used for
+        validation of an out_subfmt.
+        """
+        if not isinstance(pattern, str):
+            raise ValueError('subfmt attribute must be a string')
+
+        subfmts = [x for x in cls.subfmts if fnmatch.fnmatchcase(x[0], pattern)]
+        if len(subfmts) == 0 and pattern != '*':
+            if len(cls.subfmts) == 0:
+                raise ValueError(f'subformat not allowed for format {cls.name}')
+            else:
+                subfmt_names = [x[0] for x in cls.subfmts]
+                raise ValueError(f'subformat {pattern!r} must match one of '
+                                 f'{subfmt_names} for format {cls.name}')
+
         return subfmts
 
 

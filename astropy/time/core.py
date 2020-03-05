@@ -172,16 +172,21 @@ class TimeInfo(MixinInfo):
 
     def _construct_from_dict_base(self, map):
         if 'jd1' in map and 'jd2' in map:
+            # Initialize as JD but revert to desired format and out_subfmt (if needed)
             format = map.pop('format')
+            out_subfmt = map.pop('out_subfmt', None)
             map['format'] = 'jd'
             map['val'] = map.pop('jd1')
             map['val2'] = map.pop('jd2')
-        else:
-            format = map['format']
-            map['val'] = map.pop('value')
+            out = self._parent_cls(**map)
+            out.format = format
+            if out_subfmt is not None:
+                out.out_subfmt = out_subfmt
 
-        out = self._parent_cls(**map)
-        out.format = format
+        else:
+            map['val'] = map.pop('value')
+            out = self._parent_cls(**map)
+
         return out
 
     def _construct_from_dict(self, map):
@@ -669,18 +674,15 @@ class Time(ShapedLikeNDArray):
                              .format(list(self.FORMATS)))
         format_cls = self.FORMATS[format]
 
-        self._time = format_cls(self._time.jd1, self._time.jd2,
-                                self._time._scale, self.precision,
-                                in_subfmt=self.in_subfmt,
-                                out_subfmt=self.out_subfmt,
-                                from_jd=True)
-
-        # If current output subformat does not match any subfmts in new format
-        # then replace with default '*'
-        try:
-            self._time._select_subfmts(self.out_subfmt)
-        except ValueError:
-            self.out_subfmt = '*'
+        # Get the new TimeFormat object to contain time in new format.  Possibly
+        # coerce in/out_subfmt to '*' (default) if existing subfmt values are
+        # not valid in the new format.
+        self._time = format_cls(
+            self._time.jd1, self._time.jd2,
+            self._time._scale, self.precision,
+            in_subfmt=format_cls._get_allowed_subfmt(self.in_subfmt),
+            out_subfmt=format_cls._get_allowed_subfmt(self.out_subfmt),
+            from_jd=True)
 
         self._format = format
 
@@ -833,10 +835,8 @@ class Time(ShapedLikeNDArray):
 
     @in_subfmt.setter
     def in_subfmt(self, val):
-        del self.cache
-        if not isinstance(val, str):
-            raise ValueError('in_subfmt attribute must be a string')
         self._time.in_subfmt = val
+        del self.cache
 
     @property
     def out_subfmt(self):
@@ -847,10 +847,9 @@ class Time(ShapedLikeNDArray):
 
     @out_subfmt.setter
     def out_subfmt(self, val):
-        del self.cache
-        if not isinstance(val, str):
-            raise ValueError('out_subfmt attribute must be a string')
+        # Setting the out_subfmt property here does validation of ``val``
         self._time.out_subfmt = val
+        del self.cache
 
     @property
     def shape(self):
@@ -993,24 +992,35 @@ class Time(ShapedLikeNDArray):
             else:
                 tm = self.replicate(format=format)
 
-            # Custom TimeFormat subclasses created in astropy versions <= 4.0
-            # may not be able to handle being passes on a out_subfmt.
-            # But those do supposedly deal with `self.out_subfmt` internally,
-            # so if subfmt is the same, we do not pass it on.
+            # Some TimeFormat subclasses may not be able to handle being passes
+            # on a out_subfmt. This includes some core classes like
+            # TimeBesselianEpochString that do not have any allowed subfmts. But
+            # those do deal with `self.out_subfmt` internally, so if subfmt is
+            # the same, we do not pass it on.
             kwargs = {}
             if subfmt is not None and subfmt != tm.out_subfmt:
                 kwargs['out_subfmt'] = subfmt
             try:
-                value = tm._shaped_like_input(tm._time.to_value(
-                    parent=tm, **kwargs))
-            except ValueError as exc:
-                if 'subformats match' in str(exc):
-                    raise ValueError('subformat must match one of {}'
-                                     .format([option[0] for option in
-                                              tm._time.subfmts])) from None
+                value = tm._time.to_value(parent=tm, **kwargs)
+            except TypeError as exc:
+                # Try validating subfmt, e.g. for formats like 'jyear_str' that
+                # do not implement out_subfmt in to_value() (because there are
+                # no allowed subformats).  If subfmt is not valid this gives the
+                # same exception as would have occurred if the call to
+                # `to_value()` had succeeded.
+                tm._time._select_subfmts(subfmt)
+
+                # Subfmt was valid, so fall back to the original exception to see
+                # if it was lack of support for out_subfmt as a call arg.
+                if "unexpected keyword argument 'out_subfmt'" in str(exc):
+                    raise ValueError(
+                        f"to_value() method for format {format!r} does not "
+                        f"support passing a 'subfmt' argument") from None
                 else:
+                    # Some unforeseen exception so raise.
                     raise
 
+            value = tm._shaped_like_input(value)
             cache[key] = value
         return cache[key]
 
@@ -1439,11 +1449,11 @@ class Time(ShapedLikeNDArray):
 
         # Get a new instance of our class and set its attributes directly.
         tm = super().__new__(self.__class__)
-        tm._time = TimeJD(jd1, jd2, self.scale, self.precision,
-                          self.in_subfmt, self.out_subfmt, from_jd=True)
+        tm._time = TimeJD(jd1, jd2, self.scale, precision=0,
+                          in_subfmt='*', out_subfmt='*', from_jd=True)
+
         # Optional ndarray attributes.
-        for attr in ('_delta_ut1_utc', '_delta_tdb_tt', 'location',
-                     'precision', 'in_subfmt', 'out_subfmt'):
+        for attr in ('_delta_ut1_utc', '_delta_tdb_tt', 'location'):
             try:
                 val = getattr(self, attr)
             except AttributeError:
@@ -1478,21 +1488,15 @@ class Time(ShapedLikeNDArray):
 
         NewFormat = tm.FORMATS[new_format]
 
-        tm._time = NewFormat(tm._time.jd1, tm._time.jd2,
-                             tm._time._scale, tm.precision,
-                             tm.in_subfmt, tm.out_subfmt,
-                             from_jd=True)
+        tm._time = NewFormat(
+            tm._time.jd1, tm._time.jd2,
+            tm._time._scale,
+            precision=self.precision,
+            in_subfmt=NewFormat._get_allowed_subfmt(self.in_subfmt),
+            out_subfmt=NewFormat._get_allowed_subfmt(self.out_subfmt),
+            from_jd=True)
         tm._format = new_format
         tm.SCALES = self.SCALES
-
-        # If format has changed and current output subformat does not match any
-        # subfmts in new format then replace with default '*'.  If format is
-        # unchanged then the original out_subfmt is by definition OK.
-        if new_format != self.format:
-            try:
-                tm._time._select_subfmts(tm.out_subfmt)
-            except ValueError:
-                tm.out_subfmt = '*'
 
         return tm
 
