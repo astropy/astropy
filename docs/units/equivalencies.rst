@@ -173,8 +173,8 @@ These three conventions are implemented in
 Spectral Flux / Luminosity Density Units
 ----------------------------------------
 
-There is also support for spectral flux and luminosity density units
-and their equivalent surface brightness units. Their use
+There is also support for spectral flux and luminosity density units,
+their equivalent surface brightness units, and integrated flux units. Their use
 is more complex, since it is necessary to also supply the location in the
 spectrum for which the conversions will be done, and the units of those spectral
 locations.  The function that handles these unit conversions is
@@ -187,10 +187,17 @@ its arguments the |quantity| for the spectral location. For example::
     >>> (1.5 * u.Jy).to(u.photon / u.cm**2 / u.s / u.micron,
     ...                 equivalencies=u.spectral_density(3500 * u.AA))  # doctest: +FLOAT_CMP
     <Quantity 6467.9584789120845 ph / (cm2 micron s)>
-    >>> a = 1. * u.photon / u.s / u.angstrom
+    >>> a = 1. * (u.photon / u.s / u.angstrom)
     >>> a.to(u.erg / u.s / u.Hz,
-    ...      equivalencies=u.spectral_density(5500 * u.AA)) # doctest: +FLOAT_CMP
+    ...      equivalencies=u.spectral_density(5500 * u.AA))  # doctest: +FLOAT_CMP
     <Quantity 3.6443382634999996e-23 erg / (Hz s)>
+    >>> w = 5000 * u.AA
+    >>> a = 1. * (u.erg / u.cm**2 / u.s)
+    >>> b = a.to(u.photon / u.cm**2 / u.s, u.spectral_density(w))
+    >>> b  # doctest: +FLOAT_CMP
+    <Quantity 2.51705828e+11 ph / (cm2 s)>
+    >>> b.to(a.unit, u.spectral_density(w))  # doctest: +FLOAT_CMP
+    <Quantity 1. erg / (cm2 s)>
 
 Brightness Temperature / Surface Brightness Equivalency
 -------------------------------------------------------
