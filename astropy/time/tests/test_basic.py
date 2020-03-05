@@ -1043,14 +1043,45 @@ class TestNumericalSubFormat:
         with pytest.raises(ValueError, match='not among selected'):
             Time(58000., format='mjd', in_subfmt='long')
 
-    def test_wrong_out_subfmt(self):
+    def test_wrong_subfmt(self):
         t = Time(58000., format='mjd')
         with pytest.raises(ValueError, match='must match one'):
             t.to_value('mjd', subfmt='parrot')
 
-        t.out_subfmt = 'parrot'
-        with pytest.raises(ValueError):
-            t.value
+        with pytest.raises(ValueError, match='must match one'):
+            t.out_subfmt = 'parrot'
+
+        with pytest.raises(ValueError, match='must match one'):
+            t.in_subfmt = 'parrot'
+
+    def test_not_allowed_subfmt(self):
+        """Test case where format has no defined subfmts"""
+        t = Time('J2000')
+        match = 'subformat not allowed for format jyear_str'
+        with pytest.raises(ValueError, match=match):
+            t.to_value('jyear_str', subfmt='parrot')
+
+        with pytest.raises(ValueError, match=match):
+            t.out_subfmt = 'parrot'
+
+        with pytest.raises(ValueError, match=match):
+            Time('J2000', out_subfmt='parrot')
+
+        with pytest.raises(ValueError, match=match):
+            t.in_subfmt = 'parrot'
+
+        with pytest.raises(ValueError, match=match):
+            Time('J2000', format='jyear_str', in_subfmt='parrot')
+
+    def test_switch_to_format_with_no_out_subfmt(self):
+        t = Time('2001-01-01', out_subfmt='date_hm')
+        assert t.out_subfmt == 'date_hm'
+
+        # Now do an in-place switch to format 'jyear_str' that has no subfmts
+        # where out_subfmt is changed to '*'.
+        t.format = 'jyear_str'
+        assert t.out_subfmt == '*'
+        assert t.value == 'J2001.001'
 
 
 class TestSofaErrors:
