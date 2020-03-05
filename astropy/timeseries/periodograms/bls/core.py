@@ -303,6 +303,7 @@ class BoxLeastSquares(BasePeriodogram):
 
         # Format and check the input arrays
         t = np.ascontiguousarray(strip_units(self._trel), dtype=np.float64)
+        t_ref = np.min(t)
         y = np.ascontiguousarray(strip_units(self.y), dtype=np.float64)
         if self.dy is None:
             ivar = np.ones_like(y)
@@ -324,10 +325,10 @@ class BoxLeastSquares(BasePeriodogram):
 
         # Run the implementation
         results = bls(
-            t, y - np.median(y), ivar, period_fmt, duration,
+            t - t_ref, y - np.median(y), ivar, period_fmt, duration,
             oversample, use_likelihood)
 
-        return self._format_results(objective, period, results)
+        return self._format_results(t_ref, objective, period, results)
 
     def _as_relative_time(self, name, times):
         """
@@ -699,11 +700,13 @@ class BoxLeastSquares(BasePeriodogram):
 
         return period, duration
 
-    def _format_results(self, objective, period, results):
+    def _format_results(self, t_ref, objective, period, results):
         """A private method used to wrap and add units to the periodogram
 
         Parameters
         ----------
+        t_ref : float
+            The minimum time in the time series (a reference time).
         objective : str
             The name of the objective used in the optimization.
         period : array_like or `~astropy.units.Quantity`
@@ -714,6 +717,7 @@ class BoxLeastSquares(BasePeriodogram):
         """
         (power, depth, depth_err, duration, transit_time, depth_snr,
          log_likelihood) = results
+        transit_time += t_ref
 
         if has_units(self._trel):
             transit_time = units.Quantity(transit_time, unit=self._trel.unit)
