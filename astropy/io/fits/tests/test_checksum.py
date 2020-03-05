@@ -38,6 +38,7 @@ class TestChecksumFunctions(FitsTestCase):
 
     def test_sample_file(self):
         hdul = fits.open(self.data('checksum.fits'), checksum=True)
+        assert hdul._read_all
         hdul.close()
 
     def test_image_create(self):

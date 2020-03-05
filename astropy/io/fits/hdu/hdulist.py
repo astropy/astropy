@@ -1079,7 +1079,7 @@ class HDUList(list, _Verify):
 
             raise OSError('Empty or corrupt FITS file')
 
-        if not lazy_load_hdus:
+        if not lazy_load_hdus or kwargs.get('checksum') is True:
             # Go ahead and load all HDUs
             while hdulist._read_next_hdu():
                 pass
