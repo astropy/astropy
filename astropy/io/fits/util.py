@@ -204,8 +204,7 @@ def itersubclasses(cls, _seen=None):
         if sub not in _seen:
             _seen.add(sub)
             yield sub
-            for sub in itersubclasses(sub, _seen):
-                yield sub
+            yield from itersubclasses(sub, _seen)
 
 
 def ignore_sigint(func):

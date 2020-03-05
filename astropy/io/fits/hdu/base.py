@@ -1228,7 +1228,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         cs = self._calculate_datasum()
 
         if when is None:
-            when = 'data unit checksum updated {}'.format(self._get_timestamp())
+            when = f'data unit checksum updated {self._get_timestamp()}'
 
         self._header[datasum_keyword] = (str(cs), when)
         return cs
@@ -1275,7 +1275,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             data_cs = self._calculate_datasum()
 
         if when is None:
-            when = 'HDU checksum updated {}'.format(self._get_timestamp())
+            when = f'HDU checksum updated {self._get_timestamp()}'
 
         # Add the CHECKSUM card to the header with a value of all zeros.
         if datasum_keyword in self._header:

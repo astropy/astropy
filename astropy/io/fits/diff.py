@@ -290,10 +290,10 @@ class FITSDiff(_BaseDiff):
             close_b = False
 
         # Normalize keywords/fields to ignore to upper case
-        self.ignore_hdus = set(k.upper() for k in ignore_hdus)
-        self.ignore_keywords = set(k.upper() for k in ignore_keywords)
-        self.ignore_comments = set(k.upper() for k in ignore_comments)
-        self.ignore_fields = set(k.upper() for k in ignore_fields)
+        self.ignore_hdus = {k.upper() for k in ignore_hdus}
+        self.ignore_keywords = {k.upper() for k in ignore_keywords}
+        self.ignore_comments = {k.upper() for k in ignore_comments}
+        self.ignore_fields = {k.upper() for k in ignore_fields}
 
         self.numdiffs = numdiffs
         self.rtol = rtol

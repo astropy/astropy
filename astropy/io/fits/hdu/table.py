@@ -537,7 +537,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 self._header[0].rstrip() == self._extension):
 
             err_text = 'The XTENSION keyword must match the HDU type.'
-            fix_text = 'Converted the XTENSION keyword to {}.'.format(self._extension)
+            fix_text = f'Converted the XTENSION keyword to {self._extension}.'
 
             def fix(header=self._header):
                 header[0] = (self._extension, self._ext_comment)
@@ -1303,7 +1303,7 @@ class BinTableHDU(_TableBaseHDU):
         close_file = False
 
         if isinstance(fileobj, str):
-            fileobj = open(fileobj, 'r')
+            fileobj = open(fileobj)
             close_file = True
 
         initialpos = fileobj.tell()  # We'll be returning here later
@@ -1446,7 +1446,7 @@ class BinTableHDU(_TableBaseHDU):
         close_file = False
 
         if isinstance(fileobj, str):
-            fileobj = open(fileobj, 'r')
+            fileobj = open(fileobj)
             close_file = True
 
         columns = []

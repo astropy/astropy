@@ -194,7 +194,7 @@ class HeaderFormatter:
             else:
                 header = self._hdulist[hdukey].header
         except (IndexError, KeyError):
-            message = '{}: Extension {} not found.'.format(self.filename, hdukey)
+            message = f'{self.filename}: Extension {hdukey} not found.'
             if self.verbose:
                 log.warning(message)
             raise ExtensionNotFoundException(message)

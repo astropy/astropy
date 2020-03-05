@@ -576,9 +576,9 @@ def time_to_fits(table):
                 if location.size > 1:
                     for dim in ('x', 'y', 'z'):
                         newtable.add_column(Column(getattr(location, dim).to_value(u.m)),
-                                            name='OBSGEO-{}'.format(dim.upper()))
+                                            name=f'OBSGEO-{dim.upper()}')
                 else:
-                    hdr.extend([Card(keyword='OBSGEO-{}'.format(dim.upper()),
+                    hdr.extend([Card(keyword=f'OBSGEO-{dim.upper()}',
                                      value=getattr(location, dim).to_value(u.m))
                                 for dim in ('x', 'y', 'z')])
             elif location != col.location:

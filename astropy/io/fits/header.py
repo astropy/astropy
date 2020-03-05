@@ -492,7 +492,7 @@ class Header:
             # Otherwise assume we are reading from an actual FITS file and open
             # in binary mode.
             if sep:
-                fileobj = open(fileobj, 'r', encoding='latin1')
+                fileobj = open(fileobj, encoding='latin1')
             else:
                 fileobj = open(fileobj, 'rb')
 
@@ -819,7 +819,7 @@ class Header:
             A new :class:`Header` instance.
         """
 
-        tmp = self.__class__((copy.copy(card) for card in self._cards))
+        tmp = self.__class__(copy.copy(card) for card in self._cards)
         if strip:
             tmp._strip()
         return tmp
