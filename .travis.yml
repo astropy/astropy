@@ -13,14 +13,10 @@ cache:
 os:
     - linux
 
-stage: Comprehensive tests
-
 # We need a full clone to make sure setuptools_scm works properly
 git:
     depth: false
 
-# Setting sudo to false opts in to Travis-CI container-based builds.
-sudo: false
 
 addons:
     apt:
@@ -67,7 +63,7 @@ matrix:
 
         # Try MacOS X.
         - os: osx
-          name: Python 3.7 with all optional dependencies
+          name: Python 3.7 with all optional dependencies for OSX
           stage: Cron tests
           env: PYTHON_VERSION=3.7
                TOXENV="py37-test-alldeps"
@@ -86,6 +82,7 @@ matrix:
         # impact on running the tests, hence why it is not enabled by default.
         - language: python
           python: 3.6
+          stage: Comprehensive tests
           name: Python 3.6 with oldest supported version of all dependencies
           env: TOXENV="py36-test-oldestdeps"
                TOXPOSARGS="--open-files"
@@ -96,12 +93,13 @@ matrix:
           name: Python 3.6 with all optional dependencies
           stage: Initial tests
           env: TOXENV="py36-test-alldeps"
-               TOXPOSARGS="--durations=50""
+               TOXPOSARGS="--durations=50"
           compiler: clang
 
         # Full tests with coverage checks.
         - language: python
           python: 3.7
+          stage: Comprehensive tests
           name: Python 3.7 with all optional dependencies and coverage
           env: TOXENV="py37-test-alldeps-cov"
                TOXPOSARGS="--remote-data=astropy"
