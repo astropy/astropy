@@ -359,13 +359,6 @@ def test_absolute_times(data, timedelta):
     # The example data uses relative times
     t, y, dy, params = data
 
-    # FIXME: There seems to be a numerical stability issue in that if we run
-    # the algorithm with the same values but offset in time, the transit_time
-    # is not offset by a fixed amount. To avoid this issue in this test, we
-    # make sure the first time is also the smallest so that internally the
-    # values of the relative time should be the same.
-    t[0] = 0.
-
     # Add units
     t = t * u.day
     y = y * u.mag
@@ -487,3 +480,21 @@ def test_absolute_times(data, timedelta):
     assert exc.value.args[0] == ('t was provided as an absolute time '
                                  'but the BoxLeastSquares class was initialized '
                                  'with relative times.')
+
+
+def test_transit_time_in_range(data):
+    t, y, dy, params = data
+
+    t_ref = 10230.0
+    t2 = t + t_ref
+    bls1 = BoxLeastSquares(t, y, dy)
+    bls2 = BoxLeastSquares(t2, y, dy)
+
+    results1 = bls1.autopower(0.16)
+    results2 = bls2.autopower(0.16)
+
+    assert np.allclose(results1.transit_time, results2.transit_time - t_ref)
+    assert np.all(results1.transit_time >= t.min())
+    assert np.all(results1.transit_time <= t.max())
+    assert np.all(results2.transit_time >= t2.min())
+    assert np.all(results2.transit_time <= t2.max())
