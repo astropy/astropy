@@ -1492,7 +1492,7 @@ class SkyCoord(ShapedLikeNDArray):
           >>> t = Time(56370.5, format='mjd', scale='utc')
           >>> loc = EarthLocation('149d33m00.5s','-30d18m46.385s',236.87*u.m)
           >>> sc = SkyCoord(1*u.deg, 2*u.deg)
-          >>> vcorr = sc.radial_velocity_correction(kind='barycentric', obstime=t, location=loc)
+          >>> vcorr = sc.radial_velocity_correction(kind='barycentric', obstime=t, location=loc)  # doctest: +REMOTE_DATA
           >>> rv = rv + vcorr + rv * vcorr / c
 
         If your target is nearby and/or has finite proper motion you may need to account
