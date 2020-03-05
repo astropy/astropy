@@ -1073,6 +1073,16 @@ class TestNumericalSubFormat:
         with pytest.raises(ValueError, match=match):
             Time('J2000', format='jyear_str', in_subfmt='parrot')
 
+    def test_switch_to_format_with_no_out_subfmt(self):
+        t = Time('2001-01-01', out_subfmt='date_hm')
+        assert t.out_subfmt == 'date_hm'
+
+        # Now do an in-place switch to format 'jyear_str' that has no subfmts
+        # where out_subfmt is changed to '*'.
+        t.format = 'jyear_str'
+        assert t.out_subfmt == '*'
+        assert t.value == 'J2001.001'
+
 
 class TestSofaErrors:
     """Test that erfa status return values are handled correctly"""
