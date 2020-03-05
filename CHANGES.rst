@@ -437,6 +437,11 @@ astropy.time
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
+- Fixed issue with reference time for the ``transit_time`` parameter returned by
+  the ``BoxLeastSquares`` periodogram. Now, the ``transit_time`` will be within
+  the range of the input data and arbitrary time offsets/zero points no longer
+  affect results. [#10013]
+
 astropy.uncertainty
 ^^^^^^^^^^^^^^^^^^^
 
