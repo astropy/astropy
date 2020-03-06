@@ -652,19 +652,8 @@ class _ImageBaseHDU(_ValidHDU):
 
             return size
 
-    @staticmethod
-    def _dask_byteswap(array):
-        import dask.array
-        from dask import delayed
-
-        @delayed
-        def _byteswap(arr):
-            return np.array(arr).byteswap(True).newbyteorder("S")
-
-        return dask.array.from_delayed(_byteswap(array), shape=array.shape,
-                                       dtype=array.dtype.newbyteorder("S"))
-
     def _writeinternal_dask(self, fileobj):
+
         size = 0
 
         if sys.byteorder == 'little':
@@ -680,8 +669,8 @@ class _ImageBaseHDU(_ValidHDU):
             should_swap = (byteorder in swap_types)
 
         if should_swap:
-            # output = output.map_blocks(M.byteswap, True).map_blocks(M.newbyteorder, "S")
-            output = self._dask_byteswap(output)
+            from dask.utils import M
+            output = output.map_blocks(M.byteswap, True).map_blocks(M.newbyteorder, "S")
 
         initial_position = fileobj.tell()
         n_bytes = output.nbytes
