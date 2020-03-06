@@ -348,7 +348,7 @@ Properties vs. get\_/set\_
 This example shows a sample class illustrating the guideline regarding the use
 of properties as opposed to getter/setter methods.
 
-Let's assuming you've defined a ``':class:`Star`'`` class and create an instance
+Let's assuming you've defined a ``Star`` class and create an instance
 like this::
 
     >>> s = Star(B=5.48, V=4.83)
@@ -520,9 +520,8 @@ might read::
         # the class is defined here
         pass
 
-This ensures that ``from submodule import *`` only imports ``':func:`foo'``
-and ``':class:`AClass'``, but not ``':class:`numpy.array'`` or
-``':func:`numpy.linspace'``.
+This ensures that ``from submodule import *`` only imports ``foo`` and
+``AClass``, but not `numpy.array` or `numpy.linspace`.
 
 
 Additional Resources
