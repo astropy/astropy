@@ -1398,17 +1398,12 @@ def _remove_download_cache(pkgname='astropy'):
             try:
                 dldir, url2hash = stack.enter_context(
                     _cache(pkgname, write=True))
-            except (RuntimeError, WrongDBMModule):  # Couldn't get lock
+            except (RuntimeError,     # Couldn't get lock
+                    WrongDBMModule):  # Incompatible cache
                 # Release lock by blowing away cache
                 # Need to get locations
                 dldir, _ = _get_download_cache_locs(pkgname)
                 url2hash = None
-            except OSError as e:
-                # Problem arose when trying to open the cache
-                msg = 'Not clearing data cache - cache inaccessible due to '
-                estr = '' if len(e.args) < 1 else (': ' + str(e))
-                warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
-                return
             if os.path.exists(dldir):
                 # This can be awkward if the shelve is still open
                 # NFS can't delete an open file
@@ -1417,16 +1412,13 @@ def _remove_download_cache(pkgname='astropy'):
                 shutil.rmtree(dldir)
                 zapped_cache = True
     except OSError as e:
-        if zapped_cache and e.errno == errno.ENOENT:
-            # We just deleted the directory and, on Windows (?) the "dumb"
+        if not (zapped_cache and e.errno == errno.ENOENT):
+            # If we just deleted the directory and, on Windows (?) the "dumb"
             # backend tried to write itself out to a nonexistent directory.
-            # It's fine for this to fail.
-            return
-        else:
+            # It's fine for this to fail. Otherwise report the problem.
             msg = 'Not clearing data from cache - problem arose '
             estr = '' if len(e.args) < 1 else (': ' + str(e))
             warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
-            return
 
 
 def clear_download_cache(hashorurl=None, pkgname='astropy'):
@@ -1558,28 +1550,23 @@ def _cache_lock(pkgname, need_write=False):
     lock_name = 'lock'
     lock_dir = os.path.join(cache_dir, lock_name)
 
-    def rmdir_fd(fd):
-        # Remove the lock directory given a file descriptor
-        # pointing to the cache directory.
-        try:
-            lock_fd = os.open(lock_name, os.O_RDONLY, dir_fd=fd)
-            try:
-                os.rmdir(lock_name, dir_fd=fd)
-            finally:
-                os.close(lock_fd)
-        except NotImplementedError:
-            shutil.rmtree(lock_dir)
-
     @contextlib.contextmanager
     def make_lock_dir():
         os.mkdir(lock_dir)
-        fd = None
+        # If this succeeded we have the lock
+        # Use file descriptors to make sure we don't delete
+        # the wrong lock file even if someone broke the lock
+        # while we held it and created a new one
+        fd = os.open(cache_dir, os.O_RDONLY)
         try:
-            fd = os.open(cache_dir, os.O_RDONLY)
             yield
         finally:
             try:
-                rmdir_fd(fd)
+                try:
+                    os.rmdir(lock_name, dir_fd=fd)
+                except NotImplementedError:
+                    # Windows does not support dir_fd
+                    shutil.rmtree(lock_dir)
             except FileNotFoundError:
                 # already gone, that's fine
                 pass

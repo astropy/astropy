@@ -466,6 +466,8 @@ astropy.utils
 
 - Fixed detection of read-only filesystems in the caching code. [#10007]
 
+- Ensured the shelve is closed before deleting the cache. [#10009]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
