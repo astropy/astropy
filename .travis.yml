@@ -37,9 +37,9 @@ env:
         # TOXARGS are arguments passed to tox, and TOXPOSARGS are arguments
         # that tox passes through to the {posargs} indicator in tox.ini.
         # The latter can be used for example to pass arguments to pytest.
-        - TOXENV='test'
+        - TOXENV=test
         - TOXARGS=-v
-        - TOXPOSARGS=''
+        - TOXPOSARGS=""
 
         # The following is needed to avoid issues if e.g. Matplotlib tries
         # to open a GUI window.
@@ -111,14 +111,14 @@ matrix:
           stage: Final tests
           name: Python 3.7 with all optional dependencies
           env: PYTHON_VERSION=3.7
-               TOXENV='py37-test-alldeps'
+               TOXENV="py37-test-alldeps"
 
         # Do a PEP8/pyflakes test with flake8
         - language: python
           python: 3.7
           name: Code style checks
           stage: Initial tests
-          env: TOXENV='codestyle'
+          env: TOXENV=codestyle
 
         # Try developer version of Numpy with optional dependencies and also
         # run all remote tests. Since both cases will be potentially
@@ -149,7 +149,7 @@ matrix:
           python: 3.7
           name: Documentation link check
           stage: Cron tests
-          env: TOXENV='linkcheck'
+          env: TOXENV=linkcheck
           addons:
               apt:
                   packages:
@@ -161,7 +161,7 @@ matrix:
           python: 3.8
           name: Python 3.8 with required dependencies
           stage: Final tests
-          env: TOXENV='py38-test'
+          env: TOXENV="py38-test"
 
     allow_failures:
         - language: python
