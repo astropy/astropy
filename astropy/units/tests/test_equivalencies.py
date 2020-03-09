@@ -498,7 +498,7 @@ def test_spectraldensity6():
      (u.erg / u.cm ** 2 / u.s, (u.cm * u.cm * u.s) ** -1),
      (u.erg / u.cm ** 2 / u.s, u.erg / (u.cm * u.cm * u.s * u.keV))])
 def test_spectraldensity_not_allowed(from_unit, to_unit):
-    """Now allowed to succeed as
+    """Not allowed to succeed as
     per https://github.com/astropy/astropy/pull/10015
     """
     with pytest.raises(u.UnitConversionError, match='not convertible'):
