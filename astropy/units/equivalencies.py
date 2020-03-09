@@ -173,6 +173,7 @@ def spectral_density(wav, factor=None):
     la_f_la = nu_f_nu
     phot_f_la = astrophys.photon / (si.cm ** 2 * si.s * si.AA)
     phot_f_nu = astrophys.photon / (si.cm ** 2 * si.s * si.Hz)
+    la_phot_f_la = astrophys.photon / (si.cm ** 2 * si.s)
 
     # luminosity density
     L_nu = cgs.erg / si.s / si.Hz
@@ -270,6 +271,8 @@ def spectral_density(wav, factor=None):
         (phot_f_la, phot_f_nu, converter_phot_f_la_phot_f_nu, iconverter_phot_f_la_phot_f_nu),
         (phot_f_nu, f_nu, converter_phot_f_nu_to_f_nu, iconverter_phot_f_nu_to_f_nu),
         (phot_f_nu, f_la, converter_phot_f_nu_to_f_la, iconverter_phot_f_nu_to_f_la),
+        # integrated flux
+        (la_phot_f_la, la_f_la, converter_phot_f_la_to_f_la, iconverter_phot_f_la_to_f_la),
         # luminosity
         (L_la, L_nu, converter, iconverter),
         (L_nu, nu_L_nu, converter_L_nu_to_nu_L_nu, iconverter_L_nu_to_nu_L_nu),
