@@ -38,7 +38,7 @@ env:
         # that tox passes through to the {posargs} indicator in tox.ini.
         # The latter can be used for example to pass arguments to pytest.
         - TOXENV='test'
-        - TOXARGS='-v'
+        - TOXARGS=-v
         - TOXPOSARGS=''
 
         # The following is needed to avoid issues if e.g. Matplotlib tries
