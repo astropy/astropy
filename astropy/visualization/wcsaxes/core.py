@@ -432,7 +432,7 @@ class WCSAxes(Axes):
 
         self.coords.frame.draw(renderer)
 
-    def draw(self, renderer, inframe=False):
+    def draw(self, renderer, **kwargs):
 
         # In Axes.draw, the following code can result in the xlim and ylim
         # values changing, so we need to force call this here to make sure that
@@ -455,7 +455,7 @@ class WCSAxes(Axes):
         # We need to make sure that that frame path is up to date
         self.coords.frame._update_patch_path()
 
-        super().draw(renderer, inframe=inframe)
+        super().draw(renderer, **kwargs)
 
         self._drawn = True
 
