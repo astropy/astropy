@@ -388,6 +388,9 @@ astropy.io.fits
 - Added verification of ``disp`` (``TDISP``) keyword to ``fits.Column`` and
   extended tests for ``TFORM`` and ``TDISP`` validation. [#9978]
 
+- Fix checksum verification to process all HDUs instead of only the first one
+  because of the lazy loading feature. [#10012]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
