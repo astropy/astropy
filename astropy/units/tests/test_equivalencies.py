@@ -299,32 +299,36 @@ def test_spectral4(in_val, in_unit):
         assert_allclose(b, in_val)
 
 
-def test_spectraldensity2():
+@pytest.mark.parametrize('wav', (3500 * u.AA,
+                                 8.5654988e+14 * u.Hz,
+                                 1 / (3500 * u.AA),
+                                 5.67555959e-19 * u.J))
+def test_spectraldensity2(wav):
     # flux density
     flambda = u.erg / u.angstrom / u.cm ** 2 / u.s
     fnu = u.erg / u.Hz / u.cm ** 2 / u.s
 
-    a = flambda.to(fnu, 1, u.spectral_density(u.Quantity(3500, u.AA)))
+    a = flambda.to(fnu, 1, u.spectral_density(wav))
     assert_allclose(a, 4.086160166177361e-12)
 
     # integrated flux
     f_int = u.erg / u.cm ** 2 / u.s
     phot_int = u.ph / u.cm ** 2 / u.s
 
-    a = f_int.to(phot_int, 1, u.spectral_density(u.Quantity(3500, u.AA)))
+    a = f_int.to(phot_int, 1, u.spectral_density(wav))
     assert_allclose(a, 1.7619408e+11)
 
-    a = phot_int.to(f_int, 1, u.spectral_density(u.Quantity(3500, u.AA)))
+    a = phot_int.to(f_int, 1, u.spectral_density(wav))
     assert_allclose(a, 5.67555959e-12)
 
     # luminosity density
     llambda = u.erg / u.angstrom / u.s
     lnu = u.erg / u.Hz / u.s
 
-    a = llambda.to(lnu, 1, u.spectral_density(u.Quantity(3500, u.AA)))
+    a = llambda.to(lnu, 1, u.spectral_density(wav))
     assert_allclose(a, 4.086160166177361e-12)
 
-    a = lnu.to(llambda, 1, u.spectral_density(u.Quantity(3500, u.AA)))
+    a = lnu.to(llambda, 1, u.spectral_density(wav))
     assert_allclose(a, 2.44728537142857e11)
 
 
@@ -485,6 +489,24 @@ def test_spectraldensity6():
         slam, sb_fnu, u.spectral_density(wave)), sb_flam, rtol=1e-6)
     assert_allclose(slam.to(
         snu, sb_flam, u.spectral_density(wave)), sb_fnu, rtol=1e-6)
+
+
+@pytest.mark.parametrize(
+    ('from_unit', 'to_unit'),
+    [(u.ph / u.cm ** 2 / u.s, (u.cm * u.cm * u.s) ** -1),
+     (u.ph / u.cm ** 2 / u.s, u.erg / (u.cm * u.cm * u.s * u.keV)),
+     (u.erg / u.cm ** 2 / u.s, (u.cm * u.cm * u.s) ** -1),
+     (u.erg / u.cm ** 2 / u.s, u.erg / (u.cm * u.cm * u.s * u.keV))])
+def test_spectraldensity_not_allowed(from_unit, to_unit):
+    """Now allowed to succeed as
+    per https://github.com/astropy/astropy/pull/10015
+    """
+    with pytest.raises(u.UnitConversionError, match='not convertible'):
+        from_unit.to(to_unit, 1, u.spectral_density(1 * u.AA))
+
+    # The other way
+    with pytest.raises(u.UnitConversionError, match='not convertible'):
+        to_unit.to(from_unit, 1, u.spectral_density(1 * u.AA))
 
 
 def test_equivalent_units():
@@ -712,6 +734,7 @@ def test_temperature():
     assert_allclose(t_k.to_value(deg_R, u.temperature()), 527.67)
     t_k = 20 * deg_R
     assert_allclose(t_k.to_value(u.deg_C, u.temperature()), -262.039, atol=0.01)
+
 
 def test_temperature_energy():
     x = 1000 * u.K
