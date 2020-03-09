@@ -122,7 +122,7 @@ class SkyCoord(ShapedLikeNDArray):
       >>> c = SkyCoord(10, 20, unit="deg")  # defaults to ICRS frame
       >>> c = SkyCoord([1, 2, 3], [-30, 45, 8], frame="icrs", unit="deg")  # 3 coords
 
-      >>> coords = ["1:12:43.2 +1:12:43", "1 12 43.2 +1 12 43"]
+      >>> coords = ["1:12:43.2 +31:12:43", "1 12 43.2 +31 12 43"]
       >>> c = SkyCoord(coords, frame=FK4, unit=(u.hourangle, u.deg), obstime="J1992.21")
 
       >>> c = SkyCoord("1h12m43.2s +1d12m43s", frame=Galactic)  # Units from string
