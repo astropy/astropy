@@ -394,6 +394,9 @@ astropy.io.fits
 - Fix checksum verification to process all HDUs instead of only the first one
   because of the lazy loading feature. [#10012]
 
+- Allow passing ``output_verify`` to ``.close`` when using the context manager.
+  [#10030]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
