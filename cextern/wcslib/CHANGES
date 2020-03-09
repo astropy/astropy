@@ -1,3 +1,19 @@
+WCSLIB version 7.2 (2020/03/09)
+-------------------------------
+
+* C library
+
+  - In wcssub(), fixed a bug relating to handling coordinate lookup
+    tables.  Reported by Mihai Cara with fix.
+
+    Also increased the number of coordinate axes handled from 10 to 32.
+
+* Installation
+
+  - New configure option, --disable-shared, defeats generation of the
+    sharable library.
+
+
 WCSLIB version 7.1 (2020/01/01)
 -------------------------------
 
@@ -2962,4 +2978,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 7.1 2019/12/31 13:25:19 mcalabre Exp $
+$Id: CHANGES,v 7.2 2020/03/09 07:31:24 mcalabre Exp $
