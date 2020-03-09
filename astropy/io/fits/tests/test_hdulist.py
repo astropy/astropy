@@ -10,7 +10,7 @@ import subprocess
 import pytest
 import numpy as np
 
-from astropy.io.fits.verify import VerifyError
+from astropy.io.fits.verify import VerifyError, VerifyWarning
 from astropy.io import fits
 from astropy.tests.helper import raises, catch_warnings, ignore_warnings
 from astropy.utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
@@ -1057,3 +1057,29 @@ class TestHDUListFunctions(FitsTestCase):
             with subprocess.Popen(["cat"], stdin=subprocess.PIPE,
                                   stdout=fout) as p:
                 hdulist.writeto(p.stdin)
+
+    def test_output_verify(self):
+        hdul = fits.HDUList([fits.PrimaryHDU()])
+        hdul[0].header['FOOBAR'] = 42
+        hdul.writeto(self.temp('test.fits'))
+
+        with open(self.temp('test.fits'), 'rb') as f:
+            data = f.read()
+        # create invalid card
+        data = data.replace(b'FOOBAR  =', b'FOOBAR = ')
+        with open(self.temp('test2.fits'), 'wb') as f:
+            f.write(data)
+
+        with pytest.raises(VerifyError):
+            with fits.open(self.temp('test2.fits'), mode='update') as hdul:
+                hdul[0].header['MORE'] = 'here'
+                hdul.flush(output_verify='ignore')
+
+        with pytest.warns(VerifyWarning) as ww:
+            with fits.open(self.temp('test2.fits'), mode='update',
+                           output_verify='fix+warn') as hdul:
+                hdul[0].header['MORE'] = 'here'
+                hdul.flush(output_verify='ignore')
+        assert len(ww) == 9
+        assert str(ww[1].message).startswith(
+            "Card 'FOOBAR ' is not FITS standard (equal sign not at column 8)")
