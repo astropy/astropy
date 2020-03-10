@@ -182,7 +182,7 @@ class Index:
         key = [None] * len(self.columns)
         for i, col in enumerate(columns):
             try:
-                key[i] = vals[self.col_position(col.info.name)]
+                key[self.col_position(col.info.name)] = vals[i]
             except ValueError:  # not a member of index
                 continue
         num_rows = len(self.columns[0])
