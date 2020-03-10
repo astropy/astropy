@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 7.1 and its test suite.
+# GNU makefile for building WCSLIB 7.2 and its test suite.
 #
 # Summary of the main targets
 # ---------------------------
@@ -31,7 +31,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 7.1 2019/12/31 13:25:19 mcalabre Exp $
+# $Id: GNUmakefile,v 7.2 2020/03/09 07:31:23 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 SUBDIR := C
@@ -268,7 +268,9 @@ $(WCSLIB) : $(LIBLOCK) $(MODULES:%=$(WCSLIB)(%))
 	       $(RM) *.o ; \
 	     fi
 	-@ $(RM) $<
-	 @ $(MAKE) --no-print-directory $(SHRLIB)
+	 @ if [ "$(SHRLIB)" != "" ] ; then \
+	     $(MAKE) --no-print-directory $(SHRLIB) ; \
+	   fi
 
 $(SHRLIB) : $(PICLIB)
 	-@ echo ''

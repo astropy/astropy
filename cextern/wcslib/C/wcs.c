@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 7.1 - an implementation of the FITS WCS standard.
+  WCSLIB 7.2 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2020, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.c,v 7.1 2019/12/31 13:25:19 mcalabre Exp $
+  $Id: wcs.c,v 7.2 2020/03/09 07:31:23 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -739,7 +739,7 @@ int wcssub(
 
   const char *pq = "PQ";
   char *c, ctypei[16], ctmp[16], *fp;
-  int  axis, axmap[10], cubeface, dealloc, dummy, i, idp, itab, *itmp = 0x0,
+  int  axis, axmap[32], cubeface, dealloc, dummy, i, idp, itab, *itmp = 0x0,
        j, jhat, k, latitude, longitude, m, *map, msub, naxis, ndp, ndpmax,
        Nhat, npv, npvmax, nps, npsmax, ntmp, other, spectral, status, stokes;
   const double *srcp;
@@ -960,7 +960,7 @@ int wcssub(
         if (map[j] == 0) continue;
 
         /* Axis numbers in axmap[] are 0-relative. */
-        for (jhat = 0; jhat < 10; jhat++) {
+        for (jhat = 0; jhat < 32; jhat++) {
           axmap[jhat] = -1;
         }
 
@@ -983,7 +983,7 @@ int wcssub(
           }
         }
 
-        if (Nhat < 0 || (Nhat == 0 && 1 < ndp) || naxis < Nhat || 10 < Nhat) {
+        if (Nhat < 0 || (Nhat == 0 && 1 < ndp) || naxis < Nhat || 32 < Nhat) {
           status = wcserr_set(WCSERR_SET(WCSERR_BAD_PARAM),
             "NAXES was not set (or bad) for %s distortion on axis %d",
             dissrc->dtype[j], j+1);
@@ -1260,7 +1260,7 @@ int wcssub(
     for (m = 0; m < wcssrc->tab[itab].M; m++) {
       i = wcssrc->tab[itab].map[m];
 
-      if (map[i-1]) {
+      if (map[i]) {
         wcsdst->ntab++;
         break;
       }
@@ -1284,7 +1284,7 @@ int wcssub(
     for (m = 0; m < wcssrc->tab[itab].M; m++) {
       i = wcssrc->tab[itab].map[m];
 
-      if (map[i-1]) {
+      if (map[i]) {
         if ((status = tabcpy(1, wcssrc->tab + itab, tab))) {
           wcserr_set(WCS_ERRMSG(wcs_taberr[status]));
           goto cleanup;
@@ -1326,7 +1326,7 @@ int wcssub(
         if (axes[j] == 0) continue;
 
         /* Determine the axis mapping. */
-        for (jhat = 0; jhat < 10; jhat++) {
+        for (jhat = 0; jhat < 32; jhat++) {
           axmap[jhat] = -1;
         }
 

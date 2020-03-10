@@ -3,12 +3,12 @@
 #-----------------------------------------------------------------------------
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: configure.ac,v 7.1 2019/12/31 13:25:19 mcalabre Exp $
+# $Id: configure.ac,v 7.2 2020/03/09 07:31:24 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
-AC_INIT([WCSLIB], [7.1], [mark@calabretta.id.au], [wcslib-7.1])
+AC_INIT([WCSLIB], [7.2], [mark@calabretta.id.au], [wcslib-7.2])
 AC_PREREQ([2.53])
-AC_REVISION([$Revision: 7.1 $])
+AC_REVISION([$Revision: 7.2 $])
 AC_SUBST([PACKAGE_VERSION])
 AC_DEFINE_UNQUOTED([WCSLIB_VERSION], [$PACKAGE_VERSION], [Define wcslib version])
 
@@ -264,45 +264,55 @@ rm -f conftest.a
 AC_SUBST([ARFLAGS])
 AC_PROG_RANLIB
 
-# Shared library generation.
+# Shared library generation - gcc only.
+# Ways of disabling shared libraries:
+#   configure --disable-shared
+#   configure --enable-shared=no
+AC_ARG_ENABLE([shared], [AS_HELP_STRING([--disable-shared],
+            [don't build the WCS shared libraries])], [])
+
+SHRLIB=
+SONAME=
+SHRFLAGS=
+SHRLD=
+SHRSFX=
+SHRLN=
+
 if test "x$ac_cv_c_compiler_gnu" = xyes ; then
-  SHVER=`echo "$LIBVER" | sed -e 's/\..*$//'`
+  if test "x$enable_shared" = xno ; then
+    AC_MSG_WARN([Generation of WCS shared libraries disabled])
 
-  # Note that -fPIC is on by default for Macs, this just makes it obvious.
-  SHRFLAGS="-fPIC"
-  SHRLD="\$(CC) \$(SHRFLAGS)"
+  else
+    SHVER=`echo "$LIBVER" | sed -e 's/\..*$//'`
 
-  case "$host_os" in
-  darwin*)
-    SHRLIB="libwcs.$LIBVER.dylib"
-    SONAME="libwcs.$SHVER.dylib"
-    SHRLD="$SHRLD -dynamiclib -single_module"
-    SHRLD="$SHRLD -compatibility_version $SHVER -current_version $LIBVER"
-    SHRLN="libwcs.dylib"
+    # Note that -fPIC is on by default for Macs, this just makes it obvious.
+    SHRFLAGS="-fPIC"
+    SHRLD="\$(CC) \$(SHRFLAGS)"
 
-    case "$host_cpu" in
-    powerpc*)
-      # Switch off -fPIC (not applicable for PowerPC Macs).
-      CFLAGS="$CFLAGS -mdynamic-no-pic"
+    case "$host_os" in
+    darwin*)
+      SHRLIB="libwcs.$LIBVER.dylib"
+      SONAME="libwcs.$SHVER.dylib"
+      SHRLD="$SHRLD -dynamiclib -single_module"
+      SHRLD="$SHRLD -compatibility_version $SHVER -current_version $LIBVER"
+      SHRLN="libwcs.dylib"
+
+      case "$host_cpu" in
+      powerpc*)
+        # Switch off -fPIC (not applicable for PowerPC Macs).
+        CFLAGS="$CFLAGS -mdynamic-no-pic"
+        ;;
+      esac
+      ;;
+    *)
+      # Covers Linux and Solaris at least.
+      SHRLIB="libwcs.so.$LIBVER"
+      SONAME="libwcs.so.$SHVER"
+      SHRLD="$SHRLD -shared -Wl,-h\$(SONAME)"
+      SHRLN="libwcs.so"
       ;;
     esac
-    ;;
-  *)
-    # Covers Linux and Solaris at least.
-    SHRLIB="libwcs.so.$LIBVER"
-    SONAME="libwcs.so.$SHVER"
-    SHRLD="$SHRLD -shared -Wl,-h\$(SONAME)"
-    SHRLN="libwcs.so"
-    ;;
-  esac
-
-else
-  SHRLIB=
-  SONAME=
-  SHRFLAGS=
-  SHRLD=
-  SHRSFX=
-  SHRLN=
+  fi
 fi
 
 AC_SUBST([SHRLIB])
@@ -527,11 +537,11 @@ fi
 #   configure --enable-utils=no
 AC_ARG_ENABLE([utils], [AS_HELP_STRING([--disable-utils],
             [don't build the WCS utilities])], [])
-if test "x$enable_utils" != xno ; then
+if test "x$enable_utils" = xno ; then
+  AC_MSG_WARN([Compilation of WCS utilities disabled])
+else
   SUBDIRS="$SUBDIRS utils"
   INSTDIR="$INSTDIR utils"
-else
-  AC_MSG_WARN([Compilation of WCS utilities disabled])
 fi
 
 
