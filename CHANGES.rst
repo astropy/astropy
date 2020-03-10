@@ -126,6 +126,9 @@ astropy.table
 - Tables containing Magnitude, decibel, and dex columns can now be saved to
   ``ecsv`` files. [#9933]
 
+- Fixed bug where adding or inserting a row fails on a table with an index
+  defined on a column that is not the first one. [#10027]
+
 astropy.tests
 ^^^^^^^^^^^^^
 

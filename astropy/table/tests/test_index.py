@@ -78,10 +78,14 @@ class TestIndex(SetupData):
     @property
     def t(self):
         if not hasattr(self, '_t'):
+            # Note that order of columns is important, and the 'a' column is
+            # last to ensure that the index column does not need to be the first
+            # column (as was discovered in #10025).  Most testing uses 'a' and
+            # ('a', 'b') for the columns.
             self._t = self._table_type()
-            self._t['a'] = self._column_type(self.main_col)
             self._t['b'] = self._column_type([4.0, 5.1, 6.2, 7.0, 1.1])
             self._t['c'] = self._column_type(['7', '8', '9', '10', '11'])
+            self._t['a'] = self._column_type(self.main_col)
         return self._t
 
     @pytest.mark.parametrize("composite", [False, True])
@@ -96,10 +100,10 @@ class TestIndex(SetupData):
 
         # test altering table columns
         t['a'][0] = 4
-        t.add_row((6, 6.0, '7'))
+        t.add_row((6.0, '7', 6))
         t['a'][3] = 10
         t.remove_row(2)
-        t.add_row((4, 5.0, '9'))
+        t.add_row((5.0, '9', 4))
 
         assert_col_equal(t['a'], np.array([4, 2, 10, 5, 6, 4]))
         assert np.allclose(t['b'], np.array([4.0, 5.1, 7.0, 1.1, 6.0, 5.0]))
@@ -241,7 +245,7 @@ class TestIndex(SetupData):
         t.add_index('a', engine=engine)
 
         for i in range(6, 51):
-            t.add_row((i, 1.0, 'A'))
+            t.add_row((1.0, 'A', i))
 
         assert_col_equal(t['a'], [i for i in range(1, 51)])
         assert np.all(t.indices[0].sorted_data() == [i for i in range(50)])
@@ -310,10 +314,10 @@ class TestIndex(SetupData):
 
         t = self.t
         t.add_index('a', engine=engine)
-        t.insert_row(2, (6, 1.0, '12'))
+        t.insert_row(2, (1.0, '12', 6))
         assert_col_equal(t['a'], [1, 2, 6, 3, 4, 5])
         assert np.all(t.indices[0].sorted_data() == [0, 1, 3, 4, 5, 2])
-        t.insert_row(1, (0, 4.0, '13'))
+        t.insert_row(1, (4.0, '13', 0))
         assert_col_equal(t['a'], [1, 0, 2, 6, 3, 4, 5])
         assert np.all(t.indices[0].sorted_data() == [1, 0, 2, 4, 5, 6, 3])
 
@@ -347,7 +351,7 @@ class TestIndex(SetupData):
             assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
             t['a'][0] = 6
             assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
-            t.add_row((2, 1.5, '12'))
+            t.add_row((1.5, '12', 2))
             assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
             t.remove_rows([1, 3])
             assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
@@ -472,7 +476,7 @@ class TestIndex(SetupData):
 
         if self.mutable:
             with pytest.raises(ValueError):
-                t.add_row((5, 5.0, '9'))
+                t.add_row((5.0, '9', 5))
 
     def test_copy_indexed_table(self, table_types):
         self._setup(_col, table_types)
