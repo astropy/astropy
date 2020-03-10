@@ -98,7 +98,7 @@ class SpectralCoord(u.Quantity):
             observer_icrs = observer.transform_to(ICRS)
 
             d = observer_icrs.cartesian.norm()
-            drep = CartesianRepresentation([(d + DEFAULT_DISTANCE).to(d.unit),
+            drep = CartesianRepresentation([(DEFAULT_DISTANCE).to(d.unit),
                                             0 * d.unit, 0 * d.unit])
 
             tot_rv = radial_velocity + observer_icrs.radial_velocity
@@ -486,16 +486,16 @@ class SpectralCoord(u.Quantity):
         for arg in [x for x in [target, observer] if x is not None]:
             if isinstance(arg, u.Quantity):
                 if arg.unit.physical_type != 'speed':
-                    raise u.UnitsError("Argument must has unit physical type "
+                    raise u.UnitsError("Argument must have unit physical type "
                                        "'speed'.")
 
         # The target or observer value is defined but is not a quantity object,
         #  assume it's a redshift float value and convert to velocity
-        if target is not None and target is not u.Quantity:
+        if isinstance(target, (float, int)):
             target = u.Quantity(target).to(
                 'km/s', equivalencies=RV_RS_EQUIV)
 
-        if observer is not None and observer is not u.Quantity:
+        if isinstance(observer, (float, int)):
             observer = u.Quantity(observer).to(
                 'km/s', equivalencies=RV_RS_EQUIV)
 
@@ -528,7 +528,7 @@ class SpectralCoord(u.Quantity):
     def with_radial_velocity(self, rv):
         """
         Creates a new `SpectralCoord` object with the updated radial
-        velocity values.
+        velocity value.
 
         Parameters
         ----------
@@ -541,7 +541,7 @@ class SpectralCoord(u.Quantity):
             A new instance with the updated radial velocity value.
         """
         if self.observer is not None and self.target is not None:
-            raise ValueError("Redshift cannot be set explicitly when "
+            raise ValueError("Radial velocity cannot be set explicitly when "
                              "providing both an observer and target.")
 
         return self._copy(radial_velocity=rv)
@@ -617,7 +617,7 @@ class SpectralCoord(u.Quantity):
         equivs = u.spectral()
 
         if self.doppler_rest is not None and self.doppler_convention is not None:
-            vel_equiv = DOPPLER_CONVENTIONS[self.doppler_convention](self.rest)
+            vel_equiv = DOPPLER_CONVENTIONS[self.doppler_convention](self.doppler_rest)
             equivs += vel_equiv
 
         # Compose the equivalencies for spectral conversions including the
