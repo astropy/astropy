@@ -582,7 +582,8 @@ class SpectralCoord(u.Quantity):
 
         return self._copy(value=rest_frame_value)
 
-    def to(self, *args, doppler_rest=None, doppler_convention=None, **kwargs):
+    def to(self, unit, equivalencies=[], doppler_rest=None,
+           doppler_convention=None):
         """
         Overloaded parent ``to`` method to provide parameters for defining
         rest value and pre-defined conventions for unit transformations.
@@ -622,10 +623,9 @@ class SpectralCoord(u.Quantity):
 
         # Compose the equivalencies for spectral conversions including the
         # appropriate velocity handling.
-        kwargs.setdefault('equivalencies',
-                          kwargs.pop('equivalencies', []) + equivs)
+        equivalencies += equivs
 
-        return super().to(*args, **kwargs)
+        return super().to(unit, equivalencies=equivalencies)
 
     def __repr__(self):
         prefixstr = '<' + self.__class__.__name__ + ' '
