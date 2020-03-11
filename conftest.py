@@ -3,9 +3,7 @@
 # This file is the main file used when running tests with pytest directly,
 # in particular if running e.g. ``pytest docs/``.
 
-from importlib.util import find_spec
 import os
-import pkg_resources
 import tempfile
 
 try:

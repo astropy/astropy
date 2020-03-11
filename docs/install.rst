@@ -15,7 +15,8 @@ Requirements
 
 ``astropy`` also depends on other packages for optional features:
 
-- `scipy`_: To power a variety of features in several modules.
+- `scipy`_ |minimum_scipy_version| or later: To power a variety of features
+  in several modules.
 
 - `h5py <http://www.h5py.org/>`_: To read/write
   :class:`~astropy.table.Table` objects from/to HDF5 files.

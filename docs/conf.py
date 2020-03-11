@@ -91,6 +91,7 @@ templates_path.append('_templates')
 rst_epilog += """
 .. |minimum_python_version| replace:: {0.__minimum_python_version__}
 .. |minimum_numpy_version| replace:: {0.__minimum_numpy_version__}
+.. |minimum_scipy_version| replace:: {0.__minimum_scipy_version__}
 
 .. Astropy
 .. _`Astropy mailing list`: https://mail.python.org/mailman/listinfo/astropy
