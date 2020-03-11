@@ -1,5 +1,6 @@
 import re
 import copy
+import warnings
 
 import numpy as np
 
@@ -11,6 +12,7 @@ from astropy.wcs.utils import skycoord_to_pixel, pixel_to_skycoord
 from astropy.utils.data_info import MixinInfo
 from astropy.utils import ShapedLikeNDArray
 from astropy.time import Time
+from astropy.utils.exceptions import AstropyUserWarning
 
 from .distances import Distance
 from .angles import Angle
@@ -1482,7 +1484,8 @@ class SkyCoord(ShapedLikeNDArray):
         Use barycentric corrections if m/s precision is required.
 
         The algorithm here is sufficient to perform corrections at the mm/s level, but
-        care is needed in application. Strictly speaking, the barycentric correction is
+        care is needed in application. The barycentric correction returned uses the optical
+        approximation v = z * c. Strictly speaking, the barycentric correction is
         multiplicative and should be applied as::
 
           >>> from astropy.time import Time
@@ -1493,9 +1496,6 @@ class SkyCoord(ShapedLikeNDArray):
           >>> sc = SkyCoord(1*u.deg, 2*u.deg)
           >>> vcorr = sc.radial_velocity_correction(kind='barycentric', obstime=t, location=loc)  # doctest: +REMOTE_DATA
           >>> rv = rv + vcorr + rv * vcorr / c  # doctest: +SKIP
-
-        If your target is nearby and/or has finite proper motion you may need to account
-        for terms arising from this. See Wright & Eastman (2014) for details.
 
         Also note that this method returns the correction velocity in the so-called
         *optical convention*::
@@ -1593,13 +1593,14 @@ class SkyCoord(ShapedLikeNDArray):
         gcrs_p, gcrs_v = location.get_gcrs_posvel(obstime)
         # transforming to GCRS is not the correct thing to do here, since we don't want to
         # include aberration (or light deflection)? Instead, only apply parallax if necessary
+        icrs_cart = self.icrs.cartesian
+        icrs_cart_novel = icrs_cart.without_differentials()
         if self.data.__class__ is UnitSphericalRepresentation:
-            targcart = self.icrs.cartesian
+            targcart = icrs_cart_novel
         else:
             # skycoord has distances so apply parallax
             obs_icrs_cart = pos_earth + gcrs_p
-            icrs_cart = self.icrs.cartesian
-            targcart = icrs_cart - obs_icrs_cart
+            targcart = icrs_cart_novel - obs_icrs_cart
             targcart /= targcart.norm()
 
         if kind == 'barycentric':
@@ -1608,7 +1609,24 @@ class SkyCoord(ShapedLikeNDArray):
             gr = location.gravitational_redshift(obstime)
             # barycentric redshift according to eq 28 in Wright & Eastmann (2014),
             # neglecting Shapiro delay and effects of the star's own motion
-            zb = gamma_obs * (1 + targcart.dot(beta_obs)) / (1 + gr/speed_of_light) - 1
+            zb = gamma_obs * (1 + beta_obs.dot(targcart)) / (1 + gr/speed_of_light)
+            # try and get terms corresponding to stellar motion.
+            if icrs_cart.differentials:
+                try:
+                    ro = self.icrs.cartesian
+                    beta_star = ro.differentials['s'].to_cartesian() / speed_of_light
+                    # ICRS unit vector at coordinate epoch
+                    ro = ro.without_differentials()
+                    ro /= ro.norm()
+                    zb *= (1 + beta_star.dot(ro)) / (1 + beta_star.dot(targcart))
+                except u.UnitConversionError:
+                    warnings.warn("SkyCoord contains some velocity information, but not enough to "
+                                  "calculate the full space motion of the source, and so this has "
+                                  "been ignored for the purposes of calculating the radial velocity "
+                                  "correction. This can lead to errors on the order of metres/second.",
+                                  AstropyUserWarning)
+
+            zb = zb - 1
             return zb * speed_of_light
         else:
             # do a simpler correction ignoring time dilation and gravitational redshift
