@@ -30,6 +30,9 @@ astropy.coordinates
 - Read-only longitudes can now be passed in to ``EarthLocation`` even if
   they include angles outside of the range of -180 to 180 degrees. [#9900]
 
+- ```SkyCoord.radial_velocity_correction``` no longer raises an Exception
+  when space motion information is present on the SkyCoord. [#9980]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
