@@ -109,8 +109,8 @@ class TestUintFunctions(FitsTestCase):
 
             with fits.open(self.temp('tempfile2.fits'), uint=True) as hdulist3:
                 hdudata3 = hdulist3[1].data
-                assert (hdudata3.base[utype] ==
-                        table.data.base.base[utype]).all()
+                assert (hdudata3.base[utype]
+                        == table.data.base.base[utype]).all()
                 assert (hdudata3[utype] == table.data[utype]).all()
                 assert (hdudata3[utype] == u).all()
 

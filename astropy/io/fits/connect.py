@@ -318,8 +318,8 @@ def _encode_mixins(tbl):
         import yaml  # noqa
     except ImportError:
         for col in tbl.itercols():
-            if (has_info_class(col, MixinInfo) and
-                    col.__class__ not in (u.Quantity, Time)):
+            if (has_info_class(col, MixinInfo)
+                    and col.__class__ not in (u.Quantity, Time)):
                 raise TypeError("cannot write type {} column '{}' "
                                 "to FITS without PyYAML installed."
                                 .format(col.__class__.__name__, col.info.name))

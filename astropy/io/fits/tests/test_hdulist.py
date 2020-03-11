@@ -716,15 +716,15 @@ class TestHDUListFunctions(FitsTestCase):
                     assert hdul[idx].header == hdul2[idx].header
                     if hdul[idx].data is None or hdul2[idx].data is None:
                         assert hdul[idx].data == hdul2[idx].data
-                    elif (hdul[idx].data.dtype.fields and
-                          hdul2[idx].data.dtype.fields):
+                    elif (hdul[idx].data.dtype.fields
+                          and hdul2[idx].data.dtype.fields):
                         # Compare tables
                         for n in hdul[idx].data.names:
                             c1 = hdul[idx].data[n]
                             c2 = hdul2[idx].data[n]
                             assert (c1 == c2).all()
-                    elif (any(dim == 0 for dim in hdul[idx].data.shape) or
-                          any(dim == 0 for dim in hdul2[idx].data.shape)):
+                    elif (any(dim == 0 for dim in hdul[idx].data.shape)
+                          or any(dim == 0 for dim in hdul2[idx].data.shape)):
                         # For some reason some combinations of Python and Numpy
                         # on Windows result in MemoryErrors when trying to work
                         # on memmap arrays with more than one dimension but

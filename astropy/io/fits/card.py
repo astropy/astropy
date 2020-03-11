@@ -183,8 +183,8 @@ class Card(_Verify):
         self._rawkeyword = None
         self._rawvalue = None
 
-        if not (keyword is not None and value is not None and
-                self._check_if_rvkc(keyword, value)):
+        if not (keyword is not None and value is not None
+                and self._check_if_rvkc(keyword, value)):
             # If _check_if_rvkc passes, it will handle setting the keyword and
             # value
             if keyword is not None:
@@ -234,8 +234,8 @@ class Card(_Verify):
             # should be strictly disallowed.
             keyword = keyword.rstrip()
             keyword_upper = keyword.upper()
-            if (len(keyword) <= KEYWORD_LENGTH and
-                    self._keywd_FSC_RE.match(keyword_upper)):
+            if (len(keyword) <= KEYWORD_LENGTH
+                    and self._keywd_FSC_RE.match(keyword_upper)):
                 # For keywords with length > 8 they will be HIERARCH cards,
                 # and can have arbitrary case keywords
                 if keyword_upper == 'END':
@@ -355,15 +355,15 @@ class Card(_Verify):
         elif isinstance(value, np.bool_):
             value = bool(value)
 
-        if (conf.strip_header_whitespace and
-                (isinstance(oldvalue, str) and isinstance(value, str))):
+        if (conf.strip_header_whitespace
+                and (isinstance(oldvalue, str) and isinstance(value, str))):
             # Ignore extra whitespace when comparing the new value to the old
             different = oldvalue.rstrip() != value.rstrip()
         elif isinstance(oldvalue, bool) or isinstance(value, bool):
             different = oldvalue is not value
         else:
-            different = (oldvalue != value or
-                         not isinstance(value, type(oldvalue)))
+            different = (oldvalue != value
+                         or not isinstance(value, type(oldvalue)))
 
         if different:
             self._value = value
@@ -540,9 +540,9 @@ class Card(_Verify):
         # If the keyword, value, and comment are all empty (for self.value
         # explicitly check that it is a string value, since a blank value is
         # returned as '')
-        return (not self.keyword and
-                (isinstance(self.value, str) and not self.value) and
-                not self.comment)
+        return (not self.keyword
+                and (isinstance(self.value, str) and not self.value)
+                and not self.comment)
 
     @classmethod
     def fromstring(cls, image):
@@ -580,8 +580,8 @@ class Card(_Verify):
 
         # Test first for the most common case: a standard FITS keyword provided
         # in standard all-caps
-        if (len(keyword) <= KEYWORD_LENGTH and
-                cls._keywd_FSC_RE.match(keyword)):
+        if (len(keyword) <= KEYWORD_LENGTH
+                and cls._keywd_FSC_RE.match(keyword)):
             return keyword
 
         # Test if this is a record-valued keyword
@@ -701,8 +701,8 @@ class Card(_Verify):
 
         if keyword_upper in self._special_keywords:
             return keyword_upper
-        elif (keyword_upper == 'HIERARCH' and self._image[8] == ' ' and
-              HIERARCH_VALUE_INDICATOR in self._image):
+        elif (keyword_upper == 'HIERARCH' and self._image[8] == ' '
+              and HIERARCH_VALUE_INDICATOR in self._image):
             # This is valid HIERARCH card as described by the HIERARCH keyword
             # convention:
             # http://fits.gsfc.nasa.gov/registry/hierarch_keyword.html
@@ -933,8 +933,8 @@ class Card(_Verify):
             # The value of a commentary card must be just a raw unprocessed
             # string
             value = str(value)
-        elif (self._valuestring and not self._valuemodified and
-              isinstance(self.value, float_types)):
+        elif (self._valuestring and not self._valuemodified
+              and isinstance(self.value, float_types)):
             # Keep the existing formatting for float/complex numbers
             value = f'{self._valuestring:>20}'
         elif self.field_specifier:
@@ -979,8 +979,8 @@ class Card(_Verify):
         # removing the space between the keyword and the equals sign; I'm
         # guessing this is part of the HIEARCH card specification
         keywordvalue_length = len(keyword) + len(delimiter) + len(value)
-        if (keywordvalue_length > self.length and
-                keyword.startswith('HIERARCH')):
+        if (keywordvalue_length > self.length
+                and keyword.startswith('HIERARCH')):
             if (keywordvalue_length == self.length + 1 and keyword[-1] == ' '):
                 output = ''.join([keyword[:-1], delimiter, value, comment])
             else:
@@ -995,8 +995,8 @@ class Card(_Verify):
             # longstring case (CONTINUE card)
             # try not to use CONTINUE if the string value can fit in one line.
             # Instead, just truncate the comment
-            if (isinstance(self.value, str) and
-                    len(value) > (self.length - 10)):
+            if (isinstance(self.value, str)
+                    and len(value) > (self.length - 10)):
                 output = self._format_long_image()
             else:
                 warnings.warn('Card is too long, comment will be truncated.',
@@ -1085,8 +1085,8 @@ class Card(_Verify):
             return errs
 
         # verify the equal sign position
-        if (self.keyword not in self._commentary_keywords and
-            (self._image and self._image[:9].upper() != 'HIERARCH ' and
+        if (self.keyword not in self._commentary_keywords
+            and (self._image and self._image[:9].upper() != 'HIERARCH ' and
              self._image.find('=') != 8)):
             errs.append(self.run_option(
                 option,
@@ -1098,8 +1098,8 @@ class Card(_Verify):
         # verify the key, it is never fixable
         # always fix silently the case where "=" is before column 9,
         # since there is no way to communicate back to the _keys.
-        if ((self._image and self._image[:8].upper() == 'HIERARCH') or
-                self._hierarch):
+        if ((self._image and self._image[:8].upper() == 'HIERARCH')
+                or self._hierarch):
             pass
         else:
             if self._image:

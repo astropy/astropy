@@ -218,8 +218,8 @@ def ignore_sigint(func):
         # Get the name of the current thread and determine if this is a single
         # threaded application
         curr_thread = threading.currentThread()
-        single_thread = (threading.activeCount() == 1 and
-                         curr_thread.getName() == 'MainThread')
+        single_thread = (threading.activeCount() == 1
+                         and curr_thread.getName() == 'MainThread')
 
         class SigintHandler:
             def __init__(self):
@@ -270,14 +270,14 @@ def pairwise(iterable):
 def encode_ascii(s):
     if isinstance(s, str):
         return s.encode('ascii')
-    elif (isinstance(s, np.ndarray) and
-          issubclass(s.dtype.type, np.str_)):
+    elif (isinstance(s, np.ndarray)
+          and issubclass(s.dtype.type, np.str_)):
         ns = np.char.encode(s, 'ascii').view(type(s))
         if ns.dtype.itemsize != s.dtype.itemsize / 4:
             ns = ns.astype((np.bytes_, s.dtype.itemsize / 4))
         return ns
-    elif (isinstance(s, np.ndarray) and
-          not issubclass(s.dtype.type, np.bytes_)):
+    elif (isinstance(s, np.ndarray)
+          and not issubclass(s.dtype.type, np.bytes_)):
         raise TypeError('string operation on non-string array')
     return s
 
@@ -292,8 +292,8 @@ def decode_ascii(s):
                           'characters', AstropyUserWarning)
             s = s.decode('ascii', errors='replace')
             return s.replace('\ufffd', '?')
-    elif (isinstance(s, np.ndarray) and
-          issubclass(s.dtype.type, np.bytes_)):
+    elif (isinstance(s, np.ndarray)
+          and issubclass(s.dtype.type, np.bytes_)):
         # np.char.encode/decode annoyingly don't preserve the type of the
         # array, hence the view() call
         # It also doesn't necessarily preserve widths of the strings,
@@ -309,8 +309,8 @@ def decode_ascii(s):
         if ns.dtype.itemsize / 4 != s.dtype.itemsize:
             ns = ns.astype((np.str_, s.dtype.itemsize))
         return ns
-    elif (isinstance(s, np.ndarray) and
-          not issubclass(s.dtype.type, np.str_)):
+    elif (isinstance(s, np.ndarray)
+          and not issubclass(s.dtype.type, np.str_)):
         # Don't silently pass through on non-string arrays; we don't want
         # to hide errors where things that are not stringy are attempting
         # to be decoded
@@ -567,8 +567,8 @@ def _array_from_file(infile, dtype, count):
 
         global CHUNKED_FROMFILE
         if CHUNKED_FROMFILE is None:
-            if (sys.platform == 'darwin' and
-                    LooseVersion(platform.mac_ver()[0]) < LooseVersion('10.9')):
+            if (sys.platform == 'darwin'
+                    and LooseVersion(platform.mac_ver()[0]) < LooseVersion('10.9')):
                 CHUNKED_FROMFILE = True
             else:
                 CHUNKED_FROMFILE = False
@@ -635,8 +635,8 @@ def _array_to_file(arr, outfile):
     # Apparently Windows has its own fwrite bug:
     # https://github.com/numpy/numpy/issues/2256
 
-    if (sys.platform == 'darwin' and arr.nbytes >= _OSX_WRITE_LIMIT + 1 and
-            arr.nbytes % 4096 == 0):
+    if (sys.platform == 'darwin' and arr.nbytes >= _OSX_WRITE_LIMIT + 1
+            and arr.nbytes % 4096 == 0):
         # chunksize is a count of elements in the array, not bytes
         chunksize = _OSX_WRITE_LIMIT // arr.itemsize
     elif sys.platform.startswith('win'):
@@ -688,8 +688,8 @@ def _array_to_file_like(arr, fileobj):
         # The problem with flatiter is it doesn't preserve the original
         # byteorder
         byteorder = arr.dtype.byteorder
-        if ((sys.byteorder == 'little' and byteorder == '>') or
-                (sys.byteorder == 'big' and byteorder == '<')):
+        if ((sys.byteorder == 'little' and byteorder == '>')
+                or (sys.byteorder == 'big' and byteorder == '<')):
             for item in arr.flat:
                 fileobj.write(item.byteswap().tobytes())
         else:

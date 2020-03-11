@@ -488,8 +488,8 @@ def table_to_hdu(table, character_as_bytes=False):
             # TODO: Determine a schema for handling non-integer masked columns
             # in FITS (if at all possible)
             int_formats = ('B', 'I', 'J', 'K')
-            if not (col.format in int_formats or
-                    col.format.p_format in int_formats):
+            if not (col.format in int_formats
+                    or col.format.p_format in int_formats):
                 continue
 
             # The astype is necessary because if the string column is less
@@ -1027,9 +1027,9 @@ def _getext(filename, mode, *args, ext=None, extname=None, extver=None,
     elif len(args) > 2:
         raise TypeError('Too many positional arguments.')
 
-    if (ext is not None and
-            not (_is_int(ext) or
-                 (isinstance(ext, tuple) and len(ext) == 2 and
+    if (ext is not None
+            and not (_is_int(ext)
+                 or (isinstance(ext, tuple) and len(ext) == 2 and
                   isinstance(ext[0], str) and _is_int(ext[1])))):
         raise ValueError(
             'The ext keyword must be either an extension number '
@@ -1063,8 +1063,8 @@ def _makehdu(data, header):
     if hdu.__class__ in (_BaseHDU, _ValidHDU):
         # The HDU type was unrecognized, possibly due to a
         # nonexistent/incomplete header
-        if ((isinstance(data, np.ndarray) and data.dtype.fields is not None) or
-                isinstance(data, np.recarray)):
+        if ((isinstance(data, np.ndarray) and data.dtype.fields is not None)
+                or isinstance(data, np.recarray)):
             hdu = BinTableHDU(data, header=header)
         elif isinstance(data, (np.ndarray, DaskArray)):
             hdu = ImageHDU(data, header=header)
@@ -1084,8 +1084,8 @@ def _stat_filename_or_fileobj(filename):
     except AttributeError:
         loc = 0
 
-    noexist_or_empty = ((name and
-                         (not os.path.exists(name) or
+    noexist_or_empty = ((name
+                         and (not os.path.exists(name) or
                           (os.path.getsize(name) == 0))) or
                         (not name and loc == 0))
 

@@ -563,8 +563,8 @@ class HDUDiff(_BaseDiff):
             # be closed by .close()
             self.diff_data.a = None
             self.diff_data.b = None
-        elif (isinstance(self.a, _TableLikeHDU) and
-              isinstance(self.b, _TableLikeHDU)):
+        elif (isinstance(self.a, _TableLikeHDU)
+              and isinstance(self.b, _TableLikeHDU)):
             # TODO: Replace this if/when _BaseHDU grows a .is_table property
             self.diff_data = TableDataDiff.fromdiff(self, self.a.data,
                                                     self.b.data)
@@ -1014,8 +1014,8 @@ class ImageDataDiff(_BaseDiff):
         # Find the indices where the values are not equal
         # If neither a nor b are floating point (or complex), ignore rtol and
         # atol
-        if not (np.issubdtype(self.a.dtype, np.inexact) or
-                np.issubdtype(self.b.dtype, np.inexact)):
+        if not (np.issubdtype(self.a.dtype, np.inexact)
+                or np.issubdtype(self.b.dtype, np.inexact)):
             rtol = 0
             atol = 0
         else:
@@ -1366,8 +1366,8 @@ class TableDataDiff(_BaseDiff):
             arra = self.a[col.name]
             arrb = self.b[col.name]
 
-            if (np.issubdtype(arra.dtype, np.floating) and
-                    np.issubdtype(arrb.dtype, np.floating)):
+            if (np.issubdtype(arra.dtype, np.floating)
+                    and np.issubdtype(arrb.dtype, np.floating)):
                 diffs = where_not_allclose(arra, arrb,
                                            rtol=self.rtol,
                                            atol=self.atol)

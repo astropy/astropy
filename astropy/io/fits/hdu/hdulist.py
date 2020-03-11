@@ -739,8 +739,8 @@ class HDUList(list, _Verify):
             if isinstance(name, str):
                 name = name.strip().upper()
             # 'PRIMARY' should always work as a reference to the first HDU
-            if ((name == _key or (_key == 'PRIMARY' and idx == 0)) and
-                    (_ver is None or _ver == hdu.ver)):
+            if ((name == _key or (_key == 'PRIMARY' and idx == 0))
+                    and (_ver is None or _ver == hdu.ver)):
                 found = idx
                 break
 
@@ -965,8 +965,8 @@ class HDUList(list, _Verify):
         """
 
         try:
-            if (self._file and self._file.mode in ('append', 'update') and
-                    not self._file.closed):
+            if (self._file and self._file.mode in ('append', 'update')
+                    and not self._file.closed):
                 self.flush(output_verify=output_verify, verbose=verbose)
         finally:
             if self._file and closed and hasattr(self._file, 'close'):
@@ -1133,8 +1133,8 @@ class HDUList(list, _Verify):
         try:
             self._in_read_next_hdu = True
 
-            if ('disable_image_compression' in kwargs and
-                    kwargs['disable_image_compression']):
+            if ('disable_image_compression' in kwargs
+                    and kwargs['disable_image_compression']):
                 compressed.COMPRESSION_ENABLED = False
 
             # read all HDUs
@@ -1215,8 +1215,8 @@ class HDUList(list, _Verify):
                                   fix_text=fix_text, fix=fix)
             errs.append(err)
 
-        if len(self) > 1 and ('EXTEND' not in self[0].header or
-                              self[0].header['EXTEND'] is not True):
+        if len(self) > 1 and ('EXTEND' not in self[0].header
+                              or self[0].header['EXTEND'] is not True):
             err_text = ('Primary HDU does not contain an EXTEND keyword '
                         'equal to T even though there are extension HDUs.')
             fix_text = 'Fixed by inserting or updating the EXTEND keyword.'

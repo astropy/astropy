@@ -986,8 +986,8 @@ class CompImageHDU(BinTableHDU):
         # Set default tile dimensions for HCOMPRESS_1
 
         if compression_type == 'HCOMPRESS_1':
-            if (self._image_header['NAXIS1'] < 4 or
-                    self._image_header['NAXIS2'] < 4):
+            if (self._image_header['NAXIS1'] < 4
+                    or self._image_header['NAXIS2'] < 4):
                 raise ValueError('Hcompress minimum image dimension is '
                                  '4 pixels')
             elif tile_size:
@@ -1402,8 +1402,8 @@ class CompImageHDU(BinTableHDU):
 
     @data.setter
     def data(self, data):
-        if (data is not None) and (not isinstance(data, np.ndarray) or
-                                   data.dtype.fields is not None):
+        if (data is not None) and (not isinstance(data, np.ndarray)
+                                   or data.dtype.fields is not None):
             raise TypeError('CompImageHDU data has incorrect type:{}; '
                             'dtype.fields = {}'.format(
                                 type(data), data.dtype.fields))
@@ -1555,8 +1555,8 @@ class CompImageHDU(BinTableHDU):
 
         # Remove the EXTNAME card if the value in the table header
         # is the default value of COMPRESSED_IMAGE.
-        if ('EXTNAME' in self._header and
-                self._header['EXTNAME'] == 'COMPRESSED_IMAGE'):
+        if ('EXTNAME' in self._header
+                and self._header['EXTNAME'] == 'COMPRESSED_IMAGE'):
             del image_header['EXTNAME']
 
         # Look to see if there are any blank cards in the table
@@ -1853,8 +1853,8 @@ class CompImageHDU(BinTableHDU):
         super()._close(closed=closed)
 
         # Also make sure to close access to the compressed data mmaps
-        if (closed and self._data_loaded and
-                _get_array_mmap(self.compressed_data) is not None):
+        if (closed and self._data_loaded
+                and _get_array_mmap(self.compressed_data) is not None):
             del self.compressed_data
 
     # TODO: This was copied right out of _ImageBaseHDU; get rid of it once we
@@ -1882,8 +1882,8 @@ class CompImageHDU(BinTableHDU):
             return np.dtype('float32')
 
     def _update_header_scale_info(self, dtype=None):
-        if (not self._do_not_scale_image_data and
-                not (self._orig_bzero == 0 and self._orig_bscale == 1)):
+        if (not self._do_not_scale_image_data
+                and not (self._orig_bzero == 0 and self._orig_bscale == 1)):
             for keyword in ['BSCALE', 'BZERO']:
                 # Make sure to delete from both the image header and the table
                 # header; later this will be streamlined

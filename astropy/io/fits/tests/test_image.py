@@ -122,8 +122,8 @@ class TestImageFunctions(FitsTestCase):
     def test_open_2(self):
         r = fits.open(self.data('test0.fits'))
 
-        info = ([(0, 'PRIMARY', 1, 'PrimaryHDU', 138, (), '', '')] +
-                [(x, 'SCI', x, 'ImageHDU', 61, (40, 40), 'int16', '')
+        info = ([(0, 'PRIMARY', 1, 'PrimaryHDU', 138, (), '', '')]
+                + [(x, 'SCI', x, 'ImageHDU', 61, (40, 40), 'int16', '')
                  for x in range(1, 5)])
 
         try:
@@ -259,8 +259,8 @@ class TestImageFunctions(FitsTestCase):
             # append (using "update()") a new card
             r[0].header['xxx'] = 1.234e56
 
-            assert ('\n'.join(str(x) for x in r[0].header.cards[-3:]) ==
-                    "EXPFLAG = 'NORMAL            ' / Exposure interruption indicator                \n"
+            assert ('\n'.join(str(x) for x in r[0].header.cards[-3:])
+                    == "EXPFLAG = 'NORMAL            ' / Exposure interruption indicator                \n"
                     "FILENAME= 'vtest3.fits'        / File name                                      \n"
                     "XXX     =            1.234E+56                                                  ")
 
@@ -375,8 +375,8 @@ class TestImageFunctions(FitsTestCase):
         hdu2 = fits.ImageHDU(header=r[1].header, data=np.array([1, 2],
                                                                dtype='int32'))
 
-        assert ('\n'.join(str(x) for x in hdu2.header.cards[1:5]) ==
-                "BITPIX  =                   32 / array data type                                \n"
+        assert ('\n'.join(str(x) for x in hdu2.header.cards[1:5])
+                == "BITPIX  =                   32 / array data type                                \n"
                 "NAXIS   =                    1 / number of array dimensions                     \n"
                 "NAXIS1  =                    2                                                  \n"
                 "PCOUNT  =                    0 / number of parameters                           ")
@@ -1448,8 +1448,8 @@ class TestCompressedImage(FitsTestCase):
 
         # Some interestingly tiled data so that some of it is quantized and
         # some of it ends up just getting gzip-compressed
-        data2 = ((np.arange(1, 8, dtype=np.float32) * 10)[:, np.newaxis] +
-                 np.arange(1, 7))
+        data2 = ((np.arange(1, 8, dtype=np.float32) * 10)[:, np.newaxis]
+                 + np.arange(1, 7))
         np.random.seed(1337)
         data1 = np.random.uniform(size=(6 * 4, 7 * 4))
         data1[:data2.shape[0], :data2.shape[1]] = data2

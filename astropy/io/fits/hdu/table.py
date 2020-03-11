@@ -160,8 +160,8 @@ class _TableLikeHDU(_ValidHDU):
         # specific to FITS binary tables
         if (any(type(r) in (_FormatP, _FormatQ)
                 for r in columns._recformats) and
-                self._data_size is not None and
-                self._data_size > self._theap):
+                self._data_size is not None
+                and self._data_size > self._theap):
             # We have a heap; include it in the raw_data
             raw_data = self._get_raw_data(self._data_size, np.uint8,
                                           self._data_offset)
@@ -533,8 +533,8 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         """
 
         errs = super()._verify(option=option)
-        if not (isinstance(self._header[0], str) and
-                self._header[0].rstrip() == self._extension):
+        if not (isinstance(self._header[0], str)
+                and self._header[0].rstrip() == self._extension):
 
             err_text = 'The XTENSION keyword must match the HDU type.'
             fix_text = f'Converted the XTENSION keyword to {self._extension}.'
@@ -768,8 +768,8 @@ class TableHDU(_TableBaseHDU):
             if idx == len(columns) - 1:
                 # The last column is padded out to the value of NAXIS1
                 if self._header['NAXIS1'] > itemsize:
-                    data_type = 'S' + str(columns.spans[idx] +
-                                          self._header['NAXIS1'] - itemsize)
+                    data_type = 'S' + str(columns.spans[idx]
+                                          + self._header['NAXIS1'] - itemsize)
             dtype[columns.names[idx]] = (data_type, columns.starts[idx] - 1)
 
         raw_data = self._get_raw_data(self._nrows, dtype, self._data_offset)
@@ -864,8 +864,8 @@ class BinTableHDU(_TableBaseHDU):
         xtension = card.value
         if isinstance(xtension, str):
             xtension = xtension.rstrip()
-        return (card.keyword == 'XTENSION' and
-                xtension in (cls._extension, 'A3DTABLE'))
+        return (card.keyword == 'XTENSION'
+                and xtension in (cls._extension, 'A3DTABLE'))
 
     def _calculate_datasum_with_heap(self):
         """
@@ -1520,8 +1520,8 @@ def _binary_table_byte_swap(data):
         if isinstance(recformat, _FormatP):
             coldata = data.field(idx)
             for c in coldata:
-                if (not isinstance(c, chararray.chararray) and
-                        c.itemsize > 1 and c.dtype.str[0] in swap_types):
+                if (not isinstance(c, chararray.chararray)
+                        and c.itemsize > 1 and c.dtype.str[0] in swap_types):
                     to_swap.append(c)
 
     for arr in reversed(to_swap):

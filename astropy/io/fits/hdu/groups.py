@@ -280,8 +280,8 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
     @classmethod
     def match_header(cls, header):
         keyword = header.cards[0].keyword
-        return (keyword == 'SIMPLE' and 'GROUPS' in header and
-                header['GROUPS'] is True)
+        return (keyword == 'SIMPLE' and 'GROUPS' in header
+                and header['GROUPS'] is True)
 
     @lazyproperty
     def data(self):

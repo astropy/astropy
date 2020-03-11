@@ -151,8 +151,9 @@ class _File:
             mode = 'readonly'
 
         # Handle raw URLs
-        if (isinstance(fileobj, (str, bytes)) and
-                mode not in ('ostream', 'append', 'update') and _is_url(fileobj)):
+        if (isinstance(fileobj, (str, bytes))
+                and mode not in ('ostream', 'append', 'update')
+                and _is_url(fileobj)):
             self.name = download_file(fileobj, cache=cache)
         # Handle responses from URL requests that have already been opened
         elif isinstance(fileobj, http.client.HTTPResponse):
@@ -186,17 +187,17 @@ class _File:
         elif _is_bz2file(fileobj):
             self.compression = 'bzip2'
 
-        if (mode in ('readonly', 'copyonwrite', 'denywrite') or
-                (self.compression and mode == 'update')):
+        if (mode in ('readonly', 'copyonwrite', 'denywrite')
+                or (self.compression and mode == 'update')):
             self.readonly = True
-        elif (mode == 'ostream' or
-                (self.compression and mode == 'append')):
+        elif (mode == 'ostream'
+                or (self.compression and mode == 'append')):
             self.writeonly = True
 
         # For 'ab+' mode, the pointer is at the end after the open in
         # Linux, but is at the beginning in Solaris.
-        if (mode == 'ostream' or self.compression or
-                not hasattr(self._file, 'seek')):
+        if (mode == 'ostream' or self.compression
+                or not hasattr(self._file, 'seek')):
             # For output stream start with a truncated file.
             # For compressed files we can't really guess at the size
             self.size = 0
@@ -417,8 +418,8 @@ class _File:
         This will close the mmap if there are no arrays referencing it.
         """
 
-        if (self._mmap is not None and
-                sys.getrefcount(self._mmap) == 2 + refcount_delta):
+        if (self._mmap is not None
+                and sys.getrefcount(self._mmap) == 2 + refcount_delta):
             self._mmap.close()
             self._mmap = None
 
@@ -430,8 +431,8 @@ class _File:
         """
 
         # The file will be overwritten...
-        if ((self.file_like and hasattr(fileobj, 'len') and fileobj.len > 0) or
-                (os.path.exists(self.name) and os.path.getsize(self.name) != 0)):
+        if ((self.file_like and hasattr(fileobj, 'len') and fileobj.len > 0)
+                or (os.path.exists(self.name) and os.path.getsize(self.name) != 0)):
             if overwrite:
                 if self.file_like and hasattr(fileobj, 'truncate'):
                     fileobj.truncate(0)
@@ -528,16 +529,16 @@ class _File:
 
         # If there is not seek or tell methods then set the mode to
         # output streaming.
-        if (not hasattr(self._file, 'seek') or
-                not hasattr(self._file, 'tell')):
+        if (not hasattr(self._file, 'seek')
+                or not hasattr(self._file, 'tell')):
             self.mode = mode = 'ostream'
 
         if mode == 'ostream':
             self._overwrite_existing(overwrite, fileobj, False)
 
         # Any "writeable" mode requires a write() method on the file object
-        if (self.mode in ('update', 'append', 'ostream') and
-                not hasattr(self._file, 'write')):
+        if (self.mode in ('update', 'append', 'ostream')
+                and not hasattr(self._file, 'write')):
             raise OSError("File-like object does not have a 'write' "
                           "method, required for mode '{}'.".format(self.mode))
 

@@ -75,8 +75,8 @@ class TestDiff(FitsTestCase):
         hb.comments['C'] = 'comment 2'
         diff = HeaderDiff(ha, hb)
         assert not diff.identical
-        assert (diff.diff_keyword_comments ==
-                {'C': [('comment 1', 'comment 2')]})
+        assert (diff.diff_keyword_comments
+                == {'C': [('comment 1', 'comment 2')]})
 
     def test_different_keyword_values_with_duplicate(self):
         ha = Header([('A', 1), ('B', 2), ('C', 3)])
@@ -97,8 +97,8 @@ class TestDiff(FitsTestCase):
         diff = HeaderDiff(ha, hb)
         assert not diff.identical
         assert diff.diff_keyword_values == {}
-        assert (diff.diff_duplicate_keywords ==
-                {'A': (3, 1), 'B': (1, 2), 'C': (1, 2)})
+        assert (diff.diff_duplicate_keywords
+                == {'A': (3, 1), 'B': (1, 2), 'C': (1, 2)})
 
         report = diff.report()
         assert ("Inconsistent duplicates of keyword 'A'     :\n"
@@ -111,8 +111,8 @@ class TestDiff(FitsTestCase):
         hb['C'] = 3.000002
         diff = HeaderDiff(ha, hb)
         assert not diff.identical
-        assert (diff.diff_keyword_values ==
-                {'B': [(2.00001, 2.00002)], 'C': [(3.000001, 3.000002)]})
+        assert (diff.diff_keyword_values
+                == {'B': [(2.00001, 2.00002)], 'C': [(3.000001, 3.000002)]})
         diff = HeaderDiff(ha, hb, rtol=1e-6)
         assert not diff.identical
         assert diff.diff_keyword_values == {'B': [(2.00001, 2.00002)]}
@@ -126,20 +126,20 @@ class TestDiff(FitsTestCase):
         hb['C'] = 0.000001
         diff = HeaderDiff(ha, hb, rtol=1e-6)
         assert not diff.identical
-        assert (diff.diff_keyword_values ==
-                {'B': [(1.0, 1.00001)], 'C': [(0.0, 0.000001)]})
+        assert (diff.diff_keyword_values
+                == {'B': [(1.0, 1.00001)], 'C': [(0.0, 0.000001)]})
         diff = HeaderDiff(ha, hb, rtol=1e-5)
         assert not diff.identical
-        assert (diff.diff_keyword_values ==
-                {'C': [(0.0, 0.000001)]})
+        assert (diff.diff_keyword_values
+                == {'C': [(0.0, 0.000001)]})
         diff = HeaderDiff(ha, hb, atol=1e-6)
         assert not diff.identical
-        assert (diff.diff_keyword_values ==
-                {'B': [(1.0, 1.00001)]})
+        assert (diff.diff_keyword_values
+                == {'B': [(1.0, 1.00001)]})
         diff = HeaderDiff(ha, hb, atol=1e-5)  # strict inequality
         assert not diff.identical
-        assert (diff.diff_keyword_values ==
-                {'B': [(1.0, 1.00001)]})
+        assert (diff.diff_keyword_values
+                == {'B': [(1.0, 1.00001)]})
         diff = HeaderDiff(ha, hb, rtol=1e-5, atol=1e-5)
         assert diff.identical
         diff = HeaderDiff(ha, hb, atol=1.1e-5)
@@ -653,8 +653,8 @@ class TestDiff(FitsTestCase):
         assert isinstance(datadiff, ImageDataDiff)
         assert not datadiff.identical
         assert datadiff.diff_dimensions == ()
-        assert (datadiff.diff_pixels ==
-                [((0, y), (y, y + 1)) for y in range(10)])
+        assert (datadiff.diff_pixels
+                == [((0, y), (y, y + 1)) for y in range(10)])
         assert datadiff.diff_ratio == 1.0
         assert datadiff.diff_total == 100
 

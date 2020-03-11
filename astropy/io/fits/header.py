@@ -136,8 +136,8 @@ class Header:
         elif self._haswildcard(key):
             return self.__class__([copy.copy(self._cards[idx])
                                    for idx in self._wildcardmatch(key)])
-        elif (isinstance(key, str) and
-              key.upper() in Card._commentary_keywords):
+        elif (isinstance(key, str)
+              and key.upper() in Card._commentary_keywords):
             key = key.upper()
             # Special case for commentary cards
             return _HeaderCommentaryCards(self, key)
@@ -639,8 +639,8 @@ class Header:
 
                 # Sanitize out invalid END card now that the appropriate
                 # warnings have been issued
-                block = (block[:offset] + encode_ascii(END_CARD) +
-                         block[offset + len(END_CARD):])
+                block = (block[:offset] + encode_ascii(END_CARD)
+                         + block[offset + len(END_CARD):])
 
             return True, block
 
@@ -948,16 +948,16 @@ class Header:
         # Don't try to make a temporary card though if they keyword looks like
         # it might be a HIERARCH card or is otherwise invalid--this step is
         # only for validating RVKCs.
-        if (len(keyword) <= KEYWORD_LENGTH and
-            Card._keywd_FSC_RE.match(keyword) and
-                keyword not in self._keyword_indices):
+        if (len(keyword) <= KEYWORD_LENGTH
+            and Card._keywd_FSC_RE.match(keyword)
+                and keyword not in self._keyword_indices):
             new_card = Card(keyword, value, comment)
             new_keyword = new_card.keyword
         else:
             new_keyword = keyword
 
-        if (new_keyword not in Card._commentary_keywords and
-                new_keyword in self):
+        if (new_keyword not in Card._commentary_keywords
+                and new_keyword in self):
             if comment is None:
                 comment = self.comments[keyword]
             if value is None:
@@ -1212,8 +1212,8 @@ class Header:
                 idx -= 1
 
             if not bottom and card.keyword not in Card._commentary_keywords:
-                while (idx >= 0 and
-                       self._cards[idx].keyword in Card._commentary_keywords):
+                while (idx >= 0
+                       and self._cards[idx].keyword in Card._commentary_keywords):
                     idx -= 1
 
             idx += 1
@@ -1314,8 +1314,8 @@ class Header:
                         # Dumbly update the first keyword to either SIMPLE or
                         # XTENSION as the case may be, as was in the case in
                         # Header.fromTxtFile
-                        if ((keyword == 'SIMPLE' and first == 'XTENSION') or
-                                (keyword == 'XTENSION' and first == 'SIMPLE')):
+                        if ((keyword == 'SIMPLE' and first == 'XTENSION')
+                                or (keyword == 'XTENSION' and first == 'SIMPLE')):
                             del self[0]
                             self.insert(0, card)
                         else:
@@ -1549,10 +1549,10 @@ class Header:
         if newkeyword == 'CONTINUE':
             raise ValueError('Can not rename to CONTINUE')
 
-        if (newkeyword in Card._commentary_keywords or
-                oldkeyword in Card._commentary_keywords):
-            if not (newkeyword in Card._commentary_keywords and
-                    oldkeyword in Card._commentary_keywords):
+        if (newkeyword in Card._commentary_keywords
+                or oldkeyword in Card._commentary_keywords):
+            if not (newkeyword in Card._commentary_keywords
+                    and oldkeyword in Card._commentary_keywords):
                 raise ValueError('Regular and commentary keys can not be '
                                  'renamed to each other.')
         elif not force and newkeyword in self:
@@ -1635,8 +1635,8 @@ class Header:
         if keyword.startswith('HIERARCH '):
             keyword = keyword[9:]
 
-        if (keyword not in Card._commentary_keywords and
-                keyword in self._keyword_indices):
+        if (keyword not in Card._commentary_keywords
+                and keyword in self._keyword_indices):
             # Easy; just update the value/comment
             idx = self._keyword_indices[keyword][0]
             existing_card = self._cards[idx]
@@ -1680,8 +1680,8 @@ class Header:
         elif isinstance(key, slice):
             return key
         elif isinstance(key, tuple):
-            if (len(key) != 2 or not isinstance(key[0], str) or
-                    not isinstance(key[1], int)):
+            if (len(key) != 2 or not isinstance(key[0], str)
+                    or not isinstance(key[1], int)):
                 raise ValueError(
                     'Tuple indices must be 2-tuples consisting of a '
                     'keyword string and an integer index.')
@@ -1746,8 +1746,8 @@ class Header:
             insertionkey = before
 
         def get_insertion_idx():
-            if not (isinstance(insertionkey, int) and
-                    insertionkey >= len(self._cards)):
+            if not (isinstance(insertionkey, int)
+                    and insertionkey >= len(self._cards)):
                 idx = self._cardindex(insertionkey)
             else:
                 idx = insertionkey
@@ -1765,8 +1765,8 @@ class Header:
             old_idx = self._cardindex(card.keyword)
             insertion_idx = get_insertion_idx()
 
-            if (insertion_idx >= len(self._cards) and
-                    old_idx == len(self._cards) - 1):
+            if (insertion_idx >= len(self._cards)
+                    and old_idx == len(self._cards) - 1):
                 # The card would be appended to the end, but it's already at
                 # the end
                 return
@@ -1825,8 +1825,8 @@ class Header:
     def _haswildcard(self, keyword):
         """Return `True` if the input keyword contains a wildcard pattern."""
 
-        return (isinstance(keyword, str) and
-                (keyword.endswith('...') or '*' in keyword or '?' in keyword))
+        return (isinstance(keyword, str)
+                and (keyword.endswith('...') or '*' in keyword or '?' in keyword))
 
     def _wildcardmatch(self, pattern):
         """

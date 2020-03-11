@@ -33,8 +33,8 @@ class TestUtils(FitsTestCase):
                 # One more time, for good measure
                 os.kill(pid, signal.SIGINT)
             assert len(w) == 2
-            assert (str(w[0].message) ==
-                    'KeyboardInterrupt ignored until test is complete!')
+            assert (str(w[0].message)
+                    == 'KeyboardInterrupt ignored until test is complete!')
 
         pytest.raises(KeyboardInterrupt, test)
 

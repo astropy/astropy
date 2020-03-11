@@ -786,8 +786,8 @@ class Column(NotifierMixin):
         # hard reference to the field like it used to.
         base = array
         while True:
-            if (hasattr(base, '_coldefs') and
-                    isinstance(base._coldefs, ColDefs)):
+            if (hasattr(base, '_coldefs')
+                    and isinstance(base._coldefs, ColDefs)):
                 for col in base._coldefs:
                     if col is self and self._parent_fits_rec is None:
                         self._parent_fits_rec = weakref.ref(base)
@@ -832,8 +832,8 @@ class Column(NotifierMixin):
 
         # This ensures that the new name can fit into a single FITS card
         # without any special extension like CONTINUE cards or the like.
-        if (not isinstance(name, str) or
-                len(str(Card('TTYPE', name))) != CARD_LENGTH):
+        if (not isinstance(name, str)
+                or len(str(Card('TTYPE', name))) != CARD_LENGTH):
             raise AssertionError(
                 'Column name must be a string able to fit in a single '
                 'FITS card--typically this means a maximum of 68 '
@@ -858,31 +858,31 @@ class Column(NotifierMixin):
 
     @ColumnAttribute('TCRPX')
     def coord_ref_point(col, coord_ref_point):
-        if (coord_ref_point is not None and
-                not isinstance(coord_ref_point, numbers.Real)):
+        if (coord_ref_point is not None
+                and not isinstance(coord_ref_point, numbers.Real)):
             raise AssertionError(
                 'Pixel coordinate of the reference point must be '
                 'real floating type.')
 
     @ColumnAttribute('TCRVL')
     def coord_ref_value(col, coord_ref_value):
-        if (coord_ref_value is not None and
-                not isinstance(coord_ref_value, numbers.Real)):
+        if (coord_ref_value is not None
+                and not isinstance(coord_ref_value, numbers.Real)):
             raise AssertionError(
                 'Coordinate value at reference point must be real '
                 'floating type.')
 
     @ColumnAttribute('TCDLT')
     def coord_inc(col, coord_inc):
-        if (coord_inc is not None and
-                not isinstance(coord_inc, numbers.Real)):
+        if (coord_inc is not None
+                and not isinstance(coord_inc, numbers.Real)):
             raise AssertionError(
                 'Coordinate increment must be real floating type.')
 
     @ColumnAttribute('TRPOS')
     def time_ref_pos(col, time_ref_pos):
-        if (time_ref_pos is not None and
-                not isinstance(time_ref_pos, str)):
+        if (time_ref_pos is not None
+                and not isinstance(time_ref_pos, str)):
             raise AssertionError(
                 'Time reference position must be a string.')
 
@@ -1010,9 +1010,9 @@ class Column(NotifierMixin):
                         'will be ignored for the purpose of formatting '
                         'the data in this column.'.format(null))
 
-                elif not (format.format in tnull_formats or
-                          (format.format in ('P', 'Q') and
-                           format.p_format in tnull_formats)):
+                elif not (format.format in tnull_formats
+                          or (format.format in ('P', 'Q')
+                           and format.p_format in tnull_formats)):
                     # TODO: We should also check that TNULLn's integer value
                     # is in the range allowed by the column's format
                     msg = (
@@ -1036,8 +1036,8 @@ class Column(NotifierMixin):
                     f'{disp!r}). The invalid value will be ignored for the '
                     'purpose of formatting the data in this column.')
 
-            elif (isinstance(format, _AsciiColumnFormat) and
-                    disp[0].upper() == 'L'):
+            elif (isinstance(format, _AsciiColumnFormat)
+                    and disp[0].upper() == 'L'):
                 # disp is at least one character long and has the 'L' format
                 # which is not recognized for ASCII tables
                 msg = (
@@ -1318,10 +1318,10 @@ class Column(NotifierMixin):
                 # pseudo-unsigned
                 bzeros = {2: np.uint16(2**15), 4: np.uint32(2**31),
                           8: np.uint64(2**63)}
-                if (array.dtype.kind == 'u' and
-                        array.dtype.itemsize in bzeros and
-                        self.bscale in (1, None, '') and
-                        self.bzero == bzeros[array.dtype.itemsize]):
+                if (array.dtype.kind == 'u'
+                        and array.dtype.itemsize in bzeros
+                        and self.bscale in (1, None, '')
+                        and self.bzero == bzeros[array.dtype.itemsize]):
                     # Basically the array is uint, has scale == 1.0, and the
                     # bzero is the appropriate value for a pseudo-unsigned
                     # integer of the input dtype, then go ahead and assume that
@@ -1353,11 +1353,11 @@ class ColDefs(NotifierMixin):
     def __new__(cls, input, ascii=False):
         klass = cls
 
-        if (hasattr(input, '_columns_type') and
-                issubclass(input._columns_type, ColDefs)):
+        if (hasattr(input, '_columns_type')
+                and issubclass(input._columns_type, ColDefs)):
             klass = input._columns_type
-        elif (hasattr(input, '_col_format_cls') and
-                issubclass(input._col_format_cls, _AsciiColumnFormat)):
+        elif (hasattr(input, '_col_format_cls')
+                and issubclass(input._col_format_cls, _AsciiColumnFormat)):
             klass = _AsciiColDefs
 
         if ascii:  # force ASCII if this has been explicitly requested
@@ -1386,8 +1386,8 @@ class ColDefs(NotifierMixin):
 
         if isinstance(input, ColDefs):
             self._init_from_coldefs(input)
-        elif (isinstance(input, FITS_rec) and hasattr(input, '_coldefs') and
-                input._coldefs):
+        elif (isinstance(input, FITS_rec) and hasattr(input, '_coldefs')
+                and input._coldefs):
             # If given a FITS_rec object we can directly copy its columns, but
             # only if its columns have already been defined, otherwise this
             # will loop back in on itself and blow up
@@ -1552,8 +1552,8 @@ class ColDefs(NotifierMixin):
             # the column is an ASCII table column...
             if new_column.null is not None:
                 new_column.null = DEFAULT_ASCII_TNULL
-            if (new_column.disp is not None and
-                    new_column.disp.upper().startswith('L')):
+            if (new_column.disp is not None
+                    and new_column.disp.upper().startswith('L')):
                 # ASCII columns may not use the logical data display format;
                 # for now just drop the TDISPn option for this column as we
                 # don't have a systematic conversion of boolean data to ASCII
@@ -2617,8 +2617,8 @@ def python_to_tdisp(format_string, logical_dtype=False):
             sep = '.'
             if width == "":
                 ascii_key = ftype if ftype != 'G' else 'F'
-                width = str(int(precision) + (ASCII_DEFAULT_WIDTHS[ascii_key][0] -
-                                              ASCII_DEFAULT_WIDTHS[ascii_key][1]))
+                width = str(int(precision) + (ASCII_DEFAULT_WIDTHS[ascii_key][0]
+                                              - ASCII_DEFAULT_WIDTHS[ascii_key][1]))
         # Otherwise we just have a width
         else:
             width = fmt_str

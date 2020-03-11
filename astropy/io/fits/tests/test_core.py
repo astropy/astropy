@@ -553,8 +553,8 @@ class TestCore(FitsTestCase):
                             if idx != 1:
                                 assert hdu.header == hdu2.header
                             else:
-                                assert (hdu2.header ==
-                                        hdu.header[:len(hdu2.header)])
+                                assert (hdu2.header
+                                        == hdu.header[:len(hdu2.header)])
                             assert np.all(hdu.data == hdu2.data)
 
 

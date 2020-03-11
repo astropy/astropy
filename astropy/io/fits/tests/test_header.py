@@ -121,8 +121,8 @@ class TestHeaderFunctions(FitsTestCase):
 
         c = fits.Card('floatnum', -467374636747637647347374734737437.)
 
-        if (str(c) != _pad("FLOATNUM= -4.6737463674763E+32") and
-                str(c) != _pad("FLOATNUM= -4.6737463674763E+032")):
+        if (str(c) != _pad("FLOATNUM= -4.6737463674763E+32")
+                and str(c) != _pad("FLOATNUM= -4.6737463674763E+032")):
             assert str(c) == _pad("FLOATNUM= -4.6737463674763E+32")
 
     def test_complex_value_card(self):
@@ -143,8 +143,8 @@ class TestHeaderFunctions(FitsTestCase):
         # (non-string value)
         with ignore_warnings():
             c = fits.Card('abc', 9, 'abcde' * 20)
-            assert (str(c) ==
-                    "ABC     =                    9 "
+            assert (str(c)
+                    == "ABC     =                    9 "
                     "/ abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeab")
             c = fits.Card('abc', 'a' * 68, 'abcdefg')
             assert str(c) == "ABC     = '{}'".format('a' * 68)
@@ -481,15 +481,15 @@ class TestHeaderFunctions(FitsTestCase):
         # long string value via fromstring() method
         c = fits.Card.fromstring(
             _pad("abc     = 'longstring''s testing  &  ' "
-                 "/ comments in line 1") +
-            _pad("continue  'continue with long string but without the "
-                 "ampersand at the end' /") +
-            _pad("continue  'continue must have string value (with quotes)' "
+                 "/ comments in line 1")
+            + _pad("continue  'continue with long string but without the "
+                 "ampersand at the end' /")
+            + _pad("continue  'continue must have string value (with quotes)' "
                  "/ comments with ''. "))
         with pytest.warns(fits.verify.VerifyWarning,
                           match=r'Verification reported errors'):
-            assert (str(c) ==
-                    "ABC     = 'longstring''s testing  continue with long string but without the &'  "
+            assert (str(c)
+                    == "ABC     = 'longstring''s testing  continue with long string but without the &'  "
                     "CONTINUE  'ampersand at the endcontinue must have string value (with quotes)&'  "
                     "CONTINUE  '' / comments in line 1 comments with ''.                             ")
 
@@ -499,13 +499,13 @@ class TestHeaderFunctions(FitsTestCase):
         """
 
         c = fits.Card.fromstring(
-            _pad("EXPR    = '/grp/hst/cdbs//grid/pickles/dat_uvk/pickles_uk_10.fits * &'") +
-            _pad("CONTINUE  '5.87359e-12 * MWAvg(Av=0.12)&'") +
-            _pad("CONTINUE  '&' / pysyn expression"))
+            _pad("EXPR    = '/grp/hst/cdbs//grid/pickles/dat_uvk/pickles_uk_10.fits * &'")
+            + _pad("CONTINUE  '5.87359e-12 * MWAvg(Av=0.12)&'")
+            + _pad("CONTINUE  '&' / pysyn expression"))
 
         assert c.keyword == 'EXPR'
-        assert (c.value ==
-                '/grp/hst/cdbs//grid/pickles/dat_uvk/pickles_uk_10.fits '
+        assert (c.value
+                == '/grp/hst/cdbs//grid/pickles/dat_uvk/pickles_uk_10.fits '
                 '* 5.87359e-12 * MWAvg(Av=0.12)')
         assert c.comment == 'pysyn expression'
 
@@ -538,8 +538,8 @@ class TestHeaderFunctions(FitsTestCase):
                           'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)')
         assert len(w) == 1
         assert 'HIERARCH card will be created' in str(w[0].message)
-        assert (str(c) ==
-                "HIERARCH ESO INS SLIT2 Y1FRML= "
+        assert (str(c)
+                == "HIERARCH ESO INS SLIT2 Y1FRML= "
                 "'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)'")
 
         # Test manual creation of hierarch card
@@ -547,8 +547,8 @@ class TestHeaderFunctions(FitsTestCase):
         assert str(c) == _pad("HIERARCH abcdefghi = 10")
         c = fits.Card('HIERARCH ESO INS SLIT2 Y1FRML',
                       'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)')
-        assert (str(c) ==
-                "HIERARCH ESO INS SLIT2 Y1FRML= "
+        assert (str(c)
+                == "HIERARCH ESO INS SLIT2 Y1FRML= "
                 "'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)'")
 
     def test_hierarch_with_abbrev_value_indicator(self):
@@ -609,8 +609,8 @@ class TestHeaderFunctions(FitsTestCase):
         hdu.writeto(self.temp('test.fits'))
         with fits.open(self.temp('test.fits')) as hdul:
             header2 = hdul[0].header
-            assert (str(header.cards[header.index('key.META_0')]) ==
-                    str(header2.cards[header2.index('key.META_0')]))
+            assert (str(header.cards[header.index('key.META_0')])
+                    == str(header2.cards[header2.index('key.META_0')]))
 
     def test_missing_keyword(self):
         """Test that accessing a non-existent keyword raises a KeyError."""
@@ -1034,8 +1034,8 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_header_keys(self):
         with fits.open(self.data('arange.fits')) as hdul:
-            assert (list(hdul[0].header) ==
-                    ['SIMPLE', 'BITPIX', 'NAXIS', 'NAXIS1', 'NAXIS2', 'NAXIS3',
+            assert (list(hdul[0].header)
+                    == ['SIMPLE', 'BITPIX', 'NAXIS', 'NAXIS1', 'NAXIS2', 'NAXIS3',
                      'EXTEND'])
 
     def test_header_list_like_pop(self):
@@ -1419,8 +1419,8 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_header_comments(self):
         header = fits.Header([('A', 'B', 'C'), ('DEF', 'G', 'H')])
-        assert (repr(header.comments) ==
-                '       A  C\n'
+        assert (repr(header.comments)
+                == '       A  C\n'
                 '     DEF  H')
 
     def test_comment_slices_and_filters(self):
@@ -1808,13 +1808,13 @@ class TestHeaderFunctions(FitsTestCase):
         # written with repaired exponent signs?
         with pytest.warns(fits.verify.VerifyWarning,
                           match=r'Verification reported errors'):
-            assert (str(h.cards['FOCALLEN']) ==
-                    _pad("FOCALLEN= +1.550000000000E+002"))
+            assert (str(h.cards['FOCALLEN'])
+                    == _pad("FOCALLEN= +1.550000000000E+002"))
         assert h.cards['FOCALLEN']._modified
         with pytest.warns(fits.verify.VerifyWarning,
                           match=r'Verification reported errors'):
-            assert (str(h.cards['APERTURE']) ==
-                    _pad("APERTURE= +0.000000000000E+000"))
+            assert (str(h.cards['APERTURE'])
+                    == _pad("APERTURE= +0.000000000000E+000"))
         assert h.cards['APERTURE']._modified
         assert h._modified
 
@@ -1824,13 +1824,13 @@ class TestHeaderFunctions(FitsTestCase):
         h = fits.Header.fromstring(hstr, sep='\n')
         with pytest.warns(fits.verify.VerifyWarning,
                           match=r'Verification reported errors'):
-            assert (str(h.cards['FOCALLEN']) ==
-                    _pad("FOCALLEN= +1.550000000000E+002"))
+            assert (str(h.cards['FOCALLEN'])
+                    == _pad("FOCALLEN= +1.550000000000E+002"))
         assert h.cards['FOCALLEN']._modified
         with pytest.warns(fits.verify.VerifyWarning,
                           match=r'Verification reported errors'):
-            assert (str(h.cards['APERTURE']) ==
-                    _pad("APERTURE= +0.000000000000E+000"))
+            assert (str(h.cards['APERTURE'])
+                    == _pad("APERTURE= +0.000000000000E+000"))
         assert h.cards['APERTURE']._modified
 
         assert h['FOCALLEN'] == 155.0
@@ -1841,10 +1841,10 @@ class TestHeaderFunctions(FitsTestCase):
         # that the newly fixed value strings are left intact
         h['FOCALLEN'] = 155.0
         h['APERTURE'] = 0.0
-        assert (str(h.cards['FOCALLEN']) ==
-                _pad("FOCALLEN= +1.550000000000E+002"))
-        assert (str(h.cards['APERTURE']) ==
-                _pad("APERTURE= +0.000000000000E+000"))
+        assert (str(h.cards['FOCALLEN'])
+                == _pad("FOCALLEN= +1.550000000000E+002"))
+        assert (str(h.cards['APERTURE'])
+                == _pad("APERTURE= +0.000000000000E+000"))
 
     def test_invalid_float_cards2(self, capsys):
         """
@@ -2601,29 +2601,29 @@ class TestRecordValuedKeywordCards(FitsTestCase):
 
         cl = self._test_header['DP1.AXIS.*']
         assert isinstance(cl, fits.Header)
-        assert ([str(c).strip() for c in cl.cards] ==
-                ["DP1     = 'AXIS.1: 1'",
+        assert ([str(c).strip() for c in cl.cards]
+                == ["DP1     = 'AXIS.1: 1'",
                  "DP1     = 'AXIS.2: 2'"])
 
         cl = self._test_header['DP1.N*']
-        assert ([str(c).strip() for c in cl.cards] ==
-                ["DP1     = 'NAXIS: 2'",
+        assert ([str(c).strip() for c in cl.cards]
+                == ["DP1     = 'NAXIS: 2'",
                  "DP1     = 'NAUX: 2'"])
 
         cl = self._test_header['DP1.AUX...']
-        assert ([str(c).strip() for c in cl.cards] ==
-                ["DP1     = 'AUX.1.COEFF.0: 0'",
+        assert ([str(c).strip() for c in cl.cards]
+                == ["DP1     = 'AUX.1.COEFF.0: 0'",
                  "DP1     = 'AUX.1.POWER.0: 1'",
                  "DP1     = 'AUX.1.COEFF.1: 0.00048828125'",
                  "DP1     = 'AUX.1.POWER.1: 1'"])
 
         cl = self._test_header['DP?.NAXIS']
-        assert ([str(c).strip() for c in cl.cards] ==
-                ["DP1     = 'NAXIS: 2'"])
+        assert ([str(c).strip() for c in cl.cards]
+                == ["DP1     = 'NAXIS: 2'"])
 
         cl = self._test_header['DP1.A*S.*']
-        assert ([str(c).strip() for c in cl.cards] ==
-                ["DP1     = 'AXIS.1: 1'",
+        assert ([str(c).strip() for c in cl.cards]
+                == ["DP1     = 'AXIS.1: 1'",
                  "DP1     = 'AXIS.2: 2'"])
 
     def test_pattern_matching_key_deletion(self):
@@ -2651,8 +2651,8 @@ class TestRecordValuedKeywordCards(FitsTestCase):
                  "DP1     = 'AUX.1.POWER.1: 1'"])
 
         cl2 = cl['*.*AUX...']
-        assert ([str(c).strip() for c in cl2.cards] ==
-                ["DP1     = 'AUX.1.COEFF.0: 0'",
+        assert ([str(c).strip() for c in cl2.cards]
+                == ["DP1     = 'AUX.1.COEFF.0: 0'",
                  "DP1     = 'AUX.1.POWER.0: 1'",
                  "DP1     = 'AUX.1.COEFF.1: 0.00048828125'",
                  "DP1     = 'AUX.1.POWER.1: 1'"])
@@ -2719,8 +2719,8 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         h = fits.Header()
         h['FOO'] = 'Date: 2012-09-19T13:58:53.756061'
         assert 'FOO.Date' not in h
-        assert (str(h.cards[0]) ==
-                _pad("FOO     = 'Date: 2012-09-19T13:58:53.756061'"))
+        assert (str(h.cards[0])
+                == _pad("FOO     = 'Date: 2012-09-19T13:58:53.756061'"))
 
     def test_overly_aggressive_rvkc_lookup(self):
         """
@@ -2804,9 +2804,9 @@ class TestRecordValuedKeywordCards(FitsTestCase):
             assert len(mytable) == len(fitsobj[0].header)
             # Repeat the above test when multiple HDUs are requested
             mytable = formatter.parse(extensions=['AIPS FQ', 2, "4"])
-            assert len(mytable) == (len(fitsobj['AIPS FQ'].header) +
-                                    len(fitsobj[2].header) +
-                                    len(fitsobj[4].header))
+            assert len(mytable) == (len(fitsobj['AIPS FQ'].header)
+                                    + len(fitsobj[2].header)
+                                    + len(fitsobj[4].header))
 
         # Can we recover the filename and extension name from the table?
         mytable = formatter.parse(extensions=['AIPS FQ'])

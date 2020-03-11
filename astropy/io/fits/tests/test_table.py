@@ -87,8 +87,8 @@ def comparerecords(a, b):
                 print("fieldb: ", fieldb)
                 print(f'field {i} differs')
                 return False
-        elif (isinstance(fielda, fits.column._VLF) or
-              isinstance(fieldb, fits.column._VLF)):
+        elif (isinstance(fielda, fits.column._VLF)
+              or isinstance(fieldb, fits.column._VLF)):
             for row in range(len(fielda)):
                 if np.any(fielda[row] != fieldb[row]):
                     print('fielda[{}]: {}'.format(row, fielda[row]))
@@ -290,8 +290,8 @@ class TestTableFunctions(FitsTestCase):
         c3 = fits.Column(name='t1', format='I', array=[91, 92, 93])
         hdu = fits.TableHDU.from_columns([c2, c1, c3])
 
-        assert (dict(hdu.data.dtype.fields) ==
-                {'abc': (np.dtype('|S3'), 18),
+        assert (dict(hdu.data.dtype.fields)
+                == {'abc': (np.dtype('|S3'), 18),
                  'def': (np.dtype('|S15'), 2),
                  't1': (np.dtype('|S10'), 21)})
         hdu.writeto(self.temp('toto.fits'), overwrite=True)
@@ -405,12 +405,12 @@ class TestTableFunctions(FitsTestCase):
 
         # Verify that all ndarray objects within the HDU reference the
         # same ndarray.
-        assert (id(hdu.data._coldefs.columns[0].array) ==
-                id(hdu.data._coldefs._arrays[0]))
-        assert (id(hdu.data._coldefs.columns[0].array) ==
-                id(hdu.columns.columns[0].array))
-        assert (id(hdu.data._coldefs.columns[0].array) ==
-                id(hdu.columns._arrays[0]))
+        assert (id(hdu.data._coldefs.columns[0].array)
+                == id(hdu.data._coldefs._arrays[0]))
+        assert (id(hdu.data._coldefs.columns[0].array)
+                == id(hdu.columns.columns[0].array))
+        assert (id(hdu.data._coldefs.columns[0].array)
+                == id(hdu.columns._arrays[0]))
 
         # Ensure I can change the value of one data element and it effects
         # all of the others.
@@ -451,12 +451,12 @@ class TestTableFunctions(FitsTestCase):
         assert hdu.columns._arrays[0][0] == 800
         assert hdu.columns.columns[0].array[0] == 800
 
-        assert (hdu.data.field(0) ==
-                np.array([800, 2], dtype=np.int16)).all()
+        assert (hdu.data.field(0)
+                == np.array([800, 2], dtype=np.int16)).all()
         assert hdu.data[0][1] == 'Serius'
         assert hdu.data[1][1] == 'Canopys'
-        assert (hdu.data.field(2) ==
-                np.array([-1.45, -0.73], dtype=np.float64)).all()
+        assert (hdu.data.field(2)
+                == np.array([-1.45, -0.73], dtype=np.float64)).all()
         assert hdu.data[0][3] == 'A1V'
         assert hdu.data[1][3] == 'F0Ib'
 
@@ -464,12 +464,12 @@ class TestTableFunctions(FitsTestCase):
             hdu.writeto(self.temp('toto.fits'), overwrite=True)
 
         with fits.open(self.temp('toto.fits')) as hdul:
-            assert (hdul[1].data.field(0) ==
-                    np.array([800, 2], dtype=np.int16)).all()
+            assert (hdul[1].data.field(0)
+                    == np.array([800, 2], dtype=np.int16)).all()
             assert hdul[1].data[0][1] == 'Serius'
             assert hdul[1].data[1][1] == 'Canopys'
-            assert (hdul[1].data.field(2) ==
-                    np.array([-1.45, -0.73], dtype=np.float64)).all()
+            assert (hdul[1].data.field(2)
+                    == np.array([-1.45, -0.73], dtype=np.float64)).all()
             assert hdul[1].data[0][3] == 'A1V'
             assert hdul[1].data[1][3] == 'F0Ib'
         del hdul
@@ -765,8 +765,8 @@ class TestTableFunctions(FitsTestCase):
         hdul = fits.open(self.temp('newtable.fits'))
         hdu = hdul[1]
 
-        assert (hdu.columns.names ==
-                ['target', 'counts', 'notes', 'spectrum', 'flag', 'target1',
+        assert (hdu.columns.names
+                == ['target', 'counts', 'notes', 'spectrum', 'flag', 'target1',
                  'counts1', 'notes1', 'spectrum1', 'flag1'])
 
         z = np.array([0., 0., 0., 0., 0.], dtype=np.float32)
@@ -989,12 +989,12 @@ class TestTableFunctions(FitsTestCase):
 
         # Verify that all ndarray objects within the HDU reference the
         # same ndarray.
-        assert (id(tbhdu.data._coldefs.columns[0].array) ==
-                id(tbhdu.data._coldefs._arrays[0]))
-        assert (id(tbhdu.data._coldefs.columns[0].array) ==
-                id(tbhdu.columns.columns[0].array))
-        assert (id(tbhdu.data._coldefs.columns[0].array) ==
-                id(tbhdu.columns._arrays[0]))
+        assert (id(tbhdu.data._coldefs.columns[0].array)
+                == id(tbhdu.data._coldefs._arrays[0]))
+        assert (id(tbhdu.data._coldefs.columns[0].array)
+                == id(tbhdu.columns.columns[0].array))
+        assert (id(tbhdu.data._coldefs.columns[0].array)
+                == id(tbhdu.columns._arrays[0]))
 
         assert tbhdu.data[0][1] == 312
         assert tbhdu.data._coldefs._arrays[1][0] == 312
@@ -1003,8 +1003,8 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu.columns.columns[1].array[0] == 312
         assert tbhdu.columns.columns[0].array[0] == 'NGC1'
         assert tbhdu.columns.columns[2].array[0] == ''
-        assert (tbhdu.columns.columns[3].array[0] ==
-                np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
+        assert (tbhdu.columns.columns[3].array[0]
+                == np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
         assert tbhdu.columns.columns[4].array[0] == True  # noqa
 
         assert tbhdu.data[3][1] == 33
@@ -1014,8 +1014,8 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu.columns.columns[1].array[3] == 33
         assert tbhdu.columns.columns[0].array[3] == 'JIM1'
         assert tbhdu.columns.columns[2].array[3] == 'A Note'
-        assert (tbhdu.columns.columns[3].array[3] ==
-                np.array([1., 2., 3., 4., 5.], dtype=np.float32)).all()
+        assert (tbhdu.columns.columns[3].array[3]
+                == np.array([1., 2., 3., 4., 5.], dtype=np.float32)).all()
         assert tbhdu.columns.columns[4].array[3] == True  # noqa
 
     def test_assign_multiple_rows_to_table(self):
@@ -1051,12 +1051,12 @@ class TestTableFunctions(FitsTestCase):
 
         # Verify that all ndarray objects within the HDU reference the
         # same ndarray.
-        assert (id(tbhdu2.data._coldefs.columns[0].array) ==
-                id(tbhdu2.data._coldefs._arrays[0]))
-        assert (id(tbhdu2.data._coldefs.columns[0].array) ==
-                id(tbhdu2.columns.columns[0].array))
-        assert (id(tbhdu2.data._coldefs.columns[0].array) ==
-                id(tbhdu2.columns._arrays[0]))
+        assert (id(tbhdu2.data._coldefs.columns[0].array)
+                == id(tbhdu2.data._coldefs._arrays[0]))
+        assert (id(tbhdu2.data._coldefs.columns[0].array)
+                == id(tbhdu2.columns.columns[0].array))
+        assert (id(tbhdu2.data._coldefs.columns[0].array)
+                == id(tbhdu2.columns._arrays[0]))
 
         assert tbhdu2.data[0][1] == 312
         assert tbhdu2.data._coldefs._arrays[1][0] == 312
@@ -1065,8 +1065,8 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu2.columns.columns[1].array[0] == 312
         assert tbhdu2.columns.columns[0].array[0] == 'NGC1'
         assert tbhdu2.columns.columns[2].array[0] == ''
-        assert (tbhdu2.columns.columns[3].array[0] ==
-                np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
+        assert (tbhdu2.columns.columns[3].array[0]
+                == np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
         assert tbhdu2.columns.columns[4].array[0] == True  # noqa
 
         assert tbhdu2.data[4][1] == 112
@@ -1076,14 +1076,14 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu2.columns.columns[1].array[4] == 112
         assert tbhdu2.columns.columns[0].array[4] == 'NGC5'
         assert tbhdu2.columns.columns[2].array[4] == ''
-        assert (tbhdu2.columns.columns[3].array[4] ==
-                np.array([1., 2., 3., 4., 5.], dtype=np.float32)).all()
+        assert (tbhdu2.columns.columns[3].array[4]
+                == np.array([1., 2., 3., 4., 5.], dtype=np.float32)).all()
         assert tbhdu2.columns.columns[4].array[4] == False  # noqa
         assert tbhdu2.columns.columns[1].array[8] == 0
         assert tbhdu2.columns.columns[0].array[8] == ''
         assert tbhdu2.columns.columns[2].array[8] == ''
-        assert (tbhdu2.columns.columns[3].array[8] ==
-                np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
+        assert (tbhdu2.columns.columns[3].array[8]
+                == np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
         assert tbhdu2.columns.columns[4].array[8] == False  # noqa
 
     def test_verify_data_references(self):
@@ -1118,8 +1118,8 @@ class TestTableFunctions(FitsTestCase):
         assert id(coldefs.columns[0]) != id(tbhdu.columns.columns[0])
 
         # Verify new HDU has independent ndarray objects.
-        assert (id(coldefs.columns[0].array) !=
-                id(tbhdu.columns.columns[0].array))
+        assert (id(coldefs.columns[0].array)
+                != id(tbhdu.columns.columns[0].array))
 
         # Verify that both ColDefs objects in the HDU reference the same
         # Coldefs object.
@@ -1127,12 +1127,12 @@ class TestTableFunctions(FitsTestCase):
 
         # Verify that all ndarray objects within the HDU reference the
         # same ndarray.
-        assert (id(tbhdu.data._coldefs.columns[0].array) ==
-                id(tbhdu.data._coldefs._arrays[0]))
-        assert (id(tbhdu.data._coldefs.columns[0].array) ==
-                id(tbhdu.columns.columns[0].array))
-        assert (id(tbhdu.data._coldefs.columns[0].array) ==
-                id(tbhdu.columns._arrays[0]))
+        assert (id(tbhdu.data._coldefs.columns[0].array)
+                == id(tbhdu.data._coldefs._arrays[0]))
+        assert (id(tbhdu.data._coldefs.columns[0].array)
+                == id(tbhdu.columns.columns[0].array))
+        assert (id(tbhdu.data._coldefs.columns[0].array)
+                == id(tbhdu.columns._arrays[0]))
 
         tbhdu.writeto(self.temp('table1.fits'))
 
@@ -1193,12 +1193,12 @@ class TestTableFunctions(FitsTestCase):
 
         # Verify that all ndarray objects within the HDU reference the
         # same ndarray.
-        assert (id(tbhdu1.data._coldefs.columns[0].array) ==
-                id(tbhdu1.data._coldefs._arrays[0]))
-        assert (id(tbhdu1.data._coldefs.columns[0].array) ==
-                id(tbhdu1.columns.columns[0].array))
-        assert (id(tbhdu1.data._coldefs.columns[0].array) ==
-                id(tbhdu1.columns._arrays[0]))
+        assert (id(tbhdu1.data._coldefs.columns[0].array)
+                == id(tbhdu1.data._coldefs._arrays[0]))
+        assert (id(tbhdu1.data._coldefs.columns[0].array)
+                == id(tbhdu1.columns.columns[0].array))
+        assert (id(tbhdu1.data._coldefs.columns[0].array)
+                == id(tbhdu1.columns._arrays[0]))
 
         # Ensure I can change the value of one data element and it effects
         # all of the others.
@@ -1427,17 +1427,17 @@ class TestTableFunctions(FitsTestCase):
 
         # Verify that all ndarray objects within the HDU reference the
         # same ndarray.
-        assert (id(hdu.data._coldefs.columns[0].array) ==
-                id(hdu.data._coldefs._arrays[0]))
-        assert (id(hdu.data._coldefs.columns[0].array) ==
-                id(hdu.columns.columns[0].array))
-        assert (id(hdu.data._coldefs.columns[0].array) ==
-                id(hdu.columns._arrays[0]))
+        assert (id(hdu.data._coldefs.columns[0].array)
+                == id(hdu.data._coldefs._arrays[0]))
+        assert (id(hdu.data._coldefs.columns[0].array)
+                == id(hdu.columns.columns[0].array))
+        assert (id(hdu.data._coldefs.columns[0].array)
+                == id(hdu.columns._arrays[0]))
 
         # Verify that the references in the original HDU are the same as the
         # references in the new HDU.
-        assert (id(tbhdu1.data._coldefs.columns[0].array) ==
-                id(hdu.data._coldefs._arrays[0]))
+        assert (id(tbhdu1.data._coldefs.columns[0].array)
+                == id(hdu.data._coldefs._arrays[0]))
 
         # Verify that a change in the new HDU is reflected in both the new
         # and original HDU.
@@ -1571,17 +1571,17 @@ class TestTableFunctions(FitsTestCase):
 
         tbhdu1 = fits.BinTableHDU.from_columns(coldefs)
 
-        assert (tbhdu1.data.field('flag')[0] ==
-                np.array([True, False], dtype=bool)).all()
-        assert (tbhdu1.data.field('flag')[1] ==
-                np.array([False, True], dtype=bool)).all()
+        assert (tbhdu1.data.field('flag')[0]
+                == np.array([True, False], dtype=bool)).all()
+        assert (tbhdu1.data.field('flag')[1]
+                == np.array([False, True], dtype=bool)).all()
 
         tbhdu = fits.BinTableHDU.from_columns(tbhdu1.data)
 
-        assert (tbhdu.data.field('flag')[0] ==
-                np.array([True, False], dtype=bool)).all()
-        assert (tbhdu.data.field('flag')[1] ==
-                np.array([False, True], dtype=bool)).all()
+        assert (tbhdu.data.field('flag')[0]
+                == np.array([True, False], dtype=bool)).all()
+        assert (tbhdu.data.field('flag')[1]
+                == np.array([False, True], dtype=bool)).all()
 
     def test_fits_rec_column_access(self):
         tbdata = fits.getdata(self.data('table.fits'))
@@ -1680,8 +1680,8 @@ class TestTableFunctions(FitsTestCase):
             ahdu.writeto(self.temp('newtable.fits'), overwrite=True)
 
         with fits.open(self.temp('newtable.fits')) as hdul:
-            assert (hdul[1].data.tobytes().decode('raw-unicode-escape') ==
-                    s.replace('\x00', ' '))
+            assert (hdul[1].data.tobytes().decode('raw-unicode-escape')
+                    == s.replace('\x00', ' '))
             assert (hdul[1].data['MEMNAME'] == a).all()
             ahdu = fits.BinTableHDU.from_columns(hdul[1].data.copy())
         del hdul
@@ -1864,8 +1864,8 @@ class TestTableFunctions(FitsTestCase):
             assert h[1].header['TDIM1'] == '(3,3,3)'
             assert len(h[1].data) == 2
             assert len(h[1].data[0]) == 1
-            assert (h[1].data.field(0)[0] ==
-                    np.char.decode(recarr.field(0)[0], 'ascii')).all()
+            assert (h[1].data.field(0)[0]
+                    == np.char.decode(recarr.field(0)[0], 'ascii')).all()
 
         with fits.open(self.temp('test.fits')) as h:
             # Access the data; I think this is necessary to exhibit the bug
@@ -1878,8 +1878,8 @@ class TestTableFunctions(FitsTestCase):
             assert h[1].header['TDIM1'] == '(3,3,3)'
             assert len(h[1].data) == 2
             assert len(h[1].data[0]) == 1
-            assert (h[1].data.field(0)[0] ==
-                    np.char.decode(recarr.field(0)[0], 'ascii')).all()
+            assert (h[1].data.field(0)[0]
+                    == np.char.decode(recarr.field(0)[0], 'ascii')).all()
 
     def test_new_table_with_nd_column(self):
         """Regression test for
@@ -2338,12 +2338,12 @@ class TestTableFunctions(FitsTestCase):
                 # c3 gets converted from float32 to float64 when writing
                 # test.fits, so cast to float32 before testing that the correct
                 # value is retrieved
-                assert np.all(tbdata['c3'].astype(np.float32) ==
-                              tbdata2['c3'].astype(np.float32))
+                assert np.all(tbdata['c3'].astype(np.float32)
+                              == tbdata2['c3'].astype(np.float32))
                 # c4 is a boolean column in the original table; we want ASCII
                 # columns to convert these to columns of 'T'/'F' strings
-                assert np.all(np.where(tbdata['c4'], 'T', 'F') ==
-                              tbdata2['c4'])
+                assert np.all(np.where(tbdata['c4'], 'T', 'F')
+                              == tbdata2['c4'])
 
     def test_pickle(self):
         """
@@ -2650,8 +2650,8 @@ class TestVLATables(FitsTestCase):
 
             with fits.open(self.temp('toto.fits')) as toto:
                 q = toto[1].data.field('QUAL_SPE')
-                assert (q[0][4:8] ==
-                        np.array([0, 0, 0, 0], dtype=np.uint8)).all()
+                assert (q[0][4:8]
+                        == np.array([0, 0, 0, 0], dtype=np.uint8)).all()
                 assert toto[1].columns[0].format.endswith('J(1571)')
 
         for code in ('PJ()', 'QJ()'):

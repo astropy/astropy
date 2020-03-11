@@ -136,8 +136,8 @@ class _ImageBaseHDU(_ValidHDU):
         self._modified = False
 
         if data is DELAYED:
-            if (not do_not_scale_image_data and
-                    (self._bscale != 1 or self._bzero != 0)):
+            if (not do_not_scale_image_data
+                    and (self._bscale != 1 or self._bzero != 0)):
                 # This indicates that when the data is accessed or written out
                 # to a new file it will need to be rescaled
                 self._data_needs_rescale = True
@@ -308,8 +308,8 @@ class _ImageBaseHDU(_ValidHDU):
         Update the header keywords to agree with the data.
         """
 
-        if not (self._modified or self._header._modified or
-                (self._has_data and self.shape != self.data.shape)):
+        if not (self._modified or self._header._modified
+                or (self._has_data and self.shape != self.data.shape)):
             # Not likely that anything needs updating
             return
 
@@ -390,15 +390,15 @@ class _ImageBaseHDU(_ValidHDU):
         # else:
         #     original_was_unsigned = False
 
-        if (self._do_not_scale_image_data or
-                (self._orig_bzero == 0 and self._orig_bscale == 1)):
+        if (self._do_not_scale_image_data
+                or (self._orig_bzero == 0 and self._orig_bscale == 1)):
             return
 
         if dtype is None:
             dtype = self._dtype_for_bitpix()
 
-        if (dtype is not None and dtype.kind == 'u' and
-                (self._scale_back or self._scale_back is None)):
+        if (dtype is not None and dtype.kind == 'u'
+                and (self._scale_back or self._scale_back is None)):
             # Data is pseudo-unsigned integers, and the scale_back option
             # was not explicitly set to False, so preserve all the scale
             # factors
@@ -491,8 +491,8 @@ class _ImageBaseHDU(_ValidHDU):
         elif bzero is not None:
             _scale = 1
             _zero = bzero
-        elif (option == 'old' and self._orig_bscale is not None and
-                self._orig_bzero is not None):
+        elif (option == 'old' and self._orig_bscale is not None
+                and self._orig_bzero is not None):
             _scale = self._orig_bscale
             _zero = self._orig_bzero
         elif option == 'minmax' and not issubclass(_type, np.floating):
@@ -777,8 +777,8 @@ class _ImageBaseHDU(_ValidHDU):
         raw_data.dtype = raw_data.dtype.newbyteorder('>')
 
         if self._do_not_scale_image_data or (
-                self._orig_bzero == 0 and self._orig_bscale == 1 and
-                self._blank is None):
+                self._orig_bzero == 0 and self._orig_bscale == 1
+                and self._blank is None):
             # No further conversion of the data is necessary
             return raw_data
 
@@ -859,8 +859,8 @@ class _ImageBaseHDU(_ValidHDU):
             else:
                 format = ''
 
-            if (format and not self._do_not_scale_image_data and
-                    (self._orig_bscale != 1 or self._orig_bzero != 0)):
+            if (format and not self._do_not_scale_image_data
+                    and (self._orig_bscale != 1 or self._orig_bzero != 0)):
                 new_dtype = self._dtype_for_bitpix()
                 if new_dtype is not None:
                     format += f' (rescales to {new_dtype.name})'
@@ -940,8 +940,8 @@ class Section:
         if not isinstance(key, tuple):
             key = (key,)
         naxis = len(self.hdu.shape)
-        return_scalar = (all(isinstance(k, (int, np.integer)) for k in key) and
-                         len(key) == naxis)
+        return_scalar = (all(isinstance(k, (int, np.integer)) for k in key)
+                         and len(key) == naxis)
         if not any(k is Ellipsis for k in key):
             # We can always add a ... at the end, after making note of whether
             # to return a scalar.
@@ -952,8 +952,8 @@ class Section:
         # Insert extra dimensions as needed.
         idx = next(i for i, k in enumerate(key + (Ellipsis,)) if k is Ellipsis)
         key = key[:idx] + (slice(None),) * (naxis - len(key) + 1) + key[idx + 1:]
-        return_0dim = (all(isinstance(k, (int, np.integer)) for k in key) and
-                       len(key) == naxis)
+        return_0dim = (all(isinstance(k, (int, np.integer)) for k in key)
+                       and len(key) == naxis)
 
         dims = []
         offset = 0
@@ -1079,9 +1079,9 @@ class PrimaryHDU(_ImageBaseHDU):
         card = header.cards[0]
         # Due to problems discussed in #5808, we cannot assume the 'GROUPS'
         # keyword to be True/False, have to check the value
-        return (card.keyword == 'SIMPLE' and
-                ('GROUPS' not in header or header['GROUPS'] != True) and  # noqa
-                card.value)
+        return (card.keyword == 'SIMPLE'
+                and ('GROUPS' not in header or header['GROUPS'] != True)  # noqa
+                and card.value)
 
     def update_header(self):
         super().update_header()

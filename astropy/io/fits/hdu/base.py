@@ -76,8 +76,8 @@ def _hdu_class_from_header(cls, header):
             try:
                 # HDU classes built into astropy.io.fits are always considered,
                 # but extension HDUs must be explicitly registered
-                if not (c.__module__.startswith('astropy.io.fits.') or
-                        c in cls._hdu_registry):
+                if not (c.__module__.startswith('astropy.io.fits.')
+                        or c in cls._hdu_registry):
                     continue
                 if c.match_header(header):
                     klass = c
@@ -107,8 +107,8 @@ class _BaseHDUMeta(type):
         # same name on base classes
         if 'data' in members:
             data_prop = members['data']
-            if (isinstance(data_prop, (lazyproperty, property)) and
-                    data_prop.fdel is None):
+            if (isinstance(data_prop, (lazyproperty, property))
+                    and data_prop.fdel is None):
                 # Don't do anything if the class has already explicitly
                 # set the deleter for its data property
                 def data(self):
@@ -227,8 +227,8 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
     @property
     def is_image(self):
         return (
-            self.name == 'PRIMARY' or
-            ('XTENSION' in self._header and
+            self.name == 'PRIMARY'
+            or ('XTENSION' in self._header and
              (self._header['XTENSION'] == 'IMAGE' or
               (self._header['XTENSION'] == 'BINTABLE' and
                'ZIMAGE' in self._header and self._header['ZIMAGE'] is True))))
@@ -537,8 +537,8 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
         header.
         """
 
-        if (self._has_data and self._standard and
-                _is_pseudo_unsigned(self.data.dtype)):
+        if (self._has_data and self._standard
+                and _is_pseudo_unsigned(self.data.dtype)):
             # CompImageHDUs need TFIELDS immediately after GCOUNT,
             # so BSCALE has to go after TFIELDS if it exists.
             if 'TFIELDS' in self._header:
@@ -568,11 +568,11 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
 
             if datasum_keyword in self._header:
                 del self._header[datasum_keyword]
-        elif (modified or self._new or
-                (checksum and ('CHECKSUM' not in self._header or
-                               'DATASUM' not in self._header or
-                               not self._checksum_valid or
-                               not self._datasum_valid))):
+        elif (modified or self._new
+                or (checksum and ('CHECKSUM' not in self._header or
+                               'DATASUM' not in self._header
+                               or not self._checksum_valid
+                               or not self._datasum_valid))):
             if checksum == 'datasum':
                 self.add_datasum(datasum_keyword=datasum_keyword)
             elif checksum:
@@ -582,8 +582,8 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
     def _postwriteto(self):
         # If data is unsigned integer 16, 32 or 64, remove the
         # BSCALE/BZERO cards
-        if (self._has_data and self._standard and
-                _is_pseudo_unsigned(self.data.dtype)):
+        if (self._has_data and self._standard
+                and _is_pseudo_unsigned(self.data.dtype)):
             for keyword in ('BSCALE', 'BZERO'):
                 with suppress(KeyError):
                     del self._header[keyword]
@@ -746,8 +746,8 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
         # prevent any future access to the .data attribute if there are
         # not other references to it; if there are other references then
         # it is up to the user to clean those up
-        if (closed and self._data_loaded and
-                _get_array_mmap(self.data) is not None):
+        if (closed and self._data_loaded
+                and _get_array_mmap(self.data) is not None):
             del self.data
 
 
@@ -901,8 +901,8 @@ class _ValidHDU(_BaseHDU, _Verify):
     def __init__(self, data=None, header=None, name=None, ver=None, **kwargs):
         super().__init__(data=data, header=header)
 
-        if (header is not None and
-                not isinstance(header, (Header, _BasicHeader))):
+        if (header is not None
+                and not isinstance(header, (Header, _BasicHeader))):
             # TODO: Instead maybe try initializing a new Header object from
             # whatever is passed in as the header--there are various types
             # of objects that could work for this...
@@ -1634,8 +1634,8 @@ class NonstandardExtHDU(ExtensionHDU):
         standard_xtensions = ('IMAGE', 'TABLE', 'BINTABLE', 'A3DTABLE')
         # The check that xtension is not one of the standard types should be
         # redundant.
-        return (card.keyword == 'XTENSION' and
-                xtension not in standard_xtensions)
+        return (card.keyword == 'XTENSION'
+                and xtension not in standard_xtensions)
 
     def _summary(self):
         axes = tuple(self.data.shape)

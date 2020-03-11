@@ -408,8 +408,8 @@ class FITS_rec(np.recarray):
                 # TODO: Maybe this step isn't necessary at all if _scale_back
                 # will handle it?
                 inarr = np.where(inarr == np.False_, ord('F'), ord('T'))
-            elif (columns[idx]._physical_values and
-                    columns[idx]._pseudo_unsigned_ints):
+            elif (columns[idx]._physical_values
+                    and columns[idx]._pseudo_unsigned_ints):
                 # Temporary hack...
                 bzero = column.bzero
                 converted = np.zeros(field.shape, dtype=inarr.dtype)
@@ -441,9 +441,9 @@ class FITS_rec(np.recarray):
                 continue
 
             if inarr.shape != outarr.shape:
-                if (inarr.dtype.kind == outarr.dtype.kind and
-                        inarr.dtype.kind in ('U', 'S') and
-                        inarr.dtype != outarr.dtype):
+                if (inarr.dtype.kind == outarr.dtype.kind
+                        and inarr.dtype.kind in ('U', 'S')
+                        and inarr.dtype != outarr.dtype):
 
                     inarr_rowsize = inarr[0].size
                     inarr = inarr.flatten().view(outarr.dtype)
@@ -705,8 +705,8 @@ class FITS_rec(np.recarray):
         # contains a reference to the ._coldefs object of the original data;
         # this can lead to a circular reference; see ticket #49
         base = self
-        while (isinstance(base, FITS_rec) and
-                isinstance(base.base, np.recarray)):
+        while (isinstance(base, FITS_rec)
+                and isinstance(base.base, np.recarray)):
             base = base.base
         # base could still be a FITS_rec in some cases, so take care to
         # use rec.recarray.field to avoid a potential infinite
@@ -1109,8 +1109,8 @@ class FITS_rec(np.recarray):
                     npts = [len(arr) for arr in self._converted[name]]
 
                     raw_field[:len(npts), 0] = npts
-                    raw_field[1:, 1] = (np.add.accumulate(raw_field[:-1, 0]) *
-                                        dtype.itemsize)
+                    raw_field[1:, 1] = (np.add.accumulate(raw_field[:-1, 0])
+                                        * dtype.itemsize)
                     raw_field[:, 1][:] += heapsize
 
                 heapsize += raw_field[:, 0].sum() * dtype.itemsize
@@ -1264,8 +1264,8 @@ class FITS_rec(np.recarray):
         # Even if the format precision is 0, we should output a decimal point
         # as long as there is space to do so--not including a decimal point in
         # a float value is discouraged by the FITS Standard
-        trailing_decimal = (format.precision == 0 and
-                            format.format in ('F', 'E', 'D'))
+        trailing_decimal = (format.precision == 0
+                            and format.format in ('F', 'E', 'D'))
 
         # not using numarray.strings's num2char because the
         # result is not allowed to expand (as C/Python does).
@@ -1299,8 +1299,8 @@ def _get_recarray_field(array, key):
     # This is currently needed for backwards-compatibility and for
     # automatic truncation of trailing whitespace
     field = np.recarray.field(array, key)
-    if (field.dtype.char in ('S', 'U') and
-            not isinstance(field, chararray.chararray)):
+    if (field.dtype.char in ('S', 'U')
+            and not isinstance(field, chararray.chararray)):
         field = field.view(chararray.chararray)
     return field
 
