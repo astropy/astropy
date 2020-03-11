@@ -1596,7 +1596,7 @@ class SkyCoord(ShapedLikeNDArray):
         icrs_cart = self.icrs.cartesian
         icrs_cart_novel = icrs_cart.without_differentials()
         if self.data.__class__ is UnitSphericalRepresentation:
-            targcart = icrs_cart
+            targcart = icrs_cart_novel
         else:
             # skycoord has distances so apply parallax
             obs_icrs_cart = pos_earth + gcrs_p
