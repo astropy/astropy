@@ -21,16 +21,6 @@ from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy import units as u
 from astropy.units.quantity import _UNIT_NOT_INITIALISED
 
-try:
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
-    from distutils.version import LooseVersion
-    MATPLOTLIB_LT_15 = LooseVersion(matplotlib.__version__) < LooseVersion("1.5")
-    HAS_MATPLOTLIB = True
-except ImportError:
-    HAS_MATPLOTLIB = False
-
 
 """ The Quantity class will represent a number + unit + uncertainty """
 
