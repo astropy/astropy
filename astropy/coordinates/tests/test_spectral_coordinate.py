@@ -273,6 +273,47 @@ def test_shift_to_rest_star_withobserver():
 def test_change_velocity_frame():
     pass
 
+    # in_observer_velocity_frame
+
 
 def test_rv_los_shift_target(observer, target):
     pass
+
+    # with_los_shift
+    #
+    # with_radial_velocity
+    # with_redshift
+
+
+def test_everyting_moving():
+    """
+    This test mocks up the use case of observing a spectrum of an asteroid
+    at different times and from different observer locations.
+    """
+    time1 = time.Time('2018-12-13 9:00')
+    dt = 12*u.hour
+    time2 = time1 + dt
+
+    # make the silly but simplifying assumption that the astroid is moving along
+    # the x-axis of GCRS, and makes a 10 earth-radius closest approach
+
+    v_ast = 5*u.km/u.s
+    x1 = -v_ast*dt / 2
+    x2 = v_ast*dt / 2
+    z = 10*u.Rearth
+
+    asteroid_loc1 = GCRS(CartesianRepresentation(x1.to(u.km),
+                                                 0*u.km,
+                                                 z.to(u.km)))
+    asteroid_loc2 = GCRS(CartesianRepresentation(x2.to(u.km),
+                                                 0*u.km,
+                                                 z.to(u.km)))
+
+    observer_loc1 = EarthLocation(lat=15*u.deg,lon=0*u.deg, height=0*u.m)
+    observer1 = observer_loc1.get_itrs(time1)
+    observer_loc2 = EarthLocation(lat=0*u.deg,lon=0*u.deg, height=35000*u.km)  # roughly geosync orbit
+    observer2 = observer_loc2.get_itrs(time2)
+
+    wls = np.linspace(4000, 7000, 100) * u.angstrom
+    spec_coord1 = SpectralCoord(wls, observer=observer1, target=asteroid_loc1)
+    spec_coord2 = SpectralCoord(wls, observer=observer2, target=asteroid_loc2)
