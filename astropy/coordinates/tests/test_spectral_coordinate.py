@@ -49,10 +49,10 @@ def test_create_spectral_coord_orig():
     # TODO: decide whether this test is still needed once the rest is
     #  implemented
 
-    keck = EarthLocation.of_site('keck')
+    site = EarthLocation.of_site('example_site')
     obstime = time.Time('2018-12-13 9:00')
 
-    observer_gcrs = keck.get_gcrs(obstime)
+    observer_gcrs = site.get_gcrs(obstime)
 
     spectral_axis = np.linspace(500, 2500, 1000) * u.AA
     spec_coord = SpectralCoord(spectral_axis, observer=observer_gcrs)
