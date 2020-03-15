@@ -127,6 +127,13 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         back to integer values after performing floating point operations on
         the data. Default is `False`.
 
+    output_verify : str
+        Output verification option.  Must be one of ``"fix"``,
+        ``"silentfix"``, ``"ignore"``, ``"warn"``, or
+        ``"exception"``.  May also be any combination of ``"fix"`` or
+        ``"silentfix"`` with ``"+ignore"``, ``+warn``, or ``+exception"
+        (e.g. ``"fix+warn"``).  See :ref:`verify` for more info.
+
     Returns
     -------
         hdulist : an `HDUList` object
@@ -378,7 +385,8 @@ class HDUList(list, _Verify):
         return self
 
     def __exit__(self, type, value, traceback):
-        self.close()
+        output_verify = self._open_kwargs.get('output_verify', 'exception')
+        self.close(output_verify=output_verify)
 
     @classmethod
     def fromfile(cls, fileobj, mode=None, memmap=None,
