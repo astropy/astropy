@@ -44,12 +44,20 @@ def assert_frame_allclose(frame1, frame2,
         assert_quantity_allclose(d1.norm(d1), d1.norm(d2), rtol=vel_rtol, atol=vel_atol)
 
 
+def get_greenwich_earthlocation():
+    """
+    A helper function to get an EarthLocation for greenwich (without trying to
+    do a download)
+    """
+    site_registry = EarthLocation._get_site_registry(force_builtin=True)
+    return site_registry.get('greenwich')
+
 def test_create_spectral_coord_orig():
 
     # TODO: decide whether this test is still needed once the rest is
     #  implemented
 
-    site = EarthLocation.of_site('example_site')
+    site = get_greenwich_earthlocation()
     obstime = time.Time('2018-12-13 9:00')
 
     observer_gcrs = site.get_gcrs(obstime)
@@ -139,7 +147,7 @@ def test_spectral_coord_jupiter():
     Checks that jupiter yields an RV consistent with the solar system
     """
     obstime = time.Time('2018-12-13 9:00')
-    obs = EarthLocation.of_site('greenwich').get_gcrs(obstime)  # always built-in, no download required
+    obs = get_greenwich_earthlocation().get_gcrs(obstime)  # always built-in, no download required
 
     # jupiter = get_body('jupiter', obstime)  # not supported by astropy yet,
     # but this is the eventual goal, which should return:
@@ -158,7 +166,7 @@ def test_spectral_coord_alphacen():
     Checks that a nearby star yields a reasonable RV
     """
     obstime = time.Time('2018-12-13 9:00')
-    obs = EarthLocation.of_site('greenwich').get_gcrs(obstime)  # always built-in, no download required
+    obs = get_greenwich_earthlocation().get_gcrs(obstime)  # always built-in, no download required
 
     # acen = SkyCoord.from_name('alpha cen')  # coordinates are from here,
     # but hard-coded below so no download required
@@ -177,7 +185,7 @@ def test_spectral_coord_m31():
     Checks that a nearby star yields a reasonable RV
     """
     obstime = time.Time('2018-12-13 9:00')
-    obs = EarthLocation.of_site('greenwich').get_gcrs(obstime)  # always built-in, no download required
+    obs = get_greenwich_earthlocation().get_gcrs(obstime)  # always built-in, no download required
 
     # acen = SkyCoord.from_name('alpha cen')  # coordinates are from here, but
     # hard-coded below so no download required
@@ -233,7 +241,7 @@ def test_shift_to_rest_star_withobserver():
     rest_line_wls = [5007, 6563]*u.angstrom
 
     obstime = time.Time('2018-12-13 9:00')
-    eloc = EarthLocation.of_site('greenwich')
+    eloc = get_greenwich_earthlocation()
     obs = eloc.get_gcrs(obstime)  # always built-in, no download required
     acen = SkyCoord(ra=219.90085*u.deg, dec=-60.83562*u.deg, frame='icrs',
                     distance=4.37*u.lightyear)
@@ -270,12 +278,6 @@ def test_shift_to_rest_star_withobserver():
     assert_quantity_allclose(vcorr, drv, atol=10*u.m/u.s)
 
 
-def test_change_velocity_frame():
-    pass
-
-    # in_observer_velocity_frame
-
-
 def test_rv_los_shift_target(observer, target):
     pass
 
@@ -285,7 +287,7 @@ def test_rv_los_shift_target(observer, target):
     # with_redshift
 
 
-def test_everyting_moving():
+def test_asteroid_velocity_frame_shifts():
     """
     This test mocks up the use case of observing a spectrum of an asteroid
     at different times and from different observer locations.
@@ -297,23 +299,63 @@ def test_everyting_moving():
     # make the silly but simplifying assumption that the astroid is moving along
     # the x-axis of GCRS, and makes a 10 earth-radius closest approach
 
-    v_ast = 5*u.km/u.s
-    x1 = -v_ast*dt / 2
-    x2 = v_ast*dt / 2
+    v_ast = [5, 0, 0]*u.km/u.s
+    x1 = -v_ast[0]*dt / 2
+    x2 = v_ast[0]*dt / 2
     z = 10*u.Rearth
+
+    cdiff = CartesianDifferential(v_ast)
 
     asteroid_loc1 = GCRS(CartesianRepresentation(x1.to(u.km),
                                                  0*u.km,
-                                                 z.to(u.km)))
+                                                 z.to(u.km),
+                                                 differentials=cdiff),
+                                                 obstime=time1)
     asteroid_loc2 = GCRS(CartesianRepresentation(x2.to(u.km),
                                                  0*u.km,
-                                                 z.to(u.km)))
+                                                 z.to(u.km),
+                                                 differentials=cdiff),
+                                                 obstime=time2)
 
-    observer_loc1 = EarthLocation(lat=15*u.deg,lon=0*u.deg, height=0*u.m)
-    observer1 = observer_loc1.get_itrs(time1)
-    observer_loc2 = EarthLocation(lat=0*u.deg,lon=0*u.deg, height=35000*u.km)  # roughly geosync orbit
-    observer2 = observer_loc2.get_itrs(time2)
+    # assume satellites that are essentially fixed in geostationary orbit on
+    # opposite sides of the earth
+    observer1 = GCRS(CartesianRepresentation([0*u.km, 35000*u.km, 0*u.km]),
+                                             obstime=time1)
+    observer2 = GCRS(CartesianRepresentation([0*u.km, -35000*u.km, 0*u.km]),
+                                             obstime=time2)
 
     wls = np.linspace(4000, 7000, 100) * u.angstrom
     spec_coord1 = SpectralCoord(wls, observer=observer1, target=asteroid_loc1)
+
+    assert spec_coord1.radial_velocity < 0*u.km/u.s
+    assert spec_coord1.radial_velocity > -5*u.km/u.s
+
     spec_coord2 = SpectralCoord(wls, observer=observer2, target=asteroid_loc2)
+
+    assert spec_coord2.radial_velocity > 0*u.km/u.s
+    assert spec_coord2.radial_velocity < 5*u.km/u.s
+
+    # now check the behavior of in_observer_velocity_frame: we shift each coord
+    # into the velocity frame of its *own* target.  That would then be a
+    # spectralcoord that would allow direct physical comparison of the two
+    # diffferent spec_corrds.  There's no way to test that, without
+    # actual data, though.
+
+    # spec_coord2 is redshifted, so we test that it behaves the way "shifting
+    # to rest frame" should - the as-observed spectral coordinate should become
+    # the rest frame, so something that starts out red should become bluer
+    target_sc2 = spec_coord2.in_observer_velocity_frame(spec_coord2.target)
+    assert np.all(target_sc2 < spec_coord2)
+    # rv/redshift should be 0 since the observer and target velocities should
+    # be the same
+    assert_quantity_allclose(target_sc1.radial_velocity, 0*u.km/u.s)
+
+    # check that the same holds for spec_coord1, but be more specific: it
+    # should follow the standard redshift formula (which in this case yields
+    # a blueshift, although the formula is the same as 1+z)
+    target_sc1 = spec_coord1.in_observer_velocity_frame(spec_coord1.target)
+    assert_quantity_allclose(target_sc1, spec_coord1/(1+spec_coord1.redshift))
+
+    # ensure the "target-rest" use gives the same answer
+    target_sc1_alt = spec_coord1.in_observer_velocity_frame('target-rest')
+    assert_quantity_allclose(target_sc1, target_sc1_alt)
