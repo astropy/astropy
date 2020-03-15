@@ -351,9 +351,42 @@ def test_with_rvredshift():
         sc_init4.with_redshift(.5)
 
 
-def test_rv_los_shift_target(observer, target):
-    # with_los_shift
-    pass
+gcrs_origin = GCRS(CartesianRepresentation([0*u.km, 0*u.km, 0*u.km]))
+gcrs_not_origin = GCRS(CartesianRepresentation([1*u.km, 0*u.km, 0*u.km]))
+@pytest.mark.parametrize("sc_kwargs", [
+                         dict(radial_velocity=0*u.km/u.s),
+                         dict(observer=gcrs_origin, radial_velocity=0*u.km/u.s),
+                         dict(target=gcrs_origin, radial_velocity=0*u.km/u.s),
+                         dict(observer=gcrs_origin, target=gcrs_not_origin)])
+def test_los_shift(sc_kwargs):
+    wl = [4000, 5000]*u.angstrom
+    sc_init = SpectralCoord(wl, **sc_kwargs)
+
+    # these should always work in *all* cases because it's unambiguous that
+    # a target shift should behave this way
+    new_sc1 = sc_init.with_los_shift(.1)
+    assert_quantity_allclose(new_sc1, wl*1.1)
+    new_sc2 = sc_init.with_los_shift(.1*u.dimensionless_unscaled)  # interpret at redshift
+    assert_quantity_allclose(new_sc1, new_sc2)
+
+    new_sc3 = sc_init.with_los_shift(-100*u.km/u.s)
+    assert_quantity_allclose(new_sc3, wl*(1 + (-100*u.km/u.s / c)))
+
+    # now try the cases where observer is specified as well/instead
+    if sc_init.observer is None or sc_init.target is None:
+        with pytest.raises(ValueError):
+            # both must be specified if you're going to mess with observer
+            sc_init.with_los_shift(observer=.1)
+
+        # redshifting the observer should *blushift* the LOS velocity since
+        # its the observer-to-target vector that matters
+        new_sc4 = sc_init.with_los_shift(observer=.1)
+        assert_quantity_allclose(new_sc4, wl*.9)
+
+        # an equal shift in both should produce no offset at all
+        new_sc5 = sc_init.with_los_shift(target=.1, observer=.1)
+        assert_quantity_allclose(new_sc5, wl)
+
 
 def test_asteroid_velocity_frame_shifts():
     """
