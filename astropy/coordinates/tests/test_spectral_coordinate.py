@@ -278,14 +278,82 @@ def test_shift_to_rest_star_withobserver():
     assert_quantity_allclose(vcorr, drv, atol=10*u.m/u.s)
 
 
+def test_observer_init_rv_behavior():
+    """
+    Test basic initialization behavior or observer/target and redshift/rv
+    """
+    sc_init = SpectralCoord([4000, 5000]*u.angstrom,
+                            observer=None, target=None,
+                            radial_velocity=100*u.km/u.s)
+    assert sc_init.observer is None
+    assert sc_init.target is None
+    assert_quantity_allclose(sc_init.radial_velocity, 100*u.km/u.s)
+
+    sc_init.observer = GCRS(CartesianRepresentation([0*u.km, 0*u.km, 0*u.km]))
+    assert sc_init.observer is not None
+    assert_quantity_allclose(sc_init.radial_velocity, 100*u.km/u.s)
+
+    sc_init.target = SkyCoord(CartesianRepresentation([0*u.km, 0*u.km, 0*u.km]),
+                              frame='icrs')
+    assert sc_init.target is not None
+    assert_quantity_allclose(sc_init.radial_velocity, 100*u.km/u.s)
+
+    with pytest.raises(ValueError):
+        # cannot reset after setting once as above
+        sc_init.observer = GCRS(CartesianRepresentation([0*u.km, 1*u.km, 0*u.km]))
+
+    with pytest.raises(ValueError):
+        # same with target
+        sc_init.target = GCRS(CartesianRepresentation([0*u.km, 1*u.km, 0*u.km]))
+
+
+def test_rv_redshift_initialization():
+    sc_init = SpectralCoord([4000, 5000]*u.angstrom, redshift=1)
+    assert_quantity_allclose(sc_init.redshift, 1*u.dimensionless_unscaled)
+    assert_quantity_allclose(sc_init.radial_velocity, c)
+
+    sc_init2 = SpectralCoord([4000, 5000]*u.angstrom, radial_velocity=c)
+    assert_quantity_allclose(sc_init2.redshift, 1*u.dimensionless_unscaled)
+    assert_quantity_allclose(sc_init2.radial_velocity, c)
+
+    sc_init3 = SpectralCoord([4000, 5000]*u.angstrom, redshift=1*u.dimensionless_unscaled)
+    assert sc_init.redshift == sc_init3.redshift
+
+    with pytest.raises(ValueError):
+        # can't set conflicting rv and redshift values
+        SpectralCoord([4000, 5000]*u.angstrom,
+                      radial_velocity=10*u.km/u.s,
+                      redshift=2)
+
+
+def test_with_rvredshift():
+    sc_init = SpectralCoord([4000, 5000]*u.angstrom, redshift=1)
+
+    sc_set_rv = sc_init.with_redshift(.5)
+    assert_quantity_allclose(sc_set_rv.radial_velocity, c/2)
+
+    sc_set_rv = sc_init.with_radial_velocity(c/2)
+    assert_quantity_allclose(sc_set_rv.redshift, .5)
+
+    gcrs_origin = GCRS(CartesianRepresentation([0*u.km, 0*u.km, 0*u.km]))
+    sc_init2 = SpectralCoord([4000, 5000]*u.angstrom, redshift=1,
+                             observer=gcrs_origin)
+    sc_init2.with_redshift(.5)
+
+    sc_init3 = SpectralCoord([4000, 5000]*u.angstrom, redshift=1,
+                             target=gcrs_origin)
+    sc_init3.with_redshift(.5)
+
+    sc_init4 = SpectralCoord([4000, 5000]*u.angstrom, redshift=1,
+                             observer=gcrs_origin, target=gcrs_origin)
+    with pytest.raises(ValueError):
+        # fails if both observer and target are set
+        sc_init4.with_redshift(.5)
+
+
 def test_rv_los_shift_target(observer, target):
-    pass
-
     # with_los_shift
-    #
-    # with_radial_velocity
-    # with_redshift
-
+    pass
 
 def test_asteroid_velocity_frame_shifts():
     """
