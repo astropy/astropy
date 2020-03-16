@@ -16,8 +16,8 @@ DOPPLER_CONVENTIONS = {
 }
 
 RV_RS_EQUIV = [(u.cm / u.s, u.Unit(''),
-                lambda x: np.sqrt((1 + x/c.cgs.value)/(1 - x/c.cgs.value)) - 1,
-                lambda x: ((x + 1) ** 2 - 1) / ((x + 1) ** 2 + 1) * c.cgs.value)]
+                lambda x: x / c.cgs.value,
+                lambda x: x * c.cgs.value)]
 
 DEFAULT_DISTANCE = 1 * u.AU
 
