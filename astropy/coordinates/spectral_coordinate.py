@@ -195,9 +195,15 @@ class SpectralCoord(u.Quantity):
                    u.Quantity([0, 0, 0], unit=u.km/u.s)),
                 AstropyUserWarning)
 
-            vel_to_add = CartesianDifferential(
-                0 * u.km / u.s, 0 * u.km / u.s, 0 * u.km/u.s)
-            new_data = coord.data.to_cartesian().with_differentials(vel_to_add)
+            coord_diffs = CartesianDifferential(u.Quantity([0, 0, 0] * u.km / u.s))
+
+            if pair_frame is not None and radial_velocity is not None:
+                coord_diffs = SpectralCoord._target_from_observer(
+                    pair_frame, radial_velocity)
+                    
+                coord_diffs = coord_diffs.cartesian.differentials['s']
+
+            new_data = coord.data.to_cartesian().with_differentials(coord_diffs)
             coord = coord.realize_frame(new_data)
 
         return coord
