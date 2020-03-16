@@ -95,7 +95,7 @@ class SpectralCoord(u.Quantity):
                     radial_velocity = u.Quantity(redshift).to(
                         'km/s', equivalencies=RV_RS_EQUIV)
 
-            observer_icrs = observer.transform_to(ICRS)
+            target = SpectralCoord._target_from_observer(observer, radial_velocity)
 
             d = observer_icrs.cartesian.norm()
             drep = CartesianRepresentation([(DEFAULT_DISTANCE).to(d.unit),
@@ -130,7 +130,42 @@ class SpectralCoord(u.Quantity):
         return SpectralCoord, True
 
     @staticmethod
-    def _validate_coordinate(coord):
+    def _target_from_observer(observer, radial_velocity):
+        """
+        Generates a default target from a provided observer with an offset
+        defined such as to create the provided radial velocity.
+
+        Parameters
+        ----------
+        observer : `BaseCoordinateFrame` or `SkyCoord`
+            Observer frame off which to base the target frame.
+        radial_velocity : `Quantity`
+            Radial velocity used to calculate appropriate offsets between
+            provided observer and generated target.
+
+        Returns
+        -------
+        target : `BaseCoordinateFrame` or `SkyCoord`
+            Generated target frame.
+        """
+        observer_icrs = observer.transform_to(ICRS)
+
+        d = observer_icrs.cartesian.norm()
+        drep = CartesianRepresentation([DEFAULT_DISTANCE.to(d.unit),
+                                        0 * d.unit, 0 * d.unit])
+
+        obs_vel = observer_icrs.cartesian.differentials['s']
+        tot_rv = radial_velocity  # + observer_icrs.radial_velocity
+
+        target = (observer_icrs.cartesian.without_differentials() + drep).with_differentials(
+            CartesianDifferential([obs_vel.d_x + tot_rv, obs_vel.d_y.to(tot_rv.unit), obs_vel.d_z.to(tot_rv.unit)]))
+
+        target = observer_icrs.realize_frame(target)
+
+        return target
+
+    @staticmethod
+    def _validate_coordinate(coord, pair_frame=None, radial_velocity=None):
         """
         Checks the type of the frame and whether a velocity differential and a
         distance has been defined on the frame object.
