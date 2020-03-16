@@ -255,6 +255,13 @@ class SpectralCoord(u.Quantity):
 
         value = self._validate_coordinate(value)
 
+        # The default target is based off the observer frame. In the case
+        #  where both observer/target are initialized to defaults, and then
+        #  the user sets a new observer, we need to create a new target based
+        #  on the input frame to maintain rv/redshift continuity.
+        if self.target is None:
+            self._target = self._target_from_observer(value, self.radial_velocity)
+
         self._observer = value
 
     @property
