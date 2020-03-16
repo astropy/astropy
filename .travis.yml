@@ -205,7 +205,13 @@ install:
 
 script:
     - pip install tox
-    - tox $TOXARGS -- $TOXPOSARGS
+    # Pin pytest for now, see https://github.com/astropy/astropy/issues/10039
+    - if [[ $TRAVIS_OS_NAME == linux && $TOXENV != codestyle ]]; then
+        pip install tox-pypi-filter;
+        tox --pypi-filter="pytest<5.4" $TOXARGS -- $TOXPOSARGS;
+      else
+        tox $TOXARGS -- $TOXPOSARGS;
+      fi
 
 after_success:
     - if [[ $TOXENV == *-cov ]]; then
