@@ -135,7 +135,7 @@ def test_create_spectral_coord_observer_target(observer, target):
         assert quantity_allclose(coord.radial_velocity, 0 * u.km/u.s)
     elif observer in LSRD_EQUIV and target in LSRD_DIR_STATIONARY_EQUIV:
         assert_quantity_allclose(coord.radial_velocity, -274 ** 0.5 * u.km / u.s)
-        assert_quantity_allclose(coord.redshift, (((1 - 274 ** 0.5 / 299792.458) / (1 + 274 ** 0.5 / 299792.458)) ** 0.5 - 1))
+        assert_quantity_allclose(coord.redshift, -274 ** 0.5 / 299792.458)
     else:
         raise NotImplementedError()
 
