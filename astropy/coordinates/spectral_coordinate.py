@@ -97,17 +97,6 @@ class SpectralCoord(u.Quantity):
 
             target = SpectralCoord._target_from_observer(observer, radial_velocity)
 
-            d = observer_icrs.cartesian.norm()
-            drep = CartesianRepresentation([(DEFAULT_DISTANCE).to(d.unit),
-                                            0 * d.unit, 0 * d.unit])
-
-            tot_rv = radial_velocity + observer_icrs.radial_velocity
-
-            target = (observer_icrs.cartesian.without_differentials() + drep).with_differentials(
-                CartesianDifferential([tot_rv, 0 * tot_rv.unit, 0 * tot_rv.unit]))
-
-            target = observer_icrs.realize_frame(target)
-
         obj._observer = cls._validate_coordinate(observer) if observer is not None else None
         obj._target = cls._validate_coordinate(target) if target is not None else None
 
@@ -285,7 +274,9 @@ class SpectralCoord(u.Quantity):
 
         self._frames_state['target'] = value is not None
 
-        value = self._validate_coordinate(value)
+        value = self._validate_coordinate(value,
+                                          pair_frame=self.observer,
+                                          radial_velocity=self.radial_velocity)
 
         self._target = value
 
@@ -426,7 +417,12 @@ class SpectralCoord(u.Quantity):
         d_pos = (target_icrs.data.without_differentials() -
                  observer_icrs.data.without_differentials()).to_cartesian()
 
-        pos_hat = d_pos / (d_pos.norm() or 1)
+        dp_norm = d_pos.norm()
+
+        # Reset any that are 0 to 1 to avoid nans from 0/0
+        dp_norm.ravel()[dp_norm.ravel() == 0] = 1 * dp_norm.unit
+
+        pos_hat = d_pos / dp_norm
         d_vel = target_icrs.velocity - observer_icrs.velocity
 
         return np.sum(d_vel.d_xyz * pos_hat.xyz, axis=0)
