@@ -10,11 +10,11 @@ set -euv
 # tar xvf <PATH_TO_TAR>   # (e.g., expat-2.2.6.tar.bz2)
 # cd expat
 # ./buildconf.sh
-# ./configure
+# ./configure --without-getrandom --without-sys-getrandom
 # cp expat_config.h ../../astropy/utils/xml/src/
 # cd ..
 # ./trim_expat.sh
-# cd ../..
+# cd ..
 # git add . -u
 #
 # And if the trim script missed anything, try to remove the extra files
