@@ -85,6 +85,8 @@ class SpectralCoord(u.Quantity):
                             pm_ra_cosdec=0 * u.mas/u.yr, pm_dec=0 * u.mas/u.yr,
                             distance=0 * u.pc, radial_velocity=0 * u.km/u.s)
 
+        obj._observer = cls._validate_coordinate(observer)
+
         # If no target is defined, create a default target with any provided
         #  redshift/radial velocities.
         if target is None:
@@ -94,11 +96,13 @@ class SpectralCoord(u.Quantity):
                 if redshift is not None:
                     radial_velocity = u.Quantity(redshift).to(
                         'km/s', equivalencies=RV_RS_EQUIV)
+            elif redshift is not None:
+                raise ValueError("Cannot set both a radial velocity and "
+                                 "redshift on spectral coordinate.")
 
-            target = SpectralCoord._target_from_observer(observer, radial_velocity)
+            target = SpectralCoord._target_from_observer(obj._observer, radial_velocity)
 
-        obj._observer = cls._validate_coordinate(observer) if observer is not None else None
-        obj._target = cls._validate_coordinate(target) if target is not None else None
+        obj._target = cls._validate_coordinate(target)
 
         return obj
 
@@ -147,14 +151,16 @@ class SpectralCoord(u.Quantity):
         tot_rv = radial_velocity  # + observer_icrs.radial_velocity
 
         target = (observer_icrs.cartesian.without_differentials() + drep).with_differentials(
-            CartesianDifferential([obs_vel.d_x + tot_rv, obs_vel.d_y.to(tot_rv.unit), obs_vel.d_z.to(tot_rv.unit)]))
+            CartesianDifferential([obs_vel.d_x + tot_rv,
+                                   obs_vel.d_y.to(tot_rv.unit),
+                                   obs_vel.d_z.to(tot_rv.unit)]))
 
         target = observer_icrs.realize_frame(target)
 
         return target
 
     @staticmethod
-    def _validate_coordinate(coord, pair_frame=None, radial_velocity=None):
+    def _validate_coordinate(coord):
         """
         Checks the type of the frame and whether a velocity differential and a
         distance has been defined on the frame object.
@@ -181,16 +187,10 @@ class SpectralCoord(u.Quantity):
         if 's' not in coord.data.differentials:
             warnings.warn(
                 "No velocity defined on frame, assuming {}.".format(
-                   u.Quantity([0, 0, 0], unit=u.km/u.s)),
+                    u.Quantity([0, 0, 0], unit=u.km/u.s)),
                 AstropyUserWarning)
 
             coord_diffs = CartesianDifferential(u.Quantity([0, 0, 0] * u.km / u.s))
-
-            if pair_frame is not None and radial_velocity is not None:
-                coord_diffs = SpectralCoord._target_from_observer(
-                    pair_frame, radial_velocity)
-                    
-                coord_diffs = coord_diffs.cartesian.differentials['s']
 
             new_data = coord.data.to_cartesian().with_differentials(coord_diffs)
             coord = coord.realize_frame(new_data)
@@ -274,9 +274,7 @@ class SpectralCoord(u.Quantity):
 
         self._frames_state['target'] = value is not None
 
-        value = self._validate_coordinate(value,
-                                          pair_frame=self.observer,
-                                          radial_velocity=self.radial_velocity)
+        value = self._validate_coordinate(value)
 
         self._target = value
 
@@ -414,8 +412,16 @@ class SpectralCoord(u.Quantity):
 
         target_icrs = target.transform_to(ICRS)
 
-        d_pos = (target_icrs.data.without_differentials() -
-                 observer_icrs.data.without_differentials()).to_cartesian()
+        pos_hat = SpectralCoord._norm_d_pos(observer_icrs, target_icrs)
+
+        d_vel = target_icrs.velocity - observer_icrs.velocity
+
+        return np.sum(d_vel.d_xyz * pos_hat.xyz, axis=0)
+
+    @staticmethod
+    def _norm_d_pos(observer, target):
+        d_pos = (target.data.without_differentials() -
+                 observer.data.without_differentials()).to_cartesian()
 
         dp_norm = d_pos.norm()
 
@@ -423,9 +429,8 @@ class SpectralCoord(u.Quantity):
         dp_norm.ravel()[dp_norm.ravel() == 0] = 1 * dp_norm.unit
 
         pos_hat = d_pos / dp_norm
-        d_vel = target_icrs.velocity - observer_icrs.velocity
 
-        return np.sum(d_vel.d_xyz * pos_hat.xyz, axis=0)
+        return pos_hat
 
     def _change_observer_to(self, observer, target=None):
         """
@@ -459,21 +464,27 @@ class SpectralCoord(u.Quantity):
         init_obs_vel = self._calculate_radial_velocity(self.observer, target)
         fin_obs_vel = self._calculate_radial_velocity(observer, target)
 
-        # Project the velocity shift vector onto the the line-on-sight vector
-        #  between the target and the new observation frame.
-        init_proj_vel = np.dot(init_obs_vel, fin_obs_vel) / np.linalg.norm(
-            fin_obs_vel)
+        new_data = self._project_velocity(init_obs_vel, fin_obs_vel)
 
-        # Calculate the velocity shift between the two vectors
-        delta_vel = fin_obs_vel - init_proj_vel
-
-        # Apply the velocity shift to the stored spectral data
-        new_data = self * (1 + delta_vel / c.cgs)
         new_coord = self._copy(value=new_data,
                                observer=observer,
                                target=target)
 
         return new_coord
+
+    def _project_velocity(self, init_vel, fin_vel):
+        # Project the velocity shift vector onto the the line-on-sight vector
+        #  between the target and the new observation frame.
+        init_proj_vel = np.dot(init_vel, fin_vel) / np.linalg.norm(
+            fin_vel)
+
+        # Calculate the velocity shift between the two vectors
+        delta_vel = fin_vel - init_proj_vel
+
+        # Apply the velocity shift to the stored spectral data
+        new_data = self * (1 + delta_vel / c.cgs)
+
+        return new_data
 
     def in_observer_velocity_frame(self, frame):
         """
@@ -605,7 +616,7 @@ class SpectralCoord(u.Quantity):
             raise ValueError("Radial velocity cannot be set explicitly when "
                              "providing both an observer and target.")
 
-        return self._copy(radial_velocity=rv)
+        return self._copy(radial_velocity=rv, redshift=None)
 
     def with_redshift(self, rs):
         """
@@ -625,7 +636,7 @@ class SpectralCoord(u.Quantity):
             raise ValueError("Redshift cannot be set explicitly when "
                              "providing both an observer and target.")
 
-        return self._copy(redshift=rs)
+        return self._copy(redshift=rs, radial_velocity=None)
 
     def to_rest(self):
         """
