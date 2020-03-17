@@ -81,9 +81,22 @@ class SpectralCoord(u.Quantity):
         # If no observer is defined, create a default observer centered in the
         #  ICRS frame.
         if observer is None:
+            if target is None:
             observer = ICRS(ra=0 * u.degree, dec=0 * u.degree,
                             pm_ra_cosdec=0 * u.mas/u.yr, pm_dec=0 * u.mas/u.yr,
                             distance=0 * u.pc, radial_velocity=0 * u.km/u.s)
+            else:
+                if radial_velocity is None:
+                    radial_velocity = 0 * u.km/u.s
+
+                    if redshift is not None:
+                        radial_velocity = u.Quantity(redshift).to(
+                            'km/s', equivalencies=RV_RS_EQUIV)
+                elif redshift is not None:
+                    raise ValueError("Cannot set both a radial velocity and "
+                                     "redshift on spectral coordinate.")
+
+                observer = SpectralCoord._target_from_observer(target, -radial_velocity)
 
         obj._observer = cls._validate_coordinate(observer)
 
