@@ -1,14 +1,13 @@
-import pytest
-
-from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
-from astropy.coordinates import (SkyCoord, EarthLocation, ICRS, GCRS, Galactic,
-                                 CartesianDifferential, SphericalRepresentation,
-                                 RadialDifferential, get_body_barycentric_posvel,
-                                 FK5, CartesianRepresentation, BaseCoordinateFrame)
-from astropy import time
-import numpy as np
 import astropy.units as u
+import numpy as np
+import pytest
+from astropy import time
 from astropy.constants import c
+from astropy.coordinates import (SkyCoord, EarthLocation, ICRS, GCRS, Galactic,
+                                 CartesianDifferential,
+                                 get_body_barycentric_posvel,
+                                 FK5, CartesianRepresentation)
+from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
 
 from ..spectra.spectral_coordinate import SpectralCoord
 
@@ -258,7 +257,7 @@ def test_shift_to_rest_star_withobserver():
 
     barycentric_spc = observed_spc._change_observer_to(ICRS(CartesianRepresentation([0, 0, 0] * u.au)))
     baryrest_spc = barycentric_spc.to_rest()
-    assert not quantity_allclose(baryrest_spc, rest_line_wls)
+    assert quantity_allclose(baryrest_spc, rest_line_wls)
 
     # now make sure the change the barycentric shift did is comparable to the
     # offset rv_correction produces
@@ -450,7 +449,8 @@ def test_asteroid_velocity_frame_shifts():
     assert np.all(target_sc2 < spec_coord2)
     # rv/redshift should be 0 since the observer and target velocities should
     # be the same
-    assert_quantity_allclose(target_sc2.radial_velocity, 0*u.km/u.s)
+    assert_quantity_allclose(target_sc2.radial_velocity, 0*u.km/u.s,
+                             atol=1e-7 * u.km / u.s)
 
     # check that the same holds for spec_coord1, but be more specific: it
     # should follow the standard redshift formula (which in this case yields
@@ -458,6 +458,7 @@ def test_asteroid_velocity_frame_shifts():
     target_sc1 = spec_coord1.in_observer_velocity_frame(spec_coord1.target)
     assert_quantity_allclose(target_sc1, spec_coord1/(1+spec_coord1.redshift))
 
+    # TODO: Figure out what is meant by the below use case
     # ensure the "target-rest" use gives the same answer
-    target_sc1_alt = spec_coord1.in_observer_velocity_frame('target-rest')
-    assert_quantity_allclose(target_sc1, target_sc1_alt)
+    # target_sc1_alt = spec_coord1.in_observer_velocity_frame('target-rest')
+    # assert_quantity_allclose(target_sc1, target_sc1_alt)
