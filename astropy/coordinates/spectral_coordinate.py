@@ -1,11 +1,12 @@
 import warnings
-
-import numpy as np
 from collections import namedtuple
 
 import astropy.units as u
+import numpy as np
 from astropy.constants import c
-from astropy.coordinates import SkyCoord, ICRS, Distance, GCRS, CartesianRepresentation, CartesianDifferential, SphericalDifferential, SphericalRepresentation
+from astropy.coordinates import (ICRS, BaseRepresentation,
+                                 CartesianDifferential,
+                                 CartesianRepresentation, SkyCoord)
 from astropy.coordinates.baseframe import BaseCoordinateFrame, FrameMeta
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -82,9 +83,9 @@ class SpectralCoord(u.Quantity):
         #  ICRS frame.
         if observer is None:
             if target is None:
-            observer = ICRS(ra=0 * u.degree, dec=0 * u.degree,
-                            pm_ra_cosdec=0 * u.mas/u.yr, pm_dec=0 * u.mas/u.yr,
-                            distance=0 * u.pc, radial_velocity=0 * u.km/u.s)
+                observer = ICRS(ra=0 * u.degree, dec=0 * u.degree,
+                                pm_ra_cosdec=0 * u.mas/u.yr, pm_dec=0 * u.mas/u.yr,
+                                distance=0 * u.pc, radial_velocity=0 * u.km/u.s)
             else:
                 if radial_velocity is None:
                     radial_velocity = 0 * u.km/u.s
@@ -96,9 +97,8 @@ class SpectralCoord(u.Quantity):
                     raise ValueError("Cannot set both a radial velocity and "
                                      "redshift on spectral coordinate.")
 
-                observer = SpectralCoord._target_from_observer(target, -radial_velocity)
-
-        obj._observer = cls._validate_coordinate(observer)
+                observer = SpectralCoord._target_from_observer(
+                    target, -radial_velocity)
 
         # If no target is defined, create a default target with any provided
         #  redshift/radial velocities.
@@ -113,8 +113,10 @@ class SpectralCoord(u.Quantity):
                 raise ValueError("Cannot set both a radial velocity and "
                                  "redshift on spectral coordinate.")
 
-            target = SpectralCoord._target_from_observer(obj._observer, radial_velocity)
+            target = SpectralCoord._target_from_observer(
+                obj._observer, radial_velocity)
 
+        obj._observer = cls._validate_coordinate(observer)
         obj._target = cls._validate_coordinate(target)
 
         return obj
@@ -154,6 +156,7 @@ class SpectralCoord(u.Quantity):
         target : `BaseCoordinateFrame` or `SkyCoord`
             Generated target frame.
         """
+        observer = SpectralCoord._validate_coordinate(observer)
         observer_icrs = observer.transform_to(ICRS)
 
         d = observer_icrs.cartesian.norm()
@@ -262,7 +265,8 @@ class SpectralCoord(u.Quantity):
         #  the user sets a new observer, we need to create a new target based
         #  on the input frame to maintain rv/redshift continuity.
         if self.target is None:
-            self._target = self._target_from_observer(value, self.radial_velocity)
+            self._target = self._target_from_observer(
+                value, self.radial_velocity)
 
         self._observer = value
 
@@ -319,7 +323,8 @@ class SpectralCoord(u.Quantity):
             raise ValueError("Doppler rest value has already been set. Use "
                              "the `to` method to update the stored value.")
 
-        self._doppler_conversion = self._doppler_conversion._replace(rest=value)
+        self._doppler_conversion = self._doppler_conversion._replace(
+            rest=value)
 
     @property
     def doppler_convention(self):
@@ -361,7 +366,8 @@ class SpectralCoord(u.Quantity):
             raise ValueError("Doppler convention has already been set. Use "
                              "the `to` method to update the stored value.")
 
-        self._doppler_conversion = self._doppler_conversion._replace(convention=value)
+        self._doppler_conversion = self._doppler_conversion._replace(
+            convention=value)
 
     @property
     def radial_velocity(self):
@@ -379,7 +385,8 @@ class SpectralCoord(u.Quantity):
         coordinate frame in that this calculates the radial velocity with
         respect to the *observer*, not the origin of the frame.
         """
-        return self._calculate_radial_velocity(self._observer, self._target)
+        return np.sum(self._calculate_radial_velocity(
+            self._observer, self._target), axis=0)
 
     @property
     def redshift(self):
@@ -411,28 +418,34 @@ class SpectralCoord(u.Quantity):
         `Quantity`
             The radial velocity of the target with respect to the observer.
         """
-        # Convert observer and target to ICRS to avoid finite
-        # differencing calculations that lack numerical precision.
-        if observer is None:
-            raise ValueError("No observer has been specified; cannot "
-                             "calculate radial velocity.")
-
+        # Convert observer and target to ICRS to avoid finite differencing
+        #  calculations that lack numerical precision.
         observer_icrs = observer.transform_to(ICRS)
-
-        if target is None:
-            raise ValueError("No target has been specified; cannot calculate "
-                             "radial velocity.")
-
         target_icrs = target.transform_to(ICRS)
 
         pos_hat = SpectralCoord._norm_d_pos(observer_icrs, target_icrs)
 
         d_vel = target_icrs.velocity - observer_icrs.velocity
 
-        return np.sum(d_vel.d_xyz * pos_hat.xyz, axis=0)
+        return d_vel.d_xyz * pos_hat.xyz
 
     @staticmethod
     def _norm_d_pos(observer, target):
+        """
+        Calculate the normalized position vector between two frames.
+
+        Parameters
+        ----------
+        observer : `BaseCoordinateFrame` or `SkyCoord`
+            The observation frame or coordinate.
+        target : `BaseCoordinateFrame` or `SkyCoord`
+            The target frame or coordinate.
+
+        Returns
+        -------
+        pos_hat : `BaseRepresentation`
+            Position representation.
+        """
         d_pos = (target.data.without_differentials() -
                  observer.data.without_differentials()).to_cartesian()
 
@@ -454,18 +467,18 @@ class SpectralCoord(u.Quantity):
         observer : `BaseCoordinateFrame` or `SkyCoord`
             The new observation frame or coordinate.
         target : `SkyCoord`, optional
-            The `SkyCoord` object representing
-            the target of the observation.
+            The `SkyCoord` object representing the target of the observation.
+            If none given, defaults to currently defined target.
 
         Returns
         -------
-        `SpectralCoord`
+        new_coord : `SpectralCoord`
             The new coordinate object representing the spectral data
             transformed to the new observer frame.
         """
         if self.observer is None:
-            raise ValueError("No observer has been set, cannot transform "
-                             "observer frame.")
+            raise ValueError("No observer has been set, cannot change "
+                             "observer.")
 
         target = self.target if target is None else target
 
@@ -477,7 +490,10 @@ class SpectralCoord(u.Quantity):
         init_obs_vel = self._calculate_radial_velocity(self.observer, target)
         fin_obs_vel = self._calculate_radial_velocity(observer, target)
 
-        new_data = self._project_velocity(init_obs_vel, fin_obs_vel)
+        # TODO: getting proper blueshifted results in the test involving
+        #  shifting an observer to the target velocity frame requires that we
+        #  negate the initial velocity between observer/target. Unsure why.
+        new_data = self._project_velocity_and_shift(-init_obs_vel, fin_obs_vel)
 
         new_coord = self._copy(value=new_data,
                                observer=observer,
@@ -535,7 +551,7 @@ class SpectralCoord(u.Quantity):
 
         Returns
         -------
-        `SpectralCoord`
+        new_coord : `SpectralCoord`
             The new coordinate object representing the spectral data
             transformed based on the observer's new velocity frame.
         """
@@ -546,12 +562,19 @@ class SpectralCoord(u.Quantity):
             raise ValueError("Frame has no velocities, cannot transform "
                              "velocity frame.")
 
-        data_with_rv = self.observer.data.with_differentials(
-            frame.data.differentials)
+        observer_icrs = self.observer.transform_to(ICRS)
+        frames_icrs = frame.transform_to(ICRS)
 
-        observer = self.observer.realize_frame(data_with_rv)
+        data_with_rv = observer_icrs.data.with_differentials(
+            frames_icrs.data.differentials)
 
-        return self._change_observer_to(observer)
+        observer_icrs = observer_icrs.realize_frame(data_with_rv)
+
+        observer = observer_icrs.transform_to(self.observer)
+
+        new_coord = self._change_observer_to(observer)
+
+        return new_coord
 
     def with_los_shift(self, target_shift=None, observer_shift=None):
         """
@@ -622,7 +645,7 @@ class SpectralCoord(u.Quantity):
         init_obs_vel = self._calculate_radial_velocity(observer_icrs, target_icrs)
         fin_obs_vel = self._calculate_radial_velocity(new_observer, new_target)
 
-        new_data = self._project_velocity(init_obs_vel, fin_obs_vel)
+        new_data = self._project_velocity_and_shift(init_obs_vel, fin_obs_vel)
 
         # If an observer/target pair were not defined already, we want to avoid
         #  providing an explicit pair, so create a new spectral coord object
@@ -632,7 +655,7 @@ class SpectralCoord(u.Quantity):
         return self._copy(value=new_data,
                           observer=new_observer if self.observer is not None else None,
                           target=new_target if self.target is not None else None,
-                          radial_velocity=fin_obs_vel if self.observer is None and self.target is None else None)
+                          radial_velocity=np.sum(fin_obs_vel, axis=0) if self.observer is None and self.target is None else None)
 
     @u.quantity_input(rv=['speed'])
     def with_radial_velocity(self, rv):
@@ -688,9 +711,9 @@ class SpectralCoord(u.Quantity):
         """
         Transforms the spectral axis to the observed frame.
         """
-        rest_frame_value = self * (1 + self.redshift)
+        observed_frame_value = self * (1 + self.redshift)
 
-        return self._copy(value=rest_frame_value)
+        return self._copy(value=observed_frame_value)
 
     def to(self, unit, equivalencies=[], doppler_rest=None,
            doppler_convention=None):
