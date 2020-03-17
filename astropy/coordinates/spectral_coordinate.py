@@ -114,7 +114,7 @@ class SpectralCoord(u.Quantity):
                                  "redshift on spectral coordinate.")
 
             target = SpectralCoord._target_from_observer(
-                obj._observer, radial_velocity)
+                observer, radial_velocity)
 
         obj._observer = cls._validate_coordinate(observer)
         obj._target = cls._validate_coordinate(target)
@@ -578,7 +578,7 @@ class SpectralCoord(u.Quantity):
 
     def with_los_shift(self, target_shift=None, observer_shift=None):
         """
-        Apply a velocity shift to either the target or the observer. The shift
+        Apply a velocity shift to this spectral coordinate. The shift
         can be provided as a redshift (float value) or radial velocity
         (quantity with physical type of 'speed').
 
