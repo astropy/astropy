@@ -504,7 +504,7 @@ class SpectralCoord(u.Quantity):
 
         return self._change_observer_to(observer)
 
-    def with_los_shift(self, target=None, observer=None):
+    def with_los_shift(self, target_shift=None, observer_shift=None):
         """
         Apply a velocity shift to either the target or the observer. The shift
         can be provided as a redshift (float value) or radial velocity
@@ -512,9 +512,9 @@ class SpectralCoord(u.Quantity):
 
         Parameters
         ----------
-        target : float or `Quantity`
+        target_shift : float or `Quantity`
             Shift value to apply to current target.
-        observer : float or `Quantity`
+        observer_shift : float or `Quantity`
             Shift value to apply to current observer.
 
         Returns
@@ -523,50 +523,67 @@ class SpectralCoord(u.Quantity):
             New spectral coordinate with the target/observer velocity changed
             to incorporate the shift.
         """
-        if self.target is None or self.observer is None:
+        if observer_shift is not None and (self.target is None or
+                                           self.observer is None):
             raise ValueError("Both an observer and target must be defined "
                              "before applying a velocity shift.")
 
-        for arg in [x for x in [target, observer] if x is not None]:
-            if isinstance(arg, u.Quantity):
-                if arg.unit.physical_type != 'speed':
-                    raise u.UnitsError("Argument must have unit physical type "
-                                       "'speed'.")
+        for arg in [x for x in [target_shift, observer_shift] if x is not None]:
+            if isinstance(arg, u.Quantity) and \
+                    arg.unit.physical_type not in ['speed', 'dimensionless']:
+                raise u.UnitsError("Argument must have unit physical type "
+                                   "'speed' for radial velocty or "
+                                   "'dimesionless' for redshift.")
 
         # The target or observer value is defined but is not a quantity object,
         #  assume it's a redshift float value and convert to velocity
-        if isinstance(target, (float, int)):
-            target = u.Quantity(target).to(
+        if isinstance(target_shift, (float, int)) or \
+                isinstance(target_shift, u.Quantity) and \
+                target_shift.unit.physical_type == 'dimensionless':
+            target_shift = u.Quantity(target_shift).to(
                 'km/s', equivalencies=RV_RS_EQUIV)
 
-        if isinstance(observer, (float, int)):
-            observer = u.Quantity(observer).to(
+        if isinstance(observer_shift, (float, int)) or \
+                isinstance(observer_shift, u.Quantity) and \
+                observer_shift.unit.physical_type == 'dimensionless':
+            observer_shift = u.Quantity(observer_shift).to(
                 'km/s', equivalencies=RV_RS_EQUIV)
 
-        target_icrs = self.target.transform_to(ICRS)
-        observer_icrs = self.observer.transform_to(ICRS)
+        target_icrs = self._target.transform_to(ICRS)
+        observer_icrs = self._observer.transform_to(ICRS)
 
-        target_shift = 0 * u.km / u.s if target is None else target
-        observer_shift = 0 * u.km / u.s if observer is None else observer
+        target_shift = 0 * u.km / u.s if target_shift is None else target_shift
+        observer_shift = 0 * u.km / u.s if observer_shift is None else observer_shift
 
-        d_pos = (observer_icrs.data.without_differentials() -
-                 target_icrs.data.without_differentials()).to_cartesian()
-
-        pos_hat = d_pos / (d_pos.norm() or 1)
+        pos_hat = SpectralCoord._norm_d_pos(observer_icrs, target_icrs)
 
         target_velocity = target_icrs.velocity + target_shift * pos_hat
         observer_velocity = observer_icrs.velocity + observer_shift * pos_hat
 
-        new_target = self.target.realize_frame(
-            self.target.data.with_differentials(
-                CartesianDifferential(target_velocity.xyz)))
+        new_target = target_icrs.realize_frame(
+            target_icrs.cartesian.with_differentials(
+                CartesianDifferential(target_velocity.xyz))).transform_to(
+            self._target)
 
-        new_observer = self.observer.realize_frame(
-            self.observer.data.with_differentials(
-                CartesianDifferential(observer_velocity.xyz)))
+        new_observer = observer_icrs.realize_frame(
+            observer_icrs.cartesian.with_differentials(
+                CartesianDifferential(observer_velocity.xyz))).transform_to(
+            self._observer)
 
-        return self._copy(observer=new_observer,
-                          target=new_target)
+        init_obs_vel = self._calculate_radial_velocity(observer_icrs, target_icrs)
+        fin_obs_vel = self._calculate_radial_velocity(new_observer, new_target)
+
+        new_data = self._project_velocity(init_obs_vel, fin_obs_vel)
+
+        # If an observer/target pair were not defined already, we want to avoid
+        #  providing an explicit pair, so create a new spectral coord object
+        #  with just the radial velocity set so new implicit observer/target
+        #  will be created. Otherwise, use the available observer/target
+        #  instances to create the pair.
+        return self._copy(value=new_data,
+                          observer=new_observer if self.observer is not None else None,
+                          target=new_target if self.target is not None else None,
+                          radial_velocity=fin_obs_vel if self.observer is None and self.target is None else None)
 
     @u.quantity_input(rv=['speed'])
     def with_radial_velocity(self, rv):
