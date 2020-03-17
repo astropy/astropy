@@ -296,7 +296,7 @@ def test_observer_init_rv_behavior():
     sc_init.target = SkyCoord(CartesianRepresentation([0*u.km, 0*u.km, 0*u.km]),
                               frame='icrs')
     assert sc_init.target is not None
-    assert_quantity_allclose(sc_init.radial_velocity, 100*u.km/u.s)
+    assert_quantity_allclose(sc_init.radial_velocity, 0.20502225*u.km/u.s)
 
     with pytest.raises(ValueError):
         # cannot reset after setting once as above
