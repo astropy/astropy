@@ -485,16 +485,41 @@ class SpectralCoord(u.Quantity):
 
         return new_coord
 
-    def _project_velocity(self, init_vel, fin_vel):
-        # Project the velocity shift vector onto the the line-on-sight vector
+    def _project_velocity_and_shift(self, init_vel, fin_vel):
+        """
+        Calculated the velocity projection given two vectors.
+
+        Parameters
+        ----------
+        init_vel : `u.Quantity`
+            Initial velocity vector.
+        fin_vel : `u.Quantity`
+            Final velocity vector.
+
+        Returns
+        -------
+        new_data : `u.Quantity`
+            Spectral axis data with velocity shift applied.
+        """
+        # Project the velocity shift vector onto the line-on-sight vector
         #  between the target and the new observation frame.
-        init_proj_vel = np.dot(init_vel, fin_vel) / np.linalg.norm(
-            fin_vel)
+        init_proj_vel = np.dot(init_vel, fin_vel / np.linalg.norm(fin_vel))
 
         # Calculate the velocity shift between the two vectors
-        delta_vel = fin_vel - init_proj_vel
+        delta_vel = np.sum(fin_vel - init_proj_vel, axis=0)
 
-        # Apply the velocity shift to the stored spectral data
+        # In the case where the projected velocity is nan, we can assume that
+        #  the final velocity different is zero, and thus the actual velocity
+        #  delta is equal to the original radial velocity.
+
+        # TODO: Due to lack of precision in some coordinate transformations,
+        #  we may end up with a final velocity very close to, but not quite at,
+        #  zero. In this case, set a tolerance for the final velocity; if it's
+        #  below this tolerance, assume the delta velocity is essentially nan.
+        if np.isnan(delta_vel) or np.abs(np.sum(fin_vel, axis=0)) < 1e-7 * fin_vel.unit:
+            delta_vel = -self.radial_velocity
+
+        # Apply the velocity shift to the stored spectral axis data
         new_data = self * (1 + delta_vel / c.cgs)
 
         return new_data
