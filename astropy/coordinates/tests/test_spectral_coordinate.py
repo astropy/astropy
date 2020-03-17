@@ -376,15 +376,16 @@ def test_los_shift(sc_kwargs):
     if sc_init.observer is None or sc_init.target is None:
         with pytest.raises(ValueError):
             # both must be specified if you're going to mess with observer
-            sc_init.with_los_shift(observer=.1)
+            sc_init.with_los_shift(observer_shift=.1)
 
+    if sc_init.observer is not None and sc_init.target is not None:
         # redshifting the observer should *blushift* the LOS velocity since
         # its the observer-to-target vector that matters
-        new_sc4 = sc_init.with_los_shift(observer=.1)
+        new_sc4 = sc_init.with_los_shift(observer_shift=.1)
         assert_quantity_allclose(new_sc4, wl*.9)
 
         # an equal shift in both should produce no offset at all
-        new_sc5 = sc_init.with_los_shift(target=.1, observer=.1)
+        new_sc5 = sc_init.with_los_shift(target_shift=.1, observer_shift=.1)
         assert_quantity_allclose(new_sc5, wl)
 
 
@@ -449,7 +450,7 @@ def test_asteroid_velocity_frame_shifts():
     assert np.all(target_sc2 < spec_coord2)
     # rv/redshift should be 0 since the observer and target velocities should
     # be the same
-    assert_quantity_allclose(target_sc1.radial_velocity, 0*u.km/u.s)
+    assert_quantity_allclose(target_sc2.radial_velocity, 0*u.km/u.s)
 
     # check that the same holds for spec_coord1, but be more specific: it
     # should follow the standard redshift formula (which in this case yields
