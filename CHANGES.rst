@@ -305,6 +305,8 @@ Other Changes and Additions
   manage the version number, and adding a ``pyproject.toml`` to opt in to
   isolated builds as described in PEP 517/518. [#9726]
 
+- Bundled ``expat`` is updated to version 2.2.9. [#10038]
+
 4.0.1 (unreleased)
 ==================
 
