@@ -10,7 +10,6 @@ from astropy.io import fits
 
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy import units as u
-from astropy.tests.image_tests import ignore_matplotlibrc
 
 ROOT = os.path.join(os.path.dirname(__file__))
 MSX_HEADER = fits.Header.fromtextfile(os.path.join(ROOT, 'data', 'msx_header'))
@@ -20,8 +19,7 @@ def teardown_function(function):
     plt.close('all')
 
 
-@ignore_matplotlibrc
-def test_getaxislabel():
+def test_getaxislabel(ignore_matplotlibrc):
 
     fig = plt.figure()
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect='equal')
@@ -53,13 +51,11 @@ def assert_label_draw(ax, x_label, y_label):
     assert pos2.call_count == y_label
 
 
-@ignore_matplotlibrc
-def test_label_visibility_rules_default(ax):
+def test_label_visibility_rules_default(ignore_matplotlibrc, ax):
     assert_label_draw(ax, True, True)
 
 
-@ignore_matplotlibrc
-def test_label_visibility_rules_label(ax):
+def test_label_visibility_rules_label(ignore_matplotlibrc, ax):
 
     ax.coords[0].set_ticklabel_visible(False)
     ax.coords[1].set_ticks(values=[-9999]*u.one)
@@ -67,8 +63,7 @@ def test_label_visibility_rules_label(ax):
     assert_label_draw(ax, False, False)
 
 
-@ignore_matplotlibrc
-def test_label_visibility_rules_ticks(ax):
+def test_label_visibility_rules_ticks(ignore_matplotlibrc, ax):
 
     ax.coords[0].set_axislabel_visibility_rule('ticks')
     ax.coords[1].set_axislabel_visibility_rule('ticks')
@@ -79,8 +74,7 @@ def test_label_visibility_rules_ticks(ax):
     assert_label_draw(ax, True, False)
 
 
-@ignore_matplotlibrc
-def test_label_visibility_rules_always(ax):
+def test_label_visibility_rules_always(ignore_matplotlibrc, ax):
 
     ax.coords[0].set_axislabel_visibility_rule('always')
     ax.coords[1].set_axislabel_visibility_rule('always')
