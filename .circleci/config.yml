@@ -19,13 +19,13 @@ jobs:
           command: /opt/python/cp36-cp36m/bin/pip install tox
       - run:
           name: Run tests for Python 3.6
-          command: PYTHONHASHSEED=42 /opt/python/cp36-cp36m/bin/python -m tox -e py36-test -- -n=4 --durations=50
+          command: /opt/python/cp36-cp36m/bin/python -m tox -e py36-test -- -n=4 --durations=50
       - run:
           name: Install dependencies for Python 3.7
           command: /opt/python/cp37-cp37m/bin/pip install tox
       - run:
           name: Run tests for Python 3.7
-          command: PYTHONHASHSEED=42 /opt/python/cp37-cp37m/bin/python  -m tox -e py37-test -- -n=4 --durations=50
+          command: /opt/python/cp37-cp37m/bin/python -m tox -e py37-test -- -n=4 --durations=50
       # We use the 3.8 build to check that running tests twice in a row in the
       # same Python session works without issues. This catches cases where
       # running the tests changes the module state permanently. Note that we
@@ -34,10 +34,10 @@ jobs:
       # here.
       - run:
           name: Install dependencies for Python 3.8
-          command: /opt/python/cp38-cp38/bin/pip install -e .[test]
+          command: /opt/python/cp38-cp38/bin/pip install tox
       - run:
           name: Run tests for Python 3.8
-          command: PYTHONHASHSEED=42 /opt/python/cp38-cp38/bin/python -c 'import sys; from astropy import test; test(); sys.exit(test())'
+          command: /opt/python/cp38-cp38/bin/python -m tox -e py38-test-double
 
   image-tests-mpl212:
     docker:
@@ -101,13 +101,11 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install Python dependencies, including developer version of Matplotlib
-          command: |
-            pip3 install git+https://github.com/matplotlib/matplotlib.git
-            pip3 install -e .[test] pytest-mpl
+          name: Install tox
+          command: pip3 install tox
       - run:
           name: Run tests
-          command: pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
+          command: tox -e py37-test-image-mpldev -- -P visualization --remote-data=astropy --open-files --mpl-results-path=$PWD/results -W ignore:np.asscalar
       - store_artifacts:
           path: results
 
