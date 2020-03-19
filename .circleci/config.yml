@@ -25,13 +25,13 @@ jobs:
           command: /opt/python/cp36-cp36m/bin/pip install "numpy<1.17" scipy pytest pytest-astropy pytest-xdist Cython jinja2
       - run:
           name: Run tests for Python 3.6
-          command: PYTHONHASHSEED=42 /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4 -a "--durations=50"
+          command: /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4 -a "--durations=50"
       - run:
           name: Install dependencies for Python 3.7
           command: /opt/python/cp37-cp37m/bin/pip install "numpy<1.17" scipy pytest pytest-astropy pytest-xdist Cython jinja2 pandas
       - run:
           name: Run tests for Python 3.7
-          command: PYTHONHASHSEED=42 /opt/python/cp37-cp37m/bin/python setup.py test --parallel=4 -a "--durations=50"
+          command: /opt/python/cp37-cp37m/bin/python setup.py test --parallel=4 -a "--durations=50"
       # We use the 3.8 build to check that running tests twice in a row in the
       # same Python session works without issues. This catches cases where
       # running the tests changes the module state permanently. Note that we
@@ -43,7 +43,7 @@ jobs:
           command: /opt/python/cp38-cp38/bin/pip install numpy pytest pytest-astropy pytest-xdist Cython jinja2
       - run:
           name: Run tests for Python 3.8
-          command: PYTHONHASHSEED=42 /opt/python/cp38-cp38/bin/python -c 'import sys; from astropy import test; test(); sys.exit(test())'
+          command: /opt/python/cp38-cp38/bin/python -c 'import sys; from astropy import test; test(); sys.exit(test())'
 
   image-tests-mpl212:
     docker:
@@ -101,7 +101,7 @@ jobs:
             apt install -y g++
       - run:
           name: Install Python dependencies, including developer version of Matplotlib
-          command: pip3 install pytest pytest-mpl pytest-astropy numpy scipy git+https://github.com/matplotlib/matplotlib.git
+          command: pip3 install "pytest<5.4" pytest-mpl pytest-astropy numpy scipy git+https://github.com/matplotlib/matplotlib.git
       - run:
           name: Run tests
           command: python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results"
