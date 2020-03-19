@@ -26,26 +26,29 @@ DopplerConversion = namedtuple('DopplerConversion', ['rest', 'convention'])
 
 __all__ = ['SpectralCoord']
 
+# We don't want to run doctests in the docstrings we inherit from Quantity
+__doctest_skip__ = ['SpectralCoord.*']
+
 
 class SpectralCoord(u.Quantity):
     """
     Coordinate object representing spectral values.
 
-    Attributes
+    Parameters
     ----------
-    value : ndarray or `Quantity` or `SpectralCoord`
+    value : ndarray or `~astropy.units.Quantity` or `SpectralCoord`
         Spectral axis data values.
-    unit : str or `Unit`
+    unit : str or `~astropy.units.Unit`
         Unit for the given data.
-    observer : `BaseCoordinateFrame` or `SkyCoord`, optional
+    observer : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`, optional
         The coordinate (position and velocity) of observer.
-    target : `BaseCoordinateFrame` or `SkyCoord`, optional
+    target : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`, optional
         The coordinate (position and velocity) of observer.
-    radial_velocity : `Quantity`, optional
+    radial_velocity : `~astropy.units.Quantity`, optional
         The radial velocity of the target with respect to the observer.
     redshift : float, optional
         The redshift of the target with respect to the observer.
-    doppler_rest : `Quantity`, optional
+    doppler_rest : `~astropy.units.Quantity`, optional
         The rest value to use for velocity space transformations.
     doppler_convention : str, optional
         The convention to use when converting the spectral data to/from
@@ -145,15 +148,15 @@ class SpectralCoord(u.Quantity):
 
         Parameters
         ----------
-        observer : `BaseCoordinateFrame` or `SkyCoord`
+        observer : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
             Observer frame off which to base the target frame.
-        radial_velocity : `Quantity`
+        radial_velocity : `~astropy.units.Quantity`
             Radial velocity used to calculate appropriate offsets between
             provided observer and generated target.
 
         Returns
         -------
-        target : `BaseCoordinateFrame` or `SkyCoord`
+        target : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
             Generated target frame.
         """
         observer = SpectralCoord._validate_coordinate(observer)
@@ -186,7 +189,7 @@ class SpectralCoord(u.Quantity):
 
         Parameters
         ----------
-        coord : `BaseCoordinateFrame`
+        coord : `~astropy.coordinates.BaseCoordinateFrame`
             The new frame to be used for target or observer.
         """
         if not issubclass(coord.__class__, (BaseCoordinateFrame, FrameMeta)):
@@ -194,8 +197,8 @@ class SpectralCoord(u.Quantity):
                 coord = coord.frame
             else:
                 raise ValueError("`{}` is not a subclass of "
-                                 "`BaseCoordinateFrame` or "
-                                 "`SkyCoord`.".format(coord))
+                                 "`~astropy.coordinates.BaseCoordinateFrame` or "
+                                 "`~astropy.coordinates.SkyCoord`.".format(coord))
 
         # If the observer frame does not contain information about the
         # velocity of the system, assume that the velocity is zero in the
@@ -238,13 +241,24 @@ class SpectralCoord(u.Quantity):
         return self.__class__(**default_kwargs)
 
     @property
+    def quantity(self):
+        """
+        Convert the ``SpectralCoord`` to a simple ``~astropy.units.Quantity``.
+
+        Returns
+        -------
+
+        """
+        return u.Quantity(self.value, self.unit)
+
+    @property
     def observer(self):
         """
         The coordinate frame from which the observation was taken.
 
         Returns
         -------
-        `BaseCoordinateFrame`
+        `~astropy.coordinates.BaseCoordinateFrame`
             The astropy coordinate frame representing the observation.
         """
         if self._frames_state['observer']:
@@ -277,7 +291,7 @@ class SpectralCoord(u.Quantity):
 
         Returns
         -------
-        `BaseCoordinateFrame`
+        `~astropy.coordinates.BaseCoordinateFrame`
             The astropy coordinate frame representing the target.
         """
         if self._frames_state['target']:
@@ -303,8 +317,8 @@ class SpectralCoord(u.Quantity):
 
         Returns
         -------
-        `Quantity`
-            Rest value as an astropy `Quantity` object.
+        `~astropy.units.Quantity`
+            Rest value as an astropy `~astropy.units.Quantity` object.
         """
         return self._doppler_conversion.rest
 
@@ -316,7 +330,7 @@ class SpectralCoord(u.Quantity):
 
         Parameters
         ----------
-        value : `Quantity`
+        value : `~astropy.units.Quantity`
             Rest value.
         """
         if self._doppler_conversion.rest is not None:
@@ -376,7 +390,7 @@ class SpectralCoord(u.Quantity):
 
         Returns
         -------
-        `u.Quantity`
+        `~astropy.units.Quantity`
             Radial velocity of target.
 
         Notes
@@ -408,14 +422,14 @@ class SpectralCoord(u.Quantity):
 
         Parameters
         ----------
-        observer : `BaseCoordinateFrame`
+        observer : `~astropy.coordinates.BaseCoordinateFrame`
             The frame of the observer.
-        target : `BaseCoordinateFrame`
+        target : `~astropy.coordinates.BaseCoordinateFrame`
             The frame of the target.
 
         Returns
         -------
-        `Quantity`
+        `~astropy.units.Quantity`
             The radial velocity of the target with respect to the observer.
         """
         # Convert observer and target to ICRS to avoid finite differencing
@@ -436,9 +450,9 @@ class SpectralCoord(u.Quantity):
 
         Parameters
         ----------
-        observer : `BaseCoordinateFrame` or `SkyCoord`
+        observer : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
             The observation frame or coordinate.
-        target : `BaseCoordinateFrame` or `SkyCoord`
+        target : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
             The target frame or coordinate.
 
         Returns
@@ -464,10 +478,10 @@ class SpectralCoord(u.Quantity):
 
         Parameters
         ----------
-        observer : `BaseCoordinateFrame` or `SkyCoord`
+        observer : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
             The new observation frame or coordinate.
-        target : `SkyCoord`, optional
-            The `SkyCoord` object representing the target of the observation.
+        target : `~astropy.coordinates.SkyCoord`, optional
+            The `~astropy.coordinates.SkyCoord` object representing the target of the observation.
             If none given, defaults to currently defined target.
 
         Returns
@@ -546,7 +560,7 @@ class SpectralCoord(u.Quantity):
 
         Parameters
         ----------
-        frame : `BaseCoordinateFrame` or `SkyCoord`
+        frame : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
             The observation frame containing the new velocity for the observer.
 
         Returns
@@ -584,9 +598,9 @@ class SpectralCoord(u.Quantity):
 
         Parameters
         ----------
-        target_shift : float or `Quantity`
+        target_shift : float or `~astropy.units.Quantity`
             Shift value to apply to current target.
-        observer_shift : float or `Quantity`
+        observer_shift : float or `~astropy.units.Quantity`
             Shift value to apply to current observer.
 
         Returns
@@ -665,7 +679,7 @@ class SpectralCoord(u.Quantity):
 
         Parameters
         ----------
-        rv : `Quantity`
+        rv : `~astropy.units.Quantity`
             New radial velocity to a store in the `SpectralCoord` object.
 
         Returns
@@ -723,7 +737,7 @@ class SpectralCoord(u.Quantity):
 
         Parameters
         ----------
-        doppler_rest : `Quantity`, optional
+        doppler_rest : `~astropy.units.Quantity`, optional
             The rest value used in the velocity space conversions. Providing
             the value here will set the value stored on the `SpectralCoord`
             instance.
@@ -777,8 +791,9 @@ class SpectralCoord(u.Quantity):
             radial_velocity = redshift = 'Undefined'
 
         return f'{prefixstr}{arrstr}{self._unitstr:s}, \n' \
-            f'radial_velocity={radial_velocity}, ' \
-            f'redshift={redshift}, ' \
-            f'\trest_value={self.doppler_rest}, ' \
-            f'velocity_convention={self.doppler_convention}, ' \
-            f'observer={obs_frame}, target={tar_frame}>'
+            f'\tradial_velocity={radial_velocity}, \n' \
+            f'\tredshift={redshift}, \n' \
+            f'\tdoppler_rest={self.doppler_rest}, \n' \
+            f'\tdoppler_convention={self.doppler_convention}, \n' \
+            f'\tobserver={obs_frame}, \n' \
+            f'\ttarget={tar_frame}>'
