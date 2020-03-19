@@ -15,7 +15,6 @@ from astropy.wcs import WCS
 from astropy.io import fits
 from astropy.coordinates import SkyCoord
 from astropy.tests.helper import catch_warnings
-from astropy.tests.image_tests import ignore_matplotlibrc
 
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.visualization.wcsaxes.frame import RectangularFrame, RectangularFrame1D
@@ -31,8 +30,7 @@ def teardown_function(function):
     plt.close('all')
 
 
-@ignore_matplotlibrc
-def test_grid_regression():
+def test_grid_regression(ignore_matplotlibrc):
     # Regression test for a bug that meant that if the rc parameter
     # axes.grid was set to True, WCSAxes would crash upon initalization.
     plt.rc('axes', grid=True)
@@ -40,8 +38,7 @@ def test_grid_regression():
     WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
 
 
-@ignore_matplotlibrc
-def test_format_coord_regression(tmpdir):
+def test_format_coord_regression(ignore_matplotlibrc, tmpdir):
     # Regression test for a bug that meant that if format_coord was called by
     # Matplotlib before the axes were drawn, an error occurred.
     fig = plt.figure(figsize=(3, 3))
@@ -74,9 +71,8 @@ COORDSYS= 'icrs    '
 """, sep='\n')
 
 
-@ignore_matplotlibrc
 @pytest.mark.parametrize('grid_type', ['lines', 'contours'])
-def test_no_numpy_warnings(tmpdir, grid_type):
+def test_no_numpy_warnings(ignore_matplotlibrc, tmpdir, grid_type):
 
     # Make sure that no warnings are raised if some pixels are outside WCS
     # (since this is normal)
@@ -95,8 +91,7 @@ def test_no_numpy_warnings(tmpdir, grid_type):
     assert len(ws) == 0
 
 
-@ignore_matplotlibrc
-def test_invalid_frame_overlay():
+def test_invalid_frame_overlay(ignore_matplotlibrc):
 
     # Make sure a nice error is returned if a frame doesn't exist
     ax = plt.subplot(1, 1, 1, projection=WCS(TARGET_HEADER))
@@ -109,8 +104,7 @@ def test_invalid_frame_overlay():
     assert exc.value.args[0] == 'Unknown frame: banana'
 
 
-@ignore_matplotlibrc
-def test_plot_coord_transform():
+def test_plot_coord_transform(ignore_matplotlibrc):
 
     twoMASS_k_header = os.path.join(DATA, '2MASS_k_header')
     twoMASS_k_header = fits.Header.fromtextfile(twoMASS_k_header)
@@ -126,8 +120,7 @@ def test_plot_coord_transform():
         ax.plot_coord(c, 'o', transform=ax.get_transform('galactic'))
 
 
-@ignore_matplotlibrc
-def test_set_label_properties():
+def test_set_label_properties(ignore_matplotlibrc):
 
     # Regression test to make sure that arguments passed to
     # set_xlabel/set_ylabel are passed to the underlying coordinate helpers
@@ -172,8 +165,7 @@ CRPIX3  =                241.0
 """, sep='\n')
 
 
-@ignore_matplotlibrc
-def test_slicing_warnings(tmpdir):
+def test_slicing_warnings(ignore_matplotlibrc, tmpdir):
 
     # Regression test to make sure that no warnings are emitted by the tick
     # locator for the sliced axis when slicing a cube.
@@ -325,8 +317,7 @@ def test_contour_empty():
         ax.contour(np.zeros((4, 4)), transform=ax.get_transform('world'))
 
 
-@ignore_matplotlibrc
-def test_iterate_coords(tmpdir):
+def test_iterate_coords(ignore_matplotlibrc, tmpdir):
 
     # Regression test for a bug that caused ax.coords to return too few axes
 
@@ -342,8 +333,7 @@ def test_iterate_coords(tmpdir):
     x, y, z = ax.coords
 
 
-@ignore_matplotlibrc
-def test_invalid_slices_errors():
+def test_invalid_slices_errors(ignore_matplotlibrc):
 
     # Make sure that users get a clear message when specifying a WCS with
     # >2 dimensions without giving the 'slices' argument, or if the 'slices'
@@ -413,8 +403,7 @@ EXPECTED_REPR_2 = """
  """.strip()
 
 
-@ignore_matplotlibrc
-def test_repr():
+def test_repr(ignore_matplotlibrc):
 
     # Unit test to make sure __repr__ looks as expected
 
