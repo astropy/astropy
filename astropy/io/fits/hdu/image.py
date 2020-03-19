@@ -253,6 +253,10 @@ class _ImageBaseHDU(_ValidHDU):
                 raise TypeError('data object {!r} could not be coerced into an '
                                 'ndarray'.format(data))
 
+            if data.shape == ():
+                raise TypeError('data object {!r} should have at least one '
+                                'dimension'.format(data))
+
         self.__dict__['data'] = data
         self._modified = True
 

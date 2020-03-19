@@ -1085,6 +1085,13 @@ class TestImageFunctions(FitsTestCase):
             hdu.data[:] = 0
             assert np.allclose(hdu.data, 0)
 
+    def test_hdu_creation_with_scalar(self):
+        msg = r'data object array\(1\) should have at least one dimension'
+        with pytest.raises(TypeError, match=msg):
+            fits.ImageHDU(data=1)
+        with pytest.raises(TypeError, match=msg):
+            fits.PrimaryHDU(data=1)
+
 
 class TestCompressedImage(FitsTestCase):
     def test_empty(self):

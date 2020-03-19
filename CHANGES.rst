@@ -400,6 +400,9 @@ astropy.io.fits
 - Allow passing ``output_verify`` to ``.close`` when using the context manager.
   [#10030]
 
+- Prevent instantiation of ``PrimaryHDU`` and ``ImageHDU`` with a scalar.
+  [#10041]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
