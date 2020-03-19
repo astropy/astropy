@@ -238,6 +238,17 @@ class SpectralCoord(u.Quantity):
         return self.__class__(**default_kwargs)
 
     @property
+    def quantity(self):
+        """
+        Convert the ``SpectralCoord`` to a simple ``Quantity``.
+
+        Returns
+        -------
+
+        """
+        return u.Quantity(self.value, self.unit)
+
+    @property
     def observer(self):
         """
         The coordinate frame from which the observation was taken.
