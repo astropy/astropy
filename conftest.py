@@ -8,6 +8,7 @@ import os
 import pkg_resources
 import tempfile
 
+
 try:
     from pytest_astropy_header.display import PYTEST_HEADER_MODULES
 except ImportError:
