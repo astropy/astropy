@@ -309,6 +309,43 @@ would with a dict::
 
     See also :ref:`sphx_glr_generated_examples_io_modify-fits-header.py`.
 
+.. _structural_keywords:
+
+Structural Keywords
+"""""""""""""""""""
+
+FITS keywords mix up both metadata and critical information about the file structure 
+that is needed to parse the file. These *structural* keywords are managed internally by
+:mod:`astropy.io.fits` and, in general, should not be touched by the user. Instead one 
+should use  the related attributes of the `astropy.io.fits` classes (see examples below).
+
+The specific set of structural keywords used by the FITS standard varies with HDU type.
+The following table lists which keywords are associated with each HDU type:
+
+.. csv-table:: Structural Keywords
+   :header: "HDU Type", "Structural Keywords"
+   :widths: 20, 20
+
+   "All", "``SIMPLE``, ``BITPIX``, ``NAXIS``"
+   ":class:`PrimaryHDU`", "``EXTEND``"
+   ":class:`ImageHDU`, :class:`TableHDU`, :class:`BinTableHDU`",  "``PCOUNT``, ``GCOUNT``"
+   ":class:`GroupsHDU`", "``NAXIS1``, ``GCOUNT``, ``PCOUNT``, ``GROUPS``"
+   ":class:`TableHDU`, :class:`BinTableHDU`", "``TFIELDS``, ``TFORM``, ``TBCOL``"
+
+There are many other reserved keywords, for instance for the data scaling, or for table's column 
+attributes, as described in the  `FITS Standard <https://fits.gsfc.nasa.gov/fits_standard.html>`__. 
+Most of these are accessible via attributes of the :class:`Column` or HDU objects, for instance 
+``hdu.name`` to set ``EXTNAME``, or ``hdu.ver`` for ``EXTVER``. Structural keywords are checked 
+and/or updated as a consequence of common operations. For example, when:
+
+1. Setting the data. The ``NAXIS*`` keywords are set from the data shape (``.data.shape``), and ``BITPIX``
+   from the data type (``.data.dtype``).
+2. Setting the header. Its keywords are updated based on the data properties (as above).
+3. Writing a file. All the necessary keywords are deleted, updated or added to the header.
+4. Calling an HDU's verify method (e.g., :func:`PrimaryHDU.verify`). Some keywords can be fixed automatically.
+
+In these cases any hand-written values users might assign to those keywords will be overwrittten.
+
 Working with Image Data
 ^^^^^^^^^^^^^^^^^^^^^^^
 
