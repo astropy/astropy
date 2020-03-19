@@ -777,8 +777,9 @@ class SpectralCoord(u.Quantity):
             radial_velocity = redshift = 'Undefined'
 
         return f'{prefixstr}{arrstr}{self._unitstr:s}, \n' \
-            f'radial_velocity={radial_velocity}, ' \
-            f'redshift={redshift}, ' \
-            f'\trest_value={self.doppler_rest}, ' \
-            f'velocity_convention={self.doppler_convention}, ' \
-            f'observer={obs_frame}, target={tar_frame}>'
+            f'\tradial_velocity={radial_velocity}, \n' \
+            f'\tredshift={redshift}, \n' \
+            f'\tdoppler_rest={self.doppler_rest}, \n' \
+            f'\tdoppler_convention={self.doppler_convention}, \n' \
+            f'\tobserver={obs_frame}, \n' \
+            f'\ttarget={tar_frame}>'
