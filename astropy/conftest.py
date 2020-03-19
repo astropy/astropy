@@ -14,6 +14,8 @@ try:
 except ImportError:
     PYTEST_HEADER_MODULES = {}
 
+import pytest
+
 from astropy.tests.helper import enable_deprecations_as_exceptions
 
 try:
@@ -34,6 +36,15 @@ if HAS_MATPLOTLIB:
     matplotlib.use('Agg')
 
 matplotlibrc_cache = {}
+
+
+@pytest.fixture
+def ignore_matplotlibrc():
+    # This is a fixture for tests that use matplotlib but not pytest-mpl
+    # (which already handles rcParams)
+    from matplotlib import pyplot as plt
+    with plt.style.context({}, after_reset=True):
+        yield
 
 
 def pytest_configure(config):
