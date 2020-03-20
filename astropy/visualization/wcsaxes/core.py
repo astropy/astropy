@@ -636,6 +636,10 @@ class WCSAxes(Axes):
         ----------
         b : bool
             Whether to show the gridlines.
+        axis : 'both', 'x', 'y'
+            Which axis to turn the gridlines on/off for.
+        which : str
+            Currently only ``'major'`` is supported.
         """
 
         if not hasattr(self, 'coords'):
