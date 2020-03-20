@@ -258,12 +258,15 @@ class SpectralCoord(u.Quantity):
     def quantity(self):
         """
         Convert the ``SpectralCoord`` to a `~astropy.units.Quantity`.
+        Equivalent to ``self.view(u.Quantity)``.
 
         Returns
         -------
+        quantity
+            This object viewed as a `Quantity`
 
         """
-        return u.Quantity(self.value, self.unit)
+        return self.view(u.Quantity)
 
     @property
     def observer(self):
