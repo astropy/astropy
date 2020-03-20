@@ -1019,6 +1019,7 @@ implementation uses a recursive algorithm with four rules:
   function.
 - Conflicting elements that are not both `list`, `tuple`, or `dict` will follow
   the following rules:
+
     - If both metadata values are identical, the output is set to this value.
     - If one of the conflicting metadata values is `None`, the other value is
       picked.
