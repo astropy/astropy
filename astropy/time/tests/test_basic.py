@@ -913,6 +913,22 @@ class TestNumericalSubFormat:
 
     @pytest.mark.skipif(np.finfo(np.longdouble).eps >= np.finfo(float).eps,
                         reason="long double is the same as float")
+    def test_explicit_longdouble_one_val(self):
+        """Ensure either val1 or val2 being longdouble is possible.
+
+        Regression test for issue gh-10033.
+        """
+        i = 54321
+        f = max(2.**(-np.finfo(np.longdouble).nmant) * 65536,
+                np.finfo(float).eps)
+        t1 = Time(i, f, format='mjd')
+        t2 = Time(np.longdouble(i), f, format='mjd')
+        t3 = Time(i, np.longdouble(f), format='mjd')
+        t4 = Time(np.longdouble(i), np.longdouble(f), format='mjd')
+        assert t1 == t2 == t3 == t4
+
+    @pytest.mark.skipif(np.finfo(np.longdouble).eps >= np.finfo(float).eps,
+                        reason="long double is the same as float")
     @pytest.mark.parametrize("fmt", ["mjd", "unix", "cxcsec"])
     def test_longdouble_for_other_types(self, fmt):
         t_fmt = getattr(Time(58000, format="mjd"), fmt)  # Get regular float

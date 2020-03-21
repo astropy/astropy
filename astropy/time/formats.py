@@ -372,9 +372,11 @@ class TimeNumeric(TimeFormat):
                 'and second values are only allowed for doubles.'
                 .format(self.name))
 
+        val_dtype = (val1.dtype if val2 is None else
+                     np.result_type(val1.dtype, val2.dtype))
         subfmts = self._select_subfmts(self.in_subfmt)
         for subfmt, dtype, convert, _ in subfmts:
-            if np.issubdtype(val1.dtype, dtype):
+            if np.issubdtype(val_dtype, dtype):
                 break
         else:
             raise ValueError('input type not among selected sub-formats.')

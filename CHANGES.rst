@@ -147,6 +147,10 @@ astropy.time
 - Fixed bug where the location attribute was lost when creating a new ``Time``
   object from an existing ``Time`` or list of ``Time`` objects. [#9969]
 
+- Fixed a bug where an exception occurred when creating a ``Time`` object
+  if the ``val1`` argument was a regular double and the ``val2`` argument
+  was a ``longdouble``. [#10034]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
