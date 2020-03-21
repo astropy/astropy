@@ -454,7 +454,6 @@ class Function:
     def python_call(self):
         outnames = [arg.name for arg in self.args_by_inout('inout|out|stat|ret')]
         argnames = [arg.name for arg in self.args_by_inout('in|inout')]
-        argnames += [arg.name for arg in self.args_by_inout('inout')]
         return '{out} = {func}({args})'.format(out=', '.join(outnames),
                                                func='ufunc.' + self.pyname,
                                                args=', '.join(argnames))
