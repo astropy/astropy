@@ -244,6 +244,41 @@ def test_float32_input():
     np.testing.assert_allclose(out32, out64, rtol=1.e-5)
 
 
+class TestAstromNotInplace:
+    def setup(self):
+        self.mjd_array = np.array(
+            [58827.15925499, 58827.15925499, 58827.15925499,
+             58827.15925499, 58827.15925499])
+        self.mjd_scalar = self.mjd_array[0].item()
+        self.utc2mjd = 2400000.5
+        paranal_long = -1.228798
+        paranal_lat = -0.42982
+        paranal_height = 2669.
+        self.astrom_scalar, _ = erfa.apco13(
+            self.utc2mjd, self.mjd_scalar, 0.0, paranal_long, paranal_lat,
+            paranal_height, 0.0, 0.0, 0.0, 0.0, 0.0, 2.5)
+        self.astrom_array, _ = erfa.apco13(
+            self.utc2mjd, self.mjd_array, 0.0, paranal_long, paranal_lat,
+            paranal_height, 0.0, 0.0, 0.0, 0.0, 0.0, 2.5)
+
+    def test_scalar_input(self):
+        # Regression test for gh-9799, where astrom0 being a void
+        # caused a TypeError, as it was trying to change it in-place.
+        assert type(self.astrom_scalar) is np.void
+        astrom = erfa.aper13(self.utc2mjd, self.mjd_scalar, self.astrom_scalar)
+        assert astrom is not self.astrom_scalar
+        assert type(astrom) is np.void
+
+    def test_array_input(self):
+        # Trying to fix gh-9799, it became clear that doing things in-place was
+        # a bad idea generally (and didn't work), so also for array input we
+        # now return a copy.
+        assert type(self.astrom_array) is np.ndarray
+        astrom = erfa.aper13(self.utc2mjd, self.mjd_array, self.astrom_array)
+        assert astrom is not self.astrom_array
+        assert type(astrom) is np.ndarray
+
+
 class TestLeapSecondsBasics:
     def test_get_leap_seconds(self):
         leap_seconds = erfa.leap_seconds.get()
