@@ -5,3 +5,7 @@
 .. _SIP: https://irsa.ipac.caltech.edu/data/SPITZER/docs/files/spitzer/shupeADASS.pdf
 .. _ds9: http://hea-www.harvard.edu/RD/ds9/
 .. _FITS WCS standard: http://fits.gsfc.nasa.gov/fits_wcs.html
+.. _paper_I: https://arxiv.org/pdf/astro-ph/0207407.pdf
+.. _paper_II: https://arxiv.org/pdf/astro-ph/0207413.pdf
+.. _paper_III: https://arxiv.org/pdf/astro-ph/0507293.pdf
+.. _paper_IV: https://arxiv.org/pdf/1409.7583.pdf
