@@ -71,141 +71,20 @@ env:
         # F823: local variable name referenced before assignment
         - FLAKE8_OPT="--select=E101,W191,W291,W292,W293,W391,E111,E112,E113,E30,E502,E722,E901,E902,E999,F822,F823"
 
-stages:
-   # Do the style check and a single test job, don't proceed if it fails
-   - name: Initial tests
-   # Do the rest of the tests
-   - name: Comprehensive tests
-   - name: Final tests
-   - name: Cron tests
-     if: type = cron
-
 jobs:
-
-    # Don't wait for allowed failures
-    fast_finish: true
-
     include:
-        - name: Python 3.7 with all optional dependencies for OSX
-          os: osx
-          stage: Cron tests
-          env: SETUP_CMD='test --remote-data=astropy'
-               CONDA_DEPENDENCIES="$CONDA_ALL_DEPENDENCIES clang"
-               PIP_DEPENDENCIES="scikit-image jplephem $ASDF_PIP_DEP"
-               CCOMPILER=clang
-               EVENT_TYPE='cron'
-
-        # Try all python versions and Numpy versions. Since we can assume that
-        # the Numpy developers have taken care of testing Numpy with different
-        # versions of Python, we can vary Python and Numpy versions at the same
-        # time.
-        - name: Python 3.6 with oldest supported version of all dependencies
-          os: linux
-          stage: Comprehensive tests
-          env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.16
-               INSTALL_CMD='python setup.py build_ext --inplace'
-               PIP_DEPENDENCIES='pytest-astropy'
-               TEST_CMD='pytest --open-files --doctest-rst'
-          script:
-            - $INSTALL_CMD
-            - $TEST_CMD
-
         # Now try with all optional dependencies. We also include the --readonly
         # flag to make sure no files are being written to the temporary install
         # location during testing. We also use this build to make sure that the
         # dependencies get correctly installed with pip.
         - name: Python 3.8 with required dependencies
           os: linux
-          stage: Comprehensive tests
           env: SETUP_CMD='test --remote-data=astropy --readonly'
                LC_CTYPE=C.ascii LC_ALL=C
                PIP_DEPENDENCIES="" CONDA_DEPENDENCIES=""
                INSTALL_WITH_PIP=True
                EXTRAS_INSTALL="test,all"
                PYTHON_VERSION=3.8
-
-        - name: Python 3.7 with dependencies
-          os: linux
-          stage: Initial tests
-          env: PYTHON_VERSION=3.7 CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES="scikit-image $ASDF_PIP_DEP"
-               SETUP_CMD='test -a "--durations=50"'
-          compiler: clang
-
-        # Full tests with coverage checks.
-        - name: Python 3.6 with all optional dependencies as coverage
-          os: linux
-          stage: Comprehensive tests
-          env: SETUP_CMD='test --coverage --remote-data=astropy --readonly'
-               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES="scikit-image codecov objgraph jplephem bintrees sortedcontainers $ASDF_PIP_DEP"
-               LC_CTYPE=C.ascii LC_ALL=C
-               CFLAGS='--coverage -fno-inline-functions -O0'
-               MATPLOTLIB_VERSION=2.1
-               EVENT_TYPE='push pull_request cron'
-
-        # Try on Windows
-        - name: Python 3.7 with all optional dependencies on Windows
-          os: windows
-          stage: Final tests
-          env: PYTHON_VERSION=3.7 SETUP_CMD='test --readonly'
-               CONDA_DEPENDENCIES=""
-               PIP_DEPENDENCIES="Cython scipy h5py beautifulsoup4 html5lib jinja2 pyyaml matplotlib scikit-image pytz pandas objgraph asdf"
-
-        # Do a PEP8/pyflakes test with flake8
-        - name: Code style checks
-          os: linux
-          stage: Initial tests
-          env: MAIN_CMD="flake8 astropy --count $FLAKE8_OPT" SETUP_CMD=''
-
-        # Try developer version of Numpy with optional dependencies and also
-        # run all remote tests. Since both cases will be potentially
-        # unstable, we combine them into a single unstable build that we can
-        # mark as an allowed failure below.
-        - name: Python 3.7 with remote data and dev version of key dependencies
-          os: linux
-          stage: Final tests
-          env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
-               CONDA_DEPENDENCIES=''
-               PIP_DEPENDENCIES="$DEV_PIP_DEP $ASDF_DEV"
-               MATPLOTLIB_VERSION=dev
-
-        # Run documentation link check (this is cron only on master).
-        # NOTE: matplotlib pinning should be consistent with CircleCI HTML job.
-        - name: Documentation link check
-          os: linux
-          stage: Final tests
-          env: SETUP_CMD='build_docs -b linkcheck'
-               MATPLOTLIB_VERSION="<3.1"
-               PIP_DEPENDENCIES="" CONDA_DEPENDENCIES=""
-               INSTALL_WITH_PIP=True
-               EXTRAS_INSTALL="docs"
-
-        # Also regularly try the big-endian s390 architecture, in the
-        # process checking that installing dependencies with apt works.
-        - name: big-endian s390 architecture with apt
-          arch: s390x
-          language: c
-          dist: bionic
-          stage: Final tests
-          env: USE_CI_HELPERS=False APT_DEPENDENCIES="python3-pip python3-dev python3-venv python3-setuptools cython3 ipython3 python3-jinja2 python3-numpy python3-pytest-astropy python3-pytest-cov python3-pytest-xdist python3-pytest-filter-subpackage python3-objgraph python3-coverage tzdata"
-
-        # And with an arm64 processor, again with apt for convenience.
-        - name: arm64 architecture with apt
-          arch: arm64
-          language: c
-          dist: bionic
-          stage: Final tests
-          env: USE_CI_HELPERS=False APT_DEPENDENCIES="python3-pip python3-dev python3-venv python3-setuptools cython3 ipython3 python3-jinja2 python3-numpy python3-pytest-astropy python3-pytest-cov python3-pytest-xdist python3-pytest-filter-subpackage python3-objgraph python3-coverage tzdata"
-
-    allow_failures:
-      - name: Python 3.7 with remote data and dev version of key dependencies
-        os: linux
-        stage: Final tests
-        env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
-             CONDA_DEPENDENCIES=''
-             PIP_DEPENDENCIES="$DEV_PIP_DEP $ASDF_DEV"
-             MATPLOTLIB_VERSION=dev
 
 before_install:
 
@@ -237,29 +116,5 @@ install:
         fi
       fi
 
-    # For APT key updates, see https://ftp-master.debian.org/keys.html
-    - if [ $TRAVIS_CPU_ARCH == s390x ] || [ $TRAVIS_CPU_ARCH == arm64 ]; then
-        curl https://ftp-master.debian.org/keys/archive-key-10.asc | sudo apt-key add -;
-        echo "deb http://ftp.us.debian.org/debian testing main" | sudo tee -a /etc/apt/sources.list;
-        sudo apt-get -qq update;
-        sudo apt-get install -y --no-install-recommends ${APT_DEPENDENCIES};
-      fi
-
 script:
-
-
-
-script:
-    - if [ $TRAVIS_CPU_ARCH != s390x ] && [ $TRAVIS_CPU_ARCH != arm64 ]; then
-        $MAIN_CMD $SETUP_CMD;
-      else
-        python3 -m venv --system-site-packages tests;
-        source tests/bin/activate;
-        pip3 install -e .[test];
-        pytest-3;
-      fi
-
-after_success:
-    - if [[ $SETUP_CMD == *--coverage* ]]; then
-        codecov --gcov-glob "*cextern*";
-      fi
+    - $MAIN_CMD $SETUP_CMD
