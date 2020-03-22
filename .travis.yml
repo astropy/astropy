@@ -95,10 +95,11 @@ matrix:
 
         # Now try with all optional dependencies.
         - language: python
-          python: 3.6
-          name: Python 3.6 with all optional dependencies
+          python: 3.8
+          dist: bionic
+          name: Python 3.8 with all optional dependencies
           stage: Initial tests
-          env: TOXENV="py36-test-alldeps"
+          env: TOXENV="py38-test-alldeps"
                TOXPOSARGS="--durations=50"
           compiler: clang
 
@@ -160,14 +161,6 @@ matrix:
               apt:
                   packages:
                       - graphviz
-
-        # Testing with Travis provided Python3.8.
-        - language: python
-          dist: xenial
-          python: 3.8
-          name: Python 3.8 with required dependencies
-          stage: Final tests
-          env: TOXENV='py38-test'
 
         # Also regularly try the big-endian s390 architecture, in the
         # process checking that installing dependencies with apt works.
