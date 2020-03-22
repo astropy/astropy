@@ -107,13 +107,12 @@ matrix:
         - language: python
           python: 3.7
           stage: Comprehensive tests
-          name: Python 3.7 with all optional dependencies and coverage
-          env: TOXENV="py37-test-alldeps-cov"
+          name: Python 3.7 with numpy 1.17 and full coverage
+          env: TOXENV="py37-test-alldeps-numpy117-cov"
                TOXPOSARGS="--remote-data=astropy"
                LC_CTYPE=C.ascii LC_ALL=C
 
         # Try on Windows
-        # NOTE: Can't use Numpy 1.18 until Issue 9871 is resolved
         - os: windows
           stage: Final tests
           name: Python 3.7 with all optional dependencies
