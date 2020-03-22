@@ -13,10 +13,6 @@ cache:
 os:
     - linux
 
-stage: Comprehensive tests
-
-# Setting sudo to false opts in to Travis-CI container-based builds.
-sudo: false
 
 # The apt packages below are needed for sphinx builds, which can no longer
 # be installed with sudo apt-get.
@@ -84,14 +80,14 @@ stages:
    - name: Cron tests
      if: type = cron
 
-matrix:
+jobs:
 
     # Don't wait for allowed failures
     fast_finish: true
 
     include:
-        # Try MacOS X.
-        - os: osx
+        - name: Python 3.7 with all optional dependencies for OSX
+          os: osx
           stage: Cron tests
           env: SETUP_CMD='test --remote-data=astropy'
                CONDA_DEPENDENCIES="$CONDA_ALL_DEPENDENCIES clang"
@@ -103,7 +99,9 @@ matrix:
         # the Numpy developers have taken care of testing Numpy with different
         # versions of Python, we can vary Python and Numpy versions at the same
         # time.
-        - os: linux
+        - name: Python 3.6 with oldest supported version of all dependencies
+          os: linux
+          stage: Comprehensive tests
           env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.16
                INSTALL_CMD='python setup.py build_ext --inplace'
                PIP_DEPENDENCIES='pytest-astropy'
@@ -116,7 +114,9 @@ matrix:
         # flag to make sure no files are being written to the temporary install
         # location during testing. We also use this build to make sure that the
         # dependencies get correctly installed with pip.
-        - os: linux
+        - name: Python 3.8 with required dependencies
+          os: linux
+          stage: Comprehensive tests
           env: SETUP_CMD='test --remote-data=astropy --readonly'
                LC_CTYPE=C.ascii LC_ALL=C
                PIP_DEPENDENCIES="" CONDA_DEPENDENCIES=""
@@ -124,7 +124,8 @@ matrix:
                EXTRAS_INSTALL="test,all"
                PYTHON_VERSION=3.8
 
-        - os: linux
+        - name: Python 3.7 with dependencies
+          os: linux
           stage: Initial tests
           env: PYTHON_VERSION=3.7 CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="scikit-image $ASDF_PIP_DEP"
@@ -132,7 +133,9 @@ matrix:
           compiler: clang
 
         # Full tests with coverage checks.
-        - os: linux
+        - name: Python 3.6 with all optional dependencies as coverage
+          os: linux
+          stage: Comprehensive tests
           env: SETUP_CMD='test --coverage --remote-data=astropy --readonly'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="scikit-image codecov objgraph jplephem bintrees sortedcontainers $ASDF_PIP_DEP"
@@ -142,14 +145,16 @@ matrix:
                EVENT_TYPE='push pull_request cron'
 
         # Try on Windows
-        - os: windows
+        - name: Python 3.7 with all optional dependencies on Windows
+          os: windows
           stage: Final tests
           env: PYTHON_VERSION=3.7 SETUP_CMD='test --readonly'
                CONDA_DEPENDENCIES=""
                PIP_DEPENDENCIES="Cython scipy h5py beautifulsoup4 html5lib jinja2 pyyaml matplotlib scikit-image pytz pandas objgraph asdf"
 
         # Do a PEP8/pyflakes test with flake8
-        - os: linux
+        - name: Code style checks
+          os: linux
           stage: Initial tests
           env: MAIN_CMD="flake8 astropy --count $FLAKE8_OPT" SETUP_CMD=''
 
@@ -157,38 +162,45 @@ matrix:
         # run all remote tests. Since both cases will be potentially
         # unstable, we combine them into a single unstable build that we can
         # mark as an allowed failure below.
-        - os: linux
+        - name: Python 3.7 with remote data and dev version of key dependencies
+          os: linux
           stage: Final tests
           env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
                CONDA_DEPENDENCIES=''
                PIP_DEPENDENCIES="$DEV_PIP_DEP $ASDF_DEV"
                MATPLOTLIB_VERSION=dev
 
-        # We check numpy-dev also in a job that only runs from cron, so that
-        # we can spot issues sooner. We do not use remote data here, since
-        # that gives too many false positives due to URL timeouts.
-        # We also install all dependencies via pip here so we pick up the latest
-        # releases.
-        - os: linux
-          stage: Cron tests
-          env: NUMPY_VERSION=dev MATPLOTLIB_VERSION=dev EVENT_TYPE='cron'
-               CONDA_DEPENDENCIES=''
-               PIP_DEPENDENCIES="$DEV_PIP_DEP $ASDF_DEV"
-
-        # Run documentation link check in a cron job.
-        # Was originally in CircleCI doc build but links are too flaky, so
-        # we moved it here instead.
+        # Run documentation link check (this is cron only on master).
         # NOTE: matplotlib pinning should be consistent with CircleCI HTML job.
-        - os: linux
-          stage: Cron tests
-          env: SETUP_CMD='build_docs -b linkcheck' EVENT_TYPE='cron'
+        - name: Documentation link check
+          os: linux
+          stage: Final tests
+          env: SETUP_CMD='build_docs -b linkcheck'
                MATPLOTLIB_VERSION="<3.1"
                PIP_DEPENDENCIES="" CONDA_DEPENDENCIES=""
                INSTALL_WITH_PIP=True
                EXTRAS_INSTALL="docs"
 
+        # Also regularly try the big-endian s390 architecture, in the
+        # process checking that installing dependencies with apt works.
+        - name: big-endian s390 architecture with apt
+          arch: s390x
+          language: c
+          dist: bionic
+          stage: Final tests
+          env: USE_CI_HELPERS=False APT_DEPENDENCIES="python3-pip python3-dev python3-venv python3-setuptools cython3 ipython3 python3-jinja2 python3-numpy python3-pytest-astropy python3-pytest-cov python3-pytest-xdist python3-pytest-filter-subpackage python3-objgraph python3-coverage tzdata"
+
+        # And with an arm64 processor, again with apt for convenience.
+        - name: arm64 architecture with apt
+          arch: arm64
+          language: c
+          dist: bionic
+          stage: Final tests
+          env: USE_CI_HELPERS=False APT_DEPENDENCIES="python3-pip python3-dev python3-venv python3-setuptools cython3 ipython3 python3-jinja2 python3-numpy python3-pytest-astropy python3-pytest-cov python3-pytest-xdist python3-pytest-filter-subpackage python3-objgraph python3-coverage tzdata"
+
     allow_failures:
-      - os: linux
+      - name: Python 3.7 with remote data and dev version of key dependencies
+        os: linux
         stage: Final tests
         env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
              CONDA_DEPENDENCIES=''
@@ -225,8 +237,27 @@ install:
         fi
       fi
 
+    # For APT key updates, see https://ftp-master.debian.org/keys.html
+    - if [ $TRAVIS_CPU_ARCH == s390x ] || [ $TRAVIS_CPU_ARCH == arm64 ]; then
+        curl https://ftp-master.debian.org/keys/archive-key-10.asc | sudo apt-key add -;
+        echo "deb http://ftp.us.debian.org/debian testing main" | sudo tee -a /etc/apt/sources.list;
+        sudo apt-get -qq update;
+        sudo apt-get install -y --no-install-recommends ${APT_DEPENDENCIES};
+      fi
+
 script:
-    - $MAIN_CMD $SETUP_CMD;
+
+
+
+script:
+    - if [ $TRAVIS_CPU_ARCH != s390x ] && [ $TRAVIS_CPU_ARCH != arm64 ]; then
+        $MAIN_CMD $SETUP_CMD;
+      else
+        python3 -m venv --system-site-packages tests;
+        source tests/bin/activate;
+        pip3 install -e .[test];
+        pytest-3;
+      fi
 
 after_success:
     - if [[ $SETUP_CMD == *--coverage* ]]; then
