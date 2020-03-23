@@ -219,6 +219,10 @@ class TestQuantityCreation:
         q3 = u.Quantity(q1, u.m, ndmin=3)
         assert q3.ndim == 3 and q3.shape == (1, 1, 10)
 
+        # see github issue #10063
+        assert u.Quantity(u.Quantity(1, 'm'), 'm', ndmin=1).ndim == 1
+        assert u.Quantity(u.Quantity(1, 'cm'), 'm', ndmin=1).ndim == 1
+
     def test_non_quantity_with_unit(self):
         """Test that unit attributes in objects get recognized."""
         class MyQuantityLookalike(np.ndarray):
