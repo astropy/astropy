@@ -482,6 +482,9 @@ astropy.units
   is contained (e.g. Enum as of python3.8), by instead checking for instance of
   Sequence. [#9948]
 
+- Fix for ``u.Quantity`` not taking into account ``ndmin`` if constructed from
+  another ``u.Quantity`` instance with different but convertible unit [#10066]
+
 astropy.utils
 ^^^^^^^^^^^^^
 

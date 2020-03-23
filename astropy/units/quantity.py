@@ -305,12 +305,8 @@ class Quantity(np.ndarray):
                                                isinstance(value, cls)):
                 value = value.view(cls)
 
-            if dtype is None:
-                if not copy:
-                    return value
-
-                if value.dtype.kind in 'iu':
-                    dtype = float
+            if dtype is None and value.dtype.kind in 'iu':
+                dtype = float
 
             return np.array(value, dtype=dtype, copy=copy, order=order,
                             subok=True, ndmin=ndmin)
