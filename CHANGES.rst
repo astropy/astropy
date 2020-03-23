@@ -441,6 +441,9 @@ astropy.table
 - Fixed bug where adding or inserting a row fails on a table with an index
   defined on a column that is not the first one. [#10027]
 
+- Ensured that ``table.show_in_browser`` also worked for mixin columns like
+  ``Time`` and ``SkyCoord``. [#10068]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
