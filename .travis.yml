@@ -31,15 +31,21 @@ env:
     global:
 
         # Set defaults to avoid repeating in most cases
+        # By default, we run our jobs with tox.
+        - SETUP_METHOD='tox'
 
         # The following three variables are for tox. TOXENV is a standard
         # variable that tox uses to determine the environment to run,
         # TOXARGS are arguments passed to tox, and TOXPOSARGS are arguments
         # that tox passes through to the {posargs} indicator in tox.ini.
         # The latter can be used for example to pass arguments to pytest.
-        - TOXENV=''
+        - TOXENV='test'
         - TOXARGS='-v'
         - TOXPOSARGS=''
+
+        # For installing without tox, we can rely mostly on what Debian already
+        # includes.  This is only used if SETUP_METHOD='apt'.
+        - APT_DEPENDENCIES="python3-pip python3-dev python3-venv python3-setuptools cython3 ipython3 python3-jinja2 python3-numpy python3-pytest-astropy python3-pytest-cov python3-pytest-xdist python3-pytest-filter-subpackage python3-objgraph python3-coverage tzdata"
 
         # The following is needed to avoid issues if e.g. Matplotlib tries
         # to open a GUI window.
@@ -89,10 +95,11 @@ matrix:
 
         # Now try with all optional dependencies.
         - language: python
-          python: 3.6
-          name: Python 3.6 with all optional dependencies
+          python: 3.8
+          dist: bionic
+          name: Python 3.8 with all optional dependencies
           stage: Initial tests
-          env: TOXENV="py36-test-alldeps"
+          env: TOXENV="py38-test-alldeps"
                TOXPOSARGS="--durations=50"
           compiler: clang
 
@@ -100,13 +107,12 @@ matrix:
         - language: python
           python: 3.7
           stage: Comprehensive tests
-          name: Python 3.7 with all optional dependencies and coverage
-          env: TOXENV="py37-test-alldeps-cov"
+          name: Python 3.7 with numpy 1.17 and full coverage
+          env: TOXENV="py37-test-alldeps-numpy117-cov"
                TOXPOSARGS="--remote-data=astropy"
                LC_CTYPE=C.ascii LC_ALL=C
 
         # Try on Windows
-        # NOTE: Can't use Numpy 1.18 until Issue 9871 is resolved
         - os: windows
           stage: Final tests
           name: Python 3.7 with all optional dependencies
@@ -155,14 +161,6 @@ matrix:
                   packages:
                       - graphviz
 
-        # Testing with Travis provided Python3.8.
-        - language: python
-          dist: xenial
-          python: 3.8
-          name: Python 3.8 with required dependencies
-          stage: Final tests
-          env: TOXENV='py38-test'
-
         # Also regularly try the big-endian s390 architecture, in the
         # process checking that installing dependencies with apt works.
         - name: big-endian s390 architecture with apt
@@ -170,15 +168,15 @@ matrix:
           language: c
           dist: bionic
           stage: Cron tests
-          env: APT_DEPENDENCIES="python3-pip python3-dev python3-venv python3-setuptools cython3 ipython3 python3-jinja2 python3-numpy python3-pytest-astropy python3-pytest-cov python3-pytest-xdist python3-pytest-filter-subpackage python3-objgraph python3-coverage tzdata"
+          env: SETUP_METHOD='apt'
 
         # And with an arm64 processor, again with apt for convenience.
         - name: arm64 architecture with apt
           arch: arm64
           language: c
           dist: bionic
-          stage: Final tests
-          env: APT_DEPENDENCIES="python3-pip python3-dev python3-venv python3-setuptools cython3 ipython3 python3-jinja2 python3-numpy python3-pytest-astropy python3-pytest-cov python3-pytest-xdist python3-pytest-filter-subpackage python3-objgraph python3-coverage tzdata"
+          stage: Cron tests
+          env: SETUP_METHOD='apt'
 
     allow_failures:
         - language: python
@@ -220,7 +218,7 @@ install:
         source ci-helpers/travis/setup_conda.sh;
       fi
     # For APT key updates, see https://ftp-master.debian.org/keys.html
-    - if [ -z $TOXENV ]; then
+    - if [ $SETUP_METHOD == 'apt' ]; then
         curl https://ftp-master.debian.org/keys/archive-key-10.asc | sudo apt-key add -;
         echo "deb http://ftp.us.debian.org/debian testing main" | sudo tee -a /etc/apt/sources.list;
         sudo apt-get -qq update;
@@ -228,7 +226,7 @@ install:
       fi
 
 script:
-    - if [ ! -z $TOXENV ]; then
+    - if [ $SETUP_METHOD == 'tox' ]; then
         pip install tox;
         tox $TOXARGS -- $TOXPOSARGS;
       else
