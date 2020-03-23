@@ -180,7 +180,7 @@ def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
     jsv = JSViewer(**jskwargs)
 
     sortable_columns = [i for i, col in enumerate(table.columns.values())
-                        if col.dtype.kind in 'iufc']
+                        if col.info.dtype.kind in 'iufc']
     html_options = {
         'table_id': table_id,
         'table_class': table_class,
