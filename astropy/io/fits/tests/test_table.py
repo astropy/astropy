@@ -1602,6 +1602,15 @@ class TestTableFunctions(FitsTestCase):
             assert (data == tbdata.field(col)).all()
             assert (data == tbdata[col]).all()
 
+        # with VLA column
+        col1 = fits.Column(name='x', format='PI()',
+                           array=np.array([[45, 56], [11, 12, 13]],
+                                          dtype=np.object_))
+        hdu = fits.BinTableHDU.from_columns([col1])
+        assert type(hdu.data['x']) == type(hdu.data.x)  # noqa
+        assert (hdu.data['x'][0] == hdu.data.x[0]).all()
+        assert (hdu.data['x'][1] == hdu.data.x[1]).all()
+
     def test_table_with_zero_width_column(self):
         hdul = fits.open(self.data('zerowidth.fits'))
         tbhdu = hdul[2]  # This HDU contains a zero-width column 'ORBPARM'
