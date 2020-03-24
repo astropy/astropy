@@ -479,6 +479,20 @@ class FITS_rec(np.recarray):
         # one added for recarray in Numpy 1.10) for backwards compat
         return np.ndarray.__repr__(self)
 
+    def __getattribute__(self, attr):
+        # See if ndarray has this attr, and return it if so. (note that this
+        # means a field with the same name as an ndarray attr cannot be
+        # accessed by attribute). NOTE: this is Numpy's default behavior.
+        try:
+            return object.__getattribute__(self, attr)
+        except AttributeError:  # attr must be a fieldname
+            pass
+
+        if self._coldefs is None:
+            return super().__getattribute__(attr)
+
+        return self.field(attr)
+
     def __getitem__(self, key):
         if self._coldefs is None:
             return super().__getitem__(key)
