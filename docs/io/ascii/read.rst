@@ -57,7 +57,7 @@ Parameters for ``read()``
   a CDS-compatible table, etc. The value of this parameter must
   be one of the :ref:`supported_formats`.
 
-**guess** : try to guess table format (default=True)
+**guess** : try to guess table format (default=None)
   If set to True, then |read| will try to guess the table format by cycling
   through a number of possible table format permutations and attempting to read
   the table in each case. See the `Guess table format`_ section for further details.
@@ -325,7 +325,7 @@ values in with typical placeholders::
 Guess Table Format
 ==================
 
-If the ``guess`` parameter in |read| is set to True (which is the default) then
+If the ``guess`` parameter in |read| is set to True, then
 |read| will try to guess the table format by cycling through a number of
 possible table format permutations and attempting to read the table in each
 case. The first format which succeeds and will be used to read the table. To
