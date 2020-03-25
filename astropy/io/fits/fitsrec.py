@@ -491,7 +491,10 @@ class FITS_rec(np.recarray):
         if self._coldefs is None:
             return super().__getattribute__(attr)
 
-        return self.field(attr)
+        if attr in self.columns.names:
+            return self.field(attr)
+        else:
+            raise AttributeError
 
     def __getitem__(self, key):
         if self._coldefs is None:
