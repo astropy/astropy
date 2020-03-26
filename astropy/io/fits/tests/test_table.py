@@ -1584,12 +1584,32 @@ class TestTableFunctions(FitsTestCase):
                 np.array([False, True], dtype=bool)).all()
 
     def test_fits_rec_column_access(self):
-        t = fits.open(self.data('table.fits'))
-        tbdata = t[1].data
+        tbdata = fits.getdata(self.data('table.fits'))
         assert (tbdata.V_mag == tbdata.field('V_mag')).all()
         assert (tbdata.V_mag == tbdata['V_mag']).all()
 
-        t.close()
+        # Table with scaling (c3) and tnull (c1)
+        tbdata = fits.getdata(self.data('tb.fits'))
+        for col in ('c1', 'c2', 'c3', 'c4'):
+            data = getattr(tbdata, col)
+            assert (data == tbdata.field(col)).all()
+            assert (data == tbdata[col]).all()
+
+        # ascii table
+        tbdata = fits.getdata(self.data('ascii.fits'))
+        for col in ('a', 'b'):
+            data = getattr(tbdata, col)
+            assert (data == tbdata.field(col)).all()
+            assert (data == tbdata[col]).all()
+
+        # with VLA column
+        col1 = fits.Column(name='x', format='PI()',
+                           array=np.array([[45, 56], [11, 12, 13]],
+                                          dtype=np.object_))
+        hdu = fits.BinTableHDU.from_columns([col1])
+        assert type(hdu.data['x']) == type(hdu.data.x)  # noqa
+        assert (hdu.data['x'][0] == hdu.data.x[0]).all()
+        assert (hdu.data['x'][1] == hdu.data.x[1]).all()
 
     def test_table_with_zero_width_column(self):
         hdul = fits.open(self.data('zerowidth.fits'))
