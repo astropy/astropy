@@ -17,6 +17,7 @@ tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, char
     tokenizer->comment = comment;
     tokenizer->quotechar = quotechar;
     tokenizer->expchar = expchar;
+    tokenizer->newline = '\n';
     tokenizer->output_cols = NULL;
     tokenizer->col_ptrs = NULL;
     tokenizer->output_len = NULL;
@@ -37,6 +38,11 @@ tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, char
     // This is a bit of a hack -- buf holds an empty string to represent
     // empty field values
     tokenizer->buf = calloc(2, sizeof(char));
+
+    // By default both \n and \r are accepted as newline, unless one of
+    // them has also been specified as field delimiter
+    if (tokenizer->delimiter == '\n')
+        tokenizer->newline = '\r';
 
     return tokenizer;
 }
@@ -266,7 +272,7 @@ int skip_lines(tokenizer_t *self, int offset, int header)
 
         c = self->source[self->source_pos];
 
-        if (c == '\r' || c == '\n')
+        if ((c == '\r' || c == '\n') && c != self->delimiter)
         {
             if (c == '\r' && self->source_pos < self->source_len - 1 &&
                 self->source[self->source_pos + 1] == '\n')
@@ -309,7 +315,6 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
     char c; // Input character
     int col = 0; // Current column ignoring possibly excluded columns
     tokenizer_state old_state = START_LINE; // Last state the tokenizer was in before CR mode
-    int parse_newline = 0; // Explicit flag to treat current char as a newline
     int i = 0;
     int whitespace = 1;
     delete_data(self); // Clear old reading data
@@ -337,27 +342,25 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
     }
 
     if (end == 0)
-        RETURN(NO_ERROR); // don't read if end == 0
+        RETURN(NO_ERROR); // Don't read if end == 0
 
     self->state = START_LINE;
 
     // Loop until all of self->source has been read
     while (self->source_pos < self->source_len + 1)
     {
-        if (self->source_pos == self->source_len || parse_newline)
-            c = '\n';
+        if (self->source_pos == self->source_len)
+            c = self->newline;
         else
             c = self->source[self->source_pos];
 
-        if (c == '\r')
+        if (c == '\r' && c != self->delimiter && c != self->newline)
             c = '\n';
-
-        parse_newline = 0;
 
         switch (self->state)
         {
         case START_LINE:
-            if (c == '\n')
+            if (c == self->newline)
                 break;
             else if ((c == ' ' || c == '\t') && self->strip_whitespace_lines)
                 break;
@@ -384,7 +387,7 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
                 break;
             }
             // Handle newline characters first
-            else if (c == '\n')
+            else if (c == self->newline)
             {
                 if (self->strip_whitespace_lines)
                 {
@@ -431,7 +434,6 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
                         if (self->source_pos == tmp)
                             // No whitespace, just an empty field
                             ;
-
                         else
                             while (self->source_pos < tmp)
                             {
@@ -456,13 +458,13 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
             // such as https://github.com/astropy/astropy/issues/9922
             else if (col >= self->num_cols)
                 RETURN(TOO_MANY_COLS);
-            else if (c == self->delimiter) // field ends before it begins
+            else if (c == self->delimiter) // Field ends before it begins
             {
                 END_FIELD();
                 BEGIN_FIELD();
                 break;
             }
-            else if (c == self->quotechar) // start parsing quoted field
+            else if (c == self->quotechar) // Start parsing quoted field
             {
                 self->state = START_QUOTED_FIELD;
                 break;
@@ -472,23 +474,21 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
 
         case FIELD:
             if (self->comment != 0 && c == self->comment && whitespace && col == 0)
-            {
                 // No whitespace stripping, but the comment char is found
                 // before any data, e.g. '  # a b c'
                 self->state = COMMENT;
+            else if (c == self->delimiter && self->source_pos < self->source_len)
+            {
+                // End of field, look for new field
+                END_FIELD();
+                BEGIN_FIELD();
             }
-            else if (c == '\n')
+            else if (c == self->newline)
             {
                 // Line ending, stop parsing both field and line
                 END_FIELD();
                 END_LINE();
                 self->state = START_LINE;
-            }
-            else if (c == self->delimiter)
-            {
-                // End of field, look for new field
-                END_FIELD();
-                BEGIN_FIELD();
             }
             else
             {
@@ -532,7 +532,7 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
             // Ignore initial whitespace if strip_whitespace_lines and
             // newlines regardless
             else if (((c == ' ' || c == '\t') && self->strip_whitespace_lines)
-                     || c == '\n')
+                     || c == self->newline)
                 break;
             else if (c == self->quotechar)
             {
@@ -562,7 +562,7 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
                 // Parse rest of field normally, e.g. "ab"c
                 self->state = FIELD;
             }
-            else if (c == '\n')
+            else if (c == self->newline)
                 self->state = QUOTED_FIELD_NEWLINE;
             else
             {
@@ -577,7 +577,7 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
             break;
 
         case COMMENT:
-            if (c == '\n')
+            if (c == self->newline)
             {
                 self->state = START_LINE;
                 if (!header)
