@@ -480,21 +480,24 @@ class FITS_rec(np.recarray):
         return np.ndarray.__repr__(self)
 
     def __getattribute__(self, attr):
-        # See if ndarray has this attr, and return it if so. (note that this
-        # means a field with the same name as an ndarray attr cannot be
-        # accessed by attribute). NOTE: this is Numpy's default behavior.
+        # First, see if ndarray has this attr, and return it if so. Note that
+        # this means a field with the same name as an ndarray attr cannot be
+        # accessed by attribute, this is Numpy's default behavior.
+        # We avoid using np.recarray.__getattribute__ here because after doing
+        # this check it would access the columns without doing the conversions
+        # that we need (with .field, see below).
         try:
             return object.__getattribute__(self, attr)
-        except AttributeError:  # attr must be a fieldname
+        except AttributeError:
             pass
 
-        if self._coldefs is None:
-            return super().__getattribute__(attr)
-
-        if attr in self.columns.names:
+        # attr might still be a fieldname.  If we have column definitions,
+        # we should access this via .field, as the data may have to be scaled.
+        if self._coldefs is not None and attr in self.columns.names:
             return self.field(attr)
-        else:
-            raise AttributeError
+
+        # If not, just let the usual np.recarray override deal with it.
+        return super().__getattribute__(attr)
 
     def __getitem__(self, key):
         if self._coldefs is None:
