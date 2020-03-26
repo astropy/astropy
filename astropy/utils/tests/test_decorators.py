@@ -477,7 +477,15 @@ def test_deprecated_argument_remove():
         assert test(x=1, dummy=10) == (10, 1)
         assert len(w) == 1
 
-    assert test() == (11, 3)
+    with pytest.warns(AstropyDeprecationWarning,
+                      match=r'Use astropy.y instead'):
+        test(121, 1) == (121, 1)
+
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        assert test() == (11, 3)
+        assert test(121) == (121, 3)
+        assert test(dummy=121) == (121, 3)
+        assert len(w) == 0
 
 
 def test_sharedmethod_reuse_on_subclasses():
