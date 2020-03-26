@@ -50,6 +50,7 @@ cdef extern from "src/tokenizer.h":
         char comment           # comment character
         char quotechar         # quote character
         char expchar           # exponential character in scientific notation
+        char newline           # EOL character
         char **output_cols     # array of output strings for each column
         char **col_ptrs        # array of pointers to current output position for each col
         int *output_len        # length of each output column string
@@ -255,7 +256,7 @@ cdef class CParser:
 
     def __dealloc__(self):
         if self.tokenizer:
-            delete_tokenizer(self.tokenizer) # perform C memory cleanup
+            delete_tokenizer(self.tokenizer)  # perform C memory cleanup
 
     cdef get_error(self, code, num_rows, msg):
         err_msg = ERR_CODES.get(code, "unknown error")
@@ -272,7 +273,7 @@ cdef class CParser:
     cpdef setup_tokenizer(self, source):
         cdef FileString fstring
 
-        if isinstance(source, str): # filename or data
+        if isinstance(source, str):  # filename or data
             if '\n' not in source and '\r' not in source: # filename
                 fstring = FileString(source)
                 self.tokenizer.source = <char *>fstring.mmap_ptr
@@ -281,7 +282,7 @@ cdef class CParser:
                 self.tokenizer.source_len = <size_t>len(fstring)
                 return
             # Otherwise, source is the actual data so we leave it be
-        elif hasattr(source, 'read'): # file-like object
+        elif hasattr(source, 'read'):  # file-like object
             with get_readable_fileobj(source) as file_obj:
                 source = file_obj.read()
         elif isinstance(source, FileString):
@@ -290,8 +291,13 @@ cdef class CParser:
             self.tokenizer.source_len = <size_t>len(source)
             return
         else:
+            # Iterable sequence of lines, merge with newline character
             try:
-                source = '\n'.join(source) # iterable sequence of lines
+                if self.tokenizer.delimiter == ord('\n'):
+                    newline = '\r'
+                else:
+                    newline = '\n'
+                source = newline.join(source)
             except TypeError:
                 raise TypeError('Input "table" must be a file-like object, a '
                                 'string (filename or data), or an iterable')

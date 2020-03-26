@@ -1484,19 +1484,39 @@ def test_conversion_fast(fast_reader):
 
 
 @pytest.mark.parametrize('delimiter', ['\n', '\r'])
-@pytest.mark.parametrize('fast_reader', [False,
-                                         dict(parallel=True),
-                                         dict(parallel=False)])
+@pytest.mark.parametrize('fast_reader', [False, True, 'force'])
 def test_newline_as_delimiter(delimiter, fast_reader):
     """
-    Check that with delimiter set to a newline character, lines are still
-    correctly split along newlines. Tests the fix for #9928.
+    Check that newline characters are correctly handled as delimiters.
+    Tests the fix for #9928.
     """
-    text = "a  b c \n 1 '2'  3\r 4   5 6\r\n7  8 9 "
+    if delimiter == '\r':
+        eol = '\n'
+    else:
+        eol = '\r'
 
-    t0 = ascii.read(text, delimiter='|', fast_reader=False)
-    t1 = ascii.read(text, delimiter=delimiter, fast_reader=fast_reader)
-    assert t1.colnames == ['a  b c']
-    assert len(t1) == 3
-    assert t1['a  b c'].dtype.kind in ('S', 'U')
+    inp0 = ["a  | b | c ", " 1 | '2' | 3.00000 "]
+    inp1 = "a {0:s} b {0:s}c{1:s} 1 {0:s}'2'{0:s} 3.0".format(delimiter, eol)
+    inp2 = [f"a {delimiter} b{delimiter} c",
+            f"1{delimiter} '2' {delimiter} 3.0"]
+
+    t0 = ascii.read(inp0, delimiter='|', fast_reader=fast_reader)
+    t1 = ascii.read(inp1, delimiter=delimiter, fast_reader=fast_reader)
+    t2 = ascii.read(inp2, delimiter=delimiter, fast_reader=fast_reader)
+
+    assert t1.colnames == t2.colnames == ['a', 'b', 'c']
+    assert len(t1) == len(t2) == 1
+    assert t1['b'].dtype.kind in ('S', 'U')
+    assert t2['b'].dtype.kind in ('S', 'U')
     assert_table_equal(t1, t0)
+    assert_table_equal(t2, t0)
+
+    inp0 = 'a {0:s} b {0:s} c{1:s} 1 {0:s}"2"{0:s} 3.0'.format('|', eol)
+    inp1 = 'a {0:s} b {0:s} c{1:s} 1 {0:s}"2"{0:s} 3.0'.format(delimiter, eol)
+
+    t0 = ascii.read(inp0, delimiter='|', fast_reader=fast_reader)
+    t1 = ascii.read(inp1, delimiter=delimiter, fast_reader=fast_reader)
+
+    if not fast_reader:
+        pytest.xfail("Quoted fields are not parsed correctly by BaseSplitter")
+    assert_equal(t1['b'].dtype.kind, 'i')
