@@ -405,6 +405,10 @@ astropy.io.fits
 - Prevent instantiation of ``PrimaryHDU`` and ``ImageHDU`` with a scalar.
   [#10041]
 
+- Fix column access by attribute with FITS_rec: columns with scaling or columns
+  from ASCII tables where not properly converted when accessed by attribute
+  name. [#10069]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
