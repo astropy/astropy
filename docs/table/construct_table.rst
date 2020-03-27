@@ -16,14 +16,14 @@ Examples
 Much of the flexibility lies in the types of data structures
 which can be used to initialize the table data. The examples below show how to
 create a table from scratch with no initial data, as well as create a table
-with a list of columns, a dictionary of columns, or from `NumPy` arrays (either
-structured or homogeneous).
+with a list of columns, a dictionary of columns, or from ``numpy`` arrays
+(either structured or homogeneous).
 
 Setup
 -----
 
 For the following examples you need to import the |QTable|, |Table|, and
-|Column| classes along with the :ref:`astropy-units` package and the `NumPy`
+|Column| classes along with the :ref:`astropy-units` package and the ``numpy``
 package::
 
   >>> from astropy.table import QTable, Table, Column
