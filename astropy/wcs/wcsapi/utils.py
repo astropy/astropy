@@ -47,8 +47,6 @@ def wcs_info_str(wcs):
     pixel_nam_width = max(9, max(len(x) for x in wcs.pixel_axis_names))
     pixel_siz_width = max(9, len(str(max(array_shape))))
 
-    print(pixel_nam_width)
-
     s += (('{0:' + str(pixel_dim_width) + 's}').format('Pixel Dim') + '  ' +
             ('{0:' + str(pixel_nam_width) + 's}').format('Axis Name') + '  ' +
             ('{0:' + str(pixel_siz_width) + 's}').format('Data size') + '  ' +
