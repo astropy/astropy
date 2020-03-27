@@ -1073,13 +1073,11 @@ class TestHDUListFunctions(FitsTestCase):
         with pytest.raises(VerifyError):
             with fits.open(self.temp('test2.fits'), mode='update') as hdul:
                 hdul[0].header['MORE'] = 'here'
-                hdul.flush(output_verify='ignore')
 
         with pytest.warns(VerifyWarning) as ww:
             with fits.open(self.temp('test2.fits'), mode='update',
                            output_verify='fix+warn') as hdul:
                 hdul[0].header['MORE'] = 'here'
-                hdul.flush(output_verify='ignore')
-        assert len(ww) == 9
-        assert str(ww[1].message).startswith(
-            "Card 'FOOBAR ' is not FITS standard (equal sign not at column 8)")
+        assert len(ww) == 6
+        msg = "Card 'FOOBAR ' is not FITS standard (equal sign not at column 8)"
+        assert msg in str(ww[3].message)
