@@ -78,7 +78,7 @@ List of Columns
 .. EXAMPLE START: Creating an Astropy Table from a List of Columns
 
 A typical case is where you have a number of data columns with the same length
-defined in different variables. These might be Python lists or `NumPy` arrays
+defined in different variables. These might be Python lists or ``numpy`` arrays
 or a mix of the two. These can be used to create a |Table| by putting the column
 data variables into a Python list. In this case the column names are not
 defined by the input data, so they must either be set using the ``names``
@@ -115,7 +115,7 @@ and putting this into a Python list (e.g., ``[ t['c'], t['a'] ]``)::
 
 **Make a new table using expressions involving columns**
 
-The |Column| object is derived from the standard `NumPy` array and can be used
+The |Column| object is derived from the standard ``numpy`` array and can be used
 directly in arithmetic expressions. This allows for a compact way of making a
 new table with modified column values::
 
@@ -296,7 +296,7 @@ the difference between a scalar ``1`` (length 0) and an array such as
 NumPy Structured Array
 ----------------------
 
-The structured array is the standard mechanism in `NumPy` for storing
+The structured array is the standard mechanism in ```numpy``` for storing
 heterogeneous table data. Most scientific I/O packages that read table
 files (e.g., `astropy.io.fits`, `astropy.io.votable`, and `asciitable
 <http://cxc.harvard.edu/contrib/asciitable/>`_) will return the table in an
@@ -364,7 +364,7 @@ The data type for each column can likewise be changed with ``dtype``::
 NumPy Homogeneous Array
 -----------------------
 
-A `NumPy` 1D array is treated as a single row table where each element of the
+A ```numpy``` 1D array is treated as a single row table where each element of the
 array corresponds to a column::
 
   >>> Table(np.array([1, 2, 3]), names=['a', 'b', 'c'], dtype=('i8', 'i8', 'i8'))
@@ -374,7 +374,7 @@ array corresponds to a column::
   ----- ----- -----
       1     2     3
 
-A `NumPy` 2D array (where all elements have the same type) can also be
+A ```numpy``` 2D array (where all elements have the same type) can also be
 converted into a |Table|. In this case the column names are not specified by
 the data and must either be provided by the user or will be automatically
 generated as ``col<N>`` where ``<N>`` is the column number.
@@ -410,12 +410,12 @@ as the data types are not changed::
 
   >>> t = Table(arr, copy=False)
 
-**Python arrays versus `NumPy` arrays as input**
+**Python arrays versus ```numpy``` arrays as input**
 
 There is a slightly subtle issue that is important to understand about the way
 that |Table| objects are created. Any data input that looks like a Python list
 (including a tuple) is considered to be a list of columns. In contrast, a
-homogeneous `NumPy` array input is interpreted as a list of rows::
+homogeneous ```numpy``` array input is interpreted as a list of rows::
 
   >>> arr = [[1, 2, 3],
   ...        [4, 5, 6]]
@@ -435,7 +435,7 @@ homogeneous `NumPy` array input is interpreted as a list of rows::
      4    5    6
 
 This dichotomy is needed to support flexible list input while retaining the
-natural interpretation of 2D `NumPy` arrays where the first index corresponds
+natural interpretation of 2D ```numpy``` arrays where the first index corresponds
 to data "rows" and the second index corresponds to data "columns."
 
 From an Existing Table
