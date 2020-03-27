@@ -27,7 +27,7 @@ To demonstrate, we can create a minimal table::
     >>> t['a'] = [1, 2, 3, 4]
     >>> t['b'] = ['a', 'b', 'c', 'd']
 
-Which we can then convert to a pandas `DataFrame`_::
+Which we can then convert to a ``pandas`` `DataFrame`_::
 
     >>> df = t.to_pandas()
     >>> df
@@ -54,9 +54,9 @@ It is also possible to create a table from a `DataFrame`_::
 
 .. EXAMPLE END
 
-The conversions to and from pandas are subject to the following caveats:
+The conversions to and from ``pandas`` are subject to the following caveats:
 
-* The pandas `DataFrame`_ structure does not support multidimensional
+* The ``pandas`` `DataFrame`_ structure does not support multidimensional
   columns, so :class:`~astropy.table.Table` objects with multidimensional
   columns cannot be converted to `DataFrame`_.
 
