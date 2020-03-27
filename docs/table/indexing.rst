@@ -4,7 +4,7 @@
 
 .. _table-indexing:
 
-Table indexing
+Table Indexing
 **************
 
 Once a |Table| has been created, it is possible to create indexes on one or
@@ -12,8 +12,10 @@ more columns of the table. An index internally sorts the rows of a table based
 on the index column(s), allowing for element retrieval by column value and
 improved performance for certain table operations.
 
-Creating an index
+Creating an Index
 =================
+
+.. EXAMPLE START: Creating Indexes on Table Columns
 
 To create an index on a table, use the |add_index| method::
 
@@ -21,7 +23,7 @@ To create an index on a table, use the |add_index| method::
    >>> t = Table([(2, 3, 2, 1), (8, 7, 6, 5)], names=('a', 'b'))
    >>> t.add_index('a')
 
-The optional argument "unique" may be specified to create an index with
+The optional argument ``unique`` may be specified to create an index with
 uniquely valued elements.
 
 To create a composite index on multiple columns, pass a list of columns
@@ -30,8 +32,9 @@ instead::
    >>> t.add_index(['a', 'b'])
 
 In particular, the first index created using the
-|add_index| method is considered the default index or the "primary key". To
-retrieve an index from a table, use the `~astropy.table.Table.indices` property::
+|add_index| method is considered the default index or the "primary key." To
+retrieve an index from a table, use the `~astropy.table.Table.indices`
+property::
 
    >>> t.indices['a']
     a  rows
@@ -48,14 +51,18 @@ retrieve an index from a table, use the `~astropy.table.Table.indices` property:
      2   8    0
      3   7    1
 
+.. EXAMPLE END
 
-
-Row retrieval using indices
+Row Retrieval using Indices
 ===========================
 
-Row retrieval can be accomplished using two table properties: `~astropy.table.Table.loc` and
-`~astropy.table.Table.iloc`. The `~astropy.table.Table.loc` property can be indexed either by column value, range of
-column values (*including* the bounds), or a list or ndarray of column values::
+.. EXAMPLE START: Retrieving Table Rows using Indices
+
+Row retrieval can be accomplished using two table properties:
+`~astropy.table.Table.loc` and `~astropy.table.Table.iloc`. The
+`~astropy.table.Table.loc` property can be indexed either by column value, range
+of column values (*including* the bounds), or a list or ndarray of column
+values::
 
    >>> t = Table([(1, 2, 3, 4), (10, 1, 9, 9)], names=('a', 'b'), dtype=['i8', 'i8'])
    >>> t.add_index('a')
@@ -90,10 +97,9 @@ column values (*including* the bounds), or a list or ndarray of column values::
        3     9
        4     9
 
-
-Note that by default, `~astropy.table.Table.loc` uses the primary index, which here is column
-'a'. To use a different index, pass the indexed column name before the
-retrieval data::
+Note that by default, `~astropy.table.Table.loc` uses the primary index, which
+here is column 'a'. To use a different index, pass the indexed column name
+before the retrieval data::
 
    >>> t.add_index('b')
    >>> t.loc['b', 8:10]
@@ -105,9 +111,9 @@ retrieval data::
        4     9
        1    10
 
-The property `~astropy.table.Table.iloc` works similarly, except that the retrieval information must
-be either an int or a slice, and relates to the sorted order of the index
-rather than column values. For example::
+The property `~astropy.table.Table.iloc` works similarly, except that the
+retrieval information must be either an integer or a slice, and relates to the
+sorted order of the index rather than column values. For example::
 
    >>> t.iloc[0] # smallest row by value 'a'
    <Row index=0>
@@ -124,31 +130,40 @@ rather than column values. For example::
        4     9
        1    10
 
-Effects on performance
+.. EXAMPLE END
+
+Effects on Performance
 ======================
+
 Table operations change somewhat when indices are present, and there are a
 number of factors to consider when deciding whether the use of indices will
 improve performance. In general, indexing offers the following advantages:
 
-* Table grouping and sorting based on indexed column(s) become faster
-* Retrieving values by index is faster than custom searching
+* Table grouping and sorting based on indexed column(s) both become faster.
+* Retrieving values by index is faster than custom searching.
 
 There are certain caveats, however:
 
-* Creating an index requires time and memory
-* Table modifications become slower due to automatic index updates
-* Slicing a table becomes slower due to index relabeling
+* Creating an index requires time and memory.
+* Table modifications become slower due to automatic index updates.
+* Slicing a table becomes slower due to index relabeling.
 
-See `here <https://nbviewer.jupyter.org/github/mdmueller/astropy-notebooks/blob/master/table/indexing-profiling.ipynb>`_ for an IPython notebook profiling various aspects of table indexing.
+See `here
+<https://nbviewer.jupyter.org/github/mdmueller/astropy-notebooks/blob/master/table/indexing-profiling.ipynb>`_
+for an IPython notebook profiling various aspects of table indexing.
 
-Index modes
+Index Modes
 ===========
+
 The |index_mode| method allows for some flexibility in the behavior of table
-indexing by allowing the user to enter a specific indexing mode via a context manager. There are
-currently three indexing modes: *freeze*, *copy_on_getitem*, and
-*discard_on_copy*. The *freeze* mode prevents automatic index updates whenever
-a column of the index is modified, and all indices refresh themselves after the
-context ends::
+indexing by allowing the user to enter a specific indexing mode via a context
+manager. There are currently three indexing modes: ``freeze``,
+``copy_on_getitem``, and ``discard_on_copy``.
+
+.. EXAMPLE START: Table Indexing with the "freeze" Index Mode
+
+The ``freeze`` mode prevents automatic index updates whenever a column of the
+index is modified, and all indices refresh themselves after the context ends::
 
   >>> with t.index_mode('freeze'):
   ...    t['a'][0] = 0
@@ -167,8 +182,12 @@ context ends::
     3    2
     4    3
 
-The *copy_on_getitem* mode forces columns to copy and relabel their indices upon
-slicing. In the absence of this mode, table slices will preserve
+.. EXAMPLE END
+
+.. EXAMPLE START: Table Indexing with the "copy_on_getitem" Index Mode
+
+The ``copy_on_getitem`` mode forces columns to copy and relabel their indices
+upon slicing. In the absence of this mode, table slices will preserve
 indices while column slices will not::
 
   >>> ca = t['a'][[1, 3]]
@@ -182,8 +201,12 @@ indices while column slices will not::
     2    0
     4    1]
 
-The *discard_on_copy* mode prevents indices from being copied whenever a column
-or table is copied::
+.. EXAMPLE END
+
+.. EXAMPLE START: Table Indexing with the "discard_on_copy" Index Mode
+
+The ``discard_on_copy`` mode prevents indices from being copied whenever a
+column or table is copied::
 
   >>> t2 = Table(t)
   >>> t2.indices['a']
@@ -205,10 +228,15 @@ or table is copied::
   ...    print(t2.indices)
   []
 
-Updating row using indices
-==========================
+.. EXAMPLE END
 
-Row updates can be accomplished by assigning the table property: `~astropy.table.Table.loc` a complete row or a list of rows::
+Updating Rows using Indices
+===========================
+
+.. EXAMPLE START: Updating Table Rows using Indices
+
+Row updates can be accomplished by assigning the table property
+`~astropy.table.Table.loc` a complete row or a list of rows::
 
    >>> t = Table([('w', 'x', 'y', 'z'), (10, 1, 9, 9)], names=('a', 'b'), dtype=['str', 'i8'])
    >>> t.add_index('a')
@@ -246,34 +274,42 @@ Row updates can be accomplished by assigning the table property: `~astropy.table
       y     9
       c    56
 
-Retrieving the location of rows using indices
+.. EXAMPLE END
+
+Retrieving the Location of Rows using Indices
 =============================================
 
-Retrieval of the location of rows can be accomplished using a table property: `~astropy.table.Table.loc_indices`.
-The `~astropy.table.Table.loc_indices` property can be indexed either by column value, range of
-column values (*including* the bounds), or a list or ndarray of column values::
+.. EXAMPLE START: Retrieving the Location of Table Rows using Indices
+
+Retrieval of the location of rows can be accomplished using a table property:
+`~astropy.table.Table.loc_indices`. The `~astropy.table.Table.loc_indices`
+property can be indexed either by column value, range of column values
+(*including* the bounds), or a list or ndarray of column values::
 
    >>> t = Table([('w', 'x', 'y', 'z'), (10, 1, 9, 9)], names=('a', 'b'), dtype=['str', 'i8'])
    >>> t.add_index('a')
    >>> t.loc_indices['x']
    1
 
+.. EXAMPLE END
+
 Engines
 =======
-When creating an index via |add_index|, the keyword argument "engine" may be
-specified to use a particular indexing engine. The available engines are
+
+When creating an index via |add_index|, the keyword argument ``engine`` may be
+specified to use a particular indexing engine. The available engines are:
 
 * `~astropy.table.SortedArray`, a sorted array engine using an underlying
-  sorted Table
+  sorted ``Table``.
 * `~astropy.table.SCEngine`, a sorted list engine using the `Sorted Containers
-  <https://pypi.org/project/sortedcontainers/>`_ package
-* `~astropy.table.FastRBT`, a C-based red-black tree engine
-* `~astropy.table.FastBST`, a C-based binary search tree engine
-* `~astropy.table.BST`, a Python-based binary search tree engine
+  <https://pypi.org/project/sortedcontainers/>`_ package.
+* `~astropy.table.FastRBT`, a C-based red-black tree engine.
+* `~astropy.table.FastBST`, a C-based binary search tree engine.
+* `~astropy.table.BST`, a Python-based binary search tree engine.
 
-Note that FastRBT and FastBST depend on the bintrees dependency; without this
+Note that FastRBT and FastBST rely on the bintrees dependency; without this
 dependency, both classes default to `~astropy.table.BST`. The SCEngine depends
-on the sortedcontainers dependency. Probably
-the most important takeaway is that `~astropy.table.SortedArray` (the default
-engine) is usually best, although `~astropy.table.SCEngine` may be more
-appropriate for an index created on an empty column since adding new values is quicker.
+on the ``sortedcontainers`` dependency. The most important takeaway is that
+`~astropy.table.SortedArray` (the default engine) is usually best, although
+`~astropy.table.SCEngine` may be more appropriate for an index created on an
+empty column since adding new values is quicker.

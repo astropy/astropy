@@ -3,11 +3,11 @@
 
 .. _table_operations:
 
-Table operations
-*****************
+Table Operations
+****************
 
-In this section we describe higher-level operations that can be used to generate a new
-table from one or more input tables.  This includes:
+In this section we describe high-level operations that can be used to generate
+a new table from one or more input tables. This includes:
 
 =======================
 
@@ -46,12 +46,14 @@ table from one or more input tables.  This includes:
 
 .. _grouped-operations:
 
-Grouped operations
+Grouped Operations
 ------------------
 
-Sometimes in a table or table column there are natural groups within the dataset for which
-it makes sense to compute some derived values.  A simple example is a list of objects with
-photometry from various observing runs::
+.. EXAMPLE START: Grouped Operations in Tables
+
+Sometimes in a table or table column there are natural groups within the dataset
+for which it makes sense to compute some derived values. A minimal example is a
+list of objects with photometry from various observing runs::
 
   >>> from astropy.table import Table
   >>> obs = Table.read("""name    obs_date    mag_b  mag_v
@@ -67,13 +69,15 @@ photometry from various observing runs::
   ...                     M101    2012-03-26  14.8   14.3
   ...                     """, format='ascii')
 
-Table groups
-^^^^^^^^^^^^^^
+.. EXAMPLE END
 
-Now suppose we want the mean magnitudes for each object.  We first group the data by the
-``name`` column with the :func:`~astropy.table.Table.group_by` method.  This returns
-a new table sorted by ``name`` which has a ``groups`` property specifying the unique
-values of ``name`` and the corresponding table rows::
+Table Groups
+^^^^^^^^^^^^
+
+Now suppose we want the mean magnitudes for each object. We first group the data
+by the ``name`` column with the :func:`~astropy.table.Table.group_by` method.
+This returns a new table sorted by ``name`` which has a ``groups`` property
+specifying the unique values of ``name`` and the corresponding table rows::
 
   >>> obs_by_name = obs.group_by('name')
   >>> print(obs_by_name)  # doctest: +SKIP
@@ -99,10 +103,11 @@ values of ``name`` and the corresponding table rows::
   >>> print(obs_by_name.groups.indices)
   [ 0  4  7 10]
 
-The ``groups`` property is the portal to all grouped operations with tables and columns.
-It defines how the table is grouped via an array of the unique row key values and the
-indices of the group boundaries for those key values.  The groups here correspond to the
-row slices ``0:4``, ``4:7``, and ``7:10`` in the ``obs_by_name`` table.
+The ``groups`` property is the portal to all grouped operations with tables and
+columns. It defines how the table is grouped via an array of the unique row key
+values and the indices of the group boundaries for those key values. The groups
+here correspond to the row slices ``0:4``, ``4:7``, and ``7:10`` in the
+``obs_by_name`` table.
 
 The initial argument (``keys``) for the `~astropy.table.Table.group_by` function
 can take a number of input data types:
@@ -110,15 +115,16 @@ can take a number of input data types:
 - Single string value with a table column name (as shown above)
 - List of string values with table column names
 - Another |Table| or |Column| with same length as table
-- Numpy structured array with same length as table
-- Numpy homogeneous array with same length as table
+- ``numpy`` structured array with same length as table
+- ``numpy`` homogeneous array with same length as table
 
-In all cases the corresponding row elements are considered as a tuple of values which
-form a key value that is used to sort the original table and generate
-the required groups.
+In all cases the corresponding row elements are considered as a tuple of values
+which form a key value that is used to sort the original table and generate the
+required groups.
 
 As an example, to get the average magnitudes for each object on each observing
-night, we would first group the table on both ``name`` and ``obs_date`` as follows::
+night, we would first group the table on both ``name`` and ``obs_date`` as
+follows::
 
   >>> print(obs.group_by(['name', 'obs_date']).groups.keys)
   name  obs_date
@@ -132,13 +138,15 @@ night, we would first group the table on both ``name`` and ``obs_date`` as follo
    M82 2012-03-26
 
 
-Manipulating groups
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Manipulating Groups
+^^^^^^^^^^^^^^^^^^^
 
-Once you have applied grouping to a table then you can easily access the individual
-groups or subsets of groups.  In all cases this returns a new grouped table.
-For instance to get the sub-table which corresponds to the second group (index=1)
-do::
+.. EXAMPLE START: Manipulating Groups in Tables
+
+Once you have applied grouping to a table then you can access the individual
+groups or subsets of groups. In all cases this returns a new grouped table.
+For instance, to get the subtable which corresponds to the second group
+(index=1) do::
 
   >>> print(obs_by_name.groups[1])
   name  obs_date  mag_b mag_v
@@ -166,8 +174,8 @@ To get the first and second groups together use a slice::
   M101
    M31
 
-You can also supply a numpy array of indices or a boolean mask to select particular
-groups, e.g.::
+You can also supply a ``numpy`` array of indices or a boolean mask to select
+particular groups, for example::
 
   >>> mask = obs_by_name.groups.keys['name'] == 'M101'
   >>> print(obs_by_name.groups[mask])
@@ -178,7 +186,7 @@ groups, e.g.::
   M101 2012-03-26  15.1  13.5
   M101 2012-03-26  14.8  14.3
 
-One can iterate over the group sub-tables and corresponding keys with::
+You can iterate over the group subtables and corresponding keys with::
 
   >>> for key, group in zip(obs_by_name.groups.keys, obs_by_name.groups):
   ...     print('****** {0} *******'.format(key['name']))
@@ -205,19 +213,26 @@ One can iterate over the group sub-tables and corresponding keys with::
    M82 2012-02-14  15.2  15.5
    M82 2012-03-26  15.7  16.5
 
+.. EXAMPLE END
+
 Column Groups
-^^^^^^^^^^^^^^
+^^^^^^^^^^^^^
 
 Like |Table| objects, |Column| objects can also be grouped for subsequent
-manipulation with grouped operations.  This can apply both to columns within a
+manipulation with grouped operations. This can apply both to columns within a
 |Table| or bare |Column| objects.
 
 As for |Table|, the grouping is generated with the
-`~astropy.table.Table.group_by` method.  The difference here is that
+`~astropy.table.Table.group_by` method. The difference here is that
 there is no option of providing one or more column names since that
-doesn't make sense for a |Column|.
+does not make sense for a |Column|.
 
-Examples::
+Examples
+~~~~~~~~
+
+.. EXAMPLE START: Grouping Column Objects in Tables
+
+To generate grouping in columns::
 
   >>> from astropy.table import Column
   >>> import numpy as np
@@ -246,18 +261,18 @@ Examples::
     5
     6
 
+.. EXAMPLE END
 
 Aggregation
-^^^^^^^^^^^^^^
+^^^^^^^^^^^
 
-Aggregation is the process of applying a
-specified reduction function to the values within each group for each
-non-key column.  This function must accept a numpy array as the first
-argument and return a single scalar value.  Common function examples are
-`numpy.sum`, `numpy.mean`, and `numpy.std`.
+Aggregation is the process of applying a specified reduction function to the
+values within each group for each non-key column. This function must accept a
+``numpy`` array as the first argument and return a single scalar value. Common
+function examples are `numpy.sum`, `numpy.mean`, and `numpy.std`.
 
-For the example grouped table ``obs_by_name`` from above we compute the group means with
-the `~astropy.table.groups.TableGroups.aggregate` method::
+For the example grouped table ``obs_by_name`` from above, we compute the group
+means with the `~astropy.table.groups.TableGroups.aggregate` method::
 
   >>> obs_mean = obs_by_name.groups.aggregate(np.mean)  # doctest: +SKIP
   WARNING: Cannot aggregate column 'obs_date' [astropy.table.groups]
@@ -269,13 +284,14 @@ the `~astropy.table.groups.TableGroups.aggregate` method::
    M82  15.7   15.5
 
 It seems the magnitude values were successfully averaged, but what
-about the WARNING?  Since the ``obs_date`` column is a string-type
+about the WARNING? Since the ``obs_date`` column is a string-type
 array, the `numpy.mean` function failed and raised an exception.
 Any time this happens then `~astropy.table.groups.TableGroups.aggregate`
-will issue a warning and then
-drop that column from the output result.  Note that the ``name``
-column is one of the ``keys`` used to determine the grouping so
-it is automatically ignored from aggregation.
+will issue a warning and then drop that column from the output result. Note
+that the ``name`` column is one of the ``keys`` used to determine the grouping
+so it is automatically ignored from aggregation.
+
+.. EXAMPLE START: Performing Aggregation on Grouped Tables
 
 From a grouped table it is possible to select one or more columns on which
 to perform the aggregation::
@@ -308,38 +324,73 @@ A single column of data can be aggregated as well::
   Sum for foo = 8
   Sum for qux = 11
 
-If the specified function has a `numpy.ufunc.reduceat` method, this will be called instead.
-This can improve the performance by a factor of 10 to 100 (or more) for large unmasked
-tables or columns with many relatively small groups.  It also allows for the use of
-certain numpy functions which normally take more than one input array but also work as
-reduction functions, like `numpy.add`.  The numpy functions which should take advantage of
-using `numpy.ufunc.reduceat` include:
+.. EXAMPLE END
 
-`numpy.add`, `numpy.arctan2`, `numpy.bitwise_and`, `numpy.bitwise_or`, `numpy.bitwise_xor`,
-`numpy.copysign`, `numpy.divide`, `numpy.equal`, `numpy.floor_divide`, `numpy.fmax`,
-`numpy.fmin`, `numpy.fmod`, `numpy.greater_equal`, `numpy.greater`, `numpy.hypot`,
-`numpy.left_shift`, `numpy.less_equal`, `numpy.less`, `numpy.logaddexp2`,
-`numpy.logaddexp`, `numpy.logical_and`, `numpy.logical_or`, `numpy.logical_xor`,
-`numpy.maximum`, `numpy.minimum`, `numpy.mod`, `numpy.multiply`, `numpy.not_equal`,
-`numpy.power`, `numpy.remainder`, `numpy.right_shift`, `numpy.subtract` and `numpy.true_divide`.
+If the specified function has a `numpy.ufunc.reduceat` method, this will be
+called instead. This can improve the performance by a factor of 10 to 100 (or
+more) for large unmasked tables or columns with many relatively small groups.
+It also allows for the use of certain ```numpy`` functions which normally take
+more than one input array but also work as reduction functions, like
+`numpy.add`.  The ``numpy`` functions which should take advantage of using
+`numpy.ufunc.reduceat` include:
 
-As special cases `numpy.sum` and `numpy.mean` are substituted with their
-respective reduceat methods.
+- `numpy.add`
+- `numpy.arctan2`
+- `numpy.bitwise_and`
+- `numpy.bitwise_or`
+- `numpy.bitwise_xor`
+- `numpy.copysign`
+- `numpy.divide`
+- `numpy.equal`
+- `numpy.floor_divide`
+- `numpy.fmax`
+- `numpy.fmin`
+- `numpy.fmod`
+- `numpy.greater_equal`
+- `numpy.greater`
+- `numpy.hypot`
+- `numpy.left_shift`
+- `numpy.less_equal`
+- `numpy.less`
+- `numpy.logaddexp2`
+- `numpy.logaddexp`
+- `numpy.logical_and`
+- `numpy.logical_or`
+- `numpy.logical_xor`
+- `numpy.maximum`
+- `numpy.minimum`
+- `numpy.mod`
+- `numpy.multiply`
+- `numpy.not_equal`
+- `numpy.power`
+- `numpy.remainder`
+- `numpy.right_shift`
+- `numpy.subtract`
+- `numpy.true_divide`
 
+In special cases, `numpy.sum` and `numpy.mean` are substituted with their
+respective ``reduceat`` methods.
 
 Filtering
-^^^^^^^^^^
+^^^^^^^^^
 
 Table groups can be filtered by means of the
-`~astropy.table.groups.TableGroups.filter` method.  This is done by
-supplying a function which is called for each group.  The function
+`~astropy.table.groups.TableGroups.filter` method. This is done by
+supplying a function which is called for each group. The function
 which is passed to this method must accept two arguments:
 
 - ``table`` : |Table| object
 - ``key_colnames`` : list of columns in ``table`` used as keys for grouping
 
-It must then return either `True` or `False`.  As an example, the following
-will select all table groups with only positive values in the non-key columns::
+It must then return either `True` or `False`.
+
+Example
+~~~~~~~
+
+.. EXAMPLE START: Filtering Table Groups
+
+The following will select all table groups with only positive values in the non-
+key columns::
 
   >>> def all_positive(table, key_colnames):
   ...     colnames = [name for name in table.colnames if name not in key_colnames]
@@ -375,18 +426,20 @@ An example of using this function is::
   --- --- ---
     0 0.0   4
 
-As can be seen only the groups with ``a == -2`` and ``a == 0`` have all positive values
-in the non-key columns, so those are the ones that are selected.
+As can be seen only the groups with ``a == -2`` and ``a == 0`` have all
+positive values in the non-key columns, so those are the ones that are selected.
 
 Likewise a grouped column can be filtered with the
-`~astropy.table.groups.ColumnGroups.filter`, method but in this case the filtering
-function takes only a single argument which is the column group.  It still must return
-either `True` or `False`.  For example::
+`~astropy.table.groups.ColumnGroups.filter`, method but in this case the
+filtering function takes only a single argument which is the column group. It
+still must return either `True` or `False`. For example::
 
   def all_positive(column):
       if np.any(column < 0):
           return False
       return True
+
+.. EXAMPLE END
 
 .. _table_binning:
 
@@ -403,15 +456,22 @@ Examples:
 - Unevenly sampled historical data which should binned to
   four points per year.
 
-All of these examples of binning a table can be easily accomplished using
-`grouped operations`_.  The examples in that section are focused on the
-case of discrete key values such as the name of a source.  In this
-section we show a simple yet powerful way of applying grouped operations to
-accomplish binning on key values such as time, phase or row number.
+All of these examples of binning a table can be accomplished using
+`grouped operations`_. The examples in that section are focused on the
+case of discrete key values such as the name of a source. In this
+section we show a concise yet powerful way of applying grouped operations to
+accomplish binning on key values such as time, phase, or row number.
 
-The common theme in all these cases is to convert the key value array into
+The common theme in all of these cases is to convert the key value array into
 a new float- or int-valued array whose values are identical for rows in the same
-output bin.  As an example, generate a fake light curve::
+output bin.
+
+Example
+^^^^^^^
+
+.. EXAMPLE START: Binning a Table using Grouped Operations
+
+As an example, we generate a fake light curve::
 
   >>> year = np.linspace(2000.0, 2010.0, 200)  # 200 observations over 10 years
   >>> period = 1.811
@@ -420,39 +480,48 @@ output bin.  As an example, generate a fake light curve::
   >>> phase = ((year - y0) / period) % 1.0
   >>> dat = Table([year, phase, mag], names=['year', 'phase', 'mag'])
 
-Now make an array that will be used for binning the data by 0.25 year
+Now we make an array that will be used for binning the data by 0.25 year
 intervals::
 
   >>> year_bin = np.trunc(year / 0.25)
 
-This has the property that all samples in each 0.25 year bin have the same
-value of ``year_bin``.  Think of ``year_bin`` as the bin number for ``year``.
-Then do the binning by grouping and immediately aggregating with ``np.mean``.
+This has the property that all samples in each 0.25 year bin have, which is the
+same value of ``year_bin``. Think of ``year_bin`` as the bin number for
+``year``. Then do the binning by grouping and immediately aggregating with
+``np.mean``.
 
   >>> dat_grouped = dat.group_by(year_bin)
   >>> dat_binned = dat_grouped.groups.aggregate(np.mean)
 
-Then one might plot the results with ``plt.plot(dat_binned['year'], dat_binned['mag'],
-'.')``.   Alternately one could bin into 10 phase bins::
+We can plot the results with ``plt.plot(dat_binned['year'], dat_binned['mag'],
+'.')``. Alternately, we could bin into 10 phase bins::
 
   >>> phase_bin = np.trunc(phase / 0.1)
   >>> dat_grouped = dat.group_by(phase_bin)
   >>> dat_binned = dat_grouped.groups.aggregate(np.mean)
 
-This time plot with ``plt.plot(dat_binned['phase'], dat_binned['mag'])``.
+This time, try plotting with ``plt.plot(dat_binned['phase'],
+dat_binned['mag'])``.
+
+.. EXAMPLE END
 
 .. _stack-vertically:
 
-Stack vertically
---------------------
+Stack Vertically
+----------------
 
 The |Table| class supports stacking tables vertically with the
-`~astropy.table.vstack` function.  This process is also commonly known as
-concatenating or appending tables in the row direction.  It corresponds roughly
+`~astropy.table.vstack` function. This process is also commonly known as
+concatenating or appending tables in the row direction. It corresponds roughly
 to the `numpy.vstack` function.
 
-For example, suppose one has two tables of observations with several
-column names in common::
+Examples
+^^^^^^^^
+
+.. EXAMPLE START: Stacking (or Concatenating) Tables Vertically
+
+Suppose we have two tables of observations with several column names in
+common::
 
   >>> from astropy.table import Table, vstack
   >>> obs1 = Table.read("""name    obs_date    mag_b  logLx
@@ -477,10 +546,10 @@ Now we can stack these two tables::
       M31 1999-01-05    --  43.1
       M82 2012-10-30    --  45.0
 
-Notice that the ``obs2`` table is missing the ``mag_b`` column, so in the stacked output
-table those values are marked as missing.  This is the default behavior and corresponds to
-``join_type='outer'``.  There are two other allowed values for the ``join_type`` argument,
-``'inner'`` and ``'exact'``::
+Notice that the ``obs2`` table is missing the ``mag_b`` column, so in the
+stacked output table those values are marked as missing. This is the default
+behavior and corresponds to ``join_type='outer'``. There are two other allowed
+values for the ``join_type`` argument, ``'inner'`` and ``'exact'``::
 
   >>> print(vstack([obs1, obs2], join_type='inner'))
     name   obs_date  logLx
@@ -498,10 +567,10 @@ table those values are marked as missing.  This is the default behavior and corr
   TableMergeError: Inconsistent columns in input arrays (use 'inner'
   or 'outer' join_type to allow non-matching columns)
 
-In the case of ``join_type='inner'``, only the common columns (the intersection) are
-present in the output table.  When ``join_type='exact'`` is specified then
-`~astropy.table.vstack` requires that all the input tables
-have exactly the same column names.
+In the case of ``join_type='inner'``, only the common columns (the intersection)
+are present in the output table. When ``join_type='exact'`` is specified, then
+`~astropy.table.vstack` requires that all of the input tables have exactly the
+same column names.
 
 More than two tables can be stacked by supplying a list of table objects::
 
@@ -518,21 +587,28 @@ More than two tables can be stacked by supplying a list of table objects::
       M82 2012-10-30    --  45.0
       M45 2012-02-03  15.0  40.5
 
-See also the sections on `Merging metadata`_ and `Merging column
-attributes`_ for details on how these characteristics of the input tables are merged in
-the single output table.  Note also that you can use a single table row instead of a
+See also the sections on `Merging metadata`_ and `Merging column attributes`_
+for details on how these characteristics of the input tables are merged in the
+single output table. Note also that you can use a single table row instead of a
 full table as one of the inputs.
+
+.. EXAMPLE END
 
 .. _stack-horizontally:
 
-Stack horizontally
----------------------
+Stack Horizontally
+------------------
 
-The |Table| class supports stacking tables horizontally (in the column-wise direction) with the
-`~astropy.table.hstack` function.    It corresponds roughly
-to the `numpy.hstack` function.
+The |Table| class supports stacking tables horizontally (in the column-wise
+direction) with the `~astropy.table.hstack` function. It corresponds roughly to
+the `numpy.hstack` function.
 
-For example, suppose one has the following two tables::
+Examples
+^^^^^^^^
+
+.. EXAMPLE START: Stacking (or Concatenating) Tables Horizontally
+
+Suppose we have the following two tables::
 
   >>> from astropy.table import Table, hstack
   >>> t1 = Table.read("""a   b    c
@@ -553,11 +629,11 @@ Now we can stack these two tables horizontally::
     3 baz 2.8   --    --
 
 As with `~astropy.table.vstack`, there is an optional ``join_type`` argument
-that can take values ``'inner'``, ``'exact'``, and ``'outer'``.  The default is
-``'outer'``, which effectively takes the union of available rows and masks out any missing
-values.  This is illustrated in the example above.  The other options give the
-intersection of rows, where ``'exact'`` requires that all tables have exactly the same
-number of rows::
+that can take values ``'inner'``, ``'exact'``, and ``'outer'``. The default is
+``'outer'``, which effectively takes the union of available rows and masks out
+any missing values. This is illustrated in the example above. The other options
+give the intersection of rows, where ``'exact'`` requires that all tables have
+exactly the same number of rows::
 
   >>> print(hstack([t1, t2], join_type='inner'))
    a   b   c   d     e
@@ -571,9 +647,9 @@ number of rows::
   TableMergeError: Inconsistent number of rows in input arrays (use 'inner' or
   'outer' join_type to allow non-matching rows)
 
-More than two tables can be stacked by supplying a list of table objects.  The example
-below also illustrates the behavior when there is a conflict in the input column names
-(see the section on `Column renaming`_ for details)::
+More than two tables can be stacked by supplying a list of table objects. The
+example below also illustrates the behavior when there is a conflict in the
+input column names (see the section on `Column renaming`_ for details)::
 
   >>> t3 = Table.read("""a    b
   ...                    M45  2012-02-03""", format='ascii')
@@ -584,14 +660,15 @@ below also illustrates the behavior when there is a conflict in the input column
     2 bar 2.1 spam toast  --         --
     3 baz 2.8   --    --  --         --
 
+The metadata from the input tables is merged by the process described in the
+`Merging metadata`_ section. Note also that you can use a single table row
+instead of a full table as one of the inputs.
 
-The metadata from the input tables is merged by the process described in the `Merging
-metadata`_ section.  Note also that you can use a single table row instead of a
-full table as one of the inputs.
+.. EXAMPLE END
 
 .. _stack-depthwise:
 
-Stack depth-wise
+Stack Depth-Wise
 ----------------
 
 The |Table| class supports stacking columns within tables depth-wise using
@@ -599,7 +676,12 @@ the `~astropy.table.dstack` function. It corresponds roughly
 to running the `numpy.dstack` function on the individual columns matched
 by name.
 
-For example, suppose one has tables of data for sources giving information on the enclosed
+Examples
+^^^^^^^^
+
+.. EXAMPLE START: Stacking (or Concatenating) Tables Depth-Wise
+
+Suppose we have tables of data for sources giving information on the enclosed
 source counts for different PSF fractions::
 
   >>> from astropy.table import Table, dstack
@@ -626,30 +708,40 @@ characteristics of both sources::
     0.5 .. 0.5  90 .. 300
     0.9 .. 0.9 120 .. 350
 
-In this case the counts for the first source are accessible as ``srcs['counts'][:, 0]``,
-and likewise the second source counts are ``srcs['counts'][:, 1]``.
+In this case the counts for the first source are accessible as
+``srcs['counts'][:, 0]``, and likewise the second source counts are
+``srcs['counts'][:, 1]``.
 
-For this function the length of all input tables must be the same.  This function can
-accept ``join_type`` and ``metadata_conflicts`` just like the `~astropy.table.vstack`
-function.  The ``join_type`` argument controls how to handle mismatches in the columns of
-the input table.
+For this function the length of all input tables must be the same. This function
+can accept ``join_type`` and ``metadata_conflicts`` just like the
+`~astropy.table.vstack` function. The ``join_type`` argument controls how to
+handle mismatches in the columns of the input table.
 
-See also the sections on `Merging metadata`_ and `Merging column
-attributes`_ for details on how these characteristics of the input tables are merged in
-the single output table.  Note also that you can use a single table row instead of a
+See also the sections on `Merging metadata`_ and `Merging column attributes`_
+for details on how these characteristics of the input tables are merged in the
+single output table. Note also that you can use a single table row instead of a
 full table as one of the inputs.
+
+.. EXAMPLE END
 
 .. _table-join:
 
 Join
---------------
+----
 
-The |Table| class supports the `database join <https://en.wikipedia.org/wiki/Join_(SQL)>`_
-operation.  This provides a flexible and powerful way to combine tables based on the
-values in one or more key columns.
+The |Table| class supports the `database join
+<https://en.wikipedia.org/wiki/Join_(SQL)>`_ operation. This provides a flexible
+and powerful way to combine tables based on the values in one or more key
+columns.
 
-For example, suppose one has two tables of observations, the first with B and V magnitudes
-and the second with X-ray luminosities of an overlapping (but not identical) sample::
+Examples
+^^^^^^^^
+
+.. EXAMPLE START: Combining Tables using the Database Join Operation
+
+Suppose we have two tables of observations, the first with B and V magnitudes
+and the second with X-ray luminosities of an overlapping (but not identical)
+sample::
 
   >>> from astropy.table import Table, join
   >>> optical = Table.read("""name    obs_date    mag_b  mag_v
@@ -661,11 +753,11 @@ and the second with X-ray luminosities of an overlapping (but not identical) sam
   ...                         M31     1999-01-05  43.1
   ...                         M82     2012-10-29  45.0""", format='ascii')
 
-The |join| method allows one to merge these two tables into a single table based on
-matching values in the "key columns".  By default the key columns are the set of columns
-that are common to both tables.  In this case the key columns are ``name`` and
-``obs_date``.  We can find all the observations of the same object on the same date as
-follows::
+The |join| method allows you to merge these two tables into a single table based
+on matching values in the "key columns". By default, the key columns are the set
+of columns that are common to both tables. In this case the key columns are
+``name`` and ``obs_date``. We can find all of the observations of the same
+object on the same date as follows::
 
   >>> opt_xray = join(optical, xray)
   >>> print(opt_xray)
@@ -673,8 +765,8 @@ follows::
   ---- ---------- ----- ----- -----
    M82 2012-10-29  16.2  15.2  45.0
 
-We can perform the match only by ``name`` by providing the ``keys`` argument, which can be
-either a single column name or a list of column names::
+We can perform the match by ``name`` only by providing the ``keys`` argument,
+which can be either a single column name or a list of column names::
 
   >>> print(join(optical, xray, keys='name'))
   name obs_date_1 mag_b mag_v obs_date_2 logLx
@@ -682,20 +774,25 @@ either a single column name or a list of column names::
    M31 2012-01-02  17.0  16.0 1999-01-05  43.1
    M82 2012-10-29  16.2  15.2 2012-10-29  45.0
 
-This output table has all observations that have both optical and X-ray data for an object
-(M31 and M82).  Notice that since the ``obs_date`` column occurs in both tables it has
-been split into two columns, ``obs_date_1`` and ``obs_date_2``.  The values are taken from
-the "left" (``optical``) and "right" (``xray``) tables, respectively.
+This output table has all of the observations that have both optical and X-ray
+data for an object (M31 and M82). Notice that since the ``obs_date`` column
+occurs in both tables, it has been split into two columns, ``obs_date_1`` and
+``obs_date_2``. The values are taken from the "left" (``optical``) and "right"
+(``xray``) tables, respectively.
 
+.. EXAMPLE END
 
-Different join options
+Different Join Options
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The table joins so far are known as "inner" joins and represent the strict intersection of
-the two tables on the key columns.
+The table joins so far are known as "inner" joins and represent the strict
+intersection of the two tables on the key columns.
 
-If one wants to make a new table which has *every* row from the left table and includes
-matching values from the right table when available, this is known as a left join::
+.. EXAMPLE START: Table Join Options
+
+If you want to make a new table which has *every* row from the left table and
+includes matching values from the right table when available, this is known as a
+left join::
 
   >>> print(join(optical, xray, join_type='left'))
   name  obs_date  mag_b mag_v logLx
@@ -704,12 +801,12 @@ matching values from the right table when available, this is known as a left joi
    M31 2012-01-02  17.0  16.0    --
    M82 2012-10-29  16.2  15.2  45.0
 
-Two of the observations do not have X-ray data, as indicated by the ``--`` in the table.
-When there are any missing values the output will be a masked table (see
-:ref:`masking_and_missing_values` for more information).  You might be
-surprised that there is no X-ray data for M31 in the output.  Remember that the default
-matching key includes both ``name`` and ``obs_date``.  Specifying the key as only the
-``name`` column gives::
+Two of the observations do not have X-ray data, as indicated by the ``--`` in
+the table.  When there are any missing values the output will be a masked table
+(see :ref:`masking_and_missing_values` for more information). You might be
+surprised that there is no X-ray data for M31 in the output. Remember that the
+default matching key includes both ``name`` and ``obs_date``. Specifying the key
+as only the ``name`` column gives::
 
   >>> print(join(optical, xray, join_type='left', keys='name'))
   name obs_date_1 mag_b mag_v obs_date_2 logLx
@@ -718,8 +815,8 @@ matching key includes both ``name`` and ``obs_date``.  Specifying the key as onl
    M31 2012-01-02  17.0  16.0 1999-01-05  43.1
    M82 2012-10-29  16.2  15.2 2012-10-29  45.0
 
-Likewise one can construct a new table with every row of the right table and matching left
-values (when available) using ``join_type='right'``.
+Likewise you can construct a new table with every row of the right table and
+matching left values (when available) using ``join_type='right'``.
 
 To make a table with the union of rows from both tables do an "outer" join::
 
@@ -732,12 +829,12 @@ To make a table with the union of rows from both tables do an "outer" join::
       M82 2012-10-29  16.2  15.2  45.0
   NGC3516 2011-11-11    --    --  42.1
 
-In all the above cases the output join table will be sorted by the key column(s) and in general
-will not preserve the row order of the input tables.
+In all the above cases the output join table will be sorted by the key
+column(s) and in general will not preserve the row order of the input tables.
 
-Finally, one can do a "cartesian" join, which is the cartesian product of all available
-rows.  In this case one there are no key columns (and supplying a ``keys`` argument is
-an error)::
+Finally, you can do a "Cartesian" join, which is the Cartesian product of all
+available rows. In this case one there are no key columns (and supplying a
+``keys`` argument is an error)::
 
   >>> print(join(optical, xray, join_type='cartesian'))
   name_1 obs_date_1 mag_b mag_v  name_2 obs_date_2 logLx
@@ -752,11 +849,15 @@ an error)::
     M101 2012-10-31  15.1  15.5     M31 1999-01-05  43.1
     M101 2012-10-31  15.1  15.5     M82 2012-10-29  45.0
 
-Non-identical key column names
+.. EXAMPLE END
+
+Non-Identical Key Column Names
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. EXAMPLE START: Joining Tables with Unique Key Column Names
+
 The |join| function requires the key column names to be identical in the
-two tables. However, in the following one table has a ``'name'`` column
+two tables. However, in the following, one table has a ``'name'`` column
 while the other has an ``'obj_id'`` column::
 
   >>> optical = Table.read("""name    obs_date    mag_b  mag_v
@@ -768,7 +869,7 @@ while the other has an ``'obj_id'`` column::
   ...                           M31     1999-01-05  43.1
   ...                           M82     2012-10-29  45.0""", format='ascii')
 
-In order to perform a match based on the names of the objects, one has to
+In order to perform a match based on the names of the objects, you have to
 temporarily rename one of the columns mentioned above, right before creating
 the new table::
 
@@ -790,12 +891,16 @@ The original ``xray_1`` table remains unchanged after the operation::
       M31 1999-01-05  43.1
       M82 2012-10-29  45.0
 
+.. EXAMPLE END
 
-Identical key values
+Identical Key Values
 ^^^^^^^^^^^^^^^^^^^^
 
-The |Table| join operation works even if there are multiple rows with identical key
-values.  For example the following tables have multiple rows for the key column ``x``::
+.. EXAMPLE START: Joining Tables with Identical Key Values
+
+The |Table| join operation works even if there are multiple rows with identical
+key values. For example, the following tables have multiple rows for the key
+column ``x``::
 
   >>> from astropy.table import Table, join
   >>> left = Table([[0, 1, 1, 2], ['L1', 'L2', 'L3', 'L4']], names=('key', 'L'))
@@ -815,10 +920,11 @@ values.  For example the following tables have multiple rows for the key column 
     2  R3
     4  R4
 
-Doing an outer join on these tables shows that what is really happening is a `Cartesian
-product <https://en.wikipedia.org/wiki/Cartesian_product>`_.  For each matching key, every
-combination of the left and right tables is represented.  When there is no match in either
-the left or right table, the corresponding column values are designated as missing.
+Doing an outer join on these tables shows that what is really happening is a
+`Cartesian product <https://en.wikipedia.org/wiki/Cartesian_product>`_. For
+each matching key, every combination of the left and right tables is
+represented. When there is no match in either the left or right table, the
+corresponding column values are designated as missing.
 
 .. doctest-skip:: win32
 
@@ -835,13 +941,13 @@ the left or right table, the corresponding column values are designated as missi
 
 .. note::
 
-   The output table is sorted on the key columns, but when there are rows with identical
-   keys the output order in the non-key columns is not guaranteed to be identical across
-   installations.  In the example above the order within the four rows with ``key == 1``
-   can vary.
+   The output table is sorted on the key columns, but when there are rows with
+   identical keys the output order in the non-key columns is not guaranteed to
+   be identical across installations. In the example above, the order within the
+   four rows with ``key == 1`` can vary.
 
-An inner join is the same but only returns rows where there is a key match in both the
-left and right tables:
+An inner join is the same but only returns rows where there is a key match in
+both the left and right tables:
 
 .. doctest-skip:: win32
 
@@ -854,24 +960,25 @@ left and right tables:
     1  L3  R2
     2  L4  R3
 
-Conflicts in the input table names are handled by the process described in the section on
-`Column renaming`_.  See also the sections on `Merging metadata`_ and `Merging column
-attributes`_ for details on how these characteristics of the input tables are merged in
-the single output table.
+Conflicts in the input table names are handled by the process described in the
+section on `Column renaming`_. See also the sections on `Merging metadata`_ and
+`Merging column attributes`_ for details on how these characteristics of the
+input tables are merged in the single output table.
 
-Merging details
---------------------
+.. EXAMPLE END
+
+Merging Details
+---------------
 
 When combining two or more tables there is the need to merge certain
-characteristics in the inputs and potentially resolve conflicts.  This
+characteristics in the inputs and potentially resolve conflicts. This
 section describes the process.
 
-Column renaming
-^^^^^^^^^^^^^^^^^
-
+Column Renaming
+^^^^^^^^^^^^^^^
 
 In cases where the input tables have conflicting column names, there
-is a mechanism to generate unique output column names.  There are two
+is a mechanism to generate unique output column names. There are two
 keyword arguments that control the renaming behavior:
 
 ``table_names``
@@ -882,7 +989,7 @@ keyword arguments that control the renaming behavior:
 ``uniq_col_name``
     String format specifier with a default value of ``'{col_name}_{table_name}'``.
 
-This is most easily understood by example using the ``optical`` and ``xray`` tables
+This is best understood by example using the ``optical`` and ``xray`` tables
 in the |join| example defined previously::
 
   >>> print(join(optical, xray, keys='name',
@@ -893,27 +1000,31 @@ in the |join| example defined previously::
    M31       2012-01-02  17.0  16.0    1999-01-05  43.1
    M82       2012-10-29  16.2  15.2    2012-10-29  45.0
 
-
-Merging metadata
-^^^^^^^^^^^^^^^^^^^
+Merging Metadata
+^^^^^^^^^^^^^^^^
 
 |Table| objects can have associated metadata:
 
 - ``Table.meta``: table-level metadata as an ordered dictionary
 - ``Column.meta``: per-column metadata as an ordered dictionary
 
-The table operations described here handle the task of merging the metadata in the input
-tables into a single output structure.  Because the metadata can be arbitrarily complex
-there is no unique way to do the merge.  The current implementation uses a simple
-recursive algorithm with four rules:
+The table operations described here handle the task of merging the metadata in
+the input tables into a single output structure. Because the metadata can be
+arbitrarily complex there is no unique way to do the merge. The current
+implementation uses a recursive algorithm with four rules:
 
-- `dict` elements are merged by keys
-- Conflicting `list` or `tuple` elements are concatenated
-- Conflicting `dict` elements are merged by recursively calling the merge function
-- Conflicting elements that are not both `list`, `tuple`, or `dict` will follow the following rules:
-    - If both metadata values are identical, the output is set to this value
-    - If one of the conflicting metadata values is `None`, the other value is picked
-    - If both metadata values are different and neither is `None`, the one for the last table in the list is picked
+- `dict` elements are merged by keys.
+- Conflicting `list` or `tuple` elements are concatenated.
+- Conflicting `dict` elements are merged by recursively calling the merge
+  function.
+- Conflicting elements that are not both `list`, `tuple`, or `dict` will follow
+  the following rules:
+
+    - If both metadata values are identical, the output is set to this value.
+    - If one of the conflicting metadata values is `None`, the other value is
+      picked.
+    - If both metadata values are different and neither is `None`, the one for
+      the last table in the list is picked.
 
 By default, a warning is emitted in the last case (both metadata values are not
 `None`). The warning can be silenced or made into an exception using the
@@ -921,22 +1032,30 @@ By default, a warning is emitted in the last case (both metadata values are not
 :func:`~astropy.table.vstack`, or
 :func:`~astropy.table.join`. The ``metadata_conflicts`` option can be set to:
 
-- ``'silent'`` - no warning is emitted, the value for the last table is silently picked
-- ``'warn'`` - a warning is emitted, the value for the last table is picked
-- ``'error'`` - an exception is raised
+- ``'silent'`` – no warning is emitted, the value for the last table is silently
+  picked.
+- ``'warn'`` – a warning is emitted, the value for the last table is picked.
+- ``'error'`` – an exception is raised.
 
 The default strategies for merging metadata can be augmented or customized by
 defining subclasses of the `~astropy.utils.metadata.MergeStrategy` base class.
-In most cases one also will use the
-`~astropy.utils.metadata.enable_merge_strategies` for enable the custom
+In most cases you will also use the
+`~astropy.utils.metadata.enable_merge_strategies` for enabling the custom
 strategies. The linked documentation strings provide details.
 
-Merging column attributes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Merging Column Attributes
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In addition to the table and column ``meta`` attributes, the column attributes ``unit``,
-``format``, and ``description`` are merged by going through the input tables in
-order and taking the first value which is defined (i.e. is not None).  For example::
+In addition to the table and column ``meta`` attributes, the column attributes
+``unit``, ``format``, and ``description`` are merged by going through the input
+tables in order and taking the first value which is defined (i.e., is not None).
+
+Example
+~~~~~~~
+
+.. EXAMPLE START: Merging Column Attributes in a Table
+
+To merge column attributes ``unit``, ``format``, or ``description``::
 
   >>> from astropy.table import Column, Table, vstack
   >>> col1 = Column([1], name='a')
@@ -951,13 +1070,14 @@ order and taking the first value which is defined (i.e. is not None).  For examp
   >>> out['a'].unit  # doctest: +SKIP
   Unit("m")
 
-The rules for merging are as for `Merging metadata`_, and the
+The rules for merging are the same as for `Merging metadata`_, and the
 ``metadata_conflicts`` option also controls the merging of column attributes.
 
+.. EXAMPLE END
 
 .. _unique-rows:
 
-Unique rows
+Unique Rows
 -----------
 
 Sometimes it makes sense to use only rows with unique key columns or even
@@ -965,10 +1085,16 @@ fully unique rows from a table. This can be done using the above described
 :func:`~astropy.table.Table.group_by` method and ``groups`` attribute, or
 with the `~astropy.table.unique` convenience function. The
 `~astropy.table.unique` function returns with a sorted table containing the
-first row for each unique ``keys`` column value. If no ``keys`` is provided
-it returns with a sorted table containing all the fully unique rows.
+first row for each unique ``keys`` column value. If no ``keys`` is provided,
+it returns with a sorted table containing all of the fully unique rows.
 
-A simple example is a list of objects with photometry from various observing
+Example
+^^^^^^^
+
+.. EXAMPLE START: Grouping Unique Rows in Tables
+
+An example of a situation where you might want to use rows with unique key
+columns is a list of objects with photometry from various observing
 runs. Using ``'name'`` as the only ``keys``, it returns with the first
 occurrence of each of the three targets::
 
@@ -1009,25 +1135,31 @@ Using multiple columns as ``keys``::
    M82 2012-02-14  16.2  14.5
    M82 2012-03-26  15.7  16.5
 
+.. EXAMPLE END
 
 .. _set-difference:
 
-Set difference
+Set Difference
 --------------
 
 A set difference will tell you the elements that are contained in one set but
-not in the other.  This concept can be applied to rows of a table by using the
+not in the other. This concept can be applied to rows of a table by using the
 `~astropy.table.setdiff` function. You provide the function with two input
 tables and it will return all rows in the first table which do not occur in
 the second table.
 
 The optional ``keys`` parameter specifies the names of columns that are used to
-match table rows.  This can be a subset of the full list of columns, but both
+match table rows. This can be a subset of the full list of columns, but both
 the first and second tables must contain all columns specified by ``keys``.
-If not provided then ``keys`` defaults to all column names in the first table.
+If not provided, then ``keys`` defaults to all column names in the first table.
 
-If no different rows are found the `~astropy.table.setdiff` function will
+If no different rows are found, the `~astropy.table.setdiff` function will
 return an empty table.
+
+Example
+^^^^^^^
+
+.. EXAMPLE START: Using Set Difference in Tables
 
 The example below illustrates finding the set difference of two observation
 lists using a common subset of the columns in two tables.::
@@ -1051,17 +1183,23 @@ In this example there is a column in the first table that is not
 present in the second table, so the ``keys`` parameter must be used to specify
 the desired column names.
 
+.. EXAMPLE END
 
 .. _table-diff:
 
-Table diff
+Table Diff
 ----------
 
-To compare two simple tables, you can use
+To compare two tables, you can use
 :func:`~astropy.utils.diff.report_diff_values`, which would produce a report
 identical to :ref:`FITS diff <io-fits-differs>`.
-The example below illustrates finding the difference between two
-simple tables::
+
+Example
+^^^^^^^
+
+.. EXAMPLE START: Using Table Diff to Compare Tables
+
+The example below illustrates finding the difference between two tables::
 
   >>> from astropy.table import Table
   >>> from astropy.utils.diff import report_diff_values
@@ -1090,3 +1228,5 @@ simple tables::
     b>  NEW 2018-05-08   nan   9.0
   >>> identical
   False
+
+.. EXAMPLE END

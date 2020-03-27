@@ -2,37 +2,41 @@
 
 .. _construct_table:
 
-Constructing a table
+Constructing a Table
 ********************
 
 There is great deal of flexibility in the way that a table can be initially
-constructed.  Details on the inputs to the |Table| and |QTable|
-constructors are in the `Initialization Details`_ section.  However, the
-easiest way to understand how to make a table is by example.
+constructed. Details on the inputs to the |Table| and |QTable|
+constructors are in the `Initialization Details`_ section. However, the
+best way to understand how to make a table is by example.
 
 Examples
 ========
 
 Much of the flexibility lies in the types of data structures
-which can be used to initialize the table data.  The examples below show how to
-create a table from scratch with no initial data, create a table with a list of
-columns, a dictionary of columns, or from `numpy` arrays (either structured or
-homogeneous).
+which can be used to initialize the table data. The examples below show how to
+create a table from scratch with no initial data, as well as create a table
+with a list of columns, a dictionary of columns, or from ``numpy`` arrays
+(either structured or homogeneous).
 
 Setup
 -----
 
-For the following examples you need to import the |QTable|, |Table| and |Column| classes
-along with the :ref:`astropy-units` package and the `numpy` package::
+For the following examples you need to import the |QTable|, |Table|, and
+|Column| classes along with the :ref:`astropy-units` package and the ``numpy``
+package::
 
   >>> from astropy.table import QTable, Table, Column
   >>> from astropy import units as u
   >>> import numpy as np
 
-Creating from scratch
+Creating from Scratch
 ---------------------
+
+.. EXAMPLE START: Creating an Astropy Table from Scratch
+
 A Table can be created without any initial input data or even without any
-initial columns.  This is useful for building tables dynamically if the initial
+initial columns. This is useful for building tables dynamically if the initial
 size, columns, or data are not known.
 
 .. Note::
@@ -54,7 +58,7 @@ size, columns, or data are not known.
   >>> t = Table(dtype=[('a', 'f4'), ('b', 'i4'), ('c', 'S2')])
 
 If your data columns have physical units associated with them then we
-recommend using the |QTable| class.  This will allow the column to be
+recommend using the |QTable| class. This will allow the column to be
 stored in the table as a native |Quantity| and bring the full power of
 :ref:`astropy-units` to the table.
 ::
@@ -66,15 +70,19 @@ stored in the table as a native |Quantity| and bring the full power of
   >>> type(t['b'])
   <class 'astropy.units.quantity.Quantity'>
 
+.. EXAMPLE END
 
-List of columns
+List of Columns
 ---------------
+
+.. EXAMPLE START: Creating an Astropy Table from a List of Columns
+
 A typical case is where you have a number of data columns with the same length
-defined in different variables.  These might be Python lists or `numpy` arrays
-or a mix of the two.  These can be used to create a |Table| by putting the column
-data variables into a Python list.  In this case the column names are not
+defined in different variables. These might be Python lists or ``numpy`` arrays
+or a mix of the two. These can be used to create a |Table| by putting the column
+data variables into a Python list. In this case the column names are not
 defined by the input data, so they must either be set using the ``names``
-keyword or they will be auto-generated as ``col<N>``.
+keyword or they will be automatically generated as ``col<N>``.
 
 ::
 
@@ -90,10 +98,12 @@ keyword or they will be auto-generated as ``col<N>``.
       1     2.0    x
       4     5.0    y
 
+.. EXAMPLE END
+
 **Make a new table using columns from the first table**
 
-Once you have a |Table| then you can make new table by selecting columns
-and putting this into a Python list, e.g. ``[ t['c'], t['a'] ]``::
+Once you have a |Table|, then you can make a new table by selecting columns
+and putting this into a Python list (e.g., ``[ t['c'], t['a'] ]``)::
 
   >>> Table([t['c'], t['a']])
   <Table length=2>
@@ -105,8 +115,8 @@ and putting this into a Python list, e.g. ``[ t['c'], t['a'] ]``::
 
 **Make a new table using expressions involving columns**
 
-The |Column| object is derived from the standard `numpy` array and can be used
-directly in arithmetic expressions.  This allows for a compact way of making a
+The |Column| object is derived from the standard ``numpy`` array and can be used
+directly in arithmetic expressions. This allows for a compact way of making a
 new table with modified column values::
 
   >>> Table([t['a']**2, t['b'] + 10])
@@ -135,12 +145,13 @@ of different data types to initialize a table::
       1   2 .. 3    x
       4   5 .. 6    y
 
-
 Notice that in the third column the existing column name ``'axis'`` is used.
 
+Dict of Columns
+---------------
 
-Dict of columns
-----------------
+.. EXAMPLE START: Creating an Astropy Table from a Dictionary of Columns
+
 A dictionary of column data can be used to initialize a |Table|.
 
   >>> arr = {'a': np.array([1, 4], dtype=np.int32),
@@ -155,6 +166,8 @@ A dictionary of column data can be used to initialize a |Table|.
       1    x     2.0
       4    y     5.0
 
+.. EXAMPLE END
+
 **Specify the column order and optionally the data types**
 ::
 
@@ -168,7 +181,8 @@ A dictionary of column data can be used to initialize a |Table|.
 
 **Different types of column data**
 
-The input column data can be any data type that can initialize a |Column| object::
+The input column data can be any data type that can initialize a |Column|
+object::
 
   >>> arr = {'a': (1, 4),
   ...        'b': np.array([[2, 3], [5, 6]]),
@@ -182,8 +196,8 @@ The input column data can be any data type that can initialize a |Column| object
       4 5 .. 6    y
 
 Notice that the key ``'c'`` takes precedence over the existing column name
-``'axis'`` in the third column.  Also see that the ``'b'`` column is a vector
-column where each row element is itself a 2-element array.
+``'axis'`` in the third column. Also see that the ``'b'`` column is a vector
+column where each row element is itself a two-element array.
 
 **Renaming columns is not possible**
 ::
@@ -193,9 +207,9 @@ column where each row element is itself a 2-element array.
     ...
   KeyError: 'a_new'
 
+Row Data
+--------
 
-Row data
----------
 Row-oriented data can be used to create a table using the ``rows``
 keyword argument.
 
@@ -220,8 +234,8 @@ parsable by the ``np.rec.fromrecords()`` function.
 
 **List of dict objects**
 
-You can also initialize a table with row values.  This is constructed as a
-list of dict objects.  The keys determine the column names::
+You can also initialize a table with row values. This is constructed as a
+list of dict objects. The keys determine the column names::
 
   >>> data = [{'a': 5, 'b': 10},
   ...         {'a': 15, 'b': 20}]
@@ -232,8 +246,8 @@ list of dict objects.  The keys determine the column names::
     5  10
    15  20
 
-If there are missing keys in one or more rows then the corresponding values will be
-marked as missing (masked)::
+If there are missing keys in one or more rows then the corresponding values
+will be marked as missing (masked)::
 
   >>> t = Table(rows=[{'a': 5, 'b': 10}, {'a': 15, 'c': 50}])
   >>> print(t)
@@ -242,8 +256,8 @@ marked as missing (masked)::
     5  10  --
    15  --  50
 
-You can also preserve the column order by using ``OrderedDict``. If the first item is an
-``OrderedDict`` then the order is preserved:
+You can also preserve the column order by using ``OrderedDict``. If the first
+item is an ``OrderedDict`` then the order is preserved:
 
   >>> from collections import OrderedDict
   >>> row1 = OrderedDict([('b', 1), ('a', 0)])
@@ -267,32 +281,33 @@ You can also make a new table from a single row of an existing table::
   >>> t2 = Table(rows=t[1])
 
 Remember that a |Row| has effectively a zero length compared to the
-newly created |Table| which has a length of one.  This is similar to
-the difference between a scalar ``1`` (length 0) and an array like
+newly created |Table| which has a length of one. This is similar to
+the difference between a scalar ``1`` (length 0) and an array such as
 ``np.array([1])`` with length 1.
 
 .. Note::
 
-   In the case of input data as a list of dicts or a single Table row, it is
-   allowed to supply the data as the ``data`` argument since these forms
-   are always unambiguous.  For example ``Table([{'a': 1}, {'a': 2}])`` is
-   accepted.  However, a list of records must always be provided using the
+   In the case of input data as a list of dicts or a single |Table| row, you
+   can supply the data as the ``data`` argument since these forms
+   are always unambiguous. For example, ``Table([{'a': 1}, {'a': 2}])`` is
+   accepted. However, a list of records must always be provided using the
    ``rows`` keyword, otherwise it will be interpreted as a list of columns.
 
-NumPy structured array
+NumPy Structured Array
 ----------------------
-The structured array is the standard mechanism in `numpy` for storing
-heterogeneous table data.  Most scientific I/O packages that read table
+
+The structured array is the standard mechanism in ```numpy``` for storing
+heterogeneous table data. Most scientific I/O packages that read table
 files (e.g., `astropy.io.fits`, `astropy.io.votable`, and `asciitable
 <http://cxc.harvard.edu/contrib/asciitable/>`_) will return the table in an
-object that is based on the structured array.  A structured array can be
+object that is based on the structured array. A structured array can be
 created using::
 
   >>> arr = np.array([(1, 2.0, 'x'),
   ...                 (4, 5.0, 'y')],
   ...                dtype=[('a', 'i4'), ('b', 'f8'), ('c', 'S2')])
 
-From ``arr`` it is simple to create the corresponding |Table| object::
+From ``arr`` it is possible to create the corresponding |Table| object::
 
   >>> Table(arr)  # doctest: +IGNORE_OUTPUT_3
   <Table length=2>
@@ -302,9 +317,9 @@ From ``arr`` it is simple to create the corresponding |Table| object::
       1     2.0    x
       4     5.0    y
 
-Note that in the above example and most the following ones we are creating a
+Note that in the above example and most the following examples we are creating a
 table and immediately asking the interactive Python interpreter to print the
-table to see what we made.  In real code you might do something like::
+table to see what we made. In real code you might do something like::
 
   >>> table = Table(arr)
   >>> print(table)
@@ -326,10 +341,9 @@ The column names can be changed from the original values by providing the
       1     2.0     x
       4     5.0     y
 
-
 **New data types**
 
-Likewise the data type for each column can by changed with ``dtype``::
+The data type for each column can likewise be changed with ``dtype``::
 
   >>> Table(arr, dtype=('f4', 'i4', 'S4'))  # doctest: +IGNORE_OUTPUT_3
   <Table length=2>
@@ -347,10 +361,10 @@ Likewise the data type for each column can by changed with ``dtype``::
       1.0     2     x
       4.0     5     y
 
-
-NumPy homogeneous array
+NumPy Homogeneous Array
 -----------------------
-A `numpy` 1-d array is treated as a single row table where each element of the
+
+A ```numpy``` 1D array is treated as a single row table where each element of the
 array corresponds to a column::
 
   >>> Table(np.array([1, 2, 3]), names=['a', 'b', 'c'], dtype=('i8', 'i8', 'i8'))
@@ -360,8 +374,8 @@ array corresponds to a column::
   ----- ----- -----
       1     2     3
 
-A `numpy` 2-d array (where all elements have the same type) can also be
-converted into a |Table|.  In this case the column names are not specified by
+A ```numpy``` 2D array (where all elements have the same type) can also be
+converted into a |Table|. In this case the column names are not specified by
 the data and must either be provided by the user or will be automatically
 generated as ``col<N>`` where ``<N>`` is the column number.
 
@@ -391,17 +405,17 @@ generated as ``col<N>`` where ``<N>`` is the column number.
 
 **Referencing the original data**
 
-It is possible to reference the original data for an homogeneous array as long
+It is possible to reference the original data for a homogeneous array as long
 as the data types are not changed::
 
   >>> t = Table(arr, copy=False)
 
-**Python arrays versus `numpy` arrays as input**
+**Python arrays versus ```numpy``` arrays as input**
 
-There is a slightly subtle issue that is important to understand in the way
-that |Table| objects are created.  Any data input that looks like a Python list
-(including a tuple) is considered to be a list of columns.  In contrast an
-homogeneous `numpy` array input is interpreted as a list of rows::
+There is a slightly subtle issue that is important to understand about the way
+that |Table| objects are created. Any data input that looks like a Python list
+(including a tuple) is considered to be a list of columns. In contrast, a
+homogeneous ```numpy``` array input is interpreted as a list of rows::
 
   >>> arr = [[1, 2, 3],
   ...        [4, 5, 6]]
@@ -421,11 +435,14 @@ homogeneous `numpy` array input is interpreted as a list of rows::
      4    5    6
 
 This dichotomy is needed to support flexible list input while retaining the
-natural interpretation of 2-d `numpy` arrays where the first index corresponds
-to data "rows" and the second index corresponds to data "columns".
+natural interpretation of 2D ```numpy``` arrays where the first index corresponds
+to data "rows" and the second index corresponds to data "columns."
 
-From existing table
---------------------
+From an Existing Table
+----------------------
+
+.. EXAMPLE START: Creating an Astropy Table from an Existing Table
+
 A new table can be created by selecting a subset of columns in an existing
 table::
 
@@ -437,7 +454,7 @@ table::
   ------- ------- -------
 
 An alternate way to use the ``columns`` attribute (explained in the
-`TableColumns`_ section) to initialize a new table.  This let's you choose
+`TableColumns`_ section) to initialize a new table. This lets you choose
 columns by their numerical index or name and supports slicing syntax::
 
   >>> Table(t.columns[0:2])
@@ -470,12 +487,16 @@ To create a copy of an existing table that is empty (has no rows)::
  float64 float64
  ------- -------
 
-Empty array of a known size
+.. EXAMPLE END
+
+Empty Array of a Known Size
 ---------------------------
 
-If you do know the size your table will be, but don't know the values in
-advance, you can create a zeroed numpy array and build the astropy table from
-it::
+.. EXAMPLE START: Creating an Astropy Table from an Empty Array
+
+If you do know the size that your table will be, but do not know the values in
+advance, you can create a zeroed ``numpy`` array and build the ``astropy``
+table from it::
 
   >>> N = 3
   >>> dtype = [('a', 'i4'), ('b', 'f8'), ('c', 'bool')]
@@ -489,7 +510,8 @@ it::
       0     0.0 False
       0     0.0 False
 
-For example, you can then fill in this table row-by-row from extracted from another table, or generated on the fly::
+For example, you can then fill in this table row by row with values extracted
+from another table, or generated on the fly::
 
   >>> for i in range(len(t)):
   ...     t[i] = (i, 2.5*i, i % 2)
@@ -502,16 +524,21 @@ For example, you can then fill in this table row-by-row from extracted from anot
       1     2.5  True
       2     5.0 False
 
+.. EXAMPLE END
+
 Pandas DataFrame
 ----------------
 
-The section on :ref:`pandas` gives details on how to initialize a |Table| using a
-`pandas.DataFrame` via the `~astropy.table.Table.from_pandas` class method.  This
-provides a convenient way to take advantage of the many I/O and table manipulation
-methods in `pandas <http://pandas.pydata.org/>`_.
+The section on :ref:`pandas` gives details on how to initialize a |Table| using
+a `pandas.DataFrame` via the `~astropy.table.Table.from_pandas` class method.
+This provides a convenient way to take advantage of the many I/O and table
+manipulation methods in `pandas <http://pandas.pydata.org/>`_.
 
-Comment lines
+Comment Lines
 -------------
+
+.. EXAMPLE START: Adding Comment Lines in an ASCII File
+
 Comment lines in an ASCII file can be added via the ``'comments'`` key in the
 table's metadata. The following will insert two comment lines in the output
 ASCII file unless ``comment=False`` is explicitly set in ``write()``::
@@ -528,6 +555,7 @@ ASCII file unless ``comment=False`` is explicitly set in ``write()``::
   a b c
   1.0 2 x
 
+.. EXAMPLE END
 
 Initialization Details
 ======================
@@ -554,9 +582,9 @@ object with the following arguments, all of which are optional:
 ``copy_indices`` : bool, optional
     Copy any indices in the input data. Default is True.
 ``units`` : list, dict, optional
-    List or dict of units to apply to columns
+    List or dict of units to apply to columns.
 ``descriptions`` : list, dict, optional
-    List or dict of descriptions to apply to columns
+    List or dict of descriptions to apply to columns.
 ``**kwargs`` : dict, optional
     Additional keyword args when converting table-like object.
 
@@ -569,121 +597,121 @@ data
 The |Table| object can be initialized with several different forms
 for the ``data`` argument.
 
-**numpy ndarray (structured array)**
+**``numpy`` ndarray (structured array)**
     The base column names are the field names of the ``data`` structured
-    array.  The ``names`` list (optional) can be used to select
-    particular fields and/or reorder the base names.  The ``dtype`` list
+    array. The ``names`` list (optional) can be used to select
+    particular fields and/or reorder the base names. The ``dtype`` list
     (optional) must match the length of ``names`` and is used to
     override the existing ``data`` types.
 
-**numpy ndarray (homogeneous)**
-    If the ``data`` ndarray is 1-dimensional then it is treated as a single row
-    table where each element of the array corresponds to a column.
+**``numpy`` ndarray (homogeneous)**
+    If the ``data`` ndarray is one-dimensional then it is treated as a single
+    row table where each element of the array corresponds to a column.
 
-    If the ``data`` ndarray is at least 2-dimensional then the first
+    If the ``data`` ndarray is at least two-dimensional, then the first
     (left-most) index corresponds to row number (table length) and the
-    second index corresponds to column number (table width).  Higher
+    second index corresponds to column number (table width). Higher
     dimensions get absorbed in the shape of each table cell.
 
-    If provided the ``names`` list must match the "width" of the ``data``
-    argument.  The default for ``names`` is to auto-generate column names
-    in the form "col<N>".  If provided the ``dtype`` list overrides the
+    If provided, the ``names`` list must match the "width" of the ``data``
+    argument. The default for ``names`` is to auto-generate column names
+    in the form ``col<N>``. If provided, the ``dtype`` list overrides the
     base column types and must match the length of ``names``.
 
 **dict-like**
-    The keys of the ``data`` object define the base column names.  The
-    corresponding values can be Column objects, numpy arrays, or list-like
-    objects.  The ``names`` list (optional) can be used to select
-    particular fields and/or reorder the base names.  The ``dtype`` list
+    The keys of the ``data`` object define the base column names. The
+    corresponding values can be ``Column`` objects, ``numpy`` arrays, or list-
+    like objects. The ``names`` list (optional) can be used to select
+    particular fields and/or reorder the base names. The ``dtype`` list
     (optional) must match the length of ``names`` and is used to override
     the existing or default data types.
 
 **list-like**
     Each item in the ``data`` list provides a column of data values and
-    can be a Column object, numpy array, or list-like object.  The
-    ``names`` list defines the name of each column.  The names will be
+    can be a ``Column`` object, ``numpy`` array, or list-like object. The
+    ``names`` list defines the name of each column. The names will be
     auto-generated if not provided (either from the ``names`` argument or
-    by Column objects).  If provided the ``names`` argument must match the
-    number of items in the ``data`` list.  The optional ``dtype`` list
+    by ``Column`` objects). If provided, the ``names`` argument must match the
+    number of items in the ``data`` list. The optional ``dtype`` list
     will override the existing or default data types and must match
     ``names`` in length.
 
 **list-of-dicts**
-    Similar to Python's builtin ``csv.DictReader``, each item in the
-    ``data`` list provides a row of data values and must be a dict.  The
+    Similar to Python's built-in ``csv.DictReader``, each item in the
+    ``data`` list provides a row of data values and must be a dict. The
     key values in each dict define the column names and each row must
-    have identical column names.  The ``names`` argument may be supplied
-    to specify column ordering.  If it is not provided, the column order will
+    have identical column names. The ``names`` argument may be supplied
+    to specify column ordering. If it is not provided, the column order will
     default to alphabetical. If the first item is an ``OrderedDict``, then the
-    column order is preserved.  The ``dtype`` list may be specified, and must
-    correspond to the order of output columns.  If any row's keys do no match
+    column order is preserved. The ``dtype`` list may be specified, and must
+    correspond to the order of output columns. If any row's keys do not match
     the rest of the rows, a ValueError will be thrown.
 
 **table-like object**
     If another table-like object has a ``__astropy_table__`` method then
-    that object can be used to directly create a ``Table`` object.  See
+    that object can be used to directly create a ``Table`` object. See
     the `Table-like objects`_ section for details.
 
 **None**
-    Initialize a zero-length table.  If ``names`` and optionally ``dtype``
-    are provided then the corresponding columns are created.
+    Initialize a zero-length table. If ``names`` and optionally ``dtype``
+    are provided, then the corresponding columns are created.
 
 names
 -----
 
 The ``names`` argument provides a way to specify the table column names or
-override the existing ones.  By default the column names are either taken
+override the existing ones. By default, the column names are either taken
 from existing names (for ``ndarray`` or ``Table`` input) or auto-generated
-as ``col<N>``.  If ``names`` is provided then it must be a list with the
-same length as the number of columns.  Any list elements with value
+as ``col<N>``. If ``names`` is provided, then it must be a list with the
+same length as the number of columns. Any list elements with value
 ``None`` fall back to the default name.
 
-In the case where ``data`` is provided as dict of columns, the ``names``
-argument can be supplied to specify the order of columns.  The ``names`` list
-must then contain each of the keys in the ``data`` dict.  If ``names`` is not
-supplied then the order of columns in the output table is not determinate.
+In the case where ``data`` is provided as a dict of columns, the ``names``
+argument can be supplied to specify the order of columns. The ``names`` list
+must then contain each of the keys in the ``data`` dict. If ``names`` is not
+supplied, then the order of columns in the output table is not determinate.
 
 dtype
 -----
 
 The ``dtype`` argument provides a way to specify the table column data
-types or override the existing types.  By default the types are either
+types or override the existing types. By default, the types are either
 taken from existing types (for ``ndarray`` or ``Table`` input) or
-auto-generated by the ``numpy.array()`` routine.  If ``dtype`` is provided
-then it must be a list with the same length as the number of columns.  The
-values must be valid ``numpy.dtype`` initializers or ``None``.  Any list
+auto-generated by the ``numpy.array()`` routine. If ``dtype`` is provided
+then it must be a list with the same length as the number of columns. The
+values must be valid ``numpy.dtype`` initializers or ``None``. Any list
 elements with value ``None`` fall back to the default type.
 
-In the case where ``data`` is provided as dict of columns, the ``dtype`` argument
-must be accompanied by a corresponding ``names`` argument in order to uniquely
-specify the column ordering.
+In the case where ``data`` is provided as a dict of columns, the ``dtype``
+argument must be accompanied by a corresponding ``names`` argument in order to
+uniquely specify the column ordering.
 
 meta
 ----
 
-The ``meta`` argument is simply an object that contains meta-data associated
-with the table.  It is recommended that this object be a dict or
+The ``meta`` argument is an object that contains metadata associated
+with the table. It is recommended that this object be a dict or
 OrderedDict_, but the only firm requirement is that it can be copied with
-the standard library ``copy.deepcopy()`` routine.  By default ``meta`` is
+the standard library ``copy.deepcopy()`` routine. By default, ``meta`` is
 an empty OrderedDict_.
 
 copy
 ----
 
-By default the input ``data`` are copied into a new internal ``np.ndarray``
-object in the Table object.  In the case where ``data`` is either an
-``np.ndarray`` object, a ``dict``, or an existing ``Table``, it is possible to use a
-reference to the existing data by setting ``copy=False``.  This has the
-advantage of reducing memory use and being faster.  However one should take
-care because any modifications to the new Table data will also be seen in the
-original input data.  See the `Copy versus Reference`_ section for more
+By default, the input ``data`` are copied into a new internal ``np.ndarray``
+object in the ``Table`` object. In the case where ``data`` is either an
+``np.ndarray`` object, a ``dict``, or an existing ``Table``, it is possible to
+use a reference to the existing data by setting ``copy=False``. This has the
+advantage of reducing memory use and being faster. However, you should take
+care because any modifications to the new ``Table`` data will also be seen in
+the original input data. See the `Copy versus Reference`_ section for more
 information.
 
 rows
 ----
 
-This argument allows providing data as a sequence of rows, in contrast
-to the ``data`` keyword which generally assumes data are a sequence of columns.
+This argument allows for providing data as a sequence of rows, in contrast
+to the ``data`` keyword, which generally assumes data are a sequence of columns.
 The `Row data`_ section provides details.
 
 copy_indices
@@ -691,16 +719,16 @@ copy_indices
 
 If you are initializing a table from another table that has table
 indices defined, then this option allows copying that table *without* copying
-the indices by setting ``copy_indices=False``.  By default the indices are
+the indices by setting ``copy_indices=False``. By default, the indices are
 copied.
 
 units
 -----
 
-This allows setting the unit for one or more columns at the time of creating the
-table.  The input can be either a list of unit values corresponding to each of
-the columns in the table (using ``None`` or ``''`` for no unit), or a ``dict``
-that provides the unit for specified column names.  For example::
+This allows for setting the unit for one or more columns at the time of
+creating the table. The input can be either a list of unit values corresponding
+to each of the columns in the table (using ``None`` or ``''`` for no unit), or
+a ``dict`` that provides the unit for specified column names. For example::
 
   >>> from astropy.table import QTable
   >>> dat = [[1, 2], ['hello', 'world']]
@@ -710,12 +738,11 @@ that provides the unit for specified column names.  For example::
 descriptions
 ------------
 
-This allows setting the description for one or more columns at the time of
-creating the table.  The input can be either a list of description values
+This allows for setting the description for one or more columns at the time of
+creating the table. The input can be either a list of description values
 corresponding to each of the columns in the table (using ``None`` for no
 description), or a ``dict`` that provides the description for specified column
-names.  This works the same as the ``units`` example above.
-
+names. This works in the same way as the ``units`` example above.
 
 .. _copy_versus_reference:
 
@@ -723,13 +750,13 @@ Copy versus Reference
 =====================
 
 Normally when a new |Table| object is created, the input data are *copied* into
-a new internal array object.  This ensures that if the new table elements are
-modified then the original data will not be affected.  However, when creating a
-table from a numpy ndarray object (structured or homogeneous) or a dict, it is possible to
-disable copying so that instead a memory reference to the original data is
-used.  This has the advantage of being faster and using less memory.  However,
-caution must be exercised because the new table data and original data will be
-linked, as shown below::
+a new internal array object. This ensures that if the new table elements are
+modified then the original data will not be affected. However, when creating a
+table from a ``numpy`` ndarray object (structured or homogeneous) or a dict, it
+is possible to disable copying so that a memory reference to the original data
+is used instead. This has the advantage of being faster and using less memory.
+However, caution must be exercised because the new table data and original data
+will be linked, as shown below::
 
   >>> arr = np.array([(1, 2.0, 'x'),
   ...                 (4, 5.0, 'y')],
@@ -742,7 +769,7 @@ linked, as shown below::
   [ 1 99]
 
 Note that when referencing the data it is not possible to change the data types
-since that operation requires making a copy of the data.  In this case an error
+since that operation requires making a copy of the data. In this case an error
 occurs::
 
   >>> t = Table(arr, copy=False, dtype=('f4', 'i4', 'S4'))
@@ -750,11 +777,11 @@ occurs::
     ...
   ValueError: Cannot specify dtype when copy=False
 
-Another caveat in using referenced data is that you if add a new row to the
-table then the reference to the original data array is lost and instead the
-table will now hold a copy of the original values (in addition to the new row).
+Another caveat to using referenced data is that if you add a new row to the
+table, the reference to the original data array is lost and the table will now
+instead hold a copy of the original values (in addition to the new row).
 
-Column and TableColumns classes
+Column and TableColumns Classes
 ===============================
 
 There are two classes, |Column| and |TableColumns|, that are useful when
@@ -764,23 +791,23 @@ Column
 ------
 
 A |Column| object can be created as follows, where in all cases the column
-``name`` should be provided as a keyword argument and one can optionally provide
+``name`` should be provided as a keyword argument and you can optionally provide
 these values:
 
 ``data`` : list, ndarray or None
-    Column data values
+    Column data values.
 ``dtype`` : numpy.dtype compatible value
-    Data type for column
+    Data type for column.
 ``description`` : str
-    Full description of column
+    Full description of column.
 ``unit`` : str
-    Physical unit
+    Physical unit.
 ``format`` : str or function
-    `Format specifier`_ for outputting column values
+    `Format specifier`_ for outputting column values.
 ``meta`` : dict
-    Meta-data associated with the column
+    Metadata associated with the column.
 
-Initialization options
+Initialization Options
 ^^^^^^^^^^^^^^^^^^^^^^
 
 The column data values, shape, and data type are specified in one of two ways:
@@ -795,17 +822,18 @@ The column data values, shape, and data type are specified in one of two ways:
     col = Column(np.array([1, 2]), name='a')
     col = Column(['hello', 'world'], name='a')
 
-  The ``dtype`` argument can be any value which is an acceptable
-  fixed-size data-type initializer for the numpy.dtype() method.  See
-  `<https://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_.
-  Examples include:
+  The ``dtype`` argument can be any value which is an acceptable fixed-size
+  data type initializer for the ``numpy.dtype()`` method. See the reference for
+  `data type objects
+  <https://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_. Examples
+  include:
 
-  - Python non-string type (float, int, bool)
-  - Numpy non-string type (e.g. np.float32, np.int64)
-  - Numpy.dtype array-protocol type strings (e.g. 'i4', 'f8', 'S15')
+  - Python non-string type (float, int, bool).
+  - ``numpy`` non-string type (e.g., np.float32, np.int64).
+  - ``numpy.dtype`` array-protocol type strings (e.g., 'i4', 'f8', 'S15').
 
-  If no ``dtype`` value is provided then the type is inferred using
-  ``np.array(data)``.  When ``data`` is provided then the ``shape``
+  If no ``dtype`` value is provided, then the type is inferred using
+  ``np.array(data)``. When ``data`` is provided then the ``shape``
   and ``length`` arguments are ignored.
 
 **Provide ``length`` and optionally ``shape``, but not ``data``**
@@ -815,9 +843,9 @@ The column data values, shape, and data type are specified in one of two ways:
     col = Column(name='a', length=5)
     col = Column(name='a', dtype=int, length=10, shape=(3,4))
 
-  The default ``dtype`` is ``np.float64``.  The ``shape`` argument is the array shape of a
-  single cell in the column.  The default ``shape`` is () which means a single value in
-  each element.
+  The default ``dtype`` is ``np.float64``. The ``shape`` argument is the array
+  shape of a single cell in the column. The default ``shape`` is () which means
+  a single value in each element.
 
 .. note::
 
@@ -827,37 +855,38 @@ The column data values, shape, and data type are specified in one of two ways:
 
 .. _table_format_string:
 
-Format specifier
+Format Specifier
 ^^^^^^^^^^^^^^^^
 
 The format specifier controls the output of column values when a table or column
-is printed or written to an ASCII table.  In the simplest case, it is a string
-that can be passed to python's built-in `format
-<https://docs.python.org/3/library/functions.html#format>`_ function.  For more
-complicated formatting, one can also give "old-style" or "new-style"
+is printed or written to an ASCII table. In the simplest case, it is a string
+that can be passed to Python's built-in `format
+<https://docs.python.org/3/library/functions.html#format>`_ function. For more
+complicated formatting, one can also give "old style" or "new style"
 format strings, or even a function:
 
 **Plain format specification**
 
-This type of string specifies directly how the value should be formatted,
+This type of string specifies directly how the value should be formatted
 using a `format specification mini-language
 <https://docs.python.org/3/library/string.html#formatspec>`_ that is
 quite similar to C.
 
    ``".4f"`` will give four digits after the decimal in float format, or
 
-   ``"6d"`` will give integers in 6-character fields.
+   ``"6d"`` will give integers in six-character fields.
 
-**Old-style format string**
+**Old style format string**
 
 This corresponds to syntax like ``"%.4f" % value`` as documented in
-`String formatting operations <https://docs.python.org/3/library/stdtypes.html#string-formatting-operations>`_.
+`printf-style String Formatting
+<https://docs.python.org/3/library/stdtypes.html#printf-style-string-formatting>`_.
 
    ``"%.4f"`` to print four digits after the decimal in float format, or
 
-   ``"%6d"`` to print an integer in a 6-character wide field.
+   ``"%6d"`` to print an integer in a six-character wide field.
 
-**New-style format string**
+**New style format string**
 
 This corresponds to syntax like ``"{:.4f}".format(value)`` as documented in
 `format string syntax
@@ -865,13 +894,15 @@ This corresponds to syntax like ``"{:.4f}".format(value)`` as documented in
 
    ``"{:.4f}"`` to print four digits after the decimal in float format, or
 
-   ``"{:6d}"`` to print an integer in a 6-character wide field.
+   ``"{:6d}"`` to print an integer in a six-character wide field.
 
 Note that in either format string case any Python string that formats exactly
 one value is valid, so ``{:.4f} angstroms`` or ``Value: %12.2f`` would both
 work.
 
 **Function**
+
+.. EXAMPLE START: Initialization Options for Column Objects
 
 The greatest flexibility can be achieved by setting a formatting function. This
 function must accept a single argument (the value) and return a string. In the
@@ -896,15 +927,16 @@ following example this is used to make a LaTeX ready output::
     \end{tabular}
     \end{table}
 
+.. EXAMPLE END
 
 TableColumns
 ------------
 
 Each |Table| object has an attribute ``columns`` which is an ordered dictionary
 that stores all of the |Column| objects in the table (see also the `Column`_
-section).  Technically the ``columns`` attribute is a |TableColumns| object,
+section). Technically, the ``columns`` attribute is a |TableColumns| object,
 which is an enhanced ordered dictionary that provides easier ways to select
-multiple columns.  There are a few key points to remember:
+multiple columns. There are a few key points to remember:
 
 - A |Table| can be initialized from a |TableColumns| object (copy is always True).
 - Selecting multiple columns from a |TableColumns| object returns another
@@ -930,7 +962,7 @@ So now look at the ways to select columns from a |TableColumns| object:
   >>> t.columns[::-1]  # Reverse column order
   <TableColumns names=('d','c','b','a')>
 
-**Select column by index or name**
+**Select columns by index or name**
 ::
 
   >>> t.columns[1]  # Choose columns by index
@@ -945,16 +977,17 @@ Subclassing Table
 =================
 
 For some applications it can be useful to subclass the |Table| class in order
-to introduce specialized behavior.  In addition to subclassing |Table| it is
+to introduce specialized behavior. In addition to subclassing |Table|, it is
 frequently desirable to change the behavior of the internal class objects which
-are contained or created by a Table.  This includes rows, columns, formatting,
-and the columns container.  In order to do this the subclass needs to declare
-what class to use (if it is different from the built-in version).  This is done by
-specifying one or more of the class attributes ``Row``, ``Column``,
+are contained or created by a Table. This includes rows, columns, formatting,
+and the columns container. In order to do this the subclass needs to declare
+what class to use (if it is different from the built-in version). This is done
+by specifying one or more of the class attributes ``Row``, ``Column``,
 ``MaskedColumn``, ``TableColumns``, or ``TableFormatter``.
 
 The following trivial example overrides all of these with do-nothing
-subclasses, but in practice you would override only the necessary subcomponents::
+subclasses, but in practice you would override only the necessary
+subcomponents::
 
   >>> from astropy.table import Table, Row, Column, MaskedColumn, TableColumns, TableFormatter
 
@@ -978,11 +1011,14 @@ subclasses, but in practice you would override only the necessary subcomponents:
 Example
 -------
 
-As a more practical example, suppose you have a table of data with a certain set of fixed
-columns, but you also want to carry an arbitrary dictionary of keyword=value
-parameters for each row and then access those values using the same item access
-syntax as if they were columns.  It is assumed here that the extra parameters
-are contained in a numpy object-dtype column named ``params``::
+.. EXAMPLE START: Subclassing the Table Class
+
+As a more practical example, suppose you have a table of data with a certain
+set of fixed columns, but you also want to carry an arbitrary dictionary of
+keyword=value parameters for each row and then access those values using the
+same item access syntax as if they were columns. It is assumed here that the
+extra parameters are contained in a ``numpy`` object-dtype column named
+``params``::
 
   >>> from astropy.table import Table, Row
   >>> class ParamsRow(Row):
@@ -1031,9 +1067,9 @@ Now see what we have from our specialized ``ParamsRow`` object::
   >>> t[1].values()
   [2, 3.0, 123123, 'hello']
 
-To make this example really useful you might want to override
+To make this example really useful, you might want to override
 ``Table.__getitem__`` in order to allow table-level access to the parameter
-fields.  This might look something like::
+fields. This might look something like::
 
   class ParamsTable(table.Table):
       Row = ParamsRow
@@ -1058,14 +1094,18 @@ fields.  This might look something like::
 
           # ... and then the rest of the original __getitem__ ...
 
+.. EXAMPLE END
+
 Columns and Quantities
 ----------------------
 
-Astropy `~astropy.units.Quantity` objects can be handled within tables in two
-complementary ways.  The first method stores the `~astropy.units.Quantity`
-object natively within the table via the "mixin" column protocol.  See the
+.. EXAMPLE START: Handling Astropy Column and Quantity Objects within Tables
+
+``astropy`` `~astropy.units.Quantity` objects can be handled within tables in
+two complementary ways. The first method stores the `~astropy.units.Quantity`
+object natively within the table via the "mixin" column protocol. See the
 sections on :ref:`mixin_columns` and :ref:`quantity_and_qtable` for details,
-but in brief the key difference is using the `~astropy.table.QTable` class to
+but in brief, the key difference is using the `~astropy.table.QTable` class to
 indicate that a `~astropy.units.Quantity` should be stored natively within the
 table::
 
@@ -1079,7 +1119,7 @@ table::
 For new code that is quantity-aware we recommend using `~astropy.table.QTable`,
 but this may not be possible in all situations (particularly when interfacing
 with legacy code that does not handle quantities) and there are
-:ref:`details_and_caveats` that apply.  In this case use the
+:ref:`details_and_caveats` that apply. In this case, use the
 `~astropy.table.Table` class, which will convert a `~astropy.units.Quantity` to
 a `~astropy.table.Column` object with a ``unit`` attribute::
 
@@ -1094,20 +1134,21 @@ a `~astropy.table.Column` object with a ``unit`` attribute::
 To learn more about using standard `~astropy.table.Column` objects with defined
 units, see the :ref:`columns_with_units` section.
 
+.. EXAMPLE END
 
-Table-like objects
+Table-Like Objects
 ==================
 
 In order to improve interoperability between different table classes, an
-astropy |Table| object can be created directly from any other table-like
-object that provides an ``__astropy_table__`` method.  In this case the
+``astropy`` |Table| object can be created directly from any other table-like
+object that provides an ``__astropy_table__`` method. In this case the
 ``__astropy_table__`` method will be called as follows::
 
   >>> data = SomeOtherTableClass({'a': [1, 2], 'b': [3, 4]})  # doctest: +SKIP
   >>> t = QTable(data, copy=False, strict_copy=True)  # doctest: +SKIP
 
 Internally the following call will be made to ask the ``data`` object
-to return a representation of itself as an astropy |Table|, respecting
+to return a representation of itself as an ``astropy`` |Table|, respecting
 the ``copy`` preference of the original call to ``QTable()``::
 
   data.__astropy_table__(cls, copy, **kwargs)
@@ -1115,32 +1156,32 @@ the ``copy`` preference of the original call to ``QTable()``::
 Here ``cls`` is the |Table| class or subclass that is being instantiated
 (|QTable| in this example), ``copy`` indicates whether a copy of the values in
 ``data`` should be provided, and ``**kwargs`` are any extra keyword arguments
-which are not valid |Table| init keyword arguments.  In the example above,
-``strict_copy=True`` would end up in ``**kwargs`` and get passed to
+which are not valid |Table| ``_init_()`` keyword arguments. In the example
+above, ``strict_copy=True`` would end up in ``**kwargs`` and get passed to
 ``__astropy_table__()``.
 
 If ``copy`` is ``True`` then the ``__astropy_table__`` method must ensure that
-a copy of the original data is returned.  If ``copy`` is ``False`` then a
-reference to the table data should returned if possible.  If it is not possible
-(e.g. the original data are in a Python list or must be otherwise transformed in
-memory) then ``__astropy_table__`` method is free to either return a copy or
-else raise an exception.  This choice depends on the preference of the
-implementation.  The implementation might choose to allow an additional keyword
-argument (e.g. ``strict_copy`` which gets passed via ``**kwargs``) to control the
-behavior in this case.
+a copy of the original data is returned. If ``copy`` is ``False`` then a
+reference to the table data should returned if possible. If it is not possible
+(e.g., the original data are in a Python list or must be otherwise transformed
+in memory) then ``__astropy_table__`` method is free to either return a copy or
+else raise an exception. This choice depends on the preference of the
+implementation. The implementation might choose to allow an additional keyword
+argument (e.g., ``strict_copy`` which gets passed via ``**kwargs``) to control
+the behavior in this case.
 
-As a simple example, imagine a dict-based table class.  (Note that |Table|
+As a concise example, imagine a dict-based table class. (Note that |Table|
 already can be initialized from a dict-like object, so this is a bit contrived
-but does illustrate the principles involved.)  Please pay attention to the
+but does illustrate the principles involved.) Please pay attention to the
 method signature::
 
   def __astropy_table__(self, cls, copy, **kwargs):
 
 Your class implementation of this must use the ``**kwargs`` technique for
-catching keyword arguments at the end.  This is to ensure future compatibility
+catching keyword arguments at the end. This is to ensure future compatibility
 in case additional keywords are added to the internal ``table =
-data.__astropy_table__(cls, copy)`` call.  Including ``**kwargs`` will prevent
-breakage in this case.  ::
+data.__astropy_table__(cls, copy)`` call. Including ``**kwargs`` will prevent
+breakage in this case. ::
 
   class DictTable(dict):
       """
@@ -1159,14 +1200,14 @@ breakage in this case.  ::
           Parameters
           ----------
           cls : type
-               Astropy ``Table`` class or subclass
+               Astropy ``Table`` class or subclass.
           copy : bool
-               Copy input data (True) or return a reference (False)
+               Copy input data (True) or return a reference (False).
           strict_copy : bool, optional
                Raise an exception if copy is False but reference is not
-               possible
+               possible.
           **kwargs : dict, optional
-               Additional keyword args (ignored currently)
+               Additional keyword args (ignored currently).
           """
           if kwargs:
               warnings.warn('unexpected keyword args {}'.format(kwargs))
