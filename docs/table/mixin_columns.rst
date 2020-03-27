@@ -5,13 +5,13 @@
 
 .. _mixin_columns:
 
-Mixin columns
-***************
+Mixin Columns
+*************
 
-Astropy tables support the concept of a "Mixin
-Column" in tables which allows integration of appropriate non-|Column| based
-class objects within a |Table| object.  These mixin column objects are not
-converted in any way but are used natively.
+``astropy`` tables support the concept of a "mixin column" in tables, which
+allows integration of appropriate non-|Column| based class objects within a
+|Table| object. These mixin column objects are not converted in any way but are
+used natively.
 
 The available built-in mixin column classes are:
 
@@ -21,7 +21,12 @@ The available built-in mixin column classes are:
 - :class:`~astropy.coordinates.EarthLocation`
 - `~astropy.table.NdarrayMixin`
 
-As a first example we can create a table and add a time column::
+Example
+-------
+
+.. EXAMPLE START: Using Mixin Columns in Tables
+
+As an example we can create a table and add a time column::
 
   >>> from astropy.table import Table
   >>> from astropy.time import Time
@@ -34,37 +39,44 @@ As a first example we can create a table and add a time column::
       1 2001-01-02T12:34:56.000
       2 2001-02-03T00:01:02.000
 
-The important point here is that the ``time`` column is a bona fide |Time| object::
+The important point here is that the ``time`` column is a bona fide |Time|
+object::
 
   >>> t['time']
   <Time object: scale='utc' format='isot' value=['2001-01-02T12:34:56.000' '2001-02-03T00:01:02.000']>
   >>> t['time'].mjd  # doctest: +FLOAT_CMP
   array([51911.52425926, 51943.00071759])
 
+.. EXAMPLE END
+
 .. _quantity_and_qtable:
 
 Quantity and QTable
 ===================
 
-The ability to natively handle |Quantity| objects within a table makes it
-easier to manipulate tabular data with units in a natural and robust way.
+The ability to natively handle |Quantity| objects within a table makes it more
+convenient to manipulate tabular data with units in a natural and robust way.
 However, this feature introduces an ambiguity because data with a unit
-(e.g. from a FITS binary table) can be represented as either a |Column| with a
-``unit`` attribute or as a |Quantity| object.  In order to cleanly resolve this
-ambiguity astropy defines a minor variant of
-the |Table| class called |QTable|.  The |QTable| class is exactly the same
-as |Table| except that |Quantity| is the default for any data column with a
-defined unit.
+(e.g., from a FITS binary table) can be represented as either a |Column| with a
+``unit`` attribute or as a |Quantity| object. In order to cleanly resolve this
+ambiguity, ``astropy`` defines a minor variant of the |Table| class called
+|QTable|. The |QTable| class is exactly the same as |Table| except that
+|Quantity| is the default for any data column with a defined unit.
 
-If you take advantage of the |Quantity| infrastructure in your analysis then
-|QTable| is the preferred way to create tables with units.  If instead you use
-table column units more as a descriptive label then the plain |Table| class is
+If you take advantage of the |Quantity| infrastructure in your analysis, then
+|QTable| is the preferred way to create tables with units. If instead you use
+table column units more as a descriptive label, then the plain |Table| class is
 probably the best class to use.
 
-To illustrate these concepts we first create a standard |Table| where we supply as input a
-|Time| object and a |Quantity| object with units of ``m / s``.  In this case
-the quantity is converted to a |Column| (which has a ``unit`` attribute but
-does not have all the features of a |Quantity|)::
+Example
+-------
+
+.. EXAMPLE START: Using Quantity Columns and QTables
+
+To illustrate these concepts we first create a standard |Table| where we supply
+as input a |Time| object and a |Quantity| object with units of ``m / s``. In
+this case the quantity is converted to a |Column| (which has a ``unit``
+attribute but does not have all of the features of a |Quantity|)::
 
   >>> import astropy.units as u
   >>> t = Table()
@@ -108,7 +120,7 @@ The ``velocity`` column is now a |Quantity| and behaves accordingly::
   >>> (qt['velocity'] ** 2).unit  # GOOD!
   Unit("m2 / s2")
 
-You can easily convert |Table| to |QTable| and vice-versa::
+You can conveniently convert |Table| to |QTable| and vice-versa::
 
   >>> qt2 = QTable(t)
   >>> type(qt2['velocity'])
@@ -122,15 +134,17 @@ You can easily convert |Table| to |QTable| and vice-versa::
 
    To summarize: the **only** difference between `~astropy.table.QTable` and
    `~astropy.table.Table` is the behavior when adding a column that has a
-   specified unit.  With `~astropy.table.QTable` such a column is always
+   specified unit. With `~astropy.table.QTable` such a column is always
    converted to a `~astropy.units.Quantity` object before being added to the
-   table.  Likewise if a unit is specified for an existing unit-less
+   table. Likewise if a unit is specified for an existing unit-less
    `~astropy.table.Column` in a `~astropy.table.QTable`, then the column is
    converted to `~astropy.units.Quantity`.
 
-   The converse is that if one adds a `~astropy.units.Quantity` column to an
+   The converse is that if you add a `~astropy.units.Quantity` column to an
    ordinary `~astropy.table.Table` then it gets converted to an ordinary
    `~astropy.table.Column` with the corresponding ``unit`` attribute.
+
+.. EXAMPLE END
 
 .. _mixin_attributes:
 
@@ -143,37 +157,36 @@ The usual column attributes ``name``, ``dtype``, ``unit``, ``format``, and
   >>> qt['velocity'].info.name
   'velocity'
 
-This ``info`` property is a key bit of glue that allows for a
-non-Column object to behave much like a column.
+This ``info`` property is a key bit of glue that allows a non-Column object to
+behave much like a column.
 
 The same ``info`` property is also available in standard
-`~astropy.table.Column` objects.  These ``info`` attributes like
-``t['a'].info.name`` simply refer to the direct `~astropy.table.Column`
-attribute (e.g. ``t['a'].name``) and can be used interchangeably.
+`~astropy.table.Column` objects. These ``info`` attributes like
+``t['a'].info.name`` refer to the direct `~astropy.table.Column`
+attribute (e.g., ``t['a'].name``) and can be used interchangeably.
 Likewise in a `~astropy.units.Quantity` object, ``info.dtype``
 attribute refers to the native ``dtype`` attribute of the object.
 
 .. Note::
 
    When writing generalized code that handles column objects which
-   might be mixin columns, one must *always* use the ``info``
+   might be mixin columns, you must *always* use the ``info``
    property to access column attributes.
-
 
 .. _details_and_caveats:
 
-Details and caveats
+Details and Caveats
 ===================
 
 Most common table operations behave as expected when mixin columns are part of
-the table.  However, there are limitations in the current implementation.
+the table. However, there are limitations in the current implementation.
 
 **Adding or inserting a row**
 
 Adding or inserting a row works as expected only for mixin classes that are
-mutable (data can changed internally) and that have an ``insert()`` method.
-|Quantity| and |Time| support ``insert()`` but for example |SkyCoord| does not.
-If one tried to insert a row into a table with a |SkyCoord| column then
+mutable (data can be changed internally) and that have an ``insert()`` method.
+|Quantity| and |Time| support ``insert()`` but, for example, |SkyCoord| does
+not. If you tried to insert a row into a table with a |SkyCoord| column then
 an exception like the following would occur::
 
   ValueError: Unable to insert row because of exception in column 'skycoord':
@@ -197,20 +210,20 @@ the following will fail::
    TypeError: only dimensionless scalar quantities can be converted to Python scalars
 
 The problem lies in knowing if and how to assemble the individual elements
-for each column into an appropriate mixin column.  The current code uses
-numpy to perform this function on numerical or string types, but it
+for each column into an appropriate mixin column. The current code uses
+``numpy`` to perform this function on numerical or string types, but it
 does not handle mixin column types like |Quantity| or |SkyCoord|.
 
 **Masking**
 
 Mixin columns do not generally support masking (with the exception of |Time|),
-but there is limited support for use of
-mixins within a masked table.  In this case a ``mask`` attribute is assigned to
-the mixin column object.  This ``mask`` is a special object that is a boolean
-array of ``False`` corresponding to the mixin data shape.  The ``mask`` looks
-like a normal numpy array but an exception will be raised if ``True`` is assigned
-to any element.  The consequences of the limitation are most apparent in the
-high-level table operations.
+but there is limited support for use of mixins within a masked table. In this
+case a ``mask`` attribute is assigned to the mixin column object. This ``mask``
+is a special object that is a boolean array of ``False`` corresponding to the
+mixin data shape. The ``mask`` looks like a normal ``numpy`` array but an
+exception will be raised if ``True`` is assigned to any element. The
+consequences of the limitation are most apparent in the high-level table
+operations.
 
 **High-level table operations**
 
@@ -224,64 +237,65 @@ that contain mixin columns:
    * - Operation
      - Support
    * - :ref:`grouped-operations`
-     - Not implemented yet, but no fundamental limitation
+     - Not implemented yet, but no fundamental limitation.
    * - :ref:`stack-vertically`
      - Available for `~astropy.units.Quantity` subclasses, |Time|
        and any other mixin classes that provide a
        `new_like() method`_ in the ``info`` descriptor.
    * - :ref:`stack-horizontally`
-     - Works if output mixin column supports masking or if no masking is required
+     - Works if output mixin column supports masking or if no masking is
+       required.
    * - :ref:`table-join`
-     - Works if output mixin column supports masking or if no masking is required; key
-       columns must be subclasses of `numpy.ndarray`.
+     - Works if output mixin column supports masking or if no masking is
+       required; key columns must be subclasses of `numpy.ndarray`.
    * - :ref:`unique-rows`
-     - Not implemented yet, uses grouped operations
+     - Not implemented yet, uses grouped operations.
 
 **ASCII table writing**
 
-Tables with mixin columns can be written out to file using the `astropy.io.ascii` module,
-but the fast C-based writers are not available.  Instead the pure-Python
-writers will be used.  For writing tables with mixin columns it is recommended
-to use the ``'ecsv'`` ASCII format.  This will fully serialize the table data and
-metadata, allowing full "round-trip" of the table when it is read back.  See
-:ref:`ecsv_format` for details.
+Tables with mixin columns can be written out to file using the
+`astropy.io.ascii` module, but the fast C-based writers are not available.
+Instead, the pure-Python writers will be used. For writing tables with mixin
+columns it is recommended to use the ``'ecsv'`` ASCII format. This will fully
+serialize the table data and metadata, allowing full "round-trip" of the table
+when it is read back. See :ref:`ecsv_format` for details.
 
 **Binary table writing**
 
-Starting with astropy 3.0, tables with mixin columns can be written in binary
-format to file using both FITS and HDF5 formats.  These can be read back to
-recover exactly the original Table including mixin columns and metadata. See
-:ref:`table_io` for details.
+Starting with ```astropy`` 3.0, tables with mixin columns can be written in
+binary format to file using both FITS and HDF5 formats. These can be read back
+to recover exactly the original |Table| including mixin columns and metadata.
+See :ref:`table_io` for details.
 
 .. _mixin_protocol:
 
-Mixin protocol
+Mixin Protocol
 ==============
 
 A key idea behind mixin columns is that any class which satisfies a specified
-protocol can be used.  That means many user-defined class objects which handle
-array-like data can be used natively within a |Table|.  The protocol is
-relatively simple and requires that a class behave like a minimal numpy array
-with the following properties:
+protocol can be used. That means many user-defined class objects which handle
+array-like data can be used natively within a |Table|. The protocol is
+relatively concise and requires that a class behave like a minimal ``numpy``
+array with the following properties:
 
-- Contains array-like data
+- Contains array-like data.
 - Implements ``__getitem__`` to support getting data as a
-  single item, slicing, or index array access
-- Has a ``shape`` attribute
-- Has a ``__len__`` method for length
+  single item, slicing, or index array access.
+- Has a ``shape`` attribute.
+- Has a ``__len__`` method for length.
 - Has an ``info`` class descriptor which is a subclass of the
   ``astropy.utils.data_info.MixinInfo`` class.
 
-The `Example: ArrayWrapper`_ section shows a working minimal example of a class
-which can be used as a mixin column.  A `pandas.Series
+The `Example: ArrayWrapper`_ section shows a minimal working example of a class
+which can be used as a mixin column. A `pandas.Series
 <https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.html>`_
 object can function as a mixin column as well.
 
 Other interesting possibilities for mixin columns include:
 
 - Columns which are dynamically computed as a function of other columns (AKA
-  spreadsheet)
-- Columns which are themselves a |Table|, i.e. nested tables.  A `proof of
+  spreadsheet).
+- Columns which are themselves a |Table| (i.e., nested tables). A `proof of
   concept <https://github.com/astropy/astropy/pull/3963>`_ is available.
 
 new_like() method
@@ -289,7 +303,7 @@ new_like() method
 
 In order to support high-level operations like `~astropy.table.join` and
 `~astropy.table.vstack`, a mixin class must provide a ``new_like()`` method
-in the ``info`` class descriptor.  A key part of the functionality is to ensure
+in the ``info`` class descriptor. A key part of the functionality is to ensure
 that the input column metadata are merged appropriately and that the columns
 have consistent properties such as the shape.
 
@@ -332,9 +346,9 @@ Examples of this are found in the `~astropy.table.column.ColumnInfo` and
 Example: ArrayWrapper
 =====================
 
-The code listing below shows a example of a data container class which acts as
-a mixin column class.  This class is a simple wrapper around a numpy array.  It
-is used in the astropy mixin test suite and is fully compliant as a mixin
+The code listing below shows an example of a data container class which acts as
+a mixin column class. This class is a wrapper around a ``numpy`` array. It
+is used in the ``astropy`` mixin test suite and is fully compliant as a mixin
 column.
 
 ::

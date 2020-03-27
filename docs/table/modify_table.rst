@@ -2,20 +2,24 @@
 
 .. _modify_table:
 
-Modifying a table
+Modifying a Table
 *****************
 
 The data values within a |Table| object can be modified in much the same manner
-as for `numpy` structured arrays by accessing columns or rows of data and
-assigning values appropriately.  A key enhancement provided by the |Table| class
-is the ability to easily modify the structure of the table: one can add or
-remove columns, and add new rows of data.
+as for ``numpy`` structured arrays by accessing columns or rows of data and
+assigning values appropriately. A key enhancement provided by the |Table| class
+is the ability to modify the structure of the table: you can add or remove
+columns, and add new rows of data.
 
-Quick overview
+Quick Overview
 ==============
 
 The code below shows the basics of modifying a table and its data.
 
+Examples
+--------
+
+.. EXAMPLE START: Making a Table and Modifying Data
 
 **Make a table**
 ::
@@ -35,9 +39,9 @@ The code below shows the basics of modifying a table and its data.
   >>> t[0:3]['c'] = 100              # Set column 'c' of rows 0, 1, 2
 
 Note that ``table[row][column]`` assignments will not work with
-`numpy` "fancy" ``row`` indexing (in that case ``table[row]`` would be
-a *copy* instead of a *view*).  "Fancy" `numpy` indices include a
-`list`, `numpy.ndarray`, or `tuple` of `numpy.ndarray` (e.g. the
+``numpy`` "fancy" ``row`` indexing (in that case ``table[row]`` would be
+a *copy* instead of a *view*). "Fancy" ``numpy`` indices include a
+`list`, `numpy.ndarray`, or `tuple` of `numpy.ndarray` (e.g., the
 return from `numpy.where`)::
 
   >>> t[[1, 2]]['a'] = [3., 5.]             # doesn't change table t
@@ -63,7 +67,11 @@ the conventions of `~astropy.units.Quantity` by using the
   1000.0
   2000.0
 
+.. EXAMPLE END
+
 **Add a column or columns**
+
+.. EXAMPLE START: Adding Columns to Tables
 
 A single column can be added to a table using syntax like adding a dict value.
 The value on the right hand side can be a list or array
@@ -73,10 +81,10 @@ of the correct size, or a scalar value that will be broadcast::
   >>> t['d2'] = [1, 2, 3, 4, 5]
   >>> t['d3'] = 6  # all 5 rows set to 6
 
-For more explicit control the :meth:`~astropy.table.Table.add_column` and
-:meth:`~astropy.table.Table.add_columns` methods can be used to add one or multiple
-columns to a table.  In both cases the new columns must be specified as |Column| or
-|MaskedColumn| objects::
+For more explicit control, the :meth:`~astropy.table.Table.add_column` and
+:meth:`~astropy.table.Table.add_columns` methods can be used to add one or
+multiple columns to a table. In both cases the new columns must be specified as
+|Column| or |MaskedColumn| objects::
 
   >>> from astropy.table import Column
   >>> aa = Column(np.arange(5), name='aa')
@@ -88,9 +96,8 @@ columns to a table.  In both cases the new columns must be specified as |Column|
   >>> t2 = Table(np.arange(25).reshape(5, 5), names=('e', 'f', 'g', 'h', 'i'))
   >>> t.add_columns(t2.columns.values())
 
-Finally, columns can also be added from
-:class:`~astropy.units.Quantity` objects, which automatically sets the
-``.unit`` attribute on the column:
+Finally, columns can also be added from :class:`~astropy.units.Quantity`
+objects, which automatically sets the ``.unit`` attribute on the column:
 
   >>> from astropy import units as u
   >>> t['d'] = np.arange(1., 6.) * u.m
@@ -102,8 +109,13 @@ Finally, columns can also be added from
   4.0
   5.0
 
+.. EXAMPLE END
+
 **Remove columns**
-::
+
+.. EXAMPLE START: Removing Columns from Tables
+
+To remove a column from a table::
 
   >>> t.remove_column('f')
   >>> t.remove_columns(['aa', 'd1', 'd2', 'd3', 'e'])
@@ -111,55 +123,93 @@ Finally, columns can also be added from
   >>> del t['h', 'i']
   >>> t.keep_columns(['a', 'b'])
 
+.. EXAMPLE END
+
 **Replace a column**
 
-One can entirely replace an existing column with a new column by setting the
-column to any object that could be used to initialize a table column (e.g.  a
-list or numpy array).  For example, one could change the data type of the ``a``
-column from ``int`` to ``float`` using::
+.. EXAMPLE START: Replacing Columns in Tables
+
+You can entirely replace an existing column with a new column by setting the
+column to any object that could be used to initialize a table column (e.g.,  a
+list or ``numpy`` array). For example, you could change the data type of the
+``a`` column from ``int`` to ``float`` using::
 
   >>> t['a'] = t['a'].astype(float)
 
-If the right hand side value is not column-like, then an in-place update
-using broadcasting will be done, e.g.::
+If the right-hand side value is not column-like, then an in-place update
+using broadcasting will be done, for example::
 
   >>> t['a'] = 1  # Internally does t['a'][:] = 1
 
+.. EXAMPLE END
+
 **Rename columns**
-::
+
+.. EXAMPLE START: Renaming Columns in Tables
+
+To rename a column::
 
   >>> t.rename_column('a', 'a_new')
   >>> t['b'].name = 'b_new'
 
+.. EXAMPLE END
+
 **Add a row of data**
-::
+
+.. EXAMPLE START: Adding a Row of Data to a Table
+
+To add a row::
 
   >>> t.add_row([-8, -9])
 
+.. EXAMPLE END
+
 **Remove rows**
-::
+
+.. EXAMPLE START: Removing Rows of Data from Tables
+
+To remove a row::
 
   >>> t.remove_row(0)
   >>> t.remove_rows(slice(4, 5))
   >>> t.remove_rows([1, 2])
 
-**Sort by one more more columns**
-::
+.. EXAMPLE END
+
+**Sort by one or more columns**
+
+.. EXAMPLE START: Sorting Columns in Tables
+
+To sort columns::
 
   >>> t.sort('b_new')
   >>> t.sort(['a_new', 'b_new'])
 
+.. EXAMPLE END
+
 **Reverse table rows**
-::
+
+.. EXAMPLE START: Reversing Table Rows
+
+To reverse a table row::
 
   >>> t.reverse()
 
-**Modify meta-data**
-::
+.. EXAMPLE END
+
+**Modify metadata**
+
+.. EXAMPLE START: Modifying Metadata in Tables
+
+To modify metadata::
 
   >>> t.meta['key'] = 'value'
 
+.. EXAMPLE END
+
 **Select or reorder columns**
+
+.. EXAMPLE START: Selecting or Reordering Columns in Tables
 
 A new table with a subset or reordered list of columns can be
 created as shown in the following example::
@@ -168,24 +218,27 @@ created as shown in the following example::
   >>> t_acb = t['a', 'c', 'b']
 
 Another way to do the same thing is to provide a list or tuple
-as the item as shown below::
+as the item, as shown below::
 
   >>> new_order = ['a', 'c', 'b']  # List or tuple
   >>> t_acb = t[new_order]
 
+.. EXAMPLE END
+
 Caveats
 =======
 
-Modifying the table data and properties is fairly straightforward.  One thing
+Modifying the table data and properties is fairly clear-cut, but one thing
 to keep in mind is that adding a row *may* require a new copy in memory of the
-table data.  This depends on the detailed layout of Python objects in memory
-and cannot be reliably controlled.  In some cases it may be possible to build a
+table data. This depends on the detailed layout of Python objects in memory
+and cannot be reliably controlled. In some cases it may be possible to build a
 table row by row in less than O(N**2) time but you cannot count on it.
 
-Another subtlety to keep in mind are cases where the return value of an
-operation results in a new table in memory versus a view of the existing
-table data.  As an example, imagine trying to set two table elements
-using column selection with ``t['a', 'c']`` in combination with row index selection::
+Another subtlety to keep in mind is that in some cases the return value of an
+operation results in a new table in memory while in other cases it results in a
+view of the existing table data. As an example, imagine trying to set two table
+elements using column selection with ``t['a', 'c']`` in combination with row
+index selection::
 
   >>> t = Table([[1, 2], [3, 4], [5, 6]], names=('a', 'b', 'c'))
   >>> t['a', 'c'][1] = (100, 100)
@@ -196,16 +249,16 @@ using column selection with ``t['a', 'c']`` in combination with row index select
     2   4   6
 
 This might be surprising because the data values did not change and there
-was no error.  In fact what happened is that ``t['a', 'c']`` created a
-new temporary table in memory as a *copy* of the original and then updated
-row 1 of the copy.  The original ``t`` table was unaffected and the new
-temporary table disappeared once the statement was complete.  The takeaway
+was no error. In fact, what happened is that ``t['a', 'c']`` created a
+new temporary table in memory as a *copy* of the original and then updated the
+first row of the copy. The original ``t`` table was unaffected and the new
+temporary table disappeared once the statement was complete. The takeaway
 is to pay attention to how certain operations are performed one step at
 a time.
 
 .. _table-replace-1_3:
 
-In-place versus replace column update
+In-Place Versus Replace Column Update
 =====================================
 
 Consider this code snippet::
@@ -213,33 +266,33 @@ Consider this code snippet::
   >>> t = Table([[1, 2, 3]], names=['a'])
   >>> t['a'] = [10.5, 20.5, 30.5]
 
-There are a couple of ways this could be handled.  It could update the existing array
-values in-place (truncating to integer), or it could replace the entire column with a new
-column based on the supplied data values.
+There are a couple of ways this could be handled. It could update the existing
+array values in-place (truncating to integer), or it could replace the entire
+column with a new column based on the supplied data values.
 
-The answer for astropy (since version 1.3) is that the operation shown above does a *complete
-replacement* of the column object.  In this case it makes a new column
-object with float values by internally calling
-``t.replace_column('a', [10.5, 20.5, 30.5])``.  In general this behavior
-is more consistent with Python and Pandas behavior.
+The answer for ``astropy`` (since version 1.3) is that the operation shown above
+does a *complete replacement* of the column object. In this case it makes a new
+column object with float values by internally calling ``t.replace_column('a',
+[10.5, 20.5, 30.5])``. In general this behavior is more consistent with Python
+and Pandas behavior.
 
 **Forcing in-place update**
 
-It is straightforward to force an in-place update of a column as follows::
+It is possible to force an in-place update of a column as follows::
 
   t[colname][:] = value
 
 **Finding the source of problems**
 
 In order to find potential problems related to the replacing columns, there is a
-configuration option ``table.conf.replace_warnings``.  This controls a set of warnings
-that are emitted under certain circumstances when a table column is replaced.
-This option must be set to a list that includes zero or more of the
+configuration option ``table.conf.replace_warnings``. This controls a set of
+warnings that are emitted under certain circumstances when a table column is
+replaced. This option must be set to a list that includes zero or more of the
 following string values:
 
 ``always`` :
   Print a warning every time a column gets replaced via the
-  setitem syntax (i.e. ``t['a'] = new_col``).
+  setItem() syntax (i.e., ``t['a'] = new_col``).
 
 ``slice`` :
   Print a warning when a column that appears to be a slice of
@@ -247,7 +300,7 @@ following string values:
 
 ``refcount`` :
   Print a warning when the Python reference count for the
-  column changes.  This indicates that a stale object exists that might
+  column changes. This indicates that a stale object exists that might
   be used elsewhere in the code and give unexpected results.
 
 ``attributes`` :
