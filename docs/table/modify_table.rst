@@ -40,7 +40,7 @@ Examples
 
 Note that ``table[row][column]`` assignments will not work with
 ``numpy`` "fancy" ``row`` indexing (in that case ``table[row]`` would be
-a *copy* instead of a *view*). "Fancy" `NumPy` indices include a
+a *copy* instead of a *view*). "Fancy" ``numpy`` indices include a
 `list`, `numpy.ndarray`, or `tuple` of `numpy.ndarray` (e.g., the
 return from `numpy.where`)::
 
