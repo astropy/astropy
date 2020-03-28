@@ -243,6 +243,9 @@ astropy.io.registry
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
+- For FIELDs with datatype="char", store the values as strings instead
+  of bytes. [#9505]
+
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
@@ -307,7 +310,93 @@ Other Changes and Additions
 
 - Bundled ``expat`` is updated to version 2.2.9. [#10038]
 
-4.0.1 (unreleased)
+
+
+4.0.2 (unreleased)
+==================
+
+Bug Fixes
+---------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.timeseries
+^^^^^^^^^^^^^^^^^^
+
+astropy.uncertainty
+^^^^^^^^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+
+Other Changes and Additions
+---------------------------
+
+
+
+4.0.1 (2020-03-27)
 ==================
 
 Bug fixes
@@ -319,12 +408,6 @@ astropy.config
 - Fixed a bug where importing a development version of a package that uses
   ``astropy`` configuration system can result in a
   ``~/.astropy/config/package..cfg`` file. [#9975]
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -341,12 +424,6 @@ astropy.coordinates
 
 - ```SkyCoord.radial_velocity_correction``` no longer raises an Exception
   when space motion information is present on the SkyCoord. [#9980]
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
 
 astropy.io
 ^^^^^^^^^^
@@ -366,21 +443,6 @@ astropy.io.ascii
   [#9923]
 
 - Magnitude, decibel, and dex can now be stored in ``ecsv`` files. [#9933]
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-- Magnitude, decibel, and dex can now be stored in ``hdf5`` files. [#9933]
-
-- Fixed serialization of polynomial models to include non default values of
-  domain and window values. [#9956, #9961]
-
-- Fixed a bug which affected overwriting tables within ``hdf5`` files.
-  Overwriting an existing path with associated column meta data now also
-  overwrites the meta data associated with the table. [#9950]
-
-- Fixed serialization of Time objects with location under time-1.0.0
-  ASDF schema. [#9983]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
@@ -409,29 +471,26 @@ astropy.io.fits
   from ASCII tables where not properly converted when accessed by attribute
   name. [#10069]
 
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
+astropy.io.misc
+^^^^^^^^^^^^^^^
 
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
+- Magnitude, decibel, and dex can now be stored in ``hdf5`` files. [#9933]
 
-- For FIELDs with datatype="char", store the values as strings instead
-  of bytes. [#9505]
+- Fixed serialization of polynomial models to include non default values of
+  domain and window values. [#9956, #9961]
+
+- Fixed a bug which affected overwriting tables within ``hdf5`` files.
+  Overwriting an existing path with associated column meta data now also
+  overwrites the meta data associated with the table. [#9950]
+
+- Fixed serialization of Time objects with location under time-1.0.0
+  ASDF schema. [#9983]
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
 - Fixed a bug in setting default values of parameters of orthonormal
   polynomials when constructing a model set. [#9987]
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
 
 astropy.table
 ^^^^^^^^^^^^^
@@ -447,9 +506,6 @@ astropy.table
 
 - Ensured that ``table.show_in_browser`` also worked for mixin columns like
   ``Time`` and ``SkyCoord``. [#10068]
-
-astropy.tests
-^^^^^^^^^^^^^
 
 astropy.time
 ^^^^^^^^^^^^
@@ -478,9 +534,6 @@ astropy.timeseries
   the range of the input data and arbitrary time offsets/zero points no longer
   affect results. [#10013]
 
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
 astropy.units
 ^^^^^^^^^^^^^
 
@@ -497,6 +550,7 @@ astropy.utils
 
 - Fixed ``deprecated_renamed_argument`` not passing in user value to
   deprecated keyword when the keyword has no new name. [#9981]
+
 - Fixed ``deprecated_renamed_argument`` not issuing a deprecation warning when
   deprecated keyword without new name is passed in as positional argument.
   [#9985]
@@ -510,24 +564,19 @@ astropy.visualization
   sent for unit conversion as an empty list. [#9848]
 
 - Fix bug in ``ZScaleInterval`` to return the array minimum and
-  maximum when there are less then ``min_npixels`` in the input array.
-  [#9913]
+  maximum when there are less then ``min_npixels`` in the input array. [#9913]
 
 - Fix a bug in simplifying axis labels that affected non-rectangular frames.
   [#8004, #9991]
-
-astropy.wcs
-^^^^^^^^^^^
 
 
 Other Changes and Additions
 ---------------------------
 
-- Updated wcslib to v7.1. [#9829]
-
-- Increase minimum asdf version to 2.5.2. [#9996]
+- Increase minimum asdf version to 2.5.2. [#9996, #9819]
 
 - Updated wcslib to v7.2. [#10021]
+
 
 
 4.0 (2019-12-16)
