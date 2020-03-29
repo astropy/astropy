@@ -663,7 +663,8 @@ class TimeFromEpoch(TimeNumeric):
 
 class TimeUnix(TimeFromEpoch):
     """
-    Unix time: seconds from 1970-01-01 00:00:00 UTC.
+    Unix time: seconds from 1970-01-01 00:00:00 UTC, ignoring leap seconds.
+
     For example, 946684800.0 in Unix time is midnight on January 1, 2000.
 
     NOTE: this quantity is not exactly unix time and differs from the strict
@@ -678,6 +679,43 @@ class TimeUnix(TimeFromEpoch):
     epoch_val2 = None
     epoch_scale = 'utc'
     epoch_format = 'iso'
+
+
+class TimeUnixTai(TimeUnix):
+    """
+    Seconds from 1970-01-01 00:00:08 TAI (see notes), including leap seconds.
+
+    This will generally differ from Unix time by the cumulative integral number
+    of leap seconds since 1970-01-01 UTC.  This convention matches the definition
+    for linux CLOCK_TAI (https://www.cl.cam.ac.uk/~mgk25/posix-clocks.html).
+
+    Caveats:
+
+    - Before 1972, fractional adjustments to UTC were made, so the difference
+      between ``unix`` and ``unix_tai`` time is no longer an integer.
+    - Because of the fractional adjustments, to be very precise, ``unix_tai``
+      is the number of seconds since ``1970-01-01 00:00:08 TAI`` or equivalently
+      ``1969-12-31 23:59:59.999918 UTC``.  The difference between TAI and UTC
+      at that epoch was 8.000082 sec.
+    - On the day of a leap second the difference between `unix` and `unix_tai`
+      times increases linearly through the day by 1.0.  See also the
+      documentation for the `~astropy.time.TimeUnix` class.
+
+    Examples
+    --------
+
+      >>> from astropy.time import Time
+      >>> t = Time('2020-01-01', scale='utc')
+      >>> t.unix_tai - t.unix
+      29.0
+
+      >>> t = Time('1970-01-01', scale='utc')
+      >>> t.unix_tai - t.unix
+      8.200000198854696e-05  # doctest: +FLOAT_CMP
+    """
+    name = 'unix_tai'
+    epoch_val = '1970-01-01 00:00:08'
+    epoch_scale = 'tai'
 
 
 class TimeCxcSec(TimeFromEpoch):
