@@ -182,6 +182,7 @@ jyear_str    :class:`~astropy.time.TimeJulianEpochString`       'J2000.0'
 mjd          :class:`~astropy.time.TimeMJD`                     51544.0
 plot_date    :class:`~astropy.time.TimePlotDate`                730120.0003703703
 unix         :class:`~astropy.time.TimeUnix`                    946684800.0
+unix_tai     :class:`~astropy.time.TimeUnixTai`                 946684800.0
 yday         :class:`~astropy.time.TimeYearDayTime`             2000:001:00:00:00.000
 ymdhms       :class:`~astropy.time.TimeYMDHMS`                  {'year': 2010, 'month': 3, 'day': 1}
 datetime64   :class:`~astropy.time.TimeDatetime64`              np.datetime64('2000-01-01T01:01:01')
@@ -284,6 +285,7 @@ Format           Subformats
 ``mjd``          float, long, decimal, str, bytes
 ``plot_date``    float, long, decimal, str, bytes
 ``unix``         float, long, decimal, str, bytes
+``unix_tai``     float, long, decimal, str, bytes
 ``yday``         date_hms, date_hm, date
 ================ ========================================
 
@@ -300,19 +302,20 @@ Format           Subformats
 Time from epoch formats
 """""""""""""""""""""""
 
-The formats ``cxcsec``, ``gps``, and ``unix`` are a little special in
+The formats ``cxcsec``, ``gps``, ``unix``, and ``unix_tai`` are a little special in
 that they provide a floating point representation of the elapsed
 time in seconds since a particular reference date.  These formats have
 a intrinsic time scale which is used to compute the elapsed seconds
 since the reference date.
 
-========== ====== ========================
-Format      Scale  Reference date
-========== ====== ========================
-``cxcsec``   TT   ``1998-01-01 00:00:00``
-``unix``    UTC   ``1970-01-01 00:00:00``
-``gps``     TAI   ``1980-01-06 00:00:19``
-========== ====== ========================
+============ ====== ========================
+Format       Scale  Reference date
+============ ====== ========================
+``cxcsec``   TT     ``1998-01-01 00:00:00``
+``unix``     UTC    ``1970-01-01 00:00:00``
+``unix_tai`` TAI    ``1970-01-01 00:00:08``
+``gps``      TAI    ``1980-01-06 00:00:19``
+============ ====== ========================
 
 Unlike the other formats which default to UTC, if no ``scale`` is provided when
 initializing a |Time| object then the above intrinsic scale is used.
