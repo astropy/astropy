@@ -1520,3 +1520,25 @@ def test_newline_as_delimiter(delimiter, fast_reader):
     if not fast_reader:
         pytest.xfail("Quoted fields are not parsed correctly by BaseSplitter")
     assert_equal(t1['b'].dtype.kind, 'i')
+
+
+@pytest.mark.parametrize('delimiter', [' ', '|', '\n', '\r'])
+@pytest.mark.parametrize('fast_reader', [False, True, 'force'])
+def test_single_line_string(delimiter, fast_reader):
+    """
+    String input without a newline character is interpreted as filename,
+    unless element of an iterable. Maybe not logical, but test that it is
+    at least treated consistently.
+    """
+    expected = Table([[1], [2], [3.00]], names=('col1', 'col2', 'col3'))
+    text = "1{0:s}2{0:s}3.0".format(delimiter)
+
+    if delimiter in ('\r', '\n'):
+        t1 = ascii.read(text, format='no_header', delimiter=delimiter, fast_reader=fast_reader)
+        assert_table_equal(t1, expected)
+    else:
+        with pytest.raises(FileNotFoundError):
+            t1 = ascii.read(text, format='no_header', delimiter=delimiter, fast_reader=fast_reader)
+
+    t2 = ascii.read([text], format='no_header', delimiter=delimiter, fast_reader=fast_reader)
+    assert_table_equal(t2, expected)

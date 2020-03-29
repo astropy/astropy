@@ -315,7 +315,15 @@ class BaseInputter:
                 table[0]
                 table[0:1]
                 iter(table)
-                lines = table
+                if len(table) > 1:
+                    lines = table
+                else:
+                    # treat single entry as if string had been passed directly
+                    if newline is None:
+                        lines = table[0].splitlines()
+                    else:
+                        lines = table[0].split(newline)
+
             except TypeError:
                 raise TypeError(
                     'Input "table" must be a string (filename or data) or an iterable')
