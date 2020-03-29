@@ -325,6 +325,49 @@ values in with typical placeholders::
 ..
   EXAMPLE END
 
+Selecting columns for masking
+-----------------------------
+The |read| function provides the parameters ``fill_include_names`` and ``fill_exclude_names``
+to select which columns will be used in the ``fill_values`` masking process described above.
+
+..
+  EXAMPLE START
+  Using the ``fill_include_names`` and ``fill_exclude_names`` parameters for ASCII tables
+
+The use of these parameters is not common but in some cases can considerably simplify
+the code required to read a table. The following gives a simple example to illustrate how
+``fill_include_names`` and ``fill_exclude_names`` can be used
+in the most basic and typical cases::
+
+  >>> from astropy.io import ascii
+  >>> lines = ['a,b,c,d', '1.0,2.0,3.0,4.0', ',,,']
+  >>> ascii.read(lines)
+  <Table length=2>
+     a       b       c       d
+  float64 float64 float64 float64
+  ------- ------- ------- -------
+      1.0     2.0     3.0     4.0
+       --      --      --      --
+
+  >>> ascii.read(lines, fill_include_names=['a', 'c'])
+  <Table length=2>
+     a     b      c     d
+  float64 str3 float64 str3
+  ------- ---- ------- ----
+      1.0  2.0     3.0  4.0
+       --           --
+
+  >>> ascii.read(lines, fill_exclude_names=['a', 'c'])
+  <Table length=2>
+   a      b     c      d
+  str3 float64 str3 float64
+  ---- ------- ---- -------
+   1.0     2.0  3.0     4.0
+            --           --
+
+..
+  EXAMPLE END
+
 .. _guess_formats:
 
 Guess Table Format
