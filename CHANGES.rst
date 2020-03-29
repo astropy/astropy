@@ -84,6 +84,11 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- Added a new time format ``unix_tai`` which is essentially Unix time but with
+  leap seconds included.  More precisely, this is the number of seconds since
+  ``1970-01-01 00:00:08 TAI`` and corresponds to the ``CLOCK_TAI`` clock
+  available on some linux platforms. [#10081]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
