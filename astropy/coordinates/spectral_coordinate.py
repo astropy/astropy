@@ -69,6 +69,20 @@ class SpectralCoord(u.Quantity):
         if isinstance(value, u.Quantity) and unit is None:
             obj._unit = value.unit
 
+        # If we're initializing from an existing SpectralCoord, keep any
+        # parameters that aren't being overridden
+        if isinstance(value, SpectralCoord):
+            if observer is None:
+                observer = value.observer
+            if target is None:
+                target = value.target
+            if radial_velocity is None and redshift is None:
+                radial_velocity = value.radial_velocity
+            if doppler_rest is None:
+                doppler_rest = value.doppler_rest
+            if doppler_convention is None:
+                doppler_convention = value.doppler_convention
+
         # Store state about whether the observer and target were defined
         #  explicitly (True), or implicity from rv/redshift (False)
         obj._frames_state = dict(observer=observer is not None,
