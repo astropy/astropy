@@ -20,7 +20,7 @@ from .utils import day_frac, quantity_day_frac, two_sum, two_product
 
 
 __all__ = ['TimeFormat', 'TimeJD', 'TimeMJD', 'TimeFromEpoch', 'TimeUnix',
-           'TimeCxcSec', 'TimeGPS', 'TimeDecimalYear',
+           'TimeUnixTai', 'TimeCxcSec', 'TimeGPS', 'TimeDecimalYear',
            'TimePlotDate', 'TimeUnique', 'TimeDatetime', 'TimeString',
            'TimeISO', 'TimeISOT', 'TimeFITS', 'TimeYearDayTime',
            'TimeEpochDate', 'TimeBesselianEpoch', 'TimeJulianEpoch',
