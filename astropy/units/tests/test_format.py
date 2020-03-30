@@ -500,7 +500,9 @@ def test_vounit_details():
 
 
 def test_vounit_custom():
-    x = u.Unit("'foo' m", format='vounit')
+    with catch_warnings() as w:
+        x = u.Unit("'foo' m", format='vounit')
+        assert "'foo' is not recognized in the VOUnit standard" in str(w[0])
     x_vounit = x.to_string('vounit')
     assert x_vounit == "'foo' m"
     x_string = x.to_string()
@@ -514,14 +516,28 @@ def test_vounit_custom():
     assert x_string == 'm mfoo'
 
 
+def test_vounit_shadow():
+    """Test that a quoted custom unit 'shadowing' a physical unit is correctly
+    identified as 'unknown' and raises meaningful conversion errors.
+    """
+    with catch_warnings() as w:
+        x = u.Unit("'m'", format='vounit')
+        assert "Unit 'm' is not recognized in the VOUnit standard" in str(w[0])
+    assert u.physical.get_physical_type(x) == 'unknown'
+    with pytest.raises(u.UnitConversionError,
+                       match=r'\(custom unit ..m..\) and .cm. \(length\)'):
+        x.to('cm')
+
+
 def test_vounit_implicit_custom():
     # We cannot overwrite already created custom units, so first make sure
     # that the namespace is clean:
     u.format.VOUnit._custom_units.clear()
     # Implicit as indicated by double-quoted strings shall recognise prefixes.
     # Yikes, this becomes "femto-urlong"...  But at least there's a warning.
-    with catch_warnings():
+    with catch_warnings() as w:
         x = u.Unit('"furlong/week"', format="vounit")
+        assert len(w) == 2
     assert not isinstance(x.bases[0], u.IrreducibleUnit)
     assert isinstance(x.bases[1], u.IrreducibleUnit)
     assert x.bases[0]._represents.scale == 1e-15

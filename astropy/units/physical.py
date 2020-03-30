@@ -60,7 +60,7 @@ def get_physical_type(unit):
     -------
     physical : str
         The name of the physical quantity, or unknown if not
-        known.
+        known (quoted custom units are always considered unknown).
     """
     r = unit._get_physical_type_id()
     return _physical_unit_mapping.get(r, 'unknown')

@@ -536,7 +536,9 @@ class UnitBase:
         useful as a dictionary key.
         """
         unit = self.decompose()
-        r = zip([x.name for x in unit.bases], unit.powers)
+        # custom units are stored under their quoted (alias) name
+        r = zip([x.name if f"'{x.name:}'" not in x.aliases else
+                 f"'{x.name:}'" for x in unit.bases], unit.powers)
         # bases and powers are already sorted in a unique way
         # r.sort()
         r = tuple(r)
@@ -876,6 +878,8 @@ class UnitBase:
             if physical_type != 'unknown':
                 unit_str = "'{}' ({})".format(
                     unit_str, physical_type)
+            elif hasattr(unit, 'long_names') and len(unit.long_names) > 0:
+                unit_str = f"'{unit_str}' (custom unit \"{unit.long_names[0]}\")"
             else:
                 unit_str = f"'{unit_str}'"
             return unit_str
