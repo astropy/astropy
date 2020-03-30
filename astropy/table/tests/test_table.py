@@ -1983,6 +1983,26 @@ class TestPandas:
                 else:
                     assert column.byteswap().newbyteorder().dtype == t2[name].dtype
 
+    def test_units(self):
+        import pandas as pd
+        import astropy.units as u
+
+        df = pd.DataFrame({'x': [1, 2, 3], 't': [1.3, 1.2, 1.8]})
+        t = table.Table.from_pandas(df, units={'x': u.m, 't': u.s})
+
+        assert t['x'].unit == u.m
+        assert t['t'].unit == u.s
+
+        # test error if not a mapping
+        with pytest.raises(TypeError):
+            table.Table.from_pandas(df, units=[u.m, u.s])
+
+        # test warning is raised if additional columns in units dict
+        with pytest.warns(UserWarning) as record:
+            table.Table.from_pandas(df, units={'x': u.m, 't': u.s, 'y': u.m})
+        assert len(record) == 1
+        assert "{'y'}" in record[0].message.args[0]
+
 
 @pytest.mark.usefixtures('table_types')
 class TestReplaceColumn(SetupData):
