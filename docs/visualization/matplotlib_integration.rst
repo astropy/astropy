@@ -12,7 +12,7 @@ Plotting quantities
 |quantity| objects can be conveniently plotted using matplotlib.  This
 feature needs to be explicitly turned on:
 
-.. doctest-requires:: matplotlib
+.. doctest-requires:: matplotlib, pytest-mpl
 
     >>> from astropy.visualization import quantity_support
     >>> quantity_support()  # doctest: +IGNORE_OUTPUT
@@ -69,7 +69,7 @@ precise scale and format to use for the tick labels, in which case you can make
 use of the `~astropy.visualization.time_support` function. This feature needs to
 be explicitly turned on:
 
-.. doctest-requires:: matplotlib
+.. doctest-requires:: matplotlib, pytest-mpl
 
     >>> from astropy.visualization import time_support
     >>> time_support()  # doctest: +IGNORE_OUTPUT

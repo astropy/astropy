@@ -10,7 +10,7 @@ from astropy import units as u
 
 __all__ = ['time_support']
 
-__doctest_requires__ = {'time_support': ['matplotlib']}
+__doctest_requires__ = {'time_support': ['matplotlib', 'pytest-mpl']}
 
 UNSUPPORTED_FORMATS = ('datetime', 'datetime64')
 YMDHMS_FORMATS = ('fits', 'iso', 'isot', 'yday')

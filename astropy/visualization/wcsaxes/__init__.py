@@ -6,6 +6,7 @@
 try:
     import pytest
     pytest.importorskip("matplotlib")
+    pytest.importorskip("pytest-mpl")
     del pytest
 except ImportError:
     pass
