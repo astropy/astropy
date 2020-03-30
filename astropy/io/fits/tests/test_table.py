@@ -1668,10 +1668,10 @@ class TestTableFunctions(FitsTestCase):
         acol = fits.Column(name='MEMNAME', format='A10',
                            array=chararray.array(a))
         ahdu = fits.BinTableHDU.from_columns([acol])
-        assert ahdu.data.tostring().decode('raw-unicode-escape') == s
+        assert ahdu.data.tobytes().decode('raw-unicode-escape') == s
         ahdu.writeto(self.temp('newtable.fits'))
         with fits.open(self.temp('newtable.fits')) as hdul:
-            assert hdul[1].data.tostring().decode('raw-unicode-escape') == s
+            assert hdul[1].data.tobytes().decode('raw-unicode-escape') == s
             assert (hdul[1].data['MEMNAME'] == a).all()
         del hdul
 
@@ -1680,7 +1680,7 @@ class TestTableFunctions(FitsTestCase):
             ahdu.writeto(self.temp('newtable.fits'), overwrite=True)
 
         with fits.open(self.temp('newtable.fits')) as hdul:
-            assert (hdul[1].data.tostring().decode('raw-unicode-escape') ==
+            assert (hdul[1].data.tobytes().decode('raw-unicode-escape') ==
                     s.replace('\x00', ' '))
             assert (hdul[1].data['MEMNAME'] == a).all()
             ahdu = fits.BinTableHDU.from_columns(hdul[1].data.copy())
@@ -1690,7 +1690,7 @@ class TestTableFunctions(FitsTestCase):
         # revert to zeroes
         ahdu.writeto(self.temp('newtable.fits'), overwrite=True)
         with fits.open(self.temp('newtable.fits')) as hdul:
-            assert hdul[1].data.tostring().decode('raw-unicode-escape') == s
+            assert hdul[1].data.tobytes().decode('raw-unicode-escape') == s
             assert (hdul[1].data['MEMNAME'] == a).all()
 
     def test_multi_dimensional_columns(self):
@@ -2930,7 +2930,7 @@ class TestColumnFunctions(FitsTestCase):
 
             # Check how the raw data looks
             raw = np.rec.recarray.field(hdul[1].data, 'TEST')
-            assert raw.tostring() == b'   1.   2.   3.'
+            assert raw.tobytes() == b'   1.   2.   3.'
 
     def test_column_array_type_mismatch(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/218"""
