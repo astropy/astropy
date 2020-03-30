@@ -288,8 +288,6 @@ If you are implementing your own WCS class, you could choose to implement
 more succinctly as::
 
     >>> wcs[10, 30:100, 30:100]  # doctest: +REMOTE_DATA +ELLIPSIS
-    <BLANKLINE>
-    ...
     SlicedFITSWCS Transformation
     <BLANKLINE>
     This transformation has 2 pixel and 2 world dimensions
@@ -319,8 +317,6 @@ image plane of a spectral slice, the final WCS will have one pixel dimension
 and two world dimensions (since both RA/Dec vary over the extracted 1D slice)::
 
     >>> wcs[10, 40, :]  # doctest: +REMOTE_DATA +ELLIPSIS
-    <BLANKLINE>
-    ...
     SlicedFITSWCS Transformation
     <BLANKLINE>
     This transformation has 1 pixel and 2 world dimensions
