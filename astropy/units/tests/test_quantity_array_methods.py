@@ -513,6 +513,8 @@ class TestArrayConversion:
         with pytest.raises(NotImplementedError):
             q1.tostring()
         with pytest.raises(NotImplementedError):
+            q1.tobytes()
+        with pytest.raises(NotImplementedError):
             q1.tofile(0)
         with pytest.raises(NotImplementedError):
             q1.dump('a.a')
