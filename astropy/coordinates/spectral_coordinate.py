@@ -243,7 +243,7 @@ class SpectralCoord(u.Quantity):
     @property
     def quantity(self):
         """
-        Convert the ``SpectralCoord`` to a simple `~astropy.units.Quantity`.
+        Convert the ``SpectralCoord`` to a `~astropy.units.Quantity`.
 
         Returns
         -------
