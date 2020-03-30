@@ -228,6 +228,27 @@ it with the version number in the filename, for example
 ``astropy.0.4.cfg``. You can compare this file to your
 ``astropy.cfg`` file to see what needs to be changed or updated.
 
+.. _config-suppress-env-var:
+
+Suppressing ``cfg`` File Loading
+--------------------------------
+
+If you are running ``astropy`` on a computing cluster or a serverless
+environment, where ``astropy.cfg`` is not available or loading it concurrently
+might cause a race condition, you could suppress loading it altogether by
+defining a ``ASTROPY_SUPPRESS_CONFIG`` environment variable. Removing this
+environment variable would enable reading from the file again.
+
+Using this option, you will not be able to customize ``astropy`` using the
+``astropy.cfg`` file. However, you should still be able to use the
+configuration system programmatically.
+
+.. warning::
+
+    This suppression might have side effects in other packages that also
+    use the ``astropy`` configuration system
+    (:ref:`config-affiliated-packages`).
+
 .. _config-developer:
 
 Adding New Configuration Items
@@ -408,6 +429,8 @@ Or, if the option needs to be available as a function parameter::
         return (conf.some_setting if val is None else val) + 2
 
 
+.. _config-affiliated-packages:
+
 Customizing Config in Affiliated Packages
 =========================================
 
@@ -415,7 +438,6 @@ The `astropy.config` package can be used by other packages. By default creating
 a config object in another package will lead to a configuration file taking the
 name of that package in the ``astropy`` config directory (i.e.,
 ``<astropy_config>/packagename.cfg``).
-
 
 It is possible to configure this behavior so that the a custom configuration
 directory is created for your package, for example,
@@ -433,6 +455,8 @@ subpackage and put the following into the ``__init__.py`` file::
       rootname = 'packagename'
 
 Then replace all imports of `astropy.config` with ``packagename.config``.
+
+.. warning:: See also :ref:`config-suppress-env-var`.
 
 
 See Also

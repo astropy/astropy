@@ -91,7 +91,7 @@ def test_set_temp_cache(tmpdir, monkeypatch):
 
 
 def test_set_temp_cache_resets_on_exception(tmpdir):
-    """Test for regression of  bug #9704"""
+    """Test for regression of bug #9704"""
     t = paths.get_cache_dir()
     a = tmpdir / 'a'
     with open(a, 'wt') as f:
@@ -384,6 +384,36 @@ class TestAliasRead:
     def teardown_class(self):
         from astropy.utils.data import conf
 
+        configuration._override_config_file = None
+        conf.reload()
+
+
+class TestSuppressConfig:
+    def setup_class(cls):
+        configuration._override_config_file = get_pkg_data_filename('data/not_empty.cfg')
+
+    def test_suppress_config(self):
+        from astropy.logger import conf
+
+        # Should ignore not_empty.cfg setting.
+        os.environ['ASTROPY_SUPPRESS_CONFIG'] = 'True'
+        conf.reload()
+        assert conf.log_level == 'INFO'
+
+        # Even when suppressed, programmatic API should still work.
+        with conf.set_temp('log_level', 'ERROR'):
+            assert conf.log_level == 'ERROR'
+        assert conf.log_level == 'INFO'
+
+        # Test that it reads the overridden config after removing the env var.
+        del os.environ['ASTROPY_SUPPRESS_CONFIG']
+        conf.reload()
+        assert conf.log_level == 'WARNING'
+
+    def teardown_class(cls):
+        from astropy.utils.data import conf
+
+        os.environ.pop('ASTROPY_SUPPRESS_CONFIG', None)
         configuration._override_config_file = None
         conf.reload()
 

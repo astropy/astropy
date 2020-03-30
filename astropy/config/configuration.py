@@ -10,6 +10,7 @@ configuration files for Astropy and affiliated packages.
 """
 
 import io
+import os
 import re
 import hashlib
 import pathlib
@@ -17,7 +18,6 @@ import pkgutil
 import warnings
 import importlib
 import contextlib
-from os import path
 from textwrap import TextWrapper
 from warnings import warn
 from contextlib import contextmanager
@@ -36,14 +36,14 @@ __all__ = ['InvalidConfigurationItemWarning',
 
 
 class InvalidConfigurationItemWarning(AstropyWarning):
-    """ A Warning that is issued when the configuration value specified in the
+    """A warning that is issued when the configuration value specified in the
     astropy configuration file does not match the type expected for that
     configuration value.
     """
 
 
 class ConfigurationMissingWarning(AstropyWarning):
-    """ A Warning that is issued when the configuration directory cannot be
+    """A warning that is issued when the configuration directory cannot be
     accessed (usually due to a permissions problem). If this warning appears,
     configuration items will be set to their defaults rather than read from the
     configuration file, and no configuration will persist across sessions.
@@ -52,22 +52,26 @@ class ConfigurationMissingWarning(AstropyWarning):
 
 # these are not in __all__ because it's not intended that a user ever see them
 class ConfigurationDefaultMissingError(ValueError):
-    """ An exception that is raised when the configuration defaults (which
+    """An exception that is raised when the configuration defaults (which
     should be generated at build-time) are missing.
     """
 
 
 # this is used in astropy/__init__.py
 class ConfigurationDefaultMissingWarning(AstropyWarning):
-    """ A warning that is issued when the configuration defaults (which
+    """A warning that is issued when the configuration defaults (which
     should be generated at build-time) are missing.
     """
 
 
+class ConfigurationSuppressedWarning(AstropyWarning):
+    """A warning that is issued when the configuration file is ignored
+    using ``ASTROPY_SUPPRESS_CONFIG`` environment variable.
+    """
+
+
 class ConfigurationChangedWarning(AstropyWarning):
-    """
-    A warning that the configuration options have changed.
-    """
+    """A warning that the configuration options have changed."""
 
 
 class _ConfigNamespaceMeta(type):
@@ -505,7 +509,7 @@ _override_config_file = None
 
 
 def get_config(packageormod=None, reload=False, rootname=None):
-    """ Gets the configuration object or section associated with a particular
+    """Gets the configuration object or section associated with a particular
     package or module.
 
     Parameters
@@ -565,24 +569,29 @@ def get_config(packageormod=None, reload=False, rootname=None):
     cobj = _cfgobjs.get(pkgname, None)
 
     if cobj is None or reload:
-        cfgfn = None
-        try:
-            # This feature is intended only for use by the unit tests
-            if _override_config_file is not None:
-                cfgfn = _override_config_file
-            else:
-                cfgfn = path.join(get_config_dir(rootname=rootname), pkgname + '.cfg')
-            cobj = configobj.ConfigObj(cfgfn, interpolation=False)
-        except OSError as e:
-            msg = ('Configuration defaults will be used due to ')
-            errstr = '' if len(e.args) < 1 else (':' + str(e.args[0]))
-            msg += e.__class__.__name__ + errstr
-            msg += f' on {cfgfn}'
-            warn(ConfigurationMissingWarning(msg))
-
-            # This caches the object, so if the file becomes accessible, this
-            # function won't see it unless the module is reloaded
+        if os.environ.get('ASTROPY_SUPPRESS_CONFIG'):
+            # TODO: Would it be too annoying to emit
+            #       ConfigurationSuppressedWarning here?
             cobj = configobj.ConfigObj(interpolation=False)
+        else:
+            cfgfn = None
+            try:
+                # This feature is intended only for use by the unit tests
+                if _override_config_file is not None:
+                    cfgfn = _override_config_file
+                else:
+                    cfgfn = os.path.join(get_config_dir(rootname=rootname), pkgname + '.cfg')
+                cobj = configobj.ConfigObj(cfgfn, interpolation=False)
+            except OSError as e:
+                msg = ('Configuration defaults will be used due to ')
+                errstr = '' if len(e.args) < 1 else (':' + str(e.args[0]))
+                msg += e.__class__.__name__ + errstr
+                msg += f' on {cfgfn}'
+                warn(ConfigurationMissingWarning(msg))
+
+                # This caches the object, so if the file becomes accessible, this
+                # function won't see it unless the module is reloaded
+                cobj = configobj.ConfigObj(interpolation=False)
 
         _cfgobjs[pkgname] = cobj
 
@@ -762,12 +771,12 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None, rootname='as
 
     """
 
-    if path.isdir(default_cfg_dir_or_fn):
-        default_cfgfn = path.join(default_cfg_dir_or_fn, pkg + '.cfg')
+    if os.path.isdir(default_cfg_dir_or_fn):
+        default_cfgfn = os.path.join(default_cfg_dir_or_fn, pkg + '.cfg')
     else:
         default_cfgfn = default_cfg_dir_or_fn
 
-    if not path.isfile(default_cfgfn):
+    if not os.path.isfile(default_cfgfn):
         # There is no template configuration file, which basically
         # means the affiliated package is not using the configuration
         # system, so just return.
@@ -780,7 +789,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None, rootname='as
 
     doupdate = False
     if cfgfn is not None:
-        if path.exists(cfgfn):
+        if os.path.exists(cfgfn):
             with open(cfgfn, 'rt', encoding='latin-1') as fd:
                 content = fd.read()
 
@@ -789,7 +798,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None, rootname='as
             if not identical:
                 doupdate = is_unedited_config_file(
                     content, template_content)
-        elif path.exists(path.dirname(cfgfn)):
+        elif os.path.exists(os.path.dirname(cfgfn)):
             doupdate = True
             identical = False
 
@@ -799,9 +808,9 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None, rootname='as
     # Don't install template files for dev versions, or we'll end up
     # spamming `~/.astropy/config`.
     if version and 'dev' not in version and cfgfn is not None:
-        template_path = path.join(
+        template_path = os.path.join(
             get_config_dir(rootname=rootname), f'{pkg}.{version}.cfg')
-        needs_template = not path.exists(template_path)
+        needs_template = not os.path.exists(template_path)
     else:
         needs_template = False
 

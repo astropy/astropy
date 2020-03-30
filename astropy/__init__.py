@@ -222,7 +222,7 @@ def _initialize_astropy():
         raise ImportError('astropy')
 
     try:
-        from .utils import _compiler
+        from .utils import _compiler  # noqa
     except ImportError:
         if _is_astropy_source():
             log.warning('You appear to be trying to import astropy from '
@@ -249,15 +249,20 @@ def _initialize_astropy():
             # Outright broken installation; don't be nice.
             raise
 
-    # add these here so we only need to cleanup the namespace at the end
-    config_dir = os.path.dirname(__file__)
+    if os.environ.get('ASTROPY_SUPPRESS_CONFIG'):
+        warn(config.configuration.ConfigurationSuppressedWarning(
+            f'Checking of {__package__}.cfg is skipped due to the presence of '
+            'ASTROPY_SUPPRESS_CONFIG environment variable.'))
+    else:
+        # add these here so we only need to cleanup the namespace at the end
+        config_dir = os.path.dirname(__file__)
 
-    try:
-        config.configuration.update_default_config(__package__, config_dir)
-    except config.configuration.ConfigurationDefaultMissingError as e:
-        wmsg = (e.args[0] + " Cannot install default profile. If you are "
-                "importing from source, this is expected.")
-        warn(config.configuration.ConfigurationDefaultMissingWarning(wmsg))
+        try:
+            config.configuration.update_default_config(__package__, config_dir)
+        except config.configuration.ConfigurationDefaultMissingError as e:
+            wmsg = (f'{e.args[0]} Cannot install default profile. If you are '
+                    'importing from source, this is expected.')
+            warn(config.configuration.ConfigurationDefaultMissingWarning(wmsg))
 
 
 def _rebuild_extensions():
@@ -275,7 +280,7 @@ def _rebuild_extensions():
     try:
         sp = subprocess.Popen([sys.executable, 'setup.py', 'build_ext',
                                '--inplace'], stdout=devnull,
-                               stderr=devnull)
+                              stderr=devnull)
         with Spinner('Rebuilding extension modules') as spinner:
             while sp.poll() is None:
                 next(spinner)
@@ -309,7 +314,8 @@ def _get_bibtex():
 
     with open(citation_file, 'r') as citation:
         refs = citation.read().split('@ARTICLE')[1:]
-        if len(refs) == 0: return ''
+        if len(refs) == 0:
+            return ''
         bibtexreference = f'@ARTICLE{refs[0]}'
     return bibtexreference
 
