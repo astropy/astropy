@@ -697,7 +697,7 @@ class TimeUnixTai(TimeUnix):
       is the number of seconds since ``1970-01-01 00:00:08 TAI`` or equivalently
       ``1969-12-31 23:59:59.999918 UTC``.  The difference between TAI and UTC
       at that epoch was 8.000082 sec.
-    - On the day of a leap second the difference between `unix` and `unix_tai`
+    - On the day of a leap second the difference between ``unix`` and ``unix_tai``
       times increases linearly through the day by 1.0.  See also the
       documentation for the `~astropy.time.TimeUnix` class.
 
@@ -710,8 +710,8 @@ class TimeUnixTai(TimeUnix):
       29.0
 
       >>> t = Time('1970-01-01', scale='utc')
-      >>> t.unix_tai - t.unix
-      8.200000198854696e-05  # doctest: +FLOAT_CMP
+      >>> t.unix_tai - t.unix  # doctest: +FLOAT_CMP
+      8.200000198854696e-05
     """
     name = 'unix_tai'
     epoch_val = '1970-01-01 00:00:08'

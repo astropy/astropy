@@ -331,7 +331,7 @@ class Time(ShapedLikeNDArray):
     The allowed values for ``format`` can be listed with::
 
       >>> list(Time.FORMATS)
-      ['jd', 'mjd', 'decimalyear', 'unix', 'cxcsec', 'gps', 'plot_date',
+      ['jd', 'mjd', 'decimalyear', 'unix', 'unix_tai', 'cxcsec', 'gps', 'plot_date',
        'stardate', 'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64',
        'fits', 'byear', 'jyear', 'byear_str', 'jyear_str']
 
@@ -660,7 +660,7 @@ class Time(ShapedLikeNDArray):
         that could be used for initialization.  These can be listed with::
 
           >>> list(Time.FORMATS)
-          ['jd', 'mjd', 'decimalyear', 'unix', 'cxcsec', 'gps', 'plot_date',
+          ['jd', 'mjd', 'decimalyear', 'unix', 'unix_tai', 'cxcsec', 'gps', 'plot_date',
            'stardate', 'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64',
            'fits', 'byear', 'jyear', 'byear_str', 'jyear_str']
         """
