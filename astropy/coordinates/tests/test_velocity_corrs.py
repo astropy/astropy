@@ -400,9 +400,15 @@ def _get_barycorr_bvcs_withvels(coos, loc, injupyter=False):
 
 @pytest.mark.remote_data
 def test_regression_XXXX():
+    """
+    Make sure that when we include the proper motion and radial velocity of
+    a SkyCoord, our velocity corrections remain close to TEMPO2.
+
+    We check that tau Ceti is within 5mm/s
+    """
     # Wright & Eastman (2014) Table2
     # Corrections for tau Ceti
-    jds, tempo2, barycorr = np.loadtxt(
+    reduced_jds, tempo2, barycorr = np.loadtxt(
         download_file('http://astroutils.astronomy.ohio-state.edu/exofast/pro/exofast/bary/zb.txt')).T
 
     # tau Ceti Hipparchos data
@@ -413,10 +419,10 @@ def test_regression_XXXX():
                       distance=Distance(parallax=273.96*u.mas),
                       radial_velocity=-16.597*u.km/u.s,
                       obstime=Time(48348.5625, format='mjd'))
-    # CTIO
+    # CTIO location as used in Wright & Eastmann
     xyz = u.Quantity([1814985.3, -5213916.8, -3187738.1], u.m)
     obs = EarthLocation(*xyz)
-    times = Time(jds + 2400000, format='jd')
+    times = Time(reduced_jds + 2400000, format='jd')
     tempo2 = tempo2 * speed_of_light
     barycorr = barycorr * speed_of_light
     astropy = tauCet.radial_velocity_correction(location=obs, obstime=times)
