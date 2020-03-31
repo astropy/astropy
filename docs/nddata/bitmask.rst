@@ -187,8 +187,8 @@ or by using the `~astropy.nddata.bitmask.extend_bit_flag_map` class factory:
     Bit flag values must be integer numbers that are powers of 2.
 
 Once constructed, bit flag values of a map cannot be modified, deleted, or
-added. Adding flags to a map is allowed only through subclassing through the
-one of the two methods shown above or by adding lists of tuples of
+added. Adding flags to a map is allowed only through subclassing using one of
+the two methods shown above or by adding lists of tuples of
 the form ``('NAME', value)`` to the class. This will create a new map class
 subclassed from the original map but containing the additional flags
 
