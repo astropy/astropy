@@ -1566,15 +1566,16 @@ class SkyCoord(ShapedLikeNDArray):
                              'the passed-in `obstime`.')
 
         # obstime validation
+        coo_at_rv_obstime = self  # assume we need no space motion for now
         if obstime is None:
             obstime = self.obstime
-            coo_at_rv_obstime = self
             if obstime is None:
                 raise TypeError('Must provide an `obstime` to '
                                 'radial_velocity_correction, either as a '
                                 'SkyCoord frame attribute or in the method '
                                 'call.')
-        elif self.obstime is not None:
+        elif self.obstime is not None and self.frame.data.differentials:
+            # we do need space motion after all
             coo_at_rv_obstime = self.apply_space_motion(obstime)
         elif self.obstime is None:
             # warn the user if the object has differentials set
@@ -1589,7 +1590,6 @@ class SkyCoord(ShapedLikeNDArray):
                     "the `obstime` attribute of the SkyCoord must be set",
                     AstropyUserWarning
                 )
-            coo_at_rv_obstime = self
 
         pos_earth, v_earth = get_body_barycentric_posvel('earth', obstime)
         if kind == 'barycentric':
