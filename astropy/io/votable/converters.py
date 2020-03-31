@@ -645,7 +645,7 @@ class NumericArray(Array):
     def binoutput(self, value, mask):
         filtered = self._base.filter_array(value, mask)
         filtered = _ensure_bigendian(filtered)
-        return filtered.tostring()
+        return filtered.tobytes()
 
 
 class Numeric(Converter):
@@ -779,7 +779,7 @@ class FloatingPoint(Numeric):
             return self._null_binoutput
 
         value = _ensure_bigendian(value)
-        return value.tostring()
+        return value.tobytes()
 
     def _filter_nan(self, value, mask):
         return np.where(mask, np.nan, value)
@@ -868,7 +868,7 @@ class Integer(Numeric):
                 value = self.null
 
         value = _ensure_bigendian(value)
-        return value.tostring()
+        return value.tobytes()
 
     def filter_array(self, value, mask):
         if np.any(mask):
