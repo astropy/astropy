@@ -23,6 +23,7 @@ os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
 # Python process, and this configuration only matters if running pytest
 # directly, not from e.g. an IPython session.
 
+
 @pytest.fixture(autouse=True)
 def _docdir(request):
     """Run doctests in isolated tmpdir so outputs do not end up in repo"""
