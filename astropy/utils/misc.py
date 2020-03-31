@@ -1186,9 +1186,9 @@ def unbroadcast(array):
     return array.reshape(array.shape[first_not_unity:])
 
 
-def pizza():  # pragma: no cover
+def _hungry_for(option):  # pragma: no cover
     """
-    Open browser loaded with pizza options near you.
+    Open browser loaded with ``option`` options near you.
 
     *Disclaimers: Payments not included. Astropy is not
     responsible for any liability from using this function.*
@@ -1197,4 +1197,22 @@ def pizza():  # pragma: no cover
 
     """
     import webbrowser
-    webbrowser.open('https://www.google.com/search?q=pizza+near+me')
+    webbrowser.open(f'https://www.google.com/search?q={option}+near+me')
+
+
+def pizza():  # pragma: no cover
+    """``/pizza``"""
+    _hungry_for('pizza')
+
+
+def coffee(is_adam=False, is_brigitta=False):  # pragma: no cover
+    """``/coffee``"""
+    if is_adam and is_brigitta:
+        raise ValueError('There can be only one!')
+    if is_adam:
+        option = 'fresh+third+wave+coffee'
+    elif is_brigitta:
+        option = 'decent+espresso'
+    else:
+        option = 'coffee'
+    _hungry_for(option)
