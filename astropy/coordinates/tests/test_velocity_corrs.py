@@ -401,7 +401,7 @@ def _get_barycorr_bvcs_withvels(coos, loc, injupyter=False):
 
 
 @pytest.mark.remote_data
-def test_regression_XXXX():
+def test_regression_10094():
     """
     Make sure that when we include the proper motion and radial velocity of
     a SkyCoord, our velocity corrections remain close to TEMPO2.
