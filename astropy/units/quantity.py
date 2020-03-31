@@ -1375,6 +1375,10 @@ class Quantity(np.ndarray):
         raise NotImplementedError("cannot write Quantities to string.  Write "
                                   "array with q.value.tostring(...).")
 
+    def tobytes(self, order='C'):
+        raise NotImplementedError("cannot write Quantities to string.  Write "
+                                  "array with q.value.tobytes(...).")
+
     def tofile(self, fid, sep="", format="%s"):
         raise NotImplementedError("cannot write Quantities to file.  Write "
                                   "array with q.value.tofile(...)")
