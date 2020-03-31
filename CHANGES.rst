@@ -427,12 +427,6 @@ astropy.coordinates
 - ```SkyCoord.radial_velocity_correction``` no longer raises an Exception
   when space motion information is present on the SkyCoord. [#9980]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
 astropy.io
 ^^^^^^^^^^
 

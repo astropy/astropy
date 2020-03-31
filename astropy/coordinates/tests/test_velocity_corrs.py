@@ -305,19 +305,18 @@ def test_invalid_argument_combos():
     with pytest.raises(ValueError):
         scwattrs.radial_velocity_correction(timel)
 
+
 @pytest.mark.remote_data
-@pytest.mark.filterwarnings('ignore')
 def test_regression_9645():
-    sc = SkyCoord(10*u.deg, 20*u.deg, distance=5*u.pc,
+    sc = SkyCoord(10*u.deg, 20*u.deg, distance=5*u.pc, obstime=test_input_time,
                   pm_ra_cosdec=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr, radial_velocity=0*u.km/u.s)
-    sc_novel = SkyCoord(10*u.deg, 20*u.deg, distance=5*u.pc)
+    sc_novel = SkyCoord(10*u.deg, 20*u.deg, distance=5*u.pc, obstime=test_input_time)
     corr = sc.radial_velocity_correction(obstime=test_input_time, location=test_input_loc)
     corr_novel = sc_novel.radial_velocity_correction(obstime=test_input_time, location=test_input_loc)
     assert_quantity_allclose(corr, corr_novel)
 
 
 @pytest.mark.remote_data
-@pytest.mark.filterwarnings('ignore')
 def test_barycorr_withvels():
     # this is the result of calling _get_barycorr_bvcs_withvels
     barycorr_bvcs = u.Quantity(
@@ -367,7 +366,9 @@ def _get_test_input_radecvels():
     pmdec = np.linspace(0, 1000, coos.size)*u.mas/u.yr
     rvs = np.linspace(0, 100, coos.size)*u.km/u.s
     distance = np.linspace(10, 1000, coos.size)*u.pc
-    return SkyCoord(ras, decs, pm_ra_cosdec=pmra, pm_dec=pmdec, radial_velocity=rvs, distance=distance)
+    return SkyCoord(ras, decs, pm_ra_cosdec=pmra, pm_dec=pmdec,
+                    radial_velocity=rvs, distance=distance,
+                    obstime=test_input_time)
 
 
 def _get_barycorr_bvcs_withvels(coos, loc, injupyter=False):
@@ -427,7 +428,7 @@ def test_regression_XXXX():
     # CTIO location as used in Wright & Eastmann
     xyz = u.Quantity([1814985.3, -5213916.8, -3187738.1], u.m)
     obs = EarthLocation(*xyz)
-    times = Time(reduced_jds + 2400000, format='jd')
+    times = Time(2400000, reduced_jds, format='jd')
     tempo2 = tempo2 * speed_of_light
     barycorr = barycorr * speed_of_light
     astropy = tauCet.radial_velocity_correction(location=obs, obstime=times)
