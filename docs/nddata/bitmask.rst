@@ -54,7 +54,7 @@ performs the following operation:
 
 ``(1)    boolean_mask = (bitfield & ~bit_mask) != 0``
 
-(Here ``&`` is bitwise, while ``and`` and ``~`` is the bitwise ``not``
+(Here ``&`` is bitwise ``and`` while ``~`` is the bitwise ``not``
 operation.) In the previous formula, ``bit_mask`` is a bit mask created from
 individual bit flags that need to be ignored in the bit field.
 
@@ -101,8 +101,8 @@ in `Table 1 <table1_>`_. In this case ``ignore_flags`` can be set either to:
     - An integer value bit mask 80
     - A Python list indicating individual non-zero
       *bit flag values:* ``[16, 64]``
-    - A string of comma-separated *bit flag values*: ``'16,64'``
-    - A string of ``+``-separated *bit flag values*: ``'16+64'``
+    - A string of comma-separated *bit flag values or mnemonic names*: ``'16,64'``, ``'CR,WARM'``
+    - A string of ``+``-separated *bit flag values or mnemonic names*: ``'16+64'``, ``'CR+WARM'``
 
 Example
 -------
@@ -130,6 +130,80 @@ It is also possible to specify the type of the output mask:
 
     >>> bitmask.bitfield_to_boolean_mask([9, 10, 73, 217], ignore_flags='1,8,64', dtype=np.uint8)
     array([0, 1, 0, 1], dtype=uint8)
+
+In order to use lists of mnemonic bit flags names, one must provide a map,
+a subclass of `~astropy.nddata.bitmask.BaseBitFlagNameMap`, that can be
+used to map mnemonic names to bit flag values. Normally these maps should be
+provided by a third-patry package supporting a specific instrument. In the
+example below we define a simple mask map:
+
+    >>> from astropy.nddata.bitmask import BaseBitFlagNameMap
+    >>> class ST_DQ(BaseBitFlagNameMap):
+    ...     CR = 1
+    ...     CLOUDY = 4
+    ...     RAINY = 8
+    ...     HOT = 32
+    ...     DEAD = 64
+    >>> bitmask.bitfield_to_boolean_mask([9, 10, 73, 217], ignore_flags='CR,RAINY,DEAD',
+    ...                                  dtype=np.uint8, flag_name_map=ST_DQ)
+    array([0, 1, 0, 1], dtype=uint8)
+
+..
+  EXAMPLE END
+
+Using Bit Flags Name Maps
+=========================
+
+..
+  EXAMPLE START
+
+In order to allow the use of mnemonic bit flag names to describe the flags
+to be taken into consideration or ignored when creating a *boolean* mask, we
+use bit flag name maps. These maps perform case-insensitive translation of
+mnemonic bit flag names to the corresponding integer value.
+
+Bit flag name maps are subclasses of `~astropy.nddata.bitmask.BaseBitFlagNameMap`
+and can be constructed in two ways, either by directly subclassing
+`~astropy.nddata.bitmask.BaseBitFlagNameMap`, e.g.,
+
+    >>> from astropy.nddata.bitmask import BaseBitFlagNameMap
+    >>> class ST_DQ(BaseBitFlagNameMap):
+    ...     CR = 1
+    ...     CLOUDY = 4
+    ...     RAINY = 8
+    ...
+    >>> class ST_CAM1_DQ(ST_DQ):
+    ...     HOT = 16
+    ...     DEAD = 32
+
+or by using the `~astropy.nddata.bitmask.extend_bit_flag_map` class factory:
+
+    >>> from astropy.nddata.bitmask import extend_bit_flag_map
+    >>> ST_DQ = extend_bit_flag_map('ST_DQ', CR=1, CLOUDY=4, RAINY=8)
+    >>> ST_CAM1_DQ = extend_bit_flag_map('ST_CAM1_DQ', ST_DQ, HOT=16, DEAD=32)
+
+.. note::
+
+    Bit flag values must be integer numbers that are powers of 2.
+
+Once constructed, bit flag values of a map cannot be modified, deleted, or
+added. Adding flags to a map is allowed only through subclassing through the
+one of the two methods shown above or by adding lists of tuples of
+the form ``('NAME', value)`` to the class. This will create a new map class
+subclassed from the original map but containing the additional flags
+
+    >>> ST_CAM1_DQ = ST_DQ + [('HOT', 16), ('DEAD', 32)]
+
+would result in an equivalent map as in the subclassing or class factory
+examples shown above.
+
+Once a bit flag name map was created, the bit flag values can be accessed
+either as *case-insensitive* class attributes or keys in a dictionary:
+
+    >>> ST_CAM1_DQ.cloudy
+    4
+    >>> ST_CAM1_DQ['Rainy']
+    8
 
 ..
   EXAMPLE END
