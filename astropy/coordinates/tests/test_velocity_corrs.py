@@ -10,6 +10,7 @@ from astropy.coordinates import EarthLocation, SkyCoord, Angle, Distance
 from astropy.coordinates.sites import get_builtin_sites
 from astropy.utils.data import download_file
 from astropy.constants import c as speed_of_light
+from astropy.table import Table
 
 
 @pytest.mark.remote_data
@@ -408,8 +409,12 @@ def test_regression_XXXX():
     """
     # Wright & Eastman (2014) Table2
     # Corrections for tau Ceti
-    reduced_jds, tempo2, barycorr = np.loadtxt(
-        download_file('http://astroutils.astronomy.ohio-state.edu/exofast/pro/exofast/bary/zb.txt')).T
+    wright_table = Table.read(
+        download_file('http://data.astropy.org/coordinates/wright_eastmann_2014_tau_ceti.fits')
+    )
+    reduced_jds = wright_table['JD-2400000']
+    tempo2 = wright_table['TEMPO2']
+    barycorr = wright_table['BARYCORR']
 
     # tau Ceti Hipparchos data
     tauCet = SkyCoord('01 44 05.1275 -15 56 22.4006',
