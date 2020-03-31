@@ -386,6 +386,11 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Fixed ``deprecated_renamed_argument`` to accept case when argument is
+  deprecated without replacement and removed from signature as
+  well. Deprecated argument cannot be used as positional argument, unless
+  it's being kept in signature.  [#10093]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
