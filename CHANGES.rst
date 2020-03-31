@@ -78,6 +78,9 @@ astropy.table
 - Added new ``Table`` method ``.round()``, which rounds numeric columns to the
   specified number of decimals. [#9862]
 
+- The HDF5 writer, ``write_table_hdf5()``, now allows passing through
+  additional keyword arguments to the ``h5py.Group.create_dataset()``. [#9602]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
