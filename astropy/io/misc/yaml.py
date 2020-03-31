@@ -141,7 +141,7 @@ def _ndarray_representer(dumper, obj):
     else:
         order = 'C'
 
-    data_b64 = base64.b64encode(obj.tostring())
+    data_b64 = base64.b64encode(obj.tobytes())
 
     out = dict(buffer=data_b64,
                dtype=str(obj.dtype),
