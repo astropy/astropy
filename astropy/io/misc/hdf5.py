@@ -253,7 +253,8 @@ def write_table_hdf5(table, output, path=None, compression=False,
         If ``append=True`` and ``overwrite=True`` then only the dataset will be
         replaced; the file/group will not be overwritten.
     **create_dataset_kwargs
-        Additional keyword arguments are passed to `h5py.File.create_dataset`.
+        Additional keyword arguments are passed to
+        ``h5py.File.create_dataset()`` or ``h5py.Group.create_dataset()``.
     """
 
     from astropy.table import meta
