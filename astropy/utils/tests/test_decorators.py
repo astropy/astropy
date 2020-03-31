@@ -488,6 +488,32 @@ def test_deprecated_argument_remove():
         assert len(w) == 0
 
 
+def test_deprecated_argument_remove_from_signature():
+    @deprecated_renamed_argument('x', None, '2.0', alternative='astropy.y')
+    def test(dummy=11):
+        return dummy
+
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        assert test(x=1) == (11)
+        assert len(w) == 1
+        assert 'Use astropy.y instead' in str(w[0].message)
+
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        assert test(x=1, dummy=10) == (10)
+        assert len(w) == 1
+
+    with pytest.raises(TypeError):
+        # Can't pass in deprecated parameter as positional arg when it's missing from signature
+        # as its position is ambigious
+        test(121, 1)
+
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        assert test() == (11)
+        assert test(121) == (121)
+        assert test(dummy=121) == (121)
+        assert len(w) == 0
+
+
 def test_sharedmethod_reuse_on_subclasses():
     """
     Regression test for an issue where sharedmethod would bind to one class

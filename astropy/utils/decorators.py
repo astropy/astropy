@@ -440,7 +440,10 @@ def deprecated_renamed_argument(old_name, new_name, since,
                 pass
             else:
                 if new_name[i] is None:
-                    param = arguments[old_name[i]]
+                    if old_name[i] in arguments:
+                        param = arguments[old_name[i]]
+                    else:
+                        param = None
                 elif new_name[i] in arguments:
                     param = arguments[new_name[i]]
                 # In case the argument is not found in the list of arguments
@@ -457,7 +460,11 @@ def deprecated_renamed_argument(old_name, new_name, since,
                 # There are several possibilities now:
 
                 # 1.) Positional or keyword argument:
-                if param.kind == param.POSITIONAL_OR_KEYWORD:
+                if param is None:
+                    # We can't silently accept deprecated parameter when it's missing from
+                    # the signature as its position is ambigious
+                    position[i] = None
+                elif param.kind == param.POSITIONAL_OR_KEYWORD:
                     if new_name[i] is None:
                         position[i] = keys.index(old_name[i])
                     else:
@@ -519,10 +526,13 @@ def deprecated_renamed_argument(old_name, new_name, since,
                         # name of the new argument to the function
                         if new_name[i] is not None:
                             kwargs[new_name[i]] = value
-                        # If old argument has no replacement, cast it back.
+                        # If old argument has no replacement, cast it back, but only if argument
+                        # was left in the signature.
                         # https://github.com/astropy/astropy/issues/9914
+                        # https://github.com/astropy/astropy/issues/10084
                         else:
-                            kwargs[old_name[i]] = value
+                            if param is not None:
+                                kwargs[old_name[i]] = value
 
                 # Deprecated keyword without replacement is given as
                 # positional argument.
