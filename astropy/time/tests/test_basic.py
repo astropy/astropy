@@ -1382,6 +1382,13 @@ def test_set_format_basic():
         assert t._time.jd2 is t0._time.jd2
 
 
+def test_unix_tai_format():
+    t = Time('2020-01-01', scale='utc')
+    assert allclose_sec(t.unix_tai - t.unix, 29.0)
+    t = Time('1970-01-01', scale='utc')
+    assert allclose_sec(t.unix_tai - t.unix, 8.2e-05)
+
+
 def test_set_format_shares_subfmt():
     """
     Set format and round trip through a format that shares out_subfmt
