@@ -346,6 +346,31 @@ def test_write_fileobj(tmpdir):
 
 
 @pytest.mark.skipif('not HAS_H5PY')
+def test_write_create_dataset_kwargs(tmpdir):
+
+    test_file = str(tmpdir.join('test.hdf5'))
+    the_path = 'the_table'
+
+    import h5py
+    with h5py.File(test_file, 'w') as output_file:
+        t1 = Table()
+        t1.add_column(Column(name='a', data=[1, 2, 3]))
+        t1.write(output_file, path=the_path,
+                 maxshape=(None, ))
+
+    # A roundabout way of checking this, but the table created above should be
+    # resizable if the kwarg was passed through successfully
+    t2 = Table()
+    t2.add_column(Column(name='a', data=[4, 5]))
+    with h5py.File(test_file, 'a') as output_file:
+        output_file[the_path].resize((len(t1) + len(t2), ))
+        output_file[the_path][len(t1):] = t2.as_array()
+
+    t3 = Table.read(test_file, path='the_table')
+    assert np.all(t3['a'] == [1, 2, 3, 4, 5])
+
+
+@pytest.mark.skipif('not HAS_H5PY')
 def test_write_filobj_group(tmpdir):
 
     test_file = str(tmpdir.join('test.hdf5'))
