@@ -279,3 +279,13 @@ def test_sigma_clippped_stats_unit():
     data = np.array([1, 1]) * u.kpc
     result = sigma_clipped_stats(data)
     assert result == (1. * u.kpc, 1. * u.kpc, 0. * u.kpc)
+
+
+def test_sigma_clippped_stats_all_masked():
+    """
+    Test sigma_clipped_stats when the input array is completely masked.
+    """
+
+    arr = np.ma.MaskedArray(np.arange(10),  mask=True)
+    result = sigma_clipped_stats(arr)
+    assert result == (np.ma.masked, np.ma.masked, np.ma.masked)
