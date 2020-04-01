@@ -7,13 +7,15 @@ import sys
 import copy
 from io import StringIO
 from collections import OrderedDict
+import pickle
 
 import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy.io import fits
-from astropy.table import Table, QTable, MaskedColumn, TableReplaceWarning
+from astropy.table import (Table, QTable, MaskedColumn, TableReplaceWarning,
+                           TableAttribute)
 from astropy.tests.helper import (assert_follows_unicode_guidelines,
                                   ignore_warnings, catch_warnings)
 from astropy.coordinates import SkyCoord
@@ -2469,6 +2471,57 @@ def test_tolist():
     assert t['c'].tolist() == [['foo', 'bar'], ['hello', 'world']]
     assert isinstance(t['a'].tolist()[0][0], int)
     assert isinstance(t['c'].tolist()[0][0], str)
+
+
+class MyTable(Table):
+    foo = TableAttribute()
+    bar = TableAttribute(default=[])
+    baz = TableAttribute(default=1)
+
+
+def test_table_attribute():
+
+    t = MyTable([[1, 2]])
+    assert t.foo is None
+    t.bar.append(2.0)
+    assert t.bar == [2.0]
+    assert t.baz == 1
+
+    t.baz = 'baz'
+    assert t.baz == 'baz'
+
+    # Table attributes round-trip through pickle
+    tp = pickle.loads(pickle.dumps(t))
+    assert tp.foo is None
+    assert tp.baz == 'baz'
+    assert tp.bar == [2.0]
+
+    # Table attribute round-trip through ECSV
+    out = StringIO()
+    t.write(out, format='ascii.ecsv')
+    t2 = MyTable.read(out.getvalue(), format='ascii.ecsv')
+    assert t2.foo is None
+    assert t2.bar == [2.0]
+    assert t2.baz == 'baz'
+
+    # Allow initialization of attributes in table creation
+    t2 = MyTable([[1, 2]], foo=3, bar='bar', baz='baz')
+    assert t2.foo == 3
+    assert t2.bar == 'bar'
+    assert t2.baz == 'baz'
+
+
+def test_table_attribute_fail():
+    # Code raises ValueError(f'{attr} not allowed as TableAttribute') but in this
+    # context it gets re-raised as a RuntimeError during class definition.
+    with pytest.raises(RuntimeError, match='Error calling __set_name__'):
+        class MyTable2(Table):
+            data = TableAttribute()  # Conflicts with init arg
+
+    with pytest.raises(RuntimeError, match='Error calling __set_name__'):
+        class MyTable3(Table):
+            colnames = TableAttribute()  # Conflicts with built-in property
+
 
 
 def test_set_units_fail():

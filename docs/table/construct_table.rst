@@ -977,8 +977,44 @@ Subclassing Table
 =================
 
 For some applications it can be useful to subclass the |Table| class in order
-to introduce specialized behavior. In addition to subclassing |Table|, it is
-frequently desirable to change the behavior of the internal class objects which
+to introduce specialized behavior. Here we address two particular use cases
+for subclassing: adding custom table attributes and changing the behavior of
+internal class objects.
+
+Adding Custom Table Attributes
+------------------------------
+
+One simple customization that can be useful is adding new attributes to
+the table object.  There is nothing preventing setting an attribute on an
+existing table object, for example ``t.foo = 'hello'``.  However, this attribute
+would be ephemeral because it will be lost if the table is sliced, copied, or
+pickled. Instead, you can add persistent attributes as shown in this example::
+
+  from astropy.table import Table, TableAttribute
+
+  class MyTable(Table):
+      foo = TableAttribute()
+      bar = TableAttribute(default=[])
+      baz = TableAttribute(default=1)
+
+  t = MyTable([[1, 2]], foo='foo')
+  t.bar.append(2.0)
+  t.baz = 'baz'
+
+Some key points:
+
+- A custom attribute can be set when the table is created or using
+  the usual syntax for setting an object attribute.
+- A custom attribute always has a default value, either explicitly set
+  in the class definition or ``None``.
+- The attribute values are stored in the table ``meta`` dictionary. This is
+  the mechanism by which they are persistent through copy, slice, and
+  serialization such as pickling or writing to an ECSV ASCII file.
+
+Changing Behavior of Internal Class Objects
+-------------------------------------------
+
+It is also possible to change the behavior of the internal class objects which
 are contained or created by a Table. This includes rows, columns, formatting,
 and the columns container. In order to do this the subclass needs to declare
 what class to use (if it is different from the built-in version). This is done
@@ -1009,7 +1045,7 @@ subcomponents::
 
 
 Example
--------
+^^^^^^^
 
 .. EXAMPLE START: Subclassing the Table Class
 
@@ -1097,7 +1133,7 @@ fields. This might look something like::
 .. EXAMPLE END
 
 Columns and Quantities
-----------------------
+======================
 
 .. EXAMPLE START: Handling Astropy Column and Quantity Objects within Tables
 

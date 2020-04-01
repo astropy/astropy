@@ -500,6 +500,15 @@ class Table:
 
         default_names = None
 
+        # Handle custom (subclass) table attributes that are stored in meta.
+        # These are defined as class attributes using the MetaAttribute
+        # descriptor.  Any such attributes get removed from kwargs here.
+        if kwargs:
+            for attr in list(kwargs):
+                descr = getattr(self.__class__, attr, None)
+                if isinstance(descr, TableAttribute):
+                    setattr(self, attr, kwargs.pop(attr))
+
         if hasattr(data, '__astropy_table__'):
             # Data object implements the __astropy_table__ interface method.
             # Calling that method returns an appropriate instance of
@@ -3667,3 +3676,42 @@ class NdarrayMixin(np.ndarray):
         nd_state, own_state = state
         super().__setstate__(nd_state)
         self.__dict__.update(own_state)
+
+
+class TableAttribute:
+    """
+    Descriptor to define custom Table attribute which gets stored in the object
+    meta dict and can have a defined default.
+
+    :param default: default value
+
+    """
+    def __init__(self, default=None):
+        self.default = default
+
+    def __get__(self, instance, owner):
+        try:
+            return instance.meta[self.name]
+        except AttributeError:
+            # When called without an instance, return self to allow access
+            # to descriptor attributes.
+            # AttributeError: 'NoneType' object has no attribute 'meta'
+            return self
+        except KeyError:
+            if self.default is not None:
+                instance.meta[self.name] = deepcopy(self.default)
+            return instance.meta.get(self.name)
+
+    def __set__(self, instance, value):
+        instance.meta[self.name] = value
+
+    def __set_name__(self, owner, name):
+        reserved = ('data', 'masked', 'names', 'dtype',
+                    'meta', 'copy', 'rows', 'copy_indices',
+                    'units', 'descriptions')
+        if hasattr(Table, name) or name in reserved:
+            raise ValueError(f'{name} not allowed as TableAttribute')
+        self.name = name
+
+    def __repr__(self):
+        return f'<{self.__class__.__name__} name={self.name} default={self.default}'
