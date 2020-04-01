@@ -132,7 +132,7 @@ class ImageNormalize(Normalize):
         np.true_divide(values, self.vmax - self.vmin, out=values)
 
         # Clip to the 0 to 1 range
-        if self.clip:
+        if clip:
             values = np.clip(values, 0., 1., out=values)
 
         # Stretch values
