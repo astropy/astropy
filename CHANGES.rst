@@ -103,6 +103,9 @@ astropy.table
 - The HDF5 writer, ``write_table_hdf5()``, now allows passing through
   additional keyword arguments to the ``h5py.Group.create_dataset()``. [#9602]
 
+- Added capability to add custom table attributes to a ``Table`` subclass.
+  These attributes are persistent and can be set during table creation. [#10097]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
