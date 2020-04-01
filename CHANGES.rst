@@ -129,6 +129,11 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- ```SkyCoord.radial_velocity_correction``` now allows you to pass an ```obstime``` directly
+  when the ```SkyCoord``` also has an ```obstime``` set. In this situation, the position of the
+  ```SkyCoord``` has space motion applied to correct to the passed ```obstime```. This allows
+  mm/s radial velocity precision for objects with large space motion. [#10094]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
