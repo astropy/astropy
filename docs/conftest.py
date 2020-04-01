@@ -7,6 +7,7 @@
 
 import os
 import tempfile
+import pytest
 
 # Make sure we use temporary directories for the config and cache
 # so that the tests are insensitive to local configuration.
@@ -21,3 +22,20 @@ os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
 # them after testing, because they are only changed for the duration of the
 # Python process, and this configuration only matters if running pytest
 # directly, not from e.g. an IPython session.
+
+
+@pytest.fixture(autouse=True)
+def _docdir(request):
+    """Run doctests in isolated tmpdir so outputs do not end up in repo"""
+    # Trigger ONLY for doctestplus
+    doctest_plugin = request.config.pluginmanager.getplugin("doctestplus")
+    if isinstance(request.node, doctest_plugin._doctest_textfile_item_cls):
+        # Don't apply this fixture to io.rst.  It reads files and doesn't write
+        if "io.rst" not in request.node.name:
+            tmpdir = request.getfixturevalue('tmpdir')
+            with tmpdir.as_cwd():
+                yield
+        else:
+            yield
+    else:
+        yield
