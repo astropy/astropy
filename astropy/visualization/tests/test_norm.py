@@ -99,6 +99,19 @@ class TestNormalize:
         assert norm.vmax == np.max(DATA)
         assert_allclose(output, norm2(DATA))
 
+    def test_call_clip(self):
+        """Test that the clip keyword is used when calling the object."""
+        data = np.arange(5)
+        norm = ImageNormalize(vmin=1., vmax=3., clip=False)
+
+        output = norm(data, clip=True)
+        assert_equal(output.data, [0, 0, 0.5, 1.0, 1.0])
+        assert np.all(~output.mask)
+
+        output = norm(data, clip=False)
+        assert_equal(output.data, [-0.5, 0, 0.5, 1.0, 1.5])
+        assert np.all(~output.mask)
+
     def test_masked_clip(self):
         mdata = ma.array(DATA, mask=[0, 0, 1, 0, 0, 0])
         norm = ImageNormalize(vmin=2., vmax=10., stretch=SqrtStretch(),

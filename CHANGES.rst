@@ -73,6 +73,9 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Fixed a bug where the ``ImageNormalize`` ``clip`` keyword was
+  ignored when used with calling the object on data. [#10098]
+
 astropy.wcs
 ^^^^^^^^^^^
 
