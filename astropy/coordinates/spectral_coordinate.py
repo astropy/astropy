@@ -262,8 +262,8 @@ class SpectralCoord(u.Quantity):
 
         Returns
         -------
-        quantity
-            This object viewed as a `Quantity`
+        `~astropy.units.Quantity`
+            This object viewed as a `~astropy.units.Quantity`.
 
         """
         return self.view(u.Quantity)
