@@ -37,6 +37,13 @@ else:
     HAS_PANDAS = True
 
 
+try:
+    import yaml  # noqa
+    HAS_YAML = True
+except ImportError:
+    HAS_YAML = False
+
+
 class SetupData:
     def _setup(self, table_types):
         self._table_type = table_types.Table
@@ -2496,18 +2503,22 @@ def test_table_attribute():
     assert tp.baz == 'baz'
     assert tp.bar == [2.0]
 
+    # Allow initialization of attributes in table creation
+    t2 = MyTable([[1, 2]], foo=3, bar='bar', baz='baz')
+    assert t2.foo == 3
+    assert t2.bar == 'bar'
+    assert t2.baz == 'baz'
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_table_attribute_ecsv():
     # Table attribute round-trip through ECSV
+    t = MyTable([[1, 2]], bar=[2.0], baz='baz')
     out = StringIO()
     t.write(out, format='ascii.ecsv')
     t2 = MyTable.read(out.getvalue(), format='ascii.ecsv')
     assert t2.foo is None
     assert t2.bar == [2.0]
-    assert t2.baz == 'baz'
-
-    # Allow initialization of attributes in table creation
-    t2 = MyTable([[1, 2]], foo=3, bar='bar', baz='baz')
-    assert t2.foo == 3
-    assert t2.bar == 'bar'
     assert t2.baz == 'baz'
 
 
