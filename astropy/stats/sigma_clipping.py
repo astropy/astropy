@@ -737,6 +737,9 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
     SigmaClip, sigma_clip
     """
 
+    if isinstance(data, np.ma.MaskedArray) and data.mask.all():
+        return np.ma.masked, np.ma.masked, np.ma.masked
+
     if mask is not None:
         data = np.ma.MaskedArray(data, mask)
     if mask_value is not None:
