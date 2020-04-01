@@ -455,7 +455,10 @@ class SigmaClip:
             return data
 
         if isinstance(data, np.ma.MaskedArray) and data.mask.all():
-            return data
+            if masked:
+                return data
+            else:
+                return np.ma.filled(data.astype(float), fill_value=np.nan)
 
         # These two cases are treated separately because when
         # ``axis=None`` we can simply remove clipped values from the
