@@ -1579,6 +1579,30 @@ def test_join_non_1d_key_column():
         table.join(t1, t2, keys='a')
 
 
+def test_sort_indexed_table():
+    """Test fix for #9473 and #6545"""
+    t = Table([[1, 3, 2], [6, 4, 5]], names=('a', 'b'))
+    t.add_index('a')
+    t.sort('a')
+    assert np.all(t['a'] == [1, 2, 3])
+    assert np.all(t['b'] == [6, 5, 4])
+    t.sort('b')
+    assert np.all(t['b'] == [4, 5, 6])
+    assert np.all(t['a'] == [3, 2, 1])
+
+    from astropy.timeseries import TimeSeries
+    times = ['2016-01-01', '2018-01-01', '2017-01-01']
+    tm = Time(times)
+    ts = TimeSeries(time=times)
+    ts['flux'] = [3, 2, 1]
+    ts.sort('flux')
+    assert np.all(ts['flux'] == [1, 2, 3])
+    ts.sort('time')
+    assert np.all(ts['flux'] == [3, 1, 2])
+    assert np.all(ts['time'] == tm[[0, 2, 1]])
+
+
+
 def test_get_out_class():
     c = table.Column([1, 2])
     mc = table.MaskedColumn([1, 2])

@@ -2956,34 +2956,22 @@ class Table:
         if reverse:
             indexes = indexes[::-1]
 
-        sort_index = get_index(self, names=keys)
+        with self.index_mode('freeze'):
+            for name, col in self.columns.items():
+                # Make a new sorted column.  This requires that take() also copies
+                # relevant info attributes for mixin columns.
+                new_col = col.take(indexes, axis=0)
 
-        if sort_index is not None:
-            # avoid inefficient relabelling of sorted index
-            prev_frozen = sort_index._frozen
-            sort_index._frozen = True
-
-        for name, col in self.columns.items():
-            # Make a new sorted column.  This requires that take() also copies
-            # relevant info attributes for mixin columns.
-            new_col = col.take(indexes, axis=0)
-
-            # First statement in try: will succeed if the column supports an in-place
-            # update, and matches the legacy behavior of astropy Table.  However,
-            # some mixin classes may not support this, so in that case just drop
-            # in the entire new column. See #9553 and #9536 for discussion.
-            try:
-                col[:] = new_col
-            except Exception:
-                # In-place update failed for some reason, exception class not
-                # predictable for arbitrary mixin.
-                self[col.info.name] = new_col
-
-        if sort_index is not None:
-            # undo index freeze
-            sort_index._frozen = prev_frozen
-            # now relabel the sort index appropriately
-            sort_index.sort()
+                # First statement in try: will succeed if the column supports an in-place
+                # update, and matches the legacy behavior of astropy Table.  However,
+                # some mixin classes may not support this, so in that case just drop
+                # in the entire new column. See #9553 and #9536 for discussion.
+                try:
+                    col[:] = new_col
+                except Exception:
+                    # In-place update failed for some reason, exception class not
+                    # predictable for arbitrary mixin.
+                    self[col.info.name] = new_col
 
     def reverse(self):
         '''
