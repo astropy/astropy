@@ -290,6 +290,15 @@ def test_sigma_clippped_stats_all_masked():
     Test sigma_clipped_stats when the input array is completely masked.
     """
 
-    arr = np.ma.MaskedArray(np.arange(10),  mask=True)
+    arr = np.ma.MaskedArray(np.arange(10), mask=True)
     result = sigma_clipped_stats(arr)
+    assert result == (np.ma.masked, np.ma.masked, np.ma.masked)
+
+    arr = np.ma.MaskedArray(np.zeros(10), mask=False)
+    result = sigma_clipped_stats(arr, mask_value=0.)
+    assert result == (np.ma.masked, np.ma.masked, np.ma.masked)
+
+    arr = np.ma.MaskedArray(np.arange(10), mask=False)
+    mask = arr < 20
+    result = sigma_clipped_stats(arr, mask=mask)
     assert result == (np.ma.masked, np.ma.masked, np.ma.masked)
