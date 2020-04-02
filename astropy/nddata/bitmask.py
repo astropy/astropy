@@ -10,7 +10,7 @@ import numpy as np
 
 
 __all__ = ['bitfield_to_boolean_mask', 'interpret_bit_flags',
-           'BaseBitFlagNameMap', 'extend_bit_flag_map']
+           'BitFlagNameMap', 'extend_bit_flag_map']
 
 
 _ENABLE_BITFLAG_CACHING = True
@@ -88,7 +88,7 @@ class BitFlagNameMeta(type):
             return super().__setattr__(name, True)
 
         else:
-            err_msg = "Bit flags are read-only. Unable to modify attribute {}".format(name)
+            err_msg = "Bit flags are read-only. Unable to reassign attribute {}".format(name)
             if cls._locked:
                 raise AttributeError(err_msg)
 
@@ -129,12 +129,15 @@ class BitFlagNameMeta(type):
         return cls.__getattr__(key)
 
     def __add__(cls, items):
-        if not isinstance(items[0], (tuple, list)):
-            items = [items]
+        if not isinstance(items, dict):
+            if not isinstance(items[0], (tuple, list)):
+                items = [items]
+            items = dict(items)
+
         return extend_bit_flag_map(
-            cls.__name__ + '_' + '_'.join([k for k, _ in items]),
+            cls.__name__ + '_' + '_'.join([k for k in items]),
             cls,
-            **dict(items)
+            **items
         )
 
     def __iadd__(cls, other):
@@ -143,13 +146,18 @@ class BitFlagNameMeta(type):
         )
 
     def __delattr__(cls, name):
-        raise NotImplementedError("Deleting bit flag name is not allowed.")
+        raise AttributeError("{:s}: cannot delete {:s} member."
+                             .format(cls.__name__, cls.mro()[-2].__name__))
 
     def __delitem__(cls, name):
-        raise NotImplementedError("Deleting bit flag name is not allowed.")
+        raise AttributeError("{:s}: cannot delete {:s} member."
+                             .format(cls.__name__, cls.mro()[-2].__name__))
+
+    def __repr__(cls):
+        return "<{:s} '{:s}'>".format(cls.mro()[-2].__name__, cls.__name__)
 
 
-class BaseBitFlagNameMap(metaclass=BitFlagNameMeta):
+class BitFlagNameMap(metaclass=BitFlagNameMeta):
     """
     A base class for bit flag name maps used to describe data quality (DQ)
     flags of images by provinding a mapping from a mnemonic flag name to a flag
@@ -162,8 +170,8 @@ class BaseBitFlagNameMap(metaclass=BitFlagNameMeta):
     Examples
     --------
 
-        >>> from astropy.nddata.bitmask import BaseBitFlagNameMap
-        >>> class ST_DQ(BaseBitFlagNameMap):
+        >>> from astropy.nddata.bitmask import BitFlagNameMap
+        >>> class ST_DQ(BitFlagNameMap):
         ...     CR = 1
         ...     CLOUDY = 4
         ...     RAINY = 8
@@ -176,7 +184,7 @@ class BaseBitFlagNameMap(metaclass=BitFlagNameMeta):
     pass
 
 
-def extend_bit_flag_map(cls_name, base_cls=BaseBitFlagNameMap, **kwargs):
+def extend_bit_flag_map(cls_name, base_cls=BitFlagNameMap, **kwargs):
     """
     A convenience function for creating bit flags maps by subclassing an
     existing map and adding additional flags supplied as keyword arguments.
@@ -186,7 +194,7 @@ def extend_bit_flag_map(cls_name, base_cls=BaseBitFlagNameMap, **kwargs):
     cls_name : str
         Class name of the bit flag map to be created.
 
-    base_cls : BaseBitFlagNameMap, optional
+    base_cls : BitFlagNameMap, optional
         Base class for the new bit flag map.
 
     **kwargs : int
@@ -259,8 +267,8 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
         obtained from input bit flags. This parameter must be set to `None`
         when input ``bit_flags`` is either `None` or a Python list of flags.
 
-    flag_name_map : BaseBitFlagNameMap
-         A `BaseBitFlagNameMap` object that provides mapping from mnemonic
+    flag_name_map : BitFlagNameMap
+         A `BitFlagNameMap` object that provides mapping from mnemonic
          bit flag names to integer bit values in order to translate mnemonic
          flags to numeric values when ``bit_flags`` that are comma- or
          '+'-separated list of menmonic bit flag names.
@@ -288,6 +296,8 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
         >>> "{0:016b}".format(0xFFFF & interpret_bit_flags('~4,8,16'))
         '1111111111100011'
         >>> "{0:016b}".format(0xFFFF & interpret_bit_flags('~(4+8+16)'))
+        '1111111111100011'
+        >>> "{0:016b}".format(0xFFFF & interpret_bit_flags('~(CLOUDY+RAINY+HOT, flag_name_map=ST_DQ)'))
         '1111111111100011'
         >>> "{0:016b}".format(0xFFFF & interpret_bit_flags([4, 8, 16]))
         '0000000000011100'
@@ -540,8 +550,8 @@ good_mask_value=False, dtype=numpy.bool_)
     dtype : data-type (Default = ``numpy.bool_``)
         The desired data-type for the output binary mask array.
 
-    flag_name_map : BaseBitFlagNameMap
-         A `BaseBitFlagNameMap` object that provides mapping from mnemonic
+    flag_name_map : BitFlagNameMap
+         A `BitFlagNameMap` object that provides mapping from mnemonic
          bit flag names to integer bit values in order to translate mnemonic
          flags to numeric values when ``bit_flags`` that are comma- or
          '+'-separated list of menmonic bit flag names.
@@ -595,6 +605,11 @@ good_mask_value=False, dtype=numpy.bool_)
         array([[0, 0, 0, 1, 0, 0, 1, 0],
                [1, 1, 0, 0, 0, 0, 1, 0]])
         >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags='CR,CLOUDY',
+        ...                                  flip_bits=True, good_mask_value=0,
+        ...                                  dtype=int, flag_name_map=flag_map)
+        array([[0, 0, 0, 1, 0, 0, 1, 0],
+               [1, 1, 0, 0, 0, 0, 1, 0]])
+        >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags='CR+CLOUDY',
         ...                                  flip_bits=True, good_mask_value=0,
         ...                                  dtype=int, flag_name_map=flag_map)
         array([[0, 0, 0, 1, 0, 0, 1, 0],

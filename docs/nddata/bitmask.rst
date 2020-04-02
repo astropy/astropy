@@ -132,13 +132,13 @@ It is also possible to specify the type of the output mask:
     array([0, 1, 0, 1], dtype=uint8)
 
 In order to use lists of mnemonic bit flags names, one must provide a map,
-a subclass of `~astropy.nddata.bitmask.BaseBitFlagNameMap`, that can be
+a subclass of `~astropy.nddata.bitmask.BitFlagNameMap`, that can be
 used to map mnemonic names to bit flag values. Normally these maps should be
 provided by a third-patry package supporting a specific instrument. In the
 example below we define a simple mask map:
 
-    >>> from astropy.nddata.bitmask import BaseBitFlagNameMap
-    >>> class ST_DQ(BaseBitFlagNameMap):
+    >>> from astropy.nddata.bitmask import BitFlagNameMap
+    >>> class ST_DQ(BitFlagNameMap):
     ...     CR = 1
     ...     CLOUDY = 4
     ...     RAINY = 8
@@ -162,12 +162,12 @@ to be taken into consideration or ignored when creating a *boolean* mask, we
 use bit flag name maps. These maps perform case-insensitive translation of
 mnemonic bit flag names to the corresponding integer value.
 
-Bit flag name maps are subclasses of `~astropy.nddata.bitmask.BaseBitFlagNameMap`
+Bit flag name maps are subclasses of `~astropy.nddata.bitmask.BitFlagNameMap`
 and can be constructed in two ways, either by directly subclassing
-`~astropy.nddata.bitmask.BaseBitFlagNameMap`, e.g.,
+`~astropy.nddata.bitmask.BitFlagNameMap`, e.g.,
 
-    >>> from astropy.nddata.bitmask import BaseBitFlagNameMap
-    >>> class ST_DQ(BaseBitFlagNameMap):
+    >>> from astropy.nddata.bitmask import BitFlagNameMap
+    >>> class ST_DQ(BitFlagNameMap):
     ...     CR = 1
     ...     CLOUDY = 4
     ...     RAINY = 8
