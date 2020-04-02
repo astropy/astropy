@@ -98,7 +98,7 @@ class SigmaClip:
         data < cenfunc(data [,axis=int]) - (sigma_lower * stdfunc(data [,axis=int]))
         data > cenfunc(data [,axis=int]) + (sigma_upper * stdfunc(data [,axis=int]))
 
-    Invalid data values (i.e. NaN or inf) are automatically clipped.
+    Invalid data values (i.e., NaN or inf) are automatically clipped.
 
     For a functional interface to sigma clipping, see
     :func:`sigma_clip`.
@@ -108,7 +108,7 @@ class SigmaClip:
         <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.sigmaclip.html>`_
         provides a subset of the functionality in this class.  Also, its
         input data cannot be a masked array and it does not handle data
-        that contains invalid values (i.e.  NaN or inf).  Also note that
+        that contains invalid values (i.e., NaN or inf).  Also note that
         it uses the mean as the centering function.
 
         If your data is a `~numpy.ndarray` with no invalid values and
@@ -149,7 +149,7 @@ class SigmaClip:
         ``'mean'`` then having the optional `bottleneck`_ package
         installed will result in the best performance.  If using a
         callable function/object and the ``axis`` keyword is used, then
-        it must be callable that can ignore NaNs (e.g. `numpy.nanmean`)
+        it must be callable that can ignore NaNs (e.g., `numpy.nanmean`)
         and has an ``axis`` keyword to return an array with axis
         dimension(s) removed.  The default is ``'median'``.
 
@@ -161,7 +161,7 @@ class SigmaClip:
         then having the optional `bottleneck`_ package installed will
         result in the best performance.  If using a callable
         function/object and the ``axis`` keyword is used, then it must
-        be callable that can ignore NaNs (e.g. `numpy.nanstd`) and has
+        be callable that can ignore NaNs (e.g., `numpy.nanstd`) and has
         an ``axis`` keyword to return an array with axis dimension(s)
         removed.  The default is ``'std'``.
 
@@ -429,12 +429,14 @@ class SigmaClip:
         -------
         result : flexible
             If ``masked=True``, then a `~numpy.ma.MaskedArray` is
-            returned, where the mask is `True` for clipped values.  If
-            ``masked=False``, then a `~numpy.ndarray` is returned.
+            returned, where the mask is `True` for clipped values and
+            where the input mask was `True`.
 
-            If ``return_bounds=True``, then in addition to the (masked)
-            array above, the minimum and maximum clipping bounds are
-            returned.
+            If ``masked=False``, then a `~numpy.ndarray` is returned.
+
+            If ``return_bounds=True``, then in addition to the masked
+            array or array above, the minimum and maximum clipping
+            bounds are returned.
 
             If ``masked=False`` and ``axis=None``, then the output array
             is a flattened 1D `~numpy.ndarray` where the clipped values
@@ -444,9 +446,11 @@ class SigmaClip:
             If ``masked=False`` and ``axis`` is specified, then the
             output `~numpy.ndarray` will have the same shape as the
             input ``data`` and contain ``np.nan`` where values were
-            clipped.  If ``return_bounds=True`` then the returned
-            minimum and maximum clipping thresholds will be be
-            `~numpy.ndarray`\\s.
+            clipped.  If the input ``data`` was a masked array, then the
+            output `~numpy.ndarray` will also contain ``np.nan`` where
+            the input mask was `True`.  If ``return_bounds=True`` then
+            the returned minimum and maximum clipping thresholds will be
+            be `~numpy.ndarray`\\s.
         """
 
         data = np.asanyarray(data)
@@ -455,7 +459,10 @@ class SigmaClip:
             return data
 
         if isinstance(data, np.ma.MaskedArray) and data.mask.all():
-            return data
+            if masked:
+                return data
+            else:
+                return np.ma.filled(data.astype(float), fill_value=np.nan)
 
         # These two cases are treated separately because when
         # ``axis=None`` we can simply remove clipped values from the
@@ -487,7 +494,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
         data < cenfunc(data [,axis=int]) - (sigma_lower * stdfunc(data [,axis=int]))
         data > cenfunc(data [,axis=int]) + (sigma_upper * stdfunc(data [,axis=int]))
 
-    Invalid data values (i.e. NaN or inf) are automatically clipped.
+    Invalid data values (i.e., NaN or inf) are automatically clipped.
 
     For an object-oriented interface to sigma clipping, see
     :class:`SigmaClip`.
@@ -497,7 +504,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
         <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.sigmaclip.html>`_
         provides a subset of the functionality in this class.  Also, its
         input data cannot be a masked array and it does not handle data
-        that contains invalid values (i.e.  NaN or inf).  Also note that
+        that contains invalid values (i.e., NaN or inf).  Also note that
         it uses the mean as the centering function.
 
         If your data is a `~numpy.ndarray` with no invalid values and
@@ -541,7 +548,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
         ``'mean'`` then having the optional `bottleneck`_ package
         installed will result in the best performance.  If using a
         callable function/object and the ``axis`` keyword is used, then
-        it must be callable that can ignore NaNs (e.g. `numpy.nanmean`)
+        it must be callable that can ignore NaNs (e.g., `numpy.nanmean`)
         and has an ``axis`` keyword to return an array with axis
         dimension(s) removed.  The default is ``'median'``.
 
@@ -553,7 +560,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
         then having the optional `bottleneck`_ package installed will
         result in the best performance.  If using a callable
         function/object and the ``axis`` keyword is used, then it must
-        be callable that can ignore NaNs (e.g. `numpy.nanstd`) and has
+        be callable that can ignore NaNs (e.g., `numpy.nanstd`) and has
         an ``axis`` keyword to return an array with axis dimension(s)
         removed.  The default is ``'std'``.
 
@@ -583,11 +590,13 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
     -------
     result : flexible
         If ``masked=True``, then a `~numpy.ma.MaskedArray` is returned,
-        where the mask is `True` for clipped values.  If
-        ``masked=False``, then a `~numpy.ndarray` is returned.
+        where the mask is `True` for clipped values and where the input
+        mask was `True`.
 
-        If ``return_bounds=True``, then in addition to the (masked)
-        array above, the minimum and maximum clipping bounds are
+        If ``masked=False``, then a `~numpy.ndarray` is returned.
+
+        If ``return_bounds=True``, then in addition to the masked array
+        or array above, the minimum and maximum clipping bounds are
         returned.
 
         If ``masked=False`` and ``axis=None``, then the output array is
@@ -597,8 +606,10 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
 
         If ``masked=False`` and ``axis`` is specified, then the output
         `~numpy.ndarray` will have the same shape as the input ``data``
-        and contain ``np.nan`` where values were clipped.  If
-        ``return_bounds=True`` then the returned minimum and maximum
+        and contain ``np.nan`` where values were clipped.  If the input
+        ``data`` was a masked array, then the output `~numpy.ndarray`
+        will also contain ``np.nan`` where the input mask was `True`.
+        If ``return_bounds=True`` then the returned minimum and maximum
         clipping thresholds will be be `~numpy.ndarray`\\s.
 
     See Also
@@ -699,7 +710,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         ``'mean'`` then having the optional `bottleneck`_ package
         installed will result in the best performance.  If using a
         callable function/object and the ``axis`` keyword is used, then
-        it must be callable that can ignore NaNs (e.g. `numpy.nanmean`)
+        it must be callable that can ignore NaNs (e.g., `numpy.nanmean`)
         and has an ``axis`` keyword to return an array with axis
         dimension(s) removed.  The default is ``'median'``.
 
@@ -711,7 +722,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         then having the optional `bottleneck`_ package installed will
         result in the best performance.  If using a callable
         function/object and the ``axis`` keyword is used, then it must
-        be callable that can ignore NaNs (e.g. `numpy.nanstd`) and has
+        be callable that can ignore NaNs (e.g., `numpy.nanstd`) and has
         an ``axis`` keyword to return an array with axis dimension(s)
         removed.  The default is ``'std'``.
 
@@ -741,6 +752,9 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         data = np.ma.MaskedArray(data, mask)
     if mask_value is not None:
         data = np.ma.masked_values(data, mask_value)
+
+    if isinstance(data, np.ma.MaskedArray) and data.mask.all():
+        return np.ma.masked, np.ma.masked, np.ma.masked
 
     sigclip = SigmaClip(sigma=sigma, sigma_lower=sigma_lower,
                         sigma_upper=sigma_upper, maxiters=maxiters,
