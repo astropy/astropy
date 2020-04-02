@@ -48,11 +48,11 @@ License
 Astropy is licensed under a 3-clause BSD style license - see the
 `LICENSE.rst <LICENSE.rst>`_ file.
 
-.. |Travis Status| image:: https://travis-ci.org/astropy/astropy.svg
+.. |Travis Status| image:: https://img.shields.io/travis/astropy/astropy/master?logo=travis%20ci&logoColor=white&label=Travis%20CI
     :target: https://travis-ci.org/astropy/astropy
     :alt: Astropy's Travis CI Status
 
-.. |CircleCI Status| image:: https://circleci.com/gh/astropy/astropy.svg?style=svg
+.. |CircleCI Status| image::  https://img.shields.io/circleci/build/github/astropy/astropy/master?logo=circleci&label=CircleCI
     :target: https://circleci.com/gh/astropy/astropy
     :alt: Astropy's CircleCI Status
 
@@ -64,7 +64,7 @@ Astropy is licensed under a 3-clause BSD style license - see the
     :target: https://pypi.python.org/pypi/astropy
     :alt: Astropy's PyPI Status
 
-.. |Documentation Status| image:: https://readthedocs.org/projects/astropy/badge/?version=stable
+.. |Documentation Status| image:: https://img.shields.io/readthedocs/astropy/latest.svg?logo=read%20the%20docs&logoColor=white&label=Docs&version=stable
     :target: http://docs.astropy.org/en/stable/?badge=stable
     :alt: Documentation Status
 
