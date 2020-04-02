@@ -2880,21 +2880,25 @@ class Table:
 
         kwargs = {}
         if keys:
-            kwargs['order'] = keys
+            # For multiple keys return a structured array which gets sorted,
+            # while for a single key return a single ndarray.  Sorting a
+            # one-column structured array is much slower than ndarray, e.g. a
+            # factor of ~6 for a 10 million long random array.
+            if len(keys) > 1:
+                kwargs['order'] = keys
+                data = self.as_array(names=keys)
+            else:
+                data = self[keys[0]].view(np.ndarray)
+        else:
+            # No keys provided so sort on all columns.
+            data = self.as_array()
+
         if kind:
             kwargs['kind'] = kind
 
-        if keys:
-            data = self.as_array(names=keys)
-        else:
-            data = self.as_array()
-
         idx = data.argsort(**kwargs)
 
-        if reverse:
-            return idx[::-1]
-
-        return idx
+        return idx[::-1] if reverse else idx
 
     def sort(self, keys=None, reverse=False):
         '''
