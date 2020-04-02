@@ -376,6 +376,9 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Fixed a bug when sorting an indexed table on the indexed column after first
+  sorting on another column. [#10103]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
