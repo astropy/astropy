@@ -219,6 +219,10 @@ def test_sigmaclip_fully_masked():
     clipped_data = sigma_clip(data)
     np.ma.allequal(data, clipped_data)
 
+    clipped_data = sigma_clip(data, masked=False)
+    assert not isinstance(clipped_data, np.ma.MaskedArray)
+    assert np.all(np.isnan(clipped_data))
+
 
 def test_sigmaclip_empty_masked():
     """Make sure a empty masked array is returned when sigma clipping an empty
@@ -279,3 +283,22 @@ def test_sigma_clippped_stats_unit():
     data = np.array([1, 1]) * u.kpc
     result = sigma_clipped_stats(data)
     assert result == (1. * u.kpc, 1. * u.kpc, 0. * u.kpc)
+
+
+def test_sigma_clippped_stats_all_masked():
+    """
+    Test sigma_clipped_stats when the input array is completely masked.
+    """
+
+    arr = np.ma.MaskedArray(np.arange(10), mask=True)
+    result = sigma_clipped_stats(arr)
+    assert result == (np.ma.masked, np.ma.masked, np.ma.masked)
+
+    arr = np.ma.MaskedArray(np.zeros(10), mask=False)
+    result = sigma_clipped_stats(arr, mask_value=0.)
+    assert result == (np.ma.masked, np.ma.masked, np.ma.masked)
+
+    arr = np.ma.MaskedArray(np.arange(10), mask=False)
+    mask = arr < 20
+    result = sigma_clipped_stats(arr, mask=mask)
+    assert result == (np.ma.masked, np.ma.masked, np.ma.masked)
