@@ -1115,7 +1115,8 @@ class TestSort():
                                           [3, 4],
                                           [1, 2]]))
 
-    def test_single_reverse(self, table_types):
+    @pytest.mark.parametrize('create_index', [False, True])
+    def test_single_reverse(self, table_types, create_index):
         t = table_types.Table()
         t.add_column(table_types.Column(name='a', data=[2, 1, 3]))
         t.add_column(table_types.Column(name='b', data=[6, 5, 4]))
@@ -1223,10 +1224,13 @@ class TestSort():
         assert np.all(t['a'][i0] == t['a'][i1])
         assert np.all(t['b'][i0] == t['b'][i1])
 
-    def test_argsort_reverse(self, table_types):
+    @pytest.mark.parametrize('add_index', [False, True])
+    def test_argsort_reverse(self, table_types, add_index):
         t = table_types.Table()
         t.add_column(table_types.Column(name='a', data=[2, 1, 3, 2, 3, 1]))
         t.add_column(table_types.Column(name='b', data=[6, 5, 4, 3, 5, 4]))
+        if add_index:
+            t.add_index('a')
         assert np.all(t.argsort(reverse=True) == np.array([4, 2, 0, 3, 1, 5]))
         i0 = t.argsort('a', reverse=True)
         i1 = np.array([4, 2, 3, 0, 5, 1])
