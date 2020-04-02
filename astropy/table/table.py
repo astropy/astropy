@@ -2875,7 +2875,8 @@ class Table:
         if keys is not None:
             index = get_index(self, names=keys)
             if index is not None:
-                return index.sorted_data()
+                idx = np.asarray(index.sorted_data())
+                return idx[::-1] if reverse else idx
 
         kwargs = {}
         if keys:
