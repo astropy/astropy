@@ -419,9 +419,9 @@ class HistEqStretch(BaseStretch):
     """
 
     def __init__(self, data, values=None):
-
         # Assume data is not necessarily normalized at this point
         self.data = np.sort(data.ravel())
+        self.data = self.data[np.isfinite(self.data)]
         vmin = self.data.min()
         vmax = self.data.max()
         self.data = (self.data - vmin) / (vmax - vmin)
@@ -457,7 +457,7 @@ class InvertedHistEqStretch(BaseStretch):
     """
 
     def __init__(self, data, values=None):
-        self.data = data
+        self.data = data[np.isfinite(data)]
         if values is None:
             self.values = np.linspace(0., 1., len(self.data))
         else:
