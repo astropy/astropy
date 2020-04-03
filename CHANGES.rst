@@ -379,6 +379,9 @@ astropy.table
 - Fixed a bug when sorting an indexed table on the indexed column after first
   sorting on another column. [#10103]
 
+- Fixed a bug in table argsort when called with ``reverse=True`` for an
+  indexed table. [#10103]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -410,7 +413,8 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
-
+- Improved the speed of sorting a large ``Table`` on a single column by a factor
+  of around 5. [#10103]
 
 4.0.1 (2020-03-27)
 ==================
