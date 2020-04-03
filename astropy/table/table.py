@@ -2875,25 +2875,30 @@ class Table:
         if keys is not None:
             index = get_index(self, names=keys)
             if index is not None:
-                return index.sorted_data()
+                idx = np.asarray(index.sorted_data())
+                return idx[::-1] if reverse else idx
 
         kwargs = {}
         if keys:
-            kwargs['order'] = keys
+            # For multiple keys return a structured array which gets sorted,
+            # while for a single key return a single ndarray.  Sorting a
+            # one-column structured array is much slower than ndarray, e.g. a
+            # factor of ~6 for a 10 million long random array.
+            if len(keys) > 1:
+                kwargs['order'] = keys
+                data = self.as_array(names=keys)
+            else:
+                data = self[keys[0]].view(np.ndarray)
+        else:
+            # No keys provided so sort on all columns.
+            data = self.as_array()
+
         if kind:
             kwargs['kind'] = kind
 
-        if keys:
-            data = self.as_array(names=keys)
-        else:
-            data = self.as_array()
-
         idx = data.argsort(**kwargs)
 
-        if reverse:
-            return idx[::-1]
-
-        return idx
+        return idx[::-1] if reverse else idx
 
     def sort(self, keys=None, reverse=False):
         '''
@@ -2956,34 +2961,22 @@ class Table:
         if reverse:
             indexes = indexes[::-1]
 
-        sort_index = get_index(self, names=keys)
+        with self.index_mode('freeze'):
+            for name, col in self.columns.items():
+                # Make a new sorted column.  This requires that take() also copies
+                # relevant info attributes for mixin columns.
+                new_col = col.take(indexes, axis=0)
 
-        if sort_index is not None:
-            # avoid inefficient relabelling of sorted index
-            prev_frozen = sort_index._frozen
-            sort_index._frozen = True
-
-        for name, col in self.columns.items():
-            # Make a new sorted column.  This requires that take() also copies
-            # relevant info attributes for mixin columns.
-            new_col = col.take(indexes, axis=0)
-
-            # First statement in try: will succeed if the column supports an in-place
-            # update, and matches the legacy behavior of astropy Table.  However,
-            # some mixin classes may not support this, so in that case just drop
-            # in the entire new column. See #9553 and #9536 for discussion.
-            try:
-                col[:] = new_col
-            except Exception:
-                # In-place update failed for some reason, exception class not
-                # predictable for arbitrary mixin.
-                self[col.info.name] = new_col
-
-        if sort_index is not None:
-            # undo index freeze
-            sort_index._frozen = prev_frozen
-            # now relabel the sort index appropriately
-            sort_index.sort()
+                # First statement in try: will succeed if the column supports an in-place
+                # update, and matches the legacy behavior of astropy Table.  However,
+                # some mixin classes may not support this, so in that case just drop
+                # in the entire new column. See #9553 and #9536 for discussion.
+                try:
+                    col[:] = new_col
+                except Exception:
+                    # In-place update failed for some reason, exception class not
+                    # predictable for arbitrary mixin.
+                    self[col.info.name] = new_col
 
     def reverse(self):
         '''
