@@ -401,6 +401,16 @@ def _get_barycorr_bvcs_withvels(coos, loc, injupyter=False):
 
 
 @pytest.mark.remote_data
+def test_warning_no_obstime_on_skycoord():
+    c = SkyCoord(l=10*u.degree, b=45*u.degree,
+                 pm_l_cosb=34*u.mas/u.yr, pm_b=-117*u.mas/u.yr,
+                 distance=50*u.pc, frame='galactic')
+    with pytest.warns(Warning):
+        c.radial_velocity_correction('barycentric', test_input_time,
+                                     test_input_loc)
+
+
+@pytest.mark.remote_data
 def test_regression_10094():
     """
     Make sure that when we include the proper motion and radial velocity of
