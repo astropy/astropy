@@ -175,8 +175,15 @@ class TestBasic:
         assert np.all(t3._delta_tdb_tt == t._delta_tdb_tt[4:6])
         t4 = Time(mjd, format='mjd', scale='utc',
                   location=(np.arange(len(mjd)), np.arange(len(mjd))))
-        t5 = t4[3]
-        assert t5.location == t4.location[3]
+        t5a = t4[3]
+        assert t5a.location == t4.location[3]
+        assert t5a.location.shape == ()
+        t5b = t4[3:4]
+        assert t5b.location.shape == (1,)
+        # Check that indexing a size-1 array returns a scalar location as well;
+        # see gh-10113.
+        t5c = t5b[0]
+        assert t5c.location.shape == ()
         t6 = t4[4:6]
         assert np.all(t6.location == t4.location[4:6])
         # check it is a view
