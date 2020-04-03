@@ -317,9 +317,9 @@ class TestArithmetic:
     @pytest.mark.parametrize('kw, func', itertools.product(kwargs, functions))
     def test_argfuncs(self, kw, func, masked):
         """
-        Test that np.argfunc(jd, **kw) is the same as t0.argfunc(**kw) where
-        jd is a similarly shaped array with the same ordinal properties but
-        all integer values.  Also test the same for t1 which has the same
+        Test that ``np.argfunc(jd, **kw)`` is the same as ``t0.argfunc(**kw)``
+        where jd is a similarly shaped array with the same ordinal properties
+        but all integer values.  Also test the same for t1 which has the same
         integral values as jd.
         """
         t0v = getattr(self.t0, 'arg' + func)(**kw)
@@ -339,8 +339,8 @@ class TestArithmetic:
     @pytest.mark.parametrize('kw, func', itertools.product(kwargs, functions))
     def test_funcs(self, kw, func, masked):
         """
-        Test that np.func(jd, **kw) is the same as t1.func(**kw) where
-        jd is a similarly shaped array and the same integral values.
+        Test that ``np.func(jd, **kw)`` is the same as ``t1.func(**kw)`` where
+        ``jd`` is a similarly shaped array and the same integral values.
         """
         t1v = getattr(self.t1, func)(**kw)
         jdv = getattr(np, func)(self.jd, **kw)
