@@ -40,13 +40,35 @@
 static Py_ssize_t
 next_power_of_2(Py_ssize_t n)
 {
-    /* Calculate the next-highest power of two */
+    /* Calculate the next-higher power of two that is >= 'n' */
+
+    /* These instructions are intended for uint32_t and originally
+       from http://www-graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+       Py_ssize_t is the same as the C datatype ssize_t and is
+       32/64-bits on 32-bit and 64-bit systems respectively. The implementation
+       here accounts for both.
+
+       Limitations: Since a signed size_t (ssize_t) was required for the underlying CPython implementation,
+       on 32 bit systems, it will not be possible to allocate memory sizes between
+       SSIZE_MAX and SIZE_MAX (i.e, for allocations in the range [2^31, 2^32 - 1] bytes)
+       even though such memory might be available and accessible on the (32-bit) computer. That
+       said, since the underlying CPython implementation *also* uses Py_ssize_t (i.e., ssize_t),
+       it is safe to assume that such memory allocations would probably not be usable anyway.
+
+       TLDR: Will work on 64-bit machines but be careful on 32 bit machines when reading in
+       ~ 2+ GB of memory -- @manodeep 2020-03-27
+    */
+
     n--;
     n |= n >> 1;
     n |= n >> 2;
     n |= n >> 4;
     n |= n >> 8;
     n |= n >> 16;
+    if(sizeof(Py_ssize_t) > 4) {
+        n |= n >> 32; /* this works for 64-bit systems but will need to be updated if (Py)_ssize_t
+                         ever increases beyond 64-bits */
+    }
     n++;
 
     return n;

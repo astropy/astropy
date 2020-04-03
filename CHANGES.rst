@@ -78,6 +78,8 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Fixed memory allocation on 64-bit systems within ``xml.iterparse`` [#10076]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
