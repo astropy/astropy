@@ -349,6 +349,10 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- Fixed a bug with the C ``fast_reader`` not correctly parsing newlines when
+  ``delimiter`` was also set to ``\n`` or ``\r``; ensured consistent handling
+  of input strings without newline characters. [#9929]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
@@ -471,9 +475,6 @@ astropy.io.ascii
   invalid file with ``guess=True`` and the file contains inconsistent column
   numbers in combination with a quoted field; e.g., ``"1  2\n 3  4 '5'"``.
   [#9923]
-
-- Fixed a bug with the C ``fast_reader`` not correctly parsing newlines when
-  ``delimiter`` was also set to ``\n`` or ``\r``. [#9929]
 
 - Magnitude, decibel, and dex can now be stored in ``ecsv`` files. [#9933]
 
