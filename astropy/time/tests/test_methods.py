@@ -318,7 +318,7 @@ class TestArithmetic:
     def test_argfuncs(self, kw, func, masked):
         """
         Test that ``np.argfunc(jd, **kw)`` is the same as ``t0.argfunc(**kw)``
-        where jd is a similarly shaped array with the same ordinal properties
+        where ``jd`` is a similarly shaped array with the same ordinal properties
         but all integer values.  Also test the same for t1 which has the same
         integral values as jd.
         """
