@@ -24,7 +24,7 @@ def test_against_hor2eq():
 
     See : http://idlastro.gsfc.nasa.gov/ftp/pro/astro/hor2eq.pro
 
-    Test is against these run outputs, run at 2000-01-01T12:00:00:
+    Test is against these run outputs, run at 2000-01-01T12:00:00::
 
       # NORMAL ATMOSPHERE CASE
       IDL> hor2eq, ten(37,54,41), ten(264,55,06), 2451545.0d, ra, dec, /verb, obs='kpno', pres=781.0, temp=273.0
