@@ -701,7 +701,7 @@ Using Time Objects
 
 The operations available with |Time| objects include:
 
-- Get and set time values(s) for an array-valued |Time| object.
+- Get and set time value(s) for an array-valued |Time| object.
 - Set missing (masked) values.
 - Get the representation of the time value(s) in a particular `time format`_.
 - Get a new time object for the same time value(s) but referenced to a different
