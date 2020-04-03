@@ -1552,7 +1552,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         for i in range(16):
             ascii[i] = asc[(i + 15) % 16]
 
-        return decode_ascii(ascii.tostring())
+        return decode_ascii(ascii.tobytes())
 
 
 class ExtensionHDU(_ValidHDU):
