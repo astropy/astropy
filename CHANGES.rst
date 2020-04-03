@@ -141,6 +141,9 @@ astropy.units
 
 astropy.utils
 ^^^^^^^^^^^^^
+- Added a new ``MetaAttribute`` class to support easily adding custom attributes
+  to a subclass of classes like ``Table`` or ``NDData`` that have a ``meta``
+  attribute. [#10097]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
