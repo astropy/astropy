@@ -181,13 +181,13 @@ class PowerDistStretch(BaseStretch):
     Parameters
     ----------
     a : float, optional
-        The ``a`` parameter used in the above formula.  Default is 1000.
-        ``a`` cannot be set to 1.
+        The ``a`` parameter used in the above formula.  ``a`` must be >=
+        0, but cannot be set to 1.  Default is 1000.
     """
 
     def __init__(self, a=1000.0):
-        if a == 1:  # singularity
-            raise ValueError("a cannot be set to 1")
+        if a < 0 or a == 1:  # singularity
+            raise ValueError("a must be >= 0, but cannot be set to 1")
         super().__init__()
         self.exp = a
 
@@ -217,13 +217,13 @@ class InvertedPowerDistStretch(BaseStretch):
     Parameters
     ----------
     a : float, optional
-        The ``a`` parameter used in the above formula.  Default is 1000.
-        ``a`` cannot be set to 1.
+        The ``a`` parameter used in the above formula.  ``a`` must be >=
+        0, but cannot be set to 1.  Default is 1000.
     """
 
     def __init__(self, a=1000.0):
-        if a == 1:  # singularity
-            raise ValueError("a cannot be set to 1")
+        if a < 0 or a == 1:  # singularity
+            raise ValueError("a must be >= 0, but cannot be set to 1")
         super().__init__()
         self.exp = a
 
