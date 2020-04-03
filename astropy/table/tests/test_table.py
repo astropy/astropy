@@ -2487,9 +2487,13 @@ class MyTable(Table):
 
 
 def test_table_attribute():
+    assert repr(MyTable.baz) == '<TableAttribute name=baz default=1>'
 
     t = MyTable([[1, 2]])
+    # __attributes__ created on the fly on the first access of an attribute
+    assert '__attributes__' not in t.meta
     assert t.foo is None
+    assert '__attributes__' in t.meta
     t.bar.append(2.0)
     assert t.bar == [2.0]
     assert t.baz == 1
@@ -2527,7 +2531,7 @@ def test_table_attribute_fail():
     # context it gets re-raised as a RuntimeError during class definition.
     with pytest.raises(RuntimeError, match='Error calling __set_name__'):
         class MyTable2(Table):
-            data = TableAttribute()  # Conflicts with init arg
+            descriptions = TableAttribute()  # Conflicts with init arg
 
     with pytest.raises(RuntimeError, match='Error calling __set_name__'):
         class MyTable3(Table):
