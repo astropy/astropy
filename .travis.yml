@@ -161,6 +161,16 @@ matrix:
                   packages:
                       - graphviz
 
+        # Test against Python dev in cron job.
+        - language: python
+          python: nightly
+          dist: bionic
+          name: Python dev with basic dependencies
+          stage: Cron tests
+          env: TOXENV="pydev-test"
+               TOXPOSARGS="--durations=50"
+          compiler: clang
+
         # Also regularly try the big-endian s390 architecture, in the
         # process checking that installing dependencies with apt works.
         - name: big-endian s390 architecture with apt
