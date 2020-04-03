@@ -173,8 +173,8 @@ matrix:
 
         # Also regularly try the big-endian s390 architecture, in the
         # process checking that installing dependencies with apt works.
-        - name: big-endian s390 architecture with apt
-          arch: s390
+        - name: big-endian s390x architecture with apt
+          arch: s390x
           language: c
           dist: bionic
           stage: Cron tests
