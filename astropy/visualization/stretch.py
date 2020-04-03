@@ -266,16 +266,19 @@ class LogStretch(BaseStretch):
     The stretch is given by:
 
     .. math::
-        y = \frac{\log{(a x + 1)}}{\log{(a + 1)}}.
+        y = \frac{\log{(a x + 1)}}{\log{(a + 1)}}
 
     Parameters
     ----------
     a : float
-        The ``a`` parameter used in the above formula.  Default is 1000.
+        The ``a`` parameter used in the above formula.  ``a`` must be >
+        0.  Default is 1000.
     """
 
     def __init__(self, a=1000.0):
         super().__init__()
+        if a <= 0:  # singularity
+            raise ValueError("a must be > 0")
         self.exp = a
 
     def __call__(self, values, clip=True, out=None):
@@ -299,16 +302,20 @@ class InvertedLogStretch(BaseStretch):
     The stretch is given by:
 
     .. math::
-        y = \frac{e^{y} (a + 1) -1}{a}
+        y = \frac{e^{y \log{a + 1}} - 1}{a} \\
+        y = \frac{e^{y} (a + 1) - 1}{a}
 
     Parameters
     ----------
     a : float, optional
-        The ``a`` parameter used in the above formula.  Default is 1000.
+        The ``a`` parameter used in the above formula.  ``a`` must be >
+        0.  Default is 1000.
     """
 
     def __init__(self, a):
         super().__init__()
+        if a <= 0:  # singularity
+            raise ValueError("a must be > 0")
         self.exp = a
 
     def __call__(self, values, clip=True, out=None):
