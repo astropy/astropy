@@ -4,6 +4,16 @@
 Astropy Narrative Style Guide: A Writing Resource for Contributors
 ******************************************************************
 
+The purpose of this style guide is to provide the Astropy community with a set
+of style and formatting guidelines that can be referenced when writing Astropy
+documentation. Following the guidelines offered in this style guide will bring
+greater consistency and clarity to Astropy's documentation, supporting its
+mission to develop a common core package for Astronomy in Python and foster an
+ecosystem of interoperable astronomy packages.
+
+This style guide is organized alphabetically by writing topic with usage
+examples in each section and tone and formatting guidelines at the end.
+
 Abbreviations
 =============
 
@@ -24,8 +34,22 @@ Examples
   coordinate — for example, RA or Dec — to get string representations of the
   full coordinate.
 
-For general use and scientific terms, use the full term instead of the
-abbreviation, for example, write out white dwarf instead of WD, etc.
+For general use and scientific terms, use abbreviations only when the
+abbreviated term is well-known and widely used within the astronomy community.
+For less common scientific terms, or terms specific to a given field, write out
+the term or link to a resource of explanation. A good rule of thumb to follow
+when deciding whether or not something should be abbreviated is: when in doubt,
+write it out.
+
+Examples
+--------
+* 1D, 2D, etc. is preferred over one-dimensional, two-dimensional, etc.
+* Units such as SI and CGS can be abbreviated as is more commonly seen in the
+  scientific community.
+* White dwarf should be written out fully instead of abbreviated as WD.
+* Names of organizations or other proper nouns that employ acronyms should be
+  written as their known acronym, but with a hyperlink to a website or resource
+  for reference, for instance, `CODATA <https://codata.org/>`_.
 
 Capitalization
 ==============
@@ -43,11 +67,11 @@ Examples
 * Provide a code example along with details of the operating system and the
   Python, ``numpy``, and ``astropy`` versions you are using.
 
-In Documentation materials, up style capitalization is preferred in headings,
+In Documentation materials, title case capitalization is preferred in headings,
 meaning capitalize first, last, and all major words in the heading, but
 lowercase articles (the, a, an), prepositions (at, to, up, down, with, in,
-etc.), and common coordinating conjunctions (and, but, for, or). Down style is
-acceptable for longer “example” headings.
+etc.), and common coordinating conjunctions (and, but, for, or). Sentence case
+capitalization is acceptable for longer example headings.
 
 Examples
 --------
@@ -55,13 +79,13 @@ Examples
 * Frames without Data
 * Checklist for Contributing Code
 * Astropy Guidelines
-* Importing ``astropy`` and Sub-packages
+* Importing ``astropy`` and Subpackages
 * Example: Use velocity to compute sky position at different epochs
 
-In Tutorials and other learning materials, up style capitalization is preferred
-in headings of structured introductory/template sections, but within the
-tutorial, down style (i.e., capitalize first word and proper nouns only) is
-acceptable for longer headings designating different learning/code sections.
+In Tutorials and other learning materials, title case capitalization is
+preferred in headings of structured introductory/template sections, but within
+the tutorial, sentence case (i.e., capitalize first word and proper nouns only)
+is acceptable for longer headings designating different learning/code sections.
 
 Contractions
 ============
@@ -74,8 +98,10 @@ Examples
   a performance benchmark.
 * You do not need to include a changelog entry.
 
-In all other materials, avoid use of contractions only when tense can be
+In all other materials, avoid use of contractions only when the tense can be
 confused, such as in the case of “she is gone” versus “she has gone,” etc.
+
+.. _Hyphenation:
 
 Hyphenation
 ===========
@@ -93,8 +119,7 @@ in code.
 
 Example
 -------
-* Since most of the functionality of ``astropy`` resides in sub-packages, it is
-  best to import the desired sub-package.
+* Do not forget to double-check your formatting.
 
 Numbers
 =======
@@ -106,6 +131,7 @@ Examples
 * 1 arcminute
 * 32 degrees
 * Gaia data release 2 catalog
+* 1D, 2D, etc. is preferred over one-dimensional, two-dimensional, etc.
 
 For all other whole numbers, follow Associated Press (AP) style: spell out
 numbers one through nine, and use numerals for 10 and higher, with numeral-word
@@ -153,21 +179,16 @@ Examples
 
 **Hyphens vs. En Dashes vs. Em Dashes**
 
-.. note::
-
-    Please note that en dashes and em dashes do not render on GitHub and appear
-    as hyphens. This section is included for reference only.
-
 Hyphens (-) should be used for phrasal adjectives and compound words (see
-Hyphenation above).
+`Hyphenation`_ above).
 
 En dashes (– longer) should be used for number ranges (dates, times, pages) or
 to replace the words “to” or “through,” without spaces around the dash.
 
 Examples
 --------
-* See chapters 14–18
-* We’ve blocked off March 2019–May 2019 to develop a new version.
+* See chapters 14–18.
+* We have blocked off March 2019–May 2019 to develop a new version.
 
 Em dashes (— longest) can be used in place of commas, parentheses, or colons to
 set off amplifying or explanatory elements. In Astropy materials, follow AP
@@ -176,8 +197,8 @@ style, which calls for spaces on either side of each em dash.
 Examples
 --------
 * Several types of input angles — array, scalar, tuple, string — can be used in
-  the creation of an Angle object.
-* The creation of an Angle object supports a variety of input angle types —
+  the creation of an |Angle| object.
+* The creation of an |Angle| object supports a variety of input angle types —
   array, scalar, tuple, string, etc.
 
 Spelling
@@ -194,8 +215,8 @@ Time and Date
 =============
 
 Use numerals when exact times are expressed, followed by *ante meridiem* or
-*post meridiem* abbreviated in lowercase with periods, or use the twenty-four-
-hour system.
+*post meridiem* abbreviated in lowercase with periods, or use the 24-hour
+system.
 
 Examples
 --------
@@ -208,49 +229,101 @@ Example
 -------
 * Data from the Gaia mission was released on 2018-04-25.
 
-A Note About Style and Tone
+A Note About Voice and Tone
 ===========================
 
 Across all Astropy materials in narrative sections, please write in:
 
-* The present tense. For example:
-  * In the following section, we are going to make a plot…
-  * To test if your version of ``astropy`` is running correctly…
+The present tense. For example:
+* In the following section, we are going to make a plot...
+* To test if your version of ``astropy`` is running correctly...
 
-* The first-person inclusive plural. For example:
-  * We did this the long way, but next let’s try the short way…
+The first-person inclusive plural. For example:
+* We did this the long way, but next we can try it the short way...
 
-* Use the generic pronoun “you” instead of “one.” For example:
-  * You can access any of the attributes on a frame by...
+Use the generic pronoun “you” instead of “one.” For example:
+* You can access any of the attributes on a frame by...
 
 Always avoid extraneous or belittling words such as “obviously,” “easily,”
 “simply,” “just,” or “straightforward.” Avoid extraneous phrases like, “we just
 have to do one more thing.”
 
+Avoid words or phrasing that create worry in the mind of the reader, such as an
+overuse of "Warnings." Instead, use positive language that establishes
+confidence in the skills being learned, such as "As a best practice..." or "One
+recommended way to..." or "An important note to remember is..."
+
 Documentation vs. Tutorials vs. Guides
 --------------------------------------
 
 Documentation
-~~~~~~~~~~~~~
+^^^^^^^^^^^^^
 Tone: academic and slightly more formal.
 
-* Use up style capitalization in section headings.
+* Use title case capitalization in section headings.
 * Do not use contractions.
 
 Tutorials
-~~~~~~~~~
+^^^^^^^^^
 Tone: academic but less formal and more friendly.
 
-* Use up style capitalization in introductory/template headings, switch to down
-  style capitalization for learning/example section headings.
+* Use title case capitalization in introductory/template headings, switch to
+  sentence case capitalization for learning/example section headings.
 * Section headings should use the imperative mood to form a command or request
   (e.g., “Download the data”).
 * Contractions can be used as long as the tense is clear.
 
 Guides
-~~~~~~
+^^^^^^
 Tone: academic but less formal and more friendly.
 
-* Use up style capitalization in introductory/template headings, switch to down
-  style capitalization for learning/example section headings.
+* Use title case capitalization in introductory/template headings, switch to
+  sentence case capitalization for learning/example section headings.
 * Contractions can be used as long as the tense is clear.
+
+Formatting Guidelines
+=====================
+
+Astropy documentation is written in reStructuredText using the Sphinx
+documentation generator. When formatting the different sections of your
+documentation files, please follow these guidelines to maintain consistency in
+section heading hierarchy across Astropy's RST files.
+
+Section headings in reStructuredText files are created by underlining (and
+optionally overlining) the section title with a punctuation character at least
+as long as the text.
+
+Examples
+--------
+
+::
+  *************************
+  This is a Chapter Heading
+  *************************
+
+::
+  This is a Section Heading
+  =========================
+
+Although there are no formally assigned characters to create heading level
+hierarchy, as the hierarchy rendering is determined from the succession of
+headings, here is a suggested convention to follow when formatting Astropy
+documentation files:
+
+# with overline, for parts
+* with overline, for chapters
+=, for sections
+-, for subsections
+^, for subsubsections
+", for paragraphs
+
+These guidelines follow Python's recommendation in the `7.3.6. Sections
+<https://devguide.python.org/documenting/#sections>`_ part of its style guide.
+
+Other Writing Resources
+=======================
+
+Some other resources that may be useful when writing Astropy documentation are:
+
+* Python's `Style Guide
+  <https://devguide.python.org/documenting/#style-guide>`_
