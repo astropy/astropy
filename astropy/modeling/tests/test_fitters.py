@@ -884,7 +884,7 @@ def test_fitters_with_weights():
 @pytest.mark.filterwarnings('ignore:The fit may be unsuccessful')
 def test_fitters_interface():
     """
-    Test that **kwargs work with all optimizers.
+    Test that ``**kwargs`` work with all optimizers.
     This is a basic smoke test.
     """
     levmar = LevMarLSQFitter()
