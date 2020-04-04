@@ -339,7 +339,7 @@ class SkyCoord(ShapedLikeNDArray):
         new._extra_frameattr_names = self._extra_frameattr_names.copy()
         for attr in self._extra_frameattr_names:
             value = getattr(self, attr)
-            if getattr(value, 'size', 1) > 1:
+            if getattr(value, 'shape', ()):
                 value = apply_method(value)
             elif method == 'copy' or method == 'flatten':
                 # flatten should copy also for a single element array, but

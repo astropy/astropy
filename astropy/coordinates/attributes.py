@@ -103,7 +103,7 @@ class Attribute(OrderedDescriptor):
         out, converted = self.convert_input(out)
         if instance is not None:
             instance_shape = getattr(instance, 'shape', None)
-            if instance_shape is not None and (getattr(out, 'size', 1) > 1 and
+            if instance_shape is not None and (getattr(out, 'shape', ()) and
                                                out.shape != instance_shape):
                 # If the shapes do not match, try broadcasting.
                 try:
