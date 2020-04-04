@@ -401,7 +401,7 @@ astropy.time
 ^^^^^^^^^^^^
 
 - Ensure that for size-1 array ``Time``, the location also properly becomes
-  a scalars when indexed with 0. [#10113]
+  a scalar when indexed with 0. [#10113]
 
 
 astropy.timeseries
