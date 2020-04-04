@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import numpy as np
+from numpy.testing import assert_array_equal
 import pytest
 
 from astropy import units as u
@@ -56,6 +57,58 @@ class TestManipulation():
                        obsgeovel=self.obsgeovel)
         # And make a SkyCoord
         self.sc = SkyCoord(ra=lon[:, np.newaxis], dec=lat, frame=self.s3)
+
+    def test_getitem0101(self):
+        # We on purpose take a slice with only one element, as for the
+        # general tests it doesn't matter, but it allows us to check
+        # for a few cases that shapes correctly become scalar if we
+        # index our size-1 array down to a scalar.  See gh-10113.
+        item = (slice(0, 1), slice(0, 1))
+        s0_0101 = self.s0[item]
+        assert s0_0101.shape == (1, 1)
+        assert_array_equal(s0_0101.data.lon, self.s0.data.lon[item])
+        assert np.may_share_memory(s0_0101.data.lon, self.s0.data.lon)
+        assert np.may_share_memory(s0_0101.data.lat, self.s0.data.lat)
+        s0_0101_00 = s0_0101[0, 0]
+        assert s0_0101_00.shape == ()
+        assert s0_0101_00.data.lon.shape == ()
+        assert_array_equal(s0_0101_00.data.lon, self.s0.data.lon[0, 0])
+        s1_0101 = self.s1[item]
+        assert s1_0101.shape == (1, 1)
+        assert_array_equal(s1_0101.data.lon, self.s1.data.lon[item])
+        assert np.may_share_memory(s1_0101.data.lat, self.s1.data.lat)
+        assert np.all(s1_0101.obstime == self.s1.obstime[item])
+        assert np.may_share_memory(s1_0101.obstime.jd1, self.s1.obstime.jd1)
+        assert_array_equal(s1_0101.location, self.s1.location[0, 0])
+        assert np.may_share_memory(s1_0101.location, self.s1.location)
+        assert_array_equal(s1_0101.temperature, self.s1.temperature[item])
+        assert np.may_share_memory(s1_0101.temperature, self.s1.temperature)
+        # scalar should just be transferred.
+        assert s1_0101.pressure is self.s1.pressure
+        s1_0101_00 = s1_0101[0, 0]
+        assert s1_0101_00.shape == ()
+        assert s1_0101_00.obstime.shape == ()
+        assert s1_0101_00.obstime == self.s1.obstime[0, 0]
+        s2_0101 = self.s2[item]
+        assert s2_0101.shape == (1, 1)
+        assert np.all(s2_0101.data.lon == self.s2.data.lon[item])
+        assert np.may_share_memory(s2_0101.data.lat, self.s2.data.lat)
+        assert np.all(s2_0101.obstime == self.s2.obstime[item])
+        assert np.may_share_memory(s2_0101.obstime.jd1, self.s2.obstime.jd1)
+        assert_array_equal(s2_0101.obsgeoloc.xyz, self.s2.obsgeoloc[item].xyz)
+        s3_0101 = self.s3[item]
+        assert s3_0101.shape == (1, 1)
+        assert s3_0101.obstime.shape == (1, 1)
+        assert np.all(s3_0101.obstime == self.s3.obstime[item])
+        assert np.may_share_memory(s3_0101.obstime.jd1, self.s3.obstime.jd1)
+        assert_array_equal(s3_0101.obsgeoloc.xyz, self.s3.obsgeoloc[item].xyz)
+        sc_0101 = self.sc[item]
+        assert sc_0101.shape == (1, 1)
+        assert_array_equal(sc_0101.data.lon, self.sc.data.lon[item])
+        assert np.may_share_memory(sc_0101.data.lat, self.sc.data.lat)
+        assert np.all(sc_0101.obstime == self.sc.obstime[item])
+        assert np.may_share_memory(sc_0101.obstime.jd1, self.sc.obstime.jd1)
+        assert_array_equal(sc_0101.obsgeoloc.xyz, self.sc.obsgeoloc[item].xyz)
 
     def test_ravel(self):
         s0_ravel = self.s0.ravel()

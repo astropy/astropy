@@ -615,7 +615,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             # have consistent shapes. Collect them for all attributes with
             # size > 1 (which should be array-like and thus have a shape).
             shapes = {fnm: value.shape for fnm, value in values.items()
-                      if getattr(value, 'size', 1) > 1}
+                      if getattr(value, 'shape', ())}
             if shapes:
                 if len(shapes) > 1:
                     try:
@@ -1485,7 +1485,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                 setattr(new, _attr, getattr(self, _attr))
             else:
                 value = getattr(self, _attr)
-                if getattr(value, 'size', 1) > 1:
+                if getattr(value, 'shape', ()):
                     value = apply_method(value)
                 elif method == 'copy' or method == 'flatten':
                     # flatten should copy also for a single element array, but
@@ -1502,7 +1502,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             shapes = [getattr(new, '_' + attr).shape
                       for attr in new.frame_attributes
                       if (attr not in new._attr_names_with_defaults
-                          and getattr(getattr(new, '_' + attr), 'size', 1) > 1)]
+                          and getattr(getattr(new, '_' + attr), 'shape', ()))]
             if shapes:
                 new._no_data_shape = (check_broadcast(*shapes)
                                       if len(shapes) > 1 else shapes[0])

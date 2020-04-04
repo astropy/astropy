@@ -1461,9 +1461,9 @@ class Time(ShapedLikeNDArray):
 
             if apply_method:
                 # Apply the method to any value arrays (though skip if there is
-                # only a single element and the method would return a view,
+                # only an array scalar and the method would return a view,
                 # since in that case nothing would change).
-                if getattr(val, 'size', 1) > 1:
+                if getattr(val, 'shape', ()):
                     val = apply_method(val)
                 elif method == 'copy' or method == 'flatten':
                     # flatten should copy also for a single element array, but

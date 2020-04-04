@@ -340,6 +340,10 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Ensure that for size-1 array ``SkyCoord`` and coordinate frames
+  the attributes also properly become scalars when indexed with 0.
+  [#10113]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -395,6 +399,10 @@ astropy.tests
 
 astropy.time
 ^^^^^^^^^^^^
+
+- Ensure that for size-1 array ``Time``, the location also properly becomes
+  a scalar when indexed with 0. [#10113]
+
 
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
