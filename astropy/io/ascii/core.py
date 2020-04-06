@@ -277,7 +277,7 @@ class BaseInputter:
     encoding = None
     """Encoding used to read the file"""
 
-    def get_lines(self, table):
+    def get_lines(self, table, newline=None):
         """
         Get the lines from the ``table`` input. The input table can be one of:
 
@@ -292,6 +292,7 @@ class BaseInputter:
             Can be either a file name, string (newline separated) with all header and data
             lines (must have at least 2 lines), a file-like object with a ``read()`` method,
             or a list of strings.
+        newline: line separator, if `None` use OS default from ``splitlines()``.
 
         Returns
         -------
@@ -304,14 +305,25 @@ class BaseInputter:
                 with get_readable_fileobj(table,
                                           encoding=self.encoding) as fileobj:
                     table = fileobj.read()
-            lines = table.splitlines()
+            if newline is None:
+                lines = table.splitlines()
+            else:
+                lines = table.split(newline)
         except TypeError:
             try:
                 # See if table supports indexing, slicing, and iteration
                 table[0]
                 table[0:1]
                 iter(table)
-                lines = table
+                if len(table) > 1:
+                    lines = table
+                else:
+                    # treat single entry as if string had been passed directly
+                    if newline is None:
+                        lines = table[0].splitlines()
+                    else:
+                        lines = table[0].split(newline)
+
             except TypeError:
                 raise TypeError(
                     'Input "table" must be a string (filename or data) or an iterable')
@@ -1161,8 +1173,17 @@ class BaseReader(metaclass=MetaBaseReader):
             if os.linesep not in table + '':
                 self.data.table_name = os.path.basename(table)
 
+        # If one of the newline chars is set as field delimiter, only
+        # accept the other one as line splitter
+        if self.header.splitter.delimiter == '\n':
+            newline = '\r'
+        elif self.header.splitter.delimiter == '\r':
+            newline = '\n'
+        else:
+            newline = None
+
         # Get a list of the lines (rows) in the table
-        self.lines = self.inputter.get_lines(table)
+        self.lines = self.inputter.get_lines(table, newline=newline)
 
         # Set self.data.data_lines to a slice of lines contain the data rows
         self.data.get_data_lines(self.lines)
@@ -1422,7 +1443,12 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     except TypeError:  # Start line could be None or an instancemethod
         default_header_length = None
 
+    # csv.reader is hard-coded to recognise either '\r' or '\n' as end-of-line,
+    # therefore DefaultSplitter cannot handle these as delimiters.
     if 'delimiter' in kwargs:
+        if kwargs['delimiter'] in ('\n', '\r', '\r\n'):
+            reader.header.splitter = BaseSplitter()
+            reader.data.splitter = BaseSplitter()
         reader.header.splitter.delimiter = kwargs['delimiter']
         reader.data.splitter.delimiter = kwargs['delimiter']
     if 'comment' in kwargs:

@@ -11,8 +11,8 @@ READ_DOCSTRING = """
     Parameters
     ----------
     table : str, file-like, list, `pathlib.Path` object
-        Input table as a file name, file-like object, list of strings,
-        single newline-separated string or `pathlib.Path` object .
+        Input table as a file name, file-like object, list of string[s],
+        single newline-separated string or `pathlib.Path` object.
     guess : bool
         Try to guess the table format. Defaults to None.
     format : str, `~astropy.io.ascii.BaseReader`
