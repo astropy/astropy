@@ -42,14 +42,17 @@ Parameters for ``read()``
 **table** : input table
   There are four ways to specify the table to be read:
 
-  - Name of a file (string)
+  - Path to a file (string)
   - Single string containing all table lines separated by newlines
   - File-like object with a callable read() method
   - List of strings where each list element is a table line
 
   The first two options are distinguished by the presence of a newline in the
   string. This assumes that valid file names will not normally contain a
-  newline.
+  newline, and a valid table input will at least contain two rows.
+  Note that a table read in ``no_header`` format can legitimately consist
+  of a single row; in this case passing the string as a list with a single
+  item will ensure that it is not interpreted as a file name.
 
 **format** : file format (default='basic')
   This specifies the top-level format of the ASCII table; for example,

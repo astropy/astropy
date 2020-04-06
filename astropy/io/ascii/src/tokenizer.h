@@ -62,6 +62,7 @@ typedef struct
     char comment;          // comment character
     char quotechar;        // quote character
     char expchar;          // exponential character in scientific notation
+    char newline;          // EOL character
     char **output_cols;    // array of output strings for each column
     char **col_ptrs;       // array of pointers to current output position for each col
     size_t *output_len;    // length of each output column string
