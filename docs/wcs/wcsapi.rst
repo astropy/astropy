@@ -51,8 +51,8 @@ Pixel conventions and definitions
 =================================
 
 This API assumes that integer pixel values fall at the center of pixels (as
-assumed in the FITS-WCS standard, see Section 2.1.4 of `Greisen et al., 2002,
-A&A 446, 747 <https://doi.org/10.1051/0004-6361:20053818>`_), while at the same
+assumed in the FITS-WCS standard, see Section 2.1.4 of `Greisen & Calabretta, 2002,
+A&A 395, 1061 <https://doi.org/10.1051/0004-6361:20021326>`_), while at the same
 time matching the Python 0-index philosophy.  That is, the first pixel is
 considered pixel ``0``, but pixel coordinates ``(0, 0)`` are the *center* of
 that pixel.  Hence the first pixel spans pixel values ``-0.5`` to ``0.5``.
