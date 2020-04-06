@@ -353,6 +353,10 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- Fixed a bug with the C ``fast_reader`` not correctly parsing newlines when
+  ``delimiter`` was also set to ``\n`` or ``\r``; ensured consistent handling
+  of input strings without newline characters. [#9929]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
@@ -481,6 +485,21 @@ astropy.io.ascii
   [#9923]
 
 - Magnitude, decibel, and dex can now be stored in ``ecsv`` files. [#9933]
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+- Magnitude, decibel, and dex can now be stored in ``hdf5`` files. [#9933]
+
+- Fixed serialization of polynomial models to include non default values of
+  domain and window values. [#9956, #9961]
+
+- Fixed a bug which affected overwriting tables within ``hdf5`` files.
+  Overwriting an existing path with associated column meta data now also
+  overwrites the meta data associated with the table. [#9950]
+
+- Fixed serialization of Time objects with location under time-1.0.0
+  ASDF schema. [#9983]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
