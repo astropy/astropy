@@ -1,8 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-
-from asdf.yamlutil import custom_tree_to_tagged_tree
-
 from astropy.coordinates import EarthLocation
 
 from ...types import AstropyType
@@ -15,7 +12,7 @@ class EarthLocationType(AstropyType):
 
     @classmethod
     def to_tree(cls, obj, ctx):
-        return custom_tree_to_tagged_tree(obj.info._represent_as_dict(), ctx)
+        return obj.info._represent_as_dict()
 
     @classmethod
     def from_tree(cls, node, ctx):

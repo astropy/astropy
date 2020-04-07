@@ -4,7 +4,6 @@
 from astropy.units.equivalencies import Equivalency
 from astropy.units import equivalencies
 from astropy.units.quantity import Quantity
-from asdf.yamlutil import custom_tree_to_tagged_tree
 
 from astropy.io.misc.asdf.types import AstropyType
 
@@ -24,8 +23,6 @@ class EquivalencyType(AstropyType):
         for e, kwargs in zip(equiv.name, equiv.kwargs):
             kwarg_names = list(kwargs.keys())
             kwarg_values = list(kwargs.values())
-            kwarg_values = [custom_tree_to_tagged_tree(val, ctx) if isinstance(val, Quantity)
-                            else val for val in kwarg_values]
             eq = {'name': e, 'kwargs_names': kwarg_names, 'kwargs_values': kwarg_values}
             eqs.append(eq)
         return eqs

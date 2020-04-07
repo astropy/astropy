@@ -4,7 +4,6 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from asdf import yamlutil
 from asdf.versioning import AsdfVersion
 
 import astropy.units as u
@@ -32,8 +31,7 @@ class ShiftType(TransformType):
     @classmethod
     def to_tree_transform(cls, model, ctx):
         offset = model.offset
-        node = {'offset': _parameter_to_value(offset)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return {'offset': _parameter_to_value(offset)}
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -61,8 +59,7 @@ class ScaleType(TransformType):
     @classmethod
     def to_tree_transform(cls, model, ctx):
         factor = model.factor
-        node = {'factor': _parameter_to_value(factor)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return {'factor': _parameter_to_value(factor)}
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -86,8 +83,7 @@ class MultiplyType(TransformType):
     @classmethod
     def to_tree_transform(cls, model, ctx):
         factor = model.factor
-        node = {'factor': _parameter_to_value(factor)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return  {'factor': _parameter_to_value(factor)}
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -173,7 +169,7 @@ class PolynomialTypeBase(TransformType):
                 if model.x_window or model.y_window is not None:
                     node['window'] = (model.x_window, model.y_window)
 
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -283,8 +279,7 @@ class OrthoPolynomialType(TransformType):
                 node['domain'] = (model.x_domain, model.y_domain)
             if model.x_window or model.y_window is not None:
                 node['window'] = (model.x_window, model.y_window)
-
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -314,11 +309,10 @@ class Linear1DType(TransformType):
 
     @classmethod
     def to_tree_transform(cls, model, ctx):
-        node = {
+        return {
             'slope': _parameter_to_value(model.slope),
             'intercept': _parameter_to_value(model.intercept),
         }
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
 
     @classmethod
     def assert_equal(cls, a, b):
