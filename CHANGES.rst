@@ -37,6 +37,9 @@ astropy.io.misc
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Added support for writing Dask arrays to disk efficiently for ``ImageHDU`` and
+  ``PrimaryHDU``. [#9742]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
