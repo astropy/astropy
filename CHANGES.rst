@@ -114,6 +114,9 @@ astropy.units
 - Added integrated flux unit conversion to ``spectral_density`` equivalency.
   [#10015]
 
+- Changed ``pixel_scale`` equivalency to allow scales defined in any unit.
+  [#10123]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
