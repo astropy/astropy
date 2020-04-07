@@ -11,8 +11,8 @@ greater consistency and clarity to Astropy's documentation, supporting its
 mission to develop a common core package for Astronomy in Python and foster an
 ecosystem of interoperable astronomy packages.
 
-This style guide is organized alphabetically by writing topic with usage
-examples in each section and tone and formatting guidelines at the end.
+This style guide is organized alphabetically by writing topic, with usage
+examples in each section, and tone and formatting guidelines at the end.
 
 Abbreviations
 =============
