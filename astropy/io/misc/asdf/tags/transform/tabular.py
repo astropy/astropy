@@ -4,8 +4,6 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from asdf import yamlutil
-
 from astropy import modeling
 from astropy import units as u
 from .basic import TransformType
@@ -55,7 +53,7 @@ class TabularType(TransformType):
         node["method"] = str(model.method)
         node["bounds_error"] = model.bounds_error
         node["name"] = model.name
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):

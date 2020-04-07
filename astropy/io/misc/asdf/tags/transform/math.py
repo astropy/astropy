@@ -3,8 +3,6 @@
 
 from numpy.testing import assert_array_equal
 
-from asdf import yamlutil
-
 from astropy import modeling
 from astropy.modeling.math_functions import __all__ as math_classes
 from astropy.modeling.math_functions import *
@@ -28,5 +26,4 @@ class NpUfuncType(TransformType):
 
     @classmethod
     def to_tree_transform(cls, model, ctx):
-        node = {'func_name': model.func.__name__}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return {'func_name': model.func.__name__}

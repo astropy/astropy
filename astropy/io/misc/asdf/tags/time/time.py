@@ -4,7 +4,6 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from asdf import yamlutil
 from asdf.versioning import AsdfSpec
 
 from astropy import time
@@ -61,7 +60,7 @@ class TimeType(AstropyAsdfType):
         if node.scale == 'utc' and guessable_format and node.isscalar:
             return node.value
 
-        d = {'value': yamlutil.custom_tree_to_tagged_tree(node.value, ctx)}
+        d = {'value': node.value}
 
         if not guessable_format:
             d['format'] = fmt
@@ -80,16 +79,16 @@ class TimeType(AstropyAsdfType):
                     'x': x.value,
                     'y': y.value,
                     'z': z.value,
-                    'unit': yamlutil.custom_tree_to_tagged_tree(unit, ctx)
+                    'unit': unit
                 }
             else:
                 d['location'] = {
                     # It seems like EarthLocations can be represented either in
                     # terms of Cartesian coordinates or latitude and longitude, so
                     # we rather arbitrarily choose the former for our representation
-                    'x': yamlutil.custom_tree_to_tagged_tree(x, ctx),
-                    'y': yamlutil.custom_tree_to_tagged_tree(y, ctx),
-                    'z': yamlutil.custom_tree_to_tagged_tree(z, ctx)
+                    'x': x,
+                    'y': y,
+                    'z': z
                 }
 
         return d

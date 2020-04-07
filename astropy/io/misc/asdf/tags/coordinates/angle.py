@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
-from asdf.yamlutil import custom_tree_to_tagged_tree
 from astropy.coordinates import Angle, Latitude, Longitude
 
 from astropy.io.misc.asdf.tags.unit.quantity import QuantityType
@@ -44,6 +43,6 @@ class LongitudeType(AngleType):
     @classmethod
     def to_tree(cls, longitude, ctx):
         tree = super().to_tree(longitude, ctx)
-        tree['wrap_angle'] = custom_tree_to_tagged_tree(longitude.wrap_angle, ctx)
+        tree['wrap_angle'] = longitude.wrap_angle
 
         return tree

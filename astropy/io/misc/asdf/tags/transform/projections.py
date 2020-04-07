@@ -3,8 +3,6 @@
 
 from numpy.testing import assert_array_equal
 
-from asdf import yamlutil
-
 from astropy import modeling
 from .basic import TransformType
 from . import _parameter_to_value
@@ -36,9 +34,8 @@ class AffineType(TransformType):
 
     @classmethod
     def to_tree_transform(cls, model, ctx):
-        node = {'matrix': _parameter_to_value(model.matrix),
+        return {'matrix': _parameter_to_value(model.matrix),
                 'translation': _parameter_to_value(model.translation)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -60,8 +57,7 @@ class Rotate2DType(TransformType):
 
     @classmethod
     def to_tree_transform(cls, model, ctx):
-        node = {'angle': _parameter_to_value(model.angle)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return {'angle': _parameter_to_value(model.angle)}
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -130,7 +126,7 @@ class Rotate3DType(TransformType):
                     "direction": model.axes_order
                     }
 
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -175,7 +171,7 @@ class RotationSequenceType(TransformType):
             node['rotation_type'] = "cartesian"
         else:
             raise ValueError(f"Cannot serialize model of type {type(model)}")
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
