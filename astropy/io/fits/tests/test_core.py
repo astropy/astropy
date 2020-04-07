@@ -22,7 +22,7 @@ from astropy.io.fits.file import _File, GZIP_MAGIC
 
 from astropy.io import fits
 from astropy.tests.helper import raises, catch_warnings, ignore_warnings
-from astropy.utils.data import conf, get_pkg_data_filename
+from astropy.utils.data import conf
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils import data
 
@@ -39,10 +39,6 @@ class TestCore(FitsTestCase):
     @raises(OSError)
     def test_missing_file(self):
         fits.open(self.temp('does-not-exist.fits'))
-
-    def test_filename_is_bytes_object(self):
-        with pytest.raises(TypeError):
-            fits.open(self.data('ascii.fits').encode())
 
     def test_naxisj_check(self):
         with fits.open(self.data('o4sp040b0_raw.fits')) as hdulist:
@@ -77,8 +73,19 @@ class TestCore(FitsTestCase):
         """
         Testing when fits file is passed as pathlib.Path object #4412.
         """
-        fpath = pathlib.Path(get_pkg_data_filename('data/tdim.fits'))
+        fpath = pathlib.Path(self.data('tdim.fits'))
         with fits.open(fpath) as hdulist:
+            assert hdulist[0].filebytes() == 2880
+            assert hdulist[1].filebytes() == 5760
+
+            with fits.open(self.data('tdim.fits')) as hdulist2:
+                assert FITSDiff(hdulist2, hdulist).identical is True
+
+    def test_fits_file_bytes_object(self):
+        """
+        Testing when fits file is passed as bytes.
+        """
+        with fits.open(self.data('tdim.fits').encode()) as hdulist:
             assert hdulist[0].filebytes() == 2880
             assert hdulist[1].filebytes() == 5760
 
