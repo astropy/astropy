@@ -744,10 +744,9 @@ class Header:
                         len(blocks) - actual_block_size + BLOCK_SIZE,
                         BLOCK_SIZE))
 
-            if not fileobj.simulateonly:
-                fileobj.flush()
-                fileobj.write(blocks.encode('ascii'))
-                fileobj.flush()
+            fileobj.flush()
+            fileobj.write(blocks.encode('ascii'))
+            fileobj.flush()
         finally:
             if close_file:
                 fileobj.close()

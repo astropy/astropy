@@ -347,6 +347,8 @@ class _File:
         return iswritable(self._file)
 
     def write(self, string):
+        if self.simulateonly:
+            return
         if hasattr(self._file, 'write'):
             _write_string(self._file, string)
 
@@ -358,10 +360,14 @@ class _File:
         the file on disk reflects the data written.
         """
 
+        if self.simulateonly:
+            return
         if hasattr(self._file, 'write'):
             _array_to_file(array, self._file)
 
     def flush(self):
+        if self.simulateonly:
+            return
         if hasattr(self._file, 'flush'):
             self._file.flush()
 
@@ -376,6 +382,8 @@ class _File:
                           .format(self.size, pos), AstropyUserWarning)
 
     def tell(self):
+        if self.simulateonly:
+            raise OSError
         if not hasattr(self._file, 'tell'):
             raise EOFError
         return self._file.tell()

@@ -1285,6 +1285,14 @@ class TestFileFunctions(FitsTestCase):
 
         return bzfile
 
+    def test_simulateonly(self):
+        """Write to None simulates writing."""
+
+        with fits.open(self.data('test0.fits')) as hdul:
+            hdul.writeto(None)
+            hdul[0].writeto(None)
+            hdul[0].header.tofile(None)
+
 
 class TestStreamingFunctions(FitsTestCase):
     """Test functionality of the StreamingHDU class."""

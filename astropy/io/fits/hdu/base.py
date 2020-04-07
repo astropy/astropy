@@ -590,33 +590,25 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
 
     def _writeheader(self, fileobj):
         offset = 0
-        if not fileobj.simulateonly:
-            with suppress(AttributeError, OSError):
-                offset = fileobj.tell()
+        with suppress(AttributeError, OSError):
+            offset = fileobj.tell()
 
-            self._header.tofile(fileobj)
+        self._header.tofile(fileobj)
 
-            try:
-                size = fileobj.tell() - offset
-            except (AttributeError, OSError):
-                size = len(str(self._header))
-        else:
+        try:
+            size = fileobj.tell() - offset
+        except (AttributeError, OSError):
             size = len(str(self._header))
 
         return offset, size
 
     def _writedata(self, fileobj):
-        # TODO: A lot of the simulateonly stuff should be moved back into the
-        # _File class--basically it should turn write and flush into a noop
-        offset = 0
         size = 0
-
-        if not fileobj.simulateonly:
-            fileobj.flush()
-            try:
-                offset = fileobj.tell()
-            except OSError:
-                offset = 0
+        fileobj.flush()
+        try:
+            offset = fileobj.tell()
+        except (AttributeError, OSError):
+            offset = 0
 
         if self._data_loaded or self._data_needs_rescale:
             if self.data is not None:
@@ -637,8 +629,7 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
             size += self._writedata_direct_copy(fileobj)
 
         # flush, to make sure the content is written
-        if not fileobj.simulateonly:
-            fileobj.flush()
+        fileobj.flush()
 
         # return both the location and the size of the data area
         return offset, size
@@ -652,8 +643,7 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
         Should return the size in bytes of the data written.
         """
 
-        if not fileobj.simulateonly:
-            fileobj.writearray(self.data)
+        fileobj.writearray(self.data)
         return self.data.size * self.data.itemsize
 
     def _writedata_direct_copy(self, fileobj):
@@ -867,19 +857,17 @@ class _NonstandardHDU(_BaseHDU, _Verify):
         offset = 0
         size = 0
 
-        if not fileobj.simulateonly:
-            fileobj.flush()
-            try:
-                offset = fileobj.tell()
-            except OSError:
-                offset = 0
+        fileobj.flush()
+        try:
+            offset = fileobj.tell()
+        except OSError:
+            offset = 0
 
         if self.data is not None:
-            if not fileobj.simulateonly:
-                fileobj.write(self.data)
-                # flush, to make sure the content is written
-                fileobj.flush()
-                size = len(self.data)
+            fileobj.write(self.data)
+            # flush, to make sure the content is written
+            fileobj.flush()
+            size = len(self.data)
 
         # return both the location and the size of the data area
         return offset, size
