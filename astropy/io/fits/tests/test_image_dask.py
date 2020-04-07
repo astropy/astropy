@@ -11,7 +11,7 @@ da = pytest.importorskip("dask.array")
 
 @pytest.fixture
 def dask_array_in_mem():
-    return da.from_array(np.random.random((1322, 755))).rechunk((59, 55))
+    return da.random.uniform(-1000, 1000, (1322, 755)).rechunk((59, 55))
 
 
 def test_construct_image_hdu(dask_array_in_mem):
@@ -89,3 +89,47 @@ def test_long_header(dask_array_in_mem, tmp_path):
         assert len(hdulist_new[0].header) == 2053
         assert isinstance(hdulist_new[0].data, np.ndarray)
         np.testing.assert_allclose(hdulist_new[0].data, dask_array_in_mem.compute())
+
+
+VALID_DTYPES = ('>i2', '<i2', '>i4', '<i4', '>i8', '<i8', '>f4', '<f4', '>f8', '<f8')
+
+
+@pytest.mark.parametrize('dtype', VALID_DTYPES)
+def test_dtypes(dask_array_in_mem, tmp_path, dtype):
+
+    filename = tmp_path / 'test.fits'
+
+    array = dask_array_in_mem.astype(dtype)
+
+    hdu = PrimaryHDU(data=array)
+    hdu.writeto(filename)
+
+    with fits.open(filename) as hdulist_new:
+        assert isinstance(hdulist_new[0].data, np.ndarray)
+        np.testing.assert_allclose(hdulist_new[0].data, array.compute())
+
+
+def test_scaled(dask_array_in_mem, tmp_path):
+
+    filename = tmp_path / 'test.fits'
+
+    hdu = PrimaryHDU(data=dask_array_in_mem)
+    hdu.scale('int32', bzero=-1000, bscale=1e-6)
+    hdu.writeto(filename)
+
+    with fits.open(filename) as hdulist_new:
+        assert isinstance(hdulist_new[0].data, np.ndarray)
+        np.testing.assert_allclose(hdulist_new[0].data, dask_array_in_mem.compute(), atol=1e-5)
+
+
+def test_scaled_minmax(dask_array_in_mem, tmp_path):
+
+    filename = tmp_path / 'test.fits'
+
+    hdu = PrimaryHDU(data=dask_array_in_mem)
+    hdu.scale('int32',option='minmax')
+    hdu.writeto(filename)
+
+    with fits.open(filename) as hdulist_new:
+        assert isinstance(hdulist_new[0].data, np.ndarray)
+        np.testing.assert_allclose(hdulist_new[0].data, dask_array_in_mem.compute(), atol=1e-5)
