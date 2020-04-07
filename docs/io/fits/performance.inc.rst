@@ -5,6 +5,22 @@
 
 .. _astropy-io-fits-performance:
 
+Performance Tips
+================
+
+It is possible to set the data array for :class:`~astropy.io.fits.PrimaryHDU`
+and :class:`~astropy.io.fits.ImageHDU` to a `dask <https://dask.org/>`_ array.
+If this is written to disk, the dask array will be computed as it is being
+written, which will avoid using excessive memory:
+
+.. doctest-requires:: dask
+
+    >>> import dask.array as da
+    >>> array = da.random.random((1000, 1000))
+    >>> from astropy.io import fits
+    >>> hdu = fits.PrimaryHDU(data=array)
+    >>> hdu.writeto('test_dask.fits')
+
 .. TODO: determine whether the following is quantitatively true, and either
 .. uncomment or remove.
 

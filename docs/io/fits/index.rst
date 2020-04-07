@@ -314,9 +314,9 @@ would with a dict::
 Structural Keywords
 """""""""""""""""""
 
-FITS keywords mix up both metadata and critical information about the file structure 
+FITS keywords mix up both metadata and critical information about the file structure
 that is needed to parse the file. These *structural* keywords are managed internally by
-:mod:`astropy.io.fits` and, in general, should not be touched by the user. Instead one 
+:mod:`astropy.io.fits` and, in general, should not be touched by the user. Instead one
 should use  the related attributes of the `astropy.io.fits` classes (see examples below).
 
 The specific set of structural keywords used by the FITS standard varies with HDU type.
@@ -332,10 +332,10 @@ The following table lists which keywords are associated with each HDU type:
    ":class:`GroupsHDU`", "``NAXIS1``, ``GCOUNT``, ``PCOUNT``, ``GROUPS``"
    ":class:`TableHDU`, :class:`BinTableHDU`", "``TFIELDS``, ``TFORM``, ``TBCOL``"
 
-There are many other reserved keywords, for instance for the data scaling, or for table's column 
-attributes, as described in the  `FITS Standard <https://fits.gsfc.nasa.gov/fits_standard.html>`__. 
-Most of these are accessible via attributes of the :class:`Column` or HDU objects, for instance 
-``hdu.name`` to set ``EXTNAME``, or ``hdu.ver`` for ``EXTVER``. Structural keywords are checked 
+There are many other reserved keywords, for instance for the data scaling, or for table's column
+attributes, as described in the  `FITS Standard <https://fits.gsfc.nasa.gov/fits_standard.html>`__.
+Most of these are accessible via attributes of the :class:`Column` or HDU objects, for instance
+``hdu.name`` to set ``EXTNAME``, or ``hdu.ver`` for ``EXTVER``. Structural keywords are checked
 and/or updated as a consequence of common operations. For example, when:
 
 1. Setting the data. The ``NAXIS*`` keywords are set from the data shape (``.data.shape``), and ``BITPIX``
@@ -972,6 +972,7 @@ Other Information
 .. note that if this section gets too long, it should be moved to a separate
    doc page - see the top of performance.inc.rst for the instructions on how to do
    that
+
 .. include:: performance.inc.rst
 
 Reference/API
