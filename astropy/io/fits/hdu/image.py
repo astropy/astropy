@@ -14,9 +14,10 @@ from astropy.io.fits.verify import VerifyWarning
 from astropy.utils import isiterable, lazyproperty
 
 try:
-    from dask.array import Array
+    from dask.array import Array as DaskArray
 except ImportError:
-    class Array: pass
+    class DaskArray:
+        pass
 
 
 class _ImageBaseHDU(_ValidHDU):
@@ -250,7 +251,7 @@ class _ImageBaseHDU(_ValidHDU):
             self._data_replaced = True
             was_unsigned = False
 
-        if data is not None and not isinstance(data, (np.ndarray, Array)):
+        if data is not None and not isinstance(data, (np.ndarray, DaskArray)):
             # Try to coerce the data into a numpy array--this will work, on
             # some level, for most objects
             try:
@@ -495,8 +496,12 @@ class _ImageBaseHDU(_ValidHDU):
             _scale = self._orig_bscale
             _zero = self._orig_bzero
         elif option == 'minmax' and not issubclass(_type, np.floating):
-            min = np.minimum.reduce(self.data.flat)
-            max = np.maximum.reduce(self.data.flat)
+            if isinstance(self.data, DaskArray):
+                min = self.data.min().compute()
+                max = self.data.max().compute()
+            else:
+                min = np.minimum.reduce(self.data.flat)
+                max = np.maximum.reduce(self.data.flat)
 
             if _type == np.uint8:  # uint8 case
                 _zero = min
@@ -517,7 +522,10 @@ class _ImageBaseHDU(_ValidHDU):
             # We have to explcitly cast _zero to prevent numpy from raising an
             # error when doing self.data -= zero, and we do this instead of
             # self.data = self.data - zero to avoid doubling memory usage.
-            np.add(self.data, -_zero, out=self.data, casting='unsafe')
+            if isinstance(self.data, DaskArray):
+                self.data = self.data - _zero
+            else:
+                np.add(self.data, -_zero, out=self.data, casting='unsafe')
             self._header['BZERO'] = _zero
         else:
             try:
@@ -611,7 +619,7 @@ class _ImageBaseHDU(_ValidHDU):
 
         if self.data is None:
             return size
-        elif isinstance(self.data, Array):
+        elif isinstance(self.data, DaskArray):
             return self._writeinternal_dask(fileobj)
         else:
             # Based on the system type, determine the byteorders that
