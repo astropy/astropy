@@ -250,17 +250,20 @@ setup in this section will make that easier.
 Install your branch
 *******************
 
-Ideally you should set up a python virtual environment just for this fix;
+Ideally you should set up a Python virtual environment just for this fix;
 instructions for doing to are at :ref:`virtual_envs`. Doing so ensures you
-will not corrupt your main astropy install and makes it very easy to recover
+will not corrupt your main ``astropy`` install and makes it very easy to recover
 from mistakes.
 
-Once you have activated that environment you need to install the version of
-Astropy you are working on. Do that with:
+Once you have activated that environment, you need to install the version of
+``astropy`` you are working on. Do that with:
 
 .. code-block:: bash
 
     pip install -e .
+
+For more details on building ``astropy`` from source, see
+:ref:`dev-build-astropy-subpkg`.
 
 .. _edit-flow:
 

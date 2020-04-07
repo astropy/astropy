@@ -1,3 +1,5 @@
+.. _dev-build-astropy-subpkg:
+
 ************************************
 Building Astropy and its Subpackages
 ************************************
@@ -25,3 +27,28 @@ of PLY is bundled with Astropy or some of the parsing code changes), the tables
 need to be deleted and the appropriate parts of astropy re-imported and run. For
 exact details, see the comments in the headers of the ``parsetab`` and
 ``lextab`` files.
+
+.. _dev-build-astropy-subpkg-win:
+
+Building on Windows
+*******************
+
+The easiest option is to use Python installation from Miniconda. If you like
+Unix-like commands, Git Bash, which comes installed with Git, complements
+Miniconda pretty well, as long as Miniconda is installed with the option for
+it to be available system-wide (the option that is not recommended by the
+installer).
+
+Since ``astropy`` contains C extensions, you also need to install Microsoft
+Visual Studio (the latest available should work) so Python can access the
+system C compiler.
+
+Once everything is set up as above, you can proceed to build ``astropy``
+from source in the ``conda`` environment in an OS-agnostic way. For example:
+
+* Create a new ``conda`` environment.
+* Go to the ``astropy`` code checkout directory.
+* If you have not already, fetch all the tags from the main repository.
+  If you do not have the latest tag, your developer version number will be
+  wrong.
+* Run ``pip install -e .`` to build ``astropy``.
