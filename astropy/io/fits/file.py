@@ -113,17 +113,24 @@ class _File:
         self.strict_memmap = bool(memmap)
         memmap = True if memmap is None else memmap
 
+        self._file = None
+        self.closed = False
+        self.binary = True
+        self.mode = mode
+        self.memmap = memmap
+        self.compression = None
+        self.readonly = False
+        self.writeonly = False
+
+        # Should the object be closed on error: see
+        # https://github.com/astropy/astropy/issues/6168
+        self.close_on_error = False
+
+        # Holds mmap instance for files that use mmap
+        self._mmap = None
+
         if fileobj is None:
-            self._file = None
-            self.closed = False
-            self.binary = True
-            self.mode = mode
-            self.memmap = memmap
-            self.compression = None
-            self.readonly = False
-            self.writeonly = False
             self.simulateonly = True
-            self.close_on_error = False
             return
         else:
             self.simulateonly = False
@@ -140,9 +147,6 @@ class _File:
                 # TODO: This could be revised when Python 3.5 support is dropped
                 # See also: https://github.com/astropy/astropy/issues/6789
                 raise TypeError("names should be `str` not `bytes`.")
-
-        # Holds mmap instance for files that use mmap
-        self._mmap = None
 
         if mode is not None and mode not in IO_FITS_MODES:
             raise ValueError(f"Mode '{mode}' not recognized")
@@ -169,22 +173,10 @@ class _File:
         else:
             self.name = fileobj_name(fileobj)
 
-        self.closed = False
-        self.binary = True
         self.mode = mode
-        self.memmap = memmap
 
         # Underlying fileobj is a file-like object, but an actual file object
         self.file_like = False
-
-        # Should the object be closed on error: see
-        # https://github.com/astropy/astropy/issues/6168
-        self.close_on_error = False
-
-        # More defaults to be adjusted below as necessary
-        self.compression = None
-        self.readonly = False
-        self.writeonly = False
 
         # Initialize the internal self._file object
         if isfile(fileobj):
