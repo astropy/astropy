@@ -668,7 +668,7 @@ class _ImageBaseHDU(_ValidHDU):
 
         if should_swap:
             from dask.utils import M
-            # NOTE: the byteswap flag needs to be False otherwise the array is
+            # NOTE: the inplace flag to byteswap needs to be False otherwise the array is
             # byteswapped in place every time it is computed and this affects
             # the input dask array.
             output = output.map_blocks(M.byteswap, False).map_blocks(M.newbyteorder, "S")
@@ -682,7 +682,7 @@ class _ImageBaseHDU(_ValidHDU):
         fileobj.flush()
 
         outmmap = mmap.mmap(fileobj._file.fileno(),
-                            initial_position+n_bytes,
+                            initial_position + n_bytes,
                             access=mmap.ACCESS_WRITE)
 
         outarr = np.ndarray(shape=output.shape,
