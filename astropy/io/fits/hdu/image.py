@@ -700,6 +700,8 @@ class _ImageBaseHDU(_ValidHDU):
 
         output.store(outarr, lock=True, compute=True)
 
+        outmmap.close()
+
         return n_bytes
 
     def _dtype_for_bitpix(self):
