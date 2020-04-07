@@ -654,8 +654,6 @@ class _ImageBaseHDU(_ValidHDU):
 
     def _writeinternal_dask(self, fileobj):
 
-        size = 0
-
         if sys.byteorder == 'little':
             swap_types = ('<', '=')
         else:
@@ -670,14 +668,16 @@ class _ImageBaseHDU(_ValidHDU):
 
         if should_swap:
             from dask.utils import M
-            output = output.map_blocks(M.byteswap, True).map_blocks(M.newbyteorder, "S")
+            # NOTE: the byteswap flag needs to be False otherwise the array is
+            # byteswapped in place every time it is computed and this affects
+            # the input dask array.
+            output = output.map_blocks(M.byteswap, False).map_blocks(M.newbyteorder, "S")
 
         initial_position = fileobj.tell()
         n_bytes = output.nbytes
-        end_length = initial_position + n_bytes
 
         # Extend the file n_bytes into the future
-        fileobj.seek(initial_position + n_bytes)
+        fileobj.seek(initial_position + n_bytes - 1)
         fileobj.write(b'\0')
         fileobj.flush()
 
