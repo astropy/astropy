@@ -194,8 +194,6 @@ class HDUList(list, _Verify):
             self._file = file
             self._data = None
 
-        self._save_backup = False
-
         # For internal use only--the keyword args passed to fitsopen /
         # HDUList.fromfile/string when opening the file
         self._open_kwargs = {}
@@ -808,7 +806,8 @@ class HDUList(list, _Verify):
                          .format(self._file.mode), AstropyUserWarning)
             return
 
-        if self._save_backup and self._file.mode in ('append', 'update'):
+        save_backup = self._open_kwargs.get('save_backup', False)
+        if save_backup and self._file.mode in ('append', 'update'):
             filename = self._file.name
             if os.path.exists(filename):
                 # The the file doesn't actually exist anymore for some reason
@@ -1039,9 +1038,8 @@ class HDUList(list, _Verify):
         return None
 
     @classmethod
-    def _readfrom(cls, fileobj=None, data=None, mode=None,
-                  memmap=None, save_backup=False, cache=True,
-                  lazy_load_hdus=True, **kwargs):
+    def _readfrom(cls, fileobj=None, data=None, mode=None, memmap=None,
+                  cache=True, lazy_load_hdus=True, **kwargs):
         """
         Provides the implementations from HDUList.fromfile and
         HDUList.fromstring, both of which wrap this method, as their
@@ -1067,7 +1065,7 @@ class HDUList(list, _Verify):
             # fromstring case; the data type of ``data`` will be checked in the
             # _BaseHDU.fromstring call.
 
-        hdulist._save_backup = save_backup
+        # Store additional keyword args that were passed to fits.open
         hdulist._open_kwargs = kwargs
 
         if fileobj is not None and fileobj.writeonly:
