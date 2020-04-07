@@ -1537,7 +1537,8 @@ def test_single_line_string(delimiter, fast_reader):
         t1 = ascii.read(text, format='no_header', delimiter=delimiter, fast_reader=fast_reader)
         assert_table_equal(t1, expected)
     else:
-        with pytest.raises(FileNotFoundError):
+        # Windows raises OSError, but not the other OSes.
+        with pytest.raises((FileNotFoundError, OSError)):
             t1 = ascii.read(text, format='no_header', delimiter=delimiter, fast_reader=fast_reader)
 
     t2 = ascii.read([text], format='no_header', delimiter=delimiter, fast_reader=fast_reader)
