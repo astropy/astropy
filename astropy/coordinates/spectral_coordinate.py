@@ -41,9 +41,9 @@ class SpectralCoord(u.Quantity):
     unit : str or `~astropy.units.Unit`
         Unit for the given data.
     observer : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`, optional
-        The coordinate (position and velocity) of observer.
+        The coordinate (position and velocity) of the observer.
     target : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`, optional
-        The coordinate (position and velocity) of observer.
+        The coordinate (position and velocity) of the target.
     radial_velocity : `~astropy.units.Quantity`, optional
         The radial velocity of the target with respect to the observer.
     redshift : float, optional
