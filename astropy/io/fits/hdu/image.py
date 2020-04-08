@@ -518,13 +518,13 @@ class _ImageBaseHDU(_ValidHDU):
 
         # Do the scaling
         if _zero != 0:
-            # 0.9.6.3 to avoid out of range error for BZERO = +32768
-            # We have to explcitly cast _zero to prevent numpy from raising an
-            # error when doing self.data -= zero, and we do this instead of
-            # self.data = self.data - zero to avoid doubling memory usage.
             if isinstance(self.data, DaskArray):
                 self.data = self.data - _zero
             else:
+                # 0.9.6.3 to avoid out of range error for BZERO = +32768
+                # We have to explcitly cast _zero to prevent numpy from raising an
+                # error when doing self.data -= zero, and we do this instead of
+                # self.data = self.data - zero to avoid doubling memory usage.
                 np.add(self.data, -_zero, out=self.data, casting='unsafe')
             self._header['BZERO'] = _zero
         else:
