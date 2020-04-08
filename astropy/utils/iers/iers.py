@@ -97,6 +97,14 @@ def download_file(*args, **kwargs):
         return utils.data.download_file(*args, **kwargs)
 
 
+def _none_to_float(value):
+    """
+    Convert None to a valid floating point value.  Especially
+    for auto_max_age = None.
+    """
+    return (value if value is not None else np.finfo(float).max)
+
+
 class IERSStaleWarning(AstropyWarning):
     pass
 
@@ -697,8 +705,7 @@ class IERS_Auto(IERS_A):
         predictive_mjd = self.meta['predictive_mjd']
 
         # See explanation in _refresh_table_as_needed for these conditions
-        auto_max_age = (conf.auto_max_age if conf.auto_max_age is not None
-                        else np.finfo(float).max)
+        auto_max_age = _none_to_float(conf.auto_max_age)
         if (max_input_mjd > predictive_mjd and
                 self.time_now.mjd - predictive_mjd > auto_max_age):
             raise ValueError(INTERPOLATE_ERROR.format(auto_max_age))
@@ -726,8 +733,7 @@ class IERS_Auto(IERS_A):
         predictive_mjd = self.meta['predictive_mjd']
 
         # Update table in place if necessary
-        auto_max_age = (conf.auto_max_age if conf.auto_max_age is not None
-                        else np.finfo(float).max)
+        auto_max_age = _none_to_float(conf.auto_max_age)
 
         # If auto_max_age is smaller than IERS update time then repeated downloads may
         # occur without getting updated values (giving a IERSStaleWarning).
@@ -972,7 +978,7 @@ class LeapSeconds(QTable):
         that expires more than 180 - `~astropy.utils.iers.Conf.auto_max_age`
         after the present.
         """
-        good_enough = cls._today() + TimeDelta(180-conf.auto_max_age,
+        good_enough = cls._today() + TimeDelta(180-_none_to_float(conf.auto_max_age),
                                                format='jd')
 
         if files is None:
