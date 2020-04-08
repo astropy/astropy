@@ -109,6 +109,11 @@ class TestAutoOpenExplicitLists:
         ls = iers.LeapSeconds.auto_open([iers.IERS_LEAP_SECOND_FILE])
         assert ls.meta['data_url'] == iers.IERS_LEAP_SECOND_FILE
 
+    def test_auto_open_max_age_none(self):
+        with iers.conf.auto_max_age.set_temp(None):
+            ls = iers.LeapSeconds.auto_open([iers.IERS_LEAP_SECOND_FILE])
+        assert ls.meta['data_url'] == iers.IERS_LEAP_SECOND_FILE
+
     def test_auto_open_erfa(self):
         ls = iers.LeapSeconds.auto_open(['erfa', iers.IERS_LEAP_SECOND_FILE])
         assert ls.meta['data_url'] in ['erfa', iers.IERS_LEAP_SECOND_FILE]
