@@ -117,8 +117,6 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
-- Fix case where ``None`` could be used in a numerical computation. [#10126]
-
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -426,6 +424,8 @@ astropy.utils
 ^^^^^^^^^^^^^
 
 - Fixed memory allocation on 64-bit systems within ``xml.iterparse`` [#10076]
+
+- Fix case where ``None`` could be used in a numerical computation. [#10126]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
