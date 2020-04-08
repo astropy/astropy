@@ -16,9 +16,25 @@ from astropy import units as u
 from .matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
 
 
-jd1950 = Time('B1950').jd
-jd2000 = Time('J2000').jd
+jd1950 = None
+jd2000 = None
 _asecperrad = u.radian.to(u.arcsec)
+
+
+def _get_jd1950():
+    """Only trigger leap seconds table download when needed."""
+    global jd1950
+    if not jd1950:
+        jd1950 = Time('B1950').jd
+    return jd1950
+
+
+def _get_jd2000():
+    """Only trigger leap seconds table download when needed."""
+    global jd2000
+    if not jd2000:
+        jd2000 = Time('J2000').jd
+    return jd2000
 
 
 def eccentricity(jd):
@@ -40,7 +56,7 @@ def eccentricity(jd):
     * Explanatory Supplement to the Astronomical Almanac: P. Kenneth
       Seidelmann (ed), University Science Books (1992).
     """
-    T = (jd - jd1950) / 36525.0
+    T = (jd - _get_jd1950()) / 36525.0
 
     p = (-0.000000126, - 0.00004193, 0.01673011)
 
@@ -67,7 +83,7 @@ def mean_lon_of_perigee(jd):
     * Explanatory Supplement to the Astronomical Almanac: P. Kenneth
       Seidelmann (ed), University Science Books (1992).
     """
-    T = (jd - jd1950) / 36525.0
+    T = (jd - _get_jd1950()) / 36525.0
 
     p = (0.012, 1.65, 6190.67, 1015489.951)
 
@@ -102,7 +118,7 @@ def obliquity(jd, algorithm=2006):
     * Explanatory Supplement to the Astronomical Almanac: P. Kenneth
       Seidelmann (ed), University Science Books (1992).
     """
-    T = (jd - jd2000) / 36525.0
+    T = (jd - _get_jd2000()) / 36525.0
 
     if algorithm == 2006:
         p = (-0.0000000434, -0.000000576, 0.00200340, -0.0001831, -46.836769, 84381.406)
@@ -365,7 +381,7 @@ def nutation_components2000B(jd):
         depsilon in raidans
     """
     epsa = np.radians(obliquity(jd, 2000))
-    t = (jd - jd2000) / 36525
+    t = (jd - _get_jd2000()) / 36525
 
     # Fundamental (Delaunay) arguments from Simon et al. (1994) via SOFA
     # Mean anomaly of moon

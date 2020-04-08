@@ -346,6 +346,8 @@ astropy.coordinates
 - Ensure that for size-1 array ``SkyCoord`` and coordinate frames
   the attributes also properly become scalars when indexed with 0.
   [#10113]
+- Delay download of leap-second table in ``earth_orientation.py`` until
+  it is actually needed for computation. [#10125]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
