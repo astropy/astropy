@@ -59,14 +59,20 @@ def test_save_hdulist(dask_array_in_mem, tmp_path):
 
     filename = tmp_path / 'test.fits'
 
-    hdu = PrimaryHDU(data=dask_array_in_mem)
-    hdulist = fits.HDUList([hdu])
+    hdu1 = PrimaryHDU(data=dask_array_in_mem)
+    hdu2 = ImageHDU(data=np.random.random((128, 128)))
+    hdu3 = ImageHDU(data=dask_array_in_mem * 2)
+    hdulist = fits.HDUList([hdu1, hdu2, hdu3])
     assert isinstance(hdulist[0].data, da.Array)
     hdulist.writeto(filename)
 
     with fits.open(filename) as hdulist_new:
         assert isinstance(hdulist_new[0].data, np.ndarray)
         np.testing.assert_allclose(hdulist_new[0].data, dask_array_in_mem.compute())
+        assert isinstance(hdulist_new[1].data, np.ndarray)
+        np.testing.assert_allclose(hdulist_new[1].data, hdu2.data)
+        assert isinstance(hdulist_new[2].data, np.ndarray)
+        np.testing.assert_allclose(hdulist_new[2].data, dask_array_in_mem.compute() * 2)
 
 
 def test_long_header(dask_array_in_mem, tmp_path):
