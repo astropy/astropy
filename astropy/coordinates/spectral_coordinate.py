@@ -115,7 +115,7 @@ class SpectralCoord(u.Quantity):
                                      "redshift on spectral coordinate.")
 
                 observer = SpectralCoord._target_from_observer(
-                    target, -radial_velocity)
+                    target, radial_velocity)
 
         # If no target is defined, create a default target with any provided
         #  redshift/radial velocities.
