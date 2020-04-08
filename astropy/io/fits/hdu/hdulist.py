@@ -1063,6 +1063,16 @@ class HDUList(list, _Verify):
             # fromstring case; the data type of ``data`` will be checked in the
             # _BaseHDU.fromstring call.
 
+        if hdulist._file and hdulist._file.readonly:
+            pos = hdulist._file.tell()
+            simple = hdulist._file.read(30).decode('ascii')
+            if simple != 'SIMPLE  =                    T':
+                if simple == 'SIMPLE  =                    F':
+                    pass
+                else:
+                    raise Exception
+            hdulist._file.seek(0)
+
         # Store additional keyword args that were passed to fits.open
         hdulist._open_kwargs = kwargs
 
