@@ -145,6 +145,12 @@ class TestAutoOpenExplicitLists:
         assert ls2.meta['data_url'] == fake_file2
         assert ls2.expires == Time('2012-06-27', scale='tai')
 
+        # Use the fake files to make sure auto_max_age is safe.
+        with iers.conf.set_temp('auto_max_age', None):
+            ls3 = iers.LeapSeconds.auto_open([fake_file1,
+                                              iers.IERS_LEAP_SECOND_FILE])
+        assert ls3.meta['data_url'] == fake_file1
+
 
 @pytest.mark.remote_data
 class TestRemoteURLs:
@@ -164,7 +170,7 @@ class TestDefaultAutoOpen:
     def setup(self):
         # Identical to what is used in LeapSeconds.auto_open().
         self.good_enough = (iers.LeapSeconds._today()
-                            + TimeDelta(180 - iers.conf.auto_max_age,
+                            + TimeDelta(180 - iers._none_to_float(iers.conf.auto_max_age),
                                         format='jd'))
         self._auto_open_files = iers.LeapSeconds._auto_open_files.copy()
 
