@@ -145,8 +145,11 @@ def test_generic_projections(tmpdir):
             'backward': util.resolve_name(
                 f'astropy.modeling.projections.Pix2Sky_{name}')()
         }
-
-        helpers.assert_roundtrip_tree(tree, tmpdir)
+        with warnings.catch_warnings():
+            # Some schema files are missing from asdf<=2.4.2 which causes warnings
+            if LooseVersion(asdf.__version__) <= '2.5.1':
+                warnings.filterwarnings('ignore', 'Unable to locate schema file')
+            helpers.assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_tabular_model(tmpdir):

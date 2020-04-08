@@ -50,6 +50,9 @@ astropy.modeling
 - Added ``UnitsMapping`` model and ``Model.coerce_units`` to support units on otherwise
   unitless models. [#9936]
 
+- Added ``domain`` and ``window`` attributes to ``repr`` and ``str``. Fixed bug with
+  ``_format_repr`` in core.py. [#9941]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 

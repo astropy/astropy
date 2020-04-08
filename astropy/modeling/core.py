@@ -2293,7 +2293,7 @@ class Model(metaclass=_ModelMeta):
             parts.append('name={0!r}'.format(self.name))
 
         for kwarg, value in kwargs.items():
-            if kwarg in defaults and defaults[kwarg] != value:
+            if kwarg in defaults and defaults[kwarg] == value:
                 continue
             parts.append('{0}={1!r}'.format(kwarg, value))
 
