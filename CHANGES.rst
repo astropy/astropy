@@ -117,7 +117,7 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
-- Fix case where ``None`` could be used in a numerical computation. [#12345]
+- Fix case where ``None`` could be used in a numerical computation. [#10126]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
