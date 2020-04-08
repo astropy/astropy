@@ -33,7 +33,7 @@ exact details, see the comments in the headers of the ``parsetab`` and
 Building on Windows
 *******************
 
-The easiest option is to use Python installation from Miniconda. If you like
+The most convenient option is to use Python installation from Miniconda. If you like
 Unix-like commands, Git Bash, which comes installed with Git, complements
 Miniconda pretty well, as long as Miniconda is installed with the option for
 it to be available system-wide (the option that is not recommended by the
@@ -48,7 +48,7 @@ from source in the ``conda`` environment in an OS-agnostic way. For example:
 
 * Create a new ``conda`` environment.
 * Go to the ``astropy`` code checkout directory.
-* If you have not already, fetch all the tags from the main repository.
+* If you have not already, fetch all of the tags from the main repository.
   If you do not have the latest tag, your developer version number will be
   wrong.
 * Run ``pip install -e .`` to build ``astropy``.
