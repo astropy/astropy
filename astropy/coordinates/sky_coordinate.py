@@ -471,28 +471,34 @@ class SkyCoord(ShapedLikeNDArray):
         return new
 
     def __setitem__(self, item, value):
+        """Implement self[item] = value for SkyCoord
+
+        The right hand ``value`` must be strictly consistent with self:
+        - Identical class
+        - Equivalent frames
+        - Identical representation_types
+        - Identical representation differentials keys
+        - Identical frame attributes
+        - Identical "extra" frame attributes (e.g. obstime for an ICRS coord)
+
+        With these caveats the setitem ends up as effectively a setitem on
+        the representation data.
+
+          self.frame.data[item] = value.frame.data
+        """
         if self.__class__ is not value.__class__:
             raise TypeError(f'can only set item from object of same class '
                             f'{self.__class__.__name__}')
 
         # Make sure that any extra frame attribute names are equivalent.
-        # Could relax this in future to set the attribute values appropriately.
-        for attr in self._extra_frameattr_names:
+        for attr in self._extra_frameattr_names | value._extra_frameattr_names:
             if not self.frame._frameattr_equiv(getattr(self, attr),
                                                getattr(value, attr)):
                 raise ValueError(f'attribute {attr} is not equivalent')
 
-        # Instead, setting extra frame attributes in the same way as frame would
-        # look something like
-        #
-        # for attr in self._extra_frameattr_names:
-        #     with _set_time_writeable_true(getattr(self, attr)):
-        #         _frame_attribute_setitem(self, attr, item, value)
-
-        # Set the frame values.  This checks frame equivalence.
+        # Set the frame values.  This checks frame equivalence and also clears
+        # the cache to ensure that the object is not in an inconsistent state.
         self._sky_coord_frame[item] = value._sky_coord_frame
-
-        self.cache.clear()
 
     def transform_to(self, frame, merge_attributes=True):
         """Transform this coordinate to a new frame.
