@@ -54,18 +54,33 @@ def test_ecliptic_heliobary():
                          (HeliocentricTrueEcliptic, HeliocentricMeanEcliptic),
                          (GeocentricTrueEcliptic, GeocentricMeanEcliptic),
                          (HeliocentricEclipticIAU76, HeliocentricMeanEcliptic)])
-def test_ecliptic_true_mean(trueframe, meanframe):
+def test_ecliptic_roundtrips(trueframe, meanframe):
     """
-    Check that the ecliptic true/mean transformations at least roundtrip
+    Check that the various ecliptic transformations at least roundtrip
     """
     icrs = ICRS(1*u.deg, 2*u.deg, distance=1.5*R_sun)
 
     truecoo = icrs.transform_to(trueframe)
-    meancoo = icrs.transform_to(meanframe)
-    truecoo2 = icrs.transform_to(trueframe)
+    meancoo = truecoo.transform_to(meanframe)
+    truecoo2 = meancoo.transform_to(trueframe)
 
     assert not quantity_allclose(truecoo.cartesian.xyz, meancoo.cartesian.xyz)
     assert quantity_allclose(truecoo.cartesian.xyz, truecoo2.cartesian.xyz)
+
+
+@pytest.mark.parametrize(('trueframe', 'meanframe'),
+                        [(BarycentricTrueEcliptic, BarycentricMeanEcliptic),
+                         (HeliocentricTrueEcliptic, HeliocentricMeanEcliptic),
+                         (GeocentricTrueEcliptic, GeocentricMeanEcliptic)])
+def test_ecliptic_true_mean_preserve_latitude(trueframe, meanframe):
+    """
+    Check that the ecliptic true/mean transformations preserve latitude
+    """
+    truecoo = trueframe(90*u.deg, 0*u.deg, distance=1*u.AU)
+    meancoo = truecoo.transform_to(meanframe)
+
+    assert not quantity_allclose(truecoo.lon, meancoo.lon)
+    assert quantity_allclose(truecoo.lat, meancoo.lat, atol=1e-10*u.arcsec)
 
 
 def test_ecl_geo():
