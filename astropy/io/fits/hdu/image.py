@@ -689,15 +689,30 @@ class _ImageBaseHDU(_ValidHDU):
         fileobj.write(b'\0')
         fileobj.flush()
 
-        outarr = np.memmap(fileobj.name,
-                           mode='r+',
-                           shape=output.shape,
-                           dtype=output.dtype,
-                           offset=initial_position)
+        if fileobj.fileobj_mode not in ('rb+', 'wb+', 'ab+'):
+            # Use another file handle if the current one is not in
+            # read/write mode
+            fp = open(fileobj.name, mode='rb+')
+            should_close = True
+        else:
+            fp = fileobj._file
+            should_close = False
 
-        output.store(outarr, lock=True, compute=True)
+        try:
+            outmmap = mmap.mmap(fp.fileno(),
+                                length=initial_position + n_bytes,
+                                access=mmap.ACCESS_WRITE)
 
-        outarr._mmap.close()
+            outarr = np.ndarray(shape=output.shape,
+                                dtype=output.dtype,
+                                offset=initial_position,
+                                buffer=outmmap)
+
+            output.store(outarr, lock=True, compute=True)
+        finally:
+            if should_close:
+                fp.close()
+            outmmap.close()
 
         # On Windows closing the memmap causes the file pointer to return to 0, so
         # we need to go back to the end of the data (since padding may be written
