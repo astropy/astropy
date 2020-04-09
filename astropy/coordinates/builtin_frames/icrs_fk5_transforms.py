@@ -36,7 +36,7 @@ _ICRS_TO_FK5_J2000_MAT = _icrs_to_fk5_matrix()
 @frame_transform_graph.transform(DynamicMatrixTransform, ICRS, FK5)
 def icrs_to_fk5(icrscoord, fk5frame):
     # ICRS is by design very close to J2000 equinox
-    pmat = fk5frame._precession_matrix(EQUINOX_J2000, fk5frame.equinox)
+    pmat = fk5frame._precession_matrix(EQUINOX_J2000(), fk5frame.equinox)
     return matrix_product(pmat, _ICRS_TO_FK5_J2000_MAT)
 
 
@@ -44,5 +44,5 @@ def icrs_to_fk5(icrscoord, fk5frame):
 @frame_transform_graph.transform(DynamicMatrixTransform, FK5, ICRS)
 def fk5_to_icrs(fk5coord, icrsframe):
     # ICRS is by design very close to J2000 equinox
-    pmat = fk5coord._precession_matrix(fk5coord.equinox, EQUINOX_J2000)
+    pmat = fk5coord._precession_matrix(fk5coord.equinox, EQUINOX_J2000())
     return matrix_product(matrix_transpose(_ICRS_TO_FK5_J2000_MAT), pmat)

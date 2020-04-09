@@ -48,8 +48,8 @@ def fk4_no_e_to_fk5(fk4noecoord, fk5frame):
 
     # construct both precession matricies - if the equinoxes are B1950 and
     # J2000, these are just identity matricies
-    pmat1 = fk4noecoord._precession_matrix(fk4noecoord.equinox, EQUINOX_B1950)
-    pmat2 = fk5frame._precession_matrix(EQUINOX_J2000, fk5frame.equinox)
+    pmat1 = fk4noecoord._precession_matrix(fk4noecoord.equinox, EQUINOX_B1950())
+    pmat2 = fk5frame._precession_matrix(EQUINOX_J2000(), fk5frame.equinox)
 
     return matrix_product(pmat2, B, pmat1)
 
@@ -63,7 +63,7 @@ def fk5_to_fk4_no_e(fk5coord, fk4noeframe):
 
     # construct both precession matricies - if the equinoxes are B1950 and
     # J2000, these are just identity matricies
-    pmat1 = fk5coord._precession_matrix(fk5coord.equinox, EQUINOX_J2000)
-    pmat2 = fk4noeframe._precession_matrix(EQUINOX_B1950, fk4noeframe.equinox)
+    pmat1 = fk5coord._precession_matrix(fk5coord.equinox, EQUINOX_J2000())
+    pmat2 = fk4noeframe._precession_matrix(EQUINOX_B1950(), fk4noeframe.equinox)
 
     return matrix_product(pmat2, B, pmat1)

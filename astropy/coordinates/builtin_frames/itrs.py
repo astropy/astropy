@@ -23,7 +23,7 @@ class ITRS(BaseCoordinateFrame):
     default_representation = CartesianRepresentation
     default_differential = CartesianDifferential
 
-    obstime = TimeAttribute(default=DEFAULT_OBSTIME)
+    obstime = TimeAttribute(default=DEFAULT_OBSTIME())
 
     @property
     def earth_location(self):

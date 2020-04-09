@@ -41,7 +41,7 @@ class FK4(BaseRADecFrame):
     The frame attributes are listed under **Other Parameters**.
     """
 
-    equinox = TimeAttribute(default=EQUINOX_B1950)
+    equinox = TimeAttribute(default=EQUINOX_B1950())
     obstime = TimeAttribute(default=None, secondary_attribute='equinox')
 
 
@@ -66,7 +66,7 @@ class FK4NoETerms(BaseRADecFrame):
     The frame attributes are listed under **Other Parameters**.
     """
 
-    equinox = TimeAttribute(default=EQUINOX_B1950)
+    equinox = TimeAttribute(default=EQUINOX_B1950())
     obstime = TimeAttribute(default=None, secondary_attribute='equinox')
 
     @staticmethod

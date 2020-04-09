@@ -27,7 +27,7 @@ class CIRS(BaseRADecFrame):
     The frame attributes are listed under **Other Parameters**.
     """
 
-    obstime = TimeAttribute(default=DEFAULT_OBSTIME)
+    obstime = TimeAttribute(default=DEFAULT_OBSTIME())
 
 
 # The "self-transform" is defined in icrs_cirs_transformations.py, because in

@@ -52,7 +52,7 @@ class GCRS(BaseRADecFrame):
     The frame attributes are listed under **Other Parameters**.
     """
 
-    obstime = TimeAttribute(default=DEFAULT_OBSTIME)
+    obstime = TimeAttribute(default=DEFAULT_OBSTIME())
     obsgeoloc = CartesianRepresentationAttribute(default=[0, 0, 0],
                                                  unit=u.m)
     obsgeovel = CartesianRepresentationAttribute(default=[0, 0, 0],
@@ -98,7 +98,7 @@ class PrecessedGeocentric(BaseRADecFrame):
     The frame attributes are listed under **Other Parameters**
     """
 
-    equinox = TimeAttribute(default=EQUINOX_J2000)
-    obstime = TimeAttribute(default=DEFAULT_OBSTIME)
+    equinox = TimeAttribute(default=EQUINOX_J2000())
+    obstime = TimeAttribute(default=DEFAULT_OBSTIME())
     obsgeoloc = CartesianRepresentationAttribute(default=[0, 0, 0], unit=u.m)
     obsgeovel = CartesianRepresentationAttribute(default=[0, 0, 0], unit=u.m/u.s)

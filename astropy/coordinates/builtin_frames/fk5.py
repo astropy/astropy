@@ -32,7 +32,7 @@ class FK5(BaseRADecFrame):
     The frame attributes are listed under **Other Parameters**.
     """
 
-    equinox = TimeAttribute(default=EQUINOX_J2000)
+    equinox = TimeAttribute(default=EQUINOX_J2000())
 
     @staticmethod
     def _precession_matrix(oldequinox, newequinox):
