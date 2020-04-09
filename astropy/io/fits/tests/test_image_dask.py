@@ -139,3 +139,19 @@ def test_scaled_minmax(dask_array_in_mem, tmp_path):
     with fits.open(filename) as hdulist_new:
         assert isinstance(hdulist_new[0].data, np.ndarray)
         np.testing.assert_allclose(hdulist_new[0].data, dask_array_in_mem.compute(), atol=1e-5)
+
+
+def test_append(dask_array_in_mem, tmp_path):
+
+    # Test append mode
+
+    filename = tmp_path / 'test.fits'
+
+    fits.append(filename, dask_array_in_mem)
+    fits.append(filename, np.arange(10))
+
+    with fits.open(filename) as hdulist_new:
+        assert isinstance(hdulist_new[0].data, np.ndarray)
+        np.testing.assert_allclose(hdulist_new[0].data, dask_array_in_mem.compute())
+        assert isinstance(hdulist_new[1].data, np.ndarray)
+        np.testing.assert_allclose(hdulist_new[1].data, np.arange(10))
