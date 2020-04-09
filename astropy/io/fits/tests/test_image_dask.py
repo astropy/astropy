@@ -155,3 +155,22 @@ def test_append(dask_array_in_mem, tmp_path):
         np.testing.assert_allclose(hdulist_new[0].data, dask_array_in_mem.compute())
         assert isinstance(hdulist_new[1].data, np.ndarray)
         np.testing.assert_allclose(hdulist_new[1].data, np.arange(10))
+
+
+# @pytest.mark.parametrize('mode', ['rb+', 'ab', 'ab+', 'wb', 'wb+'])
+@pytest.mark.parametrize('mode', ['wb', 'wb+'])
+def test_file_handle(mode, dask_array_in_mem, tmp_path):
+
+    filename = tmp_path / 'test.fits'
+    hdu1 = PrimaryHDU(data=dask_array_in_mem)
+    hdu2 = ImageHDU(data=np.arange(10))
+    hdulist = fits.HDUList([hdu1, hdu2])
+
+    with filename.open(mode=mode) as fp:
+        hdulist.writeto(fp)
+
+    with fits.open(filename) as hdulist_new:
+        assert isinstance(hdulist_new[0].data, np.ndarray)
+        np.testing.assert_allclose(hdulist_new[0].data, dask_array_in_mem.compute())
+        assert isinstance(hdulist_new[1].data, np.ndarray)
+        np.testing.assert_allclose(hdulist_new[1].data, np.arange(10))
