@@ -43,7 +43,7 @@ IO_FITS_MODES = {
     'copyonwrite': 'rb',
     'update': 'rb+',
     'append': 'ab+',
-    'ostream': 'wb+',
+    'ostream': 'wb',
     'denywrite': 'rb'}
 
 # Maps OS-level file modes to the appropriate astropy.io.fits specific mode
