@@ -346,6 +346,7 @@ astropy.coordinates
 - Ensure that for size-1 array ``SkyCoord`` and coordinate frames
   the attributes also properly become scalars when indexed with 0.
   [#10113]
+
 - Avoid download of leap-second table in epoch computations by replacing
   them with scalar values or use delayed cache. [#10125]
 
