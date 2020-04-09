@@ -1,22 +1,27 @@
 .. _timeseries-analysis:
 
-Manipulation and analysis of time series
+Manipulation and Analysis of Time Series
 ****************************************
 
 .. |Table| replace:: :class:`~astropy.table.Table`
 .. |TimeSeries| replace:: :class:`~astropy.timeseries.TimeSeries`
 .. |BinnedTimeSeries| replace:: :class:`~astropy.timeseries.BinnedTimeSeries`
 
-Combining time series
+Combining Time Series
 =====================
 
-The  :func:`~astropy.table.vstack` and :func:`~astropy.table.hstack` functions
+The :func:`~astropy.table.vstack` and :func:`~astropy.table.hstack` functions
 from the :mod:`astropy.table` module can be used to stack time series in
 different ways.
 
-Time series can be stacked 'vertically' or row-wise using the
+Examples
+--------
+
+.. EXAMPLE START: Stacking Time Series Vertically Using table.vstack
+
+Time series can be stacked "vertically" or row-wise using the
 :func:`~astropy.table.vstack` function (although note that sampled time
-series cannot be combined with binned time series and vice-versa)::
+series cannot be combined with binned time series and vice versa)::
 
     >>> from astropy.table import vstack
     >>> from astropy import units as u
@@ -46,9 +51,13 @@ series cannot be combined with binned time series and vice-versa)::
     2016-03-22T12:50:43.000     3.0
 
 Note that :func:`~astropy.table.vstack` does not automatically sort, nor get rid
-of duplicates - this is something you would need to do explicitly afterwards.
+of duplicates — this is something you would need to do explicitly afterwards.
 
-Time series can also be combined 'horizontally' or column-wise with other tables
+.. EXAMPLE END
+
+.. EXAMPLE START: Stacking Time Series Horizontally Using table.vstack
+
+Time series can also be combined "horizontally" or column-wise with other tables
 using the :func:`~astropy.table.hstack` function, though these should not be
 time series (as having multiple time columns would be confusing)::
 
@@ -67,10 +76,14 @@ time series (as having multiple time columns would be confusing)::
     2016-03-22T12:30:40.000     3.0        39.0
     2016-03-22T12:30:43.000     2.0        30.0
 
-Sorting time series
+.. EXAMPLE END
+
+Sorting Time Series
 ===================
 
-Sorting time series in-place can be done using the
+.. EXAMPLE START: Sorting Time Series
+
+Sorting time series in place can be done using the
 :meth:`~astropy.table.Table.sort` method, as for |Table|::
 
     >>> ts = TimeSeries(time_start='2016-03-22T12:30:31',
@@ -98,20 +111,28 @@ Sorting time series in-place can be done using the
     2016-03-22T12:30:34.000     4.0
     2016-03-22T12:30:37.000     5.0
 
+.. EXAMPLE END
+
 Resampling
 ==========
 
 We provide a :func:`~astropy.timeseries.aggregate_downsample` function
 that can be used to bin values from a time series into bins of equal time, using
 a custom function (mean, median, etc.). This operation returns a
-|BinnedTimeSeries|. Note that this is a simple function in the sense that it
-does not for example know how to treat columns with uncertainties differently
+|BinnedTimeSeries|. Note that this is a minimal function in the sense that it
+does not, for example, know how to treat columns with uncertainties differently
 from other values, and it will blindly apply the custom function specified to
 all columns.
 
-The following example shows how to use this to bin a light curve from the Kepler
-mission into 20 minute bins using a median function. First, we read in the data
-using:
+Example
+-------
+
+.. EXAMPLE START: Getting a BinnedTimeSeries
+
+The following example shows how to use
+:func:`~astropy.timeseries.aggregate_downsample` to bin a light curve from the
+Kepler mission into 20 minute bins using a median function. First, we read in
+the data using:
 
 .. plot::
    :include-source:
@@ -123,7 +144,7 @@ using:
     example_data = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
     kepler = TimeSeries.read(example_data, format='kepler.fits')
 
-(see :ref:`timeseries-io` for more details about reading in data). We can then
+(See :ref:`timeseries-io` for more details about reading in data). We can then
 downsample using:
 
 .. plot::
@@ -155,8 +176,12 @@ We can take a look at the results:
     plt.xlabel('Julian Date')
     plt.ylabel('SAP Flux (e-/s)')
 
+.. EXAMPLE END
+
 Folding
 =======
+
+.. EXAMPLE START: Using the TimeSeries Fold Method
 
 The |TimeSeries| class has a
 :meth:`~astropy.timeseries.TimeSeries.fold` method that can be used to
@@ -188,15 +213,19 @@ an epoch as a :class:`~astropy.time.Time`, which defines a zero time offset:
     plt.ylabel('SAP Flux (e-/s)')
 
 Note that in this example we happened to know the period and midpoint from a
-previous periodogram analysis - see the example in :doc:`index` for how you
+previous periodogram analysis. See the example in :doc:`index` for how you
 might do this.
+
+.. EXAMPLE END
 
 Arithmetic
 ==========
 
-Since time series objects are sub-classes of |Table|, they naturally support
+.. EXAMPLE START: Arithmetic with TimeSeries Objects
+
+Since |TimeSeries| objects are subclasses of |Table|, they naturally support
 arithmetic on any of the data columns. As an example, we can take the folded
-Kepler time series we have seen in the examples above, and normalize it to the
+Kepler time series we have seen in previous examples, and normalize it to the
 sigma-clipped median value.
 
 .. plot::
@@ -233,3 +262,5 @@ sigma-clipped median value.
     plt.plot(kepler_folded.time.jd, kepler_folded['sap_flux_norm'], 'k.', markersize=1)
     plt.xlabel('Time from midpoint epoch (days)')
     plt.ylabel('Normalized flux')
+
+.. EXAMPLE END
