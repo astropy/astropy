@@ -54,7 +54,7 @@ explanation of all the different formats.
     around a single format and officially deprecate the other formats.
 """
 
-
+import pathlib
 import operator
 import os
 import warnings
@@ -72,6 +72,11 @@ from .util import fileobj_closed, fileobj_name, fileobj_mode, _is_int
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.decorators import deprecated_renamed_argument
 
+try:
+    from dask.array import Array as DaskArray
+except ImportError:
+    class DaskArray:
+        pass
 
 __all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',
            'append', 'update', 'info', 'tabledump', 'tableload',
@@ -1061,7 +1066,7 @@ def _makehdu(data, header):
         if ((isinstance(data, np.ndarray) and data.dtype.fields is not None) or
                 isinstance(data, np.recarray)):
             hdu = BinTableHDU(data, header=header)
-        elif isinstance(data, np.ndarray):
+        elif isinstance(data, (np.ndarray, DaskArray)):
             hdu = ImageHDU(data, header=header)
         else:
             raise KeyError('Data must be a numpy array.')
@@ -1069,6 +1074,8 @@ def _makehdu(data, header):
 
 
 def _stat_filename_or_fileobj(filename):
+    if isinstance(filename, pathlib.Path):
+        filename = str(filename)
     closed = fileobj_closed(filename)
     name = fileobj_name(filename) or ''
 
