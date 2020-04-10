@@ -504,7 +504,7 @@ def read(cls, *args, format=None, **kwargs):
                         args = (str(args[0]),) + args[1:]
                     path = args[0]
                     try:
-                        ctx = get_readable_fileobj(args[0], encoding='binary')
+                        ctx = get_readable_fileobj(args[0], encoding='binary', cache=True)
                         fileobj = ctx.__enter__()
                     except OSError:
                         raise
