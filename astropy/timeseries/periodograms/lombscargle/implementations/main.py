@@ -7,7 +7,11 @@ statement for the various implementations available in this submodule
 
 __all__ = ['lombscargle', 'available_methods']
 
+import warnings
+
 import numpy as np
+
+from astropy.utils.exceptions import AstropyWarning
 
 from .slow_impl import lombscargle_slow
 from .fast_impl import lombscargle_fast
@@ -154,7 +158,7 @@ def lombscargle(t, y, dy=None,
         or 'fast'.
     normalization : str, optional
         Normalization to use for the periodogram.
-        Options are 'standard' or 'psd'.
+        Options are 'standard', 'model', 'log' or 'psd'.
     fit_mean : bool, optional
         if True, include a constant offset as part of the model at each
         frequency. This can lead to more accurate results, especially in the
@@ -212,6 +216,18 @@ def lombscargle(t, y, dy=None,
         if kwds.pop('nterms') != 1:
             raise ValueError("nterms != 1 only supported with 'chi2' "
                              "or 'fastchi2' methods")
+
+    # Check for input that is (after centering) identical zero, since PLS will also be 0.0,
+    # but on normalisations with sum(y**2) would become NaN.
+    if y.min() == y.max():
+        if y.max() == 0.0 or fit_mean or center_data:
+            if normalization != 'psd':
+                if fit_mean or center_data:
+                    diag = f'Input data constant; cannot normalize with method {normalization}'
+                else:
+                    diag = f'Input data all zero; cannot normalize with method {normalization}'
+                warnings.warn(diag, AstropyWarning)
+            return np.zeros(output_shape)
 
     PLS = METHODS[method](*args, **kwds)
     return PLS.reshape(output_shape)

@@ -6,6 +6,7 @@ from astropy.time import Time, TimeDelta
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.timeseries.periodograms.lombscargle import LombScargle
+from astropy.utils.exceptions import AstropyWarning
 
 
 ALL_METHODS = LombScargle.available_methods
@@ -506,3 +507,38 @@ def test_absolute_times(data, timedelta):
     assert exc.value.args[0] == ('t was provided as an absolute time but the '
                                  'LombScargle class was initialized with '
                                  'relative times.')
+
+
+@pytest.mark.parametrize('method', ALL_METHODS_NO_AUTO)
+@pytest.mark.parametrize('center_data', [True, False])
+@pytest.mark.parametrize('fit_mean', [True, False])
+@pytest.mark.parametrize('normalization', NORMALIZATIONS)
+def test_flat_input(data, method, center_data, fit_mean, normalization):
+    """Check that ``LombScargle.power`` of (centred) zero input does not return NaNs
+    on normalization."""
+    t, y, dy = data
+    frequency = 0.8 + 0.01 * np.arange(40)
+
+    if method == 'scipy':
+        if fit_mean:
+            return
+        dy = dy[0]
+
+    if fit_mean or center_data:
+        y = np.ones(y.shape)
+        warning = f'Input data constant; cannot normalize with method {normalization}'
+    else:
+        # If not centering, check for warning with zero input
+        y = np.zeros(y.shape)
+        warning = f'Input data all zero; cannot normalize with method {normalization}'
+
+    ls = LombScargle(t, y, dy, center_data=center_data, fit_mean=fit_mean,
+                     normalization=normalization)
+
+    if normalization == 'psd':
+        power0 = ls.power(frequency, method=method)
+    else:
+        with pytest.warns(AstropyWarning, match=warning):
+            power0 = ls.power(frequency, method=method)
+
+    assert_quantity_allclose(0.0, power0)
