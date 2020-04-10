@@ -1113,6 +1113,19 @@ object (or is TAI in case of a UTC time)::
   >>> t2.tai + TimeDelta(365., format='jd', scale=None)
   <Time object: scale='tai' format='iso' value=2011-12-31 23:59:27.068>
 
+.. note:: Since internally |Time| uses floating point numbers, round-off
+          errors can cause two times to be not strictly equal even if
+          mathematically they should be.  For times in UTC in particular, this
+          can lead to surprising behaviour, because when one adds a
+          |TimeDelta|, which cannot be have a scale of UTC, the UTC time is
+          first converted to TAI, then the addition is done, and finally the
+          time is converted back to UTC.  Hence, rounding errors can be
+          incurred, which means that even expected equalities may not hold::
+
+          >>> t = Time(2450000., 1e-6, format='jd')
+          >>> t + TimeDelta(0, format='jd') == t
+          False
+
 .. _time-light-travel-time:
 
 Barycentric and Heliocentric Light Travel Time Corrections
