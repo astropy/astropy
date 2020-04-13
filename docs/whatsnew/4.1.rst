@@ -18,3 +18,20 @@ In particular, this release includes:
    already defined in the ``astropy.io.fits.HDUList`` object.
 
 2. Support for units on otherwise unitless models via the ``Model.coerce_units`` method.
+
+
+Support for writing Dask arrays to FITS files
+=============================================
+
+It is now possible to set the data array for :class:`~astropy.io.fits.PrimaryHDU`
+and :class:`~astropy.io.fits.ImageHDU` to a `dask <https://dask.org/>`_ array.
+If this is written to disk, the dask array will be computed as it is being
+written, which will avoid using excessive memory:
+
+.. doctest-requires:: dask
+
+    >>> import dask.array as da
+    >>> array = da.random.random((1000, 1000))
+    >>> from astropy.io import fits
+    >>> hdu = fits.PrimaryHDU(data=array)
+    >>> hdu.writeto('test_dask.fits')

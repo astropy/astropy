@@ -35,7 +35,7 @@ else:
 
 
 # Maps astropy.io.fits-specific file mode names to the appropriate file
-# modes to use for the underlying raw files
+# modes to use for the underlying raw files.
 IO_FITS_MODES = {
     'readonly': 'rb',
     'copyonwrite': 'rb',

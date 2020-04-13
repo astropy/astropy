@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import sys
+import mmap
 import warnings
 
 import numpy as np
@@ -11,6 +12,12 @@ from astropy.io.fits.util import _is_pseudo_unsigned, _unsigned_zero, _is_int
 from astropy.io.fits.verify import VerifyWarning
 
 from astropy.utils import isiterable, lazyproperty
+
+try:
+    from dask.array import Array as DaskArray
+except ImportError:
+    class DaskArray:
+        pass
 
 
 class _ImageBaseHDU(_ValidHDU):
@@ -244,7 +251,7 @@ class _ImageBaseHDU(_ValidHDU):
             self._data_replaced = True
             was_unsigned = False
 
-        if data is not None and not isinstance(data, np.ndarray):
+        if data is not None and not isinstance(data, (np.ndarray, DaskArray)):
             # Try to coerce the data into a numpy array--this will work, on
             # some level, for most objects
             try:
@@ -260,7 +267,9 @@ class _ImageBaseHDU(_ValidHDU):
         self.__dict__['data'] = data
         self._modified = True
 
-        if isinstance(data, np.ndarray):
+        if self.data is None:
+            self._axes = []
+        else:
             # Set new values of bitpix, bzero, and bscale now, but wait to
             # revise original values until header is updated.
             self._bitpix = DTYPE2BITPIX[data.dtype.name]
@@ -269,10 +278,6 @@ class _ImageBaseHDU(_ValidHDU):
             self._blank = None
             self._axes = list(data.shape)
             self._axes.reverse()
-        elif self.data is None:
-            self._axes = []
-        else:
-            raise ValueError('not a valid data array')
 
         # Update the header, including adding BZERO/BSCALE if new data is
         # unsigned. Does not change the values of self._bitpix,
@@ -491,8 +496,12 @@ class _ImageBaseHDU(_ValidHDU):
             _scale = self._orig_bscale
             _zero = self._orig_bzero
         elif option == 'minmax' and not issubclass(_type, np.floating):
-            min = np.minimum.reduce(self.data.flat)
-            max = np.maximum.reduce(self.data.flat)
+            if isinstance(self.data, DaskArray):
+                min = self.data.min().compute()
+                max = self.data.max().compute()
+            else:
+                min = np.minimum.reduce(self.data.flat)
+                max = np.maximum.reduce(self.data.flat)
 
             if _type == np.uint8:  # uint8 case
                 _zero = min
@@ -509,11 +518,14 @@ class _ImageBaseHDU(_ValidHDU):
 
         # Do the scaling
         if _zero != 0:
-            # 0.9.6.3 to avoid out of range error for BZERO = +32768
-            # We have to explcitly cast _zero to prevent numpy from raising an
-            # error when doing self.data -= zero, and we do this instead of
-            # self.data = self.data - zero to avoid doubling memory usage.
-            np.add(self.data, -_zero, out=self.data, casting='unsafe')
+            if isinstance(self.data, DaskArray):
+                self.data = self.data - _zero
+            else:
+                # 0.9.6.3 to avoid out of range error for BZERO = +32768
+                # We have to explcitly cast _zero to prevent numpy from raising an
+                # error when doing self.data -= zero, and we do this instead of
+                # self.data = self.data - zero to avoid doubling memory usage.
+                np.add(self.data, -_zero, out=self.data, casting='unsafe')
             self._header['BZERO'] = _zero
         else:
             try:
@@ -605,7 +617,11 @@ class _ImageBaseHDU(_ValidHDU):
     def _writedata_internal(self, fileobj):
         size = 0
 
-        if self.data is not None:
+        if self.data is None:
+            return size
+        elif isinstance(self.data, DaskArray):
+            return self._writeinternal_dask(fileobj)
+        else:
             # Based on the system type, determine the byteorders that
             # would need to be swapped to get to big-endian output
             if sys.byteorder == 'little':
@@ -642,7 +658,68 @@ class _ImageBaseHDU(_ValidHDU):
 
             size += output.size * output.itemsize
 
-        return size
+            return size
+
+    def _writeinternal_dask(self, fileobj):
+
+        if sys.byteorder == 'little':
+            swap_types = ('<', '=')
+        else:
+            swap_types = ('<',)
+        # deal with unsigned integer 16, 32 and 64 data
+        if _is_pseudo_unsigned(self.data.dtype):
+            raise NotImplementedError("This dtype isn't currently supported with dask.")
+        else:
+            output = self.data
+            byteorder = output.dtype.str[0]
+            should_swap = (byteorder in swap_types)
+
+        if should_swap:
+            from dask.utils import M
+            # NOTE: the inplace flag to byteswap needs to be False otherwise the array is
+            # byteswapped in place every time it is computed and this affects
+            # the input dask array.
+            output = output.map_blocks(M.byteswap, False).map_blocks(M.newbyteorder, "S")
+
+        initial_position = fileobj.tell()
+        n_bytes = output.nbytes
+
+        # Extend the file n_bytes into the future
+        fileobj.seek(initial_position + n_bytes - 1)
+        fileobj.write(b'\0')
+        fileobj.flush()
+
+        if fileobj.fileobj_mode not in ('rb+', 'wb+', 'ab+'):
+            # Use another file handle if the current one is not in
+            # read/write mode
+            fp = open(fileobj.name, mode='rb+')
+            should_close = True
+        else:
+            fp = fileobj._file
+            should_close = False
+
+        try:
+            outmmap = mmap.mmap(fp.fileno(),
+                                length=initial_position + n_bytes,
+                                access=mmap.ACCESS_WRITE)
+
+            outarr = np.ndarray(shape=output.shape,
+                                dtype=output.dtype,
+                                offset=initial_position,
+                                buffer=outmmap)
+
+            output.store(outarr, lock=True, compute=True)
+        finally:
+            if should_close:
+                fp.close()
+            outmmap.close()
+
+        # On Windows closing the memmap causes the file pointer to return to 0, so
+        # we need to go back to the end of the data (since padding may be written
+        # after)
+        fileobj.seek(initial_position + n_bytes)
+
+        return n_bytes
 
     def _dtype_for_bitpix(self):
         """
