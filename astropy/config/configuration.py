@@ -98,6 +98,10 @@ class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
                 aliases=['astropy.utils.console.USE_COLOR'])
         conf = Conf()
     """
+    def __iter__(self):
+        for key, val in self.__class__.__dict__.items():
+            if isinstance(val, ConfigItem):
+                yield key
 
     def set_temp(self, attr, value):
         """

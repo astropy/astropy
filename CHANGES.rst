@@ -9,6 +9,8 @@ astropy.config
 
 - Add new function ``generate_config`` to generate the configuration file and
   include it in the documentation. [#10148]
+- ``ConfigNamespace.__iter__`` now yields ``ConfigItem`` names defined
+  within it. [#10139]
 
 astropy.constants
 ^^^^^^^^^^^^^^^^^
