@@ -180,6 +180,17 @@ do with the configuration file on disk::
 ..
   EXAMPLE END
 
+Exploring Configuration
+-----------------------
+
+To see what configuration parameters are defined for a given ``conf``::
+
+    >>> from astropy.utils.iers import conf
+    >>> print([key for key in conf])
+    ['auto_download', 'auto_max_age', ..., 'ietf_leap_second_auto_url']
+    >>> conf.auto_max_age
+    30.0
+
 Upgrading ``astropy``
 ---------------------
 
@@ -374,7 +385,6 @@ Or, if the option needs to be available as a function parameter::
         If not specified, `val` is set by the `SOME_SETTING` configuration item.
         """
         return (conf.some_setting if val is None else val) + 2
-
 
 
 Customizing Config in Affiliated Packages
