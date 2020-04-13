@@ -1,4 +1,6 @@
 import os
+import shutil
+import tempfile
 
 import pytest
 import numpy as np
@@ -10,23 +12,24 @@ from astropy.constants import c
 from astropy.coordinates.builtin_frames import GCRS
 from astropy.coordinates.earth import EarthLocation
 from astropy.coordinates.sky_coordinate import SkyCoord
-from astropy.coordinates.solar_system import (get_body, get_moon, BODY_NAME_TO_KERNEL_SPEC,
-                            _apparent_position_in_true_coordinates,
-                            get_body_barycentric, get_body_barycentric_posvel)
+from astropy.coordinates.solar_system import (
+    get_body, get_moon, BODY_NAME_TO_KERNEL_SPEC,
+    _apparent_position_in_true_coordinates,
+    get_body_barycentric, get_body_barycentric_posvel)
 from astropy.coordinates.funcs import get_sun
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import allclose as quantity_allclose
 from astropy.utils.data import download_file
 
 try:
-    import jplephem  # pylint: disable=W0611
+    import jplephem  # pylint: disable=W0611 # noqa
 except ImportError:
     HAS_JPLEPHEM = False
 else:
     HAS_JPLEPHEM = True
 
 try:
-    from skyfield.api import load  # pylint: disable=W0611
+    from skyfield.api import load  # pylint: disable=W0611 # noqa
 except ImportError:
     HAS_SKYFIELD = False
 else:
@@ -38,6 +41,30 @@ de432s_distance_tolerance = 20*u.km
 
 skyfield_angular_separation_tolerance = 1*u.arcsec
 skyfield_separation_tolerance = 10*u.km
+
+_CURDIR = None
+_TMPDIR = None
+
+
+def setup_module(module):
+    """Run skyfield tests inside temporary directory because it downloads stuff."""
+    global _CURDIR, _TMPDIR
+    _CURDIR = os.getcwd()
+    _TMPDIR = tempfile.mkdtemp()
+    os.chdir(_TMPDIR)
+
+
+def teardown_module(module):
+    global _CURDIR, _TMPDIR
+    if _CURDIR:
+        os.chdir(_CURDIR)
+        _CURDIR = None
+    if _TMPDIR:
+        try:
+            shutil.rmtree(_TMPDIR)
+        except PermissionError:  # On Windows
+            pass
+        _TMPDIR = None
 
 
 @pytest.mark.remote_data
