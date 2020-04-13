@@ -35,9 +35,7 @@ else:
 
 
 # Maps astropy.io.fits-specific file mode names to the appropriate file
-# modes to use for the underlying raw files. Note that we need ostream to
-# be wb+ instead of wb since when writing FITS files with dask arrays we
-# need to be able to use a writable mmap to part of the file.
+# modes to use for the underlying raw files.
 IO_FITS_MODES = {
     'readonly': 'rb',
     'copyonwrite': 'rb',
