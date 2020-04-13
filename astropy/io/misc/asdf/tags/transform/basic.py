@@ -3,9 +3,10 @@
 
 from asdf import tagged, yamlutil
 
-from astropy.modeling import mappings
+from astropy.modeling import models, mappings
 from astropy.utils import minversion
 from astropy.modeling import functional_models
+from astropy.modeling.core import Model, CompoundModel
 from astropy.io.misc.asdf.types import AstropyAsdfType, AstropyType
 
 
@@ -40,6 +41,12 @@ class TransformType(AstropyAsdfType):
             else:
                 model.outputs = tuple(node["outputs"])
 
+        param_and_model_constraints = {}
+        for constraint in ['fixed', 'bounds']:
+            if constraint in node:
+                param_and_model_constraints[constraint] = node[constraint]
+        model._initialize_constraints(param_and_model_constraints)
+
         return model
 
     @classmethod
@@ -56,8 +63,7 @@ class TransformType(AstropyAsdfType):
     @classmethod
     def _to_tree_base_transform_members(cls, model, node, ctx):
         if getattr(model, '_user_inverse', None) is not None:
-            node['inverse'] = yamlutil.custom_tree_to_tagged_tree(
-            model._user_inverse, ctx)
+            node['inverse'] = yamlutil.custom_tree_to_tagged_tree(model._user_inverse, ctx)
 
         if model.name is not None:
             node['name'] = model.name
@@ -77,6 +83,10 @@ class TransformType(AstropyAsdfType):
             node['inputs'] = model.inputs
             node['outputs'] = model.outputs
 
+        # model / parameter constraints
+        node['fixed'] = dict(model.fixed)
+        node['bounds'] = dict(model.bounds)
+        
     @classmethod
     def to_tree_transform(cls, model, ctx):
         raise NotImplementedError("Must be implemented in TransformType subclasses")
