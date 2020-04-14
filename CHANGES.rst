@@ -44,6 +44,9 @@ astropy.io.fits
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
+- Added ``cache`` keyword option to allow caching for ``read`` if filename
+  is a URL. [#10136]
+
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 

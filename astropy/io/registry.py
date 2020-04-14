@@ -483,7 +483,7 @@ def get_writer(data_format, data_class):
                 data_format, data_class.__name__, format_table_str))
 
 
-def read(cls, *args, format=None, **kwargs):
+def read(cls, *args, format=None, cache=False, **kwargs):
     """
     Read in data.
 
@@ -504,7 +504,7 @@ def read(cls, *args, format=None, **kwargs):
                         args = (str(args[0]),) + args[1:]
                     path = args[0]
                     try:
-                        ctx = get_readable_fileobj(args[0], encoding='binary', cache=True)
+                        ctx = get_readable_fileobj(args[0], encoding='binary', cache=cache)
                         fileobj = ctx.__enter__()
                     except OSError:
                         raise
