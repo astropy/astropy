@@ -1519,14 +1519,18 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         if not self.is_equivalent_frame(value):
             raise ValueError('can only set frame item from an equivalent frame')
 
+        if value._data is None:
+            raise ValueError('can only set frame with value that has data')
+
+        if self._data is None:
+            raise ValueError('cannot set frame which has no data')
+
         if self.shape == ():
-            raise TypeError('cannot set item on scalar frame')
+            raise TypeError(f"scalar '{self.__class__.__name__}' frame object "
+                            f"does not support item assignment")
 
         if self._data is None:
             raise ValueError('can only set frame if it has data')
-
-        if value._data is None:
-            raise ValueError('can only set frame with value that has data')
 
         # Set representation data
         self._data._setitem(item, value._data)
