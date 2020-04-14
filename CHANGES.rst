@@ -118,6 +118,8 @@ astropy.units
 - Added integrated flux unit conversion to ``spectral_density`` equivalency.
   [#10015]
 
+- Added ``cosmological`` equivalencies for angle and distances
+
 astropy.utils
 ^^^^^^^^^^^^^
 

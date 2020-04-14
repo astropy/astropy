@@ -871,3 +871,20 @@ def test_pprint():
         '<tr><td>Ci</td><td>3.7e+10 / s</td><td>curie</td></tr>'
         '<tr><td>Hz</td><td>1 / s</td><td>Hertz, hertz</td></tr></table>'
     )
+
+
+def test_cosmological():
+    from astropy.cosmology import default_cosmology
+    cosmology = default_cosmology.get()
+
+    redshift = 2
+    eq = u.cosmological(redshift)
+    value = cosmology.arcsec_per_kpc_proper(redshift).value
+
+    np.testing.assert_almost_equal(value, (1 * u.kpc).to(u.arcsec, equivalencies=eq).value)
+    np.testing.assert_almost_equal(1/value, (1 * u.arcsec).to(u.kpc, equivalencies=eq).value)
+
+    eq = u.cosmological(redshift, comoving=True)
+    value = cosmology.arcsec_per_kpc_comoving(redshift).value
+    np.testing.assert_almost_equal(value, (1 * u.kpc).to(u.arcsec, equivalencies=eq).value)
+    np.testing.assert_almost_equal(1/value, (1 * u.arcsec).to(u.kpc, equivalencies=eq).value)

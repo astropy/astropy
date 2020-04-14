@@ -24,7 +24,7 @@ __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'brightness_temperature', 'thermodynamic_temperature',
            'beam_angular_area', 'dimensionless_angles', 'logarithmic',
            'temperature', 'temperature_energy', 'molar_mass_amu',
-           'pixel_scale', 'plate_scale', 'with_H0']
+           'pixel_scale', 'plate_scale', 'with_H0', 'cosmological']
 
 
 class Equivalency(UserList):
@@ -811,3 +811,31 @@ def with_H0(H0=None):
     h100_val_unit = Unit(100/(H0.to_value((si.km/si.s)/astrophys.Mpc)) * astrophys.littleh)
 
     return Equivalency([(h100_val_unit, None)], "with_H0", kwargs={"H0": H0})
+
+
+def cosmological(z, cosmology=None, comoving=False):
+    """
+    Returns the equivalence between angles and cosmological distances.
+
+    Parameters
+    ----------
+    z : float
+        the redshift to consider for the conversion.
+    cosmology : `~astropy.cosmology.FLRW`
+        The cosmology to be used. If `None`, the astropy default cosmology.
+    comoving : bool
+        Use the comoving distances instead of proper distances
+
+    """
+    from astropy.cosmology import default_cosmology
+    if cosmology is None:
+        cosmology = default_cosmology.get()
+
+    if comoving:
+        return Equivalency([(si.arcsec, astrophys.kpc,
+                            lambda x: x / cosmology.arcsec_per_kpc_comoving(z),
+                            lambda x: x * cosmology.arcsec_per_kpc_comoving(z))])
+    else:
+        return Equivalency([(si.arcsec, astrophys.kpc,
+                            lambda x: x / cosmology.arcsec_per_kpc_proper(z),
+                            lambda x: x * cosmology.arcsec_per_kpc_proper(z))])
