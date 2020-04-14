@@ -1,15 +1,24 @@
 .. _timeseries-masking:
 
-Masking values in time series
+Masking Values in Time Series
 *****************************
 
 .. |Table| replace:: :class:`~astropy.table.Table`
 
 .. warning:: Note that masking does not yet work for columns that have units.
 
+.. Is this warning up to date?
+
 Masking values is done in the same way as for |Table| objects (see
-:ref:`masking_and_missing_values`. The easiest way
-to use masking is to initialize a time series using the ``masked=True`` option::
+:ref:`masking_and_missing_values`). The most convenient way to use masking is to
+initialize a |TimeSeries| object using the ``masked=True`` option.
+
+Example
+-------
+
+.. EXAMPLE START: Masking Values in TimeSeries Objects
+
+We start by initializing a |TimeSeries| object with ``masked=True``::
 
     >>> from astropy import units as u
     >>> from astropy.timeseries import TimeSeries
@@ -17,7 +26,7 @@ to use masking is to initialize a time series using the ``masked=True`` option::
     ...                 time_delta=3 * u.s,
     ...                 n_samples=5, masked=True)
 
-Let's now add some data to our time series::
+We can now add some data to our time series::
 
     >>> ts['flux'] = [1., -2., 5., -1., 4.]
 
@@ -42,10 +51,12 @@ We can also access the mask values::
 
 Masks are column-based, so masking a single cell does not mask the whole row.
 Having masked cells then allows functions that normally understand masked values
-and operating on columns to ignore the masked entries::
+and operate on columns to ignore the masked entries::
 
     >>> import numpy as np
     >>> np.min(ts['flux'])
     1.0
     >>> np.ma.median(ts['flux'])
     4.0
+
+.. EXAMPLE END
