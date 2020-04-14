@@ -1,6 +1,6 @@
 .. _timeseries-pandas:
 
-Interfacing with the pandas package
+Interfacing with the Pandas Package
 ***********************************
 
 .. |Time| replace:: :class:`~astropy.time.Time`
@@ -23,10 +23,15 @@ research are the following:
   the ability to define custom readers/writers.
 
 Nevertheless, there are cases where using pandas :class:`~pandas.DataFrame`
-objects might make sense, so we provide methods to easily convert to/from
+objects might make sense, so we provide methods to convert to/from
 :class:`~pandas.DataFrame` objects.
 
-Let's consider a simple example starting from a :class:`~pandas.DataFrame`:
+Example
+-------
+
+.. EXAMPLE START: Interfacing between Time Series and the Pandas Package
+
+Consider a concise example starting from a :class:`~pandas.DataFrame`:
 
 .. doctest-requires:: pandas
 
@@ -42,7 +47,7 @@ Let's consider a simple example starting from a :class:`~pandas.DataFrame`:
     2015-07-05  2
     2015-07-06  3
 
-We can convert this to an astropy |TimeSeries| using
+We can convert this to an ``astropy`` |TimeSeries| using
 :meth:`~astropy.timeseries.TimeSeries.from_pandas`:
 
 .. doctest-requires:: pandas
@@ -58,7 +63,7 @@ We can convert this to an astropy |TimeSeries| using
     2015-07-05T00:00:00.000000000     2
     2015-07-06T00:00:00.000000000     3
 
-Converting to :class:`~pandas.DataFrame` can also easily be done with
+Converting to :class:`~pandas.DataFrame` can also be done with
 :meth:`~astropy.timeseries.TimeSeries.to_pandas`:
 
 .. doctest-requires:: pandas
@@ -72,7 +77,7 @@ Converting to :class:`~pandas.DataFrame` can also easily be done with
     2015-07-05  2  3.4
     2015-07-06  3  5.4
 
-Missing values in the time column are supported and correctly converted to
+Missing values in the time column are supported and correctly converted to a
 pandas' NaT object:
 
 .. doctest-requires:: pandas
@@ -93,3 +98,5 @@ pandas' NaT object:
     2015-07-04  1  1.2
     2015-07-05  2  3.4
     NaT         3  5.4
+
+.. EXAMPLE END
