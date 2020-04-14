@@ -126,6 +126,8 @@ astropy.wcs
 
 - Implemented support for the ``-TAB`` algorithm (WCS Paper III). [#9641]
 
+- Added an ``_as_mpl_axes`` method to the ``HightLevelWCSWrapper`` class. [#10138]
+
 API Changes
 -----------
 
