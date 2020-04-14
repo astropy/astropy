@@ -381,6 +381,95 @@ def test_attr_inheritance():
     assert allclose(sc2.distance, sc.distance)
 
 
+@pytest.mark.parametrize('frame', ['fk4', 'fk5', 'icrs'])
+def test_setitem_no_velocity(frame):
+    """Test different flavors of item setting for a SkyCoord without a velocity
+    for different frames.  Include a frame attribute that is sometimes an
+    actual frame attribute and sometimes an extra frame attribute.
+    """
+    sc0 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg, obstime='B1955', frame=frame)
+    sc2 = SkyCoord([10, 20]*u.deg, [30, 40]*u.deg, obstime='B1955', frame=frame)
+
+    sc1 = SkyCoord(sc0)
+    sc1[1] = sc2[0]
+    assert np.allclose(sc1.ra, [1, 10] * u.deg)
+    assert np.allclose(sc1.dec, [3, 30] * u.deg)
+    assert sc1.obstime == Time('B1955')
+    assert sc1.frame.name == frame
+
+    sc1 = SkyCoord(sc0)
+    sc1[:] = sc2[0]
+    assert np.allclose(sc1.ra, [10, 10] * u.deg)
+    assert np.allclose(sc1.dec, [30, 30] * u.deg)
+
+    sc1 = SkyCoord(sc0)
+    sc1[:] = sc2[:]
+    assert np.allclose(sc1.ra, [10, 20] * u.deg)
+    assert np.allclose(sc1.dec, [30, 40] * u.deg)
+
+    sc1 = SkyCoord(sc0)
+    sc1[[1, 0]] = sc2[:]
+    assert np.allclose(sc1.ra, [20, 10] * u.deg)
+    assert np.allclose(sc1.dec, [40, 30] * u.deg)
+
+
+def test_setitem_velocities():
+    """Test different flavors of item setting for a SkyCoord with a velocity.
+    """
+    sc0 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg, radial_velocity=[1, 2]*u.km/u.s,
+                   obstime='B1950', frame='fk4')
+    sc2 = SkyCoord([10, 20]*u.deg, [30, 40]*u.deg, radial_velocity=[10, 20]*u.km/u.s,
+                   obstime='B1950', frame='fk4')
+
+    sc1 = SkyCoord(sc0)
+    sc1[1] = sc2[0]
+    assert np.allclose(sc1.ra, [1, 10] * u.deg)
+    assert np.allclose(sc1.dec, [3, 30] * u.deg)
+    assert np.allclose(sc1.radial_velocity, [1, 10] * u.km / u.s)
+    assert sc1.obstime == Time('B1950')
+    assert sc1.frame.name == 'fk4'
+
+    sc1 = SkyCoord(sc0)
+    sc1[:] = sc2[0]
+    assert np.allclose(sc1.ra, [10, 10] * u.deg)
+    assert np.allclose(sc1.dec, [30, 30] * u.deg)
+    assert np.allclose(sc1.radial_velocity, [10, 10] * u.km / u.s)
+
+    sc1 = SkyCoord(sc0)
+    sc1[:] = sc2[:]
+    assert np.allclose(sc1.ra, [10, 20] * u.deg)
+    assert np.allclose(sc1.dec, [30, 40] * u.deg)
+    assert np.allclose(sc1.radial_velocity, [10, 20] * u.km / u.s)
+
+    sc1 = SkyCoord(sc0)
+    sc1[[1, 0]] = sc2[:]
+    assert np.allclose(sc1.ra, [20, 10] * u.deg)
+    assert np.allclose(sc1.dec, [40, 30] * u.deg)
+    assert np.allclose(sc1.radial_velocity, [20, 10] * u.km / u.s)
+
+
+def test_setitem_exceptions():
+    class SkyCoordSub(SkyCoord):
+        pass
+
+    obstime = 'B1955'
+    sc0 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg, frame='fk4')
+    sc2 = SkyCoord([10, 20]*u.deg, [30, 40]*u.deg, frame='fk4', obstime=obstime)
+
+    sc1 = SkyCoordSub(sc0)
+    with pytest.raises(TypeError, match='can only set item from object of same class'):
+        sc1[0] = sc2[0]
+
+    sc1 = SkyCoord(sc0.ra, sc0.dec, frame='fk4', obstime='B2001')
+    with pytest.raises(ValueError, match='can only set frame item from an equivalent frame'):
+        sc1.frame[0] = sc2.frame[0]
+
+    sc1 = SkyCoord(sc0.ra[0], sc0.dec[0], frame='fk4', obstime=obstime)
+    with pytest.raises(TypeError, match="scalar 'FK4' frame object does not support "
+                       'item assignment'):
+        sc1[0] = sc2[0]
+
+
 def test_attr_conflicts():
     """
     Check conflicts resolution between coordinate attributes and init kwargs.

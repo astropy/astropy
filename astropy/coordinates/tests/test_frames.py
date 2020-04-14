@@ -499,6 +499,113 @@ def test_transform_to_nonscalar_nodata_frame():
     assert coo2.shape == (3, 12)
 
 
+def test_setitem_no_velocity():
+    """Test different flavors of item setting for a Frame without a velocity.
+    """
+    from astropy.coordinates.builtin_frames import FK4
+
+    obstime = 'B1955'
+    sc0 = FK4([1, 2]*u.deg, [3, 4]*u.deg, obstime=obstime)
+    sc2 = FK4([10, 20]*u.deg, [30, 40]*u.deg, obstime=obstime)
+
+    sc1 = sc0.copy()
+    sc1_repr = repr(sc1)
+    assert 'representation' in sc1.cache
+    sc1[1] = sc2[0]
+    assert sc1.cache == {}
+    assert repr(sc2) != sc1_repr
+
+    assert np.allclose(sc1.ra, [1, 10] * u.deg)
+    assert np.allclose(sc1.dec, [3, 30] * u.deg)
+    assert sc1.obstime == sc2.obstime
+    assert sc1.name == 'fk4'
+
+    sc1 = sc0.copy()
+    sc1[:] = sc2[0]
+    assert np.allclose(sc1.ra, [10, 10] * u.deg)
+    assert np.allclose(sc1.dec, [30, 30] * u.deg)
+
+    sc1 = sc0.copy()
+    sc1[:] = sc2[:]
+    assert np.allclose(sc1.ra, [10, 20] * u.deg)
+    assert np.allclose(sc1.dec, [30, 40] * u.deg)
+
+    sc1 = sc0.copy()
+    sc1[[1, 0]] = sc2[:]
+    assert np.allclose(sc1.ra, [20, 10] * u.deg)
+    assert np.allclose(sc1.dec, [40, 30] * u.deg)
+
+    # Works for array-valued obstime so long as they are considered equivalent
+    sc1 = FK4(sc0.ra, sc0.dec, obstime=[obstime, obstime])
+    sc1[0] = sc2[0]
+
+
+def test_setitem_velocities():
+    """Test different flavors of item setting for a Frame with a velocity.
+    """
+    from astropy.coordinates.builtin_frames import FK4
+
+    sc0 = FK4([1, 2]*u.deg, [3, 4]*u.deg, radial_velocity=[1, 2]*u.km/u.s,
+              obstime='B1950')
+    sc2 = FK4([10, 20]*u.deg, [30, 40]*u.deg, radial_velocity=[10, 20]*u.km/u.s,
+              obstime='B1950')
+
+    sc1 = sc0.copy()
+    sc1[1] = sc2[0]
+    assert np.allclose(sc1.ra, [1, 10] * u.deg)
+    assert np.allclose(sc1.dec, [3, 30] * u.deg)
+    assert np.allclose(sc1.radial_velocity, [1, 10] * u.km / u.s)
+    assert sc1.obstime == sc2.obstime
+    assert sc1.name == 'fk4'
+
+    sc1 = sc0.copy()
+    sc1[:] = sc2[0]
+    assert np.allclose(sc1.ra, [10, 10] * u.deg)
+    assert np.allclose(sc1.dec, [30, 30] * u.deg)
+    assert np.allclose(sc1.radial_velocity, [10, 10] * u.km / u.s)
+
+    sc1 = sc0.copy()
+    sc1[:] = sc2[:]
+    assert np.allclose(sc1.ra, [10, 20] * u.deg)
+    assert np.allclose(sc1.dec, [30, 40] * u.deg)
+    assert np.allclose(sc1.radial_velocity, [10, 20] * u.km / u.s)
+
+    sc1 = sc0.copy()
+    sc1[[1, 0]] = sc2[:]
+    assert np.allclose(sc1.ra, [20, 10] * u.deg)
+    assert np.allclose(sc1.dec, [40, 30] * u.deg)
+    assert np.allclose(sc1.radial_velocity, [20, 10] * u.km / u.s)
+
+
+def test_setitem_exceptions():
+    from astropy.coordinates.builtin_frames import FK4, Galactic
+
+    obstime = 'B1950'
+    sc0 = FK4([1, 2]*u.deg, [3, 4]*u.deg)
+    sc2 = FK4([10, 20]*u.deg, [30, 40]*u.deg, obstime=obstime)
+
+    sc1 = Galactic(sc0.ra, sc0.dec)
+    with pytest.raises(TypeError, match='can only set frame to object of same class Galactic'):
+        sc1[0] = sc2[0]
+
+    sc1 = FK4(sc0.ra, sc0.dec, obstime='B2001')
+    with pytest.raises(ValueError, match='can only set frame item from an equivalent frame'):
+        sc1[0] = sc2[0]
+
+    sc1 = FK4(sc0.ra[0], sc0.dec[0], obstime=obstime)
+    with pytest.raises(TypeError, match="scalar 'FK4' frame object does not support "
+                       'item assignment'):
+        sc1[0] = sc2[0]
+
+    sc1 = FK4(obstime=obstime)
+    with pytest.raises(ValueError, match='cannot set frame which has no data'):
+        sc1[0] = sc2[0]
+
+    sc1 = FK4(sc0.ra, sc0.dec, obstime=[obstime, 'B1980'])
+    with pytest.raises(ValueError, match='can only set frame item from an equivalent frame'):
+        sc1[0] = sc2[0]
+
+
 def test_sep():
     from astropy.coordinates.builtin_frames import ICRS
 
