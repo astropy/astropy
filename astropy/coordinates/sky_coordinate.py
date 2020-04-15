@@ -2,6 +2,7 @@ import re
 import copy
 import warnings
 import contextlib
+import operator
 
 import numpy as np
 
@@ -501,6 +502,71 @@ class SkyCoord(ShapedLikeNDArray):
         # Set the frame values.  This checks frame equivalence and also clears
         # the cache to ensure that the object is not in an inconsistent state.
         self._sky_coord_frame[item] = value._sky_coord_frame
+
+    def insert(self, obj, values, axis=0):
+        """
+        Insert coordinate values before the given indices in the object and
+        return a new Frame object.
+
+        The values to be inserted must conform to the rules for in-place setting
+        of ``SkyCoord`` objects.
+
+        The API signature matches the ``np.insert`` API, but is more limited.
+        The specification of insert index ``obj`` must be a single integer,
+        and the ``axis`` must be ``0`` for simple insertion before the index.
+
+        Parameters
+        ----------
+        obj : int
+            Integer index before which ``values`` is inserted.
+        values : array_like
+            Value(s) to insert.  If the type of ``values`` is different
+            from that of quantity, ``values`` is converted to the matching type.
+        axis : int, optional
+            Axis along which to insert ``values``.  Default is 0, which is the
+            only allowed value and will insert a row.
+
+        Returns
+        -------
+        out : `~astropy.coordinates.SkyCoord` instance
+            New coordinate object with inserted value(s)
+
+        """
+        # Validate inputs: obj arg is integer, axis=0, self is not a scalar, and
+        # input index is in bounds.
+        try:
+            idx0 = operator.index(obj)
+        except TypeError:
+            raise TypeError('obj arg must be an integer')
+
+        if axis != 0:
+            raise ValueError('axis must be 0')
+
+        if not self.shape:
+            raise TypeError('cannot insert into scalar {} object'
+                            .format(self.__class__.__name__))
+
+        if abs(idx0) > len(self):
+            raise IndexError('index {} is out of bounds for axis 0 with size {}'
+                             .format(idx0, len(self)))
+
+        # Turn negative index into positive
+        if idx0 < 0:
+            idx0 = len(self) + idx0
+
+        n_values = len(values) if values.shape else 1
+
+        # Finally make the new object with the correct length and set values for the
+        # three sections, before insert, the insert, and after the insert.
+        out = self.__class__.info.new_like([self], len(self) + n_values, name=self.info.name)
+
+        # Set the output values. This is where validation of `values` takes place to ensure
+        # that it can indeed be inserted.
+        out[:idx0] = self[:idx0]
+        out[idx0:idx0 + n_values] = values
+        out[idx0 + n_values:] = self[idx0:]
+
+        return out
 
     def transform_to(self, frame, merge_attributes=True):
         """Transform this coordinate to a new frame.
