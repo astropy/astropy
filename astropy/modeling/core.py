@@ -1197,13 +1197,10 @@ class Model(metaclass=_ModelMeta):
         >>> model_1d.bounding_box = None
         >>> model_1d.bounding_box  # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
-          File "<stdin>", line 1, in <module>
-          File "astropy\modeling\core.py", line 980, in bounding_box
-            "No bounding box is defined for this model (note: the "
-        NotImplementedError: No bounding box is defined for this model (note:
-        the bounding box was explicitly disabled for this model; use `del
-        model.bounding_box` to restore the default bounding box, if one is
-        defined for this model).
+        NotImplementedError: No bounding box is defined for this model
+        (note: the bounding box was explicitly disabled for this model;
+        use `del model.bounding_box` to restore the default bounding box,
+        if one is defined for this model).
         """
 
         if self._user_bounding_box is not None:
@@ -2302,7 +2299,7 @@ class Model(metaclass=_ModelMeta):
 
         return '<{0}({1})>'.format(self.__class__.__name__, ', '.join(parts))
 
-    def _format_str(self, keywords=[]):
+    def _format_str(self, keywords=[], defaults={}):
         """
         Internal implementation of ``__str__``.
 
@@ -2320,9 +2317,13 @@ class Model(metaclass=_ModelMeta):
         ]
 
         parts = ['{0}: {1}'.format(keyword, value)
-                 for keyword, value in default_keywords + keywords
+                 for keyword, value in default_keywords
                  if value is not None]
 
+        for keyword, value in keywords:
+            if keyword.lower() in defaults and defaults[keyword.lower()] == value:
+                continue
+            parts.append('{0}: {1}'.format(keyword, value))
         parts.append('Parameters:')
 
         if len(self) == 1:
