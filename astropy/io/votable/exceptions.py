@@ -12,8 +12,8 @@ Warnings
     tools that produced the VOTable file.
 
     To control the warnings emitted, use the standard Python
-    :mod:`warnings` module.  Most of these are of the type
-    `VOTableSpecWarning`.
+    :mod:`warnings` module and the ``astropy.io.votable.exceptions.conf.max_warnings``
+    configuration item.  Most of these are of the type `VOTableSpecWarning`.
 
 {warnings}
 
@@ -31,7 +31,6 @@ Exceptions
 {exceptions}
 """
 
-
 # STDLIB
 import io
 import re
@@ -39,17 +38,29 @@ import re
 from textwrap import dedent
 from warnings import warn
 
+from astropy import config as _config
 from astropy.utils.exceptions import AstropyWarning
 
-
 __all__ = [
-    'warn_or_raise', 'vo_raise', 'vo_reraise', 'vo_warn',
+    'Conf', 'conf', 'warn_or_raise', 'vo_raise', 'vo_reraise', 'vo_warn',
     'warn_unknown_attrs', 'parse_vowarning', 'VOWarning',
     'VOTableChangeWarning', 'VOTableSpecWarning',
     'UnimplementedWarning', 'IOWarning', 'VOTableSpecError']
 
 
-MAX_WARNINGS = 10
+# NOTE: Cannot put this in __init__.py due to circular import.
+class Conf(_config.ConfigNamespace):
+    """
+    Configuration parameters for `astropy.io.votable.exceptions`.
+    """
+    max_warnings = _config.ConfigItem(
+        10,
+        'Number of times the same type of warning is displayed '
+        'before being suppressed',
+        cfgtype='integer')
+
+
+conf = Conf()
 
 
 def _format_message(message, name, config=None, pos=None):
@@ -66,8 +77,8 @@ def _suppressed_warning(warning, config, stacklevel=2):
     config.setdefault('_warning_counts', dict()).setdefault(warning_class, 0)
     config['_warning_counts'][warning_class] += 1
     message_count = config['_warning_counts'][warning_class]
-    if message_count <= MAX_WARNINGS:
-        if message_count == MAX_WARNINGS:
+    if message_count <= conf.max_warnings:
+        if message_count == conf.max_warnings:
             warning.formatted_message += \
                 ' (suppressing further warnings of this type...)'
         warn(warning, stacklevel=stacklevel+1)
@@ -141,7 +152,7 @@ def warn_unknown_attrs(element, attrs, config, pos, good_attr=[], stacklevel=1):
 
 _warning_pat = re.compile(
     r":?(?P<nline>[0-9?]+):(?P<nchar>[0-9?]+): " +
-     r"((?P<warning>[WE]\d+): )?(?P<rest>.*)$")
+    r"((?P<warning>[WE]\d+): )?(?P<rest>.*)$")
 
 
 def parse_vowarning(line):
@@ -1057,7 +1068,7 @@ class W52(VOTableSpecWarning):
     """
 
     message_template = ("The BINARY2 format was introduced in VOTable 1.3, but "
-               "this file is declared as version '{}'")
+                        "this file is declared as version '{}'")
     default_args = ('1.2',)
 
 
