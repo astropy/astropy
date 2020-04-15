@@ -283,6 +283,7 @@ class OrthoPolynomialType(TransformType):
                 node['domain'] = (model.x_domain, model.y_domain)
             if model.x_window or model.y_window is not None:
                 node['window'] = (model.x_window, model.y_window)
+
         return yamlutil.custom_tree_to_tagged_tree(node, ctx)
 
     @classmethod

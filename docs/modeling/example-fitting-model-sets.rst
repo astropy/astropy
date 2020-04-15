@@ -77,8 +77,6 @@ Now inspect the model::
     Outputs: ('y',)
     Model set size: 12
     Degree: 1
-    Domain: [-1, 1]
-    Window: [-1, 1]
     Parameters:
                  c0                 c1
         ------------------- ------------------
