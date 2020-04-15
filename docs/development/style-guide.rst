@@ -191,8 +191,9 @@ Examples
 * We have blocked off March 2019–May 2019 to develop a new version.
 
 Em dashes (— longest) can be used in place of commas, parentheses, or colons to
-set off amplifying or explanatory elements. In Astropy materials, follow AP
-style, which calls for spaces on either side of each em dash.
+set off amplifying or explanatory elements. In Astropy materials, follow
+Associated Press (AP) style, which calls for spaces on either side of each em
+dash.
 
 Examples
 --------
@@ -214,13 +215,12 @@ Example
 Time and Date
 =============
 
-Use numerals when exact times are expressed, followed by *ante meridiem* or
-*post meridiem* abbreviated in lowercase with periods, or use the 24-hour
-system.
+Use numerals when exact times are expressed. Use the 24-hour system to express
+exact times. For consistency across Astropy materials, all instances of exact
+times will be edited to reflect 24-hour time system preferences.
 
-Examples
---------
-* The meeting is set for 9:30 a.m.
+Example
+-------
 * The presentation starts at 15:00.
 
 Express specific dates as numerals in ISO 8601 format, year-month-day.
@@ -232,26 +232,43 @@ Example
 A Note About Voice and Tone
 ===========================
 
-Across all Astropy materials in narrative sections, please write in:
+Across all Astropy materials in narrative sections, please follow these voice
+and tone guidelines.
 
-The present tense. For example:
+Write in the present tense.
+
+Example
+-------
 * In the following section, we are going to make a plot...
 * To test if your version of ``astropy`` is running correctly...
 
-The first-person inclusive plural. For example:
+Use the first-person inclusive plural.
+
+Example
+-------
 * We did this the long way, but next we can try it the short way...
 
-Use the generic pronoun “you” instead of “one.” For example:
+Use the generic pronoun “you” instead of “one.”
+
+Example
+-------
 * You can access any of the attributes on a frame by...
 
 Always avoid extraneous or belittling words such as “obviously,” “easily,”
 “simply,” “just,” or “straightforward.” Avoid extraneous phrases like, “we just
 have to do one more thing.”
 
-Avoid words or phrasing that create worry in the mind of the reader, such as an
-overuse of "Warnings." Instead, use positive language that establishes
-confidence in the skills being learned, such as "As a best practice..." or "One
-recommended way to..." or "An important note to remember is..."
+Avoid words or phrases that create worry in the mind of the reader. Instead,
+use positive language that establishes confidence in the skills being learned.
+
+Examples
+--------
+* As a best practice...
+* One recommended way to...
+* An important note to remember is...
+
+Along these lines, use "warning" directives only to note limitations in the
+code, not implied limitations in the skills or knowledge of the reader.
 
 Documentation vs. Tutorials vs. Guides
 --------------------------------------
@@ -290,18 +307,20 @@ documentation files, please follow these guidelines to maintain consistency in
 section heading hierarchy across Astropy's RST files.
 
 Section headings in reStructuredText files are created by underlining (and
-optionally overlining) the section title with a punctuation character at least
-as long as the text.
+optionally overlining) the section title with a punctuation character the same
+length as the text.
 
 Examples
 --------
 
 ::
+
   *************************
   This is a Chapter Heading
   *************************
 
 ::
+
   This is a Section Heading
   =========================
 
@@ -317,7 +336,9 @@ documentation files:
 ^, for subsubsections
 ", for paragraphs
 
-These guidelines follow Python's recommendation in the `7.3.6. Sections
+These guidelines follow Sphinx's recommendation in its `reStructuredText Primer
+<https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html#sections>`_
+and Python's convention in the `7.3.6. Sections
 <https://devguide.python.org/documenting/#sections>`_ part of its style guide.
 
 Other Writing Resources
@@ -327,3 +348,7 @@ Some other resources that may be useful when writing Astropy documentation are:
 
 * Python's `Style Guide
   <https://devguide.python.org/documenting/#style-guide>`_
+* Sphinx's `reStructuredText Primer
+  <https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html>`_
+* `Quick reStructuredText
+  <https://docutils.sourceforge.io/docs/user/rst/quickref.html>`_
