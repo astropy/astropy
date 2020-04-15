@@ -33,6 +33,8 @@ class TableRead(registry.UnifiedReadWrite):
         first argument is typically the input filename.
     format : str
         File format specifier.
+    cache : bool, optional
+        Caching behavior if file is a URL.
     units : list, dict, optional
         List or dict of units to apply to columns
     descriptions : list, dict, optional

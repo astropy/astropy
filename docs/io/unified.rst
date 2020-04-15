@@ -26,7 +26,8 @@ though the `~astropy.nddata.CCDData` class using FITS file format:
     >>> ccd.write('new_image.fits')
 
 Note that the unit is stored in the ``BUNIT`` keyword in the header on saving,
-and is read from the header if it is present.
+and is read from the header if it is present. If you run into problem reading
+in a URL on Windows, try setting ``cache=True``.
 
 Detailed help on the available keyword arguments for reading and writing
 can be obtained via the ``help()`` method as follows:
@@ -76,8 +77,8 @@ example, download tables from Vizier catalogues in CDS format
 (``'ascii.cds'``)::
 
     >>> t = Table.read("ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/snrs.dat",
-    ...         readme="ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/ReadMe",
-    ...         format="ascii.cds")  # doctest: +SKIP
+    ...                readme="ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/ReadMe",
+    ...                format="ascii.cds", cache=True)  # doctest: +SKIP
 
 For certain file formats the format can be automatically detected, for
 example, from the filename extension::
@@ -241,7 +242,7 @@ To read and write formats supported by `astropy.io.ascii`:
 
 .. doctest-skip::
 
-  >>> t = Table.read('astropy/io/ascii/tests/t/latex1.tex', format='ascii')
+  >>> t = Table.read('astropy/io/ascii/tests/data/latex1.tex', format='ascii')
   >>> print(t)
   cola colb colc
   ---- ---- ----

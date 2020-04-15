@@ -37,6 +37,8 @@ class NDDataRead(registry.UnifiedReadWrite):
         first argument is the input filename.
     format : str, optional
         File format specifier.
+    cache : bool, optional
+        Caching behavior if file is a URL.
     **kwargs : dict, optional
         Keyword arguments passed through to data reader.
 
