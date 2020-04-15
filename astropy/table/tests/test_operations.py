@@ -1133,6 +1133,15 @@ class TestDStack():
         out = table.dstack(self.t1)
         assert np.all(out == self.t1)
 
+    def test_dstack_skycoord(self):
+        sc1 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg)
+        sc2 = SkyCoord([10, 20]*u.deg, [30, 40]*u.deg)
+        t1 = Table([sc1])
+        t2 = Table([sc2])
+        t12 = table.dstack([t1, t2])
+        assert skycoord_equal(sc1, t12['col0'][:, 0])
+        assert skycoord_equal(sc2, t12['col0'][:, 1])
+
 
 class TestHStack():
 

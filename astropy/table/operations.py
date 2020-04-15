@@ -304,7 +304,11 @@ def dstack(tables, join_type='outer', metadata_conflicts='warn'):
         # are just carried along.
         # [x x x y y y] => [[x x x],
         #                   [y y y]]
-        col.shape = (len(tables), n_row) + col.shape[1:]
+        new_shape = (len(tables), n_row) + col.shape[1:]
+        try:
+            col.shape = (len(tables), n_row) + col.shape[1:]
+        except AttributeError:
+            col = col.reshape(new_shape)
 
         # Transpose the table and row axes to get to
         # [[x, y],
