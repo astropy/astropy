@@ -390,24 +390,24 @@ def test_setitem_no_velocity(frame):
     sc0 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg, obstime='B1955', frame=frame)
     sc2 = SkyCoord([10, 20]*u.deg, [30, 40]*u.deg, obstime='B1955', frame=frame)
 
-    sc1 = SkyCoord(sc0)
+    sc1 = sc0.copy()
     sc1[1] = sc2[0]
     assert np.allclose(sc1.ra, [1, 10] * u.deg)
     assert np.allclose(sc1.dec, [3, 30] * u.deg)
     assert sc1.obstime == Time('B1955')
     assert sc1.frame.name == frame
 
-    sc1 = SkyCoord(sc0)
+    sc1 = sc0.copy()
     sc1[:] = sc2[0]
     assert np.allclose(sc1.ra, [10, 10] * u.deg)
     assert np.allclose(sc1.dec, [30, 30] * u.deg)
 
-    sc1 = SkyCoord(sc0)
+    sc1 = sc0.copy()
     sc1[:] = sc2[:]
     assert np.allclose(sc1.ra, [10, 20] * u.deg)
     assert np.allclose(sc1.dec, [30, 40] * u.deg)
 
-    sc1 = SkyCoord(sc0)
+    sc1 = sc0.copy()
     sc1[[1, 0]] = sc2[:]
     assert np.allclose(sc1.ra, [20, 10] * u.deg)
     assert np.allclose(sc1.dec, [40, 30] * u.deg)
@@ -421,7 +421,7 @@ def test_setitem_velocities():
     sc2 = SkyCoord([10, 20]*u.deg, [30, 40]*u.deg, radial_velocity=[10, 20]*u.km/u.s,
                    obstime='B1950', frame='fk4')
 
-    sc1 = SkyCoord(sc0)
+    sc1 = sc0.copy()
     sc1[1] = sc2[0]
     assert np.allclose(sc1.ra, [1, 10] * u.deg)
     assert np.allclose(sc1.dec, [3, 30] * u.deg)
@@ -429,19 +429,19 @@ def test_setitem_velocities():
     assert sc1.obstime == Time('B1950')
     assert sc1.frame.name == 'fk4'
 
-    sc1 = SkyCoord(sc0)
+    sc1 = sc0.copy()
     sc1[:] = sc2[0]
     assert np.allclose(sc1.ra, [10, 10] * u.deg)
     assert np.allclose(sc1.dec, [30, 30] * u.deg)
     assert np.allclose(sc1.radial_velocity, [10, 10] * u.km / u.s)
 
-    sc1 = SkyCoord(sc0)
+    sc1 = sc0.copy()
     sc1[:] = sc2[:]
     assert np.allclose(sc1.ra, [10, 20] * u.deg)
     assert np.allclose(sc1.dec, [30, 40] * u.deg)
     assert np.allclose(sc1.radial_velocity, [10, 20] * u.km / u.s)
 
-    sc1 = SkyCoord(sc0)
+    sc1 = sc0.copy()
     sc1[[1, 0]] = sc2[:]
     assert np.allclose(sc1.ra, [20, 10] * u.deg)
     assert np.allclose(sc1.dec, [40, 30] * u.deg)
@@ -457,7 +457,8 @@ def test_setitem_exceptions():
     sc2 = SkyCoord([10, 20]*u.deg, [30, 40]*u.deg, frame='fk4', obstime=obstime)
 
     sc1 = SkyCoordSub(sc0)
-    with pytest.raises(TypeError, match='can only set item from object of same class'):
+    with pytest.raises(TypeError, match='an only set from object of same class: '
+                       'SkyCoordSub vs. SkyCoord'):
         sc1[0] = sc2[0]
 
     sc1 = SkyCoord(sc0.ra, sc0.dec, frame='fk4', obstime='B2001')
@@ -467,6 +468,14 @@ def test_setitem_exceptions():
     sc1 = SkyCoord(sc0.ra[0], sc0.dec[0], frame='fk4', obstime=obstime)
     with pytest.raises(TypeError, match="scalar 'FK4' frame object does not support "
                        'item assignment'):
+        sc1[0] = sc2[0]
+
+    # Different differentials
+    sc1 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg,
+                   pm_ra_cosdec=[1, 2]*u.mas/u.yr, pm_dec=[3, 4]*u.mas/u.yr)
+    sc2 = SkyCoord([10, 20]*u.deg, [30, 40]*u.deg, radial_velocity=[10, 20]*u.km/u.s)
+    with pytest.raises(TypeError, match='can only set from object of same class: '
+                       'UnitSphericalCosLatDifferential vs. RadialDifferential'):
         sc1[0] = sc2[0]
 
 

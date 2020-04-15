@@ -1513,8 +1513,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
     def __setitem__(self, item, value):
         if self.__class__ is not value.__class__:
-            raise TypeError(f'can only set frame to object of same class '
-                            f'{self.__class__.__name__}')
+            raise TypeError(f'can only set from object of same class: '
+                            f'{self.__class__.__name__} vs. '
+                            f'{value.__class__.__name__}')
 
         if not self.is_equivalent_frame(value):
             raise ValueError('can only set frame item from an equivalent frame')
