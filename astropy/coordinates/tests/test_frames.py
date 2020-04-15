@@ -539,6 +539,13 @@ def test_setitem_no_velocity():
     sc1 = FK4(sc0.ra, sc0.dec, obstime=[obstime, obstime])
     sc1[0] = sc2[0]
 
+    # Multidimensional coordinates
+    sc1 = FK4([[1, 2], [3, 4]] * u.deg, [[5, 6], [7, 8]] * u.deg)
+    sc2 = FK4([[10, 20], [30, 40]] * u.deg, [[50, 60], [70, 80]] * u.deg)
+    sc1[0] = sc2[0]
+    assert np.allclose(sc1.ra, [[10, 20], [3, 4]] * u.deg)
+    assert np.allclose(sc1.dec, [[50, 60], [7, 8]] * u.deg)
+
 
 def test_setitem_velocities():
     """Test different flavors of item setting for a Frame with a velocity.
@@ -585,7 +592,8 @@ def test_setitem_exceptions():
     sc2 = FK4([10, 20]*u.deg, [30, 40]*u.deg, obstime=obstime)
 
     sc1 = Galactic(sc0.ra, sc0.dec)
-    with pytest.raises(TypeError, match='can only set frame to object of same class Galactic'):
+    with pytest.raises(TypeError, match='can only set from object of same class: '
+                       'Galactic vs. FK4'):
         sc1[0] = sc2[0]
 
     sc1 = FK4(sc0.ra, sc0.dec, obstime='B2001')
@@ -602,6 +610,11 @@ def test_setitem_exceptions():
         sc1[0] = sc2[0]
 
     sc1 = FK4(sc0.ra, sc0.dec, obstime=[obstime, 'B1980'])
+    with pytest.raises(ValueError, match='can only set frame item from an equivalent frame'):
+        sc1[0] = sc2[0]
+
+    # Wrong shape
+    sc1 = FK4([sc0.ra], [sc0.dec], obstime=[obstime, 'B1980'])
     with pytest.raises(ValueError, match='can only set frame item from an equivalent frame'):
         sc1[0] = sc2[0]
 

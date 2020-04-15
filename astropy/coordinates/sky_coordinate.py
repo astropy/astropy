@@ -487,8 +487,10 @@ class SkyCoord(ShapedLikeNDArray):
           self.frame.data[item] = value.frame.data
         """
         if self.__class__ is not value.__class__:
-            raise TypeError(f'can only set item from object of same class '
-                            f'{self.__class__.__name__}')
+            raise TypeError(f'can only set from object of same class: '
+                            f'{self.__class__.__name__} vs. '
+                            f'{value.__class__.__name__}')
+
 
         # Make sure that any extra frame attribute names are equivalent.
         for attr in self._extra_frameattr_names | value._extra_frameattr_names:

@@ -262,8 +262,9 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         frame representation data (frame.data) without clearing the frame cache.
         """
         if self.__class__ is not value.__class__:
-            raise TypeError(f'can only set to object of same class '
-                            f'{self.__class__.__name__}')
+            raise TypeError(f'can only set from object of same class: '
+                            f'{self.__class__.__name__} vs. '
+                            f'{value.__class__.__name__}')
 
         for component in self.components:
             getattr(self, '_' + component)[item] = getattr(value, '_' + component)
@@ -811,9 +812,12 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
         frame representation data (frame.data) without clearing the frame cache.
         """
         if self.__class__ is not value.__class__:
-            raise TypeError(f'can only set to object of same class '
-                            f'{self.__class__.__name__}')
+            raise TypeError(f'can only set from object of same class: '
+                            f'{self.__class__.__name__} vs. '
+                            f'{value.__class__.__name__}')
 
+        # Can this ever occur? (Same class but different differential keys).
+        # This exception is not tested since it is not clear how to generate it.
         if self._differentials.keys() != value._differentials.keys():
             raise ValueError(f'setitem value must have same differentials')
 
