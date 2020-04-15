@@ -333,6 +333,30 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         """A tuple with the in-order names of the coordinate components."""
         return tuple(self.attr_classes)
 
+    def __eq__(self, value):
+        """Equality operator
+
+        This implements strict equality and requires that the representation
+        classes are identical and that the representation data are exactly equal.
+        """
+        if self.__class__ is not value.__class__:
+            return False
+
+        for component in self.components:
+            ok = (getattr(self, '_' + component) == getattr(value, '_' + component))
+            try:
+                out &= ok
+            except NameError:
+                out = ok
+        return out
+
+    def __ne__(self, value):
+        eq = self.__eq__(value)
+        if isinstance(eq, bool):
+            return not eq
+        else:
+            return ~eq
+
     def _apply(self, method, *args, **kwargs):
         """Create a new representation or differential with ``method`` applied
         to the component data.
@@ -922,6 +946,26 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
             The presentation that should be converted to this class.
         """
         return representation.represent_as(cls)
+
+    def __eq__(self, value):
+        """Equality operator
+
+        This implements strict equality and requires that the representation
+        classes are identical, the differentials are identical, and that the
+        representation data are exactly equal.
+        """
+        if self.__class__ is not value.__class__:
+            return False
+
+        if self._differentials.keys() != value._differentials.keys():
+            return False
+
+        out = super().__eq__(value)
+        for self_diff, value_diff in zip(self._differentials.values(),
+                                         value._differentials.values()):
+            out &= self_diff == value_diff
+
+        return out
 
     def _apply(self, method, *args, **kwargs):
         """Create a new representation with ``method`` applied to the component

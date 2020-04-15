@@ -356,6 +356,28 @@ class SkyCoord(ShapedLikeNDArray):
     def shape(self):
         return self.frame.shape
 
+    def __eq__(self, value):
+        """Equality operator for SkyCoord
+
+        This implements strict equality and requires that the frames are
+        equivalent, all extra frame attributes are the same and that the
+        representation data are exactly equal.
+        """
+        # Make sure that any extra frame attribute names are equivalent.
+        for attr in self._extra_frameattr_names | value._extra_frameattr_names:
+            if not self.frame._frameattr_equiv(getattr(self, attr),
+                                               getattr(value, attr)):
+                return False
+
+        return self._sky_coord_frame == value._sky_coord_frame
+
+    def __ne__(self, value):
+        eq = self.__eq__(value)
+        if isinstance(eq, bool):
+            return not eq
+        else:
+            return ~eq
+
     def _apply(self, method, *args, **kwargs):
         """Create a new instance, applying a method to the underlying data.
 
