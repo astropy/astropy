@@ -15,6 +15,9 @@ import io
 from os import path
 import re
 from warnings import warn
+import importlib
+import sys
+from textwrap import TextWrapper
 
 from astropy.extern.configobj import configobj, validate
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
@@ -25,7 +28,8 @@ from .paths import get_config_dir
 
 __all__ = ['InvalidConfigurationItemWarning',
            'ConfigurationMissingWarning', 'get_config',
-           'reload_config', 'ConfigNamespace', 'ConfigItem']
+           'reload_config', 'ConfigNamespace', 'ConfigItem',
+           'generate_config']
 
 
 class InvalidConfigurationItemWarning(AstropyWarning):
@@ -568,6 +572,57 @@ def get_config(packageormod=None, reload=False, rootname=None):
         return cobj[secname]
     else:
         return cobj
+
+
+def generate_config(filename=None):
+    """Generates a configuration file, from the list of ConfigItem
+    for each subpackage.
+    """
+
+    # First, we need to import all modules containing a ConfigNamespace
+    # subclass. So this list must be kept up-to-date.
+    modules_to_import = [
+        'astropy',
+        'astropy.io.fits',
+        'astropy.io.votable',
+        'astropy.logger',
+        'astropy.nddata',
+        'astropy.samp',
+        'astropy.table',
+        'astropy.table.jsviewer',
+        'astropy.units.quantity',
+        'astropy.utils.data',
+        'astropy.utils.iers.iers',
+        'astropy.visualization.wcsaxes',
+    ]
+    for mod in modules_to_import:
+        importlib.import_module(mod)
+
+    wrapper = TextWrapper(initial_indent="## ", subsequent_indent='## ',
+                          width=78)
+
+    fp = open(filename, 'w') if filename else sys.stdout
+    try:
+        # Parse the subclasses, ordered by their module name
+        subclasses = ConfigNamespace.__subclasses__()
+        for conf in sorted(subclasses, key=lambda x: x.__module__):
+            print_module = True
+            for item in conf.__dict__.values():
+                if not isinstance(item, ConfigItem):
+                    continue
+                if print_module:
+                    # If this is the first item of the module, we print the
+                    # module name, but not if this is the root package...
+                    if item.module != 'astropy':
+                        modname = item.module.replace('astropy.', '')
+                        fp.write(f"[{modname}]\n\n")
+                    print_module = False
+
+                fp.write(wrapper.fill(item.description) + '\n')
+                fp.write(f'# {item.name} = {item.defaultvalue}\n\n')
+    finally:
+        if fp is not sys.stdout:
+            fp.close()
 
 
 def reload_config(packageormod=None, rootname=None):
