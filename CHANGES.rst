@@ -18,6 +18,10 @@ astropy.coordinates
 - Angle parsing now supports ``cardinal direction`` in the cases
   where angles are initialized as ``string`` instances. eg ``"17°53'27"W"``.[#9859]
 
+- Allow in-place modification of array-valued ``Frame`` and ``SkyCoord`` objects.
+  This provides limited support for updating coordinate data values from another
+  coordinate object of the same class and equivalent frame attributes. [#9857]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -105,6 +109,8 @@ astropy.table
 
 - Added capability to add custom table attributes to a ``Table`` subclass.
   These attributes are persistent and can be set during table creation. [#10097]
+- Added support for ``SkyCoord`` mixin columns in ``dstack``, `vstack`` and
+``insert_row`` functions. [#9857]
 
 astropy.tests
 ^^^^^^^^^^^^^
