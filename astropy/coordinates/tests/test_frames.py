@@ -515,25 +515,25 @@ def test_setitem_no_velocity():
     assert sc1.cache == {}
     assert repr(sc2) != sc1_repr
 
-    assert np.allclose(sc1.ra, [1, 10] * u.deg)
-    assert np.allclose(sc1.dec, [3, 30] * u.deg)
+    assert np.allclose(sc1.ra.to_value(u.deg), [1, 10])
+    assert np.allclose(sc1.dec.to_value(u.deg), [3, 30])
     assert sc1.obstime == sc2.obstime
     assert sc1.name == 'fk4'
 
     sc1 = sc0.copy()
     sc1[:] = sc2[0]
-    assert np.allclose(sc1.ra, [10, 10] * u.deg)
-    assert np.allclose(sc1.dec, [30, 30] * u.deg)
+    assert np.allclose(sc1.ra.to_value(u.deg), [10, 10])
+    assert np.allclose(sc1.dec.to_value(u.deg), [30, 30])
 
     sc1 = sc0.copy()
     sc1[:] = sc2[:]
-    assert np.allclose(sc1.ra, [10, 20] * u.deg)
-    assert np.allclose(sc1.dec, [30, 40] * u.deg)
+    assert np.allclose(sc1.ra.to_value(u.deg), [10, 20])
+    assert np.allclose(sc1.dec.to_value(u.deg), [30, 40])
 
     sc1 = sc0.copy()
     sc1[[1, 0]] = sc2[:]
-    assert np.allclose(sc1.ra, [20, 10] * u.deg)
-    assert np.allclose(sc1.dec, [40, 30] * u.deg)
+    assert np.allclose(sc1.ra.to_value(u.deg), [20, 10])
+    assert np.allclose(sc1.dec.to_value(u.deg), [40, 30])
 
     # Works for array-valued obstime so long as they are considered equivalent
     sc1 = FK4(sc0.ra, sc0.dec, obstime=[obstime, obstime])
@@ -543,8 +543,8 @@ def test_setitem_no_velocity():
     sc1 = FK4([[1, 2], [3, 4]] * u.deg, [[5, 6], [7, 8]] * u.deg)
     sc2 = FK4([[10, 20], [30, 40]] * u.deg, [[50, 60], [70, 80]] * u.deg)
     sc1[0] = sc2[0]
-    assert np.allclose(sc1.ra, [[10, 20], [3, 4]] * u.deg)
-    assert np.allclose(sc1.dec, [[50, 60], [7, 8]] * u.deg)
+    assert np.allclose(sc1.ra.to_value(u.deg), [[10, 20], [3, 4]])
+    assert np.allclose(sc1.dec.to_value(u.deg), [[50, 60], [7, 8]])
 
 
 def test_setitem_velocities():
@@ -559,29 +559,29 @@ def test_setitem_velocities():
 
     sc1 = sc0.copy()
     sc1[1] = sc2[0]
-    assert np.allclose(sc1.ra, [1, 10] * u.deg)
-    assert np.allclose(sc1.dec, [3, 30] * u.deg)
-    assert np.allclose(sc1.radial_velocity, [1, 10] * u.km / u.s)
+    assert np.allclose(sc1.ra.to_value(u.deg), [1, 10])
+    assert np.allclose(sc1.dec.to_value(u.deg), [3, 30])
+    assert np.allclose(sc1.radial_velocity.to_value(u.km / u.s), [1, 10])
     assert sc1.obstime == sc2.obstime
     assert sc1.name == 'fk4'
 
     sc1 = sc0.copy()
     sc1[:] = sc2[0]
-    assert np.allclose(sc1.ra, [10, 10] * u.deg)
-    assert np.allclose(sc1.dec, [30, 30] * u.deg)
-    assert np.allclose(sc1.radial_velocity, [10, 10] * u.km / u.s)
+    assert np.allclose(sc1.ra.to_value(u.deg), [10, 10])
+    assert np.allclose(sc1.dec.to_value(u.deg), [30, 30])
+    assert np.allclose(sc1.radial_velocity.to_value(u.km / u.s), [10, 10])
 
     sc1 = sc0.copy()
     sc1[:] = sc2[:]
-    assert np.allclose(sc1.ra, [10, 20] * u.deg)
-    assert np.allclose(sc1.dec, [30, 40] * u.deg)
-    assert np.allclose(sc1.radial_velocity, [10, 20] * u.km / u.s)
+    assert np.allclose(sc1.ra.to_value(u.deg), [10, 20])
+    assert np.allclose(sc1.dec.to_value(u.deg), [30, 40])
+    assert np.allclose(sc1.radial_velocity.to_value(u.km / u.s), [10, 20])
 
     sc1 = sc0.copy()
     sc1[[1, 0]] = sc2[:]
-    assert np.allclose(sc1.ra, [20, 10] * u.deg)
-    assert np.allclose(sc1.dec, [40, 30] * u.deg)
-    assert np.allclose(sc1.radial_velocity, [20, 10] * u.km / u.s)
+    assert np.allclose(sc1.ra.to_value(u.deg), [20, 10])
+    assert np.allclose(sc1.dec.to_value(u.deg), [40, 30])
+    assert np.allclose(sc1.radial_velocity.to_value(u.km / u.s), [20, 10])
 
 
 def test_setitem_exceptions():
