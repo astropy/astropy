@@ -70,9 +70,8 @@ class HighLevelWCSWrapper(HighLevelWCSMixin):
         """
         return self.low_level_wcs.axis_correlation_matrix
 
-    @property
     def _as_mpl_axes(self):
         """
-        See `~astropy.wcs.wcsapi.BaseLowLevelWCS.__as_mpl_axes`
+        See `~astropy.wcs.wcsapi.BaseLowLevelWCS._as_mpl_axes`
         """
-        return self.low_level_wcs._as_mpl_axes
+        return self.low_level_wcs._as_mpl_axes()
