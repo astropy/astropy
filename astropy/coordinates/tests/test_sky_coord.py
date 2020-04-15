@@ -28,6 +28,7 @@ from astropy.utils import minversion, isiterable
 from astropy.units import allclose as quantity_allclose
 from astropy.io import fits
 from astropy.wcs import WCS
+from astropy.io.misc.asdf.tags.helpers import skycoord_equal
 
 RA = 1.0 * u.deg
 DEC = 2.0 * u.deg
@@ -477,6 +478,59 @@ def test_setitem_exceptions():
     with pytest.raises(TypeError, match='can only set from object of same class: '
                        'UnitSphericalCosLatDifferential vs. RadialDifferential'):
         sc1[0] = sc2[0]
+
+
+def test_insert():
+    sc0 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg)
+    sc1 = SkyCoord(5*u.deg, 6*u.deg)
+    sc3 = SkyCoord([10, 20]*u.deg, [30, 40]*u.deg)
+    sc4 = SkyCoord([[1, 2], [3, 4]]*u.deg,
+                   [[5, 6], [7, 8]]*u.deg)
+    sc5 = SkyCoord([[10, 2], [30, 4]]*u.deg,
+                   [[50, 6], [70, 8]]*u.deg)
+
+    # Insert a scalar
+    sc = sc0.insert(1, sc1)
+    assert skycoord_equal(sc, SkyCoord([1, 5, 2]*u.deg, [3, 6, 4]*u.deg))
+
+    # Insert length=2 array at start of array
+    sc = sc0.insert(0, sc3)
+    assert skycoord_equal(sc, SkyCoord([10, 20, 1, 2]*u.deg, [30, 40, 3, 4]*u.deg))
+
+    # Insert length=2 array at end of array
+    sc = sc0.insert(2, sc3)
+    assert skycoord_equal(sc, SkyCoord([1, 2, 10, 20]*u.deg, [3, 4, 30, 40]*u.deg))
+
+    # Multidimensional
+    sc = sc4.insert(1, sc5)
+    assert skycoord_equal(sc, SkyCoord([[1, 2], [10, 2], [30, 4], [3, 4]]*u.deg,
+                                       [[5, 6], [50, 6], [70, 8], [7, 8]]*u.deg))
+
+
+def test_insert_exceptions():
+    sc0 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg)
+    sc1 = SkyCoord(5*u.deg, 6*u.deg)
+    # sc3 = SkyCoord([10, 20]*u.deg, [30, 40]*u.deg)
+    sc4 = SkyCoord([[1, 2], [3, 4]]*u.deg,
+                   [[5, 6], [7, 8]]*u.deg)
+
+    with pytest.raises(TypeError, match='cannot insert into scalar' ):
+        sc1.insert(0, sc0)
+
+    with pytest.raises(ValueError, match='axis must be 0'):
+        sc0.insert(0, sc1, axis=1)
+
+    with pytest.raises(TypeError, match='obj arg must be an integer'):
+        sc0.insert(slice(None), sc0)
+
+    with pytest.raises(IndexError, match='index -100 is out of bounds for axis 0 '
+                       'with size 2'):
+        sc0.insert(-100, sc0)
+
+    # Bad shape
+    with pytest.raises(ValueError, match='could not broadcast input array from '
+                       r'shape \(2,2\) into shape \(2\)'):
+        sc0.insert(0, sc4)
 
 
 def test_attr_conflicts():
