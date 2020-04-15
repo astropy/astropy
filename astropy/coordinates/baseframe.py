@@ -1628,6 +1628,36 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
         super().__setattr__(attr, value)
 
+    def __eq__(self, value):
+        """Equality operator for frame.
+
+        This implements strict equality and requires that the frames are
+        equivalent and that the representation data are exactly equal.
+        """
+        if not self.is_equivalent_frame(value):
+            return False
+
+        if value._data is None and self._data is not None:
+            return False
+
+        if self._data is None and value._data is not None:
+            return False
+
+        if self._data is None and value._data is None:
+            return True
+
+        if self.shape != value.shape:
+            return False
+
+        return self._data == value._data
+
+    def __ne__(self, value):
+        eq = self.__eq__(value)
+        if isinstance(eq, bool):
+            return not eq
+        else:
+            return ~eq
+
     def separation(self, other):
         """
         Computes on-sky separation between this coordinate and another.
