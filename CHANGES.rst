@@ -25,6 +25,7 @@ astropy.coordinates
   This provides limited support for updating coordinate data values from another
   coordinate object of the same class and equivalent frame attributes. [#9857]
 - Added the True Equator Mean Equinox (TEME) frame.[#10149]
+- Added the True Equator Mean Equinox (TEME) frame. [#10149]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
