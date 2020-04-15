@@ -978,13 +978,18 @@ class TestVStack():
 
         # Vstack works for these classes:
         implemented_mixin_classes = ['Quantity', 'Angle', 'Time',
-                                     'Latitude', 'Longitude',
+                                     'Latitude', 'Longitude', 'SkyCoord',
                                      'EarthLocation']
         if cls_name in implemented_mixin_classes:
             out = table.vstack([t, t])
             assert len(out) == len_col * 2
-            assert np.all(out['a'][:len_col] == col)
-            assert np.all(out['a'][len_col:] == col)
+            if cls_name == 'SkyCoord':
+                # Argh, SkyCoord needs __eq__!!
+                assert skycoord_equal(out['a'][len_col:], col)
+                assert skycoord_equal(out['a'][:len_col], col)
+            else:
+                assert np.all(out['a'][:len_col] == col)
+                assert np.all(out['a'][len_col:] == col)
         else:
             with pytest.raises(NotImplementedError) as err:
                 table.vstack([t, t])
