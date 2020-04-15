@@ -3,7 +3,7 @@
 .. _astropy-coordinates-satellites:
 
 Working with Earth satellites using Astropy Coordinates
-************************************************************************
+*******************************************************
 
 Finding ``TEME`` coordinates from Two-Line-Ephemerides (TLE)
 ============================================================
