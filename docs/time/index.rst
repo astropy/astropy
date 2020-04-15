@@ -1067,7 +1067,7 @@ transformations, ERFA C-library routines are used under the hood, which support
 calculations following different IAU resolutions.
 
 Example
-"""""""
+^^^^^^^
 
 .. EXAMPLE START: Calculating Sidereal Time for Time Objects
 
@@ -1240,7 +1240,7 @@ have arrived at a standard location; either the Solar System barycenter or the
 heliocenter.
 
 Example
-"""""""
+^^^^^^^
 
 .. EXAMPLE START: Barycentric and Heliocentric Light Travel Time Corrections
 
@@ -1376,7 +1376,7 @@ corresponding name is automatically registered in the set of available time
 formats.
 
 Examples
-""""""""
+^^^^^^^^
 
 .. EXAMPLE START: Writing a Custom Format with the TimeFormat Class
 
@@ -1497,7 +1497,7 @@ When a `~astropy.time.Time` object is constructed from a timezone-aware
 converted to timezone-aware datetime objects.
 
 Example
-"""""""
+^^^^^^^
 
 .. EXAMPLE START: Timezones in Time Objects
 
@@ -1530,7 +1530,7 @@ for `time.strftime`. This can be done using the `~astropy.time.Time.strftime`
 method.
 
 Examples
-""""""""
+^^^^^^^^
 
 .. EXAMPLE START: Custom String Formats with ``strftime`` and ``strptime``
 
