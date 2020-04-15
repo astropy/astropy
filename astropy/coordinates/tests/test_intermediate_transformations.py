@@ -12,8 +12,8 @@ from astropy.tests.helper import (assert_quantity_allclose as assert_allclose,
 from astropy.time import Time
 from astropy.coordinates import (EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
                 PrecessedGeocentric, CartesianRepresentation, SkyCoord,
-                SphericalRepresentation, UnitSphericalRepresentation,
-                HCRS, HeliocentricMeanEcliptic)
+                CartesianDifferential, SphericalRepresentation, UnitSphericalRepresentation,
+                HCRS, HeliocentricMeanEcliptic, TEME)
 from astropy.utils import iers
 
 
@@ -490,6 +490,45 @@ def test_gcrs_self_transform_closeby():
     transformed = moon_geocentric.transform_to(moon_lapalma.frame)
     delta = transformed.separation_3d(moon_lapalma)
     assert_allclose(delta, 0.0*u.m, atol=1*u.m)
+
+
+def test_teme_itrf():
+    """
+    Test case transform from TEME to ITRF.
+
+    Test case derives from example on appendix C of Vallado, Crawford, Hujsak & Kelso (2006).
+    See https://celestrak.com/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf
+    """
+    v_itrf = CartesianDifferential(-3.225636520, -2.872451450, 5.531924446,
+                                   unit=u.km/u.s)
+    p_itrf = CartesianRepresentation(-1033.479383, 7901.2952740, 6380.35659580,
+                                     unit=u.km, differentials={'s': v_itrf})
+    t = Time("2004-04-06T07:51:28.386")
+
+    teme = ITRS(p_itrf, obstime=t).transform_to(TEME(obstime=t))
+    v_teme = CartesianDifferential(-4.746131487, 0.785818041, 5.531931288,
+                                   unit=u.km/u.s)
+    p_teme = CartesianRepresentation(5094.18016210, 6127.64465050, 6380.34453270,
+                                     unit=u.km, differentials={'s': v_teme})
+
+    assert_allclose(teme.cartesian.without_differentials().xyz,
+                    p_teme.without_differentials().xyz, atol=30*u.cm)
+
+    assert_allclose(teme.cartesian.differentials['s'].d_xyz,
+                    p_teme.differentials['s'].d_xyz, atol=1.0*u.cm/u.s)
+
+    # test round trip
+    itrf = teme.transform_to(ITRS(obstime=t))
+    assert_allclose(
+        itrf.cartesian.without_differentials().xyz,
+        p_itrf.without_differentials().xyz,
+        atol=100*u.cm
+    )
+    assert_allclose(
+        itrf.cartesian.differentials['s'].d_xyz,
+        p_itrf.differentials['s'].d_xyz,
+        atol=1*u.cm/u.s
+    )
 
 
 @pytest.mark.remote_data
