@@ -1323,7 +1323,7 @@ can also be used as input in constructing |Time| and |TimeDelta| objects, and
 of time.
 
 Examples
-""""""""
+^^^^^^^^
 
 .. EXAMPLE START: Time Object Interaction with Time-Like Quantities
 
