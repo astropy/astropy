@@ -357,6 +357,52 @@ use new views of the data, with the data copied only if that is impossible
 ..
   EXAMPLE END
 
+Modifying items in-place
+------------------------
+
+Coordinate values in a array-valued |SkyCoord| object can be modified in-place
+(added in astropy 4.1). This requires that the new values be set from an
+another |SkyCoord| object that is equivalent in all ways except for the actual
+coordinate data values. In this way, no frame transformations are required and
+the item setting operation is extremely robust.
+
+..
+  EXAMPLE START
+  Modifying an Array of Coordinates in a SkyCoord Object
+
+To modify an array of coordinates in a |SkyCoord| object use the same
+syntax for a numpy array::
+
+  >>> sc1 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg)
+  >>> sc2 = SkyCoord(10 * u.deg, 20 * u.deg)
+  >>> sc1[0] = sc2
+  >>> sc1
+  <SkyCoord (ICRS): (ra, dec) in deg
+      [(10., 20.), ( 2.,  4.)]>
+
+..
+  EXAMPLE END
+
+..
+  EXAMPLE START
+  Inserting Coordinates into a SkyCoord Object
+
+You can insert a scalar or array-valued |SkyCoord| object into another
+compatible |SkyCooord| object::
+
+  >>> sc1 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg)
+  >>> sc2 = SkyCoord(10 * u.deg, 20 * u.deg)
+  >>> sc1.insert(1, sc2)
+  <SkyCoord (ICRS): (ra, dec) in deg
+      [( 1.,  3.), (10., 20.), ( 2.,  4.)]>
+
+..
+  EXAMPLE END
+
+With the ability to modify a |SkyCoord| object in-place, all of the
+:ref:`table_operations`_ such as joining, stacking, and inserting are
+functional with |SkyCoord| mixin columns (so long as no masking is required).
+
 Attributes
 ==========
 
