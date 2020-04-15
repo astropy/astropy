@@ -1117,7 +1117,7 @@ datetime   :class:`~astropy.time.TimeDeltaDatetime`
 =========  ===================================================
 
 Examples
-""""""""
+^^^^^^^^
 
 .. EXAMPLE START: Time Arithmetic Using the TimeDelta Class
 
