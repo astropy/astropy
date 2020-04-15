@@ -4,6 +4,7 @@ Masking Values in Time Series
 *****************************
 
 .. |Table| replace:: :class:`~astropy.table.Table`
+.. |TimeSeries| replace:: :class:`~astropy.timeseries.TimeSeries`
 
 .. warning:: Note that masking does not yet work for columns that have units.
 
