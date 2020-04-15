@@ -110,7 +110,7 @@ astropy.table
 - Added capability to add custom table attributes to a ``Table`` subclass.
   These attributes are persistent and can be set during table creation. [#10097]
 - Added support for ``SkyCoord`` mixin columns in ``dstack``, `vstack`` and
-``insert_row`` functions. [#9857]
+  ``insert_row`` functions. [#9857]
 
 astropy.tests
 ^^^^^^^^^^^^^
