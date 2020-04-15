@@ -57,9 +57,8 @@ astropy.modeling
 - Added ``domain`` and ``window`` attributes to ``repr`` and ``str``. Fixed bug with
   ``_format_repr`` in core.py. [#9941]
 
-- Polynomial attributes ``domain`` and ``window`` are written to file only if they
-  have non-default values. ``domain`` and ``window`` are tuples of size 2 and are
-  validated. [#10145]
+- Polynomial attributes ``domain`` and ``window`` are now tuples of size 2 and are
+  validated. `repr` and `print` show only their non-default values. [#10145]
 
 astropy.nddata
 ^^^^^^^^^^^^^^

@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-import numpy as np
+
 from asdf import tagged, yamlutil
 
 from astropy.modeling import models, mappings
@@ -42,12 +42,10 @@ class TransformType(AstropyAsdfType):
                 model.outputs = tuple(node["outputs"])
 
         param_and_model_constraints = {}
-        if 'fixed' in node:
-            param_and_model_constraints['fixed'] = node['fixed']
-        if 'bounds' in node:
-            param_and_model_constraints['bounds'] = node['bounds']
-        if param_and_model_constraints:
-            model._initialize_constraints(param_and_model_constraints)
+        for constraint in ['fixed', 'bounds']:
+            if constraint in node:
+                param_and_model_constraints[constraint] = node[constraint]
+        model._initialize_constraints(param_and_model_constraints)
 
         return model
 
@@ -86,11 +84,9 @@ class TransformType(AstropyAsdfType):
             node['outputs'] = model.outputs
 
         # model / parameter constraints
-        if any(model.fixed.values()):
-            node['fixed'] = dict(model.fixed)
-        if np.array(list(model.bounds.values())).any():
-            node['bounds'] = dict(model.bounds)
-
+        node['fixed'] = dict(model.fixed)
+        node['bounds'] = dict(model.bounds)
+        
     @classmethod
     def to_tree_transform(cls, model, ctx):
         raise NotImplementedError("Must be implemented in TransformType subclasses")

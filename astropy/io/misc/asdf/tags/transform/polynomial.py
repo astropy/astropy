@@ -118,10 +118,8 @@ class PolynomialTypeBase(TransformType):
                                                  domain=domain, window=window)
             model.parameters = coefficients
         elif n_dim == 2:
-            x_domain = node.get('x_domain', None)
-            y_domain = node.get('y_domain', None)
-            x_window = node.get('x_window', None)
-            y_window = node.get('y_window', None)
+            x_domain, y_domain = tuple(node.get('domain', (None, None)))
+            x_window, y_window = tuple(node.get('window', (None, None)))
             shape = coefficients.shape
             degree = shape[0] - 1
             if shape[0] != shape[1]:
@@ -165,15 +163,15 @@ class PolynomialTypeBase(TransformType):
             # property.  We can't serialize the new domain values with those
             # versions because they don't validate.
             if ndim == 1:
-                if model.domain != model._default_domain_window['domain']:
+                if model.domain is not None:
                     node['domain'] = model.domain
-                if model.window != model._default_domain_window['window']:
+                if model.window is not None:
                     node['window'] = model.window
             else:
-                for attr in ['x_domain', 'y_domain', 'x_window', 'y_window']:
-                    attr_obj = getattr(model, attr)
-                    if attr_obj != model._default_domain_window[attr]:
-                        node[attr] = attr_obj
+                if model.x_domain or model.y_domain is not None:
+                    node['domain'] = (model.x_domain, model.y_domain)
+                if model.x_window or model.y_window is not None:
+                    node['window'] = (model.x_window, model.y_window)
 
         return yamlutil.custom_tree_to_tagged_tree(node, ctx)
 
@@ -240,10 +238,8 @@ class OrthoPolynomialType(TransformType):
                                                       domain=domain, window=window)
             model.parameters = coefficients
         elif n_dim == 2:
-            x_domain = node.get('x_domain', None)
-            y_domain = node.get('y_domain', None)
-            x_window = node.get('x_window', None)
-            y_window = node.get('y_window', None)
+            x_domain, y_domain = tuple(node.get('domain', (None, None)))
+            x_window, y_window = tuple(node.get('window', (None, None)))
             coeffs = {}
             shape = coefficients.shape
             x_degree = shape[0] - 1
@@ -278,16 +274,16 @@ class OrthoPolynomialType(TransformType):
                     coefficients[i, j] = getattr(model, name).value
         node = {'polynomial_type': poly_type, 'coefficients': coefficients}
         if ndim == 1:
-            if model.domain != model._default_domain_window['domain']:
+            if model.domain is not None:
                 node['domain'] = model.domain
-            if model.window != model._default_domain_window['window']:
+            if model.window is not None:
                 node['window'] = model.window
         else:
-            for attr in ['x_domain', 'y_domain', 'x_window', 'y_window']:
-                attr_obj = getattr(model, attr)
-                if attr_obj != model._default_domain_window[attr]:
-                    node[attr] = attr_obj
-            
+            if model.x_domain or model.y_domain is not None:
+                node['domain'] = (model.x_domain, model.y_domain)
+            if model.x_window or model.y_window is not None:
+                node['window'] = (model.x_window, model.y_window)
+
         return yamlutil.custom_tree_to_tagged_tree(node, ctx)
 
     @classmethod
