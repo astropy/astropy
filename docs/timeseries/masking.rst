@@ -8,8 +8,6 @@ Masking Values in Time Series
 
 .. warning:: Note that masking does not yet work for columns that have units.
 
-.. Is this warning up to date?
-
 Masking values is done in the same way as for |Table| objects (see
 :ref:`masking_and_missing_values`). The most convenient way to use masking is to
 initialize a |TimeSeries| object using the ``masked=True`` option.
