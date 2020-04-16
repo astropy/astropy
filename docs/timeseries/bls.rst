@@ -108,8 +108,8 @@ Basic Usage
 
 The transit periodogram takes as input time series observations where the
 timestamps ``t`` and the observations ``y`` (usually brightness) are stored as
-``numpy`` arrays or :class:`~astropy.units.Quantity`. If known, error bars
-``dy`` can also optionally be provided.
+``numpy`` arrays or :class:`~astropy.units.Quantity` objects. If known, error
+bars ``dy`` can also optionally be provided.
 
 Example
 -------
