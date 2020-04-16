@@ -12,7 +12,7 @@ Built-in Readers
 
 Since |TimeSeries| and |BinnedTimeSeries| are subclasses of |Table|, they have
 :meth:`~astropy.table.Table.read` and :meth:`~astropy.table.Table.write` methods
-that can be used to read time series from files. We include a few readers for
+that can be used to read and write time series from files. We include a few readers for
 well-defined formats in `astropy.timeseries`. For instance we have readers for
 light curves in FITS format from the `Kepler
 <https://www.nasa.gov/mission_pages/kepler/main/index.html>`_ and `TESS
@@ -21,7 +21,7 @@ light curves in FITS format from the `Kepler
 Example
 -------
 
-.. EXAMPLE START: Built-in Readers for Reading and Writing TimeSeries
+.. EXAMPLE START: Reading and Writing Kepler and TESS TimeSeries
 
 In this demonstration of using Kepler FITS time series, we start off by fetching
 an example file:
