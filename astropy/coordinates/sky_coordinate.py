@@ -1566,6 +1566,7 @@ class SkyCoord(ShapedLikeNDArray):
                              'the passed-in `obstime`.')
 
         # obstime validation
+        coo_at_rv_obstime = self  # assume we need no space motion for now
         if obstime is None:
             obstime = self.obstime
             if obstime is None:
@@ -1573,11 +1574,22 @@ class SkyCoord(ShapedLikeNDArray):
                                 'radial_velocity_correction, either as a '
                                 'SkyCoord frame attribute or in the method '
                                 'call.')
-        elif self.obstime is not None:
-            raise ValueError('Cannot compute radial velocity correction if '
-                             '`obstime` argument is passed in and it is '
-                             'inconsistent with the `obstime` frame '
-                             'attribute on the SkyCoord')
+        elif self.obstime is not None and self.frame.data.differentials:
+            # we do need space motion after all
+            coo_at_rv_obstime = self.apply_space_motion(obstime)
+        elif self.obstime is None:
+            # warn the user if the object has differentials set
+            if 's' in self.data.differentials:
+                warnings.warn(
+                    "SkyCoord has space motion, and therefore the specified "
+                    "position of the SkyCoord may not be the same as "
+                    "the `obstime` for the radial velocity measurement. "
+                    "This may affect the rv correction at the order of km/s"
+                    "for very high proper motions sources. If you wish to "
+                    "apply space motion of the SkyCoord to correct for this"
+                    "the `obstime` attribute of the SkyCoord must be set",
+                    AstropyUserWarning
+                )
 
         pos_earth, v_earth = get_body_barycentric_posvel('earth', obstime)
         if kind == 'barycentric':
@@ -1593,7 +1605,7 @@ class SkyCoord(ShapedLikeNDArray):
         gcrs_p, gcrs_v = location.get_gcrs_posvel(obstime)
         # transforming to GCRS is not the correct thing to do here, since we don't want to
         # include aberration (or light deflection)? Instead, only apply parallax if necessary
-        icrs_cart = self.icrs.cartesian
+        icrs_cart = coo_at_rv_obstime.icrs.cartesian
         icrs_cart_novel = icrs_cart.without_differentials()
         if self.data.__class__ is UnitSphericalRepresentation:
             targcart = icrs_cart_novel
