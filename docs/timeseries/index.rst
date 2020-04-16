@@ -41,7 +41,7 @@ In this section, we take a quick look at how to read in a time series, access
 the data, and carry out some basic analysis. For more details about creating and
 using time series, see the full documentation in :ref:`using-timeseries`.
 
-The most minimal time series class is |TimeSeries| — it represents a time series
+The most basic time series class is |TimeSeries| — it represents a time series
 as a collection of values at specific points in time. If you are interested in
 representing time series as measurements in discrete time bins, you will likely
 be interested in the |BinnedTimeSeries| subclass which we show in
