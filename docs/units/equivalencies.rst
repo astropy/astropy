@@ -354,6 +354,17 @@ and you want to know how big your pixels need to be to cover half an arcsecond::
     >>> (0.5*u.arcsec).to(u.micron, tel_platescale)  # doctest: +FLOAT_CMP
     <Quantity 18.9077335632719 micron>
 
+The pixel scale equivalency can also work in more general context, where the
+scale is specified as any quantity that is reducible to ``<composite
+unit>/u.pix`` or ``u.pix/<composite unit>`` (that is, the dimensionality of
+``u.pix`` is 1 or -1). For example, one may define the dots-per-inch
+(DPI) for a digital image to calculate its physical size::
+
+    >>> import astropy.units as u
+    >>> dpi = u.pixel_scale(100 * u.pix / u.imperial.inch)
+    >>> (1024 * u.pix).to(u.cm, dpi)  # doctest: +FLOAT_CMP
+    <Quantity 26.0096 cm>
+
 Photometric Zero Point Equivalency
 ----------------------------------
 

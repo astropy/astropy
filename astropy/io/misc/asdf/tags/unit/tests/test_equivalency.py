@@ -16,6 +16,7 @@ def get_equivalencies():
     Return a list of example equivalencies for testing serialization.
     """
     return [eq.plate_scale(.3 * u.deg/u.mm), eq.pixel_scale(.5 * u.deg/u.pix),
+            eq.pixel_scale(100. * u.pix/u.cm),
             eq.spectral_density(350 * u.nm, factor=2),
             eq.spectral_density(350 * u.nm), eq.spectral(),
             eq.brightness_temperature(500 * u.GHz),

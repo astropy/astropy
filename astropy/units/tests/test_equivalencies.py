@@ -791,6 +791,35 @@ def test_pixel_scale():
     assert_quantity_allclose(asec.to(u.pix, u.pixel_scale(pixscale2)), pix)
 
 
+def test_pixel_scale_invalid_scale_unit():
+
+    pixscale = 0.4 * u.arcsec
+    pixscale2 = 0.4 * u.arcsec / u.pix ** 2
+
+    with pytest.raises(u.UnitsError, match="pixel dimension"):
+        u.pixel_scale(pixscale)
+    with pytest.raises(u.UnitsError, match="pixel dimension"):
+        u.pixel_scale(pixscale2)
+
+
+def test_pixel_scale_acceptable_scale_unit():
+
+    pix = 75 * u.pix
+    v = 3000 * (u.cm / u.s)
+
+    pixscale = 0.4 * (u.m / u.s / u.pix)
+    pixscale2 = 2.5 * (u.pix / (u.m / u.s))
+
+    assert_quantity_allclose(pix.to(u.m / u.s, u.pixel_scale(pixscale)), v)
+    assert_quantity_allclose(pix.to(u.km / u.s, u.pixel_scale(pixscale)), v)
+
+    assert_quantity_allclose(pix.to(u.m / u.s, u.pixel_scale(pixscale2)), v)
+    assert_quantity_allclose(pix.to(u.km / u.s, u.pixel_scale(pixscale2)), v)
+
+    assert_quantity_allclose(v.to(u.pix, u.pixel_scale(pixscale)), pix)
+    assert_quantity_allclose(v.to(u.pix, u.pixel_scale(pixscale2)), pix)
+
+
 def test_plate_scale():
     mm = 1.5*u.mm
     asec = 30*u.arcsec
