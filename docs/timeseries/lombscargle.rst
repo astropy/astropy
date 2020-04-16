@@ -26,7 +26,7 @@ Basic Usage
 .. Note::
    All frequencies in :class:`~astropy.timeseries.LombScargle` are **not**
    angular frequencies, but rather frequencies of oscillation (i.e., number of
-   cycles per unit time.)
+   cycles per unit time).
 
 The Lomb-Scargle Periodogram is designed to detect periodic signals in
 unevenly spaced observations.
@@ -34,7 +34,7 @@ unevenly spaced observations.
 Example
 -------
 
-.. EXAMPLE START: Using the LombScargle Class to Detect Periodic Signals
+.. EXAMPLE START: Using the Lomb-Scargle Periodogram to Detect Periodic Signals
 
 To detect periodic signals in unevenly spaced observations, consider the
 following data:
@@ -88,7 +88,7 @@ measurement uncertainties.
 Example
 ^^^^^^^
 
-.. EXAMPLE START: Using the LombScargle Class for Measurement Uncertainties
+.. EXAMPLE START: Using the Lomb-Scargle Periodogram with Measurement Uncertainties
 
 If all uncertainties are the same, you can pass a scalar:
 
