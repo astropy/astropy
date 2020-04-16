@@ -65,7 +65,7 @@ then a row, or vice versa::
 Accessing Times
 ===============
 
-.. EXAMPLE START: Accessing the Time Column in Times Series
+.. duplicate example from index.rst
 
 For |TimeSeries|, the ``time`` column can be accessed using the regular column
 access notation, as shown in `Accessing Data`_, but it can also be accessed
@@ -75,8 +75,6 @@ more conveniently using the |time_attr| attribute::
     <Time object: scale='utc' format='isot' value=['2016-03-22T12:30:31.000' '2016-03-22T12:30:34.000'
      '2016-03-22T12:30:37.000' '2016-03-22T12:30:40.000'
      '2016-03-22T12:30:43.000']>
-
-.. EXAMPLE END
 
 .. EXAMPLE START: Accessing the Time Column in BinnedTimeSeries
 
