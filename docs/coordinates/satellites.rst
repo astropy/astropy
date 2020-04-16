@@ -31,19 +31,19 @@ using this library to find the  `~astropy.coordinates.TEME` coordinates of a sat
 The ``satellite`` object has a method, ``satellite.sgp4``, that will try to compute the TEME position
 and velocity at a given time::
 
+        >>> from astropy.time import Time
         >>> t = Time(2458827.362605, format='jd')
         >>> error_code, teme_p, teme_v = satellite.sgp4(t.jd1, t.jd2)  # in km and km/s
         >>> if error_code != 0:
-        >>>     raise RuntimeError(SGP4_ERRORS[error_code])
+        ...     raise RuntimeError(SGP4_ERRORS[error_code])
 
 Now we have the position and velocity in kilometer and kilometers per second, we can create a
 position in the `~astropy.coordinates.TEME` reference frame::
 
-        >>> from astropy.coordinates import TEME
+        >>> from astropy.coordinates import TEME, CartesianDifferential, CartesianRepresentation
         >>> from astropy import units as u
-        >>> teme_v = coord.CartesianDifferential(teme_v*u.km/u.s)
-        >>> teme_p = coord.CartesianRepresentation(*teme_p*u.km,
-                                                   differentials={'s': teme_v})
+        >>> teme_v = CartesianDifferential(teme_v*u.km/u.s)
+        >>> teme_p = CartesianRepresentation(*teme_p*u.km, differentials={'s': teme_v})
         >>> teme = TEME(teme_p, obstime=t)
 
 Note how we are careful to set the observed time of the `~astropy.coordinates.TEME` frame to the time at which we calculated
@@ -65,19 +65,19 @@ into any `astropy.coordinates` frame.
 For example, to find the overhead latitude, longitude and height of the satellite::
 
         >>> from astropy.coordinates import ITRS
-        >>> itrs = teme.transform_to(ITRS(obstime=t))
-        >>> location = itrs.earth_location
-        >>> location.geodetic
+        >>> itrs = teme.transform_to(ITRS(obstime=t))  # doctest: +REMOTE_DATA
+        >>> location = itrs.earth_location  # doctest: +REMOTE_DATA
+        >>> location.geodetic  # doctest: +REMOTE_DATA +FLOAT_CMP
         GeodeticLocation(lon=<Longitude 160.34199789 deg>, lat=<Latitude -24.6609379 deg>, height=<Quantity 420.17927591 km>)
 
 Or, if you want to find the altitude and azimuth of the satellite from a particular location::
 
-        >>> from astropy.coordinates import EarthLocation
-        >>> siding_spring = EarthLocation.of_site('aao')
-        >>> aa = teme.transform_to(coord.AltAz(obstime=t, location=siding_spring))
-        >>> aa.alt
+        >>> from astropy.coordinates import EarthLocation, AltAz
+        >>> siding_spring = EarthLocation.of_site('aao')  # doctest: +REMOTE_DATA
+        >>> aa = teme.transform_to(AltAz(obstime=t, location=siding_spring))  # doctest: +REMOTE_DATA
+        >>> aa.alt  # doctest: +REMOTE_DATA +FLOAT_CMP
         <Latitude 10.94798427 deg>
-        >>> aa.az
+        >>> aa.az  # doctest: +REMOTE_DATA +FLOAT_CMP
         <Longitude 59.28807348 deg>
 
 ..
