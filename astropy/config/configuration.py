@@ -16,8 +16,8 @@ from os import path
 import re
 from warnings import warn
 import importlib
-import sys
 from textwrap import TextWrapper
+import pkgutil
 
 from astropy.extern.configobj import configobj, validate
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
@@ -584,30 +584,20 @@ def generate_astropy_config(filename=None):
         If None, the default configuration path is taken from `get_config`.
 
     """
-    # First, we need to import all modules containing a ConfigNamespace
-    # subclass. So this list must be kept up-to-date.
-    modules_to_import = [
-        'astropy',
-        'astropy.io.fits',
-        'astropy.io.votable',
-        'astropy.logger',
-        'astropy.nddata',
-        'astropy.samp',
-        'astropy.table',
-        'astropy.table.jsviewer',
-        'astropy.units.quantity',
-        'astropy.utils.data',
-        'astropy.utils.iers.iers',
-        'astropy.visualization.wcsaxes',
-    ]
-    for mod in modules_to_import:
-        importlib.import_module(mod)
+    import astropy
+    for mod in pkgutil.walk_packages(path=astropy.__path__,
+                                     prefix=astropy.__name__ + '.'):
+        if not mod.module_finder.path.endswith('tests'):
+            try:
+                importlib.import_module(mod.name)
+            except ImportError:
+                pass
 
     wrapper = TextWrapper(initial_indent="## ", subsequent_indent='## ',
                           width=78)
 
     if filename is None:
-        filename = get_config().filename
+        filename = get_config('astropy').filename
 
     if isinstance(filename, str):
         fp = open(filename, 'w')
