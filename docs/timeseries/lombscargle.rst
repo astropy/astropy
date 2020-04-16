@@ -4,16 +4,16 @@
 Lomb-Scargle Periodograms
 *************************
 
-The Lomb-Scargle Periodogram (after Lomb [1]_, and Scargle [2]_) is a commonly
+The Lomb-Scargle periodogram (after Lomb [1]_, and Scargle [2]_) is a commonly
 used statistical tool designed to detect periodic signals in unevenly spaced
 observations. The :class:`~astropy.timeseries.LombScargle` class is a unified
-interface to several implementations of the Lomb-Scargle Periodogram, including
+interface to several implementations of the Lomb-Scargle periodogram, including
 a fast *O[NlogN]* implementation following the algorithm presented by Press &
 Rybicki [3]_.
 
 The code here is adapted from the `astroml`_ package ([4]_, [5]_) and the
 `gatspy`_ package ([6]_, [7]_).  For a detailed practical discussion of the
-Lomb-Scargle Periodogram, with code examples based on ``astropy``, see
+Lomb-Scargle periodogram, with code examples based on ``astropy``, see
 *Understanding the Lomb-Scargle Periodogram* [11]_, with associated code at
 https://github.com/jakevdp/PracticalLombScargle/.
 
@@ -28,7 +28,7 @@ Basic Usage
    angular frequencies, but rather frequencies of oscillation (i.e., number of
    cycles per unit time).
 
-The Lomb-Scargle Periodogram is designed to detect periodic signals in
+The Lomb-Scargle periodogram is designed to detect periodic signals in
 unevenly spaced observations.
 
 Example
@@ -47,7 +47,7 @@ following data:
 These are 100 noisy measurements taken at irregular times, with a frequency
 of 1 cycle per unit time.
 
-The Lomb-Scargle Periodogram, evaluated at frequencies chosen
+The Lomb-Scargle periodogram, evaluated at frequencies chosen
 automatically based on the input data, can be computed as follows
 using the :class:`~astropy.timeseries.LombScargle` class:
 
@@ -280,7 +280,7 @@ the baseline.
 The Lomb-Scargle Model
 ----------------------
 
-The Lomb-Scargle Periodogram fits a sinusoidal model to the data at each
+The Lomb-Scargle periodogram fits a sinusoidal model to the data at each
 frequency, with a larger power reflecting a better fit. With this in mind, it is
 often helpful to plot the best-fit sinusoid over the phased data.
 
@@ -375,7 +375,7 @@ additional arguments which control the model for the data:
   *floating-mean periodogram*, the *generalized Lomb-Scargle method*, and likely
   other names as well.
 - ``nterms`` (``1`` by default) controls how many Fourier terms are used in the
-  model. As seen above, the standard Lomb-Scargle Periodogram is equivalent to
+  model. As seen above, the standard Lomb-Scargle periodogram is equivalent to
   a single-term sinusoidal fit to the data at each frequency; the
   generalization is to expand this to a truncated Fourier series with multiple
   frequencies. While this can be very useful in some cases, in others the
@@ -387,7 +387,7 @@ additional arguments which control the model for the data:
 Periodogram Normalizations
 ==========================
 
-There are several normalizations of the Lomb-Scargle Periodogram found in the
+There are several normalizations of the Lomb-Scargle periodogram found in the
 literature. :class:`~astropy.timeseries.LombScargle` makes four options
 available via the ``normalization`` argument: ``normalization='standard'`` (the
 default), ``normalization='model'``, ``normalization='log'``, and
@@ -493,7 +493,7 @@ Examining the results, we see that the two outputs match:
 >>> u.allclose(PSD_fourier, PSD_LS)
 True
 
-This equivalence is one reason that the Lomb-Scargle Periodogram is considered
+This equivalence is one reason that the Lomb-Scargle periodogram is considered
 to be an extension of the Fourier PSD.
 
 For more information on the statistical properties of these normalizations,
@@ -508,7 +508,7 @@ Peak Significance and False Alarm Probabilities
    commonly misinterpreted or misused. For a detailed discussion of periodogram
    peak significance, see [11]_.
 
-When using the Lomb-Scargle Periodogram to decide whether a signal contains a
+When using the Lomb-Scargle periodogram to decide whether a signal contains a
 periodic component, an important consideration is the significance of the
 periodogram peak. This significance is usually expressed in terms of a
 false alarm probability, which encodes the probability of measuring a
@@ -520,7 +520,7 @@ Example
 
 .. EXAMPLE START: Lomb-Scargle Peak Significance via False Alarm Probabilities
 
-To use the Lomb-Scargle Periodogram to decide if our signal contains a periodic
+To use the Lomb-Scargle periodogram to decide if our signal contains a periodic
 component, we can start by simulating 60 observations of a sine wave with noise:
 
 >>> t = 100 * rand.rand(60)
@@ -597,7 +597,7 @@ which can be chosen using the ``method`` keyword:
     0.0043217866919174324
 
 - ``method="bootstrap"`` implements a bootstrap simulation: effectively it
-  computes many Lomb-Scargle Periodograms on simulated data at the same
+  computes many Lomb-Scargle periodograms on simulated data at the same
   observation times. The bootstrap approach can very accurately determine
   the false alarm probability, but is very computationally expensive.
   To estimate the level corresponding to a false alarm probability
@@ -692,7 +692,7 @@ Periodogram Algorithms
 ======================
 
 The :class:`~astropy.timeseries.LombScargle` class makes available
-several complementary implementations of the Lomb-Scargle Periodogram,
+several complementary implementations of the Lomb-Scargle periodogram,
 which can be selected using the ``method`` keyword of the Lomb-Scargle power.
 By design all methods will return the same results (some approximate),
 and each has its advantages and disadvantages.
@@ -714,7 +714,7 @@ from the following methods using heuristics driven by the input data.
 -----------------
 
 The ``slow`` method is a pure Python implementation of the original Lomb-Scargle
-Periodogram ([1]_, [2]_), enhanced to account for observational noise,
+periodogram ([1]_, [2]_), enhanced to account for observational noise,
 and to allow a floating mean (sometimes called the *generalized periodogram*;
 see [10]_). The method is not particularly fast, scaling approximately
 as :math:`O[NM]` for :math:`N` data points and :math:`M` frequencies.
@@ -732,7 +732,7 @@ scaling is approximately :math:`O[NM]` for :math:`N` data points and
 ------------------
 
 The ``scipy`` method wraps the C implementation of the original Lomb-Scargle
-Periodogram which is available in :func:`scipy.signal.lombscargle`. This is
+periodogram which is available in :func:`scipy.signal.lombscargle`. This is
 slightly faster than the ``slow`` method, but does not allow for errors in
 data or extensions such as the floating mean. The scaling is approximately
 :math:`O[NM]` for :math:`N` data points and :math:`M` frequencies.
@@ -753,7 +753,7 @@ less than zero in some cases.
 -----------------
 
 The ``chi2`` method is a pure Python implementation based on matrix algebra
-(see [7]_). It utilizes the fact that the Lomb-Scargle Periodogram at
+(see [7]_). It utilizes the fact that the Lomb-Scargle periodogram at
 each frequency is equivalent to the least-squares fit of a sinusoid to the
 data. The advantage of the ``chi2`` method is that it allows extensions of
 the periodogram to multiple Fourier terms, specified by the ``nterms``
@@ -882,7 +882,7 @@ complicated than a simple sine wave:
 
 The dotted line shows the periodogram level corresponding to a maximum peak
 false alarm probability of 1%. This example demonstrates that for irregularly
-sampled data, the Lomb-Scargle Periodogram can be sensitive to frequencies
+sampled data, the Lomb-Scargle periodogram can be sensitive to frequencies
 higher than the average Nyquist frequency: the above data are sampled at an
 average rate of roughly one observation per night, and the periodogram
 relatively cleanly reveals the true period of 0.41 days.
