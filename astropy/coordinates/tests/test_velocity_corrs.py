@@ -6,8 +6,11 @@ import numpy as np
 from astropy.tests.helper import assert_quantity_allclose
 from astropy import units as u
 from astropy.time import Time
-from astropy.coordinates import EarthLocation, SkyCoord, Angle
+from astropy.coordinates import EarthLocation, SkyCoord, Angle, Distance
 from astropy.coordinates.sites import get_builtin_sites
+from astropy.utils.data import download_file
+from astropy.constants import c as speed_of_light
+from astropy.table import Table
 
 
 @pytest.mark.remote_data
@@ -305,9 +308,9 @@ def test_invalid_argument_combos():
 
 @pytest.mark.remote_data
 def test_regression_9645():
-    sc = SkyCoord(10*u.deg, 20*u.deg, distance=5*u.pc,
+    sc = SkyCoord(10*u.deg, 20*u.deg, distance=5*u.pc, obstime=test_input_time,
                   pm_ra_cosdec=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr, radial_velocity=0*u.km/u.s)
-    sc_novel = SkyCoord(10*u.deg, 20*u.deg, distance=5*u.pc)
+    sc_novel = SkyCoord(10*u.deg, 20*u.deg, distance=5*u.pc, obstime=test_input_time)
     corr = sc.radial_velocity_correction(obstime=test_input_time, location=test_input_loc)
     corr_novel = sc_novel.radial_velocity_correction(obstime=test_input_time, location=test_input_loc)
     assert_quantity_allclose(corr, corr_novel)
@@ -363,7 +366,9 @@ def _get_test_input_radecvels():
     pmdec = np.linspace(0, 1000, coos.size)*u.mas/u.yr
     rvs = np.linspace(0, 100, coos.size)*u.km/u.s
     distance = np.linspace(10, 1000, coos.size)*u.pc
-    return SkyCoord(ras, decs, pm_ra_cosdec=pmra, pm_dec=pmdec, radial_velocity=rvs, distance=distance)
+    return SkyCoord(ras, decs, pm_ra_cosdec=pmra, pm_dec=pmdec,
+                    radial_velocity=rvs, distance=distance,
+                    obstime=test_input_time)
 
 
 def _get_barycorr_bvcs_withvels(coos, loc, injupyter=False):
@@ -393,3 +398,50 @@ def _get_barycorr_bvcs_withvels(coos, loc, injupyter=False):
                            elevation=loc.geodetic[2].to(u.m).value)
         bvcs.append(res)
     return bvcs*u.m/u.s
+
+
+@pytest.mark.remote_data
+def test_warning_no_obstime_on_skycoord():
+    c = SkyCoord(l=10*u.degree, b=45*u.degree,
+                 pm_l_cosb=34*u.mas/u.yr, pm_b=-117*u.mas/u.yr,
+                 distance=50*u.pc, frame='galactic')
+    with pytest.warns(Warning):
+        c.radial_velocity_correction('barycentric', test_input_time,
+                                     test_input_loc)
+
+
+@pytest.mark.remote_data
+def test_regression_10094():
+    """
+    Make sure that when we include the proper motion and radial velocity of
+    a SkyCoord, our velocity corrections remain close to TEMPO2.
+
+    We check that tau Ceti is within 5mm/s
+    """
+    # Wright & Eastman (2014) Table2
+    # Corrections for tau Ceti
+    wright_table = Table.read(
+        download_file('http://data.astropy.org/coordinates/wright_eastmann_2014_tau_ceti.fits')
+    )
+    reduced_jds = wright_table['JD-2400000']
+    tempo2 = wright_table['TEMPO2']
+    barycorr = wright_table['BARYCORR']
+
+    # tau Ceti Hipparchos data
+    tauCet = SkyCoord('01 44 05.1275 -15 56 22.4006',
+                      unit=(u.hour, u.deg),
+                      pm_ra_cosdec=-1721.05*u.mas/u.yr,
+                      pm_dec=854.16*u.mas/u.yr,
+                      distance=Distance(parallax=273.96*u.mas),
+                      radial_velocity=-16.597*u.km/u.s,
+                      obstime=Time(48348.5625, format='mjd'))
+    # CTIO location as used in Wright & Eastmann
+    xyz = u.Quantity([1814985.3, -5213916.8, -3187738.1], u.m)
+    obs = EarthLocation(*xyz)
+    times = Time(2400000, reduced_jds, format='jd')
+    tempo2 = tempo2 * speed_of_light
+    barycorr = barycorr * speed_of_light
+    astropy = tauCet.radial_velocity_correction(location=obs, obstime=times)
+
+    assert_quantity_allclose(astropy, tempo2, atol=5*u.mm/u.s)
+    assert_quantity_allclose(astropy, barycorr, atol=5*u.mm/u.s)
