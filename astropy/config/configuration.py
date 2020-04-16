@@ -29,7 +29,7 @@ from .paths import get_config_dir
 __all__ = ['InvalidConfigurationItemWarning',
            'ConfigurationMissingWarning', 'get_config',
            'reload_config', 'ConfigNamespace', 'ConfigItem',
-           'generate_config']
+           'generate_astropy_config']
 
 
 class InvalidConfigurationItemWarning(AstropyWarning):
@@ -574,11 +574,16 @@ def get_config(packageormod=None, reload=False, rootname=None):
         return cobj
 
 
-def generate_config(filename=None):
+def generate_astropy_config(filename=None):
     """Generates a configuration file, from the list of ConfigItem
     for each subpackage.
-    """
 
+    Parameters
+    ----------
+    filename : str or file object or None
+        If None, the default configuration path is taken from `get_config`.
+
+    """
     # First, we need to import all modules containing a ConfigNamespace
     # subclass. So this list must be kept up-to-date.
     modules_to_import = [
@@ -601,7 +606,17 @@ def generate_config(filename=None):
     wrapper = TextWrapper(initial_indent="## ", subsequent_indent='## ',
                           width=78)
 
-    fp = open(filename, 'w') if filename else sys.stdout
+    if filename is None:
+        filename = get_config().filename
+
+    if isinstance(filename, str):
+        fp = open(filename, 'w')
+        should_close = True
+    else:
+        # assume it's a file object, or io.StringIO
+        fp = filename
+        should_close = False
+
     try:
         # Parse the subclasses, ordered by their module name
         subclasses = ConfigNamespace.__subclasses__()
@@ -621,7 +636,7 @@ def generate_config(filename=None):
                 fp.write(wrapper.fill(item.description) + '\n')
                 fp.write(f'# {item.name} = {item.defaultvalue}\n\n')
     finally:
-        if fp is not sys.stdout:
+        if should_close:
             fp.close()
 
 
