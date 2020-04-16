@@ -890,7 +890,7 @@ def _linear_wcs_fit(params, lon, lat, x, y, w_obj):
     w_obj.wcs.cd = ((cd[0], cd[1]), (cd[2], cd[3]))
     w_obj.wcs.crpix = crpix
     lon2, lat2 = w_obj.wcs_pix2world(x, y, 0)
-    
+
     resids = np.concatenate((lon-lon2, lat-lat2))
     resids[resids > 180] = 360 - resids[resids > 180]
     resids[resids < -180] = 360	+ resids[resids < -180]
