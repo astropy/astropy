@@ -18,6 +18,7 @@ from warnings import warn
 import importlib
 from textwrap import TextWrapper
 import pkgutil
+import warnings
 
 from astropy.extern.configobj import configobj, validate
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
@@ -585,13 +586,15 @@ def generate_astropy_config(filename=None):
 
     """
     import astropy
-    for mod in pkgutil.walk_packages(path=astropy.__path__,
-                                     prefix=astropy.__name__ + '.'):
-        if not mod.module_finder.path.endswith('tests'):
-            try:
-                importlib.import_module(mod.name)
-            except ImportError:
-                pass
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', AstropyDeprecationWarning)
+        for mod in pkgutil.walk_packages(path=astropy.__path__,
+                                         prefix=astropy.__name__ + '.'):
+            if not mod.module_finder.path.endswith('tests'):
+                try:
+                    importlib.import_module(mod.name)
+                except ImportError:
+                    pass
 
     wrapper = TextWrapper(initial_indent="## ", subsequent_indent='## ',
                           width=78)
