@@ -65,8 +65,8 @@ Now we can check that the time series has been read in correctly:
 
 .. EXAMPLE END
 
-Reading Other Formats
-=====================
+Reading Common Light Curve Formats
+==================================
 
 At the moment only a few formats are defined in ``astropy`` itself, in part
 because there are not many well-documented formats for storing time series. So
@@ -82,7 +82,7 @@ names of the important columns.
 Examples
 --------
 
-.. EXAMPLE START: Reading Other Formats for Storing TimeSeries
+.. EXAMPLE START: Reading Common Light Curve Formats for Storing Time Series
 
 If you are reading in a file called :download:`sampled.csv <sampled.csv>` where
 the time column is called ``Date`` and is an ISO string, you can do::
