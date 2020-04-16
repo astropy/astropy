@@ -277,6 +277,9 @@ class BaseInputter:
     encoding = None
     """Encoding used to read the file"""
 
+    cache = True
+    """"Caching behavior if file is a URL."""
+
     def get_lines(self, table, newline=None):
         """
         Get the lines from the ``table`` input. The input table can be one of:
@@ -303,7 +306,7 @@ class BaseInputter:
             if (hasattr(table, 'read')
                     or ('\n' not in table + '' and '\r' not in table + '')):
                 with get_readable_fileobj(table,
-                                          encoding=self.encoding) as fileobj:
+                                          encoding=self.encoding, cache=self.cache) as fileobj:
                     table = fileobj.read()
             if newline is None:
                 lines = table.splitlines()

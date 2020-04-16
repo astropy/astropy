@@ -311,8 +311,9 @@ def read(table, guess=None, **kwargs):
         # intact.
         if 'readme' not in new_kwargs:
             encoding = kwargs.get('encoding')
+            cache = kwargs.get('cache', False)
             try:
-                with get_readable_fileobj(table, encoding=encoding) as fileobj:
+                with get_readable_fileobj(table, encoding=encoding, cache=cache) as fileobj:
                     table = fileobj.read()
             except ValueError:  # unreadable or invalid binary file
                 raise
@@ -668,7 +669,7 @@ def _read_in_chunks_generator(table, chunk_size, **kwargs):
     """
 
     @contextlib.contextmanager
-    def passthrough_fileobj(fileobj, encoding=None):
+    def passthrough_fileobj(fileobj, encoding=None, cache=False):
         """Stub for get_readable_fileobj, which does not seem to work in Py3
         for input File-like object, see #6460"""
         yield fileobj
@@ -693,7 +694,7 @@ def _read_in_chunks_generator(table, chunk_size, **kwargs):
     prev_chunk_chars = ''  # Chars from previous chunk after last newline
     first_chunk = True  # True for the first chunk, False afterward
 
-    with fileobj_context(table, encoding=kwargs.get('encoding')) as fh:
+    with fileobj_context(table, encoding=kwargs.get('encoding'), cache=kwargs.get('cache')) as fh:
 
         while True:
             chunk = fh.read(chunk_size)
