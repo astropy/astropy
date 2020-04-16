@@ -492,6 +492,7 @@ def test_gcrs_self_transform_closeby():
     assert_allclose(delta, 0.0*u.m, atol=1*u.m)
 
 
+@pytest.mark.remote_data
 def test_teme_itrf():
     """
     Test case transform from TEME to ITRF.
