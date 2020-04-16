@@ -29,7 +29,7 @@ objects might make sense, so we provide methods to convert to/from
 Example
 -------
 
-.. EXAMPLE START: Interfacing between Time Series and the Pandas Package
+.. EXAMPLE START: Interfacing between Time Series and the Pandas DataFrame
 
 Consider a concise example starting from a :class:`~pandas.DataFrame`:
 
