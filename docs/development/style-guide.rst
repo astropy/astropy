@@ -336,10 +336,11 @@ documentation files:
 ^, for subsubsections
 ", for paragraphs
 
-These guidelines follow Sphinx's recommendation in its `reStructuredText Primer
+These guidelines follow Sphinx's recommendation in the `Sections
 <https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html#sections>`_
-and Python's convention in the `7.3.6. Sections
-<https://devguide.python.org/documenting/#sections>`_ part of its style guide.
+chapter of its reStructuredText Primer and Python's convention in the `7.3.6.
+Sections <https://devguide.python.org/documenting/#sections>`_ part of its style
+guide.
 
 Other Writing Resources
 =======================
