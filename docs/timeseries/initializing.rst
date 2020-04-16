@@ -226,9 +226,36 @@ Adding Data to the Time Series
 
 The above examples show how to initialize |TimeSeries| objects, but these do not
 include any data aside from the times. There are different ways of adding data,
-as with the |Table| class.
+as with the |Table| class. 
 
-Adding Data after Initialization
+Passing Data During Initialization
+----------------------------------
+
+.. EXAMPLE START: Adding Data to a TimeSeries Object During Initialization
+
+It is possible to pass data during the initialization of a |TimeSeries|
+object, as for |Table| objects. For instance::
+
+    >>> ts8 = BinnedTimeSeries(time_bin_start=['2016-03-22T12:30:31',
+    ...                                        '2016-03-22T12:30:34',
+    ...                                        '2016-03-22T12:30:37',
+    ...                                        '2016-03-22T12:30:39'],
+    ...                        time_bin_end='2016-03-22T12:30:42',
+    ...                        data={'flux': [1., 4., 5., 6.] * u.mJy})
+    >>> ts8  # doctest: +FLOAT_CMP
+    <BinnedTimeSeries length=4>
+           time_bin_start            time_bin_size       flux
+                                    s           mJy
+             object              float64      float64
+    ----------------------- ----------------- -------
+    2016-03-22T12:30:31.000               3.0     1.0
+    2016-03-22T12:30:34.000               3.0     4.0
+    2016-03-22T12:30:37.000               2.0     5.0
+    2016-03-22T12:30:39.000               3.0     6.0
+
+.. EXAMPLE END
+
+Adding Data After Initialization
 --------------------------------
 
 .. EXAMPLE START: Adding Data to a TimeSeries Object After Initialization
@@ -249,33 +276,6 @@ you would for a |Table| object::
     2016-03-22T12:30:37.000     5.0
     2016-03-22T12:30:40.000     6.0
     2016-03-22T12:30:43.000     4.0
-
-.. EXAMPLE END
-
-Passing Data During Initialization
-----------------------------------
-
-.. EXAMPLE START: Adding Data to a TimeSeries Object During Initialization
-
-It is also possible to pass data during the initialization of a |TimeSeries|
-object, as for |Table| objects, for instance::
-
-    >>> ts8 = BinnedTimeSeries(time_bin_start=['2016-03-22T12:30:31',
-    ...                                        '2016-03-22T12:30:34',
-    ...                                        '2016-03-22T12:30:37',
-    ...                                        '2016-03-22T12:30:39'],
-    ...                        time_bin_end='2016-03-22T12:30:42',
-    ...                        data={'flux': [1., 4., 5., 6.] * u.mJy})
-    >>> ts8  # doctest: +FLOAT_CMP
-    <BinnedTimeSeries length=4>
-           time_bin_start            time_bin_size       flux
-                                    s           mJy
-             object              float64      float64
-    ----------------------- ----------------- -------
-    2016-03-22T12:30:31.000               3.0     1.0
-    2016-03-22T12:30:34.000               3.0     4.0
-    2016-03-22T12:30:37.000               2.0     5.0
-    2016-03-22T12:30:39.000               3.0     6.0
 
 .. EXAMPLE END
 
