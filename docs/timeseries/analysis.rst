@@ -17,7 +17,7 @@ different ways.
 Examples
 --------
 
-.. EXAMPLE START: Stacking Time Series Vertically Using table.vstack
+.. EXAMPLE START: Stacking Time Series Row-Wise Using table.vstack
 
 Time series can be stacked "vertically" or row-wise using the
 :func:`~astropy.table.vstack` function (although note that sampled time
@@ -55,7 +55,7 @@ of duplicates — this is something you would need to do explicitly afterwards.
 
 .. EXAMPLE END
 
-.. EXAMPLE START: Stacking Time Series Horizontally Using table.vstack
+.. EXAMPLE START: Stacking Time Series Column-Wise Using table.vstack
 
 Time series can also be combined "horizontally" or column-wise with other tables
 using the :func:`~astropy.table.hstack` function, though these should not be
@@ -119,7 +119,7 @@ Resampling
 We provide a :func:`~astropy.timeseries.aggregate_downsample` function
 that can be used to bin values from a time series into bins of equal time, using
 a custom function (mean, median, etc.). This operation returns a
-|BinnedTimeSeries|. Note that this is a minimal function in the sense that it
+|BinnedTimeSeries|. Note that this is a basic function in the sense that it
 does not, for example, know how to treat columns with uncertainties differently
 from other values, and it will blindly apply the custom function specified to
 all columns.
@@ -127,7 +127,7 @@ all columns.
 Example
 -------
 
-.. EXAMPLE START: Getting a BinnedTimeSeries
+.. EXAMPLE START: Creating a BinnedTimeSeries
 
 The following example shows how to use
 :func:`~astropy.timeseries.aggregate_downsample` to bin a light curve from the
@@ -181,7 +181,7 @@ We can take a look at the results:
 Folding
 =======
 
-.. EXAMPLE START: Using the TimeSeries Fold Method
+.. EXAMPLE START: Phase Folding a Time Series
 
 The |TimeSeries| class has a
 :meth:`~astropy.timeseries.TimeSeries.fold` method that can be used to
@@ -221,7 +221,7 @@ might do this.
 Arithmetic
 ==========
 
-.. EXAMPLE START: Arithmetic with TimeSeries Objects
+.. EXAMPLE START: Arithmetic with Time Series
 
 Since |TimeSeries| objects are subclasses of |Table|, they naturally support
 arithmetic on any of the data columns. As an example, we can take the folded
