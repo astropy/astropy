@@ -198,8 +198,8 @@ dash.
 Examples
 --------
 * Several types of input angles — array, scalar, tuple, string — can be used in
-  the creation of an |Angle| object.
-* The creation of an |Angle| object supports a variety of input angle types —
+  the creation of an Angle object.
+* The creation of an Angle object supports a variety of input angle types —
   array, scalar, tuple, string, etc.
 
 Spelling
