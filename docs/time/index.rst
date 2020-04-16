@@ -1214,11 +1214,11 @@ object (or is TAI in case of a UTC time)::
 
 .. note:: Since internally |Time| uses floating point numbers, round-off
           errors can cause two times to be not strictly equal even if
-          mathematically they should be.  For times in UTC in particular, this
-          can lead to surprising behaviour, because when one adds a
+          mathematically they should be. For times in UTC in particular, this
+          can lead to surprising behavior, because when you add a
           |TimeDelta|, which cannot have a scale of UTC, the UTC time is
           first converted to TAI, then the addition is done, and finally the
-          time is converted back to UTC.  Hence, rounding errors can be
+          time is converted back to UTC. Hence, rounding errors can be
           incurred, which means that even expected equalities may not hold::
 
             >>> t = Time(2450000., 1e-6, format='jd')
