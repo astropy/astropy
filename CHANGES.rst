@@ -246,6 +246,13 @@ astropy.io.ascii
   ``converters`` dict names referred to the *input* table column names, but now
   they refer to the *output* table column names. [#9739]
 
+- The equality operator for comparing ``SkyCoord``, ``Frame``, and
+  ``Representation`` objects was changed. A comparison like ``sc1 == sc2`` would
+  previously return ``True`` only if the objects were actually the same object
+  and ``False`` otherwise. It will now return a boolean or boolean array where
+  the objects are strictly equal in all relevant frame attributes and coordinate
+  representation values. [#10154]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
@@ -338,13 +345,6 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
-
-- The equality operator for comparing ``SkyCoord``, ``Frame``, and
-  ``Representation`` objects was changed. A comparison like ``sc1 == sc2`` would
-  previously return ``True`` only if the objects were actually the same object
-  and ``False`` otherwise. It will now return a boolean or boolean array where
-  the objects are strictly equal in all relevant frame attributes and coordinate
-  representation values. [#10154]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
