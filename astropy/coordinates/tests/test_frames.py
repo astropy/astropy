@@ -863,7 +863,7 @@ def test_shorthand_representations():
 
 
 def test_equal():
-    from astropy.coordinates.builtin_frames import FK4
+    from astropy.coordinates.builtin_frames import FK4, ICRS
 
     obstime = 'B1955'
     sc1 = FK4([1, 2]*u.deg, [3, 4]*u.deg, obstime=obstime)
@@ -893,6 +893,9 @@ def test_equal():
     assert np.all(ne == [False, True])
     assert (sc1[0] == sc2[0]) == True  # noqa
     assert (sc1[0] != sc2[0]) == False  # noqa
+
+    assert (FK4() == ICRS()) is False
+    assert (FK4() == FK4(obstime='J1999')) is False
 
 
 def test_equal_exceptions():
