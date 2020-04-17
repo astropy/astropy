@@ -862,6 +862,87 @@ def test_shorthand_representations():
     assert isinstance(sph.differentials['s'], r.SphericalCosLatDifferential)
 
 
+def test_equal():
+    from astropy.coordinates.builtin_frames import FK4
+
+    obstime = 'B1955'
+    sc1 = FK4([1, 2]*u.deg, [3, 4]*u.deg, obstime=obstime)
+    sc2 = FK4([1, 20]*u.deg, [3, 4]*u.deg, obstime=obstime)
+
+    # Compare arrays and scalars
+    eq = sc1 == sc2
+    ne = sc1 != sc2
+    assert np.all(eq == [True, False])
+    assert np.all(ne == [False, True])
+    assert (sc1[0] == sc2[0]) == True  # noqa  (numpy True not Python True)
+    assert (sc1[0] != sc2[0]) == False  # noqa
+
+    # Broadcasting
+    eq = sc1[0] == sc2
+    ne = sc1[0] != sc2
+    assert np.all(eq == [True, False])
+    assert np.all(ne == [False, True])
+
+    # With diff only in velocity
+    sc1 = FK4([1, 2]*u.deg, [3, 4]*u.deg, radial_velocity=[1, 2]*u.km/u.s)
+    sc2 = FK4([1, 2]*u.deg, [3, 4]*u.deg, radial_velocity=[1, 20]*u.km/u.s)
+
+    eq = sc1 == sc2
+    ne = sc1 != sc2
+    assert np.all(eq == [True, False])
+    assert np.all(ne == [False, True])
+    assert (sc1[0] == sc2[0]) == True  # noqa
+    assert (sc1[0] != sc2[0]) == False  # noqa
+
+
+def test_equal_exceptions():
+    from astropy.coordinates.builtin_frames import FK4, FK5
+
+    # Shape mismatch
+    sc1 = FK4([1, 2, 3]*u.deg, [3, 4, 5]*u.deg)
+    with pytest.raises(ValueError, match='cannot compare: shape mismatch'):
+        sc1 == sc1[:2]
+
+    # Different representation_type
+    sc1 = FK4(1, 2, 3, representation_type='cartesian')
+    sc2 = FK4(1*u.deg, 2*u.deg, 2, representation_type='spherical')
+    with pytest.raises(TypeError, match='cannot compare: objects must have same '
+                       'class: CartesianRepresentation vs. SphericalRepresentation'):
+        sc1 == sc2
+
+    # Different differential type
+    sc1 = FK4(1*u.deg, 2*u.deg, radial_velocity=1*u.km/u.s)
+    sc2 = FK4(1*u.deg, 2*u.deg, pm_ra_cosdec=1*u.mas/u.yr, pm_dec=1*u.mas/u.yr)
+    with pytest.raises(TypeError, match='cannot compare: objects must have same '
+                       'class: RadialDifferential vs. UnitSphericalCosLatDifferential'):
+        sc1 == sc2
+
+    # Different frame attribute
+    sc1 = FK5(1*u.deg, 2*u.deg)
+    sc2 = FK5(1*u.deg, 2*u.deg, equinox='J1999')
+    with pytest.raises(TypeError, match=r'cannot compare: objects must have equivalent '
+                       r'frames: <FK5 Frame \(equinox=J2000.000\)> '
+                       r'vs. <FK5 Frame \(equinox=J1999.000\)>'):
+        sc1 == sc2
+
+    # Different frame
+    sc1 = FK4(1*u.deg, 2*u.deg)
+    sc2 = FK5(1*u.deg, 2*u.deg, equinox='J2000')
+    with pytest.raises(TypeError, match='cannot compare: objects must have equivalent '
+                       r'frames: <FK4 Frame \(equinox=B1950.000, obstime=B1950.000\)> '
+                       r'vs. <FK5 Frame \(equinox=J2000.000\)>'):
+        sc1 == sc2
+
+    sc1 = FK4(1*u.deg, 2*u.deg)
+    sc2 = FK4()
+    with pytest.raises(ValueError, match='cannot compare: one frame has data and '
+                       'the other does not'):
+        sc1 == sc2
+    with pytest.raises(ValueError, match='cannot compare: one frame has data and '
+                       'the other does not'):
+        sc2 == sc1
+
+
 def test_dynamic_attrs():
     from astropy.coordinates.builtin_frames import ICRS
     c = ICRS(1*u.deg, 2*u.deg)

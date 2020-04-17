@@ -1636,8 +1636,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         """
         if not self.is_equivalent_frame(value):
             raise TypeError(f'cannot compare: objects must have equivalent frames: '
-                            f'{self.__class__.__name__} vs. '
-                            f'{value.__class__.__name__}')
+                            f'{self.replicate_without_data()} vs. '
+                            f'{value.replicate_without_data()}')
 
         if ((value._data is None and self._data is not None)
                 or (self._data is None and value._data is not None)):
