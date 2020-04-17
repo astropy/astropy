@@ -340,22 +340,23 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         classes are identical and that the representation data are exactly equal.
         """
         if self.__class__ is not value.__class__:
-            return False
+            raise TypeError(f'cannot compare: objects must have same class: '
+                            f'{self.__class__.__name__} vs. '
+                            f'{value.__class__.__name__}')
 
-        for component in self.components:
-            ok = (getattr(self, '_' + component) == getattr(value, '_' + component))
-            try:
-                out &= ok
-            except NameError:
-                out = ok
+        try:
+            np.broadcast(self, value)
+        except ValueError as exc:
+            raise ValueError(f'cannot compare: {exc}') from exc
+
+        out = True
+        for comp in self.components:
+            out &= (getattr(self, '_' + comp) == getattr(value, '_' + comp))
+
         return out
 
     def __ne__(self, value):
-        eq = self.__eq__(value)
-        if isinstance(eq, bool):
-            return not eq
-        else:
-            return ~eq
+        return np.logical_not(self == value)
 
     def _apply(self, method, *args, **kwargs):
         """Create a new representation or differential with ``method`` applied
@@ -948,24 +949,28 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
         return representation.represent_as(cls)
 
     def __eq__(self, value):
-        """Equality operator
+        """Equality operator for BaseRepresentation
 
         This implements strict equality and requires that the representation
         classes are identical, the differentials are identical, and that the
         representation data are exactly equal.
         """
-        if self.__class__ is not value.__class__:
-            return False
-
-        if self._differentials.keys() != value._differentials.keys():
-            return False
-
+        # BaseRepresentationOrDifferental (checks classes and compares components)
         out = super().__eq__(value)
+
+        # super() checks that the class is identical so can this even happen?
+        # (same class, different differentials ?)
+        if self._differentials.keys() != value._differentials.keys():
+            raise ValueError(f'cannot compare: objects must have same differentials')
+
         for self_diff, value_diff in zip(self._differentials.values(),
                                          value._differentials.values()):
-            out &= self_diff == value_diff
+            out &= (self_diff == value_diff)
 
         return out
+
+    def __ne__(self, value):
+        return np.logical_not(self == value)
 
     def _apply(self, method, *args, **kwargs):
         """Create a new representation with ``method`` applied to the component

@@ -1635,28 +1635,19 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         equivalent and that the representation data are exactly equal.
         """
         if not self.is_equivalent_frame(value):
-            return False
+            raise TypeError(f'cannot compare: objects must have equivalent frames: '
+                            f'{self.__class__.__name__} vs. '
+                            f'{value.__class__.__name__}')
 
-        if value._data is None and self._data is not None:
-            return False
-
-        if self._data is None and value._data is not None:
-            return False
-
-        if self._data is None and value._data is None:
-            return True
-
-        if self.shape != value.shape:
-            return False
+        if ((value._data is None and self._data is not None)
+                or (self._data is None and value._data is not None)):
+            raise ValueError('cannot compare: one frame has data and the other '
+                             'does not')
 
         return self._data == value._data
 
     def __ne__(self, value):
-        eq = self.__eq__(value)
-        if isinstance(eq, bool):
-            return not eq
-        else:
-            return ~eq
+        return np.logical_not(self == value)
 
     def separation(self, other):
         """
