@@ -345,6 +345,47 @@ def test_frame_init():
     assert 'Cannot override frame=' in str(err.value)
 
 
+def test_equal():
+    obstime = 'B1955'
+    sc1 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg, obstime=obstime)
+    sc2 = SkyCoord([1, 20]*u.deg, [3, 4]*u.deg, obstime=obstime)
+
+    # Compare arrays and scalars
+    eq = sc1 == sc2
+    ne = sc1 != sc2
+    assert np.all(eq == [True, False])
+    assert np.all(ne == [False, True])
+    assert (sc1[0] == sc2[0]) == True  # noqa  (numpy True not Python True)
+    assert (sc1[0] != sc2[0]) == False  # noqa
+
+    # Broadcasting
+    eq = sc1[0] == sc2
+    ne = sc1[0] != sc2
+    assert np.all(eq == [True, False])
+    assert np.all(ne == [False, True])
+
+    # With diff only in velocity
+    sc1 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg, radial_velocity=[1, 2]*u.km/u.s)
+    sc2 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg, radial_velocity=[1, 20]*u.km/u.s)
+
+    eq = sc1 == sc2
+    ne = sc1 != sc2
+    assert np.all(eq == [True, False])
+    assert np.all(ne == [False, True])
+    assert (sc1[0] == sc2[0]) == True  # noqa
+    assert (sc1[0] != sc2[0]) == False  # noqa
+
+
+def test_equal_exceptions():
+    sc1 = SkyCoord(1*u.deg, 2*u.deg, obstime='B1955')
+    sc2 = SkyCoord(1*u.deg, 2*u.deg)
+    with pytest.raises(ValueError, match=r"cannot compare: extra frame "
+                       r"attribute 'obstime' is not equivalent \(perhaps compare the "
+                       r"frames directly to avoid this exception\)"):
+        sc1 == sc2
+    # Note that this exception is the only one raised directly in SkyCoord.
+    # All others come from lower-level classes and are tested in test_frames.py.
+
 def test_attr_inheritance():
     """
     When initializing from an existing coord the representation attrs like
