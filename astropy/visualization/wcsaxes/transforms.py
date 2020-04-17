@@ -66,18 +66,23 @@ class CoordinateTransform(CurvedTransform):
         self._output_system_name = output_system
 
         if isinstance(self._input_system_name, str):
-            self.input_system = frame_transform_graph.lookup_name(self._input_system_name)
-            if self.input_system is None:
+            frame_cls = frame_transform_graph.lookup_name(self._input_system_name)
+            if frame_cls is None:
                 raise ValueError(f"Frame {self._input_system_name} not found")
+            else:
+                self.input_system = frame_cls()
         elif isinstance(self._input_system_name, BaseCoordinateFrame):
             self.input_system = self._input_system_name
         else:
             raise TypeError("input_system should be a WCS instance, string, or a coordinate frame instance")
 
         if isinstance(self._output_system_name, str):
-            self.output_system = frame_transform_graph.lookup_name(self._output_system_name)
-            if self.output_system is None:
+            frame_cls = frame_transform_graph.lookup_name(self._output_system_name)
+            if frame_cls is None:
                 raise ValueError(f"Frame {self._output_system_name} not found")
+            else:
+                self.output_system = frame_cls()
+
         elif isinstance(self._output_system_name, BaseCoordinateFrame):
             self.output_system = self._output_system_name
         else:
