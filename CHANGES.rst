@@ -28,6 +28,10 @@ astropy.coordinates
 - Allow in-place modification of array-valued ``Frame`` and ``SkyCoord`` objects.
   This provides limited support for updating coordinate data values from another
   coordinate object of the same class and equivalent frame attributes. [#9857]
+- Added a robust equality operator for comparing ``SkyCoord``, ``Frame``, and
+  ``Representation`` objects. A comparison like ``sc1 == sc2`` will now return
+  a boolean or boolean array where the objects are strictly equal in all relevant
+  frame attributes and coordinate representation values. [#10154]
 
 - Added the True Equator Mean Equinox (TEME) frame. [#10149]
 
@@ -334,6 +338,13 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
+
+- The equality operator for comparing ``SkyCoord``, ``Frame``, and
+  ``Representation`` objects was changed. A comparison like ``sc1 == sc2`` would
+  previously return ``True`` only if the objects were actually the same object
+  and ``False`` otherwise. It will now return a boolean or boolean array where
+  the objects are strictly equal in all relevant frame attributes and coordinate
+  representation values. [#10154]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
