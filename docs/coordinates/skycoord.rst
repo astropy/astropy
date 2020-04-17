@@ -1106,7 +1106,7 @@ Comparing Objects
 |SkyCoord| objects can be compared to each other like normal floats or numpy
 arrays, but there are some caveats you should understand. These comparisons are
 quite useful in testing for software development, but because of precision issues
-(see below) they are not typically helpful in science analysis where coordinate
+(see below) they may not helpful in science analysis where coordinate
 matching with a reasonable offset tolerance is required.
 
 In the first example we show simple comparisons using array-valued coordinates::
@@ -1141,6 +1141,14 @@ with::
 
   >>> sc1.frame == sc2.frame
   array([ True, False])
+
+One slightly special case is comparing two frames that both have no data, where
+the return value is the same as ``frame1.is_equivalent_frame(frame2)``. For
+example::
+
+  >>> from astropy.coordinates import FK4
+  >>> FK4() == FK4(obstime='2020-01-01')
+  False
 
 The final point to note is that the comparison is made to full floating point
 precision, so any sort of transform will generally result in a ``False``
