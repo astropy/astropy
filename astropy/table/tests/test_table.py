@@ -1461,6 +1461,9 @@ def test_values_equal_part1():
 
     tsk = table.table_helpers.simple_table()
     tsk['sk'] = SkyCoord(1, 2, unit='deg')
+    eqsk = tsk.values_equal(tsk)
+    for col in eqsk.itercols():
+        assert np.all(col)
 
     with pytest.raises(ValueError, match='cannot compare tables with different column names'):
         t2.values_equal(t1)
@@ -1476,8 +1479,6 @@ def test_values_equal_part1():
     with pytest.raises(ValueError, match='unable to compare column c'):
         t1.values_equal([1, 2])
 
-    with pytest.raises(TypeError, match='comparison for column sk'):
-        tsk.values_equal(tsk)
 
     eq = t2.values_equal(t2)
     for col in eq.colnames:
