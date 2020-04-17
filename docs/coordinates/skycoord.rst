@@ -1100,6 +1100,56 @@ We use the same plotting setup as in the last example:
 ..
   EXAMPLE END
 
+Comparing Objects
+=================
+
+|SkyCoord| objects can be compared to each other like normal floats or numpy
+arrays, but there are some caveats you should understand. These comparisons are
+quite useful in testing for software development, but because of precision issues
+(see below) they are not typically helpful in science analysis where coordinate
+matching with a reasonable offset tolerance is required.
+
+In the first example we show simple comparisons using array-valued coordinates::
+
+  >>> sc1 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg)
+  >>> sc2 = SkyCoord([1, 20]*u.deg, [3, 4]*u.deg)
+
+  >>> sc1 == sc2  # Array-valued comparison
+  array([ True, False])
+  >>> sc2 == sc2[1]  # Broadcasting comparison with a scalar
+  array([False,  True])
+  >>> sc2[0] == sc2[1]  # Scalar to scalar comparison
+  False
+  >>> sc1 != sc2  # Not equal
+  array([False,  True])
+
+In addition to numerically comparing the representation component data (which
+may include velocities), the equality comparison includes strict tests that all
+of the frame attributes like ``equinox`` or ``obstime`` are exactly equal.  Any
+mismatch in attributes will result in an exception being raised.  For example::
+
+  >>> sc1 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg)
+  >>> sc2 = SkyCoord([1, 20]*u.deg, [3, 4]*u.deg, obstime='2020-01-01')
+  >>> sc1 == sc2  # doctest: +SKIP
+  ...
+  ValueError: cannot compare: extra frame attribute 'obstime' is not equivalent
+   (perhaps compare the frames directly to avoid this exception)
+
+In this example the ``obstime`` attribute is a so-called "extra" frame attribute
+that does not apply directly to the ICRS coordinate frame. So we could compare
+with::
+
+  >>> sc1.frame == sc2.frame
+  array([ True, False])
+
+The final point to note is that the comparison is made to full floating point
+precision, so any sort of transform will generally result in a ``False``
+comparison::
+
+  >>> sc1 = SkyCoord(1*u.deg, 2*u.deg, frame='fk4')
+  >>> sc1.icrs.fk4 == sc1
+  False
+
 Convenience Methods
 ===================
 
