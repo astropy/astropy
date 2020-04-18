@@ -25,7 +25,8 @@ from astropy.utils.compat import NUMPY_LT_1_17
 from . import _np_utils
 from .np_utils import fix_column_name, TableMergeError
 
-__all__ = ['join', 'setdiff', 'hstack', 'vstack', 'unique']
+__all__ = ['join', 'setdiff', 'hstack', 'vstack', 'unique',
+           'skycoord_join', 'distance_join']
 
 
 def _merge_table_meta(out, tables, metadata_conflicts='warn'):
@@ -117,24 +118,29 @@ def skycoord_join(distance, distance_kind='sky'):
 
     Examples
     --------
+    This example shows an inner join of two ``SkyCoord`` columns, taking any
+    sources within 0.2 deg to be a match.  Note the new ``sc_id`` column which
+    is added and provides a unique source identifier for the matches.
 
-      >>> from astropy.coordinates import SkyCoord import astropy.units as u
-      >>> from astropy.table import Table from astropy.table.operations import
-      >>> skycoord_join, distance_join
+      >>> from astropy.coordinates import SkyCoord
+      >>> import astropy.units as u
+      >>> from astropy.table import Table
+      >>> from astropy.table.operations import skycoord_join
+      >>> from astropy import table
 
-      >>> sc1 = SkyCoord([0, 1, 1.1, 2], [0, 0, 0, 0], unit='deg') sc2 =
-      >>> SkyCoord([0.5, 1.05, 2.1]], [0, 0, 0], unit='deg')
+      >>> sc1 = SkyCoord([0, 1, 1.1, 2], [0, 0, 0, 0], unit='deg')
+      >>> sc2 = SkyCoord([0.5, 1.05, 2.1], [0, 0, 0], unit='deg')
 
-      >>> t1 = Table([sc1], names=['sc']) t2 = Table([sc2], names=['sc'])
-      >>> table.join(t1, t2, join_funcs={'sc': skycoord_join(0.2 * u.deg)})
-      >>> <Table length=3>
-      >>> sc_id   sc_1    sc_2
-      >>> deg,deg deg,deg
-      >>> int64  object  object
-      >>> ----- ------- --------
-      >>> 1 1.0,0.0 1.05,0.0
-      >>> 1 1.1,0.0 1.05,0.0
-      >>> 2 2.0,0.0  2.1,0.0
+      >>> t1 = Table([sc1], names=['sc'])
+      >>> t2 = Table([sc2], names=['sc'])
+      >>> t12 = table.join(t1, t2, join_funcs={'sc': skycoord_join(0.2 * u.deg)})
+      >>> print(t12)
+      sc_id   sc_1    sc_2
+            deg,deg deg,deg
+      ----- ------- --------
+          1 1.0,0.0 1.05,0.0
+          1 1.1,0.0 1.05,0.0
+          2 2.0,0.0  2.1,0.0
 
     """
     def join_func(sc1, sc2):
@@ -213,6 +219,7 @@ def distance_join(distance, kdtree_args=None, query_args=None):
     --------
 
       >>> from astropy.table import Table
+      >>> from astropy import table
       >>> from astropy.table.operations import distance_join
 
       >>> c1 = [0, 1, 1.1, 2]
@@ -220,16 +227,15 @@ def distance_join(distance, kdtree_args=None, query_args=None):
 
       >>> t1 = Table([c1], names=['col'])
       >>> t2 = Table([c2], names=['col'])
-      >>> table.join(t1, t2, join_type='outer', join_funcs={'col': distance_join(0.2)})
-      <Table length=5>
-      col_id  col_1   col_2
-      int64  float64 float64
-      ------ ------- -------
-           1     1.0    1.05
-           1     1.1    1.05
-           2     2.0     2.1
-           3     0.0      --
-           4      --     0.5
+      >>> t12 = table.join(t1, t2, join_type='outer', join_funcs={'col': distance_join(0.2)})
+      >>> print(t12)
+      col_id col_1 col_2
+      ------ ----- -----
+           1   1.0  1.05
+           1   1.1  1.05
+           2   2.0   2.1
+           3   0.0    --
+           4    --   0.5
 
     """
     try:
