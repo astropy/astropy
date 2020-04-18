@@ -89,9 +89,41 @@ def _get_out_class(objs):
     return out_class
 
 
+def skycoord_join(seplimit, search_around='sky'):
+    def join_func(sc1, sc2):
+        sc1_search_around = getattr(sc1, f'search_around_{search_around}')
+        idxs2, idxs1, d2d, d3d = sc1_search_around(sc2, seplimit)
+
+        ids1 = np.zeros(len(sc1), dtype=int) - 1
+        ids2 = np.zeros(len(sc2), dtype=int) - 1
+
+        id_ = 0
+        for idx1, idx2 in zip(idxs1, idxs2):
+            if ids1[idx1] >= 0:
+                ids2[idx2] = ids1[idx1]
+            elif ids2[idx2] >= 0:
+                ids1[idx1] = ids2[idx2]
+            else:
+                ids1[idx1] = id_
+                ids2[idx2] = id_
+                id_ += 1
+
+        for idx in np.flatnonzero(ids1 == -1):
+            ids1[idx] = id_
+            id_ += 1
+
+        for idx in np.flatnonzero(ids2 == -1):
+            ids2[idx] = id_
+            id_ += 1
+
+        return ids1, ids2
+    return join_func
+
+
 def join(left, right, keys=None, join_type='inner',
          uniq_col_name='{col_name}_{table_name}',
-         table_names=['1', '2'], metadata_conflicts='warn'):
+         table_names=['1', '2'], metadata_conflicts='warn',
+         join_funcs=None):
     """
     Perform a join of the left table with the right table on specified keys.
 
@@ -132,7 +164,8 @@ def join(left, right, keys=None, join_type='inner',
 
     col_name_map = OrderedDict()
     out = _join(left, right, keys, join_type,
-                uniq_col_name, table_names, col_name_map, metadata_conflicts)
+                uniq_col_name, table_names, col_name_map, metadata_conflicts,
+                join_funcs)
 
     # Merge the column and table meta data. Table subclasses might override
     # these methods for custom merge behavior.
@@ -764,10 +797,30 @@ def _get_join_sort_idxs(keys, left, right):
     return idxs, idx_sort
 
 
+def _apply_join_funcs(left, right, keys, join_funcs):
+    """Apply join_funcs
+    """
+    # Make light copies of left and right, then add new index columns.
+    left = left.copy(copy_data=False)
+    right = right.copy(copy_data=False)
+    for key, join_func in join_funcs.items():
+        ids1, ids2 = join_func(left[key], right[key])
+        for ii in itertools.count(1):
+            id_key = key + '_' * ii + 'id'
+            if id_key not in left.columns and id_key not in right.columns:
+                break
+        keys = tuple(id_key if orig_key == key else orig_key for orig_key in keys)
+        left.add_column(ids1, index=0, name=id_key)  # [id_key] = ids1
+        right.add_column(ids2, index=0, name=id_key)  # [id_key] = ids2
+
+    return left, right, keys
+
+
 def _join(left, right, keys=None, join_type='inner',
           uniq_col_name='{col_name}_{table_name}',
           table_names=['1', '2'],
-          col_name_map=None, metadata_conflicts='warn'):
+          col_name_map=None, metadata_conflicts='warn',
+          join_funcs=None):
     """
     Perform a join of the left and right Tables on specified keys.
 
@@ -820,6 +873,9 @@ def _join(left, right, keys=None, join_type='inner',
         if keys:
             raise ValueError('cannot supply keys for a cartesian join')
 
+        if join_funcs:
+            raise ValueError('cannot supply join_funcs for a cartesian join')
+
         # Make light copies of left and right, then add temporary index columns
         # with all the same value so later an outer join turns into a cartesian join.
         left = left.copy(copy_data=False)
@@ -845,6 +901,12 @@ def _join(left, right, keys=None, join_type='inner',
             if hasattr(arr[name], 'mask') and np.any(arr[name].mask):
                 raise TableMergeError('{} key column {!r} has missing values'
                                       .format(arr_label, name))
+
+    if join_funcs is not None:
+        if not all(key in keys for key in join_funcs):
+            raise ValueError(f'join_funcs keys {join_funcs.keys()} must be a '
+                             f'subset of join keys {keys}')
+        left, right, keys = _apply_join_funcs(left, right, keys, join_funcs)
 
     len_left, len_right = len(left), len(right)
 
