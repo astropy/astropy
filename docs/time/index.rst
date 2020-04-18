@@ -1100,7 +1100,7 @@ operations are available:
 - Add two |TimeDelta| objects to get a new |TimeDelta|.
 - Negate a |TimeDelta| or take its absolute value.
 - Multiply or divide a |TimeDelta| by a constant or array.
-- Convert |TimeDelta| objects to and from time-like |Quantities|.
+- Convert |TimeDelta| objects to and from time-like |Quantity|'s.
 
 The |TimeDelta| class is derived from the |Time| class and shares many of its
 properties. One difference is that the time scale has to be one for which one
