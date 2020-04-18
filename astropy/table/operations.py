@@ -89,34 +89,124 @@ def _get_out_class(objs):
     return out_class
 
 
-def skycoord_join(seplimit, search_around='sky'):
+def skycoord_join(distance, search_around='sky'):
     def join_func(sc1, sc2):
+        if search_around not in ('sky', '3d'):
+            raise ValueError("search_around must be 'sky' or '3d'")
+
+        # Call the appropriate SkyCoord method to find pairs within distance
         sc1_search_around = getattr(sc1, f'search_around_{search_around}')
-        idxs2, idxs1, d2d, d3d = sc1_search_around(sc2, seplimit)
+        idxs2, idxs1, d2d, d3d = sc1_search_around(sc2, distance)
 
-        ids1 = np.zeros(len(sc1), dtype=int) - 1
-        ids2 = np.zeros(len(sc2), dtype=int) - 1
+        # Now convert that into unique identifiers for each near-pair. This is
+        # taken to be transitive, so that if points 1 and 2 are "near" and points
+        # 1 and 3 are "near", then 1, 2, and 3 are all given the same identifier.
+        # This identifier will then be used in the table join matching.
 
-        id_ = 0
+        # Identifiers for each column, initialized to all zero.
+        ids1 = np.zeros(len(sc1), dtype=int)
+        ids2 = np.zeros(len(sc2), dtype=int)
+
+        # Start the identifier count at 1
+        id_ = 1
         for idx1, idx2 in zip(idxs1, idxs2):
-            if ids1[idx1] >= 0:
+            # If this col1 point is previously identified then set corresponding
+            # col2 point to same identifier.  Likewise for col2 and col1.
+            if ids1[idx1] > 0:
                 ids2[idx2] = ids1[idx1]
-            elif ids2[idx2] >= 0:
+            elif ids2[idx2] > 0:
                 ids1[idx1] = ids2[idx2]
             else:
+                # Not yet seen so set identifer for col1 and col2
                 ids1[idx1] = id_
                 ids2[idx2] = id_
                 id_ += 1
 
-        for idx in np.flatnonzero(ids1 == -1):
-            ids1[idx] = id_
-            id_ += 1
+        # Fill in unique identifiers for points with no near neighbor
+        for ids in (ids1, ids2):
+            for idx in np.flatnonzero(ids == 0):
+                ids[idx] = id_
+                id_ += 1
 
-        for idx in np.flatnonzero(ids2 == -1):
-            ids2[idx] = id_
-            id_ += 1
-
+        # End of enclosure join_func()
         return ids1, ids2
+
+    return join_func
+
+
+def distance_join(distance, kdtree_args=None, query_args=None):
+    from scipy.spatial import cKDTree
+
+    if kdtree_args is None:
+        kdtree_args = {}
+    if query_args is None:
+        query_args = {}
+
+    def join_func(col1, col2):
+        if col1.ndim > 2 or col2.ndim > 2:
+            raise ValueError('columns for isclose_join must be 1- or 2-dimensional')
+
+        if isinstance(distance, Quantity):
+            # Convert to np.array with common unit
+            col1 = col1.to_value(distance.unit)
+            col2 = col2.to_value(distance.unit)
+            dist = distance.value
+        else:
+            # Convert to np.array to allow later in-place shape changing
+            col1 = np.asarray(col1)
+            col2 = np.asarray(col2)
+            dist = distance
+
+        # Ensure columns are pure np.array and are 2-D for use with KDTree
+        if col1.ndim == 1:
+            col1.shape = col1.shape + (1,)
+        if col2.ndim == 1:
+            col2.shape = col2.shape + (1,)
+
+        # Cross-match col1 and col2 within dist using KDTree
+        kd1 = cKDTree(col1, **kdtree_args)
+        kd2 = cKDTree(col2, **kdtree_args)
+        nears = kd1.query_ball_tree(kd2, r=dist, **query_args)
+
+        # Output of above is nears which is a list of lists, where the outer
+        # list corresponds to each item in col1, and where the inner lists are
+        # indexes into col2 of elements within the distance tolerance.  This
+        # identifies col1 / col2 near pairs.
+
+        # Now convert that into unique identifiers for each near-pair. This is
+        # taken to be transitive, so that if points 1 and 2 are "near" and points
+        # 1 and 3 are "near", then 1, 2, and 3 are all given the same identifier.
+        # This identifier will then be used in the table join matching.
+
+        # Identifiers for each column, initialized to all zero.
+        ids1 = np.zeros(len(col1), dtype=int)
+        ids2 = np.zeros(len(col2), dtype=int)
+
+        # Start the identifier count at 1
+        id_ = 1
+        for idx1, idxs2 in enumerate(nears):
+            for idx2 in idxs2:
+                # If this col1 point is previously identified then set corresponding
+                # col2 point to same identifier.  Likewise for col2 and col1.
+                if ids1[idx1] > 0:
+                    ids2[idx2] = ids1[idx1]
+                elif ids2[idx2] > 0:
+                    ids1[idx1] = ids2[idx2]
+                else:
+                    # Not yet seen so set identifer for col1 and col2
+                    ids1[idx1] = id_
+                    ids2[idx2] = id_
+                    id_ += 1
+
+        # Fill in unique identifiers for points with no near neighbor
+        for ids in (ids1, ids2):
+            for idx in np.flatnonzero(ids == 0):
+                ids[idx] = id_
+                id_ += 1
+
+        # End of enclosure join_func()
+        return ids1, ids2
+
     return join_func
 
 
