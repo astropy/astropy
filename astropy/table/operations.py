@@ -89,13 +89,60 @@ def _get_out_class(objs):
     return out_class
 
 
-def skycoord_join(distance, search_around='sky'):
+def skycoord_join(distance, distance_kind='sky'):
+    """Helper function to join on SkyCoord columns using distance matching.
+
+    This function is intended for use in ``table.join()`` to allow performing a
+    table join where the key columns are both ``SkyCoord`` objects, matched by
+    computing the distance between points and accepting values below
+    ``distance``.
+
+    The distance cross-matching is done using either
+    `~astropy.coordinates.SkyCoord.search_around_sky` or
+    `~astropy.coordinates.SkyCoord.search_around_3d`, depending on the value of
+    ``distance_kind``.
+
+    Parameters
+    ----------
+    distance : Quantity (angle or length)
+        Maximum distance between points to be considered a join match
+    distance_kind : str
+        Kind of distance, either 'sky' (angle) or '3d' (length)
+
+    Returns
+    -------
+    join_func : function
+        Function that accepts two ``SkyCoord`` columns (col1, col2) and returns
+        the tuple (ids1, ids2) of pair-matched unique identifiers.
+
+    Examples
+    --------
+
+      >>> from astropy.coordinates import SkyCoord import astropy.units as u
+      >>> from astropy.table import Table from astropy.table.operations import
+      >>> skycoord_join, distance_join
+
+      >>> sc1 = SkyCoord([0, 1, 1.1, 2], [0, 0, 0, 0], unit='deg') sc2 =
+      >>> SkyCoord([0.5, 1.05, 2.1]], [0, 0, 0], unit='deg')
+
+      >>> t1 = Table([sc1], names=['sc']) t2 = Table([sc2], names=['sc'])
+      >>> table.join(t1, t2, join_funcs={'sc': skycoord_join(0.2 * u.deg)})
+      >>> <Table length=3>
+      >>> sc_id   sc_1    sc_2
+      >>> deg,deg deg,deg
+      >>> int64  object  object
+      >>> ----- ------- --------
+      >>> 1 1.0,0.0 1.05,0.0
+      >>> 1 1.1,0.0 1.05,0.0
+      >>> 2 2.0,0.0  2.1,0.0
+
+    """
     def join_func(sc1, sc2):
-        if search_around not in ('sky', '3d'):
-            raise ValueError("search_around must be 'sky' or '3d'")
+        if distance_kind not in ('sky', '3d'):
+            raise ValueError("distance_kind must be 'sky' or '3d'")
 
         # Call the appropriate SkyCoord method to find pairs within distance
-        sc1_search_around = getattr(sc1, f'search_around_{search_around}')
+        sc1_search_around = getattr(sc1, f'search_around_{distance_kind}')
         idxs2, idxs1, d2d, d3d = sc1_search_around(sc2, distance)
 
         # Now convert that into unique identifiers for each near-pair. This is
@@ -135,7 +182,60 @@ def skycoord_join(distance, search_around='sky'):
 
 
 def distance_join(distance, kdtree_args=None, query_args=None):
-    from scipy.spatial import cKDTree
+    """Helper function to join table columns using distance matching.
+
+    This function is intended for use in ``table.join()`` to allow performing
+    a table join where the key columns are matched by computing the distance
+    between points and accepting values below ``distance``. This numerical
+    "fuzzy" match can apply to 1-D or 2-D columns, where in the latter case
+    the distance is a vector distance.
+
+    The distance cross-matching is done using `scipy.spatial.cKDTree`. If
+    necessary you can tweak the default behavior by providing ``dict`` values
+    for the ``kdtree_args`` or ``query_args``.
+
+    Parameters
+    ----------
+    distance : float, Quantity
+        Maximum distance between points to be considered a join match
+    kdtree_args : dict, None
+        Optional extra args for `~scipy.spatial.cKDTree`
+    query_args : dict, None
+        Optional extra args for `~scipy.spatial.cKDTree.query_ball_tree`
+
+    Returns
+    -------
+    join_func : function
+        Function that accepts (skycoord1, skycoord2) and returns the tuple
+        (ids1, ids2) of pair-matched unique identifiers.
+
+    Examples
+    --------
+
+      >>> from astropy.table import Table
+      >>> from astropy.table.operations import distance_join
+
+      >>> c1 = [0, 1, 1.1, 2]
+      >>> c2 = [0.5, 1.05, 2.1]
+
+      >>> t1 = Table([c1], names=['col'])
+      >>> t2 = Table([c2], names=['col'])
+      >>> table.join(t1, t2, join_type='outer', join_funcs={'col': distance_join(0.2)})
+      <Table length=5>
+      col_id  col_1   col_2
+      int64  float64 float64
+      ------ ------- -------
+           1     1.0    1.05
+           1     1.1    1.05
+           2     2.0     2.1
+           3     0.0      --
+           4      --     0.5
+
+    """
+    try:
+        from scipy.spatial import cKDTree
+    except ImportError as exc:
+        raise ImportError('scipy is required to use distance_join()') from exc
 
     if kdtree_args is None:
         kdtree_args = {}
