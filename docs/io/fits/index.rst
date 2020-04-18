@@ -183,11 +183,14 @@ Working with non-standard files
 """""""""""""""""""""""""""""""
 `astropy.io.fits` adheres to the FITS standard and verifies that all fields within a FITS file conform
 to the standard. It may raise ``VerifyError`` if a field is deemed to be non-compliant. This action can be modified
-using method :meth:`HDUList.verify`. It is typically invoked after opening the file but before reading any headers or data::
+using method ``HDUList.verify``. It is typically invoked after opening the file but before reading any headers or data::
 
     >>> hdul = fits.open(fits_image_filename)
     >>> hdul.verify('silentfix+warn')
     >>> data = hdul.data
+
+In the above example, the call to ``hdul.verify(silentfix+warn)`` requests that `astropy.io.fits` stay silent for any non-compliances
+it can fix but issue warnings for unfixable errors. Other options are described under FITS :ref:`fits_io_verification`
 
 .. seealso:: FITS :ref:`fits_io_verification`.
 
