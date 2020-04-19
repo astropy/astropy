@@ -7,7 +7,7 @@ import numpy as np
 
 from astropy.tests.helper import catch_warnings
 from astropy.table import Table, QTable, TableMergeError, Column, MaskedColumn
-from astropy.table.operations import _get_out_class, skycoord_join, distance_join
+from astropy.table.operations import _get_out_class, join_skycoord, join_distance
 from astropy import units as u
 from astropy.utils import metadata
 from astropy.utils.metadata import MergeConflictError
@@ -575,12 +575,12 @@ class TestJoin():
         with pytest.raises(ValueError, match='cannot supply keys for a cartesian join'):
             t12 = table.join(t1, t2, join_type='cartesian', keys='a')
 
-    def test_join_with_skycoord_join_sky(self):
+    def test_join_with_join_skycoord_sky(self):
         sc1 = SkyCoord([0, 1, 1.1, 2], [0, 0, 0, 0], unit='deg')
         sc2 = SkyCoord([0.5, 1.05, 2.1], [0, 0, 0], unit='deg')
         t1 = Table([sc1], names=['sc'])
         t2 = Table([sc2], names=['sc'])
-        t12 = table.join(t1, t2, join_funcs={'sc': skycoord_join(0.2 * u.deg)})
+        t12 = table.join(t1, t2, join_funcs={'sc': join_skycoord(0.2 * u.deg)})
         exp = ['sc_id   sc_1    sc_2  ',
                '      deg,deg deg,deg ',
                '----- ------- --------',
@@ -589,12 +589,12 @@ class TestJoin():
                '    2 2.0,0.0  2.1,0.0']
         assert str(t12).splitlines() == exp
 
-    def test_join_with_skycoord_join_3d(self):
+    def test_join_with_join_skycoord_3d(self):
         sc1 = SkyCoord([0, 1, 1.1, 2]*u.deg, [0, 0, 0, 0]*u.deg, [1, 1, 2, 1]*u.m)
         sc2 = SkyCoord([0.5, 1.05, 2.1]*u.deg, [0, 0, 0]*u.deg, [1, 1, 1]*u.m)
         t1 = Table([sc1], names=['sc'])
         t2 = Table([sc2], names=['sc'])
-        join_func = skycoord_join(np.deg2rad(0.2) * u.m,
+        join_func = join_skycoord(np.deg2rad(0.2) * u.m,
                                   distance_kind='3d')
         t12 = table.join(t1, t2, join_funcs={'sc': join_func})
         exp = ['sc_id     sc_1        sc_2    ',
@@ -604,12 +604,12 @@ class TestJoin():
                '    2 2.0,0.0,1.0  2.1,0.0,1.0']
         assert str(t12).splitlines() == exp
 
-    def test_join_with_distance_join_1d(self):
+    def test_join_with_join_distance_1d(self):
         c1 = [0, 1, 1.1, 2]
         c2 = [0.5, 1.05, 2.1]
         t1 = Table([c1], names=['col'])
         t2 = Table([c2], names=['col'])
-        join_func = distance_join(0.2,
+        join_func = join_distance(0.2,
                                   kdtree_args={'leafsize': 32},
                                   query_args={'p': 2})
         t12 = table.join(t1, t2, join_type='outer', join_funcs={'col': join_func})
@@ -622,12 +622,12 @@ class TestJoin():
                '     4    --   0.5']
         assert str(t12).splitlines() == exp
 
-    def test_join_with_distance_join_1d_quantity(self):
+    def test_join_with_join_distance_1d_quantity(self):
         c1 = [0, 1, 1.1, 2] * u.m
         c2 = [500, 1050, 2100] * u.mm
         t1 = QTable([c1], names=['col'])
         t2 = QTable([c2], names=['col'])
-        join_func = distance_join(20 * u.cm)
+        join_func = join_distance(20 * u.cm)
         t12 = table.join(t1, t2, join_funcs={'col': join_func})
         exp = ['col_id col_1 col_2 ',
                '         m     mm  ',
@@ -649,14 +649,14 @@ class TestJoin():
                '       2   2.0 2100.0      0       0']
         assert str(t12).splitlines() == exp
 
-    def test_join_with_distance_join_2d(self):
+    def test_join_with_join_distance_2d(self):
         c1 = np.array([[0, 1, 1.1, 2],
                        [0, 0, 1, 0]]).transpose()
         c2 = np.array([[0.5, 1.05, 2.1],
                        [0, 0, 0]]).transpose()
         t1 = Table([c1], names=['col'])
         t2 = Table([c2], names=['col'])
-        join_func = distance_join(0.2,
+        join_func = join_distance(0.2,
                                   kdtree_args={'leafsize': 32},
                                   query_args={'p': 2})
         t12 = table.join(t1, t2, join_type='outer', join_funcs={'col': join_func})

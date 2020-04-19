@@ -9,7 +9,8 @@ __all__ = ['BST', 'Column', 'ColumnGroups', 'ColumnInfo', 'Conf', 'FastBST',
            'Table', 'TableAttribute', 'TableColumns', 'TableFormatter',
            'TableGroups', 'TableMergeError', 'TableReplaceWarning', 'conf',
            'connect', 'hstack', 'join', 'registry', 'represent_mixins_as_columns',
-           'setdiff', 'unique', 'vstack', 'dstack', 'conf']
+           'setdiff', 'unique', 'vstack', 'dstack', 'conf', 'join_skycoord',
+           'join_distance']
 
 
 class Conf(_config.ConfigNamespace):  # noqa
@@ -48,7 +49,7 @@ from .groups import TableGroups, ColumnGroups
 from .table import (Table, QTable, TableColumns, Row, TableFormatter,
                     NdarrayMixin, TableReplaceWarning, TableAttribute)
 from .operations import (join, setdiff, hstack, dstack, vstack, unique, TableMergeError,
-                         skycoord_join, distance_join)
+                         join_skycoord, join_distance)
 from .bst import BST, FastBST, FastRBT
 from .sorted_array import SortedArray
 from .soco import SCEngine
