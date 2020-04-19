@@ -26,7 +26,7 @@ from . import _np_utils
 from .np_utils import fix_column_name, TableMergeError
 
 __all__ = ['join', 'setdiff', 'hstack', 'vstack', 'unique',
-           'skycoord_join', 'distance_join']
+           'join_skycoord', 'join_distance']
 
 
 def _merge_table_meta(out, tables, metadata_conflicts='warn'):
@@ -90,7 +90,7 @@ def _get_out_class(objs):
     return out_class
 
 
-def skycoord_join(distance, distance_kind='sky'):
+def join_skycoord(distance, distance_kind='sky'):
     """Helper function to join on SkyCoord columns using distance matching.
 
     This function is intended for use in ``table.join()`` to allow performing a
@@ -124,19 +124,19 @@ def skycoord_join(distance, distance_kind='sky'):
 
       >>> from astropy.coordinates import SkyCoord
       >>> import astropy.units as u
-      >>> from astropy.table import Table, skycoord_join
+      >>> from astropy.table import Table, join_skycoord
       >>> from astropy import table
 
       >>> sc1 = SkyCoord([0, 1, 1.1, 2], [0, 0, 0, 0], unit='deg')
       >>> sc2 = SkyCoord([0.5, 1.05, 2.1], [0, 0, 0], unit='deg')
 
-      >>> join_func = skycoord_join(0.2 * u.deg)
+      >>> join_func = join_skycoord(0.2 * u.deg)
       >>> join_func(sc1, sc2)  # Associate each coordinate with unique source ID
       (array([3, 1, 1, 2]), array([4, 1, 2]))
 
       >>> t1 = Table([sc1], names=['sc'])
       >>> t2 = Table([sc2], names=['sc'])
-      >>> t12 = table.join(t1, t2, join_funcs={'sc': skycoord_join(0.2 * u.deg)})
+      >>> t12 = table.join(t1, t2, join_funcs={'sc': join_skycoord(0.2 * u.deg)})
       >>> print(t12)  # Note new `sc_id` column with the IDs from join_func()
       sc_id   sc_1    sc_2
             deg,deg deg,deg
@@ -190,7 +190,7 @@ def skycoord_join(distance, distance_kind='sky'):
     return join_func
 
 
-def distance_join(distance, kdtree_args=None, query_args=None):
+def join_distance(distance, kdtree_args=None, query_args=None):
     """Helper function to join table columns using distance matching.
 
     This function is intended for use in ``table.join()`` to allow performing
@@ -221,7 +221,7 @@ def distance_join(distance, kdtree_args=None, query_args=None):
     Examples
     --------
 
-      >>> from astropy.table import Table, distance_join
+      >>> from astropy.table import Table, join_distance
       >>> from astropy import table
 
       >>> c1 = [0, 1, 1.1, 2]
@@ -229,7 +229,7 @@ def distance_join(distance, kdtree_args=None, query_args=None):
 
       >>> t1 = Table([c1], names=['col'])
       >>> t2 = Table([c2], names=['col'])
-      >>> t12 = table.join(t1, t2, join_type='outer', join_funcs={'col': distance_join(0.2)})
+      >>> t12 = table.join(t1, t2, join_type='outer', join_funcs={'col': join_distance(0.2)})
       >>> print(t12)
       col_id col_1 col_2
       ------ ----- -----
@@ -243,7 +243,7 @@ def distance_join(distance, kdtree_args=None, query_args=None):
     try:
         from scipy.spatial import cKDTree
     except ImportError as exc:
-        raise ImportError('scipy is required to use distance_join()') from exc
+        raise ImportError('scipy is required to use join_distance()') from exc
 
     if kdtree_args is None:
         kdtree_args = {}
@@ -349,7 +349,7 @@ def join(left, right, keys=None, join_type='inner',
             * ``'error'``: raise an exception.
     join_funcs : dict, None
         Dict of functions to use for matching the corresponding key column(s).
-        See `~astropy.table.skycoord_join` for an example and details.
+        See `~astropy.table.join_skycoord` for an example and details.
 
     Returns
     -------
@@ -1052,7 +1052,7 @@ def _join(left, right, keys=None, join_type='inner',
             * ``'error'``: raise an exception.
     join_funcs : dict, None
         Dict of functions to use for matching the corresponding key column(s).
-        See `~astropy.table.skycoord_join` for an example and details.
+        See `~astropy.table.join_skycoord` for an example and details.
 
     Returns
     -------
