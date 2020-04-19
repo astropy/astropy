@@ -39,6 +39,9 @@ Note that ``XDG_CONFIG_HOME`` comes from a Linux-centric specification (see
 more details), but Astropy will use this on any OS as a more general means to
 know where user-specific configurations should be written.
 
+.. note::
+    See :ref:`astropy_config_file` for the content of this configuration file.
+
 Once you have found the configuration file, open it with your favorite editor.
 It should have all of the sections you might want, with descriptions and the
 type of value that is accepted. Feel free to edit this as you wish, and
@@ -408,6 +411,7 @@ See Also
    :maxdepth: 2
 
    config_0_4_transition
+   astropy_config
 
 :doc:`/logging` (overview of `astropy.logger`)
 
