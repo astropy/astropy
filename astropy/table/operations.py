@@ -124,17 +124,20 @@ def skycoord_join(distance, distance_kind='sky'):
 
       >>> from astropy.coordinates import SkyCoord
       >>> import astropy.units as u
-      >>> from astropy.table import Table
-      >>> from astropy.table.operations import skycoord_join
+      >>> from astropy.table import Table, skycoord_join
       >>> from astropy import table
 
       >>> sc1 = SkyCoord([0, 1, 1.1, 2], [0, 0, 0, 0], unit='deg')
       >>> sc2 = SkyCoord([0.5, 1.05, 2.1], [0, 0, 0], unit='deg')
 
+      >>> join_func = skycoord_join(0.2 * u.deg)
+      >>> join_func(sc1, sc2)  # Associate each coordinate with unique source ID
+      (array([3, 1, 1, 2]), array([4, 1, 2]))
+
       >>> t1 = Table([sc1], names=['sc'])
       >>> t2 = Table([sc2], names=['sc'])
       >>> t12 = table.join(t1, t2, join_funcs={'sc': skycoord_join(0.2 * u.deg)})
-      >>> print(t12)
+      >>> print(t12)  # Note new `sc_id` column with the IDs from join_func()
       sc_id   sc_1    sc_2
             deg,deg deg,deg
       ----- ------- --------
@@ -218,9 +221,8 @@ def distance_join(distance, kdtree_args=None, query_args=None):
     Examples
     --------
 
-      >>> from astropy.table import Table
+      >>> from astropy.table import Table, distance_join
       >>> from astropy import table
-      >>> from astropy.table.operations import distance_join
 
       >>> c1 = [0, 1, 1.1, 2]
       >>> c2 = [0.5, 1.05, 2.1]
@@ -345,6 +347,9 @@ def join(left, right, keys=None, join_type='inner',
             * ``'silent'``: silently pick the last conflicting meta-data value
             * ``'warn'``: pick the last conflicting meta-data value, but emit a warning (default)
             * ``'error'``: raise an exception.
+    join_funcs : dict, None
+        Dict of functions to use for matching the corresponding key column(s).
+        See `~astropy.table.skycoord_join` for an example and details.
 
     Returns
     -------
@@ -1045,6 +1050,9 @@ def _join(left, right, keys=None, join_type='inner',
             * ``'silent'``: silently pick the last conflicting meta-data value
             * ``'warn'``: pick the last conflicting meta-data value, but emit a warning (default)
             * ``'error'``: raise an exception.
+    join_funcs : dict, None
+        Dict of functions to use for matching the corresponding key column(s).
+        See `~astropy.table.skycoord_join` for an example and details.
 
     Returns
     -------
