@@ -47,7 +47,8 @@ conf = Conf()  # noqa
 from .groups import TableGroups, ColumnGroups
 from .table import (Table, QTable, TableColumns, Row, TableFormatter,
                     NdarrayMixin, TableReplaceWarning, TableAttribute)
-from .operations import join, setdiff, hstack, dstack, vstack, unique, TableMergeError
+from .operations import (join, setdiff, hstack, dstack, vstack, unique, TableMergeError,
+                         skycoord_join, distance_join)
 from .bst import BST, FastBST, FastRBT
 from .sorted_array import SortedArray
 from .soco import SCEngine

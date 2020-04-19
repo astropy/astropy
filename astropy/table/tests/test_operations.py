@@ -622,6 +622,33 @@ class TestJoin():
                '     4    --   0.5']
         assert str(t12).splitlines() == exp
 
+    def test_join_with_distance_join_1d_quantity(self):
+        c1 = [0, 1, 1.1, 2] * u.m
+        c2 = [500, 1050, 2100] * u.mm
+        t1 = QTable([c1], names=['col'])
+        t2 = QTable([c2], names=['col'])
+        join_func = distance_join(20 * u.cm)
+        t12 = table.join(t1, t2, join_funcs={'col': join_func})
+        exp = ['col_id col_1 col_2 ',
+               '         m     mm  ',
+               '------ ----- ------',
+               '     1   1.0 1050.0',
+               '     1   1.1 1050.0',
+               '     2   2.0 2100.0']
+        assert str(t12).splitlines() == exp
+
+        # Generate column name conflict
+        t2['col_id'] = [0, 0, 0]
+        t2['col__id'] = [0, 0, 0]
+        t12 = table.join(t1, t2, join_funcs={'col': join_func})
+        exp = ['col___id col_1 col_2  col_id col__id',
+               '           m     mm                 ',
+               '-------- ----- ------ ------ -------',
+               '       1   1.0 1050.0      0       0',
+               '       1   1.1 1050.0      0       0',
+               '       2   2.0 2100.0      0       0']
+        assert str(t12).splitlines() == exp
+
     def test_join_with_distance_join_2d(self):
         c1 = np.array([[0, 1, 1.1, 2],
                        [0, 0, 1, 0]]).transpose()
