@@ -8,7 +8,6 @@ from astropy import _erfa as erfa
 from astropy.utils.compat.misc import override__dir__
 from astropy import units as u
 from astropy.constants import c as speed_of_light
-from astropy.wcs.utils import skycoord_to_pixel, pixel_to_skycoord
 from astropy.utils.data_info import MixinInfo
 from astropy.utils import ShapedLikeNDArray
 from astropy.time import Time
@@ -1369,6 +1368,7 @@ class SkyCoord(ShapedLikeNDArray):
         --------
         astropy.wcs.utils.skycoord_to_pixel : the implementation of this method
         """
+        from astropy.wcs.utils import skycoord_to_pixel
         return skycoord_to_pixel(self, wcs=wcs, origin=origin, mode=mode)
 
     @classmethod
@@ -1400,6 +1400,7 @@ class SkyCoord(ShapedLikeNDArray):
         to_pixel : to do the inverse operation
         astropy.wcs.utils.pixel_to_skycoord : the implementation of this method
         """
+        from astropy.wcs.utils import pixel_to_skycoord
         return pixel_to_skycoord(xp, yp, wcs=wcs, origin=origin, mode=mode, cls=cls)
 
     def contained_by(self, wcs, image=None, **kwargs):
