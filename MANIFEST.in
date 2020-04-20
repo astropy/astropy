@@ -7,7 +7,6 @@ include CITATION
 include astropy/CITATION
 include pyproject.toml
 
-include ah_bootstrap.py
 include setup.cfg
 recursive-include astropy *.pyx *.c *.h *.map *.templ
 
