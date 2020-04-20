@@ -769,7 +769,8 @@ class SpectralCoord(u.Quantity):
             New spectral coordinate object with data converted to the new unit.
         """
         if doppler_rest is not None:
-            self.doppler_rest = doppler_rest
+            self._doppler_conversion = self._doppler_conversion._replace(
+                rest=doppler_rest)
 
         if doppler_convention is not None:
             if doppler_convention not in DOPPLER_CONVENTIONS:
@@ -777,7 +778,8 @@ class SpectralCoord(u.Quantity):
                     "Unrecognized doppler convention: {}.".format(
                         doppler_convention))
 
-            self.doppler_convention = doppler_convention
+            self._doppler_conversion = self._doppler_conversion._replace(
+                convention=doppler_convention)
 
         equivs = u.spectral()
 
