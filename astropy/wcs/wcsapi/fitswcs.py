@@ -9,6 +9,8 @@ import numpy as np
 
 from astropy.constants import c
 from astropy import units as u
+from astropy.cosmology import WMAP5
+from astropy.coordinates import SkyCoord, FK4
 
 from .low_level_api import BaseLowLevelWCS
 from .high_level_api import HighLevelWCSMixin
@@ -17,6 +19,104 @@ from .sliced_low_level_wcs import SlicedLowLevelWCS
 __all__ = ['custom_ctype_to_ucd_mapping', 'SlicedFITSWCS', 'FITSWCSAPIMixin']
 
 C_SI = c.to_value(u.m / u.s)
+
+# Definition of velocity frames - these are defined by cartesian velocities
+# along with the celestial coordinate frame in which those apply. The keys of
+# the dictionary are the SPECSYS, and the values are tuples of
+# (celestial_frame, vx, vy, vz)
+
+VELOCITY_FRAMES_VXYZ = {}
+
+# First off, we consider velocity frames that are stationaly relative
+# to already defined 3-d celestial frames.
+VELOCITY_FRAMES_VXYZ['topocent'] = ('itrs', 0 * u.km / u.s, 0 * u.km / u.s, 0 * u.km / u.s),
+VELOCITY_FRAMES_VXYZ['geocent'] = ('gcrs', 0 * u.km / u.s, 0 * u.km / u.s, 0 * u.km / u.s),
+VELOCITY_FRAMES_VXYZ['barycent'] = ('icrs', 0 * u.km / u.s, 0 * u.km / u.s, 0 * u.km / u.s),
+VELOCITY_FRAMES_VXYZ['heliocent'] = ('hcrs', 0 * u.km / u.s, 0 * u.km / u.s, 0 * u.km / u.s),
+
+# The LSRK velocity frame is defined as having a velocity
+# of 20 km/s towards RA=270 Dec=30 (B1900) relative to the
+# solar system Barycenter. This is defined in:
+#
+#   Gordon 1975, Methods of Experimental Physics: Volume 12:
+#   Astrophysics, Part C: Radio Observations - Section 6.1.5.
+#
+# We use the astropy.coordinates FK4 class here since it is
+# defined with the solar system barycenter as the origin.
+
+lsrk_velocity = 20 * u.km / u.s
+lsrk_direction = SkyCoord(270 * u.deg, 30 * u.deg, frame=FK4(equinox='B1900'))
+x, y, z = lsrk_direction.cartesian.xyz.to_value()
+VELOCITY_FRAMES_VXYZ['lsrk'] = (FK4(equinox='B1900'),
+                                x * lsrk_velocity,
+                                y * lsrk_velocity,
+                                z * lsrk_velocity)
+
+# The LSRD velocity frame is defined as a velocity of
+# U=9 km/s, V=12 km/s, and W=7 km/s or 16.552945 km/s
+# towards l=53.13 b=25.02. This is defined in:
+#
+#   Delhaye 1975, Solar Motion and Velocity Distribution of
+#   Common Stars.
+
+lsrd_direction = SkyCoord(u=9 * u.km, v=12 * u.km, w=7 * u.km,
+                          frame='galactic', representation_type='cartesian')
+x, y, z = lsrd_direction.cartesian.xyz / u.s
+VELOCITY_FRAMES_VXYZ['lsrd'] = ('galactic', x, y, z)
+
+# This frame is defined as a velocity of 220 km/s in the
+# direction of l=270, b=0. The rotation velocity is defined
+# in:
+#
+#   Kerr and Lynden-Bell 1986, Review of galactic constants.
+#
+# NOTE: should this be l=90 or 270? (WCS paper says 90)
+
+galactoc_velocity = 220 * u.km / u.s
+galactoc_direction = SkyCoord(l=270 * u.deg, b=0 * u.deg, frame='galactic')
+x, y, z = galactoc_direction.cartesian.xyz / u.s
+VELOCITY_FRAMES_VXYZ['galactoc'] = ('galactic',
+                                    x * galactoc_velocity,
+                                    y * galactoc_velocity,
+                                    z * galactoc_velocity)
+
+# This frame is defined as a velocity of 300 km/s in the
+# direction of l=90, b=0. This is defined in:
+#
+#   Transactions of the IAU Vol. XVI B Proceedings of the
+#   16th General Assembly, Reports of Meetings of Commissions:
+#   Comptes Rendus Des Séances Des Commissions, Commission 28,
+#   p201.
+#
+# Note that these values differ from those used by CASA
+# (308 km/s towards l=105, b=-7) but we use the above values
+# since these are the ones defined in Greisen et al (2006).
+
+localgrp_velocity = 300 * u.km / u.s
+localgrp_direction = SkyCoord(l=90 * u.deg, b=0 * u.deg, frame='galactic')
+x, y, z = localgrp_direction.cartesian.xyz / u.s
+VELOCITY_FRAMES_VXYZ['localgrp'] = ('galactic',
+                                    x * localgrp_velocity,
+                                    y * localgrp_velocity,
+                                    z * localgrp_velocity)
+
+# This frame is defined as a velocity of 368 km/s in the
+# direction of l=263.85, b=48.25. This is defined in:
+#
+#   Bennett et al. (2003), First-Year Wilkinson Microwave
+#   Anisotropy Probe (WMAP) Observations: Preliminary Maps
+#   and Basic Results
+#
+# Note that in that paper, the dipole is expressed as a
+# temperature (T=3.346 +/- 0.017mK)
+
+cmbdipol_velocity = (3.346 * u.mK / WMAP5.Tcmb(0) * c).to(u.km/u.s)
+cmbdipol_direction = SkyCoord(l=263.85 * u.deg, b=48.25 * u.deg, frame='galactic')
+x, y, z = cmbdipol_direction.cartesian.xyz / u.s
+VELOCITY_FRAMES_VXYZ['cmbdipol'] = ('galactic',
+                                    x * cmbdipol_velocity,
+                                    y * cmbdipol_velocity,
+                                    z * cmbdipol_velocity)
 
 # Mapping from CTYPE axis name to UCD1
 
@@ -359,134 +459,17 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             else:
                 observer_location = EarthLocation(*self.wcs.obsgeo[:3], unit=u.m).itrs
 
-                specsys = self.wcs.specsys.lower()
-
                 from astropy.coordinates import CartesianDifferential
 
-                if specsys.startswith('topocent'):
+                if self.wcs.specsys not in VELOCITY_FRAMES_VXYZ:
+                    raise NotImplementedError(f'SPECSYS={self.wcs.specsys} not yet supported')
 
-                    vel_to_add = CartesianDifferential(0*u.km/u.s, 0*u.km/u.s, 0*u.km/u.s)
+                frame, vx, vy, vz = VELOCITY_FRAMES_VXYZ[self.wcs.specsys]
 
-                elif specsys.startswith('geocent'):
+                if frame != 'itrs':
+                    observer_location = observer_location.transform_to(frame)
 
-                    observer_location = observer_location.transform_to('gcrs')
-                    vel_to_add = CartesianDifferential(0*u.km/u.s, 0*u.km/u.s, 0*u.km/u.s)
-
-                elif specsys.startswith('barycent'):
-
-                    observer_location = observer_location.transform_to('icrs')
-                    vel_to_add = CartesianDifferential(0*u.km/u.s, 0*u.km/u.s, 0*u.km/u.s)
-
-                elif specsys.startswith('heliocent'):
-
-                    observer_location = observer_location.transform_to('hcrs')
-                    vel_to_add = CartesianDifferential(0*u.km/u.s, 0*u.km/u.s, 0*u.km/u.s)
-
-                elif specsys == 'lsrk':
-
-                    # The LSRK velocity frame is defined as having a velocity
-                    # of 20 km/s towards RA=270 Dec=30 (B1900) relative to the
-                    # solar system Barycenter. This is defined in:
-                    #
-                    #   Gordon 1975, Methods of Experimental Physics: Volume 12:
-                    #   Astrophysics, Part C: Radio Observations - Section 6.1.5.
-                    #
-                    # We use the astropy.coordinates FK4 class here since it is
-                    # defined with the solar system barycenter as the origin,
-                    # and we then find the velocities in the ICRS frame.
-
-                    observer_location = observer_location.transform_to('icrs')
-                    velocity = 20 * u.km / u.s
-                    direction = SkyCoord(270 * u.deg, 30 * u.deg, frame=FK4(equinox='B1900'))
-                    x, y, z = direction.icrs.cartesian.xyz.to_value()
-                    vel_to_add = CartesianDifferential(x * velocity,
-                                                       y * velocity,
-                                                       z * velocity)
-
-                elif specsys == 'lsrd':
-
-                    # The LSRD velocity frame is defined as a velocity of
-                    # U=9 km/s, V=12 km/s, and W=7 km/s or 16.552945 km/s
-                    # towards l=53.13 b=25.02. This is defined in:
-                    #
-                    #   Delhaye 1975, Solar Motion and Velocity Distribution of
-                    #   Common Stars.
-
-                    observer_location = observer_location.transform_to('galactic')
-                    direction = SkyCoord(u=9 * u.km, v=12 * u.km, w=7 * u.km,
-                                         frame='galactic', representation_type='cartesian')
-                    x, y, z = direction.cartesian.xyz / u.s
-                    vel_to_add = CartesianDifferential(x, y, z)
-
-                elif specsys == 'galactoc':
-
-                    # This frame is defined as a velocity of 220 km/s in the
-                    # direction of l=270, b=0. The rotation velocity is defined
-                    # in:
-                    #
-                    #   Kerr and Lynden-Bell 1986, Review of galactic constants.
-
-                    observer_location = observer_location.transform_to('galactic')
-                    velocity = 220 * u.km / u.s
-                    direction = SkyCoord(l=270 * u.deg, b=0 * u.deg, frame='galactic')
-                    x, y, z = direction.cartesian.xyz / u.s
-                    vel_to_add = CartesianDifferential(x * velocity,
-                                                       y * velocity,
-                                                       z * velocity)
-
-                    # NOTE: should this be l=90 or 270? (WCS paper says 90)
-
-                elif specsys == 'localgrp':
-
-                    # This frame is defined as a velocity of 300 km/s in the
-                    # direction of l=90, b=0. This is defined in:
-                    #
-                    #   Transactions of the IAU Vol. XVI B Proceedings of the
-                    #   16th General Assembly, Reports of Meetings of Commissions:
-                    #   Comptes Rendus Des Séances Des Commissions, Commission 28,
-                    #   p201.
-                    #
-                    # Note that these values differ from those used by CASA
-                    # (308 km/s towards l=105, b=-7) but we use the above values
-                    # since these are the ones defined in Greisen et al (2006).
-
-                    observer_location = observer_location.transform_to('galactic')
-                    velocity = 300 * u.km / u.s
-                    direction = SkyCoord(l=90 * u.deg, b=0 * u.deg, frame='galactic')
-                    x, y, z = direction.cartesian.xyz / u.s
-                    vel_to_add = CartesianDifferential(x * velocity,
-                                                       y * velocity,
-                                                       z * velocity)
-
-                elif specsys == 'cmbdipol':
-
-                    # This frame is defined as a velocity of 368 km/s in the
-                    # direction of l=263.85, b=48.25. This is defined in:
-                    #
-                    #   Bennett et al. (2003), First-Year Wilkinson Microwave
-                    #   Anisotropy Probe (WMAP) Observations: Preliminary Maps
-                    #   and Basic Results
-                    #
-                    # Note that in that paper, the dipole is expressed as a
-                    # temperature (T=3.346 +/- 0.017mK)
-
-                    from astropy.cosmology import WMAP5
-
-                    observer_location = observer_location.transform_to('galactic')
-                    velocity = (3.346 * u.mK / WMAP5.Tcmb(0) * c).to(u.km/u.s)
-                    direction = SkyCoord(l=263.85 * u.deg, b=48.25 * u.deg, frame='galactic')
-                    x, y, z = direction.cartesian.xyz / u.s
-                    vel_to_add = CartesianDifferential(x * velocity,
-                                                       y * velocity,
-                                                       z * velocity)
-
-                elif specsys == 'source':
-
-                    # TODO: need to determine how to handle this case - we
-                    # could potentially set observer and target to None?
-
-                    raise NotImplementedError('SPECSYS=SOURCE not yet supported')
-
+                vel_to_add = CartesianDifferential(vx, vy, vz)
                 new_observer_data = observer_location.data.to_cartesian().with_differentials(vel_to_add)
                 observer = observer_location.realize_frame(new_observer_data)
 
