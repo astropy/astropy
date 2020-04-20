@@ -470,8 +470,10 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     # Note that in that paper, the dipole is expressed as a
                     # temperature (T=3.346 +/- 0.017mK)
 
+                    from astropy.cosmology import WMAP5
+
                     observer_location = observer_location.transform_to('galactic')
-                    velocity = 368 * u.km / u.s
+                    velocity = (3.346 * u.mK / WMAP5.Tcmb(0) * c).to(u.km/u.s)
                     direction = SkyCoord(l=263.85 * u.deg, b=48.25 * u.deg, frame='galactic')
                     x, y, z = direction.cartesian.xyz / u.s
                     vel_to_add = CartesianDifferential(x * velocity,
