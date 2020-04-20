@@ -392,6 +392,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     list(self.wcs.ctype),
                     list(self.wcs.cunit),
                     self.wcs.radesys,
+                    self.wcs.specsys,
                     self.wcs.equinox,
                     self.wcs.dateobs,
                     self.wcs.lng,
@@ -457,7 +458,10 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             if np.isnan(self.wcs.obsgeo[0]):
                 observer = None
             else:
-                observer_location = SkyCoord(EarthLocation(*self.wcs.obsgeo[:3], unit=u.m).itrs)
+                earth_location = EarthLocation(*self.wcs.obsgeo[:3], unit=u.m)
+                obstime = Time(self.wcs.mjdobs, format='mjd', scale='utc',
+                               location=earth_location)
+                observer_location = SkyCoord(earth_location.get_itrs(obstime=obstime))
 
                 from astropy.coordinates import CartesianDifferential
 
