@@ -29,10 +29,10 @@ VELOCITY_FRAMES_VXYZ = {}
 
 # First off, we consider velocity frames that are stationaly relative
 # to already defined 3-d celestial frames.
-VELOCITY_FRAMES_VXYZ['topocent'] = ('itrs', 0 * u.km / u.s, 0 * u.km / u.s, 0 * u.km / u.s),
-VELOCITY_FRAMES_VXYZ['geocent'] = ('gcrs', 0 * u.km / u.s, 0 * u.km / u.s, 0 * u.km / u.s),
-VELOCITY_FRAMES_VXYZ['barycent'] = ('icrs', 0 * u.km / u.s, 0 * u.km / u.s, 0 * u.km / u.s),
-VELOCITY_FRAMES_VXYZ['heliocent'] = ('hcrs', 0 * u.km / u.s, 0 * u.km / u.s, 0 * u.km / u.s),
+VELOCITY_FRAMES_VXYZ['TOPOCENT'] = ('itrs', 0 * u.km / u.s, 0 * u.km / u.s, 0 * u.km / u.s)
+VELOCITY_FRAMES_VXYZ['GEOCENT'] = ('gcrs', 0 * u.km / u.s, 0 * u.km / u.s, 0 * u.km / u.s)
+VELOCITY_FRAMES_VXYZ['BARYCENT'] = ('icrs', 0 * u.km / u.s, 0 * u.km / u.s, 0 * u.km / u.s)
+VELOCITY_FRAMES_VXYZ['HELIOCENT'] = ('hcrs', 0 * u.km / u.s, 0 * u.km / u.s, 0 * u.km / u.s)
 
 # The LSRK velocity frame is defined as having a velocity
 # of 20 km/s towards RA=270 Dec=30 (B1900) relative to the
@@ -47,7 +47,7 @@ VELOCITY_FRAMES_VXYZ['heliocent'] = ('hcrs', 0 * u.km / u.s, 0 * u.km / u.s, 0 *
 lsrk_velocity = 20 * u.km / u.s
 lsrk_direction = SkyCoord(270 * u.deg, 30 * u.deg, frame=FK4(equinox='B1900'))
 x, y, z = lsrk_direction.cartesian.xyz.to_value()
-VELOCITY_FRAMES_VXYZ['lsrk'] = (FK4(equinox='B1900'),
+VELOCITY_FRAMES_VXYZ['LSRK'] = (FK4(equinox='B1900'),
                                 x * lsrk_velocity,
                                 y * lsrk_velocity,
                                 z * lsrk_velocity)
@@ -62,7 +62,7 @@ VELOCITY_FRAMES_VXYZ['lsrk'] = (FK4(equinox='B1900'),
 lsrd_direction = SkyCoord(u=9 * u.km, v=12 * u.km, w=7 * u.km,
                           frame='galactic', representation_type='cartesian')
 x, y, z = lsrd_direction.cartesian.xyz / u.s
-VELOCITY_FRAMES_VXYZ['lsrd'] = ('galactic', x, y, z)
+VELOCITY_FRAMES_VXYZ['LSRD'] = ('galactic', x, y, z)
 
 # This frame is defined as a velocity of 220 km/s in the
 # direction of l=270, b=0. The rotation velocity is defined
@@ -74,8 +74,8 @@ VELOCITY_FRAMES_VXYZ['lsrd'] = ('galactic', x, y, z)
 
 galactoc_velocity = 220 * u.km / u.s
 galactoc_direction = SkyCoord(l=270 * u.deg, b=0 * u.deg, frame='galactic')
-x, y, z = galactoc_direction.cartesian.xyz / u.s
-VELOCITY_FRAMES_VXYZ['galactoc'] = ('galactic',
+x, y, z = galactoc_direction.cartesian.xyz
+VELOCITY_FRAMES_VXYZ['GALACTOC'] = ('galactic',
                                     x * galactoc_velocity,
                                     y * galactoc_velocity,
                                     z * galactoc_velocity)
@@ -94,8 +94,8 @@ VELOCITY_FRAMES_VXYZ['galactoc'] = ('galactic',
 
 localgrp_velocity = 300 * u.km / u.s
 localgrp_direction = SkyCoord(l=90 * u.deg, b=0 * u.deg, frame='galactic')
-x, y, z = localgrp_direction.cartesian.xyz / u.s
-VELOCITY_FRAMES_VXYZ['localgrp'] = ('galactic',
+x, y, z = localgrp_direction.cartesian.xyz
+VELOCITY_FRAMES_VXYZ['LOCALGRP'] = ('galactic',
                                     x * localgrp_velocity,
                                     y * localgrp_velocity,
                                     z * localgrp_velocity)
@@ -112,8 +112,8 @@ VELOCITY_FRAMES_VXYZ['localgrp'] = ('galactic',
 
 cmbdipol_velocity = (3.346 * u.mK / WMAP5.Tcmb(0) * c).to(u.km/u.s)
 cmbdipol_direction = SkyCoord(l=263.85 * u.deg, b=48.25 * u.deg, frame='galactic')
-x, y, z = cmbdipol_direction.cartesian.xyz / u.s
-VELOCITY_FRAMES_VXYZ['cmbdipol'] = ('galactic',
+x, y, z = cmbdipol_direction.cartesian.xyz
+VELOCITY_FRAMES_VXYZ['CMBDIPOL'] = ('galactic',
                                     x * cmbdipol_velocity,
                                     y * cmbdipol_velocity,
                                     z * cmbdipol_velocity)
@@ -420,7 +420,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         if self.has_celestial:
 
             try:
-                frame = wcs_to_celestial_frame(self)
+                celestial_frame = wcs_to_celestial_frame(self)
             except ValueError:
                 # Some WCSes, e.g. solar, can be recognized by WCSLIB as being
                 # celestial but we don't necessarily have frames for them.
@@ -428,7 +428,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             else:
 
                 kwargs = {}
-                kwargs['frame'] = frame
+                kwargs['frame'] = celestial_frame
                 kwargs['unit'] = u.deg
 
                 classes['celestial'] = (SkyCoord, (), kwargs)
@@ -457,7 +457,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             if np.isnan(self.wcs.obsgeo[0]):
                 observer = None
             else:
-                observer_location = EarthLocation(*self.wcs.obsgeo[:3], unit=u.m).itrs
+                observer_location = SkyCoord(EarthLocation(*self.wcs.obsgeo[:3], unit=u.m).itrs)
 
                 from astropy.coordinates import CartesianDifferential
 
@@ -473,13 +473,39 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 new_observer_data = observer_location.data.to_cartesian().with_differentials(vel_to_add)
                 observer = observer_location.realize_frame(new_observer_data)
 
+            # Determine target
+
+            # This is tricker. In principle the target for each pixel is the
+            # celestial coordinates of the pixel, but we then need to be very
+            # careful about SSYSOBS which is tricky. For now, we set the
+            # target using the reference celestial coordinate in the WCS (if
+            # any).
+
+            if self.has_celestial:
+
+                # NOTE: celestial_frame was defined higher up
+
+                target = SkyCoord(self.wcs.crval[self.wcs.lng] * self.wcs.cunit[self.wcs.lng],
+                                  self.wcs.crval[self.wcs.lat] * self.wcs.cunit[self.wcs.lat],
+                                  frame=celestial_frame,
+                                  radial_velocity=0 * u.km / u.s,
+                                  distance=1000 * u.kpc)
+
+                # FIXME: for now this target won't work without radial velocity
+                # and distance due to https://github.com/astropy/specutils/issues/658
+
+            else:
+
+                target = None
+
             if ctype == 'ZOPT':
 
                 def spectralcoord_from_redshift(redshift):
                     return SpectralCoord((redshift + 1) * self.wcs.restwav,
-                                         unit=u.m, observer=observer)
+                                         unit=u.m, observer=observer, target=target)
 
                 def redshift_from_spectralcoord(spectralcoord):
+                    # TODO: check target is consistent
                     return spectralcoord.in_observer_velocity_frame(observer).to_value(u.m) / self.wcs.restwav - 1.
 
                 classes['spectral'] = (SpectralCoord, (), {}, spectralcoord_from_redshift)
@@ -492,9 +518,10 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                                          unit=u.m / u.s,
                                          doppler_convention='relativistic',
                                          doppler_rest=self.wcs.restwav * u.m,
-                                         observer=observer)
+                                         observer=observer, target=target)
 
                 def beta_from_spectralcoord(spectralcoord):
+                    # TODO: check target is consistent
                     doppler_equiv = u.doppler_relativistic(self.wcs.restwav * u.m)
                     return spectralcoord.in_observer_velocity_frame(observer).to_value(u.m / u.s, doppler_equiv) / C_SI
 
@@ -516,9 +543,10 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     kwargs['doppler_rest'] = self.wcs.restwav * u.m
 
                 def spectralcoord_from_value(value):
-                    return SpectralCoord(value, observer=observer, **kwargs)
+                    return SpectralCoord(value, observer=observer, target=target, **kwargs)
 
                 def value_from_spectralcoord(spectralcoord):
+                    # TODO: check target is consistent
                     return spectralcoord.in_observer_velocity_frame(observer).to_value(**kwargs)
 
                 classes['spectral'] = (SpectralCoord, (), {}, spectralcoord_from_value)
