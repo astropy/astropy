@@ -475,3 +475,27 @@ def test_asteroid_velocity_frame_shifts():
     # ensure the "target-rest" use gives the same answer
     # target_sc1_alt = spec_coord1.in_observer_velocity_frame('target-rest')
     # assert_quantity_allclose(target_sc1, target_sc1_alt)
+
+
+def test_change_doppler_conversions():
+    coord = SpectralCoord(22791414.18 * u.m / u.s,
+                          doppler_convention='relativistic',
+                          doppler_rest=110201353000 * u.Hz)
+
+    # Changing the convention explicitly should fail
+    with pytest.raises(ValueError):
+        coord.doppler_convention = 'radio'
+
+    # Changing convention within the `to` method should succeed
+    coord.to(u.km / u.s, doppler_convention='radio')
+
+    assert coord.doppler_convention == 'radio'
+
+    # Changing the rest value explicitly should fail
+    with pytest.raises(ValueError):
+        coord.doppler_rest = 110201353001 * u.Hz
+
+    # Changing rest value within the `to` method should succeed
+    coord.to(u.km / u.s, doppler_rest=110201353001 * u.Hz)
+
+    assert quantity_allclose(coord.doppler_rest, 110201353001 * u.Hz)
