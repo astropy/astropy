@@ -39,7 +39,9 @@ de432s_distance_tolerance = 20*u.km
 skyfield_angular_separation_tolerance = 1*u.arcsec
 skyfield_separation_tolerance = 10*u.km
 
-
+# the ignore is here because skyfield is using a deprecated construct in urllib.requests.urlopen
+# this is both here *and* setup.cfg because some versions of pytest seem to respect it here and others only setup.cfg
+@pytest.mark.filterwarnings("ignore:cafile:DeprecationWarning") 
 @pytest.mark.remote_data
 @pytest.mark.skipif('not HAS_SKYFIELD')
 def test_positions_skyfield():
