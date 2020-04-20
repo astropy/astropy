@@ -456,13 +456,13 @@ class TestHDUListFunctions(FitsTestCase):
         """Test flushing changes to a file opened in a read only mode."""
 
         oldmtime = os.stat(self.data('test0.fits')).st_mtime
-        hdul = fits.open(self.data('test0.fits'))
-        hdul[0].header['FOO'] = 'BAR'
-        with catch_warnings(AstropyUserWarning) as w:
-            hdul.flush()
-        assert len(w) == 1
-        assert 'mode is not supported' in str(w[0].message)
-        assert oldmtime == os.stat(self.data('test0.fits')).st_mtime
+        with fits.open(self.data('test0.fits')) as hdul:
+            hdul[0].header['FOO'] = 'BAR'
+            with catch_warnings(AstropyUserWarning) as w:
+                hdul.flush()
+            assert len(w) == 1
+            assert 'mode is not supported' in str(w[0].message)
+            assert oldmtime == os.stat(self.data('test0.fits')).st_mtime
 
     def test_fix_extend_keyword(self):
         hdul = fits.HDUList()
