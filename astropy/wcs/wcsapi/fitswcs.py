@@ -348,16 +348,156 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
             kwargs = {}
 
+            # Determine observer location and velocity
+
+            # TODO: determine how WCS standard would deal with observer on a
+            # spacecraft far from earth. For now assume the obsgeo parameters,
+            # if present, give the geocentric observer location.
+
+            if np.isnan(self.wcs.obsgeo[0]):
+                observer = None
+            else:
+                observer_location = EarthLocation(*self.wcs.obsgeo[:3], unit=u.m).itrs
+
+                specsys = self.wcs.specsys.lower()
+
+                from astropy.coordinates import CartesianDifferential
+
+                if specsys.startswith('topocent'):
+
+                    vel_to_add = CartesianDifferential(0*u.km/u.s, 0*u.km/u.s, 0*u.km/u.s)
+
+                elif specsys.startswith('geocent'):
+
+                    observer_location = observer_location.transform_to('gcrs')
+                    vel_to_add = CartesianDifferential(0*u.km/u.s, 0*u.km/u.s, 0*u.km/u.s)
+
+                elif specsys.startswith('barycent'):
+
+                    observer_location = observer_location.transform_to('icrs')
+                    vel_to_add = CartesianDifferential(0*u.km/u.s, 0*u.km/u.s, 0*u.km/u.s)
+
+                elif specsys.startswith('heliocent'):
+
+                    observer_location = observer_location.transform_to('hcrs')
+                    vel_to_add = CartesianDifferential(0*u.km/u.s, 0*u.km/u.s, 0*u.km/u.s)
+
+                elif specsys == 'lsrk':
+
+                    # The LSRK velocity frame is defined as having a velocity
+                    # of 20 km/s towards RA=270 Dec=30 (B1900) relative to the
+                    # solar system Barycenter. This is defined in:
+                    #
+                    #   Gordon 1975, Methods of Experimental Physics: Volume 12:
+                    #   Astrophysics, Part C: Radio Observations - Section 6.1.5.
+                    #
+                    # We use the astropy.coordinates FK4 class here since it is
+                    # defined with the solar system barycenter as the origin,
+                    # and we then find the velocities in the ICRS frame.
+
+                    observer_location = observer_location.transform_to('icrs')
+                    velocity = 20 * u.km / u.s
+                    direction = SkyCoord(270 * u.deg, 30 * u.deg, frame=FK4(equinox='B1900'))
+                    x, y, z = direction.icrs.cartesian.xyz.to_value()
+                    vel_to_add = CartesianDifferential(x * velocity,
+                                                       y * velocity,
+                                                       z * velocity)
+
+                elif specsys == 'lsrd':
+
+                    # The LSRD velocity frame is defined as a velocity of
+                    # U=9 km/s, V=12 km/s, and W=7 km/s or 16.552945 km/s
+                    # towards l=53.13 b=25.02. This is defined in:
+                    #
+                    #   Delhaye 1975, Solar Motion and Velocity Distribution of
+                    #   Common Stars.
+
+                    observer_location = observer_location.transform_to('galactic')
+                    direction = SkyCoord(u=9 * u.km, v=12 * u.km, w=7 * u.km,
+                                         frame='galactic', representation_type='cartesian')
+                    x, y, z = direction.cartesian.xyz / u.s
+                    vel_to_add = CartesianDifferential(x, y, z)
+
+                elif specsys == 'galactoc':
+
+                    # This frame is defined as a velocity of 220 km/s in the
+                    # direction of l=270, b=0. The rotation velocity is defined
+                    # in:
+                    #
+                    #   Kerr and Lynden-Bell 1986, Review of galactic constants.
+
+                    observer_location = observer_location.transform_to('galactic')
+                    velocity = 220 * u.km / u.s
+                    direction = SkyCoord(l=270 * u.deg, b=0 * u.deg, frame='galactic')
+                    x, y, z = direction.cartesian.xyz / u.s
+                    vel_to_add = CartesianDifferential(x * velocity,
+                                                       y * velocity,
+                                                       z * velocity)
+
+                    # NOTE: should this be l=90 or 270? (WCS paper says 90)
+
+                elif specsys == 'localgrp':
+
+                    # This frame is defined as a velocity of 300 km/s in the
+                    # direction of l=90, b=0. This is defined in:
+                    #
+                    #   Transactions of the IAU Vol. XVI B Proceedings of the
+                    #   16th General Assembly, Reports of Meetings of Commissions:
+                    #   Comptes Rendus Des Séances Des Commissions, Commission 28,
+                    #   p201.
+                    #
+                    # Note that these values differ from those used by CASA
+                    # (308 km/s towards l=105, b=-7) but we use the above values
+                    # since these are the ones defined in Greisen et al (2006).
+
+                    observer_location = observer_location.transform_to('galactic')
+                    velocity = 300 * u.km / u.s
+                    direction = SkyCoord(l=90 * u.deg, b=0 * u.deg, frame='galactic')
+                    x, y, z = direction.cartesian.xyz / u.s
+                    vel_to_add = CartesianDifferential(x * velocity,
+                                                       y * velocity,
+                                                       z * velocity)
+
+                elif specsys == 'cmbdipol':
+
+                    # This frame is defined as a velocity of 368 km/s in the
+                    # direction of l=263.85, b=48.25. This is defined in:
+                    #
+                    #   Bennett et al. (2003), First-Year Wilkinson Microwave
+                    #   Anisotropy Probe (WMAP) Observations: Preliminary Maps
+                    #   and Basic Results
+                    #
+                    # Note that in that paper, the dipole is expressed as a
+                    # temperature (T=3.346 +/- 0.017mK)
+
+                    observer_location = observer_location.transform_to('galactic')
+                    velocity = 368 * u.km / u.s
+                    direction = SkyCoord(l=263.85 * u.deg, b=48.25 * u.deg, frame='galactic')
+                    x, y, z = direction.cartesian.xyz / u.s
+                    vel_to_add = CartesianDifferential(x * velocity,
+                                                       y * velocity,
+                                                       z * velocity)
+
+                elif specsys == 'source':
+
+                    # TODO: need to determine how to handle this case - we
+                    # could potentially set observer and target to None?
+
+                    raise NotImplementedError('SPECSYS=SOURCE not yet supported')
+
+                new_observer_data = observer_location.data.to_cartesian().with_differentials(vel_to_add)
+                observer = observer_location.realize_frame(new_observer_data)
+
             if ctype == 'ZOPT':
 
                 def spectralcoord_from_redshift(redshift):
                     return SpectralCoord((redshift + 1) * self.wcs.restwav,
-                                         unit=u.m)
+                                         unit=u.m, observer=observer)
 
                 def redshift_from_spectralcoord(spectralcoord):
-                    return spectralcoord.to_value(u.m) / self.wcs.restwav - 1.
+                    return spectralcoord.in_observer_velocity_frame(observer).to_value(u.m) / self.wcs.restwav - 1.
 
-                classes['spectral'] = (SpectralCoord, (), kwargs, spectralcoord_from_redshift)
+                classes['spectral'] = (SpectralCoord, (), {}, spectralcoord_from_redshift)
                 components[self.wcs.spec] = ('spectral', 0, redshift_from_spectralcoord)
 
             elif ctype == 'BETA':
@@ -366,20 +506,21 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     return SpectralCoord(beta * C_SI,
                                          unit=u.m / u.s,
                                          doppler_convention='relativistic',
-                                         doppler_rest=self.wcs.restwav * u.m)
+                                         doppler_rest=self.wcs.restwav * u.m,
+                                         observer=observer)
 
                 def beta_from_spectralcoord(spectralcoord):
                     doppler_equiv = u.doppler_relativistic(self.wcs.restwav * u.m)
-                    return spectralcoord.to_value(u.m / u.s, doppler_equiv) / C_SI
+                    return spectralcoord.in_observer_velocity_frame(observer).to_value(u.m / u.s, doppler_equiv) / C_SI
 
-                classes['spectral'] = (SpectralCoord, (), kwargs, spectralcoord_from_beta)
+                classes['spectral'] = (SpectralCoord, (), {}, spectralcoord_from_beta)
                 components[self.wcs.spec] = ('spectral', 0, beta_from_spectralcoord)
 
             else:
 
                 kwargs['unit'] = self.wcs.cunit[ispec]
 
-                if ctype =='VELO':
+                if ctype == 'VELO':
                     kwargs['doppler_convention'] = 'relativistic'
                     kwargs['doppler_rest'] = self.wcs.restfrq * u.Hz
                 elif ctype == 'VRAD':
@@ -389,8 +530,14 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     kwargs['doppler_convention'] = 'optical'
                     kwargs['doppler_rest'] = self.wcs.restwav * u.m
 
-                classes['spectral'] = (SpectralCoord, (), kwargs)
-                components[self.wcs.spec] = ('spectral', 0, 'value')
+                def spectralcoord_from_value(value):
+                    return SpectralCoord(value, observer=observer, **kwargs)
+
+                def value_from_spectralcoord(spectralcoord):
+                    return spectralcoord.in_observer_velocity_frame(observer).to_value(**kwargs)
+
+                classes['spectral'] = (SpectralCoord, (), {}, spectralcoord_from_value)
+                components[self.wcs.spec] = ('spectral', 0, value_from_spectralcoord)
 
         # We can then make sure we correctly return Time objects where appropriate
         # (https://www.aanda.org/articles/aa/pdf/2015/02/aa24653-14.pdf)
