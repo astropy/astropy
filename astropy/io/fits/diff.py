@@ -10,6 +10,7 @@ import glob
 import io
 import operator
 import os.path
+import pathlib
 import textwrap
 
 from collections import defaultdict
@@ -268,7 +269,7 @@ class FITSDiff(_BaseDiff):
             whitespace (default: True).
         """
 
-        if isinstance(a, str):
+        if isinstance(a, (str, pathlib.Path)):
             try:
                 a = fitsopen(a)
             except Exception as exc:
@@ -278,7 +279,7 @@ class FITSDiff(_BaseDiff):
         else:
             close_a = False
 
-        if isinstance(b, str):
+        if isinstance(b, (str, pathlib.Path)):
             try:
                 b = fitsopen(b)
             except Exception as exc:
@@ -552,16 +553,28 @@ class HDUDiff(_BaseDiff):
         elif self.a.is_image and self.b.is_image:
             self.diff_data = ImageDataDiff.fromdiff(self, self.a.data,
                                                     self.b.data)
+            # Clean up references to (possibly) memmapped arrays so they can
+            # be closed by .close()
+            self.diff_data.a = None
+            self.diff_data.b = None
         elif (isinstance(self.a, _TableLikeHDU) and
               isinstance(self.b, _TableLikeHDU)):
             # TODO: Replace this if/when _BaseHDU grows a .is_table property
             self.diff_data = TableDataDiff.fromdiff(self, self.a.data,
                                                     self.b.data)
+            # Clean up references to (possibly) memmapped arrays so they can
+            # be closed by .close()
+            self.diff_data.a = None
+            self.diff_data.b = None
         elif not self.diff_extension_types:
             # Don't diff the data for unequal extension types that are not
             # recognized image or table types
             self.diff_data = RawDataDiff.fromdiff(self, self.a.data,
                                                   self.b.data)
+            # Clean up references to (possibly) memmapped arrays so they can
+            # be closed by .close()
+            self.diff_data.a = None
+            self.diff_data.b = None
 
     def _report(self):
         if self.identical:
