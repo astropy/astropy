@@ -7,6 +7,7 @@ import warnings
 
 import numpy as np
 
+from astropy.constants import c
 from astropy import units as u
 
 from .low_level_api import BaseLowLevelWCS
@@ -14,6 +15,8 @@ from .high_level_api import HighLevelWCSMixin
 from .sliced_low_level_wcs import SlicedLowLevelWCS
 
 __all__ = ['custom_ctype_to_ucd_mapping', 'SlicedFITSWCS', 'FITSWCSAPIMixin']
+
+C_SI = c.to_value(u.m / u.s)
 
 # Mapping from CTYPE axis name to UCD1
 
@@ -332,6 +335,62 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
                 components[self.wcs.lng] = ('celestial', 0, 'spherical.lon.degree')
                 components[self.wcs.lat] = ('celestial', 1, 'spherical.lat.degree')
+
+        # Next, we check for spectral components
+
+        if self.has_spectral:
+
+            # Find index of spectral coordinate
+            ispec = self.wcs.spec
+            ctype = self.wcs.ctype[ispec][:4]
+
+            from specutils import SpectralCoord
+
+            kwargs = {}
+
+            if ctype == 'ZOPT':
+
+                def spectralcoord_from_redshift(redshift):
+                    return SpectralCoord((redshift + 1) * self.wcs.restwav,
+                                         unit=u.m)
+
+                def redshift_from_spectralcoord(spectralcoord):
+                    return spectralcoord.to_value(u.m) / self.wcs.restwav - 1.
+
+                classes['spectral'] = (SpectralCoord, (), kwargs, spectralcoord_from_redshift)
+                components[self.wcs.spec] = ('spectral', 0, redshift_from_spectralcoord)
+
+            elif ctype == 'BETA':
+
+                def spectralcoord_from_beta(beta):
+                    return SpectralCoord(beta * C_SI,
+                                         unit=u.m / u.s,
+                                         doppler_convention='relativistic',
+                                         doppler_rest=self.wcs.restwav * u.m)
+
+                def beta_from_spectralcoord(spectralcoord):
+                    doppler_equiv = u.doppler_relativistic(self.wcs.restwav * u.m)
+                    return spectralcoord.to_value(u.m / u.s, doppler_equiv) / C_SI
+
+                classes['spectral'] = (SpectralCoord, (), kwargs, spectralcoord_from_beta)
+                components[self.wcs.spec] = ('spectral', 0, beta_from_spectralcoord)
+
+            else:
+
+                kwargs['unit'] = self.wcs.cunit[ispec]
+
+                if ctype =='VELO':
+                    kwargs['doppler_convention'] = 'relativistic'
+                    kwargs['doppler_rest'] = self.wcs.restfrq * u.Hz
+                elif ctype == 'VRAD':
+                    kwargs['doppler_convention'] = 'radio'
+                    kwargs['doppler_rest'] = self.wcs.restfrq * u.Hz
+                elif ctype == 'VOPT':
+                    kwargs['doppler_convention'] = 'optical'
+                    kwargs['doppler_rest'] = self.wcs.restwav * u.m
+
+                classes['spectral'] = (SpectralCoord, (), kwargs)
+                components[self.wcs.spec] = ('spectral', 0, 'value')
 
         # We can then make sure we correctly return Time objects where appropriate
         # (https://www.aanda.org/articles/aa/pdf/2015/02/aa24653-14.pdf)
