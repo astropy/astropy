@@ -20,7 +20,7 @@ class TestFITSDiff_script(FitsTestCase):
 
     def test_noargs(self):
         with pytest.raises(SystemExit) as e:
-            fitsdiff.main()
+            fitsdiff.main([""])
         assert e.value.code == 2
 
     def test_oneargargs(self):
