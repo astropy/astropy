@@ -16,10 +16,10 @@ astropy is below.
 
 ..
   EXAMPLE START
-  Using spg4 to get a TEME coordinate
+  Using sgp4 to get a TEME coordinate
 
 You will need some external library to compute the position and velocity of the satellite from the
-TLE orbital elements. The `spgp4 <https://pypi.org/project/sgp4/>`_ library can do this. An example
+TLE orbital elements. The `sgp4 <https://pypi.org/project/sgp4/>`_ library can do this. An example
 using this library to find the  `~astropy.coordinates.TEME` coordinates of a satellite is::
 
 .. doctest-requires:: sgp4
