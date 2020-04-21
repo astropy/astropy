@@ -65,11 +65,11 @@ class PowerLaw1D(Fittable1DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {'x': self.x_0.unit}
+        return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'x_0': inputs_unit['x'],
-                'amplitude': outputs_unit['y']}
+        return {'x_0': inputs_unit[self.inputs[0]],
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class BrokenPowerLaw1D(Fittable1DModel):
@@ -138,11 +138,11 @@ class BrokenPowerLaw1D(Fittable1DModel):
     def input_units(self):
         if self.x_break.unit is None:
             return None
-        return {'x': self.x_break.unit}
+        return {self.inputs[0]: self.x_break.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'x_break': inputs_unit['x'],
-                'amplitude': outputs_unit['y']}
+        return {'x_break': inputs_unit[self.inputs[0]],
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
@@ -372,11 +372,11 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
     def input_units(self):
         if self.x_break.unit is None:
             return None
-        return {'x': self.x_break.unit}
+        return {self.inputs[0]: self.x_break.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'x_break': inputs_unit['x'],
-                'amplitude': outputs_unit['y']}
+        return {'x_break': inputs_unit[self.inputs[0]],
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class ExponentialCutoffPowerLaw1D(Fittable1DModel):
@@ -436,12 +436,12 @@ class ExponentialCutoffPowerLaw1D(Fittable1DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {'x': self.x_0.unit}
+        return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'x_0': inputs_unit['x'],
-                'x_cutoff': inputs_unit['x'],
-                'amplitude': outputs_unit['y']}
+        return {'x_0': inputs_unit[self.inputs[0]],
+                'x_cutoff': inputs_unit[self.inputs[0]],
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class LogParabola1D(Fittable1DModel):
@@ -502,8 +502,8 @@ class LogParabola1D(Fittable1DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {'x': self.x_0.unit}
+        return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'x_0': inputs_unit['x'],
-                'amplitude': outputs_unit['y']}
+        return {'x_0': inputs_unit[self.inputs[0]],
+                'amplitude': outputs_unit[self.outputs[0]]}

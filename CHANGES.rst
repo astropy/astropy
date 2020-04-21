@@ -280,6 +280,8 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Removed hard-coded names of inputs and outputs. [#10174]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 

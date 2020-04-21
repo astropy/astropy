@@ -189,12 +189,14 @@ class _EulerRotation:
     @property
     def input_units(self):
         """ Input units. """
-        return {'alpha': u.deg, 'delta': u.deg}
+        return {self.inputs[0]: u.deg,
+                self.inputs[1]: u.deg}
 
     @property
     def return_units(self):
         """ Output units. """
-        return {'alpha': u.deg, 'delta': u.deg}
+        return {self.outputs[0]: u.deg,
+                self.outputs[1]: u.deg}
 
 
 class EulerAngleRotation(_EulerRotation, Model):
@@ -306,12 +308,13 @@ class RotateNative2Celestial(_SkyRotation):
     @property
     def input_units(self):
         """ Input units. """
-        return {'phi_N': u.deg, 'theta_N': u.deg}
+        return {self.inputs[0]: u.deg,
+                self.inputs[1]: u.deg}
 
     @property
     def return_units(self):
         """ Output units. """
-        return {'alpha_C': u.deg, 'delta_C': u.deg}
+        return {self.outputs[0]: u.deg, self.outputs[1]: u.deg}
 
     def __init__(self, lon, lat, lon_pole, **kwargs):
         super().__init__(lon, lat, lon_pole, **kwargs)
@@ -375,12 +378,14 @@ class RotateCelestial2Native(_SkyRotation):
     @property
     def input_units(self):
         """ Input units. """
-        return {'alpha_C': u.deg, 'delta_C': u.deg}
+        return {self.inputs[0]: u.deg,
+                self.inputs[1]: u.deg}
 
     @property
     def return_units(self):
         """ Output units. """
-        return {'phi_N': u.deg, 'theta_N': u.deg}
+        return {self.outputs[0]: u.deg,
+                self.outputs[1]: u.deg}
 
     def __init__(self, lon, lat, lon_pole, **kwargs):
         super().__init__(lon, lat, lon_pole, **kwargs)

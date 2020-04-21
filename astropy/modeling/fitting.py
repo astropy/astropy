@@ -97,6 +97,9 @@ def fitter_unit_support(func):
     def wrapper(self, model, x, y, z=None, **kwargs):
         equivalencies = kwargs.pop('equivalencies', None)
 
+        # Create a dictionary mapping the real model input and output
+        # names to the data.
+
         data_has_units = (isinstance(x, Quantity) or
                           isinstance(y, Quantity) or
                           isinstance(z, Quantity))
@@ -120,18 +123,27 @@ def fitter_unit_support(func):
 
                 if model.input_units is not None:
                     if isinstance(x, Quantity):
-                        x = x.to(model.input_units['x'],
-                                 equivalencies=input_units_equivalencies['x'])
+                        x = x.to(model.input_units[model.inputs[0]],
+                                 equivalencies=input_units_equivalencies[model.inputs[0]])
                     if isinstance(y, Quantity) and z is not None:
-                        y = y.to(model.input_units['y'],
-                                 equivalencies=input_units_equivalencies['y'])
+                        y = y.to(model.input_units[model.inputs[1]],
+                                 equivalencies=input_units_equivalencies[model.inputs[1]])
+
+                # This remapping of names must be done here, after the the input data
+                # is converted to the correct units.
+                rename_data = {model.inputs[0]: x}
+                if z is not None:
+                    rename_data[model.outputs[0]] = z
+                    rename_data[model.inputs[1]] = y
+                else:
+                    rename_data[model.outputs[0]] = y
+                    rename_data['z'] = None
 
                 # We now strip away the units from the parameters, taking care to
                 # first convert any parameters to the units that correspond to the
                 # input units (to make sure that initial guesses on the parameters)
                 # are in the right unit system
-                model = model.without_units_for_data(x=x, y=y, z=z)
-
+                model = model.without_units_for_data(**rename_data)
                 # We strip away the units from the input itself
                 add_back_units = False
 
@@ -161,8 +173,7 @@ def fitter_unit_support(func):
 
                 # And finally we add back units to the parameters
                 if add_back_units:
-                    model_new = model_new.with_units_from_data(x=x, y=y, z=z)
-
+                    model_new = model_new.with_units_from_data(**rename_data)
                 return model_new
 
             else:
