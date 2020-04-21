@@ -1,9 +1,13 @@
 import numbers
+from collections import defaultdict
 
 import numpy as np
 
-from .base import BaseWCSWrapper
 from astropy.utils import isiterable
+from astropy.utils.decorators import lazyproperty
+
+from ..low_level_api import BaseLowLevelWCS
+from .base import BaseWCSWrapper
 
 __all__ = ['sanitize_slices', 'SlicedLowLevelWCS']
 
@@ -149,6 +153,39 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
             raise ValueError("Cannot slice WCS: the resulting WCS should have "
                              "at least one pixel and one world dimension.")
 
+
+    @lazyproperty
+    def dropped_world_dimensions(self):
+        """
+        Information describing the dropped world dimensions.
+        """
+        world_coords = self._pixel_to_world_values_all(*[0]*len(self._pixel_keep))
+        dropped_info = defaultdict(list)
+
+        for i in range(self._wcs.world_n_dim):
+
+            if i in self._world_keep:
+                continue
+
+            if "world_axis_object_classes" not in dropped_info:
+                dropped_info["world_axis_object_classes"] = dict()
+
+            wao_classes = self._wcs.world_axis_object_classes
+            wao_components = self._wcs.world_axis_object_components
+
+            dropped_info["value"].append(world_coords[i])
+            dropped_info["world_axis_names"].append(self._wcs.world_axis_names[i])
+            dropped_info["world_axis_physical_types"].append(self._wcs.world_axis_physical_types[i])
+            dropped_info["world_axis_units"].append(self._wcs.world_axis_units[i])
+            dropped_info["world_axis_object_components"].append(wao_components[i])
+            dropped_info["world_axis_object_classes"].update(dict(
+                filter(
+                    lambda x: x[0] == wao_components[i][0], wao_classes.items()
+                )
+            ))
+            dropped_info["serialized_classes"] = self.serialized_classes
+        return dict(dropped_info)
+
     @property
     def pixel_n_dim(self):
         return len(self._pixel_keep)
@@ -173,7 +210,7 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
     def world_axis_names(self):
         return [self._wcs.world_axis_names[i] for i in self._world_keep]
 
-    def pixel_to_world_values(self, *pixel_arrays):
+    def _pixel_to_world_values_all(self, *pixel_arrays):
         pixel_arrays = tuple(map(np.asanyarray, pixel_arrays))
         pixel_arrays_new = []
         ipix_curr = -1
@@ -188,7 +225,11 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
                     pixel_arrays_new.append(pixel_arrays[ipix_curr])
 
         pixel_arrays_new = np.broadcast_arrays(*pixel_arrays_new)
-        world_arrays = self._wcs.pixel_to_world_values(*pixel_arrays_new)
+        return self._wcs.pixel_to_world_values(*pixel_arrays_new)
+
+
+    def pixel_to_world_values(self, *pixel_arrays):
+        world_arrays = self._pixel_to_world_values_all(*pixel_arrays)
 
         # Detect the case of a length 0 array
         if isinstance(world_arrays, np.ndarray) and not world_arrays.shape:
