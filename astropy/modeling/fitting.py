@@ -97,9 +97,6 @@ def fitter_unit_support(func):
     def wrapper(self, model, x, y, z=None, **kwargs):
         equivalencies = kwargs.pop('equivalencies', None)
 
-        # Create a dictionary mapping the real model input and output
-        # names to the data.
-
         data_has_units = (isinstance(x, Quantity) or
                           isinstance(y, Quantity) or
                           isinstance(z, Quantity))
@@ -129,8 +126,9 @@ def fitter_unit_support(func):
                         y = y.to(model.input_units[model.inputs[1]],
                                  equivalencies=input_units_equivalencies[model.inputs[1]])
 
-                # This remapping of names must be done here, after the the input data
-                # is converted to the correct units.
+                # Create a dictionary mapping the real model inputs and outputs
+                # names to the data. This remapping of names must be done here, after
+                # the the input data is converted to the correct units.
                 rename_data = {model.inputs[0]: x}
                 if z is not None:
                     rename_data[model.outputs[0]] = z
