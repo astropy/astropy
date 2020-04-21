@@ -103,6 +103,8 @@ The following packages can optionally be used when testing:
 - `skyfield <https://rhodesmill.org/skyfield/>`_: Used for testing Solar System
   coordinates.
 
+- `spgp4 <https://pypi.org/project/sgp4/>`_: Used for testing satellite positions.
+
 - `tox <https://tox.readthedocs.io/en/latest/>`_: Used to automate testing
   and documentation builds.
 

@@ -22,6 +22,8 @@ You will need some external library to compute the position and velocity of the 
 TLE orbital elements. The `spgp4 <https://pypi.org/project/sgp4/>`_ library can do this. An example
 using this library to find the  `~astropy.coordinates.TEME` coordinates of a satellite is::
 
+.. doctest-requires:: sgp4
+
         >>> from sgp4.api import Satrec
         >>> from sgp4.api import SGP4_ERRORS
         >>> s = '1 25544U 98067A   19343.69339541  .00001764  00000-0  38792-4 0  9991'
@@ -30,6 +32,8 @@ using this library to find the  `~astropy.coordinates.TEME` coordinates of a sat
 
 The ``satellite`` object has a method, ``satellite.sgp4``, that will try to compute the TEME position
 and velocity at a given time::
+
+.. doctest-requires:: sgp4
 
         >>> from astropy.time import Time
         >>> t = Time(2458827.362605, format='jd')
@@ -40,6 +44,8 @@ and velocity at a given time::
 Now we have the position and velocity in kilometer and kilometers per second, we can create a
 position in the `~astropy.coordinates.TEME` reference frame::
 
+.. doctest-requires:: sgp4
+
         >>> from astropy.coordinates import TEME, CartesianDifferential, CartesianRepresentation
         >>> from astropy import units as u
         >>> teme_v = CartesianDifferential(teme_v*u.km/u.s)
@@ -49,20 +55,17 @@ position in the `~astropy.coordinates.TEME` reference frame::
 Note how we are careful to set the observed time of the `~astropy.coordinates.TEME` frame to the time at which we calculated
 satellite position.
 
-..
-  EXAMPLE END
-
 Transforming ``TEME`` to other coordinate systems
 ==================================================
 
 Once you have satellite positions in `~astropy.coordinates.TEME` coordinates they can be easily transformed
 into any `astropy.coordinates` frame.
 
-..
-  EXAMPLE START
   Transforming to other coordinates
 
 For example, to find the overhead latitude, longitude and height of the satellite::
+
+.. doctest-requires:: sgp4
 
         >>> from astropy.coordinates import ITRS
         >>> itrs = teme.transform_to(ITRS(obstime=t))  # doctest: +REMOTE_DATA
@@ -71,6 +74,8 @@ For example, to find the overhead latitude, longitude and height of the satellit
         GeodeticLocation(lon=<Longitude 160.34199789 deg>, lat=<Latitude -24.6609379 deg>, height=<Quantity 420.17927591 km>)
 
 Or, if you want to find the altitude and azimuth of the satellite from a particular location::
+
+.. doctest-requires:: sgp4
 
         >>> from astropy.coordinates import EarthLocation, AltAz
         >>> siding_spring = EarthLocation.of_site('aao')  # doctest: +REMOTE_DATA
