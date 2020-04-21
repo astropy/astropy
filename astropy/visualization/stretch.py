@@ -155,8 +155,9 @@ class SqrtStretch(BaseStretch):
             the input ``values`` array are not changed.  This option is
             generally used with matplotlib normalization classes, where
             the ``invalid`` value should map to the matplotlib colormap
-            "under" value (i.e., any finite value < 0).  This keyword
-            has no effect if ``clip=True``.
+            "under" value (i.e., any finite value < 0).  If `None`, then
+            NaN values are not replaced.  This keyword has no effect if
+            ``clip=True``.
 
         Returns
         -------
@@ -227,8 +228,9 @@ class PowerStretch(BaseStretch):
             the input ``values`` array are not changed.  This option is
             generally used with matplotlib normalization classes, where
             the ``invalid`` value should map to the matplotlib colormap
-            "under" value (i.e., any finite value < 0).  This keyword
-            has no effect if ``clip=True``.
+            "under" value (i.e., any finite value < 0).  If `None`, then
+            NaN values are not replaced.  This keyword has no effect if
+            ``clip=True``.
 
         Returns
         -------
@@ -391,8 +393,9 @@ class LogStretch(BaseStretch):
             the input ``values`` array are not changed.  This option is
             generally used with matplotlib normalization classes, where
             the ``invalid`` value should map to the matplotlib colormap
-            "under" value (i.e., any finite value < 0).  This keyword
-            has no effect if ``clip=True``.
+            "under" value (i.e., any finite value < 0).  If `None`, then
+            NaN values are not replaced.  This keyword has no effect if
+            ``clip=True``.
 
         Returns
         -------
