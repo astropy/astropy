@@ -51,6 +51,10 @@ class BaseStretch(BaseTransform):
     also in the range [0:1].
     """
 
+    @property
+    def _supports_invalid_kw(self):
+        return False
+
     def __add__(self, other):
         return CompositeStretch(other, self)
 
@@ -127,6 +131,10 @@ class SqrtStretch(BaseStretch):
         y = \sqrt{x}
     """
 
+    @property
+    def _supports_invalid_kw(self):
+        return True
+
     def __call__(self, values, clip=True, out=None, invalid=None):
         """
         Transform values using this stretch.
@@ -190,6 +198,10 @@ class PowerStretch(BaseStretch):
     a : float
         The power index (see the above formula).
     """
+
+    @property
+    def _supports_invalid_kw(self):
+        return True
 
     def __init__(self, a):
         super().__init__()
@@ -350,6 +362,10 @@ class LogStretch(BaseStretch):
     a : float
         The ``a`` parameter used in the above formula.  Default is 1000.
     """
+
+    @property
+    def _supports_invalid_kw(self):
+        return True
 
     def __init__(self, a=1000.0):
         super().__init__()
