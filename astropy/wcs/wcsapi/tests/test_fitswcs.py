@@ -21,6 +21,8 @@ from astropy.utils.data import get_pkg_data_filename
 from astropy.wcs.wcs import WCS, FITSFixedWarning
 from astropy.wcs.wcsapi.fitswcs import custom_ctype_to_ucd_mapping
 from astropy.wcs._wcs import __version__ as wcsver
+from astropy.utils import iers
+from astropy.table import Table
 
 ###############################################################################
 # The following example is the simplest WCS with default values
@@ -925,9 +927,7 @@ def test_sub_wcsapi_attributes():
 # Spectral transformations
 ###############################################################################
 
-
 HEADER_SPECTRAL_FRAMES = """
-MJD-OBS=        54738.85417000
 BUNIT   = 'Jy/beam'
 EQUINOX =      2.000000000E+03
 CTYPE1  = 'RA---SIN'
@@ -945,10 +945,6 @@ CRVAL3  =    1.37835117405E+09
 CDELT3  =      9.765625000E+04
 CRPIX3  =                 32.0
 CUNIT3  = 'Hz'
-OBSGEO-X=     -1.601185365E+06 / [m]
-OBSGEO-Y=     -5.041977547E+06 / [m]
-OBSGEO-Z=      3.554875870E+06 / [m]
-MJD-AVG =            51085.979
 SPECSYS = 'TOPOCENT'
 RESTFRQ =      1.420405752E+09 / [Hz]
 RADESYS = 'FK5'
@@ -960,74 +956,55 @@ def header_spectral_frames():
     return Header.fromstring(HEADER_SPECTRAL_FRAMES, sep='\n')
 
 
-# FIXME: how do we avoid @remote_data here?
-
-
-@pytest.mark.remote_data
 def test_spectralcoord_frame_accuracy(header_spectral_frames):
-
-    from specutils import SpectralCoord
 
     # This is a test to check the numerical results of transformations between
     # different velocity frames. In principle this could also live alongside
     # SpectralCoord, but here we are testing specifically the frames as defined
     # by the WCS standard.
 
-    # We start off with a WCS defined in topocentric frequency
-    with pytest.warns(FITSFixedWarning):
-        wcs_reference = WCS(header_spectral_frames)
+    reference_filename = get_pkg_data_filename('data/rv_reference.csv')
+    reference_table = Table.read(reference_filename, format='ascii.csv', delimiter=',')
 
-    # We convert a single pixel coordinate to world coordinates and keep only
-    # the second high level object - a SpectralCoord:
-    sc_reference = wcs_reference.pixel_to_world(0, 0, 31)[1]
-    assert isinstance(sc_reference, SpectralCoord)
+    with iers.conf.set_temp('auto_download', False):
 
-    # Convert to a reference velocity assuming optical doppler formula
-    rest = 0.211061139 * u.m
-    vel_reference = sc_reference.to(u.km / u.s, u.doppler_optical(rest))
+        for row in reference_table:
 
-    # Now try different SPECSYS and check for velocity difference. We then
-    # compare against values determined from the Starlink 'rv' package, which
-    # was run with the following parameters:
-    #
-    #  Observatory?  (d m s (West)  d m s (North), or name - or END)
-    #  > 105 10 28.40016 -34 4 43.72716
-    #
-    #  Date & number of days?  (y m d  n)
-    #  > 2008 09 29 1
-    #
-    #  Source position?  (h m s  d m s  e)
-    #  > 17 20 26
-    #  ?
-    #
-    #  Source position?  (h m s  d m s  e)
-    #  > 17 20 26 -0 58 30 J2000
-    #
-    #  Observatory?  (d m s (West)  d m s (North), or name - or END)
-    #  > END
-    #
-    # Result at 20:30 UTC (which is MJD-OBS 54738.85417000)
-    #
-    #        UTC            ZD     EARTH         SUN            LSR (K)   LSR (D)     GALAXY    LOCAL GROUP
-    #  2008 09 29 20:30    56.4    -0.29    +25.84 (+140.2)      +9.00    +11.50      -63.43       -76.33
+            header = header_spectral_frames.copy()
+            header['MJD-OBS'] = Time(f"{row['year']}-{row['month']}-{row['day']}T{row['time']}:00", scale='utc').mjd
+            header['CRVAL1'] = row['target_ra']
+            header['CRVAL2'] = row['target_dec']
+            header['OBSGEO-L'] = -row['obs_lon']
+            header['OBSGEO-B'] = row['obs_lat']
+            header['OBSGEO-H'] = 0.
 
-    expected = {
-        'GEOCENT': -0.29 * u.km / u.s,
-        'HELIOCENT': 25.84 * u.km / u.s,
-        'LSRK': 9.00 * u.km / u.s,
-        'LSRD': 11.50 * u.km / u.s,
-        'GALACTOC': 63.43 * u.km / u.s,
-        'LOCALGRP': -76.33 * u.km / u.s
-    }
+            # We start off with a WCS defined in topocentric frequency
+            with pytest.warns(FITSFixedWarning):
+                wcs_topo = WCS(header)
 
-    for specsys in expected:
+            # We convert a single pixel coordinate to world coordinates and keep only
+            # the second high level object - a SpectralCoord:
+            sc_topo = wcs_topo.pixel_to_world(0, 0, 31)[1]
 
-        header = header_spectral_frames.copy()
-        header['SPECSYS'] = specsys
+            # Convert to a reference velocity assuming optical doppler formula
+            rest = 0.211061139 * u.m
+            # vel_topo = sc_topo.to(u.km / u.s, u.doppler_optical(rest))
+            vel_topo = sc_topo.to(u.km / u.s, u.doppler_relativistic(rest))
 
-        with pytest.warns(FITSFixedWarning):
-            wcs = WCS(header_spectral_frames)
+            # Cycle through frames for which there is a reference value in the file
+            for specsys in ['GEOCENT', 'HELIOCENT', 'LSRK', 'LSRD', 'GALACTOC', 'LOCALGRP']:
 
-        wcs.wcs.specsys = specsys
-        sc_in_frame = wcs.pixel_to_world(0, 0, 31)[1].in_observer_velocity_frame(sc_reference.observer)
-        vel_in_frame = sc_in_frame.to(u.km / u.s, u.doppler_optical(rest))
+                header['SPECSYS'] = specsys
+                with pytest.warns(FITSFixedWarning):
+                    wcs = WCS(header)
+                sc = wcs.pixel_to_world(0, 0, 31)[1]
+
+                sc_in_frame = sc.in_observer_velocity_frame(sc_topo.observer)
+                vel = sc_in_frame.to(u.km / u.s, u.doppler_relativistic(rest))
+
+                delta_vel = vel_topo - vel
+
+                if specsys == 'GALACTOC':
+                    assert_allclose(delta_vel.to_value(u.km / u.s), row[specsys.lower()], atol=30)
+                else:
+                    assert_allclose(delta_vel.to_value(u.km / u.s), row[specsys.lower()], atol=0.02, rtol=0.002)
