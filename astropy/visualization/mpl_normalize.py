@@ -174,9 +174,6 @@ def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
     power : float, optional
         The power index for ``stretch='power'``.  The default is 1.0.
 
-    log : float, optional
-        The log index for ``stretch='log'``. The default is 1000.
-
     asinh_a : float, optional
         For ``stretch='asinh'``, the value where the asinh curve
         transitions from linear to logarithmic behavior, expressed as a
@@ -216,6 +213,9 @@ def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
     clip : bool, optional
         If `True`, data values outside the [0:1] range are clipped to
         the [0:1] range.
+
+    log_a : float, optional
+        The log index for ``stretch='log'``. The default is 1000.
 
     Returns
     -------
