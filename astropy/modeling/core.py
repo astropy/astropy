@@ -1315,7 +1315,7 @@ class Model(metaclass=_ModelMeta):
                     "compound models that only use the arithmetic operators + and -")
 
         model = self.copy()
-        print('kwargs', kwargs.keys())
+
         inputs_unit = {inp: getattr(kwargs[inp], 'unit', dimensionless_unscaled)
                        for inp in self.inputs if kwargs[inp] is not None}
 
@@ -1323,7 +1323,6 @@ class Model(metaclass=_ModelMeta):
                         for out in self.outputs if kwargs[out] is not None}
         parameter_units = self._parameter_units_for_data_units(inputs_unit,
                                                                outputs_unit)
-        print('parameter_units', parameter_units)
         for name, unit in parameter_units.items():
             parameter = getattr(model, name)
             if parameter.unit is not None:

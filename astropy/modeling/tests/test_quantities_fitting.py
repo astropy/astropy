@@ -264,7 +264,7 @@ def test_bad_compound_without_units(model):
 @pytest.mark.parametrize('model', models_with_custom_names())
 def test_fitting_custom_names(model):
     """ Tests fitting of models with custom inputs and outsputs names."""
-    
+
     x = np.linspace(0, 10, 100) * u.s
     y = model(x)
     fitter = fitting.LevMarLSQFitter()
