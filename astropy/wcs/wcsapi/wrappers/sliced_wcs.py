@@ -2,7 +2,7 @@ import numbers
 
 import numpy as np
 
-from astropy.wcs.wcsapi import BaseLowLevelWCS, wcs_info_str
+from .base import BaseWCSWrapper
 from astropy.utils import isiterable
 
 __all__ = ['sanitize_slices', 'SlicedLowLevelWCS']
@@ -96,7 +96,7 @@ def combine_slices(slice1, slice2):
     return slice(start, stop)
 
 
-class SlicedLowLevelWCS(BaseLowLevelWCS):
+class SlicedLowLevelWCS(BaseWCSWrapper):
 
     def __init__(self, wcs, slices):
 
@@ -233,9 +233,8 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
 
     @property
     def pixel_bounds(self):
-
         if self._wcs.pixel_bounds is None:
-            return None
+            return
 
         bounds = []
         for idx in self._pixel_keep:
@@ -251,9 +250,3 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
     @property
     def axis_correlation_matrix(self):
         return self._wcs.axis_correlation_matrix[self._world_keep][:, self._pixel_keep]
-
-    def __repr__(self):
-        return wcs_info_str(self)
-
-    def __str__(self):
-        return wcs_info_str(self)

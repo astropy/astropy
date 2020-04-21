@@ -117,4 +117,4 @@ def test_celestial_spectral_ape14(spectral_wcs, celestial_wcs):
     assert_quantity_allclose(celestial.dec, world_array[2] * u.deg)
 
     assert str(wcs) == EXPECTED_CELESTIAL_SPECTRAL_APE14_REPR
-    assert repr(wcs) == EXPECTED_CELESTIAL_SPECTRAL_APE14_REPR
+    assert EXPECTED_CELESTIAL_SPECTRAL_APE14_REPR in repr(wcs)

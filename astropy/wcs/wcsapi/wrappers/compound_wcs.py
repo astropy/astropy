@@ -2,7 +2,7 @@ from functools import reduce
 
 import numpy as np
 
-from astropy.wcs.wcsapi import BaseLowLevelWCS, wcs_info_str
+from .base import BaseWCSWrapper
 
 __all__ = ['CompoundLowLevelWCS']
 
@@ -11,7 +11,7 @@ def tuplesum(lists):
     return reduce(tuple.__add__, map(tuple, lists))
 
 
-class CompoundLowLevelWCS(BaseLowLevelWCS):
+class CompoundLowLevelWCS(BaseWCSWrapper):
     """
     A wrapper that takes multiple low level WCS objects and makes a compound
     WCS that combines them.
@@ -83,16 +83,12 @@ class CompoundLowLevelWCS(BaseLowLevelWCS):
 
     @property
     def pixel_shape(self):
-        if any(w.array_shape is None for w in self._wcs):
-            return None
-        else:
+        if not any(w.array_shape is None for w in self._wcs):
             return tuplesum(w.pixel_shape for w in self._wcs)
 
     @property
     def pixel_bounds(self):
-        if any(w.pixel_bounds is None for w in self._wcs):
-            return None
-        else:
+        if not any(w.pixel_bounds is None for w in self._wcs):
             return tuplesum(w.pixel_bounds for w in self._wcs)
 
     @property
@@ -108,7 +104,7 @@ class CompoundLowLevelWCS(BaseLowLevelWCS):
         matrix = np.zeros((self.world_n_dim, self.pixel_n_dim), dtype=bool)
         iw = ip = 0
         for w in self._wcs:
-            matrix[iw:iw+w.world_n_dim,ip:ip+w.pixel_n_dim] = w.axis_correlation_matrix
+            matrix[iw:iw + w.world_n_dim, ip:ip + w.pixel_n_dim] = w.axis_correlation_matrix
             iw += w.world_n_dim
             ip += w.pixel_n_dim
         return matrix
@@ -116,9 +112,3 @@ class CompoundLowLevelWCS(BaseLowLevelWCS):
     @property
     def serialized_classes(self):
         return any([w.serialized_classes for w in self._wcs])
-
-    def __repr__(self):
-        return wcs_info_str(self)
-
-    def __str__(self):
-        return wcs_info_str(self)

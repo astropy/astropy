@@ -92,7 +92,7 @@ def test_2d(celestial_wcs):
     assert_quantity_allclose(celestial.dec, world_array[1] * u.deg)
 
     assert str(wcs) == EXPECTED_2D_REPR
-    assert repr(wcs) == EXPECTED_2D_REPR
+    assert EXPECTED_2D_REPR in repr(wcs)
 
 
 @pytest.mark.parametrize('celestial_wcs',

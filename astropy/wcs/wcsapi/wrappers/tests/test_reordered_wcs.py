@@ -107,7 +107,7 @@ def test_spectral_cube(spectral_cube_3d_fitswcs):
     assert_quantity_allclose(celestial.dec, world_array[2] * u.deg)
 
     assert str(wcs) == EXPECTED_SPECTRAL_CUBE_REPR
-    assert repr(wcs) == EXPECTED_SPECTRAL_CUBE_REPR
+    assert EXPECTED_SPECTRAL_CUBE_REPR in repr(wcs)
 
 
 @pytest.mark.parametrize('order', [(1,), (1, 2, 2), (0, 1, 2, 3)])

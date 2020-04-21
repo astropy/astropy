@@ -138,7 +138,8 @@ def test_ellipsis():
 
     assert_equal(wcs.pixel_bounds, [(-1, 11), (-2, 18), (5, 15)])
 
-    assert str(wcs) == repr(wcs) == EXPECTED_ELLIPSIS_REPR.strip()
+    assert str(wcs) == EXPECTED_ELLIPSIS_REPR.strip()
+    assert EXPECTED_ELLIPSIS_REPR.strip() in repr(wcs)
 
 
 def test_pixel_to_world_broadcasting():
@@ -208,7 +209,8 @@ def test_spectral_slice():
 
     assert_equal(wcs.pixel_bounds, [(-1, 11), (5, 15)])
 
-    assert str(wcs) == repr(wcs) == EXPECTED_SPECTRAL_SLICE_REPR.strip()
+    assert str(wcs) == EXPECTED_SPECTRAL_SLICE_REPR.strip()
+    assert EXPECTED_SPECTRAL_SLICE_REPR.strip() in repr(wcs)
 
 
 EXPECTED_SPECTRAL_RANGE_REPR = """
@@ -274,7 +276,8 @@ def test_spectral_range():
 
     assert_equal(wcs.pixel_bounds, [(-1, 11), (-6, 14), (5, 15)])
 
-    assert str(wcs) == repr(wcs) == EXPECTED_SPECTRAL_RANGE_REPR.strip()
+    assert str(wcs) == EXPECTED_SPECTRAL_RANGE_REPR.strip()
+    assert EXPECTED_SPECTRAL_RANGE_REPR.strip() in repr(wcs)
 
 
 EXPECTED_CELESTIAL_SLICE_REPR = """
@@ -339,7 +342,8 @@ def test_celestial_slice():
 
     assert_equal(wcs.pixel_bounds, [(-2, 18), (5, 15)])
 
-    assert str(wcs) == repr(wcs) == EXPECTED_CELESTIAL_SLICE_REPR.strip()
+    assert str(wcs) == EXPECTED_CELESTIAL_SLICE_REPR.strip()
+    assert EXPECTED_CELESTIAL_SLICE_REPR.strip() in repr(wcs)
 
 
 EXPECTED_CELESTIAL_RANGE_REPR = """
@@ -405,7 +409,8 @@ def test_celestial_range():
 
     assert_equal(wcs.pixel_bounds, [(-6, 6), (-2, 18), (5, 15)])
 
-    assert str(wcs) == repr(wcs) == EXPECTED_CELESTIAL_RANGE_REPR.strip()
+    assert str(wcs) == EXPECTED_CELESTIAL_RANGE_REPR.strip()
+    assert EXPECTED_CELESTIAL_RANGE_REPR.strip() in repr(wcs)
 
 
 # Now try with a 90 degree rotation
@@ -481,7 +486,8 @@ def test_celestial_range_rot():
 
     assert_equal(wcs.pixel_bounds, [(-6, 6), (-2, 18), (5, 15)])
 
-    assert str(wcs) == repr(wcs) == EXPECTED_CELESTIAL_RANGE_ROT_REPR.strip()
+    assert str(wcs) == EXPECTED_CELESTIAL_RANGE_ROT_REPR.strip()
+    assert EXPECTED_CELESTIAL_RANGE_ROT_REPR.strip() in repr(wcs)
 
 
 HEADER_NO_SHAPE_CUBE = """
@@ -566,7 +572,8 @@ def test_no_array_shape():
     assert_allclose(wcs.world_to_pixel_values(10, 20, 25), (29., 39., 44.))
     assert_equal(wcs.world_to_array_index_values(10, 20, 25), (44, 39, 29))
 
-    assert str(wcs) == repr(wcs) == EXPECTED_NO_SHAPE_REPR.strip()
+    assert str(wcs) == EXPECTED_NO_SHAPE_REPR.strip()
+    assert EXPECTED_NO_SHAPE_REPR.strip() in repr(wcs)
 
 
 # Testing the WCS object having some physical types as None/Unknown
@@ -653,7 +660,8 @@ def test_ellipsis_none_types():
 
     assert_equal(wcs.pixel_bounds, [(-1, 11), (-2, 18), (5, 15)])
 
-    assert str(wcs) == repr(wcs) == EXPECTED_ELLIPSIS_REPR_NONE_TYPES.strip()
+    assert str(wcs) == EXPECTED_ELLIPSIS_REPR_NONE_TYPES.strip()
+    assert EXPECTED_ELLIPSIS_REPR_NONE_TYPES.strip() in repr(wcs)
 
 
 CASES = [(slice(None), slice(None), slice(None)),
