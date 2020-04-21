@@ -46,11 +46,11 @@ VELOCITY_FRAMES_VXYZ['HELIOCENT'] = ('hcrs', 0 * u.km / u.s, 0 * u.km / u.s, 0 *
 
 lsrk_velocity = 20 * u.km / u.s
 lsrk_direction = SkyCoord(270 * u.deg, 30 * u.deg, frame=FK4(equinox='B1900'))
-x, y, z = lsrk_direction.cartesian.xyz.to_value()
+x, y, z = -lsrk_direction.cartesian.xyz.to_value()
 VELOCITY_FRAMES_VXYZ['LSRK'] = (FK4(equinox='B1900'),
-                                x * lsrk_velocity,
-                                y * lsrk_velocity,
-                                z * lsrk_velocity)
+                                 x * lsrk_velocity,
+                                 y * lsrk_velocity,
+                                 z * lsrk_velocity)
 
 # The LSRD velocity frame is defined as a velocity of
 # U=9 km/s, V=12 km/s, and W=7 km/s or 16.552945 km/s
@@ -61,7 +61,7 @@ VELOCITY_FRAMES_VXYZ['LSRK'] = (FK4(equinox='B1900'),
 
 lsrd_direction = SkyCoord(u=9 * u.km, v=12 * u.km, w=7 * u.km,
                           frame='galactic', representation_type='cartesian')
-x, y, z = lsrd_direction.cartesian.xyz / u.s
+x, y, z = -lsrd_direction.cartesian.xyz / u.s
 VELOCITY_FRAMES_VXYZ['LSRD'] = ('galactic', x, y, z)
 
 # This frame is defined as a velocity of 220 km/s in the
@@ -73,12 +73,12 @@ VELOCITY_FRAMES_VXYZ['LSRD'] = ('galactic', x, y, z)
 # NOTE: should this be l=90 or 270? (WCS paper says 90)
 
 galactoc_velocity = 220 * u.km / u.s
-galactoc_direction = SkyCoord(l=270 * u.deg, b=0 * u.deg, frame='galactic')
-x, y, z = galactoc_direction.cartesian.xyz
+galactoc_direction = SkyCoord(l=90 * u.deg, b=0 * u.deg, frame='galactic')
+x, y, z = -galactoc_direction.cartesian.xyz
 VELOCITY_FRAMES_VXYZ['GALACTOC'] = ('galactic',
-                                    x * galactoc_velocity,
-                                    y * galactoc_velocity,
-                                    z * galactoc_velocity)
+                                     x * galactoc_velocity,
+                                     y * galactoc_velocity,
+                                     z * galactoc_velocity)
 
 # This frame is defined as a velocity of 300 km/s in the
 # direction of l=90, b=0. This is defined in:
@@ -94,11 +94,11 @@ VELOCITY_FRAMES_VXYZ['GALACTOC'] = ('galactic',
 
 localgrp_velocity = 300 * u.km / u.s
 localgrp_direction = SkyCoord(l=90 * u.deg, b=0 * u.deg, frame='galactic')
-x, y, z = localgrp_direction.cartesian.xyz
+x, y, z = -localgrp_direction.cartesian.xyz
 VELOCITY_FRAMES_VXYZ['LOCALGRP'] = ('galactic',
-                                    x * localgrp_velocity,
-                                    y * localgrp_velocity,
-                                    z * localgrp_velocity)
+                                     x * localgrp_velocity,
+                                     y * localgrp_velocity,
+                                     z * localgrp_velocity)
 
 # This frame is defined as a velocity of 368 km/s in the
 # direction of l=263.85, b=48.25. This is defined in:
@@ -112,11 +112,11 @@ VELOCITY_FRAMES_VXYZ['LOCALGRP'] = ('galactic',
 
 cmbdipol_velocity = (3.346 * u.mK / WMAP5.Tcmb(0) * c).to(u.km/u.s)
 cmbdipol_direction = SkyCoord(l=263.85 * u.deg, b=48.25 * u.deg, frame='galactic')
-x, y, z = cmbdipol_direction.cartesian.xyz
+x, y, z = -cmbdipol_direction.cartesian.xyz
 VELOCITY_FRAMES_VXYZ['CMBDIPOL'] = ('galactic',
-                                    x * cmbdipol_velocity,
-                                    y * cmbdipol_velocity,
-                                    z * cmbdipol_velocity)
+                                     x * cmbdipol_velocity,
+                                     y * cmbdipol_velocity,
+                                     z * cmbdipol_velocity)
 
 # Mapping from CTYPE axis name to UCD1
 
@@ -458,10 +458,14 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             if np.isnan(self.wcs.obsgeo[0]):
                 observer = None
             else:
+                # print(self.wcs.obsgeo[:3])
                 earth_location = EarthLocation(*self.wcs.obsgeo[:3], unit=u.m)
+                # print(earth_location.geodetic.lon, earth_location.geodetic.lat)
                 obstime = Time(self.wcs.mjdobs, format='mjd', scale='utc',
                                location=earth_location)
                 observer_location = SkyCoord(earth_location.get_itrs(obstime=obstime))
+
+                # print(observer_location)
 
                 from astropy.coordinates import CartesianDifferential
 
@@ -473,9 +477,16 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 if frame != 'itrs':
                     observer_location = observer_location.transform_to(frame)
 
+                # print(observer_location)
+
                 vel_to_add = CartesianDifferential(vx, vy, vz)
                 new_observer_data = observer_location.data.to_cartesian().with_differentials(vel_to_add)
                 observer = observer_location.realize_frame(new_observer_data)
+
+                # print('observer', observer.cartesian_differentials)
+                # assert False
+
+                # print(observer)
 
             # Determine target
 
@@ -494,6 +505,8 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                                   frame=celestial_frame,
                                   radial_velocity=0 * u.km / u.s,
                                   distance=1000 * u.kpc)
+
+                # print(target.to_string('hmsdms'))
 
                 # FIXME: for now this target won't work without radial velocity
                 # and distance due to https://github.com/astropy/specutils/issues/658
