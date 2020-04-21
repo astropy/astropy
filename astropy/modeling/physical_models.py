@@ -73,7 +73,7 @@ class BlackBody(Fittable1DModel):
     _input_units_allow_dimensionless = True
 
     # We enable the spectral equivalency by default for the spectral axis
-    input_units_equivalencies = {"x": u.spectral()}
+    input_units_equivalencies = {'x': u.spectral()}
 
     def evaluate(self, x, temperature, scale):
         """Evaluate the model.
@@ -171,7 +171,7 @@ class BlackBody(Fittable1DModel):
         # The input units are those of the 'x' value, which should always be
         # Hz. Because we do this, and because input_units_allow_dimensionless
         # is set to True, dimensionless values are assumed to be in Hz.
-        return {"x": u.Hz}
+        return {self.inputs[0]: u.Hz}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {"temperature": u.K}
@@ -281,20 +281,20 @@ class Drude1D(Fittable1DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {"x": self.x_0.unit}
+        return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
-            "x_0": inputs_unit["x"],
-            "fwhm": inputs_unit["x"],
-            "amplitude": outputs_unit["y"],
+            "x_0": inputs_unit[self.inputs[0]],
+            "fwhm": inputs_unit[self.inputs[0]],
+            "amplitude": outputs_unit[self.outputs[0]],
         }
 
     @property
     def return_units(self):
         if self.amplitude.unit is None:
             return None
-        return {'y': self.amplitude.unit}
+        return {self.outputs[0]: self.amplitude.unit}
 
     @x_0.validator
     def x_0(self, val):
@@ -365,8 +365,8 @@ class Plummer1D(Fittable1DModel):
         if self.mass.unit is None and self.r_plum.unit is None:
             return None
         else:
-            return {'x': self.r_plum.unit}
+            return {self.inputs[0]: self.r_plum.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'mass': outputs_unit['y'] * inputs_unit['x'] ** 3,
-                'r_plum': inputs_unit['x']}
+        return {'mass': outputs_unit[self.outputs[0]] * inputs_unit[self.inputs[0]] ** 3,
+                'r_plum': inputs_unit[self.inputs[0]]}
