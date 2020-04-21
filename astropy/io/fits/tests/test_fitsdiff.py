@@ -288,6 +288,7 @@ No differences found.\n""".format(version, tmp_a, tmp_b)
         assert "testb.fits" in out
 
 
+@pytest.mark.skip(reason="fails intentionally to show open files (see PR #10159)")
 def test_fitsdiff_openfile(tmpdir):
     """Make sure that failing FITSDiff doesn't leave open files."""
     path1 = str(tmpdir.join("file1.fits"))
