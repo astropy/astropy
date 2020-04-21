@@ -22,9 +22,7 @@ from .util import first
 
 
 # FITS file signature as per RFC 4047
-FITS_SIGNATURE = (b"\x53\x49\x4d\x50\x4c\x45\x20\x20\x3d\x20\x20\x20\x20\x20"
-                  b"\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20"
-                  b"\x20\x54")
+FITS_SIGNATURE = b'SIMPLE  =                    T'
 
 # Keywords to remove for all tables that are read in
 REMOVE_KEYWORDS = ['XTENSION', 'BITPIX', 'NAXIS', 'NAXIS1', 'NAXIS2',
