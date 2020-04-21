@@ -179,5 +179,20 @@ class SkyOffsetFrame(BaseCoordinateFrame):
         if self.origin is not None and not self.origin.has_data:
             raise ValueError('The origin supplied to SkyOffsetFrame has no '
                              'data.')
-        if self.has_data and hasattr(self.data, 'lon'):
-            self.data.lon.wrap_angle = 180*u.deg
+        if self.has_data:
+            self._set_skyoffset_data_lon_wrap_angle(self.data)
+
+    @staticmethod
+    def _set_skyoffset_data_lon_wrap_angle(data):
+        if hasattr(data, 'lon'):
+            data.lon.wrap_angle = 180. * u.deg
+        return data
+
+    def represent_as(self, base, s='base', in_frame_units=False):
+        """
+        Ensure the wrap angle for any spherical
+        representations.
+        """
+        data = super().represent_as(base, s, in_frame_units=in_frame_units)
+        self._set_skyoffset_data_lon_wrap_angle(data)
+        return data

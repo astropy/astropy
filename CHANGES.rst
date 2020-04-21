@@ -20,6 +20,9 @@ astropy.coordinates
   the attributes also properly become scalars when indexed with 0.
   [#10113]
 
+- Ensure that the ``lon`` values in ``SkyOffsetFrame`` are wrapped correctly at
+  180 degree regardless of how the underlying data is represented. [#10163]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
