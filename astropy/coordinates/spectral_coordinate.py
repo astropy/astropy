@@ -214,6 +214,12 @@ class SpectralCoord(u.Quantity):
                                  "`~astropy.coordinates.BaseCoordinateFrame` or "
                                  "`~astropy.coordinates.SkyCoord`.".format(coord))
 
+        # If the distance is not well-defined, ensure that it works properly
+        # for generating differentials
+        if hasattr(coord, 'distance') and \
+                coord.distance.unit.physical_type == 'dimensionless':
+            coord = SkyCoord(coord, distance=1e6 * u.kpc)
+
         # If the observer frame does not contain information about the
         # velocity of the system, assume that the velocity is zero in the
         # system.
