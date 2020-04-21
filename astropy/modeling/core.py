@@ -2945,6 +2945,14 @@ class CompoundModel(Model):
                         inputs_map[inp] = r_inputs_map[self.right.inputs[i - len(self.left.inputs)]]
                     else:
                         inputs_map[inp] = self.right, self.right.inputs[i - len(self.left.inputs)]
+        elif self.op == 'fix_inputs':
+            fixed_ind = list(self.right.keys())
+            ind = [list(self.left.inputs).index(i) if isinstance(i, str) else i for i in fixed_ind]
+            inp_ind = list(range(self.left.n_inputs))
+            for i in ind:
+                inp_ind.remove(i)
+            for i in inp_ind:
+                inputs_map[self.left.inputs[i]] = self.left, self.left.inputs[i]
         else:
             if isinstance(self.left, CompoundModel):
                 l_inputs_map = self.left.inputs_map()
@@ -2997,10 +3005,10 @@ class CompoundModel(Model):
 
     @property
     def return_units(self):
-        inputs_map = self.inputs_map()
-        return {key: inputs_map[key][0].return_units[orig_key]
-                for key, (mod, orig_key) in inputs_map.items()
-                if inputs_map[key][0].return_units is not None}
+        outputs_map = self.outputs_map()
+        return {key: outputs_map[key][0].return_units[orig_key]
+                for key, (mod, orig_key) in outputs_map.items()
+                if outputs_map[key][0].return_units is not None}
 
     def outputs_map(self):
         """
@@ -3011,16 +3019,19 @@ class CompoundModel(Model):
             return {out: (self, out) for out in self.outputs}
 
         elif self.op == '|':
-            r_outputs_map = self.right.outputs_map()
+            if isinstance(self.right, CompoundModel):
+                r_outputs_map = self.right.outputs_map()
             for out in self.outputs:
                 if isinstance(self.right, CompoundModel):
                     outputs_map[out] = r_outputs_map[out]
                 else:
-                    outputs_map[out] = self, out
+                    outputs_map[out] = self.right, out
 
         elif self.op == '&':
-            l_outputs_map = self.left.outputs_map()
-            r_outputs_map = self.right.outputs_map()
+            if isinstance(self.left, CompoundModel):
+                l_outputs_map = self.left.outputs_map()
+            if isinstance(self.right, CompoundModel):
+                r_outputs_map = self.right.outputs_map()
             for i, out in enumerate(self.outputs):
                 if i < len(self.left.outputs):  # Get from left
                     if isinstance(self.left, CompoundModel):
@@ -3032,7 +3043,8 @@ class CompoundModel(Model):
                         outputs_map[out] = r_outputs_map[self.right.outputs[i - len(self.left.outputs)]]
                     else:
                         outputs_map[out] = self.right, self.right.outputs[i - len(self.left.outputs)]
-
+        elif self.op == 'fix_inputs':
+            return self.left.outputs_map()
         else:
             if isinstance(self.left, CompoundModel):
                 l_outputs_map = self.left.outputs_map()
