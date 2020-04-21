@@ -235,6 +235,19 @@ astropy.visualization
 - Deprecated the ``imshow_only_kwargs`` keyword in ``imshow_norm``.
   [#9915]
 
+- Non-finite input values are now automatically excluded in
+  ``HistEqStretch`` and ``InvertedHistEqStretch``. [#10177]
+
+- The ``PowerDistStretch`` and ``InvertedPowerDistStretch`` ``a``
+  value is restricted to be ``a >= 0`` in addition to ``a != 1``.
+  [#10177]
+
+- The ``PowerStretch``, ``LogStretch``, and ``InvertedLogStretch``
+  ``a`` value is restricted to be ``a > 0``. [#10177]
+
+- The ``AsinhStretch`` and ``SinhStretch`` ``a`` value is restricted
+  to be ``0 < a <= 1``. [#10177]
+
 astropy.wcs
 ^^^^^^^^^^^
 
