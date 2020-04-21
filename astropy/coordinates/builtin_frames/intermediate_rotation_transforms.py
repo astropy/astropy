@@ -24,12 +24,14 @@ from .utils import get_polar_motion, get_jd12
 
 def teme_to_itrs_mat(time):
     # Sidereal time, rotates from ITRS to mean equinox
+    # Use 1982 model for consistency with Vallado et al (2006)
+    # http://www.celestrak.com/publications/aiaa/2006-6753/AIAA-2006-6753.pdf
     gst = erfa.gmst82(*get_jd12(time, 'ut1'))
 
     # Polar Motion
+    # Do not include TIO locator s' because it is not used in Vallado 2006
     xp, yp = get_polar_motion(time)
-    sp = erfa.sp00(*get_jd12(time, 'tt'))
-    pmmat = erfa.pom00(xp, yp, sp)
+    pmmat = erfa.pom00(xp, yp, 0)
 
     # rotation matrix
     # c2tcio expects a GCRS->CIRS matrix as it's first argument.
