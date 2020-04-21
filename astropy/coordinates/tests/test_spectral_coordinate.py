@@ -143,14 +143,15 @@ def test_create_from_spectral_coord(observer, target):
     Checks that parameters are correctly copied to the new SpectralCoord object
     """
     spec_coord1 = SpectralCoord([100, 200, 300] * u.nm, observer=observer,
-            target=target, radial_velocity=u.Quantity(1000, 'km/s'),
-            doppler_convention = 'optical', doppler_rest = 6000*u.AA)
+                                target=target, doppler_convention = 'optical',
+                                doppler_rest = 6000*u.AA)
     spec_coord2 = SpectralCoord(spec_coord1)
     assert spec_coord1.observer == spec_coord2.observer
-    assert spec_coord2.target == spec_coord2.target
-    assert spec_coord2.radial_velocity == spec_coord2.radial_velocity
-    assert spec_coord2.doppler_convention == spec_coord2.doppler_convention
-    assert spec_coord2.doppler_rest == spec_coord2.doppler_rest
+    assert spec_coord1.target == spec_coord2.target
+    assert spec_coord1.radial_velocity == spec_coord2.radial_velocity
+    assert spec_coord1.doppler_convention == spec_coord2.doppler_convention
+    assert spec_coord1.doppler_rest == spec_coord2.doppler_rest
+
 
 # SCIENCE USE CASE TESTS
 
