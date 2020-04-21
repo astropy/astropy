@@ -4,112 +4,52 @@ import numpy as np
 
 from astropy import units as u
 from astropy.units import Quantity, UnitsError, equivalencies
-from astropy.modeling.models import UnitsMapping
+from astropy.modeling.core import Model, fix_inputs
+from astropy.modeling.models import Polynomial1D
 
 
-def test_properties():
-    model = UnitsMapping(((u.dimensionless_unscaled, u.m), (u.dimensionless_unscaled, u.s)))
-    assert model.n_inputs == 2
-    assert model.n_outputs == 2
-    assert model.inputs == ("x0", "x1")
-    assert model.outputs == ("x0", "x1")
-    assert model.input_units == {"x0": u.dimensionless_unscaled, "x1": u.dimensionless_unscaled}
-    assert model.mapping == ((u.dimensionless_unscaled, u.m), (u.dimensionless_unscaled, u.s))
+class _ExampleModel(Model):
+    n_inputs = 1
+    n_outputs = 1
+    
+    def __init__(self):
+        self._input_units = {"x": u.m}
+        self._return_units = {"y": u.m/u.s}
+        super().__init__()
+
+    def evaluate(self, input):
+        return input / u.Quantity(1, u.s)
 
 
-def test_add_units():
-    model = UnitsMapping(((u.dimensionless_unscaled, u.m),))
+def _models_with_units():
+    m1 = _ExampleModel() & _ExampleModel()
+    m2 = _ExampleModel() + _ExampleModel()
+    p = Polynomial1D(1)
+    p._input_units = {'x': u.m / u.s}
+    p._return_units = {'y': u.m / u.s}
+    m3 = _ExampleModel() | p
+    m4 = fix_inputs(m1, {'x0': 1})
+    m5 = fix_inputs(m1, {0: 1})
 
-    for value in [10, Quantity(10), np.arange(10), Quantity(np.arange(10))]:
-        result = model(value)
-        assert isinstance(result, Quantity)
-        assert np.all(result.value == value)
-        assert result.unit == u.m
+    models = [m1, m2, m3, m4, m5]
+    input_units = [{'x0': u.Unit("m"), 'x1': u.Unit("m")},
+                   {'x': u.Unit("m")},
+                   {'x': u.Unit("m")},
+                   {'x1': u.Unit("m")},
+                   {'x1': u.Unit("m")}
+                   ]
 
-    with pytest.raises(UnitsError):
-        model(Quantity(10, u.s))
-
-
-def test_remove_units():
-    model = UnitsMapping(((u.m, u.dimensionless_unscaled),))
-
-    result = model(Quantity(10, u.m))
-    assert isinstance(result, Quantity)
-    assert result.value == 10
-    assert result.unit == u.dimensionless_unscaled
-
-    result = model(Quantity(1000, u.cm))
-    assert isinstance(result, Quantity)
-    assert result.value == 10
-    assert result.unit == u.dimensionless_unscaled
-
-    with pytest.raises(UnitsError):
-        model(10)
-
-    with pytest.raises(UnitsError):
-        model(Quantity(10))
+    return_units = [{'y0': u.Unit("m / s"), 'y1': u.Unit("m / s")},
+                    {'y': u.Unit("m / s")},
+                    {'y': u.Unit("m / s")},
+                    {'y0': u.Unit("m / s"), 'y1': u.Unit("m / s")},
+                    {'y0': u.Unit("m / s"), 'y1': u.Unit("m / s")}
+                    ]
+    return np.array([models, input_units, return_units]).T
 
 
-def test_remove_quantity():
-    model = UnitsMapping(((u.m, None),))
-
-    result = model(Quantity(10, u.m))
-    assert result == 10
-
-    result = model(Quantity(1000, u.cm))
-    assert result == 10
-
-    with pytest.raises(UnitsError):
-        model(10)
-
-    with pytest.raises(UnitsError):
-        model(Quantity(10))
-
-    # The model shouldn't allow a mixture of None and non-None
-    # output units.
-    with pytest.raises(ValueError, match=r"If one return unit is None, then all must be None"):
-        UnitsMapping(((u.m, None), (u.s, u.dimensionless_unscaled)))
-
-
-def test_equivalencies():
-    model = UnitsMapping(((u.m, u.dimensionless_unscaled),))
-
-    with pytest.raises(UnitsError):
-        model(Quantity(100, u.Hz))
-
-    model = UnitsMapping(((u.m, u.dimensionless_unscaled),), input_units_equivalencies={"x": equivalencies.spectral()})
-
-    result = model(Quantity(100, u.Hz))
-    assert result.unit == u.dimensionless_unscaled
-
-
-def test_allow_dimensionless():
-    model = UnitsMapping(((u.m, u.dimensionless_unscaled),))
-
-    with pytest.raises(UnitsError):
-        model(10)
-
-    model = UnitsMapping(((u.m, u.dimensionless_unscaled),), input_units_allow_dimensionless=True)
-    result = model(10)
-    assert isinstance(result, Quantity)
-    assert result.value == 10
-    assert result.unit == u.dimensionless_unscaled
-
-
-def test_custom_inputs_and_outputs():
-    model = UnitsMapping(((u.m, u.dimensionless_unscaled),))
-
-    model.inputs = ("foo",)
-    model.outputs = ("bar",)
-
-    assert model.inputs == ("foo",)
-    assert model.input_units == {"foo": u.m}
-    assert model.outputs == ("bar",)
-
-
-def test_repr():
-    model = UnitsMapping(((u.m, None),))
-    assert repr(model) == """<UnitsMapping(((Unit("m"), None),))>"""
-
-    model = UnitsMapping(((u.m, None),), name="foo")
-    assert repr(model) == """<UnitsMapping(((Unit("m"), None),), name='foo')>"""
+@pytest.mark.parametrize(("model", "input_units", "return_units"), _models_with_units())
+def test_input_units(model, input_units, return_units):
+    """ Test input_units on various compound models."""
+    assert model.input_units == input_units
+    assert model.return_units == return_units
