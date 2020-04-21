@@ -91,7 +91,6 @@ def models_with_custom_names():
     return [line, custom_names_model]
 
 
-
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_fitting_simple():
 
