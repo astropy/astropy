@@ -5,7 +5,9 @@ import numpy as np
 
 from astropy.visualization.stretch import (LinearStretch, SqrtStretch,
                                            PowerStretch, PowerDistStretch,
+                                           InvertedPowerDistStretch,
                                            SquaredStretch, LogStretch,
+                                           InvertedLogStretch,
                                            AsinhStretch, SinhStretch,
                                            HistEqStretch, ContrastBiasStretch)
 
@@ -106,3 +108,29 @@ def test_clip_invalid():
 
     values = stretch([-1., 0., 0.5, 1., 1.5], clip=False)
     np.testing.assert_allclose(values, [np.nan, 0., 0.70710678, 1., 1.2247448])
+
+
+@pytest.mark.parametrize('a', [-2., -1, 1.])
+def test_invalid_powerdist_a(a):
+    with pytest.raises(ValueError):
+        PowerDistStretch(a=a)
+    with pytest.raises(ValueError):
+        InvertedPowerDistStretch(a=a)
+
+
+@pytest.mark.parametrize('a', [-2., -1, 0.])
+def test_invalid_power_log_a(a):
+    with pytest.raises(ValueError):
+        PowerStretch(a=a)
+    with pytest.raises(ValueError):
+        LogStretch(a=a)
+    with pytest.raises(ValueError):
+        InvertedLogStretch(a=a)
+
+
+@pytest.mark.parametrize('a', [-2., -1, 0., 1.5])
+def test_invalid_sinh_a(a):
+    with pytest.raises(ValueError):
+        AsinhStretch(a=a)
+    with pytest.raises(ValueError):
+        SinhStretch(a=a)
