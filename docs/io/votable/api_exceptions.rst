@@ -12,6 +12,9 @@ Exception Utilities
 
 .. currentmodule:: astropy.io.votable.exceptions
 
+.. autoclass:: Conf
+   :members:
+
 .. autofunction:: warn_or_raise
 
 .. autofunction:: vo_raise

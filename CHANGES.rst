@@ -47,6 +47,9 @@ astropy.io.registry
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
+- New ``exceptions.conf.max_warnings`` configuration item to control the number of times a
+  type of warning appears before being suppressed. [#10152]
+
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 - Added Plummer1D model to ``functional_models``. [#9896]

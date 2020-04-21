@@ -1,11 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import pytest
 
 # LOCAL
-from astropy.tests.helper import catch_warnings
-
-from astropy.io.votable import converters
-from astropy.io.votable import exceptions
-from astropy.io.votable import tree
+from astropy.io.votable import converters, exceptions, tree
 
 
 def test_reraise():
@@ -27,11 +24,11 @@ def test_parse_vowarning():
     config = {'verify': 'exception',
               'filename': 'foo.xml'}
     pos = (42, 64)
-    with catch_warnings(exceptions.W47) as w:
+    with pytest.warns(exceptions.W47) as w:
         field = tree.Field(
             None, name='c', datatype='char',
             config=config, pos=pos)
-        c = converters.get_converter(field, config=config, pos=pos)
+        converters.get_converter(field, config=config, pos=pos)
 
     parts = exceptions.parse_vowarning(str(w[0].message))
 
@@ -47,3 +44,22 @@ def test_parse_vowarning():
         'is_warning': True
         }
     assert parts == match
+
+
+def test_suppress_warnings():
+    cfg = {}
+    warn = exceptions.W01('foo')
+
+    with exceptions.conf.set_temp('max_warnings', 2):
+        with pytest.warns(exceptions.W01) as record:
+            exceptions._suppressed_warning(warn, cfg)
+            assert len(record) == 1
+            assert 'suppressing' not in str(record[0].message)
+
+        with pytest.warns(exceptions.W01, match='suppressing'):
+            exceptions._suppressed_warning(warn, cfg)
+
+        exceptions._suppressed_warning(warn, cfg)
+
+    assert cfg['_warning_counts'][exceptions.W01] == 3
+    assert exceptions.conf.max_warnings == 10
