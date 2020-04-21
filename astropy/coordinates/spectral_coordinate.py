@@ -219,6 +219,10 @@ class SpectralCoord(u.Quantity):
         if hasattr(coord, 'distance') and \
                 coord.distance.unit.physical_type == 'dimensionless':
             coord = SkyCoord(coord, distance=1e6 * u.kpc)
+            warnings.warn(
+                "Distance on coordinate object is dimensionless, an "
+                "abritrary distance value of 1e6 kpc will be set instead.",
+                AstropyUserWarning)
 
         # If the observer frame does not contain information about the
         # velocity of the system, assume that the velocity is zero in the
