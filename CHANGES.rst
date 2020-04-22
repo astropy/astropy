@@ -389,6 +389,8 @@ astropy.io.fits
 - Fix unclosed memory-mapped FITS files in ``FITSDiff`` when difference found.
   [#10159]
 
+- Fix crash when reading an invalid table file. [#10171]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 

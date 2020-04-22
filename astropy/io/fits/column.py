@@ -1467,16 +1467,17 @@ class ColDefs(NotifierMixin):
         # go through header keywords to pick out column definition keywords
         # definition dictionaries for each field
         col_keywords = [{} for i in range(nfields)]
-        for keyword, value in hdr.items():
+        for keyword in hdr:
             key = TDEF_RE.match(keyword)
             try:
-                keyword = key.group('label')
+                label = key.group('label')
             except Exception:
                 continue  # skip if there is no match
-            if keyword in KEYWORD_NAMES:
+            if label in KEYWORD_NAMES:
                 col = int(key.group('num'))
                 if 0 < col <= nfields:
-                    attr = KEYWORD_TO_ATTRIBUTE[keyword]
+                    attr = KEYWORD_TO_ATTRIBUTE[label]
+                    value = hdr[keyword]
                     if attr == 'format':
                         # Go ahead and convert the format value to the
                         # appropriate ColumnFormat container now
