@@ -357,14 +357,26 @@ use new views of the data, with the data copied only if that is impossible
 ..
   EXAMPLE END
 
-Modifying items in-place
-------------------------
+.. _astropy-coordinates-modifying-in-place:
+
+Modifying Coordinate Objects In-place
+-------------------------------------
 
 Coordinate values in a array-valued |SkyCoord| object can be modified in-place
 (added in astropy 4.1). This requires that the new values be set from an
 another |SkyCoord| object that is equivalent in all ways except for the actual
 coordinate data values. In this way, no frame transformations are required and
 the item setting operation is extremely robust.
+
+Specifically, the right hand ``value`` must be strictly consistent with the
+object being modified:
+
+- Identical class
+- Equivalent frames (`~astropy.coordinates.BaseCoordinateFrame.is_equivalent_frame`)
+- Identical representation_types
+- Identical representation differentials keys
+- Identical frame attributes
+- Identical "extra" frame attributes (e.g., ``obstime`` for an ICRS coord)
 
 ..
   EXAMPLE START
@@ -388,7 +400,7 @@ syntax for a numpy array::
   Inserting Coordinates into a SkyCoord Object
 
 You can insert a scalar or array-valued |SkyCoord| object into another
-compatible |SkyCooord| object::
+compatible |SkyCoord| object::
 
   >>> sc1 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg)
   >>> sc2 = SkyCoord(10 * u.deg, 20 * u.deg)
@@ -400,8 +412,22 @@ compatible |SkyCooord| object::
   EXAMPLE END
 
 With the ability to modify a |SkyCoord| object in-place, all of the
-:ref:`table_operations`_ such as joining, stacking, and inserting are
+:ref:`table_operations` such as joining, stacking, and inserting are
 functional with |SkyCoord| mixin columns (so long as no masking is required).
+
+These methods are relatively slow because they require setting from an
+existing |SkyCoord| object and they perform extensive validation to ensure
+that the operation is valid. For some applications it may be necessary to
+take a different lower-level approach which is described in the section
+:ref:`astropy-coordinates-fast-in-place`.
+
+.. warning::
+
+  You may be tempted to try an apparently obvious way of modifying a coordinate
+  object in place by updating the component attributes directly, for example
+  `sc1.ra[1] = 40 * u.deg`. However, while this will *appear* to give a correct
+  result it does not actually modify the underlying representation data. This
+  is related to the current implementation of performance-based caching.
 
 Attributes
 ==========

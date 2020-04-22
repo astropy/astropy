@@ -267,6 +267,20 @@ To modify an array of coordinates use the same syntax for a numpy array::
   <ICRS Coordinate: (ra, dec) in deg
       [(10., 20.), ( 2.,  4.)]>
 
+This method is relatively slow because it requires setting from an
+existing frame object and it performs extensive validation to ensure
+that the operation is valid. For some applications it may be necessary to
+take a different lower-level approach which is described in the section
+:ref:`astropy-coordinates-fast-in-place`.
+
+.. warning::
+
+  You may be tempted to try an apparently obvious way of modifying a frame
+  object in place by updating the component attributes directly, for example
+  `coo1.ra[1] = 40 * u.deg`. However, while this will *appear* to give a correct
+  result it does not actually modify the underlying representation data. This
+  is related to the current implementation of performance-based caching.
+
 Transforming between Frames
 ===========================
 
