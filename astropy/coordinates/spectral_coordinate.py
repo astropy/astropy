@@ -4,11 +4,13 @@ from collections import namedtuple
 import astropy.units as u
 import numpy as np
 from astropy.constants import c
-from astropy.coordinates import (ICRS, BaseRepresentation,
+from astropy.coordinates import (ICRS,
                                  CartesianDifferential,
-                                 CartesianRepresentation, SkyCoord)
+                                 CartesianRepresentation, SkyCoord,
+                                 Galactic, FK4, HCRS, GCRS)
 from astropy.coordinates.baseframe import BaseCoordinateFrame, FrameMeta
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.cosmology import WMAP5
 
 DOPPLER_CONVENTIONS = {
     'radio': u.doppler_radio,
@@ -614,6 +616,12 @@ class SpectralCoord(u.Quantity):
                              "velocity frame.")
 
         observer_icrs = self.observer.transform_to(ICRS)
+
+        # If the target frame has an obstime already defined, we should ignore
+        # it and stick with the original observer obstime.
+        if 'obstime' in frame.frame_attributes and hasattr(self.observer, 'obstime'):
+            frame = frame.replicate(obstime=self.observer.obstime)
+
         frames_icrs = frame.transform_to(ICRS)
 
         data_with_rv = observer_icrs.data.with_differentials(
@@ -838,3 +846,106 @@ class SpectralCoord(u.Quantity):
             f'\tdoppler_convention={self.doppler_convention}, \n' \
             f'\tobserver={obs_frame}, \n' \
             f'\ttarget={tar_frame}>'
+
+
+# Now define a set of standard velocity frames for use with the
+# in_observer_velocity_frame method
+
+# FIXME: there are currently numerical issues when transforming frames with
+# velocities when the position is exactly at the origin. To avoid this, we use
+# a very small offset for now.
+EPS = 1e-10
+
+# First off, we consider velocity frames that are stationaly relative
+# to already defined 3-d celestial frames.
+
+GEOCENTRIC_VELOCITY_FRAME = GCRS(x=EPS * u.km, y=EPS * u.km, z=EPS * u.km,
+                                 v_x=0 * u.km / u.s, v_y=0 * u.km / u.s, v_z=0 * u.km / u.s,
+                                 representation_type='cartesian',
+                                 differential_type='cartesian')
+
+BARYCENTRIC_VELOCITY_FRAME = ICRS(x=EPS * u.km, y=EPS * u.km, z=EPS * u.km,
+                                  v_x=0 * u.km / u.s, v_y=0 * u.km / u.s, v_z=0 * u.km / u.s,
+                                  representation_type='cartesian',
+                                  differential_type='cartesian')
+
+HELIOCENTRIC_VELOCITY_FRAME = HCRS(x=EPS * u.km, y=EPS * u.km, z=EPS * u.km,
+                                   v_x=0 * u.km / u.s, v_y=0 * u.km / u.s, v_z=0 * u.km / u.s,
+                                   representation_type='cartesian',
+                                   differential_type='cartesian')
+
+# The LSRK velocity frame is defined as having a velocity
+# of 20 km/s towards RA=270 Dec=30 (B1900) relative to the
+# solar system Barycenter. This is defined in:
+#
+#   Gordon 1975, Methods of Experimental Physics: Volume 12:
+#   Astrophysics, Part C: Radio Observations - Section 6.1.5.
+#
+# We use the astropy.coordinates FK4 class here since it is
+# defined with the solar system barycenter as the origin.
+
+LSRK_VELOCITY_FRAME = FK4(x=EPS * u.km, y=EPS * u.km, z=EPS * u.km,
+                          v_x=-20 * u.km / u.s * np.cos(270 * u.deg) * np.cos(30 * u.deg),
+                          v_y=-20 * u.km / u.s * np.sin(270 * u.deg) * np.cos(30 * u.deg),
+                          v_z=-20 * u.km / u.s * np.sin(30 * u.deg),
+                          representation_type='cartesian',
+                          differential_type='cartesian',
+                          equinox='B1900')
+
+# The LSRD velocity frame is defined as a velocity of
+# U=9 km/s, V=12 km/s, and W=7 km/s or 16.552945 km/s
+# towards l=53.13 b=25.02. This is defined in:
+#
+#   Delhaye 1975, Solar Motion and Velocity Distribution of
+#   Common Stars.
+
+LSRD_VELOCITY_FRAME = Galactic(u=EPS * u.km, v=EPS * u.km, w=EPS * u.km,
+                               U=-9 * u.km / u.s, V=-12 * u.km / u.s, W=-7 * u.km / u.s,
+                               representation_type='cartesian',
+                               differential_type='cartesian')
+
+# This frame is defined as a velocity of 220 km/s in the
+# direction of l=90, b=0. The rotation velocity is defined
+# in:
+#
+#   Kerr and Lynden-Bell 1986, Review of galactic constants.
+#
+# NOTE: this may differ from the assumptions of galcen_v_sun
+# in the Galactocentric frame - the value used here is
+# the one adopted by the WCS standard for spectral
+# transformations.
+
+GALACTOCENTRIC_VELOCITY_FRAME = Galactic(u=EPS * u.km, v=EPS * u.km, w=EPS * u.km,
+                                         U=0 * u.km / u.s, V=-220 * u.km / u.s, W=0 * u.km / u.s,
+                                         representation_type='cartesian',
+                                         differential_type='cartesian')
+
+# This frame is defined as a velocity of 300 km/s in the
+# direction of l=90, b=0. This is defined in:
+#
+#   Transactions of the IAU Vol. XVI B Proceedings of the
+#   16th General Assembly, Reports of Meetings of Commissions:
+#   Comptes Rendus Des Séances Des Commissions, Commission 28,
+#   p201.
+#
+# Note that these values differ from those used by CASA
+# (308 km/s towards l=105, b=-7) but we use the above values
+# since these are the ones defined in Greisen et al (2006).
+
+LOCALGROUP_VELOCITY_FRAME = Galactic(u=EPS * u.km, v=EPS * u.km, w=EPS * u.km,
+                                     U=0 * u.km / u.s, V=-300 * u.km / u.s, W=0 * u.km / u.s,
+                                     representation_type='cartesian',
+                                     differential_type='cartesian')
+
+# This frame is defined as a velocity of 368 km/s in the
+# direction of l=263.85, b=48.25. This is defined in:
+#
+#   Bennett et al. (2003), First-Year Wilkinson Microwave
+#   Anisotropy Probe (WMAP) Observations: Preliminary Maps
+#   and Basic Results
+#
+# Note that in that paper, the dipole is expressed as a
+# temperature (T=3.346 +/- 0.017mK)
+
+CMBDIPOL_VELOCITY_FRAME = Galactic(l=263.85 * u.deg, b=48.25 * u.deg, distance=EPS * u.km,
+                                   radial_velocity=-(3.346 * u.mK / WMAP5.Tcmb(0) * c).to(u.km/u.s))

@@ -1,15 +1,28 @@
 import astropy.units as u
 import numpy as np
+from numpy.testing import assert_allclose
+
 import pytest
 from astropy import time
 from astropy.constants import c
+from astropy.table import Table
+from astropy.utils import iers
+from astropy.time import Time
 from astropy.coordinates import (SkyCoord, EarthLocation, ICRS, GCRS, Galactic,
                                  CartesianDifferential,
                                  get_body_barycentric_posvel,
                                  FK5, CartesianRepresentation)
 from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.data import get_pkg_data_filename
 
-from ..spectra.spectral_coordinate import SpectralCoord
+from astropy.coordinates.spectral_coordinate import (SpectralCoord,
+                                                     HELIOCENTRIC_VELOCITY_FRAME,
+                                                     LSRK_VELOCITY_FRAME,
+                                                     LSRD_VELOCITY_FRAME,
+                                                     GALACTOCENTRIC_VELOCITY_FRAME,
+                                                     LOCALGROUP_VELOCITY_FRAME,
+                                                     GEOCENTRIC_VELOCITY_FRAME)
 
 
 def assert_frame_allclose(frame1, frame2,
@@ -508,3 +521,47 @@ def test_spectral_coord_from_sky_coord_without_distance():
     coord = SpectralCoord([1, 2, 3] * u.micron, observer=obs)
     # coord.target = SkyCoord.from_name('m31')  # <- original issue, but below is the same but requires no remote data access
     coord.target = SkyCoord(ra=10.68470833*u.deg, dec=41.26875*u.deg)
+
+
+def test_spectralcoord_accuracy():
+
+    # This is a test to check the numerical results of transformations between
+    # different velocity frames in SpectralCoord.
+
+    reference_filename = get_pkg_data_filename('accuracy/data/rv_reference.csv')
+    reference_table = Table.read(reference_filename, format='ascii.csv', delimiter=',')
+
+    velocity_frames = {'geocent': GEOCENTRIC_VELOCITY_FRAME,
+                       'heliocent': HELIOCENTRIC_VELOCITY_FRAME,
+                       'lsrk': LSRK_VELOCITY_FRAME,
+                       'lsrd': LSRD_VELOCITY_FRAME,
+                       'galactoc': GALACTOCENTRIC_VELOCITY_FRAME,
+                       'localgrp': LOCALGROUP_VELOCITY_FRAME}
+
+    with iers.conf.set_temp('auto_download', False):
+
+        for row in reference_table:
+
+            obstime = Time(f"{row['year']}-{row['month']}-{row['day']}T{row['time']}:00", scale='utc')
+            observer = EarthLocation.from_geodetic(-row['obs_lon'], row['obs_lat']).get_itrs(obstime=obstime)
+            target = ICRS(row['target_ra'] * u.deg, row['target_dec'] * u.deg, distance=1000 * u.kpc)
+            rest = 550 * u.nm
+
+            with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+                sc_topo = SpectralCoord(545 * u.nm, observer=observer, target=target)
+
+            for specsys, velocity_frame in velocity_frames.items():
+
+                sc_final = sc_topo.in_observer_velocity_frame(velocity_frame)
+
+                delta_vel = (sc_topo.to(u.km / u.s, u.doppler_relativistic(rest)) -
+                             sc_final.to(u.km / u.s, u.doppler_relativistic(rest)))
+
+                if specsys == 'galactoc':
+                    assert_allclose(delta_vel.to_value(u.km / u.s), row[specsys.lower()], atol=30)
+                else:
+                    assert_allclose(delta_vel.to_value(u.km / u.s), row[specsys.lower()], atol=0.02, rtol=0.002)
+
+
+# TODO: add test when target is not ICRS
+# TODO: add test when SpectralCoord is in velocity to start with
