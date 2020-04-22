@@ -3341,6 +3341,71 @@ class CompoundModel(Model):
         return out
 
 
+    def replace_submodel(self, name, model):
+        """
+        Construct a new `~astropy.modeling.CompoundModel` instance from an
+        existing CompoundModel, replacing the named submodel with a new model.
+
+        In order to ensure that inverses and names are kept/reconstructed, it's
+        necessary to rebuild the CompoundModel from the replaced node all the
+        way back to the base. The original CompoundModel is left untouched.
+
+        Parameters
+        ----------
+        name : str
+            name of submodel to be replaced
+        model : `~astropy.modeling.Model`
+            replacement model
+        """
+        submodels = [m for m in self.traverse_postorder()
+                     if getattr(m, 'name', None) == name]
+        if submodels:
+            if len(submodels) > 1:
+                raise ValueError(f"More than one submodel named {name}")
+
+            old_model = submodels.pop()
+            if len(old_model) != len(model):
+                raise ValueError("New and old models must have equal values "
+                                 "for n_models")
+
+            # Do this check first in order to raise a more helpful Exception,
+            # although it would fail trying to construct the new CompoundModel
+            if (old_model.n_inputs != model.n_inputs or
+                        old_model.n_outputs != model.n_outputs):
+                raise ValueError("New model must match numbers of inputs and "
+                                 "outputs of existing model")
+
+            tree = _get_submodel_path(self, name)
+            while tree:
+                branch = self.copy()
+                for node in tree[:-1]:
+                    branch = getattr(branch, node)
+                setattr(branch, tree[-1], model)
+                model = CompoundModel(branch.op, branch.left, branch.right,
+                                      name=branch.name,
+                                      inverse=branch._user_inverse)
+                tree = tree[:-1]
+            return model
+
+        else:
+            raise ValueError(f"No submodels found named {name}")
+
+
+def _get_submodel_path(model, name):
+    """Find the route down a CompoundModel's tree to the model with the
+    specified name (whether it's a leaf or not)"""
+    if getattr(model, 'name', None) == name:
+        return []
+    try:
+        return ['left'] + _get_submodel_path(model.left, name)
+    except (AttributeError, TypeError):
+        pass
+    try:
+        return ['right'] + _get_submodel_path(model.right, name)
+    except (AttributeError, TypeError):
+        pass
+
+
 def binary_operation(binoperator, left, right):
     '''
     Perform binary operation. Operands may be matching tuples of operands.

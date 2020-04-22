@@ -639,3 +639,56 @@ def test_compound_with_polynomials_1d(poly):
     result = shift(poly(x))
     assert_allclose(result, result_compound)
     assert model.param_names == ('c0_0', 'c1_0', 'c2_0', 'c3_0', 'c4_0', 'c5_0', 'offset_1')
+
+
+def test_replace_submodel():
+    """
+    Replace a model in a Compound model
+    """
+    S1 = Shift(2, name='shift2') | Scale(3, name='scale3')  # First shift then scale
+    S2 = Scale(2, name='scale2') | Shift(3, name='shift3')  # First scale then shift
+
+    m = S1 & S2
+    assert m(1, 2) == (9, 7)
+
+    m2 = m.replace_submodel('scale3', Scale(4, name='scale4'))
+    assert m2(1, 2) == (12, 7)
+    assert m(1, 2) == (9, 7)
+    # Check the inverse has been updated
+    assert m2.inverse(12, 7) == (1, 2)
+
+    # Produce the same result by replacing a single model with a compound
+    m3 = m.replace_submodel('shift2', Shift(2) | Scale(2))
+    assert m(1, 2) == (9, 7)
+    assert m3(1, 2) == (18, 7)
+    # Check the inverse has been updated
+    assert m3.inverse(18, 7) == (1, 2)
+
+    # Test with arithmetic model compunding operator
+    m = S1 + S2
+    assert m(1) == 14
+    m2 = m.replace_submodel('scale2', Scale(4, name='scale4'))
+    assert m2(1) == 16
+
+    # Test with fix_inputs()
+    R = fix_inputs(Rotation2D(angle=90, name='rotate'), {0: 1})
+    m4 = S1 | R
+    assert_allclose(m4(0), (-6, 1))
+
+    m5 = m4.replace_submodel('rotate', Rotation2D(180))
+    assert_allclose(m5(0), (-1, -6))
+
+    # Check we get a value error when model name doesn't exist
+    with pytest.raises(ValueError):
+        m2 = m.replace_submodel('not_there', Scale(2))
+
+    # And now a model set
+    P = Polynomial1D(degree=1, n_models=2, name='poly')
+    S = Shift([1, 2], n_models=2)
+    m = P | S
+    assert_array_equal(m([0, 1]), (1, 2))
+    with pytest.raises(ValueError):
+        m2 = m.replace_submodel('poly', Polynomial1D(degree=1, c0=1))
+    m2 = m.replace_submodel('poly', Polynomial1D(degree=1, c0=[1, 2],
+                                                 n_models=2))
+    assert_array_equal(m2([0, 1]), (2, 4))
