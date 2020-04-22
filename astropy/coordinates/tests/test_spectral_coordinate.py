@@ -500,3 +500,11 @@ def test_change_doppler_conversions():
     coord.to(u.km / u.s, doppler_rest=110201353001 * u.Hz)
 
     assert quantity_allclose(coord.doppler_rest, 110201353001 * u.Hz)
+
+
+def test_regression_658():
+    # see https://github.com/astropy/specutils/issues/658 for issue context
+    obs = SkyCoord(0 * u.m, 0 * u.m, 0 * u.m, representation_type='cartesian')
+    coord = SpectralCoord([1, 2, 3] * u.micron, observer=obs)
+    # coord.target = SkyCoord.from_name('m31')  # <- original issue, but below is the same but requires no remote data access
+    coord.target = SkyCoord(ra=10.68470833*u.deg, dec=41.26875*u.deg)
