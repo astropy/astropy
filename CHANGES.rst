@@ -133,6 +133,11 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Added ``invalid`` keyword to ``SqrtStretch``, ``LogStretch``,
+  ``PowerStretch``, and ``ImageNormalize`` classes and the
+  ``simple_norm`` function.  This keyword is used to replace generated
+  NaN values. [#10182]
+
 astropy.wcs
 ^^^^^^^^^^^
 
