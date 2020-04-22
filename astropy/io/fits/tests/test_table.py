@@ -3344,3 +3344,15 @@ def test_a3dtable(tmpdir):
             'Converted the XTENSION keyword to BINTABLE.')
 
         assert hdul[1].header['XTENSION'] == 'BINTABLE'
+
+
+def test_invalid_file(tmp_path):
+    hdu = fits.BinTableHDU()
+    # little trick to write an invalid card ...
+    hdu.header['FOO'] = None
+    hdu.header.cards['FOO']._value = np.nan
+
+    testfile = tmp_path / 'test.fits'
+    hdu.writeto(testfile, output_verify='ignore')
+    hdul = fits.open(testfile)
+    assert hdul[1].data is not None
