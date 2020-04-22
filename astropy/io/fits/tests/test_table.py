@@ -3354,5 +3354,5 @@ def test_invalid_file(tmp_path):
 
     testfile = tmp_path / 'test.fits'
     hdu.writeto(testfile, output_verify='ignore')
-    hdul = fits.open(testfile)
-    assert hdul[1].data is not None
+    with fits.open(testfile) as hdul:
+        assert hdul[1].data is not None
