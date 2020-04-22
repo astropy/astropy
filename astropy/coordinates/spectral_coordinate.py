@@ -8,7 +8,8 @@ from astropy.coordinates import (ICRS,
                                  CartesianDifferential,
                                  CartesianRepresentation, SkyCoord,
                                  Galactic, FK4, HCRS, GCRS)
-from astropy.coordinates.baseframe import BaseCoordinateFrame, FrameMeta
+from astropy.coordinates.baseframe import (BaseCoordinateFrame, FrameMeta,
+                                           frame_transform_graph)
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.cosmology import WMAP5
 
@@ -610,6 +611,12 @@ class SpectralCoord(u.Quantity):
         """
         if hasattr(frame, 'frame'):
             frame = frame.frame
+        elif isinstance(frame, str):
+            frame_cls = frame_transform_graph.lookup_name(frame)
+            frame = frame_cls(0 * u.m, 0 * u.m, 0 * u.m,
+                              0 * u.m / u.s, 0 * u.m / u.s, 0 * u.m / u.s,
+                              representation_type='cartesian',
+                              differential_type='cartesian')
 
         if not frame.data.differentials:
             raise ValueError("Frame has no velocities, cannot transform "
@@ -625,7 +632,7 @@ class SpectralCoord(u.Quantity):
         frames_icrs = frame.transform_to(ICRS)
 
         data_with_rv = observer_icrs.data.with_differentials(
-            frames_icrs.data.differentials)
+            frames_icrs.data.represent_as(CartesianRepresentation, CartesianDifferential).differentials)
 
         observer_icrs = observer_icrs.realize_frame(data_with_rv)
 
@@ -859,17 +866,17 @@ EPS = 1e-10
 # First off, we consider velocity frames that are stationaly relative
 # to already defined 3-d celestial frames.
 
-GEOCENTRIC_VELOCITY_FRAME = GCRS(x=EPS * u.km, y=EPS * u.km, z=EPS * u.km,
+    GEOCENTRIC = GCRS(x=EPS * u.km, y=EPS * u.km, z=EPS * u.km,
                                  v_x=0 * u.km / u.s, v_y=0 * u.km / u.s, v_z=0 * u.km / u.s,
                                  representation_type='cartesian',
                                  differential_type='cartesian')
 
-BARYCENTRIC_VELOCITY_FRAME = ICRS(x=EPS * u.km, y=EPS * u.km, z=EPS * u.km,
+    BARYCENTRIC = ICRS(x=EPS * u.km, y=EPS * u.km, z=EPS * u.km,
                                   v_x=0 * u.km / u.s, v_y=0 * u.km / u.s, v_z=0 * u.km / u.s,
                                   representation_type='cartesian',
                                   differential_type='cartesian')
 
-HELIOCENTRIC_VELOCITY_FRAME = HCRS(x=EPS * u.km, y=EPS * u.km, z=EPS * u.km,
+    HELIOCENTRIC = HCRS(x=EPS * u.km, y=EPS * u.km, z=EPS * u.km,
                                    v_x=0 * u.km / u.s, v_y=0 * u.km / u.s, v_z=0 * u.km / u.s,
                                    representation_type='cartesian',
                                    differential_type='cartesian')
@@ -884,7 +891,7 @@ HELIOCENTRIC_VELOCITY_FRAME = HCRS(x=EPS * u.km, y=EPS * u.km, z=EPS * u.km,
 # We use the astropy.coordinates FK4 class here since it is
 # defined with the solar system barycenter as the origin.
 
-LSRK_VELOCITY_FRAME = FK4(x=EPS * u.km, y=EPS * u.km, z=EPS * u.km,
+    LSRK_GORDON1975 = FK4(x=EPS * u.km, y=EPS * u.km, z=EPS * u.km,
                           v_x=-20 * u.km / u.s * np.cos(270 * u.deg) * np.cos(30 * u.deg),
                           v_y=-20 * u.km / u.s * np.sin(270 * u.deg) * np.cos(30 * u.deg),
                           v_z=-20 * u.km / u.s * np.sin(30 * u.deg),
@@ -896,10 +903,10 @@ LSRK_VELOCITY_FRAME = FK4(x=EPS * u.km, y=EPS * u.km, z=EPS * u.km,
 # U=9 km/s, V=12 km/s, and W=7 km/s or 16.552945 km/s
 # towards l=53.13 b=25.02. This is defined in:
 #
-#   Delhaye 1975, Solar Motion and Velocity Distribution of
+    #   Delhaye 1965, Solar Motion and Velocity Distribution of
 #   Common Stars.
 
-LSRD_VELOCITY_FRAME = Galactic(u=EPS * u.km, v=EPS * u.km, w=EPS * u.km,
+    LSRD_DELHAYE1965 = Galactic(u=EPS * u.km, v=EPS * u.km, w=EPS * u.km,
                                U=-9 * u.km / u.s, V=-12 * u.km / u.s, W=-7 * u.km / u.s,
                                representation_type='cartesian',
                                differential_type='cartesian')
@@ -915,7 +922,7 @@ LSRD_VELOCITY_FRAME = Galactic(u=EPS * u.km, v=EPS * u.km, w=EPS * u.km,
 # the one adopted by the WCS standard for spectral
 # transformations.
 
-GALACTOCENTRIC_VELOCITY_FRAME = Galactic(u=EPS * u.km, v=EPS * u.km, w=EPS * u.km,
+    GALACTOCENTRIC_KLB1986 = Galactic(u=EPS * u.km, v=EPS * u.km, w=EPS * u.km,
                                          U=0 * u.km / u.s, V=-220 * u.km / u.s, W=0 * u.km / u.s,
                                          representation_type='cartesian',
                                          differential_type='cartesian')
@@ -932,7 +939,7 @@ GALACTOCENTRIC_VELOCITY_FRAME = Galactic(u=EPS * u.km, v=EPS * u.km, w=EPS * u.k
 # (308 km/s towards l=105, b=-7) but we use the above values
 # since these are the ones defined in Greisen et al (2006).
 
-LOCALGROUP_VELOCITY_FRAME = Galactic(u=EPS * u.km, v=EPS * u.km, w=EPS * u.km,
+    LOCALGROUP_IAU1976 = Galactic(u=EPS * u.km, v=EPS * u.km, w=EPS * u.km,
                                      U=0 * u.km / u.s, V=-300 * u.km / u.s, W=0 * u.km / u.s,
                                      representation_type='cartesian',
                                      differential_type='cartesian')
@@ -947,5 +954,5 @@ LOCALGROUP_VELOCITY_FRAME = Galactic(u=EPS * u.km, v=EPS * u.km, w=EPS * u.km,
 # Note that in that paper, the dipole is expressed as a
 # temperature (T=3.346 +/- 0.017mK)
 
-CMBDIPOL_VELOCITY_FRAME = Galactic(l=263.85 * u.deg, b=48.25 * u.deg, distance=EPS * u.km,
-                                   radial_velocity=-(3.346 * u.mK / WMAP5.Tcmb(0) * c).to(u.km/u.s))
+    CMBDIPOL_WMAP1 = Galactic(l=263.85 * u.deg, b=48.25 * u.deg, distance=EPS * u.km,
+                              radial_velocity=-(3.346e-3 / 2.725 * c).to(u.km/u.s))
