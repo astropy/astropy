@@ -502,7 +502,7 @@ def test_change_doppler_conversions():
     assert quantity_allclose(coord.doppler_rest, 110201353001 * u.Hz)
 
 
-def test_regression_658():
+def test_spectral_coord_from_sky_coord_without_distance():
     # see https://github.com/astropy/specutils/issues/658 for issue context
     obs = SkyCoord(0 * u.m, 0 * u.m, 0 * u.m, representation_type='cartesian')
     coord = SpectralCoord([1, 2, 3] * u.micron, observer=obs)
