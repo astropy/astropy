@@ -7,7 +7,7 @@ import os
 from . import FitsTestCase
 from astropy.io.fits.convenience import writeto
 from astropy.io.fits.hdu import PrimaryHDU, hdulist
-from astropy.io.fits import Header, ImageHDU, HDUList
+from astropy.io.fits import Header, ImageHDU, HDUList, FITSDiff
 from astropy.io.fits.scripts import fitsdiff
 from astropy.version import version
 
@@ -20,7 +20,7 @@ class TestFITSDiff_script(FitsTestCase):
 
     def test_noargs(self):
         with pytest.raises(SystemExit) as e:
-            fitsdiff.main()
+            fitsdiff.main([""])
         assert e.value.code == 2
 
     def test_oneargargs(self):
@@ -286,3 +286,18 @@ No differences found.\n""".format(version, tmp_a, tmp_b)
         out, err = capsys.readouterr()
         assert "testa.fits" in out
         assert "testb.fits" in out
+
+
+@pytest.mark.skip(reason="fails intentionally to show open files (see PR #10159)")
+def test_fitsdiff_openfile(tmpdir):
+    """Make sure that failing FITSDiff doesn't leave open files."""
+    path1 = str(tmpdir.join("file1.fits"))
+    path2 = str(tmpdir.join("file2.fits"))
+
+    hdulist = HDUList([PrimaryHDU(), ImageHDU(data=np.zeros(5))])
+    hdulist.writeto(path1)
+    hdulist[1].data[0] = 1
+    hdulist.writeto(path2)
+
+    diff = FITSDiff(path1, path2)
+    assert diff.identical, diff.report()
