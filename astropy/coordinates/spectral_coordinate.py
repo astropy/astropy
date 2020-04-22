@@ -41,9 +41,9 @@ class SpectralCoord(u.Quantity):
     unit : str or `~astropy.units.Unit`
         Unit for the given data.
     observer : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`, optional
-        The coordinate (position and velocity) of the observer.
+        The coordinate (position and velocity) of observer.
     target : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`, optional
-        The coordinate (position and velocity) of the target.
+        The coordinate (position and velocity) of observer.
     radial_velocity : `~astropy.units.Quantity`, optional
         The radial velocity of the target with respect to the observer.
     redshift : float, optional
@@ -115,7 +115,7 @@ class SpectralCoord(u.Quantity):
                                      "redshift on spectral coordinate.")
 
                 observer = SpectralCoord._target_from_observer(
-                    target, radial_velocity)
+                    target, -radial_velocity)
 
         # If no target is defined, create a default target with any provided
         #  redshift/radial velocities.
@@ -427,8 +427,8 @@ class SpectralCoord(u.Quantity):
         coordinate frame in that this calculates the radial velocity with
         respect to the *observer*, not the origin of the frame.
         """
-        return np.sum(self._calculate_radial_velocity(
-            self._observer, self._target), axis=0)
+        return self._calculate_radial_velocity(self._observer, self._target,
+                                               as_scalar=True)
 
     @property
     def redshift(self):
@@ -444,7 +444,7 @@ class SpectralCoord(u.Quantity):
         return self.radial_velocity.to('', equivalencies=RV_RS_EQUIV)
 
     @staticmethod
-    def _calculate_radial_velocity(observer, target):
+    def _calculate_radial_velocity(observer, target, as_scalar=False):
         """
         Compute the line-of-sight velocity from the observer to the target.
 
@@ -460,6 +460,7 @@ class SpectralCoord(u.Quantity):
         `~astropy.units.Quantity`
             The radial velocity of the target with respect to the observer.
         """
+
         # Convert observer and target to ICRS to avoid finite differencing
         #  calculations that lack numerical precision.
         observer_icrs = observer.transform_to(ICRS)
@@ -469,7 +470,12 @@ class SpectralCoord(u.Quantity):
 
         d_vel = target_icrs.velocity - observer_icrs.velocity
 
-        return d_vel.d_xyz * pos_hat.xyz
+        vel_mag = np.dot(d_vel.d_xyz, pos_hat.xyz)
+
+        if as_scalar:
+            return vel_mag
+        else:
+            return vel_mag * pos_hat.xyz
 
     @staticmethod
     def _norm_d_pos(observer, target):
@@ -532,10 +538,9 @@ class SpectralCoord(u.Quantity):
         init_obs_vel = self._calculate_radial_velocity(self.observer, target)
         fin_obs_vel = self._calculate_radial_velocity(observer, target)
 
-        # TODO: getting proper blueshifted results in the test involving
-        #  shifting an observer to the target velocity frame requires that we
-        #  negate the initial velocity between observer/target. Unsure why.
-        new_data = self._project_velocity_and_shift(-init_obs_vel, fin_obs_vel)
+        line_of_sight_unit_vec = self._norm_d_pos(observer, target).xyz
+
+        new_data = self._project_velocity_and_shift(init_obs_vel, fin_obs_vel, line_of_sight_unit_vec)
 
         new_coord = self._copy(value=new_data,
                                observer=observer,
@@ -543,7 +548,7 @@ class SpectralCoord(u.Quantity):
 
         return new_coord
 
-    def _project_velocity_and_shift(self, init_vel, fin_vel):
+    def _project_velocity_and_shift(self, init_vel, fin_vel, line_of_sight_unit_vec):
         """
         Calculated the velocity projection given two vectors.
 
@@ -559,12 +564,16 @@ class SpectralCoord(u.Quantity):
         new_data : `u.Quantity`
             Spectral axis data with velocity shift applied.
         """
-        # Project the velocity shift vector onto the line-on-sight vector
-        #  between the target and the new observation frame.
-        init_proj_vel = np.dot(init_vel, fin_vel / np.linalg.norm(fin_vel))
 
-        # Calculate the velocity shift between the two vectors
-        delta_vel = np.sum(fin_vel - init_proj_vel, axis=0)
+        # Project the velocity shift vector onto the line-of-sight vector
+        # between the target and the new observation frame.
+        init_proj_vel = np.dot(init_vel, line_of_sight_unit_vec) * line_of_sight_unit_vec
+
+        # Calculate the magnitude of the velocity shift between the two vectors.
+        # The vectors are aligned but may be in opposite directions, so we use
+        # the dot product to determine this.
+        diff_vel = fin_vel - init_proj_vel
+        delta_vel = np.dot(diff_vel, line_of_sight_unit_vec)
 
         # In the case where the projected velocity is nan, we can assume that
         #  the final velocity different is zero, and thus the actual velocity
@@ -574,7 +583,7 @@ class SpectralCoord(u.Quantity):
         #  we may end up with a final velocity very close to, but not quite at,
         #  zero. In this case, set a tolerance for the final velocity; if it's
         #  below this tolerance, assume the delta velocity is essentially nan.
-        if np.isnan(delta_vel) or np.abs(np.sum(fin_vel, axis=0)) < 1e-7 * fin_vel.unit:
+        if np.isnan(delta_vel) or np.abs(np.linalg.norm(fin_vel)) < 1e-7 * fin_vel.unit:
             delta_vel = -self.radial_velocity
 
         # Apply the velocity shift to the stored spectral axis data
@@ -687,7 +696,9 @@ class SpectralCoord(u.Quantity):
         init_obs_vel = self._calculate_radial_velocity(observer_icrs, target_icrs)
         fin_obs_vel = self._calculate_radial_velocity(new_observer, new_target)
 
-        new_data = self._project_velocity_and_shift(init_obs_vel, fin_obs_vel)
+        line_of_sight_unit_vec = self._norm_d_pos(observer_icrs, target_icrs).xyz
+
+        new_data = self._project_velocity_and_shift(init_obs_vel, fin_obs_vel, line_of_sight_unit_vec)
 
         # If an observer/target pair were not defined already, we want to avoid
         #  providing an explicit pair, so create a new spectral coord object
