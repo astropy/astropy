@@ -61,8 +61,6 @@ Transforming ``TEME`` to other coordinate systems
 Once you have satellite positions in `~astropy.coordinates.TEME` coordinates they can be easily transformed
 into any `astropy.coordinates` frame.
 
-  Transforming to other coordinates
-
 For example, to find the overhead latitude, longitude and height of the satellite::
 
 .. doctest-requires:: sgp4
