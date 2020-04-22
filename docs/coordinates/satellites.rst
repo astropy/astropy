@@ -52,8 +52,8 @@ position in the `~astropy.coordinates.TEME` reference frame::
         >>> teme_p = CartesianRepresentation(*teme_p*u.km, differentials={'s': teme_v})
         >>> teme = TEME(teme_p, obstime=t)
 
-Note how we are careful to set the observed time of the `~astropy.coordinates.TEME` frame to the time at which we calculated
-satellite position.
+Note how we are careful to set the observed time of the `~astropy.coordinates.TEME` frame to
+the time at which we calculated satellite position.
 
 Transforming ``TEME`` to other coordinate systems
 ==================================================
