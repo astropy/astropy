@@ -47,7 +47,7 @@ the ``.data`` attribute directly and not the aliases for components on the
 frame.  For example the following will *appear* to give a correct
 result but it does not actually modify the underlying representation data::
 
-    >>> c.ra[1] = 20 * u.deg  # THIS IS WRONG
+    >>> sc.ra[1] = 20 * u.deg  # THIS IS WRONG
 
 This problem is related to the current implementation of performance-based
 caching and cannot be easily resolved.
