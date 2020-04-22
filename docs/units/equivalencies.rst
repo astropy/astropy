@@ -118,6 +118,8 @@ between cycles per second and hertz:
   >>> (1*u.cy/u.s).to(u.Hz, equivalencies=[(u.cy/u.s, u.Hz)])  # doctest: +FLOAT_CMP
   <Quantity 1. Hz>
 
+.. _astropy-units-spectral-equivalency
+
 Spectral Units
 --------------
 
@@ -143,7 +145,7 @@ These equivalencies even work with non-base units::
   >>> imperial.inch.to(imperial.Cal, equivalencies=u.spectral())  # doctest: +FLOAT_CMP
   1.869180759162485e-27
 
-.. _astropy-units-dopper-equivalencies:
+.. _astropy-units-doppler-equivalencies:
 
 Spectral (Doppler) equivalencies
 --------------------------------
