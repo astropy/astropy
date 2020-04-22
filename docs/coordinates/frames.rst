@@ -277,7 +277,7 @@ take a different lower-level approach which is described in the section
 
   You may be tempted to try an apparently obvious way of modifying a frame
   object in place by updating the component attributes directly, for example
-  `coo1.ra[1] = 40 * u.deg`. However, while this will *appear* to give a correct
+  ``coo1.ra[1] = 40 * u.deg``. However, while this will *appear* to give a correct
   result it does not actually modify the underlying representation data. This
   is related to the current implementation of performance-based caching.
 
