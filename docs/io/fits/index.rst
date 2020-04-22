@@ -181,16 +181,21 @@ a pre-existing file that is being written to.
 
 Working with non-standard files
 """""""""""""""""""""""""""""""
-`astropy.io.fits` adheres to the FITS standard and verifies that all fields within a FITS file conform
-to the standard. It may raise ``VerifyError`` if a field is deemed to be non-compliant. This action can be modified
-using method ``HDUList.verify``. It is typically invoked after opening the file but before reading any headers or data::
+When `astropy.io.fits` reads a FITS file which does not conform to the FITS standard it will try
+to make an educated interpretation of non-compliant fields. This may not always
+succeed and may trigger warnings when accessing headers or exceptions when writing
+to file. Verification of fields written to an output file can be controlled with
+the ``output_verify`` parameter of :func:`open`. Files opened for reading can be
+verified and fixed with method ``HDUList.verify``. This method is typically invoked
+after opening the file but before accessing any headers or data::
 
-    >>> hdul = fits.open(fits_image_filename)
-    >>> hdul.verify('silentfix+warn')
-    >>> data = hdul.data
+    >>> with fits.open(fits_image_filename) as hdul:
+    >>>    hdul.verify('fix')
+    >>>    data = hdul[1].data
 
-In the above example, the call to ``hdul.verify(silentfix+warn)`` requests that `astropy.io.fits` stay silent for any non-compliances
-it can fix but issue warnings for unfixable errors. Other options are described under FITS :ref:`fits_io_verification`
+In the above example, the call to ``hdul.verify("fix")`` requests that `astropy.io.fits`
+fix non-compliant fields and print informative messages. Other options in addition to ``"fix"``
+are described under FITS :ref:`fits_io_verification`
 
 .. seealso:: FITS :ref:`fits_io_verification`.
 
