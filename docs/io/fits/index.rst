@@ -190,8 +190,8 @@ verified and fixed with method ``HDUList.verify``. This method is typically invo
 after opening the file but before accessing any headers or data::
 
     >>> with fits.open(fits_image_filename) as hdul:
-    >>>    hdul.verify('fix')
-    >>>    data = hdul[1].data
+    ...    hdul.verify('fix')
+    ...    data = hdul[1].data
 
 In the above example, the call to ``hdul.verify("fix")`` requests that `astropy.io.fits`
 fix non-compliant fields and print informative messages. Other options in addition to ``"fix"``
