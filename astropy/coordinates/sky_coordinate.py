@@ -85,14 +85,15 @@ class SkyCoordInfo(MixinInfo):
 
         return out
 
-    def new_like(self, cols, length, metadata_conflicts='warn', name=None):
+    def new_like(self, skycoords, length, metadata_conflicts='warn', name=None):
         """
         Return a new SkyCoord instance which is consistent with the input
-        SkyCoord objects ``cols`` and has ``length`` rows.
+        SkyCoord objects ``skycoords`` and has ``length`` rows.  Being
+        "consistent" is defined as being able to set an item from one to each of
+        the rest without any exception being raised.
 
-        This is intended for creating a new SkyCoord instance whose elements
-        can be set in-place for table operations like join or vstack.  It checks
-        that the input locations and attributes are consistent.  This is used
+        This is intended for creating a new SkyCoord instance whose elements can
+        be set in-place for table operations like join or vstack.  This is used
         when a SkyCoord object is used as a mixin column in an astropy Table.
 
         The data values are not predictable and it is expected that the consumer
@@ -100,39 +101,39 @@ class SkyCoordInfo(MixinInfo):
 
         Parameters
         ----------
-        cols : list
-            List of input columns (SkyCoord objects)
+        skycoords : list
+            List of input SkyCoord objects
         length : int
-            Length of the output column object
+            Length of the output skycoord object
         metadata_conflicts : str ('warn'|'error'|'silent')
             How to handle metadata conflicts
         name : str
-            Output column name
+            Output name (sets output skycoord.info.name)
 
         Returns
         -------
-        col : SkyCoord (or subclass)
-            Instance of this class consistent with ``cols``
+        skycoord : SkyCoord (or subclass)
+            Instance of this class consistent with ``skycoords``
 
         """
         # Get merged info attributes like shape, dtype, format, description, etc.
-        attrs = self.merge_cols_attributes(cols, metadata_conflicts, name,
+        attrs = self.merge_cols_attributes(skycoords, metadata_conflicts, name,
                                            ('meta', 'description'))
-        col0 = cols[0]
+        skycoord0 = skycoords[0]
 
         # Make a new SkyCoord object with the desired length and attributes
         # by using the _apply / __getitem__ machinery to effectively return
-        # col0[[0, 0, ..., 0, 0]]. This will have the all the right frame
+        # skycoord0[[0, 0, ..., 0, 0]]. This will have the all the right frame
         # attributes with the right shape.
         indexes = np.zeros(length, dtype=np.int64)
-        out = col0[indexes]
+        out = skycoord0[indexes]
 
-        # Use __setitem__ machinery to check for consistency of all cols
-        for col in cols[1:]:
+        # Use __setitem__ machinery to check for consistency of all skycoords
+        for skycoord in skycoords[1:]:
             try:
-                out[0] = col[0]
+                out[0] = skycoord[0]
             except Exception as err:
-                raise ValueError(f'input columns are inconsistent: {err}')
+                raise ValueError(f'input skycoords are inconsistent: {err}')
 
         # Set (merged) info attributes
         for attr in ('name', 'meta', 'description'):
