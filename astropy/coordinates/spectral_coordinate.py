@@ -216,6 +216,7 @@ class SpectralCoord(u.Quantity):
 
         # If the distance is not well-defined, ensure that it works properly
         # for generating differentials
+        # TODO: change this to not set the distance and yield a warning once there's a good way to address this in astropy.coordinates
         if hasattr(coord, 'distance') and \
                 coord.distance.unit.physical_type == 'dimensionless':
             coord = SkyCoord(coord, distance=1e6 * u.kpc)
