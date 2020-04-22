@@ -3,7 +3,6 @@ import pytest
 import numpy as np
 
 from astropy import units as u
-from astropy.units import Quantity, UnitsError, equivalencies
 from astropy.modeling.core import Model, fix_inputs
 from astropy.modeling.models import Polynomial1D
 
@@ -11,7 +10,7 @@ from astropy.modeling.models import Polynomial1D
 class _ExampleModel(Model):
     n_inputs = 1
     n_outputs = 1
-    
+
     def __init__(self):
         self._input_units = {"x": u.m}
         self._return_units = {"y": u.m/u.s}
@@ -45,7 +44,7 @@ def _models_with_units():
                     {'y0': u.Unit("m / s"), 'y1': u.Unit("m / s")},
                     {'y0': u.Unit("m / s"), 'y1': u.Unit("m / s")}
                     ]
-    return np.array([models, input_units, return_units]).T
+    return np.array([models, input_units, return_units], dtype=object).T
 
 
 @pytest.mark.parametrize(("model", "input_units", "return_units"), _models_with_units())
