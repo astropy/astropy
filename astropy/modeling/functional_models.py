@@ -1641,7 +1641,7 @@ class Box1D(Fittable1DModel):
     def return_units(self):
         if self.amplitude.unit is None:
             return None
-        return {'y': self.amplitude.unit}
+        return {self.outputs[0]: self.amplitude.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {'x_0': inputs_unit[self.inputs[0]],
