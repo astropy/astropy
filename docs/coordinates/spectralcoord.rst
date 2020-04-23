@@ -266,46 +266,8 @@ celestial coordinate frames, we provide shortcuts as constants on the
         observer=ITRS,
         target=ICRS>
 
-The velocity frames available as constants on the SpectralCoord class are:
-
-========================== =================================================
-Constant Name              Description
-========================== =================================================
-``GEOCENTRIC``             Defined as stationary relative to the GCRS origin
-``BARYCENTRIC``            Defined as stationary relative to the ICRS origin
-``HELIOCENTRIC``           Defined as stationary relative to the HCRS origin
-``LSRK_GORDON1975``        Kinematic Local Standard of Rest (LSRK),
-                           defined as having a velocity of 20 km/s towards
-                           18h +30d (B1900) relative to the Solar System
-                           Barycenter (Gordon 1975, (*Methods of Experimental
-                           Physics: Volume 12: Astrophysics, Part C: Radio
-                           Observations*)
-``LSRD_DELHAYE1965``       Dynamical Local Standard of Rest (LSRD),
-                           defined as having a velocity of U=9 km/s,
-                           V=12 km/s, and W=7 km/s in Galactic coordinates
-                           (equivalent to 16.552945 km/s towards l=53.13
-                           and b=25.02 (Delhaye 1965, *Solar Motion and Velocity
-                           Distribution of Common Stars*).
-``GALACTOCENTRIC_KLB1986`` Galactocentric frame defined as having a velocity
-                           of 220 km/s towards l=90 and b=0 relative to
-                           the Solar System Barycenter (Kerr and Lynden-Bell
-                           1986, *Review of galactic constants*).
-``LOCALGROUP_IAU1976``     Velocity frame representing the motion of the
-                           Local Group of galaxies, and defined as having a velocity
-                           of 300 km/s towards l=90 and b=0 relative to
-                           the Solar System Barycenter (*Transactions of the
-                           IAU Vol. XVI B Proceedings of the 16th General Assembly,
-                           Reports of Meetings of Commissions: Comptes Rendus
-                           Des Séances Des Commissions, Commission 28)*
-``CMBDIPOL_WMAP1``         Velocity frame representing the motion of the
-                           cosmic microwave background (CMB) dipole based on the
-                           1-year WMAP data, and defined as a tempreature
-                           difference of 3.346mK (corresponding to approximately
-                           368 km/s) in the direction of l=263.85, b=48.25
-                           (Bennett et al. (2003), *First-Year Wilkinson Microwave
-                           Anisotropy Probe (WMAP) Observations: Preliminary Maps
-                           and Basic Results*)
-========================== =================================================
+See :ref:`spectralcoord-common-frames` for a list of frames available as
+constants on the |SpectralCoord| class.
 
 Finally, since we can give any arbitrary |SkyCoord| to the
 :meth:`~astropy.coordinates.SpectralCoord.in_observer_velocity_frame` method,
@@ -346,3 +308,61 @@ Note that you can convert this to a plain |Quantity| using::
 
     >>> sc_ha.quantity
     <Quantity 27.81714971 km / s>
+
+This tells us that if the emission is from material that is moving at
+approximately 28km/s away from us relative to T Tau, so could be e.g. material
+accreting onto the star.
+
+.. _spectralcoord-common-frames:
+
+Common velocity frames
+======================
+
+The velocity frames available as constants on the |SpectralCoord| class are:
+
+========================== =================================================
+Constant Name              Description
+========================== =================================================
+``GEOCENTRIC``             Defined as stationary relative to the GCRS origin
+``BARYCENTRIC``            Defined as stationary relative to the ICRS origin
+``HELIOCENTRIC``           Defined as stationary relative to the HCRS origin
+``LSRK_GORDON1975``        Kinematic Local Standard of Rest (LSRK),
+                           defined as having a velocity of 20 km/s towards
+                           18h +30d (B1900) relative to the Solar System
+                           Barycenter [1]_.
+``LSRD_DELHAYE1965``       Dynamical Local Standard of Rest (LSRD),
+                           defined as having a velocity of U=9 km/s,
+                           V=12 km/s, and W=7 km/s in Galactic coordinates
+                           (equivalent to 16.552945 km/s towards l=53.13
+                           and b=25.02 [2]_.
+``GALACTOCENTRIC_KLB1986`` Galactocentric frame defined as having a velocity
+                           of 220 km/s towards l=90 and b=0 relative to
+                           the Solar System Barycenter [3]_.
+``LOCALGROUP_IAU1976``     Velocity frame representing the motion of the
+                           Local Group of galaxies, and defined as having a velocity
+                           of 300 km/s towards l=90 and b=0 relative to
+                           the Solar System Barycenter [4]_.
+``CMBDIPOL_WMAP1``         Velocity frame representing the motion of the
+                           cosmic microwave background (CMB) dipole based on the
+                           1-year WMAP data, and defined as a tempreature
+                           difference of 3.346mK (corresponding to approximately
+                           368 km/s) in the direction of l=263.85, b=48.25 [5]_
+========================== =================================================
+
+References
+==========
+
+.. [1] Meeks, M. L. 1976, *Methods of experimental physics. Vol._12.
+       Astrophysics. Part C: Radio observations*, Section 6.1 by Gordon, M. A.
+       `[ADS] <https://ui.adsabs.harvard.edu/abs/1976mep..book.....M>`_.
+.. [2] Delhaye, J. 1965, *Galactic Structure*. Edited by Adriaan Blaauw and
+       Maarten Schmidt. Published by the University of Chicago Press, p61
+       `[ADS] <https://ui.adsabs.harvard.edu/abs/1965gast.book...61D>`_.
+.. [3] Kerr, F. J., & Lynden-Bell, D. 1986, MNRAS, 221, 1023
+       `[ADS] <https://ui.adsabs.harvard.edu/abs/1986MNRAS.221.1023K>`_
+.. [4] *Transactions of the IAU Vol. XVI B Proceedings of the 16th General
+       Assembly, Reports of Meetings of Commissions: Comptes Rendus
+       Des Séances Des Commissions, Commission 28*.
+       `[DOI] <https://doi.org/10.1017/S0251107X00002406>`_
+.. [5] Bennett, C. L., Halpern, M., Hinshaw, G., et al. 2003, ApJS, 148, 1
+       `[ADS] <https://ui.adsabs.harvard.edu/abs/2003ApJS..148....1B>`_.
