@@ -356,7 +356,10 @@ class FITSDiff(_BaseDiff):
             hdu_diff = HDUDiff.fromdiff(self, self.a[idx], self.b[idx])
 
             if not hdu_diff.identical:
-                self.diff_hdus.append((idx, hdu_diff))
+                if self.a[idx].name == self.b[idx].name and self.a[idx].ver == self.b[idx].ver:
+                    self.diff_hdus.append((idx, hdu_diff, self.a[idx].name, self.a[idx].ver))
+                else:
+                    self.diff_hdus.append((idx, hdu_diff, "", self.a[idx].ver))
 
     def _report(self):
         wrapper = textwrap.TextWrapper(initial_indent='  ',
@@ -410,14 +413,17 @@ class FITSDiff(_BaseDiff):
             self._writeln('No differences found.')
             return
 
-        for idx, hdu_diff in self.diff_hdus:
+        for idx, hdu_diff, extname, extver in self.diff_hdus:
             # print out the extension heading
             if idx == 0:
                 self._fileobj.write('\n')
                 self._writeln('Primary HDU:')
             else:
                 self._fileobj.write('\n')
-                self._writeln(f'Extension HDU {idx}:')
+                if extname:
+                    self._writeln(f'Extension HDU {idx} ({extname}, {extver}):')
+                else:
+                    self._writeln(f'Extension HDU {idx}:')
             hdu_diff.report(self._fileobj, indent=self._indent + 1)
 
 
