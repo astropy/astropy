@@ -339,7 +339,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             except ValueError:
                 # Some WCSes, e.g. solar, can be recognized by WCSLIB as being
                 # celestial but we don't necessarily have frames for them.
-                pass
+                celestial_frame = None
             else:
 
                 kwargs = {}
@@ -391,7 +391,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             # target using the reference celestial coordinate in the WCS (if
             # any).
 
-            if self.has_celestial:
+            if self.has_celestial and celestial_frame is not None:
 
                 # NOTE: celestial_frame was defined higher up
 
