@@ -120,7 +120,7 @@ class RemapAxesType(TransformType):
                 new_mapping.append(entry)
             else:
                 new_mapping.append(i)
-                transform = transform & Const1D(int(entry.value))
+                transform = transform & Const1D(entry.value)
                 i += 1
         return transform | Mapping(new_mapping)
 
