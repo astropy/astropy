@@ -35,6 +35,9 @@ astropy.io.misc
 ^^^^^^^^^^^^^^^
 - Added serialization of parameter constraints fixed and bounds.  [#10082]
 
+- Fix ASDF serialization of circular model inverses, and remove explicit calls
+  to ``asdf.yamlutil`` functions that because unnecssary in asdf 2.6.0. [#10189]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
@@ -343,7 +346,7 @@ Other Changes and Additions
 
 - Bundled ``expat`` is updated to version 2.2.9. [#10038]
 
-
+- Increase minimum asdf version to 2.6.0. [#10189]
 
 4.0.2 (unreleased)
 ==================
