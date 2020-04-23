@@ -15,6 +15,7 @@ from astropy.coordinates import (SkyCoord, EarthLocation, ICRS, GCRS, Galactic,
 from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.compat.context import nullcontext
 
 from astropy.coordinates.spectral_coordinate import SpectralCoord
 
@@ -59,6 +60,7 @@ def get_greenwich_earthlocation():
     return site_registry.get('greenwich')
 
 
+@pytest.mark.remote_data
 def test_create_spectral_coord_orig():
 
     # TODO: decide whether this test is still needed once the rest is
@@ -122,7 +124,8 @@ def target(request):
 
 def test_create_spectral_coord_observer_target(observer, target):
 
-    coord = SpectralCoord([100, 200, 300] * u.nm, observer=observer, target=target)
+    with nullcontext() if target is None else pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+        coord = SpectralCoord([100, 200, 300] * u.nm, observer=observer, target=target)
 
     if observer is None:
         assert coord.observer is None
@@ -151,9 +154,10 @@ def test_create_from_spectral_coord(observer, target):
     """
     Checks that parameters are correctly copied to the new SpectralCoord object
     """
-    spec_coord1 = SpectralCoord([100, 200, 300] * u.nm, observer=observer,
-                                target=target, doppler_convention='optical',
-                                doppler_rest=6000*u.AA)
+    with nullcontext() if target is None else pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+        spec_coord1 = SpectralCoord([100, 200, 300] * u.nm, observer=observer,
+                                    target=target, doppler_convention='optical',
+                                    doppler_rest=6000*u.AA)
     spec_coord2 = SpectralCoord(spec_coord1)
     assert spec_coord1.observer == spec_coord2.observer
     assert spec_coord1.target == spec_coord2.target
@@ -164,6 +168,8 @@ def test_create_from_spectral_coord(observer, target):
 
 # SCIENCE USE CASE TESTS
 
+
+@pytest.mark.remote_data
 def test_spectral_coord_jupiter():
     """
     Checks that jupiter yields an RV consistent with the solar system
@@ -183,6 +189,7 @@ def test_spectral_coord_jupiter():
     assert np.abs(spc.radial_velocity) < (45*u.km/u.s)
 
 
+@pytest.mark.remote_data
 def test_spectral_coord_alphacen():
     """
     Checks that a nearby star yields a reasonable RV
@@ -202,6 +209,7 @@ def test_spectral_coord_alphacen():
     assert np.abs(spc.radial_velocity) < (50*u.km/u.s)
 
 
+@pytest.mark.remote_data
 def test_spectral_coord_m31():
     """
     Checks that a nearby star yields a reasonable RV
@@ -258,6 +266,7 @@ def test_shift_to_rest_galaxy():
     assert_quantity_allclose(roundtrip_obs_spc, rest_line_wls*(z+1))
 
 
+@pytest.mark.remote_data
 def test_shift_to_rest_star_withobserver():
     rv = -8.3283011*u.km/u.s
     rest_line_wls = [5007, 6563]*u.angstrom
@@ -311,12 +320,14 @@ def test_observer_init_rv_behavior():
     assert sc_init.target is None
     assert_quantity_allclose(sc_init.radial_velocity, 100*u.km/u.s)
 
-    sc_init.observer = GCRS(CartesianRepresentation([0*u.km, 0*u.km, 0*u.km]))
+    with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+        sc_init.observer = GCRS(CartesianRepresentation([0*u.km, 0*u.km, 0*u.km]))
     assert sc_init.observer is not None
     assert_quantity_allclose(sc_init.radial_velocity, 100*u.km/u.s)
 
-    sc_init.target = SkyCoord(CartesianRepresentation([0*u.km, 0*u.km, 0*u.km]),
-                              frame='icrs')
+    with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+        sc_init.target = SkyCoord(CartesianRepresentation([0*u.km, 0*u.km, 0*u.km]),
+                                 frame='icrs')
     assert sc_init.target is not None
     assert_quantity_allclose(sc_init.radial_velocity, 0.20502225*u.km/u.s)
 
@@ -358,16 +369,19 @@ def test_with_rvredshift():
     assert_quantity_allclose(sc_set_rv.redshift, .5)
 
     gcrs_origin = GCRS(CartesianRepresentation([0*u.km, 0*u.km, 0*u.km]))
-    sc_init2 = SpectralCoord([4000, 5000]*u.angstrom, redshift=1,
-                             observer=gcrs_origin)
+    with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+        sc_init2 = SpectralCoord([4000, 5000]*u.angstrom, redshift=1,
+                                 observer=gcrs_origin)
     sc_init2.with_redshift(.5)
 
-    sc_init3 = SpectralCoord([4000, 5000]*u.angstrom, redshift=1,
-                             target=gcrs_origin)
+    with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+        sc_init3 = SpectralCoord([4000, 5000]*u.angstrom, redshift=1,
+                                 target=gcrs_origin)
     sc_init3.with_redshift(.5)
 
-    sc_init4 = SpectralCoord([4000, 5000]*u.angstrom, redshift=1,
-                             observer=gcrs_origin, target=gcrs_origin)
+    with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+        sc_init4 = SpectralCoord([4000, 5000]*u.angstrom, redshift=1,
+                                 observer=gcrs_origin, target=gcrs_origin)
     with pytest.raises(ValueError):
         # fails if both observer and target are set
         sc_init4.with_redshift(.5)
@@ -384,7 +398,8 @@ gcrs_not_origin = GCRS(CartesianRepresentation([1*u.km, 0*u.km, 0*u.km]))
                          dict(observer=gcrs_origin, target=gcrs_not_origin)])
 def test_los_shift(sc_kwargs):
     wl = [4000, 5000]*u.angstrom
-    sc_init = SpectralCoord(wl, **sc_kwargs)
+    with nullcontext() if 'observer' not in sc_kwargs else pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+        sc_init = SpectralCoord(wl, **sc_kwargs)
 
     # these should always work in *all* cases because it's unambiguous that
     # a target shift should behave this way
@@ -451,12 +466,14 @@ def test_asteroid_velocity_frame_shifts():
                                              obstime=time2)
 
     wls = np.linspace(4000, 7000, 100) * u.angstrom
-    spec_coord1 = SpectralCoord(wls, observer=observer1, target=asteroid_loc1)
+    with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+        spec_coord1 = SpectralCoord(wls, observer=observer1, target=asteroid_loc1)
 
     assert spec_coord1.radial_velocity < 0*u.km/u.s
     assert spec_coord1.radial_velocity > -5*u.km/u.s
 
-    spec_coord2 = SpectralCoord(wls, observer=observer2, target=asteroid_loc2)
+    with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+        spec_coord2 = SpectralCoord(wls, observer=observer2, target=asteroid_loc2)
 
     assert spec_coord2.radial_velocity > 0*u.km/u.s
     assert spec_coord2.radial_velocity < 5*u.km/u.s
