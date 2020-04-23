@@ -1150,6 +1150,34 @@ B_DMAX  =    44.62692873032506
     assert dists.max() < 7e-6*u.deg
     assert np.std(dists) < 2.5e-6*u.deg
 
+    # Test 360->0 degree crossover
+    header_linear["CRVAL1"] = 352.3497414839765
+    header_sip["CRVAL1"] = 352.3497414839765
+
+    true_wcs_linear = WCS(header_linear, relax=True)
+    true_wcs_sip = WCS(header_sip, relax=True)
+
+    # Calculating the true sky positions
+    world_pix_linear = true_wcs_linear.pixel_to_world(x, y)
+    world_pix_sip = true_wcs_sip.pixel_to_world(x, y)
+
+    # Fitting the wcs, no distortion.
+    fit_wcs_linear = fit_wcs_from_points((x, y), world_pix_linear,
+                                         proj_point='center', sip_degree=None)
+
+    # Fitting the wcs, with distortion.
+    fit_wcs_sip = fit_wcs_from_points((x, y), world_pix_sip,
+                                      proj_point='center', sip_degree=2)
+
+    # Validate that the true sky coordinates calculated with `true_wcs_linear`
+    # match sky coordinates calculated from the wcs fit with only linear terms
+
+    world_pix_linear_new = fit_wcs_linear.pixel_to_world(x, y)
+
+    dists = world_pix_linear.separation(world_pix_linear_new)
+
+    assert dists.max() < 7e-5*u.deg
+    assert np.std(dists) < 2.5e-5*u.deg
 
 @pytest.mark.remote_data
 @pytest.mark.parametrize('x_in,y_in', [[0, 0], [np.arange(5), np.arange(5)]])
