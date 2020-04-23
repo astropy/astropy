@@ -16,6 +16,7 @@ import pathlib
 import pkgutil
 import warnings
 import importlib
+import contextlib
 from os import path
 from textwrap import TextWrapper
 from warnings import warn
@@ -605,15 +606,13 @@ def generate_config(pkgname='astropy', filename=None):
     if filename is None:
         filename = get_config(package).filename
 
-    if isinstance(filename, (str, pathlib.Path)):
-        fp = open(filename, 'w')
-        should_close = True
-    else:
-        # assume it's a file object, or io.StringIO
-        fp = filename
-        should_close = False
+    with contextlib.ExitStack() as stack:
+        if isinstance(filename, (str, pathlib.Path)):
+            fp = stack.enter_context(open(filename, 'w'))
+        else:
+            # assume it's a file object, or io.StringIO
+            fp = filename
 
-    try:
         # Parse the subclasses, ordered by their module name
         subclasses = ConfigNamespace.__subclasses__()
         for conf in sorted(subclasses, key=lambda x: x.__module__):
@@ -631,9 +630,6 @@ def generate_config(pkgname='astropy', filename=None):
 
                 fp.write(wrapper.fill(item.description) + '\n')
                 fp.write(f'# {item.name} = {item.defaultvalue}\n\n')
-    finally:
-        if should_close:
-            fp.close()
 
 
 def reload_config(packageormod=None, rootname=None):
