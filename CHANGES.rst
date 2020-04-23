@@ -41,6 +41,8 @@ astropy.io.fits
 - Added support for writing Dask arrays to disk efficiently for ``ImageHDU`` and
   ``PrimaryHDU``. [#9742]
 
+- Add HDU name and ver to FITSDiff report where appropriate [#10197]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
