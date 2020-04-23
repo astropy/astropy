@@ -896,7 +896,11 @@ class SpectralCoord(u.Quantity):
             f'\ttarget={tar_frame}>'
 
     # Now define a set of standard velocity frames for use with the
-    # in_observer_velocity_frame method
+    # in_observer_velocity_frame method. Note that for frames that define a
+    # non-zero velocity, the velocities given are the reverse of the actual
+    # velocity we want for the frame - for example to get a velocity frame
+    # moving towards a star, we need to set the coordinate object to have a
+    # negative velocity so that the star is moving towards the frame origin.
 
     # FIXME: there are currently numerical issues when transforming frames with
     # velocities when the position is exactly at the origin. To avoid this, we use
