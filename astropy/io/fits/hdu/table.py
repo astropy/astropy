@@ -949,14 +949,12 @@ class BinTableHDU(_TableBaseHDU):
                     for row in field:
                         if len(row) > 0:
                             nbytes += row.nbytes
-                            if not fileobj.simulateonly:
-                                fileobj.writearray(row)
+                            fileobj.writearray(row)
             else:
                 heap_data = data._get_heap_data()
                 if len(heap_data) > 0:
                     nbytes += len(heap_data)
-                    if not fileobj.simulateonly:
-                        fileobj.writearray(heap_data)
+                    fileobj.writearray(heap_data)
 
             data._heapsize = nbytes - data._gap
             size += nbytes
