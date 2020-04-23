@@ -403,7 +403,7 @@ def fileobj_name(f):
     string f itself is returned.
     """
 
-    if isinstance(f, str):
+    if isinstance(f, (str, bytes)):
         return f
     elif isinstance(f, gzip.GzipFile):
         # The .name attribute on GzipFiles does not always represent the name
