@@ -159,11 +159,11 @@ class BlackBody1D(Fittable1DModel):
         # The input units are those of the 'x' value, which should always be
         # Hz. Because we do this, and because input_units_allow_dimensionless
         # is set to True, dimensionless values are assumed to be in Hz.
-        return {'x': u.Hz}
+        return {self.inputs[0]: u.Hz}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {'temperature': u.K,
-                'bolometric_flux': outputs_unit['y'] * u.Hz}
+                'bolometric_flux': outputs_unit[self.outputs[0]] * u.Hz}
 
     @property
     def lambda_max(self):
