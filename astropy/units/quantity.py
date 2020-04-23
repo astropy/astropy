@@ -737,6 +737,50 @@ class Quantity(np.ndarray):
         # Index with empty tuple to decay array scalars in to numpy scalars.
         return value[()]
 
+    def to_amuse(self):
+        """
+        Convert a unit from Astropy to AMUSE.
+
+        Returns
+        -------
+        quantity : AMUSE quantity
+            The equivalent of the Astropy quantity in the AMUSE unit framework.
+        """
+        try:
+            import amuse.units.units as amuse_units
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError(
+                "AMUSE does not seem to be installed"
+            )
+    
+        # Find SI bases of the unit
+        si_bases = self.si.unit.bases
+        si_powers = self.si.unit.powers
+        si_units = list(zip(si_powers, si_bases))
+    
+        # Find the quantity's value in base units
+        si_value = self.si.value
+    
+        # Reconstruct the quantity in AMUSE units
+        amuse_quantity = si_value
+        for base_unit in si_units:
+            if base_unit[1].name == "m":
+                amuse_quantity = amuse_quantity * (1 | amuse_units.m**base_unit[0])
+            elif base_unit[1].name == "kg":
+                amuse_quantity = amuse_quantity * (1 | amuse_units.kg**base_unit[0])
+            elif base_unit[1].name == "s":
+                amuse_quantity = amuse_quantity * (1 | amuse_units.s**base_unit[0])
+            elif base_unit[1].name == "A":
+                amuse_quantity = amuse_quantity * (1 | amuse_units.A**base_unit[0])
+            elif base_unit[1].name == "K":
+                amuse_quantity = amuse_quantity * (1 | amuse_units.K**base_unit[0])
+            elif base_unit[1].name == "mol":
+                amuse_quantity = amuse_quantity * (1 | amuse_units.mol**base_unit[0])
+            elif base_unit[1].name == "cd":
+                amuse_quantity = amuse_quantity * (1 | amuse_units.cd**base_unit[0])
+    
+        return amuse_quantity
+
     value = property(to_value,
                      doc="""The numerical value of this instance.
 
