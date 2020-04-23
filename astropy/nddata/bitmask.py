@@ -633,14 +633,14 @@ good_mask_value=False, dtype=numpy.bool_)
         ...                                  dtype=int)
         array([[0, 0, 0, 1, 0, 0, 1, 0],
                [1, 1, 0, 0, 0, 0, 1, 0]])
-        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags='CR,CLOUDY',
-        ...                                  flip_bits=True, good_mask_value=0,
-        ...                                  dtype=int, flag_name_map=flag_map)
+        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags='~(CR,CLOUDY)',
+        ...                                  good_mask_value=0, dtype=int,
+        ...                                  flag_name_map=flag_map)
         array([[0, 0, 0, 1, 0, 0, 1, 0],
                [1, 1, 0, 0, 0, 0, 1, 0]])
-        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags='CR+CLOUDY',
-        ...                                  flip_bits=True, good_mask_value=0,
-        ...                                  dtype=int, flag_name_map=flag_map)
+        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags='~(CR+CLOUDY)',
+        ...                                  good_mask_value=0, dtype=int,
+        ...                                  flag_name_map=flag_map)
         array([[0, 0, 0, 1, 0, 0, 1, 0],
                [1, 1, 0, 0, 0, 0, 1, 0]])
 
