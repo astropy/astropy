@@ -87,9 +87,10 @@ The naming scheme used by `git`_ will also be used here. A plain branch name,
 like ``master`` means a branch in your local copy of Astropy. A branch on a
 remote, like ``astropy`` , is labeled by that remote, ``astropy/master``.
 
-This duplication of names can get very confusing for maintainers when trying
-to merge code contributions into the official master branch,
-``astropy/master``. As a result, you should never do any work in your master
+This duplication of names can get very confusing when working with pull
+requests, especially when the official master branch, ``astropy/master``,
+changes due to other contibutions before your contributions are merged in.
+As a result, you should never do any work in your master
 branch, ``master``. Always work on a branch instead.
 
 Essential `git`_ commands
