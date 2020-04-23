@@ -58,6 +58,7 @@ def get_greenwich_earthlocation():
     site_registry = EarthLocation._get_site_registry(force_builtin=True)
     return site_registry.get('greenwich')
 
+
 def test_create_spectral_coord_orig():
 
     # TODO: decide whether this test is still needed once the rest is
@@ -145,13 +146,14 @@ def test_create_spectral_coord_observer_target(observer, target):
     else:
         raise NotImplementedError()
 
+
 def test_create_from_spectral_coord(observer, target):
     """
     Checks that parameters are correctly copied to the new SpectralCoord object
     """
     spec_coord1 = SpectralCoord([100, 200, 300] * u.nm, observer=observer,
-                                target=target, doppler_convention = 'optical',
-                                doppler_rest = 6000*u.AA)
+                                target=target, doppler_convention='optical',
+                                doppler_rest=6000*u.AA)
     spec_coord2 = SpectralCoord(spec_coord1)
     assert spec_coord1.observer == spec_coord2.observer
     assert spec_coord1.target == spec_coord2.target
@@ -373,6 +375,8 @@ def test_with_rvredshift():
 
 gcrs_origin = GCRS(CartesianRepresentation([0*u.km, 0*u.km, 0*u.km]))
 gcrs_not_origin = GCRS(CartesianRepresentation([1*u.km, 0*u.km, 0*u.km]))
+
+
 @pytest.mark.parametrize("sc_kwargs", [
                          dict(radial_velocity=0*u.km/u.s),
                          dict(observer=gcrs_origin, radial_velocity=0*u.km/u.s),

@@ -354,15 +354,15 @@ References
 
 .. [1] Meeks, M. L. 1976, *Methods of experimental physics. Vol._12.
        Astrophysics. Part C: Radio observations*, Section 6.1 by Gordon, M. A.
-       `[ADS] <https://ui.adsabs.harvard.edu/abs/1976mep..book.....M>`_.
+       `[ADS] <https://ui.adsabs.harvard.edu/abs/1976mep..book.....M>`__.
 .. [2] Delhaye, J. 1965, *Galactic Structure*. Edited by Adriaan Blaauw and
        Maarten Schmidt. Published by the University of Chicago Press, p61
-       `[ADS] <https://ui.adsabs.harvard.edu/abs/1965gast.book...61D>`_.
+       `[ADS] <https://ui.adsabs.harvard.edu/abs/1965gast.book...61D>`__.
 .. [3] Kerr, F. J., & Lynden-Bell, D. 1986, MNRAS, 221, 1023
-       `[ADS] <https://ui.adsabs.harvard.edu/abs/1986MNRAS.221.1023K>`_
+       `[ADS] <https://ui.adsabs.harvard.edu/abs/1986MNRAS.221.1023K>`__.
 .. [4] *Transactions of the IAU Vol. XVI B Proceedings of the 16th General
        Assembly, Reports of Meetings of Commissions: Comptes Rendus
        Des Séances Des Commissions, Commission 28*.
-       `[DOI] <https://doi.org/10.1017/S0251107X00002406>`_
+       `[DOI] <https://doi.org/10.1017/S0251107X00002406>`__
 .. [5] Bennett, C. L., Halpern, M., Hinshaw, G., et al. 2003, ApJS, 148, 1
-       `[ADS] <https://ui.adsabs.harvard.edu/abs/2003ApJS..148....1B>`_.
+       `[ADS] <https://ui.adsabs.harvard.edu/abs/2003ApJS..148....1B>`__.
