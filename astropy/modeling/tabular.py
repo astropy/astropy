@@ -175,7 +175,7 @@ class _Tabular(Model):
     def return_units(self):
         if not isinstance(self.lookup_table, u.Quantity):
             return None
-        return {'y': self.lookup_table.unit}
+        return {self.outputs[0]: self.lookup_table.unit}
 
     @property
     def bounding_box(self):

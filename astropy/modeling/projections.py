@@ -131,11 +131,13 @@ class Pix2SkyProjection(Projection):
 
     @property
     def input_units(self):
-        return {'x': u.deg, 'y': u.deg}
+        return {self.inputs[0]: u.deg,
+                self.inputs[1]: u.deg}
 
     @property
     def return_units(self):
-        return {'phi': u.deg, 'theta': u.deg}
+        return {self.outputs[0]: u.deg,
+                self.outputs[1]: u.deg}
 
 
 class Sky2PixProjection(Projection):
@@ -154,11 +156,13 @@ class Sky2PixProjection(Projection):
 
     @property
     def input_units(self):
-        return {'phi': u.deg, 'theta': u.deg}
+        return {self.inputs[0]: u.deg,
+                self.inputs[1]: u.deg}
 
     @property
     def return_units(self):
-        return {'x': u.deg, 'y': u.deg}
+        return {self.outputs[0]: u.deg,
+                self.outputs[1]: u.deg}
 
 
 class Zenithal(Projection):

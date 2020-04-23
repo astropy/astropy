@@ -178,12 +178,12 @@ class Gaussian1D(Fittable1DModel):
     def input_units(self):
         if self.mean.unit is None:
             return None
-        return {'x': self.mean.unit}
+        return {self.inputs[0]: self.mean.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'mean': inputs_unit['x'],
-                'stddev': inputs_unit['x'],
-                'amplitude': outputs_unit['y']}
+        return {'mean': inputs_unit[self.inputs[0]],
+                'stddev': inputs_unit[self.inputs[0]],
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class Gaussian2D(Fittable2DModel):
@@ -425,21 +425,21 @@ class Gaussian2D(Fittable2DModel):
     def input_units(self):
         if self.x_mean.unit is None and self.y_mean.unit is None:
             return None
-        return {'x': self.x_mean.unit,
-                'y': self.y_mean.unit}
+        return {self.inputs[0]: self.x_mean.unit,
+                self.inputs[1]: self.y_mean.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
         # units otherwise this can lead to issues since rotation is not well
         # defined.
-        if inputs_unit['x'] != inputs_unit['y']:
+        if inputs_unit[self.inputs[0]] != inputs_unit[self.inputs[1]]:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return {'x_mean': inputs_unit['x'],
-                'y_mean': inputs_unit['x'],
-                'x_stddev': inputs_unit['x'],
-                'y_stddev': inputs_unit['x'],
+        return {'x_mean': inputs_unit[self.inputs[0]],
+                'y_mean': inputs_unit[self.inputs[0]],
+                'x_stddev': inputs_unit[self.inputs[0]],
+                'y_stddev': inputs_unit[self.inputs[0]],
                 'theta': u.rad,
-                'amplitude': outputs_unit['z']}
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class Shift(Fittable1DModel):
@@ -459,7 +459,7 @@ class Shift(Fittable1DModel):
     def input_units(self):
         if self.offset.unit is None:
             return None
-        return {'x': self.offset.unit}
+        return {self.inputs[0]: self.offset.unit}
 
     @property
     def inverse(self):
@@ -486,7 +486,7 @@ class Shift(Fittable1DModel):
         return [d_offset]
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'offset': outputs_unit['y']}
+        return {'offset': outputs_unit[self.outputs[0]]}
 
 
 class Scale(Fittable1DModel):
@@ -517,7 +517,7 @@ class Scale(Fittable1DModel):
     def input_units(self):
         if self.factor.unit is None:
             return None
-        return {'x': self.factor.unit}
+        return {self.inputs[0]: self.factor.unit}
 
     @property
     def inverse(self):
@@ -542,7 +542,7 @@ class Scale(Fittable1DModel):
         return [d_factor]
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        unit = outputs_unit['y'] / inputs_unit['x']
+        unit = outputs_unit[self.outputs[0]] / inputs_unit[self.inputs[0]]
         if unit == u.one:
             unit = None
         return {'factor': unit}
@@ -712,11 +712,11 @@ class Sersic1D(Fittable1DModel):
     def input_units(self):
         if self.r_eff.unit is None:
             return None
-        return {'x': self.r_eff.unit}
+        return {self.inputs[0]: self.r_eff.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'r_eff': inputs_unit['x'],
-                'amplitude': outputs_unit['y']}
+        return {'r_eff': inputs_unit[self.inputs[0]],
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class Sine1D(Fittable1DModel):
@@ -797,11 +797,11 @@ class Sine1D(Fittable1DModel):
     def input_units(self):
         if self.frequency.unit is None:
             return None
-        return {'x': 1. / self.frequency.unit}
+        return {self.inputs[0]: 1. / self.frequency.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'frequency': inputs_unit['x'] ** -1,
-                'amplitude': outputs_unit['y']}
+        return {'frequency': inputs_unit[self.inputs[0]] ** -1,
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class Linear1D(Fittable1DModel):
@@ -855,11 +855,11 @@ class Linear1D(Fittable1DModel):
     def input_units(self):
         if self.intercept.unit is None and self.slope.unit is None:
             return None
-        return {'x': self.intercept.unit / self.slope.unit}
+        return {self.inputs[0]: self.intercept.unit / self.slope.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'intercept': outputs_unit['y'],
-                'slope': outputs_unit['y'] / inputs_unit['x']}
+        return {'intercept': outputs_unit[self.outputs[0]],
+                'slope': outputs_unit[self.outputs[0]] / inputs_unit[self.inputs[0]]}
 
 
 class Planar2D(Fittable2DModel):
@@ -1002,12 +1002,12 @@ class Lorentz1D(Fittable1DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {'x': self.x_0.unit}
+        return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'x_0': inputs_unit['x'],
-                'fwhm': inputs_unit['x'],
-                'amplitude': outputs_unit['y']}
+        return {'x_0': inputs_unit[self.inputs[0]],
+                'fwhm': inputs_unit[self.inputs[0]],
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class Voigt1D(Fittable1DModel):
@@ -1106,13 +1106,13 @@ class Voigt1D(Fittable1DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {'x': self.x_0.unit}
+        return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'x_0': inputs_unit['x'],
-                'fwhm_L': inputs_unit['x'],
-                'fwhm_G': inputs_unit['x'],
-                'amplitude_L': outputs_unit['y']}
+        return {'x_0': inputs_unit[self.inputs[0]],
+                'fwhm_L': inputs_unit[self.inputs[0]],
+                'fwhm_G': inputs_unit[self.inputs[0]],
+                'amplitude_L': outputs_unit[self.outputs[0]]}
 
 
 class Const1D(Fittable1DModel):
@@ -1188,7 +1188,7 @@ class Const1D(Fittable1DModel):
         return None
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'amplitude': outputs_unit['y']}
+        return {'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class Const2D(Fittable2DModel):
@@ -1236,7 +1236,7 @@ class Const2D(Fittable2DModel):
         return None
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'amplitude': outputs_unit['z']}
+        return {'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class Ellipse2D(Fittable2DModel):
@@ -1353,21 +1353,21 @@ class Ellipse2D(Fittable2DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {'x': self.x_0.unit,
-                'y': self.y_0.unit}
+        return {self.inputs[0]: self.x_0.unit,
+                self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
         # units otherwise this can lead to issues since rotation is not well
         # defined.
-        if inputs_unit['x'] != inputs_unit['y']:
+        if inputs_unit[self.inputs[0]] != inputs_unit[self.inputs[1]]:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return {'x_0': inputs_unit['x'],
-                'y_0': inputs_unit['x'],
-                'a': inputs_unit['x'],
-                'b': inputs_unit['x'],
+        return {'x_0': inputs_unit[self.inputs[0]],
+                'y_0': inputs_unit[self.inputs[0]],
+                'a': inputs_unit[self.inputs[0]],
+                'b': inputs_unit[self.inputs[0]],
                 'theta': u.rad,
-                'amplitude': outputs_unit['z']}
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class Disk2D(Fittable2DModel):
@@ -1434,19 +1434,19 @@ class Disk2D(Fittable2DModel):
     def input_units(self):
         if self.x_0.unit is None and self.y_0.unit is None:
             return None
-        return {'x': self.x_0.unit,
-                'y': self.y_0.unit}
+        return {self.inputs[0]: self.x_0.unit,
+                self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
         # units otherwise this can lead to issues since rotation is not well
         # defined.
-        if inputs_unit['x'] != inputs_unit['y']:
+        if inputs_unit[self.inputs[0]] != inputs_unit[self.inputs[1]]:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return {'x_0': inputs_unit['x'],
-                'y_0': inputs_unit['x'],
-                'R_0': inputs_unit['x'],
-                'amplitude': outputs_unit['z']}
+        return {'x_0': inputs_unit[self.inputs[0]],
+                'y_0': inputs_unit[self.inputs[0]],
+                'R_0': inputs_unit[self.inputs[0]],
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class Ring2D(Fittable2DModel):
@@ -1539,20 +1539,20 @@ class Ring2D(Fittable2DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {'x': self.x_0.unit,
-                'y': self.y_0.unit}
+        return {self.inputs[0]: self.x_0.unit,
+                self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
         # units otherwise this can lead to issues since rotation is not well
         # defined.
-        if inputs_unit['x'] != inputs_unit['y']:
+        if inputs_unit[self.inputs[0]] != inputs_unit[self.inputs[1]]:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return {'x_0': inputs_unit['x'],
-                'y_0': inputs_unit['x'],
-                'r_in': inputs_unit['x'],
-                'width': inputs_unit['x'],
-                'amplitude': outputs_unit['z']}
+        return {'x_0': inputs_unit[self.inputs[0]],
+                'y_0': inputs_unit[self.inputs[0]],
+                'r_in': inputs_unit[self.inputs[0]],
+                'width': inputs_unit[self.inputs[0]],
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class Box1D(Fittable1DModel):
@@ -1635,18 +1635,18 @@ class Box1D(Fittable1DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {'x': self.x_0.unit}
+        return {self.inputs[0]: self.x_0.unit}
 
     @property
     def return_units(self):
         if self.amplitude.unit is None:
             return None
-        return {'y': self.amplitude.unit}
+        return {self.outputs[0]: self.amplitude.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'x_0': inputs_unit['x'],
-                'width': inputs_unit['x'],
-                'amplitude': outputs_unit['y']}
+        return {'x_0': inputs_unit[self.inputs[0]],
+                'width': inputs_unit[self.inputs[0]],
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class Box2D(Fittable2DModel):
@@ -1725,15 +1725,15 @@ class Box2D(Fittable2DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {'x': self.x_0.unit,
-                'y': self.y_0.unit}
+        return {self.inputs[0]: self.x_0.unit,
+                self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'x_0': inputs_unit['x'],
-                'y_0': inputs_unit['y'],
-                'x_width': inputs_unit['x'],
-                'y_width': inputs_unit['y'],
-                'amplitude': outputs_unit['z']}
+        return {'x_0': inputs_unit[self.inputs[0]],
+                'y_0': inputs_unit[self.inputs[1]],
+                'x_width': inputs_unit[self.inputs[0]],
+                'y_width': inputs_unit[self.inputs[1]],
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class Trapezoid1D(Fittable1DModel):
@@ -1823,13 +1823,13 @@ class Trapezoid1D(Fittable1DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {'x': self.x_0.unit}
+        return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'x_0': inputs_unit['x'],
-                'width': inputs_unit['x'],
-                'slope': outputs_unit['y'] / inputs_unit['x'],
-                'amplitude': outputs_unit['y']}
+        return {'x_0': inputs_unit[self.inputs[0]],
+                'width': inputs_unit[self.inputs[0]],
+                'slope': outputs_unit[self.outputs[0]] / inputs_unit[self.inputs[0]],
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class TrapezoidDisk2D(Fittable2DModel):
@@ -1892,8 +1892,8 @@ class TrapezoidDisk2D(Fittable2DModel):
     def input_units(self):
         if self.x_0.unit is None and self.y_0.unit is None:
             return None
-        return {'x': self.x_0.unit,
-                'y': self.y_0.unit}
+        return {self.inputs[0]: self.x_0.unit,
+                self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -1901,11 +1901,11 @@ class TrapezoidDisk2D(Fittable2DModel):
         # defined.
         if inputs_unit['x'] != inputs_unit['y']:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return {'x_0': inputs_unit['x'],
-                'y_0': inputs_unit['x'],
-                'R_0': inputs_unit['x'],
-                'slope': outputs_unit['z'] / inputs_unit['x'],
-                'amplitude': outputs_unit['z']}
+        return {'x_0': inputs_unit[self.inputs[0]],
+                'y_0': inputs_unit[self.inputs[0]],
+                'R_0': inputs_unit[self.inputs[0]],
+                'slope': outputs_unit[self.outputs[0]] / inputs_unit[self.inputs[0]],
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class RickerWavelet1D(Fittable1DModel):
@@ -1993,12 +1993,12 @@ class RickerWavelet1D(Fittable1DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {'x': self.x_0.unit}
+        return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'x_0': inputs_unit['x'],
-                'sigma': inputs_unit['x'],
-                'amplitude': outputs_unit['y']}
+        return {'x_0': inputs_unit[self.inputs[0]],
+                'sigma': inputs_unit[self.inputs[0]],
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class RickerWavelet2D(Fittable2DModel):
@@ -2054,19 +2054,19 @@ class RickerWavelet2D(Fittable2DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {'x': self.x_0.unit,
-                'y': self.y_0.unit}
+        return {self.inputs[0]: self.x_0.unit,
+                self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
         # units otherwise this can lead to issues since rotation is not well
         # defined.
-        if inputs_unit['x'] != inputs_unit['y']:
+        if inputs_unit[self.inputs[0]] != inputs_unit[self.inputs[1]]:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return {'x_0': inputs_unit['x'],
-                'y_0': inputs_unit['x'],
-                'sigma': inputs_unit['x'],
-                'amplitude': outputs_unit['z']}
+        return {'x_0': inputs_unit[self.inputs[0]],
+                'y_0': inputs_unit[self.inputs[0]],
+                'sigma': inputs_unit[self.inputs[0]],
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class AiryDisk2D(Fittable2DModel):
@@ -2154,19 +2154,19 @@ class AiryDisk2D(Fittable2DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {'x': self.x_0.unit,
-                'y': self.y_0.unit}
+        return {self.inputs[0]: self.x_0.unit,
+                self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
         # units otherwise this can lead to issues since rotation is not well
         # defined.
-        if inputs_unit['x'] != inputs_unit['y']:
+        if inputs_unit[self.inputs[0]] != inputs_unit[self.inputs[1]]:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return {'x_0': inputs_unit['x'],
-                'y_0': inputs_unit['x'],
-                'radius': inputs_unit['x'],
-                'amplitude': outputs_unit['z']}
+        return {'x_0': inputs_unit[self.inputs[0]],
+                'y_0': inputs_unit[self.inputs[0]],
+                'radius': inputs_unit[self.inputs[0]],
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class Moffat1D(Fittable1DModel):
@@ -2255,12 +2255,12 @@ class Moffat1D(Fittable1DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {'x': self.x_0.unit}
+        return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'x_0': inputs_unit['x'],
-                'gamma': inputs_unit['x'],
-                'amplitude': outputs_unit['y']}
+        return {'x_0': inputs_unit[self.inputs[0]],
+                'gamma': inputs_unit[self.inputs[0]],
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class Moffat2D(Fittable2DModel):
@@ -2336,19 +2336,19 @@ class Moffat2D(Fittable2DModel):
         if self.x_0.unit is None:
             return None
         else:
-            return {'x': self.x_0.unit,
-                    'y': self.y_0.unit}
+            return {self.inputs[0]: self.x_0.unit,
+                    self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
         # units otherwise this can lead to issues since rotation is not well
         # defined.
-        if inputs_unit['x'] != inputs_unit['y']:
+        if inputs_unit[self.inputs[0]] != inputs_unit[self.inputs[1]]:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return {'x_0': inputs_unit['x'],
-                'y_0': inputs_unit['x'],
-                'gamma': inputs_unit['x'],
-                'amplitude': outputs_unit['z']}
+        return {'x_0': inputs_unit[self.inputs[0]],
+                'y_0': inputs_unit[self.inputs[0]],
+                'gamma': inputs_unit[self.inputs[0]],
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class Sersic2D(Fittable2DModel):
@@ -2457,20 +2457,20 @@ class Sersic2D(Fittable2DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {'x': self.x_0.unit,
-                'y': self.y_0.unit}
+        return {self.inputs[0]: self.x_0.unit,
+                self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
         # units otherwise this can lead to issues since rotation is not well
         # defined.
-        if inputs_unit['x'] != inputs_unit['y']:
+        if inputs_unit[self.inputs[0]] != inputs_unit[self.inputs[1]]:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return {'x_0': inputs_unit['x'],
-                'y_0': inputs_unit['x'],
-                'r_eff': inputs_unit['x'],
+        return {'x_0': inputs_unit[self.inputs[0]],
+                'y_0': inputs_unit[self.inputs[0]],
+                'r_eff': inputs_unit[self.inputs[0]],
                 'theta': u.rad,
-                'amplitude': outputs_unit['z']}
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class KingProjectedAnalytic1D(Fittable1DModel):
@@ -2599,12 +2599,12 @@ class KingProjectedAnalytic1D(Fittable1DModel):
     def input_units(self):
         if self.r_core.unit is None:
             return None
-        return {'x': self.r_core.unit}
+        return {self.inputs[0]: self.r_core.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'r_core': inputs_unit['x'],
-                'r_tide': inputs_unit['x'],
-                'amplitude': outputs_unit['y']}
+        return {'r_core': inputs_unit[self.inputs[0]],
+                'r_tide': inputs_unit[self.inputs[0]],
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class Logarithmic1D(Fittable1DModel):
@@ -2649,11 +2649,11 @@ class Logarithmic1D(Fittable1DModel):
     def input_units(self):
         if self.tau.unit is None:
             return None
-        return {'x': self.tau.unit}
+        return {self.inputs[0]: self.tau.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'tau': inputs_unit['x'],
-                'amplitude': outputs_unit['y']}
+        return {'tau': inputs_unit[self.inputs[0]],
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 class Exponential1D(Fittable1DModel):
@@ -2699,11 +2699,11 @@ class Exponential1D(Fittable1DModel):
     def input_units(self):
         if self.tau.unit is None:
             return None
-        return {'x': self.tau.unit}
+        return {self.inputs[0]: self.tau.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'tau': inputs_unit['x'],
-                'amplitude': outputs_unit['y']}
+        return {'tau': inputs_unit[self.inputs[0]],
+                'amplitude': outputs_unit[self.outputs[0]]}
 
 
 @deprecated('4.0', alternative='RickerWavelet1D')

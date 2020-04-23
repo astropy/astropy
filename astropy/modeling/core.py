@@ -943,7 +943,7 @@ class Model(metaclass=_ModelMeta):
         new_inputs, kwargs = _keyword2positional(kwargs)
         n_all_args = n_args + len(new_inputs)
 
-        if  n_all_args < self.n_inputs:
+        if n_all_args < self.n_inputs:
             raise ValueError(f"Missing input arguments - expected {self.n_inputs}, got {n_all_args}")
         elif n_all_args > self.n_inputs:
             raise ValueError(f"Too many input arguments - expected {self.n_inputs}, got {n_all_args}")
@@ -1307,7 +1307,6 @@ class Model(metaclass=_ModelMeta):
         For compound models this will only work when the expression only
         involves the addition or subtraction operators.
         """
-
         if isinstance(self, CompoundModel):
             self._make_opset()
             if not self._opset.issubset(set(('+', '-'))):
@@ -1316,6 +1315,7 @@ class Model(metaclass=_ModelMeta):
                     "compound models that only use the arithmetic operators + and -")
 
         model = self.copy()
+
         inputs_unit = {inp: getattr(kwargs[inp], 'unit', dimensionless_unscaled)
                        for inp in self.inputs if kwargs[inp] is not None}
 
@@ -1323,7 +1323,6 @@ class Model(metaclass=_ModelMeta):
                         for out in self.outputs if kwargs[out] is not None}
         parameter_units = self._parameter_units_for_data_units(inputs_unit,
                                                                outputs_unit)
-
         for name, unit in parameter_units.items():
             parameter = getattr(model, name)
             if parameter.unit is not None:
@@ -1366,7 +1365,6 @@ class Model(metaclass=_ModelMeta):
         """
 
         model = self.copy()
-
         inputs_unit = {inp: getattr(kwargs[inp], 'unit', dimensionless_unscaled)
                        for inp in self.inputs if kwargs[inp] is not None}
 
@@ -1587,7 +1585,6 @@ class Model(metaclass=_ModelMeta):
         applicable) the units of the input will be compatible with the evaluate
         method.
         """
-
         # When we instantiate the model class, we make sure that __call__ can
         # take the following two keyword arguments: model_set_axis and
         # equivalencies.
@@ -1621,7 +1618,6 @@ class Model(metaclass=_ModelMeta):
                                              model_set_axis, **kwargs)
 
     def _validate_input_units(self, inputs, equivalencies=None, inputs_map=None):
-
         inputs = list(inputs)
         name = self.name or self.__class__.__name__
         # Check that the units are correct, if applicable
@@ -2749,7 +2745,7 @@ class CompoundModel(Model):
             if subinds:
                 subargs = list(zip(subinds, subvals))
                 subargs.sort()
-                #subindsorted, subvalsorted = list(zip(*subargs))
+                # subindsorted, subvalsorted = list(zip(*subargs))
             # The substitutions must be inserted in order
             for ind, val in subargs:
                 newargs.insert(ind, val)
@@ -2833,7 +2829,7 @@ class CompoundModel(Model):
             raise TypeError('index must be integer, slice, or model name string')
 
     def _str_index_to_int(self, str_index):
-                # Search through leaflist for item with that name
+        # Search through leaflist for item with that name
         found = []
         for nleaf, leaf in enumerate(self._leaflist):
             if leaf.name == str_index:
@@ -2979,7 +2975,6 @@ class CompoundModel(Model):
                 self._map_parameters()
             self._fittable = all(m.fittable for m in self._leaflist)
         return self._fittable
-
 
     __add__ = _model_oper('+')
     __sub__ = _model_oper('-')
@@ -3198,7 +3193,6 @@ class CompoundModel(Model):
                 else:
                     outputs_map[out] = self.left, out
         return outputs_map
-
 
     def _fix_input_bounding_box(self, input_ind):
         """
@@ -3555,7 +3549,7 @@ def _custom_model_wrapper(func, fit_deriv=None):
         ('__module__', str(modname)),
         ('__doc__', func.__doc__),
         ('n_inputs', len(inputs)),
-        #tuple(x.name for x in inputs)),
+        # tuple(x.name for x in inputs)),
         ('n_outputs', len(output_names)),
         ('evaluate', staticmethod(func))])
 
