@@ -11,7 +11,7 @@ keep to these as closely as possible, and we encourage affiliated packages to
 also adhere to these as they encourage useful documentation, a characteristic
 often lacking in professional astronomy software.
 
-Adding a Git commit
+Adding a Git Commit
 ===================
 
 When your changes only affect documentation (i.e., docstring or RST files)
