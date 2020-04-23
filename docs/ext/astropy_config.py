@@ -6,19 +6,25 @@ from docutils.parsers.rst import Directive
 from astropy.config import generate_config
 
 
-class AstropyConfig(Directive):
+class GenerateConfig(Directive):
+    """
+    Directive to generate the configuration file for a package and
+    include it in the documentation as a literal code block.
+    """
+
+    has_content = False
+    required_arguments = 1
 
     def run(self):
         buf = io.StringIO()
-        generate_config(buf)
+        generate_config(pkgname=self.arguments[0], filename=buf)
         text = buf.getvalue()
         node = nodes.literal_block(text, text)
-        # self.add_name(node)
         return [node]
 
 
 def setup(app):
-    app.add_directive("astropy_config", AstropyConfig)
+    app.add_directive("generate_config", GenerateConfig)
 
     return {
         'version': '0.1',

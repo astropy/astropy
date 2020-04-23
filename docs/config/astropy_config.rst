@@ -3,4 +3,4 @@
 Astropy's Default Configuration File
 ************************************
 
- .. astropy_config::
+ .. generate_config:: astropy
