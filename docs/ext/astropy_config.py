@@ -3,14 +3,14 @@ import io
 from docutils import nodes
 from docutils.parsers.rst import Directive
 
-from astropy.config import generate_astropy_config
+from astropy.config import generate_config
 
 
 class AstropyConfig(Directive):
 
     def run(self):
         buf = io.StringIO()
-        generate_astropy_config(buf)
+        generate_config(buf)
         text = buf.getvalue()
         node = nodes.literal_block(text, text)
         # self.add_name(node)
