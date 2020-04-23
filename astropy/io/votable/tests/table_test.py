@@ -186,6 +186,13 @@ def test_empty_table():
     astropy_table = table.to_table()  # noqa
 
 
+def test_no_field_not_empty_table():
+    votable = parse(get_pkg_data_filename('data/no_field_not_empty_table.xml'))
+    table = votable.get_first_table()
+    assert len(table.fields) == 0
+    assert len(table.infos) == 1
+
+
 def test_binary2_masked_strings():
     """
     Issue #8995
