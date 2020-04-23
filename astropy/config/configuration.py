@@ -594,11 +594,16 @@ def generate_config(pkgname='astropy', filename=None):
         warnings.simplefilter('ignore', AstropyDeprecationWarning)
         for mod in pkgutil.walk_packages(path=package.__path__,
                                          prefix=package.__name__ + '.'):
-            if not mod.module_finder.path.endswith('tests'):
-                try:
-                    importlib.import_module(mod.name)
-                except ImportError:
-                    pass
+
+            if mod.module_finder.path.endswith('tests'):
+                # Skip test modules
+                continue
+            if mod.name.split('.')[-1].startswith('_'):
+                # Skip private modules
+                continue
+
+            with contextlib.suppress(ImportError):
+                importlib.import_module(mod.name)
 
     wrapper = TextWrapper(initial_indent="## ", subsequent_indent='## ',
                           width=78)
