@@ -30,7 +30,7 @@ from .paths import get_config_dir
 __all__ = ['InvalidConfigurationItemWarning',
            'ConfigurationMissingWarning', 'get_config',
            'reload_config', 'ConfigNamespace', 'ConfigItem',
-           'generate_astropy_config']
+           'generate_config']
 
 
 class InvalidConfigurationItemWarning(AstropyWarning):
@@ -575,21 +575,23 @@ def get_config(packageormod=None, reload=False, rootname=None):
         return cobj
 
 
-def generate_astropy_config(filename=None):
+def generate_config(pkgname='astropy', filename=None):
     """Generates a configuration file, from the list of ConfigItem
     for each subpackage.
 
     Parameters
     ----------
+    packageormod : str or None
+        The package for which to retrieve the configuration object.
     filename : str or file object or None
         If None, the default configuration path is taken from `get_config`.
 
     """
-    import astropy
+    package = importlib.import_module(pkgname)
     with warnings.catch_warnings():
         warnings.simplefilter('ignore', AstropyDeprecationWarning)
-        for mod in pkgutil.walk_packages(path=astropy.__path__,
-                                         prefix=astropy.__name__ + '.'):
+        for mod in pkgutil.walk_packages(path=package.__path__,
+                                         prefix=package.__name__ + '.'):
             if not mod.module_finder.path.endswith('tests'):
                 try:
                     importlib.import_module(mod.name)
@@ -600,7 +602,7 @@ def generate_astropy_config(filename=None):
                           width=78)
 
     if filename is None:
-        filename = get_config('astropy').filename
+        filename = get_config(package).filename
 
     if isinstance(filename, str):
         fp = open(filename, 'w')
@@ -621,8 +623,8 @@ def generate_astropy_config(filename=None):
                 if print_module:
                     # If this is the first item of the module, we print the
                     # module name, but not if this is the root package...
-                    if item.module != 'astropy':
-                        modname = item.module.replace('astropy.', '')
+                    if item.module != pkgname:
+                        modname = item.module.replace(f'{pkgname}.', '')
                         fp.write(f"[{modname}]\n\n")
                     print_module = False
 
