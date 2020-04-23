@@ -24,8 +24,6 @@ When this commit is pushed out to your branch associated with a pull request,
 Travis CI will be skipped because it is not required. This is because the
 CI job to build the documentation resides in CircleCI.
 
-This special ``[skip travis]`` directive is being handled by ``ci-helpers``
-that Astropy uses for its continuous integration.
 
 Building the Documentation from source
 ======================================
