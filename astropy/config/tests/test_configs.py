@@ -2,6 +2,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
+import io
 import os
 import sys
 import subprocess
@@ -127,6 +128,25 @@ def test_config_file():
     configuration._cfgobjs['testpkg'] = None # HACK
 
     reload_config('astropy')
+
+
+def test_generate_config(tmp_path):
+    from astropy.config.configuration import generate_config
+    out = io.StringIO()
+    generate_config('astropy', out)
+    conf = out.getvalue()
+
+    outfile = tmp_path / 'astropy.cfg'
+    generate_config('astropy', outfile)
+    with open(outfile) as fp:
+        conf2 = fp.read()
+
+    for c in (conf, conf2):
+        assert '# unicode_output = False' in c
+        assert '[io.fits]' in c
+        assert '[visualization.wcsaxes]' in c
+        assert '## Whether to log exceptions before raising them.' in c
+        assert '# log_exceptions = False' in c
 
 
 def test_configitem():
