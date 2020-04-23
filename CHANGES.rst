@@ -59,6 +59,8 @@ astropy.modeling
 - Fixed a problem with mapping ``input_units`` and ``return_units``
   of a ``CompoundModel`` to the units of the constituent models. [#10158]
 
+- Removed hard-coded names of inputs and outputs. [#10174]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 

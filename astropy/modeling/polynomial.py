@@ -855,13 +855,13 @@ class Polynomial1D(PolynomialModel):
         if self.degree == 0 or self.c1.unit is None:
             return None
         else:
-            return {'x': self.c0.unit / self.c1.unit}
+            return {self.inputs[0]: self.c0.unit / self.c1.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         mapping = {}
         for i in range(self.degree + 1):
             par = getattr(self, f'c{i}')
-            mapping[par.name] = outputs_unit['y'] / inputs_unit['x'] ** i
+            mapping[par.name] = outputs_unit[self.outputs[0]] / inputs_unit[self.inputs[0]] ** i
         return mapping
 
 
@@ -1022,8 +1022,8 @@ class Polynomial2D(PolynomialModel):
     def input_units(self):
         if self.degree == 0 or (self.c1_0.unit is None and self.c0_1.unit is None):
             return None
-        return {'x': self.c0_0.unit / self.c1_0.unit,
-                'y': self.c0_0.unit / self.c0_1.unit}
+        return {self.inputs[0]: self.c0_0.unit / self.c1_0.unit,
+                self.inputs[1]: self.c0_0.unit / self.c0_1.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         mapping = {}
@@ -1032,7 +1032,7 @@ class Polynomial2D(PolynomialModel):
                 if i + j > 2:
                     continue
                 par = getattr(self, f'c{i}_{j}')
-                mapping[par.name] = outputs_unit['z'] / inputs_unit['x'] ** i / inputs_unit['y'] ** j  # noqa
+                mapping[par.name] = outputs_unit[self.outputs[0]] / inputs_unit[self.inputs[0]] ** i / inputs_unit[self.inputs[1]] ** j  # noqa
         return mapping
 
 

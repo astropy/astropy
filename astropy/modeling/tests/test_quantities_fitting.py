@@ -6,12 +6,14 @@ Tests that relate to fitting models with quantity parameters
 import numpy as np
 import pytest
 
-from astropy.modeling import models
 from astropy import units as u
 from astropy.units import UnitsError
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils import NumpyRNGContext
 from astropy.modeling import fitting
+from astropy.modeling import models
+from astropy.modeling.core import Fittable1DModel
+from astropy.modeling.parameters import Parameter
 
 try:
     from scipy import optimize  # noqa
@@ -48,6 +50,45 @@ bad_compound_models_no_units = [
 compound_models_no_units = [
     models.Linear1D() + models.Gaussian1D() + models.Gaussian1D()
 ]
+
+
+class  CustomInputNamesModel(Fittable1DModel):
+
+    n_inputs = 1
+    n_outputs = 1
+
+    a = Parameter(default=1.0)
+    b = Parameter(default=1.0)
+
+    def __init__(self, a=a, b=b):
+        super().__init__(a=a, b=b)
+        self.inputs = ('inn',)
+        self.outputs = ('out',)
+
+    @staticmethod
+    def evaluate(inn, a, b):
+        return a * inn + b
+
+    @property
+    def input_units(self):
+        if self.a.unit is None and self.b.unit is None:
+            return None
+        else:
+            return {'inn': self.b.unit / self.a.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return {'a': outputs_unit['out'] / inputs_unit['inn'],
+                'b': outputs_unit['out']
+               }
+
+
+def models_with_custom_names():
+    line = models.Linear1D(1 * u.m / u.s, 2 * u.m)
+    line.inputs = ('inn',)
+    line.outputs = ('out',)
+
+    custom_names_model = CustomInputNamesModel(1 * u.m / u.s, 2 * u.m)
+    return [line, custom_names_model]
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -215,3 +256,18 @@ def test_bad_compound_without_units(model):
 
         fitter = fitting.LevMarLSQFitter()
         res_fit = fitter(model, x, y * u.Hz)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.filterwarnings(r'ignore:Model is linear in parameters*')
+@pytest.mark.parametrize('model', models_with_custom_names())
+def test_fitting_custom_names(model):
+    """ Tests fitting of models with custom inputs and outsputs names."""
+
+    x = np.linspace(0, 10, 100) * u.s
+    y = model(x)
+    fitter = fitting.LevMarLSQFitter()
+    new_model = fitter(model, x, y)
+    for param_name in model.param_names:
+        assert_quantity_allclose(getattr(new_model, param_name).quantity,
+                                 getattr(model, param_name).quantity)
