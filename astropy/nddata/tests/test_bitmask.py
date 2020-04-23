@@ -73,6 +73,7 @@ def test_interpret_none_bit_flags_as_None(flag):
     ('~-1', ~(-1)),
     ('~1', ~1),
     ('1,2', 3),
+    ('1|2', 3),
     ('1+2', 3),
     ('(1,2)', 3),
     ('(1+2)', 3),
@@ -84,6 +85,30 @@ def test_interpret_none_bit_flags_as_None(flag):
 def test_interpret_valid_str_bit_flags(flag, expected):
     assert(
         bitmask.interpret_bit_flags(bit_flags=flag) == expected
+    )
+
+
+@pytest.mark.parametrize('flag,expected', [
+    ('CR', 1),
+    ('~CR', ~1),
+    ('CR|HOT', 3),
+    ('CR,HOT', 3),
+    ('CR+HOT', 3),
+    (['CR', 'HOT'], 3),
+    ('(CR,HOT)', 3),
+    ('(HOT+CR)', 3),
+    ('~HOT,CR', ~3),
+    ('~CR+HOT', ~3),
+    ('~(HOT,CR)', ~3),
+    ('~(HOT|CR)', ~3),
+    ('~(CR+HOT)', ~3)
+])
+def test_interpret_valid_mnemonic_bit_flags(flag, expected):
+    flagmap = bitmask.extend_bit_flag_map('DetectorMap', CR=1, HOT=2)
+
+    assert(
+        bitmask.interpret_bit_flags(bit_flags=flag, flag_name_map=flagmap)
+        == expected
     )
 
 
@@ -143,7 +168,8 @@ def test_interpret_allow_single_value_str_nonflags():
     '1,~2',
     '1,(2,4)',
     '1,2+4',
-    '1+4,2'
+    '1+4,2',
+    '1|4+2'
 ])
 def test_interpret_bad_str_syntax(flag):
     with pytest.raises(ValueError):
@@ -180,3 +206,169 @@ def test_bitfield_to_boolean_mask(data, flags, flip, goodval, dtype, ref):
 
     assert(mask.dtype == dtype)
     assert np.all(mask == ref)
+
+
+@pytest.mark.parametrize('caching', [True, False])
+def test_basic_map(monkeypatch, caching):
+    monkeypatch.setattr(bitmask, '_ENABLE_BITFLAG_CACHING', False)
+
+    class ObservatoryDQMap(bitmask.BitFlagNameMap):
+        _not_a_flag = 1
+        CR = 1
+        HOT = 2
+        DEAD = 4
+
+    class DetectorMap(ObservatoryDQMap):
+        __version__ = '1.0'
+        _not_a_flag = 181
+        READOUT_ERR = 16
+
+    assert ObservatoryDQMap.cr == 1
+    assert DetectorMap.READOUT_ERR == 16
+
+
+@pytest.mark.parametrize('caching', [True, False])
+def test_extend_map(monkeypatch, caching):
+    monkeypatch.setattr(bitmask, '_ENABLE_BITFLAG_CACHING', caching)
+
+    class ObservatoryDQMap(bitmask.BitFlagNameMap):
+        CR = 1
+        HOT = 2
+        DEAD = 4
+
+    DetectorMap = bitmask.extend_bit_flag_map(
+        'DetectorMap', ObservatoryDQMap,
+        __version__='1.0',
+        DEAD=4,
+        READOUT_ERR=16
+    )
+
+    assert DetectorMap.CR == 1
+    assert DetectorMap.readout_err == 16
+
+
+@pytest.mark.parametrize('caching', [True, False])
+def test_extend_map_redefine_flag(monkeypatch, caching):
+    monkeypatch.setattr(bitmask, '_ENABLE_BITFLAG_CACHING', caching)
+
+    class ObservatoryDQMap(bitmask.BitFlagNameMap):
+        CR = 1
+        HOT = 2
+        DEAD = 4
+
+    with pytest.raises(AttributeError):
+        bitmask.extend_bit_flag_map(
+            'DetectorMap',
+            ObservatoryDQMap,
+            __version__='1.0',
+            DEAD=32
+        )
+
+    with pytest.raises(AttributeError):
+        bitmask.extend_bit_flag_map(
+            'DetectorMap',
+            ObservatoryDQMap,
+            __version__='1.0',
+            DEAD=32,
+            dead=64
+        )
+
+
+@pytest.mark.parametrize('caching', [True, False])
+def test_map_redefine_flag(monkeypatch, caching):
+    monkeypatch.setattr(bitmask, '_ENABLE_BITFLAG_CACHING', caching)
+
+    class ObservatoryDQMap(bitmask.BitFlagNameMap):
+        _not_a_flag = 8
+        CR = 1
+        HOT = 2
+        DEAD = 4
+
+    with pytest.raises(AttributeError):
+        class DetectorMap1(ObservatoryDQMap):
+            __version__ = '1.0'
+            CR = 16
+
+    with pytest.raises(AttributeError):
+        class DetectorMap2(ObservatoryDQMap):
+            SHADE = 8
+            _FROZEN = 16
+
+        DetectorMap2.novel = 32
+
+    with pytest.raises(AttributeError):
+        bitmask.extend_bit_flag_map(
+            'DetectorMap', ObservatoryDQMap,
+            READOUT_ERR=16,
+            SHADE=32,
+            readout_err=128
+        )
+
+
+def test_map_cant_modify_version():
+    class ObservatoryDQMap(bitmask.BitFlagNameMap):
+        __version__ = '1.2.3'
+        CR = 1
+
+    assert ObservatoryDQMap.__version__ == '1.2.3'
+    assert ObservatoryDQMap.CR == 1
+
+    with pytest.raises(AttributeError):
+        ObservatoryDQMap.__version__ = '3.2.1'
+
+
+@pytest.mark.parametrize('flag', [0, 3])
+def test_map_not_bit_flag(flag):
+    with pytest.raises(ValueError):
+        bitmask.extend_bit_flag_map('DetectorMap', DEAD=flag)
+
+
+@pytest.mark.parametrize('flag', [0.0, True, '1'])
+def test_map_not_int_flag(flag):
+    with pytest.raises(TypeError):
+        bitmask.extend_bit_flag_map('DetectorMap', DEAD=flag)
+
+    with pytest.raises(TypeError):
+        class ObservatoryDQMap(bitmask.BitFlagNameMap):
+            CR = flag
+
+
+def test_map_access_undefined_flag():
+    DetectorMap = bitmask.extend_bit_flag_map('DetectorMap', DEAD=1)
+
+    with pytest.raises(AttributeError):
+        DetectorMap.DEAD1
+
+    with pytest.raises(AttributeError):
+        DetectorMap['DEAD1']
+
+
+def test_map_delete_flag():
+    DetectorMap = bitmask.extend_bit_flag_map('DetectorMap', DEAD=1)
+
+    with pytest.raises(AttributeError):
+        del DetectorMap.DEAD1
+
+    with pytest.raises(AttributeError):
+        del DetectorMap['DEAD1']
+
+
+def test_map_repr():
+    DetectorMap = bitmask.extend_bit_flag_map('DetectorMap', DEAD=1)
+    assert repr(DetectorMap) == "<BitFlagNameMap 'DetectorMap'>"
+
+
+def test_map_add_flags():
+    map1 = bitmask.extend_bit_flag_map('DetectorMap', CR=1)
+
+    map2 = map1 + {'HOT': 2, 'DEAD': 4}
+    assert map2.CR == 1
+    assert map2.HOT == 2
+
+    map2 = map1 + [('HOT', 2), ('DEAD', 4)]
+    assert map2.CR == 1
+    assert map2.HOT == 2
+
+    map2 = map1 + ('HOT', 2)
+    assert map2.CR == 1
+    assert map2.HOT == 2
