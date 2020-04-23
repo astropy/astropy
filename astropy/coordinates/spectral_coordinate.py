@@ -11,7 +11,6 @@ from astropy.coordinates import (ICRS,
 from astropy.coordinates.baseframe import (BaseCoordinateFrame, FrameMeta,
                                            frame_transform_graph)
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.cosmology import WMAP5
 
 DOPPLER_CONVENTIONS = {
     'radio': u.doppler_radio,
@@ -48,28 +47,31 @@ def update_differentials_to_match(original, velocity_reference):
     if 'obstime' in velocity_reference.frame_attributes and hasattr(original, 'obstime'):
         velocity_reference = velocity_reference.replicate(obstime=original.obstime)
 
-    # For now we transform both coordinates to ICRS because of this bug if we
-    # were to transform the reference to the original (which would be more
-    # efficient) - see https://github.com/astropy/astropy/issues/10193
-
-    # The following code can be used once the bug is fixed
-    # velocity_reference_in_original_frame = velocity_reference.transform_to(original)
-    # differentials = velocity_reference_in_original_frame.data.represent_as(CartesianRepresentation, CartesianDifferential).differentials
-    # data_with_differentials = original.data.with_differentials(differentials)
-    # final = original.realize_frame(data_with_differentials)
+    # We transform both coordinates to ICRS for simplicity
 
     original_icrs = original.transform_to(ICRS())
     velocity_reference_icrs = velocity_reference.transform_to(ICRS())
 
-    differentials = velocity_reference_icrs.data.represent_as(CartesianRepresentation, CartesianDifferential).differentials
+    differentials = velocity_reference_icrs.data.represent_as(CartesianRepresentation,
+                                                              CartesianDifferential).differentials
     if original_icrs.data.differentials:
-        data_with_differentials = original_icrs.data.represent_as(CartesianRepresentation, CartesianDifferential).with_differentials(differentials)
+        data_with_differentials = original_icrs.data.represent_as(CartesianRepresentation,
+                                                                  CartesianDifferential).with_differentials(differentials)
     else:
         data_with_differentials = original_icrs.data.represent_as(CartesianRepresentation).with_differentials(differentials)
     final_icrs = original_icrs.realize_frame(data_with_differentials)
     final = final_icrs.transform_to(original)
 
     return final
+
+
+def attach_zero_velocities(coord):
+    """
+    Set the differentials to be stationary on a coordinate object.
+    """
+    coord_diffs = CartesianDifferential(u.Quantity([0, 0, 0] * u.km / u.s))
+    new_data = coord.data.to_cartesian().with_differentials(coord_diffs)
+    return coord.realize_frame(new_data)
 
 
 class SpectralCoord(u.Quantity):
@@ -276,10 +278,7 @@ class SpectralCoord(u.Quantity):
                     u.Quantity([0, 0, 0], unit=u.km/u.s)),
                 AstropyUserWarning)
 
-            coord_diffs = CartesianDifferential(u.Quantity([0, 0, 0] * u.km / u.s))
-
-            new_data = coord.data.to_cartesian().with_differentials(coord_diffs)
-            coord = coord.realize_frame(new_data)
+            coord = attach_zero_velocities(coord)
 
         return coord
 

@@ -23,6 +23,7 @@ from astropy.wcs.wcsapi.fitswcs import custom_ctype_to_ucd_mapping
 from astropy.wcs._wcs import __version__ as wcsver
 from astropy.utils import iers
 from astropy.table import Table
+from astropy.utils.exceptions import AstropyUserWarning
 
 ###############################################################################
 # The following example is the simplest WCS with default values
@@ -288,24 +289,28 @@ def test_spectral_cube():
     coord = SkyCoord(25, 10, unit='deg', frame='galactic')
     spec = 20 * u.Hz
 
-    x, y, z = wcs.world_to_pixel(coord, spec)
+    with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+        x, y, z = wcs.world_to_pixel(coord, spec)
     assert_allclose(x, 29.)
     assert_allclose(y, 39.)
     assert_allclose(z, 44.)
 
     # Order of world coordinates shouldn't matter
-    x, y, z = wcs.world_to_pixel(spec, coord)
+    with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+        x, y, z = wcs.world_to_pixel(spec, coord)
     assert_allclose(x, 29.)
     assert_allclose(y, 39.)
     assert_allclose(z, 44.)
 
-    i, j, k = wcs.world_to_array_index(coord, spec)
+    with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+        i, j, k = wcs.world_to_array_index(coord, spec)
     assert_equal(i, 44)
     assert_equal(j, 39)
     assert_equal(k, 29)
 
     # Order of world coordinates shouldn't matter
-    i, j, k = wcs.world_to_array_index(spec, coord)
+    with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+        i, j, k = wcs.world_to_array_index(spec, coord)
     assert_equal(i, 44)
     assert_equal(j, 39)
     assert_equal(k, 29)
@@ -979,7 +984,7 @@ def test_spectralcoord_frame(header_spectral_frames):
 
     with iers.conf.set_temp('auto_download', False):
 
-        obstime = Time(f"2019-05-04T04:44:23", scale='utc')
+        obstime = Time(f"2009-05-04T04:44:23", scale='utc')
 
         header = header_spectral_frames.copy()
         header['MJD-OBS'] = obstime.mjd
