@@ -122,6 +122,7 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+- Handled WCS 360 -> 0 deg crossover in ``fit_wcs_from_points`` [#10155]
 
 Other Changes and Additions
 ---------------------------
