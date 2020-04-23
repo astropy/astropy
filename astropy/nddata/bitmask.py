@@ -3,16 +3,17 @@ A module that provides functions for manipulating bit masks and data quality
 (DQ) arrays.
 
 """
-
-import sys
 import warnings
 import numbers
+from collections import OrderedDict
 import numpy as np
 
 
-__all__ = ['bitfield_to_boolean_mask', 'interpret_bit_flags']
+__all__ = ['bitfield_to_boolean_mask', 'interpret_bit_flags',
+           'BitFlagNameMap', 'extend_bit_flag_map']
 
 
+_ENABLE_BITFLAG_CACHING = True
 _MAX_UINT_TYPE = np.maximum_sctype(np.uint)
 _SUPPORTED_FLAGS = int(np.bitwise_not(
     0, dtype=_MAX_UINT_TYPE, casting='unsafe'
@@ -49,13 +50,204 @@ def _is_int(n):
     )
 
 
-def interpret_bit_flags(bit_flags, flip_bits=None):
+class BitFlagNameMeta(type):
+    def __new__(mcls, name, bases, members):
+        for k, v in members.items():
+            if not (k.startswith('_') or _is_int(v)):
+                raise TypeError("Flag values must be of integral type.")
+
+        attr = [k for k in members.keys() if not k.startswith('_')]
+        attrl = list(map(str.lower, attr))
+
+        if _ENABLE_BITFLAG_CACHING:
+            cache = OrderedDict()
+
+        for b in bases:
+            for k, v in b.__dict__.items():
+                if k.startswith('_'):
+                    continue
+                kl = k.lower()
+                if kl in attrl:
+                    idx = attrl.index(kl)
+                    raise AttributeError("Bit flag '{:s}' was already defined."
+                                         .format(attr[idx]))
+                if _ENABLE_BITFLAG_CACHING:
+                    cache[kl] = v
+
+        if _ENABLE_BITFLAG_CACHING:
+            cache.update({k.lower(): v for k, v in members.items()
+                          if not k.startswith('_')})
+            members = {'_locked': True, '__version__': '', **members,
+                       '_cache': cache}
+        else:
+            members = {'_locked': True, '__version__': '', **members}
+
+        return super().__new__(mcls, name, bases, members)
+
+    def __setattr__(cls, name, val):
+        if name == '_locked':
+            return super().__setattr__(name, True)
+
+        else:
+            if name == '__version__':
+                if cls._locked:
+                    raise AttributeError("Version cannot be modified.")
+                return super().__setattr__(name, val)
+
+            err_msg = "Bit flags are read-only. Unable to reassign attribute {}".format(name)
+            if cls._locked:
+                raise AttributeError(err_msg)
+
+        namel = name.lower()
+        if _ENABLE_BITFLAG_CACHING:
+            if not namel.startswith('_') and namel in cls._cache:
+                raise AttributeError(err_msg)
+
+        else:
+            for b in cls.__bases__:
+                if not namel.startswith('_') and namel in list(map(str.lower, b.__dict__)):
+                    raise AttributeError(err_msg)
+            if namel in list(map(str.lower, cls.__dict__)):
+                raise AttributeError(err_msg)
+
+        if not _is_int(val):
+            raise TypeError("Flag values must be of integral type.")
+
+        if not _is_bit_flag(val):
+            raise ValueError("Value {} for flag '{:s}' is invalid: bit flag"
+                             "values must be powers of two.".format(val, name))
+
+        if _ENABLE_BITFLAG_CACHING and not namel.startswith('_'):
+            cls._cache[namel] = val
+
+        return super().__setattr__(name, val)
+
+    def __getattr__(cls, name):
+        if _ENABLE_BITFLAG_CACHING:
+            flagnames = cls._cache
+        else:
+            flagnames = {k.lower(): v for k, v in cls.__dict__.items()}
+            flagnames.update({k.lower(): v for b in cls.__bases__
+                              for k, v in b.__dict__.items()})
+        try:
+            return flagnames[name.lower()]
+        except KeyError:
+            raise AttributeError("Flag '{}' not defined".format(name))
+
+    def __getitem__(cls, key):
+        return cls.__getattr__(key)
+
+    def __add__(cls, items):
+        if not isinstance(items, dict):
+            if not isinstance(items[0], (tuple, list)):
+                items = [items]
+            items = dict(items)
+
+        return extend_bit_flag_map(
+            cls.__name__ + '_' + '_'.join([k for k in items]),
+            cls,
+            **items
+        )
+
+    def __iadd__(cls, other):
+        raise NotImplementedError(
+            "Unary '+' is not supported. Use binary operator instead."
+        )
+
+    def __delattr__(cls, name):
+        raise AttributeError("{:s}: cannot delete {:s} member."
+                             .format(cls.__name__, cls.mro()[-2].__name__))
+
+    def __delitem__(cls, name):
+        raise AttributeError("{:s}: cannot delete {:s} member."
+                             .format(cls.__name__, cls.mro()[-2].__name__))
+
+    def __repr__(cls):
+        return "<{:s} '{:s}'>".format(cls.mro()[-2].__name__, cls.__name__)
+
+
+class BitFlagNameMap(metaclass=BitFlagNameMeta):
+    """
+    A base class for bit flag name maps used to describe data quality (DQ)
+    flags of images by provinding a mapping from a mnemonic flag name to a flag
+    value.
+
+    Mapping for a specific instrument should subclass this class.
+    Subclasses should define flags as class attributes with integer values
+    that are powers of 2.
+
+    Examples
+    --------
+
+        >>> from astropy.nddata.bitmask import BitFlagNameMap
+        >>> class ST_DQ(BitFlagNameMap):
+        ...     __version__ = '1.0.0'  # optional
+        ...     CR = 1
+        ...     CLOUDY = 4
+        ...     RAINY = 8
+        ...
+        >>> class ST_CAM1_DQ(ST_DQ):
+        ...     HOT = 16
+        ...     DEAD = 32
+
+    """
+    pass
+
+
+def extend_bit_flag_map(cls_name, base_cls=BitFlagNameMap, **kwargs):
+    """
+    A convenience function for creating bit flags maps by subclassing an
+    existing map and adding additional flags supplied as keyword arguments.
+
+    Parameters
+    ----------
+    cls_name : str
+        Class name of the bit flag map to be created.
+
+    base_cls : BitFlagNameMap, optional
+        Base class for the new bit flag map.
+
+    **kwargs : int
+        Each supplied keyword argument will be used to define bit flag
+        names in the new map. In addition to bit flag names, ``__version__`` is
+        allowed to indicate the version of the newly created map.
+
+    Examples
+    --------
+
+        >>> from astropy.nddata.bitmask import extend_bit_flag_map
+        >>> ST_DQ = extend_bit_flag_map('ST_DQ', __version__='1.0.0', CR=1, CLOUDY=4, RAINY=8)
+        >>> ST_CAM1_DQ = extend_bit_flag_map('ST_CAM1_DQ', ST_DQ, HOT=16, DEAD=32)
+        >>> ST_CAM1_DQ['HOT']  # <-- Access flags as dictionary keys
+        16
+        >>> ST_CAM1_DQ.HOT  # <-- Access flags as class attributes
+        16
+
+    """
+    new_cls = BitFlagNameMeta.__new__(
+        BitFlagNameMeta,
+        cls_name,
+        (base_cls, ),
+        {'_locked': False}
+    )
+    for k, v in kwargs.items():
+        try:
+            setattr(new_cls, k, v)
+        except AttributeError as e:
+            if new_cls[k] != int(v):
+                raise e
+
+    new_cls._locked = True
+    return new_cls
+
+
+def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
     """
     Converts input bit flags to a single integer value (bit mask) or `None`.
 
     When input is a list of flags (either a Python list of integer flags or a
-    sting of comma- or '+'-separated list of flags), the returned bit mask
-    is obtained by summing input flags.
+    string of comma-, ``'|'``-, or ``'+'``-separated list of flags),
+    the returned bit mask is obtained by summing input flags.
 
     .. note::
         In order to flip the bits of the returned bit mask,
@@ -68,18 +260,33 @@ def interpret_bit_flags(bit_flags, flip_bits=None):
     Parameters
     ----------
     bit_flags : int, str, list, None
-        An integer bit mask or flag, `None`, a string of comma- or
-        '+'-separated list of integer bit flags, or a Python list of integer
-        bit flags. If ``bit_flags`` is a `str` and if it is prepended with '~',
-        then the output bit mask will have its bits flipped (compared to simple
-        sum of input flags). For input ``bit_flags`` that is already a bit mask
-        or a Python list of bit flags, bit-flipping can be controlled through
-        ``flip_bits`` parameter.
+        An integer bit mask or flag, `None`, a string of comma-, ``'|'``- or
+        ``'+'``-separated list of integer bit flags or mnemonic flag names,
+        or a Python list of integer bit flags. If ``bit_flags`` is a `str`
+        and if it is prepended with '~', then the output bit mask will have
+        its bits flipped (compared to simple sum of input flags).
+        For input ``bit_flags`` that is already a bit mask or a Python list
+        of bit flags, bit-flipping can be controlled through ``flip_bits``
+        parameter.
+
+        .. note::
+            When ``bit_flags`` is a list of flag names, the ``flag_name_map``
+            parameter must be provided.
+
+        .. note::
+            Only one flag separator is supported at a time. ``bit_flags``
+            string should not mix ``','``, ``'+'``, and ``'|'`` separators.
 
     flip_bits : bool, None
         Indicates whether or not to flip the bits of the returned bit mask
         obtained from input bit flags. This parameter must be set to `None`
         when input ``bit_flags`` is either `None` or a Python list of flags.
+
+    flag_name_map : BitFlagNameMap
+         A `BitFlagNameMap` object that provides mapping from mnemonic
+         bit flag names to integer bit values in order to translate mnemonic
+         flags to numeric values when ``bit_flags`` that are comma- or
+         '+'-separated list of menmonic bit flag names.
 
     Returns
     -------
@@ -92,14 +299,21 @@ def interpret_bit_flags(bit_flags, flip_bits=None):
 
     Examples
     --------
-        >>> from astropy.nddata.bitmask import interpret_bit_flags
+
+        >>> from astropy.nddata.bitmask import interpret_bit_flags, extend_bit_flag_map
+        >>> ST_DQ = extend_bit_flag_map('ST_DQ', CR=1, CLOUDY=4, RAINY=8, HOT=16, DEAD=32)
         >>> "{0:016b}".format(0xFFFF & interpret_bit_flags(28))
         '0000000000011100'
         >>> "{0:016b}".format(0xFFFF & interpret_bit_flags('4,8,16'))
         '0000000000011100'
+        >>> "{0:016b}".format(0xFFFF & interpret_bit_flags('CLOUDY,RAINY,HOT', flag_name_map=ST_DQ))
+        '0000000000011100'
         >>> "{0:016b}".format(0xFFFF & interpret_bit_flags('~4,8,16'))
         '1111111111100011'
         >>> "{0:016b}".format(0xFFFF & interpret_bit_flags('~(4+8+16)'))
+        '1111111111100011'
+        >>> "{0:016b}".format(0xFFFF & interpret_bit_flags('~(CLOUDY+RAINY+HOT)',
+        ... flag_name_map=ST_DQ))
         '1111111111100011'
         >>> "{0:016b}".format(0xFFFF & interpret_bit_flags([4, 8, 16]))
         '0000000000011100'
@@ -165,11 +379,20 @@ def interpret_bit_flags(bit_flags, flip_bits=None):
 
             bit_flags = bit_flags[1:-1].strip()
 
+        if sum(k in bit_flags for k in '+,|') > 1:
+            raise ValueError(
+                "Only one type of bit flag separator may be used in one "
+                "expression. Allowed separators are: '+', '|', or ','."
+            )
+
         if ',' in bit_flags:
             bit_flags = bit_flags.split(',')
 
         elif '+' in bit_flags:
             bit_flags = bit_flags.split('+')
+
+        elif '|' in bit_flags:
+            bit_flags = bit_flags.split('|')
 
         else:
             if bit_flags == '':
@@ -179,11 +402,22 @@ def interpret_bit_flags(bit_flags, flip_bits=None):
                 )
             bit_flags = [bit_flags]
 
+        if flag_name_map is not None:
+            try:
+                int(bit_flags[0])
+            except ValueError:
+                bit_flags = [flag_name_map[f] for f in bit_flags]
+
         allow_non_flags = len(bit_flags) == 1
 
     elif hasattr(bit_flags, '__iter__'):
         if not all([_is_int(flag) for flag in bit_flags]):
-            raise TypeError("Each bit flag in a list must be an integer.")
+            if (flag_name_map is not None and all([isinstance(flag, str)
+                                                   for flag in bit_flags])):
+                bit_flags = [flag_name_map[f] for f in bit_flags]
+            else:
+                raise TypeError("Every bit flag in a list must be either an "
+                                "integer flag value or a 'str' flag name.")
 
     else:
         raise TypeError("Unsupported type for argument 'bit_flags'.")
@@ -206,7 +440,8 @@ def interpret_bit_flags(bit_flags, flip_bits=None):
 
 
 def bitfield_to_boolean_mask(bitfield, ignore_flags=0, flip_bits=None,
-                             good_mask_value=False, dtype=np.bool_):
+                             good_mask_value=False, dtype=np.bool_,
+                             flag_name_map=None):
     """
     bitfield_to_boolean_mask(bitfield, ignore_flags=None, flip_bits=None, \
 good_mask_value=False, dtype=numpy.bool_)
@@ -226,10 +461,14 @@ good_mask_value=False, dtype=numpy.bool_)
         selectively ignore some bits in the ``bitfield`` array data.
 
     ignore_flags : int, str, list, None (Default = 0)
-        An integer bit mask, a Python list of bit flags, a comma- or
-        '+'-separated string list of integer bit flags that indicate what
-        bits in the input ``bitfield`` should be *ignored* (i.e., zeroed), or
-        `None`.
+        An integer bit mask, `None`, a Python list of bit flags, a comma-,
+        or ``'|'``-separated, ``'+'``-separated string list of integer
+        bit flags or mnemonic flag names that indicate what bits in the input
+        ``bitfield`` should be *ignored* (i.e., zeroed), or `None`.
+
+        .. note::
+            When ``bit_flags`` is a list of flag names, the ``flag_name_map``
+            parameter must be provided.
 
         | Setting ``ignore_flags`` to `None` effectively will make
           `bitfield_to_boolean_mask` interpret all ``bitfield`` elements
@@ -258,11 +497,11 @@ good_mask_value=False, dtype=numpy.bool_)
           bit mask, use ``flip_bits`` parameter.
 
         | Alternatively, ``ignore_flags`` may be a string of comma- or
-          '+'-separated list of integer bit flags that should be added together
-          to create an integer bit mask. For example, both ``'4,8'`` and
-          ``'4+8'`` are equivalent and indicate that bit flags 4 and 8 in
-          the input ``bitfield`` array should be ignored when generating
-          boolean mask.
+          ``'+'``(or ``'|'``)-separated list of integer bit flags that should
+          be added (bitwise OR) together to create an integer bit mask.
+          For example, both ``'4,8'``, ``'4|8'``, and ``'4+8'`` are equivalent
+          and indicate that bit flags 4 and 8 in the input ``bitfield``
+          array should be ignored when generating boolean mask.
 
         .. note::
 
@@ -277,6 +516,10 @@ good_mask_value=False, dtype=numpy.bool_)
             **single** integer is allowed and it will be interpretted as an
             integer bit mask. For example, instead of ``'4,8'`` one could
             simply provide string ``'12'``.
+
+        .. note::
+            Only one flag separator is supported at a time. ``ignore_flags``
+            string should not mix ``','``, ``'+'``, and ``'|'`` separators.
 
         .. note::
 
@@ -336,6 +579,12 @@ good_mask_value=False, dtype=numpy.bool_)
     dtype : data-type (Default = ``numpy.bool_``)
         The desired data-type for the output binary mask array.
 
+    flag_name_map : BitFlagNameMap
+         A `BitFlagNameMap` object that provides mapping from mnemonic
+         bit flag names to integer bit values in order to translate mnemonic
+         flags to numeric values when ``bit_flags`` that are comma- or
+         '+'-separated list of menmonic bit flag names.
+
     Returns
     -------
     mask : numpy.ndarray
@@ -347,37 +596,51 @@ good_mask_value=False, dtype=numpy.bool_)
 
     Examples
     --------
+
         >>> from astropy.nddata import bitmask
         >>> import numpy as np
-        >>> dqbits = np.asarray([[0, 0, 1, 2, 0, 8, 12, 0],
-        ...                      [10, 4, 0, 0, 0, 16, 6, 0]])
-        >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags=0,
+        >>> dqarr = np.asarray([[0, 0, 1, 2, 0, 8, 12, 0],
+        ...                     [10, 4, 0, 0, 0, 16, 6, 0]])
+        >>> flag_map = bitmask.extend_bit_flag_map(
+        ...     'ST_DQ', CR=2, CLOUDY=4, RAINY=8, HOT=16, DEAD=32
+        ... )
+        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags=0,
         ...                                  dtype=int)
         array([[0, 0, 1, 1, 0, 1, 1, 0],
                [1, 1, 0, 0, 0, 1, 1, 0]])
-        >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags=0,
+        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags=0,
         ...                                  dtype=bool)
         array([[False, False,  True,  True, False,  True,  True, False],
                [ True,  True, False, False, False,  True,  True, False]]...)
-        >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags=6,
+        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags=6,
         ...                                  good_mask_value=0, dtype=int)
         array([[0, 0, 1, 0, 0, 1, 1, 0],
                [1, 0, 0, 0, 0, 1, 0, 0]])
-        >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags=~6,
+        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags=~6,
         ...                                  good_mask_value=0, dtype=int)
         array([[0, 0, 0, 1, 0, 0, 1, 0],
                [1, 1, 0, 0, 0, 0, 1, 0]])
-        >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags=6, dtype=int,
+        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags=6, dtype=int,
         ...                                  flip_bits=True, good_mask_value=0)
         array([[0, 0, 0, 1, 0, 0, 1, 0],
                [1, 1, 0, 0, 0, 0, 1, 0]])
-        >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags='~(2+4)',
+        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags='~(2+4)',
         ...                                  good_mask_value=0, dtype=int)
         array([[0, 0, 0, 1, 0, 0, 1, 0],
                [1, 1, 0, 0, 0, 0, 1, 0]])
-        >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags=[2, 4],
+        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags=[2, 4],
         ...                                  flip_bits=True, good_mask_value=0,
         ...                                  dtype=int)
+        array([[0, 0, 0, 1, 0, 0, 1, 0],
+               [1, 1, 0, 0, 0, 0, 1, 0]])
+        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags='~(CR,CLOUDY)',
+        ...                                  good_mask_value=0, dtype=int,
+        ...                                  flag_name_map=flag_map)
+        array([[0, 0, 0, 1, 0, 0, 1, 0],
+               [1, 1, 0, 0, 0, 0, 1, 0]])
+        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags='~(CR+CLOUDY)',
+        ...                                  good_mask_value=0, dtype=int,
+        ...                                  flag_name_map=flag_map)
         array([[0, 0, 0, 1, 0, 0, 1, 0],
                [1, 1, 0, 0, 0, 0, 1, 0]])
 
@@ -386,7 +649,8 @@ good_mask_value=False, dtype=numpy.bool_)
     if not np.issubdtype(bitfield.dtype, np.integer):
         raise TypeError("Input bitfield array must be of integer type.")
 
-    ignore_mask = interpret_bit_flags(ignore_flags, flip_bits=flip_bits)
+    ignore_mask = interpret_bit_flags(ignore_flags, flip_bits=flip_bits,
+                                      flag_name_map=flag_name_map)
 
     if ignore_mask is None:
         if good_mask_value:
