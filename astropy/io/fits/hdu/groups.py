@@ -484,21 +484,19 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
                 byteorder = self.data.dtype.fields[fname][0].str[0]
                 should_swap = (byteorder in swap_types)
 
-            if not fileobj.simulateonly:
-
-                if should_swap:
-                    if output.flags.writeable:
+            if should_swap:
+                if output.flags.writeable:
+                    output.byteswap(True)
+                    try:
+                        fileobj.writearray(output)
+                    finally:
                         output.byteswap(True)
-                        try:
-                            fileobj.writearray(output)
-                        finally:
-                            output.byteswap(True)
-                    else:
-                        # For read-only arrays, there is no way around making
-                        # a byteswapped copy of the data.
-                        fileobj.writearray(output.byteswap(False))
                 else:
-                    fileobj.writearray(output)
+                    # For read-only arrays, there is no way around making
+                    # a byteswapped copy of the data.
+                    fileobj.writearray(output.byteswap(False))
+            else:
+                fileobj.writearray(output)
 
             size += output.size * output.itemsize
         return size
