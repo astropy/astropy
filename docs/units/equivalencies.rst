@@ -118,7 +118,7 @@ between cycles per second and hertz:
   >>> (1*u.cy/u.s).to(u.Hz, equivalencies=[(u.cy/u.s, u.Hz)])  # doctest: +FLOAT_CMP
   <Quantity 1. Hz>
 
-.. _astropy-units-spectral-equivalency
+.. _astropy-units-spectral-equivalency:
 
 Spectral Units
 --------------
