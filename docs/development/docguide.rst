@@ -12,6 +12,20 @@ as possible, while the standards for affiliated packages are somewhat looser.
 as they encourage useful documentation, a characteristic often lacking in
 professional astronomy software.)
 
+Adding a Git Commit
+===================
+
+When your changes only affect documentation (i.e., docstring or RST files)
+and do not include any code snippets that require doctest to run, you may
+add a ``[skip travis]`` in your commit message. For example::
+
+    git commit -m "Update documentation about this and that [skip travis]"
+
+When this commit is pushed out to your branch associated with a pull request,
+Travis CI will be skipped because it is not required. This is because the
+CI job to build the documentation resides in CircleCI.
+
+
 Building the Documentation from source
 ======================================
 
