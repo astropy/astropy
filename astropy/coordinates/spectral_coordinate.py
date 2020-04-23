@@ -11,6 +11,7 @@ from astropy.coordinates import (ICRS,
 from astropy.coordinates.baseframe import (BaseCoordinateFrame, FrameMeta,
                                            frame_transform_graph)
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.compat import NUMPY_LT_1_17
 
 DOPPLER_CONVENTIONS = {
     'radio': u.doppler_radio,
@@ -482,7 +483,11 @@ class SpectralCoord(u.Quantity):
         float
             Redshift of target.
         """
-        return self.radial_velocity.to('', equivalencies=RV_RS_EQUIV)
+        try:
+            return self.radial_velocity.to('', equivalencies=RV_RS_EQUIV)
+        except Exception as exc:
+            print(exc)
+            raise
 
     @staticmethod
     def _calculate_radial_velocity(observer, target, as_scalar=False):
@@ -512,6 +517,9 @@ class SpectralCoord(u.Quantity):
         d_vel = target_icrs.velocity - observer_icrs.velocity
 
         vel_mag = np.dot(d_vel.d_xyz, pos_hat.xyz)
+
+        if NUMPY_LT_1_17:
+            vel_mag *= d_vel.d_xyz.unit
 
         if as_scalar:
             return vel_mag
@@ -610,11 +618,18 @@ class SpectralCoord(u.Quantity):
         # between the target and the new observation frame.
         init_proj_vel = np.dot(init_vel, line_of_sight_unit_vec) * line_of_sight_unit_vec
 
+        if NUMPY_LT_1_17:
+            init_proj_vel *= init_vel.unit
+
         # Calculate the magnitude of the velocity shift between the two vectors.
         # The vectors are aligned but may be in opposite directions, so we use
         # the dot product to determine this.
+
         diff_vel = fin_vel - init_proj_vel
         delta_vel = np.dot(diff_vel, line_of_sight_unit_vec)
+
+        if NUMPY_LT_1_17:
+            delta_vel *= diff_vel.unit
 
         # In the case where the projected velocity is nan, we can assume that
         #  the final velocity different is zero, and thus the actual velocity
@@ -624,7 +639,13 @@ class SpectralCoord(u.Quantity):
         #  we may end up with a final velocity very close to, but not quite at,
         #  zero. In this case, set a tolerance for the final velocity; if it's
         #  below this tolerance, assume the delta velocity is essentially nan.
-        if np.isnan(delta_vel) or np.abs(np.linalg.norm(fin_vel)) < 1e-7 * fin_vel.unit:
+
+        fin_vel_mag = np.linalg.norm(fin_vel)
+
+        if NUMPY_LT_1_17:
+            fin_vel_mag *= fin_vel.unit
+
+        if np.isnan(delta_vel) or fin_vel_mag < 1e-7 * fin_vel.unit:
             delta_vel = -self.radial_velocity
 
         # Apply the velocity shift to the stored spectral axis data
