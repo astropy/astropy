@@ -77,9 +77,10 @@ class BitFlagNameMeta(type):
         if _ENABLE_BITFLAG_CACHING:
             cache.update({k.lower(): v for k, v in members.items()
                           if not k.startswith('_')})
-            members = {'_locked': True, **members, '_cache': cache}
+            members = {'_locked': True, '__version__': '', **members,
+                       '_cache': cache}
         else:
-            members = {'_locked': True, **members}
+            members = {'_locked': True, '__version__': '', **members}
 
         return super().__new__(mcls, name, bases, members)
 
@@ -88,15 +89,20 @@ class BitFlagNameMeta(type):
             return super().__setattr__(name, True)
 
         else:
+            if name == '__version__':
+                if cls._locked:
+                    raise AttributeError("Version cannot be modified.")
+                return super().__setattr__(name, val)
+
             err_msg = "Bit flags are read-only. Unable to reassign attribute {}".format(name)
             if cls._locked:
                 raise AttributeError(err_msg)
 
         namel = name.lower()
         if _ENABLE_BITFLAG_CACHING:
-            if namel in cls._cache:
+            if not namel.startswith('_') and namel in cls._cache:
                 raise AttributeError(err_msg)
-            cls._cache[namel] = val
+
         else:
             for b in cls.__bases__:
                 if not namel.startswith('_') and namel in list(map(str.lower, b.__dict__)):
@@ -110,6 +116,9 @@ class BitFlagNameMeta(type):
         if not _is_bit_flag(val):
             raise ValueError("Value {} for flag '{:s}' is invalid: bit flag"
                              "values must be powers of two.".format(val, name))
+
+        if _ENABLE_BITFLAG_CACHING and not namel.startswith('_'):
+            cls._cache[namel] = val
 
         return super().__setattr__(name, val)
 
@@ -172,6 +181,7 @@ class BitFlagNameMap(metaclass=BitFlagNameMeta):
 
         >>> from astropy.nddata.bitmask import BitFlagNameMap
         >>> class ST_DQ(BitFlagNameMap):
+        ...     __version__ = '1.0.0'  # optional
         ...     CR = 1
         ...     CLOUDY = 4
         ...     RAINY = 8
@@ -199,13 +209,14 @@ def extend_bit_flag_map(cls_name, base_cls=BitFlagNameMap, **kwargs):
 
     **kwargs : int
         Each supplied keyword argument will be used to define bit flag
-        names in the new map.
+        names in the new map. In addition to bit flag names, ``__version__`` is
+        allowed to indicate the version of the newly created map.
 
     Examples
     --------
 
         >>> from astropy.nddata.bitmask import extend_bit_flag_map
-        >>> ST_DQ = extend_bit_flag_map('ST_DQ', CR=1, CLOUDY=4, RAINY=8)
+        >>> ST_DQ = extend_bit_flag_map('ST_DQ', __version__='1.0.0', CR=1, CLOUDY=4, RAINY=8)
         >>> ST_CAM1_DQ = extend_bit_flag_map('ST_CAM1_DQ', ST_DQ, HOT=16, DEAD=32)
         >>> JWST_MIRI_DQ['HOT']  # <-- Access flags as dictionary keys
         256
@@ -235,8 +246,8 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
     Converts input bit flags to a single integer value (bit mask) or `None`.
 
     When input is a list of flags (either a Python list of integer flags or a
-    sting of comma- or '+'-separated list of flags), the returned bit mask
-    is obtained by summing input flags.
+    sting of comma-, ``'|'``-, or ``'+'``-separated list of flags),
+    the returned bit mask is obtained by summing input flags.
 
     .. note::
         In order to flip the bits of the returned bit mask,
@@ -249,8 +260,8 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
     Parameters
     ----------
     bit_flags : int, str, list, None
-        An integer bit mask or flag, `None`, a string of comma- or
-        '+'-separated list of integer bit flags or mnemonic flag names,
+        An integer bit mask or flag, `None`, a string of comma-, ``'|'``- or
+        ``'+'``-separated list of integer bit flags or mnemonic flag names,
         or a Python list of integer bit flags. If ``bit_flags`` is a `str`
         and if it is prepended with '~', then the output bit mask will have
         its bits flipped (compared to simple sum of input flags).
@@ -261,6 +272,10 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
         .. note::
             When ``bit_flags`` is a list of flag names, the ``flag_name_map``
             parameter must be provided.
+
+        .. note::
+            Only one flag separator is supported at a time. ``bit_flags``
+            string should not mix ``','``, ``'+'``, and ``'|'`` separators.
 
     flip_bits : bool, None
         Indicates whether or not to flip the bits of the returned bit mask
@@ -297,7 +312,8 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
         '1111111111100011'
         >>> "{0:016b}".format(0xFFFF & interpret_bit_flags('~(4+8+16)'))
         '1111111111100011'
-        >>> "{0:016b}".format(0xFFFF & interpret_bit_flags('~(CLOUDY+RAINY+HOT, flag_name_map=ST_DQ)'))
+        >>> "{0:016b}".format(0xFFFF & interpret_bit_flags('~(CLOUDY+RAINY+HOT)',
+        ... flag_name_map=ST_DQ)))
         '1111111111100011'
         >>> "{0:016b}".format(0xFFFF & interpret_bit_flags([4, 8, 16]))
         '0000000000011100'
@@ -363,11 +379,20 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
 
             bit_flags = bit_flags[1:-1].strip()
 
+        if sum(k in bit_flags for k in '+,|') > 1:
+            raise ValueError(
+                "Only one type of bit flag separator may be used in one "
+                "expression. Allowed separators are: '+', '|', or ','."
+            )
+
         if ',' in bit_flags:
             bit_flags = bit_flags.split(',')
 
         elif '+' in bit_flags:
             bit_flags = bit_flags.split('+')
+
+        elif '|' in bit_flags:
+            bit_flags = bit_flags.split('|')
 
         else:
             if bit_flags == '':
@@ -436,10 +461,10 @@ good_mask_value=False, dtype=numpy.bool_)
         selectively ignore some bits in the ``bitfield`` array data.
 
     ignore_flags : int, str, list, None (Default = 0)
-        An integer bit mask, `None`, a Python list of bit flags, a comma- or
-        '+'-separated string list of integer bit flags or mnemonic flag names
-        that indicate what bits in the input ``bitfield`` should be
-        *ignored* (i.e., zeroed), or `None`.
+        An integer bit mask, `None`, a Python list of bit flags, a comma-,
+        or ``'|'``-separated, ``'+'``-separated string list of integer
+        bit flags or mnemonic flag names that indicate what bits in the input
+        ``bitfield`` should be *ignored* (i.e., zeroed), or `None`.
 
         .. note::
             When ``bit_flags`` is a list of flag names, the ``flag_name_map``
@@ -472,11 +497,11 @@ good_mask_value=False, dtype=numpy.bool_)
           bit mask, use ``flip_bits`` parameter.
 
         | Alternatively, ``ignore_flags`` may be a string of comma- or
-          '+'-separated list of integer bit flags that should be added together
-          to create an integer bit mask. For example, both ``'4,8'`` and
-          ``'4+8'`` are equivalent and indicate that bit flags 4 and 8 in
-          the input ``bitfield`` array should be ignored when generating
-          boolean mask.
+          ``'+'``(or ``'|'``)-separated list of integer bit flags that should
+          be added (bitwise OR) together to create an integer bit mask.
+          For example, both ``'4,8'``, ``'4|8'``, and ``'4+8'`` are equivalent
+          and indicate that bit flags 4 and 8 in the input ``bitfield``
+          array should be ignored when generating boolean mask.
 
         .. note::
 
@@ -491,6 +516,10 @@ good_mask_value=False, dtype=numpy.bool_)
             **single** integer is allowed and it will be interpretted as an
             integer bit mask. For example, instead of ``'4,8'`` one could
             simply provide string ``'12'``.
+
+        .. note::
+            Only one flag separator is supported at a time. ``ignore_flags``
+            string should not mix ``','``, ``'+'``, and ``'|'`` separators.
 
         .. note::
 
