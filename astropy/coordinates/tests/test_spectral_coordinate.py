@@ -88,7 +88,7 @@ def test_create_spectral_coord_orig():
 # frame or representation class.
 
 # Local Standard of Rest
-LSRD = Galactic(u=0 * u.km, v=0 * u.km, w=0 * u.km,
+LSRD = Galactic(u=0.1 * u.km, v=0.1 * u.km, w=0.1 * u.km,
                 U=9 * u.km / u.s, V=12 * u.km / u.s, W=7 * u.km / u.s,
                 representation_type='cartesian', differential_type='cartesian')
 
@@ -144,8 +144,8 @@ def test_create_spectral_coord_observer_target(observer, target):
         assert quantity_allclose(coord.redshift, 0)
         assert quantity_allclose(coord.radial_velocity, 0 * u.km/u.s)
     elif observer in LSRD_EQUIV and target in LSRD_DIR_STATIONARY_EQUIV:
-        assert_quantity_allclose(coord.radial_velocity, -274 ** 0.5 * u.km / u.s)
-        assert_quantity_allclose(coord.redshift, -274 ** 0.5 / 299792.458)
+        assert_quantity_allclose(coord.radial_velocity, -274 ** 0.5 * u.km / u.s, atol=1e-4 * u.km / u.s)
+        assert_quantity_allclose(coord.redshift, -274 ** 0.5 / 299792.458, atol=1e-9)
     else:
         raise NotImplementedError()
 
@@ -372,12 +372,14 @@ def test_with_rvredshift():
     with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
         sc_init2 = SpectralCoord([4000, 5000]*u.angstrom, redshift=1,
                                  observer=gcrs_origin)
-    sc_init2.with_redshift(.5)
+    with np.errstate(all='ignore'):
+        sc_init2.with_redshift(.5)
 
     with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
         sc_init3 = SpectralCoord([4000, 5000]*u.angstrom, redshift=1,
                                  target=gcrs_origin)
-    sc_init3.with_redshift(.5)
+    with np.errstate(all='ignore'):
+        sc_init3.with_redshift(.5)
 
     with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
         sc_init4 = SpectralCoord([4000, 5000]*u.angstrom, redshift=1,
@@ -398,7 +400,7 @@ gcrs_not_origin = GCRS(CartesianRepresentation([1*u.km, 0*u.km, 0*u.km]))
                          dict(observer=gcrs_origin, target=gcrs_not_origin)])
 def test_los_shift(sc_kwargs):
     wl = [4000, 5000]*u.angstrom
-    with nullcontext() if 'observer' not in sc_kwargs else pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+    with nullcontext() if 'observer' not in sc_kwargs and 'target' not in sc_kwargs else pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
         sc_init = SpectralCoord(wl, **sc_kwargs)
 
     # these should always work in *all* cases because it's unambiguous that
@@ -533,9 +535,11 @@ def test_change_doppler_conversions():
 def test_spectral_coord_from_sky_coord_without_distance():
     # see https://github.com/astropy/specutils/issues/658 for issue context
     obs = SkyCoord(0 * u.m, 0 * u.m, 0 * u.m, representation_type='cartesian')
-    coord = SpectralCoord([1, 2, 3] * u.micron, observer=obs)
+    with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+        coord = SpectralCoord([1, 2, 3] * u.micron, observer=obs)
     # coord.target = SkyCoord.from_name('m31')  # <- original issue, but below is the same but requires no remote data access
-    coord.target = SkyCoord(ra=10.68470833*u.deg, dec=41.26875*u.deg)
+    with pytest.warns(AstropyUserWarning, match='Distance on coordinate object is dimensionless'):
+        coord.target = SkyCoord(ra=10.68470833*u.deg, dec=41.26875*u.deg)
 
 
 def test_spectralcoord_accuracy():
