@@ -2494,7 +2494,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             else:
                 raise TypeError("Invalid columns list")
 
-        if not skip_table:
+        if (not skip_table) and (len(fields) > 0):
             for start, tag, data, pos in iterator:
                 if start:
                     if tag == 'TABLEDATA':
