@@ -16,13 +16,7 @@ from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.data import get_pkg_data_filename
 
-from astropy.coordinates.spectral_coordinate import (SpectralCoord,
-                                                     HELIOCENTRIC_VELOCITY_FRAME,
-                                                     LSRK_VELOCITY_FRAME,
-                                                     LSRD_VELOCITY_FRAME,
-                                                     GALACTOCENTRIC_VELOCITY_FRAME,
-                                                     LOCALGROUP_VELOCITY_FRAME,
-                                                     GEOCENTRIC_VELOCITY_FRAME)
+from astropy.coordinates.spectral_coordinate import SpectralCoord
 
 
 def assert_frame_allclose(frame1, frame2,
@@ -531,12 +525,12 @@ def test_spectralcoord_accuracy():
     reference_filename = get_pkg_data_filename('accuracy/data/rv_reference.csv')
     reference_table = Table.read(reference_filename, format='ascii.csv', delimiter=',')
 
-    velocity_frames = {'geocent': GEOCENTRIC_VELOCITY_FRAME,
-                       'heliocent': HELIOCENTRIC_VELOCITY_FRAME,
-                       'lsrk': LSRK_VELOCITY_FRAME,
-                       'lsrd': LSRD_VELOCITY_FRAME,
-                       'galactoc': GALACTOCENTRIC_VELOCITY_FRAME,
-                       'localgrp': LOCALGROUP_VELOCITY_FRAME}
+    velocity_frames = {'geocent': SpectralCoord.GEOCENTRIC,
+                       'heliocent': SpectralCoord.HELIOCENTRIC,
+                       'lsrk': SpectralCoord.LSRK_GORDON1975,
+                       'lsrd': SpectralCoord.LSRD_DELHAYE1965,
+                       'galactoc': SpectralCoord.GALACTOCENTRIC_KLB1986,
+                       'localgrp': SpectralCoord.LOCALGROUP_IAU1976}
 
     with iers.conf.set_temp('auto_download', False):
 
