@@ -218,10 +218,10 @@ def extend_bit_flag_map(cls_name, base_cls=BitFlagNameMap, **kwargs):
         >>> from astropy.nddata.bitmask import extend_bit_flag_map
         >>> ST_DQ = extend_bit_flag_map('ST_DQ', __version__='1.0.0', CR=1, CLOUDY=4, RAINY=8)
         >>> ST_CAM1_DQ = extend_bit_flag_map('ST_CAM1_DQ', ST_DQ, HOT=16, DEAD=32)
-        >>> JWST_MIRI_DQ['HOT']  # <-- Access flags as dictionary keys
-        256
-        >>> JWST_MIRI_DQ.HOT  # <-- Access flags as class attributes
-        256
+        >>> ST_CAM1_DQ['HOT']  # <-- Access flags as dictionary keys
+        16
+        >>> ST_CAM1_DQ.HOT  # <-- Access flags as class attributes
+        16
 
     """
     new_cls = BitFlagNameMeta.__new__(
@@ -246,7 +246,7 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
     Converts input bit flags to a single integer value (bit mask) or `None`.
 
     When input is a list of flags (either a Python list of integer flags or a
-    sting of comma-, ``'|'``-, or ``'+'``-separated list of flags),
+    string of comma-, ``'|'``-, or ``'+'``-separated list of flags),
     the returned bit mask is obtained by summing input flags.
 
     .. note::
@@ -313,7 +313,7 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
         >>> "{0:016b}".format(0xFFFF & interpret_bit_flags('~(4+8+16)'))
         '1111111111100011'
         >>> "{0:016b}".format(0xFFFF & interpret_bit_flags('~(CLOUDY+RAINY+HOT)',
-        ... flag_name_map=ST_DQ)))
+        ... flag_name_map=ST_DQ))
         '1111111111100011'
         >>> "{0:016b}".format(0xFFFF & interpret_bit_flags([4, 8, 16]))
         '0000000000011100'
@@ -599,46 +599,46 @@ good_mask_value=False, dtype=numpy.bool_)
 
         >>> from astropy.nddata import bitmask
         >>> import numpy as np
-        >>> dqbits = np.asarray([[0, 0, 1, 2, 0, 8, 12, 0],
-        ...                      [10, 4, 0, 0, 0, 16, 6, 0]])
+        >>> dqarr = np.asarray([[0, 0, 1, 2, 0, 8, 12, 0],
+        ...                     [10, 4, 0, 0, 0, 16, 6, 0]])
         >>> flag_map = bitmask.extend_bit_flag_map(
-        ...     'ST_DQ', CR=2, CLOUDY=4, RAINY=8, HOT=16, DEAD=32)
+        ...     'ST_DQ', CR=2, CLOUDY=4, RAINY=8, HOT=16, DEAD=32
         ... )
-        >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags=0,
+        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags=0,
         ...                                  dtype=int)
         array([[0, 0, 1, 1, 0, 1, 1, 0],
                [1, 1, 0, 0, 0, 1, 1, 0]])
-        >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags=0,
+        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags=0,
         ...                                  dtype=bool)
         array([[False, False,  True,  True, False,  True,  True, False],
                [ True,  True, False, False, False,  True,  True, False]]...)
-        >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags=6,
+        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags=6,
         ...                                  good_mask_value=0, dtype=int)
         array([[0, 0, 1, 0, 0, 1, 1, 0],
                [1, 0, 0, 0, 0, 1, 0, 0]])
-        >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags=~6,
+        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags=~6,
         ...                                  good_mask_value=0, dtype=int)
         array([[0, 0, 0, 1, 0, 0, 1, 0],
                [1, 1, 0, 0, 0, 0, 1, 0]])
-        >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags=6, dtype=int,
+        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags=6, dtype=int,
         ...                                  flip_bits=True, good_mask_value=0)
         array([[0, 0, 0, 1, 0, 0, 1, 0],
                [1, 1, 0, 0, 0, 0, 1, 0]])
-        >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags='~(2+4)',
+        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags='~(2+4)',
         ...                                  good_mask_value=0, dtype=int)
         array([[0, 0, 0, 1, 0, 0, 1, 0],
                [1, 1, 0, 0, 0, 0, 1, 0]])
-        >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags=[2, 4],
+        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags=[2, 4],
         ...                                  flip_bits=True, good_mask_value=0,
         ...                                  dtype=int)
         array([[0, 0, 0, 1, 0, 0, 1, 0],
                [1, 1, 0, 0, 0, 0, 1, 0]])
-        >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags='CR,CLOUDY',
+        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags='CR,CLOUDY',
         ...                                  flip_bits=True, good_mask_value=0,
         ...                                  dtype=int, flag_name_map=flag_map)
         array([[0, 0, 0, 1, 0, 0, 1, 0],
                [1, 1, 0, 0, 0, 0, 1, 0]])
-        >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags='CR+CLOUDY',
+        >>> bitmask.bitfield_to_boolean_mask(dqarr, ignore_flags='CR+CLOUDY',
         ...                                  flip_bits=True, good_mask_value=0,
         ...                                  dtype=int, flag_name_map=flag_map)
         array([[0, 0, 0, 1, 0, 0, 1, 0],
