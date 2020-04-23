@@ -145,8 +145,8 @@ an observer object corresponding to this, we can make use of the |EarthLocation|
 class::
 
     >>> from astropy.coordinates import EarthLocation
-    >>> location = EarthLocation.of_site('greenwich')
-    >>> location
+    >>> location = EarthLocation.of_site('greenwich')  # doctest: +REMOTE_DATA
+    >>> location  # doctest: +REMOTE_DATA
     <EarthLocation (3980608.90246817, -102.47522911, 4966861.27310068) m>
 
 See |EarthLocation| for more details about the different ways of creating
@@ -158,8 +158,8 @@ takes the observation time (which is important to know for any kind of
 spctral transformation)::
 
     >>> from astropy.time import Time
-    >>> greenwich = location.get_itrs(obstime=Time('2019-04-24T02:32:10'))
-    >>> greenwich
+    >>> greenwich = location.get_itrs(obstime=Time('2019-04-24T02:32:10'))  # doctest: +REMOTE_DATA
+    >>> greenwich  # doctest: +REMOTE_DATA
     <ITRS Coordinate (obstime=2019-04-24T02:32:10.000): (x, y, z) in m
         (3980608.90246817, -102.47522911, 4966861.27310068)>
 
@@ -168,7 +168,7 @@ For the target, the simplest way is to use the |SkyCoord| class::
     >>> from astropy.coordinates import SkyCoord
     >>> ttau = SkyCoord('04h21m59.43s +19d32m06.4', frame='icrs',
     ...                 radial_velocity=23.9 * u.km / u.s,
-    ...                 distance=144.321 * u.pc)
+    ...                 distance=144.321 * u.pc)  # doctest: +REMOTE_DATA
 
 .. TODO: make it so distance is optional
 
@@ -185,8 +185,8 @@ barycenter) in this case.
 Let's now imagine that we detected a spectral line towards T Tau at 654.2 nm. We
 can define a |SpectralCoord| to represent this::
 
-    >>> sc_ttau = SpectralCoord(656.8 * u.nm, observer=greenwich, target=ttau)
-    >>> sc_ttau
+    >>> sc_ttau = SpectralCoord(656.8 * u.nm, observer=greenwich, target=ttau)  # doctest: +IGNORE_WARNINGS +REMOTE_DATA
+    >>> sc_ttau  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord 656.8 nm,
         radial_velocity=40.65452165815913 km / s,
         redshift=0.00013560888732617527,
@@ -201,8 +201,8 @@ observatory around the Earth, the motion of the Earth around the Solar System
 barycenter, and the radial velocity of T Tau relative to the Solar System
 barycenter. We can get this value directly with::
 
-    >>> sc_ttau.radial_velocity
-    <Quantity 40.65452166 km / s>
+    >>> sc_ttau.radial_velocity  # doctest: +REMOTE_DATA +FLOAT_CMP
+    <Quantity 40.65452431 km / s>
 
 Velocity frame transformations
 ==============================
@@ -229,7 +229,7 @@ frames. For example to transform to a velocity frame stationary
 with respect to the center of the Earth (so removing the effect of the Earth's
 rotation), we can use
 
-    >>> sc_ttau.in_observer_velocity_frame('gcrs')
+    >>> sc_ttau.in_observer_velocity_frame('gcrs')  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord 656.80004286 nm,
         radial_velocity=40.67408630397957 km / s,
         redshift=0.00013567414795998494,
@@ -241,7 +241,7 @@ rotation), we can use
 To use a velocity reference frame relative to the Solar System barycenter
 we can use::
 
-    >>> sc_ttau.in_observer_velocity_frame('icrs')
+    >>> sc_ttau.in_observer_velocity_frame('icrs')  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord 656.76329337 nm,
         radial_velocity=23.89999997498657 km / s,
         redshift=7.972181866892252e-05,
@@ -257,7 +257,7 @@ For other common velocity frames that don't necessarily follow the origin of
 celestial coordinate frames, we provide shortcuts as constants on the
 |SpectralCoord| object itself::
 
-    >>> sc_ttau.in_observer_velocity_frame(SpectralCoord.LSRK_GORDON1975)
+    >>> sc_ttau.in_observer_velocity_frame(SpectralCoord.LSRK_GORDON1975)  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord 656.73833301 nm,
         radial_velocity=12.506991127466303 km / s,
         redshift=4.171883179084613e-05,
@@ -274,15 +274,16 @@ Finally, since we can give any arbitrary |SkyCoord| to the
 we can also specify the target itself, to find a spectral coordinate in the
 rest frame of the target:
 
-    >>> sc_ttau_targetframe = sc_ttau.in_observer_velocity_frame(sc_ttau.target)
-    >>> sc_ttau_targetframe
+    >>> sc_ttau_targetframe = sc_ttau.in_observer_velocity_frame(sc_ttau.target)  # doctest: +REMOTE_DATA
+    >>> sc_ttau_targetframe  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord 656.71093208 nm,
-        radial_velocity=-1.874880916125865e-08 km / s,
-        redshift=-6.253929563918064e-14,
+        radial_velocity=-8.203851870936837e-08 km / s,
+        redshift=-2.7365104264687125e-13,
         doppler_rest=None,
         doppler_convention=None,
         observer=ITRS,
         target=ICRS>
+
 
 At this point, the |SpectralCoord| value is the frequency of the spectral line
 as it would be measured in a reference frame moving with the target. It seems
@@ -293,20 +294,19 @@ material by using the Doppler equivalency:
 
     >>> sc_ha = sc_ttau_targetframe.to(u.km / u.s,
     ...                                doppler_convention='relativistic',
-    ...                                doppler_rest=656.65 * u.nm)
-    >>> sc_ha
-    <SpectralCoord 27.81714971 km / s,
-        radial_velocity=-1.874880916125865e-08 km / s,
-        redshift=-6.253929563918064e-14,
+    ...                                doppler_rest=656.65 * u.nm)  # doctest: +REMOTE_DATA
+    >>> sc_ha  # doctest: +REMOTE_DATA +FLOAT_CMP
+    <SpectralCoord 27.81714706 km / s,
+        radial_velocity=-8.203851870936837e-08 km / s,
+        redshift=-2.7365104264687125e-13,
         doppler_rest=656.65 nm,
         doppler_convention=relativistic,
         observer=ITRS,
         target=ICRS>
 
-
 Note that you can convert this to a plain |Quantity| using::
 
-    >>> sc_ha.quantity
+    >>> sc_ha.quantity  # doctest: +REMOTE_DATA +FLOAT_CMP
     <Quantity 27.81714971 km / s>
 
 This tells us that if the emission is from material that is moving at

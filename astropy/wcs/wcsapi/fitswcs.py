@@ -9,14 +9,17 @@ import numpy as np
 
 from astropy import units as u
 from astropy.coordinates import SpectralCoord
-from astropy.coordinates.spectral_coordinate import update_differentials_to_match
+from astropy.coordinates.spectral_coordinate import update_differentials_to_match, attach_zero_velocities
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.constants import c
 
 from .low_level_api import BaseLowLevelWCS
 from .high_level_api import HighLevelWCSMixin
 from .sliced_low_level_wcs import SlicedLowLevelWCS
 
 __all__ = ['custom_ctype_to_ucd_mapping', 'SlicedFITSWCS', 'FITSWCSAPIMixin']
+
+C_SI = c.si.value
 
 VELOCITY_FRAMES = {
     'GEOCENT': SpectralCoord.GEOCENTRIC,
@@ -376,7 +379,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 if self.wcs.specsys in VELOCITY_FRAMES:
                     observer = update_differentials_to_match(observer_location, VELOCITY_FRAMES[self.wcs.specsys])
                 elif self.wcs.specsys == 'TOPOCENT':
-                    observer = observer_location
+                    observer = attach_zero_velocities(observer_location)
                 else:
                     raise NotImplementedError(f'SPECSYS={self.wcs.specsys} not yet supported')
 
