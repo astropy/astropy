@@ -15,8 +15,12 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
+
 - Angle parsing now supports ``cardinal direction`` in the cases
   where angles are initialized as ``string`` instances. eg ``"17°53'27"W"``.[#9859]
+
+- Added a new ``SpectralCoord`` class that can be used to define spectral
+  coordinates and transform them between different velocity frames. [#10185]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
