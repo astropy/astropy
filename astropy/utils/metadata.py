@@ -456,20 +456,20 @@ class MetaAttribute:
             return self
 
         # Get the __attributes__ dict and create if not there already.
-        meta = instance.meta.setdefault('__attributes__', {})
+        attributes = instance.meta.setdefault('__attributes__', {})
         try:
-            value = meta[self.name]
+            value = attributes[self.name]
         except KeyError:
             if self.default is not None:
-                meta[self.name] = deepcopy(self.default)
+                attributes[self.name] = deepcopy(self.default)
             # Return either specified default or None
-            value = meta.get(self.name)
+            value = attributes.get(self.name)
         return value
 
     def __set__(self, instance, value):
         # Get the __attributes__ dict and create if not there already.
-        meta = instance.meta.setdefault('__attributes__', {})
-        meta[self.name] = value
+        attributes = instance.meta.setdefault('__attributes__', {})
+        attributes[self.name] = value
 
     def __set_name__(self, owner, name):
         import inspect
