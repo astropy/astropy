@@ -7,10 +7,10 @@ import warnings
 
 import numpy as np
 
-from astropy.constants import c
 from astropy import units as u
-from astropy.cosmology import WMAP5
-from astropy.coordinates import SkyCoord, FK4
+from astropy.coordinates import SpectralCoord
+from astropy.coordinates.spectral_coordinate import update_differentials_to_match
+from astropy.utils.exceptions import AstropyUserWarning
 
 from .low_level_api import BaseLowLevelWCS
 from .high_level_api import HighLevelWCSMixin
@@ -18,105 +18,16 @@ from .sliced_low_level_wcs import SlicedLowLevelWCS
 
 __all__ = ['custom_ctype_to_ucd_mapping', 'SlicedFITSWCS', 'FITSWCSAPIMixin']
 
-C_SI = c.to_value(u.m / u.s)
-
-# Definition of velocity frames - these are defined by cartesian velocities
-# along with the celestial coordinate frame in which those apply. The keys of
-# the dictionary are the SPECSYS, and the values are tuples of
-# (celestial_frame, vx, vy, vz)
-
-VELOCITY_FRAMES_VXYZ = {}
-
-# First off, we consider velocity frames that are stationaly relative
-# to already defined 3-d celestial frames.
-VELOCITY_FRAMES_VXYZ['TOPOCENT'] = ('itrs', 0 * u.km / u.s, 0 * u.km / u.s, 0 * u.km / u.s)
-VELOCITY_FRAMES_VXYZ['GEOCENT'] = ('gcrs', 0 * u.km / u.s, 0 * u.km / u.s, 0 * u.km / u.s)
-VELOCITY_FRAMES_VXYZ['BARYCENT'] = ('icrs', 0 * u.km / u.s, 0 * u.km / u.s, 0 * u.km / u.s)
-VELOCITY_FRAMES_VXYZ['HELIOCENT'] = ('hcrs', 0 * u.km / u.s, 0 * u.km / u.s, 0 * u.km / u.s)
-
-# The LSRK velocity frame is defined as having a velocity
-# of 20 km/s towards RA=270 Dec=30 (B1900) relative to the
-# solar system Barycenter. This is defined in:
-#
-#   Gordon 1975, Methods of Experimental Physics: Volume 12:
-#   Astrophysics, Part C: Radio Observations - Section 6.1.5.
-#
-# We use the astropy.coordinates FK4 class here since it is
-# defined with the solar system barycenter as the origin.
-
-lsrk_velocity = 20 * u.km / u.s
-lsrk_direction = SkyCoord(270 * u.deg, 30 * u.deg, frame=FK4(equinox='B1900'))
-x, y, z = -lsrk_direction.cartesian.xyz.to_value()
-VELOCITY_FRAMES_VXYZ['LSRK'] = (FK4(equinox='B1900'),
-                                 x * lsrk_velocity,
-                                 y * lsrk_velocity,
-                                 z * lsrk_velocity)
-
-# The LSRD velocity frame is defined as a velocity of
-# U=9 km/s, V=12 km/s, and W=7 km/s or 16.552945 km/s
-# towards l=53.13 b=25.02. This is defined in:
-#
-#   Delhaye 1975, Solar Motion and Velocity Distribution of
-#   Common Stars.
-
-lsrd_direction = SkyCoord(u=9 * u.km, v=12 * u.km, w=7 * u.km,
-                          frame='galactic', representation_type='cartesian')
-x, y, z = -lsrd_direction.cartesian.xyz / u.s
-VELOCITY_FRAMES_VXYZ['LSRD'] = ('galactic', x, y, z)
-
-# This frame is defined as a velocity of 220 km/s in the
-# direction of l=270, b=0. The rotation velocity is defined
-# in:
-#
-#   Kerr and Lynden-Bell 1986, Review of galactic constants.
-#
-# NOTE: should this be l=90 or 270? (WCS paper says 90)
-
-galactoc_velocity = 220 * u.km / u.s
-galactoc_direction = SkyCoord(l=90 * u.deg, b=0 * u.deg, frame='galactic')
-x, y, z = -galactoc_direction.cartesian.xyz
-VELOCITY_FRAMES_VXYZ['GALACTOC'] = ('galactic',
-                                     x * galactoc_velocity,
-                                     y * galactoc_velocity,
-                                     z * galactoc_velocity)
-
-# This frame is defined as a velocity of 300 km/s in the
-# direction of l=90, b=0. This is defined in:
-#
-#   Transactions of the IAU Vol. XVI B Proceedings of the
-#   16th General Assembly, Reports of Meetings of Commissions:
-#   Comptes Rendus Des Séances Des Commissions, Commission 28,
-#   p201.
-#
-# Note that these values differ from those used by CASA
-# (308 km/s towards l=105, b=-7) but we use the above values
-# since these are the ones defined in Greisen et al (2006).
-
-localgrp_velocity = 300 * u.km / u.s
-localgrp_direction = SkyCoord(l=90 * u.deg, b=0 * u.deg, frame='galactic')
-x, y, z = -localgrp_direction.cartesian.xyz
-VELOCITY_FRAMES_VXYZ['LOCALGRP'] = ('galactic',
-                                     x * localgrp_velocity,
-                                     y * localgrp_velocity,
-                                     z * localgrp_velocity)
-
-# This frame is defined as a velocity of 368 km/s in the
-# direction of l=263.85, b=48.25. This is defined in:
-#
-#   Bennett et al. (2003), First-Year Wilkinson Microwave
-#   Anisotropy Probe (WMAP) Observations: Preliminary Maps
-#   and Basic Results
-#
-# Note that in that paper, the dipole is expressed as a
-# temperature (T=3.346 +/- 0.017mK)
-
-cmbdipol_velocity = (3.346 * u.mK / WMAP5.Tcmb(0) * c).to(u.km/u.s)
-cmbdipol_direction = SkyCoord(l=263.85 * u.deg, b=48.25 * u.deg, frame='galactic')
-x, y, z = -cmbdipol_direction.cartesian.xyz
-VELOCITY_FRAMES_VXYZ['CMBDIPOL'] = ('galactic',
-                                     x * cmbdipol_velocity,
-                                     y * cmbdipol_velocity,
-                                     z * cmbdipol_velocity)
+VELOCITY_FRAMES = {
+    'GEOCENT': SpectralCoord.GEOCENTRIC,
+    'BARYCENT': SpectralCoord.BARYCENTRIC,
+    'HELIOCENT': SpectralCoord.HELIOCENTRIC,
+    'LSRK': SpectralCoord.LSRK_GORDON1975,
+    'LSRD': SpectralCoord.LSRD_DELHAYE1965,
+    'GALACTOC': SpectralCoord.GALACTOCENTRIC_KLB1986,
+    'LOCALGRP': SpectralCoord.LOCALGROUP_IAU1976,
+    'CMBDIPOL': SpectralCoord.CMBDIPOL_WMAP1
+}
 
 # Mapping from CTYPE axis name to UCD1
 
@@ -445,8 +356,6 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             ispec = self.wcs.spec
             ctype = self.wcs.ctype[ispec][:4]
 
-            from specutils import SpectralCoord
-
             kwargs = {}
 
             # Determine observer location and velocity
@@ -458,35 +367,18 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             if np.isnan(self.wcs.obsgeo[0]):
                 observer = None
             else:
-                # print(self.wcs.obsgeo[:3])
+
                 earth_location = EarthLocation(*self.wcs.obsgeo[:3], unit=u.m)
-                # print(earth_location.geodetic.lon, earth_location.geodetic.lat)
                 obstime = Time(self.wcs.mjdobs, format='mjd', scale='utc',
                                location=earth_location)
                 observer_location = SkyCoord(earth_location.get_itrs(obstime=obstime))
 
-                # print(observer_location)
-
-                from astropy.coordinates import CartesianDifferential
-
-                if self.wcs.specsys not in VELOCITY_FRAMES_VXYZ:
+                if self.wcs.specsys in VELOCITY_FRAMES:
+                    observer = update_differentials_to_match(observer_location, VELOCITY_FRAMES[self.wcs.specsys])
+                elif self.wcs.specsys == 'TOPOCENT':
+                    observer = observer_location
+                else:
                     raise NotImplementedError(f'SPECSYS={self.wcs.specsys} not yet supported')
-
-                frame, vx, vy, vz = VELOCITY_FRAMES_VXYZ[self.wcs.specsys]
-
-                if frame != 'itrs':
-                    observer_location = observer_location.transform_to(frame)
-
-                # print(observer_location)
-
-                vel_to_add = CartesianDifferential(vx, vy, vz)
-                new_observer_data = observer_location.data.to_cartesian().with_differentials(vel_to_add)
-                observer = observer_location.realize_frame(new_observer_data)
-
-                # print('observer', observer.cartesian_differentials)
-                # assert False
-
-                # print(observer)
 
             # Determine target
 
@@ -506,14 +398,16 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                                   radial_velocity=0 * u.km / u.s,
                                   distance=1000 * u.kpc)
 
-                # print(target.to_string('hmsdms'))
-
                 # FIXME: for now this target won't work without radial velocity
                 # and distance due to https://github.com/astropy/specutils/issues/658
 
             else:
 
                 target = None
+
+            # NOTE: below we include Quantity in classes['spectral'] instead
+            # of SpectralCoord - this is because we want to also be able to
+            # accept plain quantities.
 
             if ctype == 'ZOPT':
 
@@ -523,9 +417,15 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
                 def redshift_from_spectralcoord(spectralcoord):
                     # TODO: check target is consistent
-                    return spectralcoord.in_observer_velocity_frame(observer).to_value(u.m) / self.wcs.restwav - 1.
+                    if observer is None:
+                        warnings.warn('No observer defined on WCS, SpectralCoord '
+                                      'will be converted without any velocity '
+                                      'frame change', AstropyUserWarning)
+                        return spectralcoord.to_value(u.m) / self.wcs.restwav - 1.
+                    else:
+                        return spectralcoord.in_observer_velocity_frame(observer).to_value(u.m) / self.wcs.restwav - 1.
 
-                classes['spectral'] = (SpectralCoord, (), {}, spectralcoord_from_redshift)
+                classes['spectral'] = (u.Quantity, (), {}, spectralcoord_from_redshift)
                 components[self.wcs.spec] = ('spectral', 0, redshift_from_spectralcoord)
 
             elif ctype == 'BETA':
@@ -540,9 +440,15 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 def beta_from_spectralcoord(spectralcoord):
                     # TODO: check target is consistent
                     doppler_equiv = u.doppler_relativistic(self.wcs.restwav * u.m)
-                    return spectralcoord.in_observer_velocity_frame(observer).to_value(u.m / u.s, doppler_equiv) / C_SI
+                    if observer is None:
+                        warnings.warn('No observer defined on WCS, SpectralCoord '
+                                      'will be converted without any velocity '
+                                      'frame change', AstropyUserWarning)
+                        return spectralcoord.to_value(u.m / u.s, doppler_equiv) / C_SI
+                    else:
+                        return spectralcoord.in_observer_velocity_frame(observer).to_value(u.m / u.s, doppler_equiv) / C_SI
 
-                classes['spectral'] = (SpectralCoord, (), {}, spectralcoord_from_beta)
+                classes['spectral'] = (u.Quantity, (), {}, spectralcoord_from_beta)
                 components[self.wcs.spec] = ('spectral', 0, beta_from_spectralcoord)
 
             else:
@@ -564,9 +470,15 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
                 def value_from_spectralcoord(spectralcoord):
                     # TODO: check target is consistent
-                    return spectralcoord.in_observer_velocity_frame(observer).to_value(**kwargs)
+                    if observer is None:
+                        warnings.warn('No observer defined on WCS, SpectralCoord '
+                                      'will be converted without any velocity '
+                                      'frame change', AstropyUserWarning)
+                        return spectralcoord.to_value(**kwargs)
+                    else:
+                        return spectralcoord.in_observer_velocity_frame(observer).to_value(**kwargs)
 
-                classes['spectral'] = (SpectralCoord, (), {}, spectralcoord_from_value)
+                classes['spectral'] = (u.Quantity, (), {}, spectralcoord_from_value)
                 components[self.wcs.spec] = ('spectral', 0, value_from_spectralcoord)
 
         # We can then make sure we correctly return Time objects where appropriate
