@@ -33,6 +33,45 @@ __all__ = ['SpectralCoord']
 __doctest_skip__ = ['SpectralCoord.*']
 
 
+def update_differentials_to_match(original, velocity_reference):
+    """
+    Given an original coordinate object, update the differentials so that
+    the final coordinate is at the same location as the original coordinate
+    but co-moving with the velocity reference object.
+    """
+
+    if not velocity_reference.data.differentials:
+        raise ValueError("Reference frame has no velocities")
+
+    # If the reference has an obstime already defined, we should ignore
+    # it and stick with the original observer obstime.
+    if 'obstime' in velocity_reference.frame_attributes and hasattr(original, 'obstime'):
+        velocity_reference = velocity_reference.replicate(obstime=original.obstime)
+
+    # For now we transform both coordinates to ICRS because of this bug if we
+    # were to transform the reference to the original (which would be more
+    # efficient) - see https://github.com/astropy/astropy/issues/10193
+
+    # The following code can be used once the bug is fixed
+    # velocity_reference_in_original_frame = velocity_reference.transform_to(original)
+    # differentials = velocity_reference_in_original_frame.data.represent_as(CartesianRepresentation, CartesianDifferential).differentials
+    # data_with_differentials = original.data.with_differentials(differentials)
+    # final = original.realize_frame(data_with_differentials)
+
+    original_icrs = original.transform_to(ICRS())
+    velocity_reference_icrs = velocity_reference.transform_to(ICRS())
+
+    differentials = velocity_reference_icrs.data.represent_as(CartesianRepresentation, CartesianDifferential).differentials
+    if original_icrs.data.differentials:
+        data_with_differentials = original_icrs.data.represent_as(CartesianRepresentation, CartesianDifferential).with_differentials(differentials)
+    else:
+        data_with_differentials = original_icrs.data.represent_as(CartesianRepresentation).with_differentials(differentials)
+    final_icrs = original_icrs.realize_frame(data_with_differentials)
+    final = final_icrs.transform_to(original)
+
+    return final
+
+
 class SpectralCoord(u.Quantity):
     """
     Coordinate object representing spectral values.
@@ -618,25 +657,7 @@ class SpectralCoord(u.Quantity):
                               representation_type='cartesian',
                               differential_type='cartesian')
 
-        if not frame.data.differentials:
-            raise ValueError("Frame has no velocities, cannot transform "
-                             "velocity frame.")
-
-        observer_icrs = self.observer.transform_to(ICRS)
-
-        # If the target frame has an obstime already defined, we should ignore
-        # it and stick with the original observer obstime.
-        if 'obstime' in frame.frame_attributes and hasattr(self.observer, 'obstime'):
-            frame = frame.replicate(obstime=self.observer.obstime)
-
-        frames_icrs = frame.transform_to(ICRS)
-
-        data_with_rv = observer_icrs.data.with_differentials(
-            frames_icrs.data.represent_as(CartesianRepresentation, CartesianDifferential).differentials)
-
-        observer_icrs = observer_icrs.realize_frame(data_with_rv)
-
-        observer = observer_icrs.transform_to(self.observer)
+        observer = update_differentials_to_match(self.observer, frame)
 
         new_coord = self._change_observer_to(observer)
 
