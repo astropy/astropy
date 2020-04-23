@@ -752,15 +752,15 @@ class Quantity(np.ndarray):
             raise ModuleNotFoundError(
                 "AMUSE does not seem to be installed"
             )
-    
+
         # Find SI bases of the unit
         si_bases = self.si.unit.bases
         si_powers = self.si.unit.powers
         si_units = list(zip(si_powers, si_bases))
-    
+
         # Find the quantity's value in base units
         si_value = self.si.value
-    
+
         # Reconstruct the quantity in AMUSE units
         amuse_quantity = si_value
         for base_unit in si_units:
@@ -778,7 +778,7 @@ class Quantity(np.ndarray):
                 amuse_quantity = amuse_quantity * (1 | amuse_units.mol**base_unit[0])
             elif base_unit[1].name == "cd":
                 amuse_quantity = amuse_quantity * (1 | amuse_units.cd**base_unit[0])
-    
+
         return amuse_quantity
 
     value = property(to_value,
