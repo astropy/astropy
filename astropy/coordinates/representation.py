@@ -260,13 +260,8 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                     apply_method(getattr(self, component)))
         return new
 
-    def _setitem(self, item, value):
-        """Private version of __setitem__.
-
-        This cannot be exposed as __setitem__ because it would allow changing
-        frame representation data (frame.data) without clearing the frame cache.
-        """
-        if self.__class__ is not value.__class__:
+    def __setitem__(self, item, value):
+        if value.__class__ is not self.__class__:
             raise TypeError(f'can only set from object of same class: '
                             f'{self.__class__.__name__} vs. '
                             f'{value.__class__.__name__}')
@@ -811,12 +806,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
              for k, diff in self._differentials.items()])
         return rep
 
-    def _setitem(self, item, value):
-        """Private version of __setitem__.
-
-        This cannot be exposed as __setitem__ because it would allow changing
-        frame representation data (frame.data) without clearing the frame cache.
-        """
+    def __setitem__(self, item, value):
         if self.__class__ is not value.__class__:
             raise TypeError(f'can only set from object of same class: '
                             f'{self.__class__.__name__} vs. '
@@ -827,10 +817,10 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
         if self._differentials.keys() != value._differentials.keys():
             raise ValueError(f'setitem value must have same differentials')
 
-        super()._setitem(item, value)
+        super().__setitem__(item, value)
         for self_diff, value_diff in zip(self._differentials.values(),
                                          value._differentials.values()):
-            self_diff._setitem(item, value_diff)
+            self_diff[item] = value_diff
 
     def _scale_operation(self, op, *args):
         """Scale all non-angular components, leaving angular ones unchanged.
