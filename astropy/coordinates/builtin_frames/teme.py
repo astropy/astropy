@@ -5,7 +5,7 @@ Contains the definition of the TEME frame.
 
 TEME is a True equator, Mean Equinox coordinate frames used in NORAD TLE
 satellite files.
-These are distinct from the ICRS and AltAz functions because they are just
+These are distinct from the ICRS and AltAz frames because they are just
 rotations without aberration corrections or offsets.
 """
 # -*- coding: utf-8 -*-
