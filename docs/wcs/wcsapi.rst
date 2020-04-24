@@ -203,19 +203,25 @@ As before, we can convert between pixels and high-level Astropy objects::
     <SkyCoord (ICRS): (ra, dec) in deg
         [(51.73115731, 30.32750025), (51.72414268, 30.32111136)]>
     >>> spectral  # doctest: +REMOTE_DATA
-    <Quantity [2661.04211695, 2727.46572695] m / s>
+    <SpectralCoord [2661.04211695, 2727.46572695] m / s,
+    	radial_velocity=0.0 km / s,
+    	redshift=0.0,
+    	doppler_rest=0.0 m,
+    	doppler_convention=optical,
+    	observer=None,
+    	target=ICRS>
 
 and back::
 
     >>> from astropy import units as u
     >>> coord = SkyCoord('03h26m36.4901s +30d45m22.2012s')
-    >>> pixels = wcs.world_to_pixel(coord, 3000 * u.m / u.s)  # doctest: +REMOTE_DATA
+    >>> pixels = wcs.world_to_pixel(coord, 3000 * u.m / u.s)  # doctest: +REMOTE_DATA +IGNORE_WARNINGS
     >>> pixels  # doctest: +REMOTE_DATA
     (array(8.11341207), array(71.0956641), array(7.10297292))
 
 And as before we can index array values using::
 
-    >>> index = wcs.world_to_array_index(coord, 3000 * u.m / u.s)  # doctest: +REMOTE_DATA
+    >>> index = wcs.world_to_array_index(coord, 3000 * u.m / u.s)  # doctest: +REMOTE_DATA +IGNORE_WARNINGS
     >>> index  # doctest: +REMOTE_DATA
     (7, 71, 8)
     >>> hdu.data[index]  # doctest: +REMOTE_DATA +FLOAT_CMP
