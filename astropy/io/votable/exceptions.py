@@ -1484,6 +1484,14 @@ class E24(VOWarning, ValueError):
     default_args = ('', '')
 
 
+class E25(VOTableSpecWarning):
+    """
+    A VOTable cannot have a DATA section without any defined FIELD; DATA will be ignored.
+    """
+
+    message_template = "No FIELDs are defined; DATA section will be ignored."
+
+
 def _get_warning_and_exception_classes(prefix):
     classes = []
     for key, val in globals().items():
