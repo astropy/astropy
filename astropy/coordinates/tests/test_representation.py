@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 import pytest
 import numpy as np
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
 from astropy.tests.helper import (assert_quantity_allclose as
@@ -27,6 +27,7 @@ from astropy.coordinates.representation import (REPRESENTATION_CLASSES,
                                                 PhysicsSphericalRepresentation,
                                                 CartesianDifferential,
                                                 SphericalDifferential,
+                                                RadialDifferential,
                                                 _combine_xyz)
 
 
@@ -196,6 +197,16 @@ class TestSphericalRepresentation:
         with pytest.raises(TypeError):
             len(s)
         assert not isiterable(s)
+
+    def test_setitem(self):
+        s = SphericalRepresentation(lon=np.arange(5) * u.deg,
+                                    lat=-np.arange(5) * u.deg,
+                                    distance=1 * u.kpc)
+        s[:2] = SphericalRepresentation(lon=10.*u.deg, lat=2.*u.deg,
+                                        distance=5.*u.kpc)
+        assert_allclose_quantity(s.lon, [10, 10, 2, 3, 4] * u.deg)
+        assert_allclose_quantity(s.lat, [2, 2, -2, -3, -4] * u.deg)
+        assert_allclose_quantity(s.distance, [5, 5, 1, 1, 1] * u.kpc)
 
     def test_nan_distance(self):
         """ This is a regression test: calling represent_as() and passing in the
@@ -852,6 +863,20 @@ def test_cartesian_spherical_roundtrip():
     assert_allclose_quantity(s2.distance, s4.distance)
 
 
+def test_cartesian_setting_with_other():
+
+    s1 = CartesianRepresentation(x=[1, 2000.] * u.kpc,
+                                 y=[3000., 4.] * u.pc,
+                                 z=[5., 6000.] * u.pc)
+    s1[0] = SphericalRepresentation(0.*u.deg, 0.*u.deg, 1*u.kpc)
+    assert_allclose_quantity(s1.x, [1., 2000.] * u.kpc)
+    assert_allclose_quantity(s1.y, [0., 4.] * u.pc)
+    assert_allclose_quantity(s1.z, [0., 6000.] * u.pc)
+
+    with pytest.raises(ValueError, match='loss of information'):
+        s1[1] = UnitSphericalRepresentation(0.*u.deg, 10.*u.deg)
+
+
 def test_cartesian_physics_spherical_roundtrip():
 
     s1 = CartesianRepresentation(x=[1, 2000.] * u.kpc,
@@ -1312,6 +1337,51 @@ class TestCartesianRepresentationWithDifferential:
         assert_allclose_quantity(s_dif.d_x, [2, 4, 6] * u.m/u.s)
         assert_allclose_quantity(s_dif.d_y, [-2, -4, -6] * u.m/u.s)
         assert_allclose_quantity(s_dif.d_z, [1, 1, 1] * u.m/u.s)
+
+    def test_setitem(self):
+        d = CartesianDifferential(d_x=np.arange(5) * u.m/u.s,
+                                  d_y=-np.arange(5) * u.m/u.s,
+                                  d_z=1. * u.m/u.s)
+        s = CartesianRepresentation(x=np.arange(5) * u.m,
+                                    y=-np.arange(5) * u.m,
+                                    z=3 * u.km,
+                                    differentials=d)
+        s[:2] = s[2]
+        assert_array_equal(s.x, [2, 2, 2, 3, 4] * u.m)
+        assert_array_equal(s.y, [-2, -2, -2, -3, -4] * u.m)
+        assert_array_equal(s.z, [3, 3, 3, 3, 3] * u.km)
+        assert_array_equal(s.differentials['s'].d_x,
+                           [2, 2, 2, 3, 4] * u.m/u.s)
+        assert_array_equal(s.differentials['s'].d_y,
+                           [-2, -2, -2, -3, -4] * u.m/u.s)
+        assert_array_equal(s.differentials['s'].d_z,
+                           [1, 1, 1, 1, 1] * u.m/u.s)
+
+        s2 = s.represent_as(SphericalRepresentation,
+                            SphericalDifferential)
+
+        s[0] = s2[3]
+        assert_allclose_quantity(s.x, [3, 2, 2, 3, 4] * u.m)
+        assert_allclose_quantity(s.y, [-3, -2, -2, -3, -4] * u.m)
+        assert_allclose_quantity(s.z, [3, 3, 3, 3, 3] * u.km)
+        assert_allclose_quantity(s.differentials['s'].d_x,
+                                 [3, 2, 2, 3, 4] * u.m/u.s)
+        assert_allclose_quantity(s.differentials['s'].d_y,
+                                 [-3, -2, -2, -3, -4] * u.m/u.s)
+        assert_allclose_quantity(s.differentials['s'].d_z,
+                                 [1, 1, 1, 1, 1] * u.m/u.s)
+
+        s3 = CartesianRepresentation(s.xyz, differentials={
+            's': d,
+            's2': CartesianDifferential(np.ones((3, 5))*u.m/u.s**2)})
+        with pytest.raises(ValueError, match='same differentials'):
+            s[0] = s3[2]
+
+        s4 = SphericalRepresentation(0.*u.deg, 0.*u.deg, 1.*u.kpc,
+                                     differentials=RadialDifferential(
+                                         10*u.km/u.s))
+        with pytest.raises(ValueError, match='loss of information'):
+            s[0] = s4
 
     def test_transform(self):
         d1 = CartesianDifferential(d_x=[1, 2] * u.km/u.s,
