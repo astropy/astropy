@@ -38,6 +38,9 @@ class TEME(BaseCoordinateFrame):
     are most often used in combination with orbital data for satellites in the
     two-line-ephemeris format.
 
+    Different implementations of the TEME frame exist. For clarity, this frame follows the
+    conventions and relations to other frames that are set out in Vallado et al (2006).
+
     For more background on TEME, see the references provided in the
     :ref:`astropy-coordinates-seealso` section of the documentation.
     """
