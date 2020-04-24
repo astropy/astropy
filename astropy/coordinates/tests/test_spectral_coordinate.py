@@ -241,14 +241,6 @@ def test_shift_to_rest_galaxy():
         # outset
         rest_spc._change_observer_to(ICRS(CartesianRepresentation([0, 0, 0] * u.au)))
 
-    # note: it may be an acceptable fallback for the next part to onle work on
-    # spectrum1D but not SpectralCoord - the thinking being that the shift to
-    # rest might require dropping the "observer" information from spectralcoord
-    # but maybe not? So including the test here.
-
-    roundtrip_obs_spc = rest_spc.to_observed()
-    assert_quantity_allclose(roundtrip_obs_spc, rest_line_wls*(z+1))
-
 
 @pytest.mark.remote_data
 def test_shift_to_rest_star_withobserver():
