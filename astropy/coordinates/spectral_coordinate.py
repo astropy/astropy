@@ -25,6 +25,8 @@ RV_RS_EQUIV = [(u.cm / u.s, u.Unit(''),
 
 DEFAULT_DISTANCE = 1 * u.AU
 
+# TODO: disallow redshift if observer and target are specified
+
 # FIXME: there are currently numerical issues when transforming frames with
 # velocities when the position is exactly at the origin. To avoid this, we use
 # a very small offset for now.
@@ -659,8 +661,14 @@ class SpectralCoord(u.Quantity):
         if np.isnan(delta_vel) or fin_vel_mag < 1e-7 * fin_vel.unit:
             delta_vel = -self.radial_velocity
 
-        # Apply the velocity shift to the stored spectral axis data
-        new_data = self * (1 + delta_vel / c.cgs)
+        if self.unit.is_equivalent(u.m):  # wavelength
+            new_data = self * (1 + delta_vel / c.cgs)
+        elif self.unit.is_equivalent(u.Hz) or self.unit.is_equivalent(u.eV):  # frequency or energy
+            new_data = self / (1 + delta_vel / c.cgs)
+        elif self.unit.is_equivalent(u.km / u.s):  # velocity
+            new_data = self + delta_vel
+        else:
+            raise TypeError(f"Unexpected units in velocity shift: {self.unit}")
 
         return new_data
 
@@ -825,15 +833,7 @@ class SpectralCoord(u.Quantity):
         """
         rest_frame_value = self / (1 + self.redshift)
 
-        return self._copy(value=rest_frame_value)
-
-    def to_observed(self):
-        """
-        Transforms the spectral axis to the observed frame.
-        """
-        observed_frame_value = self * (1 + self.redshift)
-
-        return self._copy(value=observed_frame_value)
+        return self._copy(value=rest_frame_value, radial_velocity=0 * u.km / u.s)
 
     def to(self, unit, equivalencies=[], doppler_rest=None,
            doppler_convention=None):

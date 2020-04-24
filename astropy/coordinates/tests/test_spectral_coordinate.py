@@ -7,7 +7,6 @@ from astropy import time
 from astropy.constants import c
 from astropy.table import Table
 from astropy.utils import iers
-from astropy.time import Time
 from astropy.coordinates import (SkyCoord, EarthLocation, ICRS, GCRS, Galactic,
                                  CartesianDifferential,
                                  get_body_barycentric_posvel,
@@ -58,26 +57,6 @@ def get_greenwich_earthlocation():
     """
     site_registry = EarthLocation._get_site_registry(force_builtin=True)
     return site_registry.get('greenwich')
-
-
-@pytest.mark.remote_data
-def test_create_spectral_coord_orig():
-
-    # TODO: decide whether this test is still needed once the rest is
-    #  implemented
-
-    site = get_greenwich_earthlocation()
-    obstime = time.Time('2018-12-13 9:00')
-
-    observer_gcrs = site.get_gcrs(obstime)
-
-    spectral_axis = np.linspace(500, 2500, 1000) * u.AA
-    spec_coord = SpectralCoord(spectral_axis, observer=observer_gcrs)
-
-    assert isinstance(spec_coord, u.Quantity)
-    assert len(spec_coord) == 1000
-
-    spec_coord.rest = 1215 * u.AA
 
 
 # GENERAL TESTS
@@ -172,62 +151,67 @@ def test_create_from_spectral_coord(observer, target):
 @pytest.mark.remote_data
 def test_spectral_coord_jupiter():
     """
-    Checks that jupiter yields an RV consistent with the solar system
+    Checks radial velocity between Earth and Jupiter
     """
     obstime = time.Time('2018-12-13 9:00')
     obs = get_greenwich_earthlocation().get_gcrs(obstime)  # always built-in, no download required
 
-    # jupiter = get_body('jupiter', obstime)  # not supported by astropy yet,
-    # but this is the eventual goal, which should return:
+    # TODO: ideally we should be able to just do:
     pos, vel = get_body_barycentric_posvel('jupiter', obstime)
     jupiter = SkyCoord(pos.with_differentials(CartesianDifferential(vel.xyz)), obstime=obstime)
 
     spc = SpectralCoord([100, 200, 300] * u.nm, observer=obs, target=jupiter)
 
-    # "magic number" of 45 is actually  ~43 + a bit extra, because the
-    # maximum possible speed should be the earth-jupiter relative velocity
-    assert np.abs(spc.radial_velocity) < (45*u.km/u.s)
+    # The velocity should be less than ~43 + a bit extra, which is the
+    # maximum possible earth-jupiter relative velocity. We check the exact
+    # value here (determined from SpectralCoord, so this serves as a test to
+    # check that this value doesn't change - the value is not a ground truth)
+    assert_quantity_allclose(spc.radial_velocity, -7.35219854 * u.km / u.s)
 
 
 @pytest.mark.remote_data
 def test_spectral_coord_alphacen():
     """
-    Checks that a nearby star yields a reasonable RV
+    Checks radial velocity between Earth and Alpha Centauri
     """
     obstime = time.Time('2018-12-13 9:00')
     obs = get_greenwich_earthlocation().get_gcrs(obstime)  # always built-in, no download required
 
-    # acen = SkyCoord.from_name('alpha cen')  # coordinates are from here,
-    # but hard-coded below so no download required
+    # Coordinates were obtained from the following then hard-coded to avoid download
+    # acen = SkyCoord.from_name('alpha cen')
     acen = SkyCoord(ra=219.90085*u.deg, dec=-60.83562*u.deg, frame='icrs',
                     distance=4.37*u.lightyear, radial_velocity=-18.*u.km/u.s)
 
     spc = SpectralCoord([100, 200, 300] * u.nm, observer=obs, target=acen)
 
-    # "magic number" of 50 is actually  ~18 + 30 + a bit extra, because the
-    # maximum possible speed should be the star + earth + earth's surface
-    assert np.abs(spc.radial_velocity) < (50*u.km/u.s)
+    # The velocity should be less than ~18 + 30 + a bit extra, which is the
+    # maximum possible relative velocity.  We check the exact value here
+    # (determined from SpectralCoord, so this serves as a test to check that
+    # this value doesn't change - the value is not a ground truth)
+    assert_quantity_allclose(spc.radial_velocity, -26.328301 * u.km / u.s)
 
 
 @pytest.mark.remote_data
 def test_spectral_coord_m31():
     """
-    Checks that a nearby star yields a reasonable RV
+    Checks radial velocity between Earth and M31
     """
     obstime = time.Time('2018-12-13 9:00')
     obs = get_greenwich_earthlocation().get_gcrs(obstime)  # always built-in, no download required
 
-    # acen = SkyCoord.from_name('alpha cen')  # coordinates are from here, but
-    # hard-coded below so no download required
+    # Coordinates were obtained from the following then hard-coded to avoid download
+    # m31 = SkyCoord.from_name('M31')
     m31 = SkyCoord(ra=10.6847*u.deg, dec=41.269*u.deg,
                    distance=710*u.kpc, radial_velocity=-300*u.km/u.s)
 
     spc = SpectralCoord([100, 200, 300] * u.nm, observer=obs, target=m31)
 
-    # "magic number"  is actually  ~300 + 30 + a bit extra km/s, because the
-    # maximum possible speed should be M31 + earth + earth's surface.  Then
-    # transform to an approximate redshift bound
-    assert np.abs(spc.redshift) < 0.00112
+    # The velocity should be less than ~300 + 30 + a bit extra in km/s, which
+    # is the maximum possible relative velocity.  We check the exact values
+    # here (determined from SpectralCoord, so this serves as a test to check
+    # that this value doesn't change - the value is not a ground truth)
+    assert_quantity_allclose(spc.radial_velocity, -279.755128 * u.km / u.s)
+    assert_allclose(spc.redshift, -0.0009331626604760668)
 
 
 def test_shift_to_rest_galaxy():
