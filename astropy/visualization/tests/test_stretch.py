@@ -2,6 +2,7 @@
 
 import pytest
 import numpy as np
+from numpy.testing import assert_equal
 
 from astropy.visualization.stretch import (LinearStretch, SqrtStretch,
                                            PowerStretch, PowerDistStretch,
@@ -9,7 +10,9 @@ from astropy.visualization.stretch import (LinearStretch, SqrtStretch,
                                            SquaredStretch, LogStretch,
                                            InvertedLogStretch,
                                            AsinhStretch, SinhStretch,
-                                           HistEqStretch, ContrastBiasStretch)
+                                           HistEqStretch,
+                                           InvertedHistEqStretch,
+                                           ContrastBiasStretch)
 
 
 DATA = np.array([0.00, 0.25, 0.50, 0.75, 1.00])
@@ -137,3 +140,10 @@ def test_invalid_sinh_a(a):
         AsinhStretch(a=a)
     with pytest.raises(ValueError, match=match):
         SinhStretch(a=a)
+
+
+def test_histeqstretch_invalid():
+    data = np.array([-np.inf, 0.00, 0.25, 0.50, 0.75, 1.00, np.inf])
+    result = np.array([0.0, 0.0, 0.25, 0.5, 0.75, 1.0, 1.0])
+    assert_equal(HistEqStretch(data)(data), result)
+    assert_equal(InvertedHistEqStretch(data)(data), result)
