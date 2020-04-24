@@ -134,14 +134,15 @@ It is also possible to specify the type of the output mask:
 In order to use lists of mnemonic bit flags names, one must provide a map,
 a subclass of `~astropy.nddata.bitmask.BitFlagNameMap`, that can be
 used to map mnemonic names to bit flag values. Normally these maps should be
-provided by a third-patry package supporting a specific instrument. In the
-example below we define a simple mask map:
+provided by a third-party package supporting a specific instrument. Each bit
+flag in the map may also contain a string comment following the flag value.
+In the example below we define a simple mask map:
 
     >>> from astropy.nddata.bitmask import BitFlagNameMap
     >>> class ST_DQ(BitFlagNameMap):
     ...     CR = 1
     ...     CLOUDY = 4
-    ...     RAINY = 8
+    ...     RAINY = 8, 'Dome closed'
     ...     HOT = 32
     ...     DEAD = 64
     >>> bitmask.bitfield_to_boolean_mask([9, 10, 73, 217], ignore_flags='CR,RAINY,DEAD',
