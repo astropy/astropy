@@ -39,9 +39,6 @@ except ImportError:
     print('ERROR: the documentation requires the sphinx-astropy package to be installed')
     sys.exit(1)
 
-sys.path.insert(0, os.path.abspath('ext'))
-extensions += ["astropy_config"]
-
 plot_rcparams = {}
 plot_rcparams['figure.figsize'] = (6, 6)
 plot_rcparams['savefig.facecolor'] = 'none'
