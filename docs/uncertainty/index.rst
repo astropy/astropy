@@ -1,5 +1,5 @@
-.. |quantity| replace:: :class:`~astropy.units.Quantity`
-.. |distribution| replace:: :class:`~astropy.uncertainty.Distribution`
+.. |Quantity| replace:: :class:`~astropy.units.Quantity`
+.. |Distribution| replace:: :class:`~astropy.uncertainty.Distribution`
 .. |ndarray| replace:: :class:`numpy.ndarray`
 
 .. _astropy-uncertainty:
@@ -10,29 +10,29 @@ Uncertainties and Distributions (`astropy.uncertainty`)
 
 .. note::
 
-    `astropy.uncertainty` is relatively new (Astropy v3.1), and thus it is
-    possible there will be API changes in upcoming versions of Astropy. If you
-    have specific ideas for how it might be improved, please  let us know on the
-    `astropy-dev mailing list`_ or at http://feedback.astropy.org .
+    `astropy.uncertainty` is relatively new (``astropy`` v3.1), and thus it is
+    possible there will be API changes in upcoming versions of ``astropy``. If
+    you have specific ideas for how it might be improved, please let us know on
+    the `astropy-dev mailing list`_ or at http://feedback.astropy.org.
 
 Introduction
 ============
 
-Astropy provides a |distribution| object to represent
-statistical distributions in a form that acts as a drop-in replacement for
-|quantity| or a regular |ndarray|. Used in this manner, |distribution| provides
-uncertainty propagation at the cost of additional computation.  It can also
-more generally represent sampled distributions for e.g., Monte Carlo calculation
-techniques.
+``astropy`` provides a |Distribution| object to represent statistical
+distributions in a form that acts as a drop-in replacement for a |Quantity|
+object or a regular |ndarray|. Used in this manner, |Distribution| provides
+uncertainty propagation at the cost of additional computation. It can also more
+generally represent sampled distributions for Monte Carlo calculation
+techniques, for instance.
 
-The core object for this feature is the |distribution|.  Currently, all
-such distributions are Monte Carlo sampled.  While this means each distribution
+The core object for this feature is the |Distribution|. Currently, all
+such distributions are Monte Carlo sampled. While this means each distribution
 may take more memory, it allows arbitrarily complex operations to be performed
 on distributions while maintaining their correlation structure. Some specific
-well-behaved distributions (e.g., the Normal distribution) have
-analytic forms which may eventually enable a more compact/efficient
-representation.  In the future these may provide a coherent uncertainty
-propagation mechanism to work with `~astropy.nddata.NDData`  However, this is
+well-behaved distributions (e.g., the normal distribution) have
+analytic forms which may eventually enable a more compact and efficient
+representation. In the future, these may provide a coherent uncertainty
+propagation mechanism to work with `~astropy.nddata.NDData`. However, this is
 not currently implemented. Hence, details of storing uncertainties for
 `~astropy.nddata.NDData` objects can be found in the :ref:`astropy_nddata`
 section.
@@ -40,24 +40,24 @@ section.
 Getting Started
 ===============
 
-To demonstrate a simple use case for distributions, consider the problem of
-uncertainty propagation of normal distributions.  Assume there are two
-measurements you wish to add, each with normal uncertainties.  We start
-with some initial imports/setup::
+To demonstrate a basic use case for distributions, consider the problem of
+uncertainty propagation of normal distributions. Assume there are two
+measurements you wish to add, each with normal uncertainties. We start
+with some initial imports and setup::
 
   >>> import numpy as np
   >>> from astropy import units as u
   >>> from astropy import uncertainty as unc
   >>> np.random.seed(12345)  # ensures reproducible example numbers
 
-Now we create two |distribution| objects to represent our distributions::
+Now we create two |Distribution| objects to represent our distributions::
 
   >>> a = unc.normal(1*u.kpc, std=30*u.pc, n_samples=10000)
   >>> b = unc.normal(2*u.kpc, std=40*u.pc, n_samples=10000)
 
 For normal distributions, the centers should add as expected, and the standard
-deviations add in quadrature.  We can check these results (to the limits of our
-Monte Carlo sampling) trivially with |distribution| arithmetic and attributes::
+deviations add in quadrature. We can check these results (to the limits of our
+Monte Carlo sampling) trivially with |Distribution| arithmetic and attributes::
 
   >>> c = a + b
   >>> c # doctest: +ELLIPSIS
@@ -68,8 +68,8 @@ Monte Carlo sampling) trivially with |distribution| arithmetic and attributes::
   <Quantity 50.07120457 pc>
 
 Indeed these are close to the expectations. While this may seem unnecessary for
-the simple Gaussian case, for more complex distributions or arithmetic
-operations where error analysis becomes untenable, |distribution| still powers
+the basic Gaussian case, for more complex distributions or arithmetic
+operations where error analysis becomes untenable, |Distribution| still powers
 through::
 
   >>> d = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=10000)
@@ -105,10 +105,12 @@ through::
 Using `astropy.uncertainty`
 ===========================
 
-Creating distributions
+Creating Distributions
 ----------------------
 
-The most direct way to create a distribution is to use an array or quantity
+.. EXAMPLE START: Creating Distributions Using Arrays or Quantities
+
+The most direct way to create a distribution is to use an array or |Quantity|
 that carries the samples in the *last* dimension::
 
   >>> import numpy as np
@@ -126,14 +128,18 @@ that carries the samples in the *last* dimension::
              [...]] ct with n_samples=1000>
 
 Note the distinction for these two distributions: the first is built from an
-array and therefore does not have |quantity| attributes like ``unit``, while the
-latter does.  This is reflected in how they interact with other objects - for
-example the ``NdarrayDistribution`` will not combine with unitful |quantity|
-objects.
+array and therefore does not have |Quantity| attributes like ``unit``, while the
+latter does have these attributes. This is reflected in how they interact with
+other objects, for example, the ``NdarrayDistribution`` will not combine with
+|Quantity| objects containing units.
 
-For commonly-used distributions, helper functions exist to make creating them
-easier. Below demonstrates several equivalent ways to create a normal/Gaussian
-distribution::
+.. EXAMPLE END
+
+.. EXAMPLE START: Creating Distributions Using Helper Functions
+
+For commonly used distributions, helper functions exist to make creating them
+more convenient. The examples below demonstrate several equivalent ways to
+create a normal/Gaussian distribution::
 
   >>> center = [1, 5, 30, 400]
   >>> n_distr = unc.normal(center*u.kpc, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=1000)
@@ -146,8 +152,7 @@ distribution::
   >>> unc.normal(center*u.kpc, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=20000).distribution.shape
   (4, 20000)
 
-
-Additionally, Poisson and uniform |distribution| creation functions exist::
+Additionally, Poisson and uniform |Distribution| creation functions exist::
 
   >>> unc.poisson(center*u.count, n_samples=1000) # doctest: +ELLIPSIS
   <QuantityDistribution [[...],
@@ -166,14 +171,18 @@ Additionally, Poisson and uniform |distribution| creation functions exist::
                [...],
                [...]] kpc with n_samples=1000>
 
+.. EXAMPLE END
+
 Users are free to create their own distribution classes following similar
 patterns.
-
 
 Using Distributions
 -------------------
 
-This object now acts much like a |quantity| or |ndarray| for all but the
+.. EXAMPLE START: Using and Accessing Distributions
+.. not quite sure what to call this example or how best to break it up
+
+This object now acts much like a |Quantity| or |ndarray| for all but the
 non-sampled dimension, but with additional statistical operations that work on
 the sampled distributions::
 
@@ -217,8 +226,12 @@ attribute::
   >>> distr.distribution.shape
   (4, 1000)
 
-A |quantity| distribution interact naturally with non-|distribution| quantities,
-essentially assuming the |quantity| is a Dirac delta distribution::
+.. EXAMPLE END
+
+.. EXAMPLE START: Interaction between Quantity Objects and Distributions
+
+A |Quantity| distribution interacts naturally with non-|Distribution|
+|Quantity| objects, assuming the |Quantity| is a Dirac delta distribution::
 
   >>> distr_in_kpc = distr * u.kpc/u.count  # for the sake of round numbers in examples
   >>> distrplus = distr_in_kpc + [2000,0,0,500]*u.pc
@@ -227,7 +240,7 @@ essentially assuming the |quantity| is a Dirac delta distribution::
   >>> distrplus.pdf_var() # doctest: +FLOAT_CMP
   <Quantity [  0.945996,   5.392711,  29.989775, 425.713975] kpc2>
 
-It also operates as expected with other distributions  (But see below for a
+It also operates as expected with other distributions (but see below for a
 discussion of covariances)::
 
   >>> another_distr = unc.Distribution((np.random.randn(1000,4)*[1000,.01 , 3000, 10] + [2000, 0, 0, 500]).T * u.pc)
@@ -237,16 +250,20 @@ discussion of covariances)::
   >>> combined_distr.pdf_var()  # doctest: +FLOAT_CMP
   <Quantity [  1.8427705 ,   5.39271147,  39.5343726 , 425.71324244] kpc2>
 
+.. EXAMPLE END
 
-Covariance in distributions and Discrete Sampling Effects
+Covariance in Distributions and Discrete Sampling Effects
 ---------------------------------------------------------
 
-One of the main applications for distributions is unceratinty propagation, which
+One of the main applications for distributions is uncertainty propagation, which
 critically requires proper treatment of covariance. This comes naturally in the
-Monte Carlo sampling approach used by the |distribution| class, as long as
+Monte Carlo sampling approach used by the |Distribution| class, as long as
 proper care is taken with sampling error.
 
-To start with a simple example, two un-correlated distributions should produce
+.. EXAMPLE START: Covariance in Distributions
+.. also not quite sure how to break up this chunk of examples
+
+To start with a basic example, two un-correlated distributions should produce
 an un-correlated joint distribution plot:
 
 .. plot::
@@ -264,8 +281,8 @@ an un-correlated joint distribution plot:
   >>> plt.xlim(-4, 4) # doctest: +SKIP
   >>> plt.ylim(-4, 4) # doctest: +SKIP
 
-Indeed, the distributions are independent.  If we instead construct a covariant
-pair of gaussians, it is immediately apparent:
+Indeed, the distributions are independent. If we instead construct a covariant
+pair of Gaussians, it is immediately apparent:
 
 .. plot::
   :context: close-figs
@@ -277,7 +294,6 @@ pair of gaussians, it is immediately apparent:
   >>> plt.scatter(n1.distribution, n2.distribution, s=2, lw=0, alpha=.5) # doctest: +SKIP
   >>> plt.xlim(-4, 4) # doctest: +SKIP
   >>> plt.ylim(-4, 4) # doctest: +SKIP
-
 
 Most importantly, the proper correlated structure is preserved or generated as
 expected by appropriate arithmetic operations. For example, ratios of
@@ -302,8 +318,12 @@ This demonstrates that the correlations naturally arise from the variables, but
 there is no need to explicitly account for it: the sampling process naturally
 recovers correlations that are present.
 
+.. EXAMPLE END
+
+.. EXAMPLE START: Preserving Covariance in Distributions
+
 An important note of warning, however, is that the covariance is only preserved
-if the sampling axes are exactly matched sample-by-sample.  If they are not, all
+if the sampling axes are exactly matched sample by sample. If they are not, all
 covariance information is (silently) lost:
 
 .. plot::
@@ -315,9 +335,8 @@ covariance information is (silently) lost:
   >>> plt.xlim(-4, 4) # doctest: +SKIP
   >>> plt.ylim(-4, 4) # doctest: +SKIP
 
-
-Moreover, an insufficiently-sampled distribution may give poor estimates or
-hide correlations.  The example below is the same as the covariant gaussian
+Moreover, an insufficiently sampled distribution may give poor estimates or
+hide correlations. The example below is the same as the covariant Gaussian
 example above, but with 200x fewer samples:
 
 
@@ -335,14 +354,15 @@ example above, but with 200x fewer samples:
   array([[1.04667972, 0.19391617],
          [0.19391617, 1.50899902]])
 
-
 The covariance structure is much less apparent by eye, and this is reflected
 in significant discrepancies between the input and output covariance matrix.
 In general this is an intrinsic trade-off using sampled distributions: a smaller
 number of samples is computationally more efficient, but leads to larger
-uncertainties in any of  the relevant quantities.  These tend to be of order
+uncertainties in any of the relevant quantities. These tend to be of order
 :math:`\sqrt{n_{\rm samples}}` in any derived quantity, but that depends on the
-complexity of the distribution in question.  You have been warned!
+complexity of the distribution in question.
+
+.. EXAMPLE END
 
 .. note that if this section gets too long, it should be moved to a separate
    doc page - see the top of performance.inc.rst for the instructions on how to do
