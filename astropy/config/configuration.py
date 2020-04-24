@@ -578,8 +578,10 @@ def get_config(packageormod=None, reload=False, rootname=None):
 
 
 def generate_config(pkgname='astropy', filename=None):
-    """Generates a configuration file, from the list of ConfigItem
-    for each subpackage.
+    """Generates a configuration file, from the list of `ConfigItem`
+    objects for each subpackage.
+
+    .. versionadded:: 4.1
 
     Parameters
     ----------
