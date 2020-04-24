@@ -112,25 +112,28 @@ def test_clip_invalid():
 
 @pytest.mark.parametrize('a', [-2., -1, 1.])
 def test_invalid_powerdist_a(a):
-    with pytest.raises(ValueError):
+    match = 'a must be >= 0, but cannot be set to 1'
+    with pytest.raises(ValueError, match=match):
         PowerDistStretch(a=a)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=match):
         InvertedPowerDistStretch(a=a)
 
 
 @pytest.mark.parametrize('a', [-2., -1, 0.])
 def test_invalid_power_log_a(a):
-    with pytest.raises(ValueError):
+    match = 'a must be > 0'
+    with pytest.raises(ValueError, match=match):
         PowerStretch(a=a)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=match):
         LogStretch(a=a)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=match):
         InvertedLogStretch(a=a)
 
 
 @pytest.mark.parametrize('a', [-2., -1, 0., 1.5])
 def test_invalid_sinh_a(a):
-    with pytest.raises(ValueError):
+    match = 'a must be > 0 and <= 1'
+    with pytest.raises(ValueError, match=match):
         AsinhStretch(a=a)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=match):
         SinhStretch(a=a)
