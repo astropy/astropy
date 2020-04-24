@@ -882,6 +882,9 @@ class SpectralCoord(u.Quantity):
 
         return super().to(unit, equivalencies=equivalencies)
 
+    def to_value(self, *args, **kwargs):
+        return self.to(*args, **kwargs).value
+
     def __repr__(self):
         prefixstr = '<' + self.__class__.__name__ + ' '
         sep = ', '
