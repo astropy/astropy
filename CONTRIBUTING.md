@@ -109,15 +109,17 @@ Other Tips
 - To skip only the tests running on Travis CI use ``[skip travis]``.
 
 - If your commit makes substantial changes to the documentation but no code
-  changes, then you can use ``[docs only]``, which will skip all but the
-  documentation building jobs on Travis.
+  changes, then you can use ``[skip travis]``, which will skip Travis CI
+  because documentation build is done on CircleCI. The exception to this rule
+  is when your changes to documentation include code snippets that need to
+  be tested using ``doctest``.
 
-- When contributing trivial documentation fixes (i.e. fixes to typos, spelling,
+- When contributing trivial documentation fixes (i.e., fixes to typos, spelling,
   grammar) that don't contain any special markup and are not associated with
-  code changes, please include the string ``[docs only]`` in your commit
+  code changes, please include the string ``[skip travis]`` in your commit
   message.
 
-      $ git commit -m "Fixed typo [docs only]"
+      $ git commit -m "Fixed typo [skip travis]"
 
 Checklist for Contributed Code
 ------------------------------
