@@ -25,7 +25,8 @@ from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
                          W13, W15, W17, W18, W19, W20, W21, W22, W26, W27, W28,
                          W29, W32, W33, W35, W36, W37, W38, W40, W41, W42, W43,
                          W44, W45, W50, W52, W53, W54, E06, E08, E09, E10, E11,
-                         E12, E13, E15, E16, E17, E18, E19, E20, E21, E22, E23)
+                         E12, E13, E15, E16, E17, E18, E19, E20, E21, E22, E23,
+                         E25)
 from . import ucd as ucd_mod
 from . import util
 from . import xmlutil
@@ -2451,6 +2452,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             for start, tag, data, pos in iterator:
                 if start:
                     if tag == 'DATA':
+                        if len(self.fields) == 0:
+                            warn_or_raise(E25, E25, None, config, pos)
                         warn_unknown_attrs(
                             'DATA', data.keys(), config, pos)
                         break
