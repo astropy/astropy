@@ -11,8 +11,7 @@ Finding ``TEME`` coordinates from Two-Line-Ephemerides (TLE)
 There is currently no support in `astropy.coordinates` for computing satellite orbits
 from the TLE orbital elements avaiable from a source like `Celestrak <http://celestrak.com/>`_.
 Full support for handling TLE files is available in the `Skyfield <http://rhodesmill.org/skyfield/>`_
-library, but if you do not wish to install that library, advice for dealing with satellite data in
-astropy is below.
+library, but some advice for dealing with satellite data in astropy is below.
 
 ..
   EXAMPLE START
