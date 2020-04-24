@@ -195,17 +195,21 @@ def test_write_jsviewer_local(tmpdir):
 
 
 @pytest.mark.skipif('not HAS_IPYTHON')
-def test_show_in_notebook():
+@pytest.mark.parametrize('descr', ['<em>', None])
+def test_show_in_notebook(descr):
     t = Table()
     t['a'] = [1, 2, 3, 4, 5]
     t['b'] = ['b', 'c', 'a', 'd', 'e']
+    t['a'].info.description = descr
 
     htmlstr_windx = t.show_in_notebook().data  # should default to 'idx'
     htmlstr_windx_named = t.show_in_notebook(show_row_index='realidx').data
     htmlstr_woindx = t.show_in_notebook(show_row_index=False).data
 
-    assert (textwrap.dedent("""
-    <thead><tr><th>idx</th><th>a</th><th>b</th></tr></thead>
+    hdr_a = '<th data-toggle="tooltip" title="&lt;em&gt;">a</th>' if descr else '<th>a</th>'
+
+    assert (textwrap.dedent(f"""
+    <thead><tr><th>idx</th>{hdr_a}<th>b</th></tr></thead>
     <tr><td>0</td><td>1</td><td>b</td></tr>
     <tr><td>1</td><td>2</td><td>c</td></tr>
     <tr><td>2</td><td>3</td><td>a</td></tr>
@@ -213,6 +217,6 @@ def test_show_in_notebook():
     <tr><td>4</td><td>5</td><td>e</td></tr>
     """).strip() in htmlstr_windx)
 
-    assert '<thead><tr><th>realidx</th><th>a</th><th>b</th></tr></thead>' in htmlstr_windx_named
+    assert f'<thead><tr><th>realidx</th>{hdr_a}<th>b</th></tr></thead>' in htmlstr_windx_named
 
-    assert '<thead><tr><th>a</th><th>b</th></tr></thead>' in htmlstr_woindx
+    assert f'<thead><tr>{hdr_a}<th>b</th></tr></thead>' in htmlstr_woindx
