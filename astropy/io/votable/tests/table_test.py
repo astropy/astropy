@@ -193,9 +193,9 @@ def test_no_field_not_empty_table():
     assert len(table.infos) == 1
 
 
-@raises(E25)
 def test_no_field_not_empty_table_exception():
-    votable = parse(get_pkg_data_filename('data/no_field_not_empty_table.xml'), verify='exception')
+    with pytest.raises(E25):
+        votable = parse(get_pkg_data_filename('data/no_field_not_empty_table.xml'), verify='exception')
 
 
 def test_binary2_masked_strings():
