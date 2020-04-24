@@ -682,7 +682,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
 
         return new_diffs
 
-    def represent_as(self, other_class, differential_class=None):
+    def represent_as(self, other_class, differential_class=None,
+                     lossless=False):
         """Convert coordinates to another representation.
 
         If the instance is of the requested class, it is returned unmodified.
@@ -807,20 +808,33 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
         return rep
 
     def __setitem__(self, item, value):
-        if self.__class__ is not value.__class__:
-            raise TypeError(f'can only set from object of same class: '
-                            f'{self.__class__.__name__} vs. '
-                            f'{value.__class__.__name__}')
+        if not isinstance(value, BaseRepresentation):
+            raise TypeError(f'value much be a representation instance, '
+                            f'not {type(value)}.')
 
-        # Can this ever occur? (Same class but different differential keys).
-        # This exception is not tested since it is not clear how to generate it.
-        if self._differentials.keys() != value._differentials.keys():
-            raise ValueError(f'setitem value must have same differentials')
+        if not (isinstance(value, self.__class__)
+                or len(value.attr_classes) == len(self.attr_classes)):
+            raise ValueError(f'value must be representable as {type(self)} '
+                             f'without loss of information.')
 
+        diff_classes = {}
+        if self._differentials:
+            if self._differentials.keys() != value._differentials.keys():
+                raise ValueError('value must have the same differentials.')
+
+            for key, self_diff in self._differentials.items():
+                diff_classes[key] = self_diff_cls = self_diff.__class__
+                value_diff_cls = value._differentials[key].__class__
+                if not (isinstance(value_diff_cls, self_diff_cls)
+                        or (len(value_diff_cls.attr_classes)
+                            == len(self_diff_cls.attr_classes))):
+                    raise ValueError(f'value differential {key!r} must be representable '
+                                     'as {type(self_diff)} without loss of information.')
+
+        value = value.represent_as(self.__class__, diff_classes)
         super().__setitem__(item, value)
-        for self_diff, value_diff in zip(self._differentials.values(),
-                                         value._differentials.values()):
-            self_diff[item] = value_diff
+        for key, differential in self._differentials.items():
+            differential[item] = value._differentials[key]
 
     def _scale_operation(self, op, *args):
         """Scale all non-angular components, leaving angular ones unchanged.
