@@ -3,7 +3,6 @@
 import numpy as np
 
 from asdf import tagged
-from asdf import yamlutil
 from asdf.tags.core.ndarray import NDArrayType
 
 from astropy import table
@@ -30,11 +29,7 @@ class TableType:
         # This enables us to support files that use the table definition from
         # the ASDF Standard, rather than the custom one that Astropy defines.
         if cls._compat:
-            columns = [
-                yamlutil.tagged_tree_to_custom_tree(col, ctx)
-                for col in node['columns']
-            ]
-            return table.Table(columns, meta=meta)
+            return table.Table(node['columns'], meta=meta)
 
         if node.get('qtable', False):
             t = table.QTable(meta=node.get('meta', {}))
@@ -42,17 +37,13 @@ class TableType:
             t = table.Table(meta=node.get('meta', {}))
 
         for name, col in zip(node['colnames'], node['columns']):
-            t[name] = yamlutil.tagged_tree_to_custom_tree(col, ctx)
+            t[name] = col
 
         return t
 
     @classmethod
     def to_tree(cls, data, ctx):
-        columns = []
-        for name in data.colnames:
-            thiscol = data[name]
-            column = yamlutil.custom_tree_to_tagged_tree(thiscol, ctx)
-            columns.append(column)
+        columns = [data[name] for name in data.colnames]
 
         node = dict(columns=columns)
         # Files that use the table definition from the ASDF Standard (instead
@@ -112,8 +103,7 @@ class ColumnType(AstropyAsdfType):
 
     @classmethod
     def from_tree(cls, node, ctx):
-        data = yamlutil.tagged_tree_to_custom_tree(
-            node['data'], ctx)
+        data = node['data']
         name = node['name']
         description = node.get('description')
         unit = node.get('unit')
@@ -126,15 +116,13 @@ class ColumnType(AstropyAsdfType):
     @classmethod
     def to_tree(cls, data, ctx):
         node = {
-            'data': yamlutil.custom_tree_to_tagged_tree(
-                data.data, ctx),
+            'data': data.data,
             'name': data.name
         }
         if data.description:
             node['description'] = data.description
         if data.unit:
-            node['unit'] = yamlutil.custom_tree_to_tagged_tree(
-                data.unit, ctx)
+            node['unit'] = data.unit
         if data.meta:
             node['meta'] = data.meta
 
