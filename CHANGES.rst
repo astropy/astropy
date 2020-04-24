@@ -279,8 +279,6 @@ astropy.io.votable
 - For FIELDs with datatype="char", store the values as strings instead
   of bytes. [#9505]
 
-- Fixed parsing failure of VOTable with no fields. [#10192]
-
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
@@ -401,6 +399,10 @@ astropy.io.registry
 
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
+
+- Fixed parsing failure of VOTable with no fields. When detecting a non-empty
+  table with no fields, the following warning/exception is issued:
+  E25 "No FIELDs are defined; DATA section will be ignored." [#10192]
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
