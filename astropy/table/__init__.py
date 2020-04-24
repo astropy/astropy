@@ -4,9 +4,9 @@ from astropy import config as _config
 from .column import Column, MaskedColumn, StringTruncateWarning, ColumnInfo
 
 __all__ = ['BST', 'Column', 'ColumnGroups', 'ColumnInfo', 'Conf', 'FastBST',
-           'FastRBT', 'JSViewer', 'MaskedColumn', 'NdarrayMixin', 'QTable',
-           'Row', 'SCEngine', 'SerializedColumn', 'SortedArray',
-           'StringTruncateWarning', 'Table', 'TableColumns', 'TableFormatter',
+           'FastRBT', 'JSViewer', 'MaskedColumn', 'NdarrayMixin', 'QTable', 'Row',
+           'SCEngine', 'SerializedColumn', 'SortedArray', 'StringTruncateWarning',
+           'Table', 'TableAttribute', 'TableColumns', 'TableFormatter',
            'TableGroups', 'TableMergeError', 'TableReplaceWarning', 'conf',
            'connect', 'hstack', 'join', 'registry', 'represent_mixins_as_columns',
            'setdiff', 'unique', 'vstack', 'dstack', 'conf']
@@ -46,7 +46,7 @@ conf = Conf()  # noqa
 
 from .groups import TableGroups, ColumnGroups
 from .table import (Table, QTable, TableColumns, Row, TableFormatter,
-                    NdarrayMixin, TableReplaceWarning)
+                    NdarrayMixin, TableReplaceWarning, TableAttribute)
 from .operations import join, setdiff, hstack, dstack, vstack, unique, TableMergeError
 from .bst import BST, FastBST, FastRBT
 from .sorted_array import SortedArray
