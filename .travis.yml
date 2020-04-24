@@ -26,6 +26,8 @@ addons:
             - language-pack-de
             # tzdata is included to ensure system leap seconds are up to date.
             - tzdata
+            # The comparison tests with amuse need a fortran compiler
+            - gfortran
 
 env:
     global:
