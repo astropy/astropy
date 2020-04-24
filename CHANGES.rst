@@ -362,14 +362,13 @@ Other Changes and Additions
 4.0.2 (unreleased)
 ==================
 
-Bug Fixes
 New Features
 ------------
 
 astropy.utils
 ^^^^^^^^^^^^^
 
-- ``astropy.utils.data.download_file` now supports FTPS/FTP over TLS. [#9964]
+- ``astropy.utils.data.download_file`` now supports FTPS/FTP over TLS. [#9964]
 
 Bug fixes
 ---------
