@@ -29,6 +29,11 @@ directly with::
     pip install -e .[test]
     pytest
 
+or::
+
+    python setup.py build_ext --inplace
+    pytest
+
 For more information, see:
 
   http://docs.astropy.org/en/latest/development/testguide.html#running-tests
