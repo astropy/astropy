@@ -410,8 +410,8 @@ See Also
 .. toctree::
    :maxdepth: 2
 
-   config_0_4_transition
    astropy_config
+   config_0_4_transition
 
 :doc:`/logging` (overview of `astropy.logger`)
 
