@@ -16,7 +16,7 @@ class SpectralCoordType(AstropyType):
     """
     ASDF tag implementation used to serialize/derialize SpectralCoord objects
     """
-    name = 'coordinates/spectral_coord'
+    name = 'coordinates/spectralcoord'
     types = [SpectralCoord]
     version = '1.0.0'
 
@@ -26,6 +26,8 @@ class SpectralCoordType(AstropyType):
         if isinstance(spec_coord, SpectralCoord):
             node['value'] = custom_tree_to_tagged_tree(spec_coord.value, ctx)
             node['unit'] = custom_tree_to_tagged_tree(spec_coord.unit, ctx)
+            node['observer'] = custom_tree_to_tagged_tree(spec_coord.observer, ctx)
+            node['target'] = custom_tree_to_tagged_tree(spec_coord.target, ctx)
             return node
         raise TypeError(f"'{spec_coord}' is not a valid SpectralCoord")
 
@@ -36,6 +38,8 @@ class SpectralCoordType(AstropyType):
 
         unit = UnitType.from_tree(node['unit'], ctx)
         value = node['value']
+        observer = node['observer']
+        target = node['target']
         if isinstance(value, NDArrayType):
             value = value._make_array()
-        return SpectralCoord(value, unit=unit)
+        return SpectralCoord(value, unit=unit, observer=observer, target=target)
