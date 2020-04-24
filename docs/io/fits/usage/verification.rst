@@ -1,5 +1,7 @@
 .. currentmodule:: astropy.io.fits
 
+..  _fits_io_verification:
+
 Verification
 ************
 
