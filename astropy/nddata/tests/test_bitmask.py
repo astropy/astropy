@@ -208,13 +208,45 @@ def test_bitfield_to_boolean_mask(data, flags, flip, goodval, dtype, ref):
     assert np.all(mask == ref)
 
 
+@pytest.mark.parametrize('flag', [(4, 'flag1'), 8])
+def test_bitflag(flag):
+    f = bitmask.BitFlag(flag)
+    if isinstance(flag, tuple):
+        assert f == flag[0]
+        assert f.__doc__ == flag[1]
+
+        f = bitmask.BitFlag(*flag)
+        assert f == flag[0]
+        assert f.__doc__ == flag[1]
+
+    else:
+        assert f == flag
+
+
+def test_bitflag_docs2():
+    with pytest.raises(ValueError):
+        bitmask.BitFlag((1, 'docs1'), 'docs2')
+
+
+@pytest.mark.parametrize('flag', [0, 3])
+def test_bitflag_not_pow2(flag):
+    with pytest.raises(bitmask.InvalidBitFlag):
+        bitmask.BitFlag(flag, 'custom flag')
+
+
+@pytest.mark.parametrize('flag', [0.0, True, '1'])
+def test_bitflag_not_int_flag(flag):
+    with pytest.raises(bitmask.InvalidBitFlag):
+        bitmask.BitFlag((flag, 'custom flag'))
+
+
 @pytest.mark.parametrize('caching', [True, False])
 def test_basic_map(monkeypatch, caching):
     monkeypatch.setattr(bitmask, '_ENABLE_BITFLAG_CACHING', False)
 
     class ObservatoryDQMap(bitmask.BitFlagNameMap):
         _not_a_flag = 1
-        CR = 1
+        CR = 1, 'cosmic ray'
         HOT = 2
         DEAD = 4
 
@@ -224,6 +256,7 @@ def test_basic_map(monkeypatch, caching):
         READOUT_ERR = 16
 
     assert ObservatoryDQMap.cr == 1
+    assert ObservatoryDQMap.cr.__doc__ == 'cosmic ray'
     assert DetectorMap.READOUT_ERR == 16
 
 
@@ -322,13 +355,17 @@ def test_map_not_bit_flag(flag):
     with pytest.raises(ValueError):
         bitmask.extend_bit_flag_map('DetectorMap', DEAD=flag)
 
+    with pytest.raises(ValueError):
+        class DetectorMap(bitmask.BitFlagNameMap):
+            DEAD=flag
+
 
 @pytest.mark.parametrize('flag', [0.0, True, '1'])
 def test_map_not_int_flag(flag):
-    with pytest.raises(TypeError):
+    with pytest.raises(bitmask.InvalidBitFlag):
         bitmask.extend_bit_flag_map('DetectorMap', DEAD=flag)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(bitmask.InvalidBitFlag):
         class ObservatoryDQMap(bitmask.BitFlagNameMap):
             CR = flag
 
@@ -361,9 +398,11 @@ def test_map_repr():
 def test_map_add_flags():
     map1 = bitmask.extend_bit_flag_map('DetectorMap', CR=1)
 
-    map2 = map1 + {'HOT': 2, 'DEAD': 4}
+    map2 = map1 + {'HOT': 2, 'DEAD': (4, 'a really dead pixel')}
     assert map2.CR == 1
     assert map2.HOT == 2
+    assert map2.DEAD.__doc__ == 'a really dead pixel'
+    assert map2.DEAD == 4
 
     map2 = map1 + [('HOT', 2), ('DEAD', 4)]
     assert map2.CR == 1
