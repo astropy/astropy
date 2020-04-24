@@ -13,8 +13,8 @@ from astropy.config import set_temp_config, reload_config
 from astropy.utils.data import get_pkg_data_filename, get_pkg_data_fileobj
 from astropy.io.votable.table import parse, writeto
 from astropy.io.votable import tree, conf
-from astropy.io.votable.exceptions import VOWarning, W39
-from astropy.tests.helper import catch_warnings
+from astropy.io.votable.exceptions import VOWarning, W39, E25
+from astropy.tests.helper import catch_warnings, raises
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
@@ -191,6 +191,11 @@ def test_no_field_not_empty_table():
     table = votable.get_first_table()
     assert len(table.fields) == 0
     assert len(table.infos) == 1
+
+
+@raises(E25)
+def test_no_field_not_empty_table_exception():
+    votable = parse(get_pkg_data_filename('data/no_field_not_empty_table.xml'), verify='exception')
 
 
 def test_binary2_masked_strings():
