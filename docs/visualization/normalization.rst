@@ -217,8 +217,8 @@ Please note that one should not use ``ax.imshow(norm(image))`` because
 the colorbar ticks marks will represent normalized image values (on a
 linear scale), not the actual image values.  Also, the image displayed
 by ``ax.imshow(norm(image))`` is not exactly equivalent to
-``ax.imshow(image, norm=norm)`` if the image contains `NaN` or `inf`
-values.  The exact equivalent is
+``ax.imshow(image, norm=norm)`` if the image contains ``NaN`` or
+``inf`` values.  The exact equivalent is
 ``ax.imshow(norm(np.ma.masked_invalid(image))``.
 
 The input image to
