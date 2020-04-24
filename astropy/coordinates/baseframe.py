@@ -1534,7 +1534,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             raise ValueError('can only set frame if it has data')
 
         # Set representation data
-        self._data._setitem(item, value._data)
+        self._data[item] = value._data
 
         # Frame attributes required to be identical by is_equivalent_frame,
         # no need to set them here.
