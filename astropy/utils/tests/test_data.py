@@ -1621,6 +1621,11 @@ def test_download_file_wrong_size(monkeypatch):
     def mockurl(remote_url, timeout=None):
         yield MockURL()
 
+    def mockurl_builder(tlscontext=None):
+        mock_opener = type('MockOpener', (object,), {})()
+        mock_opener.open = mockurl
+        return mock_opener
+
     class MockURL:
         def __init__(self):
             self.reader = io.BytesIO(b"a" * real_length)
@@ -1631,7 +1636,7 @@ def test_download_file_wrong_size(monkeypatch):
         def read(self, length=None):
             return self.reader.read(length)
 
-    monkeypatch.setattr(urllib.request, "urlopen", mockurl)
+    monkeypatch.setattr(urllib.request, "build_opener", mockurl_builder)
 
     with pytest.raises(urllib.error.ContentTooShortError):
         report_length = 1024
