@@ -197,7 +197,8 @@ class PowerStretch(BaseStretch):
     Parameters
     ----------
     a : float
-        The power index (see the above formula).
+        The power index (see the above formula).  ``a`` must be greater
+        than 0.
     """
 
     @property
@@ -206,6 +207,8 @@ class PowerStretch(BaseStretch):
 
     def __init__(self, a):
         super().__init__()
+        if a <= 0:
+            raise ValueError("a must be > 0")
         self.power = a
 
     def __call__(self, values, clip=True, out=None, invalid=None):
@@ -272,13 +275,14 @@ class PowerDistStretch(BaseStretch):
     Parameters
     ----------
     a : float, optional
-        The ``a`` parameter used in the above formula.  Default is 1000.
-        ``a`` cannot be set to 1.
+        The ``a`` parameter used in the above formula.  ``a`` must be
+        greater than or equal to 0, but cannot be set to 1.  Default is
+        1000.
     """
 
     def __init__(self, a=1000.0):
-        if a == 1:  # singularity
-            raise ValueError("a cannot be set to 1")
+        if a < 0 or a == 1:  # singularity
+            raise ValueError("a must be >= 0, but cannot be set to 1")
         super().__init__()
         self.exp = a
 
@@ -308,13 +312,14 @@ class InvertedPowerDistStretch(BaseStretch):
     Parameters
     ----------
     a : float, optional
-        The ``a`` parameter used in the above formula.  Default is 1000.
-        ``a`` cannot be set to 1.
+        The ``a`` parameter used in the above formula.  ``a`` must be
+        greater than or equal to 0, but cannot be set to 1.  Default is
+        1000.
     """
 
     def __init__(self, a=1000.0):
-        if a == 1:  # singularity
-            raise ValueError("a cannot be set to 1")
+        if a < 0 or a == 1:  # singularity
+            raise ValueError("a must be >= 0, but cannot be set to 1")
         super().__init__()
         self.exp = a
 
@@ -357,12 +362,13 @@ class LogStretch(BaseStretch):
     The stretch is given by:
 
     .. math::
-        y = \frac{\log{(a x + 1)}}{\log{(a + 1)}}.
+        y = \frac{\log{(a x + 1)}}{\log{(a + 1)}}
 
     Parameters
     ----------
     a : float
-        The ``a`` parameter used in the above formula.  Default is 1000.
+        The ``a`` parameter used in the above formula.  ``a`` must be
+        greater than 0.  Default is 1000.
     """
 
     @property
@@ -371,6 +377,8 @@ class LogStretch(BaseStretch):
 
     def __init__(self, a=1000.0):
         super().__init__()
+        if a <= 0:  # singularity
+            raise ValueError("a must be > 0")
         self.exp = a
 
     def __call__(self, values, clip=True, out=None, invalid=None):
@@ -433,16 +441,20 @@ class InvertedLogStretch(BaseStretch):
     The stretch is given by:
 
     .. math::
-        y = \frac{e^{y} (a + 1) -1}{a}
+        y = \frac{e^{y \log{a + 1}} - 1}{a} \\
+        y = \frac{e^{y} (a + 1) - 1}{a}
 
     Parameters
     ----------
     a : float, optional
-        The ``a`` parameter used in the above formula.  Default is 1000.
+        The ``a`` parameter used in the above formula.  ``a`` must be
+        greater than 0.  Default is 1000.
     """
 
     def __init__(self, a):
         super().__init__()
+        if a <= 0:  # singularity
+            raise ValueError("a must be > 0")
         self.exp = a
 
     def __call__(self, values, clip=True, out=None):
@@ -474,12 +486,14 @@ class AsinhStretch(BaseStretch):
         The ``a`` parameter used in the above formula.  The value of
         this parameter is where the asinh curve transitions from linear
         to logarithmic behavior, expressed as a fraction of the
-        normalized image.  Must be in the range between 0 and 1.
-        Default is 0.1
+        normalized image.  ``a`` must be greater than 0 and less than or
+        equal to 1 (0 < a <= 1).  Default is 0.1.
     """
 
     def __init__(self, a=0.1):
         super().__init__()
+        if a <= 0 or a > 1:
+            raise ValueError("a must be > 0 and <= 1")
         self.a = a
 
     def __call__(self, values, clip=True, out=None):
@@ -507,11 +521,15 @@ class SinhStretch(BaseStretch):
     Parameters
     ----------
     a : float, optional
-        The ``a`` parameter used in the above formula.  Default is 1/3.
+        The ``a`` parameter used in the above formula.  ``a`` must be
+        greater than 0 and less than or equal to 1 (0 < a <= 1).
+        Default is 1/3.
     """
 
     def __init__(self, a=1./3.):
         super().__init__()
+        if a <= 0 or a > 1:
+            raise ValueError("a must be > 0 and <= 1")
         self.a = a
 
     def __call__(self, values, clip=True, out=None):
@@ -541,9 +559,9 @@ class HistEqStretch(BaseStretch):
     """
 
     def __init__(self, data, values=None):
-
         # Assume data is not necessarily normalized at this point
         self.data = np.sort(data.ravel())
+        self.data = self.data[np.isfinite(self.data)]
         vmin = self.data.min()
         vmax = self.data.max()
         self.data = (self.data - vmin) / (vmax - vmin)
@@ -579,7 +597,7 @@ class InvertedHistEqStretch(BaseStretch):
     """
 
     def __init__(self, data, values=None):
-        self.data = data
+        self.data = data[np.isfinite(data)]
         if values is None:
             self.values = np.linspace(0., 1., len(self.data))
         else:
