@@ -8,8 +8,6 @@ from collections import OrderedDict
 import locale
 import platform
 from io import StringIO
-from contextlib import ExitStack
-import warnings
 
 import pathlib
 import pytest
@@ -1513,12 +1511,7 @@ def test_kwargs_dict_guess(enable):
             assert k.get('kwargs').get('fast_reader').get('enable') is enable
 
 
-@pytest.mark.parametrize('rdb', [False, True])
-@pytest.mark.parametrize('fast_reader', [False, 'force'])
-def test_deduplicate_names_basic(rdb, fast_reader):
-    """Test that duplicate column names are successfully de-duplicated for the
-    basic format.
-    """
+def _get_lines(rdb):
     lines = ['a a_2 a_1 a a']
     if rdb:
         lines += ['N N N N N']
@@ -1526,16 +1519,23 @@ def test_deduplicate_names_basic(rdb, fast_reader):
 
     if rdb:
         lines = ['\t'.join(line.split()) for line in lines]
+    return lines
+
+
+@pytest.mark.parametrize('rdb', [False, True])
+@pytest.mark.parametrize('fast_reader', [False, 'force'])
+def test_deduplicate_names_basic(rdb, fast_reader):
+    """Test that duplicate column names are successfully de-duplicated for the
+    basic format.  Skip the case of rdb=True and fast_reader='force' since that
+    fails and is tested below.
+    """
+    lines = _get_lines(rdb)
 
     dat = ascii.read(lines, fast_reader=fast_reader)
     assert dat.colnames == ['a', 'a_2', 'a_1', 'a_3', 'a_4']
+    assert len(dat) == 2
 
-    with ExitStack() as stack:
-        # include_names doesn't work for the fast_reader and RDB (even for unique
-        # colnames), so expect an exception in this case.
-        if rdb is True and fast_reader == 'force':
-            stack.enter_context(pytest.raises(AssertionError))
-
+    if rdb is False or fast_reader is False:
         dat = ascii.read(lines, fast_reader=fast_reader, include_names=['a', 'a_2', 'a_3'])
         assert len(dat) == 2
         assert dat.colnames == ['a', 'a_2', 'a_3']
@@ -1551,3 +1551,27 @@ def test_deduplicate_names_basic(rdb, fast_reader):
         assert np.all(dat['b1'] == [1, 10])
         assert np.all(dat['b2'] == [2, 20])
         assert np.all(dat['b4'] == [4, 40])
+
+
+@pytest.mark.xfail
+def test_deduplicate_names_rdb_fast_fail1():
+    """Test that duplicate column names fail for the rdb format for fast reader.
+    This is not desired but reflects a current known limitation.
+    """
+    lines = _get_lines(True)
+
+    dat = ascii.read(lines, fast_reader='force', include_names=['a', 'a_2', 'a_3'])
+    assert len(dat) == 2
+
+
+@pytest.mark.xfail
+def test_deduplicate_names_rdb_fast_fail2():
+    """Test that duplicate column names fail for the rdb format for fast reader.
+    This is not desired but reflects a current known limitation.
+    """
+    lines = _get_lines(True)
+
+    dat = ascii.read(lines, fast_reader='force',
+                     names=['b1', 'b2', 'b3', 'b4', 'b5'],
+                     include_names=['b1', 'b2', 'b4'])
+    assert len(dat) == 2
