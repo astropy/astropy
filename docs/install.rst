@@ -382,19 +382,20 @@ of this section.
 
 On the other hand, if you wish to call Sphinx manually to build the
 documentation, you will need to make sure that a number of dependencies are
-installed. The easiest way to install these is to specify ``[docs]`` when
-installing ``astropy`` with pip::
-
-    pip install -e .[docs]
-
-You can alternatively install the `sphinx-astropy
-<https://github.com/astropy/sphinx-astropy>`_ package, either with pip::
-
-    pip install sphinx-astropy
-
-or with Conda::
+installed.  If you use conda, the easiest way to install the dependencies is
+with::
 
     conda install -c astropy sphinx-astropy
+
+Without conda, you install the dependencies by specifying ``[docs]`` when
+installing ``astropy`` with pip::
+
+    pip install -e '.[docs]'
+
+You can alternatively install the `sphinx-astropy
+<https://github.com/astropy/sphinx-astropy>`_ package with pip::
+
+    pip install sphinx-astropy
 
 In addition to providing configuration common to packages in the Astropy
 ecosystem, this package also serves as a way to automatically get the main
@@ -412,12 +413,16 @@ dependencies, including:
 * `numpydoc <https://numpydoc.readthedocs.io>`_ - an extension to parse
   docstrings in NumPyDoc format
 * `pillow <https://pillow.readthedocs.io>`_ - used in one of the examples
+* `Graphviz <http://www.graphviz.org>`_ - generate inheritance graphs (ONLY
+  available in conda package)
 
-In addition, if you want inheritance graphs to be generated, you will need to
-make sure that `Graphviz <http://www.graphviz.org>`_ is installed. If you
-install sphinx-astropy with Conda, Graphviz will automatically get installed,
-but if you use pip, you will need to install Graphviz separately as it is not
-a Python package.
+.. Note::
+
+   Both of the ``pip`` install methods above do not include `Graphviz
+   <http://www.graphviz.org>`_.  If you do not install this package separately
+   then the documentation build process will produce a very large number of
+   lengthy warnings (which can obscure bona fide warnings) and also not
+   generate inheritance graphs.
 
 .. _astropy-doc-building:
 
