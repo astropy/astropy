@@ -118,3 +118,62 @@ def test_celestial_spectral_ape14(spectral_wcs, celestial_wcs):
 
     assert str(wcs) == EXPECTED_CELESTIAL_SPECTRAL_APE14_REPR
     assert EXPECTED_CELESTIAL_SPECTRAL_APE14_REPR in repr(wcs)
+
+
+
+def test_shared_pixel_axis_compound_1d(spectral_1d_fitswcs, time_1d_fitswcs):
+
+    wcs = CompoundLowLevelWCS(spectral_1d_fitswcs, time_1d_fitswcs, mapping=(0, 0))
+
+    assert wcs.world_axis_names == ("Frequency", "Time")
+    assert wcs.world_axis_physical_types == ("em.freq", "time")
+    assert wcs.world_axis_units == ("Hz", "s")
+    assert wcs.world_n_dim == 2
+
+    assert wcs.pixel_n_dim == 1
+    assert wcs.pixel_shape is None
+    assert wcs.pixel_axis_names == ('',)
+    assert wcs.pixel_bounds is None
+
+    world = wcs.pixel_to_world_values(0)
+    np.testing.assert_allclose(world, (-2.6e+10, -7.))
+    np.testing.assert_allclose(wcs.world_to_pixel_values(*world), 0)
+
+    np.testing.assert_allclose(wcs.axis_correlation_matrix, [[True],
+                                                             [True]])
+
+
+
+def test_shared_pixel_axis_compound_3d(spectral_cube_3d_fitswcs, time_1d_fitswcs):
+
+    spectral_cube_3d_fitswcs._naxis = [10, 20, 30]
+    time_1d_fitswcs._naxis = [20]
+
+    wcs = CompoundLowLevelWCS(spectral_cube_3d_fitswcs, time_1d_fitswcs, mapping=(0, 1, 2, 1))
+
+    assert wcs.world_axis_names == ("Right Ascension", "Declination", "Frequency", "Time")
+    assert wcs.world_axis_physical_types == ("pos.eq.ra", "pos.eq.dec", "em.freq", "time")
+    assert wcs.world_axis_units == ("deg", "deg", "Hz", "s")
+    assert wcs.world_n_dim == 4
+
+    assert wcs.pixel_n_dim == 3
+    np.testing.assert_allclose(wcs.pixel_shape, (10, 20, 30))
+    assert wcs.pixel_axis_names == ('', '', '')
+    assert wcs.pixel_bounds is None
+
+    np.testing.assert_allclose(wcs.axis_correlation_matrix, [[True,  True,  False],
+                                                             [True,  True,  False],
+                                                             [False, False, True],
+                                                             [False, True,  False]])
+
+    world = wcs.pixel_to_world_values(0, 0, 0)
+    np.testing.assert_allclose(world, ( 14, -12, -2.6e+10, -7.0))
+    np.testing.assert_allclose(wcs.world_to_pixel_values(*world), (0, 0, 0))
+
+    with pytest.raises(ValueError):
+        wcs.world_to_pixel_values(( 14, -12, -2.6e+10, -6.0))
+
+    with pytest.raises(ValueError):
+        wcs.world_to_pixel_values(( 14, -10, -2.6e+10, -7.0))
+
+
