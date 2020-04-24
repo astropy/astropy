@@ -1,7 +1,15 @@
 4.0.2 (unreleased)
 ==================
 
-Bug Fixes
+New Features
+------------
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- ``astropy.utils.data.download_file`` now supports FTPS/FTP over TLS. [#9964]
+
+Bug fixes
 ---------
 
 astropy.config
@@ -112,6 +120,9 @@ astropy.units
 
 astropy.utils
 ^^^^^^^^^^^^^
+
+- The default IERS server has been updated to use the FTPS server hosted by
+  CDDIS. [#9964]
 
 - Fixed memory allocation on 64-bit systems within ``xml.iterparse`` [#10076]
 
