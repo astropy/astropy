@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import functools
 
-from asdf.yamlutil import custom_tree_to_tagged_tree
 import numpy as np
 
 from astropy.time import TimeDelta
@@ -25,7 +24,7 @@ class TimeDeltaType(AstropyType):
 
     @classmethod
     def to_tree(cls, obj, ctx):
-        return custom_tree_to_tagged_tree(obj.info._represent_as_dict(), ctx)
+        return obj.info._represent_as_dict()
 
     @classmethod
     def from_tree(cls, node, ctx):

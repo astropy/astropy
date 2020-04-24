@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
-from asdf import tagged, yamlutil
+from asdf import tagged
 
 from astropy.modeling import models, mappings
 from astropy.utils import minversion
@@ -20,14 +20,13 @@ class TransformType(AstropyAsdfType):
     @classmethod
     def _from_tree_base_transform_members(cls, model, node, ctx):
         if 'inverse' in node:
-            model.inverse = yamlutil.tagged_tree_to_custom_tree(
-                node['inverse'], ctx)
+            model.inverse = node['inverse']
 
         if 'name' in node:
-            model = model.rename(node['name'])
+            model.name = node['name']
 
         if 'bounding_box' in node:
-            model.bounding_box = yamlutil.tagged_tree_to_custom_tree(node['bounding_box'], ctx)
+            model.bounding_box = node['bounding_box']
 
         if "inputs" in node:
             if model.n_inputs == 1:
@@ -57,13 +56,13 @@ class TransformType(AstropyAsdfType):
     @classmethod
     def from_tree(cls, node, ctx):
         model = cls.from_tree_transform(node, ctx)
-        model = cls._from_tree_base_transform_members(model, node, ctx)
-        return model
+        yield model
+        cls._from_tree_base_transform_members(model, node, ctx)
 
     @classmethod
     def _to_tree_base_transform_members(cls, model, node, ctx):
         if getattr(model, '_user_inverse', None) is not None:
-            node['inverse'] = yamlutil.custom_tree_to_tagged_tree(model._user_inverse, ctx)
+            node['inverse'] = model._user_inverse
 
         if model.name is not None:
             node['name'] = model.name
@@ -78,7 +77,7 @@ class TransformType(AstropyAsdfType):
                 bb = list(bb)
             else:
                 bb = [list(item) for item in model.bounding_box]
-            node['bounding_box'] = yamlutil.custom_tree_to_tagged_tree(bb, ctx)
+            node['bounding_box'] = bb
         if type(model.__class__.inputs) != property:
             node['inputs'] = model.inputs
             node['outputs'] = model.outputs
@@ -86,7 +85,7 @@ class TransformType(AstropyAsdfType):
         # model / parameter constraints
         node['fixed'] = dict(model.fixed)
         node['bounds'] = dict(model.bounds)
-        
+
     @classmethod
     def to_tree_transform(cls, model, ctx):
         raise NotImplementedError("Must be implemented in TransformType subclasses")
@@ -193,16 +192,16 @@ class UnitsMappingType(AstropyType):
                 "allow_dimensionless": node.input_units_allow_dimensionless[i],
             }
             if m[0] is not None:
-                input["unit"] = yamlutil.custom_tree_to_tagged_tree(m[0], ctx)
+                input["unit"] = m[0]
             if node.input_units_equivalencies is not None and i in node.input_units_equivalencies:
-                input["equivalencies"] = yamlutil.custom_tree_to_tagged_tree(node.input_units_equivalencies[i], ctx)
+                input["equivalencies"] = node.input_units_equivalencies[i]
             inputs.append(input)
 
             output = {
                 "name": o,
             }
             if m[-1] is not None:
-                output["unit"] = yamlutil.custom_tree_to_tagged_tree(m[-1], ctx)
+                output["unit"] = m[-1]
             outputs.append(output)
 
         tree["inputs"] = inputs
@@ -220,7 +219,7 @@ class UnitsMappingType(AstropyType):
             if "equivalencies" in i:
                 if equivalencies is None:
                     equivalencies = {}
-                equivalencies[i["name"]] = yamlutil.tagged_tree_to_custom_tree(i["equivalencies"], ctx)
+                equivalencies[i["name"]] = i["equivalencies"]
 
         kwargs = {
             "input_units_equivalencies": equivalencies,

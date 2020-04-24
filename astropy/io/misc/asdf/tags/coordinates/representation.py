@@ -1,5 +1,3 @@
-from asdf.yamlutil import custom_tree_to_tagged_tree
-
 import astropy.units as u
 import astropy.coordinates.representation
 from astropy.coordinates.representation import BaseRepresentationOrDifferential
@@ -27,7 +25,7 @@ class RepresentationType(AstropyType):
 
         node = {}
         node['type'] = t.__name__
-        node['components'] = custom_tree_to_tagged_tree(components, ctx)
+        node['components'] = components
 
         return node
 

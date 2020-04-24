@@ -4,8 +4,6 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from asdf import yamlutil
-
 from astropy import table
 from astropy.io import fits
 from astropy.io.misc.asdf.types import AstropyType, AstropyAsdfType
@@ -64,7 +62,7 @@ class FitsType:
                     data = table.Table(hdu.data)
                 else:
                     data = hdu.data
-                hdu_dict['data'] = yamlutil.custom_tree_to_tagged_tree(data, ctx)
+                hdu_dict['data'] = data
 
             units.append(hdu_dict)
 

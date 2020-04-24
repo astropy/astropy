@@ -4,11 +4,9 @@
 from numpy import isscalar
 from astropy.units import Quantity
 
-from asdf.yamlutil import custom_tree_to_tagged_tree
 from asdf.tags.core import NDArrayType
 
 from astropy.io.misc.asdf.types import AstropyAsdfType
-from .unit import UnitType
 
 
 class QuantityType(AstropyAsdfType):
@@ -21,8 +19,8 @@ class QuantityType(AstropyAsdfType):
     def to_tree(cls, quantity, ctx):
         node = {}
         if isinstance(quantity, Quantity):
-            node['value'] = custom_tree_to_tagged_tree(quantity.value, ctx)
-            node['unit'] = custom_tree_to_tagged_tree(quantity.unit, ctx)
+            node['value'] = quantity.value
+            node['unit'] = quantity.unit
             return node
         raise TypeError(f"'{quantity}' is not a valid Quantity")
 
@@ -31,7 +29,7 @@ class QuantityType(AstropyAsdfType):
         if isinstance(node, Quantity):
             return node
 
-        unit = UnitType.from_tree(node['unit'], ctx)
+        unit = node['unit']
         value = node['value']
         if isinstance(value, NDArrayType):
             value = value._make_array()
