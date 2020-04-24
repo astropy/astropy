@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Contains the definition of the TEME frame.
+A coordinate or frame in the TEME (True Equator, Mean Equinox) system.
 
 TEME is a True equator, Mean Equinox coordinate frames used in NORAD TLE
 satellite files.
