@@ -122,6 +122,9 @@ astropy.table
   respectively ``tbl.columns.items()`` (iterator over name, column tuples)  and
   ``tbl.columns.values()`` (list of columns) for a ``Table`` object ``tbl``. [#9780]
 
+- Added hover-over with column descriptions (if present) in the column name row
+  of ``show_in_notebook()``. [#9870]
+
 - Added new ``Table`` method ``.round()``, which rounds numeric columns to the
   specified number of decimals. [#9862]
 
