@@ -382,7 +382,7 @@ of this section.
 
 On the other hand, if you wish to call Sphinx manually to build the
 documentation, you will need to make sure that a number of dependencies are
-installed.  If you use conda, the easiest way to install the dependencies is
+installed. If you use conda, the easiest way to install the dependencies is
 with::
 
     conda install -c astropy sphinx-astropy
@@ -413,16 +413,15 @@ dependencies, including:
 * `numpydoc <https://numpydoc.readthedocs.io>`_ - an extension to parse
   docstrings in NumPyDoc format
 * `pillow <https://pillow.readthedocs.io>`_ - used in one of the examples
-* `Graphviz <http://www.graphviz.org>`_ - generate inheritance graphs (ONLY
-  available in conda package)
+* `Graphviz <http://www.graphviz.org>`_ - generate inheritance graphs (available
+   as a conda package or a system install but not in pip)
 
 .. Note::
-
-   Both of the ``pip`` install methods above do not include `Graphviz
-   <http://www.graphviz.org>`_.  If you do not install this package separately
-   then the documentation build process will produce a very large number of
-   lengthy warnings (which can obscure bona fide warnings) and also not
-   generate inheritance graphs.
+    Both of the ``pip`` install methods above do not include `Graphviz
+    <http://www.graphviz.org>`_.  If you do not install this package separately
+    then the documentation build process will produce a very large number of
+    lengthy warnings (which can obscure bona fide warnings) and also not
+    generate inheritance graphs.
 
 .. _astropy-doc-building:
 
