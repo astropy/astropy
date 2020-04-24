@@ -53,6 +53,10 @@ astropy.io.registry
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
+- Fixed parsing failure of VOTable with no fields. When detecting a non-empty
+  table with no fields, the following warning/exception is issued:
+  E25 "No FIELDs are defined; DATA section will be ignored." [#10192]
+
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
