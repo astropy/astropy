@@ -140,12 +140,12 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
-- Implemented support for the ``-TAB`` algorithm (WCS Paper III). [#9641]
-
 - WCS objects with a spectral axis will now return ``SpectralCoord``
   objects when calling ``pixel_to_world`` instead of ``Quantity``,
   and can now take either ``Quantity`` or ``SpectralCoord`` as input
   to ``pixel_to_world``. [#10185]
+
+- Implemented support for the ``-TAB`` algorithm (WCS Paper III). [#9641]
 
 API Changes
 -----------
