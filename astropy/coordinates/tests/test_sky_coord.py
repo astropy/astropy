@@ -414,6 +414,15 @@ def test_setitem_no_velocity(frame):
     assert np.allclose(sc1.dec.to_value(u.deg), [40, 30])
 
 
+def test_setitem_initially_broadcast():
+    sc = SkyCoord(np.ones((2, 1))*u.deg, np.ones((1, 3))*u.deg)
+    sc[1, 1] = SkyCoord(0*u.deg, 0*u.deg)
+    expected = np.ones((2, 3))*u.deg
+    expected[1, 1] = 0.
+    assert np.all(sc.ra == expected)
+    assert np.all(sc.dec == expected)
+
+
 def test_setitem_velocities():
     """Test different flavors of item setting for a SkyCoord with a velocity.
     """
