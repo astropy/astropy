@@ -25,6 +25,11 @@ RV_RS_EQUIV = [(u.cm / u.s, u.Unit(''),
 
 DEFAULT_DISTANCE = 1 * u.AU
 
+# FIXME: there are currently numerical issues when transforming frames with
+# velocities when the position is exactly at the origin. To avoid this, we use
+# a very small offset for now.
+EPS = 1e-10
+
 DopplerConversion = namedtuple('DopplerConversion', ['rest', 'convention'])
 
 __all__ = ['SpectralCoord']
@@ -78,6 +83,12 @@ def attach_zero_velocities(coord):
 class SpectralCoord(u.Quantity):
     """
     Coordinate object representing spectral values.
+
+    The `SpectralCoord` class is new in Astropy v4.1 and should be considered
+    experimental at this time. It is possible that there will be API changes
+    in future versions of Astropy based on user feedback. If you
+    have specific ideas for how it might be improved, please  let us know on the
+    `astropy-dev mailing list`_ or at http://feedback.astropy.org.
 
     Parameters
     ----------
@@ -902,11 +913,6 @@ class SpectralCoord(u.Quantity):
     # moving towards a star, we need to set the coordinate object to have a
     # negative velocity so that the star is moving towards the frame origin.
 
-    # FIXME: there are currently numerical issues when transforming frames with
-    # velocities when the position is exactly at the origin. To avoid this, we use
-    # a very small offset for now.
-    EPS = 1e-10
-
     # First off, we consider velocity frames that are stationaly relative
     # to already defined 3-d celestial frames.
 
@@ -914,16 +920,25 @@ class SpectralCoord(u.Quantity):
                       v_x=0 * u.km / u.s, v_y=0 * u.km / u.s, v_z=0 * u.km / u.s,
                       representation_type='cartesian',
                       differential_type='cartesian')
+    """
+    Geocentric velocity frame (stationary relative to GCRS origin).
+    """
 
     BARYCENTRIC = ICRS(x=EPS * u.km, y=EPS * u.km, z=EPS * u.km,
                        v_x=0 * u.km / u.s, v_y=0 * u.km / u.s, v_z=0 * u.km / u.s,
                        representation_type='cartesian',
                        differential_type='cartesian')
+    """
+    Barycentric velocity frame (stationary relative to ICRS origin).
+    """
 
     HELIOCENTRIC = HCRS(x=EPS * u.km, y=EPS * u.km, z=EPS * u.km,
                         v_x=0 * u.km / u.s, v_y=0 * u.km / u.s, v_z=0 * u.km / u.s,
                         representation_type='cartesian',
                         differential_type='cartesian')
+    """
+    Heliocentric velocity frame (stationary relative to HCRS origin).
+    """
 
     # The LSRK velocity frame is defined as having a velocity
     # of 20 km/s towards RA=270 Dec=30 (B1900) relative to the
@@ -942,6 +957,9 @@ class SpectralCoord(u.Quantity):
                           representation_type='cartesian',
                           differential_type='cartesian',
                           equinox='B1900')
+    """
+    Kinematic Local Standard of Rest (as defined by Gordon 1975).
+    """
 
     # The LSRD velocity frame is defined as a velocity of
     # U=9 km/s, V=12 km/s, and W=7 km/s or 16.552945 km/s
@@ -954,6 +972,9 @@ class SpectralCoord(u.Quantity):
                                 U=-9 * u.km / u.s, V=-12 * u.km / u.s, W=-7 * u.km / u.s,
                                 representation_type='cartesian',
                                 differential_type='cartesian')
+    """
+    Kinematic Local Standard of Rest (as defined by Delhaye 1965).
+    """
 
     # This frame is defined as a velocity of 220 km/s in the
     # direction of l=90, b=0. The rotation velocity is defined
@@ -970,6 +991,9 @@ class SpectralCoord(u.Quantity):
                                       U=0 * u.km / u.s, V=-220 * u.km / u.s, W=0 * u.km / u.s,
                                       representation_type='cartesian',
                                       differential_type='cartesian')
+    """
+    Galactocentric velocity frame (as defined by Kerr and Lynden-Bell 1986).
+    """
 
     # This frame is defined as a velocity of 300 km/s in the
     # direction of l=90, b=0. This is defined in:
@@ -987,6 +1011,9 @@ class SpectralCoord(u.Quantity):
                                   U=0 * u.km / u.s, V=-300 * u.km / u.s, W=0 * u.km / u.s,
                                   representation_type='cartesian',
                                   differential_type='cartesian')
+    """
+    Local group velocity frame (as defined in the IAU Proceedings of the 16th General Assembly).
+    """
 
     # This frame is defined as a velocity of 368 km/s in the
     # direction of l=263.85, b=48.25. This is defined in:
@@ -1000,3 +1027,6 @@ class SpectralCoord(u.Quantity):
 
     CMBDIPOL_WMAP1 = Galactic(l=263.85 * u.deg, b=48.25 * u.deg, distance=EPS * u.km,
                               radial_velocity=-(3.346e-3 / 2.725 * c).to(u.km/u.s))
+    """
+    CMB Dipole velocity frame (using parameters from WMAP1 in Bennett et al., 2003).
+    """
