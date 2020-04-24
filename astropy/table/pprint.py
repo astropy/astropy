@@ -587,10 +587,16 @@ class TableFormatter:
                 # _pformat_col output has a header line '----' which is not needed here
                 if i == n_header - 1:
                     continue
-                if any(col.info.description for col in table.columns.values()) and i < 1:
-                    vals = ('<th data-toggle="tooltip" title="{}">{}</th>'.format
-                     (table[col[i].strip()].info.description,
-                     xml_escape(col[i].strip()))for col in cols)
+                if i == 0 and show_name:
+                    # Header row with column name, potentially including hover-overs
+                    vals = []
+                    for col in table.itercols():
+                        if col.info.description:
+                            fmt = '<th data-toggle="tooltip" title="{1}">{0}</th>'
+                        else:
+                            fmt = '<th>{0}</th>'
+                        vals.append(fmt.format(xml_escape(col.info.name),
+                                               xml_escape(col.info.description)))
                 else:
                     td = 'th' if i < n_header else 'td'
                     vals = ('<{}>{}</{}>'.format(td, xml_escape(col[i].strip()), td)
