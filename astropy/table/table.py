@@ -17,7 +17,7 @@ from astropy import log
 from astropy.units import Quantity, QuantityInfo
 from astropy.utils import isiterable, ShapedLikeNDArray
 from astropy.utils.console import color_print
-from astropy.utils.metadata import MetaData
+from astropy.utils.metadata import MetaData, MetaAttribute
 from astropy.utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
 from astropy.utils.decorators import format_doc
 from astropy.io.registry import UnifiedReadWriteMethod
@@ -499,6 +499,15 @@ class Table:
         # function, number of columns, and potentially the default col names
 
         default_names = None
+
+        # Handle custom (subclass) table attributes that are stored in meta.
+        # These are defined as class attributes using the MetaAttribute
+        # descriptor.  Any such attributes get removed from kwargs here.
+        if kwargs:
+            for attr in list(kwargs):
+                descr = getattr(self.__class__, attr, None)
+                if isinstance(descr, TableAttribute):
+                    setattr(self, attr, kwargs.pop(attr))
 
         if hasattr(data, '__astropy_table__'):
             # Data object implements the __astropy_table__ interface method.
@@ -3667,3 +3676,36 @@ class NdarrayMixin(np.ndarray):
         nd_state, own_state = state
         super().__setstate__(nd_state)
         self.__dict__.update(own_state)
+
+
+class TableAttribute(MetaAttribute):
+    """
+    Descriptor to define a custom attribute for a Table subclass.
+
+    The value of the ``TableAttribute`` will be stored in a dict named
+    ``__attributes__`` that is stored in the table ``meta``.  The attribute
+    can be accessed and set in the usual way, and it can be provided when
+    creating the object.
+
+    Defining an attribute by this mechanism ensures that it will persist if
+    the table is sliced or serialized, for example as a pickle or ECSV file.
+
+    See the `~astropy.utils.metadata.MetaAttribute` documentation for additional
+    details.
+
+    Parameters
+    ----------
+    default : object
+        Default value for attribute
+
+    Examples
+    --------
+      >>> from astropy.table import Table, TableAttribute
+      >>> class MyTable(Table):
+      ...     identifier = TableAttribute(default=1)
+      >>> t = MyTable(identifier=10)
+      >>> t.identifier
+      10
+      >>> t.meta
+      OrderedDict([('__attributes__', {'identifier': 10})])
+    """
