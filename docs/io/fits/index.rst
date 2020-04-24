@@ -178,6 +178,27 @@ When writing a file (e.g., with the :func:`writeto` function), compression will
 be determined based on the filename extension given, or the compression used in
 a pre-existing file that is being written to.
 
+
+Working with non-standard files
+"""""""""""""""""""""""""""""""
+When `astropy.io.fits` reads a FITS file which does not conform to the FITS standard it will try
+to make an educated interpretation of non-compliant fields. This may not always
+succeed and may trigger warnings when accessing headers or exceptions when writing
+to file. Verification of fields written to an output file can be controlled with
+the ``output_verify`` parameter of :func:`open`. Files opened for reading can be
+verified and fixed with method ``HDUList.verify``. This method is typically invoked
+after opening the file but before accessing any headers or data::
+
+    >>> with fits.open(fits_image_filename) as hdul:
+    ...    hdul.verify('fix')
+    ...    data = hdul[1].data
+
+In the above example, the call to ``hdul.verify("fix")`` requests that `astropy.io.fits`
+fix non-compliant fields and print informative messages. Other options in addition to ``"fix"``
+are described under FITS :ref:`fits_io_verification`
+
+.. seealso:: FITS :ref:`fits_io_verification`.
+
 Working with FITS Headers
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
