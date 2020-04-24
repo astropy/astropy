@@ -13,7 +13,7 @@ from astropy.coordinates import (SkyCoord, EarthLocation, ICRS, GCRS, Galactic,
                                  get_body_barycentric_posvel,
                                  FK5, CartesianRepresentation)
 from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyUserWarning, AstropyWarning
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.compat.context import nullcontext
 
@@ -542,44 +542,51 @@ def test_spectral_coord_from_sky_coord_without_distance():
         coord.target = SkyCoord(ra=10.68470833*u.deg, dec=41.26875*u.deg)
 
 
-def test_spectralcoord_accuracy():
+EXPECTED_VELOCITY_FRAMES = {'geocent': SpectralCoord.GEOCENTRIC,
+                            'heliocent': SpectralCoord.HELIOCENTRIC,
+                            'lsrk': SpectralCoord.LSRK_GORDON1975,
+                            'lsrd': SpectralCoord.LSRD_DELHAYE1965,
+                            'galactoc': SpectralCoord.GALACTOCENTRIC_KLB1986,
+                            'localgrp': SpectralCoord.LOCALGROUP_IAU1976}
+
+
+@pytest.mark.parametrize('specsys', list(EXPECTED_VELOCITY_FRAMES))
+def test_spectralcoord_accuracy(specsys):
 
     # This is a test to check the numerical results of transformations between
-    # different velocity frames in SpectralCoord.
+    # different velocity frames in SpectralCoord. This compares the velocity
+    # shifts determined with SpectralCoord to those determined from the rv
+    # package in Starlink.
 
-    reference_filename = get_pkg_data_filename('accuracy/data/rv_reference.csv')
-    reference_table = Table.read(reference_filename, format='ascii.csv', delimiter=',')
+    velocity_frame = EXPECTED_VELOCITY_FRAMES[specsys]
 
-    velocity_frames = {'geocent': SpectralCoord.GEOCENTRIC,
-                       'heliocent': SpectralCoord.HELIOCENTRIC,
-                       'lsrk': SpectralCoord.LSRK_GORDON1975,
-                       'lsrd': SpectralCoord.LSRD_DELHAYE1965,
-                       'galactoc': SpectralCoord.GALACTOCENTRIC_KLB1986,
-                       'localgrp': SpectralCoord.LOCALGROUP_IAU1976}
+    reference_filename = get_pkg_data_filename('accuracy/data/rv.ecsv')
+    reference_table = Table.read(reference_filename, format='ascii.ecsv')
+
+    rest = 550 * u.nm
 
     with iers.conf.set_temp('auto_download', False):
 
         for row in reference_table:
 
-            obstime = Time(f"{row['year']}-{row['month']}-{row['day']}T{row['time']}:00", scale='utc')
-            observer = EarthLocation.from_geodetic(-row['obs_lon'], row['obs_lat']).get_itrs(obstime=obstime)
-            target = ICRS(row['target_ra'] * u.deg, row['target_dec'] * u.deg, distance=1000 * u.kpc)
-            rest = 550 * u.nm
+            observer = EarthLocation.from_geodetic(-row['obslon'], row['obslat']).get_itrs(obstime=row['obstime'])
 
             with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
-                sc_topo = SpectralCoord(545 * u.nm, observer=observer, target=target)
+                sc_topo = SpectralCoord(545 * u.nm, observer=observer, target=row['target'])
 
-            for specsys, velocity_frame in velocity_frames.items():
-
+            # FIXME: A warning is emitted for dates after MJD=57754.0 even
+            # though the leap second table should be valid until the end of
+            # 2020.
+            with nullcontext() if row['obstime'].mjd < 57754 else pytest.warns(AstropyWarning, match='Tried to get polar motions'):
                 sc_final = sc_topo.in_observer_velocity_frame(velocity_frame)
 
-                delta_vel = (sc_topo.to(u.km / u.s, u.doppler_relativistic(rest)) -
-                             sc_final.to(u.km / u.s, u.doppler_relativistic(rest)))
+            delta_vel = (sc_topo.to(u.km / u.s, u.doppler_relativistic(rest)) -
+                         sc_final.to(u.km / u.s, u.doppler_relativistic(rest)))
 
-                if specsys == 'galactoc':
-                    assert_allclose(delta_vel.to_value(u.km / u.s), row[specsys.lower()], atol=30)
-                else:
-                    assert_allclose(delta_vel.to_value(u.km / u.s), row[specsys.lower()], atol=0.02, rtol=0.002)
+            if specsys == 'galactoc':
+                assert_allclose(delta_vel.to_value(u.km / u.s), row[specsys.lower()], atol=30)
+            else:
+                assert_allclose(delta_vel.to_value(u.km / u.s), row[specsys.lower()], atol=0.02, rtol=0.002)
 
 
 # TODO: add test when target is not ICRS
