@@ -170,3 +170,10 @@ def test_shared_pixel_axis_compound_3d(spectral_cube_3d_fitswcs, time_1d_fitswcs
     np.testing.assert_allclose(world, ( 14, -12, -2.6e+10, -7.0))
     np.testing.assert_allclose(wcs.world_to_pixel_values(*world), (0, 0, 0))
 
+    with pytest.raises(ValueError):
+        wcs.world_to_pixel_values(( 14, -12, -2.6e+10, -6.0))
+
+    with pytest.raises(ValueError):
+        wcs.world_to_pixel_values(( 14, -10, -2.6e+10, -7.0))
+
+

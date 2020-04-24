@@ -53,8 +53,21 @@ class CompoundLowLevelWCS(BaseWCSWrapper):
     ----------
     *wcs : `~astropy.wcs.wcsapi.BaseLowLevelWCS`
         The WCSes to combine
+    mapping : `tuple`
+        The pixel dimension mapping between the input pixel dimensions and the
+        input pixel dimensions to the underlying WCSes. This should have length
+        equal to the total number of pixel dimensions in all input WCSes and
+        have a maximum of the number of input pixel dimensions to the resulting
+        compound WCS -1 (counts from 0). For example ``(0, 1, 2, 1)`` would end
+        up with the second and fourth pixel dimensions in the input WCSes being
+        shared, so the compound WCS would have 3 pixel dimensions ``(2 + 1)``.
+        See :ref:`compound-model-mappings` for more examples of this input
+        format.
+    pixel_atol : `float`
+        A tolerance used to check that the resulting pixel coordinates from
+        ``world_to_pixel`` are the same from all WCSes.
     """
-    def __init__(self, *wcs, mapping=None):
+    def __init__(self, *wcs, mapping=None, pixel_atol=1e-8):
         self._wcs = wcs
 
         if not mapping:
@@ -65,6 +78,7 @@ class CompoundLowLevelWCS(BaseWCSWrapper):
                 "The length of the mapping must equal the total number of pixel dimensions in all input WCSes.")
 
         self.mapping = Mapping(mapping)
+        self.atol = pixel_atol
 
         # Validate the pixel bounds and shape are consistent
         self.pixel_bounds
@@ -104,7 +118,6 @@ class CompoundLowLevelWCS(BaseWCSWrapper):
         return tuple(world_arrays)
 
     def world_to_pixel_values(self, *world_arrays):
-        # TODO: Decide on the behaviour here!
         pixel_arrays = []
         for w in self._wcs:
             world_arrays_sub = world_arrays[:w.world_n_dim]
@@ -116,6 +129,11 @@ class CompoundLowLevelWCS(BaseWCSWrapper):
                 pixel_arrays.append(pixel_arrays_sub)
 
         pixel_arrays = tuple(pixel_arrays)
+        for i, ix in enumerate(self.mapping.mapping):
+            if not np.allclose(pixel_arrays[ix], pixel_arrays[i], atol=self.atol):
+                raise ValueError(
+                    f"The world inputs for shared pixel axes did not result in a pixel coordinate to within {self.atol} relative accuracy."
+                )
         return self.mapping.inverse(*pixel_arrays)
 
     @property
