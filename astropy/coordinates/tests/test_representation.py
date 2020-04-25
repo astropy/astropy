@@ -1238,6 +1238,13 @@ class TestCartesianRepresentationWithDifferential:
             CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc,
                                     differentials='garmonbozia')
 
+        # And that one can add it to another representation.
+        s1 = CartesianRepresentation(
+            CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc),
+            differentials=diff)
+        assert len(s1.differentials) == 1
+        assert s1.differentials['s'] is diff
+
         # make sure differentials can't accept differentials
         with pytest.raises(TypeError):
             CartesianDifferential(d_x=1 * u.km/u.s, d_y=2 * u.km/u.s,
