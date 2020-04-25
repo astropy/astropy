@@ -358,8 +358,9 @@ def test_with_rvredshift():
         sc_init3.with_redshift(.5)
 
     with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
-        sc_init4 = SpectralCoord([4000, 5000]*u.angstrom, redshift=1,
+        sc_init4 = SpectralCoord([4000, 5000]*u.angstrom,
                                  observer=gcrs_origin, target=gcrs_origin)
+
     with pytest.raises(ValueError):
         # fails if both observer and target are set
         sc_init4.with_redshift(.5)
