@@ -156,14 +156,15 @@ class BaseRepresentationOrDifferentialInfo(MixinInfo):
         # Get merged info attributes like shape, dtype, format, description, etc.
         attrs = self.merge_cols_attributes(reps, metadata_conflicts, name,
                                            ('meta', 'description'))
-        # Make a new SkyCoord object with the desired length and attributes
-        # by using the _apply / __getitem__ machinery to effectively return
-        # skycoord0[[0, 0, ..., 0, 0]]. This will have the all the right frame
-        # attributes with the right shape.
+        # Make a new representation or differential with the desired length
+        # using the _apply / __getitem__ machinery to effectively return
+        # rep0[[0, 0, ..., 0, 0]]. This will have the right shape, and
+        # include possible differentials.
         indexes = np.zeros(length, dtype=np.int64)
         out = reps[0][indexes]
 
-        # Use __setitem__ machinery to check for consistency of all representations.
+        # Use __setitem__ machinery to check whether all representations
+        # can represent themselves as this one without loss of information.
         for rep in reps[1:]:
             try:
                 out[0] = rep[0]
@@ -209,6 +210,10 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                      for component in components]
             if 'info' in rep_or_diff.__dict__:
                 self.info = rep_or_diff.info
+
+            if kwargs:
+                raise TypeError(f'unexpected keyword arguments for case '
+                                f'where class instance is passed in: {kwargs}')
 
         else:
             attrs = []
@@ -797,8 +802,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
 
         return new_diffs
 
-    def represent_as(self, other_class, differential_class=None,
-                     lossless=False):
+    def represent_as(self, other_class, differential_class=None):
         """Convert coordinates to another representation.
 
         If the instance is of the requested class, it is returned unmodified.
@@ -924,7 +928,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
 
     def __setitem__(self, item, value):
         if not isinstance(value, BaseRepresentation):
-            raise TypeError(f'value much be a representation instance, '
+            raise TypeError(f'value must be a representation instance, '
                             f'not {type(value)}.')
 
         if not (isinstance(value, self.__class__)
