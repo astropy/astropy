@@ -121,6 +121,20 @@ class SpectralCoord(u.Quantity):
                 doppler_convention=None, **kwargs):
         obj = super().__new__(cls, value, unit=unit, subok=True, **kwargs)
 
+        # Make sure incompatible inputs can't be specified at the same time
+
+        if radial_velocity is not None and redshift is not None:
+            raise ValueError("Cannot set both a radial velocity and "
+                             "redshift on spectral coordinate.")
+
+        if target is not None and observer is not None:
+            if radial_velocity is not None:
+                raise ValueError("Cannot specify radial velocity if both target "
+                                 "and observer are specified")
+            if redshift is not None:
+                raise ValueError("Cannot specify radial velocity if both target "
+                                 "and observer are specified")
+
         # The quantity machinery will drop the unit because type(value) !=
         #  SpectralCoord when passing in a Quantity object. Reassign the unit
         #  here to avoid this.
@@ -168,9 +182,6 @@ class SpectralCoord(u.Quantity):
                     if redshift is not None:
                         radial_velocity = u.Quantity(redshift).to(
                             'km/s', equivalencies=RV_RS_EQUIV)
-                elif redshift is not None:
-                    raise ValueError("Cannot set both a radial velocity and "
-                                     "redshift on spectral coordinate.")
 
                 observer = SpectralCoord._target_from_observer(
                     target, -radial_velocity)
@@ -184,9 +195,6 @@ class SpectralCoord(u.Quantity):
                 if redshift is not None:
                     radial_velocity = u.Quantity(redshift).to(
                         'km/s', equivalencies=RV_RS_EQUIV)
-            elif redshift is not None:
-                raise ValueError("Cannot set both a radial velocity and "
-                                 "redshift on spectral coordinate.")
 
             target = SpectralCoord._target_from_observer(
                 observer, radial_velocity)
@@ -297,6 +305,7 @@ class SpectralCoord(u.Quantity):
         return coord
 
     def _copy(self, **kwargs):
+
         default_kwargs = {
             'value': self.value,
             'unit': self.unit,
@@ -304,8 +313,12 @@ class SpectralCoord(u.Quantity):
             'doppler_convention': self.doppler_convention,
             'observer': self.observer,
             'target': self.target,
-            'radial_velocity': self.radial_velocity
         }
+
+        # Only include radial_velocity if it is not auto-computed from the
+        # observer and target.
+        if self.observer is None or self.target is None:
+            default_kwargs['radial_velocity'] = self.radial_velocity
 
         # If the new kwargs dict contains a value argument and it is a
         #  quantity, use the unit information provided by that quantity.
