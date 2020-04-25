@@ -814,8 +814,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
 
         if not (isinstance(value, self.__class__)
                 or len(value.attr_classes) == len(self.attr_classes)):
-            raise ValueError(f'value must be representable as {type(self)} '
-                             f'without loss of information.')
+            raise ValueError(
+                f'value must be representable as {self.__class__.__name__} '
+                f'without loss of information.')
 
         diff_classes = {}
         if self._differentials:
@@ -828,8 +829,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
                 if not (isinstance(value_diff_cls, self_diff_cls)
                         or (len(value_diff_cls.attr_classes)
                             == len(self_diff_cls.attr_classes))):
-                    raise ValueError(f'value differential {key!r} must be representable '
-                                     'as {type(self_diff)} without loss of information.')
+                    raise ValueError(
+                        f'value differential {key!r} must be representable as '
+                        f'{self_diff.__class__.__name__} without loss of information.')
 
         value = value.represent_as(self.__class__, diff_classes)
         super().__setitem__(item, value)
