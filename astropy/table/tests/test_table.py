@@ -2656,18 +2656,47 @@ def test_custom_masked_column_in_nonmasked_table():
         assert type(t['e']) is MySubMaskedColumn  # sub-class not downgraded
 
 
-def test_sort_with_non_mutable():
-    """Test sorting a table that has a non-mutable column such as SkyCoord"""
+def test_sort_with_mutable_skycoord():
+    """Test sorting a table that has a mutable column such as SkyCoord.
+
+    In this case the sort is done in-place
+    """
     t = Table([[2, 1], SkyCoord([4, 3], [6, 5], unit='deg,deg')], names=['a', 'sc'])
     meta = {'a': [1, 2]}
+    ta = t['a']
+    tsc = t['sc']
     t['sc'].info.meta = meta
     t.sort('a')
     assert np.all(t['a'] == [1, 2])
     assert np.allclose(t['sc'].ra.to_value(u.deg), [3, 4])
     assert np.allclose(t['sc'].dec.to_value(u.deg), [5, 6])
+    assert t['a'] is ta
+    assert t['sc'] is tsc
 
-    # Got a deep copy of SkyCoord column
+    # Prior to astropy 4.1 this was a deep copy of SkyCoord column; after 4.1
+    # it is a reference.
     t['sc'].info.meta['a'][0] = 100
+    assert meta['a'][0] == 100
+
+
+def test_sort_with_non_mutable():
+    """Test sorting a table that has a non-mutable column.
+    """
+    t = Table([[2, 1], [3, 4]], names=['a', 'b'])
+    ta = t['a']
+    tb = t['b']
+    t['b'].setflags(write=False)
+    meta = {'a': [1, 2]}
+    t['b'].info.meta = meta
+    t.sort('a')
+    assert np.all(t['a'] == [1, 2])
+    assert np.all(t['b'] == [4, 3])
+    assert ta is t['a']
+    assert tb is not t['b']
+
+    # Prior to astropy 4.1 this was a deep copy of SkyCoord column; after 4.1
+    # it is a reference.
+    t['b'].info.meta['a'][0] = 100
     assert meta['a'][0] == 1
 
 
