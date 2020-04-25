@@ -31,6 +31,7 @@ from astropy.table.column import BaseColumn
 from astropy.table import table_helpers
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.metadata import MergeConflictWarning
+from astropy.coordinates.tests.test_representation import representation_equal
 from astropy.io.misc.asdf.tags.helpers import skycoord_equal
 
 from .conftest import MIXIN_COLS
@@ -388,7 +389,7 @@ def assert_table_name_col_equal(t, name, col):
         assert np.all(t[name].ra == col.ra)
         assert np.all(t[name].dec == col.dec)
     elif isinstance(col, coordinates.BaseRepresentation):
-        assert np.all((t[name] - col).norm() == 0)
+        assert np.all(representation_equal(t[name], col))
     elif isinstance(col, u.Quantity):
         if type(t) is QTable:
             assert np.all(t[name] == col)
@@ -761,7 +762,7 @@ def test_rename_mixin_columns(mixin_cols):
         assert np.all(t['mm'].ra == tc['m'].ra)
         assert np.all(t['mm'].dec == tc['m'].dec)
     elif isinstance(t['mm'], coordinates.BaseRepresentation):
-        assert np.all((t['mm']-tc['m']).norm() == 0)
+        assert np.all(representation_equal(t['mm'], tc['m']))
     else:
         assert np.all(t['mm'] == tc['m'])
 
