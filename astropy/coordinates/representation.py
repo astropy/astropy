@@ -575,6 +575,16 @@ class MetaBaseRepresentation(abc.ABCMeta):
                                       .format(component))))
 
 
+class RepresentationInfo(BaseRepresentationOrDifferentialInfo):
+
+    @property
+    def _represent_as_dict_attrs(self):
+        attrs = super()._represent_as_dict_attrs
+        if self._parent._differentials:
+            attrs += ('differentials',)
+        return attrs
+
+
 class BaseRepresentation(BaseRepresentationOrDifferential,
                          metaclass=MetaBaseRepresentation):
     """Base for representing a point in a 3D coordinate system.
@@ -608,6 +618,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
     class, one should also define ``unit_vectors`` and ``scale_factors``
     methods (see those methods for details).
     """
+
+    info = RepresentationInfo()
 
     def __init__(self, *args, differentials=None, **kwargs):
         # Handle any differentials passed in.
