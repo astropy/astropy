@@ -45,6 +45,28 @@ def teardown_function(func):
     DUPLICATE_REPRESENTATIONS.update(func.DUPLICATE_REPRESENTATIONS_ORIG)
 
 
+def components_equal(rep1, rep2):
+    result = True
+    if type(rep1) is not type(rep2):
+        return False
+    for component in rep1.components:
+        result &= getattr(rep1, component) == getattr(rep2, component)
+    return result
+
+
+def representation_equal(rep1, rep2):
+    result = True
+    if type(rep1) is not type(rep2):
+        return False
+    if getattr(rep1, '_differentials', False):
+        if rep1._differentials.keys() != rep2._differentials.keys():
+            return False
+        for key, diff1 in rep1._differentials.items():
+            result &= components_equal(diff1, rep2._differentials[key])
+
+    return result & components_equal(rep1, rep2)
+
+
 class TestSphericalRepresentation:
 
     def test_name(self):
@@ -137,6 +159,10 @@ class TestSphericalRepresentation:
         assert_allclose_quantity(s2.lon, 8. * u.hourangle)
         assert_allclose_quantity(s2.lat, 5. * u.deg)
         assert_allclose_quantity(s2.distance, 10 * u.kpc)
+
+        s3 = SphericalRepresentation(s1)
+
+        assert representation_equal(s1, s3)
 
     def test_broadcasting(self):
 
@@ -289,6 +315,10 @@ class TestUnitSphericalRepresentation:
         assert_allclose_quantity(s2.lon, 8. * u.hourangle)
         assert_allclose_quantity(s2.lat, 5. * u.deg)
 
+        s3 = UnitSphericalRepresentation(s1)
+
+        assert representation_equal(s3, s1)
+
     def test_broadcasting(self):
 
         s1 = UnitSphericalRepresentation(lon=[8, 9] * u.hourangle,
@@ -408,6 +438,10 @@ class TestPhysicsSphericalRepresentation:
         assert_allclose_quantity(s2.phi, 8. * u.hourangle)
         assert_allclose_quantity(s2.theta, 5. * u.deg)
         assert_allclose_quantity(s2.r, 10 * u.kpc)
+
+        s3 = PhysicsSphericalRepresentation(s1)
+
+        assert representation_equal(s3, s1)
 
     def test_broadcasting(self):
 
@@ -608,6 +642,10 @@ class TestCartesianRepresentation:
         assert s2.y == 2 * u.kpc
         assert s2.z == 3 * u.kpc
 
+        s3 = CartesianRepresentation(s1)
+
+        assert representation_equal(s3, s1)
+
     def test_broadcasting(self):
 
         s1 = CartesianRepresentation(x=[1, 2] * u.kpc, y=[3, 4] * u.kpc, z=5 * u.kpc)
@@ -773,6 +811,10 @@ class TestCylindricalRepresentation:
         assert s2.rho == 1 * u.kpc
         assert s2.phi == 2 * u.deg
         assert s2.z == 3 * u.kpc
+
+        s3 = CylindricalRepresentation(s1)
+
+        assert representation_equal(s3, s1)
 
     def test_broadcasting(self):
 
@@ -1268,6 +1310,10 @@ class TestCartesianRepresentationWithDifferential:
         r2 = CartesianRepresentation.from_representation(r1)
         assert r2.get_name() == 'cartesian'
         assert not r2.differentials
+
+        r3 = SphericalRepresentation(r1)
+        assert r3.differentials
+        assert representation_equal(r3, r1)
 
     def test_readonly(self):
 
