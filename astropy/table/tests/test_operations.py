@@ -14,6 +14,7 @@ from astropy.utils.metadata import MergeConflictError
 from astropy import table
 from astropy.time import Time
 from astropy.coordinates import (SkyCoord, SphericalRepresentation,
+                                 UnitSphericalRepresentation,
                                  CartesianRepresentation,
                                  BaseRepresentationOrDifferential)
 from astropy.coordinates.tests.test_representation import representation_equal
@@ -1022,6 +1023,24 @@ class TestVStack():
                 table.vstack([t, t2], join_type='outer')
             assert ('vstack requires masking' in str(err.value)
                     or 'vstack unavailable' in str(err.value))
+
+    def test_vstack_different_representation(self):
+        """Test that representations can be mixed together."""
+        rep1 = CartesianRepresentation([1, 2]*u.km, [3, 4]*u.km, 1*u.km)
+        rep2 = SphericalRepresentation([0]*u.deg, [0]*u.deg, 10*u.km)
+        t1 = Table([rep1])
+        t2 = Table([rep2])
+        t12 = table.vstack([t1, t2])
+        expected = CartesianRepresentation([1, 2, 10]*u.km,
+                                           [3, 4, 0]*u.km,
+                                           [1, 1, 0]*u.km)
+        assert np.all(representation_equal(t12['col0'], expected))
+
+        rep3 = UnitSphericalRepresentation([0]*u.deg, [0]*u.deg)
+        t3 = Table([rep3])
+        with pytest.raises(ValueError, match='loss of information'):
+            table.vstack([t1, t3])
+
 
 class TestDStack():
 
