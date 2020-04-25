@@ -63,6 +63,8 @@ def representation_equal(rep1, rep2):
             return False
         for key, diff1 in rep1._differentials.items():
             result &= components_equal(diff1, rep2._differentials[key])
+    elif getattr(rep2, '_differentials', False):
+        return False
 
     return result & components_equal(rep1, rep2)
 
@@ -1642,3 +1644,12 @@ class TestInfo:
 
     def test_info_unit(self):
         assert self.rep.info.unit == '(deg, deg, pc)'
+        assert self.diff.info.unit == '(mas / yr, mas / yr, km / s)'
+        assert self.rep_w_diff.info.unit == '(deg, deg, pc)'
+
+    @pytest.mark.parametrize('item', ['rep', 'diff', 'rep_w_diff'])
+    def test_roundtrip(self, item):
+        rep_or_diff = getattr(self, item)
+        as_dict = rep_or_diff.info._represent_as_dict()
+        new = rep_or_diff.__class__.info._construct_from_dict(as_dict)
+        assert np.all(representation_equal(new, rep_or_diff))
