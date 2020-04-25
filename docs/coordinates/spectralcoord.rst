@@ -457,7 +457,7 @@ indeed from 12CO, then they are Doppler shifted compared to what we consider the
 T Tau. We can convert these frequencies to velocities assuming the Doppler shift equation
 (in this case with the radio convention)::
 
-    >>> sc_feat_rest.to(u.km / u.s, doppler_convention='radio', doppler_rest=115.27120180 * u.GHz)
+    >>> sc_feat_rest.to(u.km / u.s, doppler_convention='radio', doppler_rest=115.27120180 * u.GHz)  # doctest: +REMOTE_DATA
     <SpectralCoord [-11.90441211, -27.51109417, -30.11220785] km / s
         observer:
           <ICRS Coordinate: (x, y, z) in m
