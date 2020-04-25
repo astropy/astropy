@@ -252,6 +252,35 @@ set of coordinates, you will need to make sure that the shapes allow this::
    any non-scalar attributes are broadcast to have matching shapes
    (as can be seen for ``obstime`` in the last line above).
 
+Coordinate values in a array-valued frame object can be modified in-place
+(added in astropy 4.1). This requires that the new values be set from an
+another frame object that is equivalent in all ways except for the actual
+coordinate data values. In this way, no frame transformations are required and
+the item setting operation is extremely robust.
+
+To modify an array of coordinates use the same syntax for a numpy array::
+
+  >>> coo1 = ICRS([1, 2] * u.deg, [3, 4] * u.deg)
+  >>> coo2 = ICRS(10 * u.deg, 20 * u.deg)
+  >>> coo1[0] = coo2
+  >>> coo1
+  <ICRS Coordinate: (ra, dec) in deg
+      [(10., 20.), ( 2.,  4.)]>
+
+This method is relatively slow because it requires setting from an
+existing frame object and it performs extensive validation to ensure
+that the operation is valid. For some applications it may be necessary to
+take a different lower-level approach which is described in the section
+:ref:`astropy-coordinates-fast-in-place`.
+
+.. warning::
+
+  You may be tempted to try an apparently obvious way of modifying a frame
+  object in place by updating the component attributes directly, for example
+  ``coo1.ra[1] = 40 * u.deg``. However, while this will *appear* to give a correct
+  result it does not actually modify the underlying representation data. This
+  is related to the current implementation of performance-based caching.
+
 Transforming between Frames
 ===========================
 

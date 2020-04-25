@@ -18,6 +18,8 @@ class TestManipulation():
     """
 
     def setup(self):
+        # We set up some representations with, on purpose, copy=False,
+        # so we can check that broadcasting is handled correctly.
         lon = Longitude(np.arange(0, 24, 4), u.hourangle)
         lat = Latitude(np.arange(-90, 91, 30), u.deg)
 
@@ -25,17 +27,19 @@ class TestManipulation():
         self.s0 = SphericalRepresentation(
             lon[:, np.newaxis] * np.ones(lat.shape),
             lat * np.ones(lon.shape)[:, np.newaxis],
-            np.ones(lon.shape + lat.shape) * u.kpc)
+            np.ones(lon.shape + lat.shape) * u.kpc,
+            copy=False)
 
         self.diff = SphericalDifferential(
             d_lon=np.ones(self.s0.shape)*u.mas/u.yr,
             d_lat=np.ones(self.s0.shape)*u.mas/u.yr,
-            d_distance=np.ones(self.s0.shape)*u.km/u.s)
+            d_distance=np.ones(self.s0.shape)*u.km/u.s,
+            copy=False)
         self.s0 = self.s0.with_differentials(self.diff)
 
         # With unequal arrays -> these will be broadcasted.
         self.s1 = SphericalRepresentation(lon[:, np.newaxis], lat, 1. * u.kpc,
-                                          differentials=self.diff)
+                                          differentials=self.diff, copy=False)
 
         # For completeness on some tests, also a cartesian one
         self.c0 = self.s0.to_cartesian()

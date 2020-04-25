@@ -31,6 +31,7 @@ from astropy.table.column import BaseColumn
 from astropy.table import table_helpers
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.metadata import MergeConflictWarning
+from astropy.io.misc.asdf.tags.helpers import skycoord_equal
 
 from .conftest import MIXIN_COLS
 
@@ -503,13 +504,22 @@ def test_vstack():
 
 def test_insert_row(mixin_cols):
     """
-    Test inserting a row, which only works for BaseColumn and Quantity
+    Test inserting a row, which works for Column, Quantity, Time and SkyCoord.
     """
     t = QTable(mixin_cols)
+    t0 = t.copy()
     t['m'].info.description = 'd'
-    if isinstance(t['m'], (u.Quantity, Column, time.Time)):
+    idxs = [0, -1, 1, 2, 3]
+    if isinstance(t['m'], (u.Quantity, Column, time.Time, coordinates.SkyCoord)):
         t.insert_row(1, t[-1])
-        assert t[1] == t[-1]
+
+        for name in t.colnames:
+            col = t[name]
+            if isinstance(col, coordinates.SkyCoord):
+                assert skycoord_equal(col, t0[name][idxs])
+            else:
+                assert np.all(col == t0[name][idxs])
+
         assert t['m'].info.description == 'd'
     else:
         with pytest.raises(ValueError) as exc:

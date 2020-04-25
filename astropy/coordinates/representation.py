@@ -114,7 +114,8 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         The components of the 3D point or differential.  The names are the
         keys and the subclasses the values of the ``attr_classes`` attribute.
     copy : bool, optional
-        If `True` (default), arrays will be copied rather than referenced.
+        If `True` (default), arrays will be copied; if `False`, they will be
+        broadcast together but not use new memory.
     """
 
     # Ensure multiplication/division with ndarray or Quantity doesn't lead to
@@ -147,7 +148,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
             raise TypeError(f'unexpected keyword arguments: {kwargs}')
 
         # Pass attributes through the required initializing classes.
-        attrs = [self.attr_classes[component](attr, copy=copy)
+        attrs = [self.attr_classes[component](attr, copy=False)
                  for component, attr in zip(components, attrs)]
         try:
             attrs = np.broadcast_arrays(*attrs, subok=True)
@@ -158,6 +159,10 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                 c_str = ', '.join(components[:2]) + ', and ' + components[2]
             raise ValueError("Input parameters {} cannot be broadcast"
                              .format(c_str))
+
+        if copy:
+            attrs = [attr.copy() for attr in attrs]
+
         # Set private attributes for the attributes. (If not defined explicitly
         # on the class, the metaclass will define properties to access these.)
         for component, attr in zip(components, attrs):
@@ -254,6 +259,20 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
             setattr(new, '_' + component,
                     apply_method(getattr(self, component)))
         return new
+
+    def _setitem(self, item, value):
+        """Private version of __setitem__.
+
+        This cannot be exposed as __setitem__ because it would allow changing
+        frame representation data (frame.data) without clearing the frame cache.
+        """
+        if self.__class__ is not value.__class__:
+            raise TypeError(f'can only set from object of same class: '
+                            f'{self.__class__.__name__} vs. '
+                            f'{value.__class__.__name__}')
+
+        for component in self.components:
+            getattr(self, '_' + component)[item] = getattr(value, '_' + component)
 
     @property
     def shape(self):
@@ -479,7 +498,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
         representation, the key would be ``'s'`` for seconds, indicating that
         the derivative is a time derivative.
     copy : bool, optional
-        If `True` (default), arrays will be copied rather than referenced.
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
 
     Notes
     -----
@@ -791,6 +811,27 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
              for k, diff in self._differentials.items()])
         return rep
 
+    def _setitem(self, item, value):
+        """Private version of __setitem__.
+
+        This cannot be exposed as __setitem__ because it would allow changing
+        frame representation data (frame.data) without clearing the frame cache.
+        """
+        if self.__class__ is not value.__class__:
+            raise TypeError(f'can only set from object of same class: '
+                            f'{self.__class__.__name__} vs. '
+                            f'{value.__class__.__name__}')
+
+        # Can this ever occur? (Same class but different differential keys).
+        # This exception is not tested since it is not clear how to generate it.
+        if self._differentials.keys() != value._differentials.keys():
+            raise ValueError(f'setitem value must have same differentials')
+
+        super()._setitem(item, value)
+        for self_diff, value_diff in zip(self._differentials.values(),
+                                         value._differentials.values()):
+            self_diff._setitem(item, value_diff)
+
     def _scale_operation(self, op, *args):
         """Scale all non-angular components, leaving angular ones unchanged.
 
@@ -993,7 +1034,8 @@ class CartesianRepresentation(BaseRepresentation):
         time derivative.
 
     copy : bool, optional
-        If `True` (default), arrays will be copied rather than referenced.
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
     """
 
     attr_classes = OrderedDict([('x', u.Quantity),
@@ -1277,7 +1319,8 @@ class UnitSphericalRepresentation(BaseRepresentation):
         the derivative is a time derivative.
 
     copy : bool, optional
-        If `True` (default), arrays will be copied rather than referenced.
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
     """
 
     attr_classes = OrderedDict([('lon', Longitude),
@@ -1476,7 +1519,8 @@ class RadialRepresentation(BaseRepresentation):
         the derivative is a time derivative.
 
     copy : bool, optional
-        If `True` (default), arrays will be copied rather than referenced.
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
     """
 
     attr_classes = OrderedDict([('distance', u.Quantity)])
@@ -1561,7 +1605,8 @@ class SphericalRepresentation(BaseRepresentation):
         the derivative is a time derivative.
 
     copy : bool, optional
-        If `True` (default), arrays will be copied rather than referenced.
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
     """
 
     attr_classes = OrderedDict([('lon', Longitude),
@@ -1723,7 +1768,8 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         derivative.
 
     copy : bool, optional
-        If `True` (default), arrays will be copied rather than referenced.
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
     """
 
     attr_classes = OrderedDict([('phi', Angle),
@@ -1878,7 +1924,8 @@ class CylindricalRepresentation(BaseRepresentation):
         derivative.
 
     copy : bool, optional
-        If `True` (default), arrays will be copied rather than referenced.
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
     """
 
     attr_classes = OrderedDict([('rho', u.Quantity),
@@ -2007,7 +2054,8 @@ class BaseDifferential(BaseRepresentationOrDifferential,
         The components of the 3D differentials.  The names are the keys and the
         subclasses the values of the ``attr_classes`` attribute.
     copy : bool, optional
-        If `True` (default), arrays will be copied rather than referenced.
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
 
     Notes
     -----
@@ -2258,7 +2306,8 @@ class CartesianDifferential(BaseDifferential):
         The axis along which the coordinates are stored when a single array is
         provided instead of distinct ``d_x``, ``d_y``, and ``d_z`` (default: 0).
     copy : bool, optional
-        If `True` (default), arrays will be copied rather than referenced.
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
     """
     base_representation = CartesianRepresentation
     _d_xyz = None
@@ -2411,7 +2460,8 @@ class UnitSphericalDifferential(BaseSphericalDifferential):
     d_lon, d_lat : `~astropy.units.Quantity`
         The longitude and latitude of the differentials.
     copy : bool, optional
-        If `True` (default), arrays will be copied rather than referenced.
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
     """
     base_representation = UnitSphericalRepresentation
 
@@ -2468,7 +2518,8 @@ class SphericalDifferential(BaseSphericalDifferential):
     d_distance : `~astropy.units.Quantity`
         The differential distance.
     copy : bool, optional
-        If `True` (default), arrays will be copied rather than referenced.
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
     """
     base_representation = SphericalRepresentation
     _unit_differential = UnitSphericalDifferential
@@ -2607,7 +2658,8 @@ class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
     d_lon_coslat, d_lat : `~astropy.units.Quantity`
         The longitude and latitude of the differentials.
     copy : bool, optional
-        If `True` (default), arrays will be copied rather than referenced.
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
     """
     base_representation = UnitSphericalRepresentation
     attr_classes = OrderedDict([('d_lon_coslat', u.Quantity),
@@ -2668,7 +2720,8 @@ class SphericalCosLatDifferential(BaseSphericalCosLatDifferential):
     d_distance : `~astropy.units.Quantity`
         The differential distance.
     copy : bool, optional
-        If `True` (default), arrays will be copied rather than referenced.
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
     """
     base_representation = SphericalRepresentation
     _unit_differential = UnitSphericalCosLatDifferential
@@ -2722,7 +2775,8 @@ class RadialDifferential(BaseDifferential):
     d_distance : `~astropy.units.Quantity`
         The differential distance.
     copy : bool, optional
-        If `True` (default), arrays will be copied rather than referenced.
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
     """
     base_representation = RadialRepresentation
 
@@ -2774,7 +2828,8 @@ class PhysicsSphericalDifferential(BaseDifferential):
     d_r : `~astropy.units.Quantity`
         The differential radial distance.
     copy : bool, optional
-        If `True` (default), arrays will be copied rather than referenced.
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
     """
     base_representation = PhysicsSphericalRepresentation
 
@@ -2833,7 +2888,8 @@ class CylindricalDifferential(BaseDifferential):
     d_z : `~astropy.units.Quantity`
         The differential height.
     copy : bool, optional
-        If `True` (default), arrays will be copied rather than referenced.
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
     """
     base_representation = CylindricalRepresentation
 

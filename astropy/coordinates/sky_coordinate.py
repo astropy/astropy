@@ -1,6 +1,8 @@
 import re
 import copy
 import warnings
+import contextlib
+import operator
 
 import numpy as np
 
@@ -80,6 +82,63 @@ class SkyCoordInfo(MixinInfo):
         # Note that obj.info.unit is a fake composite unit (e.g. 'deg,deg,None'
         # or None,None,m) and is not stored.  The individual attributes have
         # units.
+
+        return out
+
+    def new_like(self, skycoords, length, metadata_conflicts='warn', name=None):
+        """
+        Return a new SkyCoord instance which is consistent with the input
+        SkyCoord objects ``skycoords`` and has ``length`` rows.  Being
+        "consistent" is defined as being able to set an item from one to each of
+        the rest without any exception being raised.
+
+        This is intended for creating a new SkyCoord instance whose elements can
+        be set in-place for table operations like join or vstack.  This is used
+        when a SkyCoord object is used as a mixin column in an astropy Table.
+
+        The data values are not predictable and it is expected that the consumer
+        of the object will fill in all values.
+
+        Parameters
+        ----------
+        skycoords : list
+            List of input SkyCoord objects
+        length : int
+            Length of the output skycoord object
+        metadata_conflicts : str ('warn'|'error'|'silent')
+            How to handle metadata conflicts
+        name : str
+            Output name (sets output skycoord.info.name)
+
+        Returns
+        -------
+        skycoord : SkyCoord (or subclass)
+            Instance of this class consistent with ``skycoords``
+
+        """
+        # Get merged info attributes like shape, dtype, format, description, etc.
+        attrs = self.merge_cols_attributes(skycoords, metadata_conflicts, name,
+                                           ('meta', 'description'))
+        skycoord0 = skycoords[0]
+
+        # Make a new SkyCoord object with the desired length and attributes
+        # by using the _apply / __getitem__ machinery to effectively return
+        # skycoord0[[0, 0, ..., 0, 0]]. This will have the all the right frame
+        # attributes with the right shape.
+        indexes = np.zeros(length, dtype=np.int64)
+        out = skycoord0[indexes]
+
+        # Use __setitem__ machinery to check for consistency of all skycoords
+        for skycoord in skycoords[1:]:
+            try:
+                out[0] = skycoord[0]
+            except Exception as err:
+                raise ValueError(f'input skycoords are inconsistent: {err}')
+
+        # Set (merged) info attributes
+        for attr in ('name', 'meta', 'description'):
+            if attr in attrs:
+                setattr(out.info, attr, attrs[attr])
 
         return out
 
@@ -355,6 +414,103 @@ class SkyCoord(ShapedLikeNDArray):
             new.info = self.info
 
         return new
+
+    def __setitem__(self, item, value):
+        """Implement self[item] = value for SkyCoord
+
+        The right hand ``value`` must be strictly consistent with self:
+        - Identical class
+        - Equivalent frames
+        - Identical representation_types
+        - Identical representation differentials keys
+        - Identical frame attributes
+        - Identical "extra" frame attributes (e.g. obstime for an ICRS coord)
+
+        With these caveats the setitem ends up as effectively a setitem on
+        the representation data.
+
+          self.frame.data[item] = value.frame.data
+        """
+        if self.__class__ is not value.__class__:
+            raise TypeError(f'can only set from object of same class: '
+                            f'{self.__class__.__name__} vs. '
+                            f'{value.__class__.__name__}')
+
+
+        # Make sure that any extra frame attribute names are equivalent.
+        for attr in self._extra_frameattr_names | value._extra_frameattr_names:
+            if not self.frame._frameattr_equiv(getattr(self, attr),
+                                               getattr(value, attr)):
+                raise ValueError(f'attribute {attr} is not equivalent')
+
+        # Set the frame values.  This checks frame equivalence and also clears
+        # the cache to ensure that the object is not in an inconsistent state.
+        self._sky_coord_frame[item] = value._sky_coord_frame
+
+    def insert(self, obj, values, axis=0):
+        """
+        Insert coordinate values before the given indices in the object and
+        return a new Frame object.
+
+        The values to be inserted must conform to the rules for in-place setting
+        of ``SkyCoord`` objects.
+
+        The API signature matches the ``np.insert`` API, but is more limited.
+        The specification of insert index ``obj`` must be a single integer,
+        and the ``axis`` must be ``0`` for simple insertion before the index.
+
+        Parameters
+        ----------
+        obj : int
+            Integer index before which ``values`` is inserted.
+        values : array_like
+            Value(s) to insert.  If the type of ``values`` is different
+            from that of quantity, ``values`` is converted to the matching type.
+        axis : int, optional
+            Axis along which to insert ``values``.  Default is 0, which is the
+            only allowed value and will insert a row.
+
+        Returns
+        -------
+        out : `~astropy.coordinates.SkyCoord` instance
+            New coordinate object with inserted value(s)
+
+        """
+        # Validate inputs: obj arg is integer, axis=0, self is not a scalar, and
+        # input index is in bounds.
+        try:
+            idx0 = operator.index(obj)
+        except TypeError:
+            raise TypeError('obj arg must be an integer')
+
+        if axis != 0:
+            raise ValueError('axis must be 0')
+
+        if not self.shape:
+            raise TypeError('cannot insert into scalar {} object'
+                            .format(self.__class__.__name__))
+
+        if abs(idx0) > len(self):
+            raise IndexError('index {} is out of bounds for axis 0 with size {}'
+                             .format(idx0, len(self)))
+
+        # Turn negative index into positive
+        if idx0 < 0:
+            idx0 = len(self) + idx0
+
+        n_values = len(values) if values.shape else 1
+
+        # Finally make the new object with the correct length and set values for the
+        # three sections, before insert, the insert, and after the insert.
+        out = self.__class__.info.new_like([self], len(self) + n_values, name=self.info.name)
+
+        # Set the output values. This is where validation of `values` takes place to ensure
+        # that it can indeed be inserted.
+        out[:idx0] = self[:idx0]
+        out[idx0:idx0 + n_values] = values
+        out[idx0 + n_values:] = self[idx0:]
+
+        return out
 
     def transform_to(self, frame, merge_attributes=True):
         """Transform this coordinate to a new frame.
