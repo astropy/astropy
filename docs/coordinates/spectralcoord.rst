@@ -36,31 +36,15 @@ to initialize it is to provide a value (or values) and a unit, or an existing
     >>> from astropy.coordinates import SpectralCoord
     >>> sc1 = SpectralCoord(34.2, unit='GHz')
     >>> sc1
-    <SpectralCoord 34.2 GHz,
-         radial_velocity=0.0 km / s,
-         redshift=0.0,
-         doppler_rest=None,
-         doppler_convention=None,
-         observer=None,
-         target=None>
+    <SpectralCoord 34.2 GHz>
     >>> sc2 = SpectralCoord([654.2, 654.4, 654.6] * u.nm)
     >>> sc2
-    <SpectralCoord [654.2, 654.4, 654.6] nm,
-        radial_velocity=0.0 km / s,
-        redshift=0.0,
-        doppler_rest=None,
-        doppler_convention=None,
-        observer=None,
-        target=None>
+    <SpectralCoord [654.2, 654.4, 654.6] nm>
 
 At this point, we are not making any assumptions about the observer frame, or
-the target that is being observed. The ``radial_velocity`` and ``redshift``
-properties refers specifically to the assumed velocity between the observer and
-the target, and since there is no observer and no target set, these are zero.
-
-As we will see in subsequent sections, more information can be provided when
-initializing |SpectralCoord| objects, but first we take a look at simple unit
-conversions with these objects.
+the target that is being observed. As we will see in subsequent sections, more
+information can be provided when initializing |SpectralCoord| objects, but first
+we take a look at simple unit conversions with these objects.
 
 Unit conversion
 ===============
@@ -69,14 +53,11 @@ By default, unit conversions between spectral units will work without having to
 specify the :ref:`u.spectral <astropy-units-doppler-equivalencies>` equivalency::
 
     >>> sc2.to(u.micron)
-    <SpectralCoord [0.6542, 0.6544, 0.6546] micron,
-        ...
+    <SpectralCoord [0.6542, 0.6544, 0.6546] micron>
     >>> sc2.to(u.eV)
-    <SpectralCoord [1.89520328, 1.89462406, 1.89404519] eV,
-        ...
+    <SpectralCoord [1.89520328, 1.89462406, 1.89404519] eV>
     >>> sc2.to(u.THz)
-    <SpectralCoord [458.25811373, 458.11805929, 457.97809044] THz,
-        ...
+    <SpectralCoord [458.25811373, 458.11805929, 457.97809044] THz>
 
 As is the case with |Quantity| and the :ref:`Doppler equivalencies
 <astropy-units-doppler-equivalencies>`, it is also posible to convert these
@@ -89,43 +70,25 @@ nm, assuming the optical Doppler convention, you can do::
     ...              doppler_convention='optical',
     ...              doppler_rest=656.65 * u.nm)
     >>> sc3
-    <SpectralCoord [-1118.5433977 , -1027.23373258,  -935.92406746] km / s,
-    	radial_velocity=0.0 km / s,
-    	redshift=0.0,
-    	doppler_rest=656.65 nm,
-    	doppler_convention=optical,
-    	observer=None,
-    	target=None>
+    <SpectralCoord [-1118.5433977 , -1027.23373258,  -935.92406746] km / s
+    	doppler_rest=656.65 nm
+    	doppler_convention=optical>
 
-Note that these resulting velocities are different from the ``radial_velocity``
-property (which is still zero here) - the latter is the difference in velocity
-between observer and target, while the former are how much the spectral values
-are Doppler shifted by relative to the rest frequency or wavelength.
-
-At this point, the rest value for the Doppler conversion as well as the
-convention to use are stored in the resulting |SpectralCoord|. You can then
-convert back to frequency without having to specify them again::
+The rest value for the Doppler conversion as well as the convention to use are
+stored in the resulting ``sc3`` |SpectralCoord| object. You can then convert
+back to frequency without having to specify them again::
 
     >>> sc3.to(u.THz)
-    <SpectralCoord [458.25811373, 458.11805929, 457.97809044] THz,
-    	radial_velocity=0.0 km / s,
-    	redshift=0.0,
-    	doppler_rest=656.65 nm,
-    	doppler_convention=optical,
-    	observer=None,
-    	target=None>
-
+    <SpectralCoord [458.25811373, 458.11805929, 457.97809044] THz
+    	doppler_rest=656.65 nm
+    	doppler_convention=optical>
 
 or you can explicitly specify a different convention or rest value to use::
 
     >>> sc3.to(u.km / u.s, doppler_convention='relativistic')
-    <SpectralCoord [-1118.5433977 , -1027.23373258,  -935.92406746] km / s,
-    	radial_velocity=0.0 km / s,
-    	redshift=0.0,
-    	doppler_rest=656.65 nm,
-    	doppler_convention=relativistic,
-    	observer=None,
-    	target=None>
+    <SpectralCoord [-1118.5433977 , -1027.23373258,  -935.92406746] km / s
+    	doppler_rest=656.65 nm
+    	doppler_convention=relativistic>
 
 .. TODO: the above values don't seem right as they are the same as the optical values.
 
@@ -137,13 +100,10 @@ wavelength::
     ...                     doppler_convention='radio',
     ...                     doppler_rest=342.91 * u.GHz)
     >>> sc4.to(u.km / u.s)
-    <SpectralCoord -78.68338987 km / s,
-        radial_velocity=0.0 km / s,
-        redshift=0.0,
-        doppler_rest=342.91 GHz,
-        doppler_convention=radio,
-        observer=None,
-        target=None>
+    <SpectralCoord -78.68338987 km / s
+    	doppler_rest=342.91 GHz
+    	doppler_convention=radio>
+
 
 Reference frame transformations
 ===============================
@@ -183,13 +143,10 @@ between 500 and 900nm::
     >>> import numpy as np
     >>> wavs = SpectralCoord(np.linspace(500, 900, 9) * u.nm, redshift=0.5)
     >>> wavs
-    <SpectralCoord [500., 550., 600., 650., 700., 750., 800., 850., 900.] nm,
-    	radial_velocity=149896.22900000002 km / s,
-    	redshift=0.5,
-    	doppler_rest=None,
-    	doppler_convention=None,
-    	observer=None,
-    	target=None>
+    <SpectralCoord [500., 550., 600., 650., 700., 750., 800., 850., 900.] nm
+        observer to target:
+          radial_velocity=149896.22900000002 km / s
+          redshift=0.5>
 
 We have set redshift=0.5 here so that we can keep track of what frame of reference
 our spectral values are in. The ``radial_velocity`` property gives the recession
@@ -205,31 +162,25 @@ the galaxy. We can do this using the
     >>> wavs_rest
     <SpectralCoord [333.33333333, 366.66666667, 400.        , 433.33333333,
                     466.66666667, 500.        , 533.33333333, 566.66666667,
-                    600.        ] nm,
-        radial_velocity=0.0 km / s,
-        redshift=0.0,
-    	doppler_rest=None,
-    	doppler_convention=None,
-    	observer=None,
-    	target=None>
+                    600.        ] nm
+        observer to target:
+          radial_velocity=0.0 km / s
+          redshift=0.0>
 
 The wavelengths have decreased by 1/3, which is what we expect for z=0.5. Note
 that the ``redshift`` and ``radial_velocity`` properties are now zero, since we
 are in the reference frame of the target. We can also use the
-:meth:`~astropy.coordinates.SpectralCoord.with_los_shift` to more generically
-apply redshift and velocity corrections. The simplest way to use this method
-is to give a single value that will be applied to the target - if this value
-does not have units, it is interpreted as a redshift::
+:meth:`~astropy.coordinates.SpectralCoord.with_los_shift` method to more
+generically apply redshift and velocity corrections. The simplest way to use
+this method is to give a single value that will be applied to the target - if
+this value does not have units, it is interpreted as a redshift::
 
     >>> wavs_orig = wavs_rest.with_los_shift(0.5)
     >>> wavs_orig
-    <SpectralCoord [500., 550., 600., 650., 700., 750., 800., 850., 900.] nm,
-    	radial_velocity=149896.22900000002 km / s,
-    	redshift=0.5,
-    	doppler_rest=None,
-    	doppler_convention=None,
-    	observer=None,
-    	target=None>
+    <SpectralCoord [500., 550., 600., 650., 700., 750., 800., 850., 900.] nm
+        observer to target:
+          radial_velocity=149896.22900000002 km / s
+          redshift=0.5>
 
 This returns an object equivalent to the one we started with, since we've
 re-applied a redshift of 0.5. We could also provide a velocity as a |Quantity|::
@@ -237,13 +188,10 @@ re-applied a redshift of 0.5. We could also provide a velocity as a |Quantity|::
     >>> wavs_rest.with_los_shift(100000 * u.km / u.s)
     <SpectralCoord [444.52136507, 488.97350157, 533.42563808, 577.87777459,
                     622.32991109, 666.7820476 , 711.23418411, 755.68632061,
-                    800.13845712] nm,
-    	radial_velocity=100000.0 km / s,
-    	redshift=0.33356409519815206,
-    	doppler_rest=None,
-    	doppler_convention=None,
-    	observer=None,
-    	target=None>
+                    800.13845712] nm
+        observer to target:
+          radial_velocity=100000.0 km / s
+          redshift=0.33356409519815206>
 
 which shifts the values to a frame of reference at a redshift of approximately
 0.33 (that is, if the spectrum did contain a contribution from an object at
@@ -309,13 +257,20 @@ have been measured (for the purposes of the example here we will assume we have 
     ...                         observer=alma, target=ttau)  # doctest: +IGNORE_WARNINGS +REMOTE_DATA
     >>> sc_ttau  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord [200., 210., 220., 230., 240., 250., 260., 270., 280., 290.,
-                    300.] GHz,
-    	radial_velocity=41.035949477390346 km / s,
-    	redshift=0.0001368811935802279,
-    	doppler_rest=None,
-    	doppler_convention=None,
-    	observer=ITRS,
-    	target=ICRS>
+                    300.] GHz
+        observer:
+          <ITRS Coordinate (obstime=2019-04-24T02:32:10.000): (x, y, z) in m
+              (2225015.30883296, -5440016.41799762, -2481631.27428014)
+           (v_x, v_y, v_z) in km / s
+              (0., 0., 0.)>
+        target:
+          <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
+              (65.497625, 19.53511111, 144.321)
+           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+              (1.37949782e-15, 1.46375638e-15, 23.9)>
+        observer to target (computed from above):
+          radial_velocity=41.035949477390346 km / s
+          redshift=0.0001368811935802279>
 
 We can already see above that |SpectralCoord| has computed the difference in
 velocity between the observatory and T Tau, which includes the motion of the
@@ -337,7 +292,7 @@ they would be in a frame at rest relative to the local standard of rest (LSR),
 the center of the Milky Way, the Local Group, or even the Cosmic Microwave
 Background (CMB) dipole.
 
-We can transform out frequencies for the observations of T Tau to different
+We can transform our frequencies for the observations of T Tau to different
 velocity frames using the
 :meth:`~astropy.coordinates.SpectralCoord.with_observer_in_velocity_frame_of` method.
 This method can take any arbitrary 3-d position and velocity coordinate object
@@ -351,15 +306,22 @@ rotation), we can use
     >>> sc_ttau.with_observer_in_velocity_frame_of(sc_ttau.GEOCENTRIC)  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord [200.00024141, 210.00025348, 220.00026555, 230.00027762,
                     240.00028969, 250.00030176, 260.00031383, 270.0003259 ,
-                    280.00033797, 290.00035004, 300.00036211] GHz,
-    	radial_velocity=40.6740863679313 km / s,
-    	redshift=0.00013567414817330494,
-    	doppler_rest=None,
-    	doppler_convention=None,
-    	observer=ITRS,
-    	target=ICRS>
+                    280.00033797, 290.00035004, 300.00036211] GHz
+        observer:
+          <ITRS Coordinate (obstime=2019-04-24T02:32:10.000): (x, y, z) in m
+              (2225015.30880384, -5440016.418026, -2481631.2742804)
+           (v_x, v_y, v_z) in km / s
+              (-0.3966927, -0.16225076, -2.33903527e-07)>
+        target:
+          <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
+              (65.497625, 19.53511111, 144.321)
+           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+              (1.37949782e-15, 1.46375638e-15, 23.9)>
+        observer to target (computed from above):
+          radial_velocity=40.6740863679313 km / s
+          redshift=0.00013567414817330494>
 
-As you can see, the frquencies have changed slightly, which is because we have
+As you can see, the frequencies have changed slightly, which is because we have
 removed the Doppler shift caused by the Earth's rotation (this can also be seen
 in the ``radial_velocity`` property, which has changed by ~0.35 km/s. To use a
 velocity reference frame relative to the Solar System barycenter we can use::
@@ -367,30 +329,47 @@ velocity reference frame relative to the Solar System barycenter we can use::
     >>> sc_ttau.with_observer_in_velocity_frame_of(sc_ttau.BARYCENTRIC)  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord [200.01143253, 210.01200415, 220.01257578, 230.01314741,
                     240.01371903, 250.01429066, 260.01486229, 270.01543391,
-                    280.01600554, 290.01657717, 300.01714879] GHz,
-    	radial_velocity=23.90000001777383 km / s,
-    	redshift=7.972181881164546e-05,
-    	doppler_rest=None,
-    	doppler_convention=None,
-    	observer=ITRS,
-    	target=ICRS>
+                    280.01600554, 290.01657717, 300.01714879] GHz
+        observer:
+          <ITRS Coordinate (obstime=2019-04-24T02:32:10.000): (x, y, z) in m
+              (2225015.30880384, -5440016.418026, -2481631.2742804)
+           (v_x, v_y, v_z) in km / s
+              (-16.35473583, -23.04550218, 9.90506472)>
+        target:
+          <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
+              (65.497625, 19.53511111, 144.321)
+           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+              (1.37949782e-15, 1.46375638e-15, 23.9)>
+        observer to target (computed from above):
+          radial_velocity=23.90000001777383 km / s
+          redshift=7.972181881164546e-05>
 
 Note that in this case the total radial velocity between the observer and the
 target matches what we specified when we set up the target, since it was defined
-relative to the ICRS origin (the Solar System barycenter).
+relative to the ICRS origin (the Solar System barycenter). The observer location
+is still as before, but the observer velocity is now ~10-20 km/s in x, y, and z,
+which is because the observer is now stationary relative to the barycenter so has
+a significant velocity relative to the surface of the Earth.
 
 We can also transform the frequencies to the LSRK frame of reference:
 
     >>> sc_ttau.with_observer_in_velocity_frame_of(sc_ttau.LSRK_GORDON1975)  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord [200.01903428, 210.019986  , 220.02093771, 230.02188943,
                     240.02284114, 250.02379285, 260.02474457, 270.02569628,
-                    280.026648  , 290.02759971, 300.02855143] GHz,
-    	radial_velocity=12.506991142959272 km / s,
-    	redshift=4.171883184252511e-05,
-    	doppler_rest=None,
-    	doppler_convention=None,
-    	observer=ITRS,
-    	target=ICRS>
+                    280.026648  , 290.02759971, 300.02855143] GHz
+        observer:
+          <ITRS Coordinate (obstime=2019-04-24T02:32:10.000): (x, y, z) in m
+              (2225015.30880384, -5440016.418026, -2481631.2742804)
+           (v_x, v_y, v_z) in km / s
+              (-32.49509919, -29.32669071, -0.09800404)>
+        target:
+          <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
+              (65.497625, 19.53511111, 144.321)
+           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+              (1.37949782e-15, 1.46375638e-15, 23.9)>
+        observer to target (computed from above):
+          radial_velocity=12.506991142959272 km / s
+          redshift=4.171883184252511e-05>
 
 See :ref:`spectralcoord-common-frames` for a list of frames available as
 constants on the |SpectralCoord| class. These constants are essentially instances
@@ -424,14 +403,20 @@ rest frame of the target:
     >>> sc_ttau_targetframe  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord [200.02737999, 210.02874899, 220.03011799, 230.03148698,
                     240.03285598, 250.03422498, 260.03559398, 270.03696298,
-                    280.03833198, 290.03970098, 300.04106998] GHz,
-    	radial_velocity=9.052183815516737e-09 km / s,
-    	redshift=3.0194835039901956e-14,
-    	doppler_rest=None,
-    	doppler_convention=None,
-    	observer=ITRS,
-    	target=ICRS>
-
+                    280.03833198, 290.03970098, 300.04106998] GHz
+        observer:
+          <ITRS Coordinate (obstime=2019-04-24T02:32:10.000): (x, y, z) in m
+              (2225015.30880384, -5440016.418026, -2481631.2742804)
+           (v_x, v_y, v_z) in km / s
+              (-38.81604591, -21.43610685, 17.91366182)>
+        target:
+          <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
+              (65.497625, 19.53511111, 144.321)
+           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+              (1.37949782e-15, 1.46375638e-15, 23.9)>
+        observer to target (computed from above):
+          radial_velocity=9.052183815516737e-09 km / s
+          redshift=3.0194835039901956e-14>
 
 The ``radial_velocity``, which is the velocity offset between observer and
 target, is now zero.
@@ -449,13 +434,20 @@ We can convert these to the rest frame of the target using::
 
     >>> sc_feat_rest = sc_feat.with_observer_in_velocity_frame_of(sc_feat.target)  # doctest: +REMOTE_DATA
     >>> sc_feat_rest  # doctest: +REMOTE_DATA
-    <SpectralCoord [115.27577909, 115.28177991, 115.28278004] GHz,
-    	radial_velocity=9.052183815516737e-09 km / s,
-    	redshift=3.0194835039901956e-14,
-    	doppler_rest=None,
-    	doppler_convention=None,
-    	observer=ITRS,
-    	target=ICRS>
+    <SpectralCoord [115.27577909, 115.28177991, 115.28278004] GHz
+        observer:
+          <ITRS Coordinate (obstime=2019-04-24T02:32:10.000): (x, y, z) in m
+              (2225015.30880384, -5440016.418026, -2481631.2742804)
+           (v_x, v_y, v_z) in km / s
+              (-38.81604591, -21.43610685, 17.91366182)>
+        target:
+          <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
+              (65.497625, 19.53511111, 144.321)
+           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+              (1.37949782e-15, 1.46375638e-15, 23.9)>
+        observer to target (computed from above):
+          radial_velocity=9.052183815516737e-09 km / s
+          redshift=3.0194835039901956e-14>
 
 The frequencies are very close to the rest frequency of the 12CO J=1-0 molecular line transition,
 which is 115.2712018 GHz. However, they are not exactly the same, so if the features we see are
@@ -464,13 +456,29 @@ T Tau. We can convert these frequencies to velocities assuming the Doppler shift
 (in this case with the radio convention)::
 
     >>> sc_feat_rest.to(u.km / u.s, doppler_convention='radio', doppler_rest=115.27120180 * u.GHz)
-    <SpectralCoord [-11.90441211, -27.51109417, -30.11220785] km / s,
-    	radial_velocity=9.052183815516737e-09 km / s,
-    	redshift=3.0194835039901956e-14,
-    	doppler_rest=115.2712018 GHz,
-    	doppler_convention=radio,
-    	observer=ITRS,
-    	target=ICRS>
+    <SpectralCoord [-11.90441211, -27.51109417, -30.11220785] km / s
+        observer:
+          <ITRS Coordinate (obstime=2019-04-24T02:32:10.000): (x, y, z) in m
+              (2225015.30880384, -5440016.418026, -2481631.2742804)
+           (v_x, v_y, v_z) in km / s
+              (-38.81604591, -21.43610685, 17.91366182)>
+        target:
+          <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
+              (65.497625, 19.53511111, 144.321)
+           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+              (1.37949782e-15, 1.46375638e-15, 23.9)>
+        observer to target (computed from above):
+          radial_velocity=9.052183815516737e-09 km / s
+          redshift=3.0194835039901956e-14
+    	doppler_rest=115.2712018 GHz
+    	doppler_convention=radio>
+
+
+
+Note that these resulting velocities are different from the ``radial_velocity``
+property (which is still zero here) - the latter is the difference in velocity
+between observer and target, while the former are how much the spectral values
+are Doppler shifted by relative to the rest frequency or wavelength.
 
 So if the features are indeed from 12CO, they have velocities of approximately -11.9, -27.5 and
 -30.1 km/s relative to the T tau rest frame.
