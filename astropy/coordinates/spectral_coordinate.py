@@ -78,6 +78,9 @@ def update_differentials_to_match(original, velocity_reference, preserve_observe
     else:
         final = final_icrs.transform_to(velocity_reference)
 
+    final = final.replicate(representation_type=CartesianRepresentation,
+                            differential_type=CartesianDifferential)
+
     return final
 
 

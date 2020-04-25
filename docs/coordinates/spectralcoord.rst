@@ -308,10 +308,10 @@ rotation), we can use
                     240.00028969, 250.00030176, 260.00031383, 270.0003259 ,
                     280.00033797, 290.00035004, 300.00036211] GHz
         observer:
-          <GCRS Coordinate (obstime=2019-04-24T02:32:10.000, obsgeoloc=(0., 0., 0.) m, obsgeovel=(0., 0., 0.) m / s): (ra, dec, distance) in (deg, deg, m)
-              (181.87955724, -22.78527419, 6379887.58006678)
-           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-              (-91733.4432846, -3719.07432946, 1.01853686e-08)>
+          <GCRS Coordinate (obstime=2019-04-24T02:32:10.000, obsgeoloc=(0., 0., 0.) m, obsgeovel=(0., 0., 0.) m / s): (x, y, z) in m
+              (-5878853.86160149, -192921.84793754, -2470794.19798818)
+           (v_x, v_y, v_z) in km / s
+              (-1.09234825e-08, 8.96006823e-08, -7.30529428e-09)>
         target:
           <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
               (65.497625, 19.53511111, 144.321)
@@ -320,6 +320,7 @@ rotation), we can use
         observer to target (computed from above):
           radial_velocity=40.67408633458015 km / s
           redshift=0.00013567414806205748>
+
 
 As you can see, the frequencies have changed slightly, which is because we have
 removed the Doppler shift caused by the Earth's rotation (this can also be seen
@@ -331,10 +332,10 @@ velocity reference frame relative to the Solar System barycenter we can use::
                     240.01371903, 250.01429066, 260.01486229, 270.01543391,
                     280.01600554, 290.01657717, 300.01714879] GHz
         observer:
-          <ICRS Coordinate: (ra, dec, distance) in (deg, deg, m)
-              (210.75488029, -12.50184601, 1.50023584e+11)
-           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-              (0., 0., -0.)>
+          <ICRS Coordinate: (x, y, z) in m
+              (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
+           (v_x, v_y, v_z) in km / s
+              (0., 0., 0.)>
         target:
           <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
               (65.497625, 19.53511111, 144.321)
@@ -358,10 +359,10 @@ We can also transform the frequencies to the LSRK frame of reference:
                     240.02284114, 250.02379285, 260.02474457, 270.02569628,
                     280.026648  , 290.02759971, 300.02855143] GHz
         observer:
-          <FK4 Coordinate (equinox=B1900.000, obstime=2019-04-24T02:32:10.000): (ra, dec, distance) in (deg, deg, m)
-              (209.41331845, -12.02011582, 1.50023584e+11)
-           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-              (-6.54632056e+08, -5.01226349e+08, -6.23716228)>
+          <FK4 Coordinate (equinox=B1900.000, obstime=2019-04-24T02:32:10.000): (x, y, z) in m
+              (-1.27820157e+11, -7.20621074e+10, -3.12431755e+10)
+           (v_x, v_y, v_z) in km / s
+              (1.51824951e-05, 17.32048573, -9.99998236)>
         target:
           <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
               (65.497625, 19.53511111, 144.321)
@@ -370,7 +371,6 @@ We can also transform the frequencies to the LSRK frame of reference:
         observer to target (computed from above):
           radial_velocity=12.506991149252126 km / s
           redshift=4.171883186351581e-05>
-
 
 See :ref:`spectralcoord-common-frames` for a list of frames available as
 constants on the |SpectralCoord| class. These constants are essentially instances
@@ -406,10 +406,10 @@ rest frame of the target:
                     240.03285598, 250.03422498, 260.03559398, 270.03696298,
                     280.03833198, 290.03970098, 300.04106998] GHz
         observer:
-          <ICRS Coordinate: (ra, dec, distance) in (deg, deg, m)
-              (210.75488029, -12.50184601, 1.50023584e+11)
-           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-              (-5.56945609e+08, 1.64688654e+08, -19.79973141)>
+          <ICRS Coordinate: (x, y, z) in m
+              (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
+           (v_x, v_y, v_z) in km / s
+              (9.34149908, 20.49579745, 7.99178839)>
         target:
           <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
               (65.497625, 19.53511111, 144.321)
@@ -418,6 +418,7 @@ rest frame of the target:
         observer to target (computed from above):
           radial_velocity=0.0 km / s
           redshift=0.0>
+
 
 The ``radial_velocity``, which is the velocity offset between observer and
 target, is now zero.
@@ -437,10 +438,10 @@ We can convert these to the rest frame of the target using::
     >>> sc_feat_rest  # doctest: +REMOTE_DATA
     <SpectralCoord [115.27577909, 115.28177991, 115.28278004] GHz
         observer:
-          <ICRS Coordinate: (ra, dec, distance) in (deg, deg, m)
-              (210.75488029, -12.50184601, 1.50023584e+11)
-           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-              (-5.56945609e+08, 1.64688654e+08, -19.79973141)>
+          <ICRS Coordinate: (x, y, z) in m
+              (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
+           (v_x, v_y, v_z) in km / s
+              (9.34149908, 20.49579745, 7.99178839)>
         target:
           <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
               (65.497625, 19.53511111, 144.321)
@@ -449,7 +450,6 @@ We can convert these to the rest frame of the target using::
         observer to target (computed from above):
           radial_velocity=0.0 km / s
           redshift=0.0>
-
 
 The frequencies are very close to the rest frequency of the 12CO J=1-0 molecular line transition,
 which is 115.2712018 GHz. However, they are not exactly the same, so if the features we see are
@@ -460,10 +460,10 @@ T Tau. We can convert these frequencies to velocities assuming the Doppler shift
     >>> sc_feat_rest.to(u.km / u.s, doppler_convention='radio', doppler_rest=115.27120180 * u.GHz)
     <SpectralCoord [-11.90441211, -27.51109417, -30.11220785] km / s
         observer:
-          <ICRS Coordinate: (ra, dec, distance) in (deg, deg, m)
-              (210.75488029, -12.50184601, 1.50023584e+11)
-           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-              (-5.56945609e+08, 1.64688654e+08, -19.79973141)>
+          <ICRS Coordinate: (x, y, z) in m
+              (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
+           (v_x, v_y, v_z) in km / s
+              (9.34149908, 20.49579745, 7.99178839)>
         target:
           <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
               (65.497625, 19.53511111, 144.321)
