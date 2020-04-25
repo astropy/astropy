@@ -136,6 +136,9 @@ astropy.table
 - Added support for ``SkyCoord`` mixin columns in ``dstack``, ``vstack`` and
   ``insert_row`` functions. [#9857]
 
+- Added support for coordinate ``Representation`` and ``Differential`` mixin
+  columns. [#10210]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -209,6 +212,10 @@ astropy.coordinates
   when the ```SkyCoord``` also has an ```obstime``` set. In this situation, the position of the
   ```SkyCoord``` has space motion applied to correct to the passed ```obstime```. This allows
   mm/s radial velocity precision for objects with large space motion. [#10094]
+
+- For consistency with other astropy classes, coordinate ``Representations``
+  and ``Differentials`` can now be initialized with an instance of their own class
+  if that instance is passed in as the first argument. [#10210]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
