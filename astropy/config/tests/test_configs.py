@@ -142,6 +142,7 @@ def test_generate_config(tmp_path):
         conf2 = fp.read()
 
     for c in (conf, conf2):
+        # test that the output contains some lines that we expect
         assert '# unicode_output = False' in c
         assert '[io.fits]' in c
         assert '[visualization.wcsaxes]' in c
