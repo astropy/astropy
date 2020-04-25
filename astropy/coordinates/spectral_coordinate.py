@@ -40,11 +40,15 @@ __all__ = ['SpectralCoord']
 __doctest_skip__ = ['SpectralCoord.*']
 
 
-def update_differentials_to_match(original, velocity_reference):
+def update_differentials_to_match(original, velocity_reference, preserve_observer_frame=False):
     """
     Given an original coordinate object, update the differentials so that
     the final coordinate is at the same location as the original coordinate
     but co-moving with the velocity reference object.
+
+    If preserve_original_frame is set to True, the resulting object will be in
+    the frame of the original coordinate, otherwise it will be in the frame of
+    the velocity reference.
     """
 
     if not velocity_reference.data.differentials:
@@ -68,7 +72,11 @@ def update_differentials_to_match(original, velocity_reference):
     else:
         data_with_differentials = original_icrs.data.represent_as(CartesianRepresentation).with_differentials(differentials)
     final_icrs = original_icrs.realize_frame(data_with_differentials)
-    final = final_icrs.transform_to(original)
+
+    if preserve_observer_frame:
+        final = final_icrs.transform_to(original)
+    else:
+        final = final_icrs.transform_to(velocity_reference)
 
     return final
 
@@ -700,7 +708,7 @@ class SpectralCoord(u.Quantity):
 
         return new_data
 
-    def with_observer_in_velocity_frame_of(self, frame):
+    def with_observer_in_velocity_frame_of(self, frame, preserve_observer_frame=False):
         """
         Alters the velocity frame of the observer, but not the position.
 
@@ -708,6 +716,10 @@ class SpectralCoord(u.Quantity):
         ----------
         frame : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
             The observation frame containing the new velocity for the observer.
+        preserve_observer_frame : bool
+            If `True`, the final observer frame class will be the same as the
+            original one, and if `False` it will be the frame of the velocity
+            reference class.
 
         Returns
         -------
@@ -729,7 +741,8 @@ class SpectralCoord(u.Quantity):
                               representation_type='cartesian',
                               differential_type='cartesian')
 
-        observer = update_differentials_to_match(self.observer, frame)
+        observer = update_differentials_to_match(self.observer, frame,
+                                                 preserve_observer_frame=preserve_observer_frame)
 
         new_coord = self._change_observer_to(observer)
 
