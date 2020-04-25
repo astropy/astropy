@@ -1621,3 +1621,17 @@ def test_dtype_preservation_in_indexing():
     cr0 = cr[0]
     # This used to fail.
     assert cr0.xyz.dtype == xyz.dtype
+
+
+class TestInfo:
+    def setup_class(cls):
+        cls.rep = SphericalRepresentation([0, 1]*u.deg, [2, 3]*u.deg,
+                                          10*u.pc)
+        cls.diff = SphericalDifferential([10, 20]*u.mas/u.yr,
+                                         [30, 40]*u.mas/u.yr,
+                                         [50, 60]*u.km/u.s)
+        cls.rep_w_diff = SphericalRepresentation(cls.rep,
+                                                 differentials=cls.diff)
+
+    def test_info_unit(self):
+        assert self.rep.info.unit == '(deg, deg, pc)'

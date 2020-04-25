@@ -141,6 +141,9 @@ MIXIN_COLS = {'quantity': [0, 1, 2, 3] * u.m,
                   [0, 1, 2, 3]*u.deg, [0, 1, 2, 3]*u.deg, 1*u.kpc),
               'cartesianrep': coordinates.CartesianRepresentation(
                   [0, 1, 2, 3]*u.pc, [4, 5, 6, 7]*u.pc, [9, 8, 8, 6]*u.pc),
+              'sphericaldiff': coordinates.SphericalCosLatDifferential(
+                  [0, 1, 2, 3]*u.mas/u.yr, [0, 1, 2, 3]*u.mas/u.yr,
+                  10*u.km/u.s),
               'arraywrap': table_helpers.ArrayWrapper([0, 1, 2, 3]),
               'ndarray': np.array([(7, 'a'), (8, 'b'), (9, 'c'), (9, 'c')],
                                   dtype='<i4,|S1').view(table.NdarrayMixin),
@@ -148,6 +151,8 @@ MIXIN_COLS = {'quantity': [0, 1, 2, 3] * u.m,
 MIXIN_COLS['earthlocation'] = coordinates.EarthLocation(
     lon=MIXIN_COLS['longitude'], lat=MIXIN_COLS['latitude'],
     height=MIXIN_COLS['quantity'])
+MIXIN_COLS['sphericalrepdiff'] = coordinates.SphericalRepresentation(
+    MIXIN_COLS['sphericalrep'], differentials=MIXIN_COLS['sphericaldiff'])
 
 
 @pytest.fixture(params=sorted(MIXIN_COLS))
