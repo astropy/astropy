@@ -339,7 +339,7 @@ Background (CMB) dipole.
 
 We can transform out frequencies for the observations of T Tau to different
 velocity frames using the
-:meth:`~astropy.coordinates.SpectralCoord.in_observer_velocity_frame` method.
+:meth:`~astropy.coordinates.SpectralCoord.with_observer_in_velocity_frame_of` method.
 This method can take any arbitrary 3-d position and velocity coordinate object
 defined either as a :class:`~astropy.coordinates.BaseCoordinateFrame` or a
 |SkyCoord| object, or strings referring to existing celestial coordinate frames.
@@ -348,7 +348,7 @@ common transformations. For example to transform to a velocity frame stationary
 with respect to the center of the Earth (so removing the effect of the Earth's
 rotation), we can use
 
-    >>> sc_ttau.in_observer_velocity_frame(sc_ttau.GEOCENTRIC)  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> sc_ttau.with_observer_in_velocity_frame_of(sc_ttau.GEOCENTRIC)  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord [200.00024141, 210.00025348, 220.00026555, 230.00027762,
                     240.00028969, 250.00030176, 260.00031383, 270.0003259 ,
                     280.00033797, 290.00035004, 300.00036211] GHz,
@@ -364,7 +364,7 @@ removed the Doppler shift caused by the Earth's rotation (this can also be seen
 in the ``radial_velocity`` property, which has changed by ~0.35 km/s. To use a
 velocity reference frame relative to the Solar System barycenter we can use::
 
-    >>> sc_ttau.in_observer_velocity_frame(sc_ttau.BARYCENTRIC)  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> sc_ttau.with_observer_in_velocity_frame_of(sc_ttau.BARYCENTRIC)  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord [200.01143253, 210.01200415, 220.01257578, 230.01314741,
                     240.01371903, 250.01429066, 260.01486229, 270.01543391,
                     280.01600554, 290.01657717, 300.01714879] GHz,
@@ -381,7 +381,7 @@ relative to the ICRS origin (the Solar System barycenter).
 
 We can also transform the frequencies to the LSRK frame of reference:
 
-    >>> sc_ttau.in_observer_velocity_frame(sc_ttau.LSRK_GORDON1975)  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> sc_ttau.with_observer_in_velocity_frame_of(sc_ttau.LSRK_GORDON1975)  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord [200.01903428, 210.019986  , 220.02093771, 230.02188943,
                     240.02284114, 250.02379285, 260.02474457, 270.02569628,
                     280.026648  , 290.02759971, 300.02855143] GHz,
@@ -405,22 +405,22 @@ of :class:`~astropy.coordinates.BaseCoordinateFrame` objects::
 It is also possible to pass your own coordinate objects, or strings referring to
 coordinate frames already defined in astropy. For example:
 
-    >>> sc_ttau.in_observer_velocity_frame('gcrs')  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> sc_ttau.with_observer_in_velocity_frame_of('gcrs')  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
 is equivalent to::
 
-    >>> sc_ttau.in_observer_velocity_frame(sc_ttau.GEOCENTRIC)  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> sc_ttau.with_observer_in_velocity_frame_of(sc_ttau.GEOCENTRIC)  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
 Here ``'gcrs'`` stands for Geocentric Celestial Reference System, which, like ITRS,
 is a coordinate system centered on the center of the Earth, but it does not rotate
 with the Earth.
 
 Finally, since we can give any arbitrary |SkyCoord| to the
-:meth:`~astropy.coordinates.SpectralCoord.in_observer_velocity_frame` method,
+:meth:`~astropy.coordinates.SpectralCoord.with_observer_in_velocity_frame_of` method,
 we can also specify the target itself, to find the frequencies in the
 rest frame of the target:
 
-    >>> sc_ttau_targetframe = sc_ttau.in_observer_velocity_frame(sc_ttau.target)  # doctest: +REMOTE_DATA
+    >>> sc_ttau_targetframe = sc_ttau.with_observer_in_velocity_frame_of(sc_ttau.target)  # doctest: +REMOTE_DATA
     >>> sc_ttau_targetframe  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord [200.02737999, 210.02874899, 220.03011799, 230.03148698,
                     240.03285598, 250.03422498, 260.03559398, 270.03696298,
@@ -447,7 +447,7 @@ in the frame of reference of the telescope::
 
 We can convert these to the rest frame of the target using::
 
-    >>> sc_feat_rest = sc_feat.in_observer_velocity_frame(sc_feat.target)  # doctest: +REMOTE_DATA
+    >>> sc_feat_rest = sc_feat.with_observer_in_velocity_frame_of(sc_feat.target)  # doctest: +REMOTE_DATA
     >>> sc_feat_rest  # doctest: +REMOTE_DATA
     <SpectralCoord [115.27577909, 115.28177991, 115.28278004] GHz,
     	radial_velocity=9.052183815516737e-09 km / s,

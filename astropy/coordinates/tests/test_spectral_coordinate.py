@@ -457,7 +457,7 @@ def test_asteroid_velocity_frame_shifts():
     assert spec_coord2.radial_velocity > 0*u.km/u.s
     assert spec_coord2.radial_velocity < 5*u.km/u.s
 
-    # now check the behavior of in_observer_velocity_frame: we shift each coord
+    # now check the behavior of with_observer_in_velocity_frame_of: we shift each coord
     # into the velocity frame of its *own* target.  That would then be a
     # spectralcoord that would allow direct physical comparison of the two
     # diffferent spec_corrds.  There's no way to test that, without
@@ -466,7 +466,7 @@ def test_asteroid_velocity_frame_shifts():
     # spec_coord2 is redshifted, so we test that it behaves the way "shifting
     # to rest frame" should - the as-observed spectral coordinate should become
     # the rest frame, so something that starts out red should become bluer
-    target_sc2 = spec_coord2.in_observer_velocity_frame(spec_coord2.target)
+    target_sc2 = spec_coord2.with_observer_in_velocity_frame_of(spec_coord2.target)
     assert np.all(target_sc2 < spec_coord2)
     # rv/redshift should be 0 since the observer and target velocities should
     # be the same
@@ -476,12 +476,12 @@ def test_asteroid_velocity_frame_shifts():
     # check that the same holds for spec_coord1, but be more specific: it
     # should follow the standard redshift formula (which in this case yields
     # a blueshift, although the formula is the same as 1+z)
-    target_sc1 = spec_coord1.in_observer_velocity_frame(spec_coord1.target)
+    target_sc1 = spec_coord1.with_observer_in_velocity_frame_of(spec_coord1.target)
     assert_quantity_allclose(target_sc1, spec_coord1/(1+spec_coord1.redshift))
 
     # TODO: Figure out what is meant by the below use case
     # ensure the "target-rest" use gives the same answer
-    # target_sc1_alt = spec_coord1.in_observer_velocity_frame('target-rest')
+    # target_sc1_alt = spec_coord1.with_observer_in_velocity_frame_of('target-rest')
     # assert_quantity_allclose(target_sc1, target_sc1_alt)
 
 
@@ -555,7 +555,7 @@ def test_spectralcoord_accuracy(specsys):
             # though the leap second table should be valid until the end of
             # 2020.
             with nullcontext() if row['obstime'].mjd < 57754 else pytest.warns(AstropyWarning, match='Tried to get polar motions'):
-                sc_final = sc_topo.in_observer_velocity_frame(velocity_frame)
+                sc_final = sc_topo.with_observer_in_velocity_frame_of(velocity_frame)
 
             delta_vel = (sc_topo.to(u.km / u.s, u.doppler_relativistic(rest)) -
                          sc_final.to(u.km / u.s, u.doppler_relativistic(rest)))
