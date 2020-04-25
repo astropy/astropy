@@ -18,6 +18,7 @@ from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from astropy._erfa import ufunc as erfa_ufunc
 from astropy.utils import ShapedLikeNDArray, classproperty
+from astropy.utils.data_info import MixinInfo
 from astropy.utils.exceptions import DuplicateRepresentationWarning
 
 
@@ -105,6 +106,78 @@ def _combine_xyz(x, y, z, xyz_axis=0):
     return cls(xyz, unit=unit, copy=False)
 
 
+class BaseRepresentationOrDifferentialInfo(MixinInfo):
+    """
+    Container for meta information like name, description, format.  This is
+    required when the object is used as a mixin column within a table, but can
+    be used as a general way to store meta information.
+    """
+    _supports_indexing = False
+
+    @staticmethod
+    def default_format(val):
+        formats = ['{0.' + compname + '.value:}' for compname
+                   in val.components]
+        return ','.join(formats).format(val)
+
+    @property
+    def _represent_as_dict_attrs(self):
+        return self._parent.components
+
+    @property
+    def unit(self):
+        return self._parent._unitstr if self._parent is not None else None
+
+    def new_like(self, reps, length, metadata_conflicts='warn', name=None):
+        """
+        Return a new instance like ``reps`` with ``length`` rows.
+
+        This is intended for creating an empty column object whose elements can
+        be set in-place for table operations like join or vstack.
+
+        Parameters
+        ----------
+        reps : list
+            List of input representations or differentials.
+        length : int
+            Length of the output column object
+        metadata_conflicts : str ('warn'|'error'|'silent')
+            How to handle metadata conflicts
+        name : str
+            Output column name
+
+        Returns
+        -------
+        col : Representation or Differential
+            Empty instance of this class consistent with ``cols``
+
+        """
+
+        # Get merged info attributes like shape, dtype, format, description, etc.
+        attrs = self.merge_cols_attributes(reps, metadata_conflicts, name,
+                                           ('meta', 'description'))
+        # Make a new SkyCoord object with the desired length and attributes
+        # by using the _apply / __getitem__ machinery to effectively return
+        # skycoord0[[0, 0, ..., 0, 0]]. This will have the all the right frame
+        # attributes with the right shape.
+        indexes = np.zeros(length, dtype=np.int64)
+        out = reps[0][indexes]
+
+        # Use __setitem__ machinery to check for consistency of all representations.
+        for rep in reps[1:]:
+            try:
+                out[0] = rep[0]
+            except Exception as err:
+                raise ValueError(f'input representations are inconsistent: {err}')
+
+        # Set (merged) info attributes.
+        for attr in ('name', 'meta', 'description'):
+            if attr in attrs:
+                setattr(out.info, attr, attrs[attr])
+
+        return out
+
+
 class BaseRepresentationOrDifferential(ShapedLikeNDArray):
     """3D coordinate representations and differentials.
 
@@ -121,6 +194,8 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
     # Ensure multiplication/division with ndarray or Quantity doesn't lead to
     # object arrays.
     __array_priority__ = 50000
+
+    info = BaseRepresentationOrDifferentialInfo()
 
     def __init__(self, *args, **kwargs):
         # make argument a list, so we can pop them off.
@@ -258,6 +333,13 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         for component in self.components:
             setattr(new, '_' + component,
                     apply_method(getattr(self, component)))
+
+        # Copy other 'info' attr only if it has actually been defined.
+        # See PR #3898 for further explanation and justification, along
+        # with Quantity.__array_finalize__
+        if 'info' in self.__dict__:
+            new.info = self.info
+
         return new
 
     def __setitem__(self, item, value):
