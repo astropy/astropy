@@ -700,6 +700,11 @@ class SpectralCoord(u.Quantity):
             The new coordinate object representing the spectral data
             transformed based on the observer's new velocity frame.
         """
+
+        if self.observer is None or self.target is None:
+            raise ValueError("This method can only be used if both observer "
+                             "and target are defined on the SpectralCoord.")
+
         if hasattr(frame, 'frame'):
             frame = frame.frame
         elif isinstance(frame, str):
