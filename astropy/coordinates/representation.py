@@ -612,6 +612,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
     def __init__(self, *args, differentials=None, **kwargs):
         # Handle any differentials passed in.
         super().__init__(*args, **kwargs)
+        if (differentials is None
+                and args and isinstance(args[0], self.__class__)):
+            differentials = args[0]._differentials
         self._differentials = self._validate_differentials(differentials)
 
     def _validate_differentials(self, differentials):
