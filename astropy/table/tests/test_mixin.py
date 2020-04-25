@@ -48,7 +48,8 @@ def test_attributes(mixin_cols):
     assert m.info.description == 'a'
 
     # Cannot set unit for these classes
-    if isinstance(m, (u.Quantity, coordinates.SkyCoord, time.Time)):
+    if isinstance(m, (u.Quantity, coordinates.SkyCoord, time.Time,
+                      coordinates.BaseRepresentationOrDifferential)):
         with pytest.raises(AttributeError):
             m.info.unit = u.m
     else:
@@ -386,6 +387,8 @@ def assert_table_name_col_equal(t, name, col):
     if isinstance(col, coordinates.SkyCoord):
         assert np.all(t[name].ra == col.ra)
         assert np.all(t[name].dec == col.dec)
+    elif isinstance(col, coordinates.BaseRepresentation):
+        assert np.all((t[name] - col).norm() == 0)
     elif isinstance(col, u.Quantity):
         if type(t) is QTable:
             assert np.all(t[name] == col)
@@ -757,6 +760,8 @@ def test_rename_mixin_columns(mixin_cols):
     elif isinstance(t['mm'], coordinates.SkyCoord):
         assert np.all(t['mm'].ra == tc['m'].ra)
         assert np.all(t['mm'].dec == tc['m'].dec)
+    elif isinstance(t['mm'], coordinates.BaseRepresentation):
+        assert np.all((t['mm']-tc['m']).norm() == 0)
     else:
         assert np.all(t['mm'] == tc['m'])
 

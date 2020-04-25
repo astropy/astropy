@@ -13,7 +13,9 @@ from astropy.utils import metadata
 from astropy.utils.metadata import MergeConflictError
 from astropy import table
 from astropy.time import Time
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import (SkyCoord, SphericalRepresentation,
+                                 CartesianRepresentation,
+                                 BaseRepresentationOrDifferential)
 from astropy.io.misc.asdf.tags.helpers import skycoord_equal
 
 
@@ -509,6 +511,9 @@ class TestJoin():
             # SkyCoord doesn't support __eq__ so use our own
             assert skycoord_equal(out['m1'], col[[0, 3]])
             assert skycoord_equal(out['m2'], col[[0, 3]])
+        elif 'Repr' in cls_name:
+            assert np.all((out['m1'] - col[[0, 3]]).norm() == 0.)
+            assert np.all((out['m2'] - col[[0, 3]]).norm() == 0.)
         else:
             assert np.all(out['m1'] == col[[0, 3]])
             assert np.all(out['m2'] == col[[0, 3]])
@@ -977,16 +982,17 @@ class TestVStack():
         cls_name = type(col).__name__
 
         # Vstack works for these classes:
-        implemented_mixin_classes = ['Quantity', 'Angle', 'Time',
-                                     'Latitude', 'Longitude', 'SkyCoord',
-                                     'EarthLocation']
-        if cls_name in implemented_mixin_classes:
+        if isinstance(col, (u.Quantity, Time, SkyCoord,
+                            BaseRepresentationOrDifferential)):
             out = table.vstack([t, t])
             assert len(out) == len_col * 2
             if cls_name == 'SkyCoord':
                 # Argh, SkyCoord needs __eq__!!
                 assert skycoord_equal(out['a'][len_col:], col)
                 assert skycoord_equal(out['a'][:len_col], col)
+            elif 'Repr' in cls_name:
+                assert np.all((out['a'][:len_col] - col).norm() == 0)
+                assert np.all((out['a'][len_col:] - col).norm() == 0)
             else:
                 assert np.all(out['a'][:len_col] == col)
                 assert np.all(out['a'][len_col:] == col)
@@ -1132,6 +1138,15 @@ class TestDStack():
         self._setup(Table)
         out = table.dstack(self.t1)
         assert np.all(out == self.t1)
+
+    def test_dstack_representation(self):
+        rep1 = SphericalRepresentation([1, 2]*u.deg, [3, 4]*u.deg, 1*u.kpc)
+        rep2 = SphericalRepresentation([10, 20]*u.deg, [30, 40]*u.deg, 10*u.kpc)
+        t1 = Table([rep1])
+        t2 = Table([rep2])
+        t12 = table.dstack([t1, t2])
+        assert np.all((t12['col0'][:, 0]-rep1).norm() == 0.)
+        assert np.all((t12['col0'][:, 1]-rep2).norm() == 0.)
 
     def test_dstack_skycoord(self):
         sc1 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg)
@@ -1378,6 +1393,9 @@ class TestHStack():
         if cls_name == 'SkyCoord':
             assert skycoord_equal(out['col0_1'], col1[:len(col2)])
             assert skycoord_equal(out['col0_2'], col2)
+        elif 'Repr' in cls_name:
+            assert np.all((out['col0_1'] - col1[:len(col2)]).norm() == 0)
+            assert np.all((out['col0_2'] - col2).norm() == 0)
         else:
             assert np.all(out['col0_1'] == col1[:len(col2)])
             assert np.all(out['col0_2'] == col2)
