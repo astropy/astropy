@@ -16,6 +16,7 @@ from astropy.time import Time
 from astropy.coordinates import (SkyCoord, SphericalRepresentation,
                                  CartesianRepresentation,
                                  BaseRepresentationOrDifferential)
+from astropy.coordinates.tests.test_representation import representation_equal
 from astropy.io.misc.asdf.tags.helpers import skycoord_equal
 
 
@@ -512,8 +513,8 @@ class TestJoin():
             assert skycoord_equal(out['m1'], col[[0, 3]])
             assert skycoord_equal(out['m2'], col[[0, 3]])
         elif 'Repr' in cls_name:
-            assert np.all((out['m1'] - col[[0, 3]]).norm() == 0.)
-            assert np.all((out['m2'] - col[[0, 3]]).norm() == 0.)
+            assert np.all(representation_equal(out['m1'], col[[0, 3]]))
+            assert np.all(representation_equal(out['m2'], col[[0, 3]]))
         else:
             assert np.all(out['m1'] == col[[0, 3]])
             assert np.all(out['m2'] == col[[0, 3]])
@@ -991,8 +992,8 @@ class TestVStack():
                 assert skycoord_equal(out['a'][len_col:], col)
                 assert skycoord_equal(out['a'][:len_col], col)
             elif 'Repr' in cls_name:
-                assert np.all((out['a'][:len_col] - col).norm() == 0)
-                assert np.all((out['a'][len_col:] - col).norm() == 0)
+                assert np.all(representation_equal(out['a'][:len_col], col))
+                assert np.all(representation_equal(out['a'][len_col:], col))
             else:
                 assert np.all(out['a'][:len_col] == col)
                 assert np.all(out['a'][len_col:] == col)
@@ -1145,8 +1146,8 @@ class TestDStack():
         t1 = Table([rep1])
         t2 = Table([rep2])
         t12 = table.dstack([t1, t2])
-        assert np.all((t12['col0'][:, 0]-rep1).norm() == 0.)
-        assert np.all((t12['col0'][:, 1]-rep2).norm() == 0.)
+        assert np.all(representation_equal(t12['col0'][:, 0], rep1))
+        assert np.all(representation_equal(t12['col0'][:, 1], rep2))
 
     def test_dstack_skycoord(self):
         sc1 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg)
@@ -1394,8 +1395,8 @@ class TestHStack():
             assert skycoord_equal(out['col0_1'], col1[:len(col2)])
             assert skycoord_equal(out['col0_2'], col2)
         elif 'Repr' in cls_name:
-            assert np.all((out['col0_1'] - col1[:len(col2)]).norm() == 0)
-            assert np.all((out['col0_2'] - col2).norm() == 0)
+            assert np.all(representation_equal(out['col0_1'], col1[:len(col2)]))
+            assert np.all(representation_equal(out['col0_2'], col2))
         else:
             assert np.all(out['col0_1'] == col1[:len(col2)])
             assert np.all(out['col0_2'] == col2)
