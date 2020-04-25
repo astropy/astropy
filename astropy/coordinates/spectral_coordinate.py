@@ -844,7 +844,18 @@ class SpectralCoord(u.Quantity):
         """
         Transforms the spectral axis to the rest frame.
         """
-        rest_frame_value = self / (1 + self.redshift)
+
+        if self.observer is not None and self.target is not None:
+            return self.in_observer_velocity_frame(self.target)
+
+        if self.unit.is_equivalent(u.m):  # wavelength
+            rest_frame_value = self.quantity / (1 + self.redshift)
+        elif self.unit.is_equivalent(u.Hz) or self.unit.is_equivalent(u.eV):  # frequency or energy
+            rest_frame_value = self.quantity * (1 + self.redshift)
+        elif self.unit.is_equivalent(u.km / u.s):  # velocity
+            rest_frame_value = self.quantity - self.radial_velocity
+        else:
+            raise TypeError(f"Unexpected units in velocity shift: {self.unit}")
 
         return self._copy(value=rest_frame_value, radial_velocity=0 * u.km / u.s)
 
