@@ -201,26 +201,44 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         # make argument a list, so we can pop them off.
         args = list(args)
         components = self.components
-        attrs = []
-        for component in components:
-            try:
-                attrs.append(args.pop(0) if args else kwargs.pop(component))
-            except KeyError:
-                raise TypeError('__init__() missing 1 required positional '
-                                'argument: {!r}'.format(component))
+        if (args and isinstance(args[0], self.__class__)
+                and all(arg is None for arg in args[1:])):
+            rep_or_diff = args[0]
+            copy = kwargs.pop('copy', True)
+            attrs = [getattr(rep_or_diff, component)
+                     for component in components]
+            if 'info' in rep_or_diff.__dict__:
+                self.info = rep_or_diff.info
 
-        copy = args.pop(0) if args else kwargs.pop('copy', True)
-
-        if args:
-            raise TypeError(f'unexpected arguments: {args}')
-
-        if kwargs:
+        else:
+            attrs = []
             for component in components:
-                if component in kwargs:
-                    raise TypeError("__init__() got multiple values for "
-                                    "argument {!r}".format(component))
+                try:
+                    attr = args.pop(0) if args else kwargs.pop(component)
+                except KeyError:
+                    raise TypeError(f'__init__() missing 1 required positional '
+                                    f'argument: {component!r}')
 
-            raise TypeError(f'unexpected keyword arguments: {kwargs}')
+                if attr is None:
+                    raise TypeError(f'__init__() missing 1 required positional '
+                                    f'argument: {component!r} (or first '
+                                    f'argument should be an instance of '
+                                    f'{self.__class__.__name__}).')
+
+                attrs.append(attr)
+
+            copy = args.pop(0) if args else kwargs.pop('copy', True)
+
+            if args:
+                raise TypeError(f'unexpected arguments: {args}')
+
+            if kwargs:
+                for component in components:
+                    if component in kwargs:
+                        raise TypeError(f"__init__() got multiple values for "
+                                        f"argument {component!r}")
+
+                    raise TypeError(f'unexpected keyword arguments: {kwargs}')
 
         # Pass attributes through the required initializing classes.
         attrs = [self.attr_classes[component](attr, copy=False)
@@ -1152,6 +1170,14 @@ class CartesianRepresentation(BaseRepresentation):
                 self._differentials = self._validate_differentials(differentials)
                 return
 
+            elif (isinstance(x, CartesianRepresentation)
+                  and unit is None and xyz_axis is None):
+                if differentials is None:
+                    differentials = x._differentials
+
+                return super().__init__(x, differentials=differentials,
+                                        copy=copy)
+
             else:
                 x, y, z = x
 
@@ -1418,7 +1444,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
     def _dimensional_representation(cls):
         return SphericalRepresentation
 
-    def __init__(self, lon, lat, differentials=None, copy=True):
+    def __init__(self, lon, lat=None, differentials=None, copy=True):
         super().__init__(lon, lat, differentials=differentials, copy=copy)
 
     @property
@@ -1614,7 +1640,7 @@ class RadialRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('distance', u.Quantity)])
 
     def __init__(self, distance, differentials=None, copy=True):
-        super().__init__(distance, copy=copy, differentials=differentials)
+        super().__init__(distance, differentials=differentials, copy=copy)
 
     @property
     def distance(self):
@@ -1702,7 +1728,8 @@ class SphericalRepresentation(BaseRepresentation):
                                 ('distance', u.Quantity)])
     _unit_representation = UnitSphericalRepresentation
 
-    def __init__(self, lon, lat, distance, differentials=None, copy=True):
+    def __init__(self, lon, lat=None, distance=None, differentials=None,
+                 copy=True):
         super().__init__(lon, lat, distance, copy=copy,
                          differentials=differentials)
         if self._distance.unit.physical_type == 'length':
@@ -1864,7 +1891,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
                                 ('theta', Angle),
                                 ('r', u.Quantity)])
 
-    def __init__(self, phi, theta, r, differentials=None, copy=True):
+    def __init__(self, phi, theta=None, r=None, differentials=None, copy=True):
         super().__init__(phi, theta, r, copy=copy, differentials=differentials)
 
         # Wrap/validate phi/theta
@@ -2020,7 +2047,7 @@ class CylindricalRepresentation(BaseRepresentation):
                                 ('phi', Angle),
                                 ('z', u.Quantity)])
 
-    def __init__(self, rho, phi, z, differentials=None, copy=True):
+    def __init__(self, rho, phi=None, z=None, differentials=None, copy=True):
         super().__init__(rho, phi, z, copy=copy, differentials=differentials)
 
         if not self._rho.unit.is_equivalent(self._z.unit):
@@ -2557,7 +2584,7 @@ class UnitSphericalDifferential(BaseSphericalDifferential):
     def _dimensional_differential(cls):
         return SphericalDifferential
 
-    def __init__(self, d_lon, d_lat, copy=True):
+    def __init__(self, d_lon, d_lat=None, copy=True):
         super().__init__(d_lon, d_lat, copy=copy)
         if not self._d_lon.unit.is_equivalent(self._d_lat.unit):
             raise u.UnitsError('d_lon and d_lat should have equivalent units.')
@@ -2612,7 +2639,7 @@ class SphericalDifferential(BaseSphericalDifferential):
     base_representation = SphericalRepresentation
     _unit_differential = UnitSphericalDifferential
 
-    def __init__(self, d_lon, d_lat, d_distance, copy=True):
+    def __init__(self, d_lon, d_lat=None, d_distance=None, copy=True):
         super().__init__(d_lon, d_lat, d_distance, copy=copy)
         if not self._d_lon.unit.is_equivalent(self._d_lat.unit):
             raise u.UnitsError('d_lon and d_lat should have equivalent units.')
@@ -2757,7 +2784,7 @@ class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
     def _dimensional_differential(cls):
         return SphericalCosLatDifferential
 
-    def __init__(self, d_lon_coslat, d_lat, copy=True):
+    def __init__(self, d_lon_coslat, d_lat=None, copy=True):
         super().__init__(d_lon_coslat, d_lat, copy=copy)
         if not self._d_lon_coslat.unit.is_equivalent(self._d_lat.unit):
             raise u.UnitsError('d_lon_coslat and d_lat should have equivalent '
@@ -2817,7 +2844,7 @@ class SphericalCosLatDifferential(BaseSphericalCosLatDifferential):
                                 ('d_lat', u.Quantity),
                                 ('d_distance', u.Quantity)])
 
-    def __init__(self, d_lon_coslat, d_lat, d_distance, copy=True):
+    def __init__(self, d_lon_coslat, d_lat=None, d_distance=None, copy=True):
         super().__init__(d_lon_coslat, d_lat, d_distance, copy=copy)
         if not self._d_lon_coslat.unit.is_equivalent(self._d_lat.unit):
             raise u.UnitsError('d_lon_coslat and d_lat should have equivalent '
@@ -2921,7 +2948,7 @@ class PhysicsSphericalDifferential(BaseDifferential):
     """
     base_representation = PhysicsSphericalRepresentation
 
-    def __init__(self, d_phi, d_theta, d_r, copy=True):
+    def __init__(self, d_phi, d_theta=None, d_r=None, copy=True):
         super().__init__(d_phi, d_theta, d_r, copy=copy)
         if not self._d_phi.unit.is_equivalent(self._d_theta.unit):
             raise u.UnitsError('d_phi and d_theta should have equivalent '
@@ -2981,7 +3008,7 @@ class CylindricalDifferential(BaseDifferential):
     """
     base_representation = CylindricalRepresentation
 
-    def __init__(self, d_rho, d_phi, d_z, copy=False):
+    def __init__(self, d_rho, d_phi=None, d_z=None, copy=False):
         super().__init__(d_rho, d_phi, d_z, copy=copy)
         if not self._d_rho.unit.is_equivalent(self._d_z.unit):
             raise u.UnitsError("d_rho and d_z should have equivalent units.")
