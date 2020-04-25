@@ -512,7 +512,7 @@ class TestJoin():
             # SkyCoord doesn't support __eq__ so use our own
             assert skycoord_equal(out['m1'], col[[0, 3]])
             assert skycoord_equal(out['m2'], col[[0, 3]])
-        elif 'Repr' in cls_name:
+        elif 'Repr' in cls_name or 'Diff' in cls_name:
             assert np.all(representation_equal(out['m1'], col[[0, 3]]))
             assert np.all(representation_equal(out['m2'], col[[0, 3]]))
         else:
@@ -991,7 +991,7 @@ class TestVStack():
                 # Argh, SkyCoord needs __eq__!!
                 assert skycoord_equal(out['a'][len_col:], col)
                 assert skycoord_equal(out['a'][:len_col], col)
-            elif 'Repr' in cls_name:
+            elif 'Repr' in cls_name or 'Diff' in cls_name:
                 assert np.all(representation_equal(out['a'][:len_col], col))
                 assert np.all(representation_equal(out['a'][len_col:], col))
             else:
@@ -1022,7 +1022,6 @@ class TestVStack():
                 table.vstack([t, t2], join_type='outer')
             assert ('vstack requires masking' in str(err.value)
                     or 'vstack unavailable' in str(err.value))
-
 
 class TestDStack():
 
@@ -1394,7 +1393,7 @@ class TestHStack():
         if cls_name == 'SkyCoord':
             assert skycoord_equal(out['col0_1'], col1[:len(col2)])
             assert skycoord_equal(out['col0_2'], col2)
-        elif 'Repr' in cls_name:
+        elif 'Repr' in cls_name or 'Diff' in cls_name:
             assert np.all(representation_equal(out['col0_1'], col1[:len(col2)]))
             assert np.all(representation_equal(out['col0_2'], col2))
         else:

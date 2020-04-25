@@ -388,7 +388,7 @@ def assert_table_name_col_equal(t, name, col):
     if isinstance(col, coordinates.SkyCoord):
         assert np.all(t[name].ra == col.ra)
         assert np.all(t[name].dec == col.dec)
-    elif isinstance(col, coordinates.BaseRepresentation):
+    elif isinstance(col, coordinates.BaseRepresentationOrDifferential):
         assert np.all(representation_equal(t[name], col))
     elif isinstance(col, u.Quantity):
         if type(t) is QTable:
@@ -761,7 +761,7 @@ def test_rename_mixin_columns(mixin_cols):
     elif isinstance(t['mm'], coordinates.SkyCoord):
         assert np.all(t['mm'].ra == tc['m'].ra)
         assert np.all(t['mm'].dec == tc['m'].dec)
-    elif isinstance(t['mm'], coordinates.BaseRepresentation):
+    elif isinstance(t['mm'], coordinates.BaseRepresentationOrDifferential):
         assert np.all(representation_equal(t['mm'], tc['m']))
     else:
         assert np.all(t['mm'] == tc['m'])
