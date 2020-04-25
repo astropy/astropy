@@ -119,6 +119,7 @@ class SpectralCoord(u.Quantity):
     def __new__(cls, value, unit=None, observer=None, target=None,
                 radial_velocity=None, redshift=None, doppler_rest=None,
                 doppler_convention=None, **kwargs):
+
         obj = super().__new__(cls, value, unit=unit, subok=True, **kwargs)
 
         # Make sure incompatible inputs can't be specified at the same time
@@ -134,6 +135,14 @@ class SpectralCoord(u.Quantity):
             if redshift is not None:
                 raise ValueError("Cannot specify radial velocity if both target "
                                  "and observer are specified")
+
+        if doppler_rest is None and doppler_convention is not None:
+            raise ValueError("doppler_rest should be specified since "
+                             "doppler_convention was given")
+
+        if doppler_rest is not None and doppler_convention is None:
+            raise ValueError("doppler_convention should be specified since "
+                             "doppler_rest was given")
 
         # The quantity machinery will drop the unit because type(value) !=
         #  SpectralCoord when passing in a Quantity object. Reassign the unit
@@ -167,6 +176,11 @@ class SpectralCoord(u.Quantity):
             if not isinstance(x, (SkyCoord, BaseCoordinateFrame)):
                 raise ValueError("Observer must be a sky coordinate or "
                                  "coordinate frame.")
+
+        # Keep track of whether any information was passed that could result in
+        # a radial velocity being available - if not we can hide this from the
+        # __repr__ since the user won't be expecting this info
+        obj._no_rv_info = observer is None and target is None and radial_velocity is None and redshift is None
 
         # If no observer is defined, create a default observer centered in the
         #  ICRS frame.
@@ -212,6 +226,7 @@ class SpectralCoord(u.Quantity):
 
         self._observer = getattr(obj, '_observer', None)
         self._target = getattr(obj, '_target', None)
+        self._no_rv_info = getattr(obj, '_no_rv_info', True)
 
     def __quantity_subclass__(self, unit):
         """
@@ -915,14 +930,11 @@ class SpectralCoord(u.Quantity):
         return self.to(*args, **kwargs).value
 
     def __repr__(self):
+
         prefixstr = '<' + self.__class__.__name__ + ' '
         sep = ', '
         arrstr = np.array2string(self.view(np.ndarray), separator=sep,
                                  prefix=prefixstr)
-        obs_frame = self.observer.__class__.__name__ \
-            if self.observer is not None else 'None'
-        tar_frame = self.target.__class__.__name__ \
-            if self.target is not None else 'None'
 
         try:
             radial_velocity = self.radial_velocity
@@ -930,13 +942,39 @@ class SpectralCoord(u.Quantity):
         except ValueError:
             radial_velocity = redshift = 'Undefined'
 
-        return f'{prefixstr}{arrstr}{self._unitstr:s}, \n' \
-            f'\tradial_velocity={radial_velocity}, \n' \
-            f'\tredshift={redshift}, \n' \
-            f'\tdoppler_rest={self.doppler_rest}, \n' \
-            f'\tdoppler_convention={self.doppler_convention}, \n' \
-            f'\tobserver={obs_frame}, \n' \
-            f'\ttarget={tar_frame}>'
+        repr_items = [f'{prefixstr}{arrstr}{self._unitstr:s}']
+
+        if self.observer is not None:
+            observer_repr = repr(self.observer)
+            if len(observer_repr.splitlines()) == 1:
+                repr_items.append(f'    observer: {observer_repr}')
+            else:
+                repr_items.append(f'    observer:')
+                for line in observer_repr.splitlines():
+                    repr_items.append(f'      {line}')
+
+        if self.target is not None:
+            target_repr = repr(self.target)
+            if len(observer_repr.splitlines()) == 1:
+                repr_items.append(f'    target: {target_repr}')
+            else:
+                repr_items.append(f'    target:')
+                for line in target_repr.splitlines():
+                    repr_items.append(f'      {line}')
+
+        if not self._no_rv_info:
+            if self.observer is not None and self.target is not None:
+                repr_items.append('    observer to target (computed from above):')
+            else:
+                repr_items.append('    observer to target:')
+            repr_items.append(f'      radial_velocity={radial_velocity}')
+            repr_items.append(f'      redshift={redshift}')
+
+        if self.doppler_rest is not None or self.doppler_convention is not None:
+            repr_items.append(f'\tdoppler_rest={self.doppler_rest}')
+            repr_items.append(f'\tdoppler_convention={self.doppler_convention}')
+
+        return '\n'.join(repr_items) + '>'
 
     # Now define a set of standard velocity frames for use with the
     # with_observer_in_velocity_frame_of method. Note that for frames that define a
