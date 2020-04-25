@@ -685,7 +685,7 @@ class SpectralCoord(u.Quantity):
 
         return new_data
 
-    def in_observer_velocity_frame(self, frame):
+    def with_observer_in_velocity_frame_of(self, frame):
         """
         Alters the velocity frame of the observer, but not the position.
 
@@ -846,7 +846,7 @@ class SpectralCoord(u.Quantity):
         """
 
         if self.observer is not None and self.target is not None:
-            return self.in_observer_velocity_frame(self.target)
+            return self.with_observer_in_velocity_frame_of(self.target)
 
         if self.unit.is_equivalent(u.m):  # wavelength
             rest_frame_value = self.quantity / (1 + self.redshift)
@@ -934,7 +934,7 @@ class SpectralCoord(u.Quantity):
             f'\ttarget={tar_frame}>'
 
     # Now define a set of standard velocity frames for use with the
-    # in_observer_velocity_frame method. Note that for frames that define a
+    # with_observer_in_velocity_frame_of method. Note that for frames that define a
     # non-zero velocity, the velocities given are the reverse of the actual
     # velocity we want for the frame - for example to get a velocity frame
     # moving towards a star, we need to set the coordinate object to have a
