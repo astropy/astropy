@@ -334,15 +334,22 @@ class FastRdb(FastBasic):
         # tokenize the two header lines separately
         self.engine.setup_tokenizer([line2])
         self.engine.header_start = 0
-        self.engine.read_header(deduplicate=False)
-        types = self.engine.get_names()
+        self.engine.read_header(deduplicate=False, filter_names=False)
+        types = self.engine.get_header_names()
         self.engine.setup_tokenizer([line1])
-        self.engine.set_names([])
+        # reset header names if no custom names have been set
+        if types == self.engine.get_names():
+            self.engine.set_names([])
+        # get full list of colnames prior to applying include/exclude_names
+        self.engine.read_header(filter_names=False)
+        col_names = self.engine.get_names()
         self.engine.read_header()
-
-        if len(self.engine.get_names()) != len(types):
+        if len(col_names) != len(types):
             raise core.InconsistentTableError('RDB header mismatch between number of '
                                               'column names and column types')
+        # if columns have been removed via include/exclude_names, extract matching types
+        if len(self.engine.get_names()) != len(types):
+            types = [types[col_names.index(n)] for n in self.engine.get_names()]
 
         if any(not re.match(r'\d*(N|S)$', x, re.IGNORECASE) for x in types):
             raise core.InconsistentTableError('RDB type definitions do not all match '
