@@ -622,6 +622,34 @@ class TestJoin():
                '     4    --   0.5']
         assert str(t12).splitlines() == exp
 
+    def test_join_with_join_distance_1d_multikey(self):
+        from astropy.table.operations import _apply_join_funcs
+
+        c1 = [0, 1, 1.1, 1.2, 2]
+        id1 = [0, 1, 2, 2, 3]
+        o1 = ['a', 'b', 'c', 'd', 'e']
+        c2 = [0.5, 1.05, 2.1]
+        id2 = [0, 2, 4]
+        o2 = ['z', 'y', 'x']
+        t1 = Table([c1, id1, o1], names=['col', 'id', 'o1'])
+        t2 = Table([c2, id2, o2], names=['col', 'id', 'o2'])
+        join_func = join_distance(0.2)
+        join_funcs = {'col': join_func}
+        t12 = table.join(t1, t2, join_type='outer', join_funcs=join_funcs)
+        exp = ['col_id col_1  id  o1 col_2  o2',
+               '------ ----- --- --- ----- ---',
+               '     1   1.0   1   b    --  --',
+               '     1   1.1   2   c  1.05   y',
+               '     1   1.2   2   d  1.05   y',
+               '     2   2.0   3   e    --  --',
+               '     2    --   4  --   2.1   x',
+               '     3   0.0   0   a    --  --',
+               '     4    --   0  --   0.5   z']
+        assert str(t12).splitlines() == exp
+
+        left, right, keys = _apply_join_funcs(t1, t2, ('col', 'id'), join_funcs)
+        assert keys == ('col_id', 'id')
+
     def test_join_with_join_distance_1d_quantity(self):
         c1 = [0, 1, 1.1, 2] * u.m
         c2 = [500, 1050, 2100] * u.mm
