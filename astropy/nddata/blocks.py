@@ -24,7 +24,11 @@ def _process_block_inputs(data, block_size):
     if np.any(block_size <= 0):
         raise ValueError('block_size elements must be strictly positive')
 
-    return data, block_size
+    block_size_int = block_size.astype(int)
+    if np.any(block_size_int != block_size):  # e.g., 2.0 is OK, 2.1 is not
+        raise ValueError('block_size elements must be integers')
+
+    return data, block_size_int
 
 
 def reshape_as_blocks(data, block_size):
@@ -109,9 +113,10 @@ def block_reduce(data, block_size, func=np.sum):
     func : callable, optional
         The method to use to downsample the data.  Must be a callable
         that takes in a `~numpy.ndarray` along with an ``axis`` keyword,
-        which defines the axis along which the function is applied.  The
-        default is `~numpy.sum`, which provides block summation (and
-        conserves the data sum).
+        which defines the axis or axes along which the function is
+        applied.  The ``axis`` keyword must accept multiple axes as a
+        tuple.  The default is `~numpy.sum`, which provides block
+        summation (and conserves the data sum).
 
     Returns
     -------
@@ -132,21 +137,21 @@ def block_reduce(data, block_size, func=np.sum):
            [ 10.5,  12.5]])
     """
 
-    from skimage.measure import block_reduce
-
     data, block_size = _process_block_inputs(data, block_size)
-    block_size = np.array([int(i) for i in block_size])
-    size_resampled = np.array(data.shape) // block_size
-    size_init = size_resampled * block_size
+    nblocks = np.array(data.shape) // block_size
+    size_init = nblocks * block_size  # evenly-divisible size
 
     # trim data if necessary
-    for i in range(data.ndim):
-        if data.shape[i] != size_init[i]:
-            data = data.swapaxes(0, i)
-            data = data[:size_init[i]]
-            data = data.swapaxes(0, i)
+    for axis in range(data.ndim):
+        if data.shape[axis] != size_init[axis]:
+            data = data.swapaxes(0, axis)
+            data = data[:size_init[axis]]
+            data = data.swapaxes(0, axis)
 
-    return block_reduce(data, tuple(block_size), func=func)
+    reshaped = reshape_as_blocks(data, block_size)
+    axis = tuple(range(data.ndim, reshaped.ndim))
+
+    return func(reshaped, axis=axis)
 
 
 @support_nddata
