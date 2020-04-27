@@ -146,12 +146,16 @@ class SpectralCoord(u.SpectralQuantity):
                              "redshift on spectral coordinate.")
 
         if target is not None and observer is not None:
+
             if radial_velocity is not None:
                 raise ValueError("Cannot specify radial velocity if both target "
                                  "and observer are specified")
             if redshift is not None:
                 raise ValueError("Cannot specify radial velocity if both target "
                                  "and observer are specified")
+
+        if redshift is not None:
+            radial_velocity = _redshift_to_velocity(redshift)
 
         # The quantity machinery will drop the unit because type(value) !=
         #  SpectralCoord when passing in a Quantity object. Reassign the unit
@@ -182,7 +186,7 @@ class SpectralCoord(u.SpectralQuantity):
         # Keep track of whether any information was passed that could result in
         # a radial velocity being available - if not we can hide this from the
         # __repr__ since the user won't be expecting this info
-        obj._no_rv_info = observer is None and target is None and radial_velocity is None and redshift is None
+        obj._no_rv_info = observer is None and target is None and radial_velocity is None
 
         # If no observer is defined, create a default observer centered in the
         #  ICRS frame.
@@ -195,9 +199,6 @@ class SpectralCoord(u.SpectralQuantity):
                 if radial_velocity is None:
                     radial_velocity = 0 * u.km/u.s
 
-                    if redshift is not None:
-                        radial_velocity = _redshift_to_velocity(redshift)
-
                 observer = SpectralCoord._target_from_observer(
                     target, -radial_velocity)
 
@@ -206,10 +207,6 @@ class SpectralCoord(u.SpectralQuantity):
         if target is None:
             if radial_velocity is None:
                 radial_velocity = 0 * u.km/u.s
-
-                if redshift is not None:
-                    radial_velocity = _redshift_to_velocity(redshift)
-
             target = SpectralCoord._target_from_observer(
                 observer, radial_velocity)
 
