@@ -1,4 +1,4 @@
-Using prior versions of constants
+Using Prior Versions of Constants
 *********************************
 
 By default, `astropy.units` are initialized upon first import to use
@@ -8,7 +8,14 @@ be set before the first import of `astropy.units` or `astropy.constants`.
 
 This is accomplished using ScienceState classes in the top-level package.
 Setting the prior versions at the start of a Python session will allow
-consistent units, as follows:
+consistent units.
+
+Example
+=======
+
+.. EXAMPLE START: Using Prior Versions of Constants
+
+To initialize units to a prior version of constants:
 
 >>> import astropy
 >>> astropy.physical_constants.set('codata2010')  # doctest: +SKIP
@@ -27,3 +34,5 @@ consistent units, as follows:
   Reference = Allen's Astrophysical Quantities 4th Ed.
 
 If `astropy.units` has already been imported, a RuntimeError is raised.
+
+.. EXAMPLE END
