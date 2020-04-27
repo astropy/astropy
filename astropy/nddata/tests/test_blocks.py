@@ -5,14 +5,7 @@ import pytest
 
 from astropy.nddata import block_reduce, block_replicate
 
-try:
-    import skimage  # pylint: disable=W0611
-    HAS_SKIMAGE = True
-except ImportError:
-    HAS_SKIMAGE = False
 
-
-@pytest.mark.skipif('not HAS_SKIMAGE')
 class TestBlockReduce:
     def test_1d(self):
         """Test 1D array."""
@@ -71,7 +64,6 @@ class TestBlockReduce:
             block_reduce(data, (2, 2, 2))
 
 
-@pytest.mark.skipif('not HAS_SKIMAGE')
 class TestBlockReplicate:
     def test_1d(self):
         """Test 1D array."""
