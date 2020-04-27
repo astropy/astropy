@@ -12,6 +12,7 @@ from astropy.coordinates.baseframe import (BaseCoordinateFrame, FrameMeta,
                                            frame_transform_graph)
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.compat import NUMPY_LT_1_17
+from astropy.coordinates.spectral_quantity import SpectralQuantity
 
 DOPPLER_CONVENTIONS = {
     'radio': u.doppler_radio,
@@ -93,7 +94,7 @@ def attach_zero_velocities(coord):
     return coord.realize_frame(new_data)
 
 
-class SpectralCoord(u.Quantity):
+class SpectralCoord(SpectralQuantity):
     """
     Coordinate object representing spectral values.
 
@@ -123,15 +124,15 @@ class SpectralCoord(u.Quantity):
         The convention to use when converting the spectral data to/from
         velocity space.
     """
-    _quantity_class = u.Quantity
 
-    @u.quantity_input(doppler_rest=['length', 'frequency', None],
-                      radial_velocity=['speed'])
-    def __new__(cls, value, unit=None, observer=None, target=None,
-                radial_velocity=None, redshift=None, doppler_rest=None,
-                doppler_convention=None, **kwargs):
+    def __new__(cls, value, unit=None,
+                observer=None, target=None,
+                radial_velocity=None, redshift=None,
+                **kwargs):
 
-        obj = super().__new__(cls, value, unit=unit, subok=True, **kwargs)
+        kwargs['subok'] = True
+
+        obj = super().__new__(cls, value, unit=unit, **kwargs)
 
         # Make sure incompatible inputs can't be specified at the same time
 
@@ -146,14 +147,6 @@ class SpectralCoord(u.Quantity):
             if redshift is not None:
                 raise ValueError("Cannot specify radial velocity if both target "
                                  "and observer are specified")
-
-        if doppler_rest is None and doppler_convention is not None:
-            raise ValueError("doppler_rest should be specified since "
-                             "doppler_convention was given")
-
-        if doppler_rest is not None and doppler_convention is None:
-            raise ValueError("doppler_convention should be specified since "
-                             "doppler_rest was given")
 
         # The quantity machinery will drop the unit because type(value) !=
         #  SpectralCoord when passing in a Quantity object. Reassign the unit
@@ -170,18 +163,11 @@ class SpectralCoord(u.Quantity):
                 target = value.target
             if radial_velocity is None and redshift is None:
                 radial_velocity = value.radial_velocity
-            if doppler_rest is None:
-                doppler_rest = value.doppler_rest
-            if doppler_convention is None:
-                doppler_convention = value.doppler_convention
 
         # Store state about whether the observer and target were defined
         #  explicitly (True), or implicity from rv/redshift (False)
         obj._frames_state = dict(observer=observer is not None,
                                  target=target is not None)
-
-        obj._doppler_conversion = DopplerConversion(
-            rest=doppler_rest, convention=doppler_convention)
 
         for x in [y for y in [observer, target] if y is not None]:
             if not isinstance(x, (SkyCoord, BaseCoordinateFrame)):
@@ -231,10 +217,7 @@ class SpectralCoord(u.Quantity):
 
     def __array_finalize__(self, obj):
         super().__array_finalize__(obj)
-
         self._frames_state = getattr(obj, '_frames_state', None)
-        self._doppler_conversion = getattr(obj, '_doppler_conversion', None)
-
         self._observer = getattr(obj, '_observer', None)
         self._target = getattr(obj, '_target', None)
         self._no_rv_info = getattr(obj, '_no_rv_info', True)
@@ -430,80 +413,6 @@ class SpectralCoord(u.Quantity):
         value = self._validate_coordinate(value)
 
         self._target = value
-
-    @property
-    def doppler_rest(self):
-        """
-        The rest value of the spectrum used for transformations to/from
-        velocity space.
-
-        Returns
-        -------
-        `~astropy.units.Quantity`
-            Rest value as an astropy `~astropy.units.Quantity` object.
-        """
-        return self._doppler_conversion.rest
-
-    @doppler_rest.setter
-    @u.quantity_input(value=['length', 'frequency', 'energy', 'speed', None])
-    def doppler_rest(self, value):
-        """
-        New rest value needed for velocity-space conversions.
-
-        Parameters
-        ----------
-        value : `~astropy.units.Quantity`
-            Rest value.
-        """
-        if self._doppler_conversion.rest is not None:
-            raise ValueError("Doppler rest value has already been set. Use "
-                             "the `to` method to update the stored value.")
-
-        self._doppler_conversion = self._doppler_conversion._replace(
-            rest=value)
-
-    @property
-    def doppler_convention(self):
-        """
-        The defined convention for conversions to/from velocity space.
-
-        Returns
-        -------
-        str
-            One of 'optical', 'radio', or 'relativistic' representing the
-            equivalency used in the unit conversions.
-        """
-        return self._doppler_conversion.convention
-
-    @doppler_convention.setter
-    def doppler_convention(self, value):
-        """
-        New velocity convention used for velocity space conversions.
-
-        Parameters
-        ----------
-        value
-
-        Notes
-        -----
-        More information on the equations dictating the transformations can be
-        found in the astropy documentation [1]_.
-
-        References
-        ----------
-        .. [1] Astropy documentation: https://docs.astropy.org/en/stable/units/equivalencies.html#spectral-doppler-equivalencies
-
-        """
-        if value is not None and value not in DOPPLER_CONVENTIONS:
-            raise ValueError("Unrecognized velocity convention: {}.".format(
-                value))
-
-        if self._doppler_conversion.convention is not None:
-            raise ValueError("Doppler convention has already been set. Use "
-                             "the `to` method to update the stored value.")
-
-        self._doppler_conversion = self._doppler_conversion._replace(
-            convention=value)
 
     @property
     def radial_velocity(self):
@@ -894,56 +803,6 @@ class SpectralCoord(u.Quantity):
             raise TypeError(f"Unexpected units in velocity shift: {self.unit}")
 
         return self._copy(value=rest_frame_value, radial_velocity=0 * u.km / u.s)
-
-    def to(self, unit, equivalencies=[], doppler_rest=None,
-           doppler_convention=None):
-        """
-        Overloaded parent ``to`` method to provide parameters for defining
-        rest value and pre-defined conventions for unit transformations.
-
-        Parameters
-        ----------
-        doppler_rest : `~astropy.units.Quantity`, optional
-            The rest value used in the velocity space conversions. Providing
-            the value here will set the value stored on the `SpectralCoord`
-            instance.
-        doppler_convention : {'relativistic', 'optical', 'radio'}, optional
-            The velocity convention to use during conversions. Providing the
-            value here will set the value stored on the `SpectralCoord`
-            instance.
-
-        Returns
-        -------
-        `SpectralCoord`
-            New spectral coordinate object with data converted to the new unit.
-        """
-        if doppler_rest is not None:
-            self._doppler_conversion = self._doppler_conversion._replace(
-                rest=doppler_rest)
-
-        if doppler_convention is not None:
-            if doppler_convention not in DOPPLER_CONVENTIONS:
-                raise ValueError(
-                    "Unrecognized doppler convention: {}.".format(
-                        doppler_convention))
-
-            self._doppler_conversion = self._doppler_conversion._replace(
-                convention=doppler_convention)
-
-        equivs = u.spectral()
-
-        if self.doppler_rest is not None and self.doppler_convention is not None:
-            vel_equiv = DOPPLER_CONVENTIONS[self.doppler_convention](self.doppler_rest)
-            equivs += vel_equiv
-
-        # Compose the equivalencies for spectral conversions including the
-        # appropriate velocity handling.
-        equivalencies += equivs
-
-        return super().to(unit, equivalencies=equivalencies)
-
-    def to_value(self, *args, **kwargs):
-        return self.to(*args, **kwargs).value
 
     def __repr__(self):
 
