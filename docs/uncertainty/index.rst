@@ -179,8 +179,7 @@ patterns.
 Using Distributions
 -------------------
 
-.. EXAMPLE START: Using and Accessing Distributions
-.. not quite sure what to call this example or how best to break it up
+.. EXAMPLE START: Accessing Properties of Distributions
 
 This object now acts much like a |Quantity| or |ndarray| for all but the
 non-sampled dimension, but with additional statistical operations that work on
@@ -228,7 +227,7 @@ attribute::
 
 .. EXAMPLE END
 
-.. EXAMPLE START: Interaction between Quantity Objects and Distributions
+.. EXAMPLE START: Interaction Between Quantity Objects and Distributions
 
 A |Quantity| distribution interacts naturally with non-|Distribution|
 |Quantity| objects, assuming the |Quantity| is a Dirac delta distribution::
@@ -261,7 +260,6 @@ Monte Carlo sampling approach used by the |Distribution| class, as long as
 proper care is taken with sampling error.
 
 .. EXAMPLE START: Covariance in Distributions
-.. also not quite sure how to break up this chunk of examples
 
 To start with a basic example, two un-correlated distributions should produce
 an un-correlated joint distribution plot:
