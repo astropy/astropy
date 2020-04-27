@@ -3,7 +3,62 @@
 import numpy as np
 import pytest
 
-from astropy.nddata import block_reduce, block_replicate
+from astropy.nddata import reshape_as_blocks, block_reduce, block_replicate
+
+
+class TestReshapeAsBlocks:
+    def test_1d(self):
+        data = np.arange(16)
+        reshaped = reshape_as_blocks(data, 2)
+        assert reshaped.shape == (8, 2)
+        reshaped = reshape_as_blocks(data, 4)
+        assert reshaped.shape == (4, 4)
+        reshaped = reshape_as_blocks(data, 8)
+        assert reshaped.shape == (2, 8)
+
+    def test_2d(self):
+        data = np.arange(16).reshape(4, 4)
+        reshaped = reshape_as_blocks(data, (2, 2))
+        assert reshaped.shape == (2, 2, 2, 2)
+
+        data = np.arange(64).reshape(8, 8)
+        reshaped = reshape_as_blocks(data, (2, 2))
+        assert reshaped.shape == (4, 4, 2, 2)
+        reshaped = reshape_as_blocks(data, (4, 4))
+        assert reshaped.shape == (2, 2, 4, 4)
+
+    def test_3d(self):
+        data = np.arange(64).reshape(4, 4, 4)
+        reshaped = reshape_as_blocks(data, (2, 2, 2))
+        assert reshaped.shape == (2, 2, 2, 2, 2, 2)
+
+        data = np.arange(2*3*4).reshape(2, 3, 4)
+        reshaped = reshape_as_blocks(data, (2, 1, 2))
+        assert reshaped.shape == (1, 3, 2, 2, 1, 2)
+
+    def test_invalid_block_dim(self):
+        data = np.arange(64).reshape(4, 4, 4)
+        match = ('block_size must be a scalar or have the same '
+                 'length as the number of data dimensions')
+        with pytest.raises(ValueError, match=match):
+            reshape_as_blocks(data, (2, 2))
+
+    def test_invalid_block_size(self):
+        data = np.arange(16).reshape(4, 4)
+        match = ('Each dimension of block_size must divide evenly '
+                 'into the corresponding dimension of data')
+        with pytest.raises(ValueError, match=match):
+            reshape_as_blocks(data, (2, 3))
+
+    def test_invalid_block_value(self):
+        data = np.arange(16).reshape(4, 4)
+        match = 'block_size elements must be integers'
+        with pytest.raises(ValueError, match=match):
+            reshape_as_blocks(data, (2.1, 2))
+
+        match = 'block_size elements must be strictly positive'
+        with pytest.raises(ValueError, match=match):
+            reshape_as_blocks(data, (-1, 0))
 
 
 class TestBlockReduce:
