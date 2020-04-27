@@ -485,30 +485,6 @@ def test_asteroid_velocity_frame_shifts():
     # assert_quantity_allclose(target_sc1, target_sc1_alt)
 
 
-def test_change_doppler_conversions():
-    coord = SpectralCoord(22791414.18 * u.m / u.s,
-                          doppler_convention='relativistic',
-                          doppler_rest=110201353000 * u.Hz)
-
-    # Changing the convention explicitly should fail
-    with pytest.raises(ValueError):
-        coord.doppler_convention = 'radio'
-
-    # Changing convention within the `to` method should succeed
-    coord.to(u.km / u.s, doppler_convention='radio')
-
-    assert coord.doppler_convention == 'radio'
-
-    # Changing the rest value explicitly should fail
-    with pytest.raises(ValueError):
-        coord.doppler_rest = 110201353001 * u.Hz
-
-    # Changing rest value within the `to` method should succeed
-    coord.to(u.km / u.s, doppler_rest=110201353001 * u.Hz)
-
-    assert quantity_allclose(coord.doppler_rest, 110201353001 * u.Hz)
-
-
 def test_spectral_coord_from_sky_coord_without_distance():
     # see https://github.com/astropy/specutils/issues/658 for issue context
     obs = SkyCoord(0 * u.m, 0 * u.m, 0 * u.m, representation_type='cartesian')
@@ -557,8 +533,8 @@ def test_spectralcoord_accuracy(specsys):
             with nullcontext() if row['obstime'].mjd < 57754 else pytest.warns(AstropyWarning, match='Tried to get polar motions'):
                 sc_final = sc_topo.with_observer_in_velocity_frame_of(velocity_frame)
 
-            delta_vel = (sc_topo.to(u.km / u.s, u.doppler_relativistic(rest)) -
-                         sc_final.to(u.km / u.s, u.doppler_relativistic(rest)))
+            delta_vel = (sc_topo.to(u.km / u.s, doppler_convention='relativistic', doppler_rest=rest) -
+                         sc_final.to(u.km / u.s, doppler_convention='relativistic', doppler_rest=rest))
 
             if specsys == 'galactoc':
                 assert_allclose(delta_vel.to_value(u.km / u.s), row[specsys.lower()], atol=30)
