@@ -20,6 +20,7 @@ from .mixins.ndarithmetic import *
 from .mixins.ndslicing import *
 from .mixins.ndio import *
 
+from .blocks import *
 from .compat import *
 from .utils import *
 from .ccddata import *
