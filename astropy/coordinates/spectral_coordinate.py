@@ -12,7 +12,6 @@ from astropy.coordinates.baseframe import (BaseCoordinateFrame, FrameMeta,
                                            frame_transform_graph)
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.compat import NUMPY_LT_1_17
-from astropy.coordinates.spectral_quantity import SpectralQuantity
 
 DOPPLER_CONVENTIONS = {
     'radio': u.doppler_radio,
@@ -94,7 +93,7 @@ def attach_zero_velocities(coord):
     return coord.realize_frame(new_data)
 
 
-class SpectralCoord(SpectralQuantity):
+class SpectralCoord(u.SpectralQuantity):
     """
     Coordinate object representing spectral values.
 

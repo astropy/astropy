@@ -35,6 +35,7 @@ from .function.core import *
 from .function.logarithmic import *
 
 from .decorators import *
+from .spectral_quantity import *
 
 del bases
 
