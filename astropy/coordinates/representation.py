@@ -116,9 +116,15 @@ class BaseRepresentationOrDifferentialInfo(MixinInfo):
 
     @staticmethod
     def default_format(val):
-        formats = ['{0.' + compname + '.value:}' for compname
-                   in val.components]
-        return ','.join(formats).format(val)
+        # Create numpy dtype so that numpy formatting will work.
+        components = val.components
+        values = tuple(getattr(val, component).value for component in components)
+        a = np.empty(getattr(val, 'shape', ()),
+                     [(component, value.dtype) for component, value
+                      in zip(components, values)])
+        for component, value in zip(components, values):
+            a[component] = value
+        return str(a)
 
     @property
     def _represent_as_dict_attrs(self):
@@ -126,7 +132,11 @@ class BaseRepresentationOrDifferentialInfo(MixinInfo):
 
     @property
     def unit(self):
-        return self._parent._unitstr if self._parent is not None else None
+        if self._parent is None:
+            return None
+
+        unit = self._parent._unitstr
+        return unit[1:-1] if unit.startswith('(') else unit
 
     def new_like(self, reps, length, metadata_conflicts='warn', name=None):
         """

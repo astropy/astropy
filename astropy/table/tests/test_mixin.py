@@ -21,7 +21,7 @@ from io import StringIO
 import pytest
 import numpy as np
 
-from astropy.coordinates import EarthLocation
+from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.table import Table, QTable, join, hstack, vstack, Column, NdarrayMixin
 from astropy.table import serialize
 from astropy import time
@@ -624,6 +624,47 @@ def test_quantity_representation():
                            ' 2.0']
 
 
+def test_representation_representation():
+    """
+    Test that Representations are represented correctly.
+    """
+    # With no unit we get "None" in the unit row
+    c = coordinates.CartesianRepresentation([0], [1], [0], unit=u.one)
+    t = Table([c])
+    assert t.pformat() == ['    col0    ',
+                           '------------',
+                           '(0., 1., 0.)']
+
+    c = coordinates.CartesianRepresentation([0], [1], [0], unit='m')
+    t = Table([c])
+    assert t.pformat() == ['    col0    ',
+                           '     m      ',
+                           '------------',
+                           '(0., 1., 0.)']
+
+    c = coordinates.SphericalRepresentation([10]*u.deg, [20]*u.deg, [1]*u.pc)
+    t = Table([c])
+    assert t.pformat() == ['     col0     ',
+                           ' deg, deg, pc ',
+                           '--------------',
+                           '(10., 20., 1.)']
+
+    c = coordinates.UnitSphericalRepresentation([10]*u.deg, [20]*u.deg)
+    t = Table([c])
+    assert t.pformat() == ['   col0   ',
+                           '   deg    ',
+                           '----------',
+                           '(10., 20.)']
+
+    c = coordinates.SphericalCosLatDifferential(
+        [10]*u.mas/u.yr, [2]*u.mas/u.yr, [10]*u.km/u.s)
+    t = Table([c])
+    assert t.pformat() == ['           col0           ',
+                           'mas / yr, mas / yr, km / s',
+                           '--------------------------',
+                           '            (10., 2., 10.)']
+
+
 def test_skycoord_representation():
     """
     Test that skycoord representation works, both in the way that the
@@ -776,3 +817,14 @@ def test_represent_mixins_as_columns_unit_fix():
     t['a'].unit = 'not a valid unit'
     t['a'].mask[1] = True
     serialize.represent_mixins_as_columns(t)
+
+
+def test_skycoord_with_velocity():
+    # Regression test for gh-6447
+    sc = SkyCoord([1], [2], unit='deg', galcen_v_sun=None)
+    t = Table([sc])
+    s = StringIO()
+    t.write(s, format='ascii.ecsv', overwrite=True)
+    s.seek(0)
+    t2 = Table.read(s.read(), format='ascii.ecsv')
+    assert skycoord_equal(t2['col0'], sc)
