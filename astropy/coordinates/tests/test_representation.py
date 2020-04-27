@@ -1643,9 +1643,9 @@ class TestInfo:
                                                  differentials=cls.diff)
 
     def test_info_unit(self):
-        assert self.rep.info.unit == '(deg, deg, pc)'
-        assert self.diff.info.unit == '(mas / yr, mas / yr, km / s)'
-        assert self.rep_w_diff.info.unit == '(deg, deg, pc)'
+        assert self.rep.info.unit == 'deg, deg, pc'
+        assert self.diff.info.unit == 'mas / yr, mas / yr, km / s'
+        assert self.rep_w_diff.info.unit == 'deg, deg, pc'
 
     @pytest.mark.parametrize('item', ['rep', 'diff', 'rep_w_diff'])
     def test_roundtrip(self, item):
