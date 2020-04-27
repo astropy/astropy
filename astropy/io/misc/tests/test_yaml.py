@@ -11,11 +11,15 @@ from io import StringIO
 import pytest
 import numpy as np
 
-from astropy.coordinates import SkyCoord, EarthLocation, Angle, Longitude, Latitude
+from astropy.coordinates import (SkyCoord, EarthLocation, Angle, Longitude, Latitude,
+                                 SphericalRepresentation, UnitSphericalRepresentation,
+                                 CartesianRepresentation, SphericalCosLatDifferential,
+                                 SphericalDifferential, CartesianDifferential)
 from astropy import units as u
 from astropy.time import Time
 from astropy.table import QTable, SerializedColumn
 from astropy.tests.helper import catch_warnings
+from astropy.coordinates.tests.test_representation import representation_equal
 
 try:
     from astropy.io.misc.yaml import load, load_all, dump
@@ -116,6 +120,30 @@ def test_skycoord(frame):
                  location=EarthLocation(1000, 2000, 3000, unit=u.km))
     cy = load(dump(c))
     compare_coord(c, cy)
+
+
+@pytest.mark.parametrize('rep', [
+    CartesianRepresentation(1*u.m, 2.*u.m, 3.*u.m),
+    SphericalRepresentation([[1, 2], [3, 4]]*u.deg,
+                            [[5, 6], [7, 8]]*u.deg,
+                            10*u.pc),
+    UnitSphericalRepresentation(0*u.deg, 10*u.deg),
+    SphericalCosLatDifferential([[1.], [2.]]*u.mas/u.yr,
+                                [4., 5.]*u.mas/u.yr,
+                                [[[10]], [[20]]]*u.km/u.s),
+    CartesianDifferential([10, 20, 30]*u.km/u.s),
+    CartesianRepresentation(
+        [1, 2, 3]*u.m,
+        differentials=CartesianDifferential([10, 20, 30]*u.km/u.s)),
+    SphericalRepresentation(
+        [[1, 2], [3, 4]]*u.deg, [[5, 6], [7, 8]]*u.deg, 10*u.pc,
+        differentials={
+            's': SphericalDifferential([[0., 1.], [2., 3.]]*u.mas/u.yr,
+                                       [[4., 5.], [6., 7.]]*u.mas/u.yr,
+                                       10*u.km/u.s)})])
+def test_representations(rep):
+    rrep = load(dump(rep))
+    assert np.all(representation_equal(rrep, rep))
 
 
 def _get_time():
