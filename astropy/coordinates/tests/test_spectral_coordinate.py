@@ -124,7 +124,7 @@ def test_create_spectral_coord_observer_target(observer, target):
         assert quantity_allclose(coord.radial_velocity, 0 * u.km/u.s)
     elif observer in LSRD_EQUIV and target in LSRD_DIR_STATIONARY_EQUIV:
         assert_quantity_allclose(coord.radial_velocity, -274 ** 0.5 * u.km / u.s, atol=1e-4 * u.km / u.s)
-        assert_quantity_allclose(coord.redshift, -274 ** 0.5 / 299792.458, atol=1e-9)
+        assert_quantity_allclose(coord.redshift, -5.5213158163147646e-05, atol=1e-9)
     else:
         raise NotImplementedError()
 
@@ -319,11 +319,11 @@ def test_observer_init_rv_behavior():
 def test_rv_redshift_initialization():
     sc_init = SpectralCoord([4000, 5000]*u.angstrom, redshift=1)
     assert_quantity_allclose(sc_init.redshift, 1*u.dimensionless_unscaled)
-    assert_quantity_allclose(sc_init.radial_velocity, c)
+    assert_quantity_allclose(sc_init.radial_velocity, 0.6 * c)
 
-    sc_init2 = SpectralCoord([4000, 5000]*u.angstrom, radial_velocity=c)
+    sc_init2 = SpectralCoord([4000, 5000]*u.angstrom, radial_velocity=0.6 * c)
     assert_quantity_allclose(sc_init2.redshift, 1*u.dimensionless_unscaled)
-    assert_quantity_allclose(sc_init2.radial_velocity, c)
+    assert_quantity_allclose(sc_init2.radial_velocity, 0.6 * c)
 
     sc_init3 = SpectralCoord([4000, 5000]*u.angstrom, redshift=1*u.dimensionless_unscaled)
     assert sc_init.redshift == sc_init3.redshift
@@ -336,13 +336,14 @@ def test_rv_redshift_initialization():
 
 
 def test_with_rvredshift():
-    sc_init = SpectralCoord([4000, 5000]*u.angstrom, redshift=1)
 
-    sc_set_rv = sc_init.with_redshift(.5)
-    assert_quantity_allclose(sc_set_rv.radial_velocity, c/2)
+    sc_init = SpectralCoord([4000, 5000]*u.angstrom, redshift=2)
+
+    sc_set_rv = sc_init.with_redshift(1)
+    assert_quantity_allclose(sc_set_rv.radial_velocity, 0.6 * c)
 
     sc_set_rv = sc_init.with_radial_velocity(c/2)
-    assert_quantity_allclose(sc_set_rv.redshift, .5)
+    assert_quantity_allclose(sc_set_rv.redshift, np.sqrt(3) - 1)
 
     gcrs_origin = GCRS(CartesianRepresentation([0*u.km, 0*u.km, 0*u.km]))
     with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
@@ -400,7 +401,7 @@ def test_los_shift(sc_kwargs):
         # redshifting the observer should *blushift* the LOS velocity since
         # its the observer-to-target vector that matters
         new_sc4 = sc_init.with_los_shift(observer_shift=.1)
-        assert_quantity_allclose(new_sc4, wl*.9)
+        assert_quantity_allclose(new_sc4, wl/1.1)
 
         # an equal shift in both should produce no offset at all
         new_sc5 = sc_init.with_los_shift(target_shift=.1, observer_shift=.1)
