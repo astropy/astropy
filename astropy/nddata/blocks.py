@@ -7,7 +7,84 @@ import numpy as np
 
 from .decorators import support_nddata
 
-__all__ = ['block_reduce', 'block_replicate']
+__all__ = ['reshape_as_blocks', 'block_reduce', 'block_replicate']
+
+
+def _process_block_inputs(data, block_size):
+    data = np.asanyarray(data)
+
+    block_size = np.atleast_1d(block_size)
+    if data.ndim > 1 and len(block_size) == 1:
+        block_size = np.repeat(block_size, data.ndim)
+
+    if len(block_size) != data.ndim:
+        raise ValueError('block_size must be a scalar or have the same '
+                         'length as the number of data dimensions')
+
+    if np.any(block_size <= 0):
+        raise ValueError('block_size elements must be strictly positive')
+
+    return data, block_size
+
+
+def reshape_as_blocks(data, block_size):
+    """
+    Reshape a data array into blocks.
+
+    This is useful to efficiently apply functions on block subsets of
+    the data instead of using loops.  The reshaped array is a view of
+    the input data array.
+
+    Parameters
+    ----------
+    data : `~numpy.ndarray`
+        The input data array.
+
+    block_size : int or array_like (int)
+        The integer block size along each axis.  If ``block_size`` is a
+        scalar and ``data`` has more than one dimension, then
+        ``block_size`` will be used for for every axis.  Each dimension
+        of ``block_size`` must divide evenly into the corresponding
+        dimension of ``data``.
+
+    Returns
+    -------
+    output : `~numpy.ndarray`
+        The reshaped array as a view of the input ``data`` array.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from astropy.nddata import reshape_as_blocks
+    >>> data = np.arange(16).reshape(4, 4)
+    >>> data
+    array([[ 0,  1,  2,  3],
+           [ 4,  5,  6,  7],
+           [ 8,  9, 10, 11],
+           [12, 13, 14, 15]])
+    >>> reshape_as_blocks(data, (2, 2))
+    array([[[[ 0,  1],
+             [ 4,  5]],
+            [[ 2,  3],
+             [ 6,  7]]],
+           [[[ 8,  9],
+             [12, 13]],
+            [[10, 11],
+             [14, 15]]]])
+    """
+
+    data, block_size = _process_block_inputs(data, block_size)
+
+    if np.any(np.mod(data.shape, block_size) != 0):
+        raise ValueError('Each dimension of block_size must divide evenly '
+                         'into the corresponding dimension of data')
+
+    nblocks = np.array(data.shape) // block_size
+    new_shape = tuple(k for ij in zip(nblocks, block_size) for k in ij)
+    nblocks_idx = tuple(range(0, len(new_shape), 2))  # even indices
+    block_idx = tuple(range(1, len(new_shape), 2))  # odd indices
+
+    return data.reshape(new_shape).transpose(nblocks_idx + block_idx)
 
 
 @support_nddata
