@@ -460,15 +460,16 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
                 kwargs['unit'] = self.wcs.cunit[ispec]
 
-                if ctype == 'VELO':
-                    kwargs['doppler_convention'] = 'relativistic'
-                    kwargs['doppler_rest'] = self.wcs.restfrq * u.Hz
-                elif ctype == 'VRAD':
-                    kwargs['doppler_convention'] = 'radio'
-                    kwargs['doppler_rest'] = self.wcs.restfrq * u.Hz
-                elif ctype == 'VOPT':
-                    kwargs['doppler_convention'] = 'optical'
-                    kwargs['doppler_rest'] = self.wcs.restwav * u.m
+                if self.wcs.restfrq > 0:
+                    if ctype == 'VELO':
+                        kwargs['doppler_convention'] = 'relativistic'
+                        kwargs['doppler_rest'] = self.wcs.restfrq * u.Hz
+                    elif ctype == 'VRAD':
+                        kwargs['doppler_convention'] = 'radio'
+                        kwargs['doppler_rest'] = self.wcs.restfrq * u.Hz
+                    elif ctype == 'VOPT':
+                        kwargs['doppler_convention'] = 'optical'
+                        kwargs['doppler_rest'] = self.wcs.restwav * u.m
 
                 def spectralcoord_from_value(value):
                     return SpectralCoord(value, observer=observer, target=target, **kwargs)

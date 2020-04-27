@@ -808,7 +808,7 @@ class SpectralCoord(u.SpectralQuantity):
 
         if self.target is not None:
             target_repr = repr(self.target)
-            if len(observer_repr.splitlines()) == 1:
+            if len(target_repr.splitlines()) == 1:
                 repr_items.append(f'    target: {target_repr}')
             else:
                 repr_items.append(f'    target:')

@@ -211,7 +211,7 @@ def test_spectral_coord_m31():
     # here (determined from SpectralCoord, so this serves as a test to check
     # that this value doesn't change - the value is not a ground truth)
     assert_quantity_allclose(spc.radial_velocity, -279.755128 * u.km / u.s)
-    assert_allclose(spc.redshift, -0.0009331626604760668)
+    assert_allclose(spc.redshift, -0.0009327276702120191)
 
 
 def test_shift_to_rest_galaxy():
@@ -506,6 +506,9 @@ EXPECTED_VELOCITY_FRAMES = {'geocent': SpectralCoord.GEOCENTRIC,
 
 @pytest.mark.parametrize('specsys', list(EXPECTED_VELOCITY_FRAMES))
 def test_spectralcoord_accuracy(specsys):
+
+    # PyYAML is needed to read in the ecsv table
+    pytest.importorskip('pyyaml')
 
     # This is a test to check the numerical results of transformations between
     # different velocity frames in SpectralCoord. This compares the velocity
