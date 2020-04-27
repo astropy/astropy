@@ -19,10 +19,6 @@ DOPPLER_CONVENTIONS = {
     'relativistic': u.doppler_relativistic
 }
 
-RV_RS_EQUIV = [(u.cm / u.s, u.Unit(''),
-                lambda x: x / c.cgs.value,
-                lambda x: x * c.cgs.value)]
-
 DEFAULT_DISTANCE = 1 * u.AU
 
 # TODO: disallow redshift if observer and target are specified
@@ -38,6 +34,16 @@ __all__ = ['SpectralCoord']
 
 # We don't want to run doctests in the docstrings we inherit from Quantity
 __doctest_skip__ = ['SpectralCoord.*']
+
+
+def _velocity_to_refshift(velocity):
+    beta = velocity / c
+    return np.sqrt((1 + beta) / (1 - beta)) - 1
+
+
+def _redshift_to_velocity(redshift):
+    zponesq = (1 + redshift) ** 2
+    return c * (zponesq - 1) / (zponesq + 1)
 
 
 def update_differentials_to_match(original, velocity_reference, preserve_observer_frame=False):
@@ -190,8 +196,7 @@ class SpectralCoord(u.SpectralQuantity):
                     radial_velocity = 0 * u.km/u.s
 
                     if redshift is not None:
-                        radial_velocity = u.Quantity(redshift).to(
-                            'km/s', equivalencies=RV_RS_EQUIV)
+                        radial_velocity = _redshift_to_velocity(redshift)
 
                 observer = SpectralCoord._target_from_observer(
                     target, -radial_velocity)
@@ -203,8 +208,7 @@ class SpectralCoord(u.SpectralQuantity):
                 radial_velocity = 0 * u.km/u.s
 
                 if redshift is not None:
-                    radial_velocity = u.Quantity(redshift).to(
-                        'km/s', equivalencies=RV_RS_EQUIV)
+                    radial_velocity = _redshift_to_velocity(redshift)
 
             target = SpectralCoord._target_from_observer(
                 observer, radial_velocity)
@@ -443,11 +447,7 @@ class SpectralCoord(u.SpectralQuantity):
         float
             Redshift of target.
         """
-        try:
-            return self.radial_velocity.to('', equivalencies=RV_RS_EQUIV)
-        except Exception as exc:
-            print(exc)
-            raise
+        return _velocity_to_refshift(self.radial_velocity)
 
     @staticmethod
     def _calculate_radial_velocity(observer, target, as_scalar=False):
@@ -608,16 +608,7 @@ class SpectralCoord(u.SpectralQuantity):
         if np.isnan(delta_vel) or fin_vel_mag < 1e-7 * fin_vel.unit:
             delta_vel = -self.radial_velocity
 
-        if self.unit.is_equivalent(u.m):  # wavelength
-            new_data = self * (1 + delta_vel / c.cgs)
-        elif self.unit.is_equivalent(u.Hz) or self.unit.is_equivalent(u.eV):  # frequency or energy
-            new_data = self / (1 + delta_vel / c.cgs)
-        elif self.unit.is_equivalent(u.km / u.s):  # velocity
-            new_data = self + delta_vel
-        else:
-            raise TypeError(f"Unexpected units in velocity shift: {self.unit}")
-
-        return new_data
+        return self._apply_relativistic_doppler_shift(delta_vel)
 
     def with_observer_in_velocity_frame_of(self, frame, preserve_observer_frame=False):
         """
@@ -695,14 +686,12 @@ class SpectralCoord(u.SpectralQuantity):
         if isinstance(target_shift, (float, int)) or \
                 isinstance(target_shift, u.Quantity) and \
                 target_shift.unit.physical_type == 'dimensionless':
-            target_shift = u.Quantity(target_shift).to(
-                'km/s', equivalencies=RV_RS_EQUIV)
+            target_shift = _redshift_to_velocity(target_shift)
 
         if isinstance(observer_shift, (float, int)) or \
                 isinstance(observer_shift, u.Quantity) and \
                 observer_shift.unit.physical_type == 'dimensionless':
-            observer_shift = u.Quantity(observer_shift).to(
-                'km/s', equivalencies=RV_RS_EQUIV)
+            observer_shift = _redshift_to_velocity(observer_shift)
 
         target_icrs = self._target.transform_to(ICRS)
         observer_icrs = self._observer.transform_to(ICRS)
@@ -792,16 +781,9 @@ class SpectralCoord(u.SpectralQuantity):
         if self.observer is not None and self.target is not None:
             return self.with_observer_in_velocity_frame_of(self.target)
 
-        if self.unit.is_equivalent(u.m):  # wavelength
-            rest_frame_value = self.quantity / (1 + self.redshift)
-        elif self.unit.is_equivalent(u.Hz) or self.unit.is_equivalent(u.eV):  # frequency or energy
-            rest_frame_value = self.quantity * (1 + self.redshift)
-        elif self.unit.is_equivalent(u.km / u.s):  # velocity
-            rest_frame_value = self.quantity - self.radial_velocity
-        else:
-            raise TypeError(f"Unexpected units in velocity shift: {self.unit}")
+        result = self._apply_relativistic_doppler_shift(-self.radial_velocity)
 
-        return self._copy(value=rest_frame_value, radial_velocity=0 * u.km / u.s)
+        return self._copy(value=result, radial_velocity=0. * u.km / u.s, redshift=None)
 
     def __repr__(self):
 
