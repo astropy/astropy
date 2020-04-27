@@ -86,11 +86,9 @@ back to frequency without having to specify them again::
 or you can explicitly specify a different convention or rest value to use::
 
     >>> sc3.to(u.km / u.s, doppler_convention='relativistic')
-    <SpectralCoord [-1118.5433977 , -1027.23373258,  -935.92406746] km / s
+    <SpectralCoord [-1120.63005892, -1028.99362163,  -937.38499411] km / s
     	doppler_rest=656.65 nm
     	doppler_convention=relativistic>
-
-.. TODO: the above values don't seem right as they are the same as the optical values.
 
 It is also possible to set ``doppler_convention`` and ``doppler_rest`` from the
 start, even when creating a |SpectralCoord| in frequency, energy, or
@@ -145,7 +143,7 @@ between 500 and 900nm::
     >>> wavs
     <SpectralCoord [500., 550., 600., 650., 700., 750., 800., 850., 900.] nm
         observer to target:
-          radial_velocity=149896.22900000002 km / s
+          radial_velocity=115304.79153846153 km / s
           redshift=0.5>
 
 We have set redshift=0.5 here so that we can keep track of what frame of reference
@@ -179,19 +177,19 @@ this value does not have units, it is interpreted as a redshift::
     >>> wavs_orig
     <SpectralCoord [500., 550., 600., 650., 700., 750., 800., 850., 900.] nm
         observer to target:
-          radial_velocity=149896.22900000002 km / s
+          radial_velocity=115304.79153846153 km / s
           redshift=0.5>
 
 This returns an object equivalent to the one we started with, since we've
 re-applied a redshift of 0.5. We could also provide a velocity as a |Quantity|::
 
     >>> wavs_rest.with_los_shift(100000 * u.km / u.s)
-    <SpectralCoord [444.52136507, 488.97350157, 533.42563808, 577.87777459,
-                    622.32991109, 666.7820476 , 711.23418411, 755.68632061,
-                    800.13845712] nm
+    <SpectralCoord [471.52692723, 518.67961996, 565.83231268, 612.9850054 ,
+                    660.13769813, 707.29039085, 754.44308357, 801.5957763 ,
+                    848.74846902] nm
         observer to target:
           radial_velocity=100000.0 km / s
-          redshift=0.33356409519815206>
+          redshift=0.41458078170200463>
 
 which shifts the values to a frame of reference at a redshift of approximately
 0.33 (that is, if the spectrum did contain a contribution from an object at
@@ -328,9 +326,9 @@ in the ``radial_velocity`` property, which has changed by ~0.35 km/s. To use a
 velocity reference frame relative to the Solar System barycenter we can use::
 
     >>> sc_ttau.with_observer_in_velocity_frame_of(sc_ttau.BARYCENTRIC)  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <SpectralCoord [200.01143253, 210.01200415, 220.01257578, 230.01314741,
-                    240.01371903, 250.01429066, 260.01486229, 270.01543391,
-                    280.01600554, 290.01657717, 300.01714879] GHz
+    <SpectralCoord [200.0114322 , 210.01200381, 220.01257542, 230.01314703,
+                    240.01371864, 250.01429025, 260.01486186, 270.01543347,
+                    280.01600508, 290.01657669, 300.0171483 ] GHz
         observer:
           <ICRS Coordinate: (x, y, z) in m
               (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
@@ -343,7 +341,7 @@ velocity reference frame relative to the Solar System barycenter we can use::
               (1.37949782e-15, 1.46375638e-15, 23.9)>
         observer to target (computed from above):
           radial_velocity=23.899999999999995 km / s
-          redshift=7.972181875235833e-05>
+          redshift=7.97249967898761e-05>
 
 Note that in this case the total radial velocity between the observer and the
 target matches what we specified when we set up the target, since it was defined
@@ -355,9 +353,9 @@ a significant velocity relative to the surface of the Earth.
 We can also transform the frequencies to the LSRK frame of reference:
 
     >>> sc_ttau.with_observer_in_velocity_frame_of(sc_ttau.LSRK_GORDON1975)  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <SpectralCoord [200.01903428, 210.019986  , 220.02093771, 230.02188943,
-                    240.02284114, 250.02379285, 260.02474457, 270.02569628,
-                    280.026648  , 290.02759971, 300.02855143] GHz
+    <SpectralCoord [200.01903338, 210.01998505, 220.02093672, 230.02188838,
+                    240.02284005, 250.02379172, 260.02474339, 270.02569506,
+                    280.02664673, 290.0275984 , 300.02855007] GHz
         observer:
           <FK4 Coordinate (equinox=B1900.000, obstime=2019-04-24T02:32:10.000): (x, y, z) in m
               (-1.27820157e+11, -7.20621074e+10, -3.12431755e+10)
@@ -370,7 +368,7 @@ We can also transform the frequencies to the LSRK frame of reference:
               (1.37949782e-15, 1.46375638e-15, 23.9)>
         observer to target (computed from above):
           radial_velocity=12.506991149252126 km / s
-          redshift=4.171883186351581e-05>
+          redshift=4.171970213029397e-05>
 
 See :ref:`spectralcoord-common-frames` for a list of frames available as
 constants on the |SpectralCoord| class. These constants are essentially instances
@@ -436,7 +434,7 @@ We can convert these to the rest frame of the target using::
 
     >>> sc_feat_rest = sc_feat.with_observer_in_velocity_frame_of(sc_feat.target)  # doctest: +REMOTE_DATA
     >>> sc_feat_rest  # doctest: +REMOTE_DATA
-    <SpectralCoord [115.27577909, 115.28177991, 115.28278004] GHz
+    <SpectralCoord [115.27577801, 115.28177883, 115.28277896] GHz
         observer:
           <ICRS Coordinate: (x, y, z) in m
               (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
@@ -458,7 +456,7 @@ T Tau. We can convert these frequencies to velocities assuming the Doppler shift
 (in this case with the radio convention)::
 
     >>> sc_feat_rest.to(u.km / u.s, doppler_convention='radio', doppler_rest=115.27120180 * u.GHz)  # doctest: +REMOTE_DATA
-    <SpectralCoord [-11.90441211, -27.51109417, -30.11220785] km / s
+    <SpectralCoord [-11.90160347, -27.50828539, -30.10939904] km / s
         observer:
           <ICRS Coordinate: (x, y, z) in m
               (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
