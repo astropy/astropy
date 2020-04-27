@@ -11,15 +11,6 @@ Time Series (`astropy.timeseries`)
 .. |TimeSeries| replace:: :class:`~astropy.timeseries.TimeSeries`
 .. |BinnedTimeSeries| replace:: :class:`~astropy.timeseries.BinnedTimeSeries`
 
-.. warning::
-
-    `astropy.timeseries` is currently a work in progress (new in v3.2), and thus
-    it is possible there will be API changes in later versions of ``astropy``.
-    If you have specific ideas for how it might be improved, please let us know
-    on the `astropy-dev mailing list`_ or at http://feedback.astropy.org .
-
-.. is this warning out of date?
-
 Introduction
 ============
 
