@@ -427,9 +427,14 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 observer_location = SkyCoord(earth_location.get_itrs(obstime=obstime))
 
                 if self.wcs.specsys in VELOCITY_FRAMES:
-                    observer = update_differentials_to_match(observer_location,
-                                                             VELOCITY_FRAMES[self.wcs.specsys],
-                                                             preserve_observer_frame=True)
+                    frame = VELOCITY_FRAMES[self.wcs.specsys]
+                    observer = observer_location.transform_to(frame)
+                    if isinstance(frame, str):
+                        observer = attach_zero_velocities(observer)
+                    else:
+                        observer = update_differentials_to_match(observer_location,
+                                                                 VELOCITY_FRAMES[self.wcs.specsys],
+                                                                 preserve_observer_frame=True)
                 elif self.wcs.specsys == 'TOPOCENT':
                     observer = attach_zero_velocities(observer_location)
                 else:
