@@ -1,25 +1,22 @@
 .. _stats-bls:
 
 ***********************************
-Box least squares (BLS) periodogram
+Box Least Squares (BLS) Periodogram
 ***********************************
 
-The "box least squares (BLS) periodogram" [1]_ is a statistical tool used for
+The "box least squares" (BLS) periodogram [1]_ is a statistical tool used for
 detecting transiting exoplanets and eclipsing binaries in time series
-photometric data.
-The main interface to this implementation is the `~astropy.timeseries.BoxLeastSquares`
-class.
-
+photometric data. The main interface to this implementation is the
+`~astropy.timeseries.BoxLeastSquares` class.
 
 Mathematical Background
 =======================
 
 The BLS method finds transit candidates by modeling a transit as a periodic
 upside down top hat with four parameters: period, duration, depth, and a
-reference time.
-In this implementation, the reference time is chosen to be the mid-transit
-time of the first transit in the observational baseline.
-These parameters are shown in the following sketch:
+reference time. In this implementation, the reference time is chosen to be the
+mid-transit time of the first transit in the observational baseline. These
+parameters are shown in the following sketch:
 
 .. plot::
 
@@ -71,16 +68,16 @@ and Gaussian, the maximum likelihood in-transit flux can be computed as
 where :math:`y_n` are the brightness measurements, :math:`\sigma_n` are the
 associated uncertainties, and both sums are computed over the in-transit data
 points.
+
 Similarly, the maximum likelihood out-of-transit flux is
 
 .. math::
 
     y_\mathrm{out} = \frac{\sum_\mathrm{out} y_n/{\sigma_n}^2}{\sum_\mathrm{out} 1/{\sigma_n}^2}
 
-where these sums are over the out-of-transit observations.
-Using these results, the log likelihood of a transit model (maximized over
-depth) at a given period :math:`P`, duration :math:`\tau`, and reference time
-:math:`t_0` is
+where these sums are over the out-of-transit observations. Using these results,
+the log likelihood of a transit model (maximized over depth) at a given period
+:math:`P`, duration :math:`\tau`, and reference time :math:`t_0` is
 
 .. math::
 
@@ -92,27 +89,34 @@ depth) at a given period :math:`P`, duration :math:`\tau`, and reference time
 This equation might be familiar because it is proportional to the "chi
 squared" :math:`\chi^2` for this model and this is a direct consequence of our
 assumption of Gaussian uncertainties.
+
 This :math:`\chi^2` is called the "signal residue" by [1]_, so maximizing the
 log likelihood over duration and reference time is equivalent to computing the
 box least squares spectrum from [1]_.
+
 In practice, this is achieved by finding the maximum likelihood model over a
 grid in duration and reference time as specified by the ``durations`` and
 ``oversample`` parameters for the
 `~astropy.timeseries.BoxLeastSquares.power` method.
+
 Behind the scenes, this implementation minimizes the number of required
 calculations by pre-binning the observations onto a fine grid following [1]_
 and [2]_.
-
 
 Basic Usage
 ===========
 
 The transit periodogram takes as input time series observations where the
 timestamps ``t`` and the observations ``y`` (usually brightness) are stored as
-NumPy arrays or :class:`~astropy.units.Quantity`.
-If known, error bars ``dy`` can also optionally be provided.
-For example, to evaluate the periodogram for a simulated data set, can be
-computed as follows:
+``numpy`` arrays or :class:`~astropy.units.Quantity` objects. If known, error
+bars ``dy`` can also optionally be provided.
+
+Example
+-------
+
+.. EXAMPLE START: Evaluating BLS Periodograms
+
+To evaluate the periodogram for a simulated data set:
 
 >>> import numpy as np
 >>> import astropy.units as u
@@ -127,6 +131,7 @@ The output of the `.astropy.timeseries.BoxLeastSquares.autopower` method
 is a `~astropy.timeseries.BoxLeastSquaresResults` object with several
 useful attributes, the most useful of which are generally the ``period`` and
 ``power`` attributes.
+
 This result can be plotted using matplotlib:
 
 >>> import matplotlib.pyplot as plt                  # doctest: +SKIP
@@ -150,18 +155,27 @@ This result can be plotted using matplotlib:
     plt.xlabel("period [day]")
     plt.ylabel("power")
 
-In this figure, you can see the peak at the correct period of 3 days.
+In this figure, you can see the peak at the correct period of three days.
 
+.. EXAMPLE END
 
 Objectives
 ==========
 
-By default, the `~astropy.timeseries.BoxLeastSquares.power` method computes the log
-likelihood of the model fit and maximizes over reference time and duration.
+By default, the `~astropy.timeseries.BoxLeastSquares.power` method computes the
+log likelihood of the model fit and maximizes over reference time and duration.
 It is also possible to use the signal-to-noise ratio with which the transit
 depth is measured as an objective function.
-To do this, call `~astropy.timeseries.BoxLeastSquares.power` or
-`~astropy.timeseries.BoxLeastSquares.autopower` with ``objective='snr'`` as follows:
+
+Example
+-------
+
+.. EXAMPLE START: Transit Search with BoxLeastSquares.power and Signal-to-Noise
+
+To compute the log likelihood of the model fit, call
+`~astropy.timeseries.BoxLeastSquares.power` or
+`~astropy.timeseries.BoxLeastSquares.autopower` with ``objective='snr'`` as
+follows:
 
 >>> model = BoxLeastSquares(t * u.day, y, dy=0.01)
 >>> periodogram = model.autopower(0.2, objective="snr")
@@ -188,22 +202,29 @@ This objective will generally produce a periodogram that is qualitatively
 similar to the log likelihood spectrum, but it has been used to improve the
 reliability of transit search in the presence of correlated noise.
 
+.. EXAMPLE END
 
 Period Grid
 ===========
 
-The transit periodogram is always computed on a grid of periods and the
-results can be sensitive to the sampling.
-As discussed in [1]_, the performance of the transit periodogram method is
-more sensitive to the period grid than the
+The transit periodogram is always computed on a grid of periods and the results
+can be sensitive to the sampling. As discussed in [1]_, the performance of the
+transit periodogram method is more sensitive to the period grid than the
 `~astropy.timeseries.LombScargle` periodogram.
-This implementation of the transit periodogram includes a conservative
-heuristic for estimating the required period grid that is used by the
+
+This implementation of the transit periodogram includes a conservative heuristic
+for estimating the required period grid that is used by the
 `~astropy.timeseries.BoxLeastSquares.autoperiod` and
-`~astropy.timeseries.BoxLeastSquares.autopower` methods and the details of
-this method are given in the API documentation for
+`~astropy.timeseries.BoxLeastSquares.autopower` methods and the details of this
+method are given in the API documentation for
 `~astropy.timeseries.BoxLeastSquares.autoperiod`.
-It is also possible to provide a specific period grid as follows:
+
+Example
+-------
+
+.. EXAMPLE START: Computing Transit Periodograms on a Grid of Periods
+
+It is possible to provide a specific period grid as follows:
 
 >>> model = BoxLeastSquares(t * u.day, y, dy=0.01)
 >>> periods = np.linspace(2.5, 3.5, 1000) * u.day
@@ -228,8 +249,7 @@ It is also possible to provide a specific period grid as follows:
     plt.xlabel("period [day]")
     plt.ylabel("power")
 
-However, if the period grid is too coarse, the correct period can easily be
-missed.
+However, if the period grid is too coarse, the correct period might be missed.
 
 >>> model = BoxLeastSquares(t * u.day, y, dy=0.01)
 >>> periods = np.linspace(0.5, 10.5, 15) * u.day
@@ -254,6 +274,7 @@ missed.
     plt.xlabel("period [day]")
     plt.ylabel("power")
 
+.. EXAMPLE END
 
 Peak Statistics
 ===============
@@ -261,6 +282,7 @@ Peak Statistics
 To help in the transit vetting process and to debug problems with candidate
 peaks, the `~astropy.timeseries.BoxLeastSquares.compute_stats` method can be
 used to calculate several statistics of a candidate transit.
+
 Many of these statistics are based on the VARTOOLS package described in [2]_.
 This will often be used as follows to compute stats for the maximum point in
 the periodogram:
