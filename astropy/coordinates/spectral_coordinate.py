@@ -1,41 +1,37 @@
 import warnings
-from collections import namedtuple
 
 import astropy.units as u
 import numpy as np
 from astropy.constants import c
 from astropy.coordinates import (ICRS,
                                  CartesianDifferential,
-                                 CartesianRepresentation, SkyCoord,
-                                 Galactic, FK4, HCRS, GCRS)
+                                 CartesianRepresentation, SkyCoord)
 from astropy.coordinates.baseframe import (BaseCoordinateFrame, FrameMeta,
                                            frame_transform_graph)
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.compat import NUMPY_LT_1_17
-from astropy.coordinates.builtin_frames import LSRK, LSRD
-
-DOPPLER_CONVENTIONS = {
-    'radio': u.doppler_radio,
-    'optical': u.doppler_optical,
-    'relativistic': u.doppler_relativistic
-}
-
-DEFAULT_DISTANCE = 1 * u.AU
-
-DopplerConversion = namedtuple('DopplerConversion', ['rest', 'convention'])
 
 __all__ = ['SpectralCoord']
+
+# Default distance to use for target when none is provided
+DEFAULT_DISTANCE = 1e6 * u.kpc
 
 # We don't want to run doctests in the docstrings we inherit from Quantity
 __doctest_skip__ = ['SpectralCoord.*']
 
 
 def _velocity_to_refshift(velocity):
+    """
+    Convert a velocity to a relativistic redshift.
+    """
     beta = velocity / c
     return np.sqrt((1 + beta) / (1 - beta)) - 1
 
 
 def _redshift_to_velocity(redshift):
+    """
+    Convert a relativistic redshift to a velocity.
+    """
     zponesq = (1 + redshift) ** 2
     return c * (zponesq - 1) / (zponesq + 1)
 
@@ -59,18 +55,22 @@ def update_differentials_to_match(original, velocity_reference, preserve_observe
     if 'obstime' in velocity_reference.frame_attributes and hasattr(original, 'obstime'):
         velocity_reference = velocity_reference.replicate(obstime=original.obstime)
 
-    # We transform both coordinates to ICRS for simplicity
+    # We transform both coordinates to ICRS for simplicity and because we know
+    # it's a simple frame that is not time-dependent (it could be that both
+    # the original and velocity_reference frame are time-dependent)
 
-    original_icrs = original.transform_to(ICRS())
-    velocity_reference_icrs = velocity_reference.transform_to(ICRS())
+    original_icrs = original.transform_to(ICRS)
+    velocity_reference_icrs = velocity_reference.transform_to(ICRS)
 
     differentials = velocity_reference_icrs.data.represent_as(CartesianRepresentation,
                                                               CartesianDifferential).differentials
+
     if original_icrs.data.differentials:
         data_with_differentials = original_icrs.data.represent_as(CartesianRepresentation,
                                                                   CartesianDifferential).with_differentials(differentials)
     else:
         data_with_differentials = original_icrs.data.represent_as(CartesianRepresentation).with_differentials(differentials)
+
     final_icrs = original_icrs.realize_frame(data_with_differentials)
 
     if preserve_observer_frame:
@@ -78,11 +78,8 @@ def update_differentials_to_match(original, velocity_reference, preserve_observe
     else:
         final = final_icrs.transform_to(velocity_reference)
 
-    final = final.replicate(representation_type=CartesianRepresentation,
-                            differential_type=CartesianDifferential)
-
-    return final
-
+    return final.replicate(representation_type=CartesianRepresentation,
+                           differential_type=CartesianDifferential)
 
 
 def attach_zero_velocities(coord):
@@ -107,22 +104,22 @@ class SpectralCoord(u.SpectralQuantity):
     Parameters
     ----------
     value : ndarray or `~astropy.units.Quantity` or `SpectralCoord`
-        Spectral axis data values.
+        Spectral values, which should be either a wavelength, a frequency, an
+        energy, a wavenumber, or a velocity.
     unit : str or `~astropy.units.Unit`
-        Unit for the given data.
+        Unit for the given spectal values.
     observer : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`, optional
         The coordinate (position and velocity) of observer.
     target : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`, optional
-        The coordinate (position and velocity) of observer.
+        The coordinate (position and velocity) of target.
     radial_velocity : `~astropy.units.Quantity`, optional
         The radial velocity of the target with respect to the observer.
     redshift : float, optional
-        The redshift of the target with respect to the observer.
+        The relativistic redshift of the target with respect to the observer.
     doppler_rest : `~astropy.units.Quantity`, optional
-        The rest value to use for velocity space transformations.
+        The rest value to use when expressing the spectral value as a velocity.
     doppler_convention : str, optional
-        The convention to use when converting the spectral data to/from
-        velocity space.
+        The Doppler convention to use when expressing the spectral value as a velocity.
     """
 
     def __new__(cls, value, unit=None,
@@ -130,18 +127,19 @@ class SpectralCoord(u.SpectralQuantity):
                 radial_velocity=None, redshift=None,
                 **kwargs):
 
+        # Enforce subok=True even if already specified
         kwargs['subok'] = True
 
         obj = super().__new__(cls, value, unit=unit, **kwargs)
 
-        # Make sure incompatible inputs can't be specified at the same time
-
-        if radial_velocity is not None and redshift is not None:
-            raise ValueError("Cannot set both a radial velocity and "
-                             "redshift on spectral coordinate.")
-
+        # There are two main modes of operation in this class. Either the
+        # observer and target are both defined, in which case the radial
+        # velocity and redshift are automatically computed from these, or
+        # only one of the observer and target are specified, along with a
+        # manually specified radial velocity or redshift. So if a target and
+        # observer are both specified, we can't also accept a radial velocity
+        # or redshift.
         if target is not None and observer is not None:
-
             if radial_velocity is not None:
                 raise ValueError("Cannot specify radial velocity if both target "
                                  "and observer are specified")
@@ -149,12 +147,17 @@ class SpectralCoord(u.SpectralQuantity):
                 raise ValueError("Cannot specify radial velocity if both target "
                                  "and observer are specified")
 
+        # We only deal with redshifts here and in the redshift property.
+        # Otherwise internally we always deal with velocities.
         if redshift is not None:
+            if radial_velocity is not None:
+                raise ValueError("Cannot set both a radial velocity and "
+                                 "redshift on spectral coordinate.")
             radial_velocity = _redshift_to_velocity(redshift)
 
         # The quantity machinery will drop the unit because type(value) !=
-        #  SpectralCoord when passing in a Quantity object. Reassign the unit
-        #  here to avoid this.
+        # SpectralCoord when passing in a Quantity object. Reassign the unit
+        # here to avoid this.
         if isinstance(value, u.Quantity) and unit is None:
             obj._unit = value.unit
 
@@ -165,26 +168,31 @@ class SpectralCoord(u.SpectralQuantity):
                 observer = value.observer
             if target is None:
                 target = value.target
-            if radial_velocity is None and redshift is None:
-                radial_velocity = value.radial_velocity
+            # As mentioned above, we should only specify the radial velocity
+            # manually if either or both the observer and target are not
+            # specified.
+            if observer is None or target is None:
+                if radial_velocity is None and redshift is None:
+                    radial_velocity = value.radial_velocity
 
-        # Store state about whether the observer and target were defined
-        #  explicitly (True), or implicity from rv/redshift (False)
-        obj._frames_state = dict(observer=observer is not None,
-                                 target=target is not None)
+        # Validate the observer and target
+        if observer is not None and not isinstance(observer, (SkyCoord, BaseCoordinateFrame)):
+            raise ValueError("observer must be a sky coordinate or coordinate frame.")
+        if target is not None and not isinstance(target, (SkyCoord, BaseCoordinateFrame)):
+            raise ValueError("target must be a sky coordinate or coordinate frame.")
 
-        for x in [y for y in [observer, target] if y is not None]:
-            if not isinstance(x, (SkyCoord, BaseCoordinateFrame)):
-                raise ValueError("Observer must be a sky coordinate or "
-                                 "coordinate frame.")
+        # Keep track of whether the observer and target were specified
+        # explicitly or wheher we use pseurdo observers/targets (see below)
+        obj._observer_specified = observer is not None
+        obj._target_specified = target is not None
 
-        # Keep track of whether any information was passed that could result in
-        # a radial velocity being available - if not we can hide this from the
-        # __repr__ since the user won't be expecting this info
-        obj._no_rv_info = observer is None and target is None and radial_velocity is None
+        # Keep track of whether the radial velocity was explicitly specified
+        # (including as a redshift)
+        obj._rv_specified = radial_velocity is not None
 
         # If no observer is defined, create a default observer centered in the
-        #  ICRS frame.
+        # ICRS frame. We never expose this to the user, and this is only used
+        # for internal purposes.
         if observer is None:
             if target is None:
                 observer = ICRS(ra=0 * u.degree, dec=0 * u.degree,
@@ -193,17 +201,15 @@ class SpectralCoord(u.SpectralQuantity):
             else:
                 if radial_velocity is None:
                     radial_velocity = 0 * u.km/u.s
-
-                observer = SpectralCoord._target_from_observer(
-                    target, -radial_velocity)
+                observer = SpectralCoord._target_from_observer(target, -radial_velocity)
 
         # If no target is defined, create a default target with any provided
-        #  redshift/radial velocities.
+        # redshift/radial velocities. We never expose this to the user, and
+        # this is only used for internal purposes.
         if target is None:
             if radial_velocity is None:
                 radial_velocity = 0 * u.km/u.s
-            target = SpectralCoord._target_from_observer(
-                observer, radial_velocity)
+            target = SpectralCoord._target_from_observer(observer, radial_velocity)
 
         obj._observer = cls._validate_coordinate(observer)
         obj._target = cls._validate_coordinate(target)
@@ -212,15 +218,16 @@ class SpectralCoord(u.SpectralQuantity):
 
     def __array_finalize__(self, obj):
         super().__array_finalize__(obj)
-        self._frames_state = getattr(obj, '_frames_state', None)
+        self._observer_specified = getattr(obj, '_observer_specified', None)
+        self._target_specified = getattr(obj, '_target_specified', None)
+        self._rv_specified = getattr(obj, '_rv_specified', None)
         self._observer = getattr(obj, '_observer', None)
         self._target = getattr(obj, '_target', None)
-        self._no_rv_info = getattr(obj, '_no_rv_info', True)
 
     def __quantity_subclass__(self, unit):
         """
-        Overridden by subclasses to change what kind of view is
-        created based on the output unit of an operation.
+        Overridden by subclasses of `~astropy.units.Quantity` to change what
+        kind of view is created based on the output unit of an operation.
         """
         return SpectralCoord, True
 
@@ -258,9 +265,7 @@ class SpectralCoord(u.SpectralQuantity):
                                    obs_vel.d_y.to(tot_rv.unit),
                                    obs_vel.d_z.to(tot_rv.unit)]))
 
-        target = observer_icrs.realize_frame(target)
-
-        return target
+        return observer_icrs.realize_frame(target)
 
     @staticmethod
     def _validate_coordinate(coord):
@@ -286,13 +291,14 @@ class SpectralCoord(u.SpectralQuantity):
 
         # If the distance is not well-defined, ensure that it works properly
         # for generating differentials
-        # TODO: change this to not set the distance and yield a warning once there's a good way to address this in astropy.coordinates
+        # TODO: change this to not set the distance and yield a warning once
+        # there's a good way to address this in astropy.coordinates
         if hasattr(coord, 'distance') and \
                 coord.distance.unit.physical_type == 'dimensionless':
-            coord = SkyCoord(coord, distance=1e6 * u.kpc)
+            coord = SkyCoord(coord, distance=DEFAULT_DISTANCE)
             warnings.warn(
                 "Distance on coordinate object is dimensionless, an "
-                "abritrary distance value of 1e6 kpc will be set instead.",
+                f"abritrary distance value of {DEFAULT_DISTANCE} will be set instead.",
                 AstropyUserWarning)
 
         # If the observer frame does not contain information about the
@@ -309,6 +315,10 @@ class SpectralCoord(u.SpectralQuantity):
         return coord
 
     def _copy(self, **kwargs):
+        """
+        Internal method to make a new `SpectralCoord` with some properties
+        changed.
+        """
 
         default_kwargs = {
             'value': self.value,
@@ -325,9 +335,9 @@ class SpectralCoord(u.SpectralQuantity):
             default_kwargs['radial_velocity'] = self.radial_velocity
 
         # If the new kwargs dict contains a value argument and it is a
-        #  quantity, use the unit information provided by that quantity.
+        # quantity, use the unit information provided by that quantity.
         # TODO: if a new quantity value is provided *and* the unit is set,
-        #  do we implicitly try and convert to the provided unit?
+        # do we implicitly try and convert to the provided unit?
         new_value = kwargs.get('value')
 
         if isinstance(new_value, u.Quantity):
@@ -361,23 +371,23 @@ class SpectralCoord(u.SpectralQuantity):
         `~astropy.coordinates.BaseCoordinateFrame`
             The astropy coordinate frame representing the observation.
         """
-        if self._frames_state['observer']:
+        if self._observer_specified:
             return self._observer
 
     @observer.setter
     def observer(self, value):
-        if self.observer is not None:
-            raise ValueError("Spectral coordinate already has a defined "
-                             "observer.")
 
-        self._frames_state['observer'] = value is not None
+        if self.observer is not None:
+            raise ValueError("observer has already been set")
+
+        self._observer_specified = value is not None
 
         value = self._validate_coordinate(value)
 
         # The default target is based off the observer frame. In the case
-        #  where both observer/target are initialized to defaults, and then
-        #  the user sets a new observer, we need to create a new target based
-        #  on the input frame to maintain rv/redshift continuity.
+        # where both observer/target are initialized to defaults, and then
+        # the user sets a new observer, we need to create a new target based
+        # on the input frame to maintain rv/redshift continuity.
         if self.target is None:
             self._target = self._target_from_observer(
                 value, self.radial_velocity)
@@ -394,16 +404,15 @@ class SpectralCoord(u.SpectralQuantity):
         `~astropy.coordinates.BaseCoordinateFrame`
             The astropy coordinate frame representing the target.
         """
-        if self._frames_state['target']:
+        if self._target_specified:
             return self._target
 
     @target.setter
     def target(self, value):
         if self.target is not None:
-            raise ValueError("Spectral coordinate already has a defined "
-                             "target.")
+            raise ValueError("target has already been set")
 
-        self._frames_state['target'] = value is not None
+        self._target_specified = value is not None
 
         value = self._validate_coordinate(value)
 
@@ -452,6 +461,9 @@ class SpectralCoord(u.SpectralQuantity):
             The frame of the observer.
         target : `~astropy.coordinates.BaseCoordinateFrame`
             The frame of the target.
+        as_scalar : bool
+            If `True`, the magnitude of the velocity vector will be returned,
+            otherwise the full vector will be returned.
 
         Returns
         -------
@@ -460,7 +472,7 @@ class SpectralCoord(u.SpectralQuantity):
         """
 
         # Convert observer and target to ICRS to avoid finite differencing
-        #  calculations that lack numerical precision.
+        # calculations that lack numerical precision.
         observer_icrs = observer.transform_to(ICRS)
         target_icrs = target.transform_to(ICRS)
 
@@ -525,6 +537,7 @@ class SpectralCoord(u.SpectralQuantity):
             The new coordinate object representing the spectral data
             transformed to the new observer frame.
         """
+
         if self.observer is None:
             raise ValueError("No observer has been set, cannot change "
                              "observer.")
@@ -584,13 +597,13 @@ class SpectralCoord(u.SpectralQuantity):
             delta_vel *= diff_vel.unit
 
         # In the case where the projected velocity is nan, we can assume that
-        #  the final velocity different is zero, and thus the actual velocity
-        #  delta is equal to the original radial velocity.
+        # the final velocity different is zero, and thus the actual velocity
+        # delta is equal to the original radial velocity.
 
         # TODO: Due to lack of precision in some coordinate transformations,
-        #  we may end up with a final velocity very close to, but not quite at,
-        #  zero. In this case, set a tolerance for the final velocity; if it's
-        #  below this tolerance, assume the delta velocity is essentially nan.
+        # we may end up with a final velocity very close to, but not quite at,
+        # zero. In this case, set a tolerance for the final velocity; if it's
+        # below this tolerance, assume the delta velocity is essentially nan.
 
         fin_vel_mag = np.linalg.norm(fin_vel)
 
@@ -604,7 +617,13 @@ class SpectralCoord(u.SpectralQuantity):
 
     def with_observer_velocity(self, frame, preserve_observer_frame=False):
         """
-        Alters the velocity frame of the observer, but not the position.
+        Alters the velocity of the observer, but not the position.
+
+        If a coordinate frame is specified, the observer velocities will be
+        modified to be stationary in the specified frame. If a coordinate
+        instance is specified, optionally with non-zero velocities, the
+        observer velocities will be updated so that the observer is co-moving
+        with the specified coordinates.
 
         Parameters
         ----------
@@ -816,7 +835,7 @@ class SpectralCoord(u.SpectralQuantity):
                 for line in target_repr.splitlines():
                     repr_items.append(f'      {line}')
 
-        if not self._no_rv_info:
+        if (self._observer_specified and self._target_specified) or self._rv_specified:
             if self.observer is not None and self.target is not None:
                 repr_items.append('    observer to target (computed from above):')
             else:
