@@ -17,6 +17,7 @@ from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.compat.context import nullcontext
 
 from astropy.coordinates.spectral_coordinate import SpectralCoord
+from astropy.wcs.wcsapi.fitswcs import VELOCITY_FRAMES as FITSWCS_VELOCITY_FRAMES
 
 
 def assert_frame_allclose(frame1, frame2,
@@ -496,19 +497,19 @@ def test_spectral_coord_from_sky_coord_without_distance():
         coord.target = SkyCoord(ra=10.68470833*u.deg, dec=41.26875*u.deg)
 
 
-EXPECTED_VELOCITY_FRAMES = {'geocent': SpectralCoord.GEOCENTRIC,
-                            'heliocent': SpectralCoord.HELIOCENTRIC,
-                            'lsrk': SpectralCoord.LSRK_GORDON1975,
-                            'lsrd': SpectralCoord.LSRD_DELHAYE1965,
-                            'galactoc': SpectralCoord.GALACTOCENTRIC_KLB1986,
-                            'localgrp': SpectralCoord.LOCALGROUP_IAU1976}
+EXPECTED_VELOCITY_FRAMES = {'geocent': 'gcrs',
+                            'heliocent': 'hcrs',
+                            'lsrk': 'lsrk',
+                            'lsrd': 'lsrd',
+                            'galactoc': FITSWCS_VELOCITY_FRAMES['GALACTOC'],
+                            'localgrp': FITSWCS_VELOCITY_FRAMES['LOCALGRP']}
 
 
 @pytest.mark.parametrize('specsys', list(EXPECTED_VELOCITY_FRAMES))
 def test_spectralcoord_accuracy(specsys):
 
     # PyYAML is needed to read in the ecsv table
-    pytest.importorskip('pyyaml')
+    pytest.importorskip('yaml')
 
     # This is a test to check the numerical results of transformations between
     # different velocity frames in SpectralCoord. This compares the velocity

@@ -19,7 +19,7 @@ from astropy.io.fits.verify import VerifyWarning
 from astropy.units.core import UnitsWarning
 from astropy.utils.data import get_pkg_data_filename
 from astropy.wcs.wcs import WCS, FITSFixedWarning
-from astropy.wcs.wcsapi.fitswcs import custom_ctype_to_ucd_mapping
+from astropy.wcs.wcsapi.fitswcs import custom_ctype_to_ucd_mapping, VELOCITY_FRAMES
 from astropy.wcs._wcs import __version__ as wcsver
 from astropy.utils import iers
 from astropy.table import Table
@@ -971,17 +971,6 @@ def test_spectralcoord_frame(header_spectral_frames):
     # since this is already done in test_spectralcoord_accuracy
     # in astropy.coordinates.
 
-    EXPECTED_MAPPING = {
-        'GEOCENT': SpectralCoord.GEOCENTRIC,
-        'BARYCENT': SpectralCoord.BARYCENTRIC,
-        'HELIOCENT': SpectralCoord.HELIOCENTRIC,
-        'LSRK': SpectralCoord.LSRK_GORDON1975,
-        'LSRD': SpectralCoord.LSRD_DELHAYE1965,
-        'GALACTOC': SpectralCoord.GALACTOCENTRIC_KLB1986,
-        'LOCALGRP': SpectralCoord.LOCALGROUP_IAU1976,
-        'CMBDIPOL': SpectralCoord.CMBDIPOL_WMAP1
-    }
-
     with iers.conf.set_temp('auto_download', False):
 
         obstime = Time(f"2009-05-04T04:44:23", scale='utc')
@@ -1011,7 +1000,7 @@ def test_spectralcoord_frame(header_spectral_frames):
         observatory = EarthLocation.from_geodetic(144.2, -20.2).get_itrs(obstime=obstime).transform_to(ICRS())
         assert observatory.separation_3d(sc_topo.observer.transform_to(ICRS())) < 1 * u.km
 
-        for specsys, expected_frame in EXPECTED_MAPPING.items():
+        for specsys, expected_frame in VELOCITY_FRAMES.items():
 
             header['SPECSYS'] = specsys
             with pytest.warns(FITSFixedWarning):

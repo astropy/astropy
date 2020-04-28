@@ -292,16 +292,17 @@ Background (CMB) dipole.
 
 We can transform our frequencies for the observations of T Tau to different
 velocity frames using the
-:meth:`~astropy.coordinates.SpectralCoord.with_observer_in_velocity_frame_of` method.
-This method can take any arbitrary 3-d position and velocity coordinate object
-defined either as a :class:`~astropy.coordinates.BaseCoordinateFrame` or a
-|SkyCoord| object, or strings referring to existing celestial coordinate frames.
-We provide shortcuts as constants on the |SpectralCoord| object itself for
-common transformations. For example to transform to a velocity frame stationary
-with respect to the center of the Earth (so removing the effect of the Earth's
-rotation), we can use
+:meth:`~astropy.coordinates.SpectralCoord.with_observer_in_velocity_frame_of`
+method. This method can take the name of an existing coordinate/velocity frame,
+a :class:`~astropy.coordinates.BaseCoordinateFrame` instance, or any arbitrary
+3-d position and velocity coordinate object defined either as a
+:class:`~astropy.coordinates.BaseCoordinateFrame` or a |SkyCoord| object. Most
+commonly-used frames are accessible using strings. For example to transform to a
+velocity frame stationary with respect to the center of the Earth (so removing
+the effect of the Earth's rotation), we can use the ``'gcrs'`` which stands for
+*Geocentric Celestial Reference System* (GCRS)::
 
-    >>> sc_ttau.with_observer_in_velocity_frame_of(sc_ttau.GEOCENTRIC)  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> sc_ttau.with_observer_in_velocity_frame_of('gcrs')  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord [200.00024141, 210.00025348, 220.00026555, 230.00027762,
                     240.00028969, 250.00030176, 260.00031383, 270.0003259 ,
                     280.00033797, 290.00035004, 300.00036211] GHz
@@ -319,13 +320,13 @@ rotation), we can use
           radial_velocity=40.67408633458015 km / s
           redshift=0.00013567414806205748>
 
-
 As you can see, the frequencies have changed slightly, which is because we have
 removed the Doppler shift caused by the Earth's rotation (this can also be seen
 in the ``radial_velocity`` property, which has changed by ~0.35 km/s. To use a
-velocity reference frame relative to the Solar System barycenter we can use::
+velocity reference frame relative to the Solar System barycenter, which is the
+origin of the *International Celestial Reference System* (ICRS) system, we can use::
 
-    >>> sc_ttau.with_observer_in_velocity_frame_of(sc_ttau.BARYCENTRIC)  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> sc_ttau.with_observer_in_velocity_frame_of('icrs')  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord [200.0114322 , 210.01200381, 220.01257542, 230.01314703,
                     240.01371864, 250.01429025, 260.01486186, 270.01543347,
                     280.01600508, 290.01657669, 300.0171483 ] GHz
@@ -350,52 +351,32 @@ is still as before, but the observer velocity is now ~10-20 km/s in x, y, and z,
 which is because the observer is now stationary relative to the barycenter so has
 a significant velocity relative to the surface of the Earth.
 
-We can also transform the frequencies to the LSRK frame of reference:
+We can also transform the frequencies to the LSRD frame of reference:
 
-    >>> sc_ttau.with_observer_in_velocity_frame_of(sc_ttau.LSRK_GORDON1975)  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <SpectralCoord [200.01903338, 210.01998505, 220.02093672, 230.02188838,
-                    240.02284005, 250.02379172, 260.02474339, 270.02569506,
-                    280.02664673, 290.0275984 , 300.02855007] GHz
+    >>> sc_ttau.with_observer_in_velocity_frame_of('lsrd')  # doctest: +REMOTE_DATA +FLOAT_CMP
+    <SpectralCoord [200.01820327, 210.01911343, 220.02002359, 230.02093376,
+                    240.02184392, 250.02275408, 260.02366425, 270.02457441,
+                    280.02548457, 290.02639474, 300.0273049 ] GHz
         observer:
-          <FK4 Coordinate (equinox=B1900.000, obstime=2019-04-24T02:32:10.000): (x, y, z) in m
-              (-1.27820157e+11, -7.20621074e+10, -3.12431755e+10)
+          <LSRD Coordinate: (x, y, z) in m
+              (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
            (v_x, v_y, v_z) in km / s
-              (1.51824951e-05, 17.32048573, -9.99998236)>
+              (0., 0., 0.)>
         target:
           <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
               (65.497625, 19.53511111, 144.321)
            (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
               (1.37949782e-15, 1.46375638e-15, 23.9)>
         observer to target (computed from above):
-          radial_velocity=12.506991149252126 km / s
-          redshift=4.171970213029397e-05>
+          radial_velocity=13.751182544045982 km / s
+          redshift=4.587005966327773e-05>
 
-See :ref:`spectralcoord-common-frames` for a list of frames available as
-constants on the |SpectralCoord| class. These constants are essentially instances
-of :class:`~astropy.coordinates.BaseCoordinateFrame` objects::
+See :ref:`spectralcoord-common-frames` for a list of common velocity frames
+available as strings on the |SpectralCoord| class.
 
-    >>> SpectralCoord.LSRK_GORDON1975
-    <FK4 Coordinate (equinox=B1900.000, obstime=B1900.000): (x, y, z) in km
-        (1.e-10, 1.e-10, 1.e-10)
-     (v_x, v_y, v_z) in km / s
-        (3.18172572e-15, 17.32050808, -10.)>
-
-It is also possible to pass your own coordinate objects, or strings referring to
-coordinate frames already defined in astropy. For example:
-
-    >>> sc_ttau.with_observer_in_velocity_frame_of('gcrs')  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
-
-is equivalent to::
-
-    >>> sc_ttau.with_observer_in_velocity_frame_of(sc_ttau.GEOCENTRIC)  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
-
-Here ``'gcrs'`` stands for Geocentric Celestial Reference System, which, like ITRS,
-is a coordinate system centered on the center of the Earth, but it does not rotate
-with the Earth.
-
-Finally, since we can give any arbitrary |SkyCoord| to the
-:meth:`~astropy.coordinates.SpectralCoord.with_observer_in_velocity_frame_of` method,
-we can also specify the target itself, to find the frequencies in the
+Since we can give any arbitrary |SkyCoord| to the
+:meth:`~astropy.coordinates.SpectralCoord.with_observer_in_velocity_frame_of`
+method, we can also specify the target itself, to find the frequencies in the
 rest frame of the target:
 
     >>> sc_ttau_targetframe = sc_ttau.with_observer_in_velocity_frame_of(sc_ttau.target)  # doctest: +REMOTE_DATA
@@ -486,35 +467,31 @@ So if the features are indeed from 12CO, they have velocities of approximately -
 Common velocity frames
 ======================
 
+Any valid astropy coordinate frame can be passed to the
+:meth:`~astropy.coordinates.SpectralCoord.with_observer_in_velocity_frame_of`
+method, including string aliases such as ``icrs``. Below we list some of the
+frames commonly used to define spectral coordinates in:
+
 The velocity frames available as constants on the |SpectralCoord| class are:
 
 ========================== =================================================
-Constant Name              Description
+Frame name                 Description
 ========================== =================================================
-``GEOCENTRIC``             Defined as stationary relative to the GCRS origin
-``BARYCENTRIC``            Defined as stationary relative to the ICRS origin
-``HELIOCENTRIC``           Defined as stationary relative to the HCRS origin
-``LSRK_GORDON1975``        Kinematic Local Standard of Rest (LSRK),
+``'gcrs'``                 Geocentric frame (defined as stationary relative to the GCRS origin)
+``'icrs'``                 Barycentric frame (defined as stationary relative to the ICRS origin)
+``'hcrs'``                 Heliocentric frame (defined as stationary relative to the HCRS origin)
+``'lsrk``                  Kinematic Local Standard of Rest (LSRK),
                            defined as having a velocity of 20 km/s towards
                            18h +30d (B1900) relative to the Solar System
                            Barycenter [1]_.
-``LSRD_DELHAYE1965``       Dynamical Local Standard of Rest (LSRD),
+``'lsrd'``                 Dynamical Local Standard of Rest (LSRD),
                            defined as having a velocity of U=9 km/s,
                            V=12 km/s, and W=7 km/s in Galactic coordinates
                            (equivalent to 16.552945 km/s towards l=53.13
                            and b=25.02) [2]_.
-``GALACTOCENTRIC_KLB1986`` Galactocentric frame defined as having a velocity
-                           of 220 km/s towards l=90 and b=0 relative to
-                           the Solar System Barycenter [3]_.
-``LOCALGROUP_IAU1976``     Velocity frame representing the motion of the
-                           Local Group of galaxies, and defined as having a velocity
-                           of 300 km/s towards l=90 and b=0 relative to
-                           the Solar System Barycenter [4]_.
-``CMBDIPOL_WMAP1``         Velocity frame representing the motion of the
-                           cosmic microwave background (CMB) dipole based on the
-                           1-year WMAP data, and defined as a tempreature
-                           difference of 3.346mK (corresponding to approximately
-                           368 km/s) in the direction of l=263.85, b=48.25 [5]_
+``'lsr'``                  A more recent definition of the Local Standard
+                           of rest, with U=11.1 km/s,
+                           V=12.24 km/s, and W=7.25 km/s in Galactic coordinates [3]_.
 ========================== =================================================
 
 References
@@ -526,11 +503,28 @@ References
 .. [2] Delhaye, J. 1965, *Galactic Structure*. Edited by Adriaan Blaauw and
        Maarten Schmidt. Published by the University of Chicago Press, p61
        `[ADS] <https://ui.adsabs.harvard.edu/abs/1965gast.book...61D>`__.
-.. [3] Kerr, F. J., & Lynden-Bell, D. 1986, MNRAS, 221, 1023
-       `[ADS] <https://ui.adsabs.harvard.edu/abs/1986MNRAS.221.1023K>`__.
-.. [4] *Transactions of the IAU Vol. XVI B Proceedings of the 16th General
-       Assembly, Reports of Meetings of Commissions: Comptes Rendus
-       Des Séances Des Commissions, Commission 28*.
-       `[DOI] <https://doi.org/10.1017/S0251107X00002406>`__
-.. [5] Bennett, C. L., Halpern, M., Hinshaw, G., et al. 2003, ApJS, 148, 1
-       `[ADS] <https://ui.adsabs.harvard.edu/abs/2003ApJS..148....1B>`__.
+.. [3] Schönrich, R., Binney, J., & Dehnen, W. 2010, MNRAS, 403, 1829
+       `[ADS] <https://ui.adsabs.harvard.edu/abs/2010MNRAS.403.1829S>`__.
+
+.. The following frames are defined in FITS WCS and may be added here in future:
+..
+.. ``GALACTOCENTRIC_KLB1986`` Galactocentric frame defined as having a velocity
+..                            of 220 km/s towards l=90 and b=0 relative to
+..                            the Solar System Barycenter [3]_.
+.. ``LOCALGROUP_IAU1976``     Velocity frame representing the motion of the
+..                            Local Group of galaxies, and defined as having a velocity
+..                            of 300 km/s towards l=90 and b=0 relative to
+..                            the Solar System Barycenter [4]_.
+.. ``CMBDIPOL_WMAP1``         Velocity frame representing the motion of the
+..                            cosmic microwave background (CMB) dipole based on the
+..                            1-year WMAP data, and defined as a tempreature
+..                            difference of 3.346mK (corresponding to approximately
+..                            368 km/s) in the direction of l=263.85, b=48.25 [5]_
+.. .. [3] Kerr, F. J., & Lynden-Bell, D. 1986, MNRAS, 221, 1023
+..       `[ADS] <https://ui.adsabs.harvard.edu/abs/1986MNRAS.221.1023K>`__.
+.. .. [4] *Transactions of the IAU Vol. XVI B Proceedings of the 16th General
+..       Assembly, Reports of Meetings of Commissions: Comptes Rendus
+..       Des Séances Des Commissions, Commission 28*.
+..       `[DOI] <https://doi.org/10.1017/S0251107X00002406>`__
+.. .. [5] Bennett, C. L., Halpern, M., Hinshaw, G., et al. 2003, ApJS, 148, 1
+..       `[ADS] <https://ui.adsabs.harvard.edu/abs/2003ApJS..148....1B>`__.
