@@ -65,6 +65,7 @@ To use Ripley's K Function Estimators from ``astropy``'s stats sub-package:
              label=r'$K_{var-width}$')
     plt.plot(r, Kest(data=z, radii=r, mode='ripley'), color='yellow',
              label=r'$K_{ripley}$')
+    plt.legend()
 
 ..
   EXAMPLE END
