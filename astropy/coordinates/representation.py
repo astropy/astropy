@@ -112,6 +112,7 @@ class BaseRepresentationOrDifferentialInfo(MixinInfo):
     required when the object is used as a mixin column within a table, but can
     be used as a general way to store meta information.
     """
+    attrs_from_parent = {'unit'}  # Indicates unit is read-only
     _supports_indexing = False
 
     @staticmethod
