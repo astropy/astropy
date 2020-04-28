@@ -7,7 +7,7 @@ tag: "tag:astropy.org:astropy/coordinates/representation-1.0.0"
 title: |
   Representation of points or differentials in two or three dimensional space.
 
-description:
+description: |
   Representation of points or differentials in two or three dimensional space.
 
 examples:
