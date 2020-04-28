@@ -1,5 +1,8 @@
 import numpy as np
-import astropy.units as u
+from . import si
+from . import equivalencies as eq
+from .quantity import SpecificTypeQuantity
+from .decorators import quantity_input
 from astropy.constants import c
 
 __all__ = ['SpectralQuantity']
@@ -8,16 +11,16 @@ __all__ = ['SpectralQuantity']
 __doctest_skip__ = ['SpectralQuantity.*']
 
 
-SPECTRAL_UNITS = (u.Hz, u.m, u.J, (1 / u.m).unit, u.m / u.s)
+SPECTRAL_UNITS = (si.Hz, si.m, si.J, (1 / si.m).unit, si.m / si.s)
 
 DOPPLER_CONVENTIONS = {
-    'radio': u.doppler_radio,
-    'optical': u.doppler_optical,
-    'relativistic': u.doppler_relativistic
+    'radio': eq.doppler_radio,
+    'optical': eq.doppler_optical,
+    'relativistic': eq.doppler_relativistic
 }
 
 
-class SpectralQuantity(u.SpecificTypeQuantity):
+class SpectralQuantity(SpecificTypeQuantity):
     """
     One or more value(s) with spectral units.
 
@@ -99,7 +102,7 @@ class SpectralQuantity(u.SpecificTypeQuantity):
         return self._doppler_rest
 
     @doppler_rest.setter
-    @u.quantity_input(value=SPECTRAL_UNITS)
+    @quantity_input(value=SPECTRAL_UNITS)
     def doppler_rest(self, value):
         """
         New rest value needed for velocity-space conversions.
@@ -160,7 +163,7 @@ class SpectralQuantity(u.SpecificTypeQuantity):
                              "the spectral values(s) to use a different "
                              "convention")
 
-    @u.quantity_input(doppler_rest=SPECTRAL_UNITS)
+    @quantity_input(doppler_rest=SPECTRAL_UNITS)
     def to(self, unit,
            equivalencies=[],
            doppler_rest=None,
@@ -197,7 +200,7 @@ class SpectralQuantity(u.SpecificTypeQuantity):
         elif doppler_convention not in DOPPLER_CONVENTIONS:
             raise ValueError("doppler_convention should be one of {0}".format('/'.join(sorted(DOPPLER_CONVENTIONS))))
 
-        if self.unit.is_equivalent(u.km / u.s) and unit.is_equivalent(u.km / u.s):
+        if self.unit.is_equivalent(si.km / si.s) and unit.is_equivalent(si.km / si.s):
 
             # Special case: if the current and final units are both velocity,
             # and either the rest value or the convention are different, we
@@ -218,17 +221,17 @@ class SpectralQuantity(u.SpecificTypeQuantity):
 
             vel_equiv1 = DOPPLER_CONVENTIONS[self._doppler_convention](self._doppler_rest)
 
-            freq = super().to(u.Hz, equivalencies=equivalencies + u.spectral() + vel_equiv1)
+            freq = super().to(si.Hz, equivalencies=equivalencies + eq.spectral() + vel_equiv1)
 
             vel_equiv2 = DOPPLER_CONVENTIONS[doppler_convention](doppler_rest)
 
-            result = freq.to(unit, equivalencies=equivalencies + u.spectral() + vel_equiv2)
+            result = freq.to(unit, equivalencies=equivalencies + eq.spectral() + vel_equiv2)
 
         else:
 
-            additional_equivalencies = u.spectral()
+            additional_equivalencies = eq.spectral()
 
-            if self.unit.is_equivalent(u.km / u.s) or unit.is_equivalent(u.km / u.s):
+            if self.unit.is_equivalent(si.km / si.s) or unit.is_equivalent(si.km / si.s):
 
                 if doppler_convention is None:
                     raise ValueError("doppler_convention not set, cannot convert to/from velocities")
@@ -264,16 +267,16 @@ class SpectralQuantity(u.SpecificTypeQuantity):
 
         # NOTE: we deliberately don't keep sub-classes of SpectralQuantity intact
         # since we can't guarantee that their metadata would be correct/consistent.
-        squantity = self.view(u.SpectralQuantity)
+        squantity = self.view(SpectralQuantity)
 
         beta = velocity / c
         doppler_factor = np.sqrt((1 + beta) / (1 - beta))
 
-        if squantity.unit.is_equivalent(u.m):  # wavelength
+        if squantity.unit.is_equivalent(si.m):  # wavelength
             return squantity * doppler_factor
-        elif squantity.unit.is_equivalent(u.Hz) or squantity.unit.is_equivalent(u.eV) or squantity.unit.is_equivalent(1 / u.m):
+        elif squantity.unit.is_equivalent(si.Hz) or squantity.unit.is_equivalent(si.eV) or squantity.unit.is_equivalent(1 / si.m):
             return squantity / doppler_factor
-        elif squantity.unit.is_equivalent(u.km / u.s):  # velocity
+        elif squantity.unit.is_equivalent(si.km / si.s):  # velocity
             if squantity.doppler_convention is None:
                 raise ValueError('doppler_convention is not set, so unsure how to apply doppler shift')
             if squantity.doppler_convention == 'relativistic':
