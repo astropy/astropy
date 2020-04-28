@@ -55,12 +55,12 @@ class SpectralQuantity(u.SpecificTypeQuantity):
         obj = super().__new__(cls, value, unit=unit, **kwargs)
 
         # The quantity machinery will drop the unit because type(value) !=
-        #  SpectralCoord when passing in a Quantity object. Reassign the unit
+        #  SpectralQuantity when passing in a Quantity object. Reassign the unit
         #  here to avoid this.
         # if isinstance(value, u.Quantity) and unit is None:
         #     obj._unit = value.unit
 
-        # If we're initializing from an existing SpectralCoord, keep any
+        # If we're initializing from an existing SpectralQuantity, keep any
         # parameters that aren't being overridden
         if isinstance(value, SpectralQuantity):
             if doppler_rest is None:
@@ -173,16 +173,16 @@ class SpectralQuantity(u.SpecificTypeQuantity):
         ----------
         doppler_rest : `~astropy.units.Quantity`, optional
             The rest value used in the velocity space conversions. Providing
-            the value here will set the value stored on the `SpectralCoord`
+            the value here will set the value stored on the `SpectralQuantity`
             instance.
         doppler_convention : {'relativistic', 'optical', 'radio'}, optional
             The velocity convention to use during conversions. Providing the
-            value here will set the value stored on the `SpectralCoord`
+            value here will set the value stored on the `SpectralQuantity`
             instance.
 
         Returns
         -------
-        `SpectralCoord`
+        `SpectralQuantity`
             New spectral coordinate object with data converted to the new unit.
         """
 

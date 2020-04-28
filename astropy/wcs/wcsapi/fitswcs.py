@@ -8,7 +8,7 @@ import warnings
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates import SpectralCoord
+from astropy.coordinates import SpectralCoord, Galactic
 from astropy.coordinates.spectral_coordinate import update_differentials_to_match, attach_zero_velocities
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.constants import c
@@ -22,15 +22,65 @@ __all__ = ['custom_ctype_to_ucd_mapping', 'SlicedFITSWCS', 'FITSWCSAPIMixin']
 C_SI = c.si.value
 
 VELOCITY_FRAMES = {
-    'GEOCENT': SpectralCoord.GEOCENTRIC,
-    'BARYCENT': SpectralCoord.BARYCENTRIC,
-    'HELIOCENT': SpectralCoord.HELIOCENTRIC,
-    'LSRK': SpectralCoord.LSRK_GORDON1975,
-    'LSRD': SpectralCoord.LSRD_DELHAYE1965,
-    'GALACTOC': SpectralCoord.GALACTOCENTRIC_KLB1986,
-    'LOCALGRP': SpectralCoord.LOCALGROUP_IAU1976,
-    'CMBDIPOL': SpectralCoord.CMBDIPOL_WMAP1
+    'GEOCENT': 'gcrs',
+    'BARYCENT': 'icrs',
+    'HELIOCENT': 'hcrs',
+    'LSRK': 'lsrk',
+    'LSRD': 'lsrd'
 }
+
+# For now, the velocity frames below aren't yet defined as real
+# astropy.coordinates frames, so we instead define them here as instances
+# of existing coordinate frames with offset velocities. In future we should
+# make these real frames so that users can more easily recognize these
+# velocity frames when used in SpectralCoord.
+
+# This frame is defined as a velocity of 220 km/s in the
+# direction of l=90, b=0. The rotation velocity is defined
+# in:
+#
+#   Kerr and Lynden-Bell 1986, Review of galactic constants.
+#
+# NOTE: this may differ from the assumptions of galcen_v_sun
+# in the Galactocentric frame - the value used here is
+# the one adopted by the WCS standard for spectral
+# transformations.
+
+VELOCITY_FRAMES['GALACTOC'] = Galactic(u=0 * u.km, v=0 * u.km, w=0 * u.km,
+                                       U=0 * u.km / u.s, V=-220 * u.km / u.s, W=0 * u.km / u.s,
+                                       representation_type='cartesian',
+                                       differential_type='cartesian')
+
+# This frame is defined as a velocity of 300 km/s in the
+# direction of l=90, b=0. This is defined in:
+#
+#   Transactions of the IAU Vol. XVI B Proceedings of the
+#   16th General Assembly, Reports of Meetings of Commissions:
+#   Comptes Rendus Des Séances Des Commissions, Commission 28,
+#   p201.
+#
+# Note that these values differ from those used by CASA
+# (308 km/s towards l=105, b=-7) but we use the above values
+# since these are the ones defined in Greisen et al (2006).
+
+VELOCITY_FRAMES['LOCALGRP'] = Galactic(u=0 * u.km, v=0 * u.km, w=0 * u.km,
+                                       U=0 * u.km / u.s, V=-300 * u.km / u.s, W=0 * u.km / u.s,
+                                       representation_type='cartesian',
+                                       differential_type='cartesian')
+
+# This frame is defined as a velocity of 368 km/s in the
+# direction of l=263.85, b=48.25. This is defined in:
+#
+#   Bennett et al. (2003), First-Year Wilkinson Microwave
+#   Anisotropy Probe (WMAP) Observations: Preliminary Maps
+#   and Basic Results
+#
+# Note that in that paper, the dipole is expressed as a
+# temperature (T=3.346 +/- 0.017mK)
+
+VELOCITY_FRAMES['CMBDIPOL'] = Galactic(l=263.85 * u.deg, b=48.25 * u.deg, distance=0 * u.km,
+                                       radial_velocity=-(3.346e-3 / 2.725 * c).to(u.km/u.s))
+
 
 # Mapping from CTYPE axis name to UCD1
 
