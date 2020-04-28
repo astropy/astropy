@@ -22,11 +22,13 @@ class TestManipulation():
     """
 
     def setup(self):
+        # For these tests, we set up frames and coordinates using copy=False,
+        # so we can check that broadcasting is handled correctly.
         lon = Longitude(np.arange(0, 24, 4), u.hourangle)
         lat = Latitude(np.arange(-90, 91, 30), u.deg)
-        # With same-sized arrays, no attributes
+        # With same-sized arrays, no attributes.
         self.s0 = ICRS(lon[:, np.newaxis] * np.ones(lat.shape),
-                       lat * np.ones(lon.shape)[:, np.newaxis])
+                       lat * np.ones(lon.shape)[:, np.newaxis], copy=False)
         # Make an AltAz frame since that has many types of attributes.
         # Match one axis with times.
         self.obstime = (Time('2012-01-01') +
@@ -42,7 +44,7 @@ class TestManipulation():
                         obstime=self.obstime,
                         location=self.location,
                         pressure=self.pressure,
-                        temperature=self.temperature)
+                        temperature=self.temperature, copy=False)
         # For some tests, also try a GCRS, since that has representation
         # attributes.  We match the second dimension (via the location)
         self.obsgeoloc, self.obsgeovel = self.location.get_gcrs_posvel(
@@ -50,13 +52,14 @@ class TestManipulation():
         self.s2 = GCRS(ra=lon[:, np.newaxis], dec=lat,
                        obstime=self.obstime,
                        obsgeoloc=self.obsgeoloc,
-                       obsgeovel=self.obsgeovel)
+                       obsgeovel=self.obsgeovel, copy=False)
         # For completeness, also some tests on an empty frame.
         self.s3 = GCRS(obstime=self.obstime,
                        obsgeoloc=self.obsgeoloc,
-                       obsgeovel=self.obsgeovel)
+                       obsgeovel=self.obsgeovel, copy=False)
         # And make a SkyCoord
-        self.sc = SkyCoord(ra=lon[:, np.newaxis], dec=lat, frame=self.s3)
+        self.sc = SkyCoord(ra=lon[:, np.newaxis], dec=lat, frame=self.s3,
+                           copy=False)
 
     def test_getitem0101(self):
         # We on purpose take a slice with only one element, as for the
