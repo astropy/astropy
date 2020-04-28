@@ -982,6 +982,7 @@ class _FTPTLSHandler(urllib.request.FTPHandler):
         return _ftptlswrapper(user, passwd, host, port, dirs, timeout,
                               persistent=False)
 
+
 def _download_file_from_source(source_url, show_progress=True, timeout=None,
                                remote_url=None, cache=False, pkgname='astropy',
                                http_headers=None, ftp_tls=False):

@@ -4,8 +4,6 @@ import warnings
 
 import pytest
 
-from io import StringIO
-
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_equal, assert_allclose
 
@@ -1178,6 +1176,7 @@ B_DMAX  =    44.62692873032506
 
     assert dists.max() < 7e-5*u.deg
     assert np.std(dists) < 2.5e-5*u.deg
+
 
 @pytest.mark.remote_data
 @pytest.mark.parametrize('x_in,y_in', [[0, 0], [np.arange(5), np.arange(5)]])
