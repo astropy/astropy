@@ -10,7 +10,7 @@ import numpy as np
 
 
 __all__ = ['bitfield_to_boolean_mask', 'interpret_bit_flags',
-           'BitFlagNameMap', 'extend_bit_flag_map']
+           'BitFlagNameMap', 'extend_bit_flag_map', 'InvalidBitFlag']
 
 
 _ENABLE_BITFLAG_CACHING = True
@@ -50,11 +50,36 @@ def _is_int(n):
     )
 
 
+class InvalidBitFlag(ValueError):
+    """ Indicates that a value is not an integer that is a power of 2. """
+    pass
+
+
+class BitFlag(int):
+    """ Bit flags: integer values that are powers of 2. """
+    def __new__(cls, val, doc=None):
+        if isinstance(val, tuple):
+            if doc is not None:
+                raise ValueError("Flag's doc string cannot be provided twice.")
+            val, doc = val
+
+        if not (_is_int(val) and _is_bit_flag(val)):
+            raise InvalidBitFlag(
+                "Value '{}' is not a valid bit flag: bit flag value must be "
+                "an integral power of two.".format(val)
+            )
+
+        s = int.__new__(cls, val)
+        if doc is not None:
+            s.__doc__ = doc
+        return s
+
+
 class BitFlagNameMeta(type):
     def __new__(mcls, name, bases, members):
         for k, v in members.items():
-            if not (k.startswith('_') or _is_int(v)):
-                raise TypeError("Flag values must be of integral type.")
+            if not k.startswith('_'):
+                v = BitFlag(v)
 
         attr = [k for k in members.keys() if not k.startswith('_')]
         attrl = list(map(str.lower, attr))
@@ -73,6 +98,9 @@ class BitFlagNameMeta(type):
                                          .format(attr[idx]))
                 if _ENABLE_BITFLAG_CACHING:
                     cache[kl] = v
+
+        members = {k: v if k.startswith('_') else BitFlag(v)
+                   for k, v in members.items()}
 
         if _ENABLE_BITFLAG_CACHING:
             cache.update({k.lower(): v for k, v in members.items()
@@ -110,12 +138,7 @@ class BitFlagNameMeta(type):
             if namel in list(map(str.lower, cls.__dict__)):
                 raise AttributeError(err_msg)
 
-        if not _is_int(val):
-            raise TypeError("Flag values must be of integral type.")
-
-        if not _is_bit_flag(val):
-            raise ValueError("Value {} for flag '{:s}' is invalid: bit flag"
-                             "values must be powers of two.".format(val, name))
+        val = BitFlag(val)
 
         if _ENABLE_BITFLAG_CACHING and not namel.startswith('_'):
             cls._cache[namel] = val
@@ -174,7 +197,8 @@ class BitFlagNameMap(metaclass=BitFlagNameMeta):
 
     Mapping for a specific instrument should subclass this class.
     Subclasses should define flags as class attributes with integer values
-    that are powers of 2.
+    that are powers of 2. Each bit flag may also contain a string
+    comment following the flag value.
 
     Examples
     --------
@@ -182,9 +206,9 @@ class BitFlagNameMap(metaclass=BitFlagNameMeta):
         >>> from astropy.nddata.bitmask import BitFlagNameMap
         >>> class ST_DQ(BitFlagNameMap):
         ...     __version__ = '1.0.0'  # optional
-        ...     CR = 1
-        ...     CLOUDY = 4
-        ...     RAINY = 8
+        ...     CR = 1, 'Cosmic Ray'
+        ...     CLOUDY = 4  # no docstring comment
+        ...     RAINY = 8, 'Dome closed'
         ...
         >>> class ST_CAM1_DQ(ST_DQ):
         ...     HOT = 16
