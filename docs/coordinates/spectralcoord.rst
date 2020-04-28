@@ -351,7 +351,7 @@ is still as before, but the observer velocity is now ~10-20 km/s in x, y, and z,
 which is because the observer is now stationary relative to the barycenter so has
 a significant velocity relative to the surface of the Earth.
 
-We can also transform the frequencies to the LSRD frame of reference:
+We can also transform the frequencies to the LSRD frame of reference::
 
     >>> sc_ttau.with_observer_velocity('lsrd')  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord [200.01820327, 210.01911343, 220.02002359, 230.02093376,
@@ -377,7 +377,7 @@ available as strings on the |SpectralCoord| class.
 Since we can give any arbitrary |SkyCoord| to the
 :meth:`~astropy.coordinates.SpectralCoord.with_observer_velocity`
 method, we can also specify the target itself, to find the frequencies in the
-rest frame of the target:
+rest frame of the target::
 
     >>> sc_ttau_targetframe = sc_ttau.with_observer_velocity(sc_ttau.target)  # doctest: +REMOTE_DATA
     >>> sc_ttau_targetframe  # doctest: +REMOTE_DATA +FLOAT_CMP
