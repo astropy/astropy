@@ -5,13 +5,32 @@
 Working with Earth satellites using Astropy Coordinates
 *******************************************************
 
-Finding ``TEME`` coordinates from Two-Line-Ephemerides (TLE)
-============================================================
+Satellite data is normally provided in the Two-line element (TLE) format
+(see `here <https://www.celestrak.com/NORAD/documentation/tle-fmt.php>`_
+for a definition). These datasets are designed to be used in combination
+with a theory for orbital propagation model to predict the positions
+of satellites.
+
+The history of such models is discussed in detail in
+`Vallado et al (2006) <https://celestrak.com/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf>`_
+who also provide a reference implementation of the SGP4 orbital propagation
+code, designed to be compatible with the TLE sets provided by the United
+States Department of Defense, which are available from a source like
+`Celestrak <http://celestrak.com/>`_.
+
+The output coordinate frame of the SGP4 model is the True Equator, Mean Equinox
+frame (TEME), which is one of the frames built-in to `astropy.coordinates`.
+TEME is an Earth-centered inertial frame (i.e it does not rotate with respect
+to the stars). Several definitions exist; astropy uses the implementation described
+in `Vallado et al (2006) <https://celestrak.com/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf>`_.
+
+Finding ``TEME`` coordinates from TLE data
+==========================================
 
 There is currently no support in `astropy.coordinates` for computing satellite orbits
-from the TLE orbital elements avaiable from a source like `Celestrak <http://celestrak.com/>`_.
-Full support for handling TLE files is available in the `Skyfield <http://rhodesmill.org/skyfield/>`_
-library, but some advice for dealing with satellite data in astropy is below.
+from TLE orbital element sets. Full support for handling TLE files is available in
+the `Skyfield <http://rhodesmill.org/skyfield/>`_ library, but some advice for dealing
+with satellite data in astropy is below.
 
 ..
   EXAMPLE START
