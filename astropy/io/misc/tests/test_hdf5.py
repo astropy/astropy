@@ -10,7 +10,9 @@ from astropy.table.table_helpers import simple_table
 
 from astropy import units as u
 
-from astropy.coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
+from astropy.coordinates import (SkyCoord, Latitude, Longitude, Angle, EarthLocation,
+                                 SphericalRepresentation, CartesianRepresentation,
+                                 SphericalCosLatDifferential)
 from astropy.time import Time, TimeDelta
 from astropy.units.quantity import QuantityInfo
 from astropy.utils.exceptions import AstropyUserWarning
@@ -679,11 +681,18 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
         assert np.all(a1 == a2)
 
 # Testing HDF5 table read/write with mixins.  This is mostly
-# copied from FITS mixin testing.
+# copied from FITS mixin testing, and it might be good to unify it.
 
 
 el = EarthLocation(x=1 * u.km, y=3 * u.km, z=5 * u.km)
 el2 = EarthLocation(x=[1, 2] * u.km, y=[3, 4] * u.km, z=[5, 6] * u.km)
+sr = SphericalRepresentation(
+    [0, 1]*u.deg, [2, 3]*u.deg, 1*u.kpc)
+cr = CartesianRepresentation(
+    [0, 1]*u.pc, [4, 5]*u.pc, [8, 6]*u.pc)
+sd = SphericalCosLatDifferential(
+    [0, 1]*u.mas/u.yr, [0, 1]*u.mas/u.yr, 10*u.km/u.s)
+srd = SphericalRepresentation(sr, differentials=sd)
 sc = SkyCoord([1, 2], [3, 4], unit='deg,deg', frame='fk4',
               obstime='J1990.5')
 scc = sc.copy()
@@ -708,6 +717,10 @@ mixin_cols = {
     'lon': Longitude([1, 2] * u.deg, wrap_angle=180. * u.deg),
     'ang': Angle([1, 2] * u.deg),
     'el2': el2,
+    'sr': sr,
+    'cr': cr,
+    'sd': sd,
+    'srd': srd,
 }
 
 time_attrs = ['value', 'shape', 'format', 'scale', 'location']
@@ -728,6 +741,11 @@ compare_attrs = {
     'ang': ['value', 'unit'],
     'el2': ['x', 'y', 'z', 'ellipsoid'],
     'nd': ['x', 'y', 'z'],
+    'sr': ['lon', 'lat', 'distance'],
+    'cr': ['x', 'y', 'z'],
+    'sd': ['d_lon_coslat', 'd_lat', 'd_distance'],
+    'srd': ['lon', 'lat', 'distance', 'differentials.s.d_lon_coslat',
+            'differentials.s.d_lat', 'differentials.s.d_distance'],
 }
 
 
@@ -777,6 +795,7 @@ def test_hdf5_mixins_as_one(table_cls, tmpdir):
     names = sorted(mixin_cols)
 
     serialized_names = ['ang',
+                        'cr.x', 'cr.y', 'cr.z',
                         'dt.jd1', 'dt.jd2',
                         'el2.x', 'el2.y', 'el2.z',
                         'lat',
@@ -788,6 +807,12 @@ def test_hdf5_mixins_as_one(table_cls, tmpdir):
                         'scc.x', 'scc.y', 'scc.z',
                         'scd.ra', 'scd.dec', 'scd.distance',
                         'scd.obstime.jd1', 'scd.obstime.jd2',
+                        'sd.d_lon_coslat', 'sd.d_lat', 'sd.d_distance',
+                        'sr.lon', 'sr.lat', 'sr.distance',
+                        'srd.lon', 'srd.lat', 'srd.distance',
+                        'srd.differentials.s.d_lon_coslat',
+                        'srd.differentials.s.d_lat',
+                        'srd.differentials.s.d_distance',
                         'tm.jd1', 'tm.jd2',
                         'x',
                         ]
