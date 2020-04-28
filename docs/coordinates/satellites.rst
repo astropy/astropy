@@ -40,7 +40,7 @@ and velocity at a given time::
         >>> if error_code != 0:
         ...     raise RuntimeError(SGP4_ERRORS[error_code])
 
-Now we have the position and velocity in kilometer and kilometers per second, we can create a
+Now we have the position and velocity in kilometers and kilometers per second, we can create a
 position in the `~astropy.coordinates.TEME` reference frame::
 
 .. doctest-requires:: sgp4
