@@ -602,7 +602,7 @@ class SpectralCoord(u.SpectralQuantity):
 
         return self._apply_relativistic_doppler_shift(delta_vel)
 
-    def with_observer_in_velocity_frame_of(self, frame, preserve_observer_frame=False):
+    def with_observer_velocity(self, frame, preserve_observer_frame=False):
         """
         Alters the velocity frame of the observer, but not the position.
 
@@ -777,7 +777,7 @@ class SpectralCoord(u.SpectralQuantity):
         """
 
         if self.observer is not None and self.target is not None:
-            return self.with_observer_in_velocity_frame_of(self.target)
+            return self.with_observer_velocity(self.target)
 
         result = self._apply_relativistic_doppler_shift(-self.radial_velocity)
 
