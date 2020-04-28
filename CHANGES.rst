@@ -93,6 +93,11 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Fixed a bug when writing a table with mixin columns to FITS, ECSV or HDF5.
+  If one of the data attributes of the mixin (e.g. ``skycoord.ra``) had the
+  same name as one of the table column names (``ra``), the column (``ra``)
+  would be dropped when reading the table back. [#10222]
+
 - Fixed a bug when sorting an indexed table on the indexed column after first
   sorting on another column. [#10103]
 

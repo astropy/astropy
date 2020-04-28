@@ -257,8 +257,9 @@ def _construct_mixin_from_columns(new_name, obj_attrs, out):
             if 'name' in val:
                 data_attrs_map[val['name']] = name
             else:
-                _construct_mixin_from_columns(name, val, out)
-                data_attrs_map[name] = name
+                out_name = f'{new_name}.{name}'
+                _construct_mixin_from_columns(out_name, val, out)
+                data_attrs_map[out_name] = name
 
     for name in data_attrs_map.values():
         del obj_attrs[name]

@@ -665,7 +665,9 @@ scc = sc.copy()
 scc.representation_type = 'cartesian'
 tm = Time([2450814.5, 2450815.5], format='jd', scale='tai', location=el)
 
-
+# NOTE: in the test below the name of the column "x" for the Quantity is
+# important since it tests the fix for #10215 (namespace clash, where "x"
+# clashes with "el2.x").
 mixin_cols = {
     'tm': tm,
     'dt': TimeDelta([1, 2] * u.day),
@@ -673,7 +675,7 @@ mixin_cols = {
     'scc': scc,
     'scd': SkyCoord([1, 2], [3, 4], [5, 6], unit='deg,deg,m', frame='fk4',
                     obstime=['J1990.5', 'J1991.5']),
-    'q': [1, 2] * u.m,
+    'x': [1, 2] * u.m,
     'qdb': [10, 20] * u.dB(u.mW),
     'qdex': [4.5, 5.5] * u.dex(u.cm/u.s**2),
     'qmag': [21, 22] * u.ABmag,
@@ -692,7 +694,7 @@ compare_attrs = {
     'sc': ['ra', 'dec', 'representation_type', 'frame.name'],
     'scc': ['x', 'y', 'z', 'representation_type', 'frame.name'],
     'scd': ['ra', 'dec', 'distance', 'representation_type', 'frame.name'],
-    'q': ['value', 'unit'],
+    'x': ['value', 'unit'],
     'qdb': ['value', 'unit'],
     'qdex': ['value', 'unit'],
     'qmag': ['value', 'unit'],
@@ -754,7 +756,6 @@ def test_hdf5_mixins_as_one(table_cls, tmpdir):
                         'el2.x', 'el2.y', 'el2.z',
                         'lat',
                         'lon',
-                        'q',
                         'qdb',
                         'qdex',
                         'qmag',
@@ -763,6 +764,7 @@ def test_hdf5_mixins_as_one(table_cls, tmpdir):
                         'scd.ra', 'scd.dec', 'scd.distance',
                         'scd.obstime.jd1', 'scd.obstime.jd2',
                         'tm.jd1', 'tm.jd2',
+                        'x',
                         ]
 
     t = table_cls([mixin_cols[name] for name in names], names=names)
