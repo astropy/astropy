@@ -20,7 +20,7 @@ DEFAULT_DISTANCE = 1e6 * u.kpc
 __doctest_skip__ = ['SpectralCoord.*']
 
 
-def _velocity_to_refshift(velocity):
+def _velocity_to_redshift(velocity):
     """
     Convert a velocity to a relativistic redshift.
     """
@@ -95,11 +95,12 @@ class SpectralCoord(u.SpectralQuantity):
     """
     Coordinate object representing spectral values.
 
-    The `SpectralCoord` class is new in Astropy v4.1 and should be considered
-    experimental at this time. It is possible that there will be API changes
-    in future versions of Astropy based on user feedback. If you
-    have specific ideas for how it might be improved, please  let us know on the
-    `astropy-dev mailing list`_ or at http://feedback.astropy.org.
+    .. note:: The `SpectralCoord` class is new in Astropy v4.1 and should be
+              considered experimental at this time. It is possible that there
+              will be API changes in future versions of Astropy based on user
+              feedback. If you have specific ideas for how it might be
+              improved, please  let us know on the `astropy-dev mailing list`_
+              or at http://feedback.astropy.org.
 
     Parameters
     ----------
@@ -448,7 +449,7 @@ class SpectralCoord(u.SpectralQuantity):
         float
             Redshift of target.
         """
-        return _velocity_to_refshift(self.radial_velocity)
+        return _velocity_to_redshift(self.radial_velocity)
 
     @staticmethod
     def _calculate_radial_velocity(observer, target, as_scalar=False):
