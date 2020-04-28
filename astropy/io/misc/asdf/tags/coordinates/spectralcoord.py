@@ -4,7 +4,7 @@
 from asdf.tags.core import NDArrayType
 from asdf.yamlutil import custom_tree_to_tagged_tree
 
-from astropy.coordinates.spectral_coord import SpectralCoord
+from astropy.coordinates.spectral_coordinate import SpectralCoord
 from astropy.io.misc.asdf.types import AstropyType
 from astropy.io.misc.asdf.tags.unit.unit import UnitType
 
@@ -38,8 +38,8 @@ class SpectralCoordType(AstropyType):
 
         unit = UnitType.from_tree(node['unit'], ctx)
         value = node['value']
-        observer = node['observer']
-        target = node['target']
+        observer = node['observer'] if 'observer' in node else None
+        target = node['target'] if 'observer' in node else None
         if isinstance(value, NDArrayType):
             value = value._make_array()
         return SpectralCoord(value, unit=unit, observer=observer, target=target)
