@@ -11,7 +11,6 @@ asdf = pytest.importorskip('asdf')
 from asdf.tests.helpers import assert_roundtrip_tree  # noqa
 
 
-@pytest.mark.xfail
 def test_scalar_spectralcoord(tmpdir):
 
     sc = SpectralCoord(565 * u.nm)
@@ -24,7 +23,6 @@ def test_scalar_spectralcoord(tmpdir):
     assert_roundtrip_tree(tree, tmpdir, asdf_check_func=check)
 
 
-@pytest.mark.xfail
 def test_vector_spectralcoord(tmpdir):
 
     sc = SpectralCoord([100, 200, 300] * u.GHz)
@@ -34,10 +32,9 @@ def test_vector_spectralcoord(tmpdir):
         assert isinstance(asdffile['spectralcoord'], SpectralCoord)
         assert_quantity_allclose(asdffile['spectralcoord'].quantity, [100, 200, 300] * u.GHz)
 
-    assert_roundtrip_tree(tree, tmpdir, asdf_check_func=check)
+    assert_roundtrip_tree(tree, tmpdir, asdf_check_func=check, tree_match_func=assert_quantity_allclose)
 
 
-@pytest.mark.xfail
 @pytest.mark.filterwarnings("ignore:No velocity")
 def test_spectralcoord_with_obstarget(tmpdir):
 
