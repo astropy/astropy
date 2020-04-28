@@ -239,12 +239,14 @@ class DataInfoMeta(type):
                 # automatically defined look-up-on-parent attribute?
                 cls_attr = getattr(cls, attr, None)
                 if attr in cls.attrs_from_parent:
-                    # If the attribute is stored on the parent, and it
-                    # was not the case on the superclass, override it.
-                    if not isinstance(cls_attr, ParentAttribute):
+                    # If the attribute is supposed to be stored on the parent,
+                    # and that is stated by this class yet it was not the case
+                    # on the superclass, override it.
+                    if 'attrs_from_parent' in dct and not isinstance(cls_attr, ParentAttribute):
                         setattr(cls, attr, ParentAttribute(attr))
                 elif not cls_attr or isinstance(cls_attr, ParentAttribute):
-                    # Otherwise, if not defined already or previously defined
+                    # If the attribute is not meant to be stored on the parent,
+                    # and if it was not defined already or was previously defined
                     # as an attribute on the parent, define a regular
                     # look-up-on-info attribute
                     setattr(cls, attr,
