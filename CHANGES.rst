@@ -80,7 +80,7 @@ astropy.nddata
 
 - Added support in the ``bitmask`` module for using mnemonic bit flag names
   when specifying the bit flags to be used or ignored when converting a bit
-  field to a boolean. [#10095]
+  field to a boolean. [#10095, #10208]
 
 astropy.samp
 ^^^^^^^^^^^^
