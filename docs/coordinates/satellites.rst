@@ -47,9 +47,9 @@ position in the `~astropy.coordinates.TEME` reference frame::
 
         >>> from astropy.coordinates import TEME, CartesianDifferential, CartesianRepresentation
         >>> from astropy import units as u
+        >>> teme_p = CartesianRepresentation(teme_p*u.km)
         >>> teme_v = CartesianDifferential(teme_v*u.km/u.s)
-        >>> teme_p = CartesianRepresentation(*teme_p*u.km, differentials={'s': teme_v})
-        >>> teme = TEME(teme_p, obstime=t)
+        >>> teme = TEME(teme_p.with_differentials(teme_v), obstime=t)
 
 Note how we are careful to set the observed time of the `~astropy.coordinates.TEME` frame to
 the time at which we calculated satellite position.
