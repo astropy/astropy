@@ -600,6 +600,20 @@ class RepresentationInfo(BaseRepresentationOrDifferentialInfo):
             attrs += ('differentials',)
         return attrs
 
+    def _represent_as_dict(self, attrs=None):
+        out = super()._represent_as_dict(attrs)
+        for key, value in out.pop('differentials', {}).items():
+            out[f'differentials.{key}'] = value
+        return out
+
+    def _construct_from_dict(self, map):
+        differentials = {}
+        for key in list(map.keys()):
+            if key.startswith('differentials.'):
+                differentials[key[14:]] = map.pop(key)
+        map['differentials'] = differentials
+        return super()._construct_from_dict(map)
+
 
 class BaseRepresentation(BaseRepresentationOrDifferential,
                          metaclass=MetaBaseRepresentation):
