@@ -1602,7 +1602,6 @@ def test_sort_indexed_table():
     assert np.all(ts['time'] == tm[[0, 2, 1]])
 
 
-
 def test_get_out_class():
     c = table.Column([1, 2])
     mc = table.MaskedColumn([1, 2])
