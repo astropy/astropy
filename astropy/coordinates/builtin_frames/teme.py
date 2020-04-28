@@ -5,8 +5,6 @@ A coordinate or frame in the TEME (True Equator, Mean Equinox) system.
 
 TEME is a True equator, Mean Equinox coordinate frames used in NORAD TLE
 satellite files.
-These are distinct from the ICRS and AltAz frames because they are just
-rotations without aberration corrections or offsets.
 """
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
