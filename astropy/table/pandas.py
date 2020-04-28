@@ -29,3 +29,5 @@ try:
     display.display(dhtml)
 except ImportError:
     print(ascii_uncoded)
+except UnicodeEncodeError:
+    pass

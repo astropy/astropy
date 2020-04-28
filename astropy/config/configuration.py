@@ -9,23 +9,30 @@ configuration files for Astropy and affiliated packages.
     found at http://www.voidspace.org.uk/python/configobj.html.
 """
 
-from contextlib import contextmanager
-import hashlib
 import io
-from os import path
 import re
+import hashlib
+import pathlib
+import pkgutil
+import warnings
+import importlib
+import contextlib
+from os import path
+from textwrap import TextWrapper
 from warnings import warn
+from contextlib import contextmanager
 
 from astropy.extern.configobj import configobj, validate
-from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from astropy.utils import find_current_module
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.introspection import resolve_name
-from .paths import get_config_dir
 
+from .paths import get_config_dir
 
 __all__ = ['InvalidConfigurationItemWarning',
            'ConfigurationMissingWarning', 'get_config',
-           'reload_config', 'ConfigNamespace', 'ConfigItem']
+           'reload_config', 'ConfigNamespace', 'ConfigItem',
+           'generate_config']
 
 
 class InvalidConfigurationItemWarning(AstropyWarning):
@@ -568,6 +575,68 @@ def get_config(packageormod=None, reload=False, rootname=None):
         return cobj[secname]
     else:
         return cobj
+
+
+def generate_config(pkgname='astropy', filename=None):
+    """Generates a configuration file, from the list of `ConfigItem`
+    objects for each subpackage.
+
+    .. versionadded:: 4.1
+
+    Parameters
+    ----------
+    packageormod : str or None
+        The package for which to retrieve the configuration object.
+    filename : str or file object or None
+        If None, the default configuration path is taken from `get_config`.
+
+    """
+    package = importlib.import_module(pkgname)
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', AstropyDeprecationWarning)
+        for mod in pkgutil.walk_packages(path=package.__path__,
+                                         prefix=package.__name__ + '.'):
+
+            if mod.module_finder.path.endswith(('test', 'tests')):
+                # Skip test modules
+                continue
+            if mod.name.split('.')[-1].startswith('_'):
+                # Skip private modules
+                continue
+
+            with contextlib.suppress(ImportError):
+                importlib.import_module(mod.name)
+
+    wrapper = TextWrapper(initial_indent="## ", subsequent_indent='## ',
+                          width=78)
+
+    if filename is None:
+        filename = get_config(package).filename
+
+    with contextlib.ExitStack() as stack:
+        if isinstance(filename, (str, pathlib.Path)):
+            fp = stack.enter_context(open(filename, 'w'))
+        else:
+            # assume it's a file object, or io.StringIO
+            fp = filename
+
+        # Parse the subclasses, ordered by their module name
+        subclasses = ConfigNamespace.__subclasses__()
+        for conf in sorted(subclasses, key=lambda x: x.__module__):
+            print_module = True
+            for item in conf.__dict__.values():
+                if not isinstance(item, ConfigItem):
+                    continue
+                if print_module:
+                    # If this is the first item of the module, we print the
+                    # module name, but not if this is the root package...
+                    if item.module != pkgname:
+                        modname = item.module.replace(f'{pkgname}.', '')
+                        fp.write(f"[{modname}]\n\n")
+                    print_module = False
+
+                fp.write(wrapper.fill(item.description) + '\n')
+                fp.write(f'# {item.name} = {item.defaultvalue}\n\n')
 
 
 def reload_config(packageormod=None, rootname=None):
