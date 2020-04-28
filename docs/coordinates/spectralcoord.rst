@@ -292,7 +292,7 @@ Background (CMB) dipole.
 
 We can transform our frequencies for the observations of T Tau to different
 velocity frames using the
-:meth:`~astropy.coordinates.SpectralCoord.with_observer_in_velocity_frame_of`
+:meth:`~astropy.coordinates.SpectralCoord.with_observer_velocity`
 method. This method can take the name of an existing coordinate/velocity frame,
 a :class:`~astropy.coordinates.BaseCoordinateFrame` instance, or any arbitrary
 3-d position and velocity coordinate object defined either as a
@@ -302,7 +302,7 @@ velocity frame stationary with respect to the center of the Earth (so removing
 the effect of the Earth's rotation), we can use the ``'gcrs'`` which stands for
 *Geocentric Celestial Reference System* (GCRS)::
 
-    >>> sc_ttau.with_observer_in_velocity_frame_of('gcrs')  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> sc_ttau.with_observer_velocity('gcrs')  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord [200.00024141, 210.00025348, 220.00026555, 230.00027762,
                     240.00028969, 250.00030176, 260.00031383, 270.0003259 ,
                     280.00033797, 290.00035004, 300.00036211] GHz
@@ -326,7 +326,7 @@ in the ``radial_velocity`` property, which has changed by ~0.35 km/s. To use a
 velocity reference frame relative to the Solar System barycenter, which is the
 origin of the *International Celestial Reference System* (ICRS) system, we can use::
 
-    >>> sc_ttau.with_observer_in_velocity_frame_of('icrs')  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> sc_ttau.with_observer_velocity('icrs')  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord [200.0114322 , 210.01200381, 220.01257542, 230.01314703,
                     240.01371864, 250.01429025, 260.01486186, 270.01543347,
                     280.01600508, 290.01657669, 300.0171483 ] GHz
@@ -353,7 +353,7 @@ a significant velocity relative to the surface of the Earth.
 
 We can also transform the frequencies to the LSRD frame of reference:
 
-    >>> sc_ttau.with_observer_in_velocity_frame_of('lsrd')  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> sc_ttau.with_observer_velocity('lsrd')  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord [200.01820327, 210.01911343, 220.02002359, 230.02093376,
                     240.02184392, 250.02275408, 260.02366425, 270.02457441,
                     280.02548457, 290.02639474, 300.0273049 ] GHz
@@ -375,11 +375,11 @@ See :ref:`spectralcoord-common-frames` for a list of common velocity frames
 available as strings on the |SpectralCoord| class.
 
 Since we can give any arbitrary |SkyCoord| to the
-:meth:`~astropy.coordinates.SpectralCoord.with_observer_in_velocity_frame_of`
+:meth:`~astropy.coordinates.SpectralCoord.with_observer_velocity`
 method, we can also specify the target itself, to find the frequencies in the
 rest frame of the target:
 
-    >>> sc_ttau_targetframe = sc_ttau.with_observer_in_velocity_frame_of(sc_ttau.target)  # doctest: +REMOTE_DATA
+    >>> sc_ttau_targetframe = sc_ttau.with_observer_velocity(sc_ttau.target)  # doctest: +REMOTE_DATA
     >>> sc_ttau_targetframe  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord [200.02737999, 210.02874899, 220.03011799, 230.03148698,
                     240.03285598, 250.03422498, 260.03559398, 270.03696298,
@@ -413,7 +413,7 @@ in the frame of reference of the telescope::
 
 We can convert these to the rest frame of the target using::
 
-    >>> sc_feat_rest = sc_feat.with_observer_in_velocity_frame_of(sc_feat.target)  # doctest: +REMOTE_DATA
+    >>> sc_feat_rest = sc_feat.with_observer_velocity(sc_feat.target)  # doctest: +REMOTE_DATA
     >>> sc_feat_rest  # doctest: +REMOTE_DATA
     <SpectralCoord [115.27577801, 115.28177883, 115.28277896] GHz
         observer:
@@ -468,7 +468,7 @@ Common velocity frames
 ======================
 
 Any valid astropy coordinate frame can be passed to the
-:meth:`~astropy.coordinates.SpectralCoord.with_observer_in_velocity_frame_of`
+:meth:`~astropy.coordinates.SpectralCoord.with_observer_velocity`
 method, including string aliases such as ``icrs``. Below we list some of the
 frames commonly used to define spectral coordinates in:
 
