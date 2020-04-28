@@ -269,7 +269,9 @@ tm2 = Time(tm, format='iso')
 tm3 = Time(tm, location=el)
 tm3.info.serialize_method['ecsv'] = 'jd1_jd2'
 
-
+# NOTE: in the test below the name of the column "x" for the Quantity is
+# important since it tests the fix for #10215 (namespace clash, where "x"
+# clashes with "el.x").
 mixin_cols = {
     'tm': tm,
     'tm2': tm2,
@@ -279,7 +281,7 @@ mixin_cols = {
     'scc': scc,
     'scd': SkyCoord([1, 2], [3, 4], [5, 6], unit='deg,deg,m', frame='fk4',
                     obstime=['J1990.5'] * 2),
-    'q': [1, 2] * u.m,
+    'x': [1, 2] * u.m,
     'qdb': [10, 20] * u.dB(u.mW),
     'qdex': [4.5, 5.5] * u.dex(u.cm / u.s**2),
     'qmag': [21, 22] * u.ABmag,
@@ -302,7 +304,7 @@ compare_attrs = {
     'sc': ['ra', 'dec', 'representation_type', 'frame.name'],
     'scc': ['x', 'y', 'z', 'representation_type', 'frame.name'],
     'scd': ['ra', 'dec', 'distance', 'representation_type', 'frame.name'],
-    'q': ['value', 'unit'],
+    'x': ['value', 'unit'],
     'qdb': ['value', 'unit'],
     'qdex': ['value', 'unit'],
     'qmag': ['value', 'unit'],
@@ -378,7 +380,6 @@ def test_ecsv_mixins_as_one(table_cls):
                         'el.x', 'el.y', 'el.z',
                         'lat',
                         'lon',
-                        'q',
                         'qdb',
                         'qdex',
                         'qmag',
@@ -389,7 +390,8 @@ def test_ecsv_mixins_as_one(table_cls):
                         'tm',  # serialize_method is formatted_value
                         'tm2',  # serialize_method is formatted_value
                         'tm3.jd1', 'tm3.jd2',    # serialize is jd1_jd2
-                        'tm3.location.x', 'tm3.location.y', 'tm3.location.z']
+                        'tm3.location.x', 'tm3.location.y', 'tm3.location.z',
+                        'x']
 
     t = table_cls([mixin_cols[name] for name in names], names=names)
 
