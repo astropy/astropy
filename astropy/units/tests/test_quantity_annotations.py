@@ -97,7 +97,7 @@ def test_not_quantity3(solarx_unit, solary_unit):
 
     with pytest.raises(TypeError) as e:
         solarx, solary = myfunc_args(1*u.arcsec, 100)
-    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' has no 'unit' attribute. You may want to pass in an astropy Quantity instead."
+    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' has no 'unit' attribute. You should pass in an astropy Quantity instead."
 
 
 def test_decorator_override():
@@ -192,7 +192,7 @@ def test_kwarg_not_quantity3(solarx_unit, solary_unit):
 
     with pytest.raises(TypeError) as e:
         solarx, solary = myfunc_args(1*u.arcsec, solary=100)
-    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' has no 'unit' attribute. You may want to pass in an astropy Quantity instead."
+    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' has no 'unit' attribute. You should pass in an astropy Quantity instead."
 
 
 @pytest.mark.parametrize("solarx_unit,solary_unit", [
