@@ -3,8 +3,6 @@
 
 from numpy.testing import assert_array_equal
 
-from asdf import yamlutil
-
 from astropy.modeling import powerlaws
 from .basic import TransformType
 from . import _parameter_to_value
@@ -31,7 +29,7 @@ class PowerLaw1DType(TransformType):
         node = {'amplitude': _parameter_to_value(model.amplitude),
                 'x_0': _parameter_to_value(model.x_0),
                 'alpha': _parameter_to_value(model.alpha)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -62,7 +60,7 @@ class BrokenPowerLaw1DType(TransformType):
                 'x_break': _parameter_to_value(model.x_break),
                 'alpha_1': _parameter_to_value(model.alpha_1),
                 'alpha_2': _parameter_to_value(model.alpha_2)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -96,7 +94,7 @@ class SmoothlyBrokenPowerLaw1DType(TransformType):
                 'alpha_1': _parameter_to_value(model.alpha_1),
                 'alpha_2': _parameter_to_value(model.alpha_2),
                 'delta': _parameter_to_value(model.delta)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -129,7 +127,7 @@ class ExponentialCutoffPowerLaw1DType(TransformType):
                 'x_0': _parameter_to_value(model.x_0),
                 'alpha': _parameter_to_value(model.alpha),
                 'x_cutoff': _parameter_to_value(model.x_cutoff)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -161,7 +159,7 @@ class LogParabola1DType(TransformType):
                 'x_0': _parameter_to_value(model.x_0),
                 'alpha': _parameter_to_value(model.alpha),
                 'beta': _parameter_to_value(model.beta)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):

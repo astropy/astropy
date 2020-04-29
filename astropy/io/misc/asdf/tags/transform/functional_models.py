@@ -3,8 +3,6 @@
 
 from numpy.testing import assert_array_equal
 
-from asdf import yamlutil
-
 from astropy.modeling import functional_models
 from .basic import TransformType
 from . import _parameter_to_value
@@ -38,7 +36,7 @@ class AiryDisk2DType(TransformType):
                 'x_0': _parameter_to_value(model.x_0),
                 'y_0': _parameter_to_value(model.y_0),
                 'radius': _parameter_to_value(model.radius)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -68,7 +66,7 @@ class Box1DType(TransformType):
         node = {'amplitude': _parameter_to_value(model.amplitude),
                 'x_0': _parameter_to_value(model.x_0),
                 'width': _parameter_to_value(model.width)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -101,7 +99,7 @@ class Box2DType(TransformType):
                 'x_width': _parameter_to_value(model.x_width),
                 'y_0': _parameter_to_value(model.y_0),
                 'y_width': _parameter_to_value(model.y_width)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -135,7 +133,7 @@ class Disk2DType(TransformType):
                 'y_0': _parameter_to_value(model.y_0),
                 'R_0': _parameter_to_value(model.R_0)}
 
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -172,7 +170,7 @@ class Ellipse2DType(TransformType):
                 'b': _parameter_to_value(model.b),
                 'theta': _parameter_to_value(model.theta)}
 
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -202,7 +200,7 @@ class Exponential1DType(TransformType):
     def to_tree_transform(cls, model, ctx):
         node = {'amplitude': _parameter_to_value(model.amplitude),
                 'tau': _parameter_to_value(model.tau)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -230,7 +228,7 @@ class Gaussian1DType(TransformType):
         node = {'amplitude': _parameter_to_value(model.amplitude),
                 'mean': _parameter_to_value(model.mean),
                 'stddev': _parameter_to_value(model.stddev)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -266,7 +264,7 @@ class Gaussian2DType(TransformType):
                 'y_stddev': _parameter_to_value(model.y_stddev),
                 'theta': _parameter_to_value(model.theta)}
 
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -300,7 +298,7 @@ class KingProjectedAnalytic1DType(TransformType):
                 'r_core': _parameter_to_value(model.r_core),
                 'r_tide': _parameter_to_value(model.r_tide)}
 
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -327,7 +325,7 @@ class Logarithmic1DType(TransformType):
     def to_tree_transform(cls, model, ctx):
         node = {'amplitude': _parameter_to_value(model.amplitude),
                 'tau': _parameter_to_value(model.tau)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -355,7 +353,7 @@ class Lorentz1DType(TransformType):
         node = {'amplitude': _parameter_to_value(model.amplitude),
                 'x_0': _parameter_to_value(model.x_0),
                 'fwhm': _parameter_to_value(model.fwhm)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -386,7 +384,7 @@ class Moffat1DType(TransformType):
                 'x_0': _parameter_to_value(model.x_0),
                 'gamma': _parameter_to_value(model.gamma),
                 'alpha': _parameter_to_value(model.alpha)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -420,7 +418,7 @@ class Moffat2DType(TransformType):
                 'y_0': _parameter_to_value(model.y_0),
                 'gamma': _parameter_to_value(model.gamma),
                 'alpha': _parameter_to_value(model.alpha)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -451,7 +449,7 @@ class Planar2D(TransformType):
         node = {'slope_x': _parameter_to_value(model.slope_x),
                 'slope_y': _parameter_to_value(model.slope_y),
                 'intercept': _parameter_to_value(model.intercept)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -476,7 +474,7 @@ class RedshiftScaleFactorType(TransformType):
     @classmethod
     def to_tree_transform(cls, model, ctx):
         node = {'z': _parameter_to_value(model.z)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -503,7 +501,7 @@ class RickerWavelet1DType(TransformType):
         node = {'amplitude': _parameter_to_value(model.amplitude),
                 'x_0': _parameter_to_value(model.x_0),
                 'sigma': _parameter_to_value(model.sigma)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -534,7 +532,7 @@ class RickerWavelet2DType(TransformType):
                 'x_0': _parameter_to_value(model.x_0),
                 'y_0': _parameter_to_value(model.y_0),
                 'sigma': _parameter_to_value(model.sigma)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -568,7 +566,7 @@ class Ring2DType(TransformType):
                 'y_0': _parameter_to_value(model.y_0),
                 'r_in': _parameter_to_value(model.r_in),
                 'width': _parameter_to_value(model.width)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -599,7 +597,7 @@ class Sersic1DType(TransformType):
         node = {'amplitude': _parameter_to_value(model.amplitude),
                 'r_eff': _parameter_to_value(model.r_eff),
                 'n': _parameter_to_value(model.n)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -638,7 +636,7 @@ class Sersic2DType(TransformType):
                 'theta': _parameter_to_value(model.theta)
 
                 }
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -671,7 +669,7 @@ class Sine1DType(TransformType):
         node = {'amplitude': _parameter_to_value(model.amplitude),
                 'frequency': _parameter_to_value(model.frequency),
                 'phase': _parameter_to_value(model.phase)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -702,7 +700,7 @@ class Trapezoid1DType(TransformType):
                 'x_0': _parameter_to_value(model.x_0),
                 'width': _parameter_to_value(model.width),
                 'slope': _parameter_to_value(model.slope)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -736,7 +734,7 @@ class TrapezoidDisk2DType(TransformType):
                 'y_0': _parameter_to_value(model.y_0),
                 'R_0': _parameter_to_value(model.R_0),
                 'slope': _parameter_to_value(model.slope)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -769,7 +767,7 @@ class Voigt1DType(TransformType):
                 'amplitude_L': _parameter_to_value(model.amplitude_L),
                 'fwhm_L': _parameter_to_value(model.fwhm_L),
                 'fwhm_G': _parameter_to_value(model.fwhm_G)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):

@@ -3,7 +3,6 @@
 
 from numpy.testing import assert_array_equal
 
-from asdf import yamlutil
 
 from astropy.modeling import functional_models, physical_models
 from .basic import TransformType
@@ -27,7 +26,7 @@ class BlackBody(TransformType):
     def to_tree_transform(cls, model, ctx):
         node = {'scale': _parameter_to_value(model.scale),
                 'temperature': _parameter_to_value(model.temperature)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -55,7 +54,7 @@ class Drude1DType(TransformType):
         node = {'amplitude': _parameter_to_value(model.amplitude),
                 'x_0': _parameter_to_value(model.x_0),
                 'fwhm': _parameter_to_value(model.fwhm)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -82,7 +81,7 @@ class Plummer1DType(TransformType):
     def to_tree_transform(cls, model, ctx):
         node = {'mass': _parameter_to_value(model.mass),
                 'r_plum': _parameter_to_value(model.r_plum)}
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
