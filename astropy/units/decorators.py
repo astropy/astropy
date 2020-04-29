@@ -43,7 +43,8 @@ def _get_allowed_units(targets):
     return allowed_units
 
 
-def _validate_arg_value(param_name, func_name, arg, targets, equivalencies):
+def _validate_arg_value(param_name, func_name, arg, targets, equivalencies,
+                        strict_dimensionless=False):
     """
     Validates the object passed in to the wrapped function, ``arg``, with target
     unit or physical type, ``target``.
@@ -56,7 +57,7 @@ def _validate_arg_value(param_name, func_name, arg, targets, equivalencies):
 
     # If dimensionless is an allowed unit, allow numbers or numpy arrays with
     #  numeric dtypes:
-    if dimensionless_unscaled in allowed_units:
+    if dimensionless_unscaled in allowed_units and not strict_dimensionless:
         if isinstance(arg, Number):
             return
 
@@ -163,9 +164,10 @@ class QuantityInput:
         else:
             return self
 
-    def __init__(self, func=None, **kwargs):
+    def __init__(self, func=None, strict_dimensionless=False, **kwargs):
         self.equivalencies = kwargs.pop('equivalencies', [])
         self.decorator_kwargs = kwargs
+        self.strict_dimensionless = strict_dimensionless
 
     def __call__(self, wrapped_function):
 
@@ -241,7 +243,8 @@ class QuantityInput:
                 # Now we loop over the allowed units/physical types and validate
                 #   the value of the argument:
                 _validate_arg_value(param.name, wrapped_function.__name__,
-                                    arg, valid_targets, self.equivalencies)
+                                    arg, valid_targets, self.equivalencies,
+                                    self.strict_dimensionless)
 
             # Call the original function with any equivalencies in force.
             with add_enabled_equivalencies(self.equivalencies):
