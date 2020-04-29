@@ -2832,7 +2832,7 @@ class CompoundModel(Model):
         # Search through leaflist for item with that name
         found = []
         for nleaf, leaf in enumerate(self._leaflist):
-            if leaf.name == str_index:
+            if getattr(leaf, 'name', None) == str_index:
                 found.append(nleaf)
         if len(found) == 0:
             raise IndexError("No component with name '{}' found".format(str_index))
