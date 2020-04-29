@@ -410,6 +410,11 @@ def test_indexing_on_instance():
     with pytest.raises(IndexError):
         m['foobar']
 
+    # Confirm index-by-name works with fix_inputs
+    g = Gaussian2D(1, 2, 3, 4, 5, name='g')
+    m = fix_inputs(g, {0: 1})
+    assert m['g'].name == 'g'
+
     # Test string slicing
     A = Const1D(1.1, name='A')
     B = Const1D(2.1, name='B')

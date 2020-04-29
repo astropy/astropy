@@ -75,6 +75,9 @@ astropy.modeling
 
 - Removed hard-coded names of inputs and outputs. [#10174]
 
+- Fixed a problem where slicing a ``CompoundModel`` by name will crash if
+  there ``fix_inputs`` operators are present. [#10224]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
