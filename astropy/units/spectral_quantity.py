@@ -57,19 +57,12 @@ class SpectralQuantity(SpecificTypeQuantity):
 
         obj = super().__new__(cls, value, unit=unit, **kwargs)
 
-        # The quantity machinery will drop the unit because type(value) !=
-        #  SpectralQuantity when passing in a Quantity object. Reassign the unit
-        #  here to avoid this.
-        # if isinstance(value, u.Quantity) and unit is None:
-        #     obj._unit = value.unit
-
         # If we're initializing from an existing SpectralQuantity, keep any
         # parameters that aren't being overridden
-        if isinstance(value, SpectralQuantity):
-            if doppler_rest is None:
-                doppler_rest = value.doppler_rest
-            if doppler_convention is None:
-                doppler_convention = value.doppler_convention
+        if doppler_rest is None:
+            doppler_rest = getattr(value, 'doppler_rest', None)
+        if doppler_convention is None:
+            doppler_convention = getattr(value, 'doppler_convention', None)
 
         obj._doppler_rest = doppler_rest
         obj._doppler_convention = doppler_convention
@@ -112,13 +105,12 @@ class SpectralQuantity(SpecificTypeQuantity):
         value : `~astropy.units.Quantity`
             Rest value.
         """
-        if self._doppler_rest is None:
-            self._doppler_rest = value
-        else:
-            raise ValueError("doppler_rest has already been set, and cannot "
-                             "be changed. Use the ``to`` method to convert "
-                             "the spectral values(s) to use a different "
-                             "rest value")
+        if self._doppler_rest is not None:
+            raise AttributeError("doppler_rest has already been set, and cannot "
+                                 "be changed. Use the ``to`` method to convert "
+                                 "the spectral values(s) to use a different "
+                                 "rest value")
+        self._doppler_rest = value
 
     @property
     def doppler_convention(self):
@@ -152,16 +144,17 @@ class SpectralQuantity(SpecificTypeQuantity):
         .. [1] Astropy documentation: https://docs.astropy.org/en/stable/units/equivalencies.html#spectral-doppler-equivalencies
 
         """
+
+        if self._doppler_convention is not None:
+            raise AttributeError("doppler_convention has already been set, and cannot "
+                                 "be changed. Use the ``to`` method to convert "
+                                 "the spectral values(s) to use a different "
+                                 "convention")
+
         if value is not None and value not in DOPPLER_CONVENTIONS:
             raise ValueError("doppler_convention should be one of {0}".format('/'.join(sorted(DOPPLER_CONVENTIONS))))
 
-        if self._doppler_convention is None:
-            self._doppler_convention = value
-        else:
-            raise ValueError("doppler_convention has already been set, and cannot "
-                             "be changed. Use the ``to`` method to convert "
-                             "the spectral values(s) to use a different "
-                             "convention")
+        self._doppler_convention = value
 
     @quantity_input(doppler_rest=SPECTRAL_UNITS)
     def to(self, unit,

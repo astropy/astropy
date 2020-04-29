@@ -168,12 +168,12 @@ the galaxy. We can do this using the
 The wavelengths have decreased by 1/3, which is what we expect for z=0.5. Note
 that the ``redshift`` and ``radial_velocity`` properties are now zero, since we
 are in the reference frame of the target. We can also use the
-:meth:`~astropy.coordinates.SpectralCoord.with_los_shift` method to more
+:meth:`~astropy.coordinates.SpectralCoord.with_radial_velocity_shift` method to more
 generically apply redshift and velocity corrections. The simplest way to use
 this method is to give a single value that will be applied to the target - if
 this value does not have units, it is interpreted as a redshift::
 
-    >>> wavs_orig = wavs_rest.with_los_shift(0.5)
+    >>> wavs_orig = wavs_rest.with_radial_velocity_shift(0.5)
     >>> wavs_orig
     <SpectralCoord [500., 550., 600., 650., 700., 750., 800., 850., 900.] nm
         observer to target:
@@ -183,7 +183,7 @@ this value does not have units, it is interpreted as a redshift::
 This returns an object equivalent to the one we started with, since we've
 re-applied a redshift of 0.5. We could also provide a velocity as a |Quantity|::
 
-    >>> wavs_rest.with_los_shift(100000 * u.km / u.s)
+    >>> wavs_rest.with_radial_velocity_shift(100000 * u.km / u.s)
     <SpectralCoord [471.52692723, 518.67961996, 565.83231268, 612.9850054 ,
                     660.13769813, 707.29039085, 754.44308357, 801.5957763 ,
                     848.74846902] nm

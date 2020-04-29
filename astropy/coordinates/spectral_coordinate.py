@@ -153,25 +153,19 @@ class SpectralCoord(u.SpectralQuantity):
                                  "redshift on spectral coordinate.")
             radial_velocity = _redshift_to_velocity(redshift)
 
-        # The quantity machinery will drop the unit because type(value) !=
-        # SpectralCoord when passing in a Quantity object. Reassign the unit
-        # here to avoid this.
-        if isinstance(value, u.Quantity) and unit is None:
-            obj._unit = value.unit
-
         # If we're initializing from an existing SpectralCoord, keep any
         # parameters that aren't being overridden
-        if isinstance(value, SpectralCoord):
-            if observer is None:
-                observer = value.observer
-            if target is None:
-                target = value.target
-            # As mentioned above, we should only specify the radial velocity
-            # manually if either or both the observer and target are not
-            # specified.
-            if observer is None or target is None:
-                if radial_velocity is None and redshift is None:
-                    radial_velocity = value.radial_velocity
+        if observer is None:
+            observer = getattr(value, 'observer', None)
+        if target is None:
+            target = getattr(value, 'target', None)
+
+        # As mentioned above, we should only specify the radial velocity
+        # manually if either or both the observer and target are not
+        # specified.
+        if observer is None or target is None:
+            if radial_velocity is None and redshift is None:
+                radial_velocity = getattr(value, 'radial_velocity', None)
 
         # Validate the observer and target
         if observer is not None and not isinstance(observer, (SkyCoord, BaseCoordinateFrame)):
@@ -188,6 +182,9 @@ class SpectralCoord(u.SpectralQuantity):
         # (including as a redshift)
         obj._rv_specified = radial_velocity is not None
 
+        if radial_velocity is None:
+            radial_velocity = 0 * u.km/u.s
+
         # If no observer is defined, create a default observer centered in the
         # ICRS frame. We never expose this to the user, and this is only used
         # for internal purposes.
@@ -197,16 +194,12 @@ class SpectralCoord(u.SpectralQuantity):
                                 pm_ra_cosdec=0 * u.mas/u.yr, pm_dec=0 * u.mas/u.yr,
                                 distance=0 * u.pc, radial_velocity=0 * u.km/u.s)
             else:
-                if radial_velocity is None:
-                    radial_velocity = 0 * u.km/u.s
                 observer = SpectralCoord._target_from_observer(target, -radial_velocity)
 
         # If no target is defined, create a default target with any provided
         # redshift/radial velocities. We never expose this to the user, and
         # this is only used for internal purposes.
         if target is None:
-            if radial_velocity is None:
-                radial_velocity = 0 * u.km/u.s
             target = SpectralCoord._target_from_observer(observer, radial_velocity)
 
         obj._observer = cls._validate_coordinate(observer)
@@ -346,7 +339,7 @@ class SpectralCoord(u.SpectralQuantity):
         return self.__class__(**default_kwargs)
 
     @property
-    def quantity(self):
+    def as_quantity(self):
         """
         Convert the ``SpectralCoord`` to a `~astropy.units.Quantity`.
         Equivalent to ``self.view(u.Quantity)``.
@@ -698,15 +691,16 @@ class SpectralCoord(u.SpectralQuantity):
 
         # The target or observer value is defined but is not a quantity object,
         #  assume it's a redshift float value and convert to velocity
-        if isinstance(target_shift, (float, int)) or \
-                isinstance(target_shift, u.Quantity) and \
-                target_shift.unit.physical_type == 'dimensionless':
-            target_shift = _redshift_to_velocity(target_shift)
 
-        if isinstance(observer_shift, (float, int)) or \
-                isinstance(observer_shift, u.Quantity) and \
-                observer_shift.unit.physical_type == 'dimensionless':
-            observer_shift = _redshift_to_velocity(observer_shift)
+        if target_shift is not None:
+            target_shift = u.Quantity(target_shift)
+            if target_shift.unit.physical_type == 'dimensionless':
+                target_shift = _redshift_to_velocity(target_shift)
+
+        if observer_shift is not None:
+            observer_shift = u.Quantity(observer_shift)
+            if observer_shift.unit.physical_type == 'dimensionless':
+                observer_shift = _redshift_to_velocity(observer_shift)
 
         target_icrs = self._target.transform_to(ICRS)
         observer_icrs = self._observer.transform_to(ICRS)
