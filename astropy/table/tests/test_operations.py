@@ -20,6 +20,12 @@ from astropy.coordinates import (SkyCoord, SphericalRepresentation,
 from astropy.coordinates.tests.test_representation import representation_equal
 from astropy.io.misc.asdf.tags.helpers import skycoord_equal
 
+try:
+    import scipy  # noqa
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
+
 
 def sort_eq(list1, list2):
     return sorted(list1) == sorted(list2)
@@ -575,6 +581,7 @@ class TestJoin():
         with pytest.raises(ValueError, match='cannot supply keys for a cartesian join'):
             t12 = table.join(t1, t2, join_type='cartesian', keys='a')
 
+    @pytest.mark.skipif('not HAS_SCIPY')
     def test_join_with_join_skycoord_sky(self):
         sc1 = SkyCoord([0, 1, 1.1, 2], [0, 0, 0, 0], unit='deg')
         sc2 = SkyCoord([0.5, 1.05, 2.1], [0, 0, 0], unit='deg')
@@ -589,6 +596,7 @@ class TestJoin():
                '    2 2.0,0.0  2.1,0.0']
         assert str(t12).splitlines() == exp
 
+    @pytest.mark.skipif('not HAS_SCIPY')
     def test_join_with_join_skycoord_3d(self):
         sc1 = SkyCoord([0, 1, 1.1, 2]*u.deg, [0, 0, 0, 0]*u.deg, [1, 1, 2, 1]*u.m)
         sc2 = SkyCoord([0.5, 1.05, 2.1]*u.deg, [0, 0, 0]*u.deg, [1, 1, 1]*u.m)
@@ -604,6 +612,7 @@ class TestJoin():
                '    2 2.0,0.0,1.0  2.1,0.0,1.0']
         assert str(t12).splitlines() == exp
 
+    @pytest.mark.skipif('not HAS_SCIPY')
     def test_join_with_join_distance_1d(self):
         c1 = [0, 1, 1.1, 2]
         c2 = [0.5, 1.05, 2.1]
@@ -622,6 +631,7 @@ class TestJoin():
                '     4    --   0.5']
         assert str(t12).splitlines() == exp
 
+    @pytest.mark.skipif('not HAS_SCIPY')
     def test_join_with_join_distance_1d_multikey(self):
         from astropy.table.operations import _apply_join_funcs
 
@@ -650,6 +660,7 @@ class TestJoin():
         left, right, keys = _apply_join_funcs(t1, t2, ('col', 'id'), join_funcs)
         assert keys == ('col_id', 'id')
 
+    @pytest.mark.skipif('not HAS_SCIPY')
     def test_join_with_join_distance_1d_quantity(self):
         c1 = [0, 1, 1.1, 2] * u.m
         c2 = [500, 1050, 2100] * u.mm
@@ -677,6 +688,7 @@ class TestJoin():
                '       2   2.0 2100.0      0       0']
         assert str(t12).splitlines() == exp
 
+    @pytest.mark.skipif('not HAS_SCIPY')
     def test_join_with_join_distance_2d(self):
         c1 = np.array([[0, 1, 1.1, 2],
                        [0, 0, 1, 0]]).transpose()
@@ -1773,7 +1785,6 @@ def test_sort_indexed_table():
     ts.sort('time')
     assert np.all(ts['flux'] == [3, 1, 2])
     assert np.all(ts['time'] == tm[[0, 2, 1]])
-
 
 
 def test_get_out_class():
