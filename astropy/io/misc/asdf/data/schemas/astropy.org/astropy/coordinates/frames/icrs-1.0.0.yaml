@@ -7,7 +7,7 @@ tag: "tag:astropy.org:astropy/coordinates/frames/icrs-1.0.0"
 title: |
   Represents an ICRS coordinate object from astropy
 
-description:
+description: |
   This object represents the right ascension (RA) and declination of an ICRS
   coordinate or frame. The ICRS class contains additional fields that may be
   useful to add here in the future.
