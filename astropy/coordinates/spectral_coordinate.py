@@ -105,10 +105,10 @@ class SpectralCoord(u.SpectralQuantity):
     Parameters
     ----------
     value : ndarray or `~astropy.units.Quantity` or `SpectralCoord`
-        Spectral values, which should be either a wavelength, a frequency, an
-        energy, a wavenumber, or a velocity.
+        Spectral values, which should be either wavelength, frequency,
+        energy, wavenumber, or velocity values.
     unit : str or `~astropy.units.Unit`
-        Unit for the given spectal values.
+        Unit for the given spectral values.
     observer : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`, optional
         The coordinate (position and velocity) of observer.
     target : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`, optional
@@ -141,12 +141,9 @@ class SpectralCoord(u.SpectralQuantity):
         # observer are both specified, we can't also accept a radial velocity
         # or redshift.
         if target is not None and observer is not None:
-            if radial_velocity is not None:
-                raise ValueError("Cannot specify radial velocity if both target "
-                                 "and observer are specified")
-            if redshift is not None:
-                raise ValueError("Cannot specify radial velocity if both target "
-                                 "and observer are specified")
+            if radial_velocity is not None or redshift is not None:
+                raise ValueError("Cannot specify radial velocity or redshift if both "
+                                 "target and observer are specified")
 
         # We only deal with redshifts here and in the redshift property.
         # Otherwise internally we always deal with velocities.
@@ -183,7 +180,7 @@ class SpectralCoord(u.SpectralQuantity):
             raise ValueError("target must be a sky coordinate or coordinate frame.")
 
         # Keep track of whether the observer and target were specified
-        # explicitly or wheher we use pseurdo observers/targets (see below)
+        # explicitly or whether we use pseudo observers/targets (see below)
         obj._observer_specified = observer is not None
         obj._target_specified = target is not None
 
@@ -233,6 +230,7 @@ class SpectralCoord(u.SpectralQuantity):
         return SpectralCoord, True
 
     @staticmethod
+    @u.quantity_input(radial_velocity=u.km/u.s)
     def _target_from_observer(observer, radial_velocity):
         """
         Generates a default target from a provided observer with an offset
@@ -259,12 +257,11 @@ class SpectralCoord(u.SpectralQuantity):
                                         0 * d.unit, 0 * d.unit])
 
         obs_vel = observer_icrs.cartesian.differentials['s']
-        tot_rv = radial_velocity  # + observer_icrs.radial_velocity
 
         target = (observer_icrs.cartesian.without_differentials() + drep).with_differentials(
-            CartesianDifferential([obs_vel.d_x + tot_rv,
-                                   obs_vel.d_y.to(tot_rv.unit),
-                                   obs_vel.d_z.to(tot_rv.unit)]))
+            CartesianDifferential([obs_vel.d_x + radial_velocity,
+                                   obs_vel.d_y.to(radial_velocity.unit),
+                                   obs_vel.d_z.to(radial_velocity.unit)]))
 
         return observer_icrs.realize_frame(target)
 
@@ -565,7 +562,7 @@ class SpectralCoord(u.SpectralQuantity):
 
     def _project_velocity_and_shift(self, init_vel, fin_vel, line_of_sight_unit_vec):
         """
-        Calculated the velocity projection given two vectors.
+        Calculate the velocity projection given two vectors.
 
         Parameters
         ----------
@@ -668,11 +665,11 @@ class SpectralCoord(u.SpectralQuantity):
 
         return new_coord
 
-    def with_los_shift(self, target_shift=None, observer_shift=None):
+    def with_radial_velocity_shift(self, target_shift=None, observer_shift=None):
         """
         Apply a velocity shift to this spectral coordinate. The shift
         can be provided as a redshift (float value) or radial velocity
-        (quantity with physical type of 'speed').
+        (`~astropy.units.Quantity` with physical type of 'speed').
 
         Parameters
         ----------
