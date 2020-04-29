@@ -396,7 +396,8 @@ def test_allow_dimensionless_numeric(val):
 @pytest.mark.parametrize('val', [1., 1, np.arange(10), np.arange(10.)])
 def test_allow_dimensionless_numeric_strict(val):
     """
-    When dimensionless_unscaled is an allowed unit, but we are being strict, don't allow numbers and numeric numpy arrays through
+    When dimensionless_unscaled is an allowed unit, but we are being strict,
+    don't allow numbers and numeric numpy arrays through
     """
 
     @u.quantity_input(velocity=[u.km/u.s, u.dimensionless_unscaled],
