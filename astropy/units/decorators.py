@@ -6,8 +6,10 @@ __all__ = ['quantity_input']
 from numbers import Number
 from collections.abc import Sequence
 import inspect
-from astropy.utils.decorators import wraps
 
+import numpy as np
+
+from astropy.utils.decorators import wraps
 from .core import (Unit, UnitBase, UnitsError, add_enabled_equivalencies,
                    dimensionless_unscaled)
 from .physical import _unit_physical_mapping
@@ -52,8 +54,15 @@ def _validate_arg_value(param_name, func_name, arg, targets, equivalencies):
 
     allowed_units = _get_allowed_units(targets)
 
-    if dimensionless_unscaled in allowed_units and isinstance(arg, Number):
-        return
+    # If dimensionless is an allowed unit, allow numbers or numpy arrays with
+    #  numeric dtypes:
+    if dimensionless_unscaled in allowed_units:
+        if isinstance(arg, Number):
+            return
+
+        elif (isinstance(arg, np.ndarray)
+              and np.issubdtype(arg.dtype, np.number)):
+            return
 
     for allowed_unit in allowed_units:
         try:
