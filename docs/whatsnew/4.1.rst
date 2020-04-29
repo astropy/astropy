@@ -19,6 +19,9 @@ In particular, this release includes:
 
 2. Support for units on otherwise unitless models via the ``Model.coerce_units`` method.
 
+3. Ability to create a new ``CompoundModel`` by modifying an existing one
+   with the ``replace_submodel`` method.
+
 
 Support for writing Dask arrays to FITS files
 =============================================

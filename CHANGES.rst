@@ -77,6 +77,9 @@ astropy.modeling
 - Polynomial attributes ``domain`` and ``window`` are now tuples of size 2 and are
   validated. `repr` and `print` show only their non-default values. [#10145]
 
+- Added ``replace_submodel()`` method to ``CompoundModel`` to modify an
+  existing instance. [#10176]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
