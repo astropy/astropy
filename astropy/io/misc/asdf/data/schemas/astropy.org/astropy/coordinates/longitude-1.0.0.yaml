@@ -7,7 +7,7 @@ tag: "tag:astropy.org:astropy/coordinates/longitude-1.0.0"
 title: |
   Represents longitude-like angles.
 
-description:
+description: |
     Longitude-like angle(s) which are wrapped within a contiguous 360 degree range.
 
 examples:

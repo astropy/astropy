@@ -55,6 +55,8 @@ astropy.io.fits
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
+- Fix id URL in ``baseframe-1.0.0`` ASDF schema. [#10223]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
