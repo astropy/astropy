@@ -108,7 +108,7 @@ class TestSpectralQuantity:
 
         assert sq1.doppler_convention == 'radio'
 
-        with pytest.raises(ValueError, match="doppler_convention has already been set, and cannot be changed"):
+        with pytest.raises(AttributeError, match="doppler_convention has already been set, and cannot be changed"):
             sq1.doppler_convention = 'optical'
 
         assert sq1.doppler_convention == 'radio'
@@ -120,7 +120,7 @@ class TestSpectralQuantity:
 
         assert_quantity_allclose(sq1.doppler_rest, 5 * u.GHz)
 
-        with pytest.raises(ValueError, match="doppler_rest has already been set, and cannot be changed"):
+        with pytest.raises(AttributeError, match="doppler_rest has already been set, and cannot be changed"):
             sq1.doppler_rest = 4 * u.GHz
 
         assert_quantity_allclose(sq1.doppler_rest, 5 * u.GHz)
