@@ -41,6 +41,8 @@ astropy.io.ascii
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 - Added serialization of parameter constraints fixed and bounds.  [#10082]
+- Added 'functional_models.py' and 'physical_models.py' to asdf/tags/transform, 
+  with to allow serialization of all functional and physical models. [#10028]
 
 - Fix ASDF serialization of circular model inverses, and remove explicit calls
   to ``asdf.yamlutil`` functions that became unnecessary in asdf 2.6.0. [#10189]
