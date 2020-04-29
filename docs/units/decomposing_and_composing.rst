@@ -1,15 +1,23 @@
-Decomposing and composing units
+Decomposing and Composing Units
 *******************************
 
 .. _decomposing:
 
-Reducing a unit to its irreducible parts
+Reducing a Unit to Its Irreducible Parts
 ========================================
 
 A unit or quantity can be decomposed into its irreducible parts using
 the `Unit.decompose <astropy.units.core.UnitBase.decompose>` or
 `Quantity.decompose <astropy.units.quantity.Quantity.decompose>`
-methods::
+methods.
+
+Examples
+--------
+
+.. EXAMPLE START: Reducing a Unit to Its Irreducible Parts
+
+To decompose a unit with `Unit.decompose
+<astropy.units.core.UnitBase.decompose>`::
 
   >>> from astropy import units as u
   >>> u.Ry
@@ -17,29 +25,38 @@ methods::
   >>> u.Ry.decompose()
   Unit("2.17987e-18 kg m2 / s2")
 
-You can limit the selection of units that you want to decompose to
+You can limit the selection of units that you want to decompose by
 using the ``bases`` keyword argument::
 
   >>> u.Ry.decompose(bases=[u.m, u.N])
   Unit("2.17987e-18 m N")
 
-This is also useful to decompose to a particular system.  For example,
+This is also useful to decompose to a particular system. For example,
 to decompose the Rydberg unit in terms of CGS units::
 
   >>> u.Ry.decompose(bases=u.cgs.bases)
   Unit("2.17987e-11 cm2 g / s2")
 
-Finally, if you just want to know how a unit was defined::
+Finally, if you want to know how a unit was defined::
 
   >>> u.Ry.represents
   Unit("13.6057 eV")
 
-Automatically composing a unit into more complex units
+.. EXAMPLE END
+
+Automatically Composing a Unit into More Complex Units
 ======================================================
 
 Conversely, a unit may be recomposed back into more complex units
-using the `~astropy.units.core.UnitBase.compose` method.  Since there
-may be multiple equally good results, a list is always returned::
+using the `~astropy.units.core.UnitBase.compose` method. Since there
+may be multiple equally good results, a list is always returned.
+
+Examples
+--------
+
+.. EXAMPLE START: Recomposing a Unit into More Complex Units
+
+To recompose a unit with `~astropy.units.core.UnitBase.compose`::
 
   >>> x = u.Ry.decompose()
   >>> x.compose()
@@ -73,18 +90,27 @@ Composition can be combined with :ref:`unit_equivalencies`::
     Unit("4.58743e+17 Ry"),
     Unit("6.24151e+18 eV")]
 
-A name doesn't exist for every arbitrary derived unit
-imaginable.  In that case, the system will do its best to reduce the
+A name does not exist for every arbitrary derived unit
+imaginable. In that case, the system will do its best to reduce the
 unit to the fewest possible symbols::
 
    >>> (u.cd * u.sr * u.V * u.s).compose()
    [Unit("lm Wb")]
 
-Converting between systems
+.. EXAMPLE END
+
+Converting Between Systems
 ==========================
 
 Built on top of this functionality is a convenience method to convert
 between unit systems.
+
+Examples
+--------
+
+.. EXAMPLE START: Converting Between Unit Systems
+
+To convert between unit systems::
 
    >>> u.Pa.to_system(u.cgs)
    [Unit("10 P / s"), Unit("10 Ba")]
@@ -104,3 +130,5 @@ return the results sorted in the most useful order::
    Unit("10 g / (cm s2)")
    >>> _.compose(units=u.cgs)
    [Unit("10 Ba"), Unit("10 P / s")]
+
+.. EXAMPLE END
