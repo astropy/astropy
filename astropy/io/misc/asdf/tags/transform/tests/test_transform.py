@@ -136,8 +136,8 @@ def test_inverse_transforms(tmpdir):
 @pytest.mark.parametrize(('model'), test_models)
 def test_single_model(tmpdir, model):
     with warnings.catch_warnings():
-        # Some schema files are missing from asdf<=2.4.2 which causes warnings
-        if LooseVersion(asdf.__version__) <= '2.4.2':
+        # Some schema files are missing from asdf<=2.6.0 which causes warnings
+        if LooseVersion(asdf.__version__) <= '2.6.0':
             warnings.filterwarnings('ignore', 'Unable to locate schema file')
         tree = {'single_model': model}
         helpers.assert_roundtrip_tree(tree, tmpdir)
