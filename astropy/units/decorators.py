@@ -3,11 +3,13 @@
 
 __all__ = ['quantity_input']
 
+from numbers import Number
 from collections.abc import Sequence
 import inspect
 from astropy.utils.decorators import wraps
 
-from .core import Unit, UnitBase, UnitsError, add_enabled_equivalencies
+from .core import (Unit, UnitBase, UnitsError, add_enabled_equivalencies,
+                   dimensionless_unscaled)
 from .physical import _unit_physical_mapping
 
 
@@ -49,6 +51,9 @@ def _validate_arg_value(param_name, func_name, arg, targets, equivalencies):
         return
 
     allowed_units = _get_allowed_units(targets)
+
+    if dimensionless_unscaled in allowed_units and isinstance(arg, Number):
+        return
 
     for allowed_unit in allowed_units:
         try:
