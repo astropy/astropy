@@ -1102,8 +1102,8 @@ join function `~astropy.table.join_skycoord` using a matching distance
 threshold of 0.2 deg. Under the hood this calls
 `~astropy.coordinates.SkyCoord.search_around_sky` or
 `~astropy.coordinates.SkyCoord.search_around_3d` to doing the matching. The
-default is using ``sky`` (angle) matching, but ``3d`` (length) is also available.
-This is specified using the ``distance_key`` argument of
+default is using ``sky`` (angle) matching, but ``3d`` (length or dimensionless)
+is also available.  This is specified using the ``distance_kind`` argument of
 `~astropy.table.join_skycoord`.
 
 Now we show the whole process::
