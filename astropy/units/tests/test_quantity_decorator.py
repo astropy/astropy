@@ -2,6 +2,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
+import numpy as np
 
 from astropy import units as u
 
@@ -376,3 +377,32 @@ def test_args_None_kwarg():
 
     with pytest.raises(TypeError):
         x, y = myfunc_args(None, None)
+
+
+@pytest.mark.parametrize('val', [1., 1, np.arange(10), np.arange(10.)])
+def test_allow_dimensionless_numeric(val):
+    """
+    When dimensionless_unscaled is an allowed unit, numbers and numeric numpy
+    arrays are allowed through
+    """
+
+    @u.quantity_input(velocity=[u.km/u.s, u.dimensionless_unscaled])
+    def myfunc(velocity):
+        return velocity
+
+    assert np.all(myfunc(val) == val)
+
+
+@pytest.mark.parametrize('val', [1., 1, np.arange(10), np.arange(10.)])
+def test_allow_dimensionless_numeric_strict(val):
+    """
+    When dimensionless_unscaled is an allowed unit, but we are being strict, don't allow numbers and numeric numpy arrays through
+    """
+
+    @u.quantity_input(velocity=[u.km/u.s, u.dimensionless_unscaled],
+                      strict_dimensionless=True)
+    def myfunc(velocity):
+        return velocity
+
+    with pytest.raises(TypeError):
+        assert myfunc(val)
