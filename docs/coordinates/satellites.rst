@@ -2,10 +2,10 @@
 
 .. _astropy-coordinates-satellites:
 
-Working with Earth satellites using Astropy Coordinates
+Working with Earth Satellites Using Astropy Coordinates
 *******************************************************
 
-Satellite data is normally provided in the Two-line element (TLE) format
+Satellite data is normally provided in the Two-Line Element (TLE) format
 (see `here <https://www.celestrak.com/NORAD/documentation/tle-fmt.php>`_
 for a definition). These datasets are designed to be used in combination
 with a theory for orbital propagation model to predict the positions
@@ -20,25 +20,23 @@ States Department of Defense, which are available from a source like
 
 The output coordinate frame of the SGP4 model is the True Equator, Mean Equinox
 frame (TEME), which is one of the frames built-in to `astropy.coordinates`.
-TEME is an Earth-centered inertial frame (i.e it does not rotate with respect
-to the stars). Several definitions exist; astropy uses the implementation described
+TEME is an Earth-centered inertial frame (i.e., it does not rotate with respect
+to the stars). Several definitions exist; ``astropy`` uses the implementation described
 in `Vallado et al (2006) <https://celestrak.com/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf>`_.
 
-Finding ``TEME`` coordinates from TLE data
+Finding TEME Coordinates from TLE Data
 ==========================================
 
 There is currently no support in `astropy.coordinates` for computing satellite orbits
 from TLE orbital element sets. Full support for handling TLE files is available in
 the `Skyfield <http://rhodesmill.org/skyfield/>`_ library, but some advice for dealing
-with satellite data in astropy is below.
+with satellite data in ``astropy`` is below.
 
-..
-  EXAMPLE START
-  Using sgp4 to get a TEME coordinate
+.. EXAMPLE START Using sgp4 to get a TEME coordinate
 
 You will need some external library to compute the position and velocity of the satellite from the
-TLE orbital elements. The `sgp4 <https://pypi.org/project/sgp4/>`_ library can do this. An example
-using this library to find the  `~astropy.coordinates.TEME` coordinates of a satellite is::
+TLE orbital elements. The `SGP4 <https://pypi.org/project/sgp4/>`_ library can do this. An example
+of using this library to find the  `~astropy.coordinates.TEME` coordinates of a satellite is::
 
 .. doctest-requires:: sgp4
 
@@ -59,7 +57,7 @@ and velocity at a given time::
         >>> if error_code != 0:
         ...     raise RuntimeError(SGP4_ERRORS[error_code])
 
-Now we have the position and velocity in kilometers and kilometers per second, we can create a
+Now that we have the position and velocity in kilometers and kilometers per second, we can create a
 position in the `~astropy.coordinates.TEME` reference frame::
 
 .. doctest-requires:: sgp4
@@ -70,16 +68,20 @@ position in the `~astropy.coordinates.TEME` reference frame::
         >>> teme_v = CartesianDifferential(teme_v*u.km/u.s)
         >>> teme = TEME(teme_p.with_differentials(teme_v), obstime=t)
 
+.. EXAMPLE END
+
 Note how we are careful to set the observed time of the `~astropy.coordinates.TEME` frame to
 the time at which we calculated satellite position.
 
-Transforming ``TEME`` to other coordinate systems
+Transforming TEME to Other Coordinate Systems
 ==================================================
 
-Once you have satellite positions in `~astropy.coordinates.TEME` coordinates they can be easily transformed
+Once you have satellite positions in `~astropy.coordinates.TEME` coordinates they can be transformed
 into any `astropy.coordinates` frame.
 
-For example, to find the overhead latitude, longitude and height of the satellite::
+For example, to find the overhead latitude, longitude, and height of the satellite::
+
+.. EXAMPLE START Transforming TEME
 
 .. doctest-requires:: sgp4
 
@@ -101,5 +103,4 @@ Or, if you want to find the altitude and azimuth of the satellite from a particu
         >>> aa.az  # doctest: +REMOTE_DATA +FLOAT_CMP
         <Longitude 59.28807348 deg>
 
-..
-  EXAMPLE END
+.. EXAMPLE END

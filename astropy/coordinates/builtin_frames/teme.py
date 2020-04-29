@@ -3,7 +3,7 @@
 """
 A coordinate or frame in the TEME (True Equator, Mean Equinox) system.
 
-TEME is a True equator, Mean Equinox coordinate frames used in NORAD TLE
+TEME is a True equator, Mean Equinox coordinate frame used in NORAD TLE
 satellite files.
 """
 # -*- coding: utf-8 -*-
