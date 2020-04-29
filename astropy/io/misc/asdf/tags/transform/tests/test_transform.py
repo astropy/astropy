@@ -52,8 +52,41 @@ test_models = [
     astmodels.RotateCelestial2Native(5.63*u.deg, -72.5*u.deg, 180*u.deg),
     astmodels.RotationSequence3D([1.2, 2.3, 3.4, .3], 'xyzx'),
     astmodels.SphericalRotationSequence([1.2, 2.3, 3.4, .3], 'xyzy'),
-    custom_and_analytical_inverse(),
-]
+    astmodels.AiryDisk2D(amplitude=10., x_0=0.5, y_0=1.5),
+    astmodels.Box1D(amplitude=10., x_0=0.5, width=5.),
+    astmodels.Box2D(amplitude=10., x_0=0.5, x_width=5., y_0=1.5, y_width=7.),
+    astmodels.Const1D(amplitude=5.),
+    astmodels.Const2D(amplitude=5.),
+    astmodels.Disk2D(amplitude=10., x_0=0.5, y_0=1.5, R_0=5.),
+    astmodels.Ellipse2D(amplitude=10., x_0=0.5, y_0=1.5, a=2., b=4., theta=0.1),
+    astmodels.Exponential1D(amplitude=10., tau=3.5),
+    astmodels.Gaussian1D(amplitude=10., mean=5., stddev=3.),
+    astmodels.Gaussian2D(amplitude=10., x_mean=5., y_mean=5., x_stddev=3., y_stddev=3.),
+    astmodels.KingProjectedAnalytic1D(amplitude=10., r_core=5., r_tide=2.),
+    astmodels.Logarithmic1D(amplitude=10., tau=3.5),
+    astmodels.Lorentz1D(amplitude=10., x_0=0.5, fwhm=2.5),
+    astmodels.Moffat1D(amplitude=10., x_0=0.5, gamma=1.2, alpha=2.5),
+    astmodels.Moffat2D(amplitude=10., x_0=0.5, y_0=1.5, gamma=1.2, alpha=2.5),
+    astmodels.Planar2D(slope_x=0.5, slope_y=1.2, intercept=2.5),
+    astmodels.RedshiftScaleFactor(z=2.5),
+    astmodels.RickerWavelet1D(amplitude=10., x_0=0.5, sigma=1.2),
+    astmodels.RickerWavelet2D(amplitude=10., x_0=0.5, y_0=1.5, sigma=1.2),
+    astmodels.Ring2D(amplitude=10., x_0=0.5, y_0=1.5, r_in=5., width=10.),
+    astmodels.Sersic1D(amplitude=10., r_eff=1., n=4.),
+    astmodels.Sersic2D(amplitude=10., r_eff=1., n=4., x_0=0.5, y_0=1.5, ellip=0.0, theta=0.0),
+    astmodels.Sine1D(amplitude=10., frequency=0.5, phase=1.),
+    astmodels.Trapezoid1D(amplitude=10., x_0=0.5, width=5., slope=1.),
+    astmodels.TrapezoidDisk2D(amplitude=10., x_0=0.5, y_0=1.5, R_0=5., slope=1.),
+    astmodels.Voigt1D(x_0=0.55, amplitude_L=10., fwhm_L=0.5, fwhm_G=0.9),
+    astmodels.BlackBody(scale=10.0, temperature=6000.*u.K),
+    astmodels.Drude1D(amplitude=10.0, x_0=0.5, fwhm=2.5),
+    astmodels.Plummer1D(mass=10.0, r_plum=5.0),
+    astmodels.BrokenPowerLaw1D(amplitude=10, x_break=0.5, alpha_1=2.0, alpha_2=3.5),
+    astmodels.ExponentialCutoffPowerLaw1D(10, 0.5, 2.0, 7.),
+    astmodels.LogParabola1D(amplitude=10, x_0=0.5, alpha=2., beta=3.,),
+    astmodels.PowerLaw1D(amplitude=10., x_0=0.5, alpha=2.0),
+    astmodels.SmoothlyBrokenPowerLaw1D(amplitude=10., x_break=5.0, alpha_1=2.0, alpha_2=3.0, delta=0.5),
+    custom_and_analytical_inverse()]
 
 
 math_models = []
@@ -103,8 +136,8 @@ def test_inverse_transforms(tmpdir):
 @pytest.mark.parametrize(('model'), test_models)
 def test_single_model(tmpdir, model):
     with warnings.catch_warnings():
-        # Some schema files are missing from asdf<=2.4.2 which causes warnings
-        if LooseVersion(asdf.__version__) <= '2.4.2':
+        # Some schema files are missing from asdf<=2.6.0 which causes warnings
+        if LooseVersion(asdf.__version__) <= '2.6.0':
             warnings.filterwarnings('ignore', 'Unable to locate schema file')
         tree = {'single_model': model}
         helpers.assert_roundtrip_tree(tree, tmpdir)
