@@ -86,16 +86,16 @@ class QuantityInput:
         r"""
         A decorator for validating the units of arguments to functions.
 
-        Unit specifications can be provided as keyword arguments to the decorator,
-        or by using function annotation syntax. Arguments to the decorator
-        take precedence over any function annotations present.
+        Unit specifications can be provided as keyword arguments to the
+        decorator, or by using function annotation syntax. Arguments to the
+        decorator take precedence over any function annotations present.
 
         A `~astropy.units.UnitsError` will be raised if the unit attribute of
-        the argument is not equivalent to the unit specified to the decorator
-        or in the annotation.
-        If the argument has no unit attribute, i.e. it is not a Quantity object, a
-        `ValueError` will be raised unless the argument is an annotation. This is to
-        allow non Quantity annotations to pass through.
+        the argument is not equivalent to the unit specified to the decorator or
+        in the annotation. If the argument has no unit attribute, i.e. it is not
+        a Quantity object, a `ValueError` will be raised unless the argument is
+        an annotation. This is to allow non Quantity annotations to pass
+        through.
 
         Where an equivalency is specified in the decorator, the function will be
         executed with that equivalency in force.
@@ -172,7 +172,8 @@ class QuantityInput:
                     continue
 
                 # Catch the (never triggered) case where bind relied on a default value.
-                if param.name not in bound_args.arguments and param.default is not param.empty:
+                if (param.name not in bound_args.arguments
+                        and param.default is not param.empty):
                     bound_args.arguments[param.name] = param.default
 
                 # Get the value of this parameter (argument to new function)
@@ -201,7 +202,8 @@ class QuantityInput:
                 #   were specified in the decorator/annotation, or whether a
                 #   single string (unit or physical type) or a Unit object was
                 #   specified
-                if isinstance(targets, str) or not isinstance(targets, Sequence):
+                if (isinstance(targets, str)
+                        or not isinstance(targets, Sequence)):
                     valid_targets = [targets]
 
                 # Check for None in the supplied list of allowed units and, if
@@ -219,7 +221,8 @@ class QuantityInput:
                 #    are not strings or subclasses of Unit. This is to allow
                 #    non unit related annotations to pass through
                 if is_annotation:
-                    valid_targets = [t for t in valid_targets if isinstance(t, (str, UnitBase))]
+                    valid_targets = [t for t in valid_targets
+                                     if isinstance(t, (str, UnitBase))]
 
                 # Now we loop over the allowed units/physical types and validate
                 #   the value of the argument:
@@ -229,7 +232,9 @@ class QuantityInput:
             # Call the original function with any equivalencies in force.
             with add_enabled_equivalencies(self.equivalencies):
                 return_ = wrapped_function(*func_args, **func_kwargs)
-            if wrapped_signature.return_annotation not in (inspect.Signature.empty, None):
+
+            valid_empty = (inspect.Signature.empty, None)
+            if wrapped_signature.return_annotation not in valid_empty:
                 return return_.to(wrapped_signature.return_annotation)
             else:
                 return return_
