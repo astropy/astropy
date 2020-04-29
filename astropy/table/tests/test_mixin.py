@@ -819,6 +819,7 @@ def test_represent_mixins_as_columns_unit_fix():
     serialize.represent_mixins_as_columns(t)
 
 
+@pytest.mark.skipif(not HAS_YAML, reason='mixin columns in .ecsv need yaml')
 def test_skycoord_with_velocity():
     # Regression test for gh-6447
     sc = SkyCoord([1], [2], unit='deg', galcen_v_sun=None)
