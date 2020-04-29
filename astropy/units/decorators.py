@@ -87,10 +87,10 @@ def _validate_arg_value(param_name, func_name, arg, targets, equivalencies):
         error_msg = (f"Argument '{param_name}' to function '{func_name}' must "
                      "be in units convertible to")
         if len(targets) > 1:
-            targ_names = ", ".join([str(targ) for targ in targets])
+            targ_names = ", ".join([f"'{str(targ)}'" for targ in targets])
             raise UnitsError(f"{error_msg} one of: {targ_names}.")
         else:
-            raise UnitsError(f"{error_msg} one of: {str(targets[0])}.")
+            raise UnitsError(f"{error_msg} '{str(targets[0])}'.")
 
 
 class QuantityInput:

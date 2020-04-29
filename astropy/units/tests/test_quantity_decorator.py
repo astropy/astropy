@@ -102,7 +102,7 @@ def test_not_quantity(x_input, y_input):
 
     with pytest.raises(TypeError) as e:
         x, y = myfunc_args(1*x_unit, 100)
-    assert str(e.value) == "Argument 'y' to function 'myfunc_args' has no 'unit' attribute. You may want to pass in an astropy Quantity instead."
+    assert str(e.value) == "Argument 'y' to function 'myfunc_args' has no 'unit' attribute. You should pass in an astropy Quantity instead."
 
 
 def test_not_quantity_annotated(x_input, y_input):
@@ -115,7 +115,7 @@ def test_not_quantity_annotated(x_input, y_input):
 
     with pytest.raises(TypeError) as e:
         x, y = myfunc_args(1*x_unit, 100)
-    assert str(e.value) == "Argument 'y' to function 'myfunc_args' has no 'unit' attribute. You may want to pass in an astropy Quantity instead."
+    assert str(e.value) == "Argument 'y' to function 'myfunc_args' has no 'unit' attribute. You should pass in an astropy Quantity instead."
 
 
 def test_kwargs(x_input, y_input):
@@ -180,7 +180,7 @@ def test_kwarg_not_quantity(x_input, y_input):
 
     with pytest.raises(TypeError) as e:
         x, y = myfunc_args(1*x_unit, y=100)
-    assert str(e.value) == "Argument 'y' to function 'myfunc_args' has no 'unit' attribute. You may want to pass in an astropy Quantity instead."
+    assert str(e.value) == "Argument 'y' to function 'myfunc_args' has no 'unit' attribute. You should pass in an astropy Quantity instead."
 
 
 def test_kwarg_default(x_input, y_input):
@@ -283,7 +283,7 @@ def test_no_equivalent():
     with pytest.raises(TypeError) as e:
         x, y = myfunc_args(test_quantity())
 
-        assert str(e.value) == "Argument 'x' to function 'myfunc_args' has a 'unit' attribute without an 'is_equivalent' method. You may want to pass in an astropy Quantity instead."
+        assert str(e.value) == "Argument 'x' to function 'myfunc_args' has a 'unit' attribute without an 'is_equivalent' method. You should pass in an astropy Quantity instead."
 
 
 def test_kwarg_invalid_physical_type():
