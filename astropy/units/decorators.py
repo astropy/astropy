@@ -29,8 +29,7 @@ def _get_allowed_units(targets):
                 physical_type_id = _unit_physical_mapping[target]
 
             except KeyError:  # Function argument target is invalid
-                raise ValueError("Invalid unit or physical type '{}'."
-                                 .format(target))
+                raise ValueError(f"Invalid unit or physical type '{target}'.")
 
             # get unit directly from physical type id
             target_unit = Unit._from_physical_type_id(physical_type_id)
@@ -61,25 +60,23 @@ def _validate_arg_value(param_name, func_name, arg, targets, equivalencies):
 
         except AttributeError:  # Either there is no .unit or no .is_equivalent
             if hasattr(arg, "unit"):
-                error_msg = "a 'unit' attribute without an 'is_equivalent' method"
+                error_msg = ("a 'unit' attribute without an 'is_equivalent' "
+                             "method")
             else:
                 error_msg = "no 'unit' attribute"
 
-            raise TypeError("Argument '{}' to function '{}' has {}. "
-                  "You may want to pass in an astropy Quantity instead."
-                     .format(param_name, func_name, error_msg))
+            raise TypeError(f"Argument '{param_name}' to function '{func_name}'"
+                            f" has {error_msg}. You should pass in an astropy "
+                            "Quantity instead.")
 
     else:
+        error_msg = (f"Argument '{param_name}' to function '{func_name}' must "
+                     "be in units convertible to")
         if len(targets) > 1:
-            raise UnitsError("Argument '{}' to function '{}' must be in units"
-                             " convertible to one of: {}."
-                             .format(param_name, func_name,
-                                     [str(targ) for targ in targets]))
+            targ_names = ", ".join([str(targ) for targ in targets])
+            raise UnitsError(f"{error_msg} one of: {targ_names}.")
         else:
-            raise UnitsError("Argument '{}' to function '{}' must be in units"
-                             " convertible to '{}'."
-                             .format(param_name, func_name,
-                                     str(targets[0])))
+            raise UnitsError(f"{error_msg} one of: {str(targets[0])}.")
 
 
 class QuantityInput:
