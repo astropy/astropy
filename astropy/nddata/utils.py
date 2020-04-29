@@ -2,20 +2,43 @@
 """
 This module includes helper functions for array operations.
 """
+
 from copy import deepcopy
+import sys
+import types
+import warnings
 
 import numpy as np
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.utils import lazyproperty
+from astropy.utils.decorators import AstropyDeprecationWarning
 from astropy.wcs.utils import skycoord_to_pixel, proj_plane_pixel_scales
 from astropy.wcs import Sip
 
+from .blocks import block_reduce as _block_reduce
+from .blocks import block_replicate as _block_replicate
 
 __all__ = ['extract_array', 'add_array', 'subpixel_indices',
            'overlap_slices', 'NoOverlapError', 'PartialOverlapError',
            'Cutout2D']
+
+
+# this can be replaced with PEP562 when the minimum required Python
+# version is 3.7
+class _ModuleWithDeprecation(types.ModuleType):
+    def __getattribute__(self, name):
+        deprecated = ('block_reduce', 'block_replicate')
+        if name in deprecated:
+            warnings.warn(f'{name} was moved to the astropy.nddata.blocks '
+                          'module.  Please update your import statement.',
+                          AstropyDeprecationWarning)
+            return object.__getattribute__(self, f'_{name}')
+        return object.__getattribute__(self, name)
+
+
+sys.modules[__name__].__class__ = _ModuleWithDeprecation
 
 
 class NoOverlapError(ValueError):
