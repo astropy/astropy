@@ -283,9 +283,13 @@ class SpectralQuantity(SpecificTypeQuantity):
 
         # Since we have to explicitly specify when we want to keep this as a
         # SpectralQuantity, we need to convert it back from a Quantity to
-        # a SpectralQuantity here.
+        # a SpectralQuantity here. Note that we don't use __array_finalize__
+        # here since we might need to set the output doppler convention and
+        # rest based on the parameters passed to 'to'
         result = result.view(self.__class__)
         result.__array_finalize__(self)
+        result._doppler_convention = doppler_convention
+        result._doppler_rest = doppler_rest
 
         return result
 
