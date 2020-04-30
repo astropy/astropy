@@ -92,7 +92,7 @@ def _get_out_class(objs):
     return out_class
 
 
-def join_skycoord(distance, distance_kind='sky'):
+def join_skycoord(distance, distance_func='search_around_sky'):
     """Helper function to join on SkyCoord columns using distance matching.
 
     This function is intended for use in ``table.join()`` to allow performing a
@@ -101,16 +101,24 @@ def join_skycoord(distance, distance_kind='sky'):
     ``distance``.
 
     The distance cross-matching is done using either
-    `~astropy.coordinates.SkyCoord.search_around_sky` or
-    `~astropy.coordinates.SkyCoord.search_around_3d`, depending on the value of
-    ``distance_kind``.
+    `~astropy.coordinates.search_around_sky` or
+    `~astropy.coordinates.search_around_3d`, depending on the value of
+    ``distance_func``.  The default is ``'search_around_sky'``.
+
+    One can also provide a function object for ``distance_func``, in which case
+    it must be a function that follows the same input and output API as
+    `~astropy.coordinates.search_around_sky`. In this case the function will
+    be called with ``(skycoord1, skycoord2, distance)`` as arguments.
 
     Parameters
     ----------
     distance : Quantity (angle or length)
         Maximum distance between points to be considered a join match
-    distance_kind : str
-        Kind of distance, either 'sky' (angle) or '3d' (length)
+    distance_func : str or function
+        Specifies the function for performing the cross-match based on
+        ``distance``. If supplied as a string this specifies the name of a
+        function in `astropy.coordinates`. If supplied as a function then that
+        function is called directly.
 
     Returns
     -------
@@ -148,13 +156,21 @@ def join_skycoord(distance, distance_kind='sky'):
           2 2.0,0.0  2.1,0.0
 
     """
+    if isinstance(distance_func, str):
+        import astropy.coordinates as coords
+        try:
+            distance_func = getattr(coords, distance_func)
+        except AttributeError:
+            raise ValueError('distance_func must be a function in astropy.coordinates')
+    else:
+        from inspect import isfunction
+        if not isfunction(distance_func):
+            raise ValueError('distance_func must be a str or function')
+
     def join_func(sc1, sc2):
-        if distance_kind not in ('sky', '3d'):
-            raise ValueError("distance_kind must be 'sky' or '3d'")
 
         # Call the appropriate SkyCoord method to find pairs within distance
-        sc1_search_around = getattr(sc1, f'search_around_{distance_kind}')
-        idxs2, idxs1, d2d, d3d = sc1_search_around(sc2, distance)
+        idxs1, idxs2, d2d, d3d = distance_func(sc1, sc2, distance)
 
         # Now convert that into unique identifiers for each near-pair. This is
         # taken to be transitive, so that if points 1 and 2 are "near" and points
