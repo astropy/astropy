@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import warnings
-
 import numpy as np
 
 from astropy import units as u
 from astropy.utils.state import ScienceState
 from astropy.utils.decorators import format_doc
-from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.coordinates.angles import Angle
 from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
 from astropy.coordinates import representation as r
@@ -334,16 +331,10 @@ class Galactocentric(BaseCoordinateFrame):
         self.frame_attribute_references = \
             galactocentric_frame_defaults._references.copy()
 
-        warn = False
         for k in default_params:
             if k in kwargs:
                 # If a frame attribute is set by the user, remove its reference
                 self.frame_attribute_references.pop(k, None)
-
-            else:
-                # If a parameter is read from the defaults, we might want to
-                # warn the user that the defaults will change (see below)
-                warn = True
 
             # Keep the frame attribute if it is set by the user, otherwise use
             # the default value
