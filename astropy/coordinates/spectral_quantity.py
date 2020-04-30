@@ -77,18 +77,28 @@ class SpectralQuantity(SpecificTypeQuantity):
         # choose to return a SpectralQuantity - even if the units match, we
         # want to avoid doing things like adding two SpectralQuantity instances
         # together and getting a SpectralQuantity back
-        return Quantity, False
+        if unit is self.unit:
+            return SpectralQuantity, True
+        else:
+            return Quantity, False
 
     def __array_ufunc__(self, function, method, *inputs, **kwargs):
         # We always return Quantity except in a few specific cases
         result = super().__array_ufunc__(function, method, *inputs, **kwargs)
-        if ((function in (np.multiply, np.true_divide) and
-                inputs[0] is self and
-                not isinstance(inputs[1], SpectralQuantity)) or
-                function in (np.minimum, np.nanmin, np.maximum, np.nanmax)):
+        if ((function is np.multiply
+            or function is np.true_divide and inputs[0] is self)
+            and result.unit == self.unit
+            or (function in (np.minimum, np.maximum, np.fmax, np.fmin)
+                and method in ('reduce', 'reduceat'))):
             result = result.view(self.__class__)
-            result._doppler_rest = self._doppler_rest
-            result._doppler_convention = self._doppler_convention
+            result.__array_finalize__(self)
+        else:
+            if result is self:
+                raise TypeError("Cannot store the result of this operation in {0}".format(self.__class__.__name__))
+            if result.dtype.kind == 'b':
+                result = result.view(np.ndarray)
+            else:
+                result = result.view(Quantity)
         return result
 
     @property
@@ -209,7 +219,7 @@ class SpectralQuantity(SpecificTypeQuantity):
         # default Quantity.to with equivalencies also set to None
         if equivalencies is None:
             result = super().to(unit, equivalencies=None)
-            result = self.__class__(result)
+            result = result.view(self.__class__)
             result.__array_finalize__(self)
             return result
 
@@ -238,7 +248,7 @@ class SpectralQuantity(SpecificTypeQuantity):
 
             if doppler_rest is None and doppler_convention is None:
                 result = super().to(unit, equivalencies=equivalencies)
-                result = self.__class__(result)
+                result = result.view(self.__class__)
                 result.__array_finalize__(self)
                 return result
 
@@ -274,7 +284,7 @@ class SpectralQuantity(SpecificTypeQuantity):
         # Since we have to explicitly specify when we want to keep this as a
         # SpectralQuantity, we need to convert it back from a Quantity to
         # a SpectralQuantity here.
-        result = self.__class__(result)
+        result = result.view(self.__class__)
         result.__array_finalize__(self)
 
         return result
