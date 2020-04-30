@@ -8,6 +8,7 @@ from astropy.utils import minversion
 from astropy.modeling import functional_models
 from astropy.modeling.core import Model, CompoundModel
 from astropy.io.misc.asdf.types import AstropyAsdfType, AstropyType
+from . import _parameter_to_value
 
 
 __all__ = ['TransformType', 'IdentityType', 'ConstantType']
@@ -148,7 +149,7 @@ class ConstantType(TransformType):
         elif isinstance(data, functional_models.Const2D):
             dimension = 2
         return {
-            'value': data.amplitude.value,
+            'value': _parameter_to_value(data.amplitude),
             'dimensions': dimension
         }
 
