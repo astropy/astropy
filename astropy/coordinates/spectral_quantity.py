@@ -1,8 +1,8 @@
 import numpy as np
-from . import si
-from . import equivalencies as eq
-from .quantity import SpecificTypeQuantity
-from .decorators import quantity_input
+from astropy.units import si
+from astropy.units import equivalencies as eq
+from astropy.units.quantity import SpecificTypeQuantity
+from astropy.units.decorators import quantity_input
 from astropy.constants import c
 
 __all__ = ['SpectralQuantity']
@@ -252,37 +252,3 @@ class SpectralQuantity(SpecificTypeQuantity):
 
     def to_value(self, *args, **kwargs):
         return self.to(*args, **kwargs).value
-
-    def _apply_relativistic_doppler_shift(self, velocity):
-        """
-        Given a `SpectralQuantity` and a velocity, return a new `SpectralQuantity`
-        that is Doppler shifted by this amount.
-
-        Note that the Doppler shift applied is the full relativistic one, so
-        `SpectralQuantity` currently expressed in velocity and not using the
-        relativistic convention will temporarily be converted to use the
-        relativistic convention while the shift is applied.
-
-        Positive velocities are assumed to redshift the spectral quantity,
-        while negative velocities blueshift the spectral quantity.
-        """
-
-        # NOTE: we deliberately don't keep sub-classes of SpectralQuantity intact
-        # since we can't guarantee that their metadata would be correct/consistent.
-        squantity = self.view(SpectralQuantity)
-
-        beta = velocity / c
-        doppler_factor = np.sqrt((1 + beta) / (1 - beta))
-
-        if squantity.unit.is_equivalent(si.m):  # wavelength
-            return squantity * doppler_factor
-        elif squantity.unit.is_equivalent(si.Hz) or squantity.unit.is_equivalent(si.eV) or squantity.unit.is_equivalent(1 / si.m):
-            return squantity / doppler_factor
-        elif squantity.unit.is_equivalent(si.km / si.s):  # velocity
-            if squantity.doppler_convention is None:
-                raise ValueError('doppler_convention is not set, so unsure how to apply Doppler shift')
-            return (squantity.to(si.Hz) / doppler_factor).to(squantity.unit)
-        else:
-            raise RuntimeError(f"Unexpected units in velocity shift: {squantity.unit}. "
-                               "This should not happen, so please report this in the "
-                               "astropy issue tracker!")

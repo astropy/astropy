@@ -21,4 +21,5 @@ from .sky_coordinate import *
 from .funcs import *
 from .calculation import *
 from .solar_system import *
+from .spectral_quantity import *
 from .spectral_coordinate import *
