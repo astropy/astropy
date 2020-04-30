@@ -6,6 +6,7 @@ from astropy.constants import c
 from astropy.coordinates import (ICRS,
                                  CartesianDifferential,
                                  CartesianRepresentation, SkyCoord)
+from astropy.coordinates.spectral_quantity import SpectralQuantity
 from astropy.coordinates.baseframe import (BaseCoordinateFrame, FrameMeta,
                                            frame_transform_graph)
 from astropy.utils.exceptions import AstropyUserWarning
@@ -41,6 +42,41 @@ def _relativistic_velocity_addition(vel1, vel2):
     Add two velocities using the full relativistic equation.
     """
     return (vel1 + vel2) / (1 + vel1 * vel2 / c ** 2)
+
+
+def _apply_relativistic_doppler_shift(self, velocity):
+    """
+    Given a `SpectralQuantity` and a velocity, return a new `SpectralQuantity`
+    that is Doppler shifted by this amount.
+
+    Note that the Doppler shift applied is the full relativistic one, so
+    `SpectralQuantity` currently expressed in velocity and not using the
+    relativistic convention will temporarily be converted to use the
+    relativistic convention while the shift is applied.
+
+    Positive velocities are assumed to redshift the spectral quantity,
+    while negative velocities blueshift the spectral quantity.
+    """
+
+    # NOTE: we deliberately don't keep sub-classes of SpectralQuantity intact
+    # since we can't guarantee that their metadata would be correct/consistent.
+    squantity = self.view(SpectralQuantity)
+
+    beta = velocity / c
+    doppler_factor = np.sqrt((1 + beta) / (1 - beta))
+
+    if squantity.unit.is_equivalent(u.m):  # wavelength
+        return squantity * doppler_factor
+    elif squantity.unit.is_equivalent(u.Hz) or squantity.unit.is_equivalent(u.eV) or squantity.unit.is_equivalent(1 / u.m):
+        return squantity / doppler_factor
+    elif squantity.unit.is_equivalent(u.km / u.s):  # velocity
+        if squantity.doppler_convention is None:
+            raise ValueError('doppler_convention is not set, so unsure how to apply Doppler shift')
+        return (squantity.to(u.Hz) / doppler_factor).to(squantity.unit)
+    else:
+        raise RuntimeError(f"Unexpected units in velocity shift: {squantity.unit}. "
+                            "This should not happen, so please report this in the "
+                            "astropy issue tracker!")
 
 
 def update_differentials_to_match(original, velocity_reference, preserve_observer_frame=False):
@@ -95,7 +131,7 @@ def attach_zero_velocities(coord):
     return coord.realize_frame(new_data)
 
 
-class SpectralCoord(u.SpectralQuantity):
+class SpectralCoord(SpectralQuantity):
     """
     Coordinate object representing spectral values.
 
@@ -586,7 +622,7 @@ class SpectralCoord(u.SpectralQuantity):
         if np.isnan(delta_vel) or fin_vel.norm() < 1e-7 * fin_vel.xyz.unit:
             delta_vel = -self.radial_velocity
 
-        return self._apply_relativistic_doppler_shift(delta_vel)
+        return _apply_relativistic_doppler_shift(self, delta_vel)
 
     def with_observer_velocity(self, frame, preserve_observer_frame=False):
         """
@@ -772,7 +808,7 @@ class SpectralCoord(u.SpectralQuantity):
         if self.observer is not None and self.target is not None:
             return self.with_observer_velocity(self.target)
 
-        result = self._apply_relativistic_doppler_shift(-self.radial_velocity)
+        result = _apply_relativistic_doppler_shift(self, -self.radial_velocity)
 
         return self._copy(value=result, radial_velocity=0. * u.km / u.s, redshift=None)
 

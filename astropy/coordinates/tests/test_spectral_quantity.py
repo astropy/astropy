@@ -1,14 +1,11 @@
 import pytest
 
-import numpy as np
 from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.constants import c
 
-
-from ..spectral_quantity import SpectralQuantity
+from astropy.coordinates.spectral_quantity import SpectralQuantity
 
 SPECTRAL_UNITS = (u.GHz, u.micron, u.keV, (1 / u.nm).unit, u.km / u.s)
 
@@ -130,69 +127,21 @@ class TestSpectralQuantity:
         # Checks for arithmetic - some operations should return SpectralQuantity,
         # while some should just return plain Quantity
 
-        sq1 = u.SpectralQuantity(10 * u.AA)
+        sq1 = SpectralQuantity(10 * u.AA)
         sq2 = sq1 * 2
-        assert isinstance(sq2, u.SpectralQuantity)
+        assert isinstance(sq2, SpectralQuantity)
         assert sq2.value == 20
         assert sq2.unit is u.AA
 
-        sq1 = u.SpectralQuantity(10 * u.AA)
+        sq1 = SpectralQuantity(10 * u.AA)
         sq3 = sq1 / u.s
         # FIXME: for now, this doesn't work because A/s is a valid velocity unit
-        # assert isinstance(sq3, u.Quantity) and not isinstance(sq3, u.SpectralQuantity)
+        # assert isinstance(sq3, u.Quantity) and not isinstance(sq3, SpectralQuantity)
         assert sq3.value == 10
         assert sq3.unit.is_equivalent(u.AA / u.s)
 
-        sq1 = u.SpectralQuantity(10 * u.AA)
+        sq1 = SpectralQuantity(10 * u.AA)
         sq4 = sq1 / u.kg
-        assert isinstance(sq4, u.Quantity) and not isinstance(sq4, u.SpectralQuantity)
+        assert isinstance(sq4, u.Quantity) and not isinstance(sq4, SpectralQuantity)
         assert sq4.value == 10
         assert sq4.unit.is_equivalent(u.AA / u.kg)
-
-    def test_apply_relativistic_doppler_shift(self):
-
-        # Frequency
-        sq1 = SpectralQuantity(1 * u.GHz)
-        sq2 = sq1._apply_relativistic_doppler_shift(0.5 * c)
-        assert_quantity_allclose(sq2, np.sqrt(1. / 3.) * u.GHz)
-
-        # Wavelength
-        sq3 = SpectralQuantity(500 * u.nm)
-        sq4 = sq3._apply_relativistic_doppler_shift(0.5 * c)
-        assert_quantity_allclose(sq4, np.sqrt(3) * 500 * u.nm)
-
-        # Energy
-        sq5 = SpectralQuantity(300 * u.eV)
-        sq6 = sq5._apply_relativistic_doppler_shift(0.5 * c)
-        assert_quantity_allclose(sq6, np.sqrt(1. / 3.) * 300 * u.eV)
-
-        # Wavenumber
-        sq7 = SpectralQuantity(0.01 / u.micron)
-        sq8 = sq7._apply_relativistic_doppler_shift(0.5 * c)
-        assert_quantity_allclose(sq8, np.sqrt(1. / 3.) * 0.01 / u.micron)
-
-        # Velocity (doppler_convention='relativistic')
-        sq9 = SpectralQuantity(200 * u.km / u.s, doppler_convention='relativistic', doppler_rest=1 * u.GHz)
-        sq10 = sq9._apply_relativistic_doppler_shift(300 * u.km / u.s)
-        assert_quantity_allclose(sq10, 499.999666 * u.km / u.s)
-        assert sq10.doppler_convention == 'relativistic'
-
-        # Velocity (doppler_convention='optical')
-        sq11 = SpectralQuantity(200 * u.km / u.s, doppler_convention='radio', doppler_rest=1 * u.GHz)
-        sq12 = sq11._apply_relativistic_doppler_shift(300 * u.km / u.s)
-        assert_quantity_allclose(sq12, 499.650008 * u.km / u.s)
-        assert sq12.doppler_convention == 'radio'
-
-        # Velocity (doppler_convention='radio')
-        sq13 = SpectralQuantity(200 * u.km / u.s, doppler_convention='optical', doppler_rest=1 * u.GHz)
-        sq14 = sq13._apply_relativistic_doppler_shift(300 * u.km / u.s)
-        assert_quantity_allclose(sq14, 500.350493 * u.km / u.s)
-        assert sq14.doppler_convention == 'optical'
-
-        # Velocity - check relativistic velocity addition
-        sq13 = SpectralQuantity(0 * u.km / u.s, doppler_convention='relativistic', doppler_rest=1 * u.GHz)
-        sq14 = sq13._apply_relativistic_doppler_shift(0.999 * c)
-        assert_quantity_allclose(sq14, 0.999 * c)
-        sq14 = sq14._apply_relativistic_doppler_shift(0.999 * c)
-        assert_quantity_allclose(sq14, (0.999 * 2) / (1 + 0.999**2) * c)
-        assert sq14.doppler_convention == 'relativistic'
