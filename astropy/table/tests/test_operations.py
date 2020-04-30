@@ -16,7 +16,8 @@ from astropy.time import Time
 from astropy.coordinates import (SkyCoord, SphericalRepresentation,
                                  UnitSphericalRepresentation,
                                  CartesianRepresentation,
-                                 BaseRepresentationOrDifferential)
+                                 BaseRepresentationOrDifferential,
+                                 search_around_3d)
 from astropy.coordinates.tests.test_representation import representation_equal
 from astropy.io.misc.asdf.tags.helpers import skycoord_equal
 
@@ -597,13 +598,14 @@ class TestJoin():
         assert str(t12).splitlines() == exp
 
     @pytest.mark.skipif('not HAS_SCIPY')
-    def test_join_with_join_skycoord_3d(self):
+    @pytest.mark.parametrize('distance_func', ['search_around_3d', search_around_3d])
+    def test_join_with_join_skycoord_3d(self, distance_func):
         sc1 = SkyCoord([0, 1, 1.1, 2]*u.deg, [0, 0, 0, 0]*u.deg, [1, 1, 2, 1]*u.m)
         sc2 = SkyCoord([0.5, 1.05, 2.1]*u.deg, [0, 0, 0]*u.deg, [1, 1, 1]*u.m)
         t1 = Table([sc1], names=['sc'])
         t2 = Table([sc2], names=['sc'])
         join_func = join_skycoord(np.deg2rad(0.2) * u.m,
-                                  distance_kind='3d')
+                                  distance_func=distance_func)
         t12 = table.join(t1, t2, join_funcs={'sc': join_func})
         exp = ['sc_id     sc_1        sc_2    ',
                '       deg,deg,m   deg,deg,m  ',

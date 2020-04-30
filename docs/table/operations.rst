@@ -1101,10 +1101,12 @@ This tells `~astropy.table.join` to match the ``sc`` key column using a custom
 join function `~astropy.table.join_skycoord` using a matching distance
 threshold of 0.2 deg. Under the hood this calls
 `~astropy.coordinates.SkyCoord.search_around_sky` or
-`~astropy.coordinates.SkyCoord.search_around_3d` to doing the matching. The
-default is using ``sky`` (angle) matching, but ``3d`` (length or dimensionless)
-is also available.  This is specified using the ``distance_kind`` argument of
-`~astropy.table.join_skycoord`.
+`~astropy.coordinates.SkyCoord.search_around_3d` to do the cross-matching. The
+default is using ``'search_around_sky'`` (angle) matching, but
+``'search_around_3d'`` (length or dimensionless) is also available.
+This is specified using the ``distance_func`` argument of
+`~astropy.table.join_skycoord`, which can also be a function that matches the
+input and output API of `~astropy.coordinates.SkyCoord.search_around_sky`.
 
 Now we show the whole process:
 
@@ -1158,8 +1160,8 @@ identification of each column entry with a unique matched source.
     >>> join_func(sc1, sc2)  # Associate each coordinate with unique source ID
     (array([3, 1, 1, 2]), array([1, 4, 2]))
 
-If you would like to write your own we suggest starting from the source code
-for `~astropy.table.join_skycoord` or
+If you would like to write your own fuzzy matching function, we suggest starting
+from the source code for `~astropy.table.join_skycoord` or
 `~astropy.table.join_distance`.
 
 Join on Distance
