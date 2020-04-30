@@ -230,7 +230,7 @@ doc_footer = """
         ...                dec=[-17.3, 81.52] * u.degree,
         ...                distance=[11.5, 24.12] * u.kpc)
         >>> c.transform_to(coord.Galactocentric) # doctest: +FLOAT_CMP
-       <Galactocentric Coordinate (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
+        <Galactocentric Coordinate (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
             (266.4051, -28.936175)>, galcen_distance=8.122 kpc, galcen_v_sun=(12.9, 245.6, 7.78) km / s, z_sun=20.8 pc, roll=0.0 deg): (x, y, z) in kpc
             [( -9.43489286, -9.40062188, 6.51345359),
             (-21.11044918, 18.76334013, 7.83175149)]>
@@ -240,7 +240,7 @@ doc_footer = """
     arguments when initializing the Galactocentric frame object::
 
         >>> c.transform_to(coord.Galactocentric(galcen_distance=8.1*u.kpc)) # doctest: +FLOAT_CMP
-       <Galactocentric Coordinate (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
+        <Galactocentric Coordinate (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
             (266.4051, -28.936175)>, galcen_distance=8.1 kpc, galcen_v_sun=(12.9, 245.6, 7.78) km / s, z_sun=20.8 pc, roll=0.0 deg): (x, y, z) in kpc
             [( -9.41284763, -9.40062188, 6.51346272),
                 (-21.08839478, 18.76334013, 7.83184184)]>
