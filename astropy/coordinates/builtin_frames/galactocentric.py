@@ -84,19 +84,20 @@ class galactocentric_frame_defaults(ScienceState):
 
     """
 
-    # the default is to use the original definition of this frame
-    _value = 'v4.0'
+    _latest_value = 'v4.0'
     _references = None
+    _value = None
 
     @classmethod
     def get_solar_params_from_string(cls, arg):
         """Return Galactocentric solar parameters given string names for the
         parameter sets.
         """
+
         # Resolve the meaning of 'latest': The latest parameter set is from v4.0
         # - update this as newer parameter choices are added
         if arg == 'latest':
-            arg = cls._value
+            arg = cls._latest_value
 
         params = dict()
         references = dict()
@@ -144,14 +145,16 @@ class galactocentric_frame_defaults(ScienceState):
                 'https://ui.adsabs.harvard.edu/abs/2019MNRAS.482.1417B'
 
         else:
-            raise ValueError('Invalid string input to retrieve solar '
-                             'parameters for Galactocentric frame: "{}"'
-                             .format(arg))
+            raise ValueError(f'Invalid string input to retrieve solar '
+                             f'parameters for Galactocentric frame: "{arg}"')
 
         return params, references
 
     @classmethod
     def validate(cls, value):
+        if value is None:
+            value = cls._latest_value
+
         if isinstance(value, str):
             params, refs = cls.get_solar_params_from_string(value)
             cls._references = refs
