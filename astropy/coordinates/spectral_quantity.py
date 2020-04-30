@@ -241,7 +241,7 @@ class SpectralQuantity(SpecificTypeQuantity):
                 if doppler_rest is None:
                     raise ValueError("doppler_rest not set, cannot convert to/from velocities")
 
-                additional_equivalencies += DOPPLER_CONVENTIONS[doppler_convention](doppler_rest)
+                additional_equivalencies = additional_equivalencies + DOPPLER_CONVENTIONS[doppler_convention](doppler_rest)
 
             result = super().to(unit, equivalencies=equivalencies + additional_equivalencies)
 
