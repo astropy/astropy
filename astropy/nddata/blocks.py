@@ -12,17 +12,17 @@ __all__ = ['reshape_as_blocks', 'block_reduce', 'block_replicate']
 
 def _process_block_inputs(data, block_size):
     data = np.asanyarray(data)
-
     block_size = np.atleast_1d(block_size)
+
+    if np.any(block_size <= 0):
+        raise ValueError('block_size elements must be strictly positive')
+
     if data.ndim > 1 and len(block_size) == 1:
         block_size = np.repeat(block_size, data.ndim)
 
     if len(block_size) != data.ndim:
         raise ValueError('block_size must be a scalar or have the same '
                          'length as the number of data dimensions')
-
-    if np.any(block_size <= 0):
-        raise ValueError('block_size elements must be strictly positive')
 
     block_size_int = block_size.astype(int)
     if np.any(block_size_int != block_size):  # e.g., 2.0 is OK, 2.1 is not
@@ -38,6 +38,8 @@ def reshape_as_blocks(data, block_size):
     This is useful to efficiently apply functions on block subsets of
     the data instead of using loops.  The reshaped array is a view of
     the input data array.
+
+    .. versionadded:: 4.1
 
     Parameters
     ----------
