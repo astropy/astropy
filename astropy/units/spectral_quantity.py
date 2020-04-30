@@ -11,7 +11,7 @@ __all__ = ['SpectralQuantity']
 __doctest_skip__ = ['SpectralQuantity.*']
 
 
-SPECTRAL_UNITS = (si.Hz, si.m, si.J, (1 / si.m).unit, si.m / si.s)
+SPECTRAL_UNITS = (si.Hz, si.m, si.J, si.m ** -1, si.m / si.s)
 
 DOPPLER_CONVENTIONS = {
     'radio': eq.doppler_radio,
@@ -53,8 +53,6 @@ class SpectralQuantity(SpecificTypeQuantity):
                 doppler_rest=None, doppler_convention=None,
                 **kwargs):
 
-        kwargs['subok'] = True
-
         obj = super().__new__(cls, value, unit=unit, **kwargs)
 
         # If we're initializing from an existing SpectralQuantity, keep any
@@ -73,13 +71,6 @@ class SpectralQuantity(SpecificTypeQuantity):
         super().__array_finalize__(obj)
         self._doppler_rest = getattr(obj, '_doppler_rest', None)
         self._doppler_convention = getattr(obj, '_doppler_convention', None)
-
-    def __quantity_subclass__(self, unit):
-        """
-        Overridden by subclasses to change what kind of view is
-        created based on the output unit of an operation.
-        """
-        return SpectralQuantity, True
 
     @property
     def doppler_rest(self):
@@ -162,25 +153,43 @@ class SpectralQuantity(SpecificTypeQuantity):
            doppler_rest=None,
            doppler_convention=None):
         """
-        Overloaded parent ``to`` method to provide parameters for defining
-        rest value and pre-defined conventions for unit transformations.
+        Return a new `~astropy.units.SpectralQuantity` object with the specified unit.
+
+        By default, the ``spectral`` equivalency will be enabled, as well as
+        one of the Doppler equivalencies if converting to/from velocities.
 
         Parameters
         ----------
+        unit : `~astropy.units.UnitBase` instance, str
+            An object that represents the unit to convert to. Must be
+            an `~astropy.units.UnitBase` object or a string parseable
+            by the `~astropy.units` package, and should be a spectral unit.
+        equivalencies : list of equivalence pairs, optional
+            A list of equivalence pairs to try if the units are not
+            directly convertible.  See :ref:`unit_equivalencies`.
+            If not provided or ``[]``, class default equivalencies will be used
+            (none for `~astropy.units.Quantity`, but may be set for subclasses)
+            If `None`, no equivalencies will be applied at all, not even any
+            set globally or within a context.
         doppler_rest : `~astropy.units.Quantity`, optional
-            The rest value used in the velocity space conversions. Providing
-            the value here will set the value stored on the `SpectralQuantity`
-            instance.
+            The rest value used when converting to/from velocities. This will
+            also be set at an attribute on the output
+            `~astropy.units.SpectralQuantity`.
         doppler_convention : {'relativistic', 'optical', 'radio'}, optional
-            The velocity convention to use during conversions. Providing the
-            value here will set the value stored on the `SpectralQuantity`
-            instance.
+            The Doppler convention used when converting to/from velocities.
+            This will also be set at an attribute on the output
+            `~astropy.units.SpectralQuantity`.
 
         Returns
         -------
         `SpectralQuantity`
             New spectral coordinate object with data converted to the new unit.
         """
+
+        # If equivalencies is explicitly set to None, we should just use the
+        # default Quantity.to with equivalencies also set to None
+        if equivalencies is None:
+            return super().to(unit, equivalencies=None)
 
         # FIXME: need to consider case where doppler equivalency is passed in
         # equivalencies list, or is u.spectral equivalency is already passed
@@ -214,11 +223,11 @@ class SpectralQuantity(SpecificTypeQuantity):
 
             vel_equiv1 = DOPPLER_CONVENTIONS[self._doppler_convention](self._doppler_rest)
 
-            freq = super().to(si.Hz, equivalencies=equivalencies + eq.spectral() + vel_equiv1)
+            freq = super().to(si.Hz, equivalencies=equivalencies + vel_equiv1)
 
             vel_equiv2 = DOPPLER_CONVENTIONS[doppler_convention](doppler_rest)
 
-            result = freq.to(unit, equivalencies=equivalencies + eq.spectral() + vel_equiv2)
+            result = freq.to(unit, equivalencies=equivalencies + vel_equiv2)
 
         else:
 
@@ -249,7 +258,7 @@ class SpectralQuantity(SpecificTypeQuantity):
         Given a `SpectralQuantity` and a velocity, return a new `SpectralQuantity`
         that is Doppler shifted by this amount.
 
-        Note that the Doppler shift applies is the full relativistic one, so
+        Note that the Doppler shift applied is the full relativistic one, so
         `SpectralQuantity` currently expressed in velocity and not using the
         relativistic convention will temporarily be converted to use the
         relativistic convention while the shift is applied.
@@ -271,14 +280,9 @@ class SpectralQuantity(SpecificTypeQuantity):
             return squantity / doppler_factor
         elif squantity.unit.is_equivalent(si.km / si.s):  # velocity
             if squantity.doppler_convention is None:
-                raise ValueError('doppler_convention is not set, so unsure how to apply doppler shift')
-            if squantity.doppler_convention == 'relativistic':
-                result = squantity
-            else:
-                result = squantity.to(squantity.unit, doppler_convention='relativistic')
-            result = result + velocity
-            if squantity.doppler_convention != 'relativistic':
-                result = result.to(squantity.unit, doppler_convention=squantity.doppler_convention)
-            return result
+                raise ValueError('doppler_convention is not set, so unsure how to apply Doppler shift')
+            return (squantity.to(si.Hz) / doppler_factor).to(squantity.unit)
         else:
-            raise TypeError(f"Unexpected units in velocity shift: {squantity.unit}")
+            raise RuntimeError(f"Unexpected units in velocity shift: {squantity.unit}. "
+                               "This should not happen, so please report this in the "
+                               "astropy issue tracker!")

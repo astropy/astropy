@@ -36,6 +36,13 @@ def _redshift_to_velocity(redshift):
     return c * (zponesq - 1) / (zponesq + 1)
 
 
+def _relativistic_velocity_addition(vel1, vel2):
+    """
+    Add two velocities using the full relativistic equation.
+    """
+    return (vel1 + vel2) / (1 + vel1 * vel2 / c ** 2)
+
+
 def update_differentials_to_match(original, velocity_reference, preserve_observer_frame=False):
     """
     Given an original coordinate object, update the differentials so that
@@ -65,11 +72,8 @@ def update_differentials_to_match(original, velocity_reference, preserve_observe
     differentials = velocity_reference_icrs.data.represent_as(CartesianRepresentation,
                                                               CartesianDifferential).differentials
 
-    if original_icrs.data.differentials:
-        data_with_differentials = original_icrs.data.represent_as(CartesianRepresentation,
-                                                                  CartesianDifferential).with_differentials(differentials)
-    else:
-        data_with_differentials = original_icrs.data.represent_as(CartesianRepresentation).with_differentials(differentials)
+    data_with_differentials = (original_icrs.data.represent_as(CartesianRepresentation)
+                               .with_differentials(differentials))
 
     final_icrs = original_icrs.realize_frame(data_with_differentials)
 
@@ -127,9 +131,6 @@ class SpectralCoord(u.SpectralQuantity):
                 observer=None, target=None,
                 radial_velocity=None, redshift=None,
                 **kwargs):
-
-        # Enforce subok=True even if already specified
-        kwargs['subok'] = True
 
         obj = super().__new__(cls, value, unit=unit, **kwargs)
 
@@ -215,13 +216,6 @@ class SpectralCoord(u.SpectralQuantity):
         self._observer = getattr(obj, '_observer', None)
         self._target = getattr(obj, '_target', None)
 
-    def __quantity_subclass__(self, unit):
-        """
-        Overridden by subclasses of `~astropy.units.Quantity` to change what
-        kind of view is created based on the output unit of an operation.
-        """
-        return SpectralCoord, True
-
     @staticmethod
     @u.quantity_input(radial_velocity=u.km/u.s)
     def _target_from_observer(observer, radial_velocity):
@@ -252,7 +246,7 @@ class SpectralCoord(u.SpectralQuantity):
         obs_vel = observer_icrs.cartesian.differentials['s']
 
         target = (observer_icrs.cartesian.without_differentials() + drep).with_differentials(
-            CartesianDifferential([obs_vel.d_x + radial_velocity,
+            CartesianDifferential([_relativistic_velocity_addition(obs_vel.d_x, radial_velocity),
                                    obs_vel.d_y.to(radial_velocity.unit),
                                    obs_vel.d_z.to(radial_velocity.unit)]))
 
@@ -272,7 +266,7 @@ class SpectralCoord(u.SpectralQuantity):
         coord : `~astropy.coordinates.BaseCoordinateFrame`
             The new frame to be used for target or observer.
         """
-        if not issubclass(coord.__class__, (BaseCoordinateFrame, FrameMeta)):
+        if not issubclass(coord.__class__, BaseCoordinateFrame):
             if isinstance(coord, SkyCoord):
                 coord = coord.frame
             else:
@@ -339,7 +333,7 @@ class SpectralCoord(u.SpectralQuantity):
         return self.__class__(**default_kwargs)
 
     @property
-    def as_quantity(self):
+    def quantity(self):
         """
         Convert the ``SpectralCoord`` to a `~astropy.units.Quantity`.
         Equivalent to ``self.view(u.Quantity)``.
@@ -355,7 +349,7 @@ class SpectralCoord(u.SpectralQuantity):
     @property
     def observer(self):
         """
-        The coordinate frame from which the observation was taken.
+        The coordinates of the observer.
 
         Returns
         -------
@@ -388,7 +382,7 @@ class SpectralCoord(u.SpectralQuantity):
     @property
     def target(self):
         """
-        The coordinate frame of the object being observed.
+        The coordinates of the target being observed.
 
         Returns
         -------
@@ -471,15 +465,12 @@ class SpectralCoord(u.SpectralQuantity):
 
         d_vel = target_icrs.velocity - observer_icrs.velocity
 
-        vel_mag = np.dot(d_vel.d_xyz, pos_hat.xyz)
-
-        if NUMPY_LT_1_17:
-            vel_mag *= d_vel.d_xyz.unit
+        vel_mag = pos_hat.dot(d_vel)
 
         if as_scalar:
             return vel_mag
         else:
-            return vel_mag * pos_hat.xyz
+            return vel_mag * pos_hat
 
     @staticmethod
     def _norm_d_pos(observer, target):
@@ -498,13 +489,13 @@ class SpectralCoord(u.SpectralQuantity):
         pos_hat : `BaseRepresentation`
             Position representation.
         """
-        d_pos = (target.data.without_differentials() -
-                 observer.data.without_differentials()).to_cartesian()
+        d_pos = (target.cartesian.without_differentials() -
+                 observer.cartesian.without_differentials())
 
         dp_norm = d_pos.norm()
 
         # Reset any that are 0 to 1 to avoid nans from 0/0
-        dp_norm.ravel()[dp_norm.ravel() == 0] = 1 * dp_norm.unit
+        dp_norm[dp_norm == 0] = 1 * dp_norm.unit
 
         pos_hat = d_pos / dp_norm
 
@@ -543,7 +534,7 @@ class SpectralCoord(u.SpectralQuantity):
         init_obs_vel = self._calculate_radial_velocity(self.observer, target)
         fin_obs_vel = self._calculate_radial_velocity(observer, target)
 
-        line_of_sight_unit_vec = self._norm_d_pos(observer, target).xyz
+        line_of_sight_unit_vec = self._norm_d_pos(observer, target)
 
         new_data = self._project_velocity_and_shift(init_obs_vel, fin_obs_vel, line_of_sight_unit_vec)
 
@@ -559,10 +550,12 @@ class SpectralCoord(u.SpectralQuantity):
 
         Parameters
         ----------
-        init_vel : `u.Quantity`
+        init_vel :`BaseRepresentation`
             Initial velocity vector.
-        fin_vel : `u.Quantity`
+        fin_vel : `BaseRepresentation`
             Final velocity vector.
+        line_of_sight_unit_vec : `BaseRepresentation`
+            Unit vector pointing from observer to target
 
         Returns
         -------
@@ -572,20 +565,14 @@ class SpectralCoord(u.SpectralQuantity):
 
         # Project the velocity shift vector onto the line-of-sight vector
         # between the target and the new observation frame.
-        init_proj_vel = np.dot(init_vel, line_of_sight_unit_vec) * line_of_sight_unit_vec
-
-        if NUMPY_LT_1_17:
-            init_proj_vel *= init_vel.unit
+        init_proj_vel = line_of_sight_unit_vec.dot(init_vel) * line_of_sight_unit_vec
 
         # Calculate the magnitude of the velocity shift between the two vectors.
         # The vectors are aligned but may be in opposite directions, so we use
         # the dot product to determine this.
 
         diff_vel = fin_vel - init_proj_vel
-        delta_vel = np.dot(diff_vel, line_of_sight_unit_vec)
-
-        if NUMPY_LT_1_17:
-            delta_vel *= diff_vel.unit
+        delta_vel = line_of_sight_unit_vec.dot(diff_vel)
 
         # In the case where the projected velocity is nan, we can assume that
         # the final velocity different is zero, and thus the actual velocity
@@ -596,12 +583,7 @@ class SpectralCoord(u.SpectralQuantity):
         # zero. In this case, set a tolerance for the final velocity; if it's
         # below this tolerance, assume the delta velocity is essentially nan.
 
-        fin_vel_mag = np.linalg.norm(fin_vel)
-
-        if NUMPY_LT_1_17:
-            fin_vel_mag *= fin_vel.unit
-
-        if np.isnan(delta_vel) or fin_vel_mag < 1e-7 * fin_vel.unit:
+        if np.isnan(delta_vel) or fin_vel.norm() < 1e-7 * fin_vel.xyz.unit:
             delta_vel = -self.radial_velocity
 
         return self._apply_relativistic_doppler_shift(delta_vel)
@@ -638,14 +620,11 @@ class SpectralCoord(u.SpectralQuantity):
 
         if hasattr(frame, 'frame'):
             frame = frame.frame
-        elif isinstance(frame, type):
-            frame_cls = frame
-            frame = frame_cls(0 * u.m, 0 * u.m, 0 * u.m,
-                              0 * u.m / u.s, 0 * u.m / u.s, 0 * u.m / u.s,
-                              representation_type='cartesian',
-                              differential_type='cartesian')
-        elif isinstance(frame, str):
-            frame_cls = frame_transform_graph.lookup_name(frame)
+        elif isinstance(frame, (type, str)):
+            if isinstance(frame, type):
+                frame_cls = frame
+            elif isinstance(frame, str):
+                frame_cls = frame_transform_graph.lookup_name(frame)
             frame = frame_cls(0 * u.m, 0 * u.m, 0 * u.m,
                               0 * u.m / u.s, 0 * u.m / u.s, 0 * u.m / u.s,
                               representation_type='cartesian',
@@ -660,9 +639,10 @@ class SpectralCoord(u.SpectralQuantity):
 
     def with_radial_velocity_shift(self, target_shift=None, observer_shift=None):
         """
-        Apply a velocity shift to this spectral coordinate. The shift
-        can be provided as a redshift (float value) or radial velocity
-        (`~astropy.units.Quantity` with physical type of 'speed').
+        Apply a velocity shift to this spectral coordinate.
+
+        The shift can be provided as a redshift (float value) or radial
+        velocity (`~astropy.units.Quantity` with physical type of 'speed').
 
         Parameters
         ----------
@@ -683,21 +663,24 @@ class SpectralCoord(u.SpectralQuantity):
                              "before applying a velocity shift.")
 
         for arg in [x for x in [target_shift, observer_shift] if x is not None]:
-            if isinstance(arg, u.Quantity) and \
-                    arg.unit.physical_type not in ['speed', 'dimensionless']:
+            if isinstance(arg, u.Quantity) and not arg.unit.is_equivalent((u.one, u.km / u.s)):
                 raise u.UnitsError("Argument must have unit physical type "
                                    "'speed' for radial velocty or "
-                                   "'dimesionless' for redshift.")
+                                   "'dimensionless' for redshift.")
 
         # The target or observer value is defined but is not a quantity object,
         #  assume it's a redshift float value and convert to velocity
 
-        if target_shift is not None:
+        if target_shift is None:
+            target_shift = 0 * u.km / u.s
+        else:
             target_shift = u.Quantity(target_shift)
             if target_shift.unit.physical_type == 'dimensionless':
                 target_shift = _redshift_to_velocity(target_shift)
 
-        if observer_shift is not None:
+        if observer_shift is None:
+            observer_shift = 0 * u.km / u.s
+        else:
             observer_shift = u.Quantity(observer_shift)
             if observer_shift.unit.physical_type == 'dimensionless':
                 observer_shift = _redshift_to_velocity(observer_shift)
@@ -705,28 +688,26 @@ class SpectralCoord(u.SpectralQuantity):
         target_icrs = self._target.transform_to(ICRS)
         observer_icrs = self._observer.transform_to(ICRS)
 
-        target_shift = 0 * u.km / u.s if target_shift is None else target_shift
-        observer_shift = 0 * u.km / u.s if observer_shift is None else observer_shift
-
         pos_hat = SpectralCoord._norm_d_pos(observer_icrs, target_icrs)
 
         target_velocity = target_icrs.velocity + target_shift * pos_hat
         observer_velocity = observer_icrs.velocity + observer_shift * pos_hat
 
-        new_target = target_icrs.realize_frame(
-            target_icrs.cartesian.with_differentials(
-                CartesianDifferential(target_velocity.xyz))).transform_to(
-            self._target)
+        target_velocity = CartesianDifferential(target_velocity.xyz)
+        observer_velocity = CartesianDifferential(observer_velocity.xyz)
 
-        new_observer = observer_icrs.realize_frame(
-            observer_icrs.cartesian.with_differentials(
-                CartesianDifferential(observer_velocity.xyz))).transform_to(
-            self._observer)
+        new_target = (target_icrs
+                      .realize_frame(target_icrs.cartesian.with_differentials(target_velocity))
+                      .transform_to(self._target))
+
+        new_observer = (observer_icrs
+                        .realize_frame(observer_icrs.cartesian.with_differentials(observer_velocity))
+                        .transform_to(self._observer))
 
         init_obs_vel = self._calculate_radial_velocity(observer_icrs, target_icrs)
         fin_obs_vel = self._calculate_radial_velocity(new_observer, new_target)
 
-        line_of_sight_unit_vec = self._norm_d_pos(observer_icrs, target_icrs).xyz
+        line_of_sight_unit_vec = self._norm_d_pos(observer_icrs, target_icrs)
 
         new_data = self._project_velocity_and_shift(init_obs_vel, fin_obs_vel, line_of_sight_unit_vec)
 
@@ -735,10 +716,11 @@ class SpectralCoord(u.SpectralQuantity):
         #  with just the radial velocity set so new implicit observer/target
         #  will be created. Otherwise, use the available observer/target
         #  instances to create the pair.
+        # FIXME: radial_velocity below is wrong
         return self._copy(value=new_data,
                           observer=new_observer if self.observer is not None else None,
                           target=new_target if self.target is not None else None,
-                          radial_velocity=np.sum(fin_obs_vel, axis=0) if self.observer is None and self.target is None else None)
+                          radial_velocity=fin_obs_vel.norm() if self.observer is None and self.target is None else None)
 
     @u.quantity_input(rv=['speed'])
     def with_radial_velocity(self, rv):
