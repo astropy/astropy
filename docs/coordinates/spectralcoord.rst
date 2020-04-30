@@ -18,7 +18,7 @@ transforming spectral coordinates such as frequencies, wavelengths, and photon
 energies, as well as equivalent Doppler velocities. While the plain |Quantity|
 class can also represent these kinds of physical quantities, and allow
 conversion via dedicated equivalencies (such as :ref:`u.spectral
-<astropy-units-doppler-equivalencies>` or the :ref:`u.doppler_*
+<astropy-units-spectral-equivalency>` or the :ref:`u.doppler_*
 <astropy-units-doppler-equivalencies>` equivalencies), |SpectralCoord| (which is
 a sub-class of |Quantity|) aims to make this more straightforward, and can also
 be made aware of the observer and target reference frames, allowing for example
@@ -50,7 +50,7 @@ Unit conversion
 ===============
 
 By default, unit conversions between spectral units will work without having to
-specify the :ref:`u.spectral <astropy-units-doppler-equivalencies>` equivalency::
+specify the :ref:`u.spectral <astropy-units-spectral-equivalency>` equivalency::
 
     >>> sc2.to(u.micron)
     <SpectralCoord [0.6542, 0.6544, 0.6546] micron>
@@ -351,7 +351,8 @@ is still as before, but the observer velocity is now ~10-20 km/s in x, y, and z,
 which is because the observer is now stationary relative to the barycenter so has
 a significant velocity relative to the surface of the Earth.
 
-We can also transform the frequencies to the LSRD frame of reference::
+We can also transform the frequencies to the Dynamical Local Standard of Rest
+(LSRD) frame of reference::
 
     >>> sc_ttau.with_observer_velocity('lsrd')  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SpectralCoord [200.01820327, 210.01911343, 220.02002359, 230.02093376,
@@ -402,10 +403,10 @@ rest frame of the target::
 The ``radial_velocity``, which is the velocity offset between observer and
 target, is now zero.
 
-|SpectralCoord| is very versatile and can be used to represent any spectral
+|SpectralCoord| is intended to be versatile and be useful for representing any spectral
 values - not just the x-axis of a spectrum, but also for example the
 frequencies of spectral features. For example, if we now consider that we found a
-spectral feature that appears to have three features at the following frequencies
+spectral feature that appears to have components at the following frequencies
 in the frame of reference of the telescope::
 
     >>> sc_feat = SpectralCoord([115.26, 115.266, 115.267] * u.GHz,
@@ -494,6 +495,51 @@ Frame name                 Description
                            V=12.24 km/s, and W=7.25 km/s in Galactic coordinates [3]_.
 ========================== =================================================
 
+Defining custom velocity frames
+===============================
+
+As mentioned in the earlier examples on this page, it is possible to pass any
+arbitrary :class:`~astropy.coordinates.BaseCoordinateFrame` or |SkyCoord| object
+to the :meth:`~astropy.coordinates.SpectralCoord.with_observer_velocity` method,
+and the observer will be updated to be stationary relative to those coordinates.
+As an example, we can define an object that can be used to define a velocity
+frame that moves with the local group of galaxies. There is not a unique definition
+of this, but for the purposes of this example we use the IAU 1976-recommended
+value which states that the Solar System barycenter is moving at 300 km/s towards
+l=90 and b=0 in the velocity frame of the local group of galaxies [4]_. Given
+this value, we can define the velocity frame using::
+
+    >>> from astropy.coordinates import Galactic
+    >>> localgroup_frame = Galactic(u=0 * u.km, v=0 * u.km, w=0 * u.km,
+    ...                             U=0 * u.km / u.s, V=-300 * u.km / u.s, W=0 * u.km / u.s,
+    ...                             representation_type='cartesian',
+    ...                             differential_type='cartesian')
+
+Note that here we specify the velocity as -300, because what we need here is the
+velocity of the local group relative to the Solar System barycenter. With this
+object, we can then transform a |SpectralCoord| so that the observer is stationary
+in that frame of reference::
+
+    >>> sc_ttau.with_observer_velocity(localgroup_frame)  # doctest: +REMOTE_DATA
+    <SpectralCoord [199.99913628, 209.9990931 , 219.99904991, 229.99900673,
+                    239.99896354, 249.99892036, 259.99887717, 269.99883398,
+                    279.9987908 , 289.99874761, 299.99870443] GHz
+        observer:
+          <Galactic Coordinate: (u, v, w) in m
+              (8.8038652e+10, -5.31344273e+10, 1.09238291e+11)
+           (U, V, W) in km / s
+              (-1.42108547e-14, -300., 2.84217094e-14)>
+        target:
+          <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
+              (65.497625, 19.53511111, 144.321)
+           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+              (1.37949782e-15, 1.46375638e-15, 23.9)>
+        observer to target (computed from above):
+          radial_velocity=42.33062895275233 km / s
+          redshift=0.00014120974955456056>
+
+.. TODO: radial_velocity seems incorrect!
+
 References
 ==========
 
@@ -505,6 +551,10 @@ References
        `[ADS] <https://ui.adsabs.harvard.edu/abs/1965gast.book...61D>`__.
 .. [3] Schönrich, R., Binney, J., & Dehnen, W. 2010, MNRAS, 403, 1829
        `[ADS] <https://ui.adsabs.harvard.edu/abs/2010MNRAS.403.1829S>`__.
+.. [4] *Transactions of the IAU Vol. XVI B Proceedings of the 16th General
+      Assembly, Reports of Meetings of Commissions: Comptes Rendus
+      Des Séances Des Commissions, Commission 28*.
+      `[DOI] <https://doi.org/10.1017/S0251107X00002406>`__
 
 .. The following frames are defined in FITS WCS and may be added here in future:
 ..
@@ -522,9 +572,5 @@ References
 ..                            368 km/s) in the direction of l=263.85, b=48.25 [5]_
 .. .. [3] Kerr, F. J., & Lynden-Bell, D. 1986, MNRAS, 221, 1023
 ..       `[ADS] <https://ui.adsabs.harvard.edu/abs/1986MNRAS.221.1023K>`__.
-.. .. [4] *Transactions of the IAU Vol. XVI B Proceedings of the 16th General
-..       Assembly, Reports of Meetings of Commissions: Comptes Rendus
-..       Des Séances Des Commissions, Commission 28*.
-..       `[DOI] <https://doi.org/10.1017/S0251107X00002406>`__
 .. .. [5] Bennett, C. L., Halpern, M., Hinshaw, G., et al. 2003, ApJS, 148, 1
 ..       `[ADS] <https://ui.adsabs.harvard.edu/abs/2003ApJS..148....1B>`__.
