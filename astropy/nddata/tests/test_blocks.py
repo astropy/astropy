@@ -36,6 +36,12 @@ class TestReshapeAsBlocks:
         reshaped = reshape_as_blocks(data, (2, 1, 2))
         assert reshaped.shape == (1, 3, 2, 2, 1, 2)
 
+    def test_view(self):
+        data = np.arange(16).reshape(4, 4)
+        reshaped = reshape_as_blocks(data, (2, 2))
+        data[0, 0] = 100
+        assert reshaped[0, 0, 0, 0] == 100
+
     def test_invalid_block_dim(self):
         data = np.arange(64).reshape(4, 4, 4)
         match = ('block_size must be a scalar or have the same '
