@@ -1,7 +1,7 @@
 import numpy as np
 from astropy.units import si
 from astropy.units import equivalencies as eq
-from astropy.units.quantity import SpecificTypeQuantity
+from astropy.units.quantity import SpecificTypeQuantity, Quantity
 from astropy.units.decorators import quantity_input
 from astropy.constants import c
 
@@ -71,6 +71,25 @@ class SpectralQuantity(SpecificTypeQuantity):
         super().__array_finalize__(obj)
         self._doppler_rest = getattr(obj, '_doppler_rest', None)
         self._doppler_convention = getattr(obj, '_doppler_convention', None)
+
+    def __quantity_subclass__(self, unit):
+        # Always default to just returning a Quantity, unless we explicitly
+        # choose to return a SpectralQuantity - even if the units match, we
+        # want to avoid doing things like adding two SpectralQuantity instances
+        # together and getting a SpectralQuantity back
+        return Quantity, False
+
+    def __array_ufunc__(self, function, method, *inputs, **kwargs):
+        # We always return Quantity except in a few specific cases
+        result = super().__array_ufunc__(function, method, *inputs, **kwargs)
+        if ((function in (np.multiply, np.true_divide) and
+                inputs[0] is self and
+                not isinstance(inputs[1], SpectralQuantity)) or
+                function in (np.minimum, np.nanmin, np.maximum, np.nanmax)):
+            result = result.view(self.__class__)
+            result._doppler_rest = self._doppler_rest
+            result._doppler_convention = self._doppler_convention
+        return result
 
     @property
     def doppler_rest(self):
@@ -189,7 +208,10 @@ class SpectralQuantity(SpecificTypeQuantity):
         # If equivalencies is explicitly set to None, we should just use the
         # default Quantity.to with equivalencies also set to None
         if equivalencies is None:
-            return super().to(unit, equivalencies=None)
+            result = super().to(unit, equivalencies=None)
+            result = self.__class__(result)
+            result.__array_finalize__(self)
+            return result
 
         # FIXME: need to consider case where doppler equivalency is passed in
         # equivalencies list, or is u.spectral equivalency is already passed
@@ -215,7 +237,11 @@ class SpectralQuantity(SpecificTypeQuantity):
                 raise ValueError("Original doppler_rest not set")
 
             if doppler_rest is None and doppler_convention is None:
-                return super().to(unit, equivalencies=equivalencies)
+                result = super().to(unit, equivalencies=equivalencies)
+                result = self.__class__(result)
+                result.__array_finalize__(self)
+                return result
+
             elif (doppler_rest is None) is not (doppler_convention is None):
                 raise ValueError("Either both or neither doppler_rest and "
                                  "doppler_convention should be defined for "
@@ -245,8 +271,11 @@ class SpectralQuantity(SpecificTypeQuantity):
 
             result = super().to(unit, equivalencies=equivalencies + additional_equivalencies)
 
-        result._doppler_rest = doppler_rest
-        result._doppler_convention = doppler_convention
+        # Since we have to explicitly specify when we want to keep this as a
+        # SpectralQuantity, we need to convert it back from a Quantity to
+        # a SpectralQuantity here.
+        result = self.__class__(result)
+        result.__array_finalize__(self)
 
         return result
 
