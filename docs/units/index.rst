@@ -153,8 +153,8 @@ Quantities and units can be :ref:`printed nicely to strings
 <astropy-units-format>` using the `Format String Syntax
 <https://docs.python.org/3/library/string.html#format-string-syntax>`_, the
 preferred string formatting syntax in recent versions of Python. Format
-specifiers (like ``0.03f``) in new format style strings will used to format the
-quantity value::
+specifiers (like ``0.03f``) in new-style format strings will be used to format
+the quantity value::
 
     >>> q = 15.1 * u.meter / (32.0 * u.second)
     >>> q  # doctest: +FLOAT_CMP
