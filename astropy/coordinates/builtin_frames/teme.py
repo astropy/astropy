@@ -46,7 +46,7 @@ class TEME(BaseCoordinateFrame):
     default_representation = CartesianRepresentation
     default_differential = CartesianDifferential
 
-    obstime = TimeAttribute(default=DEFAULT_OBSTIME)
+    obstime = TimeAttribute()
 
 # Transformation functions for getting to/from TEME and ITRS are in
 # intermediate rotation transforms.py
