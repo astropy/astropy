@@ -143,27 +143,50 @@ class TestSpectralQuantity:
         assert sq2.value == 5
         assert sq2.unit == u.AA
 
+        sq3 = SpectralQuantity(10 * u.AA)
+        sq3 *= 2
+        assert isinstance(sq3, SpectralQuantity)
+        assert sq3.value == 20
+        assert sq3.unit == u.AA
+
+        sq4 = SpectralQuantity(10 * u.AA)
+        sq4 /= 2
+        assert isinstance(sq4, SpectralQuantity)
+        assert sq4.value == 5
+        assert sq4.unit == u.AA
+
+        sq5 = SpectralQuantity(10 * u.AA)
+        with pytest.raises(TypeError, match='Cannot store the result of this operation in SpectralQuantity'):
+            sq5 += 10 * u.AA
+
+        # Note different order to sq2
+        sq6 = SpectralQuantity(10 * u.AA)
+        sq6 = 2 * sq1
+        assert isinstance(sq6, SpectralQuantity)
+        assert sq6.value == 20
+        assert sq6.unit == u.AA
+
         # Next, operations that should return Quantity
 
-        q3 = sq1 / u.s
+        q1 = sq1 / u.s
+        assert isinstance(q1, u.Quantity) and not isinstance(q1, SpectralQuantity)
+        assert q1.value == 10
+        assert q1.unit.is_equivalent(u.AA / u.s)
+
+        q2 = sq1 / u.kg
+        assert isinstance(q2, u.Quantity) and not isinstance(q2, SpectralQuantity)
+        assert q2.value == 10
+        assert q2.unit.is_equivalent(u.AA / u.kg)
+
+        q3 = sq1 + 10 * u.AA
         assert isinstance(q3, u.Quantity) and not isinstance(q3, SpectralQuantity)
-        assert q3.value == 10
-        assert q3.unit.is_equivalent(u.AA / u.s)
+        assert q3.value == 20
+        assert q3.unit == u.AA
 
-        q4 = sq1 / u.kg
+        q4 = sq1 / SpectralQuantity(5 * u.AA)
         assert isinstance(q4, u.Quantity) and not isinstance(q4, SpectralQuantity)
-        assert q4.value == 10
-        assert q4.unit.is_equivalent(u.AA / u.kg)
-
-        q5 = sq1 + 10 * u.AA
-        assert isinstance(q5, u.Quantity) and not isinstance(q5, SpectralQuantity)
-        assert q5.value == 20
-        assert q5.unit == u.AA
-
-        q6 = sq1 / SpectralQuantity(5 * u.AA)
-        assert isinstance(q6, u.Quantity) and not isinstance(q6, SpectralQuantity)
-        assert q6.value == 2
-        assert q6.unit == u.one
+        assert q4.value == 2
+        assert q4.unit == u.one
 
     def test_ufuncs(self):
 
@@ -173,16 +196,30 @@ class TestSpectralQuantity:
         # First, operations that should return SpectralQuantity
 
         sq1 = SpectralQuantity([10, 20, 30] * u.AA)
-        for ufunc in (np.max, np.nanmax, np.min, np.nanmin):
+        for ufunc in (np.min, np.max):
             sq2 = ufunc(sq1)
             assert isinstance(sq2, SpectralQuantity)
             assert sq2.value == ufunc(sq1.value)
             assert sq2.unit == u.AA
 
+    def test_functions(self):
+
+        # Checks for other functions - some operations should return SpectralQuantity,
+        # while some should just return plain Quantity
+
+        # First, operations that should return SpectralQuantity
+
+        sq1 = SpectralQuantity([10, 20, 30] * u.AA)
+        for func in (np.nanmin, np.nanmax):
+            sq2 = func(sq1)
+            assert isinstance(sq2, SpectralQuantity)
+            assert sq2.value == func(sq1.value)
+            assert sq2.unit == u.AA
+
         # Next, operations that should return Quantity
 
-        for ufunc in (np.std, np.sum):
-            q3 = ufunc(sq1)
+        for func in (np.std, np.sum):
+            q3 = func(sq1)
             assert isinstance(q3, u.Quantity) and not isinstance(q3, SpectralQuantity)
-            assert q3.value == ufunc(sq1.value)
+            assert q3.value == func(sq1.value)
             assert q3.unit == u.AA
