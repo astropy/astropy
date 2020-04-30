@@ -28,6 +28,8 @@ from .np_utils import fix_column_name, TableMergeError
 __all__ = ['join', 'setdiff', 'hstack', 'vstack', 'unique',
            'join_skycoord', 'join_distance']
 
+__doctest_requires__ = {'join_skycoord': ['scipy'], 'join_distance': ['scipy']}
+
 
 def _merge_table_meta(out, tables, metadata_conflicts='warn'):
     out_meta = deepcopy(tables[0].meta)

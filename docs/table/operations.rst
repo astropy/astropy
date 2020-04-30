@@ -1106,20 +1106,27 @@ default is using ``sky`` (angle) matching, but ``3d`` (length or dimensionless)
 is also available.  This is specified using the ``distance_kind`` argument of
 `~astropy.table.join_skycoord`.
 
-Now we show the whole process::
+Now we show the whole process:
+
+..  doctest-requires:: scipy
 
   >>> from astropy.coordinates import SkyCoord
   >>> import astropy.units as u
   >>> from astropy.table import Table, join, join_skycoord
 
+..  doctest-requires:: scipy
+
   >>> sc1 = SkyCoord([0, 1, 1.1, 2], [0, 0, 0, 0], unit='deg')
   >>> sc2 = SkyCoord([1.05, 0.5, 2.1], [0, 0, 0], unit='deg')
+
+..  doctest-requires:: scipy
 
   >>> t1 = Table([sc1, [0, 1, 2, 3]], names=['sc', 'idx_1'])
   >>> t2 = Table([sc2, [0, 1, 2]], names=['sc', 'idx_2'])
 
-  >>> t12 = join(t1, t2, join_funcs={'sc': join_skycoord(0.2 * u.deg)})
+..  doctest-requires:: scipy
 
+  >>> t12 = join(t1, t2, join_funcs={'sc': join_skycoord(0.2 * u.deg)})
   >>> print(t12)
   sc_id   sc_1  idx_1   sc_2   idx_2
         deg,deg       deg,deg
@@ -1145,9 +1152,11 @@ is that it accepts two arguments corresponding to the two key columns, and
 returns a tuple of ``(ids1, ids2)``.  These identifiers correspond to the
 identification of each column entry with a unique matched source.
 
-  >>> join_func = join_skycoord(0.2 * u.deg)
-  >>> join_func(sc1, sc2)  # Associate each coordinate with unique source ID
-  (array([3, 1, 1, 2]), array([1, 4, 2]))
+..  doctest-requires:: scipy
+
+    >>> join_func = join_skycoord(0.2 * u.deg)
+    >>> join_func(sc1, sc2)  # Associate each coordinate with unique source ID
+    (array([3, 1, 1, 2]), array([1, 4, 2]))
 
 If you would like to write your own we suggest starting from the source code
 for `~astropy.table.join_skycoord` or
