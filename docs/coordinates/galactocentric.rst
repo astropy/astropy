@@ -197,12 +197,12 @@ The default parameter values can be seen by initializing the
 These default values can be modified using this class::
 
     >>> from astropy.coordinates import galactocentric_frame_defaults
-    >>> _ = galactocentric_frame_defaults.set('v4.0')
-    >>> Galactocentric() # doctest: +FLOAT_CMP
+    >>> _ = galactocentric_frame_defaults.set('v4.0') # doctest: +SKIP
+    >>> Galactocentric() # doctest: +SKIP
     <Galactocentric Frame (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
         (266.4051, -28.936175)>, galcen_distance=8.122 kpc, galcen_v_sun=(12.9, 245.6, 7.78) km / s, z_sun=20.8 pc, roll=0.0 deg)>
-    >>> _ = galactocentric_frame_defaults.set('pre-v4.0')
-    >>> Galactocentric() # doctest: +FLOAT_CMP
+    >>> _ = galactocentric_frame_defaults.set('pre-v4.0') # doctest: +SKIP
+    >>> Galactocentric() # doctest: +SKIP
     <Galactocentric Frame (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
         (266.4051, -28.936175)>, galcen_distance=8.3 kpc, galcen_v_sun=(11.1, 232.24, 7.25) km / s, z_sun=27.0 pc, roll=0.0 deg)>
 
