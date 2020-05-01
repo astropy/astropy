@@ -186,10 +186,30 @@ Exploring Configuration
 To see what configuration parameters are defined for a given ``conf``::
 
     >>> from astropy.utils.iers import conf
-    >>> print([key for key in conf])
-    ['auto_download', 'auto_max_age', ..., 'ietf_leap_second_auto_url']
+    >>> [key for key in conf]
+    ['auto_download',
+     'auto_max_age',
+     ...,
+     'ietf_leap_second_auto_url']
     >>> conf.auto_max_age
     30.0
+
+You can also iterate through ``conf`` in a dictionary-like fashion::
+
+    >>> [key for key in conf.keys()]
+    ['auto_download',
+     'auto_max_age',
+     ...,
+     'ietf_leap_second_auto_url']
+    >>> [cfgitem for cfgitem in conf.values()]
+    [<ConfigItem: name='auto_download' value=True at ...>,
+     <ConfigItem: name='auto_max_age' value=30.0 at ...>,
+     ...,
+     <ConfigItem: name='ietf_leap_second_auto_url' value=...>]
+    >>> for (key, cfgitem) in conf.items():
+    ...     if key == 'auto_max_age':
+    ...         print(f'{cfgitem.description} Value is {cfgitem()}')
+    Maximum age (days) of predictive data before auto-downloading. Default is 30. Value is 30.0
 
 Upgrading ``astropy``
 ---------------------

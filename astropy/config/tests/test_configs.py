@@ -180,21 +180,30 @@ def test_configitem():
     assert ci() == 34
 
     # Test iterator for one-item namespace
-    item_names = [key for key in conf]
-    assert item_names == ['tstnm']
+    result = [x for x in conf]
+    assert result == ['tstnm']
+    result = [x for x in conf.keys()]
+    assert result == ['tstnm']
+    result = [x for x in conf.values()]
+    assert result == [ci]
+    result = [x for x in conf.items()]
+    assert result == [('tstnm', ci)]
 
 
 def test_configitem_types():
 
     from astropy.config.configuration import ConfigNamespace, ConfigItem
 
-    cio = ConfigItem(['op1', 'op2', 'op3'])  # noqa
+    ci1 = ConfigItem(34)
+    ci2 = ConfigItem(34.3)
+    ci3 = ConfigItem(True)
+    ci4 = ConfigItem('astring')
 
     class Conf(ConfigNamespace):
-        tstnm1 = ConfigItem(34)
-        tstnm2 = ConfigItem(34.3)
-        tstnm3 = ConfigItem(True)
-        tstnm4 = ConfigItem('astring')
+        tstnm1 = ci1
+        tstnm2 = ci2
+        tstnm3 = ci3
+        tstnm4 = ci4
 
     conf = Conf()
 
@@ -211,9 +220,15 @@ def test_configitem_types():
     with pytest.raises(TypeError):
         conf.tstnm4 = 546.245
 
-    # Test iterator for multi-item namespace
-    item_names = sorted([key for key in conf])
+    # Test iterator for multi-item namespace. Assume ordered by insertion order.
+    item_names = [x for x in conf]
     assert item_names == ['tstnm1', 'tstnm2', 'tstnm3', 'tstnm4']
+    result = [x for x in conf.keys()]
+    assert result == item_names
+    result = [x for x in conf.values()]
+    assert result == [ci1, ci2, ci3, ci4]
+    result = [x for x in conf.items()]
+    assert result == [('tstnm1', ci1), ('tstnm2', ci2), ('tstnm3', ci3), ('tstnm4', ci4)]
 
 
 def test_configitem_options(tmpdir):
