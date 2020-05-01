@@ -1121,7 +1121,7 @@ FK4 => ICRS => FK4 and then compare::
 Matching Within Tolerance
 -------------------------
 
-To test if coordinates are within a certain distance of each other use the
+To test if coordinates are within a certain angular distance of one other, use the
 `~astropy.coordinates.SkyCoord.separation` method::
 
   >>> sc1.icrs.fk4.separation(sc1).to(u.arcsec)  # doctest: +SKIP
@@ -1132,8 +1132,12 @@ To test if coordinates are within a certain distance of each other use the
 Exact Equality
 --------------
 
-Astropy also provides an exact equality operator for coordinates. Specifically,
-the right hand ``value`` must be strictly consistent with the object for
+Astropy also provides an exact equality operator for coordinates. 
+For example, when comparing, e.g., two |SkyCoord| objects::
+
+    >>> left_skycoord == right_skycoord
+
+the right object must be strictly consistent with the left object for
 comparison:
 
 - Identical class
