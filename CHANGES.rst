@@ -39,6 +39,8 @@ astropy.coordinates
 - The ``Galactocentric`` frame will now use the "latest" parameter definitions
   by default. This currently corresponds to the values defined in v4.0, but will
   change with future releases. [#10238]
+- The ``SkyCoord.from_name()`` and Sesame name resolving functionality now
+  optionally caches results locally. [#9162]
 
 - Allow in-place modification of array-valued ``Representation`` and ``Differential``
   objects, including of representations with attached differentials. [#10210]
@@ -867,8 +869,6 @@ astropy.coordinates
   [#8834]
 
 - Passing a NaN to ``Distance`` no longer raises a warning. [#9598]
-- The ``SkyCoord.from_name()`` and Sesame name resolving functionality now
-  optionally caches results locally. [#9162]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
