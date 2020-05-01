@@ -6,6 +6,7 @@ import pytest
 from astropy import time
 from astropy.constants import c
 from astropy.table import Table
+from astropy.time import Time
 from astropy.utils import iers
 from astropy.coordinates import (SkyCoord, EarthLocation, ICRS, GCRS, Galactic,
                                  CartesianDifferential,
@@ -583,13 +584,15 @@ def test_shift_to_rest_star_withobserver():
     # the SpectralCoord machinery should yield something comparable to test_
     # spectral_coord_alphacen
 
-    observed_spc = SpectralCoord(rest_line_wls*(rv/c + 1),
-                                 observer=obs, target=acen)
+    with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+        observed_spc = SpectralCoord(rest_line_wls*(rv/c + 1),
+                                     observer=obs, target=acen)
 
     rest_spc = observed_spc.to_rest()
     assert_quantity_allclose(rest_spc, rest_line_wls)
 
-    barycentric_spc = observed_spc._change_observer_to(ICRS(CartesianRepresentation([0, 0, 0] * u.au)))
+    with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+        barycentric_spc = observed_spc._change_observer_to(ICRS(CartesianRepresentation([0, 0, 0] * u.au)))
     baryrest_spc = barycentric_spc.to_rest()
     assert quantity_allclose(baryrest_spc, rest_line_wls)
 
