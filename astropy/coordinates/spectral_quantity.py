@@ -295,7 +295,11 @@ class SpectralQuantity(SpecificTypeQuantity):
     def to_value(self, *args, **kwargs):
         return self.to(*args, **kwargs).value
 
-
     @property
     def spectral_density_equivalency(self):
+        """
+        A `~astropy.units.spectral_density` equivalency for this spectral
+        quantity. I.e., an equivalency that can be passed to ``.to`` for a
+        quantity with spectral flux density units.
+        """
         return spectral_density(self)
