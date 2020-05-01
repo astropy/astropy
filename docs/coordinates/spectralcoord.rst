@@ -70,25 +70,28 @@ nm, assuming the optical Doppler convention, you can do::
     ...              doppler_convention='optical',
     ...              doppler_rest=656.65 * u.nm)
     >>> sc3
-    <SpectralCoord [-1118.5433977 , -1027.23373258,  -935.92406746] km / s
-    	doppler_rest=656.65 nm
-    	doppler_convention=optical>
+    <SpectralCoord
+       (doppler_rest=656.65 nm
+        doppler_convention=optical)
+      [-1118.5433977 , -1027.23373258,  -935.92406746] km / s>
 
 The rest value for the Doppler conversion as well as the convention to use are
 stored in the resulting ``sc3`` |SpectralCoord| object. You can then convert
 back to frequency without having to specify them again::
 
     >>> sc3.to(u.THz)
-    <SpectralCoord [458.25811373, 458.11805929, 457.97809044] THz
-    	doppler_rest=656.65 nm
-    	doppler_convention=optical>
+    <SpectralCoord
+       (doppler_rest=656.65 nm
+        doppler_convention=optical)
+      [458.25811373, 458.11805929, 457.97809044] THz>
 
 or you can explicitly specify a different convention or rest value to use::
 
     >>> sc3.to(u.km / u.s, doppler_convention='relativistic')
-    <SpectralCoord [-1120.63005892, -1028.99362163,  -937.38499411] km / s
-    	doppler_rest=656.65 nm
-    	doppler_convention=relativistic>
+    <SpectralCoord
+       (doppler_rest=656.65 nm
+        doppler_convention=relativistic)
+      [-1120.63005892, -1028.99362163,  -937.38499411] km / s>
 
 It is also possible to set ``doppler_convention`` and ``doppler_rest`` from the
 start, even when creating a |SpectralCoord| in frequency, energy, or
@@ -98,9 +101,10 @@ wavelength::
     ...                     doppler_convention='radio',
     ...                     doppler_rest=342.91 * u.GHz)
     >>> sc4.to(u.km / u.s)
-    <SpectralCoord -78.68338987 km / s
-    	doppler_rest=342.91 GHz
-    	doppler_convention=radio>
+    <SpectralCoord
+       (doppler_rest=342.91 GHz
+        doppler_convention=radio)
+      -78.68338987 km / s>
 
 
 Reference frame transformations
@@ -141,10 +145,11 @@ between 500 and 900nm::
     >>> import numpy as np
     >>> wavs = SpectralCoord(np.linspace(500, 900, 9) * u.nm, redshift=0.5)
     >>> wavs
-    <SpectralCoord [500., 550., 600., 650., 700., 750., 800., 850., 900.] nm
-        observer to target:
+    <SpectralCoord
+       (observer to target:
           radial_velocity=115304.79153846153 km / s
-          redshift=0.5>
+          redshift=0.5)
+      [500., 550., 600., 650., 700., 750., 800., 850., 900.] nm>
 
 We have set redshift=0.5 here so that we can keep track of what frame of reference
 our spectral values are in. The ``radial_velocity`` property gives the recession
@@ -158,12 +163,12 @@ the galaxy. We can do this using the
 
     >>> wavs_rest = wavs.to_rest()
     >>> wavs_rest
-    <SpectralCoord [333.33333333, 366.66666667, 400.        , 433.33333333,
-                    466.66666667, 500.        , 533.33333333, 566.66666667,
-                    600.        ] nm
-        observer to target:
+    <SpectralCoord
+       (observer to target:
           radial_velocity=0.0 km / s
-          redshift=0.0>
+          redshift=0.0)
+      [333.33333333, 366.66666667, 400.        , 433.33333333, 466.66666667,
+       500.        , 533.33333333, 566.66666667, 600.        ] nm>
 
 The wavelengths have decreased by 1/3, which is what we expect for z=0.5. Note
 that the ``redshift`` and ``radial_velocity`` properties are now zero, since we
@@ -175,21 +180,22 @@ this value does not have units, it is interpreted as a redshift::
 
     >>> wavs_orig = wavs_rest.with_radial_velocity_shift(0.5)
     >>> wavs_orig
-    <SpectralCoord [500., 550., 600., 650., 700., 750., 800., 850., 900.] nm
-        observer to target:
+    <SpectralCoord
+       (observer to target:
           radial_velocity=115304.79153846153 km / s
-          redshift=0.5>
+          redshift=0.5)
+      [500., 550., 600., 650., 700., 750., 800., 850., 900.] nm>
 
 This returns an object equivalent to the one we started with, since we've
 re-applied a redshift of 0.5. We could also provide a velocity as a |Quantity|::
 
     >>> wavs_rest.with_radial_velocity_shift(100000 * u.km / u.s)
-    <SpectralCoord [471.52692723, 518.67961996, 565.83231268, 612.9850054 ,
-                    660.13769813, 707.29039085, 754.44308357, 801.5957763 ,
-                    848.74846902] nm
-        observer to target:
+    <SpectralCoord
+       (observer to target:
           radial_velocity=100000.0 km / s
-          redshift=0.41458078170200463>
+          redshift=0.41458078170200463)
+      [471.52692723, 518.67961996, 565.83231268, 612.9850054 , 660.13769813,
+       707.29039085, 754.44308357, 801.5957763 , 848.74846902] nm>
 
 which shifts the values to a frame of reference at a redshift of approximately
 0.33 (that is, if the spectrum did contain a contribution from an object at
@@ -254,21 +260,19 @@ have been measured (for the purposes of the example here we will assume we have 
     >>> sc_ttau = SpectralCoord(np.linspace(200, 300, 11) * u.GHz,
     ...                         observer=alma, target=ttau)  # doctest: +IGNORE_WARNINGS +REMOTE_DATA
     >>> sc_ttau  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <SpectralCoord [200., 210., 220., 230., 240., 250., 260., 270., 280., 290.,
-                    300.] GHz
-        observer:
-          <ITRS Coordinate (obstime=2019-04-24T02:32:10.000): (x, y, z) in m
-              (2225015.30883296, -5440016.41799762, -2481631.27428014)
-           (v_x, v_y, v_z) in km / s
-              (0., 0., 0.)>
-        target:
-          <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
-              (65.497625, 19.53511111, 144.321)
-           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-              (1.37949782e-15, 1.46375638e-15, 23.9)>
+    <SpectralCoord
+       (observer: <ITRS Coordinate (obstime=2019-04-24T02:32:10.000): (x, y, z) in m
+                      (2225015.30883296, -5440016.41799762, -2481631.27428014)
+                   (v_x, v_y, v_z) in km / s
+                      (0., 0., 0.)>
+        target: <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
+                    (65.497625, 19.53511111, 144.321)
+                 (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+                    (1.37949782e-15, 1.46375638e-15, 23.9)>
         observer to target (computed from above):
-          radial_velocity=41.035949477390346 km / s
-          redshift=0.0001368811935802279>
+          radial_velocity=41.03594947739035 km / s
+          redshift=0.00013689056309340586)
+      [200., 210., 220., 230., 240., 250., 260., 270., 280., 290., 300.] GHz>
 
 We can already see above that |SpectralCoord| has computed the difference in
 velocity between the observatory and T Tau, which includes the motion of the
@@ -303,22 +307,21 @@ the effect of the Earth's rotation), we can use the ``'gcrs'`` which stands for
 *Geocentric Celestial Reference System* (GCRS)::
 
     >>> sc_ttau.with_observer_stationary_relative_to('gcrs')  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <SpectralCoord [200.00024141, 210.00025348, 220.00026555, 230.00027762,
-                    240.00028969, 250.00030176, 260.00031383, 270.0003259 ,
-                    280.00033797, 290.00035004, 300.00036211] GHz
-        observer:
-          <GCRS Coordinate (obstime=2019-04-24T02:32:10.000, obsgeoloc=(0., 0., 0.) m, obsgeovel=(0., 0., 0.) m / s): (x, y, z) in m
-              (-5878853.86160149, -192921.84793754, -2470794.19798818)
-           (v_x, v_y, v_z) in km / s
-              (-1.09234825e-08, 8.96006823e-08, -7.30529428e-09)>
-        target:
-          <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
-              (65.497625, 19.53511111, 144.321)
-           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-              (1.37949782e-15, 1.46375638e-15, 23.9)>
+    <SpectralCoord
+       (observer: <GCRS Coordinate (obstime=2019-04-24T02:32:10.000, obsgeoloc=(0., 0., 0.) m, obsgeovel=(0., 0., 0.) m / s): (x, y, z) in m
+                      (-5878853.86160149, -192921.84793754, -2470794.19798818)
+                   (v_x, v_y, v_z) in km / s
+                      (-1.09225512e-08, 8.96006823e-08, -1.49346888e-08)>
+        target: <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
+                    (65.497625, 19.53511111, 144.321)
+                 (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+                    (1.37949782e-15, 1.46375638e-15, 23.9)>
         observer to target (computed from above):
-          radial_velocity=40.67408633458015 km / s
-          redshift=0.00013567414806205748>
+          radial_velocity=40.67408633585573 km / s
+          redshift=0.00013568335305236268)
+      [200.00024141, 210.00025348, 220.00026555, 230.00027762, 240.00028969,
+       250.00030176, 260.00031383, 270.0003259 , 280.00033797, 290.00035004,
+       300.00036211] GHz>
 
 As you can see, the frequencies have changed slightly, which is because we have
 removed the Doppler shift caused by the Earth's rotation (this can also be seen
@@ -327,22 +330,21 @@ velocity reference frame relative to the Solar System barycenter, which is the
 origin of the *International Celestial Reference System* (ICRS) system, we can use::
 
     >>> sc_ttau.with_observer_stationary_relative_to('icrs')  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <SpectralCoord [200.0114322 , 210.01200381, 220.01257542, 230.01314703,
-                    240.01371864, 250.01429025, 260.01486186, 270.01543347,
-                    280.01600508, 290.01657669, 300.0171483 ] GHz
-        observer:
-          <ICRS Coordinate: (x, y, z) in m
-              (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
-           (v_x, v_y, v_z) in km / s
-              (0., 0., 0.)>
-        target:
-          <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
-              (65.497625, 19.53511111, 144.321)
-           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-              (1.37949782e-15, 1.46375638e-15, 23.9)>
+    <SpectralCoord
+       (observer: <ICRS Coordinate: (x, y, z) in m
+                      (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
+                   (v_x, v_y, v_z) in km / s
+                      (0., 0., 0.)>
+        target: <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
+                    (65.497625, 19.53511111, 144.321)
+                 (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+                    (1.37949782e-15, 1.46375638e-15, 23.9)>
         observer to target (computed from above):
-          radial_velocity=23.899999999999995 km / s
-          redshift=7.97249967898761e-05>
+          radial_velocity=23.9 km / s
+          redshift=7.97249967898761e-05)
+      [200.0114322 , 210.01200381, 220.01257542, 230.01314703, 240.01371864,
+       250.01429025, 260.01486186, 270.01543347, 280.01600508, 290.01657669,
+       300.0171483 ] GHz>
 
 Note that in this case the total radial velocity between the observer and the
 target matches what we specified when we set up the target, since it was defined
@@ -351,26 +353,27 @@ is still as before, but the observer velocity is now ~10-20 km/s in x, y, and z,
 which is because the observer is now stationary relative to the barycenter so has
 a significant velocity relative to the surface of the Earth.
 
-We can also transform the frequencies to the Dynamical Local Standard of Rest
-(LSRD) frame of reference::
+We can also transform the frequencies to the Kinematic Local Standard of Rest
+(LSRK) frame of reference, which is a reference frame commonly used in some
+branches of astronomy (such as radio astronomy)::
 
-    >>> sc_ttau.with_observer_stationary_relative_to('lsrd')  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <SpectralCoord [200.01820327, 210.01911343, 220.02002359, 230.02093376,
-                    240.02184392, 250.02275408, 260.02366425, 270.02457441,
-                    280.02548457, 290.02639474, 300.0273049 ] GHz
-        observer:
-          <LSRD Coordinate: (x, y, z) in m
-              (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
-           (v_x, v_y, v_z) in km / s
-              (0., 0., 0.)>
-        target:
-          <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
-              (65.497625, 19.53511111, 144.321)
-           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-              (1.37949782e-15, 1.46375638e-15, 23.9)>
+    >>> sc_ttau.with_observer_stationary_relative_to('lsrk')  # doctest: +REMOTE_DATA +FLOAT_CMP
+    <SpectralCoord
+       (observer: <LSRK Coordinate: (x, y, z) in m
+                      (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
+                   (v_x, v_y, v_z) in km / s
+                      (0., 0., 0.)>
+        target: <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
+                    (65.497625, 19.53511111, 144.321)
+                 (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+                    (1.37949782e-15, 1.46375638e-15, 23.9)>
         observer to target (computed from above):
-          radial_velocity=13.751182544045982 km / s
-          redshift=4.587005966327773e-05>
+          radial_velocity=12.50698856018455 km / s
+          redshift=4.171969349386906e-05)
+      [200.01903338, 210.01998505, 220.02093672, 230.02188839, 240.02284006,
+       250.02379172, 260.02474339, 270.02569506, 280.02664673, 290.0275984 ,
+       300.02855007] GHz>
+
 
 See :ref:`spectralcoord-common-frames` for a list of common velocity frames
 available as strings on the |SpectralCoord| class.
@@ -382,23 +385,21 @@ rest frame of the target::
 
     >>> sc_ttau_targetframe = sc_ttau.with_observer_stationary_relative_to(sc_ttau.target)  # doctest: +REMOTE_DATA
     >>> sc_ttau_targetframe  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <SpectralCoord [200.02737999, 210.02874899, 220.03011799, 230.03148698,
-                    240.03285598, 250.03422498, 260.03559398, 270.03696298,
-                    280.03833198, 290.03970098, 300.04106998] GHz
-        observer:
-          <ICRS Coordinate: (x, y, z) in m
-              (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
-           (v_x, v_y, v_z) in km / s
-              (9.34149908, 20.49579745, 7.99178839)>
-        target:
-          <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
-              (65.497625, 19.53511111, 144.321)
-           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-              (1.37949782e-15, 1.46375638e-15, 23.9)>
+    <SpectralCoord
+       (observer: <ICRS Coordinate: (x, y, z) in m
+                      (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
+                   (v_x, v_y, v_z) in km / s
+                      (9.34149908, 20.49579745, 7.99178839)>
+        target: <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
+                    (65.497625, 19.53511111, 144.321)
+                 (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+                    (1.37949782e-15, 1.46375638e-15, 23.9)>
         observer to target (computed from above):
           radial_velocity=0.0 km / s
-          redshift=0.0>
-
+          redshift=0.0)
+      [200.02737811, 210.02874702, 220.03011592, 230.03148483, 240.03285374,
+       250.03422264, 260.03559155, 270.03696045, 280.03832936, 290.03969826,
+       300.04106717] GHz>
 
 The ``radial_velocity``, which is the velocity offset between observer and
 target, is now zero.
@@ -416,20 +417,19 @@ We can convert these to the rest frame of the target using::
 
     >>> sc_feat_rest = sc_feat.with_observer_stationary_relative_to(sc_feat.target)  # doctest: +REMOTE_DATA
     >>> sc_feat_rest  # doctest: +REMOTE_DATA
-    <SpectralCoord [115.27577801, 115.28177883, 115.28277896] GHz
-        observer:
-          <ICRS Coordinate: (x, y, z) in m
-              (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
-           (v_x, v_y, v_z) in km / s
-              (9.34149908, 20.49579745, 7.99178839)>
-        target:
-          <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
-              (65.497625, 19.53511111, 144.321)
-           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-              (1.37949782e-15, 1.46375638e-15, 23.9)>
+    <SpectralCoord
+       (observer: <ICRS Coordinate: (x, y, z) in m
+                      (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
+                   (v_x, v_y, v_z) in km / s
+                      (9.34149908, 20.49579745, 7.99178839)>
+        target: <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
+                    (65.497625, 19.53511111, 144.321)
+                 (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+                    (1.37949782e-15, 1.46375638e-15, 23.9)>
         observer to target (computed from above):
           radial_velocity=0.0 km / s
-          redshift=0.0>
+          redshift=0.0)
+      [115.27577801, 115.28177883, 115.28277896] GHz>
 
 The frequencies are very close to the rest frequency of the 12CO J=1-0 molecular line transition,
 which is 115.2712018 GHz. However, they are not exactly the same, so if the features we see are
@@ -438,22 +438,21 @@ T Tau. We can convert these frequencies to velocities assuming the Doppler shift
 (in this case with the radio convention)::
 
     >>> sc_feat_rest.to(u.km / u.s, doppler_convention='radio', doppler_rest=115.27120180 * u.GHz)  # doctest: +REMOTE_DATA
-    <SpectralCoord [-11.90160347, -27.50828539, -30.10939904] km / s
-        observer:
-          <ICRS Coordinate: (x, y, z) in m
-              (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
-           (v_x, v_y, v_z) in km / s
-              (9.34149908, 20.49579745, 7.99178839)>
-        target:
-          <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
-              (65.497625, 19.53511111, 144.321)
-           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-              (1.37949782e-15, 1.46375638e-15, 23.9)>
+    <SpectralCoord
+       (observer: <ICRS Coordinate: (x, y, z) in m
+                      (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
+                   (v_x, v_y, v_z) in km / s
+                      (9.34149908, 20.49579745, 7.99178839)>
+        target: <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
+                    (65.497625, 19.53511111, 144.321)
+                 (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+                    (1.37949782e-15, 1.46375638e-15, 23.9)>
         observer to target (computed from above):
           radial_velocity=0.0 km / s
           redshift=0.0
-    	doppler_rest=115.2712018 GHz
-    	doppler_convention=radio>
+        doppler_rest=115.2712018 GHz
+        doppler_convention=radio)
+      [-11.90160347, -27.50828539, -30.10939904] km / s>
 
 Note that these resulting velocities are different from the ``radial_velocity``
 property (which is still zero here) - the latter is the difference in velocity
@@ -521,24 +520,21 @@ object, we can then transform a |SpectralCoord| so that the observer is stationa
 in that frame of reference::
 
     >>> sc_ttau.with_observer_stationary_relative_to(localgroup_frame)  # doctest: +REMOTE_DATA
-    <SpectralCoord [199.99913628, 209.9990931 , 219.99904991, 229.99900673,
-                    239.99896354, 249.99892036, 259.99887717, 269.99883398,
-                    279.9987908 , 289.99874761, 299.99870443] GHz
-        observer:
-          <Galactic Coordinate: (u, v, w) in m
-              (8.8038652e+10, -5.31344273e+10, 1.09238291e+11)
-           (U, V, W) in km / s
-              (-1.42108547e-14, -300., 2.84217094e-14)>
-        target:
-          <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
-              (65.497625, 19.53511111, 144.321)
-           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-              (1.37949782e-15, 1.46375638e-15, 23.9)>
+    <SpectralCoord
+       (observer: <Galactic Coordinate: (u, v, w) in m
+                      (8.8038652e+10, -5.31344273e+10, 1.09238291e+11)
+                   (U, V, W) in km / s
+                      (-1.42108547e-14, -300., 2.84217094e-14)>
+        target: <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
+                    (65.497625, 19.53511111, 144.321)
+                 (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+                    (1.37949782e-15, 1.46375638e-15, 23.9)>
         observer to target (computed from above):
           radial_velocity=42.33062895275233 km / s
-          redshift=0.00014120974955456056>
-
-.. TODO: radial_velocity seems incorrect!
+          redshift=0.00014120974955456056)
+      [199.99913628, 209.9990931 , 219.99904991, 229.99900673, 239.99896354,
+       249.99892036, 259.99887717, 269.99883398, 279.9987908 , 289.99874761,
+       299.99870443] GHz>
 
 References
 ==========

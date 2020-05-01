@@ -463,6 +463,14 @@ def test_with_observer_stationary_relative_to():
                                                  differential_type='cartesian'),
                                                  velocity=[-2**0.5, 0, -2**0.5] * u.km / u.s)
 
+    # Make sure things don't change depending on what frame class is used for reference
+    sc11 = sc2.with_observer_stationary_relative_to(SkyCoord(ICRS(0 * u.km, 0 * u.km, 0 * u.km,
+                                                                  2**0.5 * u.km / u.s, 0 * u.km / u.s, 2**0.5 * u.km / u.s,
+                                                                  representation_type='cartesian',
+                                                                  differential_type='cartesian')).transform_to(Galactic))
+    assert_quantity_allclose(sc11.radial_velocity, 0 * u.km / u.s, atol=1e-10 * u.km / u.s)
+
+
 # SCIENCE USE CASE TESTS
 
 
