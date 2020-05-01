@@ -9,8 +9,10 @@ astropy.config
 
 - Add new function ``generate_config`` to generate the configuration file and
   include it in the documentation. [#10148]
-- ``ConfigNamespace.__iter__`` now yields ``ConfigItem`` names defined
-  within it. [#10139]
+
+- ``ConfigNamespace.__iter__`` and ``ConfigNamespace.keys`` now yield ``ConfigItem``
+  names defined within it. Similarly, ``items`` and ``values`` would yield like a
+  Python dictionary would. [#10139]
 
 astropy.constants
 ^^^^^^^^^^^^^^^^^
@@ -69,6 +71,8 @@ astropy.io.misc
 
 - Added 'functional_models.py' and 'physical_models.py' to asdf/tags/transform,
   with to allow serialization of all functional and physical models. [#10028, #10293]
+- Added 'functional_models.py' and 'physical_models.py' to asdf/tags/transform,
+  with to allow serialization of all functional and physical models. [#10028]
 
 - Fix ASDF serialization of circular model inverses, and remove explicit calls
   to ``asdf.yamlutil`` functions that became unnecessary in asdf 2.6.0. [#10189]
