@@ -1103,7 +1103,7 @@ We use the same plotting setup as in the last example:
 Comparing SkyCoord Objects
 ==========================
 
-There are two primary ways to compare |SkyCoord| objects each other. First is
+There are two primary ways to compare |SkyCoord| objects to each other. First is
 checking if the coordinates are within a specified distance of each other. This
 is what most users should do in their science or processing analysis work
 because it allows for a tolerance due to floating point representation issues.
