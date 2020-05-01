@@ -73,9 +73,12 @@ try:
 except Exception:
     version = '{version}'
 
-from distutils.version import LooseVersion
-major, minor, bugfix = LooseVersion(version).version[:3]
-del LooseVersion  # clean up the namespace
+# We use parse_version and the base_version attribute here since we need to
+# ignore any e.g. .dev suffix. We also need to be careful about cases where
+# there is no bugfix number (e.g. 4.1.dev1231)
+from pkg_resources import parse_version
+major, minor, bugfix = ([int(x) for x in parse_version(version).base_version.split('.')] + [0])[:3]
+del parse_version  # clean up the namespace
 
 release = 'dev' not in version
 """.lstrip()
