@@ -153,7 +153,7 @@ package.
   * Are the sources for the tests documented?
   * Have tests that require an [optional dependency](https://docs.astropy.org/en/latest/development/testguide.html#tests-requiring-optional-dependencies)
     been marked as such?
-  * Does ``python setup.py test`` run without failures?
+  * Does ``tox -e test`` run without failures?
 
 **Documentation**
   * Are the [documentation guidelines](https://docs.astropy.org/en/latest/development/docguide.html) followed?
