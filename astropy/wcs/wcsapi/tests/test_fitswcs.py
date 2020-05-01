@@ -1009,5 +1009,5 @@ def test_spectralcoord_frame(header_spectral_frames):
 
             # Now transform to the expected velocity frame, which should leave
             # the spectral coordinate unchanged
-            sc_check = sc.with_observer_velocity(expected_frame)
+            sc_check = sc.with_observer_stationary_relative_to(expected_frame)
             assert_quantity_allclose(sc.quantity, sc_check.quantity)

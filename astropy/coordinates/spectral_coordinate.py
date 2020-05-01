@@ -669,7 +669,8 @@ class SpectralCoord(SpectralQuantity):
 
         return _apply_relativistic_doppler_shift(self, delta_vel)
 
-    def with_observer_velocity(self, frame, preserve_observer_frame=False):
+    @u.quantity_input(velocity=u.km/u.s)
+    def with_observer_stationary_relative_to(self, frame, velocity=None, preserve_observer_frame=False):
         """
         Alters the velocity of the observer, but not the position.
 
@@ -681,8 +682,15 @@ class SpectralCoord(SpectralQuantity):
 
         Parameters
         ----------
-        frame : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
-            The observation frame containing the new velocity for the observer.
+        frame : str, `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
+            The observation frame in which the observer will be stationary. This
+            can be the name of a frame (e.g. 'icrs'), a frame class, frame instance
+            with no data, or instance with data. This can optionally include
+            velocities.
+        velocity : `~astropy.units.Quantity`, optional
+            If ``frame`` does not contain velocities, these can be specified as
+            a 3-element `~astropy.units.Quantity`. In the case where this is
+            also not specified, the velocities default to zero.
         preserve_observer_frame : bool
             If `True`, the final observer frame class will be the same as the
             original one, and if `False` it will be the frame of the velocity
@@ -699,15 +707,37 @@ class SpectralCoord(SpectralQuantity):
             raise ValueError("This method can only be used if both observer "
                              "and target are defined on the SpectralCoord.")
 
-        if hasattr(frame, 'frame'):
+        # Start off by extracting frame if a SkyCoord was passed in
+        if isinstance(frame, SkyCoord):
             frame = frame.frame
-        elif isinstance(frame, (type, str)):
+
+        if isinstance(frame, BaseCoordinateFrame):
+
+            if not frame.has_data:
+                frame = frame.realize_frame(CartesianRepresentation(0 * u.km, 0 * u.km, 0 * u.km))
+
+            if frame.data.differentials:
+                if velocity is not None:
+                    raise ValueError('frame already has differentials, cannot also specify velocity')
+                # otherwise frame is ready to go
+            else:
+                if velocity is None:
+                    differentials = CartesianDifferential(0 * u.m / u.s, 0 * u.m / u.s, 0 * u.m / u.s)
+                else:
+                    differentials = CartesianDifferential(*velocity)
+                frame = frame.realize_frame(frame.data.with_differentials(differentials))
+
+        if isinstance(frame, (type, str)):
             if isinstance(frame, type):
                 frame_cls = frame
             elif isinstance(frame, str):
                 frame_cls = frame_transform_graph.lookup_name(frame)
+            if velocity is None:
+                velocity = 0 * u.m / u.s, 0 * u.m / u.s, 0 * u.m / u.s
+            elif velocity.shape != (3,):
+                raise ValueError('velocity should be a Quantity vector with 3 elements')
             frame = frame_cls(0 * u.m, 0 * u.m, 0 * u.m,
-                              0 * u.m / u.s, 0 * u.m / u.s, 0 * u.m / u.s,
+                              *velocity,
                               representation_type='cartesian',
                               differential_type='cartesian')
 
@@ -809,7 +839,7 @@ class SpectralCoord(SpectralQuantity):
         """
 
         if self.observer is not None and self.target is not None:
-            return self.with_observer_velocity(self.target)
+            return self.with_observer_stationary_relative_to(self.target)
 
         result = _apply_relativistic_doppler_shift(self, -self.radial_velocity)
 

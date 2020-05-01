@@ -379,6 +379,90 @@ def test_replicate():
     assert_quantity_allclose(sc_init_ref, [6000, 5000] * u.AA)
 
 
+
+def test_with_observer_stationary_relative_to():
+
+    # Simple tests of with_observer_stationary_relative_to to cover different
+    # ways of calling it
+
+    # The replicate method makes a new object with attributes updated, but doesn't
+    # do any conversion
+
+    sc1 = SpectralCoord([4000, 5000]*u.AA)
+    with pytest.raises(ValueError, match='This method can only be used if both '
+                                         'observer and target are defined on the '
+                                         'SpectralCoord'):
+        sc1.with_observer_stationary_relative_to('icrs')
+
+    sc2 = SpectralCoord([4000, 5000] * u.AA,
+                        observer=ICRS(0 * u.km, 0 * u.km, 0 * u.km,
+                                      -1 * u.km / u.s, 0 * u.km / u.s, -1 * u.km / u.s,
+                                      representation_type='cartesian',
+                                      differential_type='cartesian'),
+                        target=ICRS(0 * u.deg, 45 * u.deg, distance=1 * u.kpc, radial_velocity=2 * u.km / u.s))
+
+    # Motion of observer is in opposite direction to target
+    assert_quantity_allclose(sc2.radial_velocity, (2 + 2 ** 0.5) * u.km / u.s)
+
+    # Change to observer that is stationary in ICRS
+    sc3 = sc2.with_observer_stationary_relative_to('icrs')
+
+    # Velocity difference is now pure radial velocity of target
+    assert_quantity_allclose(sc3.radial_velocity, 2 * u.km / u.s)
+
+    # Check setting the velocity in with_observer_stationary_relative_to
+    sc4 = sc2.with_observer_stationary_relative_to('icrs', velocity=[-2**0.5, 0, -2**0.5] * u.km / u.s)
+
+    # Observer once again moving away from target but faster
+    assert_quantity_allclose(sc4.radial_velocity, 4 * u.km / u.s)
+
+    # Check that we can also pass frame classes instead of names
+
+    sc5 = sc2.with_observer_stationary_relative_to(ICRS, velocity=[-2**0.5, 0, -2**0.5] * u.km / u.s)
+    assert_quantity_allclose(sc5.radial_velocity, 4 * u.km / u.s)
+
+    # And make sure we can also pass instances of classes without data
+
+    sc6 = sc2.with_observer_stationary_relative_to(ICRS(), velocity=[-2**0.5, 0, -2**0.5] * u.km / u.s)
+    assert_quantity_allclose(sc6.radial_velocity, 4 * u.km / u.s)
+
+    # And with data provided no velocities are present
+
+    sc7 = sc2.with_observer_stationary_relative_to(ICRS(0 * u.km, 0 * u.km, 0 * u.km,
+                                                        representation_type='cartesian'),
+                                                   velocity=[-2**0.5, 0, -2**0.5] * u.km / u.s)
+    assert_quantity_allclose(sc7.radial_velocity, 4 * u.km / u.s)
+
+    # And also have the ability to pass frames with velocities already defined
+
+    sc8 = sc2.with_observer_stationary_relative_to(ICRS(0 * u.km, 0 * u.km, 0 * u.km,
+                                                        2**0.5 * u.km / u.s, 0 * u.km / u.s, 2**0.5 * u.km / u.s,
+                                                        representation_type='cartesian',
+                                                        differential_type='cartesian'))
+    assert_quantity_allclose(sc8.radial_velocity, 0 * u.km / u.s, atol=1e-10 * u.km / u.s)
+
+    # Make sure that things work properly if passing a SkyCoord
+
+    sc9 = sc2.with_observer_stationary_relative_to(SkyCoord(ICRS(0 * u.km, 0 * u.km, 0 * u.km,
+                                                                 representation_type='cartesian')),
+                                                   velocity=[-2**0.5, 0, -2**0.5] * u.km / u.s)
+    assert_quantity_allclose(sc9.radial_velocity, 4 * u.km / u.s)
+
+    sc10 = sc2.with_observer_stationary_relative_to(SkyCoord(ICRS(0 * u.km, 0 * u.km, 0 * u.km,
+                                                                  2**0.5 * u.km / u.s, 0 * u.km / u.s, 2**0.5 * u.km / u.s,
+                                                                  representation_type='cartesian',
+                                                                  differential_type='cartesian')))
+    assert_quantity_allclose(sc10.radial_velocity, 0 * u.km / u.s, atol=1e-10 * u.km / u.s)
+
+    # But we shouldn't be able to pass both a frame with velocities, and explicit velocities
+
+    with pytest.raises(ValueError, match='frame already has differentials, cannot also specify velocity'):
+        sc2.with_observer_stationary_relative_to(ICRS(0 * u.km, 0 * u.km, 0 * u.km,
+                                                 2**0.5 * u.km / u.s, 0 * u.km / u.s, 2**0.5 * u.km / u.s,
+                                                 representation_type='cartesian',
+                                                 differential_type='cartesian'),
+                                                 velocity=[-2**0.5, 0, -2**0.5] * u.km / u.s)
+
 # SCIENCE USE CASE TESTS
 
 
@@ -610,7 +694,7 @@ def test_asteroid_velocity_frame_shifts():
     assert spec_coord2.radial_velocity > 0*u.km/u.s
     assert spec_coord2.radial_velocity < 5*u.km/u.s
 
-    # now check the behavior of with_observer_velocity: we shift each coord
+    # now check the behavior of with_observer_stationary_relative_to: we shift each coord
     # into the velocity frame of its *own* target.  That would then be a
     # spectralcoord that would allow direct physical comparison of the two
     # diffferent spec_corrds.  There's no way to test that, without
@@ -619,7 +703,7 @@ def test_asteroid_velocity_frame_shifts():
     # spec_coord2 is redshifted, so we test that it behaves the way "shifting
     # to rest frame" should - the as-observed spectral coordinate should become
     # the rest frame, so something that starts out red should become bluer
-    target_sc2 = spec_coord2.with_observer_velocity(spec_coord2.target)
+    target_sc2 = spec_coord2.with_observer_stationary_relative_to(spec_coord2.target)
     assert np.all(target_sc2 < spec_coord2)
     # rv/redshift should be 0 since the observer and target velocities should
     # be the same
@@ -629,12 +713,12 @@ def test_asteroid_velocity_frame_shifts():
     # check that the same holds for spec_coord1, but be more specific: it
     # should follow the standard redshift formula (which in this case yields
     # a blueshift, although the formula is the same as 1+z)
-    target_sc1 = spec_coord1.with_observer_velocity(spec_coord1.target)
+    target_sc1 = spec_coord1.with_observer_stationary_relative_to(spec_coord1.target)
     assert_quantity_allclose(target_sc1, spec_coord1/(1+spec_coord1.redshift))
 
     # TODO: Figure out what is meant by the below use case
     # ensure the "target-rest" use gives the same answer
-    # target_sc1_alt = spec_coord1.with_observer_velocity('target-rest')
+    # target_sc1_alt = spec_coord1.with_observer_stationary_relative_to('target-rest')
     # assert_quantity_allclose(target_sc1, target_sc1_alt)
 
 
@@ -687,7 +771,7 @@ def test_spectralcoord_accuracy(specsys):
             # though the leap second table should be valid until the end of
             # 2020.
             with nullcontext() if row['obstime'].mjd < 57754 else pytest.warns(AstropyWarning, match='Tried to get polar motions'):
-                sc_final = sc_topo.with_observer_velocity(velocity_frame)
+                sc_final = sc_topo.with_observer_stationary_relative_to(velocity_frame)
 
             delta_vel = (sc_topo.to(u.km / u.s, doppler_convention='relativistic', doppler_rest=rest) -
                          sc_final.to(u.km / u.s, doppler_convention='relativistic', doppler_rest=rest))
