@@ -182,7 +182,7 @@ class SpectralQuantity(SpecificTypeQuantity):
            doppler_rest=None,
            doppler_convention=None):
         """
-        Return a new `~astropy.units.SpectralQuantity` object with the specified unit.
+        Return a new `~astropy.coordinates.SpectralQuantity` object with the specified unit.
 
         By default, the ``spectral`` equivalency will be enabled, as well as
         one of the Doppler equivalencies if converting to/from velocities.
@@ -203,11 +203,11 @@ class SpectralQuantity(SpecificTypeQuantity):
         doppler_rest : `~astropy.units.Quantity`, optional
             The rest value used when converting to/from velocities. This will
             also be set at an attribute on the output
-            `~astropy.units.SpectralQuantity`.
+            `~astropy.coordinates.SpectralQuantity`.
         doppler_convention : {'relativistic', 'optical', 'radio'}, optional
             The Doppler convention used when converting to/from velocities.
             This will also be set at an attribute on the output
-            `~astropy.units.SpectralQuantity`.
+            `~astropy.coordinates.SpectralQuantity`.
 
         Returns
         -------
