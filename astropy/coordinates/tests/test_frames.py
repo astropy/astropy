@@ -9,7 +9,7 @@ from astropy import units as u
 from astropy.tests.helper import (catch_warnings,
                                   assert_quantity_allclose as assert_allclose)
 from astropy.utils import OrderedDescriptorContainer
-from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyWarning
 from astropy.coordinates import representation as r
 from astropy.coordinates.representation import REPRESENTATION_CLASSES
 from astropy.units import allclose
@@ -1267,9 +1267,9 @@ def reset_galactocentric_defaults():
     from astropy.coordinates import galactocentric_frame_defaults
 
     # Resets before each test, and after (the yield is pytest magic)
-    galactocentric_frame_defaults._value = 'pre-v4.0'
+    galactocentric_frame_defaults.set('v4.0')
     yield
-    galactocentric_frame_defaults._value = 'pre-v4.0'
+    galactocentric_frame_defaults.set('v4.0')
 
 
 def test_galactocentric_defaults(reset_galactocentric_defaults):
@@ -1301,25 +1301,6 @@ def test_galactocentric_defaults(reset_galactocentric_defaults):
                               getattr(galcen_latest, k).d_xyz)
         else:
             assert getattr(galcen_40, k) == getattr(galcen_latest, k)
-
-
-def test_galactocentric_default_warning(reset_galactocentric_defaults):
-    from astropy.coordinates import (Galactocentric,
-                                     galactocentric_frame_defaults)
-
-    # Make sure a warning is thrown if the frame is created with no args
-    with pytest.warns(AstropyDeprecationWarning,
-                      match=r"In v4\.1 and later versions"):
-        Galactocentric()
-
-    # Throw a warning even if only a subset of args are specified
-    with pytest.warns(AstropyDeprecationWarning,
-                      match=r"In v4\.1 and later versions"):
-        Galactocentric(galcen_distance=8.2*u.kpc)
-
-    # No warning if using the latest parameter set:
-    with galactocentric_frame_defaults.set('latest'):
-        Galactocentric()
 
 
 def test_galactocentric_references(reset_galactocentric_defaults):

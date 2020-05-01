@@ -187,27 +187,22 @@ Examples
 The default parameter values can be seen by initializing the
 `~astropy.coordinates.Galactocentric` frame with no arguments:
 
-.. testsetup::
-
-    >>> from astropy.coordinates import galactocentric_frame_defaults
-    >>> _ = galactocentric_frame_defaults.set('pre-v4.0')
-
 ::
 
     >>> from astropy.coordinates import Galactocentric
     >>> Galactocentric()
     <Galactocentric Frame (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
-        (266.4051, -28.936175)>, galcen_distance=8.3 kpc, galcen_v_sun=(11.1, 232.24, 7.25) km / s, z_sun=27.0 pc, roll=0.0 deg)>
+        (266.4051, -28.936175)>, galcen_distance=8.122 kpc, galcen_v_sun=(12.9, 245.6, 7.78) km / s, z_sun=20.8 pc, roll=0.0 deg)>
 
 These default values can be modified using this class::
 
     >>> from astropy.coordinates import galactocentric_frame_defaults
-    >>> _ = galactocentric_frame_defaults.set('v4.0')
-    >>> Galactocentric() # doctest: +FLOAT_CMP
+    >>> _ = galactocentric_frame_defaults.set('v4.0') # doctest: +SKIP
+    >>> Galactocentric() # doctest: +SKIP
     <Galactocentric Frame (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
         (266.4051, -28.936175)>, galcen_distance=8.122 kpc, galcen_v_sun=(12.9, 245.6, 7.78) km / s, z_sun=20.8 pc, roll=0.0 deg)>
-    >>> _ = galactocentric_frame_defaults.set('pre-v4.0')
-    >>> Galactocentric() # doctest: +FLOAT_CMP
+    >>> _ = galactocentric_frame_defaults.set('pre-v4.0') # doctest: +SKIP
+    >>> Galactocentric() # doctest: +SKIP
     <Galactocentric Frame (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
         (266.4051, -28.936175)>, galcen_distance=8.3 kpc, galcen_v_sun=(11.1, 232.24, 7.25) km / s, z_sun=27.0 pc, roll=0.0 deg)>
 
@@ -233,7 +228,7 @@ attributes that are explicitly specified::
 
 Starting with Astropy v4.1, unless set with the
 `~astropy.coordinates.galactocentric_frame_defaults` class, the default
-parameter values for the `~astropy.coordinates.Galactocentric` frame will be set
+parameter values for the `~astropy.coordinates.Galactocentric` frame are now set
 to ``'latest'``, meaning that the default parameter values may change if you
 update Astropy. If you use the `~astropy.coordinates.Galactocentric` frame
 without specifying all parameter values explicitly, we therefore suggest
