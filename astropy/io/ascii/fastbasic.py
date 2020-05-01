@@ -138,7 +138,9 @@ class FastBasic(metaclass=core.MetaBaseReader):
         meta = OrderedDict()
         if comments:
             meta['comments'] = comments
-        return Table(data, names=list(self.engine.get_names()), meta=meta)
+
+        names = core._deduplicate_names(self.engine.get_names())
+        return Table(data, names=names, meta=meta)
 
     def check_header(self):
         names = self.engine.get_header_names() or self.engine.get_names()
@@ -270,7 +272,8 @@ class FastCommentedHeader(FastBasic):
             if not meta['comments']:
                 del meta['comments']
 
-        return Table(data, names=list(self.engine.get_names()), meta=meta)
+        names = core._deduplicate_names(self.engine.get_names())
+        return Table(data, names=names, meta=meta)
 
     def _read_header(self):
         tmp = self.engine.source
@@ -331,7 +334,7 @@ class FastRdb(FastBasic):
         # tokenize the two header lines separately
         self.engine.setup_tokenizer([line2])
         self.engine.header_start = 0
-        self.engine.read_header()
+        self.engine.read_header(deduplicate=False)
         types = self.engine.get_names()
         self.engine.setup_tokenizer([line1])
         self.engine.set_names([])

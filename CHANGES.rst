@@ -41,6 +41,8 @@ astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 - Functional Units can now be processed in CDS-tables. [#9971]
 
+- Allow reading in ASCII tables which have duplicate column names. [#9939]
+
 - Added type validation of key arguments in calls to ``io.ascii.read()`` and
   ``io.ascii.write()`` functions. [#10005]
 

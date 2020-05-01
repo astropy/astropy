@@ -1029,6 +1029,28 @@ class BaseOutputter:
                     raise ValueError(f'Column {col.name} failed to convert: {last_err}')
 
 
+def _deduplicate_names(names):
+    """Ensure there are no duplicates in ``names``
+
+    This is done by iteratively adding ``_<N>`` to the name for increasing N
+    until the name is unique.
+    """
+    new_names = []
+    existing_names = set()
+
+    for name in names:
+        orig_name = name
+        i = 1
+        while name in existing_names:
+            # Iterate until a unique name is found
+            name = orig_name + '_' + str(i)
+            i += 1
+        new_names.append(name)
+        existing_names.add(name)
+
+    return new_names
+
+
 class TableOutputter(BaseOutputter):
     """
     Output the table as an astropy.table.Table object.
@@ -1112,7 +1134,7 @@ def _apply_include_exclude_names(table, names, include_names, exclude_names):
     Parameters
     ----------
     table : `~astropy.table.Table`, `~astropy.io.ascii.BaseHeader`
-        Input table
+        Input table or BaseHeader subclass instance
     names : list
         List of names to override those in table (set to None to use existing names)
     include_names : list
@@ -1121,8 +1143,7 @@ def _apply_include_exclude_names(table, names, include_names, exclude_names):
         List of names to exclude from output (applied after ``include_names``)
 
     """
-
-    if names is not None:
+    def rename_columns(table, names):
         # Rename table column names to those passed by user
         # Temporarily rename with names that are not in `names` or `table.colnames`.
         # This ensures that rename succeeds regardless of existing names.
@@ -1133,13 +1154,21 @@ def _apply_include_exclude_names(table, names, include_names, exclude_names):
         for ii, name in enumerate(names):
             table.rename_column(xxxs + str(ii), name)
 
-    names = set(table.colnames)
+    colnames_uniq = _deduplicate_names(table.colnames)
+    if colnames_uniq != table.colnames:
+        rename_columns(table, colnames_uniq)
+
+    if names is not None:
+        rename_columns(table, names)
+
+    names_set = set(table.colnames)
+
     if include_names is not None:
-        names.intersection_update(include_names)
+        names_set.intersection_update(include_names)
     if exclude_names is not None:
-        names.difference_update(exclude_names)
-    if names != set(table.colnames):
-        remove_names = set(table.colnames) - set(names)
+        names_set.difference_update(exclude_names)
+    if names_set != set(table.colnames):
+        remove_names = set(table.colnames) - names_set
         table.remove_columns(remove_names)
 
 
