@@ -159,6 +159,9 @@ velocity equivalent to that redshift, and it is indeed large enough that we don'
 to worry about the rotation of the Earth on itself around the Sun (which would be
 at most a ~30km/s contribution).
 
+.. note:: In the context of |SpectralCoord|, we use the full relativistic relation
+          between redshift and velocity, i.e. :math:`1 + z = \sqrt{(1 + v/c)/(1 - v/c)}`
+
 We now want to shift the wavelengths so that they would be in the rest frame of
 the galaxy. We can do this using the
 :meth:`~astropy.coordinates.SpectralCoord.to_rest` method::
