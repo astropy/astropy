@@ -114,6 +114,7 @@ int ffgcls( fitsfile *fptr,   /* I - FITS file pointer                       */
     colptr += (colnum - 1);     /* offset to correct column structure */
     tcode = abs(colptr->tdatatype);
 
+    intcol = 0;
     if (tcode == TSTRING)
     {
       /* simply call the string column reading routine */
@@ -170,6 +171,19 @@ int ffgcls( fitsfile *fptr,   /* I - FITS file pointer                       */
          {
              /* convert the Fortran style format to a C style format */
              ffcdsp(dispfmt, cform);
+
+	     /* Special case: TDISPn='Aw' disallowed for numeric types */
+	     if (dispfmt[0] == 'A') {
+	       cform[0] = 0;
+
+	       /* Special case: if the output is intended to be represented
+		  as an integer, but we read it as a double, we need to
+		  set intcol = 1 so it is printed as an integer */
+	     } else if ((dispfmt[0] == 'I') || (dispfmt[0] == 'i') ||
+			(dispfmt[0] == 'O') || (dispfmt[0] == 'o') ||
+			(dispfmt[0] == 'Z') || (dispfmt[0] == 'z')) {
+	       intcol = 1;
+	     }
          }
 
          if (!cform[0])
@@ -188,8 +202,14 @@ int ffgcls( fitsfile *fptr,   /* I - FITS file pointer                       */
              if (nultyp == 2)
                 nularray[ii] = 1;
            }
-           else
-             snprintf(tmpstr, 400,cform, earray[jj]);
+           else if (intcol)
+	   {
+	       snprintf(tmpstr, 400,cform, (int) earray[jj]);
+	   } 
+	   else 
+	   {
+	       snprintf(tmpstr, 400,cform, earray[jj]);
+	   }
 
            strncat(array[ii], tmpstr, dwidth);
            strcat(array[ii], ",");
@@ -202,8 +222,14 @@ int ffgcls( fitsfile *fptr,   /* I - FITS file pointer                       */
              if (nultyp == 2)
                 nularray[ii] = 1;
            }
-           else
-             snprintf(tmpstr, 400,cform, earray[jj]);
+           else if (intcol)
+	   {
+	       snprintf(tmpstr, 400,cform, (int) earray[jj]);
+	   } 
+	   else 
+	   {
+	       snprintf(tmpstr, 400,cform, earray[jj]);
+	   }
 
            strncat(array[ii], tmpstr, dwidth);
            strcat(array[ii], ")");
@@ -237,6 +263,19 @@ int ffgcls( fitsfile *fptr,   /* I - FITS file pointer                       */
          {
              /* convert the Fortran style format to a C style format */
              ffcdsp(dispfmt, cform);
+
+	     /* Special case: TDISPn='Aw' disallowed for numeric types */
+	     if (dispfmt[0] == 'A') {
+	       cform[0] = 0;
+
+	       /* Special case: if the output is intended to be represented
+		  as an integer, but we read it as a double, we need to
+		  set intcol = 1 so it is printed as an integer */
+	     } else if ((dispfmt[0] == 'I') || (dispfmt[0] == 'i') ||
+			(dispfmt[0] == 'O') || (dispfmt[0] == 'o') ||
+			(dispfmt[0] == 'Z') || (dispfmt[0] == 'z')) {
+	       intcol = 1;
+	     }
          }
 
          if (!cform[0])
@@ -255,8 +294,14 @@ int ffgcls( fitsfile *fptr,   /* I - FITS file pointer                       */
              if (nultyp == 2)
                 nularray[ii] = 1;
            }
-           else
-             snprintf(tmpstr, 400,cform, darray[jj]);
+           else if (intcol)
+	   {
+	       snprintf(tmpstr, 400,cform, (int) darray[jj]);
+	   } 
+	   else 
+	   {
+	       snprintf(tmpstr, 400,cform, darray[jj]);
+	   }
 
            strncat(array[ii], tmpstr, dwidth);
            strcat(array[ii], ",");
@@ -269,8 +314,14 @@ int ffgcls( fitsfile *fptr,   /* I - FITS file pointer                       */
              if (nultyp == 2)
                 nularray[ii] = 1;
            }
-           else
-             snprintf(tmpstr, 400,cform, darray[jj]);
+           else if (intcol)
+	   {
+	       snprintf(tmpstr, 400,cform, (int) darray[jj]);
+	   } 
+	   else 
+	   {
+	       snprintf(tmpstr, 400,cform, darray[jj]);
+	   }
 
            strncat(array[ii], tmpstr, dwidth);
            strcat(array[ii], ")");
@@ -436,6 +487,19 @@ int ffgcls( fitsfile *fptr,   /* I - FITS file pointer                       */
       {
            /* convert the Fortran style TDISPn to a C style format */
            ffcdsp(dispfmt, cform);
+
+	   /* Special case: TDISPn='Aw' disallowed for numeric types */
+	   if (dispfmt[0] == 'A') {
+	     cform[0] = 0;
+
+	   /* Special case: if the output is intended to be represented
+	      as an integer, but we read it as a double, we need to
+	      set intcol = 1 so it is printed as an integer */
+	   } else if ((dispfmt[0] == 'I') || (dispfmt[0] == 'i') ||
+		      (dispfmt[0] == 'O') || (dispfmt[0] == 'o') ||
+		      (dispfmt[0] == 'Z') || (dispfmt[0] == 'z')) {
+	     intcol = 1;
+	   }
       }
 
       if (!cform[0])

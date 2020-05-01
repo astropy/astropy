@@ -1018,7 +1018,7 @@ int ffhist(fitsfile **fptr,  /* IO - pointer to table with X and Y cols;    */
       }
 
       /* get the datatype of the column */
-      fits_get_coltype(*fptr, histData.hcolnum[ii], &datatype,
+      fits_get_eqcoltype(*fptr, histData.hcolnum[ii], &datatype,
          NULL, NULL, status);
 
       if (datatype < 0 || datatype == TSTRING)
@@ -1670,7 +1670,7 @@ int fits_calc_binningd(
       }
 
       /* get the datatype of the column */
-      fits_get_coltype(fptr, colnum[ii], &datatype,
+      fits_get_eqcoltype(fptr, colnum[ii], &datatype,
          NULL, NULL, status);
 
       if (datatype < 0 || datatype == TSTRING)
@@ -2197,7 +2197,7 @@ int fits_make_histd(fitsfile *fptr, /* IO - pointer to table with X and Y cols; 
       ibin = (long) tbin[ii];
     
       /* get the datatype of the column */
-      fits_get_coltype(fptr, colnum[ii], &datatype, NULL, NULL, status);
+      fits_get_eqcoltype(fptr, colnum[ii], &datatype, NULL, NULL, status);
 
       if (datatype <= TLONG && (double) imin == tmin[ii] &&
                                (double) imax == tmax[ii] &&

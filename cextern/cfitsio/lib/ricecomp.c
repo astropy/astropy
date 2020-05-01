@@ -3,6 +3,14 @@
   available for use in CFITSIO in July 1999.  These routines were
   originally contained in 2 source files: rcomp.c and rdecomp.c,
   and the 'include' file now called ricecomp.h was originally called buffer.h.
+  
+  Note that beginning with CFITSIO v3.08, EOB checking was removed to improve
+  speed, and so now the input compressed bytes buffers must have been
+  allocated big enough so that they will never be overflowed. A simple
+  rule of thumb that guarantees the buffer will be large enough is to make
+  it 1% larger than the size of the input array of pixels that are being
+  compressed.
+  
 */
 
 /*----------------------------------------------------------*/
