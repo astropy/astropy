@@ -14,6 +14,8 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = ['SpectralCoord']
 
+KMS = u.km / u.s
+
 # Default distance to use for target when none is provided
 DEFAULT_DISTANCE = 1e6 * u.kpc
 
@@ -71,7 +73,7 @@ def _apply_relativistic_doppler_shift(scoord, velocity):
           squantity.unit.is_equivalent(u.eV) or
           squantity.unit.is_equivalent(1 / u.m)):
         return squantity / doppler_factor
-    elif squantity.unit.is_equivalent(u.km / u.s):  # velocity
+    elif squantity.unit.is_equivalent(KMS):  # velocity
         return (squantity.to(u.Hz) / doppler_factor).to(squantity.unit)
     else:  # pragma: no cover
         raise RuntimeError(f"Unexpected units in velocity shift: {squantity.unit}. "
@@ -126,7 +128,7 @@ def attach_zero_velocities(coord):
     """
     Set the differentials to be stationary on a coordinate object.
     """
-    coord_diffs = CartesianDifferential(u.Quantity([0, 0, 0] * u.km / u.s))
+    coord_diffs = CartesianDifferential(u.Quantity([0, 0, 0] * KMS))
     new_data = coord.cartesian.with_differentials(coord_diffs)
     return coord.realize_frame(new_data)
 
@@ -161,9 +163,11 @@ class SpectralCoord(SpectralQuantity):
         are present on this object, the target is assumed to be stationary
         relative to the frame origin.
     radial_velocity : `~astropy.units.Quantity`, optional
-        The radial velocity of the target with respect to the observer.
+        The radial velocity of the target with respect to the observer. This
+        can only be specified if ``redshift`` is not specified.
     redshift : float, optional
         The relativistic redshift of the target with respect to the observer.
+        This can only be specified if ``radial_velocity`` cannot be specified.
     doppler_rest : `~astropy.units.Quantity`, optional
         The rest value to use when expressing the spectral value as a velocity.
     doppler_convention : str, optional
@@ -786,7 +790,7 @@ class SpectralCoord(SpectralQuantity):
                              "before applying a velocity shift.")
 
         for arg in [x for x in [target_shift, observer_shift] if x is not None]:
-            if isinstance(arg, u.Quantity) and not arg.unit.is_equivalent((u.one, u.km / u.s)):
+            if isinstance(arg, u.Quantity) and not arg.unit.is_equivalent((u.one, KMS)):
                 raise u.UnitsError("Argument must have unit physical type "
                                    "'speed' for radial velocty or "
                                    "'dimensionless' for redshift.")
@@ -795,14 +799,14 @@ class SpectralCoord(SpectralQuantity):
         #  assume it's a redshift float value and convert to velocity
 
         if target_shift is None:
-            target_shift = 0 * u.km / u.s
+            target_shift = 0 * KMS
         else:
             target_shift = u.Quantity(target_shift)
             if target_shift.unit.physical_type == 'dimensionless':
                 target_shift = _redshift_to_velocity(target_shift)
 
         if observer_shift is None:
-            observer_shift = 0 * u.km / u.s
+            observer_shift = 0 * KMS
         else:
             observer_shift = u.Quantity(observer_shift)
             if observer_shift.unit.physical_type == 'dimensionless':
@@ -859,7 +863,7 @@ class SpectralCoord(SpectralQuantity):
 
         result = _apply_relativistic_doppler_shift(self, -self.radial_velocity)
 
-        return self.replicate(value=result, radial_velocity=0. * u.km / u.s, redshift=None)
+        return self.replicate(value=result, radial_velocity=0. * KMS, redshift=None)
 
     def __repr__(self):
 

@@ -3,15 +3,15 @@ from astropy.units import si
 from astropy.units import equivalencies as eq
 from astropy.units.quantity import SpecificTypeQuantity, Quantity
 from astropy.units.decorators import quantity_input
-from astropy.constants import c
 
 __all__ = ['SpectralQuantity']
 
 # We don't want to run doctests in the docstrings we inherit from Quantity
 __doctest_skip__ = ['SpectralQuantity.*']
 
+KMS = si.km / si.s
 
-SPECTRAL_UNITS = (si.Hz, si.m, si.J, si.m ** -1, si.m / si.s)
+SPECTRAL_UNITS = (si.Hz, si.m, si.J, si.m ** -1, KMS)
 
 DOPPLER_CONVENTIONS = {
     'radio': eq.doppler_radio,
@@ -233,7 +233,7 @@ class SpectralQuantity(SpecificTypeQuantity):
         elif doppler_convention not in DOPPLER_CONVENTIONS:
             raise ValueError("doppler_convention should be one of {0}".format('/'.join(sorted(DOPPLER_CONVENTIONS))))
 
-        if self.unit.is_equivalent(si.km / si.s) and unit.is_equivalent(si.km / si.s):
+        if self.unit.is_equivalent(KMS) and unit.is_equivalent(KMS):
 
             # Special case: if the current and final units are both velocity,
             # and either the rest value or the convention are different, we
@@ -268,7 +268,7 @@ class SpectralQuantity(SpecificTypeQuantity):
 
             additional_equivalencies = eq.spectral()
 
-            if self.unit.is_equivalent(si.km / si.s) or unit.is_equivalent(si.km / si.s):
+            if self.unit.is_equivalent(KMS) or unit.is_equivalent(KMS):
 
                 if doppler_convention is None:
                     raise ValueError("doppler_convention not set, cannot convert to/from velocities")
