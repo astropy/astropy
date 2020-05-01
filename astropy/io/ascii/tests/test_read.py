@@ -1526,8 +1526,8 @@ def _get_lines(rdb):
 @pytest.mark.parametrize('fast_reader', [False, 'force'])
 def test_deduplicate_names_basic(rdb, fast_reader):
     """Test that duplicate column names are successfully de-duplicated for the
-    basic format.  Skip the case of rdb=True and fast_reader='force' since that
-    fails and is tested below.
+    basic format.  Skip the case of rdb=True and fast_reader='force' when selecting
+    include_names, since that fails and is tested below.
     """
     lines = _get_lines(rdb)
 
@@ -1553,9 +1553,23 @@ def test_deduplicate_names_basic(rdb, fast_reader):
         assert np.all(dat['b4'] == [4, 40])
 
 
+
+
 @pytest.mark.xfail
-def test_deduplicate_names_rdb_fast_fail1():
-    """Test that duplicate column names fail for the rdb format for fast reader.
+def test_include_names_rdb_fast_fail0():
+    """Test that selecting column names with `include_names` fails for the rdb format for fast reader.
+    This is not desired but reflects a current known limitation.
+    """
+    lines = _get_lines(True)
+    lines[0] = 'a\ta_2\ta_1\ta_3\ta_4'
+
+    dat = ascii.read(lines, fast_reader='force', include_names=['a', 'a_2', 'a_3'])
+    assert len(dat) == 2
+
+
+@pytest.mark.xfail
+def test_include_names_rdb_fast_fail1():
+    """Test that `include_names` fails with duplicate column names for the rdb format for fast reader.
     This is not desired but reflects a current known limitation.
     """
     lines = _get_lines(True)
@@ -1565,8 +1579,8 @@ def test_deduplicate_names_rdb_fast_fail1():
 
 
 @pytest.mark.xfail
-def test_deduplicate_names_rdb_fast_fail2():
-    """Test that duplicate column names fail for the rdb format for fast reader.
+def test_include_names_rdb_fast_fail2():
+    """Test that `include_names` fails with duplicate column names for the rdb format for fast reader.
     This is not desired but reflects a current known limitation.
     """
     lines = _get_lines(True)
