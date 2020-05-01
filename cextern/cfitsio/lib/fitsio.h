@@ -34,10 +34,10 @@ SERVICES PROVIDED HEREUNDER."
 #ifndef _FITSIO_H
 #define _FITSIO_H
 
-#define CFITSIO_VERSION 3.47
-#define CFITSIO_MINOR 47
+#define CFITSIO_VERSION 3.48
+#define CFITSIO_MINOR 48
 #define CFITSIO_MAJOR 3
-#define CFITSIO_SONAME 8
+#define CFITSIO_SONAME 9
 
 /* the SONAME is incremented in a new release if the binary shared */
 /* library (on linux and Mac systems) is not backward compatible */
@@ -361,6 +361,7 @@ typedef struct      /* structure used to store basic FITS file information */
     char *filename;   /* file name */
     int validcode;    /* magic value used to verify that structure is valid */
     int only_one;     /* flag meaning only copy the specified extension */
+    int noextsyntax;  /* flag for file opened with request to ignore extended syntax*/
     LONGLONG filesize; /* current size of the physical disk file in bytes */
     LONGLONG logfilesize; /* logical size of file, including unflushed buffers */
     int lasthdu;      /* is this the last HDU in the file? 0 = no, else yes */
@@ -1836,6 +1837,8 @@ int CFITS_API ffcpcl(fitsfile *infptr, fitsfile *outfptr, int incol, int outcol,
 int CFITS_API ffccls(fitsfile *infptr, fitsfile *outfptr, int incol, int outcol, 
 	   int ncols, int create_col, int *status);
 int CFITS_API ffcprw(fitsfile *infptr, fitsfile *outfptr, LONGLONG firstrow, 
+           LONGLONG nrows, int *status);
+int CFITS_API ffcpht(fitsfile *infptr, fitsfile *outfptr, LONGLONG firstrow, 
            LONGLONG nrows, int *status);
 
 /*--------------------- WCS Utilities ------------------*/

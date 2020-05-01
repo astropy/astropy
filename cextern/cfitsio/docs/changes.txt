@@ -1,4 +1,40 @@
                    Log of Changes Made to CFITSIO
+                   
+Version 3.48 - Mar 2020
+
+  - Now can handle parentheses in path names rather than automatically
+    interpreting them as output file specifiers.  
+
+  - Fixed bug in imcompress.c that wasn't properly handling conversion
+    between float and double types when reading from a gzip compressed
+    float or double image.
+    
+  - Fixed bug that was preventing use of bracket and parentheses symbols
+    in pathnames when opening multiple READWRITE files, even when 
+    requesting no-extended-syntax usage. *This fix necessitates a 
+    library interface version number change.
+    
+  - Fixed bug in ffmnhd / fits_movnam_hdu to properly handle wildcard
+    syntax.
+
+  - Fixed bug in fits_open_extlist to handle filename[EXT] syntax
+    properly.  The hdutype parameter may now be null.  More documentaion
+    for this function is in cfitsio.tex.
+
+  - Added new function fits_copy_hdutab to create a new table with the same
+    structure as an existing table.
+
+  - fits_copy_col / ffcpcl handles long long integer data types more
+    natively to prevent precision loss.
+
+  - histo.c routines now recognize integer columns that have been scaled by
+    TSCALn keywords and may be closer to floating point type.
+                   
+  - Added backward compatibility for very old Rice compressed files which
+    were not using the ZVAL2 keyword in the way that later became standard.
+
+  - Change made to cfitsio.pc.in to prevent forcing downstream libraries
+    to link against cfitsio's dependencies when using pkgconfig.
 
 Version 3.47 - May 2019
 

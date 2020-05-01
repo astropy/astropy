@@ -26,12 +26,17 @@ for fil in $lib_files $inc_files; do
         mv cfitsio/$fil cfitsio/lib/
     fi
 done
+
+rm -f cfitsio/README
+rm -f cfitsio/configure
+rm -f cfitsio/install-sh
 rm -f cfitsio/docs/*.tex
 rm -f cfitsio/docs/*.ps
 rm -f cfitsio/docs/*.pdf
 rm -f cfitsio/docs/*.doc
 rm -f cfitsio/docs/*.toc
-rm -f cfitsio/[^L]*.*
+rm -rf cfitsio/[^L]*.*
+
 cat <<EOF >cfitsio/README.txt
 Note: astropy only requires the CFITSIO library, and hence in this bundled version,
 we removed all other files except the required license (License.txt) and changelog

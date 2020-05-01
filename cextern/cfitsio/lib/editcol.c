@@ -1497,7 +1497,7 @@ int ffcpcl(fitsfile *infptr,    /* I - FITS file pointer to input file  */
   copy a column from infptr and insert it in the outfptr table.
 */
 {
-    int tstatus, colnum, typecode, otypecode, anynull;
+    int tstatus, colnum, typecode, otypecode, etypecode, anynull;
     int inHduType, outHduType;
     long tfields, repeat, orepeat, width, owidth, nrows, outrows;
     long inloop, outloop, maxloop, ndone, ntodo, npixels;
@@ -1508,6 +1508,8 @@ int ffcpcl(fitsfile *infptr,    /* I - FITS file pointer to input file  */
     char nulstr[] = {'\5', '\0'};  /* unique null string value */
     double dnull = 0.l, *dvalues = 0;
     float fnull = 0., *fvalues = 0;
+    long long int *jjvalues = 0;
+    unsigned long long int *ujjvalues = 0;
 
     if (*status > 0)
         return(*status);
@@ -1547,6 +1549,8 @@ int ffcpcl(fitsfile *infptr,    /* I - FITS file pointer to input file  */
 
     /* get the datatype and vector repeat length of the column */
     ffgtcl(infptr, incol, &typecode, &repeat, &width, status);
+    /* ... and equivalent type code */
+    ffeqty(infptr, incol, &etypecode, 0,      0,      status);
 
     if (typecode < 0)
     {
@@ -1734,7 +1738,29 @@ int ffcpcl(fitsfile *infptr,    /* I - FITS file pointer to input file  */
        }
        dnull = 0.;
     }
-    else    /* numerical datatype; read them all as doubles */
+    /* These are unsigned long-long ints that are not rescaled to floating point numbers */
+    else if (typecode == TLONGLONG && etypecode == TULONGLONG) {
+
+       ujjvalues = (unsigned long long int *) calloc(maxloop, sizeof(unsigned long long int) );
+       if (!ujjvalues)
+       {
+         ffpmsg
+         ("malloc failed to get memory for unsigned long long int (ffcpcl)");
+         return(*status = ARRAY_TOO_BIG);
+       }
+    }
+    /* These are long-long ints that are not rescaled to floating point numbers */
+    else if (typecode == TLONGLONG && etypecode != TDOUBLE) {
+
+       jjvalues = (long long int *) calloc(maxloop, sizeof(long long int) );
+       if (!jjvalues)
+       {
+         ffpmsg
+         ("malloc failed to get memory for long long int (ffcpcl)");
+         return(*status = ARRAY_TOO_BIG);
+       }
+    }
+    else    /* other numerical datatype; read them all as doubles */
     {
        dvalues = (double *) calloc(maxloop, sizeof(double) );
        if (!dvalues)
@@ -1770,6 +1796,18 @@ int ffcpcl(fitsfile *infptr,    /* I - FITS file pointer to input file  */
         else if (typecode == TDBLCOMPLEX)
             ffgcvm(infptr, incol, firstrow, firstelem, ntodo, dnull, 
                    dvalues, &anynull, status);
+
+	/* Neither TULONGLONG nor TLONGLONG does null checking.  Whatever
+	   null value is in input table is transferred to output table
+	   without checking.  Since the TNULL value was copied, this
+	   should preserve null values */
+	else if (typecode == TLONGLONG && etypecode == TULONGLONG)
+	  ffgcvujj(infptr, incol, firstrow, firstelem, ntodo, /*nulval*/ 0,
+                   ujjvalues, &anynull, status);
+
+	else if (typecode == TLONGLONG && etypecode != TDOUBLE) 
+	  ffgcvjj(infptr, incol, firstrow, firstelem, ntodo, /*nulval*/ 0, 
+                   jjvalues, &anynull, status);
 
         else       /* all numerical types */
             ffgcvd(infptr, incol, firstrow, firstelem, ntodo, dnull, 
@@ -1813,6 +1851,16 @@ int ffcpcl(fitsfile *infptr,    /* I - FITS file pointer to input file  */
                        dvalues, status);
         }
 
+	else if (typecode == TLONGLONG && etypecode == TULONGLONG)
+	{   /* No null checking because we did none to read */
+            ffpclujj(outfptr, colnum, firstrow, firstelem, ntodo, 
+		     ujjvalues, status);
+	}
+	else if (typecode == TLONGLONG && etypecode != TDOUBLE) 
+	{   /* No null checking because we did none to read */
+	    ffpcljj(outfptr, colnum, firstrow, firstelem, ntodo, 
+		    jjvalues, status);
+	}
         else  /* all other numerical types */
         {
             if (anynull)
@@ -1846,10 +1894,9 @@ int ffcpcl(fitsfile *infptr,    /* I - FITS file pointer to input file  */
 
          free(strarray);
     }
-    else
-    {
-        free(dvalues);
-    }
+    if (ujjvalues) free(ujjvalues);
+    if (jjvalues)  free(jjvalues);
+    if (dvalues)   free(dvalues);
 
     return(*status);
 }
@@ -1886,6 +1933,9 @@ int ffccls(fitsfile *infptr,    /* I - FITS file pointer to input file  */
 
     if (*status > 0)
         return(*status);
+
+    /* Do not allow more than internal array limit to be copied */
+    if (ncols > 1000) return (*status = ARRAY_TOO_BIG);
 
     if (infptr->HDUposition != (infptr->Fptr)->curhdu)
     {
