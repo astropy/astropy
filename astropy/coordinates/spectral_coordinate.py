@@ -135,12 +135,15 @@ class SpectralCoord(SpectralQuantity):
     """
     Coordinate object representing spectral values.
 
-    .. note:: The `SpectralCoord` class is new in Astropy v4.1 and should be
-              considered experimental at this time. It is possible that there
-              will be API changes in future versions of Astropy based on user
-              feedback. If you have specific ideas for how it might be
-              improved, please  let us know on the `astropy-dev mailing list`_
-              or at http://feedback.astropy.org.
+    .. note:: The |SpectralCoord| class is new in Astropy v4.1 and should be
+              considered experimental at this time. Note that we do not fully
+              support cases where the observer and target are moving
+              relativistically relative to each other, so care should be taken
+              in those cases. It is possible that there will be API changes in
+              future versions of Astropy based on user feedback. If you have
+              specific ideas for how it might be improved, please  let us know
+              on the `astropy-dev mailing list`_ or at
+              http://feedback.astropy.org.
 
     Parameters
     ----------
@@ -834,8 +837,6 @@ class SpectralCoord(SpectralQuantity):
             radial_velocity = line_of_sight_unit_vec.dot(fin_obs_vel)
         else:
             radial_velocity = None
-
-        print(radial_velocity)
 
         # If an observer/target pair were not defined already, we want to avoid
         # providing an explicit pair, so create a new SpectralCoord object
