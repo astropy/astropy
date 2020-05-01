@@ -39,6 +39,7 @@ astropy.coordinates
 - The ``Galactocentric`` frame will now use the "latest" parameter definitions
   by default. This currently corresponds to the values defined in v4.0, but will
   change with future releases. [#10238]
+
 - The ``SkyCoord.from_name()`` and Sesame name resolving functionality now
   optionally caches results locally. [#9162]
 
