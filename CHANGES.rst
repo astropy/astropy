@@ -25,6 +25,8 @@ astropy.coordinates
   This provides limited support for updating coordinate data values from another
   coordinate object of the same class and equivalent frame attributes. [#9857]
 
+- Added the True Equator Mean Equinox (TEME) frame. [#10149]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -41,7 +43,7 @@ astropy.io.ascii
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 - Added serialization of parameter constraints fixed and bounds.  [#10082]
-- Added 'functional_models.py' and 'physical_models.py' to asdf/tags/transform, 
+- Added 'functional_models.py' and 'physical_models.py' to asdf/tags/transform,
   with to allow serialization of all functional and physical models. [#10028]
 
 - Fix ASDF serialization of circular model inverses, and remove explicit calls

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Contains the transformation functions for getting to/from ITRS, GCRS, and CIRS.
+Contains the transformation functions for getting to/from ITRS, TEME, GCRS, and CIRS.
 These are distinct from the ICRS and AltAz functions because they are just
 rotations without aberration corrections or offsets.
 """
@@ -16,9 +16,29 @@ from astropy import _erfa as erfa
 from .gcrs import GCRS, PrecessedGeocentric
 from .cirs import CIRS
 from .itrs import ITRS
+from .teme import TEME
 from .utils import get_polar_motion, get_jd12
 
 # # first define helper functions
+
+
+def teme_to_itrs_mat(time):
+    # Sidereal time, rotates from ITRS to mean equinox
+    # Use 1982 model for consistency with Vallado et al (2006)
+    # http://www.celestrak.com/publications/aiaa/2006-6753/AIAA-2006-6753.pdf
+    gst = erfa.gmst82(*get_jd12(time, 'ut1'))
+
+    # Polar Motion
+    # Do not include TIO locator s' because it is not used in Vallado 2006
+    xp, yp = get_polar_motion(time)
+    pmmat = erfa.pom00(xp, yp, 0)
+
+    # rotation matrix
+    # c2tcio expects a GCRS->CIRS matrix as it's first argument.
+    # Here, we just set that to an I-matrix, because we're already
+    # in TEME and the difference between TEME and CIRS is just the
+    # rotation by the sidereal time rather than the Earth Rotation Angle
+    return erfa.c2tcio(np.eye(3), gst, pmmat)
 
 
 def gcrs_to_cirs_mat(time):
@@ -129,3 +149,26 @@ def precessedgeo_to_gcrs(from_coo, to_frame):
 
     # then move to the GCRS that's actually desired
     return gcrs_coo.transform_to(to_frame)
+
+
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, TEME, ITRS)
+def teme_to_itrs(teme_coo, itrs_frame):
+    # first get us to TEME at the target obstime
+    # TODO: self transform?
+    teme_coo2 = teme_coo.transform_to(TEME(obstime=itrs_frame.obstime))
+
+    # now get the pmatrix
+    pmat = teme_to_itrs_mat(itrs_frame.obstime)
+    crepr = teme_coo2.cartesian.transform(pmat)
+    return itrs_frame.realize_frame(crepr)
+
+
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ITRS, TEME)
+def itrs_to_teme(itrs_coo, teme_frame):
+    # compute the pmatrix, and then multiply by its transpose
+    pmat = teme_to_itrs_mat(itrs_coo.obstime)
+    newrepr = itrs_coo.cartesian.transform(matrix_transpose(pmat))
+    teme = TEME(newrepr, obstime=itrs_coo.obstime)
+
+    # now do any needed offsets (no-op if same obstime)
+    return teme.transform_to(teme_frame)
