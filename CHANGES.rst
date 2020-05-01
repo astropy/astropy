@@ -87,6 +87,11 @@ astropy.nddata
   when specifying the bit flags to be used or ignored when converting a bit
   field to a boolean. [#10095, #10208]
 
+- Added ``reshape_as_blocks`` function to reshape a data array into
+  blocks, which is useful to efficiently apply functions on block
+  subsets of the data instead of using loops.  The reshaped array is a
+  view of the input data array. [#10214]
+
 astropy.samp
 ^^^^^^^^^^^^
 
@@ -391,6 +396,8 @@ Other Changes and Additions
 - Bundled ``expat`` is updated to version 2.2.9. [#10038]
 
 - Increase minimum asdf version to 2.6.0. [#10189]
+
+- Removed dependency on scikit-image. [#10214]
 
 4.0.2 (unreleased)
 ==================

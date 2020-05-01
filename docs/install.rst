@@ -60,9 +60,6 @@ Requirements
 - `matplotlib <https://matplotlib.org/>`_ 2.0 or later: To provide plotting
   functionality that `astropy.visualization` enhances.
 
-- `scikit-image <https://scikit-image.org/>`_: To downsample a data array in
-  `astropy.nddata.utils`.
-
 - `setuptools <https://setuptools.readthedocs.io>`_: Used for discovery of
   entry points which are used to insert fitters into `astropy.modeling.fitting`.
 
