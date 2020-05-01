@@ -9,9 +9,9 @@
 #
 # You can then commit the changes to this file.
 
-# angle_lextab.py. This file automatically created by PLY (version 3.10). Don't edit!
+# angle_lextab.py. This file automatically created by PLY (version 3.11). Don't edit!
 _tabversion   = '3.10'
-_lextokens    = set(('COLON', 'UINT', 'UFLOAT', 'DEGREE', 'SIGN', 'SECOND', 'EASTWEST', 'HOUR', 'MINUTE', 'NORTHSOUTH', 'SIMPLE_UNIT'))
+_lextokens    = set(('COLON', 'DEGREE', 'EASTWEST', 'HOUR', 'MINUTE', 'NORTHSOUTH', 'SECOND', 'SIGN', 'SIMPLE_UNIT', 'UFLOAT', 'UINT'))
 _lexreflags   = 64
 _lexliterals  = ''
 _lexstateinfo = {'INITIAL': 'inclusive'}

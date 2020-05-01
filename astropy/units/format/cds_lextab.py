@@ -9,9 +9,9 @@
 #
 # You can then commit the changes to this file.
 
-# cds_lextab.py. This file automatically created by PLY (version 3.10). Don't edit!
+# cds_lextab.py. This file automatically created by PLY (version 3.11). Don't edit!
 _tabversion   = '3.10'
-_lextokens    = set(('UFLOAT', 'X', 'SIGN', 'CLOSE_BRACKET', 'PRODUCT', 'DIVISION', 'CLOSE_PAREN', 'OPEN_BRACKET', 'OPEN_PAREN', 'UINT', 'UNIT'))
+_lextokens    = set(('CLOSE_BRACKET', 'CLOSE_PAREN', 'DIVISION', 'OPEN_BRACKET', 'OPEN_PAREN', 'PRODUCT', 'SIGN', 'UFLOAT', 'UINT', 'UNIT', 'X'))
 _lexreflags   = 32
 _lexliterals  = ''
 _lexstateinfo = {'INITIAL': 'inclusive'}
