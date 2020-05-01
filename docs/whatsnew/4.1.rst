@@ -19,9 +19,9 @@ In particular, this release includes:
 
 2. Support for units on otherwise unitless models via the ``Model.coerce_units`` method.
 
-3. Ability to create a new ``CompoundModel`` by modifying an existing one
-   with the ``replace_submodel`` method.
+3. Added the True Equator Mean Equinox frame.
 
+4. Added the True Equator Mean Equinox frame.
 
 Support for writing Dask arrays to FITS files
 =============================================
@@ -38,3 +38,11 @@ written, which will avoid using excessive memory:
     >>> from astropy.io import fits
     >>> hdu = fits.PrimaryHDU(data=array)
     >>> hdu.writeto('test_dask.fits')
+
+Added True Equator Mean Equinox (TEME) frame for satellite two-line ephemeris data
+==================================================================================
+
+The True Equator Mean Equinox (`~astropy.coordinates.TEME`) frame has been added to
+the built-in frames within :ref:`astropy.coordinates <astropy-coordinates>`.
+
+For more details, see :ref:`astropy-coordinates-satellites`.
