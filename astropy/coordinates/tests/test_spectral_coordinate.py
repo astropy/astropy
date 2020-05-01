@@ -472,6 +472,74 @@ def test_with_observer_stationary_relative_to():
     assert_quantity_allclose(sc11.radial_velocity, 0 * u.km / u.s, atol=1e-10 * u.km / u.s)
 
 
+def test_los_shift_radial_velocity():
+
+    # Tests to make sure that with_radial_velocity_shift correctly calculates
+    # the new radial velocity
+
+    # First check case where observer and/or target aren't specified
+
+    sc1 = SpectralCoord(500 * u.nm, radial_velocity=1 * u.km / u.s)
+
+    sc2 = sc1.with_radial_velocity_shift(1 * u.km / u.s)
+    assert_quantity_allclose(sc2.radial_velocity, 2 * u.km / u.s)
+
+    sc3 = sc1.with_radial_velocity_shift(-3 * u.km / u.s)
+    assert_quantity_allclose(sc3.radial_velocity, -2 * u.km / u.s)
+
+    with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+        sc4 = SpectralCoord(500 * u.nm, radial_velocity=1 * u.km / u.s, observer=gcrs_not_origin)
+
+    sc5 = sc4.with_radial_velocity_shift(1 * u.km / u.s)
+    assert_quantity_allclose(sc5.radial_velocity, 2 * u.km / u.s)
+
+    sc6 = sc4.with_radial_velocity_shift(-3 * u.km / u.s)
+    assert_quantity_allclose(sc6.radial_velocity, -2 * u.km / u.s)
+
+    with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+        sc7 = SpectralCoord(500 * u.nm, radial_velocity=1 * u.km / u.s, target=ICRS(10 * u.deg, 20 * u.deg))
+
+    sc8 = sc7.with_radial_velocity_shift(1 * u.km / u.s)
+    assert_quantity_allclose(sc8.radial_velocity, 2 * u.km / u.s)
+
+    sc9 = sc7.with_radial_velocity_shift(-3 * u.km / u.s)
+    assert_quantity_allclose(sc9.radial_velocity, -2 * u.km / u.s)
+
+    # Check that things still work when both observer and target are specified
+
+    with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+        sc10 = SpectralCoord(500 * u.nm,
+                             observer=ICRS(0 * u.deg, 0 * u.deg, distance=1 * u.m),
+                             target=ICRS(10 * u.deg, 20 * u.deg,
+                                         radial_velocity=1 * u.km / u.s,
+                                         distance=10 * u.kpc))
+
+    sc11 = sc10.with_radial_velocity_shift(1 * u.km / u.s)
+    assert_quantity_allclose(sc11.radial_velocity, 2 * u.km / u.s)
+
+    sc12 = sc10.with_radial_velocity_shift(-3 * u.km / u.s)
+    assert_quantity_allclose(sc12.radial_velocity, -2 * u.km / u.s)
+
+
+@pytest.mark.xfail
+def test_relativistic_radial_velocity():
+
+    # Test for when both observer and target have relativistic velocities.
+    # This is not yet supported, so the test is xfailed for now.
+
+    sc = SpectralCoord(500 * u.nm,
+                       observer=ICRS(0 * u.km, 0 * u.km, 0 * u.km,
+                                     -0.5 * c, -0.5 * c, -0.5 * c,
+                                     representation_type='cartesian',
+                                     differential_type='cartesian'),
+                       target=ICRS(1 * u.kpc, 1 * u.kpc, 1 * u.kpc,
+                                   0.5 * c, 0.5 * c, 0.5 * c,
+                                   representation_type='cartesian',
+                                   differential_type='cartesian'))
+
+    assert_quantity_allclose(sc.radial_velocity, 0.989743318610787 * u.km / u.s)
+
+
 # SCIENCE USE CASE TESTS
 
 
