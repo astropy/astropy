@@ -688,7 +688,7 @@ class SpectralCoord(SpectralQuantity):
     def with_observer_stationary_relative_to(self, frame, velocity=None, preserve_observer_frame=False):
         """
         A new  `SpectralCoord` with the velocity of the observer altered,
-       but not the position.
+        but not the position.
 
         If a coordinate frame is specified, the observer velocities will be
         modified to be stationary in the specified frame. If a coordinate
