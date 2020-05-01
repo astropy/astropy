@@ -401,6 +401,9 @@ Other Changes and Additions
 
 - Removed dependency on scikit-image. [#10214]
 
+- Updated the bundled CFITSIO library to 3.480. See
+  ``cextern/cfitsio/docs/changes.txt`` for additional information. [#10256]
+
 4.0.2 (unreleased)
 ==================
 
