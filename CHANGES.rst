@@ -434,6 +434,10 @@ astropy.coordinates
 - Ensure that the ``lon`` values in ``SkyOffsetFrame`` are wrapped correctly at
   180 degree regardless of how the underlying data is represented. [#10163]
 
+- Fixed an error in the obliquity of the ecliptic when transforming to/from the
+  ``*TrueEcliptic`` coordinate frames. The error would primarily result in an
+  inaccuracy in the ecliptic latitude on the order of arcseconds. [#10129]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
