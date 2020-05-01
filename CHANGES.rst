@@ -405,6 +405,8 @@ Other Changes and Additions
 
 - Increase minimum asdf version to 2.6.0. [#10189]
 
+- The bundled version of PLY was updated to 3.11. [#10257]
+
 - Removed dependency on scikit-image. [#10214]
 
 - Updated the bundled CFITSIO library to 3.480. See
