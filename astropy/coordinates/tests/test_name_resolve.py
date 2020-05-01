@@ -152,36 +152,20 @@ def test_name_resolve_cache(tmpdir):
         with shelve.open(urlmapfn) as url2hash:
             assert len(url2hash) == 0
 
-        icrs = get_icrs_coordinates("castor", cache=True)
+        icrs1 = get_icrs_coordinates("castor", cache=True)
 
+        # This is a weak test: we just check to see that a url is added to the
+        #  cache!
         with shelve.open(urlmapfn) as url2hash:
             assert len(url2hash) == 1
-            for k in url2hash.keys():
-                # check for expected search url in URL hash dict:
-                if 'nph-sesame/A?castor' in k:
-                    filename = url2hash[k]  # used below to check mtime
-                    break
-            else:
-                raise AssertionError('sesame url key not added to cache')
 
         # Try reloading coordinates, now should just reload cached data:
-        icrs = get_icrs_coordinates("castor", cache=True)
+        icrs2 = get_icrs_coordinates("castor", cache=True)
         with shelve.open(urlmapfn) as url2hash:
             assert len(url2hash) == 1
-            print(dict(url2hash).values())
 
-        # Try reloading coordinates again, but overwrite, which now should fire
-        # off an http request:
-        print(url2hash.values())
-        # mtime1 = os.path.getmtime(filename)
-        icrs = get_icrs_coordinates("castor", cache=True, overwrite=True)
-        with shelve.open(urlmapfn) as url2hash:
-            assert len(url2hash) == 1
-            print(dict(url2hash).values())
-        # mtime2 = os.path.getmtime(filename)
-        with shelve.open(urlmapfn) as url2hash:
-            assert len(url2hash) == 1
-        assert mtime2 > mtime1
+        assert u.allclose(icrs1.ra, icrs2.ra)
+        assert u.allclose(icrs1.dec, icrs2.dec)
 
         # This argument combination is not allowed:
         with pytest.raises(ValueError):
