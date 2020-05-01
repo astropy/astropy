@@ -20,7 +20,7 @@ import urllib.error
 from astropy import units as u
 from .sky_coordinate import SkyCoord
 from astropy.utils import data
-from astropy.utils.data import download_file
+from astropy.utils.data import download_file, get_file_contents
 from astropy.utils.state import ScienceState
 
 __all__ = ["get_icrs_coordinates"]
@@ -78,7 +78,7 @@ def _parse_response(resp_data):
     """
 
     pattr = re.compile(r"%J\s*([0-9\.]+)\s*([\+\-\.0-9]+)")
-    matched = pattr.search(resp_data.decode('utf-8'))
+    matched = pattr.search(resp_data)
 
     if matched is None:
         return None, None
@@ -167,11 +167,10 @@ def get_icrs_coordinates(name, parse=False, cache=False, overwrite=False):
     exceptions = []
     for url in urls:
         try:
-            local_path = download_file(url, cache=cache, show_progress=False,
-                                       timeout=data.conf.remote_timeout)
-            with open(local_path, 'rb') as f:
-                resp_data = f.read()
-                break
+            resp_data = get_file_contents(
+                download_file(url, cache=cache, show_progress=False,
+                              timeout=data.conf.remote_timeout))
+            break
         except urllib.error.URLError as e:
             exceptions.append(e)
             continue
