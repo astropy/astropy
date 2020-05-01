@@ -1,36 +1,39 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-from asdf import tagged
-from asdf.tests.helpers import assert_tree_match
+
 from .basic import TransformType
 from astropy.modeling.core import Model, CompoundModel
 from astropy.modeling.models import Identity, Mapping, Const1D
 
+try:
+    from asdf import tagged
+except ImportError:
+    HAS_ASDF = False
+else:
+    HAS_ASDF = True
 
 __all__ = ['CompoundType', 'RemapAxesType']
 
-
 _operator_to_tag_mapping = {
-    '+'  : 'add',
-    '-'  : 'subtract',
-    '*'  : 'multiply',
-    '/'  : 'divide',
-    '**' : 'power',
-    '|'  : 'compose',
-    '&'  : 'concatenate',
+    '+': 'add',
+    '-': 'subtract',
+    '*': 'multiply',
+    '/': 'divide',
+    '**': 'power',
+    '|': 'compose',
+    '&': 'concatenate',
     'fix_inputs': 'fix_inputs'
 }
 
-
 _tag_to_method_mapping = {
-    'add'         : '__add__',
-    'subtract'    : '__sub__',
-    'multiply'    : '__mul__',
-    'divide'      : '__truediv__',
-    'power'       : '__pow__',
-    'compose'     : '__or__',
-    'concatenate' : '__and__',
-    'fix_inputs'  : 'fix_inputs'
+    'add': '__add__',
+    'subtract': '__sub__',
+    'multiply': '__mul__',
+    'divide': '__truediv__',
+    'power': '__pow__',
+    'compose': '__or__',
+    'concatenate': '__and__',
+    'fix_inputs': 'fix_inputs'
 }
 
 
@@ -50,8 +53,8 @@ class CompoundType(TransformType):
             raise TypeError("Unknown model type '{0}'".format(
                 node['forward'][0]._tag))
         right = node['forward'][1]
-        if not isinstance(right, Model) and \
-            not (oper == 'fix_inputs' and isinstance(right, dict)):
+        if (not isinstance(right, Model) and
+                not (oper == 'fix_inputs' and isinstance(right, dict))):
             raise TypeError("Unknown model type '{0}'".format(
                 node['forward'][1]._tag))
         if oper == 'fix_inputs':
@@ -66,6 +69,9 @@ class CompoundType(TransformType):
 
     @classmethod
     def to_tree_tagged(cls, model, ctx):
+        if not HAS_ASDF:
+            raise ImportError('asdf is not installed')
+
         left = model.left
 
         if isinstance(model.right, dict):
@@ -91,6 +97,11 @@ class CompoundType(TransformType):
 
     @classmethod
     def assert_equal(cls, a, b):
+        if not HAS_ASDF:
+            raise ImportError('asdf is not installed')
+
+        from asdf.tests.helpers import assert_tree_match
+
         # TODO: If models become comparable themselves, remove this.
         TransformType.assert_equal(a, b)
         assert_tree_match(a.left, b.left)

@@ -3,26 +3,25 @@
 import os
 import glob
 
-from asdf import tagged
-
 import astropy.units as u
 import astropy.coordinates
 from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.units import Quantity
 from astropy.coordinates import ICRS, Longitude, Latitude, Angle
 
-from astropy.io.misc.asdf.tags.unit.quantity import QuantityType
 from astropy.io.misc.asdf.types import AstropyType
 
+try:
+    from asdf import tagged
+except ImportError:
+    HAS_ASDF = False
+else:
+    HAS_ASDF = True
 
 __all__ = ['CoordType']
 
-SCHEMA_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                           '..', '..',
-                                           'data',
-                                           'schemas',
-                                           'astropy.org',
-                                           'astropy'))
+SCHEMA_PATH = os.path.abspath(os.path.join(
+    os.path.dirname(__file__), '..', '..', 'data', 'schemas', 'astropy.org', 'astropy'))
 
 
 def _get_frames():
@@ -78,6 +77,9 @@ class BaseCoordType:
 
     @classmethod
     def to_tree_tagged(cls, frame, ctx):
+        if not HAS_ASDF:
+            raise ImportError('asdf is not installed')
+
         if type(frame) not in frame_transform_graph.frame_set:
             raise ValueError("Can only save frames that are registered with the "
                              "transformation graph.")

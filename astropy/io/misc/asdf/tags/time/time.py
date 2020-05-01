@@ -4,17 +4,24 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from asdf.versioning import AsdfSpec
-
 from astropy import time
 from astropy import units as u
 from astropy.units import Quantity
 from astropy.coordinates import EarthLocation
 from astropy.io.misc.asdf.types import AstropyAsdfType
 
+try:
+    from asdf.versioning import AsdfSpec
+except ImportError:
+    HAS_ASDF = False
+    asdf_spec_ver = ''
+else:
+    HAS_ASDF = True
+    asdf_spec_ver = AsdfSpec('>=1.1.0')
+
+__all__ = ['TimeType']
 
 _guessable_formats = set(['iso', 'byear', 'jyear', 'yday'])
-
 
 _astropy_format_to_asdf_format = {
     'isot': 'iso',
@@ -31,10 +38,13 @@ def _assert_earthlocation_equal(a, b):
     assert_array_equal(a.lon, b.lon)
 
 
+# Cannot use super() in __init__ to check for asdf import here because it
+# raises TypeError, similar to
+# https://github.com/waveform80/picamera/issues/355#issuecomment-272547797
 class TimeType(AstropyAsdfType):
     name = 'time/time'
     version = '1.1.0'
-    supported_versions = ['1.0.0', AsdfSpec('>=1.1.0')]
+    supported_versions = ['1.0.0', asdf_spec_ver]
     types = ['astropy.time.core.Time']
     requires = ['astropy']
 

@@ -3,55 +3,68 @@
 
 import os
 
-from asdf.extension import AsdfExtension, BuiltinExtension
-from asdf.resolver import Resolver, DEFAULT_URL_MAPPING
-from asdf.util import filepath_to_url
+try:
+    from asdf.extension import AsdfExtension, BuiltinExtension
+    from asdf.util import filepath_to_url
+except ImportError:
+    HAS_ASDF = False
+    AsdfExtension = object
+    BuiltinExtension = object
+    ASTROPY_SCHEMA_URI_BASE = ''
+    SCHEMA_PATH = ''
+    ASTROPY_URL_MAPPING = []
+else:
+    HAS_ASDF = True
 
-# Make sure that all tag implementations are imported by the time we create
-# the extension class so that _astropy_asdf_types is populated correctly. We
-# could do this using __init__ files, except it causes pytest import errors in
-# the case that asdf is not installed.
-from .tags.coordinates.angle import *
-from .tags.coordinates.frames import *
-from .tags.coordinates.earthlocation import *
-from .tags.coordinates.skycoord import *
-from .tags.coordinates.representation import *
-from .tags.coordinates.spectralcoord import *
-from .tags.fits.fits import *
-from .tags.table.table import *
-from .tags.time.time import *
-from .tags.time.timedelta import *
-from .tags.transform.basic import *
-from .tags.transform.compound import *
-from .tags.transform.functional_models import *
-from .tags.transform.physical_models import *
-from .tags.transform.math import *
-from .tags.transform.polynomial import *
-from .tags.transform.powerlaws import *
-from .tags.transform.projections import *
-from .tags.transform.tabular import *
-from .tags.unit.quantity import *
-from .tags.unit.unit import *
-from .tags.unit.equivalency import *
-from .types import _astropy_types, _astropy_asdf_types
+    # Make sure that all tag implementations are imported by the time we create
+    # the extension class so that _astropy_asdf_types is populated correctly. We
+    # could do this using __init__ files, except it causes pytest import errors in
+    # the case that asdf is not installed.
+    from .tags.coordinates.angle import *  # noqa
+    from .tags.coordinates.frames import *  # noqa
+    from .tags.coordinates.earthlocation import *  # noqa
+    from .tags.coordinates.skycoord import *  # noqa
+    from .tags.coordinates.representation import *  # noqa
+    from .tags.coordinates.spectralcoord import *  # noqa
+    from .tags.fits.fits import *  # noqa
+    from .tags.table.table import *  # noqa
+    from .tags.time.time import *  # noqa
+    from .tags.time.timedelta import *  # noqa
+    from .tags.transform.basic import *  # noqa
+    from .tags.transform.compound import *  # noqa
+    from .tags.transform.functional_models import *  # noqa
+    from .tags.transform.physical_models import *  # noqa
+    from .tags.transform.math import *  # noqa
+    from .tags.transform.polynomial import *  # noqa
+    from .tags.transform.powerlaws import *  # noqa
+    from .tags.transform.projections import *  # noqa
+    from .tags.transform.tabular import *  # noqa
+    from .tags.unit.quantity import *  # noqa
+    from .tags.unit.unit import *  # noqa
+    from .tags.unit.equivalency import *  # noqa
+    from .types import _astropy_types, _astropy_asdf_types  # noqa
+
+    ASTROPY_SCHEMA_URI_BASE = 'http://astropy.org/schemas/'
+    SCHEMA_PATH = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), 'data', 'schemas'))
+    ASTROPY_URL_MAPPING = [
+        (ASTROPY_SCHEMA_URI_BASE,
+         filepath_to_url(
+             os.path.join(SCHEMA_PATH, 'astropy.org')) + '/{url_suffix}.yaml')]
 
 
 __all__ = ['AstropyExtension', 'AstropyAsdfExtension']
 
 
-ASTROPY_SCHEMA_URI_BASE = 'http://astropy.org/schemas/'
-SCHEMA_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), 'data', 'schemas'))
-ASTROPY_URL_MAPPING = [
-    (ASTROPY_SCHEMA_URI_BASE,
-     filepath_to_url(
-         os.path.join(SCHEMA_PATH, 'astropy.org')) +
-         '/{url_suffix}.yaml')]
-
-
 # This extension is used to register custom types that have both tags and
 # schemas defined by Astropy.
 class AstropyExtension(AsdfExtension):
+    def __init__(self, *args, **kwargs):
+        if not HAS_ASDF:
+            raise ImportError('asdf is not installed')
+
+        super().__init__(*args, **kwargs)
+
     @property
     def types(self):
         return _astropy_types
@@ -69,6 +82,12 @@ class AstropyExtension(AsdfExtension):
 # This extension is used to register custom tag types that have schemas defined
 # by ASDF, but have tag implementations defined in astropy.
 class AstropyAsdfExtension(BuiltinExtension):
+    def __init__(self, *args, **kwargs):
+        if not HAS_ASDF:
+            raise ImportError('asdf is not installed')
+
+        super().__init__(*args, **kwargs)
+
     @property
     def types(self):
         return _astropy_asdf_types

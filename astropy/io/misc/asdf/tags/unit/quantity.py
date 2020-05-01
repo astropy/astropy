@@ -1,12 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
-from numpy import isscalar
 from astropy.units import Quantity
-
-from asdf.tags.core import NDArrayType
-
 from astropy.io.misc.asdf.types import AstropyAsdfType
+
+try:
+    from asdf.tags.core import NDArrayType
+except ImportError:
+    HAS_ASDF = False
+else:
+    HAS_ASDF = True
 
 
 class QuantityType(AstropyAsdfType):
@@ -14,6 +17,12 @@ class QuantityType(AstropyAsdfType):
     types = ['astropy.units.Quantity']
     requires = ['astropy']
     version = '1.1.0'
+
+    def __init__(self, *args, **kwargs):
+        if not HAS_ASDF:
+            raise ImportError('asdf is not installed')
+
+        super().__init__(*args, **kwargs)
 
     @classmethod
     def to_tree(cls, quantity, ctx):

@@ -2,11 +2,15 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-from asdf import tagged
-from asdf.tags.core.ndarray import NDArrayType
-
 from astropy import table
 from astropy.io.misc.asdf.types import AstropyType, AstropyAsdfType
+
+try:
+    from asdf.tags.core.ndarray import NDArrayType
+except ImportError:
+    HAS_ASDF = False
+else:
+    HAS_ASDF = True
 
 
 class TableType:
@@ -58,6 +62,9 @@ class TableType:
 
     @classmethod
     def assert_equal(cls, old, new):
+        if not HAS_ASDF:
+            raise ImportError('asdf is not installed')
+
         assert old.meta == new.meta
         try:
             NDArrayType.assert_equal(np.array(old), np.array(new))
@@ -130,6 +137,9 @@ class ColumnType(AstropyAsdfType):
 
     @classmethod
     def assert_equal(cls, old, new):
+        if not HAS_ASDF:
+            raise ImportError('asdf is not installed')
+
         assert old.meta == new.meta
         assert old.description == new.description
         assert old.unit == new.unit
