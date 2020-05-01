@@ -74,12 +74,7 @@ except Exception:
     version = '{version}'
 
 from distutils.version import LooseVersion
-
-version_info = LooseVersion(version).version
-major = version_info[0]
-minor = version_info[1]
-bugfix = version_info[2]
-
+major, minor, bugfix = LooseVersion(version).version[:3]
 del LooseVersion  # clean up the namespace
 
 release = 'dev' not in version
