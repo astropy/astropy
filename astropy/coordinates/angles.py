@@ -32,7 +32,9 @@ class Angle(u.SpecificTypeQuantity):
     :class:`~astropy.coordinates.Angle`.
 
     The input parser is flexible and supports a variety of formats::
-
+    
+      >>> from . import angle_utilities as util
+      >>> from astropy import units as u
       >>> Angle('10.2345d')
       >>> Angle(['10.2345d', '-20d'])
       >>> Angle('1:2:30.43 degrees')
