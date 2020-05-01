@@ -242,3 +242,12 @@ class TestSpectralQuantity:
         assert isinstance(q1, u.Quantity) and not isinstance(q1, SpectralQuantity)
         assert q1.value == np.sum(sq1.value)
         assert q1.unit == u.AA
+
+    def test_flux_density(self):
+        sq1 = SpectralQuantity([10, 20, 30] * u.AA)
+
+        f_lamb = [1, 1, 1]  * u.erg / u.cm**2 / u.s / u.AA
+
+        to_fnu = f_lamb.to(u.erg / u.cm**2 / u.s / u.Hz,
+                           equivalencies=sq1.spectral_density_equivalency)
+        assert_quantity_allclose(to_fnu, [1, 2**2, 3**2]*(3.33e-17 * u.erg / u.cm**2 / u.s / u.Hz), rtol=.01)
