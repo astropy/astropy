@@ -3526,6 +3526,14 @@ class Table:
 
         for name, column, data, mask, unit in zip(names, columns, datas, masks, units):
 
+            if column.dtype.kind in ['u', 'i'] and np.any(mask):
+                # Special-case support for pandas nullable int
+                np_dtype = str(column.dtype).lower()
+                data = np.zeros(shape=column.shape, dtype=np_dtype)
+                data[~mask] = column[~mask]
+                out[name] = MaskedColumn(data=data, name=name, mask=mask, unit=unit, copy=False)
+                continue
+
             if data.dtype.kind == 'O':
                 # If all elements of an object array are string-like or np.nan
                 # then coerce back to a native numpy str/unicode array.
