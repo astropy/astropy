@@ -85,10 +85,10 @@ class TransformType(AstropyAsdfType):
 
         # model / parameter constraints
         fixed_nondefaults = {k:f for k, f in model.fixed.items() if f}
-        if fixed_nondefaults: 
+        if fixed_nondefaults:
             node['fixed'] = fixed_nondefaults
         bounds_nondefaults = {k:b for k, b in model.bounds.items() if any(b)}
-        if bounds_nondefaults: 
+        if bounds_nondefaults:
             node['bounds'] = bounds_nondefaults
 
     @classmethod
