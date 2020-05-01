@@ -1986,9 +1986,7 @@ class TestPandas:
                        2584288728310999296]
         t['Source'].mask = [False, False, False]
 
-        with pytest.warns(TableReplaceWarning,
-                          match="converted column 'a' from integer to float"):
-            d = t.to_pandas()
+        d = t.to_pandas()
 
         t2 = table.Table.from_pandas(d)
 
@@ -1996,12 +1994,9 @@ class TestPandas:
             assert np.all(column.data == t2[name].data)
             if hasattr(t2[name], 'mask'):
                 assert np.all(column.mask == t2[name].mask)
-            # Masked integer type comes back as float.  Nothing we can do about this.
+
             if column.dtype.kind == 'i':
-                if np.any(column.mask):
-                    assert t2[name].dtype.kind == 'f'
-                else:
-                    assert t2[name].dtype.kind == 'i'
+                assert t2[name].dtype.kind == 'i'
                 assert_array_equal(column.data,
                                    t2[name].data.astype(column.dtype))
             else:
