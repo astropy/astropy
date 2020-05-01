@@ -263,6 +263,47 @@ int ffcphd(fitsfile *infptr,    /* I - FITS file pointer to input file  */
     return(*status);
 }
 /*--------------------------------------------------------------------------*/
+int ffcpht(fitsfile *infptr,    /* I - FITS file pointer to input file  */
+	   fitsfile *outfptr,   /* I - FITS file pointer to output file */
+           LONGLONG firstrow,   /* I - number of first row to copy (1 based)  */
+	   LONGLONG nrows,      /* I - number of rows to copy  */
+	   int *status)         /* IO - error status     */
+
+/* 
+   Copy the table structure from an existing table HDU, but only
+   copy a limited row range.  All header keywords from the input
+   table are copied directly, but NAXSI2 and PCOUNT are set to their
+   correct values. 
+*/
+{
+  if (*status > 0)
+    return(*status);
+
+  /* Copy the header only */
+  ffcphd(infptr, outfptr, status);
+  /* Note that we now have a copied header that describes the table,
+     and that is the current header, but the original number of table
+     rows and heap area sizes are still there. */
+
+  /* Zero out the size-related keywords */
+  if (! *status ) {
+    ffukyj(outfptr,"NAXIS2",0,0,status); /* NAXIS2 = 0 */
+    ffukyj(outfptr,"PCOUNT",0,0,status); /* PCOUNT = 0 */
+    /* Update the internal structure variables within CFITSIO now
+       that we have a valid table header */
+    ffrdef(outfptr,status);
+  }
+
+  /* OK now that we have a pristine HDU, copy the requested rows */
+  if (! *status && nrows > 0) {
+    ffcprw(infptr, outfptr, firstrow, nrows, status);
+  }
+ 
+  return (*status);
+}
+
+
+/*--------------------------------------------------------------------------*/
 int ffcpdt(fitsfile *infptr,    /* I - FITS file pointer to input file  */
            fitsfile *outfptr,   /* I - FITS file pointer to output file */
            int *status)         /* IO - error status     */

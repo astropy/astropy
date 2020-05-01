@@ -137,6 +137,20 @@ extern int Fitsio_Pthread_Status;
 #    error "can't handle long size given by _MIPS_SZLONG"
 #  endif
 
+#elif defined(__riscv)
+
+/* RISC-V is always little endian */
+
+#define BYTESWAPPED TRUE
+
+#  if __riscv_xlen == 32
+#    define LONGSIZE 32
+#  elif __riscv_xlen == 64
+#    define LONGSIZE 64
+#  else
+#    error "can't handle long size given by __riscv_xlen"
+#  endif
+
 /* ============================================================== */
 /*  the following are all 32-bit byteswapped platforms            */
 
@@ -204,12 +218,6 @@ extern int Fitsio_Pthread_Status;
 #define BYTESWAPPED FALSE
 #endif
 
-#elif defined(__riscv)
-
-/* RISC-V is little endian */
-
-#define BYTESWAPPED TRUE
- 
 #else
 
 /*  assume all other machine uses the same IEEE formats as used in FITS files */
@@ -401,7 +409,8 @@ int fits_store_Fptr(FITSfile *Fptr, int *status);
 int fits_clear_Fptr(FITSfile *Fptr, int *status);
 int fits_already_open(fitsfile **fptr, char *url, 
     char *urltype, char *infile, char *extspec, char *rowfilter,
-    char *binspec, char *colspec, int  mode,int  *isopen, int  *status);
+    char *binspec, char *colspec, int  mode, int noextsyn,
+    int  *isopen, int  *status);
 int ffedit_columns(fitsfile **fptr, char *outfile, char *expr, int *status);
 int fits_get_col_minmax(fitsfile *fptr, int colnum, double *datamin, 
                      double *datamax, int *status);
