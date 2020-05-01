@@ -3086,7 +3086,7 @@ reduce these to 2 dimensions using the naxis kwarg.
     @property
     def spectral(self):
         """
-        A copy of the current WCS with only the celestial axes included
+        A copy of the current WCS with only the spectral axes included
         """
         return self.sub([WCSSUB_SPECTRAL])
 

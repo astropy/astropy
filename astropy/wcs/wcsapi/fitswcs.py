@@ -29,7 +29,8 @@ VELOCITY_FRAMES = {
     'LSRD': 'lsrd'
 }
 
-# For now, the velocity frames below aren't yet defined as real
+# The spectra velocity frames below are needed for FITS spectral WCS 
+#  (see Greisen 06 table 12) but aren't yet defined as real
 # astropy.coordinates frames, so we instead define them here as instances
 # of existing coordinate frames with offset velocities. In future we should
 # make these real frames so that users can more easily recognize these

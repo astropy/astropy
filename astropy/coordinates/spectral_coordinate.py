@@ -133,7 +133,7 @@ def attach_zero_velocities(coord):
 
 class SpectralCoord(SpectralQuantity):
     """
-    Coordinate object representing spectral values.
+    A spectral coordinate with its corresponding unit.
 
     .. note:: The |SpectralCoord| class is new in Astropy v4.1 and should be
               considered experimental at this time. Note that we do not fully
@@ -683,7 +683,8 @@ class SpectralCoord(SpectralQuantity):
     @u.quantity_input(velocity=u.km/u.s)
     def with_observer_stationary_relative_to(self, frame, velocity=None, preserve_observer_frame=False):
         """
-        Alters the velocity of the observer, but not the position.
+        A new  `SpectralCoord` with the velocity of the observer altered,
+       but not the position.
 
         If a coordinate frame is specified, the observer velocities will be
         modified to be stationary in the specified frame. If a coordinate
