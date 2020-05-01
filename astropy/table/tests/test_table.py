@@ -1844,6 +1844,20 @@ class TestPandas:
             else:
                 assert t[column].byteswap().newbyteorder().dtype == t2[column].dtype
 
+    @pytest.mark.parametrize('unsigned', ['u', ''])
+    @pytest.mark.parametrize('bits', [8, 16, 32, 64])
+    def test_nullable_int(self, unsigned, bits):
+        np_dtype = f'{unsigned}int{bits}'
+        c = MaskedColumn([1, 2], mask=[False, True], dtype=np_dtype)
+        t = Table([c])
+        df = t.to_pandas()
+        pd_dtype = np_dtype.replace('i', 'I').replace('u', 'U')
+        assert str(df['col0'].dtype) == pd_dtype
+        t2 = Table.from_pandas(df)
+        assert str(t2['col0'].dtype) == np_dtype
+        assert np.all(t2['col0'].mask == [False, True])
+        assert np.all(t2['col0'] == c)
+
     def test_2d(self):
 
         t = table.Table()

@@ -3417,7 +3417,9 @@ class Table:
         for name, column in tbl.columns.items():
             if isinstance(column, MaskedColumn) and np.any(column.mask):
                 if column.dtype.kind in ['i', 'u']:
-                    out[name] = Series(column, dtype='Int64')
+                    # str(type) must be int<n> or uint<n>, convert to
+                    pd_dtype = str(column.dtype).replace('i', 'I').replace('u', 'U')
+                    out[name] = Series(column, dtype=pd_dtype)
                 elif column.dtype.kind in ['f', 'c']:
                     out[name] = column.filled(np.nan)
                 else:
@@ -3425,8 +3427,8 @@ class Table:
             else:
                 out[name] = column
 
-            if (hasattr(out[name].dtype, 'byteorder') and
-                out[name].dtype.byteorder not in ('=', '|')):
+            if (hasattr(out[name].dtype, 'byteorder')
+                    and out[name].dtype.byteorder not in ('=', '|')):
                 out[name] = out[name].byteswap().newbyteorder()
 
         kwargs = {'index': out.pop(index)} if index else {}
