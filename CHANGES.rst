@@ -28,9 +28,7 @@ astropy.coordinates
 - Allow in-place modification of array-valued ``Frame`` and ``SkyCoord`` objects.
   This provides limited support for updating coordinate data values from another
   coordinate object of the same class and equivalent frame attributes. [#9857]
-- Added a robust equality operator for comparing ``SkyCoord``, ``Frame``, and
-  ``Representation`` objects. A comparison like ``sc1 == sc2`` will now return
-  a boolean or boolean array where the objects are strictly equal in all relevant
+
 - Added a robust equality operator for comparing ``SkyCoord``, frame, and
   representation objects. A comparison like ``sc1 == sc2`` will now return a
   boolean or boolean array where the objects are strictly equal in all relevant
@@ -63,6 +61,7 @@ astropy.io.ascii
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 - Added serialization of parameter constraints fixed and bounds.  [#10082]
+
 - Added 'functional_models.py' and 'physical_models.py' to asdf/tags/transform,
   with to allow serialization of all functional and physical models. [#10028]
 
