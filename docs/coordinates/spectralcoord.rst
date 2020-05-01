@@ -2,8 +2,8 @@
 
 .. _astropy-spectralcoord:
 
-Using the SpectralCoord High-Level Class
-****************************************
+Using the SpectralCoord Class
+*****************************
 
 .. warning::
 
@@ -118,10 +118,10 @@ or remove the effects of redshift. There are two main ways to do this using the
 |SpectralCoord| class:
 
 * You can specify or change the velocity offset or redshift
-  between the observer and the target without actually having to specify the
-  absolute observer and target, but rather specify that you know that there
+  between the observer and the target without having to specify the
+  absolute observer and target, but rather specify a velocity difference.  For example, that you know that there
   is a velocity diffence of 15km/s along the line of sight, or that you are
-  observing a Galaxy at z=3.2. This can be useful for quick analysis but
+  observing a galaxy at z=3.2. This can be useful for quick analysis but
   will not determine any frame transformations (e.g. from topocentric to
   barycentric) for you.
 
@@ -208,7 +208,7 @@ Specifying an observer and a target explicitly
 
 To use the more advanced funtionality in |SpectralCoord|, including the ability
 to easily transform between different well-defined velocity frames, you will
-next need to give it information about the location (and optionally velocity) of
+need to give it information about the location (and optionally velocity) of
 the observer and target. This is done by passing either coordinate frame objects
 or |SkyCoord| objects. To take a concrete example, let's assume that we are now
 observe the source T Tau using the ALMA telescope. To create an observer object
