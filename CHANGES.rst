@@ -26,6 +26,7 @@ astropy.coordinates
   coordinate object of the same class and equivalent frame attributes. [#9857]
 
 - Added the True Equator Mean Equinox (TEME) frame. [#10149]
+
 - The ``Galactocentric`` frame will now use the "latest" parameter definitions
   by default. This currently corresponds to the values defined in v4.0, but will
   change with future releases. [#10238]
