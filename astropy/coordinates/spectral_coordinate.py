@@ -8,10 +8,9 @@ from astropy.coordinates import (ICRS,
                                  CartesianDifferential,
                                  CartesianRepresentation, SkyCoord)
 from astropy.coordinates.spectral_quantity import SpectralQuantity
-from astropy.coordinates.baseframe import (BaseCoordinateFrame, FrameMeta,
+from astropy.coordinates.baseframe import (BaseCoordinateFrame,
                                            frame_transform_graph)
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.compat import NUMPY_LT_1_17
 
 __all__ = ['SpectralCoord']
 
@@ -71,10 +70,8 @@ def _apply_relativistic_doppler_shift(self, velocity):
     elif squantity.unit.is_equivalent(u.Hz) or squantity.unit.is_equivalent(u.eV) or squantity.unit.is_equivalent(1 / u.m):
         return squantity / doppler_factor
     elif squantity.unit.is_equivalent(u.km / u.s):  # velocity
-        if squantity.doppler_convention is None:
-            raise ValueError('doppler_convention is not set, so unsure how to apply Doppler shift')
         return (squantity.to(u.Hz) / doppler_factor).to(squantity.unit)
-    else:
+    else:  # pragma: no cover
         raise RuntimeError(f"Unexpected units in velocity shift: {squantity.unit}. "
                             "This should not happen, so please report this in the "
                             "astropy issue tracker!")
@@ -164,6 +161,7 @@ class SpectralCoord(SpectralQuantity):
         The Doppler convention to use when expressing the spectral value as a velocity.
     """
 
+    @u.quantity_input(radial_velocity=u.km/u.s)
     def __new__(cls, value, unit=None,
                 observer=None, target=None,
                 radial_velocity=None, redshift=None,
@@ -187,8 +185,14 @@ class SpectralCoord(SpectralQuantity):
         # Otherwise internally we always deal with velocities.
         if redshift is not None:
             if radial_velocity is not None:
-                raise ValueError("Cannot set both a radial velocity and "
-                                 "redshift on spectral coordinate.")
+                raise ValueError("Cannot set both a radial velocity and redshift")
+            redshift = u.Quantity(redshift)
+            # For now, we can't specify redshift=u.one in quantity_input above
+            # and have it work with plain floats, but if that is fixed, for
+            # example as in https://github.com/astropy/astropy/pull/10232, we
+            # can remove the check here and add redshift=u.one to the decorator
+            if not redshift.unit.is_equivalent(u.one):
+                raise u.UnitsError('redshift should be dimensionless')
             radial_velocity = _redshift_to_velocity(redshift)
 
         # If we're initializing from an existing SpectralCoord, keep any
@@ -207,9 +211,9 @@ class SpectralCoord(SpectralQuantity):
 
         # Validate the observer and target
         if observer is not None and not isinstance(observer, (SkyCoord, BaseCoordinateFrame)):
-            raise ValueError("observer must be a sky coordinate or coordinate frame.")
+            raise TypeError("observer must be a SkyCoord or coordinate frame instance")
         if target is not None and not isinstance(target, (SkyCoord, BaseCoordinateFrame)):
-            raise ValueError("target must be a sky coordinate or coordinate frame.")
+            raise TypeError("target must be a SkyCoord or coordinate frame instance")
 
         # Keep track of whether the observer and target were specified
         # explicitly or whether we use pseudo observers/targets (see below)
@@ -336,38 +340,78 @@ class SpectralCoord(SpectralQuantity):
 
         return coord
 
-    def _copy(self, **kwargs):
+    def replicate(self, value=None, unit=None,
+                  observer=None, target=None,
+                  radial_velocity=None, redshift=None,
+                  doppler_convention=None, doppler_rest=None,
+                  copy=False):
         """
-        Internal method to make a new `SpectralCoord` with some properties
-        changed.
+        Return a replica of the `SpectralCoord`, optionally changing the
+        values or attributes.
+
+        Note that no conversion is carried out by this method - this keeps
+        all the values and attributes the same, except for the ones explicitly
+        passed to this method which are changed.
+
+        If ``copy`` is set to `True` then a full copy of the internal arrays
+        will be made.  By default the replica will use a reference to the
+        original arrays when possible to save memory.
+
+        Parameters
+        ----------
+        value : ndarray or `~astropy.units.Quantity` or `SpectralCoord`, optional
+            Spectral values, which should be either wavelength, frequency,
+            energy, wavenumber, or velocity values.
+        unit : str or `~astropy.units.Unit`
+            Unit for the given spectral values.
+        observer : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`, optional
+            The coordinate (position and velocity) of observer.
+        target : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`, optional
+            The coordinate (position and velocity) of target.
+        radial_velocity : `~astropy.units.Quantity`, optional
+            The radial velocity of the target with respect to the observer.
+        redshift : float, optional
+            The relativistic redshift of the target with respect to the observer.
+        doppler_rest : `~astropy.units.Quantity`, optional
+            The rest value to use when expressing the spectral value as a velocity.
+        doppler_convention : str, optional
+            The Doppler convention to use when expressing the spectral value as a velocity.
+        copy : bool, optional
+            If `True`, and ``value`` is not specified, the values are copied to
+            the new `SkyCoord` - otherwise a reference to the same values is used.
+
+        Returns
+        -------
+        sc : `SpectralCoord` object
+            Replica of this object
         """
 
-        default_kwargs = {
-            'value': self.value,
-            'unit': self.unit,
-            'doppler_rest': self.doppler_rest,
-            'doppler_convention': self.doppler_convention,
-            'observer': self.observer,
-            'target': self.target,
-        }
+        if isinstance(value, u.Quantity):
+            if unit is not None:
+                raise ValueError("Cannot specify value as a Quantity and also specify unit")
+            else:
+                value, unit = value.value, value.unit
+
+        value = value if value is not None else self.value
+        unit = unit or self.unit
+        observer = observer or self.observer
+        target = target or self.target
+        doppler_convention = doppler_convention or self.doppler_convention
+        doppler_rest = doppler_rest or self.doppler_rest
+
+        # If value is being taken from self and copy is Tru
+        if copy:
+            value = value.copy()
 
         # Only include radial_velocity if it is not auto-computed from the
         # observer and target.
-        if self.observer is None or self.target is None:
-            default_kwargs['radial_velocity'] = self.radial_velocity
+        if (self.observer is None or self.target is None) and radial_velocity is None and redshift is None:
+            radial_velocity = self.radial_velocity
 
-        # If the new kwargs dict contains a value argument and it is a
-        # quantity, use the unit information provided by that quantity.
-        # TODO: if a new quantity value is provided *and* the unit is set,
-        # do we implicitly try and convert to the provided unit?
-        new_value = kwargs.get('value')
-
-        if isinstance(new_value, u.Quantity):
-            kwargs['unit'] = None
-
-        default_kwargs.update(kwargs)
-
-        return self.__class__(**default_kwargs)
+        return self.__class__(value=value, unit=unit,
+                              observer=observer, target=target,
+                              radial_velocity=radial_velocity, redshift=redshift,
+                              doppler_convention=doppler_convention, doppler_rest=doppler_rest, copy=False)
 
     @property
     def quantity(self):
@@ -575,9 +619,9 @@ class SpectralCoord(SpectralQuantity):
 
         new_data = self._project_velocity_and_shift(init_obs_vel, fin_obs_vel, line_of_sight_unit_vec)
 
-        new_coord = self._copy(value=new_data,
-                               observer=observer,
-                               target=target)
+        new_coord = self.replicate(value=new_data,
+                                   observer=observer,
+                                   target=target)
 
         return new_coord
 
@@ -754,52 +798,10 @@ class SpectralCoord(SpectralQuantity):
         #  will be created. Otherwise, use the available observer/target
         #  instances to create the pair.
         # FIXME: radial_velocity below is wrong
-        return self._copy(value=new_data,
-                          observer=new_observer if self.observer is not None else None,
-                          target=new_target if self.target is not None else None,
-                          radial_velocity=fin_obs_vel.norm() if self.observer is None and self.target is None else None)
-
-    @u.quantity_input(rv=['speed'])
-    def with_radial_velocity(self, rv):
-        """
-        Creates a new `SpectralCoord` object with the updated radial
-        velocity value.
-
-        Parameters
-        ----------
-        rv : `~astropy.units.Quantity`
-            New radial velocity to a store in the `SpectralCoord` object.
-
-        Returns
-        -------
-        `SpectralCoord`
-            A new instance with the updated radial velocity value.
-        """
-        if self.observer is not None and self.target is not None:
-            raise ValueError("Radial velocity cannot be set explicitly when "
-                             "providing both an observer and target.")
-
-        return self._copy(radial_velocity=rv, redshift=None)
-
-    def with_redshift(self, rs):
-        """
-        Creates a new `SpectralCoord` object with the updated redshift value.
-
-        Parameters
-        ----------
-        rs : float
-            New redshift to a store in the `SpectralCoord` object.
-
-        Returns
-        -------
-        `SpectralCoord`
-            A new instance with the updated redshift value.
-        """
-        if self.observer is not None and self.target is not None:
-            raise ValueError("Redshift cannot be set explicitly when "
-                             "providing both an observer and target.")
-
-        return self._copy(redshift=rs, radial_velocity=None)
+        return self.replicate(value=new_data,
+                              observer=new_observer if self.observer is not None else None,
+                              target=new_target if self.target is not None else None,
+                              radial_velocity=fin_obs_vel.norm() if self.observer is None and self.target is None else None)
 
     def to_rest(self):
         """
@@ -811,7 +813,7 @@ class SpectralCoord(SpectralQuantity):
 
         result = _apply_relativistic_doppler_shift(self, -self.radial_velocity)
 
-        return self._copy(value=result, radial_velocity=0. * u.km / u.s, redshift=None)
+        return self.replicate(value=result, radial_velocity=0. * u.km / u.s, redshift=None)
 
     def __repr__(self):
 
