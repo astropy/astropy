@@ -1267,9 +1267,9 @@ def reset_galactocentric_defaults():
     from astropy.coordinates import galactocentric_frame_defaults
 
     # Resets before each test, and after (the yield is pytest magic)
-    galactocentric_frame_defaults._value = 'pre-v4.0'
+    galactocentric_frame_defaults.set('v4.0')
     yield
-    galactocentric_frame_defaults._value = 'pre-v4.0'
+    galactocentric_frame_defaults.set('v4.0')
 
 
 def test_galactocentric_defaults(reset_galactocentric_defaults):
