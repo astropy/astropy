@@ -45,8 +45,7 @@ def wrap_angle_at(values, coord_wrap):
     # On ARM processors, np.mod emits warnings if there are NaN values in the
     # array, although this doesn't seem to happen on other processors.
     with np.errstate(invalid='ignore'):
-        return np.mod(values - Quantity(coord_wrap, u.deg).value, 360.)
-        - (360. - Quantity(coord_wrap, u.deg).value)
+        return np.mod(values - coord_wrap, 360.) - (360. - coord_wrap)
 
 
 class CoordinateHelper:
@@ -75,8 +74,9 @@ class CoordinateHelper:
         The unit that this coordinate is in given the output of transform.
     format_unit : `~astropy.units.Unit`, optional
         The unit to use to display the coordinates.
-    coord_wrap : `~astropy.units.Quantity`, float (DEPRECATED), optional
-        The angle at which the longitude wraps (defaults to 360)
+    coord_wrap : float, `~astropy.units.Quantity`, optional
+        The angle at which the longitude wraps (in degrees)
+        Defaults to 360 degrees.
     frame : `~astropy.visualization.wcsaxes.frame.BaseFrame`
         The frame of the :class:`~astropy.visualization.wcsaxes.WCSAxes`.
     """
@@ -185,15 +185,13 @@ class CoordinateHelper:
         ----------
         coord_type : str
             One of 'longitude', 'latitude' or 'scalar'
-        coord_wrap : `~astropy.units.Quantity`, float(DEPRECATED), optional
+        coord_wrap : float, `~astropy.units.Quantity`, optional
             The value to wrap at for angular coordinates
         """
 
         self.coord_type = coord_type
-        if type(coord_wrap) is float:
-            warnings.warn('`coord_wrap` input of type `float` are deprecated. '
-                          '`Quantity` is the only accepted type',
-                          AstropyDeprecationWarning)
+        if type(coord_wrap) is Quantity:
+            coord_wrap = coord_wrap.to_value(u.deg)
 
         if coord_type == 'longitude' and coord_wrap is None:
             self.coord_wrap = 360
@@ -202,9 +200,6 @@ class CoordinateHelper:
                                       'for non-longitude coordinates')
         else:
             self.coord_wrap = coord_wrap
-
-        if self.coord_wrap is not None:
-            self.coord_wrap = self.coord_wrap * u.deg
 
         # Initialize tick formatter/locator
         if coord_type == 'scalar':
