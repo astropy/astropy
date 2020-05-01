@@ -20,6 +20,56 @@ In particular, this release includes:
 2. Support for units on otherwise unitless models via the ``Model.coerce_units`` method.
 
 
+New ``SpectralCoord`` class for representing and transforming spectral quantities
+=================================================================================
+
+The :ref:`astropy-coordinates` sub-package now includes a new :class:`~astropy.coordinates.SpectralCoord`
+class which can be used to represent spectral coordinates, and transform between
+different velocity reference frames. It can be used for simple spectral
+conversions::
+
+   >>> from astropy import units as u
+   >>> from astropy.coordinates import SpectralCoord, SkyCoord
+   >>> sc = SpectralCoord([654.2, 654.4, 654.6] * u.nm)
+   >>> sc
+   <SpectralCoord [654.2, 654.4, 654.6] nm>
+   >>> sc.to(u.micron)
+   <SpectralCoord [0.6542, 0.6544, 0.6546] micron>
+   >>> sc.to(u.eV)
+   <SpectralCoord [1.89520328, 1.89462406, 1.89404519] eV>
+   >>> sc.to(u.THz)
+   <SpectralCoord [458.25811373, 458.11805929, 457.97809044] THz>
+
+It can also hold information about the observer and target::
+
+   >>> from astropy.time import Time
+   >>> from astropy.coordinates import EarthLocation
+   >>> location = EarthLocation.of_site('ALMA')  # doctest: +REMOTE_DATA
+   >>> alma = location.get_itrs(obstime=Time('2019-04-24T02:32:10'))  # doctest: +REMOTE_DATA
+   >>> ttau = SkyCoord('04h21m59.43s +19d32m06.4', frame='icrs',
+   ...                 radial_velocity=23.9 * u.km / u.s,
+   ...                 distance=144.321 * u.pc)  # doctest: +REMOTE_DATA
+   >>> sc_ttau = SpectralCoord([200, 250, 300] * u.GHz,
+   ...                         observer=alma, target=ttau)  # doctest: +IGNORE_WARNINGS +REMOTE_DATA
+
+which then allows for example transforming these spectral values to different
+velocity frame, including for example to local standard of rest frames (the
+following example uses the Kinematic Local Standard of Rest definition)::
+
+   >>> sc_ttau.with_observer_stationary_relative_to('lsrk')  # doctest: +REMOTE_DATA +FLOAT_CMP
+    <SpectralCoord
+      ...
+      [200.01903338, 250.02379172, 300.02855007] GHz>
+
+or to the rest frame of the target::
+
+   >>> sc_ttau.with_observer_stationary_relative_to(sc_ttau.target)  # doctest: +REMOTE_DATA +FLOAT_CMP
+    <SpectralCoord
+      ...
+      [200.02737811, 250.03422264, 300.04106717] GHz>
+
+For more information and examples, see :ref:`astropy-spectralcoord`.
+
 Support for writing Dask arrays to FITS files
 =============================================
 

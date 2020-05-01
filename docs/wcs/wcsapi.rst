@@ -203,15 +203,12 @@ As before, we can convert between pixels and high-level Astropy objects::
     <SkyCoord (ICRS): (ra, dec) in deg
         [(51.73115731, 30.32750025), (51.72414268, 30.32111136)]>
     >>> spectral  # doctest: +REMOTE_DATA
-    <SpectralCoord [2661.04211695, 2727.46572695] m / s
-        target:
-          <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
-              (57.66, 0., 1000.)
-           (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-              (0., 0., 0.)>
-        observer to target:
-          radial_velocity=0.0 km / s
-          redshift=0.0>
+    <SpectralCoord
+       (target: <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
+                    (57.66, 0., 1000.)
+                 (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+                    (0., 0., 0.)>)
+      [2661.04211695, 2727.46572695] m / s>
 
 and back::
 
