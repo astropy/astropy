@@ -31,6 +31,9 @@ astropy.coordinates
 - Added a robust equality operator for comparing ``SkyCoord``, ``Frame``, and
   ``Representation`` objects. A comparison like ``sc1 == sc2`` will now return
   a boolean or boolean array where the objects are strictly equal in all relevant
+- Added a robust equality operator for comparing ``SkyCoord``, frame, and
+  representation objects. A comparison like ``sc1 == sc2`` will now return a
+  boolean or boolean array where the objects are strictly equal in all relevant
   frame attributes and coordinate representation values. [#10154]
 
 - Added the True Equator Mean Equinox (TEME) frame. [#10149]
@@ -246,12 +249,12 @@ astropy.io.ascii
   ``converters`` dict names referred to the *input* table column names, but now
   they refer to the *output* table column names. [#9739]
 
-- The equality operator for comparing ``SkyCoord``, ``Frame``, and
-  ``Representation`` objects was changed. A comparison like ``sc1 == sc2`` would
-  previously return ``True`` only if the objects were actually the same object
-  and ``False`` otherwise. It will now return a boolean or boolean array where
-  the objects are strictly equal in all relevant frame attributes and coordinate
-  representation values. [#10154]
+- The equality operator for comparing ``SkyCoord``, frame, and representation
+  objects was changed. A comparison like ``sc1 == sc2`` was previously
+  equivalent to ``sc1 is sc2``. It will now return a boolean or boolean array
+  where the objects are strictly equal in all relevant frame attributes and
+  coordinate representation values. If the objects have different frame
+  attributes or representation types then an exception will be raised. [#10154]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
