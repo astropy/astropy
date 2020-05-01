@@ -187,23 +187,29 @@ class LSRK(BaseRADecFrame):
     """
 
 
-GORDON1975_V_BARY = 20*u.km/u.s
-GORDON1975_DIRECTION = FK4(ra=270*u.deg, dec=30*u.deg, equinox='B1900')
+# NOTE: To avoid a performance penalty at import time, we hard-code the ICRS
+# offsets here. The code to generate the offsets is provided for reproducibility.
+# GORDON1975_V_BARY = 20*u.km/u.s
+# GORDON1975_DIRECTION = FK4(ra=270*u.deg, dec=30*u.deg, equinox='B1900')
+# V_OFFSET_LSRK = ((GORDON1975_V_BARY * GORDON1975_DIRECTION.transform_to(ICRS).data)
+#                  .represent_as(r.CartesianDifferential))
 
-v_offset_lsrk = ((GORDON1975_V_BARY * GORDON1975_DIRECTION.transform_to(ICRS).data)
-                 .represent_as(r.CartesianDifferential))
-icrs_lsrk_offset = r.CartesianRepresentation([0, 0, 0]*u.au, differentials=v_offset_lsrk)
-lsrk_icrs_offset = r.CartesianRepresentation([0, 0, 0]*u.au, differentials=-v_offset_lsrk)
+V_OFFSET_LSRK = r.CartesianDifferential([0.28999706839034606,
+                                         -17.317264789717928,
+                                         10.00141199546947]*u.km/u.s)
+
+ICRS_LSRK_OFFSET = r.CartesianRepresentation([0, 0, 0]*u.au, differentials=V_OFFSET_LSRK)
+LSRK_ICRS_OFFSET = r.CartesianRepresentation([0, 0, 0]*u.au, differentials=-V_OFFSET_LSRK)
 
 
 @frame_transform_graph.transform(AffineTransform, ICRS, LSRK)
 def icrs_to_lsrk(icrs_coord, lsr_frame):
-    return None, icrs_lsrk_offset
+    return None, ICRS_LSRK_OFFSET
 
 
 @frame_transform_graph.transform(AffineTransform, LSRK, ICRS)
 def lsrk_to_icrs(lsr_coord, icrs_frame):
-    return None, lsrk_icrs_offset
+    return None, LSRK_ICRS_OFFSET
 
 
 # ------------------------------------------------------------------------------
@@ -233,19 +239,25 @@ class LSRD(BaseRADecFrame):
     """
 
 
-V_BARY_DELHAYE1965 = r.CartesianDifferential([9, 12, 7] * u.km/u.s)
+# NOTE: To avoid a performance penalty at import time, we hard-code the ICRS
+# offsets here. The code to generate the offsets is provided for reproducibility.
+# V_BARY_DELHAYE1965 = r.CartesianDifferential([9, 12, 7] * u.km/u.s)
+# V_OFFSET_LSRD = (Galactic(V_BARY_DELHAYE1965.to_cartesian()).transform_to(ICRS).data
+#                  .represent_as(r.CartesianDifferential))
 
-v_offset_lsrd = (Galactic(V_BARY_DELHAYE1965.to_cartesian()).transform_to(ICRS).data
-                 .represent_as(r.CartesianDifferential))
-icrs_lsrd_offset = r.CartesianRepresentation([0, 0, 0]*u.au, differentials=v_offset_lsrd)
-lsrd_icrs_offset = r.CartesianRepresentation([0, 0, 0]*u.au, differentials=-v_offset_lsrd)
+V_OFFSET_LSRD = r.CartesianDifferential([-0.6382306360182073,
+                                         -14.585424483191094,
+                                         7.8011572411006815]*u.km/u.s)
+
+ICRS_LSRD_OFFSET = r.CartesianRepresentation([0, 0, 0]*u.au, differentials=V_OFFSET_LSRD)
+LSRD_ICRS_OFFSET = r.CartesianRepresentation([0, 0, 0]*u.au, differentials=-V_OFFSET_LSRD)
 
 
 @frame_transform_graph.transform(AffineTransform, ICRS, LSRD)
 def icrs_to_lsrd(icrs_coord, lsr_frame):
-    return None, icrs_lsrd_offset
+    return None, ICRS_LSRD_OFFSET
 
 
 @frame_transform_graph.transform(AffineTransform, LSRD, ICRS)
 def lsrd_to_icrs(lsr_coord, icrs_frame):
-    return None, lsrd_icrs_offset
+    return None, LSRD_ICRS_OFFSET
