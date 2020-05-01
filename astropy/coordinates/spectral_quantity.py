@@ -1,5 +1,5 @@
 import numpy as np
-from astropy.units import si
+from astropy.units import si, spectral_density
 from astropy.units import equivalencies as eq
 from astropy.units.quantity import SpecificTypeQuantity, Quantity
 from astropy.units.decorators import quantity_input
@@ -294,3 +294,8 @@ class SpectralQuantity(SpecificTypeQuantity):
 
     def to_value(self, *args, **kwargs):
         return self.to(*args, **kwargs).value
+
+
+    @property
+    def spectral_density_equivalency(self):
+        return spectral_density(self)
