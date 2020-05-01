@@ -1,4 +1,5 @@
 import warnings
+from textwrap import indent
 
 import astropy.units as u
 import numpy as np
@@ -815,9 +816,6 @@ class SpectralCoord(SpectralQuantity):
     def __repr__(self):
 
         prefixstr = '<' + self.__class__.__name__ + ' '
-        sep = ', '
-        arrstr = np.array2string(self.view(np.ndarray), separator=sep,
-                                 prefix=prefixstr)
 
         try:
             radial_velocity = self.radial_velocity
@@ -825,25 +823,15 @@ class SpectralCoord(SpectralQuantity):
         except ValueError:
             radial_velocity = redshift = 'Undefined'
 
-        repr_items = [f'{prefixstr}{arrstr}{self._unitstr:s}']
+        repr_items = [f'{prefixstr}']
 
         if self.observer is not None:
-            observer_repr = repr(self.observer)
-            if len(observer_repr.splitlines()) == 1:
-                repr_items.append(f'    observer: {observer_repr}')
-            else:
-                repr_items.append(f'    observer:')
-                for line in observer_repr.splitlines():
-                    repr_items.append(f'      {line}')
+            observer_repr = indent(repr(self.observer), 14 * ' ').lstrip()
+            repr_items.append(f'    observer: {observer_repr}')
 
         if self.target is not None:
-            target_repr = repr(self.target)
-            if len(target_repr.splitlines()) == 1:
-                repr_items.append(f'    target: {target_repr}')
-            else:
-                repr_items.append(f'    target:')
-                for line in target_repr.splitlines():
-                    repr_items.append(f'      {line}')
+            target_repr = indent(repr(self.target), 12 * ' ').lstrip()
+            repr_items.append(f'    target: {target_repr}')
 
         if (self._observer_specified and self._target_specified) or self._rv_specified:
             if self.observer is not None and self.target is not None:
@@ -854,7 +842,17 @@ class SpectralCoord(SpectralQuantity):
             repr_items.append(f'      redshift={redshift}')
 
         if self.doppler_rest is not None or self.doppler_convention is not None:
-            repr_items.append(f'\tdoppler_rest={self.doppler_rest}')
-            repr_items.append(f'\tdoppler_convention={self.doppler_convention}')
+            repr_items.append(f'    doppler_rest={self.doppler_rest}')
+            repr_items.append(f'    doppler_convention={self.doppler_convention}')
+
+        arrstr = np.array2string(self.view(np.ndarray), separator=', ',
+                                 prefix='  ')
+
+        if len(repr_items) == 1:
+            repr_items[0] += f'{arrstr}{self._unitstr:s}'
+        else:
+            repr_items[1] = '   (' + repr_items[1].lstrip()
+            repr_items[-1] += ')'
+            repr_items.append(f'  {arrstr}{self._unitstr:s}')
 
         return '\n'.join(repr_items) + '>'
