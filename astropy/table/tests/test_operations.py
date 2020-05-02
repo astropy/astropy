@@ -7,7 +7,7 @@ import numpy as np
 
 from astropy.tests.helper import catch_warnings
 from astropy.table import Table, QTable, TableMergeError, Column, MaskedColumn
-from astropy.table.operations import _get_out_class
+from astropy.table.operations import _get_out_class, join_skycoord, join_distance
 from astropy import units as u
 from astropy.utils import metadata
 from astropy.utils.metadata import MergeConflictError
@@ -16,9 +16,16 @@ from astropy.time import Time
 from astropy.coordinates import (SkyCoord, SphericalRepresentation,
                                  UnitSphericalRepresentation,
                                  CartesianRepresentation,
-                                 BaseRepresentationOrDifferential)
+                                 BaseRepresentationOrDifferential,
+                                 search_around_3d)
 from astropy.coordinates.tests.test_representation import representation_equal
 from astropy.io.misc.asdf.tags.helpers import skycoord_equal
+
+try:
+    import scipy  # noqa
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
 
 
 def sort_eq(list1, list2):
@@ -574,6 +581,135 @@ class TestJoin():
 
         with pytest.raises(ValueError, match='cannot supply keys for a cartesian join'):
             t12 = table.join(t1, t2, join_type='cartesian', keys='a')
+
+    @pytest.mark.skipif('not HAS_SCIPY')
+    def test_join_with_join_skycoord_sky(self):
+        sc1 = SkyCoord([0, 1, 1.1, 2], [0, 0, 0, 0], unit='deg')
+        sc2 = SkyCoord([0.5, 1.05, 2.1], [0, 0, 0], unit='deg')
+        t1 = Table([sc1], names=['sc'])
+        t2 = Table([sc2], names=['sc'])
+        t12 = table.join(t1, t2, join_funcs={'sc': join_skycoord(0.2 * u.deg)})
+        exp = ['sc_id   sc_1    sc_2  ',
+               '      deg,deg deg,deg ',
+               '----- ------- --------',
+               '    1 1.0,0.0 1.05,0.0',
+               '    1 1.1,0.0 1.05,0.0',
+               '    2 2.0,0.0  2.1,0.0']
+        assert str(t12).splitlines() == exp
+
+    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.parametrize('distance_func', ['search_around_3d', search_around_3d])
+    def test_join_with_join_skycoord_3d(self, distance_func):
+        sc1 = SkyCoord([0, 1, 1.1, 2]*u.deg, [0, 0, 0, 0]*u.deg, [1, 1, 2, 1]*u.m)
+        sc2 = SkyCoord([0.5, 1.05, 2.1]*u.deg, [0, 0, 0]*u.deg, [1, 1, 1]*u.m)
+        t1 = Table([sc1], names=['sc'])
+        t2 = Table([sc2], names=['sc'])
+        join_func = join_skycoord(np.deg2rad(0.2) * u.m,
+                                  distance_func=distance_func)
+        t12 = table.join(t1, t2, join_funcs={'sc': join_func})
+        exp = ['sc_id     sc_1        sc_2    ',
+               '       deg,deg,m   deg,deg,m  ',
+               '----- ----------- ------------',
+               '    1 1.0,0.0,1.0 1.05,0.0,1.0',
+               '    2 2.0,0.0,1.0  2.1,0.0,1.0']
+        assert str(t12).splitlines() == exp
+
+    @pytest.mark.skipif('not HAS_SCIPY')
+    def test_join_with_join_distance_1d(self):
+        c1 = [0, 1, 1.1, 2]
+        c2 = [0.5, 1.05, 2.1]
+        t1 = Table([c1], names=['col'])
+        t2 = Table([c2], names=['col'])
+        join_func = join_distance(0.2,
+                                  kdtree_args={'leafsize': 32},
+                                  query_args={'p': 2})
+        t12 = table.join(t1, t2, join_type='outer', join_funcs={'col': join_func})
+        exp = ['col_id col_1 col_2',
+               '------ ----- -----',
+               '     1   1.0  1.05',
+               '     1   1.1  1.05',
+               '     2   2.0   2.1',
+               '     3   0.0    --',
+               '     4    --   0.5']
+        assert str(t12).splitlines() == exp
+
+    @pytest.mark.skipif('not HAS_SCIPY')
+    def test_join_with_join_distance_1d_multikey(self):
+        from astropy.table.operations import _apply_join_funcs
+
+        c1 = [0, 1, 1.1, 1.2, 2]
+        id1 = [0, 1, 2, 2, 3]
+        o1 = ['a', 'b', 'c', 'd', 'e']
+        c2 = [0.5, 1.05, 2.1]
+        id2 = [0, 2, 4]
+        o2 = ['z', 'y', 'x']
+        t1 = Table([c1, id1, o1], names=['col', 'id', 'o1'])
+        t2 = Table([c2, id2, o2], names=['col', 'id', 'o2'])
+        join_func = join_distance(0.2)
+        join_funcs = {'col': join_func}
+        t12 = table.join(t1, t2, join_type='outer', join_funcs=join_funcs)
+        exp = ['col_id col_1  id  o1 col_2  o2',
+               '------ ----- --- --- ----- ---',
+               '     1   1.0   1   b    --  --',
+               '     1   1.1   2   c  1.05   y',
+               '     1   1.2   2   d  1.05   y',
+               '     2   2.0   3   e    --  --',
+               '     2    --   4  --   2.1   x',
+               '     3   0.0   0   a    --  --',
+               '     4    --   0  --   0.5   z']
+        assert str(t12).splitlines() == exp
+
+        left, right, keys = _apply_join_funcs(t1, t2, ('col', 'id'), join_funcs)
+        assert keys == ('col_id', 'id')
+
+    @pytest.mark.skipif('not HAS_SCIPY')
+    def test_join_with_join_distance_1d_quantity(self):
+        c1 = [0, 1, 1.1, 2] * u.m
+        c2 = [500, 1050, 2100] * u.mm
+        t1 = QTable([c1], names=['col'])
+        t2 = QTable([c2], names=['col'])
+        join_func = join_distance(20 * u.cm)
+        t12 = table.join(t1, t2, join_funcs={'col': join_func})
+        exp = ['col_id col_1 col_2 ',
+               '         m     mm  ',
+               '------ ----- ------',
+               '     1   1.0 1050.0',
+               '     1   1.1 1050.0',
+               '     2   2.0 2100.0']
+        assert str(t12).splitlines() == exp
+
+        # Generate column name conflict
+        t2['col_id'] = [0, 0, 0]
+        t2['col__id'] = [0, 0, 0]
+        t12 = table.join(t1, t2, join_funcs={'col': join_func})
+        exp = ['col___id col_1 col_2  col_id col__id',
+               '           m     mm                 ',
+               '-------- ----- ------ ------ -------',
+               '       1   1.0 1050.0      0       0',
+               '       1   1.1 1050.0      0       0',
+               '       2   2.0 2100.0      0       0']
+        assert str(t12).splitlines() == exp
+
+    @pytest.mark.skipif('not HAS_SCIPY')
+    def test_join_with_join_distance_2d(self):
+        c1 = np.array([[0, 1, 1.1, 2],
+                       [0, 0, 1, 0]]).transpose()
+        c2 = np.array([[0.5, 1.05, 2.1],
+                       [0, 0, 0]]).transpose()
+        t1 = Table([c1], names=['col'])
+        t2 = Table([c2], names=['col'])
+        join_func = join_distance(0.2,
+                                  kdtree_args={'leafsize': 32},
+                                  query_args={'p': 2})
+        t12 = table.join(t1, t2, join_type='outer', join_funcs={'col': join_func})
+        exp = ['col_id col_1 [2]   col_2 [2] ',
+               '------ ---------- -----------',
+               '     1 1.0 .. 0.0 1.05 .. 0.0',
+               '     2 2.0 .. 0.0  2.1 .. 0.0',
+               '     3 0.0 .. 0.0    -- .. --',
+               '     4 1.1 .. 1.0    -- .. --',
+               '     5   -- .. --  0.5 .. 0.0']
+        assert str(t12).splitlines() == exp
 
 
 class TestSetdiff():
@@ -1651,7 +1787,6 @@ def test_sort_indexed_table():
     ts.sort('time')
     assert np.all(ts['flux'] == [3, 1, 2])
     assert np.all(ts['time'] == tm[[0, 2, 1]])
-
 
 
 def test_get_out_class():

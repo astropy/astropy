@@ -1075,6 +1075,107 @@ The rules for merging are the same as for `Merging metadata`_, and the
 
 .. EXAMPLE END
 
+Joining Coordinates and Custom Join Functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you have two source catalogs that have `~astropy.coordinates.SkyCoord`
+coordinate columns, these can be joined using cross-matching of the coordinates
+with a specified distance threshold. This is a special case of a more general
+problem of "fuzzy" matching of key column values, where instead of an exact match
+we require only an approximate match. This is supported using the ``join_funcs``
+argument (introduced in version 4.1).
+
+Example
+~~~~~~~
+
+.. EXAMPLE START: Joining a Table on Coordinates
+
+To join two tables on a `~astropy.coordinates.SkyCoord` key column we use the
+``join_funcs`` keyword to supply a ``dict`` of functions that specify how to
+match a particular key column by name.  In the example below we are joining
+on the ``sc`` column, so we provide the following argument::
+
+  join_funcs={'sc': join_skycoord(0.2 * u.deg)}
+
+This tells `~astropy.table.join` to match the ``sc`` key column using a custom
+join function `~astropy.table.join_skycoord` using a matching distance
+threshold of 0.2 deg. Under the hood this calls
+`~astropy.coordinates.SkyCoord.search_around_sky` or
+`~astropy.coordinates.SkyCoord.search_around_3d` to do the cross-matching. The
+default is using ``'search_around_sky'`` (angle) matching, but
+``'search_around_3d'`` (length or dimensionless) is also available.
+This is specified using the ``distance_func`` argument of
+`~astropy.table.join_skycoord`, which can also be a function that matches the
+input and output API of `~astropy.coordinates.SkyCoord.search_around_sky`.
+
+Now we show the whole process:
+
+..  doctest-requires:: scipy
+
+  >>> from astropy.coordinates import SkyCoord
+  >>> import astropy.units as u
+  >>> from astropy.table import Table, join, join_skycoord
+
+..  doctest-requires:: scipy
+
+  >>> sc1 = SkyCoord([0, 1, 1.1, 2], [0, 0, 0, 0], unit='deg')
+  >>> sc2 = SkyCoord([1.05, 0.5, 2.1], [0, 0, 0], unit='deg')
+
+..  doctest-requires:: scipy
+
+  >>> t1 = Table([sc1, [0, 1, 2, 3]], names=['sc', 'idx_1'])
+  >>> t2 = Table([sc2, [0, 1, 2]], names=['sc', 'idx_2'])
+
+..  doctest-requires:: scipy
+
+  >>> t12 = join(t1, t2, join_funcs={'sc': join_skycoord(0.2 * u.deg)})
+  >>> print(t12)
+  sc_id   sc_1  idx_1   sc_2   idx_2
+        deg,deg       deg,deg
+  ----- ------- ----- -------- -----
+      1 1.0,0.0     1 1.05,0.0     0
+      1 1.1,0.0     2 1.05,0.0     0
+      2 2.0,0.0     3  2.1,0.0     2
+
+The joined table has matched the sources within 0.2 deg and created a new
+column ``sc_id`` with a unique identifier for each source.
+
+.. EXAMPLE END
+
+You might be wondering what is happening in the join function defined above,
+especially if you are interested in defining your own such function.  This
+could be done in order to allow fuzzy word matching of tables, for example
+joining tables of people by name where the names do not always match exactly.
+
+The first thing to note here is that the `~astropy.table.join_skycoord`
+function actually returns a function itself. This allows specifying a variable
+match distance via a function enclosure.  The requirement of the join function
+is that it accepts two arguments corresponding to the two key columns, and
+returns a tuple of ``(ids1, ids2)``.  These identifiers correspond to the
+identification of each column entry with a unique matched source.
+
+..  doctest-requires:: scipy
+
+    >>> join_func = join_skycoord(0.2 * u.deg)
+    >>> join_func(sc1, sc2)  # Associate each coordinate with unique source ID
+    (array([3, 1, 1, 2]), array([1, 4, 2]))
+
+If you would like to write your own fuzzy matching function, we suggest starting
+from the source code for `~astropy.table.join_skycoord` or
+`~astropy.table.join_distance`.
+
+Join on Distance
+~~~~~~~~~~~~~~~~
+
+The example above focused on joining on a `~astropy.coordinates.SkyCoord`, but
+you can also join on a generic distance between column values using the
+`~astropy.table.join_distance` join function. This can apply to
+1D or 2D (vector) columns. This will look very similar to the coordinates example,
+but here there is a bit more flexibility. The matching is done using
+`scipy.spatial.cKDTree` and `scipy.spatial.cKDTree.query_ball_tree`, and
+the behavior of these can be controlled via the ``kdtree_args`` and
+``query_args`` arguments, respectively.
+
 .. _unique-rows:
 
 Unique Rows
