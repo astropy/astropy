@@ -30,6 +30,7 @@ astropy.coordinates
 - The ``Galactocentric`` frame will now use the "latest" parameter definitions
   by default. This currently corresponds to the values defined in v4.0, but will
   change with future releases. [#10238]
+
 - Allow in-place modification of array-valued ``Representation`` and ``Differential``
   objects, including of representations with attached differentials. [#10210]
 
