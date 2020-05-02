@@ -1132,10 +1132,10 @@ To test if coordinates are within a certain angular distance of one other, use t
 Exact Equality
 --------------
 
-Astropy also provides an exact equality operator for coordinates. 
+Astropy also provides an exact equality operator for coordinates.
 For example, when comparing, e.g., two |SkyCoord| objects::
 
-    >>> left_skycoord == right_skycoord
+    >>> left_skycoord == right_skycoord  # doctest: +SKIP
 
 the right object must be strictly consistent with the left object for
 comparison:
