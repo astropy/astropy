@@ -253,6 +253,13 @@ class TestSphericalRepresentation:
         assert_allclose_quantity(new_sph.lon, sph.lon)
         assert_allclose_quantity(new_sph.lat, sph.lat)
 
+    def test_raise_on_extra_arguments(self):
+        with pytest.raises(TypeError, match='got multiple values'):
+            SphericalRepresentation(1*u.deg, 2*u.deg, 1.*u.kpc, lat=10)
+
+        with pytest.raises(TypeError, match='unexpected keyword.*parrot'):
+            SphericalRepresentation(1*u.deg, 2*u.deg, 1.*u.kpc, parrot=10)
+
 
 class TestUnitSphericalRepresentation:
 
@@ -1521,8 +1528,8 @@ def unitphysics():
         attr_classes = OrderedDict([('phi', Angle),
                                     ('theta', Angle)])
 
-        def __init__(self, phi, theta, differentials=None, copy=True):
-            super().__init__(phi, theta, copy=copy, differentials=differentials)
+        def __init__(self, *args, copy=True, **kwargs):
+            super().__init__(*args, copy=copy, **kwargs)
 
             # Wrap/validate phi/theta
             if copy:
@@ -1534,7 +1541,7 @@ def unitphysics():
             if np.any(self._theta < 0.*u.deg) or np.any(self._theta > 180.*u.deg):
                 raise ValueError('Inclination angle(s) must be within '
                                  '0 deg <= angle <= 180 deg, '
-                                 'got {}'.format(theta.to(u.degree)))
+                                 'got {}'.format(self._theta.to(u.degree)))
 
         @property
         def phi(self):
@@ -1610,6 +1617,12 @@ def test_unitphysics(unitphysics):
     assert assph.lon == obj.phi
     assert assph.lat == 80*u.deg
     assert_allclose_quantity(assph.distance, 1*u.dimensionless_unscaled)
+
+    with pytest.raises(TypeError, match='got multiple values'):
+        unitphysics(1*u.deg, 2*u.deg, theta=10)
+
+    with pytest.raises(TypeError, match='unexpected keyword.*parrot'):
+        unitphysics(1*u.deg, 2*u.deg, parrot=10)
 
 
 def test_distance_warning(recwarn):
