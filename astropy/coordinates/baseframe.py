@@ -1124,11 +1124,16 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                               and comp not in data_diff.__class__.attr_classes):
                             continue
 
+                        # Try to convert to requested units. Since that might
+                        # not be possible (e.g., for a coordinate with proper
+                        # motion but without distance, one cannot convert to a
+                        # cartesian differential in km/s), we allow the unit
+                        # conversion to fail.  See gh-7028 for discussion.
                         if new_attr_unit and hasattr(diff, comp):
                             try:
                                 diffkwargs[comp] = diffkwargs[comp].to(new_attr_unit)
                             except Exception:
-                                diffkwargs[comp] = diffkwargs[comp].to(new_attr_unit / u.m).decompose()
+                                pass
 
                     diff = diff.__class__(copy=False, **diffkwargs)
 
