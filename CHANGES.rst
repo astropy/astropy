@@ -29,6 +29,11 @@ astropy.coordinates
   This provides limited support for updating coordinate data values from another
   coordinate object of the same class and equivalent frame attributes. [#9857]
 
+- Added a robust equality operator for comparing ``SkyCoord``, frame, and
+  representation objects. A comparison like ``sc1 == sc2`` will now return a
+  boolean or boolean array where the objects are strictly equal in all relevant
+  frame attributes and coordinate representation values. [#10154]
+
 - Added the True Equator Mean Equinox (TEME) frame. [#10149]
 
 - The ``Galactocentric`` frame will now use the "latest" parameter definitions
@@ -56,6 +61,7 @@ astropy.io.ascii
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 - Added serialization of parameter constraints fixed and bounds.  [#10082]
+
 - Added 'functional_models.py' and 'physical_models.py' to asdf/tags/transform,
   with to allow serialization of all functional and physical models. [#10028]
 
@@ -241,6 +247,13 @@ astropy.io.ascii
   argument is provided (to specify column conversion functions). Previously the
   ``converters`` dict names referred to the *input* table column names, but now
   they refer to the *output* table column names. [#9739]
+
+- The equality operator for comparing ``SkyCoord``, frame, and representation
+  objects was changed. A comparison like ``sc1 == sc2`` was previously
+  equivalent to ``sc1 is sc2``. It will now return a boolean or boolean array
+  where the objects are strictly equal in all relevant frame attributes and
+  coordinate representation values. If the objects have different frame
+  attributes or representation types then an exception will be raised. [#10154]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
