@@ -188,6 +188,10 @@ astropy.units
 - Changed ``pixel_scale`` equivalency to allow scales defined in any unit.
   [#10123]
 
+- The ``quantity_input`` decorator now optionally allows passing through
+  numeric values or numpy arrays with numeric dtypes to arguments where
+  ``dimensionless_unscaled`` is an allowed unit. [#10232]
+
 astropy.utils
 ^^^^^^^^^^^^^
 - Added a new ``MetaAttribute`` class to support easily adding custom attributes
