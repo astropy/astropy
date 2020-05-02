@@ -1100,6 +1100,95 @@ We use the same plotting setup as in the last example:
 ..
   EXAMPLE END
 
+Comparing SkyCoord Objects
+==========================
+
+There are two primary ways to compare |SkyCoord| objects to each other. First is
+checking if the coordinates are within a specified distance of each other. This
+is what most users should do in their science or processing analysis work
+because it allows for a tolerance due to floating point representation issues.
+The second is checking for exact equivalence of two objects down to the bit,
+which is most useful for developers writing tests.
+
+The example below illustrates the floating point issue using the exact
+equality comparison, where we do a roundtrip transformation
+FK4 => ICRS => FK4 and then compare::
+
+  >>> sc1 = SkyCoord(1*u.deg, 2*u.deg, frame='fk4')
+  >>> sc1.icrs.fk4 == sc1
+  False
+
+Matching Within Tolerance
+-------------------------
+
+To test if coordinates are within a certain angular distance of one other, use the
+`~astropy.coordinates.SkyCoord.separation` method::
+
+  >>> sc1.icrs.fk4.separation(sc1).to(u.arcsec)  # doctest: +SKIP
+  <Angle 7.98873629e-13 arcsec>
+  >>> sc1.icrs.fk4.separation(sc1) < 1e-9 * u.arcsec
+  True
+
+Exact Equality
+--------------
+
+Astropy also provides an exact equality operator for coordinates.
+For example, when comparing, e.g., two |SkyCoord| objects::
+
+    >>> left_skycoord == right_skycoord  # doctest: +SKIP
+
+the right object must be strictly consistent with the left object for
+comparison:
+
+- Identical class
+- Equivalent frames (`~astropy.coordinates.BaseCoordinateFrame.is_equivalent_frame`)
+- Identical representation_types
+- Identical representation differentials keys
+- Identical frame attributes
+- Identical "extra" frame attributes (e.g., ``obstime`` for an ICRS coord)
+
+In the first example we show simple comparisons using array-valued coordinates::
+
+  >>> sc1 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg)
+  >>> sc2 = SkyCoord([1, 20]*u.deg, [3, 4]*u.deg)
+
+  >>> sc1 == sc2  # Array-valued comparison
+  array([ True, False])
+  >>> sc2 == sc2[1]  # Broadcasting comparison with a scalar
+  array([False,  True])
+  >>> sc2[0] == sc2[1]  # Scalar to scalar comparison
+  False
+  >>> sc1 != sc2  # Not equal
+  array([False,  True])
+
+In addition to numerically comparing the representation component data (which
+may include velocities), the equality comparison includes strict tests that all
+of the frame attributes like ``equinox`` or ``obstime`` are exactly equal.  Any
+mismatch in attributes will result in an exception being raised.  For example::
+
+  >>> sc1 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg)
+  >>> sc2 = SkyCoord([1, 20]*u.deg, [3, 4]*u.deg, obstime='2020-01-01')
+  >>> sc1 == sc2  # doctest: +SKIP
+  ...
+  ValueError: cannot compare: extra frame attribute 'obstime' is not equivalent
+   (perhaps compare the frames directly to avoid this exception)
+
+In this example the ``obstime`` attribute is a so-called "extra" frame attribute
+that does not apply directly to the ICRS coordinate frame. So we could compare
+with the following, this time using the ``!=`` operator for variety::
+
+  >>> sc1.frame != sc2.frame
+  array([False, True])
+
+One slightly special case is comparing two frames that both have no data, where
+the return value is the same as ``frame1.is_equivalent_frame(frame2)``. For
+example::
+
+  >>> from astropy.coordinates import FK4
+  >>> FK4() == FK4(obstime='2020-01-01')
+  False
+
+
 Convenience Methods
 ===================
 

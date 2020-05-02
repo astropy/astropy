@@ -125,7 +125,8 @@ def test_create_spectral_coord_observer_target(observer, target):
     if observer is None or target is None:
         assert quantity_allclose(coord.redshift, 0)
         assert quantity_allclose(coord.radial_velocity, 0 * u.km/u.s)
-    elif observer in LSRD_EQUIV and target in LSRD_DIR_STATIONARY_EQUIV:
+    elif (any(observer is lsrd for lsrd in LSRD_EQUIV)
+          and any(target is lsrd for lsrd in LSRD_DIR_STATIONARY_EQUIV)):
         assert_quantity_allclose(coord.radial_velocity, -274 ** 0.5 * u.km / u.s, atol=1e-4 * u.km / u.s)
         assert_quantity_allclose(coord.redshift, -5.5213158163147646e-05, atol=1e-9)
     else:

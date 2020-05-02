@@ -269,7 +269,7 @@ def test_array_eq():
     c3 = ICRS([1, 3]*u.deg, [3, 4]*u.deg)
     c4 = ICRS([1, 2]*u.deg, [3, 4.2]*u.deg)
 
-    assert c1 == c1
-    assert c1 != c2
-    assert c1 != c3
-    assert c1 != c4
+    assert np.all(c1 == c1)
+    assert np.any(c1 != c2)
+    assert np.any(c1 != c3)
+    assert np.any(c1 != c4)

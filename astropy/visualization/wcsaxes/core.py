@@ -583,7 +583,7 @@ class WCSAxes(Axes):
                                             transform_world2pixel.frame_in) +
                         transform_world2pixel)
 
-        elif frame == 'pixel':
+        elif isinstance(frame, str) and frame == 'pixel':
 
             return Affine2D()
 
@@ -593,7 +593,7 @@ class WCSAxes(Axes):
 
         else:
 
-            if frame == 'world':
+            if isinstance(frame, str) and frame == 'world':
 
                 return self._transform_pixel2world
 

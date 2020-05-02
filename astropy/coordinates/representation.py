@@ -333,6 +333,31 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         """A tuple with the in-order names of the coordinate components."""
         return tuple(self.attr_classes)
 
+    def __eq__(self, value):
+        """Equality operator
+
+        This implements strict equality and requires that the representation
+        classes are identical and that the representation data are exactly equal.
+        """
+        if self.__class__ is not value.__class__:
+            raise TypeError(f'cannot compare: objects must have same class: '
+                            f'{self.__class__.__name__} vs. '
+                            f'{value.__class__.__name__}')
+
+        try:
+            np.broadcast(self, value)
+        except ValueError as exc:
+            raise ValueError(f'cannot compare: {exc}') from exc
+
+        out = True
+        for comp in self.components:
+            out &= (getattr(self, '_' + comp) == getattr(value, '_' + comp))
+
+        return out
+
+    def __ne__(self, value):
+        return np.logical_not(self == value)
+
     def _apply(self, method, *args, **kwargs):
         """Create a new representation or differential with ``method`` applied
         to the component data.
@@ -922,6 +947,30 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
             The presentation that should be converted to this class.
         """
         return representation.represent_as(cls)
+
+    def __eq__(self, value):
+        """Equality operator for BaseRepresentation
+
+        This implements strict equality and requires that the representation
+        classes are identical, the differentials are identical, and that the
+        representation data are exactly equal.
+        """
+        # BaseRepresentationOrDifferental (checks classes and compares components)
+        out = super().__eq__(value)
+
+        # super() checks that the class is identical so can this even happen?
+        # (same class, different differentials ?)
+        if self._differentials.keys() != value._differentials.keys():
+            raise ValueError(f'cannot compare: objects must have same differentials')
+
+        for self_diff, value_diff in zip(self._differentials.values(),
+                                         value._differentials.values()):
+            out &= (self_diff == value_diff)
+
+        return out
+
+    def __ne__(self, value):
+        return np.logical_not(self == value)
 
     def _apply(self, method, *args, **kwargs):
         """Create a new representation with ``method`` applied to the component
