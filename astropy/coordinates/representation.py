@@ -18,6 +18,7 @@ from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from astropy._erfa import ufunc as erfa_ufunc
 from astropy.utils import ShapedLikeNDArray, classproperty
+from astropy.utils.data_info import MixinInfo
 from astropy.utils.exceptions import DuplicateRepresentationWarning
 
 
@@ -105,6 +106,90 @@ def _combine_xyz(x, y, z, xyz_axis=0):
     return cls(xyz, unit=unit, copy=False)
 
 
+class BaseRepresentationOrDifferentialInfo(MixinInfo):
+    """
+    Container for meta information like name, description, format.  This is
+    required when the object is used as a mixin column within a table, but can
+    be used as a general way to store meta information.
+    """
+    attrs_from_parent = {'unit'}  # Indicates unit is read-only
+    _supports_indexing = False
+
+    @staticmethod
+    def default_format(val):
+        # Create numpy dtype so that numpy formatting will work.
+        components = val.components
+        values = tuple(getattr(val, component).value for component in components)
+        a = np.empty(getattr(val, 'shape', ()),
+                     [(component, value.dtype) for component, value
+                      in zip(components, values)])
+        for component, value in zip(components, values):
+            a[component] = value
+        return str(a)
+
+    @property
+    def _represent_as_dict_attrs(self):
+        return self._parent.components
+
+    @property
+    def unit(self):
+        if self._parent is None:
+            return None
+
+        unit = self._parent._unitstr
+        return unit[1:-1] if unit.startswith('(') else unit
+
+    def new_like(self, reps, length, metadata_conflicts='warn', name=None):
+        """
+        Return a new instance like ``reps`` with ``length`` rows.
+
+        This is intended for creating an empty column object whose elements can
+        be set in-place for table operations like join or vstack.
+
+        Parameters
+        ----------
+        reps : list
+            List of input representations or differentials.
+        length : int
+            Length of the output column object
+        metadata_conflicts : str ('warn'|'error'|'silent')
+            How to handle metadata conflicts
+        name : str
+            Output column name
+
+        Returns
+        -------
+        col : Representation or Differential
+            Empty instance of this class consistent with ``cols``
+
+        """
+
+        # Get merged info attributes like shape, dtype, format, description, etc.
+        attrs = self.merge_cols_attributes(reps, metadata_conflicts, name,
+                                           ('meta', 'description'))
+        # Make a new representation or differential with the desired length
+        # using the _apply / __getitem__ machinery to effectively return
+        # rep0[[0, 0, ..., 0, 0]]. This will have the right shape, and
+        # include possible differentials.
+        indexes = np.zeros(length, dtype=np.int64)
+        out = reps[0][indexes]
+
+        # Use __setitem__ machinery to check whether all representations
+        # can represent themselves as this one without loss of information.
+        for rep in reps[1:]:
+            try:
+                out[0] = rep[0]
+            except Exception as err:
+                raise ValueError(f'input representations are inconsistent: {err}')
+
+        # Set (merged) info attributes.
+        for attr in ('name', 'meta', 'description'):
+            if attr in attrs:
+                setattr(out.info, attr, attrs[attr])
+
+        return out
+
+
 class BaseRepresentationOrDifferential(ShapedLikeNDArray):
     """3D coordinate representations and differentials.
 
@@ -122,30 +207,54 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
     # object arrays.
     __array_priority__ = 50000
 
+    info = BaseRepresentationOrDifferentialInfo()
+
     def __init__(self, *args, **kwargs):
         # make argument a list, so we can pop them off.
         args = list(args)
         components = self.components
-        attrs = []
-        for component in components:
-            try:
-                attrs.append(args.pop(0) if args else kwargs.pop(component))
-            except KeyError:
-                raise TypeError('__init__() missing 1 required positional '
-                                'argument: {!r}'.format(component))
+        if (args and isinstance(args[0], self.__class__)
+                and all(arg is None for arg in args[1:])):
+            rep_or_diff = args[0]
+            copy = kwargs.pop('copy', True)
+            attrs = [getattr(rep_or_diff, component)
+                     for component in components]
+            if 'info' in rep_or_diff.__dict__:
+                self.info = rep_or_diff.info
 
-        copy = args.pop(0) if args else kwargs.pop('copy', True)
+            if kwargs:
+                raise TypeError(f'unexpected keyword arguments for case '
+                                f'where class instance is passed in: {kwargs}')
 
-        if args:
-            raise TypeError(f'unexpected arguments: {args}')
-
-        if kwargs:
+        else:
+            attrs = []
             for component in components:
-                if component in kwargs:
-                    raise TypeError("__init__() got multiple values for "
-                                    "argument {!r}".format(component))
+                try:
+                    attr = args.pop(0) if args else kwargs.pop(component)
+                except KeyError:
+                    raise TypeError(f'__init__() missing 1 required positional '
+                                    f'argument: {component!r}')
 
-            raise TypeError(f'unexpected keyword arguments: {kwargs}')
+                if attr is None:
+                    raise TypeError(f'__init__() missing 1 required positional '
+                                    f'argument: {component!r} (or first '
+                                    f'argument should be an instance of '
+                                    f'{self.__class__.__name__}).')
+
+                attrs.append(attr)
+
+            copy = args.pop(0) if args else kwargs.pop('copy', True)
+
+            if args:
+                raise TypeError(f'unexpected arguments: {args}')
+
+            if kwargs:
+                for component in components:
+                    if component in kwargs:
+                        raise TypeError(f"__init__() got multiple values for "
+                                        f"argument {component!r}")
+
+                raise TypeError(f'unexpected keyword arguments: {kwargs}')
 
         # Pass attributes through the required initializing classes.
         attrs = [self.attr_classes[component](attr, copy=False)
@@ -258,15 +367,17 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         for component in self.components:
             setattr(new, '_' + component,
                     apply_method(getattr(self, component)))
+
+        # Copy other 'info' attr only if it has actually been defined.
+        # See PR #3898 for further explanation and justification, along
+        # with Quantity.__array_finalize__
+        if 'info' in self.__dict__:
+            new.info = self.info
+
         return new
 
-    def _setitem(self, item, value):
-        """Private version of __setitem__.
-
-        This cannot be exposed as __setitem__ because it would allow changing
-        frame representation data (frame.data) without clearing the frame cache.
-        """
-        if self.__class__ is not value.__class__:
+    def __setitem__(self, item, value):
+        if value.__class__ is not self.__class__:
             raise TypeError(f'can only set from object of same class: '
                             f'{self.__class__.__name__} vs. '
                             f'{value.__class__.__name__}')
@@ -480,6 +591,30 @@ class MetaBaseRepresentation(abc.ABCMeta):
                                       .format(component))))
 
 
+class RepresentationInfo(BaseRepresentationOrDifferentialInfo):
+
+    @property
+    def _represent_as_dict_attrs(self):
+        attrs = super()._represent_as_dict_attrs
+        if self._parent._differentials:
+            attrs += ('differentials',)
+        return attrs
+
+    def _represent_as_dict(self, attrs=None):
+        out = super()._represent_as_dict(attrs)
+        for key, value in out.pop('differentials', {}).items():
+            out[f'differentials.{key}'] = value
+        return out
+
+    def _construct_from_dict(self, map):
+        differentials = {}
+        for key in list(map.keys()):
+            if key.startswith('differentials.'):
+                differentials[key[14:]] = map.pop(key)
+        map['differentials'] = differentials
+        return super()._construct_from_dict(map)
+
+
 class BaseRepresentation(BaseRepresentationOrDifferential,
                          metaclass=MetaBaseRepresentation):
     """Base for representing a point in a 3D coordinate system.
@@ -514,9 +649,14 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
     methods (see those methods for details).
     """
 
+    info = RepresentationInfo()
+
     def __init__(self, *args, differentials=None, **kwargs):
         # Handle any differentials passed in.
         super().__init__(*args, **kwargs)
+        if (differentials is None
+                and args and isinstance(args[0], self.__class__)):
+            differentials = args[0]._differentials
         self._differentials = self._validate_differentials(differentials)
 
     def _validate_differentials(self, differentials):
@@ -811,26 +951,36 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
              for k, diff in self._differentials.items()])
         return rep
 
-    def _setitem(self, item, value):
-        """Private version of __setitem__.
+    def __setitem__(self, item, value):
+        if not isinstance(value, BaseRepresentation):
+            raise TypeError(f'value must be a representation instance, '
+                            f'not {type(value)}.')
 
-        This cannot be exposed as __setitem__ because it would allow changing
-        frame representation data (frame.data) without clearing the frame cache.
-        """
-        if self.__class__ is not value.__class__:
-            raise TypeError(f'can only set from object of same class: '
-                            f'{self.__class__.__name__} vs. '
-                            f'{value.__class__.__name__}')
+        if not (isinstance(value, self.__class__)
+                or len(value.attr_classes) == len(self.attr_classes)):
+            raise ValueError(
+                f'value must be representable as {self.__class__.__name__} '
+                f'without loss of information.')
 
-        # Can this ever occur? (Same class but different differential keys).
-        # This exception is not tested since it is not clear how to generate it.
-        if self._differentials.keys() != value._differentials.keys():
-            raise ValueError(f'setitem value must have same differentials')
+        diff_classes = {}
+        if self._differentials:
+            if self._differentials.keys() != value._differentials.keys():
+                raise ValueError('value must have the same differentials.')
 
-        super()._setitem(item, value)
-        for self_diff, value_diff in zip(self._differentials.values(),
-                                         value._differentials.values()):
-            self_diff._setitem(item, value_diff)
+            for key, self_diff in self._differentials.items():
+                diff_classes[key] = self_diff_cls = self_diff.__class__
+                value_diff_cls = value._differentials[key].__class__
+                if not (isinstance(value_diff_cls, self_diff_cls)
+                        or (len(value_diff_cls.attr_classes)
+                            == len(self_diff_cls.attr_classes))):
+                    raise ValueError(
+                        f'value differential {key!r} must be representable as '
+                        f'{self_diff.__class__.__name__} without loss of information.')
+
+        value = value.represent_as(self.__class__, diff_classes)
+        super().__setitem__(item, value)
+        for key, differential in self._differentials.items():
+            differential[item] = value._differentials[key]
 
     def _scale_operation(self, op, *args):
         """Scale all non-angular components, leaving angular ones unchanged.
@@ -1063,6 +1213,14 @@ class CartesianRepresentation(BaseRepresentation):
                 self._x, self._y, self._z = x
                 self._differentials = self._validate_differentials(differentials)
                 return
+
+            elif (isinstance(x, CartesianRepresentation)
+                  and unit is None and xyz_axis is None):
+                if differentials is None:
+                    differentials = x._differentials
+
+                return super().__init__(x, differentials=differentials,
+                                        copy=copy)
 
             else:
                 x, y, z = x
@@ -1330,7 +1488,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
     def _dimensional_representation(cls):
         return SphericalRepresentation
 
-    def __init__(self, lon, lat, differentials=None, copy=True):
+    def __init__(self, lon, lat=None, differentials=None, copy=True):
         super().__init__(lon, lat, differentials=differentials, copy=copy)
 
     @property
@@ -1526,7 +1684,7 @@ class RadialRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('distance', u.Quantity)])
 
     def __init__(self, distance, differentials=None, copy=True):
-        super().__init__(distance, copy=copy, differentials=differentials)
+        super().__init__(distance, differentials=differentials, copy=copy)
 
     @property
     def distance(self):
@@ -1614,7 +1772,8 @@ class SphericalRepresentation(BaseRepresentation):
                                 ('distance', u.Quantity)])
     _unit_representation = UnitSphericalRepresentation
 
-    def __init__(self, lon, lat, distance, differentials=None, copy=True):
+    def __init__(self, lon, lat=None, distance=None, differentials=None,
+                 copy=True):
         super().__init__(lon, lat, distance, copy=copy,
                          differentials=differentials)
         if self._distance.unit.physical_type == 'length':
@@ -1776,7 +1935,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
                                 ('theta', Angle),
                                 ('r', u.Quantity)])
 
-    def __init__(self, phi, theta, r, differentials=None, copy=True):
+    def __init__(self, phi, theta=None, r=None, differentials=None, copy=True):
         super().__init__(phi, theta, r, copy=copy, differentials=differentials)
 
         # Wrap/validate phi/theta
@@ -1932,7 +2091,7 @@ class CylindricalRepresentation(BaseRepresentation):
                                 ('phi', Angle),
                                 ('z', u.Quantity)])
 
-    def __init__(self, rho, phi, z, differentials=None, copy=True):
+    def __init__(self, rho, phi=None, z=None, differentials=None, copy=True):
         super().__init__(rho, phi, z, copy=copy, differentials=differentials)
 
         if not self._rho.unit.is_equivalent(self._z.unit):
@@ -2469,7 +2628,7 @@ class UnitSphericalDifferential(BaseSphericalDifferential):
     def _dimensional_differential(cls):
         return SphericalDifferential
 
-    def __init__(self, d_lon, d_lat, copy=True):
+    def __init__(self, d_lon, d_lat=None, copy=True):
         super().__init__(d_lon, d_lat, copy=copy)
         if not self._d_lon.unit.is_equivalent(self._d_lat.unit):
             raise u.UnitsError('d_lon and d_lat should have equivalent units.')
@@ -2524,7 +2683,7 @@ class SphericalDifferential(BaseSphericalDifferential):
     base_representation = SphericalRepresentation
     _unit_differential = UnitSphericalDifferential
 
-    def __init__(self, d_lon, d_lat, d_distance, copy=True):
+    def __init__(self, d_lon, d_lat=None, d_distance=None, copy=True):
         super().__init__(d_lon, d_lat, d_distance, copy=copy)
         if not self._d_lon.unit.is_equivalent(self._d_lat.unit):
             raise u.UnitsError('d_lon and d_lat should have equivalent units.')
@@ -2669,7 +2828,7 @@ class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
     def _dimensional_differential(cls):
         return SphericalCosLatDifferential
 
-    def __init__(self, d_lon_coslat, d_lat, copy=True):
+    def __init__(self, d_lon_coslat, d_lat=None, copy=True):
         super().__init__(d_lon_coslat, d_lat, copy=copy)
         if not self._d_lon_coslat.unit.is_equivalent(self._d_lat.unit):
             raise u.UnitsError('d_lon_coslat and d_lat should have equivalent '
@@ -2729,7 +2888,7 @@ class SphericalCosLatDifferential(BaseSphericalCosLatDifferential):
                                 ('d_lat', u.Quantity),
                                 ('d_distance', u.Quantity)])
 
-    def __init__(self, d_lon_coslat, d_lat, d_distance, copy=True):
+    def __init__(self, d_lon_coslat, d_lat=None, d_distance=None, copy=True):
         super().__init__(d_lon_coslat, d_lat, d_distance, copy=copy)
         if not self._d_lon_coslat.unit.is_equivalent(self._d_lat.unit):
             raise u.UnitsError('d_lon_coslat and d_lat should have equivalent '
@@ -2833,7 +2992,7 @@ class PhysicsSphericalDifferential(BaseDifferential):
     """
     base_representation = PhysicsSphericalRepresentation
 
-    def __init__(self, d_phi, d_theta, d_r, copy=True):
+    def __init__(self, d_phi, d_theta=None, d_r=None, copy=True):
         super().__init__(d_phi, d_theta, d_r, copy=copy)
         if not self._d_phi.unit.is_equivalent(self._d_theta.unit):
             raise u.UnitsError('d_phi and d_theta should have equivalent '
@@ -2893,7 +3052,7 @@ class CylindricalDifferential(BaseDifferential):
     """
     base_representation = CylindricalRepresentation
 
-    def __init__(self, d_rho, d_phi, d_z, copy=False):
+    def __init__(self, d_rho, d_phi=None, d_z=None, copy=False):
         super().__init__(d_rho, d_phi, d_z, copy=copy)
         if not self._d_rho.unit.is_equivalent(self._d_z.unit):
             raise u.UnitsError("d_rho and d_z should have equivalent units.")

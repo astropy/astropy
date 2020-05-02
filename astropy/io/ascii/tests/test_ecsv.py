@@ -16,7 +16,9 @@ import numpy as np
 
 from astropy.table import Table, Column, QTable, NdarrayMixin
 from astropy.table.table_helpers import simple_table
-from astropy.coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
+from astropy.coordinates import (SkyCoord, Latitude, Longitude, Angle, EarthLocation,
+                                 SphericalRepresentation, CartesianRepresentation,
+                                 SphericalCosLatDifferential)
 from astropy.time import Time, TimeDelta
 from astropy.units import allclose as quantity_allclose
 from astropy.units import QuantityInfo
@@ -259,7 +261,15 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
             assert np.all(a1 == a2)
 
 
+# TODO: unify with the very similar tests in fits/tests/test_connect.py.
 el = EarthLocation(x=[1, 2] * u.km, y=[3, 4] * u.km, z=[5, 6] * u.km)
+sr = SphericalRepresentation(
+    [0, 1]*u.deg, [2, 3]*u.deg, 1*u.kpc)
+cr = CartesianRepresentation(
+    [0, 1]*u.pc, [4, 5]*u.pc, [8, 6]*u.pc)
+sd = SphericalCosLatDifferential(
+    [0, 1]*u.mas/u.yr, [0, 1]*u.mas/u.yr, 10*u.km/u.s)
+srd = SphericalRepresentation(sr, differentials=sd)
 sc = SkyCoord([1, 2], [3, 4], unit='deg,deg', frame='fk4',
               obstime='J1990.5')
 scc = sc.copy()
@@ -289,6 +299,10 @@ mixin_cols = {
     'lon': Longitude([1, 2] * u.deg, wrap_angle=180. * u.deg),
     'ang': Angle([1, 2] * u.deg),
     'el': el,
+    'sr': sr,
+    'cr': cr,
+    'sd': sd,
+    'srd': srd,
     # 'nd': NdarrayMixin(el)  # not supported yet
 }
 
@@ -313,6 +327,11 @@ compare_attrs = {
     'ang': ['value', 'unit'],
     'el': ['x', 'y', 'z', 'ellipsoid'],
     'nd': ['x', 'y', 'z'],
+    'sr': ['lon', 'lat', 'distance'],
+    'cr': ['x', 'y', 'z'],
+    'sd': ['d_lon_coslat', 'd_lat', 'd_distance'],
+    'srd': ['lon', 'lat', 'distance', 'differentials.s.d_lon_coslat',
+            'differentials.s.d_lat', 'differentials.s.d_distance'],
 }
 
 
@@ -376,6 +395,7 @@ def test_ecsv_mixins_as_one(table_cls):
     names = sorted(mixin_cols)
 
     serialized_names = ['ang',
+                        'cr.x', 'cr.y', 'cr.z',
                         'dt',
                         'el.x', 'el.y', 'el.z',
                         'lat',
@@ -387,6 +407,12 @@ def test_ecsv_mixins_as_one(table_cls):
                         'scc.x', 'scc.y', 'scc.z',
                         'scd.ra', 'scd.dec', 'scd.distance',
                         'scd.obstime',
+                        'sd.d_lon_coslat', 'sd.d_lat', 'sd.d_distance',
+                        'sr.lon', 'sr.lat', 'sr.distance',
+                        'srd.lon', 'srd.lat', 'srd.distance',
+                        'srd.differentials.s.d_lon_coslat',
+                        'srd.differentials.s.d_lat',
+                        'srd.differentials.s.d_distance',
                         'tm',  # serialize_method is formatted_value
                         'tm2',  # serialize_method is formatted_value
                         'tm3.jd1', 'tm3.jd2',    # serialize is jd1_jd2

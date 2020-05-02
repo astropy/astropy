@@ -428,6 +428,9 @@ take a different lower-level approach which is described in the section
   ``sc1.ra[1] = 40 * u.deg``. However, while this will *appear* to give a correct
   result it does not actually modify the underlying representation data. This
   is related to the current implementation of performance-based caching.
+  The current cache implementation is similarly unable to handle in-place changes
+  to the representation (``.data``) or frame attributes such as ``.obstime``.
+
 
 Attributes
 ==========

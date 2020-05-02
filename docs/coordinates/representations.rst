@@ -132,14 +132,30 @@ manipulate::
   <CartesianRepresentation (x, y, z) in m
       [(0., 10., 20.), (1., 11., 21.), (2., 12., 22.),
        (3., 13., 23.), (4., 14., 24.), (5., 15., 25.)]>
-  >>> car_array[2]  # doctest: +FLOAT_CMP
-  <CartesianRepresentation (x, y, z) in m
-      (2., 12., 22.)>
   >>> car_array.reshape(3, 2)  # doctest: +FLOAT_CMP
   <CartesianRepresentation (x, y, z) in m
       [[(0., 10., 20.), (1., 11., 21.)],
        [(2., 12., 22.), (3., 13., 23.)],
        [(4., 14., 24.), (5., 15., 25.)]]>
+  >>> car_array[2]  # doctest: +FLOAT_CMP
+  <CartesianRepresentation (x, y, z) in m
+      (2., 12., 22.)>
+  >>> car_array[2] = car_array[1]
+  >>> car_array[:3]  # doctest: +FLOAT_CMP
+  <CartesianRepresentation (x, y, z) in m
+      [(0., 10., 20.), (1., 11., 21.), (1., 11., 21.)]>
+
+Elements can also be set using other representation classes, as long
+as they are compatible in their units and number of dimensions.
+
+  >>> car_array[0] = SphericalRepresentation(0*u.deg, 0*u.deg, 99*u.m)
+  >>> car_array[:3]  # doctest: +FLOAT_CMP
+  <CartesianRepresentation (x, y, z) in m
+      [(99., 0., 0.), (1., 11., 21.), (1., 11., 21.)]>
+  >>> car_array[0] = UnitSphericalRepresentation(0*u.deg, 0*u.deg)
+  Traceback (most recent call last):
+  ...
+  ValueError: value must be representable as CartesianRepresentation without loss of information.
 
 ..
   EXAMPLE END
