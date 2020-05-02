@@ -1556,6 +1556,10 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
         reader.header.splitter = kwargs['header_Splitter']()
     if 'names' in kwargs:
         reader.names = kwargs['names']
+        if None in reader.names:
+            raise TypeError('Cannot have None for column name')
+        if len(set(reader.names)) != len(reader.names):
+            raise ValueError('Duplicate column names')
     if 'include_names' in kwargs:
         reader.include_names = kwargs['include_names']
     if 'exclude_names' in kwargs:
