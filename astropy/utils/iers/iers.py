@@ -23,7 +23,6 @@ import numpy as np
 from astropy.time import Time, TimeDelta
 from astropy import _erfa as erfa
 from astropy import config as _config
-from astropy.io.ascii import convert_numpy
 from astropy import units as u
 from astropy.table import QTable, MaskedColumn
 from astropy.utils.data import (get_pkg_data_filename, clear_download_cache,
@@ -1090,6 +1089,8 @@ class LeapSeconds(QTable):
         The file *must* contain the expiration date in a comment line, like
         '# File expires on:  28 June 2020'
         """
+        from astropy.io.ascii import convert_numpy  # Here to avoid circular import
+
         names = ['ntp_seconds', 'tai_utc', 'comment', 'day', 'month', 'year']
         # Note: ntp_seconds does not fit in 32 bit, so causes problems on
         # 32-bit systems without the np.int64 converter.

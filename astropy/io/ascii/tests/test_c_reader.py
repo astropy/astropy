@@ -657,7 +657,6 @@ def test_many_columns(parallel, read_basic):
     assert_table_equal(table, expected)
 
 
-@pytest.mark.skipif(os.name == 'nt', reason='travis seems to hang')
 def test_fast_reader():
     """
     Make sure that ascii.read() works as expected by default and with
