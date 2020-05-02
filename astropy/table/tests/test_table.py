@@ -1965,7 +1965,8 @@ class TestPandas:
         assert t2.colnames == ['tm', 'x']
         assert np.allclose(t2['tm'].jyear, tm.jyear)
 
-    def test_masking(self):
+    @pytest.mark.parametrize('use_nullable_int', [True, False])
+    def test_masking(self, use_nullable_int):
 
         t = table.Table(masked=True)
 
@@ -1986,7 +1987,13 @@ class TestPandas:
                        2584288728310999296]
         t['Source'].mask = [False, False, False]
 
-        d = t.to_pandas()
+        if use_nullable_int:  # Default
+            # No warning with the default use_nullable_int=True
+            d = t.to_pandas(use_nullable_int=use_nullable_int)
+        else:
+            with pytest.warns(TableReplaceWarning,
+                              match=r"converted column 'a' from int(32|64) to float64"):
+                d = t.to_pandas(use_nullable_int=use_nullable_int)
 
         t2 = table.Table.from_pandas(d)
 
@@ -1996,7 +2003,11 @@ class TestPandas:
                 assert np.all(column.mask == t2[name].mask)
 
             if column.dtype.kind == 'i':
-                assert t2[name].dtype.kind == 'i'
+                if np.any(column.mask) and not use_nullable_int:
+                    assert t2[name].dtype.kind == 'f'
+                else:
+                    assert t2[name].dtype.kind == 'i'
+
                 assert_array_equal(column.data,
                                    t2[name].data.astype(column.dtype))
             else:
