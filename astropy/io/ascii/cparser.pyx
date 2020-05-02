@@ -245,6 +245,12 @@ cdef class CParser:
         self.fill_names = None
         self.fill_extra_cols = fill_extra_cols
 
+        if self.names is not None:
+            if None in self.names:
+                raise TypeError('Cannot have None for column name')
+            if len(set(self.names)) != len(self.names):
+                raise ValueError('Duplicate column names')
+
         # parallel=True indicates that we should use the CPU count
         if parallel is True:
             parallel = multiprocessing.cpu_count()
