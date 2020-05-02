@@ -17,8 +17,73 @@ listed in the `astropy.io.misc` section.
 .. automodapi:: astropy.io.misc.hdf5
    :headings: =-
 
+astropy.io.misc.yaml Module
+===========================
+
+This module contains functions for serializing core astropy objects via the
+YAML protocol.
+
+It provides functions `~astropy.io.misc.yaml.dump`,
+`~astropy.io.misc.yaml.load`, and `~astropy.io.misc.yaml.load_all` which
+call the corresponding functions in `PyYaml <https://pyyaml.org>`_ but use the
+`~astropy.io.misc.yaml.AstropyDumper` and `~astropy.io.misc.yaml.AstropyLoader`
+classes to define custom YAML tags for the following astropy classes:
+
+- `astropy.units.Unit`
+- `astropy.units.Quantity`
+- `astropy.time.Time`
+- `astropy.time.TimeDelta`
+- `astropy.coordinates.SkyCoord`
+- `astropy.coordinates.Angle`
+- `astropy.coordinates.Latitude`
+- `astropy.coordinates.Longitude`
+- `astropy.coordinates.EarthLocation`
+- `astropy.table.SerializedColumn`
+
+.. Note ::
+
+   This module requires PyYaml version 3.12 or later.
+
+Example
+-------
+
+.. doctest-requires:: yaml
+
+    >>> from astropy.io.misc import yaml
+    >>> import astropy.units as u
+    >>> from astropy.time import Time
+    >>> from astropy.coordinates import EarthLocation
+    >>> t = Time(2457389.0, format='mjd',
+    ...          location=EarthLocation(1000, 2000, 3000, unit=u.km))
+    >>> td = yaml.dump(t)
+    >>> print(td)
+    !astropy.time.Time
+    format: mjd
+    in_subfmt: '*'
+    jd1: 4857390.0
+    jd2: -0.5
+    location: !astropy.coordinates.earth.EarthLocation
+      ellipsoid: WGS84
+      x: !astropy.units.Quantity
+        unit: &id001 !astropy.units.Unit {unit: km}
+        value: 1000.0
+      y: !astropy.units.Quantity
+        unit: *id001
+        value: 2000.0
+      z: !astropy.units.Quantity
+        unit: *id001
+        value: 3000.0
+    out_subfmt: '*'
+    precision: 3
+    scale: utc
+    >>> ty = yaml.load(td)
+    >>> ty
+    <Time object: scale='utc' format='mjd' value=2457389.0>
+    >>> ty.location  # doctest: +FLOAT_CMP
+    <EarthLocation (1000., 2000., 3000.) km>
+
 .. automodapi:: astropy.io.misc.yaml
-   :headings: =-
+   :no-heading:
 
 astropy.io.misc.asdf Package
 ============================
