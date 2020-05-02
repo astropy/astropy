@@ -331,23 +331,30 @@ class FastRdb(FastBasic):
         else:  # less than 2 lines in table
             raise ValueError('RDB header requires 2 lines')
 
-        # tokenize the two header lines separately
+        # Tokenize the two header lines separately.
+        # Each call to self.engine.read_header by default
+        #  - calls _deduplicate_names to ensure unique header_names
+        #  - sets self.names from self.header_names if not provided as kwarg
+        #  - applies self.include_names/exclude_names to self.names.
+        # For parsing the types disable 1+3, but self.names needs to be set.
         self.engine.setup_tokenizer([line2])
         self.engine.header_start = 0
         self.engine.read_header(deduplicate=False, filter_names=False)
         types = self.engine.get_header_names()
-        self.engine.setup_tokenizer([line1])
-        # reset header names if no custom names have been set
+
+        # If no kwarg names have been passed, reset to have column names read from header line 1.
         if types == self.engine.get_names():
             self.engine.set_names([])
-        # get full list of colnames prior to applying include/exclude_names
-        self.engine.read_header(filter_names=False)
+        self.engine.setup_tokenizer([line1])
+        # Get full list of column names prior to applying include/exclude_names,
+        # which have to be applied to the unique name set after deduplicate.
+        self.engine.read_header(deduplicate=True, filter_names=False)
         col_names = self.engine.get_names()
-        self.engine.read_header()
+        self.engine.read_header(deduplicate=False)
         if len(col_names) != len(types):
             raise core.InconsistentTableError('RDB header mismatch between number of '
                                               'column names and column types')
-        # if columns have been removed via include/exclude_names, extract matching types
+        # If columns have been removed via include/exclude_names, extract matching types.
         if len(self.engine.get_names()) != len(types):
             types = [types[col_names.index(n)] for n in self.engine.get_names()]
 
