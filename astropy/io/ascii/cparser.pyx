@@ -333,8 +333,8 @@ cdef class CParser:
                 else:
                     name += chr(c)
             self.width = <int>len(self.header_names)
-            if deduplicate:
-                self.header_names = core._deduplicate_names(self.header_names)
+            if deduplicate and not self.names:  # skip if custom names were provided
+                self._deduplicate_names()
 
         else:
             # Get number of columns from first data row
@@ -813,6 +813,26 @@ cdef class CParser:
 
     def get_header_names(self):
         return self.header_names
+
+    def _deduplicate_names(self):
+        """Ensure there are no duplicates in ``self.header_names``
+        Cythonic version of  core._deduplicate_names.
+        """
+        cdef int i
+        new_names = []
+        existing_names = set()
+
+        for name in self.header_names:
+            base_name = name + '_'
+            i = 1
+            while name in existing_names:
+                # Iterate until a unique name is found
+                name = base_name + str(i)
+                i += 1
+            new_names.append(name)
+            existing_names.add(name)
+
+        self.header_names = new_names
 
     def __reduce__(self):
         cdef bytes source = self.source_ptr if self.source_ptr else self.source_bytes
