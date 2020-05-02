@@ -104,6 +104,9 @@ astropy.nddata
   subsets of the data instead of using loops.  The reshaped array is a
   view of the input data array. [#10214]
 
+- Added a ``cache`` keyword option to allow caching for ``CCDData.read`` if
+  filename is a URL. [#10265]
+
 astropy.samp
 ^^^^^^^^^^^^
 
