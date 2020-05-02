@@ -161,8 +161,7 @@ def get_icrs_coordinates(name, parse=False, cache=False):
     for url in urls:
         try:
             resp_data = get_file_contents(
-                download_file(url, cache=cache, show_progress=False,
-                              timeout=data.conf.remote_timeout))
+                download_file(url, cache=cache, show_progress=False))
             break
         except urllib.error.URLError as e:
             exceptions.append(e)
