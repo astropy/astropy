@@ -1928,7 +1928,7 @@ class SkyCoord(ShapedLikeNDArray):
             sub-arcsecond accuracy for coordinates.
         cache : bool, optional
             Determines whether to cache the results or not. To update or
-            overwrite an existing value, pass `cache='update'`.
+            overwrite an existing value, pass ``cache='update'``.
 
         Returns
         -------
