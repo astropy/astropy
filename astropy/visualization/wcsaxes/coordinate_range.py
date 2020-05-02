@@ -6,6 +6,7 @@ import warnings
 import numpy as np
 
 from astropy import units as u
+from astropy.units import Quantity
 
 # Algorithm inspired by PGSBOX from WCSLIB by M. Calabretta
 

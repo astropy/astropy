@@ -684,6 +684,9 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Modifiy ``coord_wrap`` to accept values of ``Quantity`` type, along 
+  with ``float``. [#9833]
+
 - Deprecated the ``imshow_only_kwargs`` keyword in ``imshow_norm``.
   [#9915]
 
