@@ -1078,6 +1078,19 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         cached_repr = self.cache['representation'].get(cache_key)
         if not cached_repr:
             if differential_cls:
+                # Sanity check to ensure we do not just drop radial
+                # velocity.  TODO: should Representation.represent_as
+                # allow this transformation in the first place?
+                if (isinstance(self.data, r.UnitSphericalRepresentation)
+                    and issubclass(representation_cls, r.CartesianRepresentation)
+                    and not isinstance(self.data.differentials['s'],
+                                       (r.UnitSphericalDifferential,
+                                        r.UnitSphericalCosLatDifferential,
+                                        r.RadialDifferential))):
+                    raise ValueError('need a distance to retrieve a cartesian representation '
+                                     'when both radial velocity and proper motion are '
+                                     'present.')
+
                 # TODO NOTE: only supports a single differential
                 data = self.data.represent_as(representation_cls,
                                               differential_cls)
@@ -1818,13 +1831,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             raise ValueError('Frame has no associated velocity (Differential) '
                              'data information.')
 
-        try:
-            v = self.cartesian.differentials['s']
-        except Exception:
-            raise ValueError('Could not retrieve a Cartesian velocity. Your '
-                             'frame must include velocity information for this '
-                             'to work.')
-        return v
+        return self.cartesian.differentials['s']
 
     @property
     def proper_motion(self):
