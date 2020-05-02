@@ -262,7 +262,7 @@ def test_init_wrong_type():
         SpectralCoord(10 * u.GHz, radial_velocity=1 * u.kg)
 
     with pytest.raises(TypeError, match="Argument 'radial_velocity' to function "
-                                        "'__new__' has no 'unit' attribute. You may want to "
+                                        "'__new__' has no 'unit' attribute. You should "
                                         "pass in an astropy Quantity instead."):
         SpectralCoord(10 * u.GHz, radial_velocity='banana')
 
