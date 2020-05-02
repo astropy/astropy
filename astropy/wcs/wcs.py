@@ -3084,6 +3084,24 @@ reduce these to 2 dimensions using the naxis kwarg.
             return False
 
     @property
+    def spectral(self):
+        """
+        A copy of the current WCS with only the spectral axes included
+        """
+        return self.sub([WCSSUB_SPECTRAL])
+
+    @property
+    def is_spectral(self):
+        return self.has_spectral and self.naxis == 1
+
+    @property
+    def has_spectral(self):
+        try:
+            return self.wcs.spec >= 0
+        except InconsistentAxisTypesError:
+            return False
+
+    @property
     def has_distortion(self):
         """
         Returns `True` if any distortion terms are present.

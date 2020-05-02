@@ -934,7 +934,8 @@ def test_pixel_to_pixel():
     wcs_out.wcs.set()
 
     # First try with scalars
-    x, y, z = pixel_to_pixel(wcs_in, wcs_out, 1, 2, 3)
+    with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+        x, y, z = pixel_to_pixel(wcs_in, wcs_out, 1, 2, 3)
     assert x.shape == ()
     assert y.shape == ()
     assert z.shape == ()
@@ -944,7 +945,8 @@ def test_pixel_to_pixel():
     y = np.linspace(10, 20, 20)
     z = np.linspace(10, 20, 30)
     Z1, Y1, X1 = np.meshgrid(z, y, x, indexing='ij', copy=False)
-    X2, Y2, Z2 = pixel_to_pixel(wcs_in, wcs_out, X1, Y1, Z1)
+    with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+        X2, Y2, Z2 = pixel_to_pixel(wcs_in, wcs_out, X1, Y1, Z1)
 
     # The final arrays should have the correct shape
     assert X2.shape == (30, 20, 10)
@@ -957,7 +959,8 @@ def test_pixel_to_pixel():
     assert unbroadcast(Z2).shape == (20, 1)
 
     # We can put the values back through the function to ensure round-tripping
-    X3, Y3, Z3 = pixel_to_pixel(wcs_out, wcs_in, X2, Y2, Z2)
+    with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+        X3, Y3, Z3 = pixel_to_pixel(wcs_out, wcs_in, X2, Y2, Z2)
 
     # The final arrays should have the correct shape
     assert X2.shape == (30, 20, 10)
