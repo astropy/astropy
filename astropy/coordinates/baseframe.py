@@ -1533,8 +1533,25 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         if self._data is None:
             raise ValueError('can only set frame if it has data')
 
+        if self._data.__class__ is not value._data.__class__:
+            raise TypeError(f'can only set from object of same class: '
+                            f'{self._data.__class__.__name__} vs. '
+                            f'{value._data.__class__.__name__}')
+
+        if self._data._differentials:
+            # Can this ever occur? (Same class but different differential keys).
+            # This exception is not tested since it is not clear how to generate it.
+            if self._data._differentials.keys() != value._data._differentials.keys():
+                raise ValueError(f'setitem value must have same differentials')
+
+            for key, self_diff in self._data._differentials.items():
+                if self_diff.__class__ is not value._data._differentials[key].__class__:
+                    raise TypeError(f'can only set from object of same class: '
+                                    f'{self_diff.__class__.__name__} vs. '
+                                    f'{value._data._differentials[key].__class__.__name__}')
+
         # Set representation data
-        self._data._setitem(item, value._data)
+        self._data[item] = value._data
 
         # Frame attributes required to be identical by is_equivalent_frame,
         # no need to set them here.

@@ -7,6 +7,7 @@ from astropy.utils.data_info import MixinInfo
 from .column import Column
 from .table import Table, QTable, has_info_class
 from astropy.units.quantity import QuantityInfo
+from astropy.coordinates import representation as coorep
 
 
 __construct_mixin_classes = ('astropy.time.core.Time',
@@ -23,6 +24,11 @@ __construct_mixin_classes = ('astropy.time.core.Time',
                              'astropy.coordinates.sky_coordinate.SkyCoord',
                              'astropy.table.table.NdarrayMixin',
                              'astropy.table.column.MaskedColumn')
+__construct_mixin_classes += tuple(
+        f'astropy.coordinates.representation.{cls.__name__}'
+        for cls in (list(coorep.REPRESENTATION_CLASSES.values())
+                    + list(coorep.DIFFERENTIAL_CLASSES.values()))
+        if cls.__name__ in coorep.__all__)
 
 
 class SerializedColumn(dict):
