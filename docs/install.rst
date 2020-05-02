@@ -31,7 +31,7 @@ Requirements
 - `bleach <https://bleach.readthedocs.io/>`_: Used to sanitize text when
   disabling HTML escaping in the :class:`~astropy.table.Table` HTML writer.
 
-- `PyYAML <https://pyyaml.org>`_: To read/write
+- `PyYAML <https://pyyaml.org>`_ |minimum_yaml_version| or later: To read/write
   :class:`~astropy.table.Table` objects from/to the Enhanced CSV ASCII table
   format and to serialize mixins for various formats.
 
