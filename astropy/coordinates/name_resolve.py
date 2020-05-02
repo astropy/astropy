@@ -87,7 +87,7 @@ def _parse_response(resp_data):
         return ra, dec
 
 
-def get_icrs_coordinates(name, parse=False, cache=False, overwrite=False):
+def get_icrs_coordinates(name, parse=False, cache=False):
     """
     Retrieve an ICRS object by using an online name resolving service to
     retrieve coordinates for the specified name. By default, this will
@@ -115,10 +115,10 @@ def get_icrs_coordinates(name, parse=False, cache=False, overwrite=False):
         in this way may differ from the database coordinates by a few
         deci-arcseconds, so only use this option if you do not need
         sub-arcsecond accuracy for coordinates.
-    cache : bool, optional
-        Determines whether to cache the results or not.
-    overwrite : bool, optional
-            Determines whether to overwrite a pre-existing cached value.
+    cache : bool, str, optional
+        Determines whether to cache the results or not. Passed through to
+        `~astropy.utils.data.download_file`, so pass "update" to update the
+        cached value.
 
     Returns
     -------
@@ -126,13 +126,6 @@ def get_icrs_coordinates(name, parse=False, cache=False, overwrite=False):
         The object's coordinates in the ICRS frame.
 
     """
-
-    if overwrite and not cache:
-        raise ValueError("`overwrite` should only be set to True if you are "
-                         "using caching, i.e. if `cache=True`.")
-
-    if overwrite:
-        cache = "update"
 
     # if requested, first try extract coordinates embedded in the object name.
     # Do this first since it may be much faster than doing the sesame query
