@@ -30,7 +30,6 @@ from .fk5 import FK5
 from .fk4 import FK4, FK4NoETerms
 from .galactic import Galactic
 from .galactocentric import Galactocentric, galactocentric_frame_defaults
-from .lsr import LSR, GalacticLSR
 from .supergalactic import Supergalactic
 from .altaz import AltAz
 from .gcrs import GCRS, PrecessedGeocentric
@@ -50,6 +49,10 @@ from . import cirs_observed_transforms
 from . import intermediate_rotation_transforms
 from . import ecliptic_transforms
 
+# Import this after importing other frames, since this requires various
+# transformtions to set up the LSR frames
+from .lsr import LSR, GalacticLSR, LSRK, LSRD
+
 from astropy.coordinates.baseframe import frame_transform_graph
 
 # we define an __all__ because otherwise the transformation modules
@@ -61,7 +64,7 @@ __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
            'BarycentricMeanEcliptic', 'HeliocentricMeanEcliptic',
            'GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
            'HeliocentricTrueEcliptic',
-           'SkyOffsetFrame', 'GalacticLSR', 'LSR',
+           'SkyOffsetFrame', 'GalacticLSR', 'LSR', 'LSRK', 'LSRD',
            'BaseEclipticFrame', 'BaseRADecFrame', 'make_transform_graph_docs',
            'HeliocentricEclipticIAU76', 'CustomBarycentricEcliptic']
 

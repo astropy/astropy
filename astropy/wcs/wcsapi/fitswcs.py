@@ -8,12 +8,80 @@ import warnings
 import numpy as np
 
 from astropy import units as u
+from astropy.coordinates import SpectralCoord, Galactic
+from astropy.coordinates.spectral_coordinate import update_differentials_to_match, attach_zero_velocities
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.constants import c
 
 from .low_level_api import BaseLowLevelWCS
 from .high_level_api import HighLevelWCSMixin
 from .sliced_low_level_wcs import SlicedLowLevelWCS
 
 __all__ = ['custom_ctype_to_ucd_mapping', 'SlicedFITSWCS', 'FITSWCSAPIMixin']
+
+C_SI = c.si.value
+
+VELOCITY_FRAMES = {
+    'GEOCENT': 'gcrs',
+    'BARYCENT': 'icrs',
+    'HELIOCENT': 'hcrs',
+    'LSRK': 'lsrk',
+    'LSRD': 'lsrd'
+}
+
+# The spectra velocity frames below are needed for FITS spectral WCS 
+#  (see Greisen 06 table 12) but aren't yet defined as real
+# astropy.coordinates frames, so we instead define them here as instances
+# of existing coordinate frames with offset velocities. In future we should
+# make these real frames so that users can more easily recognize these
+# velocity frames when used in SpectralCoord.
+
+# This frame is defined as a velocity of 220 km/s in the
+# direction of l=90, b=0. The rotation velocity is defined
+# in:
+#
+#   Kerr and Lynden-Bell 1986, Review of galactic constants.
+#
+# NOTE: this may differ from the assumptions of galcen_v_sun
+# in the Galactocentric frame - the value used here is
+# the one adopted by the WCS standard for spectral
+# transformations.
+
+VELOCITY_FRAMES['GALACTOC'] = Galactic(u=0 * u.km, v=0 * u.km, w=0 * u.km,
+                                       U=0 * u.km / u.s, V=-220 * u.km / u.s, W=0 * u.km / u.s,
+                                       representation_type='cartesian',
+                                       differential_type='cartesian')
+
+# This frame is defined as a velocity of 300 km/s in the
+# direction of l=90, b=0. This is defined in:
+#
+#   Transactions of the IAU Vol. XVI B Proceedings of the
+#   16th General Assembly, Reports of Meetings of Commissions:
+#   Comptes Rendus Des Séances Des Commissions, Commission 28,
+#   p201.
+#
+# Note that these values differ from those used by CASA
+# (308 km/s towards l=105, b=-7) but we use the above values
+# since these are the ones defined in Greisen et al (2006).
+
+VELOCITY_FRAMES['LOCALGRP'] = Galactic(u=0 * u.km, v=0 * u.km, w=0 * u.km,
+                                       U=0 * u.km / u.s, V=-300 * u.km / u.s, W=0 * u.km / u.s,
+                                       representation_type='cartesian',
+                                       differential_type='cartesian')
+
+# This frame is defined as a velocity of 368 km/s in the
+# direction of l=263.85, b=48.25. This is defined in:
+#
+#   Bennett et al. (2003), First-Year Wilkinson Microwave
+#   Anisotropy Probe (WMAP) Observations: Preliminary Maps
+#   and Basic Results
+#
+# Note that in that paper, the dipole is expressed as a
+# temperature (T=3.346 +/- 0.017mK)
+
+VELOCITY_FRAMES['CMBDIPOL'] = Galactic(l=263.85 * u.deg, b=48.25 * u.deg, distance=0 * u.km,
+                                       radial_velocity=-(3.346e-3 / 2.725 * c).to(u.km/u.s))
+
 
 # Mapping from CTYPE axis name to UCD1
 
@@ -289,6 +357,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     list(self.wcs.ctype),
                     list(self.wcs.cunit),
                     self.wcs.radesys,
+                    self.wcs.specsys,
                     self.wcs.equinox,
                     self.wcs.dateobs,
                     self.wcs.lng,
@@ -317,21 +386,162 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         if self.has_celestial:
 
             try:
-                frame = wcs_to_celestial_frame(self)
+                celestial_frame = wcs_to_celestial_frame(self)
             except ValueError:
                 # Some WCSes, e.g. solar, can be recognized by WCSLIB as being
                 # celestial but we don't necessarily have frames for them.
-                pass
+                celestial_frame = None
             else:
 
                 kwargs = {}
-                kwargs['frame'] = frame
+                kwargs['frame'] = celestial_frame
                 kwargs['unit'] = u.deg
 
                 classes['celestial'] = (SkyCoord, (), kwargs)
 
                 components[self.wcs.lng] = ('celestial', 0, 'spherical.lon.degree')
                 components[self.wcs.lat] = ('celestial', 1, 'spherical.lat.degree')
+
+        # Next, we check for spectral components
+
+        if self.has_spectral:
+
+            # Find index of spectral coordinate
+            ispec = self.wcs.spec
+            ctype = self.wcs.ctype[ispec][:4]
+
+            kwargs = {}
+
+            # Determine observer location and velocity
+
+            # TODO: determine how WCS standard would deal with observer on a
+            # spacecraft far from earth. For now assume the obsgeo parameters,
+            # if present, give the geocentric observer location.
+
+            if np.isnan(self.wcs.obsgeo[0]):
+                observer = None
+            else:
+
+                earth_location = EarthLocation(*self.wcs.obsgeo[:3], unit=u.m)
+                obstime = Time(self.wcs.mjdobs, format='mjd', scale='utc',
+                               location=earth_location)
+                observer_location = SkyCoord(earth_location.get_itrs(obstime=obstime))
+
+                if self.wcs.specsys in VELOCITY_FRAMES:
+                    frame = VELOCITY_FRAMES[self.wcs.specsys]
+                    observer = observer_location.transform_to(frame)
+                    if isinstance(frame, str):
+                        observer = attach_zero_velocities(observer)
+                    else:
+                        observer = update_differentials_to_match(observer_location,
+                                                                 VELOCITY_FRAMES[self.wcs.specsys],
+                                                                 preserve_observer_frame=True)
+                elif self.wcs.specsys == 'TOPOCENT':
+                    observer = attach_zero_velocities(observer_location)
+                else:
+                    raise NotImplementedError(f'SPECSYS={self.wcs.specsys} not yet supported')
+
+            # Determine target
+
+            # This is tricker. In principle the target for each pixel is the
+            # celestial coordinates of the pixel, but we then need to be very
+            # careful about SSYSOBS which is tricky. For now, we set the
+            # target using the reference celestial coordinate in the WCS (if
+            # any).
+
+            if self.has_celestial and celestial_frame is not None:
+
+                # NOTE: celestial_frame was defined higher up
+
+                target = SkyCoord(self.wcs.crval[self.wcs.lng] * self.wcs.cunit[self.wcs.lng],
+                                  self.wcs.crval[self.wcs.lat] * self.wcs.cunit[self.wcs.lat],
+                                  frame=celestial_frame,
+                                  radial_velocity=0 * u.km / u.s,
+                                  distance=1000 * u.kpc)
+
+                # FIXME: for now this target won't work without radial velocity
+                # and distance due to https://github.com/astropy/specutils/issues/658
+
+            else:
+
+                target = None
+
+            # NOTE: below we include Quantity in classes['spectral'] instead
+            # of SpectralCoord - this is because we want to also be able to
+            # accept plain quantities.
+
+            if ctype == 'ZOPT':
+
+                def spectralcoord_from_redshift(redshift):
+                    return SpectralCoord((redshift + 1) * self.wcs.restwav,
+                                         unit=u.m, observer=observer, target=target)
+
+                def redshift_from_spectralcoord(spectralcoord):
+                    # TODO: check target is consistent
+                    if observer is None:
+                        warnings.warn('No observer defined on WCS, SpectralCoord '
+                                      'will be converted without any velocity '
+                                      'frame change', AstropyUserWarning)
+                        return spectralcoord.to_value(u.m) / self.wcs.restwav - 1.
+                    else:
+                        return spectralcoord.in_observer_velocity_frame(observer).to_value(u.m) / self.wcs.restwav - 1.
+
+                classes['spectral'] = (u.Quantity, (), {}, spectralcoord_from_redshift)
+                components[self.wcs.spec] = ('spectral', 0, redshift_from_spectralcoord)
+
+            elif ctype == 'BETA':
+
+                def spectralcoord_from_beta(beta):
+                    return SpectralCoord(beta * C_SI,
+                                         unit=u.m / u.s,
+                                         doppler_convention='relativistic',
+                                         doppler_rest=self.wcs.restwav * u.m,
+                                         observer=observer, target=target)
+
+                def beta_from_spectralcoord(spectralcoord):
+                    # TODO: check target is consistent
+                    doppler_equiv = u.doppler_relativistic(self.wcs.restwav * u.m)
+                    if observer is None:
+                        warnings.warn('No observer defined on WCS, SpectralCoord '
+                                      'will be converted without any velocity '
+                                      'frame change', AstropyUserWarning)
+                        return spectralcoord.to_value(u.m / u.s, doppler_equiv) / C_SI
+                    else:
+                        return spectralcoord.in_observer_velocity_frame(observer).to_value(u.m / u.s, doppler_equiv) / C_SI
+
+                classes['spectral'] = (u.Quantity, (), {}, spectralcoord_from_beta)
+                components[self.wcs.spec] = ('spectral', 0, beta_from_spectralcoord)
+
+            else:
+
+                kwargs['unit'] = self.wcs.cunit[ispec]
+
+                if self.wcs.restfrq > 0:
+                    if ctype == 'VELO':
+                        kwargs['doppler_convention'] = 'relativistic'
+                        kwargs['doppler_rest'] = self.wcs.restfrq * u.Hz
+                    elif ctype == 'VRAD':
+                        kwargs['doppler_convention'] = 'radio'
+                        kwargs['doppler_rest'] = self.wcs.restfrq * u.Hz
+                    elif ctype == 'VOPT':
+                        kwargs['doppler_convention'] = 'optical'
+                        kwargs['doppler_rest'] = self.wcs.restwav * u.m
+
+                def spectralcoord_from_value(value):
+                    return SpectralCoord(value, observer=observer, target=target, **kwargs)
+
+                def value_from_spectralcoord(spectralcoord):
+                    # TODO: check target is consistent
+                    if observer is None:
+                        warnings.warn('No observer defined on WCS, SpectralCoord '
+                                      'will be converted without any velocity '
+                                      'frame change', AstropyUserWarning)
+                        return spectralcoord.to_value(**kwargs)
+                    else:
+                        return spectralcoord.in_observer_velocity_frame(observer).to_value(**kwargs)
+
+                classes['spectral'] = (u.Quantity, (), {}, spectralcoord_from_value)
+                components[self.wcs.spec] = ('spectral', 0, value_from_spectralcoord)
 
         # We can then make sure we correctly return Time objects where appropriate
         # (https://www.aanda.org/articles/aa/pdf/2015/02/aa24653-14.pdf)

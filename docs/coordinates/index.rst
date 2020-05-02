@@ -455,6 +455,7 @@ listed below.
    frames
    velocities
    apply_space_motion
+   spectralcoord
    galactocentric
    remote_methods
    definitions

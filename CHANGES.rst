@@ -18,6 +18,10 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
+
+- Added a new ``SpectralCoord`` class that can be used to define spectral
+  coordinates and transform them between different velocity frames. [#10185]
+
 - Angle parsing now supports ``cardinal direction`` in the cases
   where angles are initialized as ``string`` instances. eg ``"17°53'27"W"``.[#9859]
 
@@ -183,6 +187,11 @@ astropy.visualization
 
 astropy.wcs
 ^^^^^^^^^^^
+
+- WCS objects with a spectral axis will now return ``SpectralCoord``
+  objects when calling ``pixel_to_world`` instead of ``Quantity``,
+  and can now take either ``Quantity`` or ``SpectralCoord`` as input
+  to ``pixel_to_world``. [#10185]
 
 - Implemented support for the ``-TAB`` algorithm (WCS Paper III). [#9641]
 
@@ -377,6 +386,10 @@ astropy.visualization
 
 astropy.wcs
 ^^^^^^^^^^^
+
+- WCS objects with a spectral axis will now return ``SpectralCoord``
+  objects when calling ``pixel_to_world`` instead of ``Quantity``
+  (note that ``SpectralCoord`` is a sub-class of ``Quantity``). [#10185]
 
 Other Changes and Additions
 ---------------------------

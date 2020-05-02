@@ -13,14 +13,17 @@ from astropy import units as u
 from astropy.time import Time
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import Quantity
-from astropy.coordinates import ICRS, FK5, Galactic, SkyCoord
+from astropy.coordinates import ICRS, FK5, Galactic, SkyCoord, SpectralCoord, ITRS, EarthLocation
 from astropy.io.fits import Header
 from astropy.io.fits.verify import VerifyWarning
 from astropy.units.core import UnitsWarning
 from astropy.utils.data import get_pkg_data_filename
 from astropy.wcs.wcs import WCS, FITSFixedWarning
-from astropy.wcs.wcsapi.fitswcs import custom_ctype_to_ucd_mapping
+from astropy.wcs.wcsapi.fitswcs import custom_ctype_to_ucd_mapping, VELOCITY_FRAMES
 from astropy.wcs._wcs import __version__ as wcsver
+from astropy.utils import iers
+from astropy.table import Table
+from astropy.utils.exceptions import AstropyUserWarning
 
 ###############################################################################
 # The following example is the simplest WCS with default values
@@ -245,18 +248,19 @@ def test_spectral_cube():
                                                [False, True, False],
                                                [True, False, True]])
 
-    assert wcs.world_axis_object_components == [('celestial', 1, 'spherical.lat.degree'),
-                                                ('freq', 0, 'value'),
-                                                ('celestial', 0, 'spherical.lon.degree')]
+    assert len(wcs.world_axis_object_components) == 3
+    assert wcs.world_axis_object_components[0] == ('celestial', 1, 'spherical.lat.degree')
+    assert wcs.world_axis_object_components[1][:2] == ('spectral', 0)
+    assert wcs.world_axis_object_components[2] == ('celestial', 0, 'spherical.lon.degree')
 
     assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
     assert wcs.world_axis_object_classes['celestial'][1] == ()
     assert isinstance(wcs.world_axis_object_classes['celestial'][2]['frame'], Galactic)
     assert wcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
 
-    assert wcs.world_axis_object_classes['freq'][0] is Quantity
-    assert wcs.world_axis_object_classes['freq'][1] == ()
-    assert wcs.world_axis_object_classes['freq'][2] == {'unit': 'Hz'}
+    assert wcs.world_axis_object_classes['spectral'][0] is Quantity
+    assert wcs.world_axis_object_classes['spectral'][1] == ()
+    assert wcs.world_axis_object_classes['spectral'][2] == {}
 
     assert_allclose(wcs.pixel_to_world_values(29, 39, 44), (10, 20, 25))
     assert_allclose(wcs.array_index_to_world_values(44, 39, 29), (10, 20, 25))
@@ -271,7 +275,7 @@ def test_spectral_cube():
     assert isinstance(coord.frame, Galactic)
     assert coord.l.deg == 25
     assert coord.b.deg == 10
-    assert isinstance(spec, Quantity)
+    assert isinstance(spec, SpectralCoord)
     assert spec.to_value(u.Hz) == 20
 
     coord, spec = wcs.array_index_to_world(44, 39, 29)
@@ -279,30 +283,34 @@ def test_spectral_cube():
     assert isinstance(coord.frame, Galactic)
     assert coord.l.deg == 25
     assert coord.b.deg == 10
-    assert isinstance(spec, Quantity)
+    assert isinstance(spec, SpectralCoord)
     assert spec.to_value(u.Hz) == 20
 
     coord = SkyCoord(25, 10, unit='deg', frame='galactic')
     spec = 20 * u.Hz
 
-    x, y, z = wcs.world_to_pixel(coord, spec)
+    with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+        x, y, z = wcs.world_to_pixel(coord, spec)
     assert_allclose(x, 29.)
     assert_allclose(y, 39.)
     assert_allclose(z, 44.)
 
     # Order of world coordinates shouldn't matter
-    x, y, z = wcs.world_to_pixel(spec, coord)
+    with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+        x, y, z = wcs.world_to_pixel(spec, coord)
     assert_allclose(x, 29.)
     assert_allclose(y, 39.)
     assert_allclose(z, 44.)
 
-    i, j, k = wcs.world_to_array_index(coord, spec)
+    with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+        i, j, k = wcs.world_to_array_index(coord, spec)
     assert_equal(i, 44)
     assert_equal(j, 39)
     assert_equal(k, 29)
 
     # Order of world coordinates shouldn't matter
-    i, j, k = wcs.world_to_array_index(spec, coord)
+    with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+        i, j, k = wcs.world_to_array_index(spec, coord)
     assert_equal(i, 44)
     assert_equal(j, 39)
     assert_equal(k, 29)
@@ -339,18 +347,19 @@ def test_spectral_cube_nonaligned():
     # again here because in the past this failed when non-aligned axes were
     # present, so this serves as a regression test.
 
-    assert wcs.world_axis_object_components == [('celestial', 1, 'spherical.lat.degree'),
-                                                ('freq', 0, 'value'),
-                                                ('celestial', 0, 'spherical.lon.degree')]
+    assert len(wcs.world_axis_object_components) == 3
+    assert wcs.world_axis_object_components[0] == ('celestial', 1, 'spherical.lat.degree')
+    assert wcs.world_axis_object_components[1][:2] == ('spectral', 0)
+    assert wcs.world_axis_object_components[2] == ('celestial', 0, 'spherical.lon.degree')
 
     assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
     assert wcs.world_axis_object_classes['celestial'][1] == ()
     assert isinstance(wcs.world_axis_object_classes['celestial'][2]['frame'], Galactic)
     assert wcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
 
-    assert wcs.world_axis_object_classes['freq'][0] is Quantity
-    assert wcs.world_axis_object_classes['freq'][1] == ()
-    assert wcs.world_axis_object_classes['freq'][2] == {'unit': 'Hz'}
+    assert wcs.world_axis_object_classes['spectral'][0] is Quantity
+    assert wcs.world_axis_object_classes['spectral'][1] == ()
+    assert wcs.world_axis_object_classes['spectral'][2] == {}
 
 ###############################################################################
 # The following example is from Rots et al (2015), Table 5. It represents a
@@ -919,3 +928,86 @@ def test_sub_wcsapi_attributes():
     assert wcs_sub4.world_axis_physical_types == ['pos.galactic.lon', 'pos.galactic.lat']
     assert wcs_sub4.world_axis_units == ['deg', 'deg']
     assert wcs_sub4.world_axis_names == ['', '']
+
+
+###############################################################################
+# Spectral transformations
+###############################################################################
+
+HEADER_SPECTRAL_FRAMES = """
+BUNIT   = 'Jy/beam'
+EQUINOX =      2.000000000E+03
+CTYPE1  = 'RA---SIN'
+CRVAL1  =    2.60108333333E+02
+CDELT1  =     -2.777777845E-04
+CRPIX1  =                  1.0
+CUNIT1  = 'deg'
+CTYPE2  = 'DEC--SIN'
+CRVAL2  =   -9.75000000000E-01
+CDELT2  =      2.777777845E-04
+CRPIX2  =                  1.0
+CUNIT2  = 'deg'
+CTYPE3  = 'FREQ'
+CRVAL3  =    1.37835117405E+09
+CDELT3  =      9.765625000E+04
+CRPIX3  =                 32.0
+CUNIT3  = 'Hz'
+SPECSYS = 'TOPOCENT'
+RESTFRQ =      1.420405752E+09 / [Hz]
+RADESYS = 'FK5'
+"""
+
+
+@pytest.fixture
+def header_spectral_frames():
+    return Header.fromstring(HEADER_SPECTRAL_FRAMES, sep='\n')
+
+
+def test_spectralcoord_frame(header_spectral_frames):
+
+    # This is a test to check the numerical results of transformations between
+    # different velocity frames. We simply make sure that the returned
+    # SpectralCoords are in the right frame but don't check the transformations
+    # since this is already done in test_spectralcoord_accuracy
+    # in astropy.coordinates.
+
+    with iers.conf.set_temp('auto_download', False):
+
+        obstime = Time(f"2009-05-04T04:44:23", scale='utc')
+
+        header = header_spectral_frames.copy()
+        header['MJD-OBS'] = obstime.mjd
+        header['CRVAL1'] = 16.33211
+        header['CRVAL2'] = -34.2221
+        header['OBSGEO-L'] = 144.2
+        header['OBSGEO-B'] = -20.2
+        header['OBSGEO-H'] = 0.
+
+        # We start off with a WCS defined in topocentric frequency
+        with pytest.warns(FITSFixedWarning):
+            wcs_topo = WCS(header)
+
+        # We convert a single pixel coordinate to world coordinates and keep only
+        # the second high level object - a SpectralCoord:
+        sc_topo = wcs_topo.pixel_to_world(0, 0, 31)[1]
+
+        # We check that this is in topocentric frame with zero velocities
+        assert isinstance(sc_topo, SpectralCoord)
+        assert isinstance(sc_topo.observer, ITRS)
+        assert sc_topo.observer.obstime.isot == obstime.isot
+        assert_equal(sc_topo.observer.data.differentials['s'].d_xyz.value, 0)
+
+        observatory = EarthLocation.from_geodetic(144.2, -20.2).get_itrs(obstime=obstime).transform_to(ICRS())
+        assert observatory.separation_3d(sc_topo.observer.transform_to(ICRS())) < 1 * u.km
+
+        for specsys, expected_frame in VELOCITY_FRAMES.items():
+
+            header['SPECSYS'] = specsys
+            with pytest.warns(FITSFixedWarning):
+                wcs = WCS(header)
+            sc = wcs.pixel_to_world(0, 0, 31)[1]
+
+            # Now transform to the expected velocity frame, which should leave
+            # the spectral coordinate unchanged
+            sc_check = sc.with_observer_stationary_relative_to(expected_frame)
+            assert_quantity_allclose(sc.quantity, sc_check.quantity)
