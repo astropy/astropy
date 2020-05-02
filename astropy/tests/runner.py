@@ -463,8 +463,9 @@ class TestRunner(TestRunnerBase):
         remote_data : {'none', 'astropy', 'any'}, optional
             Controls whether to run tests marked with @pytest.mark.remote_data. This can be
             set to run no tests with remote data (``none``), only ones that use
-            data from http://data.astropy.org (``astropy``), or all tests that
+            data from https://www.astropy.org/astropy-data/ (``astropy``), or all tests that
             use remote data (``any``). The default is ``none``.
+
         """
 
         if remote_data is True:
