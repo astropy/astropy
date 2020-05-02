@@ -4,7 +4,6 @@
 This module contains tests for the name resolve convenience module.
 """
 
-import os
 import time
 import urllib.request
 
@@ -18,6 +17,8 @@ from astropy.coordinates.name_resolve import (get_icrs_coordinates,
 from astropy.coordinates.sky_coordinate import SkyCoord
 from astropy.config import paths
 from astropy import units as u
+
+from pytest_remotedata.disable_internet import no_internet
 
 _cached_ngc3642 = dict()
 _cached_ngc3642["simbad"] = """# NGC 3642    #Q22523669
@@ -142,8 +143,10 @@ def test_names():
 
 @pytest.mark.remote_data
 def test_name_resolve_cache(tmpdir):
-    from astropy.utils.data import _get_download_cache_locs
+    from astropy.utils.data import _get_download_cache_locs, get_cached_urls
     import shelve
+
+    target_name = "castor"
 
     temp_cache_dir = str(tmpdir.mkdir('cache'))
     with paths.set_temp_cache(temp_cache_dir, delete=True):
@@ -152,24 +155,24 @@ def test_name_resolve_cache(tmpdir):
         with shelve.open(urlmapfn) as url2hash:
             assert len(url2hash) == 0
 
-        icrs1 = get_icrs_coordinates("castor", cache=True)
+        icrs1 = get_icrs_coordinates(target_name, cache=True)
 
         # This is a weak test: we just check to see that a url is added to the
         #  cache!
         with shelve.open(urlmapfn) as url2hash:
             assert len(url2hash) == 1
+            url = get_cached_urls()[0]
+            assert 'http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/' in url
 
         # Try reloading coordinates, now should just reload cached data:
-        icrs2 = get_icrs_coordinates("castor", cache=True)
+        with no_internet():
+            icrs2 = get_icrs_coordinates(target_name, cache=True)
+
         with shelve.open(urlmapfn) as url2hash:
             assert len(url2hash) == 1
 
         assert u.allclose(icrs1.ra, icrs2.ra)
         assert u.allclose(icrs1.dec, icrs2.dec)
-
-        # This argument combination is not allowed:
-        with pytest.raises(ValueError):
-            get_icrs_coordinates("castor", cache=False, overwrite=True)
 
 
 def test_names_parse():
