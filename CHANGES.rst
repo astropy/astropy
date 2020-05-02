@@ -122,6 +122,11 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Added ability to specify a custom matching function for table joins.  In
+  particular this makes it possible to do cross-match table joins on ``SkyCoord``,
+  ``Quantity``, or standard columns, where column entries within a specified
+  distance are considered to be matched. [#10169]
+
 - Added ``units`` and ``descriptions`` keyword arguments to the Table object
   initialization and ``Table.read()`` methods.  This allows directly setting
   the ``unit`` and ``description`` for the table columns at the time of

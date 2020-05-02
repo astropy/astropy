@@ -25,7 +25,10 @@ from astropy.utils.compat import NUMPY_LT_1_17
 from . import _np_utils
 from .np_utils import fix_column_name, TableMergeError
 
-__all__ = ['join', 'setdiff', 'hstack', 'vstack', 'unique']
+__all__ = ['join', 'setdiff', 'hstack', 'vstack', 'unique',
+           'join_skycoord', 'join_distance']
+
+__doctest_requires__ = {'join_skycoord': ['scipy'], 'join_distance': ['scipy']}
 
 
 def _merge_table_meta(out, tables, metadata_conflicts='warn'):
@@ -89,9 +92,254 @@ def _get_out_class(objs):
     return out_class
 
 
+def join_skycoord(distance, distance_func='search_around_sky'):
+    """Helper function to join on SkyCoord columns using distance matching.
+
+    This function is intended for use in ``table.join()`` to allow performing a
+    table join where the key columns are both ``SkyCoord`` objects, matched by
+    computing the distance between points and accepting values below
+    ``distance``.
+
+    The distance cross-matching is done using either
+    `~astropy.coordinates.search_around_sky` or
+    `~astropy.coordinates.search_around_3d`, depending on the value of
+    ``distance_func``.  The default is ``'search_around_sky'``.
+
+    One can also provide a function object for ``distance_func``, in which case
+    it must be a function that follows the same input and output API as
+    `~astropy.coordinates.search_around_sky`. In this case the function will
+    be called with ``(skycoord1, skycoord2, distance)`` as arguments.
+
+    Parameters
+    ----------
+    distance : Quantity (angle or length)
+        Maximum distance between points to be considered a join match
+    distance_func : str or function
+        Specifies the function for performing the cross-match based on
+        ``distance``. If supplied as a string this specifies the name of a
+        function in `astropy.coordinates`. If supplied as a function then that
+        function is called directly.
+
+    Returns
+    -------
+    join_func : function
+        Function that accepts two ``SkyCoord`` columns (col1, col2) and returns
+        the tuple (ids1, ids2) of pair-matched unique identifiers.
+
+    Examples
+    --------
+    This example shows an inner join of two ``SkyCoord`` columns, taking any
+    sources within 0.2 deg to be a match.  Note the new ``sc_id`` column which
+    is added and provides a unique source identifier for the matches.
+
+      >>> from astropy.coordinates import SkyCoord
+      >>> import astropy.units as u
+      >>> from astropy.table import Table, join_skycoord
+      >>> from astropy import table
+
+      >>> sc1 = SkyCoord([0, 1, 1.1, 2], [0, 0, 0, 0], unit='deg')
+      >>> sc2 = SkyCoord([0.5, 1.05, 2.1], [0, 0, 0], unit='deg')
+
+      >>> join_func = join_skycoord(0.2 * u.deg)
+      >>> join_func(sc1, sc2)  # Associate each coordinate with unique source ID
+      (array([3, 1, 1, 2]), array([4, 1, 2]))
+
+      >>> t1 = Table([sc1], names=['sc'])
+      >>> t2 = Table([sc2], names=['sc'])
+      >>> t12 = table.join(t1, t2, join_funcs={'sc': join_skycoord(0.2 * u.deg)})
+      >>> print(t12)  # Note new `sc_id` column with the IDs from join_func()
+      sc_id   sc_1    sc_2
+            deg,deg deg,deg
+      ----- ------- --------
+          1 1.0,0.0 1.05,0.0
+          1 1.1,0.0 1.05,0.0
+          2 2.0,0.0  2.1,0.0
+
+    """
+    if isinstance(distance_func, str):
+        import astropy.coordinates as coords
+        try:
+            distance_func = getattr(coords, distance_func)
+        except AttributeError:
+            raise ValueError('distance_func must be a function in astropy.coordinates')
+    else:
+        from inspect import isfunction
+        if not isfunction(distance_func):
+            raise ValueError('distance_func must be a str or function')
+
+    def join_func(sc1, sc2):
+
+        # Call the appropriate SkyCoord method to find pairs within distance
+        idxs1, idxs2, d2d, d3d = distance_func(sc1, sc2, distance)
+
+        # Now convert that into unique identifiers for each near-pair. This is
+        # taken to be transitive, so that if points 1 and 2 are "near" and points
+        # 1 and 3 are "near", then 1, 2, and 3 are all given the same identifier.
+        # This identifier will then be used in the table join matching.
+
+        # Identifiers for each column, initialized to all zero.
+        ids1 = np.zeros(len(sc1), dtype=int)
+        ids2 = np.zeros(len(sc2), dtype=int)
+
+        # Start the identifier count at 1
+        id_ = 1
+        for idx1, idx2 in zip(idxs1, idxs2):
+            # If this col1 point is previously identified then set corresponding
+            # col2 point to same identifier.  Likewise for col2 and col1.
+            if ids1[idx1] > 0:
+                ids2[idx2] = ids1[idx1]
+            elif ids2[idx2] > 0:
+                ids1[idx1] = ids2[idx2]
+            else:
+                # Not yet seen so set identifer for col1 and col2
+                ids1[idx1] = id_
+                ids2[idx2] = id_
+                id_ += 1
+
+        # Fill in unique identifiers for points with no near neighbor
+        for ids in (ids1, ids2):
+            for idx in np.flatnonzero(ids == 0):
+                ids[idx] = id_
+                id_ += 1
+
+        # End of enclosure join_func()
+        return ids1, ids2
+
+    return join_func
+
+
+def join_distance(distance, kdtree_args=None, query_args=None):
+    """Helper function to join table columns using distance matching.
+
+    This function is intended for use in ``table.join()`` to allow performing
+    a table join where the key columns are matched by computing the distance
+    between points and accepting values below ``distance``. This numerical
+    "fuzzy" match can apply to 1-D or 2-D columns, where in the latter case
+    the distance is a vector distance.
+
+    The distance cross-matching is done using `scipy.spatial.cKDTree`. If
+    necessary you can tweak the default behavior by providing ``dict`` values
+    for the ``kdtree_args`` or ``query_args``.
+
+    Parameters
+    ----------
+    distance : float, Quantity
+        Maximum distance between points to be considered a join match
+    kdtree_args : dict, None
+        Optional extra args for `~scipy.spatial.cKDTree`
+    query_args : dict, None
+        Optional extra args for `~scipy.spatial.cKDTree.query_ball_tree`
+
+    Returns
+    -------
+    join_func : function
+        Function that accepts (skycoord1, skycoord2) and returns the tuple
+        (ids1, ids2) of pair-matched unique identifiers.
+
+    Examples
+    --------
+
+      >>> from astropy.table import Table, join_distance
+      >>> from astropy import table
+
+      >>> c1 = [0, 1, 1.1, 2]
+      >>> c2 = [0.5, 1.05, 2.1]
+
+      >>> t1 = Table([c1], names=['col'])
+      >>> t2 = Table([c2], names=['col'])
+      >>> t12 = table.join(t1, t2, join_type='outer', join_funcs={'col': join_distance(0.2)})
+      >>> print(t12)
+      col_id col_1 col_2
+      ------ ----- -----
+           1   1.0  1.05
+           1   1.1  1.05
+           2   2.0   2.1
+           3   0.0    --
+           4    --   0.5
+
+    """
+    try:
+        from scipy.spatial import cKDTree
+    except ImportError as exc:
+        raise ImportError('scipy is required to use join_distance()') from exc
+
+    if kdtree_args is None:
+        kdtree_args = {}
+    if query_args is None:
+        query_args = {}
+
+    def join_func(col1, col2):
+        if col1.ndim > 2 or col2.ndim > 2:
+            raise ValueError('columns for isclose_join must be 1- or 2-dimensional')
+
+        if isinstance(distance, Quantity):
+            # Convert to np.array with common unit
+            col1 = col1.to_value(distance.unit)
+            col2 = col2.to_value(distance.unit)
+            dist = distance.value
+        else:
+            # Convert to np.array to allow later in-place shape changing
+            col1 = np.asarray(col1)
+            col2 = np.asarray(col2)
+            dist = distance
+
+        # Ensure columns are pure np.array and are 2-D for use with KDTree
+        if col1.ndim == 1:
+            col1.shape = col1.shape + (1,)
+        if col2.ndim == 1:
+            col2.shape = col2.shape + (1,)
+
+        # Cross-match col1 and col2 within dist using KDTree
+        kd1 = cKDTree(col1, **kdtree_args)
+        kd2 = cKDTree(col2, **kdtree_args)
+        nears = kd1.query_ball_tree(kd2, r=dist, **query_args)
+
+        # Output of above is nears which is a list of lists, where the outer
+        # list corresponds to each item in col1, and where the inner lists are
+        # indexes into col2 of elements within the distance tolerance.  This
+        # identifies col1 / col2 near pairs.
+
+        # Now convert that into unique identifiers for each near-pair. This is
+        # taken to be transitive, so that if points 1 and 2 are "near" and points
+        # 1 and 3 are "near", then 1, 2, and 3 are all given the same identifier.
+        # This identifier will then be used in the table join matching.
+
+        # Identifiers for each column, initialized to all zero.
+        ids1 = np.zeros(len(col1), dtype=int)
+        ids2 = np.zeros(len(col2), dtype=int)
+
+        # Start the identifier count at 1
+        id_ = 1
+        for idx1, idxs2 in enumerate(nears):
+            for idx2 in idxs2:
+                # If this col1 point is previously identified then set corresponding
+                # col2 point to same identifier.  Likewise for col2 and col1.
+                if ids1[idx1] > 0:
+                    ids2[idx2] = ids1[idx1]
+                elif ids2[idx2] > 0:
+                    ids1[idx1] = ids2[idx2]
+                else:
+                    # Not yet seen so set identifer for col1 and col2
+                    ids1[idx1] = id_
+                    ids2[idx2] = id_
+                    id_ += 1
+
+        # Fill in unique identifiers for points with no near neighbor
+        for ids in (ids1, ids2):
+            for idx in np.flatnonzero(ids == 0):
+                ids[idx] = id_
+                id_ += 1
+
+        # End of enclosure join_func()
+        return ids1, ids2
+
+    return join_func
+
+
 def join(left, right, keys=None, join_type='inner',
          uniq_col_name='{col_name}_{table_name}',
-         table_names=['1', '2'], metadata_conflicts='warn'):
+         table_names=['1', '2'], metadata_conflicts='warn',
+         join_funcs=None):
     """
     Perform a join of the left table with the right table on specified keys.
 
@@ -117,6 +365,9 @@ def join(left, right, keys=None, join_type='inner',
             * ``'silent'``: silently pick the last conflicting meta-data value
             * ``'warn'``: pick the last conflicting meta-data value, but emit a warning (default)
             * ``'error'``: raise an exception.
+    join_funcs : dict, None
+        Dict of functions to use for matching the corresponding key column(s).
+        See `~astropy.table.join_skycoord` for an example and details.
 
     Returns
     -------
@@ -132,7 +383,8 @@ def join(left, right, keys=None, join_type='inner',
 
     col_name_map = OrderedDict()
     out = _join(left, right, keys, join_type,
-                uniq_col_name, table_names, col_name_map, metadata_conflicts)
+                uniq_col_name, table_names, col_name_map, metadata_conflicts,
+                join_funcs)
 
     # Merge the column and table meta data. Table subclasses might override
     # these methods for custom merge behavior.
@@ -764,10 +1016,30 @@ def _get_join_sort_idxs(keys, left, right):
     return idxs, idx_sort
 
 
+def _apply_join_funcs(left, right, keys, join_funcs):
+    """Apply join_funcs
+    """
+    # Make light copies of left and right, then add new index columns.
+    left = left.copy(copy_data=False)
+    right = right.copy(copy_data=False)
+    for key, join_func in join_funcs.items():
+        ids1, ids2 = join_func(left[key], right[key])
+        for ii in itertools.count(1):
+            id_key = key + '_' * ii + 'id'
+            if id_key not in left.columns and id_key not in right.columns:
+                break
+        keys = tuple(id_key if orig_key == key else orig_key for orig_key in keys)
+        left.add_column(ids1, index=0, name=id_key)  # [id_key] = ids1
+        right.add_column(ids2, index=0, name=id_key)  # [id_key] = ids2
+
+    return left, right, keys
+
+
 def _join(left, right, keys=None, join_type='inner',
           uniq_col_name='{col_name}_{table_name}',
           table_names=['1', '2'],
-          col_name_map=None, metadata_conflicts='warn'):
+          col_name_map=None, metadata_conflicts='warn',
+          join_funcs=None):
     """
     Perform a join of the left and right Tables on specified keys.
 
@@ -796,6 +1068,9 @@ def _join(left, right, keys=None, join_type='inner',
             * ``'silent'``: silently pick the last conflicting meta-data value
             * ``'warn'``: pick the last conflicting meta-data value, but emit a warning (default)
             * ``'error'``: raise an exception.
+    join_funcs : dict, None
+        Dict of functions to use for matching the corresponding key column(s).
+        See `~astropy.table.join_skycoord` for an example and details.
 
     Returns
     -------
@@ -819,6 +1094,9 @@ def _join(left, right, keys=None, join_type='inner',
     if join_type == 'cartesian':
         if keys:
             raise ValueError('cannot supply keys for a cartesian join')
+
+        if join_funcs:
+            raise ValueError('cannot supply join_funcs for a cartesian join')
 
         # Make light copies of left and right, then add temporary index columns
         # with all the same value so later an outer join turns into a cartesian join.
@@ -845,6 +1123,12 @@ def _join(left, right, keys=None, join_type='inner',
             if hasattr(arr[name], 'mask') and np.any(arr[name].mask):
                 raise TableMergeError('{} key column {!r} has missing values'
                                       .format(arr_label, name))
+
+    if join_funcs is not None:
+        if not all(key in keys for key in join_funcs):
+            raise ValueError(f'join_funcs keys {join_funcs.keys()} must be a '
+                             f'subset of join keys {keys}')
+        left, right, keys = _apply_join_funcs(left, right, keys, join_funcs)
 
     len_left, len_right = len(left), len(right)
 

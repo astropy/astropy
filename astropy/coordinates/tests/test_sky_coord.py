@@ -49,11 +49,6 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
-if HAS_SCIPY and minversion(scipy, '0.12.0', inclusive=False):
-    OLDER_SCIPY = False
-else:
-    OLDER_SCIPY = True
-
 
 def setup_function(func):
     func.REPRESENTATION_CLASSES_ORIG = deepcopy(REPRESENTATION_CLASSES)
@@ -1220,7 +1215,6 @@ def test_immutable():
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-@pytest.mark.skipif('OLDER_SCIPY')
 def test_search_around():
     """
     Test the search_around_* methods
