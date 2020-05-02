@@ -19,7 +19,6 @@ from cpython.buffer cimport PyObject_GetBuffer, PyBuffer_Release
 
 from ...utils.data import get_readable_fileobj
 from ...utils.exceptions import AstropyWarning
-from ...table import pprint
 from . import core
 
 
@@ -934,6 +933,8 @@ cdef class FastWriter:
                   fill_include_names=None,
                   fill_exclude_names=None,
                   fast_writer=True):
+
+        from ...table import pprint  # Here to avoid circular import
 
         if fast_writer is True:
             fast_writer = {}
