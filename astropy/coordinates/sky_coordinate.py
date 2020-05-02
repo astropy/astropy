@@ -1903,7 +1903,7 @@ class SkyCoord(ShapedLikeNDArray):
     # Name resolve
     @classmethod
     def from_name(cls, name, frame='icrs', parse=False, cache=False,
-                  overwrite=False):
+                  overwrite_cache=False):
         """
         Given a name, query the CDS name resolver to attempt to retrieve
         coordinate information for that object. The search database, sesame
@@ -1929,7 +1929,7 @@ class SkyCoord(ShapedLikeNDArray):
             sub-arcsecond accuracy for coordinates.
         cache : bool, optional
             Determines whether to cache the results or not.
-        overwrite : bool, optional
+        overwrite_cache : bool, optional
             Determines whether to overwrite a pre-existing cached value.
 
         Returns
@@ -1939,6 +1939,13 @@ class SkyCoord(ShapedLikeNDArray):
         """
 
         from .name_resolve import get_icrs_coordinates
+
+        if overwrite_cache and not cache:
+            raise ValueError("`overwrite_cache` should only be set to True if "
+                             "you are using caching, i.e. if `cache=True`.")
+
+        if overwrite_cache and cache:
+            overwrite_cache = "update"
 
         icrs_coord = get_icrs_coordinates(name, parse, cache=cache)
         icrs_sky_coord = cls(icrs_coord)
