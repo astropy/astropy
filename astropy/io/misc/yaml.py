@@ -236,15 +236,14 @@ if not YAML_LT_3_12:
         AstropyDumper.add_multi_representer(cls, _quantity_representer(tag))
         AstropyLoader.add_constructor(tag, _quantity_constructor(cls))
 
-
-for cls in (list(coords.representation.REPRESENTATION_CLASSES.values())
-            + list(coords.representation.DIFFERENTIAL_CLASSES.values())):
-    name = cls.__name__
-    # Add representations/differentials defined in astropy.
-    if name in coords.representation.__all__:
-        tag = '!astropy.coordinates.' + name
-        AstropyDumper.add_multi_representer(cls, _quantity_representer(tag))
-        AstropyLoader.add_constructor(tag, _quantity_constructor(cls))
+    for cls in (list(coords.representation.REPRESENTATION_CLASSES.values())
+                + list(coords.representation.DIFFERENTIAL_CLASSES.values())):
+        name = cls.__name__
+        # Add representations/differentials defined in astropy.
+        if name in coords.representation.__all__:
+            tag = '!astropy.coordinates.' + name
+            AstropyDumper.add_multi_representer(cls, _quantity_representer(tag))
+            AstropyLoader.add_constructor(tag, _quantity_constructor(cls))
 
 
 def load(stream):
