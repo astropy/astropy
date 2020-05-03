@@ -7,28 +7,49 @@ from astropy.utils.data_info import MixinInfo
 from .column import Column
 from .table import Table, QTable, has_info_class
 from astropy.units.quantity import QuantityInfo
-from astropy.coordinates import representation as coorep
 
 
-__construct_mixin_classes = ('astropy.time.core.Time',
-                             'astropy.time.core.TimeDelta',
-                             'astropy.units.quantity.Quantity',
-                             'astropy.units.function.logarithmic.Magnitude',
-                             'astropy.units.function.logarithmic.Decibel',
-                             'astropy.units.function.logarithmic.Dex',
-                             'astropy.coordinates.angles.Latitude',
-                             'astropy.coordinates.angles.Longitude',
-                             'astropy.coordinates.angles.Angle',
-                             'astropy.coordinates.distances.Distance',
-                             'astropy.coordinates.earth.EarthLocation',
-                             'astropy.coordinates.sky_coordinate.SkyCoord',
-                             'astropy.table.table.NdarrayMixin',
-                             'astropy.table.column.MaskedColumn')
-__construct_mixin_classes += tuple(
-        f'astropy.coordinates.representation.{cls.__name__}'
-        for cls in (list(coorep.REPRESENTATION_CLASSES.values())
-                    + list(coorep.DIFFERENTIAL_CLASSES.values()))
-        if cls.__name__ in coorep.__all__)
+# TODO: some of this might be better done programmatically, through
+# code like
+# __construct_mixin_classes += tuple(
+#        f'astropy.coordinates.representation.{cls.__name__}'
+#        for cls in (list(coorep.REPRESENTATION_CLASSES.values())
+#                    + list(coorep.DIFFERENTIAL_CLASSES.values()))
+#        if cls.__name__ in coorep.__all__)
+# However, to avoid very hard to track import issues, the definition
+# should then be done at the point where it is actually needed,
+# using local imports.  See also
+# https://github.com/astropy/astropy/pull/10210#discussion_r419087286
+__construct_mixin_classes = (
+    'astropy.time.core.Time',
+    'astropy.time.core.TimeDelta',
+    'astropy.units.quantity.Quantity',
+    'astropy.units.function.logarithmic.Magnitude',
+    'astropy.units.function.logarithmic.Decibel',
+    'astropy.units.function.logarithmic.Dex',
+    'astropy.coordinates.angles.Latitude',
+    'astropy.coordinates.angles.Longitude',
+    'astropy.coordinates.angles.Angle',
+    'astropy.coordinates.distances.Distance',
+    'astropy.coordinates.earth.EarthLocation',
+    'astropy.coordinates.sky_coordinate.SkyCoord',
+    'astropy.table.table.NdarrayMixin',
+    'astropy.table.column.MaskedColumn',
+    'astropy.coordinates.representation.CartesianRepresentation',
+    'astropy.coordinates.representation.UnitSphericalRepresentation',
+    'astropy.coordinates.representation.RadialRepresentation',
+    'astropy.coordinates.representation.SphericalRepresentation',
+    'astropy.coordinates.representation.PhysicsSphericalRepresentation',
+    'astropy.coordinates.representation.CylindricalRepresentation',
+    'astropy.coordinates.representation.CartesianDifferential',
+    'astropy.coordinates.representation.UnitSphericalDifferential',
+    'astropy.coordinates.representation.SphericalDifferential',
+    'astropy.coordinates.representation.UnitSphericalCosLatDifferential',
+    'astropy.coordinates.representation.SphericalCosLatDifferential',
+    'astropy.coordinates.representation.RadialDifferential',
+    'astropy.coordinates.representation.PhysicsSphericalDifferential',
+    'astropy.coordinates.representation.CylindricalDifferential',
+)
 
 
 class SerializedColumn(dict):
