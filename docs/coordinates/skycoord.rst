@@ -1100,6 +1100,8 @@ We use the same plotting setup as in the last example:
 ..
   EXAMPLE END
 
+.. _coordinates-skycoord-comparing:
+
 Comparing SkyCoord Objects
 ==========================
 
