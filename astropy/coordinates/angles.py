@@ -53,31 +53,19 @@ class Angle(u.SpecificTypeQuantity):
       >>> Angle('1°2′3″')
       <Angle 1.03416667 deg>
       >>> Angle('1°2′3″N')
-      Traceback (most recent call last):
-        ...
-      ValueError: Invalid character at col 6 in angle '1°2′3″N'
+      <Angle 1.03416667 deg>
       >>> Angle('1d2m3.4s')
       <Angle 1.03427778 deg>
       >>> Angle('1d2m3.4sS')
-      Traceback (most recent call last):
-        ...
-      ValueError: Invalid character at col 8
-      During handling of the above exception, another exception occurred:
-      Traceback (most recent call last):
-        ...
-      ValueError: Invalid character at col 8 in angle '1d2m3.4sS'
+      <Angle 1.03427778 deg>
       >>> Angle('-1h2m3s')
       <Angle -1.03416667 hourangle>
       >>> Angle('-1h2m3sE')
-      Traceback (most recent call last):
-        ...
-      ValueError: Invalid character at col 7 in angle '-1h2m3sE'
+      <Angle -1.03416667 hourangle>
       >>> Angle('-1h2.5m')
       <Angle -1.04166667 hourangle>
       >>> Angle('-1h2.5mW')
-      Traceback (most recent call last):
-        ...
-      ValueError: Invalid character at col 7 in angle '-1h2.5mW'
+      <Angle -1.04166667 hourangle>
       >>> Angle('-1:2.5', unit=u.deg)
       <Angle -1.04166667 deg>
       >>> Angle((10, 11, 12), unit='hourangle')  # (h, m, s)
