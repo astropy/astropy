@@ -239,6 +239,13 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- The equality operator for comparing ``SkyCoord``, frame, and representation
+  objects was changed. A comparison like ``sc1 == sc2`` was previously
+  equivalent to ``sc1 is sc2``. It will now return a boolean or boolean array
+  where the objects are strictly equal in all relevant frame attributes and
+  coordinate representation values. If the objects have different frame
+  attributes or representation types then an exception will be raised. [#10154]
+
 - ```SkyCoord.radial_velocity_correction``` now allows you to pass an ```obstime``` directly
   when the ```SkyCoord``` also has an ```obstime``` set. In this situation, the position of the
   ```SkyCoord``` has space motion applied to correct to the passed ```obstime```. This allows
@@ -263,12 +270,6 @@ astropy.io.ascii
   ``converters`` dict names referred to the *input* table column names, but now
   they refer to the *output* table column names. [#9739]
 
-- The equality operator for comparing ``SkyCoord``, frame, and representation
-  objects was changed. A comparison like ``sc1 == sc2`` was previously
-  equivalent to ``sc1 is sc2``. It will now return a boolean or boolean array
-  where the objects are strictly equal in all relevant frame attributes and
-  coordinate representation values. If the objects have different frame
-  attributes or representation types then an exception will be raised. [#10154]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
