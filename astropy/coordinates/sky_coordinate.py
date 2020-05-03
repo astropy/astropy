@@ -1902,7 +1902,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     # Name resolve
     @classmethod
-    def from_name(cls, name, frame='icrs', parse=False):
+    def from_name(cls, name, frame='icrs', parse=False, cache=True):
         """
         Given a name, query the CDS name resolver to attempt to retrieve
         coordinate information for that object. The search database, sesame
@@ -1920,12 +1920,15 @@ class SkyCoord(ShapedLikeNDArray):
         parse: bool
             Whether to attempt extracting the coordinates from the name by
             parsing with a regex. For objects catalog names that have
-            J-coordinates embedded in their names eg:
+            J-coordinates embedded in their names, e.g.,
             'CRTS SSS100805 J194428-420209', this may be much faster than a
-            sesame query for the same object name. The coordinates extracted
+            Sesame query for the same object name. The coordinates extracted
             in this way may differ from the database coordinates by a few
             deci-arcseconds, so only use this option if you do not need
             sub-arcsecond accuracy for coordinates.
+        cache : bool, optional
+            Determines whether to cache the results or not. To update or
+            overwrite an existing value, pass ``cache='update'``.
 
         Returns
         -------
@@ -1935,7 +1938,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         from .name_resolve import get_icrs_coordinates
 
-        icrs_coord = get_icrs_coordinates(name, parse)
+        icrs_coord = get_icrs_coordinates(name, parse, cache=cache)
         icrs_sky_coord = cls(icrs_coord)
         if frame in ('icrs', icrs_coord.__class__):
             return icrs_sky_coord

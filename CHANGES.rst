@@ -40,6 +40,9 @@ astropy.coordinates
   by default. This currently corresponds to the values defined in v4.0, but will
   change with future releases. [#10238]
 
+- The ``SkyCoord.from_name()`` and Sesame name resolving functionality now is
+  able to cache results locally and will do so by default. [#9162]
+
 - Allow in-place modification of array-valued ``Representation`` and ``Differential``
   objects, including of representations with attached differentials. [#10210]
 
