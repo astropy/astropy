@@ -87,7 +87,7 @@ written, which will avoid using excessive memory:
     >>> array = da.random.random((1000, 1000))
     >>> from astropy.io import fits
     >>> hdu = fits.PrimaryHDU(data=array)
-    >>> hdu.writeto('test_dask.fits')
+    >>> hdu.writeto('test_dask.fits', overwrite=True)
 
 Added True Equator Mean Equinox (TEME) frame for satellite two-line ephemeris data
 ==================================================================================
