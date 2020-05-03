@@ -32,6 +32,9 @@ __minimum_scipy_version__ = '0.18'
 # ASDF is an optional dependency, but this is the minimum version that is
 # compatible with Astropy when it is installed.
 __minimum_asdf_version__ = '2.5.2'
+# PyYAML is an optional dependency, but this is the minimum version that is
+# advertised to be supported.
+__minimum_yaml_version__ = '3.12'
 
 
 class UnsupportedPythonError(Exception):

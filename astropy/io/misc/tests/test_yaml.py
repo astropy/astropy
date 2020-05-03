@@ -17,13 +17,9 @@ from astropy.time import Time
 from astropy.table import QTable, SerializedColumn
 from astropy.tests.helper import catch_warnings
 
-try:
-    from astropy.io.misc.yaml import load, load_all, dump
-    HAS_YAML = True
-except ImportError:
-    HAS_YAML = False
+yaml = pytest.importorskip('yaml', minversion='3.12')
 
-pytestmark = pytest.mark.skipif('not HAS_YAML')
+from astropy.io.misc.yaml import load, load_all, dump
 
 
 @pytest.mark.parametrize('c', [True, np.uint8(8), np.int16(4),
@@ -181,7 +177,6 @@ def test_load_all():
     assert unity == unit
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_ecsv_astropy_objects_in_meta():
     """
     Test that astropy core objects in ``meta`` are serialized.
