@@ -143,6 +143,9 @@ astropy.table
 - Added new ``Table`` method ``.round()``, which rounds numeric columns to the
   specified number of decimals. [#9862]
 
+- Updated ``to_pandas()`` and ``from_pandas()`` to use and support Pandas
+  nullable integer data type for masked integer data. [#9541]
+
 - The HDF5 writer, ``write_table_hdf5()``, now allows passing through
   additional keyword arguments to the ``h5py.Group.create_dataset()``. [#9602]
 
