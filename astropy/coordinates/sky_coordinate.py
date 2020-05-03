@@ -1902,7 +1902,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     # Name resolve
     @classmethod
-    def from_name(cls, name, frame='icrs', parse=False, cache=False):
+    def from_name(cls, name, frame='icrs', parse=False, cache=True):
         """
         Given a name, query the CDS name resolver to attempt to retrieve
         coordinate information for that object. The search database, sesame
