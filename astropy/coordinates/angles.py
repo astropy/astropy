@@ -75,7 +75,7 @@ class Angle(u.SpecificTypeQuantity):
       >>> Angle(10.2345 * u.deg)
       <Angle 10.2345 deg>
       >>> Angle(Angle(10.2345 * u.deg))
-      Angle(Angle(10.2345 * u.deg))
+      <Angle 10.2345 deg>
 
     Parameters
     ----------
