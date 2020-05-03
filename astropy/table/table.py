@@ -3293,7 +3293,7 @@ class Table:
         """
         return groups.table_group_by(self, keys)
 
-    def to_pandas(self, index=None):
+    def to_pandas(self, index=None, use_nullable_int=True):
         """
         Return a :class:`pandas.DataFrame` instance
 
@@ -3304,7 +3304,7 @@ class Table:
         then no DataFrame index will be specified.  If ``index`` is the name of
         a column in the table then that will be the DataFrame index.
 
-        In additional to vanilla columns or masked columns, this supports Table
+        In addition to vanilla columns or masked columns, this supports Table
         mixin columns like Quantity, Time, or SkyCoord.  In many cases these
         objects have no analog in pandas and will be converted to a "encoded"
         representation using only Column or MaskedColumn.  The exception is
@@ -3312,12 +3312,20 @@ class Table:
         representation in pandas using ``np.datetime64`` or ``np.timedelta64``.
         See the example below.
 
+        Parameters
+        ----------
+        index : None, bool, str
+            Specify DataFrame index mode
+        use_nullable_int : bool, default=True
+            Convert integer MaskedColumn to pandas nullable integer type.
+            If ``use_nullable_int=False`` or the pandas version does not support
+            nullable integer types (version < 0.24), then the column is converted
+            to float with NaN for missing elements and a warning is issued.
+
         Returns
         -------
         dataframe : :class:`pandas.DataFrame`
             A pandas :class:`pandas.DataFrame` instance
-        index : None, bool, str
-            Specify DataFrame index mode
 
         Raises
         ------
@@ -3353,7 +3361,7 @@ class Table:
           2002-01-01  2.0    6.0     8.0 00:03:20
 
         """
-        from pandas import DataFrame
+        from pandas import DataFrame, Series
 
         if index is not False:
             if index in (None, True):
@@ -3417,18 +3425,26 @@ class Table:
         for name, column in tbl.columns.items():
             if isinstance(column, MaskedColumn) and np.any(column.mask):
                 if column.dtype.kind in ['i', 'u']:
-                    out[name] = column.astype(float).filled(np.nan)
-                    warnings.warn(
-                        "converted column '{}' from integer to float".format(
-                            name), TableReplaceWarning, stacklevel=3)
+                    pd_dtype = str(column.dtype)
+                    if use_nullable_int:
+                        # Convert int64 to Int64, uint32 to UInt32, etc for nullable types
+                        pd_dtype = pd_dtype.replace('i', 'I').replace('u', 'U')
+                    out[name] = Series(column, dtype=pd_dtype)
+
+                    # If pandas is older than 0.24 the type may have turned to float
+                    if column.dtype.kind != out[name].dtype.kind:
+                        warnings.warn(
+                            f"converted column '{name}' from {column.dtype} to {out[name].dtype}",
+                            TableReplaceWarning, stacklevel=3)
                 elif column.dtype.kind in ['f', 'c']:
-                    out[name] = column.filled(np.nan)
+                    out[name] = column
                 else:
                     out[name] = column.astype(object).filled(np.nan)
             else:
                 out[name] = column
 
-            if out[name].dtype.byteorder not in ('=', '|'):
+            if (hasattr(out[name].dtype, 'byteorder')
+                    and out[name].dtype.byteorder not in ('=', '|')):
                 out[name] = out[name].byteswap().newbyteorder()
 
         kwargs = {'index': out.pop(index)} if index else {}
@@ -3525,6 +3541,14 @@ class Table:
             units = [units.get(name) for name in names]
 
         for name, column, data, mask, unit in zip(names, columns, datas, masks, units):
+
+            if column.dtype.kind in ['u', 'i'] and np.any(mask):
+                # Special-case support for pandas nullable int
+                np_dtype = str(column.dtype).lower()
+                data = np.zeros(shape=column.shape, dtype=np_dtype)
+                data[~mask] = column[~mask]
+                out[name] = MaskedColumn(data=data, name=name, mask=mask, unit=unit, copy=False)
+                continue
 
             if data.dtype.kind == 'O':
                 # If all elements of an object array are string-like or np.nan

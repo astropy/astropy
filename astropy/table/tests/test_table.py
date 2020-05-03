@@ -1845,6 +1845,20 @@ class TestPandas:
             else:
                 assert t[column].byteswap().newbyteorder().dtype == t2[column].dtype
 
+    @pytest.mark.parametrize('unsigned', ['u', ''])
+    @pytest.mark.parametrize('bits', [8, 16, 32, 64])
+    def test_nullable_int(self, unsigned, bits):
+        np_dtype = f'{unsigned}int{bits}'
+        c = MaskedColumn([1, 2], mask=[False, True], dtype=np_dtype)
+        t = Table([c])
+        df = t.to_pandas()
+        pd_dtype = np_dtype.replace('i', 'I').replace('u', 'U')
+        assert str(df['col0'].dtype) == pd_dtype
+        t2 = Table.from_pandas(df)
+        assert str(t2['col0'].dtype) == np_dtype
+        assert np.all(t2['col0'].mask == [False, True])
+        assert np.all(t2['col0'] == c)
+
     def test_2d(self):
 
         t = table.Table()
@@ -1952,7 +1966,8 @@ class TestPandas:
         assert t2.colnames == ['tm', 'x']
         assert np.allclose(t2['tm'].jyear, tm.jyear)
 
-    def test_masking(self):
+    @pytest.mark.parametrize('use_nullable_int', [True, False])
+    def test_masking(self, use_nullable_int):
 
         t = table.Table(masked=True)
 
@@ -1973,9 +1988,13 @@ class TestPandas:
                        2584288728310999296]
         t['Source'].mask = [False, False, False]
 
-        with pytest.warns(TableReplaceWarning,
-                          match="converted column 'a' from integer to float"):
-            d = t.to_pandas()
+        if use_nullable_int:  # Default
+            # No warning with the default use_nullable_int=True
+            d = t.to_pandas(use_nullable_int=use_nullable_int)
+        else:
+            with pytest.warns(TableReplaceWarning,
+                              match=r"converted column 'a' from int(32|64) to float64"):
+                d = t.to_pandas(use_nullable_int=use_nullable_int)
 
         t2 = table.Table.from_pandas(d)
 
@@ -1983,12 +2002,13 @@ class TestPandas:
             assert np.all(column.data == t2[name].data)
             if hasattr(t2[name], 'mask'):
                 assert np.all(column.mask == t2[name].mask)
-            # Masked integer type comes back as float.  Nothing we can do about this.
+
             if column.dtype.kind == 'i':
-                if np.any(column.mask):
+                if np.any(column.mask) and not use_nullable_int:
                     assert t2[name].dtype.kind == 'f'
                 else:
                     assert t2[name].dtype.kind == 'i'
+
                 assert_array_equal(column.data,
                                    t2[name].data.astype(column.dtype))
             else:
