@@ -60,7 +60,7 @@ def find_coordinate_range(transform, extent, coord_types, coord_units, coord_wra
 
     new_coord_wrap = []
     for coord_wrap in coord_wraps:
-        if type(coord_wrap) is Quantity:
+        if isinstance(coord_wrap, Quantity):
             new_coord_wrap.append(coord_wrap.to_value(u.deg))
         else:
             new_coord_wrap.append(coord_wrap)

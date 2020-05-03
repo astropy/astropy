@@ -190,7 +190,7 @@ class CoordinateHelper:
         """
 
         self.coord_type = coord_type
-        if type(coord_wrap) is Quantity:
+        if isinstance(coord_wrap, Quantity):
             coord_wrap = coord_wrap.to_value(u.deg)
 
         if coord_type == 'longitude' and coord_wrap is None:
