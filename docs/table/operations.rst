@@ -1075,6 +1075,8 @@ The rules for merging are the same as for `Merging metadata`_, and the
 
 .. EXAMPLE END
 
+.. _astropy-table-join-functions:
+
 Joining Coordinates and Custom Join Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
