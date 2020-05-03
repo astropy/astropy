@@ -981,6 +981,8 @@ to introduce specialized behavior. Here we address two particular use cases
 for subclassing: adding custom table attributes and changing the behavior of
 internal class objects.
 
+.. _table-custom-attributes:
+
 Adding Custom Table Attributes
 ------------------------------
 
