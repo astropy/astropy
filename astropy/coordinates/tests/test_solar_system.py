@@ -431,4 +431,4 @@ def test_regression_10271():
     icrs_sun_from_geocentre = _get_apparent_body_position('sun', t, 'builtin', geocentre)
 
     difference = (icrs_sun_from_alma - icrs_sun_from_geocentre).norm()
-    assert_quantity_allclose(difference, 0.13046941*u.m)
+    assert_quantity_allclose(difference, 0.13046941*u.m, atol=1*u.mm)
