@@ -22,6 +22,27 @@ def default_order(components):
     return order
 
 
+def _toindex(value):
+    """
+    Convert value to an int or an int array.
+    Input coordinates converted to integers
+    corresponding to the center of the pixel.
+    The convention is that the center of the pixel is
+    (0, 0), while the lower left corner is (-0.5, -0.5).
+    The outputs are used to index the mask.
+    Examples
+    --------
+    >>> _toindex(np.array([-0.5, 0.49999]))
+    array([0, 0])
+    >>> _toindex(np.array([0.5, 1.49999]))
+    array([1, 1])
+    >>> _toindex(np.array([1.5, 2.49999]))
+    array([2, 2])
+    """
+    indx = np.asarray(np.floor(np.asarray(value) + 0.5), dtype=np.int)
+    return indx
+
+
 class BaseHighLevelWCS(metaclass=abc.ABCMeta):
     """
     Abstract base class for the high-level WCS interface.
@@ -91,9 +112,9 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         as rounded integers.
         """
         if self.pixel_n_dim == 1:
-            return np.round(self.world_to_pixel(*world_objects)).astype(int)
+            return _toindex(self.world_to_pixel(*world_objects))
         else:
-            return tuple(np.round(self.world_to_pixel(*world_objects)[::-1]).astype(int).tolist())
+            return tuple(_toindex(self.world_to_pixel(*world_objects)[::-1]).tolist())
 
 
 class HighLevelWCSMixin(BaseHighLevelWCS):
