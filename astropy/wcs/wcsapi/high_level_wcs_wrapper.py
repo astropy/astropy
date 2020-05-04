@@ -1,6 +1,6 @@
 from .high_level_api import HighLevelWCSMixin
-
-from . import BaseLowLevelWCS
+from .low_level_api import BaseLowLevelWCS
+from .utils import wcs_info_str
 
 __all__ = ['HighLevelWCSWrapper']
 
@@ -75,3 +75,9 @@ class HighLevelWCSWrapper(HighLevelWCSMixin):
         See `~astropy.wcs.wcsapi.BaseLowLevelWCS._as_mpl_axes`
         """
         return self.low_level_wcs._as_mpl_axes()
+
+    def __str__(self):
+        return wcs_info_str(self.low_level_wcs)
+
+    def __repr__(self):
+        return f"{object.__repr__(self)}\n{str(self)}"
