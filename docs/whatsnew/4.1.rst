@@ -19,23 +19,31 @@ In particular, this release includes:
 
 2. Support for units on otherwise unitless models via the ``Model.coerce_units`` method.
 
-3. Added the True Equator Mean Equinox frame.
-
-4. Support for in-place setting of array-valued ``SkyCoord`` and coordinate
+3. Support for in-place setting of array-valued ``SkyCoord`` and coordinate
    frame objects using standard numpy syntax like ``sc1[10:15] == sc2``.
 
-5. Change in the definition of equality comparison for coordinate classes.
+4. Change in the definition of equality comparison for coordinate classes.
 
-6. Support use of ``SkyCoord`` in table ``vstack``, ``dstack``, and
+5. Support use of ``SkyCoord`` in table ``vstack``, ``dstack``, and
    ``insert_row``.
 
-7. Support for table "fuzzy" cross-match join with ``SkyCoord``, ``Quantity``
+6. Support for table "fuzzy" cross-match join with ``SkyCoord``, ``Quantity``
    or N-d columns.
 
-8. Support for custom attributes in ``Table`` subclasses.
+7. Support for custom attributes in ``Table`` subclasses.
 
-9. Added a new ``Time`` subformat ``unix_tai`` which is analogous to standard
+8. Added a new ``Time`` subformat ``unix_tai`` which is analogous to standard
    ``unix`` time but includes leap-seconds.
+
+9. All models are now serializable to ASDF.
+   Model constraints of type ``fixed``and ``bounds`` are serialized as well.
+
+10. It is now possible to create a new ``CompoundModel`` by modifying an existing one with the ``replace_submodel`` method.
+
+11. Support for units on otherwise unitless models via the ``Model.coerce_units`` method.
+
+12. Added a ``Plummer`` model.
+
 
 New ``SpectralCoord`` class for representing and transforming spectral quantities
 =================================================================================
