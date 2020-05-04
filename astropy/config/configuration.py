@@ -108,7 +108,7 @@ class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
 
     def values(self):
         """Iterate over configuration item values."""
-        for key, val in self.__class__.__dict__.items():
+        for val in self.__class__.__dict__.values():
             if isinstance(val, ConfigItem):
                 yield val
 
