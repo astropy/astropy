@@ -10,6 +10,11 @@ class BaseWCSWrapper(BaseLowLevelWCS, metaclass=abc.ABCMeta):
     This wrapper implements a transparent wrapper to many of the properties,
     with the idea that not all of them would need to be overridden in your
     wrapper, but some probably will.
+
+    Parameters
+    ----------
+    wcs : `astropy.wcs.wcsapi.BaseLowLevelWCS`
+        The WCS object to wrap
     """
     def __init__(self, wcs, *args, **kwargs):
         self._wcs = wcs

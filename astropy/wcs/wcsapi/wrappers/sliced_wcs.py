@@ -10,7 +10,9 @@ __all__ = ['sanitize_slices', 'SlicedLowLevelWCS']
 
 def sanitize_slices(slices, ndim):
     """
-    Given a set of input
+    Given a slice as input sanitise it to an easier to parse format.format
+
+    This function returns a list ``ndim`` long containing slice objects (or ints).
     """
 
     if not isinstance(slices, (tuple, list)):  # We just have a single int
@@ -97,7 +99,22 @@ def combine_slices(slice1, slice2):
 
 
 class SlicedLowLevelWCS(BaseWCSWrapper):
+    """
+    A Low Level WCS wrapper which applies an array slice to a WCS.
 
+    This class does not modify the underlying WCS object and can therefore drop
+    coupled dimensions as it stores which pixel and world dimensions have been
+    sliced out (or modified) in the underlying WCS and returns the modified
+    results on all the Low Level WCS methods.
+
+    Parameters
+    ----------
+    wcs : `~astropy.wcs.wcsapi.BaseLowLevelWCS`
+        The WCS to slice.
+    slices : `slice` or `tuple` or `int`
+        A valid array slice to apply to the WCS.
+
+    """
     def __init__(self, wcs, slices):
 
         slices = sanitize_slices(slices, wcs.pixel_n_dim)
