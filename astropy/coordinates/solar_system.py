@@ -374,7 +374,7 @@ def get_body_barycentric(body, time, ephemeris=None):
 get_body_barycentric.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 
 
-def _get_apparent_body_position(body, time, ephemeris):
+def _get_apparent_body_position(body, time, ephemeris, obsgeoloc=None):
     """Calculate the apparent position of body ``body`` relative to Earth.
 
     This corrects for the light-travel time to the object.
@@ -390,7 +390,8 @@ def _get_apparent_body_position(body, time, ephemeris):
     ephemeris : str, optional
         Ephemeris to use.  By default, use the one set with
         ``~astropy.coordinates.solar_system_ephemeris.set``
-
+    obsgeoloc : `~astropy.coordinates.CartesianRepresentation`, optional
+        The GCRS position of the observer
     Returns
     -------
     cartesian_position : `~astropy.coordinates.CartesianRepresentation`
@@ -409,6 +410,8 @@ def _get_apparent_body_position(body, time, ephemeris):
     emitted_time = time
     light_travel_time = 0. * u.s
     earth_loc = get_body_barycentric('earth', time, ephemeris)
+    if obsgeoloc is not None:
+        earth_loc += obsgeoloc
     while np.any(np.fabs(delta_light_travel_time) > 1.0e-8*u.s):
         body_loc = get_body_barycentric(body, emitted_time, ephemeris)
         earth_distance = (body_loc - earth_loc).norm()
@@ -456,15 +459,17 @@ def get_body(body, time, location=None, ephemeris=None):
     if location is None:
         location = time.location
 
-    cartrep = _get_apparent_body_position(body, time, ephemeris)
-    icrs = ICRS(cartrep)
     if location is not None:
         obsgeoloc, obsgeovel = location.get_gcrs_posvel(time)
-        gcrs = icrs.transform_to(GCRS(obstime=time,
-                                      obsgeoloc=obsgeoloc,
-                                      obsgeovel=obsgeovel))
     else:
-        gcrs = icrs.transform_to(GCRS(obstime=time))
+        obsgeoloc, obsgeovel = None, None
+
+    cartrep = _get_apparent_body_position(body, time, ephemeris, obsgeoloc)
+    icrs = ICRS(cartrep)
+    gcrs = icrs.transform_to(GCRS(obstime=time,
+                                  obsgeoloc=obsgeoloc,
+                                  obsgeovel=obsgeovel))
+
     return SkyCoord(gcrs)
 
 

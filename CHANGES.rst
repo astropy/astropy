@@ -447,6 +447,10 @@ astropy.coordinates
   ``*TrueEcliptic`` coordinate frames. The error would primarily result in an
   inaccuracy in the ecliptic latitude on the order of arcseconds. [#10129]
 
+- Fixed an error in the computation of the location of solar system bodies where the
+  Earth location of the observer was ignored during the correction for light travel
+  time. [#10292]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
