@@ -270,8 +270,7 @@ any WCS object that conforms to the :class:`~astropy.wcs.wcsapi.BaseLowLevelWCS`
 API. To demonstrate this, let's start off by reading in a spectral cube file::
 
     >>> filename = get_pkg_data_filename('l1448/l1448_13co.fits')  # doctest: +REMOTE_DATA
-    >>> hdu = fits.open(filename)[0]  # doctest: +REMOTE_DATA
-    >>> wcs = WCS(hdu.header)  # doctest: +REMOTE_DATA
+    >>> wcs = WCS(fits.getheader(filename, ext=0))  # doctest: +REMOTE_DATA
 
 The ``wcs`` object is an instance of :class:`~astropy.wcs.WCS` which conforms to the
 :class:`~astropy.wcs.wcsapi.BaseLowLevelWCS` API. We can then use the
@@ -293,6 +292,7 @@ If you are implementing your own WCS class, you could choose to implement
 more succinctly as::
 
     >>> wcs[10, 30:100, 30:100]  # doctest: +REMOTE_DATA +ELLIPSIS
+    <...>
     SlicedFITSWCS Transformation
     <BLANKLINE>
     This transformation has 2 pixel and 2 world dimensions
@@ -322,6 +322,7 @@ image plane of a spectral slice, the final WCS will have one pixel dimension
 and two world dimensions (since both RA/Dec vary over the extracted 1D slice)::
 
     >>> wcs[10, 40, :]  # doctest: +REMOTE_DATA +ELLIPSIS
+    <...>
     SlicedFITSWCS Transformation
     <BLANKLINE>
     This transformation has 1 pixel and 2 world dimensions
