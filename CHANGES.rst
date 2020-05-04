@@ -621,6 +621,9 @@ astropy.visualization
 - Fixed a bug where the ``ImageNormalize`` ``clip`` keyword was
   ignored when used with calling the object on data. [#10098]
 
+- Sped up ``import astropy.visualization.wcsaxes`` by skipping a pytest import
+  if we are not running the unit tests. [#10302]
+
 astropy.wcs
 ^^^^^^^^^^^
 

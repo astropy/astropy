@@ -3,12 +3,11 @@
 # The following few lines skip this module when running tests if matplotlib is
 # not available (and will have no impact otherwise)
 
-try:
+from ... import tests
+
+if tests.RUNNING:
     import pytest
     pytest.importorskip("matplotlib")
-    del pytest
-except ImportError:
-    pass
 
 from .core import *
 from .coordinate_helpers import CoordinateHelper
