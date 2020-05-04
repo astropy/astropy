@@ -1039,11 +1039,11 @@ def _deduplicate_names(names):
     existing_names = set()
 
     for name in names:
-        orig_name = name
+        base_name = name + '_'
         i = 1
         while name in existing_names:
             # Iterate until a unique name is found
-            name = orig_name + '_' + str(i)
+            name = base_name + str(i)
             i += 1
         new_names.append(name)
         existing_names.add(name)
@@ -1154,12 +1154,12 @@ def _apply_include_exclude_names(table, names, include_names, exclude_names):
         for ii, name in enumerate(names):
             table.rename_column(xxxs + str(ii), name)
 
-    colnames_uniq = _deduplicate_names(table.colnames)
-    if colnames_uniq != table.colnames:
-        rename_columns(table, colnames_uniq)
-
     if names is not None:
         rename_columns(table, names)
+    else:
+        colnames_uniq = _deduplicate_names(table.colnames)
+        if colnames_uniq != list(table.colnames):
+            rename_columns(table, colnames_uniq)
 
     names_set = set(table.colnames)
 
