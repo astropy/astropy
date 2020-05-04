@@ -1267,18 +1267,21 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         staticmethod mainly as a convenient location, althought conceivable it
         might be desirable for subclasses to override this behavior.
 
-        Primary purpose is to check for equality of representations, since by
-        default representation equality is only "is it the same object", which
-        is too strict for frame comparisons.
+        Primary purpose is to check for equality of representations.  This
+        aspect can actually be simplified/removed now that representations have
+        equality defined.
 
-        Note: this method may be removed when/if representations have an
-        appropriate equality defined.
+        Secondary purpose is to check for equality of coordinate attributes,
+        which first checks whether they themselves are in equivalent frames
+        before checking for equality in the normal fashion.  This is because
+        checking for equality with non-equivalent frames raises an error.
         """
+        if left_fattr is right_fattr:
+            # shortcut if it's exactly the same object
+            return True
+
         if isinstance(left_fattr, r.BaseRepresentationOrDifferential):
-            if left_fattr is right_fattr:
-                # shortcut if it's exactly the same object
-                return True
-            elif isinstance(right_fattr, r.BaseRepresentationOrDifferential):
+            if isinstance(right_fattr, r.BaseRepresentationOrDifferential):
                 # both are representations.
                 if (getattr(left_fattr, 'differentials', False) or
                         getattr(right_fattr, 'differentials', False)):
@@ -1300,8 +1303,18 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                                   right_fattr.to_cartesian().xyz)
             else:
                 return False
-        else:
-            return np.all(left_fattr == right_fattr)
+
+        if isinstance(left_fattr, BaseCoordinateFrame):
+            if isinstance(right_fattr, BaseCoordinateFrame):
+                # both are coordinates
+                if left_fattr.is_equivalent_frame(right_fattr):
+                    return np.all(left_fattr == right_fattr)
+                else:
+                    return False
+            else:
+                return False
+
+        return np.all(left_fattr == right_fattr)
 
     def is_equivalent_frame(self, other):
         """
