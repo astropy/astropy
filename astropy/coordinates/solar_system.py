@@ -374,7 +374,7 @@ def get_body_barycentric(body, time, ephemeris=None):
 get_body_barycentric.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 
 
-def _get_apparent_body_position(body, time, ephemeris, observer_loc):
+def _get_apparent_body_position(body, time, ephemeris, obsgeoloc=None):
     """Calculate the apparent position of body ``body`` relative to Earth.
 
     This corrects for the light-travel time to the object.
@@ -390,7 +390,7 @@ def _get_apparent_body_position(body, time, ephemeris, observer_loc):
     ephemeris : str, optional
         Ephemeris to use.  By default, use the one set with
         ``~astropy.coordinates.solar_system_ephemeris.set``
-    observer_loc : `~astropy.coordinates.CartesianRepresentation`, optional
+    obsgeoloc : `~astropy.coordinates.CartesianRepresentation`, optional
         The GCRS position of the observer
     Returns
     -------
@@ -410,8 +410,8 @@ def _get_apparent_body_position(body, time, ephemeris, observer_loc):
     emitted_time = time
     light_travel_time = 0. * u.s
     earth_loc = get_body_barycentric('earth', time, ephemeris)
-    if observer_loc is not None:
-        earth_loc += observer_loc
+    if obsgeoloc is not None:
+        earth_loc += obsgeoloc
     while np.any(np.fabs(delta_light_travel_time) > 1.0e-8*u.s):
         body_loc = get_body_barycentric(body, emitted_time, ephemeris)
         earth_distance = (body_loc - earth_loc).norm()
