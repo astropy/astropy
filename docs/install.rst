@@ -66,7 +66,7 @@ Requirements
 - `mpmath <http://mpmath.org/>`_: Used for the 'kraft-burrows-nousek'
   interval in `~astropy.stats.poisson_conf_interval`.
 
-- `asdf <https://github.com/spacetelescope/asdf>`_ 2.3 or later: Enables the
+- `asdf <https://github.com/spacetelescope/asdf>`_ |minimum_asdf_version| or later: Enables the
   serialization of various Astropy classes into a portable, hierarchical,
   human-readable representation.
 
