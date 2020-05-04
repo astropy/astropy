@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import contextlib
 import pathlib
 import re
@@ -13,7 +12,6 @@ from operator import itemgetter
 
 import numpy as np
 
-
 __all__ = ['register_reader', 'register_writer', 'register_identifier',
            'identify_format', 'get_reader', 'get_writer', 'read', 'write',
            'get_formats', 'IORegistryError', 'delay_doc_updates',
@@ -21,7 +19,6 @@ __all__ = ['register_reader', 'register_writer', 'register_identifier',
 
 
 __doctest_skip__ = ['register_identifier']
-
 
 _readers = OrderedDict()
 _writers = OrderedDict()
@@ -483,7 +480,7 @@ def get_writer(data_format, data_class):
                 data_format, data_class.__name__, format_table_str))
 
 
-def read(cls, *args, format=None, **kwargs):
+def read(cls, *args, format=None, cache=False, **kwargs):
     """
     Read in data.
 
@@ -504,7 +501,7 @@ def read(cls, *args, format=None, **kwargs):
                         args = (str(args[0]),) + args[1:]
                     path = args[0]
                     try:
-                        ctx = get_readable_fileobj(args[0], encoding='binary')
+                        ctx = get_readable_fileobj(args[0], encoding='binary', cache=cache)
                         fileobj = ctx.__enter__()
                     except OSError:
                         raise
