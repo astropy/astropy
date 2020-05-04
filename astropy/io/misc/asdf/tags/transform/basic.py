@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from asdf import tagged
+from asdf.versioning import AsdfVersion
 
 from astropy.modeling import models, mappings
 from astropy.utils import minversion
@@ -136,27 +137,38 @@ class IdentityType(TransformType):
 class ConstantType(TransformType):
     name = "transform/constant"
     version = '1.4.0'
+    supported_versions = ['1.0.0', '1.1.0', '1.2.0', '1.3.0', '1.4.0']
     types = ['astropy.modeling.functional_models.Const1D',
              'astropy.modeling.functional_models.Const2D']
 
     @classmethod
     def from_tree_transform(cls, node, ctx):
-        if node['dimensions'] == 1:
+        if cls.version < AsdfVersion('1.4.0'):
+            # The 'dimensions' property was added in 1.4.0,
+            # previously all values were 1D.
+            return functional_models.Const1D(node['value'])
+        elif node['dimensions'] == 1:
             return functional_models.Const1D(node['value'])
         elif node['dimensions'] == 2:
             return functional_models.Const2D(node['value'])
 
-
     @classmethod
     def to_tree_transform(cls, data, ctx):
-        if isinstance(data, functional_models.Const1D):
-            dimension = 1
-        elif isinstance(data, functional_models.Const2D):
-            dimension = 2
-        return {
-            'value': _parameter_to_value(data.amplitude),
-            'dimensions': dimension
-        }
+        if cls.version < AsdfVersion('1.4.0'):
+            if not isinstance(data, functional_models.Const1D):
+                raise ValueError(f'constant-{cls.version} does not support models with > 1 dimension')
+            return {
+                'value': _parameter_to_value(data.amplitude)
+            }
+        else:
+            if isinstance(data, functional_models.Const1D):
+                dimension = 1
+            elif isinstance(data, functional_models.Const2D):
+                dimension = 2
+            return {
+                'value': _parameter_to_value(data.amplitude),
+                'dimensions': dimension
+            }
 
 
 class GenericModel(mappings.Mapping):
