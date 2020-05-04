@@ -23,6 +23,7 @@ from astropy.coordinates import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS,
                 CylindricalRepresentation, CylindricalDifferential,
                 CartesianDifferential)
 from astropy.coordinates.sites import get_builtin_sites
+from astropy.utils.exceptions import ErfaWarning
 from astropy.time import Time
 from astropy.utils import iers
 from astropy.table import Table
@@ -640,3 +641,19 @@ def test_regression_8924():
     with pytest.raises(ValueError):
         rep._re_represent_differentials(CylindricalRepresentation,
                                         {'s2': CylindricalDifferential})
+
+
+def test_regression_10092():
+    """
+    Check that we still get a proper motion even for SkyCoords without distance
+    """
+    c = SkyCoord(l=10*u.degree, b=45*u.degree,
+                 pm_l_cosb=34*u.mas/u.yr, pm_b=-117*u.mas/u.yr,
+                 frame='galactic',
+                 obstime=Time('1988-12-18 05:11:23.5'))
+
+    with catch_warnings(ErfaWarning):
+        # expect ErfaWarning here
+        newc = c.apply_space_motion(dt=10*u.year)
+    assert_quantity_allclose(newc.pm_l_cosb, 33.99980714*u.mas/u.yr,
+                             atol=1.0e-5*u.mas/u.yr)
