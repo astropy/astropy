@@ -10,9 +10,11 @@ from astropy.constants import c
 from astropy.coordinates.builtin_frames import GCRS
 from astropy.coordinates.earth import EarthLocation
 from astropy.coordinates.sky_coordinate import SkyCoord
+from astropy.coordinates.representation import CartesianRepresentation
 from astropy.coordinates.solar_system import (get_body, get_moon, BODY_NAME_TO_KERNEL_SPEC,
-                            _apparent_position_in_true_coordinates,
-                            get_body_barycentric, get_body_barycentric_posvel)
+                                              _apparent_position_in_true_coordinates,
+                                              _get_apparent_body_position,
+                                              get_body_barycentric, get_body_barycentric_posvel)
 from astropy.coordinates.funcs import get_sun
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import allclose as quantity_allclose
@@ -417,3 +419,16 @@ def test_file_ephemeris_wrong_input():
     # Try loading a file that does exist, but is not an ephemeris file:
     with pytest.raises(ValueError):
         get_body('earth', time, ephemeris=__file__)
+
+
+def test_regression_10271():
+    t = Time(58973.534052125986, format='mjd')
+    # GCRS position of ALMA at this time
+    obs_p = CartesianRepresentation(5724535.74068625, -1311071.58985697, -2492738.93017009, u.m)
+
+    geocentre = CartesianRepresentation(0, 0, 0, u.m)
+    icrs_sun_from_alma = _get_apparent_body_position('sun', t, 'builtin', obs_p)
+    icrs_sun_from_geocentre = _get_apparent_body_position('sun', t, 'builtin', geocentre)
+
+    difference = (icrs_sun_from_alma - icrs_sun_from_geocentre).norm()
+    assert_quantity_allclose(difference, 0.13046941*u.m, atol=1*u.mm)
