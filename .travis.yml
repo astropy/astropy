@@ -188,7 +188,7 @@ matrix:
           stage: Cron tests
           env: SETUP_METHOD='apt'
 
-        # Regularly make sure that astropy can be used
+        # Regularly make sure that astropy can be used in application bundles
         - language: python
           python: 3.8
           dist: bionic
