@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import io
 import os
 import sys
@@ -11,9 +10,9 @@ import pytest
 
 from astropy.tests.helper import catch_warnings
 
-from astropy.utils.data import get_pkg_data_filename
 from astropy.config import configuration
 from astropy.config import paths
+from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
@@ -103,7 +102,7 @@ def test_config_file():
     parts = os.path.normpath(testcfg.filename).split(os.sep)
     assert '.astropy' in parts or 'astropy' in parts
     assert parts[-1] == 'testpkg.cfg'
-    configuration._cfgobjs['testpkg'] = None # HACK
+    configuration._cfgobjs['testpkg'] = None  # HACK
 
     # try with a different package name, no specified root name (should
     #   default to astropy):
@@ -111,21 +110,21 @@ def test_config_file():
     parts = os.path.normpath(testcfg.filename).split(os.sep)
     assert '.astropy' in parts or 'astropy' in parts
     assert parts[-1] == 'testpkg.cfg'
-    configuration._cfgobjs['testpkg'] = None # HACK
+    configuration._cfgobjs['testpkg'] = None  # HACK
 
     # try with a different package name, specified root name:
     testcfg = get_config('testpkg', rootname='testpkg')
     parts = os.path.normpath(testcfg.filename).split(os.sep)
-    assert '.testpkg' in parts or 'testpkg' in  parts
+    assert '.testpkg' in parts or 'testpkg' in parts
     assert parts[-1] == 'testpkg.cfg'
-    configuration._cfgobjs['testpkg'] = None # HACK
+    configuration._cfgobjs['testpkg'] = None  # HACK
 
     # try with a subpackage with specified root name:
     testcfg_sec = get_config('testpkg.somemodule', rootname='testpkg')
     parts = os.path.normpath(testcfg_sec.parent.filename).split(os.sep)
-    assert '.testpkg' in parts or 'testpkg' in  parts
+    assert '.testpkg' in parts or 'testpkg' in parts
     assert parts[-1] == 'testpkg.cfg'
-    configuration._cfgobjs['testpkg'] = None # HACK
+    configuration._cfgobjs['testpkg'] = None  # HACK
 
     reload_config('astropy')
 
@@ -180,18 +179,31 @@ def test_configitem():
     ci.set(34)
     assert ci() == 34
 
+    # Test iterator for one-item namespace
+    result = [x for x in conf]
+    assert result == ['tstnm']
+    result = [x for x in conf.keys()]
+    assert result == ['tstnm']
+    result = [x for x in conf.values()]
+    assert result == [ci]
+    result = [x for x in conf.items()]
+    assert result == [('tstnm', ci)]
+
 
 def test_configitem_types():
 
     from astropy.config.configuration import ConfigNamespace, ConfigItem
 
-    cio = ConfigItem(['op1', 'op2', 'op3'])
+    ci1 = ConfigItem(34)
+    ci2 = ConfigItem(34.3)
+    ci3 = ConfigItem(True)
+    ci4 = ConfigItem('astring')
 
     class Conf(ConfigNamespace):
-        tstnm1 = ConfigItem(34)
-        tstnm2 = ConfigItem(34.3)
-        tstnm3 = ConfigItem(True)
-        tstnm4 = ConfigItem('astring')
+        tstnm1 = ci1
+        tstnm2 = ci2
+        tstnm3 = ci3
+        tstnm4 = ci4
 
     conf = Conf()
 
@@ -208,6 +220,16 @@ def test_configitem_types():
     with pytest.raises(TypeError):
         conf.tstnm4 = 546.245
 
+    # Test iterator for multi-item namespace. Assume ordered by insertion order.
+    item_names = [x for x in conf]
+    assert item_names == ['tstnm1', 'tstnm2', 'tstnm3', 'tstnm4']
+    result = [x for x in conf.keys()]
+    assert result == item_names
+    result = [x for x in conf.values()]
+    assert result == [ci1, ci2, ci3, ci4]
+    result = [x for x in conf.items()]
+    assert result == [('tstnm1', ci1), ('tstnm2', ci2), ('tstnm3', ci3), ('tstnm4', ci4)]
+
 
 def test_configitem_options(tmpdir):
 
@@ -218,7 +240,7 @@ def test_configitem_options(tmpdir):
     class Conf(ConfigNamespace):
         tstnmo = cio
 
-    conf = Conf()
+    conf = Conf()  # noqa
 
     sec = get_config(cio.module)
 
@@ -360,7 +382,7 @@ def test_configitem_unicode(tmpdir):
     class Conf(ConfigNamespace):
         tstunicode = cio
 
-    conf = Conf()
+    conf = Conf()  # noqa
 
     sec = get_config(cio.module)
 
