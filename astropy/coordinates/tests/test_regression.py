@@ -652,7 +652,7 @@ def test_regression_10092():
                  frame='galactic',
                  obstime=Time('1988-12-18 05:11:23.5'))
 
-    with catch_warnings(ErfaWarning):
+    with pytest.warns(ErfaWarning, match='ERFA function "pmsafe" yielded .*'):
         # expect ErfaWarning here
         newc = c.apply_space_motion(dt=10*u.year)
     assert_quantity_allclose(newc.pm_l_cosb, 33.99980714*u.mas/u.yr,
