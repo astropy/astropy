@@ -1445,3 +1445,15 @@ def test_galactocentric_references(reset_galactocentric_defaults):
                 assert k not in galcen_custom.frame_attribute_references
             else:
                 assert k in galcen_custom.frame_attribute_references
+
+
+def test_size():
+    from astropy.coordinates.builtin_frames import ICRS
+
+    c1 = ICRS()
+    c2 = ICRS(1*u.deg, 2*u.deg)
+    c3 = ICRS([1, 2]*u.deg, [3, 4]*u.deg)
+
+    assert c1.size == 0
+    assert c2.size == 1
+    assert c3.size == 2

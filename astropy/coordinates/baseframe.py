@@ -705,7 +705,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
     @property
     def size(self):
-        return self.data.size
+        """
+        Returns the size of the underlying data if it exists, else returns 0.
+        """
+        return self.data.size if self.has_data else 0
 
     @property
     def isscalar(self):
