@@ -444,5 +444,5 @@ def test_highlevel_api_remote():
 
     m31fk4 = coords.SkyCoord.from_name('M31', frame='fk4')
 
-    assert m31icrs.frame != m31fk4.frame
+    assert not m31icrs.is_equivalent_frame(m31fk4)
     assert np.abs(m31icrs.ra - m31fk4.ra) > .5*u.deg
