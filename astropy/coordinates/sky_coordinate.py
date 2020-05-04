@@ -732,7 +732,7 @@ class SkyCoord(ShapedLikeNDArray):
         if override_plx:
             new_distance = None
         else:
-            new_distance = Distance(parallax=starpm[4] * u.arcsec, copy=False)
+            new_distance = Distance(parallax=starpm[4] << u.arcsec)
 
         icrs2 = ICRS(ra=u.Quantity(starpm[0], u.radian, copy=False),
                      dec=u.Quantity(starpm[1], u.radian, copy=False),
