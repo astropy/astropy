@@ -214,6 +214,15 @@ def test_bounding_box(tmpdir):
 
 
 @pytest.mark.parametrize("standard_version", asdf.versioning.supported_versions)
+def test_const1d(tmpdir, standard_version):
+    helpers.assert_roundtrip_tree(
+        {"model": astmodels.Const1D(amplitude=5.)},
+        tmpdir,
+        init_options={"version": standard_version}
+    )
+
+
+@pytest.mark.parametrize("standard_version", asdf.versioning.supported_versions)
 @pytest.mark.parametrize("model", [
     astmodels.Polynomial1D(1, c0=5, c1=17),
     astmodels.Polynomial1D(1, c0=5, c1=17, domain=[-5, 4], window=[-2, 3]),
