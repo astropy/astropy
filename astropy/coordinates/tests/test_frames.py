@@ -1094,6 +1094,29 @@ def test_equivalent_frames():
     assert not aa1.is_equivalent_frame(aa2)
 
 
+def test_equivalent_frame_coordinateattribute():
+    from astropy.coordinates import BaseCoordinateFrame
+    from astropy.coordinates.attributes import CoordinateAttribute
+    from astropy.coordinates.builtin_frames import HCRS
+
+    class FrameWithCoordinateAttribute(BaseCoordinateFrame):
+        coord_attr = CoordinateAttribute(HCRS)
+
+    # These frames should not be considered equivalent
+    f1 = FrameWithCoordinateAttribute(coord_attr=HCRS(1*u.deg, 2*u.deg, obstime='J2000'))
+    f2 = FrameWithCoordinateAttribute(coord_attr=HCRS(3*u.deg, 4*u.deg, obstime='J2000'))
+    f3 = FrameWithCoordinateAttribute(coord_attr=HCRS(1*u.deg, 2*u.deg, obstime='J2001'))
+
+    assert not f1.is_equivalent_frame(f2)
+    assert not f1.is_equivalent_frame(f3)
+    assert not f2.is_equivalent_frame(f3)
+
+    # They each should still be equivalent to a deep copy of themselves
+    assert f1.is_equivalent_frame(deepcopy(f1))
+    assert f2.is_equivalent_frame(deepcopy(f2))
+    assert f3.is_equivalent_frame(deepcopy(f3))
+
+
 def test_representation_subclass():
 
     # Regression test for #3354
