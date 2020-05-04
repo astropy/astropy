@@ -98,6 +98,25 @@ class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
                 aliases=['astropy.utils.console.USE_COLOR'])
         conf = Conf()
     """
+    def __iter__(self):
+        for key, val in self.__class__.__dict__.items():
+            if isinstance(val, ConfigItem):
+                yield key
+
+    keys = __iter__
+    """Iterate over configuration item names."""
+
+    def values(self):
+        """Iterate over configuration item values."""
+        for val in self.__class__.__dict__.values():
+            if isinstance(val, ConfigItem):
+                yield val
+
+    def items(self):
+        """Iterate over configuration item ``(name, value)`` pairs."""
+        for key, val in self.__class__.__dict__.items():
+            if isinstance(val, ConfigItem):
+                yield key, val
 
     def set_temp(self, attr, value):
         """
@@ -138,9 +157,8 @@ class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
                 return self.__class__.__dict__[attr].reload()
             raise AttributeError(f"No configuration parameter '{attr}'")
 
-        for item in self.__class__.__dict__.values():
-            if isinstance(item, ConfigItem):
-                item.reload()
+        for item in self.values():
+            item.reload()
 
     def reset(self, attr=None):
         """
@@ -159,9 +177,8 @@ class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
                 return
             raise AttributeError(f"No configuration parameter '{attr}'")
 
-        for item in self.__class__.__dict__.values():
-            if isinstance(item, ConfigItem):
-                item.set(item.defaultvalue)
+        for item in self.values():
+            item.set(item.defaultvalue)
 
 
 class ConfigItem:
@@ -624,9 +641,7 @@ def generate_config(pkgname='astropy', filename=None):
         subclasses = ConfigNamespace.__subclasses__()
         for conf in sorted(subclasses, key=lambda x: x.__module__):
             print_module = True
-            for item in conf.__dict__.values():
-                if not isinstance(item, ConfigItem):
-                    continue
+            for item in conf().values():
                 if print_module:
                     # If this is the first item of the module, we print the
                     # module name, but not if this is the root package...
