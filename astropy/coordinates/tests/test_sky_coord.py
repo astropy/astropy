@@ -15,6 +15,7 @@ import numpy.testing as npt
 
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
+from astropy.tests.helper import catch_warnings
 from astropy.coordinates.representation import REPRESENTATION_CLASSES, DUPLICATE_REPRESENTATIONS
 from astropy.coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                                  SphericalRepresentation, CartesianRepresentation,
@@ -25,6 +26,7 @@ from astropy.coordinates import Latitude, EarthLocation
 from astropy.coordinates.transformations import FunctionTransform
 from astropy.time import Time
 from astropy.utils import minversion, isiterable
+from astropy.utils.exceptions import ErfaWarning
 from astropy.units import allclose as quantity_allclose
 from astropy.io import fits
 from astropy.wcs import WCS
@@ -1607,8 +1609,9 @@ def test_apply_space_motion():
 
     # Cases that should work (just testing input for now):
     c1 = SkyCoord(frame, obstime=t1, pressure=101*u.kPa)
-    applied1 = c1.apply_space_motion(new_obstime=t2)
-    applied2 = c1.apply_space_motion(dt=12*u.year)
+    with catch_warnings(ErfaWarning):
+        applied1 = c1.apply_space_motion(new_obstime=t2)
+        applied2 = c1.apply_space_motion(dt=12*u.year)
 
     assert isinstance(applied1.frame, c1.frame.__class__)
     assert isinstance(applied2.frame, c1.frame.__class__)
