@@ -12,37 +12,30 @@ the 4.0.x series of releases.
 
 In particular, this release includes:
 
-1. Support for the ``-TAB`` algorithm in FITS WCS as described in
-   `WCS Paper III <https://www.atnf.csiro.au/people/mcalabre/WCS/scs.pdf>`__ .
-   In particular, ``astropy.wcs`` will be able to support ``-TAB`` in WCS if
-   already defined in the ``astropy.io.fits.HDUList`` object.
+1. Added support for the ``-TAB`` convention in FITS WCS
 
-2. Support for units on otherwise unitless models via the ``Model.coerce_units`` method.
-
-3. Support for in-place setting of array-valued ``SkyCoord`` and coordinate
+2. Support for in-place setting of array-valued ``SkyCoord`` and coordinate
    frame objects using standard numpy syntax like ``sc1[10:15] == sc2``.
 
-4. Change in the definition of equality comparison for coordinate classes.
+3. Change in the definition of equality comparison for coordinate classes.
 
-5. Support use of ``SkyCoord`` in table ``vstack``, ``dstack``, and
+4. Support use of ``SkyCoord`` in table ``vstack``, ``dstack``, and
    ``insert_row``.
 
-6. Support for table "fuzzy" cross-match join with ``SkyCoord``, ``Quantity``
+5. Support for table "fuzzy" cross-match join with ``SkyCoord``, ``Quantity``
    or N-d columns.
 
-7. Support for custom attributes in ``Table`` subclasses.
+6. Support for custom attributes in ``Table`` subclasses.
 
-8. Added a new ``Time`` subformat ``unix_tai`` which is analogous to standard
+7. Added a new ``Time`` subformat ``unix_tai`` which is analogous to standard
    ``unix`` time but includes leap-seconds.
 
-9. All models are now serializable to ASDF.
+8. All models are now serializable to ASDF.
    Model constraints of type ``fixed``and ``bounds`` are serialized as well.
 
-10. It is now possible to create a new ``CompoundModel`` by modifying an existing one with the ``replace_submodel`` method.
+9. Support for replacing submodels in ``CompoundModel``.
 
-11. Support for units on otherwise unitless models via the ``Model.coerce_units`` method.
-
-12. Added a ``Plummer`` model.
+10. Support for units on otherwise unitless models via the ``Model.coerce_units`` method.
 
 
 New ``SpectralCoord`` class for representing and transforming spectral quantities
@@ -127,7 +120,7 @@ For more details, see :ref:`astropy-coordinates-satellites`.
 Support for in-place setting of array-valued ``SkyCoord`` and frame objects
 ===========================================================================
 
-Coordinate values in a array-valued ``SkyCoord`` object can new be modified
+Coordinate values in a array-valued ``SkyCoord`` object can now be modified
 in-place using the standard syntax for setting elements of a numpy array::
 
   >>> sc1 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg)
@@ -215,3 +208,46 @@ For recent times (after about 1972) the ``unix_tai`` value will differ from
 There were 8.0 leap seconds in place at that time.
 
 For details see: `~astropy.time.TimeUnixTai`.
+
+Added support for the ``-TAB`` convention in FITS WCS
+=====================================================
+
+``astropy.wcs`` is now able to read and interpret WCSs implementing the ``-TAB``
+convention as described in ``WCS Paper III``,
+Greisen, E. W., Calabretta, M. R., Valdes, F. G., and Allen, S. L., Astronomy & Astrophysics, 446, 747-771, 2006.
+Currently there is no support for programmatically constructing such WCSs.
+
+Support for replacing submodels in ``CompoundModel``
+====================================================
+
+It is now possible to create a new ``CompoundModel`` by modifying an existing
+one with the :meth:`~astropy.modeling.core.CompoundModel.replace_submodel` method. The replacement model can have an
+arbitrary number of submodels. The only requirement is that the number of inputs
+and outputs must match. The model to be replaced is identified by its name::
+
+    >>> from astropy.modeling import models
+    >>> m1 = models.Polynomial2D(2) & models.Polynomial2D(2)
+    >>> m2 = models.Rotation2D(21.3) | models.Pix2Sky_TAN()
+    >>> m2.name = "Rotate_and_Project"
+    >>> model = m1 | m2
+    >>> model_subst = models.Shift(1) & models.Shift(2)
+    >>> new_model = model.replace_submodel("Rotate_and_Project", model_subst | m2)
+
+Support for units on otherwise unitless models via the ``Model.coerce_units`` method.
+=====================================================================================
+
+A new :meth:`~astropy.modeling.core.Model.coerce_units` method provides a way to add input and return units to
+a unitless model (e.g.  polynomial) by enclosing it with two :class:`~astropy.modeling.mappings.UnitsMapping`
+instances and returning a compound model.
+
+    >>> from astropy.modeling import models
+    >>> p = models.Polynomial1D(1, c0=1, c1=0)
+    >>> p_with_units = p.coerce_units({'x': u.m}, {'y': u.s})
+    >>> p_with_units(2 * u.m)
+    <Quantity 1. s>
+
+Support for ASDF serialization of models
+========================================
+
+All models (excluding model sets) can be written to an ASDF file. Constraints
+of type ``fixed`` and ``bounds`` can also be serialized::
