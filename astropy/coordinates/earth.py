@@ -300,7 +300,7 @@ class EarthLocation(u.Quantity):
         return self.to(height.unit)
 
     @classmethod
-    def of_site(cls, site_name):
+    def of_site(cls, site_name, force_builtin=False):
         """
         Return an object of this class for a known observatory/site by name.
 
@@ -329,6 +329,10 @@ class EarthLocation(u.Quantity):
         site_name : str
             Name of the observatory (case-insensitive).
 
+        force_builtin : bool
+            If True, load from the data file bundled with astropy and set the
+            cache to that.
+
         Returns
         -------
         site : This class (a `~astropy.coordinates.EarthLocation` or subclass)
@@ -347,12 +351,13 @@ class EarthLocation(u.Quantity):
         See Also
         --------
         get_site_names : the list of sites that this function can access
-        """
-        registry = cls._get_site_registry()
+        """  # noqa
+        registry = cls._get_site_registry(force_builtin=force_builtin)
         try:
             el = registry[site_name]
         except UnknownSiteException as e:
-            raise UnknownSiteException(e.site, 'EarthLocation.get_site_names', close_names=e.close_names)
+            raise UnknownSiteException(e.site, 'EarthLocation.get_site_names',
+                                       close_names=e.close_names)
 
         if cls is el.__class__:
             return el
@@ -416,11 +421,12 @@ class EarthLocation(u.Quantity):
 
         # Fail fast if invalid options are passed:
         if not use_google and get_height:
-            raise ValueError('Currently, `get_height` only works when using '
-                             'the Google geocoding API, which requires passing '
-                             'a Google API key with `google_api_key`. See: '
-                             'https://developers.google.com/maps/documentation/geocoding/get-api-key '
-                             'for information on obtaining an API key.')
+            raise ValueError(
+                'Currently, `get_height` only works when using '
+                'the Google geocoding API, which requires passing '
+                'a Google API key with `google_api_key`. See: '
+                'https://developers.google.com/maps/documentation/geocoding/get-api-key '
+                'for information on obtaining an API key.')
 
         if use_google:  # Google
             pars = urllib.parse.urlencode({'address': address,
@@ -469,7 +475,7 @@ class EarthLocation(u.Quantity):
         return cls.from_geodetic(lon=lon*u.deg, lat=lat*u.deg, height=height)
 
     @classmethod
-    def get_site_names(cls):
+    def get_site_names(cls, force_builtin=False):
         """
         Get list of names of observatories for use with
         `~astropy.coordinates.EarthLocation.of_site`.
@@ -483,18 +489,21 @@ class EarthLocation(u.Quantity):
             request to the
             `astropy-data repository <https://github.com/astropy/astropy-data>`_ .
 
-
         Returns
         -------
         names : list of str
             List of valid observatory names
+
+        force_builtin : bool
+            If True, load from the data file bundled with astropy and set the
+            cache to that.
 
         See Also
         --------
         of_site : Gets the actual location object for one of the sites names
                   this returns.
         """
-        return cls._get_site_registry().names
+        return cls._get_site_registry(force_builtin=force_builtin).names
 
     @classmethod
     def _get_site_registry(cls, force_download=False, force_builtin=False):
@@ -806,4 +815,4 @@ class EarthLocation(u.Quantity):
 
 
 # need to do this here at the bottom to avoid circular dependencies
-from .sites import get_builtin_sites, get_downloaded_sites
+from .sites import get_builtin_sites, get_downloaded_sites  # noqa

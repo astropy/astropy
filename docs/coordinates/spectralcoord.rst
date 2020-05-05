@@ -209,6 +209,11 @@ z=0.33, these would be the rest wavelengths for that object.
 Specifying an observer and a target explicitly
 ----------------------------------------------
 
+.. testsetup::
+
+    >>> from astropy.coordinates import EarthLocation
+    >>> location = EarthLocation.of_site('ALMA', force_builtin=True)
+
 To use the more advanced funtionality in |SpectralCoord|, including the ability
 to easily transform between different well-defined velocity frames, you will
 need to give it information about the location (and optionally velocity) of
@@ -218,11 +223,11 @@ observe the source T Tau using the ALMA telescope. To create an observer object
 corresponding to this, we can make use of the |EarthLocation| class::
 
     >>> from astropy.coordinates import EarthLocation
-    >>> location = EarthLocation.of_site('ALMA')  # doctest: +REMOTE_DATA
-    >>> location  # doctest: +REMOTE_DATA
+    >>> location = EarthLocation.of_site('ALMA')  # doctest: +SKIP
+    >>> location  # doctest: +FLOAT_CMP
     <EarthLocation (2225015.30883296, -5440016.41799762, -2481631.27428014) m>
 
-The three values in meters are geocentric coordinates, i.e. the 3-d coordinates
+The three values in meters are geocentric coordinates, i.e. the 3D coordinates
 relative to the center of the Earth. See |EarthLocation| for more details about
 the different ways of creating these kinds of objects.
 
@@ -232,12 +237,12 @@ which takes the observation time (which is important to know for any kind of
 velocity frame transformation)::
 
     >>> from astropy.time import Time
-    >>> alma = location.get_itrs(obstime=Time('2019-04-24T02:32:10'))  # doctest: +REMOTE_DATA
-    >>> alma  # doctest: +REMOTE_DATA
+    >>> alma = location.get_itrs(obstime=Time('2019-04-24T02:32:10'))
+    >>> alma  # doctest: +FLOAT_CMP
     <ITRS Coordinate (obstime=2019-04-24T02:32:10.000): (x, y, z) in m
         (2225015.30883296, -5440016.41799762, -2481631.27428014)>
 
-ITRS here stands for International Terrestrial Reference System which is a 3-d
+ITRS here stands for International Terrestrial Reference System which is a 3D
 coordinate frame centered on the Earth's center and rotating with the Earth, so
 the observatory will be stationary in this frame of reference.
 
@@ -246,7 +251,7 @@ For the target, the simplest way is to use the |SkyCoord| class::
     >>> from astropy.coordinates import SkyCoord
     >>> ttau = SkyCoord('04h21m59.43s +19d32m06.4', frame='icrs',
     ...                 radial_velocity=23.9 * u.km / u.s,
-    ...                 distance=144.321 * u.pc)  # doctest: +REMOTE_DATA
+    ...                 distance=144.321 * u.pc)
 
 In this case we specified a radial velocity and a distance for the target (using
 the `T Tauri SIMBAD entry
@@ -263,8 +268,8 @@ have been measured (for the purposes of the example here we will assume we have 
 11 frequencies)::
 
     >>> sc_ttau = SpectralCoord(np.linspace(200, 300, 11) * u.GHz,
-    ...                         observer=alma, target=ttau)  # doctest: +IGNORE_WARNINGS +REMOTE_DATA
-    >>> sc_ttau  # doctest: +REMOTE_DATA +FLOAT_CMP
+    ...                         observer=alma, target=ttau)  # doctest: +IGNORE_WARNINGS
+    >>> sc_ttau  # doctest: +FLOAT_CMP +REMOTE_DATA
     <SpectralCoord
        (observer: <ITRS Coordinate (obstime=2019-04-24T02:32:10.000): (x, y, z) in m
                       (2225015.30883296, -5440016.41799762, -2481631.27428014)
@@ -285,7 +290,7 @@ observatory around the Earth, the motion of the Earth around the Solar System
 barycenter, and the radial velocity of T Tau relative to the Solar System
 barycenter. We can get this value directly with::
 
-    >>> sc_ttau.radial_velocity  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> sc_ttau.radial_velocity  # doctest: +FLOAT_CMP +REMOTE_DATA
     <Quantity 41.03594948 km / s>
 
 If you work with any kind of spectral data, you will often need to determine
@@ -304,14 +309,14 @@ velocity frames using the
 :meth:`~astropy.coordinates.SpectralCoord.with_observer_stationary_relative_to`
 method. This method can take the name of an existing coordinate/velocity frame,
 a :class:`~astropy.coordinates.BaseCoordinateFrame` instance, or any arbitrary
-3-d position and velocity coordinate object defined either as a
+3D position and velocity coordinate object defined either as a
 :class:`~astropy.coordinates.BaseCoordinateFrame` or a |SkyCoord| object. Most
 commonly-used frames are accessible using strings. For example to transform to a
 velocity frame stationary with respect to the center of the Earth (so removing
 the effect of the Earth's rotation), we can use the ``'gcrs'`` which stands for
 *Geocentric Celestial Reference System* (GCRS)::
 
-    >>> sc_ttau.with_observer_stationary_relative_to('gcrs')  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> sc_ttau.with_observer_stationary_relative_to('gcrs')  # doctest: +FLOAT_CMP +REMOTE_DATA
     <SpectralCoord
        (observer: <GCRS Coordinate (obstime=2019-04-24T02:32:10.000, obsgeoloc=(0., 0., 0.) m, obsgeovel=(0., 0., 0.) m / s): (x, y, z) in m
                       (-5878853.86160149, -192921.84793754, -2470794.19798818)
@@ -334,7 +339,7 @@ in the ``radial_velocity`` property, which has changed by ~0.35 km/s. To use a
 velocity reference frame relative to the Solar System barycenter, which is the
 origin of the *International Celestial Reference System* (ICRS) system, we can use::
 
-    >>> sc_ttau.with_observer_stationary_relative_to('icrs')  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> sc_ttau.with_observer_stationary_relative_to('icrs')  # doctest: +FLOAT_CMP +REMOTE_DATA
     <SpectralCoord
        (observer: <ICRS Coordinate: (x, y, z) in m
                       (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
@@ -362,7 +367,7 @@ We can also transform the frequencies to the Kinematic Local Standard of Rest
 (LSRK) frame of reference, which is a reference frame commonly used in some
 branches of astronomy (such as radio astronomy)::
 
-    >>> sc_ttau.with_observer_stationary_relative_to('lsrk')  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> sc_ttau.with_observer_stationary_relative_to('lsrk')  # doctest: +FLOAT_CMP +REMOTE_DATA
     <SpectralCoord
        (observer: <LSRK Coordinate: (x, y, z) in m
                       (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
@@ -389,7 +394,7 @@ method, we can also specify the target itself, to find the frequencies in the
 rest frame of the target::
 
     >>> sc_ttau_targetframe = sc_ttau.with_observer_stationary_relative_to(sc_ttau.target)  # doctest: +REMOTE_DATA
-    >>> sc_ttau_targetframe  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> sc_ttau_targetframe  # doctest: +FLOAT_CMP +REMOTE_DATA
     <SpectralCoord
        (observer: <ICRS Coordinate: (x, y, z) in m
                       (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
@@ -416,12 +421,12 @@ spectral feature that appears to have components at the following frequencies
 in the frame of reference of the telescope::
 
     >>> sc_feat = SpectralCoord([115.26, 115.266, 115.267] * u.GHz,
-    ...                         observer=alma, target=ttau)  # doctest: +IGNORE_WARNINGS +REMOTE_DATA
+    ...                         observer=alma, target=ttau)  # doctest: +IGNORE_WARNINGS
 
 We can convert these to the rest frame of the target using::
 
     >>> sc_feat_rest = sc_feat.with_observer_stationary_relative_to(sc_feat.target)  # doctest: +REMOTE_DATA
-    >>> sc_feat_rest  # doctest: +REMOTE_DATA
+    >>> sc_feat_rest  # doctest: +FLOAT_CMP +REMOTE_DATA
     <SpectralCoord
        (observer: <ICRS Coordinate: (x, y, z) in m
                       (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
@@ -442,7 +447,7 @@ indeed from 12CO, then they are Doppler shifted compared to what we consider the
 T Tau. We can convert these frequencies to velocities assuming the Doppler shift equation
 (in this case with the radio convention)::
 
-    >>> sc_feat_rest.to(u.km / u.s, doppler_convention='radio', doppler_rest=115.27120180 * u.GHz)  # doctest: +REMOTE_DATA
+    >>> sc_feat_rest.to(u.km / u.s, doppler_convention='radio', doppler_rest=115.27120180 * u.GHz)  # doctest: +FLOAT_CMP +REMOTE_DATA
     <SpectralCoord
        (observer: <ICRS Coordinate: (x, y, z) in m
                       (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
@@ -524,7 +529,7 @@ velocity of the local group relative to the Solar System barycenter. With this
 object, we can then transform a |SpectralCoord| so that the observer is stationary
 in that frame of reference::
 
-    >>> sc_ttau.with_observer_stationary_relative_to(localgroup_frame)  # doctest: +REMOTE_DATA
+    >>> sc_ttau.with_observer_stationary_relative_to(localgroup_frame)  # doctest: +FLOAT_CMP +REMOTE_DATA
     <SpectralCoord
        (observer: <Galactic Coordinate: (u, v, w) in m
                       (8.8038652e+10, -5.31344273e+10, 1.09238291e+11)

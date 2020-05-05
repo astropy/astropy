@@ -16,16 +16,26 @@ for a particular named object::
     <SkyCoord (ICRS): (ra, dec) in deg
         ( 153.1393271,  53.117343)>
 
+.. testsetup::
+
+    >>> from astropy.coordinates import EarthLocation
+    >>> loc = EarthLocation.of_site('Royal Observatory Greenwich', force_builtin=True)
+
 The second is the :class:`~astropy.coordinates.EarthLocation` :meth:`~astropy.coordinates.EarthLocation.of_site` method, which
 provides a similar quick way to get an
 :class:`~astropy.coordinates.EarthLocation` from an observatory name::
 
     >>> from astropy.coordinates import EarthLocation
-    >>> EarthLocation.of_site('Apache Point Observatory')  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <EarthLocation (-1463969.3018517173, -5166673.342234327, 3434985.7120456537) m>
+    >>> loc = EarthLocation.of_site('Royal Observatory Greenwich')  # doctest: +SKIP
+    >>> loc  # doctest: +FLOAT_CMP
+    <EarthLocation (3980608.90246817, -102.47522911, 4966861.27310068) m>
 
 The full list of available observatory names can be obtained with
  :meth:`astropy.coordinates.EarthLocation.get_site_names`.
+
+.. testsetup::
+
+    >>> loc = EarthLocation.of_site('Keck', force_builtin=True)
 
 While these methods are convenient, there are several considerations to take
 into account:
@@ -36,21 +46,21 @@ into account:
   running may give a different answer in five years. Therefore, users concerned
   with reproducibility should not use these methods in their final scripts,
   but can instead use them to get the values required, and then hard-code them
-  into the scripts. For example, we can check the coordinates of the Kitt
-  Peak Observatories using::
+  into the scripts. For example, we can check the coordinates of the
+  Keck Observatory using::
 
-    >>> loc = EarthLocation.of_site('Kitt Peak')  # doctest: +REMOTE_DATA
+    >>> loc = EarthLocation.of_site('Keck')  # doctest: +SKIP
 
   Note that this command requires an internet connection.
 
   We can then view the actual Cartesian coordinates for the observatory:
 
-    >>> loc  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <EarthLocation (-1994502.6043061386, -5037538.54232911, 3358104.9969029757) m>
+    >>> loc  # doctest: +FLOAT_CMP
+    <EarthLocation (-5464487.81759887, -2492806.59108569, 2151240.19451846) m>
 
   This can then be converted into code::
 
-    >>> loc = EarthLocation(-1994502.6043061386, -5037538.54232911, 3358104.9969029757, unit='m')
+    >>> loc = EarthLocation(-5464487.81759887, -2492806.59108569, 2151240.19451846, unit='m')
 
   This latter line can then be included in a script and will ensure that the
   results stay the same over time.
