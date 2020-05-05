@@ -212,7 +212,7 @@ Specifying an observer and a target explicitly
 .. testsetup::
 
     >>> from astropy.coordinates import EarthLocation
-    >>> location = EarthLocation.of_site('ALMA', force_builtin=True)
+    >>> location = EarthLocation(2225015.30883296, -5440016.41799762, -2481631.27428014, unit='m')
 
 To use the more advanced funtionality in |SpectralCoord|, including the ability
 to easily transform between different well-defined velocity frames, you will

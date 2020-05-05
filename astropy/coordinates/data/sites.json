@@ -1,32 +1,4 @@
 {
-    "aao": {
-        "source": "IRAF Observatory Database",
-        "elevation": 1164,
-        "name": "Anglo-Australian Observatory",
-        "longitude_unit": "degree",
-        "latitude_unit": "degree",
-        "latitude": -31.27703888888889,
-        "elevation_unit": "meter",
-        "longitude": 149.06608611111113,
-        "timezone": "Australia/Sydney",
-        "aliases": [
-            "Anglo-Australian Observatory"
-        ]
-    },
-    "alma": {
-        "aliases": [
-            "Atacama Large Millimeter Array",
-            "ALMA"
-        ],
-        "elevation": 5000,
-        "elevation_unit": "meter",
-        "latitude": -23.029,
-        "latitude_unit": "degree",
-        "longitude": -67.755,
-        "longitude_unit": "degree",
-        "name": "alma",
-        "source": "https://almascience.eso.org/about-alma/alma-site"
-    },
     "greenwich": {
         "source": "Ordnance Survey via http://gpsinformation.net/main/greenwich.htm and UNESCO",
         "elevation": 46,
@@ -37,23 +9,7 @@
         "elevation_unit": "meter",
         "longitude": -0.001475,
         "aliases": [
-            "example_site",
-            "Royal Observatory Greenwich"
-        ]
-    },
-    "keck": {
-        "source": "IRAF Observatory Database",
-        "elevation": 4160,
-        "name": "W. M. Keck Observatory",
-        "longitude_unit": "degree",
-        "latitude_unit": "degree",
-        "latitude": 19.828333333333333,
-        "elevation_unit": "meter",
-        "longitude": 204.52166666666668,
-        "timezone": "US/Aleutian",
-        "aliases": [
-            "W. M. Keck Observatory",
-            "Keck Observatory"
+            "example_site"
         ]
     }
 }

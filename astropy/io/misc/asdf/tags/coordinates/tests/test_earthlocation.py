@@ -50,8 +50,11 @@ def test_earthlocation_geodetic(position, ellipsoid, tmpdir):
 
 
 def test_earthlocation_site(tmpdir):
-
-    rog = EarthLocation.of_site('Royal Observatory Greenwich', force_builtin=True)
-
-    tree = dict(location=rog)
-    assert_roundtrip_tree(tree, tmpdir)
+    orig_sites = getattr(EarthLocation, '_site_registry', None)
+    try:
+        EarthLocation._get_site_registry(force_builtin=True)
+        rog = EarthLocation.of_site('greenwich')
+        tree = dict(location=rog)
+        assert_roundtrip_tree(tree, tmpdir)
+    finally:
+        EarthLocation._site_registry = orig_sites

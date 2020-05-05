@@ -300,7 +300,7 @@ class EarthLocation(u.Quantity):
         return self.to(height.unit)
 
     @classmethod
-    def of_site(cls, site_name, force_builtin=False):
+    def of_site(cls, site_name):
         """
         Return an object of this class for a known observatory/site by name.
 
@@ -329,10 +329,6 @@ class EarthLocation(u.Quantity):
         site_name : str
             Name of the observatory (case-insensitive).
 
-        force_builtin : bool
-            If True, load from the data file bundled with astropy and set the
-            cache to that.
-
         Returns
         -------
         site : This class (a `~astropy.coordinates.EarthLocation` or subclass)
@@ -352,7 +348,7 @@ class EarthLocation(u.Quantity):
         --------
         get_site_names : the list of sites that this function can access
         """  # noqa
-        registry = cls._get_site_registry(force_builtin=force_builtin)
+        registry = cls._get_site_registry()
         try:
             el = registry[site_name]
         except UnknownSiteException as e:
@@ -475,7 +471,7 @@ class EarthLocation(u.Quantity):
         return cls.from_geodetic(lon=lon*u.deg, lat=lat*u.deg, height=height)
 
     @classmethod
-    def get_site_names(cls, force_builtin=False):
+    def get_site_names(cls):
         """
         Get list of names of observatories for use with
         `~astropy.coordinates.EarthLocation.of_site`.
@@ -489,21 +485,18 @@ class EarthLocation(u.Quantity):
             request to the
             `astropy-data repository <https://github.com/astropy/astropy-data>`_ .
 
+
         Returns
         -------
         names : list of str
             List of valid observatory names
-
-        force_builtin : bool
-            If True, load from the data file bundled with astropy and set the
-            cache to that.
 
         See Also
         --------
         of_site : Gets the actual location object for one of the sites names
                   this returns.
         """
-        return cls._get_site_registry(force_builtin=force_builtin).names
+        return cls._get_site_registry().names
 
     @classmethod
     def _get_site_registry(cls, force_download=False, force_builtin=False):
