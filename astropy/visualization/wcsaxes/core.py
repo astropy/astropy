@@ -304,14 +304,17 @@ class WCSAxes(Axes):
             # Transform to the native frame of the plot
             frame0 = frame0.transform_to(native_frame)
 
+            coord_types = [x.coord_type for x in self.coords]
             plot_data = []
-            for coord in self.coords:
-                if coord.coord_type == 'longitude':
-                    plot_data.append(frame0.spherical.lon.to_value(u.deg))
-                elif coord.coord_type == 'latitude':
-                    plot_data.append(frame0.spherical.lat.to_value(u.deg))
-                else:
-                    raise NotImplementedError("Coordinates cannot be plotted with this "
+            if 'longitude' and 'latitude' in coord_types:
+                for coord in self.coords:
+                    if coord.coord_type == 'longitude':
+                        plot_data.append(frame0.spherical.lon.to_value(u.deg))
+                    elif coord.coord_type == 'latitude':
+                        plot_data.append(frame0.spherical.lat.to_value(u.deg))
+
+            else:
+                raise NotImplementedError("Coordinates cannot be plotted with this "
                                               "method because the WCS does not represent longitude/latitude.")
 
             if 'transform' in kwargs.keys():
