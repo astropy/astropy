@@ -2390,7 +2390,7 @@ class Sersic2D(Fittable2DModel):
 
     .. math::
 
-        \Gamma(2n) = 2\gamma (b_n,2n)
+        \Gamma(2n) = 2\gamma (2n,b_n)
 
     Examples
     --------
