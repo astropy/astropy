@@ -16,16 +16,26 @@ for a particular named object::
     <SkyCoord (ICRS): (ra, dec) in deg
         ( 153.1393271,  53.117343)>
 
+.. testsetup::
+
+    >>> from astropy.coordinates import EarthLocation
+    >>> apo = EarthLocation(-1463969.3018517173, -5166673.342234327, 3434985.7120456537, unit='m')
+
 The second is the :class:`~astropy.coordinates.EarthLocation` :meth:`~astropy.coordinates.EarthLocation.of_site` method, which
 provides a similar quick way to get an
 :class:`~astropy.coordinates.EarthLocation` from an observatory name::
 
     >>> from astropy.coordinates import EarthLocation
-    >>> EarthLocation.of_site('Apache Point Observatory')  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> apo = EarthLocation.of_site('Apache Point Observatory')  # doctest: +SKIP
+    >>> apo  # doctest: +FLOAT_CMP
     <EarthLocation (-1463969.3018517173, -5166673.342234327, 3434985.7120456537) m>
 
 The full list of available observatory names can be obtained with
  :meth:`astropy.coordinates.EarthLocation.get_site_names`.
+
+.. testsetup::
+
+    >>> loc = EarthLocation(-1994502.60430614, -5037538.54232911, 3358104.99690298, unit='m')
 
 While these methods are convenient, there are several considerations to take
 into account:
@@ -39,13 +49,13 @@ into account:
   into the scripts. For example, we can check the coordinates of the Kitt
   Peak Observatories using::
 
-    >>> loc = EarthLocation.of_site('Kitt Peak')  # doctest: +REMOTE_DATA
+    >>> loc = EarthLocation.of_site('Kitt Peak')  # doctest: +SKIP
 
   Note that this command requires an internet connection.
 
   We can then view the actual Cartesian coordinates for the observatory:
 
-    >>> loc  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> loc  # doctest: +FLOAT_CMP
     <EarthLocation (-1994502.6043061386, -5037538.54232911, 3358104.9969029757) m>
 
   This can then be converted into code::

@@ -7,6 +7,7 @@
 .. https://github.com/astropy/pytest-doctestplus/issues/11
 
 .. testsetup::
+
     >>> from astropy.coordinates import EarthLocation
     >>> EarthLocation.of_site('greenwich') # doctest: +IGNORE_OUTPUT +IGNORE_WARNINGS
 
@@ -318,13 +319,21 @@ use this option if you do not need sub-arcsecond accuracy for your coordinates::
 ..
   EXAMPLE END
 
+.. testsetup::
+
+    >>> from astropy.coordinates import EarthLocation, SkyCoord
+    >>> apo = EarthLocation(-1463969.30185172, -5166673.34223433, 3434985.71204565, unit='m')
+    >>> keck = EarthLocation(-5464487.81759887, -2492806.59108569, 2151240.19451846, unit='m')
+    >>> target = SkyCoord(10.68470833, 41.26875, unit='deg')  # M31
+
 For sites (primarily observatories) on the Earth, `astropy.coordinates` provides
 a quick way to get an `~astropy.coordinates.EarthLocation` - the
 `~astropy.coordinates.EarthLocation.of_site` method::
 
     >>> from astropy.coordinates import EarthLocation
-    >>> EarthLocation.of_site('Apache Point Observatory')  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <EarthLocation (-1463969.30185172, -5166673.34223433,  3434985.71204565) m>
+    >>> apo = EarthLocation.of_site('Apache Point Observatory')  # doctest: +SKIP
+    >>> apo  # doctest: +FLOAT_CMP
+    <EarthLocation (-1463969.30185172, -5166673.34223433, 3434985.71204565) m>
 
 To see the list of site names available, use
 :func:`astropy.coordinates.EarthLocation.get_site_names`.
@@ -367,9 +376,9 @@ high-level |skycoord| method - see :ref:`astropy-coordinates-rv-corrs`)::
 
     >>> from astropy.time import Time
     >>> obstime = Time('2017-2-14')
-    >>> target = SkyCoord.from_name('M31')  # doctest: +REMOTE_DATA
-    >>> keck = EarthLocation.of_site('Keck')  # doctest: +REMOTE_DATA
-    >>> target.radial_velocity_correction(obstime=obstime, location=keck).to('km/s')  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> target = SkyCoord.from_name('M31')  # doctest: +SKIP
+    >>> keck = EarthLocation.of_site('Keck')  # doctest: +SKIP
+    >>> target.radial_velocity_correction(obstime=obstime, location=keck).to('km/s')  # doctest: +FLOAT_CMP  +REMOTE_DATA
     <Quantity -22.359784554780255 km / s>
 
 Velocities (Proper Motions and Radial Velocities)

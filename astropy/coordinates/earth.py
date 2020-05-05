@@ -347,12 +347,13 @@ class EarthLocation(u.Quantity):
         See Also
         --------
         get_site_names : the list of sites that this function can access
-        """
+        """  # noqa
         registry = cls._get_site_registry()
         try:
             el = registry[site_name]
         except UnknownSiteException as e:
-            raise UnknownSiteException(e.site, 'EarthLocation.get_site_names', close_names=e.close_names)
+            raise UnknownSiteException(e.site, 'EarthLocation.get_site_names',
+                                       close_names=e.close_names)
 
         if cls is el.__class__:
             return el
@@ -416,11 +417,12 @@ class EarthLocation(u.Quantity):
 
         # Fail fast if invalid options are passed:
         if not use_google and get_height:
-            raise ValueError('Currently, `get_height` only works when using '
-                             'the Google geocoding API, which requires passing '
-                             'a Google API key with `google_api_key`. See: '
-                             'https://developers.google.com/maps/documentation/geocoding/get-api-key '
-                             'for information on obtaining an API key.')
+            raise ValueError(
+                'Currently, `get_height` only works when using '
+                'the Google geocoding API, which requires passing '
+                'a Google API key with `google_api_key`. See: '
+                'https://developers.google.com/maps/documentation/geocoding/get-api-key '
+                'for information on obtaining an API key.')
 
         if use_google:  # Google
             pars = urllib.parse.urlencode({'address': address,
@@ -806,4 +808,4 @@ class EarthLocation(u.Quantity):
 
 
 # need to do this here at the bottom to avoid circular dependencies
-from .sites import get_builtin_sites, get_downloaded_sites
+from .sites import get_builtin_sites, get_downloaded_sites  # noqa
