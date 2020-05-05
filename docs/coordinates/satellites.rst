@@ -86,9 +86,9 @@ For example, to find the overhead latitude, longitude, and height of the satelli
 .. doctest-requires:: sgp4
 
     >>> from astropy.coordinates import ITRS
-    >>> itrs = teme.transform_to(ITRS(obstime=t))  # doctest: +REMOTE_DATA
-    >>> location = itrs.earth_location  # doctest: +REMOTE_DATA
-    >>> location.geodetic  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> itrs = teme.transform_to(ITRS(obstime=t))  # doctest: +IGNORE_WARNINGS
+    >>> location = itrs.earth_location
+    >>> location.geodetic  # doctest: +FLOAT_CMP
     GeodeticLocation(lon=<Longitude 160.34199789 deg>, lat=<Latitude -24.6609379 deg>, height=<Quantity 420.17927591 km>)
 
 .. testsetup::
@@ -102,10 +102,10 @@ Or, if you want to find the altitude and azimuth of the satellite from a particu
 
     >>> from astropy.coordinates import EarthLocation, AltAz
     >>> siding_spring = EarthLocation.of_site('aao')  # doctest: +SKIP
-    >>> aa = teme.transform_to(AltAz(obstime=t, location=siding_spring))  # doctest: +REMOTE_DATA
-    >>> aa.alt  # doctest: +FLOAT_CMP +REMOTE_DATA
-    <Latitude 10.94798427 deg>
-    >>> aa.az  # doctest: +FLOAT_CMP +REMOTE_DATA
-    <Longitude 59.28807348 deg>
+    >>> aa = teme.transform_to(AltAz(obstime=t, location=siding_spring))  # doctest: +IGNORE_WARNINGS
+    >>> aa.alt  # doctest: +FLOAT_CMP
+    <Latitude 10.94898792 deg>
+    >>> aa.az  # doctest: +FLOAT_CMP
+    <Longitude 59.28626163 deg>
 
 .. EXAMPLE END

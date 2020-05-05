@@ -48,6 +48,11 @@ def ignore_matplotlibrc():
 
 
 def pytest_configure(config):
+    from astropy.utils.iers import conf as iers_conf
+
+    # Disable IERS auto download for testing
+    iers_conf.auto_download = False
+
     builtins._pytest_running = True
     # do not assign to matplotlibrc_cache in function scope
     if HAS_MATPLOTLIB:
@@ -78,6 +83,11 @@ def pytest_configure(config):
 
 
 def pytest_unconfigure(config):
+    from astropy.utils.iers import conf as iers_conf
+
+    # Undo IERS auto download setting for testing
+    iers_conf.reset('auto_download')
+
     builtins._pytest_running = False
     # do not assign to matplotlibrc_cache in function scope
     if HAS_MATPLOTLIB:
