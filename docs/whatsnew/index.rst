@@ -11,6 +11,7 @@ functionality highlighted in these pages.
 .. toctree::
    :maxdepth: 1
 
+   4.2
    4.1
 
 * `What's New in Astropy 4.0? <https://docs.astropy.org/en/v4.0/whatsnew/4.0.html>`__
