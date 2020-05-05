@@ -1087,9 +1087,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                                        (r.UnitSphericalDifferential,
                                         r.UnitSphericalCosLatDifferential,
                                         r.RadialDifferential))):
-                    raise ValueError('need a distance to retrieve a cartesian representation '
-                                     'when both radial velocity and proper motion are '
-                                     'present.')
+                    raise u.UnitConversionError(
+                        'need a distance to retrieve a cartesian representation '
+                        'when both radial velocity and proper motion are present, '
+                        'since otherwise the units cannot match.')
 
                 # TODO NOTE: only supports a single differential
                 data = self.data.represent_as(representation_cls,
