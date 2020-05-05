@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from contextlib import contextmanager
 from warnings import warn
 import collections
 import socket
@@ -808,3 +809,24 @@ class EarthLocation(u.Quantity):
             equivalencies = self._equivalencies
         new_array = self.unit.to(unit, array_view, equivalencies=equivalencies)
         return new_array.view(self.dtype).reshape(self.shape)
+
+
+@contextmanager
+def force_builtin_sites():
+    """Context manager to temporarily force usage of built-in `EarthLocation`
+    sites for testing.
+
+    Examples
+    --------
+    >>> from astropy.coordinates.earth import EarthLocation, force_builtin_sites
+    >>> with force_builtin_sites():
+    ...     EarthLocation.of_site('greenwich')  # doctest: +FLOAT_CMP
+    <EarthLocation (3980608.90246817, -102.47522911, 4966861.27310068) m>
+
+    """
+    orig_sites = getattr(EarthLocation, '_site_registry', None)
+    try:
+        EarthLocation._get_site_registry(force_builtin=True)
+        yield
+    finally:
+        EarthLocation._site_registry = orig_sites

@@ -8,13 +8,14 @@ import pickle
 import pytest
 import numpy as np
 
-from astropy.coordinates.earth import EarthLocation, ELLIPSOIDS
+from astropy.coordinates.earth import EarthLocation, ELLIPSOIDS, force_builtin_sites
 from astropy.coordinates.angles import Longitude, Latitude
 from astropy.units import allclose as quantity_allclose
 from astropy import units as u
 from astropy.time import Time
 from astropy import constants
 from astropy.coordinates.name_resolve import NameResolveError
+from astropy.coordinates.errors import UnknownSiteException
 
 
 def allclose_m14(a, b, rtol=1.e-14, atol=None):
@@ -404,3 +405,17 @@ def test_read_only_input():
     lon.flags.writeable = lat.flags.writeable = False
     loc = EarthLocation.from_geodetic(lon=lon, lat=lat)
     assert quantity_allclose(loc[1].x, loc[0].x)
+
+
+def test_force_builtin_sites():
+    # Make sure it is not calling remote data.
+    with force_builtin_sites():
+        EarthLocation.of_site('greenwich')
+
+        with pytest.raises(UnknownSiteException, match='not in database'):
+            EarthLocation.of_site('Keck')
+
+    # Cannot test that it goes back to remote data without
+    # hitting sites.json remotely or doing something weird to
+    # EarthLocation._site_registry , so you will just have to trust me
+    # on this one.

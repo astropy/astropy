@@ -8,7 +8,7 @@ from asdf.tests.helpers import assert_roundtrip_tree
 
 from astropy import units as u
 from astropy.coordinates.angles import Longitude, Latitude
-from astropy.coordinates.earth import EarthLocation, ELLIPSOIDS
+from astropy.coordinates.earth import EarthLocation, ELLIPSOIDS, force_builtin_sites
 
 
 @pytest.fixture
@@ -50,11 +50,7 @@ def test_earthlocation_geodetic(position, ellipsoid, tmpdir):
 
 
 def test_earthlocation_site(tmpdir):
-    orig_sites = getattr(EarthLocation, '_site_registry', None)
-    try:
-        EarthLocation._get_site_registry(force_builtin=True)
+    with force_builtin_sites():
         rog = EarthLocation.of_site('greenwich')
         tree = dict(location=rog)
         assert_roundtrip_tree(tree, tmpdir)
-    finally:
-        EarthLocation._site_registry = orig_sites
