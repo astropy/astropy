@@ -49,10 +49,9 @@ def test_earthlocation_geodetic(position, ellipsoid, tmpdir):
     assert_roundtrip_tree(tree, tmpdir)
 
 
-@pytest.mark.remote_data
 def test_earthlocation_site(tmpdir):
 
-    keck = EarthLocation.of_site('Keck Observatory')
+    rog = EarthLocation.of_site('Royal Observatory Greenwich', force_builtin=True)
 
-    tree = dict(location=keck)
+    tree = dict(location=rog)
     assert_roundtrip_tree(tree, tmpdir)
