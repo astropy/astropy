@@ -451,6 +451,13 @@ astropy.coordinates
   Earth location of the observer was ignored during the correction for light travel
   time. [#10292]
 
+- Ensure that coordinates with proper motion that are transformed to other
+  coordinate frames still can be represented properly. [#10276]
+
+- Improve the error message given when trying to get a cartesian representation
+  for coordinates that have both proper motion and radial velocity, but no
+  distance. [#10276]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
