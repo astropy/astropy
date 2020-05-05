@@ -1078,6 +1078,20 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         cached_repr = self.cache['representation'].get(cache_key)
         if not cached_repr:
             if differential_cls:
+                # Sanity check to ensure we do not just drop radial
+                # velocity.  TODO: should Representation.represent_as
+                # allow this transformation in the first place?
+                if (isinstance(self.data, r.UnitSphericalRepresentation)
+                    and issubclass(representation_cls, r.CartesianRepresentation)
+                    and not isinstance(self.data.differentials['s'],
+                                       (r.UnitSphericalDifferential,
+                                        r.UnitSphericalCosLatDifferential,
+                                        r.RadialDifferential))):
+                    raise u.UnitConversionError(
+                        'need a distance to retrieve a cartesian representation '
+                        'when both radial velocity and proper motion are present, '
+                        'since otherwise the units cannot match.')
+
                 # TODO NOTE: only supports a single differential
                 data = self.data.represent_as(representation_cls,
                                               differential_cls)
@@ -1124,8 +1138,16 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                               and comp not in data_diff.__class__.attr_classes):
                             continue
 
+                        # Try to convert to requested units. Since that might
+                        # not be possible (e.g., for a coordinate with proper
+                        # motion but without distance, one cannot convert to a
+                        # cartesian differential in km/s), we allow the unit
+                        # conversion to fail.  See gh-7028 for discussion.
                         if new_attr_unit and hasattr(diff, comp):
-                            diffkwargs[comp] = diffkwargs[comp].to(new_attr_unit)
+                            try:
+                                diffkwargs[comp] = diffkwargs[comp].to(new_attr_unit)
+                            except Exception:
+                                pass
 
                     diff = diff.__class__(copy=False, **diffkwargs)
 
@@ -1810,13 +1832,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             raise ValueError('Frame has no associated velocity (Differential) '
                              'data information.')
 
-        try:
-            v = self.cartesian.differentials['s']
-        except Exception:
-            raise ValueError('Could not retrieve a Cartesian velocity. Your '
-                             'frame must include velocity information for this '
-                             'to work.')
-        return v
+        return self.cartesian.differentials['s']
 
     @property
     def proper_motion(self):
