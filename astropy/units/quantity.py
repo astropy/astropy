@@ -1321,7 +1321,7 @@ class Quantity(np.ndarray):
 
     def tolist(self):
         raise NotImplementedError("cannot make a list of Quantities.  Get "
-                                  "list of values with q.value.list()")
+                                  "list of values with q.value.tolist()")
 
     def _to_own_unit(self, value, check_precision=True):
         try:
