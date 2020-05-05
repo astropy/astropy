@@ -381,13 +381,11 @@ and transforming velocities. These are available both via the lower-level
 objects::
 
     >>> sc = SkyCoord(1*u.deg, 2*u.deg, radial_velocity=20*u.km/u.s)
-    >>> sc  # doctest: +SKIP
+    >>> sc  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
-        ( 1.,  2.)
+        (1., 2.)
      (radial_velocity) in km / s
-        ( 20.,)>
-
-.. the SKIP above in the ``sc`` line is because NumPy has a subtly different output in versions < 12 - the trailing comma is missing. If a NPY_LT_1_12 comes in to being this can switch to that. But don't forget to *also* change this in the velocities.rst file.
+        (20.,)>
 
 For more details on velocity support (and limitations), see the
 :doc:`velocities` page.
