@@ -16,15 +16,13 @@ created as::
     >>> from astropy.coordinates import SkyCoord
     >>> import astropy.units as u
     >>> sc = SkyCoord(1*u.deg, 2*u.deg, radial_velocity=20*u.km/u.s)
-    >>> sc  # doctest: +SKIP
+    >>> sc  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
-        ( 1.,  2.)
+        (1., 2.)
      (radial_velocity) in km / s
-        ( 20.,)>
+        (20.,)>
     >>> sc.radial_velocity  # doctest: +FLOAT_CMP
     <Quantity 20.0 km / s>
-
-.. the SKIP above in the ``sc`` line is because numpy has a subtly different output in versions < 12 - the trailing comma is missing.  If a NPY_LT_1_12 comes in to being this can switch to that.  But don't forget to *also* change this in the coordinates/index.rst file
 
 |skycoord| objects created in this manner follow all of the same transformation
 rules and will correctly update their velocities when transformed to other
@@ -368,14 +366,25 @@ precision is not sufficient to compute differences of order km over distances
 of order kiloparsecs. Hence, the straightforward finite difference method will
 not work for this use case with the default values.
 
+.. testsetup::
+
+    >>> import numpy as np
+    >>> from astropy.coordinates import EarthLocation, AltAz, GCRS
+    >>> from astropy.time import Time
+    >>> time = Time('J2010') + np.linspace(-1,1,1000) * u.min
+    >>> location = EarthLocation(lon=0*u.deg, lat=45*u.deg)
+    >>> aa = AltAz(alt=[45]*1000*u.deg, az=90*u.deg, distance=100*u.kpc,
+    ...            radial_velocity=[10]*1000*u.km/u.s,
+    ...            location=location, obstime=time)
+
 It is possible to override the timestep over which the finite difference occurs.
 For example::
 
     >>> from astropy.coordinates import frame_transform_graph, AltAz, CIRS
     >>> trans = frame_transform_graph.get_transform(AltAz, CIRS).transforms[0]
-    >>> trans.finite_difference_dt = 1*u.year
-    >>> gcrs = aa.transform_to(GCRS(obstime=time))  # doctest: +SKIP
-    >>> trans.finite_difference_dt = 1*u.second  # return to default
+    >>> trans.finite_difference_dt = 1 * u.year
+    >>> gcrs = aa.transform_to(GCRS(obstime=time))  # doctest: +REMOTE_DATA
+    >>> trans.finite_difference_dt = 1 * u.second  # return to default
 
 But beware that this will *not* help in cases like the above, where the relevant
 timescales for the velocities are seconds. (The velocity of the Earth relative
