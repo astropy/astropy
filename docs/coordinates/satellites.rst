@@ -25,7 +25,7 @@ to the stars). Several definitions exist; ``astropy`` uses the implementation de
 in `Vallado et al (2006) <https://celestrak.com/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf>`_.
 
 Finding TEME Coordinates from TLE Data
-==========================================
+======================================
 
 There is currently no support in `astropy.coordinates` for computing satellite orbits
 from TLE orbital element sets. Full support for handling TLE files is available in
@@ -36,7 +36,7 @@ with satellite data in ``astropy`` is below.
 
 You will need some external library to compute the position and velocity of the satellite from the
 TLE orbital elements. The `SGP4 <https://pypi.org/project/sgp4/>`_ library can do this. An example
-of using this library to find the  `~astropy.coordinates.TEME` coordinates of a satellite is:
+of using this library to find the  `~astropy.coordinates.TEME` coordinates of a satellite is::
 
 .. doctest-requires:: sgp4
 
@@ -47,7 +47,7 @@ of using this library to find the  `~astropy.coordinates.TEME` coordinates of a 
     >>> satellite = Satrec.twoline2rv(s, t)
 
 The ``satellite`` object has a method, ``satellite.sgp4``, that will try to compute the TEME position
-and velocity at a given time:
+and velocity at a given time::
 
 .. doctest-requires:: sgp4
 
@@ -58,7 +58,7 @@ and velocity at a given time:
     ...     raise RuntimeError(SGP4_ERRORS[error_code])
 
 Now that we have the position and velocity in kilometers and kilometers per second, we can create a
-position in the `~astropy.coordinates.TEME` reference frame:
+position in the `~astropy.coordinates.TEME` reference frame::
 
 .. doctest-requires:: sgp4
 
@@ -74,12 +74,12 @@ Note how we are careful to set the observed time of the `~astropy.coordinates.TE
 the time at which we calculated satellite position.
 
 Transforming TEME to Other Coordinate Systems
-==================================================
+=============================================
 
 Once you have satellite positions in `~astropy.coordinates.TEME` coordinates they can be transformed
 into any `astropy.coordinates` frame.
 
-For example, to find the overhead latitude, longitude, and height of the satellite:
+For example, to find the overhead latitude, longitude, and height of the satellite::
 
 .. EXAMPLE START Transforming TEME
 
@@ -94,18 +94,18 @@ For example, to find the overhead latitude, longitude, and height of the satelli
 .. testsetup::
 
     >>> from astropy.coordinates import EarthLocation
-    >>> siding_spring = EarthLocation.of_site('aao', force_builtin=True)
+    >>> siding_spring = EarthLocation(-4680888.60272112, 2805218.44653429, -3292788.0804506, unit='m')
 
-Or, if you want to find the altitude and azimuth of the satellite from a particular location:
+Or, if you want to find the altitude and azimuth of the satellite from a particular location::
 
 .. doctest-requires:: sgp4
 
     >>> from astropy.coordinates import EarthLocation, AltAz
     >>> siding_spring = EarthLocation.of_site('aao')  # doctest: +SKIP
-    >>> aa = teme.transform_to(AltAz(obstime=t, location=siding_spring))
-    >>> aa.alt  # doctest: +FLOAT_CMP
+    >>> aa = teme.transform_to(AltAz(obstime=t, location=siding_spring))  # doctest: +REMOTE_DATA
+    >>> aa.alt  # doctest: +FLOAT_CMP +REMOTE_DATA
     <Latitude 10.94798427 deg>
-    >>> aa.az  # doctest: +FLOAT_CMP
+    >>> aa.az  # doctest: +FLOAT_CMP +REMOTE_DATA
     <Longitude 59.28807348 deg>
 
 .. EXAMPLE END
