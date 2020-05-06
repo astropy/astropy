@@ -466,6 +466,9 @@ elements::
 ``backward`` are functions that convert values between those units. ``forward``
 and ``backward`` are optional, and if omitted such an equivalency simply
 declares that the two units should be taken as equivalent.
+The functions must take and return non-Quantity, to avoid infinite recursion
+of using ``units`` within ``units`` subpackage itself.
+See :ref:`complicated-equiv-example` for more details.
 
 For example, until 1964 the metric liter was defined as the volume of
 1kg of water at 4°C at 760mm mercury pressure.  Volumes and masses are
@@ -489,6 +492,8 @@ And it also works in the other direction::
 
   >>> imperial.lb.to(imperial.pint, 1, equivalencies=liters_water)  # doctest: +FLOAT_CMP
   0.9586114172355459
+
+.. _complicated-equiv-example:
 
 A slightly more complicated example: Spectral Doppler Equivalencies
 -------------------------------------------------------------------
