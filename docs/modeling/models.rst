@@ -527,9 +527,10 @@ models can only be evaluated.
 Model Serialization (Writing a Model to a File)
 ===============================================
 
-Many models are serializable using the `ASDF`_
+Models are serializable using the `ASDF`_
 format. This can be useful in many contexts, one of which is the implementation of a
-`Generalized World Coordinate System (GWCS)`_.
+`Generalized World Coordinate System (GWCS)`_. 
+
 Serializing a model to disk is possible by assigning the object to ``AsdfFile.tree``:
 
 .. doctest-requires:: asdf
@@ -557,3 +558,6 @@ To read the file and create the model:
         angle
         -----
          23.7
+Compound models can also be serialized. Please note that some model attributes (e.g ``meta``, 
+``tied`` parameter constraints used in fitting), as well as model sets are not yet serializable.
+For more information on serialization of models, see :ref:`asdf_dev`.
