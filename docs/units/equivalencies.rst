@@ -479,6 +479,13 @@ for them::
   >>> u.l.to(u.kg, 1, equivalencies=liters_water)
   1.0
 
+.. note::
+
+    To avoid infinite recursion of using ``units`` within ``units``
+    subpackage itself, the functions defined for an equivalency
+    (e.g., the ``lambda`` functions above) must take and return non-Quantity.
+    See :ref:`complicated-equiv-example` for more details.
+
 Note that the equivalency can be used with any other compatible units::
 
   >>> from astropy.units import imperial
@@ -489,6 +496,8 @@ And it also works in the other direction::
 
   >>> imperial.lb.to(imperial.pint, 1, equivalencies=liters_water)  # doctest: +FLOAT_CMP
   0.9586114172355459
+
+.. _complicated-equiv-example:
 
 A slightly more complicated example: Spectral Doppler Equivalencies
 -------------------------------------------------------------------
