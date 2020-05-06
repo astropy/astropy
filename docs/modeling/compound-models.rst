@@ -1402,3 +1402,26 @@ than one can be set in the dictionary supplied.
 
 If the input model has a bounding_box, the generated model will have the
 bounding for the input coordinate removed.
+
+
+.. test_replace_submodel
+
+Replace submodels
+-----------------
+
+
+:meth:`~astropy.modeling.core.CompoundModel.replace_submodel` creates a new model by
+replacing a submodel with a matching name with another submodel. The number of
+inputs and outputs of the old and new submodels should match.
+::
+
+    >>> from astropy.modeling import models
+    >>> shift = models.Shift(-1) & models.Shift(-1)
+    >>> scale = models.Scale(2) & models.Scale(3)
+    >>> scale.name = "Scale"
+    >>> model = shift | scale
+    >>> model(2, 1)  # doctest: +FLOAT_CMP
+    (2.0, 0.0)
+    >>> new_model = model.replace_submodel('Scale', models.Rotation2D(90, name='Rotation'))
+    >>> new_model(2, 1)  # doctest: +FLOAT_CMP
+    (6.12e-17, 1.0)
