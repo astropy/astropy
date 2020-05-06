@@ -203,3 +203,24 @@ avoid having to pass extra arguments to the fitter::
 
     g6.input_units_equivalencies = {'x': u.spectral()}
     g6_fit = fitter(g6, x, y)
+
+
+.. _units-mapping:
+
+Support for units in otherwise unitless models
+==============================================
+
+Some models, like polynomials, do not work intrinsically with units. Instead,
+the :meth:`~astropy.modeling.core.Model.coerce_units` method provides a way to add input and return units to
+unitless models by enclosing the unitless model with two instances of :class:`~astropy.modeling.mappings.UnitsMapping`.
+Internally the inputs are stripped of the units before passed
+to the model and units are attached to the result if ``return_units`` is specified.
+The method returns a new composite model::
+
+    >>> from astropy.modeling import models
+    >>> from astropy import units as u
+    >>> model = models.Polynomial1D(1, c0=1, c1=2)
+    >>> new_model = model.coerce_units(input_units={'x': u.Hz}, return_units={'y': u.s},
+    ... input_units_equivalencies={'x':u.spectral()})
+    >>> new_model(10 * u.Hz)
+    <Quantity 21. s>
