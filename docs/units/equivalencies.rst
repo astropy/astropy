@@ -466,6 +466,9 @@ elements::
 ``backward`` are functions that convert values between those units. ``forward``
 and ``backward`` are optional, and if omitted such an equivalency simply
 declares that the two units should be taken as equivalent.
+The functions must take and return non-Quantity, to avoid infinite recursion
+of using ``units`` within ``units`` subpackage itself.
+See :ref:`complicated-equiv-example` for more details.
 
 For example, until 1964 the metric liter was defined as the volume of
 1kg of water at 4°C at 760mm mercury pressure.  Volumes and masses are
@@ -478,13 +481,6 @@ for them::
   ... ]
   >>> u.l.to(u.kg, 1, equivalencies=liters_water)
   1.0
-
-.. note::
-
-    To avoid infinite recursion of using ``units`` within ``units``
-    subpackage itself, the functions defined for an equivalency
-    (e.g., the ``lambda`` functions above) must take and return non-Quantity.
-    See :ref:`complicated-equiv-example` for more details.
 
 Note that the equivalency can be used with any other compatible units::
 
