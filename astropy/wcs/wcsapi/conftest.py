@@ -23,10 +23,11 @@ def spectral_1d_fitswcs():
 def time_1d_fitswcs():
     wcs = WCS(naxis=1)
     wcs.wcs.ctype = 'TIME',
-    wcs.wcs.mjdref = 30042,
+    wcs.wcs.mjdref = (30042, 0)
     wcs.wcs.crval = 3.,
     wcs.wcs.crpix = 11.,
-    wcs.wcs.cname = 'Frequency',
+    wcs.wcs.cname = 'Time',
+    wcs.wcs.cunit = 's'
     return wcs
 
 
