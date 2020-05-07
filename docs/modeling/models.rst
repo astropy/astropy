@@ -558,6 +558,7 @@ To read the file and create the model:
         angle
         -----
          23.7
+
 Compound models can also be serialized. Please note that some model attributes (e.g ``meta``, 
 ``tied`` parameter constraints used in fitting), as well as model sets are not yet serializable.
 For more information on serialization of models, see :ref:`asdf_dev`.
