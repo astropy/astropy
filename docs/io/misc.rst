@@ -241,34 +241,34 @@ We would also like to specify that these parameters can either be numeric type,
 or ``astropy.units.quantity`` type. A schema describing this
 model would look like::
 
-        %YAML 1.1
-        ---
-        $schema: "http://stsci.edu/schemas/yaml-schema/draft-01"
-        id: "http://stsci.edu/schemas/asdf/transform/mymodel-1.0.0"
-        tag: "tag:stsci.edu:asdf/transform/mymodel-1.0.0"
-        title: >
-          Example new model.
+    %YAML 1.1
+    ---
+    $schema: "http://stsci.edu/schemas/yaml-schema/draft-01"
+    id: "http://stsci.edu/schemas/asdf/transform/mymodel-1.0.0"
+    tag: "tag:stsci.edu:asdf/transform/mymodel-1.0.0"
+    title: >
+      Example new model.
 
-        description: >
-          Example new model, which describes the distribution of ABC. 
+    description: >
+      Example new model, which describes the distribution of ABC. 
 
-        allOf:
-          - $ref: "transform-1.2.0"
-          - type: object
-            properties:
-              amplitude:
-                anyOf:
-                  - $ref: "../unit/quantity-1.1.0"
-                  - type: number
-                description: Amplitude of distribution.
-              x_0:
-                anyOf:
-                  - $ref: "../unit/quantity-1.1.0"
-                  - type: number
-                description: X center position.
+    allOf:
+      - $ref: "transform-1.2.0"
+      - type: object
+        properties:
+          amplitude:
+            anyOf:
+              - $ref: "../unit/quantity-1.1.0"
+              - type: number
+            description: Amplitude of distribution.
+          x_0:
+            anyOf:
+              - $ref: "../unit/quantity-1.1.0"
+              - type: number
+            description: X center position.
 
-            required: ['amplitude', 'x_0]
-        ...
+        required: ['amplitude', 'x_0]
+    ...
 
 All new transform schemas reference the base transform schema of the latest
 type. This schema describes the other model attributes that are common to all
@@ -285,7 +285,7 @@ written to the ASDF file. ``astropy`` Models inherit from the
 ``TransformType`` base class tag, which takes care of attributes (e.g ``name``,
 ``bounding_box``, ``n_inputs``) that are common to all or many Model classes to
 limit redundancy in individual tags. Each individual model tag then only has
-to obtain and set model-specific parameters.::
+to obtain and set model-specific parameters::
 
     from .basic import TransformType
     from . import _parameter_to_value
