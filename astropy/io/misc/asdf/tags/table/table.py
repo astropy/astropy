@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-from asdf import tagged
 from asdf.tags.core.ndarray import NDArrayType
 
 from astropy import table

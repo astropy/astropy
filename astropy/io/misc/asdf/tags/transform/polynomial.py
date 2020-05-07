@@ -83,7 +83,7 @@ class MultiplyType(TransformType):
     @classmethod
     def to_tree_transform(cls, model, ctx):
         factor = model.factor
-        return  {'factor': _parameter_to_value(factor)}
+        return {'factor': _parameter_to_value(factor)}
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -125,7 +125,7 @@ class PolynomialTypeBase(TransformType):
             for i in range(shape[0]):
                 for j in range(shape[0]):
                     if i + j < degree + 1:
-                        name = 'c' + str(i) + '_' +str(j)
+                        name = 'c' + str(i) + '_' + str(j)
                         coeffs[name] = coefficients[i, j]
             model = modeling.models.Polynomial2D(degree,
                                                  x_domain=x_domain,
@@ -239,7 +239,7 @@ class OrthoPolynomialType(TransformType):
             coeffs = {}
             shape = coefficients.shape
             x_degree = shape[0] - 1
-            y_degree = shape[1] -1
+            y_degree = shape[1] - 1
             for i in range(x_degree + 1):
                 for j in range(y_degree + 1):
                     name = f'c{i}_{j}'
@@ -286,12 +286,12 @@ class OrthoPolynomialType(TransformType):
         # TODO: If models become comparable themselves, remove this.
         # There should be a more elegant way of doing this
         TransformType.assert_equal(a, b)
-        assert  ((isinstance(a, (modeling.models.Legendre1D,   modeling.models.Legendre2D))    and
-                  isinstance(b, (modeling.models.Legendre1D,   modeling.models.Legendre2D)))   or
-                 (isinstance(a, (modeling.models.Chebyshev1D,  modeling.models.Chebyshev2D))   and
-                  isinstance(b, (modeling.models.Chebyshev1D,  modeling.models.Chebyshev2D)))  or
-                 (isinstance(a, (modeling.models.Hermite1D,    modeling.models.Hermite2D))     and
-                  isinstance(b, (modeling.models.Hermite1D,    modeling.models.Hermite2D))))
+        assert ((isinstance(a, (modeling.models.Legendre1D,   modeling.models.Legendre2D)) and
+                 isinstance(b, (modeling.models.Legendre1D,   modeling.models.Legendre2D))) or
+                (isinstance(a, (modeling.models.Chebyshev1D,  modeling.models.Chebyshev2D)) and
+                 isinstance(b, (modeling.models.Chebyshev1D,  modeling.models.Chebyshev2D))) or
+                (isinstance(a, (modeling.models.Hermite1D,    modeling.models.Hermite2D)) and
+                 isinstance(b, (modeling.models.Hermite1D,    modeling.models.Hermite2D))))
         assert_array_equal(a.parameters, b.parameters)
 
 

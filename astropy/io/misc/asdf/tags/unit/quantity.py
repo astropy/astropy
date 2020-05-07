@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
-from numpy import isscalar
 from astropy.units import Quantity
 
 from asdf.tags.core import NDArrayType
