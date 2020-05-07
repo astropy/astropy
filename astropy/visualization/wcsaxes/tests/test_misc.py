@@ -1,26 +1,28 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
-import os
-import warnings
-from distutils.version import LooseVersion
-
 import pytest
-import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
-from matplotlib.contour import QuadContourSet
 
-from astropy import units as u
-from astropy.wcs import WCS
-from astropy.io import fits
-from astropy.coordinates import SkyCoord
-from astropy.tests.helper import catch_warnings
+matplotlib = pytest.importorskip('matplotlib')
 
-from astropy.visualization.wcsaxes.core import WCSAxes
+import os  # noqa
+import warnings  # noqa
+from distutils.version import LooseVersion  # noqa
+
+import numpy as np  # noqa
+import matplotlib  # noqa
+import matplotlib.pyplot as plt  # noqa
+from matplotlib.contour import QuadContourSet  # noqa
+
+from astropy import units as u  # noqa
+from astropy.wcs import WCS  # noqa
+from astropy.io import fits  # noqa
+from astropy.coordinates import SkyCoord  # noqa
+from astropy.tests.helper import catch_warnings  # noqa
+
+from astropy.visualization.wcsaxes.core import WCSAxes  # noqa
 from astropy.visualization.wcsaxes.frame import (
-    EllipticalFrame, RectangularFrame, RectangularFrame1D)
-from astropy.visualization.wcsaxes.utils import get_coord_meta
-from astropy.visualization.wcsaxes.transforms import CurvedTransform
+    EllipticalFrame, RectangularFrame, RectangularFrame1D)  # noqa
+from astropy.visualization.wcsaxes.utils import get_coord_meta  # noqa
+from astropy.visualization.wcsaxes.transforms import CurvedTransform  # noqa
 
 MATPLOTLIB_LT_21 = LooseVersion(matplotlib.__version__) < LooseVersion("2.1")
 MATPLOTLIB_LT_22 = LooseVersion(matplotlib.__version__) < LooseVersion("2.2")

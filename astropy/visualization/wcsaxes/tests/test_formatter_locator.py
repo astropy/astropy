@@ -1,15 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
-import numpy as np
-from numpy.testing import assert_almost_equal
 
-from matplotlib import rc_context
+matplotlib = pytest.importorskip('matplotlib')
 
-from astropy import units as u
-from astropy.tests.helper import assert_quantity_allclose
-from astropy.units import UnitsError
-from astropy.visualization.wcsaxes.formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
+import numpy as np  # noqa
+from numpy.testing import assert_almost_equal  # noqa
+
+from matplotlib import rc_context  # noqa
+
+from astropy import units as u  # noqa
+from astropy.tests.helper import assert_quantity_allclose  # noqa
+from astropy.units import UnitsError  # noqa
+from astropy.visualization.wcsaxes.formatter_locator import AngleFormatterLocator, ScalarFormatterLocator  # noqa
 
 
 class TestAngleFormatterLocator:

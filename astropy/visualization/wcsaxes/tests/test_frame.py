@@ -1,16 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
-import numpy as np
-import matplotlib.pyplot as plt
 
-from astropy.wcs import WCS
+matplotlib = pytest.importorskip('matplotlib')
 
-from astropy.visualization.wcsaxes import WCSAxes
-from astropy.visualization.wcsaxes.frame import BaseFrame
+import numpy as np  # noqa
+import matplotlib.pyplot as plt  # noqa
 
-from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
-from .test_images import BaseImageTests
+from astropy.wcs import WCS  # noqa
+
+from astropy.visualization.wcsaxes import WCSAxes  # noqa
+from astropy.visualization.wcsaxes.frame import BaseFrame  # noqa
+
+from astropy.tests.image_tests import IMAGE_REFERENCE_DIR  # noqa
+from .test_images import BaseImageTests  # noqa
 
 
 class HexagonalFrame(BaseFrame):

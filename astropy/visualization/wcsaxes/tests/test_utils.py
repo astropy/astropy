@@ -1,13 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import pytest
 
+matplotlib = pytest.importorskip('matplotlib')
 
-from numpy.testing import assert_almost_equal
+from numpy.testing import assert_almost_equal  # noqa
 
-from astropy import units as u
+from astropy import units as u  # noqa
 
-from astropy.visualization.wcsaxes.utils import select_step_degree, select_step_hour, select_step_scalar
-from astropy.tests.helper import (assert_quantity_allclose as
-                              assert_almost_equal_quantity)
+from astropy.visualization.wcsaxes.utils import select_step_degree, select_step_hour, select_step_scalar  # noqa
+from astropy.tests.helper import assert_quantity_allclose as assert_almost_equal_quantity  # noqa
 
 
 def test_select_step_degree():

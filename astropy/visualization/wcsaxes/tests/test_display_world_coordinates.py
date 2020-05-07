@@ -1,20 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import matplotlib.pyplot as plt
 import pytest
-from matplotlib.backend_bases import KeyEvent
 
-import numpy as np
+matplotlib = pytest.importorskip('matplotlib')
 
-import astropy.units as u
-from astropy.coordinates import FK5, SkyCoord
-from astropy.io import fits
-from astropy.time import Time
-from astropy.utils.data import get_pkg_data_filename
-from astropy.visualization.wcsaxes.core import WCSAxes
-from astropy.wcs import WCS
-from astropy.coordinates import galactocentric_frame_defaults
+import matplotlib.pyplot as plt  # noqa
+from matplotlib.backend_bases import KeyEvent  # noqa
 
-from .test_images import BaseImageTests
+import numpy as np  # noqa
+
+import astropy.units as u  # noqa
+from astropy.coordinates import FK5, SkyCoord  # noqa
+from astropy.time import Time  # noqa
+from astropy.visualization.wcsaxes.core import WCSAxes  # noqa
+from astropy.wcs import WCS  # noqa
+from astropy.coordinates import galactocentric_frame_defaults  # noqa
+
+from .test_images import BaseImageTests  # noqa
 
 
 class TestDisplayWorldCoordinate(BaseImageTests):

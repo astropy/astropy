@@ -1,15 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
-from unittest.mock import patch
-
 import pytest
-import matplotlib.pyplot as plt
-from astropy.wcs import WCS
-from astropy.io import fits
 
-from astropy.visualization.wcsaxes.core import WCSAxes
-from astropy import units as u
+matplotlib = pytest.importorskip('matplotlib')
+
+import os  # noqa
+from unittest.mock import patch  # noqa
+
+import matplotlib.pyplot as plt  # noqa
+from astropy.wcs import WCS  # noqa
+from astropy.io import fits  # noqa
+
+from astropy.visualization.wcsaxes.core import WCSAxes  # noqa
+from astropy import units as u  # noqa
 
 ROOT = os.path.join(os.path.dirname(__file__))
 MSX_HEADER = fits.Header.fromtextfile(os.path.join(ROOT, 'data', 'msx_header'))

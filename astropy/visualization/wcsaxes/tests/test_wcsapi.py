@@ -1,27 +1,29 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
-import os
-import warnings
-from textwrap import dedent
-
 import pytest
-import numpy as np
 
-import matplotlib.pyplot as plt
-from matplotlib.transforms import Affine2D, IdentityTransform
+matplotlib = pytest.importorskip('matplotlib')
 
-from astropy.io import fits
-from astropy import units as u
-from astropy.wcs.wcsapi import BaseLowLevelWCS, SlicedLowLevelWCS
-from astropy.coordinates import SkyCoord
-from astropy.time import Time
-from astropy.units import Quantity
-from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
-from astropy.wcs import WCS
-from astropy.visualization.wcsaxes.frame import RectangularFrame, RectangularFrame1D
+import os  # noqa
+import warnings  # noqa
+from textwrap import dedent  # noqa
+
+import numpy as np  # noqa
+
+import matplotlib.pyplot as plt  # noqa
+from matplotlib.transforms import Affine2D, IdentityTransform  # noqa
+
+from astropy.io import fits  # noqa
+from astropy import units as u  # noqa
+from astropy.wcs.wcsapi import BaseLowLevelWCS, SlicedLowLevelWCS  # noqa
+from astropy.coordinates import SkyCoord  # noqa
+from astropy.time import Time  # noqa
+from astropy.units import Quantity  # noqa
+from astropy.tests.image_tests import IMAGE_REFERENCE_DIR  # noqa
+from astropy.wcs import WCS  # noqa
+from astropy.visualization.wcsaxes.frame import RectangularFrame, RectangularFrame1D  # noqa
 from astropy.visualization.wcsaxes.wcsapi import (WCSWorld2PixelTransform,
                                                   transform_coord_meta_from_wcs,
-                                                  apply_slices)
+                                                  apply_slices)  # noqa
 
 WCS2D = WCS(naxis=2)
 WCS2D.wcs.ctype = ['x', 'y']
