@@ -1,6 +1,6 @@
 import warnings
 
-from .wrappers.sliced_wcs import SlicedLowLevelWCS
+from .wrappers.sliced_wcs import SlicedLowLevelWCS, sanitize_slices
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 warnings.warn(
