@@ -11,26 +11,26 @@ __all__ = ['CompoundType', 'RemapAxesType']
 
 
 _operator_to_tag_mapping = {
-    '+'  : 'add',
-    '-'  : 'subtract',
-    '*'  : 'multiply',
-    '/'  : 'divide',
-    '**' : 'power',
-    '|'  : 'compose',
-    '&'  : 'concatenate',
+    '+': 'add',
+    '-': 'subtract',
+    '*': 'multiply',
+    '/': 'divide',
+    '**': 'power',
+    '|': 'compose',
+    '&': 'concatenate',
     'fix_inputs': 'fix_inputs'
 }
 
 
 _tag_to_method_mapping = {
-    'add'         : '__add__',
-    'subtract'    : '__sub__',
-    'multiply'    : '__mul__',
-    'divide'      : '__truediv__',
-    'power'       : '__pow__',
-    'compose'     : '__or__',
-    'concatenate' : '__and__',
-    'fix_inputs'  : 'fix_inputs'
+    'add': '__add__',
+    'subtract': '__sub__',
+    'multiply': '__mul__',
+    'divide': '__truediv__',
+    'power': '__pow__',
+    'compose': '__or__',
+    'concatenate': '__and__',
+    'fix_inputs': 'fix_inputs'
 }
 
 
@@ -50,8 +50,8 @@ class CompoundType(TransformType):
             raise TypeError("Unknown model type '{0}'".format(
                 node['forward'][0]._tag))
         right = node['forward'][1]
-        if not isinstance(right, Model) and \
-            not (oper == 'fix_inputs' and isinstance(right, dict)):
+        if (not isinstance(right, Model) and
+                not (oper == 'fix_inputs' and isinstance(right, dict))):
             raise TypeError("Unknown model type '{0}'".format(
                 node['forward'][1]._tag))
         if oper == 'fix_inputs':
