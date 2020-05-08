@@ -65,7 +65,6 @@ static void auxprmprt(const struct auxprm *aux) {
   if (aux->rsun_ref != UNDEFINED) wcsprintf("rsun_ref: %f\n", aux->rsun_ref);
   if (aux->dsun_obs != UNDEFINED) wcsprintf("dsun_obs: %f\n", aux->dsun_obs);
   if (aux->crln_obs != UNDEFINED) wcsprintf("crln_obs: %f\n", aux->crln_obs);
-  // if (aux->crlt_obs != UNDEFINED) wcsprintf("crlt_obs: %f\n", aux->crlt_obs);
   if (aux->hgln_obs != UNDEFINED) wcsprintf("hgln_obs: %f\n", aux->hgln_obs);
   if (aux->hglt_obs != UNDEFINED) wcsprintf("hglt_obs: %f\n", aux->hglt_obs);
 
@@ -145,25 +144,6 @@ static int PyAuxprm_set_crln_obs(PyAuxprm* self, PyObject* value, void* closure)
   }
 }
 
-// For now the WCSLIB struct does not include crlt_obs, so we keep the
-// following commented out until this is fixed
-//
-// static PyObject* PyAuxprm_get_crlt_obs(PyAuxprm* self, void* closure) {
-//   if(self->x == NULL) {
-//     Py_RETURN_NONE;
-//   } else {
-//     return get_double("crlt_obs", self->x->crlt_obs);
-//   }
-// }
-//
-// static int PyAuxprm_set_crlt_obs(PyAuxprm* self, PyObject* value, void* closure) {
-//   if(self->x == NULL) {
-//     return -1;
-//   } else {
-//     return set_double("crlt_obs", value, &self->x->crlt_obs);
-//   }
-// }
-
 static PyObject* PyAuxprm_get_hgln_obs(PyAuxprm* self, void* closure) {
   if(self->x == NULL) {
     Py_RETURN_NONE;
@@ -204,7 +184,6 @@ static PyGetSetDef PyAuxprm_getset[] = {
   {"rsun_ref", (getter)PyAuxprm_get_rsun_ref, PyAuxprm_set_rsun_ref, (char *) NULL},
   {"dsun_obs", (getter)PyAuxprm_get_dsun_obs, PyAuxprm_set_dsun_obs, (char *) NULL},
   {"crln_obs", (getter)PyAuxprm_get_crln_obs, PyAuxprm_set_crln_obs, (char *) NULL},
-  // {"crlt_obs", (getter)PyAuxprm_get_crlt_obs, PyAuxprm_set_crlt_obs, (char *) NULL},
   {"hgln_obs", (getter)PyAuxprm_get_hgln_obs, PyAuxprm_set_hgln_obs, (char *) NULL},
   {"hglt_obs", (getter)PyAuxprm_get_hglt_obs, PyAuxprm_set_hglt_obs, (char *) NULL},
   {NULL}

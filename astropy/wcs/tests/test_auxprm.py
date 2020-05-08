@@ -9,16 +9,12 @@ from numpy.testing import assert_allclose
 from astropy.io import fits
 from astropy.wcs import WCS
 
-# NOTE: For now the WCSLIB struct does not include crlt_obs, so we keep it
-# commented out for now in the following tests.
-
 
 def test_empty():
     w = WCS(naxis=1)
     assert w.wcs.aux.rsun_ref is None
     assert w.wcs.aux.dsun_obs is None
     assert w.wcs.aux.crln_obs is None
-    # assert w.wcs.aux.crlt_obs is None
     assert w.wcs.aux.hgln_obs is None
     assert w.wcs.aux.hglt_obs is None
     assert str(w.wcs.aux) == ''
@@ -49,7 +45,7 @@ DSUN_OBS=       147724815128.0 / [m] Distance from centre of Sun to observer
 CRLN_OBS=            22.814522 / [deg] Carrington heliographic lng of observer
 CRLT_OBS=            -6.820544 / [deg] Heliographic latitude of observer
 HGLN_OBS=             8.431123 / [deg] Stonyhurst heliographic lng of observer
-HGLT_OBS=             3.122233 / [deg] Heliographic latitude of observer
+HGLT_OBS=            -6.820544 / [deg] Heliographic latitude of observer
 """.lstrip(), sep='\n')
 
 
@@ -58,7 +54,7 @@ rsun_ref: 696000000.000000
 dsun_obs: 147724815128.000000
 crln_obs: 22.814522
 hgln_obs: 8.431123
-hglt_obs: 3.122233
+hglt_obs: -6.820544
 """.lstrip()
 
 
@@ -67,9 +63,8 @@ def test_solar_aux_get():
     assert_allclose(w.wcs.aux.rsun_ref, 696000000)
     assert_allclose(w.wcs.aux.dsun_obs, 147724815128)
     assert_allclose(w.wcs.aux.crln_obs, 22.814522)
-    # assert_allclose(w.wcs.aux.crlt_obs, -6.820544)
     assert_allclose(w.wcs.aux.hgln_obs, 8.431123)
-    assert_allclose(w.wcs.aux.hglt_obs, 3.122233)
+    assert_allclose(w.wcs.aux.hglt_obs, -6.820544)
     assert str(w.wcs.aux) == STR_EXPECTED_GET
 
 
@@ -95,9 +90,6 @@ def test_solar_aux_set():
     w.wcs.aux.crln_obs = 10.
     assert_allclose(w.wcs.aux.crln_obs, 10.)
 
-    # w.wcs.aux.crlt_obs = 20.
-    # assert_allclose(w.wcs.aux.crlt_obs, 20.)
-
     w.wcs.aux.hgln_obs = 30.
     assert_allclose(w.wcs.aux.hgln_obs, 30.)
 
@@ -110,6 +102,5 @@ def test_solar_aux_set():
     assert_allclose(header['RSUN_REF'], 698000000)
     assert_allclose(header['DSUN_OBS'], 140000000000)
     assert_allclose(header['CRLN_OBS'], 10.)
-    # assert_allclose(header['CRLT_OBS'], 20.)
     assert_allclose(header['HGLN_OBS'], 30.)
     assert_allclose(header['HGLT_OBS'], 40.)
