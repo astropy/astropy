@@ -730,6 +730,9 @@ astropy.coordinates
   the attributes also properly become scalars when indexed with 0.
   [#10113]
 
+- Fixed a bug where ``SkyCoord.separation()`` and ``SkyCoord.separation_3d``
+  were not accepting a frame object. [#10332]
+
 - Ensure that the ``lon`` values in ``SkyOffsetFrame`` are wrapped correctly at
   180 degree regardless of how the underlying data is represented. [#10163]
 
