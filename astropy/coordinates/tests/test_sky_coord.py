@@ -647,9 +647,10 @@ def test_to_string():
         assert with_kwargs == wrap('+01h02m03.000s +01d02m03.000s')
 
 
-def test_seps():
-    sc1 = SkyCoord(0 * u.deg, 1 * u.deg, frame='icrs')
-    sc2 = SkyCoord(0 * u.deg, 2 * u.deg, frame='icrs')
+@pytest.mark.parametrize('cls_other', [SkyCoord, ICRS])
+def test_seps(cls_other):
+    sc1 = SkyCoord(0 * u.deg, 1 * u.deg)
+    sc2 = cls_other(0 * u.deg, 2 * u.deg)
 
     sep = sc1.separation(sc2)
 
@@ -658,8 +659,8 @@ def test_seps():
     with pytest.raises(ValueError):
         sc1.separation_3d(sc2)
 
-    sc3 = SkyCoord(1 * u.deg, 1 * u.deg, distance=1 * u.kpc, frame='icrs')
-    sc4 = SkyCoord(1 * u.deg, 1 * u.deg, distance=2 * u.kpc, frame='icrs')
+    sc3 = SkyCoord(1 * u.deg, 1 * u.deg, distance=1 * u.kpc)
+    sc4 = cls_other(1 * u.deg, 1 * u.deg, distance=2 * u.kpc)
     sep3d = sc3.separation_3d(sc4)
 
     assert sep3d == 1 * u.kpc
