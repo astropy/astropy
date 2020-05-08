@@ -3996,7 +3996,7 @@ PyWcsprm_set_zsource(
 
 
 static PyObject*
-PyWcsprm_get_auxprm(
+PyWcsprm_get_aux(
     PyWcsprm* self,
     /*@unused@*/ void* closure) {
 
@@ -4019,7 +4019,7 @@ PyWcsprm_get_auxprm(
 
 static PyGetSetDef PyWcsprm_getset[] = {
   {"alt", (getter)PyWcsprm_get_alt, (setter)PyWcsprm_set_alt, (char *)doc_alt},
-  {"auxprm", (getter)PyWcsprm_get_auxprm, NULL, NULL},
+  {"aux", (getter)PyWcsprm_get_aux, NULL, NULL},
   {"axis_types", (getter)PyWcsprm_get_axis_types, NULL, (char *)doc_axis_types},
   {"bepoch", (getter)PyWcsprm_get_bepoch, (setter)PyWcsprm_set_bepoch, (char *)doc_bepoch},
   {"cd", (getter)PyWcsprm_get_cd, (setter)PyWcsprm_set_cd, (char *)doc_cd},
