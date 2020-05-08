@@ -6,6 +6,7 @@
 #define NO_IMPORT_ARRAY
 
 #include "astropy_wcs/wcslib_wrap.h"
+#include "astropy_wcs/wcslib_auxprm_wrap.h"
 #include "astropy_wcs/wcslib_tabprm_wrap.h"
 #include "astropy_wcs/wcslib_wtbarr_wrap.h"
 #include "astropy_wcs/wcslib_units_wrap.h"
@@ -3993,12 +3994,32 @@ PyWcsprm_set_zsource(
   return set_double("zsource", value, &self->x.zsource);
 }
 
+
+static PyObject*
+PyWcsprm_get_auxprm(
+    PyWcsprm* self,
+    /*@unused@*/ void* closure) {
+
+  PyObject* result;
+  double test = 1.2;
+
+  result = (PyObject *)PyAuxprm_cnew((PyObject *)self, self->x.aux);
+
+  if (result == NULL) {
+    Py_DECREF(result);
+    return NULL;
+  }
+
+  return result;
+}
+
 /***************************************************************************
  * PyWcsprm definition structures
  */
 
 static PyGetSetDef PyWcsprm_getset[] = {
   {"alt", (getter)PyWcsprm_get_alt, (setter)PyWcsprm_set_alt, (char *)doc_alt},
+  {"auxprm", (getter)PyWcsprm_get_auxprm, NULL, NULL},
   {"axis_types", (getter)PyWcsprm_get_axis_types, NULL, (char *)doc_axis_types},
   {"bepoch", (getter)PyWcsprm_get_bepoch, (setter)PyWcsprm_set_bepoch, (char *)doc_bepoch},
   {"cd", (getter)PyWcsprm_get_cd, (setter)PyWcsprm_set_cd, (char *)doc_cd},
