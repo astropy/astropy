@@ -856,6 +856,7 @@ PyInit__wcs(void)
       _setup_str_list_proxy_type(m) ||
       _setup_unit_list_proxy_type(m)||
       _setup_wcsprm_type(m)         ||
+      _setup_auxprm_type(m)         ||
       _setup_tabprm_type(m)         ||
       _setup_wtbarr_type(m)         ||
       _setup_distortion_type(m)     ||
