@@ -11,26 +11,26 @@ __all__ = ['CompoundType', 'RemapAxesType']
 
 
 _operator_to_tag_mapping = {
-    '+': 'add',
-    '-': 'subtract',
-    '*': 'multiply',
-    '/': 'divide',
+    '+':  'add',
+    '-':  'subtract',
+    '*':  'multiply',
+    '/':  'divide',
     '**': 'power',
-    '|': 'compose',
-    '&': 'concatenate',
+    '|':  'compose',
+    '&':  'concatenate',
     'fix_inputs': 'fix_inputs'
 }
 
 
 _tag_to_method_mapping = {
-    'add': '__add__',
-    'subtract': '__sub__',
-    'multiply': '__mul__',
-    'divide': '__truediv__',
-    'power': '__pow__',
-    'compose': '__or__',
+    'add':         '__add__',
+    'subtract':    '__sub__',
+    'multiply':    '__mul__',
+    'divide':      '__truediv__',
+    'power':       '__pow__',
+    'compose':     '__or__',
     'concatenate': '__and__',
-    'fix_inputs': 'fix_inputs'
+    'fix_inputs':  'fix_inputs'
 }
 
 
