@@ -1,13 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
-from asdf import tagged
 from asdf.versioning import AsdfVersion
 
-from astropy.modeling import models, mappings
-from astropy.utils import minversion
+from astropy.modeling import mappings
 from astropy.modeling import functional_models
-from astropy.modeling.core import Model, CompoundModel
+from astropy.modeling.core import CompoundModel
 from astropy.io.misc.asdf.types import AstropyAsdfType, AstropyType
 from . import _parameter_to_value
 
@@ -86,10 +84,10 @@ class TransformType(AstropyAsdfType):
 
         # model / parameter constraints
         if not isinstance(model, CompoundModel):
-            fixed_nondefaults = {k:f for k, f in model.fixed.items() if f}
+            fixed_nondefaults = {k: f for k, f in model.fixed.items() if f}
             if fixed_nondefaults:
                 node['fixed'] = fixed_nondefaults
-            bounds_nondefaults = {k:b for k, b in model.bounds.items() if any(b)}
+            bounds_nondefaults = {k: b for k, b in model.bounds.items() if any(b)}
             if bounds_nondefaults:
                 node['bounds'] = bounds_nondefaults
 
@@ -156,7 +154,8 @@ class ConstantType(TransformType):
     def to_tree_transform(cls, data, ctx):
         if cls.version < AsdfVersion('1.4.0'):
             if not isinstance(data, functional_models.Const1D):
-                raise ValueError(f'constant-{cls.version} does not support models with > 1 dimension')
+                raise ValueError(
+                    f'constant-{cls.version} does not support models with > 1 dimension')
             return {
                 'value': _parameter_to_value(data.amplitude)
             }
@@ -238,10 +237,10 @@ class UnitsMappingType(AstropyType):
 
         return tree
 
-
     @classmethod
     def from_tree(cls, tree, ctx):
-        mapping = tuple((i.get("unit"), o.get("unit")) for i, o in zip(tree["inputs"], tree["outputs"]))
+        mapping = tuple((i.get("unit"), o.get("unit"))
+                        for i, o in zip(tree["inputs"], tree["outputs"]))
 
         equivalencies = None
         for i in tree["inputs"]:
@@ -252,7 +251,8 @@ class UnitsMappingType(AstropyType):
 
         kwargs = {
             "input_units_equivalencies": equivalencies,
-            "input_units_allow_dimensionless": {i["name"]: i.get("allow_dimensionless", False) for i in tree["inputs"]},
+            "input_units_allow_dimensionless": {
+                i["name"]: i.get("allow_dimensionless", False) for i in tree["inputs"]},
         }
 
         if "name" in tree:

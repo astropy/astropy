@@ -12,9 +12,9 @@ from astropy.units import Quantity
 from astropy.coordinates import EarthLocation
 from astropy.io.misc.asdf.types import AstropyAsdfType
 
+__all__ = ['TimeType']
 
 _guessable_formats = set(['iso', 'byear', 'jyear', 'yday'])
-
 
 _astropy_format_to_asdf_format = {
     'isot': 'iso',
