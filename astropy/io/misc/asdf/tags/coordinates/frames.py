@@ -11,18 +11,13 @@ from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.units import Quantity
 from astropy.coordinates import ICRS, Longitude, Latitude, Angle
 
-from astropy.io.misc.asdf.tags.unit.quantity import QuantityType
 from astropy.io.misc.asdf.types import AstropyType
 
 
 __all__ = ['CoordType']
 
-SCHEMA_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                           '..', '..',
-                                           'data',
-                                           'schemas',
-                                           'astropy.org',
-                                           'astropy'))
+SCHEMA_PATH = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'schemas', 'astropy.org', 'astropy'))
 
 
 def _get_frames():
