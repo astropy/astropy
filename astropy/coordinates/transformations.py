@@ -831,7 +831,7 @@ class FunctionTransform(CoordinateTransform):
         res = self.func(fromcoord, toframe)
         if not isinstance(res, self.tosys):
             raise TypeError(f'the transformation function yielded {res} but '
-                            'should have been of type {self.tosys}')
+                            f'should have been of type {self.tosys}')
         if fromcoord.data.differentials and not res.data.differentials:
             warn("Applied a FunctionTransform to a coordinate frame with "
                  "differentials, but the FunctionTransform does not handle "
