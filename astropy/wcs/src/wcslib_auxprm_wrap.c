@@ -62,11 +62,12 @@ static void auxprmprt(const struct auxprm *aux) {
 
   if (aux == 0x0) return;
 
-  wcsprintf("rsun_ref: %d\n", aux->rsun_ref);
-  wcsprintf("dsun_obs: %d\n", aux->dsun_obs);
-  wcsprintf("crln_obs: %c\n", aux->crln_obs);
-  wcsprintf("hgln_obs: %s\n", aux->hgln_obs);
-  wcsprintf("hglt_obs: %d\n", aux->hglt_obs);
+  if (aux->rsun_ref != UNDEFINED) wcsprintf("rsun_ref: %f\n", aux->rsun_ref);
+  if (aux->dsun_obs != UNDEFINED) wcsprintf("dsun_obs: %f\n", aux->dsun_obs);
+  if (aux->crln_obs != UNDEFINED) wcsprintf("crln_obs: %f\n", aux->crln_obs);
+  // if (aux->crlt_obs != UNDEFINED) wcsprintf("crlt_obs: %f\n", aux->crlt_obs);
+  if (aux->hgln_obs != UNDEFINED) wcsprintf("hgln_obs: %f\n", aux->hgln_obs);
+  if (aux->hglt_obs != UNDEFINED) wcsprintf("hglt_obs: %f\n", aux->hglt_obs);
 
   return;
 }
@@ -97,42 +98,101 @@ static PyObject* PyAuxprm___str__(PyAuxprm* self) {
  */
 
 static PyObject* PyAuxprm_get_rsun_ref(PyAuxprm* self, void* closure) {
-  if(self->x == NULL) {
-    return NULL;
+  if(self->x == NULL || self->x->rsun_ref == UNDEFINED) {
+    Py_RETURN_NONE;
   } else {
     return get_double("rsun_ref", self->x->rsun_ref);
   }
 }
 
+static int PyAuxprm_set_rsun_ref(PyAuxprm* self, PyObject* value, void* closure) {
+  if(self->x == NULL) {
+    return -1;
+  } else {
+    return set_double("rsun_ref", value, &self->x->rsun_ref);
+  }
+}
+
 static PyObject* PyAuxprm_get_dsun_obs(PyAuxprm* self, void* closure) {
   if(self->x == NULL) {
-    return NULL;
+    Py_RETURN_NONE;
   } else {
     return get_double("dsun_obs", self->x->dsun_obs);
   }
 }
 
-static PyObject* PyAuxprm_get_crln_obs(PyAuxprm* self, void* closure) {
+static int PyAuxprm_set_dsun_obs(PyAuxprm* self, PyObject* value, void* closure) {
   if(self->x == NULL) {
-    return NULL;
+    return -1;
   } else {
-    return get_double("crln_obs", self->x->rsun_ref);
+    return set_double("dsun_obs", value, &self->x->dsun_obs);
   }
 }
 
+static PyObject* PyAuxprm_get_crln_obs(PyAuxprm* self, void* closure) {
+  if(self->x == NULL) {
+    Py_RETURN_NONE;
+  } else {
+    return get_double("crln_obs", self->x->crln_obs);
+  }
+}
+
+static int PyAuxprm_set_crln_obs(PyAuxprm* self, PyObject* value, void* closure) {
+  if(self->x == NULL) {
+    return -1;
+  } else {
+    return set_double("crln_obs", value, &self->x->crln_obs);
+  }
+}
+
+// For now the WCSLIB struct does not include crlt_obs, so we keep the
+// following commented out until this is fixed
+//
+// static PyObject* PyAuxprm_get_crlt_obs(PyAuxprm* self, void* closure) {
+//   if(self->x == NULL) {
+//     Py_RETURN_NONE;
+//   } else {
+//     return get_double("crlt_obs", self->x->crlt_obs);
+//   }
+// }
+//
+// static int PyAuxprm_set_crlt_obs(PyAuxprm* self, PyObject* value, void* closure) {
+//   if(self->x == NULL) {
+//     return -1;
+//   } else {
+//     return set_double("crlt_obs", value, &self->x->crlt_obs);
+//   }
+// }
+
 static PyObject* PyAuxprm_get_hgln_obs(PyAuxprm* self, void* closure) {
   if(self->x == NULL) {
-    return NULL;
+    Py_RETURN_NONE;
   } else {
-    return get_double("hgln_obs", self->x->rsun_ref);
+    return get_double("hgln_obs", self->x->hgln_obs);
+  }
+}
+
+static int PyAuxprm_set_hgln_obs(PyAuxprm* self, PyObject* value, void* closure) {
+  if(self->x == NULL) {
+    return -1;
+  } else {
+    return set_double("hgln_obs", value, &self->x->hgln_obs);
   }
 }
 
 static PyObject* PyAuxprm_get_hglt_obs(PyAuxprm* self, void* closure) {
   if(self->x == NULL) {
-    return NULL;
+    Py_RETURN_NONE;
   } else {
-    return get_double("hglt_obs", self->x->rsun_ref);
+    return get_double("hglt_obs", self->x->hglt_obs);
+  }
+}
+
+static int PyAuxprm_set_hglt_obs(PyAuxprm* self, PyObject* value, void* closure) {
+  if(self->x == NULL) {
+    return -1;
+  } else {
+    return set_double("hglt_obs", value, &self->x->hglt_obs);
   }
 }
 
@@ -141,11 +201,12 @@ static PyObject* PyAuxprm_get_hglt_obs(PyAuxprm* self, void* closure) {
  */
 
 static PyGetSetDef PyAuxprm_getset[] = {
-  {"rsun_ref", (getter)PyAuxprm_get_rsun_ref, NULL, (char *) NULL},
-  {"dsun_obs", (getter)PyAuxprm_get_dsun_obs, NULL, (char *) NULL},
-  {"crln_obs", (getter)PyAuxprm_get_crln_obs, NULL, (char *) NULL},
-  {"hgln_obs", (getter)PyAuxprm_get_hgln_obs, NULL, (char *) NULL},
-  {"hglt_obs", (getter)PyAuxprm_get_hglt_obs, NULL, (char *) NULL},
+  {"rsun_ref", (getter)PyAuxprm_get_rsun_ref, PyAuxprm_set_rsun_ref, (char *) NULL},
+  {"dsun_obs", (getter)PyAuxprm_get_dsun_obs, PyAuxprm_set_dsun_obs, (char *) NULL},
+  {"crln_obs", (getter)PyAuxprm_get_crln_obs, PyAuxprm_set_crln_obs, (char *) NULL},
+  // {"crlt_obs", (getter)PyAuxprm_get_crlt_obs, PyAuxprm_set_crlt_obs, (char *) NULL},
+  {"hgln_obs", (getter)PyAuxprm_get_hgln_obs, PyAuxprm_set_hgln_obs, (char *) NULL},
+  {"hglt_obs", (getter)PyAuxprm_get_hglt_obs, PyAuxprm_set_hglt_obs, (char *) NULL},
   {NULL}
 };
 
