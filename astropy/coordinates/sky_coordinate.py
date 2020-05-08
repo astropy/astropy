@@ -1014,7 +1014,8 @@ class SkyCoord(ShapedLikeNDArray):
 
         if not self.is_equivalent_frame(other):
             try:
-                other = other.transform_to(self, merge_attributes=False)
+                kwargs = {'merge_attributes': False} if isinstance(other, SkyCoord) else {}
+                other = other.transform_to(self, **kwargs)
             except TypeError:
                 raise TypeError('Can only get separation to another SkyCoord '
                                 'or a coordinate frame with data')
@@ -1053,7 +1054,8 @@ class SkyCoord(ShapedLikeNDArray):
         """
         if not self.is_equivalent_frame(other):
             try:
-                other = other.transform_to(self, merge_attributes=False)
+                kwargs = {'merge_attributes': False} if isinstance(other, SkyCoord) else {}
+                other = other.transform_to(self, **kwargs)
             except TypeError:
                 raise TypeError('Can only get separation to another SkyCoord '
                                 'or a coordinate frame with data')
