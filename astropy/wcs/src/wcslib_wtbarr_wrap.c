@@ -163,15 +163,15 @@ static PyObject* PyWtbarr_get_kind(PyWtbarr* self, void* closure) {
  */
 
 static PyGetSetDef PyWtbarr_getset[] = {
-  {"i", (getter)PyWtbarr_get_i, NULL, (char *) NULL},
-  {"m", (getter)PyWtbarr_get_m, NULL, (char *) NULL},
-  {"kind", (getter)PyWtbarr_get_kind, NULL, (char *) NULL},
-  {"extnam", (getter)PyWtbarr_get_extnam, NULL, (char *) NULL},
-  {"extver", (getter)PyWtbarr_get_extver, NULL, (char *) NULL},
-  {"extlev", (getter)PyWtbarr_get_extlev, NULL, (char *) NULL},
-  {"ttype", (getter)PyWtbarr_get_ttype, NULL, (char *) NULL},
-  {"row", (getter)PyWtbarr_get_row, NULL, (char *) NULL},
-  {"ndim", (getter)PyWtbarr_get_ndim, NULL, (char *) NULL},
+  {"i", (getter)PyWtbarr_get_i, NULL, (char *) doc_i},
+  {"m", (getter)PyWtbarr_get_m, NULL, (char *) doc_m},
+  {"kind", (getter)PyWtbarr_get_kind, NULL, (char *) doc_kind},
+  {"extnam", (getter)PyWtbarr_get_extnam, NULL, (char *) doc_extnam},
+  {"extver", (getter)PyWtbarr_get_extver, NULL, (char *) doc_extver},
+  {"extlev", (getter)PyWtbarr_get_extlev, NULL, (char *) doc_extlev},
+  {"ttype", (getter)PyWtbarr_get_ttype, NULL, (char *) doc_ttype},
+  {"row", (getter)PyWtbarr_get_row, NULL, (char *) doc_row},
+  {"ndim", (getter)PyWtbarr_get_ndim, NULL, (char *) doc_ndim},
 /*  {"dimlen", (getter)PyWtbarr_get_dimlen, NULL, (char *) NULL}, */
 /*  {"arrayp", (getter)PyWtbarr_get_arrayp, NULL, (char *) NULL}, */
   {NULL}
@@ -179,7 +179,7 @@ static PyGetSetDef PyWtbarr_getset[] = {
 
 
 static PyMethodDef PyWtbarr_methods[] = {
-  {"print_contents", (PyCFunction)PyWtbarr_print_contents, METH_NOARGS, NULL},
+  {"print_contents", (PyCFunction)PyWtbarr_print_contents, METH_NOARGS, doc_print_contents_wtbarr},
   {NULL}
 };
 
@@ -204,9 +204,9 @@ PyTypeObject PyWtbarrType = {
   0,                            /*tp_setattro*/
   0,                            /*tp_as_buffer*/
   Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /*tp_flags*/
-  0,                            /* tp_doc */
-  0,                            /* tp_traverse */
-  0,                            /* tp_clear */
+  doc_Wtbarr,                   /* tp_doc */
+  PyWtbarr_traverse,            /* tp_traverse */
+  PyWtbarr_clear,               /* tp_clear */
   0,                            /* tp_richcompare */
   0,                            /* tp_weaklistoffset */
   0,                            /* tp_iter */
