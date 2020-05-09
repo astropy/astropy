@@ -6,7 +6,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.coordinates import (SphericalRepresentation, Longitude, Latitude,
-                SphericalDifferential)
+                                 SphericalDifferential)
 
 
 class TestManipulation():
@@ -237,7 +237,7 @@ class TestManipulation():
         assert np.all(s0_take.lon == self.s0.lon.take((5, 2)))
         assert np.all(s0_diff.d_lon == self.diff.d_lon.take((5, 2)))
 
-    def test_broadcast_to(self):
+    def test_broadcast_to_via_apply(self):
         s0_broadcast = self.s0._apply(np.broadcast_to, (3, 6, 7), subok=True)
         s0_diff = s0_broadcast.differentials['s']
         assert type(s0_broadcast) is type(self.s0)
@@ -250,8 +250,20 @@ class TestManipulation():
         assert np.may_share_memory(s0_broadcast.lat, self.s0.lat)
         assert np.may_share_memory(s0_broadcast.distance, self.s0.distance)
 
-        s1_broadcast = self.s1._apply(np.broadcast_to, shape=(3, 6, 7),
-                                      subok=True)
+    def test_broadcast_to(self):
+        s0_broadcast = np.broadcast_to(self.s0, (3, 6, 7))
+        s0_diff = s0_broadcast.differentials['s']
+        assert type(s0_broadcast) is type(self.s0)
+        assert s0_broadcast.shape == (3, 6, 7)
+        assert s0_diff.shape == s0_broadcast.shape
+        assert np.all(s0_broadcast.lon == self.s0.lon)
+        assert np.all(s0_broadcast.lat == self.s0.lat)
+        assert np.all(s0_broadcast.distance == self.s0.distance)
+        assert np.may_share_memory(s0_broadcast.lon, self.s0.lon)
+        assert np.may_share_memory(s0_broadcast.lat, self.s0.lat)
+        assert np.may_share_memory(s0_broadcast.distance, self.s0.distance)
+
+        s1_broadcast = np.broadcast_to(self.s1, shape=(3, 6, 7))
         s1_diff = s1_broadcast.differentials['s']
         assert s1_broadcast.shape == (3, 6, 7)
         assert s1_diff.shape == s1_broadcast.shape
@@ -268,7 +280,7 @@ class TestManipulation():
         sc = self.s0.copy()
         assert not np.may_share_memory(sc.lon, self.s0.lon)
         assert not np.may_share_memory(sc.lat, self.s0.lat)
-        sc_broadcast = sc._apply(np.broadcast_to, (3, 6, 7), subok=True)
+        sc_broadcast = np.broadcast_to(sc, (3, 6, 7))
         assert np.may_share_memory(sc_broadcast.lon, sc.lon)
         # Can only write to copy, not to broadcast version.
         sc.lon[0, 0] = 22. * u.hourangle

@@ -273,7 +273,7 @@ class TestManipulation:
         assert np.all(t2_take2.jd1 == self.t2.jd1.take((5, 15)))
         assert t2_take2.location.shape == t2_take2.shape
 
-    def test_broadcast(self, masked):
+    def test_broadcast_via_apply(self, masked):
         """Test using a callable method."""
         t0_broadcast = self.t0._apply(np.broadcast_to, shape=(3, 10, 5))
         assert t0_broadcast.shape == (3, 10, 5)
@@ -286,6 +286,25 @@ class TestManipulation:
         assert np.may_share_memory(t1_broadcast.jd1, self.t1.jd1)
         assert t1_broadcast.location is self.t1.location
         t2_broadcast = self.t2._apply(np.broadcast_to, shape=(3, 10, 5))
+        assert t2_broadcast.shape == (3, 10, 5)
+        assert np.all(t2_broadcast.jd1 == self.t2.jd1)
+        assert np.may_share_memory(t2_broadcast.jd1, self.t2.jd1)
+        assert t2_broadcast.location.shape == t2_broadcast.shape
+        assert np.may_share_memory(t2_broadcast.location, self.t2.location)
+
+    def test_broadcast(self, masked):
+        """Test as supported numpy function."""
+        t0_broadcast = np.broadcast_to(self.t0, shape=(3, 10, 5))
+        assert t0_broadcast.shape == (3, 10, 5)
+        assert np.all(t0_broadcast.jd1 == self.t0.jd1)
+        assert np.may_share_memory(t0_broadcast.jd1, self.t0.jd1)
+        assert t0_broadcast.location is None
+        t1_broadcast = np.broadcast_to(self.t1, shape=(3, 10, 5))
+        assert t1_broadcast.shape == (3, 10, 5)
+        assert np.all(t1_broadcast.jd1 == self.t1.jd1)
+        assert np.may_share_memory(t1_broadcast.jd1, self.t1.jd1)
+        assert t1_broadcast.location is self.t1.location
+        t2_broadcast = np.broadcast_to(self.t2, shape=(3, 10, 5))
         assert t2_broadcast.shape == (3, 10, 5)
         assert np.all(t2_broadcast.jd1 == self.t2.jd1)
         assert np.may_share_memory(t2_broadcast.jd1, self.t2.jd1)
