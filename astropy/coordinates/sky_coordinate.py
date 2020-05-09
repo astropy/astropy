@@ -1,7 +1,6 @@
 import re
 import copy
 import warnings
-import contextlib
 import operator
 
 import numpy as np
@@ -383,7 +382,7 @@ class SkyCoord(ShapedLikeNDArray):
         In typical usage, the method is any of the shape-changing methods for
         `~numpy.ndarray` (``reshape``, ``swapaxes``, etc.), as well as those
         picking particular elements (``__getitem__``, ``take``, etc.), which
-        are all defined in `~astropy.utils.misc.ShapedLikeNDArray`. It will be
+        are all defined in `~astropy.utils.shapes.ShapedLikeNDArray`. It will be
         applied to the underlying arrays in the representation (e.g., ``x``,
         ``y``, and ``z`` for `~astropy.coordinates.CartesianRepresentation`),
         as well as to any frame attributes that have a shape, with the results

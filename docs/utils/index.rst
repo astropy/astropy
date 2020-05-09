@@ -78,6 +78,9 @@ Reference/API
 .. automodapi:: astropy.utils.state
     :no-inheritance-diagram:
 
+.. automodapi:: astropy.utils.shapes
+    :no-inheritance-diagram:
+
 
 File Downloads
 --------------

@@ -4,8 +4,6 @@ import warnings
 
 import pytest
 
-from io import StringIO
-
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_equal, assert_allclose
 
@@ -13,7 +11,7 @@ from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.time import Time
 from astropy import units as u
-from astropy.utils.misc import unbroadcast
+from astropy.utils import unbroadcast
 from astropy.coordinates import SkyCoord
 from astropy.units import Quantity
 from astropy.io import fits
