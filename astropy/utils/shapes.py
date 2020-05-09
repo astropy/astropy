@@ -207,14 +207,14 @@ class ShapedLikeNDArray(metaclass=abc.ABCMeta):
     # version): reshape, ravel, swapaxes, transpose, squeeze
     _METHOD_FUNCTIONS = {
         np.reshape, np.ravel, np.swapaxes, np.transpose, np.squeeze,
-        np.diagonal
+        np.diagonal, np.copy,
         }
     _APPLICABLE_FUNCTIONS = {
         np.moveaxis, np.rollaxis,
         np.atleast_1d, np.atleast_2d, np.atleast_3d, np.expand_dims,
         np.broadcast_to, np.flip, np.fliplr, np.flipud, np.rot90,
         np.diag_indices_from, np.triu_indices_from, np.tril_indices_from,
-        np.roll, np.take
+        np.roll, np.take,
         }
 
     # Could be made to work with some effort:
