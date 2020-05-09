@@ -365,7 +365,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         In typical usage, the method is any of the shape-changing methods for
         `~numpy.ndarray` (``reshape``, ``swapaxes``, etc.), as well as those
         picking particular elements (``__getitem__``, ``take``, etc.), which
-        are all defined in `~astropy.utils.misc.ShapedLikeNDArray`. It will be
+        are all defined in `~astropy.utils.shapes.ShapedLikeNDArray`. It will be
         applied to the underlying arrays (e.g., ``x``, ``y``, and ``z`` for
         `~astropy.coordinates.CartesianRepresentation`), with the results used
         to create a new instance.

@@ -18,3 +18,4 @@ from .codegen import *  # noqa
 from .decorators import *  # noqa
 from .introspection import *  # noqa
 from .misc import *  # noqa
+from .shapes import *  # noqa

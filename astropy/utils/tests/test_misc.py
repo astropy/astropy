@@ -140,33 +140,9 @@ def test_set_locale():
         assert date.strftime('%a, %b') == day_mon
 
 
-def test_check_broadcast():
-    assert misc.check_broadcast((10, 1), (3,)) == (10, 3)
-    assert misc.check_broadcast((10, 1), (3,), (4, 1, 1, 3)) == (4, 1, 10, 3)
-    with pytest.raises(ValueError):
-        misc.check_broadcast((10, 2), (3,))
-
-    with pytest.raises(ValueError):
-        misc.check_broadcast((10, 1), (3,), (4, 1, 2, 3))
-
-
 def test_dtype_bytes_or_chars():
     assert misc.dtype_bytes_or_chars(np.dtype(np.float64)) == 8
     assert misc.dtype_bytes_or_chars(np.dtype(object)) is None
     assert misc.dtype_bytes_or_chars(np.dtype(np.int32)) == 4
     assert misc.dtype_bytes_or_chars(np.array(b'12345').dtype) == 5
     assert misc.dtype_bytes_or_chars(np.array('12345').dtype) == 5
-
-
-def test_unbroadcast():
-
-    x = np.array([1, 2, 3])
-    y = np.broadcast_to(x, (2, 4, 3))
-    z = misc.unbroadcast(y)
-    assert z.shape == (3,)
-    np.testing.assert_equal(z, x)
-
-    x = np.ones((3, 5))
-    y = np.broadcast_to(x, (5, 3, 5))
-    z = misc.unbroadcast(y)
-    assert z.shape == (3, 5)

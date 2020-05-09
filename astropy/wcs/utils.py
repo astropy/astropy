@@ -3,10 +3,10 @@
 import numpy as np
 
 from astropy import units as u
-from astropy.utils.misc import unbroadcast
+from astropy.utils import unbroadcast
 import copy
 
-from .wcs import WCS, WCSSUB_LONGITUDE, WCSSUB_LATITUDE, WCSSUB_CELESTIAL
+from .wcs import WCS, WCSSUB_LONGITUDE, WCSSUB_LATITUDE
 
 __doctest_skip__ = ['wcs_to_celestial_frame', 'celestial_frame_to_wcs']
 
