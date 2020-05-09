@@ -712,12 +712,12 @@ class SkyCoord(ShapedLikeNDArray):
         icrsrep = self.icrs.represent_as(SphericalRepresentation, SphericalDifferential)
         icrsvel = icrsrep.differentials['s']
 
-        override_plx = False
+        parallax_zero = False
         try:
             plx = icrsrep.distance.to_value(u.arcsecond, u.parallax())
         except u.UnitConversionError:  # No distance: set to 0 by convention
             plx = 0.
-            override_plx = True
+            parallax_zero = True
 
         try:
             rv = icrsvel.d_distance.to_value(u.km/u.s)
@@ -729,7 +729,7 @@ class SkyCoord(ShapedLikeNDArray):
                              icrsvel.d_lat.to_value(u.radian/u.yr),
                              plx, rv, t1.jd1, t1.jd2, t2.jd1, t2.jd2)
 
-        if override_plx:
+        if parallax_zero:
             new_distance = None
         else:
             new_distance = Distance(parallax=starpm[4] << u.arcsec)
