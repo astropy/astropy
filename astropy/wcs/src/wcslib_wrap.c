@@ -4091,7 +4091,7 @@ static PyGetSetDef PyWcsprm_getset[] = {
   {"velosys", (getter)PyWcsprm_get_velosys, (setter)PyWcsprm_set_velosys, (char *)doc_velosys},
   {"velref", (getter)PyWcsprm_get_velref, (setter)PyWcsprm_set_velref, (char *)doc_velref},
   {"xposure", (getter)PyWcsprm_get_xposure, (setter)PyWcsprm_set_xposure, (char *)doc_xposure},
-  {"wtb", (getter)PyWcsprm_get_wtb, NULL, (char *) NULL},
+  {"wtb", (getter)PyWcsprm_get_wtb, NULL, (char *) doc_wtb},
   {"zsource", (getter)PyWcsprm_get_zsource, (setter)PyWcsprm_set_zsource, (char *)doc_zsource},
   {NULL}
 };
