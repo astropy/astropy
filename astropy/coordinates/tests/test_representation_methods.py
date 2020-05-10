@@ -7,11 +7,17 @@ import numpy as np
 from astropy import units as u
 from astropy.coordinates import (SphericalRepresentation, Longitude, Latitude,
                                  SphericalDifferential)
-
+from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
 from .test_representation import representation_equal
 
 
-class TestManipulation():
+@pytest.fixture(params=[True, False] if ARRAY_FUNCTION_ENABLED
+                else [True])
+def method(request):
+    return request.param
+
+
+class ShapeSetup:
     """Manipulation of Representation shapes.
 
     Checking that attributes are manipulated correctly.
@@ -19,34 +25,42 @@ class TestManipulation():
     Even more exhaustive tests are done in time.tests.test_methods
     """
 
-    def setup(self):
+    def setup_class(cls):
         # We set up some representations with, on purpose, copy=False,
         # so we can check that broadcasting is handled correctly.
         lon = Longitude(np.arange(0, 24, 4), u.hourangle)
         lat = Latitude(np.arange(-90, 91, 30), u.deg)
 
         # With same-sized arrays
-        self.s0 = SphericalRepresentation(
+        cls.s0 = SphericalRepresentation(
             lon[:, np.newaxis] * np.ones(lat.shape),
             lat * np.ones(lon.shape)[:, np.newaxis],
             np.ones(lon.shape + lat.shape) * u.kpc,
             copy=False)
 
-        self.diff = SphericalDifferential(
-            d_lon=np.ones(self.s0.shape)*u.mas/u.yr,
-            d_lat=np.ones(self.s0.shape)*u.mas/u.yr,
-            d_distance=np.ones(self.s0.shape)*u.km/u.s,
+        cls.diff = SphericalDifferential(
+            d_lon=np.ones(cls.s0.shape)*u.mas/u.yr,
+            d_lat=np.ones(cls.s0.shape)*u.mas/u.yr,
+            d_distance=np.ones(cls.s0.shape)*u.km/u.s,
             copy=False)
-        self.s0 = self.s0.with_differentials(self.diff)
+        cls.s0 = cls.s0.with_differentials(cls.diff)
 
         # With unequal arrays -> these will be broadcasted.
-        self.s1 = SphericalRepresentation(lon[:, np.newaxis], lat, 1. * u.kpc,
-                                          differentials=self.diff, copy=False)
+        cls.s1 = SphericalRepresentation(lon[:, np.newaxis], lat, 1. * u.kpc,
+                                         differentials=cls.diff, copy=False)
 
         # For completeness on some tests, also a cartesian one
-        self.c0 = self.s0.to_cartesian()
+        cls.c0 = cls.s0.to_cartesian()
 
-    @pytest.mark.parametrize('method', [True, False])
+
+class TestManipulation(ShapeSetup):
+    """Manipulation of Representation shapes.
+
+    Checking that attributes are manipulated correctly.
+
+    Even more exhaustive tests are done in time.tests.test_methods
+    """
+
     def test_ravel(self, method):
         if method:
             s0_ravel = self.s0.ravel()
@@ -71,7 +85,6 @@ class TestManipulation():
         assert np.all(s1_ravel.lon == self.s1.lon.ravel())
         assert not np.may_share_memory(s1_ravel.lat, self.s1.lat)
 
-    @pytest.mark.parametrize('method', [False, True])
     def test_copy(self, method):
         if method:
             s0_copy = self.s0.copy()
@@ -139,7 +152,6 @@ class TestManipulation():
         assert np.may_share_memory(s0_diagonal.lat, self.s0.lat)
         assert np.may_share_memory(s0_diff.d_lon, self.diff.d_lon)
 
-    @pytest.mark.parametrize('method', [False, True])
     def test_swapaxes(self, method):
         if method:
             s1_swapaxes = self.s1.swapaxes(0, 1)
@@ -182,9 +194,54 @@ class TestManipulation():
         assert s1_reshape2.distance.shape == (3, 14)
         assert np.may_share_memory(s1_reshape2.distance, self.s1.distance)
 
+    def test_squeeze(self):
+        s0_squeeze = self.s0.reshape(3, 1, 2, 1, 7).squeeze()
+        s0_diff = s0_squeeze.differentials['s']
+        assert s0_squeeze.shape == (3, 2, 7)
+        assert s0_diff.shape == s0_squeeze.shape
+        assert np.all(s0_squeeze.lat == self.s0.lat.reshape(3, 2, 7))
+        assert np.all(s0_diff.d_lon == self.diff.d_lon.reshape(3, 2, 7))
+        assert np.may_share_memory(s0_squeeze.lat, self.s0.lat)
+
+    def test_add_dimension(self):
+        s0_adddim = self.s0[:, np.newaxis, :]
+        s0_diff = s0_adddim.differentials['s']
+        assert s0_adddim.shape == (6, 1, 7)
+        assert s0_diff.shape == s0_adddim.shape
+        assert np.all(s0_adddim.lon == self.s0.lon[:, np.newaxis, :])
+        assert np.all(s0_diff.d_lon == self.diff.d_lon[:, np.newaxis, :])
+        assert np.may_share_memory(s0_adddim.lat, self.s0.lat)
+
+    def test_take(self, method):
+        if method:
+            s0_take = self.s0.take((5, 2))
+        else:
+            s0_take = np.take(self.s0, (5, 2))
+        s0_diff = s0_take.differentials['s']
+        assert s0_take.shape == (2,)
+        assert s0_diff.shape == s0_take.shape
+        assert np.all(s0_take.lon == self.s0.lon.take((5, 2)))
+        assert np.all(s0_diff.d_lon == self.diff.d_lon.take((5, 2)))
+
+    def test_broadcast_to_via_apply(self):
+        s0_broadcast = self.s0._apply(np.broadcast_to, (3, 6, 7), subok=True)
+        s0_diff = s0_broadcast.differentials['s']
+        assert type(s0_broadcast) is type(self.s0)
+        assert s0_broadcast.shape == (3, 6, 7)
+        assert s0_diff.shape == s0_broadcast.shape
+        assert np.all(s0_broadcast.lon == self.s0.lon)
+        assert np.all(s0_broadcast.lat == self.s0.lat)
+        assert np.all(s0_broadcast.distance == self.s0.distance)
+        assert np.may_share_memory(s0_broadcast.lon, self.s0.lon)
+        assert np.may_share_memory(s0_broadcast.lat, self.s0.lat)
+        assert np.may_share_memory(s0_broadcast.distance, self.s0.distance)
+
+
+class TestSetShape(ShapeSetup):
     def test_shape_setting(self):
         # Shape-setting should be on the object itself, since copying removes
-        # zero-strides due to broadcasting.  We reset the objects at the end.
+        # zero-strides due to broadcasting.  Hence, this should be the only
+        # test in this class.
         self.s0.shape = (2, 3, 7)
         assert self.s0.shape == (2, 3, 7)
         assert self.s0.lon.shape == (2, 3, 7)
@@ -226,51 +283,11 @@ class TestManipulation():
         assert s2.distance.shape == oldshape
         assert 0 not in s2.lon.strides
         assert 0 in s2.lat.strides
-        self.setup()
 
-    def test_squeeze(self):
-        s0_squeeze = self.s0.reshape(3, 1, 2, 1, 7).squeeze()
-        s0_diff = s0_squeeze.differentials['s']
-        assert s0_squeeze.shape == (3, 2, 7)
-        assert s0_diff.shape == s0_squeeze.shape
-        assert np.all(s0_squeeze.lat == self.s0.lat.reshape(3, 2, 7))
-        assert np.all(s0_diff.d_lon == self.diff.d_lon.reshape(3, 2, 7))
-        assert np.may_share_memory(s0_squeeze.lat, self.s0.lat)
 
-    def test_add_dimension(self):
-        s0_adddim = self.s0[:, np.newaxis, :]
-        s0_diff = s0_adddim.differentials['s']
-        assert s0_adddim.shape == (6, 1, 7)
-        assert s0_diff.shape == s0_adddim.shape
-        assert np.all(s0_adddim.lon == self.s0.lon[:, np.newaxis, :])
-        assert np.all(s0_diff.d_lon == self.diff.d_lon[:, np.newaxis, :])
-        assert np.may_share_memory(s0_adddim.lat, self.s0.lat)
-
-    @pytest.mark.parametrize('method', [False, True])
-    def test_take(self, method):
-        if method:
-            s0_take = self.s0.take((5, 2))
-        else:
-            s0_take = np.take(self.s0, (5, 2))
-        s0_diff = s0_take.differentials['s']
-        assert s0_take.shape == (2,)
-        assert s0_diff.shape == s0_take.shape
-        assert np.all(s0_take.lon == self.s0.lon.take((5, 2)))
-        assert np.all(s0_diff.d_lon == self.diff.d_lon.take((5, 2)))
-
-    def test_broadcast_to_via_apply(self):
-        s0_broadcast = self.s0._apply(np.broadcast_to, (3, 6, 7), subok=True)
-        s0_diff = s0_broadcast.differentials['s']
-        assert type(s0_broadcast) is type(self.s0)
-        assert s0_broadcast.shape == (3, 6, 7)
-        assert s0_diff.shape == s0_broadcast.shape
-        assert np.all(s0_broadcast.lon == self.s0.lon)
-        assert np.all(s0_broadcast.lat == self.s0.lat)
-        assert np.all(s0_broadcast.distance == self.s0.distance)
-        assert np.may_share_memory(s0_broadcast.lon, self.s0.lon)
-        assert np.may_share_memory(s0_broadcast.lat, self.s0.lat)
-        assert np.may_share_memory(s0_broadcast.distance, self.s0.distance)
-
+class TestShapeFunctions(ShapeSetup):
+    @pytest.mark.xfail(not ARRAY_FUNCTION_ENABLED,
+                       reason="Needs __array_function__ support")
     def test_broadcast_to(self):
         s0_broadcast = np.broadcast_to(self.s0, (3, 6, 7))
         s0_diff = s0_broadcast.differentials['s']
@@ -307,6 +324,8 @@ class TestManipulation():
         sc.lon[0, 0] = 22. * u.hourangle
         assert np.all(sc_broadcast.lon[:, 0, 0] == 22. * u.hourangle)
 
+    @pytest.mark.xfail(not ARRAY_FUNCTION_ENABLED,
+                       reason="Needs __array_function__ support")
     def test_atleast_1d(self):
         s00 = self.s0.ravel()[0]
         assert s00.ndim == 0
@@ -315,6 +334,8 @@ class TestManipulation():
         assert np.all(representation_equal(s00[np.newaxis], s00_1d))
         assert np.may_share_memory(s00_1d.lon, s00.lon)
 
+    @pytest.mark.xfail(not ARRAY_FUNCTION_ENABLED,
+                       reason="Needs __array_function__ support")
     def test_atleast_2d(self):
         s0r = self.s0.ravel()
         assert s0r.ndim == 1
@@ -323,6 +344,8 @@ class TestManipulation():
         assert np.all(representation_equal(s0r[np.newaxis], s0r_2d))
         assert np.may_share_memory(s0r_2d.lon, s0r.lon)
 
+    @pytest.mark.xfail(not ARRAY_FUNCTION_ENABLED,
+                       reason="Needs __array_function__ support")
     def test_atleast_3d(self):
         assert self.s0.ndim == 2
         s0_3d, s1_3d = np.atleast_3d(self.s0, self.s1)
@@ -334,32 +357,42 @@ class TestManipulation():
         assert np.may_share_memory(s0_3d.lon, self.s0.lon)
 
     def test_move_axis(self):
+        # Goes via transpose so works without __array_function__ as well.
         s0_10 = np.moveaxis(self.s0, 0, 1)
         assert s0_10.shape == (self.s0.shape[1], self.s0.shape[0])
         assert np.all(representation_equal(self.s0.T, s0_10))
         assert np.may_share_memory(s0_10.lon, self.s0.lon)
 
     def test_roll_axis(self):
+        # Goes via transpose so works without __array_function__ as well.
         s0_10 = np.rollaxis(self.s0, 1)
         assert s0_10.shape == (self.s0.shape[1], self.s0.shape[0])
         assert np.all(representation_equal(self.s0.T, s0_10))
         assert np.may_share_memory(s0_10.lon, self.s0.lon)
 
+    @pytest.mark.xfail(not ARRAY_FUNCTION_ENABLED,
+                       reason="Needs __array_function__ support")
     def test_fliplr(self):
         s0_lr = np.fliplr(self.s0)
         assert np.all(representation_equal(self.s0[:, ::-1], s0_lr))
         assert np.may_share_memory(s0_lr.lon, self.s0.lon)
 
+    @pytest.mark.xfail(not ARRAY_FUNCTION_ENABLED,
+                       reason="Needs __array_function__ support")
     def test_rot90(self):
         s0_270 = np.rot90(self.s0, 3)
         assert np.all(representation_equal(self.s0.T[:, ::-1], s0_270))
         assert np.may_share_memory(s0_270.lon, self.s0.lon)
 
+    @pytest.mark.xfail(not ARRAY_FUNCTION_ENABLED,
+                       reason="Needs __array_function__ support")
     def test_roll(self):
         s0r = np.roll(self.s0, 1, axis=0)
         assert np.all(representation_equal(s0r[1:], self.s0[:-1]))
         assert np.all(representation_equal(s0r[0], self.s0[-1]))
 
+    @pytest.mark.xfail(not ARRAY_FUNCTION_ENABLED,
+                       reason="Needs __array_function__ support")
     def test_delete(self):
         s0d = np.delete(self.s0, [2, 3], axis=0)
         assert np.all(representation_equal(s0d[:2], self.s0[:2]))
