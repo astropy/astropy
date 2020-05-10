@@ -9,6 +9,7 @@ import numpy as np
 
 from astropy.time import Time
 from astropy.utils import iers
+from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
 
 
 @pytest.fixture(scope="module", params=[True, False])
@@ -19,24 +20,25 @@ def masked(request):
     yield use_masked_data
 
 
-class TestManipulation:
-    """Manipulation of Time objects, ensuring attributes are done correctly."""
-
-    def setup(self):
+class ShapeSetup:
+    def setup_class(cls):
         mjd = np.arange(50000, 50010)
         frac = np.arange(0., 0.999, 0.2)
         if use_masked_data:
             frac = np.ma.array(frac)
             frac[1] = np.ma.masked
-        self.t0 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc')
-        self.t1 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc',
-                       location=('45d', '50d'))
-        self.t2 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc',
-                       location=(np.arange(len(frac)), np.arange(len(frac))))
+        cls.t0 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc')
+        cls.t1 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc',
+                      location=('45d', '50d'))
+        cls.t2 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc',
+                      location=(np.arange(len(frac)), np.arange(len(frac))))
         # Note: location is along last axis only.
-        self.t2 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc',
-                       location=(np.arange(len(frac)), np.arange(len(frac))))
+        cls.t2 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc',
+                      location=(np.arange(len(frac)), np.arange(len(frac))))
 
+
+class TestManipulation(ShapeSetup):
+    """Manipulation of Time objects, ensuring attributes are done correctly."""
     def test_ravel(self, masked):
         t0_ravel = self.t0.ravel()
         assert t0_ravel.shape == (self.t0.size,)
@@ -175,50 +177,6 @@ class TestManipulation:
         assert not np.may_share_memory(t2_reshape_t_reshape.location,
                                        t2_reshape_t.location)
 
-    def test_shape_setting(self, masked):
-        t0_reshape = self.t0.copy()
-        mjd = t0_reshape.mjd  # Creates a cache of the mjd attribute
-        t0_reshape.shape = (5, 2, 5)
-        assert t0_reshape.shape == (5, 2, 5)
-        assert mjd.shape != t0_reshape.mjd.shape  # Cache got cleared
-        assert np.all(t0_reshape.jd1 == self.t0._time.jd1.reshape(5, 2, 5))
-        assert np.all(t0_reshape.jd2 == self.t0._time.jd2.reshape(5, 2, 5))
-        assert t0_reshape.location is None
-        # But if the shape doesn't work, one should get an error.
-        t0_reshape_t = t0_reshape.T
-        with pytest.raises(AttributeError):
-            t0_reshape_t.shape = (10, 5)
-        # check no shape was changed.
-        assert t0_reshape_t.shape == t0_reshape.T.shape
-        assert t0_reshape_t.jd1.shape == t0_reshape.T.shape
-        assert t0_reshape_t.jd2.shape == t0_reshape.T.shape
-        t1_reshape = self.t1.copy()
-        t1_reshape.shape = (2, 5, 5)
-        assert t1_reshape.shape == (2, 5, 5)
-        assert np.all(t1_reshape.jd1 == self.t1.jd1.reshape(2, 5, 5))
-        # location is a single element, so its shape should not change.
-        assert t1_reshape.location.shape == ()
-        # For reshape(5, 2, 5), the location array can remain the same.
-        # Note that we need to work directly on self.t2 here, since any
-        # copy would cause location to have the full shape.
-        self.t2.shape = (5, 2, 5)
-        assert self.t2.shape == (5, 2, 5)
-        assert self.t2.jd1.shape == (5, 2, 5)
-        assert self.t2.jd2.shape == (5, 2, 5)
-        assert self.t2.location.shape == (5, 2, 5)
-        assert self.t2.location.strides == (0, 0, 24)
-        # But for reshape(50), location would need to be copied, so this
-        # should fail.
-        oldshape = self.t2.shape
-        with pytest.raises(AttributeError):
-            self.t2.shape = (50,)
-        # check no shape was changed.
-        assert self.t2.jd1.shape == oldshape
-        assert self.t2.jd2.shape == oldshape
-        assert self.t2.location.shape == oldshape
-        # reset t2 to its original.
-        self.setup()
-
     def test_squeeze(self, masked):
         t0_squeeze = self.t0.reshape(5, 1, 2, 1, 5).squeeze()
         assert t0_squeeze.shape == (5, 2, 5)
@@ -292,6 +250,57 @@ class TestManipulation:
         assert t2_broadcast.location.shape == t2_broadcast.shape
         assert np.may_share_memory(t2_broadcast.location, self.t2.location)
 
+
+class TestSetShape(ShapeSetup):
+    def test_shape_setting(self, masked):
+        # Shape-setting should be on the object itself, since copying removes
+        # zero-strides due to broadcasting.  Hence, this should be the only
+        # test in this class.
+        t0_reshape = self.t0.copy()
+        mjd = t0_reshape.mjd  # Creates a cache of the mjd attribute
+        t0_reshape.shape = (5, 2, 5)
+        assert t0_reshape.shape == (5, 2, 5)
+        assert mjd.shape != t0_reshape.mjd.shape  # Cache got cleared
+        assert np.all(t0_reshape.jd1 == self.t0._time.jd1.reshape(5, 2, 5))
+        assert np.all(t0_reshape.jd2 == self.t0._time.jd2.reshape(5, 2, 5))
+        assert t0_reshape.location is None
+        # But if the shape doesn't work, one should get an error.
+        t0_reshape_t = t0_reshape.T
+        with pytest.raises(AttributeError):
+            t0_reshape_t.shape = (10, 5)
+        # check no shape was changed.
+        assert t0_reshape_t.shape == t0_reshape.T.shape
+        assert t0_reshape_t.jd1.shape == t0_reshape.T.shape
+        assert t0_reshape_t.jd2.shape == t0_reshape.T.shape
+        t1_reshape = self.t1.copy()
+        t1_reshape.shape = (2, 5, 5)
+        assert t1_reshape.shape == (2, 5, 5)
+        assert np.all(t1_reshape.jd1 == self.t1.jd1.reshape(2, 5, 5))
+        # location is a single element, so its shape should not change.
+        assert t1_reshape.location.shape == ()
+        # For reshape(5, 2, 5), the location array can remain the same.
+        # Note that we need to work directly on self.t2 here, since any
+        # copy would cause location to have the full shape.
+        self.t2.shape = (5, 2, 5)
+        assert self.t2.shape == (5, 2, 5)
+        assert self.t2.jd1.shape == (5, 2, 5)
+        assert self.t2.jd2.shape == (5, 2, 5)
+        assert self.t2.location.shape == (5, 2, 5)
+        assert self.t2.location.strides == (0, 0, 24)
+        # But for reshape(50), location would need to be copied, so this
+        # should fail.
+        oldshape = self.t2.shape
+        with pytest.raises(AttributeError):
+            self.t2.shape = (50,)
+        # check no shape was changed.
+        assert self.t2.jd1.shape == oldshape
+        assert self.t2.jd2.shape == oldshape
+        assert self.t2.location.shape == oldshape
+
+
+class TestShapeFunctions(ShapeSetup):
+    @pytest.mark.xfail(not ARRAY_FUNCTION_ENABLED,
+                       reason="Needs __array_function__ support")
     def test_broadcast(self, masked):
         """Test as supported numpy function."""
         t0_broadcast = np.broadcast_to(self.t0, shape=(3, 10, 5))
@@ -317,21 +326,21 @@ class TestArithmetic:
     kwargs = ({}, {'axis': None}, {'axis': 0}, {'axis': 1}, {'axis': 2})
     functions = ('min', 'max', 'sort')
 
-    def setup(self):
+    def setup_class(cls):
         mjd = np.arange(50000, 50100, 10).reshape(2, 5, 1)
         frac = np.array([0.1, 0.1 + 1.e-15, 0.1 - 1.e-15, 0.9 + 2.e-16, 0.9])
         if use_masked_data:
             frac = np.ma.array(frac)
             frac[1] = np.ma.masked
-        self.t0 = Time(mjd, frac, format='mjd', scale='utc')
+        cls.t0 = Time(mjd, frac, format='mjd', scale='utc')
 
         # Define arrays with same ordinal properties
         frac = np.array([1, 2, 0, 4, 3])
         if use_masked_data:
             frac = np.ma.array(frac)
             frac[1] = np.ma.masked
-        self.t1 = Time(mjd + frac, format='mjd', scale='utc')
-        self.jd = mjd + frac
+        cls.t1 = Time(mjd + frac, format='mjd', scale='utc')
+        cls.jd = mjd + frac
 
     @pytest.mark.parametrize('kw, func', itertools.product(kwargs, functions))
     def test_argfuncs(self, kw, func, masked):
