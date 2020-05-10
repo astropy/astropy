@@ -203,11 +203,6 @@ class ShapedLikeNDArray(metaclass=abc.ABCMeta):
         """
         return self._apply('take', indices, axis=axis, mode=mode)
 
-    # Functions that are taken care of by methods.
-    _METHOD_FUNCTIONS = {
-        np.reshape, np.ravel, np.swapaxes, np.transpose, np.squeeze,
-        np.diagonal, np.copy, np.take,
-        }
     # Functions that change shape or essentially do indexing.
     _APPLICABLE_FUNCTIONS = {
         np.moveaxis, np.rollaxis,
@@ -216,13 +211,21 @@ class ShapedLikeNDArray(metaclass=abc.ABCMeta):
         np.roll, np.delete,
         }
 
+    # Functions that for now should just pass through since they
+    # (sort of) work.  TODO: create a proper implementation.
+    _PASSTHROUGH_FUNCTIONS = {
+        np.where, np.compress, np.extract,
+        }
+
     # Could be made to work with a bit of effort:
-    # np.compress, np.extract,
+    # np.where, np.compress, np.extract,
     # np.diag_indices_from, np.triu_indices_from, np.tril_indices_from
     # np.tile, np.repeat (need .repeat method)
 
     def __array_function__(self, function, types, args, kwargs):
         """Wrap numpy functions that make sense."""
+        if function in self._PASSTHROUGH_FUNCTIONS:
+            return function.__wrapped__(*args, **kwargs)
         if function in self._APPLICABLE_FUNCTIONS:
             if function is np.broadcast_to:
                 # Ensure that any ndarray subclasses used are
@@ -239,10 +242,14 @@ class ShapedLikeNDArray(metaclass=abc.ABCMeta):
 
             return self._apply(function, *args[1:], **kwargs)
 
-        if self is args[0] and function in self._METHOD_FUNCTIONS:
+        if self is args[0]:
             # Call the method rather than _apply(function.__name__),
             # since classes could override the method.
-            return getattr(self, function.__name__)(*args[1:], **kwargs)
+            name = {np.amax: 'max',
+                    np.amin: 'min'}.get(function, function.__name__)
+            method = getattr(self, name, None)
+            if method is not None:
+                return method(*args[1:], **kwargs)
 
         return NotImplemented
 
