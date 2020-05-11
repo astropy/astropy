@@ -36,7 +36,7 @@ class TestSpectralQuantity:
     def test_spectral_conversion(self, unit1, unit2):
         sq1 = SpectralQuantity(1 * unit1)
         sq2 = sq1.to(unit2)
-        sq3 = sq2.to(unit1)
+        sq3 = sq2.to(str(unit1))  # check that string units work
         assert isinstance(sq2, SpectralQuantity)
         assert isinstance(sq3, SpectralQuantity)
         assert_quantity_allclose(sq1, sq3)
