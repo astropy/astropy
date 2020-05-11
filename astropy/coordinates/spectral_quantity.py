@@ -1,6 +1,7 @@
 import numpy as np
 from astropy.units import si
 from astropy.units import equivalencies as eq
+from astropy.units import Unit
 from astropy.units.quantity import SpecificTypeQuantity, Quantity
 from astropy.units.decorators import quantity_input
 
@@ -213,6 +214,9 @@ class SpectralQuantity(SpecificTypeQuantity):
         `SpectralQuantity`
             New spectral coordinate object with data converted to the new unit.
         """
+
+        # Make sure units can be passed as strings
+        unit = Unit(unit)
 
         # If equivalencies is explicitly set to None, we should just use the
         # default Quantity.to with equivalencies also set to None
