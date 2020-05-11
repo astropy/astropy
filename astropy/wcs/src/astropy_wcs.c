@@ -6,6 +6,7 @@
 #include "astropy_wcs/astropy_wcs.h"
 #include "astropy_wcs/wcslib_wrap.h"
 #include "astropy_wcs/wcslib_tabprm_wrap.h"
+#include "astropy_wcs/wcslib_auxprm_wrap.h"
 #include "astropy_wcs/wcslib_units_wrap.h"
 #include "astropy_wcs/wcslib_wtbarr_wrap.h"
 #include "astropy_wcs/distortion_wrap.h"

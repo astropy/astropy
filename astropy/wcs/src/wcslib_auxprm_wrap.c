@@ -72,17 +72,6 @@ static void auxprmprt(const struct auxprm *aux) {
 }
 
 
-static PyObject* PyAuxprm_print_contents(PyAuxprm* self) {
-  /* This is not thread-safe, but since we're holding onto the GIL,
-     we can assume we won't have thread conflicts */
-  wcsprintf_set(NULL);
-  auxprmprt(self->x);
-  printf("%s", wcsprintf_buf());
-  fflush(stdout);
-  Py_RETURN_NONE;
-}
-
-
 static PyObject* PyAuxprm___str__(PyAuxprm* self) {
   /* This is not thread-safe, but since we're holding onto the GIL,
      we can assume we won't have thread conflicts */
@@ -181,17 +170,11 @@ static int PyAuxprm_set_hglt_obs(PyAuxprm* self, PyObject* value, void* closure)
  */
 
 static PyGetSetDef PyAuxprm_getset[] = {
-  {"rsun_ref", (getter)PyAuxprm_get_rsun_ref, PyAuxprm_set_rsun_ref, (char *) NULL},
-  {"dsun_obs", (getter)PyAuxprm_get_dsun_obs, PyAuxprm_set_dsun_obs, (char *) NULL},
-  {"crln_obs", (getter)PyAuxprm_get_crln_obs, PyAuxprm_set_crln_obs, (char *) NULL},
-  {"hgln_obs", (getter)PyAuxprm_get_hgln_obs, PyAuxprm_set_hgln_obs, (char *) NULL},
-  {"hglt_obs", (getter)PyAuxprm_get_hglt_obs, PyAuxprm_set_hglt_obs, (char *) NULL},
-  {NULL}
-};
-
-
-static PyMethodDef PyAuxprm_methods[] = {
-  {"print_contents", (PyCFunction)PyAuxprm_print_contents, METH_NOARGS, NULL},
+  {"rsun_ref", (getter)PyAuxprm_get_rsun_ref, (setter)PyAuxprm_set_rsun_ref, (char *)doc_rsun_ref},
+  {"dsun_obs", (getter)PyAuxprm_get_dsun_obs, (setter)PyAuxprm_set_dsun_obs, (char *)doc_dsun_obs},
+  {"crln_obs", (getter)PyAuxprm_get_crln_obs, (setter)PyAuxprm_set_crln_obs, (char *)doc_crln_obs},
+  {"hgln_obs", (getter)PyAuxprm_get_hgln_obs, (setter)PyAuxprm_set_hgln_obs, (char *)doc_hgln_obs},
+  {"hglt_obs", (getter)PyAuxprm_get_hglt_obs, (setter)PyAuxprm_set_hglt_obs, (char *)doc_hglt_obs},
   {NULL}
 };
 
@@ -216,14 +199,14 @@ PyTypeObject PyAuxprmType = {
   0,                            /*tp_setattro*/
   0,                            /*tp_as_buffer*/
   Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /*tp_flags*/
-  0,                            /* tp_doc */
+  doc_Auxprm,                   /* tp_doc */
   (traverseproc)PyAuxprm_traverse, /* tp_traverse */
-  (inquiry)PyAuxprm_clear,         /* tp_clear */
+  (inquiry)PyAuxprm_clear,      /* tp_clear */
   0,                            /* tp_richcompare */
   0,                            /* tp_weaklistoffset */
   0,                            /* tp_iter */
   0,                            /* tp_iternext */
-  PyAuxprm_methods,             /* tp_methods */
+  0,                            /* tp_methods */
   0,                            /* tp_members */
   PyAuxprm_getset,              /* tp_getset */
   0,                            /* tp_base */
