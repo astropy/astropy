@@ -235,6 +235,28 @@ def test_init_spectral_quantity():
     assert sc.target is None
 
 
+def test_pixel():
+
+    # Check that most methods don't work if units are pixel (used for uncalibrated
+    # spectral values)
+
+    with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+        sc1 = SpectralCoord(10 * u.pixel, observer=LSRD,
+                            target=SkyCoord(10 * u.deg, 20 * u.deg, distance=10 * u.pc))
+
+    sc2 = sc1.replicate()
+
+    assert isinstance(sc2, SpectralCoord)
+    assert sc2.value == 10
+    assert sc2.unit == u.pixel
+
+    with pytest.raises(u.UnitsError, match='Cannot transform spectral coordinates in pixel units'):
+        sc1.with_observer_stationary_relative_to(sc2.target)
+
+    with pytest.raises(u.UnitsError, match='Cannot transform spectral coordinates in pixel units'):
+        sc1.with_radial_velocity_shift(0.5)
+
+
 def test_init_too_many_args():
 
     with pytest.raises(ValueError, match='Cannot specify radial velocity or redshift if both'):
@@ -379,7 +401,6 @@ def test_replicate():
     sc_init_ref = sc_init.replicate()
     sc_init[0] = 6000 * u.AA
     assert_quantity_allclose(sc_init_ref, [6000, 5000] * u.AA)
-
 
 
 def test_with_observer_stationary_relative_to():

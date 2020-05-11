@@ -719,6 +719,9 @@ class SpectralCoord(SpectralQuantity):
             transformed based on the observer's new velocity frame.
         """
 
+        if self.unit is u.pixel:
+            raise u.UnitsError("Cannot transform spectral coordinates in pixel units")
+
         if self.observer is None or self.target is None:
             raise ValueError("This method can only be used if both observer "
                              "and target are defined on the SpectralCoord.")
@@ -784,6 +787,10 @@ class SpectralCoord(SpectralQuantity):
             New spectral coordinate with the target/observer velocity changed
             to incorporate the shift.
         """
+
+        if self.unit is u.pixel:
+            raise u.UnitsError("Cannot transform spectral coordinates in pixel units")
+
         if observer_shift is not None and (self.target is None or
                                            self.observer is None):
             raise ValueError("Both an observer and target must be defined "

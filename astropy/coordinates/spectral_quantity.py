@@ -1,5 +1,5 @@
 import numpy as np
-from astropy.units import si
+from astropy import units as u
 from astropy.units import equivalencies as eq
 from astropy.units.quantity import SpecificTypeQuantity, Quantity
 from astropy.units.decorators import quantity_input
@@ -9,9 +9,9 @@ __all__ = ['SpectralQuantity']
 # We don't want to run doctests in the docstrings we inherit from Quantity
 __doctest_skip__ = ['SpectralQuantity.*']
 
-KMS = si.km / si.s
+KMS = u.km / u.s
 
-SPECTRAL_UNITS = (si.Hz, si.m, si.J, si.m ** -1, KMS)
+SPECTRAL_UNITS = (u.Hz, u.m, u.J, u.m ** -1, KMS, u.pixel)
 
 DOPPLER_CONVENTIONS = {
     'radio': eq.doppler_radio,
@@ -258,7 +258,7 @@ class SpectralQuantity(SpecificTypeQuantity):
 
             vel_equiv1 = DOPPLER_CONVENTIONS[self._doppler_convention](self._doppler_rest)
 
-            freq = super().to(si.Hz, equivalencies=equivalencies + vel_equiv1)
+            freq = super().to(u.Hz, equivalencies=equivalencies + vel_equiv1)
 
             vel_equiv2 = DOPPLER_CONVENTIONS[doppler_convention](doppler_rest)
 

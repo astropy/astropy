@@ -242,3 +242,24 @@ class TestSpectralQuantity:
         assert isinstance(q1, u.Quantity) and not isinstance(q1, SpectralQuantity)
         assert q1.value == np.sum(sq1.value)
         assert q1.unit == u.AA
+
+    def test_pixel(self):
+
+        # SpectralQuantity also supports values in pixel, to represent
+        # uncalibrated spectral values, so we check here that things work
+        # as expected
+
+        sq1 = SpectralQuantity(1, unit=u.pixel)
+        sq2 = SpectralQuantity(1 * u.pixel,
+                               doppler_convention='optical',
+                               doppler_rest=1 * u.GHz)
+        sq3 = SpectralQuantity(SpectralQuantity(1, unit=u.pixel))
+
+        with pytest.raises(u.UnitsError, match='not convertible'):
+            sq1.to(u.GHz)
+
+        with pytest.raises(u.UnitsError, match='not convertible'):
+            sq2.to(u.km / u.s)
+
+        with pytest.raises(u.UnitsError, match='not convertible'):
+            sq3.to_value(u.GHz)
