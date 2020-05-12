@@ -172,6 +172,10 @@ To install all of the optional dependencies using ``conda`` enter the following:
       scipy h5py beautifulsoup4 html5lib bleach pyyaml pandas sortedcontainers \
       pytz matplotlib setuptools mpmath bottleneck jplephem asdf
 
+To also be able to run tests (see below) enter::
+
+    conda install -c defaults pytest-astropy
+
 .. warning::
 
     Attempting to use `pip <https://pip.pypa.io>`__ to upgrade your installation
