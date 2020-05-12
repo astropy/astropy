@@ -12,16 +12,16 @@ import copy
 import pytest
 import numpy as np
 
-
 from astropy import units as u
-from astropy.coordinates import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS,
-                GeocentricMeanEcliptic, Longitude, Latitude, GCRS, HCRS, CIRS,
-                get_moon, FK4, FK4NoETerms, BaseCoordinateFrame, ITRS,
-                QuantityAttribute, UnitSphericalRepresentation,
-                SphericalRepresentation, CartesianRepresentation,
-                FunctionTransform,
-                CylindricalRepresentation, CylindricalDifferential,
-                CartesianDifferential)
+from astropy.coordinates import (
+    AltAz, EarthLocation, SkyCoord, get_sun, ICRS,
+    GeocentricMeanEcliptic, Longitude, Latitude, GCRS, HCRS, CIRS,
+    get_moon, FK4, FK4NoETerms, BaseCoordinateFrame, ITRS,
+    QuantityAttribute, UnitSphericalRepresentation,
+    SphericalRepresentation, CartesianRepresentation,
+    FunctionTransform,
+    CylindricalRepresentation, CylindricalDifferential,
+    CartesianDifferential)
 from astropy.coordinates.sites import get_builtin_sites
 from astropy.utils.exceptions import ErfaWarning
 from astropy.time import Time
@@ -29,11 +29,11 @@ from astropy.utils import iers
 from astropy.table import Table
 
 from astropy.tests.helper import assert_quantity_allclose, catch_warnings
-from .test_matching import HAS_SCIPY, OLDER_SCIPY
+from .test_matching import HAS_SCIPY
 from astropy.units import allclose as quantity_allclose
 
 try:
-    import yaml  # pylint: disable=W0611
+    import yaml  # pylint: disable=W0611  # noqa
     HAS_YAML = True
 except ImportError:
     HAS_YAML = False
@@ -166,7 +166,6 @@ def test_regression_4033():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason='No Scipy')
-@pytest.mark.skipif(OLDER_SCIPY, reason='Scipy too old')
 def test_regression_4082():
     """
     Issue: https://github.com/astropy/astropy/issues/4082
@@ -394,7 +393,7 @@ def test_regression_5889_5890():
     # ensure we can represent all Representations and transform to ND frames
     greenwich = EarthLocation(
         *u.Quantity([3980608.90246817, -102.47522911, 4966861.27310067],
-        unit=u.m))
+                    unit=u.m))
     times = Time("2017-03-20T12:00:00") + np.linspace(-2, 2, 3)*u.hour
     moon = get_moon(times, location=greenwich)
     targets = SkyCoord([350.7*u.deg, 260.7*u.deg], [18.4*u.deg, 22.4*u.deg])
@@ -461,7 +460,6 @@ def test_regression_6236():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason='No Scipy')
-@pytest.mark.skipif(OLDER_SCIPY, reason='Scipy too old')
 def test_regression_6347():
     sc1 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg)
     sc2 = SkyCoord([1.1, 2.1]*u.deg, [3.1, 4.1]*u.deg)
@@ -481,7 +479,6 @@ def test_regression_6347():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason='No Scipy')
-@pytest.mark.skipif(OLDER_SCIPY, reason='Scipy too old')
 def test_regression_6347_3d():
     sc1 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg, [5, 6]*u.kpc)
     sc2 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg, [5.1, 6.1]*u.kpc)
