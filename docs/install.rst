@@ -43,13 +43,15 @@ Requirements
   Version 0.14 or higher is required to use the :ref:`table_io_pandas`
   I/O functions to read/write :class:`~astropy.table.Table` objects.
 
-- `bintrees <https://pypi.org/project/bintrees>`_ for faster ``FastRBT`` and
-  ``FastBST`` indexing engines with ``Table``, although these will still be
-  slower in most cases than the default indexing engine.
-
 - `sortedcontainers <https://pypi.org/project/sortedcontainers/>`_ for faster
   ``SCEngine`` indexing engine with ``Table``, although this may still be
   slower in some cases than the default indexing engine.
+
+- `bintrees <https://pypi.org/project/bintrees>`_ for faster ``FastRBT`` and
+  ``FastBST`` indexing engines with ``Table``, although these will still be
+  slower in most cases than the default indexing engine. *This package is
+  deprecated because it is no longer maintained.  The ``sortedcontainers``
+  package is now recommended.*
 
 - `pytz <https://pythonhosted.org/pytz/>`_: To specify and convert between
   timezones.
@@ -163,6 +165,12 @@ Using Conda
 There may be a delay of a day or two between when a new version of ``astropy``
 is released and when a package is available for Anaconda. You can check
 for the list of available versions with ``conda search astropy``.
+
+To install all of the optional dependencies using ``conda`` enter the following::
+
+    conda install -c defaults -c conda-forge \
+      scipy h5py beautifulsoup4 html5lib bleach pyyaml pandas sortedcontainers \
+      pytz matplotlib setuptools mpmath bottleneck jplephem asdf
 
 .. warning::
 
