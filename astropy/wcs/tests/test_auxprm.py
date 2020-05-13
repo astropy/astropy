@@ -4,6 +4,8 @@
 
 # Tests for the auxiliary parameters contained in wcsaux
 
+import pytest
+
 from numpy.testing import assert_allclose
 
 from astropy.io import fits
@@ -80,6 +82,36 @@ hglt_obs: 40.000000
 def test_solar_aux_set():
 
     w = WCS(HEADER_SOLAR)
+
+    w.wcs.aux.rsun_ref = 698000000
+    assert_allclose(w.wcs.aux.rsun_ref, 698000000)
+
+    w.wcs.aux.dsun_obs = 140000000000
+    assert_allclose(w.wcs.aux.dsun_obs, 140000000000)
+
+    w.wcs.aux.crln_obs = 10.
+    assert_allclose(w.wcs.aux.crln_obs, 10.)
+
+    w.wcs.aux.hgln_obs = 30.
+    assert_allclose(w.wcs.aux.hgln_obs, 30.)
+
+    w.wcs.aux.hglt_obs = 40.
+    assert_allclose(w.wcs.aux.hglt_obs, 40.)
+
+    assert str(w.wcs.aux) == STR_EXPECTED_SET
+
+    header = w.to_header()
+    assert_allclose(header['RSUN_REF'], 698000000)
+    assert_allclose(header['DSUN_OBS'], 140000000000)
+    assert_allclose(header['CRLN_OBS'], 10.)
+    assert_allclose(header['HGLN_OBS'], 30.)
+    assert_allclose(header['HGLT_OBS'], 40.)
+
+
+@pytest.mark.xfail
+def test_set_aux_on_empty():
+
+    w = WCS(naxis=2)
 
     w.wcs.aux.rsun_ref = 698000000
     assert_allclose(w.wcs.aux.rsun_ref, 698000000)
