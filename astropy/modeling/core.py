@@ -3334,7 +3334,6 @@ class CompoundModel(Model):
 
         return out
 
-
     def replace_submodel(self, name, model):
         """
         Construct a new `~astropy.modeling.CompoundModel` instance from an
