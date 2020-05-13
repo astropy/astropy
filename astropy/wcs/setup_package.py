@@ -289,6 +289,7 @@ def get_extensions():
         'unit_list_proxy.c',
         'util.c',
         'wcslib_wrap.c',
+        'wcslib_auxprm_wrap.c',
         'wcslib_tabprm_wrap.c',
         'wcslib_wtbarr_wrap.c'
     ]

@@ -57,7 +57,7 @@ from astropy.utils.exceptions import AstropyWarning, AstropyUserWarning, Astropy
 from .wcsapi.fitswcs import FITSWCSAPIMixin, SlicedFITSWCS
 
 __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
-           'DistortionLookupTable', 'Sip', 'Tabprm', 'Wcsprm',
+           'DistortionLookupTable', 'Sip', 'Tabprm', 'Wcsprm', 'Auxprm',
            'WCSBase', 'validate', 'WcsError', 'SingularMatrixError',
            'InconsistentAxisTypesError', 'InvalidTransformError',
            'InvalidCoordinateError', 'NoSolutionError',
@@ -86,6 +86,7 @@ if _wcs is not None:
     DistortionLookupTable = _wcs.DistortionLookupTable
     Sip = _wcs.Sip
     Wcsprm = _wcs.Wcsprm
+    Auxprm = _wcs.Auxprm
     Tabprm = _wcs.Tabprm
     WcsError = _wcs.WcsError
     SingularMatrixError = _wcs.SingularMatrixError
