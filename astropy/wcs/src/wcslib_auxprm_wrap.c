@@ -62,11 +62,16 @@ static void auxprmprt(const struct auxprm *aux) {
 
   if (aux == 0x0) return;
 
-  if (aux->rsun_ref != UNDEFINED) wcsprintf("rsun_ref: %f\n", aux->rsun_ref);
-  if (aux->dsun_obs != UNDEFINED) wcsprintf("dsun_obs: %f\n", aux->dsun_obs);
-  if (aux->crln_obs != UNDEFINED) wcsprintf("crln_obs: %f\n", aux->crln_obs);
-  if (aux->hgln_obs != UNDEFINED) wcsprintf("hgln_obs: %f\n", aux->hgln_obs);
-  if (aux->hglt_obs != UNDEFINED) wcsprintf("hglt_obs: %f\n", aux->hglt_obs);
+  wcsprintf("rsun_ref:");
+  if (aux->rsun_ref != UNDEFINED) wcsprintf(" %f", aux->rsun_ref);
+  wcsprintf("\ndsun_obs:");
+  if (aux->dsun_obs != UNDEFINED) wcsprintf(" %f", aux->dsun_obs);
+  wcsprintf("\ncrln_obs:");
+  if (aux->crln_obs != UNDEFINED) wcsprintf(" %f", aux->crln_obs);
+  wcsprintf("\nhgln_obs:");
+  if (aux->hgln_obs != UNDEFINED) wcsprintf(" %f", aux->hgln_obs);
+  wcsprintf("\nhglt_obs:");
+  if (aux->hglt_obs != UNDEFINED) wcsprintf(" %f", aux->hglt_obs);
 
   return;
 }
@@ -102,7 +107,7 @@ static int PyAuxprm_set_rsun_ref(PyAuxprm* self, PyObject* value, void* closure)
 }
 
 static PyObject* PyAuxprm_get_dsun_obs(PyAuxprm* self, void* closure) {
-  if(self->x == NULL) {
+  if(self->x == NULL || self->x->dsun_obs == UNDEFINED) {
     Py_RETURN_NONE;
   } else {
     return get_double("dsun_obs", self->x->dsun_obs);
@@ -118,7 +123,7 @@ static int PyAuxprm_set_dsun_obs(PyAuxprm* self, PyObject* value, void* closure)
 }
 
 static PyObject* PyAuxprm_get_crln_obs(PyAuxprm* self, void* closure) {
-  if(self->x == NULL) {
+  if(self->x == NULL || self->x->crln_obs == UNDEFINED) {
     Py_RETURN_NONE;
   } else {
     return get_double("crln_obs", self->x->crln_obs);
@@ -134,7 +139,7 @@ static int PyAuxprm_set_crln_obs(PyAuxprm* self, PyObject* value, void* closure)
 }
 
 static PyObject* PyAuxprm_get_hgln_obs(PyAuxprm* self, void* closure) {
-  if(self->x == NULL) {
+  if(self->x == NULL || self->x->hgln_obs == UNDEFINED) {
     Py_RETURN_NONE;
   } else {
     return get_double("hgln_obs", self->x->hgln_obs);
@@ -150,7 +155,7 @@ static int PyAuxprm_set_hgln_obs(PyAuxprm* self, PyObject* value, void* closure)
 }
 
 static PyObject* PyAuxprm_get_hglt_obs(PyAuxprm* self, void* closure) {
-  if(self->x == NULL) {
+  if(self->x == NULL || self->x->hglt_obs == UNDEFINED) {
     Py_RETURN_NONE;
   } else {
     return get_double("hglt_obs", self->x->hglt_obs);

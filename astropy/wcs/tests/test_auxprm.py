@@ -4,12 +4,18 @@
 
 # Tests for the auxiliary parameters contained in wcsaux
 
-import pytest
-
 from numpy.testing import assert_allclose
 
 from astropy.io import fits
 from astropy.wcs import WCS
+
+
+STR_EXPECTED_EMPTY = """
+rsun_ref:
+dsun_obs:
+crln_obs:
+hgln_obs:
+hglt_obs:""".lstrip()
 
 
 def test_empty():
@@ -19,7 +25,7 @@ def test_empty():
     assert w.wcs.aux.crln_obs is None
     assert w.wcs.aux.hgln_obs is None
     assert w.wcs.aux.hglt_obs is None
-    assert str(w.wcs.aux) == ''
+    assert str(w.wcs.aux) == STR_EXPECTED_EMPTY
 
 
 HEADER_SOLAR = fits.Header.fromstring("""
@@ -56,8 +62,7 @@ rsun_ref: 696000000.000000
 dsun_obs: 147724815128.000000
 crln_obs: 22.814522
 hgln_obs: 8.431123
-hglt_obs: -6.820544
-""".lstrip()
+hglt_obs: -6.820544""".lstrip()
 
 
 def test_solar_aux_get():
@@ -75,8 +80,7 @@ rsun_ref: 698000000.000000
 dsun_obs: 140000000000.000000
 crln_obs: 10.000000
 hgln_obs: 30.000000
-hglt_obs: 40.000000
-""".lstrip()
+hglt_obs: 40.000000""".lstrip()
 
 
 def test_solar_aux_set():
@@ -108,7 +112,6 @@ def test_solar_aux_set():
     assert_allclose(header['HGLT_OBS'], 40.)
 
 
-@pytest.mark.xfail
 def test_set_aux_on_empty():
 
     w = WCS(naxis=2)
