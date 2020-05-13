@@ -4002,6 +4002,13 @@ PyWcsprm_get_aux(
 
   PyObject* result;
 
+    // If wcsprm.aux is not initialized, we should do so here so that users can
+    // set auxiliary parameters on an empty WCS.
+
+    if (self->x.aux == 0x0) {
+      wcsauxi(1, &self->x);
+    }
+
   result = (PyObject *)PyAuxprm_cnew((PyObject *)self, self->x.aux);
 
   return result;
