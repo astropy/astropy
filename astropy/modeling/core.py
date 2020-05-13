@@ -1600,8 +1600,9 @@ class Model(metaclass=_ModelMeta):
         params = [getattr(self, name) for name in self.param_names]
         inputs = [np.asanyarray(_input, dtype=float) for _input in inputs]
 
-        _validate_input_shapes(inputs, self.inputs, n_models,
-                               model_set_axis, self.standard_broadcasting)
+        broadcasted_shape = None
+        if self.standard_broadcasting:
+            broadcasted_shape = _validate_input_shapes(inputs, self.inputs, n_models, model_set_axis)
 
         inputs_map = kwargs.get('inputs_map', None)
 
@@ -1611,7 +1612,7 @@ class Model(metaclass=_ModelMeta):
         # model set are different enough that they've been split into separate
         # subroutines
         if n_models == 1:
-            return _prepare_inputs_single_model(self, params, inputs,
+            return _prepare_inputs_single_model(self, params, inputs, broadcasted_shape,
                                                 **kwargs)
         else:
             return _prepare_inputs_model_set(self, params, inputs, n_models,
@@ -2657,7 +2658,7 @@ class CompoundModel(Model):
         if with_bbox and bbox is not None:
             # first check inputs are consistent in shape
             input_shape = _validate_input_shapes(args, (), self._n_models,
-                                                 self.model_set_axis, self.standard_broadcasting)
+                                                 self.model_set_axis)
             vinputs, valid_ind, allout = prepare_bounding_box_inputs(self, input_shape, args, bbox)
             if not allout:
                 valid_result = self._evaluate(*vinputs, **kw)
@@ -3722,8 +3723,10 @@ def render_model(model, arr=None, coords=None):
     return arr
 
 
-def _prepare_inputs_single_model(model, params, inputs, **kwargs):
-    broadcasts = []
+def _prepare_inputs_single_model(model, params, inputs, broadcasted_shape, **kwargs):
+    #broadcasts = []
+    shapes_of_inputs = [inp.shape for inp in inputs]
+    param_broadcast = ()
 
     for idx, _input in enumerate(inputs):
         input_shape = _input.shape
@@ -3734,50 +3737,92 @@ def _prepare_inputs_single_model(model, params, inputs, **kwargs):
         if not input_shape:
             inputs[idx] = _input.reshape((1,))
 
-        if not params:
-            max_broadcast = input_shape
-        else:
-            max_broadcast = ()
+    if params and model.standard_broadcasting:
+        #print('params', params)
+        param_shapes = [param.shape for param in params]
 
-        for param in params:
-            try:
-                if model.standard_broadcasting:
-                    broadcast = check_broadcast(input_shape, param.shape)
-                else:
-                    broadcast = input_shape
-            except IncompatibleShapeError:
-                raise ValueError(
-                    "Model input argument {0!r} of shape {1!r} cannot be "
-                    "broadcast with parameter {2!r} of shape "
-                    "{3!r}.".format(model.inputs[idx], input_shape,
-                                    param.name, param.shape))
-
-            if len(broadcast) > len(max_broadcast):
-                max_broadcast = broadcast
-            elif len(broadcast) == len(max_broadcast):
-                max_broadcast = max(max_broadcast, broadcast)
-
-        broadcasts.append(max_broadcast)
+        param_broadcast = check_broadcast(*param_shapes)
+        #print('param_broadcast', param_broadcast)
+        if broadcasted_shape is not None:
+            broadcasted_shape = check_broadcast(broadcasted_shape, param_broadcast)
+        #print('broadcasted_shape', broadcasted_shape)
+        shapes_of_inputs = [check_broadcast(shape, param_broadcast) for shape in shapes_of_inputs]
 
     if model.n_outputs > model.n_inputs:
-        if len(set(broadcasts)) > 1:
-            raise ValueError(
-                "For models with n_outputs > n_inputs, the combination of "
-                "all inputs and parameters must broadcast to the same shape, "
-                "which will be used as the shape of all outputs.  In this "
-                "case some of the inputs had different shapes, so it is "
-                "ambiguous how to format outputs for this model.  Try using "
-                "inputs that are all the same size and shape.")
+        # if len(set(broadcasts)) > 1:
+        #     raise ValueError(
+        #         "For models with n_outputs > n_inputs, the combination of "
+        #         "all inputs and parameters must broadcast to the same shape, "
+        #         "which will be used as the shape of all outputs.  In this "
+        #         "case some of the inputs had different shapes, so it is "
+        #         "ambiguous how to format outputs for this model.  Try using "
+        #        "inputs that are all the same size and shape.")
         # Extend the broadcasts list to include shapes for all outputs
         extra_outputs = model.n_outputs - model.n_inputs
-        if not broadcasts:
+        if not shapes_of_inputs:
             # If there were no inputs then the broadcasts list is empty
             # just add a None since there is no broadcasting of outputs and
             # inputs necessary (see _prepare_outputs_single_model)
-            broadcasts.append(None)
-        broadcasts.extend([broadcasts[0]] * extra_outputs)
+            shapes_of_inputs.append(None)
+        shapes_of_inputs.extend([broadcasted_shape] * extra_outputs)
 
-    return inputs, (broadcasts,)
+    return inputs, (shapes_of_inputs,)
+
+
+    # for idx, _input in enumerate(inputs):
+    #     input_shape = _input.shape
+    #
+    #     # Ensure that array scalars are always upgrade to 1-D arrays for the
+    #     # sake of consistency with how parameters work.  They will be cast back
+    #     # to scalars at the end
+    #     if not input_shape:
+    #         inputs[idx] = _input.reshape((1,))
+    #
+    #     if not params:
+    #         max_broadcast = input_shape
+    #     else:
+    #         max_broadcast = ()
+
+
+    #     for param in params:
+    #         try:
+    #             if model.standard_broadcasting:
+    #                 broadcast = check_broadcast(input_shape, param.shape)
+    #             else:
+    #                 broadcast = input_shape
+    #         except IncompatibleShapeError:
+    #             raise ValueError(
+    #                 "Model input argument {0!r} of shape {1!r} cannot be "
+    #                 "broadcast with parameter {2!r} of shape "
+    #                 "{3!r}.".format(model.inputs[idx], input_shape,
+    #                                 param.name, param.shape))
+    #
+    #         if len(broadcast) > len(max_broadcast):
+    #             max_broadcast = broadcast
+    #         elif len(broadcast) == len(max_broadcast):
+    #             max_broadcast = max(max_broadcast, broadcast)
+    #
+    #     broadcasts.append(max_broadcast)
+    #
+    # if model.n_outputs > model.n_inputs:
+    #     if len(set(broadcasts)) > 1:
+    #         raise ValueError(
+    #             "For models with n_outputs > n_inputs, the combination of "
+    #             "all inputs and parameters must broadcast to the same shape, "
+    #             "which will be used as the shape of all outputs.  In this "
+    #             "case some of the inputs had different shapes, so it is "
+    #             "ambiguous how to format outputs for this model.  Try using "
+    #             "inputs that are all the same size and shape.")
+    #     # Extend the broadcasts list to include shapes for all outputs
+    #     extra_outputs = model.n_outputs - model.n_inputs
+    #     if not broadcasts:
+    #         # If there were no inputs then the broadcasts list is empty
+    #         # just add a None since there is no broadcasting of outputs and
+    #         # inputs necessary (see _prepare_outputs_single_model)
+    #         broadcasts.append(None)
+    #     broadcasts.extend([broadcasts[0]] * extra_outputs)
+    #
+    # return inputs, (broadcasts,)
 
 
 def _prepare_outputs_single_model(outputs, format_info):
@@ -3879,8 +3924,7 @@ def _prepare_outputs_model_set(model, outputs, format_info, model_set_axis):
     return tuple(outputs)
 
 
-def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
-                           validate_broadcasting):
+def _validate_input_shapes(inputs, argnames, n_models, model_set_axis):
     """
     Perform basic validation of model inputs--that they are mutually
     broadcastable and that they have the minimum dimensions for the given
@@ -3917,7 +3961,7 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
                                            n_models))
         all_shapes.append(input_shape)
 
-    input_shape = check_consistent_shapes(*all_shapes)
+    input_shape = check_broadcast(*all_shapes)
     if input_shape is None:
         raise ValueError(
             "All inputs must have identical shapes or must be scalars.")
@@ -3990,8 +4034,7 @@ def generic_call(self, *inputs, **kwargs):
     bbox = get_bounding_box(self)
     if with_bbox and bbox is not None:
         input_shape = _validate_input_shapes(
-            inputs, self.inputs, self._n_models, self.model_set_axis,
-            self.standard_broadcasting)
+            inputs, self.inputs, self._n_models, self.model_set_axis)
         vinputs, valid_ind, allout = prepare_bounding_box_inputs(
             self, input_shape, inputs, bbox)
         valid_result_unit = None
