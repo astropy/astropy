@@ -381,6 +381,7 @@ def test_equal_exceptions():
     # Note that this exception is the only one raised directly in SkyCoord.
     # All others come from lower-level classes and are tested in test_frames.py.
 
+
 def test_attr_inheritance():
     """
     When initializing from an existing coord the representation attrs like

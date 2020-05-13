@@ -329,7 +329,7 @@ def test_render_model_3d():
             return ((self.z0 - self.c, self.z0 + self.c),
                     (self.y0 - self.b, self.y0 + self.b),
                     (self.x0 - self.a, self.x0 + self.a))
-   
+
     model = Ellipsoid3D()
 
     # test points for edges
