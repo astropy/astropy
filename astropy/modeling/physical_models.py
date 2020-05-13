@@ -16,6 +16,7 @@ from .parameters import Parameter, InputParameterError
 
 __all__ = ["BlackBody", "Drude1D", "Plummer1D"]
 
+
 class BlackBody(Fittable1DModel):
     """
     Blackbody model using the Planck function.

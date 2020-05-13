@@ -103,6 +103,7 @@ test_models_with_constraints = [astmodels.Legendre2D(x_degree=1, y_degree=1,
                                 bounds={'c0_0': (-10, 10)})]
 test_models.extend(test_models_with_constraints)
 
+
 def test_transforms_compound(tmpdir):
     tree = {
         'compound':

@@ -456,7 +456,6 @@ class SkyCoord(ShapedLikeNDArray):
                             f'{self.__class__.__name__} vs. '
                             f'{value.__class__.__name__}')
 
-
         # Make sure that any extra frame attribute names are equivalent.
         for attr in self._extra_frameattr_names | value._extra_frameattr_names:
             if not self.frame._frameattr_equiv(getattr(self, attr),
