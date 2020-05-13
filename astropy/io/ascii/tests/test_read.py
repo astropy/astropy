@@ -1553,8 +1553,6 @@ def test_deduplicate_names_basic(rdb, fast_reader):
         assert np.all(dat['b4'] == [4, 40])
 
 
-
-
 @pytest.mark.xfail
 def test_include_names_rdb_fast_fail0():
     """Test that selecting column names with `include_names` fails for the rdb format for fast reader.

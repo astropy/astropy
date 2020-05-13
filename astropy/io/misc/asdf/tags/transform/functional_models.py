@@ -8,8 +8,8 @@ from .basic import TransformType
 from . import _parameter_to_value
 
 
-__all__ = ['AiryDisk2DType', 'Box1DType', 'Box2DType', 
-           'Disk2DType', 'Ellipse2DType', 'Exponential1DType', 
+__all__ = ['AiryDisk2DType', 'Box1DType', 'Box2DType',
+           'Disk2DType', 'Ellipse2DType', 'Exponential1DType',
            'Gaussian1DType', 'Gaussian2DType', 'KingProjectedAnalytic1DType',
            'Logarithmic1DType', 'Lorentz1DType', 'Moffat1DType',
            'Moffat2DType', 'Planar2D', 'RedshiftScaleFactorType',

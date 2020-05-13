@@ -1479,7 +1479,6 @@ def test_values_equal_part1():
     with pytest.raises(ValueError, match='unable to compare column c'):
         t1.values_equal([1, 2])
 
-
     eq = t2.values_equal(t2)
     for col in eq.colnames:
         assert np.all(eq[col] == [True, True])
@@ -2557,7 +2556,6 @@ def test_table_attribute_fail():
     with pytest.raises(RuntimeError, match='Error calling __set_name__'):
         class MyTable3(Table):
             colnames = TableAttribute()  # Conflicts with built-in property
-
 
 
 def test_set_units_fail():

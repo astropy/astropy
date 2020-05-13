@@ -304,6 +304,7 @@ def test_compound_with_polynomials_2d(poly):
     result = shift(poly(x, y))
     assert_allclose(result, result_compound)
 
+
 def test_fix_inputs():
     g1 = Gaussian2D(1, 0, 0, 1, 2)
     g2 = Gaussian2D(1.5, .5, -.2, .5, .3)

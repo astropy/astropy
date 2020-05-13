@@ -58,7 +58,6 @@ def spectral_cube_3d_fitswcs():
     return wcs
 
 
-
 class Spectral1DLowLevelWCS(BaseLowLevelWCS):
 
     @property
@@ -114,7 +113,6 @@ class Spectral1DLowLevelWCS(BaseLowLevelWCS):
     @property
     def world_axis_object_classes(self):
         return {'test': (Quantity, (), {'unit': 'Hz'})}
-
 
 
 @pytest.fixture
