@@ -381,7 +381,6 @@ def test_replicate():
     assert_quantity_allclose(sc_init_ref, [6000, 5000] * u.AA)
 
 
-
 def test_with_observer_stationary_relative_to():
 
     # Simple tests of with_observer_stationary_relative_to to cover different

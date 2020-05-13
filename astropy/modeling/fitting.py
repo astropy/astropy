@@ -56,6 +56,7 @@ STATISTICS = [leastsquare]
 # Optimizers implemented in `astropy.modeling.optimizers.py
 OPTIMIZERS = [Simplex, SLSQP]
 
+
 class ModelsError(Exception):
     """Base class for model exceptions"""
 
