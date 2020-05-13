@@ -287,6 +287,7 @@ def get_extensions():
         'unit_list_proxy.c',
         'util.c',
         'wcslib_wrap.c',
+        'wcslib_auxprm_wrap.c',
         'wcslib_tabprm_wrap.c']
     cfg['sources'].extend(join(WCSROOT, 'src', x) for x in astropy_wcs_files)
 

@@ -153,6 +153,18 @@ ap_order = """
 ``int`` (read-only) Order of the polynomial (``AP_ORDER``).
 """
 
+aux = """
+`~astropy.wcs.Auxprm` Auxiliary coordinate system information of a specialist nature.
+"""
+
+Auxprm = """
+Class that contains auxiliary coordinate system information of a specialist
+nature.
+
+This class can not be constructed directly from Python, but instead is
+returned from `~astropy.wcs.Wcsprm.aux`.
+"""
+
 axis_types = """
 ``int array[naxis]`` An array of four-digit type codes for each axis.
 
@@ -423,6 +435,11 @@ crder = """
 An undefined value is represented by NaN.
 """
 
+crln_obs = """
+``double`` Carrington heliographic longitude of the observer (deg). If
+undefined, this is set to `None`.
+"""
+
 crota = """
 ``double array[naxis]`` ``CROTAia`` keyvalues for each coordinate
 axis.
@@ -653,6 +670,11 @@ crval : 2-tuple
 
 cdelt : 2-tuple
     The grid step size
+"""
+
+dsun_obs = """
+``double`` Distance between the centre of the Sun and the observer (m). If
+undefined, this is set to `None`.
 """
 
 equinox = """
@@ -960,6 +982,16 @@ has_pci_ja() -> bool
 
 Alias for `~astropy.wcs.Wcsprm.has_pc`.  Maintained for backward
 compatibility.
+"""
+
+hgln_obs = """
+``double`` Stonyhurst heliographic longitude of the observer. If
+undefined, this is set to `None`.
+"""
+
+hglt_obs = """
+``double``  Heliographic latitude (Carrington or Stonyhurst) of the observer
+(deg). If undefined, this is set to `None`.
 """
 
 i = """
@@ -1507,6 +1539,11 @@ row = """
 ``int`` (read-only)
 
 Table row number.
+"""
+
+rsun_ref = """
+``double`` Reference radius of the Sun used in coordinate calculations (m).
+If undefined, this is set to `None`.
 """
 
 s2p = """
