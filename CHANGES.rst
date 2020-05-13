@@ -482,6 +482,12 @@ astropy.utils
 
 - ``astropy.utils.data.download_file`` now supports FTPS/FTP over TLS. [#9964]
 
+astropy.wcs
+^^^^^^^^^^^
+
+- The new auxiliary WCS parameters added in WCSLIB 7.1 are now exposed as
+  the ``aux`` attribute of ``Wcsprm``. [#10333]
+
 Bug fixes
 ---------
 
