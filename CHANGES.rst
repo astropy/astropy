@@ -591,6 +591,9 @@ Other Changes and Additions
 - Improved the speed of sorting a large ``Table`` on a single column by a factor
   of around 5. [#10103]
 
+- Ensure that astropy can be used inside Application bundles built with
+  pyinstaller. [#8795]
+
 4.0.1 (2020-03-27)
 ==================
 
