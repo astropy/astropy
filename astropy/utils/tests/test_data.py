@@ -65,6 +65,7 @@ TESTURL = "http://www.astropy.org"
 TESTURL2 = "http://www.astropy.org/about.html"
 TESTLOCAL = get_pkg_data_filename(os.path.join("data", "local.dat"))
 
+# NOTE: Python can be built without bz2 or lzma.
 try:
     import bz2  # noqa
 except ImportError:
