@@ -171,6 +171,11 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- Fix failure of ASCII ``fast_reader`` to handle ``names``, ``include_names``,
+  ``exclude_names`` arguments for ``RDB`` formatted tables; homogenised checks
+  and exceptions for invalif ``names`` arguments; improved performance when
+  parsing tables with duplicate column names. [#10306]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
