@@ -338,8 +338,8 @@ def test_match_catalog_nan():
 @pytest.mark.skipif(not HAS_SCIPY or OLDER_SCIPY,
                     reason="Requires scipy > 0.12.0 ")
 def test_match_catalog_nounit():
-    from .. import ICRS, CartesianRepresentation
-    from ..matching import match_coordinates_sky
+    from astropy.coordinates import ICRS, CartesianRepresentation
+    from astropy.coordinates.matching import match_coordinates_sky
 
     i1 = ICRS([[1], [2], [3]], representation_type=CartesianRepresentation)
     i2 = ICRS([[1], [2], [4, 5]], representation_type=CartesianRepresentation)
