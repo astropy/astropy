@@ -17,8 +17,6 @@ from astropy.modeling.models import (Const1D, Shift, Scale, Rotation2D, Gaussian
                                      Identity, Mapping,
                                      Tabular1D, fix_inputs)
 import astropy.units as u
-from ..core import CompoundModel
-
 
 try:
     import scipy

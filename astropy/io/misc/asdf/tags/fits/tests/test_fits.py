@@ -12,7 +12,7 @@ from astropy import __minimum_asdf_version__
 asdf = pytest.importorskip('asdf', minversion=__minimum_asdf_version__)
 from asdf.tests import helpers
 
-from ...tests.helpers import run_schema_example_test
+from astropy.io.misc.asdf.tags.tests.helpers import run_schema_example_test
 
 
 def test_complex_structure(tmpdir):
