@@ -19,6 +19,4 @@ from .circstats import *  # noqa
 from .bayesian_blocks import *  # noqa
 from .histogram import *  # noqa
 from .info_theory import *  # noqa
-from .lombscargle import *  # noqa
 from .spatial import *  # noqa
-from .bls import *  # noqa
