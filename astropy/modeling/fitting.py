@@ -503,6 +503,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
 
         masked = np.any(np.ma.getmask(rhs))
 
+        a = None  # need for calculating covarience
         if len(model_copy) == 1 or not masked:
 
             # If we're fitting one or more models over a common set of points,
@@ -510,7 +511,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             # of magnitude faster than calling lstsq() once per model below:
 
             good = ~rhs.mask if masked else slice(None)  # latter is a no-op
-
+            a = lhs[good]
             # Solve for one or more models:
             lacoef, resids, rank, sval = np.linalg.lstsq(lhs[good],
                                                          rhs[good], rcond)
@@ -536,7 +537,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                 good = ~model_rhs.mask
                 model_lhs = lhs[good]
                 model_rhs = model_rhs[good][..., np.newaxis]
-
+                a = model_lhs
                 # Solve for this model:
                 t_coef, resids, rank, sval = np.linalg.lstsq(model_lhs,
                                                              model_rhs, rcond)
@@ -556,6 +557,17 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                           AstropyUserWarning)
 
         _fitter_to_model_params(model_copy, lacoef.flatten())
+
+        # calculate and set covariance matrix
+        a = a * scl
+        x_dot_x_prime = np.dot(a.T, a)
+        x_dot_x_prime = x_dot_x_prime
+        inv_big_x_dot_x_prime = np.linalg.inv(x_dot_x_prime)
+        RSS = (1/(len(x)-len(lacoef))) * np.sum((y - (model_copy(x)))**2)
+
+        cov = inv_big_x_dot_x_prime * RSS
+        model_copy.cov_matrix = cov
+
         return model_copy
 
 
@@ -909,6 +921,9 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
             self.fit_info['param_cov'] = cov_x * sum_sqrs / dof
         else:
             self.fit_info['param_cov'] = None
+
+        # set cov_matrix as attribute on fit model
+        model_copy.cov_matrix = self.fit_info['param_cov']
 
         return model_copy
 

@@ -530,6 +530,32 @@ class TestNonLinearFitters:
         assert_allclose(fmod.parameters, beta.ravel())
         assert_allclose(olscov, fitter.fit_info['param_cov'])
 
+    def test_fitting_uncertanties(self):
+        """
+        Tests that the fitting uncertanties set by `LevMarLSQFitter` are
+        correct.
+        """
+        mod = models.Gaussian1D(amplitude=10., stddev=7., mean=12.5)
+
+        x = np.linspace(0, 25, 21)
+        np.random.seed(0)
+        y = mod(x) + np.random.normal(0.0, 0.5, 21)
+
+        # fit the noisy gaussian
+        fitter = LevMarLSQFitter()
+        m_fit = fitter(models.Gaussian1D(), x, y)
+
+        # check that parameter stds evaluate correctly for this exact fitting
+        true_vals = [0.21645298, 0.17460962, 0.19783396]
+        assert_allclose(m_fit.stds, true_vals, atol=1e-14)
+
+        # check that parameter stds were calculated from cov matrix 
+        assert all(m_fit.stds == np.sqrt(np.diag(m_fit.cov_matrix)))
+
+        # check that std set for each parameter matches list of stds in model
+        for i, name in enumerate(m_fit.param_names):
+            assert m_fit._parameters_[name].std == m_fit.stds[i]
+
 
 @pytest.mark.skipif('not HAS_PKG')
 class TestEntryPoint:

@@ -690,6 +690,12 @@ class Model(metaclass=_ModelMeta):
     # model inputs. Only has an effect if input_units is defined.
     input_units_equivalencies = None
 
+    # Covarience matrix can be set by fitter if available.
+    # If cov_matrix is availble, then std will set as well
+    _cov_matrix = None
+    _stds = None
+
+
     def __init__(self, *args, meta=None, name=None, **kwargs):
         super().__init__()
         self._default_inputs_outputs()
@@ -717,6 +723,7 @@ class Model(metaclass=_ModelMeta):
         # Raise DeprecationWarning on classes with class attributes
         # ``inputs`` and ``outputs``.
         self._inputs_deprecation()
+
 
     def _inputs_deprecation(self):
         if hasattr(self.__class__, 'inputs') and isinstance(self.__class__.inputs, tuple):
@@ -1283,6 +1290,34 @@ class Model(metaclass=_ModelMeta):
         """
 
         return self._user_bounding_box is not None
+
+    @property
+    def cov_matrix(self):
+        """
+        Fitter should set covarience matrix, if available.
+        """
+        return self._cov_matrix
+
+
+    @cov_matrix.setter
+    def cov_matrix(self, value):
+
+        self._cov_matrix = value
+
+        #if cov matrix is being set (by fitter), set stds for Parameters too
+        param_stds = list(np.sqrt(np.diag(value)))
+        for param_name in self.param_names:
+            if self.fixed[param_name] is False:
+                self._parameters_[param_name].std = param_stds.pop(0)
+
+    @property
+    def stds(self):
+        """
+        Standard deviation of parameters, if covarience matrix is available.
+        """
+        if self.cov_matrix is not None:
+            self._stds = np.sqrt(np.diag(self.cov_matrix))
+        return self._stds
 
     @property
     def separable(self):

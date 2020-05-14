@@ -40,6 +40,7 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
+- Added fitting uncertanties to models and parameters fit with LevMarLSQFitter and LinearLSQFitter. [#10375]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
