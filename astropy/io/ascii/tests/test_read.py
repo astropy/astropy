@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import re
 from io import BytesIO, open
 from collections import OrderedDict
@@ -28,6 +27,7 @@ from astropy.utils.exceptions import AstropyWarning
 # setup/teardown function to have the tests run in the correct directory
 from .common import setup_function, teardown_function  # noqa
 
+# NOTE: Python can be built without bz2.
 try:
     import bz2  # noqa
 except ImportError:
@@ -35,7 +35,7 @@ except ImportError:
 else:
     HAS_BZ2 = True
 
-asciiIO = lambda x: BytesIO(x.encode('ascii'))
+asciiIO = lambda x: BytesIO(x.encode('ascii'))  # noqa
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, {'use_fast_converter': False},

@@ -26,6 +26,7 @@ from astropy.utils.data import conf
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils import data
 
+# NOTE: Python can be built without bz2.
 try:
     import bz2
 except ImportError:

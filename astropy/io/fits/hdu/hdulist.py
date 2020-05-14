@@ -23,6 +23,7 @@ from astropy.utils import indent
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.decorators import deprecated_renamed_argument
 
+# NOTE: Python can be built without bz2.
 try:
     import bz2
 except ImportError:
