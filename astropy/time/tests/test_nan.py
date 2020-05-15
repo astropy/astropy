@@ -74,6 +74,7 @@ def test_nan_behaviour():
     assert np.isnan(nan_time - valid_time)
     assert np.isnan(valid_time - nan_time)
 
+    assert not (Time(np.nan, format='jd') == Time(np.nan, format='jd'))
     assert Time(np.nan, format='jd') != Time(np.nan, format='jd')
     assert TimeDelta(np.nan) != TimeDelta(np.nan)
 

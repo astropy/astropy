@@ -216,7 +216,7 @@ class TimeFormat(metaclass=TimeFormatMeta):
 
     def mask_if_needed(self, value):
         if self.masked:
-            value = np.ma.array(value, mask=self.mask, copy=False)
+            value = np.ma.array(value, mask=self.mask, copy=False, fill_value=np.nan)
         return value
 
     @property
@@ -515,6 +515,10 @@ class TimeMJD(TimeNumeric):
     value = property(to_value)
 
 
+def _isscalar(a):
+    return np.array(a, copy=False).shape == ()
+
+
 class TimeDecimalYear(TimeNumeric):
     """
     Time as a decimal year, with integer values corresponding to midnight
@@ -526,7 +530,22 @@ class TimeDecimalYear(TimeNumeric):
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # Validate scale.
 
+        if _isscalar(val1) and _isscalar(val2) and (np.isnan(val1) or np.isnan(val2)):
+            self.jd1 = self.jd2 = np.nan
+            return
+
         sum12, err12 = two_sum(val1, val2)
+        jd1 = np.empty_like(sum12)
+        jd2 = np.empty_like(sum12)
+        mask = np.isnan(sum12)
+        valid = ~mask
+
+        jd2[mask] = np.nan
+        sum12 = sum12[valid]
+        err12 = err12[valid]
+        val1 = val1[valid]
+        val2 = val2[valid]
+
         iy_start = np.trunc(sum12).astype(int)
         extra, y_frac = two_sum(sum12, -iy_start)
         y_frac += extra + err12
@@ -552,7 +571,9 @@ class TimeDecimalYear(TimeNumeric):
         t_end = Time(jd1_end, jd2_end, scale=self.scale, format='jd')
         t_frac = t_start + (t_end - t_start) * y_frac
 
-        self.jd1, self.jd2 = day_frac(t_frac.jd1, t_frac.jd2)
+        jd1[valid], jd2[valid] = day_frac(t_frac.jd1, t_frac.jd2)
+
+        self.jd1, self.jd2 = jd1, jd2
 
     def to_value(self, **kwargs):
         scale = self.scale.upper().encode('ascii')
@@ -1210,6 +1231,9 @@ class TimeString(TimeUnique):
         """Read time from a single string, using a set of possible formats."""
         # Datetime components required for conversion to JD by ERFA, along
         # with the default values.
+        if timestr.lower() in ('nat', 'nan'):
+            return 1, 1, 1, 0, 0, np.nan
+
         components = ('year', 'mon', 'mday', 'hour', 'min', 'sec')
         defaults = (None, 1, 1, 0, 0, 0)
         # Assume that anything following "." on the right side is a
@@ -1264,8 +1288,27 @@ class TimeString(TimeUnique):
             iy[...], im[...], id[...], ihr[...], imin[...], dsec[...] = (
                 self.parse_string(val, subfmts))
 
-        jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
-                              *iterator.operands[1:])
+        # mask nan values
+        secs = iterator.operands[-1]
+        mask = np.isnan(secs)
+        if np.isscalar(secs) and mask:
+            self.jd1 = self.jd2 = np.nan
+            return
+
+        valid = ~mask
+
+        components = [
+            comp[valid]
+            for comp in iterator.operands[1:]
+        ]
+        jd1 = np.empty_like(secs)
+        jd2 = np.empty_like(secs)
+
+        jd1[valid], jd2[valid] = erfa.dtf2d(
+            self.scale.upper().encode('ascii'),
+            *components,
+        )
+        jd2[mask] = np.nan
         self.jd1, self.jd2 = day_frac(jd1, jd2)
 
     def str_kwargs(self):
@@ -1610,6 +1653,10 @@ class TimeEpochDateString(TimeString):
         for val, years in iterator:
             try:
                 time_str = to_string(val)
+                if time_str.lower() in ('nat', 'nan'):
+                    years[...] = np.nan
+                    continue
+
                 epoch_type, year_str = time_str[0], time_str[1:]
                 year = float(year_str)
                 if epoch_type.upper() != epoch_prefix:

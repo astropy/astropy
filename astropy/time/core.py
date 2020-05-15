@@ -25,7 +25,7 @@ from astropy.utils.data_info import MixinInfo, data_info_factory
 from astropy.utils.exceptions import AstropyWarning
 from .utils import day_frac
 from .formats import (TIME_FORMATS, TIME_DELTA_FORMATS,
-                      TimeJD, TimeUnique, TimeAstropyTime, TimeDatetime)
+                      TimeJD, TimeUnique, TimeAstropyTime, TimeDatetime, _isscalar)
 # Import TimeFromEpoch to avoid breaking code that followed the old example of
 # making a custom timescale in the documentation.
 from .formats import TimeFromEpoch  # noqa
@@ -401,6 +401,23 @@ class Time(ShapedLikeNDArray):
 
         return self
 
+    def __array_ufunc__(self, ufunc, method, *args, **kwargs):
+        '''Override numpy ufuncs. For now only isnan and isnat are implemented'''
+
+        if ufunc in (np.isnan, np.isnat):
+            return self._isnat()
+
+        if ufunc is np.isfinite:
+            return ~self._isnat()
+
+        return NotImplemented
+
+    def _isnat(self):
+        if self.isscalar:
+            return self.mask
+
+        return np.isnan(self.jd2.filled())
+
     def __getnewargs__(self):
         return (self._time,)
 
@@ -763,9 +780,18 @@ class Time(ShapedLikeNDArray):
 
         if scale == self.scale:
             return
+
         if scale not in self.SCALES:
             raise ValueError("Scale {!r} is not in the allowed scales {}"
                              .format(scale, sorted(self.SCALES)))
+
+        if self.isscalar and np.ma.is_masked(self.jd2):
+            self._time = self.FORMATS[self.format](
+                np.nan, np.nan, scale, self.precision,
+                self.in_subfmt, self.out_subfmt,
+                from_jd=True
+            )
+            return
 
         # Determine the chain of scale transformations to get from the current
         # scale to the new scale.  MULTI_HOPS contains a dict of all
@@ -2039,7 +2065,19 @@ class Time(ShapedLikeNDArray):
         if self.scale is not None and other.scale is not None:
             other = getattr(other, self.scale)
 
-        return op((self.jd1 - other.jd1) + (self.jd2 - other.jd2), 0.)
+        result = op((self.jd1 - other.jd1) + (self.jd2 - other.jd2), 0.)
+        if not np.ma.is_masked(result):
+            return result
+
+        # masked values should behave like nan in comparisons
+        fill_value = op(np.nan, np.nan)
+        if _isscalar(result):
+            if np.ma.is_masked(result):
+                return fill_value
+            return result
+
+        result.fill_value = fill_value
+        return result.filled()
 
     def __lt__(self, other):
         return self._time_comparison(other, operator.lt)
