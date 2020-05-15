@@ -485,7 +485,10 @@ def test_scale_error():
     t['a'].unit = '1.2'
     with pytest.raises(UnitScaleError) as exc:
         t.write('t.fits', format='fits', overwrite=True)
-    assert exc.value.args[0] == "The column 'a' could not be stored in FITS format because it has a scale '(1.2)' that is not recognized by the FITS standard. Either scale the data or change the units."
+    assert exc.value.args[0] == (
+        "The column 'a' could not be stored in FITS format because it has a "
+        "scale '(1.2)' that is not recognized by the FITS standard. Either "
+        "scale the data or change the units.")
 
 
 @pytest.mark.parametrize('tdisp_str, format_return',

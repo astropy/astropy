@@ -124,7 +124,7 @@ class TestImageFunctions(FitsTestCase):
 
         info = ([(0, 'PRIMARY', 1, 'PrimaryHDU', 138, (), '', '')]
                 + [(x, 'SCI', x, 'ImageHDU', 61, (40, 40), 'int16', '')
-                 for x in range(1, 5)])
+                   for x in range(1, 5)])
 
         try:
             assert r.info(output=False) == info

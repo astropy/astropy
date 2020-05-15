@@ -133,7 +133,7 @@ def test_scaled_minmax(dask_array_in_mem, tmp_path):
     filename = tmp_path / 'test.fits'
 
     hdu = PrimaryHDU(data=dask_array_in_mem)
-    hdu.scale('int32',option='minmax')
+    hdu.scale('int32', option='minmax')
     hdu.writeto(filename)
 
     with fits.open(filename) as hdulist_new:

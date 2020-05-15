@@ -86,4 +86,4 @@ from .verify import VerifyError  # noqa
 __all__ = (['Conf', 'conf'] + card.__all__ + column.__all__
            + convenience.__all__ + hdu.__all__
            + ['FITS_record', 'FITS_rec', 'GroupData', 'open', 'Section',
-            'Header', 'VerifyError', 'conf'])
+              'Header', 'VerifyError', 'conf'])

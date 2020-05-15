@@ -483,9 +483,9 @@ class TestHeaderFunctions(FitsTestCase):
             _pad("abc     = 'longstring''s testing  &  ' "
                  "/ comments in line 1")
             + _pad("continue  'continue with long string but without the "
-                 "ampersand at the end' /")
+                   "ampersand at the end' /")
             + _pad("continue  'continue must have string value (with quotes)' "
-                 "/ comments with ''. "))
+                   "/ comments with ''. "))
         with pytest.warns(fits.verify.VerifyWarning,
                           match=r'Verification reported errors'):
             assert (str(c)
@@ -1036,7 +1036,7 @@ class TestHeaderFunctions(FitsTestCase):
         with fits.open(self.data('arange.fits')) as hdul:
             assert (list(hdul[0].header)
                     == ['SIMPLE', 'BITPIX', 'NAXIS', 'NAXIS1', 'NAXIS2', 'NAXIS3',
-                     'EXTEND'])
+                        'EXTEND'])
 
     def test_header_list_like_pop(self):
         header = fits.Header([('A', 'B'), ('C', 'D'), ('E', 'F'),
@@ -2603,19 +2603,19 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         assert isinstance(cl, fits.Header)
         assert ([str(c).strip() for c in cl.cards]
                 == ["DP1     = 'AXIS.1: 1'",
-                 "DP1     = 'AXIS.2: 2'"])
+                    "DP1     = 'AXIS.2: 2'"])
 
         cl = self._test_header['DP1.N*']
         assert ([str(c).strip() for c in cl.cards]
                 == ["DP1     = 'NAXIS: 2'",
-                 "DP1     = 'NAUX: 2'"])
+                    "DP1     = 'NAUX: 2'"])
 
         cl = self._test_header['DP1.AUX...']
         assert ([str(c).strip() for c in cl.cards]
                 == ["DP1     = 'AUX.1.COEFF.0: 0'",
-                 "DP1     = 'AUX.1.POWER.0: 1'",
-                 "DP1     = 'AUX.1.COEFF.1: 0.00048828125'",
-                 "DP1     = 'AUX.1.POWER.1: 1'"])
+                    "DP1     = 'AUX.1.POWER.0: 1'",
+                    "DP1     = 'AUX.1.COEFF.1: 0.00048828125'",
+                    "DP1     = 'AUX.1.POWER.1: 1'"])
 
         cl = self._test_header['DP?.NAXIS']
         assert ([str(c).strip() for c in cl.cards]
@@ -2624,7 +2624,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         cl = self._test_header['DP1.A*S.*']
         assert ([str(c).strip() for c in cl.cards]
                 == ["DP1     = 'AXIS.1: 1'",
-                 "DP1     = 'AXIS.2: 2'"])
+                    "DP1     = 'AXIS.2: 2'"])
 
     def test_pattern_matching_key_deletion(self):
         """Deletion by filter strings should work."""
@@ -2653,9 +2653,9 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         cl2 = cl['*.*AUX...']
         assert ([str(c).strip() for c in cl2.cards]
                 == ["DP1     = 'AUX.1.COEFF.0: 0'",
-                 "DP1     = 'AUX.1.POWER.0: 1'",
-                 "DP1     = 'AUX.1.COEFF.1: 0.00048828125'",
-                 "DP1     = 'AUX.1.POWER.1: 1'"])
+                    "DP1     = 'AUX.1.POWER.0: 1'",
+                    "DP1     = 'AUX.1.COEFF.1: 0.00048828125'",
+                    "DP1     = 'AUX.1.POWER.1: 1'"])
 
     def test_rvkc_in_cardlist_keys(self):
         """

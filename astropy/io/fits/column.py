@@ -1012,7 +1012,7 @@ class Column(NotifierMixin):
 
                 elif not (format.format in tnull_formats
                           or (format.format in ('P', 'Q')
-                           and format.p_format in tnull_formats)):
+                              and format.p_format in tnull_formats)):
                     # TODO: We should also check that TNULLn's integer value
                     # is in the range allowed by the column's format
                     msg = (

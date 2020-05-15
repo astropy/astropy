@@ -482,7 +482,8 @@ def table_to_hdu(table, character_as_bytes=False):
 
         # TODO: it might be better to construct the FITS table directly from
         # the Table columns, rather than go via a structured array.
-        table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr, character_as_bytes=True)
+        table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr,
+                                             character_as_bytes=True)
         for col in table_hdu.columns:
             # Binary FITS tables support TNULL *only* for integer data columns
             # TODO: Determine a schema for handling non-integer masked columns
@@ -499,7 +500,8 @@ def table_to_hdu(table, character_as_bytes=False):
 
             col.null = fill_value.astype(table[col.name].dtype)
     else:
-        table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr, character_as_bytes=character_as_bytes)
+        table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr,
+                                             character_as_bytes=character_as_bytes)
 
     # Set units and format display for output HDU
     for col in table_hdu.columns:
@@ -1029,8 +1031,8 @@ def _getext(filename, mode, *args, ext=None, extname=None, extver=None,
 
     if (ext is not None
             and not (_is_int(ext)
-                 or (isinstance(ext, tuple) and len(ext) == 2 and
-                  isinstance(ext[0], str) and _is_int(ext[1])))):
+                     or (isinstance(ext, tuple) and len(ext) == 2
+                         and isinstance(ext[0], str) and _is_int(ext[1])))):
         raise ValueError(
             'The ext keyword must be either an extension number '
             '(zero-indexed) or a (extname, extver) tuple.')
@@ -1085,9 +1087,9 @@ def _stat_filename_or_fileobj(filename):
         loc = 0
 
     noexist_or_empty = ((name
-                         and (not os.path.exists(name) or
-                          (os.path.getsize(name) == 0))) or
-                        (not name and loc == 0))
+                         and (not os.path.exists(name)
+                              or (os.path.getsize(name) == 0)))
+                        or (not name and loc == 0))
 
     return name, closed, noexist_or_empty
 

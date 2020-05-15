@@ -228,10 +228,10 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
     def is_image(self):
         return (
             self.name == 'PRIMARY'
-            or ('XTENSION' in self._header and
-             (self._header['XTENSION'] == 'IMAGE' or
-              (self._header['XTENSION'] == 'BINTABLE' and
-               'ZIMAGE' in self._header and self._header['ZIMAGE'] is True))))
+            or ('XTENSION' in self._header
+                and (self._header['XTENSION'] == 'IMAGE'
+                     or (self._header['XTENSION'] == 'BINTABLE'
+                         and 'ZIMAGE' in self._header and self._header['ZIMAGE'] is True))))
 
     @property
     def _data_loaded(self):
@@ -569,10 +569,10 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
             if datasum_keyword in self._header:
                 del self._header[datasum_keyword]
         elif (modified or self._new
-                or (checksum and ('CHECKSUM' not in self._header or
-                               'DATASUM' not in self._header
-                               or not self._checksum_valid
-                               or not self._datasum_valid))):
+                or (checksum and ('CHECKSUM' not in self._header
+                                  or 'DATASUM' not in self._header
+                                  or not self._checksum_valid
+                                  or not self._datasum_valid))):
             if checksum == 'datasum':
                 self.add_datasum(datasum_keyword=datasum_keyword)
             elif checksum:

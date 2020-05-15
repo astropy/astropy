@@ -1086,8 +1086,8 @@ class Card(_Verify):
 
         # verify the equal sign position
         if (self.keyword not in self._commentary_keywords
-            and (self._image and self._image[:9].upper() != 'HIERARCH ' and
-             self._image.find('=') != 8)):
+            and (self._image and self._image[:9].upper() != 'HIERARCH '
+                 and self._image.find('=') != 8)):
             errs.append(self.run_option(
                 option,
                 err_text='Card {!r} is not FITS standard (equal sign not '

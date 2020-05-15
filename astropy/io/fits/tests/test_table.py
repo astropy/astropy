@@ -292,8 +292,8 @@ class TestTableFunctions(FitsTestCase):
 
         assert (dict(hdu.data.dtype.fields)
                 == {'abc': (np.dtype('|S3'), 18),
-                 'def': (np.dtype('|S15'), 2),
-                 't1': (np.dtype('|S10'), 21)})
+                    'def': (np.dtype('|S15'), 2),
+                    't1': (np.dtype('|S10'), 21)})
         hdu.writeto(self.temp('toto.fits'), overwrite=True)
         hdul = fits.open(self.temp('toto.fits'))
         assert comparerecords(hdu.data, hdul[1].data)
@@ -767,7 +767,7 @@ class TestTableFunctions(FitsTestCase):
 
         assert (hdu.columns.names
                 == ['target', 'counts', 'notes', 'spectrum', 'flag', 'target1',
-                 'counts1', 'notes1', 'spectrum1', 'flag1'])
+                    'counts1', 'notes1', 'spectrum1', 'flag1'])
 
         z = np.array([0., 0., 0., 0., 0.], dtype=np.float32)
         array = np.rec.array(
@@ -3238,7 +3238,8 @@ def test_new_column_attributes_preserved(tmpdir):
 
     with pytest.warns(AstropyDeprecationWarning) as warning_list:
         hdu = fits.BinTableHDU.from_columns(cd, hdr)
-    assert str(warning_list[0].message).startswith("The following keywords are now recognized as special")
+    assert str(warning_list[0].message).startswith(
+        "The following keywords are now recognized as special")
 
     # First, check that special keywords such as TUNIT are ignored in the header
     # We may want to change that behavior in future, but this is the way it's
