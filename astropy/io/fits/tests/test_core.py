@@ -145,6 +145,26 @@ class TestCore(FitsTestCase):
             assert table.data.dtype.names == ('c2', 'c4', 'foo')
             assert table.columns.names == ['c2', 'c4', 'foo']
 
+    def test_disapproved_colnames(self):
+        """Check that non-recommended column names raise a warning, but are accepted."""
+
+        w = (r"It is strongly recommended that column names contain only upper and lower-case "
+             r"ASCII letters, digits, or underscores for maximum compatibility ")
+        wn = r"with other software \(got '{:s}'\)."
+        coldefs = {'a: 0': (0, 'I', 'i2'), '2.1': (1.0, 'E', 'f4'), 'C3.1': (2, 'D', 'f8')}
+        columns = []
+
+        for k, v in coldefs.items():
+            with pytest.warns(fits.verify.VerifyWarning, match=w+wn.format(k)):
+                columns.append(fits.Column(name=k, format=v[1], array=np.array([v[0]])))
+
+        with pytest.warns(fits.verify.VerifyWarning, match=w):
+            table = fits.BinTableHDU.from_columns(columns)
+
+        assert table.data.dtype == np.dtype([(k, v[2]) for k, v in coldefs.items()])
+        for k, v in coldefs.items():
+            assert table.data[k][0] == v[0]
+
     def test_update_header_card(self):
         """A very basic test for the Header.update method--I'd like to add a
         few more cases to this at some point.
