@@ -2889,10 +2889,10 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         assert c.field_specifier is None
 
         h = fits.Header()
-        h['FOO'] = 'Date: 2012-09-19T13:58:53.756061'
-        assert 'FOO.Date' not in h
+        h['DF00'] = 'Date: 2012-09-19T13:58:53.756061'
+        assert 'DF00.Date' not in h
         assert (str(h.cards[0]) ==
-                _pad("FOO     = 'Date: 2012-09-19T13:58:53.756061'"))
+                _pad("DF00    = 'Date: 2012-09-19T13:58:53.756061'"))
 
     def test_overly_aggressive_rvkc_lookup(self):
         """
@@ -2905,19 +2905,19 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         explicitly match any record-valued keyword should result in a KeyError.
         """
 
-        c1 = fits.Card.fromstring("FOO     = 'AXIS.1: 2'")
-        c2 = fits.Card.fromstring("FOO     = 'AXIS.2: 4'")
+        c1 = fits.Card.fromstring("DF00    = 'AXIS.1: 2'")
+        c2 = fits.Card.fromstring("DF00    = 'AXIS.2: 4'")
         h = fits.Header([c1, c2])
-        assert h['FOO'] == 'AXIS.1: 2'
-        assert h[('FOO', 1)] == 'AXIS.2: 4'
-        assert h['FOO.AXIS.1'] == 2.0
-        assert h['FOO.AXIS.2'] == 4.0
-        assert 'FOO.AXIS' not in h
-        assert 'FOO.AXIS.' not in h
-        assert 'FOO.' not in h
-        pytest.raises(KeyError, lambda: h['FOO.AXIS'])
-        pytest.raises(KeyError, lambda: h['FOO.AXIS.'])
-        pytest.raises(KeyError, lambda: h['FOO.'])
+        assert h['DF00'] == 'AXIS.1: 2'
+        assert h[('DF00', 1)] == 'AXIS.2: 4'
+        assert h['DF00.AXIS.1'] == 2.0
+        assert h['DF00.AXIS.2'] == 4.0
+        assert 'DF00.AXIS' not in h
+        assert 'DF00.AXIS.' not in h
+        assert 'DF00.' not in h
+        pytest.raises(KeyError, lambda: h['DF00.AXIS'])
+        pytest.raises(KeyError, lambda: h['DF00.AXIS.'])
+        pytest.raises(KeyError, lambda: h['DF00.'])
 
     def test_fitsheader_script(self):
         """Tests the basic functionality of the `fitsheader` script."""
@@ -3009,6 +3009,31 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         with open(self.temp('mode.fits'), mode=mode) as ff:
             hdu = fits.ImageHDU(data=np.ones(5))
             hdu.writeto(ff)
+
+    @pytest.mark.parametrize('recnam', ['a', 'B', 'NAXES', 'AXIS.1'])
+    def test_accepted_keywords(self, recnam):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/10233
+
+        Ensure that only cards with keyword names matching a recognised pattern
+        ('^[T0-9]?[CDP][A-Z0-9]{1,5} *$') are treated as RVKCs.
+        In particular mandatory or reserved FITS keywords must never be parsed as RVKC.
+        """
+
+        keywords = fits.column.KEYWORD_NAMES + ('BUNIT', 'CD1_1', 'CUNIT1', 'CTYPE1', 'CROTA',
+                                                'PCOUNT', 'PLATEID', 'DATE-OBS', 'TELESCOP')
+        h = fits.Header()
+
+        for i, k in enumerate(keywords):
+            h[k] = f'{recnam}: {i}'
+        for i, k in enumerate(keywords):
+            assert f'{k}.{recnam}' not in h
+            assert h[k] == f'{recnam}: {i}'
+
+        c = fits.Card.fromstring("OBSERV = 'Date: 2012.0912'")
+        assert c.keyword == 'OBSERV '
+        assert c.value == 'Date: 2012.0912'
+        assert c.field_specifier is None
 
 
 def test_subclass():

@@ -27,6 +27,13 @@ VALUE_INDICATOR = '= '  # The standard FITS value indicator
 VALUE_INDICATOR_LEN = len(VALUE_INDICATOR)
 HIERARCH_VALUE_INDICATOR = '='  # HIERARCH cards may use a shortened indicator
 
+# Reserved keyword names. Some of these match the allowed pattern for record-valued keyword cards
+# (_keywd_RVKC_RE), so they have to be checked against explicitly (first four letters only).
+KEYWORD_RSRV = ('CDEL', 'CROT', 'CD1_', 'CD2_', 'CDIS', 'CRPI', 'CRVA', 'CTYP', 'CUNI', 'CHEC',
+                'DATA', 'DATE', 'GCOU', 'PCOU', 'PSCA', 'PTYP', 'PZER', 'TDIM', 'TELE', 'TTYP',
+                'TFOR', 'TUNI', 'TNUL', 'TSCA', 'TZER', 'TDIS', 'TBCO', 'TCTY', 'TCUN', 'TCRP',
+                'TCRV', 'TCDL', 'TRPO', 'THEA', 'TDMA', 'TDMI', 'TLMA', 'TLMI')
+
 
 class Undefined:
     """Undefined value."""
@@ -46,9 +53,10 @@ class Card(_Verify):
 
     # String for a FITS standard compliant (FSC) keyword.
     _keywd_FSC_RE = re.compile(r'^[A-Z0-9_-]{0,%d}$' % KEYWORD_LENGTH)
-    # This will match any printable ASCII character excluding '='
-    _keywd_hierarch_RE = re.compile(r'^(?:HIERARCH +)?(?:^[ -<>-~]+ ?)+$',
-                                    re.I)
+    # This will match any printable ASCII character excluding '='.
+    _keywd_hierarch_RE = re.compile(r'^(?:HIERARCH +)?(?:^[ -<>-~]+ ?)+$', re.I)
+    # Format for keywords containing record-valued keyword cards.
+    _keywd_RVKC_RE = re.compile(r'^[T0-9]?[CDP][A-Z0-9]{1,5} *$')
 
     # A number sub-string, either an integer or a float in fixed or
     # scientific notation.  One for FSC and one for non-FSC (NFSC) format:
@@ -611,7 +619,8 @@ class Card(_Verify):
             return self._check_if_rvkc_image(*args)
         elif len(args) == 2:
             keyword, value = args
-            if not isinstance(keyword, str):
+            if not (isinstance(keyword, str) and keyword[:4] not in KEYWORD_RSRV and
+                    self._keywd_RVKC_RE.match(keyword.split('.')[0])):
                 return False
             if keyword in self._commentary_keywords:
                 return False
@@ -655,6 +664,9 @@ class Card(_Verify):
         # do not contain RVKC field-specifiers; it's very much a
         # micro-optimization but it does make a measurable difference
         if not rest or rest[0] != "'" or rest.find(': ') < 2:
+            return False
+        if not (isinstance(keyword, str) and keyword[:4] not in KEYWORD_RSRV and
+                self._keywd_RVKC_RE.match(keyword.split('.')[0])):
             return False
 
         match = self._rvkc_keyword_val_comm_RE.match(rest)
