@@ -721,6 +721,10 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- bugfix. ``Model.input_units_equivalencies`` would throw keyerror on fix_inputs
+  if models have no set unit equivalencies.
+  [#10359]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
