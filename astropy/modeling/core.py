@@ -1724,7 +1724,6 @@ class Model(metaclass=_ModelMeta):
 
     def prepare_outputs(self, format_info, *outputs, **kwargs):
         model_set_axis = kwargs.get('model_set_axis', None)
-
         if len(self) == 1:
             return _prepare_outputs_single_model(outputs, format_info)
         else:
@@ -3724,8 +3723,9 @@ def render_model(model, arr=None, coords=None):
 
 
 def _prepare_inputs_single_model(model, params, inputs, broadcasted_shape, **kwargs):
-    #broadcasts = []
     shapes_of_inputs = [inp.shape for inp in inputs]
+    if model.standard_broadcasting:
+        shapes_of_inputs = [check_broadcast(shape, broadcasted_shape) for shape in shapes_of_inputs]
     param_broadcast = ()
 
     for idx, _input in enumerate(inputs):
@@ -3738,14 +3738,11 @@ def _prepare_inputs_single_model(model, params, inputs, broadcasted_shape, **kwa
             inputs[idx] = _input.reshape((1,))
 
     if params and model.standard_broadcasting:
-        #print('params', params)
         param_shapes = [param.shape for param in params]
 
         param_broadcast = check_broadcast(*param_shapes)
-        #print('param_broadcast', param_broadcast)
         if broadcasted_shape is not None:
             broadcasted_shape = check_broadcast(broadcasted_shape, param_broadcast)
-        #print('broadcasted_shape', broadcasted_shape)
         shapes_of_inputs = [check_broadcast(shape, param_broadcast) for shape in shapes_of_inputs]
 
     if model.n_outputs > model.n_inputs:
@@ -3756,7 +3753,6 @@ def _prepare_inputs_single_model(model, params, inputs, broadcasted_shape, **kwa
             # inputs necessary (see _prepare_outputs_single_model)
             shapes_of_inputs.append(None)
         shapes_of_inputs.extend([broadcasted_shape] * extra_outputs)
-
     return inputs, (shapes_of_inputs,)
 
 

@@ -100,8 +100,8 @@ def test_inconsistent_input_shapes():
     # but not array broadcasting
     x.shape = (10, 1)
     y.shape = (1, 10)
-    with pytest.raises(ValueError):
-        g(x, y)
+    result = g(x, y)
+    assert result.shape == (10, 10)
 
 
 def test_custom_model_bounding_box():

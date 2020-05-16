@@ -1035,8 +1035,8 @@ class Polynomial2D(PolynomialModel):
         inputs, format_info = super().prepare_inputs(x, y, **kwargs)
 
         x, y = inputs
-        if x.shape != y.shape:
-            raise ValueError("Expected input arrays to have the same shape")
+        # if x.shape != y.shape:
+        #     raise ValueError("Expected input arrays to have the same shape")
         return (x, y), format_info
 
     def evaluate(self, x, y, *coeffs):

@@ -961,3 +961,113 @@ def test_call_keyword_mappings(model):
 
     with pytest.raises(ValueError):
         model(1, 2, t=12, r=3)
+
+
+# test broadcasting rules
+broadcast_models = [
+    {'model': models.Identity(2),
+     'inputs': [0, [1,1]],
+     'outputs': [0, [1,1]]
+    },
+    {'model': models.Identity(2),
+     'inputs': [[1,1], 0],
+     'outputs': [[1,1], 0]
+    },
+    {'model': models.Mapping((0, 1)),
+     'inputs': [0, [1,1]],
+     'outputs': [0, [1,1]]
+    },
+    {'model': models.Mapping((1, 0)),
+     'inputs': [0, [1,1]],
+     'outputs': [[1,1], 0]
+    },
+    {'model': models.Mapping((1, 0), n_inputs=3),
+     'inputs': [0, [1,1], 2],
+     'outputs': [[1, 1], 0]
+    },
+    {'model': models.Mapping((0, 1, 0)),
+     'inputs': [0, [1,1]],
+     'outputs': [0, [1,1], 0]
+    },
+    {'model': models.Mapping((0, 1, 1)),
+     'inputs': [0, [1,1]],
+     'outputs': [0, [1,1], [1, 1]]
+    },
+    {'model': models.Polynomial2D(1, c0_0=1),
+     'inputs': [0, [1, 1]],
+     'outputs': [1, 1]
+    },
+    {'model': models.Polynomial2D(1, c0_0=1),
+     'inputs': [0, 1],
+     'outputs': 1
+    },
+    {'model': models.Gaussian2D(1, 1, 2, 1, 1.2),
+     'inputs': [0, [1, 1]],
+     'outputs': [0.42860385, 0.42860385]
+    },
+    {'model': models.Gaussian2D(1, 1, 2, 1, 1.2),
+     'inputs': [0, 1],
+     'outputs': 0.428603846153
+    },
+    {'model': models.Polynomial2D(1, c0_0=1) & models.Polynomial2D(1, c0_0=2),
+     'inputs': [1, 1, 1, 1],
+     'outputs': (1, 2)
+    },
+    {'model': models.Polynomial2D(1, c0_0=1) & models.Polynomial2D(1, c0_0=2),
+     'inputs': [1, 1, [1, 1], [1, 1]],
+     'outputs': (1, [2, 2])
+    },
+    {'model': models.math.MultiplyUfunc(),
+     'inputs': [np.array([np.linspace(0,1,5)]).T, np.arange(2)],
+     'outputs': np.array([[0.  , 0.  ],
+                          [0.  , 0.25],
+                          [0.  , 0.5 ],
+                          [0.  , 0.75],
+                          [0.  , 1.  ]])
+    }
+]
+
+
+@pytest.mark.filterwarnings(
+    r'ignore:Models in math_functions are experimental\.')
+@pytest.mark.parametrize('model', broadcast_models)
+def test_mixed_input(model):
+    result = model['model'](*model['inputs'])
+    if np.isscalar(result):
+        assert_allclose(result, model['outputs'])
+    else:
+        for i in range(len(result)):
+            assert_allclose(result[i], model['outputs'][i])
+
+
+def test_more_outputs():
+
+    class M(FittableModel):
+        standard_broadcasting = False
+        n_inputs = 2
+        n_outputs = 3
+
+        a = Parameter()
+
+        def evaluate(self, x, y, a):
+            return a*x, a-x, a+y
+
+        def __call__(self, *args, **kwargs):
+            inputs, format_info = super().prepare_inputs(*args, **kwargs)
+
+            outputs = self.evaluate(*inputs, *self.parameters)
+            output_shapes = [out.shape for out in outputs]
+            output_shapes = [() if shape==(1,) else shape for shape in output_shapes]
+            return self.prepare_outputs((tuple(output_shapes),), *outputs, **kwargs)
+
+    c = M(1)
+    result = c([1, 1], 1)
+    expected = [[1., 1.], [0., 0.], 2.]
+    for r, e in zip (result, expected):
+        assert_allclose(r, e)
+
+    c = M(1)
+    result = c(1, [1, 1])
+    expected = [1., 0., [2., 2.]]
+    for r, e in zip (result, expected):
+        assert_allclose(r, e)

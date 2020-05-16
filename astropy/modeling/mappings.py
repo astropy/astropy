@@ -47,6 +47,7 @@ class Mapping(FittableModel):
     (17.0, 14.2)
     """
     linear = True  # FittableModel is non-linear by default
+    standard_broadcasting = False
 
     def __init__(self, mapping, n_inputs=None, name=None, meta=None):
         self._inputs = ()
@@ -124,6 +125,14 @@ class Mapping(FittableModel):
         inv._n_inputs = len(inv._inputs)
         inv._n_outputs = len(inv._outputs)
         return inv
+
+    def prepare_inputs(self, *args):
+        inputs, format_info = super().prepare_inputs(*args)
+        # format_info is a list of shapes of the inputs
+        # They may need to be reordered before passing them to
+        # prepare_outputs.
+        output_shapes = [format_info[0][i] for i in self.mapping]
+        return inputs, (output_shapes,)
 
 
 class Identity(Mapping):
