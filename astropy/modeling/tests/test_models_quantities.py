@@ -372,6 +372,39 @@ def test_models_bounding_box(model):
             assert_quantity_allclose(bbox[i], model['bounding_box'][i])
 
 
+@pytest.mark.parametrize('model', MODELS)
+def test_compound_model_input_units_equivalencies_defaults(model):
+    m = model['class'](**model['parameters'])
+
+    assert m.input_units_equivalencies == None
+
+    compound_model = m + m
+    assert compound_model.inputs_map()['x'][0].input_units_equivalencies == None
+    fixed_input_model = fix_inputs(compound_model, {'x':1})
+
+    assert fixed_input_model.input_units_equivalencies == None
+
+    compound_model = m - m
+    assert compound_model.inputs_map()['x'][0].input_units_equivalencies == None
+    fixed_input_model = fix_inputs(compound_model, {'x':1})
+
+    assert fixed_input_model.input_units_equivalencies == None
+
+    compound_model = m & m
+    assert compound_model.inputs_map()['x1'][0].input_units_equivalencies == None
+    fixed_input_model = fix_inputs(compound_model, {'x0':1})
+    assert fixed_input_model.inputs_map()['x1'][0].input_units_equivalencies == None
+
+    assert fixed_input_model.input_units_equivalencies == None
+
+    if m.n_outputs == m.n_inputs:
+        compound_model = m | m
+        assert compound_model.inputs_map()['x'][0].input_units_equivalencies == None
+        fixed_input_model = fix_inputs(compound_model, {'x':1})
+
+        assert fixed_input_model.input_units_equivalencies == None
+
+
 @pytest.mark.skipif('not HAS_SCIPY')
 @pytest.mark.filterwarnings(r'ignore:.*:RuntimeWarning')
 @pytest.mark.filterwarnings(r'ignore:Model is linear in parameters.*')
