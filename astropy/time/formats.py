@@ -1321,6 +1321,22 @@ class TimeString(TimeUnique):
         return np.array(outs).reshape(self.jd1.shape)
 
 
+def parse_int_from_char_array(chars, idx0, idx1):
+    """Parse int values from substring idx0:idx1 of N x M array of chars
+
+    The ``chars`` array is uint8 and with ASCII ordinal values. Each of the
+    N rows is a date string with M characters.
+    """
+    zero = ord('0')
+    chars = chars[:, idx0:idx1]
+    assert np.all(chars >= zero)
+    assert np.all(chars <= zero + 9)
+
+    mults = 10 ** np.arange(chars.shape[1])[::-1]
+    out = np.sum((chars - zero) * mults, axis=1)
+    return out
+
+
 class TimeISO(TimeString):
     """
     ISO 8601 compliant date-time format "YYYY-MM-DD HH:MM:SS.sss...".
@@ -1344,6 +1360,45 @@ class TimeISO(TimeString):
                ('date',
                 '%Y-%m-%d',
                 '{year:d}-{mon:02d}-{day:02d}'))
+
+    def set_jds(self, val1, val2):
+        """Parse the time strings contained in val1 and set jd1, jd2"""
+        if self.in_subfmt != '*':
+            return super().set_jds(val1, val2)
+
+        try:
+            val1_str_len = val1.dtype.itemsize // (4 if val1.dtype.kind == 'U' else 1)
+            chars = val1.ravel().view(np.uint8)
+            if val1.dtype.kind == 'U':
+                chars.shape = (-1, 4)
+                assert np.all(chars[:, 1:4] == 0)
+                chars = chars[:, 0]
+
+            chars.shape = (-1, val1_str_len)
+
+            years = parse_int_from_char_array(chars, 0, 4)
+            assert np.all(chars[:, 4] == ord('-'))
+            mons = parse_int_from_char_array(chars, 5, 7)
+            assert np.all(chars[:, 7] == ord('-'))
+            days = parse_int_from_char_array(chars, 8, 10)
+            assert np.all(chars[:, 10] == ord(' '))
+            hours = parse_int_from_char_array(chars, 11, 13)
+            assert np.all(chars[:, 13] == ord(':'))
+            mins = parse_int_from_char_array(chars, 14, 16)
+            assert np.all(chars[:, 16] == ord(':'))
+            nn = val1_str_len - 17
+            secs = chars[:, 17:].ravel().view(f'S{nn}').astype(np.float64)
+
+            jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
+                                  years, mons, days, hours, mins, secs)
+            jd1.shape = val1.shape
+            jd2.shape = val1.shape
+            self.jd1, self.jd2 = day_frac(jd1, jd2)
+            # print('Worked!')
+        except Exception:
+            import traceback
+            traceback.print_exc()
+            return super().set_jds(val1, val2)
 
     def parse_string(self, timestr, subfmts):
         # Handle trailing 'Z' for UTC time
