@@ -30,9 +30,18 @@ from astropy.visualization import astropy_mpl_style
 plt.style.use(astropy_mpl_style)
 
 ##############################################################################
-# Load and display the original 3-color jpeg image:
+# Load and display the original 3-color jpeg image.
+# Download image if not found locally:
+import os.path
+import urllib.request
 
-image = Image.open('Hs-2009-14-a-web.jpg')
+IMAGE_PATH = "Hs-2009-14-a-web.jpg"
+if ~os.path.isfile(IMAGE_PATH):
+  urllib.request.urlretrieve(
+      "https://raw.githubusercontent.com/astropy/astropy/master/examples/io/Hs-2009-14-a-web.jpg", 
+      IMAGE_PATH)
+image = Image.open(IMAGE_PATH)
+
 xsize, ysize = image.size
 print("Image size: {} x {}".format(xsize, ysize))
 plt.imshow(image)
