@@ -1321,19 +1321,81 @@ class TimeString(TimeUnique):
         return np.array(outs).reshape(self.jd1.shape)
 
 
-def parse_int_from_char_array(chars, idx0, idx1):
-    """Parse int values from substring idx0:idx1 of N x M array of chars
+def old_parse_numbers_from_char_array(chars, idx0, idx1, typ):
+    """Parse numerical values from substring idx0:idx1 of N x M array of chars
 
     The ``chars`` array is uint8 and with ASCII ordinal values. Each of the
     N rows is a date string with M characters.
     """
+    if typ not in ('int', 'fraction'):
+        raise ValueError("typ arg must be either 'int' or 'fraction'")
+
     zero = ord('0')
     chars = chars[:, idx0:idx1]
     assert np.all(chars >= zero)
     assert np.all(chars <= zero + 9)
 
-    mults = 10 ** np.arange(chars.shape[1])[::-1]
+    str_len = chars.shape[1]
+    exps = np.arange(str_len)[::-1]  # e.g. 3, 2, 1, 0 for string "9876"
+    if typ == 'fraction':
+        exps -= str_len  # e.g. 0, -1, -2, -3
+    mults = 10 ** exps
+
     out = np.sum((chars - zero) * mults, axis=1)
+
+    return out
+
+
+def parse_numbers_from_char_array(chars, spec, str_len):
+    """Parse numerical values from substring idx0:idx1 of N x ``str_len`` array of chars
+
+    The ``chars`` array is uint8 and with ASCII ordinal values. Each of the
+    N rows is a date string with ``str_len`` characters.
+    """
+    typ = spec['type']
+    idx0, idx1 = spec['index']
+    char_start = spec.get('start')
+
+    if idx1 is None:
+        idx1 = str_len
+
+    if typ not in ('int', 'fraction'):
+        raise ValueError("typ arg must be either 'int' or 'fraction'")
+
+    dtype = np.int64 if typ == 'int' else np.float64
+
+    # For required component check that this bit is fully available inside string
+    if spec.get('required'):
+        assert idx0 < str_len and idx1 <= str_len
+    else:
+        # Optional component: OK if not there at all but bad if partially there
+        if idx0 >= str_len:
+            return np.zeros(len(chars), dtype=dtype)
+        else:
+            assert idx0 < str_len and idx1 <= str_len
+
+    if char_start is not None:
+        assert np.all(chars[:, idx0] == ord(char_start))
+        idx0 += 1
+
+    if typ == 'fraction' and idx0 == str_len:
+        # For the case of a decimal point with no more digits like "32."
+        return np.zeros(len(chars), dtype=dtype)
+
+    zero = np.uint8(ord('0'))
+    nine = np.uint8(ord('9'))
+    chars = chars[:, idx0:idx1]
+    assert np.all(chars >= zero)
+    assert np.all(chars <= nine)
+
+    n_char = chars.shape[1]
+    exps = np.arange(n_char)[::-1]  # e.g. 3, 2, 1, 0 for string "9876" w/ n_char=4
+    if typ == 'fraction':
+        exps -= n_char  # e.g. 0, -1, -2, -3
+    mults = dtype(10) ** exps
+
+    out = np.sum((chars - zero) * mults, axis=1).astype(dtype, copy=False)
+
     return out
 
 
@@ -1361,19 +1423,15 @@ class TimeISO(TimeString):
                 '%Y-%m-%d',
                 '{year:d}-{mon:02d}-{day:02d}'))
 
-    fmt_fixed = {
-        (0, 4): {'name': 'year', 'type': 'int', 'required': True},
-        4: {'value': '-', 'required': True},
-        (5, 7): {'name': 'mon', 'type': 'int', 'required': True},
-        7: {'value': '-', 'required': True},
-        (8, 10): {'name': 'day', 'type': 'int', 'required': True},
-        10: {'value': ' ', 'required': True},
-        (11, 13): {'name': 'hour', 'type': 'int', 'required': True},
-        13: {'value': ':', 'required': False},
-        (14, 16): {'name': 'min', 'type': 'int', 'required': False},
-        16: {'value': ':', 'required': False},
-        (17, None): {'name': 'sec', 'type': 'float', 'required': False},
-    }
+    fmt_fixed = [
+        {'index': (0, 4), 'name': 'year', 'type': 'int', 'required': True},
+        {'index': (4, 7), 'name': 'mon', 'start': '-', 'type': 'int', 'required': True},
+        {'index': (7, 10), 'name': 'day', 'start': '-', 'type': 'int', 'required': True},
+        {'index': (10, 13), 'name': 'hour', 'start': ' ', 'type': 'int'},
+        {'index': (13, 16), 'name': 'min', 'start': ':', 'type': 'int'},
+        {'index': (16, 19), 'name': 'isec', 'start': ':', 'type': 'int'},
+        {'index': (19, None), 'name': 'fsec', 'start': '.', 'type': 'fraction'},
+    ]
 
     def set_jds(self, val1, val2):
         """Parse the time strings contained in val1 and set jd1, jd2"""
@@ -1391,18 +1449,10 @@ class TimeISO(TimeString):
             chars.shape = (-1, val1_str_len)
 
             out = {}
-            for char_range, spec in self.fmt_fixed.items():
-                if isinstance(char_range, int):
-                    assert np.all(chars[:, char_range] == ord(spec['value']))
-                elif spec['type'] == 'int':
-                    out[spec['name']] = parse_int_from_char_array(chars, *char_range)
-                elif spec['type'] == 'float':
-                    idx0 = char_range[0]
-                    idx1 = val1_str_len if char_range[1] is None else char_range[1]
-                    vals_str = chars[:, idx0:idx1].ravel().view(f'S{idx1 - idx0}')
-                    out[spec['name']] = vals_str.astype(np.float64)
-                else:
-                    raise ValueError('bad fmt_fixed in class')
+            for spec in self.fmt_fixed:
+                out[spec['name']] = parse_numbers_from_char_array(chars, spec, val1_str_len)
+
+            out['sec'] = out['isec'] + out['fsec']
 
             jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
                                   out['year'], out['mon'], out['day'],
@@ -1412,8 +1462,8 @@ class TimeISO(TimeString):
             self.jd1, self.jd2 = day_frac(jd1, jd2)
 
         except Exception:
-            import traceback
-            traceback.print_exc()
+            # import traceback
+            # traceback.print_exc()
             return super().set_jds(val1, val2)
 
     def parse_string(self, timestr, subfmts):
