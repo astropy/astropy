@@ -2588,6 +2588,7 @@ def update_leap_seconds(files=None):
         Number of items updated.
 
     """
+    return
     try:
         from astropy.utils import iers
 
