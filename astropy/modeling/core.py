@@ -1602,6 +1602,7 @@ class Model(metaclass=_ModelMeta):
 
         broadcasted_shape = None
         if self.standard_broadcasting:
+            # Compute the broadcasted shape taking into account model_set_axis
             broadcasted_shape = _validate_input_shapes(inputs, self.inputs, n_models, model_set_axis)
 
         inputs_map = kwargs.get('inputs_map', None)
@@ -3723,8 +3724,10 @@ def render_model(model, arr=None, coords=None):
 
 
 def _prepare_inputs_single_model(model, params, inputs, broadcasted_shape, **kwargs):
+    # The shapes of the inputs will be used to determine the shape of the outputs.
     shapes_of_inputs = [inp.shape for inp in inputs]
     if model.standard_broadcasting:
+        # Make sure that input shapes broadcast and compute the shape
         shapes_of_inputs = [check_broadcast(shape, broadcasted_shape) for shape in shapes_of_inputs]
     param_broadcast = ()
 
@@ -3740,8 +3743,10 @@ def _prepare_inputs_single_model(model, params, inputs, broadcasted_shape, **kwa
     if params and model.standard_broadcasting:
         param_shapes = [param.shape for param in params]
 
+        # Make sure parameter shapes broadcast
         param_broadcast = check_broadcast(*param_shapes)
         if broadcasted_shape is not None:
+            # Ensure parameter and input shapes broadcast
             broadcasted_shape = check_broadcast(broadcasted_shape, param_broadcast)
         shapes_of_inputs = [check_broadcast(shape, param_broadcast) for shape in shapes_of_inputs]
 
