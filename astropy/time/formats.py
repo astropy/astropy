@@ -1361,6 +1361,20 @@ class TimeISO(TimeString):
                 '%Y-%m-%d',
                 '{year:d}-{mon:02d}-{day:02d}'))
 
+    fmt_fixed = {
+        (0, 4): {'name': 'year', 'type': 'int', 'required': True},
+        4: {'value': '-', 'required': True},
+        (5, 7): {'name': 'mon', 'type': 'int', 'required': True},
+        7: {'value': '-', 'required': True},
+        (8, 10): {'name': 'day', 'type': 'int', 'required': True},
+        10: {'value': ' ', 'required': True},
+        (11, 13): {'name': 'hour', 'type': 'int', 'required': True},
+        13: {'value': ':', 'required': False},
+        (14, 16): {'name': 'min', 'type': 'int', 'required': False},
+        16: {'value': ':', 'required': False},
+        (17, None): {'name': 'sec', 'type': 'float', 'required': False},
+    }
+
     def set_jds(self, val1, val2):
         """Parse the time strings contained in val1 and set jd1, jd2"""
         if self.in_subfmt != '*':
@@ -1376,25 +1390,27 @@ class TimeISO(TimeString):
 
             chars.shape = (-1, val1_str_len)
 
-            years = parse_int_from_char_array(chars, 0, 4)
-            assert np.all(chars[:, 4] == ord('-'))
-            mons = parse_int_from_char_array(chars, 5, 7)
-            assert np.all(chars[:, 7] == ord('-'))
-            days = parse_int_from_char_array(chars, 8, 10)
-            assert np.all(chars[:, 10] == ord(' '))
-            hours = parse_int_from_char_array(chars, 11, 13)
-            assert np.all(chars[:, 13] == ord(':'))
-            mins = parse_int_from_char_array(chars, 14, 16)
-            assert np.all(chars[:, 16] == ord(':'))
-            nn = val1_str_len - 17
-            secs = chars[:, 17:].ravel().view(f'S{nn}').astype(np.float64)
+            out = {}
+            for char_range, spec in self.fmt_fixed.items():
+                if isinstance(char_range, int):
+                    assert np.all(chars[:, char_range] == ord(spec['value']))
+                elif spec['type'] == 'int':
+                    out[spec['name']] = parse_int_from_char_array(chars, *char_range)
+                elif spec['type'] == 'float':
+                    idx0 = char_range[0]
+                    idx1 = val1_str_len if char_range[1] is None else char_range[1]
+                    vals_str = chars[:, idx0:idx1].ravel().view(f'S{idx1 - idx0}')
+                    out[spec['name']] = vals_str.astype(np.float64)
+                else:
+                    raise ValueError('bad fmt_fixed in class')
 
             jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
-                                  years, mons, days, hours, mins, secs)
+                                  out['year'], out['mon'], out['day'],
+                                  out['hour'], out['min'], out['sec'])
             jd1.shape = val1.shape
             jd2.shape = val1.shape
             self.jd1, self.jd2 = day_frac(jd1, jd2)
-            # print('Worked!')
+
         except Exception:
             import traceback
             traceback.print_exc()
