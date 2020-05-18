@@ -39,6 +39,7 @@ from .hcrs import HCRS
 from .teme import TEME
 from .ecliptic import *  # there are a lot of these so we don't list them all explicitly
 from .skyoffset import SkyOffsetFrame
+from .astrometric import AstrometricFrame
 # need to import transformations so that they get registered in the graph
 from . import icrs_fk5_transforms
 from . import fk4_fk5_transforms
@@ -65,6 +66,7 @@ __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
            'GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
            'HeliocentricTrueEcliptic',
            'SkyOffsetFrame', 'GalacticLSR', 'LSR', 'LSRK', 'LSRD',
+           'AstrometricFrame',
            'BaseEclipticFrame', 'BaseRADecFrame', 'make_transform_graph_docs',
            'HeliocentricEclipticIAU76', 'CustomBarycentricEcliptic']
 

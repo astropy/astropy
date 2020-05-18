@@ -467,6 +467,7 @@ listed below.
    remote_methods
    definitions
    inplace
+   astrometricframe
 
 
 In addition, another resource for the capabilities of this package is the
