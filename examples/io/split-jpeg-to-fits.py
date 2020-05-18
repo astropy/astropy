@@ -34,8 +34,9 @@ plt.style.use(astropy_mpl_style)
 
 image = Image.open('Hs-2009-14-a-web.jpg')
 xsize, ysize = image.size
-print("Image size: {} x {}".format(xsize, ysize))
-plt.imshow(image)
+print("Image size: {} x {}".format(ysize, xsize))
+print("Image bands: {}".format(image.getbands()))
+ax = plt.imshow(image)
 
 ##############################################################################
 # Split the three channels (RGB) and get the data as Numpy arrays. The arrays
@@ -50,12 +51,14 @@ print(r_data.shape)
 ##############################################################################
 # Reshape the image arrays to be 2-dimensional:
 
-r_data = r_data.reshape(ysize, xsize)
+r_data = r_data.reshape(ysize, xsize) # data is now a matrix (ysize, xsize)
 g_data = g_data.reshape(ysize, xsize)
 b_data = b_data.reshape(ysize, xsize)
+print(r_data.shape)
 
 ##############################################################################
-# Write out the channels as separate FITS images
+# Write out the channels as separate FITS images.
+# Add and visualize header info
 
 red = fits.PrimaryHDU(data=r_data)
 red.header['LATOBS'] = "32:11:56" # add spurious header info
@@ -71,6 +74,9 @@ blue = fits.PrimaryHDU(data=b_data)
 blue.header['LATOBS'] = "32:11:56"
 blue.header['LONGOBS'] = "110:56"
 blue.writeto('blue.fits')
+
+for _ in red.header.items():
+  print(_)
 
 ##############################################################################
 # Delete the files created
