@@ -238,7 +238,6 @@ class UnitsMappingType(AstropyType):
 
         return tree
 
-
     @classmethod
     def from_tree(cls, tree, ctx):
         mapping = tuple((i.get("unit"), o.get("unit")) for i, o in zip(tree["inputs"], tree["outputs"]))
