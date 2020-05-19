@@ -464,12 +464,9 @@ Other Changes and Additions
 
 - Increase minimum asdf version to 2.6.0. [#10189]
 
-- The bundled version of PLY was updated to 3.11. [#10257]
+- The bundled version of PLY was updated to 3.11. [#10258]
 
 - Removed dependency on scikit-image. [#10214]
-
-- Updated the bundled CFITSIO library to 3.480. See
-  ``cextern/cfitsio/docs/changes.txt`` for additional information. [#10256]
 
 4.0.2 (unreleased)
 ==================
@@ -654,6 +651,9 @@ Other Changes and Additions
 
 - Ensure that astropy can be used inside Application bundles built with
   pyinstaller. [#8795]
+
+- Updated the bundled CFITSIO library to 3.480. See
+  ``cextern/cfitsio/docs/changes.txt`` for additional information. [#10256]
 
 4.0.1 (2020-03-27)
 ==================
@@ -1518,6 +1518,12 @@ astropy.visualization
 
 Bug Fixes
 ---------
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+- Fixed ``nan_treatment='interpolate'`` option to ``convolve_fft`` to properly
+  take into account ``fill_value``. [#8122]
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
