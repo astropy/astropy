@@ -284,8 +284,72 @@ API, please see the :ref:`changelog`.
 Contributors to the v4.0 release
 ================================
 
+The people who have contributed to the code for this release are:
+
 .. hlist::
   :columns: 4
 
-  * ...
-  * ...
+  * Adrian Price-Whelan
+  * Albert Y. Shih
+  * Alex Conley
+  * Anne Archibald
+  * Antetokounpo  *
+  * Arthur Eigenbrot
+  * Benjamin Alan Weaver
+  * Benjamin Roulston
+  * Brett Morris
+  * Brigitta Sipőcz
+  * Carl Schaffer  *
+  * Chris Simpson  *
+  * Clara Brasseur
+  * Clare Shanahan
+  * Dan Foreman-Mackey
+  * Daniel Ruschel Dutra  *
+  * David Stansby
+  * Derek Homeier
+  * Ed Slavich  *
+  * Erik Tollerud
+  * Erin Allard  *
+  * Gabriel Perren  *
+  * Goobley  *
+  * Hans Moritz Günther
+  * James Davies
+  * Jan Skowron  *
+  * Jerry Ma
+  * Juan Luis Cano Rodríguez
+  * Julien Woillez
+  * Kris Stern
+  * Larry Bradley
+  * Lauren Glattly
+  * Leo Singer
+  * M S R Dinesh  *
+  * Manodeep Sinha  *
+  * Marten van Kerkwijk
+  * Max Voronkov  *
+  * Maximilian Nöthe
+  * Michael Lindner-D'Addario  *
+  * Miguel de Val-Borro
+  * Mihai Cara
+  * Nadia Dencheva
+  * Nathanial Hendler  *
+  * Neal McBurnett  *
+  * Nicholas Earl  *
+  * Nick Lloyd  *
+  * Nick Murphy
+  * Perry Greenfield
+  * Peter Cock  *
+  * Pey Lian Lim
+  * Ricky O'Steen  *
+  * Robel Geda  *
+  * Shivansh Mishra  *
+  * Shreyas Bapat
+  * Simon Conseil
+  * Stuart Littlefair
+  * Stuart Mumford
+  * Thomas Robitaille
+  * Tim Jenness
+  * Tom Aldcroft
+  * Tom Donaldson
+  * Zlatan Vasović  *
+
+Where a * indicates their first contribution to the core astropy package.
