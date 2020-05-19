@@ -179,6 +179,7 @@ jobs:
           stage: Final tests
           env: SETUP_CMD='build_docs -b linkcheck'
                MATPLOTLIB_VERSION="<3.1"
+               SPHINX_VERSION="<3"
                PIP_DEPENDENCIES="" CONDA_DEPENDENCIES=""
                INSTALL_WITH_PIP=True
                EXTRAS_INSTALL="docs"
