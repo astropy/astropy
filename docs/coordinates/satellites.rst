@@ -36,7 +36,7 @@ with satellite data in ``astropy`` is below.
 
 You will need some external library to compute the position and velocity of the satellite from the
 TLE orbital elements. The `SGP4 <https://pypi.org/project/sgp4/>`_ library can do this. An example
-of using this library to find the  `~astropy.coordinates.TEME` coordinates of a satellite is::
+of using this library to find the  `~astropy.coordinates.TEME` coordinates of a satellite is:
 
 .. doctest-requires:: sgp4
 
@@ -47,7 +47,7 @@ of using this library to find the  `~astropy.coordinates.TEME` coordinates of a 
     >>> satellite = Satrec.twoline2rv(s, t)
 
 The ``satellite`` object has a method, ``satellite.sgp4``, that will try to compute the TEME position
-and velocity at a given time::
+and velocity at a given time:
 
 .. doctest-requires:: sgp4
 
@@ -58,7 +58,7 @@ and velocity at a given time::
     ...     raise RuntimeError(SGP4_ERRORS[error_code])
 
 Now that we have the position and velocity in kilometers and kilometers per second, we can create a
-position in the `~astropy.coordinates.TEME` reference frame::
+position in the `~astropy.coordinates.TEME` reference frame:
 
 .. doctest-requires:: sgp4
 
@@ -79,7 +79,7 @@ Transforming TEME to Other Coordinate Systems
 Once you have satellite positions in `~astropy.coordinates.TEME` coordinates they can be transformed
 into any `astropy.coordinates` frame.
 
-For example, to find the overhead latitude, longitude, and height of the satellite::
+For example, to find the overhead latitude, longitude, and height of the satellite:
 
 .. EXAMPLE START Transforming TEME
 
@@ -96,7 +96,7 @@ For example, to find the overhead latitude, longitude, and height of the satelli
     >>> from astropy.coordinates import EarthLocation
     >>> siding_spring = EarthLocation(-4680888.60272112, 2805218.44653429, -3292788.0804506, unit='m')
 
-Or, if you want to find the altitude and azimuth of the satellite from a particular location::
+Or, if you want to find the altitude and azimuth of the satellite from a particular location:
 
 .. doctest-requires:: sgp4
 
