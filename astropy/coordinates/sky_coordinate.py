@@ -712,26 +712,33 @@ class SkyCoord(ShapedLikeNDArray):
         icrsrep = self.icrs.represent_as(SphericalRepresentation, SphericalDifferential)
         icrsvel = icrsrep.differentials['s']
 
+        parallax_zero = False
         try:
             plx = icrsrep.distance.to_value(u.arcsecond, u.parallax())
         except u.UnitConversionError:  # No distance: set to 0 by convention
             plx = 0.
+            parallax_zero = True
 
         try:
             rv = icrsvel.d_distance.to_value(u.km/u.s)
         except u.UnitConversionError:  # No RV
             rv = 0.
 
-        starpm = erfa.starpm(icrsrep.lon.radian, icrsrep.lat.radian,
+        starpm = erfa.pmsafe(icrsrep.lon.radian, icrsrep.lat.radian,
                              icrsvel.d_lon.to_value(u.radian/u.yr),
                              icrsvel.d_lat.to_value(u.radian/u.yr),
                              plx, rv, t1.jd1, t1.jd2, t2.jd1, t2.jd2)
+
+        if parallax_zero:
+            new_distance = None
+        else:
+            new_distance = Distance(parallax=starpm[4] << u.arcsec)
 
         icrs2 = ICRS(ra=u.Quantity(starpm[0], u.radian, copy=False),
                      dec=u.Quantity(starpm[1], u.radian, copy=False),
                      pm_ra=u.Quantity(starpm[2], u.radian/u.yr, copy=False),
                      pm_dec=u.Quantity(starpm[3], u.radian/u.yr, copy=False),
-                     distance=Distance(parallax=starpm[4] * u.arcsec, copy=False),
+                     distance=new_distance,
                      radial_velocity=u.Quantity(starpm[5], u.km/u.s, copy=False),
                      differential_type=SphericalDifferential)
 

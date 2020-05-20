@@ -754,6 +754,9 @@ astropy.coordinates
   for coordinates that have both proper motion and radial velocity, but no
   distance. [#10276]
 
+- Fixed an error where ``SkyCoord.apply_space_motion`` would return incorrect
+  results when no distance is set and proper motion is high. [#10296]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
