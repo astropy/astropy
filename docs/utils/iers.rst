@@ -162,7 +162,7 @@ transformations.  For example::
   >>> t = Time('2010:001')
   >>> iers_b = iers.IERS_B.open()
   >>> iers_b.ut1_utc(t)  # doctest: +FLOAT_CMP
-  <Quantity 0.1140827 s>
+  <Quantity 0.114033 s>
   >>> iers.earth_orientation_table.set(iers_b)
   <ScienceState earth_orientation_table: <IERS_B length=...>...>
   >>> t.ut1.iso
