@@ -25,6 +25,7 @@ from astropy.coordinates import Latitude, EarthLocation
 from astropy.coordinates.transformations import FunctionTransform
 from astropy.time import Time
 from astropy.utils import minversion, isiterable
+from astropy.utils.exceptions import ErfaWarning
 from astropy.units import allclose as quantity_allclose
 from astropy.io import fits
 from astropy.wcs import WCS
@@ -1410,8 +1411,10 @@ def test_apply_space_motion():
 
     # Cases that should work (just testing input for now):
     c1 = SkyCoord(frame, obstime=t1, pressure=101*u.kPa)
-    applied1 = c1.apply_space_motion(new_obstime=t2)
-    applied2 = c1.apply_space_motion(dt=12*u.year)
+    with pytest.warns(ErfaWarning, match='ERFA function "pmsafe" yielded .*'):
+        # warning raised due to high PM chosen above
+        applied1 = c1.apply_space_motion(new_obstime=t2)
+        applied2 = c1.apply_space_motion(dt=12*u.year)
 
     assert isinstance(applied1.frame, c1.frame.__class__)
     assert isinstance(applied2.frame, c1.frame.__class__)
@@ -1429,7 +1432,9 @@ def test_apply_space_motion():
     assert 1.9*u.second < adt.to(u.second) < 2.1*u.second
 
     c2 = SkyCoord(frame)
-    applied3 = c2.apply_space_motion(dt=6*u.year)
+    with pytest.warns(ErfaWarning, match='ERFA function "pmsafe" yielded .*'):
+        # warning raised due to high PM chosen above
+        applied3 = c2.apply_space_motion(dt=6*u.year)
     assert isinstance(applied3.frame, c1.frame.__class__)
     assert applied3.obstime is None
 
