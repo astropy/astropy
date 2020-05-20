@@ -32,7 +32,7 @@ smaller improvements and bug fixes, which are described in the
 
 * 211 issues have been closed since v4.0
 * 275 pull requests have been merged since v4.0
-* 62 distinct people have contributed code, 25 of which are first time contributors to Astropy
+* 62 distinct people have contributed code to this release, 25 of which are first time contributors to Astropy
 
 .. _whatsnew-4.1-spectralcoord:
 
@@ -300,6 +300,7 @@ The people who have contributed to the code for this release are:
   * Brett Morris
   * Brigitta Sipőcz
   * Carl Schaffer  *
+  * Chris Osborne  *
   * Chris Simpson  *
   * Clara Brasseur
   * Clare Shanahan
@@ -311,7 +312,6 @@ The people who have contributed to the code for this release are:
   * Erik Tollerud
   * Erin Allard  *
   * Gabriel Perren  *
-  * Goobley  *
   * Hans Moritz Günther
   * James Davies
   * Jan Skowron  *
