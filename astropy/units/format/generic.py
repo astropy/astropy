@@ -446,7 +446,7 @@ class Generic(Base):
                                        'generic_parsetab.py'))
 
         parser = yacc.yacc(debug=False, tabmodule='generic_parsetab',
-                           outputdir=os.path.dirname(__file__))
+                           optimize=True, outputdir=os.path.dirname(__file__))
 
         if not parser_exists:
             cls._add_tab_header('generic_parsetab')
