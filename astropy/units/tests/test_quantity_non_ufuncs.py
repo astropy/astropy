@@ -14,7 +14,9 @@ from astropy.units.quantity_helper.function_helpers import (
 from astropy.utils.compat import NUMPY_LT_1_18
 
 
-NO_ARRAY_FUNCTION = not ARRAY_FUNCTION_ENABLED
+needs_array_function = pytest.mark.xfail(
+    not ARRAY_FUNCTION_ENABLED,
+    reason="Needs __array_function__ support")
 
 
 # To get the functions that could be covered, we look for those that
@@ -208,8 +210,7 @@ class TestArgFunctions(NoUnitTestSetup):
     def test_argwhere(self):
         self.check(np.argwhere)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_argpartition(self):
         self.check(np.argpartition, 2)
 
@@ -241,8 +242,7 @@ class TestAlongAxis(BasicTestSetup):
                                        self.q.value) * self.q.unit ** 2
         assert_array_equal(out, expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     @pytest.mark.parametrize('axes', ((1,), (0,), (0, 1)))
     def test_apply_over_axes(self, axes):
         def function(x, axis):
@@ -277,16 +277,14 @@ class TestRealImag(InvariantUnitTestSetup):
 
 
 class TestCopyAndCreation(InvariantUnitTestSetup):
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_copy(self):
         self.check(np.copy)
         # Also as kwarg
         copy = np.copy(a=self.q)
         assert_array_equal(copy, self.q)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_asfarray(self):
         self.check(np.asfarray)
         farray = np.asfarray(a=self.q)
@@ -312,8 +310,7 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
     def test_ones_like(self):
         self.check(np.ones_like)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_full_like(self):
         o = np.full_like(self.q, 0.5 * u.km)
         expected = np.empty_like(self.q.value) * u.m
@@ -327,8 +324,7 @@ class TestAccessingParts(InvariantUnitTestSetup):
     def test_diag(self):
         self.check(np.diag)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_diag_1d_input(self):
         # Also check 1-D case; drops unit w/o __array_function__.
         q = self.q.ravel()
@@ -383,8 +379,7 @@ class TestSettingParts(metaclass=CoverageMeta):
         expected = [50, 100, 150] * u.cm
         assert np.all(q == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_putmask(self):
         q = np.arange(3.) * u.m
         mask = [True, False, True]
@@ -403,8 +398,7 @@ class TestSettingParts(metaclass=CoverageMeta):
         expected = np.array([0.5, 1., 1.5])
         assert np.all(a == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_place(self):
         q = np.arange(3.) * u.m
         np.place(q, [True, False, True], [50, 150] * u.cm)
@@ -418,8 +412,7 @@ class TestSettingParts(metaclass=CoverageMeta):
         expected = np.array([0.5, 1., 1.5])
         assert np.all(a == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_copyto(self):
         q = np.arange(3.) * u.m
         np.copyto(q, [50, 0, 150] * u.cm, where=[True, False, True])
@@ -450,8 +443,7 @@ class TestRepeat(InvariantUnitTestSetup):
     def test_repeat(self):
         self.check(np.repeat, 2)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_resize(self):
         self.check(np.resize, (4, 4))
 
@@ -470,8 +462,7 @@ class TestConcatenate(metaclass=CoverageMeta):
         assert o.shape == expected.shape
         assert np.all(o == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_concatenate(self):
         self.check(np.concatenate)
         self.check(np.concatenate, axis=1)
@@ -490,41 +481,34 @@ class TestConcatenate(metaclass=CoverageMeta):
         with pytest.raises(TypeError):
             np.concatenate([self.q1, object()])
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_stack(self):
         self.check(np.stack)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_column_stack(self):
         self.check(np.column_stack)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_hstack(self):
         self.check(np.hstack)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_vstack(self):
         self.check(np.vstack)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_dstack(self):
         self.check(np.dstack)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_block(self):
         self.check(np.block)
 
         result = np.block([[0., 1.*u.m], [1.*u.cm, 2.*u.km]])
         assert np.all(result == np.block([[0, 1.], [.01, 2000.]]) << u.m)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_append(self):
         out = np.append(self.q1, self.q2, axis=0)
         assert out.unit == self.q1.unit
@@ -539,8 +523,7 @@ class TestConcatenate(metaclass=CoverageMeta):
         expected = np.append(a, 0.5) * u.dimensionless_unscaled
         assert np.all(result == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_insert(self):
         # Unit of inserted values is not ignored.
         q = np.arange(12.).reshape(6, 2) * u.m
@@ -566,8 +549,7 @@ class TestConcatenate(metaclass=CoverageMeta):
         with pytest.raises(u.UnitsError):
             np.insert(q, (3, 5), 0. * u.s)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_pad(self):
         q = np.arange(1., 6.) * u.m
         out = np.pad(q, (2, 3), 'constant', constant_values=(0., 150.*u.cm))
@@ -698,8 +680,7 @@ class TestUfuncLike(InvariantUnitTestSetup):
                            qmax.to_value(self.q.unit)) * self.q.unit
         assert np.all(out == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_sinc(self):
         q = [0., 3690., -270., 690.] * u.deg
         out = np.sinc(q)
@@ -709,16 +690,14 @@ class TestUfuncLike(InvariantUnitTestSetup):
         with pytest.raises(u.UnitsError):
             np.sinc(1.*u.one)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_where(self):
         out = np.where([True, False, True], self.q, 1. * u.km)
         expected = np.where([True, False, True], self.q.value,
                             1000.) * self.q.unit
         assert np.all(out == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_choose(self):
         # from np.choose docstring
         a = np.array([0, 1]).reshape((2, 1, 1))
@@ -729,8 +708,7 @@ class TestUfuncLike(InvariantUnitTestSetup):
         expected = np.choose(a, (q1.value, q2.to_value(q1.unit))) * u.cm
         assert np.all(out == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_select(self):
         q = self.q
         out = np.select([q < 0.55 * u.m, q > 1. * u.m],
@@ -739,26 +717,22 @@ class TestUfuncLike(InvariantUnitTestSetup):
                              [q.value, q.value], default=-1000) * u.m
         assert np.all(out == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_real_if_close(self):
         q = np.array([1+0j, 0+1j, 1+1j, 0+0j]) * u.m
         out = np.real_if_close(q)
         expected = np.real_if_close(q.value) * u.m
         assert np.all(out == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_tril(self):
         self.check(np.tril)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_triu(self):
         self.check(np.triu)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_unwrap(self):
         q = [0., 3690., -270., 690.] * u.deg
         out = np.unwrap(q)
@@ -776,8 +750,7 @@ class TestUfuncLike(InvariantUnitTestSetup):
         expected = np.nan_to_num(q.value) * q.unit
         assert np.all(out == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_nan_to_num_complex(self):
         q = np.array([-np.inf, +np.inf, np.nan, 3., 4.]) * u.m
         out = np.nan_to_num(q, nan=1.*u.km, posinf=2.*u.km, neginf=-2*u.km)
@@ -828,8 +801,7 @@ class TestUfuncLikeTests(metaclass=CoverageMeta):
         assert out.dtype.kind == 'b'
         assert np.all(out == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason=("Needs __array_function__ support"))
+    @needs_array_function
     def test_allclose_atol_default_unit(self):
         q_cm = self.q.to(u.cm)
         out = np.isclose(self.q, q_cm)
@@ -869,8 +841,7 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
     def test_median(self):
         self.check(np.median)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_quantile(self):
         self.check(np.quantile, 0.5)
         o = np.quantile(self.q, 50 * u.percent)
@@ -889,8 +860,7 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
         assert result is o4
         assert np.all(o4 == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_percentile(self):
         self.check(np.percentile, 0.5)
         o = np.percentile(self.q, 0.5 * u.one)
@@ -900,8 +870,7 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
     def test_trace(self):
         self.check(np.trace)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason=("Needs __array_function__ support"))
+    @needs_array_function
     def test_count_nonzero(self):
         q1 = np.arange(9.).reshape(3, 3) * u.m
         o = np.count_nonzero(q1)
@@ -920,8 +889,7 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
         assert np.allclose(q1, q2, atol=atol)
         assert np.allclose(q1, q2, atol=0., rtol=rtol)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason=("Needs __array_function__ support"))
+    @needs_array_function
     def test_allclose_atol_default_unit(self):
         q1 = np.arange(3.) * u.m
         q2 = np.array([0., 101., 199.]) * u.cm
@@ -936,8 +904,7 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
         with pytest.raises(u.UnitsError):
             np.allclose(q1, q2, atol=0, rtol=1.*u.s)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_array_equal(self):
         q1 = np.arange(3.) * u.m
         q2 = q1.to(u.cm)
@@ -945,8 +912,7 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
         q3 = q1.value * u.cm
         assert not np.array_equal(q1, q3)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_array_equiv(self):
         q1 = np.array([[0., 1., 2.]]*3) * u.m
         q2 = q1[0].to(u.cm)
@@ -1004,16 +970,14 @@ class TestNanFunctions(InvariantUnitTestSetup):
         with pytest.raises(u.UnitsError):
             np.nancumprod(self.q)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_nanquantile(self):
         self.check(np.nanquantile, 0.5)
         o = np.nanquantile(self.q, 50 * u.percent)
         expected = np.nanquantile(self.q.value, 0.5) * u.m
         assert np.all(o == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_nanpercentile(self):
         self.check(np.nanpercentile, 0.5)
         o = np.nanpercentile(self.q, 0.5 * u.one)
@@ -1025,8 +989,7 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
     """
     Test functions that are similar to gufuncs
     """
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_cross(self):
         q1 = np.arange(6.).reshape(2, 3) * u.m
         q2 = np.array([4., 5., 6.]) / u.s
@@ -1034,8 +997,7 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
         expected = np.cross(q1.value, q2.value) * u.m / u.s
         assert np.all(o == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_outer(self):
         q1 = np.array([1, 2, 3]) * u.m
         q2 = np.array([1, 2]) / u.s
@@ -1050,32 +1012,28 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
         with pytest.raises(TypeError):
             np.outer(q1, q2, out=object())
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_inner(self):
         q1 = np.array([1, 2, 3]) * u.m
         q2 = np.array([4, 5, 6]) / u.s
         o = np.inner(q1, q2)
         assert o == 32 * u.m / u.s
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_dot(self):
         q1 = np.array([1., 2., 3.]) * u.m
         q2 = np.array([4., 5., 6.]) / u.s
         o = np.dot(q1, q2)
         assert o == 32. * u.m / u.s
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_vdot(self):
         q1 = np.array([1j, 2j, 3j]) * u.m
         q2 = np.array([4j, 5j, 6j]) / u.s
         o = np.vdot(q1, q2)
         assert o == (32. + 0j) * u.m / u.s
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_tensordot(self):
         # From the docstring example
         a = np.arange(60.).reshape(3, 4, 5) * u.m
@@ -1085,8 +1043,7 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
                                 axes=([1, 0], [0, 1])) * u.m / u.s
         assert np.all(c == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_kron(self):
         q1 = np.eye(2) * u.m
         q2 = np.ones(2) / u.s
@@ -1094,8 +1051,7 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
         expected = np.kron(q1.value, q2.value) * u.m / u.s
         assert np.all(o == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_einsum(self):
         q1 = np.arange(9.).reshape(3, 3) * u.m
         o = np.einsum('...i', q1)
@@ -1146,8 +1102,7 @@ class TestIntDiffFunctions(metaclass=CoverageMeta):
         expected = np.diff(x.value) * u.m
         assert np.all(out == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_diff_prepend_append(self):
         x = np.arange(10.) * u.m
         out = np.diff(x, prepend=-12.5*u.cm, append=1*u.km)
@@ -1169,8 +1124,7 @@ class TestIntDiffFunctions(metaclass=CoverageMeta):
         expected = np.gradient(x.value) * u.m
         assert np.all(out == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_gradient_spacing(self):
         # Simple gradient works out of the box.
         x = np.arange(10.) * u.m
@@ -1208,8 +1162,7 @@ class TestSpaceFunctions(metaclass=CoverageMeta):
         expected = np.linspace(q1.to_value(q2.unit), q2.value, 5) * q2.unit
         assert np.all(out == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_logspace(self):
         unit = u.m / u.s**2
         out = np.logspace(10.*u.dex(unit), 20*u.dex(unit), 10)
@@ -1219,8 +1172,7 @@ class TestSpaceFunctions(metaclass=CoverageMeta):
         expected = np.logspace(10., 20., 10, base=10.**(-0.4)) * u.ST
         assert u.allclose(out, expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_geomspace(self):
         out = np.geomspace(1000.*u.m, 10.*u.km, 5)
         expected = np.geomspace(1, 10, 5) * u.km
@@ -1234,8 +1186,7 @@ class TestSpaceFunctions(metaclass=CoverageMeta):
 
 
 class TestInterpolationFunctions(metaclass=CoverageMeta):
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_interp(self):
         x = np.array([1250., 2750.]) * u.m
         xp = np.arange(5.) * u.km
@@ -1248,8 +1199,7 @@ class TestInterpolationFunctions(metaclass=CoverageMeta):
         assert type(out) is np.ndarray
         assert np.all(out == expected.value)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_piecewise(self):
         x = np.linspace(-2.5, 2.5, 6) * u.m
         out = np.piecewise(x, [x < 0, x >= 0], [-1*u.s, 1*u.day])
@@ -1280,8 +1230,7 @@ class TestInterpolationFunctions(metaclass=CoverageMeta):
 
 
 class TestBincountDigitize(metaclass=CoverageMeta):
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_bincount(self):
         i = np.array([1, 1, 2, 3, 2, 4])
         weights = np.arange(len(i)) * u.Jy
@@ -1292,8 +1241,7 @@ class TestBincountDigitize(metaclass=CoverageMeta):
         with pytest.raises(TypeError):
             np.bincount(weights)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_digitize(self):
         x = np.array([1500., 2500., 4500.]) * u.m
         bins = np.arange(10.) * u.km
@@ -1352,8 +1300,7 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
                 e_bin = e_bin * e_unit
             assert_array_equal(o_bin, e_bin)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_histogram(self):
         x = self.x
         weights = self.weights
@@ -1390,8 +1337,7 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         with pytest.raises(u.UnitsError):
             np.histogram(x.value, [125, 200] * u.s)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_histogram_bin_edges(self):
         x = np.array([1.1, 1.2, 1.3, 2.1, 5.1]) * u.m
         out_b = np.histogram_bin_edges(x)
@@ -1410,8 +1356,7 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         with pytest.raises(u.UnitsError):
             np.histogram_bin_edges(x.value, [125, 200] * u.s)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_histogram2d(self):
         x, y = self.x, self.y
         weights = self.weights
@@ -1458,8 +1403,7 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         with pytest.raises(u.UnitsError):
             np.histogram2d(x.value, y.value, [125, 200] * u.s)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_histogramdd(self):
         # First replicates of the histogram2d tests, but using the
         # histogramdd override.  Normally takes the sample as a tuple
@@ -1525,8 +1469,7 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         with pytest.raises(u.UnitsError):
             np.histogramdd(sample_values, ([125, 200] * u.s, [125, 200]))
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_correlate(self):
         x1 = [1, 2, 3] * u.m
         x2 = [0, 1, 0.5] * u.m
@@ -1534,8 +1477,7 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         expected = np.correlate(x1.value, x2.value) * u.m ** 2
         assert np.all(out == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_convolve(self):
         x1 = [1, 2, 3] * u.m
         x2 = [0, 1, 0.5] * u.m
@@ -1543,16 +1485,14 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         expected = np.convolve(x1.value, x2.value) * u.m ** 2
         assert np.all(out == expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_cov(self):
         # Do not see how we can use cov with Quantity
         x = np.array([[0, 2], [1, 1], [2, 0]]).T * u.m
         with pytest.raises(TypeError):
             np.cov(x)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_corrcoef(self):
         # Do not see how we can use cov with Quantity
         x = np.array([[0, 2], [1, 1], [2, 0]]).T * u.m
@@ -1564,8 +1504,7 @@ class TestSortFunctions(InvariantUnitTestSetup):
     def test_sort(self):
         self.check(np.sort)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_sort_complex(self):
         self.check(np.sort_complex)
 
@@ -1582,8 +1521,7 @@ class TestStringFunctions(metaclass=CoverageMeta):
     def setup(self):
         self.q = np.arange(3.) * u.Jy
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_array2string(self):
         # The default formatters cannot handle units, so if we do not pass
         # a relevant formatter, we are better off just treating it as an
@@ -1607,8 +1545,7 @@ class TestStringFunctions(metaclass=CoverageMeta):
         out4 = np.array2string(self.q, separator=', ', formatter={'int': str})
         assert out4 == expected1
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_array_repr(self):
         out = np.array_repr(self.q)
         assert out == "Quantity([0., 1., 2.], unit='Jy')"
@@ -1616,8 +1553,7 @@ class TestStringFunctions(metaclass=CoverageMeta):
         out2 = np.array_repr(q2)
         assert out2 == "Quantity([0., 1., 2.], unit='Jy', dtype=float32)"
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_array_str(self):
         out = np.array_str(self.q)
         expected = str(self.q)
@@ -1631,40 +1567,35 @@ class TestBitAndIndexFunctions(metaclass=CoverageMeta):
         self.q = np.arange(3) * u.m
         self.uint_q = u.Quantity(np.arange(3), 'm', dtype='u1')
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_packbits(self):
         with pytest.raises(TypeError):
             np.packbits(self.q)
         with pytest.raises(TypeError):
             np.packbits(self.uint_q)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_unpackbits(self):
         with pytest.raises(TypeError):
             np.unpackbits(self.q)
         with pytest.raises(TypeError):
             np.unpackbits(self.uint_q)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_unravel_index(self):
         with pytest.raises(TypeError):
             np.unravel_index(self.q, 3)
         with pytest.raises(TypeError):
             np.unravel_index(self.uint_q, 3)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_ravel_multi_index(self):
         with pytest.raises(TypeError):
             np.ravel_multi_index((self.q,), 3)
         with pytest.raises(TypeError):
             np.ravel_multi_index((self.uint_q,), 3)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_ix_(self):
         with pytest.raises(TypeError):
             np.ix_(self.q)
@@ -1748,8 +1679,7 @@ class TestSetOpsFcuntions(metaclass=CoverageMeta):
     def test_unique(self, kwargs):
         self.check1(np.unique, **kwargs)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     @pytest.mark.parametrize('kwargs', (
         dict(axis=0),
         dict(axis=1),
@@ -1757,34 +1687,29 @@ class TestSetOpsFcuntions(metaclass=CoverageMeta):
     def test_unique_more_complex(self, kwargs):
         self.check1(np.unique, **kwargs)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     @pytest.mark.parametrize('kwargs', (
         dict(),
         dict(return_indices=True)))
     def test_intersect1d(self, kwargs):
         self.check2(np.intersect1d, **kwargs)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_setxor1d(self):
         self.check2(np.setxor1d)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_union1d(self):
         self.check2(np.union1d)
         result = np.union1d(np.array([0., np.nan]), np.arange(3) << u.m)
         assert result.unit is u.m
         assert_array_equal(result.value, np.array([0., 1., 2., np.nan]))
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_setdiff1d(self):
         self.check2(np.setdiff1d)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_in1d(self):
         self.check2(np.in1d, unit=None)
         # Check zero is treated as having any unit.
@@ -1792,8 +1717,7 @@ class TestSetOpsFcuntions(metaclass=CoverageMeta):
         with pytest.raises(u.UnitsError):
             np.in1d(np.ones(1), self.q2)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_isin(self):
         self.check2(np.isin, unit=None)
 
@@ -1833,8 +1757,7 @@ def test_fft_frequencies(function):
     assert_array_equal(out, expected)
 
 
-@pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                   reason="Needs __array_function__ support")
+@needs_array_function
 class TestFFT(InvariantUnitTestSetup):
     # These are all trivial, just preserve the unit.
     def setup(self):
@@ -1907,8 +1830,7 @@ class TestLinAlg(metaclass=CoverageMeta):
         x = np.linalg.matrix_rank(self.q.value)
         assert r == x
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_matrix_rank_with_tol(self):
         # Use a matrix that is not so good, so tol=1 and tol=0.01 differ.
         q = np.arange(9.).reshape(3, 3) / 4 * u.m
@@ -1925,8 +1847,7 @@ class TestLinAlg(metaclass=CoverageMeta):
         q2 = np.linalg.matrix_power(self.q, 4)
         assert_array_equal(q2, self.q @ self.q @ self.q @ self.q)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_matrix_inv_power(self):
         qinv = np.linalg.inv(self.q.value) / self.q.unit
         qm1 = np.linalg.matrix_power(self.q, -1)
@@ -1934,8 +1855,7 @@ class TestLinAlg(metaclass=CoverageMeta):
         qm3 = np.linalg.matrix_power(self.q, -3)
         assert_array_equal(qm3, qinv @ qinv @ qinv)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_multi_dot(self):
         q2 = np.linalg.multi_dot([self.q, self.q])
         q2x = self.q @ self.q
@@ -1944,8 +1864,7 @@ class TestLinAlg(metaclass=CoverageMeta):
         q3x = self.q @ self.q @ self.q
         assert_array_equal(q3, q3x)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_svd(self):
         m = np.arange(10.) * np.arange(5.)[:, np.newaxis] * u.m
         svd_u, svd_s, svd_vt = np.linalg.svd(m, full_matrices=False)
@@ -1960,15 +1879,13 @@ class TestLinAlg(metaclass=CoverageMeta):
         svd_s2x = np.linalg.svd(m.value, compute_uv=False) << m.unit
         assert_array_equal(s2, svd_s2x)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_inv(self):
         inv = np.linalg.inv(self.q)
         expected = np.linalg.inv(self.q.value) / self.q.unit
         assert_array_equal(inv, expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_pinv(self):
         pinv = np.linalg.pinv(self.q)
         expected = np.linalg.pinv(self.q.value) / self.q.unit
@@ -1979,15 +1896,13 @@ class TestLinAlg(metaclass=CoverageMeta):
                                    rcond.to_value(self.q.unit)) / self.q.unit
         assert_array_equal(pinv2, expected2)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_tensorinv(self):
         inv = np.linalg.tensorinv(self.q, ind=1)
         expected = np.linalg.tensorinv(self.q.value, ind=1) / self.q.unit
         assert_array_equal(inv, expected)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_det(self):
         det = np.linalg.det(self.q)
         expected = np.linalg.det(self.q.value)
@@ -1998,16 +1913,14 @@ class TestLinAlg(metaclass=CoverageMeta):
         with pytest.raises(np.linalg.LinAlgError):
             np.linalg.det(self.q[:-1])  # Not square.
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_slogdet(self):
         # TODO: Could be supported if we had a natural logarithm unit.
         with pytest.raises(TypeError):
             logdet = np.linalg.slogdet(self.q)
             assert hasattr(logdet, 'unit')
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_solve(self):
         b = np.array([1., 2., 4.]) * u.m / u.s
         x = np.linalg.solve(self.q, b)
@@ -2016,8 +1929,7 @@ class TestLinAlg(metaclass=CoverageMeta):
         assert_array_equal(x, xx)
         assert u.allclose(self.q @ x, b)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_tensorsolve(self):
         b = np.array([1., 2., 4.]) * u.m / u.s
         x = np.linalg.tensorsolve(self.q, b)
@@ -2026,8 +1938,7 @@ class TestLinAlg(metaclass=CoverageMeta):
         assert_array_equal(x, xx)
         assert u.allclose(self.q @ x, b)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_lstsq(self):
         b = np.array([1., 2., 4.]) * u.m / u.s
         x, residuals, rank, s = np.linalg.lstsq(self.q, b, rcond=None)
@@ -2055,8 +1966,7 @@ class TestLinAlg(metaclass=CoverageMeta):
         with pytest.raises(u.UnitsError):
             np.linalg.lstsq(m, b, rcond=1.*u.s)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_norm(self):
         n = np.linalg.norm(self.q)
         expected = np.linalg.norm(self.q.value) << self.q.unit
@@ -2066,8 +1976,7 @@ class TestLinAlg(metaclass=CoverageMeta):
         expected1 = np.linalg.norm(self.q[0].value, ord=0) << u.one
         assert_array_equal(n1, expected1)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_cholesky(self):
         # Numbers from np.linalg.cholesky docstring.
         q = np.array([[1, -2j], [2j, 5]]) * u.m
@@ -2076,8 +1985,7 @@ class TestLinAlg(metaclass=CoverageMeta):
         assert_array_equal(cd, cdx)
         assert u.allclose(cd @ cd.T.conj(), q)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_qr(self):
         # This is not exhaustive...
         a = np.array([[1, -2j], [2j, 5]]) * u.m
@@ -2089,8 +1997,7 @@ class TestLinAlg(metaclass=CoverageMeta):
         assert_array_equal(r, rx)
         assert u.allclose(q @ r, a)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_eig(self):
         w, v = np.linalg.eig(self.q)
         wx, vx = np.linalg.eig(self.q.value)
@@ -2105,8 +2012,7 @@ class TestLinAlg(metaclass=CoverageMeta):
         assert_array_equal(w, np.arange(1, 4) * u.m)
         assert_array_equal(v, np.eye(3))
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_eigvals(self):
         w = np.linalg.eigvals(self.q)
         wx = np.linalg.eigvals(self.q.value) << self.q.unit
@@ -2116,8 +2022,7 @@ class TestLinAlg(metaclass=CoverageMeta):
         w = np.linalg.eigvals(q)
         assert_array_equal(w, np.arange(1, 4) * u.m)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_eigh(self):
         w, v = np.linalg.eigh(self.q)
         wx, vx = np.linalg.eigh(self.q.value)
@@ -2126,8 +2031,7 @@ class TestLinAlg(metaclass=CoverageMeta):
         assert_array_equal(w, wx)
         assert_array_equal(v, vx)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_eigvalsh(self):
         w = np.linalg.eigvalsh(self.q)
         wx = np.linalg.eigvalsh(self.q.value) << self.q.unit
@@ -2158,8 +2062,7 @@ poly_functions = {
 untested_functions |= poly_functions
 
 
-@pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                   reason="no __array_function__ wrapping in numpy<1.17")
+@needs_array_function
 def test_testing_completeness():
     assert not CoverageMeta.covered.intersection(untested_functions)
     assert all_wrapped == (CoverageMeta.covered | untested_functions)
@@ -2174,8 +2077,7 @@ class TestFunctionHelpersCompleteness:
     def test_no_duplicates(self, one, two):
         assert not one.intersection(two)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="no __array_function__ wrapping in numpy<1.17")
+    @needs_array_function
     def test_all_included(self):
         included_in_helpers = (SUBCLASS_SAFE_FUNCTIONS |
                                UNSUPPORTED_FUNCTIONS |
@@ -2184,7 +2086,6 @@ class TestFunctionHelpersCompleteness:
         assert all_wrapped == included_in_helpers
 
     # untested_function is created using all_wrapped_functions
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="no __array_function__ wrapping in numpy<1.17")
+    @needs_array_function
     def test_ignored_are_untested(self):
         assert IGNORED_FUNCTIONS == untested_functions
