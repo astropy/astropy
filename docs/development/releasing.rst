@@ -45,21 +45,18 @@ packages that use the full bugfix/maintenance branch approach.)
    re-assign them to the next relevant milestone.
 
 #. (Only for major versions) Make sure to update the "What's new"
-   section with the stats on the number of issues, PRs, and contributors.  For
-   the first two, the `astropy-procedures repository`_ script ``gh_issuereport.py``
-   can provide the numbers since the last major release.  For the final one, you
+   section with the stats on the number of issues, PRs, and contributors. This
+   information can be collected with the `generate_releaserst`_ script. For the final one, you
    will likely need to update the Astropy ``.mailmap`` file, as there are often
    contributors who are not careful about using the same e-mail address for
    every commit.  The easiest way to do this is to run the command
    ``git shortlog -n -s -e`` to see the list of all contributors and their email
    addresses.  Look for any misnamed entries or duplicates, and add them to the
    ``.mailmap`` file (matched to the appropriate canonical name/email address.)
-   Once you have finished this, you can count the number of lines in
-   ``git shortlog -s`` to get the final contributor count.
 
 #. Also be sure to update the ``docs/credits.rst`` file to include any new
-   contributors.  This can come from the above step, or the ``author_lists.py``
-   script in the `astropy-procedures repository`_ mostly automates this.  (This
+   contributors.  This can come from the above step, or with the output from
+   the ``git shortlog -s`` command.  (This
    step is only required on major releases, but can be done for bugfix releases
    as time allows.)
 
@@ -760,3 +757,4 @@ that for you.  You can delete this tag by doing::
 .. _astropy-procedures repository: https://github.com/astropy/astropy-procedures
 .. _Anaconda: https://conda.io/docs/
 .. _twine: https://packaging.python.org/key_projects/#twine
+.. _generate_releaserst: https://github.com/sunpy/sunpy/blob/master/tools/generate_releaserst.xsh
