@@ -78,14 +78,14 @@ Use a JPL ephemeris for accuracy::
 Using |AstrometricFrame|::
 
     >>> from astropy.coordinates import AstrometricFrame
-    >>> ast_gcrs = AstrometricFrame(origin=earth)
+    >>> ast_gcrs = AstrometricFrame(observer=earth)
     >>> ast_gcrs
-    <AstrometricGCRS Frame (origin=<GCRS Coordinate (obstime=2012-06-06 04:07:29.000, obsgeoloc=(0., 0., 0.) m, obsgeovel=(0., 0., 0.) m / s): (ra, dec, distance) in (deg, deg, AU)
+    <AstrometricGCRS Frame (observer=<GCRS Coordinate (obstime=2012-06-06 04:07:29.000, obsgeoloc=(0., 0., 0.) m, obsgeovel=(0., 0., 0.) m / s): (ra, dec, distance) in (deg, deg, AU)
         (0., 0., 0.)>, ref_epoch=J2000.000)>
 
     >>> venus_ast = venus.transform_to(ast_gcrs)
     >>> venus_ast  # doctest: +REMOTE_DATA
-    <SkyCoord (AstrometricGCRS: origin=<GCRS Coordinate (obstime=2012-06-06 04:07:29.000, obsgeoloc=(0., 0., 0.) m, obsgeovel=(0., 0., 0.) m / s): (ra, dec, distance) in (deg, deg, AU)
+    <SkyCoord (AstrometricGCRS: observer=<GCRS Coordinate (obstime=2012-06-06 04:07:29.000, obsgeoloc=(0., 0., 0.) m, obsgeovel=(0., 0., 0.) m / s): (ra, dec, distance) in (deg, deg, AU)
         (0., 0., 0.)>, ref_epoch=J2000.000): (ra, dec, distance) in (deg, deg, km)
         (74.23245792, 22.77361214, 43190037.9814361)
      (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
@@ -154,14 +154,14 @@ For cosmic objects, the observer location does not matter.
 Specify ``obstime`` separately because |ICRS| does not have that frame attribute.
 Specify the reference epoch::
 
-    >>> ast_icrs = AstrometricFrame(origin=ICRS(0*u.deg, 0*u.deg, 0*u.AU),
+    >>> ast_icrs = AstrometricFrame(observer=ICRS(0*u.deg, 0*u.deg, 0*u.AU),
     ...                             obstime=earth.obstime, ref_epoch='J2010')
     >>> ast_icrs
-    <AstrometricICRS Frame (origin=<ICRS Coordinate: (ra, dec, distance) in (deg, deg, AU)
+    <AstrometricICRS Frame (observer=<ICRS Coordinate: (ra, dec, distance) in (deg, deg, AU)
         (0., 0., 0.)>, obstime=2012-06-06 04:07:29.000, ref_epoch=J2010.000)>
 
     >>> star_ref.transform_to(ast_icrs)
-    <AstrometricICRS Coordinate (origin=<ICRS Coordinate: (ra, dec, distance) in (deg, deg, AU)
+    <AstrometricICRS Coordinate (observer=<ICRS Coordinate: (ra, dec, distance) in (deg, deg, AU)
         (0., 0., 0.)>, obstime=2012-06-06 04:07:29.000, ref_epoch=J2010.000): (ra, dec, distance) in (deg, deg, pc)
         (10.00953932, 44.98650579, 10.00024406)
      (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
@@ -179,9 +179,9 @@ Specify the reference epoch::
 The astrometric frame can be based on any coordinate frame, not just |ICRS|.
 Use the same Earth observer and observation time as earlier, but now with |HCRS| as the base coordinate frame::
 
-    >>> ast_hcrs = AstrometricFrame(origin=earth.hcrs, ref_epoch='J2010')
+    >>> ast_hcrs = AstrometricFrame(observer=earth.hcrs, ref_epoch='J2010')
     >>> ast_hcrs  # doctest: +REMOTE_DATA
-    <AstrometricHCRS Frame (origin=<HCRS Coordinate (obstime=2012-06-06 04:07:29.000): (ra, dec, distance) in (deg, deg, AU)
+    <AstrometricHCRS Frame (observer=<HCRS Coordinate (obstime=2012-06-06 04:07:29.000): (ra, dec, distance) in (deg, deg, AU)
         (254.4656737, -22.66944306, 1.01475669)>, ref_epoch=J2010.000)>
 
 Need to change the finite-difference time step for the |HCRS| to |HCRS| transformation::
@@ -193,7 +193,7 @@ Need to change the finite-difference time step for the |HCRS| to |HCRS| transfor
 Perform the astrometric transformation::
 
     >>> star_ref.transform_to(ast_hcrs)  # doctest: +REMOTE_DATA
-    <AstrometricHCRS Coordinate (origin=<HCRS Coordinate (obstime=2012-06-06 04:07:29.000): (ra, dec, distance) in (deg, deg, AU)
+    <AstrometricHCRS Coordinate (observer=<HCRS Coordinate (obstime=2012-06-06 04:07:29.000): (ra, dec, distance) in (deg, deg, AU)
         (254.4656737, -22.66944306, 1.01475669)>, ref_epoch=J2010.000): (ra, dec, distance) in (deg, deg, pc)
         (10.00953937, 44.98650575, 10.00024407)
      (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)

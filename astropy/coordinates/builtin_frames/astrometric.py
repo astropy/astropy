@@ -20,7 +20,7 @@ _astrometric_cache = {}
 def make_astrometric_cls(framecls):
     """
     Create a new class that is the astrometric frame for a specific class of
-    origin frame. If such a class has already been created for this frame, the
+    observer frame. If such a class has already been created for this frame, the
     same class will be returned.
 
     Parameters
@@ -54,8 +54,8 @@ def make_astrometric_cls(framecls):
         """
 
         def __new__(cls, name, bases, members):
-            # Define the frame attributes that are not copied from `origin`
-            members['origin'] = CoordinateAttribute(frame=framecls, default=None)
+            # Define the frame attributes that are not copied from `observer`
+            members['observer'] = CoordinateAttribute(frame=framecls, default=None)
             if 'obstime' not in framecls.get_frame_attr_names():
                 members['obstime'] = TimeAttribute(default=DEFAULT_OBSTIME)
             members['ref_epoch'] = TimeAttribute(default=DEFAULT_OBSTIME)
@@ -84,15 +84,15 @@ def make_astrometric_cls(framecls):
         """Transform between two astrometric frames."""
 
         # This transform goes through the parent frames on each side.
-        # from_frame -> from_frame.origin -> to_frame.origin -> to_frame
-        intermediate_from = from_astrometric_coord.transform_to(from_astrometric_coord.origin)
-        intermediate_to = intermediate_from.transform_to(to_astrometric_frame.origin)
+        # from_frame -> from_frame.observer -> to_frame.observer -> to_frame
+        intermediate_from = from_astrometric_coord.transform_to(from_astrometric_coord.observer)
+        intermediate_to = intermediate_from.transform_to(to_astrometric_frame.observer)
         return intermediate_to.transform_to(to_astrometric_frame)
 
     @frame_transform_graph.transform(FunctionTransform, framecls, _AstrometricFramecls)
     def reference_to_astrometric(reference_coord, astrometric_frame):
         """Add motion to the reference coordinate."""
-        reference_coord = reference_coord.transform_to(astrometric_frame.origin)
+        reference_coord = reference_coord.transform_to(astrometric_frame.observer)
         icrs_coord = reference_coord.transform_to(ICRS)
 
         posvel = icrs_coord.cartesian
@@ -203,7 +203,7 @@ class AstrometricFrame(BaseCoordinateFrame):
         A representation object or ``None`` to have no data.  Alternatively,
         use coordinate component keyword arguments, which depend on the base
         coordinate frame.
-    origin : `~astropy.coordinates.SkyCoord` or low-level coordinate object.
+    observer : `~astropy.coordinates.SkyCoord` or low-level coordinate object.
         The coordinate which specifies both the base coordinate frame and the
         3D location of the observer.
     ref_epoch : `~astropy.time.Time`
@@ -230,7 +230,7 @@ class AstrometricFrame(BaseCoordinateFrame):
     ``AstrometricFrame`` is a factory class.  That is, the objects that it
     yields are *not* actually objects of class ``AstrometricFrame``.  Instead,
     distinct classes are created on-the-fly for whatever the frame class is
-    of ``origin``.
+    of ``observer``.
     """
     # The distance threshold used to distinguish between solar-system bodies and cosmic objects
     _distance_threshold = 1*u.lyr
@@ -239,13 +239,13 @@ class AstrometricFrame(BaseCoordinateFrame):
         # We don't want to call this method if we've already set up
         # an astrometric frame for this class.
         if not (issubclass(cls, AstrometricFrame) and cls is not AstrometricFrame):
-            # We get the origin argument, and handle it here.
-            origin_frame = kwargs.get('origin', None)
-            if origin_frame is None:
-                raise TypeError("Can't initialize an AstrometricFrame without origin= keyword.")
-            if hasattr(origin_frame, 'frame'):
-                origin_frame = origin_frame.frame
-            newcls = make_astrometric_cls(origin_frame.__class__)
+            # We get the observer argument, and handle it here.
+            observer_frame = kwargs.get('observer', None)
+            if observer_frame is None:
+                raise TypeError("Can't initialize an AstrometricFrame without observer= keyword.")
+            if hasattr(observer_frame, 'frame'):
+                observer_frame = observer_frame.frame
+            newcls = make_astrometric_cls(observer_frame.__class__)
             return newcls.__new__(newcls, *args, **kwargs)
 
         # http://stackoverflow.com/questions/19277399/why-does-object-new-work-differently-in-these-three-cases
@@ -259,7 +259,7 @@ class AstrometricFrame(BaseCoordinateFrame):
     def _frame_attrs_repr(self):
         # Overrides BaseCoordinateFrame._frame_attrs_repr() to hide the copied frame attributes
         attr_names = self.get_frame_attr_names()
-        for attribute_name in self.origin.get_frame_attr_names():
+        for attribute_name in self.observer.get_frame_attr_names():
             del attr_names[attribute_name]
 
         attr_strs = []
@@ -274,17 +274,17 @@ class AstrometricFrame(BaseCoordinateFrame):
         return ', '.join(attr_strs)
 
     def __setattr__(self, attr, value):
-        if attr == "_origin":
+        if attr == "_observer":
             if not value.has_data:
-                raise ValueError('The origin supplied to AstrometricFrame has no data.')
+                raise ValueError('The observer supplied to AstrometricFrame has no data.')
 
             if value.data.norm().unit is u.one:
-                raise ValueError("The data for `origin` must have distance units.")
+                raise ValueError("The data for `observer` must have distance units.")
 
             # Pre-compute the Cartesian representation of the observer location in ICRS
             self._observer_icrs_cartesian = value.transform_to(ICRS).cartesian
 
-            # Copy out all frame attributes from the `origin` frame attribute
+            # Copy out all frame attributes from the `observer` frame attribute
             for attr2 in value.get_frame_attr_names():
                 super().__setattr__("_" + attr2, getattr(value, attr2))
 
@@ -300,4 +300,4 @@ class AstrometricFrame(BaseCoordinateFrame):
         method is not merely a coordinate transformation, because this method
         changes the location in inertial space that is being pointed to.
         """
-        return self.origin.realize_frame(self.data)
+        return self.observer.realize_frame(self.data)
