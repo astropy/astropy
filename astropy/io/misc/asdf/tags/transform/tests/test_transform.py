@@ -343,3 +343,30 @@ def test_custom_and_analytical(model, tmpdir):
     fa.write_to(file_path)
     with asdf.open(file_path) as f:
         assert f.tree['model'].inverse is not None
+
+
+def test_deserialize_compound_user_inverse(tmpdir):
+    """
+    Confirm that we are able to correctly reconstruct a
+    compound model with a user inverse set on one of its
+    component models.
+
+    Due to code in TransformType that facilitates circular
+    inverses, the user inverse of the component model is
+    not available at the time that the CompoundModel is
+    constructed.
+    """
+
+    yaml = """
+model: !transform/concatenate-1.2.0
+  forward:
+  - !transform/shift-1.2.0
+    inverse: !transform/shift-1.2.0 {offset: 5.0}
+    offset: -10.0
+  - !transform/shift-1.2.0 {offset: -20.0}
+  """
+    buff = helpers.yaml_to_asdf(yaml)
+    with asdf.open(buff) as af:
+        model = af["model"]
+        assert model.has_inverse()
+        assert model.inverse(-5, -20) == (0, 0)
