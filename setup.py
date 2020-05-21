@@ -72,6 +72,31 @@ try:
     version = get_version(root='..', relative_to=__file__)
 except Exception:
     version = '{version}'
+else:
+    del get_version  # clean up namespace
+
+
+# We use LooseVersion to define major, minor, micro, but ignore any suffixes.
+def split_version(version):
+    pieces = [0, 0, 0]
+
+    try:
+        from distutils.version import LooseVersion
+
+        for j, piece in enumerate(LooseVersion(version).version[:3]):
+            pieces[j] = int(piece)
+
+    except Exception:
+        pass
+
+    return pieces
+
+
+major, minor, bugfix = split_version(version)
+
+del split_version  # clean up namespace.
+
+release = 'dev' not in version
 """.lstrip()
 
 setup(use_scm_version={'write_to': os.path.join('astropy', 'version.py'),
