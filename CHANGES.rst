@@ -302,7 +302,7 @@ astropy.io.misc
   with to allow serialization of all functional and physical models. [#10028, #10293]
 
 - Fix ASDF serialization of circular model inverses, and remove explicit calls
-  to ``asdf.yamlutil`` functions that became unnecessary in asdf 2.6.0. [#10189]
+  to ``asdf.yamlutil`` functions that became unnecessary in asdf 2.6.0. [#10189, #10384]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
@@ -336,6 +336,9 @@ astropy.modeling
 
 - Added ``replace_submodel()`` method to ``CompoundModel`` to modify an
   existing instance. [#10176]
+
+- Delay construction of ``CompoundModel`` inverse until property is accessed,
+  to support ASDF deserialization of circular inverses in component models. [#10384]
 
 astropy.nddata
 ^^^^^^^^^^^^^^

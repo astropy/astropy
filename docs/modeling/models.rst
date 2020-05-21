@@ -171,8 +171,8 @@ inverse::
       File "<stdin>", line 1, in <module>
       File "astropy\modeling\core.py", line 796, in inverse
         raise NotImplementedError("An analytical inverse transform has not "
-    NotImplementedError: An analytical inverse transform has not been
-    implemented for this model.
+    NotImplementedError: No analytical or user-supplied inverse transform
+    has been implemented for this model.
 
 One may certainly compute an inverse and assign it to a polynomial model
 though.
