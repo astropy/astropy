@@ -291,6 +291,11 @@ astropy.io.ascii
 
 - Allow reading in ASCII tables which have duplicate column names. [#9939]
 
+- Fixed failure of ASCII ``fast_reader`` to handle ``names``, ``include_names``,
+  ``exclude_names`` arguments for ``RDB`` formatted tables. Homogenised checks
+  and exceptions for invalid ``names`` arguments. Improved performance when
+  parsing "wide" tables with many columns. [#10306]
+
 - Added type validation of key arguments in calls to ``io.ascii.read()`` and
   ``io.ascii.write()`` functions. [#10005]
 
