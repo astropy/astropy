@@ -131,8 +131,7 @@ class _ModelMeta(abc.ABCMeta):
 
     def __init__(cls, name, bases, members):
         super(_ModelMeta, cls).__init__(name, bases, members)
-        if cls.__name__ != "CompoundModel":
-            cls._create_inverse_property(members)
+        cls._create_inverse_property(members)
         cls._create_bounding_box_property(members)
         pdict = OrderedDict()
         for base in bases:
@@ -1086,6 +1085,18 @@ class Model(metaclass=_ModelMeta):
 
         return self._mconstraints['ineqcons']
 
+    def has_inverse(self):
+        """
+        Returns True if the model has an analytic or user
+        inverse defined.
+        """
+        try:
+            self.inverse
+        except NotImplementedError:
+            return False
+
+        return True
+
     @property
     def inverse(self):
         """
@@ -1111,10 +1122,12 @@ class Model(metaclass=_ModelMeta):
         if self._user_inverse is not None:
             return self._user_inverse
         elif self._inverse is not None:
-            return self._inverse()
+            result = self._inverse()
+            if result is not NotImplemented:
+                return result
 
-        raise NotImplementedError("An analytical inverse transform has not "
-                                  "been implemented for this model.")
+        raise NotImplementedError("No analytical or user-supplied inverse transform "
+                                  "has been implemented for this model.")
 
     @inverse.setter
     def inverse(self, value):
@@ -1133,7 +1146,10 @@ class Model(metaclass=_ModelMeta):
         the model will have no inverse).
         """
 
-        del self._user_inverse
+        try:
+            del self._user_inverse
+        except AttributeError:
+            pass
 
     @property
     def has_user_inverse(self):
@@ -2459,8 +2475,13 @@ class CompoundModel(Model):
         self._parameters = None
         self._parameters_ = None
         self._param_metrics = None
-        self._has_inverse = False  # may be set to True in following code
+
         if inverse:
+            warnings.warn(
+                "The 'inverse' argument is deprecated.  Instead, set the inverse "
+                "property after CompoundModel is initialized.",
+                AstropyDeprecationWarning
+            )
             self.inverse = inverse
 
         if op != 'fix_inputs' and len(left) != len(right):
@@ -2487,19 +2508,6 @@ class CompoundModel(Model):
             self.n_outputs = left.n_outputs + right.n_outputs
             self.inputs = combine_labels(left.inputs, right.inputs)
             self.outputs = combine_labels(left.outputs, right.outputs)
-            if inverse is None and self.both_inverses_exist():
-                self._has_inverse = True
-                inv = CompoundModel('&',
-                                    self.left.inverse,
-                                    self.right.inverse,
-                                    inverse=self)
-                if left._user_inverse is not None or right._user_inverse is not None:
-                    self._user_inverse = inv
-                    if self.inverse._has_inverse:
-                        del self._user_inverse._user_inverse
-                        self.inverse._has_inverse = False
-                else:
-                    self._inverse = inv
         elif op == '|':
             if left.n_outputs != right.n_inputs:
                 raise ModelDefinitionError(
@@ -2514,19 +2522,6 @@ class CompoundModel(Model):
             self.n_outputs = right.n_outputs
             self.inputs = left.inputs
             self.outputs = right.outputs
-            if inverse is None and self.both_inverses_exist():
-                self._has_inverse = True
-                inv = CompoundModel('|',
-                                    self.right.inverse,
-                                    self.left.inverse,
-                                    inverse=self)
-                if left._user_inverse is not None or right._user_inverse is not None:
-                    self._user_inverse = inv
-                    if self.inverse._has_inverse:
-                        del self._user_inverse._user_inverse
-                    self.inverse._has_inverse = False
-                else:
-                    self._inverse = inv
         elif op == 'fix_inputs':
             if not isinstance(left, Model):
                 raise ValueError('First argument to "fix_inputs" must be an instance of an astropy Model.')
@@ -2623,17 +2618,18 @@ class CompoundModel(Model):
         '''
         if both members of this compound model have inverses return True
         '''
+        warnings.warn(
+            "CompoundModel.both_inverses_exist is deprecated. "
+            "Use has_inverse instead.",
+            AstropyDeprecationWarning
+        )
+
         try:
             linv = self.left.inverse
             rinv = self.right.inverse
         except NotImplementedError:
             return False
-        if isinstance(self.left, CompoundModel):
-            if not self.left.has_inverse():
-                return False
-        if isinstance(self.right, CompoundModel):
-            if not self.right.has_inverse():
-                return False
+
         return True
 
     def __call__(self, *args, **kw):
@@ -2943,29 +2939,14 @@ class CompoundModel(Model):
     def isleaf(self):
         return False
 
-    def has_inverse(self):
-        return self._has_inverse
-
     @property
     def inverse(self):
-        if self.has_inverse():
-            if self._user_inverse is not None:
-                return self._user_inverse
-            return self._inverse
+        if self.op == '|':
+            return self.right.inverse | self.left.inverse
+        elif self.op == '&':
+            return self.left.inverse & self.right.inverse
         else:
-            raise NotImplementedError("Inverse function not provided")
-
-    @inverse.setter
-    def inverse(self, value):
-        if not isinstance(value, Model):
-            raise ValueError("Attempt to assign non model to inverse")
-        self._user_inverse = value
-        self._has_inverse = True
-
-    @inverse.deleter
-    def inverse(self):
-        self._has_inverse = False
-        self._user_inverse = None
+            return NotImplemented
 
     @property
     def fittable(self):
