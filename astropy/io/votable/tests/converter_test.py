@@ -75,7 +75,7 @@ def test_unicode_as_char():
 
     # Test parsing.
     c.parse('XYZ')  # ASCII succeeds
-    with pytest.raises(
+    with pytest.warns(
             exceptions.W55,
             match=r'FIELD \(unicode_in_char\) has datatype="char" but contains non-ASCII value'):
         c.parse("zła")  # non-ASCII
@@ -85,11 +85,11 @@ def test_unicode_as_char():
     c.output(b'XYZ', False)  # ASCII bytes succeeds
     value = 'zła'
     value_bytes = value.encode('utf-8')
-    with pytest.raises(
+    with pytest.warns(
             exceptions.E24,
             match=r'E24: Attempt to write non-ASCII value'):
         c.output(value, False)  # non-ASCII str raises
-    with pytest.raises(
+    with pytest.warns(
             exceptions.E24,
             match=r'E24: Attempt to write non-ASCII value'):
         c.output(value_bytes, False)  # non-ASCII bytes raises
