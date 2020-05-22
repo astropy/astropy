@@ -266,14 +266,14 @@ class TestIERS_Auto():
             # Look at times before and after the test file begins.  0.1292905 is
             # the IERS-B value from MJD=57359.  The value in
             # finals2000A-2016-02-30-test has been replaced at this point.
-            assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.1292905)
+            assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.1293286)
             assert np.allclose(dat.ut1_utc(Time(60000, format='mjd').jd).value, -0.2246227)
 
             # Now pretend we are accessing at time 60 days after start of predictive data.
             # There will be a warning when downloading the file doesn't give new data
             # and an exception when extrapolating into the future with insufficient data.
             dat._time_now = Time(predictive_mjd, format='mjd') + 60 * u.d
-            assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.1292905)
+            assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.1293286)
             with catch_warnings(iers.IERSStaleWarning) as warns:
                 with pytest.raises(ValueError) as err:
                     dat.ut1_utc(Time(60000, format='mjd').jd)
@@ -301,7 +301,7 @@ class TestIERS_Auto():
         with iers.conf.set_temp('iers_auto_url', self.iers_a_url_2):
 
             # Look at times before and after the test file begins.  This forces a new download.
-            assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.1292905)
+            assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.1293286)
             assert np.allclose(dat.ut1_utc(Time(60000, format='mjd').jd).value, -0.3)
 
             # Now the time range should be different.
