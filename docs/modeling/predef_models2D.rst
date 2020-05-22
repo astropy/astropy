@@ -44,6 +44,9 @@ an amplitude.
 - :class:`~astropy.modeling.functional_models.Gaussian2D` model computes
   a Gaussian with x,y standard deviations and rotation angle
 
+- :class:`~astropy.modeling.functional_models.Moffat2D` model computes
+  a Moffat with x,y dimensions and alpha (power index) and gamma (core width)
+
 - :class:`~astropy.modeling.functional_models.RickerWavelet2D` model computes
   a symmetric RickerWavelet function with the specified sigma
 
@@ -65,13 +68,13 @@ an amplitude.
     from matplotlib.colors import LogNorm
 
     from astropy.modeling.models import (AiryDisk2D, Box2D, Disk2D, Ellipse2D,
-                                         Gaussian2D, RickerWavelet2D, Sersic2D,
-                                         TrapezoidDisk2D, Ring2D)
+                                         Gaussian2D, Moffat2D, RickerWavelet2D,
+                                         Sersic2D, TrapezoidDisk2D, Ring2D)
 
     x = np.linspace(-4.0, 6.0, num=100)
     r = np.logspace(-1.0, 2.0, num=100)
 
-    fig, sax = plt.subplots(nrows=3, ncols=3, figsize=(8, 8))
+    fig, sax = plt.subplots(nrows=4, ncols=3, figsize=(9, 12))
     ax = sax.flatten()
 
     # setup the x,y coordinates
@@ -89,6 +92,7 @@ an amplitude.
             Disk2D(amplitude=10.0, x_0=1.0, y_0=2.0, R_0=1.0),
             Ellipse2D(amplitude=10.0, x_0=1.0, y_0=2.0, a=1.0, b=2.0, theta=math.pi/4.),
             Gaussian2D(amplitude=10.0, x_mean=1.0, y_mean=2.0, x_stddev=1.0, y_stddev=2.0, theta=math.pi/4.),
+            Moffat2D(amplitude=10.0, x_0=1.0, y_0=2.0, alpha=3, gamma=4),
             RickerWavelet2D(amplitude=10.0, x_0=1.0, y_0=2.0, sigma=1.0),
             Sersic2D(amplitude=10.0, x_0=1.0, y_0=2.0, r_eff=1.0, ellip=0.5, theta=math.pi/4.),
             TrapezoidDisk2D(amplitude=10.0, x_0=1.0, y_0=2.0, R_0=1.0, slope=5.0),
