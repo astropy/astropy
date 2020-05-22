@@ -60,9 +60,7 @@ class CompoundType(TransformType):
         else:
             model = getattr(left, oper)(right)
 
-        yield model
-
-        cls._from_tree_base_transform_members(model, node, ctx)
+        return cls._from_tree_base_transform_members(model, node, ctx)
 
     @classmethod
     def to_tree_tagged(cls, model, ctx):
@@ -86,8 +84,8 @@ class CompoundType(TransformType):
             raise ValueError(f"Unknown operator '{model.op}'")
 
         node = tagged.tag_object(cls.make_yaml_tag(tag_name), node, ctx=ctx)
-        cls._to_tree_base_transform_members(model, node, ctx)
-        return node
+
+        return cls._to_tree_base_transform_members(model, node, ctx)
 
     @classmethod
     def assert_equal(cls, a, b):

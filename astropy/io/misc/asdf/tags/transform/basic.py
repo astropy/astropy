@@ -21,9 +21,6 @@ class TransformType(AstropyAsdfType):
 
     @classmethod
     def _from_tree_base_transform_members(cls, model, node, ctx):
-        if 'inverse' in node:
-            model.inverse = node['inverse']
-
         if 'name' in node:
             model.name = node['name']
 
@@ -48,7 +45,10 @@ class TransformType(AstropyAsdfType):
                 param_and_model_constraints[constraint] = node[constraint]
         model._initialize_constraints(param_and_model_constraints)
 
-        return model
+        yield model
+
+        if 'inverse' in node:
+            model.inverse = node['inverse']
 
     @classmethod
     def from_tree_transform(cls, node, ctx):
@@ -58,8 +58,7 @@ class TransformType(AstropyAsdfType):
     @classmethod
     def from_tree(cls, node, ctx):
         model = cls.from_tree_transform(node, ctx)
-        yield model
-        cls._from_tree_base_transform_members(model, node, ctx)
+        return cls._from_tree_base_transform_members(model, node, ctx)
 
     @classmethod
     def _to_tree_base_transform_members(cls, model, node, ctx):
@@ -93,6 +92,8 @@ class TransformType(AstropyAsdfType):
             if bounds_nondefaults:
                 node['bounds'] = bounds_nondefaults
 
+        return node
+
     @classmethod
     def to_tree_transform(cls, model, ctx):
         raise NotImplementedError("Must be implemented in TransformType subclasses")
@@ -100,8 +101,7 @@ class TransformType(AstropyAsdfType):
     @classmethod
     def to_tree(cls, model, ctx):
         node = cls.to_tree_transform(model, ctx)
-        cls._to_tree_base_transform_members(model, node, ctx)
-        return node
+        return cls._to_tree_base_transform_members(model, node, ctx)
 
     @classmethod
     def assert_equal(cls, a, b):
