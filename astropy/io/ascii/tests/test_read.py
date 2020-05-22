@@ -1535,55 +1535,81 @@ def test_deduplicate_names_basic(rdb, fast_reader):
     assert dat.colnames == ['a', 'a_2', 'a_1', 'a_3', 'a_4']
     assert len(dat) == 2
 
-    if rdb is False or fast_reader is False:
-        dat = ascii.read(lines, fast_reader=fast_reader, include_names=['a', 'a_2', 'a_3'])
-        assert len(dat) == 2
-        assert dat.colnames == ['a', 'a_2', 'a_3']
-        assert np.all(dat['a'] == [1, 10])
-        assert np.all(dat['a_2'] == [2, 20])
-        assert np.all(dat['a_3'] == [4, 40])
+    dat = ascii.read(lines, fast_reader=fast_reader, include_names=['a', 'a_2', 'a_3'])
+    assert len(dat) == 2
+    assert dat.colnames == ['a', 'a_2', 'a_3']
+    assert np.all(dat['a'] == [1, 10])
+    assert np.all(dat['a_2'] == [2, 20])
+    assert np.all(dat['a_3'] == [4, 40])
 
-        dat = ascii.read(lines, fast_reader=fast_reader,
-                         names=['b1', 'b2', 'b3', 'b4', 'b5'],
-                         include_names=['b1', 'b2', 'b4'])
-        assert len(dat) == 2
-        assert dat.colnames == ['b1', 'b2', 'b4']
-        assert np.all(dat['b1'] == [1, 10])
-        assert np.all(dat['b2'] == [2, 20])
-        assert np.all(dat['b4'] == [4, 40])
+    dat = ascii.read(lines, fast_reader=fast_reader,
+                     names=['b1', 'b2', 'b3', 'b4', 'b5'],
+                     include_names=['b1', 'b2', 'a_4', 'b4'])
+    assert len(dat) == 2
+    assert dat.colnames == ['b1', 'b2', 'b4']
+    assert np.all(dat['b1'] == [1, 10])
+    assert np.all(dat['b2'] == [2, 20])
+    assert np.all(dat['b4'] == [4, 40])
+
+    dat = ascii.read(lines, fast_reader=fast_reader,
+                     names=['b1', 'b2', 'b3', 'b4', 'b5'],
+                     exclude_names=['b3', 'b5', 'a_3', 'a_4'])
+    assert len(dat) == 2
+    assert dat.colnames == ['b1', 'b2', 'b4']
+    assert np.all(dat['b1'] == [1, 10])
+    assert np.all(dat['b2'] == [2, 20])
+    assert np.all(dat['b4'] == [4, 40])
 
 
-@pytest.mark.xfail
-def test_include_names_rdb_fast_fail0():
-    """Test that selecting column names with `include_names` fails for the rdb format for fast reader.
-    This is not desired but reflects a current known limitation.
+def test_include_names_rdb_fast():
+    """Test that selecting column names via `include_names` works for the RDB format
+    with fast reader. This is testing the fix for a bug identified in #9939.
     """
     lines = _get_lines(True)
     lines[0] = 'a\ta_2\ta_1\ta_3\ta_4'
-
     dat = ascii.read(lines, fast_reader='force', include_names=['a', 'a_2', 'a_3'])
     assert len(dat) == 2
+    assert dat['a'].dtype == np.int
+    assert dat['a_2'].dtype == np.int
 
 
-@pytest.mark.xfail
-def test_include_names_rdb_fast_fail1():
-    """Test that `include_names` fails with duplicate column names for the rdb format for fast reader.
-    This is not desired but reflects a current known limitation.
+@pytest.mark.parametrize('fast_reader', [False, 'force'])
+def test_deduplicate_names_with_types(fast_reader):
+    """Test that on selecting column names via `include_names` in the RDB format with
+    different types and duplicate column names type assignment is correctly preserved.
     """
     lines = _get_lines(True)
+    lines[1] = 'N\tN\tN\tS\tS'
 
-    dat = ascii.read(lines, fast_reader='force', include_names=['a', 'a_2', 'a_3'])
+    dat = ascii.read(lines, fast_reader=fast_reader, include_names=['a', 'a_2', 'a_3'])
     assert len(dat) == 2
+    assert dat['a_2'].dtype.kind == 'i'
+    assert dat['a_3'].dtype.kind == 'U'
 
-
-@pytest.mark.xfail
-def test_include_names_rdb_fast_fail2():
-    """Test that `include_names` fails with duplicate column names for the rdb format for fast reader.
-    This is not desired but reflects a current known limitation.
-    """
-    lines = _get_lines(True)
-
-    dat = ascii.read(lines, fast_reader='force',
-                     names=['b1', 'b2', 'b3', 'b4', 'b5'],
-                     include_names=['b1', 'b2', 'b4'])
+    dat = ascii.read(lines, fast_reader=fast_reader, names=['b1', 'b2', 'b3', 'b4', 'b5'],
+                     include_names=['a1', 'a_2', 'b1', 'b2', 'b4'])
     assert len(dat) == 2
+    assert dat.colnames == ['b1', 'b2', 'b4']
+    assert dat['b2'].dtype.kind == 'i'
+    assert dat['b4'].dtype.kind == 'U'
+
+
+@pytest.mark.parametrize('rdb', [False, True])
+@pytest.mark.parametrize('fast_reader', [False, 'force'])
+def test_set_invalid_names(rdb, fast_reader):
+    """Test exceptions for invalid (duplicate or `None`) names specified via argument."""
+    lines = _get_lines(rdb)
+    if rdb:
+        fmt = 'rdb'
+    else:
+        fmt = 'basic'
+
+    with pytest.raises(ValueError) as err:
+        ascii.read(lines, fast_reader=fast_reader, format=fmt, guess=rdb,
+                   names=['b1', 'b2', 'b1', 'b4', 'b5'])
+    assert 'Duplicate column names' in str(err.value)
+
+    with pytest.raises(TypeError) as err:
+        ascii.read(lines, fast_reader=fast_reader, format=fmt, guess=rdb,
+                   names=['b1', 'b2', 'b1', None, None])
+    assert 'Cannot have None for column name' in str(err.value)

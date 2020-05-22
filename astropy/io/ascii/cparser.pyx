@@ -245,6 +245,12 @@ cdef class CParser:
         self.fill_names = None
         self.fill_extra_cols = fill_extra_cols
 
+        if self.names is not None:
+            if None in self.names:
+                raise TypeError('Cannot have None for column name')
+            if len(set(self.names)) != len(self.names):
+                raise ValueError('Duplicate column names')
+
         # parallel=True indicates that we should use the CPU count
         if parallel is True:
             parallel = multiprocessing.cpu_count()
@@ -308,7 +314,7 @@ cdef class CParser:
         self.tokenizer.source = self.source_bytes
         self.tokenizer.source_len = <size_t>len(self.source_bytes)
 
-    def read_header(self, deduplicate=True):
+    def read_header(self, deduplicate=True, filter_names=True):
         self.tokenizer.source_pos = 0
 
         # header_start is a valid line number
@@ -321,9 +327,9 @@ cdef class CParser:
             self.header_names = []
             name = ''
 
-            for i in range(self.tokenizer.output_len[0]): # header is in first col string
-                c = self.tokenizer.output_cols[0][i] # next char in header string
-                if not c: # zero byte -- field terminator
+            for i in range(self.tokenizer.output_len[0]):  # header is in first col string
+                c = self.tokenizer.output_cols[0][i]       # next char in header string
+                if not c:  # zero byte -- field terminator
                     if name:
                         # replace empty placeholder with ''
                         self.header_names.append(name.replace('\x01', ''))
@@ -333,25 +339,25 @@ cdef class CParser:
                 else:
                     name += chr(c)
             self.width = <int>len(self.header_names)
-            if deduplicate:
-                self.header_names = core._deduplicate_names(self.header_names)
+            if deduplicate and not self.names:  # skip if custom names were provided
+                self._deduplicate_names()
 
         else:
             # Get number of columns from first data row
             if tokenize(self.tokenizer, -1, 1, 0) != 0:
                 self.raise_error("an error occurred while tokenizing the first line of data")
             self.width = 0
-            for i in range(self.tokenizer.output_len[0]): # header is in first col string
+            for i in range(self.tokenizer.output_len[0]):  # header is in first col string
                 # zero byte -- field terminator
                 if not self.tokenizer.output_cols[0][i]:
                     # ends valid field
                     if i > 0 and self.tokenizer.output_cols[0][i - 1]:
                         self.width += 1
-                    else: # end of line
+                    else:  # end of line
                         break
-            if self.width == 0: # no data
+            if self.width == 0:  # no data
                 raise core.InconsistentTableError('No data lines found, C reader '
-                                            'cannot autogenerate column names')
+                                                  'cannot autogenerate column names')
             # auto-generate names
             self.header_names = ['col{0}'.format(i + 1) for i in range(self.width)]
 
@@ -362,9 +368,9 @@ cdef class CParser:
 
         # self.use_cols should only contain columns included in output
         self.use_cols = set(self.names)
-        if self.include_names is not None:
+        if filter_names and self.include_names is not None:
             self.use_cols.intersection_update(self.include_names)
-        if self.exclude_names is not None:
+        if filter_names and self.exclude_names is not None:
             self.use_cols.difference_update(self.exclude_names)
 
         self.width = <int>len(self.names)
@@ -813,6 +819,26 @@ cdef class CParser:
 
     def get_header_names(self):
         return self.header_names
+
+    def _deduplicate_names(self):
+        """Ensure there are no duplicates in ``self.header_names``
+        Cythonic version of  core._deduplicate_names.
+        """
+        cdef int i
+        new_names = []
+        existing_names = set()
+
+        for name in self.header_names:
+            base_name = name + '_'
+            i = 1
+            while name in existing_names:
+                # Iterate until a unique name is found
+                name = base_name + str(i)
+                i += 1
+            new_names.append(name)
+            existing_names.add(name)
+
+        self.header_names = new_names
 
     def __reduce__(self):
         cdef bytes source = self.source_ptr if self.source_ptr else self.source_bytes
