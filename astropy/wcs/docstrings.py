@@ -688,15 +688,11 @@ An undefined value is represented by NaN.
 """
 
 extlev = """
-``int`` (read-only)
-
-``EXTLEV`` identifying the binary table extension.
+``int`` (read-only) ``EXTLEV`` identifying the binary table extension.
 """
 
 extnam = """
-``str`` (read-only)
-
-``EXTNAME`` identifying the binary table extension.
+``str`` (read-only) ``EXTNAME`` identifying the binary table extension.
 """
 
 extrema = """
@@ -715,9 +711,7 @@ speed up table searches.
 """
 
 extver = """
-``int`` (read-only)
-
-``EXTVER`` identifying the binary table extension.
+``int`` (read-only) ``EXTVER`` identifying the binary table extension.
 """
 
 find_all_wcs = """
@@ -995,9 +989,7 @@ hglt_obs = """
 """
 
 i = """
-``int`` (read-only)
-
-Image axis number.
+``int`` (read-only) Image axis number.
 """
 
 imgpix_matrix = """
@@ -1024,9 +1016,9 @@ the coordinate array and of each indexing vector.
 """
 
 kind = """
-``str`` (read-only)
+``str`` (read-only) ``wcstab`` array type.
 
-Character identifying the wcstab array type:
+Character identifying the ``wcstab`` array type:
 
     - ``'c'``: coordinate array,
     - ``'i'``: index vector.
@@ -1073,9 +1065,7 @@ M = """
 """
 
 m = """
-``int`` (read-only)
-
-Array axis number for index vectors.
+``int`` (read-only) ``wcstab`` axis number for index vectors.
 """
 
 map = """
@@ -1300,9 +1290,7 @@ product K_1 * K_2 * ... * K_M.
 """
 
 ndim = """
-``int`` (read-only)
-
-Expected dimensionality of the wcstab array.
+``int`` (read-only) Expected dimensionality of the ``wcstab`` array.
 """
 
 obsgeo = """
@@ -1518,6 +1506,16 @@ removed in the future.
 To get a string of the contents, use `repr`.
 """
 
+print_contents_wtbarr = """
+print_contents()
+
+Print the contents of the `~astropy.wcs.Wtbarr` object to
+stdout. Probably only useful for debugging purposes, and may be
+removed in the future.
+
+To get a string of the contents, use `repr`.
+"""
+
 radesys = """
 ``string`` The equatorial or ecliptic coordinate system type,
 ``RADESYSa``.
@@ -1536,9 +1534,7 @@ An undefined value is represented by NaN.
 """
 
 row = """
-``int`` (read-only)
-
-Table row number.
+``int`` (read-only) Table row number.
 """
 
 rsun_ref = """
@@ -2118,9 +2114,7 @@ header : str
 """
 
 ttype = """
-``str`` (read-only)
-
-``TTYPEn`` identifying the column of the binary table that contains
+``str`` (read-only) ``TTYPEn`` identifying the column of the binary table that contains
 the wcstab array.
 """
 
@@ -2291,6 +2285,11 @@ ValueError
 
 KeyError
      Key not found in FITS header.
+"""
+
+wtb = """
+``list of Wtbarr`` objects to construct coordinate lookup tables from BINTABLE.
+
 """
 
 Wtbarr = """

@@ -58,7 +58,7 @@ from .wcsapi.fitswcs import FITSWCSAPIMixin, SlicedFITSWCS
 
 __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
            'DistortionLookupTable', 'Sip', 'Tabprm', 'Wcsprm', 'Auxprm',
-           'WCSBase', 'validate', 'WcsError', 'SingularMatrixError',
+           'Wtbarr', 'WCSBase', 'validate', 'WcsError', 'SingularMatrixError',
            'InconsistentAxisTypesError', 'InvalidTransformError',
            'InvalidCoordinateError', 'NoSolutionError',
            'InvalidSubimageSpecificationError', 'NoConvergence',
@@ -88,6 +88,7 @@ if _wcs is not None:
     Wcsprm = _wcs.Wcsprm
     Auxprm = _wcs.Auxprm
     Tabprm = _wcs.Tabprm
+    Wtbarr = _wcs.Wtbarr
     WcsError = _wcs.WcsError
     SingularMatrixError = _wcs.SingularMatrixError
     InconsistentAxisTypesError = _wcs.InconsistentAxisTypesError
@@ -125,6 +126,7 @@ else:
     DistortionLookupTable = object
     Sip = object
     Tabprm = object
+    Wtbarr = object
     WcsError = None
     SingularMatrixError = None
     InconsistentAxisTypesError = None
