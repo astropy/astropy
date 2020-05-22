@@ -44,6 +44,9 @@ an amplitude.
 - :class:`~astropy.modeling.functional_models.Gaussian2D` model computes
   a Gaussian with x,y standard deviations and rotation angle
 
+- :class:`~astropy.modeling.functional_models.Moffat2D` model computes
+  a Moffat with x,y dimensions and alpha (power index) and gamma (core width)
+
 - :class:`~astropy.modeling.functional_models.RickerWavelet2D` model computes
   a symmetric RickerWavelet function with the specified sigma
 
