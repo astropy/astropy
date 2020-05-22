@@ -21,6 +21,7 @@ from astropy.time.utils import day_frac, two_sum
 from astropy.utils import iers
 from astropy.utils.exceptions import ErfaError, ErfaWarning
 
+
 allclose_jd = functools.partial(np.allclose, rtol=np.finfo(float).eps, atol=0)
 allclose_jd2 = functools.partial(np.allclose, rtol=np.finfo(float).eps,
                                  atol=np.finfo(float).eps)  # 20 ps atol
@@ -414,13 +415,25 @@ def test_conversion_preserves_jd1_jd2_invariant(iers_b, scale1, scale2, jds):
 @given(scale1=sampled_from(STANDARD_TIME_SCALES),
        scale2=sampled_from(STANDARD_TIME_SCALES),
        jds=unreasonable_jd())
+@example(scale1='tai', scale2='utc', jds=(0.0, 0.0))
 def test_conversion_never_loses_precision(iers_b, scale1, scale2, jds):
+    """Check that time ordering remains if we convert to another scale.
+
+    Here, since scale differences can involve multiplication, we allow
+    for losing one ULP, i.e., we test that two times that differ by
+    two ULP will keep the same order if changed to another scale.
+    """
     jd1, jd2 = jds
     t = Time(jd1, jd2, scale=scale1, format="jd")
+    # Near-zero UTC JDs degrade accuracy; not clear why,
+    # but also not so relevant, so ignoring.
+    if (scale1 == 'utc' or scale2 == 'utc') and abs(jd1+jd2) < 1:
+        tiny = 100*u.us
+    else:
+        tiny = 2*dt_tiny
     try:
-        # If the rates ever differ, might lose one ULP
         with quiet_erfa():
-            t2 = t + 2*dt_tiny
+            t2 = t + tiny
             assert getattr(t, scale2) < getattr(t2, scale2)
     except iers.IERSRangeError:  # UT1 conversion needs IERS data
         assume(scale1 != 'ut1' or 2440000 < jd1 + jd2 < 2458000)
@@ -460,8 +473,9 @@ def test_leap_stretch_mjd(d, f):
 @example(scale='utc', jds=(0.0, 5.787592627370942e-13), delta=0.0)
 def test_jd_add_subtract_round_trip(scale, jds, delta):
     jd1, jd2 = jds
-    if scale == 'utc' and 1 > abs(jd1+jd2):
-        # near-zero UTC times degrade accuracy; why?
+    if scale == 'utc' and abs(jd1+jd2) < 1:
+        # Near-zero UTC JDs degrade accuracy; not clear why,
+        # but also not so relevant, so ignoring.
         thresh = 100*u.us
     else:
         thresh = 2*dt_tiny
