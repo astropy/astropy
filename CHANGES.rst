@@ -223,7 +223,9 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
-- Nothing changed yet.
+- Added ``optimize=True`` flag to calls of ``yacc.yacc`` (as already done for
+  ``lex.lex``) to allow running in ``python -OO`` session without raising an
+  exception in ``astropy.units.format``. [#10379]
 
 
 
