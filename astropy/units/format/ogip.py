@@ -365,7 +365,7 @@ class OGIP(generic.Generic):
 
         parser = yacc.yacc(debug=False, tabmodule='ogip_parsetab',
                            outputdir=os.path.dirname(__file__),
-                           write_tables=True)
+                           optimize=True, write_tables=True)
 
         if not parser_exists:
             cls._add_tab_header('ogip_parsetab')
