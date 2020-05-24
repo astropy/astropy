@@ -266,14 +266,14 @@ class TestIERS_Auto():
             # Look at times before and after the test file begins.  0.1292905 is
             # the IERS-B value from MJD=57359.  The value in
             # finals2000A-2016-02-30-test has been replaced at this point.
-            assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.1292905)
+            assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.1293286)
             assert np.allclose(dat.ut1_utc(Time(60000, format='mjd').jd).value, -0.2246227)
 
             # Now pretend we are accessing at time 60 days after start of predictive data.
             # There will be a warning when downloading the file doesn't give new data
             # and an exception when extrapolating into the future with insufficient data.
             dat._time_now = Time(predictive_mjd, format='mjd') + 60 * u.d
-            assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.1292905)
+            assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.1293286)
             with catch_warnings(iers.IERSStaleWarning) as warns:
                 with pytest.raises(ValueError) as err:
                     dat.ut1_utc(Time(60000, format='mjd').jd)
@@ -301,7 +301,7 @@ class TestIERS_Auto():
         with iers.conf.set_temp('iers_auto_url', self.iers_a_url_2):
 
             # Look at times before and after the test file begins.  This forces a new download.
-            assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.1292905)
+            assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.1293286)
             assert np.allclose(dat.ut1_utc(Time(60000, format='mjd').jd).value, -0.3)
 
             # Now the time range should be different.
@@ -316,6 +316,10 @@ def test_IERS_B_parameters_loading_into_IERS_Auto():
 
     ok_A = A["MJD"] <= B["MJD"][-1]
     assert not np.all(ok_A), "IERS B covers all of IERS A: should not happen"
+
+    # We only overwrite IERS_B values in the IERS_A table that were already
+    # there in the first place.  Better take that into account.
+    ok_A &= np.isfinite(A["UT1_UTC_B"])
 
     i_B = np.searchsorted(B["MJD"], A["MJD"][ok_A])
 

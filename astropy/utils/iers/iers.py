@@ -619,8 +619,12 @@ class IERS_B(IERS):
         if readme is None:
             readme = IERS_B_README
 
-        return super().read(file, format='cds', readme=readme,
-                            data_start=data_start)
+        table = super().read(file, format='cds', readme=readme,
+                             data_start=data_start)
+
+        table.meta['data_path'] = file
+        table.meta['readme_path'] = readme
+        return table
 
     def ut1_utc_source(self, i):
         """Set UT1-UTC source flag for entries in IERS table"""
