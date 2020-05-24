@@ -317,6 +317,10 @@ def test_IERS_B_parameters_loading_into_IERS_Auto():
     ok_A = A["MJD"] <= B["MJD"][-1]
     assert not np.all(ok_A), "IERS B covers all of IERS A: should not happen"
 
+    # We only overwrite IERS_B values in the IERS_A table that were already
+    # there in the first place.  Better take that into account.
+    ok_A &= np.isfinite(A["UT1_UTC_B"])
+
     i_B = np.searchsorted(B["MJD"], A["MJD"][ok_A])
 
     assert np.all(np.diff(i_B) == 1), "Valid region not contiguous"
