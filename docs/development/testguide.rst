@@ -24,23 +24,20 @@ Testing Dependencies
 The dependencies used by the Astropy test runner are provided by a separate
 package called `pytest-astropy`_. This package provides the ``pytest``
 dependency itself, in addition to several ``pytest`` plugins that are used by
-Astropy, and will also be of general use to other packages.
+Astropy, and will also be of general use to other packages. A detailed
+description of the plugins can be found in the :ref:`pytest-plugins` section.
 
-Since the testing dependencies are not actually required to install or use
-Astropy, they are not included in ``install_requires`` in ``setup.cfg``.
-Instead, they are listed in an ``extras_require`` section called ``test`` in
-``setup.cfg``. Developers who want to run the test suite will need to either
-install pytest-astropy directly::
+In addition, for checking Python source code for `PEP8 compliance
+<https://www.python.org/dev/peps/pep-0008/>`_, Astropy uses the `pytest-pep8
+plugin <https://pypi.org/project/pytest-pep8>`_.
 
-    pip install pytest-astropy
-
-or install the core package in 'editable' mode specifying the ``[test]``
-option::
-
-    pip install -e .[test]
-
-A detailed description of the plugins can be found in the :ref:`pytest-plugins`
-section.
+.. note:: Since the testing dependencies are not actually required to install
+    or use Astropy, they are not included in ``install_requires`` in
+    ``setup.cfg`` and will thus not automatically be installed with Astropy.
+    Instead, the ``tox`` and ``pytest`` methods discussed below rely on
+    information in ``tox.ini`` and the ``extras_require`` section
+    called ``test`` in ``setup.cfg``.  We will note for the various steps
+    below what specific packages need to be installed.
 
 .. _running-tests:
 
@@ -49,16 +46,7 @@ Running Tests
 
 There are currently three different ways to invoke Astropy tests. Each
 method invokes `pytest`_ to run the tests but offers different options when
-calling. To run the tests, you will need to make sure you have the `pytest`_
-package installed.
-
-In addition to running the Astropy tests, these methods can also be called
-so that they check Python source code for `PEP8 compliance
-<https://www.python.org/dev/peps/pep-0008/>`_. All of the PEP8 testing
-options require the `pytest-pep8 plugin
-<https://pypi.org/project/pytest-pep8>`_, which must be installed
-separately.
-
+calling.
 
 tox
 ===
@@ -106,6 +94,27 @@ pytest, e.g.::
 This can be used in conjunction with the ``-P`` option provided by the
 `pytest-filter-subpackage <https://github.com/astropy/pytest-filter-subpackage>`_
 plugin to run just part of the test suite.
+
+Using tox to set up a development environment
+---------------------------------------------
+
+As noted, running ``tox`` can be quite slow, yet it has the advantage over the
+other methods that it puts together a consistent set of dependencies.  One can
+speed up matters by using ``tox`` to set up a virtual environment for
+development and then use direct ``pytest`` commands within that environment.
+For instance::
+
+    tox -e test-alldeps --develop --notest
+    source .tox/test-alldeps/bin/activate
+
+Now, one can run any of the ``pytest`` commands below to only run tests that
+are relevant to the development one is doing.  If the development includes
+documentation, one could install the documentation dependencies in the same
+environment, and then check the documentation build with::
+
+    pip install -e .[docs]
+    cd docs
+    make html
 
 .. _running-pytest:
 
@@ -169,7 +178,15 @@ Tests can be run from an installed version of Astropy with::
 
 This will run all the default tests for Astropy (but will not run the
 documentation tests in the ``.rst`` documentation since those files are
-not installed).
+not installed).  It assumes ``pytest-astropy`` is already installed; if this
+is not the case, one can install it directly::
+
+    pip install pytest-astropy
+
+or install the core package in 'editable' mode specifying the ``[test]``
+option::
+
+    pip install -e .[test]
 
 Tests for a specific package can be run by specifying the package in the call
 to the ``test()`` function::
