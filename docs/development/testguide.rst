@@ -575,11 +575,54 @@ These take one argument, which is the function being tested::
     def teardown_function(function):
         pass
 
+Property-based tests
+====================
+
+`Property-based testing
+<https://increment.com/testing/in-praise-of-property-based-testing/>`_
+lets you focus on the parts of your test that matter, by making more
+general claims - "works for any two numbers" instead of "works for 1 + 2".
+Imagine if random testing gave you minimal, non-flaky failing examples,
+and a clean way to describe even the most complicated data - that's
+property-based testing!
+
+``pytest-astropy`` includes a dependency on `Hypothesis
+<https://hypothesis.readthedocs.io/>`_, so installation is easy -
+you can just read the docs or `work through the tutorial
+<https://github.com/Zac-HD/escape-from-automanual-testing/>`_
+and start writing tests like::
+
+    from astropy.coordinates import SkyCoord
+    from hypothesis import given, strategies as st
+
+    @given(
+        st.builds(SkyCoord, ra=st.floats(0, 360), dec=st.floats(-90, 90))
+    )
+    def test_coordinate_transform(coord):
+        """Test that sky coord can be translated from ICRS to Galactic and back."""
+        assert coord == coord.galactic.icrs  # floating-point precision alert!
+
+Other properties that you could test include:
+
+- Round-tripping from image to sky coordinates and back should be lossless
+  for distortion-free mappings, and otherwise always below 10^-5 px.
+- Take a moment in time, round-trip it through various frames, and check it
+  hasn't changed or lost precision. (or at least not by more than a nanosecond)
+- IO routines losslessly round-trip data that they are expected to handle
+- Optimised routines calculate the same result as unoptimised, within tolerances
+
+This is a great way to start contributing to Astropy, and has already found
+bugs in time handling.  See issue #9017 and pull request #9532 for details!
+
+(and if you find Hypothesis useful in your research,
+`please cite it <https://doi.org/10.21105/joss.01891>`_!)
+
+
 Parametrizing tests
 ===================
 
-If you want to run a test several times for slightly different values, then
-it can be advantageous to use the ``pytest`` option to parametrize tests.
+If you want to run a test several times for slightly different values,
+you can use ``pytest`` to avoid writing separate tests.
 For example, instead of writing::
 
     def test1():
@@ -591,13 +634,18 @@ For example, instead of writing::
     def test3():
         assert type('c') == str
 
-You can use the ``parametrize`` decorator to loop over the different
-inputs::
+You can use the ``@pytest.mark.parametrize`` decorator to concisely
+create a test function for each input::
 
     @pytest.mark.parametrize(('letter'), ['a', 'b', 'c'])
     def test(letter):
         """Check that the input is a string."""
         assert type(letter) == str
+
+As a guideline, use ``parametrize`` if you can enumerate all possible
+test cases and each failure would be a distinct issue, and Hypothesis
+when there are many possible inputs or you only want a single simple
+failure to be reported.
 
 Tests requiring optional dependencies
 =====================================

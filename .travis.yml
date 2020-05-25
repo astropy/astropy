@@ -9,6 +9,7 @@ compiler: gcc
 # https://docs.travis-ci.com/user/caching#Clearing-Caches
 cache:
   - ccache
+  - .hypothesis
 
 os:
     - linux

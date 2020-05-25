@@ -55,6 +55,7 @@ venv
 .coverage
 cover
 htmlcov
+.hypothesis
 
 # Mac OSX
 .DS_Store
