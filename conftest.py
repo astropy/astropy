@@ -6,10 +6,25 @@
 import os
 import tempfile
 
+import hypothesis
+
 try:
     from pytest_astropy_header.display import PYTEST_HEADER_MODULES
 except ImportError:
     PYTEST_HEADER_MODULES = {}
+
+# Tell Hypothesis that we might be running slow tests, to print the seed blob
+# so we can easily reproduce failures from CI, and derive a fuzzing profile
+# to try many more inputs.  Select profiles with the HYPOTHESIS_PROFILE
+# environment variable, defaulting to automatic CI detection.
+
+hypothesis.settings.register_profile('normal', deadline=None)
+hypothesis.settings.register_profile('ci', deadline=None, print_blob=True)
+hypothesis.settings.register_profile(
+    'fuzzing', parent=hypothesis.settings.get_profile('ci'), max_examples=10**4
+)
+default = 'ci' if os.environ.get('CI') == 'true' else 'normal'
+hypothesis.settings.load_profile(os.environ.get('HYPOTHESIS_PROFILE', default))
 
 # Make sure we use temporary directories for the config and cache
 # so that the tests are insensitive to local configuration.
