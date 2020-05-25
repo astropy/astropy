@@ -1,5 +1,5 @@
-4.1 (unreleased)
-================
+4.1rc1 (2020-05-25)
+===================
 
 New Features
 ------------
@@ -13,12 +13,6 @@ astropy.config
 - ``ConfigNamespace.__iter__`` and ``ConfigNamespace.keys`` now yield ``ConfigItem``
   names defined within it. Similarly, ``items`` and ``values`` would yield like a
   Python dictionary would. [#10139]
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -50,14 +44,9 @@ astropy.coordinates
 - Allow in-place modification of array-valued ``Representation`` and ``Differential``
   objects, including of representations with attached differentials. [#10210]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
+
 - Functional Units can now be processed in CDS-tables. [#9971]
 
 - Allow reading in ASCII tables which have duplicate column names. [#9939]
@@ -87,9 +76,6 @@ astropy.io.fits
   ``PrimaryHDU``. [#9742]
 
 - Add HDU name and ver to FITSDiff report where appropriate [#10197]
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
 
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
@@ -127,12 +113,6 @@ astropy.nddata
 
 - Added a ``cache`` keyword option to allow caching for ``CCDData.read`` if
   filename is a URL. [#10265]
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
 
 astropy.table
 ^^^^^^^^^^^^^
@@ -173,9 +153,6 @@ astropy.table
 - Added support for coordinate ``Representation`` and ``Differential`` mixin
   columns. [#10210]
 
-astropy.tests
-^^^^^^^^^^^^^
-
 astropy.time
 ^^^^^^^^^^^^
 
@@ -183,12 +160,6 @@ astropy.time
   leap seconds included.  More precisely, this is the number of seconds since
   ``1970-01-01 00:00:08 TAI`` and corresponds to the ``CLOCK_TAI`` clock
   available on some linux platforms. [#10081]
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
 
 astropy.units
 ^^^^^^^^^^^^^
@@ -212,6 +183,7 @@ astropy.units
 
 astropy.utils
 ^^^^^^^^^^^^^
+
 - Added a new ``MetaAttribute`` class to support easily adding custom attributes
   to a subclass of classes like ``Table`` or ``NDData`` that have a ``meta``
   attribute. [#10097]
@@ -239,15 +211,6 @@ astropy.wcs
 API Changes
 -----------
 
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
@@ -267,12 +230,6 @@ astropy.coordinates
   and ``Differentials`` can now be initialized with an instance of their own class
   if that instance is passed in as the first argument. [#10210]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
@@ -282,38 +239,17 @@ astropy.io.ascii
   ``converters`` dict names referred to the *input* table column names, but now
   they refer to the *output* table column names. [#9739]
 
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
+- For FIELDs with datatype="char", store the values as strings instead
+  of bytes. [#9505]
 
 astropy.table
 ^^^^^^^^^^^^^
+
 - ``Table.from_pandas`` now supports a ``units`` dictionary as argument to pass units
   for columns in the ``DataFrame``. [#9472]
-
-astropy.tests
-^^^^^^^^^^^^^
 
 astropy.time
 ^^^^^^^^^^^^
@@ -322,15 +258,6 @@ astropy.time
   have allowed values at the time of being set, either when creating the object
   or when setting those properties on an existing ``Time`` instance.  Previously
   the validation of those properties was not strictly enforced. [#9868]
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
 
 astropy.utils
 ^^^^^^^^^^^^^
@@ -357,83 +284,6 @@ astropy.visualization
 
 - The ``AsinhStretch`` and ``SinhStretch`` ``a`` value is restricted
   to be ``0 < a <= 1``. [#10177]
-
-astropy.wcs
-^^^^^^^^^^^
-
-Bug Fixes
----------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-- For FIELDs with datatype="char", store the values as strings instead
-  of bytes. [#9505]
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
 
 astropy.wcs
 ^^^^^^^^^^^
