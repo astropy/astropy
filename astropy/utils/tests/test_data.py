@@ -1280,7 +1280,7 @@ def test_cache_contents_agrees_with_get_urls(temp_cache, valid_urls):
 
 def test_free_space_checker_huge(tmpdir):
     with pytest.raises(OSError):
-        check_free_space_in_dir(tmpdir, 1_000_000_000_000_000_000)
+        check_free_space_in_dir(str(tmpdir), 1_000_000_000_000_000_000)
 
 
 def test_get_free_space_file_directory(tmpdir):
@@ -1288,8 +1288,8 @@ def test_get_free_space_file_directory(tmpdir):
     with open(fn, "w"):
         pass
     with pytest.raises(OSError):
-        get_free_space_in_dir(fn)
-    assert get_free_space_in_dir(tmpdir) > 0
+        get_free_space_in_dir(str(fn))
+    assert get_free_space_in_dir(str(tmpdir)) > 0
 
 
 def test_download_file_bogus_settings(invalid_urls, temp_cache):
