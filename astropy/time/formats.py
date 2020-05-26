@@ -582,9 +582,9 @@ class TimeFromEpoch(TimeNumeric):
                  in_subfmt, out_subfmt, from_jd=False):
         self.scale = scale
         if not hasattr(self.__class__, 'epoch'):
-        # Initialize the reference epoch (a single time defined in subclasses)
-        epoch = Time(self.epoch_val, self.epoch_val2, scale=self.epoch_scale,
-                     format=self.epoch_format)
+            # Initialize the reference epoch (a single time defined in subclasses)
+            epoch = Time(self.epoch_val, self.epoch_val2, scale=self.epoch_scale,
+                         format=self.epoch_format)
             self.__class__.epoch = epoch
 
         # Now create the TimeFormat object as normal
@@ -612,6 +612,29 @@ class TimeFromEpoch(TimeNumeric):
 
         jd1 = self.epoch.jd1 + day
         jd2 = self.epoch.jd2 + frac
+
+        # For the usual case that scale is the same as epoch_scale, we only need
+        # to ensure that abs(jd2) <= 0.5. Since abs(self.epoch.jd2) <= 0.5 and
+        # abs(frac) <= 0.5, we can do simple (fast) checks and arithmetic here
+        # without another call to day_frac().
+        if self.epoch.scale == self.scale:
+            if day.shape == ():
+                if jd2 < -0.5:
+                    jd1 -= 1.0
+                    jd2 += 1.0
+                elif jd2 > 0.5:
+                    jd1 += 1.0
+                    jd2 -= 1.0
+            else:
+                ok = jd2 < -0.5
+                jd1[ok] -= 1.0
+                jd2[ok] += 1.0
+                ok = jd2 > 0.5
+                jd1[ok] += 1.0
+                jd2[ok] -= 1.0
+
+            self.jd1, self.jd2 = jd1, jd2
+            return
 
         # Create a temporary Time object corresponding to the new (jd1, jd2) in
         # the epoch scale (e.g. UTC for TimeUnix) then convert that to the
