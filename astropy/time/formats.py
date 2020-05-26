@@ -247,8 +247,9 @@ class TimeFormat(metaclass=TimeFormatMeta):
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
         # val1 cannot contain nan, but val2 can contain nan
+        isfinite1 = (val1.size == 1 and np.isfinite(val1)) or np.all(np.isfinite(val1))
         ok1 = (val1.dtype.kind == 'f' and val1.dtype.itemsize >= 8
-               and np.all(np.isfinite(val1)) or val1.size == 0)
+               and isfinite1 or val1.size == 0)
         ok2 = val2 is None or (
             val2.dtype.kind == 'f' and val2.dtype.itemsize >= 8
             and not np.any(np.isinf(val2))) or val2.size == 0
