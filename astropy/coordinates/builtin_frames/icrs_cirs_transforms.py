@@ -31,7 +31,10 @@ def icrs_to_bcrs(icrs_coo, bcrs_frame):
     if transform_propagator.get():
         return transform_propagator.get().propagate(icrs_coo, bcrs_frame.obstime)
     else:
-        return bcrs_frame.realize_frame(icrs_coo.data)
+        data = icrs_coo.data
+        if data.isscalar and not bcrs_frame.obstime.isscalar:
+            data = data._apply('repeat', bcrs_frame.obstime.shape)
+        return bcrs_frame.realize_frame(data)
 
 
 @frame_transform_graph.transform(FunctionTransform, BCRS, ICRS)
