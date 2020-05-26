@@ -580,10 +580,11 @@ class TimeFromEpoch(TimeNumeric):
     def __init__(self, val1, val2, scale, precision,
                  in_subfmt, out_subfmt, from_jd=False):
         self.scale = scale
+        if not hasattr(self.__class__, 'epoch'):
         # Initialize the reference epoch (a single time defined in subclasses)
         epoch = Time(self.epoch_val, self.epoch_val2, scale=self.epoch_scale,
                      format=self.epoch_format)
-        self.epoch = epoch
+            self.__class__.epoch = epoch
 
         # Now create the TimeFormat object as normal
         super().__init__(val1, val2, scale, precision, in_subfmt, out_subfmt,
