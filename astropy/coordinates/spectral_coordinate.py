@@ -548,93 +548,6 @@ class SpectralCoord(SpectralQuantity):
 
         return pos_hat
 
-    def _change_observer_to(self, observer, target=None):
-        """
-        Moves the observer to the provided coordinate/frame.
-
-        Parameters
-        ----------
-        observer : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
-            The new observation frame or coordinate.
-        target : `~astropy.coordinates.SkyCoord`, optional
-            The `~astropy.coordinates.SkyCoord` object representing the target of the observation.
-            If none given, defaults to currently defined target.
-
-        Returns
-        -------
-        new_coord : `SpectralCoord`
-            The new coordinate object representing the spectral data
-            transformed to the new observer frame.
-        """
-
-        if self.observer is None:
-            raise ValueError("No observer has been set, cannot change "
-                             "observer.")
-
-        target = self.target if target is None else target
-
-        # Check velocities and distance values on the new frame. This is
-        #  handled in the frame validation.
-        observer = self._validate_coordinate(observer, label='observer')
-
-        # Calculate the initial and final los velocity
-        init_obs_vel = self._calculate_radial_velocity(self.observer, target)
-        fin_obs_vel = self._calculate_radial_velocity(observer, target)
-
-        line_of_sight_unit_vec = self._normalized_position_vector(observer, target)
-
-        new_data = self._project_velocity_and_shift(init_obs_vel, fin_obs_vel, line_of_sight_unit_vec)
-
-        new_coord = self.replicate(value=new_data,
-                                   observer=observer if observer is not self.observer else None,
-                                   target=target if target is not self.target else None)
-
-        return new_coord
-
-    def _project_velocity_and_shift(self, init_vel, fin_vel, line_of_sight_unit_vec):
-        """
-        Calculate the velocity projection given two vectors.
-
-        Parameters
-        ----------
-        init_vel :`BaseRepresentation`
-            Initial velocity vector.
-        fin_vel : `BaseRepresentation`
-            Final velocity vector.
-        line_of_sight_unit_vec : `BaseRepresentation`
-            Unit vector pointing from observer to target
-
-        Returns
-        -------
-        new_data : `u.Quantity`
-            Spectral axis data with velocity shift applied.
-        """
-
-        # Project the velocity shift vector onto the line-of-sight vector
-        # between the target and the new observation frame.
-        init_proj_vel = line_of_sight_unit_vec.dot(init_vel) * line_of_sight_unit_vec
-
-        # Calculate the magnitude of the velocity shift between the two vectors.
-        # The vectors are aligned but may be in opposite directions, so we use
-        # the dot product to determine this.
-
-        diff_vel = fin_vel - init_proj_vel
-        delta_vel = line_of_sight_unit_vec.dot(diff_vel)
-
-        # In the case where the projected velocity is nan, we can assume that
-        # the final velocity different is zero, and thus the actual velocity
-        # delta is equal to the original radial velocity.
-
-        # TODO: Due to lack of precision in some coordinate transformations,
-        # we may end up with a final velocity very close to, but not quite at,
-        # zero. In this case, set a tolerance for the final velocity; if it's
-        # below this tolerance, assume the delta velocity is essentially nan.
-
-        if np.isnan(delta_vel) or fin_vel.norm() < 1e-7 * fin_vel.xyz.unit:
-            delta_vel = -self.radial_velocity
-
-        return _apply_relativistic_doppler_shift(self, delta_vel)
-
     @u.quantity_input(velocity=u.km/u.s)
     def with_observer_stationary_relative_to(self, frame, velocity=None, preserve_observer_frame=False):
         """
@@ -689,7 +602,7 @@ class SpectralCoord(SpectralQuantity):
                 # otherwise frame is ready to go
             else:
                 if velocity is None:
-                    differentials = CartesianDifferential(0 * u.m / u.s, 0 * u.m / u.s, 0 * u.m / u.s)
+                    differentials = ZERO_VELOCITIES
                 else:
                     differentials = CartesianDifferential(*velocity)
                 frame = frame.realize_frame(frame.data.with_differentials(differentials))
@@ -711,7 +624,14 @@ class SpectralCoord(SpectralQuantity):
         observer = update_differentials_to_match(self.observer, frame,
                                                  preserve_observer_frame=preserve_observer_frame)
 
-        new_coord = self._change_observer_to(observer)
+        # Calculate the initial and final los velocity
+        init_obs_vel = self._calculate_radial_velocity(self.observer, self.target, as_scalar=True)
+        fin_obs_vel = self._calculate_radial_velocity(observer, self.target, as_scalar=True)
+
+        # Apply transformation to data
+        new_data = _apply_relativistic_doppler_shift(self, fin_obs_vel - init_obs_vel)
+
+        new_coord = self.replicate(value=new_data, observer=observer)
 
         return new_coord
 
@@ -788,17 +708,10 @@ class SpectralCoord(SpectralQuantity):
                         .realize_frame(observer_icrs.cartesian.with_differentials(observer_velocity))
                         .transform_to(self._observer))
 
-        init_obs_vel = self._calculate_radial_velocity(observer_icrs, target_icrs)
-        fin_obs_vel = self._calculate_radial_velocity(new_observer, new_target)
+        init_obs_vel = self._calculate_radial_velocity(observer_icrs, target_icrs, as_scalar=True)
+        fin_obs_vel = self._calculate_radial_velocity(new_observer, new_target, as_scalar=True)
 
-        line_of_sight_unit_vec = self._normalized_position_vector(observer_icrs, target_icrs)
-
-        new_data = self._project_velocity_and_shift(init_obs_vel, fin_obs_vel, line_of_sight_unit_vec)
-
-        if self.observer is None or self.target is None:
-            radial_velocity = line_of_sight_unit_vec.dot(fin_obs_vel)
-        else:
-            radial_velocity = None
+        new_data = _apply_relativistic_doppler_shift(self, fin_obs_vel - init_obs_vel)
 
         # If an observer/target pair were not defined already, we want to avoid
         # providing an explicit pair, so create a new SpectralCoord object
@@ -806,9 +719,8 @@ class SpectralCoord(SpectralQuantity):
         # will be created. Otherwise, use the available observer/target
         # instances to create the pair.
         return self.replicate(value=new_data,
-                              observer=new_observer if self.observer is not None else None,
-                              target=new_target if self.target is not None else None,
-                              radial_velocity=radial_velocity)
+                              observer=new_observer,
+                              target=new_target)
 
     def to_rest(self):
         """

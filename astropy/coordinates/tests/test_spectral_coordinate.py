@@ -627,11 +627,6 @@ def test_shift_to_rest_galaxy():
     with pytest.raises(AttributeError):
         assert_frame_allclose(rest_spc.observer, rest_spc.target)
 
-    with pytest.raises(ValueError):
-        # *any* observer shift should fail, since we didn't specify one at the
-        # outset
-        rest_spc._change_observer_to(ICRS(CartesianRepresentation([0, 0, 0] * u.au)))
-
 
 def test_shift_to_rest_star_withobserver():
     rv = -8.3283011*u.km/u.s
@@ -654,8 +649,7 @@ def test_shift_to_rest_star_withobserver():
     rest_spc = observed_spc.to_rest()
     assert_quantity_allclose(rest_spc, rest_line_wls)
 
-    with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
-        barycentric_spc = observed_spc._change_observer_to(ICRS(CartesianRepresentation([0, 0, 0] * u.au)))
+    barycentric_spc = observed_spc.with_observer_stationary_relative_to('icrs')
     baryrest_spc = barycentric_spc.to_rest()
     assert quantity_allclose(baryrest_spc, rest_line_wls)
 
