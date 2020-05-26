@@ -520,6 +520,13 @@ def test_los_shift_radial_velocity():
     sc12 = sc10.with_radial_velocity_shift(-3 * u.km / u.s)
     assert_quantity_allclose(sc12.radial_velocity, -2 * u.km / u.s)
 
+    # Check that things work if radial_velocity wasn't specified at all
+
+    sc13 = SpectralCoord(500 * u.nm)
+    sc14 = sc13.with_radial_velocity_shift(1 * u.km / u.s)
+    assert_quantity_allclose(sc14.radial_velocity, 1 * u.km / u.s)
+
+
 
 @pytest.mark.xfail
 def test_relativistic_radial_velocity():
