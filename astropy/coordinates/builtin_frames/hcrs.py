@@ -42,4 +42,4 @@ class HCRS(BaseRADecFrame):
 
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)
 
-# Transformations are defined in icrs_circ_transforms.py
+# Transformations are defined in icrs_cirs_transforms.py
