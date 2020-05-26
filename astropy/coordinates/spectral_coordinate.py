@@ -680,7 +680,7 @@ class SpectralCoord(SpectralQuantity):
                 target_shift = _redshift_to_velocity(target_shift)
             if self._observer is None or self._target is None:
                 return self.replicate(value=_apply_relativistic_doppler_shift(self, target_shift),
-                                      radial_velocity=self._radial_velocity + target_shift)
+                                      radial_velocity=self.radial_velocity + target_shift)
 
         if observer_shift is None:
             observer_shift = 0 * KMS
