@@ -287,7 +287,7 @@ class TimeFormat(metaclass=TimeFormatMeta):
             raise TypeError('Cannot mix float and Quantity inputs')
 
         if val2 is None:
-            val2 = np.zeros_like(val1)
+            val2 = np.array(0, dtype=val1.dtype)
 
         def asarray_or_scalar(val):
             """
