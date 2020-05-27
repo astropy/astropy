@@ -66,20 +66,30 @@ class LinearPropagator(BasePropagator):
         if to_time is None:
             to_time = icrs_coord.obstime
 
-        dt = (to_time - self.ref_epoch).to(u.yr)
-        log.debug(f"Propagating forward by {dt} after {self.ref_epoch}")
-        result = SkyCoord(icrs_coord).apply_space_motion(dt=dt).frame
-        return BCRS(result.data, obstime=to_time)
+        if 's' in icrs_coord.data.differentials:
+            dt = (to_time - self.ref_epoch).to(u.yr)
+            log.debug(f"Propagating forward by {dt} after {self.ref_epoch}")
+            # TODO: code for SkyCoord.apply_space_motion() needs to moved out of that class
+            result = SkyCoord(icrs_coord).apply_space_motion(dt=dt).frame
+            return BCRS(result.data, obstime=to_time)
+        else:
+            log.debug("The coordinate does not have velocity information.")
+            return BCRS(icrs_coord.data, obstime=to_time)
 
     def depropagate(self, bcrs_coord):
         if not isinstance(bcrs_coord, BCRS):
             raise ValueError("Coordinate must be in BCRS")
         from_time = bcrs_coord.obstime
 
-        dt = (from_time - self.ref_epoch).to(u.yr)
-        log.debug(f"Propagating backward by {dt} to {self.ref_epoch}")
-        result = SkyCoord(ICRS(bcrs_coord.data)).apply_space_motion(dt=-dt).frame
-        return ICRS(result.data)
+        if 's' in bcrs_coord.data.differentials:
+            dt = (from_time - self.ref_epoch).to(u.yr)
+            log.debug(f"Propagating backward by {dt} to {self.ref_epoch}")
+            # TODO: code for SkyCoord.apply_space_motion() needs to moved out of that class
+            result = SkyCoord(ICRS(bcrs_coord.data)).apply_space_motion(dt=-dt).frame
+            return ICRS(result.data)
+        else:
+            log.debug("The coordinate does not have velocity information.")
+            return ICRS(bcrs_coord.data)
 
 
 class SolarSystemLinearPropagator(BasePropagator):
@@ -130,14 +140,15 @@ class SolarSystemLinearPropagator(BasePropagator):
 
                 pos -= vel * dt
                 posvel = pos.with_differentials(posvel.differentials)
-                bcrs_coord = BCRS(posvel, obstime=to_time)
+                return BCRS(posvel, obstime=to_time)
             elif np.all(distance >= self.distance_threshold):  # cosmic object
-                bcrs_coord = self._linear_propagator.propagate(icrs_coord, to_time)
+                return self._linear_propagator.propagate(icrs_coord, to_time)
             else:  # a mix
                 raise ConvertError("The propagation cannot handle a mix of solar-system bodies "
                                    "and cosmic objects.")
-
-        return bcrs_coord
+        else:
+            log.debug("The coordinate does not have velocity information.")
+            return BCRS(posvel, obstime=to_time)
 
     def depropagate(self, bcrs_coord):
         if not isinstance(bcrs_coord, BCRS):
@@ -156,11 +167,12 @@ class SolarSystemLinearPropagator(BasePropagator):
 
                 pos += posvel.differentials['s'] * dt
                 posvel = pos.with_differentials(posvel.differentials)
-                icrs_coord = ICRS(posvel)
+                return ICRS(posvel)
             elif np.all(distance >= self.distance_threshold):  # cosmic object
-                icrs_coord = self._linear_propagator.depropagate(bcrs_coord)
+                return self._linear_propagator.depropagate(bcrs_coord)
             else:  # a mix
                 raise ConvertError("The propagation cannot handle a mix of solar-system bodies "
                                    "and cosmic objects.")
-
-        return icrs_coord
+        else:
+            log.debug("The coordinate does not have velocity information.")
+            return ICRS(posvel)

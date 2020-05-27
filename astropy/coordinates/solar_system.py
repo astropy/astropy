@@ -20,7 +20,7 @@ from astropy import _erfa as erfa
 from astropy.constants import c as speed_of_light
 from .representation import CartesianRepresentation
 from .orbital_elements import calc_moon
-from .builtin_frames import GCRS, ICRS
+from .builtin_frames import GCRS, ICRS, BCRS
 from .builtin_frames.utils import get_jd12
 
 __all__ = ["get_body", "get_moon", "get_body_barycentric",
@@ -465,8 +465,8 @@ def get_body(body, time, location=None, ephemeris=None):
         obsgeoloc, obsgeovel = None, None
 
     cartrep = _get_apparent_body_position(body, time, ephemeris, obsgeoloc)
-    icrs = ICRS(cartrep)
-    gcrs = icrs.transform_to(GCRS(obstime=time,
+    bcrs = BCRS(cartrep, obstime=time)
+    gcrs = bcrs.transform_to(GCRS(obstime=time,
                                   obsgeoloc=obsgeoloc,
                                   obsgeovel=obsgeovel))
 

@@ -21,6 +21,7 @@ doc_footer = """
 @format_doc(base_doc, components=doc_components, footer=doc_footer)
 class BCRS(BaseRADecFrame):
     """
+    Like ICRS, but with an ``obstime`` attribute
     """
 
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)
