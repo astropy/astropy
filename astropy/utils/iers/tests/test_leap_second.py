@@ -80,7 +80,7 @@ class TestReading:
         ls = iers.LeapSeconds.open(SYSTEM_FILE)
         expired = ls.expires < Time.now()
         if expired:
-            pytest.skip("CI system leap second file is expired.")
+            pytest.skip("System leap second file is expired.")
         assert not expired
 
 
@@ -250,7 +250,7 @@ class TestDefaultAutoOpen:
         # we should not depend on CI keeping it up to date, but if it is,
         # we should check that it is used if possible.
         if (iers.LeapSeconds.open(SYSTEM_FILE).expires <= self.good_enough):
-            pytest.skip("CI system leap second file is expired.")
+            pytest.skip("System leap second file is expired.")
 
         self.remove_auto_open_files('erfa')
         with iers.conf.set_temp('system_leap_second_file', SYSTEM_FILE):
