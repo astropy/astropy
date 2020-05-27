@@ -409,9 +409,13 @@ class TimeNumeric(TimeFormat):
 
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
+        # Save original state of val2 because the super()._check_val_type below
+        # may change val2 from None to np.array(0).
+        val2_is_none = val2 is None
+
         if val1.dtype.kind == 'f':
             val1, val2 = super()._check_val_type(val1, val2)
-        elif (val2 is not None
+        elif (not val2_is_none
               or not (val1.dtype.kind in 'US'
                       or (val1.dtype.kind == 'O'
                           and all(isinstance(v, Decimal) for v in val1.flat)))):
@@ -420,7 +424,7 @@ class TimeNumeric(TimeFormat):
                 'and second values are only allowed for doubles.'
                 .format(self.name))
 
-        val_dtype = (val1.dtype if val2 is None else
+        val_dtype = (val1.dtype if val2_is_none else
                      np.result_type(val1.dtype, val2.dtype))
         subfmts = self._select_subfmts(self.in_subfmt)
         for subfmt, dtype, convert, _ in subfmts:
