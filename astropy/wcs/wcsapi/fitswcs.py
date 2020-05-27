@@ -8,7 +8,7 @@ import warnings
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates import SpectralCoord, Galactic
+from astropy.coordinates import SpectralCoord, Galactic, ICRS
 from astropy.coordinates.spectral_coordinate import update_differentials_to_match, attach_zero_velocities
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.constants import c
@@ -452,6 +452,27 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             else:
 
                 target = None
+
+            # SpectralCoord does not work properly if either observer or target
+            # are not convertible to ICRS, so if this is the case, we (for now)
+            # drop the observer and target from the SpectralCoord and warn the
+            # user.
+
+            if observer is not None:
+                try:
+                    observer.transform_to(ICRS())
+                except Exception:
+                    warnings.warn('observer cannot be converted to ICRS, so will '
+                                  'not be set on SpectralCoord', AstropyUserWarning)
+                    observer = None
+
+            if target is not None:
+                try:
+                    target.transform_to(ICRS())
+                except Exception:
+                    warnings.warn('target cannot be converted to ICRS, so will '
+                                  'not be set on SpectralCoord', AstropyUserWarning)
+                    target = None
 
             # NOTE: below we include Quantity in classes['spectral'] instead
             # of SpectralCoord - this is because we want to also be able to
