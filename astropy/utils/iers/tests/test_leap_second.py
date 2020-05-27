@@ -13,7 +13,6 @@ from astropy.utils.data import get_pkg_data_filename
 
 
 SYSTEM_FILE = '/usr/share/zoneinfo/leap-seconds.list'
-ON_CI = 'CI' in os.environ or 'TRAVIS' in os.environ
 
 # Test leap_seconds.list in test/data.
 LEAP_SECOND_LIST = get_pkg_data_filename('data/leap-seconds.list')
@@ -80,7 +79,7 @@ class TestReading:
     def test_open_system_file(self):
         ls = iers.LeapSeconds.open(SYSTEM_FILE)
         expired = ls.expires < Time.now()
-        if ON_CI and expired:
+        if expired:
             pytest.skip("CI system leap second file is expired.")
         assert not expired
 
@@ -250,8 +249,7 @@ class TestDefaultAutoOpen:
         # We skip the test if the system file is on a CI and is expired -
         # we should not depend on CI keeping it up to date, but if it is,
         # we should check that it is used if possible.
-        if (iers.LeapSeconds.open(SYSTEM_FILE).expires <= self.good_enough
-                and ON_CI):
+        if (iers.LeapSeconds.open(SYSTEM_FILE).expires <= self.good_enough):
             pytest.skip("CI system leap second file is expired.")
 
         self.remove_auto_open_files('erfa')
