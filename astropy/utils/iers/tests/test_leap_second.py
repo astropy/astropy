@@ -264,6 +264,7 @@ class TestDefaultAutoOpen:
             iers.LeapSeconds._auto_open_files[0] = fake_file
             ls2 = iers.LeapSeconds.open()
             assert ls2.expires > Time.now()
+            assert ls2.meta['data_url'] == SYSTEM_FILE
 
     @pytest.mark.remote_data
     def test_auto_open_urls_always_good_enough(self):
