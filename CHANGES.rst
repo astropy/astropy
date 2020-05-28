@@ -44,6 +44,7 @@ astropy.coordinates
   ``TransformGraph`` class to override the finite-difference time step
   attribute (``finite_difference_dt``) for all transformations in the graph
   with that attribute. [#10341]
+- Improve performance of ``SpectralCoord`` by refactoring internal implementation. [#10398]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
