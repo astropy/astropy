@@ -294,7 +294,7 @@ class SpectralCoord(SpectralQuantity):
         if 's' not in coord.data.differentials:
             warnings.warn(
                 "No velocity defined on frame, assuming {}.".format(
-                    u.Quantity([0, 0, 0], unit=u.km/u.s)),
+                    ZERO_VELOCITIES),
                 NoVelocityWarning)
 
             coord = attach_zero_velocities(coord)
