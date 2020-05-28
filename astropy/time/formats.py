@@ -247,7 +247,11 @@ class TimeFormat(metaclass=TimeFormatMeta):
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
         # val1 cannot contain nan, but val2 can contain nan
-        isfinite1 = (val1.size == 1 and np.isfinite(val1)) or np.all(np.isfinite(val1))
+        isfinite1 = np.isfinite(val1)
+        if val1.size > 1:  # Calling .all() on a scalar is surprisingly slow
+            isfinite1 = isfinite1.all()  # Note: arr.all() about 3x faster than np.all(arr)
+        elif val1.size == 0:
+            isfinite1 = False
         ok1 = (val1.dtype.kind == 'f' and val1.dtype.itemsize >= 8
                and isfinite1 or val1.size == 0)
         ok2 = val2 is None or (
@@ -410,12 +414,14 @@ class TimeNumeric(TimeFormat):
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
         # Save original state of val2 because the super()._check_val_type below
-        # may change val2 from None to np.array(0).
-        val2_is_none = val2 is None
+        # may change val2 from None to np.array(0). The value is saved in order
+        # to prevent a useless and slow call to np.result_type() below in the
+        # most common use-case of providing only val1.
+        orig_val2_is_none = val2 is None
 
         if val1.dtype.kind == 'f':
             val1, val2 = super()._check_val_type(val1, val2)
-        elif (not val2_is_none
+        elif (not orig_val2_is_none
               or not (val1.dtype.kind in 'US'
                       or (val1.dtype.kind == 'O'
                           and all(isinstance(v, Decimal) for v in val1.flat)))):
@@ -424,7 +430,7 @@ class TimeNumeric(TimeFormat):
                 'and second values are only allowed for doubles.'
                 .format(self.name))
 
-        val_dtype = (val1.dtype if val2_is_none else
+        val_dtype = (val1.dtype if orig_val2_is_none else
                      np.result_type(val1.dtype, val2.dtype))
         subfmts = self._select_subfmts(self.in_subfmt)
         for subfmt, dtype, convert, _ in subfmts:
@@ -583,18 +589,17 @@ class TimeFromEpoch(TimeNumeric):
     """
 
     @classproperty(lazy=True)
-    def epoch(cls):
+    def _epoch(cls):
+        # Ideally we would use `def epoch(cls)` here and not have the instance
+        # property below. However, this breaks the sphinx API docs generation
+        # in a way that was not resolved. See #10406 for details.
         return Time(cls.epoch_val, cls.epoch_val2, scale=cls.epoch_scale,
                     format=cls.epoch_format)
 
-
-    def __init__(self, val1, val2, scale, precision,
-                 in_subfmt, out_subfmt, from_jd=False):
-        self.scale = scale
-
-        # Now create the TimeFormat object as normal
-        super().__init__(val1, val2, scale, precision, in_subfmt, out_subfmt,
-                         from_jd)
+    @property
+    def epoch(self):
+        """Reference epoch time from which the time interval is measured"""
+        return self._epoch
 
     def set_jds(self, val1, val2):
         """
@@ -621,22 +626,12 @@ class TimeFromEpoch(TimeNumeric):
         # For the usual case that scale is the same as epoch_scale, we only need
         # to ensure that abs(jd2) <= 0.5. Since abs(self.epoch.jd2) <= 0.5 and
         # abs(frac) <= 0.5, we can do simple (fast) checks and arithmetic here
-        # without another call to day_frac().
+        # without another call to day_frac(). Note also that `round(jd2.item())`
+        # is about 10x faster than `np.round(jd2)`` for a scalar.
         if self.epoch.scale == self.scale:
-            if day.shape == ():
-                if jd2 < -0.5:
-                    jd1 -= 1.0
-                    jd2 += 1.0
-                elif jd2 > 0.5:
-                    jd1 += 1.0
-                    jd2 -= 1.0
-            else:
-                ok = jd2 < -0.5
-                jd1[ok] -= 1.0
-                jd2[ok] += 1.0
-                ok = jd2 > 0.5
-                jd1[ok] += 1.0
-                jd2[ok] -= 1.0
+            jd1_extra = np.round(jd2) if jd2.shape else round(jd2.item())
+            jd1 += jd1_extra
+            jd2 -= jd1_extra
 
             self.jd1, self.jd2 = jd1, jd2
             return
@@ -1783,4 +1778,6 @@ def _broadcast_writeable(jd1, jd2):
     return s_jd1, s_jd2
 
 
+# Import symbols from core.py that are used in this module. This succeeds
+# because __init__.py imports format.py just before core.py.
 from .core import Time, TIME_SCALES, TIME_DELTA_SCALES, ScaleValueError  # noqa
