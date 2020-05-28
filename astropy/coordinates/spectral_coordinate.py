@@ -19,12 +19,12 @@ class NoVelocityWarning(AstropyUserWarning):
     pass
 
 
-class NiDistanceWarning(AstropyUserWarning):
+class NoDistanceWarning(AstropyUserWarning):
     pass
 
 
 KMS = u.km / u.s
-ZERO_VELOCITIES = CartesianDifferential(u.Quantity([0, 0, 0] * KMS))
+ZERO_VELOCITIES = CartesianDifferential([0, 0, 0] * KMS)
 
 # Default distance to use for target when none is provided
 DEFAULT_DISTANCE = 1e6 * u.kpc
@@ -46,7 +46,7 @@ def _redshift_to_velocity(redshift):
     Convert a relativistic redshift to a velocity.
     """
     zponesq = (1 + redshift) ** 2
-    return (c * (zponesq - 1) / (zponesq + 1)).to(u.km / u.s)
+    return (c * (zponesq - 1) / (zponesq + 1))
 
 
 def _relativistic_velocity_addition(vel1, vel2):
@@ -138,8 +138,7 @@ def attach_zero_velocities(coord):
     """
     Set the differentials to be stationary on a coordinate object.
     """
-    coord_diffs = ZERO_VELOCITIES
-    new_data = coord.cartesian.with_differentials(coord_diffs)
+    new_data = coord.cartesian.with_differentials(ZERO_VELOCITIES)
     return coord.realize_frame(new_data)
 
 
@@ -264,6 +263,9 @@ class SpectralCoord(SpectralQuantity):
         ----------
         coord : `~astropy.coordinates.BaseCoordinateFrame`
             The new frame to be used for target or observer.
+        label : str, optional
+            The name of the object being validated (e.g. 'target' or 'observer'),
+            which is then used in error messages.
         """
 
         if coord is None:
@@ -279,6 +281,7 @@ class SpectralCoord(SpectralQuantity):
         # for generating differentials
         # TODO: change this to not set the distance and yield a warning once
         # there's a good way to address this in astropy.coordinates
+        # https://github.com/astropy/astropy/issues/10247
         with np.errstate(all='ignore'):
             distance = getattr(coord, 'distance', None)
         if distance is not None and distance.unit.physical_type == 'dimensionless':
@@ -286,7 +289,7 @@ class SpectralCoord(SpectralQuantity):
             warnings.warn(
                 "Distance on coordinate object is dimensionless, an "
                 f"abritrary distance value of {DEFAULT_DISTANCE} will be set instead.",
-                NiDistanceWarning)
+                NoDistanceWarning)
 
         # If the observer frame does not contain information about the
         # velocity of the system, assume that the velocity is zero in the
@@ -353,16 +356,10 @@ class SpectralCoord(SpectralQuantity):
             else:
                 value, unit = value.value, value.unit
 
-        if observer is not None:
-            observer = self._validate_coordinate(observer)
-
-        if target is not None:
-            target = self._validate_coordinate(target)
-
         value = value if value is not None else self.value
         unit = unit or self.unit
-        observer = observer or self.observer
-        target = target or self.target
+        observer = self._validate_coordinate(observer) or self.observer
+        target = self._validate_coordinate(target) or self.target
         doppler_convention = doppler_convention or self.doppler_convention
         doppler_rest = doppler_rest or self.doppler_rest
 
@@ -401,6 +398,9 @@ class SpectralCoord(SpectralQuantity):
         """
         The coordinates of the observer.
 
+        If set, and a target is set as well, this will override any explicit
+        radial velocity passed in.
+
         Returns
         -------
         `~astropy.coordinates.BaseCoordinateFrame`
@@ -424,6 +424,9 @@ class SpectralCoord(SpectralQuantity):
     def target(self):
         """
         The coordinates of the target being observed.
+
+        If set, and an observer is set as well, this will override any explicit
+        radial velocity passed in.
 
         Returns
         -------
@@ -567,7 +570,7 @@ class SpectralCoord(SpectralQuantity):
             can be the name of a frame (e.g. 'icrs'), a frame class, frame instance
             with no data, or instance with data. This can optionally include
             velocities.
-        velocity : `~astropy.units.Quantity`, optional
+        velocity : `~astropy.units.Quantity` or `~astropy.coordinates.CartesianDifferential`, optional
             If ``frame`` does not contain velocities, these can be specified as
             a 3-element `~astropy.units.Quantity`. In the case where this is
             also not specified, the velocities default to zero.
@@ -604,7 +607,7 @@ class SpectralCoord(SpectralQuantity):
                 if velocity is None:
                     differentials = ZERO_VELOCITIES
                 else:
-                    differentials = CartesianDifferential(*velocity)
+                    differentials = CartesianDifferential(velocity)
                 frame = frame.realize_frame(frame.data.with_differentials(differentials))
 
         if isinstance(frame, (type, str)):
