@@ -1307,7 +1307,6 @@ def test_time_from_epoch_jds():
     assert np.any(np.abs(t.jd2) == 0.5)  # At least one exactly 0.5
 
 
-
 def test_bool():
     """Any Time object should evaluate to True unless it is empty [#3520]."""
     t = Time(np.arange(50000, 50010), format='mjd', scale='utc')
