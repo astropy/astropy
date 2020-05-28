@@ -695,9 +695,8 @@ class TransformGraph:
         saved_settings = []
 
         try:
-            for from_frame in self._graph:
-                for to_frame in self._graph[from_frame]:
-                    transform = self._graph[from_frame][to_frame]
+            for to_frames in self._graph.values():
+                for transform in to_frames.values():
                     if hasattr(transform, key):
                         old_setting = (transform, key, getattr(transform, key))
                         saved_settings.append(old_setting)
