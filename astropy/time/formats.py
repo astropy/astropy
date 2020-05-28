@@ -10,7 +10,7 @@ from collections import OrderedDict, defaultdict
 
 import numpy as np
 
-from astropy.utils.decorators import lazyproperty
+from astropy.utils.decorators import lazyproperty, classproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy import units as u
 from astropy import _erfa as erfa
@@ -582,14 +582,15 @@ class TimeFromEpoch(TimeNumeric):
     or days).
     """
 
+    @classproperty(lazy=True)
+    def epoch(cls):
+        return Time(cls.epoch_val, cls.epoch_val2, scale=cls.epoch_scale,
+                    format=cls.epoch_format)
+
+
     def __init__(self, val1, val2, scale, precision,
                  in_subfmt, out_subfmt, from_jd=False):
         self.scale = scale
-        if not hasattr(self.__class__, 'epoch'):
-            # Initialize the reference epoch (a single time defined in subclasses)
-            epoch = Time(self.epoch_val, self.epoch_val2, scale=self.epoch_scale,
-                         format=self.epoch_format)
-            self.__class__.epoch = epoch
 
         # Now create the TimeFormat object as normal
         super().__init__(val1, val2, scale, precision, in_subfmt, out_subfmt,
