@@ -467,6 +467,18 @@ For example::
     >>> gcrs = aa.transform_to(GCRS(obstime=time))  # doctest: +REMOTE_DATA
     >>> trans.finite_difference_dt = 1 * u.second  # return to default
 
+In the above example, there is exactly one transformation step from
+`~astropy.coordinates.AltAz` to `~astropy.coordinates.GCRS`.  In general, there
+may be more than one step between two frames, or the single step may perform
+other transformations internally.  One can use the context manager
+:func:`~astropy.coordinates.TransformGraph.impose_finite_difference_dt` for the
+transformation graph to override ``finite_difference_dt`` for *all*
+finite-difference transformations on the graph::
+
+    >>> from astropy.coordinates import frame_transform_graph
+    >>> with frame_transform_graph.impose_finite_difference_dt(1 * u.year):
+    ...     gcrs = aa.transform_to(GCRS(obstime=time))  # doctest: +REMOTE_DATA
+
 But beware that this will *not* help in cases like the above, where the relevant
 timescales for the velocities are seconds. (The velocity of the Earth relative
 to a particular direction changes dramatically over the course of one year.)
