@@ -1,6 +1,8 @@
 """
 Propagators that define the ICRS<->BCRS transformations
 """
+from abc import ABC, abstractmethod
+
 import numpy as np
 
 from astropy import log
@@ -30,7 +32,7 @@ class transform_propagator(ScienceState):
         return value
 
 
-class BasePropagator:
+class BasePropagator(ABC):
     attributes = []
 
     def __repr__(self):
@@ -44,11 +46,13 @@ class BasePropagator:
             raise AttributeError("Invalid attribute name")
         return getattr(self, f"_{name}", None)
 
+    @abstractmethod
     def propagate(self, coord, to_time=None):
-        raise NotImplementedError("This method must be overriden by the derived class.")
+        pass
 
+    @abstractmethod
     def depropagate(self, bcrs_coord):
-        raise NotImplementedError("This method must be overriden by the derived class.")
+        pass
 
 
 class LinearPropagator(BasePropagator):
