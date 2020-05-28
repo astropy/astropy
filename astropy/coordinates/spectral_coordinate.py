@@ -713,11 +713,6 @@ class SpectralCoord(SpectralQuantity):
 
         new_data = _apply_relativistic_doppler_shift(self, fin_obs_vel - init_obs_vel)
 
-        # If an observer/target pair were not defined already, we want to avoid
-        # providing an explicit pair, so create a new SpectralCoord object
-        # with just the radial velocity set so new implicit observer/target
-        # will be created. Otherwise, use the available observer/target
-        # instances to create the pair.
         return self.replicate(value=new_data,
                               observer=new_observer,
                               target=new_target)
