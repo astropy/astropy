@@ -49,6 +49,10 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Allow initializing a zero-length ``Table`` using a list of ``names`` in
+  conjunction with a ``dtype`` from a numpy structured array. The list of
+  ``names`` overrides the names specified in the ``dtype``. [#10419]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
