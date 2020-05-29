@@ -34,8 +34,8 @@ plt.style.use(astropy_mpl_style)
 
 image = Image.open('Hs-2009-14-a-web.jpg')
 xsize, ysize = image.size
-print("Image size: {} x {}".format(ysize, xsize))
-print("Image bands: {}".format(image.getbands()))
+print(f"Image size: {ysize} x {xsize}")
+print(f"Image bands: {image.getbands()}")
 ax = plt.imshow(image)
 
 ##############################################################################
