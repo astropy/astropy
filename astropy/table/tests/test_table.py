@@ -2208,6 +2208,18 @@ def test_table_meta_copy():
     assert t2.meta[1] is not t.meta[1]  # Value is NOT the same list object
 
 
+def test_init_table_with_names_and_structured_dtype():
+    """Test fix for #10393"""
+    arr = np.ones(2, dtype=np.dtype([('a', 'i4'), ('b', 'f4')]))
+    t1 = Table(arr)
+    for dtype in (arr.dtype, t1.dtype):
+        t2 = Table(names=['x', 'y'], dtype=arr.dtype)
+        assert t2.colnames == ['x', 'y']
+        assert str(t2['x'].dtype) == 'int32'
+        assert str(t2['y'].dtype) == 'float32'
+        assert len(t2) == 0
+
+
 def test_table_meta_copy_with_meta_arg():
     """
     Test no copy vs light (key) copy vs deep copy of table meta when meta is
