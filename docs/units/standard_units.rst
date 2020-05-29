@@ -1,12 +1,12 @@
 .. _doc_standard_units:
 
-Standard units
+Standard Units
 **************
 
 Standard units are defined in the `astropy.units` package as object
 instances.
 
-All units are defined in term of basic 'irreducible' units. The
+All units are defined in terms of basic "irreducible" units. The
 irreducible units include:
 
   - Length (meter)
@@ -25,13 +25,13 @@ irreducible units include:
 standard that are no longer recommended for use.)
 
 Units that involve combinations of fundamental units are instances of
-`~astropy.units.CompositeUnit`. In most cases, one does not need
-to worry about the various kinds of unit classes unless one wants to
+`~astropy.units.CompositeUnit`. In most cases, you do not need
+to worry about the various kinds of unit classes unless you want to
 design a more complex case.
 
-There are many units already predefined in the module. One may use the
+There are many units already predefined in the module. You may use the
 `~astropy.units.core.UnitBase.find_equivalent_units` method to list
-all the existing predefined units of a given type::
+all of the existing predefined units of a given type::
 
   >>> from astropy import units as u
   >>> u.g.find_equivalent_units()
@@ -122,12 +122,12 @@ the IEEE 1514 binary prefixes (for ``bit`` and ``byte``) supported:
 
 .. _doc_dimensionless_unit:
 
-The dimensionless unit
+The Dimensionless Unit
 ======================
 
 In addition to these units, `astropy.units` includes the concept of
-the dimensionless unit, used to indicate quantities that don't have a
-physical dimension.  This is distinct in concept from a unit that is
+the dimensionless unit, used to indicate quantities that do not have a
+physical dimension. This is distinct in concept from a unit that is
 equal to `None`: that indicates that no unit was specified in the data
 or by the user.
 
@@ -140,7 +140,14 @@ unscaled: the ``dimensionless_unscaled`` object::
 
 Dimensionless quantities are often defined as products or ratios of
 quantities that are not dimensionless, but whose dimensions cancel out
-when their powers are multiplied.  For example::
+when their powers are multiplied.
+
+Examples
+--------
+
+.. EXAMPLE START: Dimensionless Units
+
+To use the ``dimensionless_unscaled`` object::
 
    >>> u.m / u.m
    Unit(dimensionless)
@@ -165,13 +172,13 @@ For example::
 
 As an example of why you might want to create a scaled dimensionless
 quantity, say you will be doing many calculations with some big
-unitless number, ``big_unitless_num = 20000000  # 20 million``,
+unit-less number, ``big_unitless_num = 20000000  # 20 million``,
 but you want all of your answers to be in multiples of a million. This
-can be done by simply dividing ``big_unitless_num`` by ``1e6``, but this
+can be done by dividing ``big_unitless_num`` by ``1e6``, but this
 requires you to remember that this scaling factor has been applied,
 which may be difficult to do after many calculations. Instead, create
 a scaled dimensionless quantity by multiplying a value by ``Unit(scale)``
-to keep track of the scaling factor, e.g.::
+to keep track of the scaling factor. For example::
 
    >>> scale = 1e6
    >>> big_unitless_num = 20 * u.Unit(scale)  # 20 million
@@ -192,18 +199,25 @@ use the `~astropy.units.core.UnitBase.physical_type` property::
    >>> (u.m / u.m) == u.dimensionless_unscaled
    True
 
+.. EXAMPLE END
+
 .. _enabling-other-units:
 
-Enabling other units
+Enabling Other Units
 ====================
 
 By default, only the "default" units are searched by
 `~astropy.units.core.UnitBase.find_equivalent_units` and similar
-methods that do searching.  This includes SI, CGS and astrophysical
-units.  However, one may wish to enable the imperial or other
+methods that do searching. This includes SI, CGS, and astrophysical
+units. However, you may wish to enable the Imperial or other
 user-defined units.
 
-For example, to enable Imperial units, simply do::
+Example
+-------
+
+.. EXAMPLE START: Enabling Other Units
+
+To enable Imperial units, do::
 
     >>> from astropy.units import imperial
     >>> imperial.enable()  # doctest: +SKIP
@@ -238,7 +252,7 @@ enable additional units::
           Primary name | Unit definition | Aliases
     ...
 
-To enable just specific units, use `~astropy.units.add_enabled_units`::
+To enable only specific units, use `~astropy.units.add_enabled_units`::
 
     >>> from astropy import units as u
     >>> from astropy.units import imperial
@@ -246,3 +260,5 @@ To enable just specific units, use `~astropy.units.add_enabled_units`::
     ...     print(u.m.find_equivalent_units())
           Primary name | Unit definition | Aliases
     ...
+
+.. EXAMPLE END
