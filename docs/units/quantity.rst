@@ -3,24 +3,30 @@
 Quantity
 ********
 
-.. |quantity| replace:: :class:`~astropy.units.Quantity`
+.. |Quantity| replace:: :class:`~astropy.units.Quantity`
 
-The |quantity| object is meant to represent a value that has some unit
+The |Quantity| object is meant to represent a value that has some unit
 associated with the number.
 
-Creating Quantity instances
+Creating Quantity Instances
 ===========================
 
-|quantity| objects are normally created through multiplication with
-:class:`~astropy.units.Unit` objects. For example, to create a |quantity|
-to represent 15 m/s:
+|Quantity| objects are normally created through multiplication with
+:class:`~astropy.units.Unit` objects.
+
+Examples
+--------
+
+.. EXAMPLE START: Creating Quantity Instances Through Multiplication
+
+To create a |Quantity| to represent 15 m/s:
 
     >>> import astropy.units as u
     >>> 15 * u.m / u.s  # doctest: +FLOAT_CMP
     <Quantity 15. m / s>
 
-This extends as expected to division by a unit, or using Numpy arrays or Python
-sequences:
+This extends as expected to division by a unit, or using ``numpy`` arrays or
+Python sequences:
 
     >>> 1.25 / u.s
     <Quantity 1.25 1 / s>
@@ -30,15 +36,19 @@ sequences:
     >>> np.array([1, 2, 3]) * u.m  # doctest: +FLOAT_CMP
     <Quantity [1., 2., 3.] m>
 
-You can also create instances using the |quantity| constructor directly, by
+.. EXAMPLE END
+
+.. EXAMPLE START: Creating Quantity Instances Using the Quantity Constructor
+
+You can also create instances using the |Quantity| constructor directly, by
 specifying a value and unit:
 
     >>> u.Quantity(15, u.m / u.s)  # doctest: +FLOAT_CMP
     <Quantity 15. m / s>
 
-The constructor gives a few more options.  In particular, it allows one to
-merge sequences of |quantity| objects (as long as all of their units are
-equivalent), and to parse simple strings (which may help, e.g., to parse
+The constructor gives a few more options. In particular, it allows you to
+merge sequences of |Quantity| objects (as long as all of their units are
+equivalent), and to parse simple strings (which may help, for example, to parse
 configuration files, etc.):
 
     >>> qlst = [60 * u.s, 1 * u.min]
@@ -57,18 +67,26 @@ The current unit and value can be accessed via the
     >>> q.value
     2.5
 
-.. note:: |quantity| objects are converted to float by default.  Furthermore,
-	  any data passed in are copied, which for large arrays may not be
-	  optimal.  As discussed :ref:`further below
-	  <astropy-units-quantity-no-copy>`.  one can instead obtain a
-	  `~numpy.ndarray.view` by passing ``copy=False`` to |quantity| or use
-	  the ``<<`` operator.
+.. note:: |Quantity| objects are converted to float by default. Furthermore, any
+          data passed in are copied, which for large arrays may not be optimal.
+          As discussed :ref:`further below <astropy-units-quantity-no-copy>`,
+          you can instead obtain a `~numpy.ndarray.view` by passing
+          ``copy=False`` to |Quantity| or use the ``<<`` operator.
 
-Converting to different units
+.. EXAMPLE END
+
+Converting to Different Units
 =============================
 
-|quantity| objects can be converted to different units using the
-:meth:`~astropy.units.quantity.Quantity.to` method:
+|Quantity| objects can be converted to different units using the
+:meth:`~astropy.units.quantity.Quantity.to` method.
+
+Examples
+--------
+
+.. EXAMPLE START: Converting Quantity Objects to Different Units
+
+To convert |Quantity| objects to different units:
 
     >>> q = 2.3 * u.m / u.s
     >>> q.to(u.km / u.h)  # doctest: +FLOAT_CMP
@@ -76,7 +94,7 @@ Converting to different units
 
 For convenience, the `~astropy.units.quantity.Quantity.si` and
 `~astropy.units.quantity.Quantity.cgs` attributes can be used to
-convert the |quantity| to base S.I. or c.g.s units:
+convert the |Quantity| to base SI or CGS units:
 
     >>> q = 2.4 * u.m / u.s
     >>> q.si  # doctest: +FLOAT_CMP
@@ -85,7 +103,7 @@ convert the |quantity| to base S.I. or c.g.s units:
     <Quantity 240. cm / s>
 
 If you want the value of the quantity in a different unit, you can use
-:meth:`~astropy.units.Quantity.to_value` as a short-cut:
+:meth:`~astropy.units.Quantity.to_value` as a shortcut:
 
     >>> q = 2.5 * u.m
     >>> q.to_value(u.cm)
@@ -93,19 +111,19 @@ If you want the value of the quantity in a different unit, you can use
 
 .. note:: You could get the value in ``cm`` also using ``q.to(u.cm).value``.
           The difference is that :meth:`~astropy.units.Quantity.to_value` does
-          no conversion if the unit is already the correct one, instead just
+          no conversion if the unit is already the correct one, instead
           returning an :meth:`~numpy.ndarray.view` of the data (just as if you
-          had done ``q.value``).  In contrast,
+          had done ``q.value``). In contrast,
           :meth:`~astropy.units.Quantity.to` always returns a copy (which also
           means it is slower for the case where no conversion is necessary).
           As discussed :ref:`further below <astropy-units-quantity-no-copy>`,
-          one can avoid the copy if the unit is already correct by using the
+          you can avoid the copy if the unit is already correct by using the
           ``<<`` operator.
 
-Comparing quantities
+Comparing Quantities
 ====================
 
-|quantity| objects can be compared as follows:
+|Quantity| objects can be compared as follows:
 
     >>> from astropy import units as u
     >>> u.allclose([1, 2] * u.m, [100, 200] * u.cm)
@@ -113,10 +131,10 @@ Comparing quantities
     >>> u.isclose([1, 2] * u.m, [100, 20] * u.cm)  # doctest: +SKIP
     array([ True, False])
 
-Plotting quantities
+Plotting Quantities
 ===================
 
-|quantity| objects can be conveniently plotted using matplotlib - see
+|Quantity| objects can be conveniently plotted using matplotlib — see
 :ref:`plotting-quantities` for more details.
 
 Arithmetic
@@ -125,16 +143,22 @@ Arithmetic
 Addition and Subtraction
 ------------------------
 
-Addition or subtraction between |quantity| objects is supported when their
-units are equivalent. When the units are equal, the resulting object has the
-same unit:
+Addition or subtraction between |Quantity| objects is supported when their
+units are equivalent.
+
+Examples
+^^^^^^^^
+
+.. EXAMPLE START: Addition and Subtraction Between Quantity Objects
+
+When the units are equal, the resulting object has the same unit:
 
     >>> 11 * u.s + 30 * u.s  # doctest: +FLOAT_CMP
     <Quantity 41. s>
     >>> 30 * u.s - 11 * u.s  # doctest: +FLOAT_CMP
     <Quantity 19. s>
 
-If the units are equivalent, but not equal (e.g. kilometer and meter), the
+If the units are equivalent, but not equal (e.g., kilometer and meter), the
 resulting object **has units of the object on the left**:
 
     >>> 1100.1 * u.m + 13.5 * u.km
@@ -146,7 +170,7 @@ resulting object **has units of the object on the left**:
     >>> 13.5 * u.km - 1100.1 * u.m  # doctest: +FLOAT_CMP
     <Quantity 12.3999 km>
 
-Addition and subtraction are not supported between |quantity| objects and basic
+Addition and subtraction are not supported between |Quantity| objects and basic
 numeric types:
 
     >>> 13.5 * u.km + 19.412  # doctest: +IGNORE_EXCEPTION_DETAIL
@@ -156,14 +180,23 @@ numeric types:
     quantities when other argument is not a quantity (unless the
     latter is all zero/infinity/nan)
 
-except for dimensionless quantities (see `Dimensionless quantities`_).
+Except for dimensionless quantities (see `Dimensionless Quantities`_).
+
+.. EXAMPLE END
 
 Multiplication and Division
 ---------------------------
 
-Multiplication and division are supported between |quantity| objects with any
+Multiplication and division are supported between |Quantity| objects with any
 units, and with numeric types. For these operations between objects with
-equivalent units, the **resulting object has composite units**:
+equivalent units, the **resulting object has composite units**.
+
+Examples
+^^^^^^^^
+
+.. EXAMPLE START: Multiplication and Division Between Quantity Objects
+
+To perform these operations on |Quantity| objects:
 
     >>> 1.1 * u.m * 140.3 * u.cm  # doctest: +FLOAT_CMP
     <Quantity 154.33 cm m>
@@ -196,13 +229,14 @@ This method is also useful for more complicated arithmetic:
     >>> (15. * u.kg * 32. * u.cm * 15 * u.m / (11. * u.s * 1914.15 * u.ms)).decompose()  # doctest: +FLOAT_CMP
     <Quantity 3.41950973 kg m2 / s2>
 
+.. EXAMPLE END
 
-Numpy functions
+NumPy Functions
 ===============
 
-|quantity| objects are actually full Numpy arrays (the |quantity| class
+|Quantity| objects are actually full ``numpy`` arrays (the |Quantity| class
 inherits from and extends :class:`numpy.ndarray`), and we have tried to ensure
-that Numpy functions behave properly with quantities:
+that ``numpy`` functions behave properly with quantities:
 
     >>> q = np.array([1., 2., 3., 4.]) * u.m / u.s
     >>> np.mean(q)
@@ -216,7 +250,7 @@ This includes functions that only accept specific units such as angles:
     >>> np.sin(q)  # doctest: +FLOAT_CMP
     <Quantity 0.5>
 
-or dimensionless quantities:
+Or dimensionless quantities:
 
     >>> from astropy.constants import h, k_B
     >>> nu = 3 * u.GHz
@@ -224,30 +258,30 @@ or dimensionless quantities:
     >>> np.exp(-h * nu / (k_B * T))  # doctest: +FLOAT_CMP
     <Quantity 0.99521225>
 
-(see `Dimensionless quantities`_ below for more details).
+See `Dimensionless Quantities`_ below for more details.
 
-.. note:: With numpy versions older than 1.17, a number of mostly
+.. note:: With ``numpy`` versions older than 1.17, a number of mostly
           non-arithmetic functions have :ref:`known issues <quantity_issues>`,
           either ignoring the unit (e.g., ``np.dot``) or not reinitializing it
-          properly (e.g., ``np.hstack``).  This propagates to more complex
+          properly (e.g., ``np.hstack``). This propagates to more complex
           functions such as ``np.linalg.norm``.
 
           Support for functions from other packages, such as ``scipy``, is
           more incomplete (contributions to improve this welcomed!).
 
-Dimensionless quantities
+Dimensionless Quantities
 ========================
 
 Dimensionless quantities have the characteristic that if they are
 added or subtracted from a Python scalar or unitless `~numpy.ndarray`,
-or if they are passed to a Numpy function that takes dimensionless
+or if they are passed to a ``numpy`` function that takes dimensionless
 quantities, the units are simplified so that the quantity is
 dimensionless and scale-free. For example:
 
     >>> 1. + 1. * u.m / u.km  # doctest: +FLOAT_CMP
     <Quantity 1.001>
 
-which is different from:
+Which is different from:
 
     >>> 1. + (1. * u.m / u.km).value
     2.0
@@ -261,8 +295,8 @@ u.km)`` is not scale-free by default:
     >>> q.unit.decompose()
     Unit(dimensionless with a scale of 0.001)
 
-However, when combining with a non-quantity object, the unit is automatically
-decomposed to be scale-free, giving the expected result.
+However, when combining with an object that is not a |Quantity|, the unit is
+automatically decomposed to be scale-free, giving the expected result.
 
 This also occurs when passing dimensionless quantities to functions that take
 dimensionless quantities:
@@ -272,17 +306,18 @@ dimensionless quantities:
     >>> np.exp(- h * nu / (k_B * T))  # doctest: +FLOAT_CMP
     <Quantity 0.99521225>
 
-The result is independent from the units the different quantities were specified in:
+The result is independent from the units in which the different quantities were
+specified:
 
     >>> nu = 3.e9 * u.Hz
     >>> T = 30 * u.K
     >>> np.exp(- h * nu / (k_B * T))  # doctest: +FLOAT_CMP
     <Quantity 0.99521225>
 
-Converting to plain Python scalars
+Converting to Plain Python Scalars
 ==================================
 
-Converting |quantity| objects does not work for non-dimensionless quantities:
+Converting |Quantity| objects does not work for non-dimensionless quantities:
 
     >>> float(3. * u.m)
     Traceback (most recent call last):
@@ -299,7 +334,7 @@ Instead, only dimensionless values can be converted to plain Python scalars:
     >>> int(6. * u.km / (2. * u.m))
     3000
 
-Functions that accept Quantities
+Functions that Accept Quantities
 ================================
 
 Validation of quantity arguments to functions can lead to many repetitions
@@ -314,7 +349,14 @@ argument can be used in calculations.
 
 The decorator `~astropy.units.quantity_input` accepts keyword arguments to
 specify which arguments should be validated and what unit they are expected to
-be compatible with:
+be compatible with.
+
+Examples
+--------
+
+.. EXAMPLE START: Functions that Accept Quantities
+
+To verify if a `~astropy.units.Quantity` argument can be used in calculations:
 
     >>> @u.quantity_input(myarg=u.deg)
     ... def myfunction(myarg):
@@ -332,7 +374,7 @@ It is also possible to instead specify the physical type of the desired unit:
     >>> myfunction(100*u.arcsec)
     Unit("arcsec")
 
-Optionally ``None`` keyword arguments are also supported; for such cases, the
+Optionally, ``None`` keyword arguments are also supported; for such cases, the
 input is only checked when a value other than ``None`` is passed:
 
     >>> @u.quantity_input(a='length', b='angle')
@@ -362,7 +404,7 @@ You can also annotate for different types in non-unit expecting arguments:
     (Unit("arcsec"), 'a nice string')
 
 You can define a return decoration, to which the return
-value will be converted, i.e.::
+value will be converted, for example::
 
     >>> @u.quantity_input  # doctest: +SKIP
     ... def myfunction(myarg: u.arcsec) -> u.deg:
@@ -373,6 +415,8 @@ value will be converted, i.e.::
 
 This both checks that the return value of your function is consistent with what
 you expect and makes it much neater to display the results of the function.
+
+.. EXAMPLE END
 
 The decorator also supports specifying a list of valid equivalent units or
 physical types for functions that should accept inputs with multiple valid
@@ -387,25 +431,32 @@ units:
     >>> myfunction(1.*u.km/u.s)
     Unit("km / s")
 
-Representing vectors with units
+Representing Vectors with Units
 ===============================
 
-|quantity| objects can, like numpy arrays, be used to represent vectors or
+|Quantity| objects can, like ``numpy`` arrays, be used to represent vectors or
 matrices by assigning specific dimensions to represent the coordinates or
 matrix elements, but that implies tracking those dimensions carefully. For
-vectors, one can use instead the representations underlying coordinates, which
-allow one to use representations other than cartesian (such as spherical or
-cylindrical), as well as simple vector arithmetic.  For details, see
+vectors, you can use instead the representations underlying coordinates, which
+allows you to use representations other than Cartesian (such as spherical or
+cylindrical), as well as simple vector arithmetic. For details, see
 :ref:`astropy-coordinates-representations`.
 
 .. _astropy-units-quantity-no-copy:
 
-Creating and converting quantities without copies
+Creating and Converting Quantities without Copies
 =================================================
 
-When creating a |quantity| using multiplication with a unit, a copy of the
+When creating a |Quantity| using multiplication with a unit, a copy of the
 underlying data is made. This can be avoided by passing on ``copy=False`` in
-the initializer::
+the initializer.
+
+Examples
+--------
+
+.. EXAMPLE START: Creating and Converting Quantities without Copies
+
+To avoid duplication using ``copy=False``::
 
     >>> a = np.arange(5.)
     >>> q = u.Quantity(a, u.m, copy=False)
@@ -418,10 +469,12 @@ the initializer::
     <Quantity [-1.,  1.,  2.,  3.,  4.] m>
 
 This may be particularly useful in functions which do not change their input;
-it also ensures that if a user passes in a |quantity| with units of length,
+it also ensures that if a user passes in a |Quantity| with units of length,
 it will be converted to meters.
 
-As a shortcut, one can "shift" to the requested unit using the ``<<``
+.. EXAMPLE END
+
+As a shortcut, you can "shift" to the requested unit using the ``<<``
 operator::
 
     >>> q = a << u.m
@@ -447,26 +500,25 @@ It can also be used for in-place conversion::
 Subclassing Quantity
 ====================
 
-To subclass |quantity|, one generally proceeds as one would when subclassing
-:class:`~numpy.ndarray`, i.e., one typically needs to override ``__new__``
-(rather than ``__init__``) and uses the ``numpy.ndarray.__array_finalize__``
-method to update attributes.  For details, see the `numpy documentation on
-subclassing
-<https://docs.scipy.org/doc/numpy/user/basics.subclassing.html>`__.  For
-examples, one can look at |quantity| itself, where, e.g., the
+To subclass |Quantity|, you generally proceed as you would when subclassing
+:class:`~numpy.ndarray` (i.e., you typically need to override ``__new__``,
+rather than ``__init__``, and use the ``numpy.ndarray.__array_finalize__``
+method to update attributes). For details, see the `NumPy documentation on
+subclassing <https://docs.scipy.org/doc/numpy/user/basics.subclassing.html>`__.
+For examples, you can look at |Quantity| itself, where, for example, the
 ``astropy.units.Quantity.__array_finalize__`` method is used to pass on the
-``unit``, at :class:`~astropy.coordinates.Angle`, where strings are parsed
-as angles in the ``astropy.coordinates.Angle.__new__`` method and at
+``unit``, at :class:`~astropy.coordinates.Angle`, where strings are parsed as
+angles in the ``astropy.coordinates.Angle.__new__`` method and at
 :class:`~astropy.coordinates.Longitude`, where the
-``astropy.coordinates.Longitude.__array_finalize__`` method is used to pass
-on the angle at which longitudes wrap.
+``astropy.coordinates.Longitude.__array_finalize__`` method is used to pass on
+the angle at which longitudes wrap.
 
-Another method that is meant to be overridden by subclasses, one specific to
-|quantity|, is ``astropy.units.Quantity.__quantity_subclass__``.  This is
-called to decide which type of subclass to return, based on the unit of the
-quantity that is to be created.  It is used, e.g., in
-:class:`~astropy.coordinates.Angle` to return a |quantity| if a calculation
-returns a unit other than an angular one.  The implementation of this is via
-:class:`~astropy.units.SpecificTypeQuantity`, which more generally allows one
-to construct |quantity| subclasses that have methods that are useful only for
-a specific physical type.
+Another method that is meant to be overridden by subclasses, specific to
+|Quantity|, is ``astropy.units.Quantity.__quantity_subclass__``. This is called
+to decide which type of subclass to return, based on the unit of the |Quantity|
+that is to be created. It is used, for example, in
+:class:`~astropy.coordinates.Angle` to return a |Quantity| if a calculation
+returns a unit other than an angular one. The implementation of this is via
+:class:`~astropy.units.SpecificTypeQuantity`, which more generally allows users
+to construct |Quantity| subclasses that have methods that are useful only for a
+specific physical type.
