@@ -1275,6 +1275,24 @@ def test_dir():
     assert 'utc' in dir(t)
 
 
+def test_time_from_epoch_jds():
+    """Test that jd1/jd2 in a TimeFromEpoch format is always well-formed:
+    jd1 is an integral value and abs(jd2) <= 0.5.
+    """
+    # From 1999:001 00:00 to 1999:002 12:00 by a non-round step. This will
+    # catch jd2 == 0 and a case of abs(jd2) == 0.5.
+    cxcsecs = np.linspace(0, 86400 * 1.5, 49)
+    for cxcsec in cxcsecs:
+        t = Time(cxcsec, format='cxcsec')
+        assert np.round(t.jd1) == t.jd1
+        assert np.abs(t.jd2) <= 0.5
+
+    t = Time(cxcsecs, format='cxcsec')
+    assert np.all(np.round(t.jd1) == t.jd1)
+    assert np.all(np.abs(t.jd2) <= 0.5)
+    assert np.any(np.abs(t.jd2) == 0.5)  # At least one exactly 0.5
+
+
 def test_bool():
     """Any Time object should evaluate to True unless it is empty [#3520]."""
     t = Time(np.arange(50000, 50010), format='mjd', scale='utc')

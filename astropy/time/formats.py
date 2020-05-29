@@ -10,7 +10,7 @@ from collections import OrderedDict, defaultdict
 
 import numpy as np
 
-from astropy.utils.decorators import lazyproperty
+from astropy.utils.decorators import lazyproperty, classproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy import units as u
 from astropy import _erfa as erfa
@@ -213,8 +213,13 @@ class TimeFormat(metaclass=TimeFormatMeta):
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
         # val1 cannot contain nan, but val2 can contain nan
+        isfinite1 = np.isfinite(val1)
+        if val1.size > 1:  # Calling .all() on a scalar is surprisingly slow
+            isfinite1 = isfinite1.all()  # Note: arr.all() about 3x faster than np.all(arr)
+        elif val1.size == 0:
+            isfinite1 = False
         ok1 = (val1.dtype.kind == 'f' and val1.dtype.itemsize >= 8
-               and np.all(np.isfinite(val1)) or val1.size == 0)
+               and isfinite1 or val1.size == 0)
         ok2 = val2 is None or (
             val2.dtype.kind == 'f' and val2.dtype.itemsize >= 8
             and not np.any(np.isinf(val2))) or val2.size == 0
@@ -252,7 +257,7 @@ class TimeFormat(metaclass=TimeFormatMeta):
             raise TypeError('Cannot mix float and Quantity inputs')
 
         if val2 is None:
-            val2 = np.zeros_like(val1)
+            val2 = np.array(0, dtype=val1.dtype)
 
         def asarray_or_scalar(val):
             """
@@ -361,9 +366,15 @@ class TimeNumeric(TimeFormat):
 
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
+        # Save original state of val2 because the super()._check_val_type below
+        # may change val2 from None to np.array(0). The value is saved in order
+        # to prevent a useless and slow call to np.result_type() below in the
+        # most common use-case of providing only val1.
+        orig_val2_is_none = val2 is None
+
         if val1.dtype.kind == 'f':
             val1, val2 = super()._check_val_type(val1, val2)
-        elif (val2 is not None
+        elif (not orig_val2_is_none
               or not (val1.dtype.kind in 'US'
                       or (val1.dtype.kind == 'O'
                           and all(isinstance(v, Decimal) for v in val1.flat)))):
@@ -372,7 +383,7 @@ class TimeNumeric(TimeFormat):
                 'and second values are only allowed for doubles.'
                 .format(self.name))
 
-        val_dtype = (val1.dtype if val2 is None else
+        val_dtype = (val1.dtype if orig_val2_is_none else
                      np.result_type(val1.dtype, val2.dtype))
         subfmts = self._select_subfmts(self.in_subfmt)
         for subfmt, dtype, convert, _ in subfmts:
@@ -530,17 +541,18 @@ class TimeFromEpoch(TimeNumeric):
     or days).
     """
 
-    def __init__(self, val1, val2, scale, precision,
-                 in_subfmt, out_subfmt, from_jd=False):
-        self.scale = scale
-        # Initialize the reference epoch (a single time defined in subclasses)
-        epoch = Time(self.epoch_val, self.epoch_val2, scale=self.epoch_scale,
-                     format=self.epoch_format)
-        self.epoch = epoch
+    @classproperty(lazy=True)
+    def _epoch(cls):
+        # Ideally we would use `def epoch(cls)` here and not have the instance
+        # property below. However, this breaks the sphinx API docs generation
+        # in a way that was not resolved. See #10406 for details.
+        return Time(cls.epoch_val, cls.epoch_val2, scale=cls.epoch_scale,
+                    format=cls.epoch_format)
 
-        # Now create the TimeFormat object as normal
-        super().__init__(val1, val2, scale, precision, in_subfmt, out_subfmt,
-                         from_jd)
+    @property
+    def epoch(self):
+        """Reference epoch time from which the time interval is measured"""
+        return self._epoch
 
     def set_jds(self, val1, val2):
         """
@@ -563,6 +575,19 @@ class TimeFromEpoch(TimeNumeric):
 
         jd1 = self.epoch.jd1 + day
         jd2 = self.epoch.jd2 + frac
+
+        # For the usual case that scale is the same as epoch_scale, we only need
+        # to ensure that abs(jd2) <= 0.5. Since abs(self.epoch.jd2) <= 0.5 and
+        # abs(frac) <= 0.5, we can do simple (fast) checks and arithmetic here
+        # without another call to day_frac(). Note also that `round(jd2.item())`
+        # is about 10x faster than `np.round(jd2)`` for a scalar.
+        if self.epoch.scale == self.scale:
+            jd1_extra = np.round(jd2) if jd2.shape else round(jd2.item())
+            jd1 += jd1_extra
+            jd2 -= jd1_extra
+
+            self.jd1, self.jd2 = jd1, jd2
+            return
 
         # Create a temporary Time object corresponding to the new (jd1, jd2) in
         # the epoch scale (e.g. UTC for TimeUnix) then convert that to the
@@ -1689,4 +1714,6 @@ def _broadcast_writeable(jd1, jd2):
     return s_jd1, s_jd2
 
 
+# Import symbols from core.py that are used in this module. This succeeds
+# because __init__.py imports format.py just before core.py.
 from .core import Time, TIME_SCALES, TIME_DELTA_SCALES, ScaleValueError  # noqa

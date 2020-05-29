@@ -1,6 +1,7 @@
 4.0.4 (unreleased)
 ==================
 
+
 Bug Fixes
 ---------
 
@@ -71,6 +72,10 @@ astropy.time
 - Fix a problem with the ``plot_date`` format for matplotlib >= 3.3 caused by
   a change in the matplotlib plot date default reference epoch in that release.
   [#10876]
+
+- Improve initialization time by a factor of four when creating a scalar ``Time``
+  object in a format like ``unix`` or ``cxcsec`` (time delta from a reference
+  epoch time). [#10406]
 
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
