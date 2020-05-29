@@ -728,6 +728,7 @@ astropy.wcs
 - The new auxiliary WCS parameters added in WCSLIB 7.1 are now exposed as
   the ``aux`` attribute of ``Wcsprm``. [#10333]
 
+
 Bug fixes
 ---------
 
@@ -888,6 +889,12 @@ astropy.wcs
 ^^^^^^^^^^^
 
 - Handled WCS 360 -> 0 deg crossover in ``fit_wcs_from_points`` [#10155]
+
+- Implemented a workaround to a bug in WCSLIB due to which ``MJD-OBS`` may be
+  written twice to a FITS header. [#10412]
+
+- ``MJDREF``, ``MJDREFI``, and/or ``MJDREFF`` are no longer reported in
+  FITS header when the corresponding values are set to default values. [#100412]
 
 Other Changes and Additions
 ---------------------------

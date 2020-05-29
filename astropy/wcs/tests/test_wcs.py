@@ -378,8 +378,6 @@ def test_to_header_string():
     if _WCSLIB_VER >= '7.1':
         hdrstr += (
             "DATEREF = '1858-11-17'         / ISO-8601 fiducial time                         ",
-            "MJDREFI =                  0.0 / [d] MJD of fiducial time, integer part         ",
-            "MJDREFF =                  0.0 / [d] MJD of fiducial time, fractional part      "
         )
     hdrstr += ("END", )
 
@@ -396,7 +394,7 @@ def test_to_header_string():
 
 
 def test_to_fits():
-    nrec = 11 if _WCSLIB_VER >= '7.1' else 8
+    nrec = 9 if _WCSLIB_VER >= '7.1' else 8
     w = wcs.WCS()
     header_string = w.to_header()
     wfits = w.to_fits()
@@ -1371,17 +1369,18 @@ class TestWcsWithTime:
         for key in char_keys:
             assert getattr(self.w.wcs, key) == self.header.get(key, "")
 
-        num_keys = ['mjdref', 'mjdobs', 'mjdbeg', 'mjdend',
+        num_keys = ['mjdobs', 'mjdbeg', 'mjdend',
                     'jepoch', 'bepoch', 'tstart', 'tstop', 'xposure',
                     'timsyer', 'timrder', 'timedel', 'timepixr',
                     'timeoffs', 'telapse', 'czphs', 'cperi']
 
+        assert_allclose(
+            self.w.wcs.mjdref,
+            [self.header.get('mjdrefia'), self.header.get('mjdreffa')]
+        )
+
         for key in num_keys:
-            if key.upper() == 'MJDREF':
-                hdrv = [self.header.get('MJDREFIA', np.nan),
-                        self.header.get('MJDREFFA', np.nan)]
-            else:
-                hdrv = self.header.get(key, np.nan)
+            hdrv = self.header.get(key, np.nan)
             assert_allclose(getattr(self.w.wcs, key), hdrv)
 
     def test_transforms(self):

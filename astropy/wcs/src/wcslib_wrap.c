@@ -34,6 +34,7 @@
 */
 #include "astropy_wcs/docstrings.h"
 
+
 /***************************************************************************
  * Helper functions                                                        *
  ***************************************************************************/
@@ -159,7 +160,6 @@ convert_rejections_to_warnings() {
 
   return status;
 }
-
 
 /***************************************************************************
  * wtbarr-related global variables and functions                           *
@@ -2008,6 +2008,67 @@ PyWcsprm_sub(
   }
 }
 
+
+static char* apply_mjdobs_workaround(char* header, int* nkeyrec) {
+    char *new_hdr = NULL;
+    char *t;
+    int p1;
+    int p2;
+    int refi = -1;
+    int reff = -1;
+    int mr;
+    double dval;
+
+    new_hdr = (char*) malloc((*nkeyrec) * 80 * sizeof(char) + 1);
+
+    p2 = 0;
+    for (p1 = 0; p1 < 80 * (*nkeyrec); p1 += 80) {
+        if (strncmp(header + p1, "MJD-OBS = ", 10) == 0 &&
+            strncmp(header + p1 + 33, "[d] MJD at start of observation", 31) == 0)
+            continue;
+
+        if (strncmp(header + p1, "MJDREF  = ", 10) == 0) {
+            t = strtok(header + p1 + 10, "/");
+            if (sscanf(t, "%lg", &dval) == 1 && dval == 0.0)
+                continue;
+        }
+
+        if (strncmp(header + p1, "MJDREFI = ", 10) == 0) {
+            t = strtok(header + p1 + 10, "/");
+            if (sscanf(t, "%lg", &dval) == 1 && dval == 0.0)
+                refi = p2;
+        }
+
+        if (strncmp(header + p1, "MJDREFF = ", 10) == 0) {
+            t = strtok(header + p1 + 10, "/");
+            if (sscanf(t, "%lg", &dval) == 1 && dval == 0.0)
+                reff = p2;
+        }
+
+        memcpy(new_hdr + p2, header + p1, 80);
+        p2 += 80;
+    }
+
+    if (refi >= 0 || reff >= 0) {
+        mr = refi < reff ? reff : refi;
+        memcpy(new_hdr + mr, new_hdr + mr + 80, p2 - (mr + 80));
+        p2 -= 80;
+        mr = refi < reff ? refi : reff;
+        if (mr >= 0) {
+            memcpy(new_hdr + mr, new_hdr + mr + 80, p2 - (mr + 80));
+            p2 -= 80;
+        }
+    }
+
+    *nkeyrec = p2 / 80;
+
+    new_hdr[p2] = '\0';
+    free(header);
+
+    return new_hdr;
+}
+
+
 /*@null@*/ static PyObject*
 PyWcsprm_to_header(
     PyWcsprm* self,
@@ -2044,6 +2105,7 @@ PyWcsprm_to_header(
 
   wcsprm_python2c(&self->x);
   status = wcshdo(relax, &self->x, &nkeyrec, &header);
+  header = apply_mjdobs_workaround(header, &nkeyrec); /* fixes https://github.com/astropy/astropy/issues/10397 */
   wcsprm_c2python(&self->x);
 
   if (status != 0) {
@@ -2059,6 +2121,7 @@ PyWcsprm_to_header(
   free(header);
   return result;
 }
+
 
 /*@null@*/ static PyObject*
 PyWcsprm_unitfix(
