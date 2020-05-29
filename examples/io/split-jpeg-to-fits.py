@@ -75,8 +75,8 @@ blue.header['LATOBS'] = "32:11:56"
 blue.header['LONGOBS'] = "110:56"
 blue.writeto('blue.fits')
 
-for _ in red.header.items():
-  print(_)
+from pprint import pprint
+pprint(red.header)
 
 ##############################################################################
 # Delete the files created
