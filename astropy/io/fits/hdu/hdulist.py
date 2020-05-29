@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-
 import gzip
 import itertools
 import os
@@ -354,7 +353,7 @@ class HDUList(list, _Verify):
             self._try_while_unread_hdus(super().__setitem__, _key, hdu)
         except IndexError:
             raise IndexError('Extension {} is out of bound or not found.'
-                            .format(key))
+                             .format(key))
 
         self._resize = True
         self._truncate = False
@@ -803,7 +802,7 @@ class HDUList(list, _Verify):
 
         if self._file.mode not in ('append', 'update', 'ostream'):
             warnings.warn("Flush for '{}' mode is not supported."
-                         .format(self._file.mode), AstropyUserWarning)
+                          .format(self._file.mode), AstropyUserWarning)
             return
 
         save_backup = self._open_kwargs.get('save_backup', False)
@@ -1354,7 +1353,10 @@ class HDUList(list, _Verify):
                 # flushing (on Windows--again, this is no problem on Linux).
                 for idx, mmap, arr in mmaps:
                     if mmap is not None:
-                        arr.data = self[idx].data.data
+                        # https://github.com/numpy/numpy/issues/8628
+                        with warnings.catch_warnings():
+                            warnings.simplefilter('ignore', category=DeprecationWarning)
+                            arr.data = self[idx].data.data
                 del mmaps  # Just to be sure
 
         else:
