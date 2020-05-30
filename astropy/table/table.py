@@ -595,13 +595,6 @@ class Table:
                 except Exception:
                     raise ValueError('dtype was specified but could not be '
                                      'parsed for column names')
-            elif dtype is not None:
-                # Names supplied along with structured-array dtype. Convert to
-                # a list of dtypes for later use. If dtype is already a list of
-                # dtype-specifiers e.g. ['f4', 'i4'] then skip this.
-                if isinstance(dtype, np.dtype):
-                    dtype = [dtype[name] for name in dtype.names]
-
             # names is guaranteed to be set at this point
             init_func = self._init_from_list
             n_cols = len(names)
@@ -620,6 +613,9 @@ class Table:
             names = default_names or [None] * n_cols
         if dtype is None:
             dtype = [None] * n_cols
+        elif isinstance(dtype, np.dtype):
+            # Convert a numpy dtype input to a list of dtypes for later use.
+            dtype = [dtype[name] for name in dtype.names]
 
         # Numpy does not support bytes column names on Python 3, so fix them
         # up now.
