@@ -14,6 +14,7 @@ from .version import version as __version__
 
 __minimum_python_version__ = '3.6'
 __minimum_numpy_version__ = '1.16.0'
+__minimum_erfa_version__ = '0.1'
 __minimum_scipy_version__ = '0.18'
 # ASDF is an optional dependency, but this is the minimum version that is
 # compatible with Astropy when it is installed.
@@ -73,32 +74,34 @@ else:
     online_docs_root = f'http://docs.astropy.org/en/{__version__}/'
 
 
-def _check_numpy():
+def _check_requirement(name, minimum_version):
     """
     Check that Numpy is installed and it is of the minimum version we
     require.
     """
     # Note: We could have used distutils.version for this comparison,
-    # but it seems like overkill to import distutils at runtime.
+    # but it seems like overkill to import distutils at runtime, and
+    # our own utils.introspection.minversion indirectly needs requirements.
     requirement_met = False
     import_fail = ''
     try:
-        import numpy
+        module = __import__(name)
     except ImportError:
-        import_fail = 'Numpy is not installed.'
+        import_fail = f'{name} is not installed.'
     else:
-        from .utils import minversion
-        requirement_met = minversion(numpy, __minimum_numpy_version__)
+        version = getattr(module, '__version__')
+        requirement_met = version.split('.') >= minimum_version.split('.')
 
     if not requirement_met:
-        msg = (f"Numpy version {__minimum_numpy_version__} or later must "
+        msg = (f"{name} version {__minimum_numpy_version__} or later must "
                f"be installed to use Astropy. {import_fail}")
         raise ImportError(msg)
 
-    return numpy
+    return module
 
 
-_check_numpy()
+_check_requirement('numpy', __minimum_numpy_version__)
+_check_requirement('erfa', __minimum_erfa_version__)
 
 
 from . import config as _config
