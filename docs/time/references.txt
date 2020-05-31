@@ -2,3 +2,4 @@
 .. |TimeDelta| replace:: :class:`~astropy.time.TimeDelta`
 .. _SOFA: http://www.iausofa.org/index.html
 .. _ERFA: https://github.com/liberfa/erfa
+.. _PyERFA: https://github.com/liberfa/pyerfa

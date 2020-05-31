@@ -68,6 +68,7 @@ check_sphinx_version("1.2.1")
 del intersphinx_mapping['astropy']
 
 # add any custom intersphinx for astropy
+intersphinx_mapping['pyerfa'] = ('https://pyerfa.readthedocs.io/en/latest/', None)
 intersphinx_mapping['pytest'] = ('https://pytest.readthedocs.io/en/stable/', None)
 intersphinx_mapping['ipython'] = ('https://ipython.readthedocs.io/en/stable/', None)
 intersphinx_mapping['pandas'] = ('https://pandas.pydata.org/pandas-docs/stable/', None)
@@ -91,6 +92,7 @@ templates_path.append('_templates')
 rst_epilog += """
 .. |minimum_python_version| replace:: {0.__minimum_python_version__}
 .. |minimum_numpy_version| replace:: {0.__minimum_numpy_version__}
+.. |minimum_erfa_version| replace:: {0.__minimum_erfa_version__}
 .. |minimum_scipy_version| replace:: {0.__minimum_scipy_version__}
 .. |minimum_yaml_version| replace:: {0.__minimum_yaml_version__}
 .. |minimum_asdf_version| replace:: {0.__minimum_asdf_version__}
