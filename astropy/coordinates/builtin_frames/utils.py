@@ -124,6 +124,16 @@ def norm(p):
     return p / np.sqrt(np.einsum('...i,...i', p, p))[..., np.newaxis]
 
 
+def pav2pv(p, v):
+    """
+    Combine p- and v- vectors into a pv-vector.
+    """
+    pv = np.empty(np.broadcast(p, v).shape[:-1], erfa.dt_pv)
+    pv['p'] = p
+    pv['v'] = v
+    return pv
+
+
 def get_cip(jd1, jd2):
     """
     Find the X, Y coordinates of the CIP and the CIO locator, s.
@@ -286,7 +296,7 @@ def prepare_earth_position_vel(time):
 
     # Also prepare earth_pv for passing to erfa, which wants it as
     # a structured dtype.
-    earth_pv = erfa.pav2pv(
+    earth_pv = pav2pv(
         earth_p.get_xyz(xyz_axis=-1).to_value(u.au),
         earth_v.get_xyz(xyz_axis=-1).to_value(u.au/u.d))
     return earth_pv, earth_heliocentric
