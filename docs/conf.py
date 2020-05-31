@@ -68,7 +68,7 @@ check_sphinx_version("1.2.1")
 del intersphinx_mapping['astropy']
 
 # add any custom intersphinx for astropy
-intersphinx_mapping['pyerfa'] = ('https://pyerfa.readthedocs.io/en/latest/', None)
+intersphinx_mapping['pyerfa'] = ('https://pyerfa.readthedocs.io/en/stable/', None)
 intersphinx_mapping['pytest'] = ('https://pytest.readthedocs.io/en/stable/', None)
 intersphinx_mapping['ipython'] = ('https://ipython.readthedocs.io/en/stable/', None)
 intersphinx_mapping['pandas'] = ('https://pandas.pydata.org/pandas-docs/stable/', None)
