@@ -10,14 +10,14 @@ from decimal import Decimal, localcontext
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
+import erfa
 
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning, ErfaWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, ErfaWarning
 from astropy.utils import isiterable, iers
 from astropy.time import (Time, TimeDelta, ScaleValueError, STANDARD_TIME_SCALES,
                           TimeString, TimezoneInfo, TIME_FORMATS)
 from astropy.coordinates import EarthLocation
 from astropy import units as u
-from astropy import _erfa as erfa
 from astropy.table import Column, Table
 
 try:
@@ -1123,7 +1123,7 @@ class TestSofaErrors:
             djm0, djm = erfa.cal2jd(iy, im, id)
 
         iy[0] = 2000
-        with pytest.warns(AstropyUserWarning, match=r'bad day    \(JD computed\)') as w:
+        with pytest.warns(ErfaWarning, match=r'bad day    \(JD computed\)') as w:
             djm0, djm = erfa.cal2jd(iy, im, id)
         assert len(w) == 1
 

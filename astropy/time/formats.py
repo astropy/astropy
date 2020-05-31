@@ -9,11 +9,11 @@ from decimal import Decimal
 from collections import OrderedDict, defaultdict
 
 import numpy as np
+import erfa
 
 from astropy.utils.decorators import lazyproperty, classproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy import units as u
-from astropy import _erfa as erfa
 
 from . import utils
 from .utils import day_frac, quantity_day_frac, two_sum, two_product

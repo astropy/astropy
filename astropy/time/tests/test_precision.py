@@ -12,8 +12,8 @@ from hypothesis.strategies import (composite, datetimes, floats, integers,
                                    one_of, sampled_from, timedeltas, tuples)
 
 import numpy as np
+import erfa
 
-import astropy._erfa as erfa
 import astropy.units as u
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import STANDARD_TIME_SCALES, Time, TimeDelta
