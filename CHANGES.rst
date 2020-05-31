@@ -254,6 +254,11 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
+- The private ``_erfa`` module has been converted to its own package,
+  ``pyerfa``, which is a required dependency for astropy, and can be imported
+  with ``import erfa``.  Importing ``_erfa`` from ``astropy`` will give a
+  deprecation warning.  [#10329]
+
 - Added ``optimize=True`` flag to calls of ``yacc.yacc`` (as already done for
   ``lex.lex``) to allow running in ``python -OO`` session without raising an
   exception in ``astropy.units.format``. [#10379]
