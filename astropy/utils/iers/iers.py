@@ -15,9 +15,9 @@ from warnings import warn
 from urllib.parse import urlparse
 
 import numpy as np
+import erfa
 
 from astropy.time import Time, TimeDelta
-from astropy import _erfa as erfa
 from astropy import config as _config
 from astropy import units as u
 from astropy.table import QTable, MaskedColumn

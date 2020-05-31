@@ -5,8 +5,8 @@ import os
 import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
+import erfa
 
-from astropy import _erfa as erfa
 from astropy.time import Time, TimeDelta
 from astropy.utils.iers import iers
 from astropy.utils.data import get_pkg_data_filename

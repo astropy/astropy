@@ -598,9 +598,9 @@ def test_regression_8276():
 
 
 def test_regression_8615():
-    # note this is a "higher-level" symptom of the problem
-    # _erfa/tests/test_erfa:test_float32_input is testing for, but is kept here
-    # due to being a more practical version of the issue.
+    # note this is a "higher-level" symptom of the problem that a test now moved
+    # to pyerfa (erfa/tests/test_erfa:test_float32_input) is testing for, but we keep
+    # it here as well due to being a more practical version of the issue.
 
     crf = CartesianRepresentation(np.array([3, 0, 4], dtype=float) * u.pc)
     srf = SphericalRepresentation.from_cartesian(crf)  # does not error in 8615

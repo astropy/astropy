@@ -3,6 +3,7 @@
 """
 Contains the transformation functions for getting to/from ecliptic systems.
 """
+import erfa
 
 from astropy import units as u
 from astropy.coordinates.baseframe import frame_transform_graph
@@ -13,7 +14,6 @@ from astropy.coordinates.transformations import (
 from astropy.coordinates.matrix_utilities import (rotation_matrix,
                                                   matrix_product,
                                                   matrix_transpose)
-from astropy import _erfa as erfa
 
 from .icrs import ICRS
 from .gcrs import GCRS
@@ -54,7 +54,7 @@ def _obliquity_only_rotation_matrix(obl=erfa.obl80(EQUINOX_J2000.jd1, EQUINOX_J2
     # The default value is the IAU 1980 value for J2000,
     # which is computed using obl80 from ERFA:
     #
-    # obl = _erfa.obl80(EQUINOX_J2000.jd1, EQUINOX_J2000.jd2) * u.radian
+    # obl = erfa.obl80(EQUINOX_J2000.jd1, EQUINOX_J2000.jd2) * u.radian
     return rotation_matrix(obl, "x")
 
 

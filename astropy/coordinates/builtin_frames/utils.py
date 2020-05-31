@@ -7,10 +7,10 @@ the ``builtin_frames`` package.
 
 import warnings
 
+import erfa
 import numpy as np
 
 from astropy import units as u
-from astropy import _erfa as erfa
 from astropy.time import Time
 from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning

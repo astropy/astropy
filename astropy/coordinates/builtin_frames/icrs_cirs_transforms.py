@@ -6,6 +6,7 @@ anything in between (currently that means GCRS)
 """
 
 import numpy as np
+import erfa
 
 from astropy import units as u
 from astropy.coordinates.baseframe import frame_transform_graph
@@ -14,7 +15,6 @@ from astropy.coordinates.representation import (SphericalRepresentation,
                                                 CartesianRepresentation,
                                                 UnitSphericalRepresentation,
                                                 CartesianDifferential)
-from astropy import _erfa as erfa
 
 from .icrs import ICRS
 from .gcrs import GCRS
