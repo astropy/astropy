@@ -2,10 +2,23 @@
 """
 This module contains errors/exceptions and warnings of general use for
 astropy. Exceptions that are specific to a given subpackage should *not* be
-here, but rather in the particular subpackage. Exception is the _erfa module
-as we rather have the users import those exceptions from here.
+here, but rather in the particular subpackage.
 """
+
+# TODO: deprecate these.  This cannot be trivially done with
+# astropy.utils.decorators.deprecate, since that module needs the exceptions
+# here, leading to circular import problems.
 from erfa import ErfaError, ErfaWarning  # noqa
+
+
+__all__ = [
+    'AstropyWarning',
+    'AstropyUserWarning',
+    'AstropyDeprecationWarning',
+    'AstropyPendingDeprecationWarning',
+    'AstropyBackwardsIncompatibleChangeWarning',
+    'DuplicateRepresentationWarning',
+    'NoValue']
 
 
 class AstropyWarning(Warning):
