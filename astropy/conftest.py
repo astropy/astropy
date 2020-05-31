@@ -76,7 +76,7 @@ def pytest_configure(config):
     os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
 
     config.option.astropy_header = True
-
+    PYTEST_HEADER_MODULES['PyERFA'] = 'erfa'
     PYTEST_HEADER_MODULES['Cython'] = 'cython'
     PYTEST_HEADER_MODULES['Scikit-image'] = 'skimage'
     PYTEST_HEADER_MODULES['asdf'] = 'asdf'
