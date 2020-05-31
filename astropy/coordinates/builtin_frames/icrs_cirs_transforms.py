@@ -20,7 +20,7 @@ from .icrs import ICRS
 from .gcrs import GCRS
 from .cirs import CIRS
 from .hcrs import HCRS
-from .utils import get_jd12, aticq, atciqz, get_cip, prepare_earth_position_vel
+from .utils import get_jd12, aticq, atciqz, pav2pv, get_cip, prepare_earth_position_vel
 
 
 # First the ICRS/CIRS related transforms
@@ -125,7 +125,7 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
     # get the position and velocity arrays for the observatory.  Need to
     # have xyz in last dimension, and pos/vel in one-but-last.
     # (Note could use np.stack once our minimum numpy version is >=1.10.)
-    obs_pv = erfa.pav2pv(
+    obs_pv = pav2pv(
         gcrs_frame.obsgeoloc.get_xyz(xyz_axis=-1).to_value(u.m),
         gcrs_frame.obsgeovel.get_xyz(xyz_axis=-1).to_value(u.m/u.s))
 
@@ -176,7 +176,7 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
 
     # set up the astrometry context for ICRS<->GCRS and then convert to BCRS
     # coordinate direction
-    obs_pv = erfa.pav2pv(
+    obs_pv = pav2pv(
         gcrs_coo.obsgeoloc.get_xyz(xyz_axis=-1).to_value(u.m),
         gcrs_coo.obsgeovel.get_xyz(xyz_axis=-1).to_value(u.m/u.s))
 
@@ -237,7 +237,7 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
 
     # set up the astrometry context for ICRS<->GCRS and then convert to ICRS
     # coordinate direction
-    obs_pv = erfa.pav2pv(
+    obs_pv = pav2pv(
         gcrs_coo.obsgeoloc.get_xyz(xyz_axis=-1).to_value(u.m),
         gcrs_coo.obsgeovel.get_xyz(xyz_axis=-1).to_value(u.m/u.s))
 
