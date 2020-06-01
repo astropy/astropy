@@ -281,6 +281,9 @@ class ArrayDistribution(Distribution, np.ndarray):
             else:
                 raise ValueError('Cannot set just dtype for a Distribution.')
 
+        if issubclass(type, Distribution):
+            return super().view(type)
+
         result = self.distribution.view(dtype, type)
         return Distribution(result)
 
