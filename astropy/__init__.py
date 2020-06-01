@@ -326,7 +326,7 @@ def _get_bibtex():
     with open(citation_file, 'r') as citation:
         refs = citation.read().split('@ARTICLE')[1:]
         if len(refs) == 0: return ''
-        bibtexreference = "@ARTICLE{}".format(refs[0])
+        bibtexreference = f'@ARTICLE{refs[0]}'
     return bibtexreference
 
 
@@ -367,9 +367,7 @@ def online_help(query):
     else:
         version = 'v' + version
 
-    url = 'http://docs.astropy.org/en/{}/search.html?{}'.format(
-        version, urlencode({'q': query}))
-
+    url = f"http://docs.astropy.org/en/{version}/search.html?{urlencode({'q': query})}"
     webbrowser.open(url)
 
 
