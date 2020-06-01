@@ -4,6 +4,7 @@
 """
 Distribution class and associated machinery.
 """
+import builtins
 
 import numpy as np
 
@@ -275,14 +276,22 @@ class ArrayDistribution(Distribution, np.ndarray):
     # Override view so that we stay a Distribution version of the new type.
     def view(self, dtype=None, type=None):
         if type is None:
-            if issubclass(dtype, np.ndarray):
-                type = dtype
-                dtype = None
-            else:
-                raise ValueError('Cannot set just dtype for a Distribution.')
+            if not (isinstance(dtype, builtins.type)
+                    and issubclass(dtype, np.ndarray)):
+                raise ValueError('cannot view Distribution with just a new dtype.')
 
-        result = self.distribution.view(dtype, type)
-        return Distribution(result)
+            type = dtype
+            view_args = (type,)
+
+        else:
+            view_args = (dtype, type)
+
+        if issubclass(type, Distribution):
+            return super().view(*view_args)
+
+        else:
+            result = self.distribution.view(*view_args)
+            return Distribution(result)
 
     # Override __getitem__ so that 'samples' is returned as the sample class.
     def __getitem__(self, item):
