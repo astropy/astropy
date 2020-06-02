@@ -378,6 +378,7 @@ def test_to_header_string():
     if _WCSLIB_VER >= '7.1':
         hdrstr += (
             "DATEREF = '1858-11-17'         / ISO-8601 fiducial time                         ",
+            "MJDREF  =                  0.0 / [d] MJD of fiducial time                       "
         )
     hdrstr += ("END", )
 
@@ -394,7 +395,7 @@ def test_to_header_string():
 
 
 def test_to_fits():
-    nrec = 9 if _WCSLIB_VER >= '7.1' else 8
+    nrec = 10 if _WCSLIB_VER >= '7.1' else 8
     w = wcs.WCS()
     header_string = w.to_header()
     wfits = w.to_fits()
