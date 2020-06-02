@@ -277,8 +277,10 @@ class TestSetShape(ShapeSetup):
         assert t0_reshape.location is None
         # But if the shape doesn't work, one should get an error.
         t0_reshape_t = t0_reshape.T
+        with pytest.raises(ValueError):
+            t0_reshape_t.shape = (12,)  # Wrong number of elements.
         with pytest.raises(AttributeError):
-            t0_reshape_t.shape = (10, 5)
+            t0_reshape_t.shape = (10, 5)  # Cannot be done without copy.
         # check no shape was changed.
         assert t0_reshape_t.shape == t0_reshape.T.shape
         assert t0_reshape_t.jd1.shape == t0_reshape.T.shape
