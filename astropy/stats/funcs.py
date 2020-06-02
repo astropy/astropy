@@ -1072,12 +1072,12 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
 
     Parameters
     ----------
-    N : int
+    N : int or np.int32/np.int64
         Total observed count number
-    B : float
+    B : float or np.float32/np.float64
         Background count rate (assumed to be known with negligible error
         from a large background area).
-    CL : float
+    CL : float or np.float32/np.float64
        Confidence level (number between 0 and 1)
 
     Returns
@@ -1157,12 +1157,12 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
 
     Parameters
     ----------
-    N : int
+    N : int or np.int32/np.int64
         Total observed count number
-    B : float
+    B : float or np.float32/np.float64
         Background count rate (assumed to be known with negligible error
         from a large background area).
-    CL : float
+    CL : float or np.float32/np.float64
        Confidence level (number between 0 and 1)
 
     Returns
@@ -1178,6 +1178,14 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
     '''
     from mpmath import mpf, factorial, findroot, fsum, power, exp, quad
 
+    if type(N).__module__ == np.__name__:
+        N = N.item()
+
+    if type(B).__module__ == np.__name__:
+        B = B.item()
+
+    if type(CL).__module__ == np.__name__:
+        CL = CL.item()
     N = mpf(N)
     B = mpf(B)
     CL = mpf(CL)
@@ -1234,12 +1242,12 @@ def _kraft_burrows_nousek(N, B, CL):
 
     Parameters
     ----------
-    N : int
+    N : int or np.int32/np.int64
         Total observed count number
-    B : float
+    B : float or np.float32/np.float64
         Background count rate (assumed to be known with negligible error
         from a large background area).
-    CL : float
+    CL : float or np.float32/np.float64
        Confidence level (number between 0 and 1)
 
     Returns
