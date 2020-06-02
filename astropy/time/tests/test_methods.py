@@ -20,6 +20,17 @@ def masked(request):
     yield use_masked_data
 
 
+needs_array_function = pytest.mark.xfail(
+    not ARRAY_FUNCTION_ENABLED,
+    reason="Needs __array_function__ support")
+
+
+def assert_time_all_equal(t1, t2):
+    """Checks equality of shape and content."""
+    assert t1.shape == t2.shape
+    assert np.all(t1 == t2)
+
+
 class ShapeSetup:
     def setup_class(cls):
         mjd = np.arange(50000, 50010)
@@ -299,8 +310,7 @@ class TestSetShape(ShapeSetup):
 
 
 class TestShapeFunctions(ShapeSetup):
-    @pytest.mark.xfail(not ARRAY_FUNCTION_ENABLED,
-                       reason="Needs __array_function__ support")
+    @needs_array_function
     def test_broadcast(self, masked):
         """Test as supported numpy function."""
         t0_broadcast = np.broadcast_to(self.t0, shape=(3, 10, 5))
@@ -319,6 +329,72 @@ class TestShapeFunctions(ShapeSetup):
         assert np.may_share_memory(t2_broadcast.jd1, self.t2.jd1)
         assert t2_broadcast.location.shape == t2_broadcast.shape
         assert np.may_share_memory(t2_broadcast.location, self.t2.location)
+
+    @needs_array_function
+    def test_atleast_1d(self):
+        t00 = self.t0.ravel()[0]
+        assert t00.ndim == 0
+        t00_1d = np.atleast_1d(t00)
+        assert t00_1d.ndim == 1
+        assert_time_all_equal(t00[np.newaxis], t00_1d)
+        # Actual jd1 will not share memory, as cast to scalar.
+        assert np.may_share_memory(t00_1d._time.jd1, t00._time.jd1)
+
+    @needs_array_function
+    def test_atleast_2d(self):
+        t0r = self.t0.ravel()
+        assert t0r.ndim == 1
+        t0r_2d = np.atleast_2d(t0r)
+        assert t0r_2d.ndim == 2
+        assert_time_all_equal(t0r[np.newaxis], t0r_2d)
+        assert np.may_share_memory(t0r_2d.jd1, t0r.jd1)
+
+    @needs_array_function
+    def test_atleast_3d(self):
+        assert self.t0.ndim == 2
+        t0_3d, t1_3d = np.atleast_3d(self.t0, self.t1)
+        assert t0_3d.ndim == t1_3d.ndim == 3
+        assert_time_all_equal(self.t0[:, :, np.newaxis], t0_3d)
+        assert_time_all_equal(self.t1[:, :, np.newaxis], t1_3d)
+        assert np.may_share_memory(t0_3d.jd2, self.t0.jd2)
+
+    def test_move_axis(self):
+        # Goes via transpose so works without __array_function__ as well.
+        t0_10 = np.moveaxis(self.t0, 0, 1)
+        assert t0_10.shape == (self.t0.shape[1], self.t0.shape[0])
+        assert_time_all_equal(self.t0.T, t0_10)
+        assert np.may_share_memory(t0_10.jd1, self.t0.jd1)
+
+    def test_roll_axis(self):
+        # Goes via transpose so works without __array_function__ as well.
+        t0_10 = np.rollaxis(self.t0, 1)
+        assert t0_10.shape == (self.t0.shape[1], self.t0.shape[0])
+        assert_time_all_equal(self.t0.T, t0_10)
+        assert np.may_share_memory(t0_10.jd1, self.t0.jd1)
+
+    @needs_array_function
+    def test_fliplr(self):
+        t0_lr = np.fliplr(self.t0)
+        assert_time_all_equal(self.t0[:, ::-1], t0_lr)
+        assert np.may_share_memory(t0_lr.jd2, self.t0.jd2)
+
+    @needs_array_function
+    def test_rot90(self):
+        t0_270 = np.rot90(self.t0, 3)
+        assert_time_all_equal(self.t0.T[:, ::-1], t0_270)
+        assert np.may_share_memory(t0_270.jd2, self.t0.jd2)
+
+    @needs_array_function
+    def test_roll(self):
+        t0r = np.roll(self.t0, 1, axis=0)
+        assert_time_all_equal(t0r[1:], self.t0[:-1])
+        assert_time_all_equal(t0r[0], self.t0[-1])
+
+    @needs_array_function
+    def test_delete(self):
+        t0d = np.delete(self.t0, [2, 3], axis=0)
+        assert_time_all_equal(t0d[:2], self.t0[:2])
+        assert_time_all_equal(t0d[2:], self.t0[4:])
 
 
 class TestArithmetic:
