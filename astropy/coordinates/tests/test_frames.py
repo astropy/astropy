@@ -1018,6 +1018,38 @@ def test_quantity_attribute_default():
     frame = MyCoord2()
     assert u.isclose(frame.someval, 15*u.deg)
 
+    # Since here no shape was given, we can set to any shape we like.
+    frame = MyCoord2(someval=np.ones(3)*u.deg)
+    assert frame.someval.shape == (3,)
+    assert np.all(frame.someval == 1*u.deg)
+
+    # We should also be able to insist on a given shape.
+    class MyCoord3(BaseCoordinateFrame):
+        someval = QuantityAttribute(unit=u.arcsec, shape=(3,))
+
+    frame = MyCoord3(someval=np.ones(3)*u.deg)
+    assert frame.someval.shape == (3,)
+    assert frame.someval.unit == u.arcsec
+    assert u.allclose(frame.someval.value, 3600.)
+
+    # The wrong shape raises.
+    with pytest.raises(ValueError, match='shape'):
+        MyCoord3(someval=1.*u.deg)
+
+    # As does the wrong unit.
+    with pytest.raises(u.UnitsError):
+        MyCoord3(someval=np.ones(3)*u.m)
+
+    # We are allowed a short-cut for zero.
+    frame0 = MyCoord3(someval=0)
+    assert frame0.someval.shape == (3,)
+    assert frame0.someval.unit == u.arcsec
+    assert np.all(frame0.someval.value == 0.)
+
+    # But not if it has the wrong shape.
+    with pytest.raises(ValueError, match='shape'):
+        MyCoord3(someval=np.zeros(2))
+
     # This should fail, if we don't pass in a default or a unit
     with pytest.raises(ValueError):
         class MyCoord(BaseCoordinateFrame):
