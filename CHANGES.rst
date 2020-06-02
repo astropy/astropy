@@ -893,8 +893,8 @@ astropy.wcs
 - Implemented a workaround to a bug in WCSLIB due to which ``MJD-OBS`` may be
   written twice to a FITS header. [#10412]
 
-- ``MJDREF``, ``MJDREFI``, and/or ``MJDREFF`` are no longer reported in
-  FITS header when the corresponding values are set to default values. [#100412]
+- ``MJDREFF``, ``MJDREFI``, are replaced with ``MJDREF`` in FITS header when
+  they have default values. [#100412]
 
 Other Changes and Additions
 ---------------------------

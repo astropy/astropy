@@ -2014,12 +2014,14 @@ static char* apply_mjdobs_workaround(char* header, int* nkeyrec) {
     char *t;
     int p1;
     int p2;
+    int ref0 = -1;
     int refi = -1;
     int reff = -1;
     int mr;
+    char buf[100];
     double dval;
 
-    new_hdr = (char*) malloc((*nkeyrec) * 80 * sizeof(char) + 1);
+    new_hdr = (char*) malloc(((*nkeyrec) + 1) * 80 * sizeof(char) + 1);
 
     p2 = 0;
     for (p1 = 0; p1 < 80 * (*nkeyrec); p1 += 80) {
@@ -2030,7 +2032,7 @@ static char* apply_mjdobs_workaround(char* header, int* nkeyrec) {
         if (strncmp(header + p1, "MJDREF  = ", 10) == 0) {
             t = strtok(header + p1 + 10, "/");
             if (sscanf(t, "%lg", &dval) == 1 && dval == 0.0)
-                continue;
+                ref0 = p2;
         }
 
         if (strncmp(header + p1, "MJDREFI = ", 10) == 0) {
@@ -2049,7 +2051,7 @@ static char* apply_mjdobs_workaround(char* header, int* nkeyrec) {
         p2 += 80;
     }
 
-    if (refi >= 0 || reff >= 0) {
+    if (refi >= 0 && reff >= 0) {
         mr = refi < reff ? reff : refi;
         memcpy(new_hdr + mr, new_hdr + mr + 80, p2 - (mr + 80));
         p2 -= 80;
@@ -2058,6 +2060,13 @@ static char* apply_mjdobs_workaround(char* header, int* nkeyrec) {
             memcpy(new_hdr + mr, new_hdr + mr + 80, p2 - (mr + 80));
             p2 -= 80;
         }
+    }
+
+    if (ref0 < 0) {
+        sprintf(buf, "MJDREF  =                  0.0 / [d] MJD of fiducial time%*c!",
+                23, ' ');
+        memcpy(new_hdr + p2, buf, 80);
+        p2 += 80;
     }
 
     *nkeyrec = p2 / 80;
