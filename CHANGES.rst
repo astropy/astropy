@@ -505,6 +505,9 @@ astropy.coordinates
   and ``Differentials`` can now be initialized with an instance of their own class
   if that instance is passed in as the first argument. [#10210]
 
+- Cleaned up coordinate caching test so it no longer depends on internals of the caching
+  mechanism. [#10430]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
