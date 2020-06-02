@@ -369,11 +369,11 @@ class TestRound():
             t.round(0.5)
 
     def test_round_kind(self, table_types):
-        for typecode in 'bBhHiIlLqQpPefdgFDG': # AllInteger, AllFloat
+        for typecode in 'bBhHiIlLqQpPefdgFDG':  # AllInteger, AllFloat
             arr = np.array([4, 16], dtype=typecode)
             t = Table([arr])
             col0 = t['col0']
-            t.round(decimals=-1) # Round to nearest 10
+            t.round(decimals=-1)  # Round to nearest 10
             assert np.all(t['col0'] == [0, 20])
             assert t['col0'] is col0
 
