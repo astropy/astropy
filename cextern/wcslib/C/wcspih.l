@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 7.2 - an implementation of the FITS WCS standard.
+  WCSLIB 7.3 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2020, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.l,v 7.2 2020/03/09 07:31:23 mcalabre Exp $
+  $Id: wcspih.l,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -482,7 +482,7 @@ jmp_buf wcspih_abort_jmp_env;
 	    errmsg = "the VELREF keyword is deprecated, use SPECSYSa";
 	    BEGIN(ERROR);
 	
-	  } else if (a == ' ' || relax & WCSHDR_VELREFa) {
+	  } else if ((a == ' ') || (relax & WCSHDR_VELREFa)) {
 	    valtype = INTEGER;
 	    vptr    = &(wcstem.velref);
 	
@@ -588,65 +588,135 @@ jmp_buf wcspih_abort_jmp_env;
 	  BEGIN(CCCCCCCC);
 	}
 
-^DATEREF" " {
-	  valtype = STRING;
-	  vptr    = wcstem.dateref;
+^DATEREF" " |
+^DATE-REF {
+	  if ((yytext[4] == 'R') || (relax & WCSHDR_DATEREF)) {
+	    valtype = STRING;
+	    vptr    = wcstem.dateref;
 	
-	  keyname = "DATEREF";
-	  BEGIN(CCCCCCCC);
+	    keyname = "DATEREF";
+	    BEGIN(CCCCCCCC);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "the DATE-REF keyword is non-standard";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
 	}
 
-^MJDREF"  " {
-	  valtype = FLOAT2;
-	  vptr    = wcstem.mjdref;
+^MJDREF"  " |
+^MJD-REF" " {
+	  if ((yytext[3] == 'R') || (relax & WCSHDR_DATEREF)) {
+	    valtype = FLOAT2;
+	    vptr    = wcstem.mjdref;
 	
-	  keyname = "MJDREF";
-	  BEGIN(CCCCCCCC);
+	    keyname = "MJDREF";
+	    BEGIN(CCCCCCCC);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "the MJD-REF keyword is non-standard";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
 	}
 
-^MJDREFI" " {
-	  /* Actually integer, but treated as float. */
-	  valtype = FLOAT;
-	  vptr    = wcstem.mjdref;
+^MJDREFI" " |
+^MJD-REFI {
+	  if ((yytext[3] == 'R') || (relax & WCSHDR_DATEREF)) {
+	    /* Actually integer, but treated as float. */
+	    valtype = FLOAT;
+	    vptr    = wcstem.mjdref;
 	
-	  keyname = "MJDREFI";
-	  BEGIN(CCCCCCCC);
+	    keyname = "MJDREFI";
+	    BEGIN(CCCCCCCC);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "the MJD-REFI keyword is non-standard";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
 	}
 
-^MJDREFF" " {
-	  valtype = FLOAT;
-	  vptr    = wcstem.mjdref + 1;
+^MJDREFF" " |
+^MJD-REFF {
+	  if ((yytext[3] == 'R') || (relax & WCSHDR_DATEREF)) {
+	    valtype = FLOAT;
+	    vptr    = wcstem.mjdref + 1;
 	
-	  keyname = "MJDREFF";
-	  BEGIN(CCCCCCCC);
+	    keyname = "MJDREFF";
+	    BEGIN(CCCCCCCC);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "the MJD-REFF keyword is non-standard";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
 	}
 
-^JDREF"   " {
-	  valtype = FLOAT2;
-	  vptr    = wcstem.mjdref;
-	  special = wcspih_jdref;
+^JDREF"   " |
+^JD-REF"  " {
+	  if ((yytext[2] == 'R') || (relax & WCSHDR_DATEREF)) {
+	    valtype = FLOAT2;
+	    vptr    = wcstem.mjdref;
+	    special = wcspih_jdref;
 	
-	  keyname = "JDREF";
-	  BEGIN(CCCCCCCC);
+	    keyname = "JDREF";
+	    BEGIN(CCCCCCCC);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "the JD-REF keyword is non-standard";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
 	}
 
-^JDREFI"  " {
-	  /* Actually integer, but treated as float. */
-	  valtype = FLOAT;
-	  vptr    = wcstem.mjdref;
-	  special = wcspih_jdrefi;
+^JDREFI"  " |
+^JD-REFI {
+	  if ((yytext[2] == 'R') || (relax & WCSHDR_DATEREF)) {
+	    /* Actually integer, but treated as float. */
+	    valtype = FLOAT;
+	    vptr    = wcstem.mjdref;
+	    special = wcspih_jdrefi;
 	
-	  keyname = "JDREFI";
-	  BEGIN(CCCCCCCC);
+	    keyname = "JDREFI";
+	    BEGIN(CCCCCCCC);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "the JD-REFI keyword is non-standard";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
 	}
 
-^JDREFF"  " {
-	  valtype = FLOAT;
-	  vptr    = wcstem.mjdref;
-	  special = wcspih_jdreff;
+^JDREFF"  " |
+^JD-REFF {
+	  if ((yytext[2] == 'R') || (relax & WCSHDR_DATEREF)) {
+	    valtype = FLOAT;
+	    vptr    = wcstem.mjdref;
+	    special = wcspih_jdreff;
 	
-	  keyname = "JDREFF";
-	  BEGIN(CCCCCCCC);
+	    keyname = "JDREFF";
+	    BEGIN(CCCCCCCC);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "the JD-REFF keyword is non-standard";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
 	}
 
 ^TIMEOFFS {
@@ -1734,7 +1804,7 @@ jmp_buf wcspih_abort_jmp_env;
 	    errmsg = "the CROTAn keyword is deprecated, use PCi_ja";
 	    BEGIN(ERROR);
 	
-	  } else if (a == ' ' || relax & WCSHDR_CROTAia) {
+	  } else if ((a == ' ') || (relax & WCSHDR_CROTAia)) {
 	    yyless(0);
 	    BEGIN(CCCCCia);
 	

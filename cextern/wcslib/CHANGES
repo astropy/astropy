@@ -1,3 +1,55 @@
+WCSLIB version 7.3 (2020/06/03)
+-------------------------------
+
+* C library
+
+  - wcshdo() was writing MJD-OBS twice to the header, and MJD-BEG not
+    at all.
+
+  - In wcshdo(), if MJDREF assumes its default value, just write
+    MJDREF = 0 (not MJDREFI & MJDREFF), and omit writing DATEREF,
+    which, with a value of '1858-11-17', looks strange and is
+    potentially confusing.  Reported by Thomas Robitaille.
+
+    If the fractional part of MJDREF is zero, then just write the
+    integer part as MJDREF (i.e. not as MJDREFI & MJDREFF).
+
+  - Bug fix in wcsfix() - it was writing error messages that referred
+    to DATE-REF and MJD-REF rather then DATEREF and MJDREF.  Reported
+    by Mihai Cara.
+
+  - Under control of a new flag, WCSHDR_DATEREF, added the option to
+    wcspih() and wcsbth() to accept DATE-REF, MJD-REF, MJD-REFI,
+    MJD-REFF, JDREF, JD-REFI, and JD-REFF as synonyms for the standard
+    keywords, DATEREF, MJDREF, MJDREFI, MJDREFF, JDREF, JDREFI, and
+    JDREFF.  The latter buck the pattern set by the other date keywords
+    ({DATE,MJD}-{OBS,BEG,AVG,END}), thereby increasing the potential
+    for confusion and error.
+
+* Fortran wrappers
+
+  - As compilers are becoming much stricter (gfortran 10), modified all
+    Fortran test programs to use the type-specific equivalents of the
+    various *PUT and *GET routines.  Reported by Ole Streicher.
+
+  - For the fitshdr wrappers, added type-specific equivalents of
+    KEYGET: KEYGTI, KEYGTD, and KEYGTC.
+
+* PGSBOX
+
+  - Modified pgtest to use the type-specific equivalents of WCSPUT.
+
+* User manual
+
+  - In the section "WCSLIB Fortran wrappers", promoted use of the type-
+    specific equivalents of the various *PUT and *GET routines.
+
+  - In the section "FITS-WCS and related software", added ASCL and ADS
+    codes, where they exist, for all software packages mentioned.
+
+  - Documentation generation moved to doxygen 1.8.18 (was 1.8.17).
+
+
 WCSLIB version 7.2 (2020/03/09)
 -------------------------------
 
@@ -34,7 +86,7 @@ the major version number from 6 to 7 (i.e. the ABI changed).
 
     In tab.c, declare static three helper functions, tabedge(),
     tabrow(), and tabvox(), used by tabs2x().  Increased the number of
-    coordinate axes handled by tabvox() from 16 to 32.  
+    coordinate axes handled by tabvox() from 16 to 32.
 
   - Extended datfix() to handle MJDREF/DATEREF, overlooked in the
     changes in release 6.1.  Also fixed the handling of MJD < 0.
@@ -2978,4 +3030,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 7.2 2020/03/09 07:31:24 mcalabre Exp $
+$Id: CHANGES,v 7.3 2020/06/03 03:37:03 mcalabre Exp $

@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 7.2 - an implementation of the FITS WCS standard.
+  WCSLIB 7.3 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2020, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsfix.c,v 7.2 2020/03/09 07:31:23 mcalabre Exp $
+  $Id: wcsfix.c,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -325,23 +325,24 @@ int datfix(struct wcsprm *wcs)
     /* MJDREF is split into integer and fractional parts, wheres MJDOBS and
        the rest are a single value. */
     if (i == 0) {
+      /* Note, DATEREF and MJDREF, not DATE-REF and MJD-REF (sigh). */
       dateid = "REF";
       date   = wcs->dateref;
       wcsmjd = wcs->mjdref;
     } else if (i == 1) {
-      dateid = "OBS";
+      dateid = "-OBS";
       date   = wcs->dateobs;
       wcsmjd = &(wcs->mjdobs);
     } else if (i == 2) {
-      dateid = "BEG";
+      dateid = "-BEG";
       date   = wcs->datebeg;
       wcsmjd = &(wcs->mjdbeg);
     } else if (i == 3) {
-      dateid = "AVG";
+      dateid = "-AVG";
       date   = wcs->dateavg;
       wcsmjd = &(wcs->mjdavg);
     } else if (i == 4) {
-      dateid = "END";
+      dateid = "-END";
       date   = wcs->dateend;
       wcsmjd = &(wcs->mjdend);
     }
@@ -421,7 +422,7 @@ int datfix(struct wcsprm *wcs)
       if (strlen(date) < 8) {
         /* Can't be a valid date. */
         status = FIXERR_BAD_PARAM;
-        sprintf(newline(&cp), "Invalid DATE-%s format '%s' is too short",
+        sprintf(newline(&cp), "Invalid DATE%s format '%s' is too short",
           dateid, date);
         continue;
       }
@@ -431,14 +432,14 @@ int datfix(struct wcsprm *wcs)
         /* Standard year-2000 form: CCYY-MM-DD[Thh:mm:ss[.sss...]] */
         if (sscanf(date, "%4d-%2d-%2d", &year, &month, &day) < 3) {
           status = FIXERR_BAD_PARAM;
-          sprintf(newline(&cp), "Invalid DATE-%s format '%s'", dateid, date);
+          sprintf(newline(&cp), "Invalid DATE%s format '%s'", dateid, date);
           continue;
         }
 
         if (date[10] == 'T') {
           if (parse_date(date+11, &hour, &minute, &sec)) {
             status = FIXERR_BAD_PARAM;
-            sprintf(newline(&cp), "Invalid time in DATE-%s '%s'", dateid,
+            sprintf(newline(&cp), "Invalid time in DATE%s '%s'", dateid,
               date+11);
             continue;
           }
@@ -457,14 +458,14 @@ int datfix(struct wcsprm *wcs)
         /* Also allow CCYY/MM/DD[Thh:mm:ss[.sss...]] */
         if (sscanf(date, "%4d/%2d/%2d", &year, &month, &day) < 3) {
           status = FIXERR_BAD_PARAM;
-          sprintf(newline(&cp), "Invalid DATE-%s format '%s'", dateid, date);
+          sprintf(newline(&cp), "Invalid DATE%s format '%s'", dateid, date);
           continue;
         }
 
         if (date[10] == 'T') {
           if (parse_date(date+11, &hour, &minute, &sec)) {
             status = FIXERR_BAD_PARAM;
-            sprintf(newline(&cp), "Invalid time in DATE-%s '%s'", dateid,
+            sprintf(newline(&cp), "Invalid time in DATE%s '%s'", dateid,
               date+11);
             continue;
           }
@@ -488,7 +489,7 @@ int datfix(struct wcsprm *wcs)
           /* Old format DATE-OBS date: DD/MM/YY, also allowing DD/MM/CCYY. */
           if (sscanf(date, "%2d/%2d/%4d", &day, &month, &year) < 3) {
             status = FIXERR_BAD_PARAM;
-            sprintf(newline(&cp), "Invalid DATE-%s format '%s'", dateid,
+            sprintf(newline(&cp), "Invalid DATE%s format '%s'", dateid,
               date);
             continue;
           }
@@ -497,7 +498,7 @@ int datfix(struct wcsprm *wcs)
           /* Also recognize DD-MM-YY and DD-MM-CCYY */
           if (sscanf(date, "%2d-%2d-%4d", &day, &month, &year) < 3) {
             status = FIXERR_BAD_PARAM;
-            sprintf(newline(&cp), "Invalid DATE-%s format '%s'", dateid,
+            sprintf(newline(&cp), "Invalid DATE%s format '%s'", dateid,
               date);
             continue;
           }
@@ -505,7 +506,7 @@ int datfix(struct wcsprm *wcs)
         } else {
           /* Not a valid date format. */
           status = FIXERR_BAD_PARAM;
-          sprintf(newline(&cp), "Invalid DATE-%s format '%s'", dateid, date);
+          sprintf(newline(&cp), "Invalid DATE%s format '%s'", dateid, date);
           continue;
         }
 
@@ -530,7 +531,7 @@ int datfix(struct wcsprm *wcs)
         } else {
           *wcsmjd = mjdsum;
         }
-        sprintf(newline(&cp), "Set MJD-%s to %.6f from DATE-%s", dateid,
+        sprintf(newline(&cp), "Set MJD%s to %.6f from DATE%s", dateid,
           mjdsum, dateid);
 
       } else {
@@ -544,7 +545,7 @@ int datfix(struct wcsprm *wcs)
         if (0.001 < fabs(mjdsum - mjdtmp)) {
           status = FIXERR_BAD_PARAM;
           sprintf(newline(&cp),
-            "Invalid parameter values: MJD-%s and DATE-%s are inconsistent",
+            "Invalid parameter values: MJD%s and DATE%s are inconsistent",
             dateid, dateid);
         }
       }
@@ -574,10 +575,10 @@ int datfix(struct wcsprm *wcs)
 
     if (strncmp(orig_date, date, 72)) {
       if (orig_date[0] == '\0') {
-        sprintf(newline(&cp), "Set DATE-%s to '%s' from MJD-%s", dateid, date,
+        sprintf(newline(&cp), "Set DATE%s to '%s' from MJD%s", dateid, date,
           dateid);
       } else {
-        sprintf(newline(&cp), "Changed DATE-%s from '%s' to '%s'", dateid,
+        sprintf(newline(&cp), "Changed DATE%s from '%s' to '%s'", dateid,
           orig_date, date);
       }
 

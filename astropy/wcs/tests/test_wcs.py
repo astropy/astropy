@@ -31,7 +31,7 @@ _WCSLIB_VER = LooseVersion(_wcs.__version__)
 
 
 def _check_v71_dateref_warnings(w, nmax=None):
-    if _WCSLIB_VER >= '7.1' and w:
+    if _WCSLIB_VER >= '7.1' and _WCSLIB_VER < '7.3' and w:
         if nmax is None:
             assert w
         else:
@@ -375,12 +375,19 @@ def test_to_header_string():
         "CRVAL2  =                  0.0 / Coordinate value at reference point            ",
         "LATPOLE =                 90.0 / [deg] Native latitude of celestial pole        ",
     )
-    if _WCSLIB_VER >= '7.1':
+
+    if _WCSLIB_VER >= '7.3':
+        hdrstr += (
+            "MJDREF  =                  0.0 / [d] MJD of fiducial time                       ",
+        )
+
+    elif _WCSLIB_VER >= '7.1':
         hdrstr += (
             "DATEREF = '1858-11-17'         / ISO-8601 fiducial time                         ",
             "MJDREFI =                  0.0 / [d] MJD of fiducial time, integer part         ",
             "MJDREFF =                  0.0 / [d] MJD of fiducial time, fractional part      "
         )
+
     hdrstr += ("END", )
 
     header_string = ''.join(hdrstr)
@@ -397,6 +404,13 @@ def test_to_header_string():
 
 def test_to_fits():
     nrec = 11 if _WCSLIB_VER >= '7.1' else 8
+    if _WCSLIB_VER < '7.1':
+        nrec = 8
+    elif _WCSLIB_VER < '7.3':
+        nrec = 11
+    else:
+        nrec = 9
+
     w = wcs.WCS()
     header_string = w.to_header()
     wfits = w.to_fits()
