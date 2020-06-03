@@ -12,6 +12,7 @@ import inspect
 import json
 import os
 import signal
+import ssl
 import sys
 import traceback
 import unicodedata
@@ -24,6 +25,8 @@ from collections import defaultdict, OrderedDict
 
 from astropy.utils.decorators import deprecated
 
+if os.name == 'nt':
+    import certifi
 
 __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
            'find_api_page', 'is_path_hidden', 'walk_skip_hidden',
@@ -233,10 +236,15 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
     req = urllib.request.Request(
         baseurl + 'objects.inv', headers={'User-Agent': f'Astropy/{version}'})
 
-    if timeout is None:
-        uf = urllib.request.urlopen(req)
+    if os.name == 'nt':
+        ssl_context = ssl.create_default_context(cafile=certifi.where())
     else:
-        uf = urllib.request.urlopen(req, timeout=timeout)
+        ssl_context = ssl.create_default_context()
+
+    if timeout is None:
+        uf = urllib.request.urlopen(req, context=ssl_context)
+    else:
+        uf = urllib.request.urlopen(req, timeout=timeout, context=ssl_context)
 
     try:
         oiread = uf.read()
