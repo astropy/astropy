@@ -168,13 +168,13 @@ for the list of available versions with ``conda search astropy``.
 
 To install all of the optional dependencies using ``conda`` enter the following::
 
-    conda install -c defaults -c conda-forge \
+    conda install -c astropy -c defaults \
       scipy h5py beautifulsoup4 html5lib bleach pyyaml pandas sortedcontainers \
       pytz matplotlib setuptools mpmath bottleneck jplephem asdf
 
 To also be able to run tests (see below) and support :ref:`builddocs` enter::
 
-    conda install -c defaults -c astropy pytest-astropy sphinx-astropy
+    conda install -c astropy -c defaults pytest-astropy sphinx-astropy
 
 .. warning::
 
