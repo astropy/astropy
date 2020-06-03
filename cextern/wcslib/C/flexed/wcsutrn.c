@@ -4242,7 +4242,7 @@ static const yy_state_type yy_NUL_trans[209] =
 #line 1 "wcsutrn.l"
 /*============================================================================
 
-  WCSLIB 7.2 - an implementation of the FITS WCS standard.
+  WCSLIB 7.3 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2020, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -4264,7 +4264,7 @@ static const yy_state_type yy_NUL_trans[209] =
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutrn.c,v 7.2 2020/03/09 07:31:23 mcalabre Exp $
+  $Id: wcsutrn.c,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
 *=============================================================================
 *
 * wcsutrn.l is a Flex description file containing the definition of a lexical

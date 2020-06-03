@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 7.2 - an implementation of the FITS WCS standard.
+  WCSLIB 7.3 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2020, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcshdr.h,v 7.2 2020/03/09 07:31:23 mcalabre Exp $
+  $Id: wcshdr.h,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.2 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.3 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -536,6 +536,13 @@
 *
 *              wcsbth() accepts VSOURCEa only if WCSHDR_AUXIMG is also
 *              enabled.
+*
+*      - WCSHDR_DATEREF: Accept DATE-REF, MJD-REF, MJD-REFI, MJD-REFF, JDREF,
+*              JD-REFI, and JD-REFF as synonyms for the standard keywords,
+*              DATEREF, MJDREF, MJDREFI, MJDREFF, JDREF, JDREFI, and JDREFF.
+*              The latter buck the pattern set by the other date keywords
+*              ({DATE,MJD}-{OBS,BEG,AVG,END}), thereby increasing the
+*              potential for confusion and error.
 *
 *      - WCSHDR_LONGKEY (wcsbth() only): Accept long forms of the alternate
 *              binary table and pixel list WCS keywords, i.e. with "a" non-
@@ -1292,10 +1299,11 @@ extern "C" {
 #define WCSHDR_RADECSYS 0x00000800
 #define WCSHDR_EPOCHa   0x00001000
 #define WCSHDR_VSOURCE  0x00002000
-#define WCSHDR_LONGKEY  0x00004000
-#define WCSHDR_CNAMn    0x00008000
-#define WCSHDR_AUXIMG   0x00010000
-#define WCSHDR_ALLIMG   0x00020000
+#define WCSHDR_DATEREF  0x00004000
+#define WCSHDR_LONGKEY  0x00008000
+#define WCSHDR_CNAMn    0x00010000
+#define WCSHDR_AUXIMG   0x00020000
+#define WCSHDR_ALLIMG   0x00040000
 
 #define WCSHDR_IMGHEAD  0x00100000
 #define WCSHDR_BIMGARR  0x00200000
