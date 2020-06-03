@@ -6,12 +6,14 @@ a clear module/package to live in.
 """
 
 import abc
+import certifi
 import contextlib
 import difflib
 import inspect
 import json
 import os
 import signal
+import ssl
 import sys
 import traceback
 import unicodedata
@@ -232,10 +234,12 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
     req = urllib.request.Request(
         baseurl + 'objects.inv', headers={'User-Agent': f'Astropy/{version}'})
 
+    ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    ssl_ctx.load_verify_locations(certifi.where())
     if timeout is None:
-        uf = urllib.request.urlopen(req)
+        uf = urllib.request.urlopen(req, context=ssl_ctx)
     else:
-        uf = urllib.request.urlopen(req, timeout=timeout)
+        uf = urllib.request.urlopen(req, timeout=timeout, context=ssl_ctx)
 
     try:
         oiread = uf.read()
