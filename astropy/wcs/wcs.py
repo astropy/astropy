@@ -682,6 +682,9 @@ reduce these to 2 dimensions using the naxis kwarg.
             fixes = self.wcs.fix(translate_units, naxis)
             for key, val in fixes.items():
                 if val != "No change":
+                    if (key == 'datfix' and '1858-11-17' in val and
+                            not np.count_nonzero(self.wcs.mjdref)):
+                        continue
                     warnings.warn(
                         ("'{0}' made the change '{1}'.").
                         format(key, val),
