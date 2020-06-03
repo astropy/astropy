@@ -321,20 +321,24 @@ class QuantityAttribute(Attribute):
         if value is None:
             return None, False
 
-        if np.all(value == 0) and self.unit is not None:
-            return u.Quantity(np.zeros(self.shape), self.unit), True
-        else:
-            if not hasattr(value, 'unit') and self.unit != u.dimensionless_unscaled:
-                raise TypeError('Tried to set a QuantityAttribute with '
-                                'something that does not have a unit.')
-            oldvalue = value
-            value = u.Quantity(oldvalue, self.unit, copy=False)
-            if self.shape is not None and value.shape != self.shape:
-                raise ValueError('The provided value has shape "{}", but '
-                                 'should have shape "{}"'.format(value.shape,
-                                                                 self.shape))
-            converted = oldvalue is not value
-            return value, converted
+        if (not hasattr(value, 'unit') and self.unit != u.dimensionless_unscaled
+                and np.any(value != 0)):
+            raise TypeError('Tried to set a QuantityAttribute with '
+                            'something that does not have a unit.')
+
+        oldvalue = value
+        value = u.Quantity(oldvalue, self.unit, copy=False)
+        if self.shape is not None and value.shape != self.shape:
+            if value.shape == () and oldvalue == 0:
+                # Allow a single 0 to fill whatever shape is needed.
+                value = np.broadcast_to(value, self.shape, subok=True)
+            else:
+                raise ValueError(
+                    f'The provided value has shape "{value.shape}", but '
+                    f'should have shape "{self.shape}"')
+
+        converted = oldvalue is not value
+        return value, converted
 
 
 class EarthLocationAttribute(Attribute):
