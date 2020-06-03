@@ -889,6 +889,8 @@ astropy.wcs
 
 - Handled WCS 360 -> 0 deg crossover in ``fit_wcs_from_points`` [#10155]
 
+- Do not issue ``DATREF`` warning when ``MJDREF`` has default value. [#10440]
+
 Other Changes and Additions
 ---------------------------
 
