@@ -1071,12 +1071,16 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
             else:
                 raise
 
-    if ftp_tls:
-        urlopener = urllib.request.build_opener(_FTPTLSHandler())
+    if os.name == 'nt':
+        ssl_context = ssl.create_default_context(cafile=certifi.where())
     else:
-        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-        ssl_context.load_verify_locations(certifi.where())
-        https_handler = urllib.request.HTTPSHandler(context=ssl_context)
+        ssl_context = ssl.create_default_context()
+
+    https_handler = urllib.request.HTTPSHandler(context=ssl_context)
+
+    if ftp_tls:
+        urlopener = urllib.request.build_opener(_FTPTLSHandler(), https_handler)
+    else:
         urlopener = urllib.request.build_opener(https_handler)
 
     req = urllib.request.Request(source_url, headers=http_headers)
