@@ -747,9 +747,8 @@ class IERS_Auto(IERS_A):
 
             # Get the latest version
             try:
-                clear_download_cache(all_urls[0])
                 filename = download_file(
-                    all_urls[0], sources=all_urls, cache=True)
+                    all_urls[0], sources=all_urls, cache="update")
             except Exception as err:
                 # Issue a warning here, perhaps user is offline.  An exception
                 # will be raised downstream when actually trying to interpolate

@@ -849,6 +849,8 @@ astropy.utils
 
 - ``astropy.utils.data.download_file`` now supports FTPS/FTP over TLS. [#9964]
 
+- ``astropy.utils.data`` now uses a lock-free mechanism for caching. [#10437]
+
 astropy.wcs
 ^^^^^^^^^^^
 
