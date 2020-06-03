@@ -3,6 +3,7 @@
 """Functions for accessing, downloading, and caching data files."""
 
 import atexit
+import certifi
 import contextlib
 import dbm
 import errno
@@ -14,6 +15,7 @@ import pathlib
 import re
 import shutil
 import socket
+import ssl
 import sys
 import time
 import urllib.request
@@ -994,7 +996,9 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
     if ftp_tls:
         urlopener = urllib.request.build_opener(_FTPTLSHandler())
     else:
-        urlopener = urllib.request.build_opener()
+        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        ssl_context.load_verify_locations(certifi.where())
+        urlopener = urllib.request.build_opener(urllib.request.HTTPSHandler(context=ssl_context))
 
     req = urllib.request.Request(source_url, headers=http_headers)
     with urlopener.open(req, timeout=timeout) as remote:
