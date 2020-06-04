@@ -280,6 +280,9 @@ astropy.samp
 astropy.stats
 ^^^^^^^^^^^^^
 
+- Fixed bug with ``funcs.poisson_conf_interval`` where N > 100
+  with ``interval='kraft-burrows-nousek'`` would throw an error
+
 astropy.table
 ^^^^^^^^^^^^^
 
