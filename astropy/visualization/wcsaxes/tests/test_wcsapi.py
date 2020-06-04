@@ -416,3 +416,30 @@ class TestWCSAPI:
         ax.set_xlim(-0.5, 148.5)
         ax.set_ylim(-0.5, 148.5)
         return fig
+
+
+def test_edge_axes():
+    # Check that axes on the edge of a spherical projection are shown properley
+    # (see https://github.com/astropy/astropy/issues/10441)
+    shape = [180, 360]
+    data = np.random.rand(*shape)
+    header = {'wcsaxes': 2,
+              'crpix1': 180.5, 'crpix2': 90.5,
+              'cdelt1': 1.0, 'cdelt2': 1.0,
+              'cunit1': 'deg', 'cunit2': 'deg',
+              'ctype1': 'CRLN-CAR', 'ctype2': 'CRLT-CAR',
+              'crval1': 0.0, 'crval2': 0.0,
+              'lonpole': 0.0, 'latpole': 90.0,
+              }
+    wcs = WCS(header)
+    fig = plt.figure()
+    ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs)
+    ax.imshow(data, origin='lower')
+    # By default the x- and y- axes should be drawn
+    lon = ax.coords[0]
+    lat = ax.coords[1]
+    fig.canvas.draw()
+    np.testing.assert_equal(lon.ticks.world['b'],
+                            np.array([90.0, 180.0, 180.0, 270.0, 0.0]))
+    np.testing.assert_equal(lat.ticks.world['l'],
+                            np.array([-90.0, -60.0, -30.0, 0.0, 30.0, 60.0, 90.0]))
