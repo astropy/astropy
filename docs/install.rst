@@ -45,13 +45,15 @@ Requirements
   Version 0.14 or higher is required to use the :ref:`table_io_pandas`
   I/O functions to read/write :class:`~astropy.table.Table` objects.
 
-- `bintrees <https://pypi.org/project/bintrees>`_ for faster ``FastRBT`` and
-  ``FastBST`` indexing engines with ``Table``, although these will still be
-  slower in most cases than the default indexing engine.
-
 - `sortedcontainers <https://pypi.org/project/sortedcontainers/>`_ for faster
   ``SCEngine`` indexing engine with ``Table``, although this may still be
   slower in some cases than the default indexing engine.
+
+- `bintrees <https://pypi.org/project/bintrees>`_ for faster ``FastRBT`` and
+  ``FastBST`` indexing engines with ``Table``, although these will still be
+  slower in most cases than the default indexing engine. *This package is
+  deprecated because it is no longer maintained.  The ``sortedcontainers``
+  package is now recommended.*
 
 - `pytz <https://pythonhosted.org/pytz/>`_: To specify and convert between
   timezones.
@@ -108,6 +110,13 @@ installed.
 Installing ``astropy``
 ======================
 
+If you are new to Python and/or do not have familiarity with `Python virtual
+environments <https://docs.python.org/3/tutorial/venv.html>`_, then we recommend
+starting by installing the `Anaconda Distribution
+<https://www.anaconda.com/distribution/>`_. This works on all platforms (linux,
+Mac, Windows) and installs a full-featured scientific Python in a user directory
+without requiring root permissions.
+
 Using pip
 ---------
 
@@ -151,19 +160,35 @@ unless you are fully aware of the risks.
 Using Conda
 -----------
 
+To install ``astropy`` using conda run::
+
+    conda install astropy
+
 ``astropy`` is installed by default with the `Anaconda Distribution
 <https://www.anaconda.com/distribution/>`_. To update to the latest version run::
 
     conda update astropy
 
 There may be a delay of a day or two between when a new version of ``astropy``
-is released and when a package is available for Anaconda. You can check
+is released and when a package is available for conda. You can check
 for the list of available versions with ``conda search astropy``.
+
+It is highly recommended that you install all of the optional dependencies with::
+
+    conda install -c astropy -c defaults \
+      scipy h5py beautifulsoup4 html5lib bleach pyyaml pandas sortedcontainers \
+      pytz matplotlib setuptools mpmath bottleneck jplephem asdf
+
+To also be able to run tests (see below) and support :ref:`builddocs` use the
+following. We use ``pip`` for these packages to ensure getting the latest
+releases which are compatible with the latest ``pytest`` and ``sphinx`` releases::
+
+    pip install pytest-astropy sphinx-astropy
 
 .. warning::
 
     Attempting to use `pip <https://pip.pypa.io>`__ to upgrade your installation
-    of ``astropy`` may result in a corrupted installation.
+    of ``astropy`` itself may result in a corrupted installation.
 
 .. _testing_installed_astropy:
 
