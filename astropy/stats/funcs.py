@@ -1178,17 +1178,11 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
     '''
     from mpmath import mpf, factorial, findroot, fsum, power, exp, quad
 
-    if type(N).__module__ == np.__name__:
-        N = N.item()
-
-    if type(B).__module__ == np.__name__:
-        B = B.item()
-
-    if type(CL).__module__ == np.__name__:
-        CL = CL.item()
-    N = mpf(N)
-    B = mpf(B)
-    CL = mpf(CL)
+    # We convert these values to float. Because for some reason, 
+    # mpmath.mpf cannot convert from numpy.int64
+    N = mpf(float(N))
+    B = mpf(float(B))
+    CL = mpf(float(CL))
 
     def eqn8(N, B):
         sumterms = [power(B, n) / factorial(n) for n in range(int(N) + 1)]
