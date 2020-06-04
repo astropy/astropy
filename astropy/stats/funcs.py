@@ -1178,7 +1178,7 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
     '''
     from mpmath import mpf, factorial, findroot, fsum, power, exp, quad
 
-    # We convert these values to float. Because for some reason, 
+    # We convert these values to float. Because for some reason,
     # mpmath.mpf cannot convert from numpy.int64
     N = mpf(float(N))
     B = mpf(float(B))
