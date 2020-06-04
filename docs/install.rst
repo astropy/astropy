@@ -110,6 +110,13 @@ The following packages can optionally be used when testing:
 Installing ``astropy``
 ======================
 
+If you are new to Python and/or do not have familiarity with `Python virtual
+environments <https://docs.python.org/3/tutorial/venv.html>`_, then we recommend
+starting by installing the `Anaconda Distribution
+<https://www.anaconda.com/distribution/>`_. This works on all platforms (linux,
+Mac, Windows) and installs a full-featured scientific Python in a user directory
+without requiring root permissions.
+
 Using pip
 ---------
 
@@ -157,29 +164,35 @@ unless you are fully aware of the risks.
 Using Conda
 -----------
 
+To install ``astropy`` using conda run::
+
+    conda install astropy
+
 ``astropy`` is installed by default with the `Anaconda Distribution
 <https://www.anaconda.com/distribution/>`_. To update to the latest version run::
 
     conda update astropy
 
 There may be a delay of a day or two between when a new version of ``astropy``
-is released and when a package is available for Anaconda. You can check
+is released and when a package is available for conda. You can check
 for the list of available versions with ``conda search astropy``.
 
-To install all of the optional dependencies using ``conda`` enter the following::
+It is highly recommended that you install all of the optional dependencies with::
 
     conda install -c astropy -c defaults \
       scipy h5py beautifulsoup4 html5lib bleach pyyaml pandas sortedcontainers \
       pytz matplotlib setuptools mpmath bottleneck jplephem asdf
 
-To also be able to run tests (see below) and support :ref:`builddocs` enter::
+To also be able to run tests (see below) and support :ref:`builddocs` use the
+following. We use ``pip`` for these packages to ensure getting the latest
+releases which are compatible with the latest ``pytest`` and ``sphinx`` releases::
 
-    conda install -c astropy -c defaults pytest-astropy sphinx-astropy
+    pip install pytest-astropy sphinx-astropy
 
 .. warning::
 
     Attempting to use `pip <https://pip.pypa.io>`__ to upgrade your installation
-    of ``astropy`` may result in a corrupted installation.
+    of ``astropy`` itself may result in a corrupted installation.
 
 .. _testing_installed_astropy:
 
