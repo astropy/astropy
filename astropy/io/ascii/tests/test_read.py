@@ -35,7 +35,9 @@ except ImportError:
 else:
     HAS_BZ2 = True
 
-asciiIO = lambda x: BytesIO(x.encode('ascii'))  # noqa
+
+def asciiIO(x):
+    return BytesIO(x.encode('ascii'))
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, {'use_fast_converter': False},

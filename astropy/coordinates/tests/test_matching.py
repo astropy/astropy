@@ -159,7 +159,7 @@ def test_matching_method():
     assert len(idx1) == len(d2d1) == len(d3d1) == 20
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy > 0.12.0 ")
+@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
 def test_search_around():
     from astropy.coordinates import ICRS, SkyCoord
     from astropy.coordinates.matching import search_around_sky, search_around_3d
@@ -241,7 +241,7 @@ def test_search_around():
     assert d3d.unit == u.dimensionless_unscaled
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy > 0.12.0 ")
+@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
 def test_search_around_scalar():
     from astropy.coordinates import SkyCoord, Angle
 
@@ -260,7 +260,7 @@ def test_search_around_scalar():
     assert 'search_around_3d' in str(excinfo.value)
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy > 0.12.0 ")
+@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
 def test_match_catalog_empty():
     from astropy.coordinates import SkyCoord
 
@@ -290,7 +290,7 @@ def test_match_catalog_empty():
     assert 'catalog' in str(excinfo.value)
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy > 0.12.0 ")
+@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
 @pytest.mark.filterwarnings(
     r'ignore:invalid value encountered in.*:RuntimeWarning')
 def test_match_catalog_nan():
@@ -325,7 +325,7 @@ def test_match_catalog_nan():
     assert 'Matching coordinates cannot contain' in str(excinfo.value)
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy > 0.12.0 ")
+@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
 def test_match_catalog_nounit():
     from astropy.coordinates import ICRS, CartesianRepresentation
     from astropy.coordinates.matching import match_coordinates_sky
