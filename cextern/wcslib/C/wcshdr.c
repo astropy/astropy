@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 7.2 - an implementation of the FITS WCS standard.
+  WCSLIB 7.3 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2020, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcshdr.c,v 7.2 2020/03/09 07:31:23 mcalabre Exp $
+  $Id: wcshdr.c,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
 *===========================================================================*/
 
 #include <ctype.h>
@@ -1037,25 +1037,46 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
       "Time units", nkeyrec, header, &status);
   }
 
-  /* ISO-8601 fiducial time. */
-  if (wcs->dateref[0]) {
-    sprintf(keyvalue, "'%s'", wcs->dateref);
-    wcshdo_util(ctrl, "DATEREF", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0, keyvalue,
-      "ISO-8601 fiducial time", nkeyrec, header, &status);
-  }
+  /* Fiducial (reference) time. */
+  if (wcs->mjdref[0] == 0.0 && wcs->mjdref[1] == 0.0) {
+    /* MJD of fiducial time (simplified if it takes its default value). */
+    wcsutil_double2str(keyvalue, format, 0.0);
+    wcshdo_util(ctrl, "MJDREF", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0, keyvalue,
+      "[d] MJD of fiducial time", nkeyrec, header, &status);
 
-  /* MJD of fiducial time, integer part. */
-  if (!undefined(wcs->mjdref[0])) {
-    wcsutil_double2str(keyvalue, format, wcs->mjdref[0]);
-    wcshdo_util(ctrl, "MJDREFI", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0, keyvalue,
-      "[d] MJD of fiducial time, integer part", nkeyrec, header, &status);
-  }
+  } else {
+    /* ISO-8601 fiducial time. */
+    if (wcs->dateref[0]) {
+      sprintf(keyvalue, "'%s'", wcs->dateref);
+      wcshdo_util(ctrl, "DATEREF", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
+        keyvalue, "ISO-8601 fiducial time", nkeyrec, header, &status);
+    }
 
-  /* MJD of fiducial time, fractional part. */
-  if (!undefined(wcs->mjdref[1])) {
-    wcsutil_double2str(keyvalue, format, wcs->mjdref[1]);
-    wcshdo_util(ctrl, "MJDREFF", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0, keyvalue,
-      "[d] MJD of fiducial time, fractional part", nkeyrec, header, &status);
+    if (wcs->mjdref[1] == 0.0) {
+      /* MJD of fiducial time (no fractional part). */
+      if (!undefined(wcs->mjdref[0])) {
+        wcsutil_double2str(keyvalue, format, wcs->mjdref[0]);
+        wcshdo_util(ctrl, "MJDREF", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
+          keyvalue, "[d] MJD of fiducial time", nkeyrec, header, &status);
+      }
+
+    } else {
+      /* MJD of fiducial time, integer part. */
+      if (!undefined(wcs->mjdref[0])) {
+        wcsutil_double2str(keyvalue, format, wcs->mjdref[0]);
+        wcshdo_util(ctrl, "MJDREFI", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
+          keyvalue, "[d] MJD of fiducial time, integer part", nkeyrec,
+          header, &status);
+      }
+
+      /* MJD of fiducial time, fractional part. */
+      if (!undefined(wcs->mjdref[1])) {
+        wcsutil_double2str(keyvalue, format, wcs->mjdref[1]);
+        wcshdo_util(ctrl, "MJDREFF", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
+          keyvalue, "[d] MJD of fiducial time, fractional part", nkeyrec,
+          header, &status);
+      }
+    }
   }
 
   /* Clock correction. */
@@ -1114,11 +1135,10 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
   }
 
   /* MJD at start of observation. */
-  if (!undefined(wcs->mjdobs)) {
-    wcsutil_double2str(keyvalue, format, wcs->mjdobs);
-    wcshdo_util(ctrl, "MJD-OBS", "MJDOB", 0, 0x0, 0, 0, 0, ' ',
-      colnum, colax, keyvalue, "[d] MJD at start of observation",
-      nkeyrec, header, &status);
+  if (!undefined(wcs->mjdbeg)) {
+    wcsutil_double2str(keyvalue, format, wcs->mjdbeg);
+    wcshdo_util(ctrl, "MJD-BEG", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0, keyvalue,
+      "[d] MJD at start of observation", nkeyrec, header, &status);
   }
 
   /* Time elapsed at start since fiducial time. */
