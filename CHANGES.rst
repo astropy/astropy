@@ -343,6 +343,8 @@ astropy.wcs
 - The new auxiliary WCS parameters added in WCSLIB 7.1 are now exposed as
   the ``aux`` attribute of ``Wcsprm``. [#10333]
 
+- Updated bundled version of ``WCSLIB`` to v7.3. [#10433]
+
 Bug fixes
 ---------
 
@@ -517,6 +519,7 @@ Other Changes and Additions
 
 - Updated the bundled CFITSIO library to 3.480. See
   ``cextern/cfitsio/docs/changes.txt`` for additional information. [#10256]
+
 
 4.0.1 (2020-03-27)
 ==================
@@ -712,7 +715,7 @@ Other Changes and Additions
 
 - Increase minimum asdf version to 2.5.2. [#9996, #9819]
 
-- Updated wcslib to v7.2. [#10021]
+- Updated bundled version of ``WCSLIB`` to v7.2. [#10021]
 
 
 

@@ -435,7 +435,10 @@ def test_fix2():
         del fix_ref['obsfix']
         fix_ref['datfix'] = "Changed '31/12/99' to '1999-12-31'"
 
-    if LooseVersion(version) >= '7.1':
+    if LooseVersion(version) >= '7.3':
+        fix_ref['datfix'] = "Set DATEREF to '1858-11-17' from MJDREF.\n" + fix_ref['datfix']
+
+    elif LooseVersion(version) >= '7.1':
         fix_ref['datfix'] = "Set DATE-REF to '1858-11-17' from MJD-REF.\n" + fix_ref['datfix']
 
     assert w.fix() == fix_ref
@@ -453,13 +456,17 @@ def test_fix3():
         'datfix': "Invalid DATE-OBS format '31/12/F9'",
         'spcfix': 'No change',
         'unitfix': 'No change',
-        'celfix': 'No change'}
+        'celfix': 'No change'
+    }
+
     version = wcs._wcs.__version__
     if LooseVersion(version) <= "5":
         del fix_ref['obsfix']
         fix_ref['datfix'] = "Invalid parameter value: invalid date '31/12/F9'"
 
-    if LooseVersion(version) >= '7.1':
+    if LooseVersion(version) >= '7.3':
+        fix_ref['datfix'] = "Set DATEREF to '1858-11-17' from MJDREF.\n" + fix_ref['datfix']
+    elif LooseVersion(version) >= '7.1':
         fix_ref['datfix'] = "Set DATE-REF to '1858-11-17' from MJD-REF.\n" + fix_ref['datfix']
 
     assert w.fix() == fix_ref
@@ -1116,7 +1123,9 @@ def test_datebeg():
         'unitfix': 'No change',
         'celfix': 'No change'}
 
-    if LooseVersion(wcs._wcs.__version__) >= '7.1':
+    if LooseVersion(wcs._wcs.__version__) >= '7.3':
+        fix_ref['datfix'] = "Set DATEREF to '1858-11-17' from MJDREF.\n" + fix_ref['datfix']
+    elif LooseVersion(wcs._wcs.__version__) >= '7.1':
         fix_ref['datfix'] = "Set DATE-REF to '1858-11-17' from MJD-REF.\n" + fix_ref['datfix']
 
     assert w.fix() == fix_ref
