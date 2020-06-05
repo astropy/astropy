@@ -8,7 +8,6 @@ from numpy import testing as npt
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 
 from astropy import units as u
-from astropy.utils import minversion
 
 from astropy.coordinates import matching
 
@@ -19,15 +18,10 @@ Note that this requires scipy.
 """
 
 try:
-    import scipy
+    import scipy  # noqa
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
-
-if HAS_SCIPY and minversion(scipy, '0.12.0', inclusive=False):
-    OLDER_SCIPY = False
-else:
-    OLDER_SCIPY = True
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy.")
@@ -145,7 +139,7 @@ def test_matching_method():
         cmatch = ICRS(np.random.rand(20) * 360.*u.degree,
                       (np.random.rand(20) * 180. - 90.)*u.degree)
         ccatalog = ICRS(np.random.rand(100) * 360. * u.degree,
-                       (np.random.rand(100) * 180. - 90.)*u.degree)
+                        (np.random.rand(100) * 180. - 90.)*u.degree)
 
     idx1, d2d1, d3d1 = SkyCoord(cmatch).match_to_catalog_3d(ccatalog)
     idx2, d2d2, d3d2 = match_coordinates_3d(cmatch, ccatalog)
@@ -165,8 +159,7 @@ def test_matching_method():
     assert len(idx1) == len(d2d1) == len(d3d1) == 20
 
 
-@pytest.mark.skipif(not HAS_SCIPY or OLDER_SCIPY,
-                    reason="Requires scipy > 0.12.0 ")
+@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
 def test_search_around():
     from astropy.coordinates import ICRS, SkyCoord
     from astropy.coordinates.matching import search_around_sky, search_around_3d
@@ -248,8 +241,7 @@ def test_search_around():
     assert d3d.unit == u.dimensionless_unscaled
 
 
-@pytest.mark.skipif(not HAS_SCIPY or OLDER_SCIPY,
-                    reason="Requires scipy > 0.12.0 ")
+@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
 def test_search_around_scalar():
     from astropy.coordinates import SkyCoord, Angle
 
@@ -268,8 +260,7 @@ def test_search_around_scalar():
     assert 'search_around_3d' in str(excinfo.value)
 
 
-@pytest.mark.skipif(not HAS_SCIPY or OLDER_SCIPY,
-                    reason="Requires scipy > 0.12.0 ")
+@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
 def test_match_catalog_empty():
     from astropy.coordinates import SkyCoord
 
@@ -299,8 +290,7 @@ def test_match_catalog_empty():
     assert 'catalog' in str(excinfo.value)
 
 
-@pytest.mark.skipif(not HAS_SCIPY or OLDER_SCIPY,
-                    reason="Requires scipy > 0.12.0 ")
+@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
 @pytest.mark.filterwarnings(
     r'ignore:invalid value encountered in.*:RuntimeWarning')
 def test_match_catalog_nan():
@@ -335,8 +325,7 @@ def test_match_catalog_nan():
     assert 'Matching coordinates cannot contain' in str(excinfo.value)
 
 
-@pytest.mark.skipif(not HAS_SCIPY or OLDER_SCIPY,
-                    reason="Requires scipy > 0.12.0 ")
+@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
 def test_match_catalog_nounit():
     from astropy.coordinates import ICRS, CartesianRepresentation
     from astropy.coordinates.matching import match_coordinates_sky

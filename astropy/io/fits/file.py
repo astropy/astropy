@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-
 import gzip
 import errno
 import http.client
@@ -26,6 +25,7 @@ from astropy.utils.data import download_file, _is_url
 from astropy.utils.decorators import classproperty, deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyUserWarning
 
+# NOTE: Python can be built without bz2.
 try:
     import bz2
 except ImportError:
