@@ -171,7 +171,7 @@ matrix:
 
         # Test against Python dev in cron job.
         - language: python
-          python: nightly
+          python: 3.9-dev
           dist: bionic
           name: Python dev with basic dependencies
           stage: Cron tests
