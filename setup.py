@@ -95,8 +95,8 @@ del split_version  # clean up namespace.
 release = 'dev' not in version
 """.lstrip()
 
-# Only import these if the above checks are okay.
-# See https://github.com/astropy/astropy/issues/10429
+# Only import these if the above checks are okay
+# to avoid masking the real problem with import error.
 import os  # noqa
 from setuptools import setup  # noqa
 from extension_helpers import get_extensions  # noqa
