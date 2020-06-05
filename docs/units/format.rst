@@ -11,11 +11,8 @@ Converting Units to String Representations
 ==========================================
 
 You can control the way that |Quantity| and |Unit| objects are rendered as
-strings using the new `Format String Syntax
+strings using the `Python Format String Syntax
 <https://docs.python.org/3/library/string.html#format-string-syntax>`_.
-New-style format strings use the ``"{}".format()`` syntax. Most of the format
-specifiers are similar to the old ``%``-style formatting, so things like
-``0.003f`` still work, but in the form ``"{:0.003f}".format()``.
 
 For quantities, format specifiers, like ``0.003f`` will be applied to
 the |Quantity| value, without affecting the unit. Specifiers like
@@ -42,7 +39,7 @@ To render |Quantity| or |Unit| objects as strings::
     '10.5 km             '
 
 To format both the value and the unit separately, you can access the |Quantity|
-class attributes within new-style format strings::
+class attributes within format strings::
 
     >>> q = 10.5 * u.km
     >>> q
