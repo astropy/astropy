@@ -52,7 +52,7 @@ properties::
     >>> aa_frame = coord.AltAz(obstime=times[:, np.newaxis], location=lapalma)
 
     >>> # calculate alt-az of each object at each time.
-    >>> aa_coos = coos.transform_to(aa_frame)  # doctest: +REMOTE_DATA
+    >>> aa_coos = coos.transform_to(aa_frame)  # doctest: +REMOTE_DATA +IGNORE_WARNINGS
 
 ..
   EXAMPLE END
