@@ -701,9 +701,12 @@ def test_replace_submodel():
     S1 = Shift(1)
     S2 = Shift(2)
     S3 = Shift(3, name='S3')
-    S3.inverse = Shift(-2.9)
 
-    m = S1 & (S2 | S3)
+    S23 = S2 | S3
+    S23.inverse = Shift(-4.9)
+    m = S1 & S23
+
+    # This should delete the S23._user_inverse
     m2 = m.replace_submodel('S3', Shift(4))
     assert m2(1, 2) == (2, 8)
     assert m2.inverse(2, 8) == (1, 2)
