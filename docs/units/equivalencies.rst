@@ -141,10 +141,10 @@ frequency, energy, and wave number.
 
 .. EXAMPLE START: Using Spectral Units for Conversions
 
-As mentioned with parallax units, we pass a list of equivalencies (in this
-case, the result of :func:`~astropy.units.equivalencies.spectral`) as the third
-argument to the :meth:`~astropy.units.core.UnitBase.to` method and wavelength,
-and then frequency and energy can be converted.
+As mentioned with parallax units, we pass a list of equivalencies (in this case,
+the result of :func:`~astropy.units.equivalencies.spectral`) as the second
+argument to the :meth:`~astropy.units.quantity.Quantity.to` method and
+wavelength, and then frequency and energy can be converted.
 
   >>> ([1000, 2000] * u.nm).to(u.Hz, equivalencies=u.spectral())  # doctest: +FLOAT_CMP
   <Quantity [2.99792458e+14, 1.49896229e+14] Hz>
@@ -253,7 +253,7 @@ for details.
           equivalent temperature, which results in a linear relation between
           flux and temperature. This is the convention that is most often used
           in relation to observations, but if you are interested in computing
-          the *exact* temperature of a Planck function that would produce a
+          the *exact* temperature of a blackbody function that would produce a
           given flux, you should not use this equivalency.
 
 Examples
@@ -388,8 +388,8 @@ Molar Mass AMU Equivalency
 --------------------------
 
 This equivalency allows conversion between the atomic mass unit and the
-equivalent g/mol.  For reference as to why this was added, refer to `astropy
-GitHub issue 6040 <https://github.com/astropy/astropy/issues/6040>`_.
+equivalent g/mol. For context, refer to the NIST definition of `SI Base Units
+<https://www.nist.gov/si-redefinition/definitions-si-base-units>`_.
 
 Example
 ^^^^^^^
