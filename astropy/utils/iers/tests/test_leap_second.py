@@ -153,6 +153,15 @@ class TestAutoOpenExplicitLists:
 
 @pytest.mark.remote_data
 class TestRemoteURLs:
+    def setup_class(cls):
+        # Need auto_download so that IERS_B won't be loaded and cause tests to
+        # fail.
+        iers.conf.auto_download = True
+
+    def teardown_class(cls):
+        # This setting is to be consistent with astropy/conftest.py
+        iers.conf.auto_download = False
+
     # In these tests, the results may be cached.
     # This is fine - no need to download again.
     def test_iers_url(self):
@@ -270,11 +279,19 @@ class TestDefaultAutoOpen:
     def test_auto_open_urls_always_good_enough(self):
         # Avoid using the erfa, built-in and system files, as they might
         # be good enough already.
-        self.remove_auto_open_files('erfa', iers.IERS_LEAP_SECOND_FILE,
-                                    'system_leap_second_file')
-        ls = iers.LeapSeconds.open()
-        assert ls.expires > self.good_enough
-        assert ls.meta['data_url'].startswith('http')
+        try:
+            # Need auto_download so that IERS_B won't be loaded and
+            # cause tests to fail.
+            iers.conf.auto_download = True
+
+            self.remove_auto_open_files('erfa', iers.IERS_LEAP_SECOND_FILE,
+                                        'system_leap_second_file')
+            ls = iers.LeapSeconds.open()
+            assert ls.expires > self.good_enough
+            assert ls.meta['data_url'].startswith('http')
+        finally:
+            # This setting is to be consistent with astropy/conftest.py
+            iers.conf.auto_download = False
 
 
 class ERFALeapSecondsSafe:
