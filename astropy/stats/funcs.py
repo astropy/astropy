@@ -1072,12 +1072,12 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
 
     Parameters
     ----------
-    N : int
+    N : int or np.int32/np.int64
         Total observed count number
-    B : float
+    B : float or np.float32/np.float64
         Background count rate (assumed to be known with negligible error
         from a large background area).
-    CL : float
+    CL : float or np.float32/np.float64
        Confidence level (number between 0 and 1)
 
     Returns
@@ -1157,12 +1157,12 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
 
     Parameters
     ----------
-    N : int
+    N : int or np.int32/np.int64
         Total observed count number
-    B : float
+    B : float or np.float32/np.float64
         Background count rate (assumed to be known with negligible error
         from a large background area).
-    CL : float
+    CL : float or np.float32/np.float64
        Confidence level (number between 0 and 1)
 
     Returns
@@ -1178,9 +1178,11 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
     '''
     from mpmath import mpf, factorial, findroot, fsum, power, exp, quad
 
-    N = mpf(N)
-    B = mpf(B)
-    CL = mpf(CL)
+    # We convert these values to float. Because for some reason,
+    # mpmath.mpf cannot convert from numpy.int64
+    N = mpf(float(N))
+    B = mpf(float(B))
+    CL = mpf(float(CL))
 
     def eqn8(N, B):
         sumterms = [power(B, n) / factorial(n) for n in range(int(N) + 1)]
@@ -1234,12 +1236,12 @@ def _kraft_burrows_nousek(N, B, CL):
 
     Parameters
     ----------
-    N : int
+    N : int or np.int32/np.int64
         Total observed count number
-    B : float
+    B : float or np.float32/np.float64
         Background count rate (assumed to be known with negligible error
         from a large background area).
-    CL : float
+    CL : float or np.float32/np.float64
        Confidence level (number between 0 and 1)
 
     Returns
