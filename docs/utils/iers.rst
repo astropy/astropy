@@ -183,7 +183,7 @@ To reset to the default, pass in `None` (which is equivalent to passing in
 ``iers.IERS_Auto.open()``)::
 
   >>> iers.earth_orientation_table.set(None)  # doctest: +REMOTE_DATA
-  <ScienceState earth_orientation_table: <IERS_Auto length=...>...>
+  <ScienceState earth_orientation_table: <IERS...>...>
 
 To see the internal IERS data that gets used in astropy you can do the
 following::
