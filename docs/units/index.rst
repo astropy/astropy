@@ -158,7 +158,7 @@ value::
     >>> q = 15.1 * u.meter / (32.0 * u.second)
     >>> q  # doctest: +FLOAT_CMP
     <Quantity 0.471875 m / s>
-    >>> "{0:0.03f}".format(q)
+    >>> f"{q:0.03f}"
     '0.472 m / s'
 
 The value and unit can also be formatted separately. Format specifiers
@@ -167,7 +167,7 @@ for units can be used to choose the unit formatter::
     >>> q = 15.1 * u.meter / (32.0 * u.second)
     >>> q  # doctest: +FLOAT_CMP
     <Quantity 0.471875 m / s>
-    >>> "{0.value:0.03f} {0.unit:FITS}".format(q)
+    >>> f"{q.value:0.03f} {q.unit:FITS}"
     '0.472 m s-1'
 
 .. EXAMPLE END
