@@ -594,6 +594,20 @@ def test_scipy_poisson_limit():
     '''
     assert_allclose(funcs._scipy_kraft_burrows_nousek(5., 2.5, .99),
                     (0, 10.67), rtol=1e-3)
+    assert_allclose(funcs._scipy_kraft_burrows_nousek(5, 2.5, .99),
+                    (0, 10.67), rtol=1e-3)
+    assert_allclose(funcs._scipy_kraft_burrows_nousek(np.int32(5.), 2.5, .99),
+                    (0, 10.67), rtol=1e-3)
+    assert_allclose(funcs._scipy_kraft_burrows_nousek(np.int64(5.), 2.5, .99),
+                    (0, 10.67), rtol=1e-3)
+    assert_allclose(funcs._scipy_kraft_burrows_nousek(5., np.float32(2.5), .99),
+                    (0, 10.67), rtol=1e-3)
+    assert_allclose(funcs._scipy_kraft_burrows_nousek(5., np.float64(2.5), .99),
+                    (0, 10.67), rtol=1e-3)
+    assert_allclose(funcs._scipy_kraft_burrows_nousek(5., 2.5, np.float32(.99)),
+                    (0, 10.67), rtol=1e-3)
+    assert_allclose(funcs._scipy_kraft_burrows_nousek(5., 2.5, np.float64(.99)),
+                    (0, 10.67), rtol=1e-3)
     conf = funcs.poisson_conf_interval([5., 6.], 'kraft-burrows-nousek',
                                        background=[2.5, 2.],
                                        confidence_level=[.99, .9])
@@ -607,6 +621,24 @@ def test_mpmath_poisson_limit():
                     (0.81, 8.99), rtol=5e-3)
     assert_allclose(funcs._mpmath_kraft_burrows_nousek(5., 2.5, .99),
                     (0, 10.67), rtol=1e-3)
+    assert_allclose(funcs._mpmath_kraft_burrows_nousek(np.int32(6), 2., .9),
+                    (0.81, 8.99), rtol=5e-3)
+    assert_allclose(funcs._mpmath_kraft_burrows_nousek(np.int64(6), 2., .9),
+                    (0.81, 8.99), rtol=5e-3)
+    assert_allclose(funcs._mpmath_kraft_burrows_nousek(6., np.float32(2.), .9),
+                    (0.81, 8.99), rtol=5e-3)
+    assert_allclose(funcs._mpmath_kraft_burrows_nousek(6., np.float64(2.), .9),
+                    (0.81, 8.99), rtol=5e-3)
+    assert_allclose(funcs._mpmath_kraft_burrows_nousek(6., 2., np.float32(.9)),
+                    (0.81, 8.99), rtol=5e-3)
+    assert_allclose(funcs._mpmath_kraft_burrows_nousek(6., 2., np.float64(.9)),
+                    (0.81, 8.99), rtol=5e-3)
+    assert_allclose(funcs._mpmath_kraft_burrows_nousek(5., 2.5, .99),
+                    (0, 10.67), rtol=1e-3)
+
+    assert_allclose(funcs.poisson_conf_interval(
+        n=160, background=154.543,
+        confidence_level=.95, interval='kraft-burrows-nousek')[:, 0], (0, 30.30454909))
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
