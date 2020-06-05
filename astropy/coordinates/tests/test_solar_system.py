@@ -52,8 +52,15 @@ def test_positions_skyfield(tmpdir):
     location = None
 
     # skyfield ephemeris
-    planets = load('de421.bsp')
-    ts = load.timescale()
+    try:
+        planets = load('de421.bsp')
+        ts = load.timescale()
+    except OSError as e:
+        if os.environ.get('CI', False) and 'timed out' in str(e):
+            pytest.xfail('Timed out in CI')
+        else:
+            raise
+
     mercury, jupiter, moon = planets['mercury'], planets['jupiter barycenter'], planets['moon']
     earth = planets['earth']
 
