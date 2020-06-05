@@ -1,81 +1,87 @@
 .. _astropy-units-format:
 
-String representations of units
+String Representations of Units
 *******************************
 
-.. |quantity| replace:: :class:`~astropy.units.Quantity`
+.. |Quantity| replace:: :class:`~astropy.units.Quantity`
 
-.. |unit| replace:: :class:`~astropy.units.UnitBase`
+.. |Unit| replace:: :class:`~astropy.units.UnitBase`
 
-Converting units to string representations
+Converting Units to String Representations
 ==========================================
 
-You can control the way that |quantity| and |unit| objects are rendered as
-strings using the new `Format String Syntax
-<https://docs.python.org/3/library/string.html#format-string-syntax>`__.
-New-style format strings use the ``"{}".format()`` syntax.  Most of
-the format specifiers are similar to the old ``%``-style formatting,
-so things like ``0.003f`` still work, just in the form
-``"{:0.003f}".format()``.
+You can control the way that |Quantity| and |Unit| objects are rendered as
+strings using the `Python Format String Syntax
+<https://docs.python.org/3/library/string.html#format-string-syntax>`_
+(demonstrated below using `f-strings
+<https://www.python.org/dev/peps/pep-0498/>`_).
 
 For quantities, format specifiers, like ``0.003f`` will be applied to
-the |quantity| value, without affecting the unit. Specifiers like
+the |Quantity| value, without affecting the unit. Specifiers like
 ``20s``, which would only apply to a string, will be applied to the
-whole string representation of the |quantity|. This means you can do::
+whole string representation of the |Quantity|.
+
+Examples
+--------
+
+.. EXAMPLE START: Converting Units to String Representations
+
+To render |Quantity| or |Unit| objects as strings::
 
     >>> from astropy import units as u
     >>> import numpy as np
     >>> q = 10.5 * u.km
     >>> q
     <Quantity  10.5 km>
-    >>> "{0}".format(q)
+    >>> f"{q}"
     '10.5 km'
-    >>> "{0:+0.03f}".format(q)
+    >>> f"{q:+0.03f}"
     '+10.500 km'
-    >>> "{0:20s}".format(q)
+    >>> f"{q:20s}"
     '10.5 km             '
 
-To format both the value and the unit separately, you can access the |quantity|
-class attributes within new-style format strings::
+To format both the value and the unit separately, you can access the |Quantity|
+class attributes within format strings::
 
     >>> q = 10.5 * u.km
     >>> q
     <Quantity  10.5 km>
-    >>> "{0.value:0.003f} in {0.unit:s}".format(q)
+    >>> f"{q.value:0.003f} in {q.unit:s}"
     '10.500 in km'
 
-Because Numpy arrays don't accept most format specifiers, using specifiers like
-``0.003f`` will not work when applied to a Numpy array or non-scalar |quantity|.
-Use :func:`numpy.array_str` instead. For example::
+Because ``numpy`` arrays do not accept most format specifiers, using specifiers
+like ``0.003f`` will not work when applied to a ``numpy`` array or non-scalar
+|Quantity|. Use :func:`numpy.array_str` instead. For instance::
 
     >>> q = np.linspace(0,1,10) * u.m
     >>> "{0} {1}".format(np.array_str(q.value, precision=1), q.unit)  # doctest: +FLOAT_CMP
     '[0.  0.1 0.2 0.3 0.4 0.6 0.7 0.8 0.9 1. ] m'
 
-Examine the numpy documentation for more examples with :func:`numpy.array_str`.
+Examine the NumPy documentation for more examples with :func:`numpy.array_str`.
 
-Units, or the unit part of a quantity, can also be formatted in a
-number of different styles.  By default, the string format used is
-referred to as the "generic" format, which is based on syntax of the
-FITS standard's format for representing units, but supports all of the
-units defined within the `astropy.units` framework, including
-user-defined units.  The format specifier (and
-`~astropy.units.core.UnitBase.to_string`) functions also take an
-optional parameter to select a different format, including
-``"latex"``, ``"unicode"``, ``"cds"``, and others, defined below.
+.. EXAMPLE END
 
-    >>> "{0.value:0.003f} in {0.unit:latex}".format(q)  # doctest: +SKIP
+Units, or the unit part of a quantity, can also be formatted in a number of
+different styles. By default, the string format used is referred to as the
+"generic" format, which is based on syntax of the FITS standard format for
+representing units, but supports all of the units defined within the
+`astropy.units` framework, including user-defined units. The format specifier
+(and `~astropy.units.core.UnitBase.to_string`) functions also take an optional
+parameter to select a different format, including ``"latex"``, ``"unicode"``,
+``"cds"``, and others, defined below.
+
+    >>> f"{q.value:0.003f} in {q.unit:latex}"  # doctest: +SKIP
     '10.000 in $\\mathrm{km}$'
     >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
-    >>> "{0}".format(fluxunit)
+    >>> f"{fluxunit}"
     u'erg / (cm2 s)'
-    >>> print("{0:console}".format(fluxunit))
+    >>> print(f"{fluxunit:console}")
      erg
     ------
     s cm^2
-    >>> "{0:latex}".format(fluxunit)
+    >>> f"{fluxunit:latex}"
     u'$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'
-    >>> "{0:>20s}".format(fluxunit)
+    >>> f"{fluxunit:>20s}"
     u'       erg / (cm2 s)'
 
 The `~astropy.units.core.UnitBase.to_string` method is an alternative way to
@@ -86,8 +92,10 @@ format units as strings, and is the underlying implementation of the
     >>> fluxunit.to_string('latex')
     u'$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'
 
-Creating units from strings
+Creating Units from Strings
 ===========================
+
+.. EXAMPLE START: Creating Units from Strings
 
 Units can also be created from strings in a number of different
 formats using the `~astropy.units.Unit` class::
@@ -104,14 +112,16 @@ formats using the `~astropy.units.Unit` class::
 
    Creating units from strings requires the use of a specialized
    parser for the unit language, which results in a performance
-   penalty if units are created using strings.  Thus, it is much
+   penalty if units are created using strings. Thus, it is much
    faster to use unit objects directly (e.g., ``unit = u.degree /
    u.minute``) instead of via string parsing (``unit =
-   u.Unit('deg/min')``).  This parser is very useful, however, if your
+   u.Unit('deg/min')``). This parser is very useful, however, if your
    unit definitions are coming from a file format such as FITS or
    VOTable.
 
-Built-in formats
+.. EXAMPLE END
+
+Built-In Formats
 ================
 
 `astropy.units` includes support for parsing and writing the following
@@ -124,12 +134,12 @@ formats:
 
   - ``"vounit"``: The `Units in the VO 1.0
     <http://www.ivoa.net/documents/VOUnits/>`__ standard for
-    representing units in the VO.  Again, based on the FITS syntax,
+    representing units in the VO. Again, based on the FITS syntax,
     but the collection of supported units is different.
 
   - ``"cds"``: `Standards for astronomical catalogues from Centre de
     Données astronomiques de Strasbourg
-    <http://vizier.u-strasbg.fr/vizier/doc/catstd-3.2.htx>`__: This is the
+    <http://vizier.u-strasbg.fr/vizier/doc/catstd-3.2.htx>`_: This is the
     standard used by `Vizier tables <http://vizier.u-strasbg.fr/>`__,
     as well as what is used by VOTable versions 1.2 and earlier.
 
@@ -142,8 +152,8 @@ following formats:
 
   - ``"latex"``: Writes units out using LaTeX math syntax using the
     `IAU Style Manual
-    <https://www.iau.org/static/publications/stylemanual1989.pdf>`__
-    recommendations for unit presentation.  This format is
+    <https://www.iau.org/static/publications/stylemanual1989.pdf>`_
+    recommendations for unit presentation. This format is
     automatically used when printing a unit in the IPython notebook::
 
       >>> fluxunit  # doctest: +SKIP
@@ -154,10 +164,10 @@ following formats:
 
   - ``"latex_inline"``: Writes units out using LaTeX math syntax using the
     `IAU Style Manual
-    <https://www.iau.org/static/publications/stylemanual1989.pdf>`__
+    <https://www.iau.org/static/publications/stylemanual1989.pdf>`_
     recommendations for unit presentation, using negative powers instead of
     fractions, as required by some journals (e.g., `Apj and AJ
-    <https://journals.aas.org/manuscript-preparation/>`_.)
+    <https://journals.aas.org/manuscript-preparation/>`_).
     Best suited for unit representation inline with text::
 
       >>> fluxunit.to_string('latex_inline')  # doctest: +SKIP
@@ -166,7 +176,7 @@ following formats:
 
        \mathrm{erg\,s^{-1}\,cm^{-2}}
 
-  - ``"console"``: Writes a multi-line representation of the unit
+  - ``"console"``: Writes a multiline representation of the unit
     useful for display in a text console::
 
       >>> print(fluxunit.to_string('console'))
@@ -185,7 +195,7 @@ following formats:
 Unrecognized Units
 ==================
 
-Since many files in found in the wild have unit strings that do not
+Since many files found in the wild have unit strings that do not
 correspond to any given standard, `astropy.units` also has a
 consistent way to store and pass around unit strings that did not
 parse.
@@ -215,7 +225,12 @@ this behavior:
   - ``'silent'``: return an `~astropy.units.UnrecognizedUnit`
     instance.
 
-So, for example, one can do::
+Examples
+--------
+
+.. EXAMPLE START: Handling Unrecognized Units
+
+To pass an unrecognized unit string::
 
    >>> x = u.Unit("Angstroem", format="fits", parse_strict="warn")  # doctest: +SKIP
    WARNING: UnitsWarning: 'Angstroem' did not parse as unit format
@@ -239,3 +254,5 @@ unit or composing with other units, will fail.
      ...
    ValueError: The unit 'Angstroem' is unrecognized, so all arithmetic
    operations with it are invalid.
+
+.. EXAMPLE END

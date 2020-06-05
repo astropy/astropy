@@ -11,8 +11,8 @@ Performance Tips
 If you are attaching units to arrays to make |Quantity| objects, multiplying
 arrays by units will result in the array being copied in memory, which will slow
 things down. Furthermore, if you are multiplying an array by a composite unit,
-the array will be copied for each individual multiplication - thus, in the following
-case, the array is copied four successive times::
+the array will be copied for each individual multiplication. Thus, in the
+following case, the array is copied four successive times::
 
     In [1]: array = np.random.random(10000000)
 
@@ -20,9 +20,8 @@ case, the array is copied four successive times::
     92.5 ms ± 2.52 ms per loop (mean ± std. dev. of 7 runs, 10 loops each)
 
 There are several ways to speed this up. First, when you are using composite
-units, you should make sure that the entire unit gets evaluated first, then
-attached to the array. You can do this by using parentheses as for any other
-operation::
+units, ensure that the entire unit gets evaluated first, then attached to the
+array. You can do this by using parentheses as for any other operation::
 
     In [3]: %timeit array * (u.m / u.s / u.kg / u.sr)
     21.5 ms ± 886 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
