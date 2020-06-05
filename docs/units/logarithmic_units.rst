@@ -1,20 +1,27 @@
-.. |quantity| replace:: :class:`~astropy.units.Quantity`
+.. |Quantity| replace:: :class:`~astropy.units.Quantity`
 
 .. _logarithmic_units:
 
-Magnitudes and other Logarithmic Units
+Magnitudes and Other Logarithmic Units
 **************************************
 
-Magnitudes and logarithmic units such as ``dex`` and ``dB`` are used the
-logarithm of values relative to some reference value.  Quantities with such
+Magnitudes and logarithmic units such as ``dex`` and ``dB`` are used as the
+logarithm of values relative to some reference value. Quantities with such
 units are supported in ``astropy`` via the :class:`~astropy.units.Magnitude`,
 :class:`~astropy.units.Dex`, and :class:`~astropy.units.Decibel` classes.
 
 Creating Logarithmic Quantities
 ===============================
 
-One can create logarithmic quantities either directly or by multiplication with
-a logarithmic unit.  For instance::
+You can create logarithmic quantities either directly or by multiplication with
+a logarithmic unit.
+
+Example
+-------
+
+.. EXAMPLE START: Creating Logarithmic Quantities
+
+To create a logarithmic quantity::
 
   >>> import astropy.units as u, astropy.constants as c, numpy as np
   >>> u.Magnitude(-10.)  # doctest: +FLOAT_CMP
@@ -36,12 +43,14 @@ Above, we make use of the fact that the units ``mag``, ``dex``, and
 (:class:`~astropy.units.function.logarithmic.MagUnit`,
 :class:`~astropy.units.function.logarithmic.DexUnit`, and
 :class:`~astropy.units.function.logarithmic.DecibelUnit`,
-respectively).  The same happens as required when strings are parsed
+respectively). The same happens as required when strings are parsed
 by :class:`~astropy.units.Unit`.
 
-As for normal |quantity| objects, one can access the value with the
-`~astropy.units.Quantity.value` attribute. In addition, one can convert easily
-to a |quantity| with the physical unit using the
+.. EXAMPLE END
+
+As for normal |Quantity| objects, you can access the value with the
+`~astropy.units.Quantity.value` attribute. In addition, you can convert to a
+|Quantity| with the physical unit using the
 `~astropy.units.function.FunctionQuantity.physical` attribute::
 
     >>> logg = 5. * u.dex(u.cm / u.s**2)
@@ -50,11 +59,18 @@ to a |quantity| with the physical unit using the
     >>> logg.physical  # doctest: +FLOAT_CMP
     <Quantity 100000. cm / s2>
 
-Converting to different units
+Converting to Different Units
 =============================
 
-Like |quantity| objects, logarithmic quantities can be converted to different
-units, be it another logarithmic unit or a physical one::
+Like |Quantity| objects, logarithmic quantities can be converted to different
+units, be it another logarithmic unit or a physical one.
+
+Example
+-------
+
+.. EXAMPLE START: Converting Logarithmic Quantities to Different Units
+
+To convert a logarithmic quantity to a different unit::
 
     >>> logg = 5. * u.dex(u.cm / u.s**2)
     >>> logg.to(u.m / u.s**2)  # doctest: +FLOAT_CMP
@@ -64,18 +80,27 @@ units, be it another logarithmic unit or a physical one::
 
 For convenience, the `~astropy.units.function.FunctionQuantity.si` and
 `~astropy.units.function.FunctionQuantity.cgs` attributes can be used
-to convert the |quantity| to base S.I. or c.g.s units::
+to convert the |Quantity| to base SI or CGS units::
 
     >>> logg.si  # doctest: +FLOAT_CMP
     <Dex 3. dex(m / s2)>
+
+.. EXAMPLE END
 
 Arithmetic and Photometric Applications
 =======================================
 
 Addition and subtraction work as expected for logarithmic quantities,
-multiplying and dividing the physical units as appropriate.  It may be best
-seen through an example of a very simple photometric reduction.  First,
-calculate instrumental magnitudes assuming some count rates for three objects::
+multiplying and dividing the physical units as appropriate. It may be best
+seen through an example of a photometric reduction.
+
+Example
+-------
+
+.. EXAMPLE START: Photometric Reduction with Logarithmic Quantities
+
+First, calculate instrumental magnitudes assuming some count rates for three
+objects::
 
     >>> tint = 1000.*u.s
     >>> cr_b = ([3000., 100., 15.] * u.ct) / tint
@@ -85,12 +110,12 @@ calculate instrumental magnitudes assuming some count rates for three objects::
     (<Magnitude [-1.19280314,  2.5       ,  4.55977185] mag(ct / s)>,
      <Magnitude [-1.50514998,  2.61439373,  4.00514998] mag(ct / s)>)
 
-Then, the instrumental B-V color is simply::
+Then, the instrumental B-V color is::
 
     >>> b_i - v_i  # doctest: +FLOAT_CMP
     <Magnitude [ 0.31234684, -0.11439373,  0.55462187] mag>
 
-Note that the physical unit has become dimensionless.  The following step might
+Note that the physical unit has become dimensionless. The following step might
 be used to correct for atmospheric extinction::
 
     >>> atm_ext_b, atm_ext_v = 0.12 * u.mag, 0.08 * u.mag
@@ -101,8 +126,8 @@ be used to correct for atmospheric extinction::
     (<Magnitude [-1.36250876,  2.33029437,  4.39006622] mag(ct / s)>,
      <Magnitude [-1.67485561,  2.4446881 ,  3.83544435] mag(ct / s)>)
 
-Since the extinction is dimensionless, the units do not change.  Now suppose
-the first star has a known ST magnitude, so we can calculate zero points::
+Since the extinction is dimensionless, the units do not change. Now suppose the
+first star has a known ST magnitude, so we can calculate zero points::
 
     >>> b_ref, v_ref = 17.2 * u.STmag, 17.0 * u.STmag
     >>> b_ref, v_ref  # doctest: +FLOAT_CMP
@@ -112,17 +137,19 @@ the first star has a known ST magnitude, so we can calculate zero points::
     (<Magnitude 18.56250876 mag(s ST / ct)>,
      <Magnitude 18.67485561 mag(s ST / ct)>)
 
-Here, ``ST`` is a short-hand for the ST zero-point flux::
+Here, ``ST`` is shorthand for the ST zero-point flux::
 
     >>> (0. * u.STmag).to(u.erg/u.s/u.cm**2/u.AA)  # doctest: +FLOAT_CMP
     <Quantity 3.63078055e-09 erg / (Angstrom cm2 s)>
     >>> (-21.1 * u.STmag).to(u.erg/u.s/u.cm**2/u.AA)  # doctest: +FLOAT_CMP
     <Quantity 1. erg / (Angstrom cm2 s)>
 
-.. note:: at present, only magnitudes defined in terms of luminosity or flux
-	  are implemented, since those that do not depend on the filter the
-          measurement was made with.  They include absolute and apparent
-          bolometric [M15]_, ST [H95]_ and AB [OG83]_ magnitudes.
+.. Note::
+
+    At present, only magnitudes defined in terms of luminosity or flux are
+    implemented, since those do not depend on the filter with which the
+    measurement was made. They include absolute and apparent bolometric [M15]_,
+    ST [H95]_, and AB [OG83]_ magnitudes.
 
 Now applying the calibration, we find (note the proper change in units)::
 
@@ -131,25 +158,25 @@ Now applying the calibration, we find (note the proper change in units)::
     (<Magnitude [17.2       , 20.89280314, 22.95257499] mag(ST)>,
      <Magnitude [17.        , 21.1195437 , 22.51029996] mag(ST)>)
 
-We could convert these magnitudes to another system, e.g., ABMag, using
+We could convert these magnitudes to another system, for example, ABMag, using
 appropriate equivalency::
 
     >>> V.to(u.ABmag, u.spectral_density(5500.*u.AA))  # doctest: +FLOAT_CMP
     <Magnitude [16.99023831, 21.10978201, 22.50053827] mag(AB)>
 
-This is particularly useful for converting magnitude into flux density.
-``V`` is currently in ST magnitudes, which is based on flux densities per
-unit wavelength (:math:`f_\lambda`). Therefore, we can directly convert ``V`` into 
-flux density per unit wavelength using the :meth:`~astropy.units.quantity.Quantity.to` 
-method::
+This is particularly useful for converting magnitude into flux density. ``V``
+is currently in ST magnitudes, which is based on flux densities per unit
+wavelength (:math:`f_\lambda`). Therefore, we can directly convert ``V`` into
+flux density per unit wavelength using the
+:meth:`~astropy.units.quantity.Quantity.to` method::
 
     >>> flam = V.to(u.erg/u.s/u.cm**2/u.AA)
     >>> flam  # doctest: +FLOAT_CMP
     <Quantity [5.75439937e-16, 1.29473986e-17, 3.59649961e-18] erg / (Angstrom cm2 s)>
 
-To convert ``V`` to flux density per unit frequency (:math:`f_\nu`), we again need 
-the appropriate :ref:`equivalency <unit_equivalencies>`, which in this case is the 
-central wavelength of the magnitude band, 5500 Angstroms::
+To convert ``V`` to flux density per unit frequency (:math:`f_\nu`), we again
+need the appropriate :ref:`equivalency <unit_equivalencies>`, which in this case
+is the central wavelength of the magnitude band, 5500 Angstroms::
 
     >>> lam = 5500 * u.AA
     >>> fnu = V.to(u.erg/u.s/u.cm**2/u.Hz, u.spectral_density(lam))
@@ -165,12 +192,13 @@ We could have used the central frequency instead::
 
 .. Note::
 
-    When converting magnitudes to flux densities, the order of operations matters;
-    the value of the unit needs to be established *before* the conversion. 
-    For example, ``21 * u.ABmag.to(u.erg/u.s/u.cm**2/u.Hz)`` will give you 21 
-    times :math:`f_\nu` for an AB mag of 1, whereas ``(21 * u.ABmag).to(u.erg/u.s/u.cm**2/u.Hz)`` 
-    will give you :math:`f_\nu` for an AB mag of 21.
- 
+    When converting magnitudes to flux densities, the order of operations
+    matters; the value of the unit needs to be established *before* the
+    conversion. For example, ``21 * u.ABmag.to(u.erg/u.s/u.cm**2/u.Hz)`` will
+    give you 21 times :math:`f_\nu` for an AB mag of 1, whereas ``(21 *
+    u.ABmag).to(u.erg/u.s/u.cm**2/u.Hz)`` will give you :math:`f_\nu` for an AB
+    mag of 21.
+
 Suppose we also knew the intrinsic color of the first star, then we can
 calculate the reddening::
 
@@ -182,14 +210,16 @@ calculate the reddening::
     >>> EB_V, A_V, A_B  # doctest: +FLOAT_CMP
     (<Magnitude 0.4 mag>, <Quantity 1.24 mag>, <Quantity 1.64 mag>)
 
-Here, one sees that the extinctions have been converted to quantities. This
+Here, you see that the extinctions have been converted to quantities. This
 happens generally for division and multiplication, since these processes
 work only for dimensionless magnitudes (otherwise, the physical unit would have
-to be raised to some power), and |quantity| objects, unlike logarithmic
+to be raised to some power), and |Quantity| objects, unlike logarithmic
 quantities, allow units like ``mag / d``.
 
-Note that one can take the automatic unit conversion quite far (perhaps too
-far, but it is fun).  For instance, suppose we also knew the bolometric
+.. EXAMPLE END
+
+Note that you can take the automatic unit conversion quite far (perhaps too
+far, but it is fun). For instance, suppose we also knew the bolometric
 correction and absolute bolometric magnitude, then we can calculate the
 distance modulus::
 
@@ -210,11 +240,11 @@ the 5-5log rule::
     >>> DM.to(u.pc, equivalencies=radius_and_inverse_area)  # doctest: +FLOAT_CMP
     <Quantity 1000. pc>
 
-Numpy functions
+NumPy Functions
 ===============
 
-For logarithmic quantities, most numpy functions and many array methods do not
-make sense, hence they are disabled.  But one can use those one would expect to
+For logarithmic quantities, most NumPy functions and many array methods do not
+make sense, hence they are disabled. But you can use those you would expect to
 work::
 
     >>> np.max(v_i)  # doctest: +FLOAT_CMP
@@ -222,20 +252,22 @@ work::
     >>> np.std(v_i)  # doctest: +FLOAT_CMP
     <Magnitude 2.33971149 mag>
 
-.. note:: This is implemented by having a list of supported ufuncs in
-	  ``units/function/core.py`` and by explicitly disabling some
-	  array methods in :class:`~astropy.units.function.FunctionQuantity`.
-          If you believe a function or method is incorrectly treated,
-	  please `let us know <http://www.astropy.org/contribute.html>`_.
+.. note::
 
-Dimensionless logarithmic quantities
+    This is implemented by having a list of supported ufuncs in
+    ``units/function/core.py`` and by explicitly disabling some array methods in
+    :class:`~astropy.units.function.FunctionQuantity`.  If you believe a
+    function or method is incorrectly treated, please `let us know
+    <http://www.astropy.org/contribute.html>`_.
+
+Dimensionless Logarithmic Quantities
 ====================================
 
-Dimensionless quantities are treated somewhat specially, in that, if needed,
-logarithmic quantities will be converted to normal |quantity| objects with the
+Dimensionless quantities are treated somewhat specially in that, if needed,
+logarithmic quantities will be converted to normal |Quantity| objects with the
 appropriate unit of ``mag``, ``dB``, or ``dex``.  With this, it is possible to
-use composite units like ``mag/d`` or ``dB/m``, which cannot easily be
-supported as logarithmic units.  For instance::
+use composite units like ``mag/d`` or ``dB/m``, which cannot conveniently be
+supported as logarithmic units. For instance::
 
     >>> dBm = u.dB(u.mW)
     >>> signal_in, signal_out = 100. * dBm, 50 * dBm
