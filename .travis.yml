@@ -78,10 +78,10 @@ matrix:
         # Try MacOS X.
         - os: osx
           name: Python 3.7 with all optional dependencies for OSX
-          stage: Cron tests
+          stage: Comprehensive tests
           env: PYTHON_VERSION=3.7
                TOXENV="py37-test-alldeps"
-               TOXPOSARGS="--remote-data=astropy"
+               TOXPOSARGS="--remote-data=any"
                CONDA_DEPENDENCIES="clang"
                CCOMPILER=clang
 
@@ -126,7 +126,7 @@ matrix:
           name: Python 3.7 with all optional dependencies
           env: PYTHON_VERSION=3.7
                TOXPOSARGS="--remote-data=any"
-               TOXENV='py37-test-alldeps'
+               TOXENV='py37-test-alldeps-win'
 
         # Do a PEP8/pyflakes test with flake8
         - language: python
@@ -142,7 +142,7 @@ matrix:
         - language: python
           python: 3.7
           name: Python 3.7 with remote data and dev version of key dependencies
-          stage: Cron tests
+          stage: Comprehensive tests
           env: TOXENV="py37-test-devdeps"
                TOXPOSARGS="--remote-data=any"
 
