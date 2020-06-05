@@ -459,11 +459,13 @@ def test_transform():
 
     f = FK5(ra=1*u.deg, dec=2*u.deg, equinox=Time('J2001'))
     f4 = f.transform_to(FK4)
-    f4_2 = f.transform_to(FK4(equinox=f.equinox))
+    f4_1 = f.transform_to(FK4())
+    f4_2 = f.transform_to(FK4(equinox=Time('J2010')))
 
     # make sure attributes are copied over correctly
-    assert f4.equinox == FK4.get_frame_attr_names()['equinox']
-    assert f4_2.equinox == f.equinox
+    assert f4.equinox == f.equinox
+    assert f4_1.equinox == FK4.get_frame_attr_names()['equinox']
+    assert f4_2.equinox == Time('J2010')
 
     # make sure self-transforms also work
     i = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg)
@@ -473,7 +475,7 @@ def test_transform():
     assert_allclose(i.dec, i2.dec)
 
     f = FK5(ra=1*u.deg, dec=2*u.deg, equinox=Time('J2001'))
-    f2 = f.transform_to(FK5)  # default equinox, so should be *different*
+    f2 = f.transform_to(FK5())  # default equinox, so should be *different*
     assert f2.equinox == FK5().equinox
     with pytest.raises(AssertionError):
         assert_allclose(f.ra, f2.ra)

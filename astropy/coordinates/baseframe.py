@@ -1185,6 +1185,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         ------
         ValueError
             If there is no possible transformation route.
+
+        Notes
+        -----
+        If a class is specified, the new frame will be instantiated using the values
+        from this frame for any shared frame attributes (e.g., ``obstime``) that do
+        not have default values.  All other frame attributes will have default values.
         """
         from .errors import ConvertError
 
@@ -1201,8 +1207,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                                       'please comment at https://github.com/astropy/astropy/issues/6280')
 
         if inspect.isclass(new_frame):
-            # Use the default frame attributes for this class
-            new_frame = new_frame()
+            # If a class, instantiate the new frame using any shared frame attributes with
+            # non-default values.  All other frame attributes will have default values
+            nondefault = set(self.frame_attributes.keys()) - set(self._attr_names_with_defaults)
+            shared_attr = nondefault.intersection(new_frame.frame_attributes.keys())
+            new_frame = new_frame(**dict([(attr, getattr(self, attr)) for attr in shared_attr]))
 
         if hasattr(new_frame, '_sky_coord_frame'):
             # Input new_frame is not a frame instance or class and is most
