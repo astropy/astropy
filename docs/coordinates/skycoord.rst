@@ -332,7 +332,13 @@ To store arrays of coordinates in a |SkyCoord| object::
 
 In addition to vectorized transformations, you can do the usual array slicing,
 dicing, and selection using the same methods and attributes that you use for
-`~numpy.ndarray` instances::
+`~numpy.ndarray` instances.  Similarly, on ``numpy`` version 1.17 or later,
+corresponding functions as well as others that affect the shape, such as
+`~numpy.atleast_1d` and `~numpy.rollaxis`, work as expected.  (The relevant
+functions have to be explicitly enabled in ``astropy`` source code; let us
+know if a ``numpy`` function is not supported that you think should work.)::
+
+.. doctest-requires:: numpy>=1.17
 
   >>> north_mask = sc.dec > 0
   >>> sc_north = sc[north_mask]
@@ -341,13 +347,18 @@ dicing, and selection using the same methods and attributes that you use for
   >>> sc[2:4]  # doctest: +FLOAT_CMP
   <SkyCoord (ICRS): (ra, dec) in deg
       [( 72., -89.64), (108., -89.46)]>
-  >>> sc[500]  # doctest: +FLOAT_CMP
+  >>> sc[500]
   <SkyCoord (ICRS): (ra, dec) in deg
       (0., 0.)>
-  >>> sc[0:-1:100].reshape(2, 5)  # doctest: +FLOAT_CMP
+  >>> sc[0:-1:100].reshape(2, 5)
   <SkyCoord (ICRS): (ra, dec) in deg
       [[(0., -90.), (0., -72.), (0., -54.), (0., -36.), (0., -18.)],
        [(0.,   0.), (0.,  18.), (0.,  36.), (0.,  54.), (0.,  72.)]]>
+  >>> np.roll(sc[::100], 1)
+  <SkyCoord (ICRS): (ra, dec) in deg
+      [(0.,  90.), (0., -90.), (0., -72.), (0., -54.), (0., -36.),
+       (0., -18.), (0.,   0.), (0.,  18.), (0.,  36.), (0.,  54.),
+       (0.,  72.)]>
 
 Note that similarly to the `~numpy.ndarray` methods, all but ``flatten`` try to
 use new views of the data, with the data copied only if that is impossible

@@ -111,7 +111,9 @@ Array Values and NumPy Array Method Analogs
 
 Array `~astropy.units.Quantity` objects can also be passed to representations,
 and such representations can be sliced, reshaped, etc., using the same
-methods as are available to `~numpy.ndarray`.
+methods as are available to `~numpy.ndarray`. Similarly, on ``numpy`` version
+1.17 and later, corresponding functions as well as others that affect the shape,
+such as `~numpy.atleast_1d` and `~numpy.rollaxis`, work as expected.
 
 Example
 -------
@@ -120,38 +122,46 @@ Example
   EXAMPLE START
   Array Values and NumPy Array Method Analogs
 
-To pass array `~astropy.units.Quantity` objects to representations and
-manipulate::
+To pass array `~astropy.units.Quantity` objects to representations::
 
   >>> import numpy as np
   >>> x = np.linspace(0., 5., 6)
   >>> y = np.linspace(10., 15., 6)
   >>> z = np.linspace(20., 25., 6)
   >>> car_array = CartesianRepresentation(x * u.m, y * u.m, z * u.m)
-  >>> car_array  # doctest: +FLOAT_CMP
+  >>> car_array
   <CartesianRepresentation (x, y, z) in m
       [(0., 10., 20.), (1., 11., 21.), (2., 12., 22.),
        (3., 13., 23.), (4., 14., 24.), (5., 15., 25.)]>
-  >>> car_array.reshape(3, 2)  # doctest: +FLOAT_CMP
+
+To manipulate using methods and ``numpy`` functions::
+
+.. doctest-requires:: numpy>=1.17
+
+  >>> car_array.reshape(3, 2)
   <CartesianRepresentation (x, y, z) in m
       [[(0., 10., 20.), (1., 11., 21.)],
        [(2., 12., 22.), (3., 13., 23.)],
        [(4., 14., 24.), (5., 15., 25.)]]>
-  >>> car_array[2]  # doctest: +FLOAT_CMP
+  >>> car_array[2]
   <CartesianRepresentation (x, y, z) in m
       (2., 12., 22.)>
   >>> car_array[2] = car_array[1]
-  >>> car_array[:3]  # doctest: +FLOAT_CMP
+  >>> car_array[:3]
   <CartesianRepresentation (x, y, z) in m
       [(0., 10., 20.), (1., 11., 21.), (1., 11., 21.)]>
+  >>> np.roll(car_array, 1)
+  <CartesianRepresentation (x, y, z) in m
+      [(5., 15., 25.), (0., 10., 20.), (1., 11., 21.), (1., 11., 21.),
+       (3., 13., 23.), (4., 14., 24.)]>
 
-Elements can also be set using other representation classes, as long
-as they are compatible in their units and number of dimensions.
+And to set elements using other representation classes (as long
+as they are compatible in their units and number of dimensions)::
 
-  >>> car_array[0] = SphericalRepresentation(0*u.deg, 0*u.deg, 99*u.m)
+  >>> car_array[2] = SphericalRepresentation(0*u.deg, 0*u.deg, 99*u.m)
   >>> car_array[:3]  # doctest: +FLOAT_CMP
   <CartesianRepresentation (x, y, z) in m
-      [(99., 0., 0.), (1., 11., 21.), (1., 11., 21.)]>
+      [(0., 10., 20.), (1., 11., 21.), (99., 0., 0.)]>
   >>> car_array[0] = UnitSphericalRepresentation(0*u.deg, 0*u.deg)
   Traceback (most recent call last):
   ...

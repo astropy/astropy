@@ -82,19 +82,28 @@ to apply the same operation to many different coordinates (say, from a
 catalog), this is a better choice than a list of |skycoord| objects,
 because it will be *much* faster than applying the operation to each
 |skycoord| in a ``for`` loop. Like the underlying `~numpy.ndarray` instances
-that contain the data, |skycoord| objects can be sliced, reshaped, etc.::
+that contain the data, |skycoord| objects can be sliced, reshaped, etc.,
+and, on ``numpy`` version 1.17 and later, can be used with functions like
+`numpy.moveaxis`, etc., that affect the shape::
 
+.. doctest-requires:: numpy>=1.17
+
+    >>> import numpy as np
     >>> c = SkyCoord(ra=[10, 11, 12, 13]*u.degree, dec=[41, -5, 42, 0]*u.degree)
-    >>> c  # doctest: +FLOAT_CMP
+    >>> c
     <SkyCoord (ICRS): (ra, dec) in deg
         [(10., 41.), (11., -5.), (12., 42.), (13.,  0.)]>
-    >>> c[1]  # doctest: +FLOAT_CMP
+    >>> c[1]
     <SkyCoord (ICRS): (ra, dec) in deg
         (11., -5.)>
-    >>> c.reshape(2, 2)  # doctest: +FLOAT_CMP
+    >>> c.reshape(2, 2)
     <SkyCoord (ICRS): (ra, dec) in deg
         [[(10., 41.), (11., -5.)],
          [(12., 42.), (13.,  0.)]]>
+    >>> np.roll(c, 1)
+    <SkyCoord (ICRS): (ra, dec) in deg
+        [(13.,  0.), (10., 41.), (11., -5.), (12., 42.)]>
+
 
 Coordinate Access
 -----------------
