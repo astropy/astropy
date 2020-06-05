@@ -12,7 +12,9 @@ Converting Units to String Representations
 
 You can control the way that |Quantity| and |Unit| objects are rendered as
 strings using the `Python Format String Syntax
-<https://docs.python.org/3/library/string.html#format-string-syntax>`_.
+<https://docs.python.org/3/library/string.html#format-string-syntax>`_
+(demonstrated below using `f-strings
+<https://www.python.org/dev/peps/pep-0498/>`_).
 
 For quantities, format specifiers, like ``0.003f`` will be applied to
 the |Quantity| value, without affecting the unit. Specifiers like
@@ -31,11 +33,11 @@ To render |Quantity| or |Unit| objects as strings::
     >>> q = 10.5 * u.km
     >>> q
     <Quantity  10.5 km>
-    >>> "{0}".format(q)
+    >>> f"{q}"
     '10.5 km'
-    >>> "{0:+0.03f}".format(q)
+    >>> f"{q:+0.03f}"
     '+10.500 km'
-    >>> "{0:20s}".format(q)
+    >>> f"{q:20s}"
     '10.5 km             '
 
 To format both the value and the unit separately, you can access the |Quantity|
@@ -44,7 +46,7 @@ class attributes within format strings::
     >>> q = 10.5 * u.km
     >>> q
     <Quantity  10.5 km>
-    >>> "{0.value:0.003f} in {0.unit:s}".format(q)
+    >>> f"{q.value:0.003f} in {q.unit:s}"
     '10.500 in km'
 
 Because ``numpy`` arrays do not accept most format specifiers, using specifiers
@@ -68,18 +70,18 @@ representing units, but supports all of the units defined within the
 parameter to select a different format, including ``"latex"``, ``"unicode"``,
 ``"cds"``, and others, defined below.
 
-    >>> "{0.value:0.003f} in {0.unit:latex}".format(q)  # doctest: +SKIP
+    >>> f"{q.value:0.003f} in {q.unit:latex}"  # doctest: +SKIP
     '10.000 in $\\mathrm{km}$'
     >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
-    >>> "{0}".format(fluxunit)
+    >>> f"{fluxunit}"
     u'erg / (cm2 s)'
-    >>> print("{0:console}".format(fluxunit))
+    >>> print(f"{fluxunit:console}")
      erg
     ------
     s cm^2
-    >>> "{0:latex}".format(fluxunit)
+    >>> f"{fluxunit:latex}"
     u'$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'
-    >>> "{0:>20s}".format(fluxunit)
+    >>> f"{fluxunit:>20s}"
     u'       erg / (cm2 s)'
 
 The `~astropy.units.core.UnitBase.to_string` method is an alternative way to
