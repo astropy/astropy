@@ -1,13 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
-import urllib.request
 import warnings
+from pathlib import Path
 
 import pytest
 import numpy as np
 
 from astropy.tests.helper import assert_quantity_allclose, catch_warnings
+from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.iers import iers
 from astropy import units as u
 from astropy.table import QTable
@@ -25,7 +26,18 @@ except OSError:
 else:
     HAS_IERS_A = True
 
-IERS_A_EXCERPT = os.path.join(os.path.dirname(__file__), 'data', 'iers_a_excerpt')
+IERS_A_EXCERPT = get_pkg_data_filename(os.path.join('data', 'iers_a_excerpt'))
+
+
+def setup_module():
+    # Need auto_download so that IERS_B won't be loaded and cause tests to
+    # fail. Files to be downloaded are handled appropriately in the tests.
+    iers.conf.auto_download = True
+
+
+def teardown_module():
+    # This setting is to be consistent with astropy/conftest.py
+    iers.conf.auto_download = False
 
 
 class TestBasic():
@@ -86,7 +98,7 @@ class TestBasic():
 
     def test_open_network_url(self):
         iers.IERS_A.close()
-        iers.IERS_A.open("file:" + urllib.request.pathname2url(IERS_A_EXCERPT))
+        iers.IERS_A.open(Path(IERS_A_EXCERPT).as_uri())
         assert iers.IERS_A.iers_table is not None
         assert isinstance(iers.IERS_A.iers_table, QTable)
         iers.IERS_A.close()
@@ -194,10 +206,12 @@ class TestIERS_Auto():
         """
         self.N = 40
         self.ame = 30.0
-        self.iers_a_file_1 = os.path.join(os.path.dirname(__file__), 'data', 'finals2000A-2016-02-30-test')
-        self.iers_a_file_2 = os.path.join(os.path.dirname(__file__), 'data', 'finals2000A-2016-04-30-test')
-        self.iers_a_url_1 = os.path.normpath('file://' + os.path.abspath(self.iers_a_file_1))
-        self.iers_a_url_2 = os.path.normpath('file://' + os.path.abspath(self.iers_a_file_2))
+        self.iers_a_file_1 = get_pkg_data_filename(
+            os.path.join('data', 'finals2000A-2016-02-30-test'))
+        self.iers_a_file_2 = get_pkg_data_filename(
+            os.path.join('data', 'finals2000A-2016-04-30-test'))
+        self.iers_a_url_1 = Path(self.iers_a_file_1).as_uri()
+        self.iers_a_url_2 = Path(self.iers_a_file_2).as_uri()
         self.t = Time.now() + TimeDelta(10, format='jd') * np.arange(self.N)
 
     def teardown_method(self, method):
@@ -241,7 +255,7 @@ class TestIERS_Auto():
             with iers.conf.set_temp('auto_max_age', 5.0):
                 with pytest.raises(ValueError) as err:
                     iers_table = iers.IERS_Auto.open()
-                    delta = iers_table.ut1_utc(self.t.jd1, self.t.jd2)
+                    _ = iers_table.ut1_utc(self.t.jd1, self.t.jd2)
         assert str(err.value) == 'IERS auto_max_age configuration value must be larger than 10 days'
 
     @pytest.mark.remote_data
