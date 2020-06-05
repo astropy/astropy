@@ -447,22 +447,23 @@ indeed from 12CO, then they are Doppler shifted compared to what we consider the
 T Tau. We can convert these frequencies to velocities assuming the Doppler shift equation
 (in this case with the radio convention)::
 
-    >>> sc_feat_rest.to(u.km / u.s, doppler_convention='radio', doppler_rest=115.27120180 * u.GHz)  # doctest: +FLOAT_CMP +ELLIPSIS +REMOTE_DATA
+    >>> with np.printoptions(precision=4):  # doctest: +REMOTE_DATA
+    ...     print(repr(sc_feat_rest.to(u.km / u.s, doppler_convention='radio', doppler_rest=115.27120180 * u.GHz)))  # doctest: +FLOAT_CMP +REMOTE_DATA
     <SpectralCoord
        (observer: <ICRS Coordinate: (x, y, z) in m
-                      (-1.25867767e+11, -7.48979688e+10, -3.24757657e+10)
+                      (-1.2587e+11, -7.4898e+10, -3.2476e+10)
                    (v_x, v_y, v_z) in km / s
-                      (9.34149908, 20.49579745, 7.99178839)>
+                      (9.3415, 20.4958, 7.9918)>
         target: <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
-                    (65.497625, 19.53511111, 144.321)
+                    (65.4976, 19.5351, 144.321)
                  (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-                    (1.37949782e-15, 1.46375638e-15, 23.9)>
+                    (1.3795e-15, 1.4638e-15, 23.9)>
         observer to target (computed from above):
           radial_velocity=0.0 km / s
           redshift=0.0
         doppler_rest=115.2712018 GHz
         doppler_convention=radio)
-      [-11.901603..., -27.5082853..., -30.109399...] km / s>
+      [-11.9016, -27.5083, -30.1094] km / s>
 
 Note that these resulting velocities are different from the ``radial_velocity``
 property (which is still zero here) - the latter is the difference in velocity

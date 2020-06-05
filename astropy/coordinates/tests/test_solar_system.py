@@ -21,7 +21,7 @@ from astropy.units import allclose as quantity_allclose
 from astropy.utils.data import download_file
 
 try:
-    import jplephem  # pylint: disable=W0611
+    import jplephem  # pylint: disable=W0611 # noqa
 except ImportError:
     HAS_JPLEPHEM = False
 else:
@@ -57,7 +57,9 @@ def test_positions_skyfield(tmpdir):
         planets = load('de421.bsp')
         ts = load.timescale()
     except OSError as e:
-        if os.environ.get('CI', False) and 'timed out' in str(e):
+        err_msg = str(e)
+        if (os.environ.get('CI', False) and
+                ('timed out' in err_msg or 'failed to respond' in err_msg)):
             pytest.xfail('Timed out in CI')
         else:
             raise
