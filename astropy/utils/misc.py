@@ -6,14 +6,12 @@ a clear module/package to live in.
 """
 
 import abc
-import certifi
 import contextlib
 import difflib
 import inspect
 import json
 import os
 import signal
-import ssl
 import sys
 import traceback
 import unicodedata
@@ -233,13 +231,22 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
     # https://github.com/astropy/astropy/issues/8990
     req = urllib.request.Request(
         baseurl + 'objects.inv', headers={'User-Agent': f'Astropy/{version}'})
+    urlopen_kwargs = {}
 
-    ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-    ssl_ctx.load_verify_locations(certifi.where())
-    if timeout is None:
-        uf = urllib.request.urlopen(req, context=ssl_ctx)
-    else:
-        uf = urllib.request.urlopen(req, timeout=timeout, context=ssl_ctx)
+    # In some cases, Windows cannot access sites without certificates
+    # preloaded. See https://github.com/astropy/astropy/pull/10434
+    if sys.platform.startswith('win'):
+        import certifi
+        import ssl
+
+        ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        ssl_ctx.load_verify_locations(certifi.where())
+        urlopen_kwargs['context'] = ssl_ctx
+
+    if timeout is not None:
+        urlopen_kwargs['timeout'] = timeout
+
+    uf = urllib.request.urlopen(req, **urlopen_kwargs)
 
     try:
         oiread = uf.read()

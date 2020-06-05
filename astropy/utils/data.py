@@ -3,7 +3,6 @@
 """Functions for accessing, downloading, and caching data files."""
 
 import atexit
-import certifi
 import contextlib
 import dbm
 import errno
@@ -15,7 +14,6 @@ import pathlib
 import re
 import shutil
 import socket
-import ssl
 import sys
 import time
 import urllib.request
@@ -993,14 +991,22 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
     if http_headers is None:
         http_headers = {}
 
-    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-    ssl_context.load_verify_locations(certifi.where())
-    https_handler = urllib.request.HTTPSHandler(context=ssl_context)
-    if ftp_tls:
-        urlopener = urllib.request.build_opener(_FTPTLSHandler(), https_handler)
-    else:
-        urlopener = urllib.request.build_opener(https_handler)
+    opener_args = []
 
+    # In some cases, Windows cannot access sites without certificates
+    # preloaded. See https://github.com/astropy/astropy/pull/10434
+    if sys.platform.startswith('win'):
+        import certifi
+        import ssl
+
+        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        ssl_context.load_verify_locations(certifi.where())
+        opener_args.append(urllib.request.HTTPSHandler(context=ssl_context))
+
+    if ftp_tls:
+        opener_args.append(_FTPTLSHandler())
+
+    urlopener = urllib.request.build_opener(*opener_args)
     req = urllib.request.Request(source_url, headers=http_headers)
     with urlopener.open(req, timeout=timeout) as remote:
         # keep a hash to rename the local file to the hashed name
