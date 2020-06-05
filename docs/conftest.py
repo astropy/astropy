@@ -29,7 +29,7 @@ def _docdir(request):
     """Run doctests in isolated tmpdir so outputs do not end up in repo"""
     # Trigger ONLY for doctestplus
     doctest_plugin = request.config.pluginmanager.getplugin("doctestplus")
-    if isinstance(request.node, doctest_plugin._doctest_textfile_item_cls):
+    if isinstance(request.node.parent, doctest_plugin._doctest_textfile_item_cls):
         # Don't apply this fixture to io.rst.  It reads files and doesn't write
         if "io.rst" not in request.node.name:
             tmpdir = request.getfixturevalue('tmpdir')
