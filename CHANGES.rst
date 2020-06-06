@@ -897,6 +897,8 @@ astropy.io.misc
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
+- Fix ``Table.(read|write).help`` when reader or writer has no docstring. [#10460]
+
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 

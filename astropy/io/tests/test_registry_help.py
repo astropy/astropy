@@ -138,3 +138,18 @@ def test_ccddata_read_help_fits():
     assert "CCDData.read(format='fits') documentation" in doc
     assert "Generate a CCDData object from a FITS file" in doc
     assert "hdu_uncertainty : str or None, optional" in doc
+
+
+def test_table_write_help_jsviewer():
+    """
+    Test dynamically created documentation help via the I/O registry for
+    'jsviewer'.
+    """
+    out = StringIO()
+    Table.write.help('jsviewer', out)
+    doc = out.getvalue()
+
+    # Check a smattering of expected content
+    assert "Table.write general documentation" not in doc
+    assert "The available built-in formats" not in doc
+    assert "Table.write(format='jsviewer') documentation" in doc
