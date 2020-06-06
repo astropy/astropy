@@ -5,11 +5,23 @@ from numpy.testing import assert_array_equal
 import pytest
 
 from astropy import units as u
+from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
 from astropy.coordinates import Longitude, Latitude, EarthLocation, SkyCoord
 
 # test on frame with most complicated frame attributes.
 from astropy.coordinates.builtin_frames import ICRS, AltAz, GCRS
 from astropy.time import Time
+
+
+@pytest.fixture(params=[True, False] if ARRAY_FUNCTION_ENABLED
+                else [True])
+def method(request):
+    return request.param
+
+
+needs_array_function = pytest.mark.xfail(
+    not ARRAY_FUNCTION_ENABLED,
+    reason="Needs __array_function__ support")
 
 
 @pytest.mark.remote_data
@@ -21,45 +33,45 @@ class TestManipulation():
     Even more exhaustive tests are done in time.tests.test_methods
     """
 
-    def setup(self):
+    def setup_class(cls):
         # For these tests, we set up frames and coordinates using copy=False,
         # so we can check that broadcasting is handled correctly.
         lon = Longitude(np.arange(0, 24, 4), u.hourangle)
         lat = Latitude(np.arange(-90, 91, 30), u.deg)
         # With same-sized arrays, no attributes.
-        self.s0 = ICRS(lon[:, np.newaxis] * np.ones(lat.shape),
-                       lat * np.ones(lon.shape)[:, np.newaxis], copy=False)
+        cls.s0 = ICRS(lon[:, np.newaxis] * np.ones(lat.shape),
+                      lat * np.ones(lon.shape)[:, np.newaxis], copy=False)
         # Make an AltAz frame since that has many types of attributes.
         # Match one axis with times.
-        self.obstime = (Time('2012-01-01') +
-                        np.arange(len(lon))[:, np.newaxis] * u.s)
+        cls.obstime = (Time('2012-01-01') +
+                       np.arange(len(lon))[:, np.newaxis] * u.s)
         # And another with location.
-        self.location = EarthLocation(20.*u.deg, lat, 100*u.m)
+        cls.location = EarthLocation(20.*u.deg, lat, 100*u.m)
         # Ensure we have a quantity scalar.
-        self.pressure = 1000 * u.hPa
+        cls.pressure = 1000 * u.hPa
         # As well as an array.
-        self.temperature = np.random.uniform(
+        cls.temperature = np.random.uniform(
             0., 20., size=(lon.size, lat.size)) * u.deg_C
-        self.s1 = AltAz(az=lon[:, np.newaxis], alt=lat,
-                        obstime=self.obstime,
-                        location=self.location,
-                        pressure=self.pressure,
-                        temperature=self.temperature, copy=False)
+        cls.s1 = AltAz(az=lon[:, np.newaxis], alt=lat,
+                       obstime=cls.obstime,
+                       location=cls.location,
+                       pressure=cls.pressure,
+                       temperature=cls.temperature, copy=False)
         # For some tests, also try a GCRS, since that has representation
         # attributes.  We match the second dimension (via the location)
-        self.obsgeoloc, self.obsgeovel = self.location.get_gcrs_posvel(
-            self.obstime[0, 0])
-        self.s2 = GCRS(ra=lon[:, np.newaxis], dec=lat,
-                       obstime=self.obstime,
-                       obsgeoloc=self.obsgeoloc,
-                       obsgeovel=self.obsgeovel, copy=False)
+        cls.obsgeoloc, cls.obsgeovel = cls.location.get_gcrs_posvel(
+            cls.obstime[0, 0])
+        cls.s2 = GCRS(ra=lon[:, np.newaxis], dec=lat,
+                      obstime=cls.obstime,
+                      obsgeoloc=cls.obsgeoloc,
+                      obsgeovel=cls.obsgeovel, copy=False)
         # For completeness, also some tests on an empty frame.
-        self.s3 = GCRS(obstime=self.obstime,
-                       obsgeoloc=self.obsgeoloc,
-                       obsgeovel=self.obsgeovel, copy=False)
+        cls.s3 = GCRS(obstime=cls.obstime,
+                      obsgeoloc=cls.obsgeoloc,
+                      obsgeovel=cls.obsgeovel, copy=False)
         # And make a SkyCoord
-        self.sc = SkyCoord(ra=lon[:, np.newaxis], dec=lat, frame=self.s3,
-                           copy=False)
+        cls.sc = SkyCoord(ra=lon[:, np.newaxis], dec=lat, frame=cls.s3,
+                          copy=False)
 
     def test_getitem0101(self):
         # We on purpose take a slice with only one element, as for the
@@ -313,8 +325,11 @@ class TestManipulation():
         assert np.all(s0_squeeze.data.lat == self.s0.data.lat.reshape(3, 2, 7))
         assert np.may_share_memory(s0_squeeze.data.lat, self.s0.data.lat)
 
-    def test_add_dimension(self):
-        s0_adddim = self.s0[:, np.newaxis, :]
+    def test_add_dimension(self, method):
+        if method:
+            s0_adddim = self.s0[:, np.newaxis, :]
+        else:
+            s0_adddim = np.expand_dims(self.s0, 1)
         assert s0_adddim.shape == (6, 1, 7)
         assert np.all(s0_adddim.data.lon == self.s0.data.lon[:, np.newaxis, :])
         assert np.may_share_memory(s0_adddim.data.lat, self.s0.data.lat)
@@ -323,3 +338,11 @@ class TestManipulation():
         s0_take = self.s0.take((5, 2))
         assert s0_take.shape == (2,)
         assert np.all(s0_take.data.lon == self.s0.data.lon.take((5, 2)))
+
+    # Much more detailed tests of shape manipulation via numpy functions done
+    # in test_representation_methods.
+    def test_broadcast_to(self):
+        s1_broadcast = np.broadcast_to(self.s1, (20, 6, 7))
+        assert s1_broadcast.shape == (20, 6, 7)
+        assert np.all(s1_broadcast.data.lon == self.s1.data.lon[np.newaxis])
+        assert np.may_share_memory(s1_broadcast.data.lat, self.s1.data.lat)

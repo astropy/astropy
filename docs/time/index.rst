@@ -34,7 +34,7 @@ Getting Started
 The usual way to use `astropy.time` is to create a |Time| object by
 supplying one or more input time values as well as the `time format`_ and `time
 scale`_ of those values. The input time(s) can either be a single scalar like
-``"2010-01-01 00:00:00"`` or a list or a ```numpy`` array of values as shown
+``"2010-01-01 00:00:00"`` or a list or a ``numpy`` array of values as shown
 below. In general, any output values have the same shape (scalar or array) as
 the input.
 
@@ -418,8 +418,8 @@ returning scalar or array objects as appropriate::
 
 .. _astropy-time-shape-methods:
 
-NumPy Method Analogs
-^^^^^^^^^^^^^^^^^^^^
+NumPy Method Analogs and Applicable NumPy Functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For |Time| instances holding arrays, many of the same methods and attributes
 that work on `~numpy.ndarray` instances can be used. For example, you can
@@ -428,7 +428,12 @@ reshape |Time| instances and take specific parts using
 :meth:`~astropy.time.Time.flatten`, :attr:`~astropy.time.Time.T`,
 :meth:`~astropy.time.Time.transpose`, :meth:`~astropy.time.Time.swapaxes`,
 :meth:`~astropy.time.Time.diagonal`, :meth:`~astropy.time.Time.squeeze`, or
-:meth:`~astropy.time.Time.take`.
+:meth:`~astropy.time.Time.take`. Similarly, on ``numpy`` version 1.17
+and later
+corresponding functions as well as others that affect the shape, such as
+`~numpy.atleast_1d` and `~numpy.rollaxis`, work as expected.  (The relevant
+functions have to be explicitly enabled in ``astropy`` source code; let us
+know if a ``numpy`` function is not supported that you think should work.)
 
 Examples
 """"""""
@@ -437,12 +442,18 @@ Examples
 
 To reshape |Time| instances::
 
-  >>> t.reshape(2, 3)  # doctest: +FLOAT_CMP
+.. doctest-requires:: numpy>=1.17
+
+  >>> t.reshape(2, 3)
   <Time object: scale='utc' format='mjd' value=[[50000.  50000.5 50001. ]
    [50001.5 50002.  50002.5]]>
-  >>> t.T  # doctest: +FLOAT_CMP
+  >>> t.T
   <Time object: scale='utc' format='mjd' value=[[50000.  50001.  50002. ]
    [50000.5 50001.5 50002.5]]>
+  >>> np.roll(t, 1, axis=0)
+  <Time object: scale='utc' format='mjd' value=[[50002.  50002.5]
+   [50000.  50000.5]
+   [50001.  50001.5]]>
 
 Note that similarly to the `~numpy.ndarray` methods, all but
 :meth:`~astropy.time.Time.flatten` try to use new views of the data,

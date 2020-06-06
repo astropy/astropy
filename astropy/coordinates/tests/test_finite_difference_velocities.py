@@ -150,8 +150,8 @@ def test_altaz_diffs():
     loc = get_builtin_sites()['greenwich']
     aa = AltAz(obstime=time, location=loc)
 
-    icoo = ICRS(np.zeros_like(time)*u.deg, 10*u.deg, 100*u.au,
-                pm_ra_cosdec=np.zeros_like(time)*u.marcsec/u.yr,
+    icoo = ICRS(np.zeros(time.shape)*u.deg, 10*u.deg, 100*u.au,
+                pm_ra_cosdec=np.zeros(time.shape)*u.marcsec/u.yr,
                 pm_dec=0*u.marcsec/u.yr,
                 radial_velocity=0*u.km/u.s)
 
@@ -164,7 +164,7 @@ def test_altaz_diffs():
     assert np.ptp(acoo.radial_velocity)/2 < (2*np.pi*constants.R_earth/u.day)*1.2  # MAGIC NUMBER
 
     cdiff = acoo.data.differentials['s'].represent_as(CartesianDifferential,
-                                                    acoo.data)
+                                                      acoo.data)
 
     # The "total" velocity should be > c, because the *tangential* velocity
     # isn't a True velocity, but rather an induced velocity due to the Earth's
