@@ -16,6 +16,10 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Numpy functions that broadcast, change shape, or index (like ``np.broadcast_to``,
+  ``np.rot90``, or ``np.roll``) now work on coordinates, frames, and
+  representations. [#10337]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -59,6 +63,9 @@ astropy.time
   object in a format like ``unix`` or ``cxcsec`` (time delta from a reference
   epoch time). [#10406]
 
+- Numpy functions that broadcast, change shape, or index (like ``np.broadcast_to``,
+  ``np.rot90``, or ``np.roll``) now work on times. [#10337]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
@@ -70,6 +77,9 @@ astropy.units
 
 astropy.utils
 ^^^^^^^^^^^^^
+
+- ``ShapedLikeNDArray`` has gained the capability to use numpy functions
+  that broadcast, change shape, or index. [#10337]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -143,6 +153,11 @@ astropy.units
 
 astropy.utils
 ^^^^^^^^^^^^^
+
+- Shape-related items from ``astropy.utils.misc`` -- ``ShapedLikeNDArray``,
+  ``check_broadcast``, ``unbroadcast``, and ``IncompatibleShapeError`` --
+  have been moved to their own module, ``astropy.utils.shapes``. They remain
+  importable from ``astropy.utils``. [#10337]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
