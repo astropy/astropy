@@ -6,6 +6,7 @@ import pytest
 
 from astropy import units as u
 from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
+from astropy.utils.iers import conf as iers_conf
 from astropy.coordinates import Longitude, Latitude, EarthLocation, SkyCoord
 
 # test on frame with most complicated frame attributes.
@@ -24,7 +25,6 @@ needs_array_function = pytest.mark.xfail(
     reason="Needs __array_function__ support")
 
 
-@pytest.mark.remote_data
 class TestManipulation():
     """Manipulation of Frame shapes.
 
@@ -34,6 +34,10 @@ class TestManipulation():
     """
 
     def setup_class(cls):
+        # This is to be consistent with setting in astropy/conftest.py
+        # that somehow is not getting picked up.
+        iers_conf.auto_download = False
+
         # For these tests, we set up frames and coordinates using copy=False,
         # so we can check that broadcasting is handled correctly.
         lon = Longitude(np.arange(0, 24, 4), u.hourangle)
