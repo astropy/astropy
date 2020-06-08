@@ -46,7 +46,7 @@ env:
 
         # For installing without tox, we can rely mostly on what Debian already
         # includes.  This is only used if SETUP_METHOD='apt'.
-        - APT_DEPENDENCIES="python3-pip python3-dev python3-venv python3-setuptools cython3 ipython3 python3-jinja2 python3-numpy python3-pytest-astropy python3-pytest-cov python3-pytest-xdist python3-pytest-filter-subpackage python3-objgraph python3-coverage tzdata"
+        - APT_DEPENDENCIES="python3-pip python3-dev python3-venv python3-setuptools cython3 ipython3 python3-jinja2 python3-numpy python3-pytest-astropy python3-pytest-cov python3-pytest-xdist python3-pytest-filter-subpackage python3-objgraph python3-coverage python3-attr tzdata"
 
         # The following is needed to avoid issues if e.g. Matplotlib tries
         # to open a GUI window.
