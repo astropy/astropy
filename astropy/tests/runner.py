@@ -56,12 +56,12 @@ class TestRunnerBase:
 
     A test runner can be constructed by creating a subclass of this class and
     defining 'keyword' methods. These are methods that have the
-    `~astropy.tests.runner.keyword` decorator, these methods are used to
+    :class:`~astropy.tests.runner.keyword` decorator, these methods are used to
     construct allowed keyword arguments to the
-    `~astropy.tests.runner.TestRunnerBase.run_tests` method as a way to allow
+    ``run_tests`` method as a way to allow
     customization of individual keyword arguments (and associated logic)
     without having to re-implement the whole
-    `~astropy.tests.runner.TestRunnerBase.run_tests` method.
+    ``run_tests`` method.
 
     Examples
     --------
@@ -188,7 +188,6 @@ class TestRunnerBase:
                     cls._missing_dependancy_error.format(module=module))
 
     def run_tests(self, **kwargs):
-
         # The following option will include eggs inside a .eggs folder in
         # sys.path when running the tests. This is possible so that when
         # runnning python setup.py test, test dependencies installed via e.g.
@@ -252,7 +251,7 @@ class TestRunnerBase:
         """
         Constructs a `TestRunner` to run in the given path, and returns a
         ``test()`` function which takes the same arguments as
-        `TestRunner.run_tests`.
+        ``TestRunner.run_tests``.
 
         The returned ``test()`` function will be defined in the module this
         was called from.  This is used to implement the ``astropy.test()``
