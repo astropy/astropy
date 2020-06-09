@@ -42,7 +42,7 @@ by the `astropy.tests.runner.TestRunner` class.
 The `~astropy.tests.runner.TestRunner` class is used to generate the
 `astropy.test` function, the test function generates a set of command line
 arguments to pytest. The arguments to pytest are defined in the
-`~astropy.tests.runner.TestRunner.run_tests` method, the arguments to
+``run_tests`` method, the arguments to
 ``run_tests`` and their respective logic are defined in methods of
 `~astropy.tests.runner.TestRunner` decorated with the
 `~astropy.tests.runner.keyword` decorator. For an example of this see
@@ -56,5 +56,9 @@ Reference/API
 
 .. module:: astropy.tests.runner
 
-.. automodapi:: astropy.tests.runner
-    :no-main-docstr:
+.. autoclass:: astropy.tests.runner.keyword
+    :no-undoc-members:
+
+.. autoclass:: astropy.tests.runner.TestRunnerBase
+
+.. autoclass:: astropy.tests.runner.TestRunner
