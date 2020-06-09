@@ -243,16 +243,16 @@ class set_temp_config(_SetTempPath):
         # Special case for the config case, where we need to reset all the
         # cached config objects
         from .configuration import _cfgobjs
-
-        path = super().__enter__()
+        self._cfgobjs_copy = _cfgobjs.copy()
         _cfgobjs.clear()
-        return path
+        return super().__enter__()
 
     def __exit__(self, *args):
         from .configuration import _cfgobjs
-
-        super().__exit__(*args)
         _cfgobjs.clear()
+        _cfgobjs.update(self._cfgobjs_copy)
+        del self._cfgobjs_copy
+        super().__exit__(*args)
 
 
 class set_temp_cache(_SetTempPath):
