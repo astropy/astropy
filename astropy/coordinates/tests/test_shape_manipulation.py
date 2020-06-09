@@ -341,6 +341,7 @@ class TestManipulation():
 
     # Much more detailed tests of shape manipulation via numpy functions done
     # in test_representation_methods.
+    @needs_array_function
     def test_broadcast_to(self):
         s1_broadcast = np.broadcast_to(self.s1, (20, 6, 7))
         assert s1_broadcast.shape == (20, 6, 7)
