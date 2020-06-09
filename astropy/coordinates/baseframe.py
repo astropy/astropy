@@ -1172,7 +1172,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
         Parameters
         ----------
-        new_frame : class or frame object or SkyCoord object
+        new_frame : frame object or SkyCoord object
             The frame to transform this coordinate frame into.
 
         Returns
@@ -1201,6 +1201,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                                       'please comment at https://github.com/astropy/astropy/issues/6280')
 
         if inspect.isclass(new_frame):
+            warnings.warn("Transforming a frame instance to a frame class (as opposed to another "
+                          "frame instance) will not be supported in the future.  Either "
+                          "explicitly instantiate the target frame, or first convert the source "
+                          "frame instance to a `astropy.coordinates.SkyCoord` and use its "
+                          "`transform_to()` method.",
+                          AstropyDeprecationWarning)
             # Use the default frame attributes for this class
             new_frame = new_frame()
 
