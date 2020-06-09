@@ -16,6 +16,19 @@ from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
+OLD_CONFIG = {}
+
+
+def setup_module():
+    OLD_CONFIG.clear()
+    OLD_CONFIG.update(configuration._cfgobjs)
+
+
+def teardown_module():
+    configuration._cfgobjs.clear()
+    configuration._cfgobjs.update(OLD_CONFIG)
+
+
 def test_paths():
     assert 'astropy' in paths.get_config_dir()
     assert 'astropy' in paths.get_cache_dir()
