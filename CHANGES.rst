@@ -213,6 +213,12 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Fixed a bug in the coordinate-frame attribute ``CoordinateAttribute`` where
+  the internal transformation could behave differently depending on whether
+  the input was a low-level coordinate frame or a high-level ``SkyCoord``.
+  ``CoordinateAttribute`` now always performs a ``SkyCoord``-style internal
+  transformation, including the by-default merging of frame attributes. [#10475]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 

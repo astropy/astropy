@@ -397,9 +397,12 @@ class EarthLocationAttribute(Attribute):
 
 class CoordinateAttribute(Attribute):
     """
-    A frame attribute which is a coordinate object. It can be given as a
-    low-level frame class *or* a `~astropy.coordinates.SkyCoord`, but will
-    always be converted to the low-level frame class when accessed.
+    A frame attribute which is a coordinate object.  It can be given as a
+    `~astropy.coordinates.SkyCoord` or a low-level frame instance.  If a
+    low-level frame instance is provided, it will always be upgraded to be a
+    `~astropy.coordinates.SkyCoord` to ensure consistent transformation
+    behavior.  The coordinate object will always be returned as a low-level
+    frame instance when accessed.
 
     Parameters
     ----------
@@ -437,19 +440,16 @@ class CoordinateAttribute(Attribute):
         ValueError
             If the input is not valid for this attribute.
         """
+        from astropy.coordinates import SkyCoord
+
         if value is None:
             return None, False
         elif isinstance(value, self._frame):
             return value, False
         else:
-            if not hasattr(value, 'transform_to'):
-                raise ValueError('"{}" was passed into a '
-                                 'CoordinateAttribute, but it does not have '
-                                 '"transform_to" method'.format(value))
+            value = SkyCoord(value)  # always make the value a SkyCoord
             transformedobj = value.transform_to(self._frame)
-            if hasattr(transformedobj, 'frame'):
-                transformedobj = transformedobj.frame
-            return transformedobj, True
+            return transformedobj.frame, True
 
 
 class DifferentialAttribute(Attribute):

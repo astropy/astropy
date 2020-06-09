@@ -1497,3 +1497,32 @@ def test_galactocentric_references(reset_galactocentric_defaults):
                 assert k not in galcen_custom.frame_attribute_references
             else:
                 assert k in galcen_custom.frame_attribute_references
+
+
+def test_coordinateattribute_transformation():
+    from astropy.coordinates import BaseCoordinateFrame, SkyCoord
+    from astropy.coordinates.attributes import CoordinateAttribute
+    from astropy.coordinates.builtin_frames import GCRS, HCRS
+
+    class FrameWithCoordinateAttribute(BaseCoordinateFrame):
+        coord_attr = CoordinateAttribute(HCRS)
+
+    hcrs = HCRS(1*u.deg, 2*u.deg, 3*u.AU, obstime='2001-02-03')
+    f1_frame = FrameWithCoordinateAttribute(coord_attr=hcrs)
+    f1_skycoord = FrameWithCoordinateAttribute(coord_attr=SkyCoord(hcrs))
+
+    # The input is already HCRS, so the frame attribute should not change it
+    assert f1_frame.coord_attr == hcrs
+    # The output should not be different if a SkyCoord is provided
+    assert f1_skycoord.coord_attr == f1_frame.coord_attr
+
+    gcrs = GCRS(4*u.deg, 5*u.deg, 6*u.AU, obstime='2004-05-06')
+    f2_frame = FrameWithCoordinateAttribute(coord_attr=gcrs)
+    f2_skycoord = FrameWithCoordinateAttribute(coord_attr=SkyCoord(gcrs))
+
+    # The input needs to be converted from GCRS to HCRS
+    assert isinstance(f2_frame.coord_attr, HCRS)
+    # The `obstime` frame attribute should have been "merged" in a SkyCoord-style transformation
+    assert f2_frame.coord_attr.obstime == gcrs.obstime
+    # The output should not be different if a SkyCoord is provided
+    assert f2_skycoord.coord_attr == f2_frame.coord_attr
