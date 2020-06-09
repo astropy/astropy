@@ -275,7 +275,7 @@ def test_regression_4293():
     fk4noe_ra = fk4.ra - (Dc*np.cos(fk4.ra) +
                           Dd*np.sin(fk4.ra)) / np.cos(fk4.dec)
 
-    fk4noe = fk4.transform_to(FK4NoETerms)
+    fk4noe = fk4.transform_to(FK4NoETerms())
     # Tolerance here just set to how well the coordinates match, which is much
     # better than the claimed accuracy of <1 mas for this first-order in
     # v_earth/c approximation.
@@ -491,7 +491,7 @@ def test_gcrs_itrs_cartesian_repr():
     # Cartesian
     gcrs = GCRS(CartesianRepresentation((859.07256, -4137.20368,  5295.56871),
                                         unit='km'), representation_type='cartesian')
-    gcrs.transform_to(ITRS)
+    gcrs.transform_to(ITRS())
 
 
 @pytest.mark.skipif('not HAS_YAML')

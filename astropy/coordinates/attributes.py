@@ -391,7 +391,7 @@ class EarthLocationAttribute(Attribute):
                 raise ValueError('"{}" was passed into an '
                                  'EarthLocationAttribute, but it does not have '
                                  '"transform_to" method'.format(value))
-            itrsobj = value.transform_to(ITRS)
+            itrsobj = value.transform_to(ITRS())
             return itrsobj.earth_location, True
 
 

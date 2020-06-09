@@ -45,7 +45,7 @@ def test_icrs_cirs():
     cframe1 = CIRS()
     cirsnod = inod.transform_to(cframe1)  # uses the default time
     # first do a round-tripping test
-    inod2 = cirsnod.transform_to(ICRS)
+    inod2 = cirsnod.transform_to(ICRS())
     assert_allclose(inod.ra, inod2.ra)
     assert_allclose(inod.dec, inod2.dec)
 
@@ -88,7 +88,7 @@ def test_icrs_gcrs(icoo):
     """
     gcrscoo = icoo.transform_to(gcrs_frames[0])  # uses the default time
     # first do a round-tripping test
-    icoo2 = gcrscoo.transform_to(ICRS)
+    icoo2 = gcrscoo.transform_to(ICRS())
     assert_allclose(icoo.distance, icoo2.distance)
     assert_allclose(icoo.ra, icoo2.ra)
     assert_allclose(icoo.dec, icoo2.dec)
@@ -118,7 +118,7 @@ def test_icrs_gcrs(icoo):
     gcrscoo6 = icoo.transform_to(gframe3)  # should be different
     assert not allclose(gcrscoo.ra, gcrscoo6.ra, rtol=1e-8, atol=1e-10*u.deg)
     assert not allclose(gcrscoo.dec, gcrscoo6.dec, rtol=1e-8, atol=1e-10*u.deg)
-    icooviag3 = gcrscoo6.transform_to(ICRS)  # and now back to the original
+    icooviag3 = gcrscoo6.transform_to(ICRS())  # and now back to the original
     assert_allclose(icoo.ra, icooviag3.ra)
     assert_allclose(icoo.dec, icooviag3.dec)
 
@@ -172,8 +172,8 @@ def test_gcrs_itrs():
     gcrs = GCRS(ra=ra, dec=dec, obstime='J2000')
     gcrs6 = GCRS(ra=ra, dec=dec, obstime='J2006')
 
-    gcrs2 = gcrs.transform_to(ITRS).transform_to(gcrs)
-    gcrs6_2 = gcrs6.transform_to(ITRS).transform_to(gcrs)
+    gcrs2 = gcrs.transform_to(ITRS()).transform_to(gcrs)
+    gcrs6_2 = gcrs6.transform_to(ITRS()).transform_to(gcrs)
 
     assert_allclose(gcrs.ra, gcrs2.ra)
     assert_allclose(gcrs.dec, gcrs2.dec)
@@ -183,7 +183,7 @@ def test_gcrs_itrs():
     # also try with the cartesian representation
     gcrsc = gcrs.realize_frame(gcrs.data)
     gcrsc.representation_type = CartesianRepresentation
-    gcrsc2 = gcrsc.transform_to(ITRS).transform_to(gcrsc)
+    gcrsc2 = gcrsc.transform_to(ITRS()).transform_to(gcrsc)
     assert_allclose(gcrsc.spherical.lon.deg, gcrsc2.ra.deg)
     assert_allclose(gcrsc.spherical.lat, gcrsc2.dec)
 
@@ -196,8 +196,8 @@ def test_cirs_itrs():
     cirs = CIRS(ra=ra, dec=dec, obstime='J2000')
     cirs6 = CIRS(ra=ra, dec=dec, obstime='J2006')
 
-    cirs2 = cirs.transform_to(ITRS).transform_to(cirs)
-    cirs6_2 = cirs6.transform_to(ITRS).transform_to(cirs)  # different obstime
+    cirs2 = cirs.transform_to(ITRS()).transform_to(cirs)
+    cirs6_2 = cirs6.transform_to(ITRS()).transform_to(cirs)  # different obstime
 
     # just check round-tripping
     assert_allclose(cirs.ra, cirs2.ra)
@@ -215,8 +215,8 @@ def test_gcrs_cirs():
     gcrs = GCRS(ra=ra, dec=dec, obstime='J2000')
     gcrs6 = GCRS(ra=ra, dec=dec, obstime='J2006')
 
-    gcrs2 = gcrs.transform_to(CIRS).transform_to(gcrs)
-    gcrs6_2 = gcrs6.transform_to(CIRS).transform_to(gcrs)
+    gcrs2 = gcrs.transform_to(CIRS()).transform_to(gcrs)
+    gcrs6_2 = gcrs6.transform_to(CIRS()).transform_to(gcrs)
 
     assert_allclose(gcrs.ra, gcrs2.ra)
     assert_allclose(gcrs.dec, gcrs2.dec)
@@ -224,11 +224,11 @@ def test_gcrs_cirs():
     assert not allclose(gcrs.dec, gcrs6_2.dec)
 
     # now try explicit intermediate pathways and ensure they're all consistent
-    gcrs3 = gcrs.transform_to(ITRS).transform_to(CIRS).transform_to(ITRS).transform_to(gcrs)
+    gcrs3 = gcrs.transform_to(ITRS()).transform_to(CIRS()).transform_to(ITRS()).transform_to(gcrs)
     assert_allclose(gcrs.ra, gcrs3.ra)
     assert_allclose(gcrs.dec, gcrs3.dec)
 
-    gcrs4 = gcrs.transform_to(ICRS).transform_to(CIRS).transform_to(ICRS).transform_to(gcrs)
+    gcrs4 = gcrs.transform_to(ICRS()).transform_to(CIRS()).transform_to(ICRS()).transform_to(gcrs)
     assert_allclose(gcrs.ra, gcrs4.ra)
     assert_allclose(gcrs.dec, gcrs4.dec)
 
@@ -250,8 +250,8 @@ def test_gcrs_altaz():
     aaframe = AltAz(obstime=times, location=loc)
 
     aa1 = gcrs.transform_to(aaframe)
-    aa2 = gcrs.transform_to(ICRS).transform_to(CIRS).transform_to(aaframe)
-    aa3 = gcrs.transform_to(ITRS).transform_to(CIRS).transform_to(aaframe)
+    aa2 = gcrs.transform_to(ICRS()).transform_to(CIRS()).transform_to(aaframe)
+    aa3 = gcrs.transform_to(ITRS()).transform_to(CIRS()).transform_to(aaframe)
 
     # make sure they're all consistent
     assert_allclose(aa1.alt, aa2.alt)
@@ -264,12 +264,12 @@ def test_precessed_geocentric():
     assert PrecessedGeocentric().equinox.jd == Time('J2000').jd
 
     gcrs_coo = GCRS(180*u.deg, 2*u.deg, distance=10000*u.km)
-    pgeo_coo = gcrs_coo.transform_to(PrecessedGeocentric)
+    pgeo_coo = gcrs_coo.transform_to(PrecessedGeocentric())
     assert np.abs(gcrs_coo.ra - pgeo_coo.ra) > 10*u.marcsec
     assert np.abs(gcrs_coo.dec - pgeo_coo.dec) > 10*u.marcsec
     assert_allclose(gcrs_coo.distance, pgeo_coo.distance)
 
-    gcrs_roundtrip = pgeo_coo.transform_to(GCRS)
+    gcrs_roundtrip = pgeo_coo.transform_to(GCRS())
     assert_allclose(gcrs_coo.ra, gcrs_roundtrip.ra)
     assert_allclose(gcrs_coo.dec, gcrs_roundtrip.dec)
     assert_allclose(gcrs_coo.distance, gcrs_roundtrip.distance)
@@ -279,7 +279,7 @@ def test_precessed_geocentric():
     assert np.abs(gcrs_coo.dec - pgeo_coo2.dec) > 0.5*u.deg
     assert_allclose(gcrs_coo.distance, pgeo_coo2.distance)
 
-    gcrs2_roundtrip = pgeo_coo2.transform_to(GCRS)
+    gcrs2_roundtrip = pgeo_coo2.transform_to(GCRS())
     assert_allclose(gcrs_coo.ra, gcrs2_roundtrip.ra)
     assert_allclose(gcrs_coo.dec, gcrs2_roundtrip.dec)
     assert_allclose(gcrs_coo.distance, gcrs2_roundtrip.distance)
@@ -345,11 +345,11 @@ def test_gcrs_altaz_bothroutes(testframe):
     routes through the coordinate graph are consistent with each other
     """
     sun = get_sun(testframe.obstime)
-    sunaa_viaicrs = sun.transform_to(ICRS).transform_to(testframe)
+    sunaa_viaicrs = sun.transform_to(ICRS()).transform_to(testframe)
     sunaa_viaitrs = sun.transform_to(ITRS(obstime=testframe.obstime)).transform_to(testframe)
 
     moon = GCRS(MOONDIST_CART, obstime=testframe.obstime)
-    moonaa_viaicrs = moon.transform_to(ICRS).transform_to(testframe)
+    moonaa_viaicrs = moon.transform_to(ICRS()).transform_to(testframe)
     moonaa_viaitrs = moon.transform_to(ITRS(obstime=testframe.obstime)).transform_to(testframe)
 
     assert_allclose(sunaa_viaicrs.cartesian.xyz, sunaa_viaitrs.cartesian.xyz)
@@ -392,7 +392,7 @@ def test_cirs_icrs_moonish(testframe):
     ICRS origin when starting from CIRS
     """
     moonish = CIRS(MOONDIST_CART, obstime=testframe.obstime)
-    moonicrs = moonish.transform_to(ICRS)
+    moonicrs = moonish.transform_to(ICRS())
 
     assert 0.97*u.au < moonicrs.distance < 1.03*u.au
 
@@ -404,7 +404,7 @@ def test_gcrs_icrs_moonish(testframe):
     ICRS origin when starting from GCRS
     """
     moonish = GCRS(MOONDIST_CART, obstime=testframe.obstime)
-    moonicrs = moonish.transform_to(ICRS)
+    moonicrs = moonish.transform_to(ICRS())
 
     assert 0.97*u.au < moonicrs.distance < 1.03*u.au
 

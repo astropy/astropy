@@ -87,7 +87,7 @@ class Galactic(BaseCoordinateFrame):
     # These are *not* from Reid & Brunthaler 2004 - instead, they were
     # derived by doing:
     #
-    # >>> FK4NoETerms(ra=192.25*u.degree, dec=27.4*u.degree).transform_to(FK5)
+    # >>> FK4NoETerms(ra=192.25*u.degree, dec=27.4*u.degree).transform_to(FK5())
     #
     # This gives better consistency with other codes than using the values
     # from Reid & Brunthaler 2004 and the best self-consistency between FK5

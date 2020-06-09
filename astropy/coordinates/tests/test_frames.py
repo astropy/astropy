@@ -260,8 +260,8 @@ def test_converting_units():
     # converting from FK5 to ICRS and back changes the *internal* representation,
     # but it should still come out in the preferred form
 
-    i4 = i2.transform_to(FK5).transform_to(ICRS)
-    i4_many = i2_many.transform_to(FK5).transform_to(ICRS)
+    i4 = i2.transform_to(FK5()).transform_to(ICRS())
+    i4_many = i2_many.transform_to(FK5()).transform_to(ICRS())
 
     ri2 = ''.join(rexrepr.split(repr(i2)))
     ri4 = ''.join(rexrepr.split(repr(i4)))
@@ -442,8 +442,8 @@ def test_transform():
     from astropy.time import Time
 
     i = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg)
-    f = i.transform_to(FK5)
-    i2 = f.transform_to(ICRS)
+    f = i.transform_to(FK5())
+    i2 = f.transform_to(ICRS())
 
     assert i2.data.__class__ == r.UnitSphericalRepresentation
 
@@ -451,28 +451,28 @@ def test_transform():
     assert_allclose(i.dec, i2.dec)
 
     i = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg, distance=[5, 6]*u.kpc)
-    f = i.transform_to(FK5)
-    i2 = f.transform_to(ICRS)
+    f = i.transform_to(FK5())
+    i2 = f.transform_to(ICRS())
 
     assert i2.data.__class__ != r.UnitSphericalRepresentation
 
     f = FK5(ra=1*u.deg, dec=2*u.deg, equinox=Time('J2001'))
-    f4 = f.transform_to(FK4)
+    f4 = f.transform_to(FK4())
     f4_2 = f.transform_to(FK4(equinox=f.equinox))
 
     # make sure attributes are copied over correctly
-    assert f4.equinox == FK4.get_frame_attr_names()['equinox']
+    assert f4.equinox == FK4().equinox
     assert f4_2.equinox == f.equinox
 
     # make sure self-transforms also work
     i = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg)
-    i2 = i.transform_to(ICRS)
+    i2 = i.transform_to(ICRS())
 
     assert_allclose(i.ra, i2.ra)
     assert_allclose(i.dec, i2.dec)
 
     f = FK5(ra=1*u.deg, dec=2*u.deg, equinox=Time('J2001'))
-    f2 = f.transform_to(FK5)  # default equinox, so should be *different*
+    f2 = f.transform_to(FK5())  # default equinox, so should be *different*
     assert f2.equinox == FK5().equinox
     with pytest.raises(AssertionError):
         assert_allclose(f.ra, f2.ra)
@@ -481,7 +481,7 @@ def test_transform():
 
     # finally, check Galactic round-tripping
     i1 = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg)
-    i2 = i1.transform_to(Galactic).transform_to(ICRS)
+    i2 = i1.transform_to(Galactic()).transform_to(ICRS())
 
     assert_allclose(i1.ra, i2.ra)
     assert_allclose(i1.dec, i2.dec)

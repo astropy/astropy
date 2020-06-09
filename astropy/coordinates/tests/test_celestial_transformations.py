@@ -39,7 +39,7 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
     catalog location of M31 from NED.
     """
     coo1 = fromsys(ra=fromcoo[0]*u.deg, dec=fromcoo[1]*u.deg, distance=m31_dist)
-    coo2 = coo1.transform_to(tosys)
+    coo2 = coo1.transform_to(tosys())
     if tosys is FK4:
         coo2_prec = coo2.transform_to(FK4(equinox=Time('B1950')))
         assert (coo2_prec.spherical.lon - tocoo[0]*u.deg) < convert_precision  # <1 arcsec
@@ -53,7 +53,7 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
     assert (coo2.distance - m31_dist) < dist_precision
 
     # check round-tripping
-    coo1_2 = coo2.transform_to(fromsys)
+    coo1_2 = coo2.transform_to(fromsys())
     assert (coo1_2.spherical.lon - fromcoo[0]*u.deg) < roundtrip_precision
     assert (coo1_2.spherical.lat - fromcoo[1]*u.deg) < roundtrip_precision
     assert (coo1_2.distance - m31_dist) < dist_precision
@@ -86,13 +86,13 @@ def test_fk5_galactic():
 
     fk5 = FK5(ra=1*u.deg, dec=2*u.deg)
 
-    direct = fk5.transform_to(Galactic)
-    indirect = fk5.transform_to(FK4).transform_to(Galactic)
+    direct = fk5.transform_to(Galactic())
+    indirect = fk5.transform_to(FK4()).transform_to(Galactic())
 
     assert direct.separation(indirect).degree < 1.e-10
 
-    direct = fk5.transform_to(Galactic)
-    indirect = fk5.transform_to(FK4NoETerms).transform_to(Galactic)
+    direct = fk5.transform_to(Galactic())
+    indirect = fk5.transform_to(FK4NoETerms()).transform_to(Galactic())
 
     assert direct.separation(indirect).degree < 1.e-10
 
@@ -103,7 +103,7 @@ def test_galactocentric():
                       dec=np.linspace(-90, 90, 10)*u.deg,
                       distance=1.*u.kpc)
 
-    g_xyz = icrs_coord.transform_to(Galactic).cartesian.xyz
+    g_xyz = icrs_coord.transform_to(Galactic()).cartesian.xyz
     with galactocentric_frame_defaults.set('pre-v4.0'):
         gc_xyz = icrs_coord.transform_to(Galactocentric(z_sun=0*u.kpc)).cartesian.xyz
     diff = np.abs(g_xyz - gc_xyz)
@@ -136,8 +136,8 @@ def test_galactocentric():
         g2 = Galactocentric(x=x.reshape(100, 1, 1), y=y.reshape(100, 1, 1),
                             z=z.reshape(100, 1, 1))
 
-        g1t = g1.transform_to(Galactic)
-        g2t = g2.transform_to(Galactic)
+        g1t = g1.transform_to(Galactic())
+        g2t = g2.transform_to(Galactic())
 
         assert_allclose(g1t.cartesian.xyz, g2t.cartesian.xyz[:, :, 0, 0])
 
@@ -145,8 +145,8 @@ def test_galactocentric():
         g2 = Galactic(l=l.reshape(100, 1, 1), b=b.reshape(100, 1, 1),
                       distance=d.reshape(100, 1, 1))
 
-        g1t = g1.transform_to(Galactocentric)
-        g2t = g2.transform_to(Galactocentric)
+        g1t = g1.transform_to(Galactocentric())
+        g2t = g2.transform_to(Galactocentric())
 
         np.testing.assert_almost_equal(g1t.cartesian.xyz.value,
                                        g2t.cartesian.xyz.value[:, :, 0, 0])
@@ -158,11 +158,11 @@ def test_supergalactic():
     """
     # Check supergalactic North pole.
     npole = Galactic(l=47.37*u.degree, b=+6.32*u.degree)
-    assert allclose(npole.transform_to(Supergalactic).sgb.deg, +90, atol=1e-9)
+    assert allclose(npole.transform_to(Supergalactic()).sgb.deg, +90, atol=1e-9)
 
     # Check the origin of supergalactic longitude.
     lon0 = Supergalactic(sgl=0*u.degree, sgb=0*u.degree)
-    lon0_gal = lon0.transform_to(Galactic)
+    lon0_gal = lon0.transform_to(Galactic())
     assert allclose(lon0_gal.l.deg, 137.37, atol=1e-9)
     assert allclose(lon0_gal.b.deg, 0, atol=1e-9)
 
@@ -273,12 +273,12 @@ def test_lsr_sanity():
     icrs = ICRS(ra=15.1241*u.deg, dec=17.5143*u.deg, distance=150.12*u.pc,
                 pm_ra_cosdec=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr,
                 radial_velocity=0*u.km/u.s)
-    lsr = icrs.transform_to(LSR)
+    lsr = icrs.transform_to(LSR())
 
     lsr_diff = lsr.data.differentials['s']
     cart_lsr_vel = lsr_diff.represent_as(CartesianRepresentation, base=lsr.data)
     lsr_vel = ICRS(cart_lsr_vel)
-    gal_lsr = lsr_vel.transform_to(Galactic).cartesian.xyz
+    gal_lsr = lsr_vel.transform_to(Galactic()).cartesian.xyz
     assert allclose(gal_lsr.to(u.km/u.s, u.dimensionless_angles()),
                     lsr.v_bary.d_xyz)
 
@@ -286,12 +286,12 @@ def test_lsr_sanity():
     lsr = LSR(ra=15.1241*u.deg, dec=17.5143*u.deg, distance=150.12*u.pc,
               pm_ra_cosdec=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr,
               radial_velocity=0*u.km/u.s)
-    icrs = lsr.transform_to(ICRS)
+    icrs = lsr.transform_to(ICRS())
 
     icrs_diff = icrs.data.differentials['s']
     cart_vel = icrs_diff.represent_as(CartesianRepresentation, base=icrs.data)
     vel = ICRS(cart_vel)
-    gal_icrs = vel.transform_to(Galactic).cartesian.xyz
+    gal_icrs = vel.transform_to(Galactic()).cartesian.xyz
     assert allclose(gal_icrs.to(u.km/u.s, u.dimensionless_angles()),
                     -lsr.v_bary.d_xyz)
 
@@ -302,13 +302,13 @@ def test_hcrs_icrs_differentials():
     hcrs = HCRS(ra=8.67*u.deg, dec=53.09*u.deg, distance=117*u.pc,
                 pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr,
                 radial_velocity=23.42*u.km/u.s)
-    icrs = hcrs.transform_to(ICRS)
+    icrs = hcrs.transform_to(ICRS())
 
     # The position and velocity should not change much
     assert allclose(hcrs.cartesian.xyz, icrs.cartesian.xyz, rtol=1e-8)
     assert allclose(hcrs.velocity.d_xyz, icrs.velocity.d_xyz, rtol=1e-2)
 
-    hcrs2 = icrs.transform_to(HCRS)
+    hcrs2 = icrs.transform_to(HCRS())
 
     # The values should round trip
     assert allclose(hcrs.cartesian.xyz, hcrs2.cartesian.xyz, rtol=1e-12)

@@ -282,7 +282,7 @@ To transform a coordinate frame that contains velocity data::
     >>> from astropy.coordinates import Galactic
     >>> icrs = ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
     ...             pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr)  # doctest: +FLOAT_CMP
-    >>> icrs.transform_to(Galactic) # doctest: +FLOAT_CMP
+    >>> icrs.transform_to(Galactic()) # doctest: +FLOAT_CMP
     <Galactic Coordinate: (l, b) in deg
         (120.38084191, -9.69872044)
      (pm_l_cosb, pm_b) in mas / yr
@@ -328,7 +328,7 @@ To perform a matrix-only transformation::
     >>> icrs = ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
     ...             pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr,
     ...             radial_velocity=23.42*u.km/u.s)
-    >>> icrs.transform_to(Galactic)  # doctest: +FLOAT_CMP
+    >>> icrs.transform_to(Galactic())  # doctest: +FLOAT_CMP
     <Galactic Coordinate: (l, b) in deg
         (120.38084191, -9.69872044)
      (pm_l_cosb, pm_b, radial_velocity) in (mas / yr, mas / yr, km / s)
@@ -344,7 +344,7 @@ for example, `~astropy.coordinates.ICRS` to `~astropy.coordinates.LSR`::
     ...             distance=117*u.pc,
     ...             pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr,
     ...             radial_velocity=23.42*u.km/u.s)
-    >>> icrs.transform_to(LSR)  # doctest: +FLOAT_CMP
+    >>> icrs.transform_to(LSR())  # doctest: +FLOAT_CMP
     <LSR Coordinate (v_bary=(11.1, 12.24, 7.25) km / s): (ra, dec, distance) in (deg, deg, pc)
         (8.67, 53.09, 117.)
      (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)

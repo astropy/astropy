@@ -116,7 +116,7 @@ def itrs_to_cirs(itrs_coo, cirs_frame):
 def itrs_to_itrs(from_coo, to_frame):
     # this self-transform goes through CIRS right now, which implicitly also
     # goes back to ICRS
-    return from_coo.transform_to(CIRS).transform_to(to_frame)
+    return from_coo.transform_to(CIRS()).transform_to(to_frame)
 
 # TODO: implement GCRS<->CIRS if there's call for it.  The thing that's awkward
 # is that they both have obstimes, so an extra set of transformations are necessary.

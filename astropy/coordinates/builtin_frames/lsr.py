@@ -191,7 +191,7 @@ class LSRK(BaseRADecFrame):
 # offsets here. The code to generate the offsets is provided for reproducibility.
 # GORDON1975_V_BARY = 20*u.km/u.s
 # GORDON1975_DIRECTION = FK4(ra=270*u.deg, dec=30*u.deg, equinox='B1900')
-# V_OFFSET_LSRK = ((GORDON1975_V_BARY * GORDON1975_DIRECTION.transform_to(ICRS).data)
+# V_OFFSET_LSRK = ((GORDON1975_V_BARY * GORDON1975_DIRECTION.transform_to(ICRS()).data)
 #                  .represent_as(r.CartesianDifferential))
 
 V_OFFSET_LSRK = r.CartesianDifferential([0.28999706839034606,
@@ -242,7 +242,7 @@ class LSRD(BaseRADecFrame):
 # NOTE: To avoid a performance penalty at import time, we hard-code the ICRS
 # offsets here. The code to generate the offsets is provided for reproducibility.
 # V_BARY_DELHAYE1965 = r.CartesianDifferential([9, 12, 7] * u.km/u.s)
-# V_OFFSET_LSRD = (Galactic(V_BARY_DELHAYE1965.to_cartesian()).transform_to(ICRS).data
+# V_OFFSET_LSRD = (Galactic(V_BARY_DELHAYE1965.to_cartesian()).transform_to(ICRS()).data
 #                  .represent_as(r.CartesianDifferential))
 
 V_OFFSET_LSRD = r.CartesianDifferential([-0.6382306360182073,

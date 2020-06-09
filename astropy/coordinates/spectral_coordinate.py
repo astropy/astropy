@@ -104,8 +104,8 @@ def update_differentials_to_match(original, velocity_reference, preserve_observe
     # it's a simple frame that is not time-dependent (it could be that both
     # the original and velocity_reference frame are time-dependent)
 
-    original_icrs = original.transform_to(ICRS)
-    velocity_reference_icrs = velocity_reference.transform_to(ICRS)
+    original_icrs = original.transform_to(ICRS())
+    velocity_reference_icrs = velocity_reference.transform_to(ICRS())
 
     differentials = velocity_reference_icrs.data.represent_as(CartesianRepresentation,
                                                               CartesianDifferential).differentials
@@ -295,7 +295,7 @@ class SpectralCoord(SpectralQuantity):
         # The generated observer or target will be set up along the same y and z
         # coordinates as the target or observer, but offset along the x direction
 
-        observer_icrs = observer.transform_to(ICRS)
+        observer_icrs = observer.transform_to(ICRS())
 
         d = observer_icrs.cartesian.norm()
         drep = CartesianRepresentation([DEFAULT_DISTANCE.to(d.unit),
@@ -554,8 +554,8 @@ class SpectralCoord(SpectralQuantity):
 
         # Convert observer and target to ICRS to avoid finite differencing
         # calculations that lack numerical precision.
-        observer_icrs = observer.transform_to(ICRS)
-        target_icrs = target.transform_to(ICRS)
+        observer_icrs = observer.transform_to(ICRS())
+        target_icrs = target.transform_to(ICRS())
 
         pos_hat = SpectralCoord._norm_d_pos(observer_icrs, target_icrs)
 
@@ -812,8 +812,8 @@ class SpectralCoord(SpectralQuantity):
             if observer_shift.unit.physical_type == 'dimensionless':
                 observer_shift = _redshift_to_velocity(observer_shift)
 
-        target_icrs = self._target.transform_to(ICRS)
-        observer_icrs = self._observer.transform_to(ICRS)
+        target_icrs = self._target.transform_to(ICRS())
+        observer_icrs = self._observer.transform_to(ICRS())
 
         pos_hat = SpectralCoord._norm_d_pos(observer_icrs, target_icrs)
 
