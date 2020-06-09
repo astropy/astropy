@@ -36,8 +36,8 @@ coord.galactocentric_frame_defaults.set('latest')
 # For this example, let's work with the coordinates and barycentric radial
 # velocity of the star HD 155967, as obtained from
 # `Simbad <http://simbad.harvard.edu/simbad/>`_:
-icrs = coord.ICRS(ra=258.58356362*u.deg, dec=14.55255619*u.deg,
-                  radial_velocity=-16.1*u.km/u.s)
+icrs = coord.SkyCoord(ra=258.58356362*u.deg, dec=14.55255619*u.deg,
+                      radial_velocity=-16.1*u.km/u.s, frame='icrs')
 
 ################################################################################
 # We next need to decide on the velocity of the Sun in the assumed GSR frame.
