@@ -140,7 +140,6 @@ def test_icrs_gcrs_dist_diff(gframe):
                         atol=1e-10*u.pc)
 
 
-@pytest.mark.remote_data
 def test_cirs_to_altaz():
     """
     Check the basic CIRS<->AltAz transforms.  More thorough checks implicitly
@@ -166,7 +165,6 @@ def test_cirs_to_altaz():
     assert_allclose(cirs.dec, cirs3.dec)
 
 
-@pytest.mark.remote_data
 def test_gcrs_itrs():
     """
     Check basic GCRS<->ITRS transforms for round-tripping.
@@ -191,7 +189,6 @@ def test_gcrs_itrs():
     assert_allclose(gcrsc.spherical.lat, gcrsc2.dec)
 
 
-@pytest.mark.remote_data
 def test_cirs_itrs():
     """
     Check basic CIRS<->ITRS transforms for round-tripping.
@@ -210,7 +207,6 @@ def test_cirs_itrs():
     assert not allclose(cirs.dec, cirs6_2.dec)
 
 
-@pytest.mark.remote_data
 def test_gcrs_cirs():
     """
     Check GCRS<->CIRS transforms for round-tripping.  More complicated than the
@@ -238,7 +234,6 @@ def test_gcrs_cirs():
     assert_allclose(gcrs.dec, gcrs4.dec)
 
 
-@pytest.mark.remote_data
 def test_gcrs_altaz():
     """
     Check GCRS<->AltAz transforms for round-tripping.  Has multiple paths
@@ -266,7 +261,6 @@ def test_gcrs_altaz():
     assert_allclose(aa1.az, aa3.az)
 
 
-@pytest.mark.remote_data
 def test_precessed_geocentric():
     assert PrecessedGeocentric().equinox.jd == Time('J2000').jd
 
@@ -309,7 +303,6 @@ MOONDIST_CART = CartesianRepresentation(3**-0.5*MOONDIST, 3**-0.5*MOONDIST, 3**-
 EARTHECC = 0.017 + 0.005  # roughly earth orbital eccentricity, but with an added tolerance
 
 
-@pytest.mark.remote_data
 @pytest.mark.parametrize('testframe', totest_frames)
 def test_gcrs_altaz_sunish(testframe):
     """
@@ -326,7 +319,6 @@ def test_gcrs_altaz_sunish(testframe):
     assert (EARTHECC - 1)*u.au < sunaa.distance.to(u.au) < (EARTHECC + 1)*u.au
 
 
-@pytest.mark.remote_data
 @pytest.mark.parametrize('testframe', totest_frames)
 def test_gcrs_altaz_moonish(testframe):
     """
@@ -347,7 +339,6 @@ def test_gcrs_altaz_moonish(testframe):
     # also should add checks that the alt/az are different for different earth locations
 
 
-@pytest.mark.remote_data
 @pytest.mark.parametrize('testframe', totest_frames)
 def test_gcrs_altaz_bothroutes(testframe):
     """
@@ -366,7 +357,6 @@ def test_gcrs_altaz_bothroutes(testframe):
     assert_allclose(moonaa_viaicrs.cartesian.xyz, moonaa_viaitrs.cartesian.xyz)
 
 
-@pytest.mark.remote_data
 @pytest.mark.parametrize('testframe', totest_frames)
 def test_cirs_altaz_moonish(testframe):
     """
@@ -383,7 +373,6 @@ def test_cirs_altaz_moonish(testframe):
     assert_allclose(moon.cartesian.xyz, moon2.cartesian.xyz)
 
 
-@pytest.mark.remote_data
 @pytest.mark.parametrize('testframe', totest_frames)
 def test_cirs_altaz_nodist(testframe):
     """
@@ -421,7 +410,6 @@ def test_gcrs_icrs_moonish(testframe):
     assert 0.97*u.au < moonicrs.distance < 1.03*u.au
 
 
-@pytest.mark.remote_data
 @pytest.mark.parametrize('testframe', totest_frames)
 def test_icrs_gcrscirs_sunish(testframe):
     """
@@ -441,7 +429,6 @@ def test_icrs_gcrscirs_sunish(testframe):
     assert (EARTHECC - 1)*u.au < itrs.spherical.distance.to(u.au) < (EARTHECC + 1)*u.au
 
 
-@pytest.mark.remote_data
 @pytest.mark.parametrize('testframe', totest_frames)
 def test_icrs_altaz_moonish(testframe):
     """
@@ -492,7 +479,6 @@ def test_gcrs_self_transform_closeby():
     assert_allclose(delta, 0.0*u.m, atol=1*u.m)
 
 
-@pytest.mark.remote_data
 def test_teme_itrf():
     """
     Test case transform from TEME to ITRF.

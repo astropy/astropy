@@ -73,7 +73,6 @@ def _erfa_check(ira, idec, astrom):
     return dct
 
 
-@pytest.mark.remote_data
 def test_iau_fullstack(fullstack_icrs, fullstack_fiducial_altaz,
                        fullstack_times, fullstack_locations,
                        fullstack_obsconditions):
@@ -139,7 +138,6 @@ def test_iau_fullstack(fullstack_icrs, fullstack_fiducial_altaz,
     npt.assert_allclose(erfadct['az'], aacoo.az.radian, atol=1e-7)
 
 
-@pytest.mark.remote_data
 def test_fiducial_roudtrip(fullstack_icrs, fullstack_fiducial_altaz):
     """
     Test the full transform from ICRS <-> AltAz

@@ -13,7 +13,6 @@ from astropy.constants import c as speed_of_light
 from astropy.table import Table
 
 
-@pytest.mark.remote_data
 @pytest.mark.parametrize('kind', ['heliocentric', 'barycentric'])
 def test_basic(kind):
     t0 = Time('2015-1-1')
@@ -40,7 +39,6 @@ test_input_loc = EarthLocation.from_geodetic(lon=-70.403*u.deg,
                                              height=2635*u.m)
 
 
-@pytest.mark.remote_data
 def test_helio_iraf():
     """
     Compare the heliocentric correction to the IRAF rvcorrect.
@@ -202,7 +200,6 @@ def _get_test_input_radecs():
     return SkyCoord(ra=ras, dec=decs, unit=u.deg)
 
 
-@pytest.mark.remote_data
 def test_barycorr():
     # this is the result of calling _get_barycorr_bvcs
     barycorr_bvcs = u.Quantity([
@@ -267,7 +264,6 @@ def _get_barycorr_bvcs(coos, loc, injupyter=False):
     return bvcs*u.m/u.s
 
 
-@pytest.mark.remote_data
 def test_rvcorr_multiple_obstimes_onskycoord():
     loc = EarthLocation(-2309223 * u.m, -3695529 * u.m, -4641767 * u.m)
     arrtime = Time('2005-03-21 00:00:00') + np.linspace(-1, 1, 10)*u.day
@@ -283,7 +279,6 @@ def test_rvcorr_multiple_obstimes_onskycoord():
     assert len(rvcbary_sc3) == 10
 
 
-@pytest.mark.remote_data
 def test_invalid_argument_combos():
     loc = EarthLocation(-2309223 * u.m, -3695529 * u.m, -4641767 * u.m)
     time = Time('2005-03-21 00:00:00')
@@ -306,7 +301,6 @@ def test_invalid_argument_combos():
         scwattrs.radial_velocity_correction(timel)
 
 
-@pytest.mark.remote_data
 def test_regression_9645():
     sc = SkyCoord(10*u.deg, 20*u.deg, distance=5*u.pc, obstime=test_input_time,
                   pm_ra_cosdec=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr, radial_velocity=0*u.km/u.s)
@@ -316,7 +310,6 @@ def test_regression_9645():
     assert_quantity_allclose(corr, corr_novel)
 
 
-@pytest.mark.remote_data
 def test_barycorr_withvels():
     # this is the result of calling _get_barycorr_bvcs_withvels
     barycorr_bvcs = u.Quantity(
@@ -401,7 +394,6 @@ def _get_barycorr_bvcs_withvels(coos, loc, injupyter=False):
     return bvcs*u.m/u.s
 
 
-@pytest.mark.remote_data
 def test_warning_no_obstime_on_skycoord():
     c = SkyCoord(l=10*u.degree, b=45*u.degree,
                  pm_l_cosb=34*u.mas/u.yr, pm_b=-117*u.mas/u.yr,

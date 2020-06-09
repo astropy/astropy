@@ -243,7 +243,6 @@ class TestHelioBaryCentric():
         self.obstime = Time("2013-02-02T23:00")
         self.wht_itrs = wht.get_itrs(obstime=self.obstime)
 
-    @pytest.mark.remote_data
     def test_heliocentric(self):
         gcrs = self.wht_itrs.transform_to(GCRS(obstime=self.obstime))
         helio = gcrs.transform_to(HCRS(obstime=self.obstime))
@@ -256,7 +255,6 @@ class TestHelioBaryCentric():
         assert np.sqrt(((helio.cartesian.xyz -
                          helio_slalib)**2).sum()) < 14. * u.km
 
-    @pytest.mark.remote_data
     def test_barycentric(self):
         gcrs = self.wht_itrs.transform_to(GCRS(obstime=self.obstime))
         bary = gcrs.transform_to(ICRS())
