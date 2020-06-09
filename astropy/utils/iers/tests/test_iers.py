@@ -258,7 +258,6 @@ class TestIERS_Auto():
                     _ = iers_table.ut1_utc(self.t.jd1, self.t.jd2)
         assert str(err.value) == 'IERS auto_max_age configuration value must be larger than 10 days'
 
-    @pytest.mark.remote_data
     def test_no_auto_download(self):
         with iers.conf.set_temp('auto_download', False):
             t = iers.IERS_Auto.open()
