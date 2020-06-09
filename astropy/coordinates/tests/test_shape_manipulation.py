@@ -24,7 +24,6 @@ needs_array_function = pytest.mark.xfail(
     reason="Needs __array_function__ support")
 
 
-@pytest.mark.remote_data
 class TestManipulation():
     """Manipulation of Frame shapes.
 

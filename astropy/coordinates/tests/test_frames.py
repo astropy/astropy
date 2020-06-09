@@ -1056,7 +1056,6 @@ def test_quantity_attribute_default():
             someval = QuantityAttribute()
 
 
-@pytest.mark.remote_data
 def test_eloc_attributes():
     from astropy.coordinates import AltAz, ITRS, GCRS, EarthLocation
 
