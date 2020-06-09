@@ -12,11 +12,7 @@ celestial-to-terrestrial coordinate transformations
 import re
 from datetime import datetime
 from warnings import warn
-
-try:
-    from urlparse import urlparse
-except ImportError:
-    from urllib.parse import urlparse
+from urllib.parse import urlparse
 
 import numpy as np
 
