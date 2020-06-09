@@ -217,50 +217,52 @@ doc_footer = """
 
     To transform to the Galactocentric frame with the default
     frame attributes, pass the uninstantiated class name to the
-    ``transform_to()`` method of a coordinate frame or
-    `~astropy.coordinates.SkyCoord` object::
+    ``transform_to()`` method of a `~astropy.coordinates.SkyCoord` object::
 
         >>> import astropy.units as u
         >>> import astropy.coordinates as coord
-        >>> c = coord.ICRS(ra=[158.3122, 24.5] * u.degree,
-        ...                dec=[-17.3, 81.52] * u.degree,
-        ...                distance=[11.5, 24.12] * u.kpc)
+        >>> c = coord.SkyCoord(ra=[158.3122, 24.5] * u.degree,
+        ...                    dec=[-17.3, 81.52] * u.degree,
+        ...                    distance=[11.5, 24.12] * u.kpc,
+        ...                    frame='icrs')
         >>> c.transform_to(coord.Galactocentric) # doctest: +FLOAT_CMP
-        <Galactocentric Coordinate (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
+        <SkyCoord (Galactocentric: galcen_coord=<ICRS Coordinate: (ra, dec) in deg
             (266.4051, -28.936175)>, galcen_distance=8.122 kpc, galcen_v_sun=(12.9, 245.6, 7.78) km / s, z_sun=20.8 pc, roll=0.0 deg): (x, y, z) in kpc
             [( -9.43489286, -9.40062188, 6.51345359),
-            (-21.11044918, 18.76334013, 7.83175149)]>
+             (-21.11044918, 18.76334013, 7.83175149)]>
 
 
     To specify a custom set of parameters, you have to include extra keyword
     arguments when initializing the Galactocentric frame object::
 
         >>> c.transform_to(coord.Galactocentric(galcen_distance=8.1*u.kpc)) # doctest: +FLOAT_CMP
-        <Galactocentric Coordinate (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
+        <SkyCoord (Galactocentric: galcen_coord=<ICRS Coordinate: (ra, dec) in deg
             (266.4051, -28.936175)>, galcen_distance=8.1 kpc, galcen_v_sun=(12.9, 245.6, 7.78) km / s, z_sun=20.8 pc, roll=0.0 deg): (x, y, z) in kpc
             [( -9.41284763, -9.40062188, 6.51346272),
-                (-21.08839478, 18.76334013, 7.83184184)]>
+             (-21.08839478, 18.76334013, 7.83184184)]>
 
     Similarly, transforming from the Galactocentric frame to another coordinate frame::
 
-        >>> c = coord.Galactocentric(x=[-8.3, 4.5] * u.kpc,
-        ...                          y=[0., 81.52] * u.kpc,
-        ...                          z=[0.027, 24.12] * u.kpc)
+        >>> c = coord.SkyCoord(x=[-8.3, 4.5] * u.kpc,
+        ...                    y=[0., 81.52] * u.kpc,
+        ...                    z=[0.027, 24.12] * u.kpc,
+        ...                    frame=coord.Galactocentric)
         >>> c.transform_to(coord.ICRS) # doctest: +FLOAT_CMP
-        <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
+        <SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, kpc)
             [( 88.22423301, 29.88672864,  0.17813456),
-            (289.72864549, 49.9865043 , 85.93949064)]>
+             (289.72864549, 49.9865043 , 85.93949064)]>
 
     Or, with custom specification of the Galactic center::
 
-        >>> c = coord.Galactocentric(x=[-8.0, 4.5] * u.kpc,
-        ...                          y=[0., 81.52] * u.kpc,
-        ...                          z=[21.0, 24120.0] * u.pc,
-        ...                          z_sun=21 * u.pc, galcen_distance=8. * u.kpc)
+        >>> c = coord.SkyCoord(x=[-8.0, 4.5] * u.kpc,
+        ...                    y=[0., 81.52] * u.kpc,
+        ...                    z=[21.0, 24120.0] * u.pc,
+        ...                    frame=coord.Galactocentric,
+        ...                    z_sun=21 * u.pc, galcen_distance=8. * u.kpc)
         >>> c.transform_to(coord.ICRS) # doctest: +FLOAT_CMP
-        <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
+        <SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, kpc)
             [( 86.2585249 , 28.85773187, 2.75625475e-05),
-            (289.77285255, 50.06290457, 8.59216010e+01)]>
+             (289.77285255, 50.06290457, 8.59216010e+01)]>
 
 """
 
