@@ -126,6 +126,12 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- The passing of frame classes (as opposed to frame instances) to the
+  ``transform_to()`` methods of low-level coordinate-frame classes has been
+  deprecated.  Frame classes can still be passed to the ``transform_to()``
+  method of the high-level ``SkyCoord`` class, and using ``SkyCoord`` is
+  recommended for all typical use cases of transforming coordinates. [#10475]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
