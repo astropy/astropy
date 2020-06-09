@@ -25,13 +25,13 @@ def test_api():
         # transform a set of ICRS proper motions to Galactic
         icrs = ICRS(ra=151.*u.deg, dec=-16*u.deg,
                     pm_ra_cosdec=21*u.mas/u.yr, pm_dec=-71*u.mas/u.yr)
-        icrs.transform_to(Galactic)
+        icrs.transform_to(Galactic())
 
         # transform a Barycentric RV to a GSR RV
         icrs = ICRS(ra=151.*u.deg, dec=-16*u.deg, distance=1.*u.pc,
                     pm_ra_cosdec=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr,
                     radial_velocity=71*u.km/u.s)
-        icrs.transform_to(Galactocentric)
+        icrs.transform_to(Galactocentric())
 
 
 all_kwargs = [
@@ -73,7 +73,7 @@ def test_all_arg_options(kwargs):
     # Here we do a simple thing and just verify that passing them in, we have
     # access to the relevant attributes from the resulting object
     icrs = ICRS(**kwargs)
-    gal = icrs.transform_to(Galactic)
+    gal = icrs.transform_to(Galactic())
     repr_gal = repr(gal)
 
     for k in kwargs:
@@ -144,7 +144,7 @@ def test_xhip_galactic(hip, ra, dec, pmra, pmdec, glon, glat, dist, pmglon, pmgl
     i = ICRS(ra*u.deg, dec*u.deg, dist*u.pc,
              pm_ra_cosdec=pmra*u.marcsec/u.yr, pm_dec=pmdec*u.marcsec/u.yr,
              radial_velocity=rv*u.km/u.s)
-    g = i.transform_to(Galactic)
+    g = i.transform_to(Galactic())
 
     # precision is limited by 2-deciimal digit string representation of pms
     assert quantity_allclose(g.pm_l_cosb, pmglon*u.marcsec/u.yr, atol=.01*u.marcsec/u.yr)
@@ -183,11 +183,11 @@ def test_frame_affinetransform(kwargs, expect_success):
         icrs = ICRS(**kwargs)
 
         if expect_success:
-            _ = icrs.transform_to(Galactocentric)
+            _ = icrs.transform_to(Galactocentric())
 
         else:
             with pytest.raises(ConvertError):
-                icrs.transform_to(Galactocentric)
+                icrs.transform_to(Galactocentric())
 
 
 def test_differential_type_arg():
@@ -324,5 +324,5 @@ def test_velocity_units():
 
 def test_frame_with_velocity_without_distance_can_be_transformed():
     frame = CIRS(1*u.deg, 2*u.deg, pm_dec=1*u.mas/u.yr, pm_ra_cosdec=2*u.mas/u.yr)
-    rep = frame.transform_to(ICRS)
+    rep = frame.transform_to(ICRS())
     assert "<ICRS Coordinate: (ra, dec, distance) in" in repr(rep)

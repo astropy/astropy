@@ -75,7 +75,7 @@ def test_unit_representation_subclass():
     assert isinstance(f._data, UnitSphericalWrap180Representation)
     assert isinstance(f.ra, Longitude180)
 
-    g = f.transform_to(astropy.coordinates.ICRS)
+    g = f.transform_to(astropy.coordinates.ICRS())
     assert isinstance(g, astropy.coordinates.ICRS)
     assert isinstance(g._data, UnitSphericalWrap180Representation)
 

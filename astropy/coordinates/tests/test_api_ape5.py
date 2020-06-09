@@ -266,22 +266,15 @@ def test_transform_api():
     newfk5 = fk5.transform_to(fk5_J2001_frame)
     assert newfk5.equinox == J2001
 
-    # classes can also be given to `transform_to`, which then uses the defaults for
-    # the frame information:
-    samefk5 = fk5.transform_to(FK5)
-    # `fk5` was initialized using default `obstime` and `equinox`, so:
-    assert_allclose(samefk5.ra, fk5.ra, atol=1e-10*u.deg)
-    assert_allclose(samefk5.dec, fk5.dec, atol=1e-10*u.deg)
-
     # transforming to a new frame necessarily loses framespec information if that
     # information is not applicable to the new frame.  This means transforms are not
     # always round-trippable:
     fk5_2 = FK5(ra=8*u.hour, dec=5*u.deg, equinox=J2001)
-    ic_trans = fk5_2.transform_to(ICRS)
+    ic_trans = fk5_2.transform_to(ICRS())
 
     # `ic_trans` does not have an `equinox`, so now when we transform back to FK5,
     # it's a *different* RA and Dec
-    fk5_trans = ic_trans.transform_to(FK5)
+    fk5_trans = ic_trans.transform_to(FK5())
     assert not allclose(fk5_2.ra, fk5_trans.ra, rtol=0, atol=1e-10*u.deg)
 
     # But if you explicitly give the right equinox, all is fine
@@ -290,7 +283,7 @@ def test_transform_api():
 
     # Trying to transforming a frame with no data is of course an error:
     with pytest.raises(ValueError):
-        FK5(equinox=J2001).transform_to(ICRS)
+        FK5(equinox=J2001).transform_to(ICRS())
 
     # To actually define a new transformation, the same scheme as in the
     # 0.2/0.3 coordinates framework can be re-used - a graph of transform functions
