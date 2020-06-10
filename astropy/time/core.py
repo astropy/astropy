@@ -863,6 +863,8 @@ class Time(ShapedLikeNDArray):
 
         Raises
         ------
+        ValueError
+            If the new shape has the wrong total number of elements.
         AttributeError
             If the shape of the ``jd1``, ``jd2``, ``location``,
             ``delta_ut1_utc``, or ``delta_tdb_tt`` attributes cannot be changed
@@ -895,7 +897,7 @@ class Time(ShapedLikeNDArray):
             if val is not None and val.size > 1:
                 try:
                     val.shape = shape
-                except AttributeError:
+                except Exception:
                     for val2 in reshaped:
                         val2.shape = oldshape
                     raise

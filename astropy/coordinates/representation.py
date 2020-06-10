@@ -422,6 +422,8 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
 
         Raises
         ------
+        ValueError
+            If the new shape has the wrong total number of elements.
         AttributeError
             If the shape of any of the components cannot be changed without the
             arrays being copied.  For these cases, use the ``reshape`` method
@@ -441,7 +443,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
             if val.size > 1:
                 try:
                     val.shape = shape
-                except AttributeError:
+                except Exception:
                     for val2 in reshaped:
                         val2.shape = oldshape
                     raise
