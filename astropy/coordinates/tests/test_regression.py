@@ -657,3 +657,18 @@ def test_regression_10092():
         newc = c.apply_space_motion(dt=10*u.year)
     assert_quantity_allclose(newc.pm_l_cosb, 33.99980714*u.mas/u.yr,
                              atol=1.0e-5*u.mas/u.yr)
+
+
+@pytest.mark.parametrize('mjd', (
+    52000, [52000], [[52000]], [52001, 52002], [[52001], [52002]]))
+def test_regression_10422(mjd):
+    """
+    Check that we can get a GCRS for a scalar EarthLocation and a
+    size=1 non-scalar Time.
+    """
+    # Avoid trying to download new IERS data.
+    with iers.earth_orientation_table.set(iers.IERS_B.open(iers.IERS_B_FILE)):
+        t = Time(mjd, format="mjd", scale="tai")
+        loc = EarthLocation(88258.0 * u.m, -4924882.2 * u.m, 3943729.0 * u.m)
+        p, v = loc.get_gcrs_posvel(obstime=t)
+        assert p.shape == v.shape == t.shape

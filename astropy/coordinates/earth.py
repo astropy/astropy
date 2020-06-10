@@ -636,7 +636,7 @@ class EarthLocation(u.Quantity):
         """
         # Broadcast for a single position at multiple times, but don't attempt
         # to be more general here.
-        if obstime and self.size == 1 and obstime.size > 1:
+        if obstime and self.size == 1 and obstime.shape:
             self = np.broadcast_to(self, obstime.shape, subok=True)
 
         # do this here to prevent a series of complicated circular imports
