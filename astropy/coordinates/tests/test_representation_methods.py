@@ -267,6 +267,8 @@ class TestSetShape(ShapeSetup):
 
         # but this one does not.
         oldshape = self.s1.shape
+        with pytest.raises(ValueError):
+            self.s1.shape = (1,)
         with pytest.raises(AttributeError):
             self.s1.shape = (42,)
         assert self.s1.shape == oldshape
