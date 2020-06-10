@@ -87,6 +87,8 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+- ``WCS.to_header()`` now appends comments to SIP coefficients. [#10480]
+
 
 API Changes
 -----------
