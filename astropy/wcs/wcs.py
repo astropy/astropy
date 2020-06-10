@@ -1190,12 +1190,17 @@ reduce these to 2 dimensions using the naxis kwarg.
             if a is None:
                 return
             size = a.shape[0]
-            keywords[f'{name}_ORDER'] = size - 1
+            trdir = 'sky to detector' if name[-1] == 'P' else 'detector to sky'
+            comment = ('SIP polynomial order, axis {:d}, {:s}'
+                       .format(ord(name[0]) - ord('A'), trdir))
+            keywords[f'{name}_ORDER'] = size - 1, comment
+
+            comment = 'SIP distortion coefficient'
             for i in range(size):
                 for j in range(size - i):
                     if a[i, j] != 0.0:
                         keywords[
-                            f'{name}_{i:d}_{j:d}'] = a[i, j]
+                            f'{name}_{i:d}_{j:d}'] = a[i, j], comment
 
         write_array('A', self.sip.a)
         write_array('B', self.sip.b)
