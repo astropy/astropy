@@ -726,6 +726,8 @@ astropy.io.fits
 
 - Fix crash when reading an invalid table file. [#10171]
 
+- Fix duplication issue when setting a keyword ending with space. [#10482]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
