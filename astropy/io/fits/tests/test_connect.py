@@ -1,5 +1,6 @@
 import os
 import gc
+import sys
 import pathlib
 import warnings
 
@@ -885,3 +886,17 @@ def test_round_trip_masked_table_serialize_mask(tmpdir, method):
         t[name].mask = False
         t2[name].mask = False
         assert np.all(t2[name] == t[name])
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_read_serialized_without_yaml(tmpdir, monkeypatch):
+    filename = str(tmpdir.join('test.fits'))
+    t = Table([mixin_cols['sc']])
+    t.write(filename)
+
+    monkeypatch.setitem(sys.modules, 'yaml', None)
+    with pytest.warns(AstropyUserWarning):
+        t2 = Table.read(filename)
+
+    assert t2.colnames == ['col0.ra', 'col0.dec']
+    assert len(t2) == 2
