@@ -305,6 +305,8 @@ astropy.utils
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
+- Fixed an issue where ticks were sometimes not drawn at the edges of a spherical
+  projection on a WCSAxes. [#10442]
 
 astropy.wcs
 ^^^^^^^^^^^
