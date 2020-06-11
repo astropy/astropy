@@ -1631,7 +1631,7 @@ class Header:
         keyword, value, comment = card
 
         # Lookups for existing/known keywords are case-insensitive
-        keyword = keyword.upper()
+        keyword = keyword.strip().upper()
         if keyword.startswith('HIERARCH '):
             keyword = keyword[9:]
 

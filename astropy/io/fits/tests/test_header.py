@@ -2371,6 +2371,17 @@ class TestHeaderFunctions(FitsTestCase):
         assert pri_hdr == pri_hdr_from_bytes
         assert pri_hdr.tostring() == pri_hdr_from_bytes.tostring()
 
+    def test_set_keyword_with_space(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/10479
+        """
+        hdr = fits.Header()
+        hdr['KEY2 '] = 2
+        hdr['KEY2  '] = 4
+        assert len(hdr) == 1
+        assert hdr['KEY2'] == 4
+        assert hdr['KEY2 '] == 4
+
 
 class TestRecordValuedKeywordCards(FitsTestCase):
     """
