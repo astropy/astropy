@@ -2377,8 +2377,9 @@ class TestHeaderFunctions(FitsTestCase):
         """
         hdr = fits.Header()
         hdr['KEY2 '] = 2
-        hdr['KEY2 '] = 4
+        hdr['KEY2  '] = 4
         assert len(hdr) == 1
+        assert hdr['KEY2'] == 4
         assert hdr['KEY2 '] == 4
 
 
