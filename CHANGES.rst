@@ -1232,6 +1232,7 @@ astropy.table
   is missing. [#10485]
 - Raise a TypeError when a scalar column is added to an unsized table. [#3811]
 
+- Raise a TypeError when a scalar column is added to an unsized table. [#10476]
 
 astropy.tests
 ^^^^^^^^^^^^^

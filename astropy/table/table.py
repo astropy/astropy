@@ -1945,7 +1945,7 @@ class Table:
         # Assigning a scalar column to an empty table should result in an
         # exception (see #3811).
         if col.shape == () and len(self) == 0:
-            raise TypeError("Empty table cannot have column set to scalar value.")
+            raise TypeError('Empty table cannot have column set to scalar value')
         # Make col data shape correct for scalars.  The second test is to allow
         # broadcasting an N-d element to a column, e.g. t['new'] = [[1, 2]].
         elif (col.shape == () or col.shape[0] == 1) and len(self) > 0:
