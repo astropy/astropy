@@ -471,3 +471,35 @@ def test_simplify_labels_usetex(ignore_matplotlibrc, tmpdir):
     ax.grid()
 
     fig.savefig(tmpdir / 'plot.png')
+
+
+@pytest.mark.parametrize('frame_class', [RectangularFrame, EllipticalFrame])
+def test_set_labels_with_coords(ignore_matplotlibrc, frame_class):
+    """Test if ``axis.set_xlabel()`` calls the correct ``coords[i]_set_axislabel()`` in a
+    WCS plot. Regression test for https://github.com/astropy/astropy/issues/10435.
+    """
+
+    labels = ['RA', 'Declination']
+    header = {
+        'NAXIS': 2,
+        'NAXIS1': 360,
+        'NAXIS2': 180,
+        'CRPIX1': 180.5,
+        'CRPIX2': 90.5,
+        'CRVAL1': 180.0,
+        'CRVAL2': 0.0,
+        'CDELT1': -2 * np.sqrt(2) / np.pi,
+        'CDELT2': 2 * np.sqrt(2) / np.pi,
+        'CTYPE1': 'RA---AIT',
+        'CTYPE2': 'DEC--AIT'}
+
+    wcs = WCS(header)
+    fig, ax = plt.subplots(
+        subplot_kw=dict(frame_class=frame_class, projection=wcs))
+    ax.set_xlabel(labels[0])
+    ax.set_ylabel(labels[1])
+
+    assert ax.get_xlabel() == labels[0]
+    assert ax.get_ylabel() == labels[1]
+    for i in range(2):
+        assert ax.coords[i].get_axislabel() == labels[i]

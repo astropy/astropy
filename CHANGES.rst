@@ -902,6 +902,9 @@ astropy.visualization
 - Fixed a bug where the ``ImageNormalize`` ``clip`` keyword was
   ignored when used with calling the object on data. [#10098]
 
+- Fixed a bug where ``axes.xlabel``/``axes.ylabel`` where not correctly set
+  nor returned on an ``EllipticalFrame`` class ``WCSAxes`` plot. [#10446]
+
 astropy.wcs
 ^^^^^^^^^^^
 

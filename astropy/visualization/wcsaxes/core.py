@@ -470,7 +470,8 @@ class WCSAxes(Axes):
             if xlabel is None:
                 raise TypeError("set_xlabel() missing 1 required positional argument: 'xlabel'")
         for coord in self.coords:
-            if 'b' in coord.axislabels.get_visible_axes():
+            if ('b' in coord.axislabels.get_visible_axes() or
+                'h' in coord.axislabels.get_visible_axes()):
                 coord.set_axislabel(xlabel, minpad=labelpad, **kwargs)
                 break
 
@@ -484,13 +485,15 @@ class WCSAxes(Axes):
             return super().set_ylabel(ylabel, labelpad=labelpad, **kwargs)
 
         for coord in self.coords:
-            if 'l' in coord.axislabels.get_visible_axes():
+            if ('l' in coord.axislabels.get_visible_axes() or
+                'c' in coord.axislabels.get_visible_axes()):
                 coord.set_axislabel(ylabel, minpad=labelpad, **kwargs)
                 break
 
     def get_xlabel(self):
         for coord in self.coords:
-            if 'b' in coord.axislabels.get_visible_axes():
+            if ('b' in coord.axislabels.get_visible_axes() or
+                'h' in coord.axislabels.get_visible_axes()):
                 return coord.get_axislabel()
 
     def get_ylabel(self):
@@ -498,7 +501,8 @@ class WCSAxes(Axes):
             return super().get_ylabel()
 
         for coord in self.coords:
-            if 'l' in coord.axislabels.get_visible_axes():
+            if ('l' in coord.axislabels.get_visible_axes() or
+                'c' in coord.axislabels.get_visible_axes()):
                 return coord.get_axislabel()
 
     def get_coords_overlay(self, frame, coord_meta=None):
