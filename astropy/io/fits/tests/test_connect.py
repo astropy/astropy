@@ -811,8 +811,10 @@ def test_fits_mixins_per_column(table_cls, name_col, tmpdir):
         assert t2[name]._time.jd2.__class__ is np.ndarray
 
 
-@pytest.mark.skipif('HAS_YAML')
-def test_warn_for_dropped_info_attributes(tmpdir):
+def test_warn_for_dropped_info_attributes(tmpdir, monkeypatch):
+    # make sure that yaml cannot be imported if it is available
+    monkeypatch.setitem(sys.modules, 'yaml', None)
+
     filename = str(tmpdir.join('test.fits'))
     t = Table([[1, 2]])
     t['col0'].info.description = 'hello'
@@ -823,8 +825,10 @@ def test_warn_for_dropped_info_attributes(tmpdir):
         "table contains column(s) with defined 'format'")
 
 
-@pytest.mark.skipif('HAS_YAML')
-def test_error_for_mixins_but_no_yaml(tmpdir):
+def test_error_for_mixins_but_no_yaml(tmpdir, monkeypatch):
+    # make sure that yaml cannot be imported if it is available
+    monkeypatch.setitem(sys.modules, 'yaml', None)
+
     filename = str(tmpdir.join('test.fits'))
     t = Table([mixin_cols['sc']])
     with pytest.raises(TypeError) as err:
