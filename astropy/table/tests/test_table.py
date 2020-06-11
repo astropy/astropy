@@ -255,7 +255,7 @@ class TestEmptyData():
         should raise an error instead of having an error raised when accessing
         the table."""
         t = table_types.Table()
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeError, match='Empty table cannot have column set to scalar value'):
             t.add_column(0)
 
     def test_add_via_setitem_and_slice(self, table_types):
