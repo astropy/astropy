@@ -4,6 +4,7 @@
 import os
 import re
 import warnings
+from copy import deepcopy
 
 from astropy.io import registry as io_registry
 from astropy import units as u
@@ -359,6 +360,11 @@ def _encode_mixins(tbl):
     # still go through the serialized columns machinery.
     if encode_tbl is tbl and not info_lost:
         return tbl
+
+    # Copy the meta dict if it was not copied by represent_mixins_as_columns
+    if encode_tbl is tbl:
+        meta_copy = deepcopy(tbl.meta)
+        encode_tbl = Table(tbl.columns, meta=meta_copy, copy=False)
 
     # Get the YAML serialization of information describing the table columns.
     # This is re-using ECSV code that combined existing table.meta with with
