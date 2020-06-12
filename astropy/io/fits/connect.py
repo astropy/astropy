@@ -361,7 +361,9 @@ def _encode_mixins(tbl):
     if encode_tbl is tbl and not info_lost:
         return tbl
 
-    # Copy the meta dict if it was not copied by represent_mixins_as_columns
+    # Copy the meta dict if it was not copied by represent_mixins_as_columns.
+    # We will modify .meta['comments'] below and we do not want to see these
+    # comments in the input table.
     if encode_tbl is tbl:
         meta_copy = deepcopy(tbl.meta)
         encode_tbl = Table(tbl.columns, meta=meta_copy, copy=False)
