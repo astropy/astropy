@@ -910,6 +910,8 @@ def test_read_serialized_without_yaml(tmpdir, monkeypatch):
 def test_meta_not_modified(tmpdir):
     filename = str(tmpdir.join('test.fits'))
     t = Table(data=[Column([1, 2], 'a', description='spam')])
-    assert len(t.meta) == 0
+    t.meta['comments'] = ['a', 'b']
+    assert len(t.meta) == 1
     t.write(filename)
-    assert len(t.meta) == 0
+    assert len(t.meta) == 1
+    assert t.meta['comments'] == ['a', 'b']
