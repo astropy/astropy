@@ -677,7 +677,8 @@ class UnifiedReadWrite:
             reader_doc += header
             reader_doc += re.sub('.', '=', header)
             reader_doc += os.linesep
-            reader_doc += inspect.cleandoc(doc)
+            if doc is not None:
+                reader_doc += inspect.cleandoc(doc)
 
         if out is None:
             import pydoc
