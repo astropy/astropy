@@ -40,10 +40,10 @@ find the cache has corrupted or outdated data in it, you can remove an entry or
 clear the whole thing with `~astropy.utils.data.clear_download_cache`.
 
 The files in the cache directory are named according to a cryptographic hash of
-their contents (currently MD5, so in principle malevolent entities can cause
-collisions, though the security risks this poses are marginal at most). Thus
-files with the same content share storage. The modification times on these
-files normally indicate when they were last downloaded from the Internet.
+their URL (currently MD5, so in principle malevolent entities can cause
+collisions, though the security risks this poses are marginal at most). The
+modification times on these files normally indicate when they were last
+downloaded from the Internet.
 
 Usage Within Astropy
 ====================
@@ -101,11 +101,10 @@ their data, from the cache if the data is there::
 If users want to update the cache to a newer version of the
 data (note that here the data was already up to date; users
 will have to decide for themselves when to obtain new versions),
-they can use the ``update_cache`` argument::
+they can use the ``cache='update'`` argument::
 
    >>> IERS_B.open(download_file(IERS_B_URL,
-   ...                           cache=True,
-   ...                           update_cache=True)
+   ...                           cache='update')
    ... )["year","month","day"][-3:]  # doctest: +SKIP
    Downloading http://hpiers.obspm.fr/iers/eop/eopc04/eopc04_IAU2000.62-now
    |=========================================| 3.2M/3.2M (100.00%)         0s
@@ -136,15 +135,15 @@ Cache Management
 ================
 
 Because the cache is persistent, it is possible for it to become inconveniently
-large, or become filled with irrelevant data. While it is simply a
-directory on disk, each file is supposed to represent the contents of a URL,
-and many URLs do not make acceptable on-disk filenames (for example, containing
-troublesome characters like ":" and "~"). There is reason to worry that
-multiple ``astropy`` processes accessing the cache simultaneously might lead to
-cache corruption. The cache is therefore protected by a lock and indexed by a
-persistent dictionary mapping URLs to hashes of the file contents, while the
-file contents are stored in files named by their hashes. So access to the cache
-is more convenient with a few helpers provided by `~astropy.utils.data`.
+large, or become filled with irrelevant data. While it is simply a directory on
+disk, each file is supposed to represent the contents of a URL, and many URLs
+do not make acceptable on-disk filenames (for example, containing troublesome
+characters like ":" and "~"). There is reason to worry that multiple
+``astropy`` processes accessing the cache simultaneously might lead to cache
+corruption. The data is therefore stored in a subdirectory named after the hash
+of the URL, and write access is handled in a way that is resistant to
+concurrency problems. So access to the cache is more convenient with a few
+helpers provided by `~astropy.utils.data`.
 
 If your cache starts behaving oddly you can use
 `~astropy.utils.data.check_download_cache` to examine your cache contents and
@@ -221,3 +220,32 @@ the Internet at all.
 If you have a particular URL that is giving you trouble, you can download it
 using some other tool (e.g., ``wget``), possibly on another machine, and
 then use `~astropy.utils.data.import_file_to_cache`.
+
+Astropy Data and Clusters
+=========================
+
+Astronomical calculations often require the use of a large number of different
+processes on different machines with a shared home filesystem. This can pose
+certain complexities. In particular, if the many different processes attempt to
+download a file simultaneous this can overload a server or trigger security
+systems. The parallel access to the home directory can also trigger concurrency
+problems in the Astropy data cache, though we have tried to minimize these. We
+therefore recommend the following guidelines:
+
+ * Write a simple script that sets ``astropy.utils.iers.conf.auto_download = True``
+   and then accesses all cached resources your code will need, including source name
+   lookups and IERS tables. Run it on the head node from time to time (at least twice
+   a month) to ensure all data is up to date.
+
+ * Make an Astropy config file (see :ref:`astropy_config`) that sets
+   ``astropy.utils.iers.conf.auto_download = False`` so that the worker jobs will
+   not suddenly notice an out-of-date table all at once and frantically attempt
+   to download it.
+
+ * Optionally, in this file, set ``astropy.utils.data.conf.remote_timeout = 0`` to
+   prevent any attempt to download any file from the worker nodes; if you do this
+   you will need to override this setting in your script that does the actual
+   downloading.
+
+Now your worker nodes should not need to obtain anything from the Internet and
+all should run smoothly.

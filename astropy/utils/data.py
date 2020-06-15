@@ -68,12 +68,13 @@ class Conf(_config.ConfigNamespace):
         'Mirror URL for astropy remote data site.')
     default_http_user_agent = _config.ConfigItem(
         'astropy',
-        'Default User-Agent for HTTP request headers. This can be overwritten'
-        'for a particular call via http_headers option, where available.'
+        'Default User-Agent for HTTP request headers. This can be overwritten '
+        'for a particular call via http_headers option, where available. '
         'This only provides the default value when not set by https_headers.')
     remote_timeout = _config.ConfigItem(
         10.,
-        'Time to wait for remote data queries (in seconds).',
+        'Time to wait for remote data queries (in seconds). Set this to zero '
+        'to prevent any attempt to download anything.',
         aliases=['astropy.coordinates.name_resolve.name_resolve_timeout'])
     compute_hash_block_size = _config.ConfigItem(
         2 ** 16,  # 64K
@@ -190,7 +191,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
 
     remote_timeout : float
         Timeout for remote requests in seconds (default is the configurable
-        `astropy.utils.data.Conf.remote_timeout`, which is 3s by default)
+        `astropy.utils.data.Conf.remote_timeout`, which is 3s by default).
+        Set this to zero to prevent any attempt at downloading.
 
     sources : list of str, optional
         If provided, a list of URLs to try to obtain the file from. The
@@ -553,7 +555,8 @@ def get_pkg_data_filename(data_name, package=None, show_progress=True,
     remote_timeout : float
         Timeout for the requests in seconds (default is the
         configurable `astropy.utils.data.Conf.remote_timeout`, which
-        is 3s by default)
+        is 3s by default). Set this to zero to prevent any attempt
+        at downloading.
 
     Raises
     ------
@@ -983,6 +986,12 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
                                http_headers=None, ftp_tls=False):
     from astropy.utils.console import ProgressBarOrSpinner
 
+    if timeout == 0:
+        raise urllib.error.URLError(
+            f"URL {remote_url} was supposed to be downloaded but timeout was set to 0; "
+            f"if this is unexpected check the astropy config file for the option "
+            f"remote_timeout")
+
     if remote_url is None:
         remote_url = source_url
     if http_headers is None:
@@ -1088,7 +1097,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
 
     timeout : float, optional
         The timeout, in seconds.  Otherwise, use
-        `astropy.utils.data.Conf.remote_timeout`.
+        `astropy.utils.data.Conf.remote_timeout`. Set this to zero to prevent
+        any attempt to download anything.
 
     sources : list of str, optional
         If provided, a list of URLs to try to obtain the file from. The
@@ -1327,7 +1337,9 @@ def download_files_in_parallel(urls,
 
     timeout : float, optional
         Timeout for each individual requests in seconds (default is the
-        configurable `astropy.utils.data.Conf.remote_timeout`).
+        configurable `astropy.utils.data.Conf.remote_timeout`). Set this to
+        zero to prevent any attempt to download anything.
+
 
     sources : dict, optional
         If provided, for each URL a list of URLs to try to obtain the
