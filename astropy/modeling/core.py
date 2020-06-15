@@ -3341,8 +3341,7 @@ class CompoundModel(Model):
                     branch = getattr(branch, node)
                 setattr(branch, tree[-1], model)
                 model = CompoundModel(branch.op, branch.left, branch.right,
-                                      name=branch.name,
-                                      inverse=branch._user_inverse)
+                                      name=branch.name)
                 tree = tree[:-1]
             return model
 
