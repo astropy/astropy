@@ -37,7 +37,7 @@ next_power_of_2(Py_ssize_t n)
  * Write TABLEDATA
  ******************************************************************************/
 
-#define CHAR Py_UNICODE
+#define CHAR char
 
 /*
  * Reallocate the write buffer to the requested size
@@ -267,12 +267,11 @@ write_tabledata(PyObject* self, PyObject *args, PyObject *kwds)
                     Py_DECREF(str_val);
                     str_val = tmp;
                 }
-                if ((str_tmp = PyUnicode_AsUnicode(str_val)) == NULL) {
+                if ((str_tmp = PyUnicode_AsUTF8AndSize(str_val, &str_len)) == NULL) {
                     Py_DECREF(str_val);
                     goto exit;
                 }
 
-                str_len = PyUnicode_GetLength(str_val);
                 if (str_len) {
                     if (_write_cstring(&buf, &buf_size, &x, "  <TD>", 6) ||
                         _write_string(&buf, &buf_size, &x, str_tmp, str_len) ||
@@ -305,7 +304,7 @@ write_tabledata(PyObject* self, PyObject *args, PyObject *kwds)
 
         /* NULL-terminate the string */
         *x = (CHAR)0;
-        if ((tmp = PyObject_CallFunction(write_method, "u#", buf, x - buf))
+        if ((tmp = PyObject_CallFunction(write_method, "s#", buf, x - buf))
             == NULL) goto exit;
         Py_DECREF(tmp);
     }
