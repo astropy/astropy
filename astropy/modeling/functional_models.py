@@ -542,10 +542,7 @@ class Scale(Fittable1DModel):
         return [d_factor]
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        unit = outputs_unit[self.outputs[0]] / inputs_unit[self.inputs[0]]
-        if unit == u.one:
-            unit = None
-        return {'factor': unit}
+        return {'factor': outputs_unit[self.outputs[0]]}
 
 
 class Multiply(Fittable1DModel):
@@ -582,7 +579,7 @@ class Multiply(Fittable1DModel):
         return [d_factor]
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'factor': outputs_unit['y']}
+        return {'factor': outputs_unit[self.outputs[0]]}
 
 
 class RedshiftScaleFactor(Fittable1DModel):

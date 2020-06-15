@@ -1307,16 +1307,7 @@ class Model(metaclass=_ModelMeta):
         that takes the input and output units (as two dictionaries) and
         returns a dictionary giving the target units for each parameter.
 
-        For compound models this will only work when the expression only
-        involves the addition or subtraction operators.
         """
-        if isinstance(self, CompoundModel):
-            self._make_opset()
-            if not self._opset.issubset(set(('+', '-'))):
-                raise ValueError(
-                    "Fitting a compound model without units can only be performed on"
-                    "compound models that only use the arithmetic operators + and -")
-
         model = self.copy()
 
         inputs_unit = {inp: getattr(kwargs[inp], 'unit', dimensionless_unscaled)
@@ -2311,7 +2302,6 @@ class CompoundModel(Model):
         self._bounding_box = None
         self._user_bounding_box = None
         self._leaflist = None
-        self._opset = None
         self._tdict = None
         self._parameters = None
         self._parameters_ = None
@@ -2619,11 +2609,6 @@ class CompoundModel(Model):
         make_subtree_dict(self, '', tdict, leaflist)
         self._leaflist = leaflist
         self._tdict = tdict
-
-    def _make_opset(self):
-        """ Determine the set of operations used in this tree."""
-        self._opset = set()
-        get_ops(self, self._opset)
 
     def __getattr__(self, name):
         """

@@ -835,6 +835,10 @@ astropy.modeling
 - Fixed a problem where slicing a ``CompoundModel`` by name will crash if
   there ``fix_inputs`` operators are present. [#10224]
 
+- Removed a limitation of fitting of data with units with compound models
+  without units when the expression involves operators other than addition
+  and subtraction. [#10415]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
