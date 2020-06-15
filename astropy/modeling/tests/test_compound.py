@@ -696,3 +696,17 @@ def test_replace_submodel():
     m2 = m.replace_submodel('poly', Polynomial1D(degree=1, c0=[1, 2],
                                                  n_models=2))
     assert_array_equal(m2([0, 1]), (2, 4))
+
+    # Ensure previous _user_inverse doesn't stick around
+    S1 = Shift(1)
+    S2 = Shift(2)
+    S3 = Shift(3, name='S3')
+
+    S23 = S2 | S3
+    S23.inverse = Shift(-4.9)
+    m = S1 & S23
+
+    # This should delete the S23._user_inverse
+    m2 = m.replace_submodel('S3', Shift(4))
+    assert m2(1, 2) == (2, 8)
+    assert m2.inverse(2, 8) == (1, 2)
