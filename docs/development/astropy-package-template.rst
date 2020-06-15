@@ -34,9 +34,10 @@ by ``CHANGES.md`` in the instructions.
    and update the release date, which should currently be set to
    ``unreleased``, to the current date in ``yyyy-mm-dd`` format.
 
-#. Update the version number in ``setup.cfg`` to the version you're about to
-   release, without the ``.dev`` suffix (e.g. ``0.1``). If your package uses
-   setuptools_scm to manage version numbers, you can skip this step.
+#. Update the version number to the version you're about to
+   release (using ``git tag``, for example), without the ``.dev`` suffix 
+   (e.g. ``0.1``). If your package uses setuptools_scm to manage version 
+   numbers, you can skip this step.
 
 #. Run ``git clean -fxd`` to remove any untracked files (WARNING: this will
    permanently remove any files that have not been previously committed, so
