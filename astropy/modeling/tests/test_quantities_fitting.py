@@ -42,13 +42,10 @@ def _fake_gaussian_data():
     return x, y
 
 
-bad_compound_models_no_units = [
-    models.Linear1D() + models.Gaussian1D() | models.Scale(),
-    models.Linear1D() + models.Gaussian1D() | models.Shift()
-]
-
 compound_models_no_units = [
-    models.Linear1D() + models.Gaussian1D() + models.Gaussian1D()
+    models.Linear1D() + models.Gaussian1D() + models.Gaussian1D(),
+    models.Linear1D() + models.Gaussian1D() | models.Scale(),
+    models.Linear1D() + models.Gaussian1D() | models.Shift(),
 ]
 
 
@@ -245,17 +242,18 @@ def test_compound_fitting_with_units():
     assert isinstance(res(x, y), np.ndarray)
     assert all([res[i]._has_units for i in range(2)])
 
+    # A case of a mixture of models with and without units
+    model = models.BlackBody(temperature=3000 * u.K) * models.Const1D(amplitude=1.0)
+    x = np.linspace(1, 3, 10000) * u.micron
 
-@pytest.mark.skipif('not HAS_SCIPY')
-@pytest.mark.parametrize('model', bad_compound_models_no_units)
-def test_bad_compound_without_units(model):
-    with pytest.raises(ValueError):
-        x = np.linspace(-5, 5, 10) * u.Angstrom
-        with NumpyRNGContext(12345):
-            y = np.random.sample(10)
+    with NumpyRNGContext(12345):
+        n = np.random.normal(3)
 
-        fitter = fitting.LevMarLSQFitter()
-        res_fit = fitter(model, x, y * u.Hz)
+    y = model(x)
+    res = fitter(model, x, y * (1 + n))
+    # The large rtol here is due to different results on linux and macosx, likely
+    # the model is ill-conditioned.
+    np.testing.assert_allclose(res.parameters, [3000, 2.1433621e+00, 2.647347e+00], rtol=0.4)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
