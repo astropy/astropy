@@ -1169,14 +1169,13 @@ static const char* escapes[] = {
 /* Implementation of escape_xml.
  *
  * Returns:
- *  * 0 : No need to escape
- *  * 1 : output is escaped
- *  * -1: error
+ *  * 0  : No need to escape
+ *  * >0 : output is escaped
+ *  * -1 : error
  */
-static int
+static Py_ssize_t
 _escape_xml_impl(const char *input, Py_ssize_t input_len,
-                 char **output, Py_ssize_t *output_len,
-                 const char **escape)
+                 char **output, const char **escape)
 {
     Py_ssize_t i;
     int count = 0;
@@ -1199,13 +1198,13 @@ _escape_xml_impl(const char *input, Py_ssize_t input_len,
         return 0;
     }
 
-    *output = malloc((input_len + 1 + count * 5) * sizeof(char));
-    if (*output == NULL) {
+    p = malloc((input_len + 1 + count * 5) * sizeof(char));
+    if (p == NULL) {
         PyErr_SetString(PyExc_MemoryError, "Out of memory");
         return -1;
     }
+    *output = p;
 
-    p = *output;
     for (i = 0; i < input_len; ++i) {
         for (esc = escapes; ; esc += 2) {
             if (input[i] > **esc) {
@@ -1221,8 +1220,7 @@ _escape_xml_impl(const char *input, Py_ssize_t input_len,
     }
 
     *p = 0;
-    *output_len = p - *output;
-    return 1;
+    return p - *output;
 }
 
 /*
@@ -1242,7 +1240,6 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
     Py_ssize_t input_len;
     char* output = NULL;
     Py_ssize_t output_len;
-    int ret;
 
     if (!PyArg_ParseTuple(args, "O:escape_xml", &input_obj)) {
         return NULL;
@@ -1259,12 +1256,12 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
             return NULL;
         }
 
-        ret = _escape_xml_impl(input, input_len, &output, &output_len, escapes);
-        if (ret < 0) {
+        output_len = _escape_xml_impl(input, input_len, &output, escapes);
+        if (output_len < 0) {
             Py_DECREF(input_coerce);
             return NULL;
         }
-        if (ret > 0) {
+        if (output_len > 0) {
             Py_DECREF(input_coerce);
             output_obj = PyUnicode_FromStringAndSize(output, output_len);
             free(output);
@@ -1281,18 +1278,17 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
             return NULL;
         }
 
-        ret = _escape_xml_impl(input, input_len, &output, &output_len, escapes);
-        if (ret < 0) {
+        output_len = _escape_xml_impl(input, input_len, &output, escapes);
+        if (output_len < 0) {
             Py_DECREF(input_coerce);
             return NULL;
         }
-        if (ret > 0) {
+        if (output_len > 0) {
             Py_DECREF(input_coerce);
             output_obj = PyBytes_FromStringAndSize(output, output_len);
             free(output);
             return output_obj;
         }
-
         return input_coerce;
     }
 
