@@ -1185,7 +1185,7 @@ _escape_xml_impl(const char *input, Py_ssize_t input_len,
 
     for (i = 0; i < input_len; ++i) {
         for (esc = escapes; ; esc += 2) {
-            if (input[i] > **esc) {
+            if ((unsigned char)input[i] > **esc) {
                 break;
             } else if (input[i] == **esc) {
                 ++count;
@@ -1207,7 +1207,7 @@ _escape_xml_impl(const char *input, Py_ssize_t input_len,
 
     for (i = 0; i < input_len; ++i) {
         for (esc = escapes; ; esc += 2) {
-            if (input[i] > **esc) {
+            if ((unsigned char)input[i] > **esc) {
                 *(p++) = input[i];
                 break;
             } else if (input[i] == **esc) {
