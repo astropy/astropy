@@ -1175,7 +1175,7 @@ static const char* escapes[] = {
  */
 static Py_ssize_t
 _escape_xml_impl(const char *input, Py_ssize_t input_len,
-                 char **output, const char **escape)
+                 char **output, const char **escapes)
 {
     Py_ssize_t i;
     int count = 0;
