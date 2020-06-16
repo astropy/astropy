@@ -58,8 +58,7 @@ packages that use the full bugfix/maintenance branch approach.)
    ``git shortlog -s`` to get the final contributor count.
 
 #. Also be sure to update the ``docs/credits.rst`` file to include any new
-   contributors.  This can come from the above step, or the ``author_lists.py``
-   script in the `astropy-procedures repository`_ mostly automates this.  (This
+   contributors from the above step. (This
    step is only required on major releases, but can be done for bugfix releases
    as time allows.)
 
