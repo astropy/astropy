@@ -109,63 +109,13 @@ jobs:
       - store_artifacts:
           path: results
 
-  html-docs:
-    docker:
-      - image: circleci/python:3.7
-    steps:
-      - checkout
-      - run:
-          name: Install apt packages
-          command: |
-            sudo apt update
-            sudo apt install -y graphviz
-      - run:
-          name: Install Python dependencies
-          command: pip install tox --user
-      - run:
-          name: Make sure style checks pass
-          command: tox -e codestyle
-      - run:
-          name: Build Docs
-          command: tox -e build_docs -- -j=4
-          environment:
-            LC_CTYPE: C
-            LC_ALL: C
-            LANG: C
-
-      - run:
-          name: Prepare for upload
-          command: |
-            # If it's not a PR, don't upload
-            if [ -z "${CIRCLE_PULL_REQUEST}" ]; then
-              rm -r docs/_build/html
-            else
-              # If it is a PR, delete sources and doctrees, because it's a lot
-              # of files which we don't really need to upload
-              rm -r docs/_build/html/_sources
-              rm -r docs/_build/html/_modules
-              rm -r docs/_build/html/.doctrees
-            fi
-
-      - store_artifacts:
-          path: docs/_build/html
-
-      - run:
-          name: "Built documentation is available at:"
-          command: DOCS_URL="${CIRCLE_BUILD_URL}/artifacts/${CIRCLE_NODE_INDEX}/${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}/docs/_build/html/index.html"; echo $DOCS_URL
-
 workflows:
   version: 2
-  tests_and_docs:
+  tests:
     jobs:
-      - html-docs
       - 32bit-and-parallel
       - image-tests-mpl212
       - image-tests-mpl222
       - image-tests-mpl302
       - image-tests-mpl310
       - image-tests-mpldev
-
-notify:
-  webhooks:
-    - url: https://giles.cadair.dev/circleci
