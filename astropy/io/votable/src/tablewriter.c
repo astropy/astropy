@@ -304,8 +304,8 @@ write_tabledata(PyObject* self, PyObject *args, PyObject *kwds)
 
         /* NULL-terminate the string */
         *x = (CHAR)0;
-        if ((tmp = PyObject_CallFunction(write_method, "s#", buf, x - buf))
-            == NULL) goto exit;
+        if ((tmp = PyObject_CallFunction(write_method, "s#",
+                buf, (Py_ssize_t)(x - buf))) == NULL) goto exit;
         Py_DECREF(tmp);
     }
 
