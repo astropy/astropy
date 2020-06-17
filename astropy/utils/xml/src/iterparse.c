@@ -1166,6 +1166,63 @@ static const char* escapes[] = {
     "\0", "\0"
 };
 
+/* Implementation of escape_xml.
+ *
+ * Returns:
+ *  * 0  : No need to escape
+ *  * >0 : output is escaped
+ *  * -1 : error
+ */
+static Py_ssize_t
+_escape_xml_impl(const char *input, Py_ssize_t input_len,
+                 char **output, const char **escapes)
+{
+    Py_ssize_t i;
+    int count = 0;
+    char *p = NULL;
+    const char** esc;
+    const char* ent;
+
+    for (i = 0; i < input_len; ++i) {
+        for (esc = escapes; ; esc += 2) {
+            if ((unsigned char)input[i] > **esc) {
+                break;
+            } else if (input[i] == **esc) {
+                ++count;
+                break;
+            }
+        }
+    }
+
+    if (!count) {
+        return 0;
+    }
+
+    p = malloc((input_len + 1 + count * 5) * sizeof(char));
+    if (p == NULL) {
+        PyErr_SetString(PyExc_MemoryError, "Out of memory");
+        return -1;
+    }
+    *output = p;
+
+    for (i = 0; i < input_len; ++i) {
+        for (esc = escapes; ; esc += 2) {
+            if ((unsigned char)input[i] > **esc) {
+                *(p++) = input[i];
+                break;
+            } else if (input[i] == **esc) {
+                for (ent = *(esc + 1); *ent != '\0'; ++ent) {
+                    *(p++) = *ent;
+                }
+                break;
+            }
+        }
+    }
+
+    *p = 0;
+    return p - *output;
+}
+
 /*
  * Returns a copy of the given string (8-bit or Unicode) with the XML
  * control characters converted to XML character entities.
@@ -1179,17 +1236,10 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
     PyObject* input_obj;
     PyObject* input_coerce = NULL;
     PyObject* output_obj;
-    int count = 0;
-    Py_UNICODE* uinput = NULL;
     char* input = NULL;
     Py_ssize_t input_len;
-    Py_UNICODE* uoutput = NULL;
     char* output = NULL;
-    Py_UNICODE* up = NULL;
-    char* p = NULL;
-    Py_ssize_t i;
-    const char** esc;
-    const char* ent;
+    Py_ssize_t output_len;
 
     if (!PyArg_ParseTuple(args, "O:escape_xml", &input_obj)) {
         return NULL;
@@ -1200,57 +1250,24 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
         input_coerce = PyObject_Str(input_obj);
     }
     if (input_coerce) {
-        uinput = PyUnicode_AsUnicode(input_coerce);
-        if (uinput == NULL) {
+        input = (char*)PyUnicode_AsUTF8AndSize(input_coerce, &input_len);
+        if (input == NULL) {
             Py_DECREF(input_coerce);
             return NULL;
         }
 
-        input_len = PyUnicode_GetLength(input_coerce);
-
-        for (i = 0; i < input_len; ++i) {
-            for (esc = escapes; ; esc += 2) {
-                if (uinput[i] > (Py_UNICODE)**esc) {
-                    break;
-                } else if (uinput[i] == (Py_UNICODE)**esc) {
-                    ++count;
-                    break;
-                }
-            }
-        }
-
-        if (count) {
-            uoutput = malloc((input_len + 1 + count * 5) * sizeof(Py_UNICODE));
-            if (uoutput == NULL) {
-                Py_DECREF(input_coerce);
-                PyErr_SetString(PyExc_MemoryError, "Out of memory");
-                return NULL;
-            }
-
-            up = uoutput;
-            for (i = 0; i < input_len; ++i) {
-                for (esc = escapes; ; esc += 2) {
-                    if (uinput[i] > (Py_UNICODE)**esc) {
-                        *(up++) = uinput[i];
-                        break;
-                    } else if (uinput[i] == (Py_UNICODE)**esc) {
-                        for (ent = *(esc + 1); *ent != '\0'; ++ent) {
-                            *(up++) = (Py_UNICODE)*ent;
-                        }
-                        break;
-                    }
-                }
-            }
-
-            *up = 0;
-
+        output_len = _escape_xml_impl(input, input_len, &output, escapes);
+        if (output_len < 0) {
             Py_DECREF(input_coerce);
-            output_obj = PyUnicode_FromUnicode(uoutput, up - uoutput);
-            free(uoutput);
-            return output_obj;
-        } else {
-            return input_coerce;
+            return NULL;
         }
+        if (output_len > 0) {
+            Py_DECREF(input_coerce);
+            output_obj = PyUnicode_FromStringAndSize(output, output_len);
+            free(output);
+            return output_obj;
+        }
+        return input_coerce;
     }
 
     /* Now try as bytes */
@@ -1261,49 +1278,18 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
             return NULL;
         }
 
-        for (i = 0; i < input_len; ++i) {
-            for (esc = escapes; ; esc += 2) {
-                if (input[i] > **esc) {
-                    break;
-                } else if (input[i] == **esc) {
-                    ++count;
-                    break;
-                }
-            }
-        }
-
-        if (count) {
-            output = malloc((input_len + 1 + count * 5) * sizeof(char));
-            if (output == NULL) {
-                Py_DECREF(input_coerce);
-                PyErr_SetString(PyExc_MemoryError, "Out of memory");
-                return NULL;
-            }
-
-            p = output;
-            for (i = 0; i < input_len; ++i) {
-                for (esc = escapes; ; esc += 2) {
-                    if (input[i] > **esc) {
-                        *(p++) = input[i];
-                        break;
-                    } else if (input[i] == **esc) {
-                        for (ent = *(esc + 1); *ent != '\0'; ++ent) {
-                            *(p++) = *ent;
-                        }
-                        break;
-                    }
-                }
-            }
-
-            *p = 0;
-
+        output_len = _escape_xml_impl(input, input_len, &output, escapes);
+        if (output_len < 0) {
             Py_DECREF(input_coerce);
-            output_obj = PyBytes_FromStringAndSize(output, p - output);
+            return NULL;
+        }
+        if (output_len > 0) {
+            Py_DECREF(input_coerce);
+            output_obj = PyBytes_FromStringAndSize(output, output_len);
             free(output);
             return output_obj;
-        } else {
-            return input_coerce;
         }
+        return input_coerce;
     }
 
     PyErr_SetString(PyExc_TypeError, "must be convertible to str or bytes");
