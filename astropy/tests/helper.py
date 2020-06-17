@@ -21,6 +21,7 @@ except ImportError:
     pass
 
 from astropy.units import allclose as quantity_allclose  # noqa
+from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import (AstropyDeprecationWarning,
                                       AstropyPendingDeprecationWarning)
 
@@ -161,6 +162,7 @@ _warnings_to_ignore_by_pyver = {
 }
 
 
+@deprecated('4.3', alternative='pytest warning handling', pending=True)
 def enable_deprecations_as_exceptions(include_astropy_deprecations=True,
                                       modules_to_ignore_on_import=[],
                                       warnings_to_ignore_entire_module=[],
@@ -214,6 +216,8 @@ def enable_deprecations_as_exceptions(include_astropy_deprecations=True,
             _warnings_to_ignore_by_pyver[key] = set(val)
 
 
+# NOTE: This is used by catch_warnings but maybe we can also think about
+#       deprecating it if we decide to deprecate catch_warnings.
 def treat_deprecations_as_exceptions():
     """
     Turn all DeprecationWarnings (which indicate deprecated uses of

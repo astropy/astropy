@@ -523,6 +523,10 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- ``enable_deprecations_as_exceptions`` is pending deprecation and will be
+  deprecated in a future release. Downstream packages should switch to using
+  ``pytest`` warning handling instead. [#10503]
+
 astropy.time
 ^^^^^^^^^^^^
 

@@ -17,8 +17,6 @@ except ImportError:
 
 import pytest
 
-from astropy.tests.helper import enable_deprecations_as_exceptions
-
 try:
     # This is needed to silence a warning from matplotlib caused by
     # PyInstaller's matplotlib runtime hook.  This can be removed once the
@@ -34,13 +32,6 @@ except ImportError:
     HAS_MATPLOTLIB = False
 else:
     HAS_MATPLOTLIB = True
-
-enable_deprecations_as_exceptions(
-    include_astropy_deprecations=False,
-    # This is a workaround for the OpenSSL deprecation warning that comes from
-    # the `requests` module. It only appears when both asdf and sphinx are
-    # installed. This can be removed once pyopenssl 1.7.20+ is released.
-    modules_to_ignore_on_import=['requests'])
 
 matplotlibrc_cache = {}
 
