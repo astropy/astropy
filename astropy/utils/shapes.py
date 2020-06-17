@@ -211,21 +211,16 @@ class ShapedLikeNDArray(metaclass=abc.ABCMeta):
         np.roll, np.delete,
         }
 
-    # Functions that for now should just pass through since they
-    # (sort of) work.  TODO: create a proper implementation.
-    _PASSTHROUGH_FUNCTIONS = {
-        np.where, np.compress, np.extract,
-        }
-
     # Could be made to work with a bit of effort:
     # np.where, np.compress, np.extract,
     # np.diag_indices_from, np.triu_indices_from, np.tril_indices_from
     # np.tile, np.repeat (need .repeat method)
-
+    # TODO: create a proper implementation.
+    # Furthermore, some arithmetic functions such as np.mean, np.median,
+    # could work for Time, and many more for TimeDelta, so those should
+    # override __array_function__.
     def __array_function__(self, function, types, args, kwargs):
         """Wrap numpy functions that make sense."""
-        if function in self._PASSTHROUGH_FUNCTIONS:
-            return function.__wrapped__(*args, **kwargs)
         if function in self._APPLICABLE_FUNCTIONS:
             if function is np.broadcast_to:
                 # Ensure that any ndarray subclasses used are
@@ -251,7 +246,9 @@ class ShapedLikeNDArray(metaclass=abc.ABCMeta):
             if method is not None:
                 return method(*args[1:], **kwargs)
 
-        return NotImplemented
+        # Fall-back, just pass the arguments on since perhaps the function
+        # works already (see above).
+        return function.__wrapped__(*args, **kwargs)
 
 
 class IncompatibleShapeError(ValueError):
