@@ -374,8 +374,8 @@ class TestAliasRead:
 
         with pytest.warns(
                 AstropyDeprecationWarning,
-                match="Config parameter 'name_resolve_timeout' in section "
-                      "[coordinates.name_resolve]") as w:
+                match=r"Config parameter 'name_resolve_timeout' in section "
+                      r"\[coordinates.name_resolve\].*") as w:
             conf.reload()
             assert conf.remote_timeout == 42
 

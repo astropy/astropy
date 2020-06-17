@@ -6,7 +6,6 @@ Regression tests for coordinates-related bugs that don't have an obvious other
 place to live
 """
 
-
 import io
 import copy
 import pytest
@@ -28,7 +27,7 @@ from astropy.time import Time
 from astropy.utils import iers
 from astropy.table import Table
 
-from astropy.tests.helper import assert_quantity_allclose, catch_warnings
+from astropy.tests.helper import assert_quantity_allclose
 from .test_matching import HAS_SCIPY
 from astropy.units import allclose as quantity_allclose
 
@@ -209,6 +208,7 @@ def test_regression_futuretimes_4302():
 
     Relevant comment: https://github.com/astropy/astropy/pull/4302#discussion_r44836531
     """
+    from astropy.utils.compat.context import nullcontext
     from astropy.utils.exceptions import AstropyWarning
 
     # this is an ugly hack to get the warning to show up even if it has already
@@ -217,11 +217,6 @@ def test_regression_futuretimes_4302():
     if hasattr(utils, '__warningregistry__'):
         utils.__warningregistry__.clear()
 
-    with catch_warnings() as found_warnings:
-        future_time = Time('2511-5-1')
-        c = CIRS(1*u.deg, 2*u.deg, obstime=future_time)
-        c.transform_to(ITRS(obstime=future_time))
-
     # check that out-of-range warning appears among any other warnings.  If
     # tests are run with --remote-data then the IERS table will be an instance
     # of IERS_Auto which is assured of being "fresh".  In this case getting
@@ -229,13 +224,15 @@ def test_regression_futuretimes_4302():
     # if using IERS_B (which happens without --remote-data, i.e. for all CI
     # testing) do we expect another warning.
     if isinstance(iers.earth_orientation_table.get(), iers.IERS_B):
-        saw_iers_warnings = False
-        for w in found_warnings:
-            if issubclass(w.category, AstropyWarning):
-                if '(some) times are outside of range covered by IERS table' in str(w.message):
-                    saw_iers_warnings = True
-                    break
-        assert saw_iers_warnings, 'Never saw IERS warning'
+        ctx = pytest.warns(
+            AstropyWarning,
+            match=r'\(some\) times are outside of range covered by IERS table.*')
+    else:
+        ctx = nullcontext()
+    with ctx:
+        future_time = Time('2511-5-1')
+        c = CIRS(1*u.deg, 2*u.deg, obstime=future_time)
+        c.transform_to(ITRS(obstime=future_time))
 
 
 def test_regression_4996():

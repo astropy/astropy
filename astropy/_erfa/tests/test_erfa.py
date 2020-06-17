@@ -110,16 +110,16 @@ def test_errwarn_reporting():
     erfa.dat(1990, 1, 1, 0.5)
 
     # check warning is raised for a scalar
-    with pytest.warns(erfa.ErfaWarning, match='1 of "dubious year (Note 1)"') as w:
+    with pytest.warns(erfa.ErfaWarning, match=r'.* 1 of "dubious year \(Note 1\)"') as w:
         erfa.dat(100, 1, 1, 0.5)
     assert len(w) == 1
 
     # and that the count is right for a vector.
-    with pytest.warns(erfa.ErfaWarning, match='2 of "dubious year (Note 1)"') as w:
+    with pytest.warns(erfa.ErfaWarning, match=r'.* 2 of "dubious year \(Note 1\)".*') as w:
         erfa.dat([100, 200, 1990], 1, 1, 0.5)
     assert len(w) == 1
 
-    with pytest.raises(erfa.ErfaError, match='1 of "bad day (Note 3)", 1 of "bad month"'):
+    with pytest.raises(erfa.ErfaError, match=r'.* 1 of "bad day \(Note 3\)", 1 of "bad month".*'):
         erfa.dat(1990, [1, 34, 2], [1, 1, 43], 0.5)
 
     with pytest.raises(erfa.ErfaError) as e:
