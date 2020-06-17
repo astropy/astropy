@@ -64,7 +64,7 @@ astropy.time
   epoch time). [#10406]
 
 - Numpy functions that broadcast, change shape, or index (like ``np.broadcast_to``,
-  ``np.rot90``, or ``np.roll``) now work on times. [#10337]
+  ``np.rot90``, or ``np.roll``) now work on times. [#10337, #10502]
 
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
