@@ -129,3 +129,171 @@ with :math:`x_0 = 2175` Angstrom and :math:`f = 400` Angstrom is shown below.
 
     plt.tight_layout()
     plt.show()
+
+.. _NFW:
+
+NFW
+=========
+
+The :class:`~astropy.modeling.physical_models.NFW` model computes a 
+1-dimensional Navarro–Frenk–White profile. The dark matter density in an
+NFW profile is given by:
+  
+
+.. math::
+
+   \rho(r)=\frac{\delta_c\rho_{c}}{r/r_s(1+r/r_s)^2}
+
+where :math:`\rho_{c}` is the critical density of the Universe at the redshift 
+of the profile, :math:`\delta_c` is the over density, and :math:`r_s` is the 
+scale radius of the profile.
+
+
+This model relies on three parameters:
+
+  ``mass`` : the mass of the profile (in solar masses if no units are provided)
+
+  ``concentration`` : the profile concentration 
+
+  ``redshift`` : the redshift of the profile 
+
+As well as two optional initialization variables:
+
+  ``massfactor`` : tuple or string specifying the overdensity type and factor (default ("critical", 200))
+
+  ``cosmo`` : the cosmology for density calculation (default default_cosmology)		
+
+.. note::
+	Initialization of NFW profile object required before evaluation (in order to set mass 
+	overdensity and cosmology).
+
+
+Sample plots of an NFW profile with the following parameters are displayed below:
+  ``mass`` = :math:`2.0 x 10^{15} M_{sun}`
+
+  ``concentration`` = 8.5
+
+  ``redshift`` = 0.63
+
+The first plot is of the NFW profile density as a function of radius.
+The second plot displays the profile density and radius normalized by the NFW scale 
+density and scale radius, respectively. The scale density and scale radius are available 
+as attributes ``rho_s`` and ``r_s``, and the overdensity radius can be accessed via ``r_virial``.
+
+.. plot::
+    :include-source:
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from astropy.modeling.models import NFW
+    import astropy.units as u
+    from astropy import cosmology
+
+    # NFW Parameters
+    mass = u.Quantity(2.0E15, u.M_sun)
+    concentration = 8.5
+    redshift = 0.63
+    cosmo = cosmology.Planck15
+    massfactor = ("critical", 200)
+
+    # Create NFW Object
+    n = NFW(mass=mass, concentration=concentration, redshift=redshift, cosmo=cosmo, 
+	    massfactor=massfactor)
+
+    # Radial distribution for plotting
+    radii = range(1,2001,10) * u.kpc
+
+    # Radial NFW density distribution
+    n_result = n(radii)
+
+    # Plot creation
+    fig, ax = plt.subplots(2)
+    fig.suptitle('1 Dimensional NFW Profile')
+
+    # Density profile subplot
+    ax[0].plot(radii, n_result, '-')
+    ax[0].set_yscale('log')
+    ax[0].set_xlabel(r"$r$ [{}]".format(radii.unit))
+    ax[0].set_ylabel(r"$\rho$ [{}]".format(n_result.unit))
+
+    # Create scaled density / scaled radius subplot
+    # NFW Object
+    n = NFW(mass=mass, concentration=concentration, redshift=redshift, cosmo=cosmo, 
+	    massfactor=massfactor)
+
+    # Radial distribution for plotting
+    radii = np.logspace(np.log10(1e-5), np.log10(2), num=1000) * u.Mpc
+    n_result = n(radii)
+
+    # Scaled density / scaled radius subplot
+    ax[1].plot(radii / n.radius_s, n_result / n.density_s, '-')
+    ax[1].set_xscale('log')
+    ax[1].set_yscale('log')
+    ax[1].set_xlabel(r"$r / r_s$")
+    ax[1].set_ylabel(r"$\rho / \rho_s$")
+
+    # Display plot
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()
+
+
+
+The :meth:`~astropy.modeling.physical_models.NFW.circular_velocity` member provides the circular 
+velocity at each position ``r`` via the equation:
+
+
+.. math::
+
+   v_{circ}(r)^2=\frac{1}{x}\frac{\ln(1+cx)-(cx)/(1+cx)}{\ln(1+c)-c/(1+c)}
+
+where x is the ratio ``r``:math:`/r_{vir}`. Circular velocities are provided in km/s.
+
+A sample plot of circular velocities of an NFW profile with the following parameters is displayed 
+below:
+
+  ``mass`` = :math:`2.0 x 10^{15} M_{sun}`
+
+  ``concentration`` = 8.5
+
+  ``redshift`` = 0.63
+
+The maximum circular velocity and radius of maximum circular velocity are available as attributes 
+``v_max`` and ``r_max``.
+
+
+.. plot::
+    :include-source:
+
+    import matplotlib.pyplot as plt
+    from astropy.modeling.models import NFW
+    import astropy.units as u
+    from astropy import cosmology
+
+    # NFW Parameters
+    mass = u.Quantity(2.0E15, u.M_sun)
+    concentration = 8.5
+    redshift = 0.63
+    cosmo = cosmology.Planck15
+    massfactor = ("critical", 200)
+
+    # Create NFW Object
+    n = NFW(mass=mass, concentration=concentration, redshift=redshift, cosmo=cosmo,
+            massfactor=massfactor)
+
+    # Radial distribution for plotting
+    radii = range(1,200001,10) * u.kpc
+
+    # NFW circular velocity distribution
+    n_result = n.circular_velocity(radii)
+
+    # Plot creation
+    fig,ax = plt.subplots()
+    ax.set_title('NFW Profile Circular Velocity')
+    ax.plot(radii, n_result, '-')
+    ax.set_xscale('log')
+    ax.set_xlabel(r"$r$ [{}]".format(radii.unit))
+    ax.set_ylabel(r"$v_{circ}$" + " [{}]".format(n_result.unit))
+
+    # Display plot
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()
