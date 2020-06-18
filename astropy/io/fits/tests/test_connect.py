@@ -1,5 +1,6 @@
 import os
 import gc
+import sys
 import pathlib
 import warnings
 
@@ -785,8 +786,10 @@ def test_fits_mixins_per_column(table_cls, name_col, tmpdir):
         assert t2[name]._time.jd2.__class__ is np.ndarray
 
 
-@pytest.mark.skipif('HAS_YAML')
-def test_warn_for_dropped_info_attributes(tmpdir):
+def test_warn_for_dropped_info_attributes(tmpdir, monkeypatch):
+    # make sure that yaml cannot be imported if it is available
+    monkeypatch.setitem(sys.modules, 'yaml', None)
+
     filename = str(tmpdir.join('test.fits'))
     t = Table([[1, 2]])
     t['col0'].info.description = 'hello'
@@ -797,8 +800,10 @@ def test_warn_for_dropped_info_attributes(tmpdir):
         "table contains column(s) with defined 'format'")
 
 
-@pytest.mark.skipif('HAS_YAML')
-def test_error_for_mixins_but_no_yaml(tmpdir):
+def test_error_for_mixins_but_no_yaml(tmpdir, monkeypatch):
+    # make sure that yaml cannot be imported if it is available
+    monkeypatch.setitem(sys.modules, 'yaml', None)
+
     filename = str(tmpdir.join('test.fits'))
     t = Table([mixin_cols['sc']])
     with pytest.raises(TypeError) as err:
@@ -860,3 +865,28 @@ def test_round_trip_masked_table_serialize_mask(tmpdir, method):
         t[name].mask = False
         t2[name].mask = False
         assert np.all(t2[name] == t[name])
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_read_serialized_without_yaml(tmpdir, monkeypatch):
+    filename = str(tmpdir.join('test.fits'))
+    t = Table([mixin_cols['sc']])
+    t.write(filename)
+
+    monkeypatch.setitem(sys.modules, 'yaml', None)
+    with pytest.warns(AstropyUserWarning):
+        t2 = Table.read(filename)
+
+    assert t2.colnames == ['col0.ra', 'col0.dec']
+    assert len(t2) == 2
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_meta_not_modified(tmpdir):
+    filename = str(tmpdir.join('test.fits'))
+    t = Table(data=[Column([1, 2], 'a', description='spam')])
+    t.meta['comments'] = ['a', 'b']
+    assert len(t.meta) == 1
+    t.write(filename)
+    assert len(t.meta) == 1
+    assert t.meta['comments'] == ['a', 'b']
