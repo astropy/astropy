@@ -959,6 +959,11 @@ astropy.table
 - Fixed a bug in table argsort when called with ``reverse=True`` for an
   indexed table. [#10103]
 
+- Avoid modifying ``.meta`` when serializing columns to FITS. [#10485]
+
+- Avoid crash when reading a FITS table that contains mixin info and PyYAML
+  is missing. [#10485]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
