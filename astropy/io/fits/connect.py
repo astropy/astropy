@@ -4,6 +4,7 @@
 import os
 import re
 import warnings
+from copy import deepcopy
 
 from astropy.io import registry as io_registry
 from astropy import units as u
@@ -93,7 +94,21 @@ def _decode_mixins(tbl):
     del tbl.meta['comments'][i0:i1 + 1]
     if not tbl.meta['comments']:
         del tbl.meta['comments']
-    info = meta.get_header_from_yaml(lines)
+
+    try:
+        info = meta.get_header_from_yaml(lines)
+    except ImportError as exc:
+        if 'PyYAML package is required' in str(exc):
+            warnings.warn(
+                "the file contains information about Astropy native objects "
+                "(mixin columns) that have been serialized when writing it, "
+                "but the PyYAML package is required to read those. Without "
+                "this package some information will be missing in the table",
+                AstropyUserWarning
+            )
+            return tbl
+        else:
+            raise
 
     # Add serialized column information to table meta for use in constructing mixins
     tbl.meta['__serialized_columns__'] = info['meta']['__serialized_columns__']
@@ -345,6 +360,13 @@ def _encode_mixins(tbl):
     # still go through the serialized columns machinery.
     if encode_tbl is tbl and not info_lost:
         return tbl
+
+    # Copy the meta dict if it was not copied by represent_mixins_as_columns.
+    # We will modify .meta['comments'] below and we do not want to see these
+    # comments in the input table.
+    if encode_tbl is tbl:
+        meta_copy = deepcopy(tbl.meta)
+        encode_tbl = Table(tbl.columns, meta=meta_copy, copy=False)
 
     # Get the YAML serialization of information describing the table columns.
     # This is re-using ECSV code that combined existing table.meta with with
