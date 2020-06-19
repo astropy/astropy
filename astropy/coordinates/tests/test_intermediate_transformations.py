@@ -7,15 +7,15 @@ import pytest
 import numpy as np
 
 from astropy import units as u
-from astropy.tests.helper import (assert_quantity_allclose as assert_allclose,
-                                  catch_warnings)
+from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
-from astropy.coordinates import (EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
-                PrecessedGeocentric, CartesianRepresentation, SkyCoord,
-                CartesianDifferential, SphericalRepresentation, UnitSphericalRepresentation,
-                HCRS, HeliocentricMeanEcliptic, TEME)
+from astropy.coordinates import (
+    EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
+    PrecessedGeocentric, CartesianRepresentation, SkyCoord,
+    CartesianDifferential, SphericalRepresentation, UnitSphericalRepresentation,
+    HCRS, HeliocentricMeanEcliptic, TEME)
 from astropy.utils import iers
-
+from astropy.utils.exceptions import AstropyWarning
 
 from astropy._erfa import epv00
 
@@ -25,7 +25,7 @@ from astropy.coordinates import solar_system_ephemeris
 from astropy.units import allclose
 
 try:
-    import jplephem  # pylint: disable=W0611
+    import jplephem  # pylint: disable=W0611  # noqa
 except ImportError:
     HAS_JPLEPHEM = False
 else:
@@ -519,26 +519,24 @@ def test_teme_itrf():
 
 
 @pytest.mark.remote_data
-def test_earth_orientation_table():
+def test_earth_orientation_table(monkeypatch):
     """Check that we can set the IERS table used as Earth Reference.
 
     Use the here and now to be sure we get a difference.
     """
+    monkeypatch.setattr('astropy.utils.iers.conf.auto_download', True)
     t = Time.now()
     location = EarthLocation(lat=0*u.deg, lon=0*u.deg)
     altaz = AltAz(location=location, obstime=t)
     sc = SkyCoord(1*u.deg, 2*u.deg)
     # Default: uses IERS_Auto, which will give a prediction.
-    with catch_warnings() as w:
-        altaz_auto = sc.transform_to(altaz)
-
-    assert len(w) == 0
+    # Note: tests run with warnings turned into errors, so it is
+    # meaningful if this passes.
+    altaz_auto = sc.transform_to(altaz)
 
     with iers.earth_orientation_table.set(iers.IERS_B.open()):
-        with catch_warnings() as w:
+        with pytest.warns(AstropyWarning, match='after IERS data'):
             altaz_b = sc.transform_to(altaz)
-        assert len(w) == 1
-        assert 'after IERS data' in str(w[0].message)
 
     sep_b_auto = altaz_b.separation(altaz_auto)
     assert_allclose(sep_b_auto, 0.0*u.deg, atol=1*u.arcsec)
