@@ -317,7 +317,7 @@ In more detail
    For more details on running tests, please see :ref:`testing-guidelines`.
 
 #. Make sure your code includes appropriate docstrings, in the
-   [numpydoc format](https://numpydoc.readthedocs.io/en/latest/format.html).
+   `Numpydoc format`_.
    If appropriate, as when you are adding a new feature,
    you should update the appropriate documentation in the ``docs`` directory;
    a detailed description is in :ref:`documentation-guidelines`.
@@ -551,3 +551,4 @@ can delete any backup branches that may have been created::
 .. _git book: https://git-scm.com/book/
 .. _Astropy issue list: https://github.com/astropy/astropy/issues
 .. _git choose-your-own-adventure: http://sethrobertson.github.io/GitFixUm/fixup.html
+.. _Numpydoc format: https://numpydoc.readthedocs.io/en/latest/format.html 
