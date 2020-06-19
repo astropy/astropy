@@ -22,11 +22,12 @@ ready to be an open source contributor; that your skills aren't nearly good
 enough to contribute. What could you possibly offer a project like this one?
 
 We assure you - the little voice in your head is wrong. If you can write code at
-all, you can contribute code to open source. Contributing to open source
-projects is a fantastic way to advance one's coding skills. Writing perfect code
-isn't the measure of a good developer (that would disqualify all of us!); it's
-trying to create something, making mistakes, and learning from those
-mistakes. That's how we all improve, and we are happy to help others learn.
+all, or even documentation, you can contribute code to open source.
+Contributing to open source projects is a fantastic way to advance one's coding
+and open source workflow skills. Writing perfect code isn't the measure of a good
+developer (that would disqualify all of us!); it's trying to create something,
+making mistakes, and learning from those mistakes. That's how we all improve,
+and we are happy to help others learn.
 
 Being an open source contributor doesn't just mean writing code, either. You can
 help out by writing documentation, tests, or even giving feedback about the
