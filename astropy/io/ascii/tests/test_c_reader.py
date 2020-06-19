@@ -15,7 +15,6 @@ from astropy.io import ascii
 from astropy.io.ascii.core import ParameterError, FastOptionsError, InconsistentTableError
 from astropy.io.ascii.fastbasic import (
     FastBasic, FastCsv, FastTab, FastCommentedHeader, FastRdb, FastNoHeader)
-from astropy.tests.helper import catch_warnings
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyWarning
 from .common import assert_equal, assert_almost_equal, assert_true
@@ -1075,12 +1074,15 @@ def test_data_out_of_range(parallel, fast_reader, guess):
         elif TRAVIS:
             pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
 
+    test_for_warnings = fast_reader and not parallel
+
     fields = ['10.1E+199', '3.14e+313', '2048e+306', '0.6E-325', '-2.e345']
     values = np.array([1.01e200, np.inf, np.inf, 0.0, -np.inf])
-    with catch_warnings(AstropyWarning) as w:
+    # NOTE: Warning behavior varies for the parameters being passed in.
+    with pytest.warns(None) as w:
         t = ascii.read(StringIO(' '.join(fields)), format='no_header',
                        guess=guess, fast_reader=fast_reader)
-    if fast_reader and not parallel:  # Assert precision warnings for cols 2-5
+    if test_for_warnings:  # Assert precision warnings for cols 2-5
         assert len(w) == 4
         for i in range(len(w)):
             assert (f"OverflowError converting to FloatType in column col{i+2}"
@@ -1092,10 +1094,10 @@ def test_data_out_of_range(parallel, fast_reader, guess):
     fields = ['.0101E202', '0.000000314E+314', '1777E+305', '-1799E+305',
               '0.2e-323', '5200e-327', ' 0.0000000000000000000001024E+330']
     values = np.array([1.01e200, 3.14e307, 1.777e308, -np.inf, 0.0, 4.94e-324, 1.024e308])
-    with catch_warnings(AstropyWarning) as w:
+    with pytest.warns(None) as w:
         t = ascii.read(StringIO(' '.join(fields)), format='no_header',
                        guess=guess, fast_reader=fast_reader)
-    if fast_reader and not parallel:  # Assert precision warnings for cols 4-6
+    if test_for_warnings:  # Assert precision warnings for cols 4-6
         assert len(w) == 3
         for i in range(len(w)):
             assert (f"OverflowError converting to FloatType in column col{i+4}"
@@ -1111,10 +1113,10 @@ def test_data_out_of_range(parallel, fast_reader, guess):
 
     fields = ['.0101D202', '0.000000314d+314', '1777+305', '-1799E+305',
               '0.2e-323', '2500-327', ' 0.0000000000000000000001024Q+330']
-    with catch_warnings(AstropyWarning) as w:
+    with pytest.warns(None) as w:
         t = ascii.read(StringIO(' '.join(fields)), format='no_header',
                        guess=guess, fast_reader=fast_reader)
-    if fast_reader and not parallel:
+    if test_for_warnings:
         assert len(w) == 3
     read_values = np.array([col[0] for col in t.itercols()])
     assert_almost_equal(read_values, values, rtol=rtol, atol=1.e-324)
@@ -1163,11 +1165,9 @@ def test_data_at_range_limit(parallel, fast_reader, guess):
 
     # 0.0 is always exact (no Overflow warning)!
     for s in '0.0', '0.0e+0', 399 * '0' + '.' + 365 * '0':
-        with pytest.warns(None) as w:
-            t = ascii.read(StringIO(s), format='no_header',
-                           guess=guess, fast_reader=fast_reader)
+        t = ascii.read(StringIO(s), format='no_header',
+                       guess=guess, fast_reader=fast_reader)
         assert t['col1'][0] == 0.0
-        assert len(w) == 0
 
     # Test OverflowError at precision limit with laxer rtol
     if parallel:
@@ -1195,7 +1195,8 @@ def test_int_out_of_range(parallel, guess):
 
     text = f'P M S\n {imax:d} {imin:d} {huge:s}'
     expected = Table([[imax], [imin], [huge]], names=('P', 'M', 'S'))
-    with catch_warnings(AstropyWarning) as w:
+    # NOTE: Warning behavior varies for the parameters being passed in.
+    with pytest.warns(None) as w:
         table = ascii.read(text, format='basic', guess=guess,
                            fast_reader={'parallel': parallel})
     if not parallel:
@@ -1207,7 +1208,7 @@ def test_int_out_of_range(parallel, guess):
     # Check with leading zeroes to make sure strtol does not read them as octal
     text = f'P M S\n000{imax:d} -0{-imin:d} 00{huge:s}'
     expected = Table([[imax], [imin], ['00' + huge]], names=('P', 'M', 'S'))
-    with catch_warnings(AstropyWarning) as w:
+    with pytest.warns(None) as w:
         table = ascii.read(text, format='basic', guess=guess,
                            fast_reader={'parallel': parallel})
     if not parallel:
@@ -1232,11 +1233,11 @@ def test_int_out_of_order(guess):
     with pytest.warns(AstropyWarning, match=r'OverflowError converting to '
                       r'IntType in column B, reverting to String'):
         table = ascii.read(text, format='basic', guess=guess, fast_reader=True)
-        assert_table_equal(table, expected)
+    assert_table_equal(table, expected)
     with pytest.warns(AstropyWarning, match=r'OverflowError converting to '
                       r'IntType in column B, reverting to String'):
         table = ascii.read(text, format='basic', guess=guess, fast_reader=False)
-        assert_table_equal(table, expected)
+    assert_table_equal(table, expected)
 
 
 @pytest.mark.parametrize("guess", [True, False])
