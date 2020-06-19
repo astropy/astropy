@@ -285,6 +285,8 @@ def treat_deprecations_as_exceptions():
                                     module='numpy.lib.type_check')
 
 
+# TODO: Plan a roadmap of deprecation as pytest.warns has matured over the years.
+# See https://github.com/astropy/astropy/issues/6761
 class catch_warnings(warnings.catch_warnings):
     """
     A high-powered version of warnings.catch_warnings to use for testing
@@ -302,6 +304,9 @@ class catch_warnings(warnings.catch_warnings):
         with catch_warnings(MyCustomWarning) as w:
             do.something.bad()
         assert len(w) > 0
+
+    .. note:: Usage of :ref:`pytest.warns <pytest:warns>` is preferred.
+
     """
 
     def __init__(self, *classes):
