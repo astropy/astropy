@@ -1,11 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import os
 import copy
 from io import StringIO
 from itertools import chain
-
 
 import pytest
 import numpy as np
@@ -13,7 +11,7 @@ import numpy as np
 from astropy.io import ascii
 from astropy import table
 from astropy.table.table_helpers import simple_table
-from astropy.tests.helper import catch_warnings
+from astropy.utils.compat.context import nullcontext
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from astropy import units as u
 
@@ -478,12 +476,11 @@ def test_write_invalid_toplevel_meta_ipac():
     table = ascii.get_reader(Reader=ascii.Ipac)
     data = table.read('data/no_data_ipac.dat')
     data.meta['blah'] = 'extra'
+    out = StringIO()
 
-    with catch_warnings(AstropyWarning) as ASwarn:
-        out = StringIO()
+    with pytest.warns(AstropyWarning, match=r'.*were not written.*') as warn:
         data.write(out, format='ascii.ipac')
-    assert len(ASwarn) == 1
-    assert "were not written" in str(ASwarn[0].message)
+    assert len(warn) == 1
 
 
 def test_write_invalid_keyword_meta_ipac():
@@ -494,12 +491,11 @@ def test_write_invalid_keyword_meta_ipac():
     table = ascii.get_reader(Reader=ascii.Ipac)
     data = table.read('data/no_data_ipac.dat')
     data.meta['keywords']['blah'] = 'invalid'
+    out = StringIO()
 
-    with catch_warnings(AstropyWarning) as ASwarn:
-        out = StringIO()
+    with pytest.warns(AstropyWarning, match=r'.*has been skipped.*') as warn:
         data.write(out, format='ascii.ipac')
-    assert len(ASwarn) == 1
-    assert "has been skipped" in str(ASwarn[0].message)
+    assert len(warn) == 1
 
 
 def test_write_valid_meta_ipac():
@@ -508,11 +504,8 @@ def test_write_valid_meta_ipac():
     table = ascii.get_reader(Reader=ascii.Ipac)
     data = table.read('data/no_data_ipac.dat')
     data.meta['keywords']['blah'] = {'value': 'invalid'}
-
-    with catch_warnings(AstropyWarning) as ASwarn:
-        out = StringIO()
-        data.write(out, format='ascii.ipac')
-    assert len(ASwarn) == 0
+    out = StringIO()
+    data.write(out, format='ascii.ipac')
 
 
 @pytest.mark.parametrize("fast_writer", [True, False])
@@ -629,11 +622,19 @@ def test_byte_string_output(fast_writer):
 def test_names_with_formats(names, include_names, exclude_names, formats, issues_warning):
     """Test for #4508."""
     t = table.Table([[1, 2, 3], [4.1, 5.2, 6.3]])
-    with catch_warnings(AstropyWarning) as ASwarn:
-        out = StringIO()
+    out = StringIO()
+
+    if issues_warning:
+        ctx = pytest.warns(AstropyWarning)
+    else:
+        ctx = nullcontext()
+
+    with ctx as warn:
         ascii.write(t, out, names=names, include_names=include_names,
                     exclude_names=exclude_names, formats=formats)
-    assert (issues_warning == (len(ASwarn) == 1))
+
+    if issues_warning:
+        assert len(warn) == 1
 
 
 @pytest.mark.parametrize('formats, issues_warning', [
@@ -645,10 +646,18 @@ def test_names_with_formats(names, include_names, exclude_names, formats, issues
 def test_columns_names_with_formats(formats, issues_warning):
     """Test the fix for #4508."""
     t = table.Table([[1, 2, 3], [4.1, 5.2, 6.3]])
-    with catch_warnings(AstropyWarning) as ASwarn:
-        out = StringIO()
+    out = StringIO()
+
+    if issues_warning:
+        ctx = pytest.warns(AstropyWarning)
+    else:
+        ctx = nullcontext()
+
+    with ctx as warn:
         ascii.write(t, out, formats=formats)
-    assert (issues_warning == (len(ASwarn) == 1))
+
+    if issues_warning:
+        assert len(warn) == 1
 
 
 @pytest.mark.parametrize("fast_writer", [True, False])
@@ -692,12 +701,12 @@ def test_write_overwrite_ascii(format, fast_writer, tmpdir):
                 fast_writer=fast_writer)
     assert str(err.value).endswith('already exists')
 
-    with catch_warnings(AstropyDeprecationWarning) as warning:
+    with pytest.warns(
+            AstropyDeprecationWarning,
+            match=r".* Automatically overwriting ASCII files is deprecated. "
+            "Use the argument 'overwrite=True' in the future.") as warning:
         t.write(filename, format=format, fast_writer=fast_writer)
     assert len(warning) == 1
-    assert str(warning[0].message).endswith(
-        "Automatically overwriting ASCII files is deprecated. "
-        "Use the argument 'overwrite=True' in the future.")
 
     t.write(filename, overwrite=True, format=format,
             fast_writer=fast_writer)
