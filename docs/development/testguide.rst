@@ -684,22 +684,7 @@ Testing warnings
 ================
 
 In order to test that warnings are triggered as expected in certain
-situations, you can use the `astropy.tests.helper.catch_warnings`
-context manager.  Unlike the `warnings.catch_warnings` context manager
-in the standard library, this one will reset all warning state before
-hand so one is assured to get the warnings reported, regardless of
-what errors or warnings may have been emitted by other tests previously.
-Here is a real-world example::
-
-  from astropy.tests.helper import catch_warnings
-
-  with catch_warnings(MergeConflictWarning) as warning_lines:
-      # Test code which triggers a MergeConflictWarning
-      out = table.vstack([t1, t2, t4], join_type='outer')
-
-      assert warning_lines[0].category == metadata.MergeConflictWarning
-      assert ("In merged column 'a' the 'units' attribute does not match (cm != m)"
-              in str(warning_lines[0].message))
+situations,
 
 `pytest`_ provides its own context manager
 :ref:`pytest.warns <pytest:warns>` that, completely
@@ -707,9 +692,8 @@ analogously to ``pytest.raises`` (see below) allows to probe explicitly
 for specific warning classes and, through the optional ``match`` argument,
 messages. Note that when no warning of the specified type is
 triggered, this will make the test fail. When checking for optional,
-but not mandatory warnings, Astropy's ``catch_warnings`` is therefore the
-better option, as it will collect any number of warning lines (including
-zero).
+but not mandatory warnings, ``pytest.warns(None)`` can be used to catch and
+inspect them.
 
 .. note::
 
@@ -717,11 +701,7 @@ zero).
    :ref:`recwarn <pytest:recwarn>` function argument to test that
    warnings are triggered within the entire embedding function.
    This method has been found to be problematic in at least one case
-   (`pull request 1174 <https://github.com/astropy/astropy/pull/1174#issuecomment-20249309>`_)
-   and the alternative of calling ``pytest.warns`` with a warning type
-   argument of ``None`` requires further processing of the recorded
-   warning(s), so the `astropy.tests.helper.catch_warnings` context
-   manager is preferred in such cases.
+   (`pull request 1174 <https://github.com/astropy/astropy/pull/1174#issuecomment-20249309>`_).
 
 Testing exceptions
 ==================
