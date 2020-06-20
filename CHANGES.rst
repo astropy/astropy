@@ -94,6 +94,10 @@ API Changes
 astropy.config
 ^^^^^^^^^^^^^^
 
+- ``set_temp_config`` now preserves the existing cache rather than deleting
+  it and relying on reloading it from the previous config file. This ensures
+  that any programmatically made changes are preserved as well. [#10474]
+
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 

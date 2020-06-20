@@ -241,7 +241,9 @@ class set_temp_config(_SetTempPath):
 
     def __enter__(self):
         # Special case for the config case, where we need to reset all the
-        # cached config objects
+        # cached config objects.  We do keep the cache, since some of it
+        # may have been set programmatically rather than be stored in the
+        # config file (e.g., iers.conf.auto_download=Fase for our tests).
         from .configuration import _cfgobjs
         self._cfgobjs_copy = _cfgobjs.copy()
         _cfgobjs.clear()
