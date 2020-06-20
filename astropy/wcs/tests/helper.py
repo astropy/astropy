@@ -37,7 +37,7 @@ class SimModelTAB:
         mbad = (x < px[0]) | (y < py[0]) | (x > px[-1]) | (y > py[-1])
         mgood = np.logical_not(mbad)
 
-        i = 2 * (x > xb).astype(np.int)
+        i = 2 * (x > xb).astype(int)
 
         psix = self.crval[0] + self.cdelt[0] * (x - self.crpix[0])
         psiy = self.crval[1] + self.cdelt[1] * (y - self.crpix[1])

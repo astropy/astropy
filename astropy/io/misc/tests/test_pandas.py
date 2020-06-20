@@ -38,7 +38,7 @@ def test_read_write_format(fmt):
     # Explicitly provide dtype to avoid casting 'a' to int32.
     # See https://github.com/astropy/astropy/issues/8682
     t = Table([[1, 2, 3], [1.0, 2.5, 5.0], ['a', 'b', 'c']],
-              dtype=(np.int64, np.float64, np.str))
+              dtype=(np.int64, np.float64, str))
     buf = StringIO()
     t.write(buf, format=pandas_fmt)
 
