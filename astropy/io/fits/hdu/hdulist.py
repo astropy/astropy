@@ -33,7 +33,8 @@ else:
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
-             cache=True, lazy_load_hdus=None, **kwargs):
+             cache=True, lazy_load_hdus=None, ignore_missing_simple=False,
+             **kwargs):
     """Factory function to open a FITS file and return an `HDUList` object.
 
     Parameters
@@ -82,6 +83,12 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         been opened.
 
         .. versionadded:: 1.3
+
+    ignore_missing_simple : bool, optional
+        Do not issue an exception when the SIMPLE keyword is missing.
+        Default is `False`.
+
+        .. versionadded:: 4.2
 
     uint : bool, optional
         Interpret signed integer data where ``BZERO`` is the central value and
@@ -162,7 +169,7 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         raise ValueError(f'Empty filename: {name!r}')
 
     return HDUList.fromfile(name, mode, memmap, save_backup, cache,
-                            lazy_load_hdus, **kwargs)
+                            lazy_load_hdus, ignore_missing_simple, **kwargs)
 
 
 class HDUList(list, _Verify):
@@ -387,7 +394,7 @@ class HDUList(list, _Verify):
     @classmethod
     def fromfile(cls, fileobj, mode=None, memmap=None,
                  save_backup=False, cache=True, lazy_load_hdus=True,
-                 **kwargs):
+                 ignore_missing_simple=False, **kwargs):
         """
         Creates an `HDUList` instance from a file-like object.
 
@@ -1037,7 +1044,8 @@ class HDUList(list, _Verify):
 
     @classmethod
     def _readfrom(cls, fileobj=None, data=None, mode=None, memmap=None,
-                  cache=True, lazy_load_hdus=True, **kwargs):
+                  cache=True, lazy_load_hdus=True, ignore_missing_simple=False,
+                  **kwargs):
         """
         Provides the implementations from HDUList.fromfile and
         HDUList.fromstring, both of which wrap this method, as their
@@ -1068,10 +1076,12 @@ class HDUList(list, _Verify):
             simple = hdulist._file.read(30).decode('ascii')
             if simple != 'SIMPLE  =                    T':
                 if simple == 'SIMPLE  =                    F':
+                    # This case is managed by _NonstandardHDU
                     pass
-                else:
-                    raise Exception
-            hdulist._file.seek(0)
+                elif not ignore_missing_simple:
+                    raise OSError('No SIMPLE card found, this file does not '
+                                  'appear to be a valid FITS file')
+            hdulist._file.seek(pos)
 
         # Store additional keyword args that were passed to fits.open
         hdulist._open_kwargs = kwargs
