@@ -161,7 +161,7 @@ class Header:
             return
 
         if isinstance(value, tuple):
-            if not (0 < len(value) <= 2):
+            if len(value) > 2:
                 raise ValueError(
                     'A Header item may be set with either a scalar value, '
                     'a 1-tuple containing a scalar value, or a 2-tuple '
