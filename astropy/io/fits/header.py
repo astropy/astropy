@@ -136,16 +136,20 @@ class Header:
         elif self._haswildcard(key):
             return self.__class__([copy.copy(self._cards[idx])
                                    for idx in self._wildcardmatch(key)])
-        elif (isinstance(key, str) and
-              key.upper() in Card._commentary_keywords):
-            key = key.upper()
-            # Special case for commentary cards
-            return _HeaderCommentaryCards(self, key)
+        elif isinstance(key, str):
+            key = key.strip()
+            if key.upper() in Card._commentary_keywords:
+                key = key.upper()
+                # Special case for commentary cards
+                return _HeaderCommentaryCards(self, key)
+
         if isinstance(key, tuple):
             keyword = key[0]
         else:
             keyword = key
+
         card = self._cards[self._cardindex(key)]
+
         if card.field_specifier is not None and keyword == card.rawkeyword:
             # This is RVKC; if only the top-level keyword was specified return
             # the raw value, not the parsed out float value
