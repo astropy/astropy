@@ -390,7 +390,6 @@ def test_unit_spherical_with_differentials(rep):
     trans.unregister(frame_transform_graph)
 
 
-@pytest.mark.remote_data
 def test_vel_transformation_obstime_err():
     # TODO: replace after a final decision on PR #6280
     from astropy.coordinates.sites import get_builtin_sites
