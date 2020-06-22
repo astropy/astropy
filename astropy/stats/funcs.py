@@ -216,39 +216,40 @@ def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
     --------
     Integer inputs return an array with shape (2,):
 
-    >>> binom_conf_interval(4, 5, interval='wilson')
+    >>> binom_conf_interval(4, 5, interval='wilson')  # doctest: +FLOAT_CMP
     array([0.57921724, 0.92078259])
 
     Arrays of arbitrary dimension are supported. The Wilson and Jeffreys
     intervals give similar results, even for small k, N:
 
-    >>> binom_conf_interval([0, 1, 2, 5], 5, interval='wilson')
+    >>> result = binom_conf_interval([0, 1, 2, 5], 5, interval='wilson')
+    >>> print(np.array_repr(result, precision=8, suppress_small=True))  # doctest: +FLOAT_CMP
     array([[0.        , 0.07921741, 0.21597328, 0.83333304],
            [0.16666696, 0.42078276, 0.61736012, 1.        ]])
 
-    >>> binom_conf_interval([0, 1, 2, 5], 5, interval='jeffreys')
+    >>> binom_conf_interval([0, 1, 2, 5], 5, interval='jeffreys')  # doctest: +FLOAT_CMP
     array([[0.        , 0.0842525 , 0.21789949, 0.82788246],
            [0.17211754, 0.42218001, 0.61753691, 1.        ]])
 
-    >>> binom_conf_interval([0, 1, 2, 5], 5, interval='flat')
+    >>> binom_conf_interval([0, 1, 2, 5], 5, interval='flat')  # doctest: +FLOAT_CMP
     array([[0.        , 0.12139799, 0.24309021, 0.73577037],
            [0.26422963, 0.45401727, 0.61535699, 1.        ]])
 
     In contrast, the Wald interval gives poor results for small k, N.
     For k = 0 or k = N, the interval always has zero length.
 
-    >>> binom_conf_interval([0, 1, 2, 5], 5, interval='wald')
+    >>> binom_conf_interval([0, 1, 2, 5], 5, interval='wald')  # doctest: +FLOAT_CMP
     array([[0.        , 0.02111437, 0.18091075, 1.        ],
            [0.        , 0.37888563, 0.61908925, 1.        ]])
 
     For confidence intervals approaching 1, the Wald interval for
     0 < k < N can give intervals that extend outside [0, 1]:
 
-    >>> binom_conf_interval([0, 1, 2, 5], 5, interval='wald', confidence_level=0.99)
+    >>> binom_conf_interval([0, 1, 2, 5], 5, interval='wald', confidence_level=0.99)  # doctest: +FLOAT_CMP
     array([[ 0.        , -0.26077835, -0.16433593,  1.        ],
            [ 0.        ,  0.66077835,  0.96433593,  1.        ]])
 
-    """
+    """  # noqa
     if confidence_level < 0. or confidence_level > 1.:
         raise ValueError('confidence_level must be between 0. and 1.')
     alpha = 1. - confidence_level
@@ -525,7 +526,6 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
         Confidence level between 0 and 1; only supported for the
         'kraft-burrows-nousek' mode.
 
-
     Returns
     -------
     conf_interval : numpy.ndarray
@@ -703,7 +703,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
     ...     interval='kraft-burrows-nousek').T  # doctest: +FLOAT_CMP
     array([[ 3.47894005, 16.113329533]])
 
-    """
+    """  # noqa
 
     if not np.isscalar(n):
         n = np.asanyarray(n)
