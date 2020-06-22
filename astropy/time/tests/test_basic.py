@@ -1346,7 +1346,11 @@ def test_TimeFormat_scale():
 
 
 @pytest.mark.remote_data
-def test_scale_conversion():
+def test_scale_conversion(monkeypatch):
+    # Check that if we have internet, and downloading is allowed, we
+    # can get conversion to UT1 for the present, since we will download
+    # IERS_A in IERS_Auto.
+    monkeypatch.setattr('astropy.utils.iers.conf.auto_download', True)
     Time(Time.now().cxcsec, format='cxcsec', scale='ut1')
 
 

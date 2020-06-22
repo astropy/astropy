@@ -16,6 +16,19 @@ from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
+OLD_CONFIG = {}
+
+
+def setup_module():
+    OLD_CONFIG.clear()
+    OLD_CONFIG.update(configuration._cfgobjs)
+
+
+def teardown_module():
+    configuration._cfgobjs.clear()
+    configuration._cfgobjs.update(OLD_CONFIG)
+
+
 def test_paths():
     assert 'astropy' in paths.get_config_dir()
     assert 'astropy' in paths.get_cache_dir()
@@ -25,6 +38,9 @@ def test_paths():
 
 
 def test_set_temp_config(tmpdir, monkeypatch):
+    # Check that we start in an understood state.
+    assert configuration._cfgobjs == OLD_CONFIG
+    # Temporarily remove any temporary overrides of the configuration dir.
     monkeypatch.setattr(paths.set_temp_config, '_temp_path', None)
 
     orig_config_dir = paths.get_config_dir(rootname='astropy')
@@ -47,6 +63,8 @@ def test_set_temp_config(tmpdir, monkeypatch):
         assert paths.get_config_dir(rootname='astropy') == temp_astropy_config
 
     assert not os.path.exists(temp_config_dir)
+    # Check that we have returned to our old configuration.
+    assert configuration._cfgobjs == OLD_CONFIG
 
 
 def test_set_temp_cache(tmpdir, monkeypatch):

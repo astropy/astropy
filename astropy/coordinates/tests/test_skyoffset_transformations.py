@@ -207,7 +207,6 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
                     [1.0*u.deg, 1.0*u.deg], atol=convert_precision)
 
 
-@pytest.mark.remote_data
 def test_altaz_attribute_transforms():
     """Test transforms between AltAz frames with different attributes."""
     el1 = EarthLocation(0*u.deg, 0*u.deg, 0*u.m)

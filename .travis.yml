@@ -223,11 +223,6 @@ before_install:
      # Check CC variable
     - echo "CC="$CC
 
-    # Write configuration items to standard location to make sure they are
-    # ignored (the tests will fail if not)
-    - mkdir -p $HOME/.astropy/config/
-    - printf "unicode_output = True\nmax_width = 500" > $HOME/.astropy/config/astropy.cfg
-
     - if [[ $TOXENV == *-cov ]]; then
         export TOXPOSARGS=$TOXPOSARGS" --cov-report=xml:"$TRAVIS_BUILD_DIR"/coverage.xml";
       fi

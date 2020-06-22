@@ -144,7 +144,6 @@ def test_gcrs_diffs():
     assert np.all(np.abs(qtrisun2.data.differentials['s'].d_xyz) < 3e-5*u.km/u.s)
 
 
-@pytest.mark.remote_data
 def test_altaz_diffs():
     time = Time('J2015') + np.linspace(-1, 1, 1000)*u.day
     loc = get_builtin_sites()['greenwich']

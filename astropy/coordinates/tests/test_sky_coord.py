@@ -685,7 +685,6 @@ def test_repr():
                                 '    (0., 1.)>')
 
 
-@pytest.mark.remote_data
 def test_repr_altaz():
     sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame='icrs', distance=1 * u.kpc)
     loc = EarthLocation(-2309223 * u.m, -3695529 * u.m, -4641767 * u.m)

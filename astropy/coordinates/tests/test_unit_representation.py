@@ -36,7 +36,6 @@ def teardown_function(func):
     _invalidate_reprdiff_cls_hash()
 
 
-@pytest.mark.remote_data
 def test_unit_representation_subclass():
 
     class Longitude180(Longitude):

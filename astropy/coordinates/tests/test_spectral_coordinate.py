@@ -543,15 +543,13 @@ def test_relativistic_radial_velocity():
 # SCIENCE USE CASE TESTS
 
 
-@pytest.mark.remote_data
 def test_spectral_coord_jupiter():
     """
     Checks radial velocity between Earth and Jupiter
     """
     obstime = time.Time('2018-12-13 9:00')
-    obs = get_greenwich_earthlocation().get_gcrs(obstime)  # always built-in, no download required
+    obs = get_greenwich_earthlocation().get_gcrs(obstime)
 
-    # TODO: ideally we should be able to just do:
     pos, vel = get_body_barycentric_posvel('jupiter', obstime)
     jupiter = SkyCoord(pos.with_differentials(CartesianDifferential(vel.xyz)), obstime=obstime)
 
@@ -564,13 +562,12 @@ def test_spectral_coord_jupiter():
     assert_quantity_allclose(spc.radial_velocity, -7.35219854 * u.km / u.s)
 
 
-@pytest.mark.remote_data
 def test_spectral_coord_alphacen():
     """
     Checks radial velocity between Earth and Alpha Centauri
     """
     obstime = time.Time('2018-12-13 9:00')
-    obs = get_greenwich_earthlocation().get_gcrs(obstime)  # always built-in, no download required
+    obs = get_greenwich_earthlocation().get_gcrs(obstime)
 
     # Coordinates were obtained from the following then hard-coded to avoid download
     # acen = SkyCoord.from_name('alpha cen')
@@ -586,13 +583,12 @@ def test_spectral_coord_alphacen():
     assert_quantity_allclose(spc.radial_velocity, -26.328301 * u.km / u.s)
 
 
-@pytest.mark.remote_data
 def test_spectral_coord_m31():
     """
     Checks radial velocity between Earth and M31
     """
     obstime = time.Time('2018-12-13 9:00')
-    obs = get_greenwich_earthlocation().get_gcrs(obstime)  # always built-in, no download required
+    obs = get_greenwich_earthlocation().get_gcrs(obstime)
 
     # Coordinates were obtained from the following then hard-coded to avoid download
     # m31 = SkyCoord.from_name('M31')
@@ -637,14 +633,13 @@ def test_shift_to_rest_galaxy():
         rest_spc._change_observer_to(ICRS(CartesianRepresentation([0, 0, 0] * u.au)))
 
 
-@pytest.mark.remote_data
 def test_shift_to_rest_star_withobserver():
     rv = -8.3283011*u.km/u.s
     rest_line_wls = [5007, 6563]*u.AA
 
     obstime = time.Time('2018-12-13 9:00')
     eloc = get_greenwich_earthlocation()
-    obs = eloc.get_gcrs(obstime)  # always built-in, no download required
+    obs = eloc.get_gcrs(obstime)
     acen = SkyCoord(ra=219.90085*u.deg, dec=-60.83562*u.deg, frame='icrs',
                     distance=4.37*u.lightyear)
     # Note that above the rv is missing from the SkyCoord.
