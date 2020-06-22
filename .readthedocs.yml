@@ -3,6 +3,11 @@ version: 2
 build:
   image: latest
 
+sphinx:
+  builder: html
+  configuration: docs/conf.py
+  fail_on_warning: true
+
 # Install regular dependencies.
 # Then, install special pinning for RTD.
 python:
