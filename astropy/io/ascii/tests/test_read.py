@@ -1571,8 +1571,8 @@ def test_include_names_rdb_fast():
     lines[0] = 'a\ta_2\ta_1\ta_3\ta_4'
     dat = ascii.read(lines, fast_reader='force', include_names=['a', 'a_2', 'a_3'])
     assert len(dat) == 2
-    assert dat['a'].dtype == np.int
-    assert dat['a_2'].dtype == np.int
+    assert dat['a'].dtype == int
+    assert dat['a_2'].dtype == int
 
 
 @pytest.mark.parametrize('fast_reader', [False, 'force'])
