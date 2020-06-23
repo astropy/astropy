@@ -209,7 +209,7 @@ supported in the basic Python command-line interpreter on Windows.
 ``numpy.int64`` does not decompose input ``Quantity`` objects
 -------------------------------------------------------------
 
-Python's ``int()`` (and therefore ``numpy.int``) goes through ``__index__``
+Python's ``int()`` goes through ``__index__``
 while ``numpy.int64`` or ``numpy.int_`` do not go through ``__index__``. This
 means that an upstream fix in ``numpy` is required in order for
 ``astropy.units`` to control decomposing the input in these functions::
@@ -218,8 +218,6 @@ means that an upstream fix in ``numpy` is required in order for
     1
     >>> np.int_((15 * u.km) / (15 * u.imperial.foot))
     1
-    >>> np.int((15 * u.km) / (15 * u.imperial.foot))
-    3280
     >>> int((15 * u.km) / (15 * u.imperial.foot))
     3280
 

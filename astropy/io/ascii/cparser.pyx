@@ -802,7 +802,7 @@ cdef class CParser:
                 max_len = field_len
             row += 1
 
-        cdef np.ndarray col = np.array(fields_list, dtype=(np.str, max_len))
+        cdef np.ndarray col = np.array(fields_list, dtype=(str, max_len))
 
         if mask:
             return ma.masked_array(col, mask=[1 if i in mask else 0 for i in
