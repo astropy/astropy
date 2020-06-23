@@ -10,7 +10,7 @@ from . import FitsTestCase
 
 
 MAX_INT = np.iinfo(np.intc).max
-MAX_LONG = np.iinfo(np.long).max
+MAX_LONG = np.iinfo(int).max
 MAX_LONGLONG = np.iinfo(np.longlong).max
 
 

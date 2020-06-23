@@ -804,7 +804,7 @@ class BaseData:
         """Replace string values in col.str_vals and set masks"""
         if self.fill_values:
             for col in (col for col in cols if col.fill_values):
-                col.mask = numpy.zeros(len(col.str_vals), dtype=numpy.bool)
+                col.mask = numpy.zeros(len(col.str_vals), dtype=bool)
                 for i, str_val in ((i, x) for i, x in enumerate(col.str_vals)
                                    if x in col.fill_values):
                     col.str_vals[i] = col.fill_values[str_val]
@@ -860,9 +860,9 @@ def convert_numpy(numpy_type):
     ----------
     numpy_type : numpy data-type
         The numpy type required of an array returned by ``converter``. Must be a
-        valid `numpy type <https://docs.scipy.org/doc/numpy/user/basics.types.html>`_,
-        e.g. numpy.int, numpy.uint, numpy.int8, numpy.int64, numpy.float,
-        numpy.float64, numpy.str.
+        valid `numpy type <https://docs.scipy.org/doc/numpy/user/basics.types.html>`_
+        (e.g., numpy.uint, numpy.int8, numpy.int64, numpy.float64) or a python
+        type covered by a numpy type (e.g., int, float, str, bool).
 
     Returns
     -------
@@ -992,9 +992,9 @@ class TableOutputter(BaseOutputter):
     Output the table as an astropy.table.Table object.
     """
 
-    default_converters = [convert_numpy(numpy.int),
-                          convert_numpy(numpy.float),
-                          convert_numpy(numpy.str)]
+    default_converters = [convert_numpy(int),
+                          convert_numpy(float),
+                          convert_numpy(str)]
 
     def __call__(self, cols, meta):
         # Sets col.data to numpy array and col.type to io.ascii Type class (e.g.

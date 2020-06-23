@@ -301,7 +301,7 @@ def test_uint_indexing():
     """
     t = table.Table([[1., 2., 3.]], names='a')
     assert t['a'][1] == 2.
-    assert t['a'][np.int(1)] == 2.
+    assert t['a'][np.int_(1)] == 2.
     assert t['a'][np.uint(1)] == 2.
     assert t[np.uint(1)]['a'] == 2.
 
@@ -312,5 +312,5 @@ def test_uint_indexing():
              '    2.0']
 
     assert repr(t[1]).splitlines() == trepr
-    assert repr(t[np.int(1)]).splitlines() == trepr
+    assert repr(t[np.int_(1)]).splitlines() == trepr
     assert repr(t[np.uint(1)]).splitlines() == trepr
