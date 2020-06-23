@@ -39,7 +39,7 @@ def _toindex(value):
     >>> _toindex(np.array([1.5, 2.49999]))
     array([2, 2])
     """
-    indx = np.asarray(np.floor(np.asarray(value) + 0.5), dtype=np.int)
+    indx = np.asarray(np.floor(np.asarray(value) + 0.5), dtype=int)
     return indx
 
 
