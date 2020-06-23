@@ -222,32 +222,31 @@ def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
     Arrays of arbitrary dimension are supported. The Wilson and Jeffreys
     intervals give similar results, even for small k, N:
 
-    >>> result = binom_conf_interval([0, 1, 2, 5], 5, interval='wilson')
-    >>> print(np.array_repr(result, precision=8, suppress_small=True))  # doctest: +FLOAT_CMP
-    array([[0.        , 0.07921741, 0.21597328, 0.83333304],
-           [0.16666696, 0.42078276, 0.61736012, 1.        ]])
+    >>> binom_conf_interval([1, 2], 5, interval='wilson')  # doctest: +FLOAT_CMP
+    array([[0.07921741, 0.21597328],
+           [0.42078276, 0.61736012]])
 
-    >>> binom_conf_interval([0, 1, 2, 5], 5, interval='jeffreys')  # doctest: +FLOAT_CMP
-    array([[0.        , 0.0842525 , 0.21789949, 0.82788246],
-           [0.17211754, 0.42218001, 0.61753691, 1.        ]])
+    >>> binom_conf_interval([1, 2,], 5, interval='jeffreys')  # doctest: +FLOAT_CMP
+    array([[0.0842525 , 0.21789949],
+           [0.42218001, 0.61753691]])
 
-    >>> binom_conf_interval([0, 1, 2, 5], 5, interval='flat')  # doctest: +FLOAT_CMP
-    array([[0.        , 0.12139799, 0.24309021, 0.73577037],
-           [0.26422963, 0.45401727, 0.61535699, 1.        ]])
+    >>> binom_conf_interval([1, 2], 5, interval='flat')  # doctest: +FLOAT_CMP
+    array([[0.12139799, 0.24309021],
+           [0.45401727, 0.61535699]])
 
     In contrast, the Wald interval gives poor results for small k, N.
     For k = 0 or k = N, the interval always has zero length.
 
-    >>> binom_conf_interval([0, 1, 2, 5], 5, interval='wald')  # doctest: +FLOAT_CMP
-    array([[0.        , 0.02111437, 0.18091075, 1.        ],
-           [0.        , 0.37888563, 0.61908925, 1.        ]])
+    >>> binom_conf_interval([1, 2], 5, interval='wald')  # doctest: +FLOAT_CMP
+    array([[0.02111437, 0.18091075],
+           [0.37888563, 0.61908925]])
 
     For confidence intervals approaching 1, the Wald interval for
     0 < k < N can give intervals that extend outside [0, 1]:
 
-    >>> binom_conf_interval([0, 1, 2, 5], 5, interval='wald', confidence_level=0.99)  # doctest: +FLOAT_CMP
-    array([[ 0.        , -0.26077835, -0.16433593,  1.        ],
-           [ 0.        ,  0.66077835,  0.96433593,  1.        ]])
+    >>> binom_conf_interval([1, 2], 5, interval='wald', confidence_level=0.99)  # doctest: +FLOAT_CMP
+    array([[-0.26077835, -0.16433593],
+           [ 0.66077835,  0.96433593]])
 
     """  # noqa
     if confidence_level < 0. or confidence_level > 1.:
