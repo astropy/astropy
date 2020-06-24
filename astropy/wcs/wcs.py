@@ -1,33 +1,31 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""
-Under the hood, there are 3 separate classes that perform different
-parts of the transformation:
 
-   - `~astropy.wcs.Wcsprm`: Is a direct wrapper of the core WCS
-     functionality in `wcslib`_.  (This includes TPV and TPD
-     polynomial distortion, but not SIP distortion).
-
-   - `~astropy.wcs.Sip`: Handles polynomial distortion as defined in the
-     `SIP`_ convention.
-
-   - `~astropy.wcs.DistortionLookupTable`: Handles `distortion paper`_
-     lookup tables.
-
-Additionally, the class `WCS` aggregates all of these transformations
-together in a pipeline:
-
-   - Detector to image plane correction (by a pair of
-     `~astropy.wcs.DistortionLookupTable` objects).
-
-   - `SIP`_ distortion correction (by an underlying `~astropy.wcs.Sip`
-     object)
-
-   - `distortion paper`_ table-lookup correction (by a pair of
-     `~astropy.wcs.DistortionLookupTable` objects).
-
-   - `wcslib`_ WCS transformation (by a `~astropy.wcs.Wcsprm` object)
-
-"""
+# Under the hood, there are 3 separate classes that perform different
+# parts of the transformation:
+#
+#    - `~astropy.wcs.Wcsprm`: Is a direct wrapper of the core WCS
+#      functionality in `wcslib`_.  (This includes TPV and TPD
+#      polynomial distortion, but not SIP distortion).
+#
+#    - `~astropy.wcs.Sip`: Handles polynomial distortion as defined in the
+#      `SIP`_ convention.
+#
+#    - `~astropy.wcs.DistortionLookupTable`: Handles `distortion paper`_
+#      lookup tables.
+#
+# Additionally, the class `WCS` aggregates all of these transformations
+# together in a pipeline:
+#
+#    - Detector to image plane correction (by a pair of
+#      `~astropy.wcs.DistortionLookupTable` objects).
+#
+#    - `SIP`_ distortion correction (by an underlying `~astropy.wcs.Sip`
+#      object)
+#
+#    - `distortion paper`_ table-lookup correction (by a pair of
+#      `~astropy.wcs.DistortionLookupTable` objects).
+#
+#    - `wcslib`_ WCS transformation (by a `~astropy.wcs.Wcsprm` object)
 
 # STDLIB
 import copy

@@ -58,6 +58,10 @@ py:obj AbstractPathEffect
 py:obj matplotlib.axis.Axes.get_window_extent
 py:obj matplotlib.spines.get_window_extent
 
+# astropy.wcs
+py:class astropy.wcs.wcsapi.fitswcs.FITSWCSAPIMixin
+py:class astropy.wcs.wcsapi.fitswcs.custom_ctype_to_ucd_mapping
+
 # numpy inherited docstrings
 py:obj dtype
 py:obj a
