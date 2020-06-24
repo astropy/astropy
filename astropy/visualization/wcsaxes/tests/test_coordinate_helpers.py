@@ -7,12 +7,12 @@ import pytest
 import matplotlib.pyplot as plt
 from astropy.wcs import WCS
 from astropy.io import fits
+from astropy.utils.data import get_pkg_data_filename
 
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy import units as u
 
-ROOT = os.path.join(os.path.dirname(__file__))
-MSX_HEADER = fits.Header.fromtextfile(os.path.join(ROOT, 'data', 'msx_header'))
+MSX_HEADER = fits.Header.fromtextfile(get_pkg_data_filename('data/msx_header'))
 
 
 def teardown_function(function):
