@@ -1,8 +1,5 @@
 .. _relax:
 
-Relax constants
-***************
-
 The ``relax`` keyword argument controls the handling of non-standard
 FITS WCS keywords.
 
@@ -16,7 +13,7 @@ out only standard keywords), in accordance with `Postel's prescription
 .. _relaxread:
 
 Header-reading relaxation constants
-===================================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `~astropy.wcs.WCS`, `~astropy.wcs.Wcsprm` and
 `~astropy.wcs.find_all_wcs` have a *relax* argument, which may be
@@ -310,7 +307,7 @@ The flag bits are:
 .. _relaxwrite:
 
 Header-writing relaxation constants
-===================================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `~astropy.wcs.wcs.WCS.to_header` and `~astropy.wcs.wcs.WCS.to_header_string`
 has a *relax* argument which may be either `True`, `False` or an
