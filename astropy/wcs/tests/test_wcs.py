@@ -930,33 +930,101 @@ def test_hst_wcs():
     hdulist.close()
 
 
-def test_list_naxis():
+def test_hst_wcs():
     path = get_pkg_data_filename("data/dist_lookup.fits.gz")
 
-    with fits.open(path) as hdulist:
-        # wcslib will complain about the distortion parameters if they
-        # weren't correctly deleted from the header
-        with pytest.warns(None) as wrng:
-            w = wcs.WCS(hdulist[1].header, hdulist, naxis=['celestial'])
-        _check_v71_dateref_warnings(wrng)
+    hdulist = fits.open(path)
+    # wcslib will complain about the distortion parameters if they
+    # weren't correctly deleted from the header
+    w = wcs.WCS(hdulist[1].header, hdulist)
 
-        assert w.naxis == 2
-        assert w.wcs.naxis == 2
+    # Exercise the main transformation functions, mainly just for
+    # coverage
+    w.p4_pix2foc([0, 100, 200], [0, -100, 200], 0)
+    w.det2im([0, 100, 200], [0, -100, 200], 0)
 
-        path = get_pkg_data_filename("data/maps/1904-66_SIN.hdr")
-        with open(path, 'rb') as fd:
-            content = fd.read()
-        with pytest.warns(None) as wrng:
-            w = wcs.WCS(content, naxis=['celestial'])
-        _check_v71_dateref_warnings(wrng)
-        assert w.naxis == 2
-        assert w.wcs.naxis == 2
+    w.cpdis1 = w.cpdis1
+    w.cpdis2 = w.cpdis2
 
-        with pytest.warns(None) as wrng:
-            w = wcs.WCS(content, naxis=['spectral'])
-        _check_v71_dateref_warnings(wrng)
-        assert w.naxis == 0
-        assert w.wcs.naxis == 0
+    w.det2im1 = w.det2im1
+    w.det2im2 = w.det2im2
+
+    w.sip = w.sip
+
+    w.cpdis1.cdelt = w.cpdis1.cdelt
+    w.cpdis1.crpix = w.cpdis1.crpix
+    w.cpdis1.crval = w.cpdis1.crval
+    w.cpdis1.data = w.cpdis1.data
+
+    assert w.sip.a_order == 4
+    assert w.sip.b_order == 4
+    assert w.sip.ap_order == 0
+    assert w.sip.bp_order == 0
+    assert_array_equal(w.sip.crpix, [2048., 1024.])
+    wcs.WCS(hdulist[1].header, hdulist)
+    hdulist.close()
+
+
+def test_cpdis_comments():
+    path = get_pkg_data_filename("data/dist_lookup.fits.gz")
+
+    f = fits.open(path)
+    w = wcs.WCS(f[1].header, f)
+    hdr = w.to_fits()[0].header
+    f.close()
+
+    wcscards = list(hdr['CPDIS*'].cards) + list(hdr['DP*'].cards)
+    wcsdict = {k: (v, c) for k, v, c in wcscards}
+
+    refcards = [
+        ('CPDIS1', 'LOOKUP', 'Prior distortion function type'),
+        ('DP1.EXTVER', 1.0, 'Version number of WCSDVARR extension'),
+        ('DP1.NAXES', 2.0, 'Number of independent variables in CPDIS function'),
+        ('DP1.AXIS.1', 1.0, 'Axis number of the 1st variable in a CPDIS function'),
+        ('DP1.AXIS.2', 2.0, 'Axis number of the 2nd variable in a CPDIS function'),
+        ('CPDIS2', 'LOOKUP', 'Prior distortion function type'),
+        ('DP2.EXTVER', 2.0, 'Version number of WCSDVARR extension'),
+        ('DP2.NAXES', 2.0, 'Number of independent variables in CPDIS function'),
+        ('DP2.AXIS.1', 1.0, 'Axis number of the 1st variable in a CPDIS function'),
+        ('DP2.AXIS.2', 2.0, 'Axis number of the 2nd variable in a CPDIS function'),
+    ]
+
+    assert len(wcsdict) == len(refcards)
+
+    for k, v, c in refcards:
+        assert wcsdict[k] == (v, c)
+
+
+def test_d2im_comments():
+    path = get_pkg_data_filename("data/ie6d07ujq_wcs.fits")
+
+    f = fits.open(path)
+    with pytest.warns(wcs.FITSFixedWarning):
+        w = wcs.WCS(f[0].header, f)
+    f.close()
+    wcscards = list(w.to_fits()[0].header['D2IM*'].cards)
+    wcsdict = {k: (v, c) for k, v, c in wcscards}
+
+    refcards = [
+        ('D2IMDIS1', 'LOOKUP', 'Detector to image correction type'),
+        ('D2IM1.EXTVER', 1.0, 'Version number of WCSDVARR extension'),
+        ('D2IM1.NAXES', 2.0, 'Number of independent variables in D2IM function'),
+        ('D2IM1.AXIS.1', 1.0, 'Axis number of the 1st variable in a D2IM function'),
+        ('D2IM1.AXIS.2', 2.0, 'Axis number of the 2nd variable in a D2IM function'),
+        ('D2IMDIS2', 'LOOKUP', 'Detector to image correction type'),
+        ('D2IM2.EXTVER', 2.0, 'Version number of WCSDVARR extension'),
+        ('D2IM2.NAXES', 2.0, 'Number of independent variables in D2IM function'),
+        ('D2IM2.AXIS.1', 1.0, 'Axis number of the 1st variable in a D2IM function'),
+        ('D2IM2.AXIS.2', 2.0, 'Axis number of the 2nd variable in a D2IM function'),
+        # ('D2IMERR1', 0.049, 'Maximum error of D2IM correction for axis 1'),
+        # ('D2IMERR2', 0.035, 'Maximum error of D2IM correction for axis 2'),
+        # ('D2IMEXT', 'iref$y7b1516hi_d2i.fits', ''),
+    ]
+
+    assert len(wcsdict) == len(refcards)
+
+    for k, v, c in refcards:
+        assert wcsdict[k] == (v, c)
 
 
 def test_sip_broken():
