@@ -19,6 +19,7 @@ from astropy import units as u
 from astropy.table import Table, QTable, NdarrayMixin, Column
 from astropy.table.table_helpers import simple_table
 from astropy.units.format.fits import UnitScaleError
+from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import (AstropyUserWarning,
                                       AstropyDeprecationWarning)
 
@@ -33,8 +34,6 @@ try:
     HAS_YAML = True
 except ImportError:
     HAS_YAML = False
-
-DATA = os.path.join(os.path.dirname(__file__), 'data')
 
 
 def equal_data(a, b):
@@ -458,7 +457,7 @@ def test_masking_regression_1795():
     Regression test for #1795 - this bug originally caused columns where TNULL
     was not defined to have their first element masked.
     """
-    t = Table.read(os.path.join(DATA, 'tb.fits'))
+    t = Table.read(get_pkg_data_filename('data/tb.fits'))
     assert np.all(t['c1'].mask == np.array([False, False]))
     assert np.all(t['c2'].mask == np.array([False, False]))
     assert np.all(t['c3'].mask == np.array([False, False]))
@@ -577,7 +576,7 @@ def test_convert_comment_convention(tmpdir):
     """
     Regression test for https://github.com/astropy/astropy/issues/6079
     """
-    filename = os.path.join(DATA, 'stddata.fits')
+    filename = get_pkg_data_filename('data/stddata.fits')
     with pytest.warns(AstropyUserWarning, match=r'hdu= was not specified but '
                       r'multiple tables are present'):
         t = Table.read(filename)
