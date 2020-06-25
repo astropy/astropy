@@ -1,7 +1,6 @@
 # The purpose of these tests are to ensure that calling ufuncs with quantities
 # returns quantities with the right units, or raises exceptions.
 
-import sys
 import warnings
 from collections import namedtuple
 
@@ -12,8 +11,6 @@ from numpy.testing import assert_allclose
 from astropy import units as u
 from astropy.units import quantity_helper as qh
 from astropy._erfa import ufunc as erfa_ufunc
-from astropy.tests.helper import raises, catch_warnings
-from astropy.utils.compat.context import nullcontext
 
 try:
     import scipy  # pylint: disable=W0611 # noqa
@@ -30,13 +27,13 @@ testwarn = namedtuple('testwarn', ['f', 'q_in', 'wfilter'])
 
 @pytest.mark.skip
 def test_testcase(tc):
-        results = tc.f(*tc.q_in)
-        # careful of the following line, would break on a function returning
-        # a single tuple (as opposed to tuple of return values)
-        results = (results, ) if type(results) != tuple else results
-        for result, expected in zip(results, tc.q_out):
-            assert result.unit == expected.unit
-            assert_allclose(result.value, expected.value, atol=1.E-15)
+    results = tc.f(*tc.q_in)
+    # careful of the following line, would break on a function returning
+    # a single tuple (as opposed to tuple of return values)
+    results = (results, ) if type(results) != tuple else results
+    for result, expected in zip(results, tc.q_out):
+        assert result.unit == expected.unit
+        assert_allclose(result.value, expected.value, atol=1.E-15)
 
 
 @pytest.mark.skip
@@ -444,13 +441,13 @@ class TestQuantityMathFuncs:
         assert np.all(np.float_power(np.arange(4.) * u.m, 0.) ==
                       1. * u.dimensionless_unscaled)
 
-    @raises(ValueError)
     def test_power_array_array(self):
-        np.power(4. * u.m, [2., 4.])
+        with pytest.raises(ValueError):
+            np.power(4. * u.m, [2., 4.])
 
-    @raises(ValueError)
     def test_power_array_array2(self):
-        np.power([2., 4.] * u.m, [2., 4.])
+        with pytest.raises(ValueError):
+            np.power([2., 4.] * u.m, [2., 4.])
 
     def test_power_array_array3(self):
         # Identical unit fractions are converted automatically to dimensionless
@@ -685,12 +682,15 @@ class TestComparisonUfuncs:
                                     .to_value(u.dimensionless_unscaled), 2.))
         # comparison with 0., inf, nan is OK even for dimensional quantities
         # (though ignore numpy runtime warnings for comparisons with nan).
-        with catch_warnings(RuntimeWarning):
+        with pytest.warns(None) as warning_lines:
             for arbitrary_unit_value in (0., np.inf, np.nan):
                 ufunc(q_i1, arbitrary_unit_value)
                 ufunc(q_i1, arbitrary_unit_value*np.ones(len(q_i1)))
             # and just for completeness
             ufunc(q_i1, np.array([0., np.inf, np.nan]))
+        if len(warning_lines) > 0:
+            for w in warning_lines:
+                assert issubclass(w.category, RuntimeWarning)
 
     @pytest.mark.parametrize(('ufunc'), [np.greater, np.greater_equal,
                                          np.less, np.less_equal,

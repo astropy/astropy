@@ -11,7 +11,7 @@ from numpy.testing import assert_allclose
 from astropy import units as u
 from astropy.units.equivalencies import Equivalency
 from astropy import constants, cosmology
-from astropy.tests.helper import assert_quantity_allclose, catch_warnings
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
@@ -588,12 +588,12 @@ def test_swapped_args_brightness_temperature():
     nu = u.GHz * 5
     tb = 7.052587837212582 * u.K
 
-    with catch_warnings(AstropyDeprecationWarning) as w:
+    with pytest.warns(AstropyDeprecationWarning) as w:
         result = (1*u.Jy).to(
             u.K, equivalencies=u.brightness_temperature(omega_B, nu))
         roundtrip = result.to(
             u.Jy, equivalencies=u.brightness_temperature(omega_B, nu))
-        assert len(w) == 2
+    assert len(w) == 2
     np.testing.assert_almost_equal(tb.value, result.value)
     np.testing.assert_almost_equal(roundtrip.value, 1)
 

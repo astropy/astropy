@@ -471,11 +471,12 @@ def test_ecsv_but_no_yaml_warning():
     emits a warning, but reading with guess=False gives an exception.
     """
     with pytest.warns(AstropyWarning, match=r'file looks like ECSV format but '
-                      'PyYAML is not installed.*') as w:
+                      'PyYAML is not installed') as w:
         ascii.read(SIMPLE_LINES)
     assert len(w) == 1
 
-    with pytest.raises(ascii.InconsistentTableError, match=r'.*PyYAML package is required.*'):
+    with pytest.raises(ascii.InconsistentTableError, match='unable to parse yaml'), \
+            pytest.warns(AstropyWarning, match=r'PyYAML is not installed'):
         ascii.read(SIMPLE_LINES, format='ecsv')
 
 
