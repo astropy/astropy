@@ -685,7 +685,6 @@ Testing warnings
 
 In order to test that warnings are triggered as expected in certain
 situations,
-
 `pytest`_ provides its own context manager
 :ref:`pytest.warns <pytest:warns>` that, completely
 analogously to ``pytest.raises`` (see below) allows to probe explicitly

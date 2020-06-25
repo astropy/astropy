@@ -1,8 +1,6 @@
 # coding: utf-8
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""
-    Test the Quantity class and related.
-"""
+"""Test the Quantity class and related."""
 
 import copy
 import pickle
@@ -15,7 +13,6 @@ import numpy as np
 from numpy.testing import (assert_allclose, assert_array_equal,
                            assert_array_almost_equal)
 
-from astropy.tests.helper import catch_warnings, raises
 from astropy.utils import isiterable, minversion
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy import units as u
@@ -55,8 +52,8 @@ class TestQuantityCreation:
     def test_2(self):
 
         # create objects using the Quantity constructor:
-        q1 = u.Quantity(11.412, unit=u.meter)
-        q2 = u.Quantity(21.52, "cm")
+        _ = u.Quantity(11.412, unit=u.meter)
+        _ = u.Quantity(21.52, "cm")
         q3 = u.Quantity(11.412)
 
         # By default quantities that don't specify a unit are unscaled
@@ -64,12 +61,12 @@ class TestQuantityCreation:
         assert q3.unit == u.Unit(1)
 
         with pytest.raises(TypeError):
-            q4 = u.Quantity(object(), unit=u.m)
+            u.Quantity(object(), unit=u.m)
 
     def test_3(self):
         # with pytest.raises(u.UnitsError):
         with pytest.raises(ValueError):  # Until @mdboom fixes the errors in units
-            q1 = u.Quantity(11.412, unit="testingggg")
+            u.Quantity(11.412, unit="testingggg")
 
     def test_nan_inf(self):
         # Not-a-number
@@ -306,30 +303,22 @@ class TestQuantityCreation:
 
     def test_rshift_warns(self):
         with pytest.raises(TypeError), \
-                catch_warnings() as warning_lines:
+                pytest.warns(AstropyWarning, match='is not implemented') as warning_lines:
             1 >> u.m
         assert len(warning_lines) == 1
-        assert warning_lines[0].category == AstropyWarning
-        assert 'is not implemented' in str(warning_lines[0].message)
         q = 1. * u.km
         with pytest.raises(TypeError), \
-                catch_warnings() as warning_lines:
+                pytest.warns(AstropyWarning, match='is not implemented') as warning_lines:
             q >> u.m
         assert len(warning_lines) == 1
-        assert warning_lines[0].category == AstropyWarning
-        assert 'is not implemented' in str(warning_lines[0].message)
         with pytest.raises(TypeError), \
-                catch_warnings() as warning_lines:
+                pytest.warns(AstropyWarning, match='is not implemented') as warning_lines:
             q >>= u.m
         assert len(warning_lines) == 1
-        assert warning_lines[0].category == AstropyWarning
-        assert 'is not implemented' in str(warning_lines[0].message)
         with pytest.raises(TypeError), \
-                catch_warnings() as warning_lines:
+                pytest.warns(AstropyWarning, match='is not implemented') as warning_lines:
             1. >> q
         assert len(warning_lines) == 1
-        assert warning_lines[0].category == AstropyWarning
-        assert 'is not implemented' in str(warning_lines[0].message)
 
 
 class TestQuantityOperations:
@@ -489,7 +478,7 @@ class TestQuantityOperations:
         q2 = u.Quantity(21.52, unit=u.second)
 
         with pytest.raises(u.UnitsError):
-            new_q = q1 + q2
+            q1 + q2
 
     def test_non_number_type(self):
         q1 = u.Quantity(11.412, unit=u.meter)
@@ -547,7 +536,7 @@ class TestQuantityOperations:
             velocity.value, 3.05037, decimal=5)
 
         G = u.Quantity(6.673E-11, u.m ** 3 / u.kg / u.s ** 2)
-        new_q = ((1. / (4. * np.pi * G)).to(u.pc ** -3 / u.s ** -2 * u.kg))
+        _ = ((1. / (4. * np.pi * G)).to(u.pc ** -3 / u.s ** -2 * u.kg))
 
         # Area
         side1 = u.Quantity(11., u.centimeter)
@@ -578,12 +567,10 @@ class TestQuantityOperations:
 
         # comparison with zero should raise a deprecation warning
         for quantity in (1. * u.cm, 1. * u.dimensionless_unscaled):
-            with catch_warnings(AstropyDeprecationWarning) as warning_lines:
+            with pytest.warns(AstropyDeprecationWarning, match='The truth value of '
+                              'a Quantity is ambiguous. In the future this will '
+                              'raise a ValueError.'):
                 bool(quantity)
-                assert warning_lines[0].category == AstropyDeprecationWarning
-                assert (str(warning_lines[0].message) == 'The truth value of '
-                        'a Quantity is ambiguous. In the future this will '
-                        'raise a ValueError.')
 
     def test_numeric_converters(self):
         # float, int, long, and __index__ should only work for single
@@ -796,51 +783,47 @@ def test_cgs():
 class TestQuantityComparison:
 
     def test_quantity_equality(self):
-        with catch_warnings(DeprecationWarning) as w:
-            assert u.Quantity(1000, unit='m') == u.Quantity(1, unit='km')
-            assert not (u.Quantity(1, unit='m') == u.Quantity(1, unit='km'))
-            # for ==, !=, return False, True if units do not match
-            assert (u.Quantity(1100, unit=u.m) != u.Quantity(1, unit=u.s)) is True
-            assert (u.Quantity(1100, unit=u.m) == u.Quantity(1, unit=u.s)) is False
-            assert (u.Quantity(0, unit=u.m) == u.Quantity(0, unit=u.s)) is False
-            # But allow comparison with 0, +/-inf if latter unitless
-            assert u.Quantity(0, u.m) == 0.
-            assert u.Quantity(1, u.m) != 0.
-            assert u.Quantity(1, u.m) != np.inf
-            assert u.Quantity(np.inf, u.m) == np.inf
-        assert len(w) == 0
+        assert u.Quantity(1000, unit='m') == u.Quantity(1, unit='km')
+        assert not (u.Quantity(1, unit='m') == u.Quantity(1, unit='km'))
+        # for ==, !=, return False, True if units do not match
+        assert (u.Quantity(1100, unit=u.m) != u.Quantity(1, unit=u.s)) is True
+        assert (u.Quantity(1100, unit=u.m) == u.Quantity(1, unit=u.s)) is False
+        assert (u.Quantity(0, unit=u.m) == u.Quantity(0, unit=u.s)) is False
+        # But allow comparison with 0, +/-inf if latter unitless
+        assert u.Quantity(0, u.m) == 0.
+        assert u.Quantity(1, u.m) != 0.
+        assert u.Quantity(1, u.m) != np.inf
+        assert u.Quantity(np.inf, u.m) == np.inf
 
     def test_quantity_equality_array(self):
-        with catch_warnings(DeprecationWarning) as w:
-            a = u.Quantity([0., 1., 1000.], u.m)
-            b = u.Quantity(1., u.km)
-            eq = a == b
-            ne = a != b
-            assert np.all(eq == [False, False, True])
-            assert np.all(eq != ne)
-            # For mismatched units, we should just get True, False
-            c = u.Quantity(1., u.s)
-            eq = a == c
-            ne = a != c
-            assert eq is False
-            assert ne is True
-            # Constants are treated as dimensionless, so False too.
-            eq = a == 1.
-            ne = a != 1.
-            assert eq is False
-            assert ne is True
-            # But 0 can have any units, so we can compare.
-            eq = a == 0
-            ne = a != 0
-            assert np.all(eq == [True, False, False])
-            assert np.all(eq != ne)
-            # But we do not extend that to arrays; they should have the same unit.
-            d = np.array([0, 1., 1000.])
-            eq = a == d
-            ne = a != d
-            assert eq is False
-            assert ne is True
-        assert len(w) == 0
+        a = u.Quantity([0., 1., 1000.], u.m)
+        b = u.Quantity(1., u.km)
+        eq = a == b
+        ne = a != b
+        assert np.all(eq == [False, False, True])
+        assert np.all(eq != ne)
+        # For mismatched units, we should just get True, False
+        c = u.Quantity(1., u.s)
+        eq = a == c
+        ne = a != c
+        assert eq is False
+        assert ne is True
+        # Constants are treated as dimensionless, so False too.
+        eq = a == 1.
+        ne = a != 1.
+        assert eq is False
+        assert ne is True
+        # But 0 can have any units, so we can compare.
+        eq = a == 0
+        ne = a != 0
+        assert np.all(eq == [True, False, False])
+        assert np.all(eq != ne)
+        # But we do not extend that to arrays; they should have the same unit.
+        d = np.array([0, 1., 1000.])
+        eq = a == d
+        ne = a != d
+        assert eq is False
+        assert ne is True
 
     def test_quantity_comparison(self):
         assert u.Quantity(1100, unit=u.meter) > u.Quantity(1, unit=u.kilometer)
@@ -1182,9 +1165,9 @@ def test_quantity_string_unit():
     assert q2.unit == ((u.m * u.m) / u.s)
 
 
-@raises(ValueError)
 def test_quantity_invalid_unit_string():
-    "foo" * u.m
+    with pytest.raises(ValueError):
+        "foo" * u.m
 
 
 def test_implicit_conversion():
@@ -1345,7 +1328,7 @@ def test_unsupported():
     q1 = np.arange(10) * u.m
 
     with pytest.raises(TypeError):
-        q2 = np.bitwise_and(q1, q1)
+        np.bitwise_and(q1, q1)
 
 
 def test_unit_identity():
@@ -1360,9 +1343,9 @@ def test_quantity_to_view():
     assert q2.value[0] == 1
 
 
-@raises(ValueError)
 def test_quantity_tuple_power():
-    (5.0 * u.m) ** (1, 2)
+    with pytest.raises(ValueError):
+        (5.0 * u.m) ** (1, 2)
 
 
 def test_quantity_fraction_power():
