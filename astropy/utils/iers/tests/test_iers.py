@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 import numpy as np
 
-from astropy.tests.helper import assert_quantity_allclose, catch_warnings
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.iers import iers
 from astropy import units as u
@@ -287,25 +287,20 @@ class TestIERS_Auto():
             # and an exception when extrapolating into the future with insufficient data.
             dat._time_now = Time(predictive_mjd, format='mjd') + 60 * u.d
             assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.1293286)
-            with catch_warnings(iers.IERSStaleWarning) as warns:
-                with pytest.raises(ValueError) as err:
-                    dat.ut1_utc(Time(60000, format='mjd').jd)
-            assert 'interpolating from IERS_Auto using predictive values' in str(err.value)
+            with pytest.warns(iers.IERSStaleWarning, match='IERS_Auto predictive values are older') as warns, pytest.raises(ValueError, match='interpolating from IERS_Auto using predictive values'):  # noqa
+                dat.ut1_utc(Time(60000, format='mjd').jd)
             assert len(warns) == 1
-            assert 'IERS_Auto predictive values are older' in str(warns[0].message)
 
             # Warning only if we are getting return status
-            with catch_warnings(iers.IERSStaleWarning) as warns:
+            with pytest.warns(iers.IERSStaleWarning, match='IERS_Auto '
+                              'predictive values are older') as warns:
                 dat.ut1_utc(Time(60000, format='mjd').jd, return_status=True)
             assert len(warns) == 1
-            assert 'IERS_Auto predictive values are older' in str(warns[0].message)
 
             # Now set auto_max_age = None which says that we don't care how old the
             # available IERS-A file is.  There should be no warnings or exceptions.
             with iers.conf.set_temp('auto_max_age', None):
-                with catch_warnings(iers.IERSStaleWarning) as warns:
-                    dat.ut1_utc(Time(60000, format='mjd').jd)
-                assert not warns
+                dat.ut1_utc(Time(60000, format='mjd').jd)
 
         # Now point to a later file with same values but MJD increased by
         # 60 days and see that things work.  dat._time_now is still the same value
