@@ -22,7 +22,6 @@ from astropy.wcs.wcs import WCS, FITSFixedWarning
 from astropy.wcs.wcsapi.fitswcs import custom_ctype_to_ucd_mapping, VELOCITY_FRAMES
 from astropy.wcs._wcs import __version__ as wcsver
 from astropy.utils import iers
-from astropy.table import Table
 from astropy.utils.exceptions import AstropyUserWarning
 
 ###############################################################################
