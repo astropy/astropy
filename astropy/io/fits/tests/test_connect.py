@@ -18,7 +18,6 @@ from astropy.io import fits
 from astropy import units as u
 from astropy.table import Table, QTable, NdarrayMixin, Column
 from astropy.table.table_helpers import simple_table
-from astropy.tests.helper import catch_warnings
 from astropy.units.format.fits import UnitScaleError
 from astropy.utils.exceptions import (AstropyUserWarning,
                                       AstropyDeprecationWarning)
@@ -89,11 +88,11 @@ class TestSingleTable:
         filename = str(tmpdir.join('test_simple.fits'))
         t1 = Table(self.data)
         t1.meta['ttype1'] = 'spam'
-        with catch_warnings() as l:
+        with pytest.warns(AstropyUserWarning, match='Meta-data keyword ttype1 '
+                          'will be ignored since it conflicts with a FITS '
+                          'reserved keyword') as w:
             t1.write(filename, overwrite=True)
-        assert len(l) == 1
-        assert str(l[0].message).startswith(
-            'Meta-data keyword ttype1 will be ignored since it conflicts with a FITS reserved keyword')
+        assert len(w) == 1
 
     def test_simple_noextension(self, tmpdir):
         """
@@ -125,17 +124,16 @@ class TestSingleTable:
         unit = u.def_unit('bandpass_sol_lum')
         t = QTable()
         t['l'] = np.ones(5) * unit
-        with catch_warnings(AstropyUserWarning) as w:
+        with pytest.warns(AstropyUserWarning) as w:
             t.write(filename, overwrite=True)
         assert len(w) == 1
         assert 'bandpass_sol_lum' in str(w[0].message)
         # Just reading back, the data is fine but the unit is not recognized.
-        with catch_warnings() as w:
+        with pytest.warns(u.UnitsWarning, match="'bandpass_sol_lum' did not parse") as w:
             t2 = QTable.read(filename)
+        assert len(w) == 1
         assert isinstance(t2['l'].unit, u.UnrecognizedUnit)
         assert str(t2['l'].unit) == 'bandpass_sol_lum'
-        assert len(w) == 1
-        assert "'bandpass_sol_lum' did not parse" in str(w[0].message)
         assert np.all(t2['l'].value == t['l'].value)
 
         # But if we enable the unit, it should be recognized.
@@ -146,9 +144,8 @@ class TestSingleTable:
 
             # Regression check for #8897; write used to fail when a custom
             # unit was enabled.
-            with catch_warnings(u.UnitsWarning) as w:
+            with pytest.warns(AstropyUserWarning):
                 t3.write(filename, overwrite=True)
-            assert len(w) == 0
 
     @pytest.mark.parametrize('table_type', (Table, QTable))
     def test_with_format(self, table_type, tmpdir):
@@ -185,7 +182,7 @@ class TestSingleTable:
         filename = str(tmpdir.join('test_masked_nan.fits'))
         data = np.array(list(zip([5.2, 8.4, 3.9, 6.3],
                                  [2.3, 4.5, 6.7, 8.9])),
-                                dtype=[('a', np.float64), ('b', np.float32)])
+                        dtype=[('a', np.float64), ('b', np.float32)])
         t1 = Table(data, masked=True)
         t1.mask['a'] = [1, 0, 1, 0]
         t1.mask['b'] = [1, 0, 0, 1]
@@ -222,10 +219,9 @@ class TestSingleTable:
         spam = u.def_unit('spam')
         t = table_type()
         t['a'] = [1., 2., 3.] * spam
-        with catch_warnings() as w:
+        with pytest.warns(AstropyUserWarning, match='spam') as w:
             t.write(filename)
         assert len(w) == 1
-        assert 'spam' in str(w[0].message)
         if table_type is Table or not HAS_YAML:
             assert ('cannot be recovered in reading. '
                     'If pyyaml is installed') in str(w[0].message)
@@ -325,18 +321,14 @@ class TestMultipleHDU:
     def test_read_with_hdu_1(self, tmpdir, hdu):
         filename = str(tmpdir.join('test_read_with_hdu_1.fits'))
         self.hdus.writeto(filename)
-        with catch_warnings() as l:
-            t = Table.read(filename, hdu=hdu)
-        assert len(l) == 0
+        t = Table.read(filename, hdu=hdu)
         assert equal_data(t, self.data1)
 
     @pytest.mark.parametrize('hdu', [2, 'second'])
     def test_read_with_hdu_2(self, tmpdir, hdu):
         filename = str(tmpdir.join('test_read_with_hdu_2.fits'))
         self.hdus.writeto(filename)
-        with catch_warnings() as l:
-            t = Table.read(filename, hdu=hdu)
-        assert len(l) == 0
+        t = Table.read(filename, hdu=hdu)
         assert equal_data(t, self.data2)
 
     @pytest.mark.parametrize('hdu', [3, 'third'])
@@ -349,9 +341,7 @@ class TestMultipleHDU:
     def test_read_with_hdu_4(self, tmpdir):
         filename = str(tmpdir.join('test_read_with_hdu_4.fits'))
         self.hdus.writeto(filename)
-        with catch_warnings() as l:
-            t = Table.read(filename, hdu=4)
-        assert len(l) == 0
+        t = Table.read(filename, hdu=4)
         assert equal_data(t, self.data3)
 
     @pytest.mark.parametrize('hdu', [2, 3, '1', 'second', ''])
@@ -406,23 +396,17 @@ class TestMultipleHDU:
 
     @pytest.mark.parametrize('hdu', [1, 'first', None])
     def test_read_from_hdulist_with_single_table(self, hdu):
-        with catch_warnings() as l:
-            t = Table.read(self.hdus1, hdu=hdu)
-        assert len(l) == 0
+        t = Table.read(self.hdus1, hdu=hdu)
         assert equal_data(t, self.data1)
 
     @pytest.mark.parametrize('hdu', [1, 'first'])
     def test_read_from_hdulist_with_hdu_1(self, hdu):
-        with catch_warnings() as l:
-            t = Table.read(self.hdus, hdu=hdu)
-        assert len(l) == 0
+        t = Table.read(self.hdus, hdu=hdu)
         assert equal_data(t, self.data1)
 
     @pytest.mark.parametrize('hdu', [2, 'second'])
     def test_read_from_hdulist_with_hdu_2(self, hdu):
-        with catch_warnings() as l:
-            t = Table.read(self.hdus, hdu=hdu)
-        assert len(l) == 0
+        t = Table.read(self.hdus, hdu=hdu)
         assert equal_data(t, self.data2)
 
     @pytest.mark.parametrize('hdu', [3, 'third'])
@@ -434,7 +418,7 @@ class TestMultipleHDU:
     def test_read_from_hdulist_with_hdu_warning(self, hdu):
         with pytest.warns(AstropyDeprecationWarning,
                           match=rf"No table found in specified hdu={hdu}, "
-                                r"reading in first available table \(hdu=1\)"):\
+                                r"reading in first available table \(hdu=1\)"):
             t2 = Table.read(self.hdus2, hdu=hdu)
         assert equal_data(t2, self.data1)
 
@@ -456,9 +440,7 @@ class TestMultipleHDU:
 
     @pytest.mark.parametrize('hdu', [None, 1, 'first'])
     def test_read_from_single_hdu(self, hdu):
-        with catch_warnings() as l:
-            t = Table.read(self.hdus[1])
-        assert len(l) == 0
+        t = Table.read(self.hdus[1])
         assert equal_data(t, self.data1)
 
 
@@ -484,9 +466,11 @@ def test_scale_error():
     c = ['x', 'y', 'z']
     t = Table([a, b, c], names=('a', 'b', 'c'), meta={'name': 'first table'})
     t['a'].unit = '1.2'
-    with pytest.raises(UnitScaleError) as exc:
+    with pytest.raises(UnitScaleError, match=r"The column 'a' could not be "
+                       r"stored in FITS format because it has a scale '\(1\.2\)'"
+                       r" that is not recognized by the FITS standard\. Either "
+                       r"scale the data or change the units\."):
         t.write('t.fits', format='fits', overwrite=True)
-    assert exc.value.args[0] == "The column 'a' could not be stored in FITS format because it has a scale '(1.2)' that is not recognized by the FITS standard. Either scale the data or change the units."
 
 
 @pytest.mark.parametrize('tdisp_str, format_return',
@@ -573,14 +557,11 @@ def test_unit_warnings_read_write(tmpdir):
     t1['a'].unit = 'm/s'
     t1['b'].unit = 'not-a-unit'
 
-    with catch_warnings() as l:
+    with pytest.warns(u.UnitsWarning, match="'not-a-unit' did not parse as fits unit") as w:
         t1.write(filename, overwrite=True)
-        assert len(l) == 1
-        assert str(l[0].message).startswith("'not-a-unit' did not parse as fits unit")
+    assert len(w) == 1
 
-    with catch_warnings() as l:
-        Table.read(filename, hdu=1)
-    assert len(l) == 0
+    Table.read(filename, hdu=1)
 
 
 def test_convert_comment_convention(tmpdir):
@@ -818,11 +799,10 @@ def test_warn_for_dropped_info_attributes(tmpdir, monkeypatch):
     filename = str(tmpdir.join('test.fits'))
     t = Table([[1, 2]])
     t['col0'].info.description = 'hello'
-    with catch_warnings() as warns:
+    with pytest.warns(AstropyUserWarning, match=r"table contains column\(s\) "
+                      "with defined 'format'") as warns:
         t.write(filename, overwrite=True)
     assert len(warns) == 1
-    assert str(warns[0].message).startswith(
-        "table contains column(s) with defined 'format'")
 
 
 def test_error_for_mixins_but_no_yaml(tmpdir, monkeypatch):

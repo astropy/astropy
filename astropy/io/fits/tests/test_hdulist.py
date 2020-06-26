@@ -12,7 +12,6 @@ import numpy as np
 
 from astropy.io.fits.verify import VerifyError, VerifyWarning
 from astropy.io import fits
-from astropy.tests.helper import raises, catch_warnings, ignore_warnings
 from astropy.utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 from . import FitsTestCase
@@ -159,7 +158,6 @@ class TestHDUListFunctions(FitsTestCase):
 
         assert fits.info(self.temp('test-append.fits'), output=False) == info
 
-    @raises(ValueError)
     def test_append_groupshdu_to_non_empty_list(self):
         """Tests appending a Simple GroupsHDU to an empty HDUList."""
 
@@ -167,7 +165,8 @@ class TestHDUListFunctions(FitsTestCase):
         hdu = fits.PrimaryHDU(np.arange(100, dtype=np.int32))
         hdul.append(hdu)
         hdu = fits.GroupsHDU()
-        hdul.append(hdu)
+        with pytest.raises(ValueError):
+            hdul.append(hdu)
 
     def test_insert_primary_to_empty_list(self):
         """Tests inserting a Simple PrimaryHDU to an empty HDUList."""
@@ -285,7 +284,6 @@ class TestHDUListFunctions(FitsTestCase):
 
         assert fits.info(self.temp('test-insert.fits'), output=False) == info
 
-    @raises(ValueError)
     def test_insert_groupshdu_to_begin_of_hdulist_with_groupshdu(self):
         """
         Tests inserting a Simple GroupsHDU to the beginning of an HDUList
@@ -295,7 +293,8 @@ class TestHDUListFunctions(FitsTestCase):
         hdul = fits.HDUList()
         hdu = fits.GroupsHDU()
         hdul.insert(0, hdu)
-        hdul.insert(0, hdu)
+        with pytest.raises(ValueError):
+            hdul.insert(0, hdu)
 
     def test_insert_extension_to_primary_in_non_empty_list(self):
         # Tests inserting a Simple ExtensionHDU to a non-empty HDUList.
@@ -458,10 +457,9 @@ class TestHDUListFunctions(FitsTestCase):
         oldmtime = os.stat(self.data('test0.fits')).st_mtime
         with fits.open(self.data('test0.fits')) as hdul:
             hdul[0].header['FOO'] = 'BAR'
-            with catch_warnings(AstropyUserWarning) as w:
+            with pytest.warns(AstropyUserWarning, match='mode is not supported') as w:
                 hdul.flush()
             assert len(w) == 1
-            assert 'mode is not supported' in str(w[0].message)
             assert oldmtime == os.stat(self.data('test0.fits')).st_mtime
 
     def test_fix_extend_keyword(self):
@@ -550,6 +548,7 @@ class TestHDUListFunctions(FitsTestCase):
         with fits.open(self.temp('temp.fits'), memmap=True) as hdul:
             assert ((old_data + 1) == hdul[1].data).all()
 
+    @pytest.mark.filterwarnings('ignore:Unexpected extra padding')
     def test_open_file_with_end_padding(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/106
 
@@ -564,9 +563,8 @@ class TestHDUListFunctions(FitsTestCase):
         with open(self.temp('temp.fits'), 'ab') as f:
             f.seek(0, os.SEEK_END)
             f.write(b'\0' * 2880)
-        with ignore_warnings():
-            assert info == fits.info(self.temp('temp.fits'), output=False,
-                                     do_not_scale_image_data=True)
+        assert info == fits.info(self.temp('temp.fits'), output=False,
+                                 do_not_scale_image_data=True)
 
     def test_open_file_with_bad_header_padding(self):
         """
@@ -587,11 +585,9 @@ class TestHDUListFunctions(FitsTestCase):
             f.seek(padding_start)
             f.write('\0'.encode('ascii') * padding_len)
 
-        with catch_warnings(AstropyUserWarning) as w:
+        with pytest.warns(AstropyUserWarning, match='contains null bytes instead of spaces') as w:
             with fits.open(self.temp('temp.fits')) as hdul:
                 assert (hdul[0].data == a).all()
-        assert ('contains null bytes instead of spaces' in
-                str(w[0].message))
         assert len(w) == 1
         assert len(hdul) == 1
         assert str(hdul[0].header) == str(hdu.header)
@@ -689,7 +685,6 @@ class TestHDUListFunctions(FitsTestCase):
             assert (hdul[1].data == data2).all()
             assert (hdul[2].data == data2).all()
 
-    @ignore_warnings()
     def test_hdul_fromstring(self):
         """
         Test creating the HDUList structure in memory from a string containing
@@ -746,6 +741,7 @@ class TestHDUListFunctions(FitsTestCase):
         # Test that creating an HDUList from something silly raises a TypeError
         pytest.raises(TypeError, fits.HDUList.fromstring, ['a', 'b', 'c'])
 
+    @pytest.mark.filterwarnings('ignore:Saving a backup')
     def test_save_backup(self):
         """Test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/121
 
@@ -754,13 +750,14 @@ class TestHDUListFunctions(FitsTestCase):
 
         self.copy_file('scale.fits')
 
-        with ignore_warnings():
-            with fits.open(self.temp('scale.fits'), mode='update',
-                           save_backup=True) as hdul:
-                # Make some changes to the original file to force its header
-                # and data to be rewritten
-                hdul[0].header['TEST'] = 'TEST'
-                hdul[0].data[0] = 0
+        with fits.open(self.temp('scale.fits'), mode='update',
+                       save_backup=True) as hdul:
+            # Make some changes to the original file to force its header
+            # and data to be rewritten
+            hdul[0].header['TEST'] = 'TEST'
+            # This emits warning that needs to be ignored at the
+            # pytest.mark.filterwarnings level.
+            hdul[0].data[0] = 0
 
         assert os.path.exists(self.temp('scale.fits.bak'))
         with fits.open(self.data('scale.fits'),
@@ -770,12 +767,11 @@ class TestHDUListFunctions(FitsTestCase):
                 assert hdul1[0].header == hdul2[0].header
                 assert (hdul1[0].data == hdul2[0].data).all()
 
-        with ignore_warnings():
-            with fits.open(self.temp('scale.fits'), mode='update',
-                           save_backup=True) as hdul:
-                # One more time to see if multiple backups are made
-                hdul[0].header['TEST2'] = 'TEST'
-                hdul[0].data[0] = 1
+        with fits.open(self.temp('scale.fits'), mode='update',
+                       save_backup=True) as hdul:
+            # One more time to see if multiple backups are made
+            hdul[0].header['TEST2'] = 'TEST'
+            hdul[0].data[0] = 1
 
         assert os.path.exists(self.temp('scale.fits.bak'))
         assert os.path.exists(self.temp('scale.fits.bak.1'))
@@ -806,14 +802,13 @@ class TestHDUListFunctions(FitsTestCase):
             with fits.open(self.temp('test_a.fits')) as hdul_a:
                 assert np.all(hdul_a[0].data == arr_b)
 
-        with ignore_warnings():
-            test(True, True)
+        test(True, True)
 
-            # Repeat the same test but this time don't mmap A
-            test(False, True)
+        # Repeat the same test but this time don't mmap A
+        test(False, True)
 
-            # Finally, without mmaping B
-            test(True, False)
+        # Finally, without mmaping B
+        test(True, False)
 
     def test_replace_mmap_data_2(self):
         """Regression test for
@@ -846,14 +841,13 @@ class TestHDUListFunctions(FitsTestCase):
                 assert 'a' not in hdul_a[1].columns.names
                 assert np.all(hdul_a[1].data['b'] == arr_b)
 
-        with ignore_warnings():
-            test(True, True)
+        test(True, True)
 
-            # Repeat the same test but this time don't mmap A
-            test(False, True)
+        # Repeat the same test but this time don't mmap A
+        test(False, True)
 
-            # Finally, without mmaping B
-            test(True, False)
+        # Finally, without mmaping B
+        test(True, False)
 
     def test_extname_in_hdulist(self):
         """
@@ -879,12 +873,10 @@ class TestHDUListFunctions(FitsTestCase):
         hdulist = fits.HDUList([fits.PrimaryHDU()])
         hdulist.writeto(self.temp('test_overwrite.fits'))
         hdulist.writeto(self.temp('test_overwrite.fits'), overwrite=True)
-        with catch_warnings(AstropyDeprecationWarning) as warning_lines:
+        with pytest.warns(AstropyDeprecationWarning, match=r'"clobber" was '
+                          r'deprecated in version 2\.0 and will be removed in a '
+                          r'future version\. Use argument "overwrite" instead\.'):
             hdulist.writeto(self.temp('test_overwrite.fits'), clobber=True)
-            assert warning_lines[0].category == AstropyDeprecationWarning
-            assert (str(warning_lines[0].message) == '"clobber" was '
-                    'deprecated in version 2.0 and will be removed in a '
-                    'future version. Use argument "overwrite" instead.')
 
     def test_invalid_hdu_key_in_contains(self):
         """
@@ -980,30 +972,26 @@ class TestHDUListFunctions(FitsTestCase):
         #
         # Explicit tests are added to make sure the file handle is not
         # closed when passed in to fits.open. In this case the ResourceWarning
-        # was not raised, but a check is still included.
-        #
-        with catch_warnings(ResourceWarning) as ws:
+        # was not raised.
 
-            # Make sure that files opened by the user are not closed
-            with open(filename, mode='rb') as f:
-                with pytest.raises(OSError):
-                    fits.open(f, ignore_missing_end=False)
-
-                assert not f.closed
-
-            with open(filename, mode='rb') as f:
-                with pytest.raises(OSError):
-                    fits.open(f, ignore_missing_end=True)
-
-                assert not f.closed
-
+        # Make sure that files opened by the user are not closed
+        with open(filename, mode='rb') as f:
             with pytest.raises(OSError):
-                fits.open(filename, ignore_missing_end=False)
+                fits.open(f, ignore_missing_end=False)
 
-            with pytest.raises(OSError):
-                fits.open(filename, ignore_missing_end=True)
+            assert not f.closed
 
-        assert len(ws) == 0
+        with open(filename, mode='rb') as f:
+            with pytest.raises(OSError), pytest.warns(VerifyWarning):
+                fits.open(f, ignore_missing_end=True)
+
+            assert not f.closed
+
+        with pytest.raises(OSError):
+            fits.open(filename, ignore_missing_end=False)
+
+        with pytest.raises(OSError), pytest.warns(VerifyWarning):
+            fits.open(filename, ignore_missing_end=True)
 
     def test_pop_with_lazy_load(self):
         filename = self.data('checksum.fits')
