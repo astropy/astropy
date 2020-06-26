@@ -87,13 +87,11 @@ def test_no_numpy_warnings(ignore_matplotlibrc, tmpdir, grid_type):
     # have to catch it. Otherwise, the pytest filterwarnings=error
     # setting in setup.cfg will fail this test.
     # There are actually multiple warnings but they are all similar.
-    if grid_type == 'lines':
-        assert len(warning_lines) == 0
-    else:
-        for w in warning_lines:
-            w_msg = str(w.message)
-            assert ('converting a masked element to nan' in w_msg or
-                    'No contour levels were found within the data range' in w_msg)
+    for w in warning_lines:
+        w_msg = str(w.message)
+        assert ('converting a masked element to nan' in w_msg or
+                'No contour levels were found within the data range' in w_msg or
+                'np.asscalar(a) is deprecated since NumPy v1.16' in w_msg)
 
 
 def test_invalid_frame_overlay(ignore_matplotlibrc):
