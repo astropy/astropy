@@ -660,7 +660,7 @@ class Quantity(np.ndarray):
         return self.unit.to(unit, self.view(np.ndarray),
                             equivalencies=equivalencies)
 
-    def to(self, unit, equivalencies=[]):
+    def to(self, unit, equivalencies=[], copy=True):
         """
         Return a new `~astropy.units.Quantity` object with the specified unit.
 
@@ -679,6 +679,10 @@ class Quantity(np.ndarray):
             If `None`, no equivalencies will be applied at all, not even any
             set globally or within a context.
 
+        copy : bool, optional
+            If `True` (default), then the value is copied.  Otherwise, a copy
+            will only be made if necessary.
+
         See also
         --------
         to_value : get the numerical value in a given unit.
@@ -686,7 +690,14 @@ class Quantity(np.ndarray):
         # We don't use `to_value` below since we always want to make a copy
         # and don't want to slow down this method (esp. the scalar case).
         unit = Unit(unit)
-        return self._new_view(self._to_value(unit, equivalencies), unit)
+        if copy:
+            # Avoid using to_value to ensure that we make a copy. We also
+            # don't want to slow down this method (esp. the scalar case).
+            value = self._to_value(unit, equivalencies)
+        else:
+            # to_value only copies if necessary
+            value = self.to_value(unit, equivalencies)
+        return self._new_view(value, unit)
 
     def to_value(self, unit=None, equivalencies=[]):
         """
