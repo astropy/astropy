@@ -74,6 +74,8 @@ astropy.uncertainty
 
 astropy.units
 ^^^^^^^^^^^^^
+- ``Quantity.to`` has gained a ``copy`` option to allow copies to be avoided
+  when the units do not change. [#10517]
 
 astropy.utils
 ^^^^^^^^^^^^^
