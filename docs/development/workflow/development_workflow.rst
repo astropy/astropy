@@ -31,12 +31,13 @@ development version or stable version is the active one.
 up. It is well worth your time.
 
 Not sure what your first contribution should be? Take a look at the `Astropy
-issue list`_ and grab one labeled "package-novice". These issues are the
-most accessible ones if you are not familiar with the Astropy source
-code. Issues labeled as "effort-low" are expected to take a few hours (at
-most) to address, while the "effort-medium" ones may take a few days. The
-developers are friendly and want you to help, so don't be shy about asking
-questions on the `astropy-dev mailing list`_.
+issue list`_ and grab one labeled `"package-novice" <https://github.com/astropy/astropy/issues?q=is%3Aissue+is%3Aopen+label%3Apackage-novice>`_.
+These issues are the most accessible ones if you are not familiar with the
+Astropy source code. Issues labeled as `"effort-low" <https://github.com/astropy/astropy/issues?q=is%3Aissue+is%3Aopen+label%3Aeffort-low>`_
+are expected to take a few hours (at most) to address, while the
+`"effort-medium" <https://github.com/astropy/astropy/issues?q=is%3Aissue+is%3Aopen+label%3Aeffort-medium>`_
+ones may take a few days. The developers are friendly and want you to help, so
+don't be shy about asking questions on the `astropy-dev mailing list`_.
 
 New to `git`_?
 **************
