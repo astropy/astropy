@@ -129,7 +129,13 @@ environment.
       `documentation for the conda command`_ and the
       `guide on how to manage environments`_.
 
-    + If astropy is installed in your environment, you may need to uninstall it
+    + Next activate the environment ``ENV`` with:
+
+        conda activate ENV
+
+    + Your command-line prompt will contain ``ENV`` in parentheses by default.
+
+    + If astropy is installed in your ``ENV`` environment, you may need to uninstall it
       in order for the development version to install properly. You can do this
       with the following command::
 
