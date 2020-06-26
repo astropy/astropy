@@ -59,7 +59,6 @@ from astropy.utils.data import (
     _get_download_cache_locs,
     download_files_in_parallel,
 )
-from astropy.tests.helper import catch_warnings
 
 TESTURL = "http://www.astropy.org"
 TESTURL2 = "http://www.astropy.org/about.html"
@@ -956,7 +955,7 @@ def test_data_noastropy_fallback(monkeypatch):
         paths.get_cache_dir(rootname='astropy')
 
     # first try with cache
-    with catch_warnings(CacheMissingWarning) as w:
+    with pytest.warns(CacheMissingWarning) as w:
         fnout = data.download_file(TESTURL, cache=True)
 
     assert os.path.isfile(fnout)
@@ -975,7 +974,7 @@ def test_data_noastropy_fallback(monkeypatch):
     assert has_temporary_warning
 
     # clearing the cache should be a no-up that doesn't affect fnout
-    with catch_warnings(CacheMissingWarning) as w:
+    with pytest.warns(CacheMissingWarning) as w:
         data.clear_download_cache(TESTURL)
     assert os.path.isfile(fnout)
 
@@ -993,13 +992,10 @@ def test_data_noastropy_fallback(monkeypatch):
     assert has_noclear_warning
 
     # now try with no cache
-    with catch_warnings(CacheMissingWarning) as w:
-        fnnocache = data.download_file(TESTURL, cache=False)
+    # no warnings should be raise in fileobj because cache is unnecessary
+    fnnocache = data.download_file(TESTURL, cache=False)
     with open(fnnocache, "rb") as page:
         assert page.read().decode("utf-8").find("Astropy") > -1
-
-    # no warnings should be raise in fileobj because cache is unnecessary
-    assert len(w) == 0
 
     # lockdir determined above as the *real* lockdir, not the temp one
     assert not os.path.isdir(lockdir), "Cache dir lock was not released!"
