@@ -7,7 +7,6 @@ import errno
 import os
 import pathlib
 import urllib.request
-import warnings
 import zipfile
 from unittest.mock import patch
 
@@ -21,7 +20,6 @@ from astropy.io.fits.diff import FITSDiff
 from astropy.io.fits.file import _File, GZIP_MAGIC
 
 from astropy.io import fits
-from astropy.tests.helper import raises, catch_warnings, ignore_warnings
 from astropy.utils.data import conf
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils import data
@@ -37,9 +35,9 @@ else:
 
 class TestCore(FitsTestCase):
 
-    @raises(OSError)
     def test_missing_file(self):
-        fits.open(self.temp('does-not-exist.fits'))
+        with pytest.raises(OSError):
+            fits.open(self.temp('does-not-exist.fits'))
 
     def test_naxisj_check(self):
         with fits.open(self.data('o4sp040b0_raw.fits')) as hdulist:
@@ -51,7 +49,7 @@ class TestCore(FitsTestCase):
 
     def test_byteswap(self):
         p = fits.PrimaryHDU()
-        l = fits.HDUList()
+        l = fits.HDUList()  # noqa
 
         n = np.zeros(3, dtype='i2')
         n[0] = 1
@@ -101,6 +99,7 @@ class TestCore(FitsTestCase):
         p.del_col('FOO')
         assert p.names == ['BAR']
 
+    @pytest.mark.filterwarnings('ignore::ResourceWarning')
     def test_add_del_columns2(self):
         hdulist = fits.open(self.data('tb.fits'))
         table = hdulist[1]
@@ -119,15 +118,13 @@ class TestCore(FitsTestCase):
         assert table.columns.names == ['c2', 'c4', 'foo']
 
         hdulist.writeto(self.temp('test.fits'), overwrite=True)
-        with ignore_warnings():
-            # TODO: The warning raised by this test is actually indication of a
-            # bug and should *not* be ignored. But as it is a known issue we
-            # hide it for now.  See
-            # https://github.com/spacetelescope/PyFITS/issues/44
-            with fits.open(self.temp('test.fits')) as hdulist:
-                table = hdulist[1]
-                assert table.data.dtype.names == ('c2', 'c4', 'foo')
-                assert table.columns.names == ['c2', 'c4', 'foo']
+
+        # NOTE: If you see a warning, might be related to
+        # https://github.com/spacetelescope/PyFITS/issues/44
+        with fits.open(self.temp('test.fits')) as hdulist:
+            table = hdulist[1]
+            assert table.data.dtype.names == ('c2', 'c4', 'foo')
+            assert table.columns.names == ['c2', 'c4', 'foo']
 
     def test_update_header_card(self):
         """A very basic test for the Header.update method--I'd like to add a
@@ -198,7 +195,6 @@ class TestCore(FitsTestCase):
                       [])
         assert hdu.header['TESTKW'] == 'bar'
 
-    @raises(fits.VerifyError)
     def test_unfixable_missing_card(self):
         class TestHDU(fits.hdu.base.NonstandardExtHDU):
             def _verify(self, option='warn'):
@@ -214,33 +210,29 @@ class TestCore(FitsTestCase):
                 return False
 
         hdu = TestHDU(header=fits.Header())
-        hdu.verify('fix')
+        with pytest.raises(fits.VerifyError):
+            hdu.verify('fix')
 
-    @raises(fits.VerifyError)
     def test_exception_on_verification_error(self):
         hdu = fits.ImageHDU()
         del hdu.header['XTENSION']
-        hdu.verify('exception')
+        with pytest.raises(fits.VerifyError):
+            hdu.verify('exception')
 
     def test_ignore_verification_error(self):
         hdu = fits.ImageHDU()
+        del hdu.header['NAXIS']
         # The default here would be to issue a warning; ensure that no warnings
         # or exceptions are raised
-        with catch_warnings():
-            warnings.simplefilter('error')
-            del hdu.header['NAXIS']
-            try:
-                hdu.verify('ignore')
-            except Exception as exc:
-                self.fail('An exception occurred when the verification error '
-                          'should have been ignored: {}'.format(exc))
+        hdu.verify('ignore')
+
         # Make sure the error wasn't fixed either, silently or otherwise
         assert 'NAXIS' not in hdu.header
 
-    @raises(ValueError)
     def test_unrecognized_verify_option(self):
         hdu = fits.ImageHDU()
-        hdu.verify('foobarbaz')
+        with pytest.raises(ValueError):
+            hdu.verify('foobarbaz')
 
     def test_errlist_basic(self):
         # Just some tests to make sure that _ErrList is setup correctly.
@@ -269,21 +261,14 @@ class TestCore(FitsTestCase):
 
         # silentfix+ignore should be completely silent
         hdu = make_invalid_hdu()
-        with catch_warnings():
-            warnings.simplefilter('error')
-            try:
-                hdu.verify('silentfix+ignore')
-            except Exception as exc:
-                self.fail('An exception occurred when the verification error '
-                          'should have been ignored: {}'.format(exc))
+        hdu.verify('silentfix+ignore')
 
         # silentfix+warn should be quiet about the fixed HDU and only warn
         # about the unfixable one
         hdu = make_invalid_hdu()
-        with catch_warnings() as w:
+        with pytest.warns(AstropyUserWarning, match='Illegal keyword name') as w:
             hdu.verify('silentfix+warn')
-            assert len(w) == 4
-            assert 'Illegal keyword name' in str(w[2].message)
+        assert len(w) == 4
 
         # silentfix+exception should only mention the unfixable error in the
         # exception
@@ -295,18 +280,17 @@ class TestCore(FitsTestCase):
         # fix+ignore is not too useful, but it should warn about the fixed
         # problems while saying nothing about the unfixable problems
         hdu = make_invalid_hdu()
-        with catch_warnings() as w:
+        with pytest.warns(AstropyUserWarning, match='not upper case') as w:
             hdu.verify('fix+ignore')
-            assert len(w) == 4
-            assert 'not upper case' in str(w[2].message)
+        assert len(w) == 4
 
         # fix+warn
         hdu = make_invalid_hdu()
-        with catch_warnings() as w:
+        with pytest.warns(AstropyUserWarning) as w:
             hdu.verify('fix+warn')
-            assert len(w) == 6
-            assert 'not upper case' in str(w[2].message)
-            assert 'Illegal keyword name' in str(w[4].message)
+        assert len(w) == 6
+        assert 'not upper case' in str(w[2].message)
+        assert 'Illegal keyword name' in str(w[4].message)
 
         # fix+exception
         hdu = make_invalid_hdu()
@@ -699,13 +683,12 @@ class TestFileFunctions(FitsTestCase):
 
     def test_open_gzipped(self):
         gzip_file = self._make_gzip_file()
-        with ignore_warnings():
-            with fits.open(gzip_file) as fits_handle:
-                assert fits_handle._file.compression == 'gzip'
-                assert len(fits_handle) == 5
-            with fits.open(gzip.GzipFile(gzip_file)) as fits_handle:
-                assert fits_handle._file.compression == 'gzip'
-                assert len(fits_handle) == 5
+        with fits.open(gzip_file) as fits_handle:
+            assert fits_handle._file.compression == 'gzip'
+            assert len(fits_handle) == 5
+        with fits.open(gzip.GzipFile(gzip_file)) as fits_handle:
+            assert fits_handle._file.compression == 'gzip'
+            assert len(fits_handle) == 5
 
     def test_open_gzipped_from_handle(self):
         with open(self._make_gzip_file(), 'rb') as handle:
@@ -714,10 +697,9 @@ class TestFileFunctions(FitsTestCase):
 
     def test_detect_gzipped(self):
         """Test detection of a gzip file when the extension is not .gz."""
-        with ignore_warnings():
-            with fits.open(self._make_gzip_file('test0.fz')) as fits_handle:
-                assert fits_handle._file.compression == 'gzip'
-                assert len(fits_handle) == 5
+        with fits.open(self._make_gzip_file('test0.fz')) as fits_handle:
+            assert fits_handle._file.compression == 'gzip'
+            assert len(fits_handle) == 5
 
     def test_writeto_append_mode_gzip(self):
         """Regression test for
@@ -763,14 +745,13 @@ class TestFileFunctions(FitsTestCase):
     @pytest.mark.skipif(not HAS_BZ2, reason='Python built without bz2 module')
     def test_open_bzipped(self):
         bzip_file = self._make_bzip2_file()
-        with ignore_warnings():
-            with fits.open(bzip_file) as fits_handle:
-                assert fits_handle._file.compression == 'bzip2'
-                assert len(fits_handle) == 5
+        with fits.open(bzip_file) as fits_handle:
+            assert fits_handle._file.compression == 'bzip2'
+            assert len(fits_handle) == 5
 
-            with fits.open(bz2.BZ2File(bzip_file)) as fits_handle:
-                assert fits_handle._file.compression == 'bzip2'
-                assert len(fits_handle) == 5
+        with fits.open(bz2.BZ2File(bzip_file)) as fits_handle:
+            assert fits_handle._file.compression == 'bzip2'
+            assert len(fits_handle) == 5
 
     @pytest.mark.skipif(not HAS_BZ2, reason='Python built without bz2 module')
     def test_open_bzipped_from_handle(self):
@@ -782,10 +763,9 @@ class TestFileFunctions(FitsTestCase):
     @pytest.mark.skipif(not HAS_BZ2, reason='Python built without bz2 module')
     def test_detect_bzipped(self):
         """Test detection of a bzip2 file when the extension is not .bz2."""
-        with ignore_warnings():
-            with fits.open(self._make_bzip2_file('test0.xx')) as fits_handle:
-                assert fits_handle._file.compression == 'bzip2'
-                assert len(fits_handle) == 5
+        with fits.open(self._make_bzip2_file('test0.xx')) as fits_handle:
+            assert fits_handle._file.compression == 'bzip2'
+            assert len(fits_handle) == 5
 
     @pytest.mark.skipif(not HAS_BZ2, reason='Python built without bz2 module')
     def test_writeto_bzip2_fileobj(self):
@@ -812,13 +792,12 @@ class TestFileFunctions(FitsTestCase):
 
     def test_open_zipped(self):
         zip_file = self._make_zip_file()
-        with ignore_warnings():
-            with fits.open(zip_file) as fits_handle:
-                assert fits_handle._file.compression == 'zip'
-                assert len(fits_handle) == 5
-            with fits.open(zipfile.ZipFile(zip_file)) as fits_handle:
-                assert fits_handle._file.compression == 'zip'
-                assert len(fits_handle) == 5
+        with fits.open(zip_file) as fits_handle:
+            assert fits_handle._file.compression == 'zip'
+            assert len(fits_handle) == 5
+        with fits.open(zipfile.ZipFile(zip_file)) as fits_handle:
+            assert fits_handle._file.compression == 'zip'
+            assert len(fits_handle) == 5
 
     def test_open_zipped_from_handle(self):
         with open(self._make_zip_file(), 'rb') as handle:
@@ -830,8 +809,7 @@ class TestFileFunctions(FitsTestCase):
         """Test detection of a zip file when the extension is not .zip."""
 
         zf = self._make_zip_file(filename='test0.fz')
-        with ignore_warnings():
-            assert len(fits.open(zf)) == 5
+        assert len(fits.open(zf)) == 5
 
     def test_open_zipped_writeable(self):
         """Opening zipped files in a writeable mode should fail."""
@@ -857,7 +835,6 @@ class TestFileFunctions(FitsTestCase):
         finally:
             gf.close()
 
-    @raises(OSError)
     def test_open_multiple_member_zipfile(self):
         """
         Opening zip files containing more than one member files should fail
@@ -870,7 +847,8 @@ class TestFileFunctions(FitsTestCase):
         zfile.writestr('foo', 'bar')
         zfile.close()
 
-        fits.open(zfile.filename)
+        with pytest.raises(OSError):
+            fits.open(zfile.filename)
 
     def test_read_open_file(self):
         """Read from an existing file object."""
@@ -932,8 +910,7 @@ class TestFileFunctions(FitsTestCase):
         with open(self.data('test0.fits'), 'rb') as f:
             filelike.write(f.read())
         filelike.seek(0)
-        with ignore_warnings():
-            assert len(fits.open(filelike)) == 5
+        assert len(fits.open(filelike)) == 5
 
     def test_updated_file_permissions(self):
         """
@@ -1022,13 +999,12 @@ class TestFileFunctions(FitsTestCase):
 
         try:
             self.copy_file('test0.fits')
-            with catch_warnings() as w:
+            with pytest.warns(AstropyUserWarning, match=r'mmap\.flush is unavailable') as w:
                 with fits.open(self.temp('test0.fits'), mode='update',
                                memmap=True) as h:
                     h[1].data[0, 0] = 999
 
-                assert len(w) == 1
-                assert 'mmap.flush is unavailable' in str(w[0].message)
+            assert len(w) == 1
 
             # Double check that writing without mmap still worked
             with fits.open(self.temp('test0.fits')) as h:
@@ -1304,16 +1280,15 @@ class TestStreamingFunctions(FitsTestCase):
         assert shdu.size == 100
         shdu.close()
 
-    @raises(ValueError)
     def test_streaming_hdu_file_wrong_mode(self):
         """
         Test that streaming an HDU to a file opened in the wrong mode fails as
         expected.
         """
-
-        with open(self.temp('new.fits'), 'wb') as f:
-            header = fits.Header()
-            fits.StreamingHDU(f, header)
+        with pytest.raises(ValueError):
+            with open(self.temp('new.fits'), 'wb') as f:
+                header = fits.Header()
+                fits.StreamingHDU(f, header)
 
     def test_streaming_hdu_write_file(self):
         """Test streaming an HDU to an open file object."""

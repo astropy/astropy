@@ -9,7 +9,6 @@ from astropy.io.fits.hdu import HDUList, PrimaryHDU, ImageHDU
 from astropy.io.fits.hdu.table import BinTableHDU
 from astropy.io.fits.header import Header
 
-from astropy.tests.helper import catch_warnings
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.io import fits
 
@@ -787,12 +786,10 @@ class TestDiff(FitsTestCase):
         hb['C'] = 4
         diffobj = HeaderDiff(ha, hb)
         diffobj.report(fileobj=outpath)
-        with catch_warnings(AstropyDeprecationWarning) as warning_lines:
+        with pytest.warns(AstropyDeprecationWarning, match=r'"clobber" was '
+                          r'deprecated in version 2\.0 and will be removed in a '
+                          r'future version\. Use argument "overwrite" instead\.'):
             diffobj.report(fileobj=outpath, clobber=True)
-            assert warning_lines[0].category == AstropyDeprecationWarning
-            assert (str(warning_lines[0].message) == '"clobber" was '
-                    'deprecated in version 2.0 and will be removed in a '
-                    'future version. Use argument "overwrite" instead.')
 
 
 def test_fitsdiff_hdu_name(tmpdir):

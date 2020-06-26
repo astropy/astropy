@@ -12,7 +12,6 @@ from astropy.table import Table, QTable
 from astropy.time import Time, TimeDelta
 from astropy.time.core import BARYCENTRIC_SCALES
 from astropy.time.formats import FITS_DEPRECATED_SCALES
-from astropy.tests.helper import catch_warnings
 from astropy.utils.exceptions import AstropyUserWarning
 
 
@@ -81,29 +80,24 @@ class TestFitsTime(FitsTestCase):
         # Check that Time column with no location specified will assume global location
         t['b'].location = None
 
-        with catch_warnings() as w:
+        with pytest.warns(AstropyUserWarning, match='Time Column "b" has no specified '
+                          'location, but global Time Position is present') as w:
             table, hdr = time_to_fits(t)
-            assert len(w) == 1
-            assert str(w[0].message).startswith('Time Column "b" has no specified '
-                                                'location, but global Time Position '
-                                                'is present')
+        assert len(w) == 1
 
         # Check that multiple Time columns with same location can be written
         t['b'].location = EarthLocation(1, 2, 3)
 
-        with catch_warnings() as w:
-            table, hdr = time_to_fits(t)
-            assert len(w) == 0
+        table, hdr = time_to_fits(t)
 
         # Check compatibility of Time Scales and Reference Positions
 
         for scale in BARYCENTRIC_SCALES:
             t.replace_column('a', getattr(t['a'], scale))
-            with catch_warnings() as w:
+            with pytest.warns(AstropyUserWarning, match='Earth Location "TOPOCENTER" '
+                              'for Time Column') as w:
                 table, hdr = time_to_fits(t)
-                assert len(w) == 1
-                assert str(w[0].message).startswith('Earth Location "TOPOCENTER" '
-                                                    'for Time Column')
+            assert len(w) == 1
 
         # Check that multidimensional vectorized location (ndim=3) is stored
         # using Green Bank convention.
@@ -147,12 +141,12 @@ class TestFitsTime(FitsTestCase):
         t = table_types()
         t['a'] = Time(self.time, format='isot', scale='utc',
                       location=EarthLocation(-2446354,
-                      4237210, 4077985, unit='m'))
-        t['b'] = Time([1,2], format='cxcsec', scale='tt')
+                                             4237210, 4077985, unit='m'))
+        t['b'] = Time([1, 2], format='cxcsec', scale='tt')
 
-        ideal_col_hdr = {'OBSGEO-X' : t['a'].location.x.value,
-                         'OBSGEO-Y' : t['a'].location.y.value,
-                         'OBSGEO-Z' : t['a'].location.z.value}
+        ideal_col_hdr = {'OBSGEO-X': t['a'].location.x.value,
+                         'OBSGEO-Y': t['a'].location.y.value,
+                         'OBSGEO-Z': t['a'].location.z.value}
 
         with pytest.warns(AstropyUserWarning, match=r'Time Column "b" has no '
                           r'specified location, but global Time Position is present'):
@@ -175,7 +169,7 @@ class TestFitsTime(FitsTestCase):
             assert coord_info[colname]['coord_unit'] == 'd'
 
         assert coord_info['a']['time_ref_pos'] == 'TOPOCENTER'
-        assert coord_info['b']['time_ref_pos'] == None
+        assert coord_info['b']['time_ref_pos'] == None   # noqa
 
         assert len(hdr) == 0
 
@@ -253,7 +247,7 @@ class TestFitsTime(FitsTestCase):
         """
         t = table_types()
         t['a'] = Time(self.time, format='isot', scale='utc',
-                      location=EarthLocation(1,2,3, unit='km'))
+                      location=EarthLocation(1, 2, 3, unit='km'))
 
         table, hdr = time_to_fits(t)
 
@@ -416,10 +410,9 @@ class TestFitsTime(FitsTestCase):
         bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
 
-        with catch_warnings() as w:
+        with pytest.warns(AstropyUserWarning, match='FITS recognized time scale value "GPS"') as w:
             tm = table_types.read(self.temp('time.fits'), astropy_native=True)
-            assert len(w) == 1
-            assert 'FITS recognized time scale value "GPS"' in str(w[0].message)
+        assert len(w) == 1
 
         assert isinstance(tm['gps_time'], Time)
         assert tm['gps_time'].format == 'gps'
@@ -456,11 +449,10 @@ class TestFitsTime(FitsTestCase):
         bhdu = fits.BinTableHDU.from_columns([c])
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
 
-        with catch_warnings() as w:
+        with pytest.warns(AstropyUserWarning, match='observatory position is '
+                          'not properly specified') as w:
             table_types.read(self.temp('time.fits'), astropy_native=True)
         assert len(w) == 1
-        assert ('observatory position is not properly specified' in
-                str(w[0].message))
 
         # Warning for default value of time reference position "TOPOCENTER"
         # not generated when there is no specified observatory position.
@@ -469,6 +461,4 @@ class TestFitsTime(FitsTestCase):
 
         bhdu = fits.BinTableHDU.from_columns([c])
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
-        with catch_warnings() as w:
-            table_types.read(self.temp('time.fits'), astropy_native=True)
-        assert len(w) == 0
+        table_types.read(self.temp('time.fits'), astropy_native=True)

@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import os
 import signal
 import gzip
@@ -15,7 +14,6 @@ try:
 except ImportError:
     HAS_PIL = False
 
-from astropy.tests.helper import catch_warnings
 from astropy.io.fits import util
 from astropy.io.fits.util import ignore_sigint, _rstrip_inplace
 
@@ -27,7 +25,7 @@ class TestUtils(FitsTestCase):
     def test_ignore_sigint(self):
         @ignore_sigint
         def test():
-            with catch_warnings(UserWarning) as w:
+            with pytest.warns(UserWarning) as w:
                 pid = os.getpid()
                 os.kill(pid, signal.SIGINT)
                 # One more time, for good measure

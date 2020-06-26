@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-
 import os
 import warnings
 
@@ -12,7 +11,6 @@ from astropy import units as u
 from astropy.table import Table
 from astropy.io.fits import printdiff
 from astropy.io.fits.connect import REMOVE_KEYWORDS
-from astropy.tests.helper import catch_warnings
 from astropy.utils.exceptions import AstropyUserWarning
 
 from . import FitsTestCase
@@ -22,13 +20,8 @@ class TestConvenience(FitsTestCase):
 
     def test_resource_warning(self):
         warnings.simplefilter('always', ResourceWarning)
-        with catch_warnings() as w:
-            _ = fits.getdata(self.data('test0.fits'))
-        assert len(w) == 0
-
-        with catch_warnings() as w:
-            _ = fits.getheader(self.data('test0.fits'))
-        assert len(w) == 0
+        _ = fits.getdata(self.data('test0.fits'))
+        _ = fits.getheader(self.data('test0.fits'))
 
     def test_fileobj_not_closed(self):
         """
@@ -54,11 +47,10 @@ class TestConvenience(FitsTestCase):
         table['a'].unit = 'm/s'
         table['b'].unit = 'not-a-unit'
 
-        with catch_warnings() as w:
+        with pytest.warns(u.UnitsWarning, match="'not-a-unit' did not parse as"
+                          " fits unit") as w:
             hdu = fits.table_to_hdu(table)
-            assert len(w) == 1
-            assert str(w[0].message).startswith("'not-a-unit' did not parse as"
-                                                " fits unit")
+        assert len(w) == 1
 
         # Check that TUNITn cards appear in the correct order
         # (https://github.com/astropy/astropy/pull/5720)
@@ -73,10 +65,9 @@ class TestConvenience(FitsTestCase):
                       names=['a', 'b', 'c'], dtype=['i', 'U1', 'f'])
         table['a'].unit = u.core.IrreducibleUnit("test")
 
-        with catch_warnings() as w:
+        with pytest.warns(AstropyUserWarning, match="The unit 'test' could not be saved") as w:
             fits.table_to_hdu(table)
-            assert len(w) == 1
-            assert str(w[0].message).startswith("The unit 'test' could not be saved")
+        assert len(w) == 1
 
     def test_table_to_hdu_convert_comment_convention(self):
         """

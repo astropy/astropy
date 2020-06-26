@@ -8,7 +8,6 @@ from numpy.testing import assert_array_equal
 
 from astropy.io import fits
 from . import FitsTestCase
-from astropy.tests.helper import ignore_warnings
 
 
 class TestUintFunctions(FitsTestCase):
@@ -36,14 +35,13 @@ class TestUintFunctions(FitsTestCase):
 
             hdu.scale(f'int{bits:d}', '', bzero=2 ** (bits-1))
 
-            with ignore_warnings():
-                hdu.writeto(self.temp('tempfile.fits'), overwrite=True)
+            hdu.writeto(self.temp('tempfile.fits'), overwrite=True)
 
             with fits.open(self.temp('tempfile.fits'), uint=True) as hdul:
                 assert hdul[hdu_number].data.dtype == self.utype_map[utype]
                 assert (hdul[hdu_number].data == np.array(
                     [(2 ** bits) - 3, (2 ** bits) - 2, (2 ** bits) - 1,
-                    0, 1, 2, 3],
+                     0, 1, 2, 3],
                     dtype=self.utype_map[utype])).all()
                 hdul.writeto(self.temp('tempfile1.fits'))
                 with fits.open(self.temp('tempfile1.fits'),
@@ -90,8 +88,7 @@ class TestUintFunctions(FitsTestCase):
             hdu0 = fits.PrimaryHDU()
             hdulist = fits.HDUList([hdu0, table])
 
-            with ignore_warnings():
-                hdulist.writeto(self.temp('tempfile.fits'), overwrite=True)
+            hdulist.writeto(self.temp('tempfile.fits'), overwrite=True)
 
             # Test write of unsigned int
             del hdulist
@@ -104,8 +101,7 @@ class TestUintFunctions(FitsTestCase):
             # Construct recarray then write out that.
             v = u.view(dtype=[(utype, self.utype_map[utype])])
 
-            with ignore_warnings():
-                fits.writeto(self.temp('tempfile2.fits'), v, overwrite=True)
+            fits.writeto(self.temp('tempfile2.fits'), v, overwrite=True)
 
             with fits.open(self.temp('tempfile2.fits'), uint=True) as hdulist3:
                 hdudata3 = hdulist3[1].data
