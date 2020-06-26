@@ -702,10 +702,13 @@ def test_quantity_value_views():
     v3 = q1.to_value('m')
     v3[0] = 1.
     assert np.all(q1 == [1., 3.] * u.meter)
+    q2 = q1.to('m', copy=False)
+    q2[0] = 2 * u.meter
+    assert np.all(q1 == [2., 3.] * u.meter)
     v4 = q1.to_value('cm')
     v4[0] = 0.
     # copy if different unit.
-    assert np.all(q1 == [1., 3.] * u.meter)
+    assert np.all(q1 == [2., 3.] * u.meter)
 
 
 def test_quantity_conversion_with_equiv():
