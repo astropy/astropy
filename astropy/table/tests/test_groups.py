@@ -1,10 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import pytest
 import numpy as np
 
-from astropy.tests.helper import catch_warnings
 from astropy.table import Table, Column, QTable, table_helpers, NdarrayMixin, unique
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy import time
@@ -413,10 +411,8 @@ def test_table_aggregate(T1):
     t1m['c'].mask[4:6] = True
     t1m['d'].mask[4:6] = True
     tg = t1m.group_by('a')
-    with catch_warnings(Warning) as warning_lines:
+    with pytest.warns(UserWarning, match="converting a masked element to nan"):
         tga = tg.groups.aggregate(np.sum)
-        assert warning_lines[0].category == UserWarning
-        assert "converting a masked element to nan" in str(warning_lines[0].message)
 
     assert tga.pformat() == [' a   c    d  ',
                              '--- ---- ----',
@@ -441,10 +437,8 @@ def test_table_aggregate(T1):
     # Aggregate with a column type that cannot by supplied to the aggregating
     # function.  This raises a warning but still works.
     tg = T1.group_by('a')
-    with catch_warnings(Warning) as warning_lines:
+    with pytest.warns(AstropyUserWarning, match="Cannot aggregate column"):
         tga = tg.groups.aggregate(np.sum)
-        assert warning_lines[0].category == AstropyUserWarning
-        assert "Cannot aggregate column" in str(warning_lines[0].message)
     assert tga.pformat() == [' a   c    d ',
                              '--- ---- ---',
                              '  0  0.0   4',
@@ -495,10 +489,8 @@ def test_table_aggregate_reduceat(T1):
     t2 = T1['a', 'c']
     tg = t2.group_by('a')
 
-    with catch_warnings(Warning) as warning_lines:
+    with pytest.warns(AstropyUserWarning, match="Cannot aggregate column"):
         tga = tg.groups.aggregate(np_add)
-        assert warning_lines[0].category == AstropyUserWarning
-        assert "Cannot aggregate column" in str(warning_lines[0].message)
     assert tga.pformat() == [' a ',
                              '---',
                              '  0',
