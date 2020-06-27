@@ -8,7 +8,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from astropy.tests.helper import assert_follows_unicode_guidelines, catch_warnings
+from astropy.tests.helper import assert_follows_unicode_guidelines
 from astropy import table
 from astropy import units as u
 
@@ -617,45 +617,36 @@ def test_string_truncation_warning(masked):
     Test warnings associated with in-place assignment to a string
     column that results in truncation of the right hand side.
     """
+    from inspect import currentframe, getframeinfo
+
     t = table.Table([['aa', 'bb']], names=['a'], masked=masked)
+    t['a'][1] = 'cc'
+    t['a'][:] = 'dd'
 
-    with catch_warnings() as w:
-        from inspect import currentframe, getframeinfo
-        t['a'][1] = 'cc'
-        assert len(w) == 0
-
-        t['a'][:] = 'dd'
-        assert len(w) == 0
-
-    with catch_warnings() as w:
+    with pytest.warns(table.StringTruncateWarning, match=r'truncated right side '
+                      r'string\(s\) longer than 2 character\(s\)') as w:
         frameinfo = getframeinfo(currentframe())
         t['a'][0] = 'eee'  # replace item with string that gets truncated
-        assert t['a'][0] == 'ee'
-        assert len(w) == 1
-        assert ('truncated right side string(s) longer than 2 character(s)'
-                in str(w[0].message))
+    assert t['a'][0] == 'ee'
+    assert len(w) == 1
 
-        # Make sure the warning points back to the user code line
-        assert w[0].lineno == frameinfo.lineno + 1
-        assert w[0].category is table.StringTruncateWarning
-        assert 'test_column' in w[0].filename
+    # Make sure the warning points back to the user code line
+    assert w[0].lineno == frameinfo.lineno + 1
+    assert 'test_column' in w[0].filename
 
-    with catch_warnings() as w:
+    with pytest.warns(table.StringTruncateWarning, match=r'truncated right side '
+                      r'string\(s\) longer than 2 character\(s\)') as w:
         t['a'][:] = ['ff', 'ggg']  # replace item with string that gets truncated
-        assert np.all(t['a'] == ['ff', 'gg'])
-        assert len(w) == 1
-        assert ('truncated right side string(s) longer than 2 character(s)'
-                in str(w[0].message))
+    assert np.all(t['a'] == ['ff', 'gg'])
+    assert len(w) == 1
 
-    with catch_warnings() as w:
-        # Test the obscure case of assigning from an array that was originally
-        # wider than any of the current elements (i.e. dtype is U4 but actual
-        # elements are U1 at the time of assignment).
-        val = np.array(['ffff', 'gggg'])
-        val[:] = ['f', 'g']
-        t['a'][:] = val
-        assert np.all(t['a'] == ['f', 'g'])
-        assert len(w) == 0
+    # Test the obscure case of assigning from an array that was originally
+    # wider than any of the current elements (i.e. dtype is U4 but actual
+    # elements are U1 at the time of assignment).
+    val = np.array(['ffff', 'gggg'])
+    val[:] = ['f', 'g']
+    t['a'][:] = val
+    assert np.all(t['a'] == ['f', 'g'])
 
 
 def test_string_truncation_warning_masked():
@@ -673,24 +664,20 @@ def test_string_truncation_warning_masked():
     for values in (['a', 'b'], [1, 2], [1.0, 2.0]):
         mc = table.MaskedColumn(values)
 
-        with catch_warnings() as w:
-            mc[1] = np.ma.masked
-            assert len(w) == 0
-            assert np.all(mc.mask == [False, True])
+        mc[1] = np.ma.masked
+        assert np.all(mc.mask == [False, True])
 
-            mc[:] = np.ma.masked
-            assert len(w) == 0
-            assert np.all(mc.mask == [True, True])
+        mc[:] = np.ma.masked
+        assert np.all(mc.mask == [True, True])
 
     mc = table.MaskedColumn(['aa', 'bb'])
 
-    with catch_warnings() as w:
+    with pytest.warns(table.StringTruncateWarning, match=r'truncated right side '
+                      r'string\(s\) longer than 2 character\(s\)') as w:
         mc[:] = [np.ma.masked, 'ggg']  # replace item with string that gets truncated
-        assert mc[1] == 'gg'
-        assert np.all(mc.mask == [True, False])
-        assert len(w) == 1
-        assert ('truncated right side string(s) longer than 2 character(s)'
-                in str(w[0].message))
+    assert mc[1] == 'gg'
+    assert np.all(mc.mask == [True, False])
+    assert len(w) == 1
 
 
 @pytest.mark.parametrize('Column', (table.Column, table.MaskedColumn))
@@ -750,7 +737,7 @@ def test_col_unicode_sandwich_bytes(Column):
     assert np.all(c == [uba, 'def'])
 
     ok = c == [uba8, b'def']
-    assert type(ok) is type(c.data)
+    assert type(ok) is type(c.data)  # noqa
     assert ok.dtype.char == '?'
     assert np.all(ok)
 
@@ -761,7 +748,7 @@ def test_col_unicode_sandwich_bytes(Column):
     cmps = (uba, uba8)
     for cmp in cmps:
         ok = c == cmp
-        assert type(ok) is type(c.data)
+        assert type(ok) is type(c.data)  # noqa
         assert np.all(ok == [True, False])
 
 
