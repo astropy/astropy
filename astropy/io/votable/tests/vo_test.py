@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
-
-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This is a set of regression tests for vo.
 """
-
 
 # STDLIB
 import difflib
@@ -26,7 +23,6 @@ from astropy.io.votable import tree
 from astropy.io.votable.exceptions import VOTableSpecError, VOWarning, W39
 from astropy.io.votable.xmlutil import validate_schema
 from astropy.utils.data import get_pkg_data_filename, get_pkg_data_filenames
-from astropy.tests.helper import raises, catch_warnings
 
 # Determine the kind of float formatting in this build of Python
 if hasattr(sys, 'float_repr_style'):
@@ -61,10 +57,10 @@ def test_parse_single_table2():
     assert len(table2.array.dtype.names) == 28
 
 
-@raises(IndexError)
 def test_parse_single_table3():
-    parse_single_table(get_pkg_data_filename('data/regression.xml'),
-                       table_number=3)
+    with pytest.raises(IndexError):
+        parse_single_table(get_pkg_data_filename('data/regression.xml'),
+                           table_number=3)
 
 
 def _test_regression(tmpdir, _python_based=False, binary_mode=1):
@@ -723,9 +719,9 @@ def test_open_files():
         parse(filename)
 
 
-@raises(VOTableSpecError)
 def test_too_many_columns():
-    parse(get_pkg_data_filename('data/too_many_columns.xml.gz'))
+    with pytest.raises(VOTableSpecError):
+        parse(get_pkg_data_filename('data/too_many_columns.xml.gz'))
 
 
 def test_build_from_scratch(tmpdir):
@@ -781,9 +777,7 @@ def test_validate(test_path_object=False):
 
     # We can't test xmllint, because we can't rely on it being on the
     # user's machine.
-    with catch_warnings():
-        result = validate(fpath,
-                          output, xmllint=False)
+    result = validate(fpath, output, xmllint=False)
 
     assert result is False
 
@@ -840,13 +834,7 @@ def test_gzip_filehandles(tmpdir):
 
 
 def test_from_scratch_example():
-    with catch_warnings(VOWarning) as warning_lines:
-        try:
-            _run_test_from_scratch_example()
-        except ValueError as e:
-            warning_lines.append(str(e))
-
-    assert len(warning_lines) == 0
+    _run_test_from_scratch_example()
 
 
 def _run_test_from_scratch_example():
@@ -956,11 +944,10 @@ def test_resource_structure():
 def test_no_resource_check():
     output = io.StringIO()
 
-    with catch_warnings():
-        # We can't test xmllint, because we can't rely on it being on the
-        # user's machine.
-        result = validate(get_pkg_data_filename('data/no_resource.xml'),
-                          output, xmllint=False)
+    # We can't test xmllint, because we can't rely on it being on the
+    # user's machine.
+    result = validate(get_pkg_data_filename('data/no_resource.xml'),
+                      output, xmllint=False)
 
     assert result is False
 
