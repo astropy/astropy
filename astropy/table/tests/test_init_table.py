@@ -465,6 +465,18 @@ class TestInitFromRows():
         assert "Cannot supply both `data` and `rows` values" in str(err.value)
 
 
+@pytest.mark.parametrize('has_data', [True, False])
+def test_init_table_with_names_and_structured_dtype(has_data):
+    """Test fix for #10393"""
+    arr = np.ones(2, dtype=np.dtype([('a', 'i4'), ('b', 'f4')]))
+    data_args = [arr] if has_data else []
+    t = Table(*data_args, names=['x', 'y'], dtype=arr.dtype)
+    assert t.colnames == ['x', 'y']
+    assert str(t['x'].dtype) == 'int32'
+    assert str(t['y'].dtype) == 'float32'
+    assert len(t) == (2 if has_data else 0)
+
+
 @pytest.mark.usefixtures('table_type')
 def test_init_and_ref_from_multidim_ndarray(table_type):
     """
