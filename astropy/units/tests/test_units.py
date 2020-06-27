@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""
-Regression tests for the units package
-"""
+"""Regression tests for the units package."""
 import pickle
 from fractions import Fraction
 
 import pytest
 import numpy as np
 from numpy.testing import assert_allclose
-
-from astropy.tests.helper import raises, catch_warnings
 
 from astropy import units as u
 from astropy import constants as c
@@ -153,18 +149,14 @@ def test_dimensionless_to_cgs():
 
 
 def test_unknown_unit():
-    with catch_warnings(u.UnitsWarning) as warning_lines:
+    with pytest.warns(u.UnitsWarning, match='FOO'):
         u.Unit("FOO", parse_strict='warn')
-
-    assert 'FOO' in str(warning_lines[0].message)
 
 
 def test_multiple_solidus():
-    with catch_warnings(u.UnitsWarning) as warning_lines:
+    with pytest.warns(u.UnitsWarning, match="'m/s/kg' contains multiple "
+                      "slashes, which is discouraged"):
         assert u.Unit("m/s/kg").to_string() == 'm / (kg s)'
-
-    assert 'm/s/kg' in str(warning_lines[0].message)
-    assert 'discouraged' in str(warning_lines[0].message)
 
     with pytest.raises(ValueError):
         u.Unit("m/s/kg", format="vounit")
@@ -197,19 +189,19 @@ def test_unknown_unit3():
     with pytest.raises(ValueError):
         unit._get_converter(unit3)
 
-    x = unit.to_string('latex')
-    y = unit2.to_string('cgs')
+    _ = unit.to_string('latex')
+    _ = unit2.to_string('cgs')
 
     with pytest.raises(ValueError):
-        unit4 = u.Unit("BAR", parse_strict='strict')
+        u.Unit("BAR", parse_strict='strict')
 
     with pytest.raises(TypeError):
-        unit5 = u.Unit(None)
+        u.Unit(None)
 
 
-@raises(TypeError)
 def test_invalid_scale():
-    x = ['a', 'b', 'c'] * u.m
+    with pytest.raises(TypeError):
+        ['a', 'b', 'c'] * u.m
 
 
 def test_cds_power():
@@ -227,7 +219,7 @@ def test_register():
 
 def test_in_units():
     speed_unit = u.cm / u.s
-    x = speed_unit.in_units(u.pc / u.hour, 1)
+    _ = speed_unit.in_units(u.pc / u.hour, 1)
 
 
 def test_null_unit():
@@ -239,9 +231,9 @@ def test_unrecognized_equivalency():
     assert u.m.is_equivalent('pc') is True
 
 
-@raises(TypeError)
 def test_unit_noarg():
-    u.Unit()
+    with pytest.raises(TypeError):
+        u.Unit()
 
 
 def test_convertible_exception():
@@ -254,12 +246,12 @@ def test_convertible_exception2():
         u.m.to(u.s)
 
 
-@raises(TypeError)
 def test_invalid_type():
     class A:
         pass
 
-    u.Unit(A())
+    with pytest.raises(TypeError):
+        u.Unit(A())
 
 
 def test_steradian():
@@ -303,7 +295,7 @@ def test_equiv_compose():
 
 def test_empty_compose():
     with pytest.raises(u.UnitsError):
-        composed = u.m.compose(units=[])
+        u.m.compose(units=[])
 
 
 def _unit_as_str(unit):
@@ -401,7 +393,7 @@ def test_compose_issue_579():
 
 
 def test_compose_prefix_unit():
-    x =  u.m.compose(units=(u.m,))
+    x = u.m.compose(units=(u.m,))
     assert x[0].bases[0] is u.m
     assert x[0].scale == 1.0
     x = u.m.compose(units=[u.km], include_prefix_units=True)
@@ -415,7 +407,7 @@ def test_compose_prefix_unit():
     assert x[0].bases == [u.pc, u.Myr]
     assert_allclose(x[0].scale, 1.0227121650537077)
 
-    with raises(u.UnitsError):
+    with pytest.raises(u.UnitsError):
         (u.km/u.s).compose(units=(u.pc, u.Myr), include_prefix_units=False)
 
 
@@ -425,11 +417,10 @@ def test_self_compose():
     assert len(unit.compose(units=[u.g, u.s])) == 1
 
 
-@raises(u.UnitsError)
 def test_compose_failed():
     unit = u.kg
-
-    result = unit.compose(units=[u.N])
+    with pytest.raises(u.UnitsError):
+        unit.compose(units=[u.N])
 
 
 def test_compose_fractional_powers():
@@ -560,9 +551,9 @@ def test_pickle_unrecognized_unit():
     pickle.loads(pickle.dumps(a))
 
 
-@raises(ValueError)
 def test_duplicate_define():
-    u.def_unit('m', namespace=u.__dict__)
+    with pytest.raises(ValueError):
+        u.def_unit('m', namespace=u.__dict__)
 
 
 def test_all_units():
@@ -658,11 +649,10 @@ def test_suggestions():
 
 def test_fits_hst_unit():
     """See #1911."""
-    with catch_warnings() as w:
+    with pytest.warns(u.UnitsWarning, match='multiple slashes') as w:
         x = u.Unit("erg /s /cm**2 /angstrom")
     assert x == u.erg * u.s ** -1 * u.cm ** -2 * u.angstrom ** -1
     assert len(w) == 1
-    assert 'multiple slashes' in str(w[0].message)
 
 
 def test_barn_prefixes():
@@ -732,8 +722,8 @@ def test_compare_with_none():
     # Ensure that equality comparisons with `None` work, and don't
     # raise exceptions.  We are deliberately not using `is None` here
     # because that doesn't trigger the bug.  See #3108.
-    assert not (u.m == None)  # nopep8
-    assert u.m != None  # nopep8
+    assert not (u.m == None)  # noqa
+    assert u.m != None  # noqa
 
 
 def test_validate_power_detect_fraction():
@@ -812,7 +802,7 @@ def test_raise_to_negative_power():
 
     Regression test for https://github.com/astropy/astropy/issues/8260
     """
-    m2s2 = u.m ** 2 / u.s **2
+    m2s2 = u.m ** 2 / u.s ** 2
     spm = m2s2 ** (-1 / 2)
     assert spm.bases == [u.s, u.m]
     assert spm.powers == [1, -1]
