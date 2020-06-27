@@ -609,10 +609,16 @@ class Table:
         # within the appropriate initialization routine, either from
         # existing specification or auto-generated.
 
-        if names is None:
-            names = default_names or [None] * n_cols
         if dtype is None:
             dtype = [None] * n_cols
+        elif isinstance(dtype, np.dtype):
+            if default_names is None:
+                default_names = dtype.names
+            # Convert a numpy dtype input to a list of dtypes for later use.
+            dtype = [dtype[name] for name in dtype.names]
+
+        if names is None:
+            names = default_names or [None] * n_cols
 
         # Numpy does not support bytes column names on Python 3, so fix them
         # up now.
