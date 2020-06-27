@@ -21,7 +21,6 @@ else:
 
 from astropy.stats import funcs
 from astropy import units as u
-from astropy.tests.helper import catch_warnings
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import NumpyRNGContext
 
@@ -355,20 +354,17 @@ def test_mad_std_scalar_return():
         data[5, 5] = np.nan
         rslt = funcs.mad_std(data, ignore_nan=True)
         assert np.isscalar(rslt)
-        with catch_warnings():
-            rslt = funcs.mad_std(data)
-            assert np.isscalar(rslt)
-            assert np.isnan(rslt)
+        rslt = funcs.mad_std(data)
+        assert np.isscalar(rslt)
+        assert np.isnan(rslt)
 
 
 def test_mad_std_warns():
     with NumpyRNGContext(12345):
         data = np.random.normal(5, 2, size=(10, 10))
         data[5, 5] = np.nan
-
-        with catch_warnings():
-            rslt = funcs.mad_std(data, ignore_nan=False)
-            assert np.isnan(rslt)
+        rslt = funcs.mad_std(data, ignore_nan=False)
+        assert np.isnan(rslt)
 
 
 @pytest.mark.filterwarnings('ignore:Invalid value encountered in median')

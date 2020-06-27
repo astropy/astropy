@@ -9,7 +9,6 @@ from astropy.stats.biweight import (biweight_location, biweight_scale,
                                     biweight_midvariance,
                                     biweight_midcovariance,
                                     biweight_midcorrelation)
-from astropy.tests.helper import catch_warnings
 from astropy.utils.misc import NumpyRNGContext
 
 
@@ -477,11 +476,5 @@ def test_biweight_32bit_runtime_warnings():
     with NumpyRNGContext(12345):
         data = np.random.random(100).astype(np.float32)
         data[50] = 30000.
-
-        with catch_warnings(RuntimeWarning) as warning_lines:
-            biweight_scale(data)
-            assert len(warning_lines) == 0
-
-        with catch_warnings(RuntimeWarning) as warning_lines:
-            biweight_midvariance(data)
-            assert len(warning_lines) == 0
+        biweight_scale(data)
+        biweight_midvariance(data)
