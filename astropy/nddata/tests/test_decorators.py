@@ -5,14 +5,12 @@ import inspect
 import pytest
 import numpy as np
 
-from astropy.tests.helper import catch_warnings
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy import units as u
 from astropy.wcs import WCS
 
 from astropy.nddata.nddata import NDData
 from astropy.nddata.decorators import support_nddata
-from astropy.nddata import _testing as nd_testing
 
 
 class CCDData(NDData):
@@ -71,16 +69,14 @@ def test_pass_nddata_and_explicit():
 
     nddata_in = NDData(data_in, wcs=wcs_in, unit=unit_in)
 
-    with catch_warnings() as w:
+    with pytest.warns(AstropyUserWarning, match="Property unit has been passed explicitly and as "
+                      "an NDData property, using explicitly specified value") as w:
         data_out, wcs_out, unit_out = wrapped_function_1(nddata_in, unit=unit_in_alt)
+    assert len(w) == 1
 
     assert data_out is data_in
     assert wcs_out is wcs_in
     assert unit_out is unit_in_alt
-
-    assert len(w) == 1
-    assert str(w[0].message) == ("Property unit has been passed explicitly and as "
-                                 "an NDData property, using explicitly specified value")
 
 
 def test_pass_nddata_ignored():
@@ -91,16 +87,14 @@ def test_pass_nddata_ignored():
 
     nddata_in = NDData(data_in, wcs=wcs_in, unit=unit_in, mask=[0, 1, 0])
 
-    with catch_warnings() as w:
+    with pytest.warns(AstropyUserWarning, match="The following attributes were set on the data "
+                      "object, but will be ignored by the function: mask") as w:
         data_out, wcs_out, unit_out = wrapped_function_1(nddata_in)
+    assert len(w) == 1
 
     assert data_out is data_in
     assert wcs_out is wcs_in
     assert unit_out is unit_in
-
-    assert len(w) == 1
-    assert str(w[0].message) == ("The following attributes were set on the data "
-                                 "object, but will be ignored by the function: mask")
 
 
 def test_incorrect_first_argument():
@@ -166,9 +160,9 @@ def test_wrap_function_accepts():
 
     assert wrapped_function_5(mydata_in, [1, 2, 3]) is data_in
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError, match="Only NDData sub-classes that inherit "
+                       "from MyData can be used by this function"):
         wrapped_function_5(nddata_in, [1, 2, 3])
-    assert exc.value.args[0] == "Only NDData sub-classes that inherit from MyData can be used by this function"
 
 
 def test_wrap_preserve_signature_docstring():
@@ -300,9 +294,9 @@ def test_accepting_property_normal():
     ndd._mask = np.zeros((3, 3))
     assert np.all(test(ndd) == 0)
     # Use the explicitly given one (raises a Warning)
-    with catch_warnings(AstropyUserWarning) as w:
+    with pytest.warns(AstropyUserWarning) as w:
         assert test(ndd, mask=10) == 10
-        assert len(w) == 1
+    assert len(w) == 1
 
 
 def test_parameter_default_identical_to_explicit_passed_argument():
@@ -312,13 +306,11 @@ def test_parameter_default_identical_to_explicit_passed_argument():
     def func(data, meta={'a': 1}):
         return meta
 
-    with catch_warnings(AstropyUserWarning) as w:
+    with pytest.warns(AstropyUserWarning) as w:
         assert func(NDData(1, meta={'b': 2}), {'a': 1}) == {'a': 1}
-        assert len(w) == 1
+    assert len(w) == 1
 
-    with catch_warnings(AstropyUserWarning) as w:
-        assert func(NDData(1, meta={'b': 2})) == {'b': 2}
-        assert len(w) == 0
+    assert func(NDData(1, meta={'b': 2})) == {'b': 2}
 
 
 def test_accepting_property_notexist():
@@ -342,9 +334,9 @@ def test_accepting_property_translated():
     ndd._mask = np.zeros((3, 3))
     assert np.all(test(ndd) == 0)
     # Use the explicitly given one (raises a Warning)
-    with catch_warnings(AstropyUserWarning) as w:
+    with pytest.warns(AstropyUserWarning) as w:
         assert test(ndd, masked=10) == 10
-        assert len(w) == 1
+    assert len(w) == 1
 
 
 def test_accepting_property_meta_empty():
