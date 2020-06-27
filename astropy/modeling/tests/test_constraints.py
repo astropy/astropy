@@ -14,8 +14,6 @@ from astropy.modeling import models
 from astropy.modeling import fitting
 from astropy.utils.exceptions import AstropyUserWarning
 
-from .utils import ignore_non_integer_warning
-
 try:
     from scipy import optimize
     HAS_SCIPY = True
@@ -152,8 +150,7 @@ class TestBounds:
         line_model = models.Linear1D(guess_slope, guess_intercept,
                                      bounds=bounds)
         fitter = fitting.SLSQPLSQFitter()
-
-        with ignore_non_integer_warning():
+        with pytest.warns(AstropyUserWarning, match='consider using linear fitting methods'):
             model = fitter(line_model, self.x, self.y)
 
         slope = model.slope.value
@@ -199,8 +196,7 @@ class TestBounds:
                                   x_stddev=4., y_stddev=4., theta=0.5,
                                   bounds=bounds)
         gauss_fit = fitting.SLSQPLSQFitter()
-        with ignore_non_integer_warning():
-            model = gauss_fit(gauss, X, Y, self.data)
+        model = gauss_fit(gauss, X, Y, self.data)
         x_mean = model.x_mean.value
         y_mean = model.y_mean.value
         x_stddev = model.x_stddev.value
@@ -381,7 +377,7 @@ def test_fit_with_fixed_and_bound_constraints():
     assert fitted_1.amplitude == 3.0
 
     m.amplitude.fixed = False
-    fitted_2 = f(m, x, y)
+    _ = f(m, x, y)
     # It doesn't matter anymore what the amplitude ends up as so long as the
     # bounds constraint was still obeyed
     assert fitted_1.mean >= 4
@@ -422,7 +418,7 @@ def test_fit_with_bound_constraints_estimate_jacobian():
     m2 = MyModel()
     m2.a.bounds = (-2, 2)
     f2 = fitting.LevMarLSQFitter()
-    fitted_2 = f2(m2, x, y)
+    _ = f2(m2, x, y)
     assert np.allclose(fitted_1.a, 1.5)
     assert np.allclose(fitted_1.b, -3)
 
