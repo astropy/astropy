@@ -8,10 +8,10 @@ from copy import deepcopy
 from decimal import Decimal, localcontext
 
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
-from astropy.tests.helper import catch_warnings, pytest
-from astropy.utils.exceptions import AstropyDeprecationWarning, ErfaWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning, ErfaWarning
 from astropy.utils import isiterable, iers
 from astropy.time import (Time, TimeDelta, ScaleValueError, STANDARD_TIME_SCALES,
                           TimeString, TimezoneInfo, TIME_FORMATS)
@@ -773,7 +773,7 @@ class TestSubFormat:
         for inputs in (("2000-01-02(TAI)", "tai"),
                        ("1999-01-01T00:00:00.123(ET(NIST))", "tt"),
                        ("2014-12-12T01:00:44.1(UTC)", "utc")):
-            with catch_warnings(AstropyDeprecationWarning):
+            with pytest.warns(AstropyDeprecationWarning):
                 t = Time(inputs[0])
             assert t.scale == inputs[1]
 
@@ -783,24 +783,24 @@ class TestSubFormat:
             assert t == t2
 
         # Explicit check that conversions still work despite warning
-        with catch_warnings(AstropyDeprecationWarning):
+        with pytest.warns(AstropyDeprecationWarning):
             t = Time('1999-01-01T00:00:00.123456789(UTC)')
         t = t.tai
         assert t.isot == '1999-01-01T00:00:32.123'
 
-        with catch_warnings(AstropyDeprecationWarning):
+        with pytest.warns(AstropyDeprecationWarning):
             t = Time('1999-01-01T00:00:32.123456789(TAI)')
         t = t.utc
         assert t.isot == '1999-01-01T00:00:00.123'
 
         # Check scale consistency
-        with catch_warnings(AstropyDeprecationWarning):
+        with pytest.warns(AstropyDeprecationWarning):
             t = Time('1999-01-01T00:00:32.123456789(TAI)', scale="tai")
         assert t.scale == "tai"
-        with catch_warnings(AstropyDeprecationWarning):
+        with pytest.warns(AstropyDeprecationWarning):
             t = Time('1999-01-01T00:00:32.123456789(ET)', scale="tt")
         assert t.scale == "tt"
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError), pytest.warns(AstropyDeprecationWarning):
             t = Time('1999-01-01T00:00:32.123456789(TAI)', scale="utc")
 
     def test_scale_default(self):
@@ -1123,10 +1123,9 @@ class TestSofaErrors:
             djm0, djm = erfa.cal2jd(iy, im, id)
 
         iy[0] = 2000
-        with catch_warnings() as w:
+        with pytest.warns(AstropyUserWarning, match=r'bad day    \(JD computed\)') as w:
             djm0, djm = erfa.cal2jd(iy, im, id)
         assert len(w) == 1
-        assert 'bad day    (JD computed)' in str(w[0].message)
 
         assert allclose_jd(djm0, [2400000.5])
         assert allclose_jd(djm, [53574.])
@@ -2254,7 +2253,7 @@ def test_location_init(location):
     # Init from a scalar Time
     tm2 = Time(tm)
     assert np.all(tm.location == tm2.location)
-    assert type(tm.location) is type(tm2.location)
+    assert type(tm.location) is type(tm2.location)  # noqa
 
     # From a list of Times
     tm2 = Time([tm, tm])
@@ -2263,7 +2262,7 @@ def test_location_init(location):
     else:
         for loc in tm2.location:
             assert loc == tm.location
-    assert type(tm.location) is type(tm2.location)
+    assert type(tm.location) is type(tm2.location)  # noqa
 
     # Effectively the same as a list of Times, but just to be sure that
     # Table mixin inititialization is working as expected.
@@ -2273,7 +2272,7 @@ def test_location_init(location):
     else:
         for loc in tm2.location:
             assert loc == tm.location
-    assert type(tm.location) is type(tm2.location)
+    assert type(tm.location) is type(tm2.location)  # noqa
 
 
 def test_location_init_fail():
