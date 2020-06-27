@@ -815,7 +815,7 @@ class TestImageFunctions(FitsTestCase):
             data = hdul3[0].data
             # This emits warning that pytest cannot catch properly, so we
             # catch it with pytest.mark.filterwarnings above.
-            np.isnan(data[0])
+            assert np.isnan(data[0])
 
         with fits.open(filename,
                        do_not_scale_image_data=True) as hdul4:
