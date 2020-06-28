@@ -496,16 +496,25 @@ def test_jd_add_subtract_round_trip(scale, jds, delta):
 @example(scale='utc',
          jds_a=(2455000.0, 0.0),
          jds_b=(2443144.5, 0.5000462962962965))
+@example(scale='utc',
+         jds_a=(2459003.0, 0.267502885949074),
+         jds_b=(2454657.001045462, 0.49895453779026877))
 def test_timedelta_full_precision(scale, jds_a, jds_b):
     jd1_a, jd2_a = jds_a
     jd1_b, jd2_b = jds_b
     assume(scale != 'utc'
            or (2440000 < jd1_a+jd2_a < 2460000
                and 2440000 < jd1_b+jd2_b < 2460000))
+    if scale == 'utc':
+        # UTC subtraction implies a scale change, so possible rounding errors.
+        tiny = 2 * dt_tiny
+    else:
+        tiny = dt_tiny
+
     t_a = Time(jd1_a, jd2_a, scale=scale, format="jd")
     t_b = Time(jd1_b, jd2_b, scale=scale, format="jd")
     dt = t_b - t_a
-    assert dt != (t_b + dt_tiny) - t_a
+    assert dt != (t_b + tiny) - t_a
     with quiet_erfa():
         assert_almost_equal(t_b-dt/2, t_a+dt/2, atol=2*dt_tiny, rtol=0,
                             label="midpoint")
