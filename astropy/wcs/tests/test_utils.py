@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import warnings
-
 import pytest
 
 import numpy as np
@@ -35,7 +33,7 @@ from astropy.wcs.utils import (proj_plane_pixel_scales,
                                fit_wcs_from_points)
 
 try:
-    import scipy
+    import scipy  # noqa
 except ImportError:
     HAS_SCIPY = False
 else:
@@ -260,9 +258,9 @@ def test_wcs_to_celestial_frame():
 
     mywcs = WCS(naxis=2)
     mywcs.wcs.set()
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError, match="Could not determine celestial frame "
+                       "corresponding to the specified WCS object"):
         assert wcs_to_celestial_frame(mywcs) is None
-    assert exc.value.args[0] == "Could not determine celestial frame corresponding to the specified WCS object"
 
     mywcs = WCS(naxis=2)
     mywcs.wcs.ctype = ['XOFFSET', 'YOFFSET']
@@ -587,9 +585,11 @@ def test_noncelestial_scale(cdelt, pc, cd):
 
     # TODO: Some inputs emit RuntimeWarning from here onwards.
     #       Fix the test data. See @nden's comment in PR 9010.
-    with warnings.catch_warnings():
-        warnings.filterwarnings('ignore', 'cdelt will be ignored since cd is present', RuntimeWarning)
+    with pytest.warns(None) as warning_lines:
         mywcs.wcs.cdelt = cdelt
+    for w in warning_lines:
+        assert issubclass(w.category, RuntimeWarning)
+        assert 'cdelt will be ignored since cd is present' in str(w.message)
 
     mywcs.wcs.ctype = ['RA---TAN', 'FREQ']
 
@@ -714,20 +714,21 @@ def spatial_wcs_2d_small_angle():
 
 
 def test_local_pixel_derivatives(spatial_wcs_2d_small_angle):
-    not_diag = np.logical_not(np.diag([1,1]))
+    not_diag = np.logical_not(np.diag([1, 1]))
     # At (or close to) the reference pixel this should equal the cdelt
     derivs = local_partial_pixel_derivatives(spatial_wcs_2d_small_angle, 3, 3)
     np.testing.assert_allclose(np.diag(derivs), spatial_wcs_2d_small_angle.wcs.cdelt)
-    np.testing.assert_allclose(derivs[not_diag].flat, [0,0], atol=1e-10)
+    np.testing.assert_allclose(derivs[not_diag].flat, [0, 0], atol=1e-10)
 
     # Far away from the reference pixel this should not equal the cdelt
     derivs = local_partial_pixel_derivatives(spatial_wcs_2d_small_angle, 3e4, 3e4)
     assert not np.allclose(np.diag(derivs), spatial_wcs_2d_small_angle.wcs.cdelt)
 
     # At (or close to) the reference pixel this should equal the cdelt
-    derivs = local_partial_pixel_derivatives(spatial_wcs_2d_small_angle, 3, 3, normalize_by_world=True)
+    derivs = local_partial_pixel_derivatives(
+        spatial_wcs_2d_small_angle, 3, 3, normalize_by_world=True)
     np.testing.assert_allclose(np.diag(derivs), [1, 1])
-    np.testing.assert_allclose(derivs[not_diag].flat, [0,0], atol=1e-8)
+    np.testing.assert_allclose(derivs[not_diag].flat, [0, 0], atol=1e-8)
 
 
 def test_pixel_to_world_correlation_matrix_celestial():
@@ -844,9 +845,9 @@ def test_pixel_to_pixel_correlation_matrix_mismatch():
     wcs5.wcs.cunit = ['m/s', 'deg', 'deg', 'm/s']
     wcs5.wcs.set()
 
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError, match="World coordinate order doesn't match "
+                       "and automatic matching is ambiguous"):
         _pixel_to_pixel_correlation_matrix(wcs4, wcs5)
-    assert exc.value.args[0] == "World coordinate order doesn't match and automatic matching is ambiguous"
 
 
 def test_pixel_to_pixel_correlation_matrix_nonsquare():
