@@ -251,6 +251,8 @@ class Parameter(OrderedDescriptor):
         self._prior = None
         self._posterior = None
 
+        self._std = None
+
     def __len__(self):
         val = self.value
         if val.shape == ():
@@ -429,6 +431,17 @@ class Parameter(OrderedDescriptor):
         """The size of this parameter's value array."""
 
         return np.size(self.value)
+
+    @property
+    def std(self):
+        """Standard deviation, if available from fit."""
+
+        return self._std
+
+    @std.setter
+    def std(self, value):
+
+        self._std = value
 
     @property
     def prior(self):
