@@ -53,7 +53,8 @@ class TestBlackbody1D:
         b_fit = fitter(b, wav, fnu)
 
         assert_quantity_allclose(b_fit.temperature, 2840.7438339457754 * u.K)
-        assert_quantity_allclose(b_fit.bolometric_flux, 6.821837075583734e-08 * u.erg / u.cm**2 / u.s)  # noqa
+        assert_quantity_allclose(
+            b_fit.bolometric_flux, 6.821837075583734e-08 * u.erg / u.cm**2 / u.s)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')

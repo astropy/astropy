@@ -197,6 +197,7 @@ class TestBounds:
                                   bounds=bounds)
         gauss_fit = fitting.SLSQPLSQFitter()
         # Warning does not appear in all the CI jobs.
+        # TODO: Rewrite the test for more consistent warning behavior.
         with pytest.warns(None) as warning_lines:
             model = gauss_fit(gauss, X, Y, self.data)
             x_mean = model.x_mean.value

@@ -287,7 +287,10 @@ class TestIERS_Auto():
             # and an exception when extrapolating into the future with insufficient data.
             dat._time_now = Time(predictive_mjd, format='mjd') + 60 * u.d
             assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.1293286)
-            with pytest.warns(iers.IERSStaleWarning, match='IERS_Auto predictive values are older') as warns, pytest.raises(ValueError, match='interpolating from IERS_Auto using predictive values'):  # noqa
+            with pytest.warns(iers.IERSStaleWarning, match='IERS_Auto predictive '
+                              'values are older') as warns, \
+                 pytest.raises(ValueError, match='interpolating from IERS_Auto '
+                               'using predictive values'):
                 dat.ut1_utc(Time(60000, format='mjd').jd)
             assert len(warns) == 1
 
