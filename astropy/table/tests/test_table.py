@@ -2369,13 +2369,13 @@ def test_replace_update_column_via_setitem_warnings_always():
     with table.conf.set_temp('replace_warnings', ['always']):
         t['a'] = 0  # in-place slice update
 
-        frameinfo = getframeinfo(currentframe())
         with pytest.warns(TableReplaceWarning, match="replaced column 'a'") as w:
+            frameinfo = getframeinfo(currentframe())
             t['a'] = [10, 20, 30]  # replace column
         assert len(w) == 1
 
         # Make sure the warning points back to the user code line
-        assert w[0].lineno == frameinfo.lineno + 2
+        assert w[0].lineno == frameinfo.lineno + 1
         assert 'test_table' in w[0].filename
 
 
