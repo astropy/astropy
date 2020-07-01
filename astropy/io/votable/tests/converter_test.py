@@ -47,13 +47,13 @@ def test_char_mask():
 
 def test_oversize_unicode():
     config = {'verify': 'exception'}
-    with pytest.raises(exceptions.W47):
+    with pytest.warns(exceptions.W46) as w:
         field = tree.Field(
             None, name='c2', datatype='unicodeChar',
-            config=config)
+            arraysize='1', config=config)
         c = converters.get_converter(field, config=config)
-
         c.parse("XXX")
+    assert len(w) == 1
 
 
 def test_unicode_mask():
