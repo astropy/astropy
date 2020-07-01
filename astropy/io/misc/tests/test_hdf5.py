@@ -49,15 +49,6 @@ def test_write_nopath(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
     t1 = Table()
     t1.add_column(Column(name='a', data=[1, 2, 3]))
-    with pytest.warns(UserWarning, match="table path was not set via the path= argument"):
-        t1.write(test_file)
-
-
-@pytest.mark.skipif('not HAS_H5PY')
-def test_write_nopath_2(tmpdir):
-    test_file = str(tmpdir.join('test.hdf5'))
-    t1 = Table()
-    t1.add_column(Column(name='a', data=[1, 2, 3]))
 
     with pytest.warns(UserWarning, match="table path was not set via the path= argument"):
         t1.write(test_file)
