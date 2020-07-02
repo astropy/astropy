@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
-import warnings
 
 import pytest
 import numpy as np
@@ -67,9 +66,10 @@ def test_read_spec_files():
 def test_spectrum(filename):
     header = get_pkg_data_contents(os.path.join("data", "spectra", filename))
     # Warning only pops up for one of the inputs.
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore', FITSFixedWarning)
+    with pytest.warns(None) as warning_lines:
         wcsobj = wcs.WCS(header)
+    for w in warning_lines:
+        assert issubclass(w.category, FITSFixedWarning)
     with NumpyRNGContext(123456789):
         x = np.random.rand(2 ** 16, wcsobj.wcs.naxis)
         wcsobj.wcs_pix2world(x, 1)

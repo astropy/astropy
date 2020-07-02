@@ -16,14 +16,14 @@ import pytest
 import numpy as np
 from numpy import testing as npt
 
-from astropy.tests.helper import raises, assert_quantity_allclose as assert_allclose
+from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy import units as u
 from astropy import time
 from astropy import coordinates as coords
 from astropy.units import allclose
 
 try:
-    import scipy  # pylint: disable=W0611
+    import scipy  # pylint: disable=W0611  # noqa
 except ImportError:
     HAS_SCIPY = False
 else:
@@ -78,7 +78,7 @@ def test_representations_api():
     c2 = SphericalRepresentation(lon=[8, 9]*u.hourangle, lat=[5, 6]*u.deg, distance=10*u.kpc)
     assert len(c2.distance) == 2
     # when they can't be broadcast, it is a ValueError (same as Numpy)
-    with raises(ValueError):
+    with pytest.raises(ValueError):
         c2 = UnitSphericalRepresentation(lon=[8, 9, 10]*u.hourangle, lat=[5, 6]*u.deg)
 
     # It's also possible to pass in scalar quantity lists with mixed units. These
@@ -101,7 +101,7 @@ def test_representations_api():
     assert isinstance(c1.distance, Distance)
 
     # but they are read-only, as representations are immutable once created
-    with raises(AttributeError):
+    with pytest.raises(AttributeError):
         c1.lat = Latitude(5, u.deg)
     # Note that it is still possible to modify the array in-place, but this is not
     # sanctioned by the API, as this would prevent things like caching.
@@ -111,7 +111,7 @@ def test_representations_api():
     # coordinates are defined, other conventions can be included as new classes.
     # Later there may be other conventions that we implement - for now just the
     # physics convention, as it is one of the most common cases.
-    c3 = PhysicsSphericalRepresentation(phi=120*u.deg, theta=85*u.deg, r=3*u.kpc)
+    _ = PhysicsSphericalRepresentation(phi=120*u.deg, theta=85*u.deg, r=3*u.kpc)
 
     # first dimension must be length-3 if a lone `Quantity` is passed in.
     c1 = CartesianRepresentation(np.random.randn(3, 100) * u.kpc)
@@ -170,11 +170,11 @@ def test_frame_api():
 
     # the information required to specify the frame is immutable
     J2001 = time.Time('J2001')
-    with raises(AttributeError):
+    with pytest.raises(AttributeError):
         fk5.equinox = J2001
 
     # Similar for the representation data.
-    with raises(AttributeError):
+    with pytest.raises(AttributeError):
         fk5.data = UnitSphericalRepresentation(lon=8*u.hour, lat=5*u.deg)
 
     # There is also a class-level attribute that lists the attributes needed to
@@ -224,7 +224,7 @@ def test_frame_api():
     assert coo3.separation_3d(coo4).kpc == 1.0
 
     # The next example fails because `coo1` and `coo2` don't have distances
-    with raises(ValueError):
+    with pytest.raises(ValueError):
         assert coo1.separation_3d(coo2).kpc == 1.0
 
     # repr/str also shows info, with frame and data
@@ -289,7 +289,7 @@ def test_transform_api():
     assert_allclose(fk5_2.ra, fk5_trans_2.ra, rtol=0, atol=1e-10*u.deg)
 
     # Trying to transforming a frame with no data is of course an error:
-    with raises(ValueError):
+    with pytest.raises(ValueError):
         FK5(equinox=J2001).transform_to(ICRS)
 
     # To actually define a new transformation, the same scheme as in the
@@ -306,8 +306,8 @@ def test_transform_api():
 
     @frame_transform_graph.transform(DynamicMatrixTransform, SomeNewSystem, FK5)
     def new_to_fk5(newobj, fk5frame):
-        ot = newobj.obstime
-        eq = fk5frame.equinox
+        _ = newobj.obstime
+        _ = fk5frame.equinox
         # ... build a *cartesian* transform matrix using `eq` that transforms from
         # the `newobj` frame as observed at `ot` to FK5 an equinox `eq`
         matrix = np.eye(3)
@@ -417,8 +417,10 @@ def test_highlevel_api():
     # assert str(m31icrs) == '<SkyCoord (ICRS) RA=10.68471 deg, Dec=41.26875 deg>'
 
     if HAS_SCIPY:
-        cat1 = coords.SkyCoord(ra=[1, 2]*u.hr, dec=[3, 4.01]*u.deg, distance=[5, 6]*u.kpc, frame='icrs')
-        cat2 = coords.SkyCoord(ra=[1, 2, 2.01]*u.hr, dec=[3, 4, 5]*u.deg, distance=[5, 200, 6]*u.kpc, frame='icrs')
+        cat1 = coords.SkyCoord(ra=[1, 2]*u.hr, dec=[3, 4.01]*u.deg,
+                               distance=[5, 6]*u.kpc, frame='icrs')
+        cat2 = coords.SkyCoord(ra=[1, 2, 2.01]*u.hr, dec=[3, 4, 5]*u.deg,
+                               distance=[5, 200, 6]*u.kpc, frame='icrs')
         idx1, sep2d1, dist3d1 = cat1.match_to_catalog_sky(cat2)
         idx2, sep2d2, dist3d2 = cat1.match_to_catalog_3d(cat2)
 

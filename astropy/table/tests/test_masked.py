@@ -1,6 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
-
 """Test behavior related to masked tables"""
 
 import pytest
@@ -9,7 +7,6 @@ import numpy.ma as ma
 
 from astropy.table import Column, MaskedColumn, Table, QTable
 from astropy.table.column import BaseColumn
-from astropy.tests.helper import catch_warnings
 from astropy.time import Time
 import astropy.units as u
 
@@ -529,20 +526,15 @@ def test_masked_as_array_with_mixin():
 def test_masked_column_with_unit_in_qtable():
     """Test that adding a MaskedColumn with a unit to QTable issues warning"""
     t = QTable()
-    with catch_warnings() as w:
-        t['a'] = MaskedColumn([1, 2])
-    assert len(w) == 0
+    t['a'] = MaskedColumn([1, 2])
     assert isinstance(t['a'], MaskedColumn)
 
-    with catch_warnings() as w:
-        t['b'] = MaskedColumn([1, 2], unit=u.m)
-    assert len(w) == 0
+    t['b'] = MaskedColumn([1, 2], unit=u.m)
     assert isinstance(t['b'], u.Quantity)
 
-    with catch_warnings() as w:
+    with pytest.warns(UserWarning, match="dropping mask in Quantity column 'c'") as w:
         t['c'] = MaskedColumn([1, 2], unit=u.m, mask=[True, False])
     assert len(w) == 1
-    assert "dropping mask in Quantity column 'c'"
     assert isinstance(t['b'], u.Quantity)
 
 

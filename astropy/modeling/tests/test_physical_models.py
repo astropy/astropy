@@ -7,7 +7,7 @@ import numpy as np
 from astropy.modeling.physical_models import BlackBody
 from astropy.modeling.fitting import LevMarLSQFitter
 
-from astropy.tests.helper import assert_quantity_allclose, catch_warnings
+from astropy.tests.helper import assert_quantity_allclose
 from astropy import units as u
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -113,16 +113,14 @@ def test_blackbody_exceptions_and_warnings():
     bb = BlackBody(5000 * u.K)
 
     # Zero wavelength given for conversion to Hz
-    with catch_warnings(AstropyUserWarning) as w:
+    with pytest.warns(AstropyUserWarning, match='invalid') as w:
         bb(0 * u.AA)
-    assert len(w) == 1
-    assert "invalid" in w[0].message.args[0]
+    assert len(w) == 3  # 2 of these are RuntimeWarning from zero divide
 
     # Negative wavelength given for conversion to Hz
-    with catch_warnings(AstropyUserWarning) as w:
+    with pytest.warns(AstropyUserWarning, match='invalid') as w:
         bb(-1.0 * u.AA)
     assert len(w) == 1
-    assert "invalid" in w[0].message.args[0]
 
     # Test that a non surface brightness converatable scale unit
     with pytest.raises(ValueError) as exc:

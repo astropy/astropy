@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import importlib
 import sys
 import warnings
@@ -9,7 +8,6 @@ import locale
 
 import pytest
 
-from .helper import catch_warnings
 from astropy import log
 from astropy.logger import LoggingError, conf
 from astropy.utils.exceptions import AstropyWarning, AstropyUserWarning
@@ -67,23 +65,22 @@ def test_warnings_logging_enable_twice():
 def test_warnings_logging_overridden():
     log.enable_warnings_logging()
     warnings.showwarning = lambda: None
-    with pytest.raises(LoggingError) as e:
+    with pytest.raises(LoggingError, match=r'Cannot disable warnings logging: '
+                       r'warnings\.showwarning was not set by this logger, or has been overridden'):
         log.disable_warnings_logging()
-    assert e.value.args[0] == 'Cannot disable warnings logging: warnings.showwarning was not set by this logger, or has been overridden'
 
 
 def test_warnings_logging():
 
     # Without warnings logging
-    with catch_warnings() as warn_list:
+    with pytest.warns(AstropyUserWarning, match="This is a warning") as warn_list:
         with log.log_to_list() as log_list:
             warnings.warn("This is a warning", AstropyUserWarning)
     assert len(log_list) == 0
     assert len(warn_list) == 1
-    assert warn_list[0].message.args[0] == "This is a warning"
 
     # With warnings logging
-    with catch_warnings() as warn_list:
+    with pytest.warns(None) as warn_list:
         log.enable_warnings_logging()
         with log.log_to_list() as log_list:
             warnings.warn("This is a warning", AstropyUserWarning)
@@ -95,7 +92,8 @@ def test_warnings_logging():
     assert log_list[0].origin == 'astropy.tests.test_logger'
 
     # With warnings logging (differentiate between Astropy and non-Astropy)
-    with catch_warnings() as warn_list:
+    with pytest.warns(UserWarning, match="This is another warning, not "
+                      "from Astropy") as warn_list:
         log.enable_warnings_logging()
         with log.log_to_list() as log_list:
             warnings.warn("This is a warning", AstropyUserWarning)
@@ -106,15 +104,13 @@ def test_warnings_logging():
     assert log_list[0].levelname == 'WARNING'
     assert log_list[0].message.startswith('This is a warning')
     assert log_list[0].origin == 'astropy.tests.test_logger'
-    assert warn_list[0].message.args[0] == "This is another warning, not from Astropy"
 
     # Without warnings logging
-    with catch_warnings() as warn_list:
+    with pytest.warns(AstropyUserWarning, match="This is a warning") as warn_list:
         with log.log_to_list() as log_list:
             warnings.warn("This is a warning", AstropyUserWarning)
     assert len(log_list) == 0
     assert len(warn_list) == 1
-    assert warn_list[0].message.args[0] == "This is a warning"
 
 
 def test_warnings_logging_with_custom_class():
@@ -122,7 +118,7 @@ def test_warnings_logging_with_custom_class():
         pass
 
     # With warnings logging
-    with catch_warnings() as warn_list:
+    with pytest.warns(None) as warn_list:
         log.enable_warnings_logging()
         with log.log_to_list() as log_list:
             warnings.warn("This is a warning", CustomAstropyWarningClass)
@@ -137,7 +133,7 @@ def test_warnings_logging_with_custom_class():
 def test_warning_logging_with_io_votable_warning():
     from astropy.io.votable.exceptions import W02, vo_warn
 
-    with catch_warnings() as warn_list:
+    with pytest.warns(None) as warn_list:
         log.enable_warnings_logging()
         with log.log_to_list() as log_list:
             vo_warn(W02, ('a', 'b'))
@@ -146,7 +142,7 @@ def test_warning_logging_with_io_votable_warning():
     assert len(warn_list) == 0
     assert log_list[0].levelname == 'WARNING'
     x = log_list[0].message.startswith("W02: ?:?:?: W02: a attribute 'b' is "
-                                        "invalid.  Must be a standard XML id")
+                                       "invalid.  Must be a standard XML id")
     assert x
     assert log_list[0].origin == 'astropy.tests.test_logger'
 
@@ -193,9 +189,9 @@ def test_exception_logging_enable_twice():
 def test_exception_logging_overridden():
     log.enable_exception_logging()
     sys.excepthook = lambda etype, evalue, tb: None
-    with pytest.raises(LoggingError) as e:
+    with pytest.raises(LoggingError, match='Cannot disable exception logging: '
+                       'sys.excepthook was not set by this logger, or has been overridden'):
         log.disable_exception_logging()
-    assert e.value.args[0] == 'Cannot disable exception logging: sys.excepthook was not set by this logger, or has been overridden'
 
 
 @pytest.mark.xfail("ip is not None")
@@ -247,7 +243,7 @@ def test_exception_logging_origin():
 
     from astropy.utils.collections import HomogeneousList
 
-    l = HomogeneousList(int)
+    l = HomogeneousList(int)  # noqa
     try:
         log.enable_exception_logging()
         with log.log_to_list() as log_list:
@@ -266,7 +262,7 @@ def test_exception_logging_origin():
 
 
 @pytest.mark.skip(reason="Infinite recursion on Python 3.5+, probably a real issue")
-#@pytest.mark.xfail("ip is not None")
+# @pytest.mark.xfail("ip is not None")
 def test_exception_logging_argless_exception():
     """
     Regression test for a crash that occurred on Python 3 when logging an
@@ -279,7 +275,7 @@ def test_exception_logging_argless_exception():
         log.enable_exception_logging()
         with log.log_to_list() as log_list:
             raise Exception()
-    except Exception as exc:
+    except Exception:
         sys.excepthook(*sys.exc_info())
     else:
         assert False  # exception should have been raised

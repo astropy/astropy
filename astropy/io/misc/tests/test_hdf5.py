@@ -1,10 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import pytest
 import numpy as np
 
-from astropy.tests.helper import catch_warnings
 from astropy.table import Table, QTable, NdarrayMixin, Column
 from astropy.table.table_helpers import simple_table
 
@@ -26,7 +24,7 @@ else:
     HAS_H5PY = True
 
 try:
-    import yaml
+    import yaml  # noqa
 except ImportError:
     HAS_YAML = False
 else:
@@ -51,23 +49,10 @@ def test_write_nopath(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
     t1 = Table()
     t1.add_column(Column(name='a', data=[1, 2, 3]))
-    with pytest.raises(ValueError) as exc:
-        t1.write(test_file)
-    assert exc.value.args[0] == "table path should be set via the path= argument"
 
-
-@pytest.mark.skipif('not HAS_H5PY')
-def test_write_nopath(tmpdir):
-    test_file = str(tmpdir.join('test.hdf5'))
-    t1 = Table()
-    t1.add_column(Column(name='a', data=[1, 2, 3]))
-
-    with catch_warnings() as warns:
+    with pytest.warns(UserWarning, match="table path was not set via the path= argument"):
         t1.write(test_file)
 
-    assert np.any([str(w.message).startswith(
-        "table path was not set via the path= argument")
-                   for w in warns])
     t1 = Table.read(test_file, path='__astropy_table__')
 
 
@@ -89,9 +74,8 @@ def test_write_nopath_nonempty(tmpdir):
 def test_read_notable_nopath(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
     h5py.File(test_file, 'w').close()  # create empty file
-    with pytest.raises(ValueError) as exc:
-        t1 = Table.read(test_file, path='/', format='hdf5')
-    assert exc.value.args[0] == 'no table found in HDF5 group /'
+    with pytest.raises(ValueError, match='no table found in HDF5 group /'):
+        Table.read(test_file, path='/', format='hdf5')
 
 
 @pytest.mark.skipif('not HAS_H5PY')
@@ -100,10 +84,7 @@ def test_read_nopath(tmpdir):
     t1 = Table()
     t1.add_column(Column(name='a', data=[1, 2, 3]))
     t1.write(test_file, path="the_table")
-    with catch_warnings(AstropyUserWarning) as warning_lines:
-        t2 = Table.read(test_file)
-        assert not np.any(["path= was not sp" in str(wl.message)
-                           for wl in warning_lines])
+    t2 = Table.read(test_file)
 
     assert np.all(t1['a'] == t2['a'])
 
@@ -327,9 +308,8 @@ def test_read_wrong_fileobj():
 
     f = FakeFile()
 
-    with pytest.raises(TypeError) as exc:
-        t1 = Table.read(f, format='hdf5')
-    assert exc.value.args[0] == 'h5py can only open regular files'
+    with pytest.raises(TypeError, match='h5py can only open regular files'):
+        Table.read(f, format='hdf5')
 
 
 @pytest.mark.skipif('not HAS_H5PY')
@@ -576,11 +556,10 @@ def test_skip_meta(tmpdir):
     t1.meta['e'] = np.array([1, 2, 3])
     t1.meta['f'] = str
 
-    with catch_warnings() as w:
+    wtext = f"Attribute `f` of type {type(t1.meta['f'])} cannot be written to HDF5 files - skipping"
+    with pytest.warns(AstropyUserWarning, match=wtext) as w:
         t1.write(test_file, path='the_table')
     assert len(w) == 1
-    assert str(w[0].message).startswith(
-        "Attribute `f` of type {} cannot be written to HDF5 files - skipping".format(type(t1.meta['f'])))
 
 
 @pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
@@ -875,11 +854,10 @@ def test_warn_for_dropped_info_attributes(tmpdir):
     filename = str(tmpdir.join('test.hdf5'))
     t = Table([[1, 2]])
     t['col0'].info.description = 'hello'
-    with catch_warnings() as warns:
+    with pytest.warns(AstropyUserWarning, match=r"table contains column\(s\) "
+                      r"with defined 'unit'") as warns:
         t.write(filename, path='root', serialize_meta=False)
     assert len(warns) == 1
-    assert str(warns[0].message).startswith(
-        "table contains column(s) with defined 'unit'")
 
 
 @pytest.mark.skipif('HAS_YAML or not HAS_H5PY')

@@ -1,10 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import functools
+
 import numpy as np
+import pytest
 
 from astropy.utils import iers
-from astropy.tests.helper import pytest
 from astropy.time import Time
 from astropy.table import Table
 

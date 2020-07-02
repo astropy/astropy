@@ -7,7 +7,6 @@ from numpy.testing import assert_array_equal
 
 from astropy import _erfa as erfa
 from astropy.time import Time
-from astropy.tests.helper import catch_warnings
 
 
 def test_erfa_wrapper():
@@ -20,13 +19,13 @@ def test_erfa_wrapper():
     ra = np.linspace(0.0, np.pi*2.0, 5)
     dec = np.linspace(-np.pi/2.0, np.pi/2.0, 4)
 
-    aob, zob, hob, dob, rob, eo = erfa.atco13(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, jd, 0.0, 0.0, 0.0, np.pi/4.0, 0.0, 0.0, 0.0, 1014.0, 0.0, 0.0, 0.5)
+    aob, zob, hob, dob, rob, eo = erfa.atco13(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, jd, 0.0, 0.0, 0.0, np.pi/4.0, 0.0, 0.0, 0.0, 1014.0, 0.0, 0.0, 0.5)  # noqa
     assert aob.shape == (121,)
 
-    aob, zob, hob, dob, rob, eo = erfa.atco13(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, jd[0], 0.0, 0.0, 0.0, np.pi/4.0, 0.0, 0.0, 0.0, 1014.0, 0.0, 0.0, 0.5)
+    aob, zob, hob, dob, rob, eo = erfa.atco13(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, jd[0], 0.0, 0.0, 0.0, np.pi/4.0, 0.0, 0.0, 0.0, 1014.0, 0.0, 0.0, 0.5)  # noqa
     assert aob.shape == ()
 
-    aob, zob, hob, dob, rob, eo = erfa.atco13(ra[:, None, None], dec[None, :, None], 0.0, 0.0, 0.0, 0.0, jd[None, None, :], 0.0, 0.0, 0.0, np.pi/4.0, 0.0, 0.0, 0.0, 1014.0, 0.0, 0.0, 0.5)
+    aob, zob, hob, dob, rob, eo = erfa.atco13(ra[:, None, None], dec[None, :, None], 0.0, 0.0, 0.0, 0.0, jd[None, None, :], 0.0, 0.0, 0.0, np.pi/4.0, 0.0, 0.0, 0.0, 1014.0, 0.0, 0.0, 0.5)  # noqa
     (aob.shape) == (5, 4, 121)
 
     iy, im, id, ihmsf = erfa.d2dtf("UTC", 3, jd, 0.0)
@@ -111,30 +110,21 @@ def test_errwarn_reporting():
     erfa.dat(1990, 1, 1, 0.5)
 
     # check warning is raised for a scalar
-    with catch_warnings() as w:
+    with pytest.warns(erfa.ErfaWarning, match=r'.* 1 of "dubious year \(Note 1\)"') as w:
         erfa.dat(100, 1, 1, 0.5)
-        assert len(w) == 1
-        assert w[0].category == erfa.ErfaWarning
-        assert '1 of "dubious year (Note 1)"' in str(w[0].message)
+    assert len(w) == 1
 
     # and that the count is right for a vector.
-    with catch_warnings() as w:
+    with pytest.warns(erfa.ErfaWarning, match=r'.* 2 of "dubious year \(Note 1\)".*') as w:
         erfa.dat([100, 200, 1990], 1, 1, 0.5)
-        assert len(w) == 1
-        assert w[0].category == erfa.ErfaWarning
-        assert '2 of "dubious year (Note 1)"' in str(w[0].message)
+    assert len(w) == 1
 
-    try:
+    with pytest.raises(erfa.ErfaError, match=r'.* 1 of "bad day \(Note 3\)", 1 of "bad month".*'):
         erfa.dat(1990, [1, 34, 2], [1, 1, 43], 0.5)
-    except erfa.ErfaError as e:
-        if '1 of "bad day (Note 3)", 1 of "bad month"' not in e.args[0]:
-            assert False, 'Raised the correct type of error, but wrong message: ' + e.args[0]
 
-    try:
+    with pytest.raises(erfa.ErfaError) as e:
         erfa.dat(200, [1, 34, 2], [1, 1, 43], 0.5)
-    except erfa.ErfaError as e:
-        if 'warning' in e.args[0]:
-            assert False, 'Raised the correct type of error, but there were warnings mixed in: ' + e.args[0]
+    assert 'warning' not in str(e.value), f'Raised the correct type of error, but there were warnings mixed in: {str(e.value)}'  # noqa
 
 
 def test_vector_inouts():

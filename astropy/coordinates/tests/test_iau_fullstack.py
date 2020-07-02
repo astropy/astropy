@@ -13,7 +13,6 @@ from astropy.coordinates.builtin_frames import ICRS, AltAz
 from astropy.coordinates.builtin_frames.utils import get_jd12
 from astropy.coordinates import EarthLocation
 from astropy.coordinates import SkyCoord
-from astropy.tests.helper import catch_warnings
 from astropy import _erfa as erfa
 from astropy.utils import iers
 from .utils import randomly_sample_sphere
@@ -164,26 +163,19 @@ def test_future_altaz():
     if hasattr(utils, '__warningregistry__'):
         utils.__warningregistry__.clear()
 
-    with catch_warnings() as found_warnings:
-
-        location = EarthLocation(lat=0*u.deg, lon=0*u.deg)
-        t = Time('J2161')
-
-        SkyCoord(1*u.deg, 2*u.deg).transform_to(AltAz(location=location, obstime=t))
+    location = EarthLocation(lat=0*u.deg, lon=0*u.deg)
+    t = Time('J2161')
 
     # check that these message(s) appear among any other warnings.  If tests are run with
     # --remote-data then the IERS table will be an instance of IERS_Auto which is
     # assured of being "fresh".  In this case getting times outside the range of the
     # table does not raise an exception.  Only if using IERS_B (which happens without
     # --remote-data, i.e. for all CI testing) do we expect another warning.
-    messages_to_find = ["Tried to get polar motions for times after IERS data is valid."]
-    if isinstance(iers.earth_orientation_table.get(), iers.IERS_B):
-        messages_to_find.append("(some) times are outside of range covered by IERS table.")
+    with pytest.warns(AstropyWarning, match=r"Tried to get polar motions for "
+                      "times after IERS data is valid.*") as found_warnings:
+        SkyCoord(1*u.deg, 2*u.deg).transform_to(AltAz(location=location, obstime=t))
 
-    messages_found = [False for _ in messages_to_find]
-    for w in found_warnings:
-        if issubclass(w.category, AstropyWarning):
-            for i, message_to_find in enumerate(messages_to_find):
-                if message_to_find in str(w.message):
-                    messages_found[i] = True
-    assert all(messages_found)
+    if isinstance(iers.earth_orientation_table.get(), iers.IERS_B):
+        messages_found = ["(some) times are outside of range covered by IERS "
+                          "table." in str(w.message) for w in found_warnings]
+        assert any(messages_found)

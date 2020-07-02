@@ -22,7 +22,7 @@ from astropy.coordinates import (SkyCoord, Latitude, Longitude, Angle, EarthLoca
 from astropy.time import Time, TimeDelta
 from astropy.units import allclose as quantity_allclose
 from astropy.units import QuantityInfo
-from astropy.tests.helper import catch_warnings
+from astropy.utils.exceptions import AstropyWarning
 
 from astropy.io.ascii.ecsv import DELIMITERS
 from astropy.io import ascii
@@ -470,14 +470,14 @@ def test_ecsv_but_no_yaml_warning():
     Test that trying to read an ECSV without PyYAML installed when guessing
     emits a warning, but reading with guess=False gives an exception.
     """
-    with catch_warnings() as w:
+    with pytest.warns(AstropyWarning, match=r'file looks like ECSV format but '
+                      'PyYAML is not installed') as w:
         ascii.read(SIMPLE_LINES)
     assert len(w) == 1
-    assert "file looks like ECSV format but PyYAML is not installed" in str(w[0].message)
 
-    with pytest.raises(ascii.InconsistentTableError) as exc:
+    with pytest.raises(ascii.InconsistentTableError, match='unable to parse yaml'), \
+            pytest.warns(AstropyWarning, match=r'PyYAML is not installed'):
         ascii.read(SIMPLE_LINES, format='ecsv')
-    assert "PyYAML package is required" in str(exc.value)
 
 
 @pytest.mark.skipif('not HAS_YAML')
@@ -545,6 +545,8 @@ def test_round_trip_masked_table_serialize_mask(tmpdir):
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 def test_round_trip_user_defined_unit(table_cls, tmpdir):
     """Ensure that we can read-back enabled user-defined units."""
+    from astropy.utils.compat.context import nullcontext
+
     # Test adapted from #8897, where it was noted that this works
     # but was not tested.
     filename = str(tmpdir.join('test.ecsv'))
@@ -553,31 +555,29 @@ def test_round_trip_user_defined_unit(table_cls, tmpdir):
     t['l'] = np.arange(5) * unit
     t.write(filename)
     # without the unit enabled, get UnrecognizedUnit
-    with catch_warnings(u.UnitsWarning) as w:
+    if table_cls is QTable:
+        ctx = pytest.warns(u.UnitsWarning, match=r"'bandpass_sol_lum' did not parse .*")
+    else:
+        ctx = nullcontext()
+    # Note: The read might also generate ResourceWarning, in addition to UnitsWarning
+    with ctx:
         t2 = table_cls.read(filename)
     assert isinstance(t2['l'].unit, u.UnrecognizedUnit)
     assert str(t2['l'].unit) == 'bandpass_sol_lum'
     if table_cls is QTable:
-        assert len(w) == 1
-        assert f"'{unit!s}' did not parse" in str(w[0].message)
         assert np.all(t2['l'].value == t['l'].value)
     else:
-        assert len(w) == 0
         assert np.all(t2['l'] == t['l'])
 
     # But with it enabled, it works.
     with u.add_enabled_units(unit):
-        with catch_warnings(u.UnitsWarning) as w:
-            t3 = table_cls.read(filename)
-        assert len(w) == 0
+        t3 = table_cls.read(filename)
         assert t3['l'].unit is unit
         assert np.all(t3['l'] == t['l'])
 
         # Just to be sure, aloso try writing with unit enabled.
         filename2 = str(tmpdir.join('test2.ecsv'))
         t3.write(filename2)
-        with catch_warnings(u.UnitsWarning) as w:
-            t4 = table_cls.read(filename)
-        assert len(w) == 0
+        t4 = table_cls.read(filename)
         assert t4['l'].unit is unit
         assert np.all(t4['l'] == t['l'])

@@ -21,7 +21,8 @@ else:
 
 from astropy.stats import funcs
 from astropy import units as u
-from astropy.tests.helper import catch_warnings
+from astropy.utils.compat.context import nullcontext
+from astropy.utils.compat.numpycompat import NUMPY_LT_1_17
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import NumpyRNGContext
 
@@ -352,21 +353,30 @@ def test_mad_std_scalar_return():
         # want a scalar result, NOT a masked array
         assert np.isscalar(rslt)
 
+        if NUMPY_LT_1_17:
+            ctx = pytest.warns(RuntimeWarning, match='Invalid value encountered in median')
+        else:
+            ctx = nullcontext()
+
         data[5, 5] = np.nan
-        rslt = funcs.mad_std(data, ignore_nan=True)
-        assert np.isscalar(rslt)
-        with catch_warnings():
+        with ctx:
+            rslt = funcs.mad_std(data, ignore_nan=True)
+            assert np.isscalar(rslt)
             rslt = funcs.mad_std(data)
             assert np.isscalar(rslt)
             assert np.isnan(rslt)
 
 
 def test_mad_std_warns():
+    if NUMPY_LT_1_17:
+        ctx = pytest.warns(RuntimeWarning, match='Invalid value encountered in median')
+    else:
+        ctx = nullcontext()
+
     with NumpyRNGContext(12345):
         data = np.random.normal(5, 2, size=(10, 10))
         data[5, 5] = np.nan
-
-        with catch_warnings():
+        with ctx:
             rslt = funcs.mad_std(data, ignore_nan=False)
             assert np.isnan(rslt)
 

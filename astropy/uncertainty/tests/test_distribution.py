@@ -1,14 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import absolute_import, division, print_function
-
 import numpy as np
+import pytest
 
 from astropy import units as u
 from astropy.uncertainty.core import Distribution
 from astropy.uncertainty import distributions as ds
 from astropy.utils import NumpyRNGContext
-from astropy.tests.helper import assert_quantity_allclose, pytest
+from astropy.tests.helper import assert_quantity_allclose
 
 try:
     from scipy.stats import norm  # pylint: disable=W0611

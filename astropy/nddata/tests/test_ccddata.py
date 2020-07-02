@@ -12,7 +12,6 @@ from astropy.nddata.nduncertainty import (
 from astropy import units as u
 from astropy import log
 from astropy.wcs import WCS, FITSFixedWarning
-from astropy.tests.helper import catch_warnings
 from astropy.utils import NumpyRNGContext
 from astropy.utils.data import (get_pkg_data_filename, get_pkg_data_filenames,
                                 get_pkg_data_contents)
@@ -139,9 +138,7 @@ def test_initialize_from_fits_with_data_in_different_extension(tmpdir):
     hdus = fits.HDUList([hdu1, hdu2])
     filename = tmpdir.join('afile.fits').strpath
     hdus.writeto(filename)
-    with catch_warnings(FITSFixedWarning) as w:
-        ccd = CCDData.read(filename, unit='adu')
-    assert len(w) == 0
+    ccd = CCDData.read(filename, unit='adu')
     # ccd should pick up the unit adu from the fits header...did it?
     np.testing.assert_array_equal(ccd.data, fake_img)
     # check that the header is the combined header
@@ -579,7 +576,7 @@ def test_infol_logged_if_unit_in_fits_header(tmpdir):
     log.setLevel('INFO')
     explicit_unit_name = "photon"
     with log.log_to_list() as log_list:
-        ccd_from_disk = CCDData.read(tmpfile.strpath, unit=explicit_unit_name)
+        _ = CCDData.read(tmpfile.strpath, unit=explicit_unit_name)
         assert explicit_unit_name in log_list[0].message
 
 
@@ -780,8 +777,7 @@ def test_read_wcs_not_creatable(tmpdir):
     C2NIT2  = 'degree  '           / Units used in both C2VAL2 and C2ELT2
     RADECSYS= 'FK5     '           / The equatorial coordinate system
     ''')
-    with catch_warnings(FITSFixedWarning):
-        hdr = fits.Header.fromstring(hdr_txt_example_WCS, sep='\n')
+    hdr = fits.Header.fromstring(hdr_txt_example_WCS, sep='\n')
     hdul = fits.HDUList([fits.PrimaryHDU(np.ones((4241, 1104)), header=hdr)])
     filename = tmpdir.join('afile.fits').strpath
     hdul.writeto(filename)

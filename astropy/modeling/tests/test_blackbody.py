@@ -7,7 +7,7 @@ import numpy as np
 
 from astropy import constants as const
 from astropy import units as u
-from astropy.tests.helper import assert_quantity_allclose, catch_warnings
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.exceptions import AstropyUserWarning
 
 from astropy.modeling.fitting import LevMarLSQFitter
@@ -53,7 +53,8 @@ class TestBlackbody1D:
         b_fit = fitter(b, wav, fnu)
 
         assert_quantity_allclose(b_fit.temperature, 2840.7438339457754 * u.K)
-        assert_quantity_allclose(b_fit.bolometric_flux, 6.821837075583734e-08 * u.erg / u.cm**2 / u.s)
+        assert_quantity_allclose(
+            b_fit.bolometric_flux, 6.821837075583734e-08 * u.erg / u.cm**2 / u.s)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -130,16 +131,12 @@ def test_blackbody_exceptions_and_warnings():
     assert exc.value.args[0] == 'Temperature should be positive: -100.0 K'
 
     # Zero wavelength given for conversion to Hz
-    with catch_warnings(AstropyUserWarning) as w:
+    with pytest.warns(AstropyUserWarning, match='invalid'):
         blackbody_nu(0 * u.AA, 5000)
-    assert len(w) == 1
-    assert 'invalid' in w[0].message.args[0]
 
     # Negative wavelength given for conversion to Hz
-    with catch_warnings(AstropyUserWarning) as w:
+    with pytest.warns(AstropyUserWarning, match='invalid'):
         blackbody_nu(-1. * u.AA, 5000)
-    assert len(w) == 1
-    assert 'invalid' in w[0].message.args[0]
 
 
 @pytest.mark.filterwarnings("ignore:BlackBody provides the same capabilities")
