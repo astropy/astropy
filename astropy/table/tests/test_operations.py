@@ -5,12 +5,12 @@ from collections import OrderedDict
 import pytest
 import numpy as np
 
-from astropy.tests.helper import catch_warnings
 from astropy.table import Table, QTable, TableMergeError, Column, MaskedColumn
 from astropy.table.operations import _get_out_class, join_skycoord, join_distance
 from astropy import units as u
 from astropy.utils import metadata
 from astropy.utils.metadata import MergeConflictError
+from astropy.utils.compat.context import nullcontext
 from astropy import table
 from astropy.time import Time
 from astropy.coordinates import (SkyCoord, SphericalRepresentation,
@@ -66,21 +66,19 @@ class TestJoin():
     def test_table_meta_merge_conflict(self, operation_table_type):
         self._setup(operation_table_type)
 
-        with catch_warnings() as w:
+        with pytest.warns(metadata.MergeConflictWarning) as w:
             out = table.join(self.t1, self.t3, join_type='inner')
         assert len(w) == 3
 
         assert out.meta == self.t3.meta
 
-        with catch_warnings() as w:
+        with pytest.warns(metadata.MergeConflictWarning) as w:
             out = table.join(self.t1, self.t3, join_type='inner', metadata_conflicts='warn')
         assert len(w) == 3
 
         assert out.meta == self.t3.meta
 
-        with catch_warnings() as w:
-            out = table.join(self.t1, self.t3, join_type='inner', metadata_conflicts='silent')
-        assert len(w) == 0
+        out = table.join(self.t1, self.t3, join_type='inner', metadata_conflicts='silent')
 
         assert out.meta == self.t3.meta
 
@@ -98,10 +96,10 @@ class TestJoin():
         # Basic join with default parameters (inner join on common keys)
         t12 = table.join(t1, t2)
         assert type(t12) is operation_table_type
-        assert type(t12['a']) is type(t1['a'])
-        assert type(t12['b']) is type(t1['b'])
-        assert type(t12['c']) is type(t1['c'])
-        assert type(t12['d']) is type(t2['d'])
+        assert type(t12['a']) is type(t1['a'])  # noqa
+        assert type(t12['b']) is type(t1['b'])  # noqa
+        assert type(t12['c']) is type(t1['c'])  # noqa
+        assert type(t12['d']) is type(t2['d'])  # noqa
         assert t12.masked is False
         assert sort_eq(t12.pformat(), [' a   b   c   d ',
                                        '--- --- --- ---',
@@ -170,11 +168,11 @@ class TestJoin():
         # Inner join on 'a' column
         t12 = table.join(t1, t2, keys='a')
         assert type(t12) is operation_table_type
-        assert type(t12['a']) is type(t1['a'])
-        assert type(t12['b_1']) is type(t1['b'])
-        assert type(t12['c']) is type(t1['c'])
-        assert type(t12['b_2']) is type(t2['b'])
-        assert type(t12['d']) is type(t2['d'])
+        assert type(t12['a']) is type(t1['a'])  # noqa
+        assert type(t12['b_1']) is type(t1['b'])  # noqa
+        assert type(t12['c']) is type(t1['c'])  # noqa
+        assert type(t12['b_2']) is type(t2['b'])  # noqa
+        assert type(t12['d']) is type(t2['d'])  # noqa
         assert t12.masked is False
         assert sort_eq(t12.pformat(), [' a  b_1  c  b_2  d ',
                                        '--- --- --- --- ---',
@@ -420,15 +418,13 @@ class TestJoin():
         t2['c'].info.format = '%6s'
         t2['c'].info.description = 't2_c'
 
-        with catch_warnings(metadata.MergeConflictWarning) as warning_lines:
-            t12 = table.join(t1, t2, keys=['a', 'b'])
-
         if operation_table_type is Table:
-            assert warning_lines[0].category == metadata.MergeConflictWarning
-            assert ("In merged column 'a' the 'unit' attribute does not match (cm != m)"
-                    in str(warning_lines[0].message))
+            ctx = pytest.warns(metadata.MergeConflictWarning, match=r"In merged column 'a' the 'unit' attribute does not match \(cm != m\)")  # noqa
         else:
-            assert len(warning_lines) == 0
+            ctx = nullcontext()
+
+        with ctx:
+            t12 = table.join(t1, t2, keys=['a', 'b'])
 
         assert t12['a'].unit == 'm'
         assert t12['b'].info.description == 't1_b'
@@ -737,8 +733,8 @@ class TestSetdiff():
     def test_default_same_columns(self, operation_table_type):
         self._setup(operation_table_type)
         out = table.setdiff(self.t1, self.t2)
-        assert type(out['a']) is type(self.t1['a'])
-        assert type(out['b']) is type(self.t1['b'])
+        assert type(out['a']) is type(self.t1['a'])  # noqa
+        assert type(out['b']) is type(self.t1['b'])  # noqa
         assert out.pformat() == [' a   b ',
                                  '--- ---',
                                  '  1 bar',
@@ -748,8 +744,8 @@ class TestSetdiff():
         self._setup(operation_table_type)
         out = table.setdiff(self.t1, self.t1)
 
-        assert type(out['a']) is type(self.t1['a'])
-        assert type(out['b']) is type(self.t1['b'])
+        assert type(out['a']) is type(self.t1['a'])  # noqa
+        assert type(out['b']) is type(self.t1['b'])  # noqa
         assert out.pformat() == [' a   b ',
                                  '--- ---']
 
@@ -763,8 +759,8 @@ class TestSetdiff():
         self._setup(operation_table_type)
         out = table.setdiff(self.t1, self.t3)
 
-        assert type(out['a']) is type(self.t1['a'])
-        assert type(out['b']) is type(self.t1['b'])
+        assert type(out['a']) is type(self.t1['a'])  # noqa
+        assert type(out['b']) is type(self.t1['b'])  # noqa
         assert out.pformat() == [' a   b ',
                                  '--- ---',
                                  '  1 foo',
@@ -774,8 +770,8 @@ class TestSetdiff():
         self._setup(operation_table_type)
         out = table.setdiff(self.t3, self.t1, keys=['a', 'b'])
 
-        assert type(out['a']) is type(self.t1['a'])
-        assert type(out['b']) is type(self.t1['b'])
+        assert type(out['a']) is type(self.t1['a'])  # noqa
+        assert type(out['b']) is type(self.t1['b'])  # noqa
         assert out.pformat() == [' a   b   d ',
                                  '--- --- ---',
                                  '  4 bar  R4',
@@ -823,8 +819,8 @@ class TestVStack():
         t2 = self.t1.copy()
         t2.meta.clear()
         out = table.vstack([self.t1, t2[1]])
-        assert type(out['a']) is type(self.t1['a'])
-        assert type(out['b']) is type(self.t1['b'])
+        assert type(out['a']) is type(self.t1['a'])  # noqa
+        assert type(out['b']) is type(self.t1['b'])  # noqa
         assert out.pformat() == [' a   b ',
                                  '--- ---',
                                  '0.0 foo',
@@ -852,21 +848,19 @@ class TestVStack():
     def test_table_meta_merge_conflict(self, operation_table_type):
         self._setup(operation_table_type)
 
-        with catch_warnings() as w:
+        with pytest.warns(metadata.MergeConflictWarning) as w:
             out = table.vstack([self.t1, self.t5], join_type='inner')
         assert len(w) == 2
 
         assert out.meta == self.t5.meta
 
-        with catch_warnings() as w:
+        with pytest.warns(metadata.MergeConflictWarning) as w:
             out = table.vstack([self.t1, self.t5], join_type='inner', metadata_conflicts='warn')
         assert len(w) == 2
 
         assert out.meta == self.t5.meta
 
-        with catch_warnings() as w:
-            out = table.vstack([self.t1, self.t5], join_type='inner', metadata_conflicts='silent')
-        assert len(w) == 0
+        out = table.vstack([self.t1, self.t5], join_type='inner', metadata_conflicts='silent')
 
         assert out.meta == self.t5.meta
 
@@ -896,8 +890,8 @@ class TestVStack():
         t12 = table.vstack([t1, t2], join_type='inner')
         assert t12.masked is False
         assert type(t12) is operation_table_type
-        assert type(t12['a']) is type(t1['a'])
-        assert type(t12['b']) is type(t1['b'])
+        assert type(t12['a']) is type(t1['a'])  # noqa
+        assert type(t12['b']) is type(t1['b'])  # noqa
         assert t12.pformat() == [' a   b ',
                                  '--- ---',
                                  '0.0 foo',
@@ -907,8 +901,8 @@ class TestVStack():
 
         t124 = table.vstack([t1, t2, t4], join_type='inner')
         assert type(t124) is operation_table_type
-        assert type(t12['a']) is type(t1['a'])
-        assert type(t12['b']) is type(t1['b'])
+        assert type(t12['a']) is type(t1['a'])  # noqa
+        assert type(t12['b']) is type(t1['b'])  # noqa
         assert t124.pformat() == [' a   b ',
                                   '--- ---',
                                   '0.0 foo',
@@ -1012,14 +1006,18 @@ class TestVStack():
         # Key col 'b', should be meta2
         t2['b'].info.meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
 
-        with catch_warnings(metadata.MergeConflictWarning) as warning_lines:
+        if operation_table_type is Table:
+            ctx = pytest.warns(metadata.MergeConflictWarning)
+        else:
+            ctx = nullcontext()
+
+        with ctx as warning_lines:
             out = table.vstack([t1, t2, t4], join_type='inner')
 
         if operation_table_type is Table:
-            assert warning_lines[0].category == metadata.MergeConflictWarning
+            assert len(warning_lines) == 2
             assert ("In merged column 'a' the 'unit' attribute does not match (cm != m)"
                     in str(warning_lines[0].message))
-            assert warning_lines[1].category == metadata.MergeConflictWarning
             assert ("In merged column 'a' the 'unit' attribute does not match (m != km)"
                     in str(warning_lines[1].message))
             # Check units are suitably ignored for a regular Table
@@ -1033,7 +1031,6 @@ class TestVStack():
                                      '0.000000    foo',
                                      '1.000000    bar']
         else:
-            assert len(warning_lines) == 0
             # Check QTable correctly dealt with units.
             assert out.pformat() == ['   a       b   ',
                                      '   km          ',
@@ -1088,13 +1085,12 @@ class TestVStack():
         t2['c'].info.format = '%6s'
         t2['c'].info.description = 't2_c'
 
-        with catch_warnings(metadata.MergeConflictWarning) as warning_lines:
+        with pytest.warns(metadata.MergeConflictWarning) as warning_lines:
             out = table.vstack([t1, t2, t4], join_type='outer')
 
-        assert warning_lines[0].category == metadata.MergeConflictWarning
+        assert len(warning_lines) == 2
         assert ("In merged column 'a' the 'unit' attribute does not match (cm != m)"
                 in str(warning_lines[0].message))
-        assert warning_lines[1].category == metadata.MergeConflictWarning
         assert ("In merged column 'a' the 'unit' attribute does not match (m != km)"
                 in str(warning_lines[1].message))
         assert out['a'].unit == 'km'
@@ -1244,15 +1240,15 @@ class TestDStack():
         # Test for non-masked table
         t12 = table.dstack([t1, t2], join_type='outer')
         assert type(t12) is operation_table_type
-        assert type(t12['a']) is type(t1['a'])
-        assert type(t12['b']) is type(t1['b'])
+        assert type(t12['a']) is type(t1['a'])  # noqa
+        assert type(t12['b']) is type(t1['b'])  # noqa
         self.compare_dstack([t1, t2], t12)
 
         # Test for masked table
         t124 = table.dstack([t1, t2, t4], join_type='outer')
         assert type(t124) is operation_table_type
-        assert type(t124['a']) is type(t4['a'])
-        assert type(t124['b']) is type(t4['b'])
+        assert type(t124['a']) is type(t4['a'])  # noqa
+        assert type(t124['b']) is type(t4['b'])  # noqa
         self.compare_dstack([t1, t2, t4], t124)
 
     def test_dstack_basic_inner(self, operation_table_type):
@@ -1264,8 +1260,8 @@ class TestDStack():
         # Test for masked table
         t124 = table.dstack([t1, t2, t4], join_type='inner')
         assert type(t124) is operation_table_type
-        assert type(t124['a']) is type(t4['a'])
-        assert type(t124['b']) is type(t4['b'])
+        assert type(t124['a']) is type(t4['a'])  # noqa
+        assert type(t124['b']) is type(t4['b'])  # noqa
         self.compare_dstack([t1, t2, t4], t124)
 
     def test_dstack_multi_dimension_column(self, operation_table_type):
@@ -1275,8 +1271,8 @@ class TestDStack():
         t2 = self.t2
         t35 = table.dstack([t3, t5])
         assert type(t35) is operation_table_type
-        assert type(t35['a']) is type(t3['a'])
-        assert type(t35['b']) is type(t3['b'])
+        assert type(t35['a']) is type(t3['a'])  # noqa
+        assert type(t35['b']) is type(t3['b'])  # noqa
         self.compare_dstack([t3, t5], t35)
 
         with pytest.raises(TableMergeError):
@@ -1369,9 +1365,9 @@ class TestHStack():
     def test_stack_columns(self, operation_table_type):
         self._setup(operation_table_type)
         out = table.hstack([self.t1, self.t2['c']])
-        assert type(out['a']) is type(self.t1['a'])
-        assert type(out['b']) is type(self.t1['b'])
-        assert type(out['c']) is type(self.t2['c'])
+        assert type(out['a']) is type(self.t1['a'])  # noqa
+        assert type(out['b']) is type(self.t1['b'])  # noqa
+        assert type(out['c']) is type(self.t2['c'])  # noqa
         assert out.pformat() == [' a   b   c ',
                                  '--- --- ---',
                                  '0.0 foo   4',
@@ -1385,21 +1381,19 @@ class TestHStack():
     def test_table_meta_merge_conflict(self, operation_table_type):
         self._setup(operation_table_type)
 
-        with catch_warnings() as w:
+        with pytest.warns(metadata.MergeConflictWarning) as w:
             out = table.hstack([self.t1, self.t5], join_type='inner')
         assert len(w) == 2
 
         assert out.meta == self.t5.meta
 
-        with catch_warnings() as w:
+        with pytest.warns(metadata.MergeConflictWarning) as w:
             out = table.hstack([self.t1, self.t5], join_type='inner', metadata_conflicts='warn')
         assert len(w) == 2
 
         assert out.meta == self.t5.meta
 
-        with catch_warnings() as w:
-            out = table.hstack([self.t1, self.t5], join_type='inner', metadata_conflicts='silent')
-        assert len(w) == 0
+        out = table.hstack([self.t1, self.t5], join_type='inner', metadata_conflicts='silent')
 
         assert out.meta == self.t5.meta
 
@@ -1430,10 +1424,10 @@ class TestHStack():
         out = table.hstack([t1, t2], join_type='inner')
         assert out.masked is False
         assert type(out) is operation_table_type
-        assert type(out['a_1']) is type(t1['a'])
-        assert type(out['b_1']) is type(t1['b'])
-        assert type(out['a_2']) is type(t2['a'])
-        assert type(out['b_2']) is type(t2['b'])
+        assert type(out['a_1']) is type(t1['a'])  # noqa
+        assert type(out['b_1']) is type(t1['b'])  # noqa
+        assert type(out['a_2']) is type(t2['a'])  # noqa
+        assert type(out['b_2']) is type(t2['b'])  # noqa
         assert out.pformat() == ['a_1 b_1 a_2 b_2  c ',
                                  '--- --- --- --- ---',
                                  '0.0 foo 2.0 pez   4',
@@ -1512,10 +1506,7 @@ class TestHStack():
         t3['d'].info.format = '%6s'
         t3['d'].info.description = 't3_c'
 
-        with catch_warnings(metadata.MergeConflictWarning) as warning_lines:
-            out = table.hstack([t1, t3, t4], join_type='exact')
-
-        assert len(warning_lines) == 0
+        out = table.hstack([t1, t3, t4], join_type='exact')
 
         for t in [t1, t3, t4]:
             for name in t.colnames:
@@ -1541,7 +1532,7 @@ class TestHStack():
         cls_name = type(col1).__name__
 
         out = table.hstack([t1, t2], join_type='inner')
-        assert type(out['col0_1']) is type(out['col0_2'])
+        assert type(out['col0_1']) is type(out['col0_2'])  # noqa
         assert len(out) == len(col2)
 
         # Check that columns are as expected.

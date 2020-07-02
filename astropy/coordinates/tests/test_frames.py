@@ -6,8 +6,7 @@ import numpy as np
 import pytest
 
 from astropy import units as u
-from astropy.tests.helper import (catch_warnings,
-                                  assert_quantity_allclose as assert_allclose)
+from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.utils import OrderedDescriptorContainer
 from astropy.utils.exceptions import AstropyWarning
 from astropy.coordinates import representation as r
@@ -821,11 +820,9 @@ def test_represent_as():
     assert isinstance(rep2.differentials['s'], r.CylindricalDifferential)
 
     # single class with positional in_frame_units, verify that warning raised
-    with catch_warnings() as w:
+    with pytest.warns(AstropyWarning, match='argument position') as w:
         icrs.represent_as(r.CylindricalRepresentation, False)
-        assert len(w) == 1
-        assert w[0].category == AstropyWarning
-        assert 'argument position' in str(w[0].message)
+    assert len(w) == 1
 
     # TODO: this should probably fail in the future once we figure out a better
     # workaround for dealing with UnitSphericalRepresentation's with

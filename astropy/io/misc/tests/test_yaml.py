@@ -18,12 +18,11 @@ from astropy.coordinates import (SkyCoord, EarthLocation, Angle, Longitude, Lati
 from astropy import units as u
 from astropy.time import Time
 from astropy.table import QTable, SerializedColumn
-from astropy.tests.helper import catch_warnings
 from astropy.coordinates.tests.test_representation import representation_equal
 
 yaml = pytest.importorskip('yaml', minversion='3.12')
 
-from astropy.io.misc.yaml import load, load_all, dump
+from astropy.io.misc.yaml import load, load_all, dump  # noqa
 
 
 @pytest.mark.parametrize('c', [True, np.uint8(8), np.int16(4),
@@ -50,18 +49,14 @@ def test_unit(c):
                                u.def_unit('magic')])
 def test_custom_unit(c):
     s = dump(c)
-    with catch_warnings() as w:
+    with pytest.warns(u.UnitsWarning, match=f"'{c!s}' did not parse") as w:
         cy = load(s)
     assert len(w) == 1
-    assert f"'{c!s}' did not parse" in str(w[0].message)
     assert isinstance(cy, u.UnrecognizedUnit)
     assert str(cy) == str(c)
 
     with u.add_enabled_units(c):
-        with catch_warnings() as w2:
-            cy2 = load(s)
-        assert len(w2) == 0
-
+        cy2 = load(s)
         assert cy2 is c
 
 

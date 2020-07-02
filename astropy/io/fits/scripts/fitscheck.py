@@ -128,7 +128,9 @@ def verify_checksums(filename):
     """
     Prints a message if any HDU in `filename` has a bad checksum or datasum.
     """
-
+    # TODO: Attempt to replace catch_warnings with builtin Python
+    # warnings.catch_warnings failed, possibly due to
+    # https://github.com/pytest-dev/pytest/issues/5502 . Revisit in the future.
     with catch_warnings() as wlist:
         with fits.open(filename, checksum=OPTIONS.checksum_kind) as hdulist:
             for i, hdu in enumerate(hdulist):

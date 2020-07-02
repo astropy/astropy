@@ -17,8 +17,8 @@ except ImportError:
     HAVE_OBJGRAPH = False
 
 from astropy.io import fits
-from astropy.tests.helper import catch_warnings, ignore_warnings
-from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.units import UnitsWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from astropy.io.fits.column import Delayed, NUMPY2FITS
 from astropy.io.fits.util import decode_ascii
@@ -460,8 +460,7 @@ class TestTableFunctions(FitsTestCase):
         assert hdu.data[0][3] == 'A1V'
         assert hdu.data[1][3] == 'F0Ib'
 
-        with ignore_warnings():
-            hdu.writeto(self.temp('toto.fits'), overwrite=True)
+        hdu.writeto(self.temp('toto.fits'), overwrite=True)
 
         with fits.open(self.temp('toto.fits')) as hdul:
             assert (hdul[1].data.field(0) ==
@@ -480,8 +479,7 @@ class TestTableFunctions(FitsTestCase):
                            formats='int16,a20,float64,a10',
                            names='order,name,mag,Sp')
         assert comparerecords(hdu.data, tmp)
-        with ignore_warnings():
-            hdu.writeto(self.temp('toto.fits'), overwrite=True)
+        hdu.writeto(self.temp('toto.fits'), overwrite=True)
         with fits.open(self.temp('toto.fits')) as hdul:
             assert comparerecords(hdu.data, hdul[1].data)
 
@@ -565,7 +563,7 @@ class TestTableFunctions(FitsTestCase):
              ('NGC6', 434, '', z, True),
              ('NGC7', 408, '', z, False),
              ('NCG8', 417, '', z, False)],
-             formats='a10,u4,a10,5f4,l')
+            formats='a10,u4,a10,5f4,l')
 
         assert comparerecords(hdu.data, array)
 
@@ -673,7 +671,7 @@ class TestTableFunctions(FitsTestCase):
              ('NGC2', 334, '', z, False),
              ('NGC3', 308, '', z, True),
              ('NCG4', 317, '', z, True)],
-             formats='a10,u4,a10,5f4,l')
+            formats='a10,u4,a10,5f4,l')
         assert comparerecords(tbhdu1.data, array)
 
     def test_merge_tables(self):
@@ -714,7 +712,7 @@ class TestTableFunctions(FitsTestCase):
              ('NGC2', 334, '', z, False, 'NGC6', 434, '', z, True),
              ('NGC3', 308, '', z, True, 'NGC7', 408, '', z, False),
              ('NCG4', 317, '', z, True, 'NCG8', 417, '', z, False)],
-             formats='a10,u4,a10,5f4,l,a10,u4,a10,5f4,l')
+            formats='a10,u4,a10,5f4,l,a10,u4,a10,5f4,l')
         assert comparerecords(hdu.data, array)
 
         hdu.writeto(self.temp('newtable.fits'))
@@ -775,7 +773,7 @@ class TestTableFunctions(FitsTestCase):
              ('NGC2', 334, '', z, False, 'NGC6', 434, '', z, True),
              ('NGC3', 308, '', z, True, 'NGC7', 408, '', z, False),
              ('NCG4', 317, '', z, True, 'NCG8', 417, '', z, False)],
-             formats='a10,u4,a10,5f4,l,a10,u4,a10,5f4,l')
+            formats='a10,u4,a10,5f4,l,a10,u4,a10,5f4,l')
         assert comparerecords(hdu.data, array)
 
         # Same verification from the file
@@ -1005,7 +1003,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu.columns.columns[2].array[0] == ''
         assert (tbhdu.columns.columns[3].array[0] ==
                 np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
-        assert tbhdu.columns.columns[4].array[0] == True  # nopep8
+        assert tbhdu.columns.columns[4].array[0] == True  # noqa
 
         assert tbhdu.data[3][1] == 33
         assert tbhdu.data._coldefs._arrays[1][3] == 33
@@ -1016,7 +1014,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu.columns.columns[2].array[3] == 'A Note'
         assert (tbhdu.columns.columns[3].array[3] ==
                 np.array([1., 2., 3., 4., 5.], dtype=np.float32)).all()
-        assert tbhdu.columns.columns[4].array[3] == True  # nopep8
+        assert tbhdu.columns.columns[4].array[3] == True  # noqa
 
     def test_assign_multiple_rows_to_table(self):
         counts = np.array([312, 334, 308, 317])
@@ -1067,7 +1065,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu2.columns.columns[2].array[0] == ''
         assert (tbhdu2.columns.columns[3].array[0] ==
                 np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
-        assert tbhdu2.columns.columns[4].array[0] == True  # nopep8
+        assert tbhdu2.columns.columns[4].array[0] == True  # noqa
 
         assert tbhdu2.data[4][1] == 112
         assert tbhdu2.data._coldefs._arrays[1][4] == 112
@@ -1078,13 +1076,13 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu2.columns.columns[2].array[4] == ''
         assert (tbhdu2.columns.columns[3].array[4] ==
                 np.array([1., 2., 3., 4., 5.], dtype=np.float32)).all()
-        assert tbhdu2.columns.columns[4].array[4] == False  # nopep8
+        assert tbhdu2.columns.columns[4].array[4] == False  # noqa
         assert tbhdu2.columns.columns[1].array[8] == 0
         assert tbhdu2.columns.columns[0].array[8] == ''
         assert tbhdu2.columns.columns[2].array[8] == ''
         assert (tbhdu2.columns.columns[3].array[8] ==
                 np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
-        assert tbhdu2.columns.columns[4].array[8] == False  # nopep8
+        assert tbhdu2.columns.columns[4].array[8] == False  # noqa
 
     def test_verify_data_references(self):
         counts = np.array([312, 334, 308, 317])
@@ -1676,8 +1674,7 @@ class TestTableFunctions(FitsTestCase):
         del hdul
 
         ahdu = fits.TableHDU.from_columns([acol])
-        with ignore_warnings():
-            ahdu.writeto(self.temp('newtable.fits'), overwrite=True)
+        ahdu.writeto(self.temp('newtable.fits'), overwrite=True)
 
         with fits.open(self.temp('newtable.fits')) as hdul:
             assert (hdul[1].data.tobytes().decode('raw-unicode-escape') ==
@@ -1734,8 +1731,7 @@ class TestTableFunctions(FitsTestCase):
         data = np.zeros(3, dtype=[('x', 'f4'), ('s', 'S5', 4)])
         data['x'] = 1, 2, 3
         data['s'] = 'ok'
-        with ignore_warnings():
-            fits.writeto(self.temp('newtable.fits'), data, overwrite=True)
+        fits.writeto(self.temp('newtable.fits'), data, overwrite=True)
 
         t = fits.getdata(self.temp('newtable.fits'))
 
@@ -1750,8 +1746,7 @@ class TestTableFunctions(FitsTestCase):
 
         del t
 
-        with ignore_warnings():
-            fits.writeto(self.temp('newtable.fits'), data, overwrite=True)
+        fits.writeto(self.temp('newtable.fits'), data, overwrite=True)
 
         t = fits.getdata(self.temp('newtable.fits'))
 
@@ -1778,10 +1773,7 @@ class TestTableFunctions(FitsTestCase):
         arr = np.array([(data,), (data,), (data,), (data,), (data,)],
                        dtype=[('S', '(3, 2)S4')])
 
-        with catch_warnings() as w:
-            tbhdu1 = fits.BinTableHDU(data=arr)
-
-        assert len(w) == 0
+        tbhdu1 = fits.BinTableHDU(data=arr)
 
         def test_dims_and_roundtrip(tbhdu):
             assert tbhdu.data['S'].shape == (5, 3, 2)
@@ -2329,8 +2321,7 @@ class TestTableFunctions(FitsTestCase):
         with fits.open(self.data('tb.fits')) as hdul:
             tbdata = hdul[1].data
             tbhdu = fits.TableHDU(data=tbdata)
-            with ignore_warnings():
-                tbhdu.writeto(self.temp('test.fits'), overwrite=True)
+            tbhdu.writeto(self.temp('test.fits'), overwrite=True)
             with fits.open(self.temp('test.fits')) as hdul2:
                 tbdata2 = hdul2[1].data
                 assert np.all(tbdata['c1'] == tbdata2['c1'])
@@ -2377,9 +2368,9 @@ class TestTableFunctions(FitsTestCase):
 
         with fits.open(self.data('zerowidth.fits')) as zwc:
             # Doesn't pickle zero-width (_phanotm) column 'ORBPARM'
-            with ignore_warnings():
-                zwc_pd = pickle.dumps(zwc[2].data)
-                zwc_pl = pickle.loads(zwc_pd)
+            zwc_pd = pickle.dumps(zwc[2].data)
+            zwc_pl = pickle.loads(zwc_pd)
+            with pytest.warns(UserWarning, match='Field 2 has a repeat count of 0'):
                 assert comparerecords(zwc_pl, zwc[2].data)
 
     def test_zero_length_table(self):
@@ -2555,12 +2546,10 @@ class TestTableFunctions(FitsTestCase):
             hfile = self.temp('header.txt')
             tbhdu.dump(datafile, cdfile, hfile)
             tbhdu.dump(datafile, cdfile, hfile, overwrite=True)
-            with catch_warnings(AstropyDeprecationWarning) as warning_lines:
+            with pytest.warns(AstropyDeprecationWarning, match=r'"clobber" was '
+                              r'deprecated in version 2\.0 and will be removed in a '
+                              r'future version\. Use argument "overwrite" instead\.'):
                 tbhdu.dump(datafile, cdfile, hfile, clobber=True)
-                assert warning_lines[0].category == AstropyDeprecationWarning
-                assert (str(warning_lines[0].message) == '"clobber" was '
-                        'deprecated in version 2.0 and will be removed in a '
-                        'future version. Use argument "overwrite" instead.')
 
     def test_pseudo_unsigned_ints(self):
         """
@@ -2632,7 +2621,7 @@ def _refcounting(type_):
     yield refcount
     gc.collect()
     assert len(objgraph.by_type(type_)) <= refcount, \
-            "More {0!r} objects still in memory than before."
+        "More {0!r} objects still in memory than before."
 
 
 class TestVLATables(FitsTestCase):
@@ -2645,8 +2634,7 @@ class TestVLATables(FitsTestCase):
             tb_hdu = fits.BinTableHDU.from_columns([col])
             pri_hdu = fits.PrimaryHDU()
             hdu_list = fits.HDUList([pri_hdu, tb_hdu])
-            with ignore_warnings():
-                hdu_list.writeto(self.temp('toto.fits'), overwrite=True)
+            hdu_list.writeto(self.temp('toto.fits'), overwrite=True)
 
             with fits.open(self.temp('toto.fits')) as toto:
                 q = toto[1].data.field('QUAL_SPE')
@@ -2685,8 +2673,7 @@ class TestVLATables(FitsTestCase):
                           np.array([0.0])], 'O')
             acol = fits.Column(name='testa', format=format_code, array=a)
             tbhdu = fits.BinTableHDU.from_columns([acol])
-            with ignore_warnings():
-                tbhdu.writeto(self.temp('newtable.fits'), overwrite=True)
+            tbhdu.writeto(self.temp('newtable.fits'), overwrite=True)
             with fits.open(self.temp('newtable.fits')) as tbhdu1:
                 assert tbhdu1[1].columns[0].format.endswith('D(2)')
                 for j in range(3):
@@ -2702,8 +2689,7 @@ class TestVLATables(FitsTestCase):
                  np.array([0.0])]
             acol = fits.Column(name='testa', format=format_code, array=a)
             tbhdu = fits.BinTableHDU.from_columns([acol])
-            with ignore_warnings():
-                tbhdu.writeto(self.temp('newtable.fits'), overwrite=True)
+            tbhdu.writeto(self.temp('newtable.fits'), overwrite=True)
 
             with fits.open(self.temp('newtable.fits')) as tbhdu1:
                 assert tbhdu1[1].columns[0].format.endswith('D(2)')
@@ -2720,8 +2706,7 @@ class TestVLATables(FitsTestCase):
                           np.array(['f'])], 'O')
             acol = fits.Column(name='testa', format=format_code, array=a)
             tbhdu = fits.BinTableHDU.from_columns([acol])
-            with ignore_warnings():
-                tbhdu.writeto(self.temp('newtable.fits'), overwrite=True)
+            tbhdu.writeto(self.temp('newtable.fits'), overwrite=True)
 
             with fits.open(self.temp('newtable.fits')) as hdul:
                 assert hdul[1].columns[0].format.endswith('A(3)')
@@ -2737,8 +2722,7 @@ class TestVLATables(FitsTestCase):
             a = ['a', 'ab', 'abc']
             acol = fits.Column(name='testa', format=format_code, array=a)
             tbhdu = fits.BinTableHDU.from_columns([acol])
-            with ignore_warnings():
-                tbhdu.writeto(self.temp('newtable.fits'), overwrite=True)
+            tbhdu.writeto(self.temp('newtable.fits'), overwrite=True)
 
             with fits.open(self.temp('newtable.fits')) as hdul:
                 assert hdul[1].columns[0].format.endswith('A(3)')
@@ -2758,8 +2742,7 @@ class TestVLATables(FitsTestCase):
             tb_hdu = fits.BinTableHDU.from_columns([col])
             pri_hdu = fits.PrimaryHDU()
             hdu_list = fits.HDUList([pri_hdu, tb_hdu])
-            with ignore_warnings():
-                hdu_list.writeto(self.temp('toto.fits'), overwrite=True)
+            hdu_list.writeto(self.temp('toto.fits'), overwrite=True)
 
             data = fits.getdata(self.temp('toto.fits'))
 
@@ -3164,16 +3147,15 @@ def test_regression_5383():
 def test_table_to_hdu():
     from astropy.table import Table
     table = Table([[1, 2, 3], ['a', 'b', 'c'], [2.3, 4.5, 6.7]],
-                    names=['a', 'b', 'c'], dtype=['i', 'U1', 'f'])
+                  names=['a', 'b', 'c'], dtype=['i', 'U1', 'f'])
     table['a'].unit = 'm/s'
     table['b'].unit = 'not-a-unit'
     table.meta['foo'] = 'bar'
 
-    with catch_warnings() as w:
+    with pytest.warns(UnitsWarning, match="'not-a-unit' did not parse as"
+                      " fits unit") as w:
         hdu = fits.BinTableHDU(table, header=fits.Header({'TEST': 1}))
-        assert len(w) == 1
-        assert str(w[0].message).startswith("'not-a-unit' did not parse as"
-                                            " fits unit")
+    assert len(w) == 1
 
     for name in 'abc':
         assert np.array_equal(table[name], hdu.data[name])
@@ -3238,7 +3220,8 @@ def test_new_column_attributes_preserved(tmpdir):
 
     with pytest.warns(AstropyDeprecationWarning) as warning_list:
         hdu = fits.BinTableHDU.from_columns(cd, hdr)
-    assert str(warning_list[0].message).startswith("The following keywords are now recognized as special")
+    assert str(warning_list[0].message).startswith(
+        "The following keywords are now recognized as special")
 
     # First, check that special keywords such as TUNIT are ignored in the header
     # We may want to change that behavior in future, but this is the way it's
@@ -3336,7 +3319,7 @@ def test_a3dtable(tmpdir):
     with fits.open(testfile) as hdul:
         assert hdul[1].header['XTENSION'] == 'A3DTABLE'
 
-        with catch_warnings() as w:
+        with pytest.warns(AstropyUserWarning) as w:
             hdul.verify('fix')
 
         assert str(w[0].message) == 'Verification reported errors:'

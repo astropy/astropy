@@ -4,7 +4,6 @@ import numpy as np
 
 from astropy.io import fits
 from . import FitsTestCase
-from astropy.tests.helper import catch_warnings
 
 
 class TestDivisionFunctions(FitsTestCase):
@@ -21,23 +20,17 @@ class TestDivisionFunctions(FitsTestCase):
 
     def test_card_with_continue(self):
         h = fits.PrimaryHDU()
-        with catch_warnings() as w:
-            h.header['abc'] = 'abcdefg' * 20
-        assert len(w) == 0
+        h.header['abc'] = 'abcdefg' * 20
 
     def test_valid_hdu_size(self):
         with fits.open(self.data('tb.fits')) as t1:
             assert type(t1[1].size) is type(1)  # noqa
 
     def test_hdu_get_size(self):
-        with catch_warnings() as w:
-            with fits.open(self.data('tb.fits')) as _:
-                pass
-        assert len(w) == 0
+        with fits.open(self.data('tb.fits')) as _:
+            pass
 
     def test_section(self, capsys):
         # section testing
         fs = fits.open(self.data('arange.fits'))
-        with catch_warnings() as w:
-            assert np.all(fs[0].section[3, 2, 5] == np.array([357]))
-            assert len(w) == 0
+        assert np.all(fs[0].section[3, 2, 5] == np.array([357]))

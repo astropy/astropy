@@ -3,8 +3,8 @@
 import operator
 
 import numpy as np
+import pytest
 
-from astropy.tests.helper import catch_warnings
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.modeling.utils import ExpressionTree as ET, ellipse_extent
 from astropy.modeling.models import Ellipse2D
@@ -16,7 +16,7 @@ def test_traverse_postorder_duplicate_subtrees():
     where given an expression like ``(1 + 2) + (1 + 2)`` where the two proper
     subtrees are actually the same object.
     """
-    with catch_warnings(AstropyDeprecationWarning):
+    with pytest.warns(AstropyDeprecationWarning):
         subtree = ET('+', ET(1), ET(2))
         tree = ET('+', subtree, subtree)
     traversal = [n.value for n in tree.traverse_postorder()]
@@ -30,7 +30,7 @@ def test_tree_evaluate_subexpression():
                  '/': operator.truediv, '**': operator.pow}
     # The full expression represented by this tree is:
     # 1.0 + 2 - 3 * 4 / 5 ** 6 (= 2.999232 if you must know)
-    with catch_warnings(AstropyDeprecationWarning):
+    with pytest.warns(AstropyDeprecationWarning):
         tree = ET('+', ET(1.0), ET('-', ET(2.0),
                                    ET('*', ET(3.0), ET('/', ET(4.0),
                                                        ET('**', ET(5.0), ET(6.0))))))

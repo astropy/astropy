@@ -23,7 +23,6 @@ from astropy.stats import sigma_clip
 
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.modeling.fitting import populate_entry_points
-from .utils import ignore_non_integer_warning
 from . import irafutil
 
 try:
@@ -448,14 +447,16 @@ class TestNonLinearFitters:
 
         assert_allclose(model.parameters, withw.parameters, rtol=10 ** (-4))
 
+    @pytest.mark.filterwarnings(r'ignore:.* Maximum number of iterations reached')
     @pytest.mark.parametrize('fitter_class', fitters)
     def test_fitter_against_LevMar(self, fitter_class):
         """Tests results from non-linear fitters against `LevMarLSQFitter`."""
 
         levmar = LevMarLSQFitter()
         fitter = fitter_class()
-        with ignore_non_integer_warning():
-            new_model = fitter(self.gauss, self.xdata, self.ydata)
+        # This emits a warning from fitter that we need to ignore with
+        # pytest.mark.filterwarnings above.
+        new_model = fitter(self.gauss, self.xdata, self.ydata)
         model = levmar(self.gauss, self.xdata, self.ydata)
         assert_allclose(model.parameters, new_model.parameters,
                         rtol=10 ** (-4))
@@ -470,8 +471,7 @@ class TestNonLinearFitters:
         g1.mean.fixed = True
         fitter = LevMarLSQFitter()
         fslsqp = SLSQPLSQFitter()
-        with ignore_non_integer_warning():
-            slsqp_model = fslsqp(g1, self.xdata, self.ydata)
+        slsqp_model = fslsqp(g1, self.xdata, self.ydata)
         model = fitter(g1, self.xdata, self.ydata)
         assert_allclose(model.parameters, slsqp_model.parameters,
                         rtol=10 ** (-4))

@@ -8,8 +8,6 @@ import subprocess
 
 import pytest
 
-from astropy.tests.helper import catch_warnings
-
 from astropy.config import configuration
 from astropy.config import paths
 from astropy.utils.data import get_pkg_data_filename
@@ -310,11 +308,10 @@ def test_config_noastropy_fallback(monkeypatch):
 
     # now run the basic tests, and make sure the warning about no astropy
     # is present
-    with catch_warnings(configuration.ConfigurationMissingWarning) as w:
+    with pytest.warns(configuration.ConfigurationMissingWarning,
+                      match='Configuration defaults will be used') as w:
         test_configitem()
     assert len(w) == 1
-    w = w[0]
-    assert 'Configuration defaults will be used' in str(w.message)
 
 
 def test_configitem_setters():
@@ -375,14 +372,14 @@ class TestAliasRead:
     def test_alias_read(self):
         from astropy.utils.data import conf
 
-        with catch_warnings() as w:
+        with pytest.warns(
+                AstropyDeprecationWarning,
+                match=r"Config parameter 'name_resolve_timeout' in section "
+                      r"\[coordinates.name_resolve\].*") as w:
             conf.reload()
             assert conf.remote_timeout == 42
 
         assert len(w) == 1
-        assert str(w[0].message).startswith(
-            "Config parameter 'name_resolve_timeout' in section "
-            "[coordinates.name_resolve]")
 
     def teardown_class(self):
         from astropy.utils.data import conf
@@ -417,7 +414,7 @@ def test_warning_move_to_top_level():
     configuration._override_config_file = get_pkg_data_filename('data/deprecated.cfg')
 
     try:
-        with catch_warnings(AstropyDeprecationWarning) as w:
+        with pytest.warns(AstropyDeprecationWarning) as w:
             conf.reload()
             conf.max_lines
         assert len(w) == 1

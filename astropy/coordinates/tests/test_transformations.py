@@ -10,10 +10,10 @@ from astropy.coordinates import transformations as t
 from astropy.coordinates.builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, AltAz
 from astropy.coordinates import representation as r
 from astropy.coordinates.baseframe import frame_transform_graph
-from astropy.tests.helper import (assert_quantity_allclose as assert_allclose,
-                             catch_warnings)
+from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
+from astropy.utils.exceptions import AstropyWarning
 
 
 # Coordinates just for these tests.
@@ -33,10 +33,11 @@ def test_transform_classes():
     """
     Tests the class-based/OO syntax for creating transforms
     """
+    def tfun(c, f):
+        return f.__class__(ra=c.ra, dec=c.dec)
 
-    tfun = lambda c, f: f.__class__(ra=c.ra, dec=c.dec)
-    trans1 = t.FunctionTransform(tfun, TCoo1, TCoo2,
-                        register_graph=frame_transform_graph)
+    _ = t.FunctionTransform(tfun, TCoo1, TCoo2,
+                            register_graph=frame_transform_graph)
 
     c1 = TCoo1(ra=1*u.radian, dec=0.5*u.radian)
     c2 = c1.transform_to(TCoo2)
@@ -321,7 +322,7 @@ def test_affine_transform_fail(transfunc):
     trans.register(frame_transform_graph)
 
     with pytest.raises(ValueError):
-        c2 = c.transform_to(TCoo2)
+        c.transform_to(TCoo2)
 
     trans.unregister(frame_transform_graph)
 
@@ -344,7 +345,7 @@ def test_too_many_differentials():
     c = TCoo1(rep.without_differentials())
     c._data = c._data.with_differentials({'s': dif1, 's2': dif2})
     with pytest.raises(ValueError):
-        c2 = c.transform_to(TCoo2)
+        c.transform_to(TCoo2)
 
     trans.unregister(frame_transform_graph)
 
@@ -420,17 +421,18 @@ def test_vel_transformation_obstime_err():
 
 
 def test_function_transform_with_differentials():
-    tfun = lambda c, f: f.__class__(ra=c.ra, dec=c.dec)
-    ftrans = t.FunctionTransform(tfun, TCoo3, TCoo2,
-                                 register_graph=frame_transform_graph)
+    def tfun(c, f):
+        return f.__class__(ra=c.ra, dec=c.dec)
+
+    _ = t.FunctionTransform(tfun, TCoo3, TCoo2,
+                            register_graph=frame_transform_graph)
 
     t3 = TCoo3(ra=1*u.deg, dec=2*u.deg, pm_ra_cosdec=1*u.marcsec/u.yr,
                pm_dec=1*u.marcsec/u.yr,)
 
-    with catch_warnings() as w:
-        t2 = t3.transform_to(TCoo2)
-        assert len(w) == 1
-        assert 'they have been dropped' in str(w[0].message)
+    with pytest.warns(AstropyWarning, match=r'.*they have been dropped.*') as w:
+        t3.transform_to(TCoo2)
+    assert len(w) == 1
 
 
 def test_frame_override_component_with_attribute():
@@ -490,9 +492,9 @@ def test_static_matrix_combine_paths():
     t4.register(frame_transform_graph)
 
     c = Galactic(123*u.deg, 45*u.deg)
-    c1 = c.transform_to(BFrame) # direct
-    c2 = c.transform_to(AFrame).transform_to(BFrame) # thru A
-    c3 = c.transform_to(ICRS).transform_to(BFrame) # thru ICRS
+    c1 = c.transform_to(BFrame)  # direct
+    c2 = c.transform_to(AFrame).transform_to(BFrame)  # thru A
+    c3 = c.transform_to(ICRS).transform_to(BFrame)  # thru ICRS
 
     assert quantity_allclose(c1.lon, c2.lon)
     assert quantity_allclose(c1.lat, c2.lat)
@@ -512,11 +514,13 @@ def test_multiple_aliases():
         name = ['alias_1', 'alias_2']
         default_representation = r.SphericalRepresentation
 
+    def tfun(c, f):
+        return f.__class__(lon=c.lon, lat=c.lat)
+
     # Register a transform
     graph = t.TransformGraph()
-    tfun = lambda c, f: f.__class__(lon=c.lon, lat=c.lat)
-    ftrans = t.FunctionTransform(tfun, MultipleAliasesFrame, MultipleAliasesFrame,
-                                 register_graph=graph)
+    _ = t.FunctionTransform(tfun, MultipleAliasesFrame, MultipleAliasesFrame,
+                            register_graph=graph)
 
     # Test that both aliases have been added to the transform graph
     assert graph.lookup_name('alias_1') == MultipleAliasesFrame
@@ -528,9 +532,11 @@ def test_multiple_aliases():
 
 
 def test_remove_transform_and_unregister():
+    def tfun(c, f):
+        f.__class__(ra=c.ra, dec=c.dec)
+
     # Register transforms
     graph = t.TransformGraph()
-    tfun = lambda c, f: f.__class__(ra=c.ra, dec=c.dec)
     ftrans1 = t.FunctionTransform(tfun, TCoo1, TCoo1, register_graph=graph)
     ftrans2 = t.FunctionTransform(tfun, TCoo2, TCoo2, register_graph=graph)
     _ = t.FunctionTransform(tfun, TCoo1, TCoo2, register_graph=graph)
@@ -558,8 +564,10 @@ def test_remove_transform_and_unregister():
 
 
 def test_remove_transform_errors():
+    def tfun(c, f):
+        return f.__class__(ra=c.ra, dec=c.dec)
+
     graph = t.TransformGraph()
-    tfun = lambda c, f: f.__class__(ra=c.ra, dec=c.dec)
     _ = t.FunctionTransform(tfun, TCoo1, TCoo1, register_graph=graph)
 
     # Test bad calls to remove_transform
