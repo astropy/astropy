@@ -32,7 +32,7 @@ from .spatial import *  # noqa
 from .lombscargle import *  # noqa
 from .bls import *  # noqa
 
-
+# This is to avoid importing deprecated modules in subpackage star import
 __all__ = []
 __all__.extend(funcs.__all__)
 __all__.extend(biweight.__all__)
