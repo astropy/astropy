@@ -8,6 +8,9 @@ import numpy as np
 import math
 
 
+__all__ = ['RipleysKEstimator']
+
+
 class RipleysKEstimator:
     """
     Estimators for Ripley's K function for two-dimensional spatial data.
