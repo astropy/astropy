@@ -11,14 +11,35 @@ astronomers' needs.
 
 """
 
+from . import funcs
 from .funcs import *  # noqa
+from . import biweight
 from .biweight import *  # noqa
+from . import sigma_clipping
 from .sigma_clipping import *  # noqa
+from . import jackknife
 from .jackknife import *  # noqa
+from . import circstats
 from .circstats import *  # noqa
+from . import bayesian_blocks as _bb
 from .bayesian_blocks import *  # noqa
+from . import histogram as _hist
 from .histogram import *  # noqa
+from . import info_theory
 from .info_theory import *  # noqa
-from .lombscargle import *  # noqa
+from . import spatial
 from .spatial import *  # noqa
+from .lombscargle import *  # noqa
 from .bls import *  # noqa
+
+# This is to avoid importing deprecated modules in subpackage star import
+__all__ = []
+__all__.extend(funcs.__all__)
+__all__.extend(biweight.__all__)
+__all__.extend(sigma_clipping.__all__)
+__all__.extend(jackknife.__all__)
+__all__.extend(circstats.__all__)
+__all__.extend(_bb.__all__)
+__all__.extend(_hist.__all__)
+__all__.extend(info_theory.__all__)
+__all__.extend(spatial.__all__)
