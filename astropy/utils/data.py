@@ -908,7 +908,7 @@ def _find_hash_fn(hexdigest, pkgname='astropy'):
     Looks for a local file by hash - returns file name if found and a valid
     file, otherwise returns None.
     """
-    for k, v in cache_contents(pkgname=pkgname).items():
+    for v in cache_contents(pkgname=pkgname).values():
         if compute_hash(v) == hexdigest:
             return v
     return None
@@ -1140,8 +1140,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
 
     Notes
     -----
-    Because `download_file` returns a filename, another process could run
-    clear_download_cache before you actually open the file, leaving
+    Because this function returns a filename, another process could run
+    `clear_download_cache` before you actually open the file, leaving
     you with a filename that no longer points to a usable file.
     """
     if timeout is None:
@@ -1444,7 +1444,8 @@ def _deltemps():
                 try:
                     shutil.rmtree(fn)
                 except OSError:
-                    # sigh
+                    # couldn't get rid of it, sorry
+                    # could be held open by some process, on Windows
                     pass
 
 
@@ -1483,25 +1484,29 @@ def clear_download_cache(hashorurl=None, pkgname='astropy'):
         return
     try:
         if hashorurl is None:
+            # Optional: delete old incompatible caches too
             _rmtree(dldir)
         elif _is_url(hashorurl):
             filepath = os.path.join(dldir, _url_to_dirname(hashorurl))
             _rmtree(filepath)
         else:
+            # Not a URL, it should be either a filename or a hash
             filepath = os.path.join(dldir, hashorurl)
-            if not _is_inside(filepath, dldir):
-                # Should this be ValueError? IOError?
+            rp = os.path.relpath(filepath, dldir)
+            if rp.startswith(".."):
                 raise RuntimeError(
                     f"attempted to use clear_download_cache on the path "
                     f"{filepath} outside the data cache directory {dldir}")
-            dirname, basename = os.path.split(filepath)
-            if basename in ["contents", "url"]:
+            d, f = os.path.split(rp)
+            if d and f in ["contents", "url"]:
                 # It's a filename not the hash of a URL
-                filepath = dirname
-            if os.path.isdir(filepath):
+                # so we wamt to zap the directory containing the
+                # files "url" and "contents"
+                filepath = os.path.join(dldir, d)
+            if os.path.exists(filepath):
                 _rmtree(filepath)
             elif (len(hashorurl) == 2*hashlib.md5().digest_size
-                    and re.match("[0-9a-f]+", hashorurl)):
+                    and re.match(r"[0-9a-f]+", hashorurl)):
                 # It's the hash of some file contents, we have to find the right file
                 filename = _find_hash_fn(hashorurl)
                 if filename is not None:
@@ -1526,8 +1531,6 @@ def _get_download_cache_loc(pkgname='astropy'):
     -------
     datadir : str
         The path to the data cache directory.
-    shelveloc : str
-        The path to the shelve object that stores the cache info.
     """
     from astropy.config.paths import get_cache_dir
 
@@ -1563,7 +1566,18 @@ class ReadOnlyDict(dict):
 _NOTHING = ReadOnlyDict({})
 
 
-def check_download_cache(pkgname='astropy'):
+class CacheDamaged(ValueError):
+    """Record the URL or file that was a problem.
+    Using clear_download_cache on the .bad_file or .bad_url attribute,
+    whichever is not None, should resolve this particular problem.
+    """
+    def __init__(self, *args, bad_urls=None, bad_files=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.bad_urls = bad_urls if bad_urls is not None else []
+        self.bad_files = bad_files if bad_files is not None else []
+
+
+def check_download_cache(check_hashes=False, pkgname='astropy'):
     """Do a consistency check on the cache.
 
     Because the cache is shared by all versions of astropy in all virtualenvs
@@ -1584,6 +1598,9 @@ def check_download_cache(pkgname='astropy'):
 
     Parameters
     ----------
+    check_hashes : boolean, optional
+        Deprecated; does nothing.
+
     pkgname : `str`, optional
         The package name to use to locate the download cache. i.e. for
         ``pkgname='astropy'`` the default cache location is
@@ -1591,39 +1608,63 @@ def check_download_cache(pkgname='astropy'):
 
     Returns
     -------
-    strays : set of strings
-        This is the set of files in the cache directory that do not correspond
-        to known URLs. This may include some files associated with the cache
-        index.
+    strays : set
+        Deprecated. The empty set.
 
     Raises
     ------
     CacheDamaged
         To indicate a problem with the cache contents; the exception contains
-        a .bad_url or a .bad_file attribute to allow the user to use
-        `clear_download_cache` to remove the offending item.
+        a ``.bad_files`` attribute containing a set of filenames to allow the
+        user to use `clear_download_cache` to remove the offending items.
     OSError, RuntimeError
         To indicate some problem with the cache structure. This may need a full
         `clear_download_cache` to resolve, or may indicate some kind of
         misconfiguration.
     """
+    bad_files = set()
+    messages = set()
     dldir = _get_download_cache_loc(pkgname=pkgname)
     with os.scandir(dldir) as it:
         for entry in it:
+            f = os.path.abspath(os.path.join(dldir, entry.name))
             if entry.name.startswith("rmtree-"):
-                if os.path.abspath(os.path.join(dldir, entry.name)) not in _tempfilestodel:
-                    raise ValueError(f"Cache entry {entry.name} not scheduled for deletion")
-            elif entry.is_dir:
-                url = get_file_contents(os.path.join(dldir, entry.name, "url"), encoding="utf-8")
-                if not _is_url(url):
-                    raise ValueError(f"Malformed URL: {url}")
-                hashname = _url_to_dirname(url)
-                if entry.name != hashname:
-                    raise ValueError(f"URL hashes to {hashname} but is stored in {entry.name}")
-                if not os.path.exists(os.path.join(dldir, entry.name, "contents")):
-                    raise ValueError(f"URL {url} with hash {entry.name} is missing contents")
+                if f not in _tempfilestodel:
+                    bad_files.add(f)
+                    messages.add(f"Cache entry {entry.name} not scheduled for deletion")
+            elif entry.is_dir():
+                for sf in os.listdir(f):
+                    if sf in ['url', 'contents']:
+                        continue
+                    sf = os.path.join(f, sf)
+                    bad_files.add(sf)
+                    messages.add(f"Unexpected file f{sf}")
+                urlf = os.path.join(f, "url")
+                url = None
+                if not os.path.isfile(urlf):
+                    bad_files.add(urlf)
+                    messages.add(f"Problem with URL file f{urlf}")
+                else:
+                    url = get_file_contents(urlf, encoding="utf-8")
+                    if not _is_url(url):
+                        bad_files.add(f)
+                        messages.add(f"Malformed URL: {url}")
+                    else:
+                        hashname = _url_to_dirname(url)
+                        if entry.name != hashname:
+                            bad_files.add(f)
+                            messages.add(f"URL hashes to {hashname} but is stored in {entry.name}")
+                if not os.path.isfile(os.path.join(f, "contents")):
+                    bad_files.add(f)
+                    if url is None:
+                        messages.add(f"Hash {entry.name} is missing contents")
+                    else:
+                        messages.add(f"URL {url} with hash {entry.name} is missing contents")
             else:
-                raise ValueError(f"Left-over non-directory {entry.name} in cache")
+                bad_files.add(f)
+                messages.add(f"Left-over non-directory {f} in cache")
+    if bad_files:
+        raise CacheDamaged("\n".join(messages), bad_files=bad_files)
     return set()
 
 
@@ -1681,9 +1722,11 @@ def _rmtree(path, replace=None):
 
 
 def import_file_to_cache(url_key, filename,
+                         hexdigest=None,
                          remove_original=False,
-                         replace=True,
-                         pkgname='astropy'):
+                         pkgname='astropy',
+                         *,
+                         replace=True):
     """Import the on-disk file specified by filename to the cache.
 
     The provided ``url_key`` will be the name used in the cache. The file
@@ -1705,6 +1748,8 @@ def import_file_to_cache(url_key, filename,
         location.
     filename : str
         The file whose contents you want to import.
+    hexdigest : ignored
+        Deprecated, has no effect.
     remove_original : bool
         Whether to remove the original file (``filename``) once import is
         complete.
@@ -1712,6 +1757,9 @@ def import_file_to_cache(url_key, filename,
         The package name to use to locate the download cache. i.e. for
         ``pkgname='astropy'`` the default cache location is
         ``~/.astropy/cache``.
+    replace : boolean, optional
+        Whether or not to replace an existing object in the cache, if one exists.
+        If replacement is not requested but the object exists, silently pass.
     """
     cache_dir = _get_download_cache_loc(pkgname=pkgname)
     cache_dirname = _url_to_dirname(url_key)
@@ -1768,7 +1816,7 @@ def get_cached_urls(pkgname='astropy'):
     --------
     cache_contents : obtain a dictionary listing everything in the cache
     """
-    return list(cache_contents(pkgname=pkgname).keys())
+    return sorted(cache_contents(pkgname=pkgname).keys())
 
 
 def cache_contents(pkgname='astropy'):
