@@ -31,6 +31,7 @@ from astropy.config import paths
 import astropy.utils.data
 from astropy.utils.data import (
     CacheMissingWarning,
+    CacheDamaged,
     conf,
     compute_hash,
     download_file,
@@ -222,9 +223,11 @@ def can_rename_directory_in_use():
 
 def test_download_file_basic(valid_urls, temp_cache):
     u, c = next(valid_urls)
-    assert get_file_contents(download_file(u)) == c
-    assert get_file_contents(download_file(u, cache=True)) == c
-    assert get_file_contents(download_file(u, cache=True)) == c
+    assert get_file_contents(download_file(u, cache=False)) == c
+    assert not is_url_in_cache(u)
+    assert get_file_contents(download_file(u, cache=True)) == c  # Cache miss
+    assert is_url_in_cache(u)
+    assert get_file_contents(download_file(u, cache=True)) == c  # Cache hit
     assert get_file_contents(download_file(u, cache=True, sources=[])) == c
 
 
@@ -234,7 +237,7 @@ def test_download_file_absolute_path(valid_urls, temp_cache):
         return p == os.path.abspath(p)
 
     u, c = next(valid_urls)
-    assert is_abs(download_file(u))   # no cache
+    assert is_abs(download_file(u, cache=False))   # no cache
     assert is_abs(download_file(u, cache=True))  # not in cache
     assert is_abs(download_file(u, cache=True))  # in cache
     for k, v in cache_contents().items():
@@ -262,8 +265,9 @@ def test_too_long_url(valid_urls, temp_cache):
 def test_case_collision(valid_urls, temp_cache):
     u, c = next(valid_urls)
     u2, c2 = next(valid_urls)
-    f1 = download_file("http://example.com/", cache=True, sources=[u])
-    f2 = download_file("http://EXAMPLE.com/", cache=True, sources=[u2])
+    # FIXME: what to do about case in the domain name part?
+    f1 = download_file("http://example.com/thing", cache=True, sources=[u])
+    f2 = download_file("http://example.com/THING", cache=True, sources=[u2])
     assert f1 != f2
     assert get_file_contents(f1) != get_file_contents(f2)
 
@@ -488,7 +492,6 @@ def test_clear_download_multiple_references_doesnt_corrupt_storage(temp_cache, t
     g_url, g_filename = make_url()
 
     assert f_url != g_url
-    # assert f_hash == g_hash #  Not anymore!
     assert is_url_in_cache(f_url)
     assert is_url_in_cache(g_url)
 
@@ -1037,27 +1040,17 @@ def test_data_noastropy_fallback(monkeypatch):
         paths.get_cache_dir(rootname='astropy')
 
     # first try with cache
-    with pytest.warns(CacheMissingWarning) as w:
-        fnout = data.download_file(TESTURL, cache=True)
+    with pytest.warns(CacheMissingWarning, match=r".*temporary.*"):
+        with pytest.warns(CacheMissingWarning,
+                          match=r".*Remote data cache could not be accessed.*"):
+            fnout = download_file(TESTURL, cache=True)
 
     assert os.path.isfile(fnout)
 
-    has_inaccessible_warning = False
-    has_temporary_warning = False
-
-    for wi in w:
-        if wi.category == CacheMissingWarning:
-            if "Remote data cache could not be accessed" in wi.message.args[0]:
-                has_inaccessible_warning = True
-            if "temporary" in wi.message.args[0]:
-                assert fnout == wi.message.args[1]
-                has_temporary_warning = True
-    assert has_inaccessible_warning
-    assert has_temporary_warning
-
     # clearing the cache should be a no-up that doesn't affect fnout
-    with pytest.warns(CacheMissingWarning) as w:
-        data.clear_download_cache(TESTURL)
+    with pytest.warns(CacheMissingWarning,
+                      match=r".*Not clearing data cache - cache inaccessible.*"):
+        clear_download_cache(TESTURL)
     assert os.path.isfile(fnout)
 
     # now remove it so tests don't clutter up the temp dir this should get
@@ -1066,18 +1059,12 @@ def test_data_noastropy_fallback(monkeypatch):
     data._deltemps()
     assert not os.path.isfile(fnout)
 
-    has_noclear_warning = False
-    for wi in w:
-        if wi.category == CacheMissingWarning:
-            if "Not clearing data cache - cache inaccessible" in str(wi.message):
-                has_noclear_warning = True
-    assert has_noclear_warning
-
     # now try with no cache
-    # no warnings should be raise in fileobj because cache is unnecessary
     fnnocache = data.download_file(TESTURL, cache=False)
     with open(fnnocache, "rb") as page:
         assert page.read().decode("utf-8").find("Astropy") > -1
+
+    # no warnings should be raise in fileobj because cache is unnecessary
 
 
 @pytest.mark.parametrize(
@@ -1194,29 +1181,28 @@ def test_check_download_cache(tmpdir, temp_cache, valid_urls, invalid_urls):
 
     zip_file_name = os.path.join(tmpdir, "the.zip")
     clear_download_cache()
-    check_download_cache()
+    assert not check_download_cache()
 
     download_file(testurl, cache=True)
-    # normal files probably corresponding to the urlmap
-    normal = check_download_cache()
+    check_download_cache()
     download_file(testurl2, cache=True)
-    assert check_download_cache() == normal
+    check_download_cache()
 
     export_download_cache(zip_file_name, [testurl, testurl2])
-    assert check_download_cache() == normal
+    check_download_cache()
 
     clear_download_cache(testurl2)
-    assert check_download_cache() == normal
+    check_download_cache()
 
     import_download_cache(zip_file_name, [testurl])
-    assert check_download_cache() == normal
+    check_download_cache()
 
 
 def test_export_import_roundtrip_one(tmpdir, temp_cache, valid_urls):
     testurl, contents = next(valid_urls)
     f = download_file(testurl, cache=True, show_progress=False)
     assert get_file_contents(f) == contents
-    normal = check_download_cache()
+
     initial_urls_in_cache = set(get_cached_urls())
     zip_file_name = os.path.join(tmpdir, "the.zip")
 
@@ -1229,7 +1215,6 @@ def test_export_import_roundtrip_one(tmpdir, temp_cache, valid_urls):
         get_file_contents(download_file(testurl, cache=True, show_progress=False))
         == contents
     )
-    assert check_download_cache() == normal
 
 
 def test_export_url_not_present(temp_cache, valid_urls):
@@ -1260,7 +1245,7 @@ def test_export_import_roundtrip(tmpdir, temp_cache, valid_urls):
     zip_file_name = os.path.join(tmpdir, "the.zip")
     for u, c in islice(valid_urls, FEW):
         download_file(u, cache=True)
-    normal = check_download_cache()
+
     initial_urls_in_cache = set(get_cached_urls())
 
     export_download_cache(zip_file_name)
@@ -1268,13 +1253,11 @@ def test_export_import_roundtrip(tmpdir, temp_cache, valid_urls):
     import_download_cache(zip_file_name)
 
     assert set(get_cached_urls()) == initial_urls_in_cache
-    assert check_download_cache() == normal
 
 
 def test_export_import_roundtrip_stream(temp_cache, valid_urls):
     for u, c in islice(valid_urls, FEW):
         download_file(u, cache=True)
-    normal = check_download_cache()
     initial_urls_in_cache = set(get_cached_urls())
 
     with io.BytesIO() as f:
@@ -1285,7 +1268,6 @@ def test_export_import_roundtrip_stream(temp_cache, valid_urls):
         import_download_cache(f)
 
     assert set(get_cached_urls()) == initial_urls_in_cache
-    assert check_download_cache() == normal
 
 
 def test_export_overwrite_flag_works(temp_cache, valid_urls, tmpdir):
@@ -1402,12 +1384,54 @@ def test_check_download_cache_finds_bogus_entries(temp_cache, valid_urls):
     u, c = next(valid_urls)
     download_file(u, cache=True)
     dldir = _get_download_cache_loc()
-    bf = os.path.join(dldir, "bogus")
+    bf = os.path.abspath(os.path.join(dldir, "bogus"))
     with open(bf, "wt") as f:
         f.write("bogus file that exists")
-    with pytest.raises(OSError):
+    with pytest.raises(CacheDamaged) as e:
         check_download_cache()
+    assert bf in e.value.bad_files
     clear_download_cache()
+
+
+def test_check_download_cache_finds_bogus_subentries(temp_cache, valid_urls):
+    u, c = next(valid_urls)
+    f = download_file(u, cache=True)
+    bf = os.path.abspath(os.path.join(os.path.dirname(f), "bogus"))
+    with open(bf, "wt") as f:
+        f.write("bogus file that exists")
+    with pytest.raises(CacheDamaged) as e:
+        check_download_cache()
+    assert bf in e.value.bad_files
+    clear_download_cache()
+
+
+def test_check_download_cache_cleanup(temp_cache, valid_urls):
+    u, c = next(valid_urls)
+    fn = download_file(u, cache=True)
+    dldir = _get_download_cache_loc()
+
+    bf1 = os.path.abspath(os.path.join(dldir, "bogus1"))
+    with open(bf1, "wt") as f:
+        f.write("bogus file that exists")
+
+    bf2 = os.path.abspath(os.path.join(os.path.dirname(fn), "bogus2"))
+    with open(bf2, "wt") as f:
+        f.write("other bogus file that exists")
+    u2, c2 = next(valid_urls)
+    f2 = download_file(u, cache=True)
+    os.unlink(f2)
+
+    bf3 = os.path.abspath(os.path.join(dldir, "contents"))
+    with open(bf3, "wt") as f:
+        f.write("awkwardly-named bogus file that exists")
+
+    with pytest.raises(CacheDamaged) as e:
+        check_download_cache()
+    for bf in e.value.bad_files:
+        print(bf)
+        clear_download_cache(bf)
+
+    # download cache will be checked on exit
 
 
 def test_download_cache_update_doesnt_damage_cache(temp_cache, valid_urls):
@@ -1943,7 +1967,6 @@ def test_removal_of_open_files(temp_cache, valid_urls):
         clear_download_cache(u)
         assert not is_url_in_cache(u)
         check_download_cache()
-    check_download_cache()
 
 
 def test_update_of_open_files(temp_cache, valid_urls):
@@ -1957,33 +1980,28 @@ def test_update_of_open_files(temp_cache, valid_urls):
         assert is_url_in_cache(u)
         assert get_file_contents(f) == c2
     assert is_url_in_cache(u)
-    check_download_cache()
 
 
 def test_removal_of_open_files_windows(temp_cache, valid_urls, monkeypatch):
     def no_rmtree(*args, **kwargs):
         warnings.warn(CacheMissingWarning("in use", ""))
         raise PermissionError
+
     if can_rename_directory_in_use():
         # This platform is able to remove files while in use.
         monkeypatch.setattr(astropy.utils.data, "_rmtree", no_rmtree)
 
     u, c = next(valid_urls)
     with open(download_file(u, cache=True)):
-        with catch_warnings(CacheMissingWarning) as ws:
+        with pytest.warns(CacheMissingWarning, match=r".*in use.*"):
             clear_download_cache(u)
-        in_use = False
-        for w in ws:
-            if "in use" in str(w.message):
-                in_use = True
-        assert in_use, "No warning mentions that a file is in use"
-    check_download_cache()
 
 
 def test_update_of_open_files_windows(temp_cache, valid_urls, monkeypatch):
     def no_rmtree(*args, **kwargs):
         warnings.warn(CacheMissingWarning("in use", ""))
         raise PermissionError
+
     if can_rename_directory_in_use():
         # This platform is able to remove files while in use.
         monkeypatch.setattr(astropy.utils.data, "_rmtree", no_rmtree)
@@ -1991,19 +2009,12 @@ def test_update_of_open_files_windows(temp_cache, valid_urls, monkeypatch):
     u, c = next(valid_urls)
     with open(download_file(u, cache=True)):
         u2, c2 = next(valid_urls)
-        with catch_warnings(CacheMissingWarning) as ws:
+        with pytest.warns(CacheMissingWarning, match=r".*in use.*"):
             f = download_file(u, cache='update', sources=[u2])
         check_download_cache()
         assert is_url_in_cache(u)
         assert get_file_contents(f) == c2
-        in_use = False
-        for w in ws:
-            if "in use" in str(w.message):
-                in_use = True
-        assert in_use, "No warning mentions that a file is in use"
-    assert is_url_in_cache(u)
     assert get_file_contents(download_file(u, cache=True, sources=[])) == c
-    check_download_cache()
 
 
 def test_zero_remote_timeout(temp_cache, valid_urls):
@@ -2014,3 +2025,47 @@ def test_zero_remote_timeout(temp_cache, valid_urls):
     with pytest.raises(urllib.error.URLError):
         # This will trigger the remote data error if it's allowed to touch the internet
         download_file(TESTURL, timeout=0)
+
+
+def test_clear_download_cache_not_too_aggressive(temp_cache, valid_urls):
+    u, c = next(valid_urls)
+    download_file(u, cache=True)
+    dldir = _get_download_cache_loc()
+
+    bad_filename = os.path.join(dldir, "contents")
+    assert is_url_in_cache(u)
+    clear_download_cache(bad_filename)
+    assert is_url_in_cache(u)
+
+
+def test_clear_download_cache_variants(temp_cache, valid_urls):
+    # deletion by contents filename
+    u, c = next(valid_urls)
+    f = download_file(u, cache=True)
+    clear_download_cache(f)
+    assert not is_url_in_cache(u)
+
+    # deletion by url filename
+    u, c = next(valid_urls)
+    f = download_file(u, cache=True)
+    clear_download_cache(os.path.join(os.path.dirname(f), 'url'))
+    assert not is_url_in_cache(u)
+
+    # deletion by hash directory name
+    u, c = next(valid_urls)
+    f = download_file(u, cache=True)
+    clear_download_cache(os.path.dirname(f))
+    assert not is_url_in_cache(u)
+
+    # deletion by directory name with trailing slash
+    u, c = next(valid_urls)
+    f = download_file(u, cache=True)
+    clear_download_cache(os.path.dirname(f)+'/')
+    assert not is_url_in_cache(u)
+
+    # deletion by hash of file contents
+    u, c = next(valid_urls)
+    f = download_file(u, cache=True)
+    h = compute_hash(f)
+    clear_download_cache(h)
+    assert not is_url_in_cache(u)

@@ -227,15 +227,16 @@ Astropy Data and Clusters
 Astronomical calculations often require the use of a large number of different
 processes on different machines with a shared home filesystem. This can pose
 certain complexities. In particular, if the many different processes attempt to
-download a file simultaneous this can overload a server or trigger security
+download a file simultaneously this can overload a server or trigger security
 systems. The parallel access to the home directory can also trigger concurrency
 problems in the Astropy data cache, though we have tried to minimize these. We
 therefore recommend the following guidelines:
 
  * Write a simple script that sets ``astropy.utils.iers.conf.auto_download = True``
    and then accesses all cached resources your code will need, including source name
-   lookups and IERS tables. Run it on the head node from time to time (at least twice
-   a month) to ensure all data is up to date.
+   lookups and IERS tables. Run it on the head node from time to time (frequently
+   enough to beat the timeout ``astropy.utils.iers.conf.auto_max_age``, which
+   defaults to 30 days) to ensure all data is up to date.
 
  * Make an Astropy config file (see :ref:`astropy_config`) that sets
    ``astropy.utils.iers.conf.auto_download = False`` so that the worker jobs will
@@ -243,7 +244,7 @@ therefore recommend the following guidelines:
    to download it.
 
  * Optionally, in this file, set ``astropy.utils.data.conf.remote_timeout = 0`` to
-   prevent any attempt to download any file from the worker nodes; if you do this
+   prevent any attempt to download any file from the worker nodes; if you do this,
    you will need to override this setting in your script that does the actual
    downloading.
 
