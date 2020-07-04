@@ -123,6 +123,49 @@ FixedWidth
   Mary 555-2134 192.168.1.12
    Bob 555-4527  192.168.1.9
 
+**Table with space delimiter, header marking only left column side:**
+
+These examples use the special value ``'from_header'`` for the ``col_starts``
+or ``col_ends`` keywords to determine the respective indices from the positions
+in the header. If only one is given, the other side will be inferred
+assuming all columns are directly adjacent (see also example under
+``FixedWidthNoHeader`` below). Note that these options automatically
+assume blank space as delimiter.
+::
+
+  >>> table = """
+  ...  Name   NX Line   TCP
+  ...  Johnny 555-1234  192.168.1.10
+  ...  Maria  555-2134  192.168.1.12
+  ...  Roberta555-4527  192.168.1.9
+  ... """
+  >>> ascii.read(table, format='fixed_width', col_starts='from_header')
+  <Table length=3>
+    Name    NX   Line     TCP     
+    str7  int64 int64    str12    
+  ------- ----- ----- ------------
+   Johnny   555 -1234 192.168.1.10
+    Maria   555 -2134 192.168.1.12
+  Roberta   555 -4527  192.168.1.9
+
+**Table with space delimiter, header marking only right column side:**
+::
+
+  >>> table = """
+  ...     Name NXX Line           TCP
+  ...  Johnny  555-1234  192.168.1.10
+  ...   Maria  555-2134  192.168.1.12
+  ...  Roberta 555-4527  192.168.1.9
+  ... """
+  >>> ascii.read(table, format='fixed_width', col_ends='from_header')
+  <Table length=3>
+    Name   NXX   Line     TCP     
+    str7  int64 int64    str12    
+  ------- ----- ----- ------------
+   Johnny   555 -1234 192.168.1.10
+    Maria   555 -2134 192.168.1.12
+  Roberta   555 -4527  192.168.1.9
+
 **Table with no header row and auto-column naming:**
 
 Use ``header_start`` and ``data_start`` keywords to indicate no header line.
@@ -187,8 +230,8 @@ FixedWidthNoHeader
 
 **Table with no delimiter with column start and end values specified:**
 
-This uses the col_starts and col_ends keywords. Note that the
-col_ends values are inclusive so a position range of zero to five
+This uses the ``col_starts`` and ``col_ends`` keywords. Note that the
+``col_ends`` values are inclusive so a position range of zero to five
 will select the first six characters.
 ::
 
@@ -214,11 +257,11 @@ will select the first six characters.
 
 **Table with no delimiter with only column start or end values specified:**
 
-If only the col_starts keyword is given, it is assumed that each column
+If only the ``col_starts`` keyword is given, it is assumed that each column
 ends where the next column starts, and the final column ends at the same
 position as the longest line of data.
 
-Conversely, if only the col_ends keyword is given, it is assumed that the first
+Conversely, if only the ``col_ends`` keyword is given, it is assumed that the first
 column starts at position zero and that each successive column starts
 immediately after the previous one.
 

@@ -239,6 +239,56 @@ table = """\
 dat = ascii.read(table, Reader=ascii.FixedWidth)
 
 
+def test_read_header_col_onesided():
+    """Table with only start or end positions of columns demarked by header"""
+    table = "\n".join([' Col1   Col2         Col3        Col4      ',
+                       '  1.2    "hello"      1           a         ',
+                       "  2.4    's worlds           2           2  "])
+
+    tab = ascii.read(table, Reader=ascii.FixedWidth, col_starts='from_header')
+    assert_equal(tab.colnames, dat.colnames)
+    for c in dat.colnames:
+        if dat[c].dtype.kind == 'f':
+            assert np.allclose(dat[c], tab[c])
+        else:
+            assert np.array_equal(dat[c], tab[c])
+
+    tab = ascii.read(table, Reader=ascii.FixedWidth, col_ends='from_header')
+    assert_equal(tab.colnames, dat.colnames)
+    assert np.allclose(dat['Col1'], tab['Col1'])
+
+    # Compare col_starts set to col_ends to both to none.
+    table = "\n".join(["Col01  Col02   Col3 ",
+                       "    100  1.2345XA",
+                       "    200123.4e+12A03b"])
+
+    tab = ascii.read(table, format='fixed_width', col_starts='from_header')
+    assert np.array_equal(tab['Col01'], np.arange(1, 3) * 100)
+    assert np.allclose(tab['Col02'], np.array([1.2345, 1234]))
+    assert np.array_equal(tab['Col3'], np.array(['XA', '2A03b']))
+
+    tab = ascii.read(table, format='fixed_width', col_ends='from_header')
+    assert np.array_equal(tab['Col01'], np.arange(1, 3))
+    assert np.array_equal(tab['Col02'], np.array(['00  1.2', '00123.4']))
+    assert np.array_equal(tab['Col3'], np.array(['345XA', 'e+12A03']))
+
+    tab = ascii.read(table, format='fixed_width', col_starts='from_header', col_ends='from_header')
+    assert np.array_equal(tab['Col01'], np.arange(1, 3))
+    assert np.allclose(tab['Col02'], np.array([1.2, 123.4]))
+    assert np.array_equal(tab['Col3'], np.array(['XA', '2A03']))
+
+    tab = ascii.read(table, format='fixed_width', delimiter=' ')
+    assert np.array_equal(tab['Col01'], np.arange(1, 3))
+    assert np.allclose(tab['Col02'], np.array([1.2, 123.4]))
+    assert np.array_equal(tab['Col3'], np.array(['XA', '2A03']))
+
+    # Note that delimiter=None is split differently than blank!
+    tab = ascii.read(table, format='fixed_width', delimiter=None)
+    assert np.array_equal(tab['Col01'], np.arange(1, 3))
+    assert np.array_equal(tab['Col02'], np.array(['0  1.', '0123.']))
+    assert np.array_equal(tab['Col3'], np.array(['345X', 'e+12']))
+
+
 def test_write_normal():
     """Write a table as a normal fixed width table."""
     out = StringIO()

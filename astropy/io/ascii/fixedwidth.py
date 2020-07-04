@@ -191,6 +191,41 @@ class FixedWidthHeader(basic.BasicHeader):
         # If neither column starts or ends are given, figure out positions
         # between delimiters. Otherwise, either the starts or the ends have
         # been given, so figure out whichever wasn't given.
+        # If special keyword was set for starts or ends, determine only that
+        # side from the header (always for blank delimiter).
+        for bounds in 'col_starts', 'col_ends':
+            attr = getattr(self, bounds)
+            if isinstance(attr, str):
+                if attr.lower() not in ('from_header', 'header', 'auto'):
+                    raise ValueError(f'Invalid keyword set for {bounds}: "{attr}"')
+        if isinstance(self.col_starts, str):
+            # Assume columns are contiguous and determine only starts from header.
+            trunk = line.lstrip()
+            self.col_starts = [len(line) - len(trunk)]
+            vals = trunk.split(maxsplit=1)
+            while len(vals) > 1:
+                colwidth = len(trunk) - len(vals[-1])
+                self.col_starts.append(self.col_starts[-1] + colwidth)
+                trunk = vals[-1]
+                vals = trunk.split(maxsplit=1)
+            vals = line.split()
+            if len(vals) != len(self.col_starts):
+                raise InconsistentTableError(f'Error parsing fixed width header for {len(vals)} '
+                                             f'columns: {len(self.col_starts)} starts in \n{line}')
+        if isinstance(self.col_ends, str):
+            # Assume columns are contiguous and determine only ends from header.
+            trunk = line.rstrip()
+            self.col_ends = [len(trunk) - 1]
+            vals = trunk.rsplit(maxsplit=1)
+            while len(vals) > 1:
+                colwidth = len(trunk) - len(vals[0])
+                self.col_ends.insert(0, self.col_ends[0] - colwidth)
+                trunk = vals[0]
+                vals = trunk.rsplit(maxsplit=1)
+            vals = line.split()
+            if len(vals) != len(self.col_ends):
+                raise InconsistentTableError(f'Error parsing fixed width header for {len(vals)} '
+                                             f'columns: {len(self.col_ends)} ends in \n{line}')
         if self.col_starts is not None and self.col_ends is not None:
             starts = list(self.col_starts)  # could be any iterable, e.g. np.array
             # user supplies inclusive endpoint
@@ -212,7 +247,8 @@ class FixedWidthHeader(basic.BasicHeader):
             starts = starts[:-1]
             vals = [x.strip() for x in vals if x]
             if len(vals) != len(starts) or len(vals) != len(ends):
-                raise InconsistentTableError('Error parsing fixed width header')
+                raise InconsistentTableError(f'Error parsing fixed width header for {len(vals)} '
+                                             f'columns, {len(starts)} starts, {len(ends)} ends\n{line}')
         else:
             # exactly one of col_starts or col_ends is given...
             if self.col_starts is not None:
@@ -294,6 +330,14 @@ class FixedWidth(basic.Basic):
 
     See the :ref:`fixed_width_gallery` for specific usage examples.
 
+    Parameters
+    ----------
+    col_starts, col_ends : array_like or str, optional
+        Set the start or end positions either directly as a sequence of indices, or via
+        keyword ``'from_header'`` determine them from the respective header positions.
+        If only one is given, the other will be inferred assuming directly adjacent
+        columns. Note that the col_ends values are inclusive so a position range of
+        zero to five will select the first six characters.
     """
     _format_name = 'fixed_width'
     _description = 'Fixed width'
