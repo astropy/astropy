@@ -95,15 +95,15 @@ The first three (the distortion corrections) are done in parallel.
 
 Parameters
 ----------
-pixcrd : double array[ncoord][nelem]
-    Array of pixel coordinates.
+pixcrd : numpy.ndarray
+    Array of pixel coordinates as ``double array[ncoord][nelem]``.
 
 {}
 
 Returns
 -------
-world : double array[ncoord][nelem]
-    Returns an array of world coordinates.
+world : numpy.ndarray
+    Returns an array of world coordinates as ``double array[ncoord][nelem]``.
 
 Raises
 ------
@@ -824,7 +824,7 @@ coordinate : coordinate pair
 """
 
 get_cdelt = """
-get_cdelt() -> double array[naxis]
+get_cdelt() -> ``double array[naxis]``
 
 Coordinate increments (``CDELTia``) for each coord axis.
 
@@ -837,7 +837,7 @@ specified in the header.
 """
 
 get_pc = """
-get_pc() -> double array[naxis][naxis]
+get_pc() -> ``double array[naxis][naxis]``
 
 Returns the ``PC`` matrix in read-only form.  Unlike the
 `~astropy.wcs.Wcsprm.pc` property, this works even when the header
@@ -1128,15 +1128,15 @@ viter : int
     the search recommenced.  *viter* controls how many times the step
     size is halved.  The allowed range is 5 - 10.
 
-world : double array[naxis]
-    World coordinate elements.  ``world[self.lng]`` and
+world : numpy.ndarray
+    World coordinate elements as ``double array[naxis]``.  ``world[self.lng]`` and
     ``world[self.lat]`` are the celestial longitude and latitude, in
     degrees.  Which is given and which returned depends on the value
     of *mixcel*.  All other elements are given.  The results will be
     written to this array in-place.
 
-pixcrd : double array[naxis].
-    Pixel coordinates.  The element indicated by *mixpix* is given and
+pixcrd : numpy.ndarray
+    Pixel coordinates as ``double array[naxis]``.  The element indicated by *mixpix* is given and
     the remaining elements will be written in-place.
 
 {}
@@ -1147,20 +1147,20 @@ result : dict
 
     Returns a dictionary with the following keys:
 
-    - *phi* (double array[naxis])
+    - *phi* (``double array[naxis]``)
 
-    - *theta* (double array[naxis])
+    - *theta* (``double array[naxis]``)
 
         - Longitude and latitude in the native coordinate system of
           the projection, in degrees.
 
-    - *imgcrd* (double array[naxis])
+    - *imgcrd* (``double array[naxis]``)
 
         - Image coordinate elements.  ``imgcrd[self.lng]`` and
           ``imgcrd[self.lat]`` are the projected *x*- and
           *y*-coordinates, in decimal degrees.
 
-    - *world* (double array[naxis])
+    - *world* (``double array[naxis]``)
 
         - Another reference to the *world* argument passed in.
 
@@ -1318,8 +1318,8 @@ Converts pixel to world coordinates.
 Parameters
 ----------
 
-pixcrd : double array[ncoord][nelem]
-    Array of pixel coordinates.
+pixcrd : numpy.ndarray
+    Array of pixel coordinates as ``double array[ncoord][nelem]``.
 
 {}
 
@@ -1328,32 +1328,34 @@ Returns
 result : dict
     Returns a dictionary with the following keys:
 
-    - *imgcrd*: double array[ncoord][nelem]
+    - *imgcrd*: numpy.ndarray
 
-      - Array of intermediate world coordinates.  For celestial axes,
+      - Array of intermediate world coordinates as ``double array[ncoord][nelem]``.  For celestial axes,
         ``imgcrd[][self.lng]`` and ``imgcrd[][self.lat]`` are the
         projected *x*-, and *y*-coordinates, in pseudo degrees.  For
         spectral axes, ``imgcrd[][self.spec]`` is the intermediate
         spectral coordinate, in SI units.
 
-    - *phi*: double array[ncoord]
+    - *phi*: numpy.ndarray
 
-    - *theta*: double array[ncoord]
+      - Array as ``double array[ncoord]``.
+
+    - *theta*: numpy.ndarray
 
       - Longitude and latitude in the native coordinate system of the
-        projection, in degrees.
+        projection, in degrees, as ``double array[ncoord]``.
 
-    - *world*: double array[ncoord][nelem]
+    - *world*: numpy.ndarray
 
-      - Array of world coordinates.  For celestial axes,
+      - Array of world coordinates as ``double array[ncoord][nelem]``.  For celestial axes,
         ``world[][self.lng]`` and ``world[][self.lat]`` are the
         celestial longitude and latitude, in degrees.  For spectral
         axes, ``world[][self.spec]`` is the intermediate spectral
         coordinate, in SI units.
 
-    - *stat*: int array[ncoord]
+    - *stat*: numpy.ndarray
 
-      - Status return value for each coordinate. ``0`` for success,
+      - Status return value for each coordinate as ``int array[ncoord]``. ``0`` for success,
         ``1+`` for invalid pixel coordinate.
 
 Raises
@@ -1387,22 +1389,22 @@ astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng
 """.format(ORIGIN())
 
 p4_pix2foc = """
-p4_pix2foc(*pixcrd, origin*) -> double array[ncoord][nelem]
+p4_pix2foc(*pixcrd, origin*) -> ``double array[ncoord][nelem]``
 
 Convert pixel coordinates to focal plane coordinates using `distortion
 paper`_ lookup-table correction.
 
 Parameters
 ----------
-pixcrd : double array[ncoord][nelem].
-    Array of pixel coordinates.
+pixcrd : numpy.ndarray
+    Array of pixel coordinates as ``double array[ncoord][nelem]``.
 
 {}
 
 Returns
 -------
-foccrd : double array[ncoord][nelem]
-    Returns an array of focal plane coordinates.
+foccrd : numpy.ndarray
+    Returns an array of focal plane coordinates as ``double array[ncoord][nelem]``.
 
 Raises
 ------
@@ -1455,22 +1457,22 @@ astropy.wcs.Wcsprm.theta0
 """
 
 pix2foc = """
-pix2foc(*pixcrd, origin*) -> double array[ncoord][nelem]
+pix2foc(*pixcrd, origin*) -> ``double array[ncoord][nelem]``
 
 Perform both `SIP`_ polynomial and `distortion paper`_ lookup-table
 correction in parallel.
 
 Parameters
 ----------
-pixcrd : double array[ncoord][nelem]
-    Array of pixel coordinates.
+pixcrd : numpy.ndarray
+    Array of pixel coordinates as ``double array[ncoord][nelem]``.
 
 {}
 
 Returns
 -------
-foccrd : double array[ncoord][nelem]
-    Returns an array of focal plane coordinates.
+foccrd : numpy.ndarray
+    Returns an array of focal plane coordinates as ``double array[ncoord][nelem]``.
 
 Raises
 ------
@@ -1549,8 +1551,8 @@ Transforms world coordinates to pixel coordinates.
 
 Parameters
 ----------
-world : double array[ncoord][nelem]
-    Array of world coordinates, in decimal degrees.
+world : numpy.ndarray
+    Array of world coordinates, in decimal degrees, as ``double array[ncoord][nelem]``.
 
 {}
 
@@ -1559,14 +1561,14 @@ Returns
 result : dict
     Returns a dictionary with the following keys:
 
-    - *phi*: double array[ncoord]
+    - *phi*: ``double array[ncoord]``
 
-    - *theta*: double array[ncoord]
+    - *theta*: ``double array[ncoord]``
 
         - Longitude and latitude in the native coordinate system of
           the projection, in degrees.
 
-    - *imgcrd*: double array[ncoord][nelem]
+    - *imgcrd*: ``double array[ncoord][nelem]``
 
        - Array of intermediate world coordinates.  For celestial axes,
          ``imgcrd[][self.lng]`` and ``imgcrd[][self.lat]`` are the
@@ -1576,12 +1578,12 @@ result : dict
          spectral axes, ``imgcrd[][self.spec]`` is the intermediate
          spectral coordinate, in SI units.
 
-    - *pixcrd*: double array[ncoord][nelem]
+    - *pixcrd*: ``double array[ncoord][nelem]``
 
         - Array of pixel coordinates.  Pixel coordinates are
           zero-based.
 
-    - *stat*: int array[ncoord]
+    - *stat*: ``int array[ncoord]``
 
         - Status return value for each coordinate. ``0`` for success,
           ``1+`` for invalid pixel coordinate.
@@ -1742,24 +1744,24 @@ using the `SIP`_ convention in both directions.
 
 Parameters
 ----------
-a : double array[m+1][m+1]
-    The ``A_i_j`` polynomial for pixel to focal plane transformation.
+a : numpy.ndarray
+    The ``A_i_j`` polynomial for pixel to focal plane transformation as ``double array[m+1][m+1]``.
     Its size must be (*m* + 1, *m* + 1) where *m* = ``A_ORDER``.
 
-b : double array[m+1][m+1]
-    The ``B_i_j`` polynomial for pixel to focal plane transformation.
+b : numpy.ndarray
+    The ``B_i_j`` polynomial for pixel to focal plane transformation as ``double array[m+1][m+1]``.
     Its size must be (*m* + 1, *m* + 1) where *m* = ``B_ORDER``.
 
-ap : double array[m+1][m+1]
-    The ``AP_i_j`` polynomial for pixel to focal plane transformation.
+ap : numpy.ndarray
+    The ``AP_i_j`` polynomial for pixel to focal plane transformation as ``double array[m+1][m+1]``.
     Its size must be (*m* + 1, *m* + 1) where *m* = ``AP_ORDER``.
 
-bp : double array[m+1][m+1]
-    The ``BP_i_j`` polynomial for pixel to focal plane transformation.
+bp : numpy.ndarray
+    The ``BP_i_j`` polynomial for pixel to focal plane transformation as ``double array[m+1][m+1]``.
     Its size must be (*m* + 1, *m* + 1) where *m* = ``BP_ORDER``.
 
-crpix : double array[2]
-    The reference pixel.
+crpix : numpy.ndarray
+    The reference pixel as ``double array[2]``.
 
 Notes
 -----
@@ -1769,22 +1771,22 @@ Headers."  ADASS XIV.
 """
 
 sip_foc2pix = """
-sip_foc2pix(*foccrd, origin*) -> double array[ncoord][nelem]
+sip_foc2pix(*foccrd, origin*) -> ``double array[ncoord][nelem]``
 
 Convert focal plane coordinates to pixel coordinates using the `SIP`_
 polynomial distortion convention.
 
 Parameters
 ----------
-foccrd : double array[ncoord][nelem]
-    Array of focal plane coordinates.
+foccrd : numpy.ndarray
+    Array of focal plane coordinates as ``double array[ncoord][nelem]``.
 
 {}
 
 Returns
 -------
-pixcrd : double array[ncoord][nelem]
-    Returns an array of pixel coordinates.
+pixcrd : numpy.ndarray
+    Returns an array of pixel coordinates as ``double array[ncoord][nelem]``.
 
 Raises
 ------
@@ -1796,22 +1798,22 @@ ValueError
 """.format(ORIGIN())
 
 sip_pix2foc = """
-sip_pix2foc(*pixcrd, origin*) -> double array[ncoord][nelem]
+sip_pix2foc(*pixcrd, origin*) -> ``double array[ncoord][nelem]``
 
 Convert pixel coordinates to focal plane coordinates using the `SIP`_
 polynomial distortion convention.
 
 Parameters
 ----------
-pixcrd : double array[ncoord][nelem]
-    Array of pixel coordinates.
+pixcrd : numpy.ndarray
+    Array of pixel coordinates as ``double array[ncoord][nelem]``.
 
 {}
 
 Returns
 -------
-foccrd : double array[ncoord][nelem]
-    Returns an array of focal plane coordinates.
+foccrd : numpy.ndarray
+    Returns an array of focal plane coordinates as ``double array[ncoord][nelem]``.
 
 Raises
 ------
