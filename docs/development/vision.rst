@@ -89,8 +89,8 @@ packages being integrated into the core package are consistent with those
 already in the core package.
 
 Initially, no dependency on GUI toolkits will be allowed in the core package.
-If the community reaches agrees on a single toolkit that could be used, then
-this toolkit will be allowed (but will only be imported as needed).
+If the community reaches an agreement on a single toolkit that could be used,
+then this toolkit will be allowed (but will only be imported as needed).
 
 Keeping track of affiliated packages
 ====================================
