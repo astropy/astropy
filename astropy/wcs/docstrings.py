@@ -848,13 +848,13 @@ specified in the header.
 """
 
 get_ps = """
-get_ps() -> list of tuples
+get_ps() -> list of tuple
 
 Returns ``PSi_ma`` keywords for each *i* and *m*.
 
 Returns
 -------
-ps : list of tuples
+ps : list of tuple
 
     Returned as a list of tuples of the form (*i*, *m*, *value*):
 
@@ -870,7 +870,7 @@ astropy.wcs.Wcsprm.set_ps : Set ``PSi_ma`` values
 """
 
 get_pv = """
-get_pv() -> list of tuples
+get_pv() -> list of tuple
 
 Returns ``PVi_ma`` keywords for each *i* and *m*.
 
@@ -1715,7 +1715,7 @@ Sets ``PVi_ma`` keywords for each *i* and *m*.
 
 Parameters
 ----------
-pv : list of tuples
+pv : list of tuple
 
     The input must be a sequence of tuples of the form (*i*, *m*,
     *value*):
