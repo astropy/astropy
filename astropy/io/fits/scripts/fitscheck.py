@@ -39,14 +39,12 @@ Example uses of fitscheck:
 
 """
 
-
 import argparse
 import logging
 import sys
+import warnings
 
-from astropy.tests.helper import catch_warnings
 from astropy.io import fits
-
 
 log = logging.getLogger('fitscheck')
 
@@ -124,6 +122,20 @@ def setup_logging():
     log.addHandler(handler)
 
 
+class _catch_warnings(warnings.catch_warnings):
+    def __init__(self):
+        super().__init__(record=True)
+
+    def __enter__(self):
+        warning_list = super().__enter__()
+        warnings.resetwarnings()
+        warnings.simplefilter('always')
+        return warning_list
+
+    def __exit__(self, type, value, traceback):
+        warnings.resetwarnings()
+
+
 def verify_checksums(filename):
     """
     Prints a message if any HDU in `filename` has a bad checksum or datasum.
@@ -131,7 +143,7 @@ def verify_checksums(filename):
     # TODO: Attempt to replace catch_warnings with builtin Python
     # warnings.catch_warnings failed, possibly due to
     # https://github.com/pytest-dev/pytest/issues/5502 . Revisit in the future.
-    with catch_warnings() as wlist:
+    with _catch_warnings() as wlist:
         with fits.open(filename, checksum=OPTIONS.checksum_kind) as hdulist:
             for i, hdu in enumerate(hdulist):
                 # looping on HDUs is needed to read them and verify the
