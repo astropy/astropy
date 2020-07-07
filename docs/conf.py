@@ -200,16 +200,8 @@ edit_on_github_branch = 'master'
 # resolve.
 
 nitpicky = True
-# This list is from https://github.com/numpy/numpydoc/issues/275
-nitpick_ignore = [
-    ("py:class", "None.  Remove all items from D."),
-    ("py:class", "a set-like object providing a view on D's items"),
-    ("py:class", "a set-like object providing a view on D's keys"),
-    ("py:class", "v, remove specified key and return the corresponding value."),
-    ("py:class", "None.  Update D from dict/iterable E and F."),
-    ("py:class", "an object providing a view on D's values"),
-    ("py:class", "a shallow copy of D"),
-]
+# This is not used. See docs/nitpick-exceptions file for the actual listing.
+nitpick_ignore = []
 
 for line in open('nitpick-exceptions'):
     if line.strip() == "" or line.startswith("#"):
