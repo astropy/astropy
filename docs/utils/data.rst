@@ -173,6 +173,20 @@ produce a ZIP file listing some or all of the cache contents, and
 `~astropy.utils.data.import_download_cache` to load the ``astropy`` cache from such a
 ZIP file.
 
+The Astropy cache has changed format - once in the Python 2 to Python
+3 transition, and again before Astropy version 4.0.2 to resolve some
+concurrency problems that arose on some compute clusters. Each version of the
+cache is in its own subdirectory, so the old versions do not interfere with the
+new versions and vice versa, but their contents are not used by this version
+and are not cleared by `~astropy.utils.data.clear_download_cache`. To remove
+these old cache directories you can simply run::
+
+   >>> from shutil import rmtree
+   >>> from os.path import join
+   >>> from astropy.config.paths import get_cache_dir
+   >>> rmtree(join(get_cache_dir(), 'download', 'py2'))  # doctest: +SKIP
+   >>> rmtree(join(get_cache_dir(), 'download', 'py3'))  # doctest: +SKIP
+
 Using Astropy With Limited or No Internet Access
 ================================================
 

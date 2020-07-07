@@ -1159,11 +1159,11 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
     if cache:
         try:
             dldir = _get_download_cache_loc(pkgname)
-        except OSError:
+        except OSError as e:
             cache = False
             missing_cache = (
-                "Cache directory cannot be read or created, "
-                "providing data in temporary file instead."
+                f"Cache directory cannot be read or created ({e}), "
+                f"providing data in temporary file instead."
             )
         else:
             if cache == "update":
@@ -1228,10 +1228,10 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
                                         remove_original=True,
                                         replace=(cache == 'update'),
                                         pkgname=pkgname)
-        except PermissionError:
+        except PermissionError as e:
             # Cache is readonly, we can't update it
             missing_cache = (
-                f"Cache directory appears to be read-only, unable to import "
+                f"Cache directory appears to be read-only ({e}), unable to import "
                 f"downloaded file, providing data in temporary file {f_name} "
                 f"instead.")
         # FIXME: other kinds of cache problem can occur?
@@ -1532,10 +1532,8 @@ def _get_download_cache_loc(pkgname='astropy'):
     datadir : str
         The path to the data cache directory.
     """
-    from astropy.config.paths import get_cache_dir
-
     try:
-        datadir = os.path.join(get_cache_dir(pkgname), 'download', 'url')
+        datadir = os.path.join(astropy.config.paths.get_cache_dir(pkgname), 'download', 'url')
 
         if not os.path.exists(datadir):
             try:
@@ -1555,7 +1553,12 @@ def _get_download_cache_loc(pkgname='astropy'):
 
 
 def _url_to_dirname(url):
-    return hashlib.md5(url.encode("utf-8")).hexdigest()
+    # Make domain names case-insensitive
+    # Also makes the http:// case-insensitive
+    urlobj = list(urllib.parse.urlsplit(url))
+    urlobj[1] = urlobj[1].lower()
+    url_c = urllib.parse.urlunsplit(urlobj)
+    return hashlib.md5(url_c.encode("utf-8")).hexdigest()
 
 
 class ReadOnlyDict(dict):
