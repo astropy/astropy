@@ -265,11 +265,19 @@ def test_too_long_url(valid_urls, temp_cache):
 def test_case_collision(valid_urls, temp_cache):
     u, c = next(valid_urls)
     u2, c2 = next(valid_urls)
-    # FIXME: what to do about case in the domain name part?
     f1 = download_file("http://example.com/thing", cache=True, sources=[u])
     f2 = download_file("http://example.com/THING", cache=True, sources=[u2])
     assert f1 != f2
     assert get_file_contents(f1) != get_file_contents(f2)
+
+
+def test_domain_name_case(valid_urls, temp_cache):
+    u, c = next(valid_urls)
+    download_file("http://Example.com/thing", cache=True, sources=[u])
+    assert is_url_in_cache("http://EXAMPLE.com/thing")
+    download_file("http://EXAMPLE.com/thing", cache=True, sources=[])
+    assert is_url_in_cache("Http://example.com/thing")
+    download_file("Http://example.com/thing", cache=True, sources=[])
 
 
 @pytest.mark.remote_data(source="astropy")
@@ -1032,7 +1040,7 @@ def test_data_noastropy_fallback(monkeypatch):
     # make sure the _find_or_create_astropy_dir function fails as though the
     # astropy dir could not be accessed
     def osraiser(dirnm, linkto, pkgname=None):
-        raise OSError
+        raise OSError()
     monkeypatch.setattr(paths, '_find_or_create_root_dir', osraiser)
 
     with pytest.raises(OSError):
@@ -1040,10 +1048,13 @@ def test_data_noastropy_fallback(monkeypatch):
         paths.get_cache_dir(rootname='astropy')
 
     # first try with cache
+    # We want *both* of these warnings, but pytest.raises does not work when used
+    # nested to accomplish this.
+    with pytest.warns(CacheMissingWarning,
+                      match=r".*Remote data cache could not be accessed.*"):
+        download_file(TESTURL, cache=True)
     with pytest.warns(CacheMissingWarning, match=r".*temporary.*"):
-        with pytest.warns(CacheMissingWarning,
-                          match=r".*Remote data cache could not be accessed.*"):
-            fnout = download_file(TESTURL, cache=True)
+        fnout = download_file(TESTURL, cache=True)
 
     assert os.path.isfile(fnout)
 
