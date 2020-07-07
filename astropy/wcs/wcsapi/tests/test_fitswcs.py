@@ -151,14 +151,14 @@ def test_simple_celestial():
     coord = wcs.pixel_to_world(29, 39)
     assert isinstance(coord, SkyCoord)
     assert isinstance(coord.frame, ICRS)
-    assert coord.ra.deg == 10
-    assert coord.dec.deg == 20
+    assert_allclose(coord.ra.deg, 10)
+    assert_allclose(coord.dec.deg, 20)
 
     coord = wcs.array_index_to_world(39, 29)
     assert isinstance(coord, SkyCoord)
     assert isinstance(coord.frame, ICRS)
-    assert coord.ra.deg == 10
-    assert coord.dec.deg == 20
+    assert_allclose(coord.ra.deg, 10)
+    assert_allclose(coord.dec.deg, 20)
 
     coord = SkyCoord(10, 20, unit='deg', frame='icrs')
 
@@ -273,18 +273,18 @@ def test_spectral_cube():
     coord, spec = wcs.pixel_to_world(29, 39, 44)
     assert isinstance(coord, SkyCoord)
     assert isinstance(coord.frame, Galactic)
-    assert coord.l.deg == 25
-    assert coord.b.deg == 10
+    assert_allclose(coord.l.deg, 25)
+    assert_allclose(coord.b.deg, 10)
     assert isinstance(spec, SpectralCoord)
-    assert spec.to_value(u.Hz) == 20
+    assert_allclose(spec.to_value(u.Hz), 20)
 
     coord, spec = wcs.array_index_to_world(44, 39, 29)
     assert isinstance(coord, SkyCoord)
     assert isinstance(coord.frame, Galactic)
-    assert coord.l.deg == 25
-    assert coord.b.deg == 10
+    assert_allclose(coord.l.deg, 25)
+    assert_allclose(coord.b.deg, 10)
     assert isinstance(spec, SpectralCoord)
-    assert spec.to_value(u.Hz) == 20
+    assert_allclose(spec.to_value(u.Hz), 20)
 
     coord = SkyCoord(25, 10, unit='deg', frame='galactic')
     spec = 20 * u.Hz
