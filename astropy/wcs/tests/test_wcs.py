@@ -779,6 +779,16 @@ def test_sip():
     assert_allclose(200, y1, 1e-3)
 
 
+def test_sub_3d_with_sip():
+    # See #10527
+    header = get_pkg_data_contents('data/irac_sip.hdr', encoding='binary')
+    header = fits.Header.fromstring(header)
+    header['NAXIS'] = 3
+    header.set('NAXIS3', 64, after=header.index('NAXIS2'))
+    w = wcs.WCS(header, naxis=2)
+    assert w.naxis == 2
+
+
 def test_printwcs(capsys):
     """
     Just make sure that it runs
