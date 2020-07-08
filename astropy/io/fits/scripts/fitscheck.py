@@ -106,6 +106,8 @@ def handle_options(args):
 
     if OPTIONS.checksum_kind == 'none':
         OPTIONS.checksum_kind = False
+    elif OPTIONS.checksum_kind == 'standard':
+        OPTIONS.checksum_kind = True
     elif OPTIONS.checksum_kind == 'remove':
         OPTIONS.write_file = True
         OPTIONS.force = True
