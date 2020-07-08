@@ -199,6 +199,7 @@ edit_on_github_branch = 'master'
 # resolve.
 
 nitpicky = True
+# This is not used. See docs/nitpick-exceptions file for the actual listing.
 nitpick_ignore = []
 
 for line in open('nitpick-exceptions'):
