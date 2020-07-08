@@ -48,7 +48,7 @@ class SortedArray:
 
     @property
     def cols(self):
-        return self.data.columns.values()
+        return list(self.data.columns.values())
 
     def add(self, key, row):
         '''
