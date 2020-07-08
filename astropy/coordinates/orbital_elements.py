@@ -7,9 +7,9 @@ second edition, 1998, Willmann-Bell.
 
 import numpy as np
 from numpy.polynomial.polynomial import polyval
+import erfa
 
 from astropy import units as u
-from astropy import _erfa as erfa
 from . import ICRS, SkyCoord, GeocentricTrueEcliptic
 from .builtin_frames.utils import get_jd12
 

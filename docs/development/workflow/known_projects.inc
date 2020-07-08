@@ -10,6 +10,10 @@
 .. _`numpy github`: https://github.com/numpy/numpy
 .. _`numpy mailing list`: http://mail.python.org/mailman/listinfo/numpy-discussion
 
+.. pyerfa
+.. _pyerfa: http://pyerfa.readthedocs.org/
+.. _`pyerfa github`: https://github.com/liberfa/pyerfa/
+
 .. scipy
 .. _scipy: https://www.scipy.org/
 .. _`scipy github`: https://github.com/scipy/scipy

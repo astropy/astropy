@@ -15,9 +15,9 @@ from time import strftime
 from warnings import warn
 
 import numpy as np
+import erfa
 
 from astropy import units as u, constants as const
-from astropy import _erfa as erfa
 from astropy.units import UnitConversionError
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.compat.misc import override__dir__

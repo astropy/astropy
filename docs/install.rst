@@ -13,6 +13,8 @@ Requirements
 
 - `Numpy`_ |minimum_numpy_version| or later
 
+- `PyERFA`_ |minimum_erfa_version| or later
+
 ``astropy`` also depends on other packages for optional features:
 
 - `scipy`_ |minimum_scipy_version| or later: To power a variety of features
@@ -341,9 +343,6 @@ The C libraries currently bundled with ``astropy`` include:
 - `cfitsio <https://heasarc.gsfc.nasa.gov/fitsio/fitsio.html>`_ see
   ``cextern/cfitsio/changes.txt`` for the bundled version. To use the
   system version, set ``ASTROPY_USE_SYSTEM_CFITSIO=1``.
-
-- `erfa <https://github.com/liberfa>`_ see ``cextern/erfa/README.rst`` for the
-  bundled version. To use the system version, set ``ASTROPY_USE_SYSTEM_ERFA=1``.
 
 - `expat <http://expat.sourceforge.net/>`_ see ``cextern/expat/README`` for the
   bundled version. To use the system version, set ``ASTROPY_USE_SYSTEM_EXPAT=1``.

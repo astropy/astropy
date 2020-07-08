@@ -7,10 +7,11 @@ from collections import namedtuple
 import pytest
 import numpy as np
 from numpy.testing import assert_allclose
+from erfa import ufunc as erfa_ufunc
 
 from astropy import units as u
 from astropy.units import quantity_helper as qh
-from astropy._erfa import ufunc as erfa_ufunc
+
 
 try:
     import scipy  # pylint: disable=W0611 # noqa

@@ -2,6 +2,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Quantity helpers for the ERFA ufuncs."""
 
+from erfa import ufunc as erfa_ufunc
 
 from astropy.units.core import UnitsError, UnitTypeError, dimensionless_unscaled
 from . import UFUNC_HELPERS
@@ -44,8 +45,6 @@ def helper_p2s(f, unit1):
 
 
 def get_erfa_helpers():
-    from astropy._erfa import ufunc as erfa_ufunc
-
     ERFA_HELPERS = {}
     ERFA_HELPERS[erfa_ufunc.s2c] = helper_s2c
     ERFA_HELPERS[erfa_ufunc.s2p] = helper_s2p
@@ -58,5 +57,5 @@ def get_erfa_helpers():
     return ERFA_HELPERS
 
 
-UFUNC_HELPERS.register_module('astropy._erfa.ufunc', erfa_ufuncs,
+UFUNC_HELPERS.register_module('erfa.ufunc', erfa_ufuncs,
                               get_erfa_helpers)

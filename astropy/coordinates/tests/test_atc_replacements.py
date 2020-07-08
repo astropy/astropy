@@ -6,10 +6,10 @@
 from itertools import product
 
 import pytest
+import erfa
 
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
-from astropy import _erfa as erfa
 from .utils import randomly_sample_sphere
 from astropy.coordinates.builtin_frames.utils import get_jd12, atciqz, aticq
 

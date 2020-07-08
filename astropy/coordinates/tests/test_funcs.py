@@ -10,10 +10,8 @@ import pytest
 import numpy as np
 from numpy import testing as npt
 
-
 from astropy import units as u
 from astropy.time import Time
-from astropy._erfa import ErfaWarning
 
 
 def test_sun():

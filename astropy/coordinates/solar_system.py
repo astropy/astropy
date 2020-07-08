@@ -6,9 +6,10 @@ ephemerides from jplephem.
 
 from urllib.parse import urlparse
 from collections import OrderedDict
+import os.path
 
 import numpy as np
-import os.path
+import erfa
 
 from .sky_coordinate import SkyCoord
 from astropy.utils.data import download_file
@@ -16,7 +17,6 @@ from astropy.utils.decorators import classproperty
 from astropy.utils.state import ScienceState
 from astropy.utils import indent
 from astropy import units as u
-from astropy import _erfa as erfa
 from astropy.constants import c as speed_of_light
 from .representation import CartesianRepresentation
 from .orbital_elements import calc_moon
