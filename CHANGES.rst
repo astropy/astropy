@@ -148,6 +148,10 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Change ``Table.columns.keys()`` and ``Table.columns.values()`` to both return
+  generators instead of a list. This matches the behavior for Python ``dict``
+  objects. [#10543]
+
 astropy.tests
 ^^^^^^^^^^^^^
 

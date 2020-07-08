@@ -238,9 +238,9 @@ class TableColumns(OrderedDict):
         if isinstance(item, str):
             return OrderedDict.__getitem__(self, item)
         elif isinstance(item, (int, np.integer)):
-            return self.values()[item]
+            return list(self.values())[item]
         elif (isinstance(item, np.ndarray) and item.shape == () and item.dtype.kind == 'i'):
-            return self.values()[item.item()]
+            return list(self.values())[item.item()]
         elif isinstance(item, tuple):
             return self.__class__([self[x] for x in item])
         elif isinstance(item, slice):
@@ -281,13 +281,6 @@ class TableColumns(OrderedDict):
         cols = list(self.values())
         self.clear()
         self.update(list(zip(new_names, cols)))
-
-    # Define keys and values for Python 2 and 3 source compatibility
-    def keys(self):
-        return list(OrderedDict.keys(self))
-
-    def values(self):
-        return list(OrderedDict.values(self))
 
     def isinstance(self, cls):
         """
@@ -1411,7 +1404,7 @@ class Table:
     def _make_index_row_display_table(self, index_row_name):
         if index_row_name not in self.columns:
             idx_col = self.ColumnClass(name=index_row_name, data=np.arange(len(self)))
-            return self.__class__([idx_col] + self.columns.values(),
+            return self.__class__([idx_col] + list(self.columns.values()),
                                   copy=False)
         else:
             return self
