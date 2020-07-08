@@ -824,9 +824,9 @@ coordinate : coordinate pair
 """
 
 get_cdelt = """
-get_cdelt() -> double array[naxis]
+get_cdelt() -> numpy.ndarray
 
-Coordinate increments (``CDELTia``) for each coord axis.
+Coordinate increments (``CDELTia``) for each coord axis as ``double array[naxis]``.
 
 Returns the ``CDELT`` offsets in read-only form.  Unlike the
 `~astropy.wcs.Wcsprm.cdelt` property, this works even when the header
@@ -837,9 +837,9 @@ specified in the header.
 """
 
 get_pc = """
-get_pc() -> double array[naxis][naxis]
+get_pc() -> numpy.ndarray
 
-Returns the ``PC`` matrix in read-only form.  Unlike the
+Returns the ``PC`` matrix in read-only form as ``double array[naxis][naxis]``.  Unlike the
 `~astropy.wcs.Wcsprm.pc` property, this works even when the header
 specifies the linear transformation matrix in one of the alternative
 ``CDi_ja`` or ``CROTAia`` forms.  This is useful when you want access
@@ -848,13 +848,13 @@ specified in the header.
 """
 
 get_ps = """
-get_ps() -> list of tuples
+get_ps() -> list
 
-Returns ``PSi_ma`` keywords for each *i* and *m*.
+Returns ``PSi_ma`` keywords for each *i* and *m* as list of tuples.
 
 Returns
 -------
-ps : list of tuples
+ps : list
 
     Returned as a list of tuples of the form (*i*, *m*, *value*):
 
@@ -870,9 +870,9 @@ astropy.wcs.Wcsprm.set_ps : Set ``PSi_ma`` values
 """
 
 get_pv = """
-get_pv() -> list of tuples
+get_pv() -> list
 
-Returns ``PVi_ma`` keywords for each *i* and *m*.
+Returns ``PVi_ma`` keywords for each *i* and *m* as list of tuples.
 
 Returns
 -------
