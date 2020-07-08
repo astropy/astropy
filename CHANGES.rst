@@ -214,6 +214,9 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Fixed an issue of ``Model.render`` when the input ``out`` datatype is not 
+  float64. [#10542]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
