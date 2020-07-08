@@ -10,6 +10,7 @@ import hypothesis
 
 try:
     from pytest_astropy_header.display import PYTEST_HEADER_MODULES
+    PYTEST_HEADER_MODULES['PyERFA'] = 'erfa'
 except ImportError:
     PYTEST_HEADER_MODULES = {}
 

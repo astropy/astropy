@@ -9,6 +9,8 @@ import urllib.error
 import urllib.parse
 
 import numpy as np
+import erfa
+
 from astropy import units as u
 from astropy import constants as consts
 from astropy.units.quantity import QuantityInfoBase
@@ -17,7 +19,7 @@ from .angles import Angle, Longitude, Latitude
 from .representation import CartesianRepresentation, CartesianDifferential
 from .errors import UnknownSiteException
 from astropy.utils import data
-from astropy import _erfa as erfa
+
 
 __all__ = ['EarthLocation']
 

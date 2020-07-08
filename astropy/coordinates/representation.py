@@ -13,10 +13,10 @@ import warnings
 
 import numpy as np
 import astropy.units as u
+from erfa import ufunc as erfa_ufunc
 
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
-from astropy._erfa import ufunc as erfa_ufunc
 from astropy.utils import ShapedLikeNDArray, classproperty
 from astropy.utils.data_info import MixinInfo
 from astropy.utils.exceptions import DuplicateRepresentationWarning

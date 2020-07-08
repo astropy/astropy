@@ -6,6 +6,7 @@ import warnings
 import pytest
 import numpy as np
 from numpy import testing as npt
+import erfa
 
 from astropy import units as u
 from astropy.time import Time
@@ -13,7 +14,6 @@ from astropy.coordinates.builtin_frames import ICRS, AltAz
 from astropy.coordinates.builtin_frames.utils import get_jd12
 from astropy.coordinates import EarthLocation
 from astropy.coordinates import SkyCoord
-from astropy import _erfa as erfa
 from astropy.utils import iers
 from .utils import randomly_sample_sphere
 

@@ -2,8 +2,8 @@
 from datetime import datetime, timedelta
 
 import pytest
+import erfa
 
-from astropy import _erfa as erfa
 from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning
 

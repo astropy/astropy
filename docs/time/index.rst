@@ -19,7 +19,7 @@ dates. Specific emphasis is placed on supporting time scales (e.g., UTC, TAI,
 UT1, TDB) and time representations (e.g., JD, MJD, ISO 8601) that are used in
 astronomy and required to calculate, for example, sidereal times and barycentric
 corrections. The `astropy.time` package is based on fast and memory efficient
-wrappers around the `ERFA`_ time and calendar routines.
+PyERFA_ wrappers around the ERFA_ time and calendar routines.
 
 All time manipulations and arithmetic operations are done internally using two
 64-bit floats to represent time. Floating point algorithms from [#]_ are used so
@@ -362,7 +362,7 @@ local  Local Time Scale          (LOCAL)
 ====== =================================
 
 .. [#] Wikipedia `time standard <https://en.wikipedia.org/wiki/Time_standard>`_ article
-.. [#] SOFA Time Scale and Calendar Tools
+.. [#] SOFA_ Time Scale and Calendar Tools
        `(PDF) <http://www.iausofa.org/sofa_ts_c.pdf>`_
 .. [#] `<https://www.ucolick.org/~sla/leapsecs/timescales.html>`_
 
@@ -517,7 +517,7 @@ requiring no better than microsecond precision over human time scales (~100
 years) can safely ignore the internal representation details and skip this
 section.
 
-This representation is driven by the underlying ERFA C-library implementation.
+This representation is driven by the underlying ERFA_ C-library implementation.
 The ERFA routines take care throughout to maintain overall precision of the
 double pair. Users are free to choose the way in which total JD is
 provided, though internally one part contains integer days and the
@@ -617,7 +617,7 @@ precision
 The ``precision`` setting affects string formats when outputting a value that
 includes seconds. It must be an integer between 0 and 9. There is no effect
 when inputting time values from strings. The default precision is 3. Note
-that the limit of 9 digits is driven by the way that ERFA handles fractional
+that the limit of 9 digits is driven by the way that ERFA_ handles fractional
 seconds. In practice this should should not be an issue.  ::
 
   >>> t = Time('B1950.0', precision=3)
@@ -681,7 +681,7 @@ This optional parameter specifies the observer location, using an
 either a tuple with geocentric coordinates (X, Y, Z), or a tuple with geodetic
 coordinates (longitude, latitude, height; with height defaulting to zero).
 They are used for time scales that are sensitive to observer location
-(currently, only TDB, which relies on the ERFA routine ``eraDtdb`` to
+(currently, only TDB, which relies on the PyERFA_ routine `erfa.dtdb` to
 determine the time offset between TDB and TT), as well as for sidereal time if
 no explicit longitude is given.
 
@@ -975,7 +975,7 @@ Transformation Offsets
 
 Time scale transformations that cross one of the orange circles in the image
 above require an additional offset time value that is model or
-observation dependent. See `SOFA Time Scale and Calendar Tools
+observation dependent. See SOFA_ `Time Scale and Calendar Tools
 <http://www.iausofa.org/sofa_ts_c.pdf>`_ for further details.
 
 The two attributes :attr:`~astropy.time.Time.delta_ut1_utc` and
@@ -1021,7 +1021,7 @@ scale along with the auto-download feature::
 In the case of the TDB to TT offset, most users need only provide the ``lon``
 and ``lat`` values when creating the |Time| object. If the
 :attr:`~astropy.time.Time.delta_tdb_tt` attribute is not explicitly set, then
-the ERFA C-library routine ``eraDtdb`` will be used to compute the TDB to TT
+the PyERFA_ routine `erfa.dtdb` will be used to compute the TDB to TT
 offset. Note that if ``lon`` and ``lat`` are not explicitly initialized,
 values of 0.0 degrees for both will be used.
 
@@ -1030,7 +1030,7 @@ Example
 
 .. EXAMPLE START: Transformation Offsets in Time Objects
 
-The following code replicates an example in the `SOFA Time Scale and Calendar
+The following code replicates an example in the SOFA_ `Time Scale and Calendar
 Tools <http://www.iausofa.org/sofa_ts_c.pdf>`_ document. It does the transform
 from UTC to all supported time scales (TAI, TCB, TCG, TDB, TT, UT1, UTC). This
 requires an observer location (here, latitude and longitude).
@@ -1074,7 +1074,7 @@ Apparent or mean sidereal time can be calculated using
 :meth:`~astropy.time.Time.sidereal_time`. The method returns a |Longitude|
 with units of hour angle, which by default is for the longitude corresponding to
 the location with which the |Time| object is initialized. Like the scale
-transformations, ERFA C-library routines are used under the hood, which support
+transformations, ERFA_ C-library routines are used under the hood, which support
 calculations following different IAU resolutions.
 
 Example
@@ -1303,7 +1303,7 @@ the TDB timescale::
 .. EXAMPLE START: Calculating Light Travel Time Using JPL Ephemerides
 
 By default, the light travel time is calculated using the position and velocity
-of Earth and the Sun from built-in `ERFA <https://github.com/liberfa/erfa>`_
+of Earth and the Sun from ERFA_
 routines, but you can also get more precise calculations using the JPL
 ephemerides (which are derived from dynamical models). An example using the JPL
 ephemerides is:
@@ -1580,11 +1580,10 @@ Reference/API
 Acknowledgments and Licenses
 ============================
 
-This package makes use of the `ERFA Software
-<https://github.com/liberfa/erfa>`_ ANSI C library. The copyright of the ERFA
+This package makes use of the PyERFA_ wrappers of the ERFA_ ANSI C library. The copyright of the ERFA_
 software belongs to the NumFOCUS Foundation. The library is made available
 under the terms of the "BSD-three clauses" license.
 
-The ERFA library is derived, with permission, from the International
-Astronomical Union's "Standards of Fundamental Astronomy" library,
+The ERFA_ library is derived, with permission, from the International
+Astronomical Union's "Standards of Fundamental Astronomy" (SOFA_) library,
 available from http://www.iausofa.org.

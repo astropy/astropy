@@ -6,3 +6,5 @@
 .. |Latitude| replace:: `~astropy.coordinates.Latitude`
 .. |baseframe| replace:: `~astropy.coordinates.BaseCoordinateFrame`
 .. |earthlocation| replace:: `~astropy.coordinates.EarthLocation`
+.. _ERFA: https://github.com/liberfa/erfa
+.. _PyERFA: https://github.com/liberfa/pyerfa

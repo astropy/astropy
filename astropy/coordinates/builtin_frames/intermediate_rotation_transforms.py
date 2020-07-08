@@ -7,11 +7,11 @@ rotations without aberration corrections or offsets.
 """
 
 import numpy as np
+import erfa
 
 from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference
 from astropy.coordinates.matrix_utilities import matrix_transpose
-from astropy import _erfa as erfa
 
 from .gcrs import GCRS, PrecessedGeocentric
 from .cirs import CIRS

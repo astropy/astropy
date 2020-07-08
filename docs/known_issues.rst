@@ -298,42 +298,6 @@ If so, you can go ahead and try running ``setup.py`` again (in the new
 terminal).
 
 
-Creating a Time Object Fails with ValueError After Upgrading ``astropy``
-------------------------------------------------------------------------
-
-In some cases, when users have upgraded ``astropy`` from an older version to v1.0
-or greater, they have run into the following crash when trying to create an
-`~astropy.time.Time` object::
-
-    >>> from astropy.time import Time
-    >>> datetime = Time('2012-03-01T13:08:00', scale='utc') # doctest: +SKIP
-    Traceback (most recent call last):
-    ...
-    ValueError: Input values did not match any of the formats where
-    the format keyword is optional [u'astropy_time', u'datetime',
-    u'jyear_str', u'iso', u'isot', u'yday', u'byear_str']
-
-This problem can occur when there is a version mismatch between the compiled
-ERFA library (included as part of ``astropy`` in most distributions), and
-the version of the ``astropy`` Python source.
-
-This can be from a number of causes. The most likely is that when installing the
-new ``astropy`` version, your previous ``astropy`` version was not fully uninstalled
-first, resulting in a mishmash of versions. Your best bet is to fully remove
-``astropy`` from its installation path and reinstall from scratch using your
-preferred installation method. Removing the old version may be achieved by
-removing the entire ``astropy/`` directory from within the
-``site-packages`` directory it is installed in. However, if in doubt, ask
-how best to uninstall packages from your preferred Python distribution.
-
-Another possible cause of this error, in particular for people developing on
-Astropy and installing from a source checkout, is that your Astropy build
-directory is unclean. To fix this, run ``git clean -dfx``. This removes
-*all* build artifacts from the repository that aren't normally tracked by git.
-Make sure before running this that there are no untracked files in the
-repository you intend to save. Then rebuild/reinstall from the clean repo.
-
-
 Failing Logging Tests When Running the Tests in IPython
 -------------------------------------------------------
 
