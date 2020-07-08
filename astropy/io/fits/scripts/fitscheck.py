@@ -114,6 +114,8 @@ def handle_options(args):
 
 
 def setup_logging():
+    log.handlers.clear()
+
     if OPTIONS.verbose:
         log.setLevel(logging.INFO)
     else:
