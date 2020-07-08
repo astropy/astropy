@@ -446,19 +446,19 @@ class TestAddPosition(SetupData):
         t = table_types.Table()
         t.add_column(self.a)
         t.add_column(self.b)
-        assert t.columns.keys() == ['a', 'b']
+        assert t.colnames == ['a', 'b']
 
     def test_7(self, table_types):
         self._setup(table_types)
         t = table_types.Table([self.a])
         t.add_column(self.b, t.index_column('a'))
-        assert t.columns.keys() == ['b', 'a']
+        assert t.colnames == ['b', 'a']
 
     def test_8(self, table_types):
         self._setup(table_types)
         t = table_types.Table([self.a])
         t.add_column(self.b, t.index_column('a') + 1)
-        assert t.columns.keys() == ['a', 'b']
+        assert t.colnames == ['a', 'b']
 
     def test_9(self, table_types):
         self._setup(table_types)
@@ -466,7 +466,7 @@ class TestAddPosition(SetupData):
         t.add_column(self.a)
         t.add_column(self.b, t.index_column('a') + 1)
         t.add_column(self.c, t.index_column('b'))
-        assert t.columns.keys() == ['a', 'c', 'b']
+        assert t.colnames == ['a', 'c', 'b']
 
     def test_10(self, table_types):
         self._setup(table_types)
@@ -475,7 +475,7 @@ class TestAddPosition(SetupData):
         ia = t.index_column('a')
         t.add_column(self.b, ia + 1)
         t.add_column(self.c, ia)
-        assert t.columns.keys() == ['c', 'a', 'b']
+        assert t.colnames == ['c', 'a', 'b']
 
 
 @pytest.mark.usefixtures('table_types')
@@ -488,7 +488,7 @@ class TestAddName(SetupData):
         # Check that we can override the name of the input column in the Table
         t.add_column(self.a, name='b')
         t.add_column(self.b, name='a')
-        assert t.columns.keys() == ['b', 'a']
+        assert t.colnames == ['b', 'a']
         # Check that we did not change the name of the input column
         assert self.a.info.name == 'a'
         assert self.b.info.name == 'b'
@@ -496,20 +496,20 @@ class TestAddName(SetupData):
         # Now test with an input column from another table
         t2 = table_types.Table()
         t2.add_column(t['a'], name='c')
-        assert t2.columns.keys() == ['c']
+        assert t2.colnames == ['c']
         # Check that we did not change the name of the input column
-        assert t.columns.keys() == ['b', 'a']
+        assert t.colnames == ['b', 'a']
 
         # Check that we can give a name if none was present
         col = table_types.Column([1, 2, 3])
         t.add_column(col, name='c')
-        assert t.columns.keys() == ['b', 'a', 'c']
+        assert t.colnames == ['b', 'a', 'c']
 
     def test_default_name(self, table_types):
         t = table_types.Table()
         col = table_types.Column([1, 2, 3])
         t.add_column(col)
-        assert t.columns.keys() == ['col0']
+        assert t.colnames == ['col0']
 
 
 @pytest.mark.usefixtures('table_types')
@@ -889,7 +889,7 @@ class TestRemove(SetupData):
     def test_1(self, table_types):
         self._setup(table_types)
         self.t.remove_columns('a')
-        assert self.t.columns.keys() == []
+        assert self.t.colnames == []
         assert self.t.as_array().size == 0
         # Regression test for gh-8640
         assert not self.t
@@ -900,7 +900,7 @@ class TestRemove(SetupData):
         self._setup(table_types)
         self.t.add_column(self.b)
         self.t.remove_columns('a')
-        assert self.t.columns.keys() == ['b']
+        assert self.t.colnames == ['b']
         assert self.t.dtype.names == ('b',)
         assert np.all(self.t['b'] == np.array([4, 5, 6]))
 
@@ -1004,7 +1004,7 @@ class TestRemove(SetupData):
     def test_delitem1(self, table_types):
         self._setup(table_types)
         del self.t['a']
-        assert self.t.columns.keys() == []
+        assert self.t.colnames == []
         assert self.t.as_array().size == 0
         # Regression test for gh-8640
         assert not self.t
@@ -1034,7 +1034,7 @@ class TestKeep(SetupData):
         self._setup(table_types)
         t = table_types.Table([self.a, self.b])
         t.keep_columns([])
-        assert t.columns.keys() == []
+        assert t.colnames == []
         assert t.as_array().size == 0
         # Regression test for gh-8640
         assert not t
@@ -1045,7 +1045,7 @@ class TestKeep(SetupData):
         self._setup(table_types)
         t = table_types.Table([self.a, self.b])
         t.keep_columns('b')
-        assert t.columns.keys() == ['b']
+        assert t.colnames == ['b']
         assert t.dtype.names == ('b',)
         assert np.all(t['b'] == np.array([4, 5, 6]))
 
@@ -1057,7 +1057,7 @@ class TestRename(SetupData):
         self._setup(table_types)
         t = table_types.Table([self.a])
         t.rename_column('a', 'b')
-        assert t.columns.keys() == ['b']
+        assert t.colnames == ['b']
         assert t.dtype.names == ('b',)
         assert np.all(t['b'] == np.array([1, 2, 3]))
 
@@ -1066,7 +1066,7 @@ class TestRename(SetupData):
         t = table_types.Table([self.a, self.b])
         t.rename_column('a', 'c')
         t.rename_column('b', 'a')
-        assert t.columns.keys() == ['c', 'a']
+        assert t.colnames == ['c', 'a']
         assert t.dtype.names == ('c', 'a')
         if t.masked:
             assert t.mask.dtype.names == ('c', 'a')
@@ -1078,7 +1078,7 @@ class TestRename(SetupData):
         t = table_types.Table([self.a, self.b])
         t['a'].name = 'c'
         t['b'].name = 'a'
-        assert t.columns.keys() == ['c', 'a']
+        assert t.colnames == ['c', 'a']
         assert t.dtype.names == ('c', 'a')
         assert np.all(t['c'] == np.array([1, 2, 3]))
         assert np.all(t['a'] == np.array([4, 5, 6]))
@@ -2800,12 +2800,14 @@ def test_iterrows():
         t.iterrows('d')
 
 
-def test_values():
+def test_values_and_types():
     dat = [(1, 2, 3),
            (4, 5, 6),
            (7, 8, 6)]
     t = table.Table(rows=dat, names=('a', 'b', 'c'))
-    assert isinstance(t.values(), list)
+    assert isinstance(t.values(), type(OrderedDict().values()))
+    assert isinstance(t.columns.values(), type(OrderedDict().values()))
+    assert isinstance(t.columns.keys(), type(OrderedDict().keys()))
     for i in t.values():
         assert isinstance(i, table.column.Column)
 

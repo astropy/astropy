@@ -81,6 +81,9 @@ class Index:
         from .table import Table, Column
         from astropy.time import Time
 
+        if columns is not None:
+            columns = list(columns)
+
         if engine is not None and not isinstance(engine, type):
             # create from data
             self.engine = engine.__class__
