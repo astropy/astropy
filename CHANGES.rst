@@ -53,10 +53,6 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
-- Change ``Table.columns.keys()`` and ``Table.columns.values()`` to both return
-  generators instead of a list. This matches the behavior for Python ``dict``
-  objects. [#10543]
-
 - Allow initializing a ``Table`` using a list of ``names`` in conjunction with
   a ``dtype`` from a numpy structured array. The list of ``names`` overrides the
   names specified in the ``dtype``. [#10419]
