@@ -46,9 +46,10 @@ def test_wtbarr_ndim(tab_wcs_2di):
 def test_wtbarr_print(tab_wcs_2di, capfd):
     tab_wcs_2di.wcs.wtb[0].print_contents()
     captured = capfd.readouterr()
+    c = captured.out.lstrip('\n')  # see #10487
     s = str(tab_wcs_2di.wcs.wtb[0])
     lines = s.split('\n')
-    assert captured.out == s
+    assert c == s
     assert '     i: 1' == lines[0]
     assert '     m: 1' == lines[1]
     assert '  kind: c' == lines[2]
