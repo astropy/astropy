@@ -75,7 +75,7 @@ def table_info(tbl, option='attributes', out=''):
 
     outlines = ['<' + ' '.join(descr_vals) + '>']
 
-    cols = tbl.columns.values()
+    cols = list(tbl.columns.values())
     if tbl.colnames:
         infos = []
         for col in cols:
