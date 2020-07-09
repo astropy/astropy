@@ -178,9 +178,17 @@ def update(filename):
     """
 
     output_verify = 'silentfix' if OPTIONS.compliance else 'ignore'
-    with fits.open(filename, do_not_scale_image_data=True,
-                   checksum=OPTIONS.checksum_kind, mode='update') as hdulist:
-        hdulist.flush(output_verify=output_verify)
+
+    # For unit tests we reset temporarily the warning filters. Indeed, before
+    # updating the checksums, fits.open will verify the existing checksums and
+    # raise warnings, which are later catched and converted to log.warning...
+    # which is an issue when testing, using the "error" action to convert
+    # warnings to exceptions.
+    with warnings.catch_warnings():
+        warnings.resetwarnings()
+        with fits.open(filename, do_not_scale_image_data=True,
+                       checksum=OPTIONS.checksum_kind, mode='update') as hdulist:
+            hdulist.flush(output_verify=output_verify)
 
 
 def process_file(filename):
