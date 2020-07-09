@@ -791,11 +791,10 @@ def test_printwcs(capsys):
         captured = capsys.readouterr()
         assert 'WCS Keywords' in captured.out
     h = get_pkg_data_contents('data/3d_cd.hdr', encoding='binary')
-    with pytest.warns(AstropyUserWarning):
-        w = wcs.WCS(h)
-        w.printwcs()
-        captured = capsys.readouterr()
-        assert 'WCS Keywords' in captured.out
+    w = wcs.WCS(h)
+    w.printwcs()
+    captured = capsys.readouterr()
+    assert 'WCS Keywords' in captured.out
 
 
 def test_invalid_spherical():
