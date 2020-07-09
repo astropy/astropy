@@ -76,7 +76,7 @@ else:
 
 def _check_requirement(name, minimum_version):
     """
-    Check that Numpy is installed and it is of the minimum version we
+    Check that ``name`` is installed and it is of the ``minimum_version`` we
     require.
     """
     # Note: We could have used distutils.version for this comparison,
@@ -93,7 +93,7 @@ def _check_requirement(name, minimum_version):
         requirement_met = version.split('.') >= minimum_version.split('.')
 
     if not requirement_met:
-        msg = (f"{name} version {__minimum_numpy_version__} or later must "
+        msg = (f"{name} version {minimum_version} or later must "
                f"be installed to use Astropy. {import_fail}")
         raise ImportError(msg)
 
