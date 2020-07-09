@@ -46,7 +46,7 @@ env:
 
         # For installing without tox, we can rely mostly on what Debian already
         # includes.  This is only used if SETUP_METHOD='apt'.
-        - APT_DEPENDENCIES="python3-pip python3-dev python3-venv python3-setuptools cython3 ipython3 python3-jinja2 python3-numpy python3-pytest-astropy python3-pytest-cov python3-pytest-xdist python3-pytest-filter-subpackage python3-objgraph python3-coverage python3-attr tzdata"
+        - APT_DEPENDENCIES="python3-pip python3-dev libpython3.8-dev python3.8-dev libexpat1-dev zlib1g-dev libc6-dev python3-venv python3-setuptools cython3 python3-astropy python3-numpy python3-pytest-astropy ipython3 python3-pytest-cov python3-pytest-xdist python3-objgraph python3-coverage python3-attr python3-colorama tzdata"
 
         # The following is needed to avoid issues if e.g. Matplotlib tries
         # to open a GUI window.
@@ -196,6 +196,13 @@ matrix:
           stage: Cron tests
           env: SETUP_METHOD='apt'
 
+        # Temporarily with amd64 and apt, to check.
+        - name: amd64 architecture with apt
+          language: c
+          dist: bionic
+          stage: Initial tests
+          env: SETUP_METHOD='apt'
+
         # Regularly make sure that astropy can be used in application bundles
         - language: python
           python: 3.8
@@ -243,7 +250,7 @@ install:
         curl https://ftp-master.debian.org/keys/archive-key-10.asc | sudo apt-key add -;
         echo "deb http://ftp.us.debian.org/debian testing main" | sudo tee -a /etc/apt/sources.list;
         sudo apt-get -qq update;
-        sudo apt-get install -y --no-install-recommends ${APT_DEPENDENCIES};
+        sudo apt-get install -t testing -y --no-install-recommends ${APT_DEPENDENCIES};
       fi
 
 script:
@@ -254,7 +261,7 @@ script:
         python3 -m venv --system-site-packages tests;
         source tests/bin/activate;
         pip3 install -e .[test];
-        pytest-3;
+        python3 -m pytest;
       fi
 
 after_success:
