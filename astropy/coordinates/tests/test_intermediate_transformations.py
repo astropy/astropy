@@ -16,6 +16,7 @@ from astropy.coordinates import (
     CartesianDifferential, SphericalRepresentation, UnitSphericalRepresentation,
     HCRS, HeliocentricMeanEcliptic, TEME)
 from astropy.utils import iers
+from astropy.utils.exceptions import AstropyWarning
 
 from .utils import randomly_sample_sphere
 from astropy.coordinates.builtin_frames.utils import get_jd12
