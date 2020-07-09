@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import re
 import pytest
 from . import FitsTestCase
 from astropy.io.fits.scripts import fitscheck
@@ -46,7 +47,7 @@ class TestFitscheck(FitsTestCase):
         stdout, stderr = capsys.readouterr()
         assert stderr == ''
 
-    def test_overwrite_invalid(self, capsys):
+    def test_overwrite_invalid(self, caplog):
         """
         Tests that invalid checksum or datasum are overwriten when the file is
         saved.
@@ -65,13 +66,14 @@ class TestFitscheck(FitsTestCase):
             hdul.writeto(testfile)
 
         assert fitscheck.main([testfile]) == 1
-        stdout, stderr = capsys.readouterr()
-        assert 'BAD' in stderr
-        assert 'Checksum verification failed' in stderr
+        assert re.match(r'BAD.*Checksum verification failed for HDU',
+                        caplog.records[0].message)
+        caplog.clear()
 
         assert fitscheck.main([testfile, '--write', '--force']) == 1
-        stdout, stderr = capsys.readouterr()
-        assert 'BAD' in stderr
+        assert re.match(r'BAD.*Checksum verification failed for HDU',
+                        caplog.records[0].message)
+        caplog.clear()
 
         # check that the file was fixed
         assert fitscheck.main([testfile]) == 0
