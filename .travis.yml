@@ -46,7 +46,10 @@ env:
 
         # For installing without tox, we can rely mostly on what Debian already
         # includes.  This is only used if SETUP_METHOD='apt'.
-        - APT_DEPENDENCIES="python3-pip python3-dev libpython3.8-dev python3.8-dev libexpat1-dev zlib1g-dev libc6-dev python3-venv python3-setuptools cython3 python3-astropy python3-numpy python3-pytest-astropy ipython3 python3-pytest-cov python3-pytest-xdist python3-objgraph python3-coverage python3-attr python3-colorama tzdata"
+        # Note that this also means it can be used to test whether astropy can
+        # properly use the system libraries, since the python3-astropy package
+        # pulls those in (i.e., one can and should use ASTROPY_USE_SYSTEM_ALL=1).
+        - APT_DEPENDENCIES="python3-pip python3-dev libpython3.8-dev python3.8-dev libexpat1-dev zlib1g-dev libc6-dev python3-venv python3-setuptools cython3 python3-astropy python3-numpy wcslib-dev libcfitsio-dev python3-pytest-astropy ipython3 python3-pytest-cov python3-pytest-xdist python3-objgraph python3-coverage python3-attr python3-colorama tzdata"
 
         # The following is needed to avoid issues if e.g. Matplotlib tries
         # to open a GUI window.
@@ -187,6 +190,7 @@ matrix:
           dist: bionic
           stage: Cron tests
           env: SETUP_METHOD='apt'
+               ASTROPY_USE_SYSTEM_ALL=1
 
         # And with an arm64 processor, again with apt for convenience.
         - name: arm64 architecture with apt
@@ -195,6 +199,7 @@ matrix:
           dist: bionic
           stage: Cron tests
           env: SETUP_METHOD='apt'
+               ASTROPY_USE_SYSTEM_ALL=1
 
         # Temporarily with amd64 and apt, to check.
         - name: amd64 architecture with apt
@@ -202,6 +207,7 @@ matrix:
           dist: bionic
           stage: Initial tests
           env: SETUP_METHOD='apt'
+               ASTROPY_USE_SYSTEM_ALL=1
 
         # Regularly make sure that astropy can be used in application bundles
         - language: python
