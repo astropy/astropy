@@ -32,6 +32,7 @@ def test_sun():
     assert np.all(np.abs(gcrs2.dec - [23.5, 0, -23.5]*u.deg) < 1*u.deg)
 
 
+@pytest.mark.xfail
 def test_constellations(recwarn):
     from astropy.coordinates import ICRS, FK5, SkyCoord
     from astropy.coordinates.funcs import get_constellation
