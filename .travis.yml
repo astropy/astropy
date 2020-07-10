@@ -46,7 +46,7 @@ env:
 
         # For installing without tox, we can rely mostly on what Debian already
         # includes.  This is only used if SETUP_METHOD='apt'.
-        - APT_DEPENDENCIES="python3-pip python3-dev python3-venv python3-setuptools cython3 ipython3 python3-jinja2 python3-astropy python3-pytest-cov python3-pytest-xdist python3-objgraph python3-coverage python3-attr python3-colorama tzdata"
+        - APT_DEPENDENCIES="python3-pip python3-dev python3-venv cython3 ipython3 python3-jinja2 python3-astropy python3-pytest-xdist python3-objgraph tzdata"
 
         # The following is needed to avoid issues if e.g. Matplotlib tries
         # to open a GUI window.
@@ -239,12 +239,18 @@ install:
         source ci-helpers/travis/setup_conda.sh;
       fi
     # For APT key updates, see https://ftp-master.debian.org/keys.html
+    # The '~i ?name(python3.*)' in the install command is to upgrade
+    # all python3 packages already installed in the travis Ubuntu
+    # version (if the version in Debian testing is newer); this avoids
+    # version mismatches for optional dependencies (e.g.,
+    # python3-colorama), or missing version controls (e.g., for
+    # python3-attr).
     - if [ $SETUP_METHOD == 'apt' ]; then
         curl https://ftp-master.debian.org/keys/archive-key-10.asc | sudo apt-key add -;
         echo "deb http://ftp.us.debian.org/debian testing main" | sudo tee -a /etc/apt/sources.list;
         sudo apt-get -qq update;
-        sudo apt-get install -y --no-install-recommends ${APT_DEPENDENCIES};
-      fi
+        sudo apt-get install -y --no-install-recommends '~i ?name(python3.*)' ${APT_DEPENDENCIES};
+     fi
 
 script:
     - if [ $SETUP_METHOD == 'tox' ]; then
