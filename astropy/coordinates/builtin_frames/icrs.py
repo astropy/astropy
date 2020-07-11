@@ -22,3 +22,9 @@ class ICRS(BaseRADecFrame):
     the references provided in the  :ref:`astropy-coordinates-seealso` section
     of the documentation.
     """
+    # Use if ICRS args ra, dec, pm_ra_codec, om_dec, distance, rad_velocity  are all zero
+    # Avoids repetitive code
+    @classmethod
+    def zeros(cls):
+        return ICRS(0, 0, 0, 0, 0, 0)
+
