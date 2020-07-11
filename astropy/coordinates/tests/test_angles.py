@@ -5,6 +5,7 @@
 import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
+import threading
 
 from astropy.coordinates.angles import Longitude, Latitude, Angle
 from astropy import units as u
@@ -994,10 +995,10 @@ def test_angle_with_cds_units_enabled():
     from astropy.units import cds
     # the problem is with the parser, so remove it temporarily
     from astropy.coordinates.angle_utilities import _AngleParser
-    del _AngleParser._parser
+    del _AngleParser._thread_local._parser
     with cds.enable():
         Angle('5d')
-    del _AngleParser._parser
+    del _AngleParser._thread_local._parser
     Angle('5d')
 
 
@@ -1009,3 +1010,15 @@ def test_longitude_nan():
 def test_latitude_nan():
     # Check that passing a NaN to Latitude doesn't raise a warning
     Latitude([0, np.nan, 1] * u.deg)
+
+
+def test_angle_multithreading():
+    """
+    Regression test for issue #7168
+    """
+    angles = ['00:00:00']*10000
+
+    def parse_test(i=0):
+        Angle(angles, unit='hour')
+    for i in range(10):
+        threading.Thread(target=parse_test, args=(i,)).start()
