@@ -250,7 +250,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         types = []
         # TODO: need to support e.g. TT(TAI)
         for ctype in self.wcs.ctype:
-            if ctype.startswith(('UT(', 'TT(')):
+            if ctype.upper().startswith(('UT(', 'TT(')):
                 types.append('time')
             else:
                 ctype_name = ctype.split('-')[0]
@@ -259,7 +259,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                         types.append(custom_mapping[ctype_name])
                         break
                 else:
-                    types.append(CTYPE_TO_UCD1.get(ctype_name, None))
+                    types.append(CTYPE_TO_UCD1.get(ctype_name.upper(), None))
         return types
 
     @property
@@ -396,6 +396,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             # Find index of spectral coordinate
             ispec = self.wcs.spec
             ctype = self.wcs.ctype[ispec][:4]
+            ctype = ctype.upper()
 
             kwargs = {}
 
