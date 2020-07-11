@@ -353,6 +353,9 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+- Add .upper() to ctype or ctype names to wcsapi/fitwcs.py to mitigate bugs from
+  unintended lower/upper case issues [#10557]
+
 Other Changes and Additions
 ---------------------------
 
