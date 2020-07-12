@@ -18,6 +18,7 @@ of data to another.
 """
 
 import os
+import threading
 from warnings import warn
 
 import numpy as np
@@ -56,6 +57,10 @@ class _AngleParser:
     This class should not be used directly.  Use `parse_angle`
     instead.
     """
+    # For safe multi-threaded operation all class (but not instance)
+    # members that carry state should be thread-local. They are stored
+    # in the following class member
+    _thread_local = threading.local()
 
     def __init__(self):
         # TODO: in principle, the parser should be invalidated if we change unit
@@ -65,8 +70,9 @@ class _AngleParser:
         # generate the parser for each release (as done for unit formats).
         # For some discussion of this problem, see
         # https://github.com/astropy/astropy/issues/5350#issuecomment-248770151
-        if '_parser' not in _AngleParser.__dict__:
-            _AngleParser._parser, _AngleParser._lexer = self._make_parser()
+        if '_parser' not in _AngleParser._thread_local.__dict__:
+            (_AngleParser._thread_local._parser,
+             _AngleParser._thread_local._lexer) = self._make_parser()
 
     @classmethod
     def _get_simple_unit_names(cls):
@@ -334,8 +340,8 @@ class _AngleParser:
 
     def parse(self, angle, unit, debug=False):
         try:
-            found_angle, found_unit = self._parser.parse(
-                angle, lexer=self._lexer, debug=debug)
+            found_angle, found_unit = self._thread_local._parser.parse(
+                angle, lexer=self._thread_local._lexer, debug=debug)
         except ValueError as e:
             if str(e):
                 raise ValueError("{} in angle {!r}".format(
