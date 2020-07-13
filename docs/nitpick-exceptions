@@ -77,7 +77,6 @@ py:obj distutils.version.LooseVersion
 py:obj pkg_resources.parse_version
 py:class pandas.DataFrame
 
-
 # Pending on python docs links issue #11975
 py:class list
 py:obj list.append
@@ -107,3 +106,6 @@ py:class v, remove specified key and return the corresponding value.
 py:class None.  Update D from dict/iterable E and F.
 py:class an object providing a view on D's values
 py:class a shallow copy of D
+
+# This extends the numpydoc list above to fix lincheck warning
+py:class reference target not found: (k, v)
