@@ -2,9 +2,11 @@
 
 import re
 import pytest
+import warnings
 from . import FitsTestCase
 from astropy.io.fits.scripts import fitscheck
 from astropy.io import fits
+from astropy.utils.exceptions import AstropyUserWarning
 
 
 class TestFitscheck(FitsTestCase):
@@ -70,9 +72,10 @@ class TestFitscheck(FitsTestCase):
                         caplog.records[0].message)
         caplog.clear()
 
-        assert fitscheck.main([testfile, '--write', '--force']) == 1
-        assert re.match(r'BAD.*Checksum verification failed for HDU',
-                        caplog.records[0].message)
+        with pytest.warns(AstropyUserWarning):
+            assert fitscheck.main([testfile, '--write', '--force']) == 1
+            assert re.match(r'BAD.*Checksum verification failed for HDU',
+                            caplog.records[0].message)
         caplog.clear()
 
         # check that the file was fixed
