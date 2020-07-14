@@ -1009,6 +1009,8 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- Corrected definition of parsec to 648 000 / pi AU following IAU 2015 B2 [#10569]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
