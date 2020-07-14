@@ -4,6 +4,7 @@
 from astropy.utils.decorators import format_doc
 from astropy.coordinates.baseframe import base_doc
 from .baseradec import BaseRADecFrame, doc_components
+from astropy import units as u
 
 __all__ = ['ICRS']
 
@@ -22,9 +23,14 @@ class ICRS(BaseRADecFrame):
     the references provided in the  :ref:`astropy-coordinates-seealso` section
     of the documentation.
     """
+
     # Use if ICRS args ra, dec, pm_ra_codec, om_dec, distance, rad_velocity  are all zero
     # Avoids repetitive code
     @classmethod
     def zeros(cls):
-        return ICRS(0, 0, 0, 0, 0, 0)
-
+        """
+        Returns the ICRS class initialized with 6 zeros as arguments
+        """
+        return ICRS(ra=0 * u.degree, dec=0 * u.degree,
+                    pm_ra_cosdec=0 * u.mas / u.yr, pm_dec=0 * u.mas / u.yr,
+                    distance=0 * u.pc, radial_velocity=0 * u.km / u.s)

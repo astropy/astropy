@@ -16,6 +16,10 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Allow user to call ``ICRS.zeros()`` to construct ``ICRS`` class with arguments
+  ``ra``, ``dec``, ``pm_ra_cosdec``, ``pm_dec``, ``distance``, and
+  ``radial_velocity`` equal to 0. [#10559]
+
 - Numpy functions that broadcast, change shape, or index (like ``np.broadcast_to``,
   ``np.rot90``, or ``np.roll``) now work on coordinates, frames, and
   representations. [#10337]

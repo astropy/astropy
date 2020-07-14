@@ -1473,3 +1473,19 @@ def test_galactocentric_references(reset_galactocentric_defaults):
                 assert k not in galcen_custom.frame_attribute_references
             else:
                 assert k in galcen_custom.frame_attribute_references
+
+
+def test_icrs_zeros():
+    # see https://github.com/astropy/astropy/issues/10241 for enhancement context
+    # test to see if using zeros() class method results in same expected output
+    from astropy.coordinates.builtin_frames import ICRS
+    i = ICRS.zeros()
+    assert repr(i) == '<ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)\n    (0., 0., 0.)\n ' \
+            '(pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)\n' \
+            '    (0., 0., 0.)>'
+    assert i.ra == 0
+    assert i.dec == 0
+    assert i.distance == 0
+    assert i.pm_ra_cosdec == 0
+    assert i.pm_dec == 0
+    assert i.radial_velocity == 0
