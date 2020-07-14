@@ -219,14 +219,14 @@ def test_is_equivalent():
 
 def test_parallax():
     a = u.arcsecond.to(u.pc, 10, u.parallax())
-    assert_allclose(a, 0.10)
+    assert_allclose(a, 0.10, rtol=1.e-12)
     b = u.pc.to(u.arcsecond, a, u.parallax())
-    assert_allclose(b, 10)
+    assert_allclose(b, 10, rtol=1.e-12)
 
     a = u.arcminute.to(u.au, 1, u.parallax())
-    assert_allclose(a, 3437.7467916)
+    assert_allclose(a, 3437.746770785, rtol=1.e-12)
     b = u.au.to(u.arcminute, a, u.parallax())
-    assert_allclose(b, 1)
+    assert_allclose(b, 1, rtol=1.e-12)
 
     val = (-1 * u.mas).to(u.pc, u.parallax())
     assert np.isnan(val.value)
@@ -237,7 +237,7 @@ def test_parallax():
 
 def test_parallax2():
     a = u.arcsecond.to(u.pc, [0.1, 2.5], u.parallax())
-    assert_allclose(a, [10, 0.4])
+    assert_allclose(a, [10, 0.4], rtol=1.e-12)
 
 
 def test_spectral():
