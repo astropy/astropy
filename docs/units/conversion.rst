@@ -18,7 +18,7 @@ new units are returned.
 
   >>> from astropy import units as u
   >>> u.pc.to(u.m, 3.26)
-  1.0059308915583043e+17
+  1.0059308915661856e+17
 
 This converts 3.26 parsecs to meters.
 
