@@ -750,6 +750,8 @@ astropy.config
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 
+- Corrected definition of parsec to 648 000 / pi AU following IAU 2015 B2 [#10569]
+
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
@@ -901,6 +903,8 @@ astropy.uncertainty
 
 astropy.units
 ^^^^^^^^^^^^^
+
+- Refined test_parallax to resolve difference between 2012 and 2015 definitions. [#10569]
 
 astropy.utils
 ^^^^^^^^^^^^^

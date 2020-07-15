@@ -3,6 +3,7 @@
 import copy
 
 import pytest
+import numpy as np
 
 from astropy.constants import Constant
 from astropy.units import Quantity as Q
@@ -93,6 +94,16 @@ def test_b_wien():
     t = 5778 * u.K
     w = (b_wien / t).to(u.nm)
     assert round(w.value) == 502
+
+
+def test_pc():
+    """Parsec is defined to use small-angle limit per IAU 2015 Resolution B 2.
+    iau2012 version still uses tan(parallax).
+    """
+    from astropy.constants import iau2012
+    from astropy import units as u
+    plx = np.radians(1 / 3600)
+    assert np.allclose(u.pc.to('m') / iau2012.pc.si.value, np.tan(plx) / plx, rtol=1.e-14, atol=0)
 
 
 def test_masses():
