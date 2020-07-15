@@ -1056,6 +1056,25 @@ Note that two |Time| objects with a different ``scale`` can compare equally
 but still have different hash keys. This a practical consideration driven
 in by performance, but in most cases represents a desirable behavior.
 
+
+Printing Time Arrays
+^^^^^^^^^^^^^^^^^^^^
+
+If your ``times`` array contains a lot of elements, the ``value`` argument will
+display all the elements of the |Time| object ``t`` when it is called or
+printed. To control the number of elements to be displayed, set the
+``threshold`` argument with ``np.printoptions`` as follows:
+
+    >>> many_times = np.arange(1000)
+    >>> t = Time(many_times, format='cxcsec')
+    >>> with np.printoptions(threshold=10):
+    ...     print(repr(t))
+    ...     print(t.iso)
+    <Time object: scale='tt' format='cxcsec' value=[  0.   1.   2. ... 997. 998. 999.]>
+    ['1998-01-01 00:00:00.000' '1998-01-01 00:00:01.000'
+     '1998-01-01 00:00:02.000' ... '1998-01-01 00:16:37.000'
+     '1998-01-01 00:16:38.000' '1998-01-01 00:16:39.000']
+
 Sidereal Time
 -------------
 
