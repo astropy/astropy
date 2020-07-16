@@ -314,20 +314,6 @@ def test_fix_inputs(tmpdir):
         helpers.assert_roundtrip_tree(tree, tmpdir)
 
 
-def test_fix_inputs_type():
-    with pytest.raises(TypeError):
-        tree = {
-        'compound': fix_inputs(3, {'x': 45})
-        }
-        helpers.assert_roundtrip_tree(tree, tmpdir)
-
-    with pytest.raises(AttributeError):
-        tree = {
-        'compound': astmodels.Pix2Sky_TAN() & {'x': 45}
-        }
-        helpers.assert_roundtrip_tree(tree, tmpdir)
-
-
 comp_model = custom_and_analytical_inverse()
 
 
