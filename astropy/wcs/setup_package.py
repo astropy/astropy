@@ -8,8 +8,8 @@ import shutil
 import sys
 from collections import defaultdict
 
-from distutils.core import Extension
-from distutils.dep_util import newer_group
+from setuptools import Extension
+from setuptools.dep_util import newer_group
 
 import numpy
 

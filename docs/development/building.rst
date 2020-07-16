@@ -15,7 +15,7 @@ extensions to be defined inside each sub-package.
 The way extension-helpers works is that it looks for ``setup_package.py`` files
 anywhere in the package, and then looks for a function called ``get_extensions``
 inside each of these files. This function should return a list of
-:class:`distutils.core.Extension` objects, and these are combined into an
+``setuptools.Extension`` objects, and these are combined into an
 overall list of extensions to build.
 
 For certain string-parsing tasks, Astropy uses the

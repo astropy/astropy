@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import os
 import sys
 
@@ -11,7 +10,7 @@ if __name__ == '__main__':
 
     from astropy import wcs
     import numpy as np
-    from distutils.core import setup, Extension
+    from setuptools import setup, Extension
 
     if sys.platform == 'win32':
         # These are written into wcsconfig.h, but that file is not
