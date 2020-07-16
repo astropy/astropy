@@ -2,7 +2,7 @@
 
 import os
 from collections import defaultdict
-from distutils.core import Extension
+from setuptools import Extension
 from os.path import join
 
 import sys

@@ -10,10 +10,10 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from distutils import log
 from contextlib import contextmanager
 
 from setuptools import Command
+from distutils import log
 
 
 @contextmanager

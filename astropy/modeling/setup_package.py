@@ -4,7 +4,7 @@ import os
 from os.path import join
 from collections import defaultdict
 
-from distutils.core import Extension
+from setuptools import Extension
 
 from extension_helpers import import_file
 

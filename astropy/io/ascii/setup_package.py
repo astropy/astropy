@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license
 
 import os
-from distutils.extension import Extension
+from setuptools import Extension
 
 import numpy
 
