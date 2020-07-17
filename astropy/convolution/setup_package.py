@@ -2,16 +2,16 @@
 
 import os
 import sys
-from distutils.extension import Extension
+from setuptools import Extension
 
 import numpy
 
 C_CONVOLVE_PKGDIR = os.path.relpath(os.path.dirname(__file__))
 
 SRC_FILES = [os.path.join(C_CONVOLVE_PKGDIR, filename)
-              for filename in ['src/convolve.c']]
+             for filename in ['src/convolve.c']]
 
-extra_compile_args=['-UNDEBUG']
+extra_compile_args = ['-UNDEBUG']
 if not sys.platform.startswith('win'):
     extra_compile_args.append('-fPIC')
 

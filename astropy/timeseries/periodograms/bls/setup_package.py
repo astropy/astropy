@@ -3,7 +3,7 @@
 import os
 from os.path import join
 
-from distutils.core import Extension
+from setuptools import Extension
 
 import numpy
 
