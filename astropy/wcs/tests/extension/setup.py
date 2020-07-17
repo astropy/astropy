@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import os
 import sys
 
@@ -9,9 +8,10 @@ if __name__ == '__main__':
     sys.argv = sys.argv[:-1]
     sys.path.insert(0, astropy_path)
 
-    from astropy import wcs
+    from setuptools import setup, Extension
+
     import numpy as np
-    from distutils.core import setup, Extension
+    from astropy import wcs
 
     if sys.platform == 'win32':
         # These are written into wcsconfig.h, but that file is not
