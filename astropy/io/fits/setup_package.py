@@ -4,7 +4,7 @@ import os
 import sys
 from collections import defaultdict
 
-from distutils.core import Extension
+from setuptools import Extension
 from glob import glob
 
 import numpy
