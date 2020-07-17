@@ -4,13 +4,14 @@ import pytest
 
 import numpy as np
 from numpy.testing import assert_equal, assert_allclose
-from astropy.wcs.wcs import WCS, FITSFixedWarning
+from astropy.wcs.wcs import FITSFixedWarning
 from astropy.wcs import WCS
 from astropy.io.fits import Header
 from astropy.io.fits.verify import VerifyWarning
 from astropy.coordinates import SkyCoord, Galactic
 from astropy.units import Quantity
-from astropy.wcs.wcsapi.wrappers.sliced_wcs import SlicedLowLevelWCS, sanitize_slices, combine_slices
+from astropy.wcs.wcsapi.wrappers.sliced_wcs import (
+    SlicedLowLevelWCS, sanitize_slices, combine_slices)
 import astropy.units as u
 
 # To test the slicing we start off from standard FITS WCS
