@@ -26,17 +26,17 @@ if __name__ == '__main__':
     else:
         define_macros = []
 
-    try:
-        numpy_include = np.get_include()
-    except AttributeError:
-        numpy_include = np.get_numpy_include()
-
+    # Below, we include a typical system include in case astropy was
+    # installed with ASTROPY_USE_SYSTEM_WCSLIB.  Good enough for the
+    # test, but a proper implementation would need to look better at
+    # where wcslib might be stalled.
     wcsapi_test_module = Extension(
         'wcsapi_test',
         include_dirs=[
-            numpy_include,
+            np.get_include(),
             os.path.join(wcs.get_include(), 'astropy_wcs'),
-            os.path.join(wcs.get_include(), 'wcslib')
+            os.path.join(wcs.get_include(), 'wcslib'),
+            os.path.join('/usr/include', 'wcslib'),
         ],
         # Use the *full* name to the c file, since we can't change the cwd
         # during testing
