@@ -201,14 +201,6 @@ matrix:
           env: SETUP_METHOD='apt'
                ASTROPY_USE_SYSTEM_ALL=1
 
-        # Temporarily with amd64 and apt, to check.
-        - name: amd64 architecture with apt
-          language: c
-          dist: bionic
-          stage: Initial tests
-          env: SETUP_METHOD='apt'
-               ASTROPY_USE_SYSTEM_ALL=1
-
         # Regularly make sure that astropy can be used in application bundles
         - language: python
           python: 3.8
