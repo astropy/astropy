@@ -13,7 +13,7 @@ import tempfile
 from contextlib import contextmanager
 
 from setuptools import Command
-from distutils import log
+from astropy.logger import log
 
 
 @contextmanager
