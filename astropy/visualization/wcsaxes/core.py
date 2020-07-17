@@ -433,6 +433,7 @@ class WCSAxes(Axes):
         self.coords.frame.draw(renderer)
 
     def draw(self, renderer, **kwargs):
+        """Draw the axes."""
 
         # In Axes.draw, the following code can result in the xlim and ylim
         # values changing, so we need to force call this here to make sure that
@@ -465,6 +466,7 @@ class WCSAxes(Axes):
     # Matplotlib internally sometimes specifies e.g. set_xlabel(xlabel=...).
 
     def set_xlabel(self, xlabel=None, labelpad=1, loc=None, **kwargs):
+        """Set x-label."""
         if xlabel is None:
             xlabel = kwargs.pop('label', None)
             if xlabel is None:
@@ -476,6 +478,7 @@ class WCSAxes(Axes):
                 break
 
     def set_ylabel(self, ylabel=None, labelpad=1, loc=None, **kwargs):
+        """Set y-label"""
         if ylabel is None:
             ylabel = kwargs.pop('label', None)
             if ylabel is None:
