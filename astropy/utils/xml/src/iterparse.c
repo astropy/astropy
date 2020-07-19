@@ -22,6 +22,7 @@
  *     library.
  ******************************************************************************/
 
+#include <stdio.h>
 #include <Python.h>
 #include "structmember.h"
 
@@ -384,25 +385,24 @@ startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
                 goto fail;
             }
             do {
-                if (*(*(att_ptr + 1)) != 0) {
-                    key = PyUnicode_FromString(*att_ptr);
-                    if (key == NULL) {
-                        goto fail;
-                    }
-                    val = PyUnicode_FromString(*(att_ptr + 1));
-                    if (val == NULL) {
-                        Py_DECREF(key);
-                        goto fail;
-                    }
-                    if (PyDict_SetItem(pyatts, key, val)) {
-                        Py_DECREF(key);
-                        Py_DECREF(val);
-                        goto fail;
-                    }
+                key = PyUnicode_FromString(*att_ptr);
+                if (key == NULL) {
+                    goto fail;
+                }
+                val = PyUnicode_FromString(*(att_ptr + 1));
+                if (val == NULL) {
+                    Py_DECREF(key);
+                    goto fail;
+                }
+                if (PyDict_SetItem(pyatts, key, val)) {
                     Py_DECREF(key);
                     Py_DECREF(val);
-                    key = val = NULL;
+                    goto fail;
                 }
+                Py_DECREF(key);
+                Py_DECREF(val);
+                key = val = NULL;
+
                 att_ptr += 2;
             } while (*att_ptr);
         } else {
