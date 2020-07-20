@@ -31,8 +31,8 @@ def test_dist():
         with pytest.warns(AstropyDeprecationWarning):
             wcs1 = wcs.WCS(hdulist[0].header, hdulist)
         assert wcs1.det2im2 is not None
-        with pytest.warns(VerifyWarning):
-            s = pickle.dumps(wcs1)
+
+        s = pickle.dumps(wcs1)
         with pytest.warns(FITSFixedWarning):
             wcs2 = pickle.loads(s)
 
