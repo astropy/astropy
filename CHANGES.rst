@@ -269,6 +269,10 @@ Other Changes and Additions
   ``lex.lex``) to allow running in ``python -OO`` session without raising an
   exception in ``astropy.units.format``. [#10379]
 
+- Shortened FITS comment strings for some D2IM and CPDIS FITS keywords to
+  reduce the number of FITS ``VerifyWarning`` warnings when working with WCSes
+  containing lookup table distortions. [#10513]
+
 
 4.1.1 (unreleased)
 ==================
@@ -1041,6 +1045,7 @@ astropy.wcs
 - Handled WCS 360 -> 0 deg crossover in ``fit_wcs_from_points`` [#10155]
 
 - Do not issue ``DATREF`` warning when ``MJDREF`` has default value. [#10440]
+
 
 Other Changes and Additions
 ---------------------------

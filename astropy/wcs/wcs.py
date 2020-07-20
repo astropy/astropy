@@ -894,16 +894,18 @@ reduce these to 2 dimensions using the naxis kwarg.
         def write_d2i(num, det2im):
             if det2im is None:
                 return
-            f'{dist}{num:d}',
+
             hdulist[0].header[f'{dist}{num:d}'] = (
                 'LOOKUP', 'Detector to image correction type')
             hdulist[0].header[f'{d_kw}{num:d}.EXTVER'] = (
                 num, 'Version number of WCSDVARR extension')
             hdulist[0].header[f'{d_kw}{num:d}.NAXES'] = (
-                len(det2im.data.shape), 'Number of independent variables in d2im function')
+                len(det2im.data.shape), 'Number of independent variables in D2IM function')
+
             for i in range(det2im.data.ndim):
+                jth = {1: '1st', 2: '2nd', 3: '3rd'}.get(i + 1, f'{i + 1}th')
                 hdulist[0].header['{}{:d}.AXIS.{:d}'.format(d_kw, num, i + 1)] = (
-                    i + 1, 'Axis number of the jth independent variable in a d2im function')
+                    i + 1, f'Axis number of the {jth} variable in a D2IM function')
 
             image = fits.ImageHDU(det2im.data, name='D2IMARR')
             header = image.header
@@ -1023,12 +1025,13 @@ reduce these to 2 dimensions using the naxis kwarg.
             hdulist[0].header[f'{d_kw}{num:d}.EXTVER'] = (
                 num, 'Version number of WCSDVARR extension')
             hdulist[0].header[f'{d_kw}{num:d}.NAXES'] = (
-                len(cpdis.data.shape), 'Number of independent variables in distortion function')
+                len(cpdis.data.shape), f'Number of independent variables in {dist} function')
 
             for i in range(cpdis.data.ndim):
+                jth = {1: '1st', 2: '2nd', 3: '3rd'}.get(i + 1, f'{i + 1}th')
                 hdulist[0].header['{}{:d}.AXIS.{:d}'.format(d_kw, num, i + 1)] = (
                     i + 1,
-                    'Axis number of the jth independent variable in a distortion function')
+                    f'Axis number of the {jth} variable in a {dist} function')
 
             image = fits.ImageHDU(cpdis.data, name='WCSDVARR')
             header = image.header
