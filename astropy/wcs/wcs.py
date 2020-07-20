@@ -437,6 +437,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                 raise AssertionError("'fobj' must be either None or an "
                                      "astropy.io.fits.HDUList object.")
 
+            est_naxis = 2
             try:
                 tmp_header = fits.Header.fromstring(header_string)
                 self._remove_sip_kw(tmp_header)
@@ -447,23 +448,19 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                                          relax=relax, keysel=keysel_flags,
                                          colsel=colsel, warnings=False,
                                          hdulist=fobj)
-            except _wcs.NoWcsKeywordsFoundError:
-                est_naxis = 0
-            else:
                 if naxis is not None:
                     try:
-                        tmp_wcsprm.sub(naxis)
+                        tmp_wcsprm = tmp_wcsprm.sub(naxis)
                     except ValueError:
                         pass
-                    est_naxis = tmp_wcsprm.naxis
-                else:
-                    est_naxis = 2
+                    est_naxis = tmp_wcsprm.naxis if tmp_wcsprm.naxis else 2
+
+            except _wcs.NoWcsKeywordsFoundError:
+                pass
+
+            self.naxis = est_naxis
 
             header = fits.Header.fromstring(header_string)
-
-            if est_naxis == 0:
-                est_naxis = 2
-            self.naxis = est_naxis
 
             det2im = self._read_det2im_kw(header, fobj, err=minerr)
             cpdis = self._read_distortion_kw(
