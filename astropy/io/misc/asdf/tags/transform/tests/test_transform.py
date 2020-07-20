@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import warnings
-from distutils.version import LooseVersion
 
+from packaging.version import Version
 import pytest
 import numpy as np
 
@@ -138,7 +138,7 @@ def test_inverse_transforms(tmpdir):
 def test_single_model(tmpdir, model):
     with warnings.catch_warnings():
         # Some schema files are missing from asdf<=2.6.0 which causes warnings
-        if LooseVersion(asdf.__version__) <= '2.6.0':
+        if Version(asdf.__version__) <= Version('2.6.0'):
             warnings.filterwarnings('ignore', 'Unable to locate schema file')
         tree = {'single_model': model}
         helpers.assert_roundtrip_tree(tree, tmpdir)
@@ -186,7 +186,7 @@ def test_generic_projections(tmpdir):
         }
         with warnings.catch_warnings():
             # Some schema files are missing from asdf<=2.4.2 which causes warnings
-            if LooseVersion(asdf.__version__) <= '2.5.1':
+            if Version(asdf.__version__) <= Version('2.5.1'):
                 warnings.filterwarnings('ignore', 'Unable to locate schema file')
             helpers.assert_roundtrip_tree(tree, tmpdir)
 
@@ -302,7 +302,7 @@ def test_fix_inputs(tmpdir):
 
     with warnings.catch_warnings():
         # Some schema files are missing from asdf<=2.4.2 which causes warnings
-        if LooseVersion(asdf.__version__) <= '2.5.1':
+        if Version(asdf.__version__) <= Version('2.5.1'):
             warnings.filterwarnings('ignore', 'Unable to locate schema file')
 
         model = astmodels.Pix2Sky_TAN() | astmodels.Rotation2D()

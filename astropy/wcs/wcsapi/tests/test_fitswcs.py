@@ -3,8 +3,8 @@
 # a mix-in)
 
 import warnings
-from distutils.version import LooseVersion
 
+from packaging.version import Version
 import numpy as np
 import pytest
 from numpy.testing import assert_equal, assert_allclose
@@ -531,7 +531,7 @@ OBSGEO-B= -70
 OBSGEO-H= 2530
 """
 
-if LooseVersion(wcsver) >= '7.1':
+if Version(wcsver) >= Version('7.1'):
     HEADER_TIME_1D += "DATEREF = '1995-10-12T14:24:00'\n"
 
 
