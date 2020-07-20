@@ -158,9 +158,6 @@ def_unit(['eV', 'electronvolt'], _si.e.value * J, namespace=_ns, prefixes=True,
 
 def_unit(['Pa', 'Pascal', 'pascal'], J * m ** -3, namespace=_ns, prefixes=True,
          doc="Pascal: pressure")
-def_unit(['bar'], 1e5 * Pa, namespace=_ns,
-         prefixes=[(['m'], ['milli'], 1.e-3)],
-         doc="bar: pressure")
 
 
 ###########################################################################
@@ -212,7 +209,7 @@ def_unit(['lx', 'lux'], lm * m ** -2, namespace=_ns, prefixes=True,
 ###########################################################################
 # RADIOACTIVITY
 
-def_unit(['Bq', 'becquerel'], Hz, namespace=_ns, prefixes=False,
+def_unit(['Bq', 'becquerel'], 1 / s, namespace=_ns, prefixes=False,
          doc="becquerel: unit of radioactivity")
 def_unit(['Ci', 'curie'], Bq * 3.7e10, namespace=_ns, prefixes=False,
          doc="curie: unit of radioactivity")
