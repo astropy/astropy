@@ -112,11 +112,14 @@ astropy.uncertainty
 
 astropy.units
 ^^^^^^^^^^^^^
+
 - ``Quantity.to`` has gained a ``copy`` option to allow copies to be avoided
   when the units do not change. [#10517]
 
 - Added the ``spat`` unit of solid angle that represents the full sphere.
   [#10726]
+
+- The ``bar`` unit is no longer wrongly considered an SI unit. [#10586]
 
 astropy.utils
 ^^^^^^^^^^^^^
