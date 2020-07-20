@@ -306,6 +306,9 @@ astropy.io.misc
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
+- No longer ignore attributes whose values were specified as empty
+  strings. [#10583]
+
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
@@ -893,7 +896,7 @@ astropy.coordinates
 - Fixed an error where ``SkyCoord.apply_space_motion`` would return incorrect
   results when no distance is set and proper motion is high. [#10296]
 
-- Make the parsing of angles thread-safe so that ``Angle`` can be used in 
+- Make the parsing of angles thread-safe so that ``Angle`` can be used in
   Python multithreading. [#10556]
 
 astropy.cosmology
