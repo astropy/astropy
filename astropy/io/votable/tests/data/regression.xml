@@ -18,7 +18,12 @@ The VOTable format is an XML standard for the interchange of data represented as
   This is a resource description
 </DESCRIPTION>
 <PARAM ID="awesome" datatype="float" name="INPUT" value="0.000000,0.000000" arraysize="*" unit="deg"></PARAM>
-<PARAM ID="empty_value" name="empty_value" arraysize="*" datatype="char" value="" unit="foo"/>
+<PARAM ID="empty_value" arraysize="*" datatype="char" name="empty_value" unit="foo" value="">
+  <VALUES>
+    <OPTION name="empty_value" value=""/>
+    <OPTION value="90prime"/>
+  </VALUES>
+</PARAM>
 <LINK href="http://www.foo.com/" gref="DECPRECATED">
   <DESCRIPTION>Really, this link is totally bogus.</DESCRIPTION>
 </LINK>
