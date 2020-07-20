@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
-from distutils.version import LooseVersion
 
 from astropy.visualization.mpl_normalize import simple_norm
 from astropy import log
@@ -100,7 +99,7 @@ def fits2bitmap(filename, ext=0, out_fn=None, stretch='linear',
     # workaround for matplotlib 2.0.0 bug where png images are inverted
     # (mpl-#7656)
     if (out_format.lower() == 'png' and
-            LooseVersion(matplotlib.__version__) == LooseVersion('2.0.0')):
+            matplotlib.__version__[:5] == '2.0.0'):
         image = image[::-1]
 
     try:
