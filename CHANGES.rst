@@ -223,7 +223,6 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
-
 Other Changes and Additions
 ---------------------------
 
@@ -931,6 +930,9 @@ astropy.wcs
 - Handled WCS 360 -> 0 deg crossover in ``fit_wcs_from_points`` [#10155]
 
 - Do not issue ``DATREF`` warning when ``MJDREF`` has default value. [#10440]
+
+- Fixed a bug due to which ``naxis`` argument was ignored if ``header``
+  was supplied during the initialization of a WCS object. [#10532]
 
 Other Changes and Additions
 ---------------------------
