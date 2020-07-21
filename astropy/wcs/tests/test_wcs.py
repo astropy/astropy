@@ -3,8 +3,8 @@
 import io
 import os
 from datetime import datetime
-from distutils.version import LooseVersion
 
+from packaging.version import Version
 import pytest
 import numpy as np
 from numpy.testing import (
@@ -22,12 +22,12 @@ from astropy.io import fits
 from astropy.coordinates import SkyCoord
 
 
-_WCSLIB_VER = LooseVersion(_wcs.__version__)
+_WCSLIB_VER = Version(_wcs.__version__)
 
 
 # NOTE: User can choose to use system wcslib instead of bundled.
 def _check_v71_dateref_warnings(w, nmax=None):
-    if _WCSLIB_VER >= '7.1' and _WCSLIB_VER < '7.3' and w:
+    if _WCSLIB_VER >= Version('7.1') and _WCSLIB_VER < Version('7.3') and w:
         if nmax is None:
             assert w
         else:
@@ -208,7 +208,7 @@ def test_dict_init():
         'CDELT1': -0.1,
         'CDELT2': 0.1
     }
-    if _WCSLIB_VER >= '7.1':
+    if _WCSLIB_VER >= Version('7.1'):
         hdr['DATEREF'] = '1858-11-17'
 
     w = wcs.WCS(hdr)
@@ -345,12 +345,12 @@ def test_to_header_string():
         "LATPOLE =                 90.0 / [deg] Native latitude of celestial pole        ",
     )
 
-    if _WCSLIB_VER >= '7.3':
+    if _WCSLIB_VER >= Version('7.3'):
         hdrstr += (
             "MJDREF  =                  0.0 / [d] MJD of fiducial time                       ",
         )
 
-    elif _WCSLIB_VER >= '7.1':
+    elif _WCSLIB_VER >= Version('7.1'):
         hdrstr += (
             "DATEREF = '1858-11-17'         / ISO-8601 fiducial time                         ",
             "MJDREFI =                  0.0 / [d] MJD of fiducial time, integer part         ",
@@ -372,10 +372,10 @@ def test_to_header_string():
 
 
 def test_to_fits():
-    nrec = 11 if _WCSLIB_VER >= '7.1' else 8
-    if _WCSLIB_VER < '7.1':
+    nrec = 11 if _WCSLIB_VER >= Version('7.1') else 8
+    if _WCSLIB_VER < Version('7.1'):
         nrec = 8
-    elif _WCSLIB_VER < '7.3':
+    elif _WCSLIB_VER < Version('7.3'):
         nrec = 11
     else:
         nrec = 9
@@ -1390,7 +1390,7 @@ def test_cunit():
 
 class TestWcsWithTime:
     def setup(self):
-        if _WCSLIB_VER >= '7.1':
+        if _WCSLIB_VER >= Version('7.1'):
             fname = get_pkg_data_filename('data/header_with_time_wcslib71.fits')
         else:
             fname = get_pkg_data_filename('data/header_with_time.fits')
