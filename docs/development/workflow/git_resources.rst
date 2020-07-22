@@ -25,7 +25,7 @@ Tutorials and summaries
   links and tips
 * Fernando Perez's `ipython notebook on using git in science`_
 * A good but technical page on `git concepts`_
-* `git svn crash course`_: git for those of us used to subversion_
+* `git svn crash course`_: git for those of us used to subversion
 
 Manual pages online
 *******************
@@ -48,7 +48,3 @@ online manual pages for some common commands:
 * `git status`_
 
 .. include:: links.inc
-
-
-
-

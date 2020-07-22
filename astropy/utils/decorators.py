@@ -708,6 +708,8 @@ class classproperty(property):
         return fget
 
 
+# Adapted from the recipe at
+# http://code.activestate.com/recipes/363602-lazy-property-evaluation
 class lazyproperty(property):
     """
     Works similarly to property(), but computes the value only once.
@@ -741,8 +743,6 @@ class lazyproperty(property):
     already sets the new value in ``__dict__`` and returns that value and the
     returned value is not ``None``.
 
-    Adapted from the recipe at
-    http://code.activestate.com/recipes/363602-lazy-property-evaluation
     """
 
     def __init__(self, fget, fset=None, fdel=None, doc=None):
