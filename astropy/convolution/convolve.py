@@ -828,7 +828,7 @@ def interpolate_replace_nans(array, kernel, convolve=convolve, **kwargs):
     return newarray
 
 
-def convolve_models(model, kernel, mode='convolve_fft', **kwargs):
+def convolve_models(model, kernel, mode='convolve_fft', normalize_second_model=False, **kwargs):
     """
     Convolve two models using `~astropy.convolution.convolve_fft`.
 
@@ -838,6 +838,9 @@ def convolve_models(model, kernel, mode='convolve_fft', **kwargs):
         Functional model
     kernel : `~astropy.modeling.core.Model`
         Convolution kernel
+    normalize_second_model : bool
+        Should the second model (labeled the 'kernel' here, but not necessarily
+        a kernel) be normalize before convolving?
     mode : str
         Keyword representing which function to use for convolution.
             * 'convolve_fft' : use `~astropy.convolution.convolve_fft` function.
@@ -853,9 +856,13 @@ def convolve_models(model, kernel, mode='convolve_fft', **kwargs):
     """
 
     if mode == 'convolve_fft':
-        SPECIAL_OPERATORS['convolve_fft'] = partial(convolve_fft, **kwargs)
+        SPECIAL_OPERATORS['convolve_fft'] = partial(convolve_fft,
+                                                    normalize_kernel=normalize_second_model,
+                                                    **kwargs)
     elif mode == 'convolve':
-        SPECIAL_OPERATORS['convolve'] = partial(convolve, **kwargs)
+        SPECIAL_OPERATORS['convolve'] = partial(convolve,
+                                                normalize_kernel=normalize_second_model,
+                                                **kwargs)
     else:
         raise ValueError(f'Mode {mode} is not supported.')
 
