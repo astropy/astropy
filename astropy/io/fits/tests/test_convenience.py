@@ -2,6 +2,7 @@
 
 
 import os
+import pathlib
 import warnings
 
 import pytest
@@ -285,3 +286,12 @@ class TestConvenience(FitsTestCase):
 
         with fits.open(testfile, checksum=True) as hdus:
             assert len(hdus) == 5
+
+    def test_pathlib(self):
+        testfile = pathlib.Path(self.temp('test.fits'))
+        data = np.arange(10)
+        hdulist = fits.HDUList([fits.PrimaryHDU(data)])
+        hdulist.writeto(testfile)
+
+        with fits.open(testfile) as hdul:
+            np.testing.assert_array_equal(hdul[0].data, data)

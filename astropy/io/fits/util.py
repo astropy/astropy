@@ -6,6 +6,7 @@ import io
 import mmap
 import operator
 import os
+import pathlib
 import platform
 import signal
 import sys
@@ -433,7 +434,7 @@ def fileobj_closed(f):
     they are file-like objects with no sense of a 'closed' state.
     """
 
-    if isinstance(f, str):
+    if isinstance(f, (str, pathlib.Path)):
         return True
 
     if hasattr(f, 'closed'):
