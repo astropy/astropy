@@ -3,8 +3,8 @@
 # a mix-in)
 
 import warnings
-from distutils.version import LooseVersion
 
+from packaging.version import Version
 import numpy as np
 import pytest
 from numpy.testing import assert_equal, assert_allclose
@@ -22,7 +22,6 @@ from astropy.wcs.wcs import WCS, FITSFixedWarning
 from astropy.wcs.wcsapi.fitswcs import custom_ctype_to_ucd_mapping, VELOCITY_FRAMES
 from astropy.wcs._wcs import __version__ as wcsver
 from astropy.utils import iers
-from astropy.table import Table
 from astropy.utils.exceptions import AstropyUserWarning
 
 ###############################################################################
@@ -151,14 +150,14 @@ def test_simple_celestial():
     coord = wcs.pixel_to_world(29, 39)
     assert isinstance(coord, SkyCoord)
     assert isinstance(coord.frame, ICRS)
-    assert coord.ra.deg == 10
-    assert coord.dec.deg == 20
+    assert_allclose(coord.ra.deg, 10)
+    assert_allclose(coord.dec.deg, 20)
 
     coord = wcs.array_index_to_world(39, 29)
     assert isinstance(coord, SkyCoord)
     assert isinstance(coord.frame, ICRS)
-    assert coord.ra.deg == 10
-    assert coord.dec.deg == 20
+    assert_allclose(coord.ra.deg, 10)
+    assert_allclose(coord.dec.deg, 20)
 
     coord = SkyCoord(10, 20, unit='deg', frame='icrs')
 
@@ -273,18 +272,18 @@ def test_spectral_cube():
     coord, spec = wcs.pixel_to_world(29, 39, 44)
     assert isinstance(coord, SkyCoord)
     assert isinstance(coord.frame, Galactic)
-    assert coord.l.deg == 25
-    assert coord.b.deg == 10
+    assert_allclose(coord.l.deg, 25)
+    assert_allclose(coord.b.deg, 10)
     assert isinstance(spec, SpectralCoord)
-    assert spec.to_value(u.Hz) == 20
+    assert_allclose(spec.to_value(u.Hz), 20)
 
     coord, spec = wcs.array_index_to_world(44, 39, 29)
     assert isinstance(coord, SkyCoord)
     assert isinstance(coord.frame, Galactic)
-    assert coord.l.deg == 25
-    assert coord.b.deg == 10
+    assert_allclose(coord.l.deg, 25)
+    assert_allclose(coord.b.deg, 10)
     assert isinstance(spec, SpectralCoord)
-    assert spec.to_value(u.Hz) == 20
+    assert_allclose(spec.to_value(u.Hz), 20)
 
     coord = SkyCoord(25, 10, unit='deg', frame='galactic')
     spec = 20 * u.Hz
@@ -532,7 +531,7 @@ OBSGEO-B= -70
 OBSGEO-H= 2530
 """
 
-if LooseVersion(wcsver) >= '7.1':
+if Version(wcsver) >= Version('7.1'):
     HEADER_TIME_1D += "DATEREF = '1995-10-12T14:24:00'\n"
 
 

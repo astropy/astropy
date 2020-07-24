@@ -8,8 +8,8 @@ import shutil
 import sys
 from collections import defaultdict
 
-from distutils.core import Extension
-from distutils.dep_util import newer_group
+from setuptools import Extension
+from setuptools.dep_util import newer_group
 
 import numpy
 
@@ -191,7 +191,8 @@ def get_wcslib_cfg(cfg, wcslib_files, include_paths):
         wcsconfig_h_path = join(WCSROOT, 'include', 'wcsconfig.h')
         if os.path.exists(wcsconfig_h_path):
             os.unlink(wcsconfig_h_path)
-        cfg.update(pkg_config(['wcslib'], ['wcs']))
+        for k, v in pkg_config(['wcslib'], ['wcs']).items():
+            cfg[k].extend(v)
     else:
         write_wcsconfig_h(include_paths)
 

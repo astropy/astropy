@@ -4,8 +4,8 @@ import warnings
 import operator
 
 import numpy as np
+import erfa
 
-from astropy import _erfa as erfa
 from astropy.utils.compat.misc import override__dir__
 from astropy import units as u
 from astropy.constants import c as speed_of_light

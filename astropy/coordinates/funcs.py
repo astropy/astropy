@@ -12,10 +12,10 @@ import warnings
 from collections.abc import Sequence
 
 import numpy as np
+import erfa
 
 from astropy import units as u
 from astropy.constants import c
-from astropy import _erfa as erfa
 from astropy.io import ascii
 from astropy.utils import isiterable, data
 from .sky_coordinate import SkyCoord

@@ -2,7 +2,7 @@
 
 import os
 from collections import defaultdict
-from distutils.core import Extension
+from setuptools import Extension
 from os.path import join
 
 import sys
@@ -18,7 +18,8 @@ def get_extensions(build_type='release'):
 
     if (int(os.environ.get('ASTROPY_USE_SYSTEM_EXPAT', 0)) or
             int(os.environ.get('ASTROPY_USE_SYSTEM_ALL', 0))):
-        cfg.update(pkg_config(['expat'], ['expat']))
+        for k, v in pkg_config(['expat'], ['expat']).items():
+            cfg[k].extend(v)
     else:
         EXPAT_DIR = 'cextern/expat/lib'
         cfg['sources'].extend([

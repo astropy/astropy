@@ -9,7 +9,6 @@ import types
 import pickle
 import warnings
 import functools
-from distutils.version import LooseVersion
 
 import pytest
 
@@ -285,7 +284,7 @@ def treat_deprecations_as_exceptions():
     except ImportError:
         pass
     else:
-        if LooseVersion(matplotlib.__version__) < '3':
+        if matplotlib.__version__[0] < '3':
             warnings.filterwarnings('ignore', category=DeprecationWarning,
                                     module='numpy.lib.type_check')
 

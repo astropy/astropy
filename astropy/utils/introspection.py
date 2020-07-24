@@ -9,7 +9,6 @@ import os
 import sys
 import types
 import importlib
-from distutils.version import LooseVersion
 
 __all__ = ['resolve_name', 'minversion', 'find_current_module',
            'isinstancemethod']
@@ -123,6 +122,10 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
     >>> minversion(astropy, '0.4.4')
     True
     """
+    # import LooseVersion here to avoid conflicts between setuptools and
+    # distutils. See https://github.com/astropy/astropy/pull/10571
+    from distutils.version import LooseVersion
+
     if isinstance(module, types.ModuleType):
         module_name = module.__name__
     elif isinstance(module, str):
@@ -148,6 +151,11 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
     m = re.match(expr, version)
     if m:
         version = m.group(0)
+
+    # have_version can have the same issue as version, so also regex it
+    m = re.match(expr, have_version)
+    if m:
+        have_version = m.group(0)
 
     if inclusive:
         return LooseVersion(have_version) >= LooseVersion(version)

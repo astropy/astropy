@@ -437,6 +437,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                 raise AssertionError("'fobj' must be either None or an "
                                      "astropy.io.fits.HDUList object.")
 
+            est_naxis = 2
             try:
                 tmp_header = fits.Header.fromstring(header_string)
                 self._remove_sip_kw(tmp_header)
@@ -447,23 +448,19 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                                          relax=relax, keysel=keysel_flags,
                                          colsel=colsel, warnings=False,
                                          hdulist=fobj)
-            except _wcs.NoWcsKeywordsFoundError:
-                est_naxis = 0
-            else:
                 if naxis is not None:
                     try:
-                        tmp_wcsprm.sub(naxis)
+                        tmp_wcsprm = tmp_wcsprm.sub(naxis)
                     except ValueError:
                         pass
-                    est_naxis = tmp_wcsprm.naxis
-                else:
-                    est_naxis = 2
+                    est_naxis = tmp_wcsprm.naxis if tmp_wcsprm.naxis else 2
+
+            except _wcs.NoWcsKeywordsFoundError:
+                pass
+
+            self.naxis = est_naxis
 
             header = fits.Header.fromstring(header_string)
-
-            if est_naxis == 0:
-                est_naxis = 2
-            self.naxis = est_naxis
 
             det2im = self._read_det2im_kw(header, fobj, err=minerr)
             cpdis = self._read_distortion_kw(
@@ -894,16 +891,18 @@ reduce these to 2 dimensions using the naxis kwarg.
         def write_d2i(num, det2im):
             if det2im is None:
                 return
-            f'{dist}{num:d}',
+
             hdulist[0].header[f'{dist}{num:d}'] = (
                 'LOOKUP', 'Detector to image correction type')
             hdulist[0].header[f'{d_kw}{num:d}.EXTVER'] = (
                 num, 'Version number of WCSDVARR extension')
             hdulist[0].header[f'{d_kw}{num:d}.NAXES'] = (
-                len(det2im.data.shape), 'Number of independent variables in d2im function')
+                len(det2im.data.shape), 'Number of independent variables in D2IM function')
+
             for i in range(det2im.data.ndim):
+                jth = {1: '1st', 2: '2nd', 3: '3rd'}.get(i + 1, f'{i + 1}th')
                 hdulist[0].header['{}{:d}.AXIS.{:d}'.format(d_kw, num, i + 1)] = (
-                    i + 1, 'Axis number of the jth independent variable in a d2im function')
+                    i + 1, f'Axis number of the {jth} variable in a D2IM function')
 
             image = fits.ImageHDU(det2im.data, name='D2IMARR')
             header = image.header
@@ -1023,12 +1022,13 @@ reduce these to 2 dimensions using the naxis kwarg.
             hdulist[0].header[f'{d_kw}{num:d}.EXTVER'] = (
                 num, 'Version number of WCSDVARR extension')
             hdulist[0].header[f'{d_kw}{num:d}.NAXES'] = (
-                len(cpdis.data.shape), 'Number of independent variables in distortion function')
+                len(cpdis.data.shape), f'Number of independent variables in {dist} function')
 
             for i in range(cpdis.data.ndim):
+                jth = {1: '1st', 2: '2nd', 3: '3rd'}.get(i + 1, f'{i + 1}th')
                 hdulist[0].header['{}{:d}.AXIS.{:d}'.format(d_kw, num, i + 1)] = (
                     i + 1,
-                    'Axis number of the jth independent variable in a distortion function')
+                    f'Axis number of the {jth} variable in a {dist} function')
 
             image = fits.ImageHDU(cpdis.data, name='WCSDVARR')
             header = image.header

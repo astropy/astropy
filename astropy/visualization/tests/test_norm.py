@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from distutils.version import LooseVersion
-
+from packaging.version import Version
 import pytest
 import numpy as np
 from numpy import ma
@@ -16,7 +15,7 @@ try:
     import matplotlib    # pylint: disable=W0611
     from matplotlib import pyplot as plt
     HAS_MATPLOTLIB = True
-    MATPLOTLIB_LT_32 = LooseVersion(matplotlib.__version__) < '3.2'
+    MATPLOTLIB_LT_32 = Version(matplotlib.__version__) < Version('3.2')
 except ImportError:
     HAS_MATPLOTLIB = False
 

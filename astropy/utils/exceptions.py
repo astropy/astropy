@@ -2,9 +2,23 @@
 """
 This module contains errors/exceptions and warnings of general use for
 astropy. Exceptions that are specific to a given subpackage should *not* be
-here, but rather in the particular subpackage. Exception is the _erfa module
-as we rather have the users import those exceptions from here.
+here, but rather in the particular subpackage.
 """
+
+# TODO: deprecate these.  This cannot be trivially done with
+# astropy.utils.decorators.deprecate, since that module needs the exceptions
+# here, leading to circular import problems.
+from erfa import ErfaError, ErfaWarning  # noqa
+
+
+__all__ = [
+    'AstropyWarning',
+    'AstropyUserWarning',
+    'AstropyDeprecationWarning',
+    'AstropyPendingDeprecationWarning',
+    'AstropyBackwardsIncompatibleChangeWarning',
+    'DuplicateRepresentationWarning',
+    'NoValue']
 
 
 class AstropyWarning(Warning):
@@ -48,28 +62,6 @@ class AstropyBackwardsIncompatibleChangeWarning(AstropyWarning):
 class DuplicateRepresentationWarning(AstropyWarning):
     """
     A warning class indicating a represenation name was already registered
-    """
-
-
-class ErfaError(ValueError):
-    """
-    A class for errors triggered by ERFA functions (status codes < 0)
-
-    Note: this class should *not* be referenced by fully-qualified name, because
-    it may move to ERFA in a future version.  In a future such move it will
-    still be imported here as an alias, but the true namespace of the class may
-    change.
-    """
-
-
-class ErfaWarning(AstropyUserWarning):
-    """
-    A class for warnings triggered by ERFA functions (status codes > 0)
-
-    Note: this class should *not* be referenced by fully-qualified name, because
-    it may move to ERFA in a future version.  In a future such move it will
-    still be imported here as an alias, but the true namespace of the class may
-    change.
     """
 
 

@@ -94,7 +94,7 @@ multiple columns to a table. In both cases the new columns must be specified as
 
   # Make a new table with the same number of rows and add columns to original table
   >>> t2 = Table(np.arange(25).reshape(5, 5), names=('e', 'f', 'g', 'h', 'i'))
-  >>> t.add_columns(t2.columns.values())
+  >>> t.add_columns(list(t2.itercols()))
 
 Finally, columns can also be added from :class:`~astropy.units.Quantity`
 objects, which automatically sets the ``.unit`` attribute on the column:

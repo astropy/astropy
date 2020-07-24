@@ -41,6 +41,8 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Added missing logic for evaluate to compound models [#10002]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
@@ -148,6 +150,10 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Change ``Table.columns.keys()`` and ``Table.columns.values()`` to both return
+  generators instead of a list. This matches the behavior for Python ``dict``
+  objects. [#10543]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -250,13 +256,21 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
-
 Other Changes and Additions
 ---------------------------
+
+- The private ``_erfa`` module has been converted to its own package,
+  ``pyerfa``, which is a required dependency for astropy, and can be imported
+  with ``import erfa``.  Importing ``_erfa`` from ``astropy`` will give a
+  deprecation warning.  [#10329]
 
 - Added ``optimize=True`` flag to calls of ``yacc.yacc`` (as already done for
   ``lex.lex``) to allow running in ``python -OO`` session without raising an
   exception in ``astropy.units.format``. [#10379]
+
+- Shortened FITS comment strings for some D2IM and CPDIS FITS keywords to
+  reduce the number of FITS ``VerifyWarning`` warnings when working with WCSes
+  containing lookup table distortions. [#10513]
 
 
 4.1.1 (unreleased)
@@ -294,6 +308,9 @@ astropy.io.misc
 
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
+
+- No longer ignore attributes whose values were specified as empty
+  strings. [#10583]
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
@@ -335,6 +352,9 @@ astropy.visualization
 
 astropy.wcs
 ^^^^^^^^^^^
+
+- Add .upper() to ctype or ctype names to wcsapi/fitwcs.py to mitigate bugs from
+  unintended lower/upper case issues [#10557]
 
 Other Changes and Additions
 ---------------------------
@@ -846,6 +866,8 @@ astropy.config
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 
+- Corrected definition of parsec to 648 000 / pi AU following IAU 2015 B2 [#10569]
+
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
@@ -879,6 +901,9 @@ astropy.coordinates
 
 - Fixed an error where ``SkyCoord.apply_space_motion`` would return incorrect
   results when no distance is set and proper motion is high. [#10296]
+
+- Make the parsing of angles thread-safe so that ``Angle`` can be used in
+  Python multithreading. [#10556]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
@@ -995,6 +1020,8 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- Refined test_parallax to resolve difference between 2012 and 2015 definitions. [#10569]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
@@ -1020,6 +1047,9 @@ astropy.wcs
 - Handled WCS 360 -> 0 deg crossover in ``fit_wcs_from_points`` [#10155]
 
 - Do not issue ``DATREF`` warning when ``MJDREF`` has default value. [#10440]
+
+- Fixed a bug due to which ``naxis`` argument was ignored if ``header``
+  was supplied during the initialization of a WCS object. [#10532]
 
 Other Changes and Additions
 ---------------------------
