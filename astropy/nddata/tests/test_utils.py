@@ -274,7 +274,7 @@ def test_extract_array_return_pos():
     The result will differ by mode. All test here are done in 1d because it's
     easier to construct correct test cases.
     '''
-    large_test_array = np.arange(5)
+    large_test_array = np.arange(5, dtype=float)
     for i in np.arange(-1, 6):
         extracted, new_pos = extract_array(large_test_array, 3, i,
                                            mode='partial',
