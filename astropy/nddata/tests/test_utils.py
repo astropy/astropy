@@ -8,7 +8,7 @@ from astropy.tests.helper import assert_quantity_allclose
 from astropy.nddata import (extract_array, add_array, subpixel_indices,
                             overlap_slices, NoOverlapError,
                             PartialOverlapError, Cutout2D)
-
+from astropy.utils import minversion
 from astropy.wcs import WCS, Sip
 from astropy.wcs.utils import proj_plane_pixel_area
 from astropy.coordinates import SkyCoord
@@ -274,7 +274,7 @@ def test_extract_array_return_pos():
     The result will differ by mode. All test here are done in 1d because it's
     easier to construct correct test cases.
     '''
-    large_test_array = np.arange(5)
+    large_test_array = np.arange(5).astype(float)
     for i in np.arange(-1, 6):
         extracted, new_pos = extract_array(large_test_array, 3, i,
                                            mode='partial',
@@ -290,6 +290,14 @@ def test_extract_array_return_pos():
         extracted, new_pos = extract_array(large_test_array, (3,), (i,),
                                            mode='trim', return_position=True)
         assert new_pos == (expected, )
+
+
+def test_extract_array_nan_fillvalue():
+    if minversion(np, '1.20'):
+        with pytest.raises(ValueError) as err:
+            extract_array(np.ones((10, 10), dtype=int), (5, 5), (1, 1),
+                          fill_value=np.nan)
+        assert 'fill_value cannot be set to np.nan if' in err.value.args[0]
 
 
 def test_add_array_odd_shape():
