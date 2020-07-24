@@ -928,6 +928,9 @@ astropy.io.fits
 
 - Fix duplication issue when setting a keyword ending with space. [#10482]
 
+- Fix ResourceWarning with ``fits.writeto`` and ``pathlib.Path`` object.
+  [#10599]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 

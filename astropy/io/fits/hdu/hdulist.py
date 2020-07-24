@@ -38,7 +38,7 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
 
     Parameters
     ----------
-    name : file path, file object, file-like object or pathlib.Path object
+    name : str, file-like or `pathlib.Path`
         File to be opened.
 
     mode : str, optional
@@ -888,7 +888,7 @@ class HDUList(list, _Verify):
 
         Parameters
         ----------
-        fileobj : file path, file object or file-like object
+        fileobj : str, file-like or `pathlib.Path`
             File to write to.  If a file object, must be opened in a
             writeable mode.
 
