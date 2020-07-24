@@ -885,7 +885,9 @@ def test_data_name_third_party_package():
         import test_package
 
         filename = test_package.get_data_filename()
-        assert filename == os.path.join(data_dir, "test_package", "data", "foo.txt")
+        assert os.path.normcase(filename) == (
+            os.path.normcase(os.path.join(data_dir, "test_package", "data", "foo.txt"))
+        )
     finally:
         sys.path.pop(0)
 
