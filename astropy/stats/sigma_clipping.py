@@ -4,6 +4,8 @@ import warnings
 
 import numpy as np
 
+from scipy.ndimage import binary_dilation
+
 from astropy.utils import isiterable
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -143,6 +145,13 @@ class SigmaClip:
         achieved prior to ``maxiters`` iterations, the clipping
         iterations will stop.  The default is 5.
 
+    grow : float or `False`, optional
+        Radius within which to mask the neighbouring pixels of those that
+        fall outwith the clipping limits (only applied along `axis`, if
+        specified). A value of 1 will mask the nearest pixels in a cross
+        pattern around each deviant pixel, while 1.5 will also reject the
+        nearest diagonal neighbours and so on.
+
     cenfunc : {'median', 'mean'} or callable, optional
         The statistic or callable function/object used to compute the
         center value for the clipping.  If set to ``'median'`` or
@@ -207,25 +216,26 @@ class SigmaClip:
     """
 
     def __init__(self, sigma=3., sigma_lower=None, sigma_upper=None,
-                 maxiters=5, cenfunc='median', stdfunc='std'):
+                 maxiters=5, grow=False, cenfunc='median', stdfunc='std'):
 
         self.sigma = sigma
         self.sigma_lower = sigma_lower or sigma
         self.sigma_upper = sigma_upper or sigma
         self.maxiters = maxiters or np.inf
+        self.grow = grow
         self.cenfunc = self._parse_cenfunc(cenfunc)
         self.stdfunc = self._parse_stdfunc(stdfunc)
 
     def __repr__(self):
         return ('SigmaClip(sigma={}, sigma_lower={}, sigma_upper={}, '
-                'maxiters={}, cenfunc={}, stdfunc={})'
+                'maxiters={}, grow={}, cenfunc={}, stdfunc={})'
                 .format(self.sigma, self.sigma_lower, self.sigma_upper,
-                        self.maxiters, self.cenfunc, self.stdfunc))
+                        self.maxiters, self.grow, self.cenfunc, self.stdfunc))
 
     def __str__(self):
         lines = ['<' + self.__class__.__name__ + '>']
-        attrs = ['sigma', 'sigma_lower', 'sigma_upper', 'maxiters', 'cenfunc',
-                 'stdfunc']
+        attrs = ['sigma', 'sigma_lower', 'sigma_upper', 'maxiters', 'grow',
+                 'cenfunc', 'stdfunc']
         for attr in attrs:
             lines.append('    {}: {}'.format(attr, getattr(self, attr)))
         return '\n'.join(lines)
@@ -274,7 +284,7 @@ class SigmaClip:
     def _sigmaclip_noaxis(self, data, masked=True, return_bounds=False,
                           copy=True):
         """
-        Sigma clip the data when ``axis`` is None.
+        Sigma clip the data when ``axis`` is None and ``grow`` is not >0.
 
         In this simple case, we remove clipped elements from the
         flattened array during each iteration.
@@ -324,7 +334,7 @@ class SigmaClip:
     def _sigmaclip_withaxis(self, data, axis=None, masked=True,
                             return_bounds=False, copy=True):
         """
-        Sigma clip the data when ``axis`` is specified.
+        Sigma clip the data when ``axis`` or ``grow`` is specified.
 
         In this case, we replace clipped values with NaNs as placeholder
         values.
@@ -346,15 +356,32 @@ class SigmaClip:
             filtered_data = np.ma.masked_invalid(filtered_data).astype(float)
             filtered_data = filtered_data.filled(np.nan)
 
-        # convert negative axis/axes
-        if not isiterable(axis):
-            axis = (axis,)
-        axis = tuple(filtered_data.ndim + n if n < 0 else n for n in axis)
+        if axis is not None:
+            # convert negative axis/axes
+            if not isiterable(axis):
+                axis = (axis,)
+            axis = tuple(filtered_data.ndim + n if n < 0 else n for n in axis)
 
-        # define the shape of min/max arrays so that they can be broadcast
-        # with the data
-        mshape = tuple(1 if dim in axis else size
-                       for dim, size in enumerate(filtered_data.shape))
+            # define the shape of min/max arrays so that they can be broadcast
+            # with the data
+            mshape = tuple(1 if dim in axis else size
+                           for dim, size in enumerate(filtered_data.shape))
+
+        if self.grow:
+            # Construct a growth kernel from the specified radius in pixels
+            # (consider caching this for re-use by subsequent calls?):
+            cenidx = int(self.grow)
+            size = 2 * cenidx + 1
+            indices = np.mgrid[(slice(0, size),) * data.ndim]
+            if axis is not None:
+                for n, dim in enumerate(indices):
+                    # For any axes that we're not clipping over, set their
+                    # indices outside the growth radius, so masked points won't
+                    # "grow" in that dimension:
+                    if n not in axis:
+                        dim[dim!=cenidx] = size
+            kernel = sum(((idx-cenidx)**2 for idx in indices)) <= self.grow**2
+            del indices
 
         nchanged = 1
         iteration = 0
@@ -368,8 +395,15 @@ class SigmaClip:
                 self._max_value = self._max_value.reshape(mshape)
 
             with np.errstate(invalid='ignore'):
-                filtered_data[(filtered_data < self._min_value) |
-                              (filtered_data > self._max_value)] = np.nan
+                # Since these comparisons are always False for NaNs, the
+                # resulting mask contains only newly-rejected pixels and we
+                # can dilate it without growing masked pixels more than once.
+                new_mask = ((filtered_data < self._min_value) |
+                            (filtered_data > self._max_value))
+            if self.grow:
+                new_mask = binary_dilation(new_mask, kernel)
+            filtered_data[new_mask] = np.nan
+            del new_mask
 
             nchanged = n_nan - np.count_nonzero(np.isnan(filtered_data))
 
@@ -465,12 +499,11 @@ class SigmaClip:
             else:
                 return np.ma.filled(data.astype(float), fill_value=np.nan)
 
-        # These two cases are treated separately because when
-        # ``axis=None`` we can simply remove clipped values from the
-        # array.  This is not possible when ``axis`` is specified, so
-        # instead we replace clipped values with NaNs as a placeholder
-        # value.
-        if axis is None:
+        # These two cases are treated separately because when ``axis=None``
+        # we can simply remove clipped values from the array.  This is not
+        # possible when ``axis`` or ``grow`` is specified, so instead we
+        # replace clipped values with NaNs as a placeholder value.
+        if axis is None and not self.grow:
             return self._sigmaclip_noaxis(data, masked=masked,
                                           return_bounds=return_bounds,
                                           copy=copy)
@@ -481,8 +514,8 @@ class SigmaClip:
 
 
 def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
-               cenfunc='median', stdfunc='std', axis=None, masked=True,
-               return_bounds=False, copy=True):
+               grow=False, cenfunc='median', stdfunc='std', axis=None,
+               masked=True, return_bounds=False, copy=True):
     """
     Perform sigma-clipping on the provided data.
 
@@ -542,6 +575,13 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
         until the last iteration clips nothing).  If convergence is
         achieved prior to ``maxiters`` iterations, the clipping
         iterations will stop.  The default is 5.
+
+    grow : float or `False`, optional
+        Radius within which to mask the neighbouring pixels of those that
+        fall outwith the clipping limits (only applied along `axis`, if
+        specified). A value of 1 will mask the nearest pixels in a cross
+        pattern around each deviant pixel, while 1.5 will also reject the
+        nearest diagonal neighbours and so on.
 
     cenfunc : {'median', 'mean'} or callable, optional
         The statistic or callable function/object used to compute the
@@ -654,7 +694,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
 
     sigclip = SigmaClip(sigma=sigma, sigma_lower=sigma_lower,
                         sigma_upper=sigma_upper, maxiters=maxiters,
-                        cenfunc=cenfunc, stdfunc=stdfunc)
+                        grow=grow, cenfunc=cenfunc, stdfunc=stdfunc)
 
     return sigclip(data, axis=axis, masked=masked,
                    return_bounds=return_bounds, copy=copy)
@@ -662,8 +702,8 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
 
 def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
                         sigma_lower=None, sigma_upper=None, maxiters=5,
-                        cenfunc='median', stdfunc='std', std_ddof=0,
-                        axis=None):
+                        grow=False, cenfunc='median', stdfunc='std',
+                        std_ddof=0, axis=None):
     """
     Calculate sigma-clipped statistics on the provided data.
 
@@ -704,6 +744,13 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         until the last iteration clips nothing).  If convergence is
         achieved prior to ``maxiters`` iterations, the clipping
         iterations will stop.  The default is 5.
+
+    grow : float or `False`, optional
+        Radius within which to mask the neighbouring pixels of those that
+        fall outwith the clipping limits (only applied along `axis`, if
+        specified). A value of 1 will mask the nearest pixels in a cross
+        pattern around each deviant pixel, while 1.5 will also reject the
+        nearest diagonal neighbours and so on.
 
     cenfunc : {'median', 'mean'} or callable, optional
         The statistic or callable function/object used to compute the
@@ -759,7 +806,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
 
     sigclip = SigmaClip(sigma=sigma, sigma_lower=sigma_lower,
                         sigma_upper=sigma_upper, maxiters=maxiters,
-                        cenfunc=cenfunc, stdfunc=stdfunc)
+                        grow=grow, cenfunc=cenfunc, stdfunc=stdfunc)
     data_clipped = sigclip(data, axis=axis, masked=False, return_bounds=False,
                            copy=False)
 
