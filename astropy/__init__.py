@@ -231,10 +231,8 @@ def _initialize_astropy():
         # exception logger before we raise the import error:
         _teardown_log()
 
-        # Roll back any astropy sub-modules that have been imported thus
-        # far
-
-        for key in list(sys.modules):
+        # Roll back any astropy sub-modules that have been imported thus far
+        for key in sys.modules.keys():
             if key.startswith('astropy.'):
                 del sys.modules[key]
         raise ImportError('astropy')
