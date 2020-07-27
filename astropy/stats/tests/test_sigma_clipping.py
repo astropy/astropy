@@ -271,9 +271,10 @@ def test_sigma_clip_axis_tuple_3D():
 def test_sigmaclip_repr():
     sigclip = SigmaClip()
     sigclip_repr = ('SigmaClip(sigma=3.0, sigma_lower=3.0, sigma_upper=3.0,'
-                    ' maxiters=5, cenfunc=')
+                    ' maxiters=5, grow=False, cenfunc=')
     sigclip_str = ('<SigmaClip>\n    sigma: 3.0\n    sigma_lower: 3.0\n'
-                   '    sigma_upper: 3.0\n    maxiters: 5\n    cenfunc: ')
+                   '    sigma_upper: 3.0\n    maxiters: 5\n    grow: False\n'
+                   '    cenfunc: ')
 
     assert repr(sigclip).startswith(sigclip_repr)
     assert str(sigclip).startswith(sigclip_str)
