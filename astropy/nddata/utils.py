@@ -244,8 +244,8 @@ def extract_array(array_large, shape, position, mode='partial',
 
     # Extracting on the edges is presumably a rare case, so treat special here
     if (extracted_array.shape != shape) and (mode == 'partial'):
+        extracted_array = np.zeros(shape, dtype=array_large.dtype)
         try:
-            extracted_array = np.zeros(shape, dtype=array_large.dtype)
             extracted_array[:] = fill_value
         except ValueError:
             raise ValueError('fill_value cannot be set to np.nan if the '
