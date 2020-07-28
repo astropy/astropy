@@ -348,6 +348,7 @@ class EarthLocation(u.Quantity):
         dtype = void192
         unit = m
         class = EarthLocation
+        n_bad = 0
         >>> keck.info.meta  # doctest: +REMOTE_DATA
         {'source': 'IRAF Observatory Database', 'timezone': 'US/Aleutian'}
 
