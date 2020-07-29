@@ -905,6 +905,9 @@ astropy.coordinates
 - Make the parsing of angles thread-safe so that ``Angle`` can be used in
   Python multithreading. [#10556]
 
+- Fixed reporting of ``EarthLocation.info`` which previously raised an exception.
+  [#10592]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
