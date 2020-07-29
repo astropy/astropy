@@ -343,6 +343,12 @@ class EarthLocation(u.Quantity):
         >>> keck = EarthLocation.of_site('Keck Observatory')  # doctest: +REMOTE_DATA
         >>> keck.geodetic  # doctest: +REMOTE_DATA +FLOAT_CMP
         GeodeticLocation(lon=<Longitude -155.47833333 deg>, lat=<Latitude 19.82833333 deg>, height=<Quantity 4160. m>)
+        >>> keck.info  # doctest: +REMOTE_DATA
+        name = W. M. Keck Observatory
+        dtype = void192
+        unit = m
+        class = EarthLocation
+        n_bad = 0
         >>> keck.info.meta  # doctest: +REMOTE_DATA
         {'source': 'IRAF Observatory Database', 'timezone': 'US/Aleutian'}
 
