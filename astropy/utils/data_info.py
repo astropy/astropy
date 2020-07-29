@@ -468,7 +468,7 @@ reference with ``c = col[3:5]`` followed by ``c.info``.""")
 
         try:
             info['length'] = len(dat)
-        except TypeError:
+        except (TypeError, IndexError):
             pass
 
         if out is None:

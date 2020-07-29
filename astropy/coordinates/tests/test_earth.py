@@ -8,6 +8,7 @@ import pickle
 import pytest
 import numpy as np
 
+
 from astropy.coordinates.earth import EarthLocation, ELLIPSOIDS
 from astropy.coordinates.angles import Longitude, Latitude
 from astropy.units import allclose as quantity_allclose
@@ -404,3 +405,9 @@ def test_read_only_input():
     lon.flags.writeable = lat.flags.writeable = False
     loc = EarthLocation.from_geodetic(lon=lon, lat=lat)
     assert quantity_allclose(loc[1].x, loc[0].x)
+
+
+def test_info():
+    EarthLocation._get_site_registry(force_builtin=True)
+    greenwich = EarthLocation.of_site('greenwich')
+    assert str(greenwich.info).startswith('name = Royal Observatory Greenwich')
