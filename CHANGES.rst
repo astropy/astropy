@@ -978,7 +978,7 @@ astropy.stats
 - Fixed an API regression where ``SigmaClip.__call__`` would convert masked
   elements to ``nan`` and upcast the dtype to ``float64`` in its output
   ``MaskedArray`` when using the ``axis`` parameter along with the defaults
-  ``masked=True`` and ``copy=True``. [?]
+  ``masked=True`` and ``copy=True``. [#10610]
 
 - Fixed an issue where fully masked ``MaskedArray`` input to
   ``sigma_clipped_stats`` gave incorrect results. [#10099]
