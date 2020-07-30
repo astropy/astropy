@@ -376,7 +376,6 @@ def test_sigma_clip_grow():
 
     assert np.array_equal(np.where(filtered_data.mask)[0], expected)
 
-
     # Test block growth in 2 of 3 dimensions (as in a 2D model set):
     data = data.reshape(4,5,5)
     filtered_data = sigma_clip(data, sigma=2.1, maxiters=1, grow=1.5,
@@ -391,7 +390,6 @@ def test_sigma_clip_grow():
     )
 
     assert np.array_equal(np.where(filtered_data.mask), expected)
-
 
     # Test ~spherical growth (of a single very-deviant point) in 3D data:
     data[1,2,2] = 100.
