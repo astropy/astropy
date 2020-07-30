@@ -318,14 +318,14 @@ def test_sigma_clip_masked_data_values():
                         copy=True)
 
     assert result.dtype == data.dtype
-    assert np.all(result.data == data)
+    assert_equal(result.data, data)
     assert not np.shares_memory(result.data, data)
 
     result = sigma_clip(data, sigma=1.5, maxiters=3, axis=None, masked=True,
                         copy=False)
 
     assert result.dtype == data.dtype
-    assert np.all(result.data == data)
+    assert_equal(result.data, data)
     assert np.shares_memory(result.data, data)
     # (The fact that the arrays share memory probably also means they're the
     # same, but doesn't strictly prove it, eg. one could be reversed.)
@@ -334,12 +334,12 @@ def test_sigma_clip_masked_data_values():
                         copy=True)
 
     assert result.dtype == data.dtype
-    assert np.all(result.data == data)
+    assert_equal(result.data, data)
     assert not np.shares_memory(result.data, data)
 
     result = sigma_clip(data, sigma=1.5, maxiters=3, axis=0, masked=True,
                         copy=False)
 
     assert result.dtype == data.dtype
-    assert np.all(result.data == data)
+    assert_equal(result.data, data)
     assert np.shares_memory(result.data, data)
