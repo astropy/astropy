@@ -302,3 +302,44 @@ def test_sigma_clippped_stats_all_masked():
     mask = arr < 20
     result = sigma_clipped_stats(arr, mask=mask)
     assert result == (np.ma.masked, np.ma.masked, np.ma.masked)
+
+
+def test_sigma_clip_masked_data_values():
+    """
+    Test that the data values & type returned by sigma_clip are the same as
+    its input when using masked=True (rather than being upcast to float64 &
+    containing NaNs as in issue #10605) and also that the input data get
+    copied or referenced as appropriate.
+    """
+
+    data = np.array([-2, 5, -5, -6, 20, 14, 1])
+
+    result = sigma_clip(data, sigma=1.5, maxiters=3, axis=None, masked=True,
+                        copy=True)
+
+    assert result.dtype == data.dtype
+    assert_equal(result.data, data)
+    assert not np.shares_memory(result.data, data)
+
+    result = sigma_clip(data, sigma=1.5, maxiters=3, axis=None, masked=True,
+                        copy=False)
+
+    assert result.dtype == data.dtype
+    assert_equal(result.data, data)
+    assert np.shares_memory(result.data, data)
+    # (The fact that the arrays share memory probably also means they're the
+    # same, but doesn't strictly prove it, eg. one could be reversed.)
+
+    result = sigma_clip(data, sigma=1.5, maxiters=3, axis=0, masked=True,
+                        copy=True)
+
+    assert result.dtype == data.dtype
+    assert_equal(result.data, data)
+    assert not np.shares_memory(result.data, data)
+
+    result = sigma_clip(data, sigma=1.5, maxiters=3, axis=0, masked=True,
+                        copy=False)
+
+    assert result.dtype == data.dtype
+    assert_equal(result.data, data)
+    assert np.shares_memory(result.data, data)
