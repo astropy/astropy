@@ -1072,8 +1072,7 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
 
 
 def download_file(remote_url, cache=False, show_progress=True, timeout=None,
-                  sources=None, pkgname='astropy', http_headers=None,
-                  ftp_tls=None):
+                  sources=None, pkgname='astropy', http_headers=None):
     """Downloads a URL and optionally caches the result.
 
     It returns the filename of a file containing the URL's contents.
@@ -1135,11 +1134,6 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
         is not a remote HTTP URL.) In the default case (None), the headers are
         ``User-Agent: some_value`` and ``Accept: */*``, where ``some_value``
         is set by ``astropy.utils.data.conf.default_http_user_agent``.
-
-    ftp_tls : bool
-        If True, use TLS with ftp URLs instead of the standard unsecured FTP.
-        Certain servers require this. If None, try without TLS first then try
-        with TLS.
 
     Returns
     -------
