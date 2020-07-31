@@ -1197,8 +1197,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
                     cache=cache,
                     remote_url=remote_url,
                     pkgname=pkgname,
-                    http_headers=http_headers,
-                    ftp_tls=ftp_tls)
+                    http_headers=http_headers)
             # Success!
             break
 
