@@ -983,7 +983,7 @@ class _FTPTLSHandler(urllib.request.FTPHandler):
 
 def _download_file_from_source(source_url, show_progress=True, timeout=None,
                                remote_url=None, cache=False, pkgname='astropy',
-                               http_headers=None, ftp_tls=False):
+                               http_headers=None, ftp_tls=None):
     from astropy.utils.console import ProgressBarOrSpinner
 
     if timeout == 0:
@@ -997,6 +997,21 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
     if http_headers is None:
         http_headers = {}
 
+    if ftp_tls is None and urllib.parse.urlparse(remote_url).scheme == "ftp":
+        try:
+            return _download_file_from_source(source_url,
+                                              show_progress=show_progress,
+                                              timeout=timeout,
+                                              remote_url=remote_url,
+                                              cache=cache,
+                                              pkgname=pkgname,
+                                              http_headers=http_headers,
+                                              ftp_tls=False)
+        except urllib.error.URLError as e:
+            if e.reason.startswith("ftp error: error_perm"):
+                ftp_tls = True
+            else:
+                raise
     if ftp_tls:
         urlopener = urllib.request.build_opener(_FTPTLSHandler())
     else:
@@ -1058,7 +1073,7 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
 
 def download_file(remote_url, cache=False, show_progress=True, timeout=None,
                   sources=None, pkgname='astropy', http_headers=None,
-                  ftp_tls=False):
+                  ftp_tls=None):
     """Downloads a URL and optionally caches the result.
 
     It returns the filename of a file containing the URL's contents.
@@ -1123,7 +1138,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
 
     ftp_tls : bool
         If True, use TLS with ftp URLs instead of the standard unsecured FTP.
-        Certain servers require this.
+        Certain servers require this. If None, try without TLS first then try
+        with TLS.
 
     Returns
     -------
