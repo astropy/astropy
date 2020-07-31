@@ -2092,5 +2092,3 @@ def test_ftp_tls(temp_cache):
 def test_ftp_tls_auto(temp_cache):
     url = "ftp://anonymous:mail%40astropy.org@gdc.cddis.eosdis.nasa.gov/pub/products/iers/finals2000A.all"
     download_file(url)
-
-
