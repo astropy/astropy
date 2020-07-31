@@ -1149,11 +1149,9 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
 
 def _mpmath_kraft_burrows_nousek(N, B, CL):
     '''Upper limit on a poisson count rate
-
     The implementation is based on Kraft, Burrows and Nousek in
     `ApJ 374, 344 (1991) <http://adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
     The XMM-Newton upper limit server used the same formalism.
-
     Parameters
     ----------
     N : int or np.int32/np.int64
@@ -1163,11 +1161,9 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
         from a large background area).
     CL : float or np.float32/np.float64
        Confidence level (number between 0 and 1)
-
     Returns
     -------
     S : source count limit
-
     Notes
     -----
     Requires the `mpmath <http://mpmath.org/>`_ library.  See
@@ -1182,6 +1178,7 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
     N = mpf(float(N))
     B = mpf(float(B))
     CL = mpf(float(CL))
+    tol = 1e-4
 
     def eqn8(N, B):
         sumterms = [power(B, n) / factorial(n) for n in range(int(N) + 1)]
@@ -1214,14 +1211,23 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
         else:
             def eqn7ysmax(x):
                 return eqn7(x, N, B) - y_S_max
-            return findroot(eqn7ysmax, (N - B) / 2.)
+            return findroot(eqn7ysmax, [0., max(N - B, 1)], solver='ridder',
+                            tol=tol)
 
     def func(s):
         s_min = find_s_min(s, N, B)
         out = eqn9_left(s_min, s, N, B)
         return out - CL
 
-    S_max = findroot(func, N - B, tol=1e-4)
+    # Several numerical problems were found prevent the solvers from finding
+    # the roots unless the starting values are very close to the final values.
+    # Thus, this primitive, time-wasting, brute-force stepping here to get
+    # an interval that can be fed into the ridder solver.
+    s_max_guess = max(N - B, 1.)
+    while func(s_max_guess) < 0:
+        s_max_guess += 1
+    S_max = findroot(func, [s_max_guess - 1, s_max_guess], solver='ridder',
+                     tol=tol)
     S_min = find_s_min(S_max, N, B)
     return float(S_min), float(S_max)
 
