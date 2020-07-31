@@ -641,6 +641,10 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
     This function has an optional dependency: Either `Scipy
     <https://www.scipy.org/>`_ or `mpmath <http://mpmath.org/>`_  need
     to be available (Scipy works only for N < 100).
+    This code is very intense numerically, which makes it much slower than
+    the other methods, in particular for large count numbers (above 1000
+    even with ``mpmath``). Fortunately, some of the other methods or a
+    Gaussian approximation usually work well in this regime.
 
     Examples
     --------
