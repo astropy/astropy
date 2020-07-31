@@ -215,8 +215,10 @@ class TestDefaultAutoOpen:
     def test_builtin_not_expired(self):
         # TODO: would be nice to have automatic PRs for this!
         ls = iers.LeapSeconds.open(iers.IERS_LEAP_SECOND_FILE)
-        assert ls.expires > self.good_enough, \
-            "The leap second file built in to astropy is expired. PR needed!"
+        assert ls.expires > self.good_enough, (
+            "The leap second file built in to astropy is expired. Fix with:\n"
+            "cd astropy/utils/iers/data/; . update_builtin_iers.sh\n"
+            "and commit as a PR (for details, see release procedure).")
 
     def test_fake_future_file(self, tmpdir):
         fake_file = make_fake_file('28 June 2345', tmpdir)
