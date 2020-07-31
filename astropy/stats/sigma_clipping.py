@@ -4,8 +4,6 @@ import warnings
 
 import numpy as np
 
-from scipy.ndimage import binary_dilation
-
 from astropy.utils import isiterable
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -226,6 +224,12 @@ class SigmaClip:
         self.cenfunc = self._parse_cenfunc(cenfunc)
         self.stdfunc = self._parse_stdfunc(stdfunc)
 
+        # This just checks that SciPy is available, to avoid failing later
+        # than necessary if __call__ needs it:
+        if self.grow:
+            from scipy.ndimage import binary_dilation
+
+
     def __repr__(self):
         return ('SigmaClip(sigma={}, sigma_lower={}, sigma_upper={}, '
                 'maxiters={}, grow={}, cenfunc={}, stdfunc={})'
@@ -368,6 +372,8 @@ class SigmaClip:
                            for dim, size in enumerate(filtered_data.shape))
 
         if self.grow:
+            from scipy.ndimage import binary_dilation
+
             # Construct a growth kernel from the specified radius in pixels
             # (consider caching this for re-use by subsequent calls?):
             cenidx = int(self.grow)
