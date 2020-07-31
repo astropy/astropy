@@ -87,7 +87,6 @@ def download_file(*args, **kwargs):
     """
     kwargs.setdefault('http_headers', {'User-Agent': 'astropy/iers',
                                        'Accept': '*/*'})
-    kwargs.setdefault('ftp_tls', True)
 
     with utils.data.conf.set_temp('remote_timeout', conf.remote_timeout):
         return utils.data.download_file(*args, **kwargs)
