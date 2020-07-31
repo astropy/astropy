@@ -346,6 +346,7 @@ def test_sigma_clip_masked_data_values():
     assert np.shares_memory(result.data, data)
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_sigma_clip_grow():
     """
     Test sigma_clip with growth of masking to include the neighbours within a
