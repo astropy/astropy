@@ -172,8 +172,10 @@ def extract_array(array_large, shape, position, mode='partial',
     fill_value : number, optional
         If ``mode='partial'``, the value to fill pixels in the extracted
         small array that do not overlap with the input ``array_large``.
-        ``fill_value`` must have the same ``dtype`` as the
-        ``array_large`` array.
+        ``fill_value`` will be changed to have the same ``dtype`` as the
+        ``array_large`` array, with one exception. If ``array_large``
+        has integer type and ``fill_value`` is ``np.nan``, then a
+        `ValueError` will be raised.
     return_position : bool, optional
         If `True`, return the coordinates of ``position`` in the
         coordinate system of the returned array.
@@ -221,7 +223,16 @@ def extract_array(array_large, shape, position, mode='partial',
     # Extracting on the edges is presumably a rare case, so treat special here
     if (extracted_array.shape != shape) and (mode == 'partial'):
         extracted_array = np.zeros(shape, dtype=array_large.dtype)
-        extracted_array[:] = fill_value
+        try:
+            extracted_array[:] = fill_value
+        except ValueError as exc:
+            exc.args += ('fill_value is inconsistent with the data type of '
+                         'the input array (e.g., fill_value cannot be set to '
+                         'np.nan if the input array has integer type). Please '
+                         'change either the input array dtype or the '
+                         'fill_value.',)
+            raise exc
+
         extracted_array[small_slices] = array_large[large_slices]
         if return_position:
             new_position = [i + s.start for i, s in zip(new_position,

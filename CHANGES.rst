@@ -957,6 +957,9 @@ Other Changes and Additions
 - Updated the bundled CFITSIO library to 3.480. See
   ``cextern/cfitsio/docs/changes.txt`` for additional information. [#10256]
 
+- ``extract_array`` raises a ``ValueError`` if the data type of the
+  input array is inconsistent with the ``fill_value``. [#10602]
+
 
 4.0.1 (2020-03-27)
 ==================
