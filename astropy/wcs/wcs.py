@@ -431,11 +431,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                     tmp_header_bytes = tmp_header_bytes.encode('ascii')
                 tmp_wcsprm = _wcs.Wcsprm(header=tmp_header_bytes, key=key,
                                          relax=relax, keysel=keysel_flags,
-                                         colsel=colsel, warnings=False,
-                                         hdulist=fobj)
-            except _wcs.NoWcsKeywordsFoundError:
-                est_naxis = 0
-            else:
+                                         colsel=colsel, warnings=False)
                 if naxis is not None:
                     try:
                         tmp_wcsprm = tmp_wcsprm.sub(naxis)
