@@ -247,12 +247,13 @@ def extract_array(array_large, shape, position, mode='partial',
         extracted_array = np.zeros(shape, dtype=array_large.dtype)
         try:
             extracted_array[:] = fill_value
-        except ValueError:
-            raise ValueError('fill_value is inconsistent with the data type '
-                             'of the input array (e.g., fill_value cannot be '
-                             'set to np.nan if the input array has integer '
-                             'type). Please change either the input array '
-                             'dtype or the fill_value.') from None
+        except ValueError as exc:
+            exc.args += ('fill_value is inconsistent with the data type of '
+                         'the input array (e.g., fill_value cannot be set to '
+                         'np.nan if the input array has integer type). Please '
+                         'change either the input array dtype or the '
+                         'fill_value.',)
+            raise exc
 
         extracted_array[small_slices] = array_large[large_slices]
         if return_position:
