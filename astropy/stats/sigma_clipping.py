@@ -229,7 +229,6 @@ class SigmaClip:
         if self.grow:
             from scipy.ndimage import binary_dilation
 
-
     def __repr__(self):
         return ('SigmaClip(sigma={}, sigma_lower={}, sigma_upper={}, '
                 'maxiters={}, cenfunc={}, stdfunc={}, grow={})'
