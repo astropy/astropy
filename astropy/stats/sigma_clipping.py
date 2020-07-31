@@ -418,7 +418,8 @@ class SigmaClip:
         if masked:
             # create an output masked array
             if copy:
-                filtered_data = np.ma.MaskedArray(data, ~np.isfinite(filtered_data),
+                filtered_data = np.ma.MaskedArray(data,
+                                                  ~np.isfinite(filtered_data),
                                                   copy=True)
             else:
                 # ignore RuntimeWarnings for comparisons with NaN data values
