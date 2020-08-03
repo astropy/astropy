@@ -629,6 +629,8 @@ def test_scipy_poisson_limit():
 def test_mpmath_poisson_limit():
     assert_allclose(funcs._mpmath_kraft_burrows_nousek(1., .1, .99),
                     (0.00, 6.54), rtol=5e-3)
+    assert_allclose(funcs._mpmath_kraft_burrows_nousek(1., .5, .95),
+                    (0.00, 4.36), rtol=5e-3)
     assert_allclose(funcs._mpmath_kraft_burrows_nousek(5., 0., .99),
                     (1.17, 13.32), rtol=5e-3)
     assert_allclose(funcs._mpmath_kraft_burrows_nousek(5., 2.5, .99),
