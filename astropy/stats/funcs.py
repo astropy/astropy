@@ -1215,7 +1215,7 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
         # Note: For small N, s_max is also close to 0 and root finding
         # might find the wrong root, thus it is important to handle this
         # case here and return the analytical answer (s_min = 0).
-        if (B > N) or (eqn7(0, N, B) >= y_S_max):
+        if (B >= N) or (eqn7(0, N, B) >= y_S_max):
             return 0.
         else:
             def eqn7ysmax(x):
