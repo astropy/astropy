@@ -303,13 +303,9 @@ specified to use a particular indexing engine. The available engines are:
   sorted ``Table``.
 * `~astropy.table.SCEngine`, a sorted list engine using the `Sorted Containers
   <https://pypi.org/project/sortedcontainers/>`_ package.
-* `~astropy.table.FastRBT`, a C-based red-black tree engine.
-* `~astropy.table.FastBST`, a C-based binary search tree engine.
 * `~astropy.table.BST`, a Python-based binary search tree engine.
 
-Note that FastRBT and FastBST rely on the bintrees dependency; without this
-dependency, both classes default to `~astropy.table.BST`. The SCEngine depends
-on the ``sortedcontainers`` dependency. The most important takeaway is that
+The SCEngine depends on the ``sortedcontainers`` dependency. The most important takeaway is that
 `~astropy.table.SortedArray` (the default engine) is usually best, although
 `~astropy.table.SCEngine` may be more appropriate for an index created on an
 empty column since adding new values is quicker.

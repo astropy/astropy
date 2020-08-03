@@ -6,7 +6,7 @@ import pytest
 import numpy as np
 
 from .test_table import SetupData
-from astropy.table.bst import BST, FastRBT, FastBST
+from astropy.table.bst import BST
 from astropy.table.sorted_array import SortedArray
 from astropy.table.soco import SCEngine, HAS_SOCO
 from astropy.table.table import QTable, Row, Table
@@ -15,18 +15,7 @@ from astropy.time import Time
 from astropy.table.column import BaseColumn
 from astropy.table.index import get_index, SlicedIndex
 
-try:
-    import bintrees  # noqa
-except ImportError:
-    HAS_BINTREES = False
-else:
-    HAS_BINTREES = True
-
-
-if HAS_BINTREES:
-    available_engines = [BST, FastBST, FastRBT, SortedArray]
-else:
-    available_engines = [BST, SortedArray]
+available_engines = [BST, SortedArray]
 
 if HAS_SOCO:
     available_engines.append(SCEngine)

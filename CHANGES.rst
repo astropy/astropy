@@ -154,6 +154,9 @@ astropy.table
   generators instead of a list. This matches the behavior for Python ``dict``
   objects. [#10543]
 
+- Removed support for ``bintrees``, and thus also ``FastBST`` and ``FastRBT``.
+  [#10622]
+
 astropy.tests
 ^^^^^^^^^^^^^
 

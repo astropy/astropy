@@ -49,12 +49,6 @@ Requirements
   ``SCEngine`` indexing engine with ``Table``, although this may still be
   slower in some cases than the default indexing engine.
 
-- `bintrees <https://pypi.org/project/bintrees>`_ for faster ``FastRBT`` and
-  ``FastBST`` indexing engines with ``Table``, although these will still be
-  slower in most cases than the default indexing engine. *This package is
-  deprecated because it is no longer maintained.  The ``sortedcontainers``
-  package is now recommended.*
-
 - `pytz <https://pythonhosted.org/pytz/>`_: To specify and convert between
   timezones.
 

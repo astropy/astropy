@@ -3,8 +3,8 @@
 from astropy import config as _config
 from .column import Column, MaskedColumn, StringTruncateWarning, ColumnInfo
 
-__all__ = ['BST', 'Column', 'ColumnGroups', 'ColumnInfo', 'Conf', 'FastBST',
-           'FastRBT', 'JSViewer', 'MaskedColumn', 'NdarrayMixin', 'QTable', 'Row',
+__all__ = ['BST', 'Column', 'ColumnGroups', 'ColumnInfo', 'Conf',
+           'JSViewer', 'MaskedColumn', 'NdarrayMixin', 'QTable', 'Row',
            'SCEngine', 'SerializedColumn', 'SortedArray', 'StringTruncateWarning',
            'Table', 'TableAttribute', 'TableColumns', 'TableFormatter',
            'TableGroups', 'TableMergeError', 'TableReplaceWarning', 'conf',
@@ -50,7 +50,7 @@ from .table import (Table, QTable, TableColumns, Row, TableFormatter,
                     NdarrayMixin, TableReplaceWarning, TableAttribute)
 from .operations import (join, setdiff, hstack, dstack, vstack, unique, TableMergeError,
                          join_skycoord, join_distance)
-from .bst import BST, FastBST, FastRBT
+from .bst import BST
 from .sorted_array import SortedArray
 from .soco import SCEngine
 from .serialize import SerializedColumn, represent_mixins_as_columns
