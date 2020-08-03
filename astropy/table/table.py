@@ -779,7 +779,7 @@ class Table:
             List of column names (or a single column name) to index
         engine : type or None
             Indexing engine class to use, from among SortedArray, BST,
-            FastBST, FastRBT, and SCEngine. If the supplied argument is None
+            and SCEngine. If the supplied argument is None
             (by default), use SortedArray.
         unique : bool
             Whether the values of the index must be unique. Default is False.
