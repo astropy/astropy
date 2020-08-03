@@ -1210,12 +1210,17 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
         eqn7(S_min) here.
         '''
         y_S_max = eqn7(S_max, N, B)
-        if eqn7(0, N, B) >= y_S_max:
+        # If B > N, then N-B, the "most probable" values is < 0
+        # and thus s_min is certainly 0.
+        # Note: For small N, s_max is also close to 0 and root finding
+        # might find the wrong root, thus it is important to handle this
+        # case here and return the analytical answer (s_min = 0).
+        if (B > N) or (eqn7(0, N, B) >= y_S_max):
             return 0.
         else:
             def eqn7ysmax(x):
                 return eqn7(x, N, B) - y_S_max
-            return findroot(eqn7ysmax, [0., max(N - B, 1)], solver='ridder',
+            return findroot(eqn7ysmax, [0., N - B], solver='ridder',
                             tol=tol)
 
     def func(s):
