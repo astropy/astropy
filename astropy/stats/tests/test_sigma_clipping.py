@@ -270,22 +270,20 @@ def test_sigma_clip_axis_tuple_3D():
 
 def test_sigmaclip_repr():
 
-    import re
-
     sigclip = SigmaClip()
-    sigclip_repr = ('SigmaClip[(]sigma=3[.]0, sigma_lower=3[.]0, '
-                    'sigma_upper=3[.]0, maxiters=5, '
-                    'cenfunc=<function _nanmedian at 0x[a-f0-9]+>, '
-                    'stdfunc=<function _nanstd at 0x[a-f0-9]+>, '
-                    'grow=False[)]$')
+    median_str = str(sigclip._parse_cenfunc('median'))
+    std_str = str(sigclip._parse_stdfunc('std'))
+
+    sigclip_repr = ('SigmaClip(sigma=3.0, sigma_lower=3.0, sigma_upper=3.0,'
+                    ' maxiters=5, cenfunc={}, stdfunc={}, '
+                    'grow=False)'.format(median_str, std_str))
     sigclip_str = ('<SigmaClip>\n    sigma: 3.0\n    sigma_lower: 3.0\n'
                    '    sigma_upper: 3.0\n    maxiters: 5\n'
-                   '    cenfunc: <function _nanmedian at 0x[a-f0-9]+>\n'
-                   '    stdfunc: <function _nanstd at 0x[a-f0-9]+>\n'
-                   '    grow: False$')
+                   '    cenfunc: {}\n    stdfunc: {}\n'
+                   '    grow: False'.format(median_str, std_str))
 
-    assert re.match(sigclip_repr, repr(sigclip)) is not None
-    assert re.match(sigclip_str, str(sigclip)) is not None
+    assert repr(sigclip) == sigclip_repr
+    assert str(sigclip) == sigclip_str
 
 
 def test_sigma_clippped_stats_unit():
