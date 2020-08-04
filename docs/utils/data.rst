@@ -179,7 +179,7 @@ concurrency problems that arose on some compute clusters. Each version of the
 cache is in its own subdirectory, so the old versions do not interfere with the
 new versions and vice versa, but their contents are not used by this version
 and are not cleared by `~astropy.utils.data.clear_download_cache`. To remove
-these old cache directories you can simply run::
+these old cache directories, you can run::
 
    >>> from shutil import rmtree
    >>> from os.path import join
