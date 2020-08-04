@@ -1349,7 +1349,6 @@ def download_files_in_parallel(urls,
         configurable `astropy.utils.data.Conf.remote_timeout`). Set this to
         zero to prevent any attempt to download anything.
 
-
     sources : dict, optional
         If provided, for each URL a list of URLs to try to obtain the
         file from. The result will be stored under the original URL.
@@ -1509,7 +1508,7 @@ def clear_download_cache(hashorurl=None, pkgname='astropy'):
             d, f = os.path.split(rp)
             if d and f in ["contents", "url"]:
                 # It's a filename not the hash of a URL
-                # so we wamt to zap the directory containing the
+                # so we want to zap the directory containing the
                 # files "url" and "contents"
                 filepath = os.path.join(dldir, d)
             if os.path.exists(filepath):
