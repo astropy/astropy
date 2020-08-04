@@ -26,13 +26,13 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory
 import py.path
 import pytest
 
-from astropy.utils import data
 from astropy.config import paths
 import astropy.utils.data
 from astropy.utils.data import (
     CacheMissingWarning,
     CacheDamaged,
     conf,
+    _deltemps,
     compute_hash,
     download_file,
     cache_contents,
@@ -172,7 +172,7 @@ def readonly_cache(tmpdir, valid_urls):
 
 @pytest.fixture
 def fake_readonly_cache(tmpdir, valid_urls, monkeypatch):
-    def no_mkdir(p, perm=None):
+    def no_mkdir(path, mode=None):
         raise OSError(errno.EPERM,
                       "os.mkdir monkeypatched out")
 
@@ -205,20 +205,20 @@ def fake_readonly_cache(tmpdir, valid_urls, monkeypatch):
             check_download_cache()
 
 
-def can_rename_directory_in_use():
-    with TemporaryDirectory() as d:
-        d1 = os.path.join(d, "a")
-        d2 = os.path.join(d, "b")
-        f1 = os.path.join(d1, "file")
-        os.mkdir(d1)
-        with open(f1, "wt") as f:
-            f.write("some contents\n")
-        try:
-            with open(f1, "rt"):
-                os.rename(d1, d2)
-        except PermissionError:
-            return False
-        return True
+with TemporaryDirectory() as d:
+    d1 = os.path.join(d, "a")
+    d2 = os.path.join(d, "b")
+    f1 = os.path.join(d1, "file")
+    os.mkdir(d1)
+    with open(f1, "wt") as f:
+        f.write("some contents\n")
+    try:
+        with open(f1, "rt"):
+            os.rename(d1, d2)
+    except PermissionError:
+        CAN_RENAME_DIRECTORY_IN_USE = False
+    else:
+        CAN_RENAME_DIRECTORY_IN_USE = True
 
 
 def test_download_file_basic(valid_urls, temp_cache):
@@ -1067,11 +1067,11 @@ def test_data_noastropy_fallback(monkeypatch):
     # now remove it so tests don't clutter up the temp dir this should get
     # called at exit, anyway, but we do it here just to make sure it's working
     # correctly
-    data._deltemps()
+    _deltemps()
     assert not os.path.isfile(fnout)
 
     # now try with no cache
-    fnnocache = data.download_file(TESTURL, cache=False)
+    fnnocache = download_file(TESTURL, cache=False)
     with open(fnnocache, "rb") as page:
         assert page.read().decode("utf-8").find("Astropy") > -1
 
@@ -1184,8 +1184,8 @@ def test_is_url_in_cache_local(temp_cache, valid_urls, invalid_urls):
     assert not is_url_in_cache(nonexistent)
 
 
-# TODO: Remove this comment if the non-deterministic failure does not return
-# @pytest.mark.skip(reason='https://github.com/astropy/astropy/issues/9765')
+# If non-deterministic failure happens see
+# https://github.com/astropy/astropy/issues/9765
 def test_check_download_cache(tmpdir, temp_cache, valid_urls, invalid_urls):
     testurl, testurl_contents = next(valid_urls)
     testurl2, testurl2_contents = next(valid_urls)
@@ -1612,8 +1612,6 @@ def test_cache_relocatable(tmpdir, valid_urls):
         assert get_file_contents(p1) == c
         shutil.copytree(d1, d2)
         clear_download_cache()
-    # this will not work! The filenames listed in the shelve are absolute
-    # and so point back to the first cache
     with paths.set_temp_cache(d2):
         assert is_url_in_cache(u)
         p2 = download_file(u, cache=True)
@@ -1669,8 +1667,6 @@ def test_nested_get_readable_fileobj():
 
 
 def test_download_file_wrong_size(monkeypatch):
-    import contextlib
-    from astropy.utils.data import download_file
 
     @contextlib.contextmanager
     def mockurl(remote_url, timeout=None):
@@ -1969,10 +1965,9 @@ def test_download_parallel_respects_pkgname(temp_cache, valid_urls):
     assert not get_cached_urls()
     assert len(get_cached_urls(pkgname=a)) == FEW
 
-
+@pytest.mark.skipif(not CAN_RENAME_DIRECTORY_IN_USE,
+                    reason="This platform is unable to rename directories that are in use.")
 def test_removal_of_open_files(temp_cache, valid_urls):
-    if not can_rename_directory_in_use():
-        pytest.skip("This platform is not able to remove files while in use.")
     u, c = next(valid_urls)
     with open(download_file(u, cache=True)):
         clear_download_cache(u)
@@ -1980,9 +1975,9 @@ def test_removal_of_open_files(temp_cache, valid_urls):
         check_download_cache()
 
 
+@pytest.mark.skipif(not CAN_RENAME_DIRECTORY_IN_USE,
+                    reason="This platform is unable to rename directories that are in use.")
 def test_update_of_open_files(temp_cache, valid_urls):
-    if not can_rename_directory_in_use():
-        pytest.skip("This platform is not able to remove files while in use.")
     u, c = next(valid_urls)
     with open(download_file(u, cache=True)):
         u2, c2 = next(valid_urls)
@@ -1995,10 +1990,10 @@ def test_update_of_open_files(temp_cache, valid_urls):
 
 def test_removal_of_open_files_windows(temp_cache, valid_urls, monkeypatch):
     def no_rmtree(*args, **kwargs):
-        warnings.warn(CacheMissingWarning("in use", ""))
+        warnings.warn(CacheMissingWarning("in use"))
         raise PermissionError
 
-    if can_rename_directory_in_use():
+    if CAN_RENAME_DIRECTORY_IN_USE:
         # This platform is able to remove files while in use.
         monkeypatch.setattr(astropy.utils.data, "_rmtree", no_rmtree)
 
@@ -2010,10 +2005,10 @@ def test_removal_of_open_files_windows(temp_cache, valid_urls, monkeypatch):
 
 def test_update_of_open_files_windows(temp_cache, valid_urls, monkeypatch):
     def no_rmtree(*args, **kwargs):
-        warnings.warn(CacheMissingWarning("in use", ""))
+        warnings.warn(CacheMissingWarning("in use"))
         raise PermissionError
 
-    if can_rename_directory_in_use():
+    if CAN_RENAME_DIRECTORY_IN_USE:
         # This platform is able to remove files while in use.
         monkeypatch.setattr(astropy.utils.data, "_rmtree", no_rmtree)
 
