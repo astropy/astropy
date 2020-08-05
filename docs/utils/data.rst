@@ -184,8 +184,8 @@ these old cache directories, you can run::
    >>> from shutil import rmtree
    >>> from os.path import join
    >>> from astropy.config.paths import get_cache_dir
-   >>> rmtree(join(get_cache_dir(), 'download', 'py2'))  # doctest: +SKIP
-   >>> rmtree(join(get_cache_dir(), 'download', 'py3'))  # doctest: +SKIP
+   >>> rmtree(join(get_cache_dir(), 'download', 'py2'), ignore_errors=True)  # doctest: +SKIP
+   >>> rmtree(join(get_cache_dir(), 'download', 'py3'), ignore_errors=True)  # doctest: +SKIP
 
 Using Astropy With Limited or No Internet Access
 ================================================
