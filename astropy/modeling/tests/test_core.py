@@ -359,6 +359,19 @@ def test_render_model_3d():
                     assert (np.sum(expected) - np.sum(boxed)) == 0
 
 
+def test_render_model_out_dtype():
+    """Test different out.dtype for model.render."""
+    for model in [models.Gaussian2D(), models.Gaussian2D() + models.Planar2D()]:
+        for dtype in [np.float64, np.float32, np.complex64]:
+            im = np.zeros((40, 40), dtype=dtype)
+            imout = model.render(out=im)
+            assert imout is im
+            assert imout.sum() != 0
+        with pytest.raises(TypeError):
+            im = np.zeros((40, 40), dtype=np.int32)
+            imout = model.render(out=im)
+
+
 def test_custom_bounding_box_1d():
     """
     Tests that the bounding_box setter works.
