@@ -1495,7 +1495,7 @@ class Model(metaclass=_ModelMeta):
                 out = np.zeros(coords[0].shape)
 
         if out is not None:
-            out = np.asanyarray(out, dtype=float)
+            out = np.asanyarray(out)
             if out.ndim != ndim:
                 raise ValueError('the array and model must have the same '
                                  'number of dimensions.')
@@ -3357,7 +3357,7 @@ class CompoundModel(Model):
                 out = np.zeros(coords[0].shape)
 
         if out is not None:
-            out = np.asanyarray(out, dtype=float)
+            out = np.asanyarray(out)
             if out.ndim != ndim:
                 raise ValueError('the array and model must have the same '
                                  'number of dimensions.')
