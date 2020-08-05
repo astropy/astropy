@@ -56,6 +56,7 @@ from astropy.utils.data import (
     download_files_in_parallel,
 )
 
+TRAVIS = os.environ.get('TRAVIS', False)
 TESTURL = "http://www.astropy.org"
 TESTURL2 = "http://www.astropy.org/about.html"
 TESTLOCAL = get_pkg_data_filename(os.path.join("data", "local.dat"))
@@ -84,6 +85,26 @@ N_PARALLEL_HAMMER = 5  # as high as 500 to replicate a bug
 # For stress testing the locking system using threads
 # (cheaper, works with coverage)
 N_THREAD_HAMMER = 10  # as high as 1000 to replicate a bug
+
+
+def can_rename_directory_in_use():
+    with TemporaryDirectory() as d:
+        d1 = os.path.join(d, "a")
+        d2 = os.path.join(d, "b")
+        f1 = os.path.join(d1, "file")
+        os.mkdir(d1)
+        with open(f1, "wt") as f:
+            f.write("some contents\n")
+        try:
+            with open(f1, "rt"):
+                os.rename(d1, d2)
+        except PermissionError:
+            return False
+        else:
+            return True
+
+
+CAN_RENAME_DIRECTORY_IN_USE = can_rename_directory_in_use()
 
 
 def url_to(path):
@@ -203,22 +224,6 @@ def fake_readonly_cache(tmpdir, valid_urls, monkeypatch):
             yield urls
             assert set(d.iterdir()) == files
             check_download_cache()
-
-
-with TemporaryDirectory() as d:
-    d1 = os.path.join(d, "a")
-    d2 = os.path.join(d, "b")
-    f1 = os.path.join(d1, "file")
-    os.mkdir(d1)
-    with open(f1, "wt") as f:
-        f.write("some contents\n")
-    try:
-        with open(f1, "rt"):
-            os.rename(d1, d2)
-    except PermissionError:
-        CAN_RENAME_DIRECTORY_IN_USE = False
-    else:
-        CAN_RENAME_DIRECTORY_IN_USE = True
 
 
 def test_download_file_basic(valid_urls, temp_cache):
@@ -1047,14 +1052,11 @@ def test_data_noastropy_fallback(monkeypatch):
         # make sure the config dir search fails
         paths.get_cache_dir(rootname='astropy')
 
-    # first try with cache
-    # We want *both* of these warnings, but pytest.raises does not work when used
-    # nested to accomplish this.
-    with pytest.warns(CacheMissingWarning,
-                      match=r".*Remote data cache could not be accessed.*"):
-        download_file(TESTURL, cache=True)
-    with pytest.warns(CacheMissingWarning, match=r".*temporary.*"):
+    with pytest.warns(CacheMissingWarning) as warning_lines:
         fnout = download_file(TESTURL, cache=True)
+    assert len(warning_lines) == 2
+    assert 'Remote data cache could not be accessed' in str(warning_lines[0].message)
+    assert 'temporary' in str(warning_lines[1].message)
 
     assert os.path.isfile(fnout)
 
@@ -1428,20 +1430,21 @@ def test_check_download_cache_cleanup(temp_cache, valid_urls):
     bf2 = os.path.abspath(os.path.join(os.path.dirname(fn), "bogus2"))
     with open(bf2, "wt") as f:
         f.write("other bogus file that exists")
-    u2, c2 = next(valid_urls)
-    f2 = download_file(u, cache=True)
-    os.unlink(f2)
 
     bf3 = os.path.abspath(os.path.join(dldir, "contents"))
     with open(bf3, "wt") as f:
         f.write("awkwardly-named bogus file that exists")
 
+    u2, c2 = next(valid_urls)
+    f2 = download_file(u, cache=True)
+    os.unlink(f2)
+    bf4 = os.path.dirname(f2)
+
     with pytest.raises(CacheDamaged) as e:
         check_download_cache()
+    assert set(e.value.bad_files) == set([bf1, bf2, bf3, bf4])
     for bf in e.value.bad_files:
-        print(bf)
         clear_download_cache(bf)
-
     # download cache will be checked on exit
 
 
@@ -1965,6 +1968,7 @@ def test_download_parallel_respects_pkgname(temp_cache, valid_urls):
     assert not get_cached_urls()
     assert len(get_cached_urls(pkgname=a)) == FEW
 
+
 @pytest.mark.skipif(not CAN_RENAME_DIRECTORY_IN_USE,
                     reason="This platform is unable to rename directories that are in use.")
 def test_removal_of_open_files(temp_cache, valid_urls):
@@ -2077,6 +2081,7 @@ def test_clear_download_cache_variants(temp_cache, valid_urls):
     assert not is_url_in_cache(u)
 
 
+@pytest.mark.xfail('TRAVIS')
 @pytest.mark.remote_data
 def test_ftp_tls_auto(temp_cache):
     url = "ftp://anonymous:mail%40astropy.org@gdc.cddis.eosdis.nasa.gov/pub/products/iers/finals2000A.all"
