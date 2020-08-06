@@ -143,33 +143,25 @@ def test_names():
 
 @pytest.mark.remote_data
 def test_name_resolve_cache(tmpdir):
-    from astropy.utils.data import _get_download_cache_locs, get_cached_urls
-    import shelve
+    from astropy.utils.data import get_cached_urls
 
     target_name = "castor"
 
     temp_cache_dir = str(tmpdir.mkdir('cache'))
     with paths.set_temp_cache(temp_cache_dir, delete=True):
-        download_dir, urlmapfn = _get_download_cache_locs()
-
-        with shelve.open(urlmapfn) as url2hash:
-            assert len(url2hash) == 0
+        assert len(get_cached_urls()) == 0
 
         icrs1 = get_icrs_coordinates(target_name, cache=True)
 
-        # This is a weak test: we just check to see that a url is added to the
-        #  cache!
-        with shelve.open(urlmapfn) as url2hash:
-            assert len(url2hash) == 1
-            url = get_cached_urls()[0]
-            assert 'http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/' in url
+        urls = get_cached_urls()
+        assert len(urls) == 1
+        assert 'http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/' in urls[0]
 
         # Try reloading coordinates, now should just reload cached data:
         with no_internet():
             icrs2 = get_icrs_coordinates(target_name, cache=True)
 
-        with shelve.open(urlmapfn) as url2hash:
-            assert len(url2hash) == 1
+        assert len(get_cached_urls()) == 1
 
         assert u.allclose(icrs1.ra, icrs2.ra)
         assert u.allclose(icrs1.dec, icrs2.dec)
