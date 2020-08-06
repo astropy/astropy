@@ -910,7 +910,7 @@ def _find_hash_fn(hexdigest, pkgname='astropy'):
     return None
 
 
-def get_free_space_in_dir(path):
+def get_free_space_in_dir(path, return_quantity=False):
     """
     Given a path to a directory, returns the amount of free space (in
     bytes) on that filesystem.
@@ -918,12 +918,16 @@ def get_free_space_in_dir(path):
     Parameters
     ----------
     path : str
-        The path to a directory
+        The path to a directory.
+
+    return_quantity : bool
+        Return ``bytes`` as a Quantity.
+        Default is `False` for backward-compatibility.
 
     Returns
     -------
-    bytes : int
-        The amount of free space on the partition that the directory
+    free_space : int or `~astropy.units.Quantity`
+        The amount of free space (in bytes) on the partition that the directory
         is on.
     """
     if not os.path.isdir(path):
@@ -932,32 +936,37 @@ def get_free_space_in_dir(path):
             "not files.")
         # Actually you can on Linux but I want to avoid code that fails
         # on Windows only.
-    return shutil.disk_usage(path).free
+    free_space = shutil.disk_usage(path).free
+    if return_quantity:
+        from astropy import units as u
+        free_space = free_space * u.byte
+    return free_space
 
 
 def check_free_space_in_dir(path, size):
     """
     Determines if a given directory has enough space to hold a file of
-    a given size.  Raises an OSError if the file would be too large.
+    a given size.
 
     Parameters
     ----------
     path : str
-        The path to a directory
+        The path to a directory.
 
-    size : int
-        A proposed filesize (in bytes)
+    size : int or `~astropy.units.Quantity`
+        A proposed filesize. If not a Quantity, assume it is in bytes.
 
     Raises
     -------
-    OSError : There is not enough room on the filesystem
+    OSError
+        There is not enough room on the filesystem.
     """
-    from astropy.utils.console import human_file_size
-
-    space = get_free_space_in_dir(path)
+    space = get_free_space_in_dir(path, return_quantity=hasattr(size, 'unit'))
     if space < size:
+        from astropy.utils.console import human_file_size
         raise OSError(f"Not enough free space in {path} "
-                      f"to download a {human_file_size(size)} file")
+                      f"to download a {human_file_size(size)} file, "
+                      f"only {human_file_size(space)} left")
 
 
 class _ftptlswrapper(urllib.request.ftpwrapper):
