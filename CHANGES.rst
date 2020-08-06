@@ -89,7 +89,7 @@ astropy.utils
 - ``ShapedLikeNDArray`` has gained the capability to use numpy functions
   that broadcast, change shape, or index. [#10337]
 
-- ``get_free_space_in_dir`` now takes a new ``return_quantity`` keyword and
+- ``get_free_space_in_dir`` now takes a new ``unit`` keyword and
   ``check_free_space_in_dir`` takes ``size`` defined as ``Quantity``. [#10627]
 
 astropy.visualization

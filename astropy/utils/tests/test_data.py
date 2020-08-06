@@ -1363,10 +1363,16 @@ def test_get_free_space_file_directory(tmpdir):
         pass
     with pytest.raises(OSError):
         get_free_space_in_dir(str(fn))
-    assert get_free_space_in_dir(str(tmpdir)) > 0
 
-    free_space = get_free_space_in_dir(str(tmpdir), return_quantity=True)
+    free_space = get_free_space_in_dir(str(tmpdir))
+    assert free_space > 0 and not hasattr(free_space, 'unit')
+
+    # TODO: If unit=True starts to auto-guess prefix, this needs updating.
+    free_space = get_free_space_in_dir(str(tmpdir), unit=True)
     assert free_space > 0 and free_space.unit == _u.byte
+
+    free_space = get_free_space_in_dir(str(tmpdir), unit=_u.Mbit)
+    assert free_space > 0 and free_space.unit == _u.Mbit
 
 
 def test_download_file_bogus_settings(invalid_urls, temp_cache):
@@ -2090,5 +2096,5 @@ def test_clear_download_cache_variants(temp_cache, valid_urls):
 @pytest.mark.xfail('TRAVIS')
 @pytest.mark.remote_data
 def test_ftp_tls_auto(temp_cache):
-    url = "ftp://anonymous:mail%40astropy.org@gdc.cddis.eosdis.nasa.gov/pub/products/iers/finals2000A.all"
+    url = "ftp://anonymous:mail%40astropy.org@gdc.cddis.eosdis.nasa.gov/pub/products/iers/finals2000A.all"  # noqa
     download_file(url)
