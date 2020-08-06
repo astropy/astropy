@@ -257,7 +257,7 @@ therefore recommend the following guidelines:
    not suddenly notice an out-of-date table all at once and frantically attempt
    to download it.
 
- * Optionally, in this file, set ``astropy.utils.data.conf.remote_timeout = 0`` to
+ * Optionally, in this file, set ``astropy.utils.data.conf.allow_internet = False`` to
    prevent any attempt to download any file from the worker nodes; if you do this,
    you will need to override this setting in your script that does the actual
    downloading.

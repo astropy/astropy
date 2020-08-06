@@ -144,6 +144,8 @@ astropy.utils
 
 - ``get_free_space_in_dir`` now takes a new ``unit`` keyword and
   ``check_free_space_in_dir`` takes ``size`` defined as ``Quantity``. [#10627]
+- New ``astropy.utils.data.conf.allow_internet`` configuration item to
+  control downloading data from the Internet. [#10632]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -281,6 +283,10 @@ astropy.utils
   ``check_broadcast``, ``unbroadcast``, and ``IncompatibleShapeError`` --
   have been moved to their own module, ``astropy.utils.shapes``. They remain
   importable from ``astropy.utils``. [#10337]
+
+- Setting ``astropy.utils.data.conf.remote_timeout`` to zero no longer prevents
+  downloading data from the Internet. Use
+  ``astropy.utils.data.conf.allow_internet = False`` instead. [#10632]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
