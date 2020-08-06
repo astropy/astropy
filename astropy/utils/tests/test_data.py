@@ -2106,6 +2106,7 @@ def test_url_trailing_slash(temp_cache, valid_urls, base):
     download_file(no_slash, cache=True, sources=[u])
     # see if implicit check_download_cache squawks
 
+
 def test_empty_url(temp_cache, valid_urls):
     u, c = next(valid_urls)
     download_file('file://', cache=True, sources=[u])
