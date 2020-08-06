@@ -4,7 +4,6 @@
 
 import atexit
 import contextlib
-import dbm
 import errno
 import fnmatch
 import hashlib
@@ -15,15 +14,12 @@ import re
 import shutil
 import socket
 import sys
-import time
 import urllib.request
 import urllib.error
 import urllib.parse
-import shelve
 import zipfile
 import ftplib
 
-from collections import defaultdict
 from tempfile import NamedTemporaryFile, gettempdir, TemporaryDirectory, mkdtemp
 from warnings import warn
 
