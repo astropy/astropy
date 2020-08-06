@@ -852,6 +852,23 @@ astropy.utils
 
 - ``astropy.utils.data.download_file`` now supports FTPS/FTP over TLS. [#9964]
 
+- ``astropy.utils.data`` now uses a lock-free mechanism for caching. This new
+  mechanism uses a new cache layout and so ignores caches created using earlier
+  mechanisms (which were causing lockups on clusters). The two cache formats can
+  coexist but do not share any files. [#10437]
+
+- ``astropy.utils.data`` now ignores the config item
+  ``astropy.utils.data.conf.download_cache_lock_attempts`` since no locking is
+  done. [#10437]
+
+- ``astropy.utils.data.download_file`` and related functions now interpret the
+  parameter or config file setting ``timeout=0`` to mean they should make no
+  attempt to download files. [#10437]
+
+- ``astropy.utils.import_file_to_cache`` now accepts a keyword-only argument
+  ``replace``, defaulting to True, to determine whether it should replace existing
+  files in the cache, in a way as close to atomic as possible. [#10437]
+
 astropy.wcs
 ^^^^^^^^^^^
 
