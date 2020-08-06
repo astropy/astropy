@@ -2051,14 +2051,15 @@ def test_update_of_open_files_windows(temp_cache, valid_urls, monkeypatch):
     assert get_file_contents(download_file(u, cache=True, sources=[])) == c
 
 
-def test_zero_remote_timeout(temp_cache, valid_urls):
+def test_no_allow_internet(temp_cache, valid_urls):
     u, c = next(valid_urls)
-    with pytest.raises(urllib.error.URLError):
-        download_file(u, timeout=0)
-    assert not is_url_in_cache(u)
-    with pytest.raises(urllib.error.URLError):
-        # This will trigger the remote data error if it's allowed to touch the internet
-        download_file(TESTURL, timeout=0)
+    with conf.set_temp('allow_internet', False):
+        with pytest.raises(urllib.error.URLError):
+            download_file(u)
+        assert not is_url_in_cache(u)
+        with pytest.raises(urllib.error.URLError):
+            # This will trigger the remote data error if it's allowed to touch the internet
+            download_file(TESTURL)
 
 
 def test_clear_download_cache_not_too_aggressive(temp_cache, valid_urls):
