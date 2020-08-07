@@ -154,8 +154,10 @@ astropy.table
   generators instead of a list. This matches the behavior for Python ``dict``
   objects. [#10543]
 
-- Removed support for ``bintrees``, and thus also ``FastBST`` and ``FastRBT``.
-  [#10622]
+- Removed the ``FastBST`` and ``FastRBT`` indexing engines because they depend
+  on the ``bintrees`` package, which is no longer maintained and is deprecated.
+  Instead, use the ``SCEngine`` indexing engine, which is similar in
+  performance and relies on the ``sortedcontainers`` package. [#10622]
 
 astropy.tests
 ^^^^^^^^^^^^^
