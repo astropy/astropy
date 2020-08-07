@@ -2088,7 +2088,7 @@ def test_ftp_tls_auto(temp_cache):
     download_file(url)
 
 
-@pytest.mark.parametrize('base', ["http://exmaple.com", "https://example.com"])
+@pytest.mark.parametrize('base', ["http://example.com", "https://example.com"])
 def test_url_trailing_slash(temp_cache, valid_urls, base):
     slash = base + "/"
     no_slash = base
