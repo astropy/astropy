@@ -1557,10 +1557,14 @@ def _get_download_cache_loc(pkgname='astropy'):
 
 
 def _url_to_dirname(url):
+    if not _is_url(url):
+        raise ValueError(f"Malformed URL: '{url}'")
     # Make domain names case-insensitive
     # Also makes the http:// case-insensitive
     urlobj = list(urllib.parse.urlsplit(url))
     urlobj[1] = urlobj[1].lower()
+    if urlobj[0].lower() in ['http', 'https'] and urlobj[1] and urlobj[2] == '':
+        urlobj[2] = '/'
     url_c = urllib.parse.urlunsplit(urlobj)
     return hashlib.md5(url_c.encode("utf-8")).hexdigest()
 
