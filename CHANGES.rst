@@ -187,6 +187,9 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Fixed an issue of ``Model.render`` when the input ``out`` datatype is not
+  float64. [#10542]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
@@ -748,6 +751,9 @@ astropy.utils
 - ``astropy.utils.import_file_to_cache`` now accepts a keyword-only argument
   ``replace``, defaulting to True, to determine whether it should replace existing
   files in the cache, in a way as close to atomic as possible. [#10437, #10683]
+
+- ``astropy.utils.data.download_file`` and related functions now treat
+  ``http://example.com`` and ``http://example.com/`` as equivalent. [#10631]
 
 astropy.wcs
 ^^^^^^^^^^^

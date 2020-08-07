@@ -2083,3 +2083,28 @@ def test_clear_download_cache_variants(temp_cache, valid_urls):
 def test_ftp_tls_auto(temp_cache):
     url = "ftp://anonymous:mail%40astropy.org@gdc.cddis.eosdis.nasa.gov/pub/products/iers/finals2000A.all"
     download_file(url)
+
+
+@pytest.mark.parametrize('base', ["http://example.com", "https://example.com"])
+def test_url_trailing_slash(temp_cache, valid_urls, base):
+    slash = base + "/"
+    no_slash = base
+
+    u, c = next(valid_urls)
+
+    download_file(slash, cache=True, sources=[u])
+
+    assert is_url_in_cache(no_slash)
+    download_file(no_slash, cache=True, sources=[])
+    clear_download_cache(no_slash)
+    assert not is_url_in_cache(no_slash)
+    assert not is_url_in_cache(slash)
+
+    download_file(no_slash, cache=True, sources=[u])
+    # see if implicit check_download_cache squawks
+
+
+def test_empty_url(temp_cache, valid_urls):
+    u, c = next(valid_urls)
+    download_file('file://', cache=True, sources=[u])
+    assert not is_url_in_cache('file:///')
