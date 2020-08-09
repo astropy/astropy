@@ -2233,7 +2233,7 @@ class _HeaderCommentaryCards(_CardAccessor):
             yield self._header[(self._keyword, idx)]
 
     def __repr__(self):
-        return '\n'.join(self)
+        return '\n'.join(str(x) for x in self)
 
     def __getitem__(self, idx):
         if isinstance(idx, slice):
