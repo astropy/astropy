@@ -32,9 +32,6 @@ enable_deprecations_as_exceptions(
     # installed. This can be removed once pyopenssl 1.7.20+ is released.
     modules_to_ignore_on_import=['requests'])
 
-if HAS_MATPLOTLIB:
-    matplotlib.use('Agg')
-
 matplotlibrc_cache = {}
 
 
@@ -55,6 +52,7 @@ def pytest_configure(config):
             warnings.simplefilter('ignore')
             matplotlibrc_cache.update(matplotlib.rcParams)
             matplotlib.rcdefaults()
+            matplotlib.use('Agg')
 
     # Make sure we use temporary directories for the config and cache
     # so that the tests are insensitive to local configuration. Note that this
