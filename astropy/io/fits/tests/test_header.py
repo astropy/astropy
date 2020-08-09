@@ -209,6 +209,11 @@ class TestHeaderFunctions(FitsTestCase):
         assert header.cards[1].value == 0
         assert header[''] == [0, 1, 2, 3, '', '', 4]
 
+        header[''] = 5
+        header[' '] = 6
+        assert header[''] == [0, 1, 2, 3, '', '', 4, 5, 6]
+        assert header[' '] == [0, 1, 2, 3, '', '', 4, 5, 6]
+
     def test_update(self):
         class FakeHeader(list):
             def keys(self):
