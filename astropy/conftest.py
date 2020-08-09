@@ -32,9 +32,6 @@ enable_deprecations_as_exceptions(
     # installed. This can be removed once pyopenssl 1.7.20+ is released.
     modules_to_ignore_on_import=['requests'])
 
-if HAS_MATPLOTLIB:
-    matplotlib.use('Agg')
-
 matplotlibrc_cache = {}
 
 
