@@ -41,6 +41,7 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Added NFW profile and tests to modeling package [#10505]
 - Added missing logic for evaluate to compound models [#10002]
 
 astropy.nddata
