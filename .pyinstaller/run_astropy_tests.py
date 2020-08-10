@@ -20,7 +20,7 @@ for root, dirnames, _ in os.walk(os.path.join(ROOT, 'astropy')):
         final_dir = os.path.relpath(os.path.join(root.replace('astropy', 'astropy_tests'), dirname), ROOT)
         # We only copy over 'tests' directories, but not astropy/tests (only
         # astropy/tests/tests) since that is not just a directory with tests.
-        if dirname == 'tests' and root != 'astropy':
+        if dirname == 'tests' and not root.endswith('astropy'):
             shutil.copytree(os.path.join(root, dirname), final_dir, dirs_exist_ok=True)
         else:
             # Create empty __init__.py files so that 'astropy_tests' still
