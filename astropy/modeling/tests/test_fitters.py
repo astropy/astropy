@@ -53,16 +53,17 @@ class TestPolynomial2D:
         def poly2(x, y):
             return 1 + 2 * x + 3 * x ** 2 + 4 * y + 5 * y ** 2 + 6 * x * y
         self.z = poly2(self.x, self.y)
-        self.fitter = LinearLSQFitter()
 
     def test_poly2D_fitting(self):
+        fitter = LinearLSQFitter()
         v = self.model.fit_deriv(x=self.x, y=self.y)
         p = linalg.lstsq(v, self.z.flatten(), rcond=-1)[0]
-        new_model = self.fitter(self.model, self.x, self.y, self.z)
+        new_model = fitter(self.model, self.x, self.y, self.z)
         assert_allclose(new_model.parameters, p)
 
     def test_eval(self):
-        new_model = self.fitter(self.model, self.x, self.y, self.z)
+        fitter = LinearLSQFitter()
+        new_model = fitter(self.model, self.x, self.y, self.z)
         assert_allclose(new_model(self.x, self.y), self.z)
 
     @pytest.mark.skipif('not HAS_SCIPY')
@@ -255,9 +256,7 @@ class TestLinearLSQFitter:
             z = z_expected + np.random.normal(0, 0.01, size=z_expected.shape)
 
         fitter = LinearLSQFitter()
-        with pytest.warns(AstropyUserWarning,
-                          match=r'The fit may be poorly conditioned'):
-            fitted_model = fitter(init_model, x, y, z)
+        fitted_model = fitter(init_model, x, y, z)
         assert_allclose(fitted_model(x, y, model_set_axis=False), z_expected,
                         rtol=1e-1)
 
@@ -272,9 +271,7 @@ class TestLinearLSQFitter:
         y = 2 + x + 0.5*x*x
 
         fitter = LinearLSQFitter()
-        with pytest.warns(AstropyUserWarning,
-                          match=r'The fit may be poorly conditioned'):
-            fitted_model = fitter(init_model, x, y)
+        fitted_model = fitter(init_model, x, y)
         assert_allclose(fitted_model.parameters, [2., 1., 0.5], atol=1e-14)
 
     def test_linear_fit_model_set_fixed_parameter(self):
@@ -288,9 +285,7 @@ class TestLinearLSQFitter:
         yy = np.array([2 + x + 0.5*x*x, -2*x])
 
         fitter = LinearLSQFitter()
-        with pytest.warns(AstropyUserWarning,
-                          match=r'The fit may be poorly conditioned'):
-            fitted_model = fitter(init_model, x, yy)
+        fitted_model = fitter(init_model, x, yy)
 
         assert_allclose(fitted_model.c0, [2., 0.], atol=1e-14)
         assert_allclose(fitted_model.c1, [1., -2.], atol=1e-14)
@@ -308,9 +303,7 @@ class TestLinearLSQFitter:
         zz = np.array([1+x-0.5*y+0.1*x*x, 2*x+y-0.2*y*y])
 
         fitter = LinearLSQFitter()
-        with pytest.warns(AstropyUserWarning,
-                          match=r'The fit may be poorly conditioned'):
-            fitted_model = fitter(init_model, x, y, zz)
+        fitted_model = fitter(init_model, x, y, zz)
 
         assert_allclose(fitted_model(x, y, model_set_axis=False), zz,
                         atol=1e-14)
