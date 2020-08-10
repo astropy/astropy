@@ -521,6 +521,41 @@ the set of equations to find the exact solution. Nonlinear models, which require
 an iterative algorithm, cannot be currently fit using model sets. Model sets of nonlinear
 models can only be evaluated.
 
+When fitting model sets it is important that data arrays are passed to the fitter
+in the correct shape. The shape depends on the ``model_set_axis`` attribute of the
+model to be fit. The rule is that the index of the dependent variable that corresponds
+to a model set should be along the ``model_set_axis`` dimension. For example, for a
+1D model set with 3 models with ``model_set_axis == 1`` the shape of ``y`` should be (x, 3)::
+
+    >>> import numpy as np
+    >>> from astropy.modeling.models import Polynomial1D
+    >>> from astropy.modeling.fitting import LinearLSQFitter
+    >>> fitter = LinearLSQFitter()
+    >>> x = np.arange(4)
+    >>> y = np.array([2*x+1, x+4, x]).T
+    >>> print(y)
+    [[1 4 0]
+     [3 5 1]
+     [5 6 2]
+     [7 7 3]]
+    >>> print(y.shape)
+    (4, 3)
+    >>> m = Polynomial1D(1, n_models=3, model_set_axis=1)
+    >>> mfit = fitter(m, x, y)
+
+For 2D models with 3 models and ``model_set_axis = 0`` the shape of ``z`` should be (3, x, y)::
+
+    >>> import numpy as np
+    >>> from astropy.modeling.models import Polynomial2D
+    >>> from astropy.modeling.fitting import LinearLSQFitter
+    >>> fitter = LinearLSQFitter()
+    >>> x = np.arange(8).reshape(2, 4)
+    >>> y = x
+    >>> z = np.asarray([2 * x + 1, x + 4, x + 3])
+    >>> print(z.shape)
+    (3, 2, 4)
+    >>> m = Polynomial2D(1, n_models=3, model_set_axis=0)
+    >>> mfit = fitter(m, x, y, z)
 
 .. _modeling-asdf:
 

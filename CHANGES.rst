@@ -743,6 +743,7 @@ astropy.wcs
 Bug fixes
 ---------
 
+
 astropy.config
 ^^^^^^^^^^^^^^
 
@@ -848,6 +849,8 @@ astropy.modeling
 - Removed a limitation of fitting of data with units with compound models
   without units when the expression involves operators other than addition
   and subtraction. [#10415]
+
+- Fixed a problem with fitting ``Linear1D`` and ``Planar2D`` in model sets. [#10623]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
