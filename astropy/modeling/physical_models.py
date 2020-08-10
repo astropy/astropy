@@ -10,11 +10,12 @@ import numpy as np
 
 from astropy import constants as const
 from astropy import units as u
+from astropy import cosmology
 from astropy.utils.exceptions import AstropyUserWarning
 from .core import Fittable1DModel
 from .parameters import Parameter, InputParameterError
 
-__all__ = ["BlackBody", "Drude1D", "Plummer1D"]
+__all__ = ["BlackBody", "Drude1D", "Plummer1D", "NFW"]
 
 
 class BlackBody(Fittable1DModel):
@@ -371,3 +372,354 @@ class Plummer1D(Fittable1DModel):
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {'mass': outputs_unit[self.outputs[0]] * inputs_unit[self.inputs[0]] ** 3,
                 'r_plum': inputs_unit[self.inputs[0]]}
+
+
+class NFW(Fittable1DModel):
+    r"""
+    Navarro–Frenk–White (NFW) profile - model for radial distribution of dark matter.
+
+    Parameters
+    ----------
+    mass : float or :class:`~astropy.units.Quantity`
+        Mass of NFW peak within specified overdensity radius.
+    concentration : float
+        Concentration of the NFW profile.
+    redshift : float
+        Redshift of the NFW profile.
+    massfactor : tuple or str
+        Mass overdensity factor and type for provided profiles:
+            Tuple version:
+                ("virial",) : virial radius
+
+                ("critical", N)  : radius where density is N times that of the critical density
+
+                ("mean", N)  : radius where density is N times that of the mean density
+
+            String version:
+                "virial" : virial radius
+
+                "Nc"  : radius where density is N times that of the critical density (e.g. "200c")
+
+                "Nm"  : radius where density is N times that of the mean density (e.g. "500m")
+    cosmo : :class:`~astropy.cosmology.Cosmology`
+        Background cosmology for density calculation. If None, the default cosmology will be used.
+
+    Notes
+    -----
+
+    Model formula:
+
+    .. math:: \rho(r)=\frac{\delta_c\rho_{c}}{r/r_s(1+r/r_s)^2}
+
+    References
+    ----------
+    .. [1] https://arxiv.org/pdf/astro-ph/9508025
+    .. [2] https://en.wikipedia.org/wiki/Navarro%E2%80%93Frenk%E2%80%93White_profile
+    .. [3] https://en.wikipedia.org/wiki/Virial_mass
+    """
+
+    # Model Parameters
+
+    # NFW Profile mass
+    mass = Parameter(default=1.0, min=1.0, unit=u.M_sun)
+
+    # NFW profile concentration
+    concentration = Parameter(default=1.0, min=1.0)
+
+    # NFW Profile redshift
+    redshift = Parameter(default=0.0, min=0.0)
+
+    # We allow values without units to be passed when evaluating the model, and
+    # in this case the input r values are assumed to be lengths / positions in kpc.
+    _input_units_allow_dimensionless = True
+
+    def __init__(self, mass=u.Quantity(mass.default, mass.unit),
+                 concentration=concentration.default, redshift=redshift.default,
+                 massfactor=("critical", 200), cosmo=None,  **kwargs):
+        # Set default cosmology
+        if cosmo is None:
+            cosmo = cosmology.default_cosmology.get()
+
+        # Set mass overdensity type and factor
+        self._density_delta(massfactor, cosmo, redshift)
+
+        # Establish mass units for density calculation (default solar masses)
+        if not isinstance(mass, u.Quantity):
+            in_mass = u.Quantity(mass, u.M_sun)
+        else:
+            in_mass = mass
+
+        # Obtain scale radius
+        self._radius_s(mass, concentration)
+
+        # Obtain scale density
+        self._density_s(mass, concentration)
+
+        super().__init__(mass=in_mass, concentration=concentration, redshift=redshift, **kwargs)
+
+    def evaluate(self, r, mass, concentration, redshift):
+        """
+        One dimensional NFW profile function
+
+        Parameters
+        ----------
+        r : float or :class:`~astropy.units.Quantity`
+            Radial position of density to be calculated for the NFW profile.
+        mass : float or :class:`~astropy.units.Quantity`
+            Mass of NFW peak within specified overdensity radius.
+        concentration : float
+            Concentration of the NFW profile.
+        redshift : float
+            Redshift of the NFW profile.
+
+        Returns
+        -------
+        density : float or :class:`~astropy.units.Quantity`
+            NFW profile mass density at location ``r``. The density units are:
+            [``mass`` / ``r`` ^3]
+
+        Notes
+        -----
+        .. warning::
+
+            Output values might contain ``nan`` and ``inf``.
+        """
+        # Create radial version of input with dimension
+        if hasattr(r, "unit"):
+            in_r = r
+        else:
+            in_r = u.Quantity(r, u.kpc)
+
+        # Define reduced radius (r / r_{\\rm s})
+        #   also update scale radius
+        radius_reduced = in_r / self._radius_s(mass, concentration).to(in_r.unit)
+
+        # Density distribution
+        # \rho (r)=\frac{\rho_0}{\frac{r}{R_s}\left(1~+~\frac{r}{R_s}\right)^2}
+        #   also update scale density
+        density = self._density_s(mass, concentration) / (radius_reduced *
+                                                          (u.Quantity(1.0) + radius_reduced) ** 2)
+
+        if hasattr(mass, "unit"):
+            return density
+        else:
+            return density.value
+
+    def _density_delta(self, massfactor, cosmo, redshift):
+        """
+        Calculate density delta.
+        """
+        # Set mass overdensity type and factor
+        if isinstance(massfactor, tuple):
+            # Tuple options
+            #   ("virial")       : virial radius
+            #   ("critical", N)  : radius where density is N that of the critical density
+            #   ("mean", N)      : radius where density is N that of the mean density
+            if massfactor[0].lower() == "virial":
+                # Virial Mass
+                delta = None
+                masstype = massfactor[0].lower()
+            elif massfactor[0].lower() == "critical":
+                # Critical or Mean Overdensity Mass
+                delta = float(massfactor[1])
+                masstype = 'c'
+            elif massfactor[0].lower() == "mean":
+                # Critical or Mean Overdensity Mass
+                delta = float(massfactor[1])
+                masstype = 'm'
+            else:
+                raise ValueError("Massfactor '" + str(massfactor[0]) + "' not one of 'critical', "
+                                                                       "'mean', or 'virial'")
+        else:
+            try:
+                # String options
+                #   virial : virial radius
+                #   Nc  : radius where density is N that of the critical density
+                #   Nm  : radius where density is N that of the mean density
+                if massfactor.lower() == "virial":
+                    # Virial Mass
+                    delta = None
+                    masstype = massfactor.lower()
+                elif massfactor[-1].lower() == 'c' or massfactor[-1].lower() == 'm':
+                    # Critical or Mean Overdensity Mass
+                    delta = float(massfactor[0:-1])
+                    masstype = massfactor[-1].lower()
+                else:
+                    raise ValueError("Massfactor " + str(massfactor) + " string not of the form "
+                                                                       "'#m', '#c', or 'virial'")
+            except (AttributeError, TypeError):
+                raise TypeError("Massfactor " + str(
+                    massfactor) + " not a tuple or string")
+
+        # Set density from masstype specification
+        if masstype == "virial":
+            Om_c = cosmo.Om(redshift) - 1.0
+            d_c = 18.0 * np.pi ** 2 + 82.0 * Om_c - 39.0 * Om_c ** 2
+            self.density_delta = d_c * cosmo.critical_density(redshift)
+        elif masstype == 'c':
+            self.density_delta = delta * cosmo.critical_density(redshift)
+        elif masstype == 'm':
+            self.density_delta = delta * cosmo.critical_density(redshift) * cosmo.Om(redshift)
+        else:
+            raise ValueError("Invalid masstype '" + str(masstype) +
+                             "'. Should be one of 'virial','c', or 'm'")
+        return self.density_delta
+
+    @staticmethod
+    def A_NFW(y):
+        r"""
+        Dimensionless volume integral of the NFW profile, used as an intermediate step in some
+        calculations for this model.
+
+        Notes
+        -----
+
+        Model formula:
+
+        .. math:: A_{NFW} = [\ln(1+y) - \frac{y}{1+y}]
+        """
+        return np.log(1.0 + y) - (y / (1.0 + y))
+
+    def _density_s(self, mass, concentration):
+        """
+        Calculate scale density of the NFW profile.
+        """
+        # Enforce default units
+        if not isinstance(mass, u.Quantity):
+            in_mass = u.Quantity(mass, u.M_sun)
+        else:
+            in_mass = mass
+
+        # Calculate scale density
+        # M_{200} = 4\pi \rho_{s} R_{s}^3 \left[\ln(1+c) - \frac{c}{1+c}\right].
+        self.density_s = in_mass / (4.0 * np.pi * self._radius_s(in_mass, concentration) ** 3 *
+                                    self.A_NFW(concentration))
+
+        return self.density_s
+
+    @property
+    def rho_scale(self):
+        r"""
+        Scale density of the NFW profile. Often written in the literature as :math:`\rho_s`
+        """
+        return self.density_s
+
+    def _radius_s(self, mass, concentration):
+        """
+        Calculate scale radius of the NFW profile.
+        """
+        # Enforce default units
+        if not isinstance(mass, u.Quantity):
+            in_mass = u.Quantity(mass, u.M_sun)
+        else:
+            in_mass = mass
+
+        # Delta Mass is related to delta radius by
+        # M_{200}=\frac{4}{3}\pi r_{200}^3 200 \rho_{c}
+        # And delta radius is related to the NFW scale radius by
+        # c = R / r_{\\rm s}
+        self.radius_s = (((3.0 * in_mass) / (4.0 * np.pi * self.density_delta)) ** (
+                          1.0 / 3.0)) / concentration
+
+        # Set radial units to kiloparsec by default (unit will be rescaled by units of radius
+        # in evaluate)
+        return self.radius_s.to(u.kpc)
+
+    @property
+    def r_s(self):
+        """
+        Scale radius of the NFW profile.
+        """
+        return self.radius_s
+
+    @property
+    def r_virial(self):
+        """
+        Mass factor defined virial radius of the NFW profile (R200c for M200c, Rvir for Mvir, etc.).
+        """
+        return self.r_s * self.concentration
+
+    @property
+    def r_max(self):
+        """
+        Radius of maximum circular velocity.
+        """
+        return self.r_s * 2.16258
+
+    @property
+    def v_max(self):
+        """
+        Maximum circular velocity.
+        """
+        return self.circular_velocity(self.r_max)
+
+    def circular_velocity(self, r):
+        r"""
+        Circular velocities of the NFW profile.
+
+        Parameters
+        ----------
+        r : float or :class:`~astropy.units.Quantity`
+            Radial position of velocity to be calculated for the NFW profile.
+
+        Returns
+        -------
+        velocity : float or :class:`~astropy.units.Quantity`
+            NFW profile circular velocity at location ``r``. The velocity units are:
+            [km / s]
+
+        Notes
+        -----
+
+        Model formula:
+
+        .. math:: v_{circ}(r)^2 = \frac{1}{x}\frac{\ln(1+cx)-(cx)/(1+cx)}{\ln(1+c)-c/(1+c)}
+
+        .. math:: x = r/r_s
+
+        .. warning::
+
+            Output values might contain ``nan`` and ``inf``.
+        """
+        # Enforce default units (if parameters are without units)
+        if hasattr(r, "unit"):
+            in_r = r
+        else:
+            in_r = u.Quantity(r, u.kpc)
+
+        # Mass factor defined velocity (i.e. V200c for M200c, Rvir for Mvir)
+        v_profile = np.sqrt(self.mass * const.G.to(in_r.unit**3 / (self.mass.unit * u.s**2)) /
+                            self.r_virial)
+
+        # Define reduced radius (r / r_{\\rm s})
+        reduced_radius = in_r / self.r_virial.to(in_r.unit)
+
+        # Circular velocity given by:
+        # v^2=\frac{1}{x}\frac{\ln(1+cx)-(cx)/(1+cx)}{\ln(1+c)-c/(1+c)}
+        # where x=r/r_{200}
+        velocity = np.sqrt((v_profile**2 * self.A_NFW(self.concentration * reduced_radius)) /
+                           (reduced_radius * self.A_NFW(self.concentration)))
+
+        return velocity.to(u.km / u.s)
+
+    @property
+    def input_units(self):
+        # The units for the 'r' variable should be a length (default kpc)
+        return {self.inputs[0]: u.kpc}
+
+    @property
+    def return_units(self):
+        # The units for the 'density' variable should be a matter density (default M_sun / kpc^3)
+        if (self.mass.unit is None) and (self.input_units[self.inputs[0]] is None):
+            return {self.outputs[0]: u.M_sun / u.kpc ** 3}
+        elif (self.mass.unit is None):
+            return {self.outputs[0]: u.M_sun / self.input_units[self.inputs[0]] ** 3}
+        elif (self.input_units[self.inputs[0]] is None):
+            return {self.outputs[0]: self.mass.unit / u.kpc ** 3}
+        else:
+            return {self.outputs[0]: self.mass.unit / self.input_units[self.inputs[0]] ** 3}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return {'mass': u.M_sun,
+                "concentration": None,
+                "redshift": None}
