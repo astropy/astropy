@@ -234,9 +234,7 @@ class TestLinearConstraints:
         self.p1.c0.fixed = True
         self.p1.c1.fixed = True
         pfit = fitting.LinearLSQFitter()
-        with pytest.warns(AstropyUserWarning,
-                          match=r'The fit may be poorly conditioned'):
-            model = pfit(self.p1, self.x, self.y)
+        model = pfit(self.p1, self.x, self.y)
         assert_allclose(self.y, model(self.x))
 
 # Test constraints as parameter properties
