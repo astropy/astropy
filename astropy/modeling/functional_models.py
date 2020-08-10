@@ -823,7 +823,6 @@ class Linear1D(Fittable1DModel):
 
         .. math:: f(x) = a x + b
     """
-
     slope = Parameter(default=1)
     intercept = Parameter(default=0)
     linear = True
@@ -835,7 +834,7 @@ class Linear1D(Fittable1DModel):
         return slope * x + intercept
 
     @staticmethod
-    def fit_deriv(x, slope, intercept):
+    def fit_deriv(x, *params):
         """One dimensional Line model derivative with respect to parameters"""
 
         d_slope = x
@@ -893,7 +892,7 @@ class Planar2D(Fittable2DModel):
         return slope_x * x + slope_y * y + intercept
 
     @staticmethod
-    def fit_deriv(x, y, slope_x, slope_y, intercept):
+    def fit_deriv(x, y, *params):
         """Two dimensional Plane model derivative with respect to parameters"""
 
         d_slope_x = x
