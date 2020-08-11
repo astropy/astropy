@@ -959,6 +959,9 @@ astropy.io.fits
 - Fix ResourceWarning with ``fits.writeto`` and ``pathlib.Path`` object.
   [#10599]
 
+- Fix repr for commentary cards and strip spaces for commentary keywords.
+  [#10640]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
