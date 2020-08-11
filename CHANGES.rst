@@ -42,7 +42,11 @@ astropy.modeling
 ^^^^^^^^^^^^^^^^
 
 - Added NFW profile and tests to modeling package [#10505]
+
 - Added missing logic for evaluate to compound models [#10002]
+
+- Stop iteration in ``FittingWithOutlierRemoval`` before reaching ``niter`` if
+  the masked points are no longer changing. [#?]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
