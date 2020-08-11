@@ -559,8 +559,9 @@ class LinearLSQFitter(metaclass=_FitterMeta):
 class FittingWithOutlierRemoval:
     """
     This class combines an outlier removal technique with a fitting procedure.
-    Basically, given a number of iterations ``niter``, outliers are removed
-    and fitting is performed for each iteration.
+    Basically, given a maximum number of iterations ``niter``, outliers are
+    removed and fitting is performed for each iteration, until no new outliers
+    are found or ``niter`` is reached.
 
     Parameters
     ----------
@@ -577,7 +578,7 @@ class FittingWithOutlierRemoval:
         each model separately; otherwise, the same filtering must be performed
         in a loop over models, which is almost an order of magnitude slower.
     niter : int, optional
-        Number of iterations.
+        Maximum number of iterations.
     outlier_kwargs : dict, optional
         Keyword arguments for outlier_func.
     """
@@ -683,9 +684,9 @@ class FittingWithOutlierRemoval:
         if filtered_data.mask is np.ma.nomask:
             filtered_data.mask = False
         filtered_weights = weights
+        last_n_masked = filtered_data.mask.sum()
 
         # Perform the iterative fitting:
-        # TO DO: add a stopping criterion when results aren't changing?
         for n in range(self.niter):
 
             # (Re-)evaluate the last model:
@@ -762,6 +763,13 @@ class FittingWithOutlierRemoval:
                 fitted_model = self.fitter(fitted_model, *coords,
                                            filtered_data,
                                            weights=filtered_weights, **kwargs)
+
+            # Stop iteration if the masked points are no longer changing (with
+            # cumulative rejection we only need to compare how many there are):
+            this_n_masked = filtered_data.mask.sum()  # (minimal overhead)
+            if this_n_masked == last_n_masked:
+                break
+            last_n_masked = this_n_masked
 
         return fitted_model, filtered_data.mask
 
