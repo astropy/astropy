@@ -136,16 +136,20 @@ class Header:
         elif self._haswildcard(key):
             return self.__class__([copy.copy(self._cards[idx])
                                    for idx in self._wildcardmatch(key)])
-        elif (isinstance(key, str) and
-              key.upper() in Card._commentary_keywords):
-            key = key.upper()
-            # Special case for commentary cards
-            return _HeaderCommentaryCards(self, key)
+        elif isinstance(key, str):
+            key = key.strip()
+            if key.upper() in Card._commentary_keywords:
+                key = key.upper()
+                # Special case for commentary cards
+                return _HeaderCommentaryCards(self, key)
+
         if isinstance(key, tuple):
             keyword = key[0]
         else:
             keyword = key
+
         card = self._cards[self._cardindex(key)]
+
         if card.field_specifier is not None and keyword == card.rawkeyword:
             # This is RVKC; if only the top-level keyword was specified return
             # the raw value, not the parsed out float value
@@ -161,7 +165,7 @@ class Header:
             return
 
         if isinstance(value, tuple):
-            if not (0 < len(value) <= 2):
+            if len(value) > 2:
                 raise ValueError(
                     'A Header item may be set with either a scalar value, '
                     'a 1-tuple containing a scalar value, or a 2-tuple '
@@ -2229,7 +2233,7 @@ class _HeaderCommentaryCards(_CardAccessor):
             yield self._header[(self._keyword, idx)]
 
     def __repr__(self):
-        return '\n'.join(self)
+        return '\n'.join(str(x) for x in self)
 
     def __getitem__(self, idx):
         if isinstance(idx, slice):
