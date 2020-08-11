@@ -175,7 +175,7 @@ class TestHeaderFunctions(FitsTestCase):
         assert len(w) == 1
         assert c.image == _pad('HIERARCH abc+ =                    9')
 
-    def test_add_commentary(self):
+    def test_add_history(self):
         header = fits.Header([('A', 'B', 'C'), ('HISTORY', 1),
                               ('HISTORY', 2), ('HISTORY', 3), ('', '', ''),
                               ('', '', '')])
@@ -184,12 +184,14 @@ class TestHeaderFunctions(FitsTestCase):
         assert len(header) == 6
         assert header.cards[4].value == 4
         assert header['HISTORY'] == [1, 2, 3, 4]
+        assert repr(header['HISTORY']) == '1\n2\n3\n4'
 
         header.add_history(0, after='A')
         assert len(header) == 6
         assert header.cards[1].value == 0
         assert header['HISTORY'] == [0, 1, 2, 3, 4]
 
+    def test_add_blank(self):
         header = fits.Header([('A', 'B', 'C'), ('', 1), ('', 2), ('', 3),
                               ('', '', ''), ('', '', '')])
         header.add_blank(4)
@@ -200,11 +202,17 @@ class TestHeaderFunctions(FitsTestCase):
         assert len(header) == 7
         assert header.cards[6].value == 4
         assert header[''] == [1, 2, 3, '', '', 4]
+        assert repr(header['']) == '1\n2\n3\n\n\n4'
 
         header.add_blank(0, after='A')
         assert len(header) == 8
         assert header.cards[1].value == 0
         assert header[''] == [0, 1, 2, 3, '', '', 4]
+
+        header[''] = 5
+        header[' '] = 6
+        assert header[''] == [0, 1, 2, 3, '', '', 4, 5, 6]
+        assert header[' '] == [0, 1, 2, 3, '', '', 4, 5, 6]
 
     def test_update(self):
         class FakeHeader(list):
