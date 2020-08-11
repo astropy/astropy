@@ -896,6 +896,11 @@ astropy.table
 - Fixed a bug in table argsort when called with ``reverse=True`` for an
   indexed table. [#10103]
 
+- Fixed a performance regression introduced in #9048 when initializing a table
+  from Python lists. Also fixed incorrect behavior (for data types other than
+  float) when those lists contain ``np.ma.masked`` elements to indicate masked
+  data. [#10636]
+
 - Avoid modifying ``.meta`` when serializing columns to FITS. [#10485]
 
 - Avoid crash when reading a FITS table that contains mixin info and PyYAML

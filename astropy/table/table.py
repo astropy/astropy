@@ -25,7 +25,7 @@ from astropy.io.registry import UnifiedReadWriteMethod
 from . import groups
 from .pprint import TableFormatter
 from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
-                     col_copy)
+                     col_copy, _convert_sequence_data_to_array)
 from .row import Row
 from .np_utils import fix_column_name
 from .info import TableInfo
@@ -953,6 +953,7 @@ class Table:
         masked_col_cls = (self.ColumnClass
                           if issubclass(self.ColumnClass, self.MaskedColumn)
                           else self.MaskedColumn)
+
         try:
             data0_is_mixin = self._is_mixin_for_table(data[0])
         except Exception:
@@ -1009,32 +1010,16 @@ class Table:
             col_cls = masked_col_cls
 
         elif not hasattr(data, 'dtype'):
-            # If value doesn't have a dtype then convert to a masked numpy array.
-            # Then check if there were any masked elements.  This logic is handling
-            # normal lists like [1, 2] but also odd-ball cases like a list of masked
-            # arrays (see #8977).  Use np.ma.array() to do the heavy lifting.
-            try:
-                np_data = np.ma.array(data, dtype=dtype)
-            except Exception:
-                # Conversion failed for some reason, e.g. [2, 1*u.m] gives TypeError in Quantity
-                np_data = np.ma.array(data, dtype=object)
-
-            if np_data.ndim > 0 and len(np_data) == 0:
-                # Implies input was an empty list (e.g. initializing an empty table
-                # with pre-declared names and dtypes but no data).  Here we need to
-                # fall through to initializing with the original data=[].
-                col_cls = self.ColumnClass
-            else:
-                if np_data.mask is np.ma.nomask:
-                    data = np_data.data
-                    col_cls = self.ColumnClass
-                else:
-                    data = np_data
-                    col_cls = masked_col_cls
-                copy = False
+            # `data` is none of the above, convert to numpy array or MaskedArray
+            # assuming only that it is a scalar or sequence or N-d nested
+            # sequence. This function is relatively intricate and tries to
+            # maintain performance for common cases while handling things like
+            # list input with embedded np.ma.masked entries.
+            data = _convert_sequence_data_to_array(data, dtype)
+            copy = False  # Already made a copy above
+            col_cls = masked_col_cls if isinstance(data, np.ma.MaskedArray) else self.ColumnClass
 
         else:
-            # `data` is none of the above, so just go for it and try init'ing Column
             col_cls = self.ColumnClass
 
         try:

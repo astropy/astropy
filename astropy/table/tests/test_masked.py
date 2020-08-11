@@ -184,6 +184,7 @@ class TestMaskedColumnInit(SetupData):
 
 class TestTableInit(SetupData):
     """Initializing a table"""
+
     def test_initialization_with_all_columns(self):
         t1 = Table([self.a, self.b, self.c, self.d, self.ca, self.sc])
         assert t1.colnames == ['a', 'b', 'c', 'd', 'ca', 'sc']
@@ -200,6 +201,64 @@ class TestTableInit(SetupData):
     # which changes behaviour in Table._convert_data_to_col
     # (causing conversion of columns with masked elements to object dtype).
     @pytest.mark.filterwarnings('ignore:.*converting a masked element.*')
+    @pytest.mark.parametrize('type_str', ('?', 'b', 'i2', 'f4', 'c8', 'S', 'U', 'O'))
+    @pytest.mark.parametrize('shape', ((4,), (2, 2)))
+    def test_init_from_sequence_data_numeric_typed(self, type_str, shape):
+        """Test init from list or list of lists with dtype specified, optionally
+        including an np.ma.masked element.
+        """
+        # Make data of correct dtype and shape, then turn into a list,
+        # then use that to init Table with spec'd type_str.
+        data = [0, 1, 2, 3]
+        np_data = np.array(data, dtype=type_str).reshape(shape)
+        np_data_list = np_data.tolist()
+        t = Table([np_data_list], dtype=[type_str])
+        col = t['col0']
+        assert col.dtype == np_data.dtype
+        assert np.all(col == np_data)
+        assert type(col) is Column
+
+        # Introduce np.ma.masked in the list input and confirm dtype still OK.
+        if len(shape) == 1:
+            np_data_list[-1] = np.ma.masked
+        else:
+            np_data_list[-1][-1] = np.ma.masked
+        last_idx = tuple(-1 for _ in shape)
+        t = Table([np_data_list], dtype=[type_str])
+        col = t['col0']
+        assert col.dtype == np_data.dtype
+        assert np.all(col == np_data)
+        assert col.mask[last_idx]
+        assert type(col) is MaskedColumn
+
+    @pytest.mark.parametrize('type_str', ('?', 'b', 'i2', 'f4', 'c8', 'S', 'U', 'O'))
+    @pytest.mark.parametrize('shape', ((4,), (2, 2)))
+    def test_init_from_sequence_data_numeric_untyped(self, type_str, shape):
+        """Test init from list or list of lists with dtype NOT specified,
+        optionally including an np.ma.masked element.
+        """
+        data = [0, 1, 2, 3]
+        np_data = np.array(data, dtype=type_str).reshape(shape)
+        np_data_list = np_data.tolist()
+        t = Table([np_data_list])
+        # Grab the dtype that numpy assigns for the Python list inputs
+        dtype_expected = t['col0'].dtype
+
+        # Introduce np.ma.masked in the list input and confirm dtype still OK.
+        if len(shape) == 1:
+            np_data_list[-1] = np.ma.masked
+        else:
+            np_data_list[-1][-1] = np.ma.masked
+        last_idx = tuple(-1 for _ in shape)
+        t = Table([np_data_list])
+        col = t['col0']
+
+        # Confirm dtype is same as for untype list input w/ no mask
+        assert col.dtype == dtype_expected
+        assert np.all(col == np_data)
+        assert col.mask[last_idx]
+        assert type(col) is MaskedColumn
+
     def test_initialization_with_all_columns(self):
         t1 = Table([self.a, self.b, self.c, self.d, self.ca, self.sc])
         assert t1.colnames == ['a', 'b', 'c', 'd', 'ca', 'sc']
@@ -208,11 +267,7 @@ class TestTableInit(SetupData):
         lofd = [{k: row[k] for k in t1.colnames} for row in t1]
         t2 = Table(lofd)
         for k in t1.colnames:
-            # TODO: the final dtype should not depend on the presence of
-            # masked elements, but unfortunately np.ma.MaskedArray does take
-            # it into account.
-            if k not in ('b', 'd'):
-                assert t1[k].dtype == t2[k].dtype
+            assert t1[k].dtype == t2[k].dtype
             assert np.all(t1[k] == t2[k]) in (True, np.ma.masked)
             assert np.all(getattr(t1[k], 'mask', False) ==
                           getattr(t2[k], 'mask', False))
