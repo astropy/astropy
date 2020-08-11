@@ -119,9 +119,8 @@ errors should follow these rules:
 * For informational and debugging messages, one should always use
   ``log.info(message)`` and ``log.debug(message)``.
 
-The logging system uses the built-in Python `logging
-<https://docs.python.org/3/library/logging.html>`_ module. The logger can
-be imported using::
+The logging system uses the built-in Python :py:mod:`logging`
+module. The logger can be imported using::
 
     from astropy import log
 
