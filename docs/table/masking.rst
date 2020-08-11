@@ -42,22 +42,9 @@ Table Creation
 
 A masked table can be created in several ways:
 
-**Create a new table object and specify masked=True** ::
-
-  >>> from astropy.table import Table, Column, MaskedColumn
-  >>> Table([(1, 2), (3, 4)], names=('a', 'b'), masked=True, dtype=('i4', 'i8'))
-  <Table masked=True length=2>
-    a     b
-  int32 int64
-  ----- -----
-      1     3
-      2     4
-
-Notice the table attributes ``mask`` and ``fill_value`` that are
-available for a masked table.
-
 **Create a table with one or more columns as a MaskedColumn object**
 
+  >>> from astropy.table import Table, Column, MaskedColumn
   >>> a = MaskedColumn([1, 2], name='a', mask=[False, True], dtype='i4')
   >>> b = Column([3, 4], name='b', dtype='i8')
   >>> Table([a, b])
@@ -79,10 +66,28 @@ Notice that masked entries in the table output are shown as ``--``.
 
 **Create a table with one or more columns as a ``numpy`` MaskedArray**
 
-  >>> from numpy import ma  # masked array package
-  >>> a = ma.array([1, 2])
+  >>> import numpy as np
+  >>> a = np.ma.array([1, 2])
   >>> b = [3, 4]
   >>> t = Table([a, b], names=('a', 'b'))
+
+**Create a table from list data containing `numpy.ma.masked`**
+
+You can use the `numpy.ma.masked` constant to indicate masked or invalid data::
+
+  >>> a = [1.0, np.ma.masked]
+  >>> b = [np.ma.masked, 'val']
+  >>> Table([a, b], names=('a', 'b'))
+  <Table length=2>
+    a     b
+  float64 str3
+  ------- ----
+      1.0   --
+      --  val
+
+Initializing from lists with embedded `numpy.ma.masked` elements is considerably
+slower than using `numpy.ma.array` or |MaskedColumn| directly, so if performance
+is a concern you should use the latter methods if possible.
 
 **Add a MaskedColumn object to an existing table**
 
@@ -90,20 +95,29 @@ Notice that masked entries in the table output are shown as ``--``.
   >>> b = MaskedColumn([3, 4], mask=[True, False])
   >>> t['b'] = b
 
-Prior to ``astropy`` 4.0, adding the first |MaskedColumn| resulted in
-converting the entire table to be masked, which meant converting every existing
-|Column| to |MaskedColumn|. An informational warning was issued::
-
-  INFO: Upgrading Table to masked Table. Use Table.filled() to convert to unmasked table. [astropy.table.table]
-
-In ``astropy`` 4.0 and later, existing columns are not changed.
-
 **Add a new row to an existing table and specify a mask argument**
 
   >>> a = Column([1, 2], name='a')
   >>> b = Column([3, 4], name='b')
   >>> t = Table([a, b])
   >>> t.add_row([3, 6], mask=[True, False])
+
+**Create a new table object and specify masked=True**
+
+If ``masked=True`` is provided when creating the table then every column will
+be created as a |MaskedColumn|, and new columns will always be added as a
+a |MaskedColumn|.
+
+  >>> Table([(1, 2), (3, 4)], names=('a', 'b'), masked=True, dtype=('i4', 'i8'))
+  <Table masked=True length=2>
+    a     b
+  int32 int64
+  ----- -----
+      1     3
+      2     4
+
+Notice the table attributes ``mask`` and ``fill_value`` that are
+available for a masked table.
 
 **Convert an existing table to a masked table**
 
