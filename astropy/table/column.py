@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import itertools
 import warnings
 import weakref
 
@@ -154,6 +155,138 @@ def _expand_string_array_for_values(arr, values):
             arr = arr.astype(arr_dtype)
 
     return arr
+
+
+def _convert_sequence_data_to_array(data, dtype=None):
+    """Convert N-d sequence-like data to ndarray or MaskedArray.
+
+    This is the core function for converting Python lists or list of lists to a
+    numpy array. This handles embedded np.ma.masked constants in ``data`` along
+    with the special case of an homogeneous list of MaskedArray elements.
+
+    Considerations:
+
+    - np.ma.array is about 50 times slower than np.array for list input. This
+      function avoids using np.ma.array on list input.
+    - np.array emits a UserWarning for embedded np.ma.masked, but only for int
+      or float inputs. For those it converts to np.nan and forces float dtype.
+      For other types np.array is inconsistent, for instance converting
+      np.ma.masked to "0.0" for str types.
+    - Searching in pure Python for np.ma.masked in ``data`` is comparable in
+      speed to calling ``np.array(data)``.
+    - This function may end up making two additional copies of input ``data``.
+
+    Parameters
+    ----------
+    data : N-d sequence
+        Input data, typically list or list of lists
+    dtype : None or dtype-compatible
+        Output datatype (None lets np.array choose)
+
+    Returns
+    -------
+    np_data : np.ndarray or np.ma.MaskedArray
+
+    """
+    np_ma_masked = np.ma.masked  # Avoid repeated lookups of this object
+
+    # Special case of an homogeneous list of MaskedArray elements (see #8977).
+    # np.ma.masked is an instance of MaskedArray, so exclude those values.
+    if (hasattr(data, '__len__')
+        and len(data) > 0
+        and all(isinstance(val, np.ma.MaskedArray)
+                and val is not np_ma_masked for val in data)):
+        np_data = np.ma.array(data, dtype=dtype)
+        return np_data
+
+    # First convert data to a plain ndarray. If there are instances of np.ma.masked
+    # in the data this will issue a warning for int and float.
+    with warnings.catch_warnings(record=True) as warns:
+        # Ensure this warning from numpy is always enabled and that it is not
+        # converted to an error (which can happen during pytest).
+        warnings.filterwarnings('always', category=UserWarning,
+                                message='.*converting a masked element.*')
+        try:
+            np_data = np.array(data, dtype=dtype)
+        except np.ma.MaskError:
+            # Catches case of dtype=int with masked values, instead let it
+            # convert to float
+            np_data = np.array(data)
+        except Exception:
+            # Conversion failed for some reason, e.g. [2, 1*u.m] gives TypeError in Quantity
+            dtype = object
+            np_data = np.array(data, dtype=dtype)
+
+    if np_data.ndim == 0 or (np_data.ndim > 0 and len(np_data) == 0):
+        # Implies input was a scalar or an empty list (e.g. initializing an
+        # empty table with pre-declared names and dtypes but no data).  Here we
+        # need to fall through to initializing with the original data=[].
+        return data
+
+    # If there were no warnings and the data are int or float, then we are done.
+    # Other dtypes like string or complex can have masked values and the
+    # np.array() conversion gives the wrong answer (e.g. converting np.ma.masked
+    # to the string "0.0").
+    if len(warns) == 0 and np_data.dtype.kind in ('i', 'f'):
+        return np_data
+
+    # Now we need to determine if there is an np.ma.masked anywhere in input data.
+
+    # Make a statement like below to look for np.ma.masked in a nested sequence.
+    # Because np.array(data) succeeded we know that `data` has a regular N-d
+    # structure. Find ma_masked:
+    #   any(any(any(d2 is ma_masked for d2 in d1) for d1 in d0) for d0 in data)
+    # Using this eval avoids creating a copy of `data` in the more-usual case of
+    # no masked elements.
+    any_statement = 'd0 is ma_masked'
+    for ii in reversed(range(np_data.ndim)):
+        if ii == 0:
+            any_statement = f'any({any_statement} for d0 in data)'
+        elif ii == np_data.ndim - 1:
+            any_statement = f'any(d{ii} is ma_masked for d{ii} in d{ii-1})'
+        else:
+            any_statement = f'any({any_statement} for d{ii} in d{ii-1})'
+    context = {'ma_masked': np.ma.masked, 'data': data}
+    has_masked = eval(any_statement, context)
+
+    # If there are any masks then explicitly change each one to a fill value and
+    # set a mask boolean array. If not has_masked then we're done.
+    if has_masked:
+        mask = np.zeros(np_data.shape, dtype=bool)
+        data_filled = np.array(data, dtype=object)
+
+        # Make type-appropriate fill value based on initial conversion.
+        if np_data.dtype.kind == 'U':
+            fill = ''
+        elif np_data.dtype.kind == 'S':
+            fill = b''
+        else:
+            # Zero works for every numeric type.
+            fill = 0
+
+        ranges = [range(dim) for dim in np_data.shape]
+        for idxs in itertools.product(*ranges):
+            val = data_filled[idxs]
+            if val is np_ma_masked:
+                data_filled[idxs] = fill
+                mask[idxs] = True
+            elif isinstance(val, bool) and dtype is None:
+                # If we see a bool and dtype not specified then assume bool for
+                # the entire array. Not perfect but in most practical cases OK.
+                # Unfortunately numpy types [False, 0] as int, not bool (and
+                # [False, np.ma.masked] => array([0.0, np.nan])).
+                dtype = bool
+
+        # If no dtype is provided then need to convert back to list so np.array
+        # does type autodetection.
+        if dtype is None:
+            data_filled = data_filled.tolist()
+
+        # Use np.array first to convert `data` to ndarray (fast) and then make
+        # masked array from an ndarray with mask (fast) instead of from `data`.
+        np_data = np.ma.array(np.array(data_filled, dtype=dtype), mask=mask)
+
+    return np_data
 
 
 class ColumnInfo(BaseColumnInfo):
