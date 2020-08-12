@@ -289,9 +289,9 @@ class Fittable2DModelTester:
                                  use_constraints=False)
 
         # add 10% noise to the amplitude
-        rsn = np.random.RandomState(1234567890)
+        rsn = np.random.default_rng(0)
         amplitude = test_parameters['parameters'][0]
-        n = 0.1 * amplitude * (rsn.rand(self.M, self.N) - 0.5)
+        n = 0.1 * amplitude * (rsn.random((self.M, self.N)) - 0.5)
 
         data = model(xv, yv) + n
         fitter_with_deriv = fitting.LevMarLSQFitter()
@@ -448,8 +448,8 @@ class Fittable1DModelTester:
                                       use_constraints=False)
 
         # add 10% noise to the amplitude
-        rsn = np.random.RandomState(1234567890)
-        n = 0.1 * parameters[0] * (rsn.rand(self.N) - 0.5)
+        rsn = np.random.default_rng(0)
+        n = 0.1 * parameters[0] * (rsn.random(self.N) - 0.5)
 
         data = model_with_deriv(x) + n
         fitter_with_deriv = fitting.LevMarLSQFitter()

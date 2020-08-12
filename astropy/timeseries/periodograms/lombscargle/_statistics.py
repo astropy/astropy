@@ -339,10 +339,10 @@ def inv_fap_baluev(p, fmax, t, y, dy, normalization='standard'):
 def _bootstrap_max(t, y, dy, fmax, normalization, random_seed, n_bootstrap=1000):
     """Generate a sequence of bootstrap estimates of the max"""
     from .core import LombScargle
-    rng = np.random.RandomState(random_seed)
+    rng = np.random.default_rng(random_seed)
     power_max = []
     for _ in range(n_bootstrap):
-        s = rng.randint(0, len(y), len(y))  # sample with replacement
+        s = rng.integers(0, len(y), len(y))  # sample with replacement
         ls_boot = LombScargle(t, y[s], dy if dy is None else dy[s],
                               normalization=normalization)
         freq, power = ls_boot.autopower(maximum_frequency=fmax)
