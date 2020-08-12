@@ -235,10 +235,10 @@ def test_biweight_midvariance_small():
 
 def test_biweight_midvariance_5127():
     # test a regression introduced in #5127
-    rand = np.random.RandomState(12345)
+    rand = np.random.default_rng(12345)
     data = rand.normal(loc=0., scale=20., size=(100, 100))
     var = biweight_midvariance(data)
-    assert_allclose(var, 406.86938710817344)    # verified with R
+    assert_allclose(var, 409.87135608846205)
 
 
 def test_biweight_midvariance_axis():
@@ -465,7 +465,7 @@ def test_biweight_midcovariance_midvariance():
     biweight_midvariance.
     """
 
-    rng = np.random.RandomState(1)
+    rng = np.random.default_rng(1)
     d = rng.normal(0, 2, size=(100, 3))
     cov = biweight_midcovariance(d)
     var = [biweight_midvariance(a) for a in d]
@@ -507,7 +507,7 @@ def test_biweight_midcovariance_symmetric():
     when ``modify_sample_size=True`` (see #5972).
     """
 
-    rng = np.random.RandomState(1)
+    rng = np.random.default_rng(1)
     d = rng.gamma(2, 2, size=(3, 500))
     cov = biweight_midcovariance(d)
     assert_array_almost_equal_nulp(cov, cov.T, nulp=5)

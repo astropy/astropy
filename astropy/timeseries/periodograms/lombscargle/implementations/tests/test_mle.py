@@ -7,8 +7,8 @@ from astropy.timeseries.periodograms.lombscargle.implementations.mle import desi
 
 @pytest.fixture
 def t():
-    rand = np.random.RandomState(42)
-    return 10 * rand.rand(10)
+    rand = np.random.default_rng(42)
+    return 10 * rand.random(10)
 
 
 @pytest.mark.parametrize('freq', [1.0, 2])
@@ -39,9 +39,9 @@ def test_multiterm_design_matrix(t, nterms):
 @pytest.mark.parametrize('freq', [1, 2])
 @pytest.mark.parametrize('fit_mean', [True, False])
 def test_exact_mle_fit(nterms, freq, fit_mean):
-    rand = np.random.RandomState(42)
-    t = 10 * rand.rand(30)
-    theta = -1 + rand.rand(2 * nterms + 1)
+    rand = np.random.default_rng(42)
+    t = 10 * rand.random(30)
+    theta = -1 + rand.random(2 * nterms + 1)
     y = np.zeros(t.shape)
     if fit_mean:
         y = theta[0] * np.ones(t.shape)

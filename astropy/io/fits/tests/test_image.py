@@ -1398,7 +1398,7 @@ class TestCompressedImage(FitsTestCase):
     def test_lossless_gzip_compression(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/198"""
 
-        rng = np.random.RandomState(seed=42)
+        rng = np.random.default_rng(42)
         noise = rng.normal(size=(20, 20))
 
         chdu1 = fits.CompImageHDU(data=noise, compression_type='GZIP_1')

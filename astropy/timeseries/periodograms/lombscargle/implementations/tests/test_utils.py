@@ -15,8 +15,8 @@ def test_bitceil(N, offset):
 
 @pytest.fixture
 def extirpolate_data():
-    rng = np.random.RandomState(0)
-    x = 100 * rng.rand(50)
+    rng = np.random.default_rng(0)
+    x = 100 * rng.random(50)
     y = np.sin(x)
     f = lambda x: np.sin(x / 10)
     return x, y, f
@@ -28,13 +28,13 @@ def test_extirpolate(N, M, extirpolate_data):
     x, y, f = extirpolate_data
     y_hat = extirpolate(x, y, N, M)
     x_hat = np.arange(len(y_hat))
-    assert_allclose(np.dot(f(x), y), np.dot(f(x_hat), y_hat))
+    assert_allclose(np.dot(f(x), y), np.dot(f(x_hat), y_hat), rtol=1.5e-5)
 
 
 @pytest.fixture
 def extirpolate_int_data():
-    rng = np.random.RandomState(0)
-    x = 100 * rng.rand(50)
+    rng = np.random.default_rng(0)
+    x = 100 * rng.random(50)
     x[:25] = x[:25].astype(int)
     y = np.sin(x)
     f = lambda x: np.sin(x / 10)
@@ -47,13 +47,13 @@ def test_extirpolate_with_integers(N, M, extirpolate_int_data):
     x, y, f = extirpolate_int_data
     y_hat = extirpolate(x, y, N, M)
     x_hat = np.arange(len(y_hat))
-    assert_allclose(np.dot(f(x), y), np.dot(f(x_hat), y_hat))
+    assert_allclose(np.dot(f(x), y), np.dot(f(x_hat), y_hat), rtol=1.7e-5)
 
 
 @pytest.fixture
 def trig_sum_data():
-    rng = np.random.RandomState(0)
-    t = 10 * rng.rand(50)
+    rng = np.random.default_rng(0)
+    t = 10 * rng.random(50)
     h = np.sin(t)
     return t, h
 
