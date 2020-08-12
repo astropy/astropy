@@ -46,7 +46,7 @@ astropy.modeling
 - Added missing logic for evaluate to compound models [#10002]
 
 - Stop iteration in ``FittingWithOutlierRemoval`` before reaching ``niter`` if
-  the masked points are no longer changing. [#?]
+  the masked points are no longer changing. [#10642]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
