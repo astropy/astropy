@@ -6,7 +6,7 @@ import types
 import pytest
 import numpy as np
 from numpy.testing import assert_allclose
-from numpy.random import RandomState
+from numpy.random import default_rng
 
 from astropy.modeling.core import Fittable1DModel
 from astropy.modeling.parameters import Parameter
@@ -24,8 +24,8 @@ class TestNonLinearConstraints:
         self.x = np.arange(10, 20, .1)
         self.y1 = self.g1(self.x)
         self.y2 = self.g2(self.x)
-        rsn = RandomState(1234567890)
-        self.n = rsn.randn(100)
+        rsn = default_rng(1234567890)
+        self.n = rsn.standard_normal(100)
         self.ny1 = self.y1 + 2 * self.n
         self.ny2 = self.y2 + 2 * self.n
 
@@ -225,8 +225,8 @@ class TestLinearConstraints:
         self.p1.window = [0., 9.]
         self.x = np.arange(10)
         self.y = self.p1(self.x)
-        rsn = RandomState(1234567890)
-        self.n = rsn.randn(10)
+        rsn = default_rng(1234567890)
+        self.n = rsn.standard_normal(10)
         self.ny = self.y + self.n
 
     def test(self):
