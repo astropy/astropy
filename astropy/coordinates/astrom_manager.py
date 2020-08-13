@@ -12,7 +12,8 @@ from ..utils.state import ScienceState
 # from ..utils import indent
 from .. import units as u
 from .builtin_frames.utils import (
-    get_jd12, get_cip, prepare_earth_position_vel, get_polar_motion, get_dut1utc
+    get_jd12, get_cip, prepare_earth_position_vel, get_polar_motion, get_dut1utc,
+    pav2pv
 )
 
 __all__ = ["astrom_interpolation_resolution"]
@@ -72,7 +73,7 @@ def get_astrom(frame, tcode, interpolation_resolution=None):
                 earth_pv_support, earth_heliocentric_support
                 ) = prepare_earth_position_vel(obstime_support)
             # do interpolation
-            earth_pv = np.empty(obstime.shape + (2, 3,))
+            earth_pv = np.empty(obstime.shape, dtype=erfa.dt_pv)
             earth_heliocentric = np.empty(obstime.shape + (3,))
             for dim in range(3):
                 for ipv in range(2):
@@ -101,9 +102,9 @@ def get_astrom(frame, tcode, interpolation_resolution=None):
             # all below are already in correct units because they are QuantityFrameAttribues
             frame.pressure.value,
             frame.temperature.value,
-            frame.relative_humidity,
-            frame.obswl.value
-            )
+            frame.relative_humidity.value,
+            frame.obswl.value,
+        )
 
     elif tcode == 'apci':
 
@@ -126,10 +127,10 @@ def get_astrom(frame, tcode, interpolation_resolution=None):
         # get the position and velocity arrays for the observatory.  Need to
         # have xyz in last dimension, and pos/vel in one-but-last.
         # (Note could use np.stack once our minimum numpy version is >=1.10.)
-        pv = np.concatenate(
-                (frame.obsgeoloc.get_xyz(xyz_axis=-1).value[..., np.newaxis, :],
-                 frame.obsgeovel.get_xyz(xyz_axis=-1).value[..., np.newaxis, :]),
-                axis=-2)
+        pv = pav2pv(
+            frame.obsgeoloc.get_xyz(xyz_axis=-1).value,
+            frame.obsgeovel.get_xyz(xyz_axis=-1).value
+        )
         astrom = erfa.apcs(jd1_tt, jd2_tt, pv, earth_pv, earth_heliocentric)
 
     elif tcode == 'apci13':
