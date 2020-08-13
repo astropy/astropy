@@ -4,25 +4,16 @@ This module contains a helper function to fill erfa.astrom struct and a
 ScienceState, which allows to speed up coordinate transformations at the
 expense of accuracy.
 """
-
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
-from collections import OrderedDict
-
 import numpy as np
+import erfa
 
 from ..time import Time
-from .sky_coordinate import SkyCoord
-from ..utils.decorators import classproperty
 from ..utils.state import ScienceState
 # from ..utils import indent
 from .. import units as u
-from .. import _erfa as erfa
-from ..extern import six
 from .builtin_frames.utils import (
     get_jd12, get_cip, prepare_earth_position_vel, get_polar_motion, get_dut1utc
-    )
+)
 
 __all__ = ["transform_precision"]
 
