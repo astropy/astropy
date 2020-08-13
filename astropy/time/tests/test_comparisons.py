@@ -160,9 +160,16 @@ def test_isclose_timedelta(swap, time_delta, other_quantity):
     assert isclose_other_quantity(t1, t2, atol=1.5 / 86400 * u.day)
     assert not isclose_other_quantity(t1, t2, atol=0.5 / 86400 * u.day)
 
+    t1 = TimeDelta(0 * u.s)
     t2 = t1 + [-1, 0, 2] * u.s
     assert np.all(isclose_swap(t1, t2, atol=1.5 * u.s) == [True, True, False])
     assert np.all(isclose_other_quantity(t1, t2, atol=1.5 * u.s) == [True, True, False])
+
+    # Check with rtol
+    # 1 * 0.6 + 0.5 = 1.1 --> 1 <= 1.1 --> True
+    # 0 * 0.6 + 0.5 = 0.5 --> 0 <= 0.5 --> True
+    # 2 * 0.6 + 0.5 = 1.7 --> 2 <= 1.7 --> False
+    assert np.all(t1.isclose(t2, atol=0.5 * u.s, rtol=0.6) == [True, True, False])
 
     t2 = t1 + 2 * np.finfo(float).eps * u.day
     assert not isclose_swap(t1, t2)
