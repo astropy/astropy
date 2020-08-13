@@ -78,8 +78,8 @@ class TestTimeComparisons:
 
 @pytest.mark.parametrize('swap', [True, False])
 @pytest.mark.parametrize('time_delta', [True, False])
-def test_isclose(swap, time_delta):
-    """Test functionality of isclose() method.
+def test_isclose_time(swap, time_delta):
+    """Test functionality of Time.isclose() method.
 
     Run every test with 2 args in original order and swapped, and using
     Quantity or TimeDelta for atol (when provided)."""
@@ -110,10 +110,68 @@ def test_isclose(swap, time_delta):
     assert not isclose_swap(t1, t2)
 
 
-def test_isclose_exceptions():
+def test_isclose_time_exceptions():
     t1 = Time('2020:001')
     t2 = t1 + 1 * u.s
     match = "'other' argument must be a Time instance, got float instead"
+    with pytest.raises(TypeError, match=match):
+        t1.isclose(1.5)
+
+    match = "'atol' argument must be a Quantity or TimeDelta instance, got float instead"
+    with pytest.raises(TypeError, match=match):
+        t1.isclose(t2, 1.5)
+
+@pytest.mark.parametrize('swap', [True, False])
+@pytest.mark.parametrize('time_delta', [True, False])
+@pytest.mark.parametrize('other_quantity', [True, False])
+def test_isclose_timedelta(swap, time_delta, other_quantity):
+    """Test functionality of TimeDelta.isclose() method.
+
+    Run every test with 2 args in original order and swapped, and using
+    Quantity or TimeDelta for atol (when provided), and using Quantity or
+    TimeDelta for the other argument."""
+
+    def isclose_swap(t1, t2, **kwargs):
+        if swap:
+            t1, t2 = t2, t1
+        if 'atol' in kwargs and time_delta:
+            kwargs['atol'] = TimeDelta(kwargs['atol'])
+        return t1.isclose(t2, **kwargs)
+
+    def isclose_other_quantity(t1, t2, **kwargs):
+        if other_quantity:
+            t2 = t2.to(u.day)
+        if 'atol' in kwargs and time_delta:
+            kwargs['atol'] = TimeDelta(kwargs['atol'])
+        return t1.isclose(t2, **kwargs)
+
+    t1 = TimeDelta(1.0 * u.s)
+    t2 = t1 + 0.0 * u.s
+    t3 = t1 + TimeDelta(0.0 * u.s)
+    assert isclose_swap(t1, t2)
+    assert isclose_swap(t1, t3)
+    assert isclose_other_quantity(t1, t2)
+    assert isclose_other_quantity(t1, t3)
+
+    t2 = t1 + 1 * u.s
+    assert isclose_swap(t1, t2, atol=1.5 / 86400 * u.day)
+    assert not isclose_swap(t1, t2, atol=0.5 / 86400 * u.day)
+    assert isclose_other_quantity(t1, t2, atol=1.5 / 86400 * u.day)
+    assert not isclose_other_quantity(t1, t2, atol=0.5 / 86400 * u.day)
+
+    t2 = t1 + [-1, 0, 2] * u.s
+    assert np.all(isclose_swap(t1, t2, atol=1.5 * u.s) == [True, True, False])
+    assert np.all(isclose_other_quantity(t1, t2, atol=1.5 * u.s) == [True, True, False])
+
+    t2 = t1 + 2 * np.finfo(float).eps * u.day
+    assert not isclose_swap(t1, t2)
+    assert not isclose_other_quantity(t1, t2)
+
+
+def test_isclose_timedelta_exceptions():
+    t1 = TimeDelta(1 * u.s)
+    t2 = t1 + 1 * u.s
+    match = "'other' argument must be a Quantity or TimeDelta instance, got float instead"
     with pytest.raises(TypeError, match=match):
         t1.isclose(1.5)
 
