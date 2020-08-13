@@ -183,14 +183,14 @@ class TestTableInit(SetupData):
     """Initializing a table"""
 
     @pytest.mark.parametrize('type_str', ('?', 'b', 'i2', 'f4', 'c8', 'S', 'U', 'O'))
-    @pytest.mark.parametrize('shape', ((4,), (2, 2)))
+    @pytest.mark.parametrize('shape', ((8,), (4, 2), (2, 2, 2)))
     def test_init_from_sequence_data_numeric_typed(self, type_str, shape):
         """Test init from list or list of lists with dtype specified, optionally
         including an np.ma.masked element.
         """
         # Make data of correct dtype and shape, then turn into a list,
         # then use that to init Table with spec'd type_str.
-        data = [0, 1, 2, 3]
+        data = list(range(8))
         np_data = np.array(data, dtype=type_str).reshape(shape)
         np_data_list = np_data.tolist()
         t = Table([np_data_list], dtype=[type_str])
@@ -202,8 +202,10 @@ class TestTableInit(SetupData):
         # Introduce np.ma.masked in the list input and confirm dtype still OK.
         if len(shape) == 1:
             np_data_list[-1] = np.ma.masked
-        else:
+        elif len(shape) == 2:
             np_data_list[-1][-1] = np.ma.masked
+        else:
+            np_data_list[-1][-1][-1] = np.ma.masked
         last_idx = tuple(-1 for _ in shape)
         t = Table([np_data_list], dtype=[type_str])
         col = t['col0']
@@ -213,12 +215,12 @@ class TestTableInit(SetupData):
         assert type(col) is MaskedColumn
 
     @pytest.mark.parametrize('type_str', ('?', 'b', 'i2', 'f4', 'c8', 'S', 'U', 'O'))
-    @pytest.mark.parametrize('shape', ((4,), (2, 2)))
+    @pytest.mark.parametrize('shape', ((8,), (4, 2), (2, 2, 2)))
     def test_init_from_sequence_data_numeric_untyped(self, type_str, shape):
         """Test init from list or list of lists with dtype NOT specified,
         optionally including an np.ma.masked element.
         """
-        data = [0, 1, 2, 3]
+        data = list(range(8))
         np_data = np.array(data, dtype=type_str).reshape(shape)
         np_data_list = np_data.tolist()
         t = Table([np_data_list])
@@ -228,8 +230,10 @@ class TestTableInit(SetupData):
         # Introduce np.ma.masked in the list input and confirm dtype still OK.
         if len(shape) == 1:
             np_data_list[-1] = np.ma.masked
-        else:
+        elif len(shape) == 2:
             np_data_list[-1][-1] = np.ma.masked
+        else:
+            np_data_list[-1][-1][-1] = np.ma.masked
         last_idx = tuple(-1 for _ in shape)
         t = Table([np_data_list])
         col = t['col0']
