@@ -585,10 +585,10 @@ class FittingWithOutlierRemoval:
     Attributes
     ----------
     fit_info : dict
-        The `fit_info` (if any) from the last iteration of the wrapped `fitter`
-        during the most recent fit. An entry is also added with the keyword
-        `niter` that records the actual number of fitting iterations performed
-        (as opposed to the user-specified maximum).
+        The ``fit_info`` (if any) from the last iteration of the wrapped
+        ``fitter`` during the most recent fit. An entry is also added with the
+        keyword ``niter`` that records the actual number of fitting iterations
+        performed (as opposed to the user-specified maximum).
     """
 
     def __init__(self, fitter, outlier_func, niter=3, **outlier_kwargs):
