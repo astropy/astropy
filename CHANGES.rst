@@ -166,6 +166,9 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- ``Time`` can no longer be initialized with subclasses such as ``TimeDelta``,
+  thus allowing one to count on getting a ``Time`` instance. [#10652]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
@@ -246,6 +249,9 @@ astropy.tests
 
 astropy.time
 ^^^^^^^^^^^^
+
+- Prevent comparisons between ``Time`` and ``TimeDelta`` from sometimes succeeding.
+  [#10652]
 
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^

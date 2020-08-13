@@ -395,6 +395,8 @@ class Time(ShapedLikeNDArray):
             update_leap_seconds()
 
         if isinstance(val, cls):
+            if not type(val) is cls:
+                raise TypeError(f"cannot instantiate {cls} with a {type(val)}.")
             self = val.replicate(format=format, copy=copy)
         else:
             self = super().__new__(cls)

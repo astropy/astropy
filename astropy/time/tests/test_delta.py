@@ -605,3 +605,17 @@ def test_insert_timedelta():
     # Insert a scalar using an auto-parsed string
     tm2 = tm.insert(1, TimeDelta([10, 20], format='sec'))
     assert np.all(tm2 == TimeDelta([1, 10, 20, 2], format='sec'))
+
+
+def test_cannot_instantiate_via_time():
+    # Regression test for gh-10651.  This used to succeed.
+    tm = TimeDelta(1., format='jd', scale='tai')
+    with pytest.raises(TypeError):
+        Time(tm)
+
+
+def test_cannot_compare_with_time():
+    # Regression test for gh-10651.  This used to succeed.
+    tm = TimeDelta(1., format='jd', scale='tai')
+    with pytest.raises(TypeError, match='not supported'):
+        tm < Time('J2001')
