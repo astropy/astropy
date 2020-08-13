@@ -60,9 +60,14 @@ def get_astrom(frame, tcode, interpolation_resolution=None):
 
     if mjd_resolution:
         # compute mjd support points for interpolation of Earth pv and cip
-        mjd_lower = np.int64(obstime.mjd / mjd_resolution)
-        mjd_upper = mjd_lower + 1
-        mjd_u = np.unique([mjd_lower, mjd_upper])  # does sorting
+        mjd_scaled = obstime.mjd / mjd_resolution
+        mjd_lower = np.array(np.floor(mjd_scaled), ndmin=1, copy=False)
+        mjd_upper = np.array(np.ceil(mjd_scaled), ndmin=1, copy=False)
+
+        mjd_u = np.unique(np.concatenate([
+            [mjd_scaled.min(), mjd_scaled.max()],
+            mjd_lower, mjd_upper,
+        ]))  # does sorting
 
         obstime_support = Time(mjd_u * mjd_resolution, format='mjd', scale=obstime.scale)
 
