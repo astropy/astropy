@@ -97,6 +97,9 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- Add new ``isclose()`` method to ``Time`` and ``TimeDelta`` classes to allow
+  comparison of time objects to within a specified tolerance. [#10646]
+
 - Improve initialization time by a factor of four when creating a scalar ``Time``
   object in a format like ``unix`` or ``cxcsec`` (time delta from a reference
   epoch time). [#10406]
