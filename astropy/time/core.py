@@ -2651,6 +2651,32 @@ class TimeDelta(TimeBase):
                                  'object: {}'.format(err))
         return value
 
+    def isclose(self, other, atol=None):
+        """Returns a boolean or boolean array where two TimeDelta objects are
+        element-wise equal within a time tolerance.
+
+        Parameters
+        ----------
+        other : `~astropy.units.Quantity` or `~astropy.time.TimeDelta`
+            Quantity or TimeDelta object for comparison.
+        atol : `~astropy.units.Quantity` or `~astropy.time.TimeDelta`
+            Tolerance for equality with units of time (e.g. ``u.s`` or ``u.day``).
+            Default is one bit in the 128-bit JD time representation, equivalent
+            to about 20 picosecs.
+        """
+        if not isinstance(other, (u.Quantity, TimeDelta)):
+            raise TypeError("'other' argument must be a Quantity or TimeDelta instance, got "
+                            f'{other.__class__.__name__} instead')
+
+        if atol is None:
+            atol = np.finfo(float).eps * u.day
+
+        if not isinstance(atol, (u.Quantity, TimeDelta)):
+            raise TypeError("'atol' argument must be a Quantity or TimeDelta instance, got "
+                            f'{atol.__class__.__name__} instead')
+
+        return np.abs((self - other).to(u.day)) <= atol
+
 
 class ScaleValueError(Exception):
     pass
