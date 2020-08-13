@@ -76,10 +76,11 @@ def get_astrom(frame, tcode, interpolation_resolution=None):
             earth_pv = np.empty(obstime.shape, dtype=erfa.dt_pv)
             earth_heliocentric = np.empty(obstime.shape + (3,))
             for dim in range(3):
-                for ipv in range(2):
-                    earth_pv[..., ipv, dim] = np.interp(
-                        obstime.mjd, obstime_support.mjd, earth_pv_support[:, ipv, dim]
-                        )
+                for key in 'pv':
+                    earth_pv[key][..., dim] = np.interp(
+                        obstime.mjd, obstime_support.mjd,
+                        earth_pv_support[key][:, dim]
+                    )
                 earth_heliocentric[..., dim] = np.interp(
                     obstime.mjd, obstime_support.mjd, earth_heliocentric_support[:, dim]
                     )
