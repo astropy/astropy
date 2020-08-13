@@ -15,37 +15,44 @@ from .builtin_frames.utils import (
     get_jd12, get_cip, prepare_earth_position_vel, get_polar_motion, get_dut1utc
 )
 
-__all__ = ["transform_precision"]
+__all__ = ["astrom_interpolation_resolution"]
 
 
 DEFAULT_PRECISION = None  # no MJD binning
 
 
-class transform_precision(ScienceState):
+class astrom_interpolation_resolution(ScienceState):
     """
-    TBD
+    Time resolution for the support points used to interpolate
+    slow changing astrom members.
     """
 
-    _value = 0.  # value steers the transform precision (MJD_BINNING)
+    _value = 0.0 * u.s
+
+    @classmethod
+    def validate(cls, value):
+        value = u.Quantity(value, copy=False)
+        return value.to(u.s)
 
 
-def get_astrom(frame, tcode, precision=None):
+@u.quantity_input(interpolation_resolution=u.s)
+def get_astrom(frame, tcode, interpolation_resolution=None):
     """
     TBD
     """
 
     assert tcode in ['apio13', 'apci', 'apcs', 'apci13', 'apco13']
 
-    if precision is None:
-        precision = transform_precision.get()
+    if interpolation_resolution is None:
+        interpolation_resolution = astrom_interpolation_resolution.get()
 
-    if precision < 1.e-3:
+    if interpolation_resolution.to_value(u.ms) < 1:
         # below millisecond MJD resolution, one is probably better of
         # with no MJD binning
         mjd_resolution = None
 
     else:
-        mjd_resolution = precision / 86400.  # in days
+        mjd_resolution = interpolation_resolution.to_value(u.day)
 
     obstime = frame.obstime
     jd1_tt, jd2_tt = get_jd12(obstime, 'tt')
