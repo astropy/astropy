@@ -918,7 +918,7 @@ class TimeBase(ShapedLikeNDArray):
         """Returns a boolean or boolean array where two Time objects are
         element-wise equal within a time tolerance.
 
-        This effectively evaluates the expression below::
+        This evaluates the expression below::
 
           abs(self - other) <= atol
 
@@ -942,9 +942,7 @@ class TimeBase(ShapedLikeNDArray):
             raise TypeError("'atol' argument must be a Quantity or TimeDelta instance, got "
                             f'{atol.__class__.__name__} instead')
 
-        # Note: np.abs(self - other) results in an object array of TimeDelta
-        # instances, so need to convert to Quantity.
-        return np.abs((self - other).to(u.day)) <= atol
+        return abs(self - other) <= atol
 
     def light_travel_time(self, skycoord, kind='barycentric', location=None, ephemeris=None):
         """Light travel time correction to the barycentre or heliocentre.
