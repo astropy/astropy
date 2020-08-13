@@ -918,14 +918,18 @@ class TimeBase(ShapedLikeNDArray):
         """Returns a boolean or boolean array where two Time objects are
         element-wise equal within a time tolerance.
 
+        This effectively evaluates the expression below::
+
+          abs(self - other) <= atol
+
         Parameters
         ----------
         other : `~astropy.time.Time`
             Time object for comparison.
         atol : `~astropy.units.Quantity` or `~astropy.time.TimeDelta`
-            Tolerance for equality with units of time (e.g. ``u.s`` or ``u.day``).
-            Default is one bit in the 128-bit JD time representation, equivalent
-            to about 20 picosecs.
+            Absoute tolerance for equality with units of time (e.g. ``u.s`` or
+            ``u.day``). Default is one bit in the 128-bit JD time representation,
+            equivalent to about 20 picosecs.
         """
         if not isinstance(other, Time):
             raise TypeError("'other' argument must be a Time instance, got "
@@ -2651,18 +2655,24 @@ class TimeDelta(TimeBase):
                                  'object: {}'.format(err))
         return value
 
-    def isclose(self, other, atol=None):
+    def isclose(self, other, atol=None, rtol=0.0):
         """Returns a boolean or boolean array where two TimeDelta objects are
         element-wise equal within a time tolerance.
+
+        This effectively evaluates the expression below::
+
+          abs(self - other) <= atol + rtol * abs(other)
 
         Parameters
         ----------
         other : `~astropy.units.Quantity` or `~astropy.time.TimeDelta`
             Quantity or TimeDelta object for comparison.
         atol : `~astropy.units.Quantity` or `~astropy.time.TimeDelta`
-            Tolerance for equality with units of time (e.g. ``u.s`` or ``u.day``).
-            Default is one bit in the 128-bit JD time representation, equivalent
-            to about 20 picosecs.
+            Absolute tolerance for equality with units of time (e.g. ``u.s`` or
+            ``u.day``). Default is one bit in the 128-bit JD time representation,
+            equivalent to about 20 picosecs.
+        rtol : float
+            Relative tolerance for equality
         """
         if not isinstance(other, (u.Quantity, TimeDelta)):
             raise TypeError("'other' argument must be a Quantity or TimeDelta instance, got "
@@ -2675,7 +2685,8 @@ class TimeDelta(TimeBase):
             raise TypeError("'atol' argument must be a Quantity or TimeDelta instance, got "
                             f'{atol.__class__.__name__} instead')
 
-        return np.abs((self - other).to(u.day)) <= atol
+        return np.isclose(self.to_value(u.day), other.to_value(u.day),
+                          rtol=rtol, atol=atol.to_value(u.day))
 
 
 class ScaleValueError(Exception):
