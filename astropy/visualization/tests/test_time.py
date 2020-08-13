@@ -6,10 +6,10 @@ import pytest
 pytest.importorskip('matplotlib')  # noqa
 
 import matplotlib.pyplot as plt
+from erfa import ErfaWarning
 
 from astropy.time import Time
 from astropy.visualization.time import time_support
-from astropy.utils.exceptions import ErfaWarning
 from astropy.utils.compat.context import nullcontext
 
 # Since some of the examples below use times/dates in the future, we use the

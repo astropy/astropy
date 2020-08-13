@@ -12,6 +12,7 @@ from copy import deepcopy
 import pytest
 import numpy as np
 import numpy.testing as npt
+from erfa import ErfaWarning
 
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
@@ -25,7 +26,6 @@ from astropy.coordinates import Latitude, EarthLocation
 from astropy.coordinates.transformations import FunctionTransform
 from astropy.time import Time
 from astropy.utils import minversion, isiterable
-from astropy.utils.exceptions import ErfaWarning
 from astropy.units import allclose as quantity_allclose
 from astropy.io import fits
 from astropy.wcs import WCS
