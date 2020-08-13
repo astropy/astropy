@@ -48,6 +48,10 @@ astropy.modeling
 - Stop iteration in ``FittingWithOutlierRemoval`` before reaching ``niter`` if
   the masked points are no longer changing. [#10642]
 
+- Keep a (shallow) copy of ``fit_info`` from the last iteration of the wrapped
+  fitter in ``FittingWithOutlierRemoval`` and also record the actual number of
+  iterations performed in it. [#10642]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
