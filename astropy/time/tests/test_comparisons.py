@@ -121,6 +121,7 @@ def test_isclose_time_exceptions():
     with pytest.raises(TypeError, match=match):
         t1.isclose(t2, 1.5)
 
+
 @pytest.mark.parametrize('swap', [True, False])
 @pytest.mark.parametrize('time_delta', [True, False])
 @pytest.mark.parametrize('other_quantity', [True, False])
