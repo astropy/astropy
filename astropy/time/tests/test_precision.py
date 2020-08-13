@@ -13,13 +13,13 @@ from hypothesis.strategies import (composite, datetimes, floats, integers,
 
 import numpy as np
 import erfa
+from erfa import ErfaError, ErfaWarning
 
 import astropy.units as u
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import STANDARD_TIME_SCALES, Time, TimeDelta
 from astropy.time.utils import day_frac, two_sum
 from astropy.utils import iers
-from astropy.utils.exceptions import ErfaError, ErfaWarning
 
 
 allclose_jd = functools.partial(np.allclose, rtol=np.finfo(float).eps, atol=0)
