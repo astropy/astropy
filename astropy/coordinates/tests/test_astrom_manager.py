@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 
 def test_astrom_manager():
@@ -63,3 +64,17 @@ def test_interpolation_2d():
 
             with_interp = get_astrom(frame, tcode)
             assert without_interp.shape == with_interp.shape
+
+
+def test_supported():
+    from astropy.coordinates.astrom_manager import get_astrom
+    from astropy.time import Time
+    from astropy.coordinates import GCRS
+
+    frame = GCRS(obstime=Time.now())
+
+    with pytest.raises(NotImplementedError):
+        get_astrom(frame, 'foo')
+
+    with pytest.raises(NotImplementedError):
+        get_astrom(frame, 'apco13')
