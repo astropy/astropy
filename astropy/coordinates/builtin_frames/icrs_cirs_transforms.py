@@ -26,14 +26,14 @@ from .cirs import CIRS
 from .hcrs import HCRS
 from .utils import aticq, atciqz
 
-from ..astrom_manager import get_astrom
+from ..astrom_provider import astrom_provider
 
 
 # First the ICRS/CIRS related transforms
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ICRS, CIRS)
 def icrs_to_cirs(icrs_coo, cirs_frame):
     # first set up the astrometry context for ICRS<->CIRS
-    astrom = get_astrom(cirs_frame, 'apci')
+    astrom = astrom_provider.get().apci(cirs_frame)
 
     if icrs_coo.data.get_name() == 'unitspherical' or icrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just do the infinite-distance/no parallax calculation
@@ -74,7 +74,7 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
 
     # set up the astrometry context for ICRS<->cirs and then convert to
     # astrometric coordinate direction
-    astrom = get_astrom(cirs_coo, 'apci')
+    astrom = astrom_provider.get().apci(cirs_coo)
     i_ra, i_dec = aticq(cirs_ra, cirs_dec, astrom)
 
     if cirs_coo.data.get_name() == 'unitspherical' or cirs_coo.data.to_cartesian().x.unit == u.one:
@@ -120,7 +120,7 @@ def cirs_to_cirs(from_coo, to_frame):
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ICRS, GCRS)
 def icrs_to_gcrs(icrs_coo, gcrs_frame):
     # first set up the astrometry context for ICRS<->GCRS. There are a few steps...
-    astrom = get_astrom(gcrs_frame, 'apcs')
+    astrom = astrom_provider.get().apcs(gcrs_frame)
 
     if icrs_coo.data.get_name() == 'unitspherical' or icrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just do the infinite-distance/no parallax calculation
@@ -162,7 +162,7 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
 
     # set up the astrometry context for ICRS<->GCRS and then convert to BCRS
     # coordinate direction
-    astrom = get_astrom(gcrs_coo, 'apcs')
+    astrom = astrom_provider.get().apcs(gcrs_coo)
 
     i_ra, i_dec = aticq(gcrs_ra, gcrs_dec, astrom)
 
@@ -216,7 +216,7 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
 
     # set up the astrometry context for ICRS<->GCRS and then convert to ICRS
     # coordinate direction
-    astrom = get_astrom(gcrs_coo, 'apcs')
+    astrom = astrom_provider.get().apcs(gcrs_coo)
     i_ra, i_dec = aticq(gcrs_ra, gcrs_dec, astrom)
 
     # convert to Quantity objects
