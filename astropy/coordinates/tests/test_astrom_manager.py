@@ -36,11 +36,9 @@ def test_astrom_manager():
 
 
 def test_interpolation_2d():
-    # I was having a pretty hard time in coming
-    # up with a unit test only testing the get_astrom function
-    # that would not just test its implementation with its implementation
-    # so we test a coordinate conversion using it
-
+    '''
+    Test that the interpolation also works for nd-arrays
+    '''
     from astropy.coordinates.astrom_manager import get_astrom
 
     from astropy.coordinates import EarthLocation, AltAz, GCRS
@@ -53,13 +51,15 @@ def test_interpolation_2d():
         height=2200 * u.m,
     )
     obstime = Time('2020-01-01T18:00') + np.linspace(0, 12, 1000) * u.hour
-    obstime = obstime.reshape((25, 40))
 
-    altaz = AltAz(location=location, obstime=obstime)
-    gcrs = GCRS(obstime=obstime)
+    for shape in [(25, 40), (10, 10, 10), (5, 2, 10, 10)]:
+        obstime = obstime.reshape((25, 40))
 
-    for frame, tcode in zip([altaz, altaz, gcrs], ['apio13', 'apci', 'apcs']):
-        without_interp = get_astrom(frame, tcode, interpolation_resolution=0 * u.s)
+        altaz = AltAz(location=location, obstime=obstime)
+        gcrs = GCRS(obstime=obstime)
 
-        with_interp = get_astrom(frame, tcode)
-        assert without_interp.shape == with_interp.shape
+        for frame, tcode in zip([altaz, altaz, gcrs], ['apio13', 'apci', 'apcs']):
+            without_interp = get_astrom(frame, tcode, interpolation_resolution=0 * u.s)
+
+            with_interp = get_astrom(frame, tcode)
+            assert without_interp.shape == with_interp.shape
