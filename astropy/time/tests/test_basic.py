@@ -11,8 +11,9 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 import erfa
+from erfa import ErfaWarning
 
-from astropy.utils.exceptions import AstropyDeprecationWarning, ErfaWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils import isiterable, iers
 from astropy.time import (Time, TimeDelta, ScaleValueError, STANDARD_TIME_SCALES,
                           TimeString, TimezoneInfo, TIME_FORMATS)
