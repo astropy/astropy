@@ -4,7 +4,7 @@ import pytest
 
 def test_astrom_provider():
     # I was having a pretty hard time in coming
-    # up with a unit test only testing the get_astrom function
+    # up with a unit test only testing the astrom provider
     # that would not just test its implementation with its implementation
     # so we test a coordinate conversion using it
 
@@ -38,7 +38,7 @@ def test_astrom_provider():
     assert np.all(ref.separation(interp_300s) < u.Quantity(1, u.microarcsecond))
 
 
-def test_interpolation_2d():
+def test_interpolation_nd():
     '''
     Test that the interpolation also works for nd-arrays
     '''
@@ -55,13 +55,14 @@ def test_interpolation_2d():
         lat=28.761584 * u.deg,
         height=2200 * u.m,
     )
-    obstime = Time('2020-01-01T18:00') + np.linspace(0, 12, 1000) * u.hour
 
     interp_provider = InterpolatingAstromProvider(300 * u.s)
     provider = AstromProvider()
 
-    for shape in [(1000, ), (25, 40), (10, 10, 10), (5, 2, 10, 10)]:
-        obstime = obstime.reshape(shape)
+    for shape in [tuple(), (1, ), (100, ), (30, 20), (20, 10, 5), (10, 5, 3, 2)]:
+        # create obstimes of the desired shapes
+        delta_t = np.linspace(0, 12, np.prod(shape, dtype=int)) * u.hour
+        obstime = (Time('2020-01-01T18:00') + delta_t).reshape(shape)
 
         altaz = AltAz(location=location, obstime=obstime)
         gcrs = GCRS(obstime=obstime)

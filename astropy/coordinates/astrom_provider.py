@@ -173,6 +173,10 @@ class InterpolatingAstromProvider(AstromProvider):
 
     def apci(self, frame):
         obstime = frame.obstime
+        # no point in interpolating for a single value
+        if obstime.size == 1:
+            return super().apci(frame)
+
         support = self._get_support_points(obstime)
 
         jd1_tt, jd2_tt = get_jd12(obstime, 'tt')
@@ -184,6 +188,10 @@ class InterpolatingAstromProvider(AstromProvider):
 
     def apcs(self, frame):
         obstime = frame.obstime
+        # no point in interpolating for a single value
+        if obstime.size == 1:
+            return super().apci(frame)
+
         support = self._get_support_points(obstime)
 
         jd1_tt, jd2_tt = get_jd12(obstime, 'tt')
