@@ -38,7 +38,11 @@ def get_astrom(frame, tcode, interpolation_resolution=None):
     """
     TBD
     """
-    assert tcode in ['apio13', 'apci', 'apcs', 'apci13', 'apco13']
+    supported = {'apio13', 'apci', 'apcs'}
+    if tcode not in supported:
+        raise NotImplementedError(
+            f'Only the erfa functions {supported} are available through get_astrom'
+        )
 
     if interpolation_resolution is None:
         interpolation_resolution = astrom_interpolation_resolution.get()
@@ -134,10 +138,5 @@ def get_astrom(frame, tcode, interpolation_resolution=None):
             frame.obsgeovel.get_xyz(xyz_axis=-1).value
         )
         astrom = erfa.apcs(jd1_tt, jd2_tt, pv, earth_pv, earth_heliocentric)
-
-    elif tcode == 'apci13':
-        pass
-    elif tcode == 'apco13':
-        pass
 
     return astrom
